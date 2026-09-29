@@ -92,7 +92,7 @@ func (h *hgen) takesEd(name string) bool {
 func (h *hgen) directFx(fd *cc.FunctionDefinition) *hsFx {
 	fx := &hsFx{}
 	ft, _ := fd.Declarator.Type().(*cc.FunctionType)
-	if ft == nil || isAggr(ft.Result()) {
+	if ft == nil || isAggr(ft.Result()) && !h.tupleRet(fd.Declarator.Name()) {
 		fx.impure = true // a struct result is written through sret'
 	}
 	if ft != nil {
@@ -154,7 +154,7 @@ func (h *hgen) directFx(fd *cc.FunctionDefinition) *hsFx {
 				case d.Name() == "__builtin_expect":
 				case h.defined[d.Name()] != nil:
 					fx.calls = append(fx.calls, d.Name())
-					if ct, ok := d.Type().(*cc.FunctionType); ok && isAggr(ct.Result()) {
+					if ct, ok := d.Type().(*cc.FunctionType); ok && isAggr(ct.Result()) && !h.tupleRet(d.Name()) {
 						fx.impure = true // its result goes into the frame
 					}
 				default:

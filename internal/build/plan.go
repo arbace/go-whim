@@ -814,4 +814,9 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim180"}},
 		}},
+	{N: 181, Name: "an out-parameter a value, a struct local its members",
+		Steps: []Step{
+			{Op: "localout"},
+			{Op: "structscalar"},
+		}},
 }

@@ -233,6 +233,8 @@ func TestHsUnparen(t *testing.T) {
 		`(f x' (y'))`:         `f x' (y')`,
 		`(Ptr "(("# :: P)`:    `Ptr "(("# :: P`,
 		`()`:                  `()`,
+		`(a, b)`:              `(a, b)`,
+		`(f (a, b))`:          `f (a, b)`,
 	} {
 		if got := hsUnparen(in); got != want {
 			t.Errorf("hsUnparen(%s) = %s, want %s", in, got, want)
@@ -303,3 +305,35 @@ func TestHsSplit(t *testing.T) {
 		t.Run(c.name, func(t *testing.T) { hsSame(t, c.src, Profile{HsParts: 3}, javaHarnessC) })
 	}
 }
+
+// hsTupleC is C as phase 181 writes it (crefactor/xform's LocalOut): a
+// function returning a struct of its result and its out-parameters' values,
+// its callers reading the struct's members back.
+const hsTupleC = javaHost + `
+typedef struct { int r__; int q; long rest; } divmod__out_T;
+typedef struct { int lnum; int col; } pos_T;
+static divmod__out_T divmod(int v, int q, long rest) { q = v / 7; rest = v % 7; { divmod__out_T out__; out__.r__ = (q > 2); out__.q = q; out__.rest = rest; return out__; } }
+static pos_T mkpos(int l, int c) { pos_T p; p.lnum = l; p.col = c; return p; }
+static int sum(pos_T p) { return p.lnum + p.col; }
+static pos_T pick(int k) { switch (k) { case 1: return mkpos(1, 1); case 2: return mkpos(2, 2); } return mkpos(0, 0); }
+static pos_T gp;
+void run(void) {
+    divmod__out_T divmod__o;
+    int q = 0;
+    long rest = 0;
+    int big = (divmod__o = divmod(45, q, rest), q = divmod__o.q, rest = divmod__o.rest, divmod__o.r__);
+    out(big); out(q); out(rest);
+    if ((divmod__o = divmod(3, q, rest), q = divmod__o.q, rest = divmod__o.rest, divmod__o.r__) || q == 0)
+        out(q);
+    pos_T a = mkpos(4, 5);
+    out(a.lnum * 10 + a.col);
+    out(sum(mkpos(1, 2)));
+    gp = mkpos(8, 9);
+    out(gp.col);
+    out(pick(2).col + pick(5).lnum);
+    pos_T t = q > 1 ? mkpos(3, 4) : mkpos(5, 6);
+    out(t.col);
+}
+`
+
+func TestHsTuples(t *testing.T) { hsSame(t, hsTupleC, Profile{}, javaHarnessC) }

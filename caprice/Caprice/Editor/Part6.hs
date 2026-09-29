@@ -746,92 +746,103 @@ set_init_1 ed' = do
   pure ()
 
 set_option_default :: Ed -> Int32 -> Int32 -> Int32 -> IO ()
-set_option_default ed' opt_idx opt_flags compatible = frame 128 $ \fr' -> do
+set_option_default ed' opt_idx opt_flags compatible = frame 96 $ \fr' -> do
   let
     j'9 !both1 !def_val1 = do
       if both1
         then do
-          get_varp_scope ed' (pAdd fr' 32) (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_GLOBAL
-          r'1 <- rdP (pAdd fr' 32) optvar_T'ov_long
-          wrI64 r'1 0 def_val1
+          (r'1, r'2, r'3, r'4) <- get_varp_scope ed' (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_GLOBAL
+          wrP (pAdd fr' 32) optvar_T'ov_int r'1
+          wrP (pAdd fr' 32) optvar_T'ov_long r'2
+          wrP (pAdd fr' 32) optvar_T'ov_str r'3
+          wrI32 (pAdd fr' 32) optvar_T'ov_win r'4
+          r'5 <- rdP (pAdd fr' 32) optvar_T'ov_long
+          wrI64 r'5 0 def_val1
           j'17 both1
         else j'17 both1
     j'15 !dvi1 !both2 = do
-      r'3 <- rdP fr' optvar_T'ov_str
-      r'2 <- rdP (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_str) ((fromIntegral dvi1) * 8)) 0
-      wrP r'3 0 r'2
-      r'4 <- rdW64 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
-      wrW64 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags (r'4 .&. 18446744073709551607)
+      r'7 <- rdP fr' optvar_T'ov_str
+      r'6 <- rdP (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_str) ((fromIntegral dvi1) * 8)) 0
+      wrP r'7 0 r'6
+      r'8 <- rdW64 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
+      wrW64 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags (r'8 .&. 18446744073709551607)
       j'17 both2
     j'17 !both3 = do
       let !flagsp1 = pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
-      r'5 <- rdW64 flagsp1 0
-      wrW64 flagsp1 0 (r'5 .&. 18446744073701163007)
+      r'9 <- rdW64 flagsp1 0
+      wrW64 flagsp1 0 (r'9 .&. 18446744073701163007)
       if both3
         then do
           let !flagsp2 = pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
-          r'6 <- rdW64 flagsp2 0
-          wrW64 flagsp2 0 (r'6 .&. 18446744073701163007)
+          r'10 <- rdW64 flagsp2 0
+          wrW64 flagsp2 0 (r'10 .&. 18446744073701163007)
           pure ()
         else pure ()
   let !both4 = (opt_flags .&. 6) == 0
-  get_varp_scope ed' (pAdd fr' 64) (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) (if both4 then OPT_LOCAL else opt_flags)
-  copyMem fr' (pAdd fr' 64) 32
-  r'7 <- rdW64 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
-  r'8 <- optvar_is_null fr'
-  if not r'8
+  (r'11, r'12, r'13, r'14) <- get_varp_scope ed' (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) (if both4 then OPT_LOCAL else opt_flags)
+  wrP fr' optvar_T'ov_int r'11
+  wrP fr' optvar_T'ov_long r'12
+  wrP fr' optvar_T'ov_str r'13
+  wrI32 fr' optvar_T'ov_win r'14
+  r'15 <- rdW64 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
+  r'16 <- optvar_is_null fr'
+  if not r'16
     then do
-      let !dvi2 = if (((r'7 .&. P_VI_DEF) /= 0) || (compatible /= 0)) then (VI_DEFAULT :: Int32) else (VIM_DEFAULT :: Int32)
-      if (r'7 .&. P_STRING) /= 0
+      let !dvi2 = if (((r'15 .&. P_VI_DEF) /= 0) || (compatible /= 0)) then (VI_DEFAULT :: Int32) else (VIM_DEFAULT :: Int32)
+      if (r'15 .&. P_STRING) /= 0
         then do
-          r'9 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
-          if r'9 /= PV_NONE
+          r'17 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
+          if r'17 /= PV_NONE
             then do
-              r'10 <- rdP (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_str) ((fromIntegral dvi2) * 8)) 0
-              set_string_option_direct ed' nullPtr opt_idx r'10 opt_flags 0
+              r'18 <- rdP (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_str) ((fromIntegral dvi2) * 8)) 0
+              set_string_option_direct ed' nullPtr opt_idx r'18 opt_flags 0
               j'17 both4
             else do
-              if ((opt_flags .&. OPT_FREE) /= 0) && ((r'7 .&. P_ALLOCED) /= 0)
+              if ((opt_flags .&. OPT_FREE) /= 0) && ((r'15 .&. P_ALLOCED) /= 0)
                 then do
-                  r'11 <- rdP fr' optvar_T'ov_str
-                  _ <- rdP r'11 0
+                  r'19 <- rdP fr' optvar_T'ov_str
+                  _ <- rdP r'19 0
                   j'15 dvi2 both4
                 else j'15 dvi2 both4
         else do
-          if (r'7 .&. P_NUM) /= 0
+          if (r'15 .&. P_NUM) /= 0
             then do
-              r'13 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
-              if r'13 == 8202
+              r'21 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
+              if r'21 == 8202
                 then do
-                  r'14 <- curwin ed'
-                  win_comp_scroll r'14
+                  r'22 <- curwin ed'
+                  win_comp_scroll r'22
                   j'17 both4
                 else do
-                  r'15 <- rdI64 (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_num) ((fromIntegral dvi2) * 8)) 0
-                  r'16 <- rdP fr' optvar_T'ov_long
-                  r'17 <- curwin ed'
-                  r'20 <- if (r'16 == (pAdd r'17 (win_T'w_onebuf_opt + winopt_T'wo_so))) then pure True else (do { r'18 <- rdP fr' optvar_T'ov_long; r'19 <- curwin ed'; pure (r'18 == (pAdd r'19 (win_T'w_onebuf_opt + winopt_T'wo_siso))) })
-                  r'23 <- if r'20 then pure True else (do { r'21 <- rdP fr' optvar_T'ov_long; r'22 <- curwin ed'; pure (r'21 == (pAdd r'22 (win_T'w_onebuf_opt + winopt_T'wo_sop))) })
-                  if r'23
+                  r'23 <- rdI64 (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_num) ((fromIntegral dvi2) * 8)) 0
+                  r'24 <- rdP fr' optvar_T'ov_long
+                  r'25 <- curwin ed'
+                  r'28 <- if (r'24 == (pAdd r'25 (win_T'w_onebuf_opt + winopt_T'wo_so))) then pure True else (do { r'26 <- rdP fr' optvar_T'ov_long; r'27 <- curwin ed'; pure (r'26 == (pAdd r'27 (win_T'w_onebuf_opt + winopt_T'wo_siso))) })
+                  r'31 <- if r'28 then pure True else (do { r'29 <- rdP fr' optvar_T'ov_long; r'30 <- curwin ed'; pure (r'29 == (pAdd r'30 (win_T'w_onebuf_opt + winopt_T'wo_sop))) })
+                  if r'31
                     then do
-                      r'24 <- rdP fr' optvar_T'ov_long
-                      wrI64 r'24 0 (-1)
-                      j'9 both4 r'15
+                      r'32 <- rdP fr' optvar_T'ov_long
+                      wrI64 r'32 0 (-1)
+                      j'9 both4 r'23
                     else do
-                      r'25 <- rdP fr' optvar_T'ov_long
-                      wrI64 r'25 0 r'15
-                      j'9 both4 r'15
+                      r'33 <- rdP fr' optvar_T'ov_long
+                      wrI64 r'33 0 r'23
+                      j'9 both4 r'23
             else do
-              r'27 <- rdP fr' optvar_T'ov_int
-              r'26 <- rdI64 (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_num) ((fromIntegral dvi2) * 8)) 0
-              wrI32 r'27 0 (fromIntegral r'26 :: Int32)
+              r'35 <- rdP fr' optvar_T'ov_int
+              r'34 <- rdI64 (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_num) ((fromIntegral dvi2) * 8)) 0
+              wrI32 r'35 0 (fromIntegral r'34 :: Int32)
               if both4
                 then do
-                  get_varp_scope ed' (pAdd fr' 96) (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_GLOBAL
-                  r'28 <- rdP (pAdd fr' 96) optvar_T'ov_int
-                  r'29 <- rdP fr' optvar_T'ov_int
-                  r'30 <- rdI32 r'29 0
-                  wrI32 r'28 0 r'30
+                  (r'36, r'37, r'38, r'39) <- get_varp_scope ed' (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_GLOBAL
+                  wrP (pAdd fr' 64) optvar_T'ov_int r'36
+                  wrP (pAdd fr' 64) optvar_T'ov_long r'37
+                  wrP (pAdd fr' 64) optvar_T'ov_str r'38
+                  wrI32 (pAdd fr' 64) optvar_T'ov_win r'39
+                  r'40 <- rdP (pAdd fr' 64) optvar_T'ov_int
+                  r'41 <- rdP fr' optvar_T'ov_int
+                  r'42 <- rdI32 r'41 0
+                  wrI32 r'40 0 r'42
                   j'17 both4
                 else j'17 both4
     else pure ()
@@ -989,7 +1000,7 @@ get_option_prefix argp = do
 parse_option_name :: Ed -> Ptr Char_u -> Int32 -> Int32 -> Int32 -> IO (Bool, Int32, Int32, Int32)
 parse_option_name ed' arg opt_idxp lenp keyp = do
   let
-    loop'3 !opt_idxp1 !lenp1 !keyp1 !key1 !len1 = do
+    loop'3 !key1 !len1 !out___r__1 !out___opt_idxp1 !out___lenp1 !out___keyp1 !out___2_r__1 !out___2_opt_idxp1 !out___2_lenp1 !out___2_keyp1 = do
       r'1 <- rdW8 (pAdd arg (fromIntegral len1)) 0
       r'3 <- if (((fromIntegral r'1 :: Word32) - (ch 'A')) < 26) then pure True else (do { r'2 <- rdW8 (pAdd arg (fromIntegral len1)) 0; pure (((fromIntegral r'2 :: Word32) - (ch 'a')) < 26) })
       r'5 <- if r'3 then pure True else (do { r'4 <- rdW8 (pAdd arg (fromIntegral len1)) 0; pure (((fromIntegral r'4 :: Word32) - (ch '0')) < 10) })
@@ -997,9 +1008,9 @@ parse_option_name ed' arg opt_idxp lenp keyp = do
       if r'7
         then do
           let !len2 = len1 + 1
-          loop'3 opt_idxp1 lenp1 keyp1 key1 len2
-        else j'6 opt_idxp1 lenp1 keyp1 key1 len1
-    j'6 !opt_idxp2 !lenp2 !keyp2 !key2 !len3 = do
+          loop'3 key1 len2 out___r__1 out___opt_idxp1 out___lenp1 out___keyp1 out___2_r__1 out___2_opt_idxp1 out___2_lenp1 out___2_keyp1
+        else j'6 key1 len1 out___r__1 out___opt_idxp1 out___lenp1 out___keyp1 out___2_r__1 out___2_opt_idxp1 out___2_lenp1 out___2_keyp1
+    j'6 !key2 !len3 !out___r__2 !out___opt_idxp2 !out___lenp2 !out___keyp2 !out___2_r__2 !out___2_opt_idxp2 !out___2_lenp2 !out___2_keyp2 = do
       r'8 <- rdW8 (pAdd arg (fromIntegral len3)) 0
       let !nextchar1 = fromIntegral r'8 :: Int32
       wrW8 (pAdd arg (fromIntegral len3)) 0 NUL
@@ -1008,20 +1019,20 @@ parse_option_name ed' arg opt_idxp lenp keyp = do
       if r'9 == (-1)
         then do
           r'10 <- find_key_option ed' arg False
-          j'18 opt_idxp2 lenp2 keyp2 r'10 len3 r'9
-        else j'18 opt_idxp2 lenp2 keyp2 key2 len3 r'9
-    loop'10 !opt_idxp3 !lenp3 !keyp3 !key3 !len4 !opt_idx1 = do
+          j'18 r'10 len3 r'9 out___r__2 out___opt_idxp2 out___lenp2 out___keyp2 out___2_r__2 out___2_opt_idxp2 out___2_lenp2 out___2_keyp2
+        else j'18 key2 len3 r'9 out___r__2 out___opt_idxp2 out___lenp2 out___keyp2 out___2_r__2 out___2_opt_idxp2 out___2_lenp2 out___2_keyp2
+    loop'10 !opt_idxp1 !lenp1 !keyp1 !key3 !len4 !opt_idx1 !out___r__3 !out___opt_idxp3 !out___lenp3 !out___keyp3 !out___2_r__3 !out___2_opt_idxp3 !out___2_lenp3 !out___2_keyp3 = do
       r'11 <- rdW8 (pAdd arg (fromIntegral len4)) 0
       r'13 <- if ((fromIntegral r'11 :: Int32) /= NUL) then (do { r'12 <- rdW8 (pAdd arg (fromIntegral len4)) 0; pure ((fromIntegral r'12 :: Int32) /= (ch '>')) }) else pure False
       if r'13
         then do
           let !len5 = len4 + 1
-          loop'10 opt_idxp3 lenp3 keyp3 key3 len5 opt_idx1
-        else j'13 opt_idxp3 lenp3 keyp3 key3 len4 opt_idx1
-    j'13 !opt_idxp4 !lenp4 !keyp4 !key4 !len6 !opt_idx2 = do
+          loop'10 opt_idxp1 lenp1 keyp1 key3 len5 opt_idx1 out___r__3 out___opt_idxp3 out___lenp3 out___keyp3 out___2_r__3 out___2_opt_idxp3 out___2_lenp3 out___2_keyp3
+        else j'13 opt_idxp1 lenp1 keyp1 key3 len4 opt_idx1 out___r__3 out___opt_idxp3 out___lenp3 out___keyp3 out___2_r__3 out___2_opt_idxp3 out___2_lenp3 out___2_keyp3
+    j'13 !opt_idxp2 !lenp2 !keyp2 !key4 !len6 !opt_idx2 !out___r__4 !out___opt_idxp4 !out___lenp4 !out___keyp4 !out___2_r__4 !out___2_opt_idxp4 !out___2_lenp4 !out___2_keyp4 = do
       r'14 <- rdW8 (pAdd arg (fromIntegral len6)) 0
       if (fromIntegral r'14 :: Int32) /= (ch '>')
-        then pure (False, opt_idxp4, lenp4, keyp4)
+        then pure (False, opt_idxp2, lenp2, keyp2)
         else do
           wrW8 (pAdd arg (fromIntegral len6)) 0 NUL
           r'15 <- rdW8 arg 1
@@ -1029,17 +1040,17 @@ parse_option_name ed' arg opt_idxp lenp keyp = do
           if r'17
             then do
               r'18 <- findoption ed' (pAdd arg 1)
-              j'16 opt_idxp4 lenp4 keyp4 key4 len6 r'18
-            else j'16 opt_idxp4 lenp4 keyp4 key4 len6 opt_idx2
-    j'16 !opt_idxp5 !lenp5 !keyp5 !key5 !len7 !opt_idx3 = do
+              j'16 key4 len6 r'18 out___r__4 out___opt_idxp4 out___lenp4 out___keyp4 out___2_r__4 out___2_opt_idxp4 out___2_lenp4 out___2_keyp4
+            else j'16 key4 len6 opt_idx2 out___r__4 out___opt_idxp4 out___lenp4 out___keyp4 out___2_r__4 out___2_opt_idxp4 out___2_lenp4 out___2_keyp4
+    j'16 !key5 !len7 !opt_idx3 !out___r__5 !out___opt_idxp5 !out___lenp5 !out___keyp5 !out___2_r__5 !out___2_opt_idxp5 !out___2_lenp5 !out___2_keyp5 = do
       let !len8 = len7 + 1
       wrW8 (pAdd arg (fromIntegral len7)) 0 (ch '>')
       if opt_idx3 == (-1)
         then do
           r'19 <- find_key_option ed' (pAdd arg 1) True
-          j'18 opt_idxp5 lenp5 keyp5 r'19 len8 opt_idx3
-        else j'18 opt_idxp5 lenp5 keyp5 key5 len8 opt_idx3
-    j'18 _ _ _ !key6 !len9 !opt_idx4 = do
+          j'18 r'19 len8 opt_idx3 out___r__5 out___opt_idxp5 out___lenp5 out___keyp5 out___2_r__5 out___2_opt_idxp5 out___2_lenp5 out___2_keyp5
+        else j'18 key5 len8 opt_idx3 out___r__5 out___opt_idxp5 out___lenp5 out___keyp5 out___2_r__5 out___2_opt_idxp5 out___2_lenp5 out___2_keyp5
+    j'18 !key6 !len9 !opt_idx4 _ _ _ _ _ _ _ _ = do
       pure (True, opt_idx4, len9, key6)
   r'20 <- rdW8 arg 0
   if (fromIntegral r'20 :: Int32) == (ch '<')
@@ -1049,16 +1060,16 @@ parse_option_name ed' arg opt_idxp lenp keyp = do
       r'25 <- if r'23 then (do { r'24 <- rdW8 arg 3; pure (r'24 /= 0) }) else pure False
       r'27 <- if r'25 then (do { r'26 <- rdW8 arg 4; pure (r'26 /= 0) }) else pure False
       if r'27
-        then j'13 opt_idxp lenp keyp (0 :: Int32) (5 :: Int32) (-1 :: Int32)
-        else loop'10 opt_idxp lenp keyp (0 :: Int32) (1 :: Int32) (-1 :: Int32)
+        then j'13 opt_idxp lenp keyp (0 :: Int32) (5 :: Int32) (-1 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
+        else loop'10 opt_idxp lenp keyp (0 :: Int32) (1 :: Int32) (-1 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
     else do
       r'28 <- rdW8 arg 0
       r'30 <- if ((fromIntegral r'28 :: Int32) == (ch 't')) then (do { r'29 <- rdW8 arg 1; pure ((fromIntegral r'29 :: Int32) == (ch '_')) }) else pure False
       r'32 <- if r'30 then (do { r'31 <- rdW8 arg 2; pure (r'31 /= 0) }) else pure False
       r'34 <- if r'32 then (do { r'33 <- rdW8 arg 3; pure (r'33 /= 0) }) else pure False
       if r'34
-        then j'6 opt_idxp lenp keyp (0 :: Int32) (4 :: Int32)
-        else loop'3 opt_idxp lenp keyp (0 :: Int32) (0 :: Int32)
+        then j'6 (0 :: Int32) (4 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
+        else loop'3 (0 :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 get_opt_op :: Ptr Char_u -> IO Set_op_T
 get_opt_op arg = do
@@ -1125,28 +1136,28 @@ opt_backspace_nr2str :: Ed -> Ptr Optvar_T -> Ptr Char_u -> Ptr Char_u -> Ptr Ch
 opt_backspace_nr2str ed' varp origval_p origval_l_p origval_g_p oldval_p = frame 32 $ \fr' -> do
   copyMem (pAdd fr' 0) varp 32
   let
-    j'5 !origval_p1 !origval_l_p1 !origval_g_p1 !oldval_p1 = do
+    j'5 !origval_p1 !origval_l_p1 !origval_g_p1 !oldval_p1 !out___origval_p1 !out___origval_l_p1 !out___origval_g_p1 !out___oldval_p1 = do
       if origval_p1 == oldval_p1
         then do
           r'1 <- rdP fr' optvar_T'ov_str
           r'2 <- rdP r'1 0
-          j'7 r'2 origval_l_p1 origval_g_p1 oldval_p1
-        else j'7 origval_p1 origval_l_p1 origval_g_p1 oldval_p1
-    j'7 !origval_p2 !origval_l_p2 !origval_g_p2 !oldval_p2 = do
+          j'7 r'2 origval_l_p1 origval_g_p1 oldval_p1 out___origval_p1 out___origval_l_p1 out___origval_g_p1 out___oldval_p1
+        else j'7 origval_p1 origval_l_p1 origval_g_p1 oldval_p1 out___origval_p1 out___origval_l_p1 out___origval_g_p1 out___oldval_p1
+    j'7 !origval_p2 !origval_l_p2 !origval_g_p2 !oldval_p2 !out___origval_p2 !out___origval_l_p2 !out___origval_g_p2 !out___oldval_p2 = do
       if origval_l_p2 == oldval_p2
         then do
           r'3 <- rdP fr' optvar_T'ov_str
           r'4 <- rdP r'3 0
-          j'9 origval_p2 r'4 origval_g_p2 oldval_p2
-        else j'9 origval_p2 origval_l_p2 origval_g_p2 oldval_p2
-    j'9 !origval_p3 !origval_l_p3 !origval_g_p3 !oldval_p3 = do
+          j'9 origval_p2 r'4 origval_g_p2 oldval_p2 out___origval_p2 out___origval_l_p2 out___origval_g_p2 out___oldval_p2
+        else j'9 origval_p2 origval_l_p2 origval_g_p2 oldval_p2 out___origval_p2 out___origval_l_p2 out___origval_g_p2 out___oldval_p2
+    j'9 !origval_p3 !origval_l_p3 !origval_g_p3 !oldval_p3 !out___origval_p3 !out___origval_l_p3 !out___origval_g_p3 !out___oldval_p3 = do
       if origval_g_p3 == oldval_p3
         then do
           r'5 <- rdP fr' optvar_T'ov_str
           r'6 <- rdP r'5 0
-          j'11 origval_p3 origval_l_p3 r'6 oldval_p3
-        else j'11 origval_p3 origval_l_p3 origval_g_p3 oldval_p3
-    j'11 !origval_p4 !origval_l_p4 !origval_g_p4 _ = do
+          j'11 origval_p3 origval_l_p3 r'6 out___origval_p3 out___origval_l_p3 out___origval_g_p3 out___oldval_p3
+        else j'11 origval_p3 origval_l_p3 origval_g_p3 out___origval_p3 out___origval_l_p3 out___origval_g_p3 out___oldval_p3
+    j'11 !origval_p4 !origval_l_p4 !origval_g_p4 _ _ _ _ = do
       r'7 <- rdP fr' optvar_T'ov_str
       r'8 <- rdP r'7 0
       pure (origval_p4, origval_l_p4, origval_g_p4, r'8)
@@ -1158,23 +1169,23 @@ opt_backspace_nr2str ed' varp origval_p origval_l_p origval_g_p oldval_p = frame
       r'12 <- rdP fr' optvar_T'ov_str
       r'11 <- empty_option ed'
       wrP r'12 0 r'11
-      j'5 origval_p origval_l_p origval_g_p oldval_p
+      j'5 origval_p origval_l_p origval_g_p oldval_p nullPtr nullPtr nullPtr nullPtr
     1 -> do
       r'14 <- rdP fr' optvar_T'ov_str
       r'13 <- vim_strnsave ed' (Ptr "indent,eol\0"#) 10
       wrP r'14 0 r'13
-      j'5 origval_p origval_l_p origval_g_p oldval_p
+      j'5 origval_p origval_l_p origval_g_p oldval_p nullPtr nullPtr nullPtr nullPtr
     2 -> do
       r'16 <- rdP fr' optvar_T'ov_str
       r'15 <- vim_strnsave ed' (Ptr "indent,eol,start\0"#) 16
       wrP r'16 0 r'15
-      j'5 origval_p origval_l_p origval_g_p oldval_p
+      j'5 origval_p origval_l_p origval_g_p oldval_p nullPtr nullPtr nullPtr nullPtr
     3 -> do
       r'18 <- rdP fr' optvar_T'ov_str
       r'17 <- vim_strnsave ed' (Ptr "indent,eol,nostop\0"#) 17
       wrP r'18 0 r'17
-      j'5 origval_p origval_l_p origval_g_p oldval_p
-    _ -> j'5 origval_p origval_l_p origval_g_p oldval_p
+      j'5 origval_p origval_l_p origval_g_p oldval_p nullPtr nullPtr nullPtr nullPtr
+    _ -> j'5 origval_p origval_l_p origval_g_p oldval_p nullPtr nullPtr nullPtr nullPtr
 
 opt_whichwrap_nr2str :: Ptr (Ptr Char_u) -> Ptr Char_u -> IO (Ptr Char_u)
 opt_whichwrap_nr2str argp whichwrap = do
@@ -1361,7 +1372,7 @@ stropt_remove_val origval newval flags strval len = do
 find_key_item :: Ed -> Ptr Char_u -> Ptr Char_u -> Int32 -> Int32 -> IO (Ptr Char_u, Int32)
 find_key_item ed' src key keylen itemlenp = do
   let
-    loop'1 !itemlenp1 !p1 = do
+    loop'1 !itemlenp1 !p1 !out___r__1 !out___itemlenp1 !out___2_r__1 !out___2_itemlenp1 = do
       r'1 <- rdW8 p1 0
       if (fromIntegral r'1 :: Int32) /= NUL
         then do
@@ -1374,16 +1385,16 @@ find_key_item ed' src key keylen itemlenp = do
                 then do
                   r'7 <- musl_strlen (castPtr p1)
                   let !end1 = pAdd p1 (fromIntegral r'7)
-                  j'7 itemlenp1 p1 end1
-                else j'7 itemlenp1 p1 r'6
+                  j'7 p1 end1 out___r__1 out___itemlenp1 out___2_r__1 out___2_itemlenp1
+                else j'7 p1 r'6 out___r__1 out___itemlenp1 out___2_r__1 out___2_itemlenp1
             else do
               let !p2 = pAdd p1 1
-              loop'1 itemlenp1 p2
+              loop'1 itemlenp1 p2 out___r__1 out___itemlenp1 out___2_r__1 out___2_itemlenp1
         else pure (nullPtr, itemlenp1)
-    j'7 _ !p3 !end2 = do
-      let !itemlenp3 = fromIntegral (fromIntegral (quot (pSub end2 p3) 1) :: Int64) :: Int32
-      pure (p3, itemlenp3)
-  loop'1 itemlenp src
+    j'7 !p3 !end2 _ _ _ _ = do
+      let !itemlenp2 = fromIntegral (fromIntegral (quot (pSub end2 p3) 1) :: Int64) :: Int32
+      pure (p3, itemlenp2)
+  loop'1 itemlenp src nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
 remove_comma_item :: Ptr Char_u -> Ptr Char_u -> Int32 -> IO ()
 remove_comma_item str item itemlen = do
@@ -1407,30 +1418,30 @@ remove_comma_item str item itemlen = do
 remove_key_item :: Ed -> Ptr Char_u -> Ptr Char_u -> Int32 -> Ptr Char_u -> IO ()
 remove_key_item ed' str key keylen skip = do
   let
-    loop'1 !itemlen1 = do
-      (r'1, itemlen2) <- find_key_item ed' str key keylen itemlen1
+    loop'1 !itemlen1 _ _ = do
+      (r'1, r'2) <- find_key_item ed' str key keylen itemlen1
       if r'1 /= nullPtr
         then do
           if r'1 == skip
             then do
-              let !next1 = pAdd r'1 (fromIntegral itemlen2)
+              let !next1 = pAdd r'1 (fromIntegral r'2)
               r'3 <- rdW8 next1 0
               if (fromIntegral r'3 :: Int32) == (ch ',')
                 then do
                   let !next2 = pAdd next1 1
-                  j'5 itemlen2 next2
-                else j'5 itemlen2 next1
-            else j'6 itemlen2 r'1
+                  j'5 r'2 next2 r'1 r'2
+                else j'5 r'2 next1 r'1 r'2
+            else j'6 r'2 r'1 r'1 r'2
         else pure ()
-    j'5 !itemlen3 !next3 = do
-      (r'4, itemlen4) <- find_key_item ed' next3 key keylen itemlen3
+    j'5 !itemlen2 !next3 _ _ = do
+      (r'4, r'5) <- find_key_item ed' next3 key keylen itemlen2
       if r'4 == nullPtr
         then pure ()
-        else j'6 itemlen4 r'4
-    j'6 !itemlen5 !found1 = do
-      remove_comma_item str found1 itemlen5
-      loop'1 itemlen5
-  loop'1 (0 :: Int32)
+        else j'6 r'5 r'4 r'4 r'5
+    j'6 !itemlen3 !found1 !find_key_item__o_r__3 !find_key_item__o_itemlenp3 = do
+      remove_comma_item str found1 itemlen3
+      loop'1 itemlen3 find_key_item__o_r__3 find_key_item__o_itemlenp3
+  loop'1 (0 :: Int32) nullPtr (0 :: Int32)
 
 append_item :: Ptr Char_u -> Ptr Char_u -> Int32 -> IO ()
 append_item str item item_len = do
@@ -1464,7 +1475,7 @@ prepend_item str item item_len = do
 stropt_handle_keymatch :: Ed -> Ptr Char_u -> Ptr Char_u -> Set_op_T -> Int32 -> IO Bool
 stropt_handle_keymatch ed' origval newval op _flags = do
   let
-    loop'2 !item_start1 !old_itemlen1 = do
+    loop'2 !item_start1 !old_itemlen1 !find_key_item__o_r__1 !find_key_item__o_itemlenp1 = do
       r'1 <- vim_strchr ed' item_start1 (ch ',')
       r'3 <- if (r'1 == nullPtr) then (do { r'2 <- musl_strlen (castPtr item_start1); pure (fromIntegral r'2 :: Int32) }) else pure (fromIntegral (fromIntegral (quot (pSub r'1 item_start1) 1) :: Int64) :: Int32)
       if r'3 > 0
@@ -1475,37 +1486,37 @@ stropt_handle_keymatch ed' origval newval op _flags = do
               let !keylen1 = (fromIntegral (fromIntegral (quot (pSub r'4 item_start1) 1) :: Int64) :: Int32) + 1
               if (op == OP_ADDING) || (op == OP_PREPENDING)
                 then do
-                  (r'5, old_itemlen2) <- find_key_item ed' newval item_start1 keylen1 old_itemlen1
+                  (r'5, r'6) <- find_key_item ed' newval item_start1 keylen1 old_itemlen1
                   if r'5 /= nullPtr
                     then do
-                      r'8 <- if (old_itemlen2 == r'3) then (do { r'7 <- musl_strncmp (castPtr r'5) (castPtr item_start1) (fromIntegral r'3 :: Word64); pure (r'7 == 0) }) else pure False
+                      r'8 <- if (r'6 == r'3) then (do { r'7 <- musl_strncmp (castPtr r'5) (castPtr item_start1) (fromIntegral r'3 :: Word64); pure (r'7 == 0) }) else pure False
                       if r'8
                         then do
                           remove_key_item ed' newval item_start1 keylen1 r'5
-                          j'24 r'1 old_itemlen2
+                          j'24 r'1 r'6 r'5 r'6
                         else do
                           remove_key_item ed' newval item_start1 keylen1 nullPtr
                           if op == OP_PREPENDING
                             then do
                               prepend_item newval item_start1 r'3
-                              j'24 r'1 old_itemlen2
+                              j'24 r'1 r'6 r'5 r'6
                             else do
                               append_item newval item_start1 r'3
-                              j'24 r'1 old_itemlen2
+                              j'24 r'1 r'6 r'5 r'6
                     else do
                       if op == OP_PREPENDING
                         then do
                           prepend_item newval item_start1 r'3
-                          j'24 r'1 old_itemlen2
+                          j'24 r'1 r'6 r'5 r'6
                         else do
                           append_item newval item_start1 r'3
-                          j'24 r'1 old_itemlen2
+                          j'24 r'1 r'6 r'5 r'6
                 else do
                   if op == OP_REMOVING
                     then do
                       remove_key_item ed' newval item_start1 keylen1 nullPtr
-                      j'24 r'1 old_itemlen1
-                    else j'24 r'1 old_itemlen1
+                      j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
+                    else j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
             else do
               if (op == OP_ADDING) || (op == OP_PREPENDING)
                 then do
@@ -1515,11 +1526,11 @@ stropt_handle_keymatch ed' origval newval op _flags = do
                       if op == OP_PREPENDING
                         then do
                           prepend_item newval item_start1 r'3
-                          j'24 r'1 old_itemlen1
+                          j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
                         else do
                           append_item newval item_start1 r'3
-                          j'24 r'1 old_itemlen1
-                    else j'24 r'1 old_itemlen1
+                          j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
+                    else j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
                 else do
                   if op == OP_REMOVING
                     then do
@@ -1527,16 +1538,16 @@ stropt_handle_keymatch ed' origval newval op _flags = do
                       if r'10 /= nullPtr
                         then do
                           remove_comma_item newval r'10 r'3
-                          j'24 r'1 old_itemlen1
-                        else j'24 r'1 old_itemlen1
-                    else j'24 r'1 old_itemlen1
-        else j'24 r'1 old_itemlen1
-    j'24 !p1 !old_itemlen3 = do
+                          j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
+                        else j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
+                    else j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
+        else j'24 r'1 old_itemlen1 find_key_item__o_r__1 find_key_item__o_itemlenp1
+    j'24 !p1 !old_itemlen2 !find_key_item__o_r__2 !find_key_item__o_itemlenp2 = do
       if p1 == nullPtr
         then pure True
         else do
           let !item_start2 = pAdd p1 1
-          loop'2 item_start2 old_itemlen3
+          loop'2 item_start2 old_itemlen2 find_key_item__o_r__2 find_key_item__o_itemlenp2
   r'11 <- vim_strchr ed' newval (ch ':')
   r'13 <- if (r'11 == nullPtr) then (do { r'12 <- vim_strchr ed' newval (ch ','); pure (r'12 == nullPtr) }) else pure False
   if r'13
@@ -1544,7 +1555,7 @@ stropt_handle_keymatch ed' origval newval op _flags = do
     else do
       r'14 <- vim_strsave ed' newval
       _ <- musl_strcpy (castPtr newval) (castPtr origval)
-      loop'2 r'14 (0 :: Int32)
+      loop'2 r'14 (0 :: Int32) nullPtr (0 :: Int32)
 
 stropt_remove_dupflags :: Ed -> Ptr Char_u -> Int32 -> IO ()
 stropt_remove_dupflags ed' newval flags = do
@@ -1583,19 +1594,19 @@ stropt_get_newval :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Ptr Optvar_T -> Ptr C
 stropt_get_newval ed' nextchar opt_idx argp varp origval_arg origval_l_arg origval_g_arg oldval_arg op_arg flags cp_val = frame 120 $ \fr' -> do
   copyMem (pAdd fr' 0) varp 32
   let
-    j'6 !argp1 !origval_arg1 !origval_l_arg1 !origval_g_arg1 !oldval_arg1 !op_arg1 !origval1 !origval_l1 !origval_g1 !oldval1 !op1 !save_arg1 !s1 = do
+    j'6 !origval1 !origval_l1 !origval_g1 !oldval1 !op1 !save_arg1 !s1 !opt_backspace_nr2str__o_origval_p1 !opt_backspace_nr2str__o_origval_l_p1 !opt_backspace_nr2str__o_origval_g_p1 !opt_backspace_nr2str__o_oldval_p1 !out___r__1 !out___argp1 !out___origval_arg1 !out___origval_l_arg1 !out___origval_g_arg1 !out___oldval_arg1 !out___op_arg1 = do
       r'1 <- stropt_copy_value ed' origval1 (pAdd fr' 32) op1 flags
       if (op1 == OP_NONE) || ((flags .&. P_COMMA) /= 0)
         then do
           r'2 <- stropt_expand_envvar ed' opt_idx origval1 r'1 op1
           if r'2 == nullPtr
-            then j'21 argp1 origval_arg1 origval_l_arg1 origval_g_arg1 oldval_arg1 op_arg1 origval1 origval_l1 origval_g1 oldval1 op1 save_arg1 r'2
-            else j'8 argp1 origval_arg1 origval_l_arg1 origval_g_arg1 oldval_arg1 op_arg1 origval1 origval_l1 origval_g1 oldval1 op1 save_arg1 r'2 s1
-        else j'8 argp1 origval_arg1 origval_l_arg1 origval_g_arg1 oldval_arg1 op_arg1 origval1 origval_l1 origval_g1 oldval1 op1 save_arg1 r'1 s1
-    j'8 !argp2 !origval_arg2 !origval_l_arg2 !origval_g_arg2 !oldval_arg2 !op_arg2 !origval2 !origval_l2 !origval_g2 !oldval2 !op2 !save_arg2 !newval1 !s2 = do
+            then j'21 origval1 origval_l1 origval_g1 oldval1 op1 save_arg1 r'2 opt_backspace_nr2str__o_origval_p1 opt_backspace_nr2str__o_origval_l_p1 opt_backspace_nr2str__o_origval_g_p1 opt_backspace_nr2str__o_oldval_p1 out___r__1 out___argp1 out___origval_arg1 out___origval_l_arg1 out___origval_g_arg1 out___oldval_arg1 out___op_arg1
+            else j'8 origval1 origval_l1 origval_g1 oldval1 op1 save_arg1 r'2 s1 opt_backspace_nr2str__o_origval_p1 opt_backspace_nr2str__o_origval_l_p1 opt_backspace_nr2str__o_origval_g_p1 opt_backspace_nr2str__o_oldval_p1 out___r__1 out___argp1 out___origval_arg1 out___origval_l_arg1 out___origval_g_arg1 out___oldval_arg1 out___op_arg1
+        else j'8 origval1 origval_l1 origval_g1 oldval1 op1 save_arg1 r'1 s1 opt_backspace_nr2str__o_origval_p1 opt_backspace_nr2str__o_origval_l_p1 opt_backspace_nr2str__o_origval_g_p1 opt_backspace_nr2str__o_oldval_p1 out___r__1 out___argp1 out___origval_arg1 out___origval_l_arg1 out___origval_g_arg1 out___oldval_arg1 out___op_arg1
+    j'8 !origval2 !origval_l2 !origval_g2 !oldval2 !op2 !save_arg2 !newval1 !s2 !opt_backspace_nr2str__o_origval_p2 !opt_backspace_nr2str__o_origval_l_p2 !opt_backspace_nr2str__o_origval_g_p2 !opt_backspace_nr2str__o_oldval_p2 !out___r__2 !out___argp2 !out___origval_arg2 !out___origval_l_arg2 !out___origval_g_arg2 !out___oldval_arg2 !out___op_arg2 = do
       r'4 <- if ((((flags .&. P_COMMA) /= 0) && (((fromIntegral flags :: Int64) .&. P_COLON) /= 0)) && (op2 /= OP_NONE)) then (stropt_handle_keymatch ed' origval2 newval1 op2 flags) else pure False
       if r'4
-        then j'18 argp2 origval_arg2 origval_l_arg2 origval_g_arg2 oldval_arg2 op_arg2 origval2 origval_l2 origval_g2 oldval2 op2 save_arg2 newval1
+        then j'18 origval2 origval_l2 origval_g2 oldval2 op2 save_arg2 newval1 opt_backspace_nr2str__o_origval_p2 opt_backspace_nr2str__o_origval_l_p2 opt_backspace_nr2str__o_origval_g_p2 opt_backspace_nr2str__o_oldval_p2 out___r__2 out___argp2 out___origval_arg2 out___origval_l_arg2 out___origval_g_arg2 out___oldval_arg2 out___op_arg2
         else do
           if (op2 == OP_REMOVING) || ((flags .&. P_NODUP) /= 0)
             then do
@@ -1605,47 +1616,47 @@ stropt_get_newval ed' nextchar opt_idx argp varp origval_arg origval_l_arg origv
               if ((op2 == OP_ADDING) || (op2 == OP_PREPENDING)) && (r'6 /= nullPtr)
                 then do
                   _ <- musl_strcpy (castPtr newval1) (castPtr origval2)
-                  j'12 argp2 origval_arg2 origval_l_arg2 origval_g_arg2 oldval_arg2 op_arg2 origval2 origval_l2 origval_g2 oldval2 (OP_NONE :: Int32) save_arg2 newval1 r'6 len1
-                else j'12 argp2 origval_arg2 origval_l_arg2 origval_g_arg2 oldval_arg2 op_arg2 origval2 origval_l2 origval_g2 oldval2 op2 save_arg2 newval1 r'6 len1
-            else j'14 argp2 origval_arg2 origval_l_arg2 origval_g_arg2 oldval_arg2 op_arg2 origval2 origval_l2 origval_g2 oldval2 op2 save_arg2 newval1 s2 (0 :: Int32)
-    j'12 !argp3 !origval_arg3 !origval_l_arg3 !origval_g_arg3 !oldval_arg3 !op_arg3 !origval3 !origval_l3 !origval_g3 !oldval3 !op3 !save_arg3 !newval2 !s3 !len2 = do
+                  j'12 origval2 origval_l2 origval_g2 oldval2 (OP_NONE :: Int32) save_arg2 newval1 r'6 len1 opt_backspace_nr2str__o_origval_p2 opt_backspace_nr2str__o_origval_l_p2 opt_backspace_nr2str__o_origval_g_p2 opt_backspace_nr2str__o_oldval_p2 out___r__2 out___argp2 out___origval_arg2 out___origval_l_arg2 out___origval_g_arg2 out___oldval_arg2 out___op_arg2
+                else j'12 origval2 origval_l2 origval_g2 oldval2 op2 save_arg2 newval1 r'6 len1 opt_backspace_nr2str__o_origval_p2 opt_backspace_nr2str__o_origval_l_p2 opt_backspace_nr2str__o_origval_g_p2 opt_backspace_nr2str__o_oldval_p2 out___r__2 out___argp2 out___origval_arg2 out___origval_l_arg2 out___origval_g_arg2 out___oldval_arg2 out___op_arg2
+            else j'14 origval2 origval_l2 origval_g2 oldval2 op2 save_arg2 newval1 s2 (0 :: Int32) opt_backspace_nr2str__o_origval_p2 opt_backspace_nr2str__o_origval_l_p2 opt_backspace_nr2str__o_origval_g_p2 opt_backspace_nr2str__o_oldval_p2 out___r__2 out___argp2 out___origval_arg2 out___origval_l_arg2 out___origval_g_arg2 out___oldval_arg2 out___op_arg2
+    j'12 !origval3 !origval_l3 !origval_g3 !oldval3 !op3 !save_arg3 !newval2 !s3 !len2 !opt_backspace_nr2str__o_origval_p3 !opt_backspace_nr2str__o_origval_l_p3 !opt_backspace_nr2str__o_origval_g_p3 !opt_backspace_nr2str__o_oldval_p3 !out___r__3 !out___argp3 !out___origval_arg3 !out___origval_l_arg3 !out___origval_g_arg3 !out___oldval_arg3 !out___op_arg3 = do
       if s3 == nullPtr
         then do
           r'8 <- musl_strlen (castPtr origval3)
           let !s4 = pAdd origval3 (fromIntegral (fromIntegral r'8 :: Int32))
-          j'14 argp3 origval_arg3 origval_l_arg3 origval_g_arg3 oldval_arg3 op_arg3 origval3 origval_l3 origval_g3 oldval3 op3 save_arg3 newval2 s4 len2
-        else j'14 argp3 origval_arg3 origval_l_arg3 origval_g_arg3 oldval_arg3 op_arg3 origval3 origval_l3 origval_g3 oldval3 op3 save_arg3 newval2 s3 len2
-    j'14 !argp4 !origval_arg4 !origval_l_arg4 !origval_g_arg4 !oldval_arg4 !op_arg4 !origval4 !origval_l4 !origval_g4 !oldval4 !op4 !save_arg4 !newval3 !s5 !len3 = do
+          j'14 origval3 origval_l3 origval_g3 oldval3 op3 save_arg3 newval2 s4 len2 opt_backspace_nr2str__o_origval_p3 opt_backspace_nr2str__o_origval_l_p3 opt_backspace_nr2str__o_origval_g_p3 opt_backspace_nr2str__o_oldval_p3 out___r__3 out___argp3 out___origval_arg3 out___origval_l_arg3 out___origval_g_arg3 out___oldval_arg3 out___op_arg3
+        else j'14 origval3 origval_l3 origval_g3 oldval3 op3 save_arg3 newval2 s3 len2 opt_backspace_nr2str__o_origval_p3 opt_backspace_nr2str__o_origval_l_p3 opt_backspace_nr2str__o_origval_g_p3 opt_backspace_nr2str__o_oldval_p3 out___r__3 out___argp3 out___origval_arg3 out___origval_l_arg3 out___origval_g_arg3 out___oldval_arg3 out___op_arg3
+    j'14 !origval4 !origval_l4 !origval_g4 !oldval4 !op4 !save_arg4 !newval3 !s5 !len3 !opt_backspace_nr2str__o_origval_p4 !opt_backspace_nr2str__o_origval_l_p4 !opt_backspace_nr2str__o_origval_g_p4 !opt_backspace_nr2str__o_oldval_p4 !out___r__4 !out___argp4 !out___origval_arg4 !out___origval_l_arg4 !out___origval_g_arg4 !out___oldval_arg4 !out___op_arg4 = do
       if (op4 == OP_ADDING) || (op4 == OP_PREPENDING)
         then do
           stropt_concat_with_comma origval4 newval3 op4 flags
-          j'18 argp4 origval_arg4 origval_l_arg4 origval_g_arg4 oldval_arg4 op_arg4 origval4 origval_l4 origval_g4 oldval4 op4 save_arg4 newval3
+          j'18 origval4 origval_l4 origval_g4 oldval4 op4 save_arg4 newval3 opt_backspace_nr2str__o_origval_p4 opt_backspace_nr2str__o_origval_l_p4 opt_backspace_nr2str__o_origval_g_p4 opt_backspace_nr2str__o_oldval_p4 out___r__4 out___argp4 out___origval_arg4 out___origval_l_arg4 out___origval_g_arg4 out___oldval_arg4 out___op_arg4
         else do
           if op4 == OP_REMOVING
             then do
               stropt_remove_val origval4 newval3 flags s5 len3
-              j'18 argp4 origval_arg4 origval_l_arg4 origval_g_arg4 oldval_arg4 op_arg4 origval4 origval_l4 origval_g4 oldval4 op4 save_arg4 newval3
-            else j'18 argp4 origval_arg4 origval_l_arg4 origval_g_arg4 oldval_arg4 op_arg4 origval4 origval_l4 origval_g4 oldval4 op4 save_arg4 newval3
-    j'18 !argp5 !origval_arg5 !origval_l_arg5 !origval_g_arg5 !oldval_arg5 !op_arg5 !origval5 !origval_l5 !origval_g5 !oldval5 !op5 !save_arg5 !newval4 = do
+              j'18 origval4 origval_l4 origval_g4 oldval4 op4 save_arg4 newval3 opt_backspace_nr2str__o_origval_p4 opt_backspace_nr2str__o_origval_l_p4 opt_backspace_nr2str__o_origval_g_p4 opt_backspace_nr2str__o_oldval_p4 out___r__4 out___argp4 out___origval_arg4 out___origval_l_arg4 out___origval_g_arg4 out___oldval_arg4 out___op_arg4
+            else j'18 origval4 origval_l4 origval_g4 oldval4 op4 save_arg4 newval3 opt_backspace_nr2str__o_origval_p4 opt_backspace_nr2str__o_origval_l_p4 opt_backspace_nr2str__o_origval_g_p4 opt_backspace_nr2str__o_oldval_p4 out___r__4 out___argp4 out___origval_arg4 out___origval_l_arg4 out___origval_g_arg4 out___oldval_arg4 out___op_arg4
+    j'18 !origval5 !origval_l5 !origval_g5 !oldval5 !op5 !save_arg5 !newval4 !opt_backspace_nr2str__o_origval_p5 !opt_backspace_nr2str__o_origval_l_p5 !opt_backspace_nr2str__o_origval_g_p5 !opt_backspace_nr2str__o_oldval_p5 !out___r__5 !out___argp5 !out___origval_arg5 !out___origval_l_arg5 !out___origval_g_arg5 !out___oldval_arg5 !out___op_arg5 = do
       if (flags .&. P_FLAGLIST) /= 0
         then do
           stropt_remove_dupflags ed' newval4 flags
-          j'21 argp5 origval_arg5 origval_l_arg5 origval_g_arg5 oldval_arg5 op_arg5 origval5 origval_l5 origval_g5 oldval5 op5 save_arg5 newval4
-        else j'21 argp5 origval_arg5 origval_l_arg5 origval_g_arg5 oldval_arg5 op_arg5 origval5 origval_l5 origval_g5 oldval5 op5 save_arg5 newval4
-    j'21 !argp6 !origval_arg6 !origval_l_arg6 !origval_g_arg6 !oldval_arg6 !op_arg6 !origval6 !origval_l6 !origval_g6 !oldval6 !op6 !save_arg6 !newval5 = do
+          j'21 origval5 origval_l5 origval_g5 oldval5 op5 save_arg5 newval4 opt_backspace_nr2str__o_origval_p5 opt_backspace_nr2str__o_origval_l_p5 opt_backspace_nr2str__o_origval_g_p5 opt_backspace_nr2str__o_oldval_p5 out___r__5 out___argp5 out___origval_arg5 out___origval_l_arg5 out___origval_g_arg5 out___oldval_arg5 out___op_arg5
+        else j'21 origval5 origval_l5 origval_g5 oldval5 op5 save_arg5 newval4 opt_backspace_nr2str__o_origval_p5 opt_backspace_nr2str__o_origval_l_p5 opt_backspace_nr2str__o_origval_g_p5 opt_backspace_nr2str__o_oldval_p5 out___r__5 out___argp5 out___origval_arg5 out___origval_l_arg5 out___origval_g_arg5 out___oldval_arg5 out___op_arg5
+    j'21 !origval6 !origval_l6 !origval_g6 !oldval6 !op6 !save_arg6 !newval5 !opt_backspace_nr2str__o_origval_p6 !opt_backspace_nr2str__o_origval_l_p6 !opt_backspace_nr2str__o_origval_g_p6 !opt_backspace_nr2str__o_oldval_p6 !out___r__6 !out___argp6 !out___origval_arg6 !out___origval_l_arg6 !out___origval_g_arg6 !out___oldval_arg6 !out___op_arg6 = do
       if save_arg6 /= nullPtr
         then do
           wrP fr' 32 save_arg6
-          j'23 argp6 origval_arg6 origval_l_arg6 origval_g_arg6 oldval_arg6 op_arg6 origval6 origval_l6 origval_g6 oldval6 op6 newval5
-        else j'23 argp6 origval_arg6 origval_l_arg6 origval_g_arg6 oldval_arg6 op_arg6 origval6 origval_l6 origval_g6 oldval6 op6 newval5
-    j'23 _ _ _ _ _ _ !origval7 !origval_l7 !origval_g7 !oldval7 !op7 !newval6 = do
+          j'23 origval6 origval_l6 origval_g6 oldval6 op6 newval5 opt_backspace_nr2str__o_origval_p6 opt_backspace_nr2str__o_origval_l_p6 opt_backspace_nr2str__o_origval_g_p6 opt_backspace_nr2str__o_oldval_p6 out___r__6 out___argp6 out___origval_arg6 out___origval_l_arg6 out___origval_g_arg6 out___oldval_arg6 out___op_arg6
+        else j'23 origval6 origval_l6 origval_g6 oldval6 op6 newval5 opt_backspace_nr2str__o_origval_p6 opt_backspace_nr2str__o_origval_l_p6 opt_backspace_nr2str__o_origval_g_p6 opt_backspace_nr2str__o_oldval_p6 out___r__6 out___argp6 out___origval_arg6 out___origval_l_arg6 out___origval_g_arg6 out___oldval_arg6 out___op_arg6
+    j'23 !origval7 !origval_l7 !origval_g7 !oldval7 !op7 !newval6 _ _ _ _ _ _ _ _ _ _ _ = do
       r'9 <- rdP fr' 32
       pure (newval6, r'9, origval7, origval_l7, origval_g7, oldval7, op7)
   wrP fr' 32 argp
   if nextchar == (ch '&')
     then do
       r'10 <- stropt_get_default_val ed' opt_idx fr' flags cp_val
-      j'21 argp origval_arg origval_l_arg origval_g_arg oldval_arg op_arg origval_arg origval_l_arg origval_g_arg oldval_arg op_arg nullPtr r'10
+      j'21 origval_arg origval_l_arg origval_g_arg oldval_arg op_arg nullPtr r'10 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32)
     else do
       r'11 <- rdP fr' 32
       wrP fr' 32 (pAdd r'11 1)
@@ -1653,8 +1664,8 @@ stropt_get_newval ed' nextchar opt_idx argp varp origval_arg origval_l_arg origv
       r'16 <- if (r'12 == (addr'p_bs ed')) then (do { r'13 <- rdP fr' optvar_T'ov_str; r'14 <- rdP r'13 0; r'15 <- rdW8 r'14 0; pure (((fromIntegral r'15 :: Word32) - (ch '0')) < 10) }) else pure False
       if r'16
         then do
-          (origval8, origval_l8, origval_g8, oldval8) <- opt_backspace_nr2str ed' fr' origval_arg origval_l_arg origval_g_arg oldval_arg
-          j'6 argp origval_arg origval_l_arg origval_g_arg oldval_arg op_arg origval8 origval_l8 origval_g8 oldval8 op_arg nullPtr nullPtr
+          (r'17, r'18, r'19, r'20) <- opt_backspace_nr2str ed' fr' origval_arg origval_l_arg origval_g_arg oldval_arg
+          j'6 r'17 r'18 r'19 r'20 op_arg nullPtr nullPtr r'17 r'18 r'19 r'20 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32)
         else do
           r'21 <- rdP fr' optvar_T'ov_str
           r'24 <- if (r'21 == (addr'p_ww ed')) then (do { r'22 <- rdP fr' 32; r'23 <- rdW8 r'22 0; pure (((fromIntegral r'23 :: Word32) - (ch '0')) < 10) }) else pure False
@@ -1663,71 +1674,84 @@ stropt_get_newval ed' nextchar opt_idx argp varp origval_arg origval_l_arg origv
               r'25 <- opt_whichwrap_nr2str (pAdd fr' 32) (pAdd fr' 40)
               r'26 <- rdP fr' 32
               wrP fr' 32 r'25
-              j'6 argp origval_arg origval_l_arg origval_g_arg oldval_arg op_arg origval_arg origval_l_arg origval_g_arg oldval_arg op_arg r'26 nullPtr
-            else j'6 argp origval_arg origval_l_arg origval_g_arg oldval_arg op_arg origval_arg origval_l_arg origval_g_arg oldval_arg op_arg nullPtr nullPtr
+              j'6 origval_arg origval_l_arg origval_g_arg oldval_arg op_arg r'26 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32)
+            else j'6 origval_arg origval_l_arg origval_g_arg oldval_arg op_arg nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32)
 
 do_set_option_string :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Int32 -> Set_op_T -> Long_u -> Int32 -> Ptr Optvar_T -> Ptr Int8 -> Usize -> Ptr Int32 -> Ptr Int8 -> IO (Bool, Ptr Char_u, Ptr Int8)
-do_set_option_string ed' opt_idx opt_flags argp nextchar op_arg flags cp_val varp_arg errbuf errbuflen value_checked errmsg = frame 160 $ \fr' -> do
+do_set_option_string ed' opt_idx opt_flags argp nextchar op_arg flags cp_val varp_arg errbuf errbuflen value_checked _errmsg = frame 160 $ \fr' -> do
   copyMem (pAdd fr' 0) varp_arg 32
   let
-    j'2 !argp1 !errmsg1 !arg1 !op1 !origval_l1 !origval_g1 = do
+    j'2 !arg1 !op1 !origval_l1 !origval_g1 !stropt_get_newval__o_r__1 !stropt_get_newval__o_argp1 !stropt_get_newval__o_origval_arg1 !stropt_get_newval__o_origval_l_arg1 !stropt_get_newval__o_origval_g_arg1 !stropt_get_newval__o_oldval_arg1 !stropt_get_newval__o_op_arg1 !out___r__1 !out___argp1 !out___errmsg1 = do
       r'1 <- rdP fr' (optvar_T'ov_str + 32)
       r'2 <- rdP r'1 0
       if (opt_flags .&. 6) == 0
         then do
-          get_varp_scope ed' (pAdd fr' 64) (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_LOCAL
-          r'3 <- rdP (pAdd fr' 64) optvar_T'ov_str
-          r'4 <- rdP r'3 0
-          get_varp_scope ed' (pAdd fr' 96) (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_GLOBAL
-          r'5 <- rdP (pAdd fr' 96) optvar_T'ov_str
-          r'6 <- rdP r'5 0
-          r'7 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
-          r'9 <- if ((r'7 .&. PV_BOTH) /= 0) then (do { r'8 <- empty_option ed'; pure (r'4 == r'8) }) else pure False
-          if r'9
-            then j'5 argp1 errmsg1 arg1 op1 r'2 r'6 r'6
-            else j'5 argp1 errmsg1 arg1 op1 r'2 r'4 r'6
-        else j'5 argp1 errmsg1 arg1 op1 r'2 origval_l1 origval_g1
-    j'5 !argp2 !errmsg2 !arg2 !op2 !oldval1 !origval_l2 !origval_g2 = do
-      r'10 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
-      if ((r'10 .&. PV_BOTH) /= 0) && ((opt_flags .&. OPT_LOCAL) /= 0)
+          (r'3, r'4, r'5, r'6) <- get_varp_scope ed' (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_LOCAL
+          wrP (pAdd fr' 64) optvar_T'ov_int r'3
+          wrP (pAdd fr' 64) optvar_T'ov_long r'4
+          wrP (pAdd fr' 64) optvar_T'ov_str r'5
+          wrI32 (pAdd fr' 64) optvar_T'ov_win r'6
+          r'7 <- rdP (pAdd fr' 64) optvar_T'ov_str
+          r'8 <- rdP r'7 0
+          (r'9, r'10, r'11, r'12) <- get_varp_scope ed' (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) OPT_GLOBAL
+          wrP (pAdd fr' 96) optvar_T'ov_int r'9
+          wrP (pAdd fr' 96) optvar_T'ov_long r'10
+          wrP (pAdd fr' 96) optvar_T'ov_str r'11
+          wrI32 (pAdd fr' 96) optvar_T'ov_win r'12
+          r'13 <- rdP (pAdd fr' 96) optvar_T'ov_str
+          r'14 <- rdP r'13 0
+          r'15 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
+          r'17 <- if ((r'15 .&. PV_BOTH) /= 0) then (do { r'16 <- empty_option ed'; pure (r'8 == r'16) }) else pure False
+          if r'17
+            then j'5 arg1 op1 r'2 r'14 r'14 stropt_get_newval__o_r__1 stropt_get_newval__o_argp1 stropt_get_newval__o_origval_arg1 stropt_get_newval__o_origval_l_arg1 stropt_get_newval__o_origval_g_arg1 stropt_get_newval__o_oldval_arg1 stropt_get_newval__o_op_arg1 out___r__1 out___argp1 out___errmsg1
+            else j'5 arg1 op1 r'2 r'8 r'14 stropt_get_newval__o_r__1 stropt_get_newval__o_argp1 stropt_get_newval__o_origval_arg1 stropt_get_newval__o_origval_l_arg1 stropt_get_newval__o_origval_g_arg1 stropt_get_newval__o_oldval_arg1 stropt_get_newval__o_op_arg1 out___r__1 out___argp1 out___errmsg1
+        else j'5 arg1 op1 r'2 origval_l1 origval_g1 stropt_get_newval__o_r__1 stropt_get_newval__o_argp1 stropt_get_newval__o_origval_arg1 stropt_get_newval__o_origval_l_arg1 stropt_get_newval__o_origval_g_arg1 stropt_get_newval__o_oldval_arg1 stropt_get_newval__o_op_arg1 out___r__1 out___argp1 out___errmsg1
+    j'5 !arg2 !op2 !oldval1 !origval_l2 !origval_g2 !stropt_get_newval__o_r__2 !stropt_get_newval__o_argp2 !stropt_get_newval__o_origval_arg2 !stropt_get_newval__o_origval_l_arg2 !stropt_get_newval__o_origval_g_arg2 !stropt_get_newval__o_oldval_arg2 !stropt_get_newval__o_op_arg2 !out___r__2 !out___argp2 !out___errmsg2 = do
+      r'18 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir
+      if ((r'18 .&. PV_BOTH) /= 0) && ((opt_flags .&. OPT_LOCAL) /= 0)
         then do
-          get_varp ed' (pAdd fr' 128) (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112))
-          r'11 <- rdP (pAdd fr' 128) optvar_T'ov_str
-          r'12 <- rdP r'11 0
-          j'8 argp2 errmsg2 arg2 op2 oldval1 r'12 origval_l2 origval_g2
-        else j'8 argp2 errmsg2 arg2 op2 oldval1 oldval1 origval_l2 origval_g2
-    j'8 !argp3 !errmsg3 !arg3 !op3 !oldval2 !origval1 !origval_l3 !origval_g3 = do
-      (r'13, arg4, _, _, _, oldval3, op4) <- stropt_get_newval ed' nextchar opt_idx arg3 (pAdd fr' 32) origval1 origval_l3 origval_g3 oldval2 op3 (fromIntegral flags :: Int32) cp_val
-      r'20 <- rdP fr' (optvar_T'ov_str + 32)
-      wrP r'20 0 r'13
-      if r'13 == nullPtr
+          (r'19, r'20, r'21, r'22) <- get_varp ed' (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112))
+          wrP (pAdd fr' 128) optvar_T'ov_int r'19
+          wrP (pAdd fr' 128) optvar_T'ov_long r'20
+          wrP (pAdd fr' 128) optvar_T'ov_str r'21
+          wrI32 (pAdd fr' 128) optvar_T'ov_win r'22
+          r'23 <- rdP (pAdd fr' 128) optvar_T'ov_str
+          r'24 <- rdP r'23 0
+          j'8 arg2 op2 oldval1 r'24 origval_l2 origval_g2 stropt_get_newval__o_r__2 stropt_get_newval__o_argp2 stropt_get_newval__o_origval_arg2 stropt_get_newval__o_origval_l_arg2 stropt_get_newval__o_origval_g_arg2 stropt_get_newval__o_oldval_arg2 stropt_get_newval__o_op_arg2 out___r__2 out___argp2 out___errmsg2
+        else j'8 arg2 op2 oldval1 oldval1 origval_l2 origval_g2 stropt_get_newval__o_r__2 stropt_get_newval__o_argp2 stropt_get_newval__o_origval_arg2 stropt_get_newval__o_origval_l_arg2 stropt_get_newval__o_origval_g_arg2 stropt_get_newval__o_oldval_arg2 stropt_get_newval__o_op_arg2 out___r__2 out___argp2 out___errmsg2
+    j'8 !arg3 !op3 !oldval2 !origval1 !origval_l3 !origval_g3 _ _ _ _ _ _ _ !out___r__3 !out___argp3 !out___errmsg3 = do
+      (r'25, r'26, r'27, r'28, r'29, r'30, r'31) <- stropt_get_newval ed' nextchar opt_idx arg3 (pAdd fr' 32) origval1 origval_l3 origval_g3 oldval2 op3 (fromIntegral flags :: Int32) cp_val
+      r'32 <- rdP fr' (optvar_T'ov_str + 32)
+      wrP r'32 0 r'25
+      if r'25 == nullPtr
         then do
-          r'22 <- rdP fr' (optvar_T'ov_str + 32)
-          r'21 <- empty_option ed'
-          wrP r'22 0 r'21
-          j'10 argp3 errmsg3 arg4 op4 oldval3 r'13
-        else j'10 argp3 errmsg3 arg4 op4 oldval3 r'13
-    j'10 !argp4 !errmsg4 !arg5 !op5 !oldval4 !newval1 = do
+          r'34 <- rdP fr' (optvar_T'ov_str + 32)
+          r'33 <- empty_option ed'
+          wrP r'34 0 r'33
+          j'10 r'26 r'31 r'30 r'25 r'25 r'26 r'27 r'28 r'29 r'30 r'31 out___r__3 out___argp3 out___errmsg3
+        else j'10 r'26 r'31 r'30 r'25 r'25 r'26 r'27 r'28 r'29 r'30 r'31 out___r__3 out___argp3 out___errmsg3
+    j'10 !arg4 !op4 !oldval3 !newval1 !stropt_get_newval__o_r__4 !stropt_get_newval__o_argp4 !stropt_get_newval__o_origval_arg4 !stropt_get_newval__o_origval_l_arg4 !stropt_get_newval__o_origval_g_arg4 !stropt_get_newval__o_oldval_arg4 !stropt_get_newval__o_op_arg4 !out___r__4 !out___argp4 !out___errmsg4 = do
       let !p1 = pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'flags
-      r'23 <- secure ed'
-      r'25 <- if (op5 /= OP_NONE) then (do { r'24 <- rdW64 p1 0; pure ((r'24 .&. P_INSECURE) /= 0) }) else pure False
-      if r'25
+      r'35 <- secure ed'
+      r'37 <- if (op4 /= OP_NONE) then (do { r'36 <- rdW64 p1 0; pure ((r'36 .&. P_INSECURE) /= 0) }) else pure False
+      if r'37
         then do
           set'secure ed' 1
-          j'12 argp4 errmsg4 arg5 op5 oldval4 newval1 r'23
-        else j'12 argp4 errmsg4 arg5 op5 oldval4 newval1 r'23
-    j'12 _ _ !arg6 !op6 !oldval5 !newval2 !secure_saved1 = do
-      r'26 <- rdP fr' (optvar_T'ov_str + 32)
-      r'27 <- did_set_string_option ed' opt_idx r'26 oldval5 newval2 errbuf errbuflen opt_flags op6 value_checked
+          j'12 arg4 op4 oldval3 newval1 r'35 stropt_get_newval__o_r__4 stropt_get_newval__o_argp4 stropt_get_newval__o_origval_arg4 stropt_get_newval__o_origval_l_arg4 stropt_get_newval__o_origval_g_arg4 stropt_get_newval__o_oldval_arg4 stropt_get_newval__o_op_arg4 out___r__4 out___argp4 out___errmsg4
+        else j'12 arg4 op4 oldval3 newval1 r'35 stropt_get_newval__o_r__4 stropt_get_newval__o_argp4 stropt_get_newval__o_origval_arg4 stropt_get_newval__o_origval_l_arg4 stropt_get_newval__o_origval_g_arg4 stropt_get_newval__o_oldval_arg4 stropt_get_newval__o_op_arg4 out___r__4 out___argp4 out___errmsg4
+    j'12 !arg5 !op5 !oldval4 !newval2 !secure_saved1 _ _ _ _ _ _ _ _ _ _ = do
+      r'38 <- rdP fr' (optvar_T'ov_str + 32)
+      r'39 <- did_set_string_option ed' opt_idx r'38 oldval4 newval2 errbuf errbuflen opt_flags op5 value_checked
       set'secure ed' secure_saved1
-      pure (((if (r'27 == nullPtr) then (OK :: Int32) else (FAIL :: Int32)) /= 0), arg6, r'27)
+      let !out___r__6 = (if (r'39 == nullPtr) then (OK :: Int32) else (FAIL :: Int32)) /= 0
+      pure (out___r__6, arg5, r'39)
   copyMem (pAdd fr' 32) fr' 32
-  r'29 <- if ((opt_flags .&. 6) == 0) then (do { r'28 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir; pure ((r'28 .&. PV_BOTH) /= 0) }) else pure False
-  if r'29
+  r'41 <- if ((opt_flags .&. 6) == 0) then (do { r'40 <- rdI32 (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'indir; pure ((r'40 .&. PV_BOTH) /= 0) }) else pure False
+  if r'41
     then do
       copyMem (pAdd fr' 32) (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'var) 32
-      j'2 argp errmsg argp op_arg nullPtr nullPtr
-    else j'2 argp errmsg argp op_arg nullPtr nullPtr
+      j'2 argp op_arg nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32) False nullPtr nullPtr
+    else j'2 argp op_arg nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32) False nullPtr nullPtr
 
 do_set_option_bool :: Ed -> Int32 -> Int32 -> Set_prefix_T -> Long_u -> Ptr Optvar_T -> Int32 -> Int32 -> Int32 -> IO (Ptr Int8)
 do_set_option_bool ed' opt_idx opt_flags prefix flags varp nextchar afterchar cp_val = frame 32 $ \fr' -> do
@@ -1772,14 +1796,14 @@ do_set_option_numeric :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Int32 -> Set_op_T
 do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val varp errbuf errbuflen = frame 40 $ \fr' -> do
   copyMem (pAdd fr' 0) varp 32
   let
-    j'7 !argp1 !arg1 = do
+    j'7 !arg1 !out___r__1 !out___argp1 !out___2_r__1 !out___2_argp1 !out___3_r__1 !out___3_argp1 !out___4_r__1 !out___4_argp1 !out___5_r__1 !out___5_argp1 = do
       if op == OP_ADDING
         then do
           r'1 <- rdP fr' optvar_T'ov_long
           r'2 <- rdI64 r'1 0
           r'3 <- rdI64 fr' 32
           wrI64 fr' 32 (r'2 + r'3)
-          j'13 argp1 arg1
+          j'13 arg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1 out___3_r__1 out___3_argp1 out___4_r__1 out___4_argp1 out___5_r__1 out___5_argp1
         else do
           if op == OP_PREPENDING
             then do
@@ -1787,7 +1811,7 @@ do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val varp e
               r'5 <- rdI64 r'4 0
               r'6 <- rdI64 fr' 32
               wrI64 fr' 32 (r'5 * r'6)
-              j'13 argp1 arg1
+              j'13 arg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1 out___3_r__1 out___3_argp1 out___4_r__1 out___4_argp1 out___5_r__1 out___5_argp1
             else do
               if op == OP_REMOVING
                 then do
@@ -1795,9 +1819,9 @@ do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val varp e
                   r'8 <- rdI64 r'7 0
                   r'9 <- rdI64 fr' 32
                   wrI64 fr' 32 (r'8 - r'9)
-                  j'13 argp1 arg1
-                else j'13 argp1 arg1
-    j'13 _ !arg2 = do
+                  j'13 arg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1 out___3_r__1 out___3_argp1 out___4_r__1 out___4_argp1 out___5_r__1 out___5_argp1
+                else j'13 arg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1 out___3_r__1 out___3_argp1 out___4_r__1 out___4_argp1 out___5_r__1 out___5_argp1
+    j'13 !arg2 _ _ _ _ _ _ _ _ _ _ = do
       r'10 <- rdP fr' optvar_T'ov_long
       r'11 <- curwin ed'
       r'13 <- if (r'10 == (pAdd r'11 (win_T'w_onebuf_opt + winopt_T'wo_sop))) then (do { r'12 <- rdI64 fr' 32; pure (r'12 < (-1)) }) else pure False
@@ -1818,19 +1842,19 @@ do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val varp e
         then do
           r'18 <- rdI64 (pAdd (pAdd (pAdd (addr'options ed') ((fromIntegral opt_idx) * 112)) vimoption'def_num) ((fromIntegral (if (((flags .&. P_VI_DEF) /= 0) || (cp_val /= 0)) then (VI_DEFAULT :: Int32) else (VIM_DEFAULT :: Int32))) * 8)) 0
           wrI64 fr' 32 r'18
-          j'7 argp arg3
+          j'7 arg3 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr
         else do
           r'19 <- rdW8 arg3 0
           r'21 <- if ((fromIntegral r'19 :: Int32) == (ch '-')) then pure True else (do { r'20 <- rdW8 arg3 0; pure (((fromIntegral r'20 :: Word32) - (ch '0')) < 10) })
           if r'21
             then do
-              i1 <- vim_str2nr arg3 nullPtr (0 :: Int32) 15 (pAdd fr' 32) nullPtr 0 True nullPtr
-              r'28 <- if (i1 == 0) then pure True else (do { r'23 <- rdW8 (pAdd arg3 (fromIntegral i1)) 0; if ((fromIntegral r'23 :: Int32) /= NUL) then (do { r'24 <- rdW8 (pAdd arg3 (fromIntegral i1)) 0; r'26 <- if ((fromIntegral r'24 :: Int32) == (ch ' ')) then pure True else (do { r'25 <- rdW8 (pAdd arg3 (fromIntegral i1)) 0; pure ((fromIntegral r'25 :: Int32) == (ch '\t')) }); pure (not r'26) }) else pure False })
+              r'22 <- vim_str2nr arg3 nullPtr (0 :: Int32) 15 (pAdd fr' 32) nullPtr 0 True nullPtr
+              r'28 <- if (r'22 == 0) then pure True else (do { r'23 <- rdW8 (pAdd arg3 (fromIntegral r'22)) 0; if ((fromIntegral r'23 :: Int32) /= NUL) then (do { r'24 <- rdW8 (pAdd arg3 (fromIntegral r'22)) 0; r'26 <- if ((fromIntegral r'24 :: Int32) == (ch ' ')) then pure True else (do { r'25 <- rdW8 (pAdd arg3 (fromIntegral r'22)) 0; pure ((fromIntegral r'25 :: Int32) == (ch '\t')) }); pure (not r'26) }) else pure False })
               if r'28
                 then do
                   let !errmsg2 = addr'e_number_required_after_equal ed'
                   pure (errmsg2, arg3)
-                else j'7 argp arg3
+                else j'7 arg3 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr
             else do
               let !errmsg3 = addr'e_number_required_after_equal ed'
               pure (errmsg3, arg3)
@@ -1838,7 +1862,7 @@ do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val varp e
 do_set_option_keycode :: Ed -> Ptr Char_u -> Ptr Char_u -> Int32 -> IO (Ptr Int8, Ptr Char_u)
 do_set_option_keycode ed' argp key_name nextchar = do
   let
-    loop'2 !argp1 !arg1 !p1 = do
+    loop'2 !arg1 !p1 !out___r__1 !out___argp1 !out___2_r__1 !out___2_argp1 = do
       r'1 <- rdW8 p1 0
       r'5 <- if (r'1 /= 0) then (do { r'2 <- rdW8 p1 0; r'4 <- if ((fromIntegral r'2 :: Int32) == (ch ' ')) then pure True else (do { r'3 <- rdW8 p1 0; pure ((fromIntegral r'3 :: Int32) == (ch '\t')) }); pure (not r'4) }) else pure False
       if r'5
@@ -1848,50 +1872,52 @@ do_set_option_keycode ed' argp key_name nextchar = do
           if r'8
             then do
               let !p2 = pAdd p1 1
-              j'6 argp1 arg1 p2
-            else j'6 argp1 arg1 p1
+              j'6 arg1 p2 out___r__1 out___argp1 out___2_r__1 out___2_argp1
+            else j'6 arg1 p1 out___r__1 out___argp1 out___2_r__1 out___2_argp1
         else do
           r'9 <- rdW8 p1 0
           let !nextchar1 = fromIntegral r'9 :: Int32
           wrW8 p1 0 NUL
           add_termcode ed' key_name arg1 FALSE
           wrW8 p1 0 (fromIntegral nextchar1 :: Word8)
-          j'8 argp1 arg1
-    j'6 !argp2 !arg2 !p3 = do
+          j'8 arg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1
+    j'6 !arg2 !p3 !out___r__2 !out___argp2 !out___2_r__2 !out___2_argp2 = do
       let !p4 = pAdd p3 1
-      loop'2 argp2 arg2 p4
-    j'8 !argp3 !arg3 = do
+      loop'2 arg2 p4 out___r__2 out___argp2 out___2_r__2 out___2_argp2
+    j'8 !arg3 !out___r__3 !out___argp3 !out___2_r__3 !out___2_argp3 = do
       r'10 <- full_screen ed'
       if r'10 /= 0
         then do
           ttest ed' False
-          j'10 argp3 arg3
-        else j'10 argp3 arg3
-    j'10 _ !arg4 = do
+          j'10 arg3 out___r__3 out___argp3 out___2_r__3 out___2_argp3
+        else j'10 arg3 out___r__3 out___argp3 out___2_r__3 out___2_argp3
+    j'10 !arg4 _ _ _ _ = do
       redraw_all_later ed' UPD_CLEAR
       pure (nullPtr, arg4)
   if nextchar == (ch '&')
     then do
       r'11 <- add_termcap_entry ed' key_name True
       if not r'11
-        then pure ((addr'e_not_found_in_termcap ed'), argp)
-        else j'8 argp argp
+        then do
+          let !out___r__5 = addr'e_not_found_in_termcap ed'
+          pure (out___r__5, argp)
+        else j'8 argp nullPtr nullPtr nullPtr nullPtr
     else do
       let !arg5 = pAdd argp 1
-      loop'2 argp arg5 arg5
+      loop'2 arg5 arg5 nullPtr nullPtr nullPtr nullPtr
 
 do_set_option_value :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Set_prefix_T -> Set_op_T -> Long_u -> Ptr Optvar_T -> Ptr Char_u -> Int32 -> Int32 -> Int32 -> Ptr Int32 -> Ptr Int8 -> Usize -> IO (Ptr Int8, Ptr Char_u)
 do_set_option_value ed' opt_idx opt_flags argp prefix op flags varp key_name nextchar afterchar cp_val stopopteval errbuf errbuflen = frame 36 $ \fr' -> do
   copyMem (pAdd fr' 0) varp 32
   let
-    j'14 !argp1 !errmsg1 !arg1 = do
+    j'14 !errmsg1 !arg1 !do_set_option_keycode__o_r__1 !do_set_option_keycode__o_argp1 !do_set_option_numeric__o_r__1 !do_set_option_numeric__o_argp1 !do_set_option_string__o_r__1 !do_set_option_string__o_argp1 !do_set_option_string__o_errmsg1 !out___r__1 !out___argp1 !out___2_r__1 !out___2_argp1 !out___3_r__1 !out___3_argp1 !out___4_r__1 !out___4_argp1 !out___5_r__1 !out___5_argp1 !out___6_r__1 !out___6_argp1 !out___7_r__1 !out___7_argp1 = do
       if opt_idx >= 0
         then do
           r'1 <- rdI32 fr' 32
           did_set_option ed' opt_idx opt_flags (op == OP_NONE) r'1
-          j'16 argp1 errmsg1 arg1
-        else j'16 argp1 errmsg1 arg1
-    j'16 _ !errmsg2 !arg2 = do
+          j'16 errmsg1 arg1 do_set_option_keycode__o_r__1 do_set_option_keycode__o_argp1 do_set_option_numeric__o_r__1 do_set_option_numeric__o_argp1 do_set_option_string__o_r__1 do_set_option_string__o_argp1 do_set_option_string__o_errmsg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1 out___3_r__1 out___3_argp1 out___4_r__1 out___4_argp1 out___5_r__1 out___5_argp1 out___6_r__1 out___6_argp1 out___7_r__1 out___7_argp1
+        else j'16 errmsg1 arg1 do_set_option_keycode__o_r__1 do_set_option_keycode__o_argp1 do_set_option_numeric__o_r__1 do_set_option_numeric__o_argp1 do_set_option_string__o_r__1 do_set_option_string__o_argp1 do_set_option_string__o_errmsg1 out___r__1 out___argp1 out___2_r__1 out___2_argp1 out___3_r__1 out___3_argp1 out___4_r__1 out___4_argp1 out___5_r__1 out___5_argp1 out___6_r__1 out___6_argp1 out___7_r__1 out___7_argp1
+    j'16 !errmsg2 !arg2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
       pure (errmsg2, arg2)
   wrI32 fr' 32 FALSE
   if (flags .&. P_BOOL) /= 0
@@ -1899,7 +1925,7 @@ do_set_option_value ed' opt_idx opt_flags argp prefix op flags varp key_name nex
       r'2 <- do_set_option_bool ed' opt_idx opt_flags prefix flags fr' nextchar afterchar cp_val
       if r'2 /= nullPtr
         then pure (r'2, argp)
-        else j'14 argp r'2 argp
+        else j'14 r'2 argp nullPtr nullPtr nullPtr nullPtr False nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr
     else do
       r'3 <- vim_strchr ed' (Ptr "=:&<\0"#) nextchar
       if (r'3 == nullPtr) || (prefix /= PREFIX_NONE)
@@ -1909,46 +1935,46 @@ do_set_option_value ed' opt_idx opt_flags argp prefix op flags varp key_name nex
         else do
           if (flags .&. P_NUM) /= 0
             then do
-              (r'4, arg3) <- do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val fr' errbuf errbuflen
+              (r'4, r'5) <- do_set_option_numeric ed' opt_idx opt_flags argp nextchar op flags cp_val fr' errbuf errbuflen
               if r'4 /= nullPtr
-                then pure (r'4, arg3)
-                else j'14 argp r'4 arg3
+                then pure (r'4, r'5)
+                else j'14 r'4 r'5 nullPtr nullPtr r'4 r'5 False nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr
             else do
               if opt_idx >= 0
                 then do
-                  (r'6, arg4, errmsg4) <- do_set_option_string ed' opt_idx opt_flags argp nextchar op flags cp_val fr' errbuf errbuflen (pAdd fr' 32) nullPtr
+                  (r'6, r'7, r'8) <- do_set_option_string ed' opt_idx opt_flags argp nextchar op flags cp_val fr' errbuf errbuflen (pAdd fr' 32) nullPtr
                   if not r'6
                     then do
-                      if errmsg4 /= nullPtr
-                        then pure (errmsg4, arg4)
+                      if r'8 /= nullPtr
+                        then pure (r'8, r'7)
                         else do
                           wrI32 stopopteval 0 TRUE
-                          pure (errmsg4, arg4)
-                    else j'14 argp errmsg4 arg4
+                          pure (r'8, r'7)
+                    else j'14 r'8 r'7 nullPtr nullPtr nullPtr nullPtr r'6 r'7 r'8 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr
                 else do
-                  (r'9, arg5) <- do_set_option_keycode ed' argp key_name nextchar
+                  (r'9, r'10) <- do_set_option_keycode ed' argp key_name nextchar
                   if r'9 /= nullPtr
-                    then pure (r'9, arg5)
-                    else j'14 argp r'9 arg5
+                    then pure (r'9, r'10)
+                    else j'14 r'9 r'10 r'9 r'10 nullPtr nullPtr False nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr
 
 do_set_option :: Ed -> Int32 -> Ptr (Ptr Char_u) -> Ptr Char_u -> Ptr (Ptr Char_u) -> Int32 -> Ptr Int32 -> Ptr Int8 -> Usize -> IO (Ptr Int8, Int32)
-do_set_option ed' opt_flags argp _arg_start _startarg did_show stopopteval errbuf errbuflen = frame 112 $ \fr' -> do
+do_set_option ed' opt_flags argp _arg_start _startarg did_show stopopteval errbuf errbuflen = frame 48 $ \fr' -> do
   let
-    loop'2 !did_show1 !opt_idx1 !arg1 !prefix1 !afterchar1 !key1 !len1 = do
+    loop'2 !did_show1 !opt_idx1 !arg1 !prefix1 !afterchar1 !key1 !len1 !do_set_option_value__o_r__1 !do_set_option_value__o_argp1 !parse_option_name__o_r__1 !parse_option_name__o_opt_idxp1 !parse_option_name__o_lenp1 !parse_option_name__o_keyp1 !out___r__1 !out___did_show1 !out___2_r__1 !out___2_did_show1 !out___3_r__1 !out___3_did_show1 !out___4_r__1 !out___4_did_show1 !out___5_r__1 !out___5_did_show1 !out___6_r__1 !out___6_did_show1 !out___7_r__1 !out___7_did_show1 = do
       r'1 <- rdW8 (pAdd arg1 (fromIntegral len1)) 0
       r'3 <- if ((fromIntegral r'1 :: Int32) == (ch ' ')) then pure True else (do { r'2 <- rdW8 (pAdd arg1 (fromIntegral len1)) 0; pure ((fromIntegral r'2 :: Int32) == (ch '\t')) })
       if r'3
         then do
           let !len2 = len1 + 1
-          loop'2 did_show1 opt_idx1 arg1 prefix1 afterchar1 key1 len2
+          loop'2 did_show1 opt_idx1 arg1 prefix1 afterchar1 key1 len2 do_set_option_value__o_r__1 do_set_option_value__o_argp1 parse_option_name__o_r__1 parse_option_name__o_opt_idxp1 parse_option_name__o_lenp1 parse_option_name__o_keyp1 out___r__1 out___did_show1 out___2_r__1 out___2_did_show1 out___3_r__1 out___3_did_show1 out___4_r__1 out___4_did_show1 out___5_r__1 out___5_did_show1 out___6_r__1 out___6_did_show1 out___7_r__1 out___7_did_show1
         else do
           r'4 <- get_opt_op (pAdd arg1 (fromIntegral len1))
           if r'4 /= OP_NONE
             then do
               let !len3 = len1 + 1
-              j'5 did_show1 opt_idx1 arg1 prefix1 r'4 afterchar1 key1 len3
-            else j'5 did_show1 opt_idx1 arg1 prefix1 r'4 afterchar1 key1 len1
-    j'5 !did_show2 !opt_idx2 !arg2 !prefix2 !op1 !afterchar2 !key2 !len4 = do
+              j'5 did_show1 opt_idx1 arg1 prefix1 r'4 afterchar1 key1 len3 do_set_option_value__o_r__1 do_set_option_value__o_argp1 parse_option_name__o_r__1 parse_option_name__o_opt_idxp1 parse_option_name__o_lenp1 parse_option_name__o_keyp1 out___r__1 out___did_show1 out___2_r__1 out___2_did_show1 out___3_r__1 out___3_did_show1 out___4_r__1 out___4_did_show1 out___5_r__1 out___5_did_show1 out___6_r__1 out___6_did_show1 out___7_r__1 out___7_did_show1
+            else j'5 did_show1 opt_idx1 arg1 prefix1 r'4 afterchar1 key1 len1 do_set_option_value__o_r__1 do_set_option_value__o_argp1 parse_option_name__o_r__1 parse_option_name__o_opt_idxp1 parse_option_name__o_lenp1 parse_option_name__o_keyp1 out___r__1 out___did_show1 out___2_r__1 out___2_did_show1 out___3_r__1 out___3_did_show1 out___4_r__1 out___4_did_show1 out___5_r__1 out___5_did_show1 out___6_r__1 out___6_did_show1 out___7_r__1 out___7_did_show1
+    j'5 !did_show2 !opt_idx2 !arg2 !prefix2 !op1 !afterchar2 !key2 !len4 !do_set_option_value__o_r__2 !do_set_option_value__o_argp2 !parse_option_name__o_r__2 !parse_option_name__o_opt_idxp2 !parse_option_name__o_lenp2 !parse_option_name__o_keyp2 !out___r__2 !out___did_show2 !out___2_r__2 !out___2_did_show2 !out___3_r__2 !out___3_did_show2 !out___4_r__2 !out___4_did_show2 !out___5_r__2 !out___5_did_show2 !out___6_r__2 !out___6_did_show2 !out___7_r__2 !out___7_did_show2 = do
       r'5 <- rdW8 (pAdd arg2 (fromIntegral len4)) 0
       let !nextchar1 = fromIntegral r'5 :: Int32
       if (opt_idx2 == (-1)) && (key2 == 0)
@@ -1968,123 +1994,131 @@ do_set_option ed' opt_flags argp _arg_start _startarg did_show stopopteval errbu
                   if r'10
                     then do
                       wrP fr' 40 (addr'e_option_not_supported ed')
-                      j'36 did_show2 arg2
-                    else j'36 did_show2 arg2
+                      j'36 did_show2 arg2 do_set_option_value__o_r__2 do_set_option_value__o_argp2 parse_option_name__o_r__2 parse_option_name__o_opt_idxp2 parse_option_name__o_lenp2 parse_option_name__o_keyp2 out___r__2 out___did_show2 out___2_r__2 out___2_did_show2 out___3_r__2 out___3_did_show2 out___4_r__2 out___4_did_show2 out___5_r__2 out___5_did_show2 out___6_r__2 out___6_did_show2 out___7_r__2 out___7_did_show2
+                    else j'36 did_show2 arg2 do_set_option_value__o_r__2 do_set_option_value__o_argp2 parse_option_name__o_r__2 parse_option_name__o_opt_idxp2 parse_option_name__o_lenp2 parse_option_name__o_keyp2 out___r__2 out___did_show2 out___2_r__2 out___2_did_show2 out___3_r__2 out___3_did_show2 out___4_r__2 out___4_did_show2 out___5_r__2 out___5_did_show2 out___6_r__2 out___6_did_show2 out___7_r__2 out___7_did_show2
                 else do
                   r'11 <- rdW64 (pAdd (addr'options ed') ((fromIntegral opt_idx2) * 112)) vimoption'flags
-                  get_varp_scope ed' (pAdd fr' 48) (pAdd (addr'options ed') ((fromIntegral opt_idx2) * 112)) opt_flags
-                  copyMem fr' (pAdd fr' 48) 32
-                  j'12 did_show2 opt_idx2 arg2 prefix2 op1 r'11 nextchar1 afterchar2 len4
+                  (r'12, r'13, r'14, r'15) <- get_varp_scope ed' (pAdd (addr'options ed') ((fromIntegral opt_idx2) * 112)) opt_flags
+                  wrP fr' optvar_T'ov_int r'12
+                  wrP fr' optvar_T'ov_long r'13
+                  wrP fr' optvar_T'ov_str r'14
+                  wrI32 fr' optvar_T'ov_win r'15
+                  j'12 did_show2 opt_idx2 arg2 prefix2 op1 r'11 nextchar1 afterchar2 len4 do_set_option_value__o_r__2 do_set_option_value__o_argp2 parse_option_name__o_r__2 parse_option_name__o_opt_idxp2 parse_option_name__o_lenp2 parse_option_name__o_keyp2 out___r__2 out___did_show2 out___2_r__2 out___2_did_show2 out___3_r__2 out___3_did_show2 out___4_r__2 out___4_did_show2 out___5_r__2 out___5_did_show2 out___6_r__2 out___6_did_show2 out___7_r__2 out___7_did_show2
             else do
-              optvar_none (pAdd fr' 80)
-              copyMem fr' (pAdd fr' 80) 32
+              let !(r'16, r'17, r'18, r'19) = optvar_none
+              wrP fr' optvar_T'ov_int r'16
+              wrP fr' optvar_T'ov_long r'17
+              wrP fr' optvar_T'ov_str r'18
+              wrI32 fr' optvar_T'ov_win r'19
               if key2 < 0
                 then do
                   wrW8 (pAdd fr' 32) 0 (fromIntegral ((negate key2) .&. 255) :: Word8)
                   wrW8 (pAdd fr' 32) 1 (fromIntegral ((shiftR (fromIntegral (negate key2) :: Word32) 8) .&. 255) :: Word8)
-                  j'12 did_show2 opt_idx2 arg2 prefix2 op1 (P_STRING :: Word64) nextchar1 afterchar2 len4
+                  j'12 did_show2 opt_idx2 arg2 prefix2 op1 (P_STRING :: Word64) nextchar1 afterchar2 len4 do_set_option_value__o_r__2 do_set_option_value__o_argp2 parse_option_name__o_r__2 parse_option_name__o_opt_idxp2 parse_option_name__o_lenp2 parse_option_name__o_keyp2 out___r__2 out___did_show2 out___2_r__2 out___2_did_show2 out___3_r__2 out___3_did_show2 out___4_r__2 out___4_did_show2 out___5_r__2 out___5_did_show2 out___6_r__2 out___6_did_show2 out___7_r__2 out___7_did_show2
                 else do
                   wrW8 (pAdd fr' 32) 0 KS_KEY
                   wrW8 (pAdd fr' 32) 1 (fromIntegral (key2 .&. 255) :: Word8)
-                  j'12 did_show2 opt_idx2 arg2 prefix2 op1 (P_STRING :: Word64) nextchar1 afterchar2 len4
-    j'12 !did_show3 !opt_idx3 !arg3 !prefix3 !op2 !flags1 !nextchar2 !afterchar3 !len5 = do
-      r'12 <- validate_opt_idx ed' opt_idx3 opt_flags flags1 (pAdd fr' 40) prefix3
-      if not r'12
+                  j'12 did_show2 opt_idx2 arg2 prefix2 op1 (P_STRING :: Word64) nextchar1 afterchar2 len4 do_set_option_value__o_r__2 do_set_option_value__o_argp2 parse_option_name__o_r__2 parse_option_name__o_opt_idxp2 parse_option_name__o_lenp2 parse_option_name__o_keyp2 out___r__2 out___did_show2 out___2_r__2 out___2_did_show2 out___3_r__2 out___3_did_show2 out___4_r__2 out___4_did_show2 out___5_r__2 out___5_did_show2 out___6_r__2 out___6_did_show2 out___7_r__2 out___7_did_show2
+    j'12 !did_show3 !opt_idx3 !arg3 !prefix3 !op2 !flags1 !nextchar2 !afterchar3 !len5 !do_set_option_value__o_r__3 !do_set_option_value__o_argp3 !parse_option_name__o_r__3 !parse_option_name__o_opt_idxp3 !parse_option_name__o_lenp3 !parse_option_name__o_keyp3 !out___r__3 !out___did_show3 !out___2_r__3 !out___2_did_show3 !out___3_r__3 !out___3_did_show3 !out___4_r__3 !out___4_did_show3 !out___5_r__3 !out___5_did_show3 !out___6_r__3 !out___6_did_show3 !out___7_r__3 !out___7_did_show3 = do
+      r'20 <- validate_opt_idx ed' opt_idx3 opt_flags flags1 (pAdd fr' 40) prefix3
+      if not r'20
         then do
           wrP argp 0 arg3
-          r'13 <- rdP fr' 40
-          pure (r'13, did_show3)
+          r'21 <- rdP fr' 40
+          pure (r'21, did_show3)
         else do
-          r'14 <- p_cp ed'
-          r'15 <- vim_strchr ed' (Ptr "?=:!&\0"#) nextchar2
-          if r'15 /= nullPtr
+          r'22 <- p_cp ed'
+          r'23 <- vim_strchr ed' (Ptr "?=:!&\0"#) nextchar2
+          if r'23 /= nullPtr
             then do
               let !arg4 = pAdd arg3 (fromIntegral len5)
-              r'17 <- if (nextchar2 == (ch '&')) then (do { r'16 <- rdW8 arg4 1; pure ((fromIntegral r'16 :: Int32) == (ch 'v')) }) else pure False
-              r'19 <- if r'17 then (do { r'18 <- rdW8 arg4 2; pure ((fromIntegral r'18 :: Int32) == (ch 'i')) }) else pure False
-              if r'19
+              r'25 <- if (nextchar2 == (ch '&')) then (do { r'24 <- rdW8 arg4 1; pure ((fromIntegral r'24 :: Int32) == (ch 'v')) }) else pure False
+              r'27 <- if r'25 then (do { r'26 <- rdW8 arg4 2; pure ((fromIntegral r'26 :: Int32) == (ch 'i')) }) else pure False
+              if r'27
                 then do
-                  r'20 <- rdW8 arg4 3
-                  if (fromIntegral r'20 :: Int32) == (ch 'm')
+                  r'28 <- rdW8 arg4 3
+                  if (fromIntegral r'28 :: Int32) == (ch 'm')
                     then do
                       let !arg5 = pAdd arg4 3
-                      j'18 did_show3 opt_idx3 arg5 prefix3 op2 flags1 nextchar2 afterchar3 (FALSE :: Int32)
+                      j'18 did_show3 opt_idx3 arg5 prefix3 op2 flags1 nextchar2 afterchar3 (FALSE :: Int32) do_set_option_value__o_r__3 do_set_option_value__o_argp3 parse_option_name__o_r__3 parse_option_name__o_opt_idxp3 parse_option_name__o_lenp3 parse_option_name__o_keyp3 out___r__3 out___did_show3 out___2_r__3 out___2_did_show3 out___3_r__3 out___3_did_show3 out___4_r__3 out___4_did_show3 out___5_r__3 out___5_did_show3 out___6_r__3 out___6_did_show3 out___7_r__3 out___7_did_show3
                     else do
                       let !arg6 = pAdd arg4 2
-                      j'18 did_show3 opt_idx3 arg6 prefix3 op2 flags1 nextchar2 afterchar3 (TRUE :: Int32)
-                else j'18 did_show3 opt_idx3 arg4 prefix3 op2 flags1 nextchar2 afterchar3 r'14
-            else j'19 did_show3 opt_idx3 arg3 prefix3 op2 flags1 nextchar2 afterchar3 r'14
-    j'18 !did_show4 !opt_idx4 !arg7 !prefix4 !op3 !flags2 !nextchar3 !afterchar4 !cp_val1 = do
-      r'21 <- vim_strchr ed' (Ptr "?!&<\0"#) nextchar3
-      r'23 <- if (r'21 /= nullPtr) then (do { r'22 <- rdW8 arg7 1; pure ((fromIntegral r'22 :: Int32) /= NUL) }) else pure False
-      r'27 <- if r'23 then (do { r'24 <- rdW8 arg7 1; r'26 <- if ((fromIntegral r'24 :: Int32) == (ch ' ')) then pure True else (do { r'25 <- rdW8 arg7 1; pure ((fromIntegral r'25 :: Int32) == (ch '\t')) }); pure (not r'26) }) else pure False
-      if r'27
+                      j'18 did_show3 opt_idx3 arg6 prefix3 op2 flags1 nextchar2 afterchar3 (TRUE :: Int32) do_set_option_value__o_r__3 do_set_option_value__o_argp3 parse_option_name__o_r__3 parse_option_name__o_opt_idxp3 parse_option_name__o_lenp3 parse_option_name__o_keyp3 out___r__3 out___did_show3 out___2_r__3 out___2_did_show3 out___3_r__3 out___3_did_show3 out___4_r__3 out___4_did_show3 out___5_r__3 out___5_did_show3 out___6_r__3 out___6_did_show3 out___7_r__3 out___7_did_show3
+                else j'18 did_show3 opt_idx3 arg4 prefix3 op2 flags1 nextchar2 afterchar3 r'22 do_set_option_value__o_r__3 do_set_option_value__o_argp3 parse_option_name__o_r__3 parse_option_name__o_opt_idxp3 parse_option_name__o_lenp3 parse_option_name__o_keyp3 out___r__3 out___did_show3 out___2_r__3 out___2_did_show3 out___3_r__3 out___3_did_show3 out___4_r__3 out___4_did_show3 out___5_r__3 out___5_did_show3 out___6_r__3 out___6_did_show3 out___7_r__3 out___7_did_show3
+            else j'19 did_show3 opt_idx3 arg3 prefix3 op2 flags1 nextchar2 afterchar3 r'22 do_set_option_value__o_r__3 do_set_option_value__o_argp3 parse_option_name__o_r__3 parse_option_name__o_opt_idxp3 parse_option_name__o_lenp3 parse_option_name__o_keyp3 out___r__3 out___did_show3 out___2_r__3 out___2_did_show3 out___3_r__3 out___3_did_show3 out___4_r__3 out___4_did_show3 out___5_r__3 out___5_did_show3 out___6_r__3 out___6_did_show3 out___7_r__3 out___7_did_show3
+    j'18 !did_show4 !opt_idx4 !arg7 !prefix4 !op3 !flags2 !nextchar3 !afterchar4 !cp_val1 !do_set_option_value__o_r__4 !do_set_option_value__o_argp4 !parse_option_name__o_r__4 !parse_option_name__o_opt_idxp4 !parse_option_name__o_lenp4 !parse_option_name__o_keyp4 !out___r__4 !out___did_show4 !out___2_r__4 !out___2_did_show4 !out___3_r__4 !out___3_did_show4 !out___4_r__4 !out___4_did_show4 !out___5_r__4 !out___5_did_show4 !out___6_r__4 !out___6_did_show4 !out___7_r__4 !out___7_did_show4 = do
+      r'29 <- vim_strchr ed' (Ptr "?!&<\0"#) nextchar3
+      r'31 <- if (r'29 /= nullPtr) then (do { r'30 <- rdW8 arg7 1; pure ((fromIntegral r'30 :: Int32) /= NUL) }) else pure False
+      r'35 <- if r'31 then (do { r'32 <- rdW8 arg7 1; r'34 <- if ((fromIntegral r'32 :: Int32) == (ch ' ')) then pure True else (do { r'33 <- rdW8 arg7 1; pure ((fromIntegral r'33 :: Int32) == (ch '\t')) }); pure (not r'34) }) else pure False
+      if r'35
         then do
           wrP fr' 40 (addr'e_trailing_characters ed')
           wrP argp 0 arg7
-          r'28 <- rdP fr' 40
-          pure (r'28, did_show4)
-        else j'19 did_show4 opt_idx4 arg7 prefix4 op3 flags2 nextchar3 afterchar4 cp_val1
-    j'19 !did_show5 !opt_idx5 !arg8 !prefix5 !op4 !flags3 !nextchar4 !afterchar5 !cp_val2 = do
-      r'31 <- if (nextchar4 == (ch '?')) then pure True else (do { r'30 <- if (prefix5 == PREFIX_NONE) then (do { r'29 <- vim_strchr ed' (Ptr "=:&<\0"#) nextchar4; pure (r'29 == nullPtr) }) else pure False; pure (r'30 && (not ((flags3 .&. P_BOOL) /= 0))) })
-      if r'31
+          r'36 <- rdP fr' 40
+          pure (r'36, did_show4)
+        else j'19 did_show4 opt_idx4 arg7 prefix4 op3 flags2 nextchar3 afterchar4 cp_val1 do_set_option_value__o_r__4 do_set_option_value__o_argp4 parse_option_name__o_r__4 parse_option_name__o_opt_idxp4 parse_option_name__o_lenp4 parse_option_name__o_keyp4 out___r__4 out___did_show4 out___2_r__4 out___2_did_show4 out___3_r__4 out___3_did_show4 out___4_r__4 out___4_did_show4 out___5_r__4 out___5_did_show4 out___6_r__4 out___6_did_show4 out___7_r__4 out___7_did_show4
+    j'19 !did_show5 !opt_idx5 !arg8 !prefix5 !op4 !flags3 !nextchar4 !afterchar5 !cp_val2 !do_set_option_value__o_r__5 !do_set_option_value__o_argp5 !parse_option_name__o_r__5 !parse_option_name__o_opt_idxp5 !parse_option_name__o_lenp5 !parse_option_name__o_keyp5 !out___r__5 !out___did_show5 !out___2_r__5 !out___2_did_show5 !out___3_r__5 !out___3_did_show5 !out___4_r__5 !out___4_did_show5 !out___5_r__5 !out___5_did_show5 !out___6_r__5 !out___6_did_show5 !out___7_r__5 !out___7_did_show5 = do
+      r'39 <- if (nextchar4 == (ch '?')) then pure True else (do { r'38 <- if (prefix5 == PREFIX_NONE) then (do { r'37 <- vim_strchr ed' (Ptr "=:&<\0"#) nextchar4; pure (r'37 == nullPtr) }) else pure False; pure (r'38 && (not ((flags3 .&. P_BOOL) /= 0))) })
+      if r'39
         then do
           if did_show5 /= 0
             then do
               msg_putchar ed' (ch '\n')
-              j'24 did_show5 opt_idx5 arg8 nextchar4 afterchar5
+              j'24 did_show5 opt_idx5 arg8 nextchar4 afterchar5 do_set_option_value__o_r__5 do_set_option_value__o_argp5 parse_option_name__o_r__5 parse_option_name__o_opt_idxp5 parse_option_name__o_lenp5 parse_option_name__o_keyp5 out___r__5 out___did_show5 out___2_r__5 out___2_did_show5 out___3_r__5 out___3_did_show5 out___4_r__5 out___4_did_show5 out___5_r__5 out___5_did_show5 out___6_r__5 out___6_did_show5 out___7_r__5 out___7_did_show5
             else do
               gotocmdline ed' True
-              j'24 (TRUE :: Int32) opt_idx5 arg8 nextchar4 afterchar5
+              j'24 (TRUE :: Int32) opt_idx5 arg8 nextchar4 afterchar5 do_set_option_value__o_r__5 do_set_option_value__o_argp5 parse_option_name__o_r__5 parse_option_name__o_opt_idxp5 parse_option_name__o_lenp5 parse_option_name__o_keyp5 out___r__5 out___did_show5 out___2_r__5 out___2_did_show5 out___3_r__5 out___3_did_show5 out___4_r__5 out___4_did_show5 out___5_r__5 out___5_did_show5 out___6_r__5 out___6_did_show5 out___7_r__5 out___7_did_show5
         else do
-          (r'32, arg9) <- do_set_option_value ed' opt_idx5 opt_flags arg8 prefix5 op4 flags3 fr' (pAdd fr' 32) nextchar4 afterchar5 cp_val2 stopopteval errbuf errbuflen
-          wrP fr' 40 r'32
-          j'31 did_show5 arg9
-    j'24 !did_show6 !opt_idx6 !arg10 !nextchar5 !afterchar6 = do
+          (r'40, r'41) <- do_set_option_value ed' opt_idx5 opt_flags arg8 prefix5 op4 flags3 fr' (pAdd fr' 32) nextchar4 afterchar5 cp_val2 stopopteval errbuf errbuflen
+          wrP fr' 40 r'40
+          j'31 did_show5 r'41 r'40 r'41 parse_option_name__o_r__5 parse_option_name__o_opt_idxp5 parse_option_name__o_lenp5 parse_option_name__o_keyp5 out___r__5 out___did_show5 out___2_r__5 out___2_did_show5 out___3_r__5 out___3_did_show5 out___4_r__5 out___4_did_show5 out___5_r__5 out___5_did_show5 out___6_r__5 out___6_did_show5 out___7_r__5 out___7_did_show5
+    j'24 !did_show6 !opt_idx6 !arg9 !nextchar5 !afterchar6 !do_set_option_value__o_r__6 !do_set_option_value__o_argp6 !parse_option_name__o_r__6 !parse_option_name__o_opt_idxp6 !parse_option_name__o_lenp6 !parse_option_name__o_keyp6 !out___r__6 !out___did_show6 !out___2_r__6 !out___2_did_show6 !out___3_r__6 !out___3_did_show6 !out___4_r__6 !out___4_did_show6 !out___5_r__6 !out___5_did_show6 !out___6_r__6 !out___6_did_show6 !out___7_r__6 !out___7_did_show6 = do
       if opt_idx6 >= 0
         then do
           showoneopt ed' (pAdd (addr'options ed') ((fromIntegral opt_idx6) * 112)) opt_flags
-          j'29 did_show6 arg10 nextchar5 afterchar6
+          j'29 did_show6 arg9 nextchar5 afterchar6 do_set_option_value__o_r__6 do_set_option_value__o_argp6 parse_option_name__o_r__6 parse_option_name__o_opt_idxp6 parse_option_name__o_lenp6 parse_option_name__o_keyp6 out___r__6 out___did_show6 out___2_r__6 out___2_did_show6 out___3_r__6 out___3_did_show6 out___4_r__6 out___4_did_show6 out___5_r__6 out___5_did_show6 out___6_r__6 out___6_did_show6 out___7_r__6 out___7_did_show6
         else do
-          r'34 <- find_termcode ed' (pAdd fr' 32)
-          if r'34 == nullPtr
+          r'42 <- find_termcode ed' (pAdd fr' 32)
+          if r'42 == nullPtr
             then do
               wrP fr' 40 (addr'e_key_code_not_set ed')
-              wrP argp 0 arg10
-              r'35 <- rdP fr' 40
-              pure (r'35, did_show6)
+              wrP argp 0 arg9
+              r'43 <- rdP fr' 40
+              pure (r'43, did_show6)
             else do
-              _ <- show_one_termcode ed' (pAdd fr' 32) r'34 True
-              j'29 did_show6 arg10 nextchar5 afterchar6
-    j'29 !did_show7 !arg11 !nextchar6 !afterchar7 = do
+              _ <- show_one_termcode ed' (pAdd fr' 32) r'42 True
+              j'29 did_show6 arg9 nextchar5 afterchar6 do_set_option_value__o_r__6 do_set_option_value__o_argp6 parse_option_name__o_r__6 parse_option_name__o_opt_idxp6 parse_option_name__o_lenp6 parse_option_name__o_keyp6 out___r__6 out___did_show6 out___2_r__6 out___2_did_show6 out___3_r__6 out___3_did_show6 out___4_r__6 out___4_did_show6 out___5_r__6 out___5_did_show6 out___6_r__6 out___6_did_show6 out___7_r__6 out___7_did_show6
+    j'29 !did_show7 !arg10 !nextchar6 !afterchar7 !do_set_option_value__o_r__7 !do_set_option_value__o_argp7 !parse_option_name__o_r__7 !parse_option_name__o_opt_idxp7 !parse_option_name__o_lenp7 !parse_option_name__o_keyp7 !out___r__7 !out___did_show7 !out___2_r__7 !out___2_did_show7 !out___3_r__7 !out___3_did_show7 !out___4_r__7 !out___4_did_show7 !out___5_r__7 !out___5_did_show7 !out___6_r__7 !out___6_did_show7 !out___7_r__7 !out___7_did_show7 = do
       if ((nextchar6 /= (ch '?')) && (nextchar6 /= NUL)) && (not ((afterchar7 == (ch ' ')) || (afterchar7 == (ch '\t'))))
         then do
           wrP fr' 40 (addr'e_trailing_characters ed')
-          j'31 did_show7 arg11
-        else j'31 did_show7 arg11
-    j'31 !did_show8 !arg12 = do
+          j'31 did_show7 arg10 do_set_option_value__o_r__7 do_set_option_value__o_argp7 parse_option_name__o_r__7 parse_option_name__o_opt_idxp7 parse_option_name__o_lenp7 parse_option_name__o_keyp7 out___r__7 out___did_show7 out___2_r__7 out___2_did_show7 out___3_r__7 out___3_did_show7 out___4_r__7 out___4_did_show7 out___5_r__7 out___5_did_show7 out___6_r__7 out___6_did_show7 out___7_r__7 out___7_did_show7
+        else j'31 did_show7 arg10 do_set_option_value__o_r__7 do_set_option_value__o_argp7 parse_option_name__o_r__7 parse_option_name__o_opt_idxp7 parse_option_name__o_lenp7 parse_option_name__o_keyp7 out___r__7 out___did_show7 out___2_r__7 out___2_did_show7 out___3_r__7 out___3_did_show7 out___4_r__7 out___4_did_show7 out___5_r__7 out___5_did_show7 out___6_r__7 out___6_did_show7 out___7_r__7 out___7_did_show7
+    j'31 !did_show8 !arg11 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+      wrP argp 0 arg11
+      r'45 <- rdP fr' 40
+      pure (r'45, did_show8)
+    j'36 !did_show9 !arg12 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
       wrP argp 0 arg12
-      r'37 <- rdP fr' 40
-      pure (r'37, did_show8)
-    j'36 !did_show9 !arg13 = do
-      wrP argp 0 arg13
-      r'38 <- rdP fr' 40
-      pure (r'38, did_show9)
+      r'46 <- rdP fr' 40
+      pure (r'46, did_show9)
   wrP fr' 40 nullPtr
-  r'39 <- get_option_prefix argp
-  r'40 <- rdP argp 0
-  (r'41, opt_idx7, len6, key3) <- parse_option_name ed' r'40 (0 :: Int32) (0 :: Int32) (0 :: Int32)
-  if not r'41
-    then pure ((addr'e_invalid_argument ed'), did_show)
+  r'47 <- get_option_prefix argp
+  r'48 <- rdP argp 0
+  (r'49, r'50, r'51, r'52) <- parse_option_name ed' r'48 (0 :: Int32) (0 :: Int32) (0 :: Int32)
+  if not r'49
+    then do
+      let !out___r__10 = addr'e_invalid_argument ed'
+      pure (out___r__10, did_show)
     else do
-      r'45 <- rdW8 (pAdd r'40 (fromIntegral len6)) 0
-      let !afterchar8 = fromIntegral r'45 :: Int32
-      loop'2 did_show opt_idx7 r'40 r'39 afterchar8 key3 len6
+      r'53 <- rdW8 (pAdd r'48 (fromIntegral r'51)) 0
+      let !afterchar8 = fromIntegral r'53 :: Int32
+      loop'2 did_show r'50 r'48 r'47 afterchar8 r'52 r'51 nullPtr nullPtr r'49 r'50 r'51 r'52 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
 do_set :: Ed -> Ptr Char_u -> Int32 -> IO Bool
 do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
   let
-    loop'2 !did_show1 = do
+    loop'2 !did_show1 !do_set_option__o_r__1 !do_set_option__o_did_show1 = do
       r'1 <- rdP fr' 0
       r'2 <- rdW8 r'1 0
       if (fromIntegral r'2 :: Int32) /= NUL
@@ -2106,10 +2140,10 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
                   didset_options ed'
                   didset_options2 ed'
                   redraw_all_later ed' UPD_CLEAR
-                  j'24 did_show1
+                  j'24 did_show1 do_set_option__o_r__1 do_set_option__o_did_show1
                 else do
                   showoptions ed' 1 opt_flags
-                  j'24 (TRUE :: Int32)
+                  j'24 (TRUE :: Int32) do_set_option__o_r__1 do_set_option__o_did_show1
             else do
               r'15 <- rdP fr' 0
               r'16 <- musl_strncmp (castPtr r'15) (Ptr "termcap\0"#) 7
@@ -2119,22 +2153,22 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
                   show_termcodes ed' opt_flags
                   r'17 <- rdP fr' 0
                   wrP fr' 0 (pAdd r'17 7)
-                  j'24 (TRUE :: Int32)
+                  j'24 (TRUE :: Int32) do_set_option__o_r__1 do_set_option__o_did_show1
                 else do
                   wrI32 fr' 8 FALSE
                   r'18 <- rdP fr' 0
                   wrP fr' 96 r'18
-                  (r'19, did_show2) <- do_set_option ed' opt_flags fr' arg_start (pAdd fr' 96) did_show1 (pAdd fr' 8) (pAdd fr' 12) ERR_BUFLEN
+                  (r'19, r'20) <- do_set_option ed' opt_flags fr' arg_start (pAdd fr' 96) did_show1 (pAdd fr' 8) (pAdd fr' 12) ERR_BUFLEN
                   r'21 <- rdI32 fr' 8
                   if r'21 /= 0
                     then pure True
-                    else loop'7 (0 :: Int32) did_show2 r'19
+                    else loop'7 (0 :: Int32) r'20 r'19 r'19 r'20
         else pure True
-    loop'7 !i1 !did_show3 !errmsg1 = do
+    loop'7 !i1 !did_show2 !errmsg1 !do_set_option__o_r__2 !do_set_option__o_did_show2 = do
       if i1 < 2
-        then loop'9 i1 did_show3 errmsg1
-        else j'12 did_show3 errmsg1
-    loop'9 !i2 !did_show4 !errmsg2 = do
+        then loop'9 i1 did_show2 errmsg1 do_set_option__o_r__2 do_set_option__o_did_show2
+        else j'12 did_show2 errmsg1 do_set_option__o_r__2 do_set_option__o_did_show2
+    loop'9 !i2 !did_show3 !errmsg2 !do_set_option__o_r__3 !do_set_option__o_did_show3 = do
       r'22 <- rdP fr' 0
       r'23 <- rdW8 r'22 0
       r'29 <- if ((fromIntegral r'23 :: Int32) /= NUL) then (do { r'24 <- rdP fr' 0; r'25 <- rdW8 r'24 0; r'28 <- if ((fromIntegral r'25 :: Int32) == (ch ' ')) then pure True else (do { r'26 <- rdP fr' 0; r'27 <- rdW8 r'26 0; pure ((fromIntegral r'27 :: Int32) == (ch '\t')) }); pure (not r'28) }) else pure False
@@ -2149,8 +2183,8 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
             then do
               r'36 <- rdP fr' 0
               wrP fr' 0 (pAdd r'36 1)
-              loop'9 i2 did_show4 errmsg2
-            else loop'9 i2 did_show4 errmsg2
+              loop'9 i2 did_show3 errmsg2 do_set_option__o_r__3 do_set_option__o_did_show3
+            else loop'9 i2 did_show3 errmsg2 do_set_option__o_r__3 do_set_option__o_did_show3
         else do
           r'37 <- rdP fr' 0
           r'38 <- skipwhite r'37
@@ -2158,11 +2192,11 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
           r'39 <- rdP fr' 0
           r'40 <- rdW8 r'39 0
           if (fromIntegral r'40 :: Int32) /= (ch '=')
-            then j'12 did_show4 errmsg2
+            then j'12 did_show3 errmsg2 do_set_option__o_r__3 do_set_option__o_did_show3
             else do
               let !i3 = i2 + 1
-              loop'7 i3 did_show4 errmsg2
-    j'12 !did_show5 !errmsg3 = do
+              loop'7 i3 did_show3 errmsg2 do_set_option__o_r__3 do_set_option__o_did_show3
+    j'12 !did_show4 !errmsg3 !do_set_option__o_r__4 !do_set_option__o_did_show4 = do
       if errmsg3 /= nullPtr
         then do
           r'41 <- c'IObuff ed'
@@ -2184,10 +2218,10 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
               r'54 <- rdP fr' 0
               r'55 <- rdP fr' 96
               wrW8 (pAdd r'53 (fromIntegral ((fromIntegral i4 :: Int64) + (fromIntegral (quot (pSub r'54 r'55) 1) :: Int64)))) 0 NUL
-              j'15
-            else j'15
-        else j'24 did_show5
-    j'15 = do
+              j'15 do_set_option__o_r__4 do_set_option__o_did_show4
+            else j'15 do_set_option__o_r__4 do_set_option__o_did_show4
+        else j'24 did_show4 do_set_option__o_r__4 do_set_option__o_did_show4
+    j'15 _ _ = do
       r'56 <- c'IObuff ed'
       trans_characters ed' r'56 1025
       r'57 <- no_wait_return ed'
@@ -2197,11 +2231,11 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
       r'60 <- no_wait_return ed'
       set'no_wait_return ed' (r'60 - 1)
       pure False
-    j'24 !did_show6 = do
+    j'24 !did_show5 !do_set_option__o_r__6 !do_set_option__o_did_show6 = do
       r'61 <- rdP fr' 0
       r'62 <- skipwhite r'61
       wrP fr' 0 r'62
-      loop'2 did_show6
+      loop'2 did_show5 do_set_option__o_r__6 do_set_option__o_did_show6
   wrP fr' 0 arg_start
   r'63 <- rdP fr' 0
   r'64 <- rdW8 r'63 0
@@ -2209,7 +2243,7 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
     then do
       showoptions ed' 0 opt_flags
       pure True
-    else loop'2 (FALSE :: Int32)
+    else loop'2 (FALSE :: Int32) nullPtr (0 :: Int32)
 
 option_expand :: Ed -> Int32 -> Ptr Char_u -> IO (Ptr Char_u)
 option_expand ed' opt_idx val = do
@@ -2781,7 +2815,7 @@ did_set_wrap ed' _args = do
       pure nullPtr
 
 showoptions :: Ed -> Int32 -> Int32 -> IO ()
-showoptions ed' all opt_flags = frame 128 $ \fr' -> do
+showoptions ed' all opt_flags = frame 32 $ \fr' -> do
   let
     j'7 !items1 = do
       loop'8 items1 (1 :: Int32)
@@ -2801,27 +2835,36 @@ showoptions ed' all opt_flags = frame 128 $ \fr' -> do
           if r'5
             then j'40 p2 items3 item_count1 run2
             else do
-              optvar_none (pAdd fr' 32)
-              copyMem fr' (pAdd fr' 32) 32
-              r'6 <- istermoption p2
+              let !(r'6, r'7, r'8, r'9) = optvar_none
+              wrP fr' optvar_T'ov_int r'6
+              wrP fr' optvar_T'ov_long r'7
+              wrP fr' optvar_T'ov_str r'8
+              wrI32 fr' optvar_T'ov_win r'9
+              r'10 <- istermoption p2
               if (opt_flags .&. 6) /= 0
                 then do
-                  r'7 <- rdI32 p2 vimoption'indir
-                  if (r'7 /= PV_NONE) && (not r'6)
+                  r'11 <- rdI32 p2 vimoption'indir
+                  if (r'11 /= PV_NONE) && (not r'10)
                     then do
-                      get_varp_scope ed' (pAdd fr' 64) p2 opt_flags
-                      copyMem fr' (pAdd fr' 64) 32
-                      j'32 p2 r'6 items3 item_count1 run2
-                    else j'32 p2 r'6 items3 item_count1 run2
+                      (r'12, r'13, r'14, r'15) <- get_varp_scope ed' p2 opt_flags
+                      wrP fr' optvar_T'ov_int r'12
+                      wrP fr' optvar_T'ov_long r'13
+                      wrP fr' optvar_T'ov_str r'14
+                      wrI32 fr' optvar_T'ov_win r'15
+                      j'32 p2 r'10 items3 item_count1 run2
+                    else j'32 p2 r'10 items3 item_count1 run2
                 else do
-                  get_varp ed' (pAdd fr' 96) p2
-                  copyMem fr' (pAdd fr' 96) 32
-                  j'32 p2 r'6 items3 item_count1 run2
+                  (r'16, r'17, r'18, r'19) <- get_varp ed' p2
+                  wrP fr' optvar_T'ov_int r'16
+                  wrP fr' optvar_T'ov_long r'17
+                  wrP fr' optvar_T'ov_str r'18
+                  wrI32 fr' optvar_T'ov_win r'19
+                  j'32 p2 r'10 items3 item_count1 run2
         else do
           if run2 == 1
             then do
-              r'8 <- c'Columns ed'
-              let !cols1 = fromIntegral (quot ((r'8 + GAP) - 3) INC) :: Int32
+              r'20 <- c'Columns ed'
+              let !cols1 = fromIntegral (quot ((r'20 + GAP) - 3) INC) :: Int32
               if cols1 == 0
                 then j'16 items3 item_count1 run2 (1 :: Int32)
                 else j'16 items3 item_count1 run2 cols1
@@ -2832,12 +2875,12 @@ showoptions ed' all opt_flags = frame 128 $ \fr' -> do
     j'17 !items5 !item_count3 !run4 !rows2 = do
       loop'18 items5 item_count3 run4 (0 :: Int32) rows2
     loop'18 !items6 !item_count4 !run5 !row1 !rows3 = do
-      r'10 <- if (row1 < rows3) then (do { r'9 <- got_int ed'; pure (not (r'9 /= 0)) }) else pure False
-      if r'10
+      r'22 <- if (row1 < rows3) then (do { r'21 <- got_int ed'; pure (not (r'21 /= 0)) }) else pure False
+      if r'22
         then do
           msg_putchar ed' (ch '\n')
-          r'11 <- got_int ed'
-          if r'11 /= 0
+          r'23 <- got_int ed'
+          if r'23 /= 0
             then j'26 items6 run5
             else loop'21 (0 :: Int32) items6 item_count4 run5 row1 rows3 row1
         else j'26 items6 run5
@@ -2845,8 +2888,8 @@ showoptions ed' all opt_flags = frame 128 $ \fr' -> do
       if i1 < item_count5
         then do
           set'msg_col ed' col1
-          r'12 <- rdP (pAdd items7 ((fromIntegral i1) * 8)) 0
-          showoneopt ed' r'12 opt_flags
+          r'24 <- rdP (pAdd items7 ((fromIntegral i1) * 8)) 0
+          showoneopt ed' r'24 opt_flags
           let !col2 = col1 + INC
           let !i2 = i1 + rows4
           loop'21 col2 items7 item_count5 run6 row2 rows4 i2
@@ -2859,26 +2902,26 @@ showoptions ed' all opt_flags = frame 128 $ \fr' -> do
       let !run8 = run7 + 1
       loop'8 items8 run8
     j'32 !p3 !isterm1 !items9 !item_count6 !run9 = do
-      r'13 <- optvar_is_null fr'
-      r'18 <- if (not r'13) then (if (((all == 2) && isterm1) || ((all == 1) && (not isterm1))) then pure True else (if (all == 0) then (do { r'14 <- p_cp ed'; r'15 <- optval_default p3 fr' r'14; pure (not r'15) }) else pure False)) else pure False
-      if r'18
+      r'25 <- optvar_is_null fr'
+      r'30 <- if (not r'25) then (if (((all == 2) && isterm1) || ((all == 1) && (not isterm1))) then pure True else (if (all == 0) then (do { r'26 <- p_cp ed'; r'27 <- optval_default p3 fr' r'26; pure (not r'27) }) else pure False)) else pure False
+      if r'30
         then do
           if (opt_flags .&. OPT_ONECOLUMN) /= 0
             then do
-              r'19 <- c'Columns ed'
-              let !len1 = fromIntegral r'19 :: Int32
+              r'31 <- c'Columns ed'
+              let !len1 = fromIntegral r'31 :: Int32
               j'38 p3 items9 item_count6 run9 len1
             else do
-              r'20 <- rdW64 p3 vimoption'flags
-              if (r'20 .&. P_BOOL) /= 0
+              r'32 <- rdW64 p3 vimoption'flags
+              if (r'32 .&. P_BOOL) /= 0
                 then j'38 p3 items9 item_count6 run9 (1 :: Int32)
                 else do
                   option_value2string ed' p3 opt_flags
-                  r'21 <- rdP p3 vimoption'fullname
-                  r'22 <- musl_strlen r'21
-                  r'23 <- c'NameBuff ed'
-                  r'24 <- vim_strsize ed' r'23
-                  let !len2 = ((fromIntegral r'22 :: Int32) + r'24) + 1
+                  r'33 <- rdP p3 vimoption'fullname
+                  r'34 <- musl_strlen r'33
+                  r'35 <- c'NameBuff ed'
+                  r'36 <- vim_strsize ed' r'35
+                  let !len2 = ((fromIntegral r'34 :: Int32) + r'36) + 1
                   j'38 p3 items9 item_count6 run9 len2
         else j'40 p3 items9 item_count6 run9
     j'38 !p4 !items10 !item_count7 !run10 !len3 = do
@@ -2891,28 +2934,28 @@ showoptions ed' all opt_flags = frame 128 $ \fr' -> do
     j'40 !p5 !items11 !item_count9 !run11 = do
       let !p6 = pAdd p5 112
       loop'11 p6 items11 item_count9 run11
-  r'25 <- alloc ed' 1480
-  let !items12 = castPtr r'25
+  r'37 <- alloc ed' 1480
+  let !items12 = castPtr r'37
   if all == 2
     then do
-      let !r'26 = c'_ (Ptr "\10--- Terminal codes ---\0"#)
-      msg_puts_title ed' r'26
+      let !r'38 = c'_ (Ptr "\10--- Terminal codes ---\0"#)
+      msg_puts_title ed' r'38
       j'7 items12
     else do
       if (opt_flags .&. OPT_GLOBAL) /= 0
         then do
-          let !r'27 = c'_ (Ptr "\10--- Global option values ---\0"#)
-          msg_puts_title ed' r'27
+          let !r'39 = c'_ (Ptr "\10--- Global option values ---\0"#)
+          msg_puts_title ed' r'39
           j'7 items12
         else do
           if (opt_flags .&. OPT_LOCAL) /= 0
             then do
-              let !r'28 = c'_ (Ptr "\10--- Local option values ---\0"#)
-              msg_puts_title ed' r'28
+              let !r'40 = c'_ (Ptr "\10--- Local option values ---\0"#)
+              msg_puts_title ed' r'40
               j'7 items12
             else do
-              let !r'29 = c'_ (Ptr "\10--- Options ---\0"#)
-              msg_puts_title ed' r'29
+              let !r'41 = c'_ (Ptr "\10--- Options ---\0"#)
+              msg_puts_title ed' r'41
               j'7 items12
 
 optval_default :: Ptr Vimoption -> Ptr Optvar_T -> Int32 -> IO Bool
@@ -2947,7 +2990,7 @@ optval_default p varp compatible = frame 32 $ \fr' -> do
               pure (r'14 == 0)
 
 showoneopt :: Ed -> Ptr Vimoption -> Int32 -> IO ()
-showoneopt ed' p opt_flags = frame 32 $ \fr' -> do
+showoneopt ed' p opt_flags = do
   let
     j'5 !varp_ov_int1 !varp_ov_long1 !varp_ov_str1 !varp_ov_win1 = do
       r'1 <- rdP p vimoption'fullname
@@ -2965,11 +3008,7 @@ showoneopt ed' p opt_flags = frame 32 $ \fr' -> do
       set'info_message ed' FALSE
       pure ()
   set'info_message ed' TRUE
-  get_varp_scope ed' (pAdd fr' 0) p opt_flags
-  r'5 <- rdP (pAdd fr' 0) optvar_T'ov_int
-  r'6 <- rdP (pAdd fr' 0) optvar_T'ov_long
-  r'7 <- rdP (pAdd fr' 0) optvar_T'ov_str
-  r'8 <- rdI32 (pAdd fr' 0) optvar_T'ov_win
+  (r'5, r'6, r'7, r'8) <- get_varp_scope ed' p opt_flags
   r'9 <- rdW64 p vimoption'flags
   r'14 <- if ((r'9 .&. P_BOOL) /= 0) then (do { r'10 <- curbuf ed'; r'13 <- if (r'5 == (pAdd r'10 buf_T'b_changed)) then (do { r'11 <- curbufIsChanged ed'; pure (b2i (not (r'11 /= 0)) :: Int32) }) else (do { r'12 <- rdI32 r'5 0; pure (b2i (not (r'12 /= 0)) :: Int32) }); pure (r'13 /= 0) }) else pure False
   if r'14
@@ -3120,12 +3159,8 @@ check_win_options ed' win = do
   pure ()
 
 option_value2string :: Ed -> Ptr Vimoption -> Int32 -> IO ()
-option_value2string ed' opp scope = frame 32 $ \fr' -> do
-  get_varp_scope ed' (pAdd fr' 0) opp scope
-  _ <- rdP (pAdd fr' 0) optvar_T'ov_int
-  r'2 <- rdP (pAdd fr' 0) optvar_T'ov_long
-  r'3 <- rdP (pAdd fr' 0) optvar_T'ov_str
-  _ <- rdI32 (pAdd fr' 0) optvar_T'ov_win
+option_value2string ed' opp scope = do
+  (_, r'2, r'3, _) <- get_varp_scope ed' opp scope
   r'5 <- rdW64 opp vimoption'flags
   if (r'5 .&. P_NUM) /= 0
     then do
@@ -3511,11 +3546,11 @@ did_set_pastetoggle ed' _args = do
   if r'2 /= 0
     then do
       r'3 <- p_pt ed'
-      (_, p1) <- replace_termcodes ed' r'3 nullPtr 0 3 nullPtr
-      if p1 /= nullPtr
+      (_, r'5) <- replace_termcodes ed' r'3 nullPtr 0 3 nullPtr
+      if r'5 /= nullPtr
         then do
           _ <- p_pt ed'
-          set'p_pt ed' p1
+          set'p_pt ed' r'5
           pure nullPtr
         else pure nullPtr
     else pure nullPtr
@@ -3948,7 +3983,7 @@ get_register_name num =
             else (num + (ch 'a')) - 10
 
 ex_display :: Ed -> Ptr Exarg_T -> IO ()
-ex_display ed' eap = frame 16 $ \fr' -> do
+ex_display ed' eap = do
   let
     j'2 !arg1 !insert_string1 !insert_length1 = do
       r'1 <- rdI32 (addr'highlight_attr ed') 0
@@ -3966,9 +4001,7 @@ ex_display ed' eap = frame 16 $ \fr' -> do
             MCHAR -> j'15 i1 r'5 attr1 arg2 (ch 'c' :: Int32) insert_string2 insert_length2
             _ -> j'15 i1 r'5 attr1 arg2 (ch 'b' :: Int32) insert_string2 insert_length2
         else do
-          get_last_insert ed' (pAdd fr' 0)
-          r'7 <- rdP (pAdd fr' 0) string_T'string
-          r'8 <- rdW64 (pAdd fr' 0) string_T'length
+          (r'7, r'8) <- get_last_insert ed'
           r'11 <- if (r'7 /= nullPtr) then (if (arg2 == nullPtr) then pure True else (do { r'9 <- vim_strchr ed' arg2 (ch '.'); pure (r'9 /= nullPtr) })) else pure False
           r'13 <- if r'11 then (do { r'12 <- got_int ed'; pure (not (r'12 /= 0)) }) else pure False
           r'15 <- if r'13 then (do { r'14 <- message_filtered ed' r'7; pure (not r'14) }) else pure False
@@ -4747,11 +4780,11 @@ report_term_error ed' error_msg term = frame 1024 $ \fr' -> do
 match_keyprotocol :: Ed -> Ptr Char_u -> IO Keyprot_T
 match_keyprotocol ed' term = frame 176 $ \fr' -> do
   let
-    loop'1 !len1 !buf1 !ret1 !p1 = do
+    loop'1 !len1 !buf1 !ret1 !p1 _ _ = do
       r'1 <- rdW8 p1 0
       if (fromIntegral r'1 :: Int32) /= NUL
         then do
-          (_, p2) <- copy_option_part ed' p1 buf1 len1 (Ptr ",\0"#)
+          (r'2, r'3) <- copy_option_part ed' p1 buf1 len1 (Ptr ",\0"#)
           r'4 <- vim_strchr ed' buf1 (ch ':')
           r'6 <- if ((r'4 == nullPtr) || (r'4 == buf1)) then pure True else (do { r'5 <- rdW8 r'4 1; pure ((fromIntegral r'5 :: Int32) == NUL) })
           if r'6
@@ -4760,18 +4793,18 @@ match_keyprotocol ed' term = frame 176 $ \fr' -> do
               wrW8 r'4 0 NUL
               r'7 <- musl_strcmp (pAdd r'4 1) (Ptr "none\0"#)
               if r'7 == 0
-                then j'11 len1 buf1 ret1 p2 (KEYPROTOCOL_NONE :: Int32)
+                then j'11 len1 buf1 ret1 r'3 (KEYPROTOCOL_NONE :: Int32) r'2 r'3
                 else do
                   r'8 <- musl_strcmp (pAdd r'4 1) (Ptr "mok2\0"#)
                   if r'8 == 0
-                    then j'11 len1 buf1 ret1 p2 (KEYPROTOCOL_MOK2 :: Int32)
+                    then j'11 len1 buf1 ret1 r'3 (KEYPROTOCOL_MOK2 :: Int32) r'2 r'3
                     else do
                       r'9 <- musl_strcmp (pAdd r'4 1) (Ptr "kitty\0"#)
                       if r'9 == 0
-                        then j'11 len1 buf1 ret1 p2 (KEYPROTOCOL_KITTY :: Int32)
+                        then j'11 len1 buf1 ret1 r'3 (KEYPROTOCOL_KITTY :: Int32) r'2 r'3
                         else pure ret1
         else pure (KEYPROTOCOL_NONE :: Int32)
-    j'11 !len2 !buf2 !ret2 !p3 !prot1 = do
+    j'11 !len2 !buf2 !ret2 !p2 !prot1 !copy_option_part__o_r__2 !copy_option_part__o_option2 = do
       _ <- musl_memset fr' 0 176
       wrB fr' regmatch_T'rm_ic True
       r'11 <- vim_regcomp ed' buf2 RE_MAGIC
@@ -4784,14 +4817,14 @@ match_keyprotocol ed' term = frame 176 $ \fr' -> do
           _ <- rdP fr' regmatch_T'regprog
           if r'14
             then pure prot1
-            else loop'1 len2 buf2 ret2 p3
+            else loop'1 len2 buf2 ret2 p2 copy_option_part__o_r__2 copy_option_part__o_option2
   r'16 <- p_kpc ed'
   r'17 <- musl_strlen (castPtr r'16)
   let !len3 = (fromIntegral r'17 :: Int32) + 1
   r'18 <- alloc ed' (fromIntegral len3 :: Word64)
   let !buf3 = castPtr r'18
   r'19 <- p_kpc ed'
-  loop'1 len3 buf3 (KEYPROTOCOL_FAIL :: Int32) r'19
+  loop'1 len3 buf3 (KEYPROTOCOL_FAIL :: Int32) r'19 (0 :: Int32) nullPtr
 
 set_termname :: Ed -> Ptr Char_u -> IO Bool
 set_termname ed' term = frame 3 $ \fr' -> do

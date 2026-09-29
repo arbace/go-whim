@@ -51,10 +51,12 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
   `allocaBytes`), zeroed; every other local is a Haskell binding -- a struct
   of scalars used by member and copied whole one binding per member, and a
   local whose address only goes to an out-parameter a binding too;
-- **an out-parameter is a value in and a value out**: a callee that only
-  reads and writes `*p` and tests `p` against null, every caller passing
-  `&x` of a local nothing else reaches, takes x's value and returns its new
-  one beside its result (`(r, x1) <- f ... x`);
+- **an out-parameter is a value in and a value out**: phase 181 makes it
+  so in the C (`LocalOut`), a struct of the result and the values returned,
+  which the Haskell returns as a tuple -- a function whose C result is a
+  struct of scalars returns its members, `IO (Bool, Ptr Char_u, Int32)` --
+  and the printer's own analysis (`hsout.go`) takes the few the C cannot
+  (`(r, x1) <- f ... x`);
 - **a function that touches no memory is a Haskell function** of its
   arguments, no `IO` (`musl_isdigit :: Int32 -> Int32`), its loops pure
   recursion; one that reaches no file-scope object, no host and no function

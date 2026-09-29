@@ -168,6 +168,10 @@ func hsUnparen(s string) string {
 				i++
 			}
 			i++
+		case ',':
+			if depth == 1 {
+				return s // a tuple's parentheses are its own
+			}
 		case '(':
 			depth++
 		case ')':

@@ -11,6 +11,9 @@ package togo
 // frame.
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/arbace/go-whim/crefactor/cc"
 )
 
@@ -161,6 +164,13 @@ func (f *hfn) fieldOf(s *lvar, i int) *cc.Field {
 // copyStruct gives struct s the value x: another struct that is a value
 // (x.rec), or the struct at the address x is, member by member.
 func (f *hfn) copyStruct(s *lvar, x hv) {
+	if x.tup != nil {
+		f.lines = append(f.lines, x.binds...)
+		for i, m := range f.sv[s] {
+			f.setVar(m, hv{val: x.tup[i], ht: f.vtype(m)})
+		}
+		return
+	}
 	if x.rec != nil {
 		for i, m := range f.sv[s] {
 			f.setVar(m, f.varRead(f.sv[x.rec][i]))
@@ -220,4 +230,71 @@ func (f *hfn) initStruct(s *lvar, in *cc.Initializer) {
 			f.setVar(m, hv{val: hsZero(f.vtype(m)), ht: f.vtype(m), konst: true})
 		}
 	}
+}
+
+// tupleRet says function name returns a struct of scalars as a tuple of its
+// members, not through an address its caller gives: a C struct result is
+// how C returns several values (phase 181's out-parameters among them).
+func (h *hgen) tupleRet(name string) bool {
+	fd := h.defined[name]
+	if fd == nil || h.keepSigs()[name] {
+		return false
+	}
+	ft, _ := fd.Declarator.Type().(*cc.FunctionType)
+	return ft != nil && scalarStruct(ft.Result())
+}
+
+// tupleType is a struct of scalars' members' types as a tuple type.
+func (h *hgen) tupleType(t cc.Type) string {
+	st := t.(*cc.StructType)
+	var ts []string
+	for i := 0; i < st.NumFields(); i++ {
+		ts = append(ts, h.sigType(st.FieldByIndex(i).Type()))
+	}
+	return "(" + strings.Join(ts, ", ") + ")"
+}
+
+// structVals are the members' values of x, a struct value of type t: a
+// tuple's names, a struct that is a value's members, or the members read
+// from the address x is.
+func (f *hfn) structVals(x hv, t cc.Type) []string {
+	st := t.(*cc.StructType)
+	var out []string
+	switch {
+	case x.tup != nil:
+		f.lines = append(f.lines, x.binds...) // the call that binds it
+		return x.tup
+	case x.rec != nil:
+		for i, m := range f.sv[x.rec] {
+			fl := st.FieldByIndex(i)
+			out = append(out, f.flushPlain(f.conv(f.varRead(m), f.h.hsType(fl.Type()))))
+		}
+		return out
+	}
+	src := f.flush(x)
+	for i := 0; i < st.NumFields(); i++ {
+		fl := st.FieldByIndex(i)
+		a := f.member(haddr{base: hv{val: src, ht: "P"}}, t, fl)
+		out = append(out, f.flush(f.readAt(a, fl.Type())))
+	}
+	return out
+}
+
+// materialize is a struct value in memory: a tuple written into the frame,
+// for what takes a struct's address.
+func (f *hfn) materialize(x hv, t cc.Type) hv {
+	if x.tup == nil {
+		return x
+	}
+	binds := append([]string{}, x.binds...) // the call that binds the tuple, first
+	off := f.alloc(nil, t)
+	base := fmt.Sprintf("(pAdd fr' %d)", off)
+	st := t.(*cc.StructType)
+	for i, v := range x.tup {
+		fl := st.FieldByIndex(i)
+		a := f.member(haddr{base: hv{val: base, ht: "P"}}, t, fl)
+		ht := f.h.hsType(fl.Type())
+		binds = append(binds, fmt.Sprintf("wr%s %s %s %s", hsAccess(ht), base, offStr(a), v))
+	}
+	return hv{binds: binds, val: base, ht: "agg"}
 }

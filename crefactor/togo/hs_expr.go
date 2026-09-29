@@ -31,7 +31,8 @@ type hv struct {
 	// a constant's C spelling (constSpelling), kept while its value is
 	spell     string
 	spellAtom bool
-	rec       *lvar // a struct that is a value: its members are its value
+	rec       *lvar    // a struct that is a value: its members are its value
+	tup       []string // a struct result returned as a tuple: its members' names
 }
 
 // plain is v where its type is fixed by the place it goes: a constant's
@@ -441,7 +442,7 @@ func (f *hfn) addrNode(e cc.ExpressionNode) haddr {
 		}
 	}
 	if isAggr(e.Type()) {
-		return haddr{base: f.expr(e)} // a struct's value is its address
+		return haddr{base: f.materialize(f.expr(e), e.Type())} // a struct's value is its address
 	}
 	f.no(e, "the address of %T", e)
 	return haddr{}
@@ -870,6 +871,10 @@ func (f *hfn) ternary(x *cc.ConditionalExpression) hv {
 	ht := f.h.hsType(x.Type())
 	a := f.conv(f.expr(x.ExpressionList), ht)
 	b := f.conv(f.expr(x.ConditionalExpression), ht)
+	if ht == "agg" {
+		// a struct's value is its address: a tuple's put in the frame
+		a, b = f.materialize(a, x.Type()), f.materialize(b, x.Type())
+	}
 	if len(a.binds) == 0 && len(b.binds) == 0 {
 		av, bv := hsPair(a, b)
 		return hv{binds: c.binds, val: fmt.Sprintf("(if %s then %s else %s)", c.val, av, bv), ht: ht}
@@ -947,6 +952,9 @@ func (f *hfn) call(x *cc.PostfixExpression) hv {
 				want = "Ptr ()" // the host takes P
 			}
 			v := f.conv(f.expr(a), want)
+			if v.tup != nil {
+				v = f.materialize(v, pt)
+			}
 			binds = append(binds, v.binds...)
 			if viaPtr {
 				vals = append(vals, v.val) // toRaw's, whose type it is
@@ -993,6 +1001,22 @@ func (f *hfn) call(x *cc.PostfixExpression) hv {
 		}
 		r := f.tmp()
 		return hv{binds: append(binds, fmt.Sprintf("%s <- (fromRaw <$> %s :: IO %s)", r, call, hsParen(ht))), val: r, ht: ht}
+	}
+	if isAggr(rt) && d != nil && f.h.tupleRet(d.Name()) {
+		// a struct of scalars returned as a tuple: its members bound
+		var names []string
+		st := rt.(*cc.StructType)
+		for i := 0; i < st.NumFields(); i++ {
+			names = append(names, f.tmp())
+		}
+		pat := "(" + strings.Join(names, ", ") + ")"
+		line := strings.Join(append([]string{head}, vals...), " ")
+		if f.h.pure(d.Name()) {
+			binds = append(binds, "let !"+pat+" = "+line)
+		} else {
+			binds = append(binds, pat+" <- "+line)
+		}
+		return hv{binds: binds, ht: "agg", tup: names}
 	}
 	if isAggr(rt) {
 		off := f.alloc(nil, rt)

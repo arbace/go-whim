@@ -138,14 +138,14 @@ search_found ed' found line1 count rmp lnum col = do
 ex_substitute :: Ed -> Ptr Exarg_T -> IO ()
 ex_substitute ed' eap = frame 372 $ \fr' -> do
   let
-    j'2 !got_quit1 !got_match1 !first_line1 !last_line1 !old_line_count1 !endcolumn1 !keeppatterns1 !pat_string1 !pat_length1 !sub_firstline_string1 !sub_firstline_length1 !old_cursor_lnum1 !old_cursor_col1 !old_cursor_coladd1 !new_start_string1 !new_start_length1 !tmp_string1 !tmp_length1 !orig_line_string1 !orig_line_length1 !new_line_string1 !new_line_length1 = do
+    j'2 !got_quit1 !got_match1 !first_line1 !last_line1 !old_line_count1 !endcolumn1 !old_cursor_lnum1 !old_cursor_col1 !old_cursor_coladd1 !keeppatterns1 = do
       r'1 <- sub_nsubs ed'
       let !start_nsubs1 = fromIntegral r'1 :: Int32
       r'2 <- rdI32 eap exarg_T'cmdidx
       if r'2 == CMD_tilde
-        then j'5 got_quit1 got_match1 (RE_LAST :: Int32) first_line1 last_line1 old_line_count1 endcolumn1 start_nsubs1 keeppatterns1 pat_string1 pat_length1 sub_firstline_string1 sub_firstline_length1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1 new_start_string1 new_start_length1 tmp_string1 tmp_length1 orig_line_string1 orig_line_length1 new_line_string1 new_line_length1
-        else j'5 got_quit1 got_match1 (RE_SUBST :: Int32) first_line1 last_line1 old_line_count1 endcolumn1 start_nsubs1 keeppatterns1 pat_string1 pat_length1 sub_firstline_string1 sub_firstline_length1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1 new_start_string1 new_start_length1 tmp_string1 tmp_length1 orig_line_string1 orig_line_length1 new_line_string1 new_line_length1
-    j'5 !got_quit2 !got_match2 !which_pat1 !first_line2 !last_line2 !old_line_count2 !endcolumn2 !start_nsubs2 !keeppatterns2 !pat_string2 !pat_length2 !sub_firstline_string2 !sub_firstline_length2 !old_cursor_lnum2 !old_cursor_col2 !old_cursor_coladd2 !new_start_string2 !new_start_length2 !tmp_string2 !tmp_length2 !orig_line_string2 !orig_line_length2 !new_line_string2 !new_line_length2 = do
+        then j'5 got_quit1 got_match1 (RE_LAST :: Int32) first_line1 last_line1 old_line_count1 endcolumn1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1 start_nsubs1 keeppatterns1
+        else j'5 got_quit1 got_match1 (RE_SUBST :: Int32) first_line1 last_line1 old_line_count1 endcolumn1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1 start_nsubs1 keeppatterns1
+    j'5 !got_quit2 !got_match2 !which_pat1 !first_line2 !last_line2 !old_line_count2 !endcolumn2 !old_cursor_lnum2 !old_cursor_col2 !old_cursor_coladd2 !start_nsubs2 !keeppatterns2 = do
       r'3 <- rdP eap exarg_T'cmd
       r'4 <- rdW8 r'3 0
       r'7 <- if ((fromIntegral r'4 :: Int32) == (ch 's')) then (do { r'5 <- rdP fr' 344; r'6 <- rdW8 r'5 0; pure ((fromIntegral r'6 :: Int32) /= NUL) }) else pure False
@@ -177,8 +177,8 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                       r'29 <- rdP fr' 344
                       r'30 <- rdW8 r'29 0
                       if (fromIntegral r'30 :: Int32) /= (ch '&')
-                        then j'16 got_quit2 got_match2 (RE_SEARCH :: Int32) first_line2 last_line2 old_line_count2 endcolumn2 start_nsubs2 keeppatterns2 pat_string2 pat_length2 sub_firstline_string2 sub_firstline_length2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 new_start_string2 new_start_length2 tmp_string2 tmp_length2 orig_line_string2 orig_line_length2 new_line_string2 new_line_length2
-                        else j'16 got_quit2 got_match2 which_pat1 first_line2 last_line2 old_line_count2 endcolumn2 start_nsubs2 keeppatterns2 pat_string2 pat_length2 sub_firstline_string2 sub_firstline_length2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 new_start_string2 new_start_length2 tmp_string2 tmp_length2 orig_line_string2 orig_line_length2 new_line_string2 new_line_length2
+                        then j'16 got_quit2 got_match2 (RE_SEARCH :: Int32) first_line2 last_line2 old_line_count2 endcolumn2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 start_nsubs2 keeppatterns2
+                        else j'16 got_quit2 got_match2 which_pat1 first_line2 last_line2 old_line_count2 endcolumn2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 start_nsubs2 keeppatterns2
                 else do
                   r'31 <- rdP fr' 344
                   r'32 <- rdP fr' 344
@@ -191,7 +191,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                   r'37 <- skip_regexp_ex ed' r'35 delimiter1 r'36 (pAdd eap exarg_T'arg) nullPtr nullPtr
                   wrP fr' 344 r'37
                   r'38 <- rdP fr' 344
-                  let !pat_length3 = fromIntegral (fromIntegral (quot (pSub r'38 r'34) 1) :: Int64) :: Word64
+                  let !pat_length1 = fromIntegral (fromIntegral (quot (pSub r'38 r'34) 1) :: Int64) :: Word64
                   r'39 <- rdP fr' 344
                   r'40 <- rdW8 r'39 0
                   if (fromIntegral r'40 :: Int32) == delimiter1
@@ -200,8 +200,8 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                       r'42 <- rdP fr' 344
                       wrP fr' 344 (pAdd r'42 1)
                       wrW8 r'41 0 NUL
-                      j'17 delimiter1 got_quit2 got_match2 (RE_LAST :: Int32) first_line2 last_line2 old_line_count2 endcolumn2 start_nsubs2 keeppatterns2 r'34 pat_length3 sub_firstline_string2 sub_firstline_length2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 new_start_string2 new_start_length2 tmp_string2 tmp_length2 orig_line_string2 orig_line_length2 new_line_string2 new_line_length2
-                    else j'17 delimiter1 got_quit2 got_match2 (RE_LAST :: Int32) first_line2 last_line2 old_line_count2 endcolumn2 start_nsubs2 keeppatterns2 r'34 pat_length3 sub_firstline_string2 sub_firstline_length2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 new_start_string2 new_start_length2 tmp_string2 tmp_length2 orig_line_string2 orig_line_length2 new_line_string2 new_line_length2
+                      j'17 r'34 pat_length1 delimiter1 got_quit2 got_match2 (RE_LAST :: Int32) first_line2 last_line2 old_line_count2 endcolumn2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 start_nsubs2 keeppatterns2
+                    else j'17 r'34 pat_length1 delimiter1 got_quit2 got_match2 (RE_LAST :: Int32) first_line2 last_line2 old_line_count2 endcolumn2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 start_nsubs2 keeppatterns2
         else do
           r'43 <- old_sub ed'
           if r'43 == nullPtr
@@ -215,16 +215,16 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
               r'48 <- curwin ed'
               r'49 <- rdI32 r'48 win_T'w_curswant
               let !endcolumn3 = r'49 == MAXCOL
-              j'22 r'47 got_quit2 got_match2 which_pat1 first_line2 last_line2 old_line_count2 endcolumn3 start_nsubs2 keeppatterns2 nullPtr (0 :: Word64) sub_firstline_string2 sub_firstline_length2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 new_start_string2 new_start_length2 tmp_string2 tmp_length2 orig_line_string2 orig_line_length2 new_line_string2 new_line_length2
-    j'16 !got_quit3 !got_match3 !which_pat2 !first_line3 !last_line3 !old_line_count3 !endcolumn4 !start_nsubs3 !keeppatterns3 _ _ !sub_firstline_string3 !sub_firstline_length3 !old_cursor_lnum3 !old_cursor_col3 !old_cursor_coladd3 !new_start_string3 !new_start_length3 !tmp_string3 !tmp_length3 !orig_line_string3 !orig_line_length3 !new_line_string3 !new_line_length3 = do
-      let !pat_string4 = Ptr "\0"#
+              j'22 r'47 nullPtr (0 :: Word64) got_quit2 got_match2 which_pat1 first_line2 last_line2 old_line_count2 endcolumn3 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 start_nsubs2 keeppatterns2
+    j'16 !got_quit3 !got_match3 !which_pat2 !first_line3 !last_line3 !old_line_count3 !endcolumn4 !old_cursor_lnum3 !old_cursor_col3 !old_cursor_coladd3 !start_nsubs3 !keeppatterns3 = do
+      let !pat_string1 = Ptr "\0"#
       r'50 <- rdP fr' 344
       r'51 <- rdP fr' 344
       wrP fr' 344 (pAdd r'51 1)
       r'52 <- rdW8 r'50 0
       let !delimiter2 = fromIntegral r'52 :: Int32
-      j'17 delimiter2 got_quit3 got_match3 which_pat2 first_line3 last_line3 old_line_count3 endcolumn4 start_nsubs3 keeppatterns3 pat_string4 (0 :: Word64) sub_firstline_string3 sub_firstline_length3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 new_start_string3 new_start_length3 tmp_string3 tmp_length3 orig_line_string3 orig_line_length3 new_line_string3 new_line_length3
-    j'17 !delimiter3 !got_quit4 !got_match4 !which_pat3 !first_line4 !last_line4 !old_line_count4 !endcolumn5 !start_nsubs4 !keeppatterns4 !pat_string5 !pat_length5 !sub_firstline_string4 !sub_firstline_length4 !old_cursor_lnum4 !old_cursor_col4 !old_cursor_coladd4 !new_start_string4 !new_start_length4 !tmp_string4 !tmp_length4 !orig_line_string4 !orig_line_length4 !new_line_string4 !new_line_length4 = do
+      j'17 pat_string1 (0 :: Word64) delimiter2 got_quit3 got_match3 which_pat2 first_line3 last_line3 old_line_count3 endcolumn4 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 start_nsubs3 keeppatterns3
+    j'17 !pat_string2 !pat_length2 !delimiter3 !got_quit4 !got_match4 !which_pat3 !first_line4 !last_line4 !old_line_count4 !endcolumn5 !old_cursor_lnum4 !old_cursor_col4 !old_cursor_coladd4 !start_nsubs4 !keeppatterns4 = do
       r'53 <- rdP fr' 344
       r'54 <- rdP fr' 344
       r'55 <- skip_substitute ed' r'54 delimiter3
@@ -243,16 +243,16 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
             else do
               r'64 <- old_sub ed'
               r'65 <- vim_strsave ed' r'64
-              j'22 r'65 got_quit4 got_match4 which_pat3 first_line4 last_line4 old_line_count4 endcolumn5 start_nsubs4 keeppatterns4 pat_string5 pat_length5 sub_firstline_string4 sub_firstline_length4 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 new_start_string4 new_start_length4 tmp_string4 tmp_length4 orig_line_string4 orig_line_length4 new_line_string4 new_line_length4
+              j'22 r'65 pat_string2 pat_length2 got_quit4 got_match4 which_pat3 first_line4 last_line4 old_line_count4 endcolumn5 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 start_nsubs4 keeppatterns4
         else do
           if not (keeppatterns4 /= 0)
             then do
               r'66 <- vim_strsave ed' r'56
               set'old_sub ed' r'66
-              j'22 r'56 got_quit4 got_match4 which_pat3 first_line4 last_line4 old_line_count4 endcolumn5 start_nsubs4 keeppatterns4 pat_string5 pat_length5 sub_firstline_string4 sub_firstline_length4 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 new_start_string4 new_start_length4 tmp_string4 tmp_length4 orig_line_string4 orig_line_length4 new_line_string4 new_line_length4
-            else j'22 r'56 got_quit4 got_match4 which_pat3 first_line4 last_line4 old_line_count4 endcolumn5 start_nsubs4 keeppatterns4 pat_string5 pat_length5 sub_firstline_string4 sub_firstline_length4 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 new_start_string4 new_start_length4 tmp_string4 tmp_length4 orig_line_string4 orig_line_length4 new_line_string4 new_line_length4
-    j'22 !sub1 !got_quit5 !got_match5 !which_pat4 !first_line5 !last_line5 !old_line_count5 !endcolumn6 !start_nsubs5 !keeppatterns5 !pat_string6 !pat_length6 !sub_firstline_string5 !sub_firstline_length5 !old_cursor_lnum5 !old_cursor_col5 !old_cursor_coladd5 !new_start_string5 !new_start_length5 !tmp_string5 !tmp_length5 !orig_line_string5 !orig_line_length5 !new_line_string5 !new_line_length5 = do
-      r'68 <- if (pat_string6 /= nullPtr) then (do { r'67 <- musl_strcmp (castPtr pat_string6) (Ptr "\\n\0"#); pure (r'67 == 0) }) else pure False
+              j'22 r'56 pat_string2 pat_length2 got_quit4 got_match4 which_pat3 first_line4 last_line4 old_line_count4 endcolumn5 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 start_nsubs4 keeppatterns4
+            else j'22 r'56 pat_string2 pat_length2 got_quit4 got_match4 which_pat3 first_line4 last_line4 old_line_count4 endcolumn5 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 start_nsubs4 keeppatterns4
+    j'22 !sub1 !pat_string3 !pat_length3 !got_quit5 !got_match5 !which_pat4 !first_line5 !last_line5 !old_line_count5 !endcolumn6 !old_cursor_lnum5 !old_cursor_col5 !old_cursor_coladd5 !start_nsubs5 !keeppatterns5 = do
+      r'68 <- if (pat_string3 /= nullPtr) then (do { r'67 <- musl_strcmp (castPtr pat_string3) (Ptr "\\n\0"#); pure (r'67 == 0) }) else pure False
       r'70 <- if r'68 then (do { r'69 <- rdW8 sub1 0; pure ((fromIntegral r'69 :: Int32) == NUL) }) else pure False
       r'88 <- if r'70 then (do { r'71 <- rdP fr' 344; r'72 <- rdW8 r'71 0; if ((fromIntegral r'72 :: Int32) == NUL) then pure True else (do { r'73 <- rdP fr' 344; r'74 <- rdW8 r'73 1; if ((fromIntegral r'74 :: Int32) == NUL) then (do { r'75 <- rdP fr' 344; r'76 <- rdW8 r'75 0; r'79 <- if ((fromIntegral r'76 :: Int32) == (ch 'g')) then pure True else (do { r'77 <- rdP fr' 344; r'78 <- rdW8 r'77 0; pure ((fromIntegral r'78 :: Int32) == (ch 'l')) }); r'82 <- if r'79 then pure True else (do { r'80 <- rdP fr' 344; r'81 <- rdW8 r'80 0; pure ((fromIntegral r'81 :: Int32) == (ch 'p')) }); if r'82 then pure True else (do { r'83 <- rdP fr' 344; r'84 <- rdW8 r'83 0; pure ((fromIntegral r'84 :: Int32) == (ch '#')) }) }) else pure False }) }) else pure False
       if r'88
@@ -265,22 +265,22 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
           if (fromIntegral r'92 :: Int32) == (ch 'l')
             then do
               wrI32 eap exarg_T'flags EXFLAG_LIST
-              j'232 keeppatterns5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
+              j'232 pat_string3 pat_length3 keeppatterns5
             else do
               r'93 <- rdP fr' 344
               r'94 <- rdW8 r'93 0
               if (fromIntegral r'94 :: Int32) == (ch '#')
                 then do
                   wrI32 eap exarg_T'flags EXFLAG_NR
-                  j'232 keeppatterns5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
+                  j'232 pat_string3 pat_length3 keeppatterns5
                 else do
                   r'95 <- rdP fr' 344
                   r'96 <- rdW8 r'95 0
                   if (fromIntegral r'96 :: Int32) == (ch 'p')
                     then do
                       wrI32 eap exarg_T'flags EXFLAG_PRINT
-                      j'232 keeppatterns5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
-                    else j'232 keeppatterns5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
+                      j'232 pat_string3 pat_length3 keeppatterns5
+                    else j'232 pat_string3 pat_length3 keeppatterns5
         else do
           r'97 <- rdP fr' 344
           r'98 <- rdW8 r'97 0
@@ -288,7 +288,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
             then do
               r'99 <- rdP fr' 344
               wrP fr' 344 (pAdd r'99 1)
-              loop'32 sub1 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 start_nsubs5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
+              loop'32 sub1 pat_string3 pat_length3 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 start_nsubs5
             else do
               r'100 <- p_ed ed'
               if not (r'100 /= 0)
@@ -297,23 +297,23 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                   if r'101 /= 0
                     then do
                       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_all TRUE
-                      j'28 sub1 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 start_nsubs5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
+                      j'28 sub1 pat_string3 pat_length3 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 start_nsubs5
                     else do
                       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_all FALSE
-                      j'28 sub1 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 start_nsubs5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
-                else j'29 sub1 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 start_nsubs5 pat_string6 pat_length6 sub_firstline_string5 sub_firstline_length5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 new_start_string5 new_start_length5 tmp_string5 tmp_length5 orig_line_string5 orig_line_length5 new_line_string5 new_line_length5
-    j'28 !sub2 !got_quit6 !got_match6 !which_pat5 !first_line6 !last_line6 !old_line_count6 !endcolumn7 !start_nsubs6 !pat_string7 !pat_length7 !sub_firstline_string6 !sub_firstline_length6 !old_cursor_lnum6 !old_cursor_col6 !old_cursor_coladd6 !new_start_string6 !new_start_length6 !tmp_string6 !tmp_length6 !orig_line_string6 !orig_line_length6 !new_line_string6 !new_line_length6 = do
+                      j'28 sub1 pat_string3 pat_length3 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 start_nsubs5
+                else j'29 sub1 pat_string3 pat_length3 got_quit5 got_match5 which_pat4 first_line5 last_line5 old_line_count5 endcolumn6 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 start_nsubs5
+    j'28 !sub2 !pat_string4 !pat_length4 !got_quit6 !got_match6 !which_pat5 !first_line6 !last_line6 !old_line_count6 !endcolumn7 !old_cursor_lnum6 !old_cursor_col6 !old_cursor_coladd6 !start_nsubs6 = do
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask FALSE
-      j'29 sub2 got_quit6 got_match6 which_pat5 first_line6 last_line6 old_line_count6 endcolumn7 start_nsubs6 pat_string7 pat_length7 sub_firstline_string6 sub_firstline_length6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 new_start_string6 new_start_length6 tmp_string6 tmp_length6 orig_line_string6 orig_line_length6 new_line_string6 new_line_length6
-    j'29 !sub3 !got_quit7 !got_match7 !which_pat6 !first_line7 !last_line7 !old_line_count7 !endcolumn8 !start_nsubs7 !pat_string8 !pat_length8 !sub_firstline_string7 !sub_firstline_length7 !old_cursor_lnum7 !old_cursor_col7 !old_cursor_coladd7 !new_start_string7 !new_start_length7 !tmp_string7 !tmp_length7 !orig_line_string7 !orig_line_length7 !new_line_string7 !new_line_length7 = do
+      j'29 sub2 pat_string4 pat_length4 got_quit6 got_match6 which_pat5 first_line6 last_line6 old_line_count6 endcolumn7 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 start_nsubs6
+    j'29 !sub3 !pat_string5 !pat_length5 !got_quit7 !got_match7 !which_pat6 !first_line7 !last_line7 !old_line_count7 !endcolumn8 !old_cursor_lnum7 !old_cursor_col7 !old_cursor_coladd7 !start_nsubs7 = do
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_error TRUE
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_print FALSE
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_list FALSE
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_count FALSE
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_number FALSE
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ic 0
-      loop'32 sub3 got_quit7 got_match7 which_pat6 first_line7 last_line7 old_line_count7 endcolumn8 start_nsubs7 pat_string8 pat_length8 sub_firstline_string7 sub_firstline_length7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7 new_start_string7 new_start_length7 tmp_string7 tmp_length7 orig_line_string7 orig_line_length7 new_line_string7 new_line_length7
-    loop'32 !sub4 !got_quit8 !got_match8 !which_pat7 !first_line8 !last_line8 !old_line_count8 !endcolumn9 !start_nsubs8 !pat_string9 !pat_length9 !sub_firstline_string8 !sub_firstline_length8 !old_cursor_lnum8 !old_cursor_col8 !old_cursor_coladd8 !new_start_string8 !new_start_length8 !tmp_string8 !tmp_length8 !orig_line_string8 !orig_line_length8 !new_line_string8 !new_line_length8 = do
+      loop'32 sub3 pat_string5 pat_length5 got_quit7 got_match7 which_pat6 first_line7 last_line7 old_line_count7 endcolumn8 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7 start_nsubs7
+    loop'32 !sub4 !pat_string6 !pat_length6 !got_quit8 !got_match8 !which_pat7 !first_line8 !last_line8 !old_line_count8 !endcolumn9 !old_cursor_lnum8 !old_cursor_col8 !old_cursor_coladd8 !start_nsubs8 = do
       r'102 <- rdP fr' 344
       r'103 <- rdW8 r'102 0
       if r'103 /= 0
@@ -324,7 +324,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
             then do
               r'106 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_all
               wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_all (b2i (not (r'106 /= 0)) :: Int32)
-              j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+              j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
             else do
               r'107 <- rdP fr' 344
               r'108 <- rdW8 r'107 0
@@ -332,14 +332,14 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                 then do
                   r'109 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
                   wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask (b2i (not (r'109 /= 0)) :: Int32)
-                  j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                  j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                 else do
                   r'110 <- rdP fr' 344
                   r'111 <- rdW8 r'110 0
                   if (fromIntegral r'111 :: Int32) == (ch 'n')
                     then do
                       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_count TRUE
-                      j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                      j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                     else do
                       r'112 <- rdP fr' 344
                       r'113 <- rdW8 r'112 0
@@ -347,19 +347,19 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                         then do
                           r'114 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_error
                           wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_error (b2i (not (r'114 /= 0)) :: Int32)
-                          j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                          j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                         else do
                           r'115 <- rdP fr' 344
                           r'116 <- rdW8 r'115 0
                           if (fromIntegral r'116 :: Int32) == (ch 'r')
-                            then j'225 sub4 got_quit8 got_match8 (RE_LAST :: Int32) first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                            then j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 (RE_LAST :: Int32) first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                             else do
                               r'117 <- rdP fr' 344
                               r'118 <- rdW8 r'117 0
                               if (fromIntegral r'118 :: Int32) == (ch 'p')
                                 then do
                                   wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_print TRUE
-                                  j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                                  j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                                 else do
                                   r'119 <- rdP fr' 344
                                   r'120 <- rdW8 r'119 0
@@ -367,7 +367,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                                     then do
                                       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_print TRUE
                                       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_number TRUE
-                                      j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                                      j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                                     else do
                                       r'121 <- rdP fr' 344
                                       r'122 <- rdW8 r'121 0
@@ -375,31 +375,31 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                                         then do
                                           wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_print TRUE
                                           wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_list TRUE
-                                          j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                                          j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                                         else do
                                           r'123 <- rdP fr' 344
                                           r'124 <- rdW8 r'123 0
                                           if (fromIntegral r'124 :: Int32) == (ch 'i')
                                             then do
                                               wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ic (ch 'i')
-                                              j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
+                                              j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
                                             else do
                                               r'125 <- rdP fr' 344
                                               r'126 <- rdW8 r'125 0
                                               if (fromIntegral r'126 :: Int32) == (ch 'I')
                                                 then do
                                                   wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ic (ch 'I')
-                                                  j'225 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
-                                                else j'43 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
-        else j'43 sub4 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 start_nsubs8 pat_string9 pat_length9 sub_firstline_string8 sub_firstline_length8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 new_start_string8 new_start_length8 tmp_string8 tmp_length8 orig_line_string8 orig_line_length8 new_line_string8 new_line_length8
-    j'43 !sub5 !got_quit9 !got_match9 !which_pat8 !first_line9 !last_line9 !old_line_count9 !endcolumn10 !start_nsubs9 !pat_string10 !pat_length10 !sub_firstline_string9 !sub_firstline_length9 !old_cursor_lnum9 !old_cursor_col9 !old_cursor_coladd9 !new_start_string9 !new_start_length9 !tmp_string9 !tmp_length9 !orig_line_string9 !orig_line_length9 !new_line_string9 !new_line_length9 = do
+                                                  j'225 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
+                                                else j'43 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
+        else j'43 sub4 pat_string6 pat_length6 got_quit8 got_match8 which_pat7 first_line8 last_line8 old_line_count8 endcolumn9 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 start_nsubs8
+    j'43 !sub5 !pat_string7 !pat_length7 !got_quit9 !got_match9 !which_pat8 !first_line9 !last_line9 !old_line_count9 !endcolumn10 !old_cursor_lnum9 !old_cursor_col9 !old_cursor_coladd9 !start_nsubs9 = do
       r'127 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
       if r'127 /= 0
         then do
           wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask FALSE
-          j'45 sub5 got_quit9 got_match9 which_pat8 first_line9 last_line9 old_line_count9 endcolumn10 start_nsubs9 pat_string10 pat_length10 sub_firstline_string9 sub_firstline_length9 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 new_start_string9 new_start_length9 tmp_string9 tmp_length9 orig_line_string9 orig_line_length9 new_line_string9 new_line_length9
-        else j'45 sub5 got_quit9 got_match9 which_pat8 first_line9 last_line9 old_line_count9 endcolumn10 start_nsubs9 pat_string10 pat_length10 sub_firstline_string9 sub_firstline_length9 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 new_start_string9 new_start_length9 tmp_string9 tmp_length9 orig_line_string9 orig_line_length9 new_line_string9 new_line_length9
-    j'45 !sub6 !got_quit10 !got_match10 !which_pat9 !first_line10 !last_line10 !old_line_count10 !endcolumn11 !start_nsubs10 !pat_string11 !pat_length11 !sub_firstline_string10 !sub_firstline_length10 !old_cursor_lnum10 !old_cursor_col10 !old_cursor_coladd10 !new_start_string10 !new_start_length10 !tmp_string10 !tmp_length10 !orig_line_string10 !orig_line_length10 !new_line_string10 !new_line_length10 = do
+          j'45 sub5 pat_string7 pat_length7 got_quit9 got_match9 which_pat8 first_line9 last_line9 old_line_count9 endcolumn10 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 start_nsubs9
+        else j'45 sub5 pat_string7 pat_length7 got_quit9 got_match9 which_pat8 first_line9 last_line9 old_line_count9 endcolumn10 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 start_nsubs9
+    j'45 !sub6 !pat_string8 !pat_length8 !got_quit10 !got_match10 !which_pat9 !first_line10 !last_line10 !old_line_count10 !endcolumn11 !old_cursor_lnum10 !old_cursor_col10 !old_cursor_coladd10 !start_nsubs10 = do
       r'128 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_all
       r'129 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
       r'130 <- rdP fr' 344
@@ -441,10 +441,10 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                       r'152 <- curbuf ed'
                       r'153 <- rdI64 r'152 (buf_T'b_ml + memline_T'ml_line_count)
                       wrI64 eap exarg_T'line2 r'153
-                      j'50 r'128 r'129 sub6 got_quit10 got_match10 which_pat9 first_line10 last_line10 old_line_count10 endcolumn11 start_nsubs10 pat_string11 pat_length11 sub_firstline_string10 sub_firstline_length10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 new_start_string10 new_start_length10 tmp_string10 tmp_length10 orig_line_string10 orig_line_length10 new_line_string10 new_line_length10
-                    else j'50 r'128 r'129 sub6 got_quit10 got_match10 which_pat9 first_line10 last_line10 old_line_count10 endcolumn11 start_nsubs10 pat_string11 pat_length11 sub_firstline_string10 sub_firstline_length10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 new_start_string10 new_start_length10 tmp_string10 tmp_length10 orig_line_string10 orig_line_length10 new_line_string10 new_line_length10
-        else j'50 r'128 r'129 sub6 got_quit10 got_match10 which_pat9 first_line10 last_line10 old_line_count10 endcolumn11 start_nsubs10 pat_string11 pat_length11 sub_firstline_string10 sub_firstline_length10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 new_start_string10 new_start_length10 tmp_string10 tmp_length10 orig_line_string10 orig_line_length10 new_line_string10 new_line_length10
-    j'50 !save_do_all1 !save_do_ask1 !sub7 !got_quit11 !got_match11 !which_pat10 !first_line11 !last_line11 !old_line_count11 !endcolumn12 !start_nsubs11 !pat_string12 !pat_length12 !sub_firstline_string11 !sub_firstline_length11 !old_cursor_lnum11 !old_cursor_col11 !old_cursor_coladd11 !new_start_string11 !new_start_length11 !tmp_string11 !tmp_length11 !orig_line_string11 !orig_line_length11 !new_line_string11 !new_line_length11 = do
+                      j'50 r'128 r'129 sub6 pat_string8 pat_length8 got_quit10 got_match10 which_pat9 first_line10 last_line10 old_line_count10 endcolumn11 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 start_nsubs10
+                    else j'50 r'128 r'129 sub6 pat_string8 pat_length8 got_quit10 got_match10 which_pat9 first_line10 last_line10 old_line_count10 endcolumn11 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 start_nsubs10
+        else j'50 r'128 r'129 sub6 pat_string8 pat_length8 got_quit10 got_match10 which_pat9 first_line10 last_line10 old_line_count10 endcolumn11 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 start_nsubs10
+    j'50 !save_do_all1 !save_do_ask1 !sub7 !pat_string9 !pat_length9 !got_quit11 !got_match11 !which_pat10 !first_line11 !last_line11 !old_line_count11 !endcolumn12 !old_cursor_lnum11 !old_cursor_col11 !old_cursor_coladd11 !start_nsubs11 = do
       r'154 <- rdP fr' 344
       r'155 <- skipwhite r'154
       wrP fr' 344 r'155
@@ -466,9 +466,9 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
               r'166 <- iobuff_or ed' r'165
               _ <- emsg ed' r'166
               pure ()
-            else j'52 save_do_all1 save_do_ask1 sub7 got_quit11 got_match11 which_pat10 first_line11 last_line11 old_line_count11 endcolumn12 start_nsubs11 pat_string12 pat_length12 sub_firstline_string11 sub_firstline_length11 old_cursor_lnum11 old_cursor_col11 old_cursor_coladd11 new_start_string11 new_start_length11 tmp_string11 tmp_length11 orig_line_string11 orig_line_length11 new_line_string11 new_line_length11
-        else j'52 save_do_all1 save_do_ask1 sub7 got_quit11 got_match11 which_pat10 first_line11 last_line11 old_line_count11 endcolumn12 start_nsubs11 pat_string12 pat_length12 sub_firstline_string11 sub_firstline_length11 old_cursor_lnum11 old_cursor_col11 old_cursor_coladd11 new_start_string11 new_start_length11 tmp_string11 tmp_length11 orig_line_string11 orig_line_length11 new_line_string11 new_line_length11
-    j'52 !save_do_all2 !save_do_ask2 !sub8 !got_quit12 !got_match12 !which_pat11 !first_line12 !last_line12 !old_line_count12 !endcolumn13 !start_nsubs12 !pat_string13 !pat_length13 !sub_firstline_string12 !sub_firstline_length12 !old_cursor_lnum12 !old_cursor_col12 !old_cursor_coladd12 !new_start_string12 !new_start_length12 !tmp_string12 !tmp_length12 !orig_line_string12 !orig_line_length12 !new_line_string12 !new_line_length12 = do
+            else j'52 save_do_all1 save_do_ask1 sub7 pat_string9 pat_length9 got_quit11 got_match11 which_pat10 first_line11 last_line11 old_line_count11 endcolumn12 old_cursor_lnum11 old_cursor_col11 old_cursor_coladd11 start_nsubs11
+        else j'52 save_do_all1 save_do_ask1 sub7 pat_string9 pat_length9 got_quit11 got_match11 which_pat10 first_line11 last_line11 old_line_count11 endcolumn12 old_cursor_lnum11 old_cursor_col11 old_cursor_coladd11 start_nsubs11
+    j'52 !save_do_all2 !save_do_ask2 !sub8 !pat_string10 !pat_length10 !got_quit12 !got_match12 !which_pat11 !first_line12 !last_line12 !old_line_count12 !endcolumn13 !old_cursor_lnum12 !old_cursor_col12 !old_cursor_coladd12 !start_nsubs12 = do
       r'168 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
       r'171 <- if (not (r'168 /= 0)) then (do { r'169 <- curbuf ed'; r'170 <- rdI32 r'169 buf_T'b_p_ma; pure (not (r'170 /= 0)) }) else pure False
       if r'171
@@ -477,7 +477,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
           _ <- emsg ed' r'172
           pure ()
         else do
-          r'174 <- search_regcomp ed' pat_string13 pat_length13 nullPtr RE_SUBST which_pat11 SEARCH_HIS fr'
+          r'174 <- search_regcomp ed' pat_string10 pat_length10 nullPtr RE_SUBST which_pat11 SEARCH_HIS fr'
           if not r'174
             then do
               r'175 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_error
@@ -492,28 +492,28 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
               if r'178 == (ch 'i')
                 then do
                   wrI32 fr' regmmatch_T'rmm_ic TRUE
-                  j'58 save_do_all2 save_do_ask2 sub8 got_quit12 got_match12 first_line12 last_line12 old_line_count12 endcolumn13 start_nsubs12 pat_string13 pat_length13 sub_firstline_string12 sub_firstline_length12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 new_start_string12 new_start_length12 tmp_string12 tmp_length12 orig_line_string12 orig_line_length12 new_line_string12 new_line_length12
+                  j'58 save_do_all2 save_do_ask2 sub8 got_quit12 got_match12 first_line12 last_line12 old_line_count12 endcolumn13 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 start_nsubs12
                 else do
                   r'179 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ic
                   if r'179 == (ch 'I')
                     then do
                       wrI32 fr' regmmatch_T'rmm_ic FALSE
-                      j'58 save_do_all2 save_do_ask2 sub8 got_quit12 got_match12 first_line12 last_line12 old_line_count12 endcolumn13 start_nsubs12 pat_string13 pat_length13 sub_firstline_string12 sub_firstline_length12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 new_start_string12 new_start_length12 tmp_string12 tmp_length12 orig_line_string12 orig_line_length12 new_line_string12 new_line_length12
-                    else j'58 save_do_all2 save_do_ask2 sub8 got_quit12 got_match12 first_line12 last_line12 old_line_count12 endcolumn13 start_nsubs12 pat_string13 pat_length13 sub_firstline_string12 sub_firstline_length12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 new_start_string12 new_start_length12 tmp_string12 tmp_length12 orig_line_string12 orig_line_length12 new_line_string12 new_line_length12
-    j'58 !save_do_all3 !save_do_ask3 !sub9 !got_quit13 !got_match13 !first_line13 !last_line13 !old_line_count13 !endcolumn14 !start_nsubs13 !pat_string14 !pat_length14 _ _ !old_cursor_lnum13 !old_cursor_col13 !old_cursor_coladd13 !new_start_string13 !new_start_length13 !tmp_string13 !tmp_length13 !orig_line_string13 !orig_line_length13 !new_line_string13 !new_line_length13 = do
+                      j'58 save_do_all2 save_do_ask2 sub8 got_quit12 got_match12 first_line12 last_line12 old_line_count12 endcolumn13 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 start_nsubs12
+                    else j'58 save_do_all2 save_do_ask2 sub8 got_quit12 got_match12 first_line12 last_line12 old_line_count12 endcolumn13 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 start_nsubs12
+    j'58 !save_do_all3 !save_do_ask3 !sub9 !got_quit13 !got_match13 !first_line13 !last_line13 !old_line_count13 !endcolumn14 !old_cursor_lnum13 !old_cursor_col13 !old_cursor_coladd13 !start_nsubs13 = do
       r'180 <- rdW8 sub9 0
       r'182 <- if ((fromIntegral r'180 :: Int32) == (ch '\\')) then (do { r'181 <- rdW8 sub9 1; pure ((fromIntegral r'181 :: Int32) == (ch '=')) }) else pure False
       if r'182
         then do
           r'183 <- vim_strsave ed' sub9
-          j'62 save_do_all3 save_do_ask3 r'183 got_quit13 got_match13 first_line13 last_line13 old_line_count13 endcolumn14 start_nsubs13 pat_string14 pat_length14 nullPtr (0 :: Word64) old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 new_start_string13 new_start_length13 tmp_string13 tmp_length13 orig_line_string13 orig_line_length13 new_line_string13 new_line_length13
+          j'62 save_do_all3 save_do_ask3 r'183 got_quit13 got_match13 first_line13 last_line13 old_line_count13 nullPtr (0 :: Word64) endcolumn14 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 start_nsubs13
         else do
           r'184 <- magic_isset ed'
           r'185 <- regtilde ed' sub9 r'184
           if r'185 /= sub9
-            then j'62 save_do_all3 save_do_ask3 r'185 got_quit13 got_match13 first_line13 last_line13 old_line_count13 endcolumn14 start_nsubs13 pat_string14 pat_length14 nullPtr (0 :: Word64) old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 new_start_string13 new_start_length13 tmp_string13 tmp_length13 orig_line_string13 orig_line_length13 new_line_string13 new_line_length13
-            else j'62 save_do_all3 save_do_ask3 sub9 got_quit13 got_match13 first_line13 last_line13 old_line_count13 endcolumn14 start_nsubs13 pat_string14 pat_length14 nullPtr (0 :: Word64) old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 new_start_string13 new_start_length13 tmp_string13 tmp_length13 orig_line_string13 orig_line_length13 new_line_string13 new_line_length13
-    j'62 !save_do_all4 !save_do_ask4 !sub10 !got_quit14 !got_match14 !first_line14 !last_line14 !old_line_count14 !endcolumn15 !start_nsubs14 !pat_string15 !pat_length15 !sub_firstline_string14 !sub_firstline_length14 !old_cursor_lnum14 !old_cursor_col14 !old_cursor_coladd14 !new_start_string14 !new_start_length14 !tmp_string14 !tmp_length14 !orig_line_string14 !orig_line_length14 !new_line_string14 !new_line_length14 = do
+            then j'62 save_do_all3 save_do_ask3 r'185 got_quit13 got_match13 first_line13 last_line13 old_line_count13 nullPtr (0 :: Word64) endcolumn14 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 start_nsubs13
+            else j'62 save_do_all3 save_do_ask3 sub9 got_quit13 got_match13 first_line13 last_line13 old_line_count13 nullPtr (0 :: Word64) endcolumn14 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 start_nsubs13
+    j'62 !save_do_all4 !save_do_ask4 !sub10 !got_quit14 !got_match14 !first_line14 !last_line14 !old_line_count14 !sub_firstline_string1 !sub_firstline_length1 !endcolumn15 !old_cursor_lnum14 !old_cursor_col14 !old_cursor_coladd14 !start_nsubs14 = do
       r'186 <- rdI64 eap exarg_T'line2
       r'187 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
       r'189 <- if (not (r'187 /= 0)) then (do { r'188 <- rdI64 eap exarg_T'line1; pure (r'186 > r'188) }) else pure False
@@ -521,8 +521,8 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
       r'194 <- curbuf ed'
       r'195 <- rdI64 r'194 (buf_T'b_ml + memline_T'ml_line_count)
       r'196 <- rdI64 eap exarg_T'line1
-      loop'63 r'196 save_do_all4 save_do_ask4 sub10 got_quit14 got_match14 first_line14 last_line14 old_line_count14 r'186 endcolumn15 start_nsubs14 r'193 r'195 pat_string15 pat_length15 sub_firstline_string14 sub_firstline_length14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14 new_start_string14 new_start_length14 tmp_string14 tmp_length14 orig_line_string14 orig_line_length14 new_line_string14 new_line_length14
-    loop'63 !lnum1 !save_do_all5 !save_do_ask5 !sub11 !got_quit15 !got_match15 !first_line15 !last_line15 !old_line_count15 !line2'1 !endcolumn16 !start_nsubs15 !found1 !found_count1 !pat_string16 !pat_length16 !sub_firstline_string15 !sub_firstline_length15 !old_cursor_lnum15 !old_cursor_col15 !old_cursor_coladd15 !new_start_string15 !new_start_length15 !tmp_string15 !tmp_length15 !orig_line_string15 !orig_line_length15 !new_line_string15 !new_line_length15 = do
+      loop'63 r'196 save_do_all4 save_do_ask4 sub10 got_quit14 got_match14 first_line14 last_line14 old_line_count14 r'186 sub_firstline_string1 sub_firstline_length1 endcolumn15 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14 start_nsubs14 r'193 r'195
+    loop'63 !lnum1 !save_do_all5 !save_do_ask5 !sub11 !got_quit15 !got_match15 !first_line15 !last_line15 !old_line_count15 !line2'1 !sub_firstline_string2 !sub_firstline_length2 !endcolumn16 !old_cursor_lnum15 !old_cursor_col15 !old_cursor_coladd15 !start_nsubs15 !found1 !found_count1 = do
       if (lnum1 <= line2'1) && (not got_quit15)
         then do
           r'197 <- rdI64 eap exarg_T'line1
@@ -532,9 +532,9 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
               if not got_match15
                 then do
                   setpcmark ed'
-                  loop'93 lnum1 save_do_all5 save_do_ask5 sub11 got_quit15 True first_line15 last_line15 old_line_count15 line2'1 r'198 endcolumn16 start_nsubs15 found1 found_count1 (0 :: Int32) (0 :: Int32) (MAXCOL :: Int32) (0 :: Word64) False (0 :: Int64) False lnum1 False pat_string16 pat_length16 sub_firstline_string15 sub_firstline_length15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 nullPtr (0 :: Word64) tmp_string15 tmp_length15 orig_line_string15 orig_line_length15 new_line_string15 new_line_length15
-                else loop'93 lnum1 save_do_all5 save_do_ask5 sub11 got_quit15 got_match15 first_line15 last_line15 old_line_count15 line2'1 r'198 endcolumn16 start_nsubs15 found1 found_count1 (0 :: Int32) (0 :: Int32) (MAXCOL :: Int32) (0 :: Word64) False (0 :: Int64) False lnum1 False pat_string16 pat_length16 sub_firstline_string15 sub_firstline_length15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 nullPtr (0 :: Word64) tmp_string15 tmp_length15 orig_line_string15 orig_line_length15 new_line_string15 new_line_length15
-            else j'206 lnum1 save_do_all5 save_do_ask5 sub11 got_quit15 got_match15 first_line15 last_line15 old_line_count15 line2'1 endcolumn16 start_nsubs15 found1 found_count1 pat_string16 pat_length16 sub_firstline_string15 sub_firstline_length15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 new_start_string15 new_start_length15 tmp_string15 tmp_length15 orig_line_string15 orig_line_length15 new_line_string15 new_line_length15
+                  loop'93 lnum1 save_do_all5 save_do_ask5 sub11 got_quit15 True first_line15 last_line15 old_line_count15 line2'1 r'198 sub_firstline_string2 sub_firstline_length2 endcolumn16 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 start_nsubs15 found1 found_count1 (0 :: Int32) (0 :: Int32) (MAXCOL :: Int32) nullPtr (0 :: Word64) (0 :: Word64) False (0 :: Int64) False lnum1 False
+                else loop'93 lnum1 save_do_all5 save_do_ask5 sub11 got_quit15 got_match15 first_line15 last_line15 old_line_count15 line2'1 r'198 sub_firstline_string2 sub_firstline_length2 endcolumn16 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 start_nsubs15 found1 found_count1 (0 :: Int32) (0 :: Int32) (MAXCOL :: Int32) nullPtr (0 :: Word64) (0 :: Word64) False (0 :: Int64) False lnum1 False
+            else j'206 lnum1 save_do_all5 save_do_ask5 sub11 got_quit15 got_match15 first_line15 last_line15 old_line_count15 line2'1 sub_firstline_string2 sub_firstline_length2 endcolumn16 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 start_nsubs15 found1 found_count1
         else do
           if first_line15 /= 0
             then do
@@ -542,614 +542,616 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
               r'200 <- rdI64 r'199 (buf_T'b_ml + memline_T'ml_line_count)
               let !i1 = r'200 - old_line_count15
               changed_lines ed' first_line15 0 (last_line15 - i1) i1
-              j'66 save_do_all5 save_do_ask5 got_match15 line2'1 endcolumn16 start_nsubs15 pat_string16 pat_length16 sub_firstline_string15 sub_firstline_length15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 new_start_string15 new_start_length15 tmp_string15 tmp_length15 orig_line_string15 orig_line_length15 new_line_string15 new_line_length15
-            else j'66 save_do_all5 save_do_ask5 got_match15 line2'1 endcolumn16 start_nsubs15 pat_string16 pat_length16 sub_firstline_string15 sub_firstline_length15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 new_start_string15 new_start_length15 tmp_string15 tmp_length15 orig_line_string15 orig_line_length15 new_line_string15 new_line_length15
-    j'66 !save_do_all6 !save_do_ask6 !got_match16 !line2'2 !endcolumn17 !start_nsubs16 !pat_string17 !pat_length17 !sub_firstline_string16 !sub_firstline_length16 !old_cursor_lnum16 !old_cursor_col16 !old_cursor_coladd16 !new_start_string16 !new_start_length16 !tmp_string16 !tmp_length16 !orig_line_string16 !orig_line_length16 !new_line_string16 !new_line_length16 = do
+              j'66 save_do_all5 save_do_ask5 got_match15 line2'1 endcolumn16 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 start_nsubs15
+            else j'66 save_do_all5 save_do_ask5 got_match15 line2'1 endcolumn16 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 start_nsubs15
+    j'66 !save_do_all6 !save_do_ask6 !got_match16 !line2'2 !endcolumn17 !old_cursor_lnum16 !old_cursor_col16 !old_cursor_coladd16 !start_nsubs16 = do
       r'201 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
       if r'201 /= 0
         then do
           r'202 <- curwin ed'
           wrI64 r'202 (win_T'w_cursor + pos_T'lnum) old_cursor_lnum16
-          wrI32 r'202 (win_T'w_cursor + pos_T'col) old_cursor_col16
-          wrI32 r'202 (win_T'w_cursor + pos_T'coladd) old_cursor_coladd16
-          j'68 save_do_all6 save_do_ask6 got_match16 line2'2 endcolumn17 start_nsubs16 pat_string17 pat_length17 sub_firstline_string16 sub_firstline_length16 old_cursor_lnum16 old_cursor_col16 old_cursor_coladd16 new_start_string16 new_start_length16 tmp_string16 tmp_length16 orig_line_string16 orig_line_length16 new_line_string16 new_line_length16
-        else j'68 save_do_all6 save_do_ask6 got_match16 line2'2 endcolumn17 start_nsubs16 pat_string17 pat_length17 sub_firstline_string16 sub_firstline_length16 old_cursor_lnum16 old_cursor_col16 old_cursor_coladd16 new_start_string16 new_start_length16 tmp_string16 tmp_length16 orig_line_string16 orig_line_length16 new_line_string16 new_line_length16
-    j'68 !save_do_all7 !save_do_ask7 !got_match17 !line2'3 !endcolumn18 !start_nsubs17 !pat_string18 !pat_length18 !sub_firstline_string17 !sub_firstline_length17 !old_cursor_lnum17 !old_cursor_col17 !old_cursor_coladd17 !new_start_string17 !new_start_length17 !tmp_string17 !tmp_length17 !orig_line_string17 !orig_line_length17 !new_line_string17 !new_line_length17 = do
-      r'203 <- sub_nsubs ed'
-      if r'203 > (fromIntegral start_nsubs17 :: Int64)
+          r'203 <- curwin ed'
+          wrI32 r'203 (win_T'w_cursor + pos_T'col) old_cursor_col16
+          r'204 <- curwin ed'
+          wrI32 r'204 (win_T'w_cursor + pos_T'coladd) old_cursor_coladd16
+          j'68 save_do_all6 save_do_ask6 got_match16 line2'2 endcolumn17 start_nsubs16
+        else j'68 save_do_all6 save_do_ask6 got_match16 line2'2 endcolumn17 start_nsubs16
+    j'68 !save_do_all7 !save_do_ask7 !got_match17 !line2'3 !endcolumn18 !start_nsubs17 = do
+      r'205 <- sub_nsubs ed'
+      if r'205 > (fromIntegral start_nsubs17 :: Int64)
         then do
-          r'204 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags
-          if (r'204 .&. CMOD_LOCKMARKS) == 0
+          r'206 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags
+          if (r'206 .&. CMOD_LOCKMARKS) == 0
             then do
-              r'206 <- curbuf ed'
-              r'205 <- rdI64 eap exarg_T'line1
-              wrI64 r'206 (buf_T'b_op_start + pos_T'lnum) r'205
-              r'207 <- curbuf ed'
-              wrI64 r'207 (buf_T'b_op_end + pos_T'lnum) line2'3
               r'208 <- curbuf ed'
-              wrI32 r'208 (buf_T'b_op_end + pos_T'col) 0
-              r'211 <- curbuf ed'
+              r'207 <- rdI64 eap exarg_T'line1
+              wrI64 r'208 (buf_T'b_op_start + pos_T'lnum) r'207
               r'209 <- curbuf ed'
-              r'210 <- rdI32 r'209 (buf_T'b_op_end + pos_T'col)
-              wrI32 r'211 (buf_T'b_op_start + pos_T'col) r'210
-              j'78 save_do_all7 save_do_ask7 endcolumn18 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
-            else j'78 save_do_all7 save_do_ask7 endcolumn18 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
+              wrI64 r'209 (buf_T'b_op_end + pos_T'lnum) line2'3
+              r'210 <- curbuf ed'
+              wrI32 r'210 (buf_T'b_op_end + pos_T'col) 0
+              r'213 <- curbuf ed'
+              r'211 <- curbuf ed'
+              r'212 <- rdI32 r'211 (buf_T'b_op_end + pos_T'col)
+              wrI32 r'213 (buf_T'b_op_start + pos_T'col) r'212
+              j'78 save_do_all7 save_do_ask7 endcolumn18
+            else j'78 save_do_all7 save_do_ask7 endcolumn18
         else do
-          r'212 <- global_busy ed'
-          if not (r'212 /= 0)
+          r'214 <- global_busy ed'
+          if not (r'214 /= 0)
             then do
-              r'213 <- got_int ed'
-              if r'213 /= 0
+              r'215 <- got_int ed'
+              if r'215 /= 0
                 then do
-                  let !r'214 = c'_ (addr'e_interrupted ed')
-                  _ <- emsg ed' r'214
-                  j'88 save_do_all7 save_do_ask7 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
+                  let !r'216 = c'_ (addr'e_interrupted ed')
+                  _ <- emsg ed' r'216
+                  j'88 save_do_all7 save_do_ask7
                 else do
                   if got_match17
                     then do
                       _ <- msg ed' (Ptr "\0"#)
-                      j'88 save_do_all7 save_do_ask7 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
+                      j'88 save_do_all7 save_do_ask7
                     else do
-                      r'217 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_error
-                      if r'217 /= 0
+                      r'219 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_error
+                      if r'219 /= 0
                         then do
-                          r'218 <- c'IObuff ed'
-                          r'219 <- emsg_iobuff_room ed'
-                          let !r'220 = c'_ (addr'e_pattern_not_found_str ed')
-                          r'221 <- get_search_pat ed'
-                          _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'218)) r'219 (castPtr r'220) [VP (castPtr r'221)]
-                          let !r'223 = c'_ (addr'e_pattern_not_found_str ed')
-                          r'224 <- iobuff_or ed' r'223
-                          _ <- emsg ed' r'224
-                          j'88 save_do_all7 save_do_ask7 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
-                        else j'88 save_do_all7 save_do_ask7 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
-            else j'88 save_do_all7 save_do_ask7 pat_string18 pat_length18 sub_firstline_string17 sub_firstline_length17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 new_start_string17 new_start_length17 tmp_string17 tmp_length17 orig_line_string17 orig_line_length17 new_line_string17 new_line_length17
-    j'78 !save_do_all8 !save_do_ask8 !endcolumn19 !pat_string19 !pat_length19 !sub_firstline_string18 !sub_firstline_length18 !old_cursor_lnum18 !old_cursor_col18 !old_cursor_coladd18 !new_start_string18 !new_start_length18 !tmp_string18 !tmp_length18 !orig_line_string18 !orig_line_length18 !new_line_string18 !new_line_length18 = do
-      r'226 <- global_busy ed'
-      if not (r'226 /= 0)
+                          r'220 <- c'IObuff ed'
+                          r'221 <- emsg_iobuff_room ed'
+                          let !r'222 = c'_ (addr'e_pattern_not_found_str ed')
+                          r'223 <- get_search_pat ed'
+                          _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'220)) r'221 (castPtr r'222) [VP (castPtr r'223)]
+                          let !r'225 = c'_ (addr'e_pattern_not_found_str ed')
+                          r'226 <- iobuff_or ed' r'225
+                          _ <- emsg ed' r'226
+                          j'88 save_do_all7 save_do_ask7
+                        else j'88 save_do_all7 save_do_ask7
+            else j'88 save_do_all7 save_do_ask7
+    j'78 !save_do_all8 !save_do_ask8 !endcolumn19 = do
+      r'228 <- global_busy ed'
+      if not (r'228 /= 0)
         then do
-          r'227 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
-          if not (r'227 /= 0)
+          r'229 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
+          if not (r'229 /= 0)
             then do
               if endcolumn19
                 then do
                   _ <- coladvance ed' 2147483647
-                  j'84 save_do_all8 save_do_ask8 pat_string19 pat_length19 sub_firstline_string18 sub_firstline_length18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 new_start_string18 new_start_length18 tmp_string18 tmp_length18 orig_line_string18 orig_line_length18 new_line_string18 new_line_length18
+                  j'84 save_do_all8 save_do_ask8
                 else do
                   beginline ed' 5
-                  j'84 save_do_all8 save_do_ask8 pat_string19 pat_length19 sub_firstline_string18 sub_firstline_length18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 new_start_string18 new_start_length18 tmp_string18 tmp_length18 orig_line_string18 orig_line_length18 new_line_string18 new_line_length18
-            else j'84 save_do_all8 save_do_ask8 pat_string19 pat_length19 sub_firstline_string18 sub_firstline_length18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 new_start_string18 new_start_length18 tmp_string18 tmp_length18 orig_line_string18 orig_line_length18 new_line_string18 new_line_length18
+                  j'84 save_do_all8 save_do_ask8
+            else j'84 save_do_all8 save_do_ask8
         else do
           set'global_need_beginline ed' TRUE
-          j'86 save_do_all8 save_do_ask8 pat_string19 pat_length19 sub_firstline_string18 sub_firstline_length18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 new_start_string18 new_start_length18 tmp_string18 tmp_length18 orig_line_string18 orig_line_length18 new_line_string18 new_line_length18
-    j'84 !save_do_all9 !save_do_ask9 !pat_string20 !pat_length20 !sub_firstline_string19 !sub_firstline_length19 !old_cursor_lnum19 !old_cursor_col19 !old_cursor_coladd19 !new_start_string19 !new_start_length19 !tmp_string19 !tmp_length19 !orig_line_string19 !orig_line_length19 !new_line_string19 !new_line_length19 = do
-      r'229 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
-      r'230 <- do_sub_msg ed' r'229
-      r'232 <- if (not r'230) then (do { r'231 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask; pure (r'231 /= 0) }) else pure False
-      if r'232
+          j'86 save_do_all8 save_do_ask8
+    j'84 !save_do_all9 !save_do_ask9 = do
+      r'231 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
+      r'232 <- do_sub_msg ed' r'231
+      r'234 <- if (not r'232) then (do { r'233 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask; pure (r'233 /= 0) }) else pure False
+      if r'234
         then do
           _ <- msg ed' (Ptr "\0"#)
-          j'86 save_do_all9 save_do_ask9 pat_string20 pat_length20 sub_firstline_string19 sub_firstline_length19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 new_start_string19 new_start_length19 tmp_string19 tmp_length19 orig_line_string19 orig_line_length19 new_line_string19 new_line_length19
-        else j'86 save_do_all9 save_do_ask9 pat_string20 pat_length20 sub_firstline_string19 sub_firstline_length19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 new_start_string19 new_start_length19 tmp_string19 tmp_length19 orig_line_string19 orig_line_length19 new_line_string19 new_line_length19
-    j'86 !save_do_all10 !save_do_ask10 !pat_string21 !pat_length21 !sub_firstline_string20 !sub_firstline_length20 !old_cursor_lnum20 !old_cursor_col20 !old_cursor_coladd20 !new_start_string20 !new_start_length20 !tmp_string20 !tmp_length20 !orig_line_string20 !orig_line_length20 !new_line_string20 !new_line_length20 = do
-      r'234 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_print
-      if r'234 /= 0
+          j'86 save_do_all9 save_do_ask9
+        else j'86 save_do_all9 save_do_ask9
+    j'86 !save_do_all10 !save_do_ask10 = do
+      r'236 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_print
+      if r'236 /= 0
         then do
-          r'235 <- curwin ed'
-          r'236 <- rdI64 r'235 (win_T'w_cursor + pos_T'lnum)
-          r'237 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_number
-          r'238 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_list
-          print_line ed' r'236 r'237 r'238
-          j'88 save_do_all10 save_do_ask10 pat_string21 pat_length21 sub_firstline_string20 sub_firstline_length20 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 new_start_string20 new_start_length20 tmp_string20 tmp_length20 orig_line_string20 orig_line_length20 new_line_string20 new_line_length20
-        else j'88 save_do_all10 save_do_ask10 pat_string21 pat_length21 sub_firstline_string20 sub_firstline_length20 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 new_start_string20 new_start_length20 tmp_string20 tmp_length20 orig_line_string20 orig_line_length20 new_line_string20 new_line_length20
-    j'88 !save_do_all11 !save_do_ask11 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+          r'237 <- curwin ed'
+          r'238 <- rdI64 r'237 (win_T'w_cursor + pos_T'lnum)
+          r'239 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_number
+          r'240 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_list
+          print_line ed' r'238 r'239 r'240
+          j'88 save_do_all10 save_do_ask10
+        else j'88 save_do_all10 save_do_ask10
+    j'88 !save_do_all11 !save_do_ask11 = do
       _ <- rdP fr' regmmatch_T'regprog
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_all save_do_all11
       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask save_do_ask11
       pure ()
-    loop'93 !lnum2 !save_do_all12 !save_do_ask12 !sub12 !got_quit16 !got_match18 !first_line16 !last_line16 !old_line_count16 !line2'4 !nmatch1 !endcolumn20 !start_nsubs18 !found2 !found_count2 !copycol1 !matchcol1 !prev_matchcol1 !new_start_size1 !did_sub1 !nmatch_tl1 !skip_match1 !sub_firstlnum1 !did_split1 !pat_string23 !pat_length23 !sub_firstline_string22 !sub_firstline_length22 !old_cursor_lnum22 !old_cursor_col22 !old_cursor_coladd22 !new_start_string22 !new_start_length22 !tmp_string22 !tmp_length22 !orig_line_string22 !orig_line_length22 !new_line_string22 !new_line_length22 = do
-      r'240 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-      if r'240 > 0
+    loop'93 !lnum2 !save_do_all12 !save_do_ask12 !sub12 !got_quit16 !got_match18 !first_line16 !last_line16 !old_line_count16 !line2'4 !nmatch1 !sub_firstline_string3 !sub_firstline_length3 !endcolumn20 !old_cursor_lnum17 !old_cursor_col17 !old_cursor_coladd17 !start_nsubs18 !found2 !found_count2 !copycol1 !matchcol1 !prev_matchcol1 !new_start_string1 !new_start_length1 !new_start_size1 !did_sub1 !nmatch_tl1 !skip_match1 !sub_firstlnum1 !did_split1 = do
+      r'242 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+      if r'242 > 0
         then do
-          r'241 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-          let !lnum3 = lnum2 + r'241
-          r'242 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-          let !sub_firstlnum2 = sub_firstlnum1 + r'242
           r'243 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-          let !nmatch2 = nmatch1 - r'243
-          j'95 lnum3 save_do_all12 save_do_ask12 sub12 got_quit16 got_match18 first_line16 last_line16 old_line_count16 line2'4 nmatch2 endcolumn20 start_nsubs18 found2 found_count2 copycol1 matchcol1 prev_matchcol1 new_start_size1 did_sub1 nmatch_tl1 skip_match1 sub_firstlnum2 did_split1 pat_string23 pat_length23 nullPtr (0 :: Word64) old_cursor_lnum22 old_cursor_col22 old_cursor_coladd22 new_start_string22 new_start_length22 tmp_string22 tmp_length22 orig_line_string22 orig_line_length22 new_line_string22 new_line_length22
-        else j'95 lnum2 save_do_all12 save_do_ask12 sub12 got_quit16 got_match18 first_line16 last_line16 old_line_count16 line2'4 nmatch1 endcolumn20 start_nsubs18 found2 found_count2 copycol1 matchcol1 prev_matchcol1 new_start_size1 did_sub1 nmatch_tl1 skip_match1 sub_firstlnum1 did_split1 pat_string23 pat_length23 sub_firstline_string22 sub_firstline_length22 old_cursor_lnum22 old_cursor_col22 old_cursor_coladd22 new_start_string22 new_start_length22 tmp_string22 tmp_length22 orig_line_string22 orig_line_length22 new_line_string22 new_line_length22
-    j'95 !lnum4 !save_do_all13 !save_do_ask13 !sub13 !got_quit17 !got_match19 !first_line17 !last_line17 !old_line_count17 !line2'5 !nmatch3 !endcolumn21 !start_nsubs19 !found3 !found_count3 !copycol2 !matchcol2 !prev_matchcol2 !new_start_size2 !did_sub2 !nmatch_tl2 !skip_match2 !sub_firstlnum3 !did_split2 !pat_string24 !pat_length24 !sub_firstline_string23 !sub_firstline_length23 !old_cursor_lnum23 !old_cursor_col23 !old_cursor_coladd23 !new_start_string23 !new_start_length23 !tmp_string23 !tmp_length23 !orig_line_string23 !orig_line_length23 !new_line_string23 !new_line_length23 = do
-      r'244 <- curbuf ed'
-      r'245 <- rdI64 r'244 (buf_T'b_ml + memline_T'ml_line_count)
-      if lnum4 > r'245
-        then j'203 lnum4 save_do_all13 save_do_ask13 sub13 got_quit17 got_match19 first_line17 last_line17 old_line_count17 line2'5 endcolumn21 start_nsubs19 found3 found_count3 did_sub2 pat_string24 pat_length24 sub_firstline_string23 sub_firstline_length23 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 new_start_string23 new_start_length23 tmp_string23 tmp_length23 orig_line_string23 orig_line_length23 new_line_string23 new_line_length23
+          let !lnum3 = lnum2 + r'243
+          r'244 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+          let !sub_firstlnum2 = sub_firstlnum1 + r'244
+          r'245 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+          let !nmatch2 = nmatch1 - r'245
+          j'95 lnum3 save_do_all12 save_do_ask12 sub12 got_quit16 got_match18 first_line16 last_line16 old_line_count16 line2'4 nmatch2 nullPtr (0 :: Word64) endcolumn20 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 start_nsubs18 found2 found_count2 copycol1 matchcol1 prev_matchcol1 new_start_string1 new_start_length1 new_start_size1 did_sub1 nmatch_tl1 skip_match1 sub_firstlnum2 did_split1
+        else j'95 lnum2 save_do_all12 save_do_ask12 sub12 got_quit16 got_match18 first_line16 last_line16 old_line_count16 line2'4 nmatch1 sub_firstline_string3 sub_firstline_length3 endcolumn20 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 start_nsubs18 found2 found_count2 copycol1 matchcol1 prev_matchcol1 new_start_string1 new_start_length1 new_start_size1 did_sub1 nmatch_tl1 skip_match1 sub_firstlnum1 did_split1
+    j'95 !lnum4 !save_do_all13 !save_do_ask13 !sub13 !got_quit17 !got_match19 !first_line17 !last_line17 !old_line_count17 !line2'5 !nmatch3 !sub_firstline_string4 !sub_firstline_length4 !endcolumn21 !old_cursor_lnum18 !old_cursor_col18 !old_cursor_coladd18 !start_nsubs19 !found3 !found_count3 !copycol2 !matchcol2 !prev_matchcol2 !new_start_string2 !new_start_length2 !new_start_size2 !did_sub2 !nmatch_tl2 !skip_match2 !sub_firstlnum3 !did_split2 = do
+      r'246 <- curbuf ed'
+      r'247 <- rdI64 r'246 (buf_T'b_ml + memline_T'ml_line_count)
+      if lnum4 > r'247
+        then j'203 lnum4 save_do_all13 save_do_ask13 sub13 got_quit17 got_match19 first_line17 last_line17 old_line_count17 line2'5 endcolumn21 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 start_nsubs19 found3 found_count3 did_sub2
         else do
-          if sub_firstline_string23 == nullPtr
+          if sub_firstline_string4 == nullPtr
             then do
-              r'246 <- ml_get_len ed' sub_firstlnum3
-              let !sub_firstline_length24 = fromIntegral r'246 :: Word64
-              r'247 <- ml_get ed' sub_firstlnum3
-              r'248 <- vim_strnsave ed' r'247 sub_firstline_length24
-              j'98 lnum4 save_do_all13 save_do_ask13 sub13 got_quit17 got_match19 first_line17 last_line17 old_line_count17 line2'5 nmatch3 endcolumn21 start_nsubs19 found3 found_count3 copycol2 matchcol2 prev_matchcol2 new_start_size2 did_sub2 nmatch_tl2 skip_match2 sub_firstlnum3 did_split2 pat_string24 pat_length24 r'248 sub_firstline_length24 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 new_start_string23 new_start_length23 tmp_string23 tmp_length23 orig_line_string23 orig_line_length23 new_line_string23 new_line_length23
-            else j'98 lnum4 save_do_all13 save_do_ask13 sub13 got_quit17 got_match19 first_line17 last_line17 old_line_count17 line2'5 nmatch3 endcolumn21 start_nsubs19 found3 found_count3 copycol2 matchcol2 prev_matchcol2 new_start_size2 did_sub2 nmatch_tl2 skip_match2 sub_firstlnum3 did_split2 pat_string24 pat_length24 sub_firstline_string23 sub_firstline_length23 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 new_start_string23 new_start_length23 tmp_string23 tmp_length23 orig_line_string23 orig_line_length23 new_line_string23 new_line_length23
-    j'98 !lnum5 !save_do_all14 !save_do_ask14 !sub14 !got_quit18 !got_match20 !first_line18 !last_line18 !old_line_count18 !line2'6 !nmatch4 !endcolumn22 !start_nsubs20 !found4 !found_count4 !copycol3 !matchcol3 !prev_matchcol3 !new_start_size3 !did_sub3 !nmatch_tl3 !skip_match3 !sub_firstlnum4 !did_split3 !pat_string25 !pat_length25 !sub_firstline_string24 !sub_firstline_length25 !old_cursor_lnum24 !old_cursor_col24 !old_cursor_coladd24 !new_start_string24 !new_start_length24 !tmp_string24 !tmp_length24 !orig_line_string24 !orig_line_length24 !new_line_string24 !new_line_length24 = do
-      r'249 <- curwin ed'
-      wrI64 r'249 (win_T'w_cursor + pos_T'lnum) lnum5
-      r'251 <- if (matchcol3 == prev_matchcol3) then (do { r'250 <- rdI64 (pAdd fr' regmmatch_T'endpos) lpos_T'lnum; pure (r'250 == 0) }) else pure False
-      r'253 <- if r'251 then (do { r'252 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col; pure (matchcol3 == r'252) }) else pure False
-      if r'253
+              r'248 <- ml_get_len ed' sub_firstlnum3
+              let !sub_firstline_length5 = fromIntegral r'248 :: Word64
+              r'249 <- ml_get ed' sub_firstlnum3
+              r'250 <- vim_strnsave ed' r'249 sub_firstline_length5
+              j'98 lnum4 save_do_all13 save_do_ask13 sub13 got_quit17 got_match19 first_line17 last_line17 old_line_count17 line2'5 nmatch3 r'250 sub_firstline_length5 endcolumn21 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 start_nsubs19 found3 found_count3 copycol2 matchcol2 prev_matchcol2 new_start_string2 new_start_length2 new_start_size2 did_sub2 nmatch_tl2 skip_match2 sub_firstlnum3 did_split2
+            else j'98 lnum4 save_do_all13 save_do_ask13 sub13 got_quit17 got_match19 first_line17 last_line17 old_line_count17 line2'5 nmatch3 sub_firstline_string4 sub_firstline_length4 endcolumn21 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 start_nsubs19 found3 found_count3 copycol2 matchcol2 prev_matchcol2 new_start_string2 new_start_length2 new_start_size2 did_sub2 nmatch_tl2 skip_match2 sub_firstlnum3 did_split2
+    j'98 !lnum5 !save_do_all14 !save_do_ask14 !sub14 !got_quit18 !got_match20 !first_line18 !last_line18 !old_line_count18 !line2'6 !nmatch4 !sub_firstline_string5 !sub_firstline_length6 !endcolumn22 !old_cursor_lnum19 !old_cursor_col19 !old_cursor_coladd19 !start_nsubs20 !found4 !found_count4 !copycol3 !matchcol3 !prev_matchcol3 !new_start_string3 !new_start_length3 !new_start_size3 !did_sub3 !nmatch_tl3 !skip_match3 !sub_firstlnum4 !did_split3 = do
+      r'251 <- curwin ed'
+      wrI64 r'251 (win_T'w_cursor + pos_T'lnum) lnum5
+      r'253 <- if (matchcol3 == prev_matchcol3) then (do { r'252 <- rdI64 (pAdd fr' regmmatch_T'endpos) lpos_T'lnum; pure (r'252 == 0) }) else pure False
+      r'255 <- if r'253 then (do { r'254 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col; pure (matchcol3 == r'254) }) else pure False
+      if r'255
         then do
-          r'254 <- rdW8 (pAdd sub_firstline_string24 (fromIntegral matchcol3)) 0
-          if (fromIntegral r'254 :: Int32) == NUL
-            then j'174 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 endcolumn22 start_nsubs20 found4 found_count4 copycol3 matchcol3 prev_matchcol3 new_start_size3 did_sub3 nmatch_tl3 False True sub_firstlnum4 did_split3 pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
+          r'256 <- rdW8 (pAdd sub_firstline_string5 (fromIntegral matchcol3)) 0
+          if (fromIntegral r'256 :: Int32) == NUL
+            then j'174 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 matchcol3 prev_matchcol3 new_start_string3 new_start_length3 new_start_size3 did_sub3 nmatch_tl3 False True sub_firstlnum4 did_split3
             else do
-              r'255 <- utfc_ptr2len ed' (pAdd sub_firstline_string24 (fromIntegral matchcol3))
-              let !matchcol4 = matchcol3 + r'255
-              j'174 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 endcolumn22 start_nsubs20 found4 found_count4 copycol3 matchcol4 prev_matchcol3 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
+              r'257 <- utfc_ptr2len ed' (pAdd sub_firstline_string5 (fromIntegral matchcol3))
+              let !matchcol4 = matchcol3 + r'257
+              j'174 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 matchcol4 prev_matchcol3 new_start_string3 new_start_length3 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3
         else do
-          r'256 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
-          r'257 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
-          if r'257 /= 0
+          r'258 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
+          r'259 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
+          if r'259 /= 0
             then do
               if nmatch4 > 1
                 then do
-                  let !matchcol5 = fromIntegral sub_firstline_length25 :: Int32
-                  j'170 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 (1 :: Int64) endcolumn22 start_nsubs20 found4 found_count4 copycol3 matchcol5 r'256 new_start_size3 nmatch_tl3 False True sub_firstlnum4 did_split3 pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
-                else j'170 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 endcolumn22 start_nsubs20 found4 found_count4 copycol3 r'256 r'256 new_start_size3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
+                  let !matchcol5 = fromIntegral sub_firstline_length6 :: Int32
+                  j'170 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 (1 :: Int64) sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 matchcol5 r'258 new_start_string3 new_start_length3 new_start_size3 nmatch_tl3 False True sub_firstlnum4 did_split3
+                else j'170 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 r'258 r'258 new_start_string3 new_start_length3 new_start_size3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3
             else do
-              r'258 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
-              if r'258 /= 0
+              r'260 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
+              if r'260 /= 0
                 then do
-                  r'259 <- c'State ed'
+                  r'261 <- c'State ed'
                   set'c'State ed' MODE_CONFIRM
-                  r'261 <- curwin ed'
-                  r'260 <- rdI32 (pAdd fr' regmmatch_T'startpos) lpos_T'col
-                  wrI32 r'261 (win_T'w_cursor + pos_T'col) r'260
-                  r'262 <- p_cpo ed'
-                  r'263 <- vim_strchr ed' r'262 CPO_UNDO
-                  if r'263 /= nullPtr
+                  r'263 <- curwin ed'
+                  r'262 <- rdI32 (pAdd fr' regmmatch_T'startpos) lpos_T'col
+                  wrI32 r'263 (win_T'w_cursor + pos_T'col) r'262
+                  r'264 <- p_cpo ed'
+                  r'265 <- vim_strchr ed' r'264 CPO_UNDO
+                  if r'265 /= nullPtr
                     then do
-                      r'264 <- no_u_sync ed'
-                      set'no_u_sync ed' (r'264 + 1)
-                      loop'105 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 r'259 first_line18 last_line18 old_line_count18 line2'6 nmatch4 endcolumn22 start_nsubs20 found4 found_count4 copycol3 r'256 r'256 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 (0 :: Int32) pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
-                    else loop'105 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 r'259 first_line18 last_line18 old_line_count18 line2'6 nmatch4 endcolumn22 start_nsubs20 found4 found_count4 copycol3 r'256 r'256 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 (0 :: Int32) pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
-                else j'133 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 endcolumn22 start_nsubs20 found4 found_count4 copycol3 r'256 r'256 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 pat_string25 pat_length25 sub_firstline_string24 sub_firstline_length25 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 new_start_string24 new_start_length24 tmp_string24 tmp_length24 orig_line_string24 orig_line_length24 new_line_string24 new_line_length24
-    loop'105 !lnum6 !save_do_all15 !save_do_ask15 !sub15 !got_quit19 !got_match21 !save_State1 !first_line19 !last_line19 !old_line_count19 !line2'7 !nmatch5 !endcolumn23 !start_nsubs21 !found5 !found_count5 !copycol4 !matchcol6 !prev_matchcol4 !new_start_size4 !did_sub4 !nmatch_tl4 !do_again1 !skip_match4 !sub_firstlnum5 !did_split4 !typed1 !pat_string26 !pat_length26 !sub_firstline_string25 !sub_firstline_length26 !old_cursor_lnum25 !old_cursor_col25 !old_cursor_coladd25 !new_start_string25 !new_start_length25 !tmp_string25 !tmp_length25 !orig_line_string25 !orig_line_length25 !new_line_string25 !new_line_length25 = do
-      r'265 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
-      if r'265 /= 0
+                      r'266 <- no_u_sync ed'
+                      set'no_u_sync ed' (r'266 + 1)
+                      loop'105 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 r'261 first_line18 last_line18 old_line_count18 line2'6 nmatch4 sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 r'258 r'258 new_start_string3 new_start_length3 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 (0 :: Int32)
+                    else loop'105 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 r'261 first_line18 last_line18 old_line_count18 line2'6 nmatch4 sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 r'258 r'258 new_start_string3 new_start_length3 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3 (0 :: Int32)
+                else j'133 lnum5 save_do_all14 save_do_ask14 sub14 got_quit18 got_match20 first_line18 last_line18 old_line_count18 line2'6 nmatch4 sub_firstline_string5 sub_firstline_length6 endcolumn22 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 start_nsubs20 found4 found_count4 copycol3 r'258 r'258 new_start_string3 new_start_length3 new_start_size3 did_sub3 nmatch_tl3 False skip_match3 sub_firstlnum4 did_split3
+    loop'105 !lnum6 !save_do_all15 !save_do_ask15 !sub15 !got_quit19 !got_match21 !save_State1 !first_line19 !last_line19 !old_line_count19 !line2'7 !nmatch5 !sub_firstline_string6 !sub_firstline_length7 !endcolumn23 !old_cursor_lnum20 !old_cursor_col20 !old_cursor_coladd20 !start_nsubs21 !found5 !found_count5 !copycol4 !matchcol6 !prev_matchcol4 !new_start_string4 !new_start_length4 !new_start_size4 !did_sub4 !nmatch_tl4 !do_again1 !skip_match4 !sub_firstlnum5 !did_split4 !typed1 = do
+      r'267 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
+      if r'267 /= 0
         then do
-          r'266 <- p_lz ed'
-          r'267 <- c'RedrawingDisabled ed'
+          r'268 <- p_lz ed'
+          r'269 <- c'RedrawingDisabled ed'
           set'c'RedrawingDisabled ed' 0
           set'p_lz ed' FALSE
-          if new_start_string25 /= nullPtr
+          if new_start_string4 /= nullPtr
             then do
-              r'268 <- ml_get_len ed' lnum6
-              let !orig_line_length26 = fromIntegral r'268 :: Word64
-              r'269 <- ml_get ed' lnum6
-              r'270 <- vim_strnsave ed' r'269 orig_line_length26
-              r'271 <- concat_str ed' new_start_string25 (pAdd sub_firstline_string25 (fromIntegral copycol4))
-              if r'271 == nullPtr
-                then j'110 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 endcolumn23 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 (0 :: Int32) r'266 r'267 pat_string26 pat_length26 sub_firstline_string25 sub_firstline_length26 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 new_start_string25 new_start_length25 tmp_string25 tmp_length25 nullPtr (0 :: Word64) r'271 new_line_length25
+              r'270 <- ml_get_len ed' lnum6
+              let !orig_line_length1 = fromIntegral r'270 :: Word64
+              r'271 <- ml_get ed' lnum6
+              r'272 <- vim_strnsave ed' r'271 orig_line_length1
+              r'273 <- concat_str ed' new_start_string4 (pAdd sub_firstline_string6 (fromIntegral copycol4))
+              if r'273 == nullPtr
+                then j'110 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 sub_firstline_string6 sub_firstline_length7 endcolumn23 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_string4 new_start_length4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 nullPtr (0 :: Int32) r'268 r'269
                 else do
-                  let !new_line_length26 = new_start_length25 + (sub_firstline_length26 - (fromIntegral copycol4 :: Word64))
-                  let !len_change1 = (fromIntegral new_line_length26 :: Int32) - (fromIntegral orig_line_length26 :: Int32)
-                  r'272 <- curwin ed'
-                  r'273 <- rdI32 r'272 (win_T'w_cursor + pos_T'col)
-                  wrI32 r'272 (win_T'w_cursor + pos_T'col) (r'273 + len_change1)
-                  _ <- ml_replace ed' lnum6 r'271 False
-                  j'110 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 endcolumn23 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 len_change1 r'266 r'267 pat_string26 pat_length26 sub_firstline_string25 sub_firstline_length26 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 new_start_string25 new_start_length25 tmp_string25 tmp_length25 r'270 orig_line_length26 r'271 new_line_length26
-            else j'110 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 endcolumn23 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 (0 :: Int32) r'266 r'267 pat_string26 pat_length26 sub_firstline_string25 sub_firstline_length26 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 new_start_string25 new_start_length25 tmp_string25 tmp_length25 nullPtr (0 :: Word64) new_line_string25 new_line_length25
-        else j'129 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 endcolumn23 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 typed1 pat_string26 pat_length26 sub_firstline_string25 sub_firstline_length26 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 new_start_string25 new_start_length25 tmp_string25 tmp_length25 orig_line_string25 orig_line_length25 new_line_string25 new_line_length25
-    j'110 !lnum7 !save_do_all16 !save_do_ask16 !sub16 !got_quit20 !got_match22 !save_State2 !first_line20 !last_line20 !old_line_count20 !line2'8 !nmatch6 !endcolumn24 !start_nsubs22 !found6 !found_count6 !copycol5 !matchcol7 !prev_matchcol5 !new_start_size5 !did_sub5 !nmatch_tl5 !do_again2 !skip_match5 !sub_firstlnum6 !did_split5 !len_change2 !save_p_lz1 !save_RedrawingDisabled1 !pat_string27 !pat_length27 !sub_firstline_string26 !sub_firstline_length27 !old_cursor_lnum26 !old_cursor_col26 !old_cursor_coladd26 !new_start_string26 !new_start_length26 !tmp_string26 !tmp_length26 !orig_line_string26 !orig_line_length27 !new_line_string26 !new_line_length27 = do
-      r'275 <- rdI64 (pAdd fr' regmmatch_T'endpos) lpos_T'lnum
-      r'276 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-      set'search_match_lines ed' (r'275 - r'276)
-      r'277 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
-      set'search_match_endcol ed' (r'277 + len_change2)
-      r'278 <- search_match_lines ed'
-      r'280 <- if (r'278 == 0) then (do { r'279 <- search_match_endcol ed'; pure (r'279 == 0) }) else pure False
-      if r'280
+                  let !new_line_length1 = new_start_length4 + (sub_firstline_length7 - (fromIntegral copycol4 :: Word64))
+                  let !len_change1 = (fromIntegral new_line_length1 :: Int32) - (fromIntegral orig_line_length1 :: Int32)
+                  r'274 <- curwin ed'
+                  r'275 <- rdI32 r'274 (win_T'w_cursor + pos_T'col)
+                  wrI32 r'274 (win_T'w_cursor + pos_T'col) (r'275 + len_change1)
+                  _ <- ml_replace ed' lnum6 r'273 False
+                  j'110 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 sub_firstline_string6 sub_firstline_length7 endcolumn23 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_string4 new_start_length4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 r'272 len_change1 r'268 r'269
+            else j'110 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 sub_firstline_string6 sub_firstline_length7 endcolumn23 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_string4 new_start_length4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 nullPtr (0 :: Int32) r'268 r'269
+        else j'129 lnum6 save_do_all15 save_do_ask15 sub15 got_quit19 got_match21 save_State1 first_line19 last_line19 old_line_count19 line2'7 nmatch5 sub_firstline_string6 sub_firstline_length7 endcolumn23 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 start_nsubs21 found5 found_count5 copycol4 matchcol6 prev_matchcol4 new_start_string4 new_start_length4 new_start_size4 did_sub4 nmatch_tl4 do_again1 skip_match4 sub_firstlnum5 did_split4 typed1
+    j'110 !lnum7 !save_do_all16 !save_do_ask16 !sub16 !got_quit20 !got_match22 !save_State2 !first_line20 !last_line20 !old_line_count20 !line2'8 !nmatch6 !sub_firstline_string7 !sub_firstline_length8 !endcolumn24 !old_cursor_lnum21 !old_cursor_col21 !old_cursor_coladd21 !start_nsubs22 !found6 !found_count6 !copycol5 !matchcol7 !prev_matchcol5 !new_start_string5 !new_start_length5 !new_start_size5 !did_sub5 !nmatch_tl5 !do_again2 !skip_match5 !sub_firstlnum6 !did_split5 !orig_line_string1 !len_change2 !save_p_lz1 !save_RedrawingDisabled1 = do
+      r'277 <- rdI64 (pAdd fr' regmmatch_T'endpos) lpos_T'lnum
+      r'278 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+      set'search_match_lines ed' (r'277 - r'278)
+      r'279 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
+      set'search_match_endcol ed' (r'279 + len_change2)
+      r'280 <- search_match_lines ed'
+      r'282 <- if (r'280 == 0) then (do { r'281 <- search_match_endcol ed'; pure (r'281 == 0) }) else pure False
+      if r'282
         then do
           set'search_match_endcol ed' 1
-          j'112 lnum7 save_do_all16 save_do_ask16 sub16 got_quit20 got_match22 save_State2 first_line20 last_line20 old_line_count20 line2'8 nmatch6 endcolumn24 start_nsubs22 found6 found_count6 copycol5 matchcol7 prev_matchcol5 new_start_size5 did_sub5 nmatch_tl5 do_again2 skip_match5 sub_firstlnum6 did_split5 save_p_lz1 save_RedrawingDisabled1 pat_string27 pat_length27 sub_firstline_string26 sub_firstline_length27 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 new_start_string26 new_start_length26 tmp_string26 tmp_length26 orig_line_string26 orig_line_length27 new_line_string26 new_line_length27
-        else j'112 lnum7 save_do_all16 save_do_ask16 sub16 got_quit20 got_match22 save_State2 first_line20 last_line20 old_line_count20 line2'8 nmatch6 endcolumn24 start_nsubs22 found6 found_count6 copycol5 matchcol7 prev_matchcol5 new_start_size5 did_sub5 nmatch_tl5 do_again2 skip_match5 sub_firstlnum6 did_split5 save_p_lz1 save_RedrawingDisabled1 pat_string27 pat_length27 sub_firstline_string26 sub_firstline_length27 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 new_start_string26 new_start_length26 tmp_string26 tmp_length26 orig_line_string26 orig_line_length27 new_line_string26 new_line_length27
-    j'112 !lnum8 !save_do_all17 !save_do_ask17 !sub17 !got_quit21 !got_match23 !save_State3 !first_line21 !last_line21 !old_line_count21 !line2'9 !nmatch7 !endcolumn25 !start_nsubs23 !found7 !found_count7 !copycol6 !matchcol8 !prev_matchcol6 !new_start_size6 !did_sub6 !nmatch_tl6 !do_again3 !skip_match6 !sub_firstlnum7 !did_split6 !save_p_lz2 !save_RedrawingDisabled2 !pat_string28 !pat_length28 !sub_firstline_string27 !sub_firstline_length28 !old_cursor_lnum27 !old_cursor_col27 !old_cursor_coladd27 !new_start_string27 !new_start_length27 !tmp_string27 !tmp_length27 !orig_line_string27 !orig_line_length28 !new_line_string27 !new_line_length28 = do
+          j'112 lnum7 save_do_all16 save_do_ask16 sub16 got_quit20 got_match22 save_State2 first_line20 last_line20 old_line_count20 line2'8 nmatch6 sub_firstline_string7 sub_firstline_length8 endcolumn24 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21 start_nsubs22 found6 found_count6 copycol5 matchcol7 prev_matchcol5 new_start_string5 new_start_length5 new_start_size5 did_sub5 nmatch_tl5 do_again2 skip_match5 sub_firstlnum6 did_split5 orig_line_string1 save_p_lz1 save_RedrawingDisabled1
+        else j'112 lnum7 save_do_all16 save_do_ask16 sub16 got_quit20 got_match22 save_State2 first_line20 last_line20 old_line_count20 line2'8 nmatch6 sub_firstline_string7 sub_firstline_length8 endcolumn24 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21 start_nsubs22 found6 found_count6 copycol5 matchcol7 prev_matchcol5 new_start_string5 new_start_length5 new_start_size5 did_sub5 nmatch_tl5 do_again2 skip_match5 sub_firstlnum6 did_split5 orig_line_string1 save_p_lz1 save_RedrawingDisabled1
+    j'112 !lnum8 !save_do_all17 !save_do_ask17 !sub17 !got_quit21 !got_match23 !save_State3 !first_line21 !last_line21 !old_line_count21 !line2'9 !nmatch7 !sub_firstline_string8 !sub_firstline_length9 !endcolumn25 !old_cursor_lnum22 !old_cursor_col22 !old_cursor_coladd22 !start_nsubs23 !found7 !found_count7 !copycol6 !matchcol8 !prev_matchcol6 !new_start_string6 !new_start_length6 !new_start_size6 !did_sub6 !nmatch_tl6 !do_again3 !skip_match6 !sub_firstlnum7 !did_split6 !orig_line_string2 !save_p_lz2 !save_RedrawingDisabled2 = do
       set'highlight_match ed' TRUE
       update_topline ed'
       validate_cursor ed'
       _ <- update_screen ed' UPD_SOME_VALID
       set'highlight_match ed' FALSE
       redraw_later ed' UPD_SOME_VALID
-      r'282 <- msg_row ed'
-      r'283 <- c'Rows ed'
-      if (fromIntegral r'282 :: Int64) == (r'283 - 1)
+      r'284 <- msg_row ed'
+      r'285 <- c'Rows ed'
+      if (fromIntegral r'284 :: Int64) == (r'285 - 1)
         then do
           set'msg_didout ed' FALSE
-          j'114 lnum8 save_do_all17 save_do_ask17 sub17 got_quit21 got_match23 save_State3 first_line21 last_line21 old_line_count21 line2'9 nmatch7 endcolumn25 start_nsubs23 found7 found_count7 copycol6 matchcol8 prev_matchcol6 new_start_size6 did_sub6 nmatch_tl6 do_again3 skip_match6 sub_firstlnum7 did_split6 save_p_lz2 save_RedrawingDisabled2 pat_string28 pat_length28 sub_firstline_string27 sub_firstline_length28 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 new_start_string27 new_start_length27 tmp_string27 tmp_length27 orig_line_string27 orig_line_length28 new_line_string27 new_line_length28
-        else j'114 lnum8 save_do_all17 save_do_ask17 sub17 got_quit21 got_match23 save_State3 first_line21 last_line21 old_line_count21 line2'9 nmatch7 endcolumn25 start_nsubs23 found7 found_count7 copycol6 matchcol8 prev_matchcol6 new_start_size6 did_sub6 nmatch_tl6 do_again3 skip_match6 sub_firstlnum7 did_split6 save_p_lz2 save_RedrawingDisabled2 pat_string28 pat_length28 sub_firstline_string27 sub_firstline_length28 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 new_start_string27 new_start_length27 tmp_string27 tmp_length27 orig_line_string27 orig_line_length28 new_line_string27 new_line_length28
-    j'114 !lnum9 !save_do_all18 !save_do_ask18 !sub18 !got_quit22 !got_match24 !save_State4 !first_line22 !last_line22 !old_line_count22 !line2'10 !nmatch8 !endcolumn26 !start_nsubs24 !found8 !found_count8 !copycol7 !matchcol9 !prev_matchcol7 !new_start_size7 !did_sub7 !nmatch_tl7 !do_again4 !skip_match7 !sub_firstlnum8 !did_split7 !save_p_lz3 !save_RedrawingDisabled3 !pat_string29 !pat_length29 !sub_firstline_string28 !sub_firstline_length29 !old_cursor_lnum28 !old_cursor_col28 !old_cursor_coladd28 !new_start_string28 !new_start_length28 !tmp_string28 !tmp_length28 !orig_line_string28 !orig_line_length29 !new_line_string28 !new_line_length29 = do
+          j'114 lnum8 save_do_all17 save_do_ask17 sub17 got_quit21 got_match23 save_State3 first_line21 last_line21 old_line_count21 line2'9 nmatch7 sub_firstline_string8 sub_firstline_length9 endcolumn25 old_cursor_lnum22 old_cursor_col22 old_cursor_coladd22 start_nsubs23 found7 found_count7 copycol6 matchcol8 prev_matchcol6 new_start_string6 new_start_length6 new_start_size6 did_sub6 nmatch_tl6 do_again3 skip_match6 sub_firstlnum7 did_split6 orig_line_string2 save_p_lz2 save_RedrawingDisabled2
+        else j'114 lnum8 save_do_all17 save_do_ask17 sub17 got_quit21 got_match23 save_State3 first_line21 last_line21 old_line_count21 line2'9 nmatch7 sub_firstline_string8 sub_firstline_length9 endcolumn25 old_cursor_lnum22 old_cursor_col22 old_cursor_coladd22 start_nsubs23 found7 found_count7 copycol6 matchcol8 prev_matchcol6 new_start_string6 new_start_length6 new_start_size6 did_sub6 nmatch_tl6 do_again3 skip_match6 sub_firstlnum7 did_split6 orig_line_string2 save_p_lz2 save_RedrawingDisabled2
+    j'114 !lnum9 !save_do_all18 !save_do_ask18 !sub18 !got_quit22 !got_match24 !save_State4 !first_line22 !last_line22 !old_line_count22 !line2'10 !nmatch8 !sub_firstline_string9 !sub_firstline_length10 !endcolumn26 !old_cursor_lnum23 !old_cursor_col23 !old_cursor_coladd23 !start_nsubs24 !found8 !found_count8 !copycol7 !matchcol9 !prev_matchcol7 !new_start_string7 !new_start_length7 !new_start_size7 !did_sub7 !nmatch_tl7 !do_again4 !skip_match7 !sub_firstlnum8 !did_split7 !orig_line_string3 !save_p_lz3 !save_RedrawingDisabled3 = do
       msg_starthere ed'
-      r'284 <- msg_scroll ed'
-      let !i2 = fromIntegral r'284 :: Int64
+      r'286 <- msg_scroll ed'
+      let !i2 = fromIntegral r'286 :: Int64
       set'msg_scroll ed' 0
       set'msg_no_more ed' TRUE
-      r'285 <- c'IObuff ed'
-      r'286 <- iobuff_room ed'
-      let !r'287 = c'_ (Ptr "replace with %s (y/n/a/q/l/^E/^Y)?\0"#)
-      _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'285)) r'286 (castPtr r'287) [VP (castPtr sub18)]
+      r'287 <- c'IObuff ed'
+      r'288 <- iobuff_room ed'
       let !r'289 = c'_ (Ptr "replace with %s (y/n/a/q/l/^E/^Y)?\0"#)
-      r'290 <- iobuff_or ed' r'289
-      r'291 <- rdI32 (addr'highlight_attr ed') 68
-      _ <- msg_attr ed' r'290 r'291
+      _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'287)) r'288 (castPtr r'289) [VP (castPtr sub18)]
+      let !r'291 = c'_ (Ptr "replace with %s (y/n/a/q/l/^E/^Y)?\0"#)
+      r'292 <- iobuff_or ed' r'291
+      r'293 <- rdI32 (addr'highlight_attr ed') 68
+      _ <- msg_attr ed' r'292 r'293
       set'msg_no_more ed' FALSE
       set'msg_scroll ed' (fromIntegral i2 :: Int32)
       showruler ed' True
-      r'293 <- msg_row ed'
-      r'294 <- cmdline_col_off ed'
-      r'295 <- msg_col ed'
-      windgoto ed' r'293 (r'294 + r'295)
+      r'295 <- msg_row ed'
+      r'296 <- cmdline_col_off ed'
+      r'297 <- msg_col ed'
+      windgoto ed' r'295 (r'296 + r'297)
       set'c'RedrawingDisabled ed' save_RedrawingDisabled3
-      r'296 <- no_mapping ed'
-      set'no_mapping ed' (r'296 + 1)
-      r'297 <- allow_keys ed'
-      set'allow_keys ed' (r'297 + 1)
-      r'298 <- plain_vgetc ed'
+      r'298 <- no_mapping ed'
+      set'no_mapping ed' (r'298 + 1)
       r'299 <- allow_keys ed'
-      set'allow_keys ed' (r'299 - 1)
-      r'300 <- no_mapping ed'
-      set'no_mapping ed' (r'300 - 1)
+      set'allow_keys ed' (r'299 + 1)
+      r'300 <- plain_vgetc ed'
+      r'301 <- allow_keys ed'
+      set'allow_keys ed' (r'301 - 1)
+      r'302 <- no_mapping ed'
+      set'no_mapping ed' (r'302 - 1)
       set'msg_didout ed' FALSE
       set'msg_col ed' 0
       gotocmdline ed' True
       set'p_lz ed' save_p_lz3
-      if orig_line_string28 /= nullPtr
+      if orig_line_string3 /= nullPtr
         then do
-          _ <- ml_replace ed' lnum9 orig_line_string28 False
-          j'116 lnum9 save_do_all18 save_do_ask18 sub18 got_quit22 got_match24 save_State4 first_line22 last_line22 old_line_count22 line2'10 nmatch8 endcolumn26 start_nsubs24 found8 found_count8 copycol7 matchcol9 prev_matchcol7 new_start_size7 did_sub7 nmatch_tl7 do_again4 skip_match7 sub_firstlnum8 did_split7 r'298 pat_string29 pat_length29 sub_firstline_string28 sub_firstline_length29 old_cursor_lnum28 old_cursor_col28 old_cursor_coladd28 new_start_string28 new_start_length28 tmp_string28 tmp_length28 orig_line_string28 orig_line_length29 new_line_string28 new_line_length29
-        else j'116 lnum9 save_do_all18 save_do_ask18 sub18 got_quit22 got_match24 save_State4 first_line22 last_line22 old_line_count22 line2'10 nmatch8 endcolumn26 start_nsubs24 found8 found_count8 copycol7 matchcol9 prev_matchcol7 new_start_size7 did_sub7 nmatch_tl7 do_again4 skip_match7 sub_firstlnum8 did_split7 r'298 pat_string29 pat_length29 sub_firstline_string28 sub_firstline_length29 old_cursor_lnum28 old_cursor_col28 old_cursor_coladd28 new_start_string28 new_start_length28 tmp_string28 tmp_length28 orig_line_string28 orig_line_length29 new_line_string28 new_line_length29
-    j'116 !lnum10 !save_do_all19 !save_do_ask19 !sub19 !got_quit23 !got_match25 !save_State5 !first_line23 !last_line23 !old_line_count23 !line2'11 !nmatch9 !endcolumn27 !start_nsubs25 !found9 !found_count9 !copycol8 !matchcol10 !prev_matchcol8 !new_start_size8 !did_sub8 !nmatch_tl8 !do_again5 !skip_match8 !sub_firstlnum9 !did_split8 !typed2 !pat_string30 !pat_length30 !sub_firstline_string29 !sub_firstline_length30 !old_cursor_lnum29 !old_cursor_col29 !old_cursor_coladd29 !new_start_string29 !new_start_length29 !tmp_string29 !tmp_length29 !orig_line_string29 !orig_line_length30 !new_line_string29 !new_line_length30 = do
+          _ <- ml_replace ed' lnum9 orig_line_string3 False
+          j'116 lnum9 save_do_all18 save_do_ask18 sub18 got_quit22 got_match24 save_State4 first_line22 last_line22 old_line_count22 line2'10 nmatch8 sub_firstline_string9 sub_firstline_length10 endcolumn26 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 start_nsubs24 found8 found_count8 copycol7 matchcol9 prev_matchcol7 new_start_string7 new_start_length7 new_start_size7 did_sub7 nmatch_tl7 do_again4 skip_match7 sub_firstlnum8 did_split7 r'300
+        else j'116 lnum9 save_do_all18 save_do_ask18 sub18 got_quit22 got_match24 save_State4 first_line22 last_line22 old_line_count22 line2'10 nmatch8 sub_firstline_string9 sub_firstline_length10 endcolumn26 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 start_nsubs24 found8 found_count8 copycol7 matchcol9 prev_matchcol7 new_start_string7 new_start_length7 new_start_size7 did_sub7 nmatch_tl7 do_again4 skip_match7 sub_firstlnum8 did_split7 r'300
+    j'116 !lnum10 !save_do_all19 !save_do_ask19 !sub19 !got_quit23 !got_match25 !save_State5 !first_line23 !last_line23 !old_line_count23 !line2'11 !nmatch9 !sub_firstline_string10 !sub_firstline_length11 !endcolumn27 !old_cursor_lnum24 !old_cursor_col24 !old_cursor_coladd24 !start_nsubs25 !found9 !found_count9 !copycol8 !matchcol10 !prev_matchcol8 !new_start_string8 !new_start_length8 !new_start_size8 !did_sub8 !nmatch_tl8 !do_again5 !skip_match8 !sub_firstlnum9 !did_split8 !typed2 = do
       set'need_wait_return ed' FALSE
-      r'303 <- if (((typed2 == (ch 'q')) || (typed2 == ESC)) || (typed2 == Ctrl_C)) then pure True else (do { r'302 <- intr_char ed'; pure (typed2 == r'302) })
-      if r'303
-        then j'129 lnum10 save_do_all19 save_do_ask19 sub19 True got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
+      r'305 <- if (((typed2 == (ch 'q')) || (typed2 == ESC)) || (typed2 == Ctrl_C)) then pure True else (do { r'304 <- intr_char ed'; pure (typed2 == r'304) })
+      if r'305
+        then j'129 lnum10 save_do_all19 save_do_ask19 sub19 True got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
         else do
           if typed2 == (ch 'n')
-            then j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
+            then j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
             else do
               if typed2 == (ch 'y')
-                then j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
+                then j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
                 else do
                   if typed2 == (ch 'l')
                     then do
                       wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_all FALSE
-                      j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 lnum10 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
+                      j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 lnum10 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
                     else do
                       if typed2 == (ch 'a')
                         then do
                           wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask FALSE
-                          j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
+                          j'129 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
                         else do
                           if typed2 == Ctrl_E
                             then do
                               scrollup_clamp ed'
-                              loop'105 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
+                              loop'105 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
                             else do
                               if typed2 == Ctrl_Y
                                 then do
                                   scrolldown_clamp ed'
-                                  loop'105 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
-                                else loop'105 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 endcolumn27 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2 pat_string30 pat_length30 sub_firstline_string29 sub_firstline_length30 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 new_start_string29 new_start_length29 tmp_string29 tmp_length29 orig_line_string29 orig_line_length30 new_line_string29 new_line_length30
-    j'129 !lnum11 !save_do_all20 !save_do_ask20 !sub20 !got_quit24 !got_match26 !save_State6 !first_line24 !last_line24 !old_line_count24 !line2'12 !nmatch10 !endcolumn28 !start_nsubs26 !found10 !found_count10 !copycol9 !matchcol11 !prev_matchcol9 !new_start_size9 !did_sub9 !nmatch_tl9 !do_again6 !skip_match9 !sub_firstlnum10 !did_split9 !typed3 !pat_string31 !pat_length31 !sub_firstline_string30 !sub_firstline_length31 !old_cursor_lnum30 !old_cursor_col30 !old_cursor_coladd30 !new_start_string30 !new_start_length30 !tmp_string30 !tmp_length30 !orig_line_string30 !orig_line_length31 !new_line_string30 !new_line_length31 = do
+                                  loop'105 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
+                                else loop'105 lnum10 save_do_all19 save_do_ask19 sub19 got_quit23 got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
+    j'129 !lnum11 !save_do_all20 !save_do_ask20 !sub20 !got_quit24 !got_match26 !save_State6 !first_line24 !last_line24 !old_line_count24 !line2'12 !nmatch10 !sub_firstline_string11 !sub_firstline_length12 !endcolumn28 !old_cursor_lnum25 !old_cursor_col25 !old_cursor_coladd25 !start_nsubs26 !found10 !found_count10 !copycol9 !matchcol11 !prev_matchcol9 !new_start_string9 !new_start_length9 !new_start_size9 !did_sub9 !nmatch_tl9 !do_again6 !skip_match9 !sub_firstlnum10 !did_split9 !typed3 = do
       set'c'State ed' save_State6
-      r'304 <- p_cpo ed'
-      r'305 <- vim_strchr ed' r'304 CPO_UNDO
-      if r'305 /= nullPtr
+      r'306 <- p_cpo ed'
+      r'307 <- vim_strchr ed' r'306 CPO_UNDO
+      if r'307 /= nullPtr
         then do
-          r'306 <- no_u_sync ed'
-          set'no_u_sync ed' (r'306 - 1)
-          j'131 lnum11 save_do_all20 save_do_ask20 sub20 got_quit24 got_match26 first_line24 last_line24 old_line_count24 line2'12 nmatch10 endcolumn28 start_nsubs26 found10 found_count10 copycol9 matchcol11 prev_matchcol9 new_start_size9 did_sub9 nmatch_tl9 do_again6 skip_match9 sub_firstlnum10 did_split9 typed3 pat_string31 pat_length31 sub_firstline_string30 sub_firstline_length31 old_cursor_lnum30 old_cursor_col30 old_cursor_coladd30 new_start_string30 new_start_length30 tmp_string30 tmp_length30 orig_line_string30 orig_line_length31 new_line_string30 new_line_length31
-        else j'131 lnum11 save_do_all20 save_do_ask20 sub20 got_quit24 got_match26 first_line24 last_line24 old_line_count24 line2'12 nmatch10 endcolumn28 start_nsubs26 found10 found_count10 copycol9 matchcol11 prev_matchcol9 new_start_size9 did_sub9 nmatch_tl9 do_again6 skip_match9 sub_firstlnum10 did_split9 typed3 pat_string31 pat_length31 sub_firstline_string30 sub_firstline_length31 old_cursor_lnum30 old_cursor_col30 old_cursor_coladd30 new_start_string30 new_start_length30 tmp_string30 tmp_length30 orig_line_string30 orig_line_length31 new_line_string30 new_line_length31
-    j'131 !lnum12 !save_do_all21 !save_do_ask21 !sub21 !got_quit25 !got_match27 !first_line25 !last_line25 !old_line_count25 !line2'13 !nmatch11 !endcolumn29 !start_nsubs27 !found11 !found_count11 !copycol10 !matchcol12 !prev_matchcol10 !new_start_size10 !did_sub10 !nmatch_tl10 !do_again7 !skip_match10 !sub_firstlnum11 !did_split10 !typed4 !pat_string32 !pat_length32 !sub_firstline_string31 !sub_firstline_length32 !old_cursor_lnum31 !old_cursor_col31 !old_cursor_coladd31 !new_start_string31 !new_start_length31 !tmp_string31 !tmp_length31 !orig_line_string31 !orig_line_length32 !new_line_string31 !new_line_length32 = do
+          r'308 <- no_u_sync ed'
+          set'no_u_sync ed' (r'308 - 1)
+          j'131 lnum11 save_do_all20 save_do_ask20 sub20 got_quit24 got_match26 first_line24 last_line24 old_line_count24 line2'12 nmatch10 sub_firstline_string11 sub_firstline_length12 endcolumn28 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 start_nsubs26 found10 found_count10 copycol9 matchcol11 prev_matchcol9 new_start_string9 new_start_length9 new_start_size9 did_sub9 nmatch_tl9 do_again6 skip_match9 sub_firstlnum10 did_split9 typed3
+        else j'131 lnum11 save_do_all20 save_do_ask20 sub20 got_quit24 got_match26 first_line24 last_line24 old_line_count24 line2'12 nmatch10 sub_firstline_string11 sub_firstline_length12 endcolumn28 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 start_nsubs26 found10 found_count10 copycol9 matchcol11 prev_matchcol9 new_start_string9 new_start_length9 new_start_size9 did_sub9 nmatch_tl9 do_again6 skip_match9 sub_firstlnum10 did_split9 typed3
+    j'131 !lnum12 !save_do_all21 !save_do_ask21 !sub21 !got_quit25 !got_match27 !first_line25 !last_line25 !old_line_count25 !line2'13 !nmatch11 !sub_firstline_string12 !sub_firstline_length13 !endcolumn29 !old_cursor_lnum26 !old_cursor_col26 !old_cursor_coladd26 !start_nsubs27 !found11 !found_count11 !copycol10 !matchcol12 !prev_matchcol10 !new_start_string10 !new_start_length10 !new_start_size10 !did_sub10 !nmatch_tl10 !do_again7 !skip_match10 !sub_firstlnum11 !did_split10 !typed4 = do
       if typed4 == (ch 'n')
         then do
           if nmatch11 > 1
             then do
-              let !matchcol13 = fromIntegral sub_firstline_length32 :: Int32
-              j'174 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 endcolumn29 start_nsubs27 found11 found_count11 copycol10 matchcol13 prev_matchcol10 new_start_size10 did_sub10 nmatch_tl10 do_again7 True sub_firstlnum11 did_split10 pat_string32 pat_length32 sub_firstline_string31 sub_firstline_length32 old_cursor_lnum31 old_cursor_col31 old_cursor_coladd31 new_start_string31 new_start_length31 tmp_string31 tmp_length31 orig_line_string31 orig_line_length32 new_line_string31 new_line_length32
-            else j'174 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 endcolumn29 start_nsubs27 found11 found_count11 copycol10 matchcol12 prev_matchcol10 new_start_size10 did_sub10 nmatch_tl10 do_again7 skip_match10 sub_firstlnum11 did_split10 pat_string32 pat_length32 sub_firstline_string31 sub_firstline_length32 old_cursor_lnum31 old_cursor_col31 old_cursor_coladd31 new_start_string31 new_start_length31 tmp_string31 tmp_length31 orig_line_string31 orig_line_length32 new_line_string31 new_line_length32
+              let !matchcol13 = fromIntegral sub_firstline_length13 :: Int32
+              j'174 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 sub_firstline_string12 sub_firstline_length13 endcolumn29 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 start_nsubs27 found11 found_count11 copycol10 matchcol13 prev_matchcol10 new_start_string10 new_start_length10 new_start_size10 did_sub10 nmatch_tl10 do_again7 True sub_firstlnum11 did_split10
+            else j'174 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 sub_firstline_string12 sub_firstline_length13 endcolumn29 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 start_nsubs27 found11 found_count11 copycol10 matchcol12 prev_matchcol10 new_start_string10 new_start_length10 new_start_size10 did_sub10 nmatch_tl10 do_again7 skip_match10 sub_firstlnum11 did_split10
         else do
           if got_quit25
-            then j'174 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 endcolumn29 start_nsubs27 found11 found_count11 copycol10 matchcol12 prev_matchcol10 new_start_size10 did_sub10 nmatch_tl10 do_again7 skip_match10 sub_firstlnum11 did_split10 pat_string32 pat_length32 sub_firstline_string31 sub_firstline_length32 old_cursor_lnum31 old_cursor_col31 old_cursor_coladd31 new_start_string31 new_start_length31 tmp_string31 tmp_length31 orig_line_string31 orig_line_length32 new_line_string31 new_line_length32
-            else j'133 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 endcolumn29 start_nsubs27 found11 found_count11 copycol10 matchcol12 prev_matchcol10 new_start_size10 did_sub10 nmatch_tl10 do_again7 skip_match10 sub_firstlnum11 did_split10 pat_string32 pat_length32 sub_firstline_string31 sub_firstline_length32 old_cursor_lnum31 old_cursor_col31 old_cursor_coladd31 new_start_string31 new_start_length31 tmp_string31 tmp_length31 orig_line_string31 orig_line_length32 new_line_string31 new_line_length32
-    j'133 !lnum13 !save_do_all22 !save_do_ask22 !sub22 !got_quit26 !got_match28 !first_line26 !last_line26 !old_line_count26 !line2'14 !nmatch12 !endcolumn30 !start_nsubs28 !found12 !found_count12 !copycol11 !matchcol14 !prev_matchcol11 !new_start_size11 !did_sub11 !nmatch_tl11 !do_again8 !skip_match11 !sub_firstlnum12 !did_split11 !pat_string33 !pat_length33 !sub_firstline_string32 !sub_firstline_length33 !old_cursor_lnum32 !old_cursor_col32 !old_cursor_coladd32 !new_start_string32 !new_start_length32 !tmp_string32 !tmp_length32 !orig_line_string32 !orig_line_length33 !new_line_string32 !new_line_length33 = do
-      r'308 <- curwin ed'
-      r'307 <- rdI32 (pAdd fr' regmmatch_T'startpos) lpos_T'col
-      wrI32 r'308 (win_T'w_cursor + pos_T'col) r'307
-      r'309 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-      r'310 <- magic_isset ed'
-      r'311 <- vim_regsub_multi ed' fr' (sub_firstlnum12 - r'309) sub22 sub_firstline_string32 0 (REGSUB_BACKSLASH .|. (if (r'310 /= 0) then (REGSUB_MAGIC :: Int32) else (0 :: Int32)))
-      let !sublen1 = fromIntegral r'311 :: Word64
-      r'312 <- curbuf ed'
-      r'313 <- rdI64 r'312 (buf_T'b_ml + memline_T'ml_line_count)
-      if nmatch12 > ((r'313 - sub_firstlnum12) + 1)
+            then j'174 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 sub_firstline_string12 sub_firstline_length13 endcolumn29 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 start_nsubs27 found11 found_count11 copycol10 matchcol12 prev_matchcol10 new_start_string10 new_start_length10 new_start_size10 did_sub10 nmatch_tl10 do_again7 skip_match10 sub_firstlnum11 did_split10
+            else j'133 lnum12 save_do_all21 save_do_ask21 sub21 got_quit25 got_match27 first_line25 last_line25 old_line_count25 line2'13 nmatch11 sub_firstline_string12 sub_firstline_length13 endcolumn29 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 start_nsubs27 found11 found_count11 copycol10 matchcol12 prev_matchcol10 new_start_string10 new_start_length10 new_start_size10 did_sub10 nmatch_tl10 do_again7 skip_match10 sub_firstlnum11 did_split10
+    j'133 !lnum13 !save_do_all22 !save_do_ask22 !sub22 !got_quit26 !got_match28 !first_line26 !last_line26 !old_line_count26 !line2'14 !nmatch12 !sub_firstline_string13 !sub_firstline_length14 !endcolumn30 !old_cursor_lnum27 !old_cursor_col27 !old_cursor_coladd27 !start_nsubs28 !found12 !found_count12 !copycol11 !matchcol14 !prev_matchcol11 !new_start_string11 !new_start_length11 !new_start_size11 !did_sub11 !nmatch_tl11 !do_again8 !skip_match11 !sub_firstlnum12 !did_split11 = do
+      r'310 <- curwin ed'
+      r'309 <- rdI32 (pAdd fr' regmmatch_T'startpos) lpos_T'col
+      wrI32 r'310 (win_T'w_cursor + pos_T'col) r'309
+      r'311 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+      r'312 <- magic_isset ed'
+      r'313 <- vim_regsub_multi ed' fr' (sub_firstlnum12 - r'311) sub22 sub_firstline_string13 0 (REGSUB_BACKSLASH .|. (if (r'312 /= 0) then (REGSUB_MAGIC :: Int32) else (0 :: Int32)))
+      let !sublen1 = fromIntegral r'313 :: Word64
+      r'314 <- curbuf ed'
+      r'315 <- rdI64 r'314 (buf_T'b_ml + memline_T'ml_line_count)
+      if nmatch12 > ((r'315 - sub_firstlnum12) + 1)
         then do
-          r'314 <- curbuf ed'
-          r'315 <- rdI64 r'314 (buf_T'b_ml + memline_T'ml_line_count)
-          let !nmatch13 = (r'315 - sub_firstlnum12) + 1
+          r'316 <- curbuf ed'
+          r'317 <- rdI64 r'316 (buf_T'b_ml + memline_T'ml_line_count)
+          let !nmatch13 = (r'317 - sub_firstlnum12) + 1
           if nmatch13 < 0
-            then j'174 lnum13 save_do_all22 save_do_ask22 sub22 got_quit26 got_match28 first_line26 last_line26 old_line_count26 line2'14 nmatch13 endcolumn30 start_nsubs28 found12 found_count12 copycol11 matchcol14 prev_matchcol11 new_start_size11 did_sub11 nmatch_tl11 do_again8 True sub_firstlnum12 did_split11 pat_string33 pat_length33 sub_firstline_string32 sub_firstline_length33 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32 new_start_string32 new_start_length32 tmp_string32 tmp_length32 orig_line_string32 orig_line_length33 new_line_string32 new_line_length33
-            else j'135 lnum13 save_do_all22 save_do_ask22 sub22 sublen1 got_quit26 got_match28 first_line26 last_line26 old_line_count26 line2'14 nmatch13 endcolumn30 start_nsubs28 found12 found_count12 copycol11 matchcol14 prev_matchcol11 new_start_size11 nmatch_tl11 do_again8 True sub_firstlnum12 did_split11 pat_string33 pat_length33 sub_firstline_string32 sub_firstline_length33 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32 new_start_string32 new_start_length32 tmp_string32 tmp_length32 orig_line_string32 orig_line_length33 new_line_string32 new_line_length33
-        else j'135 lnum13 save_do_all22 save_do_ask22 sub22 sublen1 got_quit26 got_match28 first_line26 last_line26 old_line_count26 line2'14 nmatch12 endcolumn30 start_nsubs28 found12 found_count12 copycol11 matchcol14 prev_matchcol11 new_start_size11 nmatch_tl11 do_again8 skip_match11 sub_firstlnum12 did_split11 pat_string33 pat_length33 sub_firstline_string32 sub_firstline_length33 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32 new_start_string32 new_start_length32 tmp_string32 tmp_length32 orig_line_string32 orig_line_length33 new_line_string32 new_line_length33
-    j'135 !lnum14 !save_do_all23 !save_do_ask23 !sub23 !sublen2 !got_quit27 !got_match29 !first_line27 !last_line27 !old_line_count27 !line2'15 !nmatch14 !endcolumn31 !start_nsubs29 !found13 !found_count13 !copycol12 !matchcol15 !prev_matchcol12 !new_start_size12 !nmatch_tl12 !do_again9 !skip_match12 !sub_firstlnum13 !did_split12 !pat_string34 !pat_length34 !sub_firstline_string33 !sub_firstline_length34 !old_cursor_lnum33 !old_cursor_col33 !old_cursor_coladd33 !new_start_string33 !new_start_length33 _ _ !orig_line_string33 !orig_line_length34 !new_line_string33 !new_line_length34 = do
+            then j'174 lnum13 save_do_all22 save_do_ask22 sub22 got_quit26 got_match28 first_line26 last_line26 old_line_count26 line2'14 nmatch13 sub_firstline_string13 sub_firstline_length14 endcolumn30 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 start_nsubs28 found12 found_count12 copycol11 matchcol14 prev_matchcol11 new_start_string11 new_start_length11 new_start_size11 did_sub11 nmatch_tl11 do_again8 True sub_firstlnum12 did_split11
+            else j'135 lnum13 save_do_all22 save_do_ask22 sub22 sublen1 got_quit26 got_match28 first_line26 last_line26 old_line_count26 line2'14 nmatch13 sub_firstline_string13 sub_firstline_length14 endcolumn30 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 start_nsubs28 found12 found_count12 copycol11 matchcol14 prev_matchcol11 new_start_string11 new_start_length11 new_start_size11 nmatch_tl11 do_again8 True sub_firstlnum12 did_split11
+        else j'135 lnum13 save_do_all22 save_do_ask22 sub22 sublen1 got_quit26 got_match28 first_line26 last_line26 old_line_count26 line2'14 nmatch12 sub_firstline_string13 sub_firstline_length14 endcolumn30 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 start_nsubs28 found12 found_count12 copycol11 matchcol14 prev_matchcol11 new_start_string11 new_start_length11 new_start_size11 nmatch_tl11 do_again8 skip_match11 sub_firstlnum12 did_split11
+    j'135 !lnum14 !save_do_all23 !save_do_ask23 !sub23 !sublen2 !got_quit27 !got_match29 !first_line27 !last_line27 !old_line_count27 !line2'15 !nmatch14 !sub_firstline_string14 !sub_firstline_length15 !endcolumn31 !old_cursor_lnum28 !old_cursor_col28 !old_cursor_coladd28 !start_nsubs29 !found13 !found_count13 !copycol12 !matchcol15 !prev_matchcol12 !new_start_string12 !new_start_length12 !new_start_size12 !nmatch_tl12 !do_again9 !skip_match12 !sub_firstlnum13 !did_split12 = do
       if nmatch14 == 1
-        then j'138 lnum14 save_do_all23 save_do_ask23 sub23 sublen2 got_quit27 got_match29 first_line27 last_line27 old_line_count27 line2'15 nmatch14 endcolumn31 start_nsubs29 found13 found_count13 copycol12 matchcol15 prev_matchcol12 new_start_size12 nmatch_tl12 do_again9 skip_match12 sub_firstlnum13 did_split12 pat_string34 pat_length34 sub_firstline_string33 sub_firstline_length34 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33 new_start_string33 new_start_length33 sub_firstline_string33 sub_firstline_length34 orig_line_string33 orig_line_length34 new_line_string33 new_line_length34
+        then j'138 lnum14 save_do_all23 save_do_ask23 sub23 sublen2 got_quit27 got_match29 first_line27 last_line27 old_line_count27 line2'15 nmatch14 sub_firstline_string14 sub_firstline_length15 endcolumn31 old_cursor_lnum28 old_cursor_col28 old_cursor_coladd28 start_nsubs29 found13 found_count13 copycol12 matchcol15 prev_matchcol12 new_start_string12 new_start_length12 new_start_size12 nmatch_tl12 do_again9 skip_match12 sub_firstlnum13 did_split12 sub_firstline_length15
         else do
           let !lastlnum1 = (sub_firstlnum13 + nmatch14) - 1
-          r'316 <- ml_get ed' lastlnum1
-          r'317 <- ml_get_len ed' lastlnum1
-          let !tmp_length34 = fromIntegral r'317 :: Word64
+          _ <- ml_get ed' lastlnum1
+          r'319 <- ml_get_len ed' lastlnum1
+          let !tmp_length1 = fromIntegral r'319 :: Word64
           let !nmatch_tl13 = nmatch_tl12 + (nmatch14 - 1)
-          j'138 lnum14 save_do_all23 save_do_ask23 sub23 sublen2 got_quit27 got_match29 first_line27 last_line27 old_line_count27 line2'15 nmatch14 endcolumn31 start_nsubs29 found13 found_count13 copycol12 matchcol15 prev_matchcol12 new_start_size12 nmatch_tl13 do_again9 skip_match12 sub_firstlnum13 did_split12 pat_string34 pat_length34 sub_firstline_string33 sub_firstline_length34 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33 new_start_string33 new_start_length33 r'316 tmp_length34 orig_line_string33 orig_line_length34 new_line_string33 new_line_length34
-    j'138 !lnum15 !save_do_all24 !save_do_ask24 !sub24 !sublen3 !got_quit28 !got_match30 !first_line28 !last_line28 !old_line_count28 !line2'16 !nmatch15 !endcolumn32 !start_nsubs30 !found14 !found_count14 !copycol13 !matchcol16 !prev_matchcol13 !new_start_size13 !nmatch_tl14 !do_again10 !skip_match13 !sub_firstlnum14 !did_split13 !pat_string35 !pat_length35 !sub_firstline_string34 !sub_firstline_length35 !old_cursor_lnum34 !old_cursor_col34 !old_cursor_coladd34 !new_start_string34 !new_start_length34 !tmp_string34 !tmp_length35 !orig_line_string34 !orig_line_length35 !new_line_string34 !new_line_length35 = do
-      r'318 <- rdI32 (pAdd fr' regmmatch_T'startpos) lpos_T'col
-      let !copy_len1 = fromIntegral (r'318 - copycol13) :: Word64
-      r'319 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
-      let !needed_size1 = ((copy_len1 + (tmp_length35 - (fromIntegral r'319 :: Word64))) + sublen3) + 1
-      if new_start_string34 == nullPtr
+          j'138 lnum14 save_do_all23 save_do_ask23 sub23 sublen2 got_quit27 got_match29 first_line27 last_line27 old_line_count27 line2'15 nmatch14 sub_firstline_string14 sub_firstline_length15 endcolumn31 old_cursor_lnum28 old_cursor_col28 old_cursor_coladd28 start_nsubs29 found13 found_count13 copycol12 matchcol15 prev_matchcol12 new_start_string12 new_start_length12 new_start_size12 nmatch_tl13 do_again9 skip_match12 sub_firstlnum13 did_split12 tmp_length1
+    j'138 !lnum15 !save_do_all24 !save_do_ask24 !sub24 !sublen3 !got_quit28 !got_match30 !first_line28 !last_line28 !old_line_count28 !line2'16 !nmatch15 !sub_firstline_string15 !sub_firstline_length16 !endcolumn32 !old_cursor_lnum29 !old_cursor_col29 !old_cursor_coladd29 !start_nsubs30 !found14 !found_count14 !copycol13 !matchcol16 !prev_matchcol13 !new_start_string13 !new_start_length13 !new_start_size13 !nmatch_tl14 !do_again10 !skip_match13 !sub_firstlnum14 !did_split13 !tmp_length2 = do
+      r'320 <- rdI32 (pAdd fr' regmmatch_T'startpos) lpos_T'col
+      let !copy_len1 = fromIntegral (r'320 - copycol13) :: Word64
+      r'321 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
+      let !needed_size1 = ((copy_len1 + (tmp_length2 - (fromIntegral r'321 :: Word64))) + sublen3) + 1
+      if new_start_string13 == nullPtr
         then do
           let !new_start_size14 = needed_size1 + 50
-          r'320 <- alloc_clear ed' new_start_size14
-          let !new_start_string35 = castPtr r'320
-          wrW8 new_start_string35 0 NUL
-          j'142 lnum15 save_do_all24 save_do_ask24 sub24 sublen3 got_quit28 got_match30 first_line28 last_line28 old_line_count28 line2'16 nmatch15 endcolumn32 start_nsubs30 found14 found_count14 copycol13 matchcol16 prev_matchcol13 new_start_size14 copy_len1 nmatch_tl14 do_again10 skip_match13 sub_firstlnum14 did_split13 pat_string35 pat_length35 sub_firstline_string34 sub_firstline_length35 old_cursor_lnum34 old_cursor_col34 old_cursor_coladd34 new_start_string35 (0 :: Word64) tmp_string34 tmp_length35 orig_line_string34 orig_line_length35 new_line_string34 new_line_length35
+          r'322 <- alloc_clear ed' new_start_size14
+          let !new_start_string14 = castPtr r'322
+          wrW8 new_start_string14 0 NUL
+          j'142 lnum15 save_do_all24 save_do_ask24 sub24 sublen3 got_quit28 got_match30 first_line28 last_line28 old_line_count28 line2'16 nmatch15 sub_firstline_string15 sub_firstline_length16 endcolumn32 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 start_nsubs30 found14 found_count14 copycol13 matchcol16 prev_matchcol13 new_start_string14 (0 :: Word64) new_start_size14 copy_len1 nmatch_tl14 do_again10 skip_match13 sub_firstlnum14 did_split13
         else do
-          let !needed_size2 = needed_size1 + new_start_length34
+          let !needed_size2 = needed_size1 + new_start_length13
           if needed_size2 > new_start_size13
             then do
               let !new_start_size15 = needed_size2 + 50
-              r'321 <- alloc_clear ed' new_start_size15
-              let !p1'1 = castPtr r'321
-              _ <- musl_memmove (castPtr (castPtr p1'1)) (castPtr (castPtr new_start_string34)) (new_start_length34 + 1)
-              j'142 lnum15 save_do_all24 save_do_ask24 sub24 sublen3 got_quit28 got_match30 first_line28 last_line28 old_line_count28 line2'16 nmatch15 endcolumn32 start_nsubs30 found14 found_count14 copycol13 matchcol16 prev_matchcol13 new_start_size15 copy_len1 nmatch_tl14 do_again10 skip_match13 sub_firstlnum14 did_split13 pat_string35 pat_length35 sub_firstline_string34 sub_firstline_length35 old_cursor_lnum34 old_cursor_col34 old_cursor_coladd34 p1'1 new_start_length34 tmp_string34 tmp_length35 orig_line_string34 orig_line_length35 new_line_string34 new_line_length35
-            else j'142 lnum15 save_do_all24 save_do_ask24 sub24 sublen3 got_quit28 got_match30 first_line28 last_line28 old_line_count28 line2'16 nmatch15 endcolumn32 start_nsubs30 found14 found_count14 copycol13 matchcol16 prev_matchcol13 new_start_size13 copy_len1 nmatch_tl14 do_again10 skip_match13 sub_firstlnum14 did_split13 pat_string35 pat_length35 sub_firstline_string34 sub_firstline_length35 old_cursor_lnum34 old_cursor_col34 old_cursor_coladd34 new_start_string34 new_start_length34 tmp_string34 tmp_length35 orig_line_string34 orig_line_length35 new_line_string34 new_line_length35
-    j'142 !lnum16 !save_do_all25 !save_do_ask25 !sub25 !sublen4 !got_quit29 !got_match31 !first_line29 !last_line29 !old_line_count29 !line2'17 !nmatch16 !endcolumn33 !start_nsubs31 !found15 !found_count15 !copycol14 !matchcol17 !prev_matchcol14 !new_start_size16 !copy_len2 !nmatch_tl15 !do_again11 !skip_match14 !sub_firstlnum15 !did_split14 !pat_string36 !pat_length36 !sub_firstline_string35 !sub_firstline_length36 !old_cursor_lnum35 !old_cursor_col35 !old_cursor_coladd35 !new_start_string36 !new_start_length35 !tmp_string35 !tmp_length36 !orig_line_string35 !orig_line_length36 !new_line_string35 !new_line_length36 = do
-      _ <- musl_memmove (castPtr (pAdd new_start_string36 (fromIntegral new_start_length35))) (castPtr (pAdd sub_firstline_string35 (fromIntegral copycol14))) copy_len2
-      let !new_start_length36 = new_start_length35 + copy_len2
-      let !new_end1 = pAdd new_start_string36 (fromIntegral new_start_length36)
+              r'323 <- alloc_clear ed' new_start_size15
+              let !p1'1 = castPtr r'323
+              _ <- musl_memmove (castPtr (castPtr p1'1)) (castPtr (castPtr new_start_string13)) (new_start_length13 + 1)
+              j'142 lnum15 save_do_all24 save_do_ask24 sub24 sublen3 got_quit28 got_match30 first_line28 last_line28 old_line_count28 line2'16 nmatch15 sub_firstline_string15 sub_firstline_length16 endcolumn32 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 start_nsubs30 found14 found_count14 copycol13 matchcol16 prev_matchcol13 p1'1 new_start_length13 new_start_size15 copy_len1 nmatch_tl14 do_again10 skip_match13 sub_firstlnum14 did_split13
+            else j'142 lnum15 save_do_all24 save_do_ask24 sub24 sublen3 got_quit28 got_match30 first_line28 last_line28 old_line_count28 line2'16 nmatch15 sub_firstline_string15 sub_firstline_length16 endcolumn32 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29 start_nsubs30 found14 found_count14 copycol13 matchcol16 prev_matchcol13 new_start_string13 new_start_length13 new_start_size13 copy_len1 nmatch_tl14 do_again10 skip_match13 sub_firstlnum14 did_split13
+    j'142 !lnum16 !save_do_all25 !save_do_ask25 !sub25 !sublen4 !got_quit29 !got_match31 !first_line29 !last_line29 !old_line_count29 !line2'17 !nmatch16 !sub_firstline_string16 !sub_firstline_length17 !endcolumn33 !old_cursor_lnum30 !old_cursor_col30 !old_cursor_coladd30 !start_nsubs31 !found15 !found_count15 !copycol14 !matchcol17 !prev_matchcol14 !new_start_string15 !new_start_length14 !new_start_size16 !copy_len2 !nmatch_tl15 !do_again11 !skip_match14 !sub_firstlnum15 !did_split14 = do
+      _ <- musl_memmove (castPtr (pAdd new_start_string15 (fromIntegral new_start_length14))) (castPtr (pAdd sub_firstline_string16 (fromIntegral copycol14))) copy_len2
+      let !new_start_length15 = new_start_length14 + copy_len2
+      let !new_end1 = pAdd new_start_string15 (fromIntegral new_start_length15)
       if (new_start_size16 - copy_len2) < sublen4
         then do
           let !sublen5 = (new_start_size16 - copy_len2) - 1
-          j'144 lnum16 save_do_all25 save_do_ask25 sub25 sublen5 got_quit29 got_match31 first_line29 last_line29 old_line_count29 line2'17 nmatch16 endcolumn33 start_nsubs31 found15 found_count15 matchcol17 prev_matchcol14 new_start_size16 new_end1 nmatch_tl15 do_again11 skip_match14 sub_firstlnum15 did_split14 pat_string36 pat_length36 sub_firstline_string35 sub_firstline_length36 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 new_start_string36 new_start_length36 tmp_string35 tmp_length36 orig_line_string35 orig_line_length36 new_line_string35 new_line_length36
-        else j'144 lnum16 save_do_all25 save_do_ask25 sub25 sublen4 got_quit29 got_match31 first_line29 last_line29 old_line_count29 line2'17 nmatch16 endcolumn33 start_nsubs31 found15 found_count15 matchcol17 prev_matchcol14 new_start_size16 new_end1 nmatch_tl15 do_again11 skip_match14 sub_firstlnum15 did_split14 pat_string36 pat_length36 sub_firstline_string35 sub_firstline_length36 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 new_start_string36 new_start_length36 tmp_string35 tmp_length36 orig_line_string35 orig_line_length36 new_line_string35 new_line_length36
-    j'144 !lnum17 !save_do_all26 !save_do_ask26 !sub26 !sublen6 !got_quit30 !got_match32 !first_line30 !last_line30 !old_line_count30 !line2'18 !nmatch17 !endcolumn34 !start_nsubs32 !found16 !found_count16 !matchcol18 !prev_matchcol15 !new_start_size17 !new_end2 !nmatch_tl16 !do_again12 !skip_match15 !sub_firstlnum16 !did_split15 !pat_string37 !pat_length37 !sub_firstline_string36 !sub_firstline_length37 !old_cursor_lnum36 !old_cursor_col36 !old_cursor_coladd36 !new_start_string37 !new_start_length37 !tmp_string36 !tmp_length37 !orig_line_string36 !orig_line_length37 !new_line_string36 !new_line_length37 = do
-      r'324 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-      r'325 <- magic_isset ed'
-      r'326 <- vim_regsub_multi ed' fr' (sub_firstlnum16 - r'324) sub26 new_end2 (fromIntegral sublen6 :: Int32) (5 .|. (if (r'325 /= 0) then (REGSUB_MAGIC :: Int32) else (0 :: Int32)))
-      let !n1 = fromIntegral r'326 :: Word64
+          j'144 lnum16 save_do_all25 save_do_ask25 sub25 sublen5 got_quit29 got_match31 first_line29 last_line29 old_line_count29 line2'17 nmatch16 sub_firstline_string16 sub_firstline_length17 endcolumn33 old_cursor_lnum30 old_cursor_col30 old_cursor_coladd30 start_nsubs31 found15 found_count15 matchcol17 prev_matchcol14 new_start_string15 new_start_length15 new_start_size16 new_end1 nmatch_tl15 do_again11 skip_match14 sub_firstlnum15 did_split14
+        else j'144 lnum16 save_do_all25 save_do_ask25 sub25 sublen4 got_quit29 got_match31 first_line29 last_line29 old_line_count29 line2'17 nmatch16 sub_firstline_string16 sub_firstline_length17 endcolumn33 old_cursor_lnum30 old_cursor_col30 old_cursor_coladd30 start_nsubs31 found15 found_count15 matchcol17 prev_matchcol14 new_start_string15 new_start_length15 new_start_size16 new_end1 nmatch_tl15 do_again11 skip_match14 sub_firstlnum15 did_split14
+    j'144 !lnum17 !save_do_all26 !save_do_ask26 !sub26 !sublen6 !got_quit30 !got_match32 !first_line30 !last_line30 !old_line_count30 !line2'18 !nmatch17 !sub_firstline_string17 !sub_firstline_length18 !endcolumn34 !old_cursor_lnum31 !old_cursor_col31 !old_cursor_coladd31 !start_nsubs32 !found16 !found_count16 !matchcol18 !prev_matchcol15 !new_start_string16 !new_start_length16 !new_start_size17 !new_end2 !nmatch_tl16 !do_again12 !skip_match15 !sub_firstlnum16 !did_split15 = do
+      r'326 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+      r'327 <- magic_isset ed'
+      r'328 <- vim_regsub_multi ed' fr' (sub_firstlnum16 - r'326) sub26 new_end2 (fromIntegral sublen6 :: Int32) (5 .|. (if (r'327 /= 0) then (REGSUB_MAGIC :: Int32) else (0 :: Int32)))
+      let !n1 = fromIntegral r'328 :: Word64
       if n1 > 0
         then do
-          let !new_start_length38 = new_start_length37 + (n1 - 1)
-          j'146 lnum17 save_do_all26 save_do_ask26 sub26 got_quit30 got_match32 first_line30 last_line30 old_line_count30 line2'18 nmatch17 endcolumn34 start_nsubs32 found16 found_count16 matchcol18 prev_matchcol15 new_start_size17 new_end2 nmatch_tl16 do_again12 skip_match15 sub_firstlnum16 did_split15 pat_string37 pat_length37 sub_firstline_string36 sub_firstline_length37 old_cursor_lnum36 old_cursor_col36 old_cursor_coladd36 new_start_string37 new_start_length38 tmp_string36 tmp_length37 orig_line_string36 orig_line_length37 new_line_string36 new_line_length37
-        else j'146 lnum17 save_do_all26 save_do_ask26 sub26 got_quit30 got_match32 first_line30 last_line30 old_line_count30 line2'18 nmatch17 endcolumn34 start_nsubs32 found16 found_count16 matchcol18 prev_matchcol15 new_start_size17 new_end2 nmatch_tl16 do_again12 skip_match15 sub_firstlnum16 did_split15 pat_string37 pat_length37 sub_firstline_string36 sub_firstline_length37 old_cursor_lnum36 old_cursor_col36 old_cursor_coladd36 new_start_string37 new_start_length37 tmp_string36 tmp_length37 orig_line_string36 orig_line_length37 new_line_string36 new_line_length37
-    j'146 !lnum18 !save_do_all27 !save_do_ask27 !sub27 !got_quit31 !got_match33 !first_line31 !last_line31 !old_line_count31 !line2'19 !nmatch18 !endcolumn35 !start_nsubs33 !found17 !found_count17 !matchcol19 !prev_matchcol16 !new_start_size18 !new_end3 !nmatch_tl17 !do_again13 !skip_match16 !sub_firstlnum17 !did_split16 !pat_string38 !pat_length38 !sub_firstline_string37 !sub_firstline_length38 !old_cursor_lnum37 !old_cursor_col37 !old_cursor_coladd37 !new_start_string38 !new_start_length39 !tmp_string37 !tmp_length38 !orig_line_string37 !orig_line_length38 !new_line_string37 !new_line_length38 = do
-      r'327 <- sub_nsubs ed'
-      set'sub_nsubs ed' (r'327 + 1)
-      r'328 <- curwin ed'
-      wrI32 r'328 (win_T'w_cursor + pos_T'col) 0
+          let !new_start_length17 = new_start_length16 + (n1 - 1)
+          j'146 lnum17 save_do_all26 save_do_ask26 sub26 got_quit30 got_match32 first_line30 last_line30 old_line_count30 line2'18 nmatch17 sub_firstline_string17 sub_firstline_length18 endcolumn34 old_cursor_lnum31 old_cursor_col31 old_cursor_coladd31 start_nsubs32 found16 found_count16 matchcol18 prev_matchcol15 new_start_string16 new_start_length17 new_start_size17 new_end2 nmatch_tl16 do_again12 skip_match15 sub_firstlnum16 did_split15
+        else j'146 lnum17 save_do_all26 save_do_ask26 sub26 got_quit30 got_match32 first_line30 last_line30 old_line_count30 line2'18 nmatch17 sub_firstline_string17 sub_firstline_length18 endcolumn34 old_cursor_lnum31 old_cursor_col31 old_cursor_coladd31 start_nsubs32 found16 found_count16 matchcol18 prev_matchcol15 new_start_string16 new_start_length16 new_start_size17 new_end2 nmatch_tl16 do_again12 skip_match15 sub_firstlnum16 did_split15
+    j'146 !lnum18 !save_do_all27 !save_do_ask27 !sub27 !got_quit31 !got_match33 !first_line31 !last_line31 !old_line_count31 !line2'19 !nmatch18 !sub_firstline_string18 !sub_firstline_length19 !endcolumn35 !old_cursor_lnum32 !old_cursor_col32 !old_cursor_coladd32 !start_nsubs33 !found17 !found_count17 !matchcol19 !prev_matchcol16 !new_start_string17 !new_start_length18 !new_start_size18 !new_end3 !nmatch_tl17 !do_again13 !skip_match16 !sub_firstlnum17 !did_split16 = do
+      r'329 <- sub_nsubs ed'
+      set'sub_nsubs ed' (r'329 + 1)
+      r'330 <- curwin ed'
+      wrI32 r'330 (win_T'w_cursor + pos_T'col) 0
       if nmatch18 > 1
         then do
           let !sub_firstlnum18 = sub_firstlnum17 + (nmatch18 - 1)
-          r'329 <- ml_get_len ed' sub_firstlnum18
-          let !sub_firstline_length39 = fromIntegral r'329 :: Word64
-          r'330 <- ml_get ed' sub_firstlnum18
-          r'331 <- vim_strnsave ed' r'330 sub_firstline_length39
+          r'331 <- ml_get_len ed' sub_firstlnum18
+          let !sub_firstline_length20 = fromIntegral r'331 :: Word64
+          r'332 <- ml_get ed' sub_firstlnum18
+          r'333 <- vim_strnsave ed' r'332 sub_firstline_length20
           if sub_firstlnum18 <= line2'19
-            then j'150 lnum18 save_do_all27 save_do_ask27 sub27 got_quit31 got_match33 first_line31 last_line31 old_line_count31 line2'19 nmatch18 endcolumn35 start_nsubs33 found17 found_count17 matchcol19 prev_matchcol16 new_start_size18 new_end3 True nmatch_tl17 True skip_match16 sub_firstlnum18 did_split16 pat_string38 pat_length38 r'331 sub_firstline_length39 old_cursor_lnum37 old_cursor_col37 old_cursor_coladd37 new_start_string38 new_start_length39 tmp_string37 tmp_length38 orig_line_string37 orig_line_length38 new_line_string37 new_line_length38
+            then j'150 lnum18 save_do_all27 save_do_ask27 sub27 got_quit31 got_match33 first_line31 last_line31 old_line_count31 line2'19 nmatch18 r'333 sub_firstline_length20 endcolumn35 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32 start_nsubs33 found17 found_count17 matchcol19 prev_matchcol16 new_start_string17 new_start_length18 new_start_size18 new_end3 True nmatch_tl17 True skip_match16 sub_firstlnum18 did_split16
             else do
               wrI32 (addr'ex_substitute'subflags ed') subflags_T'do_all FALSE
-              j'150 lnum18 save_do_all27 save_do_ask27 sub27 got_quit31 got_match33 first_line31 last_line31 old_line_count31 line2'19 nmatch18 endcolumn35 start_nsubs33 found17 found_count17 matchcol19 prev_matchcol16 new_start_size18 new_end3 True nmatch_tl17 do_again13 skip_match16 sub_firstlnum18 did_split16 pat_string38 pat_length38 r'331 sub_firstline_length39 old_cursor_lnum37 old_cursor_col37 old_cursor_coladd37 new_start_string38 new_start_length39 tmp_string37 tmp_length38 orig_line_string37 orig_line_length38 new_line_string37 new_line_length38
-        else j'150 lnum18 save_do_all27 save_do_ask27 sub27 got_quit31 got_match33 first_line31 last_line31 old_line_count31 line2'19 nmatch18 endcolumn35 start_nsubs33 found17 found_count17 matchcol19 prev_matchcol16 new_start_size18 new_end3 True nmatch_tl17 do_again13 skip_match16 sub_firstlnum17 did_split16 pat_string38 pat_length38 sub_firstline_string37 sub_firstline_length38 old_cursor_lnum37 old_cursor_col37 old_cursor_coladd37 new_start_string38 new_start_length39 tmp_string37 tmp_length38 orig_line_string37 orig_line_length38 new_line_string37 new_line_length38
-    j'150 !lnum19 !save_do_all28 !save_do_ask28 !sub28 !got_quit32 !got_match34 !first_line32 !last_line32 !old_line_count32 !line2'20 !nmatch19 !endcolumn36 !start_nsubs34 !found18 !found_count18 !matchcol20 !prev_matchcol17 !new_start_size19 !new_end4 !did_sub12 !nmatch_tl18 !do_again14 !skip_match17 !sub_firstlnum19 !did_split17 !pat_string39 !pat_length39 !sub_firstline_string38 !sub_firstline_length40 !old_cursor_lnum38 !old_cursor_col38 !old_cursor_coladd38 !new_start_string39 !new_start_length40 !tmp_string38 !tmp_length39 !orig_line_string38 !orig_line_length39 !new_line_string38 !new_line_length39 = do
-      r'332 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
+              j'150 lnum18 save_do_all27 save_do_ask27 sub27 got_quit31 got_match33 first_line31 last_line31 old_line_count31 line2'19 nmatch18 r'333 sub_firstline_length20 endcolumn35 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32 start_nsubs33 found17 found_count17 matchcol19 prev_matchcol16 new_start_string17 new_start_length18 new_start_size18 new_end3 True nmatch_tl17 do_again13 skip_match16 sub_firstlnum18 did_split16
+        else j'150 lnum18 save_do_all27 save_do_ask27 sub27 got_quit31 got_match33 first_line31 last_line31 old_line_count31 line2'19 nmatch18 sub_firstline_string18 sub_firstline_length19 endcolumn35 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32 start_nsubs33 found17 found_count17 matchcol19 prev_matchcol16 new_start_string17 new_start_length18 new_start_size18 new_end3 True nmatch_tl17 do_again13 skip_match16 sub_firstlnum17 did_split16
+    j'150 !lnum19 !save_do_all28 !save_do_ask28 !sub28 !got_quit32 !got_match34 !first_line32 !last_line32 !old_line_count32 !line2'20 !nmatch19 !sub_firstline_string19 !sub_firstline_length21 !endcolumn36 !old_cursor_lnum33 !old_cursor_col33 !old_cursor_coladd33 !start_nsubs34 !found18 !found_count18 !matchcol20 !prev_matchcol17 !new_start_string18 !new_start_length19 !new_start_size19 !new_end4 !did_sub12 !nmatch_tl18 !do_again14 !skip_match17 !sub_firstlnum19 !did_split17 = do
+      r'334 <- rdI32 (pAdd fr' regmmatch_T'endpos) lpos_T'col
       if skip_match17
         then do
-          r'333 <- vim_strnsave ed' (Ptr "\0"#) 0
-          j'152 lnum19 save_do_all28 save_do_ask28 sub28 got_quit32 got_match34 first_line32 last_line32 old_line_count32 line2'20 nmatch19 endcolumn36 start_nsubs34 found18 found_count18 (0 :: Int32) matchcol20 prev_matchcol17 new_start_size19 new_end4 did_sub12 nmatch_tl18 do_again14 skip_match17 sub_firstlnum19 did_split17 pat_string39 pat_length39 r'333 (0 :: Word64) old_cursor_lnum38 old_cursor_col38 old_cursor_coladd38 new_start_string39 new_start_length40 tmp_string38 tmp_length39 orig_line_string38 orig_line_length39 new_line_string38 new_line_length39
-        else j'152 lnum19 save_do_all28 save_do_ask28 sub28 got_quit32 got_match34 first_line32 last_line32 old_line_count32 line2'20 nmatch19 endcolumn36 start_nsubs34 found18 found_count18 r'332 matchcol20 prev_matchcol17 new_start_size19 new_end4 did_sub12 nmatch_tl18 do_again14 skip_match17 sub_firstlnum19 did_split17 pat_string39 pat_length39 sub_firstline_string38 sub_firstline_length40 old_cursor_lnum38 old_cursor_col38 old_cursor_coladd38 new_start_string39 new_start_length40 tmp_string38 tmp_length39 orig_line_string38 orig_line_length39 new_line_string38 new_line_length39
-    j'152 !lnum20 !save_do_all29 !save_do_ask29 !sub29 !got_quit33 !got_match35 !first_line33 !last_line33 !old_line_count33 !line2'21 !nmatch20 !endcolumn37 !start_nsubs35 !found19 !found_count19 !copycol15 !matchcol21 !prev_matchcol18 !new_start_size20 !new_end5 !did_sub13 !nmatch_tl19 !do_again15 !skip_match18 !sub_firstlnum20 !did_split18 !pat_string40 !pat_length40 !sub_firstline_string39 !sub_firstline_length41 !old_cursor_lnum39 !old_cursor_col39 !old_cursor_coladd39 !new_start_string40 !new_start_length41 !tmp_string39 !tmp_length40 !orig_line_string39 !orig_line_length40 !new_line_string39 !new_line_length40 = do
-      loop'153 lnum20 save_do_all29 save_do_ask29 sub29 got_quit33 got_match35 first_line33 last_line33 old_line_count33 line2'21 nmatch20 endcolumn37 start_nsubs35 found19 found_count19 copycol15 matchcol21 prev_matchcol18 new_start_size20 did_sub13 nmatch_tl19 do_again15 skip_match18 sub_firstlnum20 did_split18 new_end5 pat_string40 pat_length40 sub_firstline_string39 sub_firstline_length41 old_cursor_lnum39 old_cursor_col39 old_cursor_coladd39 new_start_string40 new_start_length41 tmp_string39 tmp_length40 orig_line_string39 orig_line_length40 new_line_string39 new_line_length40
-    loop'153 !lnum21 !save_do_all30 !save_do_ask30 !sub30 !got_quit34 !got_match36 !first_line34 !last_line34 !old_line_count34 !line2'22 !nmatch21 !endcolumn38 !start_nsubs36 !found20 !found_count20 !copycol16 !matchcol22 !prev_matchcol19 !new_start_size21 !did_sub14 !nmatch_tl20 !do_again16 !skip_match19 !sub_firstlnum21 !did_split19 !p1'2 !pat_string41 !pat_length41 !sub_firstline_string40 !sub_firstline_length42 !old_cursor_lnum40 !old_cursor_col40 !old_cursor_coladd40 !new_start_string41 !new_start_length42 !tmp_string40 !tmp_length41 !orig_line_string40 !orig_line_length41 !new_line_string40 !new_line_length41 = do
-      r'334 <- rdW8 p1'2 0
-      if r'334 /= 0
+          r'335 <- vim_strnsave ed' (Ptr "\0"#) 0
+          j'152 lnum19 save_do_all28 save_do_ask28 sub28 got_quit32 got_match34 first_line32 last_line32 old_line_count32 line2'20 nmatch19 r'335 (0 :: Word64) endcolumn36 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33 start_nsubs34 found18 found_count18 (0 :: Int32) matchcol20 prev_matchcol17 new_start_string18 new_start_length19 new_start_size19 new_end4 did_sub12 nmatch_tl18 do_again14 skip_match17 sub_firstlnum19 did_split17
+        else j'152 lnum19 save_do_all28 save_do_ask28 sub28 got_quit32 got_match34 first_line32 last_line32 old_line_count32 line2'20 nmatch19 sub_firstline_string19 sub_firstline_length21 endcolumn36 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33 start_nsubs34 found18 found_count18 r'334 matchcol20 prev_matchcol17 new_start_string18 new_start_length19 new_start_size19 new_end4 did_sub12 nmatch_tl18 do_again14 skip_match17 sub_firstlnum19 did_split17
+    j'152 !lnum20 !save_do_all29 !save_do_ask29 !sub29 !got_quit33 !got_match35 !first_line33 !last_line33 !old_line_count33 !line2'21 !nmatch20 !sub_firstline_string20 !sub_firstline_length22 !endcolumn37 !old_cursor_lnum34 !old_cursor_col34 !old_cursor_coladd34 !start_nsubs35 !found19 !found_count19 !copycol15 !matchcol21 !prev_matchcol18 !new_start_string19 !new_start_length20 !new_start_size20 !new_end5 !did_sub13 !nmatch_tl19 !do_again15 !skip_match18 !sub_firstlnum20 !did_split18 = do
+      loop'153 lnum20 save_do_all29 save_do_ask29 sub29 got_quit33 got_match35 first_line33 last_line33 old_line_count33 line2'21 nmatch20 sub_firstline_string20 sub_firstline_length22 endcolumn37 old_cursor_lnum34 old_cursor_col34 old_cursor_coladd34 start_nsubs35 found19 found_count19 copycol15 matchcol21 prev_matchcol18 new_start_string19 new_start_length20 new_start_size20 did_sub13 nmatch_tl19 do_again15 skip_match18 sub_firstlnum20 did_split18 new_end5
+    loop'153 !lnum21 !save_do_all30 !save_do_ask30 !sub30 !got_quit34 !got_match36 !first_line34 !last_line34 !old_line_count34 !line2'22 !nmatch21 !sub_firstline_string21 !sub_firstline_length23 !endcolumn38 !old_cursor_lnum35 !old_cursor_col35 !old_cursor_coladd35 !start_nsubs36 !found20 !found_count20 !copycol16 !matchcol22 !prev_matchcol19 !new_start_string20 !new_start_length21 !new_start_size21 !did_sub14 !nmatch_tl20 !do_again16 !skip_match19 !sub_firstlnum21 !did_split19 !p1'2 = do
+      r'336 <- rdW8 p1'2 0
+      if r'336 /= 0
         then do
-          r'335 <- rdW8 p1'2 0
-          r'337 <- if ((fromIntegral r'335 :: Int32) == (ch '\\')) then (do { r'336 <- rdW8 p1'2 1; pure ((fromIntegral r'336 :: Int32) /= NUL) }) else pure False
-          if r'337
+          r'337 <- rdW8 p1'2 0
+          r'339 <- if ((fromIntegral r'337 :: Int32) == (ch '\\')) then (do { r'338 <- rdW8 p1'2 1; pure ((fromIntegral r'338 :: Int32) /= NUL) }) else pure False
+          if r'339
             then do
-              let !n2 = new_start_length42 - (fromIntegral (fromIntegral (quot (pSub p1'2 new_start_string41) 1) :: Int64) :: Word64)
+              let !n2 = new_start_length21 - (fromIntegral (fromIntegral (quot (pSub p1'2 new_start_string20) 1) :: Int64) :: Word64)
               _ <- musl_memmove (castPtr (castPtr p1'2)) (castPtr (pAdd p1'2 1)) (n2 + 1)
-              let !new_start_length43 = new_start_length42 - 1
-              j'165 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 p1'2 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length43 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
+              let !new_start_length22 = new_start_length21 - 1
+              j'165 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length22 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 p1'2
             else do
-              r'339 <- rdW8 p1'2 0
-              if (fromIntegral r'339 :: Int32) == CAR
+              r'341 <- rdW8 p1'2 0
+              if (fromIntegral r'341 :: Int32) == CAR
                 then do
-                  r'340 <- u_inssub ed' lnum21
-                  if r'340
+                  r'342 <- u_inssub ed' lnum21
+                  if r'342
                     then do
-                      let !plen1 = fromIntegral ((fromIntegral (quot (pSub p1'2 new_start_string41) 1) :: Int64) + 1) :: Int32
+                      let !plen1 = fromIntegral ((fromIntegral (quot (pSub p1'2 new_start_string20) 1) :: Int64) + 1) :: Int32
                       wrW8 p1'2 0 NUL
-                      _ <- ml_append ed' (lnum21 - 1) new_start_string41 plen1
+                      _ <- ml_append ed' (lnum21 - 1) new_start_string20 plen1
                       mark_adjust ed' (lnum21 + 1) 9223372036854775807 1 0
-                      r'342 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
-                      if r'342 /= 0
+                      r'344 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
+                      if r'344 /= 0
                         then do
                           appended_lines ed' (lnum21 - 1) 1
-                          j'163 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 p1'2 plen1 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length42 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
+                          j'163 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length21 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 p1'2 plen1
                         else do
                           if first_line34 == 0
-                            then j'161 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 lnum21 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 p1'2 plen1 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length42 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
-                            else j'161 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 p1'2 plen1 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length42 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
-                    else j'165 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 p1'2 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length42 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
+                            then j'161 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 lnum21 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length21 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 p1'2 plen1
+                            else j'161 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length21 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 p1'2 plen1
+                    else j'165 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length21 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 p1'2
                 else do
-                  r'343 <- utfc_ptr2len ed' p1'2
-                  let !t5'1 = r'343 - 1
+                  r'345 <- utfc_ptr2len ed' p1'2
+                  let !t5'1 = r'345 - 1
                   let !p1'3 = pAdd p1'2 (fromIntegral t5'1)
-                  j'165 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 p1'3 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length42 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
-        else j'174 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 endcolumn38 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 pat_string41 pat_length41 sub_firstline_string40 sub_firstline_length42 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 new_start_string41 new_start_length42 tmp_string40 tmp_length41 orig_line_string40 orig_line_length41 new_line_string40 new_line_length41
-    j'161 !lnum22 !save_do_all31 !save_do_ask31 !sub31 !got_quit35 !got_match37 !first_line35 !old_line_count35 !line2'23 !nmatch22 !endcolumn39 !start_nsubs37 !found21 !found_count21 !copycol17 !matchcol23 !prev_matchcol20 !new_start_size22 !did_sub15 !nmatch_tl21 !do_again17 !skip_match20 !sub_firstlnum22 !p1'4 !plen2 !pat_string42 !pat_length42 !sub_firstline_string41 !sub_firstline_length43 !old_cursor_lnum41 !old_cursor_col41 !old_cursor_coladd41 !new_start_string42 !new_start_length44 !tmp_string41 !tmp_length42 !orig_line_string41 !orig_line_length42 !new_line_string41 !new_line_length42 = do
+                  j'165 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length21 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19 p1'3
+        else j'174 lnum21 save_do_all30 save_do_ask30 sub30 got_quit34 got_match36 first_line34 last_line34 old_line_count34 line2'22 nmatch21 sub_firstline_string21 sub_firstline_length23 endcolumn38 old_cursor_lnum35 old_cursor_col35 old_cursor_coladd35 start_nsubs36 found20 found_count20 copycol16 matchcol22 prev_matchcol19 new_start_string20 new_start_length21 new_start_size21 did_sub14 nmatch_tl20 do_again16 skip_match19 sub_firstlnum21 did_split19
+    j'161 !lnum22 !save_do_all31 !save_do_ask31 !sub31 !got_quit35 !got_match37 !first_line35 !old_line_count35 !line2'23 !nmatch22 !sub_firstline_string22 !sub_firstline_length24 !endcolumn39 !old_cursor_lnum36 !old_cursor_col36 !old_cursor_coladd36 !start_nsubs37 !found21 !found_count21 !copycol17 !matchcol23 !prev_matchcol20 !new_start_string21 !new_start_length23 !new_start_size22 !did_sub15 !nmatch_tl21 !do_again17 !skip_match20 !sub_firstlnum22 !p1'4 !plen2 = do
       let !last_line35 = lnum22 + 1
-      j'163 lnum22 save_do_all31 save_do_ask31 sub31 got_quit35 got_match37 first_line35 last_line35 old_line_count35 line2'23 nmatch22 endcolumn39 start_nsubs37 found21 found_count21 copycol17 matchcol23 prev_matchcol20 new_start_size22 did_sub15 nmatch_tl21 do_again17 skip_match20 sub_firstlnum22 p1'4 plen2 pat_string42 pat_length42 sub_firstline_string41 sub_firstline_length43 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 new_start_string42 new_start_length44 tmp_string41 tmp_length42 orig_line_string41 orig_line_length42 new_line_string41 new_line_length42
-    j'163 !lnum23 !save_do_all32 !save_do_ask32 !sub32 !got_quit36 !got_match38 !first_line36 !last_line36 !old_line_count36 !line2'24 !nmatch23 !endcolumn40 !start_nsubs38 !found22 !found_count22 !copycol18 !matchcol24 !prev_matchcol21 !new_start_size23 !did_sub16 !nmatch_tl22 !do_again18 !skip_match21 !sub_firstlnum23 !p1'5 !plen3 !pat_string43 !pat_length43 !sub_firstline_string42 !sub_firstline_length44 !old_cursor_lnum42 !old_cursor_col42 !old_cursor_coladd42 !new_start_string43 !new_start_length45 !tmp_string42 !tmp_length43 !orig_line_string42 !orig_line_length43 !new_line_string42 !new_line_length43 = do
+      j'163 lnum22 save_do_all31 save_do_ask31 sub31 got_quit35 got_match37 first_line35 last_line35 old_line_count35 line2'23 nmatch22 sub_firstline_string22 sub_firstline_length24 endcolumn39 old_cursor_lnum36 old_cursor_col36 old_cursor_coladd36 start_nsubs37 found21 found_count21 copycol17 matchcol23 prev_matchcol20 new_start_string21 new_start_length23 new_start_size22 did_sub15 nmatch_tl21 do_again17 skip_match20 sub_firstlnum22 p1'4 plen2
+    j'163 !lnum23 !save_do_all32 !save_do_ask32 !sub32 !got_quit36 !got_match38 !first_line36 !last_line36 !old_line_count36 !line2'24 !nmatch23 !sub_firstline_string23 !sub_firstline_length25 !endcolumn40 !old_cursor_lnum37 !old_cursor_col37 !old_cursor_coladd37 !start_nsubs38 !found22 !found_count22 !copycol18 !matchcol24 !prev_matchcol21 !new_start_string22 !new_start_length24 !new_start_size23 !did_sub16 !nmatch_tl22 !do_again18 !skip_match21 !sub_firstlnum23 !p1'5 !plen3 = do
       let !sub_firstlnum24 = sub_firstlnum23 + 1
       let !lnum24 = lnum23 + 1
       let !line2'25 = line2'24 + 1
-      r'344 <- curwin ed'
-      r'345 <- rdI64 r'344 (win_T'w_cursor + pos_T'lnum)
-      wrI64 r'344 (win_T'w_cursor + pos_T'lnum) (r'345 + 1)
-      let !n3 = new_start_length45 - (fromIntegral plen3 :: Word64)
-      _ <- musl_memmove (castPtr (castPtr new_start_string43)) (castPtr (pAdd p1'5 1)) (n3 + 1)
-      let !p1'6 = pAdd new_start_string43 (-1)
-      j'165 lnum24 save_do_all32 save_do_ask32 sub32 got_quit36 got_match38 first_line36 last_line36 old_line_count36 line2'25 nmatch23 endcolumn40 start_nsubs38 found22 found_count22 copycol18 matchcol24 prev_matchcol21 new_start_size23 did_sub16 nmatch_tl22 do_again18 skip_match21 sub_firstlnum24 True p1'6 pat_string43 pat_length43 sub_firstline_string42 sub_firstline_length44 old_cursor_lnum42 old_cursor_col42 old_cursor_coladd42 new_start_string43 n3 tmp_string42 tmp_length43 orig_line_string42 orig_line_length43 new_line_string42 new_line_length43
-    j'165 !lnum25 !save_do_all33 !save_do_ask33 !sub33 !got_quit37 !got_match39 !first_line37 !last_line37 !old_line_count37 !line2'26 !nmatch24 !endcolumn41 !start_nsubs39 !found23 !found_count23 !copycol19 !matchcol25 !prev_matchcol22 !new_start_size24 !did_sub17 !nmatch_tl23 !do_again19 !skip_match22 !sub_firstlnum25 !did_split20 !p1'7 !pat_string44 !pat_length44 !sub_firstline_string43 !sub_firstline_length45 !old_cursor_lnum43 !old_cursor_col43 !old_cursor_coladd43 !new_start_string44 !new_start_length46 !tmp_string43 !tmp_length44 !orig_line_string43 !orig_line_length44 !new_line_string43 !new_line_length44 = do
+      r'346 <- curwin ed'
+      r'347 <- rdI64 r'346 (win_T'w_cursor + pos_T'lnum)
+      wrI64 r'346 (win_T'w_cursor + pos_T'lnum) (r'347 + 1)
+      let !n3 = new_start_length24 - (fromIntegral plen3 :: Word64)
+      _ <- musl_memmove (castPtr (castPtr new_start_string22)) (castPtr (pAdd p1'5 1)) (n3 + 1)
+      let !p1'6 = pAdd new_start_string22 (-1)
+      j'165 lnum24 save_do_all32 save_do_ask32 sub32 got_quit36 got_match38 first_line36 last_line36 old_line_count36 line2'25 nmatch23 sub_firstline_string23 sub_firstline_length25 endcolumn40 old_cursor_lnum37 old_cursor_col37 old_cursor_coladd37 start_nsubs38 found22 found_count22 copycol18 matchcol24 prev_matchcol21 new_start_string22 n3 new_start_size23 did_sub16 nmatch_tl22 do_again18 skip_match21 sub_firstlnum24 True p1'6
+    j'165 !lnum25 !save_do_all33 !save_do_ask33 !sub33 !got_quit37 !got_match39 !first_line37 !last_line37 !old_line_count37 !line2'26 !nmatch24 !sub_firstline_string24 !sub_firstline_length26 !endcolumn41 !old_cursor_lnum38 !old_cursor_col38 !old_cursor_coladd38 !start_nsubs39 !found23 !found_count23 !copycol19 !matchcol25 !prev_matchcol22 !new_start_string23 !new_start_length25 !new_start_size24 !did_sub17 !nmatch_tl23 !do_again19 !skip_match22 !sub_firstlnum25 !did_split20 !p1'7 = do
       let !p1'8 = pAdd p1'7 1
-      loop'153 lnum25 save_do_all33 save_do_ask33 sub33 got_quit37 got_match39 first_line37 last_line37 old_line_count37 line2'26 nmatch24 endcolumn41 start_nsubs39 found23 found_count23 copycol19 matchcol25 prev_matchcol22 new_start_size24 did_sub17 nmatch_tl23 do_again19 skip_match22 sub_firstlnum25 did_split20 p1'8 pat_string44 pat_length44 sub_firstline_string43 sub_firstline_length45 old_cursor_lnum43 old_cursor_col43 old_cursor_coladd43 new_start_string44 new_start_length46 tmp_string43 tmp_length44 orig_line_string43 orig_line_length44 new_line_string43 new_line_length44
-    j'170 !lnum26 !save_do_all34 !save_do_ask34 !sub34 !got_quit38 !got_match40 !first_line38 !last_line38 !old_line_count38 !line2'27 !nmatch25 !endcolumn42 !start_nsubs40 !found24 !found_count24 !copycol20 !matchcol26 !prev_matchcol23 !new_start_size25 !nmatch_tl24 !do_again20 !skip_match23 !sub_firstlnum26 !did_split21 !pat_string45 !pat_length45 !sub_firstline_string44 !sub_firstline_length46 !old_cursor_lnum44 !old_cursor_col44 !old_cursor_coladd44 !new_start_string45 !new_start_length47 !tmp_string44 !tmp_length45 !orig_line_string44 !orig_line_length45 !new_line_string44 !new_line_length45 = do
-      r'347 <- sub_nsubs ed'
-      set'sub_nsubs ed' (r'347 + 1)
-      j'174 lnum26 save_do_all34 save_do_ask34 sub34 got_quit38 got_match40 first_line38 last_line38 old_line_count38 line2'27 nmatch25 endcolumn42 start_nsubs40 found24 found_count24 copycol20 matchcol26 prev_matchcol23 new_start_size25 True nmatch_tl24 do_again20 skip_match23 sub_firstlnum26 did_split21 pat_string45 pat_length45 sub_firstline_string44 sub_firstline_length46 old_cursor_lnum44 old_cursor_col44 old_cursor_coladd44 new_start_string45 new_start_length47 tmp_string44 tmp_length45 orig_line_string44 orig_line_length45 new_line_string44 new_line_length45
-    j'174 !lnum27 !save_do_all35 !save_do_ask35 !sub35 !got_quit39 !got_match41 !first_line39 !last_line39 !old_line_count39 !line2'28 !nmatch26 !endcolumn43 !start_nsubs41 !found25 !found_count25 !copycol21 !matchcol27 !prev_matchcol24 !new_start_size26 !did_sub18 !nmatch_tl25 !do_again21 !skip_match24 !sub_firstlnum27 !did_split22 !pat_string46 !pat_length46 !sub_firstline_string45 !sub_firstline_length47 !old_cursor_lnum45 !old_cursor_col45 !old_cursor_coladd45 !new_start_string46 !new_start_length48 !tmp_string45 !tmp_length46 !orig_line_string45 !orig_line_length46 !new_line_string45 !new_line_length46 = do
-      r'349 <- if skip_match24 then pure True else (do { r'348 <- got_int ed'; pure (r'348 /= 0) })
-      r'351 <- if ((r'349 || got_quit39) || (lnum27 > line2'28)) then pure True else (do { r'350 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_all; pure (not ((r'350 /= 0) || do_again21)) })
-      r'356 <- if r'351 then pure True else (do { r'352 <- rdW8 (pAdd sub_firstline_string45 (fromIntegral matchcol27)) 0; if (((fromIntegral r'352 :: Int32) == NUL) && (nmatch26 <= 1)) then (do { r'353 <- rdP fr' regmmatch_T'regprog; r'354 <- re_multiline r'353; pure (not (r'354 /= 0)) }) else pure False })
-      r'358 <- if (r'356 || (nmatch_tl25 > 0)) then pure True else (do { r'357 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask; pure ((r'357 /= 0) && did_split22) })
-      if r'358
-        then j'176 lnum27 save_do_all35 save_do_ask35 sub35 got_quit39 got_match41 first_line39 last_line39 old_line_count39 line2'28 (-1 :: Int64) endcolumn43 start_nsubs41 found25 found_count25 copycol21 matchcol27 prev_matchcol24 new_start_size26 did_sub18 r'356 nmatch_tl25 skip_match24 sub_firstlnum27 did_split22 r'358 pat_string46 pat_length46 sub_firstline_string45 sub_firstline_length47 old_cursor_lnum45 old_cursor_col45 old_cursor_coladd45 new_start_string46 new_start_length48 tmp_string45 tmp_length46 orig_line_string45 orig_line_length46 new_line_string45 new_line_length46
+      loop'153 lnum25 save_do_all33 save_do_ask33 sub33 got_quit37 got_match39 first_line37 last_line37 old_line_count37 line2'26 nmatch24 sub_firstline_string24 sub_firstline_length26 endcolumn41 old_cursor_lnum38 old_cursor_col38 old_cursor_coladd38 start_nsubs39 found23 found_count23 copycol19 matchcol25 prev_matchcol22 new_start_string23 new_start_length25 new_start_size24 did_sub17 nmatch_tl23 do_again19 skip_match22 sub_firstlnum25 did_split20 p1'8
+    j'170 !lnum26 !save_do_all34 !save_do_ask34 !sub34 !got_quit38 !got_match40 !first_line38 !last_line38 !old_line_count38 !line2'27 !nmatch25 !sub_firstline_string25 !sub_firstline_length27 !endcolumn42 !old_cursor_lnum39 !old_cursor_col39 !old_cursor_coladd39 !start_nsubs40 !found24 !found_count24 !copycol20 !matchcol26 !prev_matchcol23 !new_start_string24 !new_start_length26 !new_start_size25 !nmatch_tl24 !do_again20 !skip_match23 !sub_firstlnum26 !did_split21 = do
+      r'349 <- sub_nsubs ed'
+      set'sub_nsubs ed' (r'349 + 1)
+      j'174 lnum26 save_do_all34 save_do_ask34 sub34 got_quit38 got_match40 first_line38 last_line38 old_line_count38 line2'27 nmatch25 sub_firstline_string25 sub_firstline_length27 endcolumn42 old_cursor_lnum39 old_cursor_col39 old_cursor_coladd39 start_nsubs40 found24 found_count24 copycol20 matchcol26 prev_matchcol23 new_start_string24 new_start_length26 new_start_size25 True nmatch_tl24 do_again20 skip_match23 sub_firstlnum26 did_split21
+    j'174 !lnum27 !save_do_all35 !save_do_ask35 !sub35 !got_quit39 !got_match41 !first_line39 !last_line39 !old_line_count39 !line2'28 !nmatch26 !sub_firstline_string26 !sub_firstline_length28 !endcolumn43 !old_cursor_lnum40 !old_cursor_col40 !old_cursor_coladd40 !start_nsubs41 !found25 !found_count25 !copycol21 !matchcol27 !prev_matchcol24 !new_start_string25 !new_start_length27 !new_start_size26 !did_sub18 !nmatch_tl25 !do_again21 !skip_match24 !sub_firstlnum27 !did_split22 = do
+      r'351 <- if skip_match24 then pure True else (do { r'350 <- got_int ed'; pure (r'350 /= 0) })
+      r'353 <- if ((r'351 || got_quit39) || (lnum27 > line2'28)) then pure True else (do { r'352 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_all; pure (not ((r'352 /= 0) || do_again21)) })
+      r'358 <- if r'353 then pure True else (do { r'354 <- rdW8 (pAdd sub_firstline_string26 (fromIntegral matchcol27)) 0; if (((fromIntegral r'354 :: Int32) == NUL) && (nmatch26 <= 1)) then (do { r'355 <- rdP fr' regmmatch_T'regprog; r'356 <- re_multiline r'355; pure (not (r'356 /= 0)) }) else pure False })
+      r'360 <- if (r'358 || (nmatch_tl25 > 0)) then pure True else (do { r'359 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask; pure ((r'359 /= 0) && did_split22) })
+      if r'360
+        then j'176 lnum27 save_do_all35 save_do_ask35 sub35 got_quit39 got_match41 first_line39 last_line39 old_line_count39 line2'28 (-1 :: Int64) sub_firstline_string26 sub_firstline_length28 endcolumn43 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 start_nsubs41 found25 found_count25 copycol21 matchcol27 prev_matchcol24 new_start_string25 new_start_length27 new_start_size26 did_sub18 r'358 nmatch_tl25 skip_match24 sub_firstlnum27 did_split22 r'360
         else do
-          r'359 <- rdI64 eap exarg_T'line1
-          r'360 <- search_found ed' found25 r'359 found_count25 fr' sub_firstlnum27 matchcol27
-          let !t6'1 = r'360 == 0
-          j'176 lnum27 save_do_all35 save_do_ask35 sub35 got_quit39 got_match41 first_line39 last_line39 old_line_count39 line2'28 r'360 endcolumn43 start_nsubs41 found25 found_count25 copycol21 matchcol27 prev_matchcol24 new_start_size26 did_sub18 r'356 nmatch_tl25 skip_match24 sub_firstlnum27 did_split22 t6'1 pat_string46 pat_length46 sub_firstline_string45 sub_firstline_length47 old_cursor_lnum45 old_cursor_col45 old_cursor_coladd45 new_start_string46 new_start_length48 tmp_string45 tmp_length46 orig_line_string45 orig_line_length46 new_line_string45 new_line_length46
-    j'176 !lnum28 !save_do_all36 !save_do_ask36 !sub36 !got_quit40 !got_match42 !first_line40 !last_line40 !old_line_count40 !line2'29 !nmatch27 !endcolumn44 !start_nsubs42 !found26 !found_count26 !copycol22 !matchcol28 !prev_matchcol25 !new_start_size27 !did_sub19 !lastone1 !nmatch_tl26 !skip_match25 !sub_firstlnum28 !did_split23 !t6'2 !pat_string47 !pat_length47 !sub_firstline_string46 !sub_firstline_length48 !old_cursor_lnum46 !old_cursor_col46 !old_cursor_coladd46 !new_start_string47 !new_start_length49 !tmp_string46 !tmp_length47 !orig_line_string46 !orig_line_length47 !new_line_string46 !new_line_length47 = do
-      r'362 <- if t6'2 then pure True else (do { r'361 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum; pure (r'361 > 0) })
-      if r'362
+          r'361 <- rdI64 eap exarg_T'line1
+          r'362 <- search_found ed' found25 r'361 found_count25 fr' sub_firstlnum27 matchcol27
+          let !t6'1 = r'362 == 0
+          j'176 lnum27 save_do_all35 save_do_ask35 sub35 got_quit39 got_match41 first_line39 last_line39 old_line_count39 line2'28 r'362 sub_firstline_string26 sub_firstline_length28 endcolumn43 old_cursor_lnum40 old_cursor_col40 old_cursor_coladd40 start_nsubs41 found25 found_count25 copycol21 matchcol27 prev_matchcol24 new_start_string25 new_start_length27 new_start_size26 did_sub18 r'358 nmatch_tl25 skip_match24 sub_firstlnum27 did_split22 t6'1
+    j'176 !lnum28 !save_do_all36 !save_do_ask36 !sub36 !got_quit40 !got_match42 !first_line40 !last_line40 !old_line_count40 !line2'29 !nmatch27 !sub_firstline_string27 !sub_firstline_length29 !endcolumn44 !old_cursor_lnum41 !old_cursor_col41 !old_cursor_coladd41 !start_nsubs42 !found26 !found_count26 !copycol22 !matchcol28 !prev_matchcol25 !new_start_string26 !new_start_length28 !new_start_size27 !did_sub19 !lastone1 !nmatch_tl26 !skip_match25 !sub_firstlnum28 !did_split23 !t6'2 = do
+      r'364 <- if t6'2 then pure True else (do { r'363 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum; pure (r'363 > 0) })
+      if r'364
         then do
-          if new_start_string47 /= nullPtr
+          if new_start_string26 /= nullPtr
             then do
-              _ <- musl_strcpy (pAdd new_start_string47 (fromIntegral new_start_length49)) (pAdd sub_firstline_string46 (fromIntegral copycol22))
-              let !new_start_length50 = new_start_length49 + (sub_firstline_length48 - (fromIntegral copycol22 :: Word64))
-              let !matchcol29 = fromIntegral (sub_firstline_length48 - (fromIntegral matchcol28 :: Word64)) :: Int32
-              let !prev_matchcol26 = fromIntegral (sub_firstline_length48 - (fromIntegral prev_matchcol25 :: Word64)) :: Int32
-              r'364 <- u_savesub ed' lnum28
-              if not r'364
-                then j'203 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 endcolumn44 start_nsubs42 found26 found_count26 did_sub19 pat_string47 pat_length47 sub_firstline_string46 sub_firstline_length48 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 new_start_string47 new_start_length50 tmp_string46 tmp_length47 orig_line_string46 orig_line_length47 new_line_string46 new_line_length47
+              _ <- musl_strcpy (pAdd new_start_string26 (fromIntegral new_start_length28)) (pAdd sub_firstline_string27 (fromIntegral copycol22))
+              let !new_start_length29 = new_start_length28 + (sub_firstline_length29 - (fromIntegral copycol22 :: Word64))
+              let !matchcol29 = fromIntegral (sub_firstline_length29 - (fromIntegral matchcol28 :: Word64)) :: Int32
+              let !prev_matchcol26 = fromIntegral (sub_firstline_length29 - (fromIntegral prev_matchcol25 :: Word64)) :: Int32
+              r'366 <- u_savesub ed' lnum28
+              if not r'366
+                then j'203 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 endcolumn44 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 start_nsubs42 found26 found_count26 did_sub19
                 else do
-                  _ <- ml_replace ed' lnum28 new_start_string47 True
+                  _ <- ml_replace ed' lnum28 new_start_string26 True
                   if nmatch_tl26 > 0
                     then do
                       let !lnum29 = lnum28 + 1
-                      r'366 <- u_savedel ed' lnum29 nmatch_tl26
-                      if not r'366
-                        then j'203 lnum29 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 endcolumn44 start_nsubs42 found26 found_count26 did_sub19 pat_string47 pat_length47 sub_firstline_string46 sub_firstline_length48 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 new_start_string47 new_start_length50 tmp_string46 tmp_length47 orig_line_string46 orig_line_length47 new_line_string46 new_line_length47
-                        else loop'182 lnum29 (0 :: Int64) save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 endcolumn44 start_nsubs42 found26 found_count26 copycol22 matchcol29 prev_matchcol26 new_start_size27 did_sub19 lastone1 nmatch_tl26 skip_match25 pat_string47 pat_length47 sub_firstline_string46 sub_firstline_length48 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 new_start_string47 new_start_length50 tmp_string46 tmp_length47 orig_line_string46 orig_line_length47 new_line_string46 new_line_length47
-                    else j'189 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 endcolumn44 start_nsubs42 found26 found_count26 matchcol29 prev_matchcol26 new_start_size27 did_sub19 lastone1 nmatch_tl26 skip_match25 pat_string47 pat_length47 sub_firstline_string46 sub_firstline_length48 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 new_start_string47 new_start_length50 tmp_string46 tmp_length47 orig_line_string46 orig_line_length47 new_line_string46 new_line_length47
-            else j'195 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 endcolumn44 start_nsubs42 found26 found_count26 copycol22 matchcol28 prev_matchcol25 new_start_size27 did_sub19 lastone1 nmatch_tl26 skip_match25 sub_firstlnum28 did_split23 pat_string47 pat_length47 sub_firstline_string46 sub_firstline_length48 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 new_start_string47 new_start_length49 tmp_string46 tmp_length47 orig_line_string46 orig_line_length47 new_line_string46 new_line_length47
-        else j'198 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 endcolumn44 start_nsubs42 found26 found_count26 copycol22 matchcol28 prev_matchcol25 new_start_size27 did_sub19 nmatch_tl26 skip_match25 sub_firstlnum28 did_split23 pat_string47 pat_length47 sub_firstline_string46 sub_firstline_length48 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 new_start_string47 new_start_length49 tmp_string46 tmp_length47 orig_line_string46 orig_line_length47 new_line_string46 new_line_length47
-    loop'182 !lnum30 !i3 !save_do_all37 !save_do_ask37 !sub37 !got_quit41 !got_match43 !first_line41 !last_line41 !old_line_count41 !line2'30 !nmatch28 !endcolumn45 !start_nsubs43 !found27 !found_count27 !copycol23 !matchcol30 !prev_matchcol27 !new_start_size28 !did_sub20 !lastone2 !nmatch_tl27 !skip_match26 !pat_string48 !pat_length48 !sub_firstline_string47 !sub_firstline_length49 !old_cursor_lnum47 !old_cursor_col47 !old_cursor_coladd47 !new_start_string48 !new_start_length51 !tmp_string47 !tmp_length48 !orig_line_string47 !orig_line_length48 !new_line_string47 !new_line_length48 = do
+                      r'368 <- u_savedel ed' lnum29 nmatch_tl26
+                      if not r'368
+                        then j'203 lnum29 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 endcolumn44 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 start_nsubs42 found26 found_count26 did_sub19
+                        else loop'182 lnum29 (0 :: Int64) save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 endcolumn44 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 start_nsubs42 found26 found_count26 copycol22 matchcol29 prev_matchcol26 new_start_string26 new_start_length29 new_start_size27 did_sub19 lastone1 nmatch_tl26 skip_match25
+                    else j'189 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 endcolumn44 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 start_nsubs42 found26 found_count26 matchcol29 prev_matchcol26 new_start_string26 new_start_length29 new_start_size27 did_sub19 lastone1 nmatch_tl26 skip_match25
+            else j'195 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 sub_firstline_string27 sub_firstline_length29 endcolumn44 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 start_nsubs42 found26 found_count26 copycol22 matchcol28 prev_matchcol25 new_start_string26 new_start_length28 new_start_size27 did_sub19 lastone1 nmatch_tl26 skip_match25 sub_firstlnum28 did_split23
+        else j'198 lnum28 save_do_all36 save_do_ask36 sub36 got_quit40 got_match42 first_line40 last_line40 old_line_count40 line2'29 nmatch27 sub_firstline_string27 sub_firstline_length29 endcolumn44 old_cursor_lnum41 old_cursor_col41 old_cursor_coladd41 start_nsubs42 found26 found_count26 copycol22 matchcol28 prev_matchcol25 new_start_string26 new_start_length28 new_start_size27 did_sub19 nmatch_tl26 skip_match25 sub_firstlnum28 did_split23
+    loop'182 !lnum30 !i3 !save_do_all37 !save_do_ask37 !sub37 !got_quit41 !got_match43 !first_line41 !last_line41 !old_line_count41 !line2'30 !nmatch28 !endcolumn45 !old_cursor_lnum42 !old_cursor_col42 !old_cursor_coladd42 !start_nsubs43 !found27 !found_count27 !copycol23 !matchcol30 !prev_matchcol27 !new_start_string27 !new_start_length30 !new_start_size28 !did_sub20 !lastone2 !nmatch_tl27 !skip_match26 = do
       if i3 < nmatch_tl27
         then do
           _ <- ml_delete ed' lnum30
           let !i4 = i3 + 1
-          loop'182 lnum30 i4 save_do_all37 save_do_ask37 sub37 got_quit41 got_match43 first_line41 last_line41 old_line_count41 line2'30 nmatch28 endcolumn45 start_nsubs43 found27 found_count27 copycol23 matchcol30 prev_matchcol27 new_start_size28 did_sub20 lastone2 nmatch_tl27 skip_match26 pat_string48 pat_length48 sub_firstline_string47 sub_firstline_length49 old_cursor_lnum47 old_cursor_col47 old_cursor_coladd47 new_start_string48 new_start_length51 tmp_string47 tmp_length48 orig_line_string47 orig_line_length48 new_line_string47 new_line_length48
+          loop'182 lnum30 i4 save_do_all37 save_do_ask37 sub37 got_quit41 got_match43 first_line41 last_line41 old_line_count41 line2'30 nmatch28 endcolumn45 old_cursor_lnum42 old_cursor_col42 old_cursor_coladd42 start_nsubs43 found27 found_count27 copycol23 matchcol30 prev_matchcol27 new_start_string27 new_start_length30 new_start_size28 did_sub20 lastone2 nmatch_tl27 skip_match26
         else do
           if copycol23 > 0
             then do
               mark_adjust ed' lnum30 ((lnum30 + nmatch_tl27) - 1) 9223372036854775807 (negate nmatch_tl27)
-              j'186 lnum30 save_do_all37 save_do_ask37 sub37 got_quit41 got_match43 first_line41 last_line41 old_line_count41 line2'30 nmatch28 endcolumn45 start_nsubs43 found27 found_count27 matchcol30 prev_matchcol27 new_start_size28 did_sub20 lastone2 nmatch_tl27 skip_match26 pat_string48 pat_length48 sub_firstline_string47 sub_firstline_length49 old_cursor_lnum47 old_cursor_col47 old_cursor_coladd47 new_start_string48 new_start_length51 tmp_string47 tmp_length48 orig_line_string47 orig_line_length48 new_line_string47 new_line_length48
+              j'186 lnum30 save_do_all37 save_do_ask37 sub37 got_quit41 got_match43 first_line41 last_line41 old_line_count41 line2'30 nmatch28 endcolumn45 old_cursor_lnum42 old_cursor_col42 old_cursor_coladd42 start_nsubs43 found27 found_count27 matchcol30 prev_matchcol27 new_start_string27 new_start_length30 new_start_size28 did_sub20 lastone2 nmatch_tl27 skip_match26
             else do
               mark_adjust ed' (lnum30 - 1) (lnum30 - 1) 9223372036854775807 (negate nmatch_tl27)
-              j'186 lnum30 save_do_all37 save_do_ask37 sub37 got_quit41 got_match43 first_line41 last_line41 old_line_count41 line2'30 nmatch28 endcolumn45 start_nsubs43 found27 found_count27 matchcol30 prev_matchcol27 new_start_size28 did_sub20 lastone2 nmatch_tl27 skip_match26 pat_string48 pat_length48 sub_firstline_string47 sub_firstline_length49 old_cursor_lnum47 old_cursor_col47 old_cursor_coladd47 new_start_string48 new_start_length51 tmp_string47 tmp_length48 orig_line_string47 orig_line_length48 new_line_string47 new_line_length48
-    j'186 !lnum31 !save_do_all38 !save_do_ask38 !sub38 !got_quit42 !got_match44 !first_line42 !last_line42 !old_line_count42 !line2'31 !nmatch29 !endcolumn46 !start_nsubs44 !found28 !found_count28 !matchcol31 !prev_matchcol28 !new_start_size29 !did_sub21 !lastone3 !nmatch_tl28 !skip_match27 !pat_string49 !pat_length49 !sub_firstline_string48 !sub_firstline_length50 !old_cursor_lnum48 !old_cursor_col48 !old_cursor_coladd48 !new_start_string49 !new_start_length52 !tmp_string48 !tmp_length49 !orig_line_string48 !orig_line_length49 !new_line_string48 !new_line_length49 = do
-      r'368 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
-      if r'368 /= 0
+              j'186 lnum30 save_do_all37 save_do_ask37 sub37 got_quit41 got_match43 first_line41 last_line41 old_line_count41 line2'30 nmatch28 endcolumn45 old_cursor_lnum42 old_cursor_col42 old_cursor_coladd42 start_nsubs43 found27 found_count27 matchcol30 prev_matchcol27 new_start_string27 new_start_length30 new_start_size28 did_sub20 lastone2 nmatch_tl27 skip_match26
+    j'186 !lnum31 !save_do_all38 !save_do_ask38 !sub38 !got_quit42 !got_match44 !first_line42 !last_line42 !old_line_count42 !line2'31 !nmatch29 !endcolumn46 !old_cursor_lnum43 !old_cursor_col43 !old_cursor_coladd43 !start_nsubs44 !found28 !found_count28 !matchcol31 !prev_matchcol28 !new_start_string28 !new_start_length31 !new_start_size29 !did_sub21 !lastone3 !nmatch_tl28 !skip_match27 = do
+      r'370 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
+      if r'370 /= 0
         then do
           deleted_lines ed' lnum31 nmatch_tl28
-          j'188 lnum31 save_do_all38 save_do_ask38 sub38 got_quit42 got_match44 first_line42 last_line42 old_line_count42 line2'31 nmatch29 endcolumn46 start_nsubs44 found28 found_count28 matchcol31 prev_matchcol28 new_start_size29 did_sub21 lastone3 nmatch_tl28 skip_match27 pat_string49 pat_length49 sub_firstline_string48 sub_firstline_length50 old_cursor_lnum48 old_cursor_col48 old_cursor_coladd48 new_start_string49 new_start_length52 tmp_string48 tmp_length49 orig_line_string48 orig_line_length49 new_line_string48 new_line_length49
-        else j'188 lnum31 save_do_all38 save_do_ask38 sub38 got_quit42 got_match44 first_line42 last_line42 old_line_count42 line2'31 nmatch29 endcolumn46 start_nsubs44 found28 found_count28 matchcol31 prev_matchcol28 new_start_size29 did_sub21 lastone3 nmatch_tl28 skip_match27 pat_string49 pat_length49 sub_firstline_string48 sub_firstline_length50 old_cursor_lnum48 old_cursor_col48 old_cursor_coladd48 new_start_string49 new_start_length52 tmp_string48 tmp_length49 orig_line_string48 orig_line_length49 new_line_string48 new_line_length49
-    j'188 !lnum32 !save_do_all39 !save_do_ask39 !sub39 !got_quit43 !got_match45 !first_line43 !last_line43 !old_line_count43 !line2'32 !nmatch30 !endcolumn47 !start_nsubs45 !found29 !found_count29 !matchcol32 !prev_matchcol29 !new_start_size30 !did_sub22 !lastone4 !nmatch_tl29 !skip_match28 !pat_string50 !pat_length50 !sub_firstline_string49 !sub_firstline_length51 !old_cursor_lnum49 !old_cursor_col49 !old_cursor_coladd49 !new_start_string50 !new_start_length53 !tmp_string49 !tmp_length50 !orig_line_string49 !orig_line_length50 !new_line_string49 !new_line_length50 = do
+          j'188 lnum31 save_do_all38 save_do_ask38 sub38 got_quit42 got_match44 first_line42 last_line42 old_line_count42 line2'31 nmatch29 endcolumn46 old_cursor_lnum43 old_cursor_col43 old_cursor_coladd43 start_nsubs44 found28 found_count28 matchcol31 prev_matchcol28 new_start_string28 new_start_length31 new_start_size29 did_sub21 lastone3 nmatch_tl28 skip_match27
+        else j'188 lnum31 save_do_all38 save_do_ask38 sub38 got_quit42 got_match44 first_line42 last_line42 old_line_count42 line2'31 nmatch29 endcolumn46 old_cursor_lnum43 old_cursor_col43 old_cursor_coladd43 start_nsubs44 found28 found_count28 matchcol31 prev_matchcol28 new_start_string28 new_start_length31 new_start_size29 did_sub21 lastone3 nmatch_tl28 skip_match27
+    j'188 !lnum32 !save_do_all39 !save_do_ask39 !sub39 !got_quit43 !got_match45 !first_line43 !last_line43 !old_line_count43 !line2'32 !nmatch30 !endcolumn47 !old_cursor_lnum44 !old_cursor_col44 !old_cursor_coladd44 !start_nsubs45 !found29 !found_count29 !matchcol32 !prev_matchcol29 !new_start_string29 !new_start_length32 !new_start_size30 !did_sub22 !lastone4 !nmatch_tl29 !skip_match28 = do
       let !lnum33 = lnum32 - 1
       let !line2'33 = line2'32 - nmatch_tl29
-      j'189 lnum33 save_do_all39 save_do_ask39 sub39 got_quit43 got_match45 first_line43 last_line43 old_line_count43 line2'33 nmatch30 endcolumn47 start_nsubs45 found29 found_count29 matchcol32 prev_matchcol29 new_start_size30 did_sub22 lastone4 (0 :: Int64) skip_match28 pat_string50 pat_length50 sub_firstline_string49 sub_firstline_length51 old_cursor_lnum49 old_cursor_col49 old_cursor_coladd49 new_start_string50 new_start_length53 tmp_string49 tmp_length50 orig_line_string49 orig_line_length50 new_line_string49 new_line_length50
-    j'189 !lnum34 !save_do_all40 !save_do_ask40 !sub40 !got_quit44 !got_match46 !first_line44 !last_line44 !old_line_count44 !line2'34 !nmatch31 !endcolumn48 !start_nsubs46 !found30 !found_count30 !matchcol33 !prev_matchcol30 !new_start_size31 !did_sub23 !lastone5 !nmatch_tl30 !skip_match29 !pat_string51 !pat_length51 !sub_firstline_string50 !sub_firstline_length52 !old_cursor_lnum50 !old_cursor_col50 !old_cursor_coladd50 !new_start_string51 !new_start_length54 !tmp_string50 !tmp_length51 !orig_line_string50 !orig_line_length51 !new_line_string50 !new_line_length51 = do
-      r'369 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
-      if r'369 /= 0
+      j'189 lnum33 save_do_all39 save_do_ask39 sub39 got_quit43 got_match45 first_line43 last_line43 old_line_count43 line2'33 nmatch30 endcolumn47 old_cursor_lnum44 old_cursor_col44 old_cursor_coladd44 start_nsubs45 found29 found_count29 matchcol32 prev_matchcol29 new_start_string29 new_start_length32 new_start_size30 did_sub22 lastone4 (0 :: Int64) skip_match28
+    j'189 !lnum34 !save_do_all40 !save_do_ask40 !sub40 !got_quit44 !got_match46 !first_line44 !last_line44 !old_line_count44 !line2'34 !nmatch31 !endcolumn48 !old_cursor_lnum45 !old_cursor_col45 !old_cursor_coladd45 !start_nsubs46 !found30 !found_count30 !matchcol33 !prev_matchcol30 !new_start_string30 !new_start_length33 !new_start_size31 !did_sub23 !lastone5 !nmatch_tl30 !skip_match29 = do
+      r'371 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_ask
+      if r'371 /= 0
         then do
           changed_bytes ed' lnum34 0
-          j'194 lnum34 save_do_all40 save_do_ask40 sub40 got_quit44 got_match46 first_line44 last_line44 old_line_count44 line2'34 nmatch31 endcolumn48 start_nsubs46 found30 found_count30 matchcol33 prev_matchcol30 new_start_size31 did_sub23 lastone5 nmatch_tl30 skip_match29 pat_string51 pat_length51 sub_firstline_string50 sub_firstline_length52 old_cursor_lnum50 old_cursor_col50 old_cursor_coladd50 new_start_string51 new_start_length54 tmp_string50 tmp_length51 orig_line_string50 orig_line_length51 new_line_string50 new_line_length51
+          j'194 lnum34 save_do_all40 save_do_ask40 sub40 got_quit44 got_match46 first_line44 last_line44 old_line_count44 line2'34 nmatch31 endcolumn48 old_cursor_lnum45 old_cursor_col45 old_cursor_coladd45 start_nsubs46 found30 found_count30 matchcol33 prev_matchcol30 new_start_string30 new_start_length33 new_start_size31 did_sub23 lastone5 nmatch_tl30 skip_match29
         else do
           if first_line44 == 0
-            then j'192 lnum34 save_do_all40 save_do_ask40 sub40 got_quit44 got_match46 lnum34 old_line_count44 line2'34 nmatch31 endcolumn48 start_nsubs46 found30 found_count30 matchcol33 prev_matchcol30 new_start_size31 did_sub23 lastone5 nmatch_tl30 skip_match29 pat_string51 pat_length51 sub_firstline_string50 sub_firstline_length52 old_cursor_lnum50 old_cursor_col50 old_cursor_coladd50 new_start_string51 new_start_length54 tmp_string50 tmp_length51 orig_line_string50 orig_line_length51 new_line_string50 new_line_length51
-            else j'192 lnum34 save_do_all40 save_do_ask40 sub40 got_quit44 got_match46 first_line44 old_line_count44 line2'34 nmatch31 endcolumn48 start_nsubs46 found30 found_count30 matchcol33 prev_matchcol30 new_start_size31 did_sub23 lastone5 nmatch_tl30 skip_match29 pat_string51 pat_length51 sub_firstline_string50 sub_firstline_length52 old_cursor_lnum50 old_cursor_col50 old_cursor_coladd50 new_start_string51 new_start_length54 tmp_string50 tmp_length51 orig_line_string50 orig_line_length51 new_line_string50 new_line_length51
-    j'192 !lnum35 !save_do_all41 !save_do_ask41 !sub41 !got_quit45 !got_match47 !first_line45 !old_line_count45 !line2'35 !nmatch32 !endcolumn49 !start_nsubs47 !found31 !found_count31 !matchcol34 !prev_matchcol31 !new_start_size32 !did_sub24 !lastone6 !nmatch_tl31 !skip_match30 !pat_string52 !pat_length52 !sub_firstline_string51 !sub_firstline_length53 !old_cursor_lnum51 !old_cursor_col51 !old_cursor_coladd51 !new_start_string52 !new_start_length55 !tmp_string51 !tmp_length52 !orig_line_string51 !orig_line_length52 !new_line_string51 !new_line_length52 = do
+            then j'192 lnum34 save_do_all40 save_do_ask40 sub40 got_quit44 got_match46 lnum34 old_line_count44 line2'34 nmatch31 endcolumn48 old_cursor_lnum45 old_cursor_col45 old_cursor_coladd45 start_nsubs46 found30 found_count30 matchcol33 prev_matchcol30 new_start_string30 new_start_length33 new_start_size31 did_sub23 lastone5 nmatch_tl30 skip_match29
+            else j'192 lnum34 save_do_all40 save_do_ask40 sub40 got_quit44 got_match46 first_line44 old_line_count44 line2'34 nmatch31 endcolumn48 old_cursor_lnum45 old_cursor_col45 old_cursor_coladd45 start_nsubs46 found30 found_count30 matchcol33 prev_matchcol30 new_start_string30 new_start_length33 new_start_size31 did_sub23 lastone5 nmatch_tl30 skip_match29
+    j'192 !lnum35 !save_do_all41 !save_do_ask41 !sub41 !got_quit45 !got_match47 !first_line45 !old_line_count45 !line2'35 !nmatch32 !endcolumn49 !old_cursor_lnum46 !old_cursor_col46 !old_cursor_coladd46 !start_nsubs47 !found31 !found_count31 !matchcol34 !prev_matchcol31 !new_start_string31 !new_start_length34 !new_start_size32 !did_sub24 !lastone6 !nmatch_tl31 !skip_match30 = do
       let !last_line45 = lnum35 + 1
-      j'194 lnum35 save_do_all41 save_do_ask41 sub41 got_quit45 got_match47 first_line45 last_line45 old_line_count45 line2'35 nmatch32 endcolumn49 start_nsubs47 found31 found_count31 matchcol34 prev_matchcol31 new_start_size32 did_sub24 lastone6 nmatch_tl31 skip_match30 pat_string52 pat_length52 sub_firstline_string51 sub_firstline_length53 old_cursor_lnum51 old_cursor_col51 old_cursor_coladd51 new_start_string52 new_start_length55 tmp_string51 tmp_length52 orig_line_string51 orig_line_length52 new_line_string51 new_line_length52
-    j'194 !lnum36 !save_do_all42 !save_do_ask42 !sub42 !got_quit46 !got_match48 !first_line46 !last_line46 !old_line_count46 !line2'36 !nmatch33 !endcolumn50 !start_nsubs48 !found32 !found_count32 !matchcol35 !prev_matchcol32 !new_start_size33 !did_sub25 !lastone7 !nmatch_tl32 !skip_match31 !pat_string53 !pat_length53 _ _ !old_cursor_lnum52 !old_cursor_col52 !old_cursor_coladd52 !new_start_string53 !new_start_length56 !tmp_string52 !tmp_length53 !orig_line_string52 !orig_line_length53 !new_line_string52 !new_line_length53 = do
-      let !matchcol36 = fromIntegral (new_start_length56 - (fromIntegral matchcol35 :: Word64)) :: Int32
-      let !prev_matchcol33 = fromIntegral (new_start_length56 - (fromIntegral prev_matchcol32 :: Word64)) :: Int32
-      j'195 lnum36 save_do_all42 save_do_ask42 sub42 got_quit46 got_match48 first_line46 last_line46 old_line_count46 line2'36 nmatch33 endcolumn50 start_nsubs48 found32 found_count32 (0 :: Int32) matchcol36 prev_matchcol33 new_start_size33 did_sub25 lastone7 nmatch_tl32 skip_match31 lnum36 False pat_string53 pat_length53 new_start_string53 new_start_length56 old_cursor_lnum52 old_cursor_col52 old_cursor_coladd52 nullPtr (0 :: Word64) tmp_string52 tmp_length53 orig_line_string52 orig_line_length53 new_line_string52 new_line_length53
-    j'195 !lnum37 !save_do_all43 !save_do_ask43 !sub43 !got_quit47 !got_match49 !first_line47 !last_line47 !old_line_count47 !line2'37 !nmatch34 !endcolumn51 !start_nsubs49 !found33 !found_count33 !copycol24 !matchcol37 !prev_matchcol34 !new_start_size34 !did_sub26 !lastone8 !nmatch_tl33 !skip_match32 !sub_firstlnum29 !did_split24 !pat_string54 !pat_length54 !sub_firstline_string53 !sub_firstline_length55 !old_cursor_lnum53 !old_cursor_col53 !old_cursor_coladd53 !new_start_string54 !new_start_length57 !tmp_string53 !tmp_length54 !orig_line_string53 !orig_line_length54 !new_line_string53 !new_line_length54 = do
+      j'194 lnum35 save_do_all41 save_do_ask41 sub41 got_quit45 got_match47 first_line45 last_line45 old_line_count45 line2'35 nmatch32 endcolumn49 old_cursor_lnum46 old_cursor_col46 old_cursor_coladd46 start_nsubs47 found31 found_count31 matchcol34 prev_matchcol31 new_start_string31 new_start_length34 new_start_size32 did_sub24 lastone6 nmatch_tl31 skip_match30
+    j'194 !lnum36 !save_do_all42 !save_do_ask42 !sub42 !got_quit46 !got_match48 !first_line46 !last_line46 !old_line_count46 !line2'36 !nmatch33 !endcolumn50 !old_cursor_lnum47 !old_cursor_col47 !old_cursor_coladd47 !start_nsubs48 !found32 !found_count32 !matchcol35 !prev_matchcol32 !new_start_string32 !new_start_length35 !new_start_size33 !did_sub25 !lastone7 !nmatch_tl32 !skip_match31 = do
+      let !matchcol36 = fromIntegral (new_start_length35 - (fromIntegral matchcol35 :: Word64)) :: Int32
+      let !prev_matchcol33 = fromIntegral (new_start_length35 - (fromIntegral prev_matchcol32 :: Word64)) :: Int32
+      j'195 lnum36 save_do_all42 save_do_ask42 sub42 got_quit46 got_match48 first_line46 last_line46 old_line_count46 line2'36 nmatch33 new_start_string32 new_start_length35 endcolumn50 old_cursor_lnum47 old_cursor_col47 old_cursor_coladd47 start_nsubs48 found32 found_count32 (0 :: Int32) matchcol36 prev_matchcol33 nullPtr (0 :: Word64) new_start_size33 did_sub25 lastone7 nmatch_tl32 skip_match31 lnum36 False
+    j'195 !lnum37 !save_do_all43 !save_do_ask43 !sub43 !got_quit47 !got_match49 !first_line47 !last_line47 !old_line_count47 !line2'37 !nmatch34 !sub_firstline_string28 !sub_firstline_length30 !endcolumn51 !old_cursor_lnum48 !old_cursor_col48 !old_cursor_coladd48 !start_nsubs49 !found33 !found_count33 !copycol24 !matchcol37 !prev_matchcol34 !new_start_string33 !new_start_length36 !new_start_size34 !did_sub26 !lastone8 !nmatch_tl33 !skip_match32 !sub_firstlnum29 !did_split24 = do
       if (nmatch34 == (-1)) && (not lastone8)
         then do
-          r'370 <- curwin ed'
-          r'371 <- curbuf ed'
-          r'372 <- vim_regexec_multi ed' fr' r'370 r'371 sub_firstlnum29 matchcol37 nullPtr
-          j'197 lnum37 save_do_all43 save_do_ask43 sub43 got_quit47 got_match49 first_line47 last_line47 old_line_count47 line2'37 r'372 endcolumn51 start_nsubs49 found33 found_count33 copycol24 matchcol37 prev_matchcol34 new_start_size34 did_sub26 nmatch_tl33 skip_match32 sub_firstlnum29 did_split24 pat_string54 pat_length54 sub_firstline_string53 sub_firstline_length55 old_cursor_lnum53 old_cursor_col53 old_cursor_coladd53 new_start_string54 new_start_length57 tmp_string53 tmp_length54 orig_line_string53 orig_line_length54 new_line_string53 new_line_length54
-        else j'197 lnum37 save_do_all43 save_do_ask43 sub43 got_quit47 got_match49 first_line47 last_line47 old_line_count47 line2'37 nmatch34 endcolumn51 start_nsubs49 found33 found_count33 copycol24 matchcol37 prev_matchcol34 new_start_size34 did_sub26 nmatch_tl33 skip_match32 sub_firstlnum29 did_split24 pat_string54 pat_length54 sub_firstline_string53 sub_firstline_length55 old_cursor_lnum53 old_cursor_col53 old_cursor_coladd53 new_start_string54 new_start_length57 tmp_string53 tmp_length54 orig_line_string53 orig_line_length54 new_line_string53 new_line_length54
-    j'197 !lnum38 !save_do_all44 !save_do_ask44 !sub44 !got_quit48 !got_match50 !first_line48 !last_line48 !old_line_count48 !line2'38 !nmatch35 !endcolumn52 !start_nsubs50 !found34 !found_count34 !copycol25 !matchcol38 !prev_matchcol35 !new_start_size35 !did_sub27 !nmatch_tl34 !skip_match33 !sub_firstlnum30 !did_split25 !pat_string55 !pat_length55 !sub_firstline_string54 !sub_firstline_length56 !old_cursor_lnum54 !old_cursor_col54 !old_cursor_coladd54 !new_start_string55 !new_start_length58 !tmp_string54 !tmp_length55 !orig_line_string54 !orig_line_length55 !new_line_string54 !new_line_length55 = do
+          r'372 <- curwin ed'
+          r'373 <- curbuf ed'
+          r'374 <- vim_regexec_multi ed' fr' r'372 r'373 sub_firstlnum29 matchcol37 nullPtr
+          j'197 lnum37 save_do_all43 save_do_ask43 sub43 got_quit47 got_match49 first_line47 last_line47 old_line_count47 line2'37 r'374 sub_firstline_string28 sub_firstline_length30 endcolumn51 old_cursor_lnum48 old_cursor_col48 old_cursor_coladd48 start_nsubs49 found33 found_count33 copycol24 matchcol37 prev_matchcol34 new_start_string33 new_start_length36 new_start_size34 did_sub26 nmatch_tl33 skip_match32 sub_firstlnum29 did_split24
+        else j'197 lnum37 save_do_all43 save_do_ask43 sub43 got_quit47 got_match49 first_line47 last_line47 old_line_count47 line2'37 nmatch34 sub_firstline_string28 sub_firstline_length30 endcolumn51 old_cursor_lnum48 old_cursor_col48 old_cursor_coladd48 start_nsubs49 found33 found_count33 copycol24 matchcol37 prev_matchcol34 new_start_string33 new_start_length36 new_start_size34 did_sub26 nmatch_tl33 skip_match32 sub_firstlnum29 did_split24
+    j'197 !lnum38 !save_do_all44 !save_do_ask44 !sub44 !got_quit48 !got_match50 !first_line48 !last_line48 !old_line_count48 !line2'38 !nmatch35 !sub_firstline_string29 !sub_firstline_length31 !endcolumn52 !old_cursor_lnum49 !old_cursor_col49 !old_cursor_coladd49 !start_nsubs50 !found34 !found_count34 !copycol25 !matchcol38 !prev_matchcol35 !new_start_string34 !new_start_length37 !new_start_size35 !did_sub27 !nmatch_tl34 !skip_match33 !sub_firstlnum30 !did_split25 = do
       if nmatch35 <= 0
         then do
           if nmatch35 == (-1)
             then do
-              r'373 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
-              let !lnum39 = lnum38 - r'373
-              j'203 lnum39 save_do_all44 save_do_ask44 sub44 got_quit48 got_match50 first_line48 last_line48 old_line_count48 line2'38 endcolumn52 start_nsubs50 found34 found_count34 did_sub27 pat_string55 pat_length55 sub_firstline_string54 sub_firstline_length56 old_cursor_lnum54 old_cursor_col54 old_cursor_coladd54 new_start_string55 new_start_length58 tmp_string54 tmp_length55 orig_line_string54 orig_line_length55 new_line_string54 new_line_length55
-            else j'203 lnum38 save_do_all44 save_do_ask44 sub44 got_quit48 got_match50 first_line48 last_line48 old_line_count48 line2'38 endcolumn52 start_nsubs50 found34 found_count34 did_sub27 pat_string55 pat_length55 sub_firstline_string54 sub_firstline_length56 old_cursor_lnum54 old_cursor_col54 old_cursor_coladd54 new_start_string55 new_start_length58 tmp_string54 tmp_length55 orig_line_string54 orig_line_length55 new_line_string54 new_line_length55
-        else j'198 lnum38 save_do_all44 save_do_ask44 sub44 got_quit48 got_match50 first_line48 last_line48 old_line_count48 line2'38 nmatch35 endcolumn52 start_nsubs50 found34 found_count34 copycol25 matchcol38 prev_matchcol35 new_start_size35 did_sub27 nmatch_tl34 skip_match33 sub_firstlnum30 did_split25 pat_string55 pat_length55 sub_firstline_string54 sub_firstline_length56 old_cursor_lnum54 old_cursor_col54 old_cursor_coladd54 new_start_string55 new_start_length58 tmp_string54 tmp_length55 orig_line_string54 orig_line_length55 new_line_string54 new_line_length55
-    j'198 !lnum40 !save_do_all45 !save_do_ask45 !sub45 !got_quit49 !got_match51 !first_line49 !last_line49 !old_line_count49 !line2'39 !nmatch36 !endcolumn53 !start_nsubs51 !found35 !found_count35 !copycol26 !matchcol39 !prev_matchcol36 !new_start_size36 !did_sub28 !nmatch_tl35 !skip_match34 !sub_firstlnum31 !did_split26 !pat_string56 !pat_length56 !sub_firstline_string55 !sub_firstline_length57 !old_cursor_lnum55 !old_cursor_col55 !old_cursor_coladd55 !new_start_string56 !new_start_length59 !tmp_string55 !tmp_length56 !orig_line_string55 !orig_line_length56 !new_line_string55 !new_line_length56 = do
+              r'375 <- rdI64 (pAdd fr' regmmatch_T'startpos) lpos_T'lnum
+              let !lnum39 = lnum38 - r'375
+              j'203 lnum39 save_do_all44 save_do_ask44 sub44 got_quit48 got_match50 first_line48 last_line48 old_line_count48 line2'38 endcolumn52 old_cursor_lnum49 old_cursor_col49 old_cursor_coladd49 start_nsubs50 found34 found_count34 did_sub27
+            else j'203 lnum38 save_do_all44 save_do_ask44 sub44 got_quit48 got_match50 first_line48 last_line48 old_line_count48 line2'38 endcolumn52 old_cursor_lnum49 old_cursor_col49 old_cursor_coladd49 start_nsubs50 found34 found_count34 did_sub27
+        else j'198 lnum38 save_do_all44 save_do_ask44 sub44 got_quit48 got_match50 first_line48 last_line48 old_line_count48 line2'38 nmatch35 sub_firstline_string29 sub_firstline_length31 endcolumn52 old_cursor_lnum49 old_cursor_col49 old_cursor_coladd49 start_nsubs50 found34 found_count34 copycol25 matchcol38 prev_matchcol35 new_start_string34 new_start_length37 new_start_size35 did_sub27 nmatch_tl34 skip_match33 sub_firstlnum30 did_split25
+    j'198 !lnum40 !save_do_all45 !save_do_ask45 !sub45 !got_quit49 !got_match51 !first_line49 !last_line49 !old_line_count49 !line2'39 !nmatch36 !sub_firstline_string30 !sub_firstline_length32 !endcolumn53 !old_cursor_lnum50 !old_cursor_col50 !old_cursor_coladd50 !start_nsubs51 !found35 !found_count35 !copycol26 !matchcol39 !prev_matchcol36 !new_start_string35 !new_start_length38 !new_start_size36 !did_sub28 !nmatch_tl35 !skip_match34 !sub_firstlnum31 !did_split26 = do
       line_breakcheck ed'
-      loop'93 lnum40 save_do_all45 save_do_ask45 sub45 got_quit49 got_match51 first_line49 last_line49 old_line_count49 line2'39 nmatch36 endcolumn53 start_nsubs51 found35 found_count35 copycol26 matchcol39 prev_matchcol36 new_start_size36 did_sub28 nmatch_tl35 skip_match34 sub_firstlnum31 did_split26 pat_string56 pat_length56 sub_firstline_string55 sub_firstline_length57 old_cursor_lnum55 old_cursor_col55 old_cursor_coladd55 new_start_string56 new_start_length59 tmp_string55 tmp_length56 orig_line_string55 orig_line_length56 new_line_string55 new_line_length56
-    j'203 !lnum41 !save_do_all46 !save_do_ask46 !sub46 !got_quit50 !got_match52 !first_line50 !last_line50 !old_line_count50 !line2'40 !endcolumn54 !start_nsubs52 !found36 !found_count36 !did_sub29 !pat_string57 !pat_length57 !sub_firstline_string56 !sub_firstline_length58 !old_cursor_lnum56 !old_cursor_col56 !old_cursor_coladd56 !new_start_string57 !new_start_length60 !tmp_string56 !tmp_length57 !orig_line_string56 !orig_line_length57 !new_line_string56 !new_line_length57 = do
+      loop'93 lnum40 save_do_all45 save_do_ask45 sub45 got_quit49 got_match51 first_line49 last_line49 old_line_count49 line2'39 nmatch36 sub_firstline_string30 sub_firstline_length32 endcolumn53 old_cursor_lnum50 old_cursor_col50 old_cursor_coladd50 start_nsubs51 found35 found_count35 copycol26 matchcol39 prev_matchcol36 new_start_string35 new_start_length38 new_start_size36 did_sub28 nmatch_tl35 skip_match34 sub_firstlnum31 did_split26
+    j'203 !lnum41 !save_do_all46 !save_do_ask46 !sub46 !got_quit50 !got_match52 !first_line50 !last_line50 !old_line_count50 !line2'40 !endcolumn54 !old_cursor_lnum51 !old_cursor_col51 !old_cursor_coladd51 !start_nsubs52 !found36 !found_count36 !did_sub29 = do
       if did_sub29
         then do
-          r'374 <- sub_nlines ed'
-          set'sub_nlines ed' (r'374 + 1)
-          j'205 lnum41 save_do_all46 save_do_ask46 sub46 got_quit50 got_match52 first_line50 last_line50 old_line_count50 line2'40 endcolumn54 start_nsubs52 found36 found_count36 pat_string57 pat_length57 sub_firstline_string56 sub_firstline_length58 old_cursor_lnum56 old_cursor_col56 old_cursor_coladd56 new_start_string57 new_start_length60 tmp_string56 tmp_length57 orig_line_string56 orig_line_length57 new_line_string56 new_line_length57
-        else j'205 lnum41 save_do_all46 save_do_ask46 sub46 got_quit50 got_match52 first_line50 last_line50 old_line_count50 line2'40 endcolumn54 start_nsubs52 found36 found_count36 pat_string57 pat_length57 sub_firstline_string56 sub_firstline_length58 old_cursor_lnum56 old_cursor_col56 old_cursor_coladd56 new_start_string57 new_start_length60 tmp_string56 tmp_length57 orig_line_string56 orig_line_length57 new_line_string56 new_line_length57
-    j'205 !lnum42 !save_do_all47 !save_do_ask47 !sub47 !got_quit51 !got_match53 !first_line51 !last_line51 !old_line_count51 !line2'41 !endcolumn55 !start_nsubs53 !found37 !found_count37 !pat_string58 !pat_length58 _ _ !old_cursor_lnum57 !old_cursor_col57 !old_cursor_coladd57 !new_start_string58 !new_start_length61 !tmp_string57 !tmp_length58 !orig_line_string57 !orig_line_length58 !new_line_string57 !new_line_length58 = do
-      j'206 lnum42 save_do_all47 save_do_ask47 sub47 got_quit51 got_match53 first_line51 last_line51 old_line_count51 line2'41 endcolumn55 start_nsubs53 found37 found_count37 pat_string58 pat_length58 nullPtr (0 :: Word64) old_cursor_lnum57 old_cursor_col57 old_cursor_coladd57 new_start_string58 new_start_length61 tmp_string57 tmp_length58 orig_line_string57 orig_line_length58 new_line_string57 new_line_length58
-    j'206 !lnum43 !save_do_all48 !save_do_ask48 !sub48 !got_quit52 !got_match54 !first_line52 !last_line52 !old_line_count52 !line2'42 !endcolumn56 !start_nsubs54 !found38 !found_count38 !pat_string59 !pat_length59 !sub_firstline_string58 !sub_firstline_length60 !old_cursor_lnum58 !old_cursor_col58 !old_cursor_coladd58 !new_start_string59 !new_start_length62 !tmp_string58 !tmp_length59 !orig_line_string58 !orig_line_length59 !new_line_string58 !new_line_length59 = do
+          r'376 <- sub_nlines ed'
+          set'sub_nlines ed' (r'376 + 1)
+          j'205 lnum41 save_do_all46 save_do_ask46 sub46 got_quit50 got_match52 first_line50 last_line50 old_line_count50 line2'40 endcolumn54 old_cursor_lnum51 old_cursor_col51 old_cursor_coladd51 start_nsubs52 found36 found_count36
+        else j'205 lnum41 save_do_all46 save_do_ask46 sub46 got_quit50 got_match52 first_line50 last_line50 old_line_count50 line2'40 endcolumn54 old_cursor_lnum51 old_cursor_col51 old_cursor_coladd51 start_nsubs52 found36 found_count36
+    j'205 !lnum42 !save_do_all47 !save_do_ask47 !sub47 !got_quit51 !got_match53 !first_line51 !last_line51 !old_line_count51 !line2'41 !endcolumn55 !old_cursor_lnum52 !old_cursor_col52 !old_cursor_coladd52 !start_nsubs53 !found37 !found_count37 = do
+      j'206 lnum42 save_do_all47 save_do_ask47 sub47 got_quit51 got_match53 first_line51 last_line51 old_line_count51 line2'41 nullPtr (0 :: Word64) endcolumn55 old_cursor_lnum52 old_cursor_col52 old_cursor_coladd52 start_nsubs53 found37 found_count37
+    j'206 !lnum43 !save_do_all48 !save_do_ask48 !sub48 !got_quit52 !got_match54 !first_line52 !last_line52 !old_line_count52 !line2'42 !sub_firstline_string31 !sub_firstline_length33 !endcolumn56 !old_cursor_lnum53 !old_cursor_col53 !old_cursor_coladd53 !start_nsubs54 !found38 !found_count38 = do
       line_breakcheck ed'
       let !lnum44 = lnum43 + 1
-      loop'63 lnum44 save_do_all48 save_do_ask48 sub48 got_quit52 got_match54 first_line52 last_line52 old_line_count52 line2'42 endcolumn56 start_nsubs54 found38 found_count38 pat_string59 pat_length59 sub_firstline_string58 sub_firstline_length60 old_cursor_lnum58 old_cursor_col58 old_cursor_coladd58 new_start_string59 new_start_length62 tmp_string58 tmp_length59 orig_line_string58 orig_line_length59 new_line_string58 new_line_length59
-    j'225 !sub49 !got_quit53 !got_match55 !which_pat12 !first_line53 !last_line53 !old_line_count53 !endcolumn57 !start_nsubs55 !pat_string60 !pat_length60 !sub_firstline_string59 !sub_firstline_length61 !old_cursor_lnum59 !old_cursor_col59 !old_cursor_coladd59 !new_start_string60 !new_start_length63 !tmp_string59 !tmp_length60 !orig_line_string59 !orig_line_length60 !new_line_string59 !new_line_length60 = do
-      r'375 <- rdP fr' 344
-      wrP fr' 344 (pAdd r'375 1)
-      loop'32 sub49 got_quit53 got_match55 which_pat12 first_line53 last_line53 old_line_count53 endcolumn57 start_nsubs55 pat_string60 pat_length60 sub_firstline_string59 sub_firstline_length61 old_cursor_lnum59 old_cursor_col59 old_cursor_coladd59 new_start_string60 new_start_length63 tmp_string59 tmp_length60 orig_line_string59 orig_line_length60 new_line_string59 new_line_length60
-    j'232 !keeppatterns6 !pat_string61 !pat_length61 !sub_firstline_string60 !sub_firstline_length62 !old_cursor_lnum60 !old_cursor_col60 !old_cursor_coladd60 !new_start_string61 !new_start_length64 !tmp_string60 !tmp_length61 !orig_line_string60 !orig_line_length61 !new_line_string60 !new_line_length61 = do
-      r'376 <- rdI64 eap exarg_T'line2
-      r'377 <- rdI64 eap exarg_T'line1
-      let !joined_lines_count1 = (r'376 - r'377) + 1
+      loop'63 lnum44 save_do_all48 save_do_ask48 sub48 got_quit52 got_match54 first_line52 last_line52 old_line_count52 line2'42 sub_firstline_string31 sub_firstline_length33 endcolumn56 old_cursor_lnum53 old_cursor_col53 old_cursor_coladd53 start_nsubs54 found38 found_count38
+    j'225 !sub49 !pat_string11 !pat_length11 !got_quit53 !got_match55 !which_pat12 !first_line53 !last_line53 !old_line_count53 !endcolumn57 !old_cursor_lnum54 !old_cursor_col54 !old_cursor_coladd54 !start_nsubs55 = do
+      r'377 <- rdP fr' 344
+      wrP fr' 344 (pAdd r'377 1)
+      loop'32 sub49 pat_string11 pat_length11 got_quit53 got_match55 which_pat12 first_line53 last_line53 old_line_count53 endcolumn57 old_cursor_lnum54 old_cursor_col54 old_cursor_coladd54 start_nsubs55
+    j'232 !pat_string12 !pat_length12 !keeppatterns6 = do
       r'378 <- rdI64 eap exarg_T'line2
-      r'379 <- curbuf ed'
-      r'380 <- rdI64 r'379 (buf_T'b_ml + memline_T'ml_line_count)
-      if r'378 < r'380
+      r'379 <- rdI64 eap exarg_T'line1
+      let !joined_lines_count1 = (r'378 - r'379) + 1
+      r'380 <- rdI64 eap exarg_T'line2
+      r'381 <- curbuf ed'
+      r'382 <- rdI64 r'381 (buf_T'b_ml + memline_T'ml_line_count)
+      if r'380 < r'382
         then do
           let !joined_lines_count2 = joined_lines_count1 + 1
-          j'234 keeppatterns6 joined_lines_count2 pat_string61 pat_length61 sub_firstline_string60 sub_firstline_length62 old_cursor_lnum60 old_cursor_col60 old_cursor_coladd60 new_start_string61 new_start_length64 tmp_string60 tmp_length61 orig_line_string60 orig_line_length61 new_line_string60 new_line_length61
-        else j'234 keeppatterns6 joined_lines_count1 pat_string61 pat_length61 sub_firstline_string60 sub_firstline_length62 old_cursor_lnum60 old_cursor_col60 old_cursor_coladd60 new_start_string61 new_start_length64 tmp_string60 tmp_length61 orig_line_string60 orig_line_length61 new_line_string60 new_line_length61
-    j'234 !keeppatterns7 !joined_lines_count3 !pat_string62 !pat_length62 !sub_firstline_string61 !sub_firstline_length63 !old_cursor_lnum61 !old_cursor_col61 !old_cursor_coladd61 !new_start_string62 !new_start_length65 !tmp_string61 !tmp_length62 !orig_line_string61 !orig_line_length62 !new_line_string61 !new_line_length62 = do
+          j'234 pat_string12 pat_length12 keeppatterns6 joined_lines_count2
+        else j'234 pat_string12 pat_length12 keeppatterns6 joined_lines_count1
+    j'234 !pat_string13 !pat_length13 !keeppatterns7 !joined_lines_count3 = do
       if joined_lines_count3 > 1
         then do
           _ <- do_join ed' joined_lines_count3 False True False True
@@ -1157,35 +1159,37 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
           set'sub_nlines ed' 1
           _ <- do_sub_msg ed' FALSE
           ex_may_print ed' eap
-          j'236 keeppatterns7 pat_string62 pat_length62 sub_firstline_string61 sub_firstline_length63 old_cursor_lnum61 old_cursor_col61 old_cursor_coladd61 new_start_string62 new_start_length65 tmp_string61 tmp_length62 orig_line_string61 orig_line_length62 new_line_string61 new_line_length62
-        else j'236 keeppatterns7 pat_string62 pat_length62 sub_firstline_string61 sub_firstline_length63 old_cursor_lnum61 old_cursor_col61 old_cursor_coladd61 new_start_string62 new_start_length65 tmp_string61 tmp_length62 orig_line_string61 orig_line_length62 new_line_string61 new_line_length62
-    j'236 !keeppatterns8 !pat_string63 !pat_length63 !sub_firstline_string62 !sub_firstline_length64 !old_cursor_lnum62 !old_cursor_col62 !old_cursor_coladd62 !new_start_string63 !new_start_length66 !tmp_string62 !tmp_length63 !orig_line_string62 !orig_line_length63 !new_line_string62 !new_line_length63 = do
+          j'236 pat_string13 pat_length13 keeppatterns7
+        else j'236 pat_string13 pat_length13 keeppatterns7
+    j'236 !pat_string14 !pat_length14 !keeppatterns8 = do
       if not (keeppatterns8 /= 0)
         then do
-          r'383 <- magic_isset ed'
-          save_re_pat ed' RE_SUBST pat_string63 pat_length63 r'383
-          j'238 pat_string63 pat_length63 sub_firstline_string62 sub_firstline_length64 old_cursor_lnum62 old_cursor_col62 old_cursor_coladd62 new_start_string63 new_start_length66 tmp_string62 tmp_length63 orig_line_string62 orig_line_length63 new_line_string62 new_line_length63
-        else j'238 pat_string63 pat_length63 sub_firstline_string62 sub_firstline_length64 old_cursor_lnum62 old_cursor_col62 old_cursor_coladd62 new_start_string63 new_start_length66 tmp_string62 tmp_length63 orig_line_string62 orig_line_length63 new_line_string62 new_line_length63
-    j'238 !pat_string64 !pat_length64 _ _ _ _ _ _ _ _ _ _ _ _ _ = do
-      add_to_history ed' HIST_SEARCH pat_string64 pat_length64 True NUL
+          r'385 <- magic_isset ed'
+          save_re_pat ed' RE_SUBST pat_string14 pat_length14 r'385
+          j'238 pat_string14 pat_length14
+        else j'238 pat_string14 pat_length14
+    j'238 !pat_string15 !pat_length15 = do
+      add_to_history ed' HIST_SEARCH pat_string15 pat_length15 True NUL
       pure ()
-  r'384 <- curbuf ed'
-  r'385 <- rdI64 r'384 (buf_T'b_ml + memline_T'ml_line_count)
-  r'386 <- curwin ed'
-  r'387 <- rdI64 (pAdd r'386 win_T'w_cursor) pos_T'lnum
-  r'388 <- rdI32 (pAdd r'386 win_T'w_cursor) pos_T'col
-  r'389 <- rdI32 (pAdd r'386 win_T'w_cursor) pos_T'coladd
-  r'390 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags
-  let !keeppatterns9 = r'390 .&. CMOD_KEEPPATTERNS
-  r'391 <- rdP eap exarg_T'arg
-  wrP fr' 344 r'391
-  r'392 <- global_busy ed'
-  if not (r'392 /= 0)
+  r'386 <- curbuf ed'
+  r'387 <- rdI64 r'386 (buf_T'b_ml + memline_T'ml_line_count)
+  r'388 <- curwin ed'
+  r'389 <- rdI64 r'388 (win_T'w_cursor + pos_T'lnum)
+  r'390 <- curwin ed'
+  r'391 <- rdI32 r'390 (win_T'w_cursor + pos_T'col)
+  r'392 <- curwin ed'
+  r'393 <- rdI32 r'392 (win_T'w_cursor + pos_T'coladd)
+  r'394 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags
+  let !keeppatterns9 = r'394 .&. CMOD_KEEPPATTERNS
+  r'395 <- rdP eap exarg_T'arg
+  wrP fr' 344 r'395
+  r'396 <- global_busy ed'
+  if not (r'396 /= 0)
     then do
       set'sub_nsubs ed' 0
       set'sub_nlines ed' 0
-      j'2 False False (0 :: Int64) (0 :: Int64) r'385 False keeppatterns9 nullPtr (0 :: Word64) nullPtr (0 :: Word64) r'387 r'388 r'389 nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr (0 :: Word64)
-    else j'2 False False (0 :: Int64) (0 :: Int64) r'385 False keeppatterns9 nullPtr (0 :: Word64) nullPtr (0 :: Word64) r'387 r'388 r'389 nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr (0 :: Word64)
+      j'2 False False (0 :: Int64) (0 :: Int64) r'387 False r'389 r'391 r'393 keeppatterns9
+    else j'2 False False (0 :: Int64) (0 :: Int64) r'387 False r'389 r'391 r'393 keeppatterns9
 
 do_sub_msg :: Ed -> Int32 -> IO Bool
 do_sub_msg ed' count_only = do
@@ -2052,51 +2056,55 @@ ex_redrawstatus ed' eap = do
 ex_mark :: Ed -> Ptr Exarg_T -> IO ()
 ex_mark ed' eap = do
   let
-    j'4 !pos_lnum1 !pos_col1 !pos_coladd1 = do
+    j'4 !pos_lnum1 !pos_col_1 !pos_coladd1 = do
       r'1 <- curwin ed'
       wrI64 r'1 (win_T'w_cursor + pos_T'lnum) pos_lnum1
-      wrI32 r'1 (win_T'w_cursor + pos_T'col) pos_col1
-      wrI32 r'1 (win_T'w_cursor + pos_T'coladd) pos_coladd1
+      r'2 <- curwin ed'
+      wrI32 r'2 (win_T'w_cursor + pos_T'col) pos_col_1
+      r'3 <- curwin ed'
+      wrI32 r'3 (win_T'w_cursor + pos_T'coladd) pos_coladd1
       pure ()
-  r'2 <- rdP eap exarg_T'arg
-  r'3 <- rdW8 r'2 0
-  if (fromIntegral r'3 :: Int32) == NUL
+  r'4 <- rdP eap exarg_T'arg
+  r'5 <- rdW8 r'4 0
+  if (fromIntegral r'5 :: Int32) == NUL
     then do
-      let !r'4 = c'_ (addr'e_argument_required ed')
-      _ <- emsg ed' r'4
+      let !r'6 = c'_ (addr'e_argument_required ed')
+      _ <- emsg ed' r'6
       pure ()
     else do
-      r'6 <- rdP eap exarg_T'arg
-      r'7 <- rdW8 r'6 1
-      if (fromIntegral r'7 :: Int32) /= NUL
+      r'8 <- rdP eap exarg_T'arg
+      r'9 <- rdW8 r'8 1
+      if (fromIntegral r'9 :: Int32) /= NUL
         then do
-          r'8 <- c'IObuff ed'
-          r'9 <- emsg_iobuff_room ed'
-          let !r'10 = c'_ (addr'e_trailing_characters_str ed')
-          r'11 <- rdP eap exarg_T'arg
-          _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'8)) r'9 (castPtr r'10) [VP (castPtr r'11)]
-          let !r'13 = c'_ (addr'e_trailing_characters_str ed')
-          r'14 <- iobuff_or ed' r'13
-          _ <- emsg ed' r'14
+          r'10 <- c'IObuff ed'
+          r'11 <- emsg_iobuff_room ed'
+          let !r'12 = c'_ (addr'e_trailing_characters_str ed')
+          r'13 <- rdP eap exarg_T'arg
+          _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'10)) r'11 (castPtr r'12) [VP (castPtr r'13)]
+          let !r'15 = c'_ (addr'e_trailing_characters_str ed')
+          r'16 <- iobuff_or ed' r'15
+          _ <- emsg ed' r'16
           pure ()
         else do
-          r'16 <- curwin ed'
-          r'17 <- rdI64 (pAdd r'16 win_T'w_cursor) pos_T'lnum
-          r'18 <- rdI32 (pAdd r'16 win_T'w_cursor) pos_T'col
-          r'19 <- rdI32 (pAdd r'16 win_T'w_cursor) pos_T'coladd
-          r'21 <- curwin ed'
-          r'20 <- rdI64 eap exarg_T'line2
-          wrI64 r'21 (win_T'w_cursor + pos_T'lnum) r'20
+          r'18 <- curwin ed'
+          r'19 <- rdI64 r'18 (win_T'w_cursor + pos_T'lnum)
+          r'20 <- curwin ed'
+          r'21 <- rdI32 r'20 (win_T'w_cursor + pos_T'col)
+          r'22 <- curwin ed'
+          r'23 <- rdI32 r'22 (win_T'w_cursor + pos_T'coladd)
+          r'25 <- curwin ed'
+          r'24 <- rdI64 eap exarg_T'line2
+          wrI64 r'25 (win_T'w_cursor + pos_T'lnum) r'24
           beginline ed' 5
-          r'22 <- rdP eap exarg_T'arg
-          r'23 <- rdW8 r'22 0
-          r'24 <- setmark ed' (fromIntegral r'23 :: Int32)
-          if r'24 == FAIL
+          r'26 <- rdP eap exarg_T'arg
+          r'27 <- rdW8 r'26 0
+          r'28 <- setmark ed' (fromIntegral r'27 :: Int32)
+          if r'28 == FAIL
             then do
-              let !r'25 = c'_ (addr'e_argument_must_be_letter_or_forward_backward_quote ed')
-              _ <- emsg ed' r'25
-              j'4 r'17 r'18 r'19
-            else j'4 r'17 r'18 r'19
+              let !r'29 = c'_ (addr'e_argument_must_be_letter_or_forward_backward_quote ed')
+              _ <- emsg ed' r'29
+              j'4 r'19 r'21 r'23
+            else j'4 r'19 r'21 r'23
 
 update_topline_cursor :: Ed -> IO ()
 update_topline_cursor ed' = do
@@ -2220,7 +2228,7 @@ c'CancelRedo ed' = do
 c'AppendToRedobuffSpec :: Ed -> Ptr Char_u -> IO ()
 c'AppendToRedobuffSpec ed' s = do
   let
-    loop'2 !s1 = do
+    loop'2 !s1 !mb_cptr2char_adv__o_r__1 !mb_cptr2char_adv__o_pp1 = do
       r'1 <- rdW8 s1 0
       if (fromIntegral r'1 :: Int32) /= NUL
         then do
@@ -2231,16 +2239,16 @@ c'AppendToRedobuffSpec ed' s = do
             then do
               add_buff ed' (addr'redobuff ed') s1 3
               let !s2 = pAdd s1 3
-              loop'2 s2
+              loop'2 s2 mb_cptr2char_adv__o_r__1 mb_cptr2char_adv__o_pp1
             else do
-              (r'7, s3) <- mb_cptr2char_adv ed' s1
+              (r'7, r'8) <- mb_cptr2char_adv ed' s1
               add_char_buff ed' (addr'redobuff ed') r'7
-              loop'2 s3
+              loop'2 r'8 r'7 r'8
         else pure ()
   r'9 <- block_redo ed'
   if r'9 /= 0
     then pure ()
-    else loop'2 s
+    else loop'2 s (0 :: Int32) nullPtr
 
 stuffReadbuff :: Ed -> Ptr Char_u -> IO ()
 stuffReadbuff ed' s = do
@@ -2368,18 +2376,22 @@ restore_typeahead ed' tp overwrite = do
 get_sw_value_pos :: Ed -> Ptr Buf_T -> Ptr Pos_T -> Bool -> IO Int64
 get_sw_value_pos ed' buf pos left = do
   r'1 <- curwin ed'
-  r'2 <- rdI64 (pAdd r'1 win_T'w_cursor) pos_T'lnum
-  r'3 <- rdI32 (pAdd r'1 win_T'w_cursor) pos_T'col
-  r'4 <- rdI32 (pAdd r'1 win_T'w_cursor) pos_T'coladd
+  r'2 <- rdI64 r'1 (win_T'w_cursor + pos_T'lnum)
+  r'3 <- curwin ed'
+  r'4 <- rdI32 r'3 (win_T'w_cursor + pos_T'col)
   r'5 <- curwin ed'
-  copyMem (pAdd r'5 win_T'w_cursor) pos 16
-  r'6 <- get_nolist_virtcol ed'
-  r'7 <- get_sw_value_col buf r'6 left
-  r'8 <- curwin ed'
-  wrI64 r'8 (win_T'w_cursor + pos_T'lnum) r'2
-  wrI32 r'8 (win_T'w_cursor + pos_T'col) r'3
-  wrI32 r'8 (win_T'w_cursor + pos_T'coladd) r'4
-  pure r'7
+  r'6 <- rdI32 r'5 (win_T'w_cursor + pos_T'coladd)
+  r'7 <- curwin ed'
+  copyMem (pAdd r'7 win_T'w_cursor) pos 16
+  r'8 <- get_nolist_virtcol ed'
+  r'9 <- get_sw_value_col buf r'8 left
+  r'10 <- curwin ed'
+  wrI64 r'10 (win_T'w_cursor + pos_T'lnum) r'2
+  r'11 <- curwin ed'
+  wrI32 r'11 (win_T'w_cursor + pos_T'col) r'4
+  r'12 <- curwin ed'
+  wrI32 r'12 (win_T'w_cursor + pos_T'coladd) r'6
+  pure r'9
 
 get_sw_value_indent :: Ed -> Ptr Buf_T -> Bool -> IO Int64
 get_sw_value_indent ed' buf left = frame 16 $ \fr' -> do
@@ -2695,13 +2707,13 @@ check_text_or_curbuf_locked ed' oap = do
 normal_cmd_get_count :: Ed -> Ptr Cmdarg_T -> Int32 -> Bool -> Bool -> Int32 -> Int32 -> IO (Int32, Int32, Int32)
 normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = do
   let
-    loop'0 !c1 !ctrl_w1 !need_flushbuf1 = do
+    loop'0 !c1 !ctrl_w1 !need_flushbuf1 !out___r__1 !out___ctrl_w1 !out___need_flushbuf1 = do
       r'1 <- c'VIsual_active ed'
       r'3 <- if (r'1 /= 0) then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
       if not r'3
-        then loop'2 c1 ctrl_w1 need_flushbuf1
-        else j'4 c1 ctrl_w1 need_flushbuf1
-    loop'2 !c2 !ctrl_w2 !need_flushbuf2 = do
+        then loop'2 c1 ctrl_w1 need_flushbuf1 out___r__1 out___ctrl_w1 out___need_flushbuf1
+        else j'4 c1 ctrl_w1 need_flushbuf1 out___r__1 out___ctrl_w1 out___need_flushbuf1
+    loop'2 !c2 !ctrl_w2 !need_flushbuf2 !out___r__2 !out___ctrl_w2 !out___need_flushbuf2 = do
       r'5 <- if ((c2 >= (ch '1')) && (c2 <= (ch '9'))) then pure True else (do { r'4 <- rdI64 cap cmdarg_T'count0; pure ((r'4 /= 0) && (((c2 == K_DEL) || (c2 == K_KDEL)) || (c2 == (ch '0')))) })
       if r'5
         then do
@@ -2710,17 +2722,17 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
               r'6 <- rdI64 cap cmdarg_T'count0
               wrI64 cap cmdarg_T'count0 (quot r'6 10)
               del_from_showcmd ed' 4
-              j'19 ctrl_w2 need_flushbuf2
+              j'19 ctrl_w2 need_flushbuf2 out___r__2 out___ctrl_w2 out___need_flushbuf2
             else do
               r'7 <- rdI64 cap cmdarg_T'count0
               if r'7 > 99999999
                 then do
                   wrI64 cap cmdarg_T'count0 999999999
-                  j'19 ctrl_w2 need_flushbuf2
+                  j'19 ctrl_w2 need_flushbuf2 out___r__2 out___ctrl_w2 out___need_flushbuf2
                 else do
                   r'8 <- rdI64 cap cmdarg_T'count0
                   wrI64 cap cmdarg_T'count0 ((r'8 * 10) + (fromIntegral (c2 - (ch '0')) :: Int64))
-                  j'19 ctrl_w2 need_flushbuf2
+                  j'19 ctrl_w2 need_flushbuf2 out___r__2 out___ctrl_w2 out___need_flushbuf2
         else do
           r'11 <- if ((c2 == Ctrl_W) && (not (ctrl_w2 /= 0))) then (do { r'9 <- rdP cap cmdarg_T'oap; r'10 <- rdI32 r'9 oparg_T'op_type; pure (r'10 == OP_NOP) }) else pure False
           if r'11
@@ -2739,9 +2751,9 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
               set'allow_keys ed' (r'17 - 1)
               r'18 <- add_to_showcmd ed' r'15
               let !need_flushbuf3 = need_flushbuf2 .|. (b2i r'18 :: Int32)
-              loop'0 r'15 (TRUE :: Int32) need_flushbuf3
-            else j'4 c2 ctrl_w2 need_flushbuf2
-    j'4 !c3 !ctrl_w3 !need_flushbuf4 = do
+              loop'0 r'15 (TRUE :: Int32) need_flushbuf3 out___r__2 out___ctrl_w2 out___need_flushbuf2
+            else j'4 c2 ctrl_w2 need_flushbuf2 out___r__2 out___ctrl_w2 out___need_flushbuf2
+    j'4 !c3 !ctrl_w3 !need_flushbuf4 !out___r__3 !out___ctrl_w3 !out___need_flushbuf3 = do
       if c3 == K_CURSORHOLD
         then do
           r'20 <- rdP cap cmdarg_T'oap
@@ -2750,7 +2762,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
           r'22 <- rdP cap cmdarg_T'oap
           r'21 <- rdI64 cap cmdarg_T'count0
           wrI64 r'22 oparg_T'prev_count0 r'21
-          j'12 c3 ctrl_w3 need_flushbuf4
+          j'12 c3 ctrl_w3 need_flushbuf4 out___r__3 out___ctrl_w3 out___need_flushbuf3
         else do
           r'23 <- rdI64 cap cmdarg_T'opcount
           if r'23 /= 0
@@ -2763,34 +2775,34 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
                   if r'25 >= (quot 999999999 r'26)
                     then do
                       wrI64 cap cmdarg_T'count0 999999999
-                      j'12 c3 ctrl_w3 need_flushbuf4
+                      j'12 c3 ctrl_w3 need_flushbuf4 out___r__3 out___ctrl_w3 out___need_flushbuf3
                     else do
                       r'27 <- rdI64 cap cmdarg_T'count0
                       r'28 <- rdI64 cap cmdarg_T'opcount
                       wrI64 cap cmdarg_T'count0 (r'27 * r'28)
-                      j'12 c3 ctrl_w3 need_flushbuf4
+                      j'12 c3 ctrl_w3 need_flushbuf4 out___r__3 out___ctrl_w3 out___need_flushbuf3
                 else do
                   r'29 <- rdI64 cap cmdarg_T'opcount
                   wrI64 cap cmdarg_T'count0 r'29
-                  j'12 c3 ctrl_w3 need_flushbuf4
-            else j'12 c3 ctrl_w3 need_flushbuf4
-    j'12 !c4 !ctrl_w4 !need_flushbuf5 = do
+                  j'12 c3 ctrl_w3 need_flushbuf4 out___r__3 out___ctrl_w3 out___need_flushbuf3
+            else j'12 c3 ctrl_w3 need_flushbuf4 out___r__3 out___ctrl_w3 out___need_flushbuf3
+    j'12 !c4 !ctrl_w4 !need_flushbuf5 _ _ _ = do
       r'30 <- rdI64 cap cmdarg_T'count0
       wrI64 cap cmdarg_T'opcount r'30
       r'31 <- rdI64 cap cmdarg_T'count0
       r'33 <- if (r'31 == 0) then pure (1 :: Int64) else (rdI64 cap cmdarg_T'count0)
       wrI64 cap cmdarg_T'count1 r'33
       pure (c4, ctrl_w4, need_flushbuf5)
-    j'19 !ctrl_w5 !need_flushbuf6 = do
+    j'19 !ctrl_w5 !need_flushbuf6 !out___r__5 !out___ctrl_w5 !out___need_flushbuf5 = do
       if ctrl_w5 /= 0
         then do
           r'34 <- no_mapping ed'
           set'no_mapping ed' (r'34 + 1)
           r'35 <- allow_keys ed'
           set'allow_keys ed' (r'35 + 1)
-          j'21 ctrl_w5 need_flushbuf6
-        else j'21 ctrl_w5 need_flushbuf6
-    j'21 !ctrl_w6 !need_flushbuf7 = do
+          j'21 ctrl_w5 need_flushbuf6 out___r__5 out___ctrl_w5 out___need_flushbuf5
+        else j'21 ctrl_w5 need_flushbuf6 out___r__5 out___ctrl_w5 out___need_flushbuf5
+    j'21 !ctrl_w6 !need_flushbuf7 !out___r__6 !out___ctrl_w6 !out___need_flushbuf6 = do
       r'36 <- no_zero_mapping ed'
       set'no_zero_mapping ed' (r'36 + 1)
       r'37 <- plain_vgetc ed'
@@ -2802,13 +2814,13 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
           set'no_mapping ed' (r'39 - 1)
           r'40 <- allow_keys ed'
           set'allow_keys ed' (r'40 - 1)
-          j'23 r'37 ctrl_w6 need_flushbuf7
-        else j'23 r'37 ctrl_w6 need_flushbuf7
-    j'23 !c5 !ctrl_w7 !need_flushbuf8 = do
+          j'23 r'37 ctrl_w6 need_flushbuf7 out___r__6 out___ctrl_w6 out___need_flushbuf6
+        else j'23 r'37 ctrl_w6 need_flushbuf7 out___r__6 out___ctrl_w6 out___need_flushbuf6
+    j'23 !c5 !ctrl_w7 !need_flushbuf8 !out___r__7 !out___ctrl_w7 !out___need_flushbuf7 = do
       r'41 <- add_to_showcmd ed' c5
       let !need_flushbuf9 = need_flushbuf8 .|. (b2i r'41 :: Int32)
-      loop'2 c5 ctrl_w7 need_flushbuf9
-  loop'0 c ctrl_w need_flushbuf
+      loop'2 c5 ctrl_w7 need_flushbuf9 out___r__7 out___ctrl_w7 out___need_flushbuf7
+  loop'0 c ctrl_w need_flushbuf (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 normal_cmd_needs_more_chars :: Ed -> Ptr Cmdarg_T -> Short_u -> IO Bool
 normal_cmd_needs_more_chars ed' cap cmd_flags = do
@@ -2817,20 +2829,20 @@ normal_cmd_needs_more_chars ed' cap cmd_flags = do
 normal_cmd_get_more_chars :: Ed -> Int32 -> Ptr Cmdarg_T -> Int32 -> IO (Int32, Int32)
 normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
   let
-    j'3 !need_flushbuf1 !idx1 !repl1 !lit1 = do
+    j'3 !need_flushbuf1 !idx1 !repl1 !lit1 !out___r__1 !out___need_flushbuf1 = do
       let !cp1 = pAdd cap cmdarg_T'nchar
-      j'9 need_flushbuf1 idx1 cp1 repl1 lit1
-    j'9 !need_flushbuf2 !idx2 !cp2 !repl2 !lit2 = do
+      j'9 need_flushbuf1 idx1 cp1 repl1 lit1 out___r__1 out___need_flushbuf1
+    j'9 !need_flushbuf2 !idx2 !cp2 !repl2 !lit2 !out___r__2 !out___need_flushbuf2 = do
       r'2 <- if repl2 then pure True else (do { r'1 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx2) * 24)) nv_cmd'cmd_flags; pure (((fromIntegral r'1 :: Int32) .&. NV_LANG) /= 0) })
       if cp2 /= nullPtr
         then do
           if repl2
             then do
               set'c'State ed' 272
-              j'12 need_flushbuf2 idx2 cp2 lit2 r'2
-            else j'12 need_flushbuf2 idx2 cp2 lit2 r'2
-        else j'39 need_flushbuf2 idx2
-    j'12 !need_flushbuf3 !idx3 !cp3 !lit3 !lang1 = do
+              j'12 need_flushbuf2 idx2 cp2 lit2 r'2 out___r__2 out___need_flushbuf2
+            else j'12 need_flushbuf2 idx2 cp2 lit2 r'2 out___r__2 out___need_flushbuf2
+        else j'39 need_flushbuf2 idx2 out___r__2 out___need_flushbuf2
+    j'12 !need_flushbuf3 !idx3 !cp3 !lit3 !lang1 !out___r__3 !out___need_flushbuf3 = do
       r'3 <- c'State ed'
       r'5 <- if ((r'3 .&. MODE_INSERT) /= 0) then (do { r'4 <- p_ek ed'; pure (not (r'4 /= 0)) }) else pure False
       if r'5
@@ -2838,9 +2850,9 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
           r'6 <- rdP (addr'term_strings ed') 664
           out_str ed' r'6
           out_str_t_TE ed'
-          j'14 need_flushbuf3 idx3 cp3 lit3 lang1
-        else j'14 need_flushbuf3 idx3 cp3 lit3 lang1
-    j'14 !need_flushbuf4 !idx4 !cp4 !lit4 !lang2 = do
+          j'14 need_flushbuf3 idx3 cp3 lit3 lang1 out___r__3 out___need_flushbuf3
+        else j'14 need_flushbuf3 idx3 cp3 lit3 lang1 out___r__3 out___need_flushbuf3
+    j'14 !need_flushbuf4 !idx4 !cp4 !lit4 !lang2 !out___r__4 !out___need_flushbuf4 = do
       r'7 <- plain_vgetc ed'
       wrI32 cp4 0 r'7
       r'8 <- c'State ed'
@@ -2849,17 +2861,17 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
         then do
           out_str_t_BE ed'
           out_str_t_TI ed'
-          j'16 need_flushbuf4 idx4 cp4 lit4 lang2
-        else j'16 need_flushbuf4 idx4 cp4 lit4 lang2
-    j'16 !need_flushbuf5 !idx5 !cp5 !lit5 !lang3 = do
+          j'16 need_flushbuf4 idx4 cp4 lit4 lang2 out___r__4 out___need_flushbuf4
+        else j'16 need_flushbuf4 idx4 cp4 lit4 lang2 out___r__4 out___need_flushbuf4
+    j'16 !need_flushbuf5 !idx5 !cp5 !lit5 !lang3 !out___r__5 !out___need_flushbuf5 = do
       set'c'State ed' 4097
       r'11 <- rdI32 cp5 0
       r'12 <- add_to_showcmd ed' r'11
       let !need_flushbuf6 = need_flushbuf5 .|. (b2i r'12 :: Int32)
       if not lit5
-        then j'17 need_flushbuf6 idx5 cp5 lang3
-        else j'17 need_flushbuf6 idx5 cp5 lang3
-    j'17 !need_flushbuf7 !idx6 !cp6 !lang4 = do
+        then j'17 need_flushbuf6 idx5 cp5 lang3 out___r__5 out___need_flushbuf5
+        else j'17 need_flushbuf6 idx5 cp5 lang3 out___r__5 out___need_flushbuf5
+    j'17 !need_flushbuf7 !idx6 !cp6 !lang4 !out___r__6 !out___need_flushbuf6 = do
       r'14 <- if (cp6 == (pAdd cap cmdarg_T'extra_char)) then (do { r'13 <- rdI32 cap cmdarg_T'nchar; pure (r'13 == Ctrl_BSL) }) else pure False
       r'18 <- if r'14 then (do { r'15 <- rdI32 cap cmdarg_T'extra_char; if (r'15 == Ctrl_N) then pure True else (do { r'16 <- rdI32 cap cmdarg_T'extra_char; pure (r'16 == Ctrl_G) }) }) else pure False
       if r'18
@@ -2869,7 +2881,7 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
           wrI32 cap cmdarg_T'nchar r'19
           r'20 <- rdI32 cap cmdarg_T'cmdchar
           r'21 <- find_command ed' r'20
-          j'29 need_flushbuf7 r'21 lang4
+          j'29 need_flushbuf7 r'21 lang4 out___r__6 out___need_flushbuf6
         else do
           r'22 <- rdI32 cap cmdarg_T'nchar
           r'24 <- if (r'22 == (ch 'n')) then pure True else (do { r'23 <- rdI32 cap cmdarg_T'nchar; pure (r'23 == (ch 'N')) })
@@ -2880,22 +2892,22 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
               r'27 <- rdI32 cp6 0
               r'28 <- get_op_type ed' r'27 NUL
               wrI32 r'29 oparg_T'op_type r'28
-              j'29 need_flushbuf7 idx6 lang4
+              j'29 need_flushbuf7 idx6 lang4 out___r__6 out___need_flushbuf6
             else do
               r'30 <- rdI32 cp6 0
               if r'30 == Ctrl_BSL
                 then do
                   r'31 <- p_ttm ed'
                   r'34 <- if (r'31 >= 0) then (p_ttm ed') else (p_tm ed')
-                  loop'21 need_flushbuf7 idx6 lang4 r'34
-                else j'29 need_flushbuf7 idx6 lang4
-    loop'21 !need_flushbuf8 !idx7 !lang5 !towait1 = do
+                  loop'21 need_flushbuf7 idx6 lang4 r'34 out___r__6 out___need_flushbuf6
+                else j'29 need_flushbuf7 idx6 lang4 out___r__6 out___need_flushbuf6
+    loop'21 !need_flushbuf8 !idx7 !lang5 !towait1 !out___r__7 !out___need_flushbuf7 = do
       r'35 <- vpeekc ed'
       if (r'35 <= 0) && (towait1 > 0)
         then do
           do_sleep ed' (if (towait1 > 50) then 50 else towait1) False
           let !towait2 = towait1 - 50
-          loop'21 need_flushbuf8 idx7 lang5 towait2
+          loop'21 need_flushbuf8 idx7 lang5 towait2 out___r__7 out___need_flushbuf7
         else do
           if r'35 > 0
             then do
@@ -2903,22 +2915,22 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
               if (r'36 /= Ctrl_N) && (r'36 /= Ctrl_G)
                 then do
                   vungetc ed' r'36
-                  j'29 need_flushbuf8 idx7 lang5
+                  j'29 need_flushbuf8 idx7 lang5 out___r__7 out___need_flushbuf7
                 else do
                   wrI32 cap cmdarg_T'cmdchar Ctrl_BSL
                   wrI32 cap cmdarg_T'nchar r'36
                   r'37 <- rdI32 cap cmdarg_T'cmdchar
                   r'38 <- find_command ed' r'37
-                  j'29 need_flushbuf8 r'38 lang5
-            else j'29 need_flushbuf8 idx7 lang5
-    j'29 !need_flushbuf9 !idx8 !lang6 = do
+                  j'29 need_flushbuf8 r'38 lang5 out___r__7 out___need_flushbuf7
+            else j'29 need_flushbuf8 idx7 lang5 out___r__7 out___need_flushbuf7
+    j'29 !need_flushbuf9 !idx8 !lang6 !out___r__8 !out___need_flushbuf8 = do
       if lang6
         then do
           r'39 <- no_mapping ed'
           set'no_mapping ed' (r'39 - 1)
-          loop'31 need_flushbuf9 idx8
-        else j'39 need_flushbuf9 idx8
-    loop'31 !need_flushbuf10 !idx9 = do
+          loop'31 need_flushbuf9 idx8 out___r__8 out___need_flushbuf8
+        else j'39 need_flushbuf9 idx8 out___r__8 out___need_flushbuf8
+    loop'31 !need_flushbuf10 !idx9 !out___r__9 !out___need_flushbuf9 = do
       r'40 <- vpeekc ed'
       r'44 <- if (r'40 > 0) then (if (r'40 >= 256) then pure True else (do { r'41 <- vpeekc ed'; r'42 <- rdI8 (pAdd (addr'mb_bytelen_tab ed') (fromIntegral r'41)) 0; pure ((fromIntegral r'42 :: Int32) > 1) })) else pure False
       if r'44
@@ -2928,18 +2940,18 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
           if not r'46
             then do
               vungetc ed' r'45
-              j'38 need_flushbuf10 idx9
+              j'38 need_flushbuf10 idx9 out___r__9 out___need_flushbuf9
             else do
               r'47 <- rdI32 cap cmdarg_T'ncharC1
               if r'47 == 0
                 then do
                   wrI32 cap cmdarg_T'ncharC1 r'45
-                  loop'31 need_flushbuf10 idx9
+                  loop'31 need_flushbuf10 idx9 out___r__9 out___need_flushbuf9
                 else do
                   wrI32 cap cmdarg_T'ncharC2 r'45
-                  loop'31 need_flushbuf10 idx9
-        else j'38 need_flushbuf10 idx9
-    j'38 !need_flushbuf11 !idx10 = do
+                  loop'31 need_flushbuf10 idx9 out___r__9 out___need_flushbuf9
+        else j'38 need_flushbuf10 idx9 out___r__9 out___need_flushbuf9
+    j'38 !need_flushbuf11 !idx10 !out___r__10 !out___need_flushbuf10 = do
       r'48 <- no_mapping ed'
       set'no_mapping ed' (r'48 + 1)
       r'49 <- no_u_sync ed'
@@ -2947,8 +2959,8 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
       gotchars_ignore ed'
       r'50 <- no_u_sync ed'
       set'no_u_sync ed' (r'50 - 1)
-      j'39 need_flushbuf11 idx10
-    j'39 !need_flushbuf12 !idx11 = do
+      j'39 need_flushbuf11 idx10 out___r__10 out___need_flushbuf10
+    j'39 !need_flushbuf12 !idx11 _ _ = do
       r'51 <- no_mapping ed'
       set'no_mapping ed' (r'51 - 1)
       r'52 <- allow_keys ed'
@@ -2976,14 +2988,14 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
           let !cp7 = pAdd cap cmdarg_T'extra_char
           r'66 <- rdI32 cap cmdarg_T'nchar
           if r'66 /= (ch 'r')
-            then j'9 need_flushbuf13 idx_arg cp7 False True
-            else j'9 need_flushbuf13 idx_arg cp7 True False
-        else j'9 need_flushbuf13 idx_arg nullPtr False False
+            then j'9 need_flushbuf13 idx_arg cp7 False True (0 :: Int32) (0 :: Int32)
+            else j'9 need_flushbuf13 idx_arg cp7 True False (0 :: Int32) (0 :: Int32)
+        else j'9 need_flushbuf13 idx_arg nullPtr False False (0 :: Int32) (0 :: Int32)
     else do
       r'67 <- rdI32 cap cmdarg_T'cmdchar
       if r'67 == (ch 'r')
-        then j'3 need_flushbuf idx_arg True False
-        else j'3 need_flushbuf idx_arg False False
+        then j'3 need_flushbuf idx_arg True False (0 :: Int32) (0 :: Int32)
+        else j'3 need_flushbuf idx_arg False False (0 :: Int32) (0 :: Int32)
 
 normal_cmd_need_to_wait_for_msg :: Ed -> Ptr Cmdarg_T -> Ptr Pos_T -> IO Bool
 normal_cmd_need_to_wait_for_msg ed' cap old_pos = do
@@ -3052,7 +3064,7 @@ normal_cmd_wait_for_msg ed' = do
 normal_cmd :: Ed -> Ptr Oparg_T -> Bool -> IO ()
 normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
   let
-    j'2 !ctrl_w1 !old_col1 !set_prevcount1 !save_did_cursorhold1 = do
+    j'2 !ctrl_w1 !old_col1 !set_prevcount1 !save_did_cursorhold1 !normal_cmd_get_count__o_r__1 !normal_cmd_get_count__o_ctrl_w1 !normal_cmd_get_count__o_need_flushbuf1 !normal_cmd_get_more_chars__o_r__1 !normal_cmd_get_more_chars__o_need_flushbuf1 = do
       r'1 <- rdI64 oap oparg_T'prev_opcount
       r'3 <- if (r'1 > 0) then pure True else (do { r'2 <- rdI64 oap oparg_T'prev_count0; pure (r'2 > 0) })
       if r'3
@@ -3063,9 +3075,9 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           wrI64 fr' cmdarg_T'count0 r'5
           wrI64 oap oparg_T'prev_opcount 0
           wrI64 oap oparg_T'prev_count0 0
-          j'4 ctrl_w1 old_col1 set_prevcount1 save_did_cursorhold1
-        else j'4 ctrl_w1 old_col1 set_prevcount1 save_did_cursorhold1
-    j'4 !ctrl_w2 !old_col2 !set_prevcount2 !save_did_cursorhold2 = do
+          j'4 ctrl_w1 old_col1 set_prevcount1 save_did_cursorhold1 normal_cmd_get_count__o_r__1 normal_cmd_get_count__o_ctrl_w1 normal_cmd_get_count__o_need_flushbuf1 normal_cmd_get_more_chars__o_r__1 normal_cmd_get_more_chars__o_need_flushbuf1
+        else j'4 ctrl_w1 old_col1 set_prevcount1 save_did_cursorhold1 normal_cmd_get_count__o_r__1 normal_cmd_get_count__o_ctrl_w1 normal_cmd_get_count__o_need_flushbuf1 normal_cmd_get_more_chars__o_r__1 normal_cmd_get_more_chars__o_need_flushbuf1
+    j'4 !ctrl_w2 !old_col2 !set_prevcount2 !save_did_cursorhold2 !normal_cmd_get_count__o_r__2 !normal_cmd_get_count__o_ctrl_w2 !normal_cmd_get_count__o_need_flushbuf2 !normal_cmd_get_more_chars__o_r__2 !normal_cmd_get_more_chars__o_need_flushbuf2 = do
       r'6 <- typebuf_maplen ed'
       set'c'State ed' 4097
       r'7 <- safe_vgetc ed'
@@ -3073,7 +3085,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       if r'8 == 0
         then do
           set'normal_cmd'old_mapped_len ed' 0
-          j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2
+          j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2 normal_cmd_get_count__o_r__2 normal_cmd_get_count__o_ctrl_w2 normal_cmd_get_count__o_need_flushbuf2 normal_cmd_get_more_chars__o_r__2 normal_cmd_get_more_chars__o_need_flushbuf2
         else do
           r'9 <- normal_cmd'old_mapped_len ed'
           r'13 <- if (r'9 /= 0) then pure True else (do { r'10 <- c'VIsual_active ed'; if ((r'10 /= 0) && (r'6 == 0)) then (do { r'11 <- typebuf_maplen ed'; pure (r'11 > 0) }) else pure False })
@@ -3081,13 +3093,13 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
             then do
               r'14 <- typebuf_maplen ed'
               set'normal_cmd'old_mapped_len ed' r'14
-              j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2
-            else j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2
-    j'8 !c1 !ctrl_w3 !old_col3 !set_prevcount3 !save_did_cursorhold3 = do
+              j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2 normal_cmd_get_count__o_r__2 normal_cmd_get_count__o_ctrl_w2 normal_cmd_get_count__o_need_flushbuf2 normal_cmd_get_more_chars__o_r__2 normal_cmd_get_more_chars__o_need_flushbuf2
+            else j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2 normal_cmd_get_count__o_r__2 normal_cmd_get_count__o_ctrl_w2 normal_cmd_get_count__o_need_flushbuf2 normal_cmd_get_more_chars__o_r__2 normal_cmd_get_more_chars__o_need_flushbuf2
+    j'8 !c1 !ctrl_w3 !old_col3 !set_prevcount3 !save_did_cursorhold3 !normal_cmd_get_count__o_r__3 !normal_cmd_get_count__o_ctrl_w3 !normal_cmd_get_count__o_need_flushbuf3 !normal_cmd_get_more_chars__o_r__3 !normal_cmd_get_more_chars__o_need_flushbuf3 = do
       if c1 == NUL
-        then j'10 (-22783 :: Int32) ctrl_w3 old_col3 set_prevcount3 save_did_cursorhold3
-        else j'10 c1 ctrl_w3 old_col3 set_prevcount3 save_did_cursorhold3
-    j'10 !c2 !ctrl_w4 !old_col4 !set_prevcount4 !save_did_cursorhold4 = do
+        then j'10 (-22783 :: Int32) ctrl_w3 old_col3 set_prevcount3 save_did_cursorhold3 normal_cmd_get_count__o_r__3 normal_cmd_get_count__o_ctrl_w3 normal_cmd_get_count__o_need_flushbuf3 normal_cmd_get_more_chars__o_r__3 normal_cmd_get_more_chars__o_need_flushbuf3
+        else j'10 c1 ctrl_w3 old_col3 set_prevcount3 save_did_cursorhold3 normal_cmd_get_count__o_r__3 normal_cmd_get_count__o_ctrl_w3 normal_cmd_get_count__o_need_flushbuf3 normal_cmd_get_more_chars__o_r__3 normal_cmd_get_more_chars__o_need_flushbuf3
+    j'10 !c2 !ctrl_w4 !old_col4 !set_prevcount4 !save_did_cursorhold4 !normal_cmd_get_count__o_r__4 !normal_cmd_get_count__o_ctrl_w4 !normal_cmd_get_count__o_need_flushbuf4 !normal_cmd_get_more_chars__o_r__4 !normal_cmd_get_more_chars__o_need_flushbuf4 = do
       r'15 <- c'VIsual_active ed'
       r'17 <- if (r'15 /= 0) then (do { r'16 <- c'VIsual_select ed'; pure (r'16 /= 0) }) else pure False
       r'19 <- if r'17 then (do { r'18 <- vim_isprintc ed' c2; pure (((r'18 || (c2 == NL)) || (c2 == CAR)) || (c2 == K_KENTER)) }) else pure False
@@ -3100,50 +3112,50 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           if r'23 /= 0
             then do
               ungetchars ed' r'22
-              j'13 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4
-            else j'13 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4
-        else j'17 c2 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4
-    j'13 !ctrl_w5 !old_col5 !set_prevcount5 !save_did_cursorhold5 = do
+              j'13 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4 normal_cmd_get_count__o_r__4 normal_cmd_get_count__o_ctrl_w4 normal_cmd_get_count__o_need_flushbuf4 normal_cmd_get_more_chars__o_r__4 normal_cmd_get_more_chars__o_need_flushbuf4
+            else j'13 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4 normal_cmd_get_count__o_r__4 normal_cmd_get_count__o_ctrl_w4 normal_cmd_get_count__o_need_flushbuf4 normal_cmd_get_more_chars__o_r__4 normal_cmd_get_more_chars__o_need_flushbuf4
+        else j'17 c2 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4 normal_cmd_get_count__o_r__4 normal_cmd_get_count__o_ctrl_w4 normal_cmd_get_count__o_need_flushbuf4 normal_cmd_get_more_chars__o_r__4 normal_cmd_get_more_chars__o_need_flushbuf4
+    j'13 !ctrl_w5 !old_col5 !set_prevcount5 !save_did_cursorhold5 !normal_cmd_get_count__o_r__5 !normal_cmd_get_count__o_ctrl_w5 !normal_cmd_get_count__o_need_flushbuf5 !normal_cmd_get_more_chars__o_r__5 !normal_cmd_get_more_chars__o_need_flushbuf5 = do
       r'24 <- restart_edit ed'
       if r'24 /= 0
-        then j'16 (ch 'd' :: Int32) ctrl_w5 old_col5 set_prevcount5 save_did_cursorhold5
-        else j'16 (ch 'c' :: Int32) ctrl_w5 old_col5 set_prevcount5 save_did_cursorhold5
-    j'16 !c3 !ctrl_w6 !old_col6 !set_prevcount6 !save_did_cursorhold6 = do
+        then j'16 (ch 'd' :: Int32) ctrl_w5 old_col5 set_prevcount5 save_did_cursorhold5 normal_cmd_get_count__o_r__5 normal_cmd_get_count__o_ctrl_w5 normal_cmd_get_count__o_need_flushbuf5 normal_cmd_get_more_chars__o_r__5 normal_cmd_get_more_chars__o_need_flushbuf5
+        else j'16 (ch 'c' :: Int32) ctrl_w5 old_col5 set_prevcount5 save_did_cursorhold5 normal_cmd_get_count__o_r__5 normal_cmd_get_count__o_ctrl_w5 normal_cmd_get_count__o_need_flushbuf5 normal_cmd_get_more_chars__o_r__5 normal_cmd_get_more_chars__o_need_flushbuf5
+    j'16 !c3 !ctrl_w6 !old_col6 !set_prevcount6 !save_did_cursorhold6 !normal_cmd_get_count__o_r__6 !normal_cmd_get_count__o_ctrl_w6 !normal_cmd_get_count__o_need_flushbuf6 !normal_cmd_get_more_chars__o_r__6 !normal_cmd_get_more_chars__o_need_flushbuf6 = do
       set'msg_nowait ed' TRUE
       set'normal_cmd'old_mapped_len ed' 0
-      j'17 c3 ctrl_w6 old_col6 set_prevcount6 save_did_cursorhold6
-    j'17 !c4 !ctrl_w7 !old_col7 !set_prevcount7 !save_did_cursorhold7 = do
+      j'17 c3 ctrl_w6 old_col6 set_prevcount6 save_did_cursorhold6 normal_cmd_get_count__o_r__6 normal_cmd_get_count__o_ctrl_w6 normal_cmd_get_count__o_need_flushbuf6 normal_cmd_get_more_chars__o_r__6 normal_cmd_get_more_chars__o_need_flushbuf6
+    j'17 !c4 !ctrl_w7 !old_col7 !set_prevcount7 !save_did_cursorhold7 !normal_cmd_get_count__o_r__7 !normal_cmd_get_count__o_ctrl_w7 !normal_cmd_get_count__o_need_flushbuf7 !normal_cmd_get_more_chars__o_r__7 !normal_cmd_get_more_chars__o_need_flushbuf7 = do
       r'25 <- c'KeyTyped ed'
       r'27 <- if (r'25 /= 0) then (do { r'26 <- c'KeyStuffed ed'; pure (not (r'26 /= 0)) }) else pure False
       if r'27
         then do
           win_ensure_size ed'
-          j'19 c4 ctrl_w7 old_col7 set_prevcount7 save_did_cursorhold7
-        else j'19 c4 ctrl_w7 old_col7 set_prevcount7 save_did_cursorhold7
-    j'19 !c5 !ctrl_w8 !old_col8 !set_prevcount8 !save_did_cursorhold8 = do
+          j'19 c4 ctrl_w7 old_col7 set_prevcount7 save_did_cursorhold7 normal_cmd_get_count__o_r__7 normal_cmd_get_count__o_ctrl_w7 normal_cmd_get_count__o_need_flushbuf7 normal_cmd_get_more_chars__o_r__7 normal_cmd_get_more_chars__o_need_flushbuf7
+        else j'19 c4 ctrl_w7 old_col7 set_prevcount7 save_did_cursorhold7 normal_cmd_get_count__o_r__7 normal_cmd_get_count__o_ctrl_w7 normal_cmd_get_count__o_need_flushbuf7 normal_cmd_get_more_chars__o_r__7 normal_cmd_get_more_chars__o_need_flushbuf7
+    j'19 !c5 !ctrl_w8 !old_col8 !set_prevcount8 !save_did_cursorhold8 _ _ _ !normal_cmd_get_more_chars__o_r__8 !normal_cmd_get_more_chars__o_need_flushbuf8 = do
       r'28 <- add_to_showcmd ed' c5
       let !need_flushbuf1 = b2i r'28 :: Int32
-      (r'29, ctrl_w9, need_flushbuf2) <- normal_cmd_get_count ed' fr' c5 toplevel set_prevcount8 ctrl_w8 need_flushbuf1
-      if ctrl_w9 /= 0
+      (r'29, r'30, r'31) <- normal_cmd_get_count ed' fr' c5 toplevel set_prevcount8 ctrl_w8 need_flushbuf1
+      if r'30 /= 0
         then do
           wrI32 fr' cmdarg_T'nchar r'29
           wrI32 fr' cmdarg_T'cmdchar Ctrl_W
-          j'22 old_col8 need_flushbuf2 save_did_cursorhold8
+          j'22 old_col8 r'31 save_did_cursorhold8 r'29 r'30 r'31 normal_cmd_get_more_chars__o_r__8 normal_cmd_get_more_chars__o_need_flushbuf8
         else do
           wrI32 fr' cmdarg_T'cmdchar r'29
-          j'22 old_col8 need_flushbuf2 save_did_cursorhold8
-    j'22 !old_col9 !need_flushbuf3 !save_did_cursorhold9 = do
+          j'22 old_col8 r'31 save_did_cursorhold8 r'29 r'30 r'31 normal_cmd_get_more_chars__o_r__8 normal_cmd_get_more_chars__o_need_flushbuf8
+    j'22 !old_col9 !need_flushbuf2 !save_did_cursorhold9 !normal_cmd_get_count__o_r__9 !normal_cmd_get_count__o_ctrl_w9 !normal_cmd_get_count__o_need_flushbuf9 !normal_cmd_get_more_chars__o_r__9 !normal_cmd_get_more_chars__o_need_flushbuf9 = do
       r'32 <- rdI32 fr' cmdarg_T'cmdchar
       r'33 <- find_command ed' r'32
       if r'33 < 0
         then do
           clearopbeep ed' oap
-          j'61
+          j'61 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
         else do
           r'34 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral r'33) * 24)) nv_cmd'cmd_flags
           r'36 <- if (((fromIntegral r'34 :: Int32) .&. NV_NCW) /= 0) then (check_text_or_curbuf_locked ed' oap) else pure False
           if r'36
-            then j'61
+            then j'61 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
             else do
               r'37 <- c'VIsual_active ed'
               if r'37 /= 0
@@ -3155,10 +3167,10 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
                     then do
                       end_visual_mode ed'
                       redraw_curbuf_later ed' UPD_INVERTED
-                      j'28 old_col9 need_flushbuf3 r'33 save_did_cursorhold9
-                    else j'28 old_col9 need_flushbuf3 r'33 save_did_cursorhold9
-                else j'33 old_col9 need_flushbuf3 r'33 save_did_cursorhold9
-    j'28 !old_col10 !need_flushbuf4 !idx1 !save_did_cursorhold10 = do
+                      j'28 old_col9 need_flushbuf2 r'33 save_did_cursorhold9 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
+                    else j'28 old_col9 need_flushbuf2 r'33 save_did_cursorhold9 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
+                else j'33 old_col9 need_flushbuf2 r'33 save_did_cursorhold9 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
+    j'28 !old_col10 !need_flushbuf3 !idx1 !save_did_cursorhold10 !normal_cmd_get_count__o_r__10 !normal_cmd_get_count__o_ctrl_w10 !normal_cmd_get_count__o_need_flushbuf10 !normal_cmd_get_more_chars__o_r__10 !normal_cmd_get_more_chars__o_need_flushbuf10 = do
       r'43 <- km_startsel ed'
       if r'43 /= 0
         then do
@@ -3171,8 +3183,8 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
               if r'46 < 0
                 then do
                   clearopbeep ed' oap
-                  j'61
-                else j'33 old_col10 need_flushbuf4 r'46 save_did_cursorhold10
+                  j'61 normal_cmd_get_count__o_r__10 normal_cmd_get_count__o_ctrl_w10 normal_cmd_get_count__o_need_flushbuf10 normal_cmd_get_more_chars__o_r__10 normal_cmd_get_more_chars__o_need_flushbuf10
+                else j'33 old_col10 need_flushbuf3 r'46 save_did_cursorhold10 normal_cmd_get_count__o_r__10 normal_cmd_get_count__o_ctrl_w10 normal_cmd_get_count__o_need_flushbuf10 normal_cmd_get_more_chars__o_r__10 normal_cmd_get_more_chars__o_need_flushbuf10
             else do
               r'47 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx1) * 24)) nv_cmd'cmd_flags
               r'49 <- if (((fromIntegral r'47 :: Int32) .&. NV_SSS) /= 0) then (do { r'48 <- mod_mask ed'; pure ((r'48 .&. MOD_MASK_SHIFT) /= 0) }) else pure False
@@ -3180,24 +3192,24 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
                 then do
                   r'50 <- mod_mask ed'
                   set'mod_mask ed' (r'50 .&. (-3))
-                  j'33 old_col10 need_flushbuf4 idx1 save_did_cursorhold10
-                else j'33 old_col10 need_flushbuf4 idx1 save_did_cursorhold10
-        else j'33 old_col10 need_flushbuf4 idx1 save_did_cursorhold10
-    j'33 !old_col11 !need_flushbuf5 !idx2 !save_did_cursorhold11 = do
+                  j'33 old_col10 need_flushbuf3 idx1 save_did_cursorhold10 normal_cmd_get_count__o_r__10 normal_cmd_get_count__o_ctrl_w10 normal_cmd_get_count__o_need_flushbuf10 normal_cmd_get_more_chars__o_r__10 normal_cmd_get_more_chars__o_need_flushbuf10
+                else j'33 old_col10 need_flushbuf3 idx1 save_did_cursorhold10 normal_cmd_get_count__o_r__10 normal_cmd_get_count__o_ctrl_w10 normal_cmd_get_count__o_need_flushbuf10 normal_cmd_get_more_chars__o_r__10 normal_cmd_get_more_chars__o_need_flushbuf10
+        else j'33 old_col10 need_flushbuf3 idx1 save_did_cursorhold10 normal_cmd_get_count__o_r__10 normal_cmd_get_count__o_ctrl_w10 normal_cmd_get_count__o_need_flushbuf10 normal_cmd_get_more_chars__o_r__10 normal_cmd_get_more_chars__o_need_flushbuf10
+    j'33 !old_col11 !need_flushbuf4 !idx2 !save_did_cursorhold11 !normal_cmd_get_count__o_r__11 !normal_cmd_get_count__o_ctrl_w11 !normal_cmd_get_count__o_need_flushbuf11 !normal_cmd_get_more_chars__o_r__11 !normal_cmd_get_more_chars__o_need_flushbuf11 = do
       r'51 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx2) * 24)) nv_cmd'cmd_flags
       r'52 <- normal_cmd_needs_more_chars ed' fr' r'51
       if r'52
         then do
-          (r'53, need_flushbuf6) <- normal_cmd_get_more_chars ed' idx2 fr' need_flushbuf5
-          j'35 old_col11 need_flushbuf6 r'53 save_did_cursorhold11
-        else j'35 old_col11 need_flushbuf5 idx2 save_did_cursorhold11
-    j'35 !old_col12 !need_flushbuf7 !idx3 !save_did_cursorhold12 = do
-      if need_flushbuf7 /= 0
+          (r'53, r'54) <- normal_cmd_get_more_chars ed' idx2 fr' need_flushbuf4
+          j'35 old_col11 r'54 r'53 save_did_cursorhold11 normal_cmd_get_count__o_r__11 normal_cmd_get_count__o_ctrl_w11 normal_cmd_get_count__o_need_flushbuf11 r'53 r'54
+        else j'35 old_col11 need_flushbuf4 idx2 save_did_cursorhold11 normal_cmd_get_count__o_r__11 normal_cmd_get_count__o_ctrl_w11 normal_cmd_get_count__o_need_flushbuf11 normal_cmd_get_more_chars__o_r__11 normal_cmd_get_more_chars__o_need_flushbuf11
+    j'35 !old_col12 !need_flushbuf5 !idx3 !save_did_cursorhold12 !normal_cmd_get_count__o_r__12 !normal_cmd_get_count__o_ctrl_w12 !normal_cmd_get_count__o_need_flushbuf12 !normal_cmd_get_more_chars__o_r__12 !normal_cmd_get_more_chars__o_need_flushbuf12 = do
+      if need_flushbuf5 /= 0
         then do
           out_flush ed'
-          j'37 old_col12 idx3 save_did_cursorhold12
-        else j'37 old_col12 idx3 save_did_cursorhold12
-    j'37 !old_col13 !idx4 !save_did_cursorhold13 = do
+          j'37 old_col12 idx3 save_did_cursorhold12 normal_cmd_get_count__o_r__12 normal_cmd_get_count__o_ctrl_w12 normal_cmd_get_count__o_need_flushbuf12 normal_cmd_get_more_chars__o_r__12 normal_cmd_get_more_chars__o_need_flushbuf12
+        else j'37 old_col12 idx3 save_did_cursorhold12 normal_cmd_get_count__o_r__12 normal_cmd_get_count__o_ctrl_w12 normal_cmd_get_count__o_need_flushbuf12 normal_cmd_get_more_chars__o_r__12 normal_cmd_get_more_chars__o_need_flushbuf12
+    j'37 !old_col13 !idx4 !save_did_cursorhold13 !normal_cmd_get_count__o_r__13 !normal_cmd_get_count__o_ctrl_w13 !normal_cmd_get_count__o_need_flushbuf13 !normal_cmd_get_more_chars__o_r__13 !normal_cmd_get_more_chars__o_need_flushbuf13 = do
       r'55 <- rdI32 fr' cmdarg_T'cmdchar
       if r'55 /= K_IGNORE
         then do
@@ -3205,12 +3217,12 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           if r'56 /= 0
             then do
               set'did_cursorhold ed' save_did_cursorhold13
-              j'41 old_col13 idx4
+              j'41 old_col13 idx4 normal_cmd_get_count__o_r__13 normal_cmd_get_count__o_ctrl_w13 normal_cmd_get_count__o_need_flushbuf13 normal_cmd_get_more_chars__o_r__13 normal_cmd_get_more_chars__o_need_flushbuf13
             else do
               set'did_cursorhold ed' FALSE
-              j'41 old_col13 idx4
-        else j'41 old_col13 idx4
-    j'41 !old_col14 !idx5 = do
+              j'41 old_col13 idx4 normal_cmd_get_count__o_r__13 normal_cmd_get_count__o_ctrl_w13 normal_cmd_get_count__o_need_flushbuf13 normal_cmd_get_more_chars__o_r__13 normal_cmd_get_more_chars__o_need_flushbuf13
+        else j'41 old_col13 idx4 normal_cmd_get_count__o_r__13 normal_cmd_get_count__o_ctrl_w13 normal_cmd_get_count__o_need_flushbuf13 normal_cmd_get_more_chars__o_r__13 normal_cmd_get_more_chars__o_need_flushbuf13
+    j'41 !old_col14 !idx5 !normal_cmd_get_count__o_r__14 !normal_cmd_get_count__o_ctrl_w14 !normal_cmd_get_count__o_need_flushbuf14 !normal_cmd_get_more_chars__o_r__14 !normal_cmd_get_more_chars__o_need_flushbuf14 = do
       set'c'State ed' MODE_NORMAL
       r'57 <- rdI32 fr' cmdarg_T'nchar
       r'59 <- if (r'57 == ESC) then pure True else (do { r'58 <- rdI32 fr' cmdarg_T'extra_char; pure (r'58 == ESC) })
@@ -3222,17 +3234,17 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           if r'62
             then do
               set'restart_edit ed' (ch 'a')
-              j'61
-            else j'61
+              j'61 normal_cmd_get_count__o_r__14 normal_cmd_get_count__o_ctrl_w14 normal_cmd_get_count__o_need_flushbuf14 normal_cmd_get_more_chars__o_r__14 normal_cmd_get_more_chars__o_need_flushbuf14
+            else j'61 normal_cmd_get_count__o_r__14 normal_cmd_get_count__o_ctrl_w14 normal_cmd_get_count__o_need_flushbuf14 normal_cmd_get_more_chars__o_r__14 normal_cmd_get_more_chars__o_need_flushbuf14
         else do
           r'63 <- rdI32 fr' cmdarg_T'cmdchar
           if r'63 /= K_IGNORE
             then do
               set'msg_didout ed' FALSE
               set'msg_col ed' 0
-              j'44 old_col14 idx5
-            else j'44 old_col14 idx5
-    j'44 !old_col15 !idx6 = do
+              j'44 old_col14 idx5 normal_cmd_get_count__o_r__14 normal_cmd_get_count__o_ctrl_w14 normal_cmd_get_count__o_need_flushbuf14 normal_cmd_get_more_chars__o_r__14 normal_cmd_get_more_chars__o_need_flushbuf14
+            else j'44 old_col14 idx5 normal_cmd_get_count__o_r__14 normal_cmd_get_count__o_ctrl_w14 normal_cmd_get_count__o_need_flushbuf14 normal_cmd_get_more_chars__o_r__14 normal_cmd_get_more_chars__o_need_flushbuf14
+    j'44 !old_col15 !idx6 !normal_cmd_get_count__o_r__15 !normal_cmd_get_count__o_ctrl_w15 !normal_cmd_get_count__o_need_flushbuf15 !normal_cmd_get_more_chars__o_r__15 !normal_cmd_get_more_chars__o_need_flushbuf15 = do
       r'64 <- curwin ed'
       copyMem (pAdd fr' 72) (pAdd r'64 win_T'w_cursor) 16
       r'65 <- c'VIsual_active ed'
@@ -3246,7 +3258,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
               unshift_special ed' fr'
               r'69 <- rdI32 fr' cmdarg_T'cmdchar
               r'70 <- find_command ed' r'69
-              j'49 old_col15 r'70
+              j'49 old_col15 r'70 normal_cmd_get_count__o_r__15 normal_cmd_get_count__o_ctrl_w15 normal_cmd_get_count__o_need_flushbuf15 normal_cmd_get_more_chars__o_r__15 normal_cmd_get_more_chars__o_need_flushbuf15
             else do
               r'71 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx6) * 24)) nv_cmd'cmd_flags
               r'73 <- if (((fromIntegral r'71 :: Int32) .&. NV_SSS) /= 0) then (do { r'72 <- mod_mask ed'; pure ((r'72 .&. MOD_MASK_SHIFT) /= 0) }) else pure False
@@ -3255,10 +3267,10 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
                   start_selection ed'
                   r'74 <- mod_mask ed'
                   set'mod_mask ed' (r'74 .&. (-3))
-                  j'49 old_col15 idx6
-                else j'49 old_col15 idx6
-        else j'49 old_col15 idx6
-    j'49 !old_col16 !idx7 = do
+                  j'49 old_col15 idx6 normal_cmd_get_count__o_r__15 normal_cmd_get_count__o_ctrl_w15 normal_cmd_get_count__o_need_flushbuf15 normal_cmd_get_more_chars__o_r__15 normal_cmd_get_more_chars__o_need_flushbuf15
+                else j'49 old_col15 idx6 normal_cmd_get_count__o_r__15 normal_cmd_get_count__o_ctrl_w15 normal_cmd_get_count__o_need_flushbuf15 normal_cmd_get_more_chars__o_r__15 normal_cmd_get_more_chars__o_need_flushbuf15
+        else j'49 old_col15 idx6 normal_cmd_get_count__o_r__15 normal_cmd_get_count__o_ctrl_w15 normal_cmd_get_count__o_need_flushbuf15 normal_cmd_get_more_chars__o_r__15 normal_cmd_get_more_chars__o_need_flushbuf15
+    j'49 !old_col16 !idx7 !normal_cmd_get_count__o_r__16 !normal_cmd_get_count__o_ctrl_w16 !normal_cmd_get_count__o_need_flushbuf16 !normal_cmd_get_more_chars__o_r__16 !normal_cmd_get_more_chars__o_need_flushbuf16 = do
       r'75 <- rdI16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx7) * 24)) nv_cmd'cmd_arg
       wrI32 fr' cmdarg_T'arg (fromIntegral r'75 :: Int32)
       r'76 <- rdP (pAdd (addr'nv_cmds ed') ((fromIntegral idx7) * 24)) nv_cmd'cmd_func
@@ -3269,49 +3281,49 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       if r'82
         then do
           clearop ed' oap
-          j'51 old_col16
-        else j'51 old_col16
-    j'51 !old_col17 = do
+          j'51 old_col16 normal_cmd_get_count__o_r__16 normal_cmd_get_count__o_ctrl_w16 normal_cmd_get_count__o_need_flushbuf16 normal_cmd_get_more_chars__o_r__16 normal_cmd_get_more_chars__o_need_flushbuf16
+        else j'51 old_col16 normal_cmd_get_count__o_r__16 normal_cmd_get_count__o_ctrl_w16 normal_cmd_get_count__o_need_flushbuf16 normal_cmd_get_more_chars__o_r__16 normal_cmd_get_more_chars__o_need_flushbuf16
+    j'51 !old_col17 !normal_cmd_get_count__o_r__17 !normal_cmd_get_count__o_ctrl_w17 !normal_cmd_get_count__o_need_flushbuf17 !normal_cmd_get_more_chars__o_r__17 !normal_cmd_get_more_chars__o_need_flushbuf17 = do
       r'83 <- normal_cmd'old_mapped_len ed'
       if r'83 > 0
         then do
           r'84 <- typebuf_maplen ed'
           set'normal_cmd'old_mapped_len ed' r'84
-          j'53 old_col17
-        else j'53 old_col17
-    j'53 !old_col18 = do
+          j'53 old_col17 normal_cmd_get_count__o_r__17 normal_cmd_get_count__o_ctrl_w17 normal_cmd_get_count__o_need_flushbuf17 normal_cmd_get_more_chars__o_r__17 normal_cmd_get_more_chars__o_need_flushbuf17
+        else j'53 old_col17 normal_cmd_get_count__o_r__17 normal_cmd_get_count__o_ctrl_w17 normal_cmd_get_count__o_need_flushbuf17 normal_cmd_get_more_chars__o_r__17 normal_cmd_get_more_chars__o_need_flushbuf17
+    j'53 !old_col18 !normal_cmd_get_count__o_r__18 !normal_cmd_get_count__o_ctrl_w18 !normal_cmd_get_count__o_need_flushbuf18 !normal_cmd_get_more_chars__o_r__18 !normal_cmd_get_more_chars__o_need_flushbuf18 = do
       r'85 <- rdI32 fr' cmdarg_T'cmdchar
       r'87 <- if (r'85 /= K_IGNORE) then (do { r'86 <- rdI32 fr' cmdarg_T'cmdchar; pure (r'86 /= K_MOUSEMOVE) }) else pure False
       if r'87
         then do
           do_pending_operator ed' fr' old_col18 False
-          j'55
-        else j'55
-    j'55 = do
+          j'55 normal_cmd_get_count__o_r__18 normal_cmd_get_count__o_ctrl_w18 normal_cmd_get_count__o_need_flushbuf18 normal_cmd_get_more_chars__o_r__18 normal_cmd_get_more_chars__o_need_flushbuf18
+        else j'55 normal_cmd_get_count__o_r__18 normal_cmd_get_count__o_ctrl_w18 normal_cmd_get_count__o_need_flushbuf18 normal_cmd_get_more_chars__o_r__18 normal_cmd_get_more_chars__o_need_flushbuf18
+    j'55 !normal_cmd_get_count__o_r__19 !normal_cmd_get_count__o_ctrl_w19 !normal_cmd_get_count__o_need_flushbuf19 !normal_cmd_get_more_chars__o_r__19 !normal_cmd_get_more_chars__o_need_flushbuf19 = do
       r'88 <- normal_cmd_need_to_wait_for_msg ed' fr' (pAdd fr' 72)
       if r'88
         then do
           normal_cmd_wait_for_msg ed'
-          j'61
-        else j'61
-    j'61 = do
+          j'61 normal_cmd_get_count__o_r__19 normal_cmd_get_count__o_ctrl_w19 normal_cmd_get_count__o_need_flushbuf19 normal_cmd_get_more_chars__o_r__19 normal_cmd_get_more_chars__o_need_flushbuf19
+        else j'61 normal_cmd_get_count__o_r__19 normal_cmd_get_count__o_ctrl_w19 normal_cmd_get_count__o_need_flushbuf19 normal_cmd_get_more_chars__o_r__19 normal_cmd_get_more_chars__o_need_flushbuf19
+    j'61 !normal_cmd_get_count__o_r__20 !normal_cmd_get_count__o_ctrl_w20 !normal_cmd_get_count__o_need_flushbuf20 !normal_cmd_get_more_chars__o_r__20 !normal_cmd_get_more_chars__o_need_flushbuf20 = do
       set'msg_nowait ed' FALSE
       r'89 <- rdI32 oap oparg_T'op_type
       if r'89 == OP_NOP
         then do
           set'finish_op ed' FALSE
-          j'63
-        else j'63
-    j'63 = do
+          j'63 normal_cmd_get_count__o_r__20 normal_cmd_get_count__o_ctrl_w20 normal_cmd_get_count__o_need_flushbuf20 normal_cmd_get_more_chars__o_r__20 normal_cmd_get_more_chars__o_need_flushbuf20
+        else j'63 normal_cmd_get_count__o_r__20 normal_cmd_get_count__o_ctrl_w20 normal_cmd_get_count__o_need_flushbuf20 normal_cmd_get_more_chars__o_r__20 normal_cmd_get_more_chars__o_need_flushbuf20
+    j'63 !normal_cmd_get_count__o_r__21 !normal_cmd_get_count__o_ctrl_w21 !normal_cmd_get_count__o_need_flushbuf21 !normal_cmd_get_more_chars__o_r__21 !normal_cmd_get_more_chars__o_need_flushbuf21 = do
       r'90 <- rdI32 oap oparg_T'op_type
       r'92 <- if (r'90 == OP_NOP) then (do { r'91 <- rdI32 oap oparg_T'regname; pure (r'91 == 0) }) else pure False
       r'94 <- if r'92 then (do { r'93 <- rdI32 fr' cmdarg_T'cmdchar; pure (r'93 /= K_CURSORHOLD) }) else pure False
       if r'94
         then do
           clear_showcmd ed'
-          j'65
-        else j'65
-    j'65 = do
+          j'65 normal_cmd_get_count__o_r__21 normal_cmd_get_count__o_ctrl_w21 normal_cmd_get_count__o_need_flushbuf21 normal_cmd_get_more_chars__o_r__21 normal_cmd_get_more_chars__o_need_flushbuf21
+        else j'65 normal_cmd_get_count__o_r__21 normal_cmd_get_count__o_ctrl_w21 normal_cmd_get_count__o_need_flushbuf21 normal_cmd_get_more_chars__o_r__21 normal_cmd_get_more_chars__o_need_flushbuf21
+    j'65 !normal_cmd_get_count__o_r__22 !normal_cmd_get_count__o_ctrl_w22 !normal_cmd_get_count__o_need_flushbuf22 !normal_cmd_get_more_chars__o_r__22 !normal_cmd_get_more_chars__o_need_flushbuf22 = do
       checkpcmark ed'
       mb_adjust_cursor ed'
       r'95 <- rdI32 oap oparg_T'op_type
@@ -3328,10 +3340,10 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
               _ <- showmode ed'
               set'restart_VIsual_select ed' 0
               set'c'VIsual_select_reg ed' 0
-              j'68
-            else j'68
-        else j'70
-    j'68 = do
+              j'68 normal_cmd_get_count__o_r__22 normal_cmd_get_count__o_ctrl_w22 normal_cmd_get_count__o_need_flushbuf22 normal_cmd_get_more_chars__o_r__22 normal_cmd_get_more_chars__o_need_flushbuf22
+            else j'68 normal_cmd_get_count__o_r__22 normal_cmd_get_count__o_ctrl_w22 normal_cmd_get_count__o_need_flushbuf22 normal_cmd_get_more_chars__o_r__22 normal_cmd_get_more_chars__o_need_flushbuf22
+        else j'70 normal_cmd_get_count__o_r__22 normal_cmd_get_count__o_ctrl_w22 normal_cmd_get_count__o_need_flushbuf22 normal_cmd_get_more_chars__o_r__22 normal_cmd_get_more_chars__o_need_flushbuf22
+    j'68 !normal_cmd_get_count__o_r__23 !normal_cmd_get_count__o_ctrl_w23 !normal_cmd_get_count__o_need_flushbuf23 !normal_cmd_get_more_chars__o_r__23 !normal_cmd_get_more_chars__o_need_flushbuf23 = do
       r'112 <- restart_edit ed'
       r'114 <- if (r'112 /= 0) then (do { r'113 <- c'VIsual_active ed'; pure (not (r'113 /= 0)) }) else pure False
       r'116 <- if r'114 then (do { r'115 <- normal_cmd'old_mapped_len ed'; pure (r'115 == 0) }) else pure False
@@ -3339,16 +3351,16 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
         then do
           r'117 <- restart_edit ed'
           _ <- edit ed' r'117 False 1
-          j'70
-        else j'70
-    j'70 = do
+          j'70 normal_cmd_get_count__o_r__23 normal_cmd_get_count__o_ctrl_w23 normal_cmd_get_count__o_need_flushbuf23 normal_cmd_get_more_chars__o_r__23 normal_cmd_get_more_chars__o_need_flushbuf23
+        else j'70 normal_cmd_get_count__o_r__23 normal_cmd_get_count__o_ctrl_w23 normal_cmd_get_count__o_need_flushbuf23 normal_cmd_get_more_chars__o_r__23 normal_cmd_get_more_chars__o_need_flushbuf23
+    j'70 !normal_cmd_get_count__o_r__24 !normal_cmd_get_count__o_ctrl_w24 !normal_cmd_get_count__o_need_flushbuf24 !normal_cmd_get_more_chars__o_r__24 !normal_cmd_get_more_chars__o_need_flushbuf24 = do
       r'119 <- restart_VIsual_select ed'
       if r'119 == 2
         then do
           set'restart_VIsual_select ed' 1
-          j'72
-        else j'72
-    j'72 = do
+          j'72 normal_cmd_get_count__o_r__24 normal_cmd_get_count__o_ctrl_w24 normal_cmd_get_count__o_need_flushbuf24 normal_cmd_get_more_chars__o_r__24 normal_cmd_get_more_chars__o_need_flushbuf24
+        else j'72 normal_cmd_get_count__o_r__24 normal_cmd_get_count__o_ctrl_w24 normal_cmd_get_count__o_need_flushbuf24 normal_cmd_get_more_chars__o_r__24 normal_cmd_get_more_chars__o_need_flushbuf24
+    j'72 _ _ _ _ _ = do
       r'120 <- rdI64 fr' cmdarg_T'opcount
       set'opcount ed' r'120
       pure ()
@@ -3366,8 +3378,8 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
   if r'129
     then do
       wrI64 fr' cmdarg_T'opcount 0
-      j'2 (FALSE :: Int32) r'122 False r'123
-    else j'2 (FALSE :: Int32) r'122 False r'123
+      j'2 (FALSE :: Int32) r'122 False r'123 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    else j'2 (FALSE :: Int32) r'122 False r'123 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 restore_visual_mode :: Ed -> IO ()
 restore_visual_mode ed' = do
@@ -4085,7 +4097,7 @@ block_insert ed' oap s slen b_insert bdp = do
 op_delete :: Ed -> Ptr Oparg_T -> IO Bool
 op_delete ed' oap = frame 56 $ \fr' -> do
   let
-    j'5 !old_lcount1 !did_yank1 !curpos_lnum1 !curpos_col1 !curpos_coladd1 = do
+    j'5 !old_lcount1 !did_yank1 = do
       mb_adjust_opend ed' oap
       r'1 <- rdI32 oap oparg_T'motion_type
       r'3 <- if (r'1 == MCHAR) then (do { r'2 <- rdI32 oap oparg_T'is_VIsual; pure (not (r'2 /= 0)) }) else pure False
@@ -4105,19 +4117,19 @@ op_delete ed' oap = frame 56 $ \fr' -> do
             then do
               r'19 <- rdI32 oap oparg_T'inclusive
               let !ptr2 = pAdd ptr1 (fromIntegral r'19)
-              j'8 ptr2 old_lcount1 did_yank1 curpos_lnum1 curpos_col1 curpos_coladd1
-            else j'8 ptr1 old_lcount1 did_yank1 curpos_lnum1 curpos_col1 curpos_coladd1
-        else j'11 old_lcount1 did_yank1 curpos_lnum1 curpos_col1 curpos_coladd1
-    j'8 !ptr3 !old_lcount2 !did_yank2 !curpos_lnum2 !curpos_col2 !curpos_coladd2 = do
+              j'8 ptr2 old_lcount1 did_yank1
+            else j'8 ptr1 old_lcount1 did_yank1
+        else j'11 old_lcount1 did_yank1
+    j'8 !ptr3 !old_lcount2 !did_yank2 = do
       r'20 <- skipwhite ptr3
       r'21 <- rdW8 r'20 0
       r'23 <- if ((fromIntegral r'21 :: Int32) == NUL) then (inindent ed' 0) else pure False
       if r'23
         then do
           wrI32 oap oparg_T'motion_type MLINE
-          j'11 old_lcount2 did_yank2 curpos_lnum2 curpos_col2 curpos_coladd2
-        else j'11 old_lcount2 did_yank2 curpos_lnum2 curpos_col2 curpos_coladd2
-    j'11 !old_lcount3 !did_yank3 !curpos_lnum3 !curpos_col3 !curpos_coladd3 = do
+          j'11 old_lcount2 did_yank2
+        else j'11 old_lcount2 did_yank2
+    j'11 !old_lcount3 !did_yank3 = do
       r'24 <- rdI32 oap oparg_T'motion_type
       r'26 <- if (r'24 == MCHAR) then (do { r'25 <- rdI64 oap oparg_T'line_count; pure (r'25 == 1) }) else pure False
       r'28 <- if r'26 then (do { r'27 <- rdI32 oap oparg_T'op_type; pure (r'27 == OP_DELETE) }) else pure False
@@ -4126,7 +4138,7 @@ op_delete ed' oap = frame 56 $ \fr' -> do
         then do
           r'33 <- virtual_op ed'
           if r'33 /= 0
-            then j'86 curpos_lnum3 curpos_col3 curpos_coladd3
+            then j'86
             else do
               r'34 <- p_cpo ed'
               r'35 <- vim_strchr ed' r'34 CPO_EMPTYREGION
@@ -4153,13 +4165,13 @@ op_delete ed' oap = frame 56 $ \fr' -> do
                       _ <- get_yank_register ed' r'40 TRUE
                       r'42 <- op_yank ed' oap True False
                       if r'42
-                        then j'18 old_lcount3 True curpos_lnum3 curpos_col3 curpos_coladd3
-                        else j'18 old_lcount3 did_yank3 curpos_lnum3 curpos_col3 curpos_coladd3
+                        then j'18 old_lcount3 True
+                        else j'18 old_lcount3 did_yank3
                 else do
                   reset_y_append ed'
-                  j'18 old_lcount3 did_yank3 curpos_lnum3 curpos_col3 curpos_coladd3
-            else j'27 old_lcount3 curpos_lnum3 curpos_col3 curpos_coladd3
-    j'18 !old_lcount4 !did_yank4 !curpos_lnum4 !curpos_col4 !curpos_coladd4 = do
+                  j'18 old_lcount3 did_yank3
+            else j'27 old_lcount3
+    j'18 !old_lcount4 !did_yank4 = do
       r'43 <- rdI32 oap oparg_T'motion_type
       r'45 <- if (r'43 == MLINE) then pure True else (do { r'44 <- rdI64 oap oparg_T'line_count; pure (r'44 > 1) })
       r'47 <- if r'45 then pure True else (do { r'46 <- rdI32 oap oparg_T'use_reg_one; pure (r'46 /= 0) })
@@ -4168,10 +4180,10 @@ op_delete ed' oap = frame 56 $ \fr' -> do
           shift_delete_registers ed'
           r'48 <- op_yank ed' oap True False
           if r'48
-            then j'21 old_lcount4 True curpos_lnum4 curpos_col4 curpos_coladd4
-            else j'21 old_lcount4 did_yank4 curpos_lnum4 curpos_col4 curpos_coladd4
-        else j'21 old_lcount4 did_yank4 curpos_lnum4 curpos_col4 curpos_coladd4
-    j'21 !old_lcount5 !did_yank5 !curpos_lnum5 !curpos_col5 !curpos_coladd5 = do
+            then j'21 old_lcount4 True
+            else j'21 old_lcount4 did_yank4
+        else j'21 old_lcount4 did_yank4
+    j'21 !old_lcount5 !did_yank5 = do
       r'49 <- rdI32 oap oparg_T'regname
       r'51 <- if (r'49 == 0) then (do { r'50 <- rdI32 oap oparg_T'motion_type; pure (r'50 /= MLINE) }) else pure False
       r'53 <- if r'51 then (do { r'52 <- rdI64 oap oparg_T'line_count; pure (r'52 == 1) }) else pure False
@@ -4182,13 +4194,13 @@ op_delete ed' oap = frame 56 $ \fr' -> do
           _ <- get_yank_register ed' r'54 TRUE
           r'56 <- op_yank ed' oap True False
           if r'56
-            then j'24 old_lcount5 True curpos_lnum5 curpos_col5 curpos_coladd5
-            else j'24 old_lcount5 did_yank5 curpos_lnum5 curpos_col5 curpos_coladd5
-        else j'25 old_lcount5 did_yank5 curpos_lnum5 curpos_col5 curpos_coladd5
-    j'24 !old_lcount6 !did_yank6 !curpos_lnum6 !curpos_col6 !curpos_coladd6 = do
+            then j'24 old_lcount5 True
+            else j'24 old_lcount5 did_yank5
+        else j'25 old_lcount5 did_yank5
+    j'24 !old_lcount6 !did_yank6 = do
       wrI32 oap oparg_T'regname 0
-      j'25 old_lcount6 did_yank6 curpos_lnum6 curpos_col6 curpos_coladd6
-    j'25 !old_lcount7 !did_yank7 !curpos_lnum7 !curpos_col7 !curpos_coladd7 = do
+      j'25 old_lcount6 did_yank6
+    j'25 !old_lcount7 !did_yank7 = do
       if not did_yank7
         then do
           r'57 <- msg_silent ed'
@@ -4201,9 +4213,9 @@ op_delete ed' oap = frame 56 $ \fr' -> do
               let !r'60 = c'_ (addr'e_command_aborted ed')
               _ <- emsg ed' r'60
               pure False
-            else j'27 old_lcount7 curpos_lnum7 curpos_col7 curpos_coladd7
-        else j'27 old_lcount7 curpos_lnum7 curpos_col7 curpos_coladd7
-    j'27 !old_lcount8 !curpos_lnum8 !curpos_col8 !curpos_coladd8 = do
+            else j'27 old_lcount7
+        else j'27 old_lcount7
+    j'27 !old_lcount8 = do
       r'62 <- rdI32 oap oparg_T'block_mode
       if r'62 /= 0
         then do
@@ -4215,7 +4227,7 @@ op_delete ed' oap = frame 56 $ \fr' -> do
             else do
               r'66 <- curwin ed'
               r'67 <- rdI64 r'66 (win_T'w_cursor + pos_T'lnum)
-              loop'71 r'67 old_lcount8 curpos_lnum8 curpos_col8 curpos_coladd8
+              loop'71 r'67 old_lcount8
         else do
           r'68 <- rdI32 oap oparg_T'motion_type
           if r'68 == MLINE
@@ -4235,14 +4247,14 @@ op_delete ed' oap = frame 56 $ \fr' -> do
                       del_lines ed' (r'75 - 1) True
                       r'76 <- curwin ed'
                       wrI64 r'76 (win_T'w_cursor + pos_T'lnum) r'72
-                      j'62 old_lcount8 curpos_lnum8 curpos_col8 curpos_coladd8
-                    else j'62 old_lcount8 curpos_lnum8 curpos_col8 curpos_coladd8
+                      j'62 old_lcount8
+                    else j'62 old_lcount8
                 else do
                   r'77 <- rdI64 oap oparg_T'line_count
                   del_lines ed' r'77 True
                   beginline ed' 5
                   u_clearline ed'
-                  j'73 old_lcount8 curpos_lnum8 curpos_col8 curpos_coladd8
+                  j'73 old_lcount8
             else do
               r'78 <- virtual_op ed'
               if r'78 /= 0
@@ -4260,11 +4272,11 @@ op_delete ed' oap = frame 56 $ \fr' -> do
                               r'82 <- rdI32 oap (oparg_T'end + pos_T'col)
                               r'83 <- rdI32 oap (oparg_T'end + pos_T'coladd)
                               r'84 <- getviscol2 ed' r'82 r'83
-                              j'34 old_lcount8 r'84 curpos_lnum8 curpos_col8 curpos_coladd8
-                            else j'34 old_lcount8 (0 :: Int32) curpos_lnum8 curpos_col8 curpos_coladd8
-                    else j'36 old_lcount8 curpos_lnum8 curpos_col8 curpos_coladd8
-                else j'40 old_lcount8 curpos_lnum8 curpos_col8 curpos_coladd8
-    j'34 !old_lcount9 !endcol1 !curpos_lnum9 !curpos_col9 !curpos_coladd9 = do
+                              j'34 old_lcount8 r'84
+                            else j'34 old_lcount8 (0 :: Int32)
+                    else j'36 old_lcount8
+                else j'40 old_lcount8
+    j'34 !old_lcount9 !endcol1 = do
       r'85 <- rdI32 oap (oparg_T'start + pos_T'col)
       r'86 <- rdI32 oap (oparg_T'start + pos_T'coladd)
       r'87 <- getviscol2 ed' r'85 r'86
@@ -4283,9 +4295,9 @@ op_delete ed' oap = frame 56 $ \fr' -> do
           wrI32 oap (oparg_T'end + pos_T'coladd) r'95
           r'96 <- curwin ed'
           copyMem (pAdd r'96 win_T'w_cursor) (pAdd oap oparg_T'start) 16
-          j'36 old_lcount9 curpos_lnum9 curpos_col9 curpos_coladd9
-        else j'36 old_lcount9 curpos_lnum9 curpos_col9 curpos_coladd9
-    j'36 !old_lcount10 !curpos_lnum10 !curpos_col10 !curpos_coladd10 = do
+          j'36 old_lcount9
+        else j'36 old_lcount9
+    j'36 !old_lcount10 = do
       r'97 <- gchar_pos ed' (pAdd oap oparg_T'end)
       r'100 <- if (r'97 == (ch '\t')) then (do { r'98 <- rdI32 oap (oparg_T'end + pos_T'coladd); r'99 <- rdI32 oap oparg_T'inclusive; pure (r'98 < r'99) }) else pure False
       if r'100
@@ -4306,12 +4318,12 @@ op_delete ed' oap = frame 56 $ \fr' -> do
               copyMem (pAdd oap oparg_T'end) (pAdd r'109 win_T'w_cursor) 16
               r'110 <- curwin ed'
               copyMem (pAdd r'110 win_T'w_cursor) (pAdd oap oparg_T'start) 16
-              j'39 old_lcount10 curpos_lnum10 curpos_col10 curpos_coladd10
-        else j'39 old_lcount10 curpos_lnum10 curpos_col10 curpos_coladd10
-    j'39 !old_lcount11 !curpos_lnum11 !curpos_col11 !curpos_coladd11 = do
+              j'39 old_lcount10
+        else j'39 old_lcount10
+    j'39 !old_lcount11 = do
       mb_adjust_opend ed' oap
-      j'40 old_lcount11 curpos_lnum11 curpos_col11 curpos_coladd11
-    j'40 !old_lcount12 !curpos_lnum12 !curpos_col12 !curpos_coladd12 = do
+      j'40 old_lcount11
+    j'40 !old_lcount12 = do
       r'111 <- rdI64 oap oparg_T'line_count
       if r'111 == 1
         then do
@@ -4329,8 +4341,8 @@ op_delete ed' oap = frame 56 $ \fr' -> do
                   r'123 <- rdI32 oap (oparg_T'end + pos_T'col)
                   r'124 <- rdI32 oap oparg_T'inclusive
                   display_dollar ed' (r'123 - (b2i (not (r'124 /= 0)) :: Int32))
-                  j'47 old_lcount12 curpos_lnum12 curpos_col12 curpos_coladd12
-                else j'47 old_lcount12 curpos_lnum12 curpos_col12 curpos_coladd12
+                  j'47 old_lcount12
+                else j'47 old_lcount12
         else do
           r'125 <- curwin ed'
           r'126 <- rdI64 r'125 (win_T'w_cursor + pos_T'lnum)
@@ -4343,205 +4355,209 @@ op_delete ed' oap = frame 56 $ \fr' -> do
             else do
               _ <- truncate_line ed' True
               r'132 <- curwin ed'
-              r'133 <- rdI64 (pAdd r'132 win_T'w_cursor) pos_T'lnum
-              r'134 <- rdI32 (pAdd r'132 win_T'w_cursor) pos_T'col
-              r'135 <- rdI32 (pAdd r'132 win_T'w_cursor) pos_T'coladd
+              r'133 <- rdI64 r'132 (win_T'w_cursor + pos_T'lnum)
+              r'134 <- curwin ed'
+              r'135 <- rdI32 r'134 (win_T'w_cursor + pos_T'col)
               r'136 <- curwin ed'
-              r'137 <- rdI64 r'136 (win_T'w_cursor + pos_T'lnum)
-              wrI64 r'136 (win_T'w_cursor + pos_T'lnum) (r'137 + 1)
-              r'138 <- rdI64 oap oparg_T'line_count
-              del_lines ed' (r'138 - 2) False
-              r'139 <- rdI32 oap (oparg_T'end + pos_T'col)
-              r'140 <- rdI32 oap oparg_T'inclusive
-              let !n1 = (r'139 + 1) - (b2i (not (r'140 /= 0)) :: Int32)
-              r'141 <- curwin ed'
-              wrI32 r'141 (win_T'w_cursor + pos_T'col) 0
-              r'142 <- virtual_op ed'
-              r'143 <- rdI32 oap oparg_T'op_type
-              r'145 <- if (r'143 == OP_DELETE) then (do { r'144 <- rdI32 oap oparg_T'is_VIsual; pure (not (r'144 /= 0)) }) else pure False
-              _ <- del_bytes ed' (fromIntegral n1 :: Int64) (not (r'142 /= 0)) r'145
-              r'147 <- curwin ed'
-              wrI64 r'147 (win_T'w_cursor + pos_T'lnum) r'133
-              wrI32 r'147 (win_T'w_cursor + pos_T'col) r'134
-              wrI32 r'147 (win_T'w_cursor + pos_T'coladd) r'135
+              r'137 <- rdI32 r'136 (win_T'w_cursor + pos_T'coladd)
+              r'138 <- curwin ed'
+              r'139 <- rdI64 r'138 (win_T'w_cursor + pos_T'lnum)
+              wrI64 r'138 (win_T'w_cursor + pos_T'lnum) (r'139 + 1)
+              r'140 <- rdI64 oap oparg_T'line_count
+              del_lines ed' (r'140 - 2) False
+              r'141 <- rdI32 oap (oparg_T'end + pos_T'col)
+              r'142 <- rdI32 oap oparg_T'inclusive
+              let !n1 = (r'141 + 1) - (b2i (not (r'142 /= 0)) :: Int32)
+              r'143 <- curwin ed'
+              wrI32 r'143 (win_T'w_cursor + pos_T'col) 0
+              r'144 <- virtual_op ed'
+              r'145 <- rdI32 oap oparg_T'op_type
+              r'147 <- if (r'145 == OP_DELETE) then (do { r'146 <- rdI32 oap oparg_T'is_VIsual; pure (not (r'146 /= 0)) }) else pure False
+              _ <- del_bytes ed' (fromIntegral n1 :: Int64) (not (r'144 /= 0)) r'147
+              r'149 <- curwin ed'
+              wrI64 r'149 (win_T'w_cursor + pos_T'lnum) r'133
+              r'150 <- curwin ed'
+              wrI32 r'150 (win_T'w_cursor + pos_T'col) r'135
+              r'151 <- curwin ed'
+              wrI32 r'151 (win_T'w_cursor + pos_T'coladd) r'137
               _ <- do_join ed' 2 False False False False
-              j'73 old_lcount12 r'133 r'134 r'135
-    j'47 !old_lcount13 !curpos_lnum13 !curpos_col13 !curpos_coladd13 = do
-      r'149 <- rdI32 oap (oparg_T'end + pos_T'col)
-      r'150 <- rdI32 oap (oparg_T'start + pos_T'col)
-      r'151 <- rdI32 oap oparg_T'inclusive
-      let !n2 = ((r'149 - r'150) + 1) - (b2i (not (r'151 /= 0)) :: Int32)
-      r'152 <- virtual_op ed'
-      if r'152 /= 0
+              j'73 old_lcount12
+    j'47 !old_lcount13 = do
+      r'153 <- rdI32 oap (oparg_T'end + pos_T'col)
+      r'154 <- rdI32 oap (oparg_T'start + pos_T'col)
+      r'155 <- rdI32 oap oparg_T'inclusive
+      let !n2 = ((r'153 - r'154) + 1) - (b2i (not (r'155 /= 0)) :: Int32)
+      r'156 <- virtual_op ed'
+      if r'156 /= 0
         then do
-          r'153 <- ml_get_curline_len ed'
-          r'154 <- rdI32 oap (oparg_T'end + pos_T'coladd)
-          r'156 <- if (r'154 /= 0) then (do { r'155 <- rdI32 oap (oparg_T'end + pos_T'col); pure (r'155 >= (r'153 - 1)) }) else pure False
-          r'160 <- if r'156 then (do { r'157 <- rdI32 oap (oparg_T'start + pos_T'coladd); r'159 <- if (r'157 /= 0) then (do { r'158 <- rdI32 oap (oparg_T'end + pos_T'col); pure (r'158 >= (r'153 - 1)) }) else pure False; pure (not r'159) }) else pure False
-          if r'160
+          r'157 <- ml_get_curline_len ed'
+          r'158 <- rdI32 oap (oparg_T'end + pos_T'coladd)
+          r'160 <- if (r'158 /= 0) then (do { r'159 <- rdI32 oap (oparg_T'end + pos_T'col); pure (r'159 >= (r'157 - 1)) }) else pure False
+          r'164 <- if r'160 then (do { r'161 <- rdI32 oap (oparg_T'start + pos_T'coladd); r'163 <- if (r'161 /= 0) then (do { r'162 <- rdI32 oap (oparg_T'end + pos_T'col); pure (r'162 >= (r'157 - 1)) }) else pure False; pure (not r'163) }) else pure False
+          if r'164
             then do
               let !n3 = n2 + 1
-              j'50 n3 old_lcount13 curpos_lnum13 curpos_col13 curpos_coladd13
-            else j'50 n2 old_lcount13 curpos_lnum13 curpos_col13 curpos_coladd13
-        else j'54 n2 old_lcount13 curpos_lnum13 curpos_col13 curpos_coladd13
-    j'50 !n4 !old_lcount14 !curpos_lnum14 !curpos_col14 !curpos_coladd14 = do
-      r'163 <- if (n4 == 0) then (do { r'161 <- rdI32 oap (oparg_T'start + pos_T'coladd); r'162 <- rdI32 oap (oparg_T'end + pos_T'coladd); pure (r'161 /= r'162) }) else pure False
-      if r'163
-        then j'52 (1 :: Int32) old_lcount14 curpos_lnum14 curpos_col14 curpos_coladd14
-        else j'52 n4 old_lcount14 curpos_lnum14 curpos_col14 curpos_coladd14
-    j'52 !n5 !old_lcount15 !curpos_lnum15 !curpos_col15 !curpos_coladd15 = do
-      r'164 <- gchar_cursor ed'
-      if r'164 /= NUL
+              j'50 n3 old_lcount13
+            else j'50 n2 old_lcount13
+        else j'54 n2 old_lcount13
+    j'50 !n4 !old_lcount14 = do
+      r'167 <- if (n4 == 0) then (do { r'165 <- rdI32 oap (oparg_T'start + pos_T'coladd); r'166 <- rdI32 oap (oparg_T'end + pos_T'coladd); pure (r'165 /= r'166) }) else pure False
+      if r'167
+        then j'52 (1 :: Int32) old_lcount14
+        else j'52 n4 old_lcount14
+    j'52 !n5 !old_lcount15 = do
+      r'168 <- gchar_cursor ed'
+      if r'168 /= NUL
         then do
-          r'165 <- curwin ed'
-          wrI32 r'165 (win_T'w_cursor + pos_T'coladd) 0
-          j'54 n5 old_lcount15 curpos_lnum15 curpos_col15 curpos_coladd15
-        else j'54 n5 old_lcount15 curpos_lnum15 curpos_col15 curpos_coladd15
-    j'54 !n6 !old_lcount16 !curpos_lnum16 !curpos_col16 !curpos_coladd16 = do
-      r'166 <- virtual_op ed'
-      r'167 <- rdI32 oap oparg_T'op_type
-      r'169 <- if (r'167 == OP_DELETE) then (do { r'168 <- rdI32 oap oparg_T'is_VIsual; pure (not (r'168 /= 0)) }) else pure False
-      _ <- del_bytes ed' (fromIntegral n6 :: Int64) (not (r'166 /= 0)) r'169
-      j'73 old_lcount16 curpos_lnum16 curpos_col16 curpos_coladd16
-    j'62 !old_lcount17 !curpos_lnum17 !curpos_col17 !curpos_coladd17 = do
-      r'171 <- u_save_cursor ed'
-      if not r'171
+          r'169 <- curwin ed'
+          wrI32 r'169 (win_T'w_cursor + pos_T'coladd) 0
+          j'54 n5 old_lcount15
+        else j'54 n5 old_lcount15
+    j'54 !n6 !old_lcount16 = do
+      r'170 <- virtual_op ed'
+      r'171 <- rdI32 oap oparg_T'op_type
+      r'173 <- if (r'171 == OP_DELETE) then (do { r'172 <- rdI32 oap oparg_T'is_VIsual; pure (not (r'172 /= 0)) }) else pure False
+      _ <- del_bytes ed' (fromIntegral n6 :: Int64) (not (r'170 /= 0)) r'173
+      j'73 old_lcount16
+    j'62 !old_lcount17 = do
+      r'175 <- u_save_cursor ed'
+      if not r'175
         then pure False
         else do
-          r'172 <- curbuf ed'
-          r'173 <- rdI32 r'172 buf_T'b_p_ai
-          if r'173 /= 0
+          r'176 <- curbuf ed'
+          r'177 <- rdI32 r'176 buf_T'b_p_ai
+          if r'177 /= 0
             then do
               beginline ed' BL_WHITE
               set'did_ai ed' TRUE
-              r'174 <- curwin ed'
-              r'175 <- rdI32 r'174 (win_T'w_cursor + pos_T'col)
-              set'ai_col ed' r'175
-              j'66 old_lcount17 curpos_lnum17 curpos_col17 curpos_coladd17
+              r'178 <- curwin ed'
+              r'179 <- rdI32 r'178 (win_T'w_cursor + pos_T'col)
+              set'ai_col ed' r'179
+              j'66 old_lcount17
             else do
               beginline ed' 0
-              j'66 old_lcount17 curpos_lnum17 curpos_col17 curpos_coladd17
-    j'66 !old_lcount18 !curpos_lnum18 !curpos_col18 !curpos_coladd18 = do
+              j'66 old_lcount17
+    j'66 !old_lcount18 = do
       _ <- truncate_line ed' False
-      r'177 <- rdI64 oap oparg_T'line_count
-      if r'177 > 1
+      r'181 <- rdI64 oap oparg_T'line_count
+      if r'181 > 1
         then do
           u_clearline ed'
-          j'73 old_lcount18 curpos_lnum18 curpos_col18 curpos_coladd18
-        else j'73 old_lcount18 curpos_lnum18 curpos_col18 curpos_coladd18
-    loop'71 !lnum1 !old_lcount19 !curpos_lnum19 !curpos_col19 !curpos_coladd19 = do
-      r'178 <- rdI64 oap (oparg_T'end + pos_T'lnum)
-      if lnum1 <= r'178
+          j'73 old_lcount18
+        else j'73 old_lcount18
+    loop'71 !lnum1 !old_lcount19 = do
+      r'182 <- rdI64 oap (oparg_T'end + pos_T'lnum)
+      if lnum1 <= r'182
         then do
           block_prep ed' oap fr' lnum1 TRUE
-          r'179 <- rdI32 fr' block_def'textlen
-          if r'179 == 0
-            then j'78 lnum1 old_lcount19 curpos_lnum19 curpos_col19 curpos_coladd19
+          r'183 <- rdI32 fr' block_def'textlen
+          if r'183 == 0
+            then j'78 lnum1 old_lcount19
             else do
-              r'180 <- curwin ed'
-              r'181 <- rdI64 r'180 (win_T'w_cursor + pos_T'lnum)
-              if lnum1 == r'181
+              r'184 <- curwin ed'
+              r'185 <- rdI64 r'184 (win_T'w_cursor + pos_T'lnum)
+              if lnum1 == r'185
                 then do
-                  r'184 <- curwin ed'
-                  r'182 <- rdI32 fr' block_def'textcol
-                  r'183 <- rdI32 fr' block_def'startspaces
-                  wrI32 r'184 (win_T'w_cursor + pos_T'col) (r'182 + r'183)
-                  r'185 <- curwin ed'
-                  wrI32 r'185 (win_T'w_cursor + pos_T'coladd) 0
-                  j'77 lnum1 old_lcount19 curpos_lnum19 curpos_col19 curpos_coladd19
-                else j'77 lnum1 old_lcount19 curpos_lnum19 curpos_col19 curpos_coladd19
+                  r'188 <- curwin ed'
+                  r'186 <- rdI32 fr' block_def'textcol
+                  r'187 <- rdI32 fr' block_def'startspaces
+                  wrI32 r'188 (win_T'w_cursor + pos_T'col) (r'186 + r'187)
+                  r'189 <- curwin ed'
+                  wrI32 r'189 (win_T'w_cursor + pos_T'coladd) 0
+                  j'77 lnum1 old_lcount19
+                else j'77 lnum1 old_lcount19
         else do
           check_cursor_col ed'
-          r'186 <- curwin ed'
-          r'187 <- rdI64 r'186 (win_T'w_cursor + pos_T'lnum)
-          r'188 <- curwin ed'
-          r'189 <- rdI32 r'188 (win_T'w_cursor + pos_T'col)
-          r'190 <- rdI64 oap (oparg_T'end + pos_T'lnum)
-          changed_lines ed' r'187 r'189 (r'190 + 1) 0
+          r'190 <- curwin ed'
+          r'191 <- rdI64 r'190 (win_T'w_cursor + pos_T'lnum)
+          r'192 <- curwin ed'
+          r'193 <- rdI32 r'192 (win_T'w_cursor + pos_T'col)
+          r'194 <- rdI64 oap (oparg_T'end + pos_T'lnum)
+          changed_lines ed' r'191 r'193 (r'194 + 1) 0
           wrI64 oap oparg_T'line_count 0
-          j'73 old_lcount19 curpos_lnum19 curpos_col19 curpos_coladd19
-    j'73 !old_lcount20 !curpos_lnum20 !curpos_col20 !curpos_coladd20 = do
-      r'191 <- curbuf ed'
-      r'192 <- rdI64 r'191 (buf_T'b_ml + memline_T'ml_line_count)
-      msgmore ed' (r'192 - old_lcount20)
-      j'86 curpos_lnum20 curpos_col20 curpos_coladd20
-    j'77 !lnum2 !old_lcount21 !curpos_lnum21 !curpos_col21 !curpos_coladd21 = do
-      r'193 <- rdI32 fr' block_def'textlen
-      r'194 <- rdI32 fr' block_def'startspaces
-      r'195 <- rdI32 fr' block_def'endspaces
-      let !n7 = (r'193 - r'194) - r'195
-      r'196 <- ml_get ed' lnum2
-      r'197 <- ml_get_len ed' lnum2
-      r'198 <- alloc ed' (fromIntegral ((r'197 + 1) - n7) :: Word64)
-      let !newp1 = castPtr r'198
-      r'199 <- rdI32 fr' block_def'textcol
-      _ <- musl_memmove (castPtr (castPtr newp1)) (castPtr (castPtr r'196)) (fromIntegral r'199 :: Word64)
-      r'201 <- rdI32 fr' block_def'textcol
-      r'202 <- rdI32 fr' block_def'startspaces
-      r'203 <- rdI32 fr' block_def'endspaces
-      _ <- musl_memset (pAdd newp1 (fromIntegral r'201)) (ch ' ') (fromIntegral (r'202 + r'203) :: Word64)
+          j'73 old_lcount19
+    j'73 !old_lcount20 = do
+      r'195 <- curbuf ed'
+      r'196 <- rdI64 r'195 (buf_T'b_ml + memline_T'ml_line_count)
+      msgmore ed' (r'196 - old_lcount20)
+      j'86
+    j'77 !lnum2 !old_lcount21 = do
+      r'197 <- rdI32 fr' block_def'textlen
+      r'198 <- rdI32 fr' block_def'startspaces
+      r'199 <- rdI32 fr' block_def'endspaces
+      let !n7 = (r'197 - r'198) - r'199
+      r'200 <- ml_get ed' lnum2
+      r'201 <- ml_get_len ed' lnum2
+      r'202 <- alloc ed' (fromIntegral ((r'201 + 1) - n7) :: Word64)
+      let !newp1 = castPtr r'202
+      r'203 <- rdI32 fr' block_def'textcol
+      _ <- musl_memmove (castPtr (castPtr newp1)) (castPtr (castPtr r'200)) (fromIntegral r'203 :: Word64)
       r'205 <- rdI32 fr' block_def'textcol
       r'206 <- rdI32 fr' block_def'startspaces
       r'207 <- rdI32 fr' block_def'endspaces
-      r'208 <- rdI32 fr' block_def'textcol
-      r'209 <- rdI32 fr' block_def'textlen
-      _ <- musl_strcpy (pAdd (pAdd (pAdd newp1 (fromIntegral r'205)) (fromIntegral r'206)) (fromIntegral r'207)) (pAdd (pAdd r'196 (fromIntegral r'208)) (fromIntegral r'209))
+      _ <- musl_memset (pAdd newp1 (fromIntegral r'205)) (ch ' ') (fromIntegral (r'206 + r'207) :: Word64)
+      r'209 <- rdI32 fr' block_def'textcol
+      r'210 <- rdI32 fr' block_def'startspaces
+      r'211 <- rdI32 fr' block_def'endspaces
+      r'212 <- rdI32 fr' block_def'textcol
+      r'213 <- rdI32 fr' block_def'textlen
+      _ <- musl_strcpy (pAdd (pAdd (pAdd newp1 (fromIntegral r'209)) (fromIntegral r'210)) (fromIntegral r'211)) (pAdd (pAdd r'200 (fromIntegral r'212)) (fromIntegral r'213))
       _ <- ml_replace ed' lnum2 newp1 False
-      j'78 lnum2 old_lcount21 curpos_lnum21 curpos_col21 curpos_coladd21
-    j'78 !lnum3 !old_lcount22 !curpos_lnum22 !curpos_col22 !curpos_coladd22 = do
+      j'78 lnum2 old_lcount21
+    j'78 !lnum3 !old_lcount22 = do
       let !lnum4 = lnum3 + 1
-      loop'71 lnum4 old_lcount22 curpos_lnum22 curpos_col22 curpos_coladd22
-    j'86 !curpos_lnum23 !curpos_col23 !curpos_coladd23 = do
-      r'212 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags
-      if (r'212 .&. CMOD_LOCKMARKS) == 0
+      loop'71 lnum4 old_lcount22
+    j'86 = do
+      r'216 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags
+      if (r'216 .&. CMOD_LOCKMARKS) == 0
         then do
-          r'213 <- rdI32 oap oparg_T'block_mode
-          if r'213 /= 0
+          r'217 <- rdI32 oap oparg_T'block_mode
+          if r'217 /= 0
             then do
-              r'215 <- curbuf ed'
-              r'214 <- rdI64 oap (oparg_T'end + pos_T'lnum)
-              wrI64 r'215 (buf_T'b_op_end + pos_T'lnum) r'214
-              r'217 <- curbuf ed'
-              r'216 <- rdI32 oap (oparg_T'start + pos_T'col)
-              wrI32 r'217 (buf_T'b_op_end + pos_T'col) r'216
-              j'90 curpos_lnum23 curpos_col23 curpos_coladd23
+              r'219 <- curbuf ed'
+              r'218 <- rdI64 oap (oparg_T'end + pos_T'lnum)
+              wrI64 r'219 (buf_T'b_op_end + pos_T'lnum) r'218
+              r'221 <- curbuf ed'
+              r'220 <- rdI32 oap (oparg_T'start + pos_T'col)
+              wrI32 r'221 (buf_T'b_op_end + pos_T'col) r'220
+              j'90
             else do
-              r'218 <- curbuf ed'
-              copyMem (pAdd r'218 buf_T'b_op_end) (pAdd oap oparg_T'start) 16
-              j'90 curpos_lnum23 curpos_col23 curpos_coladd23
+              r'222 <- curbuf ed'
+              copyMem (pAdd r'222 buf_T'b_op_end) (pAdd oap oparg_T'start) 16
+              j'90
         else pure True
-    j'90 _ _ _ = do
-      r'219 <- curbuf ed'
-      copyMem (pAdd r'219 buf_T'b_op_start) (pAdd oap oparg_T'start) 16
+    j'90 = do
+      r'223 <- curbuf ed'
+      copyMem (pAdd r'223 buf_T'b_op_start) (pAdd oap oparg_T'start) 16
       pure True
-  r'220 <- curbuf ed'
-  r'221 <- rdI64 r'220 (buf_T'b_ml + memline_T'ml_line_count)
-  r'222 <- curbuf ed'
-  r'223 <- rdI32 r'222 (buf_T'b_ml + memline_T'ml_flags)
-  if (r'223 .&. ML_EMPTY) /= 0
+  r'224 <- curbuf ed'
+  r'225 <- rdI64 r'224 (buf_T'b_ml + memline_T'ml_line_count)
+  r'226 <- curbuf ed'
+  r'227 <- rdI32 r'226 (buf_T'b_ml + memline_T'ml_flags)
+  if (r'227 .&. ML_EMPTY) /= 0
     then pure True
     else do
-      r'224 <- rdI32 oap oparg_T'empty
-      if r'224 /= 0
+      r'228 <- rdI32 oap oparg_T'empty
+      if r'228 /= 0
         then do
           u_save_cursor ed'
         else do
-          r'226 <- curbuf ed'
-          r'227 <- rdI32 r'226 buf_T'b_p_ma
-          if not (r'227 /= 0)
+          r'230 <- curbuf ed'
+          r'231 <- rdI32 r'230 buf_T'b_p_ma
+          if not (r'231 /= 0)
             then do
-              let !r'228 = c'_ (addr'e_cannot_make_changes_modifiable_is_off ed')
-              _ <- emsg ed' r'228
+              let !r'232 = c'_ (addr'e_cannot_make_changes_modifiable_is_off ed')
+              _ <- emsg ed' r'232
               pure False
             else do
-              r'230 <- c'VIsual_select ed'
-              r'232 <- if (r'230 /= 0) then (do { r'231 <- rdI32 oap oparg_T'is_VIsual; pure (r'231 /= 0) }) else pure False
-              if r'232
+              r'234 <- c'VIsual_select ed'
+              r'236 <- if (r'234 /= 0) then (do { r'235 <- rdI32 oap oparg_T'is_VIsual; pure (r'235 /= 0) }) else pure False
+              if r'236
                 then do
-                  r'233 <- c'VIsual_select_reg ed'
-                  wrI32 oap oparg_T'regname r'233
-                  j'5 r'221 False (0 :: Int64) (0 :: Int32) (0 :: Int32)
-                else j'5 r'221 False (0 :: Int64) (0 :: Int32) (0 :: Int32)
+                  r'237 <- c'VIsual_select_reg ed'
+                  wrI32 oap oparg_T'regname r'237
+                  j'5 r'225 False
+                else j'5 r'225 False
 
 mb_adjust_opend :: Ed -> Ptr Oparg_T -> IO ()
 mb_adjust_opend ed' oap = do
@@ -5063,74 +5079,82 @@ swapchars ed' op_type pos length = do
 swapchar :: Ed -> Int32 -> Ptr Pos_T -> IO Bool
 swapchar ed' op_type pos = do
   let
-    j'7 !c1 !nc1 _ _ _ _ _ _ = do
+    j'7 !c1 !nc1 = do
       if nc1 /= c1
         then do
           if (c1 >= 128) || (nc1 >= 128)
             then do
               r'1 <- curwin ed'
-              r'2 <- rdI64 (pAdd r'1 win_T'w_cursor) pos_T'lnum
-              r'3 <- rdI32 (pAdd r'1 win_T'w_cursor) pos_T'col
-              r'4 <- rdI32 (pAdd r'1 win_T'w_cursor) pos_T'coladd
+              r'2 <- rdI64 r'1 (win_T'w_cursor + pos_T'lnum)
+              r'3 <- curwin ed'
+              r'4 <- rdI32 r'3 (win_T'w_cursor + pos_T'col)
               r'5 <- curwin ed'
-              copyMem (pAdd r'5 win_T'w_cursor) pos 16
-              r'6 <- ml_get_cursor ed'
-              r'7 <- utf_ptr2len ed' r'6
-              _ <- del_bytes ed' (fromIntegral r'7 :: Int64) False False
+              r'6 <- rdI32 r'5 (win_T'w_cursor + pos_T'coladd)
+              r'7 <- curwin ed'
+              copyMem (pAdd r'7 win_T'w_cursor) pos 16
+              r'8 <- ml_get_cursor ed'
+              r'9 <- utf_ptr2len ed' r'8
+              _ <- del_bytes ed' (fromIntegral r'9 :: Int64) False False
               ins_char ed' nc1
-              r'9 <- curwin ed'
-              wrI64 r'9 (win_T'w_cursor + pos_T'lnum) r'2
-              wrI32 r'9 (win_T'w_cursor + pos_T'col) r'3
-              wrI32 r'9 (win_T'w_cursor + pos_T'coladd) r'4
+              r'11 <- curwin ed'
+              wrI64 r'11 (win_T'w_cursor + pos_T'lnum) r'2
+              r'12 <- curwin ed'
+              wrI32 r'12 (win_T'w_cursor + pos_T'col) r'4
+              r'13 <- curwin ed'
+              wrI32 r'13 (win_T'w_cursor + pos_T'coladd) r'6
               pure True
             else do
               pbyte ed' pos nc1
               pure True
         else pure False
-  r'10 <- gchar_pos ed' pos
-  if (((op_type == OP_UPPER) || (op_type == OP_NOP)) || (op_type == OP_TILDE)) && (r'10 == 223)
+  r'14 <- gchar_pos ed' pos
+  if (((op_type == OP_UPPER) || (op_type == OP_NOP)) || (op_type == OP_TILDE)) && (r'14 == 223)
     then do
-      r'11 <- curwin ed'
-      r'12 <- rdI64 (pAdd r'11 win_T'w_cursor) pos_T'lnum
-      r'13 <- rdI32 (pAdd r'11 win_T'w_cursor) pos_T'col
-      r'14 <- rdI32 (pAdd r'11 win_T'w_cursor) pos_T'coladd
       r'15 <- curwin ed'
-      copyMem (pAdd r'15 win_T'w_cursor) pos 16
+      r'16 <- rdI64 r'15 (win_T'w_cursor + pos_T'lnum)
+      r'17 <- curwin ed'
+      r'18 <- rdI32 r'17 (win_T'w_cursor + pos_T'col)
+      r'19 <- curwin ed'
+      r'20 <- rdI32 r'19 (win_T'w_cursor + pos_T'coladd)
+      r'21 <- curwin ed'
+      copyMem (pAdd r'21 win_T'w_cursor) pos 16
       _ <- del_char ed' False
       ins_char ed' 7838
-      r'17 <- curwin ed'
-      wrI64 r'17 (win_T'w_cursor + pos_T'lnum) r'12
-      wrI32 r'17 (win_T'w_cursor + pos_T'col) r'13
-      wrI32 r'17 (win_T'w_cursor + pos_T'coladd) r'14
+      r'23 <- curwin ed'
+      wrI64 r'23 (win_T'w_cursor + pos_T'lnum) r'16
+      r'24 <- curwin ed'
+      wrI32 r'24 (win_T'w_cursor + pos_T'col) r'18
+      r'25 <- curwin ed'
+      wrI32 r'25 (win_T'w_cursor + pos_T'coladd) r'20
       pure True
     else do
-      r'18 <- vim_islower ed' r'10
-      if r'18
+      r'26 <- vim_islower ed' r'14
+      if r'26
         then do
           if op_type /= OP_LOWER
             then do
-              r'19 <- vim_toupper ed' r'10
-              j'7 r'10 r'19 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-            else j'7 r'10 r'10 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
+              r'27 <- vim_toupper ed' r'14
+              j'7 r'14 r'27
+            else j'7 r'14 r'14
         else do
-          r'20 <- vim_isupper ed' r'10
-          if r'20
+          r'28 <- vim_isupper ed' r'14
+          if r'28
             then do
               if op_type /= OP_UPPER
                 then do
-                  r'21 <- vim_tolower ed' r'10
-                  j'7 r'10 r'21 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-                else j'7 r'10 r'10 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-            else j'7 r'10 r'10 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
+                  r'29 <- vim_tolower ed' r'14
+                  j'7 r'14 r'29
+                else j'7 r'14 r'14
+            else j'7 r'14 r'14
 
 op_insert :: Ed -> Ptr Oparg_T -> Int64 -> IO ()
 op_insert ed' oap count1 = frame 112 $ \fr' -> do
   let
-    j'5 !ind_post_vcol1 !old_ve_flags1 !ins_len1 !t1_lnum1 !t1_col1 !t1_coladd1 !start_insert_lnum1 !start_insert_col1 !start_insert_coladd1 = do
+    j'5 !ind_post_vcol1 !old_ve_flags1 !ins_len1 = do
       r'1 <- curwin ed'
       wrW32 r'1 (win_T'w_onebuf_opt + winopt_T'wo_ve_flags) (fromIntegral old_ve_flags1 :: Word32)
-      j'6 ind_post_vcol1 ins_len1 t1_lnum1 t1_col1 t1_coladd1 start_insert_lnum1 start_insert_col1 start_insert_coladd1
-    j'6 !ind_post_vcol2 !ins_len2 !t1_lnum2 !t1_col2 !t1_coladd2 !start_insert_lnum2 !start_insert_col2 !start_insert_coladd2 = do
+      j'6 ind_post_vcol1 ins_len1
+    j'6 !ind_post_vcol2 !ins_len2 = do
       r'2 <- rdI64 oap (oparg_T'start + pos_T'lnum)
       block_prep ed' oap fr' r'2 TRUE
       r'3 <- getwhitecols_curline ed'
@@ -5144,9 +5168,9 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
         then do
           r'9 <- rdI32 fr' block_def'textlen
           let !pre_textlen2 = pre_textlen1 - (fromIntegral r'9 :: Int64)
-          j'8 pre_textlen2 r'3 r'4 ind_post_vcol2 ins_len2 t1_lnum2 t1_col2 t1_coladd2 start_insert_lnum2 start_insert_col2 start_insert_coladd2
-        else j'8 pre_textlen1 r'3 r'4 ind_post_vcol2 ins_len2 t1_lnum2 t1_col2 t1_coladd2 start_insert_lnum2 start_insert_col2 start_insert_coladd2
-    j'8 !pre_textlen3 !ind_pre_col1 !ind_pre_vcol1 !ind_post_vcol3 !ins_len3 !t1_lnum3 !t1_col3 !t1_coladd3 !start_insert_lnum3 !start_insert_col3 !start_insert_coladd3 = do
+          j'8 pre_textlen2 r'3 r'4 ind_post_vcol2 ins_len2
+        else j'8 pre_textlen1 r'3 r'4 ind_post_vcol2 ins_len2
+    j'8 !pre_textlen3 !ind_pre_col1 !ind_pre_vcol1 !ind_post_vcol3 !ins_len3 = do
       r'10 <- rdI32 oap oparg_T'op_type
       if r'10 == OP_APPEND
         then do
@@ -5156,7 +5180,7 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
             then do
               r'15 <- curwin ed'
               wrB r'15 win_T'w_set_curswant True
-              loop'13 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3 t1_lnum3 t1_col3 t1_coladd3 start_insert_lnum3 start_insert_col3 start_insert_coladd3
+              loop'13 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3
             else do
               r'16 <- curwin ed'
               copyMem (pAdd r'16 win_T'w_cursor) (pAdd oap oparg_T'end) 16
@@ -5169,10 +5193,10 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
               if r'23
                 then do
                   _ <- inc_cursor ed'
-                  j'19 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3 t1_lnum3 t1_col3 t1_coladd3 start_insert_lnum3 start_insert_col3 start_insert_coladd3
-                else j'19 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3 t1_lnum3 t1_col3 t1_coladd3 start_insert_lnum3 start_insert_col3 start_insert_coladd3
-        else j'19 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3 t1_lnum3 t1_col3 t1_coladd3 start_insert_lnum3 start_insert_col3 start_insert_coladd3
-    loop'13 !pre_textlen4 !ind_pre_col2 !ind_pre_vcol2 !ind_post_vcol4 !ins_len4 !t1_lnum4 !t1_col4 !t1_coladd4 !start_insert_lnum4 !start_insert_col4 !start_insert_coladd4 = do
+                  j'19 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3
+                else j'19 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3
+        else j'19 pre_textlen3 ind_pre_col1 ind_pre_vcol1 ind_post_vcol3 ins_len3
+    loop'13 !pre_textlen4 !ind_pre_col2 !ind_pre_vcol2 !ind_post_vcol4 !ins_len4 = do
       r'25 <- ml_get_cursor ed'
       r'26 <- rdW8 r'25 0
       r'31 <- if ((fromIntegral r'26 :: Int32) /= NUL) then (do { r'27 <- curwin ed'; r'28 <- rdI32 r'27 (win_T'w_cursor + pos_T'col); r'29 <- rdI32 fr' block_def'textcol; r'30 <- rdI32 fr' block_def'textlen; pure (r'28 < (r'29 + r'30)) }) else pure False
@@ -5181,7 +5205,7 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
           r'32 <- curwin ed'
           r'33 <- rdI32 r'32 (win_T'w_cursor + pos_T'col)
           wrI32 r'32 (win_T'w_cursor + pos_T'col) (r'33 + 1)
-          loop'13 pre_textlen4 ind_pre_col2 ind_pre_vcol2 ind_post_vcol4 ins_len4 t1_lnum4 t1_col4 t1_coladd4 start_insert_lnum4 start_insert_col4 start_insert_coladd4
+          loop'13 pre_textlen4 ind_pre_col2 ind_pre_vcol2 ind_post_vcol4 ins_len4
         else do
           r'34 <- rdB fr' block_def'is_short
           r'36 <- if r'34 then (do { r'35 <- rdB fr' block_def'is_MAX; pure (not r'35) }) else pure False
@@ -5190,28 +5214,28 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
               r'37 <- u_save_cursor ed'
               if not r'37
                 then pure ()
-                else loop'17 pre_textlen4 ind_pre_col2 ind_pre_vcol2 ind_post_vcol4 (0 :: Int32) ins_len4 t1_lnum4 t1_col4 t1_coladd4 start_insert_lnum4 start_insert_col4 start_insert_coladd4
-            else j'19 pre_textlen4 ind_pre_col2 ind_pre_vcol2 ind_post_vcol4 ins_len4 t1_lnum4 t1_col4 t1_coladd4 start_insert_lnum4 start_insert_col4 start_insert_coladd4
-    loop'17 !pre_textlen5 !ind_pre_col3 !ind_pre_vcol3 !ind_post_vcol5 !i1 !ins_len5 !t1_lnum5 !t1_col5 !t1_coladd5 !start_insert_lnum5 !start_insert_col5 !start_insert_coladd5 = do
+                else loop'17 pre_textlen4 ind_pre_col2 ind_pre_vcol2 ind_post_vcol4 (0 :: Int32) ins_len4
+            else j'19 pre_textlen4 ind_pre_col2 ind_pre_vcol2 ind_post_vcol4 ins_len4
+    loop'17 !pre_textlen5 !ind_pre_col3 !ind_pre_vcol3 !ind_post_vcol5 !i1 !ins_len5 = do
       r'38 <- rdI32 fr' block_def'endspaces
       if i1 < r'38
         then do
           ins_char ed' (ch ' ')
           let !i2 = i1 + 1
-          loop'17 pre_textlen5 ind_pre_col3 ind_pre_vcol3 ind_post_vcol5 i2 ins_len5 t1_lnum5 t1_col5 t1_coladd5 start_insert_lnum5 start_insert_col5 start_insert_coladd5
+          loop'17 pre_textlen5 ind_pre_col3 ind_pre_vcol3 ind_post_vcol5 i2 ins_len5
         else do
           r'39 <- rdI32 fr' block_def'textlen
           r'40 <- rdI32 fr' block_def'endspaces
           wrI32 fr' block_def'textlen (r'39 + r'40)
-          j'19 pre_textlen5 ind_pre_col3 ind_pre_vcol3 ind_post_vcol5 ins_len5 t1_lnum5 t1_col5 t1_coladd5 start_insert_lnum5 start_insert_col5 start_insert_coladd5
-    j'19 !pre_textlen6 !ind_pre_col4 !ind_pre_vcol4 !ind_post_vcol6 !ins_len6 _ _ _ _ _ _ = do
-      r'41 <- rdI64 (pAdd oap oparg_T'start) pos_T'lnum
-      r'42 <- rdI32 (pAdd oap oparg_T'start) pos_T'col
-      r'43 <- rdI32 (pAdd oap oparg_T'start) pos_T'coladd
+          j'19 pre_textlen5 ind_pre_col3 ind_pre_vcol3 ind_post_vcol5 ins_len5
+    j'19 !pre_textlen6 !ind_pre_col4 !ind_pre_vcol4 !ind_post_vcol6 !ins_len6 = do
+      r'41 <- rdI64 oap (oparg_T'start + pos_T'lnum)
+      r'42 <- rdI32 oap (oparg_T'start + pos_T'col)
+      r'43 <- rdI32 oap (oparg_T'start + pos_T'coladd)
       r'44 <- curwin ed'
-      r'45 <- rdI64 (pAdd r'44 win_T'w_cursor) pos_T'lnum
-      r'46 <- rdI32 (pAdd r'44 win_T'w_cursor) pos_T'col
-      r'47 <- rdI32 (pAdd r'44 win_T'w_cursor) pos_T'coladd
+      r'45 <- rdI64 r'44 (win_T'w_cursor + pos_T'lnum)
+      r'46 <- curwin ed'
+      r'47 <- rdI32 r'46 (win_T'w_cursor + pos_T'col)
       _ <- edit ed' NUL False count1
       r'49 <- curbuf ed'
       r'50 <- rdI64 r'49 (buf_T'b_op_start_orig + pos_T'lnum)
@@ -5220,9 +5244,9 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
         then do
           r'64 <- curbuf ed'
           copyMem (pAdd oap oparg_T'start) (pAdd r'64 buf_T'b_op_start_orig) 16
-          j'21 pre_textlen6 ind_pre_col4 ind_pre_vcol4 ind_post_vcol6 ins_len6 r'41 r'42 r'43 r'45 r'46 r'47
-        else j'21 pre_textlen6 ind_pre_col4 ind_pre_vcol4 ind_post_vcol6 ins_len6 r'41 r'42 r'43 r'45 r'46 r'47
-    j'21 !pre_textlen7 !ind_pre_col5 !ind_pre_vcol5 !ind_post_vcol7 !ins_len7 !t1_lnum7 !t1_col7 !t1_coladd7 !start_insert_lnum7 !start_insert_col7 !start_insert_coladd7 = do
+          j'21 pre_textlen6 ind_pre_col4 ind_pre_vcol4 ind_post_vcol6 r'45 r'47 ins_len6
+        else j'21 pre_textlen6 ind_pre_col4 ind_pre_vcol4 ind_post_vcol6 r'45 r'47 ins_len6
+    j'21 !pre_textlen7 !ind_pre_col5 !ind_pre_vcol5 !ind_post_vcol7 !start_insert_lnum1 !start_insert_col1 !ins_len7 = do
       r'65 <- curwin ed'
       r'66 <- rdI64 r'65 (win_T'w_cursor + pos_T'lnum)
       r'67 <- rdI64 oap (oparg_T'start + pos_T'lnum)
@@ -5243,10 +5267,10 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
                   r'75 <- get_indent ed'
                   r'76 <- rdI32 fr' block_def'start_vcol
                   wrI32 fr' block_def'start_vcol (r'76 + (r'75 - ind_pre_vcol5))
-                  j'25 pre_textlen7 ind_pre_col5 r'71 ind_pre_vcol5 r'75 ins_len7 True (0 :: Int32) t1_lnum7 t1_col7 t1_coladd7 start_insert_lnum7 start_insert_col7 start_insert_coladd7
-                else j'25 pre_textlen7 ind_pre_col5 r'71 ind_pre_vcol5 ind_post_vcol7 ins_len7 False (0 :: Int32) t1_lnum7 t1_col7 t1_coladd7 start_insert_lnum7 start_insert_col7 start_insert_coladd7
+                  j'25 pre_textlen7 ind_pre_col5 r'71 ind_pre_vcol5 r'75 start_insert_lnum1 start_insert_col1 ins_len7 True (0 :: Int32)
+                else j'25 pre_textlen7 ind_pre_col5 r'71 ind_pre_vcol5 ind_post_vcol7 start_insert_lnum1 start_insert_col1 ins_len7 False (0 :: Int32)
             else pure ()
-    j'25 !pre_textlen8 !ind_pre_col6 !ind_post_col1 !ind_pre_vcol6 !ind_post_vcol8 !ins_len8 !did_indent1 !offset1 !t1_lnum8 !t1_col8 !t1_coladd8 !start_insert_lnum8 !start_insert_col8 !start_insert_coladd8 = do
+    j'25 !pre_textlen8 !ind_pre_col6 !ind_post_col1 !ind_pre_vcol6 !ind_post_vcol8 !start_insert_lnum2 !start_insert_col2 !ins_len8 !did_indent1 !offset1 = do
       r'77 <- rdI64 oap (oparg_T'start + pos_T'lnum)
       r'78 <- curbuf ed'
       r'79 <- rdI64 r'78 (buf_T'b_op_start_orig + pos_T'lnum)
@@ -5268,7 +5292,7 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
               r'97 <- rdI32 oap oparg_T'start_vcol
               let !pre_textlen9 = pre_textlen8 - (fromIntegral (r'86 - r'97) :: Int64)
               wrI32 oap oparg_T'start_vcol r'86
-              j'30 pre_textlen9 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 ins_len8 did_indent1 offset1 t1_lnum8 t1_col8 t1_coladd8 start_insert_lnum8 start_insert_col8 start_insert_coladd8
+              j'30 pre_textlen9 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 start_insert_lnum2 start_insert_col2 ins_len8 did_indent1 offset1
             else do
               r'98 <- rdI32 oap oparg_T'op_type
               r'105 <- if (r'98 == OP_APPEND) then (do { r'99 <- rdI32 oap (oparg_T'start + pos_T'col); r'100 <- rdI32 oap (oparg_T'start + pos_T'coladd); r'101 <- curbuf ed'; r'102 <- rdI32 r'101 (buf_T'b_op_start_orig + pos_T'col); r'103 <- curbuf ed'; r'104 <- rdI32 r'103 (buf_T'b_op_start_orig + pos_T'coladd); pure ((r'99 + r'100) >= (r'102 + r'104)) }) else pure False
@@ -5283,10 +5307,10 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
                   let !pre_textlen11 = pre_textlen10 - (fromIntegral (r'86 - r'109) :: Int64)
                   wrI32 oap oparg_T'start_vcol r'86
                   wrI32 oap oparg_T'op_type OP_INSERT
-                  j'30 pre_textlen11 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 ins_len8 did_indent1 offset1 t1_lnum8 t1_col8 t1_coladd8 start_insert_lnum8 start_insert_col8 start_insert_coladd8
-                else j'30 pre_textlen8 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 ins_len8 did_indent1 offset1 t1_lnum8 t1_col8 t1_coladd8 start_insert_lnum8 start_insert_col8 start_insert_coladd8
-        else j'30 pre_textlen8 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 ins_len8 did_indent1 offset1 t1_lnum8 t1_col8 t1_coladd8 start_insert_lnum8 start_insert_col8 start_insert_coladd8
-    j'30 !pre_textlen12 !ind_pre_col7 !ind_post_col2 !ind_pre_vcol7 !ind_post_vcol9 !ins_len9 !did_indent2 !offset2 !t1_lnum9 !t1_col9 !t1_coladd9 !start_insert_lnum9 !start_insert_col9 !start_insert_coladd9 = do
+                  j'30 pre_textlen11 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 start_insert_lnum2 start_insert_col2 ins_len8 did_indent1 offset1
+                else j'30 pre_textlen8 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 start_insert_lnum2 start_insert_col2 ins_len8 did_indent1 offset1
+        else j'30 pre_textlen8 ind_pre_col6 ind_post_col1 ind_pre_vcol6 ind_post_vcol8 start_insert_lnum2 start_insert_col2 ins_len8 did_indent1 offset1
+    j'30 !pre_textlen12 !ind_pre_col7 !ind_post_col2 !ind_pre_vcol7 !ind_post_vcol9 !start_insert_lnum3 !start_insert_col3 !ins_len9 !did_indent2 !offset2 = do
       r'111 <- if did_indent2 then (do { r'110 <- rdI32 fr' block_def'textcol; pure ((r'110 - ind_post_col2) > 0) }) else pure False
       if r'111
         then do
@@ -5298,9 +5322,9 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
           wrI32 oap (oparg_T'end + pos_T'col) (r'114 + (ind_post_col2 - ind_pre_col7))
           r'115 <- rdI32 oap oparg_T'end_vcol
           wrI32 oap oparg_T'end_vcol (r'115 + (ind_post_vcol9 - ind_pre_vcol7))
-          j'32 pre_textlen12 ind_pre_col7 ind_post_col2 ind_pre_vcol7 ind_post_vcol9 ins_len9 did_indent2 offset2 t1_lnum9 t1_col9 t1_coladd9 start_insert_lnum9 start_insert_col9 start_insert_coladd9
-        else j'32 pre_textlen12 ind_pre_col7 ind_post_col2 ind_pre_vcol7 ind_post_vcol9 ins_len9 did_indent2 offset2 t1_lnum9 t1_col9 t1_coladd9 start_insert_lnum9 start_insert_col9 start_insert_coladd9
-    j'32 !pre_textlen13 !ind_pre_col8 !ind_post_col3 !ind_pre_vcol8 !ind_post_vcol10 !ins_len10 !did_indent3 !offset3 !t1_lnum10 !t1_col10 !t1_coladd10 !start_insert_lnum10 !start_insert_col10 !start_insert_coladd10 = do
+          j'32 pre_textlen12 ind_pre_col7 ind_post_col2 ind_pre_vcol7 ind_post_vcol9 start_insert_lnum3 start_insert_col3 ins_len9 did_indent2 offset2
+        else j'32 pre_textlen12 ind_pre_col7 ind_post_col2 ind_pre_vcol7 ind_post_vcol9 start_insert_lnum3 start_insert_col3 ins_len9 did_indent2 offset2
+    j'32 !pre_textlen13 !ind_pre_col8 !ind_post_col3 !ind_pre_vcol8 !ind_post_vcol10 !start_insert_lnum4 !start_insert_col4 !ins_len10 !did_indent3 !offset3 = do
       r'116 <- rdI64 oap (oparg_T'start + pos_T'lnum)
       block_prep ed' oap (pAdd fr' 56) r'116 TRUE
       r'118 <- if did_indent3 then (do { r'117 <- rdI32 fr' block_def'textcol; pure ((r'117 - ind_post_col3) > 0) }) else pure False
@@ -5314,9 +5338,9 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
           wrI32 oap (oparg_T'end + pos_T'col) (r'121 - (ind_post_col3 - ind_pre_col8))
           r'122 <- rdI32 oap oparg_T'end_vcol
           wrI32 oap oparg_T'end_vcol (r'122 - (ind_post_vcol10 - ind_pre_vcol8))
-          j'34 pre_textlen13 ins_len10 offset3 t1_lnum10 t1_col10 t1_coladd10 start_insert_lnum10 start_insert_col10 start_insert_coladd10
-        else j'34 pre_textlen13 ins_len10 offset3 t1_lnum10 t1_col10 t1_coladd10 start_insert_lnum10 start_insert_col10 start_insert_coladd10
-    j'34 !pre_textlen14 !ins_len11 !offset4 !t1_lnum11 !t1_col11 !t1_coladd11 !start_insert_lnum11 !start_insert_col11 !start_insert_coladd11 = do
+          j'34 pre_textlen13 start_insert_lnum4 start_insert_col4 ins_len10 offset3
+        else j'34 pre_textlen13 start_insert_lnum4 start_insert_col4 ins_len10 offset3
+    j'34 !pre_textlen14 !start_insert_lnum5 !start_insert_col5 !ins_len11 !offset4 = do
       r'123 <- rdB fr' block_def'is_MAX
       r'126 <- if (not r'123) then pure True else (do { r'124 <- rdI32 fr' (block_def'textlen + 56); r'125 <- rdI32 fr' block_def'textlen; pure (r'124 < r'125) })
       if r'126
@@ -5332,17 +5356,17 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
                 then do
                   r'131 <- rdI32 fr' (block_def'textlen + 56)
                   wrI32 fr' (block_def'textlen + 56) (r'131 - 1)
-                  j'38 pre_textlen15 ins_len11 offset4 t1_lnum11 t1_col11 t1_coladd11 start_insert_lnum11 start_insert_col11 start_insert_coladd11
-                else j'38 pre_textlen15 ins_len11 offset4 t1_lnum11 t1_col11 t1_coladd11 start_insert_lnum11 start_insert_col11 start_insert_coladd11
-            else j'38 pre_textlen14 ins_len11 offset4 t1_lnum11 t1_col11 t1_coladd11 start_insert_lnum11 start_insert_col11 start_insert_coladd11
-        else j'39 pre_textlen14 ins_len11 offset4 t1_lnum11 t1_col11 t1_coladd11 start_insert_lnum11 start_insert_col11 start_insert_coladd11
-    j'38 !pre_textlen16 !ins_len12 !offset5 !t1_lnum12 !t1_col12 !t1_coladd12 !start_insert_lnum12 !start_insert_col12 !start_insert_coladd12 = do
+                  j'38 pre_textlen15 start_insert_lnum5 start_insert_col5 ins_len11 offset4
+                else j'38 pre_textlen15 start_insert_lnum5 start_insert_col5 ins_len11 offset4
+            else j'38 pre_textlen14 start_insert_lnum5 start_insert_col5 ins_len11 offset4
+        else j'39 pre_textlen14 start_insert_lnum5 start_insert_col5 ins_len11 offset4
+    j'38 !pre_textlen16 !start_insert_lnum6 !start_insert_col6 !ins_len12 !offset5 = do
       r'132 <- rdI32 fr' (block_def'textcol + 56)
       wrI32 fr' block_def'textcol r'132
       r'133 <- rdI32 fr' (block_def'textlen + 56)
       wrI32 fr' block_def'textlen r'133
-      j'39 pre_textlen16 ins_len12 offset5 t1_lnum12 t1_col12 t1_coladd12 start_insert_lnum12 start_insert_col12 start_insert_coladd12
-    j'39 !pre_textlen17 !ins_len13 !offset6 !t1_lnum13 !t1_col13 !t1_coladd13 !start_insert_lnum13 !start_insert_col13 !start_insert_coladd13 = do
+      j'39 pre_textlen16 start_insert_lnum6 start_insert_col6 ins_len12 offset5
+    j'39 !pre_textlen17 !start_insert_lnum7 !start_insert_col7 !ins_len13 !offset6 = do
       r'134 <- rdI64 oap (oparg_T'start + pos_T'lnum)
       r'135 <- ml_get ed' r'134
       r'136 <- rdI64 oap (oparg_T'start + pos_T'lnum)
@@ -5356,37 +5380,37 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
           r'140 <- rdI32 fr' block_def'textlen
           let !add2 = add1 + (fromIntegral r'140 :: Word64)
           r'141 <- rdB fr' block_def'is_MAX
-          r'145 <- if r'141 then (do { r'142 <- rdI64 (addr'c'Insstart ed') pos_T'lnum; if (start_insert_lnum13 == r'142) then (do { r'143 <- rdI32 (addr'c'Insstart ed') pos_T'col; pure (start_insert_col13 > r'143) }) else pure False }) else pure False
+          r'145 <- if r'141 then (do { r'142 <- rdI64 (addr'c'Insstart ed') pos_T'lnum; if (start_insert_lnum7 == r'142) then (do { r'143 <- rdI32 (addr'c'Insstart ed') pos_T'col; pure (start_insert_col7 > r'143) }) else pure False }) else pure False
           if r'145
             then do
               r'146 <- rdI32 (addr'c'Insstart ed') pos_T'col
-              let !offset7 = start_insert_col13 - r'146
+              let !offset7 = start_insert_col7 - r'146
               let !add3 = add2 - (fromIntegral offset7 :: Word64)
               r'147 <- rdI32 oap oparg_T'end_vcol
               if r'147 > offset7
                 then do
                   r'148 <- rdI32 oap oparg_T'end_vcol
                   wrI32 oap oparg_T'end_vcol (r'148 - (offset7 + 1))
-                  j'44 pre_textlen17 ins_len13 r'135 len1 add3 offset7 t1_lnum13 t1_col13 t1_coladd13 start_insert_lnum13 start_insert_col13 start_insert_coladd13
+                  j'44 pre_textlen17 ins_len13 r'135 len1 add3 offset7
                 else pure ()
-            else j'44 pre_textlen17 ins_len13 r'135 len1 add2 offset6 t1_lnum13 t1_col13 t1_coladd13 start_insert_lnum13 start_insert_col13 start_insert_coladd13
-        else j'44 pre_textlen17 ins_len13 r'135 len1 add1 offset6 t1_lnum13 t1_col13 t1_coladd13 start_insert_lnum13 start_insert_col13 start_insert_coladd13
-    j'44 !pre_textlen18 !ins_len14 !firstline1 !len2 !add4 !offset8 !t1_lnum14 !t1_col14 !t1_coladd14 !start_insert_lnum14 !start_insert_col14 !start_insert_coladd14 = do
+            else j'44 pre_textlen17 ins_len13 r'135 len1 add2 offset6
+        else j'44 pre_textlen17 ins_len13 r'135 len1 add1 offset6
+    j'44 !pre_textlen18 !ins_len14 !firstline1 !len2 !add4 !offset8 = do
       if add4 > len2
-        then j'46 pre_textlen18 ins_len14 firstline1 len2 len2 offset8 t1_lnum14 t1_col14 t1_coladd14 start_insert_lnum14 start_insert_col14 start_insert_coladd14
-        else j'46 pre_textlen18 ins_len14 firstline1 len2 add4 offset8 t1_lnum14 t1_col14 t1_coladd14 start_insert_lnum14 start_insert_col14 start_insert_coladd14
-    j'46 !pre_textlen19 !ins_len15 !firstline2 !len3 !add5 !offset9 !t1_lnum15 !t1_col15 !t1_coladd15 !start_insert_lnum15 !start_insert_col15 !start_insert_coladd15 = do
+        then j'46 pre_textlen18 ins_len14 firstline1 len2 len2 offset8
+        else j'46 pre_textlen18 ins_len14 firstline1 len2 add4 offset8
+    j'46 !pre_textlen19 !ins_len15 !firstline2 !len3 !add5 !offset9 = do
       let !firstline3 = pAdd firstline2 (fromIntegral add5)
       let !len4 = len3 - add5
-      let !t2'1 = pre_textlen19 >= 0
-      if t2'1
+      let !t1'1 = pre_textlen19 >= 0
+      if t1'1
         then do
           let !ins_len16 = fromIntegral (((fromIntegral (fromIntegral len4 :: Int32) :: Int64) - pre_textlen19) - (fromIntegral offset9 :: Int64)) :: Int32
-          let !t2'2 = ins_len16 > 0
-          j'48 ins_len16 firstline3 t2'2 t1_lnum15 t1_col15 t1_coladd15 start_insert_lnum15 start_insert_col15 start_insert_coladd15
-        else j'48 ins_len15 firstline3 t2'1 t1_lnum15 t1_col15 t1_coladd15 start_insert_lnum15 start_insert_col15 start_insert_coladd15
-    j'48 !ins_len17 !firstline4 !t2'3 !t1_lnum16 !t1_col16 !t1_coladd16 !start_insert_lnum16 !start_insert_col16 !start_insert_coladd16 = do
-      if t2'3
+          let !t1'2 = ins_len16 > 0
+          j'48 ins_len16 firstline3 t1'2
+        else j'48 ins_len15 firstline3 t1'1
+    j'48 !ins_len17 !firstline4 !t1'3 = do
+      if t1'3
         then do
           r'149 <- vim_strnsave ed' firstline4 (fromIntegral ins_len17 :: Word64)
           r'150 <- rdI64 oap (oparg_T'start + pos_T'lnum)
@@ -5396,10 +5420,10 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
             then do
               r'153 <- rdI32 oap oparg_T'op_type
               block_insert ed' oap r'149 (fromIntegral ins_len17 :: Word64) (r'153 == OP_INSERT) fr'
-              j'51 t1_lnum16 t1_col16 t1_coladd16 start_insert_lnum16 start_insert_col16 start_insert_coladd16
-            else j'51 t1_lnum16 t1_col16 t1_coladd16 start_insert_lnum16 start_insert_col16 start_insert_coladd16
+              j'51
+            else j'51
         else pure ()
-    j'51 _ _ _ _ _ _ = do
+    j'51 = do
       r'155 <- curwin ed'
       r'154 <- rdI32 oap (oparg_T'start + pos_T'col)
       wrI32 r'155 (win_T'w_cursor + pos_T'col) r'154
@@ -5437,10 +5461,10 @@ op_insert ed' oap count1 = frame 112 $ \fr' -> do
                   r'174 <- curwin ed'
                   r'175 <- rdI32 r'174 (win_T'w_cursor + pos_T'col)
                   wrI32 r'174 (win_T'w_cursor + pos_T'col) (r'175 - 1)
-                  j'5 (0 :: Int32) old_ve_flags2 (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-                else j'5 (0 :: Int32) old_ve_flags2 (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-        else j'6 (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-    else j'8 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
+                  j'5 (0 :: Int32) old_ve_flags2 (0 :: Int32)
+                else j'5 (0 :: Int32) old_ve_flags2 (0 :: Int32)
+        else j'6 (0 :: Int32) (0 :: Int32)
+    else j'8 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 op_change :: Ed -> Ptr Oparg_T -> IO Bool
 op_change ed' oap = frame 72 $ \fr' -> do
@@ -5946,108 +5970,112 @@ op_addsub ed' oap c'Prenum1 g_cmd = frame 72 $ \fr' -> do
         then do
           r'22 <- curbuf ed'
           wrI64 r'22 (buf_T'b_op_start + pos_T'lnum) startpos_lnum3
-          wrI32 r'22 (buf_T'b_op_start + pos_T'col) startpos_col3
-          wrI32 r'22 (buf_T'b_op_start + pos_T'coladd) startpos_coladd3
-          j'10 change_cnt3 startpos_lnum3 startpos_col3 startpos_coladd3
-        else j'10 change_cnt3 startpos_lnum3 startpos_col3 startpos_coladd3
-    j'10 !change_cnt4 _ _ _ = do
-      r'23 <- p_report ed'
-      if (fromIntegral change_cnt4 :: Int64) > r'23
+          r'23 <- curbuf ed'
+          wrI32 r'23 (buf_T'b_op_start + pos_T'col) startpos_col3
+          r'24 <- curbuf ed'
+          wrI32 r'24 (buf_T'b_op_start + pos_T'coladd) startpos_coladd3
+          j'10 change_cnt3
+        else j'10 change_cnt3
+    j'10 !change_cnt4 = do
+      r'25 <- p_report ed'
+      if (fromIntegral change_cnt4 :: Int64) > r'25
         then do
-          r'24 <- c'IObuff ed'
-          r'25 <- iobuff_room ed'
-          let !r'26 = c'NGETTEXT (Ptr "%d line changed\0"#) (Ptr "%d lines changed\0"#) (fromIntegral change_cnt4 :: Word64)
-          _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'24)) r'25 (castPtr r'26) [VI (fromIntegral change_cnt4)]
+          r'26 <- c'IObuff ed'
+          r'27 <- iobuff_room ed'
           let !r'28 = c'NGETTEXT (Ptr "%d line changed\0"#) (Ptr "%d lines changed\0"#) (fromIntegral change_cnt4 :: Word64)
-          r'29 <- iobuff_or ed' r'28
-          _ <- msg ed' r'29
+          _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'26)) r'27 (castPtr r'28) [VI (fromIntegral change_cnt4)]
+          let !r'30 = c'NGETTEXT (Ptr "%d line changed\0"#) (Ptr "%d lines changed\0"#) (fromIntegral change_cnt4 :: Word64)
+          r'31 <- iobuff_or ed' r'30
+          _ <- msg ed' r'31
           pure ()
         else pure ()
-    j'16 !change_cnt5 !amount2 !startpos_lnum5 !startpos_col5 !startpos_coladd5 = do
-      r'31 <- rdI64 fr' pos_T'lnum
-      r'32 <- ml_get_len ed' r'31
-      wrI32 fr' pos_T'col 0
+    j'16 !change_cnt5 !amount2 !startpos_lnum4 !startpos_col4 !startpos_coladd4 = do
       r'33 <- rdI64 fr' pos_T'lnum
-      r'34 <- rdI64 oap (oparg_T'start + pos_T'lnum)
-      if r'33 == r'34
+      r'34 <- ml_get_len ed' r'33
+      wrI32 fr' pos_T'col 0
+      r'35 <- rdI64 fr' pos_T'lnum
+      r'36 <- rdI64 oap (oparg_T'start + pos_T'lnum)
+      if r'35 == r'36
         then do
-          r'35 <- rdI32 fr' pos_T'col
-          r'36 <- rdI32 oap (oparg_T'start + pos_T'col)
-          wrI32 fr' pos_T'col (r'35 + r'36)
-          r'37 <- rdI32 oap (oparg_T'start + pos_T'col)
-          let !length1 = r'32 - r'37
-          j'18 change_cnt5 amount2 length1 startpos_lnum5 startpos_col5 startpos_coladd5
-        else j'18 change_cnt5 amount2 r'32 startpos_lnum5 startpos_col5 startpos_coladd5
-    j'18 !change_cnt6 !amount3 !length2 !startpos_lnum6 !startpos_col6 !startpos_coladd6 = do
-      r'38 <- rdI64 fr' pos_T'lnum
-      r'39 <- rdI64 oap (oparg_T'end + pos_T'lnum)
-      if r'38 == r'39
+          r'37 <- rdI32 fr' pos_T'col
+          r'38 <- rdI32 oap (oparg_T'start + pos_T'col)
+          wrI32 fr' pos_T'col (r'37 + r'38)
+          r'39 <- rdI32 oap (oparg_T'start + pos_T'col)
+          let !length1 = r'34 - r'39
+          j'18 change_cnt5 amount2 length1 startpos_lnum4 startpos_col4 startpos_coladd4
+        else j'18 change_cnt5 amount2 r'34 startpos_lnum4 startpos_col4 startpos_coladd4
+    j'18 !change_cnt6 !amount3 !length2 !startpos_lnum5 !startpos_col5 !startpos_coladd5 = do
+      r'40 <- rdI64 fr' pos_T'lnum
+      r'41 <- rdI64 oap (oparg_T'end + pos_T'lnum)
+      if r'40 == r'41
         then do
-          r'40 <- rdI64 oap (oparg_T'end + pos_T'lnum)
-          r'41 <- ml_get_len ed' r'40
-          r'42 <- rdI32 oap (oparg_T'end + pos_T'col)
-          if r'42 >= r'41
+          r'42 <- rdI64 oap (oparg_T'end + pos_T'lnum)
+          r'43 <- ml_get_len ed' r'42
+          r'44 <- rdI32 oap (oparg_T'end + pos_T'col)
+          if r'44 >= r'43
             then do
-              wrI32 oap (oparg_T'end + pos_T'col) (r'41 - 1)
-              j'21 change_cnt6 amount3 startpos_lnum6 startpos_col6 startpos_coladd6
-            else j'21 change_cnt6 amount3 startpos_lnum6 startpos_col6 startpos_coladd6
-        else j'24 change_cnt6 amount3 length2 startpos_lnum6 startpos_col6 startpos_coladd6
-    j'21 !change_cnt7 !amount4 !startpos_lnum7 !startpos_col7 !startpos_coladd7 = do
-      r'43 <- rdI32 oap (oparg_T'end + pos_T'col)
-      r'44 <- rdI32 fr' pos_T'col
-      let !length3 = (r'43 - r'44) + 1
-      j'24 change_cnt7 amount4 length3 startpos_lnum7 startpos_col7 startpos_coladd7
-    j'24 !change_cnt8 !amount5 !length4 !startpos_lnum8 !startpos_col8 !startpos_coladd8 = do
-      r'45 <- rdI32 oap oparg_T'op_type
-      r'46 <- do_addsub ed' r'45 fr' length4 amount5
-      if r'46
+              wrI32 oap (oparg_T'end + pos_T'col) (r'43 - 1)
+              j'21 change_cnt6 amount3 startpos_lnum5 startpos_col5 startpos_coladd5
+            else j'21 change_cnt6 amount3 startpos_lnum5 startpos_col5 startpos_coladd5
+        else j'24 change_cnt6 amount3 length2 startpos_lnum5 startpos_col5 startpos_coladd5
+    j'21 !change_cnt7 !amount4 !startpos_lnum6 !startpos_col6 !startpos_coladd6 = do
+      r'45 <- rdI32 oap (oparg_T'end + pos_T'col)
+      r'46 <- rdI32 fr' pos_T'col
+      let !length3 = (r'45 - r'46) + 1
+      j'24 change_cnt7 amount4 length3 startpos_lnum6 startpos_col6 startpos_coladd6
+    j'24 !change_cnt8 !amount5 !length4 !startpos_lnum7 !startpos_col7 !startpos_coladd7 = do
+      r'47 <- rdI32 oap oparg_T'op_type
+      r'48 <- do_addsub ed' r'47 fr' length4 amount5
+      if r'48
         then do
           if change_cnt8 == 0
             then do
-              r'47 <- curbuf ed'
-              r'48 <- rdI64 (pAdd r'47 buf_T'b_op_start) pos_T'lnum
-              r'49 <- rdI32 (pAdd r'47 buf_T'b_op_start) pos_T'col
-              r'50 <- rdI32 (pAdd r'47 buf_T'b_op_start) pos_T'coladd
-              j'27 change_cnt8 amount5 r'46 r'48 r'49 r'50
-            else j'27 change_cnt8 amount5 r'46 startpos_lnum8 startpos_col8 startpos_coladd8
-        else j'28 change_cnt8 amount5 r'46 startpos_lnum8 startpos_col8 startpos_coladd8
-    j'27 !change_cnt9 !amount6 !one_change1 !startpos_lnum9 !startpos_col9 !startpos_coladd9 = do
+              r'49 <- curbuf ed'
+              r'50 <- rdI64 r'49 (buf_T'b_op_start + pos_T'lnum)
+              r'51 <- curbuf ed'
+              r'52 <- rdI32 r'51 (buf_T'b_op_start + pos_T'col)
+              r'53 <- curbuf ed'
+              r'54 <- rdI32 r'53 (buf_T'b_op_start + pos_T'coladd)
+              j'27 change_cnt8 amount5 r'48 r'50 r'52 r'54
+            else j'27 change_cnt8 amount5 r'48 startpos_lnum7 startpos_col7 startpos_coladd7
+        else j'28 change_cnt8 amount5 r'48 startpos_lnum7 startpos_col7 startpos_coladd7
+    j'27 !change_cnt9 !amount6 !one_change1 !startpos_lnum8 !startpos_col8 !startpos_coladd8 = do
       let !change_cnt10 = change_cnt9 + 1
-      j'28 change_cnt10 amount6 one_change1 startpos_lnum9 startpos_col9 startpos_coladd9
-    j'28 !change_cnt11 !amount7 !one_change2 !startpos_lnum10 !startpos_col10 !startpos_coladd10 = do
+      j'28 change_cnt10 amount6 one_change1 startpos_lnum8 startpos_col8 startpos_coladd8
+    j'28 !change_cnt11 !amount7 !one_change2 !startpos_lnum9 !startpos_col9 !startpos_coladd9 = do
       if (g_cmd /= 0) && one_change2
         then do
           let !amount8 = amount7 + c'Prenum1
-          j'30 change_cnt11 amount8 startpos_lnum10 startpos_col10 startpos_coladd10
-        else j'30 change_cnt11 amount7 startpos_lnum10 startpos_col10 startpos_coladd10
-    j'30 !change_cnt12 !amount9 !startpos_lnum11 !startpos_col11 !startpos_coladd11 = do
-      r'51 <- rdI64 fr' pos_T'lnum
-      wrI64 fr' pos_T'lnum (r'51 + 1)
-      loop'3 change_cnt12 amount9 startpos_lnum11 startpos_col11 startpos_coladd11
-  r'52 <- c'VIsual_active ed'
-  if not (r'52 /= 0)
+          j'30 change_cnt11 amount8 startpos_lnum9 startpos_col9 startpos_coladd9
+        else j'30 change_cnt11 amount7 startpos_lnum9 startpos_col9 startpos_coladd9
+    j'30 !change_cnt12 !amount9 !startpos_lnum10 !startpos_col10 !startpos_coladd10 = do
+      r'55 <- rdI64 fr' pos_T'lnum
+      wrI64 fr' pos_T'lnum (r'55 + 1)
+      loop'3 change_cnt12 amount9 startpos_lnum10 startpos_col10 startpos_coladd10
+  r'56 <- c'VIsual_active ed'
+  if not (r'56 /= 0)
     then do
-      r'53 <- curwin ed'
-      copyMem fr' (pAdd r'53 win_T'w_cursor) 16
-      r'54 <- u_save_cursor ed'
-      if not r'54
+      r'57 <- curwin ed'
+      copyMem fr' (pAdd r'57 win_T'w_cursor) 16
+      r'58 <- u_save_cursor ed'
+      if not r'58
         then pure ()
         else do
-          r'55 <- rdI32 oap oparg_T'op_type
-          r'56 <- do_addsub ed' r'55 fr' 0 c'Prenum1
-          let !change_cnt13 = b2i r'56 :: Int32
+          r'59 <- rdI32 oap oparg_T'op_type
+          r'60 <- do_addsub ed' r'59 fr' 0 c'Prenum1
+          let !change_cnt13 = b2i r'60 :: Int32
           if change_cnt13 /= 0
             then do
-              r'57 <- rdI64 fr' pos_T'lnum
-              r'58 <- rdI64 fr' pos_T'lnum
-              changed_lines ed' r'57 0 (r'58 + 1) 0
+              r'61 <- rdI64 fr' pos_T'lnum
+              r'62 <- rdI64 fr' pos_T'lnum
+              changed_lines ed' r'61 0 (r'62 + 1) 0
               pure ()
             else pure ()
     else do
-      r'59 <- rdI64 oap (oparg_T'start + pos_T'lnum)
-      r'60 <- rdI64 oap (oparg_T'end + pos_T'lnum)
-      r'61 <- u_save ed' (r'59 - 1) (r'60 + 1)
-      if not r'61
+      r'63 <- rdI64 oap (oparg_T'start + pos_T'lnum)
+      r'64 <- rdI64 oap (oparg_T'end + pos_T'lnum)
+      r'65 <- u_save ed' (r'63 - 1) (r'64 + 1)
+      if not r'65
         then pure ()
         else do
           copyMem fr' (pAdd oap oparg_T'start) 16
@@ -6056,7 +6084,7 @@ op_addsub ed' oap c'Prenum1 g_cmd = frame 72 $ \fr' -> do
 do_addsub :: Ed -> Int32 -> Ptr Pos_T -> Int32 -> Linenr_T -> IO Bool
 do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
   let
-    j'2 !length1 !do_hex1 !do_oct1 !do_bin1 !do_alpha1 !do_unsigned1 !do_blank1 !blank_unsigned1 !negative1 !was_positive1 !visual1 !did_change1 !maxlen1 !save_coladd1 !save_cursor_lnum1 !save_cursor_col1 !save_cursor_coladd1 !startpos_lnum1 !startpos_col1 !startpos_coladd1 !endpos_lnum1 !endpos_col1 !endpos_coladd1 !save_pos_lnum1 !save_pos_col1 !save_pos_coladd1 = do
+    j'2 !length1 !do_hex1 !do_oct1 !do_bin1 !do_alpha1 !do_unsigned1 !do_blank1 !blank_unsigned1 !negative1 !was_positive1 !visual1 !did_change1 !save_cursor_lnum1 !save_cursor_col1 !save_cursor_coladd1 !maxlen1 !startpos_lnum1 !startpos_col1 !startpos_coladd1 !save_coladd1 = do
       r'1 <- curwin ed'
       copyMem (pAdd r'1 win_T'w_cursor) pos 16
       r'2 <- rdI64 pos pos_T'lnum
@@ -6065,54 +6093,54 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
       r'5 <- ml_get_len ed' r'4
       r'6 <- rdI32 pos pos_T'col
       if (r'6 + (b2i (not (not (save_coladd1 /= 0))) :: Int32)) >= r'5
-        then j'133 visual1 did_change1 save_coladd1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 startpos_lnum1 startpos_col1 startpos_coladd1 endpos_lnum1 endpos_col1 endpos_coladd1 save_pos_lnum1 save_pos_col1 save_pos_coladd1
+        then j'133 visual1 did_change1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 save_coladd1
         else do
           r'7 <- c'VIsual_active ed'
           if not (r'7 /= 0)
             then do
               if do_bin1
-                then loop'7 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 maxlen1 save_coladd1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 startpos_lnum1 startpos_col1 startpos_coladd1 endpos_lnum1 endpos_col1 endpos_coladd1 save_pos_lnum1 save_pos_col1 save_pos_coladd1
-                else j'8 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 maxlen1 save_coladd1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 startpos_lnum1 startpos_col1 startpos_coladd1 endpos_lnum1 endpos_col1 endpos_coladd1 save_pos_lnum1 save_pos_col1 save_pos_coladd1
-            else j'22 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 maxlen1 save_coladd1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 startpos_lnum1 startpos_col1 startpos_coladd1 endpos_lnum1 endpos_col1 endpos_coladd1 save_pos_lnum1 save_pos_col1 save_pos_coladd1
-    loop'7 !length2 !col1 !ptr1 !linelen1 !do_hex2 !do_oct2 !do_bin2 !do_alpha2 !do_unsigned2 !do_blank2 !blank_unsigned2 !negative2 !was_positive2 !visual2 !did_change2 !maxlen2 !save_coladd2 !save_cursor_lnum2 !save_cursor_col2 !save_cursor_coladd2 !startpos_lnum2 !startpos_col2 !startpos_coladd2 !endpos_lnum2 !endpos_col2 !endpos_coladd2 !save_pos_lnum2 !save_pos_col2 !save_pos_coladd2 = do
+                then loop'7 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 maxlen1 startpos_lnum1 startpos_col1 startpos_coladd1 save_coladd1
+                else j'8 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 maxlen1 startpos_lnum1 startpos_col1 startpos_coladd1 save_coladd1
+            else j'22 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 maxlen1 startpos_lnum1 startpos_col1 startpos_coladd1 save_coladd1
+    loop'7 !length2 !col1 !ptr1 !linelen1 !do_hex2 !do_oct2 !do_bin2 !do_alpha2 !do_unsigned2 !do_blank2 !blank_unsigned2 !negative2 !was_positive2 !visual2 !did_change2 !save_cursor_lnum2 !save_cursor_col2 !save_cursor_coladd2 !maxlen2 !startpos_lnum2 !startpos_col2 !startpos_coladd2 !save_coladd2 = do
       r'10 <- if (col1 > 0) then (do { r'8 <- rdW8 (pAdd ptr1 (fromIntegral col1)) 0; let { !r'9 = vim_isbdigit (fromIntegral r'8 :: Int32) }; pure r'9 }) else pure False
       if r'10
         then do
           let !col2 = col1 - 1
           r'11 <- utf_head_off ed' ptr1 (pAdd ptr1 (fromIntegral col2))
           let !col3 = col2 - r'11
-          loop'7 length2 col3 ptr1 linelen1 do_hex2 do_oct2 do_bin2 do_alpha2 do_unsigned2 do_blank2 blank_unsigned2 negative2 was_positive2 visual2 did_change2 maxlen2 save_coladd2 save_cursor_lnum2 save_cursor_col2 save_cursor_coladd2 startpos_lnum2 startpos_col2 startpos_coladd2 endpos_lnum2 endpos_col2 endpos_coladd2 save_pos_lnum2 save_pos_col2 save_pos_coladd2
-        else j'8 length2 col1 ptr1 linelen1 do_hex2 do_oct2 do_bin2 do_alpha2 do_unsigned2 do_blank2 blank_unsigned2 negative2 was_positive2 visual2 did_change2 maxlen2 save_coladd2 save_cursor_lnum2 save_cursor_col2 save_cursor_coladd2 startpos_lnum2 startpos_col2 startpos_coladd2 endpos_lnum2 endpos_col2 endpos_coladd2 save_pos_lnum2 save_pos_col2 save_pos_coladd2
-    j'8 !length3 !col4 !ptr2 !linelen2 !do_hex3 !do_oct3 !do_bin3 !do_alpha3 !do_unsigned3 !do_blank3 !blank_unsigned3 !negative3 !was_positive3 !visual3 !did_change3 !maxlen3 !save_coladd3 !save_cursor_lnum3 !save_cursor_col3 !save_cursor_coladd3 !startpos_lnum3 !startpos_col3 !startpos_coladd3 !endpos_lnum3 !endpos_col3 !endpos_coladd3 !save_pos_lnum3 !save_pos_col3 !save_pos_coladd3 = do
+          loop'7 length2 col3 ptr1 linelen1 do_hex2 do_oct2 do_bin2 do_alpha2 do_unsigned2 do_blank2 blank_unsigned2 negative2 was_positive2 visual2 did_change2 save_cursor_lnum2 save_cursor_col2 save_cursor_coladd2 maxlen2 startpos_lnum2 startpos_col2 startpos_coladd2 save_coladd2
+        else j'8 length2 col1 ptr1 linelen1 do_hex2 do_oct2 do_bin2 do_alpha2 do_unsigned2 do_blank2 blank_unsigned2 negative2 was_positive2 visual2 did_change2 save_cursor_lnum2 save_cursor_col2 save_cursor_coladd2 maxlen2 startpos_lnum2 startpos_col2 startpos_coladd2 save_coladd2
+    j'8 !length3 !col4 !ptr2 !linelen2 !do_hex3 !do_oct3 !do_bin3 !do_alpha3 !do_unsigned3 !do_blank3 !blank_unsigned3 !negative3 !was_positive3 !visual3 !did_change3 !save_cursor_lnum3 !save_cursor_col3 !save_cursor_coladd3 !maxlen3 !startpos_lnum3 !startpos_col3 !startpos_coladd3 !save_coladd3 = do
       if do_hex3
-        then loop'10 length3 col4 ptr2 linelen2 do_hex3 do_oct3 do_bin3 do_alpha3 do_unsigned3 do_blank3 blank_unsigned3 negative3 was_positive3 visual3 did_change3 maxlen3 save_coladd3 save_cursor_lnum3 save_cursor_col3 save_cursor_coladd3 startpos_lnum3 startpos_col3 startpos_coladd3 endpos_lnum3 endpos_col3 endpos_coladd3 save_pos_lnum3 save_pos_col3 save_pos_coladd3
-        else j'11 length3 col4 ptr2 linelen2 do_hex3 do_oct3 do_bin3 do_alpha3 do_unsigned3 do_blank3 blank_unsigned3 negative3 was_positive3 visual3 did_change3 maxlen3 save_coladd3 save_cursor_lnum3 save_cursor_col3 save_cursor_coladd3 startpos_lnum3 startpos_col3 startpos_coladd3 endpos_lnum3 endpos_col3 endpos_coladd3 save_pos_lnum3 save_pos_col3 save_pos_coladd3
-    loop'10 !length4 !col5 !ptr3 !linelen3 !do_hex4 !do_oct4 !do_bin4 !do_alpha4 !do_unsigned4 !do_blank4 !blank_unsigned4 !negative4 !was_positive4 !visual4 !did_change4 !maxlen4 !save_coladd4 !save_cursor_lnum4 !save_cursor_col4 !save_cursor_coladd4 !startpos_lnum4 !startpos_col4 !startpos_coladd4 !endpos_lnum4 !endpos_col4 !endpos_coladd4 !save_pos_lnum4 !save_pos_col4 !save_pos_coladd4 = do
+        then loop'10 length3 col4 ptr2 linelen2 do_hex3 do_oct3 do_bin3 do_alpha3 do_unsigned3 do_blank3 blank_unsigned3 negative3 was_positive3 visual3 did_change3 save_cursor_lnum3 save_cursor_col3 save_cursor_coladd3 maxlen3 startpos_lnum3 startpos_col3 startpos_coladd3 save_coladd3
+        else j'11 length3 col4 ptr2 linelen2 do_hex3 do_oct3 do_bin3 do_alpha3 do_unsigned3 do_blank3 blank_unsigned3 negative3 was_positive3 visual3 did_change3 save_cursor_lnum3 save_cursor_col3 save_cursor_coladd3 maxlen3 startpos_lnum3 startpos_col3 startpos_coladd3 save_coladd3
+    loop'10 !length4 !col5 !ptr3 !linelen3 !do_hex4 !do_oct4 !do_bin4 !do_alpha4 !do_unsigned4 !do_blank4 !blank_unsigned4 !negative4 !was_positive4 !visual4 !did_change4 !save_cursor_lnum4 !save_cursor_col4 !save_cursor_coladd4 !maxlen4 !startpos_lnum4 !startpos_col4 !startpos_coladd4 !save_coladd4 = do
       r'14 <- if (col5 > 0) then (do { r'12 <- rdW8 (pAdd ptr3 (fromIntegral col5)) 0; let { !r'13 = vim_isxdigit (fromIntegral r'12 :: Int32) }; pure r'13 }) else pure False
       if r'14
         then do
           let !col6 = col5 - 1
           r'15 <- utf_head_off ed' ptr3 (pAdd ptr3 (fromIntegral col6))
           let !col7 = col6 - r'15
-          loop'10 length4 col7 ptr3 linelen3 do_hex4 do_oct4 do_bin4 do_alpha4 do_unsigned4 do_blank4 blank_unsigned4 negative4 was_positive4 visual4 did_change4 maxlen4 save_coladd4 save_cursor_lnum4 save_cursor_col4 save_cursor_coladd4 startpos_lnum4 startpos_col4 startpos_coladd4 endpos_lnum4 endpos_col4 endpos_coladd4 save_pos_lnum4 save_pos_col4 save_pos_coladd4
-        else j'11 length4 col5 ptr3 linelen3 do_hex4 do_oct4 do_bin4 do_alpha4 do_unsigned4 do_blank4 blank_unsigned4 negative4 was_positive4 visual4 did_change4 maxlen4 save_coladd4 save_cursor_lnum4 save_cursor_col4 save_cursor_coladd4 startpos_lnum4 startpos_col4 startpos_coladd4 endpos_lnum4 endpos_col4 endpos_coladd4 save_pos_lnum4 save_pos_col4 save_pos_coladd4
-    j'11 !length5 !col8 !ptr4 !linelen4 !do_hex5 !do_oct5 !do_bin5 !do_alpha5 !do_unsigned5 !do_blank5 !blank_unsigned5 !negative5 !was_positive5 !visual5 !did_change5 !maxlen5 !save_coladd5 !save_cursor_lnum5 !save_cursor_col5 !save_cursor_coladd5 !startpos_lnum5 !startpos_col5 !startpos_coladd5 !endpos_lnum5 !endpos_col5 !endpos_coladd5 !save_pos_lnum5 !save_pos_col5 !save_pos_coladd5 = do
+          loop'10 length4 col7 ptr3 linelen3 do_hex4 do_oct4 do_bin4 do_alpha4 do_unsigned4 do_blank4 blank_unsigned4 negative4 was_positive4 visual4 did_change4 save_cursor_lnum4 save_cursor_col4 save_cursor_coladd4 maxlen4 startpos_lnum4 startpos_col4 startpos_coladd4 save_coladd4
+        else j'11 length4 col5 ptr3 linelen3 do_hex4 do_oct4 do_bin4 do_alpha4 do_unsigned4 do_blank4 blank_unsigned4 negative4 was_positive4 visual4 did_change4 save_cursor_lnum4 save_cursor_col4 save_cursor_coladd4 maxlen4 startpos_lnum4 startpos_col4 startpos_coladd4 save_coladd4
+    j'11 !length5 !col8 !ptr4 !linelen4 !do_hex5 !do_oct5 !do_bin5 !do_alpha5 !do_unsigned5 !do_blank5 !blank_unsigned5 !negative5 !was_positive5 !visual5 !did_change5 !save_cursor_lnum5 !save_cursor_col5 !save_cursor_coladd5 !maxlen5 !startpos_lnum5 !startpos_col5 !startpos_coladd5 !save_coladd5 = do
       r'27 <- if (do_bin5 && do_hex5) then (do { r'19 <- if (col8 > 0) then (do { r'16 <- rdW8 (pAdd ptr4 (fromIntegral col8)) 0; if ((fromIntegral r'16 :: Int32) == (ch 'X')) then pure True else (do { r'17 <- rdW8 (pAdd ptr4 (fromIntegral col8)) 0; pure ((fromIntegral r'17 :: Int32) == (ch 'x')) }) }) else pure False; r'21 <- if r'19 then (do { r'20 <- rdW8 (pAdd ptr4 (fromIntegral (col8 - 1))) 0; pure ((fromIntegral r'20 :: Int32) == (ch '0')) }) else pure False; r'23 <- if r'21 then (do { r'22 <- utf_head_off ed' ptr4 (pAdd (pAdd ptr4 (fromIntegral col8)) (-1)); pure (not (r'22 /= 0)) }) else pure False; r'26 <- if r'23 then (do { r'24 <- rdW8 (pAdd ptr4 (fromIntegral (col8 + 1))) 0; let { !r'25 = vim_isxdigit (fromIntegral r'24 :: Int32) }; pure r'25 }) else pure False; pure (not r'26) }) else pure False
       if r'27
         then do
           r'28 <- rdI32 pos pos_T'col
-          loop'13 length5 r'28 ptr4 linelen4 do_hex5 do_oct5 do_bin5 do_alpha5 do_unsigned5 do_blank5 blank_unsigned5 negative5 was_positive5 visual5 did_change5 maxlen5 save_coladd5 save_cursor_lnum5 save_cursor_col5 save_cursor_coladd5 startpos_lnum5 startpos_col5 startpos_coladd5 endpos_lnum5 endpos_col5 endpos_coladd5 save_pos_lnum5 save_pos_col5 save_pos_coladd5
-        else j'14 length5 col8 ptr4 linelen4 do_hex5 do_oct5 do_bin5 do_alpha5 do_unsigned5 do_blank5 blank_unsigned5 negative5 was_positive5 visual5 did_change5 maxlen5 save_coladd5 save_cursor_lnum5 save_cursor_col5 save_cursor_coladd5 startpos_lnum5 startpos_col5 startpos_coladd5 endpos_lnum5 endpos_col5 endpos_coladd5 save_pos_lnum5 save_pos_col5 save_pos_coladd5
-    loop'13 !length6 !col9 !ptr5 !linelen5 !do_hex6 !do_oct6 !do_bin6 !do_alpha6 !do_unsigned6 !do_blank6 !blank_unsigned6 !negative6 !was_positive6 !visual6 !did_change6 !maxlen6 !save_coladd6 !save_cursor_lnum6 !save_cursor_col6 !save_cursor_coladd6 !startpos_lnum6 !startpos_col6 !startpos_coladd6 !endpos_lnum6 !endpos_col6 !endpos_coladd6 !save_pos_lnum6 !save_pos_col6 !save_pos_coladd6 = do
+          loop'13 length5 r'28 ptr4 linelen4 do_hex5 do_oct5 do_bin5 do_alpha5 do_unsigned5 do_blank5 blank_unsigned5 negative5 was_positive5 visual5 did_change5 save_cursor_lnum5 save_cursor_col5 save_cursor_coladd5 maxlen5 startpos_lnum5 startpos_col5 startpos_coladd5 save_coladd5
+        else j'14 length5 col8 ptr4 linelen4 do_hex5 do_oct5 do_bin5 do_alpha5 do_unsigned5 do_blank5 blank_unsigned5 negative5 was_positive5 visual5 did_change5 save_cursor_lnum5 save_cursor_col5 save_cursor_coladd5 maxlen5 startpos_lnum5 startpos_col5 startpos_coladd5 save_coladd5
+    loop'13 !length6 !col9 !ptr5 !linelen5 !do_hex6 !do_oct6 !do_bin6 !do_alpha6 !do_unsigned6 !do_blank6 !blank_unsigned6 !negative6 !was_positive6 !visual6 !did_change6 !save_cursor_lnum6 !save_cursor_col6 !save_cursor_coladd6 !maxlen6 !startpos_lnum6 !startpos_col6 !startpos_coladd6 !save_coladd6 = do
       r'31 <- if (col9 > 0) then (do { r'29 <- rdW8 (pAdd ptr5 (fromIntegral col9)) 0; let { !r'30 = vim_isdigit (fromIntegral r'29 :: Int32) }; pure r'30 }) else pure False
       if r'31
         then do
           let !col10 = col9 - 1
           r'32 <- utf_head_off ed' ptr5 (pAdd ptr5 (fromIntegral col10))
           let !col11 = col10 - r'32
-          loop'13 length6 col11 ptr5 linelen5 do_hex6 do_oct6 do_bin6 do_alpha6 do_unsigned6 do_blank6 blank_unsigned6 negative6 was_positive6 visual6 did_change6 maxlen6 save_coladd6 save_cursor_lnum6 save_cursor_col6 save_cursor_coladd6 startpos_lnum6 startpos_col6 startpos_coladd6 endpos_lnum6 endpos_col6 endpos_coladd6 save_pos_lnum6 save_pos_col6 save_pos_coladd6
-        else j'14 length6 col9 ptr5 linelen5 do_hex6 do_oct6 do_bin6 do_alpha6 do_unsigned6 do_blank6 blank_unsigned6 negative6 was_positive6 visual6 did_change6 maxlen6 save_coladd6 save_cursor_lnum6 save_cursor_col6 save_cursor_coladd6 startpos_lnum6 startpos_col6 startpos_coladd6 endpos_lnum6 endpos_col6 endpos_coladd6 save_pos_lnum6 save_pos_col6 save_pos_coladd6
-    j'14 !length7 !col12 !ptr6 !linelen6 !do_hex7 !do_oct7 !do_bin7 !do_alpha7 !do_unsigned7 !do_blank7 !blank_unsigned7 !negative7 !was_positive7 !visual7 !did_change7 !maxlen7 !save_coladd7 !save_cursor_lnum7 !save_cursor_col7 !save_cursor_coladd7 !startpos_lnum7 !startpos_col7 !startpos_coladd7 !endpos_lnum7 !endpos_col7 !endpos_coladd7 !save_pos_lnum7 !save_pos_col7 !save_pos_coladd7 = do
+          loop'13 length6 col11 ptr5 linelen5 do_hex6 do_oct6 do_bin6 do_alpha6 do_unsigned6 do_blank6 blank_unsigned6 negative6 was_positive6 visual6 did_change6 save_cursor_lnum6 save_cursor_col6 save_cursor_coladd6 maxlen6 startpos_lnum6 startpos_col6 startpos_coladd6 save_coladd6
+        else j'14 length6 col9 ptr5 linelen5 do_hex6 do_oct6 do_bin6 do_alpha6 do_unsigned6 do_blank6 blank_unsigned6 negative6 was_positive6 visual6 did_change6 save_cursor_lnum6 save_cursor_col6 save_cursor_coladd6 maxlen6 startpos_lnum6 startpos_col6 startpos_coladd6 save_coladd6
+    j'14 !length7 !col12 !ptr6 !linelen6 !do_hex7 !do_oct7 !do_bin7 !do_alpha7 !do_unsigned7 !do_blank7 !blank_unsigned7 !negative7 !was_positive7 !visual7 !did_change7 !save_cursor_lnum7 !save_cursor_col7 !save_cursor_coladd7 !maxlen7 !startpos_lnum7 !startpos_col7 !startpos_coladd7 !save_coladd7 = do
       r'36 <- if (do_hex7 && (col12 > 0)) then (do { r'33 <- rdW8 (pAdd ptr6 (fromIntegral col12)) 0; if ((fromIntegral r'33 :: Int32) == (ch 'X')) then pure True else (do { r'34 <- rdW8 (pAdd ptr6 (fromIntegral col12)) 0; pure ((fromIntegral r'34 :: Int32) == (ch 'x')) }) }) else pure False
       r'38 <- if r'36 then (do { r'37 <- rdW8 (pAdd ptr6 (fromIntegral (col12 - 1))) 0; pure ((fromIntegral r'37 :: Int32) == (ch '0')) }) else pure False
       r'40 <- if r'38 then (do { r'39 <- utf_head_off ed' ptr6 (pAdd (pAdd ptr6 (fromIntegral col12)) (-1)); pure (not (r'39 /= 0)) }) else pure False
@@ -6123,11 +6151,11 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
           let !col13 = col12 - 1
           r'56 <- utf_head_off ed' ptr6 (pAdd ptr6 (fromIntegral col13))
           let !col14 = col13 - r'56
-          j'22 length7 col14 ptr6 linelen6 do_hex7 do_oct7 do_bin7 do_alpha7 do_unsigned7 do_blank7 blank_unsigned7 negative7 was_positive7 visual7 did_change7 maxlen7 save_coladd7 save_cursor_lnum7 save_cursor_col7 save_cursor_coladd7 startpos_lnum7 startpos_col7 startpos_coladd7 endpos_lnum7 endpos_col7 endpos_coladd7 save_pos_lnum7 save_pos_col7 save_pos_coladd7
+          j'22 length7 col14 ptr6 linelen6 do_hex7 do_oct7 do_bin7 do_alpha7 do_unsigned7 do_blank7 blank_unsigned7 negative7 was_positive7 visual7 did_change7 save_cursor_lnum7 save_cursor_col7 save_cursor_coladd7 maxlen7 startpos_lnum7 startpos_col7 startpos_coladd7 save_coladd7
         else do
           r'57 <- rdI32 pos pos_T'col
-          loop'16 length7 r'57 ptr6 linelen6 do_hex7 do_oct7 do_bin7 do_alpha7 do_unsigned7 do_blank7 blank_unsigned7 negative7 was_positive7 visual7 did_change7 maxlen7 save_coladd7 save_cursor_lnum7 save_cursor_col7 save_cursor_coladd7 startpos_lnum7 startpos_col7 startpos_coladd7 endpos_lnum7 endpos_col7 endpos_coladd7 save_pos_lnum7 save_pos_col7 save_pos_coladd7
-    loop'16 !length8 !col15 !ptr7 !linelen7 !do_hex8 !do_oct8 !do_bin8 !do_alpha8 !do_unsigned8 !do_blank8 !blank_unsigned8 !negative8 !was_positive8 !visual8 !did_change8 !maxlen8 !save_coladd8 !save_cursor_lnum8 !save_cursor_col8 !save_cursor_coladd8 !startpos_lnum8 !startpos_col8 !startpos_coladd8 !endpos_lnum8 !endpos_col8 !endpos_coladd8 !save_pos_lnum8 !save_pos_col8 !save_pos_coladd8 = do
+          loop'16 length7 r'57 ptr6 linelen6 do_hex7 do_oct7 do_bin7 do_alpha7 do_unsigned7 do_blank7 blank_unsigned7 negative7 was_positive7 visual7 did_change7 save_cursor_lnum7 save_cursor_col7 save_cursor_coladd7 maxlen7 startpos_lnum7 startpos_col7 startpos_coladd7 save_coladd7
+    loop'16 !length8 !col15 !ptr7 !linelen7 !do_hex8 !do_oct8 !do_bin8 !do_alpha8 !do_unsigned8 !do_blank8 !blank_unsigned8 !negative8 !was_positive8 !visual8 !did_change8 !save_cursor_lnum8 !save_cursor_col8 !save_cursor_coladd8 !maxlen8 !startpos_lnum8 !startpos_col8 !startpos_coladd8 !save_coladd8 = do
       r'58 <- rdW8 (pAdd ptr7 (fromIntegral col15)) 0
       r'61 <- if ((fromIntegral r'58 :: Int32) /= NUL) then (do { r'59 <- rdW8 (pAdd ptr7 (fromIntegral col15)) 0; let { !r'60 = vim_isdigit (fromIntegral r'59 :: Int32) }; pure (not r'60) }) else pure False
       r'66 <- if r'61 then (do { r'65 <- if do_alpha8 then (do { r'62 <- rdW8 (pAdd ptr7 (fromIntegral col15)) 0; if (((fromIntegral r'62 :: Word32) - (ch 'A')) < 26) then pure True else (do { r'63 <- rdW8 (pAdd ptr7 (fromIntegral col15)) 0; pure (((fromIntegral r'63 :: Word32) - (ch 'a')) < 26) }) }) else pure False; pure (not r'65) }) else pure False
@@ -6135,9 +6163,9 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
         then do
           r'67 <- utfc_ptr2len ed' (pAdd ptr7 (fromIntegral col15))
           let !col16 = col15 + r'67
-          loop'16 length8 col16 ptr7 linelen7 do_hex8 do_oct8 do_bin8 do_alpha8 do_unsigned8 do_blank8 blank_unsigned8 negative8 was_positive8 visual8 did_change8 maxlen8 save_coladd8 save_cursor_lnum8 save_cursor_col8 save_cursor_coladd8 startpos_lnum8 startpos_col8 startpos_coladd8 endpos_lnum8 endpos_col8 endpos_coladd8 save_pos_lnum8 save_pos_col8 save_pos_coladd8
-        else loop'18 length8 col15 ptr7 linelen7 do_hex8 do_oct8 do_bin8 do_alpha8 do_unsigned8 do_blank8 blank_unsigned8 negative8 was_positive8 visual8 did_change8 maxlen8 save_coladd8 save_cursor_lnum8 save_cursor_col8 save_cursor_coladd8 startpos_lnum8 startpos_col8 startpos_coladd8 endpos_lnum8 endpos_col8 endpos_coladd8 save_pos_lnum8 save_pos_col8 save_pos_coladd8
-    loop'18 !length9 !col17 !ptr8 !linelen8 !do_hex9 !do_oct9 !do_bin9 !do_alpha9 !do_unsigned9 !do_blank9 !blank_unsigned9 !negative9 !was_positive9 !visual9 !did_change9 !maxlen9 !save_coladd9 !save_cursor_lnum9 !save_cursor_col9 !save_cursor_coladd9 !startpos_lnum9 !startpos_col9 !startpos_coladd9 !endpos_lnum9 !endpos_col9 !endpos_coladd9 !save_pos_lnum9 !save_pos_col9 !save_pos_coladd9 = do
+          loop'16 length8 col16 ptr7 linelen7 do_hex8 do_oct8 do_bin8 do_alpha8 do_unsigned8 do_blank8 blank_unsigned8 negative8 was_positive8 visual8 did_change8 save_cursor_lnum8 save_cursor_col8 save_cursor_coladd8 maxlen8 startpos_lnum8 startpos_col8 startpos_coladd8 save_coladd8
+        else loop'18 length8 col15 ptr7 linelen7 do_hex8 do_oct8 do_bin8 do_alpha8 do_unsigned8 do_blank8 blank_unsigned8 negative8 was_positive8 visual8 did_change8 save_cursor_lnum8 save_cursor_col8 save_cursor_coladd8 maxlen8 startpos_lnum8 startpos_col8 startpos_coladd8 save_coladd8
+    loop'18 !length9 !col17 !ptr8 !linelen8 !do_hex9 !do_oct9 !do_bin9 !do_alpha9 !do_unsigned9 !do_blank9 !blank_unsigned9 !negative9 !was_positive9 !visual9 !did_change9 !save_cursor_lnum9 !save_cursor_col9 !save_cursor_coladd9 !maxlen9 !startpos_lnum9 !startpos_col9 !startpos_coladd9 !save_coladd9 = do
       r'70 <- if (col17 > 0) then (do { r'68 <- rdW8 (pAdd ptr8 (fromIntegral (col17 - 1))) 0; let { !r'69 = vim_isdigit (fromIntegral r'68 :: Int32) }; pure r'69 }) else pure False
       r'75 <- if r'70 then (do { r'74 <- if do_alpha9 then (do { r'71 <- rdW8 (pAdd ptr8 (fromIntegral col17)) 0; if (((fromIntegral r'71 :: Word32) - (ch 'A')) < 26) then pure True else (do { r'72 <- rdW8 (pAdd ptr8 (fromIntegral col17)) 0; pure (((fromIntegral r'72 :: Word32) - (ch 'a')) < 26) }) }) else pure False; pure (not r'74) }) else pure False
       if r'75
@@ -6145,13 +6173,13 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
           let !col18 = col17 - 1
           r'76 <- utf_head_off ed' ptr8 (pAdd ptr8 (fromIntegral col18))
           let !col19 = col18 - r'76
-          loop'18 length9 col19 ptr8 linelen8 do_hex9 do_oct9 do_bin9 do_alpha9 do_unsigned9 do_blank9 blank_unsigned9 negative9 was_positive9 visual9 did_change9 maxlen9 save_coladd9 save_cursor_lnum9 save_cursor_col9 save_cursor_coladd9 startpos_lnum9 startpos_col9 startpos_coladd9 endpos_lnum9 endpos_col9 endpos_coladd9 save_pos_lnum9 save_pos_col9 save_pos_coladd9
-        else j'22 length9 col17 ptr8 linelen8 do_hex9 do_oct9 do_bin9 do_alpha9 do_unsigned9 do_blank9 blank_unsigned9 negative9 was_positive9 visual9 did_change9 maxlen9 save_coladd9 save_cursor_lnum9 save_cursor_col9 save_cursor_coladd9 startpos_lnum9 startpos_col9 startpos_coladd9 endpos_lnum9 endpos_col9 endpos_coladd9 save_pos_lnum9 save_pos_col9 save_pos_coladd9
-    j'22 !length10 !col20 !ptr9 !linelen9 !do_hex10 !do_oct10 !do_bin10 !do_alpha10 !do_unsigned10 !do_blank10 !blank_unsigned10 !negative10 !was_positive10 !visual10 !did_change10 !maxlen10 !save_coladd10 !save_cursor_lnum10 !save_cursor_col10 !save_cursor_coladd10 !startpos_lnum10 !startpos_col10 !startpos_coladd10 !endpos_lnum10 !endpos_col10 !endpos_coladd10 !save_pos_lnum10 !save_pos_col10 !save_pos_coladd10 = do
+          loop'18 length9 col19 ptr8 linelen8 do_hex9 do_oct9 do_bin9 do_alpha9 do_unsigned9 do_blank9 blank_unsigned9 negative9 was_positive9 visual9 did_change9 save_cursor_lnum9 save_cursor_col9 save_cursor_coladd9 maxlen9 startpos_lnum9 startpos_col9 startpos_coladd9 save_coladd9
+        else j'22 length9 col17 ptr8 linelen8 do_hex9 do_oct9 do_bin9 do_alpha9 do_unsigned9 do_blank9 blank_unsigned9 negative9 was_positive9 visual9 did_change9 save_cursor_lnum9 save_cursor_col9 save_cursor_coladd9 maxlen9 startpos_lnum9 startpos_col9 startpos_coladd9 save_coladd9
+    j'22 !length10 !col20 !ptr9 !linelen9 !do_hex10 !do_oct10 !do_bin10 !do_alpha10 !do_unsigned10 !do_blank10 !blank_unsigned10 !negative10 !was_positive10 !visual10 !did_change10 !save_cursor_lnum10 !save_cursor_col10 !save_cursor_coladd10 !maxlen10 !startpos_lnum10 !startpos_col10 !startpos_coladd10 !save_coladd10 = do
       if visual10 /= 0
-        then loop'24 length10 col20 ptr9 linelen9 do_hex10 do_oct10 do_bin10 do_alpha10 do_unsigned10 do_blank10 blank_unsigned10 negative10 was_positive10 visual10 did_change10 maxlen10 save_coladd10 save_cursor_lnum10 save_cursor_col10 save_cursor_coladd10 startpos_lnum10 startpos_col10 startpos_coladd10 endpos_lnum10 endpos_col10 endpos_coladd10 save_pos_lnum10 save_pos_col10 save_pos_coladd10
-        else j'30 length10 col20 ptr9 linelen9 do_hex10 do_oct10 do_bin10 do_alpha10 do_unsigned10 do_blank10 blank_unsigned10 negative10 was_positive10 visual10 did_change10 maxlen10 save_coladd10 save_cursor_lnum10 save_cursor_col10 save_cursor_coladd10 startpos_lnum10 startpos_col10 startpos_coladd10 endpos_lnum10 endpos_col10 endpos_coladd10 save_pos_lnum10 save_pos_col10 save_pos_coladd10
-    loop'24 !length11 !col21 !ptr10 !linelen10 !do_hex11 !do_oct11 !do_bin11 !do_alpha11 !do_unsigned11 !do_blank11 !blank_unsigned11 !negative11 !was_positive11 !visual11 !did_change11 !maxlen11 !save_coladd11 !save_cursor_lnum11 !save_cursor_col11 !save_cursor_coladd11 !startpos_lnum11 !startpos_col11 !startpos_coladd11 !endpos_lnum11 !endpos_col11 !endpos_coladd11 !save_pos_lnum11 !save_pos_col11 !save_pos_coladd11 = do
+        then loop'24 length10 col20 ptr9 linelen9 do_hex10 do_oct10 do_bin10 do_alpha10 do_unsigned10 do_blank10 blank_unsigned10 negative10 was_positive10 visual10 did_change10 save_cursor_lnum10 save_cursor_col10 save_cursor_coladd10 maxlen10 startpos_lnum10 startpos_col10 startpos_coladd10 save_coladd10
+        else j'30 length10 col20 ptr9 linelen9 do_hex10 do_oct10 do_bin10 do_alpha10 do_unsigned10 do_blank10 blank_unsigned10 negative10 was_positive10 visual10 did_change10 save_cursor_lnum10 save_cursor_col10 save_cursor_coladd10 maxlen10 startpos_lnum10 startpos_col10 startpos_coladd10 save_coladd10
+    loop'24 !length11 !col21 !ptr10 !linelen10 !do_hex11 !do_oct11 !do_bin11 !do_alpha11 !do_unsigned11 !do_blank11 !blank_unsigned11 !negative11 !was_positive11 !visual11 !did_change11 !save_cursor_lnum11 !save_cursor_col11 !save_cursor_coladd11 !maxlen11 !startpos_lnum11 !startpos_col11 !startpos_coladd11 !save_coladd11 = do
       r'77 <- rdW8 (pAdd ptr10 (fromIntegral col21)) 0
       r'80 <- if (((fromIntegral r'77 :: Int32) /= NUL) && (length11 > 0)) then (do { r'78 <- rdW8 (pAdd ptr10 (fromIntegral col21)) 0; let { !r'79 = vim_isdigit (fromIntegral r'78 :: Int32) }; pure (not r'79) }) else pure False
       r'85 <- if r'80 then (do { r'84 <- if do_alpha11 then (do { r'81 <- rdW8 (pAdd ptr10 (fromIntegral col21)) 0; if (((fromIntegral r'81 :: Word32) - (ch 'A')) < 26) then pure True else (do { r'82 <- rdW8 (pAdd ptr10 (fromIntegral col21)) 0; pure (((fromIntegral r'82 :: Word32) - (ch 'a')) < 26) }) }) else pure False; pure (not r'84) }) else pure False
@@ -6160,10 +6188,10 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
           r'86 <- utfc_ptr2len ed' (pAdd ptr10 (fromIntegral col21))
           let !col22 = col21 + r'86
           let !length12 = length11 - r'86
-          loop'24 length12 col22 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 blank_unsigned11 negative11 was_positive11 visual11 did_change11 maxlen11 save_coladd11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 startpos_lnum11 startpos_col11 startpos_coladd11 endpos_lnum11 endpos_col11 endpos_coladd11 save_pos_lnum11 save_pos_col11 save_pos_coladd11
+          loop'24 length12 col22 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 blank_unsigned11 negative11 was_positive11 visual11 did_change11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 maxlen11 startpos_lnum11 startpos_col11 startpos_coladd11 save_coladd11
         else do
           if length11 == 0
-            then j'133 visual11 did_change11 save_coladd11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 startpos_lnum11 startpos_col11 startpos_coladd11 endpos_lnum11 endpos_col11 endpos_coladd11 save_pos_lnum11 save_pos_col11 save_pos_coladd11
+            then j'133 visual11 did_change11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 save_coladd11
             else do
               r'87 <- rdI32 pos pos_T'col
               r'89 <- if (col21 > r'87) then (do { r'88 <- rdW8 (pAdd ptr10 (fromIntegral (col21 - 1))) 0; pure ((fromIntegral r'88 :: Int32) == (ch '-')) }) else pure False
@@ -6172,16 +6200,16 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
                 then do
                   r'95 <- if (do_blank11 && (col21 >= 2)) then (do { r'92 <- rdW8 (pAdd ptr10 (fromIntegral (col21 - 2))) 0; r'94 <- if ((fromIntegral r'92 :: Int32) == (ch ' ')) then pure True else (do { r'93 <- rdW8 (pAdd ptr10 (fromIntegral (col21 - 2))) 0; pure ((fromIntegral r'93 :: Int32) == (ch '\t')) }); pure (not r'94) }) else pure False
                   if r'95
-                    then j'30 length11 col21 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 True negative11 was_positive11 visual11 did_change11 maxlen11 save_coladd11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 startpos_lnum11 startpos_col11 startpos_coladd11 endpos_lnum11 endpos_col11 endpos_coladd11 save_pos_lnum11 save_pos_col11 save_pos_coladd11
-                    else j'30 length11 col21 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 blank_unsigned11 (TRUE :: Int32) False visual11 did_change11 maxlen11 save_coladd11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 startpos_lnum11 startpos_col11 startpos_coladd11 endpos_lnum11 endpos_col11 endpos_coladd11 save_pos_lnum11 save_pos_col11 save_pos_coladd11
-                else j'30 length11 col21 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 blank_unsigned11 negative11 was_positive11 visual11 did_change11 maxlen11 save_coladd11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 startpos_lnum11 startpos_col11 startpos_coladd11 endpos_lnum11 endpos_col11 endpos_coladd11 save_pos_lnum11 save_pos_col11 save_pos_coladd11
-    j'30 !length13 !col23 !ptr11 !linelen11 !do_hex12 !do_oct12 !do_bin12 !do_alpha12 !do_unsigned12 !do_blank12 !blank_unsigned12 !negative12 !was_positive12 !visual12 !did_change12 !maxlen12 !save_coladd12 !save_cursor_lnum12 !save_cursor_col12 !save_cursor_coladd12 !startpos_lnum12 !startpos_col12 !startpos_coladd12 !endpos_lnum12 !endpos_col12 !endpos_coladd12 !save_pos_lnum12 !save_pos_col12 !save_pos_coladd12 = do
+                    then j'30 length11 col21 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 True negative11 was_positive11 visual11 did_change11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 maxlen11 startpos_lnum11 startpos_col11 startpos_coladd11 save_coladd11
+                    else j'30 length11 col21 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 blank_unsigned11 (TRUE :: Int32) False visual11 did_change11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 maxlen11 startpos_lnum11 startpos_col11 startpos_coladd11 save_coladd11
+                else j'30 length11 col21 ptr10 linelen10 do_hex11 do_oct11 do_bin11 do_alpha11 do_unsigned11 do_blank11 blank_unsigned11 negative11 was_positive11 visual11 did_change11 save_cursor_lnum11 save_cursor_col11 save_cursor_coladd11 maxlen11 startpos_lnum11 startpos_col11 startpos_coladd11 save_coladd11
+    j'30 !length13 !col23 !ptr11 !linelen11 !do_hex12 !do_oct12 !do_bin12 !do_alpha12 !do_unsigned12 !do_blank12 !blank_unsigned12 !negative12 !was_positive12 !visual12 !did_change12 !save_cursor_lnum12 !save_cursor_col12 !save_cursor_coladd12 !maxlen12 !startpos_lnum12 !startpos_col12 !startpos_coladd12 !save_coladd12 = do
       r'96 <- rdW8 (pAdd ptr11 (fromIntegral col23)) 0
       let !firstdigit1 = fromIntegral r'96 :: Int32
       if (not (((fromIntegral firstdigit1 :: Word32) - (ch '0')) < 10)) && (not (do_alpha12 && ((((fromIntegral firstdigit1 :: Word32) - (ch 'A')) < 26) || (((fromIntegral firstdigit1 :: Word32) - (ch 'a')) < 26))))
         then do
           beep_flush ed'
-          j'133 visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
+          j'133 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 save_coladd12
         else do
           if do_alpha12 && ((((fromIntegral firstdigit1 :: Word32) - (ch 'A')) < 26) || (((fromIntegral firstdigit1 :: Word32) - (ch 'a')) < 26))
             then do
@@ -6191,21 +6219,21 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
                     then do
                       let !r'97 = musl_isupper (fromIntegral (fromIntegral firstdigit1 :: Word8) :: Int32)
                       if r'97
-                        then j'122 col23 (ch 'A' :: Int32) visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
-                        else j'122 col23 (ch 'a' :: Int32) visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
+                        then j'122 col23 (ch 'A' :: Int32) visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
+                        else j'122 col23 (ch 'a' :: Int32) visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
                     else do
                       let !firstdigit2 = fromIntegral ((fromIntegral firstdigit1 :: Int64) - c'Prenum1) :: Int32
-                      j'122 col23 firstdigit2 visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
+                      j'122 col23 firstdigit2 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
                 else do
                   if (fromIntegral ((26 - (if (firstdigit1 < (ch 'a')) then (firstdigit1 - (ch 'A')) else (firstdigit1 - (ch 'a')))) - 1) :: Int64) < c'Prenum1
                     then do
                       let !r'98 = musl_isupper (fromIntegral (fromIntegral firstdigit1 :: Word8) :: Int32)
                       if r'98
-                        then j'122 col23 (ch 'Z' :: Int32) visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
-                        else j'122 col23 (ch 'z' :: Int32) visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
+                        then j'122 col23 (ch 'Z' :: Int32) visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
+                        else j'122 col23 (ch 'z' :: Int32) visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
                     else do
                       let !firstdigit3 = fromIntegral ((fromIntegral firstdigit1 :: Int64) + c'Prenum1) :: Int32
-                      j'122 col23 firstdigit3 visual12 did_change12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
+                      j'122 col23 firstdigit3 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
             else do
               r'100 <- if (col23 > 0) then (do { r'99 <- rdW8 (pAdd ptr11 (fromIntegral (col23 - 1))) 0; pure ((fromIntegral r'99 :: Int32) == (ch '-')) }) else pure False
               r'102 <- if r'100 then (do { r'101 <- utf_head_off ed' ptr11 (pAdd (pAdd ptr11 (fromIntegral col23)) (-1)); pure (not (r'101 /= 0)) }) else pure False
@@ -6213,43 +6241,43 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
                 then do
                   r'106 <- if (do_blank12 && (col23 >= 2)) then (do { r'103 <- rdW8 (pAdd ptr11 (fromIntegral (col23 - 2))) 0; r'105 <- if ((fromIntegral r'103 :: Int32) == (ch ' ')) then pure True else (do { r'104 <- rdW8 (pAdd ptr11 (fromIntegral (col23 - 2))) 0; pure ((fromIntegral r'104 :: Int32) == (ch '\t')) }); pure (not r'105) }) else pure False
                   if r'106
-                    then j'36 length13 col23 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 True firstdigit1 negative12 was_positive12 visual12 did_change12 maxlen12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
+                    then j'36 length13 col23 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 True firstdigit1 negative12 was_positive12 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 maxlen12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
                     else do
                       let !col24 = col23 - 1
-                      j'36 length13 col24 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 blank_unsigned12 firstdigit1 (TRUE :: Int32) was_positive12 visual12 did_change12 maxlen12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
-                else j'36 length13 col23 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 blank_unsigned12 firstdigit1 negative12 was_positive12 visual12 did_change12 maxlen12 save_coladd12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 startpos_lnum12 startpos_col12 startpos_coladd12 endpos_lnum12 endpos_col12 endpos_coladd12 save_pos_lnum12 save_pos_col12 save_pos_coladd12
-    j'36 !length14 !col25 !ptr12 !linelen12 !do_hex13 !do_oct13 !do_bin13 !do_unsigned13 !blank_unsigned13 !firstdigit4 !negative13 !was_positive13 !visual13 !did_change13 !maxlen13 !save_coladd13 !save_cursor_lnum13 !save_cursor_col13 !save_cursor_coladd13 !startpos_lnum13 !startpos_col13 !startpos_coladd13 !endpos_lnum13 !endpos_col13 !endpos_coladd13 !save_pos_lnum13 !save_pos_col13 !save_pos_coladd13 = do
+                      j'36 length13 col24 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 blank_unsigned12 firstdigit1 (TRUE :: Int32) was_positive12 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 maxlen12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
+                else j'36 length13 col23 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 blank_unsigned12 firstdigit1 negative12 was_positive12 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 maxlen12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
+    j'36 !length14 !col25 !ptr12 !linelen12 !do_hex13 !do_oct13 !do_bin13 !do_unsigned13 !blank_unsigned13 !firstdigit4 !negative13 !was_positive13 !visual13 !did_change13 !save_cursor_lnum13 !save_cursor_col13 !save_cursor_coladd13 !maxlen13 !startpos_lnum13 !startpos_col13 !startpos_coladd13 !save_coladd13 = do
       r'108 <- if (visual13 /= 0) then (do { r'107 <- c'VIsual_mode ed'; pure (r'107 /= (ch 'V')) }) else pure False
       if r'108
         then do
           r'109 <- curbuf ed'
           r'110 <- rdI32 r'109 (buf_T'b_visual + visualinfo_T'vi_curswant)
           let !maxlen14 = if (r'110 == MAXCOL) then (linelen12 - col25) else length14
-          j'38 length14 col25 ptr12 do_hex13 do_oct13 do_bin13 do_unsigned13 blank_unsigned13 firstdigit4 negative13 was_positive13 visual13 did_change13 maxlen14 save_coladd13 save_cursor_lnum13 save_cursor_col13 save_cursor_coladd13 startpos_lnum13 startpos_col13 startpos_coladd13 endpos_lnum13 endpos_col13 endpos_coladd13 save_pos_lnum13 save_pos_col13 save_pos_coladd13
-        else j'38 length14 col25 ptr12 do_hex13 do_oct13 do_bin13 do_unsigned13 blank_unsigned13 firstdigit4 negative13 was_positive13 visual13 did_change13 maxlen13 save_coladd13 save_cursor_lnum13 save_cursor_col13 save_cursor_coladd13 startpos_lnum13 startpos_col13 startpos_coladd13 endpos_lnum13 endpos_col13 endpos_coladd13 save_pos_lnum13 save_pos_col13 save_pos_coladd13
-    j'38 !length15 !col26 !ptr13 !do_hex14 !do_oct14 !do_bin14 !do_unsigned14 !blank_unsigned14 !firstdigit5 !negative14 !was_positive14 !visual14 !did_change14 !maxlen15 !save_coladd14 !save_cursor_lnum14 !save_cursor_col14 !save_cursor_coladd14 !startpos_lnum14 !startpos_col14 !startpos_coladd14 !endpos_lnum14 !endpos_col14 !endpos_coladd14 !save_pos_lnum14 !save_pos_col14 !save_pos_coladd14 = do
+          j'38 length14 col25 ptr12 do_hex13 do_oct13 do_bin13 do_unsigned13 blank_unsigned13 firstdigit4 negative13 was_positive13 visual13 did_change13 save_cursor_lnum13 save_cursor_col13 save_cursor_coladd13 maxlen14 startpos_lnum13 startpos_col13 startpos_coladd13 save_coladd13
+        else j'38 length14 col25 ptr12 do_hex13 do_oct13 do_bin13 do_unsigned13 blank_unsigned13 firstdigit4 negative13 was_positive13 visual13 did_change13 save_cursor_lnum13 save_cursor_col13 save_cursor_coladd13 maxlen13 startpos_lnum13 startpos_col13 startpos_coladd13 save_coladd13
+    j'38 !length15 !col26 !ptr13 !do_hex14 !do_oct14 !do_bin14 !do_unsigned14 !blank_unsigned14 !firstdigit5 !negative14 !was_positive14 !visual14 !did_change14 !save_cursor_lnum14 !save_cursor_col14 !save_cursor_coladd14 !maxlen15 !startpos_lnum14 !startpos_col14 !startpos_coladd14 !save_coladd14 = do
       wrI32 fr' 84 FALSE
-      length16 <- vim_str2nr (pAdd ptr13 (fromIntegral col26)) fr' length15 (((0 + (if do_bin14 then (STR2NR_BIN :: Int32) else (0 :: Int32))) + (if do_oct14 then (STR2NR_OCT :: Int32) else (0 :: Int32))) + (if do_hex14 then (STR2NR_HEX :: Int32) else (0 :: Int32))) nullPtr (pAdd fr' 8) maxlen15 False (pAdd fr' 84)
+      r'111 <- vim_str2nr (pAdd ptr13 (fromIntegral col26)) fr' length15 (((0 + (if do_bin14 then (STR2NR_BIN :: Int32) else (0 :: Int32))) + (if do_oct14 then (STR2NR_OCT :: Int32) else (0 :: Int32))) + (if do_hex14 then (STR2NR_HEX :: Int32) else (0 :: Int32))) nullPtr (pAdd fr' 8) maxlen15 False (pAdd fr' 84)
       r'112 <- rdI32 fr' 0
       if (r'112 /= 0) && (negative14 /= 0)
         then do
           let !col27 = col26 + 1
-          let !length17 = length16 - 1
-          j'40 length17 col27 do_oct14 do_unsigned14 blank_unsigned14 firstdigit5 (FALSE :: Int32) was_positive14 visual14 did_change14 save_coladd14 save_cursor_lnum14 save_cursor_col14 save_cursor_coladd14 startpos_lnum14 startpos_col14 startpos_coladd14 endpos_lnum14 endpos_col14 endpos_coladd14 save_pos_lnum14 save_pos_col14 save_pos_coladd14
-        else j'40 length16 col26 do_oct14 do_unsigned14 blank_unsigned14 firstdigit5 negative14 was_positive14 visual14 did_change14 save_coladd14 save_cursor_lnum14 save_cursor_col14 save_cursor_coladd14 startpos_lnum14 startpos_col14 startpos_coladd14 endpos_lnum14 endpos_col14 endpos_coladd14 save_pos_lnum14 save_pos_col14 save_pos_coladd14
-    j'40 !length18 !col28 !do_oct15 !do_unsigned15 !blank_unsigned15 !firstdigit6 !negative15 !was_positive15 !visual15 !did_change15 !save_coladd15 !save_cursor_lnum15 !save_cursor_col15 !save_cursor_coladd15 !startpos_lnum15 !startpos_col15 !startpos_coladd15 !endpos_lnum15 !endpos_col15 !endpos_coladd15 !save_pos_lnum15 !save_pos_col15 !save_pos_coladd15 = do
+          let !length16 = r'111 - 1
+          j'40 length16 col27 do_oct14 do_unsigned14 blank_unsigned14 firstdigit5 (FALSE :: Int32) was_positive14 visual14 did_change14 save_cursor_lnum14 save_cursor_col14 save_cursor_coladd14 startpos_lnum14 startpos_col14 startpos_coladd14 save_coladd14
+        else j'40 r'111 col26 do_oct14 do_unsigned14 blank_unsigned14 firstdigit5 negative14 was_positive14 visual14 did_change14 save_cursor_lnum14 save_cursor_col14 save_cursor_coladd14 startpos_lnum14 startpos_col14 startpos_coladd14 save_coladd14
+    j'40 !length17 !col28 !do_oct15 !do_unsigned15 !blank_unsigned15 !firstdigit6 !negative15 !was_positive15 !visual15 !did_change15 !save_cursor_lnum15 !save_cursor_col15 !save_cursor_coladd15 !startpos_lnum15 !startpos_col15 !startpos_coladd15 !save_coladd15 = do
       if op_type == OP_NR_SUB
         then do
           let !subtract1 = xor (FALSE :: Int32) TRUE
-          j'42 length18 col28 do_oct15 do_unsigned15 blank_unsigned15 firstdigit6 subtract1 negative15 was_positive15 visual15 did_change15 save_coladd15 save_cursor_lnum15 save_cursor_col15 save_cursor_coladd15 startpos_lnum15 startpos_col15 startpos_coladd15 endpos_lnum15 endpos_col15 endpos_coladd15 save_pos_lnum15 save_pos_col15 save_pos_coladd15
-        else j'42 length18 col28 do_oct15 do_unsigned15 blank_unsigned15 firstdigit6 (FALSE :: Int32) negative15 was_positive15 visual15 did_change15 save_coladd15 save_cursor_lnum15 save_cursor_col15 save_cursor_coladd15 startpos_lnum15 startpos_col15 startpos_coladd15 endpos_lnum15 endpos_col15 endpos_coladd15 save_pos_lnum15 save_pos_col15 save_pos_coladd15
-    j'42 !length19 !col29 !do_oct16 !do_unsigned16 !blank_unsigned16 !firstdigit7 !subtract2 !negative16 !was_positive16 !visual16 !did_change16 !save_coladd16 !save_cursor_lnum16 !save_cursor_col16 !save_cursor_coladd16 !startpos_lnum16 !startpos_col16 !startpos_coladd16 !endpos_lnum16 !endpos_col16 !endpos_coladd16 !save_pos_lnum16 !save_pos_col16 !save_pos_coladd16 = do
+          j'42 length17 col28 do_oct15 do_unsigned15 blank_unsigned15 firstdigit6 subtract1 negative15 was_positive15 visual15 did_change15 save_cursor_lnum15 save_cursor_col15 save_cursor_coladd15 startpos_lnum15 startpos_col15 startpos_coladd15 save_coladd15
+        else j'42 length17 col28 do_oct15 do_unsigned15 blank_unsigned15 firstdigit6 (FALSE :: Int32) negative15 was_positive15 visual15 did_change15 save_cursor_lnum15 save_cursor_col15 save_cursor_coladd15 startpos_lnum15 startpos_col15 startpos_coladd15 save_coladd15
+    j'42 !length18 !col29 !do_oct16 !do_unsigned16 !blank_unsigned16 !firstdigit7 !subtract2 !negative16 !was_positive16 !visual16 !did_change16 !save_cursor_lnum16 !save_cursor_col16 !save_cursor_coladd16 !startpos_lnum16 !startpos_col16 !startpos_coladd16 !save_coladd16 = do
       if negative16 /= 0
         then do
           let !subtract3 = xor subtract2 TRUE
-          j'44 length19 col29 do_oct16 do_unsigned16 blank_unsigned16 firstdigit7 subtract3 negative16 was_positive16 visual16 did_change16 save_coladd16 save_cursor_lnum16 save_cursor_col16 save_cursor_coladd16 startpos_lnum16 startpos_col16 startpos_coladd16 endpos_lnum16 endpos_col16 endpos_coladd16 save_pos_lnum16 save_pos_col16 save_pos_coladd16
-        else j'44 length19 col29 do_oct16 do_unsigned16 blank_unsigned16 firstdigit7 subtract2 negative16 was_positive16 visual16 did_change16 save_coladd16 save_cursor_lnum16 save_cursor_col16 save_cursor_coladd16 startpos_lnum16 startpos_col16 startpos_coladd16 endpos_lnum16 endpos_col16 endpos_coladd16 save_pos_lnum16 save_pos_col16 save_pos_coladd16
-    j'44 !length20 !col30 !do_oct17 !do_unsigned17 !blank_unsigned17 !firstdigit8 !subtract4 !negative17 !was_positive17 !visual17 !did_change17 !save_coladd17 !save_cursor_lnum17 !save_cursor_col17 !save_cursor_coladd17 !startpos_lnum17 !startpos_col17 !startpos_coladd17 !endpos_lnum17 !endpos_col17 !endpos_coladd17 !save_pos_lnum17 !save_pos_col17 !save_pos_coladd17 = do
+          j'44 length18 col29 do_oct16 do_unsigned16 blank_unsigned16 firstdigit7 subtract3 negative16 was_positive16 visual16 did_change16 save_cursor_lnum16 save_cursor_col16 save_cursor_coladd16 startpos_lnum16 startpos_col16 startpos_coladd16 save_coladd16
+        else j'44 length18 col29 do_oct16 do_unsigned16 blank_unsigned16 firstdigit7 subtract2 negative16 was_positive16 visual16 did_change16 save_cursor_lnum16 save_cursor_col16 save_cursor_coladd16 startpos_lnum16 startpos_col16 startpos_coladd16 save_coladd16
+    j'44 !length19 !col30 !do_oct17 !do_unsigned17 !blank_unsigned17 !firstdigit8 !subtract4 !negative17 !was_positive17 !visual17 !did_change17 !save_cursor_lnum17 !save_cursor_col17 !save_cursor_coladd17 !startpos_lnum17 !startpos_col17 !startpos_coladd17 !save_coladd17 = do
       r'113 <- rdW64 fr' 8
       r'114 <- rdI32 fr' 84
       if not (r'114 /= 0)
@@ -6258,13 +6286,13 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
             then do
               r'115 <- rdW64 fr' 8
               wrW64 fr' 8 (r'115 - (fromIntegral c'Prenum1 :: Word64))
-              j'48 length20 col30 r'113 do_oct17 do_unsigned17 blank_unsigned17 firstdigit8 subtract4 negative17 was_positive17 visual17 did_change17 save_coladd17 save_cursor_lnum17 save_cursor_col17 save_cursor_coladd17 startpos_lnum17 startpos_col17 startpos_coladd17 endpos_lnum17 endpos_col17 endpos_coladd17 save_pos_lnum17 save_pos_col17 save_pos_coladd17
+              j'48 length19 col30 r'113 do_oct17 do_unsigned17 blank_unsigned17 firstdigit8 subtract4 negative17 was_positive17 visual17 did_change17 save_cursor_lnum17 save_cursor_col17 save_cursor_coladd17 startpos_lnum17 startpos_col17 startpos_coladd17 save_coladd17
             else do
               r'116 <- rdW64 fr' 8
               wrW64 fr' 8 (r'116 + (fromIntegral c'Prenum1 :: Word64))
-              j'48 length20 col30 r'113 do_oct17 do_unsigned17 blank_unsigned17 firstdigit8 subtract4 negative17 was_positive17 visual17 did_change17 save_coladd17 save_cursor_lnum17 save_cursor_col17 save_cursor_coladd17 startpos_lnum17 startpos_col17 startpos_coladd17 endpos_lnum17 endpos_col17 endpos_coladd17 save_pos_lnum17 save_pos_col17 save_pos_coladd17
-        else j'48 length20 col30 r'113 do_oct17 do_unsigned17 blank_unsigned17 firstdigit8 subtract4 negative17 was_positive17 visual17 did_change17 save_coladd17 save_cursor_lnum17 save_cursor_col17 save_cursor_coladd17 startpos_lnum17 startpos_col17 startpos_coladd17 endpos_lnum17 endpos_col17 endpos_coladd17 save_pos_lnum17 save_pos_col17 save_pos_coladd17
-    j'48 !length21 !col31 !oldn1 !do_oct18 !do_unsigned18 !blank_unsigned18 !firstdigit9 !subtract5 !negative18 !was_positive18 !visual18 !did_change18 !save_coladd18 !save_cursor_lnum18 !save_cursor_col18 !save_cursor_coladd18 !startpos_lnum18 !startpos_col18 !startpos_coladd18 !endpos_lnum18 !endpos_col18 !endpos_coladd18 !save_pos_lnum18 !save_pos_col18 !save_pos_coladd18 = do
+              j'48 length19 col30 r'113 do_oct17 do_unsigned17 blank_unsigned17 firstdigit8 subtract4 negative17 was_positive17 visual17 did_change17 save_cursor_lnum17 save_cursor_col17 save_cursor_coladd17 startpos_lnum17 startpos_col17 startpos_coladd17 save_coladd17
+        else j'48 length19 col30 r'113 do_oct17 do_unsigned17 blank_unsigned17 firstdigit8 subtract4 negative17 was_positive17 visual17 did_change17 save_cursor_lnum17 save_cursor_col17 save_cursor_coladd17 startpos_lnum17 startpos_col17 startpos_coladd17 save_coladd17
+    j'48 !length20 !col31 !oldn1 !do_oct18 !do_unsigned18 !blank_unsigned18 !firstdigit9 !subtract5 !negative18 !was_positive18 !visual18 !did_change18 !save_cursor_lnum18 !save_cursor_col18 !save_cursor_coladd18 !startpos_lnum18 !startpos_col18 !startpos_coladd18 !save_coladd18 = do
       r'117 <- rdI32 fr' 0
       if not (r'117 /= 0)
         then do
@@ -6276,8 +6304,8 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
                   r'119 <- rdW64 fr' 8
                   wrW64 fr' 8 (1 + (xor r'119 18446744073709551615))
                   let !negative19 = xor negative18 TRUE
-                  j'54 length21 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative19 was_positive18 visual18 did_change18 save_coladd18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 endpos_lnum18 endpos_col18 endpos_coladd18 save_pos_lnum18 save_pos_col18 save_pos_coladd18
-                else j'54 length21 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative18 was_positive18 visual18 did_change18 save_coladd18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 endpos_lnum18 endpos_col18 endpos_coladd18 save_pos_lnum18 save_pos_col18 save_pos_coladd18
+                  j'54 length20 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative19 was_positive18 visual18 did_change18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 save_coladd18
+                else j'54 length20 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative18 was_positive18 visual18 did_change18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 save_coladd18
             else do
               r'120 <- rdW64 fr' 8
               if r'120 < oldn1
@@ -6285,336 +6313,360 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
                   r'121 <- rdW64 fr' 8
                   wrW64 fr' 8 (xor r'121 18446744073709551615)
                   let !negative20 = xor negative18 TRUE
-                  j'54 length21 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative20 was_positive18 visual18 did_change18 save_coladd18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 endpos_lnum18 endpos_col18 endpos_coladd18 save_pos_lnum18 save_pos_col18 save_pos_coladd18
-                else j'54 length21 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative18 was_positive18 visual18 did_change18 save_coladd18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 endpos_lnum18 endpos_col18 endpos_coladd18 save_pos_lnum18 save_pos_col18 save_pos_coladd18
-        else j'56 length21 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative18 was_positive18 visual18 did_change18 save_coladd18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 endpos_lnum18 endpos_col18 endpos_coladd18 save_pos_lnum18 save_pos_col18 save_pos_coladd18
-    j'54 !length22 !col32 !do_oct19 !do_unsigned19 !blank_unsigned19 !firstdigit10 !subtract6 !negative21 !was_positive19 !visual19 !did_change19 !save_coladd19 !save_cursor_lnum19 !save_cursor_col19 !save_cursor_coladd19 !startpos_lnum19 !startpos_col19 !startpos_coladd19 !endpos_lnum19 !endpos_col19 !endpos_coladd19 !save_pos_lnum19 !save_pos_col19 !save_pos_coladd19 = do
+                  j'54 length20 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative20 was_positive18 visual18 did_change18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 save_coladd18
+                else j'54 length20 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative18 was_positive18 visual18 did_change18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 save_coladd18
+        else j'56 length20 col31 do_oct18 do_unsigned18 blank_unsigned18 firstdigit9 subtract5 negative18 was_positive18 visual18 did_change18 save_cursor_lnum18 save_cursor_col18 save_cursor_coladd18 startpos_lnum18 startpos_col18 startpos_coladd18 save_coladd18
+    j'54 !length21 !col32 !do_oct19 !do_unsigned19 !blank_unsigned19 !firstdigit10 !subtract6 !negative21 !was_positive19 !visual19 !did_change19 !save_cursor_lnum19 !save_cursor_col19 !save_cursor_coladd19 !startpos_lnum19 !startpos_col19 !startpos_coladd19 !save_coladd19 = do
       r'122 <- rdW64 fr' 8
       if r'122 == 0
-        then j'56 length22 col32 do_oct19 do_unsigned19 blank_unsigned19 firstdigit10 subtract6 (FALSE :: Int32) was_positive19 visual19 did_change19 save_coladd19 save_cursor_lnum19 save_cursor_col19 save_cursor_coladd19 startpos_lnum19 startpos_col19 startpos_coladd19 endpos_lnum19 endpos_col19 endpos_coladd19 save_pos_lnum19 save_pos_col19 save_pos_coladd19
-        else j'56 length22 col32 do_oct19 do_unsigned19 blank_unsigned19 firstdigit10 subtract6 negative21 was_positive19 visual19 did_change19 save_coladd19 save_cursor_lnum19 save_cursor_col19 save_cursor_coladd19 startpos_lnum19 startpos_col19 startpos_coladd19 endpos_lnum19 endpos_col19 endpos_coladd19 save_pos_lnum19 save_pos_col19 save_pos_coladd19
-    j'56 !length23 !col33 !do_oct20 !do_unsigned20 !blank_unsigned20 !firstdigit11 !subtract7 !negative22 !was_positive20 !visual20 !did_change20 !save_coladd20 !save_cursor_lnum20 !save_cursor_col20 !save_cursor_coladd20 !startpos_lnum20 !startpos_col20 !startpos_coladd20 !endpos_lnum20 !endpos_col20 !endpos_coladd20 !save_pos_lnum20 !save_pos_col20 !save_pos_coladd20 = do
+        then j'56 length21 col32 do_oct19 do_unsigned19 blank_unsigned19 firstdigit10 subtract6 (FALSE :: Int32) was_positive19 visual19 did_change19 save_cursor_lnum19 save_cursor_col19 save_cursor_coladd19 startpos_lnum19 startpos_col19 startpos_coladd19 save_coladd19
+        else j'56 length21 col32 do_oct19 do_unsigned19 blank_unsigned19 firstdigit10 subtract6 negative21 was_positive19 visual19 did_change19 save_cursor_lnum19 save_cursor_col19 save_cursor_coladd19 startpos_lnum19 startpos_col19 startpos_coladd19 save_coladd19
+    j'56 !length22 !col33 !do_oct20 !do_unsigned20 !blank_unsigned20 !firstdigit11 !subtract7 !negative22 !was_positive20 !visual20 !did_change20 !save_cursor_lnum20 !save_cursor_col20 !save_cursor_coladd20 !startpos_lnum20 !startpos_col20 !startpos_coladd20 !save_coladd20 = do
       if (do_unsigned20 || blank_unsigned20) && (negative22 /= 0)
         then do
           if subtract7 /= 0
             then do
               wrW64 fr' 8 0
-              j'60 length23 col33 do_oct20 firstdigit11 was_positive20 visual20 did_change20 save_coladd20 save_cursor_lnum20 save_cursor_col20 save_cursor_coladd20 startpos_lnum20 startpos_col20 startpos_coladd20 endpos_lnum20 endpos_col20 endpos_coladd20 save_pos_lnum20 save_pos_col20 save_pos_coladd20
+              j'60 length22 col33 do_oct20 firstdigit11 was_positive20 visual20 did_change20 save_cursor_lnum20 save_cursor_col20 save_cursor_coladd20 startpos_lnum20 startpos_col20 startpos_coladd20 save_coladd20
             else do
               wrW64 fr' 8 18446744073709551615
-              j'60 length23 col33 do_oct20 firstdigit11 was_positive20 visual20 did_change20 save_coladd20 save_cursor_lnum20 save_cursor_col20 save_cursor_coladd20 startpos_lnum20 startpos_col20 startpos_coladd20 endpos_lnum20 endpos_col20 endpos_coladd20 save_pos_lnum20 save_pos_col20 save_pos_coladd20
-        else j'61 length23 col33 do_oct20 firstdigit11 negative22 was_positive20 visual20 did_change20 save_coladd20 save_cursor_lnum20 save_cursor_col20 save_cursor_coladd20 startpos_lnum20 startpos_col20 startpos_coladd20 endpos_lnum20 endpos_col20 endpos_coladd20 save_pos_lnum20 save_pos_col20 save_pos_coladd20
-    j'60 !length24 !col34 !do_oct21 !firstdigit12 !was_positive21 !visual21 !did_change21 !save_coladd21 !save_cursor_lnum21 !save_cursor_col21 !save_cursor_coladd21 !startpos_lnum21 !startpos_col21 !startpos_coladd21 !endpos_lnum21 !endpos_col21 !endpos_coladd21 !save_pos_lnum21 !save_pos_col21 !save_pos_coladd21 = do
-      j'61 length24 col34 do_oct21 firstdigit12 (FALSE :: Int32) was_positive21 visual21 did_change21 save_coladd21 save_cursor_lnum21 save_cursor_col21 save_cursor_coladd21 startpos_lnum21 startpos_col21 startpos_coladd21 endpos_lnum21 endpos_col21 endpos_coladd21 save_pos_lnum21 save_pos_col21 save_pos_coladd21
-    j'61 !length25 !col35 !do_oct22 !firstdigit13 !negative23 !was_positive22 !visual22 !did_change22 !save_coladd22 !save_cursor_lnum22 !save_cursor_col22 !save_cursor_coladd22 !startpos_lnum22 !startpos_col22 !startpos_coladd22 !endpos_lnum22 !endpos_col22 !endpos_coladd22 !save_pos_lnum22 !save_pos_col22 !save_pos_coladd22 = do
+              j'60 length22 col33 do_oct20 firstdigit11 was_positive20 visual20 did_change20 save_cursor_lnum20 save_cursor_col20 save_cursor_coladd20 startpos_lnum20 startpos_col20 startpos_coladd20 save_coladd20
+        else j'61 length22 col33 do_oct20 firstdigit11 negative22 was_positive20 visual20 did_change20 save_cursor_lnum20 save_cursor_col20 save_cursor_coladd20 startpos_lnum20 startpos_col20 startpos_coladd20 save_coladd20
+    j'60 !length23 !col34 !do_oct21 !firstdigit12 !was_positive21 !visual21 !did_change21 !save_cursor_lnum21 !save_cursor_col21 !save_cursor_coladd21 !startpos_lnum21 !startpos_col21 !startpos_coladd21 !save_coladd21 = do
+      j'61 length23 col34 do_oct21 firstdigit12 (FALSE :: Int32) was_positive21 visual21 did_change21 save_cursor_lnum21 save_cursor_col21 save_cursor_coladd21 startpos_lnum21 startpos_col21 startpos_coladd21 save_coladd21
+    j'61 !length24 !col35 !do_oct22 !firstdigit13 !negative23 !was_positive22 !visual22 !did_change22 !save_cursor_lnum22 !save_cursor_col22 !save_cursor_coladd22 !startpos_lnum22 !startpos_col22 !startpos_coladd22 !save_coladd22 = do
       if (((visual22 /= 0) && (not was_positive22)) && (not (negative23 /= 0))) && (col35 > 0)
         then do
           let !col36 = col35 - 1
-          let !length26 = length25 + 1
-          j'63 length26 col36 do_oct22 firstdigit13 negative23 was_positive22 visual22 did_change22 save_coladd22 save_cursor_lnum22 save_cursor_col22 save_cursor_coladd22 startpos_lnum22 startpos_col22 startpos_coladd22 endpos_lnum22 endpos_col22 endpos_coladd22 save_pos_lnum22 save_pos_col22 save_pos_coladd22
-        else j'63 length25 col35 do_oct22 firstdigit13 negative23 was_positive22 visual22 did_change22 save_coladd22 save_cursor_lnum22 save_cursor_col22 save_cursor_coladd22 startpos_lnum22 startpos_col22 startpos_coladd22 endpos_lnum22 endpos_col22 endpos_coladd22 save_pos_lnum22 save_pos_col22 save_pos_coladd22
-    j'63 !length27 !col37 !do_oct23 !firstdigit14 !negative24 !was_positive23 !visual23 !did_change23 !save_coladd23 !save_cursor_lnum23 !save_cursor_col23 !save_cursor_coladd23 !startpos_lnum23 !startpos_col23 !startpos_coladd23 !endpos_lnum23 !endpos_col23 !endpos_coladd23 !save_pos_lnum23 !save_pos_col23 !save_pos_coladd23 = do
+          let !length25 = length24 + 1
+          j'63 length25 col36 do_oct22 firstdigit13 negative23 was_positive22 visual22 did_change22 save_cursor_lnum22 save_cursor_col22 save_cursor_coladd22 startpos_lnum22 startpos_col22 startpos_coladd22 save_coladd22
+        else j'63 length24 col35 do_oct22 firstdigit13 negative23 was_positive22 visual22 did_change22 save_cursor_lnum22 save_cursor_col22 save_cursor_coladd22 startpos_lnum22 startpos_col22 startpos_coladd22 save_coladd22
+    j'63 !length26 !col37 !do_oct23 !firstdigit14 !negative24 !was_positive23 !visual23 !did_change23 !save_cursor_lnum23 !save_cursor_col23 !save_cursor_coladd23 !startpos_lnum23 !startpos_col23 !startpos_coladd23 !save_coladd23 = do
       r'123 <- curwin ed'
       wrI32 r'123 (win_T'w_cursor + pos_T'col) col37
       if not did_change23
         then do
           r'124 <- curwin ed'
-          r'125 <- rdI64 (pAdd r'124 win_T'w_cursor) pos_T'lnum
-          r'126 <- rdI32 (pAdd r'124 win_T'w_cursor) pos_T'col
-          r'127 <- rdI32 (pAdd r'124 win_T'w_cursor) pos_T'coladd
-          j'65 length27 do_oct23 firstdigit14 negative24 was_positive23 visual23 save_coladd23 save_cursor_lnum23 save_cursor_col23 save_cursor_coladd23 r'125 r'126 r'127 endpos_lnum23 endpos_col23 endpos_coladd23 save_pos_lnum23 save_pos_col23 save_pos_coladd23
-        else j'65 length27 do_oct23 firstdigit14 negative24 was_positive23 visual23 save_coladd23 save_cursor_lnum23 save_cursor_col23 save_cursor_coladd23 startpos_lnum23 startpos_col23 startpos_coladd23 endpos_lnum23 endpos_col23 endpos_coladd23 save_pos_lnum23 save_pos_col23 save_pos_coladd23
-    j'65 !length28 !do_oct24 !firstdigit15 !negative25 !was_positive24 !visual24 !save_coladd24 !save_cursor_lnum24 !save_cursor_col24 !save_cursor_coladd24 !startpos_lnum24 !startpos_col24 !startpos_coladd24 !endpos_lnum24 !endpos_col24 !endpos_coladd24 !save_pos_lnum24 !save_pos_col24 !save_pos_coladd24 = do
-      r'128 <- gchar_cursor ed'
-      if r'128 == (ch '-')
+          r'125 <- rdI64 r'124 (win_T'w_cursor + pos_T'lnum)
+          r'126 <- curwin ed'
+          r'127 <- rdI32 r'126 (win_T'w_cursor + pos_T'col)
+          r'128 <- curwin ed'
+          r'129 <- rdI32 r'128 (win_T'w_cursor + pos_T'coladd)
+          j'65 length26 do_oct23 firstdigit14 negative24 was_positive23 visual23 save_cursor_lnum23 save_cursor_col23 save_cursor_coladd23 r'125 r'127 r'129 save_coladd23
+        else j'65 length26 do_oct23 firstdigit14 negative24 was_positive23 visual23 save_cursor_lnum23 save_cursor_col23 save_cursor_coladd23 startpos_lnum23 startpos_col23 startpos_coladd23 save_coladd23
+    j'65 !length27 !do_oct24 !firstdigit15 !negative25 !was_positive24 !visual24 !save_cursor_lnum24 !save_cursor_col24 !save_cursor_coladd24 !startpos_lnum24 !startpos_col24 !startpos_coladd24 !save_coladd24 = do
+      r'130 <- gchar_cursor ed'
+      if r'130 == (ch '-')
         then do
-          let !length29 = length28 - 1
-          j'67 length29 r'128 length28 do_oct24 firstdigit15 negative25 was_positive24 visual24 True save_coladd24 save_cursor_lnum24 save_cursor_col24 save_cursor_coladd24 startpos_lnum24 startpos_col24 startpos_coladd24 endpos_lnum24 endpos_col24 endpos_coladd24 save_pos_lnum24 save_pos_col24 save_pos_coladd24
-        else j'67 length28 r'128 length28 do_oct24 firstdigit15 negative25 was_positive24 visual24 True save_coladd24 save_cursor_lnum24 save_cursor_col24 save_cursor_coladd24 startpos_lnum24 startpos_col24 startpos_coladd24 endpos_lnum24 endpos_col24 endpos_coladd24 save_pos_lnum24 save_pos_col24 save_pos_coladd24
-    j'67 !length30 !c1 !todel1 !do_oct25 !firstdigit16 !negative26 !was_positive25 !visual25 !did_change24 !save_coladd25 !save_cursor_lnum25 !save_cursor_col25 !save_cursor_coladd25 !startpos_lnum25 !startpos_col25 !startpos_coladd25 !endpos_lnum25 !endpos_col25 !endpos_coladd25 _ _ _ = do
-      r'129 <- curwin ed'
-      r'130 <- rdI64 (pAdd r'129 win_T'w_cursor) pos_T'lnum
-      r'131 <- rdI32 (pAdd r'129 win_T'w_cursor) pos_T'col
-      r'132 <- rdI32 (pAdd r'129 win_T'w_cursor) pos_T'coladd
-      loop'68 length30 c1 todel1 do_oct25 firstdigit16 negative26 was_positive25 visual25 did_change24 save_coladd25 (0 :: Int32) save_cursor_lnum25 save_cursor_col25 save_cursor_coladd25 startpos_lnum25 startpos_col25 startpos_coladd25 endpos_lnum25 endpos_col25 endpos_coladd25 r'130 r'131 r'132
-    loop'68 !length31 !c2 !todel2 !do_oct26 !firstdigit17 !negative27 !was_positive26 !visual26 !did_change25 !save_coladd26 !i1 !save_cursor_lnum26 !save_cursor_col26 !save_cursor_coladd26 !startpos_lnum26 !startpos_col26 !startpos_coladd26 !endpos_lnum26 !endpos_col26 !endpos_coladd26 !save_pos_lnum26 !save_pos_col26 !save_pos_coladd26 = do
+          let !length28 = length27 - 1
+          j'67 length28 r'130 length27 do_oct24 firstdigit15 negative25 was_positive24 visual24 True save_cursor_lnum24 save_cursor_col24 save_cursor_coladd24 startpos_lnum24 startpos_col24 startpos_coladd24 save_coladd24
+        else j'67 length27 r'130 length27 do_oct24 firstdigit15 negative25 was_positive24 visual24 True save_cursor_lnum24 save_cursor_col24 save_cursor_coladd24 startpos_lnum24 startpos_col24 startpos_coladd24 save_coladd24
+    j'67 !length29 !c1 !todel1 !do_oct25 !firstdigit16 !negative26 !was_positive25 !visual25 !did_change24 !save_cursor_lnum25 !save_cursor_col25 !save_cursor_coladd25 !startpos_lnum25 !startpos_col25 !startpos_coladd25 !save_coladd25 = do
+      r'131 <- curwin ed'
+      r'132 <- rdI64 r'131 (win_T'w_cursor + pos_T'lnum)
+      r'133 <- curwin ed'
+      r'134 <- rdI32 r'133 (win_T'w_cursor + pos_T'col)
+      r'135 <- curwin ed'
+      r'136 <- rdI32 r'135 (win_T'w_cursor + pos_T'coladd)
+      loop'68 length29 c1 todel1 do_oct25 firstdigit16 negative26 was_positive25 visual25 did_change24 save_cursor_lnum25 save_cursor_col25 save_cursor_coladd25 startpos_lnum25 startpos_col25 startpos_coladd25 save_coladd25 r'132 r'134 r'136 (0 :: Int32)
+    loop'68 !length30 !c2 !todel2 !do_oct26 !firstdigit17 !negative27 !was_positive26 !visual26 !did_change25 !save_cursor_lnum26 !save_cursor_col26 !save_cursor_coladd26 !startpos_lnum26 !startpos_col26 !startpos_coladd26 !save_coladd26 !save_pos_lnum1 !save_pos_col1 !save_pos_coladd1 !i1 = do
       if i1 < todel2
         then do
-          r'134 <- if (c2 < 256) then (do { let { !r'133 = musl_isalpha (fromIntegral (fromIntegral c2 :: Word8) :: Int32) }; pure r'133 }) else pure False
-          if r'134
+          r'138 <- if (c2 < 256) then (do { let { !r'137 = musl_isalpha (fromIntegral (fromIntegral c2 :: Word8) :: Int32) }; pure r'137 }) else pure False
+          if r'138
             then do
-              let !r'135 = musl_isupper (fromIntegral (fromIntegral c2 :: Word8) :: Int32)
-              if r'135
+              let !r'139 = musl_isupper (fromIntegral (fromIntegral c2 :: Word8) :: Int32)
+              if r'139
                 then do
                   set'do_addsub'hexupper ed' True
-                  j'109 length31 todel2 do_oct26 firstdigit17 negative27 was_positive26 visual26 did_change25 save_coladd26 i1 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 endpos_lnum26 endpos_col26 endpos_coladd26 save_pos_lnum26 save_pos_col26 save_pos_coladd26
+                  j'109 length30 todel2 do_oct26 firstdigit17 negative27 was_positive26 visual26 did_change25 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 save_coladd26 save_pos_lnum1 save_pos_col1 save_pos_coladd1 i1
                 else do
                   set'do_addsub'hexupper ed' False
-                  j'109 length31 todel2 do_oct26 firstdigit17 negative27 was_positive26 visual26 did_change25 save_coladd26 i1 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 endpos_lnum26 endpos_col26 endpos_coladd26 save_pos_lnum26 save_pos_col26 save_pos_coladd26
-            else j'109 length31 todel2 do_oct26 firstdigit17 negative27 was_positive26 visual26 did_change25 save_coladd26 i1 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 endpos_lnum26 endpos_col26 endpos_coladd26 save_pos_lnum26 save_pos_col26 save_pos_coladd26
+                  j'109 length30 todel2 do_oct26 firstdigit17 negative27 was_positive26 visual26 did_change25 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 save_coladd26 save_pos_lnum1 save_pos_col1 save_pos_coladd1 i1
+            else j'109 length30 todel2 do_oct26 firstdigit17 negative27 was_positive26 visual26 did_change25 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 save_coladd26 save_pos_lnum1 save_pos_col1 save_pos_coladd1 i1
         else do
-          r'136 <- curwin ed'
-          wrI64 r'136 (win_T'w_cursor + pos_T'lnum) save_pos_lnum26
-          wrI32 r'136 (win_T'w_cursor + pos_T'col) save_pos_col26
-          wrI32 r'136 (win_T'w_cursor + pos_T'coladd) save_pos_coladd26
-          r'137 <- alloc ed' (fromIntegral (length31 + NUMBUFLEN) :: Word64)
-          let !buf1'1 = castPtr r'137
+          r'140 <- curwin ed'
+          wrI64 r'140 (win_T'w_cursor + pos_T'lnum) save_pos_lnum1
+          r'141 <- curwin ed'
+          wrI32 r'141 (win_T'w_cursor + pos_T'col) save_pos_col1
+          r'142 <- curwin ed'
+          wrI32 r'142 (win_T'w_cursor + pos_T'coladd) save_pos_coladd1
+          r'143 <- alloc ed' (fromIntegral (length30 + NUMBUFLEN) :: Word64)
+          let !buf1'1 = castPtr r'143
           if (negative27 /= 0) && ((not (visual26 /= 0)) || was_positive26)
             then do
               let !ptr14 = pAdd buf1'1 1
               wrW8 buf1'1 0 (ch '-')
-              j'71 length31 ptr14 todel2 do_oct26 firstdigit17 visual26 did_change25 save_coladd26 buf1'1 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 endpos_lnum26 endpos_col26 endpos_coladd26 save_pos_lnum26 save_pos_col26 save_pos_coladd26
-            else j'71 length31 buf1'1 todel2 do_oct26 firstdigit17 visual26 did_change25 save_coladd26 buf1'1 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 endpos_lnum26 endpos_col26 endpos_coladd26 save_pos_lnum26 save_pos_col26 save_pos_coladd26
-    j'71 !length32 !ptr15 !todel3 !do_oct27 !firstdigit18 !visual27 !did_change26 !save_coladd27 !buf1'2 !save_cursor_lnum27 !save_cursor_col27 !save_cursor_coladd27 !startpos_lnum27 !startpos_col27 !startpos_coladd27 !endpos_lnum27 !endpos_col27 !endpos_coladd27 !save_pos_lnum27 !save_pos_col27 !save_pos_coladd27 = do
-      r'138 <- rdI32 fr' 0
-      if r'138 /= 0
+              j'71 length30 ptr14 todel2 do_oct26 firstdigit17 visual26 did_change25 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 save_coladd26 buf1'1
+            else j'71 length30 buf1'1 todel2 do_oct26 firstdigit17 visual26 did_change25 save_cursor_lnum26 save_cursor_col26 save_cursor_coladd26 startpos_lnum26 startpos_col26 startpos_coladd26 save_coladd26 buf1'1
+    j'71 !length31 !ptr15 !todel3 !do_oct27 !firstdigit18 !visual27 !did_change26 !save_cursor_lnum27 !save_cursor_col27 !save_cursor_coladd27 !startpos_lnum27 !startpos_col27 !startpos_coladd27 !save_coladd27 !buf1'2 = do
+      r'144 <- rdI32 fr' 0
+      if r'144 /= 0
         then do
           let !ptr16 = pAdd ptr15 1
           wrW8 ptr15 0 (ch '0')
-          let !length33 = length32 - 1
-          j'73 length33 ptr16 todel3 do_oct27 firstdigit18 visual27 did_change26 save_coladd27 buf1'2 save_cursor_lnum27 save_cursor_col27 save_cursor_coladd27 startpos_lnum27 startpos_col27 startpos_coladd27 endpos_lnum27 endpos_col27 endpos_coladd27 save_pos_lnum27 save_pos_col27 save_pos_coladd27
-        else j'73 length32 ptr15 todel3 do_oct27 firstdigit18 visual27 did_change26 save_coladd27 buf1'2 save_cursor_lnum27 save_cursor_col27 save_cursor_coladd27 startpos_lnum27 startpos_col27 startpos_coladd27 endpos_lnum27 endpos_col27 endpos_coladd27 save_pos_lnum27 save_pos_col27 save_pos_coladd27
-    j'73 !length34 !ptr17 !todel4 !do_oct28 !firstdigit19 !visual28 !did_change27 !save_coladd28 !buf1'3 !save_cursor_lnum28 !save_cursor_col28 !save_cursor_coladd28 !startpos_lnum28 !startpos_col28 !startpos_coladd28 !endpos_lnum28 !endpos_col28 !endpos_coladd28 !save_pos_lnum28 !save_pos_col28 !save_pos_coladd28 = do
-      r'139 <- rdI32 fr' 0
-      r'141 <- if (r'139 == (ch 'b')) then pure True else (do { r'140 <- rdI32 fr' 0; pure (r'140 == (ch 'B')) })
-      r'143 <- if r'141 then pure True else (do { r'142 <- rdI32 fr' 0; pure (r'142 == (ch 'x')) })
-      r'145 <- if r'143 then pure True else (do { r'144 <- rdI32 fr' 0; pure (r'144 == (ch 'X')) })
-      if r'145
+          let !length32 = length31 - 1
+          j'73 length32 ptr16 todel3 do_oct27 firstdigit18 visual27 did_change26 save_cursor_lnum27 save_cursor_col27 save_cursor_coladd27 startpos_lnum27 startpos_col27 startpos_coladd27 save_coladd27 buf1'2
+        else j'73 length31 ptr15 todel3 do_oct27 firstdigit18 visual27 did_change26 save_cursor_lnum27 save_cursor_col27 save_cursor_coladd27 startpos_lnum27 startpos_col27 startpos_coladd27 save_coladd27 buf1'2
+    j'73 !length33 !ptr17 !todel4 !do_oct28 !firstdigit19 !visual28 !did_change27 !save_cursor_lnum28 !save_cursor_col28 !save_cursor_coladd28 !startpos_lnum28 !startpos_col28 !startpos_coladd28 !save_coladd28 !buf1'3 = do
+      r'145 <- rdI32 fr' 0
+      r'147 <- if (r'145 == (ch 'b')) then pure True else (do { r'146 <- rdI32 fr' 0; pure (r'146 == (ch 'B')) })
+      r'149 <- if r'147 then pure True else (do { r'148 <- rdI32 fr' 0; pure (r'148 == (ch 'x')) })
+      r'151 <- if r'149 then pure True else (do { r'150 <- rdI32 fr' 0; pure (r'150 == (ch 'X')) })
+      if r'151
         then do
           let !ptr18 = pAdd ptr17 1
-          r'146 <- rdI32 fr' 0
-          wrW8 ptr17 0 (fromIntegral r'146 :: Word8)
-          let !length35 = length34 - 1
-          j'75 length35 ptr18 todel4 do_oct28 firstdigit19 visual28 did_change27 save_coladd28 buf1'3 save_cursor_lnum28 save_cursor_col28 save_cursor_coladd28 startpos_lnum28 startpos_col28 startpos_coladd28 endpos_lnum28 endpos_col28 endpos_coladd28 save_pos_lnum28 save_pos_col28 save_pos_coladd28
-        else j'75 length34 ptr17 todel4 do_oct28 firstdigit19 visual28 did_change27 save_coladd28 buf1'3 save_cursor_lnum28 save_cursor_col28 save_cursor_coladd28 startpos_lnum28 startpos_col28 startpos_coladd28 endpos_lnum28 endpos_col28 endpos_coladd28 save_pos_lnum28 save_pos_col28 save_pos_coladd28
-    j'75 !length36 !ptr19 !todel5 !do_oct29 !firstdigit20 !visual29 !did_change28 !save_coladd29 !buf1'4 !save_cursor_lnum29 !save_cursor_col29 !save_cursor_coladd29 !startpos_lnum29 !startpos_col29 !startpos_coladd29 !endpos_lnum29 !endpos_col29 !endpos_coladd29 !save_pos_lnum29 !save_pos_col29 !save_pos_coladd29 = do
-      r'147 <- rdI32 fr' 0
-      r'149 <- if (r'147 == (ch 'b')) then pure True else (do { r'148 <- rdI32 fr' 0; pure (r'148 == (ch 'B')) })
-      if r'149
-        then loop'84 length36 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_coladd29 buf1'4 (64 :: Int32) save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 endpos_lnum29 endpos_col29 endpos_coladd29 save_pos_lnum29 save_pos_col29 save_pos_coladd29
+          r'152 <- rdI32 fr' 0
+          wrW8 ptr17 0 (fromIntegral r'152 :: Word8)
+          let !length34 = length33 - 1
+          j'75 length34 ptr18 todel4 do_oct28 firstdigit19 visual28 did_change27 save_cursor_lnum28 save_cursor_col28 save_cursor_coladd28 startpos_lnum28 startpos_col28 startpos_coladd28 save_coladd28 buf1'3
+        else j'75 length33 ptr17 todel4 do_oct28 firstdigit19 visual28 did_change27 save_cursor_lnum28 save_cursor_col28 save_cursor_coladd28 startpos_lnum28 startpos_col28 startpos_coladd28 save_coladd28 buf1'3
+    j'75 !length35 !ptr19 !todel5 !do_oct29 !firstdigit20 !visual29 !did_change28 !save_cursor_lnum29 !save_cursor_col29 !save_cursor_coladd29 !startpos_lnum29 !startpos_col29 !startpos_coladd29 !save_coladd29 !buf1'4 = do
+      r'153 <- rdI32 fr' 0
+      r'155 <- if (r'153 == (ch 'b')) then pure True else (do { r'154 <- rdI32 fr' 0; pure (r'154 == (ch 'B')) })
+      if r'155
+        then loop'84 length35 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 save_coladd29 buf1'4 (64 :: Int32)
         else do
-          r'150 <- rdI32 fr' 0
-          if r'150 == 0
+          r'156 <- rdI32 fr' 0
+          if r'156 == 0
             then do
-              r'151 <- rdW64 fr' 8
-              r'152 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llu\0"#) [VU (fromIntegral r'151)]
-              j'90 length36 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_coladd29 buf1'4 r'152 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 endpos_lnum29 endpos_col29 endpos_coladd29 save_pos_lnum29 save_pos_col29 save_pos_coladd29
+              r'157 <- rdW64 fr' 8
+              r'158 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llu\0"#) [VU (fromIntegral r'157)]
+              j'90 length35 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 save_coladd29 buf1'4 r'158
             else do
-              r'153 <- rdI32 fr' 0
-              if r'153 == (ch '0')
+              r'159 <- rdI32 fr' 0
+              if r'159 == (ch '0')
                 then do
-                  r'154 <- rdW64 fr' 8
-                  r'155 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llo\0"#) [VU (fromIntegral r'154)]
-                  j'90 length36 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_coladd29 buf1'4 r'155 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 endpos_lnum29 endpos_col29 endpos_coladd29 save_pos_lnum29 save_pos_col29 save_pos_coladd29
+                  r'160 <- rdW64 fr' 8
+                  r'161 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llo\0"#) [VU (fromIntegral r'160)]
+                  j'90 length35 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 save_coladd29 buf1'4 r'161
                 else do
-                  r'156 <- rdI32 fr' 0
-                  r'158 <- if (r'156 /= 0) then (do_addsub'hexupper ed') else pure False
-                  if r'158
+                  r'162 <- rdI32 fr' 0
+                  r'164 <- if (r'162 /= 0) then (do_addsub'hexupper ed') else pure False
+                  if r'164
                     then do
-                      r'159 <- rdW64 fr' 8
-                      r'160 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llX\0"#) [VU (fromIntegral r'159)]
-                      j'90 length36 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_coladd29 buf1'4 r'160 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 endpos_lnum29 endpos_col29 endpos_coladd29 save_pos_lnum29 save_pos_col29 save_pos_coladd29
+                      r'165 <- rdW64 fr' 8
+                      r'166 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llX\0"#) [VU (fromIntegral r'165)]
+                      j'90 length35 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 save_coladd29 buf1'4 r'166
                     else do
-                      r'161 <- rdW64 fr' 8
-                      r'162 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llx\0"#) [VU (fromIntegral r'161)]
-                      j'90 length36 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_coladd29 buf1'4 r'162 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 endpos_lnum29 endpos_col29 endpos_coladd29 save_pos_lnum29 save_pos_col29 save_pos_coladd29
-    loop'84 !length37 !ptr20 !todel6 !do_oct30 !firstdigit21 !visual30 !did_change29 !save_coladd30 !buf1'5 !bit'1 !save_cursor_lnum30 !save_cursor_col30 !save_cursor_coladd30 !startpos_lnum30 !startpos_col30 !startpos_coladd30 !endpos_lnum30 !endpos_col30 !endpos_coladd30 !save_pos_lnum30 !save_pos_col30 !save_pos_coladd30 = do
+                      r'167 <- rdW64 fr' 8
+                      r'168 <- Caprice.Host.vim_snprintf ed' (castPtr (pAdd fr' 16)) NUMBUFLEN (Ptr "%llx\0"#) [VU (fromIntegral r'167)]
+                      j'90 length35 ptr19 todel5 do_oct29 firstdigit20 visual29 did_change28 save_cursor_lnum29 save_cursor_col29 save_cursor_coladd29 startpos_lnum29 startpos_col29 startpos_coladd29 save_coladd29 buf1'4 r'168
+    loop'84 !length36 !ptr20 !todel6 !do_oct30 !firstdigit21 !visual30 !did_change29 !save_cursor_lnum30 !save_cursor_col30 !save_cursor_coladd30 !startpos_lnum30 !startpos_col30 !startpos_coladd30 !save_coladd30 !buf1'5 !bit'1 = do
       if bit'1 > 0
         then do
-          r'163 <- rdW64 fr' 8
-          if ((shiftR r'163 (fromIntegral (bit'1 - 1))) .&. 1) /= 0
-            then j'87 length37 ptr20 todel6 do_oct30 firstdigit21 visual30 did_change29 save_coladd30 buf1'5 bit'1 save_cursor_lnum30 save_cursor_col30 save_cursor_coladd30 startpos_lnum30 startpos_col30 startpos_coladd30 endpos_lnum30 endpos_col30 endpos_coladd30 save_pos_lnum30 save_pos_col30 save_pos_coladd30
+          r'169 <- rdW64 fr' 8
+          if ((shiftR r'169 (fromIntegral (bit'1 - 1))) .&. 1) /= 0
+            then j'87 length36 ptr20 todel6 do_oct30 firstdigit21 visual30 did_change29 save_cursor_lnum30 save_cursor_col30 save_cursor_coladd30 startpos_lnum30 startpos_col30 startpos_coladd30 save_coladd30 buf1'5 bit'1
             else do
               let !bit'2 = bit'1 - 1
-              loop'84 length37 ptr20 todel6 do_oct30 firstdigit21 visual30 did_change29 save_coladd30 buf1'5 bit'2 save_cursor_lnum30 save_cursor_col30 save_cursor_coladd30 startpos_lnum30 startpos_col30 startpos_coladd30 endpos_lnum30 endpos_col30 endpos_coladd30 save_pos_lnum30 save_pos_col30 save_pos_coladd30
-        else j'87 length37 ptr20 todel6 do_oct30 firstdigit21 visual30 did_change29 save_coladd30 buf1'5 bit'1 save_cursor_lnum30 save_cursor_col30 save_cursor_coladd30 startpos_lnum30 startpos_col30 startpos_coladd30 endpos_lnum30 endpos_col30 endpos_coladd30 save_pos_lnum30 save_pos_col30 save_pos_coladd30
-    j'87 !length38 !ptr21 !todel7 !do_oct31 !firstdigit22 !visual31 !did_change30 !save_coladd31 !buf1'6 !bit'3 !save_cursor_lnum31 !save_cursor_col31 !save_cursor_coladd31 !startpos_lnum31 !startpos_col31 !startpos_coladd31 !endpos_lnum31 !endpos_col31 !endpos_coladd31 !save_pos_lnum31 !save_pos_col31 !save_pos_coladd31 = do
-      loop'88 length38 ptr21 todel7 do_oct31 firstdigit22 visual31 did_change30 save_coladd31 buf1'6 (0 :: Int32) bit'3 save_cursor_lnum31 save_cursor_col31 save_cursor_coladd31 startpos_lnum31 startpos_col31 startpos_coladd31 endpos_lnum31 endpos_col31 endpos_coladd31 save_pos_lnum31 save_pos_col31 save_pos_coladd31
-    loop'88 !length39 !ptr22 !todel8 !do_oct32 !firstdigit23 !visual32 !did_change31 !save_coladd32 !buf1'7 !buf2len1 !bit'4 !save_cursor_lnum32 !save_cursor_col32 !save_cursor_coladd32 !startpos_lnum32 !startpos_col32 !startpos_coladd32 !endpos_lnum32 !endpos_col32 !endpos_coladd32 !save_pos_lnum32 !save_pos_col32 !save_pos_coladd32 = do
+              loop'84 length36 ptr20 todel6 do_oct30 firstdigit21 visual30 did_change29 save_cursor_lnum30 save_cursor_col30 save_cursor_coladd30 startpos_lnum30 startpos_col30 startpos_coladd30 save_coladd30 buf1'5 bit'2
+        else j'87 length36 ptr20 todel6 do_oct30 firstdigit21 visual30 did_change29 save_cursor_lnum30 save_cursor_col30 save_cursor_coladd30 startpos_lnum30 startpos_col30 startpos_coladd30 save_coladd30 buf1'5 bit'1
+    j'87 !length37 !ptr21 !todel7 !do_oct31 !firstdigit22 !visual31 !did_change30 !save_cursor_lnum31 !save_cursor_col31 !save_cursor_coladd31 !startpos_lnum31 !startpos_col31 !startpos_coladd31 !save_coladd31 !buf1'6 !bit'3 = do
+      loop'88 length37 ptr21 todel7 do_oct31 firstdigit22 visual31 did_change30 save_cursor_lnum31 save_cursor_col31 save_cursor_coladd31 startpos_lnum31 startpos_col31 startpos_coladd31 save_coladd31 buf1'6 (0 :: Int32) bit'3
+    loop'88 !length38 !ptr22 !todel8 !do_oct32 !firstdigit23 !visual32 !did_change31 !save_cursor_lnum32 !save_cursor_col32 !save_cursor_coladd32 !startpos_lnum32 !startpos_col32 !startpos_coladd32 !save_coladd32 !buf1'7 !buf2len1 !bit'4 = do
       if (bit'4 > 0) && (buf2len1 < 64)
         then do
           let !buf2len2 = buf2len1 + 1
-          r'164 <- rdW64 fr' 8
-          wrW8 (pAdd (pAdd fr' 16) (fromIntegral buf2len1)) 0 (fromIntegral (if (((shiftR r'164 (fromIntegral (bit'4 - 1))) .&. 1) /= 0) then (ch '1' :: Int32) else (ch '0' :: Int32)) :: Word8)
+          r'170 <- rdW64 fr' 8
+          wrW8 (pAdd (pAdd fr' 16) (fromIntegral buf2len1)) 0 (fromIntegral (if (((shiftR r'170 (fromIntegral (bit'4 - 1))) .&. 1) /= 0) then (ch '1' :: Int32) else (ch '0' :: Int32)) :: Word8)
           let !bit'5 = bit'4 - 1
-          loop'88 length39 ptr22 todel8 do_oct32 firstdigit23 visual32 did_change31 save_coladd32 buf1'7 buf2len2 bit'5 save_cursor_lnum32 save_cursor_col32 save_cursor_coladd32 startpos_lnum32 startpos_col32 startpos_coladd32 endpos_lnum32 endpos_col32 endpos_coladd32 save_pos_lnum32 save_pos_col32 save_pos_coladd32
+          loop'88 length38 ptr22 todel8 do_oct32 firstdigit23 visual32 did_change31 save_cursor_lnum32 save_cursor_col32 save_cursor_coladd32 startpos_lnum32 startpos_col32 startpos_coladd32 save_coladd32 buf1'7 buf2len2 bit'5
         else do
           wrW8 (pAdd (pAdd fr' 16) (fromIntegral buf2len1)) 0 NUL
-          j'90 length39 ptr22 todel8 do_oct32 firstdigit23 visual32 did_change31 save_coladd32 buf1'7 buf2len1 save_cursor_lnum32 save_cursor_col32 save_cursor_coladd32 startpos_lnum32 startpos_col32 startpos_coladd32 endpos_lnum32 endpos_col32 endpos_coladd32 save_pos_lnum32 save_pos_col32 save_pos_coladd32
-    j'90 !length40 !ptr23 !todel9 !do_oct33 !firstdigit24 !visual33 !did_change32 !save_coladd33 !buf1'8 !buf2len3 !save_cursor_lnum33 !save_cursor_col33 !save_cursor_coladd33 !startpos_lnum33 !startpos_col33 !startpos_coladd33 !endpos_lnum33 !endpos_col33 !endpos_coladd33 !save_pos_lnum33 !save_pos_col33 !save_pos_coladd33 = do
-      let !length41 = length40 - buf2len3
-      r'167 <- if (firstdigit24 == (ch '0')) then (do { r'166 <- if do_oct33 then (do { r'165 <- rdI32 fr' 0; pure (r'165 == 0) }) else pure False; pure (not r'166) }) else pure False
-      if r'167
-        then loop'92 length41 ptr23 todel9 visual33 did_change32 save_coladd33 buf1'8 buf2len3 save_cursor_lnum33 save_cursor_col33 save_cursor_coladd33 startpos_lnum33 startpos_col33 startpos_coladd33 endpos_lnum33 endpos_col33 endpos_coladd33 save_pos_lnum33 save_pos_col33 save_pos_coladd33
-        else j'93 ptr23 todel9 visual33 did_change32 save_coladd33 buf1'8 buf2len3 save_cursor_lnum33 save_cursor_col33 save_cursor_coladd33 startpos_lnum33 startpos_col33 startpos_coladd33 endpos_lnum33 endpos_col33 endpos_coladd33 save_pos_lnum33 save_pos_col33 save_pos_coladd33
-    loop'92 !length42 !ptr24 !todel10 !visual34 !did_change33 !save_coladd34 !buf1'9 !buf2len4 !save_cursor_lnum34 !save_cursor_col34 !save_cursor_coladd34 !startpos_lnum34 !startpos_col34 !startpos_coladd34 !endpos_lnum34 !endpos_col34 !endpos_coladd34 !save_pos_lnum34 !save_pos_col34 !save_pos_coladd34 = do
-      let !length43 = length42 - 1
-      if length42 > 0
+          j'90 length38 ptr22 todel8 do_oct32 firstdigit23 visual32 did_change31 save_cursor_lnum32 save_cursor_col32 save_cursor_coladd32 startpos_lnum32 startpos_col32 startpos_coladd32 save_coladd32 buf1'7 buf2len1
+    j'90 !length39 !ptr23 !todel9 !do_oct33 !firstdigit24 !visual33 !did_change32 !save_cursor_lnum33 !save_cursor_col33 !save_cursor_coladd33 !startpos_lnum33 !startpos_col33 !startpos_coladd33 !save_coladd33 !buf1'8 !buf2len3 = do
+      let !length40 = length39 - buf2len3
+      r'173 <- if (firstdigit24 == (ch '0')) then (do { r'172 <- if do_oct33 then (do { r'171 <- rdI32 fr' 0; pure (r'171 == 0) }) else pure False; pure (not r'172) }) else pure False
+      if r'173
+        then loop'92 length40 ptr23 todel9 visual33 did_change32 save_cursor_lnum33 save_cursor_col33 save_cursor_coladd33 startpos_lnum33 startpos_col33 startpos_coladd33 save_coladd33 buf1'8 buf2len3
+        else j'93 ptr23 todel9 visual33 did_change32 save_cursor_lnum33 save_cursor_col33 save_cursor_coladd33 startpos_lnum33 startpos_col33 startpos_coladd33 save_coladd33 buf1'8 buf2len3
+    loop'92 !length41 !ptr24 !todel10 !visual34 !did_change33 !save_cursor_lnum34 !save_cursor_col34 !save_cursor_coladd34 !startpos_lnum34 !startpos_col34 !startpos_coladd34 !save_coladd34 !buf1'9 !buf2len4 = do
+      let !length42 = length41 - 1
+      if length41 > 0
         then do
           let !ptr25 = pAdd ptr24 1
           wrW8 ptr24 0 (ch '0')
-          loop'92 length43 ptr25 todel10 visual34 did_change33 save_coladd34 buf1'9 buf2len4 save_cursor_lnum34 save_cursor_col34 save_cursor_coladd34 startpos_lnum34 startpos_col34 startpos_coladd34 endpos_lnum34 endpos_col34 endpos_coladd34 save_pos_lnum34 save_pos_col34 save_pos_coladd34
-        else j'93 ptr24 todel10 visual34 did_change33 save_coladd34 buf1'9 buf2len4 save_cursor_lnum34 save_cursor_col34 save_cursor_coladd34 startpos_lnum34 startpos_col34 startpos_coladd34 endpos_lnum34 endpos_col34 endpos_coladd34 save_pos_lnum34 save_pos_col34 save_pos_coladd34
-    j'93 !ptr26 !todel11 !visual35 !did_change34 !save_coladd35 !buf1'10 !buf2len5 !save_cursor_lnum35 !save_cursor_col35 !save_cursor_coladd35 !startpos_lnum35 !startpos_col35 !startpos_coladd35 !endpos_lnum35 !endpos_col35 !endpos_coladd35 _ _ _ = do
+          loop'92 length42 ptr25 todel10 visual34 did_change33 save_cursor_lnum34 save_cursor_col34 save_cursor_coladd34 startpos_lnum34 startpos_col34 startpos_coladd34 save_coladd34 buf1'9 buf2len4
+        else j'93 ptr24 todel10 visual34 did_change33 save_cursor_lnum34 save_cursor_col34 save_cursor_coladd34 startpos_lnum34 startpos_col34 startpos_coladd34 save_coladd34 buf1'9 buf2len4
+    j'93 !ptr26 !todel11 !visual35 !did_change34 !save_cursor_lnum35 !save_cursor_col35 !save_cursor_coladd35 !startpos_lnum35 !startpos_col35 !startpos_coladd35 !save_coladd35 !buf1'10 !buf2len5 = do
       wrW8 ptr26 0 NUL
       let !buf1len1 = fromIntegral (fromIntegral (quot (pSub ptr26 buf1'10) 1) :: Int64) :: Int32
       _ <- musl_strcpy (pAdd buf1'10 (fromIntegral buf1len1)) (pAdd fr' 16)
       let !buf1len2 = buf1len1 + buf2len5
-      r'169 <- curwin ed'
-      r'170 <- rdI64 (pAdd r'169 win_T'w_cursor) pos_T'lnum
-      r'171 <- rdI32 (pAdd r'169 win_T'w_cursor) pos_T'col
-      r'172 <- rdI32 (pAdd r'169 win_T'w_cursor) pos_T'coladd
+      r'175 <- curwin ed'
+      r'176 <- rdI64 r'175 (win_T'w_cursor + pos_T'lnum)
+      r'177 <- curwin ed'
+      r'178 <- rdI32 r'177 (win_T'w_cursor + pos_T'col)
+      r'179 <- curwin ed'
+      r'180 <- rdI32 r'179 (win_T'w_cursor + pos_T'coladd)
       if todel11 > 0
         then do
           _ <- inc_cursor ed'
-          j'95 todel11 visual35 did_change34 save_coladd35 buf1'10 buf1len2 save_cursor_lnum35 save_cursor_col35 save_cursor_coladd35 startpos_lnum35 startpos_col35 startpos_coladd35 endpos_lnum35 endpos_col35 endpos_coladd35 r'170 r'171 r'172
-        else j'95 todel11 visual35 did_change34 save_coladd35 buf1'10 buf1len2 save_cursor_lnum35 save_cursor_col35 save_cursor_coladd35 startpos_lnum35 startpos_col35 startpos_coladd35 endpos_lnum35 endpos_col35 endpos_coladd35 r'170 r'171 r'172
-    j'95 !todel12 !visual36 !did_change35 !save_coladd36 !buf1'11 !buf1len3 !save_cursor_lnum36 !save_cursor_col36 !save_cursor_coladd36 !startpos_lnum36 !startpos_col36 !startpos_coladd36 !endpos_lnum36 !endpos_col36 !endpos_coladd36 !save_pos_lnum36 !save_pos_col36 !save_pos_coladd36 = do
+          j'95 todel11 visual35 did_change34 save_cursor_lnum35 save_cursor_col35 save_cursor_coladd35 startpos_lnum35 startpos_col35 startpos_coladd35 save_coladd35 buf1'10 buf1len2 r'176 r'178 r'180
+        else j'95 todel11 visual35 did_change34 save_cursor_lnum35 save_cursor_col35 save_cursor_coladd35 startpos_lnum35 startpos_col35 startpos_coladd35 save_coladd35 buf1'10 buf1len2 r'176 r'178 r'180
+    j'95 !todel12 !visual36 !did_change35 !save_cursor_lnum36 !save_cursor_col36 !save_cursor_coladd36 !startpos_lnum36 !startpos_col36 !startpos_coladd36 !save_coladd36 !buf1'11 !buf1len3 !save_pos_lnum2 !save_pos_col2 !save_pos_coladd2 = do
       ins_str ed' buf1'11 (fromIntegral buf1len3 :: Word64)
       if todel12 > 0
         then do
-          r'174 <- ml_get_curline_len ed'
-          r'175 <- curwin ed'
-          r'176 <- rdI32 r'175 (win_T'w_cursor + pos_T'col)
-          let !bytes_after1 = r'174 - r'176
-          r'177 <- curwin ed'
-          wrI64 r'177 (win_T'w_cursor + pos_T'lnum) save_pos_lnum36
-          wrI32 r'177 (win_T'w_cursor + pos_T'col) save_pos_col36
-          wrI32 r'177 (win_T'w_cursor + pos_T'coladd) save_pos_coladd36
+          r'182 <- ml_get_curline_len ed'
+          r'183 <- curwin ed'
+          r'184 <- rdI32 r'183 (win_T'w_cursor + pos_T'col)
+          let !bytes_after1 = r'182 - r'184
+          r'185 <- curwin ed'
+          wrI64 r'185 (win_T'w_cursor + pos_T'lnum) save_pos_lnum2
+          r'186 <- curwin ed'
+          wrI32 r'186 (win_T'w_cursor + pos_T'col) save_pos_col2
+          r'187 <- curwin ed'
+          wrI32 r'187 (win_T'w_cursor + pos_T'coladd) save_pos_coladd2
           _ <- del_char ed' False
-          r'180 <- curwin ed'
-          r'179 <- ml_get_curline_len ed'
-          wrI32 r'180 (win_T'w_cursor + pos_T'col) (r'179 - bytes_after1)
+          r'190 <- curwin ed'
+          r'189 <- ml_get_curline_len ed'
+          wrI32 r'190 (win_T'w_cursor + pos_T'col) (r'189 - bytes_after1)
           let !todel13 = todel12 - 1
-          loop'98 todel13 visual36 did_change35 save_coladd36 save_cursor_lnum36 save_cursor_col36 save_cursor_coladd36 startpos_lnum36 startpos_col36 startpos_coladd36 endpos_lnum36 endpos_col36 endpos_coladd36 save_pos_lnum36 save_pos_col36 save_pos_coladd36
-        else loop'98 todel12 visual36 did_change35 save_coladd36 save_cursor_lnum36 save_cursor_col36 save_cursor_coladd36 startpos_lnum36 startpos_col36 startpos_coladd36 endpos_lnum36 endpos_col36 endpos_coladd36 save_pos_lnum36 save_pos_col36 save_pos_coladd36
-    loop'98 !todel14 !visual37 !did_change36 !save_coladd37 !save_cursor_lnum37 !save_cursor_col37 !save_cursor_coladd37 !startpos_lnum37 !startpos_col37 !startpos_coladd37 !endpos_lnum37 !endpos_col37 !endpos_coladd37 !save_pos_lnum37 !save_pos_col37 !save_pos_coladd37 = do
+          loop'98 todel13 visual36 did_change35 save_cursor_lnum36 save_cursor_col36 save_cursor_coladd36 startpos_lnum36 startpos_col36 startpos_coladd36 save_coladd36
+        else loop'98 todel12 visual36 did_change35 save_cursor_lnum36 save_cursor_col36 save_cursor_coladd36 startpos_lnum36 startpos_col36 startpos_coladd36 save_coladd36
+    loop'98 !todel14 !visual37 !did_change36 !save_cursor_lnum37 !save_cursor_col37 !save_cursor_coladd37 !startpos_lnum37 !startpos_col37 !startpos_coladd37 !save_coladd37 = do
       let !todel15 = todel14 - 1
       if todel14 > 0
         then do
           _ <- del_char ed' False
-          loop'98 todel15 visual37 did_change36 save_coladd37 save_cursor_lnum37 save_cursor_col37 save_cursor_coladd37 startpos_lnum37 startpos_col37 startpos_coladd37 endpos_lnum37 endpos_col37 endpos_coladd37 save_pos_lnum37 save_pos_col37 save_pos_coladd37
+          loop'98 todel15 visual37 did_change36 save_cursor_lnum37 save_cursor_col37 save_cursor_coladd37 startpos_lnum37 startpos_col37 startpos_coladd37 save_coladd37
         else do
-          r'182 <- curwin ed'
-          r'183 <- rdI64 (pAdd r'182 win_T'w_cursor) pos_T'lnum
-          r'184 <- rdI32 (pAdd r'182 win_T'w_cursor) pos_T'col
-          r'185 <- rdI32 (pAdd r'182 win_T'w_cursor) pos_T'coladd
-          r'188 <- if did_change36 then (do { r'186 <- curwin ed'; r'187 <- rdI32 r'186 (win_T'w_cursor + pos_T'col); pure (r'187 /= 0) }) else pure False
-          if r'188
+          r'192 <- curwin ed'
+          r'193 <- rdI64 r'192 (win_T'w_cursor + pos_T'lnum)
+          r'194 <- curwin ed'
+          r'195 <- rdI32 r'194 (win_T'w_cursor + pos_T'col)
+          r'196 <- curwin ed'
+          r'197 <- rdI32 r'196 (win_T'w_cursor + pos_T'coladd)
+          r'200 <- if did_change36 then (do { r'198 <- curwin ed'; r'199 <- rdI32 r'198 (win_T'w_cursor + pos_T'col); pure (r'199 /= 0) }) else pure False
+          if r'200
             then do
-              r'189 <- curwin ed'
-              r'190 <- rdI32 r'189 (win_T'w_cursor + pos_T'col)
-              wrI32 r'189 (win_T'w_cursor + pos_T'col) (r'190 - 1)
-              j'125 visual37 did_change36 save_coladd37 save_cursor_lnum37 save_cursor_col37 save_cursor_coladd37 startpos_lnum37 startpos_col37 startpos_coladd37 r'183 r'184 r'185 save_pos_lnum37 save_pos_col37 save_pos_coladd37
-            else j'125 visual37 did_change36 save_coladd37 save_cursor_lnum37 save_cursor_col37 save_cursor_coladd37 startpos_lnum37 startpos_col37 startpos_coladd37 r'183 r'184 r'185 save_pos_lnum37 save_pos_col37 save_pos_coladd37
-    j'109 !length44 !todel16 !do_oct34 !firstdigit25 !negative28 !was_positive27 !visual38 !did_change37 !save_coladd38 !i2 !save_cursor_lnum38 !save_cursor_col38 !save_cursor_coladd38 !startpos_lnum38 !startpos_col38 !startpos_coladd38 !endpos_lnum38 !endpos_col38 !endpos_coladd38 !save_pos_lnum38 !save_pos_col38 !save_pos_coladd38 = do
+              r'201 <- curwin ed'
+              r'202 <- rdI32 r'201 (win_T'w_cursor + pos_T'col)
+              wrI32 r'201 (win_T'w_cursor + pos_T'col) (r'202 - 1)
+              j'125 visual37 did_change36 save_cursor_lnum37 save_cursor_col37 save_cursor_coladd37 startpos_lnum37 startpos_col37 startpos_coladd37 r'193 r'195 r'197 save_coladd37
+            else j'125 visual37 did_change36 save_cursor_lnum37 save_cursor_col37 save_cursor_coladd37 startpos_lnum37 startpos_col37 startpos_coladd37 r'193 r'195 r'197 save_coladd37
+    j'109 !length43 !todel16 !do_oct34 !firstdigit25 !negative28 !was_positive27 !visual38 !did_change37 !save_cursor_lnum38 !save_cursor_col38 !save_cursor_coladd38 !startpos_lnum38 !startpos_col38 !startpos_coladd38 !save_coladd38 !save_pos_lnum3 !save_pos_col3 !save_pos_coladd3 !i2 = do
       _ <- inc_cursor ed'
-      r'192 <- gchar_cursor ed'
+      r'204 <- gchar_cursor ed'
       let !i3 = i2 + 1
-      loop'68 length44 r'192 todel16 do_oct34 firstdigit25 negative28 was_positive27 visual38 did_change37 save_coladd38 i3 save_cursor_lnum38 save_cursor_col38 save_cursor_coladd38 startpos_lnum38 startpos_col38 startpos_coladd38 endpos_lnum38 endpos_col38 endpos_coladd38 save_pos_lnum38 save_pos_col38 save_pos_coladd38
-    j'122 !col38 !firstdigit26 !visual39 !did_change38 !save_coladd39 !save_cursor_lnum39 !save_cursor_col39 !save_cursor_coladd39 !startpos_lnum39 !startpos_col39 !startpos_coladd39 !endpos_lnum39 !endpos_col39 !endpos_coladd39 !save_pos_lnum39 !save_pos_col39 !save_pos_coladd39 = do
-      r'193 <- curwin ed'
-      wrI32 r'193 (win_T'w_cursor + pos_T'col) col38
+      loop'68 length43 r'204 todel16 do_oct34 firstdigit25 negative28 was_positive27 visual38 did_change37 save_cursor_lnum38 save_cursor_col38 save_cursor_coladd38 startpos_lnum38 startpos_col38 startpos_coladd38 save_coladd38 save_pos_lnum3 save_pos_col3 save_pos_coladd3 i3
+    j'122 !col38 !firstdigit26 !visual39 !did_change38 !save_cursor_lnum39 !save_cursor_col39 !save_cursor_coladd39 !startpos_lnum39 !startpos_col39 !startpos_coladd39 !save_coladd39 = do
+      r'205 <- curwin ed'
+      wrI32 r'205 (win_T'w_cursor + pos_T'col) col38
       if not did_change38
         then do
-          r'194 <- curwin ed'
-          r'195 <- rdI64 (pAdd r'194 win_T'w_cursor) pos_T'lnum
-          r'196 <- rdI32 (pAdd r'194 win_T'w_cursor) pos_T'col
-          r'197 <- rdI32 (pAdd r'194 win_T'w_cursor) pos_T'coladd
-          j'124 col38 firstdigit26 visual39 save_coladd39 save_cursor_lnum39 save_cursor_col39 save_cursor_coladd39 r'195 r'196 r'197 endpos_lnum39 endpos_col39 endpos_coladd39 save_pos_lnum39 save_pos_col39 save_pos_coladd39
-        else j'124 col38 firstdigit26 visual39 save_coladd39 save_cursor_lnum39 save_cursor_col39 save_cursor_coladd39 startpos_lnum39 startpos_col39 startpos_coladd39 endpos_lnum39 endpos_col39 endpos_coladd39 save_pos_lnum39 save_pos_col39 save_pos_coladd39
-    j'124 !col39 !firstdigit27 !visual40 !save_coladd40 !save_cursor_lnum40 !save_cursor_col40 !save_cursor_coladd40 !startpos_lnum40 !startpos_col40 !startpos_coladd40 _ _ _ !save_pos_lnum40 !save_pos_col40 !save_pos_coladd40 = do
+          r'206 <- curwin ed'
+          r'207 <- rdI64 r'206 (win_T'w_cursor + pos_T'lnum)
+          r'208 <- curwin ed'
+          r'209 <- rdI32 r'208 (win_T'w_cursor + pos_T'col)
+          r'210 <- curwin ed'
+          r'211 <- rdI32 r'210 (win_T'w_cursor + pos_T'coladd)
+          j'124 col38 firstdigit26 visual39 save_cursor_lnum39 save_cursor_col39 save_cursor_coladd39 r'207 r'209 r'211 save_coladd39
+        else j'124 col38 firstdigit26 visual39 save_cursor_lnum39 save_cursor_col39 save_cursor_coladd39 startpos_lnum39 startpos_col39 startpos_coladd39 save_coladd39
+    j'124 !col39 !firstdigit27 !visual40 !save_cursor_lnum40 !save_cursor_col40 !save_cursor_coladd40 !startpos_lnum40 !startpos_col40 !startpos_coladd40 !save_coladd40 = do
       _ <- del_char ed' False
       ins_char ed' firstdigit27
-      r'199 <- curwin ed'
-      r'200 <- rdI64 (pAdd r'199 win_T'w_cursor) pos_T'lnum
-      r'201 <- rdI32 (pAdd r'199 win_T'w_cursor) pos_T'col
-      r'202 <- rdI32 (pAdd r'199 win_T'w_cursor) pos_T'coladd
-      r'203 <- curwin ed'
-      wrI32 r'203 (win_T'w_cursor + pos_T'col) col39
-      j'125 visual40 True save_coladd40 save_cursor_lnum40 save_cursor_col40 save_cursor_coladd40 startpos_lnum40 startpos_col40 startpos_coladd40 r'200 r'201 r'202 save_pos_lnum40 save_pos_col40 save_pos_coladd40
-    j'125 !visual41 !did_change39 !save_coladd41 !save_cursor_lnum41 !save_cursor_col41 !save_cursor_coladd41 !startpos_lnum41 !startpos_col41 !startpos_coladd41 !endpos_lnum41 !endpos_col41 !endpos_coladd41 !save_pos_lnum41 !save_pos_col41 !save_pos_coladd41 = do
-      r'205 <- if did_change39 then (do { r'204 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags; pure ((r'204 .&. CMOD_LOCKMARKS) == 0) }) else pure False
-      if r'205
+      r'213 <- curwin ed'
+      r'214 <- rdI64 r'213 (win_T'w_cursor + pos_T'lnum)
+      r'215 <- curwin ed'
+      r'216 <- rdI32 r'215 (win_T'w_cursor + pos_T'col)
+      r'217 <- curwin ed'
+      r'218 <- rdI32 r'217 (win_T'w_cursor + pos_T'coladd)
+      r'219 <- curwin ed'
+      wrI32 r'219 (win_T'w_cursor + pos_T'col) col39
+      j'125 visual40 True save_cursor_lnum40 save_cursor_col40 save_cursor_coladd40 startpos_lnum40 startpos_col40 startpos_coladd40 r'214 r'216 r'218 save_coladd40
+    j'125 !visual41 !did_change39 !save_cursor_lnum41 !save_cursor_col41 !save_cursor_coladd41 !startpos_lnum41 !startpos_col41 !startpos_coladd41 !endpos_lnum1 !endpos_col1 !endpos_coladd1 !save_coladd41 = do
+      r'221 <- if did_change39 then (do { r'220 <- rdI32 (addr'cmdmod ed') cmdmod_T'cmod_flags; pure ((r'220 .&. CMOD_LOCKMARKS) == 0) }) else pure False
+      if r'221
         then do
-          r'206 <- curbuf ed'
-          wrI64 r'206 (buf_T'b_op_start + pos_T'lnum) startpos_lnum41
-          wrI32 r'206 (buf_T'b_op_start + pos_T'col) startpos_col41
-          wrI32 r'206 (buf_T'b_op_start + pos_T'coladd) startpos_coladd41
-          r'207 <- curbuf ed'
-          wrI64 r'207 (buf_T'b_op_end + pos_T'lnum) endpos_lnum41
-          wrI32 r'207 (buf_T'b_op_end + pos_T'col) endpos_col41
-          wrI32 r'207 (buf_T'b_op_end + pos_T'coladd) endpos_coladd41
-          r'208 <- curbuf ed'
-          r'209 <- rdI32 r'208 (buf_T'b_op_end + pos_T'col)
-          if r'209 > 0
+          r'222 <- curbuf ed'
+          wrI64 r'222 (buf_T'b_op_start + pos_T'lnum) startpos_lnum41
+          r'223 <- curbuf ed'
+          wrI32 r'223 (buf_T'b_op_start + pos_T'col) startpos_col41
+          r'224 <- curbuf ed'
+          wrI32 r'224 (buf_T'b_op_start + pos_T'coladd) startpos_coladd41
+          r'225 <- curbuf ed'
+          wrI64 r'225 (buf_T'b_op_end + pos_T'lnum) endpos_lnum1
+          r'226 <- curbuf ed'
+          wrI32 r'226 (buf_T'b_op_end + pos_T'col) endpos_col1
+          r'227 <- curbuf ed'
+          wrI32 r'227 (buf_T'b_op_end + pos_T'coladd) endpos_coladd1
+          r'228 <- curbuf ed'
+          r'229 <- rdI32 r'228 (buf_T'b_op_end + pos_T'col)
+          if r'229 > 0
             then do
-              r'210 <- curbuf ed'
-              r'211 <- rdI32 r'210 (buf_T'b_op_end + pos_T'col)
-              wrI32 r'210 (buf_T'b_op_end + pos_T'col) (r'211 - 1)
-              j'133 visual41 did_change39 save_coladd41 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 startpos_lnum41 startpos_col41 startpos_coladd41 endpos_lnum41 endpos_col41 endpos_coladd41 save_pos_lnum41 save_pos_col41 save_pos_coladd41
-            else j'133 visual41 did_change39 save_coladd41 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 startpos_lnum41 startpos_col41 startpos_coladd41 endpos_lnum41 endpos_col41 endpos_coladd41 save_pos_lnum41 save_pos_col41 save_pos_coladd41
-        else j'133 visual41 did_change39 save_coladd41 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 startpos_lnum41 startpos_col41 startpos_coladd41 endpos_lnum41 endpos_col41 endpos_coladd41 save_pos_lnum41 save_pos_col41 save_pos_coladd41
-    j'133 !visual42 !did_change40 !save_coladd42 !save_cursor_lnum42 !save_cursor_col42 !save_cursor_coladd42 !startpos_lnum42 !startpos_col42 !startpos_coladd42 !endpos_lnum42 !endpos_col42 !endpos_coladd42 !save_pos_lnum42 !save_pos_col42 !save_pos_coladd42 = do
+              r'230 <- curbuf ed'
+              r'231 <- rdI32 r'230 (buf_T'b_op_end + pos_T'col)
+              wrI32 r'230 (buf_T'b_op_end + pos_T'col) (r'231 - 1)
+              j'133 visual41 did_change39 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 save_coladd41
+            else j'133 visual41 did_change39 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 save_coladd41
+        else j'133 visual41 did_change39 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 save_coladd41
+    j'133 !visual42 !did_change40 !save_cursor_lnum42 !save_cursor_col42 !save_cursor_coladd42 !save_coladd42 = do
       if visual42 /= 0
         then do
-          r'212 <- curwin ed'
-          wrI64 r'212 (win_T'w_cursor + pos_T'lnum) save_cursor_lnum42
-          wrI32 r'212 (win_T'w_cursor + pos_T'col) save_cursor_col42
-          wrI32 r'212 (win_T'w_cursor + pos_T'coladd) save_cursor_coladd42
-          j'139 did_change40 save_cursor_lnum42 save_cursor_col42 save_cursor_coladd42 startpos_lnum42 startpos_col42 startpos_coladd42 endpos_lnum42 endpos_col42 endpos_coladd42 save_pos_lnum42 save_pos_col42 save_pos_coladd42
+          r'232 <- curwin ed'
+          wrI64 r'232 (win_T'w_cursor + pos_T'lnum) save_cursor_lnum42
+          r'233 <- curwin ed'
+          wrI32 r'233 (win_T'w_cursor + pos_T'col) save_cursor_col42
+          r'234 <- curwin ed'
+          wrI32 r'234 (win_T'w_cursor + pos_T'coladd) save_cursor_coladd42
+          j'139 did_change40
         else do
           if did_change40
             then do
-              r'213 <- curwin ed'
-              wrB r'213 win_T'w_set_curswant True
-              j'139 did_change40 save_cursor_lnum42 save_cursor_col42 save_cursor_coladd42 startpos_lnum42 startpos_col42 startpos_coladd42 endpos_lnum42 endpos_col42 endpos_coladd42 save_pos_lnum42 save_pos_col42 save_pos_coladd42
+              r'235 <- curwin ed'
+              wrB r'235 win_T'w_set_curswant True
+              j'139 did_change40
             else do
-              r'214 <- virtual_active ed'
-              if r'214 /= 0
+              r'236 <- virtual_active ed'
+              if r'236 /= 0
                 then do
-                  r'215 <- curwin ed'
-                  wrI32 r'215 (win_T'w_cursor + pos_T'coladd) save_coladd42
-                  j'139 did_change40 save_cursor_lnum42 save_cursor_col42 save_cursor_coladd42 startpos_lnum42 startpos_col42 startpos_coladd42 endpos_lnum42 endpos_col42 endpos_coladd42 save_pos_lnum42 save_pos_col42 save_pos_coladd42
-                else j'139 did_change40 save_cursor_lnum42 save_cursor_col42 save_cursor_coladd42 startpos_lnum42 startpos_col42 startpos_coladd42 endpos_lnum42 endpos_col42 endpos_coladd42 save_pos_lnum42 save_pos_col42 save_pos_coladd42
-    j'139 !did_change41 _ _ _ _ _ _ _ _ _ _ _ _ = do
+                  r'237 <- curwin ed'
+                  wrI32 r'237 (win_T'w_cursor + pos_T'coladd) save_coladd42
+                  j'139 did_change40
+                else j'139 did_change40
+    j'139 !did_change41 = do
       pure did_change41
-  r'216 <- c'VIsual_active ed'
-  r'217 <- curwin ed'
-  r'218 <- rdI64 (pAdd r'217 win_T'w_cursor) pos_T'lnum
-  r'219 <- rdI32 (pAdd r'217 win_T'w_cursor) pos_T'col
-  r'220 <- rdI32 (pAdd r'217 win_T'w_cursor) pos_T'coladd
-  r'221 <- curbuf ed'
-  r'222 <- rdP r'221 buf_T'b_p_nf
-  r'223 <- vim_strchr ed' r'222 (ch 'x')
-  let !do_hex15 = r'223 /= nullPtr
-  r'224 <- curbuf ed'
-  r'225 <- rdP r'224 buf_T'b_p_nf
-  r'226 <- vim_strchr ed' r'225 (ch 'o')
-  let !do_oct35 = r'226 /= nullPtr
-  r'227 <- curbuf ed'
-  r'228 <- rdP r'227 buf_T'b_p_nf
-  r'229 <- vim_strchr ed' r'228 (ch 'b')
-  let !do_bin15 = r'229 /= nullPtr
-  r'230 <- curbuf ed'
-  r'231 <- rdP r'230 buf_T'b_p_nf
-  r'232 <- vim_strchr ed' r'231 (ch 'p')
-  let !do_alpha13 = r'232 /= nullPtr
-  r'233 <- curbuf ed'
-  r'234 <- rdP r'233 buf_T'b_p_nf
-  r'235 <- vim_strchr ed' r'234 (ch 'u')
-  let !do_unsigned21 = r'235 /= nullPtr
-  r'236 <- curbuf ed'
-  r'237 <- rdP r'236 buf_T'b_p_nf
-  r'238 <- vim_strchr ed' r'237 (ch 'k')
-  let !do_blank13 = r'238 /= nullPtr
-  r'239 <- virtual_active ed'
-  if r'239 /= 0
+  r'238 <- c'VIsual_active ed'
+  r'239 <- curwin ed'
+  r'240 <- rdI64 r'239 (win_T'w_cursor + pos_T'lnum)
+  r'241 <- curwin ed'
+  r'242 <- rdI32 r'241 (win_T'w_cursor + pos_T'col)
+  r'243 <- curwin ed'
+  r'244 <- rdI32 r'243 (win_T'w_cursor + pos_T'coladd)
+  r'245 <- curbuf ed'
+  r'246 <- rdP r'245 buf_T'b_p_nf
+  r'247 <- vim_strchr ed' r'246 (ch 'x')
+  let !do_hex15 = r'247 /= nullPtr
+  r'248 <- curbuf ed'
+  r'249 <- rdP r'248 buf_T'b_p_nf
+  r'250 <- vim_strchr ed' r'249 (ch 'o')
+  let !do_oct35 = r'250 /= nullPtr
+  r'251 <- curbuf ed'
+  r'252 <- rdP r'251 buf_T'b_p_nf
+  r'253 <- vim_strchr ed' r'252 (ch 'b')
+  let !do_bin15 = r'253 /= nullPtr
+  r'254 <- curbuf ed'
+  r'255 <- rdP r'254 buf_T'b_p_nf
+  r'256 <- vim_strchr ed' r'255 (ch 'p')
+  let !do_alpha13 = r'256 /= nullPtr
+  r'257 <- curbuf ed'
+  r'258 <- rdP r'257 buf_T'b_p_nf
+  r'259 <- vim_strchr ed' r'258 (ch 'u')
+  let !do_unsigned21 = r'259 /= nullPtr
+  r'260 <- curbuf ed'
+  r'261 <- rdP r'260 buf_T'b_p_nf
+  r'262 <- vim_strchr ed' r'261 (ch 'k')
+  let !do_blank13 = r'262 /= nullPtr
+  r'263 <- virtual_active ed'
+  if r'263 /= 0
     then do
-      r'240 <- rdI32 pos pos_T'coladd
+      r'264 <- rdI32 pos pos_T'coladd
       wrI32 pos pos_T'coladd 0
-      j'2 length do_hex15 do_oct35 do_bin15 do_alpha13 do_unsigned21 do_blank13 False (FALSE :: Int32) True r'216 False (0 :: Int32) r'240 r'218 r'219 r'220 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
-    else j'2 length do_hex15 do_oct35 do_bin15 do_alpha13 do_unsigned21 do_blank13 False (FALSE :: Int32) True r'216 False (0 :: Int32) (0 :: Int32) r'218 r'219 r'220 (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32)
+      j'2 length do_hex15 do_oct35 do_bin15 do_alpha13 do_unsigned21 do_blank13 False (FALSE :: Int32) True r'238 False r'240 r'242 r'244 (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) r'264
+    else j'2 length do_hex15 do_oct35 do_bin15 do_alpha13 do_unsigned21 do_blank13 False (FALSE :: Int32) True r'238 False r'240 r'242 r'244 (0 :: Int32) (0 :: Int64) (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 clear_oparg :: Ptr Oparg_T -> IO ()
 clear_oparg oap = do
@@ -6793,15 +6845,15 @@ is_ex_cmdchar cap = do
 do_pending_operator :: Ed -> Ptr Cmdarg_T -> Int32 -> Bool -> IO ()
 do_pending_operator ed' cap old_col gui_yank = do
   let
-    j'6 !oap1 !include_line_break1 !redo_yank1 !old_cursor_lnum1 !old_cursor_col1 !old_cursor_coladd1 = do
+    j'6 !oap1 !old_cursor_lnum1 !old_cursor_col1 !old_cursor_coladd1 !include_line_break1 !redo_yank1 = do
       set'c'VIsual_mode ed' Ctrl_V
       set'c'VIsual_select ed' FALSE
       set'c'VIsual_reselect ed' FALSE
-      j'13 oap1 include_line_break1 redo_yank1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1
-    j'11 !oap2 !include_line_break2 !redo_yank2 !old_cursor_lnum2 !old_cursor_col2 !old_cursor_coladd2 = do
+      j'13 oap1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1 include_line_break1 redo_yank1
+    j'11 !oap2 !old_cursor_lnum2 !old_cursor_col2 !old_cursor_coladd2 !include_line_break2 !redo_yank2 = do
       wrI32 oap2 oparg_T'motion_type MCHAR
-      j'13 oap2 include_line_break2 redo_yank2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2
-    j'13 !oap3 !include_line_break3 !redo_yank3 !old_cursor_lnum3 !old_cursor_col3 !old_cursor_coladd3 = do
+      j'13 oap2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 include_line_break2 redo_yank2
+    j'13 !oap3 !old_cursor_lnum3 !old_cursor_col3 !old_cursor_coladd3 !include_line_break3 !redo_yank3 = do
       r'2 <- if redo_yank3 then pure True else (do { r'1 <- rdI32 oap3 oparg_T'op_type; pure (r'1 /= OP_YANK) })
       r'12 <- if r'2 then (do { r'3 <- c'VIsual_active ed'; r'5 <- if (not (r'3 /= 0)) then pure True else (do { r'4 <- rdI32 oap3 oparg_T'motion_force; pure (r'4 /= 0) }); if r'5 then pure True else (do { r'6 <- c'VIsual_active ed'; r'8 <- if (r'6 /= 0) then (is_ex_cmdchar cap) else pure False; if r'8 then (do { r'9 <- rdI32 oap3 oparg_T'op_type; pure (r'9 /= OP_COLON) }) else pure False }) }) else pure False
       r'14 <- if r'12 then (do { r'13 <- rdI32 cap cmdarg_T'cmdchar; pure (r'13 /= (ch 'D')) }) else pure False
@@ -6827,8 +6879,8 @@ do_pending_operator ed' cap old_col gui_yank = do
                 then do
                   r'29 <- rdP cap cmdarg_T'searchbuf
                   c'AppendToRedobuffLit ed' r'29 (-1)
-                  j'24 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
-                else j'24 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
+                  j'24 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
+                else j'24 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
             else do
               r'30 <- is_ex_cmdchar cap
               if r'30
@@ -6837,28 +6889,28 @@ do_pending_operator ed' cap old_col gui_yank = do
                   if r'31 == nullPtr
                     then do
                       c'ResetRedobuff ed'
-                      j'25 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
+                      j'25 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
                     else do
                       r'32 <- rdI32 cap cmdarg_T'cmdchar
                       if r'32 == (ch ':')
                         then do
                           r'33 <- repeat_cmdline ed'
                           c'AppendToRedobuffLit ed' r'33 (-1)
-                          j'20 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
+                          j'20 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
                         else do
                           r'34 <- repeat_cmdline ed'
                           c'AppendToRedobuffSpec ed' r'34
-                          j'20 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
-                else j'25 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
-        else j'25 oap3 include_line_break3 redo_yank3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3
-    j'20 !oap4 !include_line_break4 !redo_yank4 !old_cursor_lnum4 !old_cursor_col4 !old_cursor_coladd4 = do
+                          j'20 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
+                else j'25 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
+        else j'25 oap3 old_cursor_lnum3 old_cursor_col3 old_cursor_coladd3 include_line_break3 redo_yank3
+    j'20 !oap4 !old_cursor_lnum4 !old_cursor_col4 !old_cursor_coladd4 !include_line_break4 !redo_yank4 = do
       c'AppendToRedobuff ed' (Ptr "\10\0"#)
       set'repeat_cmdline ed' nullPtr
-      j'25 oap4 include_line_break4 redo_yank4 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4
-    j'24 !oap5 !include_line_break5 !redo_yank5 !old_cursor_lnum5 !old_cursor_col5 !old_cursor_coladd5 = do
+      j'25 oap4 old_cursor_lnum4 old_cursor_col4 old_cursor_coladd4 include_line_break4 redo_yank4
+    j'24 !oap5 !old_cursor_lnum5 !old_cursor_col5 !old_cursor_coladd5 !include_line_break5 !redo_yank5 = do
       c'AppendToRedobuff ed' (Ptr "\10\0"#)
-      j'25 oap5 include_line_break5 redo_yank5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5
-    j'25 !oap6 !include_line_break6 !redo_yank6 !old_cursor_lnum6 !old_cursor_col6 !old_cursor_coladd6 = do
+      j'25 oap5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 include_line_break5 redo_yank5
+    j'25 !oap6 !old_cursor_lnum6 !old_cursor_col6 !old_cursor_coladd6 !include_line_break6 !redo_yank6 = do
       r'35 <- redo_VIsual_busy ed'
       if r'35 /= 0
         then do
@@ -6878,8 +6930,8 @@ do_pending_operator ed' cap old_col gui_yank = do
               r'44 <- curbuf ed'
               r'45 <- rdI64 r'44 (buf_T'b_ml + memline_T'ml_line_count)
               wrI64 r'46 (win_T'w_cursor + pos_T'lnum) r'45
-              j'40 oap6 include_line_break6 redo_yank6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6
-            else j'40 oap6 include_line_break6 redo_yank6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6
+              j'40 oap6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 include_line_break6 redo_yank6
+            else j'40 oap6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 include_line_break6 redo_yank6
         else do
           r'47 <- c'VIsual_active ed'
           if r'47 /= 0
@@ -6899,10 +6951,10 @@ do_pending_operator ed' cap old_col gui_yank = do
                   r'53 <- curwin ed'
                   r'54 <- rdI32 r'53 win_T'w_curswant
                   wrI32 r'55 (buf_T'b_visual + visualinfo_T'vi_curswant) r'54
-                  j'29 oap6 include_line_break6 redo_yank6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6
-                else j'29 oap6 include_line_break6 redo_yank6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6
-            else j'50 oap6 include_line_break6 redo_yank6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6
-    j'29 !oap7 !include_line_break7 !redo_yank7 !old_cursor_lnum7 !old_cursor_col7 !old_cursor_coladd7 = do
+                  j'29 oap6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 include_line_break6 redo_yank6
+                else j'29 oap6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 include_line_break6 redo_yank6
+            else j'50 oap6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 include_line_break6 redo_yank6
+    j'29 !oap7 !old_cursor_lnum7 !old_cursor_col7 !old_cursor_coladd7 !include_line_break7 !redo_yank7 = do
       r'56 <- c'VIsual_select ed'
       r'58 <- if (r'56 /= 0) then (do { r'57 <- c'VIsual_mode ed'; pure (r'57 == (ch 'V')) }) else pure False
       r'61 <- if r'58 then (do { r'59 <- rdP cap cmdarg_T'oap; r'60 <- rdI32 r'59 oparg_T'op_type; pure (r'60 /= OP_DELETE) }) else pure False
@@ -6920,34 +6972,34 @@ do_pending_operator ed' cap old_col gui_yank = do
               r'80 <- rdI64 r'79 (win_T'w_cursor + pos_T'lnum)
               r'81 <- ml_get_len ed' r'80
               wrI32 r'82 (win_T'w_cursor + pos_T'col) r'81
-              j'35 oap7 include_line_break7 redo_yank7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7
+              j'35 oap7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7 include_line_break7 redo_yank7
             else do
               r'83 <- curwin ed'
               wrI32 r'83 (win_T'w_cursor + pos_T'col) 0
               r'84 <- rdI64 (addr'c'VIsual ed') pos_T'lnum
               r'85 <- ml_get_len ed' r'84
               wrI32 (addr'c'VIsual ed') pos_T'col r'85
-              j'35 oap7 include_line_break7 redo_yank7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7
+              j'35 oap7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7 include_line_break7 redo_yank7
         else do
           r'86 <- c'VIsual_mode ed'
           if r'86 == (ch 'v')
             then do
               r'87 <- unadjust_for_sel ed'
-              j'36 oap7 r'87 redo_yank7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7
-            else j'36 oap7 include_line_break7 redo_yank7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7
-    j'35 !oap8 !include_line_break8 !redo_yank8 !old_cursor_lnum8 !old_cursor_col8 !old_cursor_coladd8 = do
+              j'36 oap7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7 r'87 redo_yank7
+            else j'36 oap7 old_cursor_lnum7 old_cursor_col7 old_cursor_coladd7 include_line_break7 redo_yank7
+    j'35 !oap8 !old_cursor_lnum8 !old_cursor_col8 !old_cursor_coladd8 !include_line_break8 !redo_yank8 = do
       set'c'VIsual_mode ed' (ch 'v')
-      j'36 oap8 include_line_break8 redo_yank8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8
-    j'36 !oap9 !include_line_break9 !redo_yank9 !old_cursor_lnum9 !old_cursor_col9 !old_cursor_coladd9 = do
+      j'36 oap8 old_cursor_lnum8 old_cursor_col8 old_cursor_coladd8 include_line_break8 redo_yank8
+    j'36 !oap9 !old_cursor_lnum9 !old_cursor_col9 !old_cursor_coladd9 !include_line_break9 !redo_yank9 = do
       copyMem (pAdd oap9 oparg_T'start) (addr'c'VIsual ed') 16
       r'88 <- c'VIsual_mode ed'
       if r'88 == (ch 'V')
         then do
           wrI32 oap9 (oparg_T'start + pos_T'col) 0
           wrI32 oap9 (oparg_T'start + pos_T'coladd) 0
-          j'50 oap9 include_line_break9 redo_yank9 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9
-        else j'50 oap9 include_line_break9 redo_yank9 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9
-    j'40 !oap10 !include_line_break10 !redo_yank10 !old_cursor_lnum10 !old_cursor_col10 !old_cursor_coladd10 = do
+          j'50 oap9 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 include_line_break9 redo_yank9
+        else j'50 oap9 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 include_line_break9 redo_yank9
+    j'40 !oap10 !old_cursor_lnum10 !old_cursor_col10 !old_cursor_coladd10 !include_line_break10 !redo_yank10 = do
       r'89 <- rdI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_mode
       set'c'VIsual_mode ed' r'89
       r'90 <- rdI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_vcol
@@ -6966,23 +7018,23 @@ do_pending_operator ed' cap old_col gui_yank = do
                   r'96 <- rdI32 r'95 win_T'w_virtcol
                   r'97 <- rdI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_vcol
                   wrI32 r'98 win_T'w_curswant ((r'96 + r'97) - 1)
-                  j'46 oap10 include_line_break10 redo_yank10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10
+                  j'46 oap10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 include_line_break10 redo_yank10
                 else do
                   r'100 <- curwin ed'
                   r'99 <- rdI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_vcol
                   wrI32 r'100 win_T'w_curswant r'99
-                  j'46 oap10 include_line_break10 redo_yank10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10
+                  j'46 oap10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 include_line_break10 redo_yank10
             else do
               r'101 <- curwin ed'
               wrI32 r'101 win_T'w_curswant MAXCOL
-              j'46 oap10 include_line_break10 redo_yank10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10
-        else j'47 oap10 include_line_break10 redo_yank10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10
-    j'46 !oap11 !include_line_break11 !redo_yank11 !old_cursor_lnum11 !old_cursor_col11 !old_cursor_coladd11 = do
+              j'46 oap10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 include_line_break10 redo_yank10
+        else j'47 oap10 old_cursor_lnum10 old_cursor_col10 old_cursor_coladd10 include_line_break10 redo_yank10
+    j'46 !oap11 !old_cursor_lnum11 !old_cursor_col11 !old_cursor_coladd11 !include_line_break11 !redo_yank11 = do
       r'102 <- curwin ed'
       r'103 <- rdI32 r'102 win_T'w_curswant
       _ <- coladvance ed' r'103
-      j'47 oap11 include_line_break11 redo_yank11 old_cursor_lnum11 old_cursor_col11 old_cursor_coladd11
-    j'47 !oap12 !include_line_break12 !redo_yank12 !old_cursor_lnum12 !old_cursor_col12 !old_cursor_coladd12 = do
+      j'47 oap11 old_cursor_lnum11 old_cursor_col11 old_cursor_coladd11 include_line_break11 redo_yank11
+    j'47 !oap12 !old_cursor_lnum12 !old_cursor_col12 !old_cursor_coladd12 !include_line_break12 !redo_yank12 = do
       r'105 <- rdI64 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_count
       wrI64 cap cmdarg_T'count0 r'105
       r'106 <- rdI64 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_count
@@ -6990,11 +7042,11 @@ do_pending_operator ed' cap old_col gui_yank = do
         then do
           r'107 <- rdI64 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_count
           wrI64 cap cmdarg_T'count1 r'107
-          j'50 oap12 include_line_break12 redo_yank12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12
+          j'50 oap12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 include_line_break12 redo_yank12
         else do
           wrI64 cap cmdarg_T'count1 1
-          j'50 oap12 include_line_break12 redo_yank12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12
-    j'50 !oap13 !include_line_break13 !redo_yank13 !old_cursor_lnum13 !old_cursor_col13 !old_cursor_coladd13 = do
+          j'50 oap12 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 include_line_break12 redo_yank12
+    j'50 !oap13 !old_cursor_lnum13 !old_cursor_col13 !old_cursor_coladd13 !include_line_break13 !redo_yank13 = do
       r'108 <- rdI64 oap13 (oparg_T'start + pos_T'lnum)
       r'109 <- curwin ed'
       r'110 <- rdI64 r'109 (win_T'w_cursor + pos_T'lnum)
@@ -7008,13 +7060,13 @@ do_pending_operator ed' cap old_col gui_yank = do
           r'127 <- curwin ed'
           r'128 <- rdI32 r'127 win_T'w_valid
           wrI32 r'127 win_T'w_valid (r'128 .&. (-5))
-          j'53 oap13 include_line_break13 redo_yank13 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13
+          j'53 oap13 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 include_line_break13 redo_yank13
         else do
           copyMem (pAdd oap13 oparg_T'end) (pAdd oap13 oparg_T'start) 16
           r'129 <- curwin ed'
           copyMem (pAdd oap13 oparg_T'start) (pAdd r'129 win_T'w_cursor) 16
-          j'53 oap13 include_line_break13 redo_yank13 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13
-    j'53 !oap14 !include_line_break14 !redo_yank14 !old_cursor_lnum14 !old_cursor_col14 !old_cursor_coladd14 = do
+          j'53 oap13 old_cursor_lnum13 old_cursor_col13 old_cursor_coladd13 include_line_break13 redo_yank13
+    j'53 !oap14 !old_cursor_lnum14 !old_cursor_col14 !old_cursor_coladd14 !include_line_break14 !redo_yank14 = do
       r'130 <- curwin ed'
       r'131 <- rdP r'130 win_T'w_buffer
       check_pos ed' r'131 (pAdd oap14 oparg_T'end)
@@ -7039,18 +7091,18 @@ do_pending_operator ed' cap old_col gui_yank = do
               if r'142 == MAXCOL
                 then do
                   set'resel_VIsual_vcol ed' MAXCOL
-                  j'64 oap14 include_line_break14 redo_yank14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14
+                  j'64 oap14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14 include_line_break14 redo_yank14
                 else do
                   r'143 <- c'VIsual_mode ed'
                   if r'143 /= Ctrl_V
                     then do
                       r'144 <- curwin ed'
                       getvvcol ed' r'144 (pAdd oap14 oparg_T'end) nullPtr nullPtr (pAdd oap14 oparg_T'end_vcol) 0
-                      j'58 oap14 include_line_break14 redo_yank14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14
-                    else j'58 oap14 include_line_break14 redo_yank14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14
-            else j'65 oap14 include_line_break14 redo_yank14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14
+                      j'58 oap14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14 include_line_break14 redo_yank14
+                    else j'58 oap14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14 include_line_break14 redo_yank14
+            else j'65 oap14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14 include_line_break14 redo_yank14
         else j'88 oap14 old_cursor_lnum14 old_cursor_col14 old_cursor_coladd14
-    j'58 !oap15 !include_line_break15 !redo_yank15 !old_cursor_lnum15 !old_cursor_col15 !old_cursor_coladd15 = do
+    j'58 !oap15 !old_cursor_lnum15 !old_cursor_col15 !old_cursor_coladd15 !include_line_break15 !redo_yank15 = do
       r'145 <- c'VIsual_mode ed'
       r'147 <- if (r'145 == Ctrl_V) then pure True else (do { r'146 <- rdI64 oap15 oparg_T'line_count; pure (r'146 <= 1) })
       if r'147
@@ -7060,22 +7112,22 @@ do_pending_operator ed' cap old_col gui_yank = do
             then do
               r'149 <- curwin ed'
               getvvcol ed' r'149 (pAdd oap15 oparg_T'start) (pAdd oap15 oparg_T'start_vcol) nullPtr nullPtr 0
-              j'62 oap15 include_line_break15 redo_yank15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15
-            else j'62 oap15 include_line_break15 redo_yank15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15
+              j'62 oap15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 include_line_break15 redo_yank15
+            else j'62 oap15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 include_line_break15 redo_yank15
         else do
           r'150 <- rdI32 oap15 oparg_T'end_vcol
           set'resel_VIsual_vcol ed' r'150
-          j'64 oap15 include_line_break15 redo_yank15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15
-    j'62 !oap16 !include_line_break16 !redo_yank16 !old_cursor_lnum16 !old_cursor_col16 !old_cursor_coladd16 = do
+          j'64 oap15 old_cursor_lnum15 old_cursor_col15 old_cursor_coladd15 include_line_break15 redo_yank15
+    j'62 !oap16 !old_cursor_lnum16 !old_cursor_col16 !old_cursor_coladd16 !include_line_break16 !redo_yank16 = do
       r'151 <- rdI32 oap16 oparg_T'end_vcol
       r'152 <- rdI32 oap16 oparg_T'start_vcol
       set'resel_VIsual_vcol ed' ((r'151 - r'152) + 1)
-      j'64 oap16 include_line_break16 redo_yank16 old_cursor_lnum16 old_cursor_col16 old_cursor_coladd16
-    j'64 !oap17 !include_line_break17 !redo_yank17 !old_cursor_lnum17 !old_cursor_col17 !old_cursor_coladd17 = do
+      j'64 oap16 old_cursor_lnum16 old_cursor_col16 old_cursor_coladd16 include_line_break16 redo_yank16
+    j'64 !oap17 !old_cursor_lnum17 !old_cursor_col17 !old_cursor_coladd17 !include_line_break17 !redo_yank17 = do
       r'153 <- rdI64 oap17 oparg_T'line_count
       set'resel_VIsual_line_count ed' r'153
-      j'65 oap17 include_line_break17 redo_yank17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17
-    j'65 !oap18 !include_line_break18 !redo_yank18 !old_cursor_lnum18 !old_cursor_col18 !old_cursor_coladd18 = do
+      j'65 oap17 old_cursor_lnum17 old_cursor_col17 old_cursor_coladd17 include_line_break17 redo_yank17
+    j'65 !oap18 !old_cursor_lnum18 !old_cursor_col18 !old_cursor_coladd18 !include_line_break18 !redo_yank18 = do
       r'155 <- if redo_yank18 then pure True else (do { r'154 <- rdI32 oap18 oparg_T'op_type; pure (r'154 /= OP_YANK) })
       r'157 <- if r'155 then (do { r'156 <- rdI32 oap18 oparg_T'op_type; pure (r'156 /= OP_COLON) }) else pure False
       r'159 <- if r'157 then (do { r'158 <- rdI32 oap18 oparg_T'motion_force; pure (r'158 == NUL) }) else pure False
@@ -7095,7 +7147,7 @@ do_pending_operator ed' cap old_col gui_yank = do
               r'172 <- rdI32 cap cmdarg_T'cmdchar
               r'173 <- rdI32 cap cmdarg_T'nchar
               prep_redo ed' r'165 r'166 r'168 r'170 r'171 r'172 r'173
-              j'76 oap18 include_line_break18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18
+              j'76 oap18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 include_line_break18
             else do
               r'174 <- is_ex_cmdchar cap
               if not r'174
@@ -7107,25 +7159,25 @@ do_pending_operator ed' cap old_col gui_yank = do
                   r'179 <- rdI32 oap18 oparg_T'op_type
                   r'181 <- if (r'179 == OP_REPLACE) then (rdI32 cap cmdarg_T'nchar) else pure (NUL :: Int32)
                   if r'181 == (-1)
-                    then j'72 oap18 include_line_break18 r'176 r'178 (CAR :: Int32) old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18
+                    then j'72 oap18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 include_line_break18 r'176 r'178 (CAR :: Int32)
                     else do
                       if r'181 == (-2)
-                        then j'72 oap18 include_line_break18 r'176 r'178 (NL :: Int32) old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18
-                        else j'72 oap18 include_line_break18 r'176 r'178 r'181 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18
-                else j'76 oap18 include_line_break18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18
-        else j'78 oap18 include_line_break18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18
-    j'72 !oap19 !include_line_break19 !opchar1 !extra_opchar1 !nchar1 !old_cursor_lnum19 !old_cursor_col19 !old_cursor_coladd19 = do
+                        then j'72 oap18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 include_line_break18 r'176 r'178 (NL :: Int32)
+                        else j'72 oap18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 include_line_break18 r'176 r'178 r'181
+                else j'76 oap18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 include_line_break18
+        else j'78 oap18 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 include_line_break18
+    j'72 !oap19 !old_cursor_lnum19 !old_cursor_col19 !old_cursor_coladd19 !include_line_break19 !opchar1 !extra_opchar1 !nchar1 = do
       if (opchar1 == (ch 'g')) && (extra_opchar1 == (ch '@'))
         then do
           r'182 <- rdI32 oap19 oparg_T'regname
           r'183 <- rdI64 cap cmdarg_T'count0
           prep_redo_num2 ed' r'182 0 NUL (ch 'v') r'183 opchar1 extra_opchar1 nchar1
-          j'76 oap19 include_line_break19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19
+          j'76 oap19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 include_line_break19
         else do
           r'184 <- rdI32 oap19 oparg_T'regname
           prep_redo ed' r'184 0 NUL (ch 'v') opchar1 extra_opchar1 nchar1
-          j'76 oap19 include_line_break19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19
-    j'76 !oap20 !include_line_break20 !old_cursor_lnum20 !old_cursor_col20 !old_cursor_coladd20 = do
+          j'76 oap19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 include_line_break19
+    j'76 !oap20 !old_cursor_lnum20 !old_cursor_col20 !old_cursor_coladd20 !include_line_break20 = do
       r'185 <- redo_VIsual_busy ed'
       if not (r'185 /= 0)
         then do
@@ -7139,17 +7191,17 @@ do_pending_operator ed' cap old_col gui_yank = do
           wrI64 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_count r'189
           r'190 <- rdI32 cap cmdarg_T'arg
           wrI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_arg r'190
-          j'78 oap20 include_line_break20 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20
-        else j'78 oap20 include_line_break20 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20
-    j'78 !oap21 !include_line_break21 !old_cursor_lnum21 !old_cursor_col21 !old_cursor_coladd21 = do
+          j'78 oap20 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 include_line_break20
+        else j'78 oap20 old_cursor_lnum20 old_cursor_col20 old_cursor_coladd20 include_line_break20
+    j'78 !oap21 !old_cursor_lnum21 !old_cursor_col21 !old_cursor_coladd21 !include_line_break21 = do
       r'191 <- rdI32 oap21 oparg_T'motion_force
       r'193 <- if (r'191 == NUL) then pure True else (do { r'192 <- rdI32 oap21 oparg_T'motion_type; pure (r'192 == MLINE) })
       if r'193
         then do
           wrI32 oap21 oparg_T'inclusive TRUE
-          j'80 oap21 include_line_break21 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21
-        else j'80 oap21 include_line_break21 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21
-    j'80 !oap22 !include_line_break22 !old_cursor_lnum22 !old_cursor_col22 !old_cursor_coladd22 = do
+          j'80 oap21 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21 include_line_break21
+        else j'80 oap21 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21 include_line_break21
+    j'80 !oap22 !old_cursor_lnum22 !old_cursor_col22 !old_cursor_coladd22 !include_line_break22 = do
       r'194 <- c'VIsual_mode ed'
       if r'194 == (ch 'V')
         then do
@@ -7222,9 +7274,9 @@ do_pending_operator ed' cap old_col gui_yank = do
       if r'253
         then do
           redraw_curbuf_later ed' UPD_INVERTED
-          j'93 oap25 r'247 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25
-        else j'93 oap25 r'247 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25
-    j'93 !oap26 !empty_region_error1 !old_cursor_lnum26 !old_cursor_col26 !old_cursor_coladd26 = do
+          j'93 oap25 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 r'247
+        else j'93 oap25 old_cursor_lnum25 old_cursor_col25 old_cursor_coladd25 r'247
+    j'93 !oap26 !old_cursor_lnum26 !old_cursor_col26 !old_cursor_coladd26 !empty_region_error1 = do
       r'254 <- rdI32 oap26 oparg_T'motion_type
       r'256 <- if (r'254 == MCHAR) then (do { r'255 <- rdI32 oap26 oparg_T'inclusive; pure (r'255 == FALSE) }) else pure False
       r'258 <- if r'256 then (do { r'257 <- rdI32 cap cmdarg_T'retval; pure (not ((r'257 .&. CA_NO_ADJ_OP_END) /= 0)) }) else pure False
@@ -7243,7 +7295,7 @@ do_pending_operator ed' cap old_col gui_yank = do
           if r'272
             then do
               wrI32 oap26 oparg_T'motion_type MLINE
-              j'99 oap26 empty_region_error1 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26
+              j'99 oap26 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 empty_region_error1
             else do
               r'273 <- rdI64 oap26 (oparg_T'end + pos_T'lnum)
               r'274 <- ml_get_len ed' r'273
@@ -7254,12 +7306,12 @@ do_pending_operator ed' cap old_col gui_yank = do
                   r'276 <- rdI32 oap26 (oparg_T'end + pos_T'col)
                   wrI32 oap26 (oparg_T'end + pos_T'col) (r'276 - 1)
                   wrI32 oap26 oparg_T'inclusive TRUE
-                  j'99 oap26 empty_region_error1 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26
-                else j'99 oap26 empty_region_error1 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26
+                  j'99 oap26 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 empty_region_error1
+                else j'99 oap26 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 empty_region_error1
         else do
           wrI32 oap26 oparg_T'end_adjusted FALSE
-          j'99 oap26 empty_region_error1 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26
-    j'99 !oap27 !empty_region_error2 !old_cursor_lnum27 !old_cursor_col27 !old_cursor_coladd27 = do
+          j'99 oap26 old_cursor_lnum26 old_cursor_col26 old_cursor_coladd26 empty_region_error1
+    j'99 !oap27 !old_cursor_lnum27 !old_cursor_col27 !old_cursor_coladd27 !empty_region_error2 = do
       r'277 <- rdI32 oap27 oparg_T'op_type
       case (r'277 :: Int32) of
         OP_LSHIFT -> j'140 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
@@ -7303,16 +7355,16 @@ do_pending_operator ed' cap old_col gui_yank = do
               if r'283
                 then do
                   r'284 <- restart_edit ed'
-                  j'122 oap27 r'284 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-                else j'122 oap27 (0 :: Int32) old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
+                  j'122 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 r'284
+                else j'122 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 (0 :: Int32)
         OP_COLON -> do
           op_colon ed' oap27
           j'141 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_TILDE -> j'113 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_UPPER -> j'113 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_LOWER -> j'113 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_INSERT -> j'108 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_APPEND -> j'108 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
+        OP_TILDE -> j'113 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
+        OP_UPPER -> j'113 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
+        OP_LOWER -> j'113 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
+        OP_INSERT -> j'108 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
+        OP_APPEND -> j'108 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
         OP_REPLACE -> do
           set'c'VIsual_reselect ed' FALSE
           if empty_region_error2
@@ -7324,12 +7376,12 @@ do_pending_operator ed' cap old_col gui_yank = do
               r'285 <- rdI32 cap cmdarg_T'nchar
               _ <- op_replace ed' oap27 r'285
               j'141 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_NR_ADD -> j'101 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-        OP_NR_SUB -> j'101 oap27 empty_region_error2 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
+        OP_NR_ADD -> j'101 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
+        OP_NR_SUB -> j'101 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
         _ -> do
           clearopbeep ed' oap27
           j'141 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
-    j'101 !oap28 !empty_region_error3 !old_cursor_lnum28 !old_cursor_col28 !old_cursor_coladd28 = do
+    j'101 !oap28 !old_cursor_lnum28 !old_cursor_col28 !old_cursor_coladd28 !empty_region_error3 = do
       if empty_region_error3
         then do
           vim_beep ed' BO_OPER
@@ -7345,7 +7397,7 @@ do_pending_operator ed' cap old_col gui_yank = do
     j'104 !oap29 !old_cursor_lnum29 !old_cursor_col29 !old_cursor_coladd29 = do
       check_cursor_col ed'
       j'141 oap29 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29
-    j'108 !oap30 !empty_region_error4 !old_cursor_lnum30 !old_cursor_col30 !old_cursor_coladd30 = do
+    j'108 !oap30 !old_cursor_lnum30 !old_cursor_col30 !old_cursor_coladd30 !empty_region_error4 = do
       set'c'VIsual_reselect ed' FALSE
       if empty_region_error4
         then do
@@ -7370,7 +7422,7 @@ do_pending_operator ed' cap old_col gui_yank = do
               r'295 <- rdI32 cap cmdarg_T'retval
               wrI32 cap cmdarg_T'retval (r'295 .|. CA_COMMAND_BUSY)
               j'141 oap30 old_cursor_lnum30 old_cursor_col30 old_cursor_coladd30
-    j'113 !oap31 !empty_region_error5 !old_cursor_lnum31 !old_cursor_col31 !old_cursor_coladd31 = do
+    j'113 !oap31 !old_cursor_lnum31 !old_cursor_col31 !old_cursor_coladd31 !empty_region_error5 = do
       if empty_region_error5
         then do
           vim_beep ed' BO_OPER
@@ -7382,7 +7434,7 @@ do_pending_operator ed' cap old_col gui_yank = do
     j'116 !oap32 !old_cursor_lnum32 !old_cursor_col32 !old_cursor_coladd32 = do
       check_cursor_col ed'
       j'141 oap32 old_cursor_lnum32 old_cursor_col32 old_cursor_coladd32
-    j'122 !oap33 !restart_edit_save1 !old_cursor_lnum33 !old_cursor_col33 !old_cursor_coladd33 = do
+    j'122 !oap33 !old_cursor_lnum33 !old_cursor_col33 !old_cursor_coladd33 !restart_edit_save1 = do
       set'restart_edit ed' 0
       r'298 <- curbuf ed'
       r'296 <- curbuf ed'
@@ -7393,9 +7445,9 @@ do_pending_operator ed' cap old_col gui_yank = do
         then do
           r'300 <- rdI32 cap cmdarg_T'retval
           wrI32 cap cmdarg_T'retval (r'300 .|. CA_COMMAND_BUSY)
-          j'124 oap33 restart_edit_save1 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33
-        else j'124 oap33 restart_edit_save1 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33
-    j'124 !oap34 !restart_edit_save2 !old_cursor_lnum34 !old_cursor_col34 !old_cursor_coladd34 = do
+          j'124 oap33 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33 restart_edit_save1
+        else j'124 oap33 old_cursor_lnum33 old_cursor_col33 old_cursor_coladd33 restart_edit_save1
+    j'124 !oap34 !old_cursor_lnum34 !old_cursor_col34 !old_cursor_coladd34 !restart_edit_save2 = do
       r'301 <- restart_edit ed'
       if r'301 == 0
         then do
@@ -7447,68 +7499,72 @@ do_pending_operator ed' cap old_col gui_yank = do
               r'326 <- curwin ed'
               r'327 <- rdI32 r'326 win_T'w_curswant
               _ <- coladvance ed' r'327
-              j'145 oap39 old_cursor_lnum39 old_cursor_col39 old_cursor_coladd39
-            else j'145 oap39 old_cursor_lnum39 old_cursor_col39 old_cursor_coladd39
+              j'145 oap39
+            else j'145 oap39
         else do
           r'329 <- curwin ed'
           wrI64 r'329 (win_T'w_cursor + pos_T'lnum) old_cursor_lnum39
-          wrI32 r'329 (win_T'w_cursor + pos_T'col) old_cursor_col39
-          wrI32 r'329 (win_T'w_cursor + pos_T'coladd) old_cursor_coladd39
-          j'145 oap39 old_cursor_lnum39 old_cursor_col39 old_cursor_coladd39
-    j'145 !oap40 _ _ _ = do
+          r'330 <- curwin ed'
+          wrI32 r'330 (win_T'w_cursor + pos_T'col) old_cursor_col39
+          r'331 <- curwin ed'
+          wrI32 r'331 (win_T'w_cursor + pos_T'coladd) old_cursor_coladd39
+          j'145 oap39
+    j'145 !oap40 = do
       wrI32 oap40 oparg_T'block_mode FALSE
       clearop ed' oap40
       set'motion_force ed' NUL
       pure ()
-  r'330 <- rdP cap cmdarg_T'oap
-  r'331 <- curwin ed'
-  r'332 <- rdI64 (pAdd r'331 win_T'w_cursor) pos_T'lnum
-  r'333 <- rdI32 (pAdd r'331 win_T'w_cursor) pos_T'col
-  r'334 <- rdI32 (pAdd r'331 win_T'w_cursor) pos_T'coladd
-  r'335 <- finish_op ed'
-  r'337 <- if (r'335 /= 0) then pure True else (do { r'336 <- c'VIsual_active ed'; pure (r'336 /= 0) })
-  r'339 <- if r'337 then (do { r'338 <- rdI32 r'330 oparg_T'op_type; pure (r'338 /= OP_NOP) }) else pure False
-  if r'339
+  r'332 <- rdP cap cmdarg_T'oap
+  r'333 <- curwin ed'
+  r'334 <- rdI64 r'333 (win_T'w_cursor + pos_T'lnum)
+  r'335 <- curwin ed'
+  r'336 <- rdI32 r'335 (win_T'w_cursor + pos_T'col)
+  r'337 <- curwin ed'
+  r'338 <- rdI32 r'337 (win_T'w_cursor + pos_T'coladd)
+  r'339 <- finish_op ed'
+  r'341 <- if (r'339 /= 0) then pure True else (do { r'340 <- c'VIsual_active ed'; pure (r'340 /= 0) })
+  r'343 <- if r'341 then (do { r'342 <- rdI32 r'332 oparg_T'op_type; pure (r'342 /= OP_NOP) }) else pure False
+  if r'343
     then do
-      r'340 <- p_cpo ed'
-      r'341 <- vim_strchr ed' r'340 CPO_YANK
-      let !redo_yank19 = (r'341 /= nullPtr) && (not gui_yank)
-      r'342 <- c'VIsual_active ed'
-      wrI32 r'330 oparg_T'is_VIsual r'342
-      r'343 <- rdI32 r'330 oparg_T'motion_force
-      if r'343 == (ch 'V')
+      r'344 <- p_cpo ed'
+      r'345 <- vim_strchr ed' r'344 CPO_YANK
+      let !redo_yank19 = (r'345 /= nullPtr) && (not gui_yank)
+      r'346 <- c'VIsual_active ed'
+      wrI32 r'332 oparg_T'is_VIsual r'346
+      r'347 <- rdI32 r'332 oparg_T'motion_force
+      if r'347 == (ch 'V')
         then do
-          wrI32 r'330 oparg_T'motion_type MLINE
-          j'13 r'330 False redo_yank19 r'332 r'333 r'334
+          wrI32 r'332 oparg_T'motion_type MLINE
+          j'13 r'332 r'334 r'336 r'338 False redo_yank19
         else do
-          r'344 <- rdI32 r'330 oparg_T'motion_force
-          if r'344 == (ch 'v')
+          r'348 <- rdI32 r'332 oparg_T'motion_force
+          if r'348 == (ch 'v')
             then do
-              r'345 <- rdI32 r'330 oparg_T'motion_type
-              if r'345 == MLINE
+              r'349 <- rdI32 r'332 oparg_T'motion_type
+              if r'349 == MLINE
                 then do
-                  wrI32 r'330 oparg_T'inclusive FALSE
-                  j'11 r'330 False redo_yank19 r'332 r'333 r'334
+                  wrI32 r'332 oparg_T'inclusive FALSE
+                  j'11 r'332 r'334 r'336 r'338 False redo_yank19
                 else do
-                  r'346 <- rdI32 r'330 oparg_T'motion_type
-                  if r'346 == MCHAR
+                  r'350 <- rdI32 r'332 oparg_T'motion_type
+                  if r'350 == MCHAR
                     then do
-                      r'347 <- rdI32 r'330 oparg_T'inclusive
-                      wrI32 r'330 oparg_T'inclusive (b2i (not (r'347 /= 0)) :: Int32)
-                      j'11 r'330 False redo_yank19 r'332 r'333 r'334
-                    else j'11 r'330 False redo_yank19 r'332 r'333 r'334
+                      r'351 <- rdI32 r'332 oparg_T'inclusive
+                      wrI32 r'332 oparg_T'inclusive (b2i (not (r'351 /= 0)) :: Int32)
+                      j'11 r'332 r'334 r'336 r'338 False redo_yank19
+                    else j'11 r'332 r'334 r'336 r'338 False redo_yank19
             else do
-              r'348 <- rdI32 r'330 oparg_T'motion_force
-              if r'348 == Ctrl_V
+              r'352 <- rdI32 r'332 oparg_T'motion_force
+              if r'352 == Ctrl_V
                 then do
-                  r'349 <- c'VIsual_active ed'
-                  if not (r'349 /= 0)
+                  r'353 <- c'VIsual_active ed'
+                  if not (r'353 /= 0)
                     then do
                       set'c'VIsual_active ed' TRUE
-                      copyMem (addr'c'VIsual ed') (pAdd r'330 oparg_T'start) 16
-                      j'6 r'330 False redo_yank19 r'332 r'333 r'334
-                    else j'6 r'330 False redo_yank19 r'332 r'333 r'334
-                else j'13 r'330 False redo_yank19 r'332 r'333 r'334
+                      copyMem (addr'c'VIsual ed') (pAdd r'332 oparg_T'start) 16
+                      j'6 r'332 r'334 r'336 r'338 False redo_yank19
+                    else j'6 r'332 r'334 r'336 r'338 False redo_yank19
+                else j'13 r'332 r'334 r'336 r'338 False redo_yank19
     else pure ()
 
 pbyte :: Ed -> Ptr Pos_T -> Int32 -> IO ()
@@ -7644,7 +7700,7 @@ regtilde ed' source magic = frame 3 $ \fr' -> do
 vim_regsub_multi :: Ed -> Ptr Regmmatch_T -> Linenr_T -> Ptr Char_u -> Ptr Char_u -> Int32 -> Int32 -> IO Int32
 vim_regsub_multi ed' rmp lnum source dest destlen flags = do
   let
-    j'2 !re1 !rex_in_use_save1 !rex_save_reg_match1 !rex_save_reg_mmatch1 !rex_save_reg_startp1 !rex_save_reg_endp1 !rex_save_reg_startpos1 !rex_save_reg_endpos1 !rex_save_reg_win1 !rex_save_reg_buf1 !rex_save_reg_firstlnum1 !rex_save_reg_maxline1 !rex_save_reg_line_lbr1 !rex_save_lnum1 !rex_save_line1 !rex_save_input1 !rex_save_need_clear_subexpr1 !rex_save_reg_ic1 !rex_save_reg_icombine1 !rex_save_reg_maxcol1 = do
+    j'2 !re1 !rex_save_reg_match1 !rex_save_reg_mmatch1 !rex_save_reg_startp1 !rex_save_reg_endp1 !rex_save_reg_startpos1 !rex_save_reg_endpos1 !rex_save_reg_win1 !rex_save_reg_buf1 !rex_save_reg_firstlnum1 !rex_save_reg_maxline1 !rex_save_reg_line_lbr1 !rex_save_lnum1 !rex_save_line1 !rex_save_input1 !rex_save_need_clear_subexpr1 !rex_save_reg_ic1 !rex_save_reg_icombine1 !rex_save_reg_maxcol1 !rex_in_use_save1 = do
       wrI32 re1 regengine_T'rex_in_use TRUE
       wrP re1 (regengine_T'rex + regexec_T'reg_match) nullPtr
       wrP re1 (regengine_T'rex + regexec_T'reg_mmatch) rmp
@@ -7678,35 +7734,35 @@ vim_regsub_multi ed' rmp lnum source dest destlen flags = do
           wrI32 re1 (regengine_T'rex + regexec_T'reg_ic) rex_save_reg_ic1
           wrB re1 (regengine_T'rex + regexec_T'reg_icombine) rex_save_reg_icombine1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_maxcol) rex_save_reg_maxcol1
-          j'4 r'4 rex_save_reg_match1 rex_save_reg_mmatch1 rex_save_reg_startp1 rex_save_reg_endp1 rex_save_reg_startpos1 rex_save_reg_endpos1 rex_save_reg_win1 rex_save_reg_buf1 rex_save_reg_firstlnum1 rex_save_reg_maxline1 rex_save_reg_line_lbr1 rex_save_lnum1 rex_save_line1 rex_save_input1 rex_save_need_clear_subexpr1 rex_save_reg_ic1 rex_save_reg_icombine1 rex_save_reg_maxcol1
-        else j'4 r'4 rex_save_reg_match1 rex_save_reg_mmatch1 rex_save_reg_startp1 rex_save_reg_endp1 rex_save_reg_startpos1 rex_save_reg_endpos1 rex_save_reg_win1 rex_save_reg_buf1 rex_save_reg_firstlnum1 rex_save_reg_maxline1 rex_save_reg_line_lbr1 rex_save_lnum1 rex_save_line1 rex_save_input1 rex_save_need_clear_subexpr1 rex_save_reg_ic1 rex_save_reg_icombine1 rex_save_reg_maxcol1
-    j'4 !result1 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+          j'4 r'4
+        else j'4 r'4
+    j'4 !result1 = do
       pure result1
   let !re2 = addr'reg_engine ed'
   r'6 <- rdI32 re2 regengine_T'rex_in_use
   r'7 <- rdI32 re2 regengine_T'rex_in_use
   if r'7 /= 0
     then do
-      r'8 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_match
-      r'9 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_mmatch
-      r'10 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_startp
-      r'11 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_endp
-      r'12 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_startpos
-      r'13 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_endpos
-      r'14 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_win
-      r'15 <- rdP (pAdd re2 regengine_T'rex) regexec_T'reg_buf
-      r'16 <- rdI64 (pAdd re2 regengine_T'rex) regexec_T'reg_firstlnum
-      r'17 <- rdI64 (pAdd re2 regengine_T'rex) regexec_T'reg_maxline
-      r'18 <- rdB (pAdd re2 regengine_T'rex) regexec_T'reg_line_lbr
-      r'19 <- rdI64 (pAdd re2 regengine_T'rex) regexec_T'lnum
-      r'20 <- rdP (pAdd re2 regengine_T'rex) regexec_T'line
-      r'21 <- rdP (pAdd re2 regengine_T'rex) regexec_T'input
-      r'22 <- rdI32 (pAdd re2 regengine_T'rex) regexec_T'need_clear_subexpr
-      r'23 <- rdI32 (pAdd re2 regengine_T'rex) regexec_T'reg_ic
-      r'24 <- rdB (pAdd re2 regengine_T'rex) regexec_T'reg_icombine
-      r'25 <- rdI32 (pAdd re2 regengine_T'rex) regexec_T'reg_maxcol
-      j'2 re2 r'6 r'8 r'9 r'10 r'11 r'12 r'13 r'14 r'15 r'16 r'17 r'18 r'19 r'20 r'21 r'22 r'23 r'24 r'25
-    else j'2 re2 r'6 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr (0 :: Int32) (0 :: Int32) False (0 :: Int32)
+      r'8 <- rdP re2 (regengine_T'rex + regexec_T'reg_match)
+      r'9 <- rdP re2 (regengine_T'rex + regexec_T'reg_mmatch)
+      r'10 <- rdP re2 (regengine_T'rex + regexec_T'reg_startp)
+      r'11 <- rdP re2 (regengine_T'rex + regexec_T'reg_endp)
+      r'12 <- rdP re2 (regengine_T'rex + regexec_T'reg_startpos)
+      r'13 <- rdP re2 (regengine_T'rex + regexec_T'reg_endpos)
+      r'14 <- rdP re2 (regengine_T'rex + regexec_T'reg_win)
+      r'15 <- rdP re2 (regengine_T'rex + regexec_T'reg_buf)
+      r'16 <- rdI64 re2 (regengine_T'rex + regexec_T'reg_firstlnum)
+      r'17 <- rdI64 re2 (regengine_T'rex + regexec_T'reg_maxline)
+      r'18 <- rdB re2 (regengine_T'rex + regexec_T'reg_line_lbr)
+      r'19 <- rdI64 re2 (regengine_T'rex + regexec_T'lnum)
+      r'20 <- rdP re2 (regengine_T'rex + regexec_T'line)
+      r'21 <- rdP re2 (regengine_T'rex + regexec_T'input)
+      r'22 <- rdI32 re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
+      r'23 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_ic)
+      r'24 <- rdB re2 (regengine_T'rex + regexec_T'reg_icombine)
+      r'25 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_maxcol)
+      j'2 re2 r'8 r'9 r'10 r'11 r'12 r'13 r'14 r'15 r'16 r'17 r'18 r'19 r'20 r'21 r'22 r'23 r'24 r'25 r'6
+    else j'2 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr (0 :: Int32) (0 :: Int32) False (0 :: Int32) r'6
 
 vim_regsub_both :: Ed -> Ptr Regengine_T -> Ptr Char_u -> Ptr Char_u -> Int32 -> Int32 -> IO Int32
 vim_regsub_both ed' re source dest destlen flags = frame 4 $ \fr' -> do
@@ -8198,7 +8254,7 @@ reset_y_append ed' = do
 execreg_line_continuation :: Ed -> Ptr String_T -> Int64 -> IO (Ptr Char_u, Int64)
 execreg_line_continuation ed' lines idx = frame 24 $ \fr' -> do
   let
-    loop'1 !idx1 !cmd_start1 !cmd_end1 = do
+    loop'1 !cmd_start1 !cmd_end1 !out___r__1 !out___idx1 = do
       let !cmd_start2 = cmd_start1 - 1
       if cmd_start2 > 0
         then do
@@ -8207,17 +8263,17 @@ execreg_line_continuation ed' lines idx = frame 24 $ \fr' -> do
           r'3 <- rdW8 r'2 0
           r'9 <- if ((fromIntegral r'3 :: Int32) /= (ch '\\')) then (do { r'4 <- rdW8 r'2 0; r'6 <- if ((fromIntegral r'4 :: Int32) /= (ch '"')) then pure True else (do { r'5 <- rdW8 r'2 1; pure ((fromIntegral r'5 :: Int32) /= (ch '\\')) }); if r'6 then pure True else (do { r'7 <- rdW8 r'2 2; pure ((fromIntegral r'7 :: Int32) /= (ch ' ')) }) }) else pure False
           if r'9
-            then j'4 idx1 cmd_start2 cmd_end1
-            else loop'1 idx1 cmd_start2 cmd_end1
-        else j'4 idx1 cmd_start2 cmd_end1
-    j'4 !idx2 !cmd_start3 !cmd_end2 = do
+            then j'4 cmd_start2 cmd_end1 out___r__1 out___idx1
+            else loop'1 cmd_start2 cmd_end1 out___r__1 out___idx1
+        else j'4 cmd_start2 cmd_end1 out___r__1 out___idx1
+    j'4 !cmd_start3 !cmd_end2 !out___r__2 !out___idx2 = do
       let !tmp1 = pAdd lines ((fromIntegral cmd_start3) * 16)
       r'10 <- rdP tmp1 string_T'string
       r'11 <- rdW64 tmp1 string_T'length
       ga_concat_len ed' fr' r'10 r'11
       let !j1 = fromIntegral (cmd_start3 + 1) :: Int32
-      loop'5 idx2 cmd_start3 cmd_end2 j1
-    loop'5 !idx3 !cmd_start4 !cmd_end3 !j2 = do
+      loop'5 cmd_start3 cmd_end2 j1 out___r__2 out___idx2
+    loop'5 !cmd_start4 !cmd_end3 !j2 !out___r__3 !out___idx3 = do
       if (fromIntegral j2 :: Int64) <= cmd_end3
         then do
           let !tmp2 = pAdd lines ((fromIntegral j2) * 16)
@@ -8233,13 +8289,13 @@ execreg_line_continuation ed' lines idx = frame 24 $ \fr' -> do
                   if r'16 > 8000
                     then do
                       wrI32 fr' garray_T'ga_growsize 8000
-                      j'12 idx3 cmd_start4 cmd_end3 tmp2 j2 r'13
+                      j'12 cmd_start4 cmd_end3 tmp2 j2 r'13 out___r__3 out___idx3
                     else do
                       r'17 <- rdI32 fr' garray_T'ga_len
                       wrI32 fr' garray_T'ga_growsize r'17
-                      j'12 idx3 cmd_start4 cmd_end3 tmp2 j2 r'13
-                else j'12 idx3 cmd_start4 cmd_end3 tmp2 j2 r'13
-            else j'13 idx3 cmd_start4 cmd_end3 j2
+                      j'12 cmd_start4 cmd_end3 tmp2 j2 r'13 out___r__3 out___idx3
+                else j'12 cmd_start4 cmd_end3 tmp2 j2 r'13 out___r__3 out___idx3
+            else j'13 cmd_start4 cmd_end3 j2 out___r__3 out___idx3
         else do
           _ <- ga_append ed' fr' NUL
           r'19 <- rdP fr' garray_T'ga_data
@@ -8247,22 +8303,22 @@ execreg_line_continuation ed' lines idx = frame 24 $ \fr' -> do
           r'21 <- vim_strnsave ed' (castPtr r'19) (fromIntegral r'20 :: Word64)
           ga_clear fr'
           pure (r'21, cmd_start4)
-    j'12 !idx4 !cmd_start5 !cmd_end4 !tmp3 !j3 !p_2'1 = do
+    j'12 !cmd_start5 !cmd_end4 !tmp3 !j3 !p_2'1 !out___r__4 !out___idx4 = do
       let !p_2'2 = pAdd p_2'1 1
       r'22 <- rdP tmp3 string_T'string
       r'23 <- rdW64 tmp3 string_T'length
       ga_concat_len ed' fr' p_2'2 (fromIntegral (fromIntegral (quot (pSub (pAdd r'22 (fromIntegral r'23)) p_2'2) 1) :: Int64) :: Word64)
-      j'13 idx4 cmd_start5 cmd_end4 j3
-    j'13 !idx5 !cmd_start6 !cmd_end5 !j4 = do
+      j'13 cmd_start5 cmd_end4 j3 out___r__4 out___idx4
+    j'13 !cmd_start6 !cmd_end5 !j4 !out___r__5 !out___idx5 = do
       let !j5 = j4 + 1
-      loop'5 idx5 cmd_start6 cmd_end5 j5
+      loop'5 cmd_start6 cmd_end5 j5 out___r__5 out___idx5
   ga_init2 fr' 1 400
-  loop'1 idx idx idx
+  loop'1 idx idx nullPtr (0 :: Int64)
 
 do_execreg :: Ed -> Int32 -> Bool -> Bool -> Bool -> IO Bool
 do_execreg ed' regname colon addcr silent = do
   let
-    j'3 !regname1 !retval1 = do
+    j'3 !regname1 !retval1 !execreg_line_continuation__o_r__1 !execreg_line_continuation__o_idx1 = do
       r'2 <- if ((regname1 == (ch '%')) || (regname1 == (ch '#'))) then pure True else (do { r'1 <- valid_yank_reg ed' regname1 False; pure (not r'1) })
       if r'2
         then do
@@ -8290,10 +8346,10 @@ do_execreg ed' regname colon addcr silent = do
                       if r'10
                         then do
                           r'11 <- put_in_typebuf ed' (pAdd r'7 5) True True silent
-                          j'30 r'11
+                          j'30 r'11 execreg_line_continuation__o_r__1 execreg_line_continuation__o_idx1
                         else do
                           r'12 <- put_in_typebuf ed' r'7 True True silent
-                          j'30 r'12
+                          j'30 r'12 execreg_line_continuation__o_r__1 execreg_line_continuation__o_idx1
                 else do
                   if regname1 == (ch '.')
                     then do
@@ -8305,7 +8361,7 @@ do_execreg ed' regname colon addcr silent = do
                           pure False
                         else do
                           r'16 <- put_in_typebuf ed' r'13 False colon silent
-                          j'30 r'16
+                          j'30 r'16 execreg_line_continuation__o_r__1 execreg_line_continuation__o_idx1
                     else do
                       _ <- get_yank_register ed' regname1 FALSE
                       r'18 <- y_current ed'
@@ -8317,8 +8373,8 @@ do_execreg ed' regname colon addcr silent = do
                           put_reedit_in_typebuf ed' silent
                           r'20 <- y_current ed'
                           r'21 <- rdI64 r'20 yankreg_T'y_size
-                          loop'9 regname1 r'21 retval1 remap1
-    loop'9 !regname2 !i1 !retval2 !remap2 = do
+                          loop'9 regname1 r'21 retval1 remap1 execreg_line_continuation__o_r__1 execreg_line_continuation__o_idx1
+    loop'9 !regname2 !i1 !retval2 !remap2 !execreg_line_continuation__o_r__2 !execreg_line_continuation__o_idx2 = do
       let !i2 = i1 - 1
       if i2 >= 0
         then do
@@ -8330,13 +8386,13 @@ do_execreg ed' regname colon addcr silent = do
               r'27 <- ins_typebuf ed' (Ptr "\10\0"#) remap2 0 True (b2i silent :: Int32)
               if not r'27
                 then pure False
-                else j'13 regname2 i2 remap2
-            else j'13 regname2 i2 remap2
+                else j'13 regname2 i2 remap2 execreg_line_continuation__o_r__2 execreg_line_continuation__o_idx2
+            else j'13 regname2 i2 remap2 execreg_line_continuation__o_r__2 execreg_line_continuation__o_idx2
         else do
           set'reg_executing ed' (if (regname2 == 0) then (ch '"') else regname2)
           set'pending_end_reg_executing ed' FALSE
-          j'30 retval2
-    j'13 !regname3 !i3 !remap3 = do
+          j'30 retval2 execreg_line_continuation__o_r__2 execreg_line_continuation__o_idx2
+    j'13 !regname3 !i3 !remap3 !execreg_line_continuation__o_r__3 !execreg_line_continuation__o_idx3 = do
       r'28 <- y_current ed'
       r'29 <- rdP r'28 yankreg_T'y_array
       r'30 <- rdP (pAdd r'29 ((fromIntegral i3) * 16)) string_T'string
@@ -8349,11 +8405,11 @@ do_execreg ed' regname colon addcr silent = do
             then do
               r'39 <- y_current ed'
               r'40 <- rdP r'39 yankreg_T'y_array
-              (r'41, i4) <- execreg_line_continuation ed' r'40 i3
-              j'16 regname3 i4 remap3 r'41
-            else j'16 regname3 i3 remap3 r'30
-        else j'16 regname3 i3 remap3 r'30
-    j'16 !regname4 !i5 !remap4 !str1 = do
+              (r'41, r'42) <- execreg_line_continuation ed' r'40 i3
+              j'16 regname3 r'42 remap3 r'41 r'41 r'42
+            else j'16 regname3 i3 remap3 r'30 execreg_line_continuation__o_r__3 execreg_line_continuation__o_idx3
+        else j'16 regname3 i3 remap3 r'30 execreg_line_continuation__o_r__3 execreg_line_continuation__o_idx3
+    j'16 !regname4 !i4 !remap4 !str1 !execreg_line_continuation__o_r__4 !execreg_line_continuation__o_idx4 = do
       r'43 <- vim_strsave_escape_csi ed' str1
       r'44 <- ins_typebuf ed' r'43 remap4 0 True (b2i silent :: Int32)
       if (b2i r'44 :: Int32) == FAIL
@@ -8362,8 +8418,8 @@ do_execreg ed' regname colon addcr silent = do
           r'46 <- if colon then (do { r'45 <- ins_typebuf ed' (Ptr ":\0"#) remap4 0 True (b2i silent :: Int32); pure (not r'45) }) else pure False
           if r'46
             then pure False
-            else loop'9 regname4 i5 r'44 remap4
-    j'30 !retval3 = do
+            else loop'9 regname4 i4 r'44 remap4 execreg_line_continuation__o_r__4 execreg_line_continuation__o_idx4
+    j'30 !retval3 _ _ = do
       pure retval3
   if regname == (ch '@')
     then do
@@ -8375,8 +8431,8 @@ do_execreg ed' regname colon addcr silent = do
           pure False
         else do
           r'50 <- execreg_lastc ed'
-          j'3 r'50 True
-    else j'3 regname True
+          j'3 r'50 True nullPtr (0 :: Int64)
+    else j'3 regname True nullPtr (0 :: Int64)
 
 put_reedit_in_typebuf :: Ed -> Bool -> IO ()
 put_reedit_in_typebuf ed' silent = frame 11 $ \fr' -> do
@@ -9593,7 +9649,7 @@ undo_time ed' step sec file absolute = do
 u_undoredo :: Ed -> Bool -> IO ()
 u_undoredo ed' undo = frame 456 $ \fr' -> do
   let
-    loop'1 !newlnum1 !uep1 !newlist1 !old_flags1 !new_flags1 !curhead1 !new_curpos_lnum1 !new_curpos_col1 !new_curpos_coladd1 = do
+    loop'1 !newlnum1 !new_curpos_lnum1 !new_curpos_col1 !new_curpos_coladd1 !uep1 !newlist1 !old_flags1 !new_flags1 !curhead1 = do
       if uep1 /= nullPtr
         then do
           r'1 <- rdI64 uep1 u_entry_T'ue_top
@@ -9603,8 +9659,8 @@ u_undoredo ed' undo = frame 456 $ \fr' -> do
               r'3 <- curbuf ed'
               r'4 <- rdI64 r'3 (buf_T'b_ml + memline_T'ml_line_count)
               let !bot1 = r'4 + 1
-              j'41 r'1 bot1 newlnum1 uep1 newlist1 old_flags1 new_flags1 curhead1 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1
-            else j'41 r'1 r'2 newlnum1 uep1 newlist1 old_flags1 new_flags1 curhead1 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1
+              j'41 r'1 bot1 newlnum1 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1 uep1 newlist1 old_flags1 new_flags1 curhead1
+            else j'41 r'1 r'2 newlnum1 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1 uep1 newlist1 old_flags1 new_flags1 curhead1
         else do
           r'5 <- curbuf ed'
           r'6 <- rdI64 r'5 (buf_T'b_op_start + pos_T'lnum)
@@ -9616,9 +9672,9 @@ u_undoredo ed' undo = frame 456 $ \fr' -> do
               r'9 <- curbuf ed'
               r'10 <- rdI64 r'9 (buf_T'b_ml + memline_T'ml_line_count)
               wrI64 r'11 (buf_T'b_op_start + pos_T'lnum) r'10
-              j'4 newlist1 old_flags1 new_flags1 curhead1 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1
-            else j'4 newlist1 old_flags1 new_flags1 curhead1 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1
-    j'4 !newlist2 !old_flags2 !new_flags2 !curhead2 !new_curpos_lnum2 !new_curpos_col2 !new_curpos_coladd2 = do
+              j'4 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1 newlist1 old_flags1 new_flags1 curhead1
+            else j'4 new_curpos_lnum1 new_curpos_col1 new_curpos_coladd1 newlist1 old_flags1 new_flags1 curhead1
+    j'4 !new_curpos_lnum2 !new_curpos_col2 !new_curpos_coladd2 !newlist2 !old_flags2 !new_flags2 !curhead2 = do
       r'12 <- curbuf ed'
       r'13 <- rdI64 r'12 (buf_T'b_op_end + pos_T'lnum)
       r'14 <- curbuf ed'
@@ -9629,357 +9685,361 @@ u_undoredo ed' undo = frame 456 $ \fr' -> do
           r'16 <- curbuf ed'
           r'17 <- rdI64 r'16 (buf_T'b_ml + memline_T'ml_line_count)
           wrI64 r'18 (buf_T'b_op_end + pos_T'lnum) r'17
-          j'6 newlist2 old_flags2 new_flags2 curhead2 new_curpos_lnum2 new_curpos_col2 new_curpos_coladd2
-        else j'6 newlist2 old_flags2 new_flags2 curhead2 new_curpos_lnum2 new_curpos_col2 new_curpos_coladd2
-    j'6 !newlist3 !old_flags3 !new_flags3 !curhead3 !new_curpos_lnum3 !new_curpos_col3 !new_curpos_coladd3 = do
+          j'6 new_curpos_lnum2 new_curpos_col2 new_curpos_coladd2 newlist2 old_flags2 new_flags2 curhead2
+        else j'6 new_curpos_lnum2 new_curpos_col2 new_curpos_coladd2 newlist2 old_flags2 new_flags2 curhead2
+    j'6 !new_curpos_lnum3 !new_curpos_col3 !new_curpos_coladd3 !newlist3 !old_flags3 !new_flags3 !curhead3 = do
       r'19 <- curwin ed'
       wrI64 r'19 (win_T'w_cursor + pos_T'lnum) new_curpos_lnum3
-      wrI32 r'19 (win_T'w_cursor + pos_T'col) new_curpos_col3
-      wrI32 r'19 (win_T'w_cursor + pos_T'coladd) new_curpos_coladd3
+      r'20 <- curwin ed'
+      wrI32 r'20 (win_T'w_cursor + pos_T'col) new_curpos_col3
+      r'21 <- curwin ed'
+      wrI32 r'21 (win_T'w_cursor + pos_T'coladd) new_curpos_coladd3
       check_cursor_lnum ed'
       wrP curhead3 u_header_T'uh_entry newlist3
       wrI32 curhead3 u_header_T'uh_flags new_flags3
-      r'25 <- if ((old_flags3 .&. UH_EMPTYBUF) /= 0) then (do { r'20 <- curbuf ed'; r'21 <- rdI64 r'20 (buf_T'b_ml + memline_T'ml_line_count); if (r'21 == 1) then (do { r'22 <- ml_get ed' 1; r'23 <- rdW8 r'22 0; pure ((fromIntegral r'23 :: Int32) == NUL) }) else pure False }) else pure False
-      if r'25
+      r'27 <- if ((old_flags3 .&. UH_EMPTYBUF) /= 0) then (do { r'22 <- curbuf ed'; r'23 <- rdI64 r'22 (buf_T'b_ml + memline_T'ml_line_count); if (r'23 == 1) then (do { r'24 <- ml_get ed' 1; r'25 <- rdW8 r'24 0; pure ((fromIntegral r'25 :: Int32) == NUL) }) else pure False }) else pure False
+      if r'27
         then do
-          r'26 <- curbuf ed'
-          r'27 <- rdI32 r'26 (buf_T'b_ml + memline_T'ml_flags)
-          wrI32 r'26 (buf_T'b_ml + memline_T'ml_flags) (r'27 .|. ML_EMPTY)
-          j'8 old_flags3 curhead3 new_curpos_lnum3 new_curpos_col3 new_curpos_coladd3
-        else j'8 old_flags3 curhead3 new_curpos_lnum3 new_curpos_col3 new_curpos_coladd3
-    j'8 !old_flags4 !curhead4 !new_curpos_lnum4 !new_curpos_col4 !new_curpos_coladd4 = do
+          r'28 <- curbuf ed'
+          r'29 <- rdI32 r'28 (buf_T'b_ml + memline_T'ml_flags)
+          wrI32 r'28 (buf_T'b_ml + memline_T'ml_flags) (r'29 .|. ML_EMPTY)
+          j'8 old_flags3 curhead3
+        else j'8 old_flags3 curhead3
+    j'8 !old_flags4 !curhead4 = do
       if (old_flags4 .&. UH_CHANGED) /= 0
         then do
           changed ed'
-          j'11 curhead4 new_curpos_lnum4 new_curpos_col4 new_curpos_coladd4
+          j'11 curhead4
         else do
-          r'28 <- curbuf ed'
-          unchanged ed' r'28 False True
-          j'11 curhead4 new_curpos_lnum4 new_curpos_col4 new_curpos_coladd4
-    j'11 !curhead5 !new_curpos_lnum5 !new_curpos_col5 !new_curpos_coladd5 = do
-      loop'12 (0 :: Int64) curhead5 new_curpos_lnum5 new_curpos_col5 new_curpos_coladd5
-    loop'12 !i1 !curhead6 !new_curpos_lnum6 !new_curpos_col6 !new_curpos_coladd6 = do
+          r'30 <- curbuf ed'
+          unchanged ed' r'30 False True
+          j'11 curhead4
+    j'11 !curhead5 = do
+      loop'12 (0 :: Int64) curhead5
+    loop'12 !i1 !curhead6 = do
       if i1 < 26
         then do
-          r'29 <- rdI64 (pAdd (pAdd curhead6 u_header_T'uh_namedm) ((fromIntegral i1) * 16)) pos_T'lnum
-          if r'29 /= 0
-            then do
-              r'30 <- curbuf ed'
-              copyMem (pAdd (pAdd r'30 buf_T'b_namedm) ((fromIntegral i1) * 16)) (pAdd (pAdd curhead6 u_header_T'uh_namedm) ((fromIntegral i1) * 16)) 16
-              j'35 i1 curhead6 new_curpos_lnum6 new_curpos_col6 new_curpos_coladd6
-            else j'35 i1 curhead6 new_curpos_lnum6 new_curpos_col6 new_curpos_coladd6
-        else do
-          r'31 <- rdI64 curhead6 (u_header_T'uh_visual + visualinfo_T'vi_start + pos_T'lnum)
+          r'31 <- rdI64 (pAdd (pAdd curhead6 u_header_T'uh_namedm) ((fromIntegral i1) * 16)) pos_T'lnum
           if r'31 /= 0
             then do
               r'32 <- curbuf ed'
-              copyMem (pAdd r'32 buf_T'b_visual) (pAdd curhead6 u_header_T'uh_visual) 40
-              copyMem (pAdd curhead6 u_header_T'uh_visual) (pAdd fr' 416) 40
-              j'15 curhead6 new_curpos_lnum6 new_curpos_col6 new_curpos_coladd6
-            else j'15 curhead6 new_curpos_lnum6 new_curpos_col6 new_curpos_coladd6
-    j'15 !curhead7 !new_curpos_lnum7 !new_curpos_col7 !new_curpos_coladd7 = do
-      r'33 <- rdI64 curhead7 (u_header_T'uh_cursor + pos_T'lnum)
-      r'34 <- curwin ed'
-      r'35 <- rdI64 r'34 (win_T'w_cursor + pos_T'lnum)
-      r'38 <- if ((r'33 + 1) == r'35) then (do { r'36 <- curwin ed'; r'37 <- rdI64 r'36 (win_T'w_cursor + pos_T'lnum); pure (r'37 > 1) }) else pure False
-      if r'38
-        then do
-          r'39 <- curwin ed'
-          r'40 <- rdI64 r'39 (win_T'w_cursor + pos_T'lnum)
-          wrI64 r'39 (win_T'w_cursor + pos_T'lnum) (r'40 - 1)
-          j'17 curhead7 new_curpos_lnum7 new_curpos_col7 new_curpos_coladd7
-        else j'17 curhead7 new_curpos_lnum7 new_curpos_col7 new_curpos_coladd7
-    j'17 !curhead8 !new_curpos_lnum8 !new_curpos_col8 !new_curpos_coladd8 = do
-      r'41 <- curwin ed'
-      r'42 <- rdI64 r'41 (win_T'w_cursor + pos_T'lnum)
-      r'43 <- curbuf ed'
-      r'44 <- rdI64 r'43 (buf_T'b_ml + memline_T'ml_line_count)
-      if r'42 <= r'44
-        then do
-          r'45 <- rdI64 curhead8 (u_header_T'uh_cursor + pos_T'lnum)
-          r'46 <- curwin ed'
-          r'47 <- rdI64 r'46 (win_T'w_cursor + pos_T'lnum)
-          if r'45 == r'47
+              copyMem (pAdd (pAdd r'32 buf_T'b_namedm) ((fromIntegral i1) * 16)) (pAdd (pAdd curhead6 u_header_T'uh_namedm) ((fromIntegral i1) * 16)) 16
+              j'35 i1 curhead6
+            else j'35 i1 curhead6
+        else do
+          r'33 <- rdI64 curhead6 (u_header_T'uh_visual + visualinfo_T'vi_start + pos_T'lnum)
+          if r'33 /= 0
             then do
-              r'49 <- curwin ed'
-              r'48 <- rdI32 curhead8 (u_header_T'uh_cursor + pos_T'col)
-              wrI32 r'49 (win_T'w_cursor + pos_T'col) r'48
-              r'50 <- virtual_active ed'
-              r'52 <- if (r'50 /= 0) then (do { r'51 <- rdI64 curhead8 u_header_T'uh_cursor_vcol; pure (r'51 >= 0) }) else pure False
-              if r'52
+              r'34 <- curbuf ed'
+              copyMem (pAdd r'34 buf_T'b_visual) (pAdd curhead6 u_header_T'uh_visual) 40
+              copyMem (pAdd curhead6 u_header_T'uh_visual) (pAdd fr' 416) 40
+              j'15 curhead6
+            else j'15 curhead6
+    j'15 !curhead7 = do
+      r'35 <- rdI64 curhead7 (u_header_T'uh_cursor + pos_T'lnum)
+      r'36 <- curwin ed'
+      r'37 <- rdI64 r'36 (win_T'w_cursor + pos_T'lnum)
+      r'40 <- if ((r'35 + 1) == r'37) then (do { r'38 <- curwin ed'; r'39 <- rdI64 r'38 (win_T'w_cursor + pos_T'lnum); pure (r'39 > 1) }) else pure False
+      if r'40
+        then do
+          r'41 <- curwin ed'
+          r'42 <- rdI64 r'41 (win_T'w_cursor + pos_T'lnum)
+          wrI64 r'41 (win_T'w_cursor + pos_T'lnum) (r'42 - 1)
+          j'17 curhead7
+        else j'17 curhead7
+    j'17 !curhead8 = do
+      r'43 <- curwin ed'
+      r'44 <- rdI64 r'43 (win_T'w_cursor + pos_T'lnum)
+      r'45 <- curbuf ed'
+      r'46 <- rdI64 r'45 (buf_T'b_ml + memline_T'ml_line_count)
+      if r'44 <= r'46
+        then do
+          r'47 <- rdI64 curhead8 (u_header_T'uh_cursor + pos_T'lnum)
+          r'48 <- curwin ed'
+          r'49 <- rdI64 r'48 (win_T'w_cursor + pos_T'lnum)
+          if r'47 == r'49
+            then do
+              r'51 <- curwin ed'
+              r'50 <- rdI32 curhead8 (u_header_T'uh_cursor + pos_T'col)
+              wrI32 r'51 (win_T'w_cursor + pos_T'col) r'50
+              r'52 <- virtual_active ed'
+              r'54 <- if (r'52 /= 0) then (do { r'53 <- rdI64 curhead8 u_header_T'uh_cursor_vcol; pure (r'53 >= 0) }) else pure False
+              if r'54
                 then do
-                  r'53 <- rdI64 curhead8 u_header_T'uh_cursor_vcol
-                  _ <- coladvance ed' (fromIntegral r'53 :: Int32)
-                  j'24 curhead8 new_curpos_lnum8 new_curpos_col8 new_curpos_coladd8
+                  r'55 <- rdI64 curhead8 u_header_T'uh_cursor_vcol
+                  _ <- coladvance ed' (fromIntegral r'55 :: Int32)
+                  j'24 curhead8
                 else do
-                  r'55 <- curwin ed'
-                  wrI32 r'55 (win_T'w_cursor + pos_T'coladd) 0
-                  j'24 curhead8 new_curpos_lnum8 new_curpos_col8 new_curpos_coladd8
+                  r'57 <- curwin ed'
+                  wrI32 r'57 (win_T'w_cursor + pos_T'coladd) 0
+                  j'24 curhead8
             else do
               beginline ed' 6
-              j'24 curhead8 new_curpos_lnum8 new_curpos_col8 new_curpos_coladd8
+              j'24 curhead8
         else do
-          r'56 <- curwin ed'
-          wrI32 r'56 (win_T'w_cursor + pos_T'col) 0
-          r'57 <- curwin ed'
-          wrI32 r'57 (win_T'w_cursor + pos_T'coladd) 0
-          j'24 curhead8 new_curpos_lnum8 new_curpos_col8 new_curpos_coladd8
-    j'24 !curhead9 !new_curpos_lnum9 !new_curpos_col9 !new_curpos_coladd9 = do
+          r'58 <- curwin ed'
+          wrI32 r'58 (win_T'w_cursor + pos_T'col) 0
+          r'59 <- curwin ed'
+          wrI32 r'59 (win_T'w_cursor + pos_T'coladd) 0
+          j'24 curhead8
+    j'24 !curhead9 = do
       check_cursor ed'
-      r'59 <- curbuf ed'
-      r'58 <- rdI64 curhead9 u_header_T'uh_seq
-      wrI64 r'59 buf_T'b_u_seq_cur r'58
+      r'61 <- curbuf ed'
+      r'60 <- rdI64 curhead9 u_header_T'uh_seq
+      wrI64 r'61 buf_T'b_u_seq_cur r'60
       if undo
         then do
-          r'60 <- rdP curhead9 u_header_T'uh_next
-          if r'60 /= nullPtr
+          r'62 <- rdP curhead9 u_header_T'uh_next
+          if r'62 /= nullPtr
             then do
-              r'63 <- curbuf ed'
-              r'61 <- rdP curhead9 u_header_T'uh_next
-              r'62 <- rdI64 r'61 u_header_T'uh_seq
-              wrI64 r'63 buf_T'b_u_seq_cur r'62
-              j'28 curhead9 new_curpos_lnum9 new_curpos_col9 new_curpos_coladd9
+              r'65 <- curbuf ed'
+              r'63 <- rdP curhead9 u_header_T'uh_next
+              r'64 <- rdI64 r'63 u_header_T'uh_seq
+              wrI64 r'65 buf_T'b_u_seq_cur r'64
+              j'28 curhead9
             else do
-              r'64 <- curbuf ed'
-              wrI64 r'64 buf_T'b_u_seq_cur 0
-              j'28 curhead9 new_curpos_lnum9 new_curpos_col9 new_curpos_coladd9
-        else j'28 curhead9 new_curpos_lnum9 new_curpos_col9 new_curpos_coladd9
-    j'28 !curhead10 !new_curpos_lnum10 !new_curpos_col10 !new_curpos_coladd10 = do
-      r'65 <- rdI64 curhead10 u_header_T'uh_save_nr
-      if r'65 /= 0
+              r'66 <- curbuf ed'
+              wrI64 r'66 buf_T'b_u_seq_cur 0
+              j'28 curhead9
+        else j'28 curhead9
+    j'28 !curhead10 = do
+      r'67 <- rdI64 curhead10 u_header_T'uh_save_nr
+      if r'67 /= 0
         then do
           if undo
             then do
-              r'67 <- curbuf ed'
-              r'66 <- rdI64 curhead10 u_header_T'uh_save_nr
-              wrI64 r'67 buf_T'b_u_save_nr_cur (r'66 - 1)
-              j'32 curhead10 new_curpos_lnum10 new_curpos_col10 new_curpos_coladd10
-            else do
               r'69 <- curbuf ed'
               r'68 <- rdI64 curhead10 u_header_T'uh_save_nr
-              wrI64 r'69 buf_T'b_u_save_nr_cur r'68
-              j'32 curhead10 new_curpos_lnum10 new_curpos_col10 new_curpos_coladd10
-        else j'32 curhead10 new_curpos_lnum10 new_curpos_col10 new_curpos_coladd10
-    j'32 !curhead11 _ _ _ = do
-      r'71 <- curbuf ed'
-      r'70 <- rdI64 curhead11 u_header_T'uh_time
-      wrI64 r'71 buf_T'b_u_time_cur r'70
+              wrI64 r'69 buf_T'b_u_save_nr_cur (r'68 - 1)
+              j'32 curhead10
+            else do
+              r'71 <- curbuf ed'
+              r'70 <- rdI64 curhead10 u_header_T'uh_save_nr
+              wrI64 r'71 buf_T'b_u_save_nr_cur r'70
+              j'32 curhead10
+        else j'32 curhead10
+    j'32 !curhead11 = do
+      r'73 <- curbuf ed'
+      r'72 <- rdI64 curhead11 u_header_T'uh_time
+      wrI64 r'73 buf_T'b_u_time_cur r'72
       pure ()
-    j'35 !i2 !curhead12 !new_curpos_lnum12 !new_curpos_col12 !new_curpos_coladd12 = do
-      r'72 <- rdI64 (pAdd fr' ((fromIntegral i2) * 16)) pos_T'lnum
-      if r'72 /= 0
+    j'35 !i2 !curhead12 = do
+      r'74 <- rdI64 (pAdd fr' ((fromIntegral i2) * 16)) pos_T'lnum
+      if r'74 /= 0
         then do
           copyMem (pAdd (pAdd curhead12 u_header_T'uh_namedm) ((fromIntegral i2) * 16)) (pAdd fr' ((fromIntegral i2) * 16)) 16
-          j'38 i2 curhead12 new_curpos_lnum12 new_curpos_col12 new_curpos_coladd12
+          j'38 i2 curhead12
         else do
           wrI64 (pAdd (pAdd curhead12 u_header_T'uh_namedm) ((fromIntegral i2) * 16)) pos_T'lnum 0
-          j'38 i2 curhead12 new_curpos_lnum12 new_curpos_col12 new_curpos_coladd12
-    j'38 !i3 !curhead13 !new_curpos_lnum13 !new_curpos_col13 !new_curpos_coladd13 = do
+          j'38 i2 curhead12
+    j'38 !i3 !curhead13 = do
       let !i4 = i3 + 1
-      loop'12 i4 curhead13 new_curpos_lnum13 new_curpos_col13 new_curpos_coladd13
-    j'41 !top1 !bot2 !newlnum2 !uep2 !newlist4 !old_flags5 !new_flags4 !curhead14 !new_curpos_lnum14 !new_curpos_col14 !new_curpos_coladd14 = do
-      r'73 <- curbuf ed'
-      r'74 <- rdI64 r'73 (buf_T'b_ml + memline_T'ml_line_count)
-      r'77 <- if ((top1 > r'74) || (top1 >= bot2)) then pure True else (do { r'75 <- curbuf ed'; r'76 <- rdI64 r'75 (buf_T'b_ml + memline_T'ml_line_count); pure (bot2 > (r'76 + 1)) })
-      if r'77
+      loop'12 i4 curhead13
+    j'41 !top1 !bot2 !newlnum2 !new_curpos_lnum4 !new_curpos_col4 !new_curpos_coladd4 !uep2 !newlist4 !old_flags5 !new_flags4 !curhead14 = do
+      r'75 <- curbuf ed'
+      r'76 <- rdI64 r'75 (buf_T'b_ml + memline_T'ml_line_count)
+      r'79 <- if ((top1 > r'76) || (top1 >= bot2)) then pure True else (do { r'77 <- curbuf ed'; r'78 <- rdI64 r'77 (buf_T'b_ml + memline_T'ml_line_count); pure (bot2 > (r'78 + 1)) })
+      if r'79
         then do
           iemsg ed' (addr'e_u_undo_line_numbers_wrong ed')
           changed ed'
           pure ()
         else do
           let !oldsize1 = (bot2 - top1) - 1
-          r'78 <- rdI64 uep2 u_entry_T'ue_size
-          r'79 <- rdI64 curhead14 (u_header_T'uh_cursor + pos_T'lnum)
-          if (r'79 >= top1) && (r'79 <= ((top1 + r'78) + 1))
+          r'80 <- rdI64 uep2 u_entry_T'ue_size
+          r'81 <- rdI64 curhead14 (u_header_T'uh_cursor + pos_T'lnum)
+          if (r'81 >= top1) && (r'81 <= ((top1 + r'80) + 1))
             then do
-              r'80 <- rdI64 (pAdd curhead14 u_header_T'uh_cursor) pos_T'lnum
-              r'81 <- rdI32 (pAdd curhead14 u_header_T'uh_cursor) pos_T'col
-              r'82 <- rdI32 (pAdd curhead14 u_header_T'uh_cursor) pos_T'coladd
-              j'53 oldsize1 r'78 top1 bot2 (-1 :: Int64) uep2 newlist4 old_flags5 new_flags4 curhead14 r'80 r'81 r'82
+              r'82 <- rdI64 curhead14 (u_header_T'uh_cursor + pos_T'lnum)
+              r'83 <- rdI32 curhead14 (u_header_T'uh_cursor + pos_T'col)
+              r'84 <- rdI32 curhead14 (u_header_T'uh_cursor + pos_T'coladd)
+              j'53 oldsize1 r'80 top1 bot2 (-1 :: Int64) r'82 r'83 r'84 uep2 newlist4 old_flags5 new_flags4 curhead14
             else do
               if top1 < newlnum2
-                then loop'45 oldsize1 r'78 top1 bot2 newlnum2 (0 :: Int64) uep2 newlist4 old_flags5 new_flags4 curhead14 new_curpos_lnum14 new_curpos_col14 new_curpos_coladd14
-                else j'53 oldsize1 r'78 top1 bot2 newlnum2 uep2 newlist4 old_flags5 new_flags4 curhead14 new_curpos_lnum14 new_curpos_col14 new_curpos_coladd14
-    loop'45 !oldsize2 !newsize1 !top2 !bot3 !newlnum3 !i5 !uep3 !newlist5 !old_flags6 !new_flags5 !curhead15 !new_curpos_lnum15 !new_curpos_col15 !new_curpos_coladd15 = do
+                then loop'45 oldsize1 r'80 top1 bot2 newlnum2 new_curpos_lnum4 new_curpos_col4 new_curpos_coladd4 (0 :: Int64) uep2 newlist4 old_flags5 new_flags4 curhead14
+                else j'53 oldsize1 r'80 top1 bot2 newlnum2 new_curpos_lnum4 new_curpos_col4 new_curpos_coladd4 uep2 newlist4 old_flags5 new_flags4 curhead14
+    loop'45 !oldsize2 !newsize1 !top2 !bot3 !newlnum3 !new_curpos_lnum5 !new_curpos_col5 !new_curpos_coladd5 !i5 !uep3 !newlist5 !old_flags6 !new_flags5 !curhead15 = do
       if (i5 < newsize1) && (i5 < oldsize2)
         then do
-          r'83 <- ml_get ed' ((top2 + 1) + i5)
-          r'84 <- curbuf ed'
-          r'85 <- rdI32 r'84 (buf_T'b_ml + memline_T'ml_line_len)
-          r'86 <- rdP uep3 u_entry_T'ue_array
-          r'87 <- rdI64 (pAdd r'86 ((fromIntegral i5) * 24)) undoline_T'ul_len
-          r'93 <- if ((fromIntegral r'85 :: Int64) /= r'87) then pure True else (do { r'88 <- rdP uep3 u_entry_T'ue_array; r'89 <- rdP (pAdd r'88 ((fromIntegral i5) * 24)) undoline_T'ul_line; r'90 <- curbuf ed'; r'91 <- rdI32 r'90 (buf_T'b_ml + memline_T'ml_line_len); r'92 <- musl_memcmp (castPtr r'89) (castPtr r'83) (fromIntegral r'91 :: Word64); pure (r'92 /= 0) })
-          if r'93
-            then j'48 oldsize2 newsize1 top2 bot3 newlnum3 i5 uep3 newlist5 old_flags6 new_flags5 curhead15 new_curpos_lnum15 new_curpos_col15 new_curpos_coladd15
+          r'85 <- ml_get ed' ((top2 + 1) + i5)
+          r'86 <- curbuf ed'
+          r'87 <- rdI32 r'86 (buf_T'b_ml + memline_T'ml_line_len)
+          r'88 <- rdP uep3 u_entry_T'ue_array
+          r'89 <- rdI64 (pAdd r'88 ((fromIntegral i5) * 24)) undoline_T'ul_len
+          r'95 <- if ((fromIntegral r'87 :: Int64) /= r'89) then pure True else (do { r'90 <- rdP uep3 u_entry_T'ue_array; r'91 <- rdP (pAdd r'90 ((fromIntegral i5) * 24)) undoline_T'ul_line; r'92 <- curbuf ed'; r'93 <- rdI32 r'92 (buf_T'b_ml + memline_T'ml_line_len); r'94 <- musl_memcmp (castPtr r'91) (castPtr r'85) (fromIntegral r'93 :: Word64); pure (r'94 /= 0) })
+          if r'95
+            then j'48 oldsize2 newsize1 top2 bot3 newlnum3 new_curpos_lnum5 new_curpos_col5 new_curpos_coladd5 i5 uep3 newlist5 old_flags6 new_flags5 curhead15
             else do
               let !i6 = i5 + 1
-              loop'45 oldsize2 newsize1 top2 bot3 newlnum3 i6 uep3 newlist5 old_flags6 new_flags5 curhead15 new_curpos_lnum15 new_curpos_col15 new_curpos_coladd15
-        else j'48 oldsize2 newsize1 top2 bot3 newlnum3 i5 uep3 newlist5 old_flags6 new_flags5 curhead15 new_curpos_lnum15 new_curpos_col15 new_curpos_coladd15
-    j'48 !oldsize3 !newsize2 !top3 !bot4 !newlnum4 !i7 !uep4 !newlist6 !old_flags7 !new_flags6 !curhead16 !new_curpos_lnum16 !new_curpos_col16 !new_curpos_coladd16 = do
-      r'95 <- if ((i7 == newsize2) && (newlnum4 == LONG_MAX)) then (do { r'94 <- rdP uep4 u_entry_T'ue_next; pure (r'94 == nullPtr) }) else pure False
-      if r'95
+              loop'45 oldsize2 newsize1 top2 bot3 newlnum3 new_curpos_lnum5 new_curpos_col5 new_curpos_coladd5 i6 uep3 newlist5 old_flags6 new_flags5 curhead15
+        else j'48 oldsize2 newsize1 top2 bot3 newlnum3 new_curpos_lnum5 new_curpos_col5 new_curpos_coladd5 i5 uep3 newlist5 old_flags6 new_flags5 curhead15
+    j'48 !oldsize3 !newsize2 !top3 !bot4 !newlnum4 !new_curpos_lnum6 !new_curpos_col6 !new_curpos_coladd6 !i7 !uep4 !newlist6 !old_flags7 !new_flags6 !curhead16 = do
+      r'97 <- if ((i7 == newsize2) && (newlnum4 == LONG_MAX)) then (do { r'96 <- rdP uep4 u_entry_T'ue_next; pure (r'96 == nullPtr) }) else pure False
+      if r'97
         then do
-          let !new_curpos_lnum17 = top3 + 1
-          j'53 oldsize3 newsize2 top3 bot4 top3 uep4 newlist6 old_flags7 new_flags6 curhead16 new_curpos_lnum17 new_curpos_col16 new_curpos_coladd16
+          let !new_curpos_lnum7 = top3 + 1
+          j'53 oldsize3 newsize2 top3 bot4 top3 new_curpos_lnum7 new_curpos_col6 new_curpos_coladd6 uep4 newlist6 old_flags7 new_flags6 curhead16
         else do
           if i7 < newsize2
             then do
               let !newlnum5 = top3 + i7
-              let !new_curpos_lnum18 = newlnum5 + 1
-              j'53 oldsize3 newsize2 top3 bot4 newlnum5 uep4 newlist6 old_flags7 new_flags6 curhead16 new_curpos_lnum18 new_curpos_col16 new_curpos_coladd16
-            else j'53 oldsize3 newsize2 top3 bot4 newlnum4 uep4 newlist6 old_flags7 new_flags6 curhead16 new_curpos_lnum16 new_curpos_col16 new_curpos_coladd16
-    j'53 !oldsize4 !newsize3 !top4 !bot5 !newlnum6 !uep5 !newlist7 !old_flags8 !new_flags7 !curhead17 !new_curpos_lnum19 !new_curpos_col17 !new_curpos_coladd17 = do
+              let !new_curpos_lnum8 = newlnum5 + 1
+              j'53 oldsize3 newsize2 top3 bot4 newlnum5 new_curpos_lnum8 new_curpos_col6 new_curpos_coladd6 uep4 newlist6 old_flags7 new_flags6 curhead16
+            else j'53 oldsize3 newsize2 top3 bot4 newlnum4 new_curpos_lnum6 new_curpos_col6 new_curpos_coladd6 uep4 newlist6 old_flags7 new_flags6 curhead16
+    j'53 !oldsize4 !newsize3 !top4 !bot5 !newlnum6 !new_curpos_lnum9 !new_curpos_col7 !new_curpos_coladd7 !uep5 !newlist7 !old_flags8 !new_flags7 !curhead17 = do
       if oldsize4 > 0
         then do
-          r'96 <- lalloc ed' (24 * (fromIntegral oldsize4 :: Word64)) False
-          let !newarray1 = castPtr r'96
+          r'98 <- lalloc ed' (24 * (fromIntegral oldsize4 :: Word64)) False
+          let !newarray1 = castPtr r'98
           let !lnum1 = bot5 - 1
-          loop'56 newarray1 oldsize4 newsize3 top4 bot5 lnum1 newlnum6 oldsize4 uep5 newlist7 old_flags8 new_flags7 False curhead17 new_curpos_lnum19 new_curpos_col17 new_curpos_coladd17
-        else j'57 nullPtr oldsize4 newsize3 top4 bot5 newlnum6 uep5 newlist7 old_flags8 new_flags7 False curhead17 new_curpos_lnum19 new_curpos_col17 new_curpos_coladd17
-    loop'56 !newarray2 !oldsize5 !newsize4 !top5 !bot6 !lnum2 !newlnum7 !i8 !uep6 !newlist8 !old_flags9 !new_flags8 !empty_buffer1 !curhead18 !new_curpos_lnum20 !new_curpos_col18 !new_curpos_coladd18 = do
+          loop'56 newarray1 oldsize4 newsize3 top4 bot5 lnum1 newlnum6 new_curpos_lnum9 new_curpos_col7 new_curpos_coladd7 oldsize4 uep5 newlist7 old_flags8 new_flags7 False curhead17
+        else j'57 nullPtr oldsize4 newsize3 top4 bot5 newlnum6 new_curpos_lnum9 new_curpos_col7 new_curpos_coladd7 uep5 newlist7 old_flags8 new_flags7 False curhead17
+    loop'56 !newarray2 !oldsize5 !newsize4 !top5 !bot6 !lnum2 !newlnum7 !new_curpos_lnum10 !new_curpos_col8 !new_curpos_coladd8 !i8 !uep6 !newlist8 !old_flags9 !new_flags8 !empty_buffer1 !curhead18 = do
       let !i9 = i8 - 1
       if i9 >= 0
         then do
-          r'97 <- u_save_line ed' (pAdd newarray2 ((fromIntegral i9) * 24)) lnum2
-          if not r'97
+          r'99 <- u_save_line ed' (pAdd newarray2 ((fromIntegral i9) * 24)) lnum2
+          if not r'99
             then do
               do_outofmem_msg ed' 0
-              j'81 newarray2 oldsize5 newsize4 top5 bot6 lnum2 newlnum7 i9 uep6 newlist8 old_flags9 new_flags8 empty_buffer1 curhead18 new_curpos_lnum20 new_curpos_col18 new_curpos_coladd18
-            else j'81 newarray2 oldsize5 newsize4 top5 bot6 lnum2 newlnum7 i9 uep6 newlist8 old_flags9 new_flags8 empty_buffer1 curhead18 new_curpos_lnum20 new_curpos_col18 new_curpos_coladd18
-        else j'57 newarray2 oldsize5 newsize4 top5 bot6 newlnum7 uep6 newlist8 old_flags9 new_flags8 empty_buffer1 curhead18 new_curpos_lnum20 new_curpos_col18 new_curpos_coladd18
-    j'57 !newarray3 !oldsize6 !newsize5 !top6 !bot7 !newlnum8 !uep7 !newlist9 !old_flags10 !new_flags9 !empty_buffer2 !curhead19 !new_curpos_lnum21 !new_curpos_col19 !new_curpos_coladd19 = do
+              j'81 newarray2 oldsize5 newsize4 top5 bot6 lnum2 newlnum7 new_curpos_lnum10 new_curpos_col8 new_curpos_coladd8 i9 uep6 newlist8 old_flags9 new_flags8 empty_buffer1 curhead18
+            else j'81 newarray2 oldsize5 newsize4 top5 bot6 lnum2 newlnum7 new_curpos_lnum10 new_curpos_col8 new_curpos_coladd8 i9 uep6 newlist8 old_flags9 new_flags8 empty_buffer1 curhead18
+        else j'57 newarray2 oldsize5 newsize4 top5 bot6 newlnum7 new_curpos_lnum10 new_curpos_col8 new_curpos_coladd8 uep6 newlist8 old_flags9 new_flags8 empty_buffer1 curhead18
+    j'57 !newarray3 !oldsize6 !newsize5 !top6 !bot7 !newlnum8 !new_curpos_lnum11 !new_curpos_col9 !new_curpos_coladd9 !uep7 !newlist9 !old_flags10 !new_flags9 !empty_buffer2 !curhead19 = do
       check_cursor_lnum ed'
       if newsize5 /= 0
-        then loop'59 newarray3 oldsize6 newsize5 top6 bot7 top6 newlnum8 (0 :: Int64) uep7 newlist9 old_flags10 new_flags9 empty_buffer2 curhead19 new_curpos_lnum21 new_curpos_col19 new_curpos_coladd19
-        else j'60 newarray3 oldsize6 newsize5 top6 bot7 newlnum8 uep7 newlist9 old_flags10 new_flags9 curhead19 new_curpos_lnum21 new_curpos_col19 new_curpos_coladd19
-    loop'59 !newarray4 !oldsize7 !newsize6 !top7 !bot8 !lnum3 !newlnum9 !i10 !uep8 !newlist10 !old_flags11 !new_flags10 !empty_buffer3 !curhead20 !new_curpos_lnum22 !new_curpos_col20 !new_curpos_coladd20 = do
+        then loop'59 newarray3 oldsize6 newsize5 top6 bot7 top6 newlnum8 new_curpos_lnum11 new_curpos_col9 new_curpos_coladd9 (0 :: Int64) uep7 newlist9 old_flags10 new_flags9 empty_buffer2 curhead19
+        else j'60 newarray3 oldsize6 newsize5 top6 bot7 newlnum8 new_curpos_lnum11 new_curpos_col9 new_curpos_coladd9 uep7 newlist9 old_flags10 new_flags9 curhead19
+    loop'59 !newarray4 !oldsize7 !newsize6 !top7 !bot8 !lnum3 !newlnum9 !new_curpos_lnum12 !new_curpos_col10 !new_curpos_coladd10 !i10 !uep8 !newlist10 !old_flags11 !new_flags10 !empty_buffer3 !curhead20 = do
       if i10 < newsize6
         then do
           if empty_buffer3 && (lnum3 == 0)
             then do
-              r'98 <- rdP uep8 u_entry_T'ue_array
-              r'99 <- rdP (pAdd r'98 ((fromIntegral i10) * 24)) undoline_T'ul_line
               r'100 <- rdP uep8 u_entry_T'ue_array
-              r'101 <- rdI64 (pAdd r'100 ((fromIntegral i10) * 24)) undoline_T'ul_len
-              _ <- ml_replace_len ed' 1 r'99 (fromIntegral r'101 :: Int32) True True
-              j'78 newarray4 oldsize7 newsize6 top7 bot8 lnum3 newlnum9 i10 uep8 newlist10 old_flags11 new_flags10 empty_buffer3 curhead20 new_curpos_lnum22 new_curpos_col20 new_curpos_coladd20
+              r'101 <- rdP (pAdd r'100 ((fromIntegral i10) * 24)) undoline_T'ul_line
+              r'102 <- rdP uep8 u_entry_T'ue_array
+              r'103 <- rdI64 (pAdd r'102 ((fromIntegral i10) * 24)) undoline_T'ul_len
+              _ <- ml_replace_len ed' 1 r'101 (fromIntegral r'103 :: Int32) True True
+              j'78 newarray4 oldsize7 newsize6 top7 bot8 lnum3 newlnum9 new_curpos_lnum12 new_curpos_col10 new_curpos_coladd10 i10 uep8 newlist10 old_flags11 new_flags10 empty_buffer3 curhead20
             else do
-              r'103 <- rdP uep8 u_entry_T'ue_array
-              r'104 <- rdP (pAdd r'103 ((fromIntegral i10) * 24)) undoline_T'ul_line
               r'105 <- rdP uep8 u_entry_T'ue_array
-              r'106 <- rdI64 (pAdd r'105 ((fromIntegral i10) * 24)) undoline_T'ul_len
-              _ <- ml_append_flags ed' lnum3 r'104 (fromIntegral r'106 :: Int32) ML_APPEND_UNDO
-              j'78 newarray4 oldsize7 newsize6 top7 bot8 lnum3 newlnum9 i10 uep8 newlist10 old_flags11 new_flags10 empty_buffer3 curhead20 new_curpos_lnum22 new_curpos_col20 new_curpos_coladd20
-        else j'60 newarray4 oldsize7 newsize6 top7 bot8 newlnum9 uep8 newlist10 old_flags11 new_flags10 curhead20 new_curpos_lnum22 new_curpos_col20 new_curpos_coladd20
-    j'60 !newarray5 !oldsize8 !newsize7 !top8 !bot9 !newlnum10 !uep9 !newlist11 !old_flags12 !new_flags11 !curhead21 !new_curpos_lnum23 !new_curpos_col21 !new_curpos_coladd21 = do
+              r'106 <- rdP (pAdd r'105 ((fromIntegral i10) * 24)) undoline_T'ul_line
+              r'107 <- rdP uep8 u_entry_T'ue_array
+              r'108 <- rdI64 (pAdd r'107 ((fromIntegral i10) * 24)) undoline_T'ul_len
+              _ <- ml_append_flags ed' lnum3 r'106 (fromIntegral r'108 :: Int32) ML_APPEND_UNDO
+              j'78 newarray4 oldsize7 newsize6 top7 bot8 lnum3 newlnum9 new_curpos_lnum12 new_curpos_col10 new_curpos_coladd10 i10 uep8 newlist10 old_flags11 new_flags10 empty_buffer3 curhead20
+        else j'60 newarray4 oldsize7 newsize6 top7 bot8 newlnum9 new_curpos_lnum12 new_curpos_col10 new_curpos_coladd10 uep8 newlist10 old_flags11 new_flags10 curhead20
+    j'60 !newarray5 !oldsize8 !newsize7 !top8 !bot9 !newlnum10 !new_curpos_lnum13 !new_curpos_col11 !new_curpos_coladd11 !uep9 !newlist11 !old_flags12 !new_flags11 !curhead21 = do
       if oldsize8 /= newsize7
         then do
           mark_adjust ed' (top8 + 1) (top8 + oldsize8) 9223372036854775807 (newsize7 - oldsize8)
-          r'108 <- curbuf ed'
-          r'109 <- rdI64 r'108 (buf_T'b_op_start + pos_T'lnum)
-          if r'109 > (top8 + oldsize8)
+          r'110 <- curbuf ed'
+          r'111 <- rdI64 r'110 (buf_T'b_op_start + pos_T'lnum)
+          if r'111 > (top8 + oldsize8)
             then do
-              r'110 <- curbuf ed'
-              r'111 <- rdI64 r'110 (buf_T'b_op_start + pos_T'lnum)
-              wrI64 r'110 (buf_T'b_op_start + pos_T'lnum) (r'111 + (newsize7 - oldsize8))
-              j'63 newarray5 oldsize8 newsize7 top8 bot9 newlnum10 uep9 newlist11 old_flags12 new_flags11 curhead21 new_curpos_lnum23 new_curpos_col21 new_curpos_coladd21
-            else j'63 newarray5 oldsize8 newsize7 top8 bot9 newlnum10 uep9 newlist11 old_flags12 new_flags11 curhead21 new_curpos_lnum23 new_curpos_col21 new_curpos_coladd21
-        else j'65 newarray5 oldsize8 newsize7 top8 bot9 newlnum10 uep9 newlist11 old_flags12 new_flags11 curhead21 new_curpos_lnum23 new_curpos_col21 new_curpos_coladd21
-    j'63 !newarray6 !oldsize9 !newsize8 !top9 !bot10 !newlnum11 !uep10 !newlist12 !old_flags13 !new_flags12 !curhead22 !new_curpos_lnum24 !new_curpos_col22 !new_curpos_coladd22 = do
-      r'112 <- curbuf ed'
-      r'113 <- rdI64 r'112 (buf_T'b_op_end + pos_T'lnum)
-      if r'113 > (top9 + oldsize9)
+              r'112 <- curbuf ed'
+              r'113 <- rdI64 r'112 (buf_T'b_op_start + pos_T'lnum)
+              wrI64 r'112 (buf_T'b_op_start + pos_T'lnum) (r'113 + (newsize7 - oldsize8))
+              j'63 newarray5 oldsize8 newsize7 top8 bot9 newlnum10 new_curpos_lnum13 new_curpos_col11 new_curpos_coladd11 uep9 newlist11 old_flags12 new_flags11 curhead21
+            else j'63 newarray5 oldsize8 newsize7 top8 bot9 newlnum10 new_curpos_lnum13 new_curpos_col11 new_curpos_coladd11 uep9 newlist11 old_flags12 new_flags11 curhead21
+        else j'65 newarray5 oldsize8 newsize7 top8 bot9 newlnum10 new_curpos_lnum13 new_curpos_col11 new_curpos_coladd11 uep9 newlist11 old_flags12 new_flags11 curhead21
+    j'63 !newarray6 !oldsize9 !newsize8 !top9 !bot10 !newlnum11 !new_curpos_lnum14 !new_curpos_col12 !new_curpos_coladd12 !uep10 !newlist12 !old_flags13 !new_flags12 !curhead22 = do
+      r'114 <- curbuf ed'
+      r'115 <- rdI64 r'114 (buf_T'b_op_end + pos_T'lnum)
+      if r'115 > (top9 + oldsize9)
         then do
-          r'114 <- curbuf ed'
-          r'115 <- rdI64 r'114 (buf_T'b_op_end + pos_T'lnum)
-          wrI64 r'114 (buf_T'b_op_end + pos_T'lnum) (r'115 + (newsize8 - oldsize9))
-          j'65 newarray6 oldsize9 newsize8 top9 bot10 newlnum11 uep10 newlist12 old_flags13 new_flags12 curhead22 new_curpos_lnum24 new_curpos_col22 new_curpos_coladd22
-        else j'65 newarray6 oldsize9 newsize8 top9 bot10 newlnum11 uep10 newlist12 old_flags13 new_flags12 curhead22 new_curpos_lnum24 new_curpos_col22 new_curpos_coladd22
-    j'65 !newarray7 !oldsize10 !newsize9 !top10 !bot11 !newlnum12 !uep11 !newlist13 !old_flags14 !new_flags13 !curhead23 !new_curpos_lnum25 !new_curpos_col23 !new_curpos_coladd23 = do
+          r'116 <- curbuf ed'
+          r'117 <- rdI64 r'116 (buf_T'b_op_end + pos_T'lnum)
+          wrI64 r'116 (buf_T'b_op_end + pos_T'lnum) (r'117 + (newsize8 - oldsize9))
+          j'65 newarray6 oldsize9 newsize8 top9 bot10 newlnum11 new_curpos_lnum14 new_curpos_col12 new_curpos_coladd12 uep10 newlist12 old_flags13 new_flags12 curhead22
+        else j'65 newarray6 oldsize9 newsize8 top9 bot10 newlnum11 new_curpos_lnum14 new_curpos_col12 new_curpos_coladd12 uep10 newlist12 old_flags13 new_flags12 curhead22
+    j'65 !newarray7 !oldsize10 !newsize9 !top10 !bot11 !newlnum12 !new_curpos_lnum15 !new_curpos_col13 !new_curpos_coladd13 !uep11 !newlist13 !old_flags14 !new_flags13 !curhead23 = do
       if (oldsize10 > 0) || (newsize9 > 0)
         then do
           changed_lines ed' (top10 + 1) 0 bot11 (newsize9 - oldsize10)
-          j'67 newarray7 oldsize10 newsize9 top10 newlnum12 uep11 newlist13 old_flags14 new_flags13 curhead23 new_curpos_lnum25 new_curpos_col23 new_curpos_coladd23
-        else j'67 newarray7 oldsize10 newsize9 top10 newlnum12 uep11 newlist13 old_flags14 new_flags13 curhead23 new_curpos_lnum25 new_curpos_col23 new_curpos_coladd23
-    j'67 !newarray8 !oldsize11 !newsize10 !top11 !newlnum13 !uep12 !newlist14 !old_flags15 !new_flags14 !curhead24 !new_curpos_lnum26 !new_curpos_col24 !new_curpos_coladd24 = do
-      r'116 <- curbuf ed'
-      r'117 <- rdI64 r'116 (buf_T'b_op_start + pos_T'lnum)
-      if (top11 + 1) < r'117
+          j'67 newarray7 oldsize10 newsize9 top10 newlnum12 new_curpos_lnum15 new_curpos_col13 new_curpos_coladd13 uep11 newlist13 old_flags14 new_flags13 curhead23
+        else j'67 newarray7 oldsize10 newsize9 top10 newlnum12 new_curpos_lnum15 new_curpos_col13 new_curpos_coladd13 uep11 newlist13 old_flags14 new_flags13 curhead23
+    j'67 !newarray8 !oldsize11 !newsize10 !top11 !newlnum13 !new_curpos_lnum16 !new_curpos_col14 !new_curpos_coladd14 !uep12 !newlist14 !old_flags15 !new_flags14 !curhead24 = do
+      r'118 <- curbuf ed'
+      r'119 <- rdI64 r'118 (buf_T'b_op_start + pos_T'lnum)
+      if (top11 + 1) < r'119
         then do
-          r'118 <- curbuf ed'
-          wrI64 r'118 (buf_T'b_op_start + pos_T'lnum) (top11 + 1)
-          j'69 newarray8 oldsize11 newsize10 top11 newlnum13 uep12 newlist14 old_flags15 new_flags14 curhead24 new_curpos_lnum26 new_curpos_col24 new_curpos_coladd24
-        else j'69 newarray8 oldsize11 newsize10 top11 newlnum13 uep12 newlist14 old_flags15 new_flags14 curhead24 new_curpos_lnum26 new_curpos_col24 new_curpos_coladd24
-    j'69 !newarray9 !oldsize12 !newsize11 !top12 !newlnum14 !uep13 !newlist15 !old_flags16 !new_flags15 !curhead25 !new_curpos_lnum27 !new_curpos_col25 !new_curpos_coladd25 = do
-      r'121 <- if (newsize11 == 0) then (do { r'119 <- curbuf ed'; r'120 <- rdI64 r'119 (buf_T'b_op_end + pos_T'lnum); pure ((top12 + 1) > r'120) }) else pure False
-      if r'121
+          r'120 <- curbuf ed'
+          wrI64 r'120 (buf_T'b_op_start + pos_T'lnum) (top11 + 1)
+          j'69 newarray8 oldsize11 newsize10 top11 newlnum13 new_curpos_lnum16 new_curpos_col14 new_curpos_coladd14 uep12 newlist14 old_flags15 new_flags14 curhead24
+        else j'69 newarray8 oldsize11 newsize10 top11 newlnum13 new_curpos_lnum16 new_curpos_col14 new_curpos_coladd14 uep12 newlist14 old_flags15 new_flags14 curhead24
+    j'69 !newarray9 !oldsize12 !newsize11 !top12 !newlnum14 !new_curpos_lnum17 !new_curpos_col15 !new_curpos_coladd15 !uep13 !newlist15 !old_flags16 !new_flags15 !curhead25 = do
+      r'123 <- if (newsize11 == 0) then (do { r'121 <- curbuf ed'; r'122 <- rdI64 r'121 (buf_T'b_op_end + pos_T'lnum); pure ((top12 + 1) > r'122) }) else pure False
+      if r'123
         then do
-          r'122 <- curbuf ed'
-          wrI64 r'122 (buf_T'b_op_end + pos_T'lnum) (top12 + 1)
-          j'73 newarray9 oldsize12 newsize11 top12 newlnum14 uep13 newlist15 old_flags16 new_flags15 curhead25 new_curpos_lnum27 new_curpos_col25 new_curpos_coladd25
+          r'124 <- curbuf ed'
+          wrI64 r'124 (buf_T'b_op_end + pos_T'lnum) (top12 + 1)
+          j'73 newarray9 oldsize12 newsize11 top12 newlnum14 new_curpos_lnum17 new_curpos_col15 new_curpos_coladd15 uep13 newlist15 old_flags16 new_flags15 curhead25
         else do
-          r'123 <- curbuf ed'
-          r'124 <- rdI64 r'123 (buf_T'b_op_end + pos_T'lnum)
-          if (top12 + newsize11) > r'124
+          r'125 <- curbuf ed'
+          r'126 <- rdI64 r'125 (buf_T'b_op_end + pos_T'lnum)
+          if (top12 + newsize11) > r'126
             then do
-              r'125 <- curbuf ed'
-              wrI64 r'125 (buf_T'b_op_end + pos_T'lnum) (top12 + newsize11)
-              j'73 newarray9 oldsize12 newsize11 top12 newlnum14 uep13 newlist15 old_flags16 new_flags15 curhead25 new_curpos_lnum27 new_curpos_col25 new_curpos_coladd25
-            else j'73 newarray9 oldsize12 newsize11 top12 newlnum14 uep13 newlist15 old_flags16 new_flags15 curhead25 new_curpos_lnum27 new_curpos_col25 new_curpos_coladd25
-    j'73 !newarray10 !oldsize13 !newsize12 !top13 !newlnum15 !uep14 !newlist16 !old_flags17 !new_flags16 !curhead26 !new_curpos_lnum28 !new_curpos_col26 !new_curpos_coladd26 = do
-      r'126 <- u_newcount ed'
-      set'u_newcount ed' (r'126 + newsize12)
-      r'127 <- u_oldcount ed'
-      set'u_oldcount ed' (r'127 + oldsize13)
+              r'127 <- curbuf ed'
+              wrI64 r'127 (buf_T'b_op_end + pos_T'lnum) (top12 + newsize11)
+              j'73 newarray9 oldsize12 newsize11 top12 newlnum14 new_curpos_lnum17 new_curpos_col15 new_curpos_coladd15 uep13 newlist15 old_flags16 new_flags15 curhead25
+            else j'73 newarray9 oldsize12 newsize11 top12 newlnum14 new_curpos_lnum17 new_curpos_col15 new_curpos_coladd15 uep13 newlist15 old_flags16 new_flags15 curhead25
+    j'73 !newarray10 !oldsize13 !newsize12 !top13 !newlnum15 !new_curpos_lnum18 !new_curpos_col16 !new_curpos_coladd16 !uep14 !newlist16 !old_flags17 !new_flags16 !curhead26 = do
+      r'128 <- u_newcount ed'
+      set'u_newcount ed' (r'128 + newsize12)
+      r'129 <- u_oldcount ed'
+      set'u_oldcount ed' (r'129 + oldsize13)
       wrI64 uep14 u_entry_T'ue_size oldsize13
       wrP uep14 u_entry_T'ue_array newarray10
       wrI64 uep14 u_entry_T'ue_bot ((top13 + newsize12) + 1)
-      r'128 <- rdP uep14 u_entry_T'ue_next
+      r'130 <- rdP uep14 u_entry_T'ue_next
       wrP uep14 u_entry_T'ue_next newlist16
-      loop'1 newlnum15 r'128 uep14 old_flags17 new_flags16 curhead26 new_curpos_lnum28 new_curpos_col26 new_curpos_coladd26
-    j'78 !newarray11 !oldsize14 !newsize13 !top14 !bot12 !lnum4 !newlnum16 !i11 !uep15 !newlist17 !old_flags18 !new_flags17 !empty_buffer4 !curhead27 !new_curpos_lnum29 !new_curpos_col27 !new_curpos_coladd27 = do
+      loop'1 newlnum15 new_curpos_lnum18 new_curpos_col16 new_curpos_coladd16 r'130 uep14 old_flags17 new_flags16 curhead26
+    j'78 !newarray11 !oldsize14 !newsize13 !top14 !bot12 !lnum4 !newlnum16 !new_curpos_lnum19 !new_curpos_col17 !new_curpos_coladd17 !i11 !uep15 !newlist17 !old_flags18 !new_flags17 !empty_buffer4 !curhead27 = do
       let !i12 = i11 + 1
       let !lnum5 = lnum4 + 1
-      loop'59 newarray11 oldsize14 newsize13 top14 bot12 lnum5 newlnum16 i12 uep15 newlist17 old_flags18 new_flags17 empty_buffer4 curhead27 new_curpos_lnum29 new_curpos_col27 new_curpos_coladd27
-    j'81 !newarray12 !oldsize15 !newsize14 !top15 !bot13 !lnum6 !newlnum17 !i13 !uep16 !newlist18 !old_flags19 !new_flags18 !empty_buffer5 !curhead28 !new_curpos_lnum30 !new_curpos_col28 !new_curpos_coladd28 = do
-      r'129 <- curbuf ed'
-      r'130 <- rdI64 r'129 (buf_T'b_ml + memline_T'ml_line_count)
-      if r'130 == 1
-        then j'83 newarray12 oldsize15 newsize14 top15 bot13 lnum6 newlnum17 i13 uep16 newlist18 old_flags19 new_flags18 True curhead28 new_curpos_lnum30 new_curpos_col28 new_curpos_coladd28
-        else j'83 newarray12 oldsize15 newsize14 top15 bot13 lnum6 newlnum17 i13 uep16 newlist18 old_flags19 new_flags18 empty_buffer5 curhead28 new_curpos_lnum30 new_curpos_col28 new_curpos_coladd28
-    j'83 !newarray13 !oldsize16 !newsize15 !top16 !bot14 !lnum7 !newlnum18 !i14 !uep17 !newlist19 !old_flags20 !new_flags19 !empty_buffer6 !curhead29 !new_curpos_lnum31 !new_curpos_col29 !new_curpos_coladd29 = do
+      loop'59 newarray11 oldsize14 newsize13 top14 bot12 lnum5 newlnum16 new_curpos_lnum19 new_curpos_col17 new_curpos_coladd17 i12 uep15 newlist17 old_flags18 new_flags17 empty_buffer4 curhead27
+    j'81 !newarray12 !oldsize15 !newsize14 !top15 !bot13 !lnum6 !newlnum17 !new_curpos_lnum20 !new_curpos_col18 !new_curpos_coladd18 !i13 !uep16 !newlist18 !old_flags19 !new_flags18 !empty_buffer5 !curhead28 = do
+      r'131 <- curbuf ed'
+      r'132 <- rdI64 r'131 (buf_T'b_ml + memline_T'ml_line_count)
+      if r'132 == 1
+        then j'83 newarray12 oldsize15 newsize14 top15 bot13 lnum6 newlnum17 new_curpos_lnum20 new_curpos_col18 new_curpos_coladd18 i13 uep16 newlist18 old_flags19 new_flags18 True curhead28
+        else j'83 newarray12 oldsize15 newsize14 top15 bot13 lnum6 newlnum17 new_curpos_lnum20 new_curpos_col18 new_curpos_coladd18 i13 uep16 newlist18 old_flags19 new_flags18 empty_buffer5 curhead28
+    j'83 !newarray13 !oldsize16 !newsize15 !top16 !bot14 !lnum7 !newlnum18 !new_curpos_lnum21 !new_curpos_col19 !new_curpos_coladd19 !i14 !uep17 !newlist19 !old_flags20 !new_flags19 !empty_buffer6 !curhead29 = do
       _ <- ml_delete_flags ed' lnum7 ML_DEL_UNDO
       let !lnum8 = lnum7 - 1
-      loop'56 newarray13 oldsize16 newsize15 top16 bot14 lnum8 newlnum18 i14 uep17 newlist19 old_flags20 new_flags19 empty_buffer6 curhead29 new_curpos_lnum31 new_curpos_col29 new_curpos_coladd29
-  r'132 <- curwin ed'
-  r'133 <- rdI64 (pAdd r'132 win_T'w_cursor) pos_T'lnum
-  r'134 <- rdI32 (pAdd r'132 win_T'w_cursor) pos_T'col
-  r'135 <- rdI32 (pAdd r'132 win_T'w_cursor) pos_T'coladd
-  r'136 <- curbuf ed'
-  r'137 <- rdP r'136 buf_T'b_u_curhead
-  r'138 <- rdI32 r'137 u_header_T'uh_flags
-  r'139 <- curbuf ed'
-  r'140 <- rdI32 r'139 buf_T'b_changed
-  r'141 <- curbuf ed'
-  r'142 <- rdI32 r'141 (buf_T'b_ml + memline_T'ml_flags)
-  let !new_flags20 = (if (r'140 /= 0) then (UH_CHANGED :: Int32) else (0 :: Int32)) + (if ((r'142 .&. ML_EMPTY) /= 0) then (UH_EMPTYBUF :: Int32) else (0 :: Int32))
-  setpcmark ed'
+      loop'56 newarray13 oldsize16 newsize15 top16 bot14 lnum8 newlnum18 new_curpos_lnum21 new_curpos_col19 new_curpos_coladd19 i14 uep17 newlist19 old_flags20 new_flags19 empty_buffer6 curhead29
+  r'134 <- curwin ed'
+  r'135 <- rdI64 r'134 (win_T'w_cursor + pos_T'lnum)
+  r'136 <- curwin ed'
+  r'137 <- rdI32 r'136 (win_T'w_cursor + pos_T'col)
+  r'138 <- curwin ed'
+  r'139 <- rdI32 r'138 (win_T'w_cursor + pos_T'coladd)
+  r'140 <- curbuf ed'
+  r'141 <- rdP r'140 buf_T'b_u_curhead
+  r'142 <- rdI32 r'141 u_header_T'uh_flags
   r'143 <- curbuf ed'
-  _ <- musl_memmove (castPtr fr') (castPtr (pAdd r'143 buf_T'b_namedm)) 416
+  r'144 <- rdI32 r'143 buf_T'b_changed
   r'145 <- curbuf ed'
-  copyMem (pAdd fr' 416) (pAdd r'145 buf_T'b_visual) 40
-  r'148 <- curbuf ed'
-  r'146 <- curbuf ed'
-  r'147 <- rdI64 r'146 (buf_T'b_ml + memline_T'ml_line_count)
-  wrI64 r'148 (buf_T'b_op_start + pos_T'lnum) r'147
+  r'146 <- rdI32 r'145 (buf_T'b_ml + memline_T'ml_flags)
+  let !new_flags20 = (if (r'144 /= 0) then (UH_CHANGED :: Int32) else (0 :: Int32)) + (if ((r'146 .&. ML_EMPTY) /= 0) then (UH_EMPTYBUF :: Int32) else (0 :: Int32))
+  setpcmark ed'
+  r'147 <- curbuf ed'
+  _ <- musl_memmove (castPtr fr') (castPtr (pAdd r'147 buf_T'b_namedm)) 416
   r'149 <- curbuf ed'
-  wrI32 r'149 (buf_T'b_op_start + pos_T'col) 0
+  copyMem (pAdd fr' 416) (pAdd r'149 buf_T'b_visual) 40
+  r'152 <- curbuf ed'
   r'150 <- curbuf ed'
-  wrI64 r'150 (buf_T'b_op_end + pos_T'lnum) 0
-  r'151 <- curbuf ed'
-  wrI32 r'151 (buf_T'b_op_end + pos_T'col) 0
-  r'152 <- rdP r'137 u_header_T'uh_entry
-  loop'1 (LONG_MAX :: Int64) r'152 nullPtr r'138 new_flags20 r'137 r'133 r'134 r'135
+  r'151 <- rdI64 r'150 (buf_T'b_ml + memline_T'ml_line_count)
+  wrI64 r'152 (buf_T'b_op_start + pos_T'lnum) r'151
+  r'153 <- curbuf ed'
+  wrI32 r'153 (buf_T'b_op_start + pos_T'col) 0
+  r'154 <- curbuf ed'
+  wrI64 r'154 (buf_T'b_op_end + pos_T'lnum) 0
+  r'155 <- curbuf ed'
+  wrI32 r'155 (buf_T'b_op_end + pos_T'col) 0
+  r'156 <- rdP r'141 u_header_T'uh_entry
+  loop'1 (LONG_MAX :: Int64) r'135 r'137 r'139 r'156 nullPtr r'142 new_flags20 r'141
 
 u_undo_end :: Ed -> Int32 -> Bool -> IO ()
 u_undo_end ed' did_undo absolute = frame 80 $ \fr' -> do

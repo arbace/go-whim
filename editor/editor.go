@@ -813,6 +813,45 @@ type S_exarg struct {
 	ea_getline  func(int32, int32, getline_opt_T) Ptr[byte]
 }
 
+type get_list_range__out_T struct {
+	r__  bool
+	str  Ptr[byte]
+	num1 int32
+	num2 int32
+}
+
+type prepare_search_hl_line__out_T struct {
+	r__         bool
+	line        Ptr[byte]
+	search_attr int32
+}
+
+type update_search_hl__out_T struct {
+	r__         int32
+	line        Ptr[byte]
+	on_last_col int32
+}
+
+type copy_option_part__out_T struct {
+	r__    int32
+	option Ptr[byte]
+}
+
+type find_special_key__out_T struct {
+	r__  int32
+	modp int32
+}
+
+type mb_cptr2char_adv__out_T struct {
+	r__ int32
+	pp  Ptr[byte]
+}
+
+type mb_copy_char__out_T struct {
+	fp Ptr[byte]
+	tp Ptr[byte]
+}
+
 type regsearch_T struct {
 	col      colnr_T
 	nmatch   int64
@@ -826,6 +865,35 @@ type linefound_T struct {
 	pos      []lpos_T
 	n        int32
 	next     int32
+}
+
+type get_spec_reg__out_T struct {
+	r__       bool
+	allocated int32
+}
+
+type fillchar_status__out_T struct {
+	r__  int32
+	attr int32
+}
+
+type fillchar_vsep__out_T struct {
+	r__  int32
+	attr int32
+}
+
+type parse_search_pattern_offset__out_T struct {
+	r__          int32
+	pat          Ptr[byte]
+	patlen       usize
+	searchstr    Ptr[byte]
+	searchstrlen usize
+	dircp        Ptr[byte]
+}
+
+type replace_termcodes__out_T struct {
+	r__  Ptr[byte]
+	bufp Ptr[byte]
 }
 
 type winlinevars_T struct {
@@ -866,6 +934,11 @@ type winlinevars_T struct {
 	filler_lines             int32
 }
 
+type ins_bs__out_T struct {
+	r__              bool
+	inserted_space_p int32
+}
+
 type subflags_T struct {
 	do_all    int32
 	do_ask    int32
@@ -883,6 +956,11 @@ type S_cmdname struct {
 	cmd_func      func(*S_exarg)
 	cmd_argt      long_u
 	cmd_addr_type cmd_addr_T
+}
+
+type one_letter_cmd__out_T struct {
+	r__ bool
+	idx cmdidx_T
 }
 
 type viewstate_T struct {
@@ -906,12 +984,36 @@ type incsearch_state_T struct {
 	magic_overruled_save optmagic_T
 }
 
+type may_add_char_to_search__out_T struct {
+	r__ bool
+	c   int32
+}
+
+type cmdline_browse_history__out_T struct {
+	r__          int32
+	curcmdstr    Ptr[byte]
+	curcmdstrlen usize
+	hiscnt_p     int32
+}
+
+type get_buffcont__out_T struct {
+	r__  Ptr[byte]
+	len_ usize
+}
+
 type gotchars_state_T struct {
 	buf             [67]byte
 	prev_c          int32
 	buflen          usize
 	pending_special uint32
 	pending_mbyte   uint32
+}
+
+type handle_mapping__out_T struct {
+	r__      int32
+	keylenp  int32
+	timedout int32
+	mapdepth int32
 }
 
 type hl_group_T struct {
@@ -941,9 +1043,35 @@ type S_hl_overrides_S struct {
 	attr [70]int32
 }
 
+type lookup_color__out_T struct {
+	r__   int32
+	boldp int32
+}
+
+type parse_winhighlight__out_T struct {
+	r__    Ptr[hl_override_T]
+	len_   int32
+	errmsg Ptr[byte]
+}
+
+type get_map_mode__out_T struct {
+	r__  int32
+	cmdp Ptr[byte]
+}
+
 type S_initmap struct {
 	arg  Ptr[byte]
 	mode int32
+}
+
+type utf_ptr2char_and_len__out_T struct {
+	r__  int32
+	lenp int32
+}
+
+type utf_ptr2char_and_len_len__out_T struct {
+	r__  int32
+	lenp int32
 }
 
 type S_interval struct {
@@ -951,11 +1079,22 @@ type S_interval struct {
 	last  int64
 }
 
+type utf_safe_read_char_adv__out_T struct {
+	r__ int32
+	s   Ptr[byte]
+	n   usize
+}
+
 type convertStruct struct {
 	rangeStart int32
 	rangeEnd   int32
 	step       int32
 	offset     int32
+}
+
+type store_sb_text__out_T struct {
+	sb_str Ptr[byte]
+	sb_col int32
 }
 
 type S_msg_hist struct {
@@ -971,6 +1110,11 @@ type S_msgchunk_S struct {
 	sb_msg_col int32
 	sb_attr    int32
 	sb_text    Ptr[byte]
+}
+
+type vim_append_digit_long__out_T struct {
+	r__   bool
+	value int64
 }
 
 type S_modmasktable struct {
@@ -998,6 +1142,22 @@ type S_nv_cmd struct {
 	cmd_arg   int16
 }
 
+type normal_cmd_get_count__out_T struct {
+	r__           int32
+	ctrl_w        int32
+	need_flushbuf int32
+}
+
+type normal_cmd_get_more_chars__out_T struct {
+	r__           int32
+	need_flushbuf int32
+}
+
+type find_is_eval_item__out_T struct {
+	r__ bool
+	bnp int32
+}
+
 type S_block_def struct {
 	startspaces      int32
 	endspaces        int32
@@ -1013,6 +1173,12 @@ type S_block_def struct {
 	pre_whitesp_c    int32
 	end_char_vcols   colnr_T
 	start_char_vcols colnr_T
+}
+
+type line_count_info__out_T struct {
+	r__ varnumber_T
+	wc  varnumber_T
+	cc  varnumber_T
 }
 
 type redo_VIsual_T struct {
@@ -1033,6 +1199,61 @@ type S_vimoption struct {
 	opt_expand_cb  func(*optexpand_T, *int32, **Ptr[byte]) int32
 	def_str        [2]Ptr[byte]
 	def_num        [2]int64
+}
+
+type parse_option_name__out_T struct {
+	r__      bool
+	opt_idxp int32
+	lenp     int32
+	keyp     int32
+}
+
+type opt_backspace_nr2str__out_T struct {
+	origval_p   Ptr[byte]
+	origval_l_p Ptr[byte]
+	origval_g_p Ptr[byte]
+	oldval_p    Ptr[byte]
+}
+
+type find_key_item__out_T struct {
+	r__      Ptr[byte]
+	itemlenp int32
+}
+
+type stropt_get_newval__out_T struct {
+	r__           Ptr[byte]
+	argp          Ptr[byte]
+	origval_arg   Ptr[byte]
+	origval_l_arg Ptr[byte]
+	origval_g_arg Ptr[byte]
+	oldval_arg    Ptr[byte]
+	op_arg        set_op_T
+}
+
+type do_set_option_string__out_T struct {
+	r__    bool
+	argp   Ptr[byte]
+	errmsg Ptr[byte]
+}
+
+type do_set_option_numeric__out_T struct {
+	r__  Ptr[byte]
+	argp Ptr[byte]
+}
+
+type do_set_option_keycode__out_T struct {
+	r__  Ptr[byte]
+	argp Ptr[byte]
+}
+
+type do_set_option_value__out_T struct {
+	r__  Ptr[byte]
+	argp Ptr[byte]
+}
+
+type do_set_option__out_T struct {
+	r__      Ptr[byte]
+	did_show int32
 }
 
 type S_signalinfo struct {
@@ -1090,6 +1311,22 @@ type S_regengine_S struct {
 	failed          bool
 }
 
+type cstrncmp__out_T struct {
+	r__ int32
+	n   int32
+}
+
+type read_limits__out_T struct {
+	r__    int32
+	minval int64
+	maxval int64
+}
+
+type match_with_backref__out_T struct {
+	r__     int32
+	bytelen int32
+}
+
 type decomp_T struct {
 	a int32
 	b int32
@@ -1134,6 +1371,31 @@ type S_backpos_S struct {
 	bp_pos  regsave_T
 }
 
+type reg__out_T struct {
+	r__   Ptr[byte]
+	flagp int32
+}
+
+type regpiece__out_T struct {
+	r__   Ptr[byte]
+	flagp int32
+}
+
+type regconcat__out_T struct {
+	r__   Ptr[byte]
+	flagp int32
+}
+
+type regbranch__out_T struct {
+	r__   Ptr[byte]
+	flagp int32
+}
+
+type execreg_line_continuation__out_T struct {
+	r__ Ptr[byte]
+	idx int64
+}
+
 type S_charstab struct {
 	cp   *int32
 	name string_T
@@ -1145,6 +1407,17 @@ type S_searchstat struct {
 	exact_match   bool
 	incomplete    int32
 	last_maxcount int32
+}
+
+type find_mps_values__out_T struct {
+	initc     int32
+	findc     int32
+	backwards int32
+}
+
+type find_term_bykeys__out_T struct {
+	r__      int32
+	matchlen int32
 }
 
 type termrequest_T struct {
@@ -1180,6 +1453,31 @@ type S_termcode struct {
 	code   Ptr[byte]
 	len_   int32
 	modlen int32
+}
+
+type modifiers2keycode__out_T struct {
+	r__ int32
+	key int32
+}
+
+type handle_csi__out_T struct {
+	r__  int32
+	slen int32
+}
+
+type handle_osc__out_T struct {
+	r__  bool
+	slen int32
+}
+
+type handle_dcs__out_T struct {
+	r__  bool
+	slen int32
+}
+
+type frame_comp_pos__out_T struct {
+	row int32
+	col int32
 }
 
 type S_clinterval struct {
@@ -8477,7 +8775,9 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 	var p_extra Ptr[byte] = Ptr[byte]{}
 	var less_cols int32 = 0
 	var less_cols_off int32 = 0
-	var old_cursor pos_T
+	var old_cursor_lnum linenr_T
+	var old_cursor_col colnr_T
+	var old_cursor_coladd colnr_T
 	var newcol int32 = 0
 	var newindent int32 = 0
 	var n int32
@@ -8538,7 +8838,9 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 		if ((!trunc_line && do_si) && (int32(saved_line.Get()) != NUL)) && (p_extra.Nil() || (first_char != '{')) {
 			var ptr Ptr[byte]
 			var last_char char_u
-			old_cursor = ed.curwin.w_cursor
+			old_cursor_lnum = ed.curwin.w_cursor.lnum
+			old_cursor_col = ed.curwin.w_cursor.col
+			old_cursor_coladd = ed.curwin.w_cursor.coladd
 			ptr = saved_line
 			if dir == FORWARD {
 				if int32(ptr.At(0)) == '#' {
@@ -8598,7 +8900,9 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 					ed.can_si_back = TRUE
 				}
 			}
-			ed.curwin.w_cursor = old_cursor
+			ed.curwin.w_cursor.lnum = old_cursor_lnum
+			ed.curwin.w_cursor.col = old_cursor_col
+			ed.curwin.w_cursor.coladd = old_cursor_coladd
 		}
 		if do_si {
 			ed.can_si = TRUE
@@ -8624,11 +8928,13 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 	if p_extra.Nil() {
 		p_extra = S("")
 	}
-	old_cursor = ed.curwin.w_cursor
+	old_cursor_lnum = ed.curwin.w_cursor.lnum
+	old_cursor_col = ed.curwin.w_cursor.col
+	old_cursor_coladd = ed.curwin.w_cursor.coladd
 	if dir == -1 {
 		ed.curwin.w_cursor.lnum--
 	}
-	if ((ed.State & VREPLACE_FLAG) == 0) || (old_cursor.lnum >= int64(ed.orig_line_count)) {
+	if ((ed.State & VREPLACE_FLAG) == 0) || (old_cursor_lnum >= int64(ed.orig_line_count)) {
 		if !ed.ml_append(ed.curwin.w_cursor.lnum, p_extra, 0) {
 			ed.curbuf.b_p_pi = saved_pi
 			return (retval)
@@ -8674,7 +8980,9 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 			ed.did_si = FALSE
 		}
 	}
-	ed.curwin.w_cursor = old_cursor
+	ed.curwin.w_cursor.lnum = old_cursor_lnum
+	ed.curwin.w_cursor.col = old_cursor_col
+	ed.curwin.w_cursor.coladd = old_cursor_coladd
 	if dir == FORWARD {
 		if trunc_line || ((ed.State & MODE_INSERT) != 0) {
 			saved_line.Set(int(ed.curwin.w_cursor.col), NUL)
@@ -8693,7 +9001,7 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 				ed.changed_bytes(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.col)
 			}
 		}
-		ed.curwin.w_cursor.lnum = old_cursor.lnum + 1
+		ed.curwin.w_cursor.lnum = old_cursor_lnum + 1
 	}
 	if did_append {
 		ed.changed_lines(ed.curwin.w_cursor.lnum, 0, ed.curwin.w_cursor.lnum, 1)
@@ -9657,14 +9965,14 @@ func getdigits_quoted(pp *Ptr[byte]) int64 {
 	return retval
 }
 
-func vim_str2nr(start Ptr[byte], prep *int32, len_ *int32, what int32, nptr *varnumber_T, unptr *uvarnumber_T, maxlen int32, strict bool, overflow *int32) {
+func vim_str2nr(start Ptr[byte], prep *int32, len_ int32, what int32, nptr *varnumber_T, unptr *uvarnumber_T, maxlen int32, strict bool, overflow *int32) int32 {
 	ptr := start
 	var pre int32 = 0
 	var negative bool = false
 	var un uvarnumber_T = 0
 	var n int32
-	if len_ != nil {
-		*len_ = 0
+	if true {
+		len_ = 0
 	}
 	if int32(ptr.At(0)) == '-' {
 		negative = true
@@ -9805,13 +10113,13 @@ func vim_str2nr(start Ptr[byte], prep *int32, len_ *int32, what int32, nptr *var
 		}
 	}
 	if (strict && ((n - 1) != maxlen)) && ((((uint32(ptr.Get()) - 'A') < 26) || ((uint32(ptr.Get()) - 'a') < 26)) || ((uint32(ptr.Get()) - '0') < 10)) {
-		return
+		return len_
 	}
 	if prep != nil {
 		*prep = pre
 	}
-	if len_ != nil {
-		*len_ = int32(int64(ptr.Sub(start)))
+	if true {
+		len_ = int32(int64(ptr.Sub(start)))
 	}
 	if nptr != nil {
 		if negative {
@@ -9836,6 +10144,7 @@ func vim_str2nr(start Ptr[byte], prep *int32, len_ *int32, what int32, nptr *var
 	if unptr != nil {
 		*unptr = un
 	}
+	return len_
 }
 
 func hex2nr(c int32) int32 {
@@ -10189,6 +10498,7 @@ func (ed *Editor) add_to_history(histype int32, new_entry Ptr[byte], new_entryle
 func (ed *Editor) ex_history(eap *S_exarg) {
 	var len_ int32
 
+	var get_list_range__o get_list_range__out_T
 	var hist Ptr[S_hist_entry]
 	var histype1 int32 = HIST_CMD
 	var histype2 int32 = HIST_CMD
@@ -10229,7 +10539,11 @@ func (ed *Editor) ex_history(eap *S_exarg) {
 	} else {
 		end = arg
 	}
-	if !get_list_range(&end, &hisidx1, &hisidx2) || (int32(end.Get()) != NUL) {
+	get_list_range__o = get_list_range(end, hisidx1, hisidx2)
+	end = get_list_range__o.str
+	hisidx1 = get_list_range__o.num1
+	hisidx2 = get_list_range__o.num2
+	if !get_list_range__o.r__ || (int32(end.Get()) != NUL) {
 		if int32(end.Get()) != NUL {
 			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_trailing_characters_str), end)
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_trailing_characters_str)))
@@ -10438,7 +10752,7 @@ func (ed *Editor) mb_ptr2char_adv__p_extra(s0__ *winlinevars_T) int32 {
 
 func get_search_match_hl__char_attr(wp *S_window_S, search_hl *match_T, col int64, s3__ *winlinevars_T) {
 	char_attr3__ := s3__.char_attr
-	get_search_match_hl(wp, search_hl, col, &char_attr3__)
+	char_attr3__ = get_search_match_hl(wp, search_hl, col, char_attr3__)
 	s3__.char_attr = char_attr3__
 }
 
@@ -10446,6 +10760,8 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 	var i int32
 	var i_2 int32
 
+	var prepare_search_hl_line__o prepare_search_hl_line__out_T
+	var update_search_hl__o update_search_hl__out_T
 	var wlv winlinevars_T
 	var c int32 = 0
 	var line Ptr[byte]
@@ -10675,7 +10991,10 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 	}
 	if number_only == 0 {
 		v = int64(ptr.Sub(line))
-		area_highlighting |= B2i(ed.prepare_search_hl_line(wp, lnum, int32(v), &line, &ed.screen_search_hl, &search_attr))
+		prepare_search_hl_line__o = ed.prepare_search_hl_line(wp, lnum, int32(v), line, &ed.screen_search_hl, search_attr)
+		line = prepare_search_hl_line__o.line
+		search_attr = prepare_search_hl_line__o.search_attr
+		area_highlighting |= B2i(prepare_search_hl_line__o.r__)
 		ptr = line.Add(int(v))
 	}
 	ed.win_line_start(wp, &wlv, false)
@@ -10722,7 +11041,10 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 			}
 			if wlv.n_extra == 0 {
 				v = int64(ptr.Sub(line))
-				search_attr = ed.update_search_hl(wp, lnum, int32(v), &line, &ed.screen_search_hl, &has_match_conc, &match_conc, did_line_attr, lcs_eol_one, &on_last_col)
+				update_search_hl__o = ed.update_search_hl(wp, lnum, int32(v), line, &ed.screen_search_hl, &has_match_conc, &match_conc, did_line_attr, lcs_eol_one, on_last_col)
+				line = update_search_hl__o.line
+				on_last_col = update_search_hl__o.on_last_col
+				search_attr = update_search_hl__o.r__
 				ptr = line.Add(int(v))
 				if int32(ptr.Get()) == NUL {
 					has_match_conc = 0
@@ -11365,6 +11687,8 @@ func statusline_row(wp *S_window_S) int32 {
 }
 
 func (ed *Editor) win_redr_status(wp *S_window_S, ignore_pum bool) {
+	var fillchar_status__o fillchar_status__out_T
+	var fillchar_vsep__o fillchar_vsep__out_T
 	var row int32
 	var fillchar int32
 	var attr int32
@@ -11384,7 +11708,9 @@ func (ed *Editor) win_redr_status(wp *S_window_S, ignore_pum bool) {
 		var plen int32
 		var this_ru_col int32
 		var n int32
-		fillchar = ed.fillchar_status(&attr, wp)
+		fillchar_status__o = ed.fillchar_status(attr, wp)
+		attr = fillchar_status__o.attr
+		fillchar = fillchar_status__o.r__
 		ed.get_trans_bufname(wp.w_buffer)
 		p = ed.NameBuff
 		plen = int32(musl_strlen(p))
@@ -11446,7 +11772,9 @@ func (ed *Editor) win_redr_status(wp *S_window_S, ignore_pum bool) {
 		i = 0
 		for ; i < wp.w_status_height; i++ {
 			r := row + i
-			fillchar = ed.fillchar_vsep(&attr, wp, r)
+			fillchar_vsep__o = ed.fillchar_vsep(attr, wp, r)
+			attr = fillchar_vsep__o.attr
+			fillchar = fillchar_vsep__o.r__
 			ed.screen_putchar(fillchar, r, (wp.w_wincol + wp.w_width), attr)
 		}
 	}
@@ -11464,6 +11792,7 @@ func (ed *Editor) showruler(always bool) {
 }
 
 func (ed *Editor) win_redr_ruler(wp *S_window_S, always bool, ignore_pum bool) {
+	var fillchar_status__o fillchar_status__out_T
 	var empty_line bool = false
 	if ed.p_ru == 0 {
 		return
@@ -11498,7 +11827,9 @@ func (ed *Editor) win_redr_ruler(wp *S_window_S, always bool, ignore_pum bool) {
 		ed.cursor_off()
 		if wp.w_status_height != 0 {
 			row = statusline_row(wp)
-			fillchar = ed.fillchar_status(&attr, wp)
+			fillchar_status__o = ed.fillchar_status(attr, wp)
+			attr = fillchar_status__o.attr
+			fillchar = fillchar_status__o.r__
 			off = wp.w_wincol
 			width = wp.w_width
 		} else {
@@ -12399,19 +12730,21 @@ func (ed *Editor) edit_esc(count *int64, cmdchar int32, nomove bool, o_lnum *lin
 	return false
 }
 
-func (ed *Editor) edit_normalchar(c int32, inserted_space *int32) {
+func (ed *Editor) edit_normalchar(c int32, inserted_space int32) int32 {
 	ed.ins_try_si(c)
 	if c == (' ') {
-		*inserted_space = TRUE
+		inserted_space = TRUE
 	}
 	if ed.vim_iswordc(c) || (c != Ctrl_RSB) {
 		ed.insert_special(c, false, false)
 	}
+	return inserted_space
 }
 
 func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 	var save_curbuf bufref_T
 
+	var ins_bs__o ins_bs__out_T
 	var c int32 = 0
 	var esc_now bool = false
 	var ptr Ptr[byte]
@@ -12432,13 +12765,17 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 		return false
 	}
 	if (cmdchar != 'r') && (cmdchar != 'v') {
-		save_cursor := ed.curwin.w_cursor
+		save_cursor_lnum := ed.curwin.w_cursor.lnum
+		save_cursor_col := ed.curwin.w_cursor.col
+		save_cursor_coladd := ed.curwin.w_cursor.coladd
 		if ed.need_highlight_changed != 0 {
 			ed.highlight_changed()
 		}
-		if !(((ed.curwin.w_cursor.lnum == save_cursor.lnum) && (ed.curwin.w_cursor.col == save_cursor.col)) && (ed.curwin.w_cursor.coladd == save_cursor.coladd)) && (save_cursor.lnum <= ed.curbuf.b_ml.ml_line_count) {
+		if !(((ed.curwin.w_cursor.lnum == save_cursor_lnum) && (ed.curwin.w_cursor.col == save_cursor_col)) && (ed.curwin.w_cursor.coladd == save_cursor_coladd)) && (save_cursor_lnum <= ed.curbuf.b_ml.ml_line_count) {
 			save_state := ed.State
-			ed.curwin.w_cursor = save_cursor
+			ed.curwin.w_cursor.lnum = save_cursor_lnum
+			ed.curwin.w_cursor.col = save_cursor_col
+			ed.curwin.w_cursor.coladd = save_cursor_coladd
 			ed.State = MODE_INSERT
 			ed.check_cursor_col()
 			ed.State = save_state
@@ -12674,7 +13011,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 			continue
 		case Ctrl_Z:
 			if ed.p_im == 0 {
-				ed.edit_normalchar(c, &inserted_space)
+				inserted_space = ed.edit_normalchar(c, inserted_space)
 				break
 			}
 			ed.do_cmdline_cmd(S("stop"))
@@ -12722,11 +13059,17 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 		case K_DEL, K_KDEL:
 			ed.ins_del()
 		case K_BS, K_S_BS, Ctrl_H:
-			did_backspace = (ed.ins_bs(c, BACKSPACE_CHAR, &inserted_space))
+			ins_bs__o = ed.ins_bs(c, BACKSPACE_CHAR, inserted_space)
+			inserted_space = ins_bs__o.inserted_space_p
+			did_backspace = (ins_bs__o.r__)
 		case Ctrl_W:
-			did_backspace = (ed.ins_bs(c, BACKSPACE_WORD, &inserted_space))
+			ins_bs__o = ed.ins_bs(c, BACKSPACE_WORD, inserted_space)
+			inserted_space = ins_bs__o.inserted_space_p
+			did_backspace = (ins_bs__o.r__)
 		case Ctrl_U:
-			did_backspace = (ed.ins_bs(c, BACKSPACE_LINE, &inserted_space))
+			ins_bs__o = ed.ins_bs(c, BACKSPACE_LINE, inserted_space)
+			inserted_space = ins_bs__o.inserted_space_p
+			did_backspace = (ins_bs__o.r__)
 			inserted_space = FALSE
 		case K_PASTESTART:
 			ed.bracketed_paste(PASTE_INSERT, false, nil)
@@ -12796,7 +13139,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 		case TAB:
 			inserted_space = FALSE
 			if ed.ins_tab() {
-				ed.edit_normalchar(c, &inserted_space)
+				inserted_space = ed.edit_normalchar(c, inserted_space)
 			}
 		case K_KENTER:
 			c = CAR
@@ -12810,14 +13153,14 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 			}
 			inserted_space = FALSE
 		case Ctrl_K:
-			ed.edit_normalchar(c, &inserted_space)
+			inserted_space = ed.edit_normalchar(c, inserted_space)
 		case Ctrl_X:
 		case Ctrl_RSB:
-			ed.edit_normalchar(c, &inserted_space)
+			inserted_space = ed.edit_normalchar(c, inserted_space)
 		case Ctrl_F:
-			ed.edit_normalchar(c, &inserted_space)
+			inserted_space = ed.edit_normalchar(c, inserted_space)
 		case 's', Ctrl_S:
-			ed.edit_normalchar(c, &inserted_space)
+			inserted_space = ed.edit_normalchar(c, inserted_space)
 		case Ctrl_L:
 			if ed.p_im != 0 {
 				if ed.edit_esc(&count, cmdchar, (nomove), &ed.edit_o_lnum) {
@@ -12825,7 +13168,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				}
 				continue
 			}
-			ed.edit_normalchar(c, &inserted_space)
+			inserted_space = ed.edit_normalchar(c, inserted_space)
 		case Ctrl_P, Ctrl_N:
 		case Ctrl_Y, Ctrl_E:
 			c = ed.ins_ctrl_ey(c)
@@ -12845,7 +13188,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				}
 				continue
 			}
-			ed.edit_normalchar(c, &inserted_space)
+			inserted_space = ed.edit_normalchar(c, inserted_space)
 		}
 		if (c != K_CURSORHOLD) && (c != K_COMPLETE_DELAY) {
 			ed.did_cursorhold = FALSE
@@ -13470,7 +13813,8 @@ func (ed *Editor) oneright() bool {
 	var ptr Ptr[byte]
 	var l int32
 	if ed.virtual_active() != 0 {
-		prevpos := ed.curwin.w_cursor
+		prevpos_col := ed.curwin.w_cursor.col
+		prevpos_coladd := ed.curwin.w_cursor.coladd
 		ptr = ed.ml_get_cursor()
 		var t1 int32
 		if (int32(ptr.Get()) != TAB) && ed.vim_isprintc(ed.utf_ptr2char(ptr)) {
@@ -13481,7 +13825,7 @@ func (ed *Editor) oneright() bool {
 		ed.coladvance(ed.getviscol() + t1)
 		ed.curwin.w_set_curswant = true
 		var t2 bool
-		if (prevpos.col != ed.curwin.w_cursor.col) || (prevpos.coladd != ed.curwin.w_cursor.coladd) {
+		if (prevpos_col != ed.curwin.w_cursor.col) || (prevpos_coladd != ed.curwin.w_cursor.coladd) {
 			t2 = true
 		} else {
 			t2 = false
@@ -14082,7 +14426,7 @@ func (ed *Editor) ins_bs_one() {
 	}
 }
 
-func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
+func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__out_T {
 	var lnum linenr_T
 	var cc int32
 	var temp int32 = 0
@@ -14095,20 +14439,32 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 	var call_fix_indent bool = false
 	if ((ed.curbuf.b_ml.ml_line_count == 1) && (int32(ed.ml_get(1).Get()) == NUL)) || (((((ed.curwin.w_cursor.lnum == 1) && (ed.curwin.w_cursor.col == 0)) || (!ed.can_bs(BS_START) && ((ed.arrow_used != 0) || ((ed.curwin.w_cursor.lnum == ed.Insstart_orig.lnum) && (ed.curwin.w_cursor.col <= ed.Insstart_orig.col))))) || (((!ed.can_bs(BS_INDENT) && (ed.arrow_used == 0)) && (ed.ai_col > 0)) && (ed.curwin.w_cursor.col <= ed.ai_col))) || (!ed.can_bs(BS_EOL) && (ed.curwin.w_cursor.col == 0))) {
 		ed.vim_beep(BO_BS)
-		return false
+		var out__ ins_bs__out_T
+		out__.r__ = false
+		out__.inserted_space_p = inserted_space_p
+		return out__
 	}
 	if !ed.stop_arrow() {
-		return false
+		var out___2 ins_bs__out_T
+		out___2.r__ = false
+		out___2.inserted_space_p = inserted_space_p
+		return out___2
 	}
 	in_indent = (ed.inindent(0))
 	if ed.curwin.w_cursor.coladd > 0 {
 		if mode == BACKSPACE_CHAR {
 			ed.curwin.w_cursor.coladd--
-			return true
+			var out___3 ins_bs__out_T
+			out___3.r__ = true
+			out___3.inserted_space_p = inserted_space_p
+			return out___3
 		}
 		if mode == BACKSPACE_WORD {
 			ed.curwin.w_cursor.coladd = 0
-			return true
+			var out___4 ins_bs__out_T
+			out___4.r__ = true
+			out___4.inserted_space_p = inserted_space_p
+			return out___4
 		}
 		ed.curwin.w_cursor.coladd = 0
 	}
@@ -14116,7 +14472,10 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 		lnum = ed.Insstart.lnum
 		if ed.curwin.w_cursor.lnum == lnum {
 			if !ed.u_save((ed.curwin.w_cursor.lnum - 2), (ed.curwin.w_cursor.lnum + 1)) {
-				return false
+				var out___5 ins_bs__out_T
+				out___5.r__ = false
+				out___5.inserted_space_p = inserted_space_p
+				return out___5
 			}
 			ed.Insstart.lnum--
 			ed.Insstart.col = ed.ml_get_len(ed.Insstart.lnum)
@@ -14163,7 +14522,7 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 			}
 			ed.curwin.w_cursor.col = save_col
 		}
-		if (mode == BACKSPACE_CHAR) && (((ed.p_sta != 0) && in_indent) || (((ed.get_sts_value() != 0) && (ed.curwin.w_cursor.col > 0)) && ((int32(ed.ml_get_cursor().Add(-1).Get()) == TAB) || ((int32(ed.ml_get_cursor().Add(-1).Get()) == (' ')) && (((*inserted_space_p) == 0) || (ed.arrow_used != 0)))))) {
+		if (mode == BACKSPACE_CHAR) && (((ed.p_sta != 0) && in_indent) || (((ed.get_sts_value() != 0) && (ed.curwin.w_cursor.col > 0)) && ((int32(ed.ml_get_cursor().Add(-1).Get()) == TAB) || ((int32(ed.ml_get_cursor().Add(-1).Get()) == (' ')) && ((inserted_space_p == 0) || (ed.arrow_used != 0)))))) {
 			var vcol colnr_T = 0
 			var want_vcol colnr_T
 			var line Ptr[byte]
@@ -14173,7 +14532,7 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 			var space_vcol colnr_T = 0
 			var prev_space bool = false
 			var want_col colnr_T
-			*inserted_space_p = FALSE
+			inserted_space_p = FALSE
 			line = ed.ml_get_curline()
 			ptr = line
 			space_ptr = ptr
@@ -14278,7 +14637,10 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 	if !ed.vim_strchr(ed.p_cpo, CPO_BACKSPACE).Nil() && (ed.dollar_vcol == -1) {
 		ed.dollar_vcol = ed.curwin.w_virtcol
 	}
-	return (did_backspace)
+	var out___6 ins_bs__out_T
+	out___6.r__ = (did_backspace)
+	out___6.inserted_space_p = inserted_space_p
+	return out___6
 }
 
 func (ed *Editor) bracketed_paste(mode paste_mode_T, drop bool, gap *S_growarray) int32 {
@@ -15318,10 +15680,11 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 	var needed_size usize
 	var do_again bool
 	var sub_firstlnum linenr_T
-	var tmp string_T
+	var tmp_length usize
 	var p1 Ptr[byte]
 	var n usize
-	var new_line string_T
+	var new_line_string Ptr[byte]
+	var new_line_length usize
 
 	var lnum linenr_T
 	var i int64 = 0
@@ -15329,7 +15692,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 	var save_do_all int32
 	var save_do_ask int32
 	var sub Ptr[byte] = Ptr[byte]{}
-	var pat string_T
+	var pat_string Ptr[byte] = Ptr[byte]{}
+	var pat_length usize = 0
 	var delimiter int32
 	var sublen usize
 	var got_quit bool = false
@@ -15343,9 +15707,12 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 	old_line_count := ed.curbuf.b_ml.ml_line_count
 	var line2 linenr_T
 	var nmatch int64
-	var sub_firstline string_T
+	var sub_firstline_string Ptr[byte]
+	var sub_firstline_length usize
 	var endcolumn bool = false
-	old_cursor := ed.curwin.w_cursor
+	old_cursor_lnum := ed.curwin.w_cursor.lnum
+	old_cursor_col := ed.curwin.w_cursor.col
+	old_cursor_coladd := ed.curwin.w_cursor.coladd
 	var start_nsubs int32
 	keeppatterns := ed.cmdmod.cmod_flags & CMOD_KEEPPATTERNS
 	cmd = eap.arg
@@ -15372,8 +15739,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			if int32(cmd.Get()) != '&' {
 				which_pat = RE_SEARCH
 			}
-			pat.string_ = S("")
-			pat.length = 0
+			pat_string = S("")
+			pat_length = 0
 			var t1 Ptr[byte] = cmd
 			cmd = cmd.Add(1)
 			delimiter = int32(t1.Get())
@@ -15382,9 +15749,9 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			var t2 Ptr[byte] = cmd
 			cmd = cmd.Add(1)
 			delimiter = int32(t2.Get())
-			pat.string_ = cmd
+			pat_string = cmd
 			cmd = ed.skip_regexp_ex(cmd, delimiter, ed.magic_isset(), &eap.arg, nil, nil)
-			pat.length = uint64(int64(cmd.Sub(pat.string_)))
+			pat_length = uint64(int64(cmd.Sub(pat_string)))
 			if int32(cmd.At(0)) == delimiter {
 				var t3 Ptr[byte] = cmd
 				cmd = cmd.Add(1)
@@ -15408,12 +15775,12 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			ed.emsg(gettext_(ed.e_no_previous_substitute_regular_expression))
 			return
 		}
-		pat.string_ = Ptr[byte]{}
-		pat.length = 0
+		pat_string = Ptr[byte]{}
+		pat_length = 0
 		sub = vim_strsave(ed.old_sub)
 		endcolumn = (ed.curwin.w_curswant == MAXCOL)
 	}
-	if ((!pat.string_.Nil() && (musl_strcmp(pat.string_, S("\\n")) == 0)) && (int32(sub.Get()) == NUL)) && ((int32(cmd.Get()) == NUL) || ((int32(cmd.At(1)) == NUL) && ((((int32(cmd.Get()) == 'g') || (int32(cmd.Get()) == 'l')) || (int32(cmd.Get()) == 'p')) || (int32(cmd.Get()) == '#')))) {
+	if ((!pat_string.Nil() && (musl_strcmp(pat_string, S("\\n")) == 0)) && (int32(sub.Get()) == NUL)) && ((int32(cmd.Get()) == NUL) || ((int32(cmd.At(1)) == NUL) && ((((int32(cmd.Get()) == 'g') || (int32(cmd.Get()) == 'l')) || (int32(cmd.Get()) == 'p')) || (int32(cmd.Get()) == '#')))) {
 		var joined_lines_count linenr_T
 		ed.curwin.w_cursor.lnum = eap.line1
 		if int32(cmd.Get()) == 'l' {
@@ -15435,9 +15802,9 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			ed.ex_may_print(eap)
 		}
 		if keeppatterns == 0 {
-			ed.save_re_pat(RE_SUBST, pat.string_, pat.length, ed.magic_isset())
+			ed.save_re_pat(RE_SUBST, pat_string, pat_length, ed.magic_isset())
 		}
-		ed.add_to_history(HIST_SEARCH, pat.string_, pat.length, true, NUL)
+		ed.add_to_history(HIST_SEARCH, pat_string, pat_length, true, NUL)
 		return
 	}
 	if int32(cmd.Get()) == '&' {
@@ -15523,7 +15890,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 		ed.emsg(gettext_(ed.e_cannot_make_changes_modifiable_is_off))
 		return
 	}
-	if !ed.search_regcomp(pat.string_, pat.length, nil, RE_SUBST, which_pat, SEARCH_HIS, &regmatch) {
+	if !ed.search_regcomp(pat_string, pat_length, nil, RE_SUBST, which_pat, SEARCH_HIS, &regmatch) {
 		if ed.ex_substitute_subflags.do_error != 0 {
 			ed.emsg(gettext_(ed.e_invalid_command))
 		}
@@ -15534,8 +15901,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 	} else if ed.ex_substitute_subflags.do_ic == 'I' {
 		regmatch.rmm_ic = FALSE
 	}
-	sub_firstline.string_ = Ptr[byte]{}
-	sub_firstline.length = 0
+	sub_firstline_string = Ptr[byte]{}
+	sub_firstline_length = 0
 	if (int32(sub.At(0)) == 92) && (int32(sub.At(1)) == '=') {
 		p = vim_strsave(sub)
 		sub = p
@@ -15559,7 +15926,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 		nmatch = ed.search_found(found, eap.line1, found_count, &regmatch, lnum, 0)
 		if nmatch != 0 {
 			var prev_matchcol colnr_T = MAXCOL
-			var new_start string_T
+			var new_start_string Ptr[byte] = Ptr[byte]{}
+			var new_start_length usize = 0
 			var new_start_size usize = 0
 			var did_sub bool = false
 			var nmatch_tl int64 = 0
@@ -15577,24 +15945,24 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					lnum += regmatch.startpos[0].lnum
 					sub_firstlnum += regmatch.startpos[0].lnum
 					nmatch -= regmatch.startpos[0].lnum
-					sub_firstline.string_ = Ptr[byte]{}
-					sub_firstline.length = 0
+					sub_firstline_string = Ptr[byte]{}
+					sub_firstline_length = 0
 				}
 				if lnum > ed.curbuf.b_ml.ml_line_count {
 					break
 				}
-				if sub_firstline.string_.Nil() {
-					sub_firstline.length = usize(ed.ml_get_len(sub_firstlnum))
-					sub_firstline.string_ = vim_strnsave(ed.ml_get(sub_firstlnum), sub_firstline.length)
+				if sub_firstline_string.Nil() {
+					sub_firstline_length = usize(ed.ml_get_len(sub_firstlnum))
+					sub_firstline_string = vim_strnsave(ed.ml_get(sub_firstlnum), sub_firstline_length)
 				}
 				ed.curwin.w_cursor.lnum = lnum
 				do_again = false
 				for {
 					if ((matchcol == prev_matchcol) && (regmatch.endpos[0].lnum == 0)) && (matchcol == regmatch.endpos[0].col) {
-						if int32(sub_firstline.string_.At(int(matchcol))) == NUL {
+						if int32(sub_firstline_string.At(int(matchcol))) == NUL {
 							skip_match = true
 						} else {
-							matchcol += ed.utfc_ptr2len(sub_firstline.string_.Add(int(matchcol)))
+							matchcol += ed.utfc_ptr2len(sub_firstline_string.Add(int(matchcol)))
 						}
 						break
 					}
@@ -15602,7 +15970,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					prev_matchcol = matchcol
 					if ed.ex_substitute_subflags.do_count != 0 {
 						if nmatch > 1 {
-							matchcol = int32(sub_firstline.length)
+							matchcol = int32(sub_firstline_length)
 							nmatch = 1
 							skip_match = true
 						}
@@ -15619,24 +15987,25 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 							ed.no_u_sync++
 						}
 						for ed.ex_substitute_subflags.do_ask != 0 {
-							var orig_line string_T
+							var orig_line_string Ptr[byte] = Ptr[byte]{}
+							var orig_line_length usize = 0
 							var len_change int32 = 0
 							save_p_lz := ed.p_lz
 							save_RedrawingDisabled := ed.RedrawingDisabled
 							ed.RedrawingDisabled = 0
 							ed.p_lz = FALSE
-							if !new_start.string_.Nil() {
-								orig_line.length = usize(ed.ml_get_len(lnum))
-								orig_line.string_ = vim_strnsave(ed.ml_get(lnum), orig_line.length)
-								new_line.string_ = concat_str(new_start.string_, sub_firstline.string_.Add(int(copycol)))
-								if new_line.string_.Nil() {
-									orig_line.string_ = Ptr[byte]{}
-									orig_line.length = 0
+							if !new_start_string.Nil() {
+								orig_line_length = usize(ed.ml_get_len(lnum))
+								orig_line_string = vim_strnsave(ed.ml_get(lnum), orig_line_length)
+								new_line_string = concat_str(new_start_string, sub_firstline_string.Add(int(copycol)))
+								if new_line_string.Nil() {
+									orig_line_string = Ptr[byte]{}
+									orig_line_length = 0
 								} else {
-									new_line.length = new_start.length + (sub_firstline.length - uint64(copycol))
-									len_change = int32(new_line.length) - int32(orig_line.length)
+									new_line_length = new_start_length + (sub_firstline_length - uint64(copycol))
+									len_change = int32(new_line_length) - int32(orig_line_length)
 									ed.curwin.w_cursor.col += len_change
-									ed.ml_replace(lnum, new_line.string_, false)
+									ed.ml_replace(lnum, new_line_string, false)
 								}
 							}
 							ed.search_match_lines = regmatch.endpos[0].lnum - regmatch.startpos[0].lnum
@@ -15673,8 +16042,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 							ed.msg_col = 0
 							ed.gotocmdline(true)
 							ed.p_lz = save_p_lz
-							if !orig_line.string_.Nil() {
-								ed.ml_replace(lnum, orig_line.string_, false)
+							if !orig_line_string.Nil() {
+								ed.ml_replace(lnum, orig_line_string, false)
 							}
 							ed.need_wait_return = FALSE
 							if (((typed == 'q') || (typed == ESC)) || (typed == Ctrl_C)) || (typed == ed.intr_char) {
@@ -15708,7 +16077,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 						}
 						if typed == 'n' {
 							if nmatch > 1 {
-								matchcol = int32(sub_firstline.length)
+								matchcol = int32(sub_firstline_length)
 								skip_match = true
 							}
 							break
@@ -15724,7 +16093,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					} else {
 						t5 = 0
 					}
-					sublen = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, sub_firstline.string_, 0, REGSUB_BACKSLASH|t5))
+					sublen = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, sub_firstline_string, 0, REGSUB_BACKSLASH|t5))
 					if nmatch > ((ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1) {
 						nmatch = (ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1
 						skip_match = true
@@ -15733,33 +16102,32 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 						}
 					}
 					if nmatch == 1 {
-						tmp.string_ = sub_firstline.string_
-						tmp.length = sub_firstline.length
+						tmp_length = sub_firstline_length
 					} else {
 						var lastlnum linenr_T = (sub_firstlnum + nmatch) - 1
-						tmp.string_ = ed.ml_get(lastlnum)
-						tmp.length = usize(ed.ml_get_len(lastlnum))
+						ed.ml_get(lastlnum)
+						tmp_length = usize(ed.ml_get_len(lastlnum))
 						nmatch_tl += nmatch - 1
 					}
 					copy_len = uint64((regmatch.startpos[0].col - copycol))
-					needed_size = ((copy_len + (tmp.length - uint64(regmatch.endpos[0].col))) + sublen) + 1
-					if new_start.string_.Nil() {
+					needed_size = ((copy_len + (tmp_length - uint64(regmatch.endpos[0].col))) + sublen) + 1
+					if new_start_string.Nil() {
 						new_start_size = needed_size + 50
-						new_start.string_ = Alloc(int(new_start_size))
-						new_start.string_.Put(NUL)
-						new_start.length = 0
+						new_start_string = Alloc(int(new_start_size))
+						new_start_string.Put(NUL)
+						new_start_length = 0
 					} else {
-						needed_size += new_start.length
+						needed_size += new_start_length
 						if needed_size > new_start_size {
 							new_start_size = needed_size + 50
 							p1 = Alloc(int(new_start_size))
-							Memmove(p1, new_start.string_, int(new_start.length+1))
-							new_start.string_ = p1
+							Memmove(p1, new_start_string, int(new_start_length+1))
+							new_start_string = p1
 						}
 					}
-					Memmove(new_start.string_.Add(int(new_start.length)), sub_firstline.string_.Add(int(copycol)), int(copy_len))
-					new_start.length += copy_len
-					new_end = new_start.string_.Add(int(new_start.length))
+					Memmove(new_start_string.Add(int(new_start_length)), sub_firstline_string.Add(int(copycol)), int(copy_len))
+					new_start_length += copy_len
+					new_end = new_start_string.Add(int(new_start_length))
 					if (new_start_size - copy_len) < sublen {
 						sublen = (new_start_size - copy_len) - 1
 					}
@@ -15771,15 +16139,15 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					}
 					n = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, new_end, int32(sublen), (REGSUB_COPY|REGSUB_BACKSLASH)|t6))
 					if n > 0 {
-						new_start.length += n - 1
+						new_start_length += n - 1
 					}
 					ed.sub_nsubs++
 					did_sub = true
 					ed.curwin.w_cursor.col = 0
 					if nmatch > 1 {
 						sub_firstlnum += nmatch - 1
-						sub_firstline.length = usize(ed.ml_get_len(sub_firstlnum))
-						sub_firstline.string_ = vim_strnsave(ed.ml_get(sub_firstlnum), sub_firstline.length)
+						sub_firstline_length = usize(ed.ml_get_len(sub_firstlnum))
+						sub_firstline_string = vim_strnsave(ed.ml_get(sub_firstlnum), sub_firstline_length)
 						if sub_firstlnum <= line2 {
 							do_again = true
 						} else {
@@ -15788,21 +16156,21 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					}
 					copycol = regmatch.endpos[0].col
 					if skip_match {
-						sub_firstline.string_ = vim_strnsave(S(""), 0)
-						sub_firstline.length = 0
+						sub_firstline_string = vim_strnsave(S(""), 0)
+						sub_firstline_length = 0
 						copycol = 0
 					}
 					p1 = new_end
 					for ; p1.Get() != 0; p1 = p1.Add(1) {
 						if (int32(p1.At(0)) == 92) && (int32(p1.At(1)) != NUL) {
-							n = (new_start.length - uint64(int64(p1.Sub(new_start.string_))))
+							n = (new_start_length - uint64(int64(p1.Sub(new_start_string))))
 							Memmove(p1, p1.Add(1), int(n+1))
-							new_start.length--
+							new_start_length--
 						} else if int32(p1.Get()) == CAR {
 							if ed.u_inssub(lnum) {
-								var plen colnr_T = int32((int64(p1.Sub(new_start.string_)) + 1))
+								var plen colnr_T = int32((int64(p1.Sub(new_start_string)) + 1))
 								p1.Put(NUL)
-								ed.ml_append(lnum-1, new_start.string_, plen)
+								ed.ml_append(lnum-1, new_start_string, plen)
 								ed.mark_adjust(lnum+1, 9223372036854775807, 1, 0)
 								if ed.ex_substitute_subflags.do_ask != 0 {
 									ed.appended_lines(lnum-1, 1)
@@ -15817,10 +16185,10 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 								line2++
 								did_split = true
 								ed.curwin.w_cursor.lnum++
-								n = new_start.length - uint64(plen)
-								Memmove(new_start.string_, p1.Add(1), int(n+1))
-								new_start.length = n
-								p1 = new_start.string_.Add(-1)
+								n = new_start_length - uint64(plen)
+								Memmove(new_start_string, p1.Add(1), int(n+1))
+								new_start_length = n
+								p1 = new_start_string.Add(-1)
 							}
 						} else {
 							p1 = p1.Add(int(ed.utfc_ptr2len(p1) - 1))
@@ -15828,7 +16196,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					}
 					break
 				}
-				lastone = (((((skip_match || (ed.got_int != 0)) || got_quit) || (lnum > line2)) || !((ed.ex_substitute_subflags.do_all != 0) || do_again)) || (((int32(sub_firstline.string_.At(int(matchcol))) == NUL) && (nmatch <= 1)) && (re_multiline(regmatch.regprog) == 0)))
+				lastone = (((((skip_match || (ed.got_int != 0)) || got_quit) || (lnum > line2)) || !((ed.ex_substitute_subflags.do_all != 0) || do_again)) || (((int32(sub_firstline_string.At(int(matchcol))) == NUL) && (nmatch <= 1)) && (re_multiline(regmatch.regprog) == 0)))
 				nmatch = -1
 				var t7 bool = (lastone || (nmatch_tl > 0)) || ((ed.ex_substitute_subflags.do_ask != 0) && did_split)
 				if !t7 {
@@ -15836,15 +16204,15 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					t7 = nmatch == 0
 				}
 				if t7 || (regmatch.startpos[0].lnum > 0) {
-					if !new_start.string_.Nil() {
-						musl_strcpy(new_start.string_.Add(int(new_start.length)), sub_firstline.string_.Add(int(copycol)))
-						new_start.length += sub_firstline.length - uint64(copycol)
-						matchcol = int32((sub_firstline.length - uint64(matchcol)))
-						prev_matchcol = int32((sub_firstline.length - uint64(prev_matchcol)))
+					if !new_start_string.Nil() {
+						musl_strcpy(new_start_string.Add(int(new_start_length)), sub_firstline_string.Add(int(copycol)))
+						new_start_length += sub_firstline_length - uint64(copycol)
+						matchcol = int32((sub_firstline_length - uint64(matchcol)))
+						prev_matchcol = int32((sub_firstline_length - uint64(prev_matchcol)))
 						if !ed.u_savesub(lnum) {
 							break
 						}
-						ed.ml_replace(lnum, new_start.string_, true)
+						ed.ml_replace(lnum, new_start_string, true)
 						if nmatch_tl > 0 {
 							lnum++
 							if !ed.u_savedel(lnum, nmatch_tl) {
@@ -15875,12 +16243,12 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 							last_line = lnum + 1
 						}
 						sub_firstlnum = lnum
-						sub_firstline.string_ = new_start.string_
-						sub_firstline.length = new_start.length
-						new_start.string_ = Ptr[byte]{}
-						new_start.length = 0
-						matchcol = int32((sub_firstline.length - uint64(matchcol)))
-						prev_matchcol = int32((sub_firstline.length - uint64(prev_matchcol)))
+						sub_firstline_string = new_start_string
+						sub_firstline_length = new_start_length
+						new_start_string = Ptr[byte]{}
+						new_start_length = 0
+						matchcol = int32((sub_firstline_length - uint64(matchcol)))
+						prev_matchcol = int32((sub_firstline_length - uint64(prev_matchcol)))
 						copycol = 0
 						did_split = false
 					}
@@ -15899,8 +16267,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			if did_sub {
 				ed.sub_nlines++
 			}
-			sub_firstline.string_ = Ptr[byte]{}
-			sub_firstline.length = 0
+			sub_firstline_string = Ptr[byte]{}
+			sub_firstline_length = 0
 		}
 		ed.line_breakcheck()
 	}
@@ -15909,7 +16277,9 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 		ed.changed_lines(first_line, 0, last_line-i, i)
 	}
 	if ed.ex_substitute_subflags.do_count != 0 {
-		ed.curwin.w_cursor = old_cursor
+		ed.curwin.w_cursor.lnum = old_cursor_lnum
+		ed.curwin.w_cursor.col = old_cursor_col
+		ed.curwin.w_cursor.coladd = old_cursor_coladd
 	}
 	if ed.sub_nsubs > int64(start_nsubs) {
 		if (ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0 {
@@ -16849,6 +17219,7 @@ theend:
 }
 
 func (ed *Editor) append_command(cmd Ptr[byte]) {
+	var mb_copy_char__o mb_copy_char__out_T
 	len_ := musl_strlen(ed.IObuff)
 	s := cmd
 	var d Ptr[byte]
@@ -16867,27 +17238,42 @@ func (ed *Editor) append_command(cmd Ptr[byte]) {
 		} else if ((int64(d.Sub(ed.IObuff)) + int64(ed.utfc_ptr2len(s))) + 1) >= 1025 {
 			break
 		} else {
-			ed.mb_copy_char(&s, &d)
+			mb_copy_char__o = ed.mb_copy_char(s, d)
+			s = mb_copy_char__o.fp
+			d = mb_copy_char__o.tp
+			_ = 0
 		}
 	}
 	d.Put(NUL)
 }
 
-func one_letter_cmd(p Ptr[byte], idx *cmdidx_T) bool {
+func one_letter_cmd(p Ptr[byte], idx cmdidx_T) one_letter_cmd__out_T {
 	if (int32(p.At(0)) == 'k') && ((int32(p.At(1)) != 'e') || ((int32(p.At(1)) == 'e') && (int32(p.At(2)) != 'e'))) {
-		*idx = CMD_k
-		return true
+		idx = CMD_k
+		var out__ one_letter_cmd__out_T
+		out__.r__ = true
+		out__.idx = idx
+		return out__
 	}
 	if (int32(p.At(0)) == 's') && ((((((int32(p.At(1)) == 'c') && ((int32(p.At(2)) == NUL) || (((int32(p.At(2)) != 's') && (int32(p.At(2)) != 'r')) && ((int32(p.At(3)) == NUL) || ((int32(p.At(3)) != 'i') && (int32(p.At(4)) != 'p')))))) || (int32(p.At(1)) == 'g')) || ((((int32(p.At(1)) == 'i') && (int32(p.At(2)) != 'm')) && (int32(p.At(2)) != 'l')) && (int32(p.At(2)) != 'g'))) || (int32(p.At(1)) == 'I')) || ((int32(p.At(1)) == 'r') && (int32(p.At(2)) != 'e'))) {
-		*idx = CMD_substitute
-		return true
+		idx = CMD_substitute
+		var out___2 one_letter_cmd__out_T
+		out___2.r__ = true
+		out___2.idx = idx
+		return out___2
 	}
-	return false
+	var out___3 one_letter_cmd__out_T
+	out___3.r__ = false
+	out___3.idx = idx
+	return out___3
 }
 
 func one_letter_cmd__cmdidx(p Ptr[byte], s1__ *S_exarg) bool {
+	var one_letter_cmd__o one_letter_cmd__out_T
 	cmdidx1__ := s1__.cmdidx
-	var r__ bool = (one_letter_cmd(p, &cmdidx1__))
+	one_letter_cmd__o = one_letter_cmd(p, cmdidx1__)
+	cmdidx1__ = one_letter_cmd__o.idx
+	var r__ bool = (one_letter_cmd__o.r__)
 	s1__.cmdidx = cmdidx1__
 	return (r__)
 }
@@ -17812,7 +18198,9 @@ func (ed *Editor) ex_redrawstatus(eap *S_exarg) {
 }
 
 func (ed *Editor) ex_mark(eap *S_exarg) {
-	var pos pos_T
+	var pos_lnum linenr_T
+	var pos_col_ colnr_T
+	var pos_coladd colnr_T
 	if int32(eap.arg.Get()) == NUL {
 		ed.emsg(gettext_(ed.e_argument_required))
 		return
@@ -17822,13 +18210,17 @@ func (ed *Editor) ex_mark(eap *S_exarg) {
 		ed.emsg(ed.iobuff_or(gettext_(ed.e_trailing_characters_str)))
 		return
 	}
-	pos = ed.curwin.w_cursor
+	pos_lnum = ed.curwin.w_cursor.lnum
+	pos_col_ = ed.curwin.w_cursor.col
+	pos_coladd = ed.curwin.w_cursor.coladd
 	ed.curwin.w_cursor.lnum = eap.line2
 	ed.beginline(BL_WHITE | BL_FIX)
 	if ed.setmark(int32(eap.arg.Get())) == FAIL {
 		ed.emsg(gettext_(ed.e_argument_must_be_letter_or_forward_backward_quote))
 	}
-	ed.curwin.w_cursor = pos
+	ed.curwin.w_cursor.lnum = pos_lnum
+	ed.curwin.w_cursor.col = pos_col_
+	ed.curwin.w_cursor.coladd = pos_coladd
 }
 
 func (ed *Editor) update_topline_cursor() {
@@ -18066,7 +18458,9 @@ func (ed *Editor) parse_pattern_and_range(incsearch_start *pos_T, search_delim *
 	var end Ptr[byte]
 	var dummy_cmdmod cmdmod_T
 	var ea S_exarg
-	var save_cursor pos_T
+	var save_cursor_lnum linenr_T
+	var save_cursor_col colnr_T
+	var save_cursor_coladd colnr_T
 	var delim_optional bool = false
 	var delim int32
 	var use_last_pat bool
@@ -18224,7 +18618,9 @@ func (ed *Editor) parse_pattern_and_range(incsearch_start *pos_T, search_delim *
 	}
 	*skiplen = int32(int64(p.Sub(ed.ccline.cmdbuff)))
 	*patlen = int32(int64(end.Sub(p)))
-	save_cursor = ed.curwin.w_cursor
+	save_cursor_lnum = ed.curwin.w_cursor.lnum
+	save_cursor_col = ed.curwin.w_cursor.col
+	save_cursor_coladd = ed.curwin.w_cursor.coladd
 	ed.curwin.w_cursor = (*incsearch_start)
 	ed.parse_cmd_address(&ea, &dummy, true)
 	if ea.addr_count > 0 {
@@ -18247,7 +18643,9 @@ func (ed *Editor) parse_pattern_and_range(incsearch_start *pos_T, search_delim *
 		ed.search_last_line = ed.curwin.w_cursor.lnum
 		ed.search_first_line = ed.search_last_line
 	}
-	ed.curwin.w_cursor = save_cursor
+	ed.curwin.w_cursor.lnum = save_cursor_lnum
+	ed.curwin.w_cursor.col = save_cursor_col
+	ed.curwin.w_cursor.coladd = save_cursor_coladd
 	return true
 }
 
@@ -18304,7 +18702,9 @@ func (ed *Editor) may_do_incsearch_highlighting(firstc int32, count int64, is_st
 	var skiplen int32
 	var patlen int32
 	var found int32
-	var end_pos pos_T
+	var end_pos_lnum linenr_T
+	var end_pos_col colnr_T
+	var end_pos_coladd colnr_T
 	var next_char int32
 	var use_last_pat bool
 	var did_do_incsearch bool = (is_state.did_incsearch)
@@ -18381,15 +18781,25 @@ func (ed *Editor) may_do_incsearch_highlighting(firstc int32, count int64, is_st
 	ed.changed_cline_bef_curs()
 	ed.update_topline()
 	if found != 0 {
-		save_pos := ed.curwin.w_cursor
+		save_pos_lnum := ed.curwin.w_cursor.lnum
+		save_pos_col := ed.curwin.w_cursor.col
+		save_pos_coladd := ed.curwin.w_cursor.coladd
 		is_state.match_start = ed.curwin.w_cursor
 		ed.set_search_match(&ed.curwin.w_cursor)
 		ed.validate_cursor()
-		end_pos = ed.curwin.w_cursor
-		is_state.match_end = end_pos
-		ed.curwin.w_cursor = save_pos
+		end_pos_lnum = ed.curwin.w_cursor.lnum
+		end_pos_col = ed.curwin.w_cursor.col
+		end_pos_coladd = ed.curwin.w_cursor.coladd
+		is_state.match_end.lnum = end_pos_lnum
+		is_state.match_end.col = end_pos_col
+		is_state.match_end.coladd = end_pos_coladd
+		ed.curwin.w_cursor.lnum = save_pos_lnum
+		ed.curwin.w_cursor.col = save_pos_col
+		ed.curwin.w_cursor.coladd = save_pos_coladd
 	} else {
-		end_pos = ed.curwin.w_cursor
+		end_pos_lnum = ed.curwin.w_cursor.lnum
+		end_pos_col = ed.curwin.w_cursor.col
+		end_pos_coladd = ed.curwin.w_cursor.coladd
 	}
 	if !use_last_pat {
 		next_char = int32(ed.ccline.cmdbuff.At(int(skiplen + patlen)))
@@ -18410,7 +18820,9 @@ func (ed *Editor) may_do_incsearch_highlighting(firstc int32, count int64, is_st
 	if int32(ed.ccline.cmdbuff.At(int(skiplen+patlen))) != NUL {
 		ed.curwin.w_cursor = is_state.search_start
 	} else if found != 0 {
-		ed.curwin.w_cursor = end_pos
+		ed.curwin.w_cursor.lnum = end_pos_lnum
+		ed.curwin.w_cursor.col = end_pos_col
+		ed.curwin.w_cursor.coladd = end_pos_coladd
 	}
 	ed.msg_starthere()
 	ed.redrawcmdline()
@@ -18418,6 +18830,7 @@ func (ed *Editor) may_do_incsearch_highlighting(firstc int32, count int64, is_st
 }
 
 func (ed *Editor) may_adjust_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T, c int32) bool {
+	var parse_search_pattern_offset__o parse_search_pattern_offset__out_T
 	var skiplen int32
 	var patlen int32
 	var t pos_T
@@ -18444,7 +18857,13 @@ func (ed *Editor) may_adjust_incsearch_highlighting(firstc int32, count int64, i
 	searchstr = pat
 	searchstrlen = uint64(patlen)
 	patlen_s = uint64((ed.ccline.cmdlen - skiplen))
-	ed.parse_search_pattern_offset(&pat, &patlen_s, search_delim, SEARCH_OPT, &strcopy, &searchstr, &searchstrlen, &dircp, &offset)
+	parse_search_pattern_offset__o = ed.parse_search_pattern_offset(pat, patlen_s, search_delim, SEARCH_OPT, &strcopy, searchstr, searchstrlen, dircp, &offset)
+	pat = parse_search_pattern_offset__o.pat
+	patlen_s = parse_search_pattern_offset__o.patlen
+	searchstr = parse_search_pattern_offset__o.searchstr
+	searchstrlen = parse_search_pattern_offset__o.searchstrlen
+	dircp = parse_search_pattern_offset__o.dircp
+	_ = parse_search_pattern_offset__o.r__
 	ed.cursor_off()
 	ed.out_flush()
 	if c == Ctrl_G {
@@ -18484,13 +18903,21 @@ func (ed *Editor) may_adjust_incsearch_highlighting(firstc int32, count int64, i
 		dircp.Put(byte(search_delim))
 	}
 	if i != 0 {
-		match_start := is_state.match_start
-		match_end := is_state.match_end
+		match_start_lnum := is_state.match_start.lnum
+		match_start_col := is_state.match_start.col
+		match_start_coladd := is_state.match_start.coladd
+		match_end_lnum := is_state.match_end.lnum
+		match_end_col := is_state.match_end.col
+		match_end_coladd := is_state.match_end.coladd
 		off := offset.off
-		is_state.search_start = match_start
+		is_state.search_start.lnum = match_start_lnum
+		is_state.search_start.col = match_start_col
+		is_state.search_start.coladd = match_start_coladd
 		if (offset.line == 0) && ((offset.end != 0) || (off != 0)) {
 			if offset.end != 0 {
-				is_state.search_start = match_end
+				is_state.search_start.lnum = match_end_lnum
+				is_state.search_start.col = match_end_col
+				is_state.search_start.coladd = match_end_coladd
 				ed.decl(&is_state.search_start)
 			}
 			for off > 0 {
@@ -18553,24 +18980,27 @@ func (ed *Editor) may_adjust_incsearch_highlighting(firstc int32, count int64, i
 	return false
 }
 
-func (ed *Editor) may_add_char_to_search(firstc int32, c *int32, is_state *incsearch_state_T) bool {
+func (ed *Editor) may_add_char_to_search(firstc int32, c int32, is_state *incsearch_state_T) may_add_char_to_search__out_T {
 	var skiplen int32
 	var patlen int32
 	var search_delim int32
 	ed.save_last_search_pattern()
 	if !ed.do_incsearch_highlighting(firstc, &search_delim, is_state, &skiplen, &patlen) {
 		ed.restore_last_search_pattern()
-		return false
+		var out__ may_add_char_to_search__out_T
+		out__.r__ = false
+		out__.c = c
+		return out__
 	}
 	ed.restore_last_search_pattern()
 	if is_state.did_incsearch {
 		ed.curwin.w_cursor = is_state.match_end
-		*c = ed.gchar_cursor()
-		if (*c) != NUL {
+		c = ed.gchar_cursor()
+		if c != NUL {
 			if ((ed.p_ic != 0) && (ed.p_scs != 0)) && !ed.pat_has_uppercase(ed.ccline.cmdbuff.Add(int(skiplen))) {
-				*c = ed.vim_tolower((*c))
+				c = ed.vim_tolower(c)
 			}
-			var t2 bool = (*c) == search_delim
+			var t2 bool = c == search_delim
 			if !t2 {
 				var t1 Ptr[byte]
 				if ed.magic_isset() != 0 {
@@ -18578,25 +19008,31 @@ func (ed *Editor) may_add_char_to_search(firstc int32, c *int32, is_state *incse
 				} else {
 					t1 = S("\\^$")
 				}
-				t2 = !ed.vim_strchr(t1, (*c)).Nil()
+				t2 = !ed.vim_strchr(t1, c).Nil()
 			}
 			if t2 {
-				ed.stuffcharReadbuff((*c))
-				*c = 92
+				ed.stuffcharReadbuff(c)
+				c = 92
 			}
-			if utf_char2len((*c)) != ed.utfc_ptr2len(ed.ml_get_cursor()) {
-				save_c := (*c)
-				for utf_char2len((*c)) != ed.utfc_ptr2len(ed.ml_get_cursor()) {
-					ed.curwin.w_cursor.col += utf_char2len((*c))
-					*c = ed.gchar_cursor()
-					ed.stuffcharReadbuff((*c))
+			if utf_char2len(c) != ed.utfc_ptr2len(ed.ml_get_cursor()) {
+				save_c := c
+				for utf_char2len(c) != ed.utfc_ptr2len(ed.ml_get_cursor()) {
+					ed.curwin.w_cursor.col += utf_char2len(c)
+					c = ed.gchar_cursor()
+					ed.stuffcharReadbuff(c)
 				}
-				*c = save_c
+				c = save_c
 			}
-			return false
+			var out___2 may_add_char_to_search__out_T
+			out___2.r__ = false
+			out___2.c = c
+			return out___2
 		}
 	}
-	return true
+	var out___3 may_add_char_to_search__out_T
+	out___3.r__ = true
+	out___3.c = c
+	return out___3
 }
 
 func (ed *Editor) cmdline_init() {
@@ -18712,14 +19148,21 @@ func (ed *Editor) cmdline_insert_reg(gotesc *int32) int32 {
 	return t1
 }
 
-func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmdstrlen *usize, histype int32, hiscnt_p *int32, xp *S_expand) int32 {
-	var orig_hiscnt int32 = (*hiscnt_p)
+func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr Ptr[byte], curcmdstrlen usize, histype int32, hiscnt_p int32, xp *S_expand) cmdline_browse_history__out_T {
+	var out___2 cmdline_browse_history__out_T
+
+	var orig_hiscnt int32 = hiscnt_p
 	hiscnt := orig_hiscnt
-	lookfor := (*curcmdstr)
-	lookforlen := (*curcmdstrlen)
+	lookfor := curcmdstr
+	lookforlen := curcmdstrlen
 	var res int32
 	if (ed.get_hislen() == 0) || (firstc == NUL) {
-		return CMDLINE_NOT_CHANGED
+		var out__ cmdline_browse_history__out_T
+		out__.r__ = CMDLINE_NOT_CHANGED
+		out__.curcmdstr = curcmdstr
+		out__.curcmdstrlen = curcmdstrlen
+		out__.hiscnt_p = hiscnt_p
+		return out__
 	}
 	if lookfor.Nil() {
 		lookfor = vim_strnsave(ed.ccline.cmdbuff, usize(ed.ccline.cmdlen))
@@ -18808,10 +19251,14 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 					ed.alloc_cmdbuff(len_)
 					if ed.ccline.cmdbuff.Nil() {
 						res = GOTO_NORMAL_MODE
-						*curcmdstr = lookfor
-						*curcmdstrlen = lookforlen
-						*hiscnt_p = hiscnt
-						return res
+						curcmdstr = lookfor
+						curcmdstrlen = lookforlen
+						hiscnt_p = hiscnt
+						out___2.r__ = res
+						out___2.curcmdstr = curcmdstr
+						out___2.curcmdstrlen = curcmdstrlen
+						out___2.hiscnt_p = hiscnt_p
+						return out___2
 					}
 				}
 			}
@@ -18822,10 +19269,15 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 			ed.alloc_cmdbuff(plen)
 			if ed.ccline.cmdbuff.Nil() {
 				res = GOTO_NORMAL_MODE
-				*curcmdstr = lookfor
-				*curcmdstrlen = lookforlen
-				*hiscnt_p = hiscnt
-				return res
+				curcmdstr = lookfor
+				curcmdstrlen = lookforlen
+				hiscnt_p = hiscnt
+				var out___3 cmdline_browse_history__out_T
+				out___3.r__ = res
+				out___3.curcmdstr = curcmdstr
+				out___3.curcmdstrlen = curcmdstrlen
+				out___3.hiscnt_p = hiscnt_p
+				return out___3
 			}
 			musl_strcpy(ed.ccline.cmdbuff, p)
 			ed.ccline.cmdlen = int32(plen)
@@ -18833,17 +19285,27 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 		}
 		ed.redrawcmd()
 		res = CMDLINE_CHANGED
-		*curcmdstr = lookfor
-		*curcmdstrlen = lookforlen
-		*hiscnt_p = hiscnt
-		return res
+		curcmdstr = lookfor
+		curcmdstrlen = lookforlen
+		hiscnt_p = hiscnt
+		var out___4 cmdline_browse_history__out_T
+		out___4.r__ = res
+		out___4.curcmdstr = curcmdstr
+		out___4.curcmdstrlen = curcmdstrlen
+		out___4.hiscnt_p = hiscnt_p
+		return out___4
 	}
 	ed.beep_flush()
 	res = CMDLINE_NOT_CHANGED
-	*curcmdstr = lookfor
-	*curcmdstrlen = lookforlen
-	*hiscnt_p = hiscnt
-	return res
+	curcmdstr = lookfor
+	curcmdstrlen = lookforlen
+	hiscnt_p = hiscnt
+	var out___5 cmdline_browse_history__out_T
+	out___5.r__ = res
+	out___5.curcmdstr = curcmdstr
+	out___5.curcmdstrlen = curcmdstrlen
+	out___5.hiscnt_p = hiscnt_p
+	return out___5
 }
 
 func (ed *Editor) init_ccline(firstc int32, indent int32) bool {
@@ -18886,6 +19348,8 @@ func (ed *Editor) getcmdline(firstc int32, count int64, indent int32, do_concat 
 }
 
 func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_ccline bool) Ptr[byte] {
+	var cmdline_browse_history__o cmdline_browse_history__out_T
+	var may_add_char_to_search__o may_add_char_to_search__out_T
 	var c int32
 	var i int32
 	var j int32
@@ -19128,13 +19592,19 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 				ed.set_cmdspos_cursor()
 				goto cmdline_not_changed
 			case Ctrl_L:
-				if ed.may_add_char_to_search(firstc, &c, &is_state) {
+				may_add_char_to_search__o = ed.may_add_char_to_search(firstc, c, &is_state)
+				c = may_add_char_to_search__o.c
+				if may_add_char_to_search__o.r__ {
 					goto cmdline_not_changed
 				}
 			case Ctrl_N, Ctrl_P:
 				fallthrough
 			case K_UP, K_DOWN, K_S_UP, K_S_DOWN, K_PAGEUP, K_KPAGEUP, K_PAGEDOWN, K_KPAGEDOWN:
-				res = ed.cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc)
+				cmdline_browse_history__o = ed.cmdline_browse_history(c, firstc, lookfor, lookforlen, histype, hiscnt, &xpc)
+				lookfor = cmdline_browse_history__o.curcmdstr
+				lookforlen = cmdline_browse_history__o.curcmdstrlen
+				hiscnt = cmdline_browse_history__o.hiscnt_p
+				res = cmdline_browse_history__o.r__
 				if res == CMDLINE_CHANGED {
 					goto cmdline_changed
 				} else if res == GOTO_NORMAL_MODE {
@@ -19495,6 +19965,7 @@ func (ed *Editor) restore_cmdline(ccp *cmdline_info_T) {
 }
 
 func (ed *Editor) cmdline_paste(regname int32, literally bool, remcr bool) bool {
+	var get_spec_reg__o get_spec_reg__out_T
 	var i int64
 	var arg Ptr[byte]
 	var p Ptr[byte]
@@ -19507,7 +19978,9 @@ func (ed *Editor) cmdline_paste(regname int32, literally bool, remcr bool) bool 
 		return false
 	}
 	ed.textlock++
-	i = int64(B2i(ed.get_spec_reg(regname, &arg, &allocated, true)))
+	get_spec_reg__o = ed.get_spec_reg(regname, &arg, allocated, true)
+	allocated = get_spec_reg__o.allocated
+	i = int64(B2i(get_spec_reg__o.r__))
 	ed.textlock--
 	if i != 0 {
 		if arg.Nil() {
@@ -19543,6 +20016,7 @@ func (ed *Editor) cmdline_paste(regname int32, literally bool, remcr bool) bool 
 }
 
 func (ed *Editor) cmdline_paste_str(s Ptr[byte], literally bool) {
+	var mb_cptr2char_adv__o mb_cptr2char_adv__out_T
 	var c int32
 	var cv int32
 	if literally {
@@ -19553,7 +20027,9 @@ func (ed *Editor) cmdline_paste_str(s Ptr[byte], literally bool) {
 			if (cv == Ctrl_V) && (s.At(1) != 0) {
 				s = s.Add(1)
 			}
-			c = ed.mb_cptr2char_adv(&s)
+			mb_cptr2char_adv__o = ed.mb_cptr2char_adv(s)
+			s = mb_cptr2char_adv__o.pp
+			c = mb_cptr2char_adv__o.r__
 			if (((((((cv == Ctrl_V) || (c == ESC)) || (c == Ctrl_C)) || (c == CAR)) || (c == NL)) || (c == Ctrl_L)) || (c == ed.intr_char)) || ((c == Ctrl_BSL) && (int32(s.Get()) == Ctrl_N)) {
 				ed.stuffcharReadbuff(Ctrl_V)
 			}
@@ -19665,37 +20141,57 @@ func (ed *Editor) get_cmdline_firstc() int32 {
 	return ed.ccline.cmdfirstc
 }
 
-func get_list_range(str *Ptr[byte], num1 *int32, num2 *int32) bool {
+func get_list_range(str Ptr[byte], num1 int32, num2 int32) get_list_range__out_T {
 	var len_ int32
 	var first bool = false
 	var num varnumber_T
-	*str = skipwhite((*str))
-	if (int32((*str).Get()) == '-') || vim_isdigit(int32((*str).Get())) {
-		vim_str2nr((*str), nil, &len_, 0, &num, nil, 0, false, nil)
-		*str = (*str).Add(int(len_))
+	str = skipwhite(str)
+	if (int32(str.Get()) == '-') || vim_isdigit(int32(str.Get())) {
+		len_ = vim_str2nr(str, nil, len_, 0, &num, nil, 0, false, nil)
+		str = str.Add(int(len_))
 		if num > INT_MAX {
-			return false
+			var out__ get_list_range__out_T
+			out__.r__ = false
+			out__.str = str
+			out__.num1 = num1
+			out__.num2 = num2
+			return out__
 		}
-		*num1 = int32(num)
+		num1 = int32(num)
 		first = true
 	}
-	*str = skipwhite((*str))
-	if int32((*str).Get()) == ',' {
-		*str = skipwhite((*str).Add(1))
-		vim_str2nr((*str), nil, &len_, 0, &num, nil, 0, false, nil)
+	str = skipwhite(str)
+	if int32(str.Get()) == ',' {
+		str = skipwhite(str.Add(1))
+		len_ = vim_str2nr(str, nil, len_, 0, &num, nil, 0, false, nil)
 		if len_ > 0 {
-			*str = skipwhite((*str).Add(int(len_)))
+			str = skipwhite(str.Add(int(len_)))
 			if num > INT_MAX {
-				return false
+				var out___2 get_list_range__out_T
+				out___2.r__ = false
+				out___2.str = str
+				out___2.num1 = num1
+				out___2.num2 = num2
+				return out___2
 			}
-			*num2 = int32(num)
+			num2 = int32(num)
 		} else if !first {
-			return false
+			var out___3 get_list_range__out_T
+			out___3.r__ = false
+			out___3.str = str
+			out___3.num1 = num1
+			out___3.num2 = num2
+			return out___3
 		}
 	} else if first {
-		*num2 = (*num1)
+		num2 = num1
 	}
-	return true
+	var out___4 get_list_range__out_T
+	out___4.r__ = true
+	out___4.str = str
+	out___4.num1 = num1
+	out___4.num2 = num2
+	return out___4
 }
 
 func (ed *Editor) shorten_fnames() {
@@ -19911,7 +20407,7 @@ func free_buff(buf *S_buffheader) {
 	buf.bh_curr = nil
 }
 
-func get_buffcont(buffer *S_buffheader, dozero bool, len_ *usize) Ptr[byte] {
+func get_buffcont(buffer *S_buffheader, dozero bool, len_ usize) get_buffcont__out_T {
 	var count long_u = 0
 	var p Ptr[byte] = Ptr[byte]{}
 	var p2 Ptr[byte]
@@ -19943,16 +20439,22 @@ func get_buffcont(buffer *S_buffheader, dozero bool, len_ *usize) Ptr[byte] {
 		p2.Put(NUL)
 		i = uint64(int64(p2.Sub(p)))
 	}
-	if len_ != nil {
-		*len_ = i
+	if true {
+		len_ = i
 	}
-	return p
+	var out__ get_buffcont__out_T
+	out__.r__ = p
+	out__.len_ = len_
+	return out__
 }
 
 func (ed *Editor) get_recorded() Ptr[byte] {
+	var get_buffcont__o get_buffcont__out_T
 	var p Ptr[byte]
 	var len_ usize
-	p = get_buffcont(&ed.recordbuff, true, &len_)
+	get_buffcont__o = get_buffcont(&ed.recordbuff, true, len_)
+	len_ = get_buffcont__o.len_
+	p = get_buffcont__o.r__
 	if p.Nil() {
 		return Ptr[byte]{}
 	}
@@ -19968,8 +20470,11 @@ func (ed *Editor) get_recorded() Ptr[byte] {
 }
 
 func (ed *Editor) get_inserted() string_T {
+	var get_buffcont__o get_buffcont__out_T
 	var len_ usize = 0
-	str := get_buffcont(&ed.redobuff, false, &len_)
+	get_buffcont__o = get_buffcont(&ed.redobuff, false, len_)
+	len_ = get_buffcont__o.len_
+	str := get_buffcont__o.r__
 	var ret string_T = string_T{string_: str, length: len_}
 	return ret
 }
@@ -20188,6 +20693,7 @@ func (ed *Editor) AppendToRedobuff(s Ptr[byte]) {
 }
 
 func (ed *Editor) AppendToRedobuffLit(str Ptr[byte], len_ int32) {
+	var mb_cptr2char_adv__o mb_cptr2char_adv__out_T
 	s := str
 	var c int32
 	var start Ptr[byte]
@@ -20217,7 +20723,9 @@ func (ed *Editor) AppendToRedobuffLit(str Ptr[byte], len_ int32) {
 		if (int32(s.Get()) == NUL) || ((len_ >= 0) && (int64(s.Sub(str)) >= int64(len_))) {
 			break
 		}
-		c = ed.mb_cptr2char_adv(&s)
+		mb_cptr2char_adv__o = ed.mb_cptr2char_adv(s)
+		s = mb_cptr2char_adv__o.pp
+		c = mb_cptr2char_adv__o.r__
 		if ((c < (' ')) || (c == DEL)) || ((int32(s.Get()) == NUL) && ((c == '0') || (c == '^'))) {
 			ed.add_char_buff(&ed.redobuff, Ctrl_V)
 		}
@@ -20230,6 +20738,7 @@ func (ed *Editor) AppendToRedobuffLit(str Ptr[byte], len_ int32) {
 }
 
 func (ed *Editor) AppendToRedobuffSpec(s Ptr[byte]) {
+	var mb_cptr2char_adv__o mb_cptr2char_adv__out_T
 	if ed.block_redo != 0 {
 		return
 	}
@@ -20238,7 +20747,9 @@ func (ed *Editor) AppendToRedobuffSpec(s Ptr[byte]) {
 			ed.add_buff(&ed.redobuff, s, 3)
 			s = s.Add(3)
 		} else {
-			ed.add_char_buff(&ed.redobuff, ed.mb_cptr2char_adv(&s))
+			mb_cptr2char_adv__o = ed.mb_cptr2char_adv(s)
+			s = mb_cptr2char_adv__o.pp
+			ed.add_char_buff(&ed.redobuff, mb_cptr2char_adv__o.r__)
 		}
 	}
 }
@@ -20276,6 +20787,7 @@ func (ed *Editor) stuffnumReadbuff(n int64) {
 }
 
 func (ed *Editor) stuffescaped(arg Ptr[byte], literally int32) {
+	var mb_cptr2char_adv__o mb_cptr2char_adv__out_T
 	var c int32
 	var start Ptr[byte]
 	for int32(arg.Get()) != NUL {
@@ -20287,7 +20799,9 @@ func (ed *Editor) stuffescaped(arg Ptr[byte], literally int32) {
 			ed.stuffReadbuffLen(start, int64(arg.Sub(start)))
 		}
 		if int32(arg.Get()) != NUL {
-			c = ed.mb_cptr2char_adv(&arg)
+			mb_cptr2char_adv__o = ed.mb_cptr2char_adv(arg)
+			arg = mb_cptr2char_adv__o.pp
+			c = mb_cptr2char_adv__o.r__
 			if (literally != 0) && (((c < (' ')) && (c != TAB)) || (c == DEL)) {
 				ed.stuffcharReadbuff(Ctrl_V)
 			}
@@ -21130,7 +21644,7 @@ func (ed *Editor) key_protocol_enabled() bool {
 	return (using_mok != 0) || (ed.kitty_protocol_state == KKPS_ENABLED)
 }
 
-func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int32) int32 {
+func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) handle_mapping__out_T {
 	var s []byte
 	var n int32
 
@@ -21142,7 +21656,7 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 	var want_termcode int32 = 0
 	var tb_c1 int32
 	var mlen int32
-	keylen := (*keylenp)
+	keylen := keylenp
 	var i bool
 	local_State := ed.get_real_state()
 	var is_plug_map bool = false
@@ -21202,7 +21716,7 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 							break cont2
 						}
 						if keylen > ed.typebuf.tb_len {
-							if ((*timedout) == 0) && !((mp_match != nil) && (mp_match.m_nowait != 0)) {
+							if (timedout == 0) && !((mp_match != nil) && (mp_match.m_nowait != 0)) {
 								keylen = -2
 								break loop1
 							}
@@ -21258,8 +21772,13 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 			ed.redraw_statuslines()
 			ed.showmode()
 			ed.setcursor()
-			*keylenp = keylen
-			return map_result_retry
+			keylenp = keylen
+			var out__ handle_mapping__out_T
+			out__.r__ = map_result_retry
+			out__.keylenp = keylenp
+			out__.timedout = timedout
+			out__.mapdepth = mapdepth
+			return out__
 		}
 		if mlen == ed.typebuf.tb_len {
 			keylen = -1
@@ -21267,21 +21786,26 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 			max_mlen = mlen + 1
 		}
 	}
-	if in_osc || ((((mp == nil) || ((max_mlen + want_termcode) > mp_match_len)) || (((mp_match_len == 1) && (int32(mp.m_keys.Get()) == ESC)) && ((*timedout) == 0))) && (keylen != -2)) {
+	if in_osc || ((((mp == nil) || ((max_mlen + want_termcode) > mp_match_len)) || (((mp_match_len == 1) && (int32(mp.m_keys.Get()) == ESC)) && (timedout == 0))) && (keylen != -2)) {
 		save_keylen := keylen
 		if (in_osc || (ed.no_mapping == 0)) || (ed.allow_keys != 0) {
-			if in_osc || (((ed.typebuf.tb_maplen == 0) || ((ed.p_remap != 0) && ((int32(ed.typebuf.tb_noremap.At(int(ed.typebuf.tb_off))) & ^RM_SIMPLIFIED) == RM_YES))) && ((*timedout) == 0)) {
+			if in_osc || (((ed.typebuf.tb_maplen == 0) || ((ed.p_remap != 0) && ((int32(ed.typebuf.tb_noremap.At(int(ed.typebuf.tb_off))) & ^RM_SIMPLIFIED) == RM_YES))) && (timedout == 0)) {
 				keylen = ed.check_termcode(max_mlen+1, Ptr[byte]{}, 0, nil)
 			} else {
 				keylen = 0
 			}
-			if ((keylen == 0) && (save_keylen == -1)) && ((*timedout) == 0) {
+			if ((keylen == 0) && (save_keylen == -1)) && (timedout == 0) {
 				keylen = -1
 			}
 			if (keylen == 0) && (ed.no_reduce_keys == 0) {
 				keylen = ed.check_simplify_modifier(max_mlen + 1)
 				if keylen < 0 {
-					return map_result_fail
+					var out___2 handle_mapping__out_T
+					out___2.r__ = map_result_fail
+					out___2.keylenp = keylenp
+					out___2.timedout = timedout
+					out___2.mapdepth = mapdepth
+					return out___2
 				}
 			}
 			if (keylen < 0) && (ed.typebuf.tb_len == ed.typebuf.tb_maplen) {
@@ -21292,13 +21816,23 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 		}
 		if keylen == 0 {
 			if mp == nil {
-				*keylenp = keylen
-				return map_result_get
+				keylenp = keylen
+				var out___3 handle_mapping__out_T
+				out___3.r__ = map_result_get
+				out___3.keylenp = keylenp
+				out___3.timedout = timedout
+				out___3.mapdepth = mapdepth
+				return out___3
 			}
 		}
 		if keylen > 0 {
-			*keylenp = keylen
-			return map_result_retry
+			keylenp = keylen
+			var out___4 handle_mapping__out_T
+			out___4.r__ = map_result_retry
+			out___4.keylenp = keylenp
+			out___4.timedout = timedout
+			out___4.mapdepth = mapdepth
+			return out___4
 		}
 		if (mp == nil) || (keylen < 0) {
 			keylen = -1
@@ -21313,8 +21847,8 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 		}
 		ed.cmd_silent = B2i((ed.typebuf.tb_silent > 0))
 		ed.del_typebuf(keylen, 0)
-		(*mapdepth)++
-		if int64((*mapdepth)) >= ed.p_mmd {
+		mapdepth++
+		if int64(mapdepth) >= ed.p_mmd {
 			ed.emsg(gettext_(ed.e_recursive_mapping))
 			if ed.State&MODE_CMDLINE != 0 {
 				ed.redrawcmdline()
@@ -21322,9 +21856,14 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 				ed.setcursor()
 			}
 			ed.flush_buffers(FLUSH_MINIMAL)
-			*mapdepth = 0
-			*keylenp = keylen
-			return map_result_fail
+			mapdepth = 0
+			keylenp = keylen
+			var out___5 handle_mapping__out_T
+			out___5.r__ = map_result_fail
+			out___5.keylenp = keylenp
+			out___5.timedout = timedout
+			out___5.mapdepth = mapdepth
+			return out___5
 		}
 		if ((ed.VIsual_active != 0) && (ed.VIsual_select != 0)) && ((mp.m_mode & MODE_VISUAL) != 0) {
 			ed.VIsual_select = FALSE
@@ -21344,14 +21883,29 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 			}
 			i = (ed.ins_typebuf(map_str, noremap, 0, true, B2i((ed.cmd_silent != 0) || (mp.m_silent != 0))))
 		}
-		*keylenp = keylen
+		keylenp = keylen
 		if B2i(i) == FAIL {
-			return map_result_fail
+			var out___6 handle_mapping__out_T
+			out___6.r__ = map_result_fail
+			out___6.keylenp = keylenp
+			out___6.timedout = timedout
+			out___6.mapdepth = mapdepth
+			return out___6
 		}
-		return map_result_retry
+		var out___7 handle_mapping__out_T
+		out___7.r__ = map_result_retry
+		out___7.keylenp = keylenp
+		out___7.timedout = timedout
+		out___7.mapdepth = mapdepth
+		return out___7
 	}
-	*keylenp = keylen
-	return map_result_nomatch
+	keylenp = keylen
+	var out___8 handle_mapping__out_T
+	out___8.r__ = map_result_nomatch
+	out___8.keylenp = keylenp
+	out___8.timedout = timedout
+	out___8.mapdepth = mapdepth
+	return out___8
 }
 
 func (ed *Editor) vungetc(c int32) {
@@ -21377,6 +21931,7 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 	var ptr Ptr[byte]
 	var cts chartabsize_T
 
+	var handle_mapping__o handle_mapping__out_T
 	var c int32
 	var timedout int32 = FALSE
 	var mapdepth int32 = 0
@@ -21437,7 +21992,11 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 					ed.cmd_silent = FALSE
 					break
 				} else if ed.typebuf.tb_len > 0 {
-					var result map_result_T = ed.handle_mapping(&keylen, &timedout, &mapdepth)
+					handle_mapping__o = ed.handle_mapping(keylen, timedout, mapdepth)
+					keylen = handle_mapping__o.keylenp
+					timedout = handle_mapping__o.timedout
+					mapdepth = handle_mapping__o.mapdepth
+					var result map_result_T = handle_mapping__o.r__
 					if result == map_result_retry {
 						continue
 					}
@@ -21874,19 +22433,22 @@ func (ed *Editor) init_highlight(both bool, reset bool) {
 	ed.resolve_fallback_bg_to_rgb()
 }
 
-func (ed *Editor) lookup_color(idx int32, foreground bool, boldp *int32) int32 {
+func (ed *Editor) lookup_color(idx int32, foreground bool, boldp int32) lookup_color__out_T {
 	color := ed.color_numbers_16[int(idx)]
 	var p Ptr[byte]
 	if color < 0 {
-		return -1
+		var out__ lookup_color__out_T
+		out__.r__ = -1
+		out__.boldp = boldp
+		return out__
 	}
 	if ed.t_colors == 8 {
 		color = ed.color_numbers_8[int(idx)]
 		if foreground {
 			if color&8 != 0 {
-				*boldp = TRUE
+				boldp = TRUE
 			} else {
-				*boldp = FALSE
+				boldp = FALSE
 			}
 		}
 		color &= 7
@@ -21906,7 +22468,10 @@ func (ed *Editor) lookup_color(idx int32, foreground bool, boldp *int32) int32 {
 			}
 		}
 	}
-	return color
+	var out___2 lookup_color__out_T
+	out___2.r__ = color
+	out___2.boldp = boldp
+	return out___2
 }
 
 func (ed *Editor) highlight_group_link(from_hg Ptr[byte], from_len int32, to_hg Ptr[byte], to_len int32, dodefault bool, forceit bool, init_ bool) {
@@ -22080,6 +22645,7 @@ func (ed *Editor) highlight_set_cterm_font(idx int32, arg Ptr[byte], init_ bool)
 }
 
 func (ed *Editor) highlight_set_cterm_color(idx int32, key Ptr[byte], key_start Ptr[byte], arg Ptr[byte], is_normal_group bool, init_ bool) bool {
+	var lookup_color__o lookup_color__out_T
 	var color int32
 	if init_ && ((GaData[hl_group_T](&ed.highlight_ga).Ref(int(idx)).sg_set & SG_CTERM) != 0) {
 		return false
@@ -22127,7 +22693,9 @@ func (ed *Editor) highlight_set_cterm_color(idx int32, key Ptr[byte], key_start 
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_color_name_or_number_not_recognized_str)))
 			return false
 		}
-		color = ed.lookup_color(entry[0].key, int32(key.At(5)) == 'F', &bold)
+		lookup_color__o = ed.lookup_color(entry[0].key, int32(key.At(5)) == 'F', bold)
+		bold = lookup_color__o.boldp
+		color = lookup_color__o.r__
 		if bold == TRUE {
 			GaData[hl_group_T](&ed.highlight_ga).Ref(int(idx)).sg_cterm |= HL_BOLD
 			GaData[hl_group_T](&ed.highlight_ga).Ref(int(idx)).sg_cterm_bold = true
@@ -23314,14 +23882,22 @@ func (ed *Editor) pop_highlight_overrides() {
 	Memmove(View(ed.highlight_attr[:]), View(set.attr[:]), 70)
 }
 
-func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_override_T] {
+func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ int32, errmsg Ptr[byte]) parse_winhighlight__out_T {
 	var toname Ptr[byte]
 	var tmp Ptr[byte]
 	var fromlen int32
 	var tolen int32
 	var fromid int32
 	var toid int32
+	var out___3 parse_winhighlight__out_T
+	var out___4 parse_winhighlight__out_T
+	var out___5 parse_winhighlight__out_T
+	var out___6 parse_winhighlight__out_T
 	var hlf int32
+	var out___7 parse_winhighlight__out_T
+	var out___8 parse_winhighlight__out_T
+	var out___9 parse_winhighlight__out_T
+	var out___10 parse_winhighlight__out_T
 
 	p := opt
 	var arr Ptr[hl_override_T]
@@ -23329,7 +23905,11 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 	var num int32 = 1
 	var n_colons int32 = 0
 	if int32(p.Get()) == NUL {
-		return Ptr[hl_override_T]{}
+		var out__ parse_winhighlight__out_T
+		out__.r__ = Ptr[hl_override_T]{}
+		out__.len_ = len_
+		out__.errmsg = errmsg
+		return out__
 	}
 	for {
 		p = ed.vim_strchr(p, ',')
@@ -23349,8 +23929,12 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 		n_colons++
 	}
 	if num != n_colons {
-		*errmsg = ed.e_invalid_argument
-		return Ptr[hl_override_T]{}
+		errmsg = ed.e_invalid_argument
+		var out___2 parse_winhighlight__out_T
+		out___2.r__ = Ptr[hl_override_T]{}
+		out___2.len_ = len_
+		out___2.errmsg = errmsg
+		return out___2
 	}
 	arr = Mk[hl_override_T](int(num))
 	p = opt
@@ -23364,18 +23948,27 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 		var ids [2]*int32 = [2]*int32{&fromid, &toid}
 		p = ed.vim_strchr(p, ':')
 		if p.Nil() {
-			*errmsg = ed.e_invalid_argument
-			return Ptr[hl_override_T]{}
+			errmsg = ed.e_invalid_argument
+			out___3.r__ = Ptr[hl_override_T]{}
+			out___3.len_ = len_
+			out___3.errmsg = errmsg
+			return out___3
 		}
 		fromlen = int32(int64(p.Sub(fromname)))
 		if fromlen == 0 {
-			*errmsg = ed.e_invalid_argument
-			return Ptr[hl_override_T]{}
+			errmsg = ed.e_invalid_argument
+			out___4.r__ = Ptr[hl_override_T]{}
+			out___4.len_ = len_
+			out___4.errmsg = errmsg
+			return out___4
 		}
 		p = p.Add(1)
 		if int32(p.Get()) == NUL {
-			*errmsg = ed.e_invalid_argument
-			return Ptr[hl_override_T]{}
+			errmsg = ed.e_invalid_argument
+			out___5.r__ = Ptr[hl_override_T]{}
+			out___5.len_ = len_
+			out___5.errmsg = errmsg
+			return out___5
 		}
 		toname = p
 		tmp = ed.vim_strchr(p, ',')
@@ -23387,8 +23980,11 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 			p = tmp
 		}
 		if tolen == 0 {
-			*errmsg = ed.e_invalid_argument
-			return Ptr[hl_override_T]{}
+			errmsg = ed.e_invalid_argument
+			out___6.r__ = Ptr[hl_override_T]{}
+			out___6.len_ = len_
+			out___6.errmsg = errmsg
+			return out___6
 		}
 		var k int32 = 0
 		for ; k < 2; k++ {
@@ -23396,8 +23992,11 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 			nlen := (*lens[int(k)])
 			if int32(name.Get()) == '!' {
 				if nlen != 2 {
-					*errmsg = ed.e_invalid_argument
-					return Ptr[hl_override_T]{}
+					errmsg = ed.e_invalid_argument
+					out___7.r__ = Ptr[hl_override_T]{}
+					out___7.len_ = len_
+					out___7.errmsg = errmsg
+					return out___7
 				}
 				hlf = 0
 				for ; hlf < 70; hlf++ {
@@ -23406,19 +24005,28 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 					}
 				}
 				if hlf >= HLF_COUNT {
-					*errmsg = ed.e_invalid_argument
-					return Ptr[hl_override_T]{}
+					errmsg = ed.e_invalid_argument
+					out___8.r__ = Ptr[hl_override_T]{}
+					out___8.len_ = len_
+					out___8.errmsg = errmsg
+					return out___8
 				}
 				*ids[int(k)] = -hlf
 			} else {
 				if ed.syn_check_group(name, nlen) == 0 {
-					*errmsg = ed.e_invalid_argument
-					return Ptr[hl_override_T]{}
+					errmsg = ed.e_invalid_argument
+					out___9.r__ = Ptr[hl_override_T]{}
+					out___9.len_ = len_
+					out___9.errmsg = errmsg
+					return out___9
 				}
 				*ids[int(k)] = ed.syn_namen2id(name, nlen)
 				if (*ids[int(k)]) == 0 {
-					*errmsg = ed.e_invalid_argument
-					return Ptr[hl_override_T]{}
+					errmsg = ed.e_invalid_argument
+					out___10.r__ = Ptr[hl_override_T]{}
+					out___10.len_ = len_
+					out___10.errmsg = errmsg
+					return out___10
 				}
 				if (ids[int(k)] == &fromid) && (musl_strcmp(GaData[hl_group_T](&ed.highlight_ga).Ref(int((*ids[int(k)])-1)).sg_name_u, S("NORMAL")) == 0) {
 					*ids[int(k)] = -HLF_WIN
@@ -23431,15 +24039,23 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 			break
 		}
 	}
-	*len_ = num
-	return arr
+	len_ = num
+	var out___11 parse_winhighlight__out_T
+	out___11.r__ = arr
+	out___11.len_ = len_
+	out___11.errmsg = errmsg
+	return out___11
 }
 
 func (ed *Editor) update_winhighlight(wp *S_window_S, opt Ptr[byte]) Ptr[byte] {
+	var parse_winhighlight__o parse_winhighlight__out_T
 	var err Ptr[byte] = Ptr[byte]{}
 	var arr Ptr[hl_override_T]
 	var num int32 = 1
-	arr = ed.parse_winhighlight(opt, &num, &err)
+	parse_winhighlight__o = ed.parse_winhighlight(opt, num, err)
+	num = parse_winhighlight__o.len_
+	err = parse_winhighlight__o.errmsg
+	arr = parse_winhighlight__o.r__
 	if arr.Nil() && !err.Nil() {
 		return err
 	}
@@ -23492,11 +24108,15 @@ func get_sw_value(buf *S_file_buffer) int64 {
 }
 
 func (ed *Editor) get_sw_value_pos(buf *S_file_buffer, pos *pos_T, left bool) int64 {
-	save_cursor := ed.curwin.w_cursor
+	save_cursor_lnum := ed.curwin.w_cursor.lnum
+	save_cursor_col := ed.curwin.w_cursor.col
+	save_cursor_coladd := ed.curwin.w_cursor.coladd
 	var sw_value int64
 	ed.curwin.w_cursor = (*pos)
 	sw_value = get_sw_value_col(buf, ed.get_nolist_virtcol(), (left))
-	ed.curwin.w_cursor = save_cursor
+	ed.curwin.w_cursor.lnum = save_cursor_lnum
+	ed.curwin.w_cursor.col = save_cursor_col
+	ed.curwin.w_cursor.coladd = save_cursor_coladd
 	return sw_value
 }
 
@@ -23738,7 +24358,9 @@ func (ed *Editor) may_do_si() bool {
 
 func (ed *Editor) ins_try_si(c int32) {
 	var pos *pos_T
-	var old_pos pos_T
+	var old_pos_lnum linenr_T
+	var old_pos_col colnr_T
+	var old_pos_coladd colnr_T
 	var ptr Ptr[byte]
 	var i int32
 	var temp bool
@@ -23749,7 +24371,9 @@ func (ed *Editor) ins_try_si(c int32) {
 			t1 = pos != nil
 		}
 		if t1 {
-			old_pos = ed.curwin.w_cursor
+			old_pos_lnum = ed.curwin.w_cursor.lnum
+			old_pos_col = ed.curwin.w_cursor.col
+			old_pos_coladd = ed.curwin.w_cursor.coladd
 			ptr = ed.ml_get(pos.lnum)
 			i = pos.col
 			if i > 0 {
@@ -23771,7 +24395,9 @@ func (ed *Editor) ins_try_si(c int32) {
 				ed.curwin.w_cursor = (*pos)
 			}
 			i = ed.get_indent()
-			ed.curwin.w_cursor = old_pos
+			ed.curwin.w_cursor.lnum = old_pos_lnum
+			ed.curwin.w_cursor.col = old_pos_col
+			ed.curwin.w_cursor.coladd = old_pos_coladd
 			if ed.State&VREPLACE_FLAG != 0 {
 				ed.change_indent(INDENT_SET, i, false, NUL, TRUE)
 			} else {
@@ -23780,7 +24406,9 @@ func (ed *Editor) ins_try_si(c int32) {
 		} else if ed.curwin.w_cursor.col > 0 {
 			temp = true
 			if (c == '{') && (ed.can_si_back != 0) && (ed.curwin.w_cursor.lnum > 1) {
-				old_pos = ed.curwin.w_cursor
+				old_pos_lnum = ed.curwin.w_cursor.lnum
+				old_pos_col = ed.curwin.w_cursor.col
+				old_pos_coladd = ed.curwin.w_cursor.coladd
 				i = ed.get_indent()
 				for ed.curwin.w_cursor.lnum > 1 {
 					ed.curwin.w_cursor.lnum--
@@ -23792,7 +24420,9 @@ func (ed *Editor) ins_try_si(c int32) {
 				if ed.get_indent() >= i {
 					temp = false
 				}
-				ed.curwin.w_cursor = old_pos
+				ed.curwin.w_cursor.lnum = old_pos_lnum
+				ed.curwin.w_cursor.col = old_pos_col
+				ed.curwin.w_cursor.coladd = old_pos_coladd
 			}
 			if temp {
 				ed.shift_line(true, FALSE, 1, TRUE)
@@ -24213,7 +24843,7 @@ func (ed *Editor) map_add(map_table Ptr[*S_mapblock], abbr_table **S_mapblock, k
 	return mp
 }
 
-func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], keys_len int32, mode int32, did_local *int32) {
+func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], keys_len int32, mode int32, did_local int32) int32 {
 	var mp *S_mapblock
 
 	ed.map_locked++
@@ -24270,7 +24900,7 @@ func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys P
 			if !mp.m_simplified && ((mp.m_mode & mode) != 0) {
 				if !haskey {
 					ed.showmap(mp, true)
-					*did_local = TRUE
+					did_local = TRUE
 				} else {
 					n := mp.m_keylen
 					var t1 int32
@@ -24281,13 +24911,14 @@ func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys P
 					}
 					if musl_strncmp(mp.m_keys, keys, uint64(t1)) == 0 {
 						ed.showmap(mp, true)
-						*did_local = TRUE
+						did_local = TRUE
 					}
 				}
 			}
 		}
 	}
 	ed.map_locked--
+	return did_local
 }
 
 func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
@@ -24298,6 +24929,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 	var keys_unescaped Ptr[byte]
 	var keys_unescaped_len usize
 
+	var replace_termcodes__o replace_termcodes__out_T
 	var keys Ptr[byte]
 	var mp *S_mapblock
 	var mpp **S_mapblock
@@ -24395,9 +25027,13 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 		if special {
 			flags |= REPTERM_SPECIAL
 		}
-		new_keys = ed.replace_termcodes(keys, &keys_buf, 0, flags, &did_simplify)
+		replace_termcodes__o = ed.replace_termcodes(keys, keys_buf, 0, flags, &did_simplify)
+		keys_buf = replace_termcodes__o.bufp
+		new_keys = replace_termcodes__o.r__
 		if did_simplify != 0 {
-			ed.replace_termcodes(keys, &alt_keys_buf, 0, flags|REPTERM_NO_SIMPLIFY, nil)
+			replace_termcodes__o = ed.replace_termcodes(keys, alt_keys_buf, 0, flags|REPTERM_NO_SIMPLIFY, nil)
+			alt_keys_buf = replace_termcodes__o.bufp
+			_ = replace_termcodes__o.r__
 		}
 		keys = new_keys
 	}
@@ -24412,7 +25048,9 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 			} else {
 				t2 = 0
 			}
-			rhs = ed.replace_termcodes(rhs, &arg_buf, 0, REPTERM_DO_LT|t2, nil)
+			replace_termcodes__o = ed.replace_termcodes(rhs, arg_buf, 0, REPTERM_DO_LT|t2, nil)
+			arg_buf = replace_termcodes__o.bufp
+			rhs = replace_termcodes__o.r__
 		}
 	}
 	keyround = 1
@@ -24498,7 +25136,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 			}
 		}
 		if ((map_table != View(ed.curbuf.b_maphash[:])) && !hasarg) && (maptype != MAPTYPE_UNMAP) {
-			ed.list_mappings(keyround, (abbrev), (haskey), keys, len_, mode, &did_local)
+			did_local = ed.list_mappings(keyround, (abbrev), (haskey), keys, len_, mode, did_local)
 		}
 		var t3 int32
 		if (maptype == MAPTYPE_UNMAP) && !unmap_lhs_only {
@@ -24655,11 +25293,11 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 	return retval
 }
 
-func get_map_mode(cmdp *Ptr[byte], forceit bool) int32 {
+func get_map_mode(cmdp Ptr[byte], forceit bool) get_map_mode__out_T {
 	var p Ptr[byte]
 	var modec int32
 	var mode int32
-	p = (*cmdp)
+	p = cmdp
 	var t1 Ptr[byte] = p
 	p = p.Add(1)
 	modec = int32(t1.Get())
@@ -24685,18 +25323,24 @@ func get_map_mode(cmdp *Ptr[byte], forceit bool) int32 {
 			mode = ((MODE_VISUAL | MODE_SELECT) | MODE_NORMAL) | MODE_OP_PENDING
 		}
 	}
-	*cmdp = p
-	return mode
+	cmdp = p
+	var out__ get_map_mode__out_T
+	out__.r__ = mode
+	out__.cmdp = cmdp
+	return out__
 }
 
 func (ed *Editor) map_clear(cmdp Ptr[byte], arg Ptr[byte], forceit bool, abbr bool) {
+	var get_map_mode__o get_map_mode__out_T
 	var mode int32
 	var local bool = (musl_strcmp(arg, S("<buffer>")) == 0)
 	if !local && (int32(arg.Get()) != NUL) {
 		ed.emsg(gettext_(ed.e_invalid_argument))
 		return
 	}
-	mode = get_map_mode(&cmdp, (forceit))
+	get_map_mode__o = get_map_mode(cmdp, (forceit))
+	cmdp = get_map_mode__o.cmdp
+	mode = get_map_mode__o.r__
 	ed.map_clear_mode(ed.curbuf, mode, (local), (abbr))
 }
 
@@ -24913,9 +25557,12 @@ func (ed *Editor) add_map(map_ Ptr[byte], mode int32, nore bool) {
 }
 
 func (ed *Editor) do_exmap(eap *S_exarg, isabbrev bool) {
+	var get_map_mode__o get_map_mode__out_T
 	var mode int32
 	var cmdp Ptr[byte] = eap.cmd
-	mode = get_map_mode(&cmdp, eap.forceit || isabbrev)
+	get_map_mode__o = get_map_mode(cmdp, eap.forceit || isabbrev)
+	cmdp = get_map_mode__o.cmdp
+	mode = get_map_mode__o.r__
 	var t2 int32
 	if int32(cmdp.Get()) == 'n' {
 		t2 = MAPTYPE_NOREMAP
@@ -25120,11 +25767,16 @@ func (ed *Editor) getmark_buf_fnum(buf *S_file_buffer, c int32, changefile bool,
 func (ed *Editor) getnextmark(startpos *pos_T, dir int32, begin_line bool) *pos_T {
 	var i int32
 	var result *pos_T = nil
-	var pos pos_T = (*startpos)
+	var pos_lnum linenr_T
+	var pos_col_ colnr_T
+	var pos_coladd colnr_T
+	pos_lnum = (*startpos).lnum
+	pos_col_ = (*startpos).col
+	pos_coladd = (*startpos).coladd
 	if (dir == -1) && begin_line {
-		pos.col = 0
+		pos_col_ = 0
 	} else if (dir == FORWARD) && begin_line {
-		pos.col = MAXCOL
+		pos_col_ = MAXCOL
 	}
 	i = 0
 	for ; i < (('z' - 'a') + 1); i++ {
@@ -25149,14 +25801,14 @@ func (ed *Editor) getnextmark(startpos *pos_T, dir int32, begin_line bool) *pos_
 				var t6 bool = t3
 				if t6 {
 					var t5 bool
-					if pos.lnum != ed.curbuf.b_namedm[int(i)].lnum {
-						t5 = pos.lnum < ed.curbuf.b_namedm[int(i)].lnum
+					if pos_lnum != ed.curbuf.b_namedm[int(i)].lnum {
+						t5 = pos_lnum < ed.curbuf.b_namedm[int(i)].lnum
 					} else {
 						var t4 bool
-						if pos.col != ed.curbuf.b_namedm[int(i)].col {
-							t4 = pos.col < ed.curbuf.b_namedm[int(i)].col
+						if pos_col_ != ed.curbuf.b_namedm[int(i)].col {
+							t4 = pos_col_ < ed.curbuf.b_namedm[int(i)].col
 						} else {
-							t4 = pos.coladd < ed.curbuf.b_namedm[int(i)].coladd
+							t4 = pos_coladd < ed.curbuf.b_namedm[int(i)].coladd
 						}
 						t5 = t4
 					}
@@ -25185,14 +25837,14 @@ func (ed *Editor) getnextmark(startpos *pos_T, dir int32, begin_line bool) *pos_
 				var t12 bool = t9
 				if t12 {
 					var t11 bool
-					if ed.curbuf.b_namedm[int(i)].lnum != pos.lnum {
-						t11 = ed.curbuf.b_namedm[int(i)].lnum < pos.lnum
+					if ed.curbuf.b_namedm[int(i)].lnum != pos_lnum {
+						t11 = ed.curbuf.b_namedm[int(i)].lnum < pos_lnum
 					} else {
 						var t10 bool
-						if ed.curbuf.b_namedm[int(i)].col != pos.col {
-							t10 = ed.curbuf.b_namedm[int(i)].col < pos.col
+						if ed.curbuf.b_namedm[int(i)].col != pos_col_ {
+							t10 = ed.curbuf.b_namedm[int(i)].col < pos_col_
 						} else {
-							t10 = ed.curbuf.b_namedm[int(i)].coladd < pos.coladd
+							t10 = ed.curbuf.b_namedm[int(i)].coladd < pos_coladd
 						}
 						t11 = t10
 					}
@@ -25880,9 +26532,13 @@ func next_search_hl_pos(shl *match_T, lnum linenr_T, match *S_matchitem, mincol 
 		if pos.lnum == lnum {
 			if found >= 0 {
 				if pos.col < match.mit_pos_array[int(found)].col {
-					tmp := (*pos)
+					tmp_lnum := (*pos).lnum
+					tmp_col := (*pos).col
+					tmp_len := (*pos).len_
 					*pos = match.mit_pos_array[int(found)]
-					match.mit_pos_array[int(found)] = tmp
+					match.mit_pos_array[int(found)].lnum = tmp_lnum
+					match.mit_pos_array[int(found)].col = tmp_col
+					match.mit_pos_array[int(found)].len_ = tmp_len
 				}
 			} else {
 				found = i
@@ -26048,7 +26704,7 @@ func check_cur_search_hl(wp *S_window_S, shl *match_T) {
 	}
 }
 
-func (ed *Editor) prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol colnr_T, line *Ptr[byte], search_hl *match_T, search_attr *int32) bool {
+func (ed *Editor) prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol colnr_T, line Ptr[byte], search_hl *match_T, search_attr int32) prepare_search_hl_line__out_T {
 	var cur *S_matchitem
 	var shl *match_T
 	var shl_flag int32
@@ -26077,7 +26733,7 @@ func (ed *Editor) prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol c
 			t1 = cur
 		}
 		ed.next_search_hl(wp, search_hl, shl, lnum, mincol, t1)
-		*line = ed.ml_get_buf(wp.w_buffer, lnum, false)
+		line = ed.ml_get_buf(wp.w_buffer, lnum, false)
 		if (shl.lnum != 0) && (shl.lnum <= lnum) {
 			if shl.lnum == lnum {
 				shl.startcol = shl.rm.startpos[0].col
@@ -26093,15 +26749,15 @@ func (ed *Editor) prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol c
 				check_cur_search_hl(wp, shl)
 			}
 			if shl.startcol == shl.endcol {
-				if int32((*line).At(int(shl.endcol))) != NUL {
-					shl.endcol += ed.utfc_ptr2len((*line).Add(int(shl.endcol)))
+				if int32(line.At(int(shl.endcol))) != NUL {
+					shl.endcol += ed.utfc_ptr2len(line.Add(int(shl.endcol)))
 				} else {
 					shl.endcol++
 				}
 			}
 			if int64(shl.startcol) < int64(mincol) {
 				shl.attr_cur = shl.attr
-				*search_attr = shl.attr
+				search_attr = shl.attr
 			}
 			area_highlighting = true
 		}
@@ -26109,10 +26765,14 @@ func (ed *Editor) prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol c
 			cur = cur.mit_next
 		}
 	}
-	return (area_highlighting)
+	var out__ prepare_search_hl_line__out_T
+	out__.r__ = (area_highlighting)
+	out__.line = line
+	out__.search_attr = search_attr
+	return out__
 }
 
-func (ed *Editor) update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, line *Ptr[byte], search_hl *match_T, has_match_conc *int32, match_conc *int32, did_line_attr int32, lcs_eol_one int32, on_last_col *int32) int32 {
+func (ed *Editor) update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, line Ptr[byte], search_hl *match_T, has_match_conc *int32, match_conc *int32, did_line_attr int32, lcs_eol_one int32, on_last_col int32) update_search_hl__out_T {
 	var cur *S_matchitem
 	var shl *match_T
 	var shl_flag int32
@@ -26133,7 +26793,7 @@ func (ed *Editor) update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, l
 		pos_inprogress = true
 		for (shl.rm.regprog != nil) || ((cur != nil) && pos_inprogress) {
 			if ((shl.startcol != MAXCOL) && (col >= shl.startcol)) && (col < shl.endcol) {
-				next_col := col + ed.utfc_ptr2len((*line).Add(int(col)))
+				next_col := col + ed.utfc_ptr2len(line.Add(int(col)))
 				if shl.endcol < next_col {
 					shl.endcol = next_col
 				}
@@ -26154,7 +26814,7 @@ func (ed *Editor) update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, l
 				}
 				ed.next_search_hl(wp, search_hl, shl, lnum, col, t1)
 				pos_inprogress = !((cur == nil) || (cur.mit_pos_cur == 0))
-				*line = ed.ml_get_buf(wp.w_buffer, lnum, false)
+				line = ed.ml_get_buf(wp.w_buffer, lnum, false)
 				if shl.lnum == lnum {
 					shl.startcol = shl.rm.startpos[0].col
 					if shl.rm.endpos[0].lnum == 0 {
@@ -26166,7 +26826,7 @@ func (ed *Editor) update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, l
 						check_cur_search_hl(wp, shl)
 					}
 					if shl.startcol == shl.endcol {
-						p := (*line).Add(int(shl.endcol))
+						p := line.Add(int(shl.endcol))
 						if int32(p.Get()) == NUL {
 							shl.endcol++
 						} else {
@@ -26193,16 +26853,20 @@ func (ed *Editor) update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, l
 		}
 		if shl.attr_cur != 0 {
 			search_attr = shl.attr_cur
-			*on_last_col = B2i((col + 1) >= shl.endcol)
+			on_last_col = B2i((col + 1) >= shl.endcol)
 		}
 		if (shl != search_hl) && (cur != nil) {
 			cur = cur.mit_next
 		}
 	}
-	if (int32((*line).Add(int(col)).Get()) == NUL) && ((did_line_attr >= 1) || ((wp.w_onebuf_opt.wo_list != 0) && (lcs_eol_one == -1))) {
+	if (int32(line.Add(int(col)).Get()) == NUL) && ((did_line_attr >= 1) || ((wp.w_onebuf_opt.wo_list != 0) && (lcs_eol_one == -1))) {
 		search_attr = 0
 	}
-	return search_attr
+	var out__ update_search_hl__out_T
+	out__.r__ = search_attr
+	out__.line = line
+	out__.on_last_col = on_last_col
+	return out__
 }
 
 func get_prevcol_hl_flag(wp *S_window_S, search_hl *match_T, curcol int64) bool {
@@ -26233,7 +26897,7 @@ func get_prevcol_hl_flag(wp *S_window_S, search_hl *match_T, curcol int64) bool 
 	return (prevcol_hl_flag)
 }
 
-func get_search_match_hl(wp *S_window_S, search_hl *match_T, col int64, char_attr *int32) {
+func get_search_match_hl(wp *S_window_S, search_hl *match_T, col int64, char_attr int32) int32 {
 	var cur *S_matchitem
 	var shl *match_T
 	var shl_flag int32
@@ -26247,12 +26911,13 @@ func get_search_match_hl(wp *S_window_S, search_hl *match_T, col int64, char_att
 			shl = &cur.mit_hl
 		}
 		if ((col - 1) == int64(shl.startcol)) && ((shl == search_hl) || (shl.is_addpos == 0)) {
-			*char_attr = shl.attr
+			char_attr = shl.attr
 		}
 		if (shl != search_hl) && (cur != nil) {
 			cur = cur.mit_next
 		}
 	}
+	return char_attr
 }
 
 func (ed *Editor) ex_match(eap *S_exarg) {
@@ -26372,10 +27037,13 @@ func (ed *Editor) utf_char2cells(c int32) int32 {
 }
 
 func (ed *Editor) utf_ptr2cells(p Ptr[byte]) int32 {
+	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
 	var c int32
 	var len_ int32
 	if int32(p.Get()) >= 0x80 {
-		c = ed.utf_ptr2char_and_len(p, &len_)
+		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+		len_ = utf_ptr2char_and_len__o.lenp
+		c = utf_ptr2char_and_len__o.r__
 		if (len_ == 1) || (c == NUL) {
 			return 4
 		}
@@ -26413,7 +27081,7 @@ func (ed *Editor) utf_off2cells(off uint32, max_off uint32) int32 {
 	return t1
 }
 
-func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte], lenp *int32) int32 {
+func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte], lenp int32) utf_ptr2char_and_len__out_T {
 	var len_ int32
 	var c int32
 	if int32(p.At(0)) < 0x80 {
@@ -26423,123 +27091,202 @@ func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte], lenp *int32) int32 {
 		} else {
 			t1 = 1
 		}
-		*lenp = t1
-		return int32(p.At(0))
+		lenp = t1
+		var out__ utf_ptr2char_and_len__out_T
+		out__.r__ = int32(p.At(0))
+		out__.lenp = lenp
+		return out__
 	}
 	len_ = int32(int8(ed.utf8len_tab_zero[int(p.At(0))]))
 	if (len_ <= 1) || ((int32(p.At(1)) & 0xc0) != 0x80) {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___2 utf_ptr2char_and_len__out_T
+		out___2.r__ = int32(p.At(0))
+		out___2.lenp = lenp
+		return out___2
 	}
 	c = ((int32(p.At(0)) & 0x1f) << 6) + (int32(p.At(1)) & 0x3f)
 	if len_ == 2 {
-		*lenp = 2
-		return c
+		lenp = 2
+		var out___3 utf_ptr2char_and_len__out_T
+		out___3.r__ = c
+		out___3.lenp = lenp
+		return out___3
 	}
 	if (int32(p.At(2)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___4 utf_ptr2char_and_len__out_T
+		out___4.r__ = int32(p.At(0))
+		out___4.lenp = lenp
+		return out___4
 	}
 	c = (((int32(p.At(0)) & 0x0f) << 12) + ((int32(p.At(1)) & 0x3f) << 6)) + (int32(p.At(2)) & 0x3f)
 	if len_ == 3 {
-		*lenp = 3
-		return c
+		lenp = 3
+		var out___5 utf_ptr2char_and_len__out_T
+		out___5.r__ = c
+		out___5.lenp = lenp
+		return out___5
 	}
 	if (int32(p.At(3)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___6 utf_ptr2char_and_len__out_T
+		out___6.r__ = int32(p.At(0))
+		out___6.lenp = lenp
+		return out___6
 	}
 	c = ((((int32(p.At(0)) & 0x07) << 18) + ((int32(p.At(1)) & 0x3f) << 12)) + ((int32(p.At(2)) & 0x3f) << 6)) + (int32(p.At(3)) & 0x3f)
 	if len_ == 4 {
-		*lenp = 4
-		return c
+		lenp = 4
+		var out___7 utf_ptr2char_and_len__out_T
+		out___7.r__ = c
+		out___7.lenp = lenp
+		return out___7
 	}
 	if (int32(p.At(4)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___8 utf_ptr2char_and_len__out_T
+		out___8.r__ = int32(p.At(0))
+		out___8.lenp = lenp
+		return out___8
 	}
 	c = (((((int32(p.At(0)) & 0x03) << 24) + ((int32(p.At(1)) & 0x3f) << 18)) + ((int32(p.At(2)) & 0x3f) << 12)) + ((int32(p.At(3)) & 0x3f) << 6)) + (int32(p.At(4)) & 0x3f)
 	if len_ == 5 {
-		*lenp = 5
-		return c
+		lenp = 5
+		var out___9 utf_ptr2char_and_len__out_T
+		out___9.r__ = c
+		out___9.lenp = lenp
+		return out___9
 	}
 	if (int32(p.At(5)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___10 utf_ptr2char_and_len__out_T
+		out___10.r__ = int32(p.At(0))
+		out___10.lenp = lenp
+		return out___10
 	}
-	*lenp = 6
-	return ((((((int32(p.At(0)) & 0x01) << 30) + ((int32(p.At(1)) & 0x3f) << 24)) + ((int32(p.At(2)) & 0x3f) << 18)) + ((int32(p.At(3)) & 0x3f) << 12)) + ((int32(p.At(4)) & 0x3f) << 6)) + (int32(p.At(5)) & 0x3f)
+	lenp = 6
+	var out___11 utf_ptr2char_and_len__out_T
+	out___11.r__ = (((((((int32(p.At(0)) & 0x01) << 30) + ((int32(p.At(1)) & 0x3f) << 24)) + ((int32(p.At(2)) & 0x3f) << 18)) + ((int32(p.At(3)) & 0x3f) << 12)) + ((int32(p.At(4)) & 0x3f) << 6)) + (int32(p.At(5)) & 0x3f))
+	out___11.lenp = lenp
+	return out___11
 }
 
-func (ed *Editor) utf_ptr2char_and_len_len(p Ptr[byte], size int32, lenp *int32) int32 {
+func (ed *Editor) utf_ptr2char_and_len_len(p Ptr[byte], size int32, lenp int32) utf_ptr2char_and_len_len__out_T {
+	var out___4 utf_ptr2char_and_len_len__out_T
+
 	var len_ int32
 	var c int32
 	if size < 1 {
-		*lenp = 1
-		return NUL
+		lenp = 1
+		var out__ utf_ptr2char_and_len_len__out_T
+		out__.r__ = NUL
+		out__.lenp = lenp
+		return out__
 	}
 	if int32(p.At(0)) < 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___2 utf_ptr2char_and_len_len__out_T
+		out___2.r__ = int32(p.At(0))
+		out___2.lenp = lenp
+		return out___2
 	}
 	len_ = int32(int8(ed.utf8len_tab_zero[int(p.At(0))]))
 	if len_ <= 1 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___3 utf_ptr2char_and_len_len__out_T
+		out___3.r__ = int32(p.At(0))
+		out___3.lenp = lenp
+		return out___3
 	}
 	if len_ > size {
 		var i int32 = 1
 		for ; i < size; i++ {
 			if (int32(p.At(int(i))) & 0xc0) != 0x80 {
-				*lenp = 1
-				return int32(p.At(0))
+				lenp = 1
+				out___4.r__ = int32(p.At(0))
+				out___4.lenp = lenp
+				return out___4
 			}
 		}
-		*lenp = len_
-		return int32(p.At(0))
+		lenp = len_
+		var out___5 utf_ptr2char_and_len_len__out_T
+		out___5.r__ = int32(p.At(0))
+		out___5.lenp = lenp
+		return out___5
 	}
 	if (int32(p.At(1)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___6 utf_ptr2char_and_len_len__out_T
+		out___6.r__ = int32(p.At(0))
+		out___6.lenp = lenp
+		return out___6
 	}
 	c = ((int32(p.At(0)) & 0x1f) << 6) + (int32(p.At(1)) & 0x3f)
 	if len_ == 2 {
-		*lenp = 2
-		return c
+		lenp = 2
+		var out___7 utf_ptr2char_and_len_len__out_T
+		out___7.r__ = c
+		out___7.lenp = lenp
+		return out___7
 	}
 	if (int32(p.At(2)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___8 utf_ptr2char_and_len_len__out_T
+		out___8.r__ = int32(p.At(0))
+		out___8.lenp = lenp
+		return out___8
 	}
 	c = (((int32(p.At(0)) & 0x0f) << 12) + ((int32(p.At(1)) & 0x3f) << 6)) + (int32(p.At(2)) & 0x3f)
 	if len_ == 3 {
-		*lenp = 3
-		return c
+		lenp = 3
+		var out___9 utf_ptr2char_and_len_len__out_T
+		out___9.r__ = c
+		out___9.lenp = lenp
+		return out___9
 	}
 	if (int32(p.At(3)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___10 utf_ptr2char_and_len_len__out_T
+		out___10.r__ = int32(p.At(0))
+		out___10.lenp = lenp
+		return out___10
 	}
 	c = ((((int32(p.At(0)) & 0x07) << 18) + ((int32(p.At(1)) & 0x3f) << 12)) + ((int32(p.At(2)) & 0x3f) << 6)) + (int32(p.At(3)) & 0x3f)
 	if len_ == 4 {
-		*lenp = 4
-		return c
+		lenp = 4
+		var out___11 utf_ptr2char_and_len_len__out_T
+		out___11.r__ = c
+		out___11.lenp = lenp
+		return out___11
 	}
 	if (int32(p.At(4)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___12 utf_ptr2char_and_len_len__out_T
+		out___12.r__ = int32(p.At(0))
+		out___12.lenp = lenp
+		return out___12
 	}
 	c = (((((int32(p.At(0)) & 0x03) << 24) + ((int32(p.At(1)) & 0x3f) << 18)) + ((int32(p.At(2)) & 0x3f) << 12)) + ((int32(p.At(3)) & 0x3f) << 6)) + (int32(p.At(4)) & 0x3f)
 	if len_ == 5 {
-		*lenp = 5
-		return c
+		lenp = 5
+		var out___13 utf_ptr2char_and_len_len__out_T
+		out___13.r__ = c
+		out___13.lenp = lenp
+		return out___13
 	}
 	if (int32(p.At(5)) & 0xc0) != 0x80 {
-		*lenp = 1
-		return int32(p.At(0))
+		lenp = 1
+		var out___14 utf_ptr2char_and_len_len__out_T
+		out___14.r__ = int32(p.At(0))
+		out___14.lenp = lenp
+		return out___14
 	}
-	*lenp = 6
-	return ((((((int32(p.At(0)) & 0x01) << 30) + ((int32(p.At(1)) & 0x3f) << 24)) + ((int32(p.At(2)) & 0x3f) << 18)) + ((int32(p.At(3)) & 0x3f) << 12)) + ((int32(p.At(4)) & 0x3f) << 6)) + (int32(p.At(5)) & 0x3f)
+	lenp = 6
+	var out___15 utf_ptr2char_and_len_len__out_T
+	out___15.r__ = (((((((int32(p.At(0)) & 0x01) << 30) + ((int32(p.At(1)) & 0x3f) << 24)) + ((int32(p.At(2)) & 0x3f) << 18)) + ((int32(p.At(3)) & 0x3f) << 12)) + ((int32(p.At(4)) & 0x3f) << 6)) + (int32(p.At(5)) & 0x3f))
+	out___15.lenp = lenp
+	return out___15
 }
 
 func (ed *Editor) utf_iscomposinglike_char(c1 int32, c2 int32) bool {
@@ -26551,32 +27298,51 @@ func (ed *Editor) utf_iscomposinglike_char(c1 int32, c2 int32) bool {
 }
 
 func (ed *Editor) utf_ptr2char(p Ptr[byte]) int32 {
+	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
 	var len_ int32
-	return ed.utf_ptr2char_and_len(p, &len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	len_ = utf_ptr2char_and_len__o.lenp
+	return utf_ptr2char_and_len__o.r__
 }
 
-func (ed *Editor) utf_safe_read_char_adv(s *Ptr[byte], n *usize) int32 {
+func (ed *Editor) utf_safe_read_char_adv(s Ptr[byte], n usize) utf_safe_read_char_adv__out_T {
 	var c int32
 	var k int32
-	if (*n) == 0 {
-		return 0
+	if n == 0 {
+		var out__ utf_safe_read_char_adv__out_T
+		out__.r__ = 0
+		out__.s = s
+		out__.n = n
+		return out__
 	}
-	k = int32(int8(ed.utf8len_tab_zero[int((*s).Get())]))
+	k = int32(int8(ed.utf8len_tab_zero[int(s.Get())]))
 	if k == 1 {
-		(*n)--
-		var t1 Ptr[byte] = (*s)
-		*s = (*s).Add(1)
-		return int32(t1.Get())
+		n--
+		var out___2 utf_safe_read_char_adv__out_T
+		var t1 Ptr[byte] = s
+		s = s.Add(1)
+		out___2.r__ = int32(t1.Get())
+		out___2.s = s
+		out___2.n = n
+		return out___2
 	}
-	if uint64(k) <= (*n) {
-		c = ed.utf_ptr2char((*s))
-		if (c != int32((*s).Get())) || ((c == 0xC3) && (int32((*s).At(1)) == 0x83)) {
-			*s = (*s).Add(int(k))
-			(*n) -= uint64(k)
-			return c
+	if uint64(k) <= n {
+		c = ed.utf_ptr2char(s)
+		if (c != int32(s.Get())) || ((c == 0xC3) && (int32(s.At(1)) == 0x83)) {
+			s = s.Add(int(k))
+			n -= usize(k)
+			var out___3 utf_safe_read_char_adv__out_T
+			out___3.r__ = c
+			out___3.s = s
+			out___3.n = n
+			return out___3
 		}
 	}
-	return -1
+	var out___4 utf_safe_read_char_adv__out_T
+	out___4.r__ = -1
+	out___4.s = s
+	out___4.n = n
+	return out___4
 }
 
 func (ed *Editor) mb_ptr2char_adv(pp *Ptr[byte]) int32 {
@@ -26585,21 +27351,29 @@ func (ed *Editor) mb_ptr2char_adv(pp *Ptr[byte]) int32 {
 	return c
 }
 
-func (ed *Editor) mb_cptr2char_adv(pp *Ptr[byte]) int32 {
-	var c int32 = ed.utf_ptr2char((*pp))
-	*pp = (*pp).Add(int(ed.utf_ptr2len((*pp))))
-	return c
+func (ed *Editor) mb_cptr2char_adv(pp Ptr[byte]) mb_cptr2char_adv__out_T {
+	var c int32 = ed.utf_ptr2char(pp)
+	pp = pp.Add(int(ed.utf_ptr2len(pp)))
+	var out__ mb_cptr2char_adv__out_T
+	out__.r__ = c
+	out__.pp = pp
+	return out__
 }
 
 func (ed *Editor) utfc_ptr2char(p Ptr[byte], pcc Ptr[int32]) int32 {
+	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
 	var len_ int32
 	var c int32
 	var cc int32
 	var cc_len int32
 	var i int32 = 0
-	c = ed.utf_ptr2char_and_len(p, &len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	len_ = utf_ptr2char_and_len__o.lenp
+	c = utf_ptr2char_and_len__o.r__
 	if ((len_ > 1) || (int32(p.Get()) < 0x80)) && (int32(p.At(int(len_))) >= 0x80) {
-		cc = ed.utf_ptr2char_and_len(p.Add(int(len_)), &cc_len)
+		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+		cc_len = utf_ptr2char_and_len__o.lenp
+		cc = utf_ptr2char_and_len__o.r__
 		if ed.utf_iscomposinglike_char(c, cc) {
 			for {
 				var t1 int32 = i
@@ -26612,7 +27386,9 @@ func (ed *Editor) utfc_ptr2char(p Ptr[byte], pcc Ptr[int32]) int32 {
 				if int32(p.At(int(len_))) < 0x80 {
 					break
 				}
-				cc = ed.utf_ptr2char_and_len(p.Add(int(len_)), &cc_len)
+				utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+				cc_len = utf_ptr2char_and_len__o.lenp
+				cc = utf_ptr2char_and_len__o.r__
 				if !ed.utf_iscomposing(cc) {
 					break
 				}
@@ -26626,14 +27402,19 @@ func (ed *Editor) utfc_ptr2char(p Ptr[byte], pcc Ptr[int32]) int32 {
 }
 
 func (ed *Editor) utfc_ptr2char_len(p Ptr[byte], pcc Ptr[int32], maxlen int32) int32 {
+	var utf_ptr2char_and_len_len__o utf_ptr2char_and_len_len__out_T
 	var len_ int32
 	var c int32
 	var cc int32
 	var cc_len int32
 	var i int32 = 0
-	c = ed.utf_ptr2char_and_len_len(p, maxlen, &len_)
+	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p, maxlen, len_)
+	len_ = utf_ptr2char_and_len_len__o.lenp
+	c = utf_ptr2char_and_len_len__o.r__
 	if (((len_ > 1) || (int32(p.Get()) < 0x80)) && (len_ < maxlen)) && (int32(p.At(int(len_))) >= 0x80) {
-		cc = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_, &cc_len)
+		utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_, cc_len)
+		cc_len = utf_ptr2char_and_len_len__o.lenp
+		cc = utf_ptr2char_and_len_len__o.r__
 		if (cc_len <= (maxlen - len_)) && ed.utf_iscomposinglike_char(c, cc) {
 			for {
 				var t1 int32 = i
@@ -26646,7 +27427,9 @@ func (ed *Editor) utfc_ptr2char_len(p Ptr[byte], pcc Ptr[int32], maxlen int32) i
 				if (len_ >= maxlen) || (int32(p.At(int(len_))) < 0x80) {
 					break
 				}
-				cc = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_, &cc_len)
+				utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_, cc_len)
+				cc_len = utf_ptr2char_and_len_len__o.lenp
+				cc = utf_ptr2char_and_len_len__o.r__
 				if (cc_len > (maxlen - len_)) || !ed.utf_iscomposing(cc) {
 					break
 				}
@@ -26674,12 +27457,16 @@ func (ed *Editor) utfc_char2bytes(off int32, buf Ptr[byte]) int32 {
 }
 
 func (ed *Editor) utf_ptr2len(p Ptr[byte]) int32 {
+	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
 	var len_ int32
-	ed.utf_ptr2char_and_len(p, &len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	len_ = utf_ptr2char_and_len__o.lenp
+	_ = utf_ptr2char_and_len__o.r__
 	return len_
 }
 
 func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
+	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
 	var len_ int32
 	var c int32
 	var cc int32
@@ -26691,14 +27478,18 @@ func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
 	if (b0 < 0x80) && (int32(p.At(1)) < 0x80) {
 		return 1
 	}
-	c = ed.utf_ptr2char_and_len(p, &len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	len_ = utf_ptr2char_and_len__o.lenp
+	c = utf_ptr2char_and_len__o.r__
 	if (len_ == 1) && (b0 >= 0x80) {
 		return 1
 	}
 	if int32(p.At(int(len_))) < 0x80 {
 		return len_
 	}
-	cc = ed.utf_ptr2char_and_len(p.Add(int(len_)), &cc_len)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+	cc_len = utf_ptr2char_and_len__o.lenp
+	cc = utf_ptr2char_and_len__o.r__
 	if !ed.utf_iscomposinglike_char(c, cc) {
 		return len_
 	}
@@ -26707,7 +27498,9 @@ func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
 		if int32(p.At(int(len_))) < 0x80 {
 			return len_
 		}
-		cc = ed.utf_ptr2char_and_len(p.Add(int(len_)), &cc_len)
+		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+		cc_len = utf_ptr2char_and_len__o.lenp
+		cc = utf_ptr2char_and_len__o.r__
 		if !ed.utf_iscomposing(cc) {
 			return len_
 		}
@@ -26715,6 +27508,7 @@ func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
 }
 
 func (ed *Editor) utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
+	var utf_ptr2char_and_len_len__o utf_ptr2char_and_len_len__out_T
 	var len_ int32
 	var c int32
 	var cc int32
@@ -26725,14 +27519,18 @@ func (ed *Editor) utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
 	if (int32(p.At(0)) < 0x80) && ((size == 1) || (int32(p.At(1)) < 0x80)) {
 		return 1
 	}
-	c = ed.utf_ptr2char_and_len_len(p, size, &len_)
+	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p, size, len_)
+	len_ = utf_ptr2char_and_len_len__o.lenp
+	c = utf_ptr2char_and_len_len__o.r__
 	if ((len_ == 1) && (int32(p.At(0)) >= 0x80)) || (len_ > size) {
 		return 1
 	}
 	if (len_ >= size) || (int32(p.At(int(len_))) < 0x80) {
 		return len_
 	}
-	cc = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_, &cc_len)
+	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_, cc_len)
+	cc_len = utf_ptr2char_and_len_len__o.lenp
+	cc = utf_ptr2char_and_len_len__o.r__
 	if (cc_len > (size - len_)) || !ed.utf_iscomposinglike_char(c, cc) {
 		return len_
 	}
@@ -26741,7 +27539,9 @@ func (ed *Editor) utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
 		if (len_ >= size) || (int32(p.At(int(len_))) < 0x80) {
 			break
 		}
-		cc = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_, &cc_len)
+		utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_, cc_len)
+		cc_len = utf_ptr2char_and_len_len__o.lenp
+		cc = utf_ptr2char_and_len_len__o.r__
 		if cc_len > (size - len_) {
 			break
 		}
@@ -26946,13 +27746,20 @@ func (ed *Editor) utf_isupper(a int32) bool {
 }
 
 func (ed *Editor) utf_strnicmp(s1 Ptr[byte], s2 Ptr[byte], n1 usize, n2 usize) int32 {
+	var utf_safe_read_char_adv__o utf_safe_read_char_adv__out_T
 	var c1 int32
 	var c2 int32
 	var cdiff int32
 	var buffer Ptr[byte] = Mk[byte](6)
 	for {
-		c1 = ed.utf_safe_read_char_adv(&s1, &n1)
-		c2 = ed.utf_safe_read_char_adv(&s2, &n2)
+		utf_safe_read_char_adv__o = ed.utf_safe_read_char_adv(s1, n1)
+		s1 = utf_safe_read_char_adv__o.s
+		n1 = utf_safe_read_char_adv__o.n
+		c1 = utf_safe_read_char_adv__o.r__
+		utf_safe_read_char_adv__o = ed.utf_safe_read_char_adv(s2, n2)
+		s2 = utf_safe_read_char_adv__o.s
+		n2 = utf_safe_read_char_adv__o.n
+		c2 = utf_safe_read_char_adv__o.r__
 		if (c1 <= 0) || (c2 <= 0) {
 			break
 		}
@@ -27093,11 +27900,15 @@ func (ed *Editor) utf_head_off(base Ptr[byte], p Ptr[byte]) int32 {
 	return int32(int64(p.Sub(q)))
 }
 
-func (ed *Editor) mb_copy_char(fp *Ptr[byte], tp *Ptr[byte]) {
-	l := ed.utfc_ptr2len((*fp))
-	Memmove((*tp), (*fp), int(uint64(l)))
-	*tp = (*tp).Add(int(l))
-	*fp = (*fp).Add(int(l))
+func (ed *Editor) mb_copy_char(fp Ptr[byte], tp Ptr[byte]) mb_copy_char__out_T {
+	l := ed.utfc_ptr2len(fp)
+	Memmove(tp, fp, int(uint64(l)))
+	tp = tp.Add(int(l))
+	fp = fp.Add(int(l))
+	var out__ mb_copy_char__out_T
+	out__.fp = fp
+	out__.tp = tp
+	return out__
 }
 
 func (ed *Editor) mb_off_next(base Ptr[byte], p Ptr[byte]) int32 {
@@ -27109,7 +27920,9 @@ func (ed *Editor) mb_off_next(base Ptr[byte], p Ptr[byte]) int32 {
 }
 
 func (ed *Editor) utf_find_illegal() {
-	pos := ed.curwin.w_cursor
+	pos_lnum := ed.curwin.w_cursor.lnum
+	pos_col_ := ed.curwin.w_cursor.col
+	pos_coladd := ed.curwin.w_cursor.coladd
 	var p Ptr[byte]
 	var len_ int32
 	ed.curwin.w_cursor.coladd = 0
@@ -27130,7 +27943,9 @@ func (ed *Editor) utf_find_illegal() {
 		ed.curwin.w_cursor.lnum++
 		ed.curwin.w_cursor.col = 0
 	}
-	ed.curwin.w_cursor = pos
+	ed.curwin.w_cursor.lnum = pos_lnum
+	ed.curwin.w_cursor.col = pos_col_
+	ed.curwin.w_cursor.coladd = pos_coladd
 	ed.beep_flush()
 }
 
@@ -29165,6 +29980,7 @@ func (ed *Editor) msg_puts_attr_len(str Ptr[byte], maxlen int32, attr int32) {
 }
 
 func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recurse bool) {
+	var store_sb_text__o store_sb_text__out_T
 	s := str
 	t_s := str
 	var t_col int32 = 0
@@ -29179,7 +29995,7 @@ func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recu
 		wrap_col := ed.cmdline_width - 1
 		if (!recurse && (int64(ed.msg_row) >= (ed.Rows - 1))) && ((int32(s.Get()) == 10) || ((((int32(s.Get()) != 13) && ((ed.msg_col + t_col) >= wrap_col)) || ((int32(s.Get()) == TAB) && ((ed.msg_col + t_col) >= (wrap_col & ^7)))) || ((ed.utf_ptr2cells(s) > 1) && ((ed.msg_col + t_col) >= (wrap_col - 1))))) {
 			if t_col > 0 {
-				ed.t_puts(&t_col, t_s, s, attr)
+				t_col = ed.t_puts(t_col, t_s, s, attr)
 			}
 			if (ed.msg_no_more != 0) && (ed.lines_left == 0) {
 				break
@@ -29201,7 +30017,10 @@ func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recu
 				did_last_char = false
 			}
 			if ed.p_more != 0 {
-				ed.store_sb_text(&sb_str, s, attr, &sb_col, true)
+				store_sb_text__o = ed.store_sb_text(sb_str, s, attr, sb_col, true)
+				sb_str = store_sb_text__o.sb_str
+				sb_col = store_sb_text__o.sb_col
+				_ = 0
 			}
 			ed.inc_msg_scrolled()
 			ed.need_wait_return = TRUE
@@ -29224,10 +30043,13 @@ func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recu
 		}
 		wrap = ((int32(s.Get()) == 10) || ((ed.msg_col + t_col) >= wrap_col)) || ((ed.utf_ptr2cells(s) > 1) && ((ed.msg_col + t_col) >= (wrap_col - 1)))
 		if (t_col > 0) && ((((wrap || (int32(s.Get()) == 13)) || (int32(s.Get()) == 8)) || (int32(s.Get()) == 9)) || (int32(s.Get()) == BELL)) {
-			ed.t_puts(&t_col, t_s, s, attr)
+			t_col = ed.t_puts(t_col, t_s, s, attr)
 		}
 		if (wrap && (ed.p_more != 0)) && !recurse {
-			ed.store_sb_text(&sb_str, s, attr, &sb_col, true)
+			store_sb_text__o = ed.store_sb_text(sb_str, s, attr, sb_col, true)
+			sb_str = store_sb_text__o.sb_str
+			sb_col = store_sb_text__o.sb_col
+			_ = 0
 		}
 		if int32(s.Get()) == 10 {
 			ed.msg_didout = FALSE
@@ -29275,10 +30097,13 @@ func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recu
 		s = s.Add(1)
 	}
 	if t_col > 0 {
-		ed.t_puts(&t_col, t_s, s, attr)
+		t_col = ed.t_puts(t_col, t_s, s, attr)
 	}
 	if ((ed.p_more != 0) && !recurse) && !((s == sb_str.Add(1)) && (int32(sb_str.Get()) == 10)) {
-		ed.store_sb_text(&sb_str, s, attr, &sb_col, false)
+		store_sb_text__o = ed.store_sb_text(sb_str, s, attr, sb_col, false)
+		sb_str = store_sb_text__o.sb_str
+		sb_col = store_sb_text__o.sb_col
+		_ = 0
 	}
 	ed.msg_check()
 }
@@ -29313,20 +30138,20 @@ func (ed *Editor) inc_msg_scrolled() {
 	ed.set_must_redraw(UPD_VALID)
 }
 
-func (ed *Editor) store_sb_text(sb_str *Ptr[byte], s Ptr[byte], attr int32, sb_col *int32, finish bool) {
+func (ed *Editor) store_sb_text(sb_str Ptr[byte], s Ptr[byte], attr int32, sb_col int32, finish bool) store_sb_text__out_T {
 	var mp *S_msgchunk_S
 	if (ed.do_clear_sb_text == SB_CLEAR_ALL) || (ed.do_clear_sb_text == SB_CLEAR_CMDLINE_DONE) {
 		ed.clear_sb_text(ed.do_clear_sb_text == SB_CLEAR_ALL)
 		ed.msg_sb_eol()
 		ed.do_clear_sb_text = SB_CLEAR_NONE
 	}
-	if s.Gt((*sb_str)) {
+	if s.Gt(sb_str) {
 		mp = new(S_msgchunk_S)
-		mp.sb_text = Alloc(int(int64(s.Sub((*sb_str))) + 1))
+		mp.sb_text = Alloc(int(int64(s.Sub(sb_str)) + 1))
 		mp.sb_eol = byte(B2i(finish))
-		mp.sb_msg_col = (*sb_col)
+		mp.sb_msg_col = sb_col
 		mp.sb_attr = attr
-		vim_strncpy(mp.sb_text, (*sb_str), usize(int64(s.Sub((*sb_str)))))
+		vim_strncpy(mp.sb_text, sb_str, usize(int64(s.Sub(sb_str))))
 		if ed.last_msgchunk == nil {
 			ed.last_msgchunk = mp
 			mp.sb_prev = nil
@@ -29339,8 +30164,12 @@ func (ed *Editor) store_sb_text(sb_str *Ptr[byte], s Ptr[byte], attr int32, sb_c
 	} else if finish && (ed.last_msgchunk != nil) {
 		ed.last_msgchunk.sb_eol = TRUE
 	}
-	*sb_str = s
-	*sb_col = 0
+	sb_str = s
+	sb_col = 0
+	var out__ store_sb_text__out_T
+	out__.sb_str = sb_str
+	out__.sb_col = sb_col
+	return out__
 }
 
 func (ed *Editor) may_clear_sb_text() {
@@ -29440,11 +30269,11 @@ func (ed *Editor) disp_sb_line(row int32, smp *S_msgchunk_S, clear_to_eol bool) 
 	return mp.sb_next
 }
 
-func (ed *Editor) t_puts(t_col *int32, t_s Ptr[byte], s Ptr[byte], attr int32) {
+func (ed *Editor) t_puts(t_col int32, t_s Ptr[byte], s Ptr[byte], attr int32) int32 {
 	ed.msg_didout = TRUE
 	ed.screen_puts_len(t_s, int32(int64(s.Sub(t_s))), ed.msg_row, ed.cmdline_col_off+ed.msg_col, attr)
-	ed.msg_col += (*t_col)
-	*t_col = 0
+	ed.msg_col += t_col
+	t_col = 0
 	if ed.utf_iscomposing(ed.utf_ptr2char(t_s)) {
 		ed.msg_col--
 	}
@@ -29452,6 +30281,7 @@ func (ed *Editor) t_puts(t_col *int32, t_s Ptr[byte], s Ptr[byte], attr int32) {
 		ed.msg_col = 0
 		ed.msg_row++
 	}
+	return t_col
 }
 
 func (ed *Editor) msg_use_printf() bool {
@@ -30158,13 +30988,19 @@ func path_is_url(p Ptr[byte]) int32 {
 	return 0
 }
 
-func vim_append_digit_long(value *int64, digit int32) bool {
-	x := (*value)
+func vim_append_digit_long(value int64, digit int32) vim_append_digit_long__out_T {
+	x := value
 	if x > ((LONG_MAX - int64(digit)) / 10) {
-		return false
+		var out__ vim_append_digit_long__out_T
+		out__.r__ = false
+		out__.value = value
+		return out__
 	}
-	*value = (x * 10) + int64(digit)
-	return true
+	value = (x * 10) + int64(digit)
+	var out___2 vim_append_digit_long__out_T
+	out___2.r__ = true
+	out___2.value = value
+	return out___2
 }
 
 func trim_to_int(x vimlong_T) int32 {
@@ -30565,9 +31401,9 @@ func (ed *Editor) set_leftcol(leftcol colnr_T) bool {
 	return (retval)
 }
 
-func (ed *Editor) copy_option_part(option *Ptr[byte], buf Ptr[byte], maxlen int32, sep_chars Ptr[byte]) int32 {
+func (ed *Editor) copy_option_part(option Ptr[byte], buf Ptr[byte], maxlen int32, sep_chars Ptr[byte]) copy_option_part__out_T {
 	var len_ int32 = 0
-	p := (*option)
+	p := option
 	if int32(p.Get()) == '.' {
 		var t1 int32 = len_
 		len_++
@@ -30591,8 +31427,11 @@ func (ed *Editor) copy_option_part(option *Ptr[byte], buf Ptr[byte], maxlen int3
 		p = p.Add(1)
 	}
 	p = skip_to_option_part(p)
-	*option = p
-	return len_
+	option = p
+	var out__ copy_option_part__out_T
+	out__.r__ = len_
+	out__.option = option
+	return out__
 }
 
 func vim_isspace(x int32) bool {
@@ -30769,8 +31608,12 @@ func (ed *Editor) get_special_key_name(c int32, modifiers int32) Ptr[byte] {
 }
 
 func (ed *Editor) trans_special(srcp *Ptr[byte], dst Ptr[byte], flags int32, escape_ks bool, did_simplify *int32) int32 {
+	var find_special_key__o find_special_key__out_T
 	var modifiers int32 = 0
-	var key int32 = ed.find_special_key(srcp, &modifiers, flags, did_simplify)
+	var key int32
+	find_special_key__o = ed.find_special_key(srcp, modifiers, flags, did_simplify)
+	modifiers = find_special_key__o.modp
+	key = find_special_key__o.r__
 	if key == 0 {
 		return 0
 	}
@@ -30808,7 +31651,9 @@ func special_to_buf(key int32, modifiers int32, escape_ks bool, dst Ptr[byte]) i
 	return dlen
 }
 
-func (ed *Editor) find_special_key(srcp *Ptr[byte], modp *int32, flags int32, did_simplify *int32) int32 {
+func (ed *Editor) find_special_key(srcp *Ptr[byte], modp int32, flags int32, did_simplify *int32) find_special_key__out_T {
+	var out___2 find_special_key__out_T
+
 	var last_dash Ptr[byte]
 	var end_of_name Ptr[byte]
 	var src Ptr[byte]
@@ -30821,7 +31666,10 @@ func (ed *Editor) find_special_key(srcp *Ptr[byte], modp *int32, flags int32, di
 	var l int32
 	src = (*srcp)
 	if int32(src.At(0)) != '<' {
-		return 0
+		var out__ find_special_key__out_T
+		out__.r__ = 0
+		out__.modp = modp
+		return out__
 	}
 	if int32(src.At(1)) == '*' {
 		src = src.Add(1)
@@ -30843,10 +31691,12 @@ func (ed *Editor) find_special_key(srcp *Ptr[byte], modp *int32, flags int32, di
 		if (((int32(bp.At(0)) == 't') && (int32(bp.At(1)) == '_')) && (bp.At(2) != 0)) && (bp.At(3) != 0) {
 			bp = bp.Add(3)
 		} else if musl_strncasecmp(bp, S("char-"), 5) == 0 {
-			vim_str2nr(bp.Add(5), nil, &l, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), nil, nil, 0, true, nil)
+			l = vim_str2nr(bp.Add(5), nil, l, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), nil, nil, 0, true, nil)
 			if l == 0 {
 				ed.emsg(gettext_(ed.e_invalid_argument))
-				return 0
+				out___2.r__ = 0
+				out___2.modp = modp
+				return out___2
 			}
 			bp = bp.Add(int(l + 5))
 			break
@@ -30867,10 +31717,13 @@ func (ed *Editor) find_special_key(srcp *Ptr[byte], modp *int32, flags int32, di
 		}
 		if bp.Ge(last_dash) {
 			if (musl_strncasecmp(last_dash.Add(1), S("char-"), 5) == 0) && ((uint32(last_dash.At(6)) - '0') < 10) {
-				vim_str2nr(last_dash.Add(6), nil, &l, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), nil, &n, 0, true, nil)
+				l = vim_str2nr(last_dash.Add(6), nil, l, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), nil, &n, 0, true, nil)
 				if l == 0 {
 					ed.emsg(gettext_(ed.e_invalid_argument))
-					return 0
+					var out___3 find_special_key__out_T
+					out___3.r__ = 0
+					out___3.modp = modp
+					return out___3
 				}
 				key = int32(n)
 			} else {
@@ -30908,13 +31761,19 @@ func (ed *Editor) find_special_key(srcp *Ptr[byte], modp *int32, flags int32, di
 				if !(key < 0) {
 					key = extract_modifiers(key, &modifiers, flags&FSK_SIMPLIFY, did_simplify)
 				}
-				*modp = modifiers
+				modp = modifiers
 				*srcp = end_of_name
-				return key
+				var out___4 find_special_key__out_T
+				out___4.r__ = key
+				out___4.modp = modp
+				return out___4
 			}
 		}
 	}
-	return 0
+	var out___5 find_special_key__out_T
+	out___5.r__ = 0
+	out___5.modp = modp
+	return out___5
 }
 
 func (ed *Editor) may_adjust_key_for_ctrl(modifiers int32, key int32) int32 {
@@ -32924,7 +33783,7 @@ func (ed *Editor) check_text_or_curbuf_locked(oap *S_oparg_S) bool {
 	return true
 }
 
-func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w *int32, need_flushbuf *int32) int32 {
+func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w int32, need_flushbuf int32) normal_cmd_get_count__out_T {
 	for {
 		if !((ed.VIsual_active != 0) && (ed.VIsual_select != 0)) {
 			for ((c >= '1') && (c <= '9')) || ((cap_.count0 != 0) && (((c == K_DEL) || (c == K_KDEL)) || (c == '0'))) {
@@ -32936,21 +33795,21 @@ func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool,
 				} else {
 					cap_.count0 = (cap_.count0 * 10) + int64((c - '0'))
 				}
-				if (*ctrl_w) != 0 {
+				if ctrl_w != 0 {
 					ed.no_mapping++
 					ed.allow_keys++
 				}
 				ed.no_zero_mapping++
 				c = ed.plain_vgetc()
 				ed.no_zero_mapping--
-				if (*ctrl_w) != 0 {
+				if ctrl_w != 0 {
 					ed.no_mapping--
 					ed.allow_keys--
 				}
-				(*need_flushbuf) |= B2i(ed.add_to_showcmd(c))
+				need_flushbuf |= B2i(ed.add_to_showcmd(c))
 			}
-			if ((c == Ctrl_W) && ((*ctrl_w) == 0)) && (cap_.oap.op_type == OP_NOP) {
-				*ctrl_w = TRUE
+			if ((c == Ctrl_W) && (ctrl_w == 0)) && (cap_.oap.op_type == OP_NOP) {
+				ctrl_w = TRUE
 				cap_.opcount = cap_.count0
 				cap_.count0 = 0
 				ed.no_mapping++
@@ -32958,7 +33817,7 @@ func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool,
 				c = ed.plain_vgetc()
 				ed.no_mapping--
 				ed.allow_keys--
-				(*need_flushbuf) |= B2i(ed.add_to_showcmd(c))
+				need_flushbuf |= B2i(ed.add_to_showcmd(c))
 				continue
 			}
 		}
@@ -32986,14 +33845,18 @@ func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool,
 		t1 = cap_.count0
 	}
 	cap_.count1 = t1
-	return c
+	var out__ normal_cmd_get_count__out_T
+	out__.r__ = c
+	out__.ctrl_w = ctrl_w
+	out__.need_flushbuf = need_flushbuf
+	return out__
 }
 
 func (ed *Editor) normal_cmd_needs_more_chars(cap_ *S_cmdarg_S, cmd_flags short_u) bool {
 	return (((int32(cmd_flags) & NV_NCH) != 0) && ((((((int32(cmd_flags) & (0x02 | NV_NCH)) == (0x02 | NV_NCH)) && (cap_.oap.op_type == OP_NOP)) || ((int32(cmd_flags) & (0x04 | NV_NCH)) == (0x04 | NV_NCH))) || ((((cap_.cmdchar == 'q') && (cap_.oap.op_type == OP_NOP)) && (ed.reg_recording == 0)) && (ed.reg_executing == 0))) || (((cap_.cmdchar == 'a') || (cap_.cmdchar == 'i')) && ((cap_.oap.op_type != OP_NOP) || (ed.VIsual_active != 0)))))
 }
 
-func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, need_flushbuf *int32) int32 {
+func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, need_flushbuf int32) normal_cmd_get_more_chars__out_T {
 	idx := idx_arg
 	var c int32
 	var cp *int32
@@ -33005,7 +33868,7 @@ func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, nee
 	ed.did_cursorhold = TRUE
 	if cap_.cmdchar == 'g' {
 		cap_.nchar = ed.plain_vgetc()
-		(*need_flushbuf) |= B2i(ed.add_to_showcmd(cap_.nchar))
+		need_flushbuf |= B2i(ed.add_to_showcmd(cap_.nchar))
 		if (((cap_.nchar == 'r') || (cap_.nchar == 39)) || (cap_.nchar == '`')) || (cap_.nchar == Ctrl_BSL) {
 			cp = &cap_.extra_char
 			if cap_.nchar != 'r' {
@@ -33037,7 +33900,7 @@ func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, nee
 			ed.out_str_t_TI()
 		}
 		ed.State = (0x1000 | MODE_NORMAL)
-		(*need_flushbuf) |= B2i(ed.add_to_showcmd((*cp)))
+		need_flushbuf |= B2i(ed.add_to_showcmd((*cp)))
 		if !lit {
 		}
 		if ((cp == &cap_.extra_char) && (cap_.nchar == Ctrl_BSL)) && ((cap_.extra_char == Ctrl_N) || (cap_.extra_char == Ctrl_G)) {
@@ -33104,7 +33967,10 @@ func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, nee
 	}
 	ed.no_mapping--
 	ed.allow_keys--
-	return idx
+	var out__ normal_cmd_get_more_chars__out_T
+	out__.r__ = idx
+	out__.need_flushbuf = need_flushbuf
+	return out__
 }
 
 func (ed *Editor) normal_cmd_need_to_wait_for_msg(cap_ *S_cmdarg_S, old_pos *pos_T) bool {
@@ -33138,6 +34004,8 @@ func (ed *Editor) normal_cmd_wait_for_msg() {
 }
 
 func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
+	var normal_cmd_get_count__o normal_cmd_get_count__out_T
+	var normal_cmd_get_more_chars__o normal_cmd_get_more_chars__out_T
 	var ca S_cmdarg_S
 	var c int32
 	var ctrl_w int32 = FALSE
@@ -33189,7 +34057,10 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		ed.win_ensure_size()
 	}
 	need_flushbuf = B2i(ed.add_to_showcmd(c))
-	c = ed.normal_cmd_get_count(&ca, c, (toplevel), (set_prevcount), &ctrl_w, &need_flushbuf)
+	normal_cmd_get_count__o = ed.normal_cmd_get_count(&ca, c, (toplevel), (set_prevcount), ctrl_w, need_flushbuf)
+	ctrl_w = normal_cmd_get_count__o.ctrl_w
+	need_flushbuf = normal_cmd_get_count__o.need_flushbuf
+	c = normal_cmd_get_count__o.r__
 	if ctrl_w != 0 {
 		ca.nchar = c
 		ca.cmdchar = Ctrl_W
@@ -33224,7 +34095,9 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 			}
 		}
 		if ed.normal_cmd_needs_more_chars(&ca, ed.nv_cmds[int(idx)].cmd_flags) {
-			idx = ed.normal_cmd_get_more_chars(idx, &ca, &need_flushbuf)
+			normal_cmd_get_more_chars__o = ed.normal_cmd_get_more_chars(idx, &ca, need_flushbuf)
+			need_flushbuf = normal_cmd_get_more_chars__o.need_flushbuf
+			idx = normal_cmd_get_more_chars__o.r__
 		}
 		if need_flushbuf != 0 {
 			ed.out_flush()
@@ -33336,18 +34209,24 @@ func (ed *Editor) restore_visual_mode() {
 	}
 }
 
-func find_is_eval_item(ptr Ptr[byte], colp *int32, bnp *int32, dir int32) bool {
+func find_is_eval_item(ptr Ptr[byte], colp *int32, bnp int32, dir int32) find_is_eval_item__out_T {
 	if ((int32(ptr.Get()) == ']') && (dir == -1)) || (int32(ptr.Get()) == '[') && (dir == FORWARD) {
-		(*bnp)++
+		bnp++
 	}
-	if (*bnp) > 0 {
+	if bnp > 0 {
 		if (int32(ptr.Get()) == '[') && (dir == -1) || ((int32(ptr.Get()) == ']') && (dir == FORWARD)) {
-			(*bnp)--
+			bnp--
 		}
-		return true
+		var out__ find_is_eval_item__out_T
+		out__.r__ = true
+		out__.bnp = bnp
+		return out__
 	}
 	if int32(ptr.Get()) == '.' {
-		return true
+		var out___2 find_is_eval_item__out_T
+		out___2.r__ = true
+		out___2.bnp = bnp
+		return out___2
 	}
 	var t1 int32
 	if dir == -1 {
@@ -33367,9 +34246,15 @@ func find_is_eval_item(ptr Ptr[byte], colp *int32, bnp *int32, dir int32) bool {
 	}
 	if t3 {
 		(*colp) += dir
-		return true
+		var out___3 find_is_eval_item__out_T
+		out___3.r__ = true
+		out___3.bnp = bnp
+		return out___3
 	}
-	return false
+	var out___4 find_is_eval_item__out_T
+	out___4.r__ = false
+	out___4.bnp = bnp
+	return out___4
 }
 
 func (ed *Editor) find_ident_under_cursor(text *Ptr[byte], find_type int32) int32 {
@@ -33377,6 +34262,7 @@ func (ed *Editor) find_ident_under_cursor(text *Ptr[byte], find_type int32) int3
 }
 
 func (ed *Editor) find_ident_at_pos(wp *S_window_S, lnum linenr_T, startcol colnr_T, text *Ptr[byte], textcol *int32, find_type int32) int32 {
+	var find_is_eval_item__o find_is_eval_item__out_T
 	var ptr Ptr[byte]
 	var col int32 = 0
 	var i int32
@@ -33413,7 +34299,17 @@ func (ed *Editor) find_ident_at_pos(wp *S_window_S, lnum linenr_T, startcol coln
 		for (col > 0) && (this_class != 0) {
 			prevcol = (col - 1) - ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1))
 			prev_class = ed.mb_get_class(ptr.Add(int(prevcol)))
-			if ((this_class != prev_class) && (((i == 0) || (prev_class == 0)) || ((find_type & FIND_IDENT) != 0))) && ((((find_type & FIND_EVAL) == 0) || (prevcol == 0)) || !find_is_eval_item(ptr.Add(int(prevcol)), &prevcol, &bn, -1)) {
+			var t3 bool = (this_class != prev_class) && (((i == 0) || (prev_class == 0)) || ((find_type & FIND_IDENT) != 0))
+			if t3 {
+				var t2 bool = ((find_type & FIND_EVAL) == 0) || (prevcol == 0)
+				if !t2 {
+					find_is_eval_item__o = find_is_eval_item(ptr.Add(int(prevcol)), &prevcol, bn, -1)
+					bn = find_is_eval_item__o.bnp
+					t2 = !find_is_eval_item__o.r__
+				}
+				t3 = t2
+			}
+			if t3 {
 				break
 			}
 			col = prevcol
@@ -33445,17 +34341,27 @@ func (ed *Editor) find_ident_at_pos(wp *S_window_S, lnum linenr_T, startcol coln
 	col = 0
 	this_class = ed.mb_get_class(ptr)
 	for {
-		var t3 bool = int32(ptr.At(int(col))) != NUL
-		if t3 {
-			var t2 bool
+		var t7 bool = int32(ptr.At(int(col))) != NUL
+		if t7 {
+			var t4 bool
 			if i == 0 {
-				t2 = ed.mb_get_class(ptr.Add(int(col))) == this_class
+				t4 = ed.mb_get_class(ptr.Add(int(col))) == this_class
 			} else {
-				t2 = ed.mb_get_class(ptr.Add(int(col))) != 0
+				t4 = ed.mb_get_class(ptr.Add(int(col))) != 0
 			}
-			t3 = (t2 || ((((find_type & FIND_EVAL) != 0) && (col <= startcol)) && find_is_eval_item(ptr.Add(int(col)), &col, &bn, FORWARD)))
+			var t6 bool = t4
+			if !t6 {
+				var t5 bool = ((find_type & FIND_EVAL) != 0) && (col <= startcol)
+				if t5 {
+					find_is_eval_item__o = find_is_eval_item(ptr.Add(int(col)), &col, bn, FORWARD)
+					bn = find_is_eval_item__o.bnp
+					t5 = find_is_eval_item__o.r__
+				}
+				t6 = t5
+			}
+			t7 = t6
 		}
-		if !t3 {
+		if !t7 {
 			break
 		}
 		col += ed.utfc_ptr2len(ptr.Add(int(col)))
@@ -33924,6 +34830,7 @@ func (ed *Editor) nv_scroll_line(cap_ *S_cmdarg_S) {
 }
 
 func (ed *Editor) nv_z_get_count(cap_ *S_cmdarg_S, nchar_arg *int32) bool {
+	var vim_append_digit_long__o vim_append_digit_long__out_T
 	nchar := (*nchar_arg)
 	var n int64
 	if ed.checkclearop(cap_.oap) {
@@ -33940,7 +34847,9 @@ func (ed *Editor) nv_z_get_count(cap_ *S_cmdarg_S, nchar_arg *int32) bool {
 		if (nchar == K_DEL) || (nchar == K_KDEL) {
 			n /= 10
 		} else if (uint32(nchar) - '0') < 10 {
-			if !vim_append_digit_long(&n, nchar-'0') {
+			vim_append_digit_long__o = vim_append_digit_long(n, nchar-'0')
+			n = vim_append_digit_long__o.value
+			if !vim_append_digit_long__o.r__ {
 				ed.clearopbeep(cap_.oap)
 				break
 			}
@@ -34480,14 +35389,16 @@ func (ed *Editor) nv_dollar(cap_ *S_cmdarg_S) {
 
 func (ed *Editor) nv_search(cap_ *S_cmdarg_S) {
 	oap := cap_.oap
-	save_cursor := ed.curwin.w_cursor
+	save_cursor_lnum := ed.curwin.w_cursor.lnum
+	save_cursor_col := ed.curwin.w_cursor.col
+	save_cursor_coladd := ed.curwin.w_cursor.coladd
 	cap_.searchbuf = ed.getcmdline(cap_.cmdchar, cap_.count1, 0, 0)
 	if cap_.searchbuf.Nil() {
 		ed.clearop(oap)
 		return
 	}
 	var t1 int32
-	if (cap_.arg != 0) || !(((save_cursor.lnum == ed.curwin.w_cursor.lnum) && (save_cursor.col == ed.curwin.w_cursor.col)) && (save_cursor.coladd == ed.curwin.w_cursor.coladd)) {
+	if (cap_.arg != 0) || !(((save_cursor_lnum == ed.curwin.w_cursor.lnum) && (save_cursor_col == ed.curwin.w_cursor.col)) && (save_cursor_coladd == ed.curwin.w_cursor.coladd)) {
 		t1 = 0
 	} else {
 		t1 = SEARCH_MARK
@@ -34496,10 +35407,12 @@ func (ed *Editor) nv_search(cap_ *S_cmdarg_S) {
 }
 
 func (ed *Editor) nv_next(cap_ *S_cmdarg_S) {
-	old := ed.curwin.w_cursor
+	old_lnum := ed.curwin.w_cursor.lnum
+	old_col_ := ed.curwin.w_cursor.col
+	old_coladd := ed.curwin.w_cursor.coladd
 	var wrapped int32 = FALSE
 	i := ed.normal_search(cap_, 0, Ptr[byte]{}, 0, SEARCH_MARK|cap_.arg, &wrapped)
-	if ((i == 1) && (wrapped == 0)) && (((old.lnum == ed.curwin.w_cursor.lnum) && (old.col == ed.curwin.w_cursor.col)) && (old.coladd == ed.curwin.w_cursor.coladd)) {
+	if ((i == 1) && (wrapped == 0)) && (((old_lnum == ed.curwin.w_cursor.lnum) && (old_col_ == ed.curwin.w_cursor.col)) && (old_coladd == ed.curwin.w_cursor.coladd)) {
 		cap_.count1 += 1
 		ed.normal_search(cap_, 0, Ptr[byte]{}, 0, SEARCH_MARK|cap_.arg, nil)
 		cap_.count1 -= 1
@@ -34512,7 +35425,9 @@ func (ed *Editor) nv_next(cap_ *S_cmdarg_S) {
 func (ed *Editor) normal_search(cap_ *S_cmdarg_S, dir int32, pat Ptr[byte], patlen usize, opt int32, wrapped *int32) int32 {
 	var i int32
 	var sia searchit_arg_T
-	prev_cursor := ed.curwin.w_cursor
+	prev_cursor_lnum := ed.curwin.w_cursor.lnum
+	prev_cursor_col := ed.curwin.w_cursor.col
+	prev_cursor_coladd := ed.curwin.w_cursor.coladd
 	cap_.oap.motion_type = MCHAR
 	cap_.oap.inclusive = FALSE
 	cap_.oap.use_reg_one = TRUE
@@ -34530,7 +35445,7 @@ func (ed *Editor) normal_search(cap_ *S_cmdarg_S, dir int32, pat Ptr[byte], patl
 		}
 		ed.curwin.w_cursor.coladd = 0
 	}
-	if (!(((ed.curwin.w_cursor.lnum == prev_cursor.lnum) && (ed.curwin.w_cursor.col == prev_cursor.col)) && (ed.curwin.w_cursor.coladd == prev_cursor.coladd)) && (ed.p_hls != 0)) && (ed.no_hlsearch == 0) {
+	if (!(((ed.curwin.w_cursor.lnum == prev_cursor_lnum) && (ed.curwin.w_cursor.col == prev_cursor_col)) && (ed.curwin.w_cursor.coladd == prev_cursor_coladd)) && (ed.p_hls != 0)) && (ed.no_hlsearch == 0) {
 		ed.redraw_later(UPD_SOME_VALID)
 	}
 	ed.check_cursor()
@@ -34908,7 +35823,9 @@ func (ed *Editor) nv_vreplace(cap_ *S_cmdarg_S) {
 
 func (ed *Editor) n_swapchar(cap_ *S_cmdarg_S) {
 	var n int64
-	var startpos pos_T
+	var startpos_lnum linenr_T
+	var startpos_col colnr_T
+	var startpos_coladd colnr_T
 	var did_change int32 = 0
 	if ed.checkclearopq(cap_.oap) {
 		return
@@ -34921,7 +35838,9 @@ func (ed *Editor) n_swapchar(cap_ *S_cmdarg_S) {
 	if !ed.u_save_cursor() {
 		return
 	}
-	startpos = ed.curwin.w_cursor
+	startpos_lnum = ed.curwin.w_cursor.lnum
+	startpos_col = ed.curwin.w_cursor.col
+	startpos_coladd = ed.curwin.w_cursor.coladd
 	n = cap_.count1
 	for ; n > 0; n-- {
 		did_change |= B2i(ed.swapchar(cap_.oap.op_type, &ed.curwin.w_cursor))
@@ -34944,8 +35863,10 @@ func (ed *Editor) n_swapchar(cap_ *S_cmdarg_S) {
 	ed.check_cursor()
 	ed.curwin.w_set_curswant = true
 	if did_change != 0 {
-		ed.changed_lines(startpos.lnum, startpos.col, ed.curwin.w_cursor.lnum+1, 0)
-		ed.curbuf.b_op_start = startpos
+		ed.changed_lines(startpos_lnum, startpos_col, ed.curwin.w_cursor.lnum+1, 0)
+		ed.curbuf.b_op_start.lnum = startpos_lnum
+		ed.curbuf.b_op_start.col = startpos_col
+		ed.curbuf.b_op_start.coladd = startpos_coladd
 		ed.curbuf.b_op_end = ed.curwin.w_cursor
 		if ed.curbuf.b_op_end.col > 0 {
 			ed.curbuf.b_op_end.col--
@@ -35137,11 +36058,15 @@ func (ed *Editor) nv_visual(cap_ *S_cmdarg_S) {
 				ed.curwin.w_curswant = MAXCOL
 				ed.coladvance(2147483647)
 			} else if ed.VIsual_mode == Ctrl_V {
-				tmp_cursor := ed.curwin.w_cursor
+				tmp_cursor_lnum := ed.curwin.w_cursor.lnum
+				tmp_cursor_col := ed.curwin.w_cursor.col
+				tmp_cursor_coladd := ed.curwin.w_cursor.coladd
 				ed.curwin.w_cursor = ed.VIsual
 				ed.update_curswant_force()
 				ed.curwin.w_curswant += colnr_T((int64(ed.resel_VIsual_vcol) * cap_.count0) - 1)
-				ed.curwin.w_cursor = tmp_cursor
+				ed.curwin.w_cursor.lnum = tmp_cursor_lnum
+				ed.curwin.w_cursor.col = tmp_cursor_col
+				ed.curwin.w_cursor.coladd = tmp_cursor_coladd
 				if int32(ed.p_sel.Get()) == 'e' {
 					ed.curwin.w_curswant++
 				}
@@ -35212,7 +36137,9 @@ func (ed *Editor) nv_suspend(cap_ *S_cmdarg_S) {
 }
 
 func (ed *Editor) nv_gv_cmd(cap_ *S_cmdarg_S) {
-	var tpos pos_T
+	var tpos_lnum linenr_T
+	var tpos_col colnr_T
+	var tpos_coladd colnr_T
 	var i int32
 	if ((ed.curbuf.b_visual.vi_start.lnum == 0) || (ed.curbuf.b_visual.vi_start.lnum > ed.curbuf.b_ml.ml_line_count)) || (ed.curbuf.b_visual.vi_end.lnum == 0) {
 		ed.beep_flush()
@@ -35225,21 +36152,27 @@ func (ed *Editor) nv_gv_cmd(cap_ *S_cmdarg_S) {
 		i = ed.curwin.w_curswant
 		ed.curwin.w_curswant = ed.curbuf.b_visual.vi_curswant
 		ed.curbuf.b_visual.vi_curswant = i
-		tpos = ed.curbuf.b_visual.vi_end
+		tpos_lnum = ed.curbuf.b_visual.vi_end.lnum
+		tpos_col = ed.curbuf.b_visual.vi_end.col
+		tpos_coladd = ed.curbuf.b_visual.vi_end.coladd
 		ed.curbuf.b_visual.vi_end = ed.curwin.w_cursor
 		ed.curwin.w_cursor = ed.curbuf.b_visual.vi_start
 		ed.curbuf.b_visual.vi_start = ed.VIsual
 	} else {
 		ed.VIsual_mode = ed.curbuf.b_visual.vi_mode
 		ed.curwin.w_curswant = ed.curbuf.b_visual.vi_curswant
-		tpos = ed.curbuf.b_visual.vi_end
+		tpos_lnum = ed.curbuf.b_visual.vi_end.lnum
+		tpos_col = ed.curbuf.b_visual.vi_end.col
+		tpos_coladd = ed.curbuf.b_visual.vi_end.coladd
 		ed.curwin.w_cursor = ed.curbuf.b_visual.vi_start
 	}
 	ed.VIsual_active = TRUE
 	ed.VIsual_reselect = TRUE
 	ed.check_cursor()
 	ed.VIsual = ed.curwin.w_cursor
-	ed.curwin.w_cursor = tpos
+	ed.curwin.w_cursor.lnum = tpos_lnum
+	ed.curwin.w_cursor.col = tpos_col
+	ed.curwin.w_cursor.coladd = tpos_coladd
 	ed.check_cursor()
 	ed.update_topline()
 	if cap_.arg != 0 {
@@ -35697,7 +36630,9 @@ func (ed *Editor) nv_wordcmd(cap_ *S_cmdarg_S) {
 	var n int32
 	var word_end bool
 	var flag bool = false
-	startpos := ed.curwin.w_cursor
+	startpos_lnum := ed.curwin.w_cursor.lnum
+	startpos_col := ed.curwin.w_cursor.col
+	startpos_coladd := ed.curwin.w_cursor.coladd
 	if (cap_.cmdchar == 'e') || (cap_.cmdchar == 'E') {
 		word_end = true
 	} else {
@@ -35730,14 +36665,14 @@ func (ed *Editor) nv_wordcmd(cap_ *S_cmdarg_S) {
 		n = B2i(ed.fwd_word(cap_.count1, cap_.arg, B2i(cap_.oap.op_type != OP_NOP)))
 	}
 	var t2 bool
-	if startpos.lnum != ed.curwin.w_cursor.lnum {
-		t2 = startpos.lnum < ed.curwin.w_cursor.lnum
+	if startpos_lnum != ed.curwin.w_cursor.lnum {
+		t2 = startpos_lnum < ed.curwin.w_cursor.lnum
 	} else {
 		var t1 bool
-		if startpos.col != ed.curwin.w_cursor.col {
-			t1 = startpos.col < ed.curwin.w_cursor.col
+		if startpos_col != ed.curwin.w_cursor.col {
+			t1 = startpos_col < ed.curwin.w_cursor.col
 		} else {
-			t1 = startpos.coladd < ed.curwin.w_cursor.coladd
+			t1 = startpos_coladd < ed.curwin.w_cursor.coladd
 		}
 		t2 = t1
 	}
@@ -35946,7 +36881,8 @@ func (ed *Editor) nv_edit(cap_ *S_cmdarg_S) {
 			ed.bracketed_paste(PASTE_INSERT, true, nil)
 		}
 	} else if (cap_.cmdchar == K_PASTESTART) && (ed.VIsual_active != 0) {
-		old_pos := ed.curwin.w_cursor
+		old_pos_lnum := ed.curwin.w_cursor.lnum
+		old_pos_col := ed.curwin.w_cursor.col
 		old_visual := ed.VIsual
 		old_visual_mode := ed.VIsual_mode
 		if (ed.VIsual_mode == 'V') || (ed.curwin.w_cursor.lnum != ed.VIsual.lnum) {
@@ -35962,7 +36898,7 @@ func (ed *Editor) nv_edit(cap_ *S_cmdarg_S) {
 		cap_.cmdchar = K_PASTESTART
 		if int32(ed.ml_get_cursor().Get()) != NUL {
 			if old_visual_mode == 'V' {
-				if (ed.curwin.w_cursor.lnum < old_pos.lnum) && (ed.curwin.w_cursor.lnum < old_visual.lnum) {
+				if (ed.curwin.w_cursor.lnum < old_pos_lnum) && (ed.curwin.w_cursor.lnum < old_visual.lnum) {
 					if ed.u_save_cursor() {
 						ed.ml_append(ed.curwin.w_cursor.lnum, S(""), 0)
 						var t1 linenr_T = ed.curwin.w_cursor.lnum
@@ -35970,7 +36906,7 @@ func (ed *Editor) nv_edit(cap_ *S_cmdarg_S) {
 						ed.appended_lines(t1, 1)
 					}
 				}
-			} else if (ed.curwin.w_cursor.col < old_pos.col) && (ed.curwin.w_cursor.col < old_visual.col) {
+			} else if (ed.curwin.w_cursor.col < old_pos_col) && (ed.curwin.w_cursor.col < old_visual.col) {
 				ed.inc_cursor()
 			}
 		}
@@ -36814,18 +37750,24 @@ func (ed *Editor) op_delete(oap *S_oparg_S) bool {
 				}
 				ed.del_bytes(int64(n), ed.virtual_op == 0, (oap.op_type == OP_DELETE) && (oap.is_VIsual == 0))
 			} else {
-				var curpos pos_T
+				var curpos_lnum linenr_T
+				var curpos_col colnr_T
+				var curpos_coladd colnr_T
 				if !ed.u_save((ed.curwin.w_cursor.lnum - 1), (ed.curwin.w_cursor.lnum + oap.line_count)) {
 					return false
 				}
 				ed.truncate_line(true)
-				curpos = ed.curwin.w_cursor
+				curpos_lnum = ed.curwin.w_cursor.lnum
+				curpos_col = ed.curwin.w_cursor.col
+				curpos_coladd = ed.curwin.w_cursor.coladd
 				ed.curwin.w_cursor.lnum++
 				ed.del_lines((oap.line_count - 2), false)
 				n = ((oap.end.col + 1) - B2i(oap.inclusive == 0))
 				ed.curwin.w_cursor.col = 0
 				ed.del_bytes(int64(n), ed.virtual_op == 0, (oap.op_type == OP_DELETE) && (oap.is_VIsual == 0))
-				ed.curwin.w_cursor = curpos
+				ed.curwin.w_cursor.lnum = curpos_lnum
+				ed.curwin.w_cursor.col = curpos_col
+				ed.curwin.w_cursor.coladd = curpos_coladd
 				ed.do_join(2, false, false, false, false)
 			}
 		}
@@ -37156,11 +38098,15 @@ func (ed *Editor) swapchar(op_type int32, pos *pos_T) bool {
 	var nc int32
 	c = ed.gchar_pos(pos)
 	if (((op_type == OP_UPPER) || (op_type == OP_NOP)) || (op_type == OP_TILDE)) && (c == 0xdf) {
-		sp := ed.curwin.w_cursor
+		sp_lnum := ed.curwin.w_cursor.lnum
+		sp_col := ed.curwin.w_cursor.col
+		sp_coladd := ed.curwin.w_cursor.coladd
 		ed.curwin.w_cursor = (*pos)
 		ed.del_char(false)
 		ed.ins_char(0x1E9E)
-		ed.curwin.w_cursor = sp
+		ed.curwin.w_cursor.lnum = sp_lnum
+		ed.curwin.w_cursor.col = sp_col
+		ed.curwin.w_cursor.coladd = sp_coladd
 		return true
 	}
 	nc = c
@@ -37175,11 +38121,15 @@ func (ed *Editor) swapchar(op_type int32, pos *pos_T) bool {
 	}
 	if nc != c {
 		if (c >= 0x80) || (nc >= 0x80) {
-			sp_2 := ed.curwin.w_cursor
+			sp_lnum_2 := ed.curwin.w_cursor.lnum
+			sp_col_2 := ed.curwin.w_cursor.col
+			sp_coladd_2 := ed.curwin.w_cursor.coladd
 			ed.curwin.w_cursor = (*pos)
 			ed.del_bytes(int64(ed.utf_ptr2len(ed.ml_get_cursor())), false, false)
 			ed.ins_char(nc)
-			ed.curwin.w_cursor = sp_2
+			ed.curwin.w_cursor.lnum = sp_lnum_2
+			ed.curwin.w_cursor.col = sp_col_2
+			ed.curwin.w_cursor.coladd = sp_coladd_2
 		} else {
 			ed.pbyte((*pos), nc)
 		}
@@ -37196,8 +38146,11 @@ func (ed *Editor) op_insert(oap *S_oparg_S, count1 int64) {
 	var ind_post_vcol int32 = 0
 	var bd S_block_def
 	var i int32
-	var t1 pos_T
-	var start_insert pos_T
+	var t1_lnum linenr_T
+	var t1_col colnr_T
+	var t1_coladd colnr_T
+	var start_insert_lnum linenr_T
+	var start_insert_col colnr_T
 	bd.is_MAX = (ed.curwin.w_curswant == MAXCOL)
 	ed.curwin.w_cursor.lnum = oap.start.lnum
 	ed.update_screen(UPD_INVERTED)
@@ -37208,13 +38161,13 @@ func (ed *Editor) op_insert(oap *S_oparg_S, count1 int64) {
 				return
 			}
 			ed.curwin.w_onebuf_opt.wo_ve_flags = VE_ALL
-			var t2 colnr_T
+			var t1 colnr_T
 			if oap.op_type == OP_APPEND {
-				t2 = oap.end_vcol + 1
+				t1 = oap.end_vcol + 1
 			} else {
-				t2 = ed.getviscol()
+				t1 = ed.getviscol()
 			}
-			ed.coladvance_force(t2)
+			ed.coladvance_force(t1)
 			if oap.op_type == OP_APPEND {
 				ed.curwin.w_cursor.col--
 			}
@@ -37252,26 +38205,29 @@ func (ed *Editor) op_insert(oap *S_oparg_S, count1 int64) {
 			}
 		}
 	}
-	t1 = oap.start
-	start_insert = ed.curwin.w_cursor
+	t1_lnum = oap.start.lnum
+	t1_col = oap.start.col
+	t1_coladd = oap.start.coladd
+	start_insert_lnum = ed.curwin.w_cursor.lnum
+	start_insert_col = ed.curwin.w_cursor.col
 	ed.edit(NUL, false, count1)
-	var t5 bool = t1.lnum == ed.curbuf.b_op_start_orig.lnum
-	if t5 {
-		var t4 bool
-		if ed.curbuf.b_op_start_orig.lnum != t1.lnum {
-			t4 = ed.curbuf.b_op_start_orig.lnum < t1.lnum
+	var t4 bool = t1_lnum == ed.curbuf.b_op_start_orig.lnum
+	if t4 {
+		var t3 bool
+		if ed.curbuf.b_op_start_orig.lnum != t1_lnum {
+			t3 = ed.curbuf.b_op_start_orig.lnum < t1_lnum
 		} else {
-			var t3 bool
-			if ed.curbuf.b_op_start_orig.col != t1.col {
-				t3 = ed.curbuf.b_op_start_orig.col < t1.col
+			var t2 bool
+			if ed.curbuf.b_op_start_orig.col != t1_col {
+				t2 = ed.curbuf.b_op_start_orig.col < t1_col
 			} else {
-				t3 = ed.curbuf.b_op_start_orig.coladd < t1.coladd
+				t2 = ed.curbuf.b_op_start_orig.coladd < t1_coladd
 			}
-			t4 = t3
+			t3 = t2
 		}
-		t5 = t4
+		t4 = t3
 	}
-	if t5 {
+	if t4 {
 		oap.start = ed.curbuf.b_op_start_orig
 	}
 	if (ed.curwin.w_cursor.lnum != oap.start.lnum) || (ed.got_int != 0) {
@@ -37335,8 +38291,8 @@ func (ed *Editor) op_insert(oap *S_oparg_S, count1 int64) {
 		add = usize(bd.textcol)
 		if oap.op_type == OP_APPEND {
 			add += usize(bd.textlen)
-			if bd.is_MAX && ((start_insert.lnum == ed.Insstart.lnum) && (start_insert.col > ed.Insstart.col)) {
-				offset = (start_insert.col - ed.Insstart.col)
+			if bd.is_MAX && ((start_insert_lnum == ed.Insstart.lnum) && (start_insert_col > ed.Insstart.col)) {
+				offset = (start_insert_col - ed.Insstart.col)
 				add -= usize(offset)
 				if oap.end_vcol > offset {
 					oap.end_vcol -= (offset + 1)
@@ -37350,12 +38306,12 @@ func (ed *Editor) op_insert(oap *S_oparg_S, count1 int64) {
 		}
 		firstline = firstline.Add(int(add))
 		len_ -= add
-		var t6 bool = pre_textlen >= 0
-		if t6 {
+		var t5 bool = pre_textlen >= 0
+		if t5 {
 			ins_len = int32((int64(int32(len_)) - pre_textlen) - int64(offset))
-			t6 = ins_len > 0
+			t5 = ins_len > 0
 		}
-		if t6 {
+		if t5 {
 			ins_text = vim_strnsave(firstline, usize(ins_len))
 			if ed.u_save(oap.start.lnum, (oap.end.lnum + 1)) {
 				ed.block_insert(oap, ins_text, usize(ins_len), (oap.op_type == OP_INSERT), &bd)
@@ -37755,7 +38711,9 @@ func (ed *Editor) op_addsub(oap *S_oparg_S, Prenum1 linenr_T, g_cmd int32) {
 	} else {
 		var one_change bool
 		var length int32
-		var startpos pos_T
+		var startpos_lnum linenr_T
+		var startpos_col colnr_T
+		var startpos_coladd colnr_T
 		if !ed.u_save((oap.start.lnum - 1), (oap.end.lnum + 1)) {
 			return
 		}
@@ -37790,7 +38748,9 @@ func (ed *Editor) op_addsub(oap *S_oparg_S, Prenum1 linenr_T, g_cmd int32) {
 			one_change = (ed.do_addsub(oap.op_type, &pos, length, amount))
 			if one_change {
 				if change_cnt == 0 {
-					startpos = ed.curbuf.b_op_start
+					startpos_lnum = ed.curbuf.b_op_start.lnum
+					startpos_col = ed.curbuf.b_op_start.col
+					startpos_coladd = ed.curbuf.b_op_start.coladd
 				}
 				change_cnt++
 			}
@@ -37805,7 +38765,9 @@ func (ed *Editor) op_addsub(oap *S_oparg_S, Prenum1 linenr_T, g_cmd int32) {
 			ed.redraw_curbuf_later(UPD_INVERTED)
 		}
 		if (change_cnt > 0) && ((ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
-			ed.curbuf.b_op_start = startpos
+			ed.curbuf.b_op_start.lnum = startpos_lnum
+			ed.curbuf.b_op_start.col = startpos_col
+			ed.curbuf.b_op_start.coladd = startpos_coladd
 		}
 		if int64(change_cnt) > ed.p_report {
 			ed.vim_snprintf(ed.IObuff, ed.iobuff_room(), NGETTEXT(S("%d line changed"), S("%d lines changed"), uint64(change_cnt)), change_cnt)
@@ -37836,10 +38798,16 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 	var was_positive bool = true
 	visual := ed.VIsual_active
 	var did_change bool = false
-	save_cursor := ed.curwin.w_cursor
+	save_cursor_lnum := ed.curwin.w_cursor.lnum
+	save_cursor_col := ed.curwin.w_cursor.col
+	save_cursor_coladd := ed.curwin.w_cursor.coladd
 	var maxlen int32 = 0
-	var startpos pos_T
-	var endpos pos_T
+	var startpos_lnum linenr_T
+	var startpos_col colnr_T
+	var startpos_coladd colnr_T
+	var endpos_lnum linenr_T
+	var endpos_col colnr_T
+	var endpos_coladd colnr_T
 	var save_coladd colnr_T = 0
 	do_hex = !ed.vim_strchr(ed.curbuf.b_p_nf, 'x').Nil()
 	do_oct = !ed.vim_strchr(ed.curbuf.b_p_nf, 'o').Nil()
@@ -37952,19 +38920,25 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 			}
 			ed.curwin.w_cursor.col = col
 			if !did_change {
-				startpos = ed.curwin.w_cursor
+				startpos_lnum = ed.curwin.w_cursor.lnum
+				startpos_col = ed.curwin.w_cursor.col
+				startpos_coladd = ed.curwin.w_cursor.coladd
 			}
 			did_change = true
 			ed.del_char(false)
 			ed.ins_char(firstdigit)
-			endpos = ed.curwin.w_cursor
+			endpos_lnum = ed.curwin.w_cursor.lnum
+			endpos_col = ed.curwin.w_cursor.col
+			endpos_coladd = ed.curwin.w_cursor.coladd
 			ed.curwin.w_cursor.col = col
 		} else {
 			var buf1 Ptr[byte]
 			var buf1len int32
 			var buf2 Ptr[byte] = Mk[byte](65)
 			var buf2len int32
-			var save_pos pos_T
+			var save_pos_lnum linenr_T
+			var save_pos_col colnr_T
+			var save_pos_coladd colnr_T
 			var i int32
 			if ((((col > 0) && (int32(ptr.At(int(col-1))) == '-')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && (visual == 0)) && !do_unsigned {
 				if (do_blank && (col >= 2)) && !((int32(ptr.At(int(col-2))) == (' ')) || (int32(ptr.At(int(col-2))) == 9)) {
@@ -38002,7 +38976,7 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 			} else {
 				t6 = 0
 			}
-			vim_str2nr(ptr.Add(int(col)), &pre, &length, ((0+t4)+t5)+t6, nil, &n, maxlen, false, &overflow)
+			length = vim_str2nr(ptr.Add(int(col)), &pre, length, ((0+t4)+t5)+t6, nil, &n, maxlen, false, &overflow)
 			if (pre != 0) && (negative != 0) {
 				col++
 				length--
@@ -38053,7 +39027,9 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 			}
 			ed.curwin.w_cursor.col = col
 			if !did_change {
-				startpos = ed.curwin.w_cursor
+				startpos_lnum = ed.curwin.w_cursor.lnum
+				startpos_col = ed.curwin.w_cursor.col
+				startpos_coladd = ed.curwin.w_cursor.coladd
 			}
 			did_change = true
 			todel = length
@@ -38061,7 +39037,9 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 			if c == '-' {
 				length--
 			}
-			save_pos = ed.curwin.w_cursor
+			save_pos_lnum = ed.curwin.w_cursor.lnum
+			save_pos_col = ed.curwin.w_cursor.col
+			save_pos_coladd = ed.curwin.w_cursor.coladd
 			i = 0
 			for ; i < todel; i++ {
 				if (c < 0x100) && musl_isalpha(int32(byte(c))) {
@@ -38074,7 +39052,9 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 				ed.inc_cursor()
 				c = ed.gchar_cursor()
 			}
-			ed.curwin.w_cursor = save_pos
+			ed.curwin.w_cursor.lnum = save_pos_lnum
+			ed.curwin.w_cursor.col = save_pos_col
+			ed.curwin.w_cursor.coladd = save_pos_coladd
 			buf1 = Alloc(int(length + NUMBUFLEN))
 			ptr = buf1
 			if (negative != 0) && ((visual == 0) || was_positive) {
@@ -38142,14 +39122,18 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 			buf1len = int32(int64(ptr.Sub(buf1)))
 			musl_strcpy(buf1.Add(int(buf1len)), buf2)
 			buf1len += buf2len
-			save_pos = ed.curwin.w_cursor
+			save_pos_lnum = ed.curwin.w_cursor.lnum
+			save_pos_col = ed.curwin.w_cursor.col
+			save_pos_coladd = ed.curwin.w_cursor.coladd
 			if todel > 0 {
 				ed.inc_cursor()
 			}
 			ed.ins_str(buf1, uint64(buf1len))
 			if todel > 0 {
 				bytes_after := ed.ml_get_curline_len() - ed.curwin.w_cursor.col
-				ed.curwin.w_cursor = save_pos
+				ed.curwin.w_cursor.lnum = save_pos_lnum
+				ed.curwin.w_cursor.col = save_pos_col
+				ed.curwin.w_cursor.coladd = save_pos_coladd
 				ed.del_char(false)
 				ed.curwin.w_cursor.col = ed.ml_get_curline_len() - bytes_after
 				todel--
@@ -38162,14 +39146,20 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 				}
 				ed.del_char(false)
 			}
-			endpos = ed.curwin.w_cursor
+			endpos_lnum = ed.curwin.w_cursor.lnum
+			endpos_col = ed.curwin.w_cursor.col
+			endpos_coladd = ed.curwin.w_cursor.coladd
 			if did_change && (ed.curwin.w_cursor.col != 0) {
 				ed.curwin.w_cursor.col--
 			}
 		}
 		if did_change && ((ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
-			ed.curbuf.b_op_start = startpos
-			ed.curbuf.b_op_end = endpos
+			ed.curbuf.b_op_start.lnum = startpos_lnum
+			ed.curbuf.b_op_start.col = startpos_col
+			ed.curbuf.b_op_start.coladd = startpos_coladd
+			ed.curbuf.b_op_end.lnum = endpos_lnum
+			ed.curbuf.b_op_end.col = endpos_col
+			ed.curbuf.b_op_end.coladd = endpos_coladd
 			if ed.curbuf.b_op_end.col > 0 {
 				ed.curbuf.b_op_end.col--
 			}
@@ -38177,7 +39167,9 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 		break
 	}
 	if visual != 0 {
-		ed.curwin.w_cursor = save_cursor
+		ed.curwin.w_cursor.lnum = save_cursor_lnum
+		ed.curwin.w_cursor.col = save_cursor_col
+		ed.curwin.w_cursor.coladd = save_cursor_coladd
 	} else if did_change {
 		ed.curwin.w_set_curswant = true
 	} else if ed.virtual_active() != 0 {
@@ -38190,7 +39182,7 @@ func clear_oparg(oap *S_oparg_S) {
 	*oap = S_oparg_S{}
 }
 
-func (ed *Editor) line_count_info(line Ptr[byte], wc *varnumber_T, cc *varnumber_T, limit varnumber_T, eol_size int32) varnumber_T {
+func (ed *Editor) line_count_info(line Ptr[byte], wc varnumber_T, cc varnumber_T, limit varnumber_T, eol_size int32) line_count_info__out_T {
 	var i varnumber_T
 	var words varnumber_T = 0
 	var chars varnumber_T = 0
@@ -38211,16 +39203,21 @@ func (ed *Editor) line_count_info(line Ptr[byte], wc *varnumber_T, cc *varnumber
 	if is_word != 0 {
 		words++
 	}
-	(*wc) += words
+	wc += words
 	if (i < limit) && (int32(line.At(int(i))) == NUL) {
 		i += varnumber_T(eol_size)
 		chars += varnumber_T(eol_size)
 	}
-	(*cc) += chars
-	return i
+	cc += chars
+	var out__ line_count_info__out_T
+	out__.r__ = i
+	out__.wc = wc
+	out__.cc = cc
+	return out__
 }
 
 func (ed *Editor) cursor_pos_info() {
+	var line_count_info__o line_count_info__out_T
 	var p Ptr[byte]
 	var buf1 Ptr[byte] = Mk[byte](50)
 	var buf2 Ptr[byte] = Mk[byte](40)
@@ -38323,16 +39320,25 @@ func (ed *Editor) cursor_pos_info() {
 					len_ = int64(end_col)
 				}
 				if !s.Nil() {
-					byte_count_cursor += ed.line_count_info(s, &word_count_cursor, &char_count_cursor, len_, eol_size)
+					line_count_info__o = ed.line_count_info(s, word_count_cursor, char_count_cursor, len_, eol_size)
+					word_count_cursor = line_count_info__o.wc
+					char_count_cursor = line_count_info__o.cc
+					byte_count_cursor += line_count_info__o.r__
 				}
 			} else {
 				if lnum == ed.curwin.w_cursor.lnum {
 					word_count_cursor += word_count
 					char_count_cursor += char_count
-					byte_count_cursor = byte_count + ed.line_count_info(ed.ml_get(lnum), &word_count_cursor, &char_count_cursor, int64((ed.curwin.w_cursor.col+1)), eol_size)
+					line_count_info__o = ed.line_count_info(ed.ml_get(lnum), word_count_cursor, char_count_cursor, int64((ed.curwin.w_cursor.col + 1)), eol_size)
+					word_count_cursor = line_count_info__o.wc
+					char_count_cursor = line_count_info__o.cc
+					byte_count_cursor = byte_count + line_count_info__o.r__
 				}
 			}
-			byte_count += ed.line_count_info(ed.ml_get(lnum), &word_count, &char_count, 2147483647, eol_size)
+			line_count_info__o = ed.line_count_info(ed.ml_get(lnum), word_count, char_count, 2147483647, eol_size)
+			word_count = line_count_info__o.wc
+			char_count = line_count_info__o.cc
+			byte_count += line_count_info__o.r__
 		}
 		if ed.VIsual_active != 0 {
 			if (ed.VIsual_mode == Ctrl_V) && (ed.curwin.w_curswant < MAXCOL) {
@@ -38444,11 +39450,15 @@ func is_ex_cmdchar(cap_ *S_cmdarg_S) bool {
 
 func (ed *Editor) do_pending_operator(cap_ *S_cmdarg_S, old_col int32, gui_yank bool) {
 	oap := cap_.oap
-	var old_cursor pos_T
+	var old_cursor_lnum linenr_T
+	var old_cursor_col colnr_T
+	var old_cursor_coladd colnr_T
 	var empty_region_error bool
 	var restart_edit_save int32
 	var include_line_break bool = false
-	old_cursor = ed.curwin.w_cursor
+	old_cursor_lnum = ed.curwin.w_cursor.lnum
+	old_cursor_col = ed.curwin.w_cursor.col
+	old_cursor_coladd = ed.curwin.w_cursor.coladd
 	if ((ed.finish_op != 0) || (ed.VIsual_active != 0)) && (oap.op_type != OP_NOP) {
 		redo_yank := !ed.vim_strchr(ed.p_cpo, CPO_YANK).Nil() && !gui_yank
 		oap.is_VIsual = ed.VIsual_active
@@ -38797,7 +39807,9 @@ func (ed *Editor) do_pending_operator(cap_ *S_cmdarg_S, old_col int32, gui_yank 
 				ed.coladvance(ed.curwin.w_curswant)
 			}
 		} else {
-			ed.curwin.w_cursor = old_cursor
+			ed.curwin.w_cursor.lnum = old_cursor_lnum
+			ed.curwin.w_cursor.col = old_cursor_col
+			ed.curwin.w_cursor.coladd = old_cursor_coladd
 		}
 		oap.block_mode = FALSE
 		ed.clearop(oap)
@@ -39022,7 +40034,7 @@ func get_option_prefix(argp *Ptr[byte]) set_prefix_T {
 	return prefix
 }
 
-func (ed *Editor) parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32, keyp *int32) bool {
+func (ed *Editor) parse_option_name(arg Ptr[byte], opt_idxp int32, lenp int32, keyp int32) parse_option_name__out_T {
 	var key int32 = 0
 	var len_ int32
 	var opt_idx int32
@@ -39037,7 +40049,12 @@ func (ed *Editor) parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32,
 			}
 		}
 		if int32(arg.At(int(len_))) != '>' {
-			return false
+			var out__ parse_option_name__out_T
+			out__.r__ = false
+			out__.opt_idxp = opt_idxp
+			out__.lenp = lenp
+			out__.keyp = keyp
+			return out__
 		}
 		arg.Set(int(len_), NUL)
 		if (int32(arg.At(1)) == 't') && (int32(arg.At(2)) == '_') {
@@ -39067,10 +40084,15 @@ func (ed *Editor) parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32,
 			key = ed.find_key_option(arg, false)
 		}
 	}
-	*keyp = key
-	*lenp = len_
-	*opt_idxp = opt_idx
-	return true
+	keyp = key
+	lenp = len_
+	opt_idxp = opt_idx
+	var out___2 parse_option_name__out_T
+	out___2.r__ = true
+	out___2.opt_idxp = opt_idxp
+	out___2.lenp = lenp
+	out___2.keyp = keyp
+	return out___2
 }
 
 func get_opt_op(arg []byte) set_op_T {
@@ -39121,7 +40143,7 @@ func (ed *Editor) stropt_get_default_val(opt_idx int32, varp optvar_T, flags int
 	return newval
 }
 
-func (ed *Editor) opt_backspace_nr2str(varp optvar_T, origval_p *Ptr[byte], origval_l_p *Ptr[byte], origval_g_p *Ptr[byte], oldval_p *Ptr[byte]) {
+func (ed *Editor) opt_backspace_nr2str(varp optvar_T, origval_p Ptr[byte], origval_l_p Ptr[byte], origval_g_p Ptr[byte], oldval_p Ptr[byte]) opt_backspace_nr2str__out_T {
 	var i int32 = int32(getdigits(varp.ov_str))
 	switch i {
 	case 0:
@@ -39133,16 +40155,22 @@ func (ed *Editor) opt_backspace_nr2str(varp optvar_T, origval_p *Ptr[byte], orig
 	case 3:
 		*varp.ov_str = vim_strnsave(S("indent,eol,nostop"), 17)
 	}
-	if (*origval_p) == (*oldval_p) {
-		*origval_p = (*varp.ov_str)
+	if origval_p == oldval_p {
+		origval_p = (*varp.ov_str)
 	}
-	if (*origval_l_p) == (*oldval_p) {
-		*origval_l_p = (*varp.ov_str)
+	if origval_l_p == oldval_p {
+		origval_l_p = (*varp.ov_str)
 	}
-	if (*origval_g_p) == (*oldval_p) {
-		*origval_g_p = (*varp.ov_str)
+	if origval_g_p == oldval_p {
+		origval_g_p = (*varp.ov_str)
 	}
-	*oldval_p = (*varp.ov_str)
+	oldval_p = (*varp.ov_str)
+	var out__ opt_backspace_nr2str__out_T
+	out__.origval_p = origval_p
+	out__.origval_l_p = origval_l_p
+	out__.origval_g_p = origval_g_p
+	out__.oldval_p = oldval_p
+	return out__
 }
 
 func opt_whichwrap_nr2str(argp *Ptr[byte], whichwrap Ptr[byte]) Ptr[byte] {
@@ -39260,7 +40288,9 @@ func stropt_remove_val(origval Ptr[byte], newval Ptr[byte], flags int32, strval 
 	}
 }
 
-func (ed *Editor) find_key_item(src Ptr[byte], key Ptr[byte], keylen int32, itemlenp *int32) Ptr[byte] {
+func (ed *Editor) find_key_item(src Ptr[byte], key Ptr[byte], keylen int32, itemlenp int32) find_key_item__out_T {
+	var out__ find_key_item__out_T
+
 	p := src
 	for int32(p.Get()) != NUL {
 		if ((p == src) || (int32(p.Add(-1).Get()) == ',')) && (musl_strncmp(p, key, usize(keylen)) == 0) {
@@ -39268,12 +40298,17 @@ func (ed *Editor) find_key_item(src Ptr[byte], key Ptr[byte], keylen int32, item
 			if end.Nil() {
 				end = p.Add(int(musl_strlen(p)))
 			}
-			*itemlenp = int32(int64(end.Sub(p)))
-			return p
+			itemlenp = int32(int64(end.Sub(p)))
+			out__.r__ = p
+			out__.itemlenp = itemlenp
+			return out__
 		}
 		p = p.Add(1)
 	}
-	return Ptr[byte]{}
+	var out___2 find_key_item__out_T
+	out___2.r__ = Ptr[byte]{}
+	out___2.itemlenp = itemlenp
+	return out___2
 }
 
 func remove_comma_item(str Ptr[byte], item Ptr[byte], itemlen int32) {
@@ -39287,10 +40322,13 @@ func remove_comma_item(str Ptr[byte], item Ptr[byte], itemlen int32) {
 }
 
 func (ed *Editor) remove_key_item(str Ptr[byte], key Ptr[byte], keylen int32, skip Ptr[byte]) {
+	var find_key_item__o find_key_item__out_T
 	var itemlen int32
 	var found Ptr[byte]
 	for {
-		found = ed.find_key_item(str, key, keylen, &itemlen)
+		find_key_item__o = ed.find_key_item(str, key, keylen, itemlen)
+		itemlen = find_key_item__o.itemlenp
+		found = find_key_item__o.r__
 		if found.Nil() {
 			break
 		}
@@ -39299,7 +40337,9 @@ func (ed *Editor) remove_key_item(str Ptr[byte], key Ptr[byte], keylen int32, sk
 			if int32(next.Get()) == ',' {
 				next = next.Add(1)
 			}
-			found = ed.find_key_item(next, key, keylen, &itemlen)
+			find_key_item__o = ed.find_key_item(next, key, keylen, itemlen)
+			itemlen = find_key_item__o.itemlenp
+			found = find_key_item__o.r__
 			if found.Nil() {
 				break
 			}
@@ -39338,6 +40378,7 @@ func prepend_item(str Ptr[byte], item Ptr[byte], item_len int32) {
 func (ed *Editor) stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, flags int32) bool {
 	var old_itemlen int32
 
+	var find_key_item__o find_key_item__out_T
 	var p Ptr[byte]
 	var item_start Ptr[byte]
 	if ed.vim_strchr(newval, ':').Nil() && ed.vim_strchr(newval, ',').Nil() {
@@ -39360,7 +40401,9 @@ func (ed *Editor) stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op
 			if !colon.Nil() && colon.Lt(item_start.Add(int(item_len))) {
 				keylen := int32(int64(colon.Sub(item_start))) + 1
 				if (op == OP_ADDING) || (op == OP_PREPENDING) {
-					found := ed.find_key_item(newval, item_start, keylen, &old_itemlen)
+					find_key_item__o = ed.find_key_item(newval, item_start, keylen, old_itemlen)
+					old_itemlen = find_key_item__o.itemlenp
+					found := find_key_item__o.r__
 					if !found.Nil() {
 						if (old_itemlen == item_len) && (musl_strncmp(found, item_start, usize(item_len)) == 0) {
 							ed.remove_key_item(newval, item_start, keylen, found)
@@ -39426,13 +40469,14 @@ func (ed *Editor) stropt_remove_dupflags(newval Ptr[byte], flags int32) {
 	}
 }
 
-func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byte], varp optvar_T, origval_arg *Ptr[byte], origval_l_arg *Ptr[byte], origval_g_arg *Ptr[byte], oldval_arg *Ptr[byte], op_arg *set_op_T, flags int32, cp_val int32) Ptr[byte] {
-	arg := (*argp)
-	origval := (*origval_arg)
-	origval_l := (*origval_l_arg)
-	origval_g := (*origval_g_arg)
-	oldval := (*oldval_arg)
-	op := (*op_arg)
+func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp Ptr[byte], varp optvar_T, origval_arg Ptr[byte], origval_l_arg Ptr[byte], origval_g_arg Ptr[byte], oldval_arg Ptr[byte], op_arg set_op_T, flags int32, cp_val int32) stropt_get_newval__out_T {
+	var opt_backspace_nr2str__o opt_backspace_nr2str__out_T
+	arg := argp
+	origval := origval_arg
+	origval_l := origval_l_arg
+	origval_g := origval_g_arg
+	oldval := oldval_arg
+	op := op_arg
 	var save_arg Ptr[byte] = Ptr[byte]{}
 	var newval Ptr[byte]
 	var s Ptr[byte] = Ptr[byte]{}
@@ -39443,7 +40487,12 @@ func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byt
 		} else {
 			arg = arg.Add(1)
 			if (varp.ov_str == &ed.p_bs) && ((uint32((*varp.ov_str).Get()) - '0') < 10) {
-				ed.opt_backspace_nr2str(varp, &origval, &origval_l, &origval_g, &oldval)
+				opt_backspace_nr2str__o = ed.opt_backspace_nr2str(varp, origval, origval_l, origval_g, oldval)
+				origval = opt_backspace_nr2str__o.origval_p
+				origval_l = opt_backspace_nr2str__o.origval_l_p
+				origval_g = opt_backspace_nr2str__o.origval_g_p
+				oldval = opt_backspace_nr2str__o.oldval_p
+				_ = 0
 			} else if (varp.ov_str == &ed.p_ww) && ((uint32(arg.Get()) - '0') < 10) {
 				t := opt_whichwrap_nr2str(&arg, whichwrap)
 				save_arg = arg
@@ -39485,17 +40534,26 @@ func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byt
 	if !save_arg.Nil() {
 		arg = save_arg
 	}
-	*argp = arg
-	*origval_arg = origval
-	*origval_l_arg = origval_l
-	*origval_g_arg = origval_g
-	*oldval_arg = oldval
-	*op_arg = op
-	return newval
+	argp = arg
+	origval_arg = origval
+	origval_l_arg = origval_l
+	origval_g_arg = origval_g
+	oldval_arg = oldval
+	op_arg = op
+	var out__ stropt_get_newval__out_T
+	out__.r__ = newval
+	out__.argp = argp
+	out__.origval_arg = origval_arg
+	out__.origval_l_arg = origval_l_arg
+	out__.origval_g_arg = origval_g_arg
+	out__.oldval_arg = oldval_arg
+	out__.op_arg = op_arg
+	return out__
 }
 
-func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg *Ptr[byte]) bool {
-	arg := (*argp)
+func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg Ptr[byte]) do_set_option_string__out_T {
+	var stropt_get_newval__o stropt_get_newval__out_T
+	arg := argp
 	op := op_arg
 	varp := varp_arg
 	var oldval Ptr[byte] = Ptr[byte]{}
@@ -39519,7 +40577,14 @@ func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr
 	} else {
 		origval = oldval
 	}
-	newval = ed.stropt_get_newval(nextchar, opt_idx, &arg, varp, &origval, &origval_l, &origval_g, &oldval, &op, int32(flags), cp_val)
+	stropt_get_newval__o = ed.stropt_get_newval(nextchar, opt_idx, arg, varp, origval, origval_l, origval_g, oldval, op, int32(flags), cp_val)
+	arg = stropt_get_newval__o.argp
+	origval = stropt_get_newval__o.origval_arg
+	origval_l = stropt_get_newval__o.origval_l_arg
+	origval_g = stropt_get_newval__o.origval_g_arg
+	oldval = stropt_get_newval__o.oldval_arg
+	op = stropt_get_newval__o.op_arg
+	newval = stropt_get_newval__o.r__
 	*varp.ov_str = newval
 	if newval.Nil() {
 		*varp.ov_str = ed.empty_option
@@ -39529,16 +40594,20 @@ func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr
 	if (op != OP_NONE) && (((*p) & P_INSECURE) != 0) {
 		ed.secure = 1
 	}
-	*errmsg = ed.did_set_string_option(opt_idx, varp.ov_str, oldval, newval, errbuf, errbuflen, opt_flags, op, value_checked)
+	errmsg = ed.did_set_string_option(opt_idx, varp.ov_str, oldval, newval, errbuf, errbuflen, opt_flags, op, value_checked)
 	ed.secure = secure_saved
-	*argp = arg
+	argp = arg
+	var out__ do_set_option_string__out_T
 	var t1 bool
-	if (*errmsg).Nil() {
+	if errmsg.Nil() {
 		t1 = true
 	} else {
 		t1 = false
 	}
-	return t1
+	out__.r__ = t1
+	out__.argp = argp
+	out__.errmsg = errmsg
+	return out__
 }
 
 func (ed *Editor) do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_prefix_T, flags long_u, varp optvar_T, nextchar int32, afterchar int32, cp_val int32) Ptr[byte] {
@@ -39578,13 +40647,16 @@ func (ed *Editor) do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_
 	return ed.set_bool_option(opt_idx, varp, int32(value), opt_flags)
 }
 
-func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
-	arg := (*argp)
+func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) do_set_option_numeric__out_T {
+	arg := argp
 	var value varnumber_T
 	var i int32
 	var errmsg Ptr[byte] = Ptr[byte]{}
 	if (opt_idx < 0) || optvar_is_null(varp) {
-		return Ptr[byte]{}
+		var out__ do_set_option_numeric__out_T
+		out__.r__ = Ptr[byte]{}
+		out__.argp = argp
+		return out__
 	}
 	arg = arg.Add(1)
 	if nextchar == '&' {
@@ -39596,16 +40668,22 @@ func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Pt
 		}
 		value = ed.options.Ref(int(opt_idx)).def_num[int(t1)]
 	} else if (int32(arg.Get()) == '-') || ((uint32(arg.Get()) - '0') < 10) {
-		vim_str2nr(arg, nil, &i, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), &value, nil, 0, true, nil)
+		i = vim_str2nr(arg, nil, i, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), &value, nil, 0, true, nil)
 		if (i == 0) || ((int32(arg.At(int(i))) != NUL) && !((int32(arg.At(int(i))) == (' ')) || (int32(arg.At(int(i))) == 9))) {
 			errmsg = ed.e_number_required_after_equal
-			*argp = arg
-			return errmsg
+			argp = arg
+			var out___2 do_set_option_numeric__out_T
+			out___2.r__ = errmsg
+			out___2.argp = argp
+			return out___2
 		}
 	} else {
 		errmsg = ed.e_number_required_after_equal
-		*argp = arg
-		return errmsg
+		argp = arg
+		var out___3 do_set_option_numeric__out_T
+		out___3.r__ = errmsg
+		out___3.argp = argp
+		return out___3
 	}
 	if op == OP_ADDING {
 		value = (*varp.ov_long) + value
@@ -39616,20 +40694,29 @@ func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Pt
 	}
 	if (varp.ov_long == &ed.curwin.w_onebuf_opt.wo_sop) && (value < -1) {
 		errmsg = ed.e_invalid_argument
-		*argp = arg
-		return errmsg
+		argp = arg
+		var out___4 do_set_option_numeric__out_T
+		out___4.r__ = errmsg
+		out___4.argp = argp
+		return out___4
 	}
 	errmsg = ed.set_num_option(opt_idx, varp, value, errbuf, errbuflen, opt_flags)
-	*argp = arg
-	return errmsg
+	argp = arg
+	var out___5 do_set_option_numeric__out_T
+	out___5.r__ = errmsg
+	out___5.argp = argp
+	return out___5
 }
 
-func (ed *Editor) do_set_option_keycode(argp *Ptr[byte], key_name []byte, nextchar int32) Ptr[byte] {
-	arg := (*argp)
+func (ed *Editor) do_set_option_keycode(argp Ptr[byte], key_name []byte, nextchar int32) do_set_option_keycode__out_T {
+	arg := argp
 	var p Ptr[byte]
 	if nextchar == '&' {
 		if !ed.add_termcap_entry(key_name, true) {
-			return ed.e_not_found_in_termcap
+			var out__ do_set_option_keycode__out_T
+			out__.r__ = ed.e_not_found_in_termcap
+			out__.argp = argp
+			return out__
 		}
 	} else {
 		arg = arg.Add(1)
@@ -39648,58 +40735,94 @@ func (ed *Editor) do_set_option_keycode(argp *Ptr[byte], key_name []byte, nextch
 		ed.ttest(false)
 	}
 	ed.redraw_all_later(UPD_CLEAR)
-	*argp = arg
-	return Ptr[byte]{}
+	argp = arg
+	var out___2 do_set_option_keycode__out_T
+	out___2.r__ = Ptr[byte]{}
+	out___2.argp = argp
+	return out___2
 }
 
-func (ed *Editor) do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name []byte, nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
+func (ed *Editor) do_set_option_value(opt_idx int32, opt_flags int32, argp Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name []byte, nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) do_set_option_value__out_T {
+	var do_set_option_keycode__o do_set_option_keycode__out_T
+	var do_set_option_numeric__o do_set_option_numeric__out_T
+	var do_set_option_string__o do_set_option_string__out_T
 	var value_checked int32 = FALSE
 	var errmsg Ptr[byte] = Ptr[byte]{}
-	arg := (*argp)
+	arg := argp
 	if flags&P_BOOL != 0 {
 		errmsg = ed.do_set_option_bool(opt_idx, opt_flags, prefix, flags, varp, nextchar, afterchar, cp_val)
 		if !errmsg.Nil() {
-			*argp = arg
-			return errmsg
+			argp = arg
+			var out__ do_set_option_value__out_T
+			out__.r__ = errmsg
+			out__.argp = argp
+			return out__
 		}
 	} else {
 		if ed.vim_strchr(S("=:&<"), nextchar).Nil() || (prefix != PREFIX_NONE) {
 			errmsg = ed.e_invalid_argument
-			*argp = arg
-			return errmsg
+			argp = arg
+			var out___2 do_set_option_value__out_T
+			out___2.r__ = errmsg
+			out___2.argp = argp
+			return out___2
 		}
 		if flags&P_NUM != 0 {
-			errmsg = ed.do_set_option_numeric(opt_idx, opt_flags, &arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen)
+			do_set_option_numeric__o = ed.do_set_option_numeric(opt_idx, opt_flags, arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen)
+			arg = do_set_option_numeric__o.argp
+			errmsg = do_set_option_numeric__o.r__
 			if !errmsg.Nil() {
-				*argp = arg
-				return errmsg
+				argp = arg
+				var out___3 do_set_option_value__out_T
+				out___3.r__ = errmsg
+				out___3.argp = argp
+				return out___3
 			}
 		} else if opt_idx >= 0 {
-			if !ed.do_set_option_string(opt_idx, opt_flags, &arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen, &value_checked, &errmsg) {
+			do_set_option_string__o = ed.do_set_option_string(opt_idx, opt_flags, arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen, &value_checked, errmsg)
+			arg = do_set_option_string__o.argp
+			errmsg = do_set_option_string__o.errmsg
+			if !do_set_option_string__o.r__ {
 				if !errmsg.Nil() {
-					*argp = arg
-					return errmsg
+					argp = arg
+					var out___4 do_set_option_value__out_T
+					out___4.r__ = errmsg
+					out___4.argp = argp
+					return out___4
 				}
 				*stopopteval = TRUE
-				*argp = arg
-				return errmsg
+				argp = arg
+				var out___5 do_set_option_value__out_T
+				out___5.r__ = errmsg
+				out___5.argp = argp
+				return out___5
 			}
 		} else {
-			errmsg = ed.do_set_option_keycode(&arg, key_name, nextchar)
+			do_set_option_keycode__o = ed.do_set_option_keycode(arg, key_name, nextchar)
+			arg = do_set_option_keycode__o.argp
+			errmsg = do_set_option_keycode__o.r__
 			if !errmsg.Nil() {
-				*argp = arg
-				return errmsg
+				argp = arg
+				var out___6 do_set_option_value__out_T
+				out___6.r__ = errmsg
+				out___6.argp = argp
+				return out___6
 			}
 		}
 	}
 	if opt_idx >= 0 {
 		ed.did_set_option(opt_idx, opt_flags, op == OP_NONE, value_checked)
 	}
-	*argp = arg
-	return errmsg
+	argp = arg
+	var out___7 do_set_option_value__out_T
+	out___7.r__ = errmsg
+	out___7.argp = argp
+	return out___7
 }
 
-func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show *int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
+func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) do_set_option__out_T {
+	var do_set_option_value__o do_set_option_value__out_T
+	var parse_option_name__o parse_option_name__out_T
 	var opt_idx int32
 	var arg Ptr[byte]
 	var prefix set_prefix_T
@@ -39715,8 +40838,15 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 	prefix = get_option_prefix(argp)
 	arg = (*argp)
 	key = 0
-	if !ed.parse_option_name(arg, &opt_idx, &len_, &key) {
-		return ed.e_invalid_argument
+	parse_option_name__o = ed.parse_option_name(arg, opt_idx, len_, key)
+	opt_idx = parse_option_name__o.opt_idxp
+	len_ = parse_option_name__o.lenp
+	key = parse_option_name__o.keyp
+	if !parse_option_name__o.r__ {
+		var out__ do_set_option__out_T
+		out__.r__ = ed.e_invalid_argument
+		out__.did_show = did_show
+		return out__
 	}
 	afterchar = int32(arg.At(int(len_)))
 	for (int32(arg.At(int(len_))) == (' ')) || (int32(arg.At(int(len_))) == 9) {
@@ -39730,7 +40860,10 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 	if (opt_idx == -1) && (key == 0) {
 		errmsg = ed.e_unknown_option
 		*argp = arg
-		return errmsg
+		var out___2 do_set_option__out_T
+		out___2.r__ = errmsg
+		out___2.did_show = did_show
+		return out___2
 	}
 	if opt_idx >= 0 {
 		if optvar_is_null(ed.options.Ref(int(opt_idx)).var_) {
@@ -39738,7 +40871,10 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 				errmsg = ed.e_option_not_supported
 			}
 			*argp = arg
-			return errmsg
+			var out___3 do_set_option__out_T
+			out___3.r__ = errmsg
+			out___3.did_show = did_show
+			return out___3
 		}
 		flags = ed.options.Ref(int(opt_idx)).flags
 		varp = ed.get_varp_scope(ed.options.Add(int(opt_idx)), opt_flags)
@@ -39755,7 +40891,10 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 	}
 	if !ed.validate_opt_idx(opt_idx, opt_flags, flags, &errmsg, prefix) {
 		*argp = arg
-		return errmsg
+		var out___4 do_set_option__out_T
+		out___4.r__ = errmsg
+		out___4.did_show = did_show
+		return out___4
 	}
 	cp_val := ed.p_cp
 	if !ed.vim_strchr(S("?=:!&"), nextchar).Nil() {
@@ -39772,15 +40911,18 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 		if (!ed.vim_strchr(S("?!&<"), nextchar).Nil() && (int32(arg.At(1)) != NUL)) && !((int32(arg.At(1)) == (' ')) || (int32(arg.At(1)) == 9)) {
 			errmsg = ed.e_trailing_characters
 			*argp = arg
-			return errmsg
+			var out___5 do_set_option__out_T
+			out___5.r__ = errmsg
+			out___5.did_show = did_show
+			return out___5
 		}
 	}
 	if (nextchar == '?') || (((prefix == PREFIX_NONE) && ed.vim_strchr(S("=:&<"), nextchar).Nil()) && ((flags & P_BOOL) == 0)) {
-		if (*did_show) != 0 {
+		if did_show != 0 {
 			ed.msg_putchar(10)
 		} else {
 			ed.gotocmdline(true)
-			*did_show = TRUE
+			did_show = TRUE
 		}
 		if opt_idx >= 0 {
 			ed.showoneopt(ed.options.Add(int(opt_idx)), opt_flags)
@@ -39789,7 +40931,10 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 			if p.Nil() {
 				errmsg = ed.e_key_code_not_set
 				*argp = arg
-				return errmsg
+				var out___6 do_set_option__out_T
+				out___6.r__ = errmsg
+				out___6.did_show = did_show
+				return out___6
 			} else {
 				ed.show_one_termcode(key_name.Tail(), p, true)
 			}
@@ -39798,15 +40943,21 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 			errmsg = ed.e_trailing_characters
 		}
 	} else {
-		errmsg = ed.do_set_option_value(opt_idx, opt_flags, &arg, prefix, op, flags, varp, key_name.Tail(), nextchar, afterchar, cp_val, stopopteval, errbuf, errbuflen)
+		do_set_option_value__o = ed.do_set_option_value(opt_idx, opt_flags, arg, prefix, op, flags, varp, key_name.Tail(), nextchar, afterchar, cp_val, stopopteval, errbuf, errbuflen)
+		arg = do_set_option_value__o.argp
+		errmsg = do_set_option_value__o.r__
 	}
 	*argp = arg
-	return errmsg
+	var out___7 do_set_option__out_T
+	out___7.r__ = errmsg
+	out___7.did_show = did_show
+	return out___7
 }
 
 func (ed *Editor) do_set(arg_start Ptr[byte], opt_flags int32) bool {
 	var errbuf Ptr[byte]
 
+	var do_set_option__o do_set_option__out_T
 	arg := arg_start
 	var i int32
 	var did_show int32 = FALSE
@@ -39838,7 +40989,9 @@ func (ed *Editor) do_set(arg_start Ptr[byte], opt_flags int32) bool {
 			var errmsg Ptr[byte] = Ptr[byte]{}
 			errbuf = Mk[byte](80)
 			startarg := arg
-			errmsg = ed.do_set_option(opt_flags, &arg, arg_start, &startarg, &did_show, &stopopteval, errbuf, ERR_BUFLEN)
+			do_set_option__o = ed.do_set_option(opt_flags, &arg, arg_start, &startarg, did_show, &stopopteval, errbuf, ERR_BUFLEN)
+			did_show = do_set_option__o.did_show
+			errmsg = do_set_option__o.r__
 			if stopopteval != 0 {
 				break
 			}
@@ -40595,6 +41748,7 @@ func (ed *Editor) get_highlight_default() Ptr[byte] {
 }
 
 func (ed *Editor) find_key_option(arg_arg Ptr[byte], has_lt bool) int32 {
+	var find_special_key__o find_special_key__out_T
 	var key int32 = 0
 	var modifiers int32
 	arg := arg_arg
@@ -40605,7 +41759,9 @@ func (ed *Editor) find_key_option(arg_arg Ptr[byte], has_lt bool) int32 {
 	} else if has_lt {
 		arg = arg.Add(-1)
 		modifiers = 0
-		key = ed.find_special_key(&arg, &modifiers, (FSK_KEYCODE|FSK_KEEP_X_KEY)|FSK_SIMPLIFY, nil)
+		find_special_key__o = ed.find_special_key(&arg, modifiers, (FSK_KEYCODE|FSK_KEEP_X_KEY)|FSK_SIMPLIFY, nil)
+		modifiers = find_special_key__o.modp
+		key = find_special_key__o.r__
 		if modifiers != 0 {
 			key = 0
 		}
@@ -41577,9 +42733,12 @@ func (ed *Editor) did_set_nrformats(args *optset_T) Ptr[byte] {
 }
 
 func (ed *Editor) did_set_pastetoggle(args *optset_T) Ptr[byte] {
+	var replace_termcodes__o replace_termcodes__out_T
 	var p Ptr[byte]
 	if ed.p_pt.Get() != 0 {
-		ed.replace_termcodes(ed.p_pt, &p, 0, REPTERM_FROM_PART|REPTERM_DO_LT, nil)
+		replace_termcodes__o = ed.replace_termcodes(ed.p_pt, p, 0, REPTERM_FROM_PART|REPTERM_DO_LT, nil)
+		p = replace_termcodes__o.bufp
+		_ = replace_termcodes__o.r__
 		if !p.Nil() {
 			free_string_option(ed.p_pt)
 			ed.p_pt = p
@@ -42364,7 +43523,7 @@ func (ed *Editor) getoctchrs() int64 {
 	return int64(nr)
 }
 
-func (ed *Editor) read_limits(minval *int64, maxval *int64) int32 {
+func (ed *Editor) read_limits(minval int64, maxval int64) read_limits__out_T {
 	var reverse bool = false
 	var first_char Ptr[byte]
 	var tmp int64
@@ -42373,23 +43532,24 @@ func (ed *Editor) read_limits(minval *int64, maxval *int64) int32 {
 		reverse = true
 	}
 	first_char = ed.regparse
-	*minval = getdigits(&ed.regparse)
+	minval = getdigits(&ed.regparse)
 	if int32(ed.regparse.Get()) == ',' {
 		ed.regparse = ed.regparse.Add(1)
 		if vim_isdigit(int32(ed.regparse.Get())) {
-			*maxval = getdigits(&ed.regparse)
+			maxval = getdigits(&ed.regparse)
 		} else {
-			*maxval = (32767 << 16)
+			maxval = (32767 << 16)
 		}
 	} else if (uint32(first_char.Get()) - '0') < 10 {
-		*maxval = (*minval)
+		maxval = minval
 	} else {
-		*maxval = (32767 << 16)
+		maxval = (32767 << 16)
 	}
 	if int32(ed.regparse.Get()) == 92 {
 		ed.regparse = ed.regparse.Add(1)
 	}
 	if int32(ed.regparse.Get()) != '}' {
+		var out__ read_limits__out_T
 		var t1 Ptr[byte]
 		if ed.reg_magic == MAGIC_ALL {
 			t1 = S("")
@@ -42399,15 +43559,22 @@ func (ed *Editor) read_limits(minval *int64, maxval *int64) int32 {
 		ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_syntax_error_in_str_curlies), t1)
 		ed.emsg(ed.iobuff_or(gettext_(ed.e_syntax_error_in_str_curlies)))
 		ed.rc_did_emsg = TRUE
-		return FAIL
+		out__.r__ = FAIL
+		out__.minval = minval
+		out__.maxval = maxval
+		return out__
 	}
-	if (!reverse && ((*minval) > (*maxval))) || (reverse && ((*minval) < (*maxval))) {
-		tmp = (*minval)
-		*minval = (*maxval)
-		*maxval = tmp
+	if (!reverse && (minval > maxval)) || (reverse && (minval < maxval)) {
+		tmp = minval
+		minval = maxval
+		maxval = tmp
 	}
 	ed.skipchr()
-	return OK
+	var out___2 read_limits__out_T
+	out___2.r__ = OK
+	out___2.minval = minval
+	out___2.maxval = maxval
+	return out___2
 }
 
 func (ed *Editor) reg_iswordc(re *S_regengine_S, c int32) bool {
@@ -42642,13 +43809,18 @@ func (ed *Editor) reg_nextline(re *S_regengine_S) {
 	}
 }
 
-func (ed *Editor) match_with_backref(re *S_regengine_S, start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32 {
+func (ed *Editor) match_with_backref(re *S_regengine_S, start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen int32) match_with_backref__out_T {
+	var out__ match_with_backref__out_T
+	var out___2 match_with_backref__out_T
+	var out___3 match_with_backref__out_T
+
+	var cstrncmp__o cstrncmp__out_T
 	clnum := start_lnum
 	ccol := start_col
 	var len_ int32
 	var p Ptr[byte]
-	if bytelen != nil {
-		*bytelen = 0
+	if true {
+		bytelen = 0
 	}
 	for {
 		if re.rex.line != re.reg_tofree {
@@ -42668,29 +43840,44 @@ func (ed *Editor) match_with_backref(re *S_regengine_S, start_lnum linenr_T, sta
 		} else {
 			len_ = ed.reg_getline_len(re, clnum) - ccol
 		}
-		if ((re.rex.reg_ic == 0) && (ed.cstrncmp(re, p.Add(int(ccol)), re.rex.input, &len_) != 0)) || ((re.rex.reg_ic != 0) && (ed.mb_strnicmp(p.Add(int(ccol)), re.rex.input, usize(len_)) != 0)) {
-			return RA_NOMATCH
+		var t1 bool = re.rex.reg_ic == 0
+		if t1 {
+			cstrncmp__o = ed.cstrncmp(re, p.Add(int(ccol)), re.rex.input, len_)
+			len_ = cstrncmp__o.n
+			t1 = cstrncmp__o.r__ != 0
 		}
-		if bytelen != nil {
-			(*bytelen) += len_
+		if t1 || ((re.rex.reg_ic != 0) && (ed.mb_strnicmp(p.Add(int(ccol)), re.rex.input, usize(len_)) != 0)) {
+			out__.r__ = RA_NOMATCH
+			out__.bytelen = bytelen
+			return out__
+		}
+		if true {
+			bytelen += len_
 		}
 		if clnum == end_lnum {
 			break
 		}
 		if re.rex.lnum >= re.rex.reg_maxline {
-			return RA_NOMATCH
+			out___2.r__ = RA_NOMATCH
+			out___2.bytelen = bytelen
+			return out___2
 		}
 		ed.reg_nextline(re)
-		if bytelen != nil {
-			*bytelen = 0
+		if true {
+			bytelen = 0
 		}
 		clnum++
 		ccol = 0
 		if ed.got_int != 0 {
-			return RA_FAIL
+			out___3.r__ = RA_FAIL
+			out___3.bytelen = bytelen
+			return out___3
 		}
 	}
-	return RA_MATCH
+	var out___4 match_with_backref__out_T
+	out___4.r__ = RA_MATCH
+	out___4.bytelen = bytelen
+	return out___4
 }
 
 func (ed *Editor) re_mult_next(what Ptr[byte]) bool {
@@ -42703,28 +43890,33 @@ func (ed *Editor) re_mult_next(what Ptr[byte]) bool {
 	return true
 }
 
-func (ed *Editor) mb_decompose(c int32, c1 *int32, c2 *int32, c3 *int32) {
-	var d decomp_T
+func (ed *Editor) mb_decompose(c int32, c1 int32, c2 *int32, c3 *int32) int32 {
+	var d_a int32
+	var d_b int32
+	var d_c int32
 	if (c >= 0xfb20) && (c <= 0xfb4f) {
-		d = ed.decomp_table[int(c-0xfb20)]
-		*c1 = d.a
-		*c2 = d.b
-		*c3 = d.c
+		d_a = ed.decomp_table[int(c-0xfb20)].a
+		d_b = ed.decomp_table[int(c-0xfb20)].b
+		d_c = ed.decomp_table[int(c-0xfb20)].c
+		c1 = d_a
+		*c2 = d_b
+		*c3 = d_c
 	} else {
-		*c1 = c
+		c1 = c
 		*c2 = 0
 		*c3 = 0
 	}
+	return c1
 }
 
-func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n *int32) int32 {
+func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n int32) cstrncmp__out_T {
 	var result int32
 	if re.rex.reg_ic == 0 {
-		result = musl_strncmp(s1, s2, usize((*n)))
+		result = musl_strncmp(s1, s2, usize(n))
 	} else {
 		p := s1
 		var n2 int32 = 0
-		n1 := (*n)
+		n1 := n
 		for (n1 > 0) && (int32(p.Get()) != NUL) {
 			n1 -= ed.utfc_ptr2len(p)
 			p = p.Add(int(ed.utfc_ptr2len(p)))
@@ -42740,9 +43932,9 @@ func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n *int
 			p = p.Add(int(ed.utfc_ptr2len(p)))
 		}
 		n2 = int32(int64(p.Sub(s2)))
-		result = ed.mb_strnicmp2(s1, s2, usize((*n)), usize(n2))
-		if (result == 0) && (n2 < (*n)) {
-			*n = n2
+		result = ed.mb_strnicmp2(s1, s2, usize(n), usize(n2))
+		if (result == 0) && (n2 < n) {
+			n = n2
 		}
 	}
 	if (result != 0) && re.rex.reg_icombine {
@@ -42757,12 +43949,12 @@ func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n *int
 		str2 = s2
 		c2 = 0
 		c1 = c2
-		for int32(int64(str1.Sub(s1))) < (*n) {
+		for int32(int64(str1.Sub(s1))) < n {
 			c1 = ed.mb_ptr2char_adv(&str1)
 			c2 = ed.mb_ptr2char_adv(&str2)
 			if (c1 != c2) && ((re.rex.reg_ic == 0) || (ed.utf_fold(c1) != ed.utf_fold(c2))) {
-				ed.mb_decompose(c1, &c11, &junk, &junk)
-				ed.mb_decompose(c2, &c12, &junk, &junk)
+				c11 = ed.mb_decompose(c1, c11, &junk, &junk)
+				c12 = ed.mb_decompose(c2, c12, &junk, &junk)
 				c1 = c11
 				c2 = c12
 				if (c11 != c12) && ((re.rex.reg_ic == 0) || (ed.utf_fold(c11) != ed.utf_fold(c12))) {
@@ -42772,10 +43964,13 @@ func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n *int
 		}
 		result = c2 - c1
 		if result == 0 {
-			*n = int32(int64(str2.Sub(s2)))
+			n = int32(int64(str2.Sub(s2)))
 		}
 	}
-	return result
+	var out__ cstrncmp__out_T
+	out__.r__ = result
+	out__.n = n
+	return out__
 }
 
 func (ed *Editor) cstrchr(re *S_regengine_S, s Ptr[byte], c int32) Ptr[byte] {
@@ -42894,10 +44089,44 @@ func (ed *Editor) regtilde(source Ptr[byte], magic int32) Ptr[byte] {
 func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32 {
 	re := &ed.reg_engine
 	var result int32
-	var rex_save regexec_T
+	var rex_save_reg_match *regmatch_T
+	var rex_save_reg_mmatch *regmmatch_T
+	var rex_save_reg_startp Ptr[Ptr[byte]]
+	var rex_save_reg_endp Ptr[Ptr[byte]]
+	var rex_save_reg_startpos Ptr[lpos_T]
+	var rex_save_reg_endpos Ptr[lpos_T]
+	var rex_save_reg_win *S_window_S
+	var rex_save_reg_buf *S_file_buffer
+	var rex_save_reg_firstlnum linenr_T
+	var rex_save_reg_maxline linenr_T
+	var rex_save_reg_line_lbr bool
+	var rex_save_lnum linenr_T
+	var rex_save_line Ptr[byte]
+	var rex_save_input Ptr[byte]
+	var rex_save_need_clear_subexpr int32
+	var rex_save_reg_ic int32
+	var rex_save_reg_icombine bool
+	var rex_save_reg_maxcol colnr_T
 	rex_in_use_save := re.rex_in_use
 	if re.rex_in_use != 0 {
-		rex_save = re.rex
+		rex_save_reg_match = re.rex.reg_match
+		rex_save_reg_mmatch = re.rex.reg_mmatch
+		rex_save_reg_startp = re.rex.reg_startp
+		rex_save_reg_endp = re.rex.reg_endp
+		rex_save_reg_startpos = re.rex.reg_startpos
+		rex_save_reg_endpos = re.rex.reg_endpos
+		rex_save_reg_win = re.rex.reg_win
+		rex_save_reg_buf = re.rex.reg_buf
+		rex_save_reg_firstlnum = re.rex.reg_firstlnum
+		rex_save_reg_maxline = re.rex.reg_maxline
+		rex_save_reg_line_lbr = (re.rex.reg_line_lbr)
+		rex_save_lnum = re.rex.lnum
+		rex_save_line = re.rex.line
+		rex_save_input = re.rex.input
+		rex_save_need_clear_subexpr = re.rex.need_clear_subexpr
+		rex_save_reg_ic = re.rex.reg_ic
+		rex_save_reg_icombine = (re.rex.reg_icombine)
+		rex_save_reg_maxcol = re.rex.reg_maxcol
 	}
 	re.rex_in_use = TRUE
 	re.rex.reg_match = nil
@@ -42909,7 +44138,24 @@ func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[b
 	result = ed.vim_regsub_both(re, source, dest, destlen, flags)
 	re.rex_in_use = rex_in_use_save
 	if re.rex_in_use != 0 {
-		re.rex = rex_save
+		re.rex.reg_match = rex_save_reg_match
+		re.rex.reg_mmatch = rex_save_reg_mmatch
+		re.rex.reg_startp = rex_save_reg_startp
+		re.rex.reg_endp = rex_save_reg_endp
+		re.rex.reg_startpos = rex_save_reg_startpos
+		re.rex.reg_endpos = rex_save_reg_endpos
+		re.rex.reg_win = rex_save_reg_win
+		re.rex.reg_buf = rex_save_reg_buf
+		re.rex.reg_firstlnum = rex_save_reg_firstlnum
+		re.rex.reg_maxline = rex_save_reg_maxline
+		re.rex.reg_line_lbr = (rex_save_reg_line_lbr)
+		re.rex.lnum = rex_save_lnum
+		re.rex.line = rex_save_line
+		re.rex.input = rex_save_input
+		re.rex.need_clear_subexpr = rex_save_need_clear_subexpr
+		re.rex.reg_ic = rex_save_reg_ic
+		re.rex.reg_icombine = (rex_save_reg_icombine)
+		re.rex.reg_maxcol = rex_save_reg_maxcol
 	}
 	return result
 }
@@ -43469,6 +44715,7 @@ func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	var len__2 int32
 	var l int32
 
+	var reg__o reg__out_T
 	var ret Ptr[byte]
 	var flags int32
 	var c int32
@@ -43567,7 +44814,9 @@ func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 				ed.rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
-			ret = ed.reg(re, REG_PAREN, &flags)
+			reg__o = ed.reg(re, REG_PAREN, flags)
+			flags = reg__o.flagp
+			ret = reg__o.r__
 			if ret.Nil() {
 				return Ptr[byte]{}
 			}
@@ -43667,7 +44916,9 @@ func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 					ed.rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
-				ret = ed.reg(re, REG_NPAREN, &flags)
+				reg__o = ed.reg(re, REG_NPAREN, flags)
+				flags = reg__o.flagp
+				ret = reg__o.r__
 				if ret.Nil() {
 					return Ptr[byte]{}
 				}
@@ -44192,7 +45443,8 @@ func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	return ret
 }
 
-func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
+func (ed *Editor) regpiece(re *S_regengine_S, flagp int32) regpiece__out_T {
+	var read_limits__o read_limits__out_T
 	var ret Ptr[byte]
 	var op int32
 	var next Ptr[byte]
@@ -44201,14 +45453,20 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	var maxval int64
 	ret = ed.regatom(re, &flags)
 	if ret.Nil() {
-		return Ptr[byte]{}
+		var out__ regpiece__out_T
+		out__.r__ = Ptr[byte]{}
+		out__.flagp = flagp
+		return out__
 	}
 	op = ed.peekchr()
 	if re_multi_type(op) == NOT_MULTI {
-		*flagp = flags
-		return ret
+		flagp = flags
+		var out___2 regpiece__out_T
+		out___2.r__ = ret
+		out___2.flagp = flagp
+		return out___2
 	}
-	*flagp = ((WORST | SPSTART) | (flags & (HASNL | HASLOOKBH)))
+	flagp = ((WORST | SPSTART) | (flags & (HASNL | HASLOOKBH)))
 	ed.skipchr()
 	switch op {
 	case -214:
@@ -44231,7 +45489,7 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 			ed.regtail(re, next, ed.regnode(BRANCH))
 			ed.regtail(re, ret, ed.regnode(NOTHING))
 		}
-		*flagp = ((WORST | HASWIDTH) | (flags & (HASNL | HASLOOKBH)))
+		flagp = ((WORST | HASWIDTH) | (flags & (HASNL | HASLOOKBH)))
 	case -192:
 		var lop int32 = END
 		var nr int64 = ed.getdecchrs()
@@ -44251,6 +45509,7 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 			}
 		}
 		if lop == END {
+			var out___3 regpiece__out_T
 			var t1 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
 				t1 = S("")
@@ -44260,11 +45519,13 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_invalid_character_after_str_at), t1)
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_invalid_character_after_str_at)))
 			ed.rc_did_emsg = TRUE
-			return Ptr[byte]{}
+			out___3.r__ = Ptr[byte]{}
+			out___3.flagp = flagp
+			return out___3
 		}
 		if (lop == BEHIND) || (lop == NOBEHIND) {
 			ed.regtail(re, ret, ed.regnode(BHPOS))
-			(*flagp) |= HASLOOKBH
+			flagp |= HASLOOKBH
 		}
 		ed.regtail(re, ret, ed.regnode(END))
 		if (lop == BEHIND) || (lop == NOBEHIND) {
@@ -44282,14 +45543,21 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 		ed.regtail(re, ret, next)
 		ed.regoptail(re, ret, next)
 	case -133:
-		if ed.read_limits(&minval, &maxval) == 0 {
-			return Ptr[byte]{}
+		read_limits__o = ed.read_limits(minval, maxval)
+		minval = read_limits__o.minval
+		maxval = read_limits__o.maxval
+		if read_limits__o.r__ == 0 {
+			var out___4 regpiece__out_T
+			out___4.r__ = Ptr[byte]{}
+			out___4.flagp = flagp
+			return out___4
 		}
 		if flags&SIMPLE != 0 {
 			ed.reginsert(BRACE_SIMPLE, ret)
 			ed.reginsert_limits(re, BRACE_LIMITS, minval, maxval, ret)
 		} else {
 			if ed.num_complex_braces >= 10 {
+				var out___5 regpiece__out_T
 				var t2 Ptr[byte]
 				if ed.reg_magic == MAGIC_ALL {
 					t2 = S("")
@@ -44299,7 +45567,9 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 				ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_too_many_complex_str_curly), t2)
 				ed.emsg(ed.iobuff_or(gettext_(ed.e_too_many_complex_str_curly)))
 				ed.rc_did_emsg = TRUE
-				return Ptr[byte]{}
+				out___5.r__ = Ptr[byte]{}
+				out___5.flagp = flagp
+				return out___5
 			}
 			ed.reginsert(BRACE_COMPLEX+ed.num_complex_braces, ret)
 			ed.regoptail(re, ret, ed.regnode(BACK))
@@ -44308,11 +45578,12 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 			ed.num_complex_braces++
 		}
 		if (minval > 0) && (maxval > 0) {
-			*flagp = (HASWIDTH | (flags & (HASNL | HASLOOKBH)))
+			flagp = (HASWIDTH | (flags & (HASNL | HASLOOKBH)))
 		}
 	}
 	if re_multi_type(ed.peekchr()) != NOT_MULTI {
 		if ed.peekchr() == -214 {
+			var out___6 regpiece__out_T
 			var t3 Ptr[byte]
 			if ed.reg_magic >= MAGIC_ON {
 				t3 = S("")
@@ -44322,8 +45593,11 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_nested_str), t3)
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_nested_str)))
 			ed.rc_did_emsg = TRUE
-			return Ptr[byte]{}
+			out___6.r__ = Ptr[byte]{}
+			out___6.flagp = flagp
+			return out___6
 		}
+		var out___7 regpiece__out_T
 		var t4 Ptr[byte]
 		if ed.reg_magic == MAGIC_ALL {
 			t4 = S("")
@@ -44333,18 +45607,26 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 		ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_nested_str_chr), t4, no_Magic(ed.peekchr()))
 		ed.emsg(ed.iobuff_or(gettext_(ed.e_nested_str_chr)))
 		ed.rc_did_emsg = TRUE
-		return Ptr[byte]{}
+		out___7.r__ = Ptr[byte]{}
+		out___7.flagp = flagp
+		return out___7
 	}
-	return ret
+	var out___8 regpiece__out_T
+	out___8.r__ = ret
+	out___8.flagp = flagp
+	return out___8
 }
 
-func (ed *Editor) regconcat(re *S_regengine_S, flagp *int32) Ptr[byte] {
+func (ed *Editor) regconcat(re *S_regengine_S, flagp int32) regconcat__out_T {
+	var out__ regconcat__out_T
+
+	var regpiece__o regpiece__out_T
 	var first Ptr[byte] = Ptr[byte]{}
 	var chain Ptr[byte] = Ptr[byte]{}
 	var latest Ptr[byte]
 	var flags int32
 	var cont bool = true
-	*flagp = WORST
+	flagp = WORST
 	for cont {
 		switch ed.peekchr() {
 		case NUL, -132, -218, -215:
@@ -44375,13 +45657,17 @@ func (ed *Editor) regconcat(re *S_regengine_S, flagp *int32) Ptr[byte] {
 			ed.skipchr_keepstart()
 			ed.curchr = -1
 		default:
-			latest = ed.regpiece(re, &flags)
+			regpiece__o = ed.regpiece(re, flags)
+			flags = regpiece__o.flagp
+			latest = regpiece__o.r__
 			if latest.Nil() || (re.reg_toolong != 0) {
-				return Ptr[byte]{}
+				out__.r__ = Ptr[byte]{}
+				out__.flagp = flagp
+				return out__
 			}
-			(*flagp) |= flags & ((HASWIDTH | HASNL) | HASLOOKBH)
+			flagp |= flags & ((HASWIDTH | HASNL) | HASLOOKBH)
 			if chain.Nil() {
-				(*flagp) |= flags & SPSTART
+				flagp |= flags & SPSTART
 			} else {
 				ed.regtail(re, chain, latest)
 			}
@@ -44394,23 +45680,33 @@ func (ed *Editor) regconcat(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	if first.Nil() {
 		first = ed.regnode(NOTHING)
 	}
-	return first
+	var out___2 regconcat__out_T
+	out___2.r__ = first
+	out___2.flagp = flagp
+	return out___2
 }
 
-func (ed *Editor) regbranch(re *S_regengine_S, flagp *int32) Ptr[byte] {
+func (ed *Editor) regbranch(re *S_regengine_S, flagp int32) regbranch__out_T {
+	var out__ regbranch__out_T
+
+	var regconcat__o regconcat__out_T
 	var ret Ptr[byte]
 	var chain Ptr[byte] = Ptr[byte]{}
 	var latest Ptr[byte]
 	var flags int32
-	*flagp = WORST | HASNL
+	flagp = WORST | HASNL
 	ret = ed.regnode(BRANCH)
 	for {
-		latest = ed.regconcat(re, &flags)
+		regconcat__o = ed.regconcat(re, flags)
+		flags = regconcat__o.flagp
+		latest = regconcat__o.r__
 		if latest.Nil() {
-			return Ptr[byte]{}
+			out__.r__ = Ptr[byte]{}
+			out__.flagp = flagp
+			return out__
 		}
-		(*flagp) |= flags & ((HASWIDTH | SPSTART) | HASLOOKBH)
-		(*flagp) &= ^HASNL | (flags & HASNL)
+		flagp |= flags & ((HASWIDTH | SPSTART) | HASLOOKBH)
+		flagp &= ^HASNL | (flags & HASNL)
 		if !chain.Nil() {
 			ed.regtail(re, chain, latest)
 		}
@@ -44425,18 +45721,25 @@ func (ed *Editor) regbranch(re *S_regengine_S, flagp *int32) Ptr[byte] {
 		ed.reginsert(MATCH, latest)
 		chain = latest
 	}
-	return ret
+	var out___2 regbranch__out_T
+	out___2.r__ = ret
+	out___2.flagp = flagp
+	return out___2
 }
 
-func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
+func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp int32) reg__out_T {
+	var out___4 reg__out_T
+
+	var regbranch__o regbranch__out_T
 	var ret Ptr[byte]
 	var br Ptr[byte]
 	var ender Ptr[byte]
 	var parno int32 = 0
 	var flags int32
-	*flagp = HASWIDTH
+	flagp = HASWIDTH
 	if paren == REG_PAREN {
 		if ed.regnpar >= NSUBEXP {
+			var out__ reg__out_T
 			var t1 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
 				t1 = S("")
@@ -44446,7 +45749,9 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_too_many_str_open), t1)
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_too_many_str_open)))
 			ed.rc_did_emsg = TRUE
-			return Ptr[byte]{}
+			out__.r__ = Ptr[byte]{}
+			out__.flagp = flagp
+			return out__
 		}
 		parno = ed.regnpar
 		ed.regnpar++
@@ -44457,16 +45762,24 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 		ret = Ptr[byte]{}
 	}
 	if ed.bt_reg_parse_depth >= REG_MAX_PAREN_DEPTH {
+		var out___2 reg__out_T
 		ed.emsg(gettext_(ed.e_command_too_complex))
 		ed.rc_did_emsg = TRUE
-		return Ptr[byte]{}
+		out___2.r__ = Ptr[byte]{}
+		out___2.flagp = flagp
+		return out___2
 	}
 	ed.bt_reg_parse_depth++
-	br = ed.regbranch(re, &flags)
+	regbranch__o = ed.regbranch(re, flags)
+	flags = regbranch__o.flagp
+	br = regbranch__o.r__
 	if br.Nil() {
 		ret = Ptr[byte]{}
 		ed.bt_reg_parse_depth--
-		return ret
+		var out___3 reg__out_T
+		out___3.r__ = ret
+		out___3.flagp = flagp
+		return out___3
 	}
 	if !ret.Nil() {
 		ed.regtail(re, ret, br)
@@ -44474,22 +45787,26 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 		ret = br
 	}
 	if (flags & HASWIDTH) == 0 {
-		(*flagp) &= ^HASWIDTH
+		flagp &= ^HASWIDTH
 	}
-	(*flagp) |= flags & ((SPSTART | HASNL) | HASLOOKBH)
+	flagp |= flags & ((SPSTART | HASNL) | HASLOOKBH)
 	for ed.peekchr() == -132 {
 		ed.skipchr()
-		br = ed.regbranch(re, &flags)
+		regbranch__o = ed.regbranch(re, flags)
+		flags = regbranch__o.flagp
+		br = regbranch__o.r__
 		if br.Nil() || (re.reg_toolong != 0) {
 			ret = Ptr[byte]{}
 			ed.bt_reg_parse_depth--
-			return ret
+			out___4.r__ = ret
+			out___4.flagp = flagp
+			return out___4
 		}
 		ed.regtail(re, ret, br)
 		if (flags & HASWIDTH) == 0 {
-			(*flagp) &= ^HASWIDTH
+			flagp &= ^HASWIDTH
 		}
-		(*flagp) |= flags & ((SPSTART | HASNL) | HASLOOKBH)
+		flagp |= flags & ((SPSTART | HASNL) | HASLOOKBH)
 	}
 	var t3 int32
 	if paren == REG_PAREN {
@@ -44522,7 +45839,10 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
 			ed.bt_reg_parse_depth--
-			return ret
+			var out___5 reg__out_T
+			out___5.r__ = ret
+			out___5.flagp = flagp
+			return out___5
 		} else {
 			var t5 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
@@ -44535,7 +45855,10 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
 			ed.bt_reg_parse_depth--
-			return ret
+			var out___6 reg__out_T
+			out___6.r__ = ret
+			out___6.flagp = flagp
+			return out___6
 		}
 	} else if (paren == REG_NOPAREN) && (ed.peekchr() != NUL) {
 		if ed.curchr == -215 {
@@ -44550,23 +45873,33 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
 			ed.bt_reg_parse_depth--
-			return ret
+			var out___7 reg__out_T
+			out___7.r__ = ret
+			out___7.flagp = flagp
+			return out___7
 		} else {
 			ed.emsg(gettext_(ed.e_trailing_characters))
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
 			ed.bt_reg_parse_depth--
-			return ret
+			var out___8 reg__out_T
+			out___8.r__ = ret
+			out___8.flagp = flagp
+			return out___8
 		}
 	}
 	if paren == REG_PAREN {
 		ed.had_endbrace[int(parno)] = TRUE
 	}
 	ed.bt_reg_parse_depth--
-	return ret
+	var out___9 reg__out_T
+	out___9.r__ = ret
+	out___9.flagp = flagp
+	return out___9
 }
 
 func (ed *Editor) bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) *S_regprog {
+	var reg__o reg__out_T
 	var r *S_regprog
 	var scan Ptr[byte]
 	var longest Ptr[byte]
@@ -44581,7 +45914,9 @@ func (ed *Editor) bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) 
 	ed.regcomp_start(re, expr, re_flags)
 	ed.regcode = ed.reg_calc_size_node
 	ed.regc(REGMAGIC)
-	if ed.reg(re, REG_NOPAREN, &flags).Nil() {
+	reg__o = ed.reg(re, REG_NOPAREN, flags)
+	flags = reg__o.flagp
+	if reg__o.r__.Nil() {
 		return nil
 	}
 	r = new(S_regprog)
@@ -44590,7 +45925,9 @@ func (ed *Editor) bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) 
 	ed.regcomp_start(re, expr, re_flags)
 	ed.regcode = r.program
 	ed.regc(REGMAGIC)
-	if ed.reg(re, REG_NOPAREN, &flags).Nil() || (re.reg_toolong != 0) {
+	reg__o = ed.reg(re, REG_NOPAREN, flags)
+	flags = reg__o.flagp
+	if reg__o.r__.Nil() || (re.reg_toolong != 0) {
 		if re.reg_toolong != 0 {
 			ed.emsg(gettext_(ed.e_pattern_too_long))
 			ed.rc_did_emsg = TRUE
@@ -45031,11 +46368,12 @@ func (ed *Editor) regstack_push(re *S_regengine_S, state regstate_T, scan Ptr[by
 	return rp
 }
 
-func regstack_pop(re *S_regengine_S, scan *Ptr[byte]) {
+func regstack_pop(re *S_regengine_S, scan Ptr[byte]) Ptr[byte] {
 	var rp *S_regitem_S = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len - 1))
-	*scan = rp.rs_scan
+	scan = rp.rs_scan
 	re.regstack.ga_len--
 	re.regstack_bytes -= 40
+	return scan
 }
 
 func save_subexpr(re *S_regengine_S, bp *S_regbehind_S) {
@@ -45096,6 +46434,8 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 	var cc int32
 	var limit int64
 
+	var cstrncmp__o cstrncmp__out_T
+	var match_with_backref__o match_with_backref__out_T
 	var next Ptr[byte]
 	var op int32
 	var c int32
@@ -45464,7 +46804,9 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 							len_ = 1
 						} else {
 							len_ = int32(musl_strlen(opnd))
-							if ed.cstrncmp(re, opnd, re.rex.input, &len_) != 0 {
+							cstrncmp__o = ed.cstrncmp(re, opnd, re.rex.input, len_)
+							len_ = cstrncmp__o.n
+							if cstrncmp__o.r__ != 0 {
 								status = RA_NOMATCH
 							}
 						}
@@ -45523,7 +46865,9 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 							}
 						}
 					} else {
-						if ed.cstrncmp(re, opnd_2, re.rex.input, &len__3) != 0 {
+						cstrncmp__o = ed.cstrncmp(re, opnd_2, re.rex.input, len__3)
+						len__3 = cstrncmp__o.n
+						if cstrncmp__o.r__ != 0 {
 							status = RA_NOMATCH
 							break
 						}
@@ -45602,7 +46946,9 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 							len__4 = 0
 						} else {
 							len__4 = int32(int64(re.rex.reg_endp.At(int(no)).Sub(re.rex.reg_startp.At(int(no)))))
-							if ed.cstrncmp(re, re.rex.reg_startp.At(int(no)), re.rex.input, &len__4) != 0 {
+							cstrncmp__o = ed.cstrncmp(re, re.rex.reg_startp.At(int(no)), re.rex.input, len__4)
+							len__4 = cstrncmp__o.n
+							if cstrncmp__o.r__ != 0 {
 								status = RA_NOMATCH
 							}
 						}
@@ -45612,11 +46958,15 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						} else {
 							if (re.rex.reg_startpos.Ref(int(no)).lnum == re.rex.lnum) && (re.rex.reg_endpos.Ref(int(no)).lnum == re.rex.lnum) {
 								len__4 = re.rex.reg_endpos.Ref(int(no)).col - re.rex.reg_startpos.Ref(int(no)).col
-								if ed.cstrncmp(re, re.rex.line.Add(int(re.rex.reg_startpos.Ref(int(no)).col)), re.rex.input, &len__4) != 0 {
+								cstrncmp__o = ed.cstrncmp(re, re.rex.line.Add(int(re.rex.reg_startpos.Ref(int(no)).col)), re.rex.input, len__4)
+								len__4 = cstrncmp__o.n
+								if cstrncmp__o.r__ != 0 {
 									status = RA_NOMATCH
 								}
 							} else {
-								r := ed.match_with_backref(re, re.rex.reg_startpos.Ref(int(no)).lnum, re.rex.reg_startpos.Ref(int(no)).col, re.rex.reg_endpos.Ref(int(no)).lnum, re.rex.reg_endpos.Ref(int(no)).col, &len__4)
+								match_with_backref__o = ed.match_with_backref(re, re.rex.reg_startpos.Ref(int(no)).lnum, re.rex.reg_startpos.Ref(int(no)).col, re.rex.reg_endpos.Ref(int(no)).lnum, re.rex.reg_endpos.Ref(int(no)).col, len__4)
+								len__4 = match_with_backref__o.bytelen
+								r := match_with_backref__o.r__
 								if r != RA_MATCH {
 									status = r
 								}
@@ -45891,7 +47241,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 			rp = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len - 1))
 			switch rp.rs_state {
 			case RS_NOPEN:
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 			case RS_MOPEN:
 				if status == RA_NOMATCH {
 					if re.rex.reg_match == nil {
@@ -45900,7 +47250,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						re.rex.reg_startp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 			case RS_MCLOSE:
 				if status == RA_NOMATCH {
 					if re.rex.reg_match == nil {
@@ -45909,10 +47259,10 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						re.rex.reg_endp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 			case RS_BRANCH:
 				if status == RA_MATCH {
-					regstack_pop(re, &scan)
+					scan = regstack_pop(re, scan)
 				} else {
 					if status != RA_BREAK {
 						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
@@ -45920,7 +47270,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 					}
 					if scan.Nil() || (int32(scan.Get()) != BRANCH) {
 						status = RA_NOMATCH
-						regstack_pop(re, &scan)
+						scan = regstack_pop(re, scan)
 					} else {
 						rp.rs_scan = ed.regnext(re, scan)
 						reg_save(re, &rp.rs_un.regsave, &re.backpos)
@@ -45932,14 +47282,14 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					re.brace_count[int(rp.rs_no)]--
 				}
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 			case RS_BRCPLX_LONG:
 				if status == RA_NOMATCH {
 					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					re.brace_count[int(rp.rs_no)]--
 					status = RA_CONT
 				}
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 				if status == RA_CONT {
 					scan = ed.regnext(re, scan)
 				}
@@ -45947,7 +47297,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 				if status == RA_NOMATCH {
 					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 				}
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 				if status == RA_NOMATCH {
 					scan = scan.Add(3)
 					status = RA_CONT
@@ -45967,13 +47317,13 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					}
 				}
-				regstack_pop(re, &scan)
+				scan = regstack_pop(re, scan)
 				if status == RA_CONT {
 					scan = ed.regnext(re, scan)
 				}
 			case RS_BEHIND1:
 				if status == RA_NOMATCH {
-					regstack_pop(re, &scan)
+					scan = regstack_pop(re, scan)
 					re.regstack_behind.ga_len--
 					re.regstack_bytes -= 376
 				} else {
@@ -45993,7 +47343,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						status = RA_NOMATCH
 						restore_subexpr(re, regstack_behind_top(re))
 					}
-					regstack_pop(re, &scan)
+					scan = regstack_pop(re, scan)
 					re.regstack_behind.ga_len--
 					re.regstack_bytes -= 376
 				} else {
@@ -46056,7 +47406,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 								restore_subexpr(re, regstack_behind_top(re))
 							}
 						}
-						regstack_pop(re, &scan)
+						scan = regstack_pop(re, scan)
 						re.regstack_behind.ga_len--
 						re.regstack_bytes -= 376
 					}
@@ -46064,7 +47414,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 			case RS_STAR_LONG, RS_STAR_SHORT:
 				rst_2 := regstack_star_top(re)
 				if status == RA_MATCH {
-					regstack_pop(re, &scan)
+					scan = regstack_pop(re, scan)
 					re.regstack_star.ga_len--
 					re.regstack_bytes -= 32
 					break
@@ -46116,7 +47466,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 					}
 				}
 				if status != RA_CONT {
-					regstack_pop(re, &scan)
+					scan = regstack_pop(re, scan)
 					re.regstack_star.ga_len--
 					re.regstack_bytes -= 32
 					status = RA_NOMATCH
@@ -46172,6 +47522,7 @@ func (ed *Editor) regtry(re *S_regengine_S, prog *S_regprog, col colnr_T, timed_
 }
 
 func (ed *Editor) bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
+	var cstrncmp__o cstrncmp__out_T
 	var prog *S_regprog
 	var s Ptr[byte]
 	col := startcol
@@ -46236,7 +47587,9 @@ func (ed *Editor) bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol co
 					if s.Nil() {
 						break
 					}
-					if ed.cstrncmp(re, s, prog.regmust, &regmlen) == 0 {
+					cstrncmp__o = ed.cstrncmp(re, s, prog.regmust, regmlen)
+					regmlen = cstrncmp__o.n
+					if cstrncmp__o.r__ == 0 {
 						break
 					}
 					s = s.Add(int(ed.utfc_ptr2len(s)))
@@ -46247,7 +47600,9 @@ func (ed *Editor) bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol co
 					if s.Nil() {
 						break
 					}
-					if ed.cstrncmp(re, s, prog.regmust, &regmlen) == 0 {
+					cstrncmp__o = ed.cstrncmp(re, s, prog.regmust, regmlen)
+					regmlen = cstrncmp__o.n
+					if cstrncmp__o.r__ == 0 {
 						break
 					}
 					s = s.Add(int(ed.utfc_ptr2len(s)))
@@ -46378,7 +47733,24 @@ func vim_regfree(prog *S_regprog) {
 func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_T, nl bool) bool {
 	re := &ed.reg_engine
 	var result int32
-	var rex_save regexec_T
+	var rex_save_reg_match *regmatch_T
+	var rex_save_reg_mmatch *regmmatch_T
+	var rex_save_reg_startp Ptr[Ptr[byte]]
+	var rex_save_reg_endp Ptr[Ptr[byte]]
+	var rex_save_reg_startpos Ptr[lpos_T]
+	var rex_save_reg_endpos Ptr[lpos_T]
+	var rex_save_reg_win *S_window_S
+	var rex_save_reg_buf *S_file_buffer
+	var rex_save_reg_firstlnum linenr_T
+	var rex_save_reg_maxline linenr_T
+	var rex_save_reg_line_lbr bool
+	var rex_save_lnum linenr_T
+	var rex_save_line Ptr[byte]
+	var rex_save_input Ptr[byte]
+	var rex_save_need_clear_subexpr int32
+	var rex_save_reg_ic int32
+	var rex_save_reg_icombine bool
+	var rex_save_reg_maxcol colnr_T
 	rex_in_use_save := re.rex_in_use
 	if rmp.regprog.re_in_use {
 		ed.emsg(gettext_(ed.e_cannot_use_pattern_recursively))
@@ -46386,7 +47758,24 @@ func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_
 	}
 	rmp.regprog.re_in_use = true
 	if re.rex_in_use != 0 {
-		rex_save = re.rex
+		rex_save_reg_match = re.rex.reg_match
+		rex_save_reg_mmatch = re.rex.reg_mmatch
+		rex_save_reg_startp = re.rex.reg_startp
+		rex_save_reg_endp = re.rex.reg_endp
+		rex_save_reg_startpos = re.rex.reg_startpos
+		rex_save_reg_endpos = re.rex.reg_endpos
+		rex_save_reg_win = re.rex.reg_win
+		rex_save_reg_buf = re.rex.reg_buf
+		rex_save_reg_firstlnum = re.rex.reg_firstlnum
+		rex_save_reg_maxline = re.rex.reg_maxline
+		rex_save_reg_line_lbr = (re.rex.reg_line_lbr)
+		rex_save_lnum = re.rex.lnum
+		rex_save_line = re.rex.line
+		rex_save_input = re.rex.input
+		rex_save_need_clear_subexpr = re.rex.need_clear_subexpr
+		rex_save_reg_ic = re.rex.reg_ic
+		rex_save_reg_icombine = (re.rex.reg_icombine)
+		rex_save_reg_maxcol = re.rex.reg_maxcol
 	}
 	re.rex_in_use = TRUE
 	re.rex.reg_startp = Ptr[Ptr[byte]]{}
@@ -46397,7 +47786,24 @@ func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_
 	rmp.regprog.re_in_use = false
 	re.rex_in_use = rex_in_use_save
 	if re.rex_in_use != 0 {
-		re.rex = rex_save
+		re.rex.reg_match = rex_save_reg_match
+		re.rex.reg_mmatch = rex_save_reg_mmatch
+		re.rex.reg_startp = rex_save_reg_startp
+		re.rex.reg_endp = rex_save_reg_endp
+		re.rex.reg_startpos = rex_save_reg_startpos
+		re.rex.reg_endpos = rex_save_reg_endpos
+		re.rex.reg_win = rex_save_reg_win
+		re.rex.reg_buf = rex_save_reg_buf
+		re.rex.reg_firstlnum = rex_save_reg_firstlnum
+		re.rex.reg_maxline = rex_save_reg_maxline
+		re.rex.reg_line_lbr = (rex_save_reg_line_lbr)
+		re.rex.lnum = rex_save_lnum
+		re.rex.line = rex_save_line
+		re.rex.input = rex_save_input
+		re.rex.need_clear_subexpr = rex_save_need_clear_subexpr
+		re.rex.reg_ic = rex_save_reg_ic
+		re.rex.reg_icombine = (rex_save_reg_icombine)
+		re.rex.reg_maxcol = rex_save_reg_maxcol
 	}
 	return result > 0
 }
@@ -46488,7 +47894,24 @@ func (ed *Editor) match_chunk(re *S_regengine_S, rmp *regmmatch_T, do_all bool, 
 func (ed *Editor) vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64 {
 	re := &ed.reg_engine
 	var result int32
-	var rex_save regexec_T
+	var rex_save_reg_match *regmatch_T
+	var rex_save_reg_mmatch *regmmatch_T
+	var rex_save_reg_startp Ptr[Ptr[byte]]
+	var rex_save_reg_endp Ptr[Ptr[byte]]
+	var rex_save_reg_startpos Ptr[lpos_T]
+	var rex_save_reg_endpos Ptr[lpos_T]
+	var rex_save_reg_win *S_window_S
+	var rex_save_reg_buf *S_file_buffer
+	var rex_save_reg_firstlnum linenr_T
+	var rex_save_reg_maxline linenr_T
+	var rex_save_reg_line_lbr bool
+	var rex_save_lnum linenr_T
+	var rex_save_line Ptr[byte]
+	var rex_save_input Ptr[byte]
+	var rex_save_need_clear_subexpr int32
+	var rex_save_reg_ic int32
+	var rex_save_reg_icombine bool
+	var rex_save_reg_maxcol colnr_T
 	rex_in_use_save := re.rex_in_use
 	if rmp.regprog.re_in_use {
 		ed.emsg(gettext_(ed.e_cannot_use_pattern_recursively))
@@ -46496,14 +47919,48 @@ func (ed *Editor) vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_fi
 	}
 	rmp.regprog.re_in_use = true
 	if re.rex_in_use != 0 {
-		rex_save = re.rex
+		rex_save_reg_match = re.rex.reg_match
+		rex_save_reg_mmatch = re.rex.reg_mmatch
+		rex_save_reg_startp = re.rex.reg_startp
+		rex_save_reg_endp = re.rex.reg_endp
+		rex_save_reg_startpos = re.rex.reg_startpos
+		rex_save_reg_endpos = re.rex.reg_endpos
+		rex_save_reg_win = re.rex.reg_win
+		rex_save_reg_buf = re.rex.reg_buf
+		rex_save_reg_firstlnum = re.rex.reg_firstlnum
+		rex_save_reg_maxline = re.rex.reg_maxline
+		rex_save_reg_line_lbr = (re.rex.reg_line_lbr)
+		rex_save_lnum = re.rex.lnum
+		rex_save_line = re.rex.line
+		rex_save_input = re.rex.input
+		rex_save_need_clear_subexpr = re.rex.need_clear_subexpr
+		rex_save_reg_ic = re.rex.reg_ic
+		rex_save_reg_icombine = (re.rex.reg_icombine)
+		rex_save_reg_maxcol = re.rex.reg_maxcol
 	}
 	re.rex_in_use = TRUE
 	result = int32(ed.bt_regexec_multi(re, rmp, win, buf, lnum, col, timed_out))
 	rmp.regprog.re_in_use = false
 	re.rex_in_use = rex_in_use_save
 	if re.rex_in_use != 0 {
-		re.rex = rex_save
+		re.rex.reg_match = rex_save_reg_match
+		re.rex.reg_mmatch = rex_save_reg_mmatch
+		re.rex.reg_startp = rex_save_reg_startp
+		re.rex.reg_endp = rex_save_reg_endp
+		re.rex.reg_startpos = rex_save_reg_startpos
+		re.rex.reg_endpos = rex_save_reg_endpos
+		re.rex.reg_win = rex_save_reg_win
+		re.rex.reg_buf = rex_save_reg_buf
+		re.rex.reg_firstlnum = rex_save_reg_firstlnum
+		re.rex.reg_maxline = rex_save_reg_maxline
+		re.rex.reg_line_lbr = (rex_save_reg_line_lbr)
+		re.rex.lnum = rex_save_lnum
+		re.rex.line = rex_save_line
+		re.rex.input = rex_save_input
+		re.rex.need_clear_subexpr = rex_save_need_clear_subexpr
+		re.rex.reg_ic = rex_save_reg_ic
+		re.rex.reg_icombine = (rex_save_reg_icombine)
+		re.rex.reg_maxcol = rex_save_reg_maxcol
 	}
 	var t1 int64
 	if result <= 0 {
@@ -46651,13 +48108,13 @@ func (ed *Editor) stuff_yank(regname int32, p Ptr[byte]) bool {
 	return true
 }
 
-func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte] {
+func execreg_line_continuation(lines Ptr[string_T], idx int64) execreg_line_continuation__out_T {
 	var p Ptr[byte]
 	var p_2 Ptr[byte]
 
 	var ga S_growarray
-	cmd_start := (*idx)
-	cmd_end := (*idx)
+	cmd_start := idx
+	cmd_end := idx
 	var tmp *string_T
 	var j int32
 	var str Ptr[byte]
@@ -46693,14 +48150,18 @@ func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte] {
 	ga_append(&ga, NUL)
 	str = vim_strnsave(GaData[byte](&ga), usize(ga.ga_len))
 	ga_clear(&ga)
-	*idx = cmd_start
-	return str
+	idx = cmd_start
+	var out__ execreg_line_continuation__out_T
+	out__.r__ = str
+	out__.idx = idx
+	return out__
 }
 
 func (ed *Editor) do_execreg(regname int32, colon bool, addcr bool, silent bool) bool {
 	var escaped Ptr[byte]
 	var str Ptr[byte]
 
+	var execreg_line_continuation__o execreg_line_continuation__out_T
 	var i int64
 	var p Ptr[byte]
 	var retval bool = true
@@ -46767,7 +48228,9 @@ func (ed *Editor) do_execreg(regname int32, colon bool, addcr bool, silent bool)
 			if colon && (i > 0) {
 				p = skipwhite(str)
 				if (int32(p.Get()) == 92) || (((int32(p.At(0)) == '"') && (int32(p.At(1)) == 92)) && (int32(p.At(2)) == (' '))) {
-					str = execreg_line_continuation(ed.y_current.y_array, &i)
+					execreg_line_continuation__o = execreg_line_continuation(ed.y_current.y_array, i)
+					i = execreg_line_continuation__o.idx
+					str = execreg_line_continuation__o.r__
 				}
 			}
 			escaped = ed.vim_strsave_escape_csi(str)
@@ -46850,8 +48313,11 @@ func (ed *Editor) put_in_typebuf(s Ptr[byte], esc bool, colon bool, silent bool)
 }
 
 func (ed *Editor) insert_reg(regname int32, literally_arg int32) bool {
-	var curpos pos_T
+	var curpos_lnum linenr_T
+	var curpos_col colnr_T
+	var curpos_coladd colnr_T
 
+	var get_spec_reg__o get_spec_reg__out_T
 	var i int64
 	var retval bool = true
 	var arg Ptr[byte]
@@ -46866,40 +48332,48 @@ func (ed *Editor) insert_reg(regname int32, literally_arg int32) bool {
 	}
 	if regname == '.' {
 		retval = (ed.stuff_inserted(NUL, 1, true))
-	} else if ed.get_spec_reg(regname, &arg, &allocated, true) {
-		if arg.Nil() {
-			return false
-		}
-		ed.stuffescaped(arg, literally)
 	} else {
-		if ed.get_yank_register(regname, FALSE) {
-			literally = TRUE
-		}
-		if ed.y_current.y_array.Nil() {
-			retval = false
+		get_spec_reg__o = ed.get_spec_reg(regname, &arg, allocated, true)
+		allocated = get_spec_reg__o.allocated
+		if get_spec_reg__o.r__ {
+			if arg.Nil() {
+				return false
+			}
+			ed.stuffescaped(arg, literally)
 		} else {
-			i = 0
-			for ; i < ed.y_current.y_size; i++ {
-				if (regname == '-') && (int32(ed.y_current.y_type) == MCHAR) {
-					var dir int32 = -1
-					if (ed.State & REPLACE_FLAG) != 0 {
-						if !ed.u_save_cursor() {
-							return false
+			if ed.get_yank_register(regname, FALSE) {
+				literally = TRUE
+			}
+			if ed.y_current.y_array.Nil() {
+				retval = false
+			} else {
+				i = 0
+				for ; i < ed.y_current.y_size; i++ {
+					if (regname == '-') && (int32(ed.y_current.y_type) == MCHAR) {
+						var dir int32 = -1
+						if (ed.State & REPLACE_FLAG) != 0 {
+							if !ed.u_save_cursor() {
+								return false
+							}
+							ed.del_chars(int64(ed.mb_charlen(ed.y_current.y_array.Ref(0).string_)), true)
+							curpos_lnum = ed.curwin.w_cursor.lnum
+							curpos_col = ed.curwin.w_cursor.col
+							curpos_coladd = ed.curwin.w_cursor.coladd
+							if !ed.oneright() {
+								dir = FORWARD
+							}
+							ed.curwin.w_cursor.lnum = curpos_lnum
+							ed.curwin.w_cursor.col = curpos_col
+							ed.curwin.w_cursor.coladd = curpos_coladd
 						}
-						ed.del_chars(int64(ed.mb_charlen(ed.y_current.y_array.Ref(0).string_)), true)
-						curpos = ed.curwin.w_cursor
-						if !ed.oneright() {
-							dir = FORWARD
+						ed.AppendCharToRedobuff(Ctrl_R)
+						ed.AppendCharToRedobuff(regname)
+						ed.do_put(regname, Ptr[byte]{}, dir, 1, PUT_CURSEND)
+					} else {
+						ed.stuffescaped(ed.y_current.y_array.Ref(int(i)).string_, literally)
+						if (int32(ed.y_current.y_type) == MLINE) || (i < (ed.y_current.y_size - 1)) {
+							ed.stuffcharReadbuff(10)
 						}
-						ed.curwin.w_cursor = curpos
-					}
-					ed.AppendCharToRedobuff(Ctrl_R)
-					ed.AppendCharToRedobuff(regname)
-					ed.do_put(regname, Ptr[byte]{}, dir, 1, PUT_CURSEND)
-				} else {
-					ed.stuffescaped(ed.y_current.y_array.Ref(int(i)).string_, literally)
-					if (int32(ed.y_current.y_type) == MLINE) || (i < (ed.y_current.y_size - 1)) {
-						ed.stuffcharReadbuff(10)
 					}
 				}
 			}
@@ -46908,42 +48382,60 @@ func (ed *Editor) insert_reg(regname int32, literally_arg int32) bool {
 	return (retval)
 }
 
-func (ed *Editor) get_spec_reg(regname int32, argp *Ptr[byte], allocated *int32, errmsg bool) bool {
+func (ed *Editor) get_spec_reg(regname int32, argp *Ptr[byte], allocated int32, errmsg bool) get_spec_reg__out_T {
 	var cnt int32
 	*argp = Ptr[byte]{}
-	*allocated = FALSE
+	allocated = FALSE
 	switch regname {
 	case '%':
 		if errmsg {
 			ed.check_fname()
 		}
 		*argp = Ptr[byte]{}
-		return true
+		var out__ get_spec_reg__out_T
+		out__.r__ = true
+		out__.allocated = allocated
+		return out__
 	case '#':
 		*argp = ed.getaltfname((errmsg))
-		return true
+		var out___2 get_spec_reg__out_T
+		out___2.r__ = true
+		out___2.allocated = allocated
+		return out___2
 	case ':':
 		if ed.last_cmdline.Nil() && errmsg {
 			ed.emsg(gettext_(ed.e_no_previous_command_line))
 		}
 		*argp = ed.last_cmdline
-		return true
+		var out___3 get_spec_reg__out_T
+		out___3.r__ = true
+		out___3.allocated = allocated
+		return out___3
 	case '/':
 		if ed.last_search_pat().Nil() && errmsg {
 			ed.emsg(gettext_(ed.e_no_previous_regular_expression))
 		}
 		*argp = ed.last_search_pat()
-		return true
+		var out___4 get_spec_reg__out_T
+		out___4.r__ = true
+		out___4.allocated = allocated
+		return out___4
 	case '.':
 		*argp = ed.get_last_insert_save()
-		*allocated = TRUE
+		allocated = TRUE
 		if (*argp).Nil() && errmsg {
 			ed.emsg(gettext_(ed.e_no_inserted_text_yet))
 		}
-		return true
+		var out___5 get_spec_reg__out_T
+		out___5.r__ = true
+		out___5.allocated = allocated
+		return out___5
 	case Ctrl_F, Ctrl_P:
 		if !errmsg {
-			return false
+			var out___6 get_spec_reg__out_T
+			out___6.r__ = false
+			out___6.allocated = allocated
+			return out___6
 		}
 		var t1 int32
 		if regname == Ctrl_P {
@@ -46952,11 +48444,17 @@ func (ed *Editor) get_spec_reg(regname int32, argp *Ptr[byte], allocated *int32,
 			t1 = 0
 		}
 		*argp = ed.file_name_at_cursor((FNAME_MESS|FNAME_HYP)|t1, 1, nil)
-		*allocated = TRUE
-		return true
+		allocated = TRUE
+		var out___7 get_spec_reg__out_T
+		out___7.r__ = true
+		out___7.allocated = allocated
+		return out___7
 	case Ctrl_W, Ctrl_A:
 		if !errmsg {
-			return false
+			var out___8 get_spec_reg__out_T
+			out___8.r__ = false
+			out___8.allocated = allocated
+			return out___8
 		}
 		var t2 int32
 		if regname == Ctrl_W {
@@ -46972,19 +48470,34 @@ func (ed *Editor) get_spec_reg(regname int32, argp *Ptr[byte], allocated *int32,
 			t3 = Ptr[byte]{}
 		}
 		*argp = t3
-		*allocated = TRUE
-		return true
+		allocated = TRUE
+		var out___9 get_spec_reg__out_T
+		out___9.r__ = true
+		out___9.allocated = allocated
+		return out___9
 	case Ctrl_L:
 		if !errmsg {
-			return false
+			var out___10 get_spec_reg__out_T
+			out___10.r__ = false
+			out___10.allocated = allocated
+			return out___10
 		}
 		*argp = ed.ml_get_buf(ed.curwin.w_buffer, ed.curwin.w_cursor.lnum, false)
-		return true
+		var out___11 get_spec_reg__out_T
+		out___11.r__ = true
+		out___11.allocated = allocated
+		return out___11
 	case '_':
 		*argp = S("")
-		return true
+		var out___12 get_spec_reg__out_T
+		out___12.r__ = true
+		out___12.allocated = allocated
+		return out___12
 	}
-	return false
+	var out___13 get_spec_reg__out_T
+	out___13.r__ = false
+	out___13.allocated = allocated
+	return out___13
 }
 
 func (ed *Editor) cmdline_paste_reg(regname int32, literally_arg bool, remcr bool) bool {
@@ -47225,6 +48738,7 @@ func (ed *Editor) yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_
 }
 
 func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags int32) {
+	var get_spec_reg__o get_spec_reg__out_T
 	var ptr Ptr[byte]
 	var newp Ptr[byte]
 	var oldp Ptr[byte]
@@ -47243,8 +48757,12 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	var nr_lines int64
 	var insert_string string_T
 	var allocated int32
-	var orig_start pos_T
-	var orig_end pos_T
+	var orig_start_lnum linenr_T
+	var orig_start_col colnr_T
+	var orig_start_coladd colnr_T
+	var orig_end_lnum linenr_T
+	var orig_end_col colnr_T
+	var orig_end_coladd colnr_T
 	var cur_ve_flags uint32
 	var t1 int32
 	var t2 int32
@@ -47259,7 +48777,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	var t6 bool
 	var delcount int32
 	var incr int32
-	var bd S_block_def
+	var bd_startspaces int32
+	var bd_endspaces int32
+	var bd_textcol colnr_T
 	var j int64
 	var c int32
 	var endcol2 colnr_T
@@ -47267,7 +48787,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	var shortline byte
 	var cts chartabsize_T
 	var len_ colnr_T
-	var new_cursor pos_T
+	var new_cursor_lnum linenr_T
+	var new_cursor_col_ colnr_T
+	var new_cursor_coladd colnr_T
 	var bytelen int32
 	var end_lnum linenr_T
 	var start_lnum linenr_T
@@ -47281,7 +48803,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	var first_indent bool
 	var lendiff int32
 	var cnt int64
-	var old_pos pos_T
+	var old_pos_lnum linenr_T
+	var old_pos_col colnr_T
+	var old_pos_coladd colnr_T
 	var t8 colnr_T
 	var len__2 int32
 
@@ -47291,8 +48815,12 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	y_current_used = nil
 	nr_lines = 0
 	allocated = FALSE
-	orig_start = ed.curbuf.b_op_start
-	orig_end = ed.curbuf.b_op_end
+	orig_start_lnum = ed.curbuf.b_op_start.lnum
+	orig_start_col = ed.curbuf.b_op_start.col
+	orig_start_coladd = ed.curbuf.b_op_start.coladd
+	orig_end_lnum = ed.curbuf.b_op_end.lnum
+	orig_end_col = ed.curbuf.b_op_end.col
+	orig_end_coladd = ed.curbuf.b_op_end.coladd
 	cur_ve_flags = ed.get_ve_flags()
 	ed.curbuf.b_op_start = ed.curwin.w_cursor
 	ed.curbuf.b_op_end = ed.curwin.w_cursor
@@ -47324,8 +48852,12 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	insert_string.string_ = Ptr[byte]{}
 	if (regname == '=') && !expr_result.Nil() {
 		insert_string.string_ = expr_result
-	} else if ed.get_spec_reg(regname, &insert_string.string_, &allocated, true) && insert_string.string_.Nil() {
-		return
+	} else {
+		get_spec_reg__o = ed.get_spec_reg(regname, &insert_string.string_, allocated, true)
+		allocated = get_spec_reg__o.allocated
+		if get_spec_reg__o.r__ && insert_string.string_.Nil() {
+			return
+		}
 	}
 	for {
 		if !ed.u_save(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.lnum+1) {
@@ -47464,12 +48996,12 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 				}
 			}
 			ed.curwin.w_cursor.coladd = 0
-			bd.textcol = 0
+			bd_textcol = 0
 			i = 0
 			for ; i < y_size; i++ {
 				spaces = 0
-				bd.startspaces = 0
-				bd.endspaces = 0
+				bd_startspaces = 0
+				bd_endspaces = 0
 				vcol = 0
 				delcount = 0
 				if ed.curwin.w_cursor.lnum > ed.curbuf.b_ml.ml_line_count {
@@ -47487,19 +49019,19 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 				}
 				vcol = cts.cts_vcol
 				ptr = cts.cts_ptr
-				bd.textcol = int32(int64(ptr.Sub(oldp)))
+				bd_textcol = int32(int64(ptr.Sub(oldp)))
 				shortline = byte(B2i((vcol < col) || ((vcol == col) && (ptr.Get() == 0))))
 				if vcol < col {
-					bd.startspaces = col - vcol
+					bd_startspaces = col - vcol
 				} else if vcol > col {
-					bd.endspaces = vcol - col
-					bd.startspaces = incr - bd.endspaces
-					bd.textcol--
+					bd_endspaces = vcol - col
+					bd_startspaces = incr - bd_endspaces
+					bd_textcol--
 					delcount = 1
-					bd.textcol -= ed.utf_head_off(oldp, oldp.Add(int(bd.textcol)))
-					if int32(oldp.At(int(bd.textcol))) != TAB {
+					bd_textcol -= ed.utf_head_off(oldp, oldp.Add(int(bd_textcol)))
+					if int32(oldp.At(int(bd_textcol))) != TAB {
 						delcount = 0
-						bd.endspaces = 0
+						bd_endspaces = 0
 					}
 				}
 				yanklen = int32(y_array.Ref(int(i)).length)
@@ -47514,17 +49046,17 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 						spaces = 0
 					}
 				}
-				if ((yanklen + spaces) != 0) && (count > int64(((INT_MAX - (bd.startspaces + bd.endspaces)) / (yanklen + spaces)))) {
+				if ((yanklen + spaces) != 0) && (count > int64(((INT_MAX - (bd_startspaces + bd_endspaces)) / (yanklen + spaces)))) {
 					ed.emsg(gettext_(ed.e_resulting_text_too_long))
 					break
 				}
-				totlen = int32(((count * int64((yanklen + spaces))) + int64(bd.startspaces)) + int64(bd.endspaces))
+				totlen = int32(((count * int64((yanklen + spaces))) + int64(bd_startspaces)) + int64(bd_endspaces))
 				newp = Alloc(int((totlen + oldlen) + 1))
 				ptr = newp
-				Memmove(ptr, oldp, int(uint64(bd.textcol)))
-				ptr = ptr.Add(int(bd.textcol))
-				Memset(ptr, (' '), int(uint64(bd.startspaces)))
-				ptr = ptr.Add(int(bd.startspaces))
+				Memmove(ptr, oldp, int(uint64(bd_textcol)))
+				ptr = ptr.Add(int(bd_textcol))
+				Memset(ptr, (' '), int(uint64(bd_startspaces)))
+				ptr = ptr.Add(int(bd_startspaces))
 				j = 0
 				for ; j < count; j++ {
 					Memmove(ptr, y_array.Ref(int(i)).string_, int(uint64(yanklen)))
@@ -47536,20 +49068,20 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 						totlen -= spaces
 					}
 				}
-				Memset(ptr, (' '), int(uint64(bd.endspaces)))
-				ptr = ptr.Add(int(bd.endspaces))
-				Memmove(ptr, oldp.Add(int(bd.textcol)).Add(int(delcount)), int(uint64((((oldlen - bd.textcol) - delcount) + 1))))
+				Memset(ptr, (' '), int(uint64(bd_endspaces)))
+				ptr = ptr.Add(int(bd_endspaces))
+				Memmove(ptr, oldp.Add(int(bd_textcol)).Add(int(delcount)), int(uint64((((oldlen - bd_textcol) - delcount) + 1))))
 				ed.ml_replace(ed.curwin.w_cursor.lnum, newp, false)
 				ed.curwin.w_cursor.lnum++
 				if i == 0 {
-					ed.curwin.w_cursor.col += bd.startspaces
+					ed.curwin.w_cursor.col += bd_startspaces
 				}
 			}
 			ed.changed_lines(lnum, 0, ed.curwin.w_cursor.lnum-nr_lines, nr_lines)
 			ed.curbuf.b_op_start = ed.curwin.w_cursor
 			ed.curbuf.b_op_start.lnum = lnum
 			ed.curbuf.b_op_end.lnum = ed.curwin.w_cursor.lnum - 1
-			ed.curbuf.b_op_end.col = (bd.textcol + totlen) - 1
+			ed.curbuf.b_op_end.col = (bd_textcol + totlen) - 1
 			if ed.curbuf.b_op_end.col < 0 {
 				ed.curbuf.b_op_end.col = 0
 			}
@@ -47579,7 +49111,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 			} else if dir == -1 {
 				lnum--
 			}
-			new_cursor = ed.curwin.w_cursor
+			new_cursor_lnum = ed.curwin.w_cursor.lnum
+			new_cursor_col_ = ed.curwin.w_cursor.col
+			new_cursor_coladd = ed.curwin.w_cursor.coladd
 			if (y_type == MCHAR) && (y_size == 1) {
 				end_lnum = 0
 				start_lnum = lnum
@@ -47656,7 +49190,7 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 					ed.curwin.w_cursor.col -= first_byte_off
 				}
 			} else {
-				new_lnum = new_cursor.lnum
+				new_lnum = new_cursor_lnum
 				orig_indent = 0
 				indent_diff = 0
 				first_indent = true
@@ -47668,7 +49202,7 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 				for ; cnt <= count; cnt++ {
 					i = 0
 					if y_type == MCHAR {
-						lnum = new_cursor.lnum
+						lnum = new_cursor_lnum
 						ptr = ed.ml_get(lnum).Add(int(col))
 						totlen = int32(y_array.Ref(int(y_size - 1)).length)
 						newp = Alloc(int(((ed.ml_get_len(lnum) - col) + totlen) + 1))
@@ -47694,7 +49228,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 						lnum++
 						nr_lines++
 						if flags&PUT_FIXINDENT != 0 {
-							old_pos = ed.curwin.w_cursor
+							old_pos_lnum = ed.curwin.w_cursor.lnum
+							old_pos_col = ed.curwin.w_cursor.col
+							old_pos_coladd = ed.curwin.w_cursor.coladd
 							ed.curwin.w_cursor.lnum = lnum
 							ptr = ed.ml_get(lnum)
 							if (cnt == count) && (i == (y_size - 1)) {
@@ -47715,7 +49251,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 								}
 							}
 							ed.set_indent(indent, 0)
-							ed.curwin.w_cursor = old_pos
+							ed.curwin.w_cursor.lnum = old_pos_lnum
+							ed.curwin.w_cursor.col = old_pos_col
+							ed.curwin.w_cursor.coladd = old_pos_coladd
 							if (cnt == count) && (i == (y_size - 1)) {
 								lendiff -= ed.ml_get_len(lnum)
 							}
@@ -47783,7 +49321,9 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 					}
 					ed.beginline(BL_WHITE | BL_FIX)
 				} else {
-					ed.curwin.w_cursor = new_cursor
+					ed.curwin.w_cursor.lnum = new_cursor_lnum
+					ed.curwin.w_cursor.col = new_cursor_col_
+					ed.curwin.w_cursor.coladd = new_cursor_coladd
 				}
 			}
 		}
@@ -47799,8 +49339,12 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 		break
 	}
 	if ed.cmdmod.cmod_flags&CMOD_LOCKMARKS != 0 {
-		ed.curbuf.b_op_start = orig_start
-		ed.curbuf.b_op_end = orig_end
+		ed.curbuf.b_op_start.lnum = orig_start_lnum
+		ed.curbuf.b_op_start.col = orig_start_col
+		ed.curbuf.b_op_start.coladd = orig_start_coladd
+		ed.curbuf.b_op_end.lnum = orig_end_lnum
+		ed.curbuf.b_op_end.col = orig_end_col
+		ed.curbuf.b_op_end.coladd = orig_end_coladd
 	}
 	if regname == '=' {
 	}
@@ -48037,6 +49581,7 @@ func (ed *Editor) reset_screen_attr() {
 func (ed *Editor) screen_line(wp *S_window_S, row int32, coloff int32, endcol int32, clear_width int32, last_vcol colnr_T, flags int32) {
 	var i int32
 
+	var fillchar_vsep__o fillchar_vsep__out_T
 	var off_from uint32
 	var off_to uint32
 	var max_off_from uint32
@@ -48164,7 +49709,10 @@ func (ed *Editor) screen_line(wp *S_window_S, row int32, coloff int32, endcol in
 	}
 	if clear_width > 0 {
 		if (coloff + col) < (ed.curwin.w_wincol + ed.topframe.fr_width) {
-			var c int32 = ed.fillchar_vsep(&hl, wp, row)
+			var c int32
+			fillchar_vsep__o = ed.fillchar_vsep(hl, wp, row)
+			hl = fillchar_vsep__o.attr
+			c = fillchar_vsep__o.r__
 			var t5 bool = int32(ed.ScreenLines.At(int(off_to))) != int32(byte(c))
 			if !t5 {
 				var t4 int32
@@ -48199,6 +49747,7 @@ func (ed *Editor) screen_line(wp *S_window_S, row int32, coloff int32, endcol in
 func (ed *Editor) draw_vsep_win(wp *S_window_S, row int32) {
 	var hl int32
 
+	var fillchar_vsep__o fillchar_vsep__out_T
 	if wp.w_vsep_width == 0 {
 		return
 	}
@@ -48212,12 +49761,17 @@ func (ed *Editor) draw_vsep_win(wp *S_window_S, row int32) {
 	start_row := t1
 	r := start_row
 	for ; r < content_end; r++ {
-		c := ed.fillchar_vsep(&hl, wp, r)
+		fillchar_vsep__o = ed.fillchar_vsep(hl, wp, r)
+		hl = fillchar_vsep__o.attr
+		c := fillchar_vsep__o.r__
 		ed.screen_fill(r, r+1, (wp.w_wincol + wp.w_width), (wp.w_wincol+wp.w_width)+1, c, ' ', hl)
 	}
 	if wp.w_status_height != 0 {
 		var hl_2 int32
-		var c_2 int32 = ed.fillchar_vsep(&hl_2, wp, content_end)
+		var c_2 int32
+		fillchar_vsep__o = ed.fillchar_vsep(hl_2, wp, content_end)
+		hl_2 = fillchar_vsep__o.attr
+		c_2 = fillchar_vsep__o.r__
 		r_2 := content_end
 		for ; r_2 < (content_end + wp.w_status_height); r_2++ {
 			ed.screen_fill(r_2, r_2+1, (wp.w_wincol + wp.w_width), (wp.w_wincol+wp.w_width)+1, c_2, ' ', hl_2)
@@ -49868,20 +51422,23 @@ func (ed *Editor) get_trans_bufname(buf *S_file_buffer) {
 	ed.trans_characters(ed.NameBuff, PATH_MAX)
 }
 
-func (ed *Editor) fillchar_status(attr *int32, wp *S_window_S) int32 {
+func (ed *Editor) fillchar_status(attr int32, wp *S_window_S) fillchar_status__out_T {
 	var fill int32
 	var override_success bool = (ed.push_highlight_overrides(wp.w_hl, wp.w_hl_len))
 	if wp == ed.curwin {
-		*attr = ed.highlight_attr[18]
+		attr = ed.highlight_attr[18]
 		fill = wp.w_fill_chars.stl
 	} else {
-		*attr = ed.highlight_attr[19]
+		attr = ed.highlight_attr[19]
 		fill = wp.w_fill_chars.stlnc
 	}
 	if override_success {
 		ed.pop_highlight_overrides()
 	}
-	return fill
+	var out__ fillchar_status__out_T
+	out__.r__ = fill
+	out__.attr = attr
+	return out__
 }
 
 func (ed *Editor) vsep_row_is_curwin(wp *S_window_S, row int32) bool {
@@ -49894,20 +51451,26 @@ func (ed *Editor) vsep_row_is_curwin(wp *S_window_S, row int32) bool {
 	return false
 }
 
-func (ed *Editor) fillchar_vsep(attr *int32, wp *S_window_S, row int32) int32 {
+func (ed *Editor) fillchar_vsep(attr int32, wp *S_window_S, row int32) fillchar_vsep__out_T {
 	var override_success bool = (ed.push_highlight_overrides(wp.w_hl, wp.w_hl_len))
 	if ed.vsep_row_is_curwin(wp, row) {
-		*attr = ed.highlight_attr[20]
+		attr = ed.highlight_attr[20]
 	} else {
-		*attr = ed.highlight_attr[21]
+		attr = ed.highlight_attr[21]
 	}
 	if override_success {
 		ed.pop_highlight_overrides()
 	}
-	if ((*attr) == 0) && (wp.w_fill_chars.vert == (' ')) {
-		return '|'
+	if (attr == 0) && (wp.w_fill_chars.vert == (' ')) {
+		var out__ fillchar_vsep__out_T
+		out__.r__ = '|'
+		out__.attr = attr
+		return out__
 	} else {
-		return wp.w_fill_chars.vert
+		var out___2 fillchar_vsep__out_T
+		out___2.r__ = wp.w_fill_chars.vert
+		out___2.attr = attr
+		return out___2
 	}
 }
 
@@ -50456,10 +52019,13 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 	var regmatch regmmatch_T
 	var ptr Ptr[byte]
 	var matchcol colnr_T
-	var endpos lpos_T
-	var matchpos lpos_T
+	var endpos_lnum linenr_T
+	var endpos_col colnr_T
+	var matchpos_lnum linenr_T
+	var matchpos_col colnr_T
 	var loop int32
-	var start_pos pos_T
+	var start_pos_lnum linenr_T
+	var start_pos_col colnr_T
 	var at_first_line bool
 	var extra_col int32
 	var start_char_len int32
@@ -50510,7 +52076,8 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 				extra_col = 0
 			}
 		}
-		start_pos = (*pos)
+		start_pos_lnum = (*pos).lnum
+		start_pos_col = (*pos).col
 		found = 0
 		at_first_line = true
 		if pos.lnum == 0 {
@@ -50518,7 +52085,7 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 			pos.col = 0
 			at_first_line = false
 		}
-		if ((dir == -1) && (start_pos.col == 0)) && ((options & SEARCH_START) == 0) {
+		if ((dir == -1) && (start_pos_col == 0)) && ((options & SEARCH_START) == 0) {
 			lnum = pos.lnum - 1
 			at_first_line = false
 		} else {
@@ -50564,23 +52131,25 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 						break loop1
 					}
 					if nmatched > 0 {
-						matchpos = regmatch.startpos[0]
-						endpos = regmatch.endpos[0]
-						if (lnum + matchpos.lnum) > buf.b_ml.ml_line_count {
+						matchpos_lnum = regmatch.startpos[0].lnum
+						matchpos_col = regmatch.startpos[0].col
+						endpos_lnum = regmatch.endpos[0].lnum
+						endpos_col = regmatch.endpos[0].col
+						if (lnum + matchpos_lnum) > buf.b_ml.ml_line_count {
 							ptr = S("")
 						} else {
-							ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
+							ptr = ed.ml_get_buf(buf, lnum+matchpos_lnum, false)
 						}
 						if (dir == FORWARD) && at_first_line {
 							match_ok = true
 							for {
-								var t7 bool = matchpos.lnum == 0
+								var t7 bool = matchpos_lnum == 0
 								if t7 {
 									var t6 bool
 									if ((options & SEARCH_END) != 0) && first_match {
-										t6 = ((nmatched == 1) && ((endpos.col - 1) < (start_pos.col + extra_col)))
+										t6 = ((nmatched == 1) && ((endpos_col - 1) < (start_pos_col + extra_col)))
 									} else {
-										t6 = ((matchpos.col - B2i((int32(ptr.At(int(matchpos.col))) == NUL))) < (start_pos.col + extra_col))
+										t6 = ((matchpos_col - B2i((int32(ptr.At(int(matchpos_col))) == NUL))) < (start_pos_col + extra_col))
 									}
 									t7 = t6
 								}
@@ -50592,8 +52161,8 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 										match_ok = false
 										break
 									}
-									matchcol = endpos.col
-									if (matchcol == matchpos.col) && (int32(ptr.At(int(matchcol))) != NUL) {
+									matchcol = endpos_col
+									if (matchcol == matchpos_col) && (int32(ptr.At(int(matchcol))) != NUL) {
 										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
 									}
 								} else {
@@ -50607,7 +52176,7 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 								}
 								var t8 bool = int32(ptr.At(int(matchcol))) == NUL
 								if !t8 {
-									nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos.lnum, matchcol, timed_out)
+									nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos_lnum, matchcol, timed_out)
 									t8 = nmatched == 0
 								}
 								if t8 {
@@ -50617,9 +52186,11 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 								if regmatch.regprog == nil {
 									break
 								}
-								matchpos = regmatch.startpos[0]
-								endpos = regmatch.endpos[0]
-								ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
+								matchpos_lnum = regmatch.startpos[0].lnum
+								matchpos_col = regmatch.startpos[0].col
+								endpos_lnum = regmatch.endpos[0].lnum
+								endpos_col = regmatch.endpos[0].col
+								ptr = ed.ml_get_buf(buf, lnum+matchpos_lnum, false)
 							}
 							if !match_ok {
 								break cont2
@@ -50632,16 +52203,18 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 								if !t10 {
 									var t9 bool
 									if (options & SEARCH_END) != 0 {
-										t9 = (((lnum + regmatch.endpos[0].lnum) < start_pos.lnum) || (((lnum + regmatch.endpos[0].lnum) == start_pos.lnum) && ((regmatch.endpos[0].col - 1) < (start_pos.col + extra_col))))
+										t9 = (((lnum + regmatch.endpos[0].lnum) < start_pos_lnum) || (((lnum + regmatch.endpos[0].lnum) == start_pos_lnum) && ((regmatch.endpos[0].col - 1) < (start_pos_col + extra_col))))
 									} else {
-										t9 = (((lnum + regmatch.startpos[0].lnum) < start_pos.lnum) || (((lnum + regmatch.startpos[0].lnum) == start_pos.lnum) && (regmatch.startpos[0].col < (start_pos.col + extra_col))))
+										t9 = (((lnum + regmatch.startpos[0].lnum) < start_pos_lnum) || (((lnum + regmatch.startpos[0].lnum) == start_pos_lnum) && (regmatch.startpos[0].col < (start_pos_col + extra_col))))
 									}
 									t10 = t9
 								}
 								if t10 {
 									match_ok = true
-									matchpos = regmatch.startpos[0]
-									endpos = regmatch.endpos[0]
+									matchpos_lnum = regmatch.startpos[0].lnum
+									matchpos_col = regmatch.startpos[0].col
+									endpos_lnum = regmatch.endpos[0].lnum
+									endpos_col = regmatch.endpos[0].col
 								} else {
 									break
 								}
@@ -50649,22 +52222,22 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 									if nmatched > 1 {
 										break
 									}
-									matchcol = endpos.col
-									if (matchcol == matchpos.col) && (int32(ptr.At(int(matchcol))) != NUL) {
+									matchcol = endpos_col
+									if (matchcol == matchpos_col) && (int32(ptr.At(int(matchcol))) != NUL) {
 										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
 									}
 								} else {
-									if matchpos.lnum > 0 {
+									if matchpos_lnum > 0 {
 										break
 									}
-									matchcol = matchpos.col
+									matchcol = matchpos_col
 									if int32(ptr.At(int(matchcol))) != NUL {
 										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
 									}
 								}
 								var t11 bool = int32(ptr.At(int(matchcol))) == NUL
 								if !t11 {
-									nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos.lnum, matchcol, timed_out)
+									nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos_lnum, matchcol, timed_out)
 									t11 = nmatched == 0
 								}
 								if t11 {
@@ -50676,16 +52249,16 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 								if regmatch.regprog == nil {
 									break
 								}
-								ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
+								ptr = ed.ml_get_buf(buf, lnum+matchpos_lnum, false)
 							}
 							if !match_ok {
 								break cont2
 							}
 						}
-						if (((options & SEARCH_END) != 0) && ((options & SEARCH_NOOF) == 0)) && !((matchpos.lnum == endpos.lnum) && (matchpos.col == endpos.col)) {
-							pos.lnum = lnum + endpos.lnum
-							pos.col = endpos.col
-							if endpos.col == 0 {
+						if (((options & SEARCH_END) != 0) && ((options & SEARCH_NOOF) == 0)) && !((matchpos_lnum == endpos_lnum) && (matchpos_col == endpos_col)) {
+							pos.lnum = lnum + endpos_lnum
+							pos.col = endpos_col
+							if endpos_col == 0 {
 								if pos.lnum > 1 {
 									pos.lnum--
 									pos.col = ed.ml_get_buf_len(buf, pos.lnum)
@@ -50698,15 +52271,15 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 								}
 							}
 							if end_pos != nil {
-								end_pos.lnum = lnum + matchpos.lnum
-								end_pos.col = matchpos.col
+								end_pos.lnum = lnum + matchpos_lnum
+								end_pos.col = matchpos_col
 							}
 						} else {
-							pos.lnum = lnum + matchpos.lnum
-							pos.col = matchpos.col
+							pos.lnum = lnum + matchpos_lnum
+							pos.col = matchpos_col
 							if end_pos != nil {
-								end_pos.lnum = lnum + endpos.lnum
-								end_pos.col = endpos.col
+								end_pos.lnum = lnum + endpos_lnum
+								end_pos.col = endpos_col
 							}
 						}
 						pos.coladd = 0
@@ -50715,8 +52288,8 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 						}
 						found = 1
 						first_match = false
-						ed.search_match_lines = endpos.lnum - matchpos.lnum
-						ed.search_match_endcol = endpos.col
+						ed.search_match_lines = endpos_lnum - matchpos_lnum
+						ed.search_match_endcol = endpos_col
 						break loop1
 					}
 					ed.line_breakcheck()
@@ -50727,7 +52300,7 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 						break_loop = true
 						break loop1
 					}
-					if (loop != 0) && (lnum == start_pos.lnum) {
+					if (loop != 0) && (lnum == start_pos_lnum) {
 						break loop1
 					}
 					break
@@ -50796,29 +52369,36 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 	return submatch + 1
 }
 
-func (ed *Editor) parse_search_pattern_offset(pat *Ptr[byte], patlen *usize, search_delim int32, options int32, strcopy *Ptr[byte], searchstr *Ptr[byte], searchstrlen *usize, dircp *Ptr[byte], offset *S_soffset) int32 {
+func (ed *Editor) parse_search_pattern_offset(pat Ptr[byte], patlen usize, search_delim int32, options int32, strcopy *Ptr[byte], searchstr Ptr[byte], searchstrlen usize, dircp Ptr[byte], offset *S_soffset) parse_search_pattern_offset__out_T {
 	var cmdlen int32 = 0
 	var p Ptr[byte]
 	var ps Ptr[byte]
-	if (*pat).Nil() || (int32((*pat).Get()) == NUL) {
-		return 0
+	if pat.Nil() || (int32(pat.Get()) == NUL) {
+		var out__ parse_search_pattern_offset__out_T
+		out__.r__ = 0
+		out__.pat = pat
+		out__.patlen = patlen
+		out__.searchstr = searchstr
+		out__.searchstrlen = searchstrlen
+		out__.dircp = dircp
+		return out__
 	}
 	ps = (*strcopy)
-	*searchstr = (*pat)
-	*searchstrlen = (*patlen)
-	*dircp = Ptr[byte]{}
-	p = ed.skip_regexp_ex((*pat), search_delim, ed.magic_isset(), strcopy, nil, nil)
+	searchstr = pat
+	searchstrlen = patlen
+	dircp = Ptr[byte]{}
+	p = ed.skip_regexp_ex(pat, search_delim, ed.magic_isset(), strcopy, nil, nil)
 	if (*strcopy) != ps {
 		len_ := musl_strlen((*strcopy))
-		cmdlen += int32(((*patlen) - len_))
-		*pat = (*strcopy)
-		*patlen = len_
-		*searchstr = (*strcopy)
-		*searchstrlen = len_
+		cmdlen += int32((patlen - len_))
+		pat = (*strcopy)
+		patlen = len_
+		searchstr = (*strcopy)
+		searchstrlen = len_
 	}
 	if int32(p.Get()) == search_delim {
-		*searchstrlen = uint64(int64(p.Sub((*pat))))
-		*dircp = p
+		searchstrlen = usize(int64(p.Sub(pat)))
+		dircp = p
 		var t1 Ptr[byte] = p
 		p = p.Add(1)
 		t1.Put(NUL)
@@ -50847,17 +52427,28 @@ func (ed *Editor) parse_search_pattern_offset(pat *Ptr[byte], patlen *usize, sea
 			p = p.Add(1)
 		}
 	}
-	cmdlen += int32(int64(p.Sub((*pat))))
-	(*patlen) -= uint64(int64(p.Sub((*pat))))
-	*pat = p
-	return cmdlen
+	cmdlen += int32(int64(p.Sub(pat)))
+	patlen -= usize(int64(p.Sub(pat)))
+	pat = p
+	var out___2 parse_search_pattern_offset__out_T
+	out___2.r__ = cmdlen
+	out___2.pat = pat
+	out___2.patlen = patlen
+	out___2.searchstr = searchstr
+	out___2.searchstrlen = searchstrlen
+	out___2.dircp = dircp
+	return out___2
 }
 
 func (ed *Editor) do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat Ptr[byte], patlen usize, count int64, options int32, sia *searchit_arg_T) int32 {
+	var parse_search_pattern_offset__o parse_search_pattern_offset__out_T
 	var pos pos_T
 	var searchstr Ptr[byte]
 	var searchstrlen usize
-	var old_off S_soffset
+	var old_off_dir int32
+	var old_off_line int32
+	var old_off_end int32
+	var old_off_off int64
 	var retval int32
 	var p Ptr[byte]
 	var c int64
@@ -50891,7 +52482,10 @@ func (ed *Editor) do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat 
 		ed.spats[0].off.line = FALSE
 		ed.spats[0].off.off = 0
 	}
-	old_off = ed.spats[0].off
+	old_off_dir = ed.spats[0].off.dir
+	old_off_line = ed.spats[0].off.line
+	old_off_end = ed.spats[0].off.end
+	old_off_off = ed.spats[0].off.off
 	pos = ed.curwin.w_cursor
 	if dirc == 0 {
 		dirc = ed.spats[0].off.dir
@@ -50929,7 +52523,13 @@ func (ed *Editor) do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat 
 			}
 		}
 		if !pat.Nil() && (int32(pat.Get()) != NUL) {
-			ed.searchcmdlen += ed.parse_search_pattern_offset(&pat, &patlen, search_delim, options, &strcopy, &searchstr, &searchstrlen, &dircp, &ed.spats[0].off)
+			parse_search_pattern_offset__o = ed.parse_search_pattern_offset(pat, patlen, search_delim, options, &strcopy, searchstr, searchstrlen, dircp, &ed.spats[0].off)
+			pat = parse_search_pattern_offset__o.pat
+			patlen = parse_search_pattern_offset__o.patlen
+			searchstr = parse_search_pattern_offset__o.searchstr
+			searchstrlen = parse_search_pattern_offset__o.searchstrlen
+			dircp = parse_search_pattern_offset__o.dircp
+			ed.searchcmdlen += parse_search_pattern_offset__o.r__
 		}
 		show_search_stats = false
 		if ((((options & SEARCH_ECHO) != 0) && ed.messaging()) && (ed.msg_silent == 0)) && ((ed.cmd_silent == 0) || !ed.shortmess(SHM_SEARCHCOUNT)) {
@@ -51121,7 +52721,10 @@ func (ed *Editor) do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat 
 	ed.curwin.w_set_curswant = true
 end_do_search:
 	if ((options & SEARCH_KEEP) != 0) || ((ed.cmdmod.cmod_flags & CMOD_KEEPPATTERNS) != 0) {
-		ed.spats[0].off = old_off
+		ed.spats[0].off.dir = old_off_dir
+		ed.spats[0].off.line = old_off_line
+		ed.spats[0].off.end = old_off_end
+		ed.spats[0].off.off = old_off_off
 	}
 	return retval
 }
@@ -51268,46 +52871,60 @@ func (ed *Editor) find_rawstring_end(linep Ptr[byte], startpos *pos_T, endpos *p
 	return (found)
 }
 
-func (ed *Editor) find_mps_values(initc *int32, findc *int32, backwards *int32, switchit bool) {
+func (ed *Editor) find_mps_values(initc int32, findc int32, backwards int32, switchit bool) find_mps_values__out_T {
 	var prev Ptr[byte]
+	var out__ find_mps_values__out_T
+	var out___2 find_mps_values__out_T
 
 	var ptr Ptr[byte] = ed.curbuf.b_p_mps
 	for int32(ptr.Get()) != NUL {
-		if ed.utf_ptr2char(ptr) == (*initc) {
+		if ed.utf_ptr2char(ptr) == initc {
 			if switchit {
-				*findc = (*initc)
-				*initc = ed.utf_ptr2char(ptr.Add(int(ed.utfc_ptr2len(ptr))).Add(1))
-				*backwards = TRUE
+				findc = initc
+				initc = ed.utf_ptr2char(ptr.Add(int(ed.utfc_ptr2len(ptr))).Add(1))
+				backwards = TRUE
 			} else {
-				*findc = ed.utf_ptr2char(ptr.Add(int(ed.utfc_ptr2len(ptr))).Add(1))
-				*backwards = FALSE
+				findc = ed.utf_ptr2char(ptr.Add(int(ed.utfc_ptr2len(ptr))).Add(1))
+				backwards = FALSE
 			}
-			return
+			out__.initc = initc
+			out__.findc = findc
+			out__.backwards = backwards
+			return out__
 		}
 		prev = ptr
 		ptr = ptr.Add(int(ed.utfc_ptr2len(ptr) + 1))
-		if ed.utf_ptr2char(ptr) == (*initc) {
+		if ed.utf_ptr2char(ptr) == initc {
 			if switchit {
-				*findc = (*initc)
-				*initc = ed.utf_ptr2char(prev)
-				*backwards = FALSE
+				findc = initc
+				initc = ed.utf_ptr2char(prev)
+				backwards = FALSE
 			} else {
-				*findc = ed.utf_ptr2char(prev)
-				*backwards = TRUE
+				findc = ed.utf_ptr2char(prev)
+				backwards = TRUE
 			}
-			return
+			out___2.initc = initc
+			out___2.findc = findc
+			out___2.backwards = backwards
+			return out___2
 		}
 		ptr = ptr.Add(int(ed.utfc_ptr2len(ptr)))
 		if int32(ptr.Get()) == ',' {
 			ptr = ptr.Add(1)
 		}
 	}
+	var out___3 find_mps_values__out_T
+	out___3.initc = initc
+	out___3.findc = findc
+	out___3.backwards = backwards
+	return out___3
 }
 
 func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtravel int32) *pos_T {
 	var col_2 int32
 	var col_3 int32
 
+	var find_mps_values__o find_mps_values__out_T
 	var findc int32 = 0
 	var c int32
 	var count int32 = 0
@@ -51358,7 +52975,11 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 		raw_string = (initc == 'R')
 		initc = NUL
 	} else if (initc != '#') && (initc != NUL) {
-		ed.find_mps_values(&initc, &findc, &backwards, true)
+		find_mps_values__o = ed.find_mps_values(initc, findc, backwards, true)
+		initc = find_mps_values__o.initc
+		findc = find_mps_values__o.findc
+		backwards = find_mps_values__o.backwards
+		_ = 0
 		if dir != 0 {
 			var t2 int32
 			if dir == FORWARD {
@@ -51411,7 +53032,11 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 					if initc == NUL {
 						break
 					}
-					ed.find_mps_values(&initc, &findc, &backwards, false)
+					find_mps_values__o = ed.find_mps_values(initc, findc, backwards, false)
+					initc = find_mps_values__o.initc
+					findc = find_mps_values__o.findc
+					backwards = find_mps_values__o.backwards
+					_ = 0
 					if findc != 0 {
 						break
 					}
@@ -51754,8 +53379,12 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 
 func (ed *Editor) showmatch(c int32) {
 	var lpos *pos_T
-	var save_cursor pos_T
-	var mpos pos_T
+	var save_cursor_lnum linenr_T
+	var save_cursor_col colnr_T
+	var save_cursor_coladd colnr_T
+	var mpos_lnum linenr_T
+	var mpos_col colnr_T
+	var mpos_coladd colnr_T
 	var vcol colnr_T
 	var save_so int64
 	var save_siso int64
@@ -51804,8 +53433,12 @@ func (ed *Editor) showmatch(c int32) {
 	if !col_visible {
 		return
 	}
-	mpos = (*lpos)
-	save_cursor = ed.curwin.w_cursor
+	mpos_lnum = (*lpos).lnum
+	mpos_col = (*lpos).col
+	mpos_coladd = (*lpos).coladd
+	save_cursor_lnum = ed.curwin.w_cursor.lnum
+	save_cursor_col = ed.curwin.w_cursor.col
+	save_cursor_coladd = ed.curwin.w_cursor.coladd
 	save_so = (*so)
 	save_siso = (*siso)
 	if (ed.dollar_vcol >= 0) && (ed.dollar_vcol == ed.curwin.w_virtcol) {
@@ -51814,7 +53447,9 @@ func (ed *Editor) showmatch(c int32) {
 	ed.curwin.w_virtcol++
 	ed.update_screen(UPD_VALID)
 	save_dollar_vcol = ed.dollar_vcol
-	ed.curwin.w_cursor = mpos
+	ed.curwin.w_cursor.lnum = mpos_lnum
+	ed.curwin.w_cursor.col = mpos_col
+	ed.curwin.w_cursor.coladd = mpos_coladd
 	*so = 0
 	*siso = 0
 	ed.showruler(false)
@@ -51827,7 +53462,9 @@ func (ed *Editor) showmatch(c int32) {
 	} else if !ed.char_avail() {
 		ed.ui_delay((ed.p_mat*100)+9, false)
 	}
-	ed.curwin.w_cursor = save_cursor
+	ed.curwin.w_cursor.lnum = save_cursor_lnum
+	ed.curwin.w_cursor.col = save_cursor_col
+	ed.curwin.w_cursor.coladd = save_cursor_coladd
 	*so = save_so
 	*siso = save_siso
 }
@@ -51885,7 +53522,9 @@ func (ed *Editor) is_zero_width(pattern Ptr[byte], patternlen usize, move bool, 
 }
 
 func (ed *Editor) current_search(count int64, forward bool) bool {
-	var start_pos pos_T
+	var start_pos_lnum linenr_T
+	var start_pos_col colnr_T
+	var start_pos_coladd colnr_T
 	var end_pos pos_T
 	var orig_pos pos_T
 	var pos pos_T
@@ -51995,9 +53634,13 @@ func (ed *Editor) current_search(count int64, forward bool) bool {
 			}
 		}
 	}
-	start_pos = pos
+	start_pos_lnum = pos.lnum
+	start_pos_col = pos.col
+	start_pos_coladd = pos.coladd
 	if ed.VIsual_active == 0 {
-		ed.VIsual = start_pos
+		ed.VIsual.lnum = start_pos_lnum
+		ed.VIsual.col = start_pos_col
+		ed.VIsual.coladd = start_pos_coladd
 	}
 	ed.curwin.w_cursor = end_pos
 	var t10 bool
@@ -52126,7 +53769,9 @@ func (ed *Editor) cmdline_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T,
 func (ed *Editor) update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, stat *S_searchstat, recompute bool, maxcount int32, timeout int64) {
 	save_ws := ed.p_ws
 	var wraparound bool = false
-	p := (*pos)
+	p_lnum := (*pos).lnum
+	p_col := (*pos).col
+	p_coladd := (*pos).coladd
 	*stat = S_searchstat{}
 	if ((dirc == 0) && !recompute) && !(((ed.update_search_stat_lastpos.lnum == 0) && (ed.update_search_stat_lastpos.col == 0)) && (ed.update_search_stat_lastpos.coladd == 0)) {
 		stat.cur = ed.update_search_stat_cur
@@ -52140,14 +53785,14 @@ func (ed *Editor) update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, 
 	var t3 bool = dirc == '?'
 	if t3 {
 		var t2 bool
-		if ed.update_search_stat_lastpos.lnum != p.lnum {
-			t2 = ed.update_search_stat_lastpos.lnum < p.lnum
+		if ed.update_search_stat_lastpos.lnum != p_lnum {
+			t2 = ed.update_search_stat_lastpos.lnum < p_lnum
 		} else {
 			var t1 bool
-			if ed.update_search_stat_lastpos.col != p.col {
-				t1 = ed.update_search_stat_lastpos.col < p.col
+			if ed.update_search_stat_lastpos.col != p_col {
+				t1 = ed.update_search_stat_lastpos.col < p_col
 			} else {
-				t1 = ed.update_search_stat_lastpos.coladd < p.coladd
+				t1 = ed.update_search_stat_lastpos.coladd < p_coladd
 			}
 			t2 = t1
 		}
@@ -52158,14 +53803,14 @@ func (ed *Editor) update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, 
 		var t6 bool = dirc == '/'
 		if t6 {
 			var t5 bool
-			if p.lnum != ed.update_search_stat_lastpos.lnum {
-				t5 = p.lnum < ed.update_search_stat_lastpos.lnum
+			if p_lnum != ed.update_search_stat_lastpos.lnum {
+				t5 = p_lnum < ed.update_search_stat_lastpos.lnum
 			} else {
 				var t4 bool
-				if p.col != ed.update_search_stat_lastpos.col {
-					t4 = p.col < ed.update_search_stat_lastpos.col
+				if p_col != ed.update_search_stat_lastpos.col {
+					t4 = p_col < ed.update_search_stat_lastpos.col
 				} else {
-					t4 = p.coladd < ed.update_search_stat_lastpos.coladd
+					t4 = p_coladd < ed.update_search_stat_lastpos.coladd
 				}
 				t5 = t4
 			}
@@ -52216,28 +53861,28 @@ func (ed *Editor) update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, 
 			done_search = true
 			ed.update_search_stat_cnt++
 			var t13 bool
-			if ed.update_search_stat_lastpos.lnum != p.lnum {
-				t13 = ed.update_search_stat_lastpos.lnum < p.lnum
+			if ed.update_search_stat_lastpos.lnum != p_lnum {
+				t13 = ed.update_search_stat_lastpos.lnum < p_lnum
 			} else {
 				var t12 bool
-				if ed.update_search_stat_lastpos.col != p.col {
-					t12 = ed.update_search_stat_lastpos.col < p.col
+				if ed.update_search_stat_lastpos.col != p_col {
+					t12 = ed.update_search_stat_lastpos.col < p_col
 				} else {
-					t12 = ed.update_search_stat_lastpos.coladd < p.coladd
+					t12 = ed.update_search_stat_lastpos.coladd < p_coladd
 				}
 				t13 = t12
 			}
-			if t13 || (((ed.update_search_stat_lastpos.lnum == p.lnum) && (ed.update_search_stat_lastpos.col == p.col)) && (ed.update_search_stat_lastpos.coladd == p.coladd)) {
+			if t13 || (((ed.update_search_stat_lastpos.lnum == p_lnum) && (ed.update_search_stat_lastpos.col == p_col)) && (ed.update_search_stat_lastpos.coladd == p_coladd)) {
 				ed.update_search_stat_cur = ed.update_search_stat_cnt
 				var t15 bool
-				if p.lnum != endpos.lnum {
-					t15 = p.lnum < endpos.lnum
+				if p_lnum != endpos.lnum {
+					t15 = p_lnum < endpos.lnum
 				} else {
 					var t14 bool
-					if p.col != endpos.col {
-						t14 = p.col < endpos.col
+					if p_col != endpos.col {
+						t14 = p_col < endpos.col
 					} else {
-						t14 = p.coladd < endpos.coladd
+						t14 = p_coladd < endpos.coladd
 					}
 					t15 = t14
 				}
@@ -52259,7 +53904,9 @@ func (ed *Editor) update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, 
 			ed.update_search_stat_lastpatlen = ed.spats[int(ed.last_idx)].patlen
 			ed.update_search_stat_chgtick = int32(ed.curbuf.b_changedtick)
 			ed.update_search_stat_lbuf = ed.curbuf
-			ed.update_search_stat_lastpos = p
+			ed.update_search_stat_lastpos.lnum = p_lnum
+			ed.update_search_stat_lastpos.col = p_col
+			ed.update_search_stat_lastpos.coladd = p_coladd
 		}
 	}
 	stat.cur = ed.update_search_stat_cur
@@ -52641,12 +54288,15 @@ func (ed *Editor) match_keyprotocol(term Ptr[byte]) keyprot_T {
 	var prot keyprot_T
 	var regmatch regmatch_T
 
+	var copy_option_part__o copy_option_part__out_T
 	len_ := int32(musl_strlen(ed.p_kpc)) + 1
 	buf := Alloc(int(len_))
 	var ret keyprot_T = KEYPROTOCOL_FAIL
 	p := ed.p_kpc
 	for int32(p.Get()) != NUL {
-		ed.copy_option_part(&p, buf, len_, S(","))
+		copy_option_part__o = ed.copy_option_part(p, buf, len_, S(","))
+		p = copy_option_part__o.option
+		_ = copy_option_part__o.r__
 		colon := ed.vim_strchr(buf, ':')
 		if (colon.Nil() || (colon == buf)) || (int32(colon.At(1)) == NUL) {
 			return ret
@@ -53651,12 +55301,15 @@ func decode_modifiers(n int32) int32 {
 	return modifiers
 }
 
-func (ed *Editor) modifiers2keycode(modifiers int32, key *int32, string_ Ptr[byte]) int32 {
+func (ed *Editor) modifiers2keycode(modifiers int32, key int32, string_ Ptr[byte]) modifiers2keycode__out_T {
 	var new_slen int32 = 0
 	if modifiers == 0 {
-		return 0
+		var out__ modifiers2keycode__out_T
+		out__.r__ = 0
+		out__.key = key
+		return out__
 	}
-	*key = ed.simplify_key((*key), &modifiers)
+	key = ed.simplify_key(key, &modifiers)
 	if modifiers != 0 {
 		var t1 int32 = new_slen
 		new_slen++
@@ -53668,7 +55321,10 @@ func (ed *Editor) modifiers2keycode(modifiers int32, key *int32, string_ Ptr[byt
 		new_slen++
 		string_.Set(int(t3), byte(modifiers))
 	}
-	return new_slen
+	var out___2 modifiers2keycode__out_T
+	out___2.r__ = new_slen
+	out___2.key = key
+	return out___2
 }
 
 func (ed *Editor) handle_u7_response(arg []int32, tp Ptr[byte], csi_len int32) {
@@ -53799,12 +55455,15 @@ func add_key_to_buf(key int32, buf Ptr[byte]) int32 {
 }
 
 func (ed *Editor) put_key_modifiers_in_typebuf(key_arg int32, modifiers_arg int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32 {
+	var modifiers2keycode__o modifiers2keycode__out_T
 	key := key_arg
 	modifiers := modifiers_arg
 	key = ed.may_adjust_key_for_ctrl(modifiers, key)
 	modifiers = may_remove_shift_modifier(modifiers, key)
 	var string_ Ptr[byte] = Mk[byte](8)
-	new_slen := ed.modifiers2keycode(modifiers, &key, string_)
+	modifiers2keycode__o = ed.modifiers2keycode(modifiers, key, string_)
+	key = modifiers2keycode__o.key
+	new_slen := modifiers2keycode__o.r__
 	if key > 0x10FFFF {
 		return -1
 	}
@@ -53947,7 +55606,10 @@ func (ed *Editor) handle_csi_function_key(argc int32, arg []int32, trail int32, 
 	return csi_len
 }
 
-func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name []byte, slen *int32) int32 {
+func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name []byte, slen int32) handle_csi__out_T {
+	var out__ handle_csi__out_T
+	var out___2 handle_csi__out_T
+
 	var first int32 = -1
 	var trail int32
 	var arg Ptr[int32] = Mk[int32](3)
@@ -53970,7 +55632,9 @@ func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset in
 		argc = 0
 		for argc < 3 {
 			if ap.Ge(tp.Add(int(len_))) {
-				return -1
+				out__.r__ = -1
+				out__.slen = slen
+				return out__
 			}
 			if int32(ap.Get()) == ';' {
 				var t2 int32 = argc
@@ -53980,7 +55644,9 @@ func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset in
 				arg.Set(int(argc), 0)
 				for {
 					if ap.Ge(tp.Add(int(len_))) {
-						return -1
+						out___2.r__ = -1
+						out___2.slen = slen
+						return out___2
 					}
 					if !((uint32(ap.Get()) - '0') < 10) {
 						break
@@ -54002,7 +55668,10 @@ func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset in
 			ap = ap.Add(1)
 		}
 		if ap.Ge(tp.Add(int(len_))) {
-			return -1
+			var out___3 handle_csi__out_T
+			out___3.r__ = -1
+			out___3.slen = slen
+			return out___3
 		}
 		trail = int32(ap.Get())
 	}
@@ -54019,28 +55688,31 @@ func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset in
 		}
 		key_name[0] = 253
 		key_name[1] = 53
-		*slen = csi_len
+		slen = csi_len
 	} else if ((first == -1) && ((uint32(trail) - 'A') < 26)) && ((argc == 0) || ((argc == 2) && (arg.At(0) == 1))) {
 		res := ed.handle_csi_function_key(argc, arg.Tail(), trail, csi_len, key_name, offset, buf, bufsize, buflen)
+		var out___4 handle_csi__out_T
 		var t4 int32
 		if res <= 0 {
 			t4 = res
 		} else {
 			t4 = len_ + res
 		}
-		return t4
+		out___4.r__ = t4
+		out___4.slen = slen
+		return out___4
 	} else if ((first == -1) && (argc == 2)) && (trail == 'R') {
 		ed.handle_u7_response(arg.Tail(), tp, csi_len)
 		key_name[0] = 253
 		key_name[1] = 53
-		*slen = csi_len
+		slen = csi_len
 	} else if (first == '?') && (trail == 'c') {
-		*slen = csi_len
+		slen = csi_len
 		key_name[0] = 253
 		key_name[1] = 53
 	} else if (((first == '?') && (trail == 'y')) && (argc == 2)) && (arg.At(0) == 2026) {
 		setting := arg.At(1)
-		*slen = csi_len
+		slen = csi_len
 		key_name[0] = 253
 		key_name[1] = 53
 		if (setting >= 0) && (setting <= 4) {
@@ -54051,20 +55723,20 @@ func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset in
 			}
 		}
 	} else if (((first == '?') && (argc == 1)) && (arg.At(0) == 1)) && (trail == 'z') {
-		*slen = csi_len
+		slen = csi_len
 		key_name[0] = 253
 		key_name[1] = 53
 		ed.do_cmdline_cmd(S("stop"))
 	} else if (argc >= 3) && (arg.At(0) == 48) {
 		height := arg.At(1)
 		width := arg.At(2)
-		*slen = csi_len
+		slen = csi_len
 		key_name[0] = 253
 		key_name[1] = 53
 		ed.set_shellsize(width, height, 1)
 	} else if ((int32(ed.term_strings[69].Get()) != NUL) && ap.Gt(argp.Add(1))) && (trail == 'c') {
 		ed.handle_version_response(first, arg.Tail(), argc, tp)
-		*slen = csi_len
+		slen = csi_len
 		key_name[0] = 253
 		key_name[1] = 53
 	} else if ((first == '?') && (argc == 1)) && (trail == 'u') {
@@ -54076,14 +55748,23 @@ func (ed *Editor) handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset in
 		}
 		key_name[0] = 253
 		key_name[1] = 53
-		*slen = csi_len
+		slen = csi_len
 	} else if (((arg.At(0) == 27) && (argc == 3)) && (trail == '~')) || ((argc == 2) && ((trail == 'u') || (trail == '~'))) {
 		iskitty := (argc == 2) && ((trail == 'u') || (trail == '~'))
-		return len_ + ed.handle_key_with_modifier(arg.Tail(), csi_len, offset, buf, bufsize, buflen, (iskitty), trail)
+		var out___5 handle_csi__out_T
+		out___5.r__ = (len_ + ed.handle_key_with_modifier(arg.Tail(), csi_len, offset, buf, bufsize, buflen, (iskitty), trail))
+		out___5.slen = slen
+		return out___5
 	} else if (argc == 1) && ((trail == 'u') || (trail == '~')) {
-		return len_ + ed.handle_key_without_modifier(arg.Tail(), csi_len, offset, buf, bufsize, buflen, trail)
+		var out___6 handle_csi__out_T
+		out___6.r__ = (len_ + ed.handle_key_without_modifier(arg.Tail(), csi_len, offset, buf, bufsize, buflen, trail))
+		out___6.slen = slen
+		return out___6
 	}
-	return 0
+	var out___7 handle_csi__out_T
+	out___7.r__ = 0
+	out___7.slen = slen
+	return out___7
 }
 
 func (ed *Editor) check_for_color_response(resp Ptr[byte], len_ int32) {
@@ -54151,12 +55832,17 @@ func (ed *Editor) in_osc_sequence() bool {
 	return (ed.osc_state.processing)
 }
 
-func (ed *Editor) handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen *int32) bool {
+func (ed *Editor) handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen int32) handle_osc__out_T {
+	var out___2 handle_osc__out_T
+
 	var last_char char_u
 	if !ed.osc_state.processing {
 		var cur int32 = 1 + B2i((int32(tp.At(0)) == ESC))
 		if len_ < ((cur + 1) + B2i((int32(tp.At(0)) != OSC))) {
-			return false
+			var out__ handle_osc__out_T
+			out__.r__ = false
+			out__.slen = slen
+			return out__
 		}
 		ga_init2(&ed.osc_state.buf, 1, 1024)
 		ed.osc_state.start_tv = ed.musl_now_ms()
@@ -54184,13 +55870,15 @@ func (ed *Editor) handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen *in
 			key_name[1] = 109
 			ga_concat_len(&ed.osc_state.buf, tp, usize((i+1)+B2i((int32(tp.At(int(i))) == ESC))))
 			ga_append(&ed.osc_state.buf, NUL)
-			*slen = (i + 1) + B2i((int32(tp.At(int(i))) == ESC))
+			slen = (i + 1) + B2i((int32(tp.At(int(i))) == ESC))
 			ed.check_for_color_response(GaData[byte](&ed.osc_state.buf), ed.osc_state.buf.ga_len-1)
 			var savebg char_u = ed.p_bg.Get()
 			if int32(ed.p_bg.Get()) != int32(savebg) {
 				ed.redraw_asap(UPD_CLEAR)
 			}
-			return true
+			out___2.r__ = true
+			out___2.slen = slen
+			return out___2
 		}
 	}
 	key_name[1] = 53
@@ -54199,14 +55887,20 @@ func (ed *Editor) handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen *in
 		ed.emsg(ed.iobuff_or(gettext_(ed.e_osc_response_timed_out)))
 		ga_clear(&ed.osc_state.buf)
 		ed.osc_state.processing = false
-		return false
+		var out___3 handle_osc__out_T
+		out___3.r__ = false
+		out___3.slen = slen
+		return out___3
 	}
 	ga_concat(&ed.osc_state.buf, tp)
-	*slen = len_
-	return true
+	slen = len_
+	var out___4 handle_osc__out_T
+	out___4.r__ = true
+	out___4.slen = slen
+	return out___4
 }
 
-func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen *int32) bool {
+func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen int32) handle_dcs__out_T {
 	var i int32
 	var j int32 = 1 + B2i((int32(tp.At(0)) == ESC))
 	if len_ < (j + 3) {
@@ -54219,7 +55913,7 @@ func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen 
 			if (((int32(tp.At(int(i))) == ESC) && ((i + 1) < len_)) && (int32(tp.At(int(i+1))) == 92)) || (int32(tp.At(int(i))) == STERM) {
 				key_name[0] = 253
 				key_name[1] = 53
-				*slen = (i + 1) + B2i((int32(tp.At(int(i))) == ESC))
+				slen = (i + 1) + B2i((int32(tp.At(int(i))) == ESC))
 				break
 			}
 		}
@@ -54241,20 +55935,30 @@ func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen 
 			if (((i - j) == 6) && (int32(tp.At(int(i))) == STERM)) || (((i - j) == 7) && (int32(tp.At(int(i))) == 92)) {
 				key_name[0] = 253
 				key_name[1] = 53
-				*slen = i + 1
+				slen = i + 1
 				break
 			}
 		}
 	}
 	if i == len_ {
-		return false
+		var out__ handle_dcs__out_T
+		out__.r__ = false
+		out__.slen = slen
+		return out__
 	}
-	return true
+	var out___2 handle_dcs__out_T
+	out___2.r__ = true
+	out___2.slen = slen
+	return out___2
 }
 
 func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32 {
 	var n int32
 
+	var handle_csi__o handle_csi__out_T
+	var handle_dcs__o handle_dcs__out_T
+	var handle_osc__o handle_osc__out_T
+	var modifiers2keycode__o modifiers2keycode__out_T
 	var tp Ptr[byte]
 	var p Ptr[byte]
 	var slen int32 = 0
@@ -54299,7 +56003,9 @@ func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32,
 			key_name.Set(0, NUL)
 			key_name.Set(1, NUL)
 			modifiers = 0
-			if !ed.handle_osc(tp, len_, key_name.Tail(), &slen) {
+			handle_osc__o = ed.handle_osc(tp, len_, key_name.Tail(), slen)
+			slen = handle_osc__o.slen
+			if !handle_osc__o.r__ {
 				return -1
 			}
 		} else {
@@ -54416,16 +56122,22 @@ func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32,
 				}
 				argp := t3
 				if (((int32(tp.At(0)) == ESC) && (len_ >= 3)) && (int32(tp.At(1)) == '[')) || ((int32(tp.At(0)) == CSI) && (len_ >= 2)) && !ed.vim_strchr(S("0123456789>?ABCDEFHPQRS"), int32(argp.Get())).Nil() {
-					resp := ed.handle_csi(tp, len_, argp, offset, buf, bufsize, buflen, key_name.Tail(), &slen)
+					handle_csi__o = ed.handle_csi(tp, len_, argp, offset, buf, bufsize, buflen, key_name.Tail(), slen)
+					slen = handle_csi__o.slen
+					resp := handle_csi__o.r__
 					if resp != 0 {
 						return resp
 					}
 				} else if (((int32(tp.At(0)) == ESC) && (len_ >= 2)) && (int32(tp.At(1)) == ']')) || (int32(tp.At(0)) == OSC) {
-					if !ed.handle_osc(tp, len_, key_name.Tail(), &slen) {
+					handle_osc__o = ed.handle_osc(tp, len_, key_name.Tail(), slen)
+					slen = handle_osc__o.slen
+					if !handle_osc__o.r__ {
 						return -1
 					}
 				} else if (((int32(tp.At(0)) == ESC) && (len_ >= 2)) && (int32(tp.At(1)) == 'P')) || (int32(tp.At(0)) == DCS) {
-					if !handle_dcs(tp, argp, len_, key_name.Tail(), &slen) {
+					handle_dcs__o = handle_dcs(tp, argp, len_, key_name.Tail(), slen)
+					slen = handle_dcs__o.slen
+					if !handle_dcs__o.r__ {
 						return -1
 					}
 				}
@@ -54452,7 +56164,9 @@ func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32,
 			}
 		}
 		key = handle_x_keys(-(int32(key_name.At(0)) + (int32(key_name.At(1)) << 8)))
-		new_slen = ed.modifiers2keycode(modifiers, &key, string_)
+		modifiers2keycode__o = ed.modifiers2keycode(modifiers, key, string_)
+		key = modifiers2keycode__o.key
+		new_slen = modifiers2keycode__o.r__
 		key_name.Set(0, byte((-key & 0xff)))
 		key_name.Set(1, byte(((uint32(-key) >> 8) & 0xff)))
 		if int32(key_name.At(0)) == KS_KEY {
@@ -54484,9 +56198,10 @@ func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32,
 	return 0
 }
 
-func (ed *Editor) replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) Ptr[byte] {
+func (ed *Editor) replace_termcodes(from Ptr[byte], bufp Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) replace_termcodes__out_T {
 	var len_ int32
 
+	var find_term_bykeys__o find_term_bykeys__out_T
 	var i int32
 	var slen int32
 	var key int32
@@ -54503,8 +56218,11 @@ func (ed *Editor) replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg sci
 	src = from
 	ga_init2(&ga, 1, 100)
 	if !ga_grow(&ga, int32(((musl_strlen(src) * 6) + 1))) {
-		*bufp = Ptr[byte]{}
-		return from
+		bufp = Ptr[byte]{}
+		var out__ replace_termcodes__out_T
+		out__.r__ = from
+		out__.bufp = bufp
+		return out__
 	}
 	result = GaData[byte](&ga)
 	if (((flags & REPTERM_FROM_PART) != 0) && (int32(src.At(0)) == '#')) && ((uint32(src.At(1)) - '0') < 10) {
@@ -54547,7 +56265,9 @@ func (ed *Editor) replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg sci
 			}
 		}
 		if do_key_code {
-			i = ed.find_term_bykeys(src, &len_)
+			find_term_bykeys__o = ed.find_term_bykeys(src, len_)
+			len_ = find_term_bykeys__o.matchlen
+			i = find_term_bykeys__o.r__
 			if i >= 0 {
 				var t7 usize = dlen
 				dlen++
@@ -54595,14 +56315,17 @@ func (ed *Editor) replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg sci
 		}
 	}
 	result.Set(int(dlen), NUL)
-	*bufp = vim_strsave(result)
-	if !(*bufp).Nil() {
-		from = (*bufp)
+	bufp = vim_strsave(result)
+	if !bufp.Nil() {
+		from = bufp
 	}
-	return from
+	var out___2 replace_termcodes__out_T
+	out___2.r__ = from
+	out___2.bufp = bufp
+	return out___2
 }
 
-func (ed *Editor) find_term_bykeys(src Ptr[byte], matchlen *int32) int32 {
+func (ed *Editor) find_term_bykeys(src Ptr[byte], matchlen int32) find_term_bykeys__out_T {
 	var i int32
 	var j int32
 	len_ := int32(musl_strlen(src))
@@ -54615,7 +56338,10 @@ func (ed *Editor) find_term_bykeys(src Ptr[byte], matchlen *int32) int32 {
 		ed.gather_termleader()
 	}
 	if (int32(src.Get()) == NUL) || ed.vim_strchr(ed.termleader, int32(src.Get())).Nil() {
-		return -1
+		var out__ find_term_bykeys__out_T
+		out__.r__ = -1
+		out__.matchlen = matchlen
+		return out__
 	}
 	i = 0
 	for ; i < ed.tc_len; i++ {
@@ -54655,10 +56381,13 @@ func (ed *Editor) find_term_bykeys(src Ptr[byte], matchlen *int32) int32 {
 			}
 		}
 	}
-	if (matchlen != nil) && (found >= 0) {
-		*matchlen = foundlen
+	if true && (found >= 0) {
+		matchlen = foundlen
 	}
-	return found
+	var out___2 find_term_bykeys__out_T
+	out___2.r__ = found
+	out___2.matchlen = matchlen
+	return out___2
 }
 
 func (ed *Editor) gather_termleader() {
@@ -55226,7 +56955,9 @@ func (ed *Editor) back_in_line() {
 
 func (ed *Editor) current_word(oap *S_oparg_S, count int64, include bool, bigword bool) bool {
 	var start_pos pos_T
-	var pos pos_T
+	var pos_lnum linenr_T
+	var pos_col_ colnr_T
+	var pos_coladd colnr_T
 	var inclusive bool = true
 	var include_white bool = false
 	ed.cls_bigword = B2i(bigword)
@@ -55331,7 +57062,9 @@ func (ed *Editor) current_word(oap *S_oparg_S, count int64, include bool, bigwor
 		count--
 	}
 	if include_white && ((ed.cls() != 0) || ((ed.curwin.w_cursor.col == 0) && !inclusive)) {
-		pos = ed.curwin.w_cursor
+		pos_lnum = ed.curwin.w_cursor.lnum
+		pos_col_ = ed.curwin.w_cursor.col
+		pos_coladd = ed.curwin.w_cursor.coladd
 		ed.curwin.w_cursor = start_pos
 		if ed.oneleft() {
 			ed.back_in_line()
@@ -55343,7 +57076,9 @@ func (ed *Editor) current_word(oap *S_oparg_S, count int64, include bool, bigwor
 				}
 			}
 		}
-		ed.curwin.w_cursor = pos
+		ed.curwin.w_cursor.lnum = pos_lnum
+		ed.curwin.w_cursor.col = pos_col_
+		ed.curwin.w_cursor.coladd = pos_coladd
 	}
 	if ed.VIsual_active != 0 {
 		var t9 bool = (int32(ed.p_sel.Get()) == 'e') && inclusive
@@ -55376,17 +57111,29 @@ func (ed *Editor) current_word(oap *S_oparg_S, count int64, include bool, bigwor
 }
 
 func (ed *Editor) current_block(oap *S_oparg_S, count int64, include bool, what int32, other int32) bool {
-	var old_pos pos_T
+	var old_pos_lnum linenr_T
+	var old_pos_col colnr_T
+	var old_pos_coladd colnr_T
 	var pos *pos_T = nil
 	var start_pos pos_T
 	var end_pos *pos_T
-	var old_start pos_T
-	var old_end pos_T
+	var old_start_lnum linenr_T
+	var old_start_col colnr_T
+	var old_start_coladd colnr_T
+	var old_end_lnum linenr_T
+	var old_end_col colnr_T
+	var old_end_coladd colnr_T
 	var save_cpo Ptr[byte]
 	var sol bool = false
-	old_pos = ed.curwin.w_cursor
-	old_end = ed.curwin.w_cursor
-	old_start = old_end
+	old_pos_lnum = ed.curwin.w_cursor.lnum
+	old_pos_col = ed.curwin.w_cursor.col
+	old_pos_coladd = ed.curwin.w_cursor.coladd
+	old_end_lnum = ed.curwin.w_cursor.lnum
+	old_end_col = ed.curwin.w_cursor.col
+	old_end_coladd = ed.curwin.w_cursor.coladd
+	old_start_lnum = old_end_lnum
+	old_start_col = old_end_col
+	old_start_coladd = old_end_coladd
 	if (ed.VIsual_active == 0) || (((ed.VIsual.lnum == ed.curwin.w_cursor.lnum) && (ed.VIsual.col == ed.curwin.w_cursor.col)) && (ed.VIsual.coladd == ed.curwin.w_cursor.coladd)) {
 		ed.setpcmark()
 		if what == '{' {
@@ -55413,10 +57160,14 @@ func (ed *Editor) current_block(oap *S_oparg_S, count int64, include bool, what 
 			t2 = t1
 		}
 		if t2 {
-			old_start = ed.VIsual
+			old_start_lnum = ed.VIsual.lnum
+			old_start_col = ed.VIsual.col
+			old_start_coladd = ed.VIsual.coladd
 			ed.curwin.w_cursor = ed.VIsual
 		} else {
-			old_end = ed.VIsual
+			old_end_lnum = ed.VIsual.lnum
+			old_end_col = ed.VIsual.col
+			old_end_coladd = ed.VIsual.coladd
 		}
 	}
 	save_cpo = ed.p_cpo
@@ -55464,7 +57215,9 @@ func (ed *Editor) current_block(oap *S_oparg_S, count int64, include bool, what 
 		t6 = end_pos == nil
 	}
 	if t6 {
-		ed.curwin.w_cursor = old_pos
+		ed.curwin.w_cursor.lnum = old_pos_lnum
+		ed.curwin.w_cursor.col = old_pos_col
+		ed.curwin.w_cursor.coladd = old_pos_coladd
 		return false
 	}
 	ed.curwin.w_cursor = (*end_pos)
@@ -55479,50 +57232,58 @@ func (ed *Editor) current_block(oap *S_oparg_S, count int64, include bool, what 
 			}
 		}
 		if (((start_pos.lnum == (*end_pos).lnum) && (start_pos.col == (*end_pos).col)) && (start_pos.coladd == (*end_pos).coladd)) && (ed.VIsual_active != 0) {
-			ed.curwin.w_cursor = old_pos
+			ed.curwin.w_cursor.lnum = old_pos_lnum
+			ed.curwin.w_cursor.col = old_pos_col
+			ed.curwin.w_cursor.coladd = old_pos_coladd
 			return false
 		}
 		var t8 bool
-		if start_pos.lnum != old_start.lnum {
-			t8 = start_pos.lnum < old_start.lnum
+		if start_pos.lnum != old_start_lnum {
+			t8 = start_pos.lnum < old_start_lnum
 		} else {
 			var t7 bool
-			if start_pos.col != old_start.col {
-				t7 = start_pos.col < old_start.col
+			if start_pos.col != old_start_col {
+				t7 = start_pos.col < old_start_col
 			} else {
-				t7 = start_pos.coladd < old_start.coladd
+				t7 = start_pos.coladd < old_start_coladd
 			}
 			t8 = t7
 		}
 		var t11 bool = !t8
 		if t11 {
 			var t10 bool
-			if old_end.lnum != ed.curwin.w_cursor.lnum {
-				t10 = old_end.lnum < ed.curwin.w_cursor.lnum
+			if old_end_lnum != ed.curwin.w_cursor.lnum {
+				t10 = old_end_lnum < ed.curwin.w_cursor.lnum
 			} else {
 				var t9 bool
-				if old_end.col != ed.curwin.w_cursor.col {
-					t9 = old_end.col < ed.curwin.w_cursor.col
+				if old_end_col != ed.curwin.w_cursor.col {
+					t9 = old_end_col < ed.curwin.w_cursor.col
 				} else {
-					t9 = old_end.coladd < ed.curwin.w_cursor.coladd
+					t9 = old_end_coladd < ed.curwin.w_cursor.coladd
 				}
 				t10 = t9
 			}
 			t11 = !t10
 		}
 		if (t11 && !(((start_pos.lnum == ed.curwin.w_cursor.lnum) && (start_pos.col == ed.curwin.w_cursor.col)) && (start_pos.coladd == ed.curwin.w_cursor.coladd))) && (ed.VIsual_active != 0) {
-			ed.curwin.w_cursor = old_start
+			ed.curwin.w_cursor.lnum = old_start_lnum
+			ed.curwin.w_cursor.col = old_start_col
+			ed.curwin.w_cursor.coladd = old_start_coladd
 			ed.decl(&ed.curwin.w_cursor)
 			pos = ed.findmatch(nil, what)
 			if pos == nil {
-				ed.curwin.w_cursor = old_pos
+				ed.curwin.w_cursor.lnum = old_pos_lnum
+				ed.curwin.w_cursor.col = old_pos_col
+				ed.curwin.w_cursor.coladd = old_pos_coladd
 				return false
 			}
 			start_pos = (*pos)
 			ed.curwin.w_cursor = (*pos)
 			end_pos = ed.findmatch(nil, other)
 			if end_pos == nil {
-				ed.curwin.w_cursor = old_pos
+				ed.curwin.w_cursor.lnum = old_pos_lnum
+				ed.curwin.w_cursor.col = old_pos_col
+				ed.curwin.w_cursor.coladd = old_pos_coladd
 				return false
 			}
 			ed.curwin.w_cursor = (*end_pos)
@@ -55623,10 +57384,14 @@ func (ed *Editor) current_quote(oap *S_oparg_S, count int64, include bool, quote
 	var restore_vis_bef bool
 	var t1 bool
 	var t2 bool
-	var t pos_T
+	var t_lnum linenr_T
+	var t_col_ colnr_T
+	var t_coladd colnr_T
 	var t3 int32
 	var first_col int32
-	var t_2 pos_T
+	var t_lnum_2 linenr_T
+	var t_col__2 colnr_T
+	var t_coladd_2 colnr_T
 
 	line = ed.ml_get_curline()
 	col_start = ed.curwin.w_cursor.col
@@ -55663,9 +57428,13 @@ func (ed *Editor) current_quote(oap *S_oparg_S, count int64, include bool, quote
 			}
 			vis_empty = (((ed.VIsual.lnum == ed.curwin.w_cursor.lnum) && (ed.VIsual.col == ed.curwin.w_cursor.col)) && (ed.VIsual.coladd == ed.curwin.w_cursor.coladd))
 			if !vis_bef_curs && !vis_empty {
-				t = ed.curwin.w_cursor
+				t_lnum = ed.curwin.w_cursor.lnum
+				t_col_ = ed.curwin.w_cursor.col
+				t_coladd = ed.curwin.w_cursor.coladd
 				ed.curwin.w_cursor = ed.VIsual
-				ed.VIsual = t
+				ed.VIsual.lnum = t_lnum
+				ed.VIsual.col = t_col_
+				ed.VIsual.coladd = t_coladd
 				vis_bef_curs = true
 				restore_vis_bef = true
 			}
@@ -55808,9 +57577,13 @@ abort_search:
 			ed.inc_cursor()
 		}
 		if restore_vis_bef {
-			t_2 = ed.curwin.w_cursor
+			t_lnum_2 = ed.curwin.w_cursor.lnum
+			t_col__2 = ed.curwin.w_cursor.col
+			t_coladd_2 = ed.curwin.w_cursor.coladd
 			ed.curwin.w_cursor = ed.VIsual
-			ed.VIsual = t_2
+			ed.VIsual.lnum = t_lnum_2
+			ed.VIsual.col = t_col__2
+			ed.VIsual.coladd = t_coladd_2
 		}
 	}
 	return false
@@ -56713,7 +58486,9 @@ func (ed *Editor) u_undoredo(undo bool) {
 	var bot linenr_T
 	var lnum linenr_T
 	var newlnum linenr_T = LONG_MAX
-	new_curpos := ed.curwin.w_cursor
+	new_curpos_lnum := ed.curwin.w_cursor.lnum
+	new_curpos_col := ed.curwin.w_cursor.col
+	new_curpos_coladd := ed.curwin.w_cursor.coladd
 	var i int64
 	var uep *S_u_entry
 	var nuep *S_u_entry
@@ -56763,7 +58538,9 @@ func (ed *Editor) u_undoredo(undo bool) {
 		newsize = uep.ue_size
 		lnum = curhead.uh_cursor.lnum
 		if (lnum >= top) && (lnum <= ((top + newsize) + 1)) {
-			new_curpos = curhead.uh_cursor
+			new_curpos_lnum = curhead.uh_cursor.lnum
+			new_curpos_col = curhead.uh_cursor.col
+			new_curpos_coladd = curhead.uh_cursor.coladd
 			newlnum = -1
 		} else if top < newlnum {
 			i = 0
@@ -56775,10 +58552,10 @@ func (ed *Editor) u_undoredo(undo bool) {
 			}
 			if ((i == newsize) && (newlnum == LONG_MAX)) && (uep.ue_next == nil) {
 				newlnum = top
-				new_curpos.lnum = newlnum + 1
+				new_curpos_lnum = newlnum + 1
 			} else if i < newsize {
 				newlnum = top + i
-				new_curpos.lnum = newlnum + 1
+				new_curpos_lnum = newlnum + 1
 			}
 		}
 		empty_buffer = false
@@ -56855,7 +58632,9 @@ func (ed *Editor) u_undoredo(undo bool) {
 	if ed.curbuf.b_op_end.lnum > ed.curbuf.b_ml.ml_line_count {
 		ed.curbuf.b_op_end.lnum = ed.curbuf.b_ml.ml_line_count
 	}
-	ed.curwin.w_cursor = new_curpos
+	ed.curwin.w_cursor.lnum = new_curpos_lnum
+	ed.curwin.w_cursor.col = new_curpos_col
+	ed.curwin.w_cursor.coladd = new_curpos_coladd
 	ed.check_cursor_lnum()
 	curhead.uh_entry = newlist
 	curhead.uh_flags = new_flags
@@ -57537,19 +59316,23 @@ func (ed *Editor) shell_new_columns() {
 }
 
 func (ed *Editor) win_comp_pos() {
+	var frame_comp_pos__o frame_comp_pos__out_T
 	var row int32 = 0
 	var col int32 = 0
-	ed.frame_comp_pos(ed.topframe, &row, &col)
+	frame_comp_pos__o = ed.frame_comp_pos(ed.topframe, row, col)
+	row = frame_comp_pos__o.row
+	col = frame_comp_pos__o.col
+	_ = 0
 }
 
-func (ed *Editor) frame_comp_pos(topfrp *S_frame_S, row *int32, col *int32) {
+func (ed *Editor) frame_comp_pos(topfrp *S_frame_S, row int32, col int32) frame_comp_pos__out_T {
 	var wp *S_window_S
 	var h int32
 	wp = topfrp.fr_win
 	if wp != nil {
-		if (wp.w_winrow != (*row)) || (wp.w_wincol != (*col)) {
-			wp.w_winrow = (*row)
-			wp.w_wincol = (*col)
+		if (wp.w_winrow != row) || (wp.w_wincol != col) {
+			wp.w_winrow = row
+			wp.w_wincol = col
 			ed.redraw_win_later(wp, UPD_NOT_VALID)
 			wp.w_redr_status = true
 		}
@@ -57560,9 +59343,13 @@ func (ed *Editor) frame_comp_pos(topfrp *S_frame_S, row *int32, col *int32) {
 		} else {
 			t1 = h
 		}
-		(*row) += t1
-		(*col) += wp.w_width + wp.w_vsep_width
+		row += t1
+		col += wp.w_width + wp.w_vsep_width
 	}
+	var out__ frame_comp_pos__out_T
+	out__.row = row
+	out__.col = col
+	return out__
 }
 
 func (ed *Editor) win_ensure_size() {
@@ -57645,7 +59432,9 @@ func (ed *Editor) win_fix_scroll(resize int32) {
 		wp.w_do_win_fix_cursor = true
 		if ((int32(ed.p_spk.Get()) == 's') && (wp.w_winrow != wp.w_prev_winrow)) && ((wp.w_botline - 1) <= wp.w_buffer.b_ml.ml_line_count) {
 			diff := (wp.w_winrow - wp.w_prev_winrow) + (wp.w_height - wp.w_prev_height)
-			cursor := wp.w_cursor
+			cursor_lnum := wp.w_cursor.lnum
+			cursor_col_ := wp.w_cursor.col
+			cursor_coladd := wp.w_cursor.coladd
 			topline := wp.w_topline
 			skipcol := wp.w_skipcol
 			wp.w_cursor.lnum = wp.w_botline - 1
@@ -57656,7 +59445,9 @@ func (ed *Editor) win_fix_scroll(resize int32) {
 			}
 			wp.w_fraction = FRACTION_MULT
 			ed.scroll_to_fraction(wp, wp.w_prev_height)
-			wp.w_cursor = cursor
+			wp.w_cursor.lnum = cursor_lnum
+			wp.w_cursor.col = cursor_col_
+			wp.w_cursor.coladd = cursor_coladd
 			if wp.w_topline == topline {
 				wp.w_skipcol = skipcol
 			}

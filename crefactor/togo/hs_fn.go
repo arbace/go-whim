@@ -47,6 +47,7 @@ type hfn struct {
 	loop   map[*lblock]bool    // a loop's head: a jump back reaches it
 	fixed  map[*lvar]bool      // parameters never assigned: read from the scope
 	pure   bool                // a function of its arguments (hseffects.go)
+	tuple  bool                // its struct result is a tuple (hsstruct.go)
 	outs   []*lvar             // the out-parameters, as values (hsout.go)
 	sv     map[*lvar][]*lvar   // a struct that is a value -> its members' variables (hsstruct.go)
 	svOf   map[*lvar]*lvar
@@ -80,7 +81,8 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		}
 	}
 	ft := lf.ft
-	f.sret = isAggr(ft.Result())
+	f.tuple = h.tupleRet(d.Name())
+	f.sret = isAggr(ft.Result()) && !f.tuple
 	f.ret = f.h.hsType(ft.Result())
 	f.outVars()
 	f.structVars()
@@ -477,6 +479,19 @@ func (f *hfn) store(lhs cc.ExpressionNode, x hv) {
 		f.storeStruct(a, x.rec)
 		return
 	}
+	if isAggr(t) && x.tup != nil {
+		// a tuple's members written where they go
+		f.lines = append(f.lines, x.binds...)
+		base := hv{val: f.flush(a.base), ht: "P"}
+		st := t.(*cc.StructType)
+		for i, v := range x.tup {
+			fl := st.FieldByIndex(i)
+			ma := f.member(haddr{base: base, off: a.off, syms: a.syms, symOff: a.symOff}, t, fl)
+			ht := f.h.hsType(fl.Type())
+			f.emit("wr%s %s %s %s", hsAccess(ht), base.val, offStr(ma), v)
+		}
+		return
+	}
 	base := f.flush(a.base)
 	if isAggr(t) {
 		src := f.flush(x)
@@ -659,7 +674,12 @@ func (f *hfn) initInto(base string, off int, t cc.Type, in *cc.Initializer) {
 			f.no(e, "a bit field's initializer")
 		}
 		if isAggr(it) {
-			if x := f.expr(e); x.rec != nil {
+			if x := f.expr(e); x.rec != nil || x.tup != nil {
+				if x.tup != nil {
+					x = f.materialize(x, it)
+					f.emit("copyMem (pAdd %s %d) %s %d", base, at, f.flush(x), it.Size())
+					return
+				}
 				f.storeStruct(haddr{base: hv{val: base, ht: "P"}, off: at}, x.rec)
 				return
 			}
@@ -731,8 +751,17 @@ func (f *hfn) term(b *lblock, depth int) {
 		switch {
 		case t.ret.isZero():
 			f.result(hsZero(f.ret))
+		case f.tuple:
+			x := f.lexpr(t.ret)
+			f.result("(" + strings.Join(f.structVals(x, f.lf.ft.Result()), ", ") + ")")
 		case f.sret:
-			if x := f.lexpr(t.ret); x.rec != nil {
+			if x := f.lexpr(t.ret); x.rec != nil || x.tup != nil {
+				if x.tup != nil {
+					x = f.materialize(x, f.lf.ft.Result())
+					f.emit("copyMem sret' %s %d", f.flush(x), f.lf.ft.Result().Size())
+					f.emit("pure ()")
+					return
+				}
 				f.storeStruct(haddr{base: hv{val: "sret'", ht: "P"}}, x.rec)
 				f.emit("pure ()")
 				return

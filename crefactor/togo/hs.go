@@ -140,6 +140,9 @@ func (g *gen) writeHs(path string) error {
 	h.outParams()
 	h.structLocals()
 	h.effects()
+	if hsCountHook != nil {
+		hsCountHook(h)
+	}
 
 	var report strings.Builder
 	var funcs []string
@@ -221,6 +224,8 @@ func (g *gen) writeHs(path string) error {
 	}
 	return nil
 }
+
+var hsCountHook func(*hgen) // a test's look at the analyses
 
 // layout gives each file-scope object and each block-scope static its
 // offset in the segment, aligned as C aligns it.
@@ -441,7 +446,7 @@ func (h *hgen) signature(d *cc.Declarator, lf *lfn) (string, []string) {
 		ts = append(ts, "Ed")
 		ps = append(ps, "ed'")
 	}
-	if isAggr(ft.Result()) {
+	if isAggr(ft.Result()) && !h.tupleRet(d.Name()) {
 		ts = append(ts, "Ptr "+h.pointee(ft.Result()))
 		ps = append(ps, "sret'")
 	}
@@ -466,6 +471,9 @@ func (h *hgen) signature(d *cc.Declarator, lf *lfn) (string, []string) {
 		i++
 	}
 	rt := h.sigType(ft.Result())
+	if h.tupleRet(d.Name()) {
+		rt = h.tupleType(ft.Result())
+	}
 	if outs := h.outs[d.Name()]; len(outs) > 0 {
 		var parts []string
 		if rt != "()" {
@@ -483,7 +491,7 @@ func (h *hgen) signature(d *cc.Declarator, lf *lfn) (string, []string) {
 		rt = "(" + rt + ")"
 	}
 	switch {
-	case isAggr(ft.Result()):
+	case isAggr(ft.Result()) && !h.tupleRet(d.Name()):
 		rt = "IO ()"
 	case !h.pure(d.Name()):
 		rt = "IO " + rt
