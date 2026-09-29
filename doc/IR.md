@@ -154,4 +154,9 @@ shared decisions one piece at a time, the suites green throughout.
   phases 176-177.
 - **The IR is the long-term architecture:** start it when there are several
   speed features to share, not for one.
+  The fourth target came (2026-09-29: caprice, the Haskell editor,
+  `doc/HASKELL.md`) and did not need it: it keeps C's own memory, so the
+  decisions the IR's first slice would share -- the Java's representation,
+  the pointer classes -- are none of its business, and it prints the one
+  layer that is shared already, the lowered form.
 - **`editor.go` is not the centre.**

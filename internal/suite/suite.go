@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/arbace/go-whim/braaam"
+	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/vijure"
 )
@@ -301,6 +302,8 @@ func Check(w io.Writer, rev, candSrc string, jvm JVM) error {
 type JVM struct {
 	Java    braaam.Gen
 	Clojure vijure.Gen
+	// Haskell, not on the JVM, is held to the same: --haskell
+	Haskell caprice.Gen
 }
 
 // builds is what a run compares: the C of rev (the reference), the
@@ -354,7 +357,10 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return nil
 		},
 	}
-	var java, clj *jvmEditor
+	var java, clj, hs *jvmEditor
+	if jvm.Haskell != nil {
+		jobs = append(jobs, func() (err error) { hs, err = buildHaskell(jvm.Haskell, candSrc); return })
+	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
 	}
@@ -376,7 +382,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return fail(err)
 		}
 	}
-	for _, e := range []*jvmEditor{java, clj} {
+	for _, e := range []*jvmEditor{java, clj, hs} {
 		if e != nil {
 			b.jvm = append(b.jvm, e)
 		}

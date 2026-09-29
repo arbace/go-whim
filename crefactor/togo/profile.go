@@ -67,6 +67,13 @@ type Profile struct {
 	// or a loop of a function too large for one method is written as a
 	// function of its own (0: the backend's default).
 	CljOutline int
+	// HsModule and HsHost are the Haskell module's name and its host's (the
+	// module the functions declared and not defined are called in).
+	HsModule, HsHost string
+	// HsExports are the functions and file-scope objects the Haskell host
+	// calls back: declared in the module's hs-boot interface, which the
+	// host imports {-# SOURCE #-}, an object as its address, addr'NAME.
+	HsExports []string
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset
@@ -96,6 +103,10 @@ type RuntimeBody struct {
 	// C's parameter names in scope -- for the Java type the C gives its
 	// result (the Clojure backend takes the Java's types).
 	Clj func(result string) string
+	// Hs, when set, is the Haskell function's body -- the lines of its do
+	// block, the C's parameter names in scope, the editor ed' -- for the
+	// Haskell type the C gives its result.
+	Hs func(result string) string
 }
 
 // profile is a Profile's lists as sets, for the lookups.

@@ -22,7 +22,8 @@
 #
 #   make                 fetch if the upstream moved, then every editor: bin/whim
 #                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
-#                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure)
+#                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure),
+#                        bin/caprice (Haskell)
 #   make whim-build      the 145 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about fifteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
@@ -52,7 +53,7 @@ LDFLAGS = -static -no-pie -s
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar  ## everything: fetch if the upstream moved, then the four editors and the jars
+all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar bin/caprice  ## everything: fetch if the upstream moved, then the five editors and the jars
 
 # --- help -----------------------------------------------------------------
 # Every target worth asking for carries its own one-line description, as a `##`
@@ -301,6 +302,19 @@ vijure.jar: bin/vijure  ## the editor in Clojure as one jar: java -jar vijure.ja
 whim-test-clj:  ## the quick suite with the Clojure editor too, required to answer as the C does
 	@go tool whim test $(if $(CLJ_EDITOR),--clojure-editor $(CLJ_EDITOR),--clojure)
 
+# The editor in Haskell (caprice/, doc/HASKELL.md): the core cut from
+# src/whim-vim.c and written as the module Caprice.Editor by the Haskell
+# backend, compiled by GHC with caprice's runtime, host and launcher into
+# lib/caprice and the program bin/caprice.  The core is one module, some
+# three minutes of GHC's time; a build whose core has not moved skips it.
+.PHONY: bin/caprice
+bin/caprice: src/whim-vim.c force  ## the editor in Haskell: Caprice.Editor generated, compiled by GHC
+	@go tool whim caprice
+
+.PHONY: whim-test-hs
+whim-test-hs:  ## the quick suite with the Haskell editor too, required to answer as the C does
+	@go tool whim test --haskell
+
 # ==== the tests
 .PHONY: whim-test
 whim-test:  ## the quick suite: 45 key sessions, required to behave as HEAD's whim-vim.c does
@@ -322,8 +336,8 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo
-	rm -rf lib/braaam lib/vijure
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice braaam.jar vijure.jar editor.lgo
+	rm -rf lib/braaam lib/vijure lib/caprice .cache/caprice-suite
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

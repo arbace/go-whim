@@ -1,0 +1,704 @@
+package togo
+
+// hs_expr.go is an expression of the lowered form printed as Haskell: the
+// lines that must run first -- each memory read and each call a binding of
+// its own, in C's order (the Java's) -- and then a pure value.  An operand of
+// &&, || or ?: that reads or calls runs only where C evaluates it: its lines
+// go inside the branch.  A struct's value is its address; an array's, the
+// address of its first element.
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/arbace/go-whim/crefactor/cc"
+)
+
+// hv is a value: the lines before it, and the pure Haskell expression, of
+// Haskell type ht ("agg" for a struct or union's address, "()" for none).
+type hv struct {
+	binds []string
+	val   string
+	ht    string
+	act   string
+	konst bool  // an integer constant, kv
+	kv    int64 // its value
+	lit   bool  // a string literal's address
+}
+
+// haddr is an lvalue's address: a base address and a constant offset.
+type haddr struct {
+	base  hv
+	off   int
+	field *cc.Field // the member it is, when it is one
+}
+
+func (f *hfn) lexpr(r lexpr) hv {
+	if r.v != nil {
+		return f.varRead(r.v)
+	}
+	if r.raw {
+		return f.node(r.n)
+	}
+	return f.expr(r.n)
+}
+
+// expr is e's value, read through the function's substitutions.
+func (f *hfn) expr(e cc.ExpressionNode) hv {
+	if f.lf != nil {
+		if r, ok := f.lf.sub[e]; ok {
+			return f.lexpr(r)
+		}
+	}
+	return f.node(e)
+}
+
+func (f *hfn) hasSub(e cc.ExpressionNode) bool {
+	if f.lf == nil || len(f.lf.sub) == 0 {
+		return false
+	}
+	found := false
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil || found {
+			return
+		}
+		if x, ok := n.(cc.ExpressionNode); ok {
+			if _, ok := f.lf.sub[x]; ok {
+				found = true
+				return
+			}
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(e)
+	return found
+}
+
+// node is e itself, its operands through the substitutions; an integer
+// constant is its value.
+func (f *hfn) node(e cc.ExpressionNode) hv {
+	if isNullConst(e) && e.Type() != nil && e.Type().Kind() == cc.Ptr {
+		return hv{val: "nullPtr", ht: "P", konst: true}
+	}
+	if k, ok := scalarKind(e.Type()); ok && !hasEffect(e) && !f.hasSub(e) {
+		if v, known := intValue(e.Value()); known {
+			v = truncK(v, k)
+			ht := hsKindType(k)
+			return hv{val: hsLit(v, ht), ht: ht, konst: true, kv: v}
+		}
+	}
+	switch x := e.(type) {
+	case *cc.ConstantExpression:
+		return f.expr(x.ConditionalExpression)
+	case *cc.ExpressionList:
+		if x.ExpressionList != nil {
+			f.no(x, "a comma the lowering did not take apart")
+		}
+		return f.expr(x.AssignmentExpression)
+	case *cc.PrimaryExpression:
+		switch x.Case {
+		case cc.PrimaryExpressionIdent:
+			return f.ident(x)
+		case cc.PrimaryExpressionExpr:
+			return f.expr(x.ExpressionList)
+		case cc.PrimaryExpressionString:
+			sv, ok := x.Value().(cc.StringValue)
+			if !ok {
+				f.no(x, "a wide string")
+			}
+			return hv{val: hsString(string(sv)), ht: "P", lit: true}
+		}
+	case *cc.PostfixExpression:
+		switch x.Case {
+		case cc.PostfixExpressionCall:
+			return f.call(x)
+		case cc.PostfixExpressionComplit:
+			// in a file-scope object's initializer: an object of its own in
+			// the segment (in a function, the lowering made it a temporary)
+			if f.lf != nil {
+				f.no(x, "a compound literal the lowering did not take apart")
+			}
+			t := x.TypeName.Type()
+			off := f.h.anon(t)
+			in := &cc.Initializer{Case: cc.InitializerInitList, InitializerList: x.InitializerList, Token: x.Token}
+			f.initInto("(edSeg ed')", off, t, in)
+			return f.readAt(haddr{base: hv{val: "(edSeg ed')", ht: "P"}, off: off}, t)
+		case cc.PostfixExpressionIndex:
+			// the element's own type: an element that is an array is its
+			// address (grid[i] of int grid[3][4])
+			be := x.PostfixExpression
+			if !isPtrish(be.Type()) {
+				be = x.ExpressionList
+			}
+			t := x.Type()
+			if et := elemOf(be.Type()); et != nil {
+				t = et
+			}
+			return f.readAt(f.addrNode(x), t)
+		case cc.PostfixExpressionSelect, cc.PostfixExpressionPSelect:
+			// the member's own type: an array member's expression is its
+			// decayed pointer, and its value the array's address
+			t := x.Type()
+			if fl := x.Field(); fl != nil && fl.Type() != nil {
+				t = fl.Type()
+			}
+			return f.readAt(f.addrNode(x), t)
+		}
+	case *cc.UnaryExpression:
+		switch x.Case {
+		case cc.UnaryExpressionAddrof:
+			if d := fnDesignator(x.CastExpression); d != nil {
+				return f.fnValue(d)
+			}
+			a := f.addrOf(x.CastExpression)
+			return f.addrVal(a)
+		case cc.UnaryExpressionDeref:
+			if et := elemOf(x.CastExpression.Type()); et != nil && et.Kind() == cc.Function || x.Type() != nil && x.Type().Kind() == cc.Function {
+				return f.expr(x.CastExpression) // *fp is fp
+			}
+			return f.readAt(f.addrNode(x), x.Type())
+		case cc.UnaryExpressionMinus:
+			ht := hsType(x.Type())
+			a := f.conv(f.expr(x.CastExpression), ht)
+			return hv{binds: a.binds, val: "(negate " + a.val + ")", ht: ht}
+		case cc.UnaryExpressionCpl:
+			ht := hsType(x.Type())
+			a := f.conv(f.expr(x.CastExpression), ht)
+			return hv{binds: a.binds, val: "(complement " + a.val + ")", ht: ht}
+		case cc.UnaryExpressionNot:
+			a := f.truth(f.expr(x.CastExpression))
+			return hv{binds: a.binds, val: "(not " + a.val + ")", ht: "Bool"}
+		case cc.UnaryExpressionPlus:
+			return f.conv(f.expr(x.CastExpression), hsType(x.Type()))
+		}
+	case *cc.CastExpression:
+		if x.Case == cc.CastExpressionCast {
+			v := f.expr(x.CastExpression)
+			t := x.Type()
+			switch {
+			case t.Kind() == cc.Void:
+				return hv{binds: v.binds, val: "()", ht: "()"}
+			case isAggr(t):
+				return v
+			}
+			return f.conv(v, hsType(t))
+		}
+	case *cc.MultiplicativeExpression:
+		ops := map[cc.MultiplicativeExpressionCase]string{cc.MultiplicativeExpressionMul: "*", cc.MultiplicativeExpressionDiv: "/", cc.MultiplicativeExpressionMod: "%"}
+		return f.arith(ops[x.Case], f.expr(x.MultiplicativeExpression), f.expr(x.CastExpression), hsType(x.Type()))
+	case *cc.AdditiveExpression:
+		op := "+"
+		if x.Case == cc.AdditiveExpressionSub {
+			op = "-"
+		}
+		return f.additive(x, op, x.AdditiveExpression, x.MultiplicativeExpression)
+	case *cc.ShiftExpression:
+		op := "<<"
+		if x.Case == cc.ShiftExpressionRsh {
+			op = ">>"
+		}
+		return f.arith(op, f.expr(x.ShiftExpression), f.expr(x.AdditiveExpression), hsType(x.Type()))
+	case *cc.AndExpression:
+		return f.arith("&", f.expr(x.AndExpression), f.expr(x.EqualityExpression), hsType(x.Type()))
+	case *cc.ExclusiveOrExpression:
+		return f.arith("^", f.expr(x.ExclusiveOrExpression), f.expr(x.AndExpression), hsType(x.Type()))
+	case *cc.InclusiveOrExpression:
+		return f.arith("|", f.expr(x.InclusiveOrExpression), f.expr(x.ExclusiveOrExpression), hsType(x.Type()))
+	case *cc.RelationalExpression:
+		ops := map[cc.RelationalExpressionCase]string{cc.RelationalExpressionLt: "<", cc.RelationalExpressionGt: ">", cc.RelationalExpressionLeq: "<=", cc.RelationalExpressionGeq: ">="}
+		return f.compare(ops[x.Case], x.RelationalExpression, x.ShiftExpression)
+	case *cc.EqualityExpression:
+		op := "=="
+		if x.Case == cc.EqualityExpressionNeq {
+			op = "/="
+		}
+		return f.compare(op, x.EqualityExpression, x.RelationalExpression)
+	case *cc.LogicalAndExpression:
+		return f.logical(true, x.LogicalAndExpression, x.InclusiveOrExpression)
+	case *cc.LogicalOrExpression:
+		return f.logical(false, x.LogicalOrExpression, x.LogicalAndExpression)
+	case *cc.ConditionalExpression:
+		if x.Case == cc.ConditionalExpressionCond {
+			return f.ternary(x)
+		}
+	case *cc.AssignmentExpression:
+		f.no(x, "an assignment the lowering did not take apart")
+	}
+	f.no(e, "an expression %T", e)
+	return hv{}
+}
+
+// fnDesignator is the function e names, or nil.
+func fnDesignator(e cc.ExpressionNode) *cc.Declarator {
+	if p, ok := unparenE(e).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+		if d, ok := p.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() == cc.Function {
+			return d
+		}
+	}
+	return nil
+}
+
+// fnValue is a function's address: its index in the table.
+func (f *hfn) fnValue(d *cc.Declarator) hv {
+	return hv{val: fmt.Sprintf("(fnPtr %d)", f.h.fnPtrOf(d.Name())), ht: "P"}
+}
+
+// ident is a name's value.
+func (f *hfn) ident(x *cc.PrimaryExpression) hv {
+	switch d := x.ResolvedTo().(type) {
+	case *cc.Declarator:
+		if d.Type() != nil && d.Type().Kind() == cc.Function {
+			return f.fnValue(d)
+		}
+		if f.lf != nil {
+			if v, ok := f.lf.byDecl[d]; ok {
+				return f.varRead(v)
+			}
+		}
+		off, ok := f.h.segOff[f.h.g.a.declKey(d)]
+		if !ok {
+			f.no(x, "an object with no place: %s", d.Name())
+		}
+		return f.readAt(haddr{base: hv{val: "(edSeg ed')", ht: "P"}, off: off}, d.Type())
+	}
+	f.no(x, "a name %s", x.Token.SrcStr())
+	return hv{}
+}
+
+// varRead is a variable's value: its binding, or its memory in the frame.
+func (f *hfn) varRead(v *lvar) hv {
+	if off, ok := f.mem[v]; ok {
+		return f.readAt(haddr{base: hv{val: "fr'", ht: "P"}, off: off}, v.c)
+	}
+	return hv{val: v.name, ht: f.vtype(v)}
+}
+
+// addrVal is an address as a value.
+func (f *hfn) addrVal(a haddr) hv {
+	if a.off == 0 {
+		return hv{binds: a.base.binds, val: a.base.val, ht: "P"}
+	}
+	return hv{binds: a.base.binds, val: fmt.Sprintf("(pAdd %s %s)", a.base.val, hsOff(a.off)), ht: "P"}
+}
+
+// readAt is the value of the object of type t at a: a scalar read, or the
+// address of an array, a struct or a union.
+func (f *hfn) readAt(a haddr, t cc.Type) hv {
+	switch {
+	case t.Kind() == cc.Array || t.Kind() == cc.Function:
+		return f.addrVal(a)
+	case isAggr(t):
+		v := f.addrVal(a)
+		v.ht = "agg"
+		return v
+	}
+	if a.field != nil && a.field.IsBitfield() {
+		f.no(nil, "a bit field")
+	}
+	ht := hsType(t)
+	r := f.tmp()
+	binds := append(append([]string{}, a.base.binds...), fmt.Sprintf("%s <- rd%s %s %s", r, hsAccess(ht), a.base.val, hsOff(a.off)))
+	return hv{binds: binds, val: r, ht: ht}
+}
+
+// addrOf is an lvalue's address.
+func (f *hfn) addrOf(e cc.ExpressionNode) haddr {
+	if f.lf != nil {
+		if r, ok := f.lf.sub[e]; ok {
+			if r.v != nil {
+				off, ok := f.mem[r.v]
+				if !ok {
+					f.no(e, "the address of a variable not in memory")
+				}
+				return haddr{base: hv{val: "fr'", ht: "P"}, off: off}
+			}
+			if !r.raw {
+				return f.addrOf(r.n)
+			}
+		}
+	}
+	return f.addrNode(e)
+}
+
+// addrNode is addrOf of e itself, its operands through the substitutions.
+func (f *hfn) addrNode(e cc.ExpressionNode) haddr {
+	switch x := e.(type) {
+	case *cc.ExpressionList:
+		if x.ExpressionList == nil {
+			return f.addrOf(x.AssignmentExpression)
+		}
+	case *cc.PrimaryExpression:
+		switch x.Case {
+		case cc.PrimaryExpressionExpr:
+			return f.addrOf(x.ExpressionList)
+		case cc.PrimaryExpressionString:
+			return haddr{base: f.node(x)}
+		case cc.PrimaryExpressionIdent:
+			d, ok := x.ResolvedTo().(*cc.Declarator)
+			if !ok {
+				break
+			}
+			if f.lf != nil {
+				if v, ok := f.lf.byDecl[d]; ok {
+					off, inMem := f.mem[v]
+					if !inMem {
+						f.no(x, "the address of %s, which is not in memory", d.Name())
+					}
+					return haddr{base: hv{val: "fr'", ht: "P"}, off: off}
+				}
+			}
+			off, ok := f.h.segOff[f.h.g.a.declKey(d)]
+			if !ok {
+				f.no(x, "an object with no place: %s", d.Name())
+			}
+			return haddr{base: hv{val: "(edSeg ed')", ht: "P"}, off: off}
+		}
+	case *cc.PostfixExpression:
+		switch x.Case {
+		case cc.PostfixExpressionSelect:
+			a := f.addrOf(x.PostfixExpression)
+			fl := x.Field()
+			a.off += int(fl.Offset())
+			a.field = fl
+			return a
+		case cc.PostfixExpressionPSelect:
+			p := f.expr(x.PostfixExpression)
+			fl := x.Field()
+			return haddr{base: p, off: int(fl.Offset()), field: fl}
+		case cc.PostfixExpressionIndex:
+			be, ie := x.PostfixExpression, x.ExpressionList
+			if !isPtrish(be.Type()) {
+				be, ie = ie, be
+			}
+			base := f.expr(be)
+			size := elemSize(be.Type())
+			i := f.expr(ie)
+			if i.konst {
+				return haddr{base: base, off: int(i.kv * size)}
+			}
+			n := f.conv(i, "Int64")
+			binds := append(append([]string{}, base.binds...), n.binds...)
+			return haddr{base: hv{binds: binds, val: fmt.Sprintf("(pAdd %s (fromIntegral %s * %d))", base.val, n.val, size), ht: "P"}}
+		}
+	case *cc.UnaryExpression:
+		if x.Case == cc.UnaryExpressionDeref {
+			return haddr{base: f.expr(x.CastExpression)}
+		}
+	}
+	if isAggr(e.Type()) {
+		return haddr{base: f.expr(e)} // a struct's value is its address
+	}
+	f.no(e, "the address of %T", e)
+	return haddr{}
+}
+
+// hsLit is v as a literal of type ht.
+func hsLit(v int64, ht string) string {
+	switch {
+	case ht == "Bool":
+		if v != 0 {
+			return "True"
+		}
+		return "False"
+	case ht == "P":
+		if v == 0 {
+			return "nullPtr"
+		}
+		return fmt.Sprintf("(i2p %d)", uint64(v))
+	case strings.HasPrefix(ht, "Word"):
+		return fmt.Sprintf("(%d :: %s)", uint64(v)&hsMask(ht), ht)
+	}
+	return fmt.Sprintf("(%d :: %s)", v, ht)
+}
+
+// hsString is a C string's bytes as a pointer to static memory: a
+// primitive string literal, which Haskell stores as its bytes.
+func hsString(s string) string {
+	var b strings.Builder
+	b.WriteString(`(Ptr "`)
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case c == '"' || c == '\\':
+			b.WriteByte('\\')
+			b.WriteByte(c)
+		case c >= 0x20 && c < 0x7f:
+			b.WriteByte(c)
+		default:
+			fmt.Fprintf(&b, "\\%d", c)
+			if i+1 < len(s) && s[i+1] >= '0' && s[i+1] <= '9' {
+				b.WriteString(`\&`)
+			}
+		}
+	}
+	b.WriteString(`"# :: P)`)
+	return b.String()
+}
+
+// conv is v converted to Haskell type to, as C converts.
+func (f *hfn) conv(v hv, to string) hv {
+	if v.ht == to || to == "agg" || to == "()" || v.ht == "agg" {
+		return v
+	}
+	if v.konst && !v.lit && v.ht != "P" {
+		k := v.kv
+		if to == "Bool" && k != 0 {
+			k = 1
+		}
+		return hv{binds: v.binds, val: hsLit(k, to), ht: to, konst: true, kv: k}
+	}
+	var s string
+	switch {
+	case v.ht == "Bool" && to == "P":
+		s = "(i2p (b2i " + v.val + "))"
+	case v.ht == "Bool":
+		s = fmt.Sprintf("(b2i %s :: %s)", v.val, to)
+	case to == "Bool" && v.ht == "P":
+		s = "(" + v.val + " /= nullPtr)"
+	case to == "Bool":
+		s = "(" + v.val + " /= 0)"
+	case v.ht == "P":
+		s = fmt.Sprintf("(fromIntegral (p2i %s) :: %s)", v.val, to)
+	case to == "P":
+		s = "(i2p (fromIntegral " + v.val + "))"
+	default:
+		s = fmt.Sprintf("(fromIntegral %s :: %s)", v.val, to)
+	}
+	return hv{binds: v.binds, val: s, ht: to}
+}
+
+// truth is v as a condition.
+func (f *hfn) truth(v hv) hv { return f.conv(v, "Bool") }
+
+// arith is a op b in Haskell type ht: C's arithmetic on the operands'
+// usual type, which the expression's is.
+func (f *hfn) arith(op string, a, b hv, ht string) hv {
+	a = f.conv(a, ht)
+	if op == "<<" || op == ">>" {
+		b = f.conv(b, "Int64")
+	} else {
+		b = f.conv(b, ht)
+	}
+	binds := append(append([]string{}, a.binds...), b.binds...)
+	var s string
+	switch op {
+	case "+", "-", "*":
+		s = fmt.Sprintf("(%s %s %s)", a.val, op, b.val)
+	case "/":
+		s = fmt.Sprintf("(quot %s %s)", a.val, b.val)
+	case "%":
+		s = fmt.Sprintf("(rem %s %s)", a.val, b.val)
+	case "&":
+		s = fmt.Sprintf("(%s .&. %s)", a.val, b.val)
+	case "|":
+		s = fmt.Sprintf("(%s .|. %s)", a.val, b.val)
+	case "^":
+		s = fmt.Sprintf("(xor %s %s)", a.val, b.val)
+	case "<<":
+		s = fmt.Sprintf("(shiftL %s (fromIntegral %s))", a.val, b.val)
+	case ">>":
+		s = fmt.Sprintf("(shiftR %s (fromIntegral %s))", a.val, b.val)
+	default:
+		f.no(nil, "an operator %s", op)
+	}
+	return hv{binds: binds, val: s, ht: ht}
+}
+
+// additive is + or -: of a pointer and an integer, of two pointers, or of
+// two numbers.
+func (f *hfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) hv {
+	lt, rt := le.Type(), re.Type()
+	switch {
+	case isPtrish(lt) && isPtrish(rt):
+		a, b := f.expr(le), f.expr(re)
+		binds := append(append([]string{}, a.binds...), b.binds...)
+		ht := hsType(x.Type())
+		return hv{binds: binds, val: fmt.Sprintf("(fromIntegral (quot (pSub %s %s) %d) :: %s)", a.val, b.val, elemSize(lt), ht), ht: ht}
+	case isPtrish(lt) || isPtrish(rt):
+		pe, ie := le, re
+		if isPtrish(rt) {
+			pe, ie = re, le
+		}
+		p := f.expr(pe)
+		n := f.conv(f.expr(ie), "Int64")
+		size := elemSize(pe.Type())
+		binds := append(append([]string{}, p.binds...), n.binds...)
+		if pe == le {
+			binds = append(append([]string{}, p.binds...), n.binds...)
+		} else {
+			binds = append(append([]string{}, n.binds...), p.binds...)
+		}
+		sign := ""
+		if op == "-" {
+			sign = "negate "
+		}
+		return hv{binds: binds, val: fmt.Sprintf("(pAdd %s (%s(fromIntegral %s * %d)))", p.val, sign, n.val, size), ht: "P"}
+	}
+	return f.arith(op, f.expr(le), f.expr(re), hsType(x.Type()))
+}
+
+// compare is a comparison: of addresses, or of numbers in their usual type.
+func (f *hfn) compare(op string, le, re cc.ExpressionNode) hv {
+	a, b := f.expr(le), f.expr(re)
+	var ht string
+	if isPtrish(le.Type()) || isPtrish(re.Type()) || le.Type().Kind() == cc.Function || re.Type().Kind() == cc.Function {
+		ht = "P"
+	} else {
+		lk, ok1 := scalarKind(le.Type())
+		rk, ok2 := scalarKind(re.Type())
+		if !ok1 || !ok2 {
+			f.no(le, "a comparison of %s and %s", le.Type(), re.Type())
+		}
+		ht = hsKindType(usualK(lk, rk))
+	}
+	a, b = f.conv(a, ht), f.conv(b, ht)
+	binds := append(append([]string{}, a.binds...), b.binds...)
+	return hv{binds: binds, val: fmt.Sprintf("(%s %s %s)", a.val, op, b.val), ht: "Bool"}
+}
+
+// logical is && (and) or ||: the right operand's lines run only when C
+// evaluates it.
+func (f *hfn) logical(and bool, le, re cc.ExpressionNode) hv {
+	a := f.truth(f.expr(le))
+	b := f.truth(f.expr(re))
+	if len(b.binds) == 0 {
+		op := "||"
+		if and {
+			op = "&&"
+		}
+		return hv{binds: a.binds, val: fmt.Sprintf("(%s %s %s)", a.val, op, b.val), ht: "Bool"}
+	}
+	r := f.tmp()
+	right := doBlock(b)
+	var line string
+	if and {
+		line = fmt.Sprintf("%s <- if %s then %s else pure False", r, a.val, right)
+	} else {
+		line = fmt.Sprintf("%s <- if %s then pure True else %s", r, a.val, right)
+	}
+	return hv{binds: append(append([]string{}, a.binds...), line), val: r, ht: "Bool"}
+}
+
+// doBlock is a value's lines and value as one action.
+func doBlock(v hv) string {
+	if len(v.binds) == 0 {
+		return "pure " + v.val
+	}
+	return "(do { " + strings.Join(v.binds, "; ") + "; pure " + v.val + " })"
+}
+
+// ternary is ?:, each arm's lines only when it is chosen.
+func (f *hfn) ternary(x *cc.ConditionalExpression) hv {
+	c := f.truth(f.expr(x.LogicalOrExpression))
+	ht := hsType(x.Type())
+	a := f.conv(f.expr(x.ExpressionList), ht)
+	b := f.conv(f.expr(x.ConditionalExpression), ht)
+	if len(a.binds) == 0 && len(b.binds) == 0 {
+		return hv{binds: c.binds, val: fmt.Sprintf("(if %s then %s else %s)", c.val, a.val, b.val), ht: ht}
+	}
+	r := f.tmp()
+	line := fmt.Sprintf("%s <- if %s then %s else %s", r, c.val, doBlock(a), doBlock(b))
+	return hv{binds: append(append([]string{}, c.binds...), line), val: r, ht: ht}
+}
+
+// call is a call: of a function the unit defines, of the host's, or through
+// a pointer.  A struct result is written into the frame, and its value is
+// that address.
+func (f *hfn) call(x *cc.PostfixExpression) hv {
+	var args []cc.ExpressionNode
+	for l := x.ArgumentExpressionList; l != nil; l = l.ArgumentExpressionList {
+		args = append(args, l.AssignmentExpression)
+	}
+	var ft *cc.FunctionType
+	var head string
+	var binds []string
+	d := fnDesignator(x.PostfixExpression)
+	if d != nil && d.Name() == "__builtin_expect" && len(args) == 2 {
+		// gcc's hint: its value is its first argument's
+		return f.conv(f.expr(args[0]), hsType(x.Type()))
+	}
+	viaPtr := d == nil
+	if d != nil {
+		ft, _ = d.Type().(*cc.FunctionType)
+		if f.h.defined[d.Name()] != nil {
+			head = f.h.names[d.Name()] + " ed'"
+		} else {
+			head = f.h.host + "." + hsName(d.Name()) + " ed'"
+		}
+	} else {
+		p := f.expr(x.PostfixExpression)
+		binds = append(binds, p.binds...)
+		t := x.PostfixExpression.Type()
+		if pt, ok := t.(*cc.PointerType); ok {
+			t = pt.Elem()
+		}
+		ft, _ = t.(*cc.FunctionType)
+		head = p.val
+	}
+	if ft == nil {
+		f.no(x, "a call of no function type")
+	}
+	params := ft.Parameters()
+	if len(params) == 1 && (params[0].Type() == nil || params[0].Type().Kind() == cc.Void) {
+		params = nil
+	}
+	var vals, rest []string
+	for i, a := range args {
+		if i < len(params) {
+			pt := params[i].Type()
+			if pt.Kind() == cc.Array {
+				pt = pt.Decay()
+			}
+			v := f.conv(f.expr(a), hsParamType(pt))
+			binds = append(binds, v.binds...)
+			vals = append(vals, v.val)
+			continue
+		}
+		v := f.expr(a)
+		binds = append(binds, v.binds...)
+		switch {
+		case v.ht == "Bool":
+			rest = append(rest, "VI (b2i "+v.val+")")
+		case v.ht == "P":
+			rest = append(rest, "VP "+v.val)
+		case strings.HasPrefix(v.ht, "Word"):
+			rest = append(rest, "VU (fromIntegral "+v.val+")")
+		default:
+			rest = append(rest, "VI (fromIntegral "+v.val+")")
+		}
+	}
+	if ft.IsVariadic() {
+		vals = append(vals, "["+strings.Join(rest, ", ")+"]")
+	}
+	rt := ft.Result()
+	if viaPtr {
+		var raws []string
+		for _, v := range vals {
+			raws = append(raws, "toRaw "+v)
+		}
+		call := fmt.Sprintf("callPtr ed' %s [%s]", head, strings.Join(raws, ", "))
+		if isAggr(rt) {
+			f.no(x, "a struct result through a pointer")
+		}
+		ht := hsType(rt)
+		if ht == "()" {
+			return hv{binds: append(binds, call+" >> pure ()"), val: "()", ht: "()"}
+		}
+		r := f.tmp()
+		return hv{binds: append(binds, fmt.Sprintf("%s <- (fromRaw <$> %s :: IO %s)", r, call, ht)), val: r, ht: ht}
+	}
+	if isAggr(rt) {
+		off := f.alloc(nil, rt)
+		dst := fmt.Sprintf("(pAdd fr' %d)", off)
+		line := strings.Join(append([]string{head, dst}, vals...), " ")
+		return hv{binds: append(binds, line), val: dst, ht: "agg"}
+	}
+	line := strings.Join(append([]string{head}, vals...), " ")
+	ht := hsType(rt)
+	if ht == "()" {
+		return hv{binds: append(binds, line), val: "()", ht: "()"}
+	}
+	r := f.tmp()
+	return hv{binds: append(binds, r+" <- "+line), val: r, ht: ht}
+}

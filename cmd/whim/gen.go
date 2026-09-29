@@ -13,8 +13,9 @@ import (
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// runGen writes editor/editor.go, braaam/Editor.java and
-// vijure/src/whim/editor.clj from the core of src/whim-vim.c (or FILE), and
+// runGen writes editor/editor.go, braaam/Editor.java,
+// vijure/src/whim/editor.clj and caprice/Caprice/Editor.hs (with its
+// hs-boot) from the core of src/whim-vim.c (or FILE), and
 // internal/gen/sigs.md beside them -- or, with --check, refuses when any is
 // not what the generator writes.  It cuts the core itself (whim.Cut), as `whim
 // java` and `whim clj` do, into a directory of its own: nothing is written
@@ -89,11 +90,30 @@ func runGen(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim gen: the Clojure backend refused part of the core:\n%s", r)
 		return 1
 	}
+	// And in Haskell (doc/HASKELL.md): the module Caprice.Editor and its
+	// hs-boot interface, which caprice's host imports, refusing nothing.
+	hdir, err := os.MkdirTemp("", "hsgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	defer os.RemoveAll(hdir)
+	hsOut := filepath.Join(out, "Editor.hs")
+	if err := hsGen(editorC, hdir, hsOut); err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	if r, err := os.ReadFile(hsOut + ".refused"); err == nil && len(bytes.TrimSpace(r)) > 0 {
+		fmt.Fprintf(os.Stderr, "whim gen: the Haskell backend refused part of the core:\n%s", r)
+		return 1
+	}
 	files := []struct{ made, tracked string }{
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
 		{javaOut, "braaam/Editor.java"},
 		{cljOut, "vijure/src/whim/editor.clj"},
+		{hsOut, "caprice/Caprice/Editor.hs"},
+		{filepath.Join(out, "Editor.hs-boot"), "caprice/Caprice/Editor.hs-boot"},
 	}
 	fail, changed := false, false
 	for _, f := range files {
@@ -124,6 +144,7 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s is what internal/gen writes from whim-vim.c\n", "editor.go")
 		fmt.Printf("  %-12s is what the Java backend writes from whim-vim.c\n", "Editor.java")
 		fmt.Printf("  %-12s is what the Clojure backend writes from whim-vim.c\n", "editor.clj")
+		fmt.Printf("  %-12s is what the Haskell backend writes from whim-vim.c\n", "Editor.hs")
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
@@ -131,6 +152,8 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
 		c, _ := os.ReadFile("vijure/src/whim/editor.clj")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))
+		hs, _ := os.ReadFile("caprice/Caprice/Editor.hs")
+		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.hs", bytes.Count(hs, []byte("\n")))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")
 	}

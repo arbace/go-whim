@@ -116,6 +116,17 @@ func matchLinesJava(string) string {
 `
 }
 
+// matchLinesHs is match_lines()'s body in Haskell: the chunks on forkIO's
+// threads (Caprice.Rt's chunks), each on an engine the core's alloc_clear
+// makes, the C's sizes asked of the front end.
+func matchLinesHs(string) string {
+	return `chunks (fromIntegral n) $ \from to -> do
+  re <- alloc_clear ed' {{sizeof regengine_T}}
+  match_chunk ed' re rmp do_all buf lines line1 (fromIntegral from) (fromIntegral to) found
+  failed <- rdB re {{offsetof regengine_T failed}}
+  pure (not failed)`
+}
+
 func matchLinesClj(string) string {
 	return `(Rt/chunks n (reify whim.rt.Rt$Chunk
               (run [_ from to]
@@ -166,10 +177,16 @@ var Gen = togo.Profile{
 	// the C's loop over lines in parallel chunks.
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
-		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj},
+		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs},
 	},
 	// what the Clojure host's printf reads of the core's state
 	CljExports: []string{"IObuff", "e_val_too_large"},
+	// caprice, the Haskell editor: its module, its host's, and what the host
+	// calls back -- the printf's error messages and cells, and the death
+	// of a SIGHUP or a SIGTERM (caprice/host)
+	HsModule:   "Caprice.Editor",
+	HsHost:     "Caprice.Host",
+	HsExports:  []string{"deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
 	Allocators: allocators,
 	// vim_free: the garbage collector owns memory, and what is freed walks
 	// nothing.

@@ -8,9 +8,9 @@
 # The binaries: the input's and the C product's, and the editors'.
 /bin/
 
-# The Java and Clojure editors' builds: their sources and classes (make
-# bin/braaam, bin/vijure), and the same as one jar at the top (make
-# braaam.jar, vijure.jar).
+# The Java, Clojure and Haskell editors' builds: their sources and classes
+# or objects (make bin/braaam, bin/vijure, bin/caprice), and the same as one
+# jar at the top (make braaam.jar, vijure.jar).
 /lib/
 /braaam.jar
 /vijure.jar

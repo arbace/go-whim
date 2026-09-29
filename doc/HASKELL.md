@@ -1,101 +1,148 @@
-# The editor in Haskell: a plan
+# caprice: the editor in Haskell
 
-**A preliminary plan, not scheduled** (2026-09-26): there is no intention to
-translate the editor to Haskell. It is kept as what was measured and how it
-would be done, should that change.
+**Built** (2026-09-29): caprice is the fourth translation of the core, beside
+the Go (`editor/`), the Java (`braaam/`) and the Clojure (`vijure/`), and held
+to the same test: `whim test --haskell` and `--wide --haskell` answer all 80
+and all 240 cases as the C does, with a control of its own. It was planned here
+on 2026-09-26 and not scheduled; the plan held, and what changed is recorded
+below.
 
-Written 2026-09-26, when the core's C was translated to Go, Java and Clojure,
-each answering every case of `whim test` as the C does. A Haskell editor is
-the next target, held to the same test: `whim test --haskell`.
+```
+go tool whim caprice        # bin/caprice, built in lib/caprice
+make bin/caprice            # the same
+make whim-test-hs           # the quick suite with caprice too
+go tool whim test --wide --haskell
+```
 
 ## What is on the machine
 
 GHC 9.14.1 with its boot packages only -- `base`, `array`, `bytestring`,
-`containers`, `mtl`, `unix` -- and no `cabal`: the editor must build with
-`ghc --make` from those alone, which keeps the build offline. `base` holds
-`Foreign` (raw memory, pointers, `Storable`), and `unix` holds the terminal
-(`System.Posix.Terminal`) and the signals (`System.Posix.Signals`).
+`containers`, `stm`, `time`, `unix` -- and no `cabal`: caprice builds with
+`ghc --make` from those alone, offline.
 
-Measured: a synthetic module shaped as the output will be -- 2,000 functions
-of memory reads, writes and wrapping arithmetic in `IO`, 22,006 lines --
-compiles in **29 s at -O0 and 20 s at -O1, about 1 GB at the peak**. The core
-will be some 70,000-80,000 lines: one module would be minutes and several GB.
+## The approach: C's own memory
 
-## The approach
-
-**C's own memory model, through `Foreign`.** The Go, Java and Clojure editors
-model C's memory in managed objects -- a pointer class analysis, `Ptr[T]` and
-`BytePtr`, structs as classes -- because their languages have no raw memory.
-Haskell has: `Foreign.Ptr` is an address with `plusPtr`, `minusPtr` and
-ordering, `peekByteOff`/`pokeByteOff` read and write at an offset, and
-`copyBytes`/`moveBytes`/`fillBytes` are memcpy, memmove and memset. So the
-translation keeps C's memory exactly:
+The Go, Java and Clojure editors model C's memory in managed objects -- a
+pointer class analysis, `Ptr[T]` and `BytePtr`, structs as classes -- because
+their languages have no raw memory. Haskell has: `Foreign.Ptr` is an address,
+`peekByteOff`/`pokeByteOff` read and write at an offset. So the translation
+keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
 
 - **every C object lives in raw memory**, laid out as the C lays it out on
-  amd64 -- sizes and offsets from the C front end's types (`crefactor/cc`),
-  which already computes them;
-- **a pointer is an address** (`Ptr ()`, cast as the C casts): walking,
-  comparing, subtracting, walking backwards and punning are C's, so the
-  pointer-class analysis the other backends need is not needed -- nor the
-  string-as-slice question, nor the unions, which are the C's bytes;
-- **the file-scope objects are one data segment per editor**, the string
-  literals a read-only segment, an address-taken local `allocaBytes`, and
-  `host_alloc` an arena, as the C host's is;
-- **a function pointer stored in memory is an index** into the editor's table
-  of Haskell functions, since a closure cannot live in raw memory.
+  amd64 -- the sizes and offsets are the C front end's (`crefactor/cc`);
+- **a pointer is an address**, `Ptr ()`: walking, comparing, subtracting and
+  punning are C's, so none of the pointer analysis the other backends need
+  is used -- nor the unions' discriminants, nor the string-as-slice question;
+- **the file-scope objects are one segment per editor**, each at its offset
+  (`edSeg ed'`), their initial values written when the editor is made; a
+  string literal is a primitive string literal (`Ptr "..."#`), static
+  memory GHC stores as its bytes; a compound literal in a file-scope
+  initializer gets room of its own in the segment;
+- **a local whose address is taken, or that is an array, a struct or a
+  union, lives in its call's frame** (`frame n $ \fr' -> ...`,
+  `allocaBytes`), zeroed; every other local is a Haskell binding;
+- **a function pointer is an index** into the table of the functions whose
+  address is taken (`fnTable`), at an address no object has, since a Haskell
+  function cannot live in raw memory; a call through one passes its
+  arguments as their 64 bits;
+- **a struct passed by value is its address**, which the callee copies into
+  its frame; **a struct result** is written through an address the caller
+  gives (`sret'`), room in the caller's frame.
 
 Unsafe, and not idiomatic Haskell; but exactly the C's semantics, with the
-least translation, and the other backends' hardest problems gone.
+least translation.
 
-**Control flow as join points.** The Clojure backend's lowered form
-(`crefactor/togo`'s basic blocks in three-address form) is reused: each block
-becomes a local function of the live locals, each jump a tail call, each
-assignment a new binding. GHC compiles a known tail call to a local function
-as a jump, so every construct -- early return, `break`, `continue`,
-fall-through and the 49 gotos -- is one mechanism, with no state machine.
+## Control flow: join points
 
-**Arithmetic by type.** `Data.Int` and `Data.Word` have C's widths and wrap as
-C's unsigned types do; conversions are `fromIntegral`, C's usual conversions
-decided as the other backends decide them; signed division is `quot`/`rem`,
-shifts `unsafeShiftL`/`unsafeShiftR` on the right type. Every value strict
-(bang patterns, `IO` throughout), so no thunks build up.
+The Clojure backend's lowered form (`crefactor/togo/lower.go`: a function as
+basic blocks in three-address form) is the input. Each block is a local
+function of the variables live at its start, each jump a tail call of one,
+and each assignment to a variable a new binding of its name, `!x <- pure e`
+(a `let` would be recursive in Haskell: `let !t = t + 1` is a loop, which is
+how the first run found out). GHC compiles a known tail call to a local
+function as a jump, so every construct -- early return, `break`,
+`continue`, fall-through and the 49 gotos -- is one mechanism, with no state
+machine and no nesting analysis: none of `clj_shape.go` is needed.
 
-**The host in Haskell.** Raw mode, the window size and the keys with
-`System.Posix.Terminal`; the signals with `installHandler`, whose handlers
-run on their own threads and set flags and wake a pipe, as the Go's and the
-Java's do; input with a timeout with `threadWaitRead` and `timeout`;
-`vim_snprintf` ported from `editor/format.go`, and held to it byte for byte
-as the Java's `Printf` is.
+An expression prints as the lines that run first -- each memory read and
+each call a binding of its own, in C's order -- and a pure value; an operand
+of `&&`, `||` or `?:` that reads or calls runs only where C evaluates it
+(`crefactor/togo/hs_expr.go`). The integer types are `Data.Int` and
+`Data.Word`, of C's widths; conversions `fromIntegral`, C's usual
+conversions decided as the other backends decide them (`usualK`); signed
+division `quot` and `rem`; a C bool a `Bool`, a byte in memory.
 
-## Milestones
+## The host
 
-Each verified before the next.
+The core calls 17 host functions, whose types the backend writes beside the
+module (`Editor.hs.host`). They are Haskell, from the C host half of
+`whim-vim.c`, function by function (`caprice/host/Caprice/Host.hs`): raw
+mode and the keys with `System.Posix.Terminal`, the window's size with an
+`ioctl` (a `capi` import), the signals with `installHandler` -- each sets a
+flag and writes to a pipe, as the C's handlers do -- the wait for input a
+`poll(2)` on the keys and the pipe (a safe foreign call, so that the
+handlers, threads of the threaded RTS, run meanwhile), the arena 1 GiB
+`calloc`ed and bumped atomically, and `host_exit` an exception `main`
+catches. `vim_snprintf` is `editor/format.go` ported
+(`caprice/host/Caprice/Printf.hs`).
 
-1. **A slice on foreign C.** The runtime (the arena, the segments, the
-   function table, the literals) and the printer for the slice the Java's and
-   the Clojure's first milestones covered, over the lowered form. Verified by
-   foreign C programs translated, compiled with `ghc`, and required to print
-   what gcc's build prints, with a control. Measured: compile time and memory
-   per thousand lines of output, which decides the module layout -- one
-   module, or modules by the call graph's strongly connected components,
-   with `.hs-boot` files or calls through the function table across them.
-   And a coverage report on `editor.c`.
-2. **Every function**, and the core compiling within the measured budget.
-3. **The host, the launcher and the suite**: `bin/whim-hs`, and `whim test
-   --haskell` / `--wide --haskell` answering the 45 and 240 cases as the C
-   does, with the Haskell editor's own control.
-4. **Kept current**: the generated modules tracked, written by `whim gen`,
-   and refused by `whim-editor-check` when stale.
+The host calls back into the core -- the printf's error messages, the death
+of a SIGHUP -- so the two modules are mutually recursive: the backend writes
+`Editor.hs-boot`, the interface of what the profile names
+(`Profile.HsExports`, `internal/whim/gen.go`), which the host imports
+`{-# SOURCE #-}`.
 
-## Risks, named in advance
+Found by the suite on the way: a wait on GHC's I/O manager
+(`threadWaitReadSTM`) cannot watch a regular file (the quick suite's keys
+are one: epoll says EPERM), and on a pseudo-terminal a zero-timeout wait
+raced the manager's notice of the keys already queued, so vim thought none
+were and sent a terminal query the C does not; asking the kernel directly,
+as the C does, gives the C's answer.
 
-- **Compile time and memory**, measured above: the module split is decided in
-  milestone 1, and `ghc -j` builds modules in parallel.
-- **The call graph's cycles** across modules, if it must be split: vim's core
-  is mostly one strongly connected component, so a split may need the
-  function table for its cross-module calls, at a cost in speed.
-- **Unsafety**: a wrong offset is a wrong read, not an exception. The layout
-  comes from the C front end, which already gives the C's sizes; a test
-  compares the layout of every struct with gcc's `offsetof`.
-- **The RTS**: signal handlers on their own threads, as in Java; the stack
-  grows as needed (`+RTS -K` if a deep recursion needs more).
+## The parallel :%s
+
+`match_lines` (phases 176-177) has a Haskell body of its own
+(`RuntimeBody.Hs`, `internal/whim/gen.go`): the chunks on `forkIO`'s
+threads (`chunks`, `Caprice.Rt`), each on a regex engine the core's
+`alloc_clear` makes -- its size and its `failed` member's offset asked of the
+C front end (`{{sizeof regengine_T}}`, `{{offsetof regengine_T failed}}`,
+which the backend fills). The program runs with a capability a core and one
+thread collecting (`-with-rtsopts=-N -qg`): the parallel collector made the
+sequential work slower.
+
+## Measured
+
+- **The backend writes all 1,710 functions of the core and refuses none**:
+  122,743 lines of Haskell, 5.6 MB, tracked as `caprice/Caprice/Editor.hs`
+  (with its hs-boot) and refused by `whim-editor-check` when stale.
+- **One module, not split**: the plan feared minutes and several GB; GHC
+  compiles it in 198 s and 4.9 GB at `-O0`, and 183 s and 4.0 GB at `-O1`,
+  which is what caprice uses. No `.hs-boot` for the core's own calls, no
+  function table for them. A build whose core has not moved skips it
+  (`caprice.Build` writes a source only when it differs), and the suite keeps
+  its two builds in `.cache/caprice-suite/`.
+- **Speed**: the heavy case 1.4-1.5 times the C (the Go 0.5, the Java 1.8-2.1,
+  the Clojure 4.2-4.4). A `:%s` at 500,000 lines (the survey's buffer,
+  `doc/PARALLEL-SUBSTITUTE.md`; seconds, median of three less the build):
+
+  | | lit | dense | bt | cls | sel | :g bt |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | C | 1.80 | 4.01 | 25.7 | 3.95 | .424 | 23.4 |
+  | caprice, sequential | 2.37 | 3.93 | 18.0 | 7.97 | .502 | 16.4 |
+  | caprice | 1.62 | 2.99 | 1.24 | .869 | .137 | 1.57 |
+
+  Start-up 0.06 s with a capability a core, 0.00 without.
+- **Tests**: `crefactor/togo`'s `TestHs*` translate fifteen of the Java and
+  Clojure tests' C programs, compile each with GHC and require it to print
+  what gcc's build prints; `TestHsControl` undoes one of C's rules at a
+  time in the Haskell -- unsigned division, an unsigned char's widening, an
+  unsigned shift, a struct's copy -- and each moves the output.
+
+## Not done
+
+- **Idiomatic Haskell**: the core is C in Haskell's syntax -- raw memory, IO
+  everywhere, join points. The Go, Java and Clojure editors' idiom surveys
+  have no Haskell counterpart yet.
+- **More than one editor per process**: the host's state is the process's
+  (the C host's static state), where the Go, Java and Clojure hosts allow
+  many; the core itself is per editor (`Ed`).
