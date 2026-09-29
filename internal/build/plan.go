@@ -810,4 +810,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim179"}},
 		}},
+	{N: 180, Name: "the host's clock can be held still",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim180"}},
+		}},
 }

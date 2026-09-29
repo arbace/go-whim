@@ -234,9 +234,40 @@ func (h *Host) NowMs() int64 {
 	return (sec-h.nowBase)*1000 + usec/1000
 }
 
-// Time is the Unix time.
+// Time is the Unix time -- or WHIM_TIME, when the environment holds it:
+// a clock held still, which the suite sets so that undo's "N seconds ago"
+// does not depend on when a run crossed a second (phase 180; the C host's
+// host_time() reads it the same way, as atol does).
 func (h *Host) Time() int64 {
+	if t, ok := pinnedTime(); ok {
+		return t
+	}
 	return time.Now().Unix()
+}
+
+// pinnedTime is WHIM_TIME read as atol reads it: an optional sign, then the
+// digits there are.
+func pinnedTime() (int64, bool) {
+	s := os.Getenv("WHIM_TIME")
+	if s == "" {
+		return 0, false
+	}
+	neg := false
+	if s[0] == '-' || s[0] == '+' {
+		neg = s[0] == '-'
+		s = s[1:]
+	}
+	var n int64
+	for _, c := range []byte(s) {
+		if c < '0' || c > '9' {
+			break
+		}
+		n = n*10 + int64(c-'0')
+	}
+	if neg {
+		n = -n
+	}
+	return n, true
 }
 
 // sleep is nanosleep(ms): it ends early when a caught signal arrives, as

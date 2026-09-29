@@ -124,6 +124,13 @@ func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
 	return runLimit(bin, args, keys, 10*time.Second)
 }
 
+// pinnedTime holds every editor's clock still (phase 180: WHIM_TIME, which
+// host_time() returns when it is set).  undo's message says how long ago a
+// change was, in whole seconds of the wall clock, and a run that crossed a
+// second between the change and the undo said "1 second ago" -- now and then,
+// under load, for the editors on the JVM.  Held, it is "0 seconds ago".
+const pinnedTime = "WHIM_TIME=1790000000"
+
 // runLimit is RunArgs with the time after which the editor is killed.
 func runLimit(bin string, args []string, keys []byte, limit time.Duration) ([]byte, int, error) {
 	// THE KEYS ARE A FILE, NOT A PIPE.  The editor asks whether more typed input
@@ -144,6 +151,7 @@ func runLimit(bin string, args []string, keys []byte, limit time.Duration) ([]by
 		return nil, -1, err
 	}
 	cmd := exec.Command(bin, args...)
+	cmd.Env = append(os.Environ(), pinnedTime)
 	cmd.Stdin = in
 	// ITS OWN PROCESS GROUP.  `:suspend` and `:stop` signal the editor's whole group,
 	// and in ours that stops the test and the shell that ran it.  And it dies

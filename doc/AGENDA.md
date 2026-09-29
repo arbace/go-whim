@@ -13,21 +13,7 @@ Nothing queued.
 
 ## Known stale, not yet scoped
 
-- **The `insert` case is timed for the editors on the JVM.** Its keys end in
-  an undo, and vim's message says how long ago the change was: "0 seconds
-  ago" -- "1 second ago" when an editor takes more than a second between
-  the two. Under a load of 20-30 on this machine, 1-2 of 48 simultaneous
-  runs of `bin/vijure` say so (measured on HEAD's build and on the build
-  after the nesting rules alike), and `whim test --clojure` failed once on
-  it (2026-09-27). The C and the Go are far from the second. A fix belongs
-  in the case (no undo message) or the host (a clock the suite pins).
-  The wide suite's `keys` group failed once each for the Java and the
-  Clojure editors the same day, under a load of 60 or more from another
-  project, and not in eight reruns: the same kind, not identified.
-  `undo_redo` is the same (its keys end in undo and redo, "0 seconds
-  ago"): the Java editor's quick suite and the Clojure editor's wide one
-  each failed on it once on 2026-09-28, beside a pipeline check, and not
-  in 32 runs 16 at a time.
+Nothing known.
 
 
 ## Declined, with the reason recorded

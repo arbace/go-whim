@@ -367,9 +367,29 @@ public final class Term implements Host {
         return (sec - nowBase) * 1000 + usec / 1000;
     }
 
+    /**
+     * The Unix time -- or WHIM_TIME, when the environment holds it: a clock
+     * held still, which the suite sets so that undo's "N seconds ago" does not
+     * depend on when a run crossed a second (phase 180; the C host reads it
+     * the same way, as atol does).
+     */
     @Override
     public long time() {
-        return Instant.now().getEpochSecond();
+        String s = System.getenv("WHIM_TIME");
+        if (s == null || s.isEmpty()) {
+            return Instant.now().getEpochSecond();
+        }
+        int i = 0;
+        boolean neg = false;
+        if (s.charAt(0) == '-' || s.charAt(0) == '+') {
+            neg = s.charAt(0) == '-';
+            i = 1;
+        }
+        long n = 0;
+        for (; i < s.length() && s.charAt(i) >= '0' && s.charAt(i) <= '9'; i++) {
+            n = n * 10 + (s.charAt(i) - '0');
+        }
+        return neg ? -n : n;
     }
 
     /**

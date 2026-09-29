@@ -73743,6 +73743,7 @@ vim_main(int argc, char **argv)
 #include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -75412,6 +75413,11 @@ musl_now_ms(void)
     static long
 host_time(void)
 {
+    char *pinned = getenv("WHIM_TIME");
+    if (pinned != nullptr && *pinned != NUL)
+    {
+        return atol(pinned);
+    }
     return time(nullptr);
 }
 

@@ -99,7 +99,7 @@ func RunPty(bin string, args []string, keys []byte, spec ptySpec) ([]byte, int, 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
-	env := []string{"TERM=" + spec.term, "PATH=" + os.Getenv("PATH"), "HOME=" + os.TempDir()}
+	env := []string{"TERM=" + spec.term, "PATH=" + os.Getenv("PATH"), "HOME=" + os.TempDir(), pinnedTime}
 	cmd.Env = env
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = slave, slave, slave
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Setctty: true}
