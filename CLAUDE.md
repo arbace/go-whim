@@ -312,7 +312,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md and
                    RUST.md (preliminary plans for a Haskell and a Rust editor, not
-                   scheduled), IR.md (where a feature goes in the chain,
+                   scheduled), WASM.md (the same, for the Go editor in a
+                   browser: what compiles already, the host it would need), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
                    what is shared and duplicated, a schema, a migration path),
