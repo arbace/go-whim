@@ -351,7 +351,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    JAVA-IDIOMS.md's items 1-3, 4's masks and 6.1 (phase 174), HASKELL-IDIOMS.md's all but what it declines),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
-                   Clojure editor), HASKELL.md (caprice, the Haskell editor:
+                   Clojure editor), CLOJURE-PROFILE.md (where its time goes in
+                   the heavy case, beside the C's, and the change it chose), HASKELL.md (caprice, the Haskell editor:
                    its design and what was measured), RUST.md (a preliminary
                    plan for a Rust editor, not scheduled), WASM.md (the same, for the Go editor in a
                    browser: what compiles already, the host it would need), IR.md (where a feature goes in the chain,
