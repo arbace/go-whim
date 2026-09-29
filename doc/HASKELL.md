@@ -153,5 +153,5 @@ sequential work slower.
 ## Not done
 
 - **Idiomatic Haskell**: the core is C in Haskell's syntax -- raw memory, IO
-  everywhere, join points. The Go, Java and Clojure editors' idiom surveys
-  have no Haskell counterpart yet.
+  everywhere, join points. `doc/HASKELL-IDIOMS.md` surveys what could change,
+  measured and ranked; none of it is done but its item 12, the host.
