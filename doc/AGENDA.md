@@ -9,15 +9,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-- **The Clojure editor's big functions compiled sooner**
-  (`doc/CLOJURE-PROFILE.md`). The heavy case's profile: `ex_substitute`,
-  `win_line` and `match_chunk` run interpreted -- called a handful of times,
-  looping thousands of lines inside, under C1's 60,000-back-edge threshold
-  -- at 23 to 800 times the C's time each. A state machine split at 50,000
-  (`CljSplit`, `internal/whim/gen.go`) and `-XX:Tier3BackEdgeThreshold=6000`
-  in the launcher's flags: the heavy case 1.93 -> 1.69 s, short sessions
-  as they were. Needs the suites (the split changes the namespace) and the
-  heavy case at other sizes (the flag compiles more).
+Nothing queued.
 
 ## Known stale, not yet scoped
 

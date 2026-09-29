@@ -22214,711 +22214,2618 @@
 (defn reg-iswordc? [^Editor ed ^S_regengine_S re ^long c]
   (vim-iswordc-buf? ed c (.reg-buf ^T_regexec_T (.-rex re))))
 
-(defn regatom ^BytePtr [^Editor ed ^S_regengine_S re ^IntPtr flagp]
-  (let [^T_reg__out_T reg__o (new-T_reg__out_T)
-        ^ints vcol (int-array 1)
-        ^longs tl__ (long-array 2)
-        ^objects to__ (object-array 3)]
-    (loop [st 0
-           ^S_regengine_S re re
-           ^IntPtr flagp flagp
-           ^BytePtr ret nil
-           c 0
-           sw 0
-           extra 0
-           delim-nl false
-           save-prev-at-start 0
-           ^BytePtr lp nil
-           ^BytePtr lastbranch nil
-           ^BytePtr lastnode nil
-           ^BytePtr br nil
-           n 0
-           cmp 0
-           cur false
-           got-digit false
-           startc 0
-           endc 0
-           cu 0
-           len 0
-           len_2 0]
+(defn- regatom__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
       (case st
         0
-          (let [extra 0
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                sw (aget fl__ 2)
+                extra (aget fl__ 3)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)
+                extra 0
                 delim-nl false
                 save-prev-at-start (g ed prev-at-start)
                 _ (.put flagp (unchecked-int (e WORST)))
                 c (long (getchr ed))
                 sw c]
-            (recur 1 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+            (aset fl__ 1 c)
+            (aset fl__ 2 sw)
+            (aset fl__ 3 extra)
+            (aset fo__ 5 (Boolean/valueOf (boolean delim-nl)))
+            (aset fl__ 4 save-prev-at-start)
+            (recur 1))
         1
-          (case (case sw -162 0 -220 1 -196 2 -194 3 -161 4 (-136 -137 -139 -141 -144 -145 -148 -149 -151 -152 -154 -156 -159 -168 -169 -171 -173 -176 -177 -180 -181 -183 -184 -186 -188 -191 -210) 5 -146 6 -216 7 (-132 -215 -218 0) 8 (-133 -192 -193 -195 -213 -214) 9 -130 10 (-199 -200 -201 -202 -203 -204 -205 -206 -207) 11 -134 12 -219 13 -165 14 -1)
-            0
-              ^BytePtr (regnode ed (e BOL))
-            1
-              ^BytePtr (regnode ed (e EOL))
-            2
-              ^BytePtr (regnode ed (e BOW))
-            3
-              ^BytePtr (regnode ed (e EOW))
-            4
-              (let [c (long (no-Magic ed (long (getchr ed))))]
-                (if (== c 37)
-                  (let [delim-nl true
-                        c (long (no-Magic ed (long (getchr ed))))]
-                    (if (or (== c 41) (== c 93) (== c 125) (== c 62) (== c 102) (== c 116))
-                      (let [^BytePtr ret (regatom-delim ed c delim-nl flagp)]
-                        (when-not (nil? ret)
-                          ret))
-                      (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                          (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0))))
-                          (g! ed rc-did-emsg (e TRUE))
-                          nil)))
-                  (if (== c 94)
-                    ^BytePtr (regnode ed (e BOL))
-                    (if (== c 36)
-                      ^BytePtr (regnode ed (e EOL))
-                      (let [extra (e ADD_NL)]
-                        (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASNL))))
-                        (if (== c 91)
-                          (let [sw -165]
-                            (recur 1 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                          (recur 34 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))))
-            5
-              (recur 34 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
-            6
-              (if (zero? (g ed reg-string))
-                (let [^BytePtr ret (regnode ed (e NEWL))]
-                  (.put flagp (unchecked-int (bit-or (long (.get flagp)) 9)))
-                  ret)
-                (let [^BytePtr ret (regnode ed (e EXACTLY))]
-                  (regc ed (e NL))
-                  (regc ed (e NUL))
-                  (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
-                  ret))
-            7
-              (if (zero? (g ed one-exactly))
-                (do (.set reg__o (reg ed re (e REG_PAREN)))
-                    (let [flags (.flagp reg__o)
-                          ^BytePtr ret (.r__ reg__o)]
-                      (when-not (nil? ret)
-                        (.put flagp (unchecked-int (bit-or (long (.get flagp)) (bit-and flags 29))))
-                        ret)))
-                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil))
-            8
-              (if (zero? (g ed one-exactly))
-                (do (iemsg ed (BytePtr. (g ed e-internal-error-in-regexp) 0))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil)
-                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil))
-            9
-              (let [c (long (no-Magic ed c))]
-                (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-str-chr-follows-nothing) 0)) (object-array [(if (if (== c 42) (>= (g ed reg-magic) (e MAGIC_ON)) (== (g ed reg-magic) (e MAGIC_ALL))) (BytePtr/lit "") (BytePtr/lit "\\")) (Integer/valueOf (unchecked-int c))]))
-                (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-str-chr-follows-nothing) 0))))
-                (g! ed rc-did-emsg (e TRUE))
-                nil)
-            10
-              (if (some? (g ed reg-prev-sub))
-                (let [^BytePtr ret (regnode ed (e EXACTLY))
-                      ^BytePtr lp (g ed reg-prev-sub)]
-                  (recur 33 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil))
-            11
-              (let [refnum (i32 (- c -208))]
-                (when (seen-endbrace ed refnum)
-                  ^BytePtr (regnode ed (i32 (+ (e BACKREF) refnum)))))
-            12
-              (let [c (long (no-Magic ed (long (getchr ed))))]
-                (case c
-                  115
-                    (let [^BytePtr ret (regnode ed 80)]
-                      (when (re-mult-next ed (BytePtr/lit "\\zs"))
-                        ret))
-                  101
-                    (let [^BytePtr ret (regnode ed 90)]
-                      (when (re-mult-next ed (BytePtr/lit "\\ze"))
-                        ret))
-                  (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-bsl-z) 0)))
-                      (g! ed rc-did-emsg (e TRUE))
-                      nil)))
-            13
-              (let [c (long (no-Magic ed (long (getchr ed))))]
-                (case (case c 40 0 94 1 36 2 35 3 86 4 67 5 91 6 (100 111 117 120 85) 7 (102 116 125 41 93) 8 62 9 -1)
-                  0
-                    (if (zero? (g ed one-exactly))
-                      (do (.set reg__o (reg ed re (e REG_NPAREN)))
-                          (let [flags (.flagp reg__o)
-                                ^BytePtr ret (.r__ reg__o)]
-                            (when-not (nil? ret)
-                              (.put flagp (unchecked-int (bit-or (long (.get flagp)) (bit-and flags 29))))
-                              ret)))
-                      (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                          (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
-                          (g! ed rc-did-emsg (e TRUE))
-                          nil))
-                  1
-                    ^BytePtr (regnode ed (e RE_BOF))
-                  2
-                    ^BytePtr (regnode ed (e RE_EOF))
-                  3
-                    (if (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 61) (>= (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 48) (<= (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 50))
-                      (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0)) (object-array [(Integer/valueOf (unchecked-int (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff)))]))
-                          (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0))))
-                          nil)
-                      ^BytePtr (regnode ed (e CURSOR)))
-                  4
-                    ^BytePtr (regnode ed (e RE_VISUAL))
-                  5
-                    ^BytePtr (regnode ed (e RE_COMPOSING))
-                  6
-                    (if (zero? (g ed one-exactly))
-                      (let [^BytePtr lastnode nil
-                            ^BytePtr ret nil]
-                        (recur 28 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                          (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
-                          (g! ed rc-did-emsg (e TRUE))
-                          nil))
-                  7
-                    (let [i (case c
-                              100
-                                (long (getdecchrs ed))
-                              111
-                                (long (getoctchrs ed))
-                              120
-                                (long (gethexchrs ed 2))
-                              117
-                                (long (gethexchrs ed 4))
-                              85
-                                (long (gethexchrs ed 8))
-                              -1)]
-                      (if (or (< i 0) (> i (e INT_MAX)))
-                        (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str-2) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                            (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str-2) 0))))
-                            (g! ed rc-did-emsg (e TRUE))
-                            nil)
-                        (let [^BytePtr ret (if (use-multibytecode ed (i32 i))
-                                             ^BytePtr (regnode ed (e MULTIBYTECODE))
-                                             ^BytePtr (regnode ed (e EXACTLY)))]
-                          (if (== i 0)
-                            (regc ed 10)
-                            (regmbc ed (i32 i)))
-                          (regc ed (e NUL))
-                          (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
-                          ret)))
-                  8
-                    (let [^BytePtr ret (regatom-delim ed c delim-nl flagp)]
-                      (when-not (nil? ret)
-                        ret))
-                  9
-                    (if (and (not (< (u32 (- (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 48)) 10)) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 39)) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 46)))
-                      (let [^BytePtr ret (regatom-delim ed c delim-nl flagp)]
-                        (when-not (nil? ret)
-                          ret))
-                      (recur 25 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                  (recur 25 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            14
-              (let [^BytePtr lp_2 (skip-anyof ed (aget (g ed regparse) 0))]
-                (if (== (bit-and (.get lp_2) 0xff) 93)
-                  (let [startc -1
-                        ^BytePtr ret (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 94)
-                                       (let [^BytePtr ret (regnode ed (i32 (+ (e ANYBUT) extra)))]
-                                         (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                                         ret)
-                                       ^BytePtr (regnode ed (i32 (+ (e ANYOF) extra))))
-                        startc (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45))
-                                 (let [startc (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff)
-                                       ^BytePtr t5 (aget (g ed regparse) 0)]
-                                   (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                                   (regc ed (bit-and (.get t5) 0xff))
-                                   startc)
-                                 startc)]
-                    (recur 5 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                  (if (zero? (g ed reg-strict))
-                    (recur 2 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
-                    (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0)) (object-array [(if (> (g ed reg-magic) (e MAGIC_OFF)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                        (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0))))
-                        (g! ed rc-did-emsg (e TRUE))
-                        nil))))
-            (recur 2 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                sw (aget fl__ 2)
+                extra (aget fl__ 3)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)]
+            (case (case sw -162 0 -220 1 -196 2 -194 3 -161 4 (-136 -137 -139 -141 -144 -145 -148 -149 -151 -152 -154 -156 -159 -168 -169 -171 -173 -176 -177 -180 -181 -183 -184 -186 -188 -191 -210) 5 -146 6 -216 7 (-132 -215 -218 0) 8 (-133 -192 -193 -195 -213 -214) 9 -130 10 (-199 -200 -201 -202 -203 -204 -205 -206 -207) 11 -134 12 -219 13 -165 14 -1)
+              0
+                (recur 284)
+              1
+                (recur 283)
+              2
+                (recur 282)
+              3
+                (recur 281)
+              4
+                (recur 265)
+              5
+                (recur 269)
+              6
+                (recur 262)
+              7
+                (recur 257)
+              8
+                (recur 254)
+              9
+                (recur 253)
+              10
+                (recur 245)
+              11
+                (recur 242)
+              12
+                (recur 236)
+              13
+                (recur 146)
+              14
+                (recur 2)
+              (recur 4)))
         2
-          (if (use-multibytecode ed c)
-            (let [^BytePtr ret (regnode ed (e MULTIBYTECODE))]
-              (regmbc ed c)
-              (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
-              ret)
-            (let [^BytePtr ret (regnode ed (e EXACTLY))
-                  len_2 0]
-              (recur 3 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                extra (aget fl__ 3)
+                ^BytePtr lp_2 (skip-anyof ed (aget (g ed regparse) 0))]
+            (if (== (bit-and (.get lp_2) 0xff) 93)
+              (recur 16)
+              (recur 3)))
         3
-          (if (and (not (== c (e NUL))) (or (== len_2 0) (and (== (long (re-multi-type ed (long (peekchr ed)))) (e NOT_MULTI)) (zero? (g ed one-exactly)) (not (< c 0)))))
-            (let [c (long (no-Magic ed c))]
-              (regmbc ed c)
-              (recur 4 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-            (do (ungetchr ed)
-                (regc ed (e NUL))
-                (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
-                (if (== len_2 1)
-                  (do (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e SIMPLE))))
-                      ret)
-                  ret)))
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)]
+            (if (zero? (g ed reg-strict))
+              (recur 4)
+              (recur 15)))
         4
-          (let [l (long (utf-ptr2len ed (aget (g ed regparse) 0)))]
-            (if (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (aget (g ed regparse) 0) l))))
-              (do (regmbc ed (long (utf-ptr2char ed (aget (g ed regparse) 0))))
-                  (skipchr ed)
-                  (recur 4 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (let [c (long (getchr ed))
-                    len_2 (i32 (inc len_2))]
-                (recur 3 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)]
+            (if (use-multibytecode ed c)
+              (recur 14)
+              (recur 5)))
         5
-          (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)))
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45)
-              (do (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                  (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL)) (== startc -1) (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 92) (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 110)))
-                    (do (regc ed 45)
-                        (let [startc 45]
-                          (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-                    (let [endc 0
-                          endc (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
-                                 (long (get-coll-element ed (Ptr. (g ed regparse) 0)))
-                                 endc)
-                          endc (if (== endc 0)
-                                 (long (mb-ptr2char-adv ed (Ptr. (g ed regparse) 0)))
-                                 endc)
-                          endc (if (and (== endc 92) (zero? (g ed reg-cpo-lit)) (zero? (g ed reg-cpo-bsl)))
-                                 (long (coll-get-char ed))
-                                 endc)]
-                      (if (> startc endc)
-                        (do (emsg ed (gettext_ ed (BytePtr. (g ed e-reverse-range-in-character-class) 0)))
-                            (g! ed rc-did-emsg (e TRUE))
-                            nil)
-                        (if (or (> (long (utf-char2len ed startc)) 1) (> (long (utf-char2len ed endc)) 1))
-                          (if (> endc (i32 (+ startc 256)))
-                            (do (emsg ed (gettext_ ed (BytePtr. (g ed e-range-too-large-in-character-class) 0)))
-                                (g! ed rc-did-emsg (e TRUE))
-                                nil)
-                            (recur 22 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                          (recur 21 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))
-              (if (and (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))))))
-                (do (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                    (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 110)
-                      (do (when-not (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
-                            (when (== (bit-and (.get ret) 0xff) (e ANYOF))
-                              (.put ret (unchecked-byte 51))
-                              (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASNL))))))
-                          (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                          (let [startc -1]
-                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-                      (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 100) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 111) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 120) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 117) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 85))
-                        (let [startc (long (coll-get-char ed))]
-                          (if (== startc (e INT_MAX))
-                            (do (emsg ed (gettext_ ed (BytePtr. (g ed e-unicode-val-too-large) 0)))
-                                (g! ed rc-did-emsg (e TRUE))
-                                nil)
-                            (if (== startc 0)
-                              (do (regc ed 10)
-                                  (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                              (do (regmbc ed startc)
-                                  (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
-                        (let [^BytePtr t6 (aget (g ed regparse) 0)
-                              _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                              startc (long (backslash-trans ed (bit-and (.get t6) 0xff)))]
-                          (regc ed startc)
-                          (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
-                (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
-                  (let [c-class (long (get-char-class ed (Ptr. (g ed regparse) 0)))
-                        startc -1]
-                    (case c-class
-                      99
-                        (let [c-class (long (get-coll-element ed (Ptr. (g ed regparse) 0)))]
-                          (if (== c-class 0)
-                            (let [^BytePtr t7 (aget (g ed regparse) 0)
-                                  _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                                  startc (bit-and (.get t7) 0xff)]
-                              (regc ed startc)
-                              (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                            (do (regmbc ed c-class)
-                                (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
-                      0
-                        (let [cu 1]
-                          (recur 20 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      1
-                        (let [cu 1]
-                          (recur 19 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      2
-                        (do (regc ed 32)
-                            (regc ed 9)
-                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      3
-                        (let [cu 1]
-                          (recur 18 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      4
-                        (let [cu 1]
-                          (recur 17 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      5
-                        (let [cu 1]
-                          (recur 16 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      6
-                        (let [cu 1]
-                          (recur 15 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      7
-                        (let [cu 1]
-                          (recur 14 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      8
-                        (let [cu 1]
-                          (recur 13 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      9
-                        (let [cu 9]
-                          (recur 12 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      10
-                        (let [cu 1]
-                          (recur 11 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      11
-                        (let [cu 1]
-                          (recur 10 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      12
-                        (do (regc ed 9)
-                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      13
-                        (do (regc ed 13)
-                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      14
-                        (do (regc ed 8)
-                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      15
-                        (do (regc ed 27)
-                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      16
-                        (let [cu 1]
-                          (recur 9 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      17
-                        (let [cu 1]
-                          (recur 8 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      18
-                        (let [cu 1]
-                          (recur 7 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-                  (let [startc (long (utf-ptr2char ed (aget (g ed regparse) 0)))
-                        len (long (utfc-ptr2len ed (aget (g ed regparse) 0)))
-                        startc (if (== (long (utf-char2len ed startc)) len)
-                                 startc
-                                 -1)]
-                    (recur 6 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
-            (do (regc ed (e NUL))
-                (g! ed prevchr-len 1)
-                (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)
-                  (do (skipchr ed)
-                      (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
-                      ret)
-                  (do (emsg ed (gettext_ ed (BytePtr. (g ed e-too-many-brackets) 0)))
-                      (g! ed rc-did-emsg (e TRUE))
-                      nil))))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                len_2 (aget fl__ 14)
+                ^BytePtr ret (regnode ed (e EXACTLY))
+                len_2 0]
+            (aset fo__ 3 ret)
+            (aset fl__ 14 len_2)
+            (recur 6))
         6
-          (let [len (i32 (dec len))]
-            (if (>= len 0)
-              (let [^BytePtr t8 (aget (g ed regparse) 0)]
-                (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                (regc ed (bit-and (.get t8) 0xff))
-                (recur 6 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                len_2 (aget fl__ 14)]
+            (if (and (not (== c (e NUL))) (or (== len_2 0) (and (== (long (re-multi-type ed (long (peekchr ed)))) (e NOT_MULTI)) (zero? (g ed one-exactly)) (not (< c 0)))))
+              (recur 9)
+              (recur 7)))
         7
-          (if (<= cu 255)
-            (do (when (vim-isfilec? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 7 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                len_2 (aget fl__ 14)]
+            (ungetchr ed)
+            (regc ed (e NUL))
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
+            (if (== len_2 1)
+              (recur 8)
+              (recur 285)))
         8
-          (if (<= cu 255)
-            (do (when (reg-iswordc? ed re cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 8 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e SIMPLE))))
+            (recur 285))
         9
-          (if (<= cu 255)
-            (do (when (vim-isIDc? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 9 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                len_2 (aget fl__ 14)
+                c (long (no-Magic ed c))]
+            (regmbc ed c)
+            (aset fl__ 1 c)
+            (recur 10))
         10
-          (if (<= cu 255)
-            (do (when (vim-isxdigit? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 10 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                len_2 (aget fl__ 14)
+                l (long (utf-ptr2len ed (aget (g ed regparse) 0)))]
+            (if (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (aget (g ed regparse) 0) l))))
+              (recur 11)
+              (recur 12)))
         11
-          (if (<= cu 255)
-            (do (when (vim-isupper? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 11 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                len_2 (aget fl__ 14)]
+            (regmbc ed (long (utf-ptr2char ed (aget (g ed regparse) 0))))
+            (skipchr ed)
+            (recur 10))
         12
-          (if (<= cu 13)
-            (do (regc ed cu)
-                (let [cu (i32 (inc cu))]
-                  (recur 12 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (do (regc ed 32)
-                (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                len_2 (aget fl__ 14)
+                c (long (getchr ed))]
+            (aset fl__ 1 c)
+            (recur 13))
         13
-          (if (< cu 128)
-            (do (when (musl-ispunct? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 13 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                len_2 (aget fl__ 14)
+                len_2 (i32 (inc len_2))]
+            (aset fl__ 14 len_2)
+            (recur 6))
         14
-          (if (<= cu 255)
-            (do (when (vim-isprintc? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 14 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                ^BytePtr ret (regnode ed (e MULTIBYTECODE))]
+            (regmbc ed c)
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
+            (aset fo__ 3 ret)
+            (recur 285))
         15
-          (if (<= cu 255)
-            (do (when (and (vim-islower? ed cu) (not (== cu 170)) (not (== cu 186)))
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 15 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0)) (object-array [(if (> (g ed reg-magic) (e MAGIC_OFF)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        st))))
+
+(defn- regatom__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         16
-          (if (<= cu 127)
-            (do (when (musl-isgraph? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 16 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                extra (aget fl__ 3)
+                startc (aget fl__ 9)
+                startc -1]
+            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 94)
+              (do (aset fl__ 9 startc)
+                  (recur 18))
+              (do (aset fl__ 9 startc)
+                  (recur 17))))
         17
-          (if (<= cu 127)
-            (do (when (< (u32 (- (u32 cu) 48)) 10)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 17 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                extra (aget fl__ 3)
+                startc (aget fl__ 9)
+                ^BytePtr ret (regnode ed (i32 (+ (e ANYOF) extra)))]
+            (aset fo__ 3 ret)
+            (recur 19))
         18
-          (if (<= cu 127)
-            (do (when (musl-iscntrl? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 18 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                extra (aget fl__ 3)
+                startc (aget fl__ 9)
+                ^BytePtr ret (regnode ed (i32 (+ (e ANYBUT) extra)))]
+            (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+            (aset fo__ 3 ret)
+            (recur 19))
         19
-          (if (< cu 128)
-            (do (when (musl-isalpha? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 19 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45))
+              (recur 20)
+              (recur 21)))
         20
-          (if (< cu 128)
-            (do (when (musl-isalnum? ed cu)
-                  (regmbc ed cu))
-                (let [cu (i32 (inc cu))]
-                  (recur 20 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                startc (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff)
+                ^BytePtr t5 (aget (g ed regparse) 0)]
+            (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+            (regc ed (bit-and (.get t5) 0xff))
+            (aset fl__ 9 startc)
+            (recur 21))
         21
-          (let [startc (i32 (inc startc))]
-            (if (<= startc endc)
-              (do (regc ed startc)
-                  (recur 21 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (recur 23 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (recur 22))
         22
-          (let [startc (i32 (inc startc))]
-            (if (<= startc endc)
-              (do (regmbc ed startc)
-                  (recur 22 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (recur 23 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)))
+              (recur 26)
+              (recur 23)))
         23
-          (let [startc -1]
-            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (regc ed (e NUL))
+            (g! ed prevchr-len 1)
+            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)
+              (recur 24)
+              (recur 25)))
         24
-          (recur 5 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (skipchr ed)
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
+            (recur 285))
         25
-          (if (or (< (u32 (- (u32 c) 48)) 10) (== c 60) (== c 62) (== c 39) (== c 46))
-            (let [n 0
-                  cur false
-                  got-digit false
-                  cmp c
-                  c (if (or (== cmp 60) (== cmp 62))
-                      (long (getchr ed))
-                      c)
-                  j__1 (if (== (long (no-Magic ed c)) 46)
-                         (let [cur true
-                               c (long (getchr ed))]
-                           (aset tl__ 0 c)
-                           (aset to__ 0 (Boolean/valueOf (boolean cur)))
-                           0)
-                         (do (aset tl__ 0 c)
-                             (aset to__ 0 (Boolean/valueOf (boolean cur)))
-                             0))
-                  c (aget tl__ 0)
-                  cur (boolean (aget to__ 0))]
-              (recur 26 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-            (recur 27 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-too-many-brackets) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
         26
-          (if (< (u32 (- (u32 c) 48)) 10)
-            (let [got-digit true
-                  n (+ (* n 10) (i32 (- c 48)))
-                  c (long (getchr ed))]
-              (recur 26 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-            (if (and (== (long (no-Magic ed c)) 39) (== n 0))
-              (let [c (long (getchr ed))
-                    ^BytePtr ret (regnode ed (e RE_MARK))]
-                (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
-                  (do (g! ed regsize (+ (g ed regsize) 2))
-                      ret)
-                  (let [^BytePtr t2 (g ed regcode)
-                        _ (g! ed regcode (.add (g ed regcode) 1))
-                        _ (.put t2 (unchecked-byte c))
-                        ^BytePtr t3 (g ed regcode)]
-                    (g! ed regcode (.add (g ed regcode) 1))
-                    (.put t3 (unchecked-byte cmp))
-                    ret)))
-              (if (and (or (== c 108) (== c 99) (== c 118)) (or cur got-digit))
-                (if (and cur (not (zero? n)))
-                  (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-regexp-number-after-dot-pos-search-chr) 0)) (object-array [(Integer/valueOf (unchecked-int (long (no-Magic ed c))))]))
-                      (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-regexp-number-after-dot-pos-search-chr) 0))))
-                      (g! ed rc-did-emsg (e TRUE))
-                      nil)
-                  (let [j__2 (if (== c 108)
-                               (let [n (if cur
-                                         (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                         n)
-                                     ^BytePtr ret (regnode ed (e RE_LNUM))]
-                                 (if (zero? save-prev-at-start)
-                                   (do (aset to__ 2 ret)
-                                       (aset tl__ 1 n)
-                                       0)
-                                   (do (g! ed at-start (e TRUE))
-                                       (aset to__ 2 ret)
-                                       (aset tl__ 1 n)
-                                       0)))
-                               (if (== c 99)
-                                 (let [n (if cur
-                                           (let [n (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                 n (inc n)]
-                                             n)
-                                           n)
-                                       ^BytePtr ret (regnode ed (e RE_COL))]
-                                   (aset to__ 2 ret)
-                                   (aset tl__ 1 n)
-                                   0)
-                                 (let [n (if cur
-                                           (do (aset vcol 0 (unchecked-int 0))
-                                               (getvvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) nil nil (IntPtr. vcol 0) 0)
-                                               (aset vcol 0 (unchecked-int (inc (long (aget vcol 0)))))
-                                               (long (aget vcol 0)))
-                                           n)
-                                       ^BytePtr ret (regnode ed (e RE_VCOL))]
-                                   (aset to__ 2 ret)
-                                   (aset tl__ 1 n)
-                                   0)))
-                        ^BytePtr ret (aget to__ 2)
-                        n (aget tl__ 1)]
-                    (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
-                      (do (g! ed regsize (+ (g ed regsize) 5))
-                          ret)
-                      (do (g! ed regcode (re-put-long ed (g ed regcode) n))
-                          (let [^BytePtr t4 (g ed regcode)]
-                            (g! ed regcode (.add (g ed regcode) 1))
-                            (.put t4 (unchecked-byte cmp))
-                            ret)))))
-                (recur 27 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45)
+              (recur 125)
+              (recur 27)))
         27
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (if (and (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))))))
+              (recur 113)
+              (recur 28)))
+        28
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
+              (recur 34)
+              (recur 29)))
+        29
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                len (aget fl__ 13)
+                startc (long (utf-ptr2char ed (aget (g ed regparse) 0)))
+                len (long (utfc-ptr2len ed (aget (g ed regparse) 0)))]
+            (if (== (long (utf-char2len ed startc)) len)
+              (do (aset fl__ 9 startc)
+                  (aset fl__ 13 len)
+                  (recur 31))
+              (do (aset fl__ 9 startc)
+                  (aset fl__ 13 len)
+                  (recur 30))))
+        30
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                len (aget fl__ 13)
+                startc -1]
+            (aset fl__ 9 startc)
+            (recur 31))
+        31
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                len (aget fl__ 13)]
+            (recur 32))
+        32
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                len (aget fl__ 13)
+                len (i32 (dec len))]
+            (if (>= len 0)
+              (do (aset fl__ 13 len)
+                  (recur 33))
+              (do (aset fl__ 13 len)
+                  (recur 145))))
+        33
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                len (aget fl__ 13)
+                ^BytePtr t8 (aget (g ed regparse) 0)]
+            (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+            (regc ed (bit-and (.get t8) 0xff))
+            (recur 32))
+        st))))
+
+(defn- regatom__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        34
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                c-class (aget fl__ 11)
+                c-class (long (get-char-class ed (Ptr. (g ed regparse) 0)))
+                startc -1]
+            (case c-class
+              99
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 110))
+              0
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 105))
+              1
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 100))
+              2
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 99))
+              3
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 94))
+              4
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 89))
+              5
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 84))
+              6
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 79))
+              7
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 74))
+              8
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 69))
+              9
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 64))
+              10
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 59))
+              11
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 54))
+              12
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 53))
+              13
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 52))
+              14
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 51))
+              15
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 50))
+              16
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 45))
+              17
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 40))
+              18
+                (do (aset fl__ 9 startc)
+                    (aset fl__ 11 c-class)
+                    (recur 35))
+              (do (aset fl__ 9 startc)
+                  (aset fl__ 11 c-class)
+                  (recur 145))))
+        35
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 36))
+        36
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 37)
+              (recur 145)))
+        37
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (vim-isfilec? ed cu)
+              (recur 38)
+              (recur 39)))
+        38
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 39))
+        39
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 36))
+        40
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 41))
+        41
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 42)
+              (recur 145)))
+        42
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (reg-iswordc? ed re cu)
+              (recur 43)
+              (recur 44)))
+        43
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 44))
+        44
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 41))
+        45
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 46))
+        46
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 47)
+              (recur 145)))
+        47
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (vim-isIDc? ed cu)
+              (recur 48)
+              (recur 49)))
+        48
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 49))
+        49
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 46))
+        50
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 27)
+            (recur 145))
+        st))))
+
+(defn- regatom__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        51
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 8)
+            (recur 145))
+        52
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 13)
+            (recur 145))
+        53
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 9)
+            (recur 145))
+        54
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 55))
+        55
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 56)
+              (recur 145)))
+        56
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (vim-isxdigit? ed cu)
+              (recur 57)
+              (recur 58)))
+        57
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 58))
+        58
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 55))
+        59
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 60))
+        60
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 61)
+              (recur 145)))
+        61
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (vim-isupper? ed cu)
+              (recur 62)
+              (recur 63)))
+        62
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 63))
+        63
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 60))
+        64
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 9]
+            (aset fl__ 12 cu)
+            (recur 65))
+        65
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 13)
+              (recur 67)
+              (recur 66)))
+        66
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 32)
+            (recur 145))
+        67
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regc ed cu)
+            (recur 68))
+        68
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 65))
+        69
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 70))
+        70
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (< cu 128)
+              (recur 71)
+              (recur 145)))
+        71
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (musl-ispunct? ed cu)
+              (recur 72)
+              (recur 73)))
+        72
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 73))
+        73
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 70))
+        74
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 75))
+        75
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 76)
+              (recur 145)))
+        76
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (vim-isprintc? ed cu)
+              (recur 77)
+              (recur 78)))
+        77
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 78))
+        78
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 75))
+        79
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 80))
+        80
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 255)
+              (recur 81)
+              (recur 145)))
+        81
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (and (vim-islower? ed cu) (not (== cu 170)) (not (== cu 186)))
+              (recur 82)
+              (recur 83)))
+        82
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 83))
+        st))))
+
+(defn- regatom__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        83
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 80))
+        84
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 85))
+        85
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 127)
+              (recur 86)
+              (recur 145)))
+        86
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (musl-isgraph? ed cu)
+              (recur 87)
+              (recur 88)))
+        87
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 88))
+        88
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 85))
+        89
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 90))
+        90
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 127)
+              (recur 91)
+              (recur 145)))
+        91
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (< (u32 (- (u32 cu) 48)) 10)
+              (recur 92)
+              (recur 93)))
+        92
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 93))
+        93
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 90))
+        94
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 95))
+        95
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (<= cu 127)
+              (recur 96)
+              (recur 145)))
+        96
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (musl-iscntrl? ed cu)
+              (recur 97)
+              (recur 98)))
+        97
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 98))
+        98
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 95))
+        99
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 32)
+            (regc ed 9)
+            (recur 145))
+        100
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 101))
+        101
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (< cu 128)
+              (recur 102)
+              (recur 145)))
+        102
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (musl-isalpha? ed cu)
+              (recur 103)
+              (recur 104)))
+        103
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 104))
+        104
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 101))
+        105
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu 1]
+            (aset fl__ 12 cu)
+            (recur 106))
+        106
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (< cu 128)
+              (recur 107)
+              (recur 145)))
+        107
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (if (musl-isalnum? ed cu)
+              (recur 108)
+              (recur 109)))
+        108
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)]
+            (regmbc ed cu)
+            (recur 109))
+        109
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                cu (aget fl__ 12)
+                cu (i32 (inc cu))]
+            (aset fl__ 12 cu)
+            (recur 106))
+        110
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                c-class (aget fl__ 11)
+                c-class (long (get-coll-element ed (Ptr. (g ed regparse) 0)))]
+            (if (== c-class 0)
+              (do (aset fl__ 11 c-class)
+                  (recur 111))
+              (do (aset fl__ 11 c-class)
+                  (recur 112))))
+        111
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                ^BytePtr t7 (aget (g ed regparse) 0)
+                _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+                startc (bit-and (.get t7) 0xff)]
+            (regc ed startc)
+            (aset fl__ 9 startc)
+            (recur 145))
+        112
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                c-class (aget fl__ 11)]
+            (regmbc ed c-class)
+            (recur 145))
+        st))))
+
+(defn- regatom__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        113
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 110)
+              (recur 121)
+              (recur 114)))
+        114
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 100) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 111) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 120) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 117) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 85))
+              (recur 116)
+              (recur 115)))
+        115
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                ^BytePtr t6 (aget (g ed regparse) 0)
+                _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+                startc (long (backslash-trans ed (bit-and (.get t6) 0xff)))]
+            (regc ed startc)
+            (aset fl__ 9 startc)
+            (recur 145))
+        116
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                startc (long (coll-get-char ed))]
+            (if (== startc (e INT_MAX))
+              (do (aset fl__ 9 startc)
+                  (recur 120))
+              (do (aset fl__ 9 startc)
+                  (recur 117))))
+        117
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (if (== startc 0)
+              (recur 119)
+              (recur 118)))
+        118
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regmbc ed startc)
+            (recur 145))
+        119
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 10)
+            (recur 145))
+        120
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-unicode-val-too-large) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        121
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
+              (recur 124)
+              (recur 122)))
+        122
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (if (== (bit-and (.get ret) 0xff) (e ANYOF))
+              (recur 123)
+              (recur 124)))
+        123
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (.put ret (unchecked-byte 51))
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASNL))))
+            (recur 124))
+        124
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+            (let [startc -1]
+              (aset fl__ 9 startc)
+              (recur 145)))
+        125
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
+            (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL)) (== startc -1) (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 92) (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 110)))
+              (recur 144)
+              (recur 126)))
+        126
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)
+                endc 0]
+            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
+              (do (aset fl__ 10 endc)
+                  (recur 127))
+              (do (aset fl__ 10 endc)
+                  (recur 128))))
+        127
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)
+                endc (long (get-coll-element ed (Ptr. (g ed regparse) 0)))]
+            (aset fl__ 10 endc)
+            (recur 128))
+        128
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (if (== endc 0)
+              (recur 129)
+              (recur 130)))
+        129
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)
+                endc (long (mb-ptr2char-adv ed (Ptr. (g ed regparse) 0)))]
+            (aset fl__ 10 endc)
+            (recur 130))
+        130
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (if (and (== endc 92) (zero? (g ed reg-cpo-lit)) (zero? (g ed reg-cpo-bsl)))
+              (recur 131)
+              (recur 132)))
+        131
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)
+                endc (long (coll-get-char ed))]
+            (aset fl__ 10 endc)
+            (recur 132))
+        132
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (if (> startc endc)
+              (recur 143)
+              (recur 133)))
+        133
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (if (or (> (long (utf-char2len ed startc)) 1) (> (long (utf-char2len ed endc)) 1))
+              (recur 137)
+              (recur 134)))
+        134
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (recur 135))
+        135
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)
+                startc (i32 (inc startc))]
+            (if (<= startc endc)
+              (do (aset fl__ 9 startc)
+                  (recur 136))
+              (do (aset fl__ 9 startc)
+                  (recur 140))))
+        136
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (regc ed startc)
+            (recur 135))
+        st))))
+
+(defn- regatom__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        137
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (if (> endc (i32 (+ startc 256)))
+              (recur 142)
+              (recur 138)))
+        138
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (recur 139))
+        139
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)
+                startc (i32 (inc startc))]
+            (if (<= startc endc)
+              (do (aset fl__ 9 startc)
+                  (recur 141))
+              (do (aset fl__ 9 startc)
+                  (recur 140))))
+        140
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                startc -1]
+            (aset fl__ 9 startc)
+            (recur 145))
+        141
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)
+                endc (aget fl__ 10)]
+            (regmbc ed startc)
+            (recur 139))
+        142
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-range-too-large-in-character-class) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        143
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-reverse-range-in-character-class) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        144
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (regc ed 45)
+            (let [startc 45]
+              (aset fl__ 9 startc)
+              (recur 145)))
+        145
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                startc (aget fl__ 9)]
+            (recur 22))
+        146
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)
+                c (long (no-Magic ed (long (getchr ed))))]
+            (case (case c 40 0 94 1 36 2 35 3 86 4 67 5 91 6 (100 111 117 120 85) 7 (102 116 125 41 93) 8 62 9 -1)
+              0
+                (do (aset fl__ 1 c)
+                    (recur 231))
+              1
+                (do (aset fl__ 1 c)
+                    (recur 230))
+              2
+                (do (aset fl__ 1 c)
+                    (recur 229))
+              3
+                (do (aset fl__ 1 c)
+                    (recur 226))
+              4
+                (do (aset fl__ 1 c)
+                    (recur 225))
+              5
+                (do (aset fl__ 1 c)
+                    (recur 224))
+              6
+                (do (aset fl__ 1 c)
+                    (recur 199))
+              7
+                (do (aset fl__ 1 c)
+                    (recur 183))
+              8
+                (do (aset fl__ 1 c)
+                    (recur 181))
+              9
+                (do (aset fl__ 1 c)
+                    (recur 147))
+              (do (aset fl__ 1 c)
+                  (recur 148))))
+        147
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)]
+            (if (and (not (< (u32 (- (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 48)) 10)) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 39)) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 46)))
+              (recur 179)
+              (recur 148)))
+        148
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)]
+            (if (or (< (u32 (- (u32 c) 48)) 10) (== c 60) (== c 62) (== c 39) (== c 46))
+              (recur 149)
+              (recur 157)))
+        149
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))
+                n 0
+                cur false
+                got-digit false
+                cmp c]
+            (if (or (== cmp 60) (== cmp 62))
+              (do (aset fl__ 7 n)
+                  (aset fl__ 8 cmp)
+                  (aset fo__ 10 (Boolean/valueOf (boolean cur)))
+                  (aset fo__ 11 (Boolean/valueOf (boolean got-digit)))
+                  (recur 150))
+              (do (aset fl__ 7 n)
+                  (aset fl__ 8 cmp)
+                  (aset fo__ 10 (Boolean/valueOf (boolean cur)))
+                  (aset fo__ 11 (Boolean/valueOf (boolean got-digit)))
+                  (recur 151))))
+        150
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))
+                c (long (getchr ed))]
+            (aset fl__ 1 c)
+            (recur 151))
+        151
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))]
+            (if (== (long (no-Magic ed c)) 46)
+              (recur 152)
+              (recur 153)))
+        152
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))
+                cur true
+                c (long (getchr ed))]
+            (aset fl__ 1 c)
+            (aset fo__ 10 (Boolean/valueOf (boolean cur)))
+            (recur 153))
+        153
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))]
+            (recur 154))
+        154
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))]
+            (if (< (u32 (- (u32 c) 48)) 10)
+              (recur 178)
+              (recur 155)))
+        155
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))]
+            (if (and (== (long (no-Magic ed c)) 39) (== n 0))
+              (recur 175)
+              (recur 156)))
+        156
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))]
+            (if (and (or (== c 108) (== c 99) (== c 118)) (or cur got-digit))
+              (recur 158)
+              (recur 157)))
+        157
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0))))
               (g! ed rc-did-emsg (e TRUE))
-              nil)
-        28
-          (let [c (long (getchr ed))]
+              (aset fo__ 0 nil)
+              -1)
+        st))))
+
+(defn- regatom__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        158
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))]
+            (if (and cur (not (zero? n)))
+              (recur 174)
+              (recur 159)))
+        159
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))]
+            (if (== c 108)
+              (recur 167)
+              (recur 160)))
+        160
+          (let [c (aget fl__ 1)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))]
+            (if (== c 99)
+              (recur 164)
+              (recur 161)))
+        161
+          (let [n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))]
+            (if cur
+              (recur 162)
+              (recur 163)))
+        162
+          (let [n (aget fl__ 7)
+                cmp (aget fl__ 8)]
+            (aset vcol 0 (unchecked-int 0))
+            (getvvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) nil nil (IntPtr. vcol 0) 0)
+            (aset vcol 0 (unchecked-int (inc (long (aget vcol 0)))))
+            (let [n (long (aget vcol 0))]
+              (aset fl__ 7 n)
+              (recur 163)))
+        163
+          (let [^BytePtr ret (aget fo__ 3)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                ^BytePtr ret (regnode ed (e RE_VCOL))]
+            (aset fo__ 3 ret)
+            (recur 171))
+        164
+          (let [n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))]
+            (if cur
+              (recur 165)
+              (recur 166)))
+        165
+          (let [n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                n (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                n (inc n)]
+            (aset fl__ 7 n)
+            (recur 166))
+        166
+          (let [^BytePtr ret (aget fo__ 3)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                ^BytePtr ret (regnode ed (e RE_COL))]
+            (aset fo__ 3 ret)
+            (recur 171))
+        167
+          (let [save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))]
+            (if cur
+              (recur 168)
+              (recur 169)))
+        168
+          (let [save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                n (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
+            (aset fl__ 7 n)
+            (recur 169))
+        169
+          (let [^BytePtr ret (aget fo__ 3)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                ^BytePtr ret (regnode ed (e RE_LNUM))]
+            (if (zero? save-prev-at-start)
+              (do (aset fo__ 3 ret)
+                  (recur 171))
+              (do (aset fo__ 3 ret)
+                  (recur 170))))
+        170
+          (let [^BytePtr ret (aget fo__ 3)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)]
+            (g! ed at-start (e TRUE))
+            (recur 171))
+        171
+          (let [^BytePtr ret (aget fo__ 3)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)]
+            (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
+              (recur 173)
+              (recur 172)))
+        172
+          (let [^BytePtr ret (aget fo__ 3)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)]
+            (g! ed regcode (re-put-long ed (g ed regcode) n))
+            (let [^BytePtr t4 (g ed regcode)]
+              (g! ed regcode (.add (g ed regcode) 1))
+              (.put t4 (unchecked-byte cmp))
+              (recur 285)))
+        173
+          (let [^BytePtr ret (aget fo__ 3)]
+            (g! ed regsize (+ (g ed regsize) 5))
+            (recur 285))
+        174
+          (let [c (aget fl__ 1)]
+            (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-regexp-number-after-dot-pos-search-chr) 0)) (object-array [(Integer/valueOf (unchecked-int (long (no-Magic ed c))))]))
+            (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-regexp-number-after-dot-pos-search-chr) 0))))
+            (g! ed rc-did-emsg (e TRUE))
+            (aset fo__ 0 nil)
+            -1)
+        175
+          (let [^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                cmp (aget fl__ 8)
+                c (long (getchr ed))
+                ^BytePtr ret (regnode ed (e RE_MARK))]
+            (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
+              (do (aset fo__ 3 ret)
+                  (aset fl__ 1 c)
+                  (recur 177))
+              (do (aset fo__ 3 ret)
+                  (aset fl__ 1 c)
+                  (recur 176))))
+        176
+          (let [^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                cmp (aget fl__ 8)
+                ^BytePtr t2 (g ed regcode)
+                _ (g! ed regcode (.add (g ed regcode) 1))
+                _ (.put t2 (unchecked-byte c))
+                ^BytePtr t3 (g ed regcode)]
+            (g! ed regcode (.add (g ed regcode) 1))
+            (.put t3 (unchecked-byte cmp))
+            (recur 285))
+        177
+          (let [^BytePtr ret (aget fo__ 3)]
+            (g! ed regsize (+ (g ed regsize) 2))
+            (recur 285))
+        178
+          (let [c (aget fl__ 1)
+                save-prev-at-start (aget fl__ 4)
+                n (aget fl__ 7)
+                cmp (aget fl__ 8)
+                cur (boolean (aget fo__ 10))
+                got-digit (boolean (aget fo__ 11))
+                got-digit true
+                n (+ (* n 10) (i32 (- c 48)))
+                c (long (getchr ed))]
+            (aset fl__ 1 c)
+            (aset fl__ 7 n)
+            (aset fo__ 11 (Boolean/valueOf (boolean got-digit)))
+            (recur 154))
+        179
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                ^BytePtr ret (regatom-delim ed c delim-nl flagp)]
+            (if (nil? ret)
+              (do (aset fo__ 3 ret)
+                  (recur 180))
+              (do (aset fo__ 3 ret)
+                  (recur 285))))
+        180
+          (do (aset fo__ 0 nil)
+              -1)
+        181
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                ^BytePtr ret (regatom-delim ed c delim-nl flagp)]
+            (if (nil? ret)
+              (do (aset fo__ 3 ret)
+                  (recur 182))
+              (do (aset fo__ 3 ret)
+                  (recur 285))))
+        182
+          (do (aset fo__ 0 nil)
+              -1)
+        st))))
+
+(defn- regatom__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        183
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)]
+            (case c
+              100
+                (recur 189)
+              111
+                (recur 188)
+              120
+                (recur 187)
+              117
+                (recur 186)
+              85
+                (recur 185)
+              (recur 184)))
+        184
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)
+                i -1]
+            (aset fl__ 6 i)
+            (recur 190))
+        185
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)
+                i (long (gethexchrs ed 8))]
+            (aset fl__ 6 i)
+            (recur 190))
+        186
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)
+                i (long (gethexchrs ed 4))]
+            (aset fl__ 6 i)
+            (recur 190))
+        187
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)
+                i (long (gethexchrs ed 2))]
+            (aset fl__ 6 i)
+            (recur 190))
+        188
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)
+                i (long (getoctchrs ed))]
+            (aset fl__ 6 i)
+            (recur 190))
+        189
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)
+                i (long (getdecchrs ed))]
+            (aset fl__ 6 i)
+            (recur 190))
+        190
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)]
+            (if (or (< i 0) (> i (e INT_MAX)))
+              (recur 198)
+              (recur 191)))
+        191
+          (let [^IntPtr flagp (aget fo__ 2)
+                i (aget fl__ 6)]
+            (if (use-multibytecode ed (i32 i))
+              (recur 193)
+              (recur 192)))
+        192
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                i (aget fl__ 6)
+                ^BytePtr ret (regnode ed (e EXACTLY))]
+            (aset fo__ 3 ret)
+            (recur 194))
+        193
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                i (aget fl__ 6)
+                ^BytePtr ret (regnode ed (e MULTIBYTECODE))]
+            (aset fo__ 3 ret)
+            (recur 194))
+        194
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                i (aget fl__ 6)]
+            (if (== i 0)
+              (recur 196)
+              (recur 195)))
+        195
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                i (aget fl__ 6)]
+            (regmbc ed (i32 i))
+            (recur 197))
+        196
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (regc ed 10)
+            (recur 197))
+        197
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (regc ed (e NUL))
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
+            (recur 285))
+        198
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str-2) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str-2) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        199
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)]
+            (if (zero? (g ed one-exactly))
+              (recur 200)
+              (recur 223)))
+        200
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr lastnode nil
+                ^BytePtr ret nil]
+            (aset fo__ 3 ret)
+            (aset fo__ 8 lastnode)
+            (recur 201))
+        201
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                ^BytePtr lastnode (aget fo__ 8)
+                c (long (getchr ed))]
             (if (== c 93)
-              (if (nil? ret)
-                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-empty-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-empty-str-brackets) 0))))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil)
-                (let [^BytePtr lastbranch (regnode ed (e BRANCH))
-                      ^BytePtr br (regnode ed (e NOTHING))]
-                  (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
-                    (recur 30 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
-                    (do (regtail ed re lastnode br)
-                        (regtail ed re lastbranch br)
-                        (let [^BytePtr br ret]
-                          (recur 29 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))
-              (if (== c (e NUL))
-                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-missing-sb-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
-                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-missing-sb-after-str) 0))))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil)
-                (let [^BytePtr br (regnode ed (e BRANCH))]
-                  (if (nil? ret)
-                    (let [^BytePtr ret br]
-                      (recur 32 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                    (do (regtail ed re lastnode br)
-                        (when (zero? (.reg-toolong re))
-                          (recur 32 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))))
-        29
-          (if (BytePtr/eq br lastnode)
-            (recur 30 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+              (do (aset fl__ 1 c)
+                  (recur 202))
+              (do (aset fl__ 1 c)
+                  (recur 214))))
+        202
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastnode (aget fo__ 8)]
+            (if (nil? ret)
+              (recur 213)
+              (recur 203)))
+        203
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)
+                ^BytePtr lastbranch (regnode ed (e BRANCH))
+                ^BytePtr br (regnode ed (e NOTHING))]
+            (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
+              (do (aset fo__ 7 lastbranch)
+                  (aset fo__ 9 br)
+                  (recur 206))
+              (do (aset fo__ 7 lastbranch)
+                  (aset fo__ 9 br)
+                  (recur 204))))
+        204
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)]
+            (regtail ed re lastnode br)
+            (regtail ed re lastbranch br)
+            (let [^BytePtr br ret]
+              (aset fo__ 9 br)
+              (recur 205)))
+        205
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)]
+            (if (BytePtr/eq br lastnode)
+              (recur 206)
+              (recur 207)))
+        206
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (.put flagp (unchecked-int (bit-and (long (.get flagp)) -4)))
+            (recur 285))
+        207
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)]
             (if (== (bit-and (.get br) 0xff) (e BRANCH))
-              (do (regtail ed re br lastbranch)
-                  (when (zero? (.reg-toolong re))
-                    (let [^BytePtr br (.add br 3)]
-                      (recur 31 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
-              (let [^BytePtr br (regnext ed re br)]
-                (recur 31 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
-        30
-          (do (.put flagp (unchecked-int (bit-and (long (.get flagp)) -4)))
-              ret)
-        31
-          (recur 29 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
-        32
-          (do (ungetchr ed)
-              (g! ed one-exactly (e TRUE))
-              (let [^BytePtr lastnode (regatom ed re flagp)]
-                (g! ed one-exactly (e FALSE))
-                (when-not (nil? lastnode)
-                  (recur 28 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
-        33
-          (if (== (bit-and (.get lp) 0xff) (e NUL))
-            (do (regc ed (e NUL))
-                (if (== (bit-and (.get (g ed reg-prev-sub)) 0xff) (e NUL))
-                  ret
-                  (do (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
-                      (if (== (.sub lp (g ed reg-prev-sub)) 1)
-                        (do (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e SIMPLE))))
-                            ret)
-                        ret))))
-            (let [^BytePtr t1 lp
-                  ^BytePtr lp (.add lp 1)]
-              (regc ed (bit-and (.get t1) 0xff))
-              (recur 33 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-        34
-          (let [^BytePtr p (vim-strchr ed (g ed classchars) (long (no-Magic ed c)))]
+              (recur 209)
+              (recur 208)))
+        208
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)
+                ^BytePtr br (regnext ed re br)]
+            (aset fo__ 9 br)
+            (recur 211))
+        st))))
+
+(defn- regatom__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        209
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)]
+            (regtail ed re br lastbranch)
+            (if (zero? (.reg-toolong re))
+              (recur 210)
+              (recur 212)))
+        210
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)
+                ^BytePtr br (.add br 3)]
+            (aset fo__ 9 br)
+            (recur 211))
+        211
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastbranch (aget fo__ 7)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)]
+            (recur 205))
+        212
+          (do (aset fo__ 0 nil)
+              -1)
+        213
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-empty-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-empty-str-brackets) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        214
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                ^BytePtr lastnode (aget fo__ 8)]
+            (if (== c (e NUL))
+              (recur 222)
+              (recur 215)))
+        215
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)
+                ^BytePtr br (regnode ed (e BRANCH))]
+            (if (nil? ret)
+              (do (aset fo__ 9 br)
+                  (recur 218))
+              (do (aset fo__ 9 br)
+                  (recur 216))))
+        216
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastnode (aget fo__ 8)
+                ^BytePtr br (aget fo__ 9)]
+            (regtail ed re lastnode br)
+            (if (zero? (.reg-toolong re))
+              (recur 219)
+              (recur 217)))
+        217
+          (do (aset fo__ 0 nil)
+              -1)
+        218
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr br (aget fo__ 9)
+                ^BytePtr ret br]
+            (aset fo__ 3 ret)
+            (recur 219))
+        219
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastnode (aget fo__ 8)]
+            (ungetchr ed)
+            (g! ed one-exactly (e TRUE))
+            (let [^BytePtr lastnode (regatom ed re flagp)]
+              (g! ed one-exactly (e FALSE))
+              (if (nil? lastnode)
+                (do (aset fo__ 8 lastnode)
+                    (recur 221))
+                (do (aset fo__ 8 lastnode)
+                    (recur 220)))))
+        220
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lastnode (aget fo__ 8)]
+            (recur 201))
+        221
+          (do (aset fo__ 0 nil)
+              -1)
+        222
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-missing-sb-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-missing-sb-after-str) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        223
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        224
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e RE_COMPOSING))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        225
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e RE_VISUAL))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        226
+          (if (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 61) (>= (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 48) (<= (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 50))
+            (recur 228)
+            (recur 227))
+        227
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e CURSOR))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        228
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0)) (object-array [(Integer/valueOf (unchecked-int (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff)))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0))))
+              (aset fo__ 0 nil)
+              -1)
+        229
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e RE_EOF))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        230
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e RE_BOF))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        231
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)]
+            (if (zero? (g ed one-exactly))
+              (recur 232)
+              (recur 235)))
+        232
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                flags (aget fl__ 0)]
+            (.set reg__o (reg ed re (e REG_NPAREN)))
+            (let [flags (.flagp reg__o)
+                  ^BytePtr ret (.r__ reg__o)]
+              (if (nil? ret)
+                (do (aset fo__ 3 ret)
+                    (aset fl__ 0 flags)
+                    (recur 234))
+                (do (aset fo__ 3 ret)
+                    (aset fl__ 0 flags)
+                    (recur 233)))))
+        233
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                flags (aget fl__ 0)]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (bit-and flags 29))))
+            (recur 285))
+        234
+          (do (aset fo__ 0 nil)
+              -1)
+        235
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        236
+          (let [c (aget fl__ 1)
+                c (long (no-Magic ed (long (getchr ed))))]
+            (case c
+              115
+                (do (aset fl__ 1 c)
+                    (recur 240))
+              101
+                (do (aset fl__ 1 c)
+                    (recur 238))
+              (do (aset fl__ 1 c)
+                  (recur 237))))
+        237
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-bsl-z) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        238
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed 90)]
+            (if (re-mult-next ed (BytePtr/lit "\\ze"))
+              (do (aset fo__ 3 ret)
+                  (recur 285))
+              (do (aset fo__ 3 ret)
+                  (recur 239))))
+        239
+          (do (aset fo__ 0 nil)
+              -1)
+        st))))
+
+(defn- regatom__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        240
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed 80)]
+            (if (re-mult-next ed (BytePtr/lit "\\zs"))
+              (do (aset fo__ 3 ret)
+                  (recur 285))
+              (do (aset fo__ 3 ret)
+                  (recur 241))))
+        241
+          (do (aset fo__ 0 nil)
+              -1)
+        242
+          (let [c (aget fl__ 1)
+                refnum (aget fl__ 5)
+                refnum (i32 (- c -208))]
+            (if (seen-endbrace ed refnum)
+              (do (aset fl__ 5 refnum)
+                  (recur 243))
+              (do (aset fl__ 5 refnum)
+                  (recur 244))))
+        243
+          (let [^BytePtr ret (aget fo__ 3)
+                refnum (aget fl__ 5)
+                ^BytePtr ret (regnode ed (i32 (+ (e BACKREF) refnum)))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        244
+          (do (aset fo__ 0 nil)
+              -1)
+        245
+          (let [^IntPtr flagp (aget fo__ 2)]
+            (if (some? (g ed reg-prev-sub))
+              (recur 247)
+              (recur 246)))
+        246
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        247
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lp (aget fo__ 6)
+                ^BytePtr ret (regnode ed (e EXACTLY))
+                ^BytePtr lp (g ed reg-prev-sub)]
+            (aset fo__ 3 ret)
+            (aset fo__ 6 lp)
+            (recur 248))
+        248
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lp (aget fo__ 6)]
+            (if (== (bit-and (.get lp) 0xff) (e NUL))
+              (recur 249)
+              (recur 252)))
+        249
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lp (aget fo__ 6)]
+            (regc ed (e NUL))
+            (if (== (bit-and (.get (g ed reg-prev-sub)) 0xff) (e NUL))
+              (recur 285)
+              (recur 250)))
+        250
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lp (aget fo__ 6)]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
+            (if (== (.sub lp (g ed reg-prev-sub)) 1)
+              (recur 251)
+              (recur 285)))
+        251
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e SIMPLE))))
+            (recur 285))
+        252
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr lp (aget fo__ 6)
+                ^BytePtr t1 lp
+                ^BytePtr lp (.add lp 1)]
+            (regc ed (bit-and (.get t1) 0xff))
+            (aset fo__ 6 lp)
+            (recur 248))
+        253
+          (let [c (aget fl__ 1)
+                c (long (no-Magic ed c))]
+            (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-str-chr-follows-nothing) 0)) (object-array [(if (if (== c 42) (>= (g ed reg-magic) (e MAGIC_ON)) (== (g ed reg-magic) (e MAGIC_ALL))) (BytePtr/lit "") (BytePtr/lit "\\")) (Integer/valueOf (unchecked-int c))]))
+            (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-str-chr-follows-nothing) 0))))
+            (g! ed rc-did-emsg (e TRUE))
+            (aset fo__ 0 nil)
+            -1)
+        254
+          (if (zero? (g ed one-exactly))
+            (recur 255)
+            (recur 256))
+        255
+          (do (iemsg ed (BytePtr. (g ed e-internal-error-in-regexp) 0))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        256
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        257
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)]
+            (if (zero? (g ed one-exactly))
+              (recur 258)
+              (recur 261)))
+        258
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                flags (aget fl__ 0)]
+            (.set reg__o (reg ed re (e REG_PAREN)))
+            (let [flags (.flagp reg__o)
+                  ^BytePtr ret (.r__ reg__o)]
+              (if (nil? ret)
+                (do (aset fo__ 3 ret)
+                    (aset fl__ 0 flags)
+                    (recur 260))
+                (do (aset fo__ 3 ret)
+                    (aset fl__ 0 flags)
+                    (recur 259)))))
+        259
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                flags (aget fl__ 0)]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (bit-and flags 29))))
+            (recur 285))
+        260
+          (do (aset fo__ 0 nil)
+              -1)
+        261
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        262
+          (let [^IntPtr flagp (aget fo__ 2)]
+            (if (zero? (g ed reg-string))
+              (recur 263)
+              (recur 264)))
+        263
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e NEWL))]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) 9)))
+            (aset fo__ 3 ret)
+            (recur 285))
+        264
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e EXACTLY))]
+            (regc ed (e NL))
+            (regc ed (e NUL))
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
+            (aset fo__ 3 ret)
+            (recur 285))
+        265
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)
+                c (long (no-Magic ed (long (getchr ed))))]
+            (if (== c 37)
+              (do (aset fl__ 1 c)
+                  (recur 277))
+              (do (aset fl__ 1 c)
+                  (recur 266))))
+        266
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)]
+            (if (== c 94)
+              (recur 276)
+              (recur 267)))
+        267
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)]
+            (if (== c 36)
+              (recur 275)
+              (recur 268)))
+        st))))
+
+(defn- regatom__11 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
+        268
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                extra (aget fl__ 3)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)
+                extra (e ADD_NL)]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASNL))))
+            (if (== c 91)
+              (do (aset fl__ 3 extra)
+                  (recur 274))
+              (do (aset fl__ 3 extra)
+                  (recur 269))))
+        269
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                ^BytePtr p (aget fo__ 4)
+                extra (aget fl__ 3)
+                ^BytePtr p (vim-strchr ed (g ed classchars) (long (no-Magic ed c)))]
             (if (nil? p)
-              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-use-of-underscore) 0)))
-                  (g! ed rc-did-emsg (e TRUE))
-                  nil)
-              (if (and (== c -210) (utf-iscomposing? ed (long (peekchr ed))))
-                (let [c (long (getchr ed))
-                      ^BytePtr ret (regnode ed (e MULTIBYTECODE))]
-                  (regmbc ed c)
-                  (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
-                  ret)
-                (let [^BytePtr ret (regnode ed (i32 (+ (long (aget (g ed classcodes) (.sub p (g ed classchars)))) extra)))]
-                  (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
-                  ret))))))))
+              (do (aset fo__ 4 p)
+                  (recur 273))
+              (do (aset fo__ 4 p)
+                  (recur 270))))
+        270
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                ^BytePtr p (aget fo__ 4)
+                extra (aget fl__ 3)]
+            (if (and (== c -210) (utf-iscomposing? ed (long (peekchr ed))))
+              (recur 272)
+              (recur 271)))
+        271
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                ^BytePtr p (aget fo__ 4)
+                extra (aget fl__ 3)
+                ^BytePtr ret (regnode ed (i32 (+ (long (aget (g ed classcodes) (.sub p (g ed classchars)))) extra)))]
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
+            (aset fo__ 3 ret)
+            (recur 285))
+        272
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                c (long (getchr ed))
+                ^BytePtr ret (regnode ed (e MULTIBYTECODE))]
+            (regmbc ed c)
+            (.put flagp (unchecked-int (bit-or (long (.get flagp)) 3)))
+            (aset fo__ 3 ret)
+            (aset fl__ 1 c)
+            (recur 285))
+        273
+          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-use-of-underscore) 0)))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        274
+          (let [^S_regengine_S re (aget fo__ 1)
+                ^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                sw (aget fl__ 2)
+                extra (aget fl__ 3)
+                delim-nl (boolean (aget fo__ 5))
+                save-prev-at-start (aget fl__ 4)
+                sw -165]
+            (aset fl__ 2 sw)
+            (recur 1))
+        275
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e EOL))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        276
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e BOL))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        277
+          (let [^IntPtr flagp (aget fo__ 2)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                delim-nl true
+                c (long (no-Magic ed (long (getchr ed))))]
+            (if (or (== c 41) (== c 93) (== c 125) (== c 62) (== c 102) (== c 116))
+              (do (aset fl__ 1 c)
+                  (aset fo__ 5 (Boolean/valueOf (boolean delim-nl)))
+                  (recur 279))
+              (do (aset fl__ 1 c)
+                  (aset fo__ 5 (Boolean/valueOf (boolean delim-nl)))
+                  (recur 278))))
+        278
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
+              (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0))))
+              (g! ed rc-did-emsg (e TRUE))
+              (aset fo__ 0 nil)
+              -1)
+        279
+          (let [^IntPtr flagp (aget fo__ 2)
+                ^BytePtr ret (aget fo__ 3)
+                c (aget fl__ 1)
+                delim-nl (boolean (aget fo__ 5))
+                ^BytePtr ret (regatom-delim ed c delim-nl flagp)]
+            (if (nil? ret)
+              (do (aset fo__ 3 ret)
+                  (recur 280))
+              (do (aset fo__ 3 ret)
+                  (recur 285))))
+        280
+          (do (aset fo__ 0 nil)
+              -1)
+        281
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e EOW))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        282
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e BOW))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        283
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e EOL))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        284
+          (let [^BytePtr ret (aget fo__ 3)
+                ^BytePtr ret (regnode ed (e BOL))]
+            (aset fo__ 3 ret)
+            (recur 285))
+        285
+          (let [^BytePtr ret (aget fo__ 3)]
+            (aset fo__ 0 ret)
+            -1)
+        st))))
+
+(defn regatom ^BytePtr [^Editor ed ^S_regengine_S re ^IntPtr flagp]
+  (let [^T_reg__out_T reg__o (new-T_reg__out_T)
+        ^ints vcol (int-array 1)
+        ^longs fl__ (long-array 15)
+        ^objects fo__ (object-array 14)]
+    (aset fo__ 1 re)
+    (aset fo__ 2 flagp)
+    (aset fl__ 0 0)
+    (aset fl__ 1 0)
+    (aset fl__ 2 0)
+    (aset fl__ 3 0)
+    (aset fo__ 5 false)
+    (aset fl__ 4 0)
+    (aset fl__ 5 0)
+    (aset fl__ 6 0)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
+    (aset fo__ 10 false)
+    (aset fo__ 11 false)
+    (aset fl__ 9 0)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fl__ 14 0)
+    (aset fo__ 12 reg__o)
+    (aset fo__ 13 vcol)
+    (loop [st 0]
+      (let [r__ (if (<= st 15)
+                  (regatom__0 ed fl__ fo__ st)
+                  (if (<= st 33)
+                    (regatom__1 ed fl__ fo__ st)
+                    (if (<= st 50)
+                      (regatom__2 ed fl__ fo__ st)
+                      (if (<= st 82)
+                        (regatom__3 ed fl__ fo__ st)
+                        (if (<= st 112)
+                          (regatom__4 ed fl__ fo__ st)
+                          (if (<= st 136)
+                            (regatom__5 ed fl__ fo__ st)
+                            (if (<= st 157)
+                              (regatom__6 ed fl__ fo__ st)
+                              (if (<= st 182)
+                                (regatom__7 ed fl__ fo__ st)
+                                (if (<= st 208)
+                                  (regatom__8 ed fl__ fo__ st)
+                                  (if (<= st 239)
+                                    (regatom__9 ed fl__ fo__ st)
+                                    (if (<= st 267)
+                                      (regatom__10 ed fl__ fo__ st)
+                                      (regatom__11 ed fl__ fo__ st))))))))))))]
+        (if (neg? r__)
+          ^BytePtr (aget fo__ 0)
+          (recur r__))))))
 
 (defn reginsert [^Editor ed ^long op ^BytePtr opnd]
   (if (BytePtr/eq (g ed regcode) (BytePtr. (g ed reg-calc-size-node) 0))
@@ -25507,6 +27414,21 @@
             (if (and (== (long (aget ^ints (.-fromcol wlv) 0)) (long (aget ^ints (.-tocol wlv) 0))) (not (zero? (g ed search-match-endcol))))
               (recur 11)
               (recur 12)))
+        st))))
+
+(defn- win-line__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         11
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -25945,6 +27867,21 @@
                 ^T_pos_T bot (aget fo__ 12)]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int 0))
             (recur 24))
+        st))))
+
+(defn- win-line__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         24
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -26011,21 +27948,6 @@
             (if (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (== (.col bot) 0) (== (.coladd bot) 0))
               (recur 31)
               (recur 26)))
-        st))))
-
-(defn- win-line__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         26
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -26382,6 +28304,21 @@
             (if (== (.line-attr wlv) 0)
               (recur 38)
               (recur 37)))
+        st))))
+
+(defn- win-line__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         37
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -26794,6 +28731,21 @@
             (if (== (bit-and (.at ptr leadcol) 0xff) (e NUL))
               (recur 50)
               (recur 49)))
+        st))))
+
+(defn- win-line__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         49
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -27040,21 +28992,6 @@
                 v (if (== startrow 0) (i32 (- (.w-skipcol wp) skipcol-in-text-prop-above)) 0)]
             (aset fl__ 13 v)
             (recur 56))
-        st))))
-
-(defn- win-line__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         56
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -27289,6 +29226,21 @@
                   (recur 62))
               (do (aset fo__ 9 (Boolean/valueOf (boolean in-multispace)))
                   (recur 68))))
+        st))))
+
+(defn- win-line__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         62
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -27768,6 +29720,21 @@
             (if (> v (.vcol wlv))
               (recur 75)
               (recur 76)))
+        st))))
+
+(defn- win-line__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         75
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -28082,21 +30049,6 @@
             (aset fl__ 14 area-highlighting)
             (aset fl__ 16 search-attr)
             (recur 84))
-        st))))
-
-(defn- win-line__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         84
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -28232,6 +30184,21 @@
                 on-last-col (aget fl__ 25)]
             (.set-draw-state wlv 1)
             (recur 88))
+        st))))
+
+(defn- win-line__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         88
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -28640,6 +30607,21 @@
             (if (== (.n-extra wlv) 0)
               (recur 100)
               (recur 102)))
+        st))))
+
+(defn- win-line__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         100
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -29028,21 +31010,6 @@
             (if (== (.win-attr wlv) 0)
               (recur 114)
               (recur 111)))
-        st))))
-
-(defn- win-line__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         111
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -29110,6 +31077,21 @@
                 on-last-col (aget fl__ 25)]
             (.set-char-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (.char-attr wlv))))
             (recur 114))
+        st))))
+
+(defn- win-line__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         113
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -29622,6 +31604,21 @@
             (if (== mb-l 0)
               (recur 126)
               (recur 129)))
+        st))))
+
+(defn- win-line__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         126
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -30127,6 +32124,21 @@
                   (recur 138))
               (do (aset fo__ 3 ptr)
                   (recur 166))))
+        st))))
+
+(defn- win-line__11 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         138
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -30166,21 +32178,6 @@
             (if (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
               (recur 141)
               (recur 139)))
-        st))))
-
-(defn- win-line__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         139
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -30595,6 +32592,21 @@
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 151))
+        st))))
+
+(defn- win-line__12 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         150
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -31067,6 +33079,21 @@
             (aset fl__ 7 n-attr)
             (aset fl__ 8 saved-attr2)
             (recur 163))
+        st))))
+
+(defn- win-line__13 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         163
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -31220,21 +33247,6 @@
             (if (and (not (vim-isprintc? ed c)) (not (>= c 128)))
               (recur 167)
               (recur 215)))
-        st))))
-
-(defn- win-line__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         167
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -31502,6 +33514,21 @@
                 on-last-col (aget fl__ 25)]
             (.set-char-attr wlv (.line-attr wlv))
             (recur 215))
+        st))))
+
+(defn- win-line__14 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         174
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -32005,6 +34032,21 @@
               (do (aset fo__ 3 ptr)
                   (aset fl__ 5 lcs-eol-one)
                   (recur 188))))
+        st))))
+
+(defn- win-line__15 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         188
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -32255,21 +34297,6 @@
             (aset fl__ 32 lcs-tab2)
             (aset fl__ 33 lcs-tab3)
             (recur 194))
-        st))))
-
-(defn- win-line__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         194
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -32566,6 +34593,21 @@
             (if (or (not (== (.c-extra wlv) (e NUL))) (and (== (.n-extra wlv) 1) (not (== (.c-final wlv) (e NUL)))))
               (recur 211)
               (recur 201)))
+        st))))
+
+(defn- win-line__16 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         201
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -33126,6 +35168,21 @@
                 on-last-col (aget fl__ 25)]
             (.set-n-extra wlv (i32 (dec (.n-extra wlv))))
             (recur 215))
+        st))))
+
+(defn- win-line__17 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         215
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -33466,21 +35523,6 @@
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 225))
-        st))))
-
-(defn- win-line__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         224
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -33635,6 +35677,21 @@
             (if (and (or (== c (e NUL)) (== did-line-attr 1)) (== (.eol-hl-off wlv) 0))
               (recur 228)
               (recur 237)))
+        st))))
+
+(defn- win-line__18 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         228
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -34101,6 +36158,21 @@
               (do (aset fl__ 4 c)
                   (aset fl__ 19 mb-c)
                   (recur 240))))
+        st))))
+
+(defn- win-line__19 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         240
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -34572,21 +36644,6 @@
             (if (zero? multi-attr)
               (recur 253)
               (recur 254)))
-        st))))
-
-(defn- win-line__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         253
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -34621,6 +36678,21 @@
                 on-last-col (aget fl__ 25)]
             (.set (g ed ScreenAttrs) (.off wlv) (unchecked-short (.char-attr wlv)))
             (recur 255))
+        st))))
+
+(defn- win-line__20 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         254
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -35103,6 +37175,21 @@
             (if (> (.draw-state wlv) 2)
               (recur 268)
               (recur 269)))
+        st))))
+
+(defn- win-line__21 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         268
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -35559,6 +37646,21 @@
             (if (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
               (recur 300)
               (recur 281)))
+        st))))
+
+(defn- win-line__22 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         281
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -35626,21 +37728,6 @@
             (draw-vsep-win ed wp (.row wlv))
             (.set-row wlv endrow)
             (recur 283))
-        st))))
-
-(defn- win-line__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         283
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -35974,6 +38061,21 @@
         293
           (do (.set-row wlv (i32 (inc (.row wlv))))
               (recur 300))
+        st))))
+
+(defn- win-line__23 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         294
           (let [^S_window_S wp (aget fo__ 1)
                 startrow (aget fl__ 1)
@@ -36250,78 +38352,87 @@
     (aset fo__ 26 head)
     (aset fo__ 27 has-match-conc)
     (loop [st 0]
-      (let [r__ (if (<= st 25)
+      (let [r__ (if (<= st 10)
                   (win-line__0 ed fl__ fo__ st)
-                  (if (<= st 55)
+                  (if (<= st 23)
                     (win-line__1 ed fl__ fo__ st)
-                    (if (<= st 83)
+                    (if (<= st 36)
                       (win-line__2 ed fl__ fo__ st)
-                      (if (<= st 110)
+                      (if (<= st 48)
                         (win-line__3 ed fl__ fo__ st)
-                        (if (<= st 138)
+                        (if (<= st 61)
                           (win-line__4 ed fl__ fo__ st)
-                          (if (<= st 166)
+                          (if (<= st 74)
                             (win-line__5 ed fl__ fo__ st)
-                            (if (<= st 193)
+                            (if (<= st 87)
                               (win-line__6 ed fl__ fo__ st)
-                              (if (<= st 223)
+                              (if (<= st 99)
                                 (win-line__7 ed fl__ fo__ st)
-                                (if (<= st 252)
+                                (if (<= st 112)
                                   (win-line__8 ed fl__ fo__ st)
-                                  (if (<= st 282)
+                                  (if (<= st 125)
                                     (win-line__9 ed fl__ fo__ st)
-                                    (win-line__10 ed fl__ fo__ st)))))))))))]
+                                    (if (<= st 137)
+                                      (win-line__10 ed fl__ fo__ st)
+                                      (if (<= st 149)
+                                        (win-line__11 ed fl__ fo__ st)
+                                        (if (<= st 162)
+                                          (win-line__12 ed fl__ fo__ st)
+                                          (if (<= st 173)
+                                            (win-line__13 ed fl__ fo__ st)
+                                            (if (<= st 187)
+                                              (win-line__14 ed fl__ fo__ st)
+                                              (if (<= st 200)
+                                                (win-line__15 ed fl__ fo__ st)
+                                                (if (<= st 214)
+                                                  (win-line__16 ed fl__ fo__ st)
+                                                  (if (<= st 227)
+                                                    (win-line__17 ed fl__ fo__ st)
+                                                    (if (<= st 239)
+                                                      (win-line__18 ed fl__ fo__ st)
+                                                      (if (<= st 253)
+                                                        (win-line__19 ed fl__ fo__ st)
+                                                        (if (<= st 267)
+                                                          (win-line__20 ed fl__ fo__ st)
+                                                          (if (<= st 280)
+                                                            (win-line__21 ed fl__ fo__ st)
+                                                            (if (<= st 293)
+                                                              (win-line__22 ed fl__ fo__ st)
+                                                              (win-line__23 ed fl__ fo__ st))))))))))))))))))))))))]
         (if (neg? r__)
           (long (aget fo__ 0))
           (recur r__))))))
 
-;; C: win_update
-(defn win-update [^Editor ed ^S_window_S wp]
-  (let [^ints fromc (int-array 1)
-        ^ints toc (int-array 1)
-        ^T_pos_T pos (new-T_pos_T)
-        ^ints t (int-array 1)
-        ^bytes fillbuf (byte-array 12)
-        ^longs tl__ (long-array 10)]
-    (loop [st 0
-           ^S_window_S wp wp
-           ^S_file_buffer buf nil
-           type_ 0
-           top-end 0
-           mid-start 0
-           mid-end 0
-           bot-start 0
-           scrolled-down false
-           scrolled-for-mod false
-           top-to-mod false
-           row 0
-           lnum 0
-           idx 0
-           srow 0
-           eof false
-           didline false
-           i 0
-           j 0
-           old-botline 0
-           mod-top 0
-           mod-bot 0
-           save-got-int 0
-           override-success false
-           w 0
-           width2 0
-           add 0
-           ^S_matchitem cur nil
-           from 0
-           to 0
-           cursor-above false
-           old-cline-height 0
-           old-rows 0
-           new-rows 0
-           l 0
-           x 0]
+(defn- win-update__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^ints fromc (aget fo__ 11)
+        ^ints toc (aget fo__ 12)
+        ^T_pos_T pos (aget fo__ 13)
+        ^ints t (aget fo__ 14)
+        ^bytes fillbuf (aget fo__ 15)
+        ^longs tl__ (long-array 2)]
+    (loop [st st0__]
       (case st
         0
-          (let [^S_file_buffer buf (.w-buffer wp)
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                w (aget fl__ 15)
+                width2 (aget fl__ 16)
+                add (aget fl__ 17)
+                ^S_file_buffer buf (.w-buffer wp)
                 top-end 0
                 mid-start 999
                 mid-end 0
@@ -36343,11 +38454,11 @@
                 (.set-w-lines-valid wp 0))
               (if (or (== (i32 (+ (.w-height wp) 0)) 0) (== (.fr-height ^S_frame_S (.w-frame wp)) (.w-status-height wp)))
                 (do (.set-w-redr-type wp 0)
-                    nil)
+                    -1)
                 (if (== (.w-width wp) 0)
                   (do (draw-vsep-win ed wp 0)
                       (.set-w-redr-type wp 0)
-                      nil)
+                      -1)
                   (let [override-success (push-highlight-overrides ed (.w-hl wp) (.w-hl-len wp))]
                     (init-search-hl ed wp (g ed screen-search-hl))
                     (if (and (> (.w-skipcol wp) 0) (> (.w-width wp) (long (win-col-off ed wp))))
@@ -36355,21 +38466,97 @@
                             width1 (i32 (- (.w-width wp) (long (win-col-off ed wp))))
                             width2 (i32 (+ width1 (long (win-col-off2 ed wp))))
                             add width1]
-                        (recur 1 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                      (recur 2 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))))))
+                        (aset fo__ 2 buf)
+                        (aset fl__ 0 type_)
+                        (aset fl__ 1 top-end)
+                        (aset fl__ 2 mid-start)
+                        (aset fl__ 3 mid-end)
+                        (aset fl__ 4 bot-start)
+                        (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                        (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                        (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                        (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                        (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                        (aset fl__ 11 old-botline)
+                        (aset fl__ 12 mod-top)
+                        (aset fl__ 13 mod-bot)
+                        (aset fo__ 8 (Boolean/valueOf (boolean override-success)))
+                        (aset fl__ 15 w)
+                        (aset fl__ 16 width2)
+                        (aset fl__ 17 add)
+                        (recur 1))
+                      (do (aset fo__ 2 buf)
+                          (aset fl__ 0 type_)
+                          (aset fl__ 1 top-end)
+                          (aset fl__ 2 mid-start)
+                          (aset fl__ 3 mid-end)
+                          (aset fl__ 4 bot-start)
+                          (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                          (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                          (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                          (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                          (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                          (aset fl__ 11 old-botline)
+                          (aset fl__ 12 mod-top)
+                          (aset fl__ 13 mod-bot)
+                          (aset fo__ 8 (Boolean/valueOf (boolean override-success)))
+                          (aset fl__ 15 w)
+                          (aset fl__ 16 width2)
+                          (aset fl__ 17 add)
+                          (recur 2))))))))
         1
-          (if (< w (.w-skipcol wp))
-            (let [add (if (> w 0)
-                        width2
-                        add)
-                  w (i32 (+ w add))]
-              (recur 1 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (if (== w (.w-skipcol wp))
-              (recur 2 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)
-              (do (.set-w-skipcol wp (i32 (- w add)))
-                  (recur 2 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                override-success (boolean (aget fo__ 8))
+                w (aget fl__ 15)
+                width2 (aget fl__ 16)
+                add (aget fl__ 17)]
+            (if (< w (.w-skipcol wp))
+              (let [add (if (> w 0)
+                          width2
+                          add)
+                    w (i32 (+ w add))]
+                (aset fl__ 15 w)
+                (aset fl__ 17 add)
+                (recur 1))
+              (if (== w (.w-skipcol wp))
+                (do (aset fl__ 15 w)
+                    (aset fl__ 17 add)
+                    (recur 2))
+                (do (.set-w-skipcol wp (i32 (- w add)))
+                    (aset fl__ 15 w)
+                    (aset fl__ 17 add)
+                    (recur 2)))))
         2
-          (let [mod-top (.w-redraw-top wp)
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                ^S_matchitem cur (aget fo__ 9)
+                mod-top (.w-redraw-top wp)
                 mod-bot (if (== (.w-redraw-bot wp) 0)
                           0
                           (+ (.w-redraw-bot wp) 1))]
@@ -36382,34 +38569,87 @@
                               mod-bot)]
                 (if (and (some? (.regprog ^T_regmmatch_T (.-rm (g ed screen-search-hl)))) (not (zero? (long (re-multiline ed (.regprog ^T_regmmatch_T (.-rm (g ed screen-search-hl))))))))
                   (let [top-to-mod true]
-                    (recur 4 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+                    (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                    (aset fl__ 12 mod-top)
+                    (aset fl__ 13 mod-bot)
+                    (aset fo__ 9 cur)
+                    (recur 4))
                   (let [^S_matchitem cur (.w-match-head wp)]
-                    (recur 3 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-              (recur 4 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                    (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                    (aset fl__ 12 mod-top)
+                    (aset fl__ 13 mod-bot)
+                    (aset fo__ 9 cur)
+                    (recur 3))))
+              (do (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                  (aset fl__ 12 mod-top)
+                  (aset fl__ 13 mod-bot)
+                  (aset fo__ 9 cur)
+                  (recur 4))))
         3
-          (if (some? cur)
-            (if (and (some? (.regprog ^T_regmmatch_T (.-mit-match cur))) (not (zero? (long (re-multiline ed (.regprog ^T_regmmatch_T (.-mit-match cur)))))))
-              (let [top-to-mod true]
-                (recur 4 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (let [^S_matchitem cur (.mit-next cur)]
-                (recur 3 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 4 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                ^S_matchitem cur (aget fo__ 9)]
+            (if (some? cur)
+              (if (and (some? (.regprog ^T_regmmatch_T (.-mit-match cur))) (not (zero? (long (re-multiline ed (.regprog ^T_regmmatch_T (.-mit-match cur)))))))
+                (let [top-to-mod true]
+                  (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                  (aset fo__ 9 cur)
+                  (recur 4))
+                (let [^S_matchitem cur (.mit-next cur)]
+                  (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                  (aset fo__ 9 cur)
+                  (recur 3)))
+              (do (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                  (aset fo__ 9 cur)
+                  (recur 4))))
         4
-          (let [j__1 (if (> (g ed search-hl-has-cursor-lnum) 0)
-                       (let [mod-top (if (or (== mod-top 0) (> mod-top (g ed search-hl-has-cursor-lnum)))
-                                       (g ed search-hl-has-cursor-lnum)
-                                       mod-top)]
-                         (if (or (== mod-bot 0) (< mod-bot (+ (g ed search-hl-has-cursor-lnum) 1)))
-                           (let [mod-bot (+ (g ed search-hl-has-cursor-lnum) 1)]
-                             (aset tl__ 0 mod-top)
-                             (aset tl__ 1 mod-bot)
-                             0)
-                           (do (aset tl__ 0 mod-top)
-                               (aset tl__ 1 mod-bot)
-                               0)))
-                       (do (aset tl__ 0 mod-top)
-                           (aset tl__ 1 mod-bot)
-                           0))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                j__31 (if (> (g ed search-hl-has-cursor-lnum) 0)
+                        (let [mod-top (if (or (== mod-top 0) (> mod-top (g ed search-hl-has-cursor-lnum)))
+                                        (g ed search-hl-has-cursor-lnum)
+                                        mod-top)]
+                          (if (or (== mod-bot 0) (< mod-bot (+ (g ed search-hl-has-cursor-lnum) 1)))
+                            (let [mod-bot (+ (g ed search-hl-has-cursor-lnum) 1)]
+                              (aset tl__ 0 mod-top)
+                              (aset tl__ 1 mod-bot)
+                              0)
+                            (do (aset tl__ 0 mod-top)
+                                (aset tl__ 1 mod-bot)
+                                0)))
+                        (do (aset tl__ 0 mod-top)
+                            (aset tl__ 1 mod-bot)
+                            0))
                 mod-top (aget tl__ 0)
                 mod-bot (aget tl__ 1)
                 mod-top (if (and (not (== mod-top 0)) (< mod-top (.w-topline wp)))
@@ -36423,295 +38663,726 @@
             (if (== type_ (e UPD_REDRAW_TOP))
               (let [j 0
                     i 0]
-                (recur 5 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (recur 7 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                (aset fl__ 9 i)
+                (aset fl__ 10 j)
+                (aset fl__ 12 mod-top)
+                (aset fl__ 13 mod-bot)
+                (recur 5))
+              (do (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (aset fl__ 12 mod-top)
+                  (aset fl__ 13 mod-bot)
+                  (recur 7))))
         5
-          (if (< i (.w-lines-valid wp))
-            (let [j (+ j (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i)))]
-              (if (>= j (.w-upd-rows wp))
-                (let [top-end (i32 j)]
-                  (recur 6 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                (let [i (i32 (inc i))]
-                  (recur 5 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-            (recur 6 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (if (< i (.w-lines-valid wp))
+              (let [j (+ j (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i)))]
+                (if (>= j (.w-upd-rows wp))
+                  (let [top-end (i32 j)]
+                    (aset fl__ 1 top-end)
+                    (aset fl__ 9 i)
+                    (aset fl__ 10 j)
+                    (recur 6))
+                  (let [i (i32 (inc i))]
+                    (aset fl__ 1 top-end)
+                    (aset fl__ 9 i)
+                    (aset fl__ 10 j)
+                    (recur 5))))
+              (do (aset fl__ 1 top-end)
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (recur 6))))
         6
-          (if (== top-end 0)
-            (let [type_ (e UPD_NOT_VALID)]
-              (recur 7 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (let [type_ (e UPD_VALID)]
-              (recur 7 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (if (== top-end 0)
+              (let [type_ (e UPD_NOT_VALID)]
+                (aset fl__ 0 type_)
+                (recur 7))
+              (let [type_ (e UPD_VALID)]
+                (aset fl__ 0 type_)
+                (recur 7))))
+        st))))
+
+(defn- win-update__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^ints fromc (aget fo__ 11)
+        ^ints toc (aget fo__ 12)
+        ^T_pos_T pos (aget fo__ 13)
+        ^ints t (aget fo__ 14)
+        ^bytes fillbuf (aget fo__ 15)
+        ^longs tl__ (long-array 2)]
+    (loop [st st0__]
+      (case st
         7
-          (do (when-not (zero? (g ed screen-cleared))
-                (g! ed screen-cleared (e MAYBE)))
-              (if (or (== type_ (e UPD_VALID)) (== type_ (e UPD_SOME_VALID)) (== type_ (e UPD_INVERTED)) (== type_ (e UPD_INVERTED_ALL)))
-                (if (and (not (== mod-top 0)) (== (.w-topline wp) mod-top) (or (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) 0))) (== (.w-topline wp) (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0)))))
-                  (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)
-                  (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) 0)))) (< (.w-topline wp) (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0))))
-                    (let [j (- (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0)) (.w-topline wp))]
-                      (if (< j (i32 (- (.w-height wp) 2)))
-                        (let [i (long (plines-m-win ed wp (.w-topline wp) (- (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0)) 1) (.w-height wp)))]
-                          (if (< i (i32 (- (.w-height wp) 2)))
-                            (do (when (> i 0)
-                                  (check-for-delay ed false))
-                                (if (== (long (win-ins-lines ed wp 0 i false true)) (e OK))
-                                  (if (== (.w-lines-valid wp) 0)
-                                    (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)
-                                    (let [top-end i
-                                          scrolled-down true]
-                                      (.set-w-lines-valid wp (i32 (+ (.w-lines-valid wp) j)))
-                                      (when (> (.w-lines-valid wp) (.w-height wp))
-                                        (.set-w-lines-valid wp (.w-height wp)))
-                                      (let [idx (.w-lines-valid wp)]
-                                        (recur 11 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-                                  (let [mid-start 0]
-                                    (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-                            (let [mid-start 0]
-                              (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-                        (let [mid-start 0]
-                          (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-                    (let [j -1
-                          row 0
-                          i 0]
-                      (recur 8 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-                (let [mid-start 0
-                      mid-end (.w-height wp)]
-                  (recur 14 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                idx (aget fl__ 7)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (when-not (zero? (g ed screen-cleared))
+              (g! ed screen-cleared (e MAYBE)))
+            (if (or (== type_ (e UPD_VALID)) (== type_ (e UPD_SOME_VALID)) (== type_ (e UPD_INVERTED)) (== type_ (e UPD_INVERTED_ALL)))
+              (if (and (not (== mod-top 0)) (== (.w-topline wp) mod-top) (or (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) 0))) (== (.w-topline wp) (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0)))))
+                (do (aset fl__ 1 top-end)
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 3 mid-end)
+                    (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                    (aset fl__ 5 row)
+                    (aset fl__ 7 idx)
+                    (aset fl__ 9 i)
+                    (aset fl__ 10 j)
+                    (recur 13))
+                (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) 0)))) (< (.w-topline wp) (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0))))
+                  (let [j (- (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0)) (.w-topline wp))]
+                    (if (< j (i32 (- (.w-height wp) 2)))
+                      (let [i (long (plines-m-win ed wp (.w-topline wp) (- (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) 0)) 1) (.w-height wp)))]
+                        (if (< i (i32 (- (.w-height wp) 2)))
+                          (do (when (> i 0)
+                                (check-for-delay ed false))
+                              (if (== (long (win-ins-lines ed wp 0 i false true)) (e OK))
+                                (if (== (.w-lines-valid wp) 0)
+                                  (do (aset fl__ 1 top-end)
+                                      (aset fl__ 2 mid-start)
+                                      (aset fl__ 3 mid-end)
+                                      (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                                      (aset fl__ 5 row)
+                                      (aset fl__ 7 idx)
+                                      (aset fl__ 9 i)
+                                      (aset fl__ 10 j)
+                                      (recur 13))
+                                  (let [top-end i
+                                        scrolled-down true]
+                                    (.set-w-lines-valid wp (i32 (+ (.w-lines-valid wp) j)))
+                                    (when (> (.w-lines-valid wp) (.w-height wp))
+                                      (.set-w-lines-valid wp (.w-height wp)))
+                                    (let [idx (.w-lines-valid wp)]
+                                      (aset fl__ 1 top-end)
+                                      (aset fl__ 2 mid-start)
+                                      (aset fl__ 3 mid-end)
+                                      (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                                      (aset fl__ 5 row)
+                                      (aset fl__ 7 idx)
+                                      (aset fl__ 9 i)
+                                      (aset fl__ 10 j)
+                                      (recur 11))))
+                                (let [mid-start 0]
+                                  (aset fl__ 1 top-end)
+                                  (aset fl__ 2 mid-start)
+                                  (aset fl__ 3 mid-end)
+                                  (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                                  (aset fl__ 5 row)
+                                  (aset fl__ 7 idx)
+                                  (aset fl__ 9 i)
+                                  (aset fl__ 10 j)
+                                  (recur 13))))
+                          (let [mid-start 0]
+                            (aset fl__ 1 top-end)
+                            (aset fl__ 2 mid-start)
+                            (aset fl__ 3 mid-end)
+                            (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                            (aset fl__ 5 row)
+                            (aset fl__ 7 idx)
+                            (aset fl__ 9 i)
+                            (aset fl__ 10 j)
+                            (recur 13))))
+                      (let [mid-start 0]
+                        (aset fl__ 1 top-end)
+                        (aset fl__ 2 mid-start)
+                        (aset fl__ 3 mid-end)
+                        (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                        (aset fl__ 5 row)
+                        (aset fl__ 7 idx)
+                        (aset fl__ 9 i)
+                        (aset fl__ 10 j)
+                        (recur 13))))
+                  (let [j -1
+                        row 0
+                        i 0]
+                    (aset fl__ 1 top-end)
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 3 mid-end)
+                    (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                    (aset fl__ 5 row)
+                    (aset fl__ 7 idx)
+                    (aset fl__ 9 i)
+                    (aset fl__ 10 j)
+                    (recur 8))))
+              (let [mid-start 0
+                    mid-end (.w-height wp)]
+                (aset fl__ 1 top-end)
+                (aset fl__ 2 mid-start)
+                (aset fl__ 3 mid-end)
+                (aset fo__ 3 (Boolean/valueOf (boolean scrolled-down)))
+                (aset fl__ 5 row)
+                (aset fl__ 7 idx)
+                (aset fl__ 9 i)
+                (aset fl__ 10 j)
+                (recur 14))))
         8
-          (if (and (< i (.w-lines-valid wp)) (< i (aget (g ed Rows) 0)))
-            (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) i)))) (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) i)) (.w-topline wp)))
-              (let [j i]
-                (recur 9 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (let [row (i32 (+ row (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i))))
-                    i (i32 (inc i))]
-                (recur 8 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 9 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (if (and (< i (.w-lines-valid wp)) (< i (aget (g ed Rows) 0)))
+              (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) i)))) (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) i)) (.w-topline wp)))
+                (let [j i]
+                  (aset fl__ 5 row)
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (recur 9))
+                (let [row (i32 (+ row (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i))))
+                      i (i32 (inc i))]
+                  (aset fl__ 5 row)
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (recur 8)))
+              (do (aset fl__ 5 row)
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (recur 9))))
         9
-          (if (== j -1)
-            (let [mid-start 0]
-              (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (let [row (if (> row (aget (g ed Rows) 0))
-                        (i32 (aget (g ed Rows) 0))
-                        row)
-                  j__2 (if (> row 0)
-                         (do (check-for-delay ed false)
-                             (if (== (long (win-del-lines ed wp 0 row false true 0)) (e OK))
-                               (let [bot-start (i32 (- (.w-height wp) row))]
-                                 (aset tl__ 2 mid-start)
-                                 (aset tl__ 3 bot-start)
-                                 0)
-                               (let [mid-start 0]
-                                 (aset tl__ 2 mid-start)
-                                 (aset tl__ 3 bot-start)
-                                 0)))
-                         (do (aset tl__ 2 mid-start)
-                             (aset tl__ 3 bot-start)
-                             0))
-                  mid-start (aget tl__ 2)
-                  bot-start (aget tl__ 3)]
-              (if (and (or (== row 0) (< bot-start 999)) (not (== (.w-lines-valid wp) 0)))
-                (let [bot-start 0
-                      idx 0]
-                  (recur 10 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                idx (aget fl__ 7)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (if (== j -1)
+              (let [mid-start 0]
+                (aset fl__ 2 mid-start)
+                (aset fl__ 4 bot-start)
+                (aset fl__ 5 row)
+                (aset fl__ 7 idx)
+                (recur 13))
+              (let [row (if (> row (aget (g ed Rows) 0))
+                          (i32 (aget (g ed Rows) 0))
+                          row)
+                    j__32 (if (> row 0)
+                            (do (check-for-delay ed false)
+                                (if (== (long (win-del-lines ed wp 0 row false true 0)) (e OK))
+                                  (let [bot-start (i32 (- (.w-height wp) row))]
+                                    (aset tl__ 0 mid-start)
+                                    (aset tl__ 1 bot-start)
+                                    0)
+                                  (let [mid-start 0]
+                                    (aset tl__ 0 mid-start)
+                                    (aset tl__ 1 bot-start)
+                                    0)))
+                            (do (aset tl__ 0 mid-start)
+                                (aset tl__ 1 bot-start)
+                                0))
+                    mid-start (aget tl__ 0)
+                    bot-start (aget tl__ 1)]
+                (if (and (or (== row 0) (< bot-start 999)) (not (== (.w-lines-valid wp) 0)))
+                  (let [bot-start 0
+                        idx 0]
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 4 bot-start)
+                    (aset fl__ 5 row)
+                    (aset fl__ 7 idx)
+                    (recur 10))
+                  (do (aset fl__ 2 mid-start)
+                      (aset fl__ 4 bot-start)
+                      (aset fl__ 5 row)
+                      (aset fl__ 7 idx)
+                      (recur 13))))))
         10
-          (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) idx) (.at ^Ptr (.w-lines wp) j))
-              (if (and (> row 0) (> (i32 (+ (i32 (+ bot-start row)) (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) j)))) (.w-height wp)))
-                (do (.set-w-lines-valid wp (i32 (+ idx 1)))
-                    (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                (let [t2 idx
-                      idx (i32 (inc idx))
-                      t3 (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) t2))
-                      bot-start (i32 (+ bot-start t3))
-                      j (inc j)]
-                  (if (>= j (.w-lines-valid wp))
-                    (do (.set-w-lines-valid wp idx)
-                        (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                    (recur 10 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                idx (aget fl__ 7)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (.set ^S_w_line (.at ^Ptr (.w-lines wp) idx) (.at ^Ptr (.w-lines wp) j))
+            (if (and (> row 0) (> (i32 (+ (i32 (+ bot-start row)) (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) j)))) (.w-height wp)))
+              (do (.set-w-lines-valid wp (i32 (+ idx 1)))
+                  (aset fl__ 4 bot-start)
+                  (aset fl__ 7 idx)
+                  (aset fl__ 10 j)
+                  (recur 13))
+              (let [t2 idx
+                    idx (i32 (inc idx))
+                    t3 (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) t2))
+                    bot-start (i32 (+ bot-start t3))
+                    j (inc j)]
+                (if (>= j (.w-lines-valid wp))
+                  (do (.set-w-lines-valid wp idx)
+                      (aset fl__ 4 bot-start)
+                      (aset fl__ 7 idx)
+                      (aset fl__ 10 j)
+                      (recur 13))
+                  (do (aset fl__ 4 bot-start)
+                      (aset fl__ 7 idx)
+                      (aset fl__ 10 j)
+                      (recur 10))))))
         11
-          (if (>= (- idx j) 0)
-            (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) idx) (.at ^Ptr (.w-lines wp) (- idx j)))
-                (let [idx (i32 (dec idx))]
-                  (recur 11 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 12 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                idx (aget fl__ 7)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (if (>= (- idx j) 0)
+              (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) idx) (.at ^Ptr (.w-lines wp) (- idx j)))
+                  (let [idx (i32 (dec idx))]
+                    (aset fl__ 7 idx)
+                    (recur 11)))
+              (do (aset fl__ 7 idx)
+                  (recur 12))))
         12
-          (if (>= idx 0)
-            (let [t1 idx
-                  idx (i32 (dec idx))]
-              (.set-wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) t1) (e FALSE))
-              (recur 12 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (recur 13 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                idx (aget fl__ 7)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))]
+            (if (>= idx 0)
+              (let [t1 idx
+                    idx (i32 (dec idx))]
+                (.set-wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) t1) (e FALSE))
+                (aset fl__ 7 idx)
+                (recur 12))
+              (do (aset fl__ 7 idx)
+                  (recur 13))))
+        st))))
+
+(defn- win-update__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^ints fromc (aget fo__ 11)
+        ^ints toc (aget fo__ 12)
+        ^T_pos_T pos (aget fo__ 13)
+        ^ints t (aget fo__ 14)
+        ^bytes fillbuf (aget fo__ 15)
+        ^longs tl__ (long-array 5)]
+    (loop [st st0__]
+      (case st
         13
-          (let [mid-end (if (== mid-start 0)
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                mid-end (if (== mid-start 0)
                           (.w-height wp)
                           mid-end)]
             (if (== (g ed screen-cleared) (e TRUE))
               (do (g! ed must-redraw 0)
-                  (recur 14 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (recur 14 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                  (aset fl__ 3 mid-end)
+                  (recur 14))
+              (do (aset fl__ 3 mid-end)
+                  (recur 14))))
         14
-          (let [j__3 (if (== type_ (e UPD_SOME_VALID))
-                       (let [mid-start 0
-                             mid-end (.w-height wp)
-                             type_ (e UPD_NOT_VALID)]
-                         (aset tl__ 4 type_)
-                         (aset tl__ 2 mid-start)
-                         (aset tl__ 5 mid-end)
-                         0)
-                       (do (aset tl__ 4 type_)
-                           (aset tl__ 2 mid-start)
-                           (aset tl__ 5 mid-end)
-                           0))
-                type_ (aget tl__ 4)
-                mid-start (aget tl__ 2)
-                mid-end (aget tl__ 5)]
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                type_ (aget fl__ 0)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                from (aget fl__ 18)
+                to (aget fl__ 19)
+                cursor-above (boolean (aget fo__ 10))
+                j__33 (if (== type_ (e UPD_SOME_VALID))
+                        (let [mid-start 0
+                              mid-end (.w-height wp)
+                              type_ (e UPD_NOT_VALID)]
+                          (aset tl__ 0 type_)
+                          (aset tl__ 1 mid-start)
+                          (aset tl__ 2 mid-end)
+                          0)
+                        (do (aset tl__ 0 type_)
+                            (aset tl__ 1 mid-start)
+                            (aset tl__ 2 mid-end)
+                            0))
+                type_ (aget tl__ 0)
+                mid-start (aget tl__ 1)
+                mid-end (aget tl__ 2)]
             (if (or (and (not (zero? (g ed VIsual-active))) (identical? buf (.w-buffer (g ed curwin)))) (and (not (== (.w-old-cursor-lnum wp) 0)) (not (== type_ (e UPD_NOT_VALID)))))
               (if (zero? (g ed VIsual-active))
                 (if (< (.w-old-cursor-lnum wp) (.w-old-visual-lnum wp))
                   (let [from (.w-old-cursor-lnum wp)
                         to (.w-old-visual-lnum wp)]
-                    (recur 17 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+                    (aset fl__ 0 type_)
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 3 mid-end)
+                    (aset fl__ 18 from)
+                    (aset fl__ 19 to)
+                    (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                    (recur 17))
                   (let [from (.w-old-visual-lnum wp)
                         to (.w-old-cursor-lnum wp)]
-                    (recur 17 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-                (let [j__6 (if (or (not (== (g ed VIsual-mode) (.w-old-visual-mode wp))) (== type_ (e UPD_INVERTED_ALL)))
-                             (let [j__4 (if (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))
-                                          (let [from (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                to (.lnum (g ed VIsual))]
-                                            (aset tl__ 6 from)
-                                            (aset tl__ 7 to)
-                                            0)
-                                          (let [from (.lnum (g ed VIsual))
-                                                to (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
-                                            (aset tl__ 6 from)
-                                            (aset tl__ 7 to)
-                                            0))
-                                   from (aget tl__ 6)
-                                   to (aget tl__ 7)
-                                   from (if (< (.w-old-cursor-lnum wp) from)
-                                          (.w-old-cursor-lnum wp)
-                                          from)
-                                   to (if (> (.w-old-cursor-lnum wp) to)
-                                        (.w-old-cursor-lnum wp)
-                                        to)
-                                   from (if (< (.w-old-visual-lnum wp) from)
-                                          (.w-old-visual-lnum wp)
-                                          from)]
-                               (if (> (.w-old-visual-lnum wp) to)
-                                 (let [to (.w-old-visual-lnum wp)]
-                                   (aset tl__ 6 from)
-                                   (aset tl__ 7 to)
-                                   0)
-                                 (do (aset tl__ 6 from)
-                                     (aset tl__ 7 to)
-                                     0)))
-                             (let [j__5 (if (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.w-old-cursor-lnum wp))
-                                          (let [from (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                to (.w-old-cursor-lnum wp)]
-                                            (aset tl__ 6 from)
-                                            (aset tl__ 7 to)
-                                            0)
-                                          (let [from (.w-old-cursor-lnum wp)
-                                                to (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
-                                            (if (== from 0)
-                                              (let [from to]
-                                                (aset tl__ 6 from)
-                                                (aset tl__ 7 to)
-                                                0)
-                                              (do (aset tl__ 6 from)
-                                                  (aset tl__ 7 to)
-                                                  0))))
-                                   from (aget tl__ 6)
-                                   to (aget tl__ 7)]
-                               (if (or (not (== (.lnum (g ed VIsual)) (.w-old-visual-lnum wp))) (not (== (.col (g ed VIsual)) (.w-old-visual-col wp))))
-                                 (let [from (if (and (< (.w-old-visual-lnum wp) from) (not (== (.w-old-visual-lnum wp) 0)))
-                                              (.w-old-visual-lnum wp)
-                                              from)
-                                       to (if (> (.w-old-visual-lnum wp) to)
-                                            (.w-old-visual-lnum wp)
-                                            to)
-                                       from (if (< (.lnum (g ed VIsual)) from)
-                                              (.lnum (g ed VIsual))
-                                              from)]
-                                   (if (> (.lnum (g ed VIsual)) to)
-                                     (let [to (.lnum (g ed VIsual))]
-                                       (aset tl__ 6 from)
-                                       (aset tl__ 7 to)
-                                       0)
-                                     (do (aset tl__ 6 from)
-                                         (aset tl__ 7 to)
-                                         0)))
-                                 (do (aset tl__ 6 from)
-                                     (aset tl__ 7 to)
-                                     0))))
-                      from (aget tl__ 6)
-                      to (aget tl__ 7)]
+                    (aset fl__ 0 type_)
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 3 mid-end)
+                    (aset fl__ 18 from)
+                    (aset fl__ 19 to)
+                    (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                    (recur 17)))
+                (let [j__36 (if (or (not (== (g ed VIsual-mode) (.w-old-visual-mode wp))) (== type_ (e UPD_INVERTED_ALL)))
+                              (let [j__34 (if (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))
+                                            (let [from (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                  to (.lnum (g ed VIsual))]
+                                              (aset tl__ 3 from)
+                                              (aset tl__ 4 to)
+                                              0)
+                                            (let [from (.lnum (g ed VIsual))
+                                                  to (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
+                                              (aset tl__ 3 from)
+                                              (aset tl__ 4 to)
+                                              0))
+                                    from (aget tl__ 3)
+                                    to (aget tl__ 4)
+                                    from (if (< (.w-old-cursor-lnum wp) from)
+                                           (.w-old-cursor-lnum wp)
+                                           from)
+                                    to (if (> (.w-old-cursor-lnum wp) to)
+                                         (.w-old-cursor-lnum wp)
+                                         to)
+                                    from (if (< (.w-old-visual-lnum wp) from)
+                                           (.w-old-visual-lnum wp)
+                                           from)]
+                                (if (> (.w-old-visual-lnum wp) to)
+                                  (let [to (.w-old-visual-lnum wp)]
+                                    (aset tl__ 3 from)
+                                    (aset tl__ 4 to)
+                                    0)
+                                  (do (aset tl__ 3 from)
+                                      (aset tl__ 4 to)
+                                      0)))
+                              (let [j__35 (if (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.w-old-cursor-lnum wp))
+                                            (let [from (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                  to (.w-old-cursor-lnum wp)]
+                                              (aset tl__ 3 from)
+                                              (aset tl__ 4 to)
+                                              0)
+                                            (let [from (.w-old-cursor-lnum wp)
+                                                  to (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
+                                              (if (== from 0)
+                                                (let [from to]
+                                                  (aset tl__ 3 from)
+                                                  (aset tl__ 4 to)
+                                                  0)
+                                                (do (aset tl__ 3 from)
+                                                    (aset tl__ 4 to)
+                                                    0))))
+                                    from (aget tl__ 3)
+                                    to (aget tl__ 4)]
+                                (if (or (not (== (.lnum (g ed VIsual)) (.w-old-visual-lnum wp))) (not (== (.col (g ed VIsual)) (.w-old-visual-col wp))))
+                                  (let [from (if (and (< (.w-old-visual-lnum wp) from) (not (== (.w-old-visual-lnum wp) 0)))
+                                               (.w-old-visual-lnum wp)
+                                               from)
+                                        to (if (> (.w-old-visual-lnum wp) to)
+                                             (.w-old-visual-lnum wp)
+                                             to)
+                                        from (if (< (.lnum (g ed VIsual)) from)
+                                               (.lnum (g ed VIsual))
+                                               from)]
+                                    (if (> (.lnum (g ed VIsual)) to)
+                                      (let [to (.lnum (g ed VIsual))]
+                                        (aset tl__ 3 from)
+                                        (aset tl__ 4 to)
+                                        0)
+                                      (do (aset tl__ 3 from)
+                                          (aset tl__ 4 to)
+                                          0)))
+                                  (do (aset tl__ 3 from)
+                                      (aset tl__ 4 to)
+                                      0))))
+                      from (aget tl__ 3)
+                      to (aget tl__ 4)]
                   (if (== (g ed VIsual-mode) (e Ctrl_V))
                     (do (getvcols ed wp (g ed VIsual) (.-w-cursor (g ed curwin)) (IntPtr. fromc 0) (IntPtr. toc 0) (e GETVCOL_END_EXCL_LBR))
                         (aset toc 0 (unchecked-int (inc (long (aget toc 0)))))
                         (if (== (.w-curswant (g ed curwin)) (e MAXCOL))
                           (if (zero? (bit-and (long (get-ve-flags ed)) (e VE_BLOCK)))
                             (do (aset toc 0 (unchecked-int (e MAXCOL)))
-                                (recur 16 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+                                (aset fl__ 0 type_)
+                                (aset fl__ 2 mid-start)
+                                (aset fl__ 3 mid-end)
+                                (aset fl__ 18 from)
+                                (aset fl__ 19 to)
+                                (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                                (recur 16))
                             (let [cursor-above (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))]
                               (aset toc 0 (unchecked-int 0))
                               (.set-coladd pos 0)
                               (.set-lnum pos (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
-                              (recur 15 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-                          (recur 16 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-                    (recur 17 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-              (recur 20 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                              (aset fl__ 0 type_)
+                              (aset fl__ 2 mid-start)
+                              (aset fl__ 3 mid-end)
+                              (aset fl__ 18 from)
+                              (aset fl__ 19 to)
+                              (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                              (recur 15)))
+                          (do (aset fl__ 0 type_)
+                              (aset fl__ 2 mid-start)
+                              (aset fl__ 3 mid-end)
+                              (aset fl__ 18 from)
+                              (aset fl__ 19 to)
+                              (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                              (recur 16))))
+                    (do (aset fl__ 0 type_)
+                        (aset fl__ 2 mid-start)
+                        (aset fl__ 3 mid-end)
+                        (aset fl__ 18 from)
+                        (aset fl__ 19 to)
+                        (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                        (recur 17)))))
+              (do (aset fl__ 0 type_)
+                  (aset fl__ 2 mid-start)
+                  (aset fl__ 3 mid-end)
+                  (aset fl__ 18 from)
+                  (aset fl__ 19 to)
+                  (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                  (recur 20))))
         15
-          (if (if cursor-above (<= (.lnum pos) (.lnum (g ed VIsual))) (>= (.lnum pos) (.lnum (g ed VIsual))))
-            (do (.set-col pos (long (ml-get-buf-len ed (.w-buffer wp) (.lnum pos))))
-                (getvvcol ed wp pos nil nil (IntPtr. t 0) 0)
-                (when (< (long (aget toc 0)) (long (aget t 0)))
-                  (aset toc 0 (unchecked-int (long (aget t 0)))))
-                (.set-lnum pos (+ (.lnum pos) (if cursor-above 1 -1)))
-                (recur 15 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (do (aset toc 0 (unchecked-int (inc (long (aget toc 0)))))
-                (recur 16 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                from (aget fl__ 18)
+                to (aget fl__ 19)
+                cursor-above (boolean (aget fo__ 10))]
+            (if (if cursor-above (<= (.lnum pos) (.lnum (g ed VIsual))) (>= (.lnum pos) (.lnum (g ed VIsual))))
+              (do (.set-col pos (long (ml-get-buf-len ed (.w-buffer wp) (.lnum pos))))
+                  (getvvcol ed wp pos nil nil (IntPtr. t 0) 0)
+                  (when (< (long (aget toc 0)) (long (aget t 0)))
+                    (aset toc 0 (unchecked-int (long (aget t 0)))))
+                  (.set-lnum pos (+ (.lnum pos) (if cursor-above 1 -1)))
+                  (recur 15))
+              (do (aset toc 0 (unchecked-int (inc (long (aget toc 0)))))
+                  (recur 16))))
+        st))))
+
+(defn- win-update__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^ints fromc (aget fo__ 11)
+        ^ints toc (aget fo__ 12)
+        ^T_pos_T pos (aget fo__ 13)
+        ^ints t (aget fo__ 14)
+        ^bytes fillbuf (aget fo__ 15)
+        ^longs tl__ (long-array 4)]
+    (loop [st st0__]
+      (case st
         16
-          (let [j__7 (if (or (not (== (long (aget fromc 0)) (.w-old-cursor-fcol wp))) (not (== (long (aget toc 0)) (.w-old-cursor-lcol wp))))
-                       (let [from (if (> from (.lnum (g ed VIsual)))
-                                    (.lnum (g ed VIsual))
-                                    from)]
-                         (if (< to (.lnum (g ed VIsual)))
-                           (let [to (.lnum (g ed VIsual))]
-                             (aset tl__ 6 from)
-                             (aset tl__ 7 to)
-                             0)
-                           (do (aset tl__ 6 from)
-                               (aset tl__ 7 to)
-                               0)))
-                       (do (aset tl__ 6 from)
-                           (aset tl__ 7 to)
-                           0))
-                from (aget tl__ 6)
-                to (aget tl__ 7)]
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                from (aget fl__ 18)
+                to (aget fl__ 19)
+                j__37 (if (or (not (== (long (aget fromc 0)) (.w-old-cursor-fcol wp))) (not (== (long (aget toc 0)) (.w-old-cursor-lcol wp))))
+                        (let [from (if (> from (.lnum (g ed VIsual)))
+                                     (.lnum (g ed VIsual))
+                                     from)]
+                          (if (< to (.lnum (g ed VIsual)))
+                            (let [to (.lnum (g ed VIsual))]
+                              (aset tl__ 0 from)
+                              (aset tl__ 1 to)
+                              0)
+                            (do (aset tl__ 0 from)
+                                (aset tl__ 1 to)
+                                0)))
+                        (do (aset tl__ 0 from)
+                            (aset tl__ 1 to)
+                            0))
+                from (aget tl__ 0)
+                to (aget tl__ 1)]
             (.set-w-old-cursor-fcol wp (long (aget fromc 0)))
             (.set-w-old-cursor-lcol wp (long (aget toc 0)))
-            (recur 17 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+            (aset fl__ 18 from)
+            (aset fl__ 19 to)
+            (recur 17))
         17
-          (let [from (if (< from (.w-topline wp))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                from (aget fl__ 18)
+                to (aget fl__ 19)
+                from (if (< from (.w-topline wp))
                        (.w-topline wp)
                        from)
-                j__8 (if (zero? (bit-and (.w-valid wp) (e VALID_BOTLINE)))
-                       (do (aset tl__ 6 from)
-                           (aset tl__ 7 to)
-                           0)
-                       (let [from (if (>= from (.w-botline wp))
-                                    (- (.w-botline wp) 1)
-                                    from)]
-                         (if (>= to (.w-botline wp))
-                           (let [to (- (.w-botline wp) 1)]
-                             (aset tl__ 6 from)
-                             (aset tl__ 7 to)
-                             0)
-                           (do (aset tl__ 6 from)
-                               (aset tl__ 7 to)
-                               0))))
-                from (aget tl__ 6)
-                to (aget tl__ 7)]
+                j__38 (if (zero? (bit-and (.w-valid wp) (e VALID_BOTLINE)))
+                        (do (aset tl__ 0 from)
+                            (aset tl__ 1 to)
+                            0)
+                        (let [from (if (>= from (.w-botline wp))
+                                     (- (.w-botline wp) 1)
+                                     from)]
+                          (if (>= to (.w-botline wp))
+                            (let [to (- (.w-botline wp) 1)]
+                              (aset tl__ 0 from)
+                              (aset tl__ 1 to)
+                              0)
+                            (do (aset tl__ 0 from)
+                                (aset tl__ 1 to)
+                                0))))
+                from (aget tl__ 0)
+                to (aget tl__ 1)]
             (if (> mid-start 0)
               (let [lnum (.w-topline wp)
                     idx 0
@@ -36719,218 +39390,690 @@
                     mid-start (if scrolled-down
                                 top-end
                                 0)]
-                (recur 18 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (recur 20 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                (aset fl__ 2 mid-start)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 idx)
+                (aset fl__ 8 srow)
+                (aset fl__ 18 from)
+                (aset fl__ 19 to)
+                (recur 18))
+              (do (aset fl__ 2 mid-start)
+                  (aset fl__ 6 lnum)
+                  (aset fl__ 7 idx)
+                  (aset fl__ 8 srow)
+                  (aset fl__ 18 from)
+                  (aset fl__ 19 to)
+                  (recur 20))))
         18
-          (if (and (< lnum from) (< idx (.w-lines-valid wp)))
-            (let [j__9 (if (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) idx)))
-                         (if scrolled-down
-                           (do (aset tl__ 2 mid-start)
-                               (aset tl__ 8 srow)
-                               0)
-                           (let [srow (i32 (+ srow (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))]
-                             (aset tl__ 2 mid-start)
-                             (aset tl__ 8 srow)
-                             0))
-                         (let [mid-start (i32 (+ mid-start (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))]
-                           (aset tl__ 2 mid-start)
-                           (aset tl__ 8 srow)
-                           0))
-                  mid-start (aget tl__ 2)
-                  srow (aget tl__ 8)
-                  idx (i32 (inc idx))
-                  lnum (inc lnum)]
-              (recur 18 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (let [srow (i32 (+ srow mid-start))
-                  mid-end (.w-height wp)]
-              (recur 19 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                from (aget fl__ 18)
+                to (aget fl__ 19)]
+            (if (and (< lnum from) (< idx (.w-lines-valid wp)))
+              (let [j__39 (if (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) idx)))
+                            (if scrolled-down
+                              (do (aset tl__ 2 mid-start)
+                                  (aset tl__ 3 srow)
+                                  0)
+                              (let [srow (i32 (+ srow (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))]
+                                (aset tl__ 2 mid-start)
+                                (aset tl__ 3 srow)
+                                0))
+                            (let [mid-start (i32 (+ mid-start (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))]
+                              (aset tl__ 2 mid-start)
+                              (aset tl__ 3 srow)
+                              0))
+                    mid-start (aget tl__ 2)
+                    srow (aget tl__ 3)
+                    idx (i32 (inc idx))
+                    lnum (inc lnum)]
+                (aset fl__ 2 mid-start)
+                (aset fl__ 3 mid-end)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 idx)
+                (aset fl__ 8 srow)
+                (recur 18))
+              (let [srow (i32 (+ srow mid-start))
+                    mid-end (.w-height wp)]
+                (aset fl__ 2 mid-start)
+                (aset fl__ 3 mid-end)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 idx)
+                (aset fl__ 8 srow)
+                (recur 19))))
         19
-          (if (< idx (.w-lines-valid wp))
-            (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) (>= (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) idx)) (+ to 1)))
-              (let [mid-end srow]
-                (recur 20 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (let [srow (i32 (+ srow (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))
-                    idx (i32 (inc idx))]
-                (recur 19 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 20 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                override-success (boolean (aget fo__ 8))
+                to (aget fl__ 19)]
+            (if (< idx (.w-lines-valid wp))
+              (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) (>= (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) idx)) (+ to 1)))
+                (let [mid-end srow]
+                  (aset fl__ 3 mid-end)
+                  (aset fl__ 7 idx)
+                  (aset fl__ 8 srow)
+                  (recur 20))
+                (let [srow (i32 (+ srow (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))
+                      idx (i32 (inc idx))]
+                  (aset fl__ 3 mid-end)
+                  (aset fl__ 7 idx)
+                  (aset fl__ 8 srow)
+                  (recur 19)))
+              (do (aset fl__ 3 mid-end)
+                  (aset fl__ 7 idx)
+                  (aset fl__ 8 srow)
+                  (recur 20))))
         20
-          (do (if (and (not (zero? (g ed VIsual-active))) (identical? buf (.w-buffer (g ed curwin))))
-                (do (.set-w-old-visual-mode wp (i8 (g ed VIsual-mode)))
-                    (.set-w-old-cursor-lnum wp (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
-                    (.set-w-old-visual-lnum wp (.lnum (g ed VIsual)))
-                    (.set-w-old-visual-col wp (.col (g ed VIsual)))
-                    (.set-w-old-curswant wp (.w-curswant (g ed curwin))))
-                (do (.set-w-old-visual-mode wp 0)
-                    (.set-w-old-cursor-lnum wp 0)
-                    (.set-w-old-visual-lnum wp 0)
-                    (.set-w-old-visual-col wp 0)))
-              (let [save-got-int (g ed got-int)
-                    _ (g! ed got-int 0)
-                    lnum (.w-topline wp)
-                    idx 0
-                    row 0
-                    srow 0]
-                (recur 21 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))]
+            (if (and (not (zero? (g ed VIsual-active))) (identical? buf (.w-buffer (g ed curwin))))
+              (do (.set-w-old-visual-mode wp (i8 (g ed VIsual-mode)))
+                  (.set-w-old-cursor-lnum wp (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
+                  (.set-w-old-visual-lnum wp (.lnum (g ed VIsual)))
+                  (.set-w-old-visual-col wp (.col (g ed VIsual)))
+                  (.set-w-old-curswant wp (.w-curswant (g ed curwin))))
+              (do (.set-w-old-visual-mode wp 0)
+                  (.set-w-old-cursor-lnum wp 0)
+                  (.set-w-old-visual-lnum wp 0)
+                  (.set-w-old-visual-col wp 0)))
+            (let [save-got-int (g ed got-int)
+                  _ (g! ed got-int 0)
+                  lnum (.w-topline wp)
+                  idx 0
+                  row 0
+                  srow 0]
+              (aset fl__ 5 row)
+              (aset fl__ 6 lnum)
+              (aset fl__ 7 idx)
+              (aset fl__ 8 srow)
+              (aset fl__ 14 save-got-int)
+              (recur 21)))
         21
-          (if (== row (.w-height wp))
-            (let [didline true]
-              (recur 32 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (if (> lnum (.ml-line-count ^S_memline (.-b-ml buf)))
-              (let [eof true]
-                (recur 32 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-              (let [srow row]
-                (if (or (< row top-end) (and (>= row mid-start) (< row mid-end)) top-to-mod (>= idx (.w-lines-valid wp)) (> (i32 (+ row (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) bot-start) (and (not (== mod-top 0)) (or (== lnum mod-top) (and (>= lnum mod-top) (or (< lnum mod-bot) (and (some? (.w-match-head wp)) (.b-mod-set buf) (not (== (.b-mod-xlines buf) 0))))))))
-                  (let [top-to-mod (if (== lnum mod-top)
-                                     false
-                                     top-to-mod)]
-                    (if (and (not scrolled-for-mod) (not (== mod-bot (e LONG_MAX))) (>= lnum mod-top) (< lnum (if (> mod-bot (+ mod-top 1)) mod-bot (+ mod-top 1))) (or (not scrolled-down) (>= row top-end)))
-                      (let [scrolled-for-mod true
-                            old-cline-height 0
-                            old-rows 0
-                            new-rows 0
-                            i idx]
-                        (recur 22 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                      (recur 30 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-                  (do (when (or (and (not (zero? (long (aget ^ints (.-wo-nu ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== mod-top 0)) (>= lnum mod-bot) (.b-mod-set buf) (not (== (.b-mod-xlines buf) 0))) (and (not (zero? (long (aget ^ints (.-wo-rnu ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== (.w-last-cursor-lnum-rnu wp) (.lnum ^T_pos_T (.-w-cursor wp))))))
-                        (win-line ed wp lnum srow (.w-height wp) (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))
-                      (let [t8 idx
-                            idx (i32 (inc idx))
-                            t9 (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) t8))
-                            row (i32 (+ row t9))]
-                        (if (> row (.w-height wp))
-                          (recur 32 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)
-                          (let [lnum (inc lnum)]
-                            (recur 31 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))))))))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                old-cline-height (aget fl__ 20)
+                old-rows (aget fl__ 21)
+                new-rows (aget fl__ 22)]
+            (if (== row (.w-height wp))
+              (let [didline true]
+                (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                (aset fl__ 5 row)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 idx)
+                (aset fl__ 8 srow)
+                (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                (aset fl__ 9 i)
+                (aset fl__ 20 old-cline-height)
+                (aset fl__ 21 old-rows)
+                (aset fl__ 22 new-rows)
+                (recur 32))
+              (if (> lnum (.ml-line-count ^S_memline (.-b-ml buf)))
+                (let [eof true]
+                  (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                  (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                  (aset fl__ 5 row)
+                  (aset fl__ 6 lnum)
+                  (aset fl__ 7 idx)
+                  (aset fl__ 8 srow)
+                  (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                  (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                  (aset fl__ 9 i)
+                  (aset fl__ 20 old-cline-height)
+                  (aset fl__ 21 old-rows)
+                  (aset fl__ 22 new-rows)
+                  (recur 32))
+                (let [srow row]
+                  (if (or (< row top-end) (and (>= row mid-start) (< row mid-end)) top-to-mod (>= idx (.w-lines-valid wp)) (> (i32 (+ row (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) bot-start) (and (not (== mod-top 0)) (or (== lnum mod-top) (and (>= lnum mod-top) (or (< lnum mod-bot) (and (some? (.w-match-head wp)) (.b-mod-set buf) (not (== (.b-mod-xlines buf) 0))))))))
+                    (let [top-to-mod (if (== lnum mod-top)
+                                       false
+                                       top-to-mod)]
+                      (if (and (not scrolled-for-mod) (not (== mod-bot (e LONG_MAX))) (>= lnum mod-top) (< lnum (if (> mod-bot (+ mod-top 1)) mod-bot (+ mod-top 1))) (or (not scrolled-down) (>= row top-end)))
+                        (let [scrolled-for-mod true
+                              old-cline-height 0
+                              old-rows 0
+                              new-rows 0
+                              i idx]
+                          (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                          (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                          (aset fl__ 5 row)
+                          (aset fl__ 6 lnum)
+                          (aset fl__ 7 idx)
+                          (aset fl__ 8 srow)
+                          (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                          (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                          (aset fl__ 9 i)
+                          (aset fl__ 20 old-cline-height)
+                          (aset fl__ 21 old-rows)
+                          (aset fl__ 22 new-rows)
+                          (recur 22))
+                        (do (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                            (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                            (aset fl__ 5 row)
+                            (aset fl__ 6 lnum)
+                            (aset fl__ 7 idx)
+                            (aset fl__ 8 srow)
+                            (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                            (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                            (aset fl__ 9 i)
+                            (aset fl__ 20 old-cline-height)
+                            (aset fl__ 21 old-rows)
+                            (aset fl__ 22 new-rows)
+                            (recur 30))))
+                    (do (when (or (and (not (zero? (long (aget ^ints (.-wo-nu ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== mod-top 0)) (>= lnum mod-bot) (.b-mod-set buf) (not (== (.b-mod-xlines buf) 0))) (and (not (zero? (long (aget ^ints (.-wo-rnu ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== (.w-last-cursor-lnum-rnu wp) (.lnum ^T_pos_T (.-w-cursor wp))))))
+                          (win-line ed wp lnum srow (.w-height wp) (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx))))
+                        (let [t8 idx
+                              idx (i32 (inc idx))
+                              t9 (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) t8))
+                              row (i32 (+ row t9))]
+                          (if (> row (.w-height wp))
+                            (do (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                                (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                                (aset fl__ 5 row)
+                                (aset fl__ 6 lnum)
+                                (aset fl__ 7 idx)
+                                (aset fl__ 8 srow)
+                                (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                                (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                                (aset fl__ 9 i)
+                                (aset fl__ 20 old-cline-height)
+                                (aset fl__ 21 old-rows)
+                                (aset fl__ 22 new-rows)
+                                (recur 32))
+                            (let [lnum (inc lnum)]
+                              (aset fo__ 4 (Boolean/valueOf (boolean scrolled-for-mod)))
+                              (aset fo__ 5 (Boolean/valueOf (boolean top-to-mod)))
+                              (aset fl__ 5 row)
+                              (aset fl__ 6 lnum)
+                              (aset fl__ 7 idx)
+                              (aset fl__ 8 srow)
+                              (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                              (aset fo__ 7 (Boolean/valueOf (boolean didline)))
+                              (aset fl__ 9 i)
+                              (aset fl__ 20 old-cline-height)
+                              (aset fl__ 21 old-rows)
+                              (aset fl__ 22 new-rows)
+                              (recur 31))))))))))
+        st))))
+
+(defn- win-update__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^ints fromc (aget fo__ 11)
+        ^ints toc (aget fo__ 12)
+        ^T_pos_T pos (aget fo__ 13)
+        ^ints t (aget fo__ 14)
+        ^bytes fillbuf (aget fo__ 15)
+        ^longs tl__ (long-array 3)]
+    (loop [st st0__]
+      (case st
         22
-          (if (< i (.w-lines-valid wp))
-            (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) i)))) (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) i)) mod-bot))
-              (recur 23 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)
-              (let [old-cline-height (if (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) i)) (.lnum ^T_pos_T (.-w-cursor wp)))
-                                       (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i))
-                                       old-cline-height)
-                    old-rows (i32 (+ old-rows (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i))))
-                    i (i32 (inc i))]
-                (recur 22 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 23 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                old-cline-height (aget fl__ 20)
+                old-rows (aget fl__ 21)
+                new-rows (aget fl__ 22)]
+            (if (< i (.w-lines-valid wp))
+              (if (and (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) i)))) (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) i)) mod-bot))
+                (do (aset fl__ 9 i)
+                    (aset fl__ 20 old-cline-height)
+                    (aset fl__ 21 old-rows)
+                    (recur 23))
+                (let [old-cline-height (if (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) i)) (.lnum ^T_pos_T (.-w-cursor wp)))
+                                         (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i))
+                                         old-cline-height)
+                      old-rows (i32 (+ old-rows (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i))))
+                      i (i32 (inc i))]
+                  (aset fl__ 9 i)
+                  (aset fl__ 20 old-cline-height)
+                  (aset fl__ 21 old-rows)
+                  (recur 22)))
+              (do (aset fl__ 9 i)
+                  (aset fl__ 20 old-cline-height)
+                  (aset fl__ 21 old-rows)
+                  (recur 23))))
         23
-          (if (>= i (.w-lines-valid wp))
-            (let [bot-start 0]
-              (recur 30 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (let [j idx
-                  l lnum]
-              (recur 24 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                old-cline-height (aget fl__ 20)
+                old-rows (aget fl__ 21)
+                new-rows (aget fl__ 22)
+                l (aget fl__ 23)]
+            (if (>= i (.w-lines-valid wp))
+              (let [bot-start 0]
+                (aset fl__ 4 bot-start)
+                (aset fl__ 10 j)
+                (aset fl__ 23 l)
+                (recur 30))
+              (let [j idx
+                    l lnum]
+                (aset fl__ 4 bot-start)
+                (aset fl__ 10 j)
+                (aset fl__ 23 l)
+                (recur 24))))
         24
-          (if (< l mod-bot)
-            (let [new-rows (if (and (>= (g ed dollar-vcol) 0) (identical? wp (g ed curwin)) (> old-cline-height 0) (== l (.lnum ^T_pos_T (.-w-cursor wp))))
-                             (i32 (+ new-rows old-cline-height))
-                             (let [t4 (long (plines-correct-topline ed wp l true))
-                                   new-rows (i32 (+ new-rows t4))]
-                               new-rows))
-                  j (inc j)]
-              (if (> new-rows (i32 (- (i32 (- (.w-height wp) row)) 2)))
-                (let [new-rows 9999]
-                  (recur 25 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                (let [l (inc l)]
-                  (recur 24 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-            (recur 25 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                old-cline-height (aget fl__ 20)
+                old-rows (aget fl__ 21)
+                new-rows (aget fl__ 22)
+                l (aget fl__ 23)]
+            (if (< l mod-bot)
+              (let [new-rows (if (and (>= (g ed dollar-vcol) 0) (identical? wp (g ed curwin)) (> old-cline-height 0) (== l (.lnum ^T_pos_T (.-w-cursor wp))))
+                               (i32 (+ new-rows old-cline-height))
+                               (let [t4 (long (plines-correct-topline ed wp l true))
+                                     new-rows (i32 (+ new-rows t4))]
+                                 new-rows))
+                    j (inc j)]
+                (if (> new-rows (i32 (- (i32 (- (.w-height wp) row)) 2)))
+                  (let [new-rows 9999]
+                    (aset fl__ 10 j)
+                    (aset fl__ 22 new-rows)
+                    (aset fl__ 23 l)
+                    (recur 25))
+                  (let [l (inc l)]
+                    (aset fl__ 10 j)
+                    (aset fl__ 22 new-rows)
+                    (aset fl__ 23 l)
+                    (recur 24))))
+              (do (aset fl__ 10 j)
+                  (aset fl__ 22 new-rows)
+                  (aset fl__ 23 l)
+                  (recur 25))))
         25
-          (let [xtra-rows (i32 (- new-rows old-rows))
-                j__10 (if (< xtra-rows 0)
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                old-rows (aget fl__ 21)
+                new-rows (aget fl__ 22)
+                x (aget fl__ 24)
+                xtra-rows (i32 (- new-rows old-rows))
+                j__40 (if (< xtra-rows 0)
                         (if (>= (i32 (- row xtra-rows)) (i32 (- (.w-height wp) 2)))
                           (let [mod-bot (e LONG_MAX)]
-                            (aset tl__ 9 top-end)
-                            (aset tl__ 3 bot-start)
-                            (aset tl__ 1 mod-bot)
+                            (aset tl__ 0 top-end)
+                            (aset tl__ 1 bot-start)
+                            (aset tl__ 2 mod-bot)
                             0)
                           (do (check-for-delay ed false)
                               (if (== (long (win-del-lines ed wp row (i32 (- xtra-rows)) false false 0)) (e FAIL))
                                 (let [mod-bot (e LONG_MAX)]
-                                  (aset tl__ 9 top-end)
-                                  (aset tl__ 3 bot-start)
-                                  (aset tl__ 1 mod-bot)
+                                  (aset tl__ 0 top-end)
+                                  (aset tl__ 1 bot-start)
+                                  (aset tl__ 2 mod-bot)
                                   0)
                                 (let [bot-start (i32 (+ (.w-height wp) xtra-rows))]
-                                  (aset tl__ 9 top-end)
-                                  (aset tl__ 3 bot-start)
-                                  (aset tl__ 1 mod-bot)
+                                  (aset tl__ 0 top-end)
+                                  (aset tl__ 1 bot-start)
+                                  (aset tl__ 2 mod-bot)
                                   0))))
                         (if (> xtra-rows 0)
                           (if (>= (i32 (+ row xtra-rows)) (i32 (- (.w-height wp) 2)))
                             (let [mod-bot (e LONG_MAX)]
-                              (aset tl__ 9 top-end)
-                              (aset tl__ 3 bot-start)
-                              (aset tl__ 1 mod-bot)
+                              (aset tl__ 0 top-end)
+                              (aset tl__ 1 bot-start)
+                              (aset tl__ 2 mod-bot)
                               0)
                             (do (check-for-delay ed false)
                                 (if (== (long (win-ins-lines ed wp (i32 (+ row old-rows)) xtra-rows false false)) (e FAIL))
                                   (let [mod-bot (e LONG_MAX)]
-                                    (aset tl__ 9 top-end)
-                                    (aset tl__ 3 bot-start)
-                                    (aset tl__ 1 mod-bot)
+                                    (aset tl__ 0 top-end)
+                                    (aset tl__ 1 bot-start)
+                                    (aset tl__ 2 mod-bot)
                                     0)
                                   (if (> top-end (i32 (+ row old-rows)))
                                     (let [top-end (i32 (+ top-end xtra-rows))]
-                                      (aset tl__ 9 top-end)
-                                      (aset tl__ 3 bot-start)
-                                      (aset tl__ 1 mod-bot)
+                                      (aset tl__ 0 top-end)
+                                      (aset tl__ 1 bot-start)
+                                      (aset tl__ 2 mod-bot)
                                       0)
-                                    (do (aset tl__ 9 top-end)
-                                        (aset tl__ 3 bot-start)
-                                        (aset tl__ 1 mod-bot)
+                                    (do (aset tl__ 0 top-end)
+                                        (aset tl__ 1 bot-start)
+                                        (aset tl__ 2 mod-bot)
                                         0)))))
-                          (do (aset tl__ 9 top-end)
-                              (aset tl__ 3 bot-start)
-                              (aset tl__ 1 mod-bot)
+                          (do (aset tl__ 0 top-end)
+                              (aset tl__ 1 bot-start)
+                              (aset tl__ 2 mod-bot)
                               0)))
-                top-end (aget tl__ 9)
-                bot-start (aget tl__ 3)
-                mod-bot (aget tl__ 1)]
+                top-end (aget tl__ 0)
+                bot-start (aget tl__ 1)
+                mod-bot (aget tl__ 2)]
             (if (and (not (== mod-bot (e LONG_MAX))) (not (== i j)))
               (if (< j i)
                 (let [x (i32 (+ row new-rows))]
-                  (recur 28 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+                  (aset fl__ 1 top-end)
+                  (aset fl__ 4 bot-start)
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (aset fl__ 13 mod-bot)
+                  (aset fl__ 24 x)
+                  (recur 28))
                 (let [j (- j i)]
                   (.set-w-lines-valid wp (i32 (+ (.w-lines-valid wp) j)))
                   (when (> (.w-lines-valid wp) (.w-height wp))
                     (.set-w-lines-valid wp (.w-height wp)))
                   (let [i (.w-lines-valid wp)]
-                    (recur 26 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))
-              (recur 30 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                    (aset fl__ 1 top-end)
+                    (aset fl__ 4 bot-start)
+                    (aset fl__ 9 i)
+                    (aset fl__ 10 j)
+                    (aset fl__ 13 mod-bot)
+                    (aset fl__ 24 x)
+                    (recur 26))))
+              (do (aset fl__ 1 top-end)
+                  (aset fl__ 4 bot-start)
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (aset fl__ 13 mod-bot)
+                  (aset fl__ 24 x)
+                  (recur 30))))
         26
-          (if (>= (- i j) idx)
-            (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) i) (.at ^Ptr (.w-lines wp) (- i j)))
-                (let [i (i32 (dec i))]
-                  (recur 26 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 27 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))]
+            (if (>= (- i j) idx)
+              (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) i) (.at ^Ptr (.w-lines wp) (- i j)))
+                  (let [i (i32 (dec i))]
+                    (aset fl__ 9 i)
+                    (recur 26)))
+              (do (aset fl__ 9 i)
+                  (recur 27))))
         27
-          (if (>= i idx)
-            (do (.set-wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i) 0)
-                (let [t7 i
-                      i (i32 (dec i))]
-                  (.set-wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) t7) (e FALSE))
-                  (recur 27 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
-            (recur 30 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))]
+            (if (>= i idx)
+              (do (.set-wl-size ^S_w_line (.at ^Ptr (.w-lines wp) i) 0)
+                  (let [t7 i
+                        i (i32 (dec i))]
+                    (.set-wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) t7) (e FALSE))
+                    (aset fl__ 9 i)
+                    (recur 27)))
+              (do (aset fl__ 9 i)
+                  (recur 30))))
         28
-          (if (>= i (.w-lines-valid wp))
-            (do (.set-w-lines-valid wp (i32 j))
-                (recur 29 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) j) (.at ^Ptr (.w-lines wp) i))
-                (if (> (i32 (+ x (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) j)))) (.w-height wp))
-                  (do (.set-w-lines-valid wp (i32 (+ j 1)))
-                      (recur 29 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-                  (let [t5 j
-                        j (inc j)
-                        t6 (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) t5))
-                        x (i32 (+ x t6))
-                        i (i32 (inc i))]
-                    (recur 28 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                i (aget fl__ 9)
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                x (aget fl__ 24)]
+            (if (>= i (.w-lines-valid wp))
+              (do (.set-w-lines-valid wp (i32 j))
+                  (aset fl__ 9 i)
+                  (aset fl__ 10 j)
+                  (aset fl__ 24 x)
+                  (recur 29))
+              (do (.set ^S_w_line (.at ^Ptr (.w-lines wp) j) (.at ^Ptr (.w-lines wp) i))
+                  (if (> (i32 (+ x (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) j)))) (.w-height wp))
+                    (do (.set-w-lines-valid wp (i32 (+ j 1)))
+                        (aset fl__ 9 i)
+                        (aset fl__ 10 j)
+                        (aset fl__ 24 x)
+                        (recur 29))
+                    (let [t5 j
+                          j (inc j)
+                          t6 (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) t5))
+                          x (i32 (+ x t6))
+                          i (i32 (inc i))]
+                      (aset fl__ 9 i)
+                      (aset fl__ 10 j)
+                      (aset fl__ 24 x)
+                      (recur 28))))))
         29
-          (if (> bot-start x)
-            (let [bot-start x]
-              (recur 30 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (recur 30 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                x (aget fl__ 24)]
+            (if (> bot-start x)
+              (let [bot-start x]
+                (aset fl__ 4 bot-start)
+                (recur 30))
+              (do (aset fl__ 4 bot-start)
+                  (recur 30))))
+        st))))
+
+(defn- win-update__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^ints fromc (aget fo__ 11)
+        ^ints toc (aget fo__ 12)
+        ^T_pos_T pos (aget fo__ 13)
+        ^ints t (aget fo__ 14)
+        ^bytes fillbuf (aget fo__ 15)]
+    (loop [st st0__]
+      (case st
         30
-          (let [row (if (and (< idx (.w-lines-valid wp)) (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) idx)) lnum) (> lnum (.w-topline wp)) (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff 3)) true (> (i32 (+ srow (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) (.w-height wp)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))
+                row (if (and (< idx (.w-lines-valid wp)) (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) (== (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines wp) idx)) lnum) (> lnum (.w-topline wp)) (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff 3)) true (> (i32 (+ srow (.wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx)))) (.w-height wp)))
                       (i32 (+ (.w-height wp) 1))
                       (do (prepare-search-hl ed wp (g ed screen-search-hl) lnum)
                           (long (win-line ed wp lnum srow (.w-height wp) 0))))]
@@ -36941,78 +40084,183 @@
                 (do (when (or (== (g ed dollar-vcol) -1) (not is-curline))
                       (.set-wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx) (u16 (long (plines-win ed wp lnum true)))))
                     (let [idx (i32 (inc idx))]
-                      (recur 32 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+                      (aset fl__ 5 row)
+                      (aset fl__ 6 lnum)
+                      (aset fl__ 7 idx)
+                      (recur 32)))
                 (do (when (or (== (g ed dollar-vcol) -1) (not is-curline))
                       (.set-wl-size ^S_w_line (.at ^Ptr (.w-lines wp) idx) (u16 (- row srow))))
                     (let [idx (i32 (inc idx))
                           lnum (inc lnum)]
-                      (recur 31 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))))))
+                      (aset fl__ 5 row)
+                      (aset fl__ 6 lnum)
+                      (aset fl__ 7 idx)
+                      (recur 31))))))
         31
-          (if (> lnum (.ml-line-count ^S_memline (.-b-ml buf)))
-            (let [eof true]
-              (recur 32 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x))
-            (if (>= idx (aget (g ed Rows) 0))
-              (recur 32 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)
-              (recur 21 wp buf type_ top-end mid-start mid-end bot-start scrolled-down scrolled-for-mod top-to-mod row lnum idx srow eof didline i j old-botline mod-top mod-bot save-got-int override-success w width2 add cur from to cursor-above old-cline-height old-rows new-rows l x)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                top-end (aget fl__ 1)
+                mid-start (aget fl__ 2)
+                mid-end (aget fl__ 3)
+                bot-start (aget fl__ 4)
+                scrolled-down (boolean (aget fo__ 3))
+                scrolled-for-mod (boolean (aget fo__ 4))
+                top-to-mod (boolean (aget fo__ 5))
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                old-botline (aget fl__ 11)
+                mod-top (aget fl__ 12)
+                mod-bot (aget fl__ 13)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))]
+            (if (> lnum (.ml-line-count ^S_memline (.-b-ml buf)))
+              (let [eof true]
+                (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                (recur 32))
+              (if (>= idx (aget (g ed Rows) 0))
+                (do (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                    (recur 32))
+                (do (aset fo__ 6 (Boolean/valueOf (boolean eof)))
+                    (recur 21)))))
         32
-          (do (.set-w-last-cursor-lnum-rnu wp (if (zero? (long (aget ^ints (.-wo-rnu ^T_winopt_T (.-w-onebuf-opt wp)) 0))) 0 (.lnum ^T_pos_T (.-w-cursor wp))))
-              (when (> idx (.w-lines-valid wp))
-                (.set-w-lines-valid wp idx))
-              (.set-w-empty-rows wp 0)
-              (if (and (not eof) (not didline))
-                (if (== lnum (.w-topline wp))
-                  (.set-w-botline wp (+ lnum 1))
-                  (if (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff (e DY_TRUNCATE)))
-                    (if (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff (e DY_LASTLINE)))
-                      (do (win-draw-end ed wp (long (aget ^ints (.-lastline ^T_fill_chars_T (.-w-fill-chars wp)) 0)) 32 true srow (.w-height wp) (e HLF_AT))
-                          (.set-w-botline wp lnum))
-                      (let [start-col (i32 (- (i32 (+ (.w-wincol wp) (.w-width wp))) 3))
-                            symbol__2 (long (aget ^ints (.-lastline ^T_fill_chars_T (.-w-fill-chars wp)) 0))]
-                        (screen-fill ed (i32 (- (i32 (+ (.w-winrow wp) (.w-height wp))) 1)) (i32 (+ (.w-winrow wp) (.w-height wp))) (if (< start-col (.w-wincol wp)) (.w-wincol wp) start-col) (i32 (+ (.w-wincol wp) (.w-width wp))) symbol__2 symbol__2 (long (aget (g ed highlight-attr) 2)))
-                        (set-empty-rows ed wp srow)
-                        (.set-w-botline wp lnum)))
-                    (let [scr-row (i32 (- (i32 (+ (.w-winrow wp) (.w-height wp))) 1))
-                          symbol_ (long (aget ^ints (.-lastline ^T_fill_chars_T (.-w-fill-chars wp)) 0))
-                          charlen (long (utf-char2bytes ed symbol_ (BytePtr. fillbuf 0)))]
-                      (utf-char2bytes ed symbol_ (BytePtr. fillbuf charlen))
-                      (screen-puts-len ed (BytePtr. fillbuf 0) (i32 (* (if (> (.w-width wp) 2) 2 (.w-width wp)) charlen)) scr-row (.w-wincol wp) (long (aget (g ed highlight-attr) 2)))
-                      (screen-fill ed scr-row (i32 (+ scr-row 1)) (i32 (+ (.w-wincol wp) 2)) (i32 (+ (.w-wincol wp) (.w-width wp))) symbol_ 32 (long (aget (g ed highlight-attr) 2)))
+          (let [^S_window_S wp (aget fo__ 1)
+                ^S_file_buffer buf (aget fo__ 2)
+                row (aget fl__ 5)
+                lnum (aget fl__ 6)
+                idx (aget fl__ 7)
+                srow (aget fl__ 8)
+                eof (boolean (aget fo__ 6))
+                didline (boolean (aget fo__ 7))
+                j (aget fl__ 10)
+                old-botline (aget fl__ 11)
+                save-got-int (aget fl__ 14)
+                override-success (boolean (aget fo__ 8))]
+            (.set-w-last-cursor-lnum-rnu wp (if (zero? (long (aget ^ints (.-wo-rnu ^T_winopt_T (.-w-onebuf-opt wp)) 0))) 0 (.lnum ^T_pos_T (.-w-cursor wp))))
+            (when (> idx (.w-lines-valid wp))
+              (.set-w-lines-valid wp idx))
+            (.set-w-empty-rows wp 0)
+            (if (and (not eof) (not didline))
+              (if (== lnum (.w-topline wp))
+                (.set-w-botline wp (+ lnum 1))
+                (if (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff (e DY_TRUNCATE)))
+                  (if (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff (e DY_LASTLINE)))
+                    (do (win-draw-end ed wp (long (aget ^ints (.-lastline ^T_fill_chars_T (.-w-fill-chars wp)) 0)) 32 true srow (.w-height wp) (e HLF_AT))
+                        (.set-w-botline wp lnum))
+                    (let [start-col (i32 (- (i32 (+ (.w-wincol wp) (.w-width wp))) 3))
+                          symbol__2 (long (aget ^ints (.-lastline ^T_fill_chars_T (.-w-fill-chars wp)) 0))]
+                      (screen-fill ed (i32 (- (i32 (+ (.w-winrow wp) (.w-height wp))) 1)) (i32 (+ (.w-winrow wp) (.w-height wp))) (if (< start-col (.w-wincol wp)) (.w-wincol wp) start-col) (i32 (+ (.w-wincol wp) (.w-width wp))) symbol__2 symbol__2 (long (aget (g ed highlight-attr) 2)))
                       (set-empty-rows ed wp srow)
-                      (.set-w-botline wp lnum))))
-                (do (draw-vsep-win ed wp row)
-                    (if eof
-                      (.set-w-botline wp (+ (.ml-line-count ^S_memline (.-b-ml buf)) 1))
-                      (when (or (== (g ed dollar-vcol) -1) (not (identical? wp (g ed curwin))))
-                        (.set-w-botline wp lnum)))
-                    (if false
-                      (win-draw-end ed wp 32 32 false row (.w-height wp) (e HLF_AT))
-                      (win-draw-end ed wp (long (aget ^ints (.-eob ^T_fill_chars_T (.-w-fill-chars wp)) 0)) 32 false row (.w-height wp) (e HLF_EOB)))))
-              (.set-w-redr-type wp 0)
-              (when (or (== (g ed dollar-vcol) -1) (not (identical? wp (g ed curwin))))
-                (.set-w-valid wp (bit-or (.w-valid wp) (e VALID_BOTLINE)))
-                (when (and (identical? wp (g ed curwin)) (not (== (.w-botline wp) old-botline)) (not (g ed win-update-recursive)))
-                  (g! ed win-update-recursive true)
-                  (.set-w-valid (g ed curwin) (bit-and (.w-valid (g ed curwin)) -129))
-                  (update-topline ed)
-                  (when-not (== (.w-redr-type wp) 0)
-                    (let [b (.b-mod-set (g ed curbuf))
-                          _ (.set-b-mod-set (g ed curbuf) (boolean false))
-                          j (.b-mod-xlines (g ed curbuf))]
-                      (.set-b-mod-xlines (g ed curbuf) 0)
-                      (curs-columns ed true)
-                      (win-update ed (g ed curwin))
-                      (.set-b-mod-set (g ed curbuf) (boolean b))
-                      (.set-b-mod-xlines (g ed curbuf) j)))
-                  (g! ed must-redraw 0)
-                  (let [^S_window_S wwp (g ed curwin)]
-                    (when (> (.w-redr-type wwp) (g ed must-redraw))
-                      (g! ed must-redraw (.w-redr-type wwp)))
-                    (g! ed win-update-recursive false))))
-              (when (zero? (g ed got-int))
-                (g! ed got-int save-got-int))
-              (when override-success
-                (pop-highlight-overrides ed)
-                nil))))))
+                      (.set-w-botline wp lnum)))
+                  (let [scr-row (i32 (- (i32 (+ (.w-winrow wp) (.w-height wp))) 1))
+                        symbol_ (long (aget ^ints (.-lastline ^T_fill_chars_T (.-w-fill-chars wp)) 0))
+                        charlen (long (utf-char2bytes ed symbol_ (BytePtr. fillbuf 0)))]
+                    (utf-char2bytes ed symbol_ (BytePtr. fillbuf charlen))
+                    (screen-puts-len ed (BytePtr. fillbuf 0) (i32 (* (if (> (.w-width wp) 2) 2 (.w-width wp)) charlen)) scr-row (.w-wincol wp) (long (aget (g ed highlight-attr) 2)))
+                    (screen-fill ed scr-row (i32 (+ scr-row 1)) (i32 (+ (.w-wincol wp) 2)) (i32 (+ (.w-wincol wp) (.w-width wp))) symbol_ 32 (long (aget (g ed highlight-attr) 2)))
+                    (set-empty-rows ed wp srow)
+                    (.set-w-botline wp lnum))))
+              (do (draw-vsep-win ed wp row)
+                  (if eof
+                    (.set-w-botline wp (+ (.ml-line-count ^S_memline (.-b-ml buf)) 1))
+                    (when (or (== (g ed dollar-vcol) -1) (not (identical? wp (g ed curwin))))
+                      (.set-w-botline wp lnum)))
+                  (if false
+                    (win-draw-end ed wp 32 32 false row (.w-height wp) (e HLF_AT))
+                    (win-draw-end ed wp (long (aget ^ints (.-eob ^T_fill_chars_T (.-w-fill-chars wp)) 0)) 32 false row (.w-height wp) (e HLF_EOB)))))
+            (.set-w-redr-type wp 0)
+            (when (or (== (g ed dollar-vcol) -1) (not (identical? wp (g ed curwin))))
+              (.set-w-valid wp (bit-or (.w-valid wp) (e VALID_BOTLINE)))
+              (when (and (identical? wp (g ed curwin)) (not (== (.w-botline wp) old-botline)) (not (g ed win-update-recursive)))
+                (g! ed win-update-recursive true)
+                (.set-w-valid (g ed curwin) (bit-and (.w-valid (g ed curwin)) -129))
+                (update-topline ed)
+                (when-not (== (.w-redr-type wp) 0)
+                  (let [b (.b-mod-set (g ed curbuf))
+                        _ (.set-b-mod-set (g ed curbuf) (boolean false))
+                        j (.b-mod-xlines (g ed curbuf))]
+                    (.set-b-mod-xlines (g ed curbuf) 0)
+                    (curs-columns ed true)
+                    (win-update ed (g ed curwin))
+                    (.set-b-mod-set (g ed curbuf) (boolean b))
+                    (.set-b-mod-xlines (g ed curbuf) j)))
+                (g! ed must-redraw 0)
+                (let [^S_window_S wwp (g ed curwin)]
+                  (when (> (.w-redr-type wwp) (g ed must-redraw))
+                    (g! ed must-redraw (.w-redr-type wwp)))
+                  (g! ed win-update-recursive false))))
+            (when (zero? (g ed got-int))
+              (g! ed got-int save-got-int))
+            (if override-success
+              (do (pop-highlight-overrides ed)
+                  -1)
+              -1))
+        st))))
+
+;; C: win_update
+(defn win-update [^Editor ed ^S_window_S wp]
+  (let [^ints fromc (int-array 1)
+        ^ints toc (int-array 1)
+        ^T_pos_T pos (new-T_pos_T)
+        ^ints t (int-array 1)
+        ^bytes fillbuf (byte-array 12)
+        ^longs fl__ (long-array 25)
+        ^objects fo__ (object-array 16)]
+    (aset fo__ 1 wp)
+    (aset fl__ 0 0)
+    (aset fl__ 1 0)
+    (aset fl__ 2 0)
+    (aset fl__ 3 0)
+    (aset fl__ 4 0)
+    (aset fo__ 3 false)
+    (aset fo__ 4 false)
+    (aset fo__ 5 false)
+    (aset fl__ 5 0)
+    (aset fl__ 6 0)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
+    (aset fo__ 6 false)
+    (aset fo__ 7 false)
+    (aset fl__ 9 0)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fl__ 14 0)
+    (aset fo__ 8 false)
+    (aset fl__ 15 0)
+    (aset fl__ 16 0)
+    (aset fl__ 17 0)
+    (aset fl__ 18 0)
+    (aset fl__ 19 0)
+    (aset fo__ 10 false)
+    (aset fl__ 20 0)
+    (aset fl__ 21 0)
+    (aset fl__ 22 0)
+    (aset fl__ 23 0)
+    (aset fl__ 24 0)
+    (aset fo__ 11 fromc)
+    (aset fo__ 12 toc)
+    (aset fo__ 13 pos)
+    (aset fo__ 14 t)
+    (aset fo__ 15 fillbuf)
+    (loop [st 0]
+      (let [r__ (if (<= st 6)
+                  (win-update__0 ed fl__ fo__ st)
+                  (if (<= st 12)
+                    (win-update__1 ed fl__ fo__ st)
+                    (if (<= st 15)
+                      (win-update__2 ed fl__ fo__ st)
+                      (if (<= st 21)
+                        (win-update__3 ed fl__ fo__ st)
+                        (if (<= st 29)
+                          (win-update__4 ed fl__ fo__ st)
+                          (win-update__5 ed fl__ fo__ st))))))]
+        (when-not (neg? r__)
+          (recur r__))))))
 
 ;; C: statusline_row
 (defn statusline-row ^long [^Editor ed ^S_window_S wp]
@@ -42632,48 +45880,38 @@
                     (recur lnum (boolean found)))))
               found)))))))
 
-(defn findmatchlimit ^T_pos_T [^Editor ed ^S_oparg_S oap initc flags maxtravel]
-  (let [initc (long initc)
-        flags (long flags)
-        maxtravel (long maxtravel)
-        ^T_find_mps_values__out_T find-mps-values__o (new-T_find_mps_values__out_T)
-        ^T_pos_T match-pos (new-T_pos_T)
-        ^ints col (int-array 1)
-        ^ints col_3 (int-array 1)
-        ^longs tl__ (long-array 7)
-        ^objects to__ (object-array 3)]
-    (loop [st 0
-           ^S_oparg_S oap oap
-           initc initc
-           flags flags
-           maxtravel maxtravel
-           findc 0
-           c 0
-           count_ 0
-           backwards 0
-           raw-string false
-           inquote 0
-           ^BytePtr linep nil
-           ^BytePtr ptr nil
-           do-quotes 0
-           at-start 0
-           hash-dir 0
-           comment-dir 0
-           start-in-quotes 0
-           traveled 0
-           ignore-cend false
-           cpo-match false
-           cpo-bsl false
-           match-escaped 0
-           comment-col 0
-           skip-comments false
-           in-block-comment false
-           bslcnt 0
-           col_2 0
-           bslcnt_2 0]
+(defn- findmatchlimit__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_find_mps_values__out_T find-mps-values__o (aget fo__ 10)
+        ^T_pos_T match-pos (aget fo__ 11)
+        ^ints col (aget fo__ 12)
+        ^ints col_3 (aget fo__ 13)
+        ^longs tl__ (long-array 3)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
       (case st
         0
-          (let [findc 0
+          (let [^S_oparg_S oap (aget fo__ 1)
+                initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                ^BytePtr ptr (aget fo__ 4)
+                hash-dir (aget fl__ 10)
+                comment-dir (aget fl__ 11)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                findc 0
                 count_ 0
                 backwards (e FALSE)
                 raw-string false
@@ -42704,7 +45942,25 @@
                     backwards (if (== dir (e FORWARD)) (e FALSE) (e TRUE))
                     raw-string (== initc 82)
                     initc (e NUL)]
-                (recur 8 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                (aset fl__ 0 initc)
+                (aset fl__ 3 findc)
+                (aset fl__ 5 count_)
+                (aset fl__ 6 backwards)
+                (aset fo__ 2 (Boolean/valueOf (boolean raw-string)))
+                (aset fl__ 7 inquote)
+                (aset fo__ 3 linep)
+                (aset fo__ 4 ptr)
+                (aset fl__ 10 hash-dir)
+                (aset fl__ 11 comment-dir)
+                (aset fl__ 13 traveled)
+                (aset fo__ 5 (Boolean/valueOf (boolean ignore-cend)))
+                (aset fo__ 6 (Boolean/valueOf (boolean cpo-match)))
+                (aset fo__ 7 (Boolean/valueOf (boolean cpo-bsl)))
+                (aset fl__ 14 match-escaped)
+                (aset fl__ 15 comment-col)
+                (aset fo__ 8 (Boolean/valueOf (boolean skip-comments)))
+                (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                (recur 8))
               (if (and (not (== initc 35)) (not (== initc (e NUL))))
                 (do (.set find-mps-values__o (find-mps-values ed initc findc backwards true))
                     (let [initc (.initc find-mps-values__o)
@@ -42713,85 +45969,182 @@
                           backwards (if (zero? dir)
                                       backwards
                                       (if (== dir (e FORWARD)) (e FALSE) (e TRUE)))]
-                      (when-not (== findc (e NUL))
-                        (recur 8 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
+                      (if (== findc (e NUL))
+                        (do (aset fo__ 0 nil)
+                            -1)
+                        (do (aset fl__ 0 initc)
+                            (aset fl__ 3 findc)
+                            (aset fl__ 5 count_)
+                            (aset fl__ 6 backwards)
+                            (aset fo__ 2 (Boolean/valueOf (boolean raw-string)))
+                            (aset fl__ 7 inquote)
+                            (aset fo__ 3 linep)
+                            (aset fo__ 4 ptr)
+                            (aset fl__ 10 hash-dir)
+                            (aset fl__ 11 comment-dir)
+                            (aset fl__ 13 traveled)
+                            (aset fo__ 5 (Boolean/valueOf (boolean ignore-cend)))
+                            (aset fo__ 6 (Boolean/valueOf (boolean cpo-match)))
+                            (aset fo__ 7 (Boolean/valueOf (boolean cpo-bsl)))
+                            (aset fl__ 14 match-escaped)
+                            (aset fl__ 15 comment-col)
+                            (aset fo__ 8 (Boolean/valueOf (boolean skip-comments)))
+                            (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                            (recur 8)))))
                 (if (== initc 35)
                   (let [hash-dir dir]
-                    (recur 4 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                  (let [j__1 (if cpo-match
-                               (do (aset tl__ 0 backwards)
-                                   (aset tl__ 1 hash-dir)
-                                   (aset tl__ 2 comment-dir)
-                                   0)
-                               (let [^BytePtr ptr (skipwhite ed linep)]
-                                 (if (and (== (bit-and (.get ptr) 0xff) 35) (<= (.col (g ed findmatchlimit-pos)) (i32 (.sub ptr linep))))
-                                   (let [^BytePtr ptr (skipwhite ed (.add ptr 1))]
-                                     (if (or (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
-                                       (let [hash-dir 1]
-                                         (aset tl__ 0 backwards)
-                                         (aset tl__ 1 hash-dir)
-                                         (aset tl__ 2 comment-dir)
-                                         0)
-                                       (do (aset tl__ 0 backwards)
-                                           (aset tl__ 1 hash-dir)
-                                           (aset tl__ 2 comment-dir)
-                                           0)))
-                                   (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47)
-                                     (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42)
-                                       (let [comment-dir (e FORWARD)
-                                             backwards (e FALSE)]
-                                         (.set-col (g ed findmatchlimit-pos) (i32 (inc (.col (g ed findmatchlimit-pos)))))
-                                         (aset tl__ 0 backwards)
-                                         (aset tl__ 1 hash-dir)
-                                         (aset tl__ 2 comment-dir)
-                                         0)
-                                       (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42))
-                                         (let [comment-dir -1
-                                               backwards (e TRUE)]
-                                           (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos)))))
-                                           (aset tl__ 0 backwards)
-                                           (aset tl__ 1 hash-dir)
-                                           (aset tl__ 2 comment-dir)
-                                           0)
-                                         (do (aset tl__ 0 backwards)
-                                             (aset tl__ 1 hash-dir)
-                                             (aset tl__ 2 comment-dir)
-                                             0)))
-                                     (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42)
-                                       (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47)
-                                         (let [comment-dir -1
-                                               backwards (e TRUE)]
-                                           (aset tl__ 0 backwards)
-                                           (aset tl__ 1 hash-dir)
-                                           (aset tl__ 2 comment-dir)
-                                           0)
-                                         (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47))
-                                           (let [comment-dir (e FORWARD)
-                                                 backwards (e FALSE)]
-                                             (aset tl__ 0 backwards)
-                                             (aset tl__ 1 hash-dir)
-                                             (aset tl__ 2 comment-dir)
-                                             0)
-                                           (do (aset tl__ 0 backwards)
-                                               (aset tl__ 1 hash-dir)
-                                               (aset tl__ 2 comment-dir)
-                                               0)))
-                                       (do (aset tl__ 0 backwards)
-                                           (aset tl__ 1 hash-dir)
-                                           (aset tl__ 2 comment-dir)
-                                           0))))))
+                    (aset fl__ 0 initc)
+                    (aset fl__ 3 findc)
+                    (aset fl__ 5 count_)
+                    (aset fl__ 6 backwards)
+                    (aset fo__ 2 (Boolean/valueOf (boolean raw-string)))
+                    (aset fl__ 7 inquote)
+                    (aset fo__ 3 linep)
+                    (aset fo__ 4 ptr)
+                    (aset fl__ 10 hash-dir)
+                    (aset fl__ 11 comment-dir)
+                    (aset fl__ 13 traveled)
+                    (aset fo__ 5 (Boolean/valueOf (boolean ignore-cend)))
+                    (aset fo__ 6 (Boolean/valueOf (boolean cpo-match)))
+                    (aset fo__ 7 (Boolean/valueOf (boolean cpo-bsl)))
+                    (aset fl__ 14 match-escaped)
+                    (aset fl__ 15 comment-col)
+                    (aset fo__ 8 (Boolean/valueOf (boolean skip-comments)))
+                    (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                    (recur 4))
+                  (let [j__19 (if cpo-match
+                                (do (aset tl__ 0 backwards)
+                                    (aset tl__ 1 hash-dir)
+                                    (aset tl__ 2 comment-dir)
+                                    0)
+                                (let [^BytePtr ptr (skipwhite ed linep)]
+                                  (if (and (== (bit-and (.get ptr) 0xff) 35) (<= (.col (g ed findmatchlimit-pos)) (i32 (.sub ptr linep))))
+                                    (let [^BytePtr ptr (skipwhite ed (.add ptr 1))]
+                                      (if (or (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
+                                        (let [hash-dir 1]
+                                          (aset tl__ 0 backwards)
+                                          (aset tl__ 1 hash-dir)
+                                          (aset tl__ 2 comment-dir)
+                                          0)
+                                        (do (aset tl__ 0 backwards)
+                                            (aset tl__ 1 hash-dir)
+                                            (aset tl__ 2 comment-dir)
+                                            0)))
+                                    (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47)
+                                      (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42)
+                                        (let [comment-dir (e FORWARD)
+                                              backwards (e FALSE)]
+                                          (.set-col (g ed findmatchlimit-pos) (i32 (inc (.col (g ed findmatchlimit-pos)))))
+                                          (aset tl__ 0 backwards)
+                                          (aset tl__ 1 hash-dir)
+                                          (aset tl__ 2 comment-dir)
+                                          0)
+                                        (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42))
+                                          (let [comment-dir -1
+                                                backwards (e TRUE)]
+                                            (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos)))))
+                                            (aset tl__ 0 backwards)
+                                            (aset tl__ 1 hash-dir)
+                                            (aset tl__ 2 comment-dir)
+                                            0)
+                                          (do (aset tl__ 0 backwards)
+                                              (aset tl__ 1 hash-dir)
+                                              (aset tl__ 2 comment-dir)
+                                              0)))
+                                      (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42)
+                                        (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47)
+                                          (let [comment-dir -1
+                                                backwards (e TRUE)]
+                                            (aset tl__ 0 backwards)
+                                            (aset tl__ 1 hash-dir)
+                                            (aset tl__ 2 comment-dir)
+                                            0)
+                                          (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47))
+                                            (let [comment-dir (e FORWARD)
+                                                  backwards (e FALSE)]
+                                              (aset tl__ 0 backwards)
+                                              (aset tl__ 1 hash-dir)
+                                              (aset tl__ 2 comment-dir)
+                                              0)
+                                            (do (aset tl__ 0 backwards)
+                                                (aset tl__ 1 hash-dir)
+                                                (aset tl__ 2 comment-dir)
+                                                0)))
+                                        (do (aset tl__ 0 backwards)
+                                            (aset tl__ 1 hash-dir)
+                                            (aset tl__ 2 comment-dir)
+                                            0))))))
                         backwards (aget tl__ 0)
                         hash-dir (aget tl__ 1)
                         comment-dir (aget tl__ 2)]
                     (if (and (zero? hash-dir) (zero? comment-dir))
                       (do (when (and (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) (e NUL)) (not (zero? (.col (g ed findmatchlimit-pos)))))
                             (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos))))))
-                          (recur 1 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                      (recur 4 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))))))
+                          (aset fl__ 0 initc)
+                          (aset fl__ 3 findc)
+                          (aset fl__ 5 count_)
+                          (aset fl__ 6 backwards)
+                          (aset fo__ 2 (Boolean/valueOf (boolean raw-string)))
+                          (aset fl__ 7 inquote)
+                          (aset fo__ 3 linep)
+                          (aset fo__ 4 ptr)
+                          (aset fl__ 10 hash-dir)
+                          (aset fl__ 11 comment-dir)
+                          (aset fl__ 13 traveled)
+                          (aset fo__ 5 (Boolean/valueOf (boolean ignore-cend)))
+                          (aset fo__ 6 (Boolean/valueOf (boolean cpo-match)))
+                          (aset fo__ 7 (Boolean/valueOf (boolean cpo-bsl)))
+                          (aset fl__ 14 match-escaped)
+                          (aset fl__ 15 comment-col)
+                          (aset fo__ 8 (Boolean/valueOf (boolean skip-comments)))
+                          (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                          (recur 1))
+                      (do (aset fl__ 0 initc)
+                          (aset fl__ 3 findc)
+                          (aset fl__ 5 count_)
+                          (aset fl__ 6 backwards)
+                          (aset fo__ 2 (Boolean/valueOf (boolean raw-string)))
+                          (aset fl__ 7 inquote)
+                          (aset fo__ 3 linep)
+                          (aset fo__ 4 ptr)
+                          (aset fl__ 10 hash-dir)
+                          (aset fl__ 11 comment-dir)
+                          (aset fl__ 13 traveled)
+                          (aset fo__ 5 (Boolean/valueOf (boolean ignore-cend)))
+                          (aset fo__ 6 (Boolean/valueOf (boolean cpo-match)))
+                          (aset fo__ 7 (Boolean/valueOf (boolean cpo-bsl)))
+                          (aset fl__ 14 match-escaped)
+                          (aset fl__ 15 comment-col)
+                          (aset fo__ 8 (Boolean/valueOf (boolean skip-comments)))
+                          (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                          (recur 4))))))))
         1
-          (let [initc (long (utf-ptr2char ed (.add linep (.col (g ed findmatchlimit-pos)))))]
+          (let [^S_oparg_S oap (aget fo__ 1)
+                initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                hash-dir (aget fl__ 10)
+                comment-dir (aget fl__ 11)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                initc (long (utf-ptr2char ed (.add linep (.col (g ed findmatchlimit-pos)))))]
             (if (== initc (e NUL))
-              (recur 2 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+              (do (aset fl__ 0 initc)
+                  (aset fl__ 3 findc)
+                  (aset fl__ 6 backwards)
+                  (recur 2))
               (do (.set find-mps-values__o (find-mps-values ed initc findc backwards false))
                   (let [initc (.initc find-mps-values__o)
                         findc (.findc find-mps-values__o)
@@ -42799,95 +46152,260 @@
                     (if (zero? findc)
                       (let [t1 (long (utfc-ptr2len ed (.add linep (.col (g ed findmatchlimit-pos)))))]
                         (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) t1)))
-                        (recur 1 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                      (recur 2 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))))
+                        (aset fl__ 0 initc)
+                        (aset fl__ 3 findc)
+                        (aset fl__ 6 backwards)
+                        (recur 1))
+                      (do (aset fl__ 0 initc)
+                          (aset fl__ 3 findc)
+                          (aset fl__ 6 backwards)
+                          (recur 2)))))))
         2
-          (if (zero? findc)
-            (when (and (not cpo-match) (== (bit-and (.get ^BytePtr (skipwhite ed linep)) 0xff) 35))
-              (let [hash-dir 1]
-                (recur 4 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-            (if cpo-bsl
-              (recur 4 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-              (let [bslcnt 0]
-                (aset col 0 (unchecked-int (.col (g ed findmatchlimit-pos))))
-                (recur 3 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
+          (let [^S_oparg_S oap (aget fo__ 1)
+                initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                hash-dir (aget fl__ 10)
+                comment-dir (aget fl__ 11)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                bslcnt (aget fl__ 16)]
+            (if (zero? findc)
+              (if (and (not cpo-match) (== (bit-and (.get ^BytePtr (skipwhite ed linep)) 0xff) 35))
+                (let [hash-dir 1]
+                  (aset fl__ 10 hash-dir)
+                  (aset fl__ 16 bslcnt)
+                  (recur 4))
+                (do (aset fo__ 0 nil)
+                    -1))
+              (if cpo-bsl
+                (do (aset fl__ 10 hash-dir)
+                    (aset fl__ 16 bslcnt)
+                    (recur 4))
+                (let [bslcnt 0]
+                  (aset col 0 (unchecked-int (.col (g ed findmatchlimit-pos))))
+                  (aset fl__ 10 hash-dir)
+                  (aset fl__ 16 bslcnt)
+                  (recur 3)))))
         3
-          (if (check-prevcol ed linep (long (aget col 0)) 92 (IntPtr. col 0))
-            (let [bslcnt (i32 (inc bslcnt))]
-              (recur 3 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-            (let [match-escaped (bit-and bslcnt 1)]
-              (recur 4 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
+          (let [^S_oparg_S oap (aget fo__ 1)
+                initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                hash-dir (aget fl__ 10)
+                comment-dir (aget fl__ 11)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                bslcnt (aget fl__ 16)]
+            (if (check-prevcol ed linep (long (aget col 0)) 92 (IntPtr. col 0))
+              (let [bslcnt (i32 (inc bslcnt))]
+                (aset fl__ 14 match-escaped)
+                (aset fl__ 16 bslcnt)
+                (recur 3))
+              (let [match-escaped (bit-and bslcnt 1)]
+                (aset fl__ 14 match-escaped)
+                (aset fl__ 16 bslcnt)
+                (recur 4))))
+        st))))
+
+(defn- findmatchlimit__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_find_mps_values__out_T find-mps-values__o (aget fo__ 10)
+        ^T_pos_T match-pos (aget fo__ 11)
+        ^ints col (aget fo__ 12)
+        ^ints col_3 (aget fo__ 13)
+        ^longs tl__ (long-array 1)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
+      (case st
         4
-          (if (zero? hash-dir)
-            (recur 8 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-            (do (when (some? oap)
-                  (.set-motion-type oap (e MLINE)))
-                (let [j__2 (if (== initc 35)
-                             (do (aset tl__ 1 hash-dir)
-                                 0)
-                             (let [^BytePtr ptr (skipwhite ed (.add ^BytePtr (skipwhite ed linep) 1))]
-                               (if (or (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
-                                 (let [hash-dir 1]
-                                   (aset tl__ 1 hash-dir)
-                                   0)
-                                 (if (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0)
-                                   (let [hash-dir -1]
-                                     (aset tl__ 1 hash-dir)
-                                     0)
-                                   (do (aset to__ 0 nil)
-                                       -1)))))]
-                  (if (== (long j__2) -1)
-                    (aget to__ 0)
-                    (let [hash-dir (aget tl__ 1)]
-                      (.set-col (g ed findmatchlimit-pos) 0)
-                      (recur 5 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))))
+          (let [^S_oparg_S oap (aget fo__ 1)
+                initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                ^BytePtr ptr (aget fo__ 4)
+                hash-dir (aget fl__ 10)
+                comment-dir (aget fl__ 11)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))]
+            (if (zero? hash-dir)
+              (do (aset fo__ 4 ptr)
+                  (aset fl__ 10 hash-dir)
+                  (recur 8))
+              (do (when (some? oap)
+                    (.set-motion-type oap (e MLINE)))
+                  (let [j__20 (if (== initc 35)
+                                (do (aset tl__ 0 hash-dir)
+                                    0)
+                                (let [^BytePtr ptr (skipwhite ed (.add ^BytePtr (skipwhite ed linep) 1))]
+                                  (if (or (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
+                                    (let [hash-dir 1]
+                                      (aset tl__ 0 hash-dir)
+                                      0)
+                                    (if (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0)
+                                      (let [hash-dir -1]
+                                        (aset tl__ 0 hash-dir)
+                                        0)
+                                      (do (aset fo__ 0 nil)
+                                          -1)))))]
+                    (if (== (long j__20) -1)
+                      (do (aset fo__ 0 (aget to__ 0))
+                          -1)
+                      (let [hash-dir (aget tl__ 0)]
+                        (.set-col (g ed findmatchlimit-pos) 0)
+                        (aset fo__ 4 ptr)
+                        (aset fl__ 10 hash-dir)
+                        (recur 5)))))))
         5
-          (when (zero? (g ed got-int))
-            (if (> hash-dir 0)
-              (when-not (== (.lnum (g ed findmatchlimit-pos)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                (recur 6 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-              (when-not (== (.lnum (g ed findmatchlimit-pos)) 1)
-                (recur 6 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
+          (let [initc (aget fl__ 0)
+                count_ (aget fl__ 5)
+                hash-dir (aget fl__ 10)]
+            (if (zero? (g ed got-int))
+              (if (> hash-dir 0)
+                (if (== (.lnum (g ed findmatchlimit-pos)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                  (do (aset fo__ 0 nil)
+                      -1)
+                  (recur 6))
+                (if (== (.lnum (g ed findmatchlimit-pos)) 1)
+                  (do (aset fo__ 0 nil)
+                      -1)
+                  (recur 6)))
+              (do (aset fo__ 0 nil)
+                  -1)))
         6
-          (do (.set-lnum (g ed findmatchlimit-pos) (+ (.lnum (g ed findmatchlimit-pos)) hash-dir))
-              (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
-                    _ (line-breakcheck ed)
-                    ^BytePtr ptr (skipwhite ed linep)]
-                (if (== (bit-and (.get ptr) 0xff) 35)
-                  (do (.set-col (g ed findmatchlimit-pos) (i32 (.sub ptr linep)))
-                      (let [^BytePtr ptr (skipwhite ed (.add ptr 1))]
-                        (if (> hash-dir 0)
-                          (if (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0)
-                            (let [count_ (i32 (inc count_))]
-                              (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                            (if (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0)
-                              (if (== count_ 0)
-                                (g ed findmatchlimit-pos)
-                                (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                              (if (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0)
-                                (if (== count_ 0)
-                                  (g ed findmatchlimit-pos)
-                                  (let [count_ (i32 (dec count_))]
-                                    (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-                                (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
-                          (if (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0)
+          (let [initc (aget fl__ 0)
+                count_ (aget fl__ 5)
+                ^BytePtr linep (aget fo__ 3)
+                ^BytePtr ptr (aget fo__ 4)
+                hash-dir (aget fl__ 10)]
+            (.set-lnum (g ed findmatchlimit-pos) (+ (.lnum (g ed findmatchlimit-pos)) hash-dir))
+            (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
+                  _ (line-breakcheck ed)
+                  ^BytePtr ptr (skipwhite ed linep)]
+              (if (== (bit-and (.get ptr) 0xff) 35)
+                (do (.set-col (g ed findmatchlimit-pos) (i32 (.sub ptr linep)))
+                    (let [^BytePtr ptr (skipwhite ed (.add ptr 1))]
+                      (if (> hash-dir 0)
+                        (if (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0)
+                          (let [count_ (i32 (inc count_))]
+                            (aset fl__ 5 count_)
+                            (aset fo__ 3 linep)
+                            (aset fo__ 4 ptr)
+                            (recur 7))
+                          (if (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0)
                             (if (== count_ 0)
-                              (g ed findmatchlimit-pos)
-                              (let [count_ (i32 (dec count_))]
-                                (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-                            (if (and (== initc 35) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
+                              (do (aset fo__ 0 (g ed findmatchlimit-pos))
+                                  -1)
+                              (do (aset fl__ 5 count_)
+                                  (aset fo__ 3 linep)
+                                  (aset fo__ 4 ptr)
+                                  (recur 7)))
+                            (if (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0)
                               (if (== count_ 0)
-                                (g ed findmatchlimit-pos)
-                                (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                              (if (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0)
-                                (let [count_ (i32 (inc count_))]
-                                  (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                                (recur 7 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))))))
-                  (recur 5 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
+                                (do (aset fo__ 0 (g ed findmatchlimit-pos))
+                                    -1)
+                                (let [count_ (i32 (dec count_))]
+                                  (aset fl__ 5 count_)
+                                  (aset fo__ 3 linep)
+                                  (aset fo__ 4 ptr)
+                                  (recur 7)))
+                              (do (aset fl__ 5 count_)
+                                  (aset fo__ 3 linep)
+                                  (aset fo__ 4 ptr)
+                                  (recur 7)))))
+                        (if (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0)
+                          (if (== count_ 0)
+                            (do (aset fo__ 0 (g ed findmatchlimit-pos))
+                                -1)
+                            (let [count_ (i32 (dec count_))]
+                              (aset fl__ 5 count_)
+                              (aset fo__ 3 linep)
+                              (aset fo__ 4 ptr)
+                              (recur 7)))
+                          (if (and (== initc 35) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
+                            (if (== count_ 0)
+                              (do (aset fo__ 0 (g ed findmatchlimit-pos))
+                                  -1)
+                              (do (aset fl__ 5 count_)
+                                  (aset fo__ 3 linep)
+                                  (aset fo__ 4 ptr)
+                                  (recur 7)))
+                            (if (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0)
+                              (let [count_ (i32 (inc count_))]
+                                (aset fl__ 5 count_)
+                                (aset fo__ 3 linep)
+                                (aset fo__ 4 ptr)
+                                (recur 7))
+                              (do (aset fl__ 5 count_)
+                                  (aset fo__ 3 linep)
+                                  (aset fo__ 4 ptr)
+                                  (recur 7))))))))
+                (do (aset fl__ 5 count_)
+                    (aset fo__ 3 linep)
+                    (aset fo__ 4 ptr)
+                    (recur 5)))))
         7
-          (recur 5 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+          (let [initc (aget fl__ 0)
+                count_ (aget fl__ 5)
+                hash-dir (aget fl__ 10)]
+            (recur 5))
         8
-          (let [do-quotes -1
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                do-quotes -1
                 start-in-quotes (e MAYBE)
                 _ (.set-lnum match-pos 0)
                 _ (.set-col match-pos 0)
@@ -42897,76 +46415,185 @@
                               comment-col)]
             (when (and skip-comments (not in-block-comment) (not (== comment-col (e MAXCOL))) (not (zero? backwards)) (> (.col (g ed findmatchlimit-pos)) comment-col))
               (.set-col (g ed findmatchlimit-pos) comment-col))
-            (recur 9 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+            (aset fl__ 8 do-quotes)
+            (aset fl__ 12 start-in-quotes)
+            (aset fl__ 15 comment-col)
+            (recur 9))
+        st))))
+
+(defn- findmatchlimit__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_find_mps_values__out_T find-mps-values__o (aget fo__ 10)
+        ^T_pos_T match-pos (aget fo__ 11)
+        ^ints col (aget fo__ 12)
+        ^ints col_3 (aget fo__ 13)
+        ^longs tl__ (long-array 1)
+        ^objects to__ (object-array 3)]
+    (loop [st st0__]
+      (case st
         9
-          (if (zero? (g ed got-int))
-            (if (zero? backwards)
-              (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) (e NUL))
-                (if (== (.lnum (g ed findmatchlimit-pos)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                  (recur 20 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-                  (do (.set-lnum (g ed findmatchlimit-pos) (inc (.lnum (g ed findmatchlimit-pos))))
-                      (let [t4 (not (zero? maxtravel))
-                            j__4 (if t4
-                                   (let [t5 traveled
-                                         traveled (i32 (inc traveled))
-                                         t4 (> t5 maxtravel)]
-                                     (aset tl__ 3 traveled)
-                                     (aset to__ 2 (Boolean/valueOf (boolean t4)))
-                                     0)
-                                   (do (aset tl__ 3 traveled)
-                                       (aset to__ 2 (Boolean/valueOf (boolean t4)))
-                                       0))
-                            traveled (aget tl__ 3)
-                            t4 (boolean (aget to__ 2))]
-                        (if t4
-                          (recur 20 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-                          (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
-                                _ (.set-col (g ed findmatchlimit-pos) 0)
-                                do-quotes -1]
-                            (line-breakcheck ed)
-                            (if skip-comments
-                              (let [comment-col (long (check-linecomment ed linep))]
-                                (recur 10 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                              (recur 10 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))))))
-                (let [t6 (long (utfc-ptr2len ed (.add linep (.col (g ed findmatchlimit-pos)))))]
-                  (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) t6)))
-                  (recur 10 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-              (if (== (.col (g ed findmatchlimit-pos)) 0)
-                (if (== (.lnum (g ed findmatchlimit-pos)) 1)
-                  (recur 20 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-                  (do (.set-lnum (g ed findmatchlimit-pos) (dec (.lnum (g ed findmatchlimit-pos))))
-                      (let [t2 (> maxtravel 0)
-                            j__3 (if t2
-                                   (let [traveled (i32 (inc traveled))
-                                         t2 (> traveled maxtravel)]
-                                     (aset tl__ 3 traveled)
-                                     (aset to__ 1 (Boolean/valueOf (boolean t2)))
-                                     0)
-                                   (do (aset tl__ 3 traveled)
-                                       (aset to__ 1 (Boolean/valueOf (boolean t2)))
-                                       0))
-                            traveled (aget tl__ 3)
-                            t2 (boolean (aget to__ 1))]
-                        (if t2
-                          (recur 20 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-                          (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
-                                _ (.set-col (g ed findmatchlimit-pos) (long (ml-get-len ed (.lnum (g ed findmatchlimit-pos)))))
-                                do-quotes -1
-                                _ (line-breakcheck ed)
-                                comment-col (if (or (not (zero? comment-dir)) skip-comments)
-                                              (long (check-linecomment ed linep))
-                                              comment-col)]
-                            (if (and skip-comments (not in-block-comment) (not (== comment-col (e MAXCOL))) (> (.col (g ed findmatchlimit-pos)) comment-col))
-                              (do (.set-col (g ed findmatchlimit-pos) comment-col)
-                                  (recur 10 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                              (recur 10 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))))))
-                (do (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos)))))
-                    (let [t3 (long (utf-head-off ed linep (.add linep (.col (g ed findmatchlimit-pos)))))]
-                      (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) t3)))
-                      (recur 10 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))))
-            (recur 20 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))]
+            (if (zero? (g ed got-int))
+              (if (zero? backwards)
+                (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) (e NUL))
+                  (if (== (.lnum (g ed findmatchlimit-pos)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                    (do (aset fo__ 3 linep)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 13 traveled)
+                        (aset fl__ 15 comment-col)
+                        (recur 20))
+                    (do (.set-lnum (g ed findmatchlimit-pos) (inc (.lnum (g ed findmatchlimit-pos))))
+                        (let [t4 (not (zero? maxtravel))
+                              j__22 (if t4
+                                      (let [t5 traveled
+                                            traveled (i32 (inc traveled))
+                                            t4 (> t5 maxtravel)]
+                                        (aset tl__ 0 traveled)
+                                        (aset to__ 2 (Boolean/valueOf (boolean t4)))
+                                        0)
+                                      (do (aset tl__ 0 traveled)
+                                          (aset to__ 2 (Boolean/valueOf (boolean t4)))
+                                          0))
+                              traveled (aget tl__ 0)
+                              t4 (boolean (aget to__ 2))]
+                          (if t4
+                            (do (aset fo__ 3 linep)
+                                (aset fl__ 8 do-quotes)
+                                (aset fl__ 13 traveled)
+                                (aset fl__ 15 comment-col)
+                                (recur 20))
+                            (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
+                                  _ (.set-col (g ed findmatchlimit-pos) 0)
+                                  do-quotes -1]
+                              (line-breakcheck ed)
+                              (if skip-comments
+                                (let [comment-col (long (check-linecomment ed linep))]
+                                  (aset fo__ 3 linep)
+                                  (aset fl__ 8 do-quotes)
+                                  (aset fl__ 13 traveled)
+                                  (aset fl__ 15 comment-col)
+                                  (recur 10))
+                                (do (aset fo__ 3 linep)
+                                    (aset fl__ 8 do-quotes)
+                                    (aset fl__ 13 traveled)
+                                    (aset fl__ 15 comment-col)
+                                    (recur 10))))))))
+                  (let [t6 (long (utfc-ptr2len ed (.add linep (.col (g ed findmatchlimit-pos)))))]
+                    (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) t6)))
+                    (aset fo__ 3 linep)
+                    (aset fl__ 8 do-quotes)
+                    (aset fl__ 13 traveled)
+                    (aset fl__ 15 comment-col)
+                    (recur 10)))
+                (if (== (.col (g ed findmatchlimit-pos)) 0)
+                  (if (== (.lnum (g ed findmatchlimit-pos)) 1)
+                    (do (aset fo__ 3 linep)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 13 traveled)
+                        (aset fl__ 15 comment-col)
+                        (recur 20))
+                    (do (.set-lnum (g ed findmatchlimit-pos) (dec (.lnum (g ed findmatchlimit-pos))))
+                        (let [t2 (> maxtravel 0)
+                              j__21 (if t2
+                                      (let [traveled (i32 (inc traveled))
+                                            t2 (> traveled maxtravel)]
+                                        (aset tl__ 0 traveled)
+                                        (aset to__ 0 (Boolean/valueOf (boolean t2)))
+                                        0)
+                                      (do (aset tl__ 0 traveled)
+                                          (aset to__ 0 (Boolean/valueOf (boolean t2)))
+                                          0))
+                              traveled (aget tl__ 0)
+                              t2 (boolean (aget to__ 0))]
+                          (if t2
+                            (do (aset fo__ 3 linep)
+                                (aset fl__ 8 do-quotes)
+                                (aset fl__ 13 traveled)
+                                (aset fl__ 15 comment-col)
+                                (recur 20))
+                            (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
+                                  _ (.set-col (g ed findmatchlimit-pos) (long (ml-get-len ed (.lnum (g ed findmatchlimit-pos)))))
+                                  do-quotes -1
+                                  _ (line-breakcheck ed)
+                                  comment-col (if (or (not (zero? comment-dir)) skip-comments)
+                                                (long (check-linecomment ed linep))
+                                                comment-col)]
+                              (if (and skip-comments (not in-block-comment) (not (== comment-col (e MAXCOL))) (> (.col (g ed findmatchlimit-pos)) comment-col))
+                                (do (.set-col (g ed findmatchlimit-pos) comment-col)
+                                    (aset fo__ 3 linep)
+                                    (aset fl__ 8 do-quotes)
+                                    (aset fl__ 13 traveled)
+                                    (aset fl__ 15 comment-col)
+                                    (recur 10))
+                                (do (aset fo__ 3 linep)
+                                    (aset fl__ 8 do-quotes)
+                                    (aset fl__ 13 traveled)
+                                    (aset fl__ 15 comment-col)
+                                    (recur 10))))))))
+                  (do (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos)))))
+                      (let [t3 (long (utf-head-off ed linep (.add linep (.col (g ed findmatchlimit-pos)))))]
+                        (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) t3)))
+                        (aset fo__ 3 linep)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 13 traveled)
+                        (aset fl__ 15 comment-col)
+                        (recur 10)))))
+              (do (aset fo__ 3 linep)
+                  (aset fl__ 8 do-quotes)
+                  (aset fl__ 13 traveled)
+                  (aset fl__ 15 comment-col)
+                  (recur 20))))
+        st))))
+
+(defn- findmatchlimit__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_find_mps_values__out_T find-mps-values__o (aget fo__ 10)
+        ^T_pos_T match-pos (aget fo__ 11)
+        ^ints col (aget fo__ 12)
+        ^ints col_3 (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         10
-          (let [in-block-comment (if (and skip-comments (zero? comment-dir) (zero? inquote))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                ^BytePtr ptr (aget fo__ 4)
+                do-quotes (aget fl__ 8)
+                at-start (aget fl__ 9)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                in-block-comment (if (and skip-comments (zero? comment-dir) (zero? inquote))
                                    (if (zero? backwards)
                                      (if (and (not in-block-comment) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47) (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42) (or (== comment-col (e MAXCOL)) (< (.col (g ed findmatchlimit-pos)) comment-col)))
                                        true
@@ -42981,24 +46608,62 @@
                                    in-block-comment)]
             (if (and (== (.col (g ed findmatchlimit-pos)) 0) (not (zero? (bit-and flags (e FM_BLOCKSTOP)))) (or (== (bit-and (.at linep 0) 0xff) 123) (== (bit-and (.at linep 0) 0xff) 125)))
               (if (and (== (bit-and (.at linep 0) 0xff) findc) (== count_ 0))
-                (g ed findmatchlimit-pos)
-                (recur 20 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                (do (aset fo__ 0 (g ed findmatchlimit-pos))
+                    -1)
+                (do (aset fl__ 5 count_)
+                    (aset fo__ 3 linep)
+                    (aset fo__ 4 ptr)
+                    (aset fl__ 8 do-quotes)
+                    (aset fl__ 9 at-start)
+                    (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                    (recur 20)))
               (if (zero? comment-dir)
                 (if cpo-match
                   (let [do-quotes 0]
-                    (recur 12 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                    (aset fl__ 5 count_)
+                    (aset fo__ 3 linep)
+                    (aset fo__ 4 ptr)
+                    (aset fl__ 8 do-quotes)
+                    (aset fl__ 9 at-start)
+                    (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                    (recur 12))
                   (if (== do-quotes -1)
                     (let [at-start do-quotes
                           ^BytePtr ptr linep]
-                      (recur 11 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                    (recur 12 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
+                      (aset fl__ 5 count_)
+                      (aset fo__ 3 linep)
+                      (aset fo__ 4 ptr)
+                      (aset fl__ 8 do-quotes)
+                      (aset fl__ 9 at-start)
+                      (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                      (recur 11))
+                    (do (aset fl__ 5 count_)
+                        (aset fo__ 3 linep)
+                        (aset fo__ 4 ptr)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 9 at-start)
+                        (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                        (recur 12))))
                 (if (== comment-dir (e FORWARD))
                   (if (and (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42) (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47))
                     (do (.set-col (g ed findmatchlimit-pos) (i32 (inc (.col (g ed findmatchlimit-pos)))))
-                        (g ed findmatchlimit-pos))
-                    (recur 19 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                        (aset fo__ 0 (g ed findmatchlimit-pos))
+                        -1)
+                    (do (aset fl__ 5 count_)
+                        (aset fo__ 3 linep)
+                        (aset fo__ 4 ptr)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 9 at-start)
+                        (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                        (recur 19)))
                   (if (== (.col (g ed findmatchlimit-pos)) 0)
-                    (recur 9 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+                    (do (aset fl__ 5 count_)
+                        (aset fo__ 3 linep)
+                        (aset fo__ 4 ptr)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 9 at-start)
+                        (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                        (recur 9))
                     (if raw-string
                       (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 82) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 34) (some? (vim-strchr ed (.add (.add linep (.col (g ed findmatchlimit-pos))) 1) 40)))
                         (let [count_ (if (find-rawstring-end ed linep (g ed findmatchlimit-pos) (if (> count_ 0) match-pos (.-w-cursor (g ed curwin))))
@@ -43008,109 +46673,222 @@
                                          (.set-col match-pos (i32 (dec (.col match-pos))))
                                          count_))
                               ^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))]
-                          (recur 19 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                        (recur 19 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                          (aset fl__ 5 count_)
+                          (aset fo__ 3 linep)
+                          (aset fo__ 4 ptr)
+                          (aset fl__ 8 do-quotes)
+                          (aset fl__ 9 at-start)
+                          (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                          (recur 19))
+                        (do (aset fl__ 5 count_)
+                            (aset fo__ 3 linep)
+                            (aset fo__ 4 ptr)
+                            (aset fl__ 8 do-quotes)
+                            (aset fl__ 9 at-start)
+                            (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                            (recur 19)))
                       (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42) (or (== (.col (g ed findmatchlimit-pos)) 1) (not (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 42))) (< (.col (g ed findmatchlimit-pos)) comment-col))
                         (let [count_ (i32 (inc count_))]
                           (.set match-pos (g ed findmatchlimit-pos))
                           (.set-col match-pos (i32 (dec (.col match-pos))))
-                          (recur 19 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                          (aset fl__ 5 count_)
+                          (aset fo__ 3 linep)
+                          (aset fo__ 4 ptr)
+                          (aset fl__ 8 do-quotes)
+                          (aset fl__ 9 at-start)
+                          (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                          (recur 19))
                         (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47))
                           (if (> count_ 0)
                             (do (.set (g ed findmatchlimit-pos) match-pos)
-                                (g ed findmatchlimit-pos))
+                                (aset fo__ 0 (g ed findmatchlimit-pos))
+                                -1)
                             (if (and (> (.col (g ed findmatchlimit-pos)) 1) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 47) (<= (.col (g ed findmatchlimit-pos)) comment-col))
                               (do (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) 2)))
-                                  (g ed findmatchlimit-pos))
-                              (when ignore-cend
-                                (recur 9 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
-                          (recur 19 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))))))))
+                                  (aset fo__ 0 (g ed findmatchlimit-pos))
+                                  -1)
+                              (if ignore-cend
+                                (do (aset fl__ 5 count_)
+                                    (aset fo__ 3 linep)
+                                    (aset fo__ 4 ptr)
+                                    (aset fl__ 8 do-quotes)
+                                    (aset fl__ 9 at-start)
+                                    (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                                    (recur 9))
+                                (do (aset fo__ 0 nil)
+                                    -1))))
+                          (do (aset fl__ 5 count_)
+                              (aset fo__ 3 linep)
+                              (aset fo__ 4 ptr)
+                              (aset fl__ 8 do-quotes)
+                              (aset fl__ 9 at-start)
+                              (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
+                              (recur 19))))))))))
+        st))))
+
+(defn- findmatchlimit__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_find_mps_values__out_T find-mps-values__o (aget fo__ 10)
+        ^T_pos_T match-pos (aget fo__ 11)
+        ^ints col (aget fo__ 12)
+        ^ints col_3 (aget fo__ 13)
+        ^longs tl__ (long-array 3)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
+      (case st
         11
-          (if (zero? (bit-and (.get ptr) 0xff))
-            (let [do-quotes (bit-and do-quotes 1)]
-              (if (zero? do-quotes)
-                (let [inquote (e FALSE)
-                      j__5 (if (== (bit-and (.at ptr -1) 0xff) 92)
-                             (let [do-quotes 1]
-                               (if (== start-in-quotes (e MAYBE))
-                                 (let [inquote at-start]
-                                   (if (zero? inquote)
-                                     (do (aset tl__ 4 inquote)
-                                         (aset tl__ 5 do-quotes)
-                                         (aset tl__ 6 start-in-quotes)
-                                         0)
-                                     (let [start-in-quotes (e TRUE)]
-                                       (aset tl__ 4 inquote)
-                                       (aset tl__ 5 do-quotes)
-                                       (aset tl__ 6 start-in-quotes)
-                                       0)))
-                                 (if (zero? backwards)
-                                   (do (aset tl__ 4 inquote)
-                                       (aset tl__ 5 do-quotes)
-                                       (aset tl__ 6 start-in-quotes)
-                                       0)
-                                   (let [inquote (e TRUE)]
-                                     (aset tl__ 4 inquote)
-                                     (aset tl__ 5 do-quotes)
-                                     (aset tl__ 6 start-in-quotes)
-                                     0))))
-                             (do (aset tl__ 4 inquote)
-                                 (aset tl__ 5 do-quotes)
-                                 (aset tl__ 6 start-in-quotes)
-                                 0))
-                      inquote (aget tl__ 4)
-                      do-quotes (aget tl__ 5)
-                      start-in-quotes (aget tl__ 6)]
-                  (if (> (.lnum (g ed findmatchlimit-pos)) 1)
-                    (let [^BytePtr ptr (ml-get ed (- (.lnum (g ed findmatchlimit-pos)) 1))
-                          j__6 (if (and (not (zero? (bit-and (.get ptr) 0xff))) (== (bit-and (.get (.add (.add ptr (long (ml-get-len ed (- (.lnum (g ed findmatchlimit-pos)) 1)))) (- 1))) 0xff) 92))
-                                 (let [do-quotes 1]
-                                   (if (== start-in-quotes (e MAYBE))
-                                     (let [inquote at-start]
-                                       (if (zero? inquote)
-                                         (do (aset tl__ 4 inquote)
-                                             (aset tl__ 5 do-quotes)
-                                             (aset tl__ 6 start-in-quotes)
-                                             0)
-                                         (let [start-in-quotes (e TRUE)]
-                                           (aset tl__ 4 inquote)
-                                           (aset tl__ 5 do-quotes)
-                                           (aset tl__ 6 start-in-quotes)
-                                           0)))
-                                     (if (zero? backwards)
-                                       (let [inquote (e TRUE)]
-                                         (aset tl__ 4 inquote)
-                                         (aset tl__ 5 do-quotes)
-                                         (aset tl__ 6 start-in-quotes)
-                                         0)
-                                       (do (aset tl__ 4 inquote)
-                                           (aset tl__ 5 do-quotes)
-                                           (aset tl__ 6 start-in-quotes)
-                                           0))))
-                                 (do (aset tl__ 4 inquote)
-                                     (aset tl__ 5 do-quotes)
-                                     (aset tl__ 6 start-in-quotes)
-                                     0))
-                          inquote (aget tl__ 4)
-                          do-quotes (aget tl__ 5)
-                          start-in-quotes (aget tl__ 6)
-                          ^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))]
-                      (recur 12 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                    (recur 12 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-                (recur 12 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-            (let [at-start (if (BytePtr/eq ptr (.add (.add linep (.col (g ed findmatchlimit-pos))) backwards))
-                             (bit-and do-quotes 1)
-                             at-start)
-                  do-quotes (if (and (== (bit-and (.get ptr) 0xff) 34) (or (BytePtr/eq ptr linep) (not (== (bit-and (.at ptr -1) 0xff) 39)) (not (== (bit-and (.at ptr 1) 0xff) 39))))
-                              (i32 (inc do-quotes))
-                              do-quotes)
-                  ^BytePtr ptr (if (and (== (bit-and (.get ptr) 0xff) 92) (not (== (bit-and (.at ptr 1) 0xff) (e NUL))))
-                                 ^BytePtr (.add ptr 1)
-                                 ptr)
-                  ^BytePtr ptr (.add ptr 1)]
-              (recur 11 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                ^BytePtr ptr (aget fo__ 4)
+                do-quotes (aget fl__ 8)
+                at-start (aget fl__ 9)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))]
+            (if (zero? (bit-and (.get ptr) 0xff))
+              (let [do-quotes (bit-and do-quotes 1)]
+                (if (zero? do-quotes)
+                  (let [inquote (e FALSE)
+                        j__23 (if (== (bit-and (.at ptr -1) 0xff) 92)
+                                (let [do-quotes 1]
+                                  (if (== start-in-quotes (e MAYBE))
+                                    (let [inquote at-start]
+                                      (if (zero? inquote)
+                                        (do (aset tl__ 0 inquote)
+                                            (aset tl__ 1 do-quotes)
+                                            (aset tl__ 2 start-in-quotes)
+                                            0)
+                                        (let [start-in-quotes (e TRUE)]
+                                          (aset tl__ 0 inquote)
+                                          (aset tl__ 1 do-quotes)
+                                          (aset tl__ 2 start-in-quotes)
+                                          0)))
+                                    (if (zero? backwards)
+                                      (do (aset tl__ 0 inquote)
+                                          (aset tl__ 1 do-quotes)
+                                          (aset tl__ 2 start-in-quotes)
+                                          0)
+                                      (let [inquote (e TRUE)]
+                                        (aset tl__ 0 inquote)
+                                        (aset tl__ 1 do-quotes)
+                                        (aset tl__ 2 start-in-quotes)
+                                        0))))
+                                (do (aset tl__ 0 inquote)
+                                    (aset tl__ 1 do-quotes)
+                                    (aset tl__ 2 start-in-quotes)
+                                    0))
+                        inquote (aget tl__ 0)
+                        do-quotes (aget tl__ 1)
+                        start-in-quotes (aget tl__ 2)]
+                    (if (> (.lnum (g ed findmatchlimit-pos)) 1)
+                      (let [^BytePtr ptr (ml-get ed (- (.lnum (g ed findmatchlimit-pos)) 1))
+                            j__24 (if (and (not (zero? (bit-and (.get ptr) 0xff))) (== (bit-and (.get (.add (.add ptr (long (ml-get-len ed (- (.lnum (g ed findmatchlimit-pos)) 1)))) (- 1))) 0xff) 92))
+                                    (let [do-quotes 1]
+                                      (if (== start-in-quotes (e MAYBE))
+                                        (let [inquote at-start]
+                                          (if (zero? inquote)
+                                            (do (aset tl__ 0 inquote)
+                                                (aset tl__ 1 do-quotes)
+                                                (aset tl__ 2 start-in-quotes)
+                                                0)
+                                            (let [start-in-quotes (e TRUE)]
+                                              (aset tl__ 0 inquote)
+                                              (aset tl__ 1 do-quotes)
+                                              (aset tl__ 2 start-in-quotes)
+                                              0)))
+                                        (if (zero? backwards)
+                                          (let [inquote (e TRUE)]
+                                            (aset tl__ 0 inquote)
+                                            (aset tl__ 1 do-quotes)
+                                            (aset tl__ 2 start-in-quotes)
+                                            0)
+                                          (do (aset tl__ 0 inquote)
+                                              (aset tl__ 1 do-quotes)
+                                              (aset tl__ 2 start-in-quotes)
+                                              0))))
+                                    (do (aset tl__ 0 inquote)
+                                        (aset tl__ 1 do-quotes)
+                                        (aset tl__ 2 start-in-quotes)
+                                        0))
+                            inquote (aget tl__ 0)
+                            do-quotes (aget tl__ 1)
+                            start-in-quotes (aget tl__ 2)
+                            ^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))]
+                        (aset fl__ 7 inquote)
+                        (aset fo__ 3 linep)
+                        (aset fo__ 4 ptr)
+                        (aset fl__ 8 do-quotes)
+                        (aset fl__ 9 at-start)
+                        (aset fl__ 12 start-in-quotes)
+                        (recur 12))
+                      (do (aset fl__ 7 inquote)
+                          (aset fo__ 3 linep)
+                          (aset fo__ 4 ptr)
+                          (aset fl__ 8 do-quotes)
+                          (aset fl__ 9 at-start)
+                          (aset fl__ 12 start-in-quotes)
+                          (recur 12))))
+                  (do (aset fl__ 7 inquote)
+                      (aset fo__ 3 linep)
+                      (aset fo__ 4 ptr)
+                      (aset fl__ 8 do-quotes)
+                      (aset fl__ 9 at-start)
+                      (aset fl__ 12 start-in-quotes)
+                      (recur 12))))
+              (let [at-start (if (BytePtr/eq ptr (.add (.add linep (.col (g ed findmatchlimit-pos))) backwards))
+                               (bit-and do-quotes 1)
+                               at-start)
+                    do-quotes (if (and (== (bit-and (.get ptr) 0xff) 34) (or (BytePtr/eq ptr linep) (not (== (bit-and (.at ptr -1) 0xff) 39)) (not (== (bit-and (.at ptr 1) 0xff) 39))))
+                                (i32 (inc do-quotes))
+                                do-quotes)
+                    ^BytePtr ptr (if (and (== (bit-and (.get ptr) 0xff) 92) (not (== (bit-and (.at ptr 1) 0xff) (e NUL))))
+                                   ^BytePtr (.add ptr 1)
+                                   ptr)
+                    ^BytePtr ptr (.add ptr 1)]
+                (aset fl__ 7 inquote)
+                (aset fo__ 3 linep)
+                (aset fo__ 4 ptr)
+                (aset fl__ 8 do-quotes)
+                (aset fl__ 9 at-start)
+                (aset fl__ 12 start-in-quotes)
+                (recur 11))))
         12
-          (let [start-in-quotes (if (== start-in-quotes (e MAYBE))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                c (aget fl__ 4)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                col_2 (aget fl__ 17)
+                start-in-quotes (if (== start-in-quotes (e MAYBE))
                                   (e FALSE)
                                   start-in-quotes)
                 c (long (utf-ptr2char ed (.add linep (.col (g ed findmatchlimit-pos)))))]
@@ -43119,82 +46897,374 @@
                 (if (or (== (.col (g ed findmatchlimit-pos)) 0) (not (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 92)))
                   (let [inquote (e FALSE)
                         start-in-quotes (e FALSE)]
-                    (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                  (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                    (aset fl__ 4 c)
+                    (aset fl__ 7 inquote)
+                    (aset fl__ 12 start-in-quotes)
+                    (aset fl__ 17 col_2)
+                    (recur 18))
+                  (do (aset fl__ 4 c)
+                      (aset fl__ 7 inquote)
+                      (aset fl__ 12 start-in-quotes)
+                      (aset fl__ 17 col_2)
+                      (recur 18)))
               34
                 (if (zero? do-quotes)
-                  (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+                  (do (aset fl__ 4 c)
+                      (aset fl__ 7 inquote)
+                      (aset fl__ 12 start-in-quotes)
+                      (aset fl__ 17 col_2)
+                      (recur 18))
                   (let [col_2 (i32 (- (.col (g ed findmatchlimit-pos)) 1))]
-                    (recur 16 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
+                    (aset fl__ 4 c)
+                    (aset fl__ 7 inquote)
+                    (aset fl__ 12 start-in-quotes)
+                    (aset fl__ 17 col_2)
+                    (recur 16)))
               39
                 (if (and (not cpo-match) (not (== initc 39)) (not (== findc 39)))
                   (if (zero? backwards)
                     (if (zero? (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff))
-                      (recur 13 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+                      (do (aset fl__ 4 c)
+                          (aset fl__ 7 inquote)
+                          (aset fl__ 12 start-in-quotes)
+                          (aset fl__ 17 col_2)
+                          (recur 13))
                       (if (and (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 92) (not (zero? (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 2))) 0xff))) (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 3))) 0xff) 39))
                         (do (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) 3)))
-                            (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                            (aset fl__ 4 c)
+                            (aset fl__ 7 inquote)
+                            (aset fl__ 12 start-in-quotes)
+                            (aset fl__ 17 col_2)
+                            (recur 18))
                         (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 2))) 0xff) 39)
                           (do (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) 2)))
-                              (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                          (recur 13 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
+                              (aset fl__ 4 c)
+                              (aset fl__ 7 inquote)
+                              (aset fl__ 12 start-in-quotes)
+                              (aset fl__ 17 col_2)
+                              (recur 18))
+                          (do (aset fl__ 4 c)
+                              (aset fl__ 7 inquote)
+                              (aset fl__ 12 start-in-quotes)
+                              (aset fl__ 17 col_2)
+                              (recur 13)))))
                     (if (> (.col (g ed findmatchlimit-pos)) 1)
                       (if (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 39)
                         (do (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) 2)))
-                            (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+                            (aset fl__ 4 c)
+                            (aset fl__ 7 inquote)
+                            (aset fl__ 12 start-in-quotes)
+                            (aset fl__ 17 col_2)
+                            (recur 18))
                         (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 92) (> (.col (g ed findmatchlimit-pos)) 2) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 3))) 0xff) 39))
                           (do (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) 3)))
-                              (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-                          (recur 13 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-                      (recur 13 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
-                  (recur 13 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-              (recur 13 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
+                              (aset fl__ 4 c)
+                              (aset fl__ 7 inquote)
+                              (aset fl__ 12 start-in-quotes)
+                              (aset fl__ 17 col_2)
+                              (recur 18))
+                          (do (aset fl__ 4 c)
+                              (aset fl__ 7 inquote)
+                              (aset fl__ 12 start-in-quotes)
+                              (aset fl__ 17 col_2)
+                              (recur 13))))
+                      (do (aset fl__ 4 c)
+                          (aset fl__ 7 inquote)
+                          (aset fl__ 12 start-in-quotes)
+                          (aset fl__ 17 col_2)
+                          (recur 13))))
+                  (do (aset fl__ 4 c)
+                      (aset fl__ 7 inquote)
+                      (aset fl__ 12 start-in-quotes)
+                      (aset fl__ 17 col_2)
+                      (recur 13)))
+              (do (aset fl__ 4 c)
+                  (aset fl__ 7 inquote)
+                  (aset fl__ 12 start-in-quotes)
+                  (aset fl__ 17 col_2)
+                  (recur 13))))
+        st))))
+
+(defn- findmatchlimit__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_find_mps_values__out_T find-mps-values__o (aget fo__ 10)
+        ^T_pos_T match-pos (aget fo__ 11)
+        ^ints col (aget fo__ 12)
+        ^ints col_3 (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         13
-          (if (and skip-comments (or in-block-comment (and (not (== comment-col (e MAXCOL))) (>= (.col (g ed findmatchlimit-pos)) comment-col))))
-            (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-            (if (and (or (zero? inquote) (== start-in-quotes (e TRUE))) (or (== c initc) (== c findc)))
-              (let [bslcnt_2 0]
-                (if cpo-bsl
-                  (recur 15 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
-                  (do (aset col_3 0 (unchecked-int (.col (g ed findmatchlimit-pos))))
-                      (recur 14 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
-              (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                c (aget fl__ 4)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                bslcnt_2 (aget fl__ 18)]
+            (if (and skip-comments (or in-block-comment (and (not (== comment-col (e MAXCOL))) (>= (.col (g ed findmatchlimit-pos)) comment-col))))
+              (do (aset fl__ 18 bslcnt_2)
+                  (recur 18))
+              (if (and (or (zero? inquote) (== start-in-quotes (e TRUE))) (or (== c initc) (== c findc)))
+                (let [bslcnt_2 0]
+                  (if cpo-bsl
+                    (do (aset fl__ 18 bslcnt_2)
+                        (recur 15))
+                    (do (aset col_3 0 (unchecked-int (.col (g ed findmatchlimit-pos))))
+                        (aset fl__ 18 bslcnt_2)
+                        (recur 14))))
+                (do (aset fl__ 18 bslcnt_2)
+                    (recur 18)))))
         14
-          (if (check-prevcol ed linep (long (aget col_3 0)) 92 (IntPtr. col_3 0))
-            (let [bslcnt_2 (i32 (inc bslcnt_2))]
-              (recur 14 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-            (recur 15 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                c (aget fl__ 4)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                bslcnt_2 (aget fl__ 18)]
+            (if (check-prevcol ed linep (long (aget col_3 0)) 92 (IntPtr. col_3 0))
+              (let [bslcnt_2 (i32 (inc bslcnt_2))]
+                (aset fl__ 18 bslcnt_2)
+                (recur 14))
+              (do (aset fl__ 18 bslcnt_2)
+                  (recur 15))))
         15
-          (if (or cpo-bsl (== (bit-and bslcnt_2 1) match-escaped))
-            (if (== c initc)
-              (let [count_ (i32 (inc count_))]
-                (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-              (if (== count_ 0)
-                (g ed findmatchlimit-pos)
-                (let [count_ (i32 (dec count_))]
-                  (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))))
-            (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                c (aget fl__ 4)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                bslcnt_2 (aget fl__ 18)]
+            (if (or cpo-bsl (== (bit-and bslcnt_2 1) match-escaped))
+              (if (== c initc)
+                (let [count_ (i32 (inc count_))]
+                  (aset fl__ 5 count_)
+                  (recur 18))
+                (if (== count_ 0)
+                  (do (aset fo__ 0 (g ed findmatchlimit-pos))
+                      -1)
+                  (let [count_ (i32 (dec count_))]
+                    (aset fl__ 5 count_)
+                    (recur 18))))
+              (do (aset fl__ 5 count_)
+                  (recur 18))))
         16
-          (if (>= col_2 0)
-            (if (== (bit-and (.at linep col_2) 0xff) 92)
-              (let [col_2 (i32 (dec col_2))]
-                (recur 16 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-              (recur 17 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-            (recur 17 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                col_2 (aget fl__ 17)]
+            (if (>= col_2 0)
+              (if (== (bit-and (.at linep col_2) 0xff) 92)
+                (let [col_2 (i32 (dec col_2))]
+                  (aset fl__ 17 col_2)
+                  (recur 16))
+                (do (aset fl__ 17 col_2)
+                    (recur 17)))
+              (do (aset fl__ 17 col_2)
+                  (recur 17))))
         17
-          (if (== (bit-and (i32 (- (i32 (- (.col (g ed findmatchlimit-pos)) 1)) col_2)) 1) 0)
-            (let [inquote (if (zero? inquote) 1 0)
-                  start-in-quotes (e FALSE)]
-              (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
-            (recur 18 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2))
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))
+                col_2 (aget fl__ 17)]
+            (if (== (bit-and (i32 (- (i32 (- (.col (g ed findmatchlimit-pos)) 1)) col_2)) 1) 0)
+              (let [inquote (if (zero? inquote) 1 0)
+                    start-in-quotes (e FALSE)]
+                (aset fl__ 7 inquote)
+                (aset fl__ 12 start-in-quotes)
+                (recur 18))
+              (do (aset fl__ 7 inquote)
+                  (aset fl__ 12 start-in-quotes)
+                  (recur 18))))
         18
-          (recur 9 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))]
+            (recur 9))
         19
-          (recur 9 oap initc flags maxtravel findc c count_ backwards raw-string inquote linep ptr do-quotes at-start hash-dir comment-dir start-in-quotes traveled ignore-cend cpo-match cpo-bsl match-escaped comment-col skip-comments in-block-comment bslcnt col_2 bslcnt_2)
+          (let [initc (aget fl__ 0)
+                flags (aget fl__ 1)
+                maxtravel (aget fl__ 2)
+                findc (aget fl__ 3)
+                count_ (aget fl__ 5)
+                backwards (aget fl__ 6)
+                raw-string (boolean (aget fo__ 2))
+                inquote (aget fl__ 7)
+                ^BytePtr linep (aget fo__ 3)
+                do-quotes (aget fl__ 8)
+                comment-dir (aget fl__ 11)
+                start-in-quotes (aget fl__ 12)
+                traveled (aget fl__ 13)
+                ignore-cend (boolean (aget fo__ 5))
+                cpo-match (boolean (aget fo__ 6))
+                cpo-bsl (boolean (aget fo__ 7))
+                match-escaped (aget fl__ 14)
+                comment-col (aget fl__ 15)
+                skip-comments (boolean (aget fo__ 8))
+                in-block-comment (boolean (aget fo__ 9))]
+            (recur 9))
         20
-          (when (and (== comment-dir -1) (> count_ 0))
-            (.set (g ed findmatchlimit-pos) match-pos)
-            (g ed findmatchlimit-pos))))))
+          (let [count_ (aget fl__ 5)
+                comment-dir (aget fl__ 11)]
+            (if (and (== comment-dir -1) (> count_ 0))
+              (do (.set (g ed findmatchlimit-pos) match-pos)
+                  (aset fo__ 0 (g ed findmatchlimit-pos))
+                  -1)
+              (do (aset fo__ 0 nil)
+                  -1)))
+        st))))
+
+(defn findmatchlimit ^T_pos_T [^Editor ed ^S_oparg_S oap initc flags maxtravel]
+  (let [initc (long initc)
+        flags (long flags)
+        maxtravel (long maxtravel)
+        ^T_find_mps_values__out_T find-mps-values__o (new-T_find_mps_values__out_T)
+        ^T_pos_T match-pos (new-T_pos_T)
+        ^ints col (int-array 1)
+        ^ints col_3 (int-array 1)
+        ^longs fl__ (long-array 19)
+        ^objects fo__ (object-array 14)]
+    (aset fo__ 1 oap)
+    (aset fl__ 0 initc)
+    (aset fl__ 1 flags)
+    (aset fl__ 2 maxtravel)
+    (aset fl__ 3 0)
+    (aset fl__ 4 0)
+    (aset fl__ 5 0)
+    (aset fl__ 6 0)
+    (aset fo__ 2 false)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
+    (aset fl__ 9 0)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fo__ 5 false)
+    (aset fo__ 6 false)
+    (aset fo__ 7 false)
+    (aset fl__ 14 0)
+    (aset fl__ 15 0)
+    (aset fo__ 8 false)
+    (aset fo__ 9 false)
+    (aset fl__ 16 0)
+    (aset fl__ 17 0)
+    (aset fl__ 18 0)
+    (aset fo__ 10 find-mps-values__o)
+    (aset fo__ 11 match-pos)
+    (aset fo__ 12 col)
+    (aset fo__ 13 col_3)
+    (loop [st 0]
+      (let [r__ (if (<= st 3)
+                  (findmatchlimit__0 ed fl__ fo__ st)
+                  (if (<= st 8)
+                    (findmatchlimit__1 ed fl__ fo__ st)
+                    (if (<= st 9)
+                      (findmatchlimit__2 ed fl__ fo__ st)
+                      (if (<= st 10)
+                        (findmatchlimit__3 ed fl__ fo__ st)
+                        (if (<= st 12)
+                          (findmatchlimit__4 ed fl__ fo__ st)
+                          (findmatchlimit__5 ed fl__ fo__ st))))))]
+        (if (neg? r__)
+          ^T_pos_T (aget fo__ 0)
+          (recur r__))))))
 
 (defn findmatch ^T_pos_T [^Editor ed ^S_oparg_S oap ^long initc]
   (findmatchlimit ed oap initc 0 0))
@@ -54333,72 +58403,42 @@
             (g! ed keep-msg-more (e TRUE))
             nil))))))
 
-;; C: do_put
-(defn do-put [^Editor ed regname ^BytePtr expr-result dir count_ flags]
-  (let [regname (long regname)
-        dir (long dir)
-        count_ (long count_)
-        flags (long flags)
-        ^T_get_spec_reg__out_T get-spec-reg__o (new-T_get_spec_reg__out_T)
-        ^ints col (int-array 1)
-        ^ints vcol (int-array 1)
-        ^T_string_T insert-string (new-T_string_T)
-        ^ints endcol2 (int-array 1)
-        ^T_chartabsize_T cts (new-T_chartabsize_T)
-        ^T_pos_T pos (new-T_pos_T)
-        ^T_pos_T pos_2 (new-T_pos_T)
-        ^longs tl__ (long-array 14)
-        ^objects to__ (object-array 4)]
-    (loop [st 0
-           regname regname
-           ^BytePtr expr-result expr-result
-           dir dir
-           count_ count_
-           flags flags
-           ^BytePtr ptr nil
-           ^BytePtr newp nil
-           ^BytePtr oldp nil
-           yanklen 0
-           totlen 0
-           lnum 0
-           i 0
-           y-type 0
-           y-size 0
-           oldlen 0
-           y-width 0
-           ^Ptr y-array nil
-           ^T_yankreg_T y-current-used nil
-           nr-lines 0
-           orig-start-lnum 0
-           orig-start-col 0
-           orig-start-coladd 0
-           orig-end-lnum 0
-           orig-end-col 0
-           orig-end-coladd 0
-           cur-ve-flags 0
-           delcount 0
-           incr 0
-           bd-startspaces 0
-           bd-endspaces 0
-           bd-textcol 0
-           j 0
-           spaces 0
-           shortline 0
-           new-cursor-lnum 0
-           new-cursor-col_ 0
-           new-cursor-coladd 0
-           end-lnum 0
-           start-lnum 0
-           first-byte-off 0
-           new-lnum 0
-           orig-indent 0
-           indent-diff 0
-           first-indent false
-           lendiff 0
-           cnt 0]
+(defn- do-put__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)
+        ^longs tl__ (long-array 3)
+        ^objects to__ (object-array 2)]
+    (loop [st st0__]
       (case st
         0
-          (let [totlen 0
+          (let [regname (aget fl__ 0)
+                ^BytePtr expr-result (aget fo__ 1)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr oldp (aget fo__ 4)
+                totlen (aget fl__ 5)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                totlen 0
                 y-width 0
                 ^Ptr y-array nil
                 ^T_yankreg_T y-current-used nil
@@ -54416,42 +58456,44 @@
               (do (when-not (zero? (g ed VIsual-active))
                     (stuffcharReadbuff ed (g ed VIsual-mode)))
                   (stuff-inserted ed (if (== dir (e FORWARD)) (if (== count_ -1) 111 97) (if (== count_ -1) 79 105)) count_ false)
-                  (when (and (not (zero? (bit-and flags (e PUT_CURSEND)))) (not (== (long (gchar-cursor ed)) (e NUL))))
-                    (stuffcharReadbuff ed 108)
-                    nil))
+                  (if (and (not (zero? (bit-and flags (e PUT_CURSEND)))) (not (== (long (gchar-cursor ed)) (e NUL))))
+                    (do (stuffcharReadbuff ed 108)
+                        -1)
+                    -1))
               (do (aset ^objects (.-string insert-string) 0 nil)
-                  (let [j__1 (if (and (== regname 61) (some? expr-result))
-                               (do (aset ^objects (.-string insert-string) 0 expr-result)
-                                   0)
-                               (do (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. ^objects (.-string insert-string) 0) true))
-                                   (if (and (.r__ get-spec-reg__o) (nil? (aget ^objects (.-string insert-string) 0)))
-                                     -1
-                                     0)))]
-                    (when-not (== (long j__1) -1)
+                  (let [j__22 (if (and (== regname 61) (some? expr-result))
+                                (do (aset ^objects (.-string insert-string) 0 expr-result)
+                                    0)
+                                (do (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. ^objects (.-string insert-string) 0) true))
+                                    (if (and (.r__ get-spec-reg__o) (nil? (aget ^objects (.-string insert-string) 0)))
+                                      -1
+                                      0)))]
+                    (if (== (long j__22) -1)
+                      -1
                       (if (u-save ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
-                        (let [j__2 (if (some? (aget ^objects (.-string insert-string) 0))
-                                     (do (.set-length insert-string (long (musl-strlen ed (aget ^objects (.-string insert-string) 0))))
-                                         (let [y-type (e MCHAR)
-                                               y-size 1
-                                               ^Ptr y-array (Ptr/one insert-string)]
-                                           (aset tl__ 0 y-type)
-                                           (aset tl__ 1 y-size)
-                                           (aset tl__ 2 y-width)
-                                           (aset to__ 0 y-array)
-                                           (aset to__ 1 y-current-used)
-                                           0))
-                                     (do (get-yank-register ed regname (e FALSE))
-                                         (let [y-type (.y-type (g ed y-current))
-                                               y-width (.y-width (g ed y-current))
-                                               y-size (.y-size (g ed y-current))
-                                               ^Ptr y-array (.y-array (g ed y-current))
-                                               ^T_yankreg_T y-current-used (g ed y-current)]
-                                           (aset tl__ 0 y-type)
-                                           (aset tl__ 1 y-size)
-                                           (aset tl__ 2 y-width)
-                                           (aset to__ 0 y-array)
-                                           (aset to__ 1 y-current-used)
-                                           0)))
+                        (let [j__23 (if (some? (aget ^objects (.-string insert-string) 0))
+                                      (do (.set-length insert-string (long (musl-strlen ed (aget ^objects (.-string insert-string) 0))))
+                                          (let [y-type (e MCHAR)
+                                                y-size 1
+                                                ^Ptr y-array (Ptr/one insert-string)]
+                                            (aset tl__ 0 y-type)
+                                            (aset tl__ 1 y-size)
+                                            (aset tl__ 2 y-width)
+                                            (aset to__ 0 y-array)
+                                            (aset to__ 1 y-current-used)
+                                            0))
+                                      (do (get-yank-register ed regname (e FALSE))
+                                          (let [y-type (.y-type (g ed y-current))
+                                                y-width (.y-width (g ed y-current))
+                                                y-size (.y-size (g ed y-current))
+                                                ^Ptr y-array (.y-array (g ed y-current))
+                                                ^T_yankreg_T y-current-used (g ed y-current)]
+                                            (aset tl__ 0 y-type)
+                                            (aset tl__ 1 y-size)
+                                            (aset tl__ 2 y-width)
+                                            (aset to__ 0 y-array)
+                                            (aset to__ 1 y-current-used)
+                                            0)))
                               y-type (aget tl__ 0)
                               y-size (aget tl__ 1)
                               y-width (aget tl__ 2)
@@ -54459,7 +58501,24 @@
                               ^T_yankreg_T y-current-used (aget to__ 1)]
                           (if (== y-type (e MLINE))
                             (if (zero? (bit-and flags (e PUT_LINE_SPLIT)))
-                              (recur 1 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
+                              (do (aset fl__ 1 dir)
+                                  (aset fo__ 2 ptr)
+                                  (aset fo__ 4 oldp)
+                                  (aset fl__ 5 totlen)
+                                  (aset fl__ 8 y-type)
+                                  (aset fl__ 9 y-size)
+                                  (aset fl__ 11 y-width)
+                                  (aset fo__ 5 y-array)
+                                  (aset fo__ 6 y-current-used)
+                                  (aset fl__ 12 nr-lines)
+                                  (aset fl__ 13 orig-start-lnum)
+                                  (aset fl__ 14 orig-start-col)
+                                  (aset fl__ 15 orig-start-coladd)
+                                  (aset fl__ 16 orig-end-lnum)
+                                  (aset fl__ 17 orig-end-col)
+                                  (aset fl__ 18 orig-end-coladd)
+                                  (aset fl__ 19 cur-ve-flags)
+                                  (recur 1))
                               (if (u-save-cursor ed)
                                 (let [^BytePtr p (ml-get-cursor ed)
                                       ^BytePtr p-orig p
@@ -54482,302 +58541,781 @@
                                       _ (ml-replace ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) ptr false)
                                       nr-lines (inc nr-lines)
                                       dir (e FORWARD)]
-                                  (recur 1 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                                (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-                            (recur 2 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-                        (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))))))
+                                  (aset fl__ 1 dir)
+                                  (aset fo__ 2 ptr)
+                                  (aset fo__ 4 oldp)
+                                  (aset fl__ 5 totlen)
+                                  (aset fl__ 8 y-type)
+                                  (aset fl__ 9 y-size)
+                                  (aset fl__ 11 y-width)
+                                  (aset fo__ 5 y-array)
+                                  (aset fo__ 6 y-current-used)
+                                  (aset fl__ 12 nr-lines)
+                                  (aset fl__ 13 orig-start-lnum)
+                                  (aset fl__ 14 orig-start-col)
+                                  (aset fl__ 15 orig-start-coladd)
+                                  (aset fl__ 16 orig-end-lnum)
+                                  (aset fl__ 17 orig-end-col)
+                                  (aset fl__ 18 orig-end-coladd)
+                                  (aset fl__ 19 cur-ve-flags)
+                                  (recur 1))
+                                (do (aset fl__ 1 dir)
+                                    (aset fo__ 2 ptr)
+                                    (aset fo__ 4 oldp)
+                                    (aset fl__ 5 totlen)
+                                    (aset fl__ 8 y-type)
+                                    (aset fl__ 9 y-size)
+                                    (aset fl__ 11 y-width)
+                                    (aset fo__ 5 y-array)
+                                    (aset fo__ 6 y-current-used)
+                                    (aset fl__ 12 nr-lines)
+                                    (aset fl__ 13 orig-start-lnum)
+                                    (aset fl__ 14 orig-start-col)
+                                    (aset fl__ 15 orig-start-coladd)
+                                    (aset fl__ 16 orig-end-lnum)
+                                    (aset fl__ 17 orig-end-col)
+                                    (aset fl__ 18 orig-end-coladd)
+                                    (aset fl__ 19 cur-ve-flags)
+                                    (recur 20))))
+                            (do (aset fl__ 1 dir)
+                                (aset fo__ 2 ptr)
+                                (aset fo__ 4 oldp)
+                                (aset fl__ 5 totlen)
+                                (aset fl__ 8 y-type)
+                                (aset fl__ 9 y-size)
+                                (aset fl__ 11 y-width)
+                                (aset fo__ 5 y-array)
+                                (aset fo__ 6 y-current-used)
+                                (aset fl__ 12 nr-lines)
+                                (aset fl__ 13 orig-start-lnum)
+                                (aset fl__ 14 orig-start-col)
+                                (aset fl__ 15 orig-start-coladd)
+                                (aset fl__ 16 orig-end-lnum)
+                                (aset fl__ 17 orig-end-col)
+                                (aset fl__ 18 orig-end-coladd)
+                                (aset fl__ 19 cur-ve-flags)
+                                (recur 2))))
+                        (do (aset fl__ 1 dir)
+                            (aset fo__ 2 ptr)
+                            (aset fo__ 4 oldp)
+                            (aset fl__ 5 totlen)
+                            (aset fl__ 8 y-type)
+                            (aset fl__ 9 y-size)
+                            (aset fl__ 11 y-width)
+                            (aset fo__ 5 y-array)
+                            (aset fo__ 6 y-current-used)
+                            (aset fl__ 12 nr-lines)
+                            (aset fl__ 13 orig-start-lnum)
+                            (aset fl__ 14 orig-start-col)
+                            (aset fl__ 15 orig-start-coladd)
+                            (aset fl__ 16 orig-end-lnum)
+                            (aset fl__ 17 orig-end-col)
+                            (aset fl__ 18 orig-end-coladd)
+                            (aset fl__ 19 cur-ve-flags)
+                            (recur 20))))))))
         1
-          (let [dir (if (zero? (bit-and flags (e PUT_LINE_FORWARD)))
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                totlen (aget fl__ 5)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                dir (if (zero? (bit-and flags (e PUT_LINE_FORWARD)))
                       dir
                       (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
                           (e FORWARD)))]
             (.set ^T_pos_T (.-b-op-start (g ed curbuf)) (.-w-cursor (g ed curwin)))
             (.set ^T_pos_T (.-b-op-end (g ed curbuf)) (.-w-cursor (g ed curwin)))
-            (recur 2 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+            (aset fl__ 1 dir)
+            (recur 2))
+        st))))
+
+(defn- do-put__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)]
+    (loop [st st0__]
+      (case st
         2
-          (let [y-type (if (zero? (bit-and flags (e PUT_LINE)))
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                y-type (if (zero? (bit-and flags (e PUT_LINE)))
                          y-type
                          (e MLINE))]
             (if (or (== y-size 0) (nil? y-array))
               (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-nothing-in-register-str) 0)) (object-array [(if (== regname 0) (BytePtr/lit "\"") (transchar ed regname))]))
                   (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-nothing-in-register-str) 0))))
-                  (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+                  (aset fl__ 6 lnum)
+                  (aset fl__ 8 y-type)
+                  (recur 20))
               (if (== y-type (e MBLOCK))
                 (let [lnum (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) y-size 1)
                       lnum (if (> lnum (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
                              (+ (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1)
                              lnum)]
                   (if (u-save ed (- (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1) lnum)
-                    (recur 3 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
-                    (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
+                    (do (aset fl__ 6 lnum)
+                        (aset fl__ 8 y-type)
+                        (recur 3))
+                    (do (aset fl__ 6 lnum)
+                        (aset fl__ 8 y-type)
+                        (recur 20))))
                 (if (== y-type (e MLINE))
                   (let [lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
                         lnum (if (== dir (e FORWARD))
                                (inc lnum)
                                lnum)]
                     (if (if (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (bit-and (.get ^BytePtr (ml-get ed 1)) 0xff) (e NUL))) (u-save ed 0 2) (u-save ed (- lnum 1) lnum))
-                      (recur 3 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
-                      (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
+                      (do (aset fl__ 6 lnum)
+                          (aset fl__ 8 y-type)
+                          (recur 3))
+                      (do (aset fl__ 6 lnum)
+                          (aset fl__ 8 y-type)
+                          (recur 20))))
                   (if (u-save-cursor ed)
-                    (recur 3 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
-                    (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))))
+                    (do (aset fl__ 6 lnum)
+                        (aset fl__ 8 y-type)
+                        (recur 3))
+                    (do (aset fl__ 6 lnum)
+                        (aset fl__ 8 y-type)
+                        (recur 20)))))))
+        st))))
+
+(defn- do-put__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)]
+    (loop [st st0__]
+      (case st
         3
-          (do (when (and (== cur-ve-flags (e VE_ALL)) (== y-type (e MCHAR)))
-                (if (== (long (gchar-cursor ed)) (e TAB))
-                  (let [viscol (long (getviscol ed))
-                        ts (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0))]
-                    (if (if (== dir (e FORWARD)) (not (== (i32 (- ts (rem viscol ts))) 1)) (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0))
-                      (coladvance-force ed viscol)
-                      (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)))
-                  (when (or (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (gchar-cursor ed)) (e NUL)))
-                    (coladvance-force ed (i32 (+ (long (getviscol ed)) (if (== dir (e FORWARD)) 1 0)))))))
-              (let [lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
-                (aset col 0 (unchecked-int (.col ^T_pos_T (.-w-cursor (g ed curwin)))))
-                (if (== y-type (e MBLOCK))
-                  (let [incr 0
-                        c (long (gchar-cursor ed))]
-                    (aset endcol2 0 (unchecked-int 0))
-                    (if (and (== dir (e FORWARD)) (not (== c (e NUL))))
-                      (do (if (== cur-ve-flags (e VE_ALL))
-                            (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) (IntPtr. col 0) nil (IntPtr. endcol2 0) 0)
-                            (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) nil nil (IntPtr. col 0) 0))
-                          (let [t3 (long (utfc-ptr2len ed (ml-get-cursor ed)))]
-                            (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) t3)))
-                            (aset col 0 (unchecked-int (inc (long (aget col 0)))))))
-                      (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) (IntPtr. col 0) nil (IntPtr. endcol2 0) 0))
-                    (aset col 0 (unchecked-int (+ (long (aget col 0)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))
-                    (when (and (== cur-ve-flags (e VE_ALL)) (or (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (aget endcol2 0)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
-                      (when (and (== dir (e FORWARD)) (== c (e NUL)))
-                        (aset col 0 (unchecked-int (inc (long (aget col 0))))))
-                      (when (and (not (== dir (e FORWARD))) (not (== c (e NUL))) (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0))
-                        (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))
-                      (when (== c (e TAB))
-                        (when (and (== dir -1) (not (zero? (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
-                          (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))
-                        (when (and (== dir (e FORWARD)) (== (i32 (- (long (aget col 0)) 1)) (long (aget endcol2 0))))
-                          (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))))
-                    (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
-                    (let [bd-textcol 0
-                          i 0]
-                      (recur 12 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-                  (let [yanklen (i32 (.length ^T_string_T (.at y-array 0)))
-                        lnum (if (== y-type (e MCHAR))
-                               (do (when (and (== dir (e FORWARD)) (not (== (long (gchar-cursor ed)) (e NUL))))
-                                     (let [bytelen (long (utfc-ptr2len ed (ml-get-cursor ed)))]
-                                       (aset col 0 (unchecked-int (+ (long (aget col 0)) bytelen)))
-                                       (when-not (zero? yanklen)
-                                         (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) bytelen)))
-                                         (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (+ (.col ^T_pos_T (.-b-op-end (g ed curbuf))) bytelen))))))
-                                   (.set ^T_pos_T (.-b-op-start (g ed curbuf)) (.-w-cursor (g ed curwin)))
-                                   lnum)
-                               (if (== dir -1)
-                                 (dec lnum)
-                                 lnum))
-                        new-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                        new-cursor-col_ (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                        new-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-                    (if (and (== y-type (e MCHAR)) (== y-size 1))
-                      (let [end-lnum 0
-                            start-lnum lnum
-                            first-byte-off 0
-                            end-lnum (if (zero? (g ed VIsual-active))
-                                       end-lnum
-                                       (let [end-lnum (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                                             end-lnum (if (< end-lnum (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))))
-                                                        (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                                                        end-lnum)]
-                                         (if (> end-lnum start-lnum)
-                                           (do (.set-lnum pos lnum)
-                                               (.set-col pos (long (aget col 0)))
-                                               (.set-coladd pos 0)
-                                               (getvcol ed (g ed curwin) pos nil (IntPtr. vcol 0) nil 0)
-                                               end-lnum)
-                                           end-lnum)))]
-                        (if (or (== count_ 0) (== yanklen 0))
-                          (if (zero? (g ed VIsual-active))
-                            (recur 11 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
-                            (let [lnum end-lnum]
-                              (recur 11 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-                          (if (> count_ (i32 (quot (e INT_MAX) yanklen)))
-                            (do (emsg ed (gettext_ ed (BytePtr. (g ed e-resulting-text-too-long) 0)))
-                                (recur 11 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                            (let [totlen (i32 (* count_ yanklen))]
-                              (recur 8 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))))
-                      (let [new-lnum new-cursor-lnum
-                            orig-indent 0
-                            indent-diff 0
-                            first-indent true
-                            lendiff 0
-                            orig-indent (if (zero? (bit-and flags (e PUT_FIXINDENT)))
-                                          orig-indent
-                                          (long (get-indent ed)))
-                            cnt 1]
-                        (recur 4 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))))))
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                incr (aget fl__ 21)
+                bd-textcol (aget fl__ 24)
+                new-cursor-lnum (aget fl__ 28)
+                new-cursor-col_ (aget fl__ 29)
+                new-cursor-coladd (aget fl__ 30)
+                end-lnum (aget fl__ 31)
+                start-lnum (aget fl__ 32)
+                first-byte-off (aget fl__ 33)
+                new-lnum (aget fl__ 34)
+                orig-indent (aget fl__ 35)
+                indent-diff (aget fl__ 36)
+                first-indent (boolean (aget fo__ 7))
+                lendiff (aget fl__ 37)
+                cnt (aget fl__ 38)]
+            (when (and (== cur-ve-flags (e VE_ALL)) (== y-type (e MCHAR)))
+              (if (== (long (gchar-cursor ed)) (e TAB))
+                (let [viscol (long (getviscol ed))
+                      ts (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0))]
+                  (if (if (== dir (e FORWARD)) (not (== (i32 (- ts (rem viscol ts))) 1)) (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0))
+                    (coladvance-force ed viscol)
+                    (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)))
+                (when (or (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (gchar-cursor ed)) (e NUL)))
+                  (coladvance-force ed (i32 (+ (long (getviscol ed)) (if (== dir (e FORWARD)) 1 0)))))))
+            (let [lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))]
+              (aset col 0 (unchecked-int (.col ^T_pos_T (.-w-cursor (g ed curwin)))))
+              (if (== y-type (e MBLOCK))
+                (let [incr 0
+                      c (long (gchar-cursor ed))]
+                  (aset endcol2 0 (unchecked-int 0))
+                  (if (and (== dir (e FORWARD)) (not (== c (e NUL))))
+                    (do (if (== cur-ve-flags (e VE_ALL))
+                          (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) (IntPtr. col 0) nil (IntPtr. endcol2 0) 0)
+                          (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) nil nil (IntPtr. col 0) 0))
+                        (let [t3 (long (utfc-ptr2len ed (ml-get-cursor ed)))]
+                          (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) t3)))
+                          (aset col 0 (unchecked-int (inc (long (aget col 0)))))))
+                    (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) (IntPtr. col 0) nil (IntPtr. endcol2 0) 0))
+                  (aset col 0 (unchecked-int (+ (long (aget col 0)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))
+                  (when (and (== cur-ve-flags (e VE_ALL)) (or (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (aget endcol2 0)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
+                    (when (and (== dir (e FORWARD)) (== c (e NUL)))
+                      (aset col 0 (unchecked-int (inc (long (aget col 0))))))
+                    (when (and (not (== dir (e FORWARD))) (not (== c (e NUL))) (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0))
+                      (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))
+                    (when (== c (e TAB))
+                      (when (and (== dir -1) (not (zero? (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
+                        (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))
+                      (when (and (== dir (e FORWARD)) (== (i32 (- (long (aget col 0)) 1)) (long (aget endcol2 0))))
+                        (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))))
+                  (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
+                  (let [bd-textcol 0
+                        i 0]
+                    (aset fl__ 4 yanklen)
+                    (aset fl__ 5 totlen)
+                    (aset fl__ 6 lnum)
+                    (aset fl__ 7 i)
+                    (aset fl__ 21 incr)
+                    (aset fl__ 24 bd-textcol)
+                    (aset fl__ 28 new-cursor-lnum)
+                    (aset fl__ 29 new-cursor-col_)
+                    (aset fl__ 30 new-cursor-coladd)
+                    (aset fl__ 31 end-lnum)
+                    (aset fl__ 32 start-lnum)
+                    (aset fl__ 33 first-byte-off)
+                    (aset fl__ 34 new-lnum)
+                    (aset fl__ 35 orig-indent)
+                    (aset fl__ 36 indent-diff)
+                    (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+                    (aset fl__ 37 lendiff)
+                    (aset fl__ 38 cnt)
+                    (recur 12)))
+                (let [yanklen (i32 (.length ^T_string_T (.at y-array 0)))
+                      lnum (if (== y-type (e MCHAR))
+                             (do (when (and (== dir (e FORWARD)) (not (== (long (gchar-cursor ed)) (e NUL))))
+                                   (let [bytelen (long (utfc-ptr2len ed (ml-get-cursor ed)))]
+                                     (aset col 0 (unchecked-int (+ (long (aget col 0)) bytelen)))
+                                     (when-not (zero? yanklen)
+                                       (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) bytelen)))
+                                       (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (+ (.col ^T_pos_T (.-b-op-end (g ed curbuf))) bytelen))))))
+                                 (.set ^T_pos_T (.-b-op-start (g ed curbuf)) (.-w-cursor (g ed curwin)))
+                                 lnum)
+                             (if (== dir -1)
+                               (dec lnum)
+                               lnum))
+                      new-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                      new-cursor-col_ (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                      new-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
+                  (if (and (== y-type (e MCHAR)) (== y-size 1))
+                    (let [end-lnum 0
+                          start-lnum lnum
+                          first-byte-off 0
+                          end-lnum (if (zero? (g ed VIsual-active))
+                                     end-lnum
+                                     (let [end-lnum (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                                           end-lnum (if (< end-lnum (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))))
+                                                      (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                                                      end-lnum)]
+                                       (if (> end-lnum start-lnum)
+                                         (do (.set-lnum pos lnum)
+                                             (.set-col pos (long (aget col 0)))
+                                             (.set-coladd pos 0)
+                                             (getvcol ed (g ed curwin) pos nil (IntPtr. vcol 0) nil 0)
+                                             end-lnum)
+                                         end-lnum)))]
+                      (if (or (== count_ 0) (== yanklen 0))
+                        (if (zero? (g ed VIsual-active))
+                          (do (aset fl__ 4 yanklen)
+                              (aset fl__ 5 totlen)
+                              (aset fl__ 6 lnum)
+                              (aset fl__ 7 i)
+                              (aset fl__ 21 incr)
+                              (aset fl__ 24 bd-textcol)
+                              (aset fl__ 28 new-cursor-lnum)
+                              (aset fl__ 29 new-cursor-col_)
+                              (aset fl__ 30 new-cursor-coladd)
+                              (aset fl__ 31 end-lnum)
+                              (aset fl__ 32 start-lnum)
+                              (aset fl__ 33 first-byte-off)
+                              (aset fl__ 34 new-lnum)
+                              (aset fl__ 35 orig-indent)
+                              (aset fl__ 36 indent-diff)
+                              (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+                              (aset fl__ 37 lendiff)
+                              (aset fl__ 38 cnt)
+                              (recur 11))
+                          (let [lnum end-lnum]
+                            (aset fl__ 4 yanklen)
+                            (aset fl__ 5 totlen)
+                            (aset fl__ 6 lnum)
+                            (aset fl__ 7 i)
+                            (aset fl__ 21 incr)
+                            (aset fl__ 24 bd-textcol)
+                            (aset fl__ 28 new-cursor-lnum)
+                            (aset fl__ 29 new-cursor-col_)
+                            (aset fl__ 30 new-cursor-coladd)
+                            (aset fl__ 31 end-lnum)
+                            (aset fl__ 32 start-lnum)
+                            (aset fl__ 33 first-byte-off)
+                            (aset fl__ 34 new-lnum)
+                            (aset fl__ 35 orig-indent)
+                            (aset fl__ 36 indent-diff)
+                            (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+                            (aset fl__ 37 lendiff)
+                            (aset fl__ 38 cnt)
+                            (recur 11)))
+                        (if (> count_ (i32 (quot (e INT_MAX) yanklen)))
+                          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-resulting-text-too-long) 0)))
+                              (aset fl__ 4 yanklen)
+                              (aset fl__ 5 totlen)
+                              (aset fl__ 6 lnum)
+                              (aset fl__ 7 i)
+                              (aset fl__ 21 incr)
+                              (aset fl__ 24 bd-textcol)
+                              (aset fl__ 28 new-cursor-lnum)
+                              (aset fl__ 29 new-cursor-col_)
+                              (aset fl__ 30 new-cursor-coladd)
+                              (aset fl__ 31 end-lnum)
+                              (aset fl__ 32 start-lnum)
+                              (aset fl__ 33 first-byte-off)
+                              (aset fl__ 34 new-lnum)
+                              (aset fl__ 35 orig-indent)
+                              (aset fl__ 36 indent-diff)
+                              (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+                              (aset fl__ 37 lendiff)
+                              (aset fl__ 38 cnt)
+                              (recur 11))
+                          (let [totlen (i32 (* count_ yanklen))]
+                            (aset fl__ 4 yanklen)
+                            (aset fl__ 5 totlen)
+                            (aset fl__ 6 lnum)
+                            (aset fl__ 7 i)
+                            (aset fl__ 21 incr)
+                            (aset fl__ 24 bd-textcol)
+                            (aset fl__ 28 new-cursor-lnum)
+                            (aset fl__ 29 new-cursor-col_)
+                            (aset fl__ 30 new-cursor-coladd)
+                            (aset fl__ 31 end-lnum)
+                            (aset fl__ 32 start-lnum)
+                            (aset fl__ 33 first-byte-off)
+                            (aset fl__ 34 new-lnum)
+                            (aset fl__ 35 orig-indent)
+                            (aset fl__ 36 indent-diff)
+                            (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+                            (aset fl__ 37 lendiff)
+                            (aset fl__ 38 cnt)
+                            (recur 8)))))
+                    (let [new-lnum new-cursor-lnum
+                          orig-indent 0
+                          indent-diff 0
+                          first-indent true
+                          lendiff 0
+                          orig-indent (if (zero? (bit-and flags (e PUT_FIXINDENT)))
+                                        orig-indent
+                                        (long (get-indent ed)))
+                          cnt 1]
+                      (aset fl__ 4 yanklen)
+                      (aset fl__ 5 totlen)
+                      (aset fl__ 6 lnum)
+                      (aset fl__ 7 i)
+                      (aset fl__ 21 incr)
+                      (aset fl__ 24 bd-textcol)
+                      (aset fl__ 28 new-cursor-lnum)
+                      (aset fl__ 29 new-cursor-col_)
+                      (aset fl__ 30 new-cursor-coladd)
+                      (aset fl__ 31 end-lnum)
+                      (aset fl__ 32 start-lnum)
+                      (aset fl__ 33 first-byte-off)
+                      (aset fl__ 34 new-lnum)
+                      (aset fl__ 35 orig-indent)
+                      (aset fl__ 36 indent-diff)
+                      (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+                      (aset fl__ 37 lendiff)
+                      (aset fl__ 38 cnt)
+                      (recur 4)))))))
+        st))))
+
+(defn- do-put__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)
+        ^longs tl__ (long-array 6)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
+      (case st
         4
-          (if (<= cnt count_)
-            (let [i 0
-                  j__3 (if (== y-type (e MCHAR))
-                         (let [lnum new-cursor-lnum
-                               ^BytePtr ptr (.add ^BytePtr (ml-get ed lnum) (long (aget col 0)))
-                               totlen (i32 (.length ^T_string_T (.at y-array (- y-size 1))))
-                               ^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ (i32 (- (long (ml-get-len ed lnum)) (long (aget col 0)))) totlen)) 1)))
-                               _ (musl-strcpy ed newp (aget ^objects (.-string ^T_string_T (.at y-array (- y-size 1))) 0))
-                               _ (musl-strcpy ed (.add newp totlen) ptr)
-                               _ (ml-append ed lnum newp 0)
-                               new-lnum (inc new-lnum)
-                               ^BytePtr oldp (ml-get ed lnum)
-                               ^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ (long (aget col 0)) yanklen)) 1)))
-                               _ (Rt/memmove newp oldp (long (aget col 0)))
-                               _ (Rt/memmove (.add newp (long (aget col 0))) ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array 0)) 0) (i32 (+ yanklen 1)))
-                               _ (ml-replace ed lnum newp false)
-                               _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
-                               i 1]
-                           (aset tl__ 3 lnum)
-                           (aset tl__ 4 i)
-                           (aset tl__ 5 new-lnum)
-                           0)
-                         (do (aset tl__ 3 lnum)
-                             (aset tl__ 4 i)
-                             (aset tl__ 5 new-lnum)
-                             0))
-                  lnum (aget tl__ 3)
-                  i (aget tl__ 4)
-                  new-lnum (aget tl__ 5)]
-              (recur 5 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-            (recur 7 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr newp (aget fo__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                new-cursor-lnum (aget fl__ 28)
+                new-cursor-col_ (aget fl__ 29)
+                new-cursor-coladd (aget fl__ 30)
+                new-lnum (aget fl__ 34)
+                orig-indent (aget fl__ 35)
+                indent-diff (aget fl__ 36)
+                first-indent (boolean (aget fo__ 7))
+                lendiff (aget fl__ 37)
+                cnt (aget fl__ 38)]
+            (if (<= cnt count_)
+              (let [i 0
+                    j__24 (if (== y-type (e MCHAR))
+                            (let [lnum new-cursor-lnum
+                                  ^BytePtr ptr (.add ^BytePtr (ml-get ed lnum) (long (aget col 0)))
+                                  totlen (i32 (.length ^T_string_T (.at y-array (- y-size 1))))
+                                  ^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ (i32 (- (long (ml-get-len ed lnum)) (long (aget col 0)))) totlen)) 1)))
+                                  _ (musl-strcpy ed newp (aget ^objects (.-string ^T_string_T (.at y-array (- y-size 1))) 0))
+                                  _ (musl-strcpy ed (.add newp totlen) ptr)
+                                  _ (ml-append ed lnum newp 0)
+                                  new-lnum (inc new-lnum)
+                                  ^BytePtr oldp (ml-get ed lnum)
+                                  ^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ (long (aget col 0)) yanklen)) 1)))
+                                  _ (Rt/memmove newp oldp (long (aget col 0)))
+                                  _ (Rt/memmove (.add newp (long (aget col 0))) ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array 0)) 0) (i32 (+ yanklen 1)))
+                                  _ (ml-replace ed lnum newp false)
+                                  _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
+                                  i 1]
+                              (aset tl__ 0 lnum)
+                              (aset tl__ 1 i)
+                              (aset tl__ 2 new-lnum)
+                              0)
+                            (do (aset tl__ 0 lnum)
+                                (aset tl__ 1 i)
+                                (aset tl__ 2 new-lnum)
+                                0))
+                    lnum (aget tl__ 0)
+                    i (aget tl__ 1)
+                    new-lnum (aget tl__ 2)]
+                (aset fo__ 2 ptr)
+                (aset fo__ 3 newp)
+                (aset fo__ 4 oldp)
+                (aset fl__ 5 totlen)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 i)
+                (aset fl__ 34 new-lnum)
+                (recur 5))
+              (do (aset fo__ 2 ptr)
+                  (aset fo__ 3 newp)
+                  (aset fo__ 4 oldp)
+                  (aset fl__ 5 totlen)
+                  (aset fl__ 6 lnum)
+                  (aset fl__ 7 i)
+                  (aset fl__ 34 new-lnum)
+                  (recur 7))))
         5
-          (if (< i y-size)
-            (if (or (not (== y-type (e MCHAR))) (< i (- y-size 1)))
-              (if (ml-append ed lnum (aget ^objects (.-string ^T_string_T (.at y-array i)) 0) 0)
-                (let [new-lnum (inc new-lnum)]
-                  (recur 6 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                (recur 7 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-              (recur 6 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-            (let [new-lnum (if (== cnt 1)
-                             lnum
-                             new-lnum)
-                  cnt (inc cnt)]
-              (recur 4 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                yanklen (aget fl__ 4)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                new-cursor-lnum (aget fl__ 28)
+                new-cursor-col_ (aget fl__ 29)
+                new-cursor-coladd (aget fl__ 30)
+                new-lnum (aget fl__ 34)
+                orig-indent (aget fl__ 35)
+                indent-diff (aget fl__ 36)
+                first-indent (boolean (aget fo__ 7))
+                lendiff (aget fl__ 37)
+                cnt (aget fl__ 38)]
+            (if (< i y-size)
+              (if (or (not (== y-type (e MCHAR))) (< i (- y-size 1)))
+                (if (ml-append ed lnum (aget ^objects (.-string ^T_string_T (.at y-array i)) 0) 0)
+                  (let [new-lnum (inc new-lnum)]
+                    (aset fl__ 34 new-lnum)
+                    (aset fl__ 38 cnt)
+                    (recur 6))
+                  (do (aset fl__ 34 new-lnum)
+                      (aset fl__ 38 cnt)
+                      (recur 7)))
+                (do (aset fl__ 34 new-lnum)
+                    (aset fl__ 38 cnt)
+                    (recur 6)))
+              (let [new-lnum (if (== cnt 1)
+                               lnum
+                               new-lnum)
+                    cnt (inc cnt)]
+                (aset fl__ 34 new-lnum)
+                (aset fl__ 38 cnt)
+                (recur 4))))
         6
-          (let [lnum (inc lnum)
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                yanklen (aget fl__ 4)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                new-cursor-lnum (aget fl__ 28)
+                new-cursor-col_ (aget fl__ 29)
+                new-cursor-coladd (aget fl__ 30)
+                new-lnum (aget fl__ 34)
+                orig-indent (aget fl__ 35)
+                indent-diff (aget fl__ 36)
+                first-indent (boolean (aget fo__ 7))
+                lendiff (aget fl__ 37)
+                cnt (aget fl__ 38)
+                lnum (inc lnum)
                 nr-lines (inc nr-lines)
-                j__5 (if (zero? (bit-and flags (e PUT_FIXINDENT)))
-                       (do (aset tl__ 6 indent-diff)
-                           (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
-                           (aset tl__ 7 lendiff)
-                           0)
-                       (let [old-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                             old-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                             old-pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
-                             _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
-                             ^BytePtr ptr (ml-get ed lnum)
-                             lendiff (if (and (== cnt count_) (== i (- y-size 1)))
-                                       (long (ml-get-len ed lnum))
-                                       lendiff)
-                             j__4 (if (and (== (bit-and (.get ptr) 0xff) 35) (not (zero? (long (preprocs-left ed)))))
-                                    (let [indent 0]
-                                      (aset tl__ 8 indent)
-                                      (aset tl__ 6 indent-diff)
-                                      (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
-                                      0)
-                                    (if (== (bit-and (.get ptr) 0xff) (e NUL))
+                j__26 (if (zero? (bit-and flags (e PUT_FIXINDENT)))
+                        (do (aset tl__ 3 indent-diff)
+                            (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
+                            (aset tl__ 4 lendiff)
+                            0)
+                        (let [old-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                              old-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                              old-pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
+                              _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
+                              ^BytePtr ptr (ml-get ed lnum)
+                              lendiff (if (and (== cnt count_) (== i (- y-size 1)))
+                                        (long (ml-get-len ed lnum))
+                                        lendiff)
+                              j__25 (if (and (== (bit-and (.get ptr) 0xff) 35) (not (zero? (long (preprocs-left ed)))))
                                       (let [indent 0]
-                                        (aset tl__ 8 indent)
-                                        (aset tl__ 6 indent-diff)
-                                        (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
+                                        (aset tl__ 5 indent)
+                                        (aset tl__ 3 indent-diff)
+                                        (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
                                         0)
-                                      (if first-indent
-                                        (let [indent-diff (i32 (- orig-indent (long (get-indent ed))))
-                                              indent orig-indent
-                                              first-indent false]
-                                          (aset tl__ 8 indent)
-                                          (aset tl__ 6 indent-diff)
-                                          (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
+                                      (if (== (bit-and (.get ptr) 0xff) (e NUL))
+                                        (let [indent 0]
+                                          (aset tl__ 5 indent)
+                                          (aset tl__ 3 indent-diff)
+                                          (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
                                           0)
-                                        (let [indent (i32 (+ (long (get-indent ed)) indent-diff))]
-                                          (if (< indent 0)
-                                            (let [indent 0]
-                                              (aset tl__ 8 indent)
-                                              (aset tl__ 6 indent-diff)
-                                              (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
-                                              0)
-                                            (do (aset tl__ 8 indent)
-                                                (aset tl__ 6 indent-diff)
-                                                (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
-                                                0))))))
-                             indent (aget tl__ 8)
-                             indent-diff (aget tl__ 6)
-                             first-indent (boolean (aget to__ 2))]
-                         (set-indent ed indent 0)
-                         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-lnum)
-                         (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-col)
-                         (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-coladd)
-                         (if (and (== cnt count_) (== i (- y-size 1)))
-                           (let [t6 (long (ml-get-len ed lnum))
-                                 lendiff (i32 (- lendiff t6))]
-                             (aset tl__ 6 indent-diff)
-                             (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
-                             (aset tl__ 7 lendiff)
-                             0)
-                           (do (aset tl__ 6 indent-diff)
-                               (aset to__ 2 (Boolean/valueOf (boolean first-indent)))
-                               (aset tl__ 7 lendiff)
-                               0))))
-                indent-diff (aget tl__ 6)
-                first-indent (boolean (aget to__ 2))
-                lendiff (aget tl__ 7)
+                                        (if first-indent
+                                          (let [indent-diff (i32 (- orig-indent (long (get-indent ed))))
+                                                indent orig-indent
+                                                first-indent false]
+                                            (aset tl__ 5 indent)
+                                            (aset tl__ 3 indent-diff)
+                                            (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
+                                            0)
+                                          (let [indent (i32 (+ (long (get-indent ed)) indent-diff))]
+                                            (if (< indent 0)
+                                              (let [indent 0]
+                                                (aset tl__ 5 indent)
+                                                (aset tl__ 3 indent-diff)
+                                                (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
+                                                0)
+                                              (do (aset tl__ 5 indent)
+                                                  (aset tl__ 3 indent-diff)
+                                                  (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
+                                                  0))))))
+                              indent (aget tl__ 5)
+                              indent-diff (aget tl__ 3)
+                              first-indent (boolean (aget to__ 0))]
+                          (set-indent ed indent 0)
+                          (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-lnum)
+                          (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-col)
+                          (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-coladd)
+                          (if (and (== cnt count_) (== i (- y-size 1)))
+                            (let [t6 (long (ml-get-len ed lnum))
+                                  lendiff (i32 (- lendiff t6))]
+                              (aset tl__ 3 indent-diff)
+                              (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
+                              (aset tl__ 4 lendiff)
+                              0)
+                            (do (aset tl__ 3 indent-diff)
+                                (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
+                                (aset tl__ 4 lendiff)
+                                0))))
+                indent-diff (aget tl__ 3)
+                first-indent (boolean (aget to__ 0))
+                lendiff (aget tl__ 4)
                 i (inc i)]
-            (recur 5 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+            (aset fo__ 2 ptr)
+            (aset fl__ 6 lnum)
+            (aset fl__ 7 i)
+            (aset fl__ 12 nr-lines)
+            (aset fl__ 36 indent-diff)
+            (aset fo__ 7 (Boolean/valueOf (boolean first-indent)))
+            (aset fl__ 37 lendiff)
+            (recur 5))
+        st))))
+
+(defn- do-put__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)]
+    (loop [st st0__]
+      (case st
         7
-          (do (when (== y-type (e MLINE))
-                (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) 0)
-                (when (== dir (e FORWARD))
-                  (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) (inc (.lnum ^T_pos_T (.-b-op-start (g ed curbuf)))))))
-              (mark-adjust ed (+ (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))) (if (== y-type (e MCHAR)) 1 0)) 9223372036854775807 nr-lines 0)
-              (if (== y-type (e MCHAR))
-                (changed-lines ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (long (aget col 0)) (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1) nr-lines)
-                (changed-lines ed (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))) 0 (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))) nr-lines))
-              (if (and (some? y-current-used) (or (not (identical? y-current-used (g ed y-current))) (not (Ptr/eq ^Ptr (.y-array (g ed y-current)) y-array))))
-                (do (emsg ed (gettext_ ed (BytePtr. (g ed e-yank-register-changed-while-using-it) 0)))
-                    (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                (do (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) new-lnum)
-                    (aset col 0 (unchecked-int (if (> 0 (i32 (- (i32 (.length ^T_string_T (.at y-array (- y-size 1)))) lendiff))) 0 (i32 (- (i32 (.length ^T_string_T (.at y-array (- y-size 1)))) lendiff)))))
-                    (if (> (long (aget col 0)) 1)
-                      (do (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (long (aget col 0)) 1)))
-                          (when (> (Long/compareUnsigned (.length ^T_string_T (.at y-array (- y-size 1))) 0) 0)
-                            (let [t7 (long (utf-head-off ed (aget ^objects (.-string ^T_string_T (.at y-array (- y-size 1))) 0) (.add (.add ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array (- y-size 1))) 0) (.length ^T_string_T (.at y-array (- y-size 1)))) (- 1))))]
-                              (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (.col ^T_pos_T (.-b-op-end (g ed curbuf))) t7))))))
-                      (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) 0))
-                    (if (zero? (bit-and flags (e PUT_CURSLINE)))
-                      (if (zero? (bit-and flags (e PUT_CURSEND)))
-                        (if (== y-type (e MLINE))
-                          (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
-                              (when (== dir (e FORWARD))
-                                (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
-                              (beginline ed 5)
-                              (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                          (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) new-cursor-lnum)
-                              (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) new-cursor-col_)
-                              (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) new-cursor-coladd)
-                              (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-                        (if (== y-type (e MLINE))
-                          (do (if (>= lnum (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                                (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                                (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (+ lnum 1)))
-                              (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
-                              (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                          (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) new-lnum)
-                              (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (long (aget col 0)))
-                              (.set ^T_pos_T (.-b-op-end (g ed curbuf)) (.-w-cursor (g ed curwin)))
-                              (if (> (long (aget col 0)) 1)
-                                (do (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (long (aget col 0)) 1)))
-                                    (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                                (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))))
-                      (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
-                          (beginline ed 5)
-                          (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))))
+          (let [regname (aget fl__ 0)
+                dir (aget fl__ 1)
+                flags (aget fl__ 3)
+                lnum (aget fl__ 6)
+                y-type (aget fl__ 8)
+                y-size (aget fl__ 9)
+                ^Ptr y-array (aget fo__ 5)
+                ^T_yankreg_T y-current-used (aget fo__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                new-cursor-lnum (aget fl__ 28)
+                new-cursor-col_ (aget fl__ 29)
+                new-cursor-coladd (aget fl__ 30)
+                new-lnum (aget fl__ 34)
+                lendiff (aget fl__ 37)]
+            (when (== y-type (e MLINE))
+              (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) 0)
+              (when (== dir (e FORWARD))
+                (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) (inc (.lnum ^T_pos_T (.-b-op-start (g ed curbuf)))))))
+            (mark-adjust ed (+ (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))) (if (== y-type (e MCHAR)) 1 0)) 9223372036854775807 nr-lines 0)
+            (if (== y-type (e MCHAR))
+              (changed-lines ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (long (aget col 0)) (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1) nr-lines)
+              (changed-lines ed (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))) 0 (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))) nr-lines))
+            (if (and (some? y-current-used) (or (not (identical? y-current-used (g ed y-current))) (not (Ptr/eq ^Ptr (.y-array (g ed y-current)) y-array))))
+              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-yank-register-changed-while-using-it) 0)))
+                  (recur 20))
+              (do (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) new-lnum)
+                  (aset col 0 (unchecked-int (if (> 0 (i32 (- (i32 (.length ^T_string_T (.at y-array (- y-size 1)))) lendiff))) 0 (i32 (- (i32 (.length ^T_string_T (.at y-array (- y-size 1)))) lendiff)))))
+                  (if (> (long (aget col 0)) 1)
+                    (do (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (long (aget col 0)) 1)))
+                        (when (> (Long/compareUnsigned (.length ^T_string_T (.at y-array (- y-size 1))) 0) 0)
+                          (let [t7 (long (utf-head-off ed (aget ^objects (.-string ^T_string_T (.at y-array (- y-size 1))) 0) (.add (.add ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array (- y-size 1))) 0) (.length ^T_string_T (.at y-array (- y-size 1)))) (- 1))))]
+                            (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (.col ^T_pos_T (.-b-op-end (g ed curbuf))) t7))))))
+                    (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) 0))
+                  (if (zero? (bit-and flags (e PUT_CURSLINE)))
+                    (if (zero? (bit-and flags (e PUT_CURSEND)))
+                      (if (== y-type (e MLINE))
+                        (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
+                            (when (== dir (e FORWARD))
+                              (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+                            (beginline ed 5)
+                            (recur 19))
+                        (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) new-cursor-lnum)
+                            (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) new-cursor-col_)
+                            (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) new-cursor-coladd)
+                            (recur 19)))
+                      (if (== y-type (e MLINE))
+                        (do (if (>= lnum (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                              (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                              (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (+ lnum 1)))
+                            (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
+                            (recur 19))
+                        (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) new-lnum)
+                            (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (long (aget col 0)))
+                            (.set ^T_pos_T (.-b-op-end (g ed curbuf)) (.-w-cursor (g ed curwin)))
+                            (if (> (long (aget col 0)) 1)
+                              (do (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (long (aget col 0)) 1)))
+                                  (recur 19))
+                              (recur 19)))))
+                    (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
+                        (beginline ed 5)
+                        (recur 19))))))
         8
-          (let [^BytePtr oldp (ml-get ed lnum)
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr newp (aget fo__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                oldlen (aget fl__ 10)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                end-lnum (aget fl__ 31)
+                start-lnum (aget fl__ 32)
+                first-byte-off (aget fl__ 33)
+                ^BytePtr oldp (ml-get ed lnum)
                 oldlen (long (ml-get-len ed lnum))]
             (when (> lnum start-lnum)
               (.set-lnum pos_2 lnum)
@@ -54786,206 +59324,654 @@
                 (aset col 0 (unchecked-int (e MAXCOL)))))
             (if (and (not (zero? (g ed VIsual-active))) (> (long (aget col 0)) oldlen))
               (let [lnum (inc lnum)]
-                (recur 10 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+                (aset fo__ 2 ptr)
+                (aset fo__ 3 newp)
+                (aset fo__ 4 oldp)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 i)
+                (aset fl__ 10 oldlen)
+                (recur 10))
               (let [^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ totlen oldlen)) 1)))
                     _ (Rt/memmove newp oldp (long (aget col 0)))
                     ^BytePtr ptr (.add newp (long (aget col 0)))
                     i 0]
-                (recur 9 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))
+                (aset fo__ 2 ptr)
+                (aset fo__ 3 newp)
+                (aset fo__ 4 oldp)
+                (aset fl__ 6 lnum)
+                (aset fl__ 7 i)
+                (aset fl__ 10 oldlen)
+                (recur 9))))
         9
-          (if (< i count_)
-            (do (Rt/memmove ptr ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array 0)) 0) yanklen)
-                (let [^BytePtr ptr (.add ptr yanklen)
-                      i (inc i)]
-                  (recur 9 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-            (do (Rt/memmove ptr (.add oldp (long (aget col 0))) (+ (i32 (- oldlen (long (aget col 0)))) 1))
-                (let [first-byte-off (long (utf-head-off ed newp (.add ptr (- 1))))]
-                  (ml-replace ed lnum newp false)
-                  (inserted-bytes ed lnum (long (aget col 0)) totlen)
-                  (when (== lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
-                    (changed-cline-bef-curs ed)
-                    (invalidate-botline ed)
-                    (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) (i32 (- totlen 1))))))
-                  (if (zero? (g ed VIsual-active))
-                    (recur 10 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
-                    (let [lnum (inc lnum)]
-                      (recur 10 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr newp (aget fo__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                oldlen (aget fl__ 10)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                end-lnum (aget fl__ 31)
+                start-lnum (aget fl__ 32)
+                first-byte-off (aget fl__ 33)]
+            (if (< i count_)
+              (do (Rt/memmove ptr ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array 0)) 0) yanklen)
+                  (let [^BytePtr ptr (.add ptr yanklen)
+                        i (inc i)]
+                    (aset fo__ 2 ptr)
+                    (aset fl__ 6 lnum)
+                    (aset fl__ 7 i)
+                    (aset fl__ 33 first-byte-off)
+                    (recur 9)))
+              (do (Rt/memmove ptr (.add oldp (long (aget col 0))) (+ (i32 (- oldlen (long (aget col 0)))) 1))
+                  (let [first-byte-off (long (utf-head-off ed newp (.add ptr (- 1))))]
+                    (ml-replace ed lnum newp false)
+                    (inserted-bytes ed lnum (long (aget col 0)) totlen)
+                    (when (== lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
+                      (changed-cline-bef-curs ed)
+                      (invalidate-botline ed)
+                      (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) (i32 (- totlen 1))))))
+                    (if (zero? (g ed VIsual-active))
+                      (do (aset fo__ 2 ptr)
+                          (aset fl__ 6 lnum)
+                          (aset fl__ 7 i)
+                          (aset fl__ 33 first-byte-off)
+                          (recur 10))
+                      (let [lnum (inc lnum)]
+                        (aset fo__ 2 ptr)
+                        (aset fl__ 6 lnum)
+                        (aset fl__ 7 i)
+                        (aset fl__ 33 first-byte-off)
+                        (recur 10)))))))
         10
-          (if (and (not (zero? (g ed VIsual-active))) (<= lnum end-lnum))
-            (recur 8 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)
-            (recur 11 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                end-lnum (aget fl__ 31)
+                start-lnum (aget fl__ 32)
+                first-byte-off (aget fl__ 33)]
+            (if (and (not (zero? (g ed VIsual-active))) (<= lnum end-lnum))
+              (recur 8)
+              (recur 11)))
+        st))))
+
+(defn- do-put__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)
+        ^longs tl__ (long-array 4)]
+    (loop [st st0__]
+      (case st
         11
-          (do (.set ^T_pos_T (.-b-op-end (g ed curbuf)) (.-w-cursor (g ed curwin)))
-              (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (.col ^T_pos_T (.-b-op-end (g ed curbuf))) first-byte-off)))
-              (if (and (not (zero? totlen)) (or (not (== (g ed restart-edit) 0)) (not (zero? (bit-and flags (e PUT_CURSEND))))))
-                (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
-                    (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (- (.col ^T_pos_T (.-w-cursor (g ed curwin))) first-byte-off)))
-                    (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))
+          (let [regname (aget fl__ 0)
+                flags (aget fl__ 3)
+                totlen (aget fl__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                first-byte-off (aget fl__ 33)]
+            (.set ^T_pos_T (.-b-op-end (g ed curbuf)) (.-w-cursor (g ed curwin)))
+            (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (.col ^T_pos_T (.-b-op-end (g ed curbuf))) first-byte-off)))
+            (if (and (not (zero? totlen)) (or (not (== (g ed restart-edit) 0)) (not (zero? (bit-and flags (e PUT_CURSEND))))))
+              (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
+                  (recur 19))
+              (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (- (.col ^T_pos_T (.-w-cursor (g ed curwin))) first-byte-off)))
+                  (recur 19))))
         12
-          (if (< i y-size)
-            (let [spaces 0
-                  bd-startspaces 0
-                  bd-endspaces 0
-                  _ (aset vcol 0 (unchecked-int 0))
-                  delcount 0]
-              (if (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                (if (ml-append ed (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) (BytePtr/lit "") 1)
-                  (let [nr-lines (inc nr-lines)]
-                    (recur 13 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                  (recur 18 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                (recur 13 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-            (recur 18 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-size (aget fl__ 9)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                delcount (aget fl__ 20)
+                incr (aget fl__ 21)
+                bd-startspaces (aget fl__ 22)
+                bd-endspaces (aget fl__ 23)
+                bd-textcol (aget fl__ 24)
+                spaces (aget fl__ 26)]
+            (if (< i y-size)
+              (let [spaces 0
+                    bd-startspaces 0
+                    bd-endspaces 0
+                    _ (aset vcol 0 (unchecked-int 0))
+                    delcount 0]
+                (if (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                  (if (ml-append ed (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) (BytePtr/lit "") 1)
+                    (let [nr-lines (inc nr-lines)]
+                      (aset fl__ 12 nr-lines)
+                      (aset fl__ 20 delcount)
+                      (aset fl__ 22 bd-startspaces)
+                      (aset fl__ 23 bd-endspaces)
+                      (aset fl__ 26 spaces)
+                      (recur 13))
+                    (do (aset fl__ 12 nr-lines)
+                        (aset fl__ 20 delcount)
+                        (aset fl__ 22 bd-startspaces)
+                        (aset fl__ 23 bd-endspaces)
+                        (aset fl__ 26 spaces)
+                        (recur 18)))
+                  (do (aset fl__ 12 nr-lines)
+                      (aset fl__ 20 delcount)
+                      (aset fl__ 22 bd-startspaces)
+                      (aset fl__ 23 bd-endspaces)
+                      (aset fl__ 26 spaces)
+                      (recur 13))))
+              (do (aset fl__ 12 nr-lines)
+                  (aset fl__ 20 delcount)
+                  (aset fl__ 22 bd-startspaces)
+                  (aset fl__ 23 bd-endspaces)
+                  (aset fl__ 26 spaces)
+                  (recur 18))))
         13
-          (let [^BytePtr oldp (ml-get-curline ed)
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-size (aget fl__ 9)
+                oldlen (aget fl__ 10)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                delcount (aget fl__ 20)
+                incr (aget fl__ 21)
+                bd-startspaces (aget fl__ 22)
+                bd-endspaces (aget fl__ 23)
+                spaces (aget fl__ 26)
+                ^BytePtr oldp (ml-get-curline ed)
                 oldlen (long (ml-get-curline-len ed))]
             (init-chartabsize-arg ed cts (g ed curwin) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 0 oldp oldp)
-            (recur 14 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
+            (aset fo__ 4 oldp)
+            (aset fl__ 10 oldlen)
+            (recur 14))
         14
-          (if (and (< (.cts-vcol cts) (long (aget col 0))) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
-            (let [incr (long (lbr-chartabsize-adv ed cts))]
-              (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) incr)))
-              (recur 14 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-            (do (aset vcol 0 (unchecked-int (.cts-vcol cts)))
-                (let [^BytePtr ptr (.cts-ptr cts)
-                      bd-textcol (i32 (.sub ptr oldp))
-                      shortline (if (or (< (long (aget vcol 0)) (long (aget col 0))) (and (== (long (aget vcol 0)) (long (aget col 0))) (zero? (bit-and (.get ptr) 0xff)))) 1 0)
-                      j__6 (if (< (long (aget vcol 0)) (long (aget col 0)))
-                             (let [bd-startspaces (i32 (- (long (aget col 0)) (long (aget vcol 0))))]
-                               (aset tl__ 9 delcount)
-                               (aset tl__ 10 bd-startspaces)
-                               (aset tl__ 11 bd-endspaces)
-                               (aset tl__ 12 bd-textcol)
-                               0)
-                             (if (> (long (aget vcol 0)) (long (aget col 0)))
-                               (let [bd-endspaces (i32 (- (long (aget vcol 0)) (long (aget col 0))))
-                                     bd-startspaces (i32 (- incr bd-endspaces))
-                                     bd-textcol (i32 (dec bd-textcol))
-                                     delcount 1
-                                     t4 (long (utf-head-off ed oldp (.add oldp bd-textcol)))
-                                     bd-textcol (i32 (- bd-textcol t4))]
-                                 (if (== (bit-and (.at oldp bd-textcol) 0xff) (e TAB))
-                                   (do (aset tl__ 9 delcount)
-                                       (aset tl__ 10 bd-startspaces)
-                                       (aset tl__ 11 bd-endspaces)
-                                       (aset tl__ 12 bd-textcol)
-                                       0)
-                                   (let [delcount 0
-                                         bd-endspaces 0]
-                                     (aset tl__ 9 delcount)
-                                     (aset tl__ 10 bd-startspaces)
-                                     (aset tl__ 11 bd-endspaces)
-                                     (aset tl__ 12 bd-textcol)
-                                     0)))
-                               (do (aset tl__ 9 delcount)
-                                   (aset tl__ 10 bd-startspaces)
-                                   (aset tl__ 11 bd-endspaces)
-                                   (aset tl__ 12 bd-textcol)
-                                   0)))
-                      delcount (aget tl__ 9)
-                      bd-startspaces (aget tl__ 10)
-                      bd-endspaces (aget tl__ 11)
-                      bd-textcol (aget tl__ 12)
-                      yanklen (i32 (.length ^T_string_T (.at y-array i)))]
-                  (if (== (bit-and flags (e PUT_BLOCK_INNER)) 0)
-                    (let [spaces (i32 (+ y-width 1))]
-                      (init-chartabsize-arg ed cts (g ed curwin) 0 0 (aget ^objects (.-string ^T_string_T (.at y-array i)) 0) (aget ^objects (.-string ^T_string_T (.at y-array i)) 0))
-                      (recur 15 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                    (recur 16 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-size (aget fl__ 9)
+                oldlen (aget fl__ 10)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                delcount (aget fl__ 20)
+                incr (aget fl__ 21)
+                bd-startspaces (aget fl__ 22)
+                bd-endspaces (aget fl__ 23)
+                bd-textcol (aget fl__ 24)
+                spaces (aget fl__ 26)
+                shortline (aget fl__ 27)]
+            (if (and (< (.cts-vcol cts) (long (aget col 0))) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
+              (let [incr (long (lbr-chartabsize-adv ed cts))]
+                (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) incr)))
+                (aset fo__ 2 ptr)
+                (aset fl__ 4 yanklen)
+                (aset fl__ 20 delcount)
+                (aset fl__ 21 incr)
+                (aset fl__ 22 bd-startspaces)
+                (aset fl__ 23 bd-endspaces)
+                (aset fl__ 24 bd-textcol)
+                (aset fl__ 26 spaces)
+                (aset fl__ 27 shortline)
+                (recur 14))
+              (do (aset vcol 0 (unchecked-int (.cts-vcol cts)))
+                  (let [^BytePtr ptr (.cts-ptr cts)
+                        bd-textcol (i32 (.sub ptr oldp))
+                        shortline (if (or (< (long (aget vcol 0)) (long (aget col 0))) (and (== (long (aget vcol 0)) (long (aget col 0))) (zero? (bit-and (.get ptr) 0xff)))) 1 0)
+                        j__27 (if (< (long (aget vcol 0)) (long (aget col 0)))
+                                (let [bd-startspaces (i32 (- (long (aget col 0)) (long (aget vcol 0))))]
+                                  (aset tl__ 0 delcount)
+                                  (aset tl__ 1 bd-startspaces)
+                                  (aset tl__ 2 bd-endspaces)
+                                  (aset tl__ 3 bd-textcol)
+                                  0)
+                                (if (> (long (aget vcol 0)) (long (aget col 0)))
+                                  (let [bd-endspaces (i32 (- (long (aget vcol 0)) (long (aget col 0))))
+                                        bd-startspaces (i32 (- incr bd-endspaces))
+                                        bd-textcol (i32 (dec bd-textcol))
+                                        delcount 1
+                                        t4 (long (utf-head-off ed oldp (.add oldp bd-textcol)))
+                                        bd-textcol (i32 (- bd-textcol t4))]
+                                    (if (== (bit-and (.at oldp bd-textcol) 0xff) (e TAB))
+                                      (do (aset tl__ 0 delcount)
+                                          (aset tl__ 1 bd-startspaces)
+                                          (aset tl__ 2 bd-endspaces)
+                                          (aset tl__ 3 bd-textcol)
+                                          0)
+                                      (let [delcount 0
+                                            bd-endspaces 0]
+                                        (aset tl__ 0 delcount)
+                                        (aset tl__ 1 bd-startspaces)
+                                        (aset tl__ 2 bd-endspaces)
+                                        (aset tl__ 3 bd-textcol)
+                                        0)))
+                                  (do (aset tl__ 0 delcount)
+                                      (aset tl__ 1 bd-startspaces)
+                                      (aset tl__ 2 bd-endspaces)
+                                      (aset tl__ 3 bd-textcol)
+                                      0)))
+                        delcount (aget tl__ 0)
+                        bd-startspaces (aget tl__ 1)
+                        bd-endspaces (aget tl__ 2)
+                        bd-textcol (aget tl__ 3)
+                        yanklen (i32 (.length ^T_string_T (.at y-array i)))]
+                    (if (== (bit-and flags (e PUT_BLOCK_INNER)) 0)
+                      (let [spaces (i32 (+ y-width 1))]
+                        (init-chartabsize-arg ed cts (g ed curwin) 0 0 (aget ^objects (.-string ^T_string_T (.at y-array i)) 0) (aget ^objects (.-string ^T_string_T (.at y-array i)) 0))
+                        (aset fo__ 2 ptr)
+                        (aset fl__ 4 yanklen)
+                        (aset fl__ 20 delcount)
+                        (aset fl__ 21 incr)
+                        (aset fl__ 22 bd-startspaces)
+                        (aset fl__ 23 bd-endspaces)
+                        (aset fl__ 24 bd-textcol)
+                        (aset fl__ 26 spaces)
+                        (aset fl__ 27 shortline)
+                        (recur 15))
+                      (do (aset fo__ 2 ptr)
+                          (aset fl__ 4 yanklen)
+                          (aset fl__ 20 delcount)
+                          (aset fl__ 21 incr)
+                          (aset fl__ 22 bd-startspaces)
+                          (aset fl__ 23 bd-endspaces)
+                          (aset fl__ 24 bd-textcol)
+                          (aset fl__ 26 spaces)
+                          (aset fl__ 27 shortline)
+                          (recur 16)))))))
         15
-          (if (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))
-            (if (< spaces 0)
-              (let [spaces 0]
-                (recur 16 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-              (recur 16 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-            (let [t5 (long (lbr-chartabsize-adv ed cts))
-                  spaces (i32 (- spaces t5))]
-              (.set-cts-vcol cts 0)
-              (recur 15 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-size (aget fl__ 9)
+                oldlen (aget fl__ 10)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                delcount (aget fl__ 20)
+                incr (aget fl__ 21)
+                bd-startspaces (aget fl__ 22)
+                bd-endspaces (aget fl__ 23)
+                bd-textcol (aget fl__ 24)
+                spaces (aget fl__ 26)
+                shortline (aget fl__ 27)]
+            (if (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))
+              (if (< spaces 0)
+                (let [spaces 0]
+                  (aset fl__ 26 spaces)
+                  (recur 16))
+                (do (aset fl__ 26 spaces)
+                    (recur 16)))
+              (let [t5 (long (lbr-chartabsize-adv ed cts))
+                    spaces (i32 (- spaces t5))]
+                (.set-cts-vcol cts 0)
+                (aset fl__ 26 spaces)
+                (recur 15))))
         16
-          (if (and (not (== (i32 (+ yanklen spaces)) 0)) (> count_ (i32 (quot (i32 (- (e INT_MAX) (i32 (+ bd-startspaces bd-endspaces)))) (i32 (+ yanklen spaces))))))
-            (do (emsg ed (gettext_ ed (BytePtr. (g ed e-resulting-text-too-long) 0)))
-                (recur 18 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-            (let [totlen (i32 (+ (* count_ (i32 (+ yanklen spaces))) bd-startspaces bd-endspaces))
-                  ^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ totlen oldlen)) 1)))
-                  ^BytePtr ptr newp
-                  _ (Rt/memmove ptr oldp bd-textcol)
-                  ^BytePtr ptr (.add ptr bd-textcol)
-                  _ (Rt/memset ptr (unchecked-int 32) bd-startspaces)
-                  ^BytePtr ptr (.add ptr bd-startspaces)
-                  j 0]
-              (recur 17 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr newp (aget fo__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-size (aget fl__ 9)
+                oldlen (aget fl__ 10)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                delcount (aget fl__ 20)
+                incr (aget fl__ 21)
+                bd-startspaces (aget fl__ 22)
+                bd-endspaces (aget fl__ 23)
+                bd-textcol (aget fl__ 24)
+                j (aget fl__ 25)
+                spaces (aget fl__ 26)
+                shortline (aget fl__ 27)]
+            (if (and (not (== (i32 (+ yanklen spaces)) 0)) (> count_ (i32 (quot (i32 (- (e INT_MAX) (i32 (+ bd-startspaces bd-endspaces)))) (i32 (+ yanklen spaces))))))
+              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-resulting-text-too-long) 0)))
+                  (aset fo__ 2 ptr)
+                  (aset fo__ 3 newp)
+                  (aset fl__ 5 totlen)
+                  (aset fl__ 25 j)
+                  (recur 18))
+              (let [totlen (i32 (+ (* count_ (i32 (+ yanklen spaces))) bd-startspaces bd-endspaces))
+                    ^BytePtr newp (BytePtr/alloc (i32 (+ (i32 (+ totlen oldlen)) 1)))
+                    ^BytePtr ptr newp
+                    _ (Rt/memmove ptr oldp bd-textcol)
+                    ^BytePtr ptr (.add ptr bd-textcol)
+                    _ (Rt/memset ptr (unchecked-int 32) bd-startspaces)
+                    ^BytePtr ptr (.add ptr bd-startspaces)
+                    j 0]
+                (aset fo__ 2 ptr)
+                (aset fo__ 3 newp)
+                (aset fl__ 5 totlen)
+                (aset fl__ 25 j)
+                (recur 17))))
+        st))))
+
+(defn- do-put__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_get_spec_reg__out_T get-spec-reg__o (aget fo__ 8)
+        ^ints col (aget fo__ 9)
+        ^ints vcol (aget fo__ 10)
+        ^T_string_T insert-string (aget fo__ 11)
+        ^ints endcol2 (aget fo__ 12)
+        ^T_chartabsize_T cts (aget fo__ 13)
+        ^T_pos_T pos (aget fo__ 14)
+        ^T_pos_T pos_2 (aget fo__ 15)
+        ^longs tl__ (long-array 1)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
+      (case st
         17
-          (if (< j count_)
-            (do (Rt/memmove ptr ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array i)) 0) yanklen)
-                (let [^BytePtr ptr (.add ptr yanklen)
-                      j__7 (if (and (or (< j (- count_ 1)) (zero? shortline)) (> spaces 0))
-                             (do (Rt/memset ptr (unchecked-int 32) spaces)
-                                 (let [^BytePtr ptr (.add ptr spaces)]
-                                   (aset to__ 3 ptr)
-                                   (aset tl__ 13 totlen)
-                                   0))
-                             (let [totlen (i32 (- totlen spaces))]
-                               (aset to__ 3 ptr)
-                               (aset tl__ 13 totlen)
-                               0))
-                      ^BytePtr ptr (aget to__ 3)
-                      totlen (aget tl__ 13)
-                      j (inc j)]
-                  (recur 17 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))
-            (do (Rt/memset ptr (unchecked-int 32) bd-endspaces)
-                (let [^BytePtr ptr (.add ptr bd-endspaces)]
-                  (Rt/memmove ptr (.add (.add oldp bd-textcol) delcount) (i32 (+ (i32 (- (i32 (- oldlen bd-textcol)) delcount)) 1)))
-                  (ml-replace ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) newp false)
-                  (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
-                  (when (== i 0)
-                    (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) bd-startspaces))))
-                  (let [i (inc i)]
-                    (recur 12 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt)))))
+          (let [regname (aget fl__ 0)
+                count_ (aget fl__ 2)
+                flags (aget fl__ 3)
+                ^BytePtr ptr (aget fo__ 2)
+                ^BytePtr newp (aget fo__ 3)
+                ^BytePtr oldp (aget fo__ 4)
+                yanklen (aget fl__ 4)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                i (aget fl__ 7)
+                y-size (aget fl__ 9)
+                oldlen (aget fl__ 10)
+                y-width (aget fl__ 11)
+                ^Ptr y-array (aget fo__ 5)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                delcount (aget fl__ 20)
+                incr (aget fl__ 21)
+                bd-startspaces (aget fl__ 22)
+                bd-endspaces (aget fl__ 23)
+                bd-textcol (aget fl__ 24)
+                j (aget fl__ 25)
+                spaces (aget fl__ 26)
+                shortline (aget fl__ 27)]
+            (if (< j count_)
+              (do (Rt/memmove ptr ^BytePtr (aget ^objects (.-string ^T_string_T (.at y-array i)) 0) yanklen)
+                  (let [^BytePtr ptr (.add ptr yanklen)
+                        j__28 (if (and (or (< j (- count_ 1)) (zero? shortline)) (> spaces 0))
+                                (do (Rt/memset ptr (unchecked-int 32) spaces)
+                                    (let [^BytePtr ptr (.add ptr spaces)]
+                                      (aset to__ 0 ptr)
+                                      (aset tl__ 0 totlen)
+                                      0))
+                                (let [totlen (i32 (- totlen spaces))]
+                                  (aset to__ 0 ptr)
+                                  (aset tl__ 0 totlen)
+                                  0))
+                        ^BytePtr ptr (aget to__ 0)
+                        totlen (aget tl__ 0)
+                        j (inc j)]
+                    (aset fo__ 2 ptr)
+                    (aset fl__ 5 totlen)
+                    (aset fl__ 7 i)
+                    (aset fl__ 25 j)
+                    (recur 17)))
+              (do (Rt/memset ptr (unchecked-int 32) bd-endspaces)
+                  (let [^BytePtr ptr (.add ptr bd-endspaces)]
+                    (Rt/memmove ptr (.add (.add oldp bd-textcol) delcount) (i32 (+ (i32 (- (i32 (- oldlen bd-textcol)) delcount)) 1)))
+                    (ml-replace ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) newp false)
+                    (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
+                    (when (== i 0)
+                      (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) bd-startspaces))))
+                    (let [i (inc i)]
+                      (aset fo__ 2 ptr)
+                      (aset fl__ 5 totlen)
+                      (aset fl__ 7 i)
+                      (aset fl__ 25 j)
+                      (recur 12))))))
         18
-          (do (changed-lines ed lnum 0 (- (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) nr-lines) nr-lines)
-              (.set ^T_pos_T (.-b-op-start (g ed curbuf)) (.-w-cursor (g ed curwin)))
-              (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) lnum)
-              (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) (- (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
-              (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (i32 (+ bd-textcol totlen)) 1)))
-              (when (< (.col ^T_pos_T (.-b-op-end (g ed curbuf))) 0)
-                (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) 0))
-              (.set-coladd ^T_pos_T (.-b-op-end (g ed curbuf)) 0)
-              (if (zero? (bit-and flags (e PUT_CURSEND)))
-                (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
-                    (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-b-op-end (g ed curbuf)))
-                    (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
-                    (let [len (long (ml-get-curline-len ed))]
-                      (if (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) len)
-                        (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) len)
-                            (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                        (recur 19 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))))
+          (let [regname (aget fl__ 0)
+                flags (aget fl__ 3)
+                totlen (aget fl__ 5)
+                lnum (aget fl__ 6)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)
+                bd-textcol (aget fl__ 24)]
+            (changed-lines ed lnum 0 (- (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) nr-lines) nr-lines)
+            (.set ^T_pos_T (.-b-op-start (g ed curbuf)) (.-w-cursor (g ed curwin)))
+            (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) lnum)
+            (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) (- (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
+            (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (- (i32 (+ bd-textcol totlen)) 1)))
+            (when (< (.col ^T_pos_T (.-b-op-end (g ed curbuf))) 0)
+              (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) 0))
+            (.set-coladd ^T_pos_T (.-b-op-end (g ed curbuf)) 0)
+            (if (zero? (bit-and flags (e PUT_CURSEND)))
+              (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
+                  (recur 19))
+              (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-b-op-end (g ed curbuf)))
+                  (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
+                  (let [len (long (ml-get-curline-len ed))]
+                    (if (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) len)
+                      (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) len)
+                          (recur 19))
+                      (recur 19))))))
         19
-          (do (msgmore ed nr-lines)
-              (.set-w-set-curswant (g ed curwin) (boolean true))
-              (let [len_2 (long (ml-get-curline-len ed))]
-                (if (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) len_2)
-                  (do (when (== cur-ve-flags (e VE_ALL))
-                        (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (- (.col ^T_pos_T (.-w-cursor (g ed curwin))) len_2))))
-                      (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) len_2)
-                      (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))
-                  (recur 20 regname expr-result dir count_ flags ptr newp oldp yanklen totlen lnum i y-type y-size oldlen y-width y-array y-current-used nr-lines orig-start-lnum orig-start-col orig-start-coladd orig-end-lnum orig-end-col orig-end-coladd cur-ve-flags delcount incr bd-startspaces bd-endspaces bd-textcol j spaces shortline new-cursor-lnum new-cursor-col_ new-cursor-coladd end-lnum start-lnum first-byte-off new-lnum orig-indent indent-diff first-indent lendiff cnt))))
+          (let [regname (aget fl__ 0)
+                nr-lines (aget fl__ 12)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)
+                cur-ve-flags (aget fl__ 19)]
+            (msgmore ed nr-lines)
+            (.set-w-set-curswant (g ed curwin) (boolean true))
+            (let [len_2 (long (ml-get-curline-len ed))]
+              (if (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) len_2)
+                (do (when (== cur-ve-flags (e VE_ALL))
+                      (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (- (.col ^T_pos_T (.-w-cursor (g ed curwin))) len_2))))
+                    (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) len_2)
+                    (recur 20))
+                (recur 20))))
         20
-          (do (when-not (zero? (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_LOCKMARKS)))
-                (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) orig-start-lnum)
-                (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) orig-start-col)
-                (.set-coladd ^T_pos_T (.-b-op-start (g ed curbuf)) orig-start-coladd)
-                (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) orig-end-lnum)
-                (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) orig-end-col)
-                (.set-coladd ^T_pos_T (.-b-op-end (g ed curbuf)) orig-end-coladd))
-              (if (== regname 61)
-                (do (g! ed VIsual-active (e FALSE))
-                    (adjust-cursor-eol ed)
-                    nil)
-                (do (g! ed VIsual-active (e FALSE))
-                    (adjust-cursor-eol ed)
-                    nil)))))))
+          (let [regname (aget fl__ 0)
+                orig-start-lnum (aget fl__ 13)
+                orig-start-col (aget fl__ 14)
+                orig-start-coladd (aget fl__ 15)
+                orig-end-lnum (aget fl__ 16)
+                orig-end-col (aget fl__ 17)
+                orig-end-coladd (aget fl__ 18)]
+            (when-not (zero? (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_LOCKMARKS)))
+              (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) orig-start-lnum)
+              (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) orig-start-col)
+              (.set-coladd ^T_pos_T (.-b-op-start (g ed curbuf)) orig-start-coladd)
+              (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) orig-end-lnum)
+              (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) orig-end-col)
+              (.set-coladd ^T_pos_T (.-b-op-end (g ed curbuf)) orig-end-coladd))
+            (if (== regname 61)
+              (do (g! ed VIsual-active (e FALSE))
+                  (adjust-cursor-eol ed)
+                  -1)
+              (do (g! ed VIsual-active (e FALSE))
+                  (adjust-cursor-eol ed)
+                  -1)))
+        st))))
+
+;; C: do_put
+(defn do-put [^Editor ed regname ^BytePtr expr-result dir count_ flags]
+  (let [regname (long regname)
+        dir (long dir)
+        count_ (long count_)
+        flags (long flags)
+        ^T_get_spec_reg__out_T get-spec-reg__o (new-T_get_spec_reg__out_T)
+        ^ints col (int-array 1)
+        ^ints vcol (int-array 1)
+        ^T_string_T insert-string (new-T_string_T)
+        ^ints endcol2 (int-array 1)
+        ^T_chartabsize_T cts (new-T_chartabsize_T)
+        ^T_pos_T pos (new-T_pos_T)
+        ^T_pos_T pos_2 (new-T_pos_T)
+        ^longs fl__ (long-array 39)
+        ^objects fo__ (object-array 16)]
+    (aset fl__ 0 regname)
+    (aset fo__ 1 expr-result)
+    (aset fl__ 1 dir)
+    (aset fl__ 2 count_)
+    (aset fl__ 3 flags)
+    (aset fl__ 4 0)
+    (aset fl__ 5 0)
+    (aset fl__ 6 0)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
+    (aset fl__ 9 0)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fl__ 14 0)
+    (aset fl__ 15 0)
+    (aset fl__ 16 0)
+    (aset fl__ 17 0)
+    (aset fl__ 18 0)
+    (aset fl__ 19 0)
+    (aset fl__ 20 0)
+    (aset fl__ 21 0)
+    (aset fl__ 22 0)
+    (aset fl__ 23 0)
+    (aset fl__ 24 0)
+    (aset fl__ 25 0)
+    (aset fl__ 26 0)
+    (aset fl__ 27 0)
+    (aset fl__ 28 0)
+    (aset fl__ 29 0)
+    (aset fl__ 30 0)
+    (aset fl__ 31 0)
+    (aset fl__ 32 0)
+    (aset fl__ 33 0)
+    (aset fl__ 34 0)
+    (aset fl__ 35 0)
+    (aset fl__ 36 0)
+    (aset fo__ 7 false)
+    (aset fl__ 37 0)
+    (aset fl__ 38 0)
+    (aset fo__ 8 get-spec-reg__o)
+    (aset fo__ 9 col)
+    (aset fo__ 10 vcol)
+    (aset fo__ 11 insert-string)
+    (aset fo__ 12 endcol2)
+    (aset fo__ 13 cts)
+    (aset fo__ 14 pos)
+    (aset fo__ 15 pos_2)
+    (loop [st 0]
+      (let [r__ (if (<= st 1)
+                  (do-put__0 ed fl__ fo__ st)
+                  (if (<= st 2)
+                    (do-put__1 ed fl__ fo__ st)
+                    (if (<= st 3)
+                      (do-put__2 ed fl__ fo__ st)
+                      (if (<= st 6)
+                        (do-put__3 ed fl__ fo__ st)
+                        (if (<= st 10)
+                          (do-put__4 ed fl__ fo__ st)
+                          (if (<= st 16)
+                            (do-put__5 ed fl__ fo__ st)
+                            (do-put__6 ed fl__ fo__ st)))))))]
+        (when-not (neg? r__)
+          (recur r__))))))
 
 (defn stuffescaped [^Editor ed ^BytePtr arg ^long literally]
   (let [^T_mb_cptr2char_adv__out_T mb-cptr2char-adv__o (new-T_mb_cptr2char_adv__out_T)
@@ -58988,59 +63974,32 @@
 (defn get-search-pat ^BytePtr [^Editor ed]
   (g ed mr-pattern))
 
-;; C: ex_substitute
-(defn ex-substitute [^Editor ed ^S_exarg eap]
-  (let [^T_regmmatch_T regmatch (new-T_regmmatch_T)
-        ^objects cmd (object-array 1)
-        ^bytes buf (byte-array 20)
-        ^longs tl__ (long-array 17)
-        ^objects to__ (object-array 11)]
-    (loop [st 0
-           ^S_exarg eap eap
-           lnum 0
-           i 0
-           save-do-all 0
-           save-do-ask 0
-           ^BytePtr sub nil
-           ^BytePtr pat-string nil
-           pat-length 0
-           sublen 0
-           got-quit false
-           got-match false
-           which-pat 0
-           save-State 0
-           first-line 0
-           last-line 0
-           old-line-count 0
-           line2 0
-           nmatch 0
-           ^BytePtr sub-firstline-string nil
-           sub-firstline-length 0
-           endcolumn false
-           old-cursor-lnum 0
-           old-cursor-col 0
-           old-cursor-coladd 0
-           start-nsubs 0
-           ^Ptr found nil
-           found-count 0
-           copycol 0
-           matchcol 0
-           prev-matchcol 0
-           ^BytePtr new-start-string nil
-           new-start-length 0
-           new-start-size 0
-           did-sub false
-           lastone false
-           nmatch-tl 0
-           do-again false
-           skip-match false
-           sub-firstlnum 0
-           did-split false
-           ^BytePtr p1 nil
-           typed 0]
+(defn- ex-substitute__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)
+        ^longs tl__ (long-array 3)
+        ^objects to__ (object-array 3)]
+    (loop [st st0__]
       (case st
         0
-          (let [i 0
+          (let [^S_exarg eap (aget fo__ 1)
+                i (aget fl__ 1)
+                ^BytePtr sub (aget fo__ 2)
+                ^BytePtr pat-string (aget fo__ 3)
+                pat-length (aget fl__ 4)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                which-pat (aget fl__ 6)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                i 0
                 ^BytePtr sub nil
                 ^BytePtr pat-string nil
                 pat-length 0
@@ -59062,96 +64021,97 @@
                   which-pat (if (== (.cmdidx eap) (e CMD_tilde))
                               (e RE_LAST)
                               (e RE_SUBST))
-                  j__2 (if (and (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) 0) 0xff) 115) (not (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) (e NUL))) (not (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 32) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 9))) (nil? (vim-strchr ed (BytePtr/lit "0123456789cegriIp|\"") (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))))
-                         (if (check-regexp-delim ed (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
-                           (let [j__1 (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 92)
-                                        (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                            (if (nil? (vim-strchr ed (BytePtr/lit "/?&") (bit-and (.get ^BytePtr (aget cmd 0)) 0xff)))
-                                              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-backslash-should-be-followed-by) 0)))
-                                                  -1)
-                                              (let [which-pat (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 38)
-                                                                which-pat
-                                                                (e RE_SEARCH))
-                                                    ^BytePtr pat-string (BytePtr/lit "")
-                                                    pat-length 0
-                                                    ^BytePtr t1 (aget cmd 0)
-                                                    _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                                    delimiter (bit-and (.get t1) 0xff)]
+                  j__50 (if (and (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) 0) 0xff) 115) (not (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) (e NUL))) (not (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 32) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 9))) (nil? (vim-strchr ed (BytePtr/lit "0123456789cegriIp|\"") (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))))
+                          (if (check-regexp-delim ed (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
+                            (let [j__49 (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 92)
+                                          (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
+                                              (if (nil? (vim-strchr ed (BytePtr/lit "/?&") (bit-and (.get ^BytePtr (aget cmd 0)) 0xff)))
+                                                (do (emsg ed (gettext_ ed (BytePtr. (g ed e-backslash-should-be-followed-by) 0)))
+                                                    -1)
+                                                (let [which-pat (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 38)
+                                                                  which-pat
+                                                                  (e RE_SEARCH))
+                                                      ^BytePtr pat-string (BytePtr/lit "")
+                                                      pat-length 0
+                                                      ^BytePtr t1 (aget cmd 0)
+                                                      _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
+                                                      delimiter (bit-and (.get t1) 0xff)]
+                                                  (aset to__ 1 pat-string)
+                                                  (aset tl__ 0 pat-length)
+                                                  (aset tl__ 2 delimiter)
+                                                  (aset tl__ 1 which-pat)
+                                                  0)))
+                                          (let [which-pat (e RE_LAST)
+                                                ^BytePtr t2 (aget cmd 0)
+                                                _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
+                                                delimiter (bit-and (.get t2) 0xff)
+                                                ^BytePtr pat-string (aget cmd 0)
+                                                _ (aset cmd 0 (skip-regexp-ex ed (aget cmd 0) delimiter (long (magic-isset ed)) (Ptr. ^objects (.-arg eap) 0) nil nil))
+                                                pat-length (.sub ^BytePtr (aget cmd 0) pat-string)]
+                                            (if (== (bit-and (.at ^BytePtr (aget cmd 0) 0) 0xff) delimiter)
+                                              (let [^BytePtr t3 (aget cmd 0)]
+                                                (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
+                                                (.put t3 (unchecked-byte (e NUL)))
                                                 (aset to__ 1 pat-string)
                                                 (aset tl__ 0 pat-length)
                                                 (aset tl__ 2 delimiter)
                                                 (aset tl__ 1 which-pat)
-                                                0)))
-                                        (let [which-pat (e RE_LAST)
-                                              ^BytePtr t2 (aget cmd 0)
-                                              _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                              delimiter (bit-and (.get t2) 0xff)
-                                              ^BytePtr pat-string (aget cmd 0)
-                                              _ (aset cmd 0 (skip-regexp-ex ed (aget cmd 0) delimiter (long (magic-isset ed)) (Ptr. ^objects (.-arg eap) 0) nil nil))
-                                              pat-length (.sub ^BytePtr (aget cmd 0) pat-string)]
-                                          (if (== (bit-and (.at ^BytePtr (aget cmd 0) 0) 0xff) delimiter)
-                                            (let [^BytePtr t3 (aget cmd 0)]
-                                              (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                              (.put t3 (unchecked-byte (e NUL)))
-                                              (aset to__ 1 pat-string)
-                                              (aset tl__ 0 pat-length)
-                                              (aset tl__ 2 delimiter)
-                                              (aset tl__ 1 which-pat)
-                                              0)
-                                            (do (aset to__ 1 pat-string)
-                                                (aset tl__ 0 pat-length)
-                                                (aset tl__ 2 delimiter)
-                                                (aset tl__ 1 which-pat)
-                                                0))))]
-                             (if (== (long j__1) -1)
-                               -1
-                               (let [^BytePtr pat-string (aget to__ 1)
-                                     pat-length (aget tl__ 0)
-                                     delimiter (aget tl__ 2)
-                                     which-pat (aget tl__ 1)
-                                     ^BytePtr p (aget cmd 0)
-                                     _ (aset cmd 0 (skip-substitute ed (aget cmd 0) delimiter))
-                                     ^BytePtr sub (vim-strsave ed p)]
-                                 (if (and (== (long (musl-strcmp ed sub (BytePtr/lit "%"))) 0) (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SUBPERCENT))))
-                                   (if (nil? (g ed old-sub))
-                                     (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
-                                         -1)
-                                     (let [^BytePtr sub (vim-strsave ed (g ed old-sub))]
-                                       (aset to__ 0 sub)
-                                       (aset to__ 1 pat-string)
-                                       (aset tl__ 0 pat-length)
-                                       (aset tl__ 1 which-pat)
-                                       (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
-                                       0))
-                                   (if (zero? keeppatterns)
-                                     (do (g! ed old-sub (vim-strsave ed sub))
-                                         (aset to__ 0 sub)
-                                         (aset to__ 1 pat-string)
-                                         (aset tl__ 0 pat-length)
-                                         (aset tl__ 1 which-pat)
-                                         (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
-                                         0)
-                                     (do (aset to__ 0 sub)
-                                         (aset to__ 1 pat-string)
-                                         (aset tl__ 0 pat-length)
-                                         (aset tl__ 1 which-pat)
-                                         (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
-                                         0))))))
-                           -1)
-                         (if (nil? (g ed old-sub))
-                           (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
-                               -1)
-                           (let [^BytePtr pat-string nil
-                                 pat-length 0
-                                 ^BytePtr sub (vim-strsave ed (g ed old-sub))
-                                 endcolumn (== (.w-curswant (g ed curwin)) (e MAXCOL))]
-                             (aset to__ 0 sub)
-                             (aset to__ 1 pat-string)
-                             (aset tl__ 0 pat-length)
-                             (aset tl__ 1 which-pat)
-                             (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
-                             0)))]
-              (when-not (== (long j__2) -1)
+                                                0)
+                                              (do (aset to__ 1 pat-string)
+                                                  (aset tl__ 0 pat-length)
+                                                  (aset tl__ 2 delimiter)
+                                                  (aset tl__ 1 which-pat)
+                                                  0))))]
+                              (if (== (long j__49) -1)
+                                -1
+                                (let [^BytePtr pat-string (aget to__ 1)
+                                      pat-length (aget tl__ 0)
+                                      delimiter (aget tl__ 2)
+                                      which-pat (aget tl__ 1)
+                                      ^BytePtr p (aget cmd 0)
+                                      _ (aset cmd 0 (skip-substitute ed (aget cmd 0) delimiter))
+                                      ^BytePtr sub (vim-strsave ed p)]
+                                  (if (and (== (long (musl-strcmp ed sub (BytePtr/lit "%"))) 0) (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SUBPERCENT))))
+                                    (if (nil? (g ed old-sub))
+                                      (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
+                                          -1)
+                                      (let [^BytePtr sub (vim-strsave ed (g ed old-sub))]
+                                        (aset to__ 0 sub)
+                                        (aset to__ 1 pat-string)
+                                        (aset tl__ 0 pat-length)
+                                        (aset tl__ 1 which-pat)
+                                        (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
+                                        0))
+                                    (if (zero? keeppatterns)
+                                      (do (g! ed old-sub (vim-strsave ed sub))
+                                          (aset to__ 0 sub)
+                                          (aset to__ 1 pat-string)
+                                          (aset tl__ 0 pat-length)
+                                          (aset tl__ 1 which-pat)
+                                          (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
+                                          0)
+                                      (do (aset to__ 0 sub)
+                                          (aset to__ 1 pat-string)
+                                          (aset tl__ 0 pat-length)
+                                          (aset tl__ 1 which-pat)
+                                          (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
+                                          0))))))
+                            -1)
+                          (if (nil? (g ed old-sub))
+                            (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
+                                -1)
+                            (let [^BytePtr pat-string nil
+                                  pat-length 0
+                                  ^BytePtr sub (vim-strsave ed (g ed old-sub))
+                                  endcolumn (== (.w-curswant (g ed curwin)) (e MAXCOL))]
+                              (aset to__ 0 sub)
+                              (aset to__ 1 pat-string)
+                              (aset tl__ 0 pat-length)
+                              (aset tl__ 1 which-pat)
+                              (aset to__ 2 (Boolean/valueOf (boolean endcolumn)))
+                              0)))]
+              (if (== (long j__50) -1)
+                -1
                 (let [^BytePtr sub (aget to__ 0)
                       ^BytePtr pat-string (aget to__ 1)
                       pat-length (aget tl__ 0)
@@ -59178,9 +64138,9 @@
                           (if (zero? keeppatterns)
                             (do (save-re-pat ed (e RE_SUBST) pat-string pat-length (long (magic-isset ed)))
                                 (add-to-history ed (e HIST_SEARCH) pat-string pat-length true (e NUL))
-                                nil)
+                                -1)
                             (do (add-to-history ed (e HIST_SEARCH) pat-string pat-length true (e NUL))
-                                nil))))
+                                -1))))
                     (do (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 38)
                           (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                           (do (when (zero? (long (aget (g ed p-ed) 0)))
@@ -59194,369 +64154,839 @@
                               (.set-do-count (g ed ex-substitute-subflags) (e FALSE))
                               (.set-do-number (g ed ex-substitute-subflags) (e FALSE))
                               (.set-do-ic (g ed ex-substitute-subflags) 0)))
-                        (recur 1 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))))))
+                        (aset fl__ 1 i)
+                        (aset fo__ 2 sub)
+                        (aset fo__ 3 pat-string)
+                        (aset fl__ 4 pat-length)
+                        (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                        (aset fo__ 5 (Boolean/valueOf (boolean got-match)))
+                        (aset fl__ 6 which-pat)
+                        (aset fl__ 8 first-line)
+                        (aset fl__ 9 last-line)
+                        (aset fl__ 10 old-line-count)
+                        (aset fo__ 7 (Boolean/valueOf (boolean endcolumn)))
+                        (aset fl__ 14 old-cursor-lnum)
+                        (aset fl__ 15 old-cursor-col)
+                        (aset fl__ 16 old-cursor-coladd)
+                        (aset fl__ 17 start-nsubs)
+                        (recur 1)))))))
+        st))))
+
+(defn- ex-substitute__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)]
+    (loop [st st0__]
+      (case st
         1
-          (if (zero? (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
-            (recur 2 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-            (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 103)
-              (do (.set-do-all (g ed ex-substitute-subflags) (if (zero? (.do-all (g ed ex-substitute-subflags))) 1 0))
-                  (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-              (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 99)
-                (do (.set-do-ask (g ed ex-substitute-subflags) (if (zero? (.do-ask (g ed ex-substitute-subflags))) 1 0))
-                    (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 110)
-                  (do (.set-do-count (g ed ex-substitute-subflags) (e TRUE))
-                      (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                  (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 101)
-                    (do (.set-do-error (g ed ex-substitute-subflags) (if (zero? (.do-error (g ed ex-substitute-subflags))) 1 0))
-                        (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                    (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 114)
-                      (let [which-pat (e RE_LAST)]
-                        (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                      (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 112)
-                        (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
-                            (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                        (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 35)
+          (let [^S_exarg eap (aget fo__ 1)
+                ^BytePtr sub (aget fo__ 2)
+                ^BytePtr pat-string (aget fo__ 3)
+                pat-length (aget fl__ 4)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                which-pat (aget fl__ 6)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)]
+            (if (zero? (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
+              (do (aset fl__ 6 which-pat)
+                  (recur 2))
+              (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 103)
+                (do (.set-do-all (g ed ex-substitute-subflags) (if (zero? (.do-all (g ed ex-substitute-subflags))) 1 0))
+                    (aset fl__ 6 which-pat)
+                    (recur 17))
+                (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 99)
+                  (do (.set-do-ask (g ed ex-substitute-subflags) (if (zero? (.do-ask (g ed ex-substitute-subflags))) 1 0))
+                      (aset fl__ 6 which-pat)
+                      (recur 17))
+                  (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 110)
+                    (do (.set-do-count (g ed ex-substitute-subflags) (e TRUE))
+                        (aset fl__ 6 which-pat)
+                        (recur 17))
+                    (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 101)
+                      (do (.set-do-error (g ed ex-substitute-subflags) (if (zero? (.do-error (g ed ex-substitute-subflags))) 1 0))
+                          (aset fl__ 6 which-pat)
+                          (recur 17))
+                      (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 114)
+                        (let [which-pat (e RE_LAST)]
+                          (aset fl__ 6 which-pat)
+                          (recur 17))
+                        (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 112)
                           (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
-                              (.set-do-number (g ed ex-substitute-subflags) (e TRUE))
-                              (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                          (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 108)
+                              (aset fl__ 6 which-pat)
+                              (recur 17))
+                          (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 35)
                             (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
-                                (.set-do-list (g ed ex-substitute-subflags) (e TRUE))
-                                (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                            (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 105)
-                              (do (.set-do-ic (g ed ex-substitute-subflags) 105)
-                                  (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                              (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 73)
-                                (do (.set-do-ic (g ed ex-substitute-subflags) 73)
-                                    (recur 17 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                                (recur 2 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))))))))))
+                                (.set-do-number (g ed ex-substitute-subflags) (e TRUE))
+                                (aset fl__ 6 which-pat)
+                                (recur 17))
+                            (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 108)
+                              (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
+                                  (.set-do-list (g ed ex-substitute-subflags) (e TRUE))
+                                  (aset fl__ 6 which-pat)
+                                  (recur 17))
+                              (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 105)
+                                (do (.set-do-ic (g ed ex-substitute-subflags) 105)
+                                    (aset fl__ 6 which-pat)
+                                    (recur 17))
+                                (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 73)
+                                  (do (.set-do-ic (g ed ex-substitute-subflags) 73)
+                                      (aset fl__ 6 which-pat)
+                                      (recur 17))
+                                  (do (aset fl__ 6 which-pat)
+                                      (recur 2))))))))))))))
         2
-          (do (when-not (zero? (.do-count (g ed ex-substitute-subflags)))
-                (.set-do-ask (g ed ex-substitute-subflags) (e FALSE)))
-              (let [save-do-all (.do-all (g ed ex-substitute-subflags))
-                    save-do-ask (.do-ask (g ed ex-substitute-subflags))
-                    _ (aset cmd 0 (skipwhite ed (aget cmd 0)))
-                    j__3 (if (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)
-                           (let [i (long (getdigits ed (Ptr. cmd 0)))]
-                             (if (and (<= i 0) (not (zero? (.do-error (g ed ex-substitute-subflags)))))
-                               (do (emsg ed (gettext_ ed (BytePtr. (g ed e-positive-count-required) 0)))
-                                   -1)
-                               (if (>= i (e INT_MAX))
-                                 (do (whim.cljhost/vim-snprintf ed (BytePtr. buf 0) 20 (BytePtr/lit "%ld") (object-array [(Long/valueOf i)]))
-                                     (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-val-too-large) 0)) (object-array [(BytePtr. buf 0)]))
-                                     (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-val-too-large) 0))))
-                                     -1)
-                                 (do (.set-line1 eap (.line2 eap))
-                                     (.set-line2 eap (+ (.line2 eap) (- i 1)))
-                                     (if (> (.line2 eap) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                                       (do (.set-line2 eap (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                                           0)
-                                       0)))))
-                           0)]
-                (when-not (== (long j__3) -1)
-                  (aset cmd 0 (skipwhite ed (aget cmd 0)))
-                  (let [j__4 (if (zero? (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
-                               0
-                               (do (set-nextcmd ed eap (aget cmd 0))
-                                   (if (nil? (.nextcmd eap))
-                                     (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-trailing-characters-str) 0)) (object-array [(aget cmd 0)]))
-                                         (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-trailing-characters-str) 0))))
-                                         -1)
-                                     0)))]
-                    (when-not (== (long j__4) -1)
-                      (if (and (zero? (.do-count (g ed ex-substitute-subflags))) (zero? (long (aget ^ints (.-b-p-ma (g ed curbuf)) 0))))
-                        (do (emsg ed (gettext_ ed (BytePtr. (g ed e-cannot-make-changes-modifiable-is-off) 0)))
-                            nil)
-                        (if (search-regcomp ed pat-string pat-length nil (e RE_SUBST) which-pat (e SEARCH_HIS) regmatch)
-                          (do (if (== (.do-ic (g ed ex-substitute-subflags)) 105)
-                                (.set-rmm-ic regmatch (e TRUE))
-                                (when (== (.do-ic (g ed ex-substitute-subflags)) 73)
-                                  (.set-rmm-ic regmatch (e FALSE))))
-                              (let [^BytePtr sub-firstline-string nil
-                                    sub-firstline-length 0
-                                    ^BytePtr sub (if (and (== (bit-and (.at sub 0) 0xff) 92) (== (bit-and (.at sub 1) 0xff) 61))
-                                                   (let [^BytePtr p (vim-strsave ed sub)
-                                                         ^BytePtr sub p]
-                                                     sub)
-                                                   (let [^BytePtr p (regtilde ed sub (long (magic-isset ed)))]
-                                                     (if (BytePtr/eq p sub)
-                                                       sub
-                                                       ^BytePtr p)))
-                                    line2 (.line2 eap)
-                                    ^Ptr found (when (and (zero? (.do-ask (g ed ex-substitute-subflags))) (> line2 (.line1 eap))) (match-range ed regmatch (not (zero? (.do-all (g ed ex-substitute-subflags)))) (.line1 eap) line2))
-                                    found-count (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))
-                                    lnum (.line1 eap)]
-                                (recur 3 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-                          (when-not (zero? (.do-error (g ed ex-substitute-subflags)))
-                            (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-command) 0)))
-                            nil))))))))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                i (aget fl__ 1)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                ^BytePtr pat-string (aget fo__ 3)
+                pat-length (aget fl__ 4)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                which-pat (aget fl__ 6)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)]
+            (when-not (zero? (.do-count (g ed ex-substitute-subflags)))
+              (.set-do-ask (g ed ex-substitute-subflags) (e FALSE)))
+            (let [save-do-all (.do-all (g ed ex-substitute-subflags))
+                  save-do-ask (.do-ask (g ed ex-substitute-subflags))
+                  _ (aset cmd 0 (skipwhite ed (aget cmd 0)))
+                  j__51 (if (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)
+                          (let [i (long (getdigits ed (Ptr. cmd 0)))]
+                            (if (and (<= i 0) (not (zero? (.do-error (g ed ex-substitute-subflags)))))
+                              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-positive-count-required) 0)))
+                                  -1)
+                              (if (>= i (e INT_MAX))
+                                (do (whim.cljhost/vim-snprintf ed (BytePtr. buf 0) 20 (BytePtr/lit "%ld") (object-array [(Long/valueOf i)]))
+                                    (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-val-too-large) 0)) (object-array [(BytePtr. buf 0)]))
+                                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-val-too-large) 0))))
+                                    -1)
+                                (do (.set-line1 eap (.line2 eap))
+                                    (.set-line2 eap (+ (.line2 eap) (- i 1)))
+                                    (if (> (.line2 eap) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                                      (do (.set-line2 eap (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                                          0)
+                                      0)))))
+                          0)]
+              (if (== (long j__51) -1)
+                -1
+                (do (aset cmd 0 (skipwhite ed (aget cmd 0)))
+                    (let [j__52 (if (zero? (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
+                                  0
+                                  (do (set-nextcmd ed eap (aget cmd 0))
+                                      (if (nil? (.nextcmd eap))
+                                        (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-trailing-characters-str) 0)) (object-array [(aget cmd 0)]))
+                                            (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-trailing-characters-str) 0))))
+                                            -1)
+                                        0)))]
+                      (if (== (long j__52) -1)
+                        -1
+                        (if (and (zero? (.do-count (g ed ex-substitute-subflags))) (zero? (long (aget ^ints (.-b-p-ma (g ed curbuf)) 0))))
+                          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-cannot-make-changes-modifiable-is-off) 0)))
+                              -1)
+                          (if (search-regcomp ed pat-string pat-length nil (e RE_SUBST) which-pat (e SEARCH_HIS) regmatch)
+                            (do (if (== (.do-ic (g ed ex-substitute-subflags)) 105)
+                                  (.set-rmm-ic regmatch (e TRUE))
+                                  (when (== (.do-ic (g ed ex-substitute-subflags)) 73)
+                                    (.set-rmm-ic regmatch (e FALSE))))
+                                (let [^BytePtr sub-firstline-string nil
+                                      sub-firstline-length 0
+                                      ^BytePtr sub (if (and (== (bit-and (.at sub 0) 0xff) 92) (== (bit-and (.at sub 1) 0xff) 61))
+                                                     (let [^BytePtr p (vim-strsave ed sub)
+                                                           ^BytePtr sub p]
+                                                       sub)
+                                                     (let [^BytePtr p (regtilde ed sub (long (magic-isset ed)))]
+                                                       (if (BytePtr/eq p sub)
+                                                         sub
+                                                         ^BytePtr p)))
+                                      line2 (.line2 eap)
+                                      ^Ptr found (when (and (zero? (.do-ask (g ed ex-substitute-subflags))) (> line2 (.line1 eap))) (match-range ed regmatch (not (zero? (.do-all (g ed ex-substitute-subflags)))) (.line1 eap) line2))
+                                      found-count (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))
+                                      lnum (.line1 eap)]
+                                  (aset fl__ 0 lnum)
+                                  (aset fl__ 1 i)
+                                  (aset fl__ 2 save-do-all)
+                                  (aset fl__ 3 save-do-ask)
+                                  (aset fo__ 2 sub)
+                                  (aset fl__ 11 line2)
+                                  (aset fo__ 6 sub-firstline-string)
+                                  (aset fl__ 13 sub-firstline-length)
+                                  (aset fo__ 8 found)
+                                  (aset fl__ 18 found-count)
+                                  (recur 3)))
+                            (if (zero? (.do-error (g ed ex-substitute-subflags)))
+                              -1
+                              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-command) 0)))
+                                  -1))))))))))
+        st))))
+
+(defn- ex-substitute__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)
+        ^longs tl__ (long-array 5)
+        ^objects to__ (object-array 2)]
+    (loop [st st0__]
+      (case st
         3
-          (if (and (<= lnum line2) (not got-quit))
-            (let [nmatch (long (search-found ed found (.line1 eap) found-count regmatch lnum 0))]
-              (if (zero? nmatch)
-                (recur 16 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-                (let [prev-matchcol (e MAXCOL)
-                      ^BytePtr new-start-string nil
-                      new-start-length 0
-                      new-start-size 0
-                      did-sub false
-                      nmatch-tl 0
-                      skip-match false
-                      did-split false
-                      sub-firstlnum lnum
-                      copycol 0
-                      matchcol 0
-                      got-match (if got-match
-                                  got-match
-                                  (do (setpcmark ed)
-                                      true))]
-                  (recur 4 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))
-            (do (when-not (== first-line 0)
-                  (let [i (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) old-line-count)]
-                    (changed-lines ed first-line 0 (- last-line i) i)))
-                (when-not (zero? (.do-count (g ed ex-substitute-subflags)))
-                  (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) old-cursor-lnum)
-                  (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) old-cursor-col)
-                  (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) old-cursor-coladd))
-                (if (> (g ed sub-nsubs) start-nsubs)
-                  (do (when (== (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_LOCKMARKS)) 0)
-                        (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) (.line1 eap))
-                        (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) line2)
-                        (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) 0)
-                        (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) (.col ^T_pos_T (.-b-op-end (g ed curbuf)))))
-                      (if (zero? (g ed global-busy))
-                        (do (when (zero? (.do-ask (g ed ex-substitute-subflags)))
-                              (if endcolumn
-                                (coladvance ed 2147483647)
-                                (beginline ed 5)))
-                            (when (and (not (do-sub-msg ed (.do-count (g ed ex-substitute-subflags)))) (not (zero? (.do-ask (g ed ex-substitute-subflags)))))
-                              (msg ed (BytePtr/lit ""))))
-                        (g! ed global-need-beginline (e TRUE)))
-                      (when-not (zero? (.do-print (g ed ex-substitute-subflags)))
-                        (print-line ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.do-number (g ed ex-substitute-subflags)) (.do-list (g ed ex-substitute-subflags)))))
-                  (when (zero? (g ed global-busy))
-                    (if (zero? (g ed got-int))
-                      (if got-match
-                        (msg ed (BytePtr/lit ""))
-                        (when-not (zero? (.do-error (g ed ex-substitute-subflags)))
-                          (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-pattern-not-found-str) 0)) (object-array [(get-search-pat ed)]))
-                          (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-pattern-not-found-str) 0))))))
-                      (emsg ed (gettext_ ed (BytePtr. (g ed e-interrupted) 0))))))
-                (vim-regfree ed (.regprog regmatch))
-                (.set-do-all (g ed ex-substitute-subflags) save-do-all)
-                (.set-do-ask (g ed ex-substitute-subflags) save-do-ask)
-                nil))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                i (aget fl__ 1)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))]
+            (if (and (<= lnum line2) (not got-quit))
+              (let [nmatch (long (search-found ed found (.line1 eap) found-count regmatch lnum 0))]
+                (if (zero? nmatch)
+                  (do (aset fl__ 1 i)
+                      (aset fo__ 5 (Boolean/valueOf (boolean got-match)))
+                      (aset fl__ 12 nmatch)
+                      (aset fl__ 19 copycol)
+                      (aset fl__ 20 matchcol)
+                      (aset fl__ 21 prev-matchcol)
+                      (aset fo__ 9 new-start-string)
+                      (aset fl__ 22 new-start-length)
+                      (aset fl__ 23 new-start-size)
+                      (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                      (aset fl__ 24 nmatch-tl)
+                      (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                      (aset fl__ 25 sub-firstlnum)
+                      (aset fo__ 14 (Boolean/valueOf (boolean did-split)))
+                      (recur 16))
+                  (let [prev-matchcol (e MAXCOL)
+                        ^BytePtr new-start-string nil
+                        new-start-length 0
+                        new-start-size 0
+                        did-sub false
+                        nmatch-tl 0
+                        skip-match false
+                        did-split false
+                        sub-firstlnum lnum
+                        copycol 0
+                        matchcol 0
+                        got-match (if got-match
+                                    got-match
+                                    (do (setpcmark ed)
+                                        true))]
+                    (aset fl__ 1 i)
+                    (aset fo__ 5 (Boolean/valueOf (boolean got-match)))
+                    (aset fl__ 12 nmatch)
+                    (aset fl__ 19 copycol)
+                    (aset fl__ 20 matchcol)
+                    (aset fl__ 21 prev-matchcol)
+                    (aset fo__ 9 new-start-string)
+                    (aset fl__ 22 new-start-length)
+                    (aset fl__ 23 new-start-size)
+                    (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                    (aset fl__ 24 nmatch-tl)
+                    (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                    (aset fl__ 25 sub-firstlnum)
+                    (aset fo__ 14 (Boolean/valueOf (boolean did-split)))
+                    (recur 4))))
+              (do (when-not (== first-line 0)
+                    (let [i (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) old-line-count)]
+                      (changed-lines ed first-line 0 (- last-line i) i)))
+                  (when-not (zero? (.do-count (g ed ex-substitute-subflags)))
+                    (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) old-cursor-lnum)
+                    (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) old-cursor-col)
+                    (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) old-cursor-coladd))
+                  (if (> (g ed sub-nsubs) start-nsubs)
+                    (do (when (== (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_LOCKMARKS)) 0)
+                          (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) (.line1 eap))
+                          (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) line2)
+                          (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) 0)
+                          (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) (.col ^T_pos_T (.-b-op-end (g ed curbuf)))))
+                        (if (zero? (g ed global-busy))
+                          (do (when (zero? (.do-ask (g ed ex-substitute-subflags)))
+                                (if endcolumn
+                                  (coladvance ed 2147483647)
+                                  (beginline ed 5)))
+                              (when (and (not (do-sub-msg ed (.do-count (g ed ex-substitute-subflags)))) (not (zero? (.do-ask (g ed ex-substitute-subflags)))))
+                                (msg ed (BytePtr/lit ""))))
+                          (g! ed global-need-beginline (e TRUE)))
+                        (when-not (zero? (.do-print (g ed ex-substitute-subflags)))
+                          (print-line ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.do-number (g ed ex-substitute-subflags)) (.do-list (g ed ex-substitute-subflags)))))
+                    (when (zero? (g ed global-busy))
+                      (if (zero? (g ed got-int))
+                        (if got-match
+                          (msg ed (BytePtr/lit ""))
+                          (when-not (zero? (.do-error (g ed ex-substitute-subflags)))
+                            (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-pattern-not-found-str) 0)) (object-array [(get-search-pat ed)]))
+                            (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-pattern-not-found-str) 0))))))
+                        (emsg ed (gettext_ ed (BytePtr. (g ed e-interrupted) 0))))))
+                  (vim-regfree ed (.regprog regmatch))
+                  (.set-do-all (g ed ex-substitute-subflags) save-do-all)
+                  (.set-do-ask (g ed ex-substitute-subflags) save-do-ask)
+                  -1)))
         4
-          (let [j__5 (if (> (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)) 0)
-                       (let [lnum (+ lnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
-                             sub-firstlnum (+ sub-firstlnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
-                             nmatch (- nmatch (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
-                             ^BytePtr sub-firstline-string nil
-                             sub-firstline-length 0]
-                         (aset tl__ 3 lnum)
-                         (aset tl__ 4 nmatch)
-                         (aset to__ 3 sub-firstline-string)
-                         (aset tl__ 5 sub-firstline-length)
-                         (aset tl__ 6 sub-firstlnum)
-                         0)
-                       (do (aset tl__ 3 lnum)
-                           (aset tl__ 4 nmatch)
-                           (aset to__ 3 sub-firstline-string)
-                           (aset tl__ 5 sub-firstline-length)
-                           (aset tl__ 6 sub-firstlnum)
-                           0))
-                lnum (aget tl__ 3)
-                nmatch (aget tl__ 4)
-                ^BytePtr sub-firstline-string (aget to__ 3)
-                sub-firstline-length (aget tl__ 5)
-                sub-firstlnum (aget tl__ 6)]
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                save-State (aget fl__ 7)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                typed (aget fl__ 26)
+                j__53 (if (> (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)) 0)
+                        (let [lnum (+ lnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
+                              sub-firstlnum (+ sub-firstlnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
+                              nmatch (- nmatch (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
+                              ^BytePtr sub-firstline-string nil
+                              sub-firstline-length 0]
+                          (aset tl__ 0 lnum)
+                          (aset tl__ 1 nmatch)
+                          (aset to__ 0 sub-firstline-string)
+                          (aset tl__ 2 sub-firstline-length)
+                          (aset tl__ 3 sub-firstlnum)
+                          0)
+                        (do (aset tl__ 0 lnum)
+                            (aset tl__ 1 nmatch)
+                            (aset to__ 0 sub-firstline-string)
+                            (aset tl__ 2 sub-firstline-length)
+                            (aset tl__ 3 sub-firstlnum)
+                            0))
+                lnum (aget tl__ 0)
+                nmatch (aget tl__ 1)
+                ^BytePtr sub-firstline-string (aget to__ 0)
+                sub-firstline-length (aget tl__ 2)
+                sub-firstlnum (aget tl__ 3)]
             (if (> lnum (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-              (recur 15 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-              (let [j__6 (if (nil? sub-firstline-string)
-                           (let [sub-firstline-length (long (ml-get-len ed sub-firstlnum))
-                                 ^BytePtr sub-firstline-string (vim-strnsave ed (ml-get ed sub-firstlnum) sub-firstline-length)]
-                             (aset to__ 3 sub-firstline-string)
-                             (aset tl__ 5 sub-firstline-length)
-                             0)
-                           (do (aset to__ 3 sub-firstline-string)
-                               (aset tl__ 5 sub-firstline-length)
-                               0))
-                    ^BytePtr sub-firstline-string (aget to__ 3)
-                    sub-firstline-length (aget tl__ 5)]
+              (do (aset fl__ 0 lnum)
+                  (aset fl__ 7 save-State)
+                  (aset fl__ 12 nmatch)
+                  (aset fo__ 6 sub-firstline-string)
+                  (aset fl__ 13 sub-firstline-length)
+                  (aset fl__ 20 matchcol)
+                  (aset fl__ 21 prev-matchcol)
+                  (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                  (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                  (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                  (aset fl__ 25 sub-firstlnum)
+                  (aset fl__ 26 typed)
+                  (recur 15))
+              (let [j__54 (if (nil? sub-firstline-string)
+                            (let [sub-firstline-length (long (ml-get-len ed sub-firstlnum))
+                                  ^BytePtr sub-firstline-string (vim-strnsave ed (ml-get ed sub-firstlnum) sub-firstline-length)]
+                              (aset to__ 0 sub-firstline-string)
+                              (aset tl__ 2 sub-firstline-length)
+                              0)
+                            (do (aset to__ 0 sub-firstline-string)
+                                (aset tl__ 2 sub-firstline-length)
+                                0))
+                    ^BytePtr sub-firstline-string (aget to__ 0)
+                    sub-firstline-length (aget tl__ 2)]
                 (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
                 (let [do-again false]
                   (if (and (== matchcol prev-matchcol) (== (.lnum ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)) 0) (== matchcol (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0))))
                     (if (== (bit-and (.at sub-firstline-string matchcol) 0xff) (e NUL))
                       (let [skip-match true]
-                        (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
+                        (aset fl__ 0 lnum)
+                        (aset fl__ 7 save-State)
+                        (aset fl__ 12 nmatch)
+                        (aset fo__ 6 sub-firstline-string)
+                        (aset fl__ 13 sub-firstline-length)
+                        (aset fl__ 20 matchcol)
+                        (aset fl__ 21 prev-matchcol)
+                        (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                        (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                        (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                        (aset fl__ 25 sub-firstlnum)
+                        (aset fl__ 26 typed)
+                        (recur 10))
                       (let [t4 (long (utfc-ptr2len ed (.add sub-firstline-string matchcol)))
                             matchcol (i32 (+ matchcol t4))]
-                        (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
+                        (aset fl__ 0 lnum)
+                        (aset fl__ 7 save-State)
+                        (aset fl__ 12 nmatch)
+                        (aset fo__ 6 sub-firstline-string)
+                        (aset fl__ 13 sub-firstline-length)
+                        (aset fl__ 20 matchcol)
+                        (aset fl__ 21 prev-matchcol)
+                        (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                        (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                        (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                        (aset fl__ 25 sub-firstlnum)
+                        (aset fl__ 26 typed)
+                        (recur 10)))
                     (let [matchcol (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0))
                           prev-matchcol matchcol]
                       (if (zero? (.do-count (g ed ex-substitute-subflags)))
                         (if (zero? (.do-ask (g ed ex-substitute-subflags)))
-                          (recur 7 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
+                          (do (aset fl__ 0 lnum)
+                              (aset fl__ 7 save-State)
+                              (aset fl__ 12 nmatch)
+                              (aset fo__ 6 sub-firstline-string)
+                              (aset fl__ 13 sub-firstline-length)
+                              (aset fl__ 20 matchcol)
+                              (aset fl__ 21 prev-matchcol)
+                              (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                              (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                              (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                              (aset fl__ 25 sub-firstlnum)
+                              (aset fl__ 26 typed)
+                              (recur 7))
                           (let [typed 0
                                 save-State (g ed State)]
                             (g! ed State (e MODE_CONFIRM))
                             (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (.col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
                             (when (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_UNDO)))
                               (g! ed no-u-sync (i32 (inc (g ed no-u-sync)))))
-                            (recur 5 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-                        (let [j__7 (if (> nmatch 1)
-                                     (let [matchcol (i32 sub-firstline-length)
-                                           nmatch 1
-                                           skip-match true]
-                                       (aset tl__ 4 nmatch)
-                                       (aset tl__ 7 matchcol)
-                                       (aset to__ 4 (Boolean/valueOf (boolean skip-match)))
-                                       0)
-                                     (do (aset tl__ 4 nmatch)
-                                         (aset tl__ 7 matchcol)
-                                         (aset to__ 4 (Boolean/valueOf (boolean skip-match)))
-                                         0))
-                              nmatch (aget tl__ 4)
-                              matchcol (aget tl__ 7)
-                              skip-match (boolean (aget to__ 4))]
+                            (aset fl__ 0 lnum)
+                            (aset fl__ 7 save-State)
+                            (aset fl__ 12 nmatch)
+                            (aset fo__ 6 sub-firstline-string)
+                            (aset fl__ 13 sub-firstline-length)
+                            (aset fl__ 20 matchcol)
+                            (aset fl__ 21 prev-matchcol)
+                            (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                            (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                            (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                            (aset fl__ 25 sub-firstlnum)
+                            (aset fl__ 26 typed)
+                            (recur 5)))
+                        (let [j__55 (if (> nmatch 1)
+                                      (let [matchcol (i32 sub-firstline-length)
+                                            nmatch 1
+                                            skip-match true]
+                                        (aset tl__ 1 nmatch)
+                                        (aset tl__ 4 matchcol)
+                                        (aset to__ 1 (Boolean/valueOf (boolean skip-match)))
+                                        0)
+                                      (do (aset tl__ 1 nmatch)
+                                          (aset tl__ 4 matchcol)
+                                          (aset to__ 1 (Boolean/valueOf (boolean skip-match)))
+                                          0))
+                              nmatch (aget tl__ 1)
+                              matchcol (aget tl__ 4)
+                              skip-match (boolean (aget to__ 1))]
                           (g! ed sub-nsubs (inc (g ed sub-nsubs)))
                           (let [did-sub true]
-                            (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))))))))
+                            (aset fl__ 0 lnum)
+                            (aset fl__ 7 save-State)
+                            (aset fl__ 12 nmatch)
+                            (aset fo__ 6 sub-firstline-string)
+                            (aset fl__ 13 sub-firstline-length)
+                            (aset fl__ 20 matchcol)
+                            (aset fl__ 21 prev-matchcol)
+                            (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                            (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                            (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                            (aset fl__ 25 sub-firstlnum)
+                            (aset fl__ 26 typed)
+                            (recur 10))))))))))
+        st))))
+
+(defn- ex-substitute__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)
+        ^longs tl__ (long-array 1)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
+      (case st
         5
-          (if (zero? (.do-ask (g ed ex-substitute-subflags)))
-            (recur 6 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-            (let [^BytePtr orig-line-string nil
-                  orig-line-length 0
-                  len-change 0
-                  save-p-lz (long (aget (g ed p-lz) 0))
-                  save-RedrawingDisabled (g ed RedrawingDisabled)
-                  _ (g! ed RedrawingDisabled 0)
-                  _ (aset (g ed p-lz) 0 (unchecked-int (e FALSE)))
-                  j__8 (if (some? new-start-string)
-                         (let [orig-line-length (long (ml-get-len ed lnum))
-                               ^BytePtr orig-line-string (vim-strnsave ed (ml-get ed lnum) orig-line-length)
-                               ^BytePtr new-line-string (concat-str ed new-start-string (.add sub-firstline-string copycol))]
-                           (if (nil? new-line-string)
-                             (let [^BytePtr orig-line-string nil
-                                   orig-line-length 0]
-                               (aset to__ 5 orig-line-string)
-                               (aset tl__ 8 len-change)
-                               0)
-                             (let [new-line-length (+ new-start-length (- sub-firstline-length copycol))
-                                   len-change (i32 (- (i32 new-line-length) (i32 orig-line-length)))]
-                               (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) len-change)))
-                               (ml-replace ed lnum new-line-string false)
-                               (aset to__ 5 orig-line-string)
-                               (aset tl__ 8 len-change)
-                               0)))
-                         (do (aset to__ 5 orig-line-string)
-                             (aset tl__ 8 len-change)
-                             0))
-                  ^BytePtr orig-line-string (aget to__ 5)
-                  len-change (aget tl__ 8)]
-              (g! ed search-match-lines (- (.lnum ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)) (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0))))
-              (g! ed search-match-endcol (i32 (+ (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)) len-change)))
-              (when (and (== (g ed search-match-lines) 0) (== (g ed search-match-endcol) 0))
-                (g! ed search-match-endcol 1))
-              (g! ed highlight-match (e TRUE))
-              (update-topline ed)
-              (validate-cursor ed)
-              (update-screen ed (e UPD_SOME_VALID))
-              (g! ed highlight-match (e FALSE))
-              (redraw-later ed (e UPD_SOME_VALID))
-              (when (== (g ed msg-row) (- (aget (g ed Rows) 0) 1))
-                (g! ed msg-didout (e FALSE)))
-              (msg-starthere ed)
-              (let [i (g ed msg-scroll)
-                    _ (g! ed msg-scroll 0)
-                    _ (g! ed msg-no-more (e TRUE))
-                    _ (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (gettext_ ed (BytePtr/lit "replace with %s (y/n/a/q/l/^E/^Y)?")) (object-array [sub]))
-                    _ (msg-attr ed (iobuff-or ed (gettext_ ed (BytePtr/lit "replace with %s (y/n/a/q/l/^E/^Y)?"))) (long (aget (g ed highlight-attr) 17)))
-                    _ (g! ed msg-no-more (e FALSE))
-                    _ (g! ed msg-scroll (i32 i))
-                    _ (showruler ed true)
-                    _ (windgoto ed (g ed msg-row) (i32 (+ (g ed cmdline-col-off) (g ed msg-col))))
-                    _ (g! ed RedrawingDisabled save-RedrawingDisabled)
-                    _ (g! ed no-mapping (i32 (inc (g ed no-mapping))))
-                    _ (g! ed allow-keys (i32 (inc (g ed allow-keys))))
-                    typed (long (plain-vgetc ed))]
-                (g! ed allow-keys (i32 (dec (g ed allow-keys))))
-                (g! ed no-mapping (i32 (dec (g ed no-mapping))))
-                (g! ed msg-didout (e FALSE))
-                (g! ed msg-col 0)
-                (gotocmdline ed true)
-                (aset (g ed p-lz) 0 (unchecked-int save-p-lz))
-                (when (some? orig-line-string)
-                  (ml-replace ed lnum orig-line-string false))
-                (g! ed need-wait-return (e FALSE))
-                (if (or (== typed 113) (== typed (e ESC)) (== typed (e Ctrl_C)) (== typed (g ed intr-char)))
-                  (let [got-quit true]
-                    (recur 6 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                  (if (== typed 110)
-                    (recur 6 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-                    (if (== typed 121)
-                      (recur 6 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-                      (if (== typed 108)
-                        (do (.set-do-all (g ed ex-substitute-subflags) (e FALSE))
-                            (let [line2 lnum]
-                              (recur 6 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-                        (if (== typed 97)
-                          (do (.set-do-ask (g ed ex-substitute-subflags) (e FALSE))
-                              (recur 6 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                          (do (if (== typed (e Ctrl_E))
-                                (scrollup-clamp ed)
-                                (when (== typed (e Ctrl_Y))
-                                  (scrolldown-clamp ed)))
-                              (recur 5 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))))))))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                i (aget fl__ 1)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                save-State (aget fl__ 7)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                typed (aget fl__ 26)]
+            (if (zero? (.do-ask (g ed ex-substitute-subflags)))
+              (do (aset fl__ 1 i)
+                  (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                  (aset fl__ 11 line2)
+                  (aset fl__ 26 typed)
+                  (recur 6))
+              (let [^BytePtr orig-line-string nil
+                    orig-line-length 0
+                    len-change 0
+                    save-p-lz (long (aget (g ed p-lz) 0))
+                    save-RedrawingDisabled (g ed RedrawingDisabled)
+                    _ (g! ed RedrawingDisabled 0)
+                    _ (aset (g ed p-lz) 0 (unchecked-int (e FALSE)))
+                    j__56 (if (some? new-start-string)
+                            (let [orig-line-length (long (ml-get-len ed lnum))
+                                  ^BytePtr orig-line-string (vim-strnsave ed (ml-get ed lnum) orig-line-length)
+                                  ^BytePtr new-line-string (concat-str ed new-start-string (.add sub-firstline-string copycol))]
+                              (if (nil? new-line-string)
+                                (let [^BytePtr orig-line-string nil
+                                      orig-line-length 0]
+                                  (aset to__ 0 orig-line-string)
+                                  (aset tl__ 0 len-change)
+                                  0)
+                                (let [new-line-length (+ new-start-length (- sub-firstline-length copycol))
+                                      len-change (i32 (- (i32 new-line-length) (i32 orig-line-length)))]
+                                  (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) len-change)))
+                                  (ml-replace ed lnum new-line-string false)
+                                  (aset to__ 0 orig-line-string)
+                                  (aset tl__ 0 len-change)
+                                  0)))
+                            (do (aset to__ 0 orig-line-string)
+                                (aset tl__ 0 len-change)
+                                0))
+                    ^BytePtr orig-line-string (aget to__ 0)
+                    len-change (aget tl__ 0)]
+                (g! ed search-match-lines (- (.lnum ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)) (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0))))
+                (g! ed search-match-endcol (i32 (+ (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)) len-change)))
+                (when (and (== (g ed search-match-lines) 0) (== (g ed search-match-endcol) 0))
+                  (g! ed search-match-endcol 1))
+                (g! ed highlight-match (e TRUE))
+                (update-topline ed)
+                (validate-cursor ed)
+                (update-screen ed (e UPD_SOME_VALID))
+                (g! ed highlight-match (e FALSE))
+                (redraw-later ed (e UPD_SOME_VALID))
+                (when (== (g ed msg-row) (- (aget (g ed Rows) 0) 1))
+                  (g! ed msg-didout (e FALSE)))
+                (msg-starthere ed)
+                (let [i (g ed msg-scroll)
+                      _ (g! ed msg-scroll 0)
+                      _ (g! ed msg-no-more (e TRUE))
+                      _ (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (gettext_ ed (BytePtr/lit "replace with %s (y/n/a/q/l/^E/^Y)?")) (object-array [sub]))
+                      _ (msg-attr ed (iobuff-or ed (gettext_ ed (BytePtr/lit "replace with %s (y/n/a/q/l/^E/^Y)?"))) (long (aget (g ed highlight-attr) 17)))
+                      _ (g! ed msg-no-more (e FALSE))
+                      _ (g! ed msg-scroll (i32 i))
+                      _ (showruler ed true)
+                      _ (windgoto ed (g ed msg-row) (i32 (+ (g ed cmdline-col-off) (g ed msg-col))))
+                      _ (g! ed RedrawingDisabled save-RedrawingDisabled)
+                      _ (g! ed no-mapping (i32 (inc (g ed no-mapping))))
+                      _ (g! ed allow-keys (i32 (inc (g ed allow-keys))))
+                      typed (long (plain-vgetc ed))]
+                  (g! ed allow-keys (i32 (dec (g ed allow-keys))))
+                  (g! ed no-mapping (i32 (dec (g ed no-mapping))))
+                  (g! ed msg-didout (e FALSE))
+                  (g! ed msg-col 0)
+                  (gotocmdline ed true)
+                  (aset (g ed p-lz) 0 (unchecked-int save-p-lz))
+                  (when (some? orig-line-string)
+                    (ml-replace ed lnum orig-line-string false))
+                  (g! ed need-wait-return (e FALSE))
+                  (if (or (== typed 113) (== typed (e ESC)) (== typed (e Ctrl_C)) (== typed (g ed intr-char)))
+                    (let [got-quit true]
+                      (aset fl__ 1 i)
+                      (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                      (aset fl__ 11 line2)
+                      (aset fl__ 26 typed)
+                      (recur 6))
+                    (if (== typed 110)
+                      (do (aset fl__ 1 i)
+                          (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                          (aset fl__ 11 line2)
+                          (aset fl__ 26 typed)
+                          (recur 6))
+                      (if (== typed 121)
+                        (do (aset fl__ 1 i)
+                            (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                            (aset fl__ 11 line2)
+                            (aset fl__ 26 typed)
+                            (recur 6))
+                        (if (== typed 108)
+                          (do (.set-do-all (g ed ex-substitute-subflags) (e FALSE))
+                              (let [line2 lnum]
+                                (aset fl__ 1 i)
+                                (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                                (aset fl__ 11 line2)
+                                (aset fl__ 26 typed)
+                                (recur 6)))
+                          (if (== typed 97)
+                            (do (.set-do-ask (g ed ex-substitute-subflags) (e FALSE))
+                                (aset fl__ 1 i)
+                                (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                                (aset fl__ 11 line2)
+                                (aset fl__ 26 typed)
+                                (recur 6))
+                            (do (if (== typed (e Ctrl_E))
+                                  (scrollup-clamp ed)
+                                  (when (== typed (e Ctrl_Y))
+                                    (scrolldown-clamp ed)))
+                                (aset fl__ 1 i)
+                                (aset fo__ 4 (Boolean/valueOf (boolean got-quit)))
+                                (aset fl__ 11 line2)
+                                (aset fl__ 26 typed)
+                                (recur 5)))))))))))
         6
-          (do (g! ed State save-State)
-              (when (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_UNDO)))
-                (g! ed no-u-sync (i32 (dec (g ed no-u-sync)))))
-              (if (== typed 110)
-                (if (> nmatch 1)
-                  (let [matchcol (i32 sub-firstline-length)
-                        skip-match true]
-                    (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                  (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                (if got-quit
-                  (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-                  (recur 7 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                save-State (aget fl__ 7)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                typed (aget fl__ 26)]
+            (g! ed State save-State)
+            (when (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_UNDO)))
+              (g! ed no-u-sync (i32 (dec (g ed no-u-sync)))))
+            (if (== typed 110)
+              (if (> nmatch 1)
+                (let [matchcol (i32 sub-firstline-length)
+                      skip-match true]
+                  (aset fl__ 20 matchcol)
+                  (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                  (recur 10))
+                (do (aset fl__ 20 matchcol)
+                    (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                    (recur 10)))
+              (if got-quit
+                (do (aset fl__ 20 matchcol)
+                    (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                    (recur 10))
+                (do (aset fl__ 20 matchcol)
+                    (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                    (recur 7)))))
+        st))))
+
+(defn- ex-substitute__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)
+        ^longs tl__ (long-array 7)
+        ^objects to__ (object-array 3)]
+    (loop [st st0__]
+      (case st
         7
-          (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (.col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
-              (let [sublen (long (vim-regsub-multi ed regmatch (- sub-firstlnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0))) sub sub-firstline-string 0 (bit-or (e REGSUB_BACKSLASH) (if (zero? (long (magic-isset ed))) 0 (e REGSUB_MAGIC)))))]
-                (if (> nmatch (+ (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) sub-firstlnum) 1))
-                  (let [nmatch (+ (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) sub-firstlnum) 1)
-                        skip-match true]
-                    (if (< nmatch 0)
-                      (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-                      (recur 8 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-                  (recur 8 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                sublen (aget fl__ 5)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))]
+            (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (.col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))
+            (let [sublen (long (vim-regsub-multi ed regmatch (- sub-firstlnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0))) sub sub-firstline-string 0 (bit-or (e REGSUB_BACKSLASH) (if (zero? (long (magic-isset ed))) 0 (e REGSUB_MAGIC)))))]
+              (if (> nmatch (+ (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) sub-firstlnum) 1))
+                (let [nmatch (+ (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) sub-firstlnum) 1)
+                      skip-match true]
+                  (if (< nmatch 0)
+                    (do (aset fl__ 5 sublen)
+                        (aset fl__ 12 nmatch)
+                        (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                        (recur 10))
+                    (do (aset fl__ 5 sublen)
+                        (aset fl__ 12 nmatch)
+                        (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                        (recur 8))))
+                (do (aset fl__ 5 sublen)
+                    (aset fl__ 12 nmatch)
+                    (aset fo__ 13 (Boolean/valueOf (boolean skip-match)))
+                    (recur 8)))))
         8
-          (let [j__9 (if (== nmatch 1)
-                       (let [tmp-length sub-firstline-length]
-                         (aset tl__ 9 nmatch-tl)
-                         (aset tl__ 10 tmp-length)
-                         0)
-                       (let [lastlnum (- (+ sub-firstlnum nmatch) 1)
-                             _ (ml-get ed lastlnum)
-                             tmp-length (long (ml-get-len ed lastlnum))
-                             nmatch-tl (+ nmatch-tl (- nmatch 1))]
-                         (aset tl__ 9 nmatch-tl)
-                         (aset tl__ 10 tmp-length)
-                         0))
-                nmatch-tl (aget tl__ 9)
-                tmp-length (aget tl__ 10)
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                sublen (aget fl__ 5)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                ^BytePtr p1 (aget fo__ 15)
+                j__57 (if (== nmatch 1)
+                        (let [tmp-length sub-firstline-length]
+                          (aset tl__ 0 nmatch-tl)
+                          (aset tl__ 1 tmp-length)
+                          0)
+                        (let [lastlnum (- (+ sub-firstlnum nmatch) 1)
+                              _ (ml-get ed lastlnum)
+                              tmp-length (long (ml-get-len ed lastlnum))
+                              nmatch-tl (+ nmatch-tl (- nmatch 1))]
+                          (aset tl__ 0 nmatch-tl)
+                          (aset tl__ 1 tmp-length)
+                          0))
+                nmatch-tl (aget tl__ 0)
+                tmp-length (aget tl__ 1)
                 copy-len (i32 (- (.col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)) copycol))
                 needed-size (+ copy-len (- tmp-length (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0))) sublen 1)
-                j__10 (if (nil? new-start-string)
+                j__58 (if (nil? new-start-string)
                         (let [new-start-size (+ needed-size 50)
                               ^BytePtr new-start-string (BytePtr/alloc new-start-size)
                               _ (.put new-start-string (unchecked-byte (e NUL)))
                               new-start-length 0]
-                          (aset to__ 6 new-start-string)
-                          (aset tl__ 11 new-start-length)
-                          (aset tl__ 12 new-start-size)
+                          (aset to__ 0 new-start-string)
+                          (aset tl__ 2 new-start-length)
+                          (aset tl__ 3 new-start-size)
                           0)
                         (let [needed-size (+ needed-size new-start-length)]
                           (if (> (Long/compareUnsigned needed-size new-start-size) 0)
@@ -59564,17 +64994,17 @@
                                   ^BytePtr p1 (BytePtr/alloc new-start-size)
                                   _ (Rt/memmove p1 new-start-string (+ new-start-length 1))
                                   ^BytePtr new-start-string p1]
-                              (aset to__ 6 new-start-string)
-                              (aset tl__ 11 new-start-length)
-                              (aset tl__ 12 new-start-size)
+                              (aset to__ 0 new-start-string)
+                              (aset tl__ 2 new-start-length)
+                              (aset tl__ 3 new-start-size)
                               0)
-                            (do (aset to__ 6 new-start-string)
-                                (aset tl__ 11 new-start-length)
-                                (aset tl__ 12 new-start-size)
+                            (do (aset to__ 0 new-start-string)
+                                (aset tl__ 2 new-start-length)
+                                (aset tl__ 3 new-start-size)
                                 0))))
-                ^BytePtr new-start-string (aget to__ 6)
-                new-start-length (aget tl__ 11)
-                new-start-size (aget tl__ 12)]
+                ^BytePtr new-start-string (aget to__ 0)
+                new-start-length (aget tl__ 2)
+                new-start-size (aget tl__ 3)]
             (Rt/memmove (.add new-start-string new-start-length) (.add sub-firstline-string copycol) copy-len)
             (let [new-start-length (+ new-start-length copy-len)
                   ^BytePtr new-end (.add new-start-string new-start-length)
@@ -59588,149 +65018,256 @@
               (g! ed sub-nsubs (inc (g ed sub-nsubs)))
               (let [did-sub true
                     _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
-                    j__11 (if (> nmatch 1)
+                    j__59 (if (> nmatch 1)
                             (let [sub-firstlnum (+ sub-firstlnum (- nmatch 1))
                                   sub-firstline-length (long (ml-get-len ed sub-firstlnum))
                                   ^BytePtr sub-firstline-string (vim-strnsave ed (ml-get ed sub-firstlnum) sub-firstline-length)]
                               (if (<= sub-firstlnum line2)
                                 (let [do-again true]
-                                  (aset to__ 3 sub-firstline-string)
-                                  (aset tl__ 5 sub-firstline-length)
-                                  (aset to__ 7 (Boolean/valueOf (boolean do-again)))
-                                  (aset tl__ 6 sub-firstlnum)
+                                  (aset to__ 1 sub-firstline-string)
+                                  (aset tl__ 4 sub-firstline-length)
+                                  (aset to__ 2 (Boolean/valueOf (boolean do-again)))
+                                  (aset tl__ 5 sub-firstlnum)
                                   0)
                                 (do (.set-do-all (g ed ex-substitute-subflags) (e FALSE))
-                                    (aset to__ 3 sub-firstline-string)
-                                    (aset tl__ 5 sub-firstline-length)
-                                    (aset to__ 7 (Boolean/valueOf (boolean do-again)))
-                                    (aset tl__ 6 sub-firstlnum)
+                                    (aset to__ 1 sub-firstline-string)
+                                    (aset tl__ 4 sub-firstline-length)
+                                    (aset to__ 2 (Boolean/valueOf (boolean do-again)))
+                                    (aset tl__ 5 sub-firstlnum)
                                     0)))
-                            (do (aset to__ 3 sub-firstline-string)
-                                (aset tl__ 5 sub-firstline-length)
-                                (aset to__ 7 (Boolean/valueOf (boolean do-again)))
-                                (aset tl__ 6 sub-firstlnum)
+                            (do (aset to__ 1 sub-firstline-string)
+                                (aset tl__ 4 sub-firstline-length)
+                                (aset to__ 2 (Boolean/valueOf (boolean do-again)))
+                                (aset tl__ 5 sub-firstlnum)
                                 0))
-                    ^BytePtr sub-firstline-string (aget to__ 3)
-                    sub-firstline-length (aget tl__ 5)
-                    do-again (boolean (aget to__ 7))
-                    sub-firstlnum (aget tl__ 6)
+                    ^BytePtr sub-firstline-string (aget to__ 1)
+                    sub-firstline-length (aget tl__ 4)
+                    do-again (boolean (aget to__ 2))
+                    sub-firstlnum (aget tl__ 5)
                     copycol (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0))
-                    j__12 (if skip-match
+                    j__60 (if skip-match
                             (let [^BytePtr sub-firstline-string (vim-strnsave ed (BytePtr/lit "") 0)
                                   sub-firstline-length 0
                                   copycol 0]
-                              (aset to__ 3 sub-firstline-string)
-                              (aset tl__ 5 sub-firstline-length)
-                              (aset tl__ 13 copycol)
+                              (aset to__ 1 sub-firstline-string)
+                              (aset tl__ 4 sub-firstline-length)
+                              (aset tl__ 6 copycol)
                               0)
-                            (do (aset to__ 3 sub-firstline-string)
-                                (aset tl__ 5 sub-firstline-length)
-                                (aset tl__ 13 copycol)
+                            (do (aset to__ 1 sub-firstline-string)
+                                (aset tl__ 4 sub-firstline-length)
+                                (aset tl__ 6 copycol)
                                 0))
-                    ^BytePtr sub-firstline-string (aget to__ 3)
-                    sub-firstline-length (aget tl__ 5)
-                    copycol (aget tl__ 13)
+                    ^BytePtr sub-firstline-string (aget to__ 1)
+                    sub-firstline-length (aget tl__ 4)
+                    copycol (aget tl__ 6)
                     ^BytePtr p1 new-end]
-                (recur 9 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))
+                (aset fl__ 5 sublen)
+                (aset fo__ 6 sub-firstline-string)
+                (aset fl__ 13 sub-firstline-length)
+                (aset fl__ 19 copycol)
+                (aset fo__ 9 new-start-string)
+                (aset fl__ 22 new-start-length)
+                (aset fl__ 23 new-start-size)
+                (aset fo__ 10 (Boolean/valueOf (boolean did-sub)))
+                (aset fl__ 24 nmatch-tl)
+                (aset fo__ 12 (Boolean/valueOf (boolean do-again)))
+                (aset fl__ 25 sub-firstlnum)
+                (aset fo__ 15 p1)
+                (recur 9))))
+        st))))
+
+(defn- ex-substitute__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)
+        ^longs tl__ (long-array 7)
+        ^objects to__ (object-array 3)]
+    (loop [st st0__]
+      (case st
         9
-          (if (zero? (bit-and (.get p1) 0xff))
-            (recur 10 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)
-            (let [j__14 (if (and (== (bit-and (.at p1 0) 0xff) 92) (not (== (bit-and (.at p1 1) 0xff) (e NUL))))
-                          (let [n (- new-start-length (.sub p1 new-start-string))
-                                _ (Rt/memmove p1 (.add p1 1) (+ n 1))
-                                new-start-length (dec new-start-length)]
-                            (aset tl__ 3 lnum)
-                            (aset tl__ 14 first-line)
-                            (aset tl__ 15 last-line)
-                            (aset tl__ 16 line2)
-                            (aset tl__ 11 new-start-length)
-                            (aset tl__ 6 sub-firstlnum)
-                            (aset to__ 8 (Boolean/valueOf (boolean did-split)))
-                            (aset to__ 9 p1)
-                            0)
-                          (if (== (bit-and (.get p1) 0xff) (e CAR))
-                            (if (u-inssub ed lnum)
-                              (let [plen (i32 (+ (.sub p1 new-start-string) 1))
-                                    _ (.put p1 (unchecked-byte (e NUL)))
-                                    _ (ml-append ed (- lnum 1) new-start-string plen)
-                                    _ (mark-adjust ed (+ lnum 1) 9223372036854775807 1 0)
-                                    j__13 (if (zero? (.do-ask (g ed ex-substitute-subflags)))
-                                            (let [first-line (if (== first-line 0)
-                                                               lnum
-                                                               first-line)
-                                                  last-line (+ lnum 1)]
-                                              (aset tl__ 14 first-line)
-                                              (aset tl__ 15 last-line)
-                                              0)
-                                            (do (appended-lines ed (- lnum 1) 1)
-                                                (aset tl__ 14 first-line)
-                                                (aset tl__ 15 last-line)
-                                                0))
-                                    first-line (aget tl__ 14)
-                                    last-line (aget tl__ 15)
-                                    sub-firstlnum (inc sub-firstlnum)
-                                    lnum (inc lnum)
-                                    line2 (inc line2)
-                                    did-split true
-                                    _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
-                                    n (- new-start-length plen)
-                                    _ (Rt/memmove new-start-string (.add p1 1) (+ n 1))
-                                    new-start-length n
-                                    ^BytePtr p1 (.add new-start-string (- 1))]
-                                (aset tl__ 3 lnum)
-                                (aset tl__ 14 first-line)
-                                (aset tl__ 15 last-line)
-                                (aset tl__ 16 line2)
-                                (aset tl__ 11 new-start-length)
-                                (aset tl__ 6 sub-firstlnum)
-                                (aset to__ 8 (Boolean/valueOf (boolean did-split)))
-                                (aset to__ 9 p1)
-                                0)
-                              (do (aset tl__ 3 lnum)
-                                  (aset tl__ 14 first-line)
-                                  (aset tl__ 15 last-line)
-                                  (aset tl__ 16 line2)
-                                  (aset tl__ 11 new-start-length)
-                                  (aset tl__ 6 sub-firstlnum)
-                                  (aset to__ 8 (Boolean/valueOf (boolean did-split)))
-                                  (aset to__ 9 p1)
-                                  0))
-                            (let [t5 (i32 (- (long (utfc-ptr2len ed p1)) 1))
-                                  ^BytePtr p1 (.add p1 t5)]
-                              (aset tl__ 3 lnum)
-                              (aset tl__ 14 first-line)
-                              (aset tl__ 15 last-line)
-                              (aset tl__ 16 line2)
-                              (aset tl__ 11 new-start-length)
-                              (aset tl__ 6 sub-firstlnum)
-                              (aset to__ 8 (Boolean/valueOf (boolean did-split)))
-                              (aset to__ 9 p1)
-                              0)))
-                  lnum (aget tl__ 3)
-                  first-line (aget tl__ 14)
-                  last-line (aget tl__ 15)
-                  line2 (aget tl__ 16)
-                  new-start-length (aget tl__ 11)
-                  sub-firstlnum (aget tl__ 6)
-                  did-split (boolean (aget to__ 8))
-                  ^BytePtr p1 (aget to__ 9)
-                  ^BytePtr p1 (.add p1 1)]
-              (recur 9 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                ^BytePtr p1 (aget fo__ 15)]
+            (if (zero? (bit-and (.get p1) 0xff))
+              (do (aset fl__ 0 lnum)
+                  (aset fl__ 8 first-line)
+                  (aset fl__ 9 last-line)
+                  (aset fl__ 11 line2)
+                  (aset fl__ 22 new-start-length)
+                  (aset fl__ 25 sub-firstlnum)
+                  (aset fo__ 14 (Boolean/valueOf (boolean did-split)))
+                  (aset fo__ 15 p1)
+                  (recur 10))
+              (let [j__62 (if (and (== (bit-and (.at p1 0) 0xff) 92) (not (== (bit-and (.at p1 1) 0xff) (e NUL))))
+                            (let [n (- new-start-length (.sub p1 new-start-string))
+                                  _ (Rt/memmove p1 (.add p1 1) (+ n 1))
+                                  new-start-length (dec new-start-length)]
+                              (aset tl__ 0 lnum)
+                              (aset tl__ 1 first-line)
+                              (aset tl__ 2 last-line)
+                              (aset tl__ 3 line2)
+                              (aset tl__ 4 new-start-length)
+                              (aset tl__ 5 sub-firstlnum)
+                              (aset to__ 0 (Boolean/valueOf (boolean did-split)))
+                              (aset to__ 1 p1)
+                              0)
+                            (if (== (bit-and (.get p1) 0xff) (e CAR))
+                              (if (u-inssub ed lnum)
+                                (let [plen (i32 (+ (.sub p1 new-start-string) 1))
+                                      _ (.put p1 (unchecked-byte (e NUL)))
+                                      _ (ml-append ed (- lnum 1) new-start-string plen)
+                                      _ (mark-adjust ed (+ lnum 1) 9223372036854775807 1 0)
+                                      j__61 (if (zero? (.do-ask (g ed ex-substitute-subflags)))
+                                              (let [first-line (if (== first-line 0)
+                                                                 lnum
+                                                                 first-line)
+                                                    last-line (+ lnum 1)]
+                                                (aset tl__ 1 first-line)
+                                                (aset tl__ 2 last-line)
+                                                0)
+                                              (do (appended-lines ed (- lnum 1) 1)
+                                                  (aset tl__ 1 first-line)
+                                                  (aset tl__ 2 last-line)
+                                                  0))
+                                      first-line (aget tl__ 1)
+                                      last-line (aget tl__ 2)
+                                      sub-firstlnum (inc sub-firstlnum)
+                                      lnum (inc lnum)
+                                      line2 (inc line2)
+                                      did-split true
+                                      _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
+                                      n (- new-start-length plen)
+                                      _ (Rt/memmove new-start-string (.add p1 1) (+ n 1))
+                                      new-start-length n
+                                      ^BytePtr p1 (.add new-start-string (- 1))]
+                                  (aset tl__ 0 lnum)
+                                  (aset tl__ 1 first-line)
+                                  (aset tl__ 2 last-line)
+                                  (aset tl__ 3 line2)
+                                  (aset tl__ 4 new-start-length)
+                                  (aset tl__ 5 sub-firstlnum)
+                                  (aset to__ 0 (Boolean/valueOf (boolean did-split)))
+                                  (aset to__ 1 p1)
+                                  0)
+                                (do (aset tl__ 0 lnum)
+                                    (aset tl__ 1 first-line)
+                                    (aset tl__ 2 last-line)
+                                    (aset tl__ 3 line2)
+                                    (aset tl__ 4 new-start-length)
+                                    (aset tl__ 5 sub-firstlnum)
+                                    (aset to__ 0 (Boolean/valueOf (boolean did-split)))
+                                    (aset to__ 1 p1)
+                                    0))
+                              (let [t5 (i32 (- (long (utfc-ptr2len ed p1)) 1))
+                                    ^BytePtr p1 (.add p1 t5)]
+                                (aset tl__ 0 lnum)
+                                (aset tl__ 1 first-line)
+                                (aset tl__ 2 last-line)
+                                (aset tl__ 3 line2)
+                                (aset tl__ 4 new-start-length)
+                                (aset tl__ 5 sub-firstlnum)
+                                (aset to__ 0 (Boolean/valueOf (boolean did-split)))
+                                (aset to__ 1 p1)
+                                0)))
+                    lnum (aget tl__ 0)
+                    first-line (aget tl__ 1)
+                    last-line (aget tl__ 2)
+                    line2 (aget tl__ 3)
+                    new-start-length (aget tl__ 4)
+                    sub-firstlnum (aget tl__ 5)
+                    did-split (boolean (aget to__ 0))
+                    ^BytePtr p1 (aget to__ 1)
+                    ^BytePtr p1 (.add p1 1)]
+                (aset fl__ 0 lnum)
+                (aset fl__ 8 first-line)
+                (aset fl__ 9 last-line)
+                (aset fl__ 11 line2)
+                (aset fl__ 22 new-start-length)
+                (aset fl__ 25 sub-firstlnum)
+                (aset fo__ 14 (Boolean/valueOf (boolean did-split)))
+                (aset fo__ 15 p1)
+                (recur 9))))
         10
-          (let [lastone (or skip-match (not (zero? (g ed got-int))) got-quit (> lnum line2) (not (or (not (zero? (.do-all (g ed ex-substitute-subflags)))) do-again)) (and (== (bit-and (.at sub-firstline-string matchcol) 0xff) (e NUL)) (<= nmatch 1) (zero? (long (re-multiline ed (.regprog regmatch))))))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                i (aget fl__ 1)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                lastone (boolean (aget fo__ 11))
+                nmatch-tl (aget fl__ 24)
+                do-again (boolean (aget fo__ 12))
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                lastone (or skip-match (not (zero? (g ed got-int))) got-quit (> lnum line2) (not (or (not (zero? (.do-all (g ed ex-substitute-subflags)))) do-again)) (and (== (bit-and (.at sub-firstline-string matchcol) 0xff) (e NUL)) (<= nmatch 1) (zero? (long (re-multiline ed (.regprog regmatch))))))
                 nmatch -1
                 t6 (or lastone (> nmatch-tl 0) (and (not (zero? (.do-ask (g ed ex-substitute-subflags)))) did-split))
-                j__15 (if t6
-                        (do (aset tl__ 4 nmatch)
-                            (aset to__ 10 (Boolean/valueOf (boolean t6)))
+                j__63 (if t6
+                        (do (aset tl__ 6 nmatch)
+                            (aset to__ 2 (Boolean/valueOf (boolean t6)))
                             0)
                         (let [nmatch (long (search-found ed found (.line1 eap) found-count regmatch sub-firstlnum matchcol))
                               t6 (== nmatch 0)]
-                          (aset tl__ 4 nmatch)
-                          (aset to__ 10 (Boolean/valueOf (boolean t6)))
+                          (aset tl__ 6 nmatch)
+                          (aset to__ 2 (Boolean/valueOf (boolean t6)))
                           0))
-                nmatch (aget tl__ 4)
-                t6 (boolean (aget to__ 10))]
+                nmatch (aget tl__ 6)
+                t6 (boolean (aget to__ 2))]
             (if (or t6 (> (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)) 0))
               (if (some? new-start-string)
                 (do (musl-strcpy ed (.add new-start-string new-start-length) (.add sub-firstline-string copycol))
@@ -59743,41 +65280,163 @@
                               (let [lnum (inc lnum)]
                                 (if (u-savedel ed lnum nmatch-tl)
                                   (let [i 0]
-                                    (recur 11 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                                  (recur 15 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-                              (recur 12 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-                        (recur 15 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))
-                (recur 13 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-              (recur 14 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
+                                    (aset fl__ 0 lnum)
+                                    (aset fl__ 1 i)
+                                    (aset fl__ 12 nmatch)
+                                    (aset fl__ 20 matchcol)
+                                    (aset fl__ 21 prev-matchcol)
+                                    (aset fl__ 22 new-start-length)
+                                    (aset fo__ 11 (Boolean/valueOf (boolean lastone)))
+                                    (recur 11))
+                                  (do (aset fl__ 0 lnum)
+                                      (aset fl__ 1 i)
+                                      (aset fl__ 12 nmatch)
+                                      (aset fl__ 20 matchcol)
+                                      (aset fl__ 21 prev-matchcol)
+                                      (aset fl__ 22 new-start-length)
+                                      (aset fo__ 11 (Boolean/valueOf (boolean lastone)))
+                                      (recur 15))))
+                              (do (aset fl__ 0 lnum)
+                                  (aset fl__ 1 i)
+                                  (aset fl__ 12 nmatch)
+                                  (aset fl__ 20 matchcol)
+                                  (aset fl__ 21 prev-matchcol)
+                                  (aset fl__ 22 new-start-length)
+                                  (aset fo__ 11 (Boolean/valueOf (boolean lastone)))
+                                  (recur 12))))
+                        (do (aset fl__ 0 lnum)
+                            (aset fl__ 1 i)
+                            (aset fl__ 12 nmatch)
+                            (aset fl__ 20 matchcol)
+                            (aset fl__ 21 prev-matchcol)
+                            (aset fl__ 22 new-start-length)
+                            (aset fo__ 11 (Boolean/valueOf (boolean lastone)))
+                            (recur 15)))))
+                (do (aset fl__ 0 lnum)
+                    (aset fl__ 1 i)
+                    (aset fl__ 12 nmatch)
+                    (aset fl__ 20 matchcol)
+                    (aset fl__ 21 prev-matchcol)
+                    (aset fl__ 22 new-start-length)
+                    (aset fo__ 11 (Boolean/valueOf (boolean lastone)))
+                    (recur 13)))
+              (do (aset fl__ 0 lnum)
+                  (aset fl__ 1 i)
+                  (aset fl__ 12 nmatch)
+                  (aset fl__ 20 matchcol)
+                  (aset fl__ 21 prev-matchcol)
+                  (aset fl__ 22 new-start-length)
+                  (aset fo__ 11 (Boolean/valueOf (boolean lastone)))
+                  (recur 14))))
         11
-          (if (< i nmatch-tl)
-            (do (ml-delete ed lnum)
-                (let [i (inc i)]
-                  (recur 11 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
-            (do (if (> copycol 0)
-                  (mark-adjust ed lnum (- (+ lnum nmatch-tl) 1) 9223372036854775807 (- nmatch-tl))
-                  (mark-adjust ed (- lnum 1) (- lnum 1) 9223372036854775807 (- nmatch-tl)))
-                (when-not (zero? (.do-ask (g ed ex-substitute-subflags)))
-                  (deleted-lines ed lnum nmatch-tl))
-                (let [lnum (dec lnum)
-                      line2 (- line2 nmatch-tl)
-                      nmatch-tl 0]
-                  (recur 12 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                i (aget fl__ 1)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                lastone (boolean (aget fo__ 11))
+                nmatch-tl (aget fl__ 24)
+                skip-match (boolean (aget fo__ 13))]
+            (if (< i nmatch-tl)
+              (do (ml-delete ed lnum)
+                  (let [i (inc i)]
+                    (aset fl__ 0 lnum)
+                    (aset fl__ 1 i)
+                    (aset fl__ 11 line2)
+                    (aset fl__ 24 nmatch-tl)
+                    (recur 11)))
+              (do (if (> copycol 0)
+                    (mark-adjust ed lnum (- (+ lnum nmatch-tl) 1) 9223372036854775807 (- nmatch-tl))
+                    (mark-adjust ed (- lnum 1) (- lnum 1) 9223372036854775807 (- nmatch-tl)))
+                  (when-not (zero? (.do-ask (g ed ex-substitute-subflags)))
+                    (deleted-lines ed lnum nmatch-tl))
+                  (let [lnum (dec lnum)
+                        line2 (- line2 nmatch-tl)
+                        nmatch-tl 0]
+                    (aset fl__ 0 lnum)
+                    (aset fl__ 1 i)
+                    (aset fl__ 11 line2)
+                    (aset fl__ 24 nmatch-tl)
+                    (recur 12)))))
+        st))))
+
+(defn- ex-substitute__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_regmmatch_T regmatch (aget fo__ 16)
+        ^objects cmd (aget fo__ 17)
+        ^bytes buf (aget fo__ 18)
+        ^longs tl__ (long-array 2)]
+    (loop [st st0__]
+      (case st
         12
-          (let [j__16 (if (zero? (.do-ask (g ed ex-substitute-subflags)))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                lastone (boolean (aget fo__ 11))
+                nmatch-tl (aget fl__ 24)
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                j__64 (if (zero? (.do-ask (g ed ex-substitute-subflags)))
                         (let [first-line (if (== first-line 0)
                                            lnum
                                            first-line)
                               last-line (+ lnum 1)]
-                          (aset tl__ 14 first-line)
-                          (aset tl__ 15 last-line)
+                          (aset tl__ 0 first-line)
+                          (aset tl__ 1 last-line)
                           0)
                         (do (changed-bytes ed lnum 0)
-                            (aset tl__ 14 first-line)
-                            (aset tl__ 15 last-line)
+                            (aset tl__ 0 first-line)
+                            (aset tl__ 1 last-line)
                             0))
-                first-line (aget tl__ 14)
-                last-line (aget tl__ 15)
+                first-line (aget tl__ 0)
+                last-line (aget tl__ 1)
                 sub-firstlnum lnum
                 ^BytePtr sub-firstline-string new-start-string
                 sub-firstline-length new-start-length
@@ -59787,33 +65446,238 @@
                 prev-matchcol (i32 (- sub-firstline-length prev-matchcol))
                 copycol 0
                 did-split false]
-            (recur 13 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
+            (aset fl__ 8 first-line)
+            (aset fl__ 9 last-line)
+            (aset fo__ 6 sub-firstline-string)
+            (aset fl__ 13 sub-firstline-length)
+            (aset fl__ 19 copycol)
+            (aset fl__ 20 matchcol)
+            (aset fl__ 21 prev-matchcol)
+            (aset fo__ 9 new-start-string)
+            (aset fl__ 22 new-start-length)
+            (aset fl__ 25 sub-firstlnum)
+            (aset fo__ 14 (Boolean/valueOf (boolean did-split)))
+            (recur 13))
         13
-          (let [nmatch (if (and (== nmatch -1) (not lastone))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                lastone (boolean (aget fo__ 11))
+                nmatch-tl (aget fl__ 24)
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))
+                nmatch (if (and (== nmatch -1) (not lastone))
                          (long (vim-regexec-multi ed regmatch (g ed curwin) (g ed curbuf) sub-firstlnum matchcol nil))
                          nmatch)]
             (if (<= nmatch 0)
               (if (== nmatch -1)
                 (let [lnum (- lnum (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))]
-                  (recur 15 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-                (recur 15 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
-              (recur 14 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
+                  (aset fl__ 0 lnum)
+                  (aset fl__ 12 nmatch)
+                  (recur 15))
+                (do (aset fl__ 0 lnum)
+                    (aset fl__ 12 nmatch)
+                    (recur 15)))
+              (do (aset fl__ 0 lnum)
+                  (aset fl__ 12 nmatch)
+                  (recur 14))))
         14
-          (do (line-breakcheck ed)
-              (recur 4 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                nmatch (aget fl__ 12)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                copycol (aget fl__ 19)
+                matchcol (aget fl__ 20)
+                prev-matchcol (aget fl__ 21)
+                ^BytePtr new-start-string (aget fo__ 9)
+                new-start-length (aget fl__ 22)
+                new-start-size (aget fl__ 23)
+                did-sub (boolean (aget fo__ 10))
+                nmatch-tl (aget fl__ 24)
+                skip-match (boolean (aget fo__ 13))
+                sub-firstlnum (aget fl__ 25)
+                did-split (boolean (aget fo__ 14))]
+            (line-breakcheck ed)
+            (recur 4))
         15
-          (do (when did-sub
-                (g! ed sub-nlines (inc (g ed sub-nlines))))
-              (let [^BytePtr sub-firstline-string nil
-                    sub-firstline-length 0]
-                (recur 16 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)
+                did-sub (boolean (aget fo__ 10))]
+            (when did-sub
+              (g! ed sub-nlines (inc (g ed sub-nlines))))
+            (let [^BytePtr sub-firstline-string nil
+                  sub-firstline-length 0]
+              (aset fo__ 6 sub-firstline-string)
+              (aset fl__ 13 sub-firstline-length)
+              (recur 16)))
         16
-          (do (line-breakcheck ed)
-              (let [lnum (inc lnum)]
-                (recur 3 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed)))
+          (let [^S_exarg eap (aget fo__ 1)
+                lnum (aget fl__ 0)
+                save-do-all (aget fl__ 2)
+                save-do-ask (aget fl__ 3)
+                ^BytePtr sub (aget fo__ 2)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                line2 (aget fl__ 11)
+                ^BytePtr sub-firstline-string (aget fo__ 6)
+                sub-firstline-length (aget fl__ 13)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)
+                ^Ptr found (aget fo__ 8)
+                found-count (aget fl__ 18)]
+            (line-breakcheck ed)
+            (let [lnum (inc lnum)]
+              (aset fl__ 0 lnum)
+              (recur 3)))
         17
-          (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-              (recur 1 eap lnum i save-do-all save-do-ask sub pat-string pat-length sublen got-quit got-match which-pat save-State first-line last-line old-line-count line2 nmatch sub-firstline-string sub-firstline-length endcolumn old-cursor-lnum old-cursor-col old-cursor-coladd start-nsubs found found-count copycol matchcol prev-matchcol new-start-string new-start-length new-start-size did-sub lastone nmatch-tl do-again skip-match sub-firstlnum did-split p1 typed))))))
+          (let [^S_exarg eap (aget fo__ 1)
+                ^BytePtr sub (aget fo__ 2)
+                ^BytePtr pat-string (aget fo__ 3)
+                pat-length (aget fl__ 4)
+                got-quit (boolean (aget fo__ 4))
+                got-match (boolean (aget fo__ 5))
+                which-pat (aget fl__ 6)
+                first-line (aget fl__ 8)
+                last-line (aget fl__ 9)
+                old-line-count (aget fl__ 10)
+                endcolumn (boolean (aget fo__ 7))
+                old-cursor-lnum (aget fl__ 14)
+                old-cursor-col (aget fl__ 15)
+                old-cursor-coladd (aget fl__ 16)
+                start-nsubs (aget fl__ 17)]
+            (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
+            (recur 1))
+        st))))
+
+;; C: ex_substitute
+(defn ex-substitute [^Editor ed ^S_exarg eap]
+  (let [^T_regmmatch_T regmatch (new-T_regmmatch_T)
+        ^objects cmd (object-array 1)
+        ^bytes buf (byte-array 20)
+        ^longs fl__ (long-array 27)
+        ^objects fo__ (object-array 19)]
+    (aset fo__ 1 eap)
+    (aset fl__ 0 0)
+    (aset fl__ 1 0)
+    (aset fl__ 2 0)
+    (aset fl__ 3 0)
+    (aset fl__ 4 0)
+    (aset fl__ 5 0)
+    (aset fo__ 4 false)
+    (aset fo__ 5 false)
+    (aset fl__ 6 0)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
+    (aset fl__ 9 0)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fo__ 7 false)
+    (aset fl__ 14 0)
+    (aset fl__ 15 0)
+    (aset fl__ 16 0)
+    (aset fl__ 17 0)
+    (aset fl__ 18 0)
+    (aset fl__ 19 0)
+    (aset fl__ 20 0)
+    (aset fl__ 21 0)
+    (aset fl__ 22 0)
+    (aset fl__ 23 0)
+    (aset fo__ 10 false)
+    (aset fo__ 11 false)
+    (aset fl__ 24 0)
+    (aset fo__ 12 false)
+    (aset fo__ 13 false)
+    (aset fl__ 25 0)
+    (aset fo__ 14 false)
+    (aset fl__ 26 0)
+    (aset fo__ 16 regmatch)
+    (aset fo__ 17 cmd)
+    (aset fo__ 18 buf)
+    (loop [st 0]
+      (let [r__ (if (<= st 0)
+                  (ex-substitute__0 ed fl__ fo__ st)
+                  (if (<= st 2)
+                    (ex-substitute__1 ed fl__ fo__ st)
+                    (if (<= st 4)
+                      (ex-substitute__2 ed fl__ fo__ st)
+                      (if (<= st 6)
+                        (ex-substitute__3 ed fl__ fo__ st)
+                        (if (<= st 8)
+                          (ex-substitute__4 ed fl__ fo__ st)
+                          (if (<= st 11)
+                            (ex-substitute__5 ed fl__ fo__ st)
+                            (ex-substitute__6 ed fl__ fo__ st)))))))]
+        (when-not (neg? r__)
+          (recur r__))))))
 
 ;; C: global_exe_one
 (defn global-exe-one [^Editor ed ^BytePtr cmd ^long lnum]
@@ -65085,6 +70949,557 @@
           (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
               (recur 4 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols))))))
 
+(defn- do-addsub__r0 ^long [^Editor ed ^longs tl__ ^objects to__]
+  (let [op-type (aget tl__ 11)
+        length (aget tl__ 1)
+        Prenum1 (aget tl__ 12)
+        col (aget tl__ 0)
+        ^ints pre (aget to__ 5)
+        ^longs n (aget to__ 6)
+        ^BytePtr ptr (aget to__ 4)
+        linelen (aget tl__ 13)
+        do-hex (boolean (aget to__ 7))
+        do-oct (boolean (aget to__ 8))
+        do-bin (boolean (aget to__ 9))
+        do-unsigned (boolean (aget to__ 10))
+        do-blank (boolean (aget to__ 11))
+        blank-unsigned (boolean (aget to__ 1))
+        firstdigit (aget tl__ 14)
+        negative (aget tl__ 2)
+        was-positive (boolean (aget to__ 2))
+        visual (aget tl__ 15)
+        did-change (boolean (aget to__ 3))
+        maxlen (aget tl__ 16)
+        startpos-lnum (aget tl__ 3)
+        startpos-col (aget tl__ 4)
+        startpos-coladd (aget tl__ 5)
+        ^bytes buf2 (aget to__ 12)
+        ^ints overflow (aget to__ 13)]
+    (let [j__5 (if (and (and (and (and (> col 0) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (zero? visual)) (not do-unsigned))
+                (if (and (and do-blank (>= col 2)) (not (or (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 32) (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 9))))
+                  (let [blank-unsigned true]
+                    (do (aset tl__ 0 col)
+                        (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                        (aset tl__ 2 negative)
+                        0))
+                  (let [col (i32 (dec col))
+                        negative (e TRUE)]
+                    (do (aset tl__ 0 col)
+                        (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                        (aset tl__ 2 negative)
+                        0)))
+                (do (aset tl__ 0 col)
+                    (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                    (aset tl__ 2 negative)
+                    0))]
+      (let [col (aget tl__ 0)
+            blank-unsigned (boolean (aget to__ 1))
+            negative (aget tl__ 2)]
+        (let [maxlen (if (and (not (zero? visual)) (not (== (g ed VIsual-mode) 86)))
+                      (let [maxlen (if (== (.vi-curswant ^T_visualinfo_T (.-b-visual (g ed curbuf))) (e MAXCOL)) (i32 (- linelen col)) length)]
+                        maxlen)
+                      maxlen)]
+          (let [_ (aset overflow 0 (unchecked-int (e FALSE)))
+                length (long (vim-str2nr ed (.add ptr col) (IntPtr. pre 0) length (i32 (+ (i32 (+ (i32 (+ 0 (if do-bin (e STR2NR_BIN) 0))) (if do-oct (e STR2NR_OCT) 0))) (if do-hex (e STR2NR_HEX) 0))) nil (LongPtr. n 0) maxlen false (IntPtr. overflow 0)))]
+            (let [j__6 (if (and (not (zero? (long (aget pre 0)))) (not (zero? negative)))
+                        (let [col (i32 (inc col))
+                              length (i32 (dec length))
+                              negative (e FALSE)]
+                          (do (aset tl__ 1 length)
+                              (aset tl__ 0 col)
+                              (aset tl__ 2 negative)
+                              0))
+                        (do (aset tl__ 1 length)
+                            (aset tl__ 0 col)
+                            (aset tl__ 2 negative)
+                            0))]
+              (let [length (aget tl__ 1)
+                    col (aget tl__ 0)
+                    negative (aget tl__ 2)]
+                (let [subtract (e FALSE)]
+                  (let [subtract (if (== op-type (e OP_NR_SUB))
+                                  (let [subtract (bit-xor subtract (e TRUE))]
+                                    subtract)
+                                  subtract)]
+                    (let [subtract (if (zero? negative)
+                                    subtract
+                                    (let [subtract (bit-xor subtract (e TRUE))]
+                                      subtract))]
+                      (let [oldn (aget n 0)]
+                        (do (if (zero? (long (aget overflow 0)))
+                              (if (zero? subtract)
+                                (let [_ (aset n 0 (+ (aget n 0) Prenum1))]
+                                  nil)
+                                (let [_ (aset n 0 (- (aget n 0) Prenum1))]
+                                  nil))
+                              nil)
+                          (let [negative (if (zero? (long (aget pre 0)))
+                                          (let [negative (if (zero? subtract)
+                                                          (if (< (Long/compareUnsigned (aget n 0) oldn) 0)
+                                                            (let [_ (aset n 0 (bit-xor (aget n 0) -1))
+                                                                  negative (bit-xor negative (e TRUE))]
+                                                              negative)
+                                                            negative)
+                                                          (if (> (Long/compareUnsigned (aget n 0) oldn) 0)
+                                                            (let [_ (aset n 0 (+ 1 (bit-xor (aget n 0) -1)))
+                                                                  negative (bit-xor negative (e TRUE))]
+                                                              negative)
+                                                            negative))]
+                                            (if (== (aget n 0) 0)
+                                              (let [negative (e FALSE)]
+                                                negative)
+                                              negative))
+                                          negative)]
+                            (let [negative (if (and (or do-unsigned blank-unsigned) (not (zero? negative)))
+                                            (do (if (zero? subtract)
+                                                  (let [_ (aset n 0 -1)]
+                                                    nil)
+                                                  (let [_ (aset n 0 0)]
+                                                    nil))
+                                              (let [negative (e FALSE)]
+                                                negative))
+                                            negative)]
+                              (let [j__7 (if (and (and (and (not (zero? visual)) (not was-positive)) (zero? negative)) (> col 0))
+                                          (let [col (i32 (dec col))
+                                                length (i32 (inc length))]
+                                            (do (aset tl__ 1 length)
+                                                (aset tl__ 0 col)
+                                                0))
+                                          (do (aset tl__ 1 length)
+                                              (aset tl__ 0 col)
+                                              0))]
+                                (let [length (aget tl__ 1)
+                                      col (aget tl__ 0)]
+                                  (let [_ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)]
+                                    (let [j__8 (if did-change
+                                                (do (aset tl__ 3 startpos-lnum)
+                                                    (aset tl__ 4 startpos-col)
+                                                    (aset tl__ 5 startpos-coladd)
+                                                    0)
+                                                (let [startpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                      startpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                      startpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
+                                                  (do (aset tl__ 3 startpos-lnum)
+                                                      (aset tl__ 4 startpos-col)
+                                                      (aset tl__ 5 startpos-coladd)
+                                                      0)))]
+                                      (let [startpos-lnum (aget tl__ 3)
+                                            startpos-col (aget tl__ 4)
+                                            startpos-coladd (aget tl__ 5)]
+                                        (let [did-change true
+                                              todel length
+                                              c (long (gchar-cursor ed))]
+                                          (let [length (if (== c 45)
+                                                        (let [length (i32 (dec length))]
+                                                          length)
+                                                        length)]
+                                            (let [save-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                  save-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                  save-pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                  i 0]
+                                              (do (loop [c c
+                                                         i i]
+                                                    (if (< i todel)
+                                                      (do (if (and (< c 256) (musl-isalpha? ed (u8 c)))
+                                                            (if (musl-isupper? ed (u8 c))
+                                                              (let [_ (g! ed do-addsub-hexupper true)]
+                                                                nil)
+                                                              (let [_ (g! ed do-addsub-hexupper false)]
+                                                                nil))
+                                                            nil)
+                                                        (let [_ (long (inc-cursor ed))
+                                                              c (long (gchar-cursor ed))]
+                                                          (let [i (i32 (inc i))]
+                                                            (recur c i))))
+                                                      nil))
+                                                (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-lnum)
+                                                      _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-col)
+                                                      _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-coladd)
+                                                      ^BytePtr buf1 (BytePtr/alloc (i32 (+ length (e NUMBUFLEN))))
+                                                      ^BytePtr ptr buf1]
+                                                  (let [^BytePtr ptr (if (and (not (zero? negative)) (or (zero? visual) was-positive))
+                                                                      (let [^BytePtr t7 ptr
+                                                                            ^BytePtr ptr (.add ptr 1)
+                                                                            _ (.put t7 (unchecked-byte 45))]
+                                                                        ptr)
+                                                                      ptr)]
+                                                    (let [j__9 (if (zero? (long (aget pre 0)))
+                                                                (do (aset tl__ 1 length)
+                                                                    (aset to__ 4 ptr)
+                                                                    0)
+                                                                (let [^BytePtr t8 ptr
+                                                                      ^BytePtr ptr (.add ptr 1)
+                                                                      _ (.put t8 (unchecked-byte 48))
+                                                                      length (i32 (dec length))]
+                                                                  (do (aset tl__ 1 length)
+                                                                      (aset to__ 4 ptr)
+                                                                      0)))]
+                                                      (let [length (aget tl__ 1)
+                                                            ^BytePtr ptr (aget to__ 4)]
+                                                        (let [j__10 (if (or (or (or (== (long (aget pre 0)) 98) (== (long (aget pre 0)) 66)) (== (long (aget pre 0)) 120)) (== (long (aget pre 0)) 88))
+                                                                     (let [^BytePtr t9 ptr
+                                                                           ^BytePtr ptr (.add ptr 1)
+                                                                           _ (.put t9 (unchecked-byte (u8 (long (aget pre 0)))))
+                                                                           length (i32 (dec length))]
+                                                                       (do (aset tl__ 1 length)
+                                                                           (aset to__ 4 ptr)
+                                                                           0))
+                                                                     (do (aset tl__ 1 length)
+                                                                         (aset to__ 4 ptr)
+                                                                         0))]
+                                                          (let [length (aget tl__ 1)
+                                                                ^BytePtr ptr (aget to__ 4)]
+                                                            (let [buf2len (long (if (or (== (long (aget pre 0)) 98) (== (long (aget pre 0)) 66))
+                                                                           (let [bit 0
+                                                                                 bits 64
+                                                                                 bit bits]
+                                                                             (let [l__11 (loop [bit bit]
+                                                                                          (if (> bit 0)
+                                                                                            (if (zero? (bit-and (unsigned-bit-shift-right (aget n 0) (i32 (- bit 1))) 1))
+                                                                                              (let [bit (i32 (dec bit))]
+                                                                                                (recur bit))
+                                                                                              (do (aset tl__ 9 bit)
+                                                                                                  0))
+                                                                                            (do (aset tl__ 9 bit)
+                                                                                                0)))]
+                                                                               (let [bit (aget tl__ 9)]
+                                                                                 (let [buf2len 0]
+                                                                                   (let [l__12 (loop [buf2len buf2len
+                                                                                                     bit bit]
+                                                                                                (if (and (> bit 0) (< buf2len 64))
+                                                                                                  (let [t10 buf2len
+                                                                                                        buf2len (i32 (inc buf2len))
+                                                                                                        _ (aset buf2 t10 (unchecked-byte (u8 (if (zero? (bit-and (unsigned-bit-shift-right (aget n 0) (i32 (- bit 1))) 1)) 48 49))))]
+                                                                                                    (let [bit (i32 (dec bit))]
+                                                                                                      (recur buf2len bit)))
+                                                                                                  (do (aset tl__ 10 buf2len)
+                                                                                                      0)))]
+                                                                                     (let [buf2len (aget tl__ 10)]
+                                                                                       (let [_ (aset buf2 buf2len (unchecked-byte (e NUL)))]
+                                                                                         buf2len)))))))
+                                                                           (if (== (long (aget pre 0)) 0)
+                                                                             (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llu") (object-array [(Long/valueOf (aget n 0))])))]
+                                                                               buf2len)
+                                                                             (if (== (long (aget pre 0)) 48)
+                                                                               (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llo") (object-array [(Long/valueOf (aget n 0))])))]
+                                                                                 buf2len)
+                                                                               (if (and (not (zero? (long (aget pre 0)))) (g ed do-addsub-hexupper))
+                                                                                 (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llX") (object-array [(Long/valueOf (aget n 0))])))]
+                                                                                   buf2len)
+                                                                                 (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llx") (object-array [(Long/valueOf (aget n 0))])))]
+                                                                                   buf2len))))))]
+                                                              (let [length (i32 (- length buf2len))]
+                                                                (let [^BytePtr ptr (if (and (== firstdigit 48) (not (and do-oct (== (long (aget pre 0)) 0))))
+                                                                                    (loop [length length
+                                                                                           ^BytePtr ptr ptr]
+                                                                                      (let [t11 length
+                                                                                            length (i32 (dec length))]
+                                                                                        (if (> t11 0)
+                                                                                          (let [^BytePtr t12 ptr
+                                                                                                ^BytePtr ptr (.add ptr 1)
+                                                                                                _ (.put t12 (unchecked-byte 48))]
+                                                                                            (recur length ptr))
+                                                                                          ptr)))
+                                                                                    ptr)]
+                                                                  (let [_ (.put ptr (unchecked-byte (e NUL)))
+                                                                        buf1len (i32 (.sub ptr buf1))
+                                                                        _ (musl-strcpy ed (.add buf1 buf1len) (BytePtr. buf2 0))
+                                                                        buf1len (i32 (+ buf1len buf2len))
+                                                                        save-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                        save-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                        save-pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
+                                                                    (do (if (> todel 0)
+                                                                          (let [_ (long (inc-cursor ed))]
+                                                                            nil)
+                                                                          nil)
+                                                                      (let [_ (ins-str ed buf1 buf1len)]
+                                                                        (let [todel (if (> todel 0)
+                                                                                     (let [bytes-after (i32 (- (long (ml-get-curline-len ed)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))))
+                                                                                           _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-lnum)
+                                                                                           _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-col)
+                                                                                           _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-coladd)
+                                                                                           _ (del-char ed false)
+                                                                                           _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (- (long (ml-get-curline-len ed)) bytes-after)))
+                                                                                           todel (i32 (dec todel))]
+                                                                                       todel)
+                                                                                     todel)]
+                                                                          (do (loop [todel todel]
+                                                                                (let [t13 todel
+                                                                                      todel (i32 (dec todel))]
+                                                                                  (if (> t13 0)
+                                                                                    (let [_ (del-char ed false)]
+                                                                                      (recur todel))
+                                                                                    nil)))
+                                                                            (let [endpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                                  endpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                                  endpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
+                                                                              (if (and did-change (not (zero? (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
+                                                                                (let [_ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))]
+                                                                                  (do (aset to__ 3 (Boolean/valueOf (boolean did-change)))
+                                                                                      (aset tl__ 3 startpos-lnum)
+                                                                                      (aset tl__ 4 startpos-col)
+                                                                                      (aset tl__ 5 startpos-coladd)
+                                                                                      (aset tl__ 6 endpos-lnum)
+                                                                                      (aset tl__ 7 endpos-col)
+                                                                                      (aset tl__ 8 endpos-coladd)
+                                                                                      0))
+                                                                                (do (aset to__ 3 (Boolean/valueOf (boolean did-change)))
+                                                                                    (aset tl__ 3 startpos-lnum)
+                                                                                    (aset tl__ 4 startpos-col)
+                                                                                    (aset tl__ 5 startpos-coladd)
+                                                                                    (aset tl__ 6 endpos-lnum)
+                                                                                    (aset tl__ 7 endpos-col)
+                                                                                    (aset tl__ 8 endpos-coladd)
+                                                                                    0)))))))))))))))))))))))))))))))))))))))))
+
+(defn- do-addsub__r1 [^Editor ed ^longs tl__ ^objects to__]
+  (let [op-type (aget tl__ 11)
+        ^T_pos_T pos (aget to__ 14)
+        length (aget tl__ 1)
+        Prenum1 (aget tl__ 12)
+        col (aget tl__ 0)
+        ^ints pre (aget to__ 5)
+        ^longs n (aget to__ 6)
+        ^BytePtr ptr (aget to__ 4)
+        linelen (aget tl__ 13)
+        do-hex (boolean (aget to__ 7))
+        do-oct (boolean (aget to__ 8))
+        do-bin (boolean (aget to__ 9))
+        do-alpha (boolean (aget to__ 15))
+        do-unsigned (boolean (aget to__ 10))
+        do-blank (boolean (aget to__ 11))
+        blank-unsigned (boolean (aget to__ 1))
+        negative (aget tl__ 2)
+        was-positive (boolean (aget to__ 2))
+        visual (aget tl__ 15)
+        did-change (boolean (aget to__ 3))
+        save-cursor-lnum (aget tl__ 17)
+        save-cursor-col (aget tl__ 18)
+        save-cursor-coladd (aget tl__ 19)
+        maxlen (aget tl__ 16)
+        startpos-lnum (aget tl__ 3)
+        startpos-col (aget tl__ 4)
+        startpos-coladd (aget tl__ 5)
+        save-coladd (aget tl__ 20)
+        ^bytes buf2 (aget to__ 12)
+        ^ints overflow (aget to__ 13)]
+    (let [did-change (boolean (if (>= (i32 (+ col (if (not (zero? save-coladd)) 1 0))) linelen)
+                      did-change
+                      (let [col (long (if (zero? (g ed VIsual-active))
+                                 (let [col (long (if do-bin
+                                            (loop [col col]
+                                              (if (and (> col 0) (vim-isbdigit? ed (bit-and (.at ptr col) 0xff)))
+                                                (let [col (i32 (dec col))
+                                                      t1 (long (utf-head-off ed ptr (.add ptr col)))
+                                                      col (i32 (- col t1))]
+                                                  (recur col))
+                                                col))
+                                            col))]
+                                   (let [col (long (if do-hex
+                                              (loop [col col]
+                                                (if (and (> col 0) (vim-isxdigit? ed (bit-and (.at ptr col) 0xff)))
+                                                  (let [col (i32 (dec col))
+                                                        t2 (long (utf-head-off ed ptr (.add ptr col)))
+                                                        col (i32 (- col t2))]
+                                                    (recur col))
+                                                  col))
+                                              col))]
+                                     (let [col (long (if (and (and do-bin do-hex) (not (and (and (and (and (> col 0) (or (== (bit-and (.at ptr col) 0xff) 88) (== (bit-and (.at ptr col) 0xff) 120))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff)))))
+                                                (let [col (.col pos)]
+                                                  (loop [col col]
+                                                    (if (and (> col 0) (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))
+                                                      (let [col (i32 (dec col))
+                                                            t3 (long (utf-head-off ed ptr (.add ptr col)))
+                                                            col (i32 (- col t3))]
+                                                        (recur col))
+                                                      col)))
+                                                col))]
+                                       (if (or (and (and (and (and (and do-hex (> col 0)) (or (== (bit-and (.at ptr col) 0xff) 88) (== (bit-and (.at ptr col) 0xff) 120))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff))) (and (and (and (and (and do-bin (> col 0)) (or (== (bit-and (.at ptr col) 0xff) 66) (== (bit-and (.at ptr col) 0xff) 98))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isbdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff))))
+                                         (let [col (i32 (dec col))
+                                               t4 (long (utf-head-off ed ptr (.add ptr col)))
+                                               col (i32 (- col t4))]
+                                           col)
+                                         (let [col (.col pos)]
+                                           (let [l__1 (loop [col col]
+                                                       (if (and (and (not (== (bit-and (.at ptr col) 0xff) (e NUL))) (not (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
+                                                         (let [t5 (long (utfc-ptr2len ed (.add ptr col)))
+                                                               col (i32 (+ col t5))]
+                                                           (recur col))
+                                                         (do (aset tl__ 0 col)
+                                                             0)))]
+                                             (let [col (aget tl__ 0)]
+                                               (loop [col col]
+                                                 (if (and (and (> col 0) (vim-isdigit? ed (bit-and (.at ptr (i32 (- col 1))) 0xff))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
+                                                   (let [col (i32 (dec col))
+                                                         t6 (long (utf-head-off ed ptr (.add ptr col)))
+                                                         col (i32 (- col t6))]
+                                                     (recur col))
+                                                   col)))))))))
+                                 col))]
+                        (let [j__3 (if (zero? visual)
+                                    (do (aset tl__ 1 length)
+                                        (aset tl__ 0 col)
+                                        (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                                        (aset tl__ 2 negative)
+                                        (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+                                        0)
+                                    (let [l__2 (loop [length length
+                                                     col col]
+                                                (if (and (and (and (not (== (bit-and (.at ptr col) 0xff) (e NUL))) (> length 0)) (not (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
+                                                  (let [mb-len (long (utfc-ptr2len ed (.add ptr col)))
+                                                        col (i32 (+ col mb-len))
+                                                        length (i32 (- length mb-len))]
+                                                    (recur length col))
+                                                  (do (aset tl__ 1 length)
+                                                      (aset tl__ 0 col)
+                                                      0)))]
+                                      (let [length (aget tl__ 1)
+                                            col (aget tl__ 0)]
+                                        (if (== length 0)
+                                          1
+                                          (if (and (and (and (> col (.col pos)) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (not do-unsigned))
+                                            (if (and (and do-blank (>= col 2)) (not (or (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 32) (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 9))))
+                                              (let [blank-unsigned true]
+                                                (do (aset tl__ 1 length)
+                                                    (aset tl__ 0 col)
+                                                    (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                                                    (aset tl__ 2 negative)
+                                                    (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+                                                    0))
+                                              (let [negative (e TRUE)
+                                                    was-positive false]
+                                                (do (aset tl__ 1 length)
+                                                    (aset tl__ 0 col)
+                                                    (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                                                    (aset tl__ 2 negative)
+                                                    (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+                                                    0)))
+                                            (do (aset tl__ 1 length)
+                                                (aset tl__ 0 col)
+                                                (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                                                (aset tl__ 2 negative)
+                                                (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+                                                0))))))]
+                          (case (long j__3)
+                            0
+                              (let [length (aget tl__ 1)
+                                    col (aget tl__ 0)
+                                    blank-unsigned (boolean (aget to__ 1))
+                                    negative (aget tl__ 2)
+                                    was-positive (boolean (aget to__ 2))]
+                                (let [firstdigit (bit-and (.at ptr col) 0xff)]
+                                  (if (and (not (< (u32 (- (u32 firstdigit) 48)) 10)) (not (and do-alpha (or (< (u32 (- (u32 firstdigit) 65)) 26) (< (u32 (- (u32 firstdigit) 97)) 26)))))
+                                    (let [_ (beep-flush ed)]
+                                      did-change)
+                                    (let [j__13 (if (and do-alpha (or (< (u32 (- (u32 firstdigit) 65)) 26) (< (u32 (- (u32 firstdigit) 97)) 26)))
+                                                 (let [firstdigit (if (== op-type (e OP_NR_SUB))
+                                                                   (if (< (if (< firstdigit 97) (i32 (- firstdigit 65)) (i32 (- firstdigit 97))) Prenum1)
+                                                                     (if (musl-isupper? ed (u8 firstdigit))
+                                                                       (let [firstdigit 65]
+                                                                         firstdigit)
+                                                                       (let [firstdigit 97]
+                                                                         firstdigit))
+                                                                     (let [firstdigit (i32 (- firstdigit Prenum1))]
+                                                                       firstdigit))
+                                                                   (if (< (i32 (- (i32 (- 26 (if (< firstdigit 97) (i32 (- firstdigit 65)) (i32 (- firstdigit 97))))) 1)) Prenum1)
+                                                                     (if (musl-isupper? ed (u8 firstdigit))
+                                                                       (let [firstdigit 90]
+                                                                         firstdigit)
+                                                                       (let [firstdigit 122]
+                                                                         firstdigit))
+                                                                     (let [firstdigit (i32 (+ firstdigit Prenum1))]
+                                                                       firstdigit)))]
+                                                   (let [_ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)]
+                                                     (let [j__4 (if did-change
+                                                                 (do (aset tl__ 3 startpos-lnum)
+                                                                     (aset tl__ 4 startpos-col)
+                                                                     (aset tl__ 5 startpos-coladd)
+                                                                     0)
+                                                                 (let [startpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                       startpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                       startpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
+                                                                   (do (aset tl__ 3 startpos-lnum)
+                                                                       (aset tl__ 4 startpos-col)
+                                                                       (aset tl__ 5 startpos-coladd)
+                                                                       0)))]
+                                                       (let [startpos-lnum (aget tl__ 3)
+                                                             startpos-col (aget tl__ 4)
+                                                             startpos-coladd (aget tl__ 5)]
+                                                         (let [did-change true
+                                                               _ (del-char ed false)
+                                                               _ (ins-char ed firstdigit)
+                                                               endpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                               endpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                               endpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                               _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)]
+                                                           (do (aset to__ 3 (Boolean/valueOf (boolean did-change)))
+                                                               (aset tl__ 3 startpos-lnum)
+                                                               (aset tl__ 4 startpos-col)
+                                                               (aset tl__ 5 startpos-coladd)
+                                                               (aset tl__ 6 endpos-lnum)
+                                                               (aset tl__ 7 endpos-col)
+                                                               (aset tl__ 8 endpos-coladd)
+                                                               0))))))
+                                                 (do (aset tl__ 11 op-type)
+                                                     (aset tl__ 1 length)
+                                                     (aset tl__ 12 Prenum1)
+                                                     (aset tl__ 0 col)
+                                                     (aset to__ 5 pre)
+                                                     (aset to__ 6 n)
+                                                     (aset to__ 4 ptr)
+                                                     (aset tl__ 13 linelen)
+                                                     (aset to__ 7 (Boolean/valueOf (boolean do-hex)))
+                                                     (aset to__ 8 (Boolean/valueOf (boolean do-oct)))
+                                                     (aset to__ 9 (Boolean/valueOf (boolean do-bin)))
+                                                     (aset to__ 10 (Boolean/valueOf (boolean do-unsigned)))
+                                                     (aset to__ 11 (Boolean/valueOf (boolean do-blank)))
+                                                     (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                                                     (aset tl__ 14 firstdigit)
+                                                     (aset tl__ 2 negative)
+                                                     (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+                                                     (aset tl__ 15 visual)
+                                                     (aset to__ 3 (Boolean/valueOf (boolean did-change)))
+                                                     (aset tl__ 16 maxlen)
+                                                     (aset tl__ 3 startpos-lnum)
+                                                     (aset tl__ 4 startpos-col)
+                                                     (aset tl__ 5 startpos-coladd)
+                                                     (aset to__ 12 buf2)
+                                                     (aset to__ 13 overflow)
+                                                     (do-addsub__r0 ed tl__ to__)))]
+                                      (let [did-change (boolean (aget to__ 3))
+                                            startpos-lnum (aget tl__ 3)
+                                            startpos-col (aget tl__ 4)
+                                            startpos-coladd (aget tl__ 5)
+                                            endpos-lnum (aget tl__ 6)
+                                            endpos-col (aget tl__ 7)
+                                            endpos-coladd (aget tl__ 8)]
+                                        (if (and did-change (== (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_LOCKMARKS)) 0))
+                                          (let [_ (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-lnum)
+                                                _ (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-col)
+                                                _ (.set-coladd ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-coladd)
+                                                _ (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) endpos-lnum)
+                                                _ (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) endpos-col)
+                                                _ (.set-coladd ^T_pos_T (.-b-op-end (g ed curbuf)) endpos-coladd)]
+                                            (if (> (.col ^T_pos_T (.-b-op-end (g ed curbuf))) 0)
+                                              (let [_ (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (dec (.col ^T_pos_T (.-b-op-end (g ed curbuf))))))]
+                                                did-change)
+                                              did-change))
+                                          did-change))))))
+                            1
+                              did-change)))))]
+      (if (zero? visual)
+        (if did-change
+          (let [_ (.set-w-set-curswant (g ed curwin) (boolean true))]
+            did-change)
+          (if (zero? (long (virtual-active ed)))
+            did-change
+            (let [_ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-coladd)]
+              did-change)))
+        (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-lnum)
+              _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-col)
+              _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-coladd)]
+          did-change)))))
+
 ;; C: do_addsub
 (defn do-addsub [^Editor ed op-type ^T_pos_T pos length Prenum1]
   (let [op-type (long op-type)
@@ -65093,503 +71508,68 @@
         ^ints pre (int-array 1)
         ^longs n (long-array 1)
         ^bytes buf2 (byte-array 65)
-        ^ints overflow (int-array 1)]
-    (let [startpos-lnum 0
-          startpos-col 0
-          startpos-coladd 0]
-      (let [^longs tl__ (long-array 11)
-            ^objects to__ (object-array 5)]
-        (let [blank-unsigned false
-              negative (e FALSE)
-              was-positive true
-              visual (g ed VIsual-active)
-              did-change false
-              save-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-              save-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-              save-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
-              maxlen 0
-              save-coladd 0
-              do-hex (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 120))
-              do-oct (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 111))
-              do-bin (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 98))
-              do-alpha (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 112))
-              do-unsigned (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 117))
-              do-blank (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 107))]
-          (let [save-coladd (if (zero? (long (virtual-active ed)))
-                             save-coladd
-                             (let [save-coladd (.coladd pos)
-                                   _ (.set-coladd pos 0)]
-                               save-coladd))]
-            (let [_ (.set ^T_pos_T (.-w-cursor (g ed curwin)) pos)
-                  ^BytePtr ptr (ml-get ed (.lnum pos))
-                  linelen (long (ml-get-len ed (.lnum pos)))
-                  col (.col pos)]
-              (let [did-change (boolean (if (>= (i32 (+ col (if (not (zero? save-coladd)) 1 0))) linelen)
-                                did-change
-                                (let [col (long (if (zero? (g ed VIsual-active))
-                                           (let [col (long (if do-bin
-                                                      (loop [col col]
-                                                        (if (and (> col 0) (vim-isbdigit? ed (bit-and (.at ptr col) 0xff)))
-                                                          (let [col (i32 (dec col))
-                                                                t1 (long (utf-head-off ed ptr (.add ptr col)))
-                                                                col (i32 (- col t1))]
-                                                            (recur col))
-                                                          col))
-                                                      col))]
-                                             (let [col (long (if do-hex
-                                                        (loop [col col]
-                                                          (if (and (> col 0) (vim-isxdigit? ed (bit-and (.at ptr col) 0xff)))
-                                                            (let [col (i32 (dec col))
-                                                                  t2 (long (utf-head-off ed ptr (.add ptr col)))
-                                                                  col (i32 (- col t2))]
-                                                              (recur col))
-                                                            col))
-                                                        col))]
-                                               (let [col (long (if (and (and do-bin do-hex) (not (and (and (and (and (> col 0) (or (== (bit-and (.at ptr col) 0xff) 88) (== (bit-and (.at ptr col) 0xff) 120))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff)))))
-                                                          (let [col (.col pos)]
-                                                            (loop [col col]
-                                                              (if (and (> col 0) (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))
-                                                                (let [col (i32 (dec col))
-                                                                      t3 (long (utf-head-off ed ptr (.add ptr col)))
-                                                                      col (i32 (- col t3))]
-                                                                  (recur col))
-                                                                col)))
-                                                          col))]
-                                                 (if (or (and (and (and (and (and do-hex (> col 0)) (or (== (bit-and (.at ptr col) 0xff) 88) (== (bit-and (.at ptr col) 0xff) 120))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff))) (and (and (and (and (and do-bin (> col 0)) (or (== (bit-and (.at ptr col) 0xff) 66) (== (bit-and (.at ptr col) 0xff) 98))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isbdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff))))
-                                                   (let [col (i32 (dec col))
-                                                         t4 (long (utf-head-off ed ptr (.add ptr col)))
-                                                         col (i32 (- col t4))]
-                                                     col)
-                                                   (let [col (.col pos)]
-                                                     (let [l__1 (loop [col col]
-                                                                 (if (and (and (not (== (bit-and (.at ptr col) 0xff) (e NUL))) (not (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
-                                                                   (let [t5 (long (utfc-ptr2len ed (.add ptr col)))
-                                                                         col (i32 (+ col t5))]
-                                                                     (recur col))
-                                                                   (do (aset tl__ 0 col)
-                                                                       0)))]
-                                                       (let [col (aget tl__ 0)]
-                                                         (loop [col col]
-                                                           (if (and (and (> col 0) (vim-isdigit? ed (bit-and (.at ptr (i32 (- col 1))) 0xff))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
-                                                             (let [col (i32 (dec col))
-                                                                   t6 (long (utf-head-off ed ptr (.add ptr col)))
-                                                                   col (i32 (- col t6))]
-                                                               (recur col))
-                                                             col)))))))))
-                                           col))]
-                                  (let [j__3 (if (zero? visual)
-                                              (do (aset tl__ 1 length)
-                                                  (aset tl__ 0 col)
-                                                  (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                  (aset tl__ 2 negative)
-                                                  (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                                  0)
-                                              (let [l__2 (loop [length length
-                                                               col col]
-                                                          (if (and (and (and (not (== (bit-and (.at ptr col) 0xff) (e NUL))) (> length 0)) (not (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
-                                                            (let [mb-len (long (utfc-ptr2len ed (.add ptr col)))
-                                                                  col (i32 (+ col mb-len))
-                                                                  length (i32 (- length mb-len))]
-                                                              (recur length col))
-                                                            (do (aset tl__ 1 length)
-                                                                (aset tl__ 0 col)
-                                                                0)))]
-                                                (let [length (aget tl__ 1)
-                                                      col (aget tl__ 0)]
-                                                  (if (== length 0)
-                                                    1
-                                                    (if (and (and (and (> col (.col pos)) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (not do-unsigned))
-                                                      (if (and (and do-blank (>= col 2)) (not (or (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 32) (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 9))))
-                                                        (let [blank-unsigned true]
-                                                          (do (aset tl__ 1 length)
-                                                              (aset tl__ 0 col)
-                                                              (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                              (aset tl__ 2 negative)
-                                                              (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                                              0))
-                                                        (let [negative (e TRUE)
-                                                              was-positive false]
-                                                          (do (aset tl__ 1 length)
-                                                              (aset tl__ 0 col)
-                                                              (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                              (aset tl__ 2 negative)
-                                                              (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                                              0)))
-                                                      (do (aset tl__ 1 length)
-                                                          (aset tl__ 0 col)
-                                                          (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                          (aset tl__ 2 negative)
-                                                          (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                                          0))))))]
-                                    (case (long j__3)
-                                      0
-                                        (let [length (aget tl__ 1)
-                                              col (aget tl__ 0)
-                                              blank-unsigned (boolean (aget to__ 1))
-                                              negative (aget tl__ 2)
-                                              was-positive (boolean (aget to__ 2))]
-                                          (let [firstdigit (bit-and (.at ptr col) 0xff)]
-                                            (if (and (not (< (u32 (- (u32 firstdigit) 48)) 10)) (not (and do-alpha (or (< (u32 (- (u32 firstdigit) 65)) 26) (< (u32 (- (u32 firstdigit) 97)) 26)))))
-                                              (let [_ (beep-flush ed)]
-                                                did-change)
-                                              (let [j__13 (if (and do-alpha (or (< (u32 (- (u32 firstdigit) 65)) 26) (< (u32 (- (u32 firstdigit) 97)) 26)))
-                                                           (let [firstdigit (if (== op-type (e OP_NR_SUB))
-                                                                             (if (< (if (< firstdigit 97) (i32 (- firstdigit 65)) (i32 (- firstdigit 97))) Prenum1)
-                                                                               (if (musl-isupper? ed (u8 firstdigit))
-                                                                                 (let [firstdigit 65]
-                                                                                   firstdigit)
-                                                                                 (let [firstdigit 97]
-                                                                                   firstdigit))
-                                                                               (let [firstdigit (i32 (- firstdigit Prenum1))]
-                                                                                 firstdigit))
-                                                                             (if (< (i32 (- (i32 (- 26 (if (< firstdigit 97) (i32 (- firstdigit 65)) (i32 (- firstdigit 97))))) 1)) Prenum1)
-                                                                               (if (musl-isupper? ed (u8 firstdigit))
-                                                                                 (let [firstdigit 90]
-                                                                                   firstdigit)
-                                                                                 (let [firstdigit 122]
-                                                                                   firstdigit))
-                                                                               (let [firstdigit (i32 (+ firstdigit Prenum1))]
-                                                                                 firstdigit)))]
-                                                             (let [_ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)]
-                                                               (let [j__4 (if did-change
-                                                                           (do (aset tl__ 3 startpos-lnum)
-                                                                               (aset tl__ 4 startpos-col)
-                                                                               (aset tl__ 5 startpos-coladd)
-                                                                               0)
-                                                                           (let [startpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                 startpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                 startpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-                                                                             (do (aset tl__ 3 startpos-lnum)
-                                                                                 (aset tl__ 4 startpos-col)
-                                                                                 (aset tl__ 5 startpos-coladd)
-                                                                                 0)))]
-                                                                 (let [startpos-lnum (aget tl__ 3)
-                                                                       startpos-col (aget tl__ 4)
-                                                                       startpos-coladd (aget tl__ 5)]
-                                                                   (let [did-change true
-                                                                         _ (del-char ed false)
-                                                                         _ (ins-char ed firstdigit)
-                                                                         endpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                         endpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                         endpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                         _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)]
-                                                                     (do (aset to__ 3 (Boolean/valueOf (boolean did-change)))
-                                                                         (aset tl__ 3 startpos-lnum)
-                                                                         (aset tl__ 4 startpos-col)
-                                                                         (aset tl__ 5 startpos-coladd)
-                                                                         (aset tl__ 6 endpos-lnum)
-                                                                         (aset tl__ 7 endpos-col)
-                                                                         (aset tl__ 8 endpos-coladd)
-                                                                         0))))))
-                                                           (let [j__5 (if (and (and (and (and (> col 0) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (zero? visual)) (not do-unsigned))
-                                                                       (if (and (and do-blank (>= col 2)) (not (or (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 32) (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 9))))
-                                                                         (let [blank-unsigned true]
-                                                                           (do (aset tl__ 0 col)
-                                                                               (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                                               (aset tl__ 2 negative)
-                                                                               0))
-                                                                         (let [col (i32 (dec col))
-                                                                               negative (e TRUE)]
-                                                                           (do (aset tl__ 0 col)
-                                                                               (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                                               (aset tl__ 2 negative)
-                                                                               0)))
-                                                                       (do (aset tl__ 0 col)
-                                                                           (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                                                           (aset tl__ 2 negative)
-                                                                           0))]
-                                                             (let [col (aget tl__ 0)
-                                                                   blank-unsigned (boolean (aget to__ 1))
-                                                                   negative (aget tl__ 2)]
-                                                               (let [maxlen (if (and (not (zero? visual)) (not (== (g ed VIsual-mode) 86)))
-                                                                             (let [maxlen (if (== (.vi-curswant ^T_visualinfo_T (.-b-visual (g ed curbuf))) (e MAXCOL)) (i32 (- linelen col)) length)]
-                                                                               maxlen)
-                                                                             maxlen)]
-                                                                 (let [_ (aset overflow 0 (unchecked-int (e FALSE)))
-                                                                       length (long (vim-str2nr ed (.add ptr col) (IntPtr. pre 0) length (i32 (+ (i32 (+ (i32 (+ 0 (if do-bin (e STR2NR_BIN) 0))) (if do-oct (e STR2NR_OCT) 0))) (if do-hex (e STR2NR_HEX) 0))) nil (LongPtr. n 0) maxlen false (IntPtr. overflow 0)))]
-                                                                   (let [j__6 (if (and (not (zero? (long (aget pre 0)))) (not (zero? negative)))
-                                                                               (let [col (i32 (inc col))
-                                                                                     length (i32 (dec length))
-                                                                                     negative (e FALSE)]
-                                                                                 (do (aset tl__ 1 length)
-                                                                                     (aset tl__ 0 col)
-                                                                                     (aset tl__ 2 negative)
-                                                                                     0))
-                                                                               (do (aset tl__ 1 length)
-                                                                                   (aset tl__ 0 col)
-                                                                                   (aset tl__ 2 negative)
-                                                                                   0))]
-                                                                     (let [length (aget tl__ 1)
-                                                                           col (aget tl__ 0)
-                                                                           negative (aget tl__ 2)]
-                                                                       (let [subtract (e FALSE)]
-                                                                         (let [subtract (if (== op-type (e OP_NR_SUB))
-                                                                                         (let [subtract (bit-xor subtract (e TRUE))]
-                                                                                           subtract)
-                                                                                         subtract)]
-                                                                           (let [subtract (if (zero? negative)
-                                                                                           subtract
-                                                                                           (let [subtract (bit-xor subtract (e TRUE))]
-                                                                                             subtract))]
-                                                                             (let [oldn (aget n 0)]
-                                                                               (do (if (zero? (long (aget overflow 0)))
-                                                                                     (if (zero? subtract)
-                                                                                       (let [_ (aset n 0 (+ (aget n 0) Prenum1))]
-                                                                                         nil)
-                                                                                       (let [_ (aset n 0 (- (aget n 0) Prenum1))]
-                                                                                         nil))
-                                                                                     nil)
-                                                                                 (let [negative (if (zero? (long (aget pre 0)))
-                                                                                                 (let [negative (if (zero? subtract)
-                                                                                                                 (if (< (Long/compareUnsigned (aget n 0) oldn) 0)
-                                                                                                                   (let [_ (aset n 0 (bit-xor (aget n 0) -1))
-                                                                                                                         negative (bit-xor negative (e TRUE))]
-                                                                                                                     negative)
-                                                                                                                   negative)
-                                                                                                                 (if (> (Long/compareUnsigned (aget n 0) oldn) 0)
-                                                                                                                   (let [_ (aset n 0 (+ 1 (bit-xor (aget n 0) -1)))
-                                                                                                                         negative (bit-xor negative (e TRUE))]
-                                                                                                                     negative)
-                                                                                                                   negative))]
-                                                                                                   (if (== (aget n 0) 0)
-                                                                                                     (let [negative (e FALSE)]
-                                                                                                       negative)
-                                                                                                     negative))
-                                                                                                 negative)]
-                                                                                   (let [negative (if (and (or do-unsigned blank-unsigned) (not (zero? negative)))
-                                                                                                   (do (if (zero? subtract)
-                                                                                                         (let [_ (aset n 0 -1)]
-                                                                                                           nil)
-                                                                                                         (let [_ (aset n 0 0)]
-                                                                                                           nil))
-                                                                                                     (let [negative (e FALSE)]
-                                                                                                       negative))
-                                                                                                   negative)]
-                                                                                     (let [j__7 (if (and (and (and (not (zero? visual)) (not was-positive)) (zero? negative)) (> col 0))
-                                                                                                 (let [col (i32 (dec col))
-                                                                                                       length (i32 (inc length))]
-                                                                                                   (do (aset tl__ 1 length)
-                                                                                                       (aset tl__ 0 col)
-                                                                                                       0))
-                                                                                                 (do (aset tl__ 1 length)
-                                                                                                     (aset tl__ 0 col)
-                                                                                                     0))]
-                                                                                       (let [length (aget tl__ 1)
-                                                                                             col (aget tl__ 0)]
-                                                                                         (let [_ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)]
-                                                                                           (let [j__8 (if did-change
-                                                                                                       (do (aset tl__ 3 startpos-lnum)
-                                                                                                           (aset tl__ 4 startpos-col)
-                                                                                                           (aset tl__ 5 startpos-coladd)
-                                                                                                           0)
-                                                                                                       (let [startpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                             startpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                             startpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-                                                                                                         (do (aset tl__ 3 startpos-lnum)
-                                                                                                             (aset tl__ 4 startpos-col)
-                                                                                                             (aset tl__ 5 startpos-coladd)
-                                                                                                             0)))]
-                                                                                             (let [startpos-lnum (aget tl__ 3)
-                                                                                                   startpos-col (aget tl__ 4)
-                                                                                                   startpos-coladd (aget tl__ 5)]
-                                                                                               (let [did-change true
-                                                                                                     todel length
-                                                                                                     c (long (gchar-cursor ed))]
-                                                                                                 (let [length (if (== c 45)
-                                                                                                               (let [length (i32 (dec length))]
-                                                                                                                 length)
-                                                                                                               length)]
-                                                                                                   (let [save-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                         save-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                         save-pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                         i 0]
-                                                                                                     (do (loop [c c
-                                                                                                                i i]
-                                                                                                           (if (< i todel)
-                                                                                                             (do (if (and (< c 256) (musl-isalpha? ed (u8 c)))
-                                                                                                                   (if (musl-isupper? ed (u8 c))
-                                                                                                                     (let [_ (g! ed do-addsub-hexupper true)]
-                                                                                                                       nil)
-                                                                                                                     (let [_ (g! ed do-addsub-hexupper false)]
-                                                                                                                       nil))
-                                                                                                                   nil)
-                                                                                                               (let [_ (long (inc-cursor ed))
-                                                                                                                     c (long (gchar-cursor ed))]
-                                                                                                                 (let [i (i32 (inc i))]
-                                                                                                                   (recur c i))))
-                                                                                                             nil))
-                                                                                                       (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-lnum)
-                                                                                                             _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-col)
-                                                                                                             _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-coladd)
-                                                                                                             ^BytePtr buf1 (BytePtr/alloc (i32 (+ length (e NUMBUFLEN))))
-                                                                                                             ^BytePtr ptr buf1]
-                                                                                                         (let [^BytePtr ptr (if (and (not (zero? negative)) (or (zero? visual) was-positive))
-                                                                                                                             (let [^BytePtr t7 ptr
-                                                                                                                                   ^BytePtr ptr (.add ptr 1)
-                                                                                                                                   _ (.put t7 (unchecked-byte 45))]
-                                                                                                                               ptr)
-                                                                                                                             ptr)]
-                                                                                                           (let [j__9 (if (zero? (long (aget pre 0)))
-                                                                                                                       (do (aset tl__ 1 length)
-                                                                                                                           (aset to__ 4 ptr)
-                                                                                                                           0)
-                                                                                                                       (let [^BytePtr t8 ptr
-                                                                                                                             ^BytePtr ptr (.add ptr 1)
-                                                                                                                             _ (.put t8 (unchecked-byte 48))
-                                                                                                                             length (i32 (dec length))]
-                                                                                                                         (do (aset tl__ 1 length)
-                                                                                                                             (aset to__ 4 ptr)
-                                                                                                                             0)))]
-                                                                                                             (let [length (aget tl__ 1)
-                                                                                                                   ^BytePtr ptr (aget to__ 4)]
-                                                                                                               (let [j__10 (if (or (or (or (== (long (aget pre 0)) 98) (== (long (aget pre 0)) 66)) (== (long (aget pre 0)) 120)) (== (long (aget pre 0)) 88))
-                                                                                                                            (let [^BytePtr t9 ptr
-                                                                                                                                  ^BytePtr ptr (.add ptr 1)
-                                                                                                                                  _ (.put t9 (unchecked-byte (u8 (long (aget pre 0)))))
-                                                                                                                                  length (i32 (dec length))]
-                                                                                                                              (do (aset tl__ 1 length)
-                                                                                                                                  (aset to__ 4 ptr)
-                                                                                                                                  0))
-                                                                                                                            (do (aset tl__ 1 length)
-                                                                                                                                (aset to__ 4 ptr)
-                                                                                                                                0))]
-                                                                                                                 (let [length (aget tl__ 1)
-                                                                                                                       ^BytePtr ptr (aget to__ 4)]
-                                                                                                                   (let [buf2len (long (if (or (== (long (aget pre 0)) 98) (== (long (aget pre 0)) 66))
-                                                                                                                                  (let [bit 0
-                                                                                                                                        bits 64
-                                                                                                                                        bit bits]
-                                                                                                                                    (let [l__11 (loop [bit bit]
-                                                                                                                                                 (if (> bit 0)
-                                                                                                                                                   (if (zero? (bit-and (unsigned-bit-shift-right (aget n 0) (i32 (- bit 1))) 1))
-                                                                                                                                                     (let [bit (i32 (dec bit))]
-                                                                                                                                                       (recur bit))
-                                                                                                                                                     (do (aset tl__ 9 bit)
-                                                                                                                                                         0))
-                                                                                                                                                   (do (aset tl__ 9 bit)
-                                                                                                                                                       0)))]
-                                                                                                                                      (let [bit (aget tl__ 9)]
-                                                                                                                                        (let [buf2len 0]
-                                                                                                                                          (let [l__12 (loop [buf2len buf2len
-                                                                                                                                                            bit bit]
-                                                                                                                                                       (if (and (> bit 0) (< buf2len 64))
-                                                                                                                                                         (let [t10 buf2len
-                                                                                                                                                               buf2len (i32 (inc buf2len))
-                                                                                                                                                               _ (aset buf2 t10 (unchecked-byte (u8 (if (zero? (bit-and (unsigned-bit-shift-right (aget n 0) (i32 (- bit 1))) 1)) 48 49))))]
-                                                                                                                                                           (let [bit (i32 (dec bit))]
-                                                                                                                                                             (recur buf2len bit)))
-                                                                                                                                                         (do (aset tl__ 10 buf2len)
-                                                                                                                                                             0)))]
-                                                                                                                                            (let [buf2len (aget tl__ 10)]
-                                                                                                                                              (let [_ (aset buf2 buf2len (unchecked-byte (e NUL)))]
-                                                                                                                                                buf2len)))))))
-                                                                                                                                  (if (== (long (aget pre 0)) 0)
-                                                                                                                                    (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llu") (object-array [(Long/valueOf (aget n 0))])))]
-                                                                                                                                      buf2len)
-                                                                                                                                    (if (== (long (aget pre 0)) 48)
-                                                                                                                                      (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llo") (object-array [(Long/valueOf (aget n 0))])))]
-                                                                                                                                        buf2len)
-                                                                                                                                      (if (and (not (zero? (long (aget pre 0)))) (g ed do-addsub-hexupper))
-                                                                                                                                        (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llX") (object-array [(Long/valueOf (aget n 0))])))]
-                                                                                                                                          buf2len)
-                                                                                                                                        (let [buf2len (long (whim.cljhost/vim-snprintf ed (BytePtr. buf2 0) (e NUMBUFLEN) (BytePtr/lit "%llx") (object-array [(Long/valueOf (aget n 0))])))]
-                                                                                                                                          buf2len))))))]
-                                                                                                                     (let [length (i32 (- length buf2len))]
-                                                                                                                       (let [^BytePtr ptr (if (and (== firstdigit 48) (not (and do-oct (== (long (aget pre 0)) 0))))
-                                                                                                                                           (loop [length length
-                                                                                                                                                  ^BytePtr ptr ptr]
-                                                                                                                                             (let [t11 length
-                                                                                                                                                   length (i32 (dec length))]
-                                                                                                                                               (if (> t11 0)
-                                                                                                                                                 (let [^BytePtr t12 ptr
-                                                                                                                                                       ^BytePtr ptr (.add ptr 1)
-                                                                                                                                                       _ (.put t12 (unchecked-byte 48))]
-                                                                                                                                                   (recur length ptr))
-                                                                                                                                                 ptr)))
-                                                                                                                                           ptr)]
-                                                                                                                         (let [_ (.put ptr (unchecked-byte (e NUL)))
-                                                                                                                               buf1len (i32 (.sub ptr buf1))
-                                                                                                                               _ (musl-strcpy ed (.add buf1 buf1len) (BytePtr. buf2 0))
-                                                                                                                               buf1len (i32 (+ buf1len buf2len))
-                                                                                                                               save-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                                               save-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                                               save-pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-                                                                                                                           (do (if (> todel 0)
-                                                                                                                                 (let [_ (long (inc-cursor ed))]
-                                                                                                                                   nil)
-                                                                                                                                 nil)
-                                                                                                                             (let [_ (ins-str ed buf1 buf1len)]
-                                                                                                                               (let [todel (if (> todel 0)
-                                                                                                                                            (let [bytes-after (i32 (- (long (ml-get-curline-len ed)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))))
-                                                                                                                                                  _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-lnum)
-                                                                                                                                                  _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-col)
-                                                                                                                                                  _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-coladd)
-                                                                                                                                                  _ (del-char ed false)
-                                                                                                                                                  _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (- (long (ml-get-curline-len ed)) bytes-after)))
-                                                                                                                                                  todel (i32 (dec todel))]
-                                                                                                                                              todel)
-                                                                                                                                            todel)]
-                                                                                                                                 (do (loop [todel todel]
-                                                                                                                                       (let [t13 todel
-                                                                                                                                             todel (i32 (dec todel))]
-                                                                                                                                         (if (> t13 0)
-                                                                                                                                           (let [_ (del-char ed false)]
-                                                                                                                                             (recur todel))
-                                                                                                                                           nil)))
-                                                                                                                                   (let [endpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                                                         endpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                                                                                         endpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-                                                                                                                                     (if (and did-change (not (zero? (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
-                                                                                                                                       (let [_ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))]
-                                                                                                                                         (do (aset to__ 3 (Boolean/valueOf (boolean did-change)))
-                                                                                                                                             (aset tl__ 3 startpos-lnum)
-                                                                                                                                             (aset tl__ 4 startpos-col)
-                                                                                                                                             (aset tl__ 5 startpos-coladd)
-                                                                                                                                             (aset tl__ 6 endpos-lnum)
-                                                                                                                                             (aset tl__ 7 endpos-col)
-                                                                                                                                             (aset tl__ 8 endpos-coladd)
-                                                                                                                                             0))
-                                                                                                                                       (do (aset to__ 3 (Boolean/valueOf (boolean did-change)))
-                                                                                                                                           (aset tl__ 3 startpos-lnum)
-                                                                                                                                           (aset tl__ 4 startpos-col)
-                                                                                                                                           (aset tl__ 5 startpos-coladd)
-                                                                                                                                           (aset tl__ 6 endpos-lnum)
-                                                                                                                                           (aset tl__ 7 endpos-col)
-                                                                                                                                           (aset tl__ 8 endpos-coladd)
-                                                                                                                                           0))))))))))))))))))))))))))))))))))))))))]
-                                                (let [did-change (boolean (aget to__ 3))
-                                                      startpos-lnum (aget tl__ 3)
-                                                      startpos-col (aget tl__ 4)
-                                                      startpos-coladd (aget tl__ 5)
-                                                      endpos-lnum (aget tl__ 6)
-                                                      endpos-col (aget tl__ 7)
-                                                      endpos-coladd (aget tl__ 8)]
-                                                  (if (and did-change (== (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_LOCKMARKS)) 0))
-                                                    (let [_ (.set-lnum ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-lnum)
-                                                          _ (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-col)
-                                                          _ (.set-coladd ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-coladd)
-                                                          _ (.set-lnum ^T_pos_T (.-b-op-end (g ed curbuf)) endpos-lnum)
-                                                          _ (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) endpos-col)
-                                                          _ (.set-coladd ^T_pos_T (.-b-op-end (g ed curbuf)) endpos-coladd)]
-                                                      (if (> (.col ^T_pos_T (.-b-op-end (g ed curbuf))) 0)
-                                                        (let [_ (.set-col ^T_pos_T (.-b-op-end (g ed curbuf)) (i32 (dec (.col ^T_pos_T (.-b-op-end (g ed curbuf))))))]
-                                                          did-change)
-                                                        did-change))
-                                                    did-change))))))
-                                      1
-                                        did-change)))))]
-                (if (zero? visual)
-                  (if did-change
-                    (let [_ (.set-w-set-curswant (g ed curwin) (boolean true))]
-                      did-change)
-                    (if (zero? (long (virtual-active ed)))
-                      did-change
-                      (let [_ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-coladd)]
-                        did-change)))
-                  (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-lnum)
-                        _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-col)
-                        _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-coladd)]
-                    did-change))))))))))
+        ^ints overflow (int-array 1)
+        startpos-lnum 0
+        startpos-col 0
+        startpos-coladd 0
+        ^longs tl__ (long-array 21)
+        ^objects to__ (object-array 16)
+        blank-unsigned false
+        negative (e FALSE)
+        was-positive true
+        visual (g ed VIsual-active)
+        did-change false
+        save-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+        save-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+        save-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
+        maxlen 0
+        save-coladd 0
+        do-hex (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 120))
+        do-oct (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 111))
+        do-bin (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 98))
+        do-alpha (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 112))
+        do-unsigned (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 117))
+        do-blank (some? (vim-strchr ed (aget ^objects (.-b-p-nf (g ed curbuf)) 0) 107))
+        save-coladd (if (zero? (long (virtual-active ed)))
+                      save-coladd
+                      (let [save-coladd (.coladd pos)]
+                        (.set-coladd pos 0)
+                        save-coladd))]
+    (.set ^T_pos_T (.-w-cursor (g ed curwin)) pos)
+    (let [^BytePtr ptr (ml-get ed (.lnum pos))
+          linelen (long (ml-get-len ed (.lnum pos)))
+          col (.col pos)]
+      (aset tl__ 11 op-type)
+      (aset to__ 14 pos)
+      (aset tl__ 1 length)
+      (aset tl__ 12 Prenum1)
+      (aset tl__ 0 col)
+      (aset to__ 5 pre)
+      (aset to__ 6 n)
+      (aset to__ 4 ptr)
+      (aset tl__ 13 linelen)
+      (aset to__ 7 (Boolean/valueOf (boolean do-hex)))
+      (aset to__ 8 (Boolean/valueOf (boolean do-oct)))
+      (aset to__ 9 (Boolean/valueOf (boolean do-bin)))
+      (aset to__ 15 (Boolean/valueOf (boolean do-alpha)))
+      (aset to__ 10 (Boolean/valueOf (boolean do-unsigned)))
+      (aset to__ 11 (Boolean/valueOf (boolean do-blank)))
+      (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+      (aset tl__ 2 negative)
+      (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+      (aset tl__ 15 visual)
+      (aset to__ 3 (Boolean/valueOf (boolean did-change)))
+      (aset tl__ 17 save-cursor-lnum)
+      (aset tl__ 18 save-cursor-col)
+      (aset tl__ 19 save-cursor-coladd)
+      (aset tl__ 16 maxlen)
+      (aset tl__ 3 startpos-lnum)
+      (aset tl__ 4 startpos-col)
+      (aset tl__ 5 startpos-coladd)
+      (aset tl__ 20 save-coladd)
+      (aset to__ 12 buf2)
+      (aset to__ 13 overflow)
+      (boolean (do-addsub__r1 ed tl__ to__)))))
 
 ;; C: op_addsub
 (defn op-addsub [^Editor ed ^S_oparg_S oap ^long Prenum1 ^long g-cmd]
@@ -66936,6 +72916,1241 @@
               ^BytePtr d (aget to__ 1)]
           (recur s d))))))
 
+(defn- do-map__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
+        ^objects mp-result (aget fo__ 26)
+        ^ints did-simplify (aget fo__ 27)
+        ^bytes keys-unescaped (aget fo__ 28)
+        ^longs tl__ (long-array 2)
+        ^objects to__ (object-array 3)]
+    (loop [st st0__]
+      (case st
+        0
+          (let [maptype (aget fl__ 0)
+                ^BytePtr arg (aget fo__ 1)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                len (aget fl__ 3)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                special (boolean (aget fo__ 18))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)]
+            (java.util.Arrays/fill mp-result nil)
+            (let [len 0
+                  ^BytePtr alt-keys-buf nil
+                  retval 0
+                  unique false
+                  nowait false
+                  silent false
+                  special false
+                  _ (aset did-simplify 0 (unchecked-int (e FALSE)))
+                  unmap-lhs-only false
+                  ^BytePtr keys_ arg
+                  ^Ptr map-table (Ptr. (g ed maphash) 0)
+                  ^Ptr abbr-table (Ptr. (g ed first-abbr) 0)
+                  j__10 (if (== maptype (e MAPTYPE_UNMAP_LHS))
+                          (let [unmap-lhs-only true
+                                maptype (e MAPTYPE_UNMAP)]
+                            (aset tl__ 0 maptype)
+                            (aset to__ 0 (Boolean/valueOf (boolean unmap-lhs-only)))
+                            0)
+                          (do (aset tl__ 0 maptype)
+                              (aset to__ 0 (Boolean/valueOf (boolean unmap-lhs-only)))
+                              0))
+                  maptype (aget tl__ 0)
+                  unmap-lhs-only (boolean (aget to__ 0))]
+              (if (== maptype (e MAPTYPE_NOREMAP))
+                (let [noremap -1]
+                  (aset fl__ 0 maptype)
+                  (aset fo__ 3 keys_)
+                  (aset fl__ 3 len)
+                  (aset fo__ 11 alt-keys-buf)
+                  (aset fl__ 5 retval)
+                  (aset fo__ 13 abbr-table)
+                  (aset fo__ 14 map-table)
+                  (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                  (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                  (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                  (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                  (aset fo__ 19 (Boolean/valueOf (boolean unmap-lhs-only)))
+                  (aset fl__ 6 noremap)
+                  (recur 1))
+                (let [noremap (e REMAP_YES)]
+                  (aset fl__ 0 maptype)
+                  (aset fo__ 3 keys_)
+                  (aset fl__ 3 len)
+                  (aset fo__ 11 alt-keys-buf)
+                  (aset fl__ 5 retval)
+                  (aset fo__ 13 abbr-table)
+                  (aset fo__ 14 map-table)
+                  (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                  (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                  (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                  (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                  (aset fo__ 19 (Boolean/valueOf (boolean unmap-lhs-only)))
+                  (aset fl__ 6 noremap)
+                  (recur 1)))))
+        1
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr p (aget fo__ 7)
+                len (aget fl__ 3)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                do-backslash (boolean (aget fo__ 12))
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                special (boolean (aget fo__ 18))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)]
+            (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<buffer>") 8)) 0)
+              (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+                    ^Ptr map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)
+                    ^Ptr abbr-table (Ptr. ^objects (.-b-first-abbr (g ed curbuf)) 0)]
+                (aset fo__ 3 keys_)
+                (aset fo__ 7 p)
+                (aset fo__ 12 (Boolean/valueOf (boolean do-backslash)))
+                (aset fo__ 13 abbr-table)
+                (aset fo__ 14 map-table)
+                (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                (recur 1))
+              (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<nowait>") 8)) 0)
+                (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+                      nowait true]
+                  (aset fo__ 3 keys_)
+                  (aset fo__ 7 p)
+                  (aset fo__ 12 (Boolean/valueOf (boolean do-backslash)))
+                  (aset fo__ 13 abbr-table)
+                  (aset fo__ 14 map-table)
+                  (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                  (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                  (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                  (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                  (recur 1))
+                (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<silent>") 8)) 0)
+                  (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+                        silent true]
+                    (aset fo__ 3 keys_)
+                    (aset fo__ 7 p)
+                    (aset fo__ 12 (Boolean/valueOf (boolean do-backslash)))
+                    (aset fo__ 13 abbr-table)
+                    (aset fo__ 14 map-table)
+                    (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                    (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                    (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                    (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                    (recur 1))
+                  (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<special>") 9)) 0)
+                    (let [^BytePtr keys_ (skipwhite ed (.add keys_ 9))
+                          special true]
+                      (aset fo__ 3 keys_)
+                      (aset fo__ 7 p)
+                      (aset fo__ 12 (Boolean/valueOf (boolean do-backslash)))
+                      (aset fo__ 13 abbr-table)
+                      (aset fo__ 14 map-table)
+                      (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                      (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                      (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                      (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                      (recur 1))
+                    (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<unique>") 8)) 0)
+                      (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+                            unique true]
+                        (aset fo__ 3 keys_)
+                        (aset fo__ 7 p)
+                        (aset fo__ 12 (Boolean/valueOf (boolean do-backslash)))
+                        (aset fo__ 13 abbr-table)
+                        (aset fo__ 14 map-table)
+                        (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                        (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                        (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                        (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                        (recur 1))
+                      (do (validate-maphash ed)
+                          (let [^BytePtr p keys_
+                                do-backslash (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BSLASH)))]
+                            (aset fo__ 3 keys_)
+                            (aset fo__ 7 p)
+                            (aset fo__ 12 (Boolean/valueOf (boolean do-backslash)))
+                            (aset fo__ 13 abbr-table)
+                            (aset fo__ 14 map-table)
+                            (aset fo__ 15 (Boolean/valueOf (boolean unique)))
+                            (aset fo__ 16 (Boolean/valueOf (boolean nowait)))
+                            (aset fo__ 17 (Boolean/valueOf (boolean silent)))
+                            (aset fo__ 18 (Boolean/valueOf (boolean special)))
+                            (recur 2)))))))))
+        2
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                ^BytePtr p (aget fo__ 7)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                do-backslash (boolean (aget fo__ 12))
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                special (boolean (aget fo__ 18))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)]
+            (if (and (not (zero? (bit-and (.get p) 0xff))) (or (== maptype (e MAPTYPE_UNMAP)) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))))
+              (let [^BytePtr p (if (and (or (== (bit-and (.at p 0) 0xff) (e Ctrl_V)) (and do-backslash (== (bit-and (.at p 0) 0xff) 92))) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
+                                 ^BytePtr (.add p 1)
+                                 p)
+                    ^BytePtr p (.add p 1)]
+                (aset fo__ 3 keys_)
+                (aset fo__ 6 rhs)
+                (aset fo__ 7 p)
+                (aset fo__ 8 (Boolean/valueOf (boolean hasarg)))
+                (aset fo__ 9 (Boolean/valueOf (boolean haskey)))
+                (aset fo__ 10 (Boolean/valueOf (boolean do-print)))
+                (aset fl__ 4 keyround)
+                (aset fo__ 11 alt-keys-buf)
+                (aset fl__ 5 retval)
+                (aset fo__ 20 orig-rhs)
+                (recur 2))
+              (let [^BytePtr p (if (== (bit-and (.get p) 0xff) (e NUL))
+                                 p
+                                 (let [^BytePtr t1 p
+                                       ^BytePtr p (.add p 1)]
+                                   (.put t1 (unchecked-byte (e NUL)))
+                                   p))
+                    ^BytePtr p (skipwhite ed p)
+                    ^BytePtr rhs p
+                    hasarg (not (== (bit-and (.get rhs) 0xff) (e NUL)))
+                    haskey (not (== (bit-and (.get keys_) 0xff) (e NUL)))
+                    do-print (or (not haskey) (and (not (== maptype (e MAPTYPE_UNMAP))) (not hasarg)))]
+                (if (and (== maptype (e MAPTYPE_UNMAP)) (not haskey))
+                  (let [retval 1]
+                    (aset fo__ 0 (Long/valueOf retval))
+                    -1)
+                  (let [j__11 (if haskey
+                                (let [flags 3
+                                      flags (if special
+                                              (bit-or flags (e REPTERM_SPECIAL))
+                                              flags)]
+                                  (.set replace-termcodes__o (replace-termcodes ed keys_ 0 flags (IntPtr. did-simplify 0)))
+                                  (let [^BytePtr new-keys (.r__ replace-termcodes__o)
+                                        ^BytePtr alt-keys-buf (if (zero? (long (aget did-simplify 0)))
+                                                                alt-keys-buf
+                                                                (do (.set replace-termcodes__o (replace-termcodes ed keys_ 0 (bit-or flags (e REPTERM_NO_SIMPLIFY)) nil))
+                                                                    ^BytePtr (.bufp replace-termcodes__o)))
+                                        ^BytePtr keys_ new-keys]
+                                    (aset to__ 1 keys_)
+                                    (aset to__ 2 alt-keys-buf)
+                                    0))
+                                (do (aset to__ 1 keys_)
+                                    (aset to__ 2 alt-keys-buf)
+                                    0))
+                        ^BytePtr keys_ (aget to__ 1)
+                        ^BytePtr alt-keys-buf (aget to__ 2)
+                        ^BytePtr orig-rhs rhs
+                        ^BytePtr rhs (if hasarg
+                                       (if (== (long (musl-strcasecmp ed rhs (BytePtr/lit "<nop>"))) 0)
+                                         ^BytePtr (BytePtr/lit "")
+                                         (do (.set replace-termcodes__o (replace-termcodes ed rhs 0 (bit-or (e REPTERM_DO_LT) (if special (e REPTERM_SPECIAL) 0)) nil))
+                                             ^BytePtr (.r__ replace-termcodes__o)))
+                                       rhs)
+                        keyround 1]
+                    (aset fo__ 3 keys_)
+                    (aset fo__ 6 rhs)
+                    (aset fo__ 7 p)
+                    (aset fo__ 8 (Boolean/valueOf (boolean hasarg)))
+                    (aset fo__ 9 (Boolean/valueOf (boolean haskey)))
+                    (aset fo__ 10 (Boolean/valueOf (boolean do-print)))
+                    (aset fl__ 4 keyround)
+                    (aset fo__ 11 alt-keys-buf)
+                    (aset fl__ 5 retval)
+                    (aset fo__ 20 orig-rhs)
+                    (recur 3))))))
+        3
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))]
+            (if (<= keyround 2)
+              (let [did-it false
+                    did-local (e FALSE)
+                    keyround1-simplified (and (== keyround 1) (not (zero? (long (aget did-simplify 0)))))]
+                (if (== keyround 2)
+                  (if (nil? alt-keys-buf)
+                    (do (aset fo__ 3 keys_)
+                        (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                        (aset fl__ 7 did-local)
+                        (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                        (recur 22))
+                    (let [^BytePtr keys_ alt-keys-buf]
+                      (aset fo__ 3 keys_)
+                      (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                      (aset fl__ 7 did-local)
+                      (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                      (recur 4)))
+                  (if (and (some? alt-keys-buf) do-print)
+                    (let [^BytePtr keys_ alt-keys-buf]
+                      (aset fo__ 3 keys_)
+                      (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                      (aset fl__ 7 did-local)
+                      (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                      (recur 4))
+                    (do (aset fo__ 3 keys_)
+                        (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                        (aset fl__ 7 did-local)
+                        (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                        (recur 4)))))
+              (do (aset fo__ 3 keys_)
+                  (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                  (aset fl__ 7 did-local)
+                  (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                  (recur 22))))
+        st))))
+
+(defn- do-map__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
+        ^objects mp-result (aget fo__ 26)
+        ^ints did-simplify (aget fo__ 27)
+        ^bytes keys-unescaped (aget fo__ 28)]
+    (loop [st st0__]
+      (case st
+        4
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                ^BytePtr p (aget fo__ 7)
+                n (aget fl__ 2)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                first_ (boolean (aget fo__ 23))
+                last_ (boolean (aget fo__ 24))
+                same (aget fl__ 10)
+                keys-unescaped-len (aget fl__ 11)]
+            (if haskey
+              (let [len (i32 (long (musl-strlen ed keys_)))]
+                (if (> len (e MAXMAPLEN))
+                  (let [retval 1]
+                    (aset fo__ 0 (Long/valueOf retval))
+                    -1)
+                  (if (and abbrev (not (== maptype (e MAPTYPE_UNMAP))))
+                    (let [same -1
+                          _ (Rt/memmove (BytePtr. keys-unescaped 0) keys_ (i32 (+ len 1)))
+                          keys-unescaped-len (long (vim-unescape-csi ed (BytePtr. keys-unescaped 0)))
+                          ^BytePtr p (BytePtr. keys-unescaped 0)
+                          first_ (vim-iswordp ed p)
+                          last_ first_
+                          t2 (long (utfc-ptr2len ed p))
+                          ^BytePtr p (.add p t2)
+                          n 1]
+                      (aset fo__ 7 p)
+                      (aset fl__ 2 n)
+                      (aset fl__ 3 len)
+                      (aset fl__ 5 retval)
+                      (aset fo__ 23 (Boolean/valueOf (boolean first_)))
+                      (aset fo__ 24 (Boolean/valueOf (boolean last_)))
+                      (aset fl__ 10 same)
+                      (aset fl__ 11 keys-unescaped-len)
+                      (recur 5))
+                    (do (aset fo__ 7 p)
+                        (aset fl__ 2 n)
+                        (aset fl__ 3 len)
+                        (aset fl__ 5 retval)
+                        (aset fo__ 23 (Boolean/valueOf (boolean first_)))
+                        (aset fo__ 24 (Boolean/valueOf (boolean last_)))
+                        (aset fl__ 10 same)
+                        (aset fl__ 11 keys-unescaped-len)
+                        (recur 7)))))
+              (do (aset fo__ 7 p)
+                  (aset fl__ 2 n)
+                  (aset fl__ 3 len)
+                  (aset fl__ 5 retval)
+                  (aset fo__ 23 (Boolean/valueOf (boolean first_)))
+                  (aset fo__ 24 (Boolean/valueOf (boolean last_)))
+                  (aset fl__ 10 same)
+                  (aset fl__ 11 keys-unescaped-len)
+                  (recur 7))))
+        5
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                ^BytePtr p (aget fo__ 7)
+                n (aget fl__ 2)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                first_ (boolean (aget fo__ 23))
+                last_ (boolean (aget fo__ 24))
+                same (aget fl__ 10)
+                keys-unescaped-len (aget fl__ 11)]
+            (if (.lt p (.add (BytePtr. keys-unescaped 0) keys-unescaped-len))
+              (let [n (i32 (inc n))
+                    last_ (vim-iswordp ed p)
+                    same (if (and (== same -1) (not (== (if last_ 1 0) (if first_ 1 0))))
+                           (i32 (- n 1))
+                           same)
+                    t3 (long (utfc-ptr2len ed p))
+                    ^BytePtr p (.add p t3)]
+                (aset fo__ 7 p)
+                (aset fl__ 2 n)
+                (aset fl__ 5 retval)
+                (aset fo__ 24 (Boolean/valueOf (boolean last_)))
+                (aset fl__ 10 same)
+                (recur 5))
+              (if (and last_ (> n 2) (>= same 0) (< same (i32 (- n 1))))
+                (let [retval 1]
+                  (aset fo__ 0 (Long/valueOf retval))
+                  -1)
+                (let [n 0]
+                  (aset fo__ 7 p)
+                  (aset fl__ 2 n)
+                  (aset fl__ 5 retval)
+                  (aset fo__ 24 (Boolean/valueOf (boolean last_)))
+                  (aset fl__ 10 same)
+                  (recur 6)))))
+        6
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                n (aget fl__ 2)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))]
+            (if (< n len)
+              (if (or (== (bit-and (.at keys_ n) 0xff) 32) (== (bit-and (.at keys_ n) 0xff) 9))
+                (let [retval 1]
+                  (aset fo__ 0 (Long/valueOf retval))
+                  -1)
+                (let [n (i32 (inc n))]
+                  (aset fl__ 2 n)
+                  (aset fl__ 5 retval)
+                  (recur 6)))
+              (do (aset fl__ 2 n)
+                  (aset fl__ 5 retval)
+                  (recur 7))))
+        7
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                hash_ (aget fl__ 12)]
+            (when (and haskey hasarg abbrev)
+              (g! ed no-abbr (e FALSE)))
+            (when do-print
+              (msg-start ed))
+            (if (and unique (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)) haskey hasarg (not (== maptype (e MAPTYPE_UNMAP))))
+              (let [hash_ 0]
+                (aset fl__ 12 hash_)
+                (recur 8))
+              (do (aset fl__ 12 hash_)
+                  (recur 11))))
+        8
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                hash_ (aget fl__ 12)]
+            (if (and (< hash_ 256) (zero? (g ed got-int)))
+              (if abbrev
+                (if (== hash_ 0)
+                  (let [^S_mapblock mp (aget (g ed first-abbr) 0)]
+                    (aset fo__ 4 mp)
+                    (recur 9))
+                  (do (aset fo__ 4 mp)
+                      (recur 11)))
+                (let [^S_mapblock mp (aget (g ed maphash) hash_)]
+                  (aset fo__ 4 mp)
+                  (recur 9)))
+              (do (aset fo__ 4 mp)
+                  (recur 11))))
+        9
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                hash_ (aget fl__ 12)]
+            (recur 10))
+        10
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                hash_ (aget fl__ 12)]
+            (if (and (some? mp) (zero? (g ed got-int)))
+              (if (and (not (== (bit-and (.m-mode mp) mode) 0)) (== (.m-keylen mp) len) (== (long (musl-strncmp ed (.m-keys mp) keys_ len)) 0))
+                (if abbrev
+                  (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-global-abbreviation-already-exists-for-str) 0)) (object-array [(.m-keys mp)]))
+                      (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-global-abbreviation-already-exists-for-str) 0))))
+                      (let [retval 5]
+                        (aset fo__ 0 (Long/valueOf retval))
+                        -1))
+                  (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-global-mapping-already-exists-for-str) 0)) (object-array [(.m-keys mp)]))
+                      (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-global-mapping-already-exists-for-str) 0))))
+                      (let [retval 5]
+                        (aset fo__ 0 (Long/valueOf retval))
+                        -1)))
+                (let [^S_mapblock mp (aget ^objects (.-m-next mp) 0)]
+                  (aset fo__ 4 mp)
+                  (aset fl__ 5 retval)
+                  (aset fl__ 12 hash_)
+                  (recur 10)))
+              (let [hash_ (i32 (inc hash_))]
+                (aset fo__ 4 mp)
+                (aset fl__ 5 retval)
+                (aset fl__ 12 hash_)
+                (recur 8))))
+        11
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                did-local (if (and (not (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))) (not hasarg) (not (== maptype (e MAPTYPE_UNMAP))))
+                            (long (list-mappings ed keyround abbrev haskey keys_ len mode did-local))
+                            did-local)
+                num-rounds (if (and (== maptype (e MAPTYPE_UNMAP)) (not unmap-lhs-only)) 2 1)
+                round 0]
+            (aset fl__ 7 did-local)
+            (aset fl__ 8 round)
+            (aset fl__ 9 num-rounds)
+            (recur 12))
+        st))))
+
+(defn- do-map__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
+        ^objects mp-result (aget fo__ 26)
+        ^ints did-simplify (aget fo__ 27)
+        ^bytes keys-unescaped (aget fo__ 28)]
+    (loop [st st0__]
+      (case st
+        12
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)]
+            (if (and (< round num-rounds) (not did-it) (zero? (g ed got-int)))
+              (let [hash__2 0]
+                (aset fl__ 5 retval)
+                (aset fl__ 13 hash__2)
+                (recur 14))
+              (if (== maptype (e MAPTYPE_UNMAP))
+                (if did-it
+                  (if (== (bit-and (.get keys_) 0xff) (e Ctrl_C))
+                    (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
+                      (do (.set-b-mapped-ctrl-c (g ed curbuf) (bit-and (.b-mapped-ctrl-c (g ed curbuf)) (bit-not mode)))
+                          (aset fl__ 5 retval)
+                          (aset fl__ 13 hash__2)
+                          (recur 13))
+                      (do (g! ed mapped-ctrl-c (bit-and (g ed mapped-ctrl-c) (bit-not mode)))
+                          (aset fl__ 5 retval)
+                          (aset fl__ 13 hash__2)
+                          (recur 13)))
+                    (do (aset fl__ 5 retval)
+                        (aset fl__ 13 hash__2)
+                        (recur 13)))
+                  (if keyround1-simplified
+                    (do (aset fl__ 5 retval)
+                        (aset fl__ 13 hash__2)
+                        (recur 13))
+                    (let [retval 2]
+                      (aset fl__ 5 retval)
+                      (aset fl__ 13 hash__2)
+                      (recur 13))))
+                (if (or (not haskey) (not hasarg))
+                  (if (and (not did-it) (zero? did-local))
+                    (if abbrev
+                      (do (msg ed (gettext_ ed (BytePtr/lit "No abbreviation found")))
+                          (aset fo__ 0 (Long/valueOf retval))
+                          -1)
+                      (do (msg ed (gettext_ ed (BytePtr/lit "No mapping found")))
+                          (aset fo__ 0 (Long/valueOf retval))
+                          -1))
+                    (do (aset fo__ 0 (Long/valueOf retval))
+                        -1))
+                  (if did-it
+                    (do (aset fl__ 5 retval)
+                        (aset fl__ 13 hash__2)
+                        (recur 13))
+                    (do (aset mp-result (i32 (- keyround 1)) (map-add ed map-table abbr-table keys_ rhs orig-rhs noremap nowait silent mode abbrev keyround1-simplified))
+                        (if (nil? (aget mp-result (i32 (- keyround 1))))
+                          (let [retval 4]
+                            (aset fo__ 0 (Long/valueOf retval))
+                            -1)
+                          (do (aset fl__ 5 retval)
+                              (aset fl__ 13 hash__2)
+                              (recur 13)))))))))
+        13
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                keyround (i32 (inc keyround))]
+            (aset fl__ 4 keyround)
+            (recur 3))
+        14
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^Ptr mpp (aget fo__ 5)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)]
+            (if (and (< hash__2 256) (zero? (g ed got-int)))
+              (if abbrev
+                (if (> hash__2 0)
+                  (do (aset fo__ 5 mpp)
+                      (recur 21))
+                  (let [^Ptr mpp abbr-table]
+                    (aset fo__ 5 mpp)
+                    (recur 15)))
+                (let [^Ptr mpp (.add map-table hash__2)]
+                  (aset fo__ 5 mpp)
+                  (recur 15)))
+              (do (aset fo__ 5 mpp)
+                  (recur 21))))
+        15
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^Ptr mpp (aget fo__ 5)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)
+                ^S_mapblock mp (.get mpp)]
+            (aset fo__ 4 mp)
+            (recur 16))
+        st))))
+
+(defn- do-map__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
+        ^objects mp-result (aget fo__ 26)
+        ^ints did-simplify (aget fo__ 27)
+        ^bytes keys-unescaped (aget fo__ 28)
+        ^longs tl__ (long-array 2)
+        ^objects to__ (object-array 1)]
+    (loop [st st0__]
+      (case st
+        16
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^Ptr mpp (aget fo__ 5)
+                ^BytePtr rhs (aget fo__ 6)
+                ^BytePtr p (aget fo__ 7)
+                n (aget fl__ 2)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)]
+            (if (and (some? mp) (zero? (g ed got-int)))
+              (if (== (bit-and (.m-mode mp) mode) 0)
+                (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
+                  (aset fo__ 5 mpp)
+                  (aset fo__ 7 p)
+                  (aset fl__ 2 n)
+                  (aset fl__ 5 retval)
+                  (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                  (recur 20))
+                (if haskey
+                  (let [j__12 (if (zero? round)
+                                (let [n (.m-keylen mp)
+                                      ^BytePtr p (.m-keys mp)]
+                                  (aset to__ 0 p)
+                                  (aset tl__ 0 n)
+                                  0)
+                                (let [n (i32 (long (musl-strlen ed (.m-str mp))))
+                                      ^BytePtr p (.m-str mp)]
+                                  (aset to__ 0 p)
+                                  (aset tl__ 0 n)
+                                  0))
+                        ^BytePtr p (aget to__ 0)
+                        n (aget tl__ 0)]
+                    (if (== (long (musl-strncmp ed p keys_ (if (< n len) n len))) 0)
+                      (if (== maptype (e MAPTYPE_UNMAP))
+                        (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (bit-and (.get ^BytePtr (skipwhite ed (.add keys_ n))) 0xff) (e NUL)))))
+                          (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
+                            (aset fo__ 5 mpp)
+                            (aset fo__ 7 p)
+                            (aset fl__ 2 n)
+                            (aset fl__ 5 retval)
+                            (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                            (recur 20))
+                          (if (and keyround1-simplified (not (.m-simplified mp)))
+                            (do (aset fo__ 5 mpp)
+                                (aset fo__ 7 p)
+                                (aset fl__ 2 n)
+                                (aset fl__ 5 retval)
+                                (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                                (recur 18))
+                            (do (.set-m-mode mp (bit-and (.m-mode mp) (bit-not mode)))
+                                (let [did-it true]
+                                  (aset fo__ 5 mpp)
+                                  (aset fo__ 7 p)
+                                  (aset fl__ 2 n)
+                                  (aset fl__ 5 retval)
+                                  (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                                  (recur 17)))))
+                        (if hasarg
+                          (if (== n len)
+                            (if unique
+                              (if abbrev
+                                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-abbreviation-already-exists-for-str) 0)) (object-array [p]))
+                                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-abbreviation-already-exists-for-str) 0))))
+                                    (let [retval 5]
+                                      (aset fo__ 0 (Long/valueOf retval))
+                                      -1))
+                                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-mapping-already-exists-for-str) 0)) (object-array [p]))
+                                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-mapping-already-exists-for-str) 0))))
+                                    (let [retval 5]
+                                      (aset fo__ 0 (Long/valueOf retval))
+                                      -1)))
+                              (do (.set-m-mode mp (bit-and (.m-mode mp) (bit-not mode)))
+                                  (if (and (== (.m-mode mp) 0) (not did-it))
+                                    (let [^BytePtr newstr (vim-strsave ed rhs)]
+                                      (when (some? (.m-alt mp))
+                                        (.set-m-alt ^S_mapblock (.m-alt mp) nil)
+                                        (.set-m-alt mp (.m-alt ^S_mapblock (.m-alt mp))))
+                                      (.set-m-str mp newstr)
+                                      (.set-m-orig-str mp (vim-strsave ed orig-rhs))
+                                      (.set-m-noremap mp noremap)
+                                      (.set-m-nowait mp (if nowait 1 0))
+                                      (.set-m-silent mp (if silent 1 0))
+                                      (.set-m-mode mp mode)
+                                      (.set-m-simplified mp (boolean keyround1-simplified))
+                                      (aset mp-result (i32 (- keyround 1)) mp)
+                                      (let [did-it true]
+                                        (aset fo__ 5 mpp)
+                                        (aset fo__ 7 p)
+                                        (aset fl__ 2 n)
+                                        (aset fl__ 5 retval)
+                                        (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                                        (recur 17)))
+                                    (do (aset fo__ 5 mpp)
+                                        (aset fo__ 7 p)
+                                        (aset fl__ 2 n)
+                                        (aset fl__ 5 retval)
+                                        (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                                        (recur 17)))))
+                            (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
+                              (aset fo__ 5 mpp)
+                              (aset fo__ 7 p)
+                              (aset fl__ 2 n)
+                              (aset fl__ 5 retval)
+                              (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                              (recur 20)))
+                          (if (.m-simplified mp)
+                            (do (aset fo__ 5 mpp)
+                                (aset fo__ 7 p)
+                                (aset fl__ 2 n)
+                                (aset fl__ 5 retval)
+                                (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                                (recur 17))
+                            (do (showmap ed mp (not (Ptr/eq map-table (Ptr. (g ed maphash) 0))))
+                                (let [did-it true]
+                                  (aset fo__ 5 mpp)
+                                  (aset fo__ 7 p)
+                                  (aset fl__ 2 n)
+                                  (aset fl__ 5 retval)
+                                  (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                                  (recur 17))))))
+                      (do (aset fo__ 5 mpp)
+                          (aset fo__ 7 p)
+                          (aset fl__ 2 n)
+                          (aset fl__ 5 retval)
+                          (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                          (recur 19))))
+                  (if (.m-simplified mp)
+                    (do (aset fo__ 5 mpp)
+                        (aset fo__ 7 p)
+                        (aset fl__ 2 n)
+                        (aset fl__ 5 retval)
+                        (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                        (recur 19))
+                    (do (showmap ed mp (not (Ptr/eq map-table (Ptr. (g ed maphash) 0))))
+                        (let [did-it true]
+                          (aset fo__ 5 mpp)
+                          (aset fo__ 7 p)
+                          (aset fl__ 2 n)
+                          (aset fl__ 5 retval)
+                          (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                          (recur 19))))))
+              (do (aset fo__ 5 mpp)
+                  (aset fo__ 7 p)
+                  (aset fl__ 2 n)
+                  (aset fl__ 5 retval)
+                  (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
+                  (recur 18))))
+        17
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^Ptr mpp (aget fo__ 5)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)]
+            (if (== (.m-mode mp) 0)
+              (do (map-free ed mpp)
+                  (recur 20))
+              (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128) (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff))]
+                (if (and (not abbrev) (not (== new-hash hash__2)))
+                  (do (.put mpp (aget ^objects (.-m-next mp) 0))
+                      (aset ^objects (.-m-next mp) 0 (.at map-table new-hash))
+                      (.set map-table new-hash mp)
+                      (recur 20))
+                  (recur 19)))))
+        18
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)
+                hash__2 (i32 (inc hash__2))]
+            (aset fl__ 13 hash__2)
+            (recur 14))
+        19
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^Ptr mpp (aget fo__ 5)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)
+                ^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
+            (aset fo__ 5 mpp)
+            (recur 20))
+        20
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^S_mapblock mp (aget fo__ 4)
+                ^Ptr mpp (aget fo__ 5)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                hash__2 (aget fl__ 13)
+                ^S_mapblock mp (.get mpp)]
+            (aset fo__ 4 mp)
+            (recur 16))
+        21
+          (let [maptype (aget fl__ 0)
+                mode (aget fl__ 1)
+                abbrev (boolean (aget fo__ 2))
+                ^BytePtr keys_ (aget fo__ 3)
+                ^BytePtr rhs (aget fo__ 6)
+                len (aget fl__ 3)
+                hasarg (boolean (aget fo__ 8))
+                haskey (boolean (aget fo__ 9))
+                do-print (boolean (aget fo__ 10))
+                keyround (aget fl__ 4)
+                ^BytePtr alt-keys-buf (aget fo__ 11)
+                retval (aget fl__ 5)
+                ^Ptr abbr-table (aget fo__ 13)
+                ^Ptr map-table (aget fo__ 14)
+                unique (boolean (aget fo__ 15))
+                nowait (boolean (aget fo__ 16))
+                silent (boolean (aget fo__ 17))
+                unmap-lhs-only (boolean (aget fo__ 19))
+                noremap (aget fl__ 6)
+                ^BytePtr orig-rhs (aget fo__ 20)
+                did-it (boolean (aget fo__ 21))
+                did-local (aget fl__ 7)
+                keyround1-simplified (boolean (aget fo__ 22))
+                round (aget fl__ 8)
+                num-rounds (aget fl__ 9)
+                round (i32 (inc round))]
+            (aset fl__ 8 round)
+            (recur 12))
+        st))))
+
+(defn- do-map__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
+        ^objects mp-result (aget fo__ 26)
+        ^ints did-simplify (aget fo__ 27)
+        ^bytes keys-unescaped (aget fo__ 28)]
+    (loop [st st0__]
+      (case st
+        22
+          (let [retval (aget fl__ 5)]
+            (if (and (some? (aget mp-result 0)) (some? (aget mp-result 1)))
+              (do (.set-m-alt ^S_mapblock (aget mp-result 0) (aget mp-result 1))
+                  (.set-m-alt ^S_mapblock (aget mp-result 1) (aget mp-result 0))
+                  (aset fo__ 0 (Long/valueOf retval))
+                  -1)
+              (do (aset fo__ 0 (Long/valueOf retval))
+                  -1)))
+        st))))
+
 ;; C: do_map
 (defn do-map [^Editor ed maptype ^BytePtr arg mode abbrev]
   (let [maptype (long maptype)
@@ -66944,395 +74159,54 @@
         ^objects mp-result (object-array 2)
         ^ints did-simplify (int-array 1)
         ^bytes keys-unescaped (byte-array 51)
-        ^longs tl__ (long-array 3)
-        ^objects to__ (object-array 4)]
-    (loop [st 0
-           maptype maptype
-           ^BytePtr arg arg
-           mode mode
-           abbrev abbrev
-           ^BytePtr keys_ nil
-           ^S_mapblock mp nil
-           ^Ptr mpp nil
-           ^BytePtr rhs nil
-           ^BytePtr p nil
-           n 0
-           len 0
-           hasarg false
-           haskey false
-           do-print false
-           keyround 0
-           ^BytePtr alt-keys-buf nil
-           retval 0
-           do-backslash false
-           ^Ptr abbr-table nil
-           ^Ptr map-table nil
-           unique false
-           nowait false
-           silent false
-           special false
-           unmap-lhs-only false
-           noremap 0
-           ^BytePtr orig-rhs nil
-           did-it false
-           did-local 0
-           keyround1-simplified false
-           round 0
-           num-rounds 0
-           first_ false
-           last_ false
-           same 0
-           keys-unescaped-len 0
-           hash_ 0
-           hash__2 0]
-      (case st
-        0
-          (do (java.util.Arrays/fill mp-result nil)
-              (let [len 0
-                    ^BytePtr alt-keys-buf nil
-                    retval 0
-                    unique false
-                    nowait false
-                    silent false
-                    special false
-                    _ (aset did-simplify 0 (unchecked-int (e FALSE)))
-                    unmap-lhs-only false
-                    ^BytePtr keys_ arg
-                    ^Ptr map-table (Ptr. (g ed maphash) 0)
-                    ^Ptr abbr-table (Ptr. (g ed first-abbr) 0)
-                    j__1 (if (== maptype (e MAPTYPE_UNMAP_LHS))
-                           (let [unmap-lhs-only true
-                                 maptype (e MAPTYPE_UNMAP)]
-                             (aset tl__ 0 maptype)
-                             (aset to__ 0 (Boolean/valueOf (boolean unmap-lhs-only)))
-                             0)
-                           (do (aset tl__ 0 maptype)
-                               (aset to__ 0 (Boolean/valueOf (boolean unmap-lhs-only)))
-                               0))
-                    maptype (aget tl__ 0)
-                    unmap-lhs-only (boolean (aget to__ 0))]
-                (if (== maptype (e MAPTYPE_NOREMAP))
-                  (let [noremap -1]
-                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                  (let [noremap (e REMAP_YES)]
-                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
-        1
-          (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<buffer>") 8)) 0)
-            (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
-                  ^Ptr map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)
-                  ^Ptr abbr-table (Ptr. ^objects (.-b-first-abbr (g ed curbuf)) 0)]
-              (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-            (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<nowait>") 8)) 0)
-              (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
-                    nowait true]
-                (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-              (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<silent>") 8)) 0)
-                (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
-                      silent true]
-                  (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<special>") 9)) 0)
-                  (let [^BytePtr keys_ (skipwhite ed (.add keys_ 9))
-                        special true]
-                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                  (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<unique>") 8)) 0)
-                    (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
-                          unique true]
-                      (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                    (do (validate-maphash ed)
-                        (let [^BytePtr p keys_
-                              do-backslash (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BSLASH)))]
-                          (recur 2 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))))
-        2
-          (if (and (not (zero? (bit-and (.get p) 0xff))) (or (== maptype (e MAPTYPE_UNMAP)) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))))
-            (let [^BytePtr p (if (and (or (== (bit-and (.at p 0) 0xff) (e Ctrl_V)) (and do-backslash (== (bit-and (.at p 0) 0xff) 92))) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
-                               ^BytePtr (.add p 1)
-                               p)
-                  ^BytePtr p (.add p 1)]
-              (recur 2 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-            (let [^BytePtr p (if (== (bit-and (.get p) 0xff) (e NUL))
-                               p
-                               (let [^BytePtr t1 p
-                                     ^BytePtr p (.add p 1)]
-                                 (.put t1 (unchecked-byte (e NUL)))
-                                 p))
-                  ^BytePtr p (skipwhite ed p)
-                  ^BytePtr rhs p
-                  hasarg (not (== (bit-and (.get rhs) 0xff) (e NUL)))
-                  haskey (not (== (bit-and (.get keys_) 0xff) (e NUL)))
-                  do-print (or (not haskey) (and (not (== maptype (e MAPTYPE_UNMAP))) (not hasarg)))]
-              (if (and (== maptype (e MAPTYPE_UNMAP)) (not haskey))
-                1
-                (let [j__2 (if haskey
-                             (let [flags 3
-                                   flags (if special
-                                           (bit-or flags (e REPTERM_SPECIAL))
-                                           flags)]
-                               (.set replace-termcodes__o (replace-termcodes ed keys_ 0 flags (IntPtr. did-simplify 0)))
-                               (let [^BytePtr new-keys (.r__ replace-termcodes__o)
-                                     ^BytePtr alt-keys-buf (if (zero? (long (aget did-simplify 0)))
-                                                             alt-keys-buf
-                                                             (do (.set replace-termcodes__o (replace-termcodes ed keys_ 0 (bit-or flags (e REPTERM_NO_SIMPLIFY)) nil))
-                                                                 ^BytePtr (.bufp replace-termcodes__o)))
-                                     ^BytePtr keys_ new-keys]
-                                 (aset to__ 1 keys_)
-                                 (aset to__ 2 alt-keys-buf)
-                                 0))
-                             (do (aset to__ 1 keys_)
-                                 (aset to__ 2 alt-keys-buf)
-                                 0))
-                      ^BytePtr keys_ (aget to__ 1)
-                      ^BytePtr alt-keys-buf (aget to__ 2)
-                      ^BytePtr orig-rhs rhs
-                      ^BytePtr rhs (if hasarg
-                                     (if (== (long (musl-strcasecmp ed rhs (BytePtr/lit "<nop>"))) 0)
-                                       ^BytePtr (BytePtr/lit "")
-                                       (do (.set replace-termcodes__o (replace-termcodes ed rhs 0 (bit-or (e REPTERM_DO_LT) (if special (e REPTERM_SPECIAL) 0)) nil))
-                                           ^BytePtr (.r__ replace-termcodes__o)))
-                                     rhs)
-                      keyround 1]
-                  (recur 3 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
-        3
-          (if (<= keyround 2)
-            (let [did-it false
-                  did-local (e FALSE)
-                  keyround1-simplified (and (== keyround 1) (not (zero? (long (aget did-simplify 0)))))]
-              (if (== keyround 2)
-                (if (nil? alt-keys-buf)
-                  (recur 22 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                  (let [^BytePtr keys_ alt-keys-buf]
-                    (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                (if (and (some? alt-keys-buf) do-print)
-                  (let [^BytePtr keys_ alt-keys-buf]
-                    (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                  (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-            (recur 22 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        4
-          (if haskey
-            (let [len (i32 (long (musl-strlen ed keys_)))]
-              (if (> len (e MAXMAPLEN))
-                1
-                (if (and abbrev (not (== maptype (e MAPTYPE_UNMAP))))
-                  (let [same -1
-                        _ (Rt/memmove (BytePtr. keys-unescaped 0) keys_ (i32 (+ len 1)))
-                        keys-unescaped-len (long (vim-unescape-csi ed (BytePtr. keys-unescaped 0)))
-                        ^BytePtr p (BytePtr. keys-unescaped 0)
-                        first_ (vim-iswordp ed p)
-                        last_ first_
-                        t2 (long (utfc-ptr2len ed p))
-                        ^BytePtr p (.add p t2)
-                        n 1]
-                    (recur 5 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                  (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-            (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        5
-          (if (.lt p (.add (BytePtr. keys-unescaped 0) keys-unescaped-len))
-            (let [n (i32 (inc n))
-                  last_ (vim-iswordp ed p)
-                  same (if (and (== same -1) (not (== (if last_ 1 0) (if first_ 1 0))))
-                         (i32 (- n 1))
-                         same)
-                  t3 (long (utfc-ptr2len ed p))
-                  ^BytePtr p (.add p t3)]
-              (recur 5 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-            (if (and last_ (> n 2) (>= same 0) (< same (i32 (- n 1))))
-              1
-              (let [n 0]
-                (recur 6 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-        6
-          (if (< n len)
-            (if (or (== (bit-and (.at keys_ n) 0xff) 32) (== (bit-and (.at keys_ n) 0xff) 9))
-              1
-              (let [n (i32 (inc n))]
-                (recur 6 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        7
-          (do (when (and haskey hasarg abbrev)
-                (g! ed no-abbr (e FALSE)))
-              (when do-print
-                (msg-start ed))
-              (if (and unique (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)) haskey hasarg (not (== maptype (e MAPTYPE_UNMAP))))
-                (let [hash_ 0]
-                  (recur 8 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-        8
-          (if (and (< hash_ 256) (zero? (g ed got-int)))
-            (if abbrev
-              (if (== hash_ 0)
-                (let [^S_mapblock mp (aget (g ed first-abbr) 0)]
-                  (recur 9 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-              (let [^S_mapblock mp (aget (g ed maphash) hash_)]
-                (recur 9 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        9
-          (recur 10 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-        10
-          (if (and (some? mp) (zero? (g ed got-int)))
-            (if (and (not (== (bit-and (.m-mode mp) mode) 0)) (== (.m-keylen mp) len) (== (long (musl-strncmp ed (.m-keys mp) keys_ len)) 0))
-              (if abbrev
-                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-global-abbreviation-already-exists-for-str) 0)) (object-array [(.m-keys mp)]))
-                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-global-abbreviation-already-exists-for-str) 0))))
-                    5)
-                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-global-mapping-already-exists-for-str) 0)) (object-array [(.m-keys mp)]))
-                    (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-global-mapping-already-exists-for-str) 0))))
-                    5))
-              (let [^S_mapblock mp (aget ^objects (.-m-next mp) 0)]
-                (recur 10 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (let [hash_ (i32 (inc hash_))]
-              (recur 8 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-        11
-          (let [did-local (if (and (not (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))) (not hasarg) (not (== maptype (e MAPTYPE_UNMAP))))
-                            (long (list-mappings ed keyround abbrev haskey keys_ len mode did-local))
-                            did-local)
-                num-rounds (if (and (== maptype (e MAPTYPE_UNMAP)) (not unmap-lhs-only)) 2 1)
-                round 0]
-            (recur 12 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        12
-          (if (and (< round num-rounds) (not did-it) (zero? (g ed got-int)))
-            (let [hash__2 0]
-              (recur 14 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-            (if (== maptype (e MAPTYPE_UNMAP))
-              (if did-it
-                (if (== (bit-and (.get keys_) 0xff) (e Ctrl_C))
-                  (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
-                    (do (.set-b-mapped-ctrl-c (g ed curbuf) (bit-and (.b-mapped-ctrl-c (g ed curbuf)) (bit-not mode)))
-                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                    (do (g! ed mapped-ctrl-c (bit-and (g ed mapped-ctrl-c) (bit-not mode)))
-                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (if keyround1-simplified
-                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                  (let [retval 2]
-                    (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-              (if (or (not haskey) (not hasarg))
-                (if (and (not did-it) (zero? did-local))
-                  (if abbrev
-                    (do (msg ed (gettext_ ed (BytePtr/lit "No abbreviation found")))
-                        retval)
-                    (do (msg ed (gettext_ ed (BytePtr/lit "No mapping found")))
-                        retval))
-                  retval)
-                (if did-it
-                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                  (do (aset mp-result (i32 (- keyround 1)) (map-add ed map-table abbr-table keys_ rhs orig-rhs noremap nowait silent mode abbrev keyround1-simplified))
-                      (if (nil? (aget mp-result (i32 (- keyround 1))))
-                        4
-                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))))
-        13
-          (let [keyround (i32 (inc keyround))]
-            (recur 3 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        14
-          (if (and (< hash__2 256) (zero? (g ed got-int)))
-            (if abbrev
-              (if (> hash__2 0)
-                (recur 21 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                (let [^Ptr mpp abbr-table]
-                  (recur 15 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-              (let [^Ptr mpp (.add map-table hash__2)]
-                (recur 15 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (recur 21 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        15
-          (let [^S_mapblock mp (.get mpp)]
-            (recur 16 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        16
-          (if (and (some? mp) (zero? (g ed got-int)))
-            (if (== (bit-and (.m-mode mp) mode) 0)
-              (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-                (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-              (if haskey
-                (let [j__3 (if (zero? round)
-                             (let [n (.m-keylen mp)
-                                   ^BytePtr p (.m-keys mp)]
-                               (aset to__ 3 p)
-                               (aset tl__ 2 n)
-                               0)
-                             (let [n (i32 (long (musl-strlen ed (.m-str mp))))
-                                   ^BytePtr p (.m-str mp)]
-                               (aset to__ 3 p)
-                               (aset tl__ 2 n)
-                               0))
-                      ^BytePtr p (aget to__ 3)
-                      n (aget tl__ 2)]
-                  (if (== (long (musl-strncmp ed p keys_ (if (< n len) n len))) 0)
-                    (if (== maptype (e MAPTYPE_UNMAP))
-                      (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (bit-and (.get ^BytePtr (skipwhite ed (.add keys_ n))) 0xff) (e NUL)))))
-                        (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-                          (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                        (if (and keyround1-simplified (not (.m-simplified mp)))
-                          (recur 18 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                          (do (.set-m-mode mp (bit-and (.m-mode mp) (bit-not mode)))
-                              (let [did-it true]
-                                (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
-                      (if hasarg
-                        (if (== n len)
-                          (if unique
-                            (if abbrev
-                              (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-abbreviation-already-exists-for-str) 0)) (object-array [p]))
-                                  (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-abbreviation-already-exists-for-str) 0))))
-                                  5)
-                              (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-mapping-already-exists-for-str) 0)) (object-array [p]))
-                                  (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-mapping-already-exists-for-str) 0))))
-                                  5))
-                            (do (.set-m-mode mp (bit-and (.m-mode mp) (bit-not mode)))
-                                (if (and (== (.m-mode mp) 0) (not did-it))
-                                  (let [^BytePtr newstr (vim-strsave ed rhs)]
-                                    (when (some? (.m-alt mp))
-                                      (.set-m-alt ^S_mapblock (.m-alt mp) nil)
-                                      (.set-m-alt mp (.m-alt ^S_mapblock (.m-alt mp))))
-                                    (.set-m-str mp newstr)
-                                    (.set-m-orig-str mp (vim-strsave ed orig-rhs))
-                                    (.set-m-noremap mp noremap)
-                                    (.set-m-nowait mp (if nowait 1 0))
-                                    (.set-m-silent mp (if silent 1 0))
-                                    (.set-m-mode mp mode)
-                                    (.set-m-simplified mp (boolean keyround1-simplified))
-                                    (aset mp-result (i32 (- keyround 1)) mp)
-                                    (let [did-it true]
-                                      (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                                  (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-                          (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-                            (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                        (if (.m-simplified mp)
-                          (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                          (do (showmap ed mp (not (Ptr/eq map-table (Ptr. (g ed maphash) 0))))
-                              (let [did-it true]
-                                (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))
-                    (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                (if (.m-simplified mp)
-                  (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
-                  (do (showmap ed mp (not (Ptr/eq map-table (Ptr. (g ed maphash) 0))))
-                      (let [did-it true]
-                        (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))
-            (recur 18 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        17
-          (if (== (.m-mode mp) 0)
-            (do (map-free ed mpp)
-                (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-            (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128) (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff))]
-              (if (and (not abbrev) (not (== new-hash hash__2)))
-                (do (.put mpp (aget ^objects (.-m-next mp) 0))
-                    (aset ^objects (.-m-next mp) 0 (.at map-table new-hash))
-                    (.set map-table new-hash mp)
-                    (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-        18
-          (let [hash__2 (i32 (inc hash__2))]
-            (recur 14 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        19
-          (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-            (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        20
-          (let [^S_mapblock mp (.get mpp)]
-            (recur 16 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        21
-          (let [round (i32 (inc round))]
-            (recur 12 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-        22
-          (if (and (some? (aget mp-result 0)) (some? (aget mp-result 1)))
-            (do (.set-m-alt ^S_mapblock (aget mp-result 0) (aget mp-result 1))
-                (.set-m-alt ^S_mapblock (aget mp-result 1) (aget mp-result 0))
-                retval)
-            retval)))))
+        ^longs fl__ (long-array 14)
+        ^objects fo__ (object-array 29)]
+    (aset fl__ 0 maptype)
+    (aset fo__ 1 arg)
+    (aset fl__ 1 mode)
+    (aset fo__ 2 abbrev)
+    (aset fl__ 2 0)
+    (aset fl__ 3 0)
+    (aset fo__ 8 false)
+    (aset fo__ 9 false)
+    (aset fo__ 10 false)
+    (aset fl__ 4 0)
+    (aset fl__ 5 0)
+    (aset fo__ 12 false)
+    (aset fo__ 15 false)
+    (aset fo__ 16 false)
+    (aset fo__ 17 false)
+    (aset fo__ 18 false)
+    (aset fo__ 19 false)
+    (aset fl__ 6 0)
+    (aset fo__ 21 false)
+    (aset fl__ 7 0)
+    (aset fo__ 22 false)
+    (aset fl__ 8 0)
+    (aset fl__ 9 0)
+    (aset fo__ 23 false)
+    (aset fo__ 24 false)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fo__ 25 replace-termcodes__o)
+    (aset fo__ 26 mp-result)
+    (aset fo__ 27 did-simplify)
+    (aset fo__ 28 keys-unescaped)
+    (loop [st 0]
+      (let [r__ (if (<= st 3)
+                  (do-map__0 ed fl__ fo__ st)
+                  (if (<= st 11)
+                    (do-map__1 ed fl__ fo__ st)
+                    (if (<= st 15)
+                      (do-map__2 ed fl__ fo__ st)
+                      (if (<= st 21)
+                        (do-map__3 ed fl__ fo__ st)
+                        (do-map__4 ed fl__ fo__ st)))))]
+        (if (neg? r__)
+          (long (aget fo__ 0))
+          (recur r__))))))
 
 ;; C: get_map_mode
 (defn get-map-mode ^T_get_map_mode__out_T [^Editor ed ^BytePtr cmdp forceit]

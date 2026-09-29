@@ -954,6 +954,19 @@ func (s *shaper) retOf(ctx *sctx, v string) string {
 	if len(ctx.stops) > 0 || ctx.region {
 		panic(errShape{"a return where the code must reach a join or a loop's end"})
 	}
+	if s.splitting {
+		// a split machine's group returns the next state, -1 when the
+		// function returns: its value in the frame (as emitBranch writes a
+		// return), not the value itself -- a void function's nil would be
+		// taken for a state
+		if v == "nil" || v == "" || s.f.ret == "void" {
+			if v == "nil" || v == "" {
+				return "-1"
+			}
+			return "(do " + v + "\n    -1)"
+		}
+		return "(do (aset fo__ 0 " + boxed(v, s.f.ret) + ")\n    -1)"
+	}
 	return v
 }
 

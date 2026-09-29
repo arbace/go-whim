@@ -170,7 +170,8 @@ slim-vim.c  --whim-->  whim-vim.c
   substitutions and a `:g`, run on every editor of the run one at a time,
   required to answer as the reference does, each time reported beside the
   C's, and an editor over 25 times the C's time failing the run -- measured,
-  Go 0.5-0.6, Haskell 1.0-1.3, Java 1.8-2.1, Clojure 4.2-4.5 since the
+  Go 0.5-0.6, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
 

@@ -603,3 +603,42 @@ func TestCljTables(t *testing.T) {
 		`\(fill-S_entry! \(g ed table\) table-table\)`,
 		`\(\.set-p \^S_ref \(aget \(g ed refs\) 0\)`)
 }
+
+// A state machine split small, so that its groups hold what a whole
+// function holds: a return out of a region that can return is the group's
+// -1, not the region's value -- a void function's nil there was taken for a
+// state (phase 181's ex_substitute, split at 50,000).
+const cljSplitReturnC = javaHost + `
+// a void function that is a state machine (a loop entered in its middle),
+// its entry a region (the if-else choosing s) that returns from one arm, as
+// ex_substitute's does when there is no previous pattern
+static void pick(int k, int n)
+{
+    int i = 0;
+    const char *s = 0;
+    if (k > 5) {
+        if (k == 99) { outs("returned"); return; }
+        s = "big";
+    } else {
+        s = "small";
+    }
+    outs(s);
+    if (k & 1)
+        goto mid;
+top:
+    outs(s);
+    k += 3;
+mid:
+    i++;
+    if (i < n)
+        goto top;
+    out(i + k);
+}
+void run(void) { pick(2, 2); pick(3, 4); pick(54, 3); pick(99, 1); }
+`
+
+func TestCljSplitSmall(t *testing.T) {
+	for _, c := range []struct{ name, src string }{{"return", cljSplitReturnC}, {"goto", javaGotoC}, {"machine", cljMachineC}, {"shapes", cljShapesC}, {"idioms", hsIdiomsC}} {
+		t.Run(c.name, func(t *testing.T) { cljSame(t, c.src, Profile{CljSplit: 300}, javaHarnessC) })
+	}
+}

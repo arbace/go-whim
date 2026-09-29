@@ -94,7 +94,27 @@ few dozen times around its loop, stays interpreted until the back-edge
 threshold is lowered. C2 compiles too slowly to pay back on a run this
 short, as `doc/CLOJURE-IDIOMS.md` found.
 
-## The change this chooses
+## The change this chose, done
+
+**Done** (2026-09-29): `CljSplit: 50000` and `-XX:Tier3BackEdgeThreshold=6000`.
+The heavy case at three sizes, before and after, the same screens:
+
+| lines | before (s) | after (s) | the C (s) |
+| ---: | ---: | ---: | ---: |
+| 500 | 0.83-0.90 | 0.77-0.82 | 0.04 |
+| 5,000 | 1.85-2.01 | 1.72-1.76 | 0.44 |
+| 50,000 | 10.9-12.1 | 10.7-11.1 | 4.31 |
+
+The suite's heavy case: the Clojure editor 3.4-3.9 times the C, from 4.4.
+The Java editor, which shares the launcher's flags, as before (0.73-0.88 s
+against 0.77-0.85). The smaller split found a bug the backend had carried:
+a split group's return out of a region that can return (`ex_substitute`,
+no previous pattern) was the region's value -- a void function's `nil` --
+where the group must yield -1; the wide suite's `:substitute`, `:&`, `:~`,
+`:smagic` and `:snomagic` ended in a NullPointerException, and now answer
+as the C does (`retOf`, `clj_shape.go`).
+
+## The change this chooses (as it was chosen)
 
 **A state machine split at 50,000, and a lower back-edge threshold for C1**
 (`CljSplit` in `internal/whim/gen.go`, `-XX:Tier3BackEdgeThreshold=6000` in

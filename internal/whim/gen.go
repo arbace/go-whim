@@ -187,6 +187,11 @@ var Gen = togo.Profile{
 	HsModule:  "Caprice.Editor",
 	HsHost:    "Caprice.Host",
 	HsExports: []string{"deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
+	// a Clojure state machine split into groups past 50,000 (the backend's
+	// default is the JVM's method limit, 110,000): a group is called on
+	// every jump between groups, so C1 compiles it early and cheaply, where
+	// one method of ex_substitute's ran interpreted (doc/CLOJURE-PROFILE.md)
+	CljSplit: 50000,
 	// the functions in eight modules by the call graph: GHC holds a part,
 	// not the whole (doc/HASKELL-IDIOMS.md, item 8)
 	HsParts:    8,

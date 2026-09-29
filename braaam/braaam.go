@@ -170,6 +170,14 @@ func writeSources(dir string, want func(string) bool) ([]string, error) {
 //     the Clojure editor 21 s where it takes 3.7 s with the flag, and the
 //     Java 1.5 s where it takes 1.0 (doc/CLOJURE-IDIOMS.md, item 0; whim
 //     test's heavy case, which reports the time).
+//   - -XX:Tier3BackEdgeThreshold=6000: with C1 alone, a loop running in
+//     the interpreter is compiled after 60,000 turns by default, and the
+//     editors' big loops -- ex_substitute over a buffer's lines, match_chunk
+//     over a chunk's -- are called a handful of times and turn fewer: they
+//     ran interpreted, the Clojure editor's ex_substitute at 115 times the
+//     C's time (doc/CLOJURE-PROFILE.md). With it, and the Clojure's state
+//     machines split at 50,000, the heavy case 1.93 -> 1.69 s on the
+//     Clojure editor, as before on the Java, a short session as before.
 //   - -Xss is not needed: the core runs on a thread of its own with a stack
 //     of 1 GiB (Whim.main).
 var JVMFlags = []string{
@@ -178,6 +186,7 @@ var JVMFlags = []string{
 	"-XX:+UseParallelGC",
 	"-XX:TieredStopAtLevel=1",
 	"-XX:-DontCompileHugeMethods",
+	"-XX:Tier3BackEdgeThreshold=6000",
 }
 
 // WriteLauncher writes path, a shell script that runs the editor in classes
