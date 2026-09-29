@@ -208,7 +208,10 @@ constant from 0 to 127 (0 to 32,767) is compared as Java holds it, `p.get()
 == NUL` (`unmasked`, `java_expr.go`); a constant over 127 keeps the mask
 (`TestJavaMasks`). `& 0xff` 2,139 -> 816, `& 0xffff` 101 -> 88. The bytecode
 changes, so the suites are the proof (`whim test --java`, `--wide
---java`). The runtime's `u()` is not done.
+--java`). And the runtime's `u()` is done: `BytePtr.u()` and `u(k)`, the
+byte as C's unsigned char reads it, where the printer widened `p.get()` or
+`p.at(k)` with a mask (`byteRead`, `java_expr.go`): `& 0xff` 611 -> 63, 729
+reads `p.u()` or `p.u(k)`.
 
 
 - **The pattern:** a C `char_u` is a Java `byte` holding its bits, so each

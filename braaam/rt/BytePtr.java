@@ -41,6 +41,16 @@ public final class BytePtr {
         return a[i + k];
     }
 
+    /** *p as C's unsigned char reads it: p.get() & 0xff. */
+    public int u() {
+        return a[i] & 0xff;
+    }
+
+    /** p[k] as C's unsigned char reads it: p.at(k) & 0xff. */
+    public int u(int k) {
+        return a[i + k] & 0xff;
+    }
+
     /** *p = v, and v. */
     public byte put(byte v) {
         a[i] = v;

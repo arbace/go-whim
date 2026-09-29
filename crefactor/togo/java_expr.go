@@ -89,6 +89,60 @@ func isPtrish(t cc.Type) bool {
 	return t != nil && (t.Kind() == cc.Ptr || t.Kind() == cc.Array)
 }
 
+// byteRead is s, a read of a byte through a BytePtr -- p.get() or p.at(k)
+// -- as the unsigned read BytePtr has for it, p.u() or p.u(k), when it is
+// one.
+func byteRead(s string) (string, bool) {
+	if strings.HasSuffix(s, ".get()") && wholeExpr(strings.TrimSuffix(s, ".get()")) {
+		return strings.TrimSuffix(s, ".get()") + ".u()", true
+	}
+	if !strings.HasSuffix(s, ")") {
+		return "", false
+	}
+	// the argument list closing s, and what it is called on
+	depth := 0
+	for i := len(s) - 1; i >= 0; i-- {
+		switch s[i] {
+		case ')':
+			depth++
+		case '(':
+			depth--
+			if depth == 0 {
+				recv, arg := s[:i], s[i+1:len(s)-1]
+				if strings.HasSuffix(recv, ".at") && wholeExpr(strings.TrimSuffix(recv, ".at")) && wholeExpr(arg) {
+					return strings.TrimSuffix(recv, ".at") + ".u(" + arg + ")", true
+				}
+				return "", false
+			}
+		case '"', '\'':
+			return "", false // a literal: not read here
+		}
+	}
+	return "", false
+}
+
+// wholeExpr says s's parentheses pair up, and it is not empty.
+func wholeExpr(s string) bool {
+	if s == "" {
+		return false
+	}
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		case '"', '\'':
+			return false
+		}
+	}
+	return depth == 0
+}
+
 // numconv is the Java expression s of kind from as kind to: C's conversion
 // of integers, on their bits.
 func numconv(s string, from, to jk) string {
@@ -103,6 +157,9 @@ func numconv(s string, from, to jk) string {
 		case from.size == 1 && to.size == 2:
 			return "(short) (" + s + " & 0xff)"
 		case from.size == 1 && to.size == 4:
+			if u, ok := byteRead(s); ok {
+				return u // p.u(), p.u(k): BytePtr's unsigned read
+			}
 			return "(" + s + " & 0xff)"
 		case from.size == 1:
 			return "(" + s + " & 0xffL)"

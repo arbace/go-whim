@@ -1673,7 +1673,7 @@ void run(void) { out(count(bytes)); }
 
 func TestJavaMasks(t *testing.T) {
 	prog := javaSame(t, javaMasksC)
-	for _, want := range []string{"!= NUL", "== 'a'", "& 0xff) == 200"} {
+	for _, want := range []string{"!= NUL", "== 'a'", ".u() == 200"} {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in\n%s", want, numbered(prog))
 		}
