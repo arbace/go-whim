@@ -41,32 +41,38 @@ func buildHaskell(gen caprice.Gen, candSrc string) (*jvmEditor, error) {
 	if err != nil {
 		return nil, err
 	}
-	src, err := os.ReadFile(hsOut)
-	if err != nil {
-		return nil, err
-	}
-	if n := bytes.Count(src, []byte(hsControlOld)); n != 1 {
-		return nil, fmt.Errorf("suite: the control string %s is in Editor.hs %d times, not once", hsControlOld, n)
-	}
-	// the control: the same sources, the one literal changed
+	// the control: the same sources, the one literal changed in whichever
+	// of the generated modules holds it
+	genDir := filepath.Dir(hsOut)
 	ctlSrc := filepath.Join(ctlDir, "src", "Caprice")
-	if err := os.MkdirAll(ctlSrc, 0o755); err != nil {
+	if err := caprice.CopyGenerated(genDir, ctlSrc); err != nil {
 		return nil, err
 	}
-	boot, err := os.ReadFile(filepath.Join(filepath.Dir(hsOut), "Editor.hs-boot"))
+	names, err := caprice.Generated(genDir)
 	if err != nil {
 		return nil, err
 	}
-	for _, f := range []struct {
-		name string
-		b    []byte
-	}{{"Editor.hs", bytes.Replace(src, []byte(hsControlOld), []byte(hsControlNew), 1)}, {"Editor.hs-boot", boot}} {
-		p := filepath.Join(ctlSrc, f.name)
-		if have, err := os.ReadFile(p); err != nil || !bytes.Equal(have, f.b) {
-			if err := os.WriteFile(p, f.b, 0o644); err != nil {
+	seen := 0
+	for _, f := range names {
+		src, err := os.ReadFile(filepath.Join(genDir, f))
+		if err != nil {
+			return nil, err
+		}
+		n := bytes.Count(src, []byte(hsControlOld))
+		if n == 0 {
+			continue
+		}
+		seen += n
+		b := bytes.Replace(src, []byte(hsControlOld), []byte(hsControlNew), 1)
+		p := filepath.Join(ctlSrc, f)
+		if have, err := os.ReadFile(p); err != nil || !bytes.Equal(have, b) {
+			if err := os.WriteFile(p, b, 0o644); err != nil {
 				return nil, err
 			}
 		}
+	}
+	if seen != 1 {
+		return nil, fmt.Errorf("suite: the control string %s is in the generated modules %d times, not once", hsControlOld, seen)
 	}
 	var wg sync.WaitGroup
 	var errBin, errCtl error

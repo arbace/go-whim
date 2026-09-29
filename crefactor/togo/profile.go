@@ -74,6 +74,9 @@ type Profile struct {
 	// calls back: declared in the module's hs-boot interface, which the
 	// host imports {-# SOURCE #-}, an object as its address, addr'NAME.
 	HsExports []string
+	// HsParts is how many modules the Haskell functions are split into, by
+	// the call graph (hssplit.go): 0 or 1, one module.
+	HsParts int
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset

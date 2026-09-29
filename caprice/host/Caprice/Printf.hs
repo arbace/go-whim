@@ -199,7 +199,7 @@ fmtError ed msg args = do
   iob <- rdP (addr'IObuff ed) 0
   room <- emsg_iobuff_room ed
   _ <- vim_snprintf ed iob room m args
-  s <- iobuff_or ed m
+  s <- iobuff_or ed (castPtr m)
   _ <- emsg ed s
   pure ()
 
@@ -428,7 +428,7 @@ skipToArg ed apTypes ap argIdxR argCurR fmt = do
                 iob <- rdP (addr'IObuff ed) 0
                 room <- emsg_iobuff_room ed
                 _ <- vim_snprintf ed iob room m [VI (fromIntegral i), VP fmt]
-                s <- iobuff_or ed m
+                s <- iobuff_or ed (castPtr m)
                 iemsg ed s
                 pure (Left i)
             | otherwise = do
@@ -607,11 +607,11 @@ vim_snprintf ed str strM fmt args = do
                             if x == 0
                               then pure (q, i)
                               else do
-                                cell <- fromIntegral <$> utf_ptr2cells ed q
+                                cell <- fromIntegral <$> utf_ptr2cells ed (castPtr q)
                                 if ps && i + cell > pc
                                   then pure (q, i)
                                   else do
-                                    n <- fromIntegral <$> utfc_ptr2len ed q
+                                    n <- fromIntegral <$> utfc_ptr2len ed (castPtr q)
                                     cells (pAdd q n) (i + cell)
                       (q, i) <- cells s' 0
                       let l = fromIntegral (pSub q s')

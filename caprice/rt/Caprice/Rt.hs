@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE BangPatterns, RankNTypes #-}
 
 -- | The runtime the generated editor is written against: C's memory, kept
 -- as C keeps it.  Every C object lives in raw memory laid out as the C lays
@@ -27,6 +27,7 @@ import Control.Concurrent (forkIO, getNumCapabilities)
 import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
 import Control.Exception (SomeException, throwIO, try)
 import Control.Monad (forM, forM_, unless)
+import Data.Array (Array, (!))
 import Data.Bits
 import Data.Char (ord)
 import Data.Dynamic (Dynamic, fromDyn, toDyn)
@@ -46,93 +47,101 @@ type P = Ptr ()
 -- its host -- what the host module made it with, as a Dynamic, since the
 -- runtime does not know the host's types (Caprice.Host's EdHost; a test's
 -- ()).  Several editors run at once in one process, each on its own.
-data Ed = Ed {edSeg :: !P, edHost :: !Dynamic}
+data Ed = Ed {edSeg :: !P, edHost :: !Dynamic, edFns :: !(Array Int (Ed -> [Word64] -> IO Word64))}
 
--- | An editor whose segment is n zeroed bytes, on host h.
-newEd :: Int -> Dynamic -> IO Ed
-newEd n h = do
+-- | An editor whose segment is n zeroed bytes, on host h, calling through
+-- function pointers into fns: the table is the editor's, so that the
+-- modules of the core call through it without importing the one that makes
+-- it.
+newEd :: Int -> Dynamic -> Array Int (Ed -> [Word64] -> IO Word64) -> IO Ed
+newEd n h fns = do
   seg <- callocBytes (max n 16)
-  pure (Ed seg h)
+  pure (Ed seg h fns)
+
+-- | A call through a function pointer: its index in the editor's table,
+-- the arguments and the result as their 64 bits.
+callPtr :: Ed -> Ptr a -> [Word64] -> IO Word64
+callPtr ed p args = (edFns ed ! fnIndex p) ed args
 
 -- * Reading and writing memory: the address and a constant offset
 
-rdI8 :: P -> Int -> IO Int8
+rdI8 :: Ptr a -> Int -> IO Int8
 rdI8 = peekByteOff
 {-# INLINE rdI8 #-}
-rdW8 :: P -> Int -> IO Word8
+rdW8 :: Ptr a -> Int -> IO Word8
 rdW8 = peekByteOff
 {-# INLINE rdW8 #-}
-rdI16 :: P -> Int -> IO Int16
+rdI16 :: Ptr a -> Int -> IO Int16
 rdI16 = peekByteOff
 {-# INLINE rdI16 #-}
-rdW16 :: P -> Int -> IO Word16
+rdW16 :: Ptr a -> Int -> IO Word16
 rdW16 = peekByteOff
 {-# INLINE rdW16 #-}
-rdI32 :: P -> Int -> IO Int32
+rdI32 :: Ptr a -> Int -> IO Int32
 rdI32 = peekByteOff
 {-# INLINE rdI32 #-}
-rdW32 :: P -> Int -> IO Word32
+rdW32 :: Ptr a -> Int -> IO Word32
 rdW32 = peekByteOff
 {-# INLINE rdW32 #-}
-rdI64 :: P -> Int -> IO Int64
+rdI64 :: Ptr a -> Int -> IO Int64
 rdI64 = peekByteOff
 {-# INLINE rdI64 #-}
-rdW64 :: P -> Int -> IO Word64
+rdW64 :: Ptr a -> Int -> IO Word64
 rdW64 = peekByteOff
 {-# INLINE rdW64 #-}
-rdP :: P -> Int -> IO P
+rdP :: Ptr a -> Int -> IO (Ptr b)
 rdP = peekByteOff
 {-# INLINE rdP #-}
 
 -- | A C bool is a byte, 0 or 1.
-rdB :: P -> Int -> IO Bool
+rdB :: Ptr a -> Int -> IO Bool
 rdB p o = (/= (0 :: Word8)) <$> peekByteOff p o
 {-# INLINE rdB #-}
 
-wrI8 :: P -> Int -> Int8 -> IO ()
+wrI8 :: Ptr a -> Int -> Int8 -> IO ()
 wrI8 = pokeByteOff
 {-# INLINE wrI8 #-}
-wrW8 :: P -> Int -> Word8 -> IO ()
+wrW8 :: Ptr a -> Int -> Word8 -> IO ()
 wrW8 = pokeByteOff
 {-# INLINE wrW8 #-}
-wrI16 :: P -> Int -> Int16 -> IO ()
+wrI16 :: Ptr a -> Int -> Int16 -> IO ()
 wrI16 = pokeByteOff
 {-# INLINE wrI16 #-}
-wrW16 :: P -> Int -> Word16 -> IO ()
+wrW16 :: Ptr a -> Int -> Word16 -> IO ()
 wrW16 = pokeByteOff
 {-# INLINE wrW16 #-}
-wrI32 :: P -> Int -> Int32 -> IO ()
+wrI32 :: Ptr a -> Int -> Int32 -> IO ()
 wrI32 = pokeByteOff
 {-# INLINE wrI32 #-}
-wrW32 :: P -> Int -> Word32 -> IO ()
+wrW32 :: Ptr a -> Int -> Word32 -> IO ()
 wrW32 = pokeByteOff
 {-# INLINE wrW32 #-}
-wrI64 :: P -> Int -> Int64 -> IO ()
+wrI64 :: Ptr a -> Int -> Int64 -> IO ()
 wrI64 = pokeByteOff
 {-# INLINE wrI64 #-}
-wrW64 :: P -> Int -> Word64 -> IO ()
+wrW64 :: Ptr a -> Int -> Word64 -> IO ()
 wrW64 = pokeByteOff
 {-# INLINE wrW64 #-}
-wrP :: P -> Int -> P -> IO ()
+wrP :: Ptr a -> Int -> Ptr b -> IO ()
 wrP = pokeByteOff
 {-# INLINE wrP #-}
-wrB :: P -> Int -> Bool -> IO ()
+wrB :: Ptr a -> Int -> Bool -> IO ()
 wrB p o b = pokeByteOff p o (if b then 1 else 0 :: Word8)
 {-# INLINE wrB #-}
 
 -- | n bytes from src to dst, overlapping or not: a struct's copy.
-copyMem :: P -> P -> Int -> IO ()
-copyMem dst src n = moveBytes dst src n
+copyMem :: Ptr a -> Ptr b -> Int -> IO ()
+copyMem dst src n = moveBytes dst (castPtr src) n
 {-# INLINE copyMem #-}
 
 -- | n bytes at p, each c.
-fillMem :: P -> Word8 -> Int -> IO ()
+fillMem :: Ptr a -> Word8 -> Int -> IO ()
 fillMem p c n = fillBytes p c n
 {-# INLINE fillMem #-}
 
 -- | n bytes from src to dst that do not overlap.
-copyMemNo :: P -> P -> Int -> IO ()
-copyMemNo dst src n = copyBytes dst src n
+copyMemNo :: Ptr a -> Ptr b -> Int -> IO ()
+copyMemNo dst src n = copyBytes dst (castPtr src) n
 {-# INLINE copyMemNo #-}
 
 -- * C's conversions that are not fromIntegral's
@@ -148,22 +157,22 @@ ch = fromIntegral . ord
 {-# INLINE b2i #-}
 
 -- | A pointer's bits.
-p2i :: P -> Word64
+p2i :: Ptr a -> Word64
 p2i = fromIntegral . ptrToWordPtr
 {-# INLINE p2i #-}
 
 -- | Bits as a pointer.
-i2p :: Word64 -> P
+i2p :: Word64 -> Ptr a
 i2p = wordPtrToPtr . fromIntegral
 {-# INLINE i2p #-}
 
 -- | p plus n bytes.
-pAdd :: P -> Int -> P
+pAdd :: Ptr a -> Int -> Ptr b
 pAdd = plusPtr
 {-# INLINE pAdd #-}
 
 -- | The bytes from q to p.
-pSub :: P -> P -> Int
+pSub :: Ptr a -> Ptr b -> Int
 pSub = minusPtr
 {-# INLINE pSub #-}
 
@@ -171,20 +180,20 @@ pSub = minusPtr
 
 -- | The locals of a call that live in memory: n bytes, zeroed, for as long
 -- as the call runs.
-frame :: Int -> (P -> IO a) -> IO a
-frame n k = allocaBytesAligned n 16 $ \p -> fillBytes p 0 n >> k p
+frame :: Int -> ((forall p. Ptr p) -> IO a) -> IO a
+frame n k = allocaBytesAligned n 16 $ \p -> fillBytes p 0 n >> k (castPtr p)
 {-# INLINE frame #-}
 
 -- * Function pointers
 
 -- | A function's address: its index in the table, at an address no object
 -- has, since a Haskell function cannot live in raw memory.
-fnPtr :: Int -> P
+fnPtr :: Int -> Ptr a
 fnPtr i = i2p (fromIntegral (i * 16 + 16))
 {-# INLINE fnPtr #-}
 
 -- | The index a function's address holds.
-fnIndex :: P -> Int
+fnIndex :: Ptr a -> Int
 fnIndex p = fromIntegral (p2i p `shiftR` 4) - 1
 {-# INLINE fnIndex #-}
 

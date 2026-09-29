@@ -15,7 +15,11 @@ package togo
 // write and call is the lowered form's; only where its lines are printed
 // moves.
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/arbace/go-whim/crefactor/cc"
+)
 
 // shape decides, for the function being printed, where each block goes.
 func (f *hfn) shape() {
@@ -124,9 +128,15 @@ func (f *hfn) unassigned() map[*lvar]bool {
 			}
 		}
 	}
+	// a parameter whose address is an out-argument is assigned by the call
+	walkAddrs(f.lf.fd.CompoundStatement, func(u *cc.UnaryExpression, d *cc.Declarator) {
+		if v, ok := f.lf.byDecl[d]; ok && f.h.outArg[u] {
+			set[v] = true
+		}
+	})
 	fixed := map[*lvar]bool{}
 	for _, v := range f.lf.params {
-		if !set[v] && f.reg(v) {
+		if !set[v] && f.reg(v) && !f.isOut[v] {
 			fixed[v] = true
 		}
 	}
@@ -136,7 +146,7 @@ func (f *hfn) unassigned() map[*lvar]bool {
 // hsUnparen is s without the parentheses around the whole of it, if they
 // are.
 func hsUnparen(s string) string {
-	if len(s) < 2 || s[0] != '(' || s[len(s)-1] != ')' {
+	if len(s) < 3 || s[0] != '(' || s[len(s)-1] != ')' {
 		return s
 	}
 	depth := 0

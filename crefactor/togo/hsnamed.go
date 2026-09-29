@@ -31,9 +31,10 @@ import (
 
 // hobj is a file-scope object's names.
 type hobj struct {
-	name string
-	off  int
-	t    cc.Type
+	name     string
+	off      int
+	t        cc.Type
+	exported bool // the host takes its address (Profile.HsExports)
 }
 
 // nameObjects names every object of the segment: a file-scope object by its
@@ -305,8 +306,9 @@ func (h *hgen) hsLabel(v int64, ht string, label cc.ExpressionNode) string {
 }
 
 // definitions are the accessors, the offsets and the patterns the module's
-// text uses, each printed once.
-func (h *hgen) definitions(text string) string {
+// text uses, each printed once; with the exported objects' addresses unless
+// skipExported (the module prints them itself).
+func (h *hgen) definitions(text string, skipExported bool) string {
 	used := map[string]bool{}
 	for _, t := range hsTokens(text) {
 		used[t] = true
@@ -323,15 +325,23 @@ func (h *hgen) definitions(text string) string {
 	b.WriteString("-- * The file-scope objects: each at its offset in the segment, read, written and addressed by name\n\n")
 	for _, o := range objs {
 		scalar := o.t != nil && o.t.Kind() != cc.Array && !isAggr(o.t) && o.t.Kind() != cc.Function
-		ht := hsType(o.t)
+		ht := h.hsType(o.t)
+		st := h.sigType(o.t)
+		if strings.Contains(st, " ") {
+			st = "(" + st + ")"
+		}
 		if scalar && used[o.name] {
-			fmt.Fprintf(&b, "%s :: Ed -> IO %s\n%s ed' = rd%s (edSeg ed') %d\n{-# INLINE %s #-}\n", o.name, ht, o.name, hsAccess(ht), o.off, o.name)
+			fmt.Fprintf(&b, "%s :: Ed -> IO %s\n%s ed' = rd%s (edSeg ed') %d\n{-# INLINE %s #-}\n", o.name, st, o.name, hsAccess(ht), o.off, o.name)
 		}
 		if scalar && used["set'"+o.name] {
-			fmt.Fprintf(&b, "set'%s :: Ed -> %s -> IO ()\nset'%s ed' = wr%s (edSeg ed') %d\n{-# INLINE set'%s #-}\n", o.name, ht, o.name, hsAccess(ht), o.off, o.name)
+			fmt.Fprintf(&b, "set'%s :: Ed -> %s -> IO ()\nset'%s ed' = wr%s (edSeg ed') %d\n{-# INLINE set'%s #-}\n", o.name, st, o.name, hsAccess(ht), o.off, o.name)
 		}
-		if used["addr'"+o.name] && !h.exported[o.name] {
-			fmt.Fprintf(&b, "addr'%s :: Ed -> P\naddr'%s ed' = pAdd (edSeg ed') %d\n{-# INLINE addr'%s #-}\n", o.name, o.name, o.off, o.name)
+		// an exported object's address the module may print itself, under
+		// its C name; under its own, Defs prints it for the top to wrap
+		dup := skipExported && h.exported[o.name]
+		if !dup && (used["addr'"+o.name] || o.exported && !skipExported) {
+			// an address of any type, as pAdd's: the C converts it freely
+			fmt.Fprintf(&b, "addr'%s :: Ed -> Ptr a\naddr'%s ed' = pAdd (edSeg ed') %d\n{-# INLINE addr'%s #-}\n", o.name, o.name, o.off, o.name)
 		}
 	}
 	// the members
@@ -357,6 +367,16 @@ func (h *hgen) definitions(text string) string {
 	b.WriteString("\n-- * The C's named constants: patterns, of any integer type\n\n")
 	for _, n := range es {
 		fmt.Fprintf(&b, "pattern %s :: (Eq a, Num a) => a\npattern %s = %d\n", n, n, h.enumVal[n])
+	}
+	// the types: the functions' and the accessors' above
+	for _, t := range hsTokens(b.String()) {
+		used[t] = true
+	}
+	tys := h.typeDefs(used)
+	sort.Strings(tys)
+	b.WriteString("\n-- * What the pointers point at: the structs as types of their own, the C's typedefs as synonyms\n\n")
+	for _, d := range tys {
+		b.WriteString(d + "\n")
 	}
 	b.WriteString("\n")
 	return b.String()

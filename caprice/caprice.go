@@ -52,8 +52,10 @@ var ErrNoBackend = errors.New("caprice: the generator wrote no Caprice/Editor.hs
 //   - -with-rtsopts=-N -qg: a capability a core, for match_lines's chunks,
 //     and one thread collecting, as without them: the parallel collector made
 //     the sequential work slower (a 100,000-line :%s/the/THE/g 0.46 s ->
-//     0.81), and with -qg it is as before, and \v(a|b)+c 3.6 s -> 0.36.
-var GHCFlags = []string{"-O1", "-threaded", "-rtsopts", "-with-rtsopts=-N -qg"}
+//     0.81), and with -qg it is as before, and \v(a|b)+c 3.6 s -> 0.36;
+//   - -j4: the core's parts (Profile.HsParts) compiled four at a time
+//     where the call graph lets them be.
+var GHCFlags = []string{"-O1", "-threaded", "-rtsopts", "-with-rtsopts=-N -qg", "-j4"}
 
 // command is exec.Command whose process dies with ours.
 func command(name string, args ...string) *exec.Cmd {
@@ -123,14 +125,8 @@ func Generate(gen Gen, src, dir string) (string, error) {
 		return "", fmt.Errorf("caprice: the Haskell backend refused part of the core:\n%s", r)
 	}
 	hsOut := filepath.Join(dir, "src", "Caprice", "Editor.hs")
-	for _, f := range []struct{ from, to string }{{made, hsOut}, {filepath.Join(scratch, "Editor.hs-boot"), filepath.Join(dir, "src", "Caprice", "Editor.hs-boot")}} {
-		b, err := os.ReadFile(f.from)
-		if err != nil {
-			return "", err
-		}
-		if err := writeIfDiffers(f.to, b); err != nil {
-			return "", err
-		}
+	if err := CopyGenerated(scratch, filepath.Dir(hsOut)); err != nil {
+		return "", err
 	}
 	return hsOut, nil
 }
@@ -209,6 +205,60 @@ func CompileStats(dir, out, main string) (string, GHCStats, error) {
 	return out, st, nil
 }
 
+// Generated are the files the Haskell backend writes for the module
+// Caprice.Editor in dir, relative to it: Editor.hs, its hs-boot, and, split
+// (Profile.HsParts), Editor/Defs.hs and Editor/PartN.hs.
+func Generated(dir string) ([]string, error) {
+	out := []string{"Editor.hs", "Editor.hs-boot"}
+	for _, f := range out {
+		if _, err := os.Stat(filepath.Join(dir, f)); err != nil {
+			return nil, err
+		}
+	}
+	parts, err := filepath.Glob(filepath.Join(dir, "Editor", "*.hs"))
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(parts)
+	for _, p := range parts {
+		out = append(out, filepath.Join("Editor", filepath.Base(p)))
+	}
+	return out, nil
+}
+
+// CopyGenerated copies the generated files from dir `from` to dir `to`,
+// each only when it differs, and removes a part in `to` the backend no
+// longer writes.
+func CopyGenerated(from, to string) error {
+	names, err := Generated(from)
+	if err != nil {
+		return err
+	}
+	keep := map[string]bool{}
+	for _, f := range names {
+		keep[f] = true
+		b, err := os.ReadFile(filepath.Join(from, f))
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(to, f)), 0o755); err != nil {
+			return err
+		}
+		if err := writeIfDiffers(filepath.Join(to, f), b); err != nil {
+			return err
+		}
+	}
+	old, _ := filepath.Glob(filepath.Join(to, "Editor", "*.hs"))
+	for _, p := range old {
+		if !keep[filepath.Join("Editor", filepath.Base(p))] {
+			if err := os.Remove(p); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // writeIfDiffers writes b to path unless path holds it already, keeping the
 // file's time for GHC's recompilation check.
 func writeIfDiffers(path string, b []byte) error {
@@ -239,7 +289,7 @@ func Lint(dir string) (map[string]int, error) {
 		if err != nil {
 			return err
 		}
-		if rel == filepath.Join("Caprice", "Editor.hs") {
+		if rel == filepath.Join("Caprice", "Editor.hs") || strings.HasPrefix(rel, filepath.Join("Caprice", "Editor")+string(filepath.Separator)) {
 			b = bytes.Replace(b, []byte("{-# OPTIONS_GHC -w #-}\n"), nil, 1)
 		}
 		to := filepath.Join(scratch, rel)
@@ -258,7 +308,7 @@ func Lint(dir string) (map[string]int, error) {
 	}
 	counts := map[string]int{}
 	for _, m := range lintRe.FindAllSubmatch(o, -1) {
-		if string(m[1]) == editor {
+		if f := string(m[1]); f == editor || strings.HasPrefix(f, strings.TrimSuffix(editor, ".hs")+string(filepath.Separator)) {
 			counts[string(m[2])]++
 		}
 	}

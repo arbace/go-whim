@@ -191,10 +191,10 @@ func TestHsControl(t *testing.T) {
 		from      *regexp.Regexp
 		repl      string
 	}{
-		{"unsigned division", javaIntsC, regexp.MustCompile(`pure \(quot (a\w*) (b\w*)\)`), "pure (fromIntegral (quot (fromIntegral $1 :: Int32) (fromIntegral $2 :: Int32)))"},
+		{"unsigned division", javaIntsC, regexp.MustCompile(`quot (a\w*) (b\w*)`), "fromIntegral (quot (fromIntegral $1 :: Int32) (fromIntegral $2 :: Int32))"},
 		{"unsigned widening", javaIntsC, regexp.MustCompile(`\(fromIntegral (c\w*) :: Int32\) \+ 1\b`), "(fromIntegral (fromIntegral $1 :: Int8) :: Int32) + 1"},
-		{"unsigned shift", javaIntsC, regexp.MustCompile(`pure \(shiftR (a\w*) \(fromIntegral (n\w*)\)\)`), "pure (fromIntegral (shiftR (fromIntegral $1 :: Int32) (fromIntegral $2)))"},
-		{"struct copy", javaStructsC, regexp.MustCompile(`copyMem \(pAdd fr' 80\) \(pAdd fr' 72\) 8`), "pure ()"},
+		{"unsigned shift", javaIntsC, regexp.MustCompile(`shiftR (a\w*) \(fromIntegral (n\w*)\)`), "fromIntegral (shiftR (fromIntegral $1 :: Int32) (fromIntegral $2))"},
+		{"struct copy", javaStructsC, regexp.MustCompile(`copyMem p\w* \(addr'g1 ed'\) 56`), "pure ()"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()
@@ -232,9 +232,74 @@ func TestHsUnparen(t *testing.T) {
 		`(c == (ch ')')) + 1`: `(c == (ch ')')) + 1`,
 		`(f x' (y'))`:         `f x' (y')`,
 		`(Ptr "(("# :: P)`:    `Ptr "(("# :: P`,
+		`()`:                  `()`,
 	} {
 		if got := hsUnparen(in); got != want {
 			t.Errorf("hsUnparen(%s) = %s, want %s", in, got, want)
 		}
+	}
+}
+
+// hsIdiomsC is what doc/HASKELL-IDIOMS.md's items 4-11 change the printing
+// of: pure functions and their loops, called where C evaluates them lazily;
+// out- and in-out parameters; struct locals by member and copied whole;
+// pointers of several types, converted, compared and called through; and a
+// typedef'd enumeration.
+const hsIdiomsC = javaHost + `
+typedef unsigned char char_u;
+typedef long linenr_T;
+typedef enum { ST_NONE, ST_ONE, ST_TWO } state_E;
+typedef struct { linenr_T lnum; int col; } pos_T;
+typedef struct { pos_T cur; char_u *name; } win_T;
+
+static int gcount;
+static pos_T gpos = {7, 2};
+static win_T gwin;
+
+void nothing(void) { }
+int isdig(int c) { return (unsigned)c - '0' < 10; }
+int digits(long n) { int k = 1; while (n >= 10) { n /= 10; k++; } return k; }
+int sumto(int n) { int s = 0; for (int i = 0; i < n; i++) { if (i % 3 == 0) continue; s += i; } return s; }
+state_E next(state_E s) { switch (s) { case ST_NONE: return ST_ONE; case ST_ONE: return ST_TWO; default: return ST_NONE; } }
+
+void split(int v, int *q, int *r) { *q = v / 10; *r = v % 10; }
+int maybe_len(const char *s, int *lenp) { int n = 0; while (s[n]) n++; if (lenp != 0) *lenp = n; return n > 3; }
+void bump(int *n) { *n += 1; }
+void twice(int *n) { bump(n); bump(n); }
+
+void move_pos(pos_T *pp, int dc) { pos_T a = *pp; a.col += dc; a.lnum++; *pp = a; }
+long pos_key(void) { pos_T b = {3, 4}; pos_T c; c = b; c.col = c.col * 2; return c.lnum * 100 + c.col; }
+
+int cmpv(const void *a, const void *b) { return *(const int *)a - *(const int *)b; }
+int apply(int (*f)(const void *, const void *), int x, int y) { return f(&x, &y); }
+char_u *skip(char_u *p) { while (*p == ' ') p++; return p; }
+
+void run(void) {
+    char buf[] = "  word";
+    int q, r, len = -1, n = 5;
+    out(isdig('7') && digits(12345) == 5 ? sumto(10) : -1);
+    nothing();
+    out(next(next(ST_ONE)));
+    split(47, &q, &r); out(q); out(r);
+    out(maybe_len("abcdef", &len)); out(len);
+    out(maybe_len("ab", 0));
+    bump(&n); twice(&n); out(n);
+    bump(&gcount); out(gcount);
+    move_pos(&gpos, 3); out(gpos.lnum); out(gpos.col);
+    gwin.cur = gpos; move_pos(&gwin.cur, -1); out(gwin.cur.col);
+    out(pos_key());
+    out(apply(cmpv, 9, 4));
+    char_u *w = skip((char_u *)buf); outs((char *)w);
+    void *vp = w; out((char *)vp == buf + 2);
+}
+`
+
+func TestHsIdioms(t *testing.T) { hsSame(t, hsIdiomsC, Profile{}, javaHarnessC) }
+
+// The same programs split into modules by the call graph (hssplit.go): a
+// part imports only what it calls into, and the top the table.
+func TestHsSplit(t *testing.T) {
+	for _, c := range []struct{ name, src string }{{"idioms", hsIdiomsC}, {"structs", javaStructsC}, {"goto", javaGotoC}} {
+		t.Run(c.name, func(t *testing.T) { hsSame(t, c.src, Profile{HsParts: 3}, javaHarnessC) })
 	}
 }

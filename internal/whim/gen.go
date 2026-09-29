@@ -122,7 +122,7 @@ func matchLinesJava(string) string {
 func matchLinesHs(string) string {
 	return `chunks (fromIntegral n) $ \from to -> do
   re <- alloc_clear ed' {{sizeof regengine_T}}
-  match_chunk ed' re rmp do_all buf lines line1 (fromIntegral from) (fromIntegral to) found
+  match_chunk ed' (castPtr re) rmp do_all buf lines line1 (fromIntegral from) (fromIntegral to) found
   failed <- rdB re {{offsetof regengine_T failed}}
   pure (not failed)`
 }
@@ -184,9 +184,12 @@ var Gen = togo.Profile{
 	// caprice, the Haskell editor: its module, its host's, and what the host
 	// calls back -- the printf's error messages and cells, and the death
 	// of a SIGHUP or a SIGTERM (caprice/host)
-	HsModule:   "Caprice.Editor",
-	HsHost:     "Caprice.Host",
-	HsExports:  []string{"deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
+	HsModule:  "Caprice.Editor",
+	HsHost:    "Caprice.Host",
+	HsExports: []string{"deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
+	// the functions in eight modules by the call graph: GHC holds a part,
+	// not the whole (doc/HASKELL-IDIOMS.md, item 8)
+	HsParts:    8,
 	Allocators: allocators,
 	// vim_free: the garbage collector owns memory, and what is freed walks
 	// nothing.

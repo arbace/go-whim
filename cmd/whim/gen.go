@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/internal/gen/pre"
 	"github.com/arbace/go-whim/internal/whim"
@@ -112,9 +113,20 @@ func runGen(args []string) int {
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
 		{javaOut, "braaam/Editor.java"},
 		{cljOut, "vijure/src/whim/editor.clj"},
-		{hsOut, "caprice/Caprice/Editor.hs"},
-		{filepath.Join(out, "Editor.hs-boot"), "caprice/Caprice/Editor.hs-boot"},
 	}
+	// the Haskell: the module, its hs-boot, and its parts
+	hsFiles, err := caprice.Generated(out)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	made := map[string]bool{}
+	for _, f := range hsFiles {
+		tracked := filepath.Join("caprice", "Caprice", f)
+		made[tracked] = true
+		files = append(files, struct{ made, tracked string }{filepath.Join(out, f), tracked})
+	}
+	stale, _ := filepath.Glob(filepath.Join("caprice", "Caprice", "Editor", "*.hs"))
 	fail, changed := false, false
 	for _, f := range files {
 		made, err := os.ReadFile(f.made)
@@ -131,7 +143,26 @@ func runGen(args []string) int {
 			fail = true
 			continue
 		}
+		if err := os.MkdirAll(filepath.Dir(f.tracked), 0o755); err != nil {
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+			return 1
+		}
 		if err := os.WriteFile(f.tracked, made, 0o644); err != nil {
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+			return 1
+		}
+		changed = true
+	}
+	for _, p := range stale {
+		if made[p] {
+			continue
+		}
+		if check {
+			fmt.Printf("  %-12s is NOT what the generator writes from whim-vim.c (it writes no such part).  Run: make editor/editor.go\n", p)
+			fail = true
+			continue
+		}
+		if err := os.Remove(p); err != nil {
 			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
@@ -152,8 +183,12 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
 		c, _ := os.ReadFile("vijure/src/whim/editor.clj")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))
-		hs, _ := os.ReadFile("caprice/Caprice/Editor.hs")
-		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.hs", bytes.Count(hs, []byte("\n")))
+		n := 0
+		for _, f := range hsFiles {
+			hs, _ := os.ReadFile(filepath.Join("caprice", "Caprice", f))
+			n += bytes.Count(hs, []byte("\n"))
+		}
+		fmt.Printf("  %-12s %d lines in %d files, generated from whim-vim.c\n", "Editor.hs", n, len(hsFiles))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")
 	}

@@ -697,13 +697,13 @@ Three patterns of one kind: the C has a name, the Haskell a number.
 | 2 | 1: the printer's noise, SSA names first -- **done** | printer | S-M | none | lets: 207.9 s (base 202.8-204.5), 4.02 GB | same | 36,565 `-Wall` warnings toward 0; 16,924 typed literals, 2,682 double conversions |
 | 3 | 3: objects, members, constants by name -- **done** | printer | S (objects), M | none | objects: 215.4 s (+6%); rest est. a few % | same | 11,657 segment sites, 16,052 member sites, 8,694 constants |
 | 4 | 2: structure: blocks in place, loops as `go` -- **done** | printer + lowering's nesting | M | low | est. unchanged (same Core) | est. same | 12,717 of 19,384 local functions gone; every function structured |
-| 5 | 5: pure functions; `ed'` where used | shared analysis + printer | S | none | 207.9 s | same | 58 pure functions; 221 without `ed'` |
+| 5 | 5: pure functions; `ed'` where used -- **done** | shared analysis + printer | S | none | 207.9 s | same | 58 pure functions; 221 without `ed'` |
 | 6 | 7: `initGlobals` as an image -- **done** | printer | S | low | its part 10.0 -> 1.2 s; with 3 and 5: 203.0 s, 3.66 GB | same | 15,281 -> 1,779 lines |
-| 7 | 8: modules by the call graph | printer + `Rt.hs` + `caprice.go` | M | cross-module inlining | 172.2 s, **1.77 GB** (-j4) | same | three modules and a top, not one |
-| 8 | 4: typed pointers | printer + `Rt.hs` + host | M | host signatures move | est. unchanged | est. same | `Ptr WinT` for `Ptr ()` at 1,413 parameters and 236 results |
-| 9 | 6: out-parameters as results | a C phase, or the printer | M | low | not measured | est. same | 78 out-parameters in 55 functions |
-| 10 | 9: struct locals as values | lowering + printer | M-L | aliasing proof | not measured | not measured | 87 locals |
-| 11 | 10: enumerations as `data` | printer | M | values outside the enum | -- | -- | 14 switches (item 3's synonyms first) |
+| 7 | 8: modules by the call graph -- **done** | printer + `Rt.hs` + `caprice.go` | M | cross-module inlining | 172.2 s, **1.77 GB** (-j4) | same | three modules and a top, not one |
+| 8 | 4: typed pointers -- **done** | printer + `Rt.hs` + host | M | host signatures move | est. unchanged | est. same | `Ptr WinT` for `Ptr ()` at 1,413 parameters and 236 results |
+| 9 | 6: out-parameters as results -- **done** | a C phase, or the printer | M | low | not measured | est. same | 78 out-parameters in 55 functions |
+| 10 | 9: struct locals as values -- **done** | lowering + printer | M-L | aliasing proof | not measured | not measured | 87 locals |
+| 11 | 10: enumerations as `data` -- synonyms and patterns **done**, `data` declined | printer | M | values outside the enum | -- | -- | 14 switches (item 3's synonyms first) |
 | 12 | 12: the host's state in `Ed` -- **done**, `94b34f3` | host | S-M | none | -- | -- | several editors a process |
 | -- | 4's newtypes, 4's `Maybe`, 11's folds, 9's `IORef`s | -- | -- | -- | -- | -- | not recommended (below) |
 
@@ -803,6 +803,70 @@ check_cursor_lnum ed' = do
 
 Found on the way: a character literal `'"'` read as the start of a string
 hid every name after it from the count of names used (`TestHsTokens`).
+
+### Done: the rest (2026-09-29)
+
+Items 4-6 and 8-11, in the printer (`crefactor/togo`: `hstypes.go`,
+`hseffects.go`, `hsout.go`, `hsstruct.go`, `hssplit.go`), the runtime and
+`caprice.go`; each with a C program of its own in `TestHsIdioms` (and
+`TestHsSplit`), held to gcc's output:
+
+| | after the first three | after these |
+| --- | ---: | ---: |
+| GHC, `-O1` | 196.4 s, 2.36 GB peak | **145.1 s, 1.24 GB** peak |
+| the heavy case | 1.4-1.6x the C | **1.0-1.3x** the C |
+| `ghc -Wall` | 0 | 0 |
+| modules | one of 90,461 lines | nine: a top, `Defs`, six parts (89,953 lines) |
+| functions with a frame | 301 | 237 |
+
+- **Item 4, typed pointers**: a pointer's type says what it points at --
+  `Ptr Win_T`, a struct a phantom `data`; `Ptr Char_u`, a scalar typedef a
+  synonym, `type Char_u = Word8`; `Ptr ()` for `void *` -- in every
+  signature, accessor and value; the runtime's readers and writers take a
+  pointer of any type, and the printer writes `castPtr` where the C converts
+  between two pointer types, exactly there. A value of any type (`nullPtr`,
+  `pAdd`, a literal, `addr'x`, the frame, which `frame` hands out as `forall
+  p. Ptr p`) takes the type it is used at. The host keeps `P`: a call into
+  it casts. **Declined, as the survey found:** newtypes for `linenr_T` and
+  `colnr_T` (the synonyms say the name at no cost) and `Maybe` for a
+  nullable pointer.
+- **Item 5, purity**: an effects analysis over the C (`hseffects.go`) --
+  touches memory, reaches the segment, the host or a function pointer --
+  closed over the calls. 56 functions are Haskell functions of their
+  arguments (`musl_isdigit :: Int32 -> Int32`), with no do, their blocks
+  lets and an expression; a call of one is `let !r = f x`, a call for its
+  effect nothing. 221 functions take no editor. What the host calls back and
+  what a runtime body names keep their signatures.
+- **Item 6, out-parameters**: 97 in 63 functions are a value in and a value
+  out (`split :: Int32 -> Int32 -> Int32 -> (Int32, Int32)`, `let !(q1, r1)
+  = split 47 q r`), where the callee only reads, writes and null-tests `*p`
+  and every caller passes `&x` of a local nothing else reaches -- found by a
+  fixpoint over the calls and every address taken. A call in a lazy operand
+  keeps its local in the frame, read before and written after.
+- **Item 8, the split**: the functions in parts by the call graph's
+  components, callees first (`HsParts: 8` in `internal/whim/gen.go`; the
+  largest component, 33,735 lines, is a part of its own); the definitions a
+  module `Defs`; the top module the segment, `initGlobals`, the table --
+  which the editor now carries (`Ed`'s `edFns`, `callPtr` in `Caprice.Rt`) --
+  and the host's callbacks as the hs-boot declares them (plain types, no
+  synonyms, so the boot needs no declarations). `-j4` compiles parts side by
+  side. `whim gen`, its check, the suite's control and the lint handle the
+  several files.
+- **Item 9, struct locals**: 84 of them -- all members scalars, used by
+  member, copied whole, initialized or returned, never their address taken
+  -- are one binding per member (`move_pos` reads `a_lnum` and `a_col` from
+  `*pp`, adds, writes them back: no frame; `pos_key` became pure). The
+  file-scope scalars stay in the segment: the survey measured an `IORef` 4.5
+  times slower, and the names (item 3) are the idiom.
+- **Item 10, enumerations**: an enumeration's typedef is a synonym in the
+  signatures (`next :: State_E -> State_E`), its values pattern synonyms
+  (item 3). `data` types declined, as the survey found: every load a
+  `toEnum`, every store a `fromEnum`, and a value outside the enumeration --
+  which C allows -- an error.
+- **Item 11, loops**: a pure function's loop is pure recursion (`count n =
+  let loop'1 !s1 !i1 = if i1 < n then ... else s1 in loop'1 0 0`), the
+  others item 2's local functions. `foldl'` over a list declined: it would
+  allocate the list.
 
 ## What is not worth doing, and why
 

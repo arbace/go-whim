@@ -30,9 +30,14 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
 
 - **every C object lives in raw memory**, laid out as the C lays it out on
   amd64 -- the sizes and offsets are the C front end's (`crefactor/cc`);
-- **a pointer is an address**, `Ptr ()`: walking, comparing, subtracting and
-  punning are C's, so none of the pointer analysis the other backends need
-  is used -- nor the unions' discriminants, nor the string-as-slice question;
+- **a pointer is an address**, typed by what it points at: `Ptr Win_T`, a
+  struct a phantom type with no values; `Ptr Char_u`, a C typedef of a
+  scalar a synonym, `type Char_u = Word8` (an enumeration's too, `type
+  State_E = Int32`); `Ptr ()` for `void *`. Walking, comparing, subtracting
+  and punning are C's, the runtime's readers and writers take a pointer of
+  any type, and the printer writes `castPtr` where the C converts one
+  pointer type to another -- so GHC checks what the C checks, and none of
+  the pointer analysis the other backends need is used;
 - **the file-scope objects are one segment per editor**, each at its offset,
   read, written and addressed by accessors of its name (`curwin ed'`,
   `set'curwin`, `addr'curwin`); a member's offset is a constant of its
@@ -41,19 +46,30 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
   addresses written after it; a string literal is a primitive string literal
   (`Ptr "..."#`), static memory GHC stores as its bytes; a compound literal
   in a file-scope initializer gets room of its own in the segment;
-- **a local whose address is taken, or that is an array, a struct or a
-  union, lives in its call's frame** (`frame n $ \fr' -> ...`,
-  `allocaBytes`), zeroed; every other local is a Haskell binding;
+- **a local whose address is taken, or that is an array or a struct used
+  as bytes, lives in its call's frame** (`frame n $ \fr' -> ...`,
+  `allocaBytes`), zeroed; every other local is a Haskell binding -- a struct
+  of scalars used by member and copied whole one binding per member, and a
+  local whose address only goes to an out-parameter a binding too;
+- **an out-parameter is a value in and a value out**: a callee that only
+  reads and writes `*p` and tests `p` against null, every caller passing
+  `&x` of a local nothing else reaches, takes x's value and returns its new
+  one beside its result (`(r, x1) <- f ... x`);
+- **a function that touches no memory is a Haskell function** of its
+  arguments, no `IO` (`musl_isdigit :: Int32 -> Int32`), its loops pure
+  recursion; one that reaches no file-scope object, no host and no function
+  pointer takes no editor;
 - **a function pointer is an index** into the table of the functions whose
   address is taken (`fnTable`), at an address no object has, since a Haskell
-  function cannot live in raw memory; a call through one passes its
-  arguments as their 64 bits;
+  function cannot live in raw memory; the editor carries the table (`Ed`'s
+  `edFns`), so a call through one (`callPtr`) needs no import of the module
+  that makes it; it passes its arguments as their 64 bits;
 - **a struct passed by value is its address**, which the callee copies into
   its frame; **a struct result** is written through an address the caller
   gives (`sret'`), room in the caller's frame.
 
-Unsafe, and not idiomatic Haskell; but exactly the C's semantics, with the
-least translation.
+Unsafe underneath -- raw memory -- but exactly the C's semantics, and what
+the C lets the types say, they say (`doc/HASKELL-IDIOMS.md`).
 
 ## Control flow: blocks in place, joins and loops as local functions
 
@@ -140,16 +156,20 @@ sequential work slower.
 ## Measured
 
 - **The backend writes all 1,710 functions of the core and refuses none**:
-  90,461 lines of Haskell, tracked as `caprice/Caprice/Editor.hs` (with its
-  hs-boot) and refused by `whim-editor-check` when stale -- 122,743 before
-  the three changes of `doc/HASKELL-IDIOMS.md` that made it read as Haskell.
-- **One module, not split**: the plan feared minutes and several GB; GHC
-  compiles it in 196 s and 2.36 GB at `-O1` (213 s and 3.50 GB before those
-  changes), and `whim caprice` prints both beside every build. No `.hs-boot`
-  for the core's own calls, no function table for them. A build whose core
-  has not moved skips it (`caprice.Build` writes a source only when it
-  differs), and the suite keeps its two builds in `.cache/caprice-suite/`.
-- **Speed**: the heavy case 1.4-1.6 times the C (the Go 0.5, the Java 1.8-2.1,
+  89,953 lines of Haskell in nine modules -- the top `Caprice.Editor`,
+  `Caprice.Editor.Defs` and six parts by the call graph, the largest the
+  core's one big cycle of calls (33,735 lines) -- tracked under
+  `caprice/Caprice/` and refused by `whim-editor-check` when stale; 122,743
+  lines in one module before `doc/HASKELL-IDIOMS.md`'s changes. 56 of the
+  functions are pure, 221 take no editor, 97 out-parameters are values in
+  and out, 84 struct locals are bindings.
+- **GHC**: 145 s and 1.24 GB peak at `-O1`, `-j4` (one module: 213 s and 3.50
+  GB), printed beside every build; `ghc -Wall` has nothing to say
+  (`whim caprice --lint`). A build whose core has not moved skips it
+  (`caprice.Build` writes a source only when it differs), a moved part
+  recompiles that part and what imports it, and the suite keeps its two
+  builds in `.cache/caprice-suite/`.
+- **Speed**: the heavy case 1.0-1.3 times the C (the Go 0.5, the Java 1.8-2.1,
   the Clojure 4.2-4.4). A `:%s` at 500,000 lines (the survey's buffer,
   `doc/PARALLEL-SUBSTITUTE.md`; seconds, median of three less the build):
 
@@ -168,7 +188,9 @@ sequential work slower.
 
 ## Not done
 
-- **Idiomatic Haskell**: the core is still C's memory in IO -- untyped
-  pointers, out-parameters, structs as bytes. `doc/HASKELL-IDIOMS.md`
-  surveys what could change, measured and ranked; its items 0-3, 7 and 12
-  are done (the noise, the structure, the names, the image, the host).
+- **Idiomatic Haskell, beyond the survey**: the core is still C's memory --
+  most functions in `IO` reading and writing raw bytes at named offsets, the
+  file-scope objects a segment -- which is what the C is.
+  `doc/HASKELL-IDIOMS.md`'s twelve items are done, or done in the part it
+  found worth doing (newtypes, `Maybe`, `data` enumerations and list folds
+  declined, with why).

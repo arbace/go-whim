@@ -46,6 +46,12 @@ type hfn struct {
 	inline map[*lblock]bool    // reached by one jump: written there
 	loop   map[*lblock]bool    // a loop's head: a jump back reaches it
 	fixed  map[*lvar]bool      // parameters never assigned: read from the scope
+	pure   bool                // a function of its arguments (hseffects.go)
+	outs   []*lvar             // the out-parameters, as values (hsout.go)
+	sv     map[*lvar][]*lvar   // a struct that is a value -> its members' variables (hsstruct.go)
+	svOf   map[*lvar]*lvar
+	extra  []*lvar // variables the lowering did not make: the members
+	isOut  map[*lvar]bool
 
 	image []byte // initGlobals: the segment's constant bytes (hsnamed.go)
 }
@@ -64,24 +70,29 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		}
 	}()
 	lf := lowerFunction(fd, h.g.a, h.g.p, hsName)
-	f := &hfn{h: h, lf: lf, name: d.Name(), mem: map[*lvar]int{}}
+	f := &hfn{h: h, lf: lf, name: d.Name(), mem: map[*lvar]int{}, pure: h.pure(d.Name())}
 	for _, rb := range h.g.p.RuntimeBodies {
 		if rb.Name == d.Name() && rb.Hs != nil {
 			// a rule of the runtime's, not a translation (Profile.RuntimeBodies)
 			sig, params := h.signature(d, lf)
-			body := h.layoutMarks(rb.Hs(hsType(lf.ft.Result())))
-			return fmt.Sprintf("%s\n%s ed' %s= do\n%s\n", sig, h.names[d.Name()], strings.Join(append(params, ""), " "), indent(body, 2)), ""
+			body := h.layoutMarks(rb.Hs(f.h.hsType(lf.ft.Result())))
+			return fmt.Sprintf("%s\n%s %s= do\n%s\n", sig, h.names[d.Name()], strings.Join(append(params, ""), " "), indent(body, 2)), ""
 		}
 	}
 	ft := lf.ft
 	f.sret = isAggr(ft.Result())
-	f.ret = hsType(ft.Result())
+	f.ret = f.h.hsType(ft.Result())
+	f.outVars()
+	f.structVars()
 	f.placeVars(fd)
 	f.nameVars()
 	sig, params := h.signature(d, lf)
 	first := 0
+	if h.takesEd(d.Name()) {
+		first++ // ed' is the first
+	}
 	if f.sret {
-		first = 1 // sret' is the first
+		first++ // then sret'
 	}
 	for i, v := range lf.params {
 		if first+i < len(params) {
@@ -93,10 +104,11 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	// rest -- joins and loops' heads -- local functions of what is live at
 	// their start (hsshape.go)
 	f.live = lf.live()
+	f.liveOuts()
 	f.shape()
 	var b strings.Builder
 	b.WriteString(sig + "\n")
-	fmt.Fprintf(&b, "%s ed' %s=", h.names[d.Name()], strings.Join(append(params, ""), " "))
+	fmt.Fprintf(&b, "%s %s=", h.names[d.Name()], strings.Join(append(params, ""), " "))
 	var body []string
 	// the parameters that live in the frame: copied in
 	for _, v := range lf.params {
@@ -107,7 +119,7 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		if isAggr(v.c) {
 			body = append(body, fmt.Sprintf("copyMem (pAdd fr' %d) %s %d", off, f.base[v], v.c.Size()))
 		} else {
-			body = append(body, fmt.Sprintf("wr%s fr' %d %s", hsAccess(hsType(v.c)), off, f.base[v]))
+			body = append(body, fmt.Sprintf("wr%s fr' %d %s", hsAccess(f.h.hsType(v.c)), off, f.base[v]))
 		}
 	}
 	var locals []string
@@ -126,6 +138,16 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		for _, l := range locals {
 			body = append(body, indent(l, 2))
 		}
+	}
+	if f.pure {
+		// a function of its arguments: no do, lets and an expression
+		if len(locals) > 0 {
+			body = append(body, "in "+strings.Join(indentRest(f.pureBlock(start), 3), "\n"))
+		} else {
+			body = f.pureBlock(start)
+		}
+		fmt.Fprintf(&b, "\n%s\n", indent(strings.Join(body, "\n"), 2))
+		return hsTidy(b.String()), ""
 	}
 	body = append(body, start...)
 	text := "do\n" + indent(strings.Join(body, "\n"), 2)
@@ -146,7 +168,7 @@ func (f *hfn) placeVars(fd *cc.FunctionDefinition) {
 		if n == nil {
 			return
 		}
-		if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+		if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof && !f.h.outArg[u] {
 			if p, ok := unparenE(u.CastExpression).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
 				if d, ok := p.ResolvedTo().(*cc.Declarator); ok {
 					taken[d] = true
@@ -157,7 +179,10 @@ func (f *hfn) placeVars(fd *cc.FunctionDefinition) {
 	}
 	rec(fd.CompoundStatement)
 	for _, v := range f.lf.vars {
-		if isAggr(v.c) || v.c.Kind() == cc.Array || v.decl != nil && taken[v.decl] {
+		if f.sv[v] != nil {
+			continue // its members are bindings
+		}
+		if isAggr(v.c) || v.c.Kind() == cc.Array || v.decl != nil && (taken[v.decl] || f.h.outLazy[v.decl]) {
 			f.alloc(v, v.c)
 		}
 	}
@@ -184,12 +209,22 @@ func (f *hfn) reg(v *lvar) bool {
 // start that are bindings, in the function's order.
 func (f *hfn) params(b *lblock, live map[*lblock]map[*lvar]bool) []*lvar {
 	set := map[*lvar]bool{}
+	var members []*lvar
 	for v := range live[b] {
+		if ms := f.sv[v]; ms != nil {
+			members = append(members, v)
+			continue
+		}
 		if f.reg(v) && !f.fixed[v] {
 			set[v] = true
 		}
 	}
-	return f.lf.sortedVars(set)
+	out := f.lf.sortedVars(set)
+	// a struct that is a value: its members, in the struct's order
+	for _, s := range f.lf.sortedVars(sliceSet(members)) {
+		out = append(out, f.sv[s]...)
+	}
+	return out
 }
 
 // jump is a tail call of b with the variables it is a function of, each
@@ -209,20 +244,31 @@ func (f *hfn) vtype(v *lvar) string {
 		return "Bool"
 	}
 	t := v.c
+	if f.isOut[v] {
+		t = elemOf(t) // the value it points at
+	}
 	if t.Kind() == cc.Array {
 		t = t.Decay()
 	}
-	return hsType(t)
+	return f.h.hsType(t)
+}
+
+func sliceSet(vs []*lvar) map[*lvar]bool {
+	m := map[*lvar]bool{}
+	for _, v := range vs {
+		m[v] = true
+	}
+	return m
 }
 
 // hsZero is a type's zero.
 func hsZero(ht string) string {
-	switch ht {
-	case "Bool":
+	switch {
+	case ht == "Bool":
 		return "False"
-	case "P":
+	case isPtrHt(ht):
 		return "nullPtr"
-	case "()":
+	case ht == "()":
 		return "()"
 	}
 	return "(0 :: " + ht + ")"
@@ -241,7 +287,48 @@ func (f *hfn) block(b *lblock) string {
 		f.cur[v] = n
 		head = append(head, "!"+n)
 	}
+	if f.pure {
+		return strings.Join(head, " ") + " =\n" + indent(strings.Join(f.pureBlock(f.body(b, 0)), "\n"), 2)
+	}
 	return strings.Join(head, " ") + " = do\n" + indent(strings.Join(f.body(b, 0), "\n"), 2)
+}
+
+// pureBlock is a block's lines in a pure function as one expression: its
+// lets, and the expression they are in.
+func (f *hfn) pureBlock(ls []string) []string {
+	var binds []string
+	i := 0
+	for i < len(ls) && strings.HasPrefix(ls[i], "let !") {
+		binds = append(binds, strings.TrimPrefix(ls[i], "let "))
+		i++
+	}
+	rest := ls[i:]
+	for _, l := range rest {
+		if strings.HasPrefix(l, "let ") || strings.Contains(l, " <- ") {
+			f.no(nil, "a pure function's line that is an action: %s", l)
+		}
+	}
+	if len(rest) == 0 {
+		f.no(nil, "a pure function's block with no value")
+	}
+	if len(binds) == 0 {
+		return rest
+	}
+	out := []string{"let " + binds[0]}
+	for _, b := range binds[1:] {
+		out = append(out, "    "+b)
+	}
+	return append(out, indentRest(append([]string{"in " + rest[0]}, rest[1:]...), 3)...)
+}
+
+// indentRest indents every line but the first by n.
+func indentRest(ls []string, n int) []string {
+	out := append([]string{}, ls...)
+	pad := strings.Repeat(" ", n)
+	for i := 1; i < len(out); i++ {
+		out[i] = strings.ReplaceAll(pad+out[i], "\n", "\n"+pad)
+	}
+	return out
 }
 
 // body is block b's lines where the printing is (f.cur): its steps, and its
@@ -271,10 +358,24 @@ func (f *hfn) arm(s *lblock, depth int, cur map[*lvar]string) string {
 	}
 	f.cur = maps.Clone(cur)
 	ls := f.body(s, depth+1)
+	if f.pure {
+		ls = f.pureBlock(ls)
+	}
 	if len(ls) == 1 && !strings.Contains(ls[0], "\n") {
 		return ls[0]
 	}
+	if f.pure {
+		return "\n" + indent(strings.Join(ls, "\n"), 2)
+	}
 	return "do\n" + indent(strings.Join(ls, "\n"), 2)
+}
+
+// armed is a keyword and its arm: on one line, or the arm below it.
+func armed(kw, arm string) string {
+	if strings.HasPrefix(arm, "\n") {
+		return kw + arm
+	}
+	return kw + " " + arm
 }
 
 // emit adds a line to the current block.
@@ -325,6 +426,10 @@ func (f *hfn) step(s lstep) {
 // let, strict as C's assignment), or, when x is a name or a literal, x
 // itself.
 func (f *hfn) setVar(v *lvar, x hv) {
+	if f.sv[v] != nil {
+		f.copyStruct(v, x)
+		return
+	}
 	if off, ok := f.mem[v]; ok {
 		if isAggr(v.c) {
 			src := f.flush(x)
@@ -351,11 +456,27 @@ func (f *hfn) setVar(v *lvar, x hv) {
 // store writes x to the lvalue lhs.
 func (f *hfn) store(lhs cc.ExpressionNode, x hv) {
 	t := lhs.Type()
+	if v := f.outDeref(lhs); v != nil {
+		f.setVar(v, x)
+		return
+	}
+	if m := f.memberVar(lhs); m != nil {
+		f.setVar(m, x)
+		return
+	}
+	if s := f.structNamed(lhs); s != nil {
+		f.copyStruct(s, x)
+		return
+	}
 	if v := f.lf.lhsVar(lhs); v != nil && f.reg(v) {
 		f.setVar(v, x)
 		return
 	}
 	a := f.addrOf(lhs)
+	if isAggr(t) && x.rec != nil {
+		f.storeStruct(a, x.rec)
+		return
+	}
 	base := f.flush(a.base)
 	if isAggr(t) {
 		src := f.flush(x)
@@ -365,7 +486,7 @@ func (f *hfn) store(lhs cc.ExpressionNode, x hv) {
 	if a.field != nil && a.field.IsBitfield() {
 		f.no(lhs, "a bit field")
 	}
-	ht := hsType(t)
+	ht := f.h.hsType(t)
 	val := f.flushPlain(f.conv(x, ht))
 	if a.whole && a.obj != nil {
 		f.emit("set'%s ed' %s", a.obj.name, val)
@@ -412,7 +533,7 @@ func (f *hfn) incDec(s lstep) {
 			d = -d
 		}
 		nv = hv{binds: cur.v.binds, val: fmt.Sprintf("(pAdd %s %s)", cur.v.val, hsOff(int(d))), ht: "P"}
-	case hsType(lt) == "Bool":
+	case f.h.hsType(lt) == "Bool":
 		// ++ on a bool is true; -- is its negation
 		if s.inc {
 			nv = hv{binds: cur.v.binds, val: "True", ht: "Bool"}
@@ -420,7 +541,7 @@ func (f *hfn) incDec(s lstep) {
 			nv = hv{binds: cur.v.binds, val: "(not " + cur.v.val + ")", ht: "Bool"}
 		}
 	default:
-		ht := hsType(lt)
+		ht := f.h.hsType(lt)
 		op := "+"
 		if !s.inc {
 			op = "-"
@@ -442,6 +563,12 @@ type hlv struct {
 
 func (f *hfn) readLval(e cc.ExpressionNode) hlv {
 	t := e.Type()
+	if v := f.outDeref(e); v != nil {
+		return hlv{v: f.varRead(v), reg: v, t: t}
+	}
+	if m := f.memberVar(e); m != nil {
+		return hlv{v: f.varRead(m), reg: m, t: t}
+	}
 	if v := f.lf.lhsVar(e); v != nil && f.reg(v) {
 		return hlv{v: f.varRead(v), reg: v, t: t}
 	}
@@ -450,7 +577,7 @@ func (f *hfn) readLval(e cc.ExpressionNode) hlv {
 	if a.field != nil && a.field.IsBitfield() {
 		f.no(e, "a bit field")
 	}
-	ht := hsType(t)
+	ht := f.h.hsType(t)
 	r := f.tmp()
 	if a.whole && a.obj != nil {
 		f.emit("%s <- %s ed'", r, a.obj.name)
@@ -465,7 +592,7 @@ func (l hlv) write(f *hfn, x hv) {
 		f.setVar(l.reg, x)
 		return
 	}
-	ht := hsType(l.t)
+	ht := f.h.hsType(l.t)
 	val := f.flushPlain(f.conv(x, ht))
 	if l.a.whole && l.a.obj != nil {
 		f.emit("set'%s ed' %s", l.a.obj.name, val)
@@ -478,6 +605,10 @@ func (l hlv) write(f *hfn, x hv) {
 // list or a string, written into the variable's memory anew.
 func (f *hfn) initVar(s lstep) {
 	v := s.dst
+	if f.sv[v] != nil {
+		f.initStruct(v, s.in)
+		return
+	}
 	off, ok := f.mem[v]
 	if !ok {
 		// a scalar with braces: its one value
@@ -528,16 +659,20 @@ func (f *hfn) initInto(base string, off int, t cc.Type, in *cc.Initializer) {
 			f.no(e, "a bit field's initializer")
 		}
 		if isAggr(it) {
+			if x := f.expr(e); x.rec != nil {
+				f.storeStruct(haddr{base: hv{val: base, ht: "P"}, off: at}, x.rec)
+				return
+			}
 			src := f.flush(f.expr(e))
 			f.emit("copyMem (pAdd %s %d) %s %d", base, at, src, it.Size())
 			return
 		}
-		ht := hsType(it)
+		ht := f.h.hsType(it)
 		x := f.expr(e)
 		if x.konst && x.kv == 0 && !x.lit {
 			return // the memory is zeroed
 		}
-		if img && x.konst && !x.lit && ht != "P" && len(x.binds) == 0 {
+		if img && x.konst && !x.lit && !isPtrHt(ht) && len(x.binds) == 0 {
 			// a constant: its bytes in the image
 			k := f.conv(x, ht).kv
 			if ht == "Bool" && k != 0 {
@@ -574,8 +709,8 @@ func (f *hfn) term(b *lblock, depth int) {
 		then := f.arm(f.resolve(t.to[0]), depth, cur)
 		els := f.arm(f.resolve(t.to[1]), depth, cur)
 		f.emit("if %s", hsUnparen(cv))
-		f.emit("%s", indent("then "+then, 2))
-		f.emit("%s", indent("else "+els, 2))
+		f.emit("%s", indent(armed("then", then), 2))
+		f.emit("%s", indent(armed("else", els), 2))
 	case tSwitch:
 		x := f.lexpr(t.cond)
 		ht := x.ht
@@ -588,29 +723,61 @@ func (f *hfn) term(b *lblock, depth int) {
 		f.emit("case (%s :: %s) of", v, ht)
 		for i, vs := range t.cases {
 			for _, cv := range vs {
-				f.emit("%s", indent(f.h.hsLabel(cv, ht, t.labels[cv])+" -> "+f.arm(f.resolve(t.to[i]), depth, cur), 2))
+				f.emit("%s", indent(armed(f.h.hsLabel(cv, ht, t.labels[cv])+" ->", f.arm(f.resolve(t.to[i]), depth, cur)), 2))
 			}
 		}
-		f.emit("%s", indent("_ -> "+f.arm(f.resolve(t.to[len(t.to)-1]), depth, cur), 2))
+		f.emit("%s", indent(armed("_ ->", f.arm(f.resolve(t.to[len(t.to)-1]), depth, cur)), 2))
 	case tRet:
 		switch {
 		case t.ret.isZero():
-			f.emit("pure %s", hsZero(f.ret))
+			f.result(hsZero(f.ret))
 		case f.sret:
+			if x := f.lexpr(t.ret); x.rec != nil {
+				f.storeStruct(haddr{base: hv{val: "sret'", ht: "P"}}, x.rec)
+				f.emit("pure ()")
+				return
+			}
 			src := f.flush(f.lexpr(t.ret))
 			f.emit("copyMem sret' %s %d", src, f.lf.ft.Result().Size())
 			f.emit("pure ()")
 		default:
 			v := f.flushPlain(f.conv(f.lexpr(t.ret), f.ret))
-			f.emit("pure %s", v)
+			f.result(v)
 		}
 	case tFall:
 		if f.sret {
 			f.emit("pure ()")
 		} else {
-			f.emit("pure %s", hsZero(f.ret))
+			f.result(hsZero(f.ret))
 		}
 	}
+}
+
+// result is the function's result v: its value, in IO or not.
+func (f *hfn) result(v string) {
+	if len(f.outs) > 0 {
+		// the out-parameters' values beside the result
+		var parts []string
+		if f.ret != "()" {
+			parts = append(parts, v)
+		}
+		for _, o := range f.outs {
+			parts = append(parts, f.valueOf(f.cur, o))
+		}
+		v = strings.Join(parts, ", ")
+		if len(parts) > 1 {
+			v = "(" + v + ")"
+		}
+	}
+	if f.pure && len(f.outs) > 0 {
+		f.emit("%s", v) // a tuple
+		return
+	}
+	if f.pure {
+		f.emit("%s", hsUnparen(v))
+		return
+	}
+	f.emit("pure %s", v)
 }
 
 // hsPattern is a case value as a pattern of type ht.

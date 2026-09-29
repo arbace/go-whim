@@ -46,7 +46,8 @@ func (f *hfn) nameVars() {
 	// the C names that are free first, so that no number given later takes
 	// another variable's name
 	var clash []*lvar
-	for _, v := range f.lf.vars {
+	vars := append(append([]*lvar{}, f.lf.vars...), f.extra...)
+	for _, v := range vars {
 		if top[v.name] || f.used[v.name] {
 			clash = append(clash, v)
 			continue
@@ -58,8 +59,8 @@ func (f *hfn) nameVars() {
 		f.base[v] = v.name
 		f.base[v] = f.fresh(v)
 	}
-	for _, v := range f.lf.vars {
-		if !f.reg(v) {
+	for _, v := range vars {
+		if !f.reg(v) || f.sv[v] != nil {
 			continue
 		}
 		if v.param {
@@ -142,13 +143,39 @@ func hsTidy(src string) string {
 		t := strings.TrimLeft(l, " ")
 		ind := l[:len(l)-len(t)]
 		switch {
-		case strings.HasPrefix(t, "r'"):
+		case (strings.HasPrefix(t, "j'") || strings.HasPrefix(t, "loop'")) && strings.Contains(t, " =") && !strings.Contains(t[:strings.Index(t, " =")], "("):
+			// a local function's head: its parameters not used, _
+			eq := strings.Index(t, " =")
+			ws := strings.Fields(t[:eq])
+			for k := 1; k < len(ws); k++ {
+				if n := strings.TrimPrefix(ws[k], "!"); counts[n] == 1 {
+					ws[k] = "_"
+				}
+			}
+			lines[i] = ind + strings.Join(ws, " ") + t[eq:]
+		case strings.HasPrefix(t, "(") && strings.Contains(t, ") <- "), strings.HasPrefix(t, "let !("):
+			// a tuple bound: the names in it not used, _
+			open := strings.Index(t, "(")
+			end := strings.Index(t, ")")
+			names := strings.Split(t[open+1:end], ", ")
+			for k, n := range names {
+				if counts[n] == 1 {
+					names[k] = "_"
+				}
+			}
+			lines[i] = ind + t[:open+1] + strings.Join(names, ", ") + t[end:]
+		case hsBindRe.MatchString(t):
 			if j := strings.Index(t, " <- "); j > 0 && counts[t[:j]] == 1 {
 				lines[i] = ind + "_" + t[j:]
 			}
 		case strings.HasPrefix(t, "let !"):
 			if j := strings.Index(t, " = "); j > 5 && counts[t[5:j]] == 1 {
 				lines[i] = ind + "let !_" + t[j:]
+			}
+		case strings.HasPrefix(t, "!"):
+			// a binding of a pure function's let after its first
+			if j := strings.Index(t, " = "); j > 1 && !strings.Contains(t[1:j], " ") && counts[t[1:j]] == 1 {
+				lines[i] = ind + "!_" + t[j:]
 			}
 		}
 	}
@@ -175,6 +202,9 @@ func hsTidyHead(l string, counts map[string]int) string {
 	}
 	return strings.Join(ws, " ") + l[eq:]
 }
+
+// hsBindRe is a line that binds one name to an action's result.
+var hsBindRe = regexp.MustCompile(`^[a-z_][A-Za-z0-9_']* <- `)
 
 // hsTokens are the names in Haskell source, outside its strings and
 // comments.
