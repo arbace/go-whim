@@ -306,12 +306,18 @@ caprice/           the editor in Haskell (doc/HASKELL.md), by hand but
                    Haskell backend and tracked (whim gen; never edit them):
                    rt/Caprice/Rt.hs the runtime (C's memory, raw: the
                    segment, the frame, function pointers as indices, the
-                   parallel chunks), host/Caprice/Host.hs the host (the C
-                   host's 17 functions: termios, poll, signals, the arena)
-                   and Printf.hs (vim_snprintf, format.go's port), Main.hs the
+                   parallel chunks), host/Caprice/Host.hs the Host interface
+                   (a record of functions, editor/host.go's) and the C host's
+                   17 functions as glue to an editor's own Host and arena,
+                   Term.hs the terminal host (termios, poll, the signals told
+                   to every terminal alive), Run.hs `run host args` (an
+                   editor, run to its end: several may run at once) and
+                   Printf.hs (vim_snprintf, format.go's port), Main.hs the
                    launcher; caprice.go the Go that builds it (`go tool whim
                    caprice`, make bin/caprice: GHC into lib/caprice and the
-                   program bin/caprice)
+                   program bin/caprice); testdata/instances/Main.hs four editors at
+                   once on hosts of its own, which its test compiles against
+                   lib/caprice
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),

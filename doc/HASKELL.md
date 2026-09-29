@@ -75,16 +75,28 @@ division `quot` and `rem`; a C bool a `Bool`, a byte in memory.
 ## The host
 
 The core calls 17 host functions, whose types the backend writes beside the
-module (`Editor.hs.host`). They are Haskell, from the C host half of
-`whim-vim.c`, function by function (`caprice/host/Caprice/Host.hs`): raw
-mode and the keys with `System.Posix.Terminal`, the window's size with an
-`ioctl` (a `capi` import), the signals with `installHandler` -- each sets a
-flag and writes to a pipe, as the C's handlers do -- the wait for input a
-`poll(2)` on the keys and the pipe (a safe foreign call, so that the
-handlers, threads of the threaded RTS, run meanwhile), the arena 1 GiB
-`calloc`ed and bumped atomically, and `host_exit` an exception `main`
-catches. `vim_snprintf` is `editor/format.go` ported
+module (`Editor.hs.host`). As in the Go, the Java and the Clojure, they are
+glue to an interface (`caprice/host/Caprice/Host.hs`): a `Host` is a record
+of functions -- the window's size, raw mode, the keys, the clocks, the wait
+for input, reading it, the signals, output -- `editor/host.go`'s Host, on raw
+buffers; an editor's `Ed` carries its own (`edHost`, a `Dynamic`, since the
+runtime does not know the host's types), with the arena that is the editor's
+and not the host's: 1 GiB `calloc`ed and bumped atomically, as the C host's.
+`Caprice.Run.run host args` makes an editor and runs it to its end,
+`host_exit` an exception it catches; so a process runs any number of editors,
+each on its own host and thread (`caprice/testdata/instances/Main.hs`: four at once,
+on hosts of the test's own, none seeing another's text; `go test
+./caprice/`). `vim_snprintf` is `editor/format.go` ported
 (`caprice/host/Caprice/Printf.hs`).
+
+The terminal host (`caprice/host/Caprice/Term.hs`, `newTerm`) is the C host
+half of `whim-vim.c`, function by function, its state the instance's: raw
+mode and the keys with `System.Posix.Terminal`, the window's size with an
+`ioctl` (a `capi` import), the wait for input a `poll(2)` on the keys and a
+pipe of its own (a safe foreign call, so that the signals' handlers, threads
+of the threaded RTS, run meanwhile). The signals are the process's, so one
+handler a signal tells every terminal alive -- a flag set and a byte down its
+pipe, as the C's handlers do.
 
 The host calls back into the core -- the printf's error messages, the death
 of a SIGHUP -- so the two modules are mutually recursive: the backend writes
@@ -143,6 +155,3 @@ sequential work slower.
 - **Idiomatic Haskell**: the core is C in Haskell's syntax -- raw memory, IO
   everywhere, join points. The Go, Java and Clojure editors' idiom surveys
   have no Haskell counterpart yet.
-- **More than one editor per process**: the host's state is the process's
-  (the C host's static state), where the Go, Java and Clojure hosts allow
-  many; the core itself is per editor (`Ed`).

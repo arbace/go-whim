@@ -88,10 +88,11 @@ outf _ fmt args = do
 
 const hsMain = `module Main where
 
+import Caprice.Rt (toDyn)
 import qualified Editor
 
 main :: IO ()
-main = Editor.newEditor >>= Editor.run
+main = Editor.newEditor (toDyn ()) >>= Editor.run
 `
 
 func requireHs(t *testing.T) {

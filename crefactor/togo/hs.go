@@ -140,7 +140,7 @@ func (g *gen) writeHs(path string) error {
 	b.WriteString("import Caprice.Rt\n")
 	fmt.Fprintf(&b, "import qualified %s\n\n", h.host)
 	fmt.Fprintf(&b, "-- | The bytes of the segment the file-scope objects are in.\nsegSize :: Int\nsegSize = %d\n\n", h.segSize)
-	b.WriteString("-- | A new editor: its segment, with the objects' initial values.\nnewEditor :: IO Ed\nnewEditor = do\n  ed' <- newEd segSize\n  initGlobals ed'\n  pure ed'\n\n")
+	b.WriteString("-- | A new editor on host h: its segment, with the objects' initial values.\nnewEditor :: Dynamic -> IO Ed\nnewEditor h = do\n  ed' <- newEd segSize h\n  initGlobals ed'\n  pure ed'\n\n")
 	b.WriteString("initGlobals :: Ed -> IO ()\ninitGlobals ed' = do\n")
 	for _, l := range inits {
 		b.WriteString("  " + l + "\n")

@@ -27,7 +27,7 @@ import (
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-//go:embed rt/Caprice/Rt.hs host/Caprice/Host.hs host/Caprice/Printf.hs Main.hs
+//go:embed rt/Caprice/Rt.hs host/Caprice/Host.hs host/Caprice/Term.hs host/Caprice/Run.hs host/Caprice/Printf.hs Main.hs
 var sources embed.FS
 
 // Gen writes the module Caprice.Editor of the C core editorC to hsOut (and
@@ -121,8 +121,24 @@ func Generate(gen Gen, src, dir string) (string, error) {
 // Compile writes the embedded sources into dir/src and compiles them with
 // the generated module into the program at out.
 func Compile(dir, out string) (string, error) {
+	return CompileMain(dir, out, "")
+}
+
+// CompileMain is Compile with the program's module Main the file main
+// instead of Main.hs, when main is not empty: a Main that imports only the
+// editor's modules. It shares dir/o with the editor's build and GHC's flags
+// -- the search path among them, which is why main's directory is not added
+// to it -- so only Main is compiled.
+func CompileMain(dir, out, main string) (string, error) {
+	// GHC's recompilation check fingerprints the search path and the output
+	// directory as written: one build's relative path and another's absolute
+	// one would each recompile the core for the other.
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return "", err
+	}
 	srcDir := filepath.Join(dir, "src")
-	err := fs.WalkDir(sources, ".", func(path string, d fs.DirEntry, err error) error {
+	err = fs.WalkDir(sources, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return err
 		}
@@ -149,7 +165,12 @@ func Compile(dir, out string) (string, error) {
 	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {
 		return "", err
 	}
-	args := append(append([]string{}, GHCFlags...), "-v0", "-i"+srcDir, "-outputdir", filepath.Join(dir, "o"), "-o", out, filepath.Join(srcDir, "Main.hs"))
+	args := append(append([]string{}, GHCFlags...), "-v0", "-i"+srcDir, "-outputdir", filepath.Join(dir, "o"), "-o", out)
+	if main == "" {
+		args = append(args, filepath.Join(srcDir, "Main.hs"))
+	} else {
+		args = append(args, main)
+	}
 	if o, err := command("ghc", args...).CombinedOutput(); err != nil {
 		return "", fmt.Errorf("ghc: %v\n%s", err, o)
 	}

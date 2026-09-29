@@ -18,6 +18,9 @@ module Caprice.Rt
   , plusPtr
   , minusPtr
   , castPtr
+  , Dynamic
+  , toDyn
+  , fromDyn
   ) where
 
 import Control.Concurrent (forkIO, getNumCapabilities)
@@ -25,6 +28,7 @@ import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
 import Control.Exception (SomeException, throwIO, try)
 import Control.Monad (forM, forM_, unless)
 import Data.Bits
+import Data.Dynamic (Dynamic, fromDyn, toDyn)
 import Data.IORef (atomicWriteIORef, newIORef, readIORef)
 import Data.Int
 import Data.Word
@@ -37,12 +41,17 @@ import GHC.Ptr (Ptr (..))
 -- | An address, of anything: C's pointers, all of one type.
 type P = Ptr ()
 
--- | An editor: its data segment, where the C's file-scope objects are.
-newtype Ed = Ed {edSeg :: P}
+-- | An editor: its data segment, where the C's file-scope objects are, and
+-- its host -- what the host module made it with, as a Dynamic, since the
+-- runtime does not know the host's types (Caprice.Host's EdHost; a test's
+-- ()).  Several editors run at once in one process, each on its own.
+data Ed = Ed {edSeg :: !P, edHost :: !Dynamic}
 
--- | An editor whose segment is n zeroed bytes.
-newEd :: Int -> IO Ed
-newEd n = Ed <$> callocBytes (max n 16)
+-- | An editor whose segment is n zeroed bytes, on host h.
+newEd :: Int -> Dynamic -> IO Ed
+newEd n h = do
+  seg <- callocBytes (max n 16)
+  pure (Ed seg h)
 
 -- * Reading and writing memory: the address and a constant offset
 

@@ -15,10 +15,10 @@ import qualified Caprice.Host
 segSize :: Int
 segSize = 96801
 
--- | A new editor: its segment, with the objects' initial values.
-newEditor :: IO Ed
-newEditor = do
-  ed' <- newEd segSize
+-- | A new editor on host h: its segment, with the objects' initial values.
+newEditor :: Dynamic -> IO Ed
+newEditor h = do
+  ed' <- newEd segSize h
   initGlobals ed'
   pure ed'
 
