@@ -63,6 +63,9 @@ type jfn struct {
 	// scalars, their address never taken -- so a call's result is taken as
 	// it is and one returned is not copied (heldStructs)
 	held map[*cc.Declarator]bool
+	// the function's body, and each of its nodes' parent (daFirst)
+	fbody cc.Node
+	par   map[cc.Node]cc.Node
 }
 
 // a declaration written where C declares it, with its zero, which the next
@@ -202,6 +205,7 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 	ft, _ := d.Type().(*cc.FunctionType)
 	f := j.newFn(d.Name(), ft)
 	f.held = heldStructs(fd)
+	f.fbody = fd.CompoundStatement
 	defer func() {
 		if r := recover(); r != nil {
 			u, ok := r.(unsupported)
@@ -518,7 +522,13 @@ func (f *jfn) declaration(d *cc.Declaration, live, atSwitch bool) []*jpending {
 			continue
 		}
 		at := f.out.Len()
-		f.stmt1("%s %s = %s", decl, lc.name, lc.init)
+		if scalar && id.Initializer == nil && f.daFirst(dd) {
+			// assigned before any read on every path: Java's definite
+			// assignment, no zero (java_da.go)
+			f.stmt1("%s %s", decl, lc.name)
+		} else {
+			f.stmt1("%s %s = %s", decl, lc.name, lc.init)
+		}
 		if id.Initializer != nil {
 			f.initInto(lc.ref(), t, key, id.Initializer, !lc.boxed)
 			continue

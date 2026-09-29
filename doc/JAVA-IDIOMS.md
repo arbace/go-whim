@@ -172,8 +172,11 @@ a `case`'s own locals, one declared without a value inside a loop
 (`TestJavaLocals`, whose control -- that rule off -- prints what the C does
 not). Zero declarations 3,449 -> 2,409 (2,060 of them C locals assigned
 later, 349 temporaries); `for (;` 491 -> 113; `Editor.java` 65,599 ->
-63,667 lines. Not done: JLS 16's definite assignment, which would drop the
-zero of a local every path assigns before reading.
+63,667 lines. And JLS 16's definite assignment is done (`daFirst`, `java_da.go`):
+a local declared with no initializer is written without its zero when no
+path from its declaration reads it before a store -- an analysis at most as
+bold as javac's, so every local it passes compiles: zero declarations 2,661
+-> 1,832.
 
 
 - **The pattern:** every local is declared at the method's top with its
