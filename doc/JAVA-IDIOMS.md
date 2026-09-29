@@ -131,7 +131,13 @@ another) and leaving a line it cannot read. 13,669 pairs gone (`(` 52,154 ->
 38,485). The proof: the Java with and without the pass, `whim java
 --same-classes`, **140 of 140 classes byte for byte the same**; the control
 (a right operand of equal precedence unwrapped, `a - (b - c)`) is refused.
-Lines over 120 columns 1,095 -> 905; breaking them is not done.
+Lines over 120 columns 1,095 -> 905; and now broken (`jbreak`,
+`java_tidy.go`): after an argument's comma or before a `&&` or a `||`, the
+one nearest the width's end at the lowest nesting, the rest eight spaces
+further in; a line with a comment or with nowhere to break is left. Lines
+over 120 columns 879 -> 147, `Editor.java` 66,695 -> 67,801 lines; the
+proof, `whim java --same-classes`: 198 of 198 classes byte for byte the
+same.
 
 
 - **The pattern:** 23,779 parenthesised expressions. By Java's precedence

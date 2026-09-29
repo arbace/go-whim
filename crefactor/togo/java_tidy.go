@@ -53,9 +53,67 @@ type jtok struct {
 func jtidyFile(src string) string {
 	lines := strings.Split(src, "\n")
 	for i, l := range lines {
-		lines[i] = jtidy(l)
+		lines[i] = strings.Join(jbreak(jtidy(l), 0), "\n")
 	}
 	return strings.Join(lines, "\n")
+}
+
+// jwidth is the width a line of Java is held to.
+const jwidth = 120
+
+// jbreak is a line of Java wider than jwidth as lines that are not: broken
+// after an argument's comma or before a && or a || -- the one nearest the
+// width's end at the lowest nesting there is one -- the rest indented eight
+// spaces further than the line (cont: the rest of a line broken already,
+// indented so).  A line it cannot read -- a comment's, one of what the lexer
+// does not know -- is left, as is one with nowhere to break.
+func jbreak(l string, cont int) []string {
+	if len(l) <= jwidth {
+		return []string{l}
+	}
+	toks, ok := jlex(l)
+	if !ok {
+		return []string{l}
+	}
+	ind := len(l) - len(strings.TrimLeft(l, " "))
+	best, bestDepth := -1, 1<<30
+	depth := 0
+	for i, t := range toks {
+		switch t.s {
+		case "(", "[", "{":
+			depth++
+			continue
+		case ")", "]", "}":
+			depth--
+			continue
+		}
+		at := -1
+		switch {
+		case t.s == "," && depth > 0:
+			at = t.end // after the comma
+		case t.s == "&&" || t.s == "||":
+			at = t.start // before the operator
+		}
+		if at < 0 || at > jwidth || i == 0 {
+			continue
+		}
+		if strings.TrimSpace(l[:at]) == "" || strings.TrimSpace(l[at:]) == "" {
+			continue
+		}
+		if depth < bestDepth || depth == bestDepth && at > best {
+			best, bestDepth = at, depth
+		}
+	}
+	if best < 0 {
+		return []string{l}
+	}
+	first := strings.TrimRight(l[:best], " ")
+	next := ind + 8
+	if cont > 0 {
+		next = ind // the rest of a broken line is indented already
+	}
+	rest := strings.Repeat(" ", next) + strings.TrimLeft(l[best:], " ")
+	return append([]string{first}, jbreak(rest, next)...)
 }
 
 // jtidy is the line of Java l without the grouping parentheses precedence

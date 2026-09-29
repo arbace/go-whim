@@ -1,6 +1,9 @@
 package togo
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 // jtidy drops the parentheses precedence makes redundant, keeps those it
 // needs and those a reader wants, and leaves what it cannot read.
@@ -42,5 +45,31 @@ func TestJtidy(t *testing.T) {
 		if got := jtidy(c[0]); got != c[1] {
 			t.Errorf("jtidy(%q) = %q, want %q", c[0], got, c[1])
 		}
+	}
+}
+
+// jbreak breaks a line wider than jwidth after an argument's comma or
+// before a && or a ||, at the lowest nesting, and leaves one it cannot.
+func TestJBreak(t *testing.T) {
+	long := "        if (alpha_beta_gamma_delta(one, two, three) != 0 && epsilon_zeta_eta_theta(four, five, six) != 0 && iota_kappa(7) != 0) {"
+	got := jbreak(long, 0)
+	if len(got) < 2 || !strings.HasPrefix(strings.TrimLeft(got[1], " "), "&&") {
+		t.Errorf("jbreak(%q) = %q, want a break before a &&", long, got)
+	}
+	for _, g := range got {
+		if len(g) > jwidth {
+			t.Errorf("a line still wider than %d: %q", jwidth, g)
+		}
+	}
+	if strings.Join(strings.Fields(strings.Join(got, " ")), " ") != strings.Join(strings.Fields(long), " ") {
+		t.Errorf("the tokens moved: %q", got)
+	}
+	str := `        f("` + strings.Repeat("x, y && z ", 14) + `");`
+	if got := jbreak(str, 0); len(got) != 1 {
+		t.Errorf("a string was broken: %q", got)
+	}
+	cmt := "        int x = 1; // " + strings.Repeat("a, b && c ", 14)
+	if got := jbreak(cmt, 0); len(got) != 1 {
+		t.Errorf("a comment's line was broken: %q", got)
 	}
 }
