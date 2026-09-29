@@ -576,7 +576,12 @@ func loRewrites(src []byte, fns map[string]*cc.FunctionDefinition, protos map[st
 			}
 			locals = append(locals, withName(t, ps[k].Name())+";")
 		}
-		if len(locals) > 0 {
+		dropped := len(locals) > 0
+		if !sh.simple {
+			// one struct for every return, declared once
+			locals = append(locals, sh.stype+" out__;")
+		}
+		if dropped {
 			rws = append(rws, list(pds))
 			for _, pd := range protos[g] {
 				rws = append(rws, list(paramDecls(pd.InitDeclaratorList.InitDeclarator.Declarator)))
@@ -645,7 +650,7 @@ func loRewrites(src []byte, fns map[string]*cc.FunctionDefinition, protos map[st
 				return "return " + sh.vals[0] + ";"
 			}
 			var b strings.Builder
-			fmt.Fprintf(&b, "{ %s out__;", sh.stype)
+			b.WriteString("{")
 			if e != "" {
 				fmt.Fprintf(&b, " out__.r__ = %s;", e)
 			}

@@ -3298,7 +3298,7 @@ ins_bs_one ed' = do
 ins_bs :: Ed -> Int32 -> Int32 -> Int32 -> IO (Bool, Int32)
 ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
   let
-    j'6 !mode1 !inserted_space_p1 !temp1 !did_backspace1 !in_indent1 !call_fix_indent1 !out___r__1 !out___inserted_space_p1 !out___2_r__1 !out___2_inserted_space_p1 !out___3_r__1 !out___3_inserted_space_p1 !out___4_r__1 !out___4_inserted_space_p1 !out___5_r__1 !out___5_inserted_space_p1 !out___6_r__1 !out___6_inserted_space_p1 = do
+    j'6 !mode1 !inserted_space_p1 !temp1 !did_backspace1 !in_indent1 !call_fix_indent1 !out___r__1 !out___inserted_space_p1 = do
       r'1 <- curwin ed'
       r'2 <- rdI32 r'1 (win_T'w_cursor + pos_T'col)
       if r'2 == 0
@@ -3321,8 +3321,8 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
                   r'12 <- rdI64 (addr'c'Insstart ed') pos_T'lnum
                   r'13 <- ml_get_len ed' r'12
                   wrI32 (addr'c'Insstart ed') pos_T'col r'13
-                  j'52 inserted_space_p1 r'3 did_backspace1 call_fix_indent1 out___r__1 out___inserted_space_p1 out___2_r__1 out___2_inserted_space_p1 out___3_r__1 out___3_inserted_space_p1 out___4_r__1 out___4_inserted_space_p1 out___5_r__1 out___5_inserted_space_p1 out___6_r__1 out___6_inserted_space_p1
-            else j'52 inserted_space_p1 r'3 did_backspace1 call_fix_indent1 out___r__1 out___inserted_space_p1 out___2_r__1 out___2_inserted_space_p1 out___3_r__1 out___3_inserted_space_p1 out___4_r__1 out___4_inserted_space_p1 out___5_r__1 out___5_inserted_space_p1 out___6_r__1 out___6_inserted_space_p1
+                  j'52 inserted_space_p1 r'3 did_backspace1 call_fix_indent1 out___r__1 out___inserted_space_p1
+            else j'52 inserted_space_p1 r'3 did_backspace1 call_fix_indent1 out___r__1 out___inserted_space_p1
         else do
           r'16 <- if (mode1 == BACKSPACE_LINE) then (do { r'14 <- curbuf ed'; r'15 <- rdI32 r'14 buf_T'b_p_ai; pure (r'15 /= 0) }) else pure False
           if r'16
@@ -3336,14 +3336,14 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
                 then do
                   r'21 <- curwin ed'
                   r'22 <- rdI32 r'21 (win_T'w_cursor + pos_T'col)
-                  j'10 mode1 inserted_space_p1 temp1 r'18 r'22 in_indent1 True out___r__1 out___inserted_space_p1 out___2_r__1 out___2_inserted_space_p1 out___3_r__1 out___3_inserted_space_p1 out___4_r__1 out___4_inserted_space_p1 out___5_r__1 out___5_inserted_space_p1 out___6_r__1 out___6_inserted_space_p1
-                else j'10 mode1 inserted_space_p1 temp1 r'18 (0 :: Int32) in_indent1 call_fix_indent1 out___r__1 out___inserted_space_p1 out___2_r__1 out___2_inserted_space_p1 out___3_r__1 out___3_inserted_space_p1 out___4_r__1 out___4_inserted_space_p1 out___5_r__1 out___5_inserted_space_p1 out___6_r__1 out___6_inserted_space_p1
-            else j'11 mode1 inserted_space_p1 temp1 (0 :: Int32) in_indent1 call_fix_indent1 out___r__1 out___inserted_space_p1 out___2_r__1 out___2_inserted_space_p1 out___3_r__1 out___3_inserted_space_p1 out___4_r__1 out___4_inserted_space_p1 out___5_r__1 out___5_inserted_space_p1 out___6_r__1 out___6_inserted_space_p1
-    j'10 !mode2 !inserted_space_p2 !temp2 !save_col1 !mincol1 !in_indent2 !call_fix_indent2 !out___r__2 !out___inserted_space_p2 !out___2_r__2 !out___2_inserted_space_p2 !out___3_r__2 !out___3_inserted_space_p2 !out___4_r__2 !out___4_inserted_space_p2 !out___5_r__2 !out___5_inserted_space_p2 !out___6_r__2 !out___6_inserted_space_p2 = do
+                  j'10 mode1 inserted_space_p1 temp1 r'18 r'22 in_indent1 True out___r__1 out___inserted_space_p1
+                else j'10 mode1 inserted_space_p1 temp1 r'18 (0 :: Int32) in_indent1 call_fix_indent1 out___r__1 out___inserted_space_p1
+            else j'11 mode1 inserted_space_p1 temp1 (0 :: Int32) in_indent1 call_fix_indent1 out___r__1 out___inserted_space_p1
+    j'10 !mode2 !inserted_space_p2 !temp2 !save_col1 !mincol1 !in_indent2 !call_fix_indent2 !out___r__2 !out___inserted_space_p2 = do
       r'23 <- curwin ed'
       wrI32 r'23 (win_T'w_cursor + pos_T'col) save_col1
-      j'11 mode2 inserted_space_p2 temp2 mincol1 in_indent2 call_fix_indent2 out___r__2 out___inserted_space_p2 out___2_r__2 out___2_inserted_space_p2 out___3_r__2 out___3_inserted_space_p2 out___4_r__2 out___4_inserted_space_p2 out___5_r__2 out___5_inserted_space_p2 out___6_r__2 out___6_inserted_space_p2
-    j'11 !mode3 !inserted_space_p3 !temp3 !mincol2 !in_indent3 !call_fix_indent3 !out___r__3 !out___inserted_space_p3 !out___2_r__3 !out___2_inserted_space_p3 !out___3_r__3 !out___3_inserted_space_p3 !out___4_r__3 !out___4_inserted_space_p3 !out___5_r__3 !out___5_inserted_space_p3 !out___6_r__3 !out___6_inserted_space_p3 = do
+      j'11 mode2 inserted_space_p2 temp2 mincol1 in_indent2 call_fix_indent2 out___r__2 out___inserted_space_p2
+    j'11 !mode3 !inserted_space_p3 !temp3 !mincol2 !in_indent3 !call_fix_indent3 !out___r__3 !out___inserted_space_p3 = do
       r'39 <- if (mode3 == BACKSPACE_CHAR) then (do { r'24 <- p_sta ed'; if ((r'24 /= 0) && in_indent3) then pure True else (do { r'25 <- get_sts_value ed'; r'28 <- if (r'25 /= 0) then (do { r'26 <- curwin ed'; r'27 <- rdI32 r'26 (win_T'w_cursor + pos_T'col); pure (r'27 > 0) }) else pure False; if r'28 then (do { r'29 <- ml_get_cursor ed'; r'30 <- rdW8 (pAdd r'29 (-1)) 0; if ((fromIntegral r'30 :: Int32) == TAB) then pure True else (do { r'31 <- ml_get_cursor ed'; r'32 <- rdW8 (pAdd r'31 (-1)) 0; if ((fromIntegral r'32 :: Int32) == (ch ' ')) then (if (not (inserted_space_p3 /= 0)) then pure True else (do { r'33 <- arrow_used ed'; pure (r'33 /= 0) })) else pure False }) }) else pure False }) }) else pure False
       if r'39
         then do
@@ -3351,12 +3351,12 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
           r'41 <- curwin ed'
           r'42 <- rdI32 r'41 (win_T'w_cursor + pos_T'col)
           let !cursor_ptr1 = pAdd r'40 (fromIntegral r'42)
-          loop'26 (FALSE :: Int32) in_indent3 call_fix_indent3 (0 :: Int32) r'40 r'40 cursor_ptr1 r'40 (0 :: Int32) False out___r__3 out___inserted_space_p3 out___2_r__3 out___2_inserted_space_p3 out___3_r__3 out___3_inserted_space_p3 out___4_r__3 out___4_inserted_space_p3 out___5_r__3 out___5_inserted_space_p3 out___6_r__3 out___6_inserted_space_p3
+          loop'26 (FALSE :: Int32) in_indent3 call_fix_indent3 (0 :: Int32) r'40 r'40 cursor_ptr1 r'40 (0 :: Int32) False out___r__3 out___inserted_space_p3
         else do
           r'43 <- ml_get_cursor ed'
           r'44 <- mb_get_class ed' r'43
-          loop'13 mode3 inserted_space_p3 temp3 mincol2 call_fix_indent3 r'44 out___r__3 out___inserted_space_p3 out___2_r__3 out___2_inserted_space_p3 out___3_r__3 out___3_inserted_space_p3 out___4_r__3 out___4_inserted_space_p3 out___5_r__3 out___5_inserted_space_p3 out___6_r__3 out___6_inserted_space_p3
-    loop'13 !mode4 !inserted_space_p4 !temp4 !mincol3 !call_fix_indent4 !cclass1 !out___r__4 !out___inserted_space_p4 !out___2_r__4 !out___2_inserted_space_p4 !out___3_r__4 !out___3_inserted_space_p4 !out___4_r__4 !out___4_inserted_space_p4 !out___5_r__4 !out___5_inserted_space_p4 !out___6_r__4 !out___6_inserted_space_p4 = do
+          loop'13 mode3 inserted_space_p3 temp3 mincol2 call_fix_indent3 r'44 out___r__3 out___inserted_space_p3
+    loop'13 !mode4 !inserted_space_p4 !temp4 !mincol3 !call_fix_indent4 !cclass1 !out___r__4 !out___inserted_space_p4 = do
       _ <- dec_cursor ed'
       r'46 <- gchar_cursor ed'
       r'47 <- ml_get_cursor ed'
@@ -3366,55 +3366,55 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
         then do
           r'51 <- vim_iswordc ed' r'46
           let !temp5 = b2i r'51 :: Int32
-          j'17 (BACKSPACE_WORD_NOT_SPACE :: Int32) inserted_space_p4 temp5 mincol3 call_fix_indent4 r'48 out___r__4 out___inserted_space_p4 out___2_r__4 out___2_inserted_space_p4 out___3_r__4 out___3_inserted_space_p4 out___4_r__4 out___4_inserted_space_p4 out___5_r__4 out___5_inserted_space_p4 out___6_r__4 out___6_inserted_space_p4
+          j'17 (BACKSPACE_WORD_NOT_SPACE :: Int32) inserted_space_p4 temp5 mincol3 call_fix_indent4 r'48 out___r__4 out___inserted_space_p4
         else do
           r'55 <- if (mode4 == BACKSPACE_WORD_NOT_SPACE) then (do { let { !r'52 = vim_isspace r'46 }; r'54 <- if r'52 then pure True else (do { r'53 <- vim_iswordc ed' r'46; pure ((b2i r'53 :: Int32) /= temp4) }); pure (r'54 || (cclass1 /= r'48)) }) else pure False
           if r'55
             then do
               _ <- inc_cursor ed'
-              j'37 inserted_space_p4 call_fix_indent4 out___r__4 out___inserted_space_p4 out___2_r__4 out___2_inserted_space_p4 out___3_r__4 out___3_inserted_space_p4 out___4_r__4 out___4_inserted_space_p4 out___5_r__4 out___5_inserted_space_p4 out___6_r__4 out___6_inserted_space_p4
-            else j'17 mode4 inserted_space_p4 temp4 mincol3 call_fix_indent4 r'48 out___r__4 out___inserted_space_p4 out___2_r__4 out___2_inserted_space_p4 out___3_r__4 out___3_inserted_space_p4 out___4_r__4 out___4_inserted_space_p4 out___5_r__4 out___5_inserted_space_p4 out___6_r__4 out___6_inserted_space_p4
-    j'17 !mode5 !inserted_space_p5 !temp6 !mincol4 !call_fix_indent5 !cclass2 !out___r__5 !out___inserted_space_p5 !out___2_r__5 !out___2_inserted_space_p5 !out___3_r__5 !out___3_inserted_space_p5 !out___4_r__5 !out___4_inserted_space_p5 !out___5_r__5 !out___5_inserted_space_p5 !out___6_r__5 !out___6_inserted_space_p5 = do
+              j'37 inserted_space_p4 call_fix_indent4 out___r__4 out___inserted_space_p4
+            else j'17 mode4 inserted_space_p4 temp4 mincol3 call_fix_indent4 r'48 out___r__4 out___inserted_space_p4
+    j'17 !mode5 !inserted_space_p5 !temp6 !mincol4 !call_fix_indent5 !cclass2 !out___r__5 !out___inserted_space_p5 = do
       r'57 <- c'State ed'
       if (r'57 .&. REPLACE_FLAG) /= 0
         then do
           replace_do_bs ed' (-1)
-          j'23 mode5 inserted_space_p5 temp6 mincol4 call_fix_indent5 cclass2 out___r__5 out___inserted_space_p5 out___2_r__5 out___2_inserted_space_p5 out___3_r__5 out___3_inserted_space_p5 out___4_r__5 out___4_inserted_space_p5 out___5_r__5 out___5_inserted_space_p5 out___6_r__5 out___6_inserted_space_p5
+          j'23 mode5 inserted_space_p5 temp6 mincol4 call_fix_indent5 cclass2 out___r__5 out___inserted_space_p5
         else do
           r'58 <- p_deco ed'
           if r'58 /= 0
             then do
               r'59 <- ml_get_cursor ed'
               _ <- utfc_ptr2char ed' r'59 fr'
-              j'20 mode5 inserted_space_p5 temp6 mincol4 call_fix_indent5 cclass2 out___r__5 out___inserted_space_p5 out___2_r__5 out___2_inserted_space_p5 out___3_r__5 out___3_inserted_space_p5 out___4_r__5 out___4_inserted_space_p5 out___5_r__5 out___5_inserted_space_p5 out___6_r__5 out___6_inserted_space_p5
-            else j'20 mode5 inserted_space_p5 temp6 mincol4 call_fix_indent5 cclass2 out___r__5 out___inserted_space_p5 out___2_r__5 out___2_inserted_space_p5 out___3_r__5 out___3_inserted_space_p5 out___4_r__5 out___4_inserted_space_p5 out___5_r__5 out___5_inserted_space_p5 out___6_r__5 out___6_inserted_space_p5
-    j'20 !mode6 !inserted_space_p6 !temp7 !mincol5 !call_fix_indent6 !cclass3 !out___r__6 !out___inserted_space_p6 !out___2_r__6 !out___2_inserted_space_p6 !out___3_r__6 !out___3_inserted_space_p6 !out___4_r__6 !out___4_inserted_space_p6 !out___5_r__6 !out___5_inserted_space_p6 !out___6_r__6 !out___6_inserted_space_p6 = do
+              j'20 mode5 inserted_space_p5 temp6 mincol4 call_fix_indent5 cclass2 out___r__5 out___inserted_space_p5
+            else j'20 mode5 inserted_space_p5 temp6 mincol4 call_fix_indent5 cclass2 out___r__5 out___inserted_space_p5
+    j'20 !mode6 !inserted_space_p6 !temp7 !mincol5 !call_fix_indent6 !cclass3 !out___r__6 !out___inserted_space_p6 = do
       _ <- del_char ed' False
       r'62 <- p_deco ed'
       r'64 <- if (r'62 /= 0) then (do { r'63 <- rdI32 fr' 0; pure (r'63 /= NUL) }) else pure False
       if r'64
         then do
           _ <- inc_cursor ed'
-          j'23 mode6 inserted_space_p6 temp7 mincol5 call_fix_indent6 cclass3 out___r__6 out___inserted_space_p6 out___2_r__6 out___2_inserted_space_p6 out___3_r__6 out___3_inserted_space_p6 out___4_r__6 out___4_inserted_space_p6 out___5_r__6 out___5_inserted_space_p6 out___6_r__6 out___6_inserted_space_p6
-        else j'23 mode6 inserted_space_p6 temp7 mincol5 call_fix_indent6 cclass3 out___r__6 out___inserted_space_p6 out___2_r__6 out___2_inserted_space_p6 out___3_r__6 out___3_inserted_space_p6 out___4_r__6 out___4_inserted_space_p6 out___5_r__6 out___5_inserted_space_p6 out___6_r__6 out___6_inserted_space_p6
-    j'23 !mode7 !inserted_space_p7 !temp8 !mincol6 !call_fix_indent7 !cclass4 !out___r__7 !out___inserted_space_p7 !out___2_r__7 !out___2_inserted_space_p7 !out___3_r__7 !out___3_inserted_space_p7 !out___4_r__7 !out___4_inserted_space_p7 !out___5_r__7 !out___5_inserted_space_p7 !out___6_r__7 !out___6_inserted_space_p7 = do
+          j'23 mode6 inserted_space_p6 temp7 mincol5 call_fix_indent6 cclass3 out___r__6 out___inserted_space_p6
+        else j'23 mode6 inserted_space_p6 temp7 mincol5 call_fix_indent6 cclass3 out___r__6 out___inserted_space_p6
+    j'23 !mode7 !inserted_space_p7 !temp8 !mincol6 !call_fix_indent7 !cclass4 !out___r__7 !out___inserted_space_p7 = do
       if mode7 == BACKSPACE_CHAR
-        then j'37 inserted_space_p7 call_fix_indent7 out___r__7 out___inserted_space_p7 out___2_r__7 out___2_inserted_space_p7 out___3_r__7 out___3_inserted_space_p7 out___4_r__7 out___4_inserted_space_p7 out___5_r__7 out___5_inserted_space_p7 out___6_r__7 out___6_inserted_space_p7
+        then j'37 inserted_space_p7 call_fix_indent7 out___r__7 out___inserted_space_p7
         else do
           r'66 <- curwin ed'
           r'67 <- rdI32 r'66 (win_T'w_cursor + pos_T'col)
           r'77 <- if (r'67 > mincol6) then (do { r'68 <- can_bs ed' BS_NOSTOP; if r'68 then pure True else (do { r'69 <- curwin ed'; r'70 <- rdI64 r'69 (win_T'w_cursor + pos_T'lnum); r'71 <- rdI64 (addr'c'Insstart_orig ed') pos_T'lnum; if (r'70 /= r'71) then pure True else (do { r'72 <- curwin ed'; r'73 <- rdI32 r'72 (win_T'w_cursor + pos_T'col); r'74 <- rdI32 (addr'c'Insstart_orig ed') pos_T'col; pure (r'73 /= r'74) }) }) }) else pure False
           if r'77
-            then loop'13 mode7 inserted_space_p7 temp8 mincol6 call_fix_indent7 cclass4 out___r__7 out___inserted_space_p7 out___2_r__7 out___2_inserted_space_p7 out___3_r__7 out___3_inserted_space_p7 out___4_r__7 out___4_inserted_space_p7 out___5_r__7 out___5_inserted_space_p7 out___6_r__7 out___6_inserted_space_p7
-            else j'37 inserted_space_p7 call_fix_indent7 out___r__7 out___inserted_space_p7 out___2_r__7 out___2_inserted_space_p7 out___3_r__7 out___3_inserted_space_p7 out___4_r__7 out___4_inserted_space_p7 out___5_r__7 out___5_inserted_space_p7 out___6_r__7 out___6_inserted_space_p7
-    loop'26 !inserted_space_p8 !in_indent4 !call_fix_indent8 !vcol1 !line1 !ptr1 !cursor_ptr2 !space_ptr1 !space_vcol1 !prev_space1 !out___r__8 !out___inserted_space_p8 !out___2_r__8 !out___2_inserted_space_p8 !out___3_r__8 !out___3_inserted_space_p8 !out___4_r__8 !out___4_inserted_space_p8 !out___5_r__8 !out___5_inserted_space_p8 !out___6_r__8 !out___6_inserted_space_p8 = do
+            then loop'13 mode7 inserted_space_p7 temp8 mincol6 call_fix_indent7 cclass4 out___r__7 out___inserted_space_p7
+            else j'37 inserted_space_p7 call_fix_indent7 out___r__7 out___inserted_space_p7
+    loop'26 !inserted_space_p8 !in_indent4 !call_fix_indent8 !vcol1 !line1 !ptr1 !cursor_ptr2 !space_ptr1 !space_vcol1 !prev_space1 !out___r__8 !out___inserted_space_p8 = do
       if ptr1 < cursor_ptr2
         then do
           r'78 <- rdW8 ptr1 0
           r'80 <- if ((fromIntegral r'78 :: Int32) == (ch ' ')) then pure True else (do { r'79 <- rdW8 ptr1 0; pure ((fromIntegral r'79 :: Int32) == (ch '\t')) })
           if (not prev_space1) && r'80
-            then j'48 inserted_space_p8 in_indent4 call_fix_indent8 vcol1 line1 ptr1 cursor_ptr2 ptr1 vcol1 r'80 out___r__8 out___inserted_space_p8 out___2_r__8 out___2_inserted_space_p8 out___3_r__8 out___3_inserted_space_p8 out___4_r__8 out___4_inserted_space_p8 out___5_r__8 out___5_inserted_space_p8 out___6_r__8 out___6_inserted_space_p8
-            else j'48 inserted_space_p8 in_indent4 call_fix_indent8 vcol1 line1 ptr1 cursor_ptr2 space_ptr1 space_vcol1 r'80 out___r__8 out___inserted_space_p8 out___2_r__8 out___2_inserted_space_p8 out___3_r__8 out___3_inserted_space_p8 out___4_r__8 out___4_inserted_space_p8 out___5_r__8 out___5_inserted_space_p8 out___6_r__8 out___6_inserted_space_p8
+            then j'48 inserted_space_p8 in_indent4 call_fix_indent8 vcol1 line1 ptr1 cursor_ptr2 ptr1 vcol1 r'80 out___r__8 out___inserted_space_p8
+            else j'48 inserted_space_p8 in_indent4 call_fix_indent8 vcol1 line1 ptr1 cursor_ptr2 space_ptr1 space_vcol1 r'80 out___r__8 out___inserted_space_p8
         else do
           let !want_vcol1 = if (vcol1 > 0) then (vcol1 - 1) else 0
           r'81 <- p_sta ed'
@@ -3424,32 +3424,32 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
               r'83 <- get_sw_value r'82
               let !t3'1 = rem want_vcol1 (fromIntegral r'83 :: Int32)
               let !want_vcol2 = want_vcol1 - t3'1
-              loop'31 inserted_space_p8 call_fix_indent8 want_vcol2 line1 space_ptr1 space_vcol1 out___r__8 out___inserted_space_p8 out___2_r__8 out___2_inserted_space_p8 out___3_r__8 out___3_inserted_space_p8 out___4_r__8 out___4_inserted_space_p8 out___5_r__8 out___5_inserted_space_p8 out___6_r__8 out___6_inserted_space_p8
+              loop'31 inserted_space_p8 call_fix_indent8 want_vcol2 line1 space_ptr1 space_vcol1 out___r__8 out___inserted_space_p8
             else do
               r'84 <- get_sts_value ed'
               let !t4'1 = rem want_vcol1 (fromIntegral r'84 :: Int32)
               let !want_vcol3 = want_vcol1 - t4'1
-              loop'31 inserted_space_p8 call_fix_indent8 want_vcol3 line1 space_ptr1 space_vcol1 out___r__8 out___inserted_space_p8 out___2_r__8 out___2_inserted_space_p8 out___3_r__8 out___3_inserted_space_p8 out___4_r__8 out___4_inserted_space_p8 out___5_r__8 out___5_inserted_space_p8 out___6_r__8 out___6_inserted_space_p8
-    loop'31 !inserted_space_p9 !call_fix_indent9 !want_vcol4 !line2 !space_ptr2 !space_vcol2 !out___r__9 !out___inserted_space_p9 !out___2_r__9 !out___2_inserted_space_p9 !out___3_r__9 !out___3_inserted_space_p9 !out___4_r__9 !out___4_inserted_space_p9 !out___5_r__9 !out___5_inserted_space_p9 !out___6_r__9 !out___6_inserted_space_p9 = do
+              loop'31 inserted_space_p8 call_fix_indent8 want_vcol3 line1 space_ptr1 space_vcol1 out___r__8 out___inserted_space_p8
+    loop'31 !inserted_space_p9 !call_fix_indent9 !want_vcol4 !line2 !space_ptr2 !space_vcol2 !out___r__9 !out___inserted_space_p9 = do
       r'85 <- chartabsize ed' space_ptr2 space_vcol2
       if (space_vcol2 + r'85) > want_vcol4
         then do
           let !want_col1 = fromIntegral (fromIntegral (quot (pSub space_ptr2 line2) 1) :: Int64) :: Int32
-          loop'34 inserted_space_p9 call_fix_indent9 want_vcol4 space_vcol2 want_col1 out___r__9 out___inserted_space_p9 out___2_r__9 out___2_inserted_space_p9 out___3_r__9 out___3_inserted_space_p9 out___4_r__9 out___4_inserted_space_p9 out___5_r__9 out___5_inserted_space_p9 out___6_r__9 out___6_inserted_space_p9
+          loop'34 inserted_space_p9 call_fix_indent9 want_vcol4 space_vcol2 want_col1 out___r__9 out___inserted_space_p9
         else do
           let !space_vcol3 = space_vcol2 + r'85
           r'86 <- utfc_ptr2len ed' space_ptr2
           let !space_ptr3 = pAdd space_ptr2 (fromIntegral r'86)
-          loop'31 inserted_space_p9 call_fix_indent9 want_vcol4 line2 space_ptr3 space_vcol3 out___r__9 out___inserted_space_p9 out___2_r__9 out___2_inserted_space_p9 out___3_r__9 out___3_inserted_space_p9 out___4_r__9 out___4_inserted_space_p9 out___5_r__9 out___5_inserted_space_p9 out___6_r__9 out___6_inserted_space_p9
-    loop'34 !inserted_space_p10 !call_fix_indent10 !want_vcol5 !space_vcol4 !want_col2 !out___r__10 !out___inserted_space_p10 !out___2_r__10 !out___2_inserted_space_p10 !out___3_r__10 !out___3_inserted_space_p10 !out___4_r__10 !out___4_inserted_space_p10 !out___5_r__10 !out___5_inserted_space_p10 !out___6_r__10 !out___6_inserted_space_p10 = do
+          loop'31 inserted_space_p9 call_fix_indent9 want_vcol4 line2 space_ptr3 space_vcol3 out___r__9 out___inserted_space_p9
+    loop'34 !inserted_space_p10 !call_fix_indent10 !want_vcol5 !space_vcol4 !want_col2 !out___r__10 !out___inserted_space_p10 = do
       r'87 <- curwin ed'
       r'88 <- rdI32 r'87 (win_T'w_cursor + pos_T'col)
       if r'88 > want_col2
         then do
           ins_bs_one ed'
-          loop'34 inserted_space_p10 call_fix_indent10 want_vcol5 space_vcol4 want_col2 out___r__10 out___inserted_space_p10 out___2_r__10 out___2_inserted_space_p10 out___3_r__10 out___3_inserted_space_p10 out___4_r__10 out___4_inserted_space_p10 out___5_r__10 out___5_inserted_space_p10 out___6_r__10 out___6_inserted_space_p10
-        else loop'36 inserted_space_p10 call_fix_indent10 want_vcol5 space_vcol4 out___r__10 out___inserted_space_p10 out___2_r__10 out___2_inserted_space_p10 out___3_r__10 out___3_inserted_space_p10 out___4_r__10 out___4_inserted_space_p10 out___5_r__10 out___5_inserted_space_p10 out___6_r__10 out___6_inserted_space_p10
-    loop'36 !inserted_space_p11 !call_fix_indent11 !want_vcol6 !space_vcol5 !out___r__11 !out___inserted_space_p11 !out___2_r__11 !out___2_inserted_space_p11 !out___3_r__11 !out___3_inserted_space_p11 !out___4_r__11 !out___4_inserted_space_p11 !out___5_r__11 !out___5_inserted_space_p11 !out___6_r__11 !out___6_inserted_space_p11 = do
+          loop'34 inserted_space_p10 call_fix_indent10 want_vcol5 space_vcol4 want_col2 out___r__10 out___inserted_space_p10
+        else loop'36 inserted_space_p10 call_fix_indent10 want_vcol5 space_vcol4 out___r__10 out___inserted_space_p10
+    loop'36 !inserted_space_p11 !call_fix_indent11 !want_vcol6 !space_vcol5 !out___r__11 !out___inserted_space_p11 = do
       if space_vcol5 < want_vcol6
         then do
           r'89 <- curwin ed'
@@ -3461,48 +3461,48 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
               r'96 <- curwin ed'
               r'97 <- rdI32 r'96 (win_T'w_cursor + pos_T'col)
               wrI32 (addr'c'Insstart_orig ed') pos_T'col r'97
-              j'40 inserted_space_p11 call_fix_indent11 want_vcol6 space_vcol5 out___r__11 out___inserted_space_p11 out___2_r__11 out___2_inserted_space_p11 out___3_r__11 out___3_inserted_space_p11 out___4_r__11 out___4_inserted_space_p11 out___5_r__11 out___5_inserted_space_p11 out___6_r__11 out___6_inserted_space_p11
-            else j'40 inserted_space_p11 call_fix_indent11 want_vcol6 space_vcol5 out___r__11 out___inserted_space_p11 out___2_r__11 out___2_inserted_space_p11 out___3_r__11 out___3_inserted_space_p11 out___4_r__11 out___4_inserted_space_p11 out___5_r__11 out___5_inserted_space_p11 out___6_r__11 out___6_inserted_space_p11
-        else j'37 inserted_space_p11 call_fix_indent11 out___r__11 out___inserted_space_p11 out___2_r__11 out___2_inserted_space_p11 out___3_r__11 out___3_inserted_space_p11 out___4_r__11 out___4_inserted_space_p11 out___5_r__11 out___5_inserted_space_p11 out___6_r__11 out___6_inserted_space_p11
-    j'37 !inserted_space_p12 !call_fix_indent12 !out___r__12 !out___inserted_space_p12 !out___2_r__12 !out___2_inserted_space_p12 !out___3_r__12 !out___3_inserted_space_p12 !out___4_r__12 !out___4_inserted_space_p12 !out___5_r__12 !out___5_inserted_space_p12 !out___6_r__12 !out___6_inserted_space_p12 = do
-      j'66 inserted_space_p12 True call_fix_indent12 out___r__12 out___inserted_space_p12 out___2_r__12 out___2_inserted_space_p12 out___3_r__12 out___3_inserted_space_p12 out___4_r__12 out___4_inserted_space_p12 out___5_r__12 out___5_inserted_space_p12 out___6_r__12 out___6_inserted_space_p12
-    j'40 !inserted_space_p13 !call_fix_indent13 !want_vcol7 !space_vcol6 !out___r__13 !out___inserted_space_p13 !out___2_r__13 !out___2_inserted_space_p13 !out___3_r__13 !out___3_inserted_space_p13 !out___4_r__13 !out___4_inserted_space_p13 !out___5_r__13 !out___5_inserted_space_p13 !out___6_r__13 !out___6_inserted_space_p13 = do
+              j'40 inserted_space_p11 call_fix_indent11 want_vcol6 space_vcol5 out___r__11 out___inserted_space_p11
+            else j'40 inserted_space_p11 call_fix_indent11 want_vcol6 space_vcol5 out___r__11 out___inserted_space_p11
+        else j'37 inserted_space_p11 call_fix_indent11 out___r__11 out___inserted_space_p11
+    j'37 !inserted_space_p12 !call_fix_indent12 !out___r__12 !out___inserted_space_p12 = do
+      j'66 inserted_space_p12 True call_fix_indent12 out___r__12 out___inserted_space_p12
+    j'40 !inserted_space_p13 !call_fix_indent13 !want_vcol7 !space_vcol6 !out___r__13 !out___inserted_space_p13 = do
       r'98 <- c'State ed'
       if (r'98 .&. VREPLACE_FLAG) /= 0
         then do
           ins_char ed' (ch ' ')
-          j'44 inserted_space_p13 call_fix_indent13 want_vcol7 space_vcol6 out___r__13 out___inserted_space_p13 out___2_r__13 out___2_inserted_space_p13 out___3_r__13 out___3_inserted_space_p13 out___4_r__13 out___4_inserted_space_p13 out___5_r__13 out___5_inserted_space_p13 out___6_r__13 out___6_inserted_space_p13
+          j'44 inserted_space_p13 call_fix_indent13 want_vcol7 space_vcol6 out___r__13 out___inserted_space_p13
         else do
           ins_str ed' (Ptr " \0"#) 1
           r'99 <- c'State ed'
           if (r'99 .&. REPLACE_FLAG) /= 0
             then do
               replace_push ed' NUL
-              j'44 inserted_space_p13 call_fix_indent13 want_vcol7 space_vcol6 out___r__13 out___inserted_space_p13 out___2_r__13 out___2_inserted_space_p13 out___3_r__13 out___3_inserted_space_p13 out___4_r__13 out___4_inserted_space_p13 out___5_r__13 out___5_inserted_space_p13 out___6_r__13 out___6_inserted_space_p13
-            else j'44 inserted_space_p13 call_fix_indent13 want_vcol7 space_vcol6 out___r__13 out___inserted_space_p13 out___2_r__13 out___2_inserted_space_p13 out___3_r__13 out___3_inserted_space_p13 out___4_r__13 out___4_inserted_space_p13 out___5_r__13 out___5_inserted_space_p13 out___6_r__13 out___6_inserted_space_p13
-    j'44 !inserted_space_p14 !call_fix_indent14 !want_vcol8 !space_vcol7 !out___r__14 !out___inserted_space_p14 !out___2_r__14 !out___2_inserted_space_p14 !out___3_r__14 !out___3_inserted_space_p14 !out___4_r__14 !out___4_inserted_space_p14 !out___5_r__14 !out___5_inserted_space_p14 !out___6_r__14 !out___6_inserted_space_p14 = do
+              j'44 inserted_space_p13 call_fix_indent13 want_vcol7 space_vcol6 out___r__13 out___inserted_space_p13
+            else j'44 inserted_space_p13 call_fix_indent13 want_vcol7 space_vcol6 out___r__13 out___inserted_space_p13
+    j'44 !inserted_space_p14 !call_fix_indent14 !want_vcol8 !space_vcol7 !out___r__14 !out___inserted_space_p14 = do
       let !space_vcol8 = space_vcol7 + 1
-      loop'36 inserted_space_p14 call_fix_indent14 want_vcol8 space_vcol8 out___r__14 out___inserted_space_p14 out___2_r__14 out___2_inserted_space_p14 out___3_r__14 out___3_inserted_space_p14 out___4_r__14 out___4_inserted_space_p14 out___5_r__14 out___5_inserted_space_p14 out___6_r__14 out___6_inserted_space_p14
-    j'48 !inserted_space_p15 !in_indent5 !call_fix_indent15 !vcol2 !line3 !ptr2 !cursor_ptr3 !space_ptr4 !space_vcol9 !cur_space1 !out___r__15 !out___inserted_space_p15 !out___2_r__15 !out___2_inserted_space_p15 !out___3_r__15 !out___3_inserted_space_p15 !out___4_r__15 !out___4_inserted_space_p15 !out___5_r__15 !out___5_inserted_space_p15 !out___6_r__15 !out___6_inserted_space_p15 = do
+      loop'36 inserted_space_p14 call_fix_indent14 want_vcol8 space_vcol8 out___r__14 out___inserted_space_p14
+    j'48 !inserted_space_p15 !in_indent5 !call_fix_indent15 !vcol2 !line3 !ptr2 !cursor_ptr3 !space_ptr4 !space_vcol9 !cur_space1 !out___r__15 !out___inserted_space_p15 = do
       r'100 <- chartabsize ed' ptr2 vcol2
       let !vcol3 = vcol2 + r'100
       r'101 <- utfc_ptr2len ed' ptr2
       let !ptr3 = pAdd ptr2 (fromIntegral r'101)
-      loop'26 inserted_space_p15 in_indent5 call_fix_indent15 vcol3 line3 ptr3 cursor_ptr3 space_ptr4 space_vcol9 cur_space1 out___r__15 out___inserted_space_p15 out___2_r__15 out___2_inserted_space_p15 out___3_r__15 out___3_inserted_space_p15 out___4_r__15 out___4_inserted_space_p15 out___5_r__15 out___5_inserted_space_p15 out___6_r__15 out___6_inserted_space_p15
-    j'52 !inserted_space_p16 !lnum1 !did_backspace2 !call_fix_indent16 !out___r__16 !out___inserted_space_p16 !out___2_r__16 !out___2_inserted_space_p16 !out___3_r__16 !out___3_inserted_space_p16 !out___4_r__16 !out___4_inserted_space_p16 !out___5_r__16 !out___5_inserted_space_p16 !out___6_r__16 !out___6_inserted_space_p16 = do
+      loop'26 inserted_space_p15 in_indent5 call_fix_indent15 vcol3 line3 ptr3 cursor_ptr3 space_ptr4 space_vcol9 cur_space1 out___r__15 out___inserted_space_p15
+    j'52 !inserted_space_p16 !lnum1 !did_backspace2 !call_fix_indent16 !out___r__16 !out___inserted_space_p16 = do
       r'102 <- c'State ed'
       if (r'102 .&. REPLACE_FLAG) /= 0
         then do
           r'103 <- replace_pop ed'
-          j'54 inserted_space_p16 lnum1 r'103 did_backspace2 call_fix_indent16 out___r__16 out___inserted_space_p16 out___2_r__16 out___2_inserted_space_p16 out___3_r__16 out___3_inserted_space_p16 out___4_r__16 out___4_inserted_space_p16 out___5_r__16 out___5_inserted_space_p16 out___6_r__16 out___6_inserted_space_p16
-        else j'54 inserted_space_p16 lnum1 (-1 :: Int32) did_backspace2 call_fix_indent16 out___r__16 out___inserted_space_p16 out___2_r__16 out___2_inserted_space_p16 out___3_r__16 out___3_inserted_space_p16 out___4_r__16 out___4_inserted_space_p16 out___5_r__16 out___5_inserted_space_p16 out___6_r__16 out___6_inserted_space_p16
-    j'54 !inserted_space_p17 !lnum2 !cc1 !did_backspace3 !call_fix_indent17 !out___r__17 !out___inserted_space_p17 !out___2_r__17 !out___2_inserted_space_p17 !out___3_r__17 !out___3_inserted_space_p17 !out___4_r__17 !out___4_inserted_space_p17 !out___5_r__17 !out___5_inserted_space_p17 !out___6_r__17 !out___6_inserted_space_p17 = do
+          j'54 inserted_space_p16 lnum1 r'103 did_backspace2 call_fix_indent16 out___r__16 out___inserted_space_p16
+        else j'54 inserted_space_p16 lnum1 (-1 :: Int32) did_backspace2 call_fix_indent16 out___r__16 out___inserted_space_p16
+    j'54 !inserted_space_p17 !lnum2 !cc1 !did_backspace3 !call_fix_indent17 !out___r__17 !out___inserted_space_p17 = do
       r'104 <- c'State ed'
       r'107 <- if ((r'104 .&. REPLACE_FLAG) /= 0) then (do { r'105 <- curwin ed'; r'106 <- rdI64 r'105 (win_T'w_cursor + pos_T'lnum); pure (r'106 <= lnum2) }) else pure False
       if r'107
         then do
           _ <- dec_cursor ed'
-          j'65 inserted_space_p17 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17 out___2_r__17 out___2_inserted_space_p17 out___3_r__17 out___3_inserted_space_p17 out___4_r__17 out___4_inserted_space_p17 out___5_r__17 out___5_inserted_space_p17 out___6_r__17 out___6_inserted_space_p17
+          j'65 inserted_space_p17 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17
         else do
           r'109 <- c'State ed'
           r'113 <- if (not ((r'109 .&. VREPLACE_FLAG) /= 0)) then pure True else (do { r'110 <- curwin ed'; r'111 <- rdI64 r'110 (win_T'w_cursor + pos_T'lnum); r'112 <- orig_line_count ed'; pure (r'111 > (fromIntegral r'112 :: Int64)) })
@@ -3517,20 +3517,20 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
               if r'119
                 then do
                   _ <- inc_cursor ed'
-                  j'59 inserted_space_p17 cc1 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17 out___2_r__17 out___2_inserted_space_p17 out___3_r__17 out___3_inserted_space_p17 out___4_r__17 out___4_inserted_space_p17 out___5_r__17 out___5_inserted_space_p17 out___6_r__17 out___6_inserted_space_p17
-                else j'59 inserted_space_p17 cc1 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17 out___2_r__17 out___2_inserted_space_p17 out___3_r__17 out___3_inserted_space_p17 out___4_r__17 out___4_inserted_space_p17 out___5_r__17 out___5_inserted_space_p17 out___6_r__17 out___6_inserted_space_p17
+                  j'59 inserted_space_p17 cc1 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17
+                else j'59 inserted_space_p17 cc1 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17
             else do
               _ <- dec_cursor ed'
-              j'59 inserted_space_p17 cc1 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17 out___2_r__17 out___2_inserted_space_p17 out___3_r__17 out___3_inserted_space_p17 out___4_r__17 out___4_inserted_space_p17 out___5_r__17 out___5_inserted_space_p17 out___6_r__17 out___6_inserted_space_p17
-    j'59 !inserted_space_p18 !cc2 !did_backspace4 !call_fix_indent18 !out___r__18 !out___inserted_space_p18 !out___2_r__18 !out___2_inserted_space_p18 !out___3_r__18 !out___3_inserted_space_p18 !out___4_r__18 !out___4_inserted_space_p18 !out___5_r__18 !out___5_inserted_space_p18 !out___6_r__18 !out___6_inserted_space_p18 = do
+              j'59 inserted_space_p17 cc1 did_backspace3 call_fix_indent17 out___r__17 out___inserted_space_p17
+    j'59 !inserted_space_p18 !cc2 !did_backspace4 !call_fix_indent18 !out___r__18 !out___inserted_space_p18 = do
       r'122 <- c'State ed'
       if (r'122 .&. REPLACE_FLAG) /= 0
         then do
           r'123 <- c'State ed'
           set'c'State ed' MODE_NORMAL
-          loop'61 inserted_space_p18 cc2 did_backspace4 r'123 call_fix_indent18 out___r__18 out___inserted_space_p18 out___2_r__18 out___2_inserted_space_p18 out___3_r__18 out___3_inserted_space_p18 out___4_r__18 out___4_inserted_space_p18 out___5_r__18 out___5_inserted_space_p18 out___6_r__18 out___6_inserted_space_p18
-        else j'65 inserted_space_p18 did_backspace4 call_fix_indent18 out___r__18 out___inserted_space_p18 out___2_r__18 out___2_inserted_space_p18 out___3_r__18 out___3_inserted_space_p18 out___4_r__18 out___4_inserted_space_p18 out___5_r__18 out___5_inserted_space_p18 out___6_r__18 out___6_inserted_space_p18
-    loop'61 !inserted_space_p19 !cc3 !did_backspace5 !oldState1 !call_fix_indent19 !out___r__19 !out___inserted_space_p19 !out___2_r__19 !out___2_inserted_space_p19 !out___3_r__19 !out___3_inserted_space_p19 !out___4_r__19 !out___4_inserted_space_p19 !out___5_r__19 !out___5_inserted_space_p19 !out___6_r__19 !out___6_inserted_space_p19 = do
+          loop'61 inserted_space_p18 cc2 did_backspace4 r'123 call_fix_indent18 out___r__18 out___inserted_space_p18
+        else j'65 inserted_space_p18 did_backspace4 call_fix_indent18 out___r__18 out___inserted_space_p18
+    loop'61 !inserted_space_p19 !cc3 !did_backspace5 !oldState1 !call_fix_indent19 !out___r__19 !out___inserted_space_p19 = do
       if cc3 > 0
         then do
           r'124 <- curwin ed'
@@ -3539,15 +3539,15 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
           r'126 <- curwin ed'
           wrI32 r'126 (win_T'w_cursor + pos_T'col) r'125
           r'127 <- replace_pop ed'
-          loop'61 inserted_space_p19 r'127 did_backspace5 oldState1 call_fix_indent19 out___r__19 out___inserted_space_p19 out___2_r__19 out___2_inserted_space_p19 out___3_r__19 out___3_inserted_space_p19 out___4_r__19 out___4_inserted_space_p19 out___5_r__19 out___5_inserted_space_p19 out___6_r__19 out___6_inserted_space_p19
+          loop'61 inserted_space_p19 r'127 did_backspace5 oldState1 call_fix_indent19 out___r__19 out___inserted_space_p19
         else do
           replace_pop_ins ed'
           set'c'State ed' oldState1
-          j'65 inserted_space_p19 did_backspace5 call_fix_indent19 out___r__19 out___inserted_space_p19 out___2_r__19 out___2_inserted_space_p19 out___3_r__19 out___3_inserted_space_p19 out___4_r__19 out___4_inserted_space_p19 out___5_r__19 out___5_inserted_space_p19 out___6_r__19 out___6_inserted_space_p19
-    j'65 !inserted_space_p20 !did_backspace6 !call_fix_indent20 !out___r__20 !out___inserted_space_p20 !out___2_r__20 !out___2_inserted_space_p20 !out___3_r__20 !out___3_inserted_space_p20 !out___4_r__20 !out___4_inserted_space_p20 !out___5_r__20 !out___5_inserted_space_p20 !out___6_r__20 !out___6_inserted_space_p20 = do
+          j'65 inserted_space_p19 did_backspace5 call_fix_indent19 out___r__19 out___inserted_space_p19
+    j'65 !inserted_space_p20 !did_backspace6 !call_fix_indent20 !out___r__20 !out___inserted_space_p20 = do
       set'did_ai ed' FALSE
-      j'66 inserted_space_p20 did_backspace6 call_fix_indent20 out___r__20 out___inserted_space_p20 out___2_r__20 out___2_inserted_space_p20 out___3_r__20 out___3_inserted_space_p20 out___4_r__20 out___4_inserted_space_p20 out___5_r__20 out___5_inserted_space_p20 out___6_r__20 out___6_inserted_space_p20
-    j'66 !inserted_space_p21 !did_backspace7 !call_fix_indent21 !out___r__21 !out___inserted_space_p21 !out___2_r__21 !out___2_inserted_space_p21 !out___3_r__21 !out___3_inserted_space_p21 !out___4_r__21 !out___4_inserted_space_p21 !out___5_r__21 !out___5_inserted_space_p21 !out___6_r__21 !out___6_inserted_space_p21 = do
+      j'66 inserted_space_p20 did_backspace6 call_fix_indent20 out___r__20 out___inserted_space_p20
+    j'66 !inserted_space_p21 !did_backspace7 !call_fix_indent21 !out___r__21 !out___inserted_space_p21 = do
       set'did_si ed' FALSE
       set'can_si ed' FALSE
       set'can_si_back ed' FALSE
@@ -3556,15 +3556,15 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
       if r'129 <= 1
         then do
           set'did_ai ed' FALSE
-          j'68 inserted_space_p21 did_backspace7 call_fix_indent21 out___r__21 out___inserted_space_p21 out___2_r__21 out___2_inserted_space_p21 out___3_r__21 out___3_inserted_space_p21 out___4_r__21 out___4_inserted_space_p21 out___5_r__21 out___5_inserted_space_p21 out___6_r__21 out___6_inserted_space_p21
-        else j'68 inserted_space_p21 did_backspace7 call_fix_indent21 out___r__21 out___inserted_space_p21 out___2_r__21 out___2_inserted_space_p21 out___3_r__21 out___3_inserted_space_p21 out___4_r__21 out___4_inserted_space_p21 out___5_r__21 out___5_inserted_space_p21 out___6_r__21 out___6_inserted_space_p21
-    j'68 !inserted_space_p22 !did_backspace8 !call_fix_indent22 !out___r__22 !out___inserted_space_p22 !out___2_r__22 !out___2_inserted_space_p22 !out___3_r__22 !out___3_inserted_space_p22 !out___4_r__22 !out___4_inserted_space_p22 !out___5_r__22 !out___5_inserted_space_p22 !out___6_r__22 !out___6_inserted_space_p22 = do
+          j'68 inserted_space_p21 did_backspace7 call_fix_indent21 out___r__21 out___inserted_space_p21
+        else j'68 inserted_space_p21 did_backspace7 call_fix_indent21 out___r__21 out___inserted_space_p21
+    j'68 !inserted_space_p22 !did_backspace8 !call_fix_indent22 !out___r__22 !out___inserted_space_p22 = do
       if call_fix_indent22
         then do
           fix_indent ed'
-          j'70 inserted_space_p22 did_backspace8 out___r__22 out___inserted_space_p22 out___2_r__22 out___2_inserted_space_p22 out___3_r__22 out___3_inserted_space_p22 out___4_r__22 out___4_inserted_space_p22 out___5_r__22 out___5_inserted_space_p22 out___6_r__22 out___6_inserted_space_p22
-        else j'70 inserted_space_p22 did_backspace8 out___r__22 out___inserted_space_p22 out___2_r__22 out___2_inserted_space_p22 out___3_r__22 out___3_inserted_space_p22 out___4_r__22 out___4_inserted_space_p22 out___5_r__22 out___5_inserted_space_p22 out___6_r__22 out___6_inserted_space_p22
-    j'70 !inserted_space_p23 !did_backspace9 !out___r__23 !out___inserted_space_p23 !out___2_r__23 !out___2_inserted_space_p23 !out___3_r__23 !out___3_inserted_space_p23 !out___4_r__23 !out___4_inserted_space_p23 !out___5_r__23 !out___5_inserted_space_p23 !out___6_r__23 !out___6_inserted_space_p23 = do
+          j'70 inserted_space_p22 did_backspace8 out___r__22 out___inserted_space_p22
+        else j'70 inserted_space_p22 did_backspace8 out___r__22 out___inserted_space_p22
+    j'70 !inserted_space_p23 !did_backspace9 !out___r__23 !out___inserted_space_p23 = do
       c'AppendCharToRedobuff ed' c
       r'130 <- curwin ed'
       r'131 <- rdI64 r'130 (win_T'w_cursor + pos_T'lnum)
@@ -3575,9 +3575,9 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
           r'137 <- curwin ed'
           r'138 <- rdI32 r'137 (win_T'w_cursor + pos_T'col)
           wrI32 (addr'c'Insstart_orig ed') pos_T'col r'138
-          j'72 inserted_space_p23 did_backspace9 out___r__23 out___inserted_space_p23 out___2_r__23 out___2_inserted_space_p23 out___3_r__23 out___3_inserted_space_p23 out___4_r__23 out___4_inserted_space_p23 out___5_r__23 out___5_inserted_space_p23 out___6_r__23 out___6_inserted_space_p23
-        else j'72 inserted_space_p23 did_backspace9 out___r__23 out___inserted_space_p23 out___2_r__23 out___2_inserted_space_p23 out___3_r__23 out___3_inserted_space_p23 out___4_r__23 out___4_inserted_space_p23 out___5_r__23 out___5_inserted_space_p23 out___6_r__23 out___6_inserted_space_p23
-    j'72 !inserted_space_p24 !did_backspace10 !out___r__24 !out___inserted_space_p24 !out___2_r__24 !out___2_inserted_space_p24 !out___3_r__24 !out___3_inserted_space_p24 !out___4_r__24 !out___4_inserted_space_p24 !out___5_r__24 !out___5_inserted_space_p24 !out___6_r__24 !out___6_inserted_space_p24 = do
+          j'72 inserted_space_p23 did_backspace9 out___r__23 out___inserted_space_p23
+        else j'72 inserted_space_p23 did_backspace9 out___r__23 out___inserted_space_p23
+    j'72 !inserted_space_p24 !did_backspace10 !out___r__24 !out___inserted_space_p24 = do
       r'139 <- p_cpo ed'
       r'140 <- vim_strchr ed' r'139 CPO_BACKSPACE
       r'142 <- if (r'140 /= nullPtr) then (do { r'141 <- dollar_vcol ed'; pure (r'141 == (-1)) }) else pure False
@@ -3586,9 +3586,9 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
           r'143 <- curwin ed'
           r'144 <- rdI32 r'143 win_T'w_virtcol
           set'dollar_vcol ed' r'144
-          j'74 inserted_space_p24 did_backspace10 out___r__24 out___inserted_space_p24 out___2_r__24 out___2_inserted_space_p24 out___3_r__24 out___3_inserted_space_p24 out___4_r__24 out___4_inserted_space_p24 out___5_r__24 out___5_inserted_space_p24 out___6_r__24 out___6_inserted_space_p24
-        else j'74 inserted_space_p24 did_backspace10 out___r__24 out___inserted_space_p24 out___2_r__24 out___2_inserted_space_p24 out___3_r__24 out___3_inserted_space_p24 out___4_r__24 out___4_inserted_space_p24 out___5_r__24 out___5_inserted_space_p24 out___6_r__24 out___6_inserted_space_p24
-    j'74 !inserted_space_p25 !did_backspace11 _ _ _ _ _ _ _ _ _ _ _ _ = do
+          j'74 inserted_space_p24 did_backspace10 out___r__24 out___inserted_space_p24
+        else j'74 inserted_space_p24 did_backspace10 out___r__24 out___inserted_space_p24
+    j'74 !inserted_space_p25 !did_backspace11 _ _ = do
       pure (did_backspace11, inserted_space_p25)
   r'145 <- curbuf ed'
   r'146 <- rdI64 r'145 (buf_T'b_ml + memline_T'ml_line_count)
@@ -3623,8 +3623,8 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
                     else do
                       r'190 <- curwin ed'
                       wrI32 r'190 (win_T'w_cursor + pos_T'coladd) 0
-                      j'6 mode inserted_space_p (0 :: Int32) False r'184 False False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-            else j'6 mode inserted_space_p (0 :: Int32) False r'184 False False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+                      j'6 mode inserted_space_p (0 :: Int32) False r'184 False False (0 :: Int32)
+            else j'6 mode inserted_space_p (0 :: Int32) False r'184 False False (0 :: Int32)
 
 ins_left :: Ed -> IO ()
 ins_left ed' = frame 16 $ \fr' -> do
@@ -5083,7 +5083,7 @@ get_cmdline_firstc ed' = do
 get_list_range :: Ptr Char_u -> Int32 -> Int32 -> IO (Bool, Ptr Char_u, Int32, Int32)
 get_list_range str num1 num2 = frame 8 $ \fr' -> do
   let
-    j'3 !str1 !num1'1 !num2'1 !len1 !first1 !out___r__1 !out___str1 !out___num1'1 !out___num2'1 !out___2_r__1 !out___2_str1 !out___2_num1'1 !out___2_num2'1 !out___3_r__1 !out___3_str1 !out___3_num1'1 !out___3_num2'1 !out___4_r__1 !out___4_str1 !out___4_num1'1 !out___4_num2'1 = do
+    j'3 !str1 !num1'1 !num2'1 !len1 !first1 !out___r__1 !out___str1 !out___num1'1 !out___num2'1 = do
       r'1 <- skipwhite str1
       r'2 <- rdW8 r'1 0
       if (fromIntegral r'2 :: Int32) == (ch ',')
@@ -5099,16 +5099,16 @@ get_list_range str num1 num2 = frame 8 $ \fr' -> do
                 else do
                   r'7 <- rdI64 fr' 0
                   let !num2'2 = fromIntegral r'7 :: Int32
-                  j'11 r'5 num1'1 num2'2 out___r__1 out___str1 out___num1'1 out___num2'1 out___2_r__1 out___2_str1 out___2_num1'1 out___2_num2'1 out___3_r__1 out___3_str1 out___3_num1'1 out___3_num2'1 out___4_r__1 out___4_str1 out___4_num1'1 out___4_num2'1
+                  j'11 r'5 num1'1 num2'2 out___r__1 out___str1 out___num1'1 out___num2'1
             else do
               if not first1
                 then pure (False, r'3, num1'1, num2'1)
-                else j'11 r'3 num1'1 num2'1 out___r__1 out___str1 out___num1'1 out___num2'1 out___2_r__1 out___2_str1 out___2_num1'1 out___2_num2'1 out___3_r__1 out___3_str1 out___3_num1'1 out___3_num2'1 out___4_r__1 out___4_str1 out___4_num1'1 out___4_num2'1
+                else j'11 r'3 num1'1 num2'1 out___r__1 out___str1 out___num1'1 out___num2'1
         else do
           if first1
-            then j'11 r'1 num1'1 num1'1 out___r__1 out___str1 out___num1'1 out___num2'1 out___2_r__1 out___2_str1 out___2_num1'1 out___2_num2'1 out___3_r__1 out___3_str1 out___3_num1'1 out___3_num2'1 out___4_r__1 out___4_str1 out___4_num1'1 out___4_num2'1
-            else j'11 r'1 num1'1 num2'1 out___r__1 out___str1 out___num1'1 out___num2'1 out___2_r__1 out___2_str1 out___2_num1'1 out___2_num2'1 out___3_r__1 out___3_str1 out___3_num1'1 out___3_num2'1 out___4_r__1 out___4_str1 out___4_num1'1 out___4_num2'1
-    j'11 !str2 !num1'2 !num2'3 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+            then j'11 r'1 num1'1 num1'1 out___r__1 out___str1 out___num1'1 out___num2'1
+            else j'11 r'1 num1'1 num2'1 out___r__1 out___str1 out___num1'1 out___num2'1
+    j'11 !str2 !num1'2 !num2'3 _ _ _ _ = do
       pure (True, str2, num1'2, num2'3)
   r'8 <- skipwhite str
   r'9 <- rdW8 r'8 0
@@ -5123,8 +5123,8 @@ get_list_range str num1 num2 = frame 8 $ \fr' -> do
         else do
           r'15 <- rdI64 fr' 0
           let !num1'3 = fromIntegral r'15 :: Int32
-          j'3 str3 num1'3 num2 r'13 True False nullPtr (0 :: Int32) (0 :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) False nullPtr (0 :: Int32) (0 :: Int32)
-    else j'3 r'8 num1 num2 (0 :: Int32) False False nullPtr (0 :: Int32) (0 :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) False nullPtr (0 :: Int32) (0 :: Int32)
+          j'3 str3 num1'3 num2 r'13 True False nullPtr (0 :: Int32) (0 :: Int32)
+    else j'3 r'8 num1 num2 (0 :: Int32) False False nullPtr (0 :: Int32) (0 :: Int32)
 
 c'FreeWild :: Int32 -> Ptr (Ptr Char_u) -> ()
 c'FreeWild count files =
@@ -7548,7 +7548,7 @@ pagescroll ed' dir count half = frame 192 $ \fr' -> do
 find_is_eval_item :: Ptr Char_u -> Ptr Int32 -> Int32 -> Int32 -> IO (Bool, Int32)
 find_is_eval_item ptr colp bnp dir = do
   let
-    j'2 !bnp1 !out___r__1 !out___bnp1 !out___2_r__1 !out___2_bnp1 !out___3_r__1 !out___3_bnp1 !out___4_r__1 !out___4_bnp1 = do
+    j'2 !bnp1 !out___r__1 !out___bnp1 = do
       if bnp1 > 0
         then do
           r'1 <- rdW8 ptr 0
@@ -7556,8 +7556,8 @@ find_is_eval_item ptr colp bnp dir = do
           if r'3
             then do
               let !bnp2 = bnp1 - 1
-              j'10 bnp2 out___r__1 out___bnp1 out___2_r__1 out___2_bnp1 out___3_r__1 out___3_bnp1 out___4_r__1 out___4_bnp1
-            else j'10 bnp1 out___r__1 out___bnp1 out___2_r__1 out___2_bnp1 out___3_r__1 out___3_bnp1 out___4_r__1 out___4_bnp1
+              j'10 bnp2 out___r__1 out___bnp1
+            else j'10 bnp1 out___r__1 out___bnp1
         else do
           r'4 <- rdW8 ptr 0
           if (fromIntegral r'4 :: Int32) == (ch '.')
@@ -7571,15 +7571,15 @@ find_is_eval_item ptr colp bnp dir = do
                   wrI32 colp 0 (r'8 + dir)
                   pure (True, bnp1)
                 else pure (False, bnp1)
-    j'10 !bnp3 _ _ _ _ _ _ _ _ = do
+    j'10 !bnp3 _ _ = do
       pure (True, bnp3)
   r'9 <- rdW8 ptr 0
   r'11 <- if (((fromIntegral r'9 :: Int32) == (ch ']')) && (dir == (-1))) then pure True else (do { r'10 <- rdW8 ptr 0; pure (((fromIntegral r'10 :: Int32) == (ch '[')) && (dir == FORWARD)) })
   if r'11
     then do
       let !bnp4 = bnp + 1
-      j'2 bnp4 False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-    else j'2 bnp False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+      j'2 bnp4 False (0 :: Int32)
+    else j'2 bnp False (0 :: Int32)
 
 find_ident_under_cursor :: Ed -> Ptr (Ptr Char_u) -> Int32 -> IO Int32
 find_ident_under_cursor ed' text find_type = do
@@ -8609,7 +8609,7 @@ insert_reg ed' regname literally_arg = frame 8 $ \fr' -> do
 get_spec_reg :: Ed -> Int32 -> Ptr (Ptr Char_u) -> Bool -> IO (Bool, Int32)
 get_spec_reg ed' regname argp errmsg = do
   let
-    j'6 !allocated1 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'6 !allocated1 _ _ = do
       if not errmsg
         then pure (False, allocated1)
         else do
@@ -8617,24 +8617,24 @@ get_spec_reg ed' regname argp errmsg = do
           r'4 <- if (r'1 /= 0) then (do { r'2 <- rdP argp 0; vim_strnsave ed' r'2 (fromIntegral r'1 :: Word64) }) else pure nullPtr
           wrP argp 0 r'4
           pure (True, (TRUE :: Int32))
-    j'9 !allocated2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'9 !allocated2 _ _ = do
       if not errmsg
         then pure (False, allocated2)
         else do
           r'5 <- file_name_at_cursor ed' (5 .|. (if (regname == Ctrl_P) then (FNAME_EXP :: Int32) else (0 :: Int32))) 1 nullPtr
           wrP argp 0 r'5
           pure (True, (TRUE :: Int32))
-    j'14 !allocated3 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'14 !allocated3 _ _ = do
       pure (True, allocated3)
-    j'17 !allocated4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'17 !allocated4 _ _ = do
       r'6 <- last_search_pat ed'
       wrP argp 0 r'6
       pure (True, allocated4)
-    j'20 !allocated5 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'20 !allocated5 _ _ = do
       r'7 <- last_cmdline ed'
       wrP argp 0 r'7
       pure (True, allocated5)
-    j'24 !allocated6 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'24 !allocated6 _ _ = do
       wrP argp 0 nullPtr
       pure (True, allocated6)
   wrP argp 0 nullPtr
@@ -8643,8 +8643,8 @@ get_spec_reg ed' regname argp errmsg = do
       if errmsg
         then do
           _ <- check_fname ed'
-          j'24 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-        else j'24 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+          j'24 (FALSE :: Int32) False (0 :: Int32)
+        else j'24 (FALSE :: Int32) False (0 :: Int32)
     35 {- '#' -} -> do
       r'9 <- getaltfname ed' errmsg
       wrP argp 0 r'9
@@ -8655,16 +8655,16 @@ get_spec_reg ed' regname argp errmsg = do
         then do
           let !r'11 = c'_ (addr'e_no_previous_command_line ed')
           _ <- emsg ed' r'11
-          j'20 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-        else j'20 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+          j'20 (FALSE :: Int32) False (0 :: Int32)
+        else j'20 (FALSE :: Int32) False (0 :: Int32)
     47 {- '/' -} -> do
       r'13 <- last_search_pat ed'
       if (r'13 == nullPtr) && errmsg
         then do
           let !r'14 = c'_ (addr'e_no_previous_regular_expression ed')
           _ <- emsg ed' r'14
-          j'17 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-        else j'17 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+          j'17 (FALSE :: Int32) False (0 :: Int32)
+        else j'17 (FALSE :: Int32) False (0 :: Int32)
     46 {- '.' -} -> do
       r'16 <- get_last_insert_save ed'
       wrP argp 0 r'16
@@ -8673,12 +8673,12 @@ get_spec_reg ed' regname argp errmsg = do
         then do
           let !r'18 = c'_ (addr'e_no_inserted_text_yet ed')
           _ <- emsg ed' r'18
-          j'14 (TRUE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-        else j'14 (TRUE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-    Ctrl_F -> j'9 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-    Ctrl_P -> j'9 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-    Ctrl_W -> j'6 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-    Ctrl_A -> j'6 (FALSE :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+          j'14 (TRUE :: Int32) False (0 :: Int32)
+        else j'14 (TRUE :: Int32) False (0 :: Int32)
+    Ctrl_F -> j'9 (FALSE :: Int32) False (0 :: Int32)
+    Ctrl_P -> j'9 (FALSE :: Int32) False (0 :: Int32)
+    Ctrl_W -> j'6 (FALSE :: Int32) False (0 :: Int32)
+    Ctrl_A -> j'6 (FALSE :: Int32) False (0 :: Int32)
     Ctrl_L -> do
       if not errmsg
         then pure (False, (FALSE :: Int32))

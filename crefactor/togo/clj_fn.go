@@ -51,6 +51,7 @@ type cvar struct {
 
 // cfn is one function being written.
 type cfn struct {
+	held         map[*cc.Declarator]bool // struct locals nothing else holds (heldStructs)
 	c            *cgen
 	lf           *lfn
 	name         string
@@ -534,7 +535,7 @@ func (f *cfn) term(t lterm) cterm {
 		rt := f.lf.ft.Result()
 		v := f.lexprTo(t.ret, f.ret)
 		s := f.conv(v, f.ret, rt)
-		if isAggr(rt) {
+		if isAggr(rt) && !f.heldRet(t.ret) {
 			s = "(.copy " + tagged(cv{s: s, t: f.ret}) + ")" // a struct is returned by value
 		}
 		return cterm{test: wrapPre(f.takePre(), s)}
@@ -937,4 +938,22 @@ func boxed(s, jt string) string {
 		return "(Boolean/valueOf (boolean " + s + "))"
 	}
 	return s
+}
+
+// heldRet says a return's value is a struct local nothing else holds
+// (heldStructs): it dies with the call, so it is returned as it is.
+func (f *cfn) heldRet(r lexpr) bool {
+	if f.held == nil {
+		f.held = heldStructs(f.lf.fd)
+	}
+	switch {
+	case r.v != nil:
+		return r.v.decl != nil && f.held[r.v.decl]
+	case r.n != nil:
+		if x, ok := unparenE(r.n).(*cc.PrimaryExpression); ok && x.Case == cc.PrimaryExpressionIdent {
+			d, _ := x.ResolvedTo().(*cc.Declarator)
+			return d != nil && f.held[d]
+		}
+	}
+	return false
 }

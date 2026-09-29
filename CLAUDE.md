@@ -22,7 +22,7 @@ slim-vim.c  --whim-->  whim-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (the `Makefile`) removes capability on purpose, phases 0-181 from 180,870
-  lines to 77,769. It is two arcs, a coda, an empty phase, five for the Go's
+  lines to 77,631. It is two arcs, a coda, an empty phase, five for the Go's
   sake, the headers, the gotos, the parallel `:%s`, and the out-parameters
   and struct locals as values:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
@@ -412,7 +412,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 151 phases, **1,010 s**, 77,769 lines. A
+  before the reason. Measured: 151 phases, **990 s**, 77,631 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -430,8 +430,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **68 s**, 150 links 64 at a time, bound by
-  the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,010 s in
+  committed `whim-vim.c`. Measured: **66 s**, 150 links 64 at a time, bound by
+  the machine's load and no longer by one link (phase 54 was 44 s alone), against 990 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose

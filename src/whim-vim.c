@@ -14165,6 +14165,7 @@ ins_bs_one(void)
     static ins_bs__out_T
 ins_bs(int c, int mode, int inserted_space_p)
 {
+    ins_bs__out_T out__;
     linenr_T lnum;
     int cc;
     int temp = 0;
@@ -14179,7 +14180,6 @@ ins_bs(int c, int mode, int inserted_space_p)
     {
         vim_beep(BO_BS);
         {
-            ins_bs__out_T out__;
             out__.r__ = (FALSE);
             out__.inserted_space_p = inserted_space_p;
             return out__;
@@ -14188,7 +14188,6 @@ ins_bs(int c, int mode, int inserted_space_p)
     if (!stop_arrow())
     {
         {
-            ins_bs__out_T out__;
             out__.r__ = (FALSE);
             out__.inserted_space_p = inserted_space_p;
             return out__;
@@ -14201,7 +14200,6 @@ ins_bs(int c, int mode, int inserted_space_p)
         {
             --curwin->w_cursor.coladd;
             {
-                ins_bs__out_T out__;
                 out__.r__ = (TRUE);
                 out__.inserted_space_p = inserted_space_p;
                 return out__;
@@ -14211,7 +14209,6 @@ ins_bs(int c, int mode, int inserted_space_p)
         {
             curwin->w_cursor.coladd = 0;
             {
-                ins_bs__out_T out__;
                 out__.r__ = (TRUE);
                 out__.inserted_space_p = inserted_space_p;
                 return out__;
@@ -14227,7 +14224,6 @@ ins_bs(int c, int mode, int inserted_space_p)
             if (!u_save((linenr_T)(curwin->w_cursor.lnum - 2), (linenr_T)(curwin->w_cursor.lnum + 1)))
             {
                 {
-                    ins_bs__out_T out__;
                     out__.r__ = (FALSE);
                     out__.inserted_space_p = inserted_space_p;
                     return out__;
@@ -14429,7 +14425,6 @@ ins_bs(int c, int mode, int inserted_space_p)
         dollar_vcol = curwin->w_virtcol;
     }
     {
-        ins_bs__out_T out__;
         out__.r__ = (did_backspace);
         out__.inserted_space_p = inserted_space_p;
         return out__;
@@ -17718,11 +17713,11 @@ typedef struct
     static one_letter_cmd__out_T
 one_letter_cmd(char_u *p, cmdidx_T idx)
 {
+    one_letter_cmd__out_T out__;
     if (p[0] == 'k' && (p[1] != 'e' || (p[1] == 'e' && p[2] != 'e')))
     {
         idx = CMD_k;
         {
-            one_letter_cmd__out_T out__;
             out__.r__ = (TRUE);
             out__.idx = idx;
             return out__;
@@ -17732,14 +17727,12 @@ one_letter_cmd(char_u *p, cmdidx_T idx)
     {
         idx = CMD_substitute;
         {
-            one_letter_cmd__out_T out__;
             out__.r__ = (TRUE);
             out__.idx = idx;
             return out__;
         }
     }
     {
-        one_letter_cmd__out_T out__;
         out__.r__ = (FALSE);
         out__.idx = idx;
         return out__;
@@ -19764,6 +19757,7 @@ typedef struct
     static may_add_char_to_search__out_T
 may_add_char_to_search(int firstc, int c, incsearch_state_T *is_state)
 {
+    may_add_char_to_search__out_T out__;
     int skiplen;
     int patlen;
     int search_delim;
@@ -19772,7 +19766,6 @@ may_add_char_to_search(int firstc, int c, incsearch_state_T *is_state)
     {
         restore_last_search_pattern();
         {
-            may_add_char_to_search__out_T out__;
             out__.r__ = (FAIL);
             out__.c = c;
             return out__;
@@ -19806,7 +19799,6 @@ may_add_char_to_search(int firstc, int c, incsearch_state_T *is_state)
                 c = save_c;
             }
             {
-                may_add_char_to_search__out_T out__;
                 out__.r__ = (FAIL);
                 out__.c = c;
                 return out__;
@@ -19814,7 +19806,6 @@ may_add_char_to_search(int firstc, int c, incsearch_state_T *is_state)
         }
     }
     {
-        may_add_char_to_search__out_T out__;
         out__.r__ = (OK);
         out__.c = c;
         return out__;
@@ -19960,6 +19951,7 @@ typedef struct
     static cmdline_browse_history__out_T
 cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen, int histype, int hiscnt_p, expand_T *xp)
 {
+    cmdline_browse_history__out_T out__;
     int orig_hiscnt;
     int hiscnt = orig_hiscnt = hiscnt_p;
     char_u *lookfor = curcmdstr;
@@ -19968,7 +19960,6 @@ cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen,
     if (get_hislen() == 0 || firstc == NUL)
     {
         {
-            cmdline_browse_history__out_T out__;
             out__.r__ = (CMDLINE_NOT_CHANGED);
             out__.curcmdstr = curcmdstr;
             out__.curcmdstrlen = curcmdstrlen;
@@ -20095,7 +20086,6 @@ cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen,
                         curcmdstrlen = lookforlen;
                         hiscnt_p = hiscnt;
                         {
-                            cmdline_browse_history__out_T out__;
                             out__.r__ = (res);
                             out__.curcmdstr = curcmdstr;
                             out__.curcmdstrlen = curcmdstrlen;
@@ -20118,7 +20108,6 @@ cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen,
                 curcmdstrlen = lookforlen;
                 hiscnt_p = hiscnt;
                 {
-                    cmdline_browse_history__out_T out__;
                     out__.r__ = (res);
                     out__.curcmdstr = curcmdstr;
                     out__.curcmdstrlen = curcmdstrlen;
@@ -20135,7 +20124,6 @@ cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen,
         curcmdstrlen = lookforlen;
         hiscnt_p = hiscnt;
         {
-            cmdline_browse_history__out_T out__;
             out__.r__ = (res);
             out__.curcmdstr = curcmdstr;
             out__.curcmdstrlen = curcmdstrlen;
@@ -20149,7 +20137,6 @@ cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen,
     curcmdstrlen = lookforlen;
     hiscnt_p = hiscnt;
     {
-        cmdline_browse_history__out_T out__;
         out__.r__ = (res);
         out__.curcmdstr = curcmdstr;
         out__.curcmdstrlen = curcmdstrlen;
@@ -21182,6 +21169,7 @@ get_cmdline_firstc(void)
     static get_list_range__out_T
 get_list_range(char_u *str, int num1, int num2)
 {
+    get_list_range__out_T out__;
     int len;
     bool first = FALSE;
     varnumber_T num;
@@ -21193,7 +21181,6 @@ get_list_range(char_u *str, int num1, int num2)
         if (num > INT_MAX)
         {
             {
-                get_list_range__out_T out__;
                 out__.r__ = (FAIL);
                 out__.str = str;
                 out__.num1 = num1;
@@ -21215,7 +21202,6 @@ get_list_range(char_u *str, int num1, int num2)
             if (num > INT_MAX)
             {
                 {
-                    get_list_range__out_T out__;
                     out__.r__ = (FAIL);
                     out__.str = str;
                     out__.num1 = num1;
@@ -21228,7 +21214,6 @@ get_list_range(char_u *str, int num1, int num2)
         else if (!first)
         {
             {
-                get_list_range__out_T out__;
                 out__.r__ = (FAIL);
                 out__.str = str;
                 out__.num1 = num1;
@@ -21242,7 +21227,6 @@ get_list_range(char_u *str, int num1, int num2)
         num2 = num1;
     }
     {
-        get_list_range__out_T out__;
         out__.r__ = (OK);
         out__.str = str;
         out__.num1 = num1;
@@ -21586,6 +21570,7 @@ typedef struct
     static get_buffcont__out_T
 get_buffcont(buffheader_T *buffer, bool dozero, usize len)
 {
+    get_buffcont__out_T out__;
     long_u count = 0;
     char_u *p = nullptr;
     char_u *p2;
@@ -21614,7 +21599,6 @@ get_buffcont(buffheader_T *buffer, bool dozero, usize len)
         len = i;
     }
     {
-        get_buffcont__out_T out__;
         out__.r__ = (p);
         out__.len = len;
         return out__;
@@ -23078,6 +23062,7 @@ typedef struct
     static handle_mapping__out_T
 handle_mapping(int keylenp, int timedout, int mapdepth)
 {
+    handle_mapping__out_T out__;
     mapblock_T *mp = nullptr;
     mapblock_T *mp2;
     mapblock_T *mp_match;
@@ -23215,7 +23200,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
             setcursor();
             keylenp = keylen;
             {
-                handle_mapping__out_T out__;
                 out__.r__ = (map_result_retry);
                 out__.keylenp = keylenp;
                 out__.timedout = timedout;
@@ -23255,7 +23239,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
                 if (keylen < 0)
                 {
                     {
-                        handle_mapping__out_T out__;
                         out__.r__ = (map_result_fail);
                         out__.keylenp = keylenp;
                         out__.timedout = timedout;
@@ -23279,7 +23262,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
             {
                 keylenp = keylen;
                 {
-                    handle_mapping__out_T out__;
                     out__.r__ = (map_result_get);
                     out__.keylenp = keylenp;
                     out__.timedout = timedout;
@@ -23292,7 +23274,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
         {
             keylenp = keylen;
             {
-                handle_mapping__out_T out__;
                 out__.r__ = (map_result_retry);
                 out__.keylenp = keylenp;
                 out__.timedout = timedout;
@@ -23333,7 +23314,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
             mapdepth = 0;
             keylenp = keylen;
             {
-                handle_mapping__out_T out__;
                 out__.r__ = (map_result_fail);
                 out__.keylenp = keylenp;
                 out__.timedout = timedout;
@@ -23372,7 +23352,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
         if (i == FAIL)
         {
             {
-                handle_mapping__out_T out__;
                 out__.r__ = (map_result_fail);
                 out__.keylenp = keylenp;
                 out__.timedout = timedout;
@@ -23381,7 +23360,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
             }
         }
         {
-            handle_mapping__out_T out__;
             out__.r__ = (map_result_retry);
             out__.keylenp = keylenp;
             out__.timedout = timedout;
@@ -23391,7 +23369,6 @@ handle_mapping(int keylenp, int timedout, int mapdepth)
     }
     keylenp = keylen;
     {
-        handle_mapping__out_T out__;
         out__.r__ = (map_result_nomatch);
         out__.keylenp = keylenp;
         out__.timedout = timedout;
@@ -24468,12 +24445,12 @@ typedef struct
     static lookup_color__out_T
 lookup_color(int idx, bool foreground, int boldp)
 {
+    lookup_color__out_T out__;
     int color = color_numbers_16[idx];
     char_u *p;
     if (color < 0)
     {
         {
-            lookup_color__out_T out__;
             out__.r__ = (-1);
             out__.boldp = boldp;
             return out__;
@@ -24522,7 +24499,6 @@ lookup_color(int idx, bool foreground, int boldp)
         }
     }
     {
-        lookup_color__out_T out__;
         out__.r__ = (color);
         out__.boldp = boldp;
         return out__;
@@ -26371,6 +26347,7 @@ typedef struct
     static parse_winhighlight__out_T
 parse_winhighlight(char_u *opt, int len, char *errmsg)
 {
+    parse_winhighlight__out_T out__;
     char_u *p = opt;
     hl_override_T *arr;
     int i = 0;
@@ -26379,7 +26356,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
     if (*p == NUL)
     {
         {
-            parse_winhighlight__out_T out__;
             out__.r__ = (nullptr);
             out__.len = len;
             out__.errmsg = errmsg;
@@ -26401,7 +26377,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
     {
         errmsg = e_invalid_argument;
         {
-            parse_winhighlight__out_T out__;
             out__.r__ = (nullptr);
             out__.len = len;
             out__.errmsg = errmsg;
@@ -26440,7 +26415,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
         {
             errmsg = e_invalid_argument;
             {
-                parse_winhighlight__out_T out__;
                 out__.r__ = (nullptr);
                 out__.len = len;
                 out__.errmsg = errmsg;
@@ -26452,7 +26426,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
         {
             errmsg = e_invalid_argument;
             {
-                parse_winhighlight__out_T out__;
                 out__.r__ = (nullptr);
                 out__.len = len;
                 out__.errmsg = errmsg;
@@ -26464,7 +26437,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
         {
             errmsg = e_invalid_argument;
             {
-                parse_winhighlight__out_T out__;
                 out__.r__ = (nullptr);
                 out__.len = len;
                 out__.errmsg = errmsg;
@@ -26486,7 +26458,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
         {
             errmsg = e_invalid_argument;
             {
-                parse_winhighlight__out_T out__;
                 out__.r__ = (nullptr);
                 out__.len = len;
                 out__.errmsg = errmsg;
@@ -26504,7 +26475,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
                 {
                     errmsg = e_invalid_argument;
                     {
-                        parse_winhighlight__out_T out__;
                         out__.r__ = (nullptr);
                         out__.len = len;
                         out__.errmsg = errmsg;
@@ -26522,7 +26492,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
                 {
                     errmsg = e_invalid_argument;
                     {
-                        parse_winhighlight__out_T out__;
                         out__.r__ = (nullptr);
                         out__.len = len;
                         out__.errmsg = errmsg;
@@ -26537,7 +26506,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
                 {
                     errmsg = e_invalid_argument;
                     {
-                        parse_winhighlight__out_T out__;
                         out__.r__ = (nullptr);
                         out__.len = len;
                         out__.errmsg = errmsg;
@@ -26549,7 +26517,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
                 {
                     errmsg = e_invalid_argument;
                     {
-                        parse_winhighlight__out_T out__;
                         out__.r__ = (nullptr);
                         out__.len = len;
                         out__.errmsg = errmsg;
@@ -26571,7 +26538,6 @@ parse_winhighlight(char_u *opt, int len, char *errmsg)
     }
     len = num;
     {
-        parse_winhighlight__out_T out__;
         out__.r__ = (arr);
         out__.len = len;
         out__.errmsg = errmsg;
@@ -28070,6 +28036,7 @@ typedef struct
     static get_map_mode__out_T
 get_map_mode(char_u *cmdp, bool forceit)
 {
+    get_map_mode__out_T out__;
     char_u *p;
     int modec;
     int mode;
@@ -28117,7 +28084,6 @@ get_map_mode(char_u *cmdp, bool forceit)
     }
     cmdp = p;
     {
-        get_map_mode__out_T out__;
         out__.r__ = (mode);
         out__.cmdp = cmdp;
         return out__;
@@ -29781,6 +29747,7 @@ check_cur_search_hl(win_T *wp, match_T *shl)
     static prepare_search_hl_line__out_T
 prepare_search_hl_line(win_T *wp, linenr_T lnum, colnr_T mincol, char_u *line, match_T *search_hl, int search_attr)
 {
+    prepare_search_hl_line__out_T out__;
     matchitem_T *cur;
     match_T *shl;
     int shl_flag;
@@ -29855,7 +29822,6 @@ prepare_search_hl_line(win_T *wp, linenr_T lnum, colnr_T mincol, char_u *line, m
         }
     }
     {
-        prepare_search_hl_line__out_T out__;
         out__.r__ = (area_highlighting);
         out__.line = line;
         out__.search_attr = search_attr;
@@ -29866,6 +29832,7 @@ prepare_search_hl_line(win_T *wp, linenr_T lnum, colnr_T mincol, char_u *line, m
     static update_search_hl__out_T
 update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, int *has_match_conc, int *match_conc, int did_line_attr, int lcs_eol_one, int on_last_col)
 {
+    update_search_hl__out_T out__;
     matchitem_T *cur;
     match_T *shl;
     int shl_flag;
@@ -29979,7 +29946,6 @@ update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *s
         search_attr = 0;
     }
     {
-        update_search_hl__out_T out__;
         out__.r__ = (search_attr);
         out__.line = line;
         out__.on_last_col = on_last_col;
@@ -31155,13 +31121,13 @@ utf_off2cells(unsigned off, unsigned max_off)
 utf_ptr2char_and_len(char_u *p)
 {
     int lenp;
+    utf_ptr2char_and_len__out_T out__;
     int len;
     int c;
     if (p[0] < 0x80)
     {
         lenp = p[0] == NUL ? 0 : 1;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31172,7 +31138,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31183,7 +31148,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 2;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31193,7 +31157,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31204,7 +31167,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 3;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31214,7 +31176,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31225,7 +31186,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 4;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31235,7 +31195,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31246,7 +31205,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 5;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31256,7 +31214,6 @@ utf_ptr2char_and_len(char_u *p)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31264,7 +31221,6 @@ utf_ptr2char_and_len(char_u *p)
     }
     lenp = 6;
     {
-        utf_ptr2char_and_len__out_T out__;
         out__.r__ = (((p[0] & 0x01) << 30) + ((p[1] & 0x3f) << 24) + ((p[2] & 0x3f) << 18) + ((p[3] & 0x3f) << 12) + ((p[4] & 0x3f) << 6) + (p[5] & 0x3f));
         out__.lenp = lenp;
         return out__;
@@ -31275,13 +31231,13 @@ utf_ptr2char_and_len(char_u *p)
 utf_ptr2char_and_len_len(char_u *p, int size)
 {
     int lenp;
+    utf_ptr2char_and_len_len__out_T out__;
     int len;
     int c;
     if (size < 1)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (NUL);
             out__.lenp = lenp;
             return out__;
@@ -31291,7 +31247,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31302,7 +31257,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31317,7 +31271,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
             {
                 lenp = 1;
                 {
-                    utf_ptr2char_and_len_len__out_T out__;
                     out__.r__ = (p[0]);
                     out__.lenp = lenp;
                     return out__;
@@ -31326,7 +31279,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
         }
         lenp = len;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31336,7 +31288,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31347,7 +31298,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 2;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31357,7 +31307,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31368,7 +31317,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 3;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31378,7 +31326,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31389,7 +31336,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 4;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31399,7 +31345,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31410,7 +31355,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 5;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (c);
             out__.lenp = lenp;
             return out__;
@@ -31420,7 +31364,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     {
         lenp = 1;
         {
-            utf_ptr2char_and_len_len__out_T out__;
             out__.r__ = (p[0]);
             out__.lenp = lenp;
             return out__;
@@ -31428,7 +31371,6 @@ utf_ptr2char_and_len_len(char_u *p, int size)
     }
     lenp = 6;
     {
-        utf_ptr2char_and_len_len__out_T out__;
         out__.r__ = (((p[0] & 0x01) << 30) + ((p[1] & 0x3f) << 24) + ((p[2] & 0x3f) << 18) + ((p[3] & 0x3f) << 12) + ((p[4] & 0x3f) << 6) + (p[5] & 0x3f));
         out__.lenp = lenp;
         return out__;
@@ -31463,12 +31405,12 @@ typedef struct
     static utf_safe_read_char_adv__out_T
 utf_safe_read_char_adv(char_u *s, usize n)
 {
+    utf_safe_read_char_adv__out_T out__;
     int c;
     int k;
     if (n == 0)
     {
         {
-            utf_safe_read_char_adv__out_T out__;
             out__.r__ = (0);
             out__.s = s;
             out__.n = n;
@@ -31480,7 +31422,6 @@ utf_safe_read_char_adv(char_u *s, usize n)
     {
         (n)--;
         {
-            utf_safe_read_char_adv__out_T out__;
             out__.r__ = (*(s)++);
             out__.s = s;
             out__.n = n;
@@ -31495,7 +31436,6 @@ utf_safe_read_char_adv(char_u *s, usize n)
             s += k;
             n -= k;
             {
-                utf_safe_read_char_adv__out_T out__;
                 out__.r__ = (c);
                 out__.s = s;
                 out__.n = n;
@@ -31504,7 +31444,6 @@ utf_safe_read_char_adv(char_u *s, usize n)
         }
     }
     {
-        utf_safe_read_char_adv__out_T out__;
         out__.r__ = (-1);
         out__.s = s;
         out__.n = n;
@@ -31524,11 +31463,11 @@ mb_ptr2char_adv(char_u **pp)
     static mb_cptr2char_adv__out_T
 mb_cptr2char_adv(char_u *pp)
 {
+    mb_cptr2char_adv__out_T out__;
     int c;
     c = utf_ptr2char(pp);
     pp += utf_ptr2len(pp);
     {
-        mb_cptr2char_adv__out_T out__;
         out__.r__ = (c);
         out__.pp = pp;
         return out__;
@@ -33357,12 +33296,12 @@ utf_head_off(char_u *base, char_u *p)
     static mb_copy_char__out_T
 mb_copy_char(char_u *fp, char_u *tp)
 {
+    mb_copy_char__out_T out__;
     int l = utfc_ptr2len(fp);
     musl_memmove((char *)(tp), (char *)(fp), (usize)l);
     tp += l;
     fp += l;
     {
-        mb_copy_char__out_T out__;
         out__.fp = fp;
         out__.tp = tp;
         return out__;
@@ -36222,6 +36161,7 @@ static sb_clear_T do_clear_sb_text = SB_CLEAR_NONE;
     static store_sb_text__out_T
 store_sb_text(char_u *sb_str, char_u *s, int attr, int sb_col, bool finish)
 {
+    store_sb_text__out_T out__;
     msgchunk_T *mp;
     if (do_clear_sb_text == SB_CLEAR_ALL || do_clear_sb_text == SB_CLEAR_CMDLINE_DONE)
     {
@@ -36257,7 +36197,6 @@ store_sb_text(char_u *sb_str, char_u *s, int attr, int sb_col, bool finish)
     sb_str = s;
     sb_col = 0;
     {
-        store_sb_text__out_T out__;
         out__.sb_str = sb_str;
         out__.sb_col = sb_col;
         return out__;
@@ -37337,11 +37276,11 @@ typedef struct
     static vim_append_digit_long__out_T
 vim_append_digit_long(long value, int digit)
 {
+    vim_append_digit_long__out_T out__;
     long x = value;
     if (x > ((LONG_MAX - (long)digit) / 10))
     {
         {
-            vim_append_digit_long__out_T out__;
             out__.r__ = (FAIL);
             out__.value = value;
             return out__;
@@ -37349,7 +37288,6 @@ vim_append_digit_long(long value, int digit)
     }
     value = x * 10 + (long)digit;
     {
-        vim_append_digit_long__out_T out__;
         out__.r__ = (OK);
         out__.value = value;
         return out__;
@@ -37864,6 +37802,7 @@ set_leftcol(colnr_T leftcol)
     static copy_option_part__out_T
 copy_option_part(char_u *option, char_u *buf, int maxlen, char *sep_chars)
 {
+    copy_option_part__out_T out__;
     int len = 0;
     char_u *p = option;
     if (*p == '.')
@@ -37890,7 +37829,6 @@ copy_option_part(char_u *option, char_u *buf, int maxlen, char *sep_chars)
     p = skip_to_option_part(p);
     option = p;
     {
-        copy_option_part__out_T out__;
         out__.r__ = (len);
         out__.option = option;
         return out__;
@@ -38652,6 +38590,7 @@ special_to_buf(int key, int modifiers, bool escape_ks, char_u *dst)
     static find_special_key__out_T
 find_special_key(char_u **srcp, int modp, int flags, int *did_simplify)
 {
+    find_special_key__out_T out__;
     char_u *last_dash;
     char_u *end_of_name;
     char_u *src;
@@ -38666,7 +38605,6 @@ find_special_key(char_u **srcp, int modp, int flags, int *did_simplify)
     if (src[0] != '<')
     {
         {
-            find_special_key__out_T out__;
             out__.r__ = (0);
             out__.modp = modp;
             return out__;
@@ -38706,7 +38644,6 @@ find_special_key(char_u **srcp, int modp, int flags, int *did_simplify)
             {
                 emsg(_(e_invalid_argument));
                 {
-                    find_special_key__out_T out__;
                     out__.r__ = (0);
                     out__.modp = modp;
                     return out__;
@@ -38741,7 +38678,6 @@ find_special_key(char_u **srcp, int modp, int flags, int *did_simplify)
                 {
                     emsg(_(e_invalid_argument));
                     {
-                        find_special_key__out_T out__;
                         out__.r__ = (0);
                         out__.modp = modp;
                         return out__;
@@ -38805,7 +38741,6 @@ find_special_key(char_u **srcp, int modp, int flags, int *did_simplify)
                 modp = modifiers;
                 *srcp = end_of_name;
                 {
-                    find_special_key__out_T out__;
                     out__.r__ = (key);
                     out__.modp = modp;
                     return out__;
@@ -38814,7 +38749,6 @@ find_special_key(char_u **srcp, int modp, int flags, int *did_simplify)
         }
     }
     {
-        find_special_key__out_T out__;
         out__.r__ = (0);
         out__.modp = modp;
         return out__;
@@ -41853,6 +41787,7 @@ typedef struct
     static normal_cmd_get_count__out_T
 normal_cmd_get_count(cmdarg_T *cap, int c, bool toplevel, bool set_prevcount, int ctrl_w, int need_flushbuf)
 {
+    normal_cmd_get_count__out_T out__;
     for (;;)
     {
         if (!(VIsual_active && VIsual_select))
@@ -41931,7 +41866,6 @@ normal_cmd_get_count(cmdarg_T *cap, int c, bool toplevel, bool set_prevcount, in
     cap->opcount = cap->count0;
     cap->count1 = (cap->count0 == 0 ? 1 : cap->count0);
     {
-        normal_cmd_get_count__out_T out__;
         out__.r__ = (c);
         out__.ctrl_w = ctrl_w;
         out__.need_flushbuf = need_flushbuf;
@@ -41954,6 +41888,7 @@ typedef struct
     static normal_cmd_get_more_chars__out_T
 normal_cmd_get_more_chars(int idx_arg, cmdarg_T *cap, int need_flushbuf)
 {
+    normal_cmd_get_more_chars__out_T out__;
     int idx = idx_arg;
     int c;
     int *cp;
@@ -42081,7 +42016,6 @@ normal_cmd_get_more_chars(int idx_arg, cmdarg_T *cap, int need_flushbuf)
     --no_mapping;
     --allow_keys;
     {
-        normal_cmd_get_more_chars__out_T out__;
         out__.r__ = (idx);
         out__.need_flushbuf = need_flushbuf;
         return out__;
@@ -42402,6 +42336,7 @@ typedef struct
     static find_is_eval_item__out_T
 find_is_eval_item(char_u *ptr, int *colp, int bnp, int dir)
 {
+    find_is_eval_item__out_T out__;
     if ((*ptr == ']' && dir == (-1)) || (*ptr == '[' && dir == FORWARD))
     {
         ++bnp;
@@ -42413,7 +42348,6 @@ find_is_eval_item(char_u *ptr, int *colp, int bnp, int dir)
             --bnp;
         }
         {
-            find_is_eval_item__out_T out__;
             out__.r__ = (TRUE);
             out__.bnp = bnp;
             return out__;
@@ -42422,7 +42356,6 @@ find_is_eval_item(char_u *ptr, int *colp, int bnp, int dir)
     if (*ptr == '.')
     {
         {
-            find_is_eval_item__out_T out__;
             out__.r__ = (TRUE);
             out__.bnp = bnp;
             return out__;
@@ -42432,14 +42365,12 @@ find_is_eval_item(char_u *ptr, int *colp, int bnp, int dir)
     {
         *colp += dir;
         {
-            find_is_eval_item__out_T out__;
             out__.r__ = (TRUE);
             out__.bnp = bnp;
             return out__;
         }
     }
     {
-        find_is_eval_item__out_T out__;
         out__.r__ = (FALSE);
         out__.bnp = bnp;
         return out__;
@@ -48557,6 +48488,7 @@ typedef struct
     static line_count_info__out_T
 line_count_info(char_u *line, varnumber_T wc, varnumber_T cc, varnumber_T limit, int eol_size)
 {
+    line_count_info__out_T out__;
     varnumber_T i;
     varnumber_T words = 0;
     varnumber_T chars = 0;
@@ -48590,7 +48522,6 @@ line_count_info(char_u *line, varnumber_T wc, varnumber_T cc, varnumber_T limit,
     }
     cc += chars;
     {
-        line_count_info__out_T out__;
         out__.r__ = (i);
         out__.wc = wc;
         out__.cc = cc;
@@ -49913,6 +49844,7 @@ typedef struct
     static parse_option_name__out_T
 parse_option_name(char_u *arg, int opt_idxp, int lenp, int keyp)
 {
+    parse_option_name__out_T out__;
     int key = 0;
     int len;
     int opt_idx;
@@ -49934,7 +49866,6 @@ parse_option_name(char_u *arg, int opt_idxp, int lenp, int keyp)
         if (arg[len] != '>')
         {
             {
-                parse_option_name__out_T out__;
                 out__.r__ = (FAIL);
                 out__.opt_idxp = opt_idxp;
                 out__.lenp = lenp;
@@ -49981,7 +49912,6 @@ parse_option_name(char_u *arg, int opt_idxp, int lenp, int keyp)
     lenp = len;
     opt_idxp = opt_idx;
     {
-        parse_option_name__out_T out__;
         out__.r__ = (OK);
         out__.opt_idxp = opt_idxp;
         out__.lenp = lenp;
@@ -50062,6 +49992,7 @@ typedef struct
     static opt_backspace_nr2str__out_T
 opt_backspace_nr2str(optvar_T varp, char_u *origval_p, char_u *origval_l_p, char_u *origval_g_p, char_u *oldval_p)
 {
+    opt_backspace_nr2str__out_T out__;
     int i = getdigits(varp.ov_str);
     switch (i)
     {
@@ -50092,7 +50023,6 @@ opt_backspace_nr2str(optvar_T varp, char_u *origval_p, char_u *origval_l_p, char
     }
     oldval_p = *varp.ov_str;
     {
-        opt_backspace_nr2str__out_T out__;
         out__.origval_p = origval_p;
         out__.origval_l_p = origval_l_p;
         out__.origval_g_p = origval_g_p;
@@ -50254,6 +50184,7 @@ typedef struct
     static find_key_item__out_T
 find_key_item(char_u *src, char_u *key, int keylen, int itemlenp)
 {
+    find_key_item__out_T out__;
     char_u *p = src;
     while (*p != NUL)
     {
@@ -50266,7 +50197,6 @@ find_key_item(char_u *src, char_u *key, int keylen, int itemlenp)
             }
             itemlenp = (int)(end - p);
             {
-                find_key_item__out_T out__;
                 out__.r__ = (p);
                 out__.itemlenp = itemlenp;
                 return out__;
@@ -50275,7 +50205,6 @@ find_key_item(char_u *src, char_u *key, int keylen, int itemlenp)
         ++p;
     }
     {
-        find_key_item__out_T out__;
         out__.r__ = (nullptr);
         out__.itemlenp = itemlenp;
         return out__;
@@ -50488,6 +50417,7 @@ typedef struct
     static stropt_get_newval__out_T
 stropt_get_newval(int nextchar, int opt_idx, char_u *argp, optvar_T varp, char_u *origval_arg, char_u *origval_l_arg, char_u *origval_g_arg, char_u *oldval_arg, set_op_T op_arg, int flags, int cp_val)
 {
+    stropt_get_newval__out_T out__;
     opt_backspace_nr2str__out_T opt_backspace_nr2str__o;
     char_u *arg = argp;
     char_u *origval = origval_arg;
@@ -50575,7 +50505,6 @@ stropt_get_newval(int nextchar, int opt_idx, char_u *argp, optvar_T varp, char_u
     oldval_arg = oldval;
     op_arg = op;
     {
-        stropt_get_newval__out_T out__;
         out__.r__ = (newval);
         out__.argp = argp;
         out__.origval_arg = origval_arg;
@@ -50598,6 +50527,7 @@ typedef struct
 do_set_option_string(int opt_idx, int opt_flags, char_u *argp, int nextchar, set_op_T op_arg, long_u flags, int cp_val, optvar_T varp_arg, char *errbuf, usize errbuflen, int *value_checked)
 {
     char *errmsg;
+    do_set_option_string__out_T out__;
     stropt_get_newval__out_T stropt_get_newval__o;
     char_u *arg = argp;
     set_op_T op = op_arg;
@@ -50647,7 +50577,6 @@ do_set_option_string(int opt_idx, int opt_flags, char_u *argp, int nextchar, set
     }
     argp = arg;
     {
-        do_set_option_string__out_T out__;
         out__.r__ = (errmsg == nullptr ? OK : FAIL);
         out__.argp = argp;
         out__.errmsg = errmsg;
@@ -50702,6 +50631,7 @@ typedef struct
     static do_set_option_numeric__out_T
 do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, set_op_T op, long_u flags, int cp_val, optvar_T varp, char *errbuf, usize errbuflen)
 {
+    do_set_option_numeric__out_T out__;
     char_u *arg = argp;
     varnumber_T value;
     int i;
@@ -50709,7 +50639,6 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, se
     if (opt_idx < 0 || optvar_is_null(varp))
     {
         {
-            do_set_option_numeric__out_T out__;
             out__.r__ = (nullptr);
             out__.argp = argp;
             return out__;
@@ -50728,7 +50657,6 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, se
             errmsg = e_number_required_after_equal;
             argp = arg;
             {
-                do_set_option_numeric__out_T out__;
                 out__.r__ = (errmsg);
                 out__.argp = argp;
                 return out__;
@@ -50740,7 +50668,6 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, se
         errmsg = e_number_required_after_equal;
         argp = arg;
         {
-            do_set_option_numeric__out_T out__;
             out__.r__ = (errmsg);
             out__.argp = argp;
             return out__;
@@ -50763,7 +50690,6 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, se
         errmsg = e_invalid_argument;
         argp = arg;
         {
-            do_set_option_numeric__out_T out__;
             out__.r__ = (errmsg);
             out__.argp = argp;
             return out__;
@@ -50772,7 +50698,6 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, se
     errmsg = set_num_option(opt_idx, varp, value, errbuf, errbuflen, opt_flags);
     argp = arg;
     {
-        do_set_option_numeric__out_T out__;
         out__.r__ = (errmsg);
         out__.argp = argp;
         return out__;
@@ -50788,6 +50713,7 @@ typedef struct
     static do_set_option_keycode__out_T
 do_set_option_keycode(char_u *argp, char_u *key_name, int nextchar)
 {
+    do_set_option_keycode__out_T out__;
     char_u *arg = argp;
     char_u *p;
     if (nextchar == '&')
@@ -50795,7 +50721,6 @@ do_set_option_keycode(char_u *argp, char_u *key_name, int nextchar)
         if (!add_termcap_entry(key_name, TRUE))
         {
             {
-                do_set_option_keycode__out_T out__;
                 out__.r__ = (e_not_found_in_termcap);
                 out__.argp = argp;
                 return out__;
@@ -50824,7 +50749,6 @@ do_set_option_keycode(char_u *argp, char_u *key_name, int nextchar)
     redraw_all_later(UPD_CLEAR);
     argp = arg;
     {
-        do_set_option_keycode__out_T out__;
         out__.r__ = (nullptr);
         out__.argp = argp;
         return out__;
@@ -50840,6 +50764,7 @@ typedef struct
     static do_set_option_value__out_T
 do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefix, set_op_T op, long_u flags, optvar_T varp, char_u *key_name, int nextchar, int afterchar, int cp_val, int *stopopteval, char *errbuf, usize errbuflen)
 {
+    do_set_option_value__out_T out__;
     do_set_option_keycode__out_T do_set_option_keycode__o;
     do_set_option_numeric__out_T do_set_option_numeric__o;
     do_set_option_string__out_T do_set_option_string__o;
@@ -50853,7 +50778,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
         {
             argp = arg;
             {
-                do_set_option_value__out_T out__;
                 out__.r__ = (errmsg);
                 out__.argp = argp;
                 return out__;
@@ -50867,7 +50791,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
             errmsg = e_invalid_argument;
             argp = arg;
             {
-                do_set_option_value__out_T out__;
                 out__.r__ = (errmsg);
                 out__.argp = argp;
                 return out__;
@@ -50880,7 +50803,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
             {
                 argp = arg;
                 {
-                    do_set_option_value__out_T out__;
                     out__.r__ = (errmsg);
                     out__.argp = argp;
                     return out__;
@@ -50895,7 +50817,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
                 {
                     argp = arg;
                     {
-                        do_set_option_value__out_T out__;
                         out__.r__ = (errmsg);
                         out__.argp = argp;
                         return out__;
@@ -50904,7 +50825,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
                 *stopopteval = TRUE;
                 argp = arg;
                 {
-                    do_set_option_value__out_T out__;
                     out__.r__ = (errmsg);
                     out__.argp = argp;
                     return out__;
@@ -50918,7 +50838,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
             {
                 argp = arg;
                 {
-                    do_set_option_value__out_T out__;
                     out__.r__ = (errmsg);
                     out__.argp = argp;
                     return out__;
@@ -50932,7 +50851,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
     }
     argp = arg;
     {
-        do_set_option_value__out_T out__;
         out__.r__ = (errmsg);
         out__.argp = argp;
         return out__;
@@ -50948,6 +50866,7 @@ typedef struct
     static do_set_option__out_T
 do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg, int did_show, int *stopopteval, char *errbuf, usize errbuflen)
 {
+    do_set_option__out_T out__;
     do_set_option_value__out_T do_set_option_value__o;
     parse_option_name__out_T parse_option_name__o;
     int opt_idx;
@@ -50968,7 +50887,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
     if (!(parse_option_name__o = parse_option_name(arg, opt_idx, len, key), opt_idx = parse_option_name__o.opt_idxp, len = parse_option_name__o.lenp, key = parse_option_name__o.keyp, parse_option_name__o.r__))
     {
         {
-            do_set_option__out_T out__;
             out__.r__ = (e_invalid_argument);
             out__.did_show = did_show;
             return out__;
@@ -50990,7 +50908,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
         errmsg = e_unknown_option;
         *argp = arg;
         {
-            do_set_option__out_T out__;
             out__.r__ = (errmsg);
             out__.did_show = did_show;
             return out__;
@@ -51006,7 +50923,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
             }
             *argp = arg;
             {
-                do_set_option__out_T out__;
                 out__.r__ = (errmsg);
                 out__.did_show = did_show;
                 return out__;
@@ -51034,7 +50950,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
     {
         *argp = arg;
         {
-            do_set_option__out_T out__;
             out__.r__ = (errmsg);
             out__.did_show = did_show;
             return out__;
@@ -51062,7 +50977,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
             errmsg = e_trailing_characters;
             *argp = arg;
             {
-                do_set_option__out_T out__;
                 out__.r__ = (errmsg);
                 out__.did_show = did_show;
                 return out__;
@@ -51093,7 +51007,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
                 errmsg = e_key_code_not_set;
                 *argp = arg;
                 {
-                    do_set_option__out_T out__;
                     out__.r__ = (errmsg);
                     out__.did_show = did_show;
                     return out__;
@@ -51115,7 +51028,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
     }
     *argp = arg;
     {
-        do_set_option__out_T out__;
         out__.r__ = (errmsg);
         out__.did_show = did_show;
         return out__;
@@ -54857,6 +54769,7 @@ read_limits(void)
 {
     long minval;
     long maxval;
+    read_limits__out_T out__;
     bool reverse = FALSE;
     char_u *first_char;
     long tmp;
@@ -54893,7 +54806,6 @@ read_limits(void)
     if (*regparse != '}')
     {
         {
-            read_limits__out_T out__;
             out__.r__ = (((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_syntax_error_in_str_curlies)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_syntax_error_in_str_curlies))))), rc_did_emsg = TRUE, FAIL));
             out__.minval = minval;
             out__.maxval = maxval;
@@ -54908,7 +54820,6 @@ read_limits(void)
     }
     skipchr();
     {
-        read_limits__out_T out__;
         out__.r__ = (OK);
         out__.minval = minval;
         out__.maxval = maxval;
@@ -55224,6 +55135,7 @@ typedef struct
     static match_with_backref__out_T
 match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, linenr_T end_lnum, colnr_T end_col, int bytelen)
 {
+    match_with_backref__out_T out__;
     cstrncmp__out_T cstrncmp__o;
     linenr_T clnum = start_lnum;
     colnr_T ccol = start_col;
@@ -55260,7 +55172,6 @@ match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, line
         if ((!re->rex.reg_ic && (cstrncmp__o = cstrncmp(re, p + ccol, re->rex.input, len), len = cstrncmp__o.n, cstrncmp__o.r__) != 0) || (re->rex.reg_ic && mb_strnicmp((char_u *)(p + ccol), (char_u *)(re->rex.input), (int)(len)) != 0))
         {
             {
-                match_with_backref__out_T out__;
                 out__.r__ = (RA_NOMATCH);
                 out__.bytelen = bytelen;
                 return out__;
@@ -55277,7 +55188,6 @@ match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, line
         if (re->rex.lnum >= re->rex.reg_maxline)
         {
             {
-                match_with_backref__out_T out__;
                 out__.r__ = (RA_NOMATCH);
                 out__.bytelen = bytelen;
                 return out__;
@@ -55293,7 +55203,6 @@ match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, line
         if (got_int)
         {
             {
-                match_with_backref__out_T out__;
                 out__.r__ = (RA_FAIL);
                 out__.bytelen = bytelen;
                 return out__;
@@ -55301,7 +55210,6 @@ match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, line
         }
     }
     {
-        match_with_backref__out_T out__;
         out__.r__ = (RA_MATCH);
         out__.bytelen = bytelen;
         return out__;
@@ -55410,6 +55318,7 @@ mb_decompose(int c, int *c2, int *c3)
     static cstrncmp__out_T
 cstrncmp(regengine_T *re, char_u *s1, char_u *s2, int n)
 {
+    cstrncmp__out_T out__;
     int result;
     if (!re->rex.reg_ic)
     {
@@ -55473,7 +55382,6 @@ cstrncmp(regengine_T *re, char_u *s1, char_u *s2, int n)
         }
     }
     {
-        cstrncmp__out_T out__;
         out__.r__ = (result);
         out__.n = n;
         return out__;
@@ -57503,6 +57411,7 @@ typedef struct
     static regpiece__out_T
 regpiece(regengine_T *re, int flagp)
 {
+    regpiece__out_T out__;
     read_limits__out_T read_limits__o;
     char_u *ret;
     int op;
@@ -57514,7 +57423,6 @@ regpiece(regengine_T *re, int flagp)
     if (ret == nullptr)
     {
         {
-            regpiece__out_T out__;
             out__.r__ = (nullptr);
             out__.flagp = flagp;
             return out__;
@@ -57525,7 +57433,6 @@ regpiece(regengine_T *re, int flagp)
     {
         flagp = flags;
         {
-            regpiece__out_T out__;
             out__.r__ = (ret);
             out__.flagp = flagp;
             return out__;
@@ -57594,7 +57501,6 @@ regpiece(regengine_T *re, int flagp)
             if (lop == END)
             {
                 {
-                    regpiece__out_T out__;
                     out__.r__ = (((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str_at)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str_at))))), rc_did_emsg = TRUE, nullptr));
                     out__.flagp = flagp;
                     return out__;
@@ -57632,7 +57538,6 @@ regpiece(regengine_T *re, int flagp)
         if (!(read_limits__o = read_limits(), minval = read_limits__o.minval, maxval = read_limits__o.maxval, read_limits__o.r__))
         {
             {
-                regpiece__out_T out__;
                 out__.r__ = (nullptr);
                 out__.flagp = flagp;
                 return out__;
@@ -57648,7 +57553,6 @@ regpiece(regengine_T *re, int flagp)
             if (num_complex_braces >= 10)
             {
                 {
-                    regpiece__out_T out__;
                     out__.r__ = (((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_too_many_complex_str_curly)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_too_many_complex_str_curly))))), rc_did_emsg = TRUE, nullptr));
                     out__.flagp = flagp;
                     return out__;
@@ -57671,21 +57575,18 @@ regpiece(regengine_T *re, int flagp)
         if (peekchr() == ((int)('*') - 256))
         {
             {
-                regpiece__out_T out__;
                 out__.r__ = (((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_nested_str)), (reg_magic >= MAGIC_ON) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_nested_str))))), rc_did_emsg = TRUE, nullptr));
                 out__.flagp = flagp;
                 return out__;
             }
         }
         {
-            regpiece__out_T out__;
             out__.r__ = (((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_nested_str_chr)), (reg_magic == MAGIC_ALL) ? "" : "\\", (no_Magic(peekchr()))), emsg(iobuff_or((const char *)(_(e_nested_str_chr))))), rc_did_emsg = TRUE, nullptr));
             out__.flagp = flagp;
             return out__;
         }
     }
     {
-        regpiece__out_T out__;
         out__.r__ = (ret);
         out__.flagp = flagp;
         return out__;
@@ -57702,6 +57603,7 @@ typedef struct
 regconcat(regengine_T *re)
 {
     int flagp;
+    regconcat__out_T out__;
     regpiece__out_T regpiece__o;
     char_u *first = nullptr;
     char_u *chain = nullptr;
@@ -57756,7 +57658,6 @@ regconcat(regengine_T *re)
             if (latest == nullptr || re->reg_toolong)
             {
                 {
-                    regconcat__out_T out__;
                     out__.r__ = (nullptr);
                     out__.flagp = flagp;
                     return out__;
@@ -57784,7 +57685,6 @@ regconcat(regengine_T *re)
         first = regnode(NOTHING);
     }
     {
-        regconcat__out_T out__;
         out__.r__ = (first);
         out__.flagp = flagp;
         return out__;
@@ -57801,6 +57701,7 @@ typedef struct
 regbranch(regengine_T *re)
 {
     int flagp;
+    regbranch__out_T out__;
     regconcat__out_T regconcat__o;
     char_u *ret;
     char_u *chain = nullptr;
@@ -57814,7 +57715,6 @@ regbranch(regengine_T *re)
         if (latest == nullptr)
         {
             {
-                regbranch__out_T out__;
                 out__.r__ = (nullptr);
                 out__.flagp = flagp;
                 return out__;
@@ -57840,7 +57740,6 @@ regbranch(regengine_T *re)
         chain = latest;
     }
     {
-        regbranch__out_T out__;
         out__.r__ = (ret);
         out__.flagp = flagp;
         return out__;
@@ -57851,6 +57750,7 @@ regbranch(regengine_T *re)
 reg(regengine_T *re, int paren)
 {
     int flagp;
+    reg__out_T out__;
     regbranch__out_T regbranch__o;
     char_u *ret;
     char_u *br;
@@ -57863,7 +57763,6 @@ reg(regengine_T *re, int paren)
         if (regnpar >= NSUBEXP)
         {
             {
-                reg__out_T out__;
                 out__.r__ = (((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_too_many_str_open)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_too_many_str_open))))), rc_did_emsg = TRUE, nullptr));
                 out__.flagp = flagp;
                 return out__;
@@ -57884,7 +57783,6 @@ reg(regengine_T *re, int paren)
     if (bt_reg_parse_depth >= REG_MAX_PAREN_DEPTH)
     {
         {
-            reg__out_T out__;
             out__.r__ = ((emsg((_(e_command_too_complex))), rc_did_emsg = TRUE, nullptr));
             out__.flagp = flagp;
             return out__;
@@ -57897,7 +57795,6 @@ reg(regengine_T *re, int paren)
         ret = nullptr;
         --bt_reg_parse_depth;
         {
-            reg__out_T out__;
             out__.r__ = (ret);
             out__.flagp = flagp;
             return out__;
@@ -57925,7 +57822,6 @@ reg(regengine_T *re, int paren)
             ret = nullptr;
             --bt_reg_parse_depth;
             {
-                reg__out_T out__;
                 out__.r__ = (ret);
                 out__.flagp = flagp;
                 return out__;
@@ -57954,7 +57850,6 @@ reg(regengine_T *re, int paren)
             ret = nullptr;
             --bt_reg_parse_depth;
             {
-                reg__out_T out__;
                 out__.r__ = (ret);
                 out__.flagp = flagp;
                 return out__;
@@ -57968,7 +57863,6 @@ reg(regengine_T *re, int paren)
             ret = nullptr;
             --bt_reg_parse_depth;
             {
-                reg__out_T out__;
                 out__.r__ = (ret);
                 out__.flagp = flagp;
                 return out__;
@@ -57985,7 +57879,6 @@ reg(regengine_T *re, int paren)
             ret = nullptr;
             --bt_reg_parse_depth;
             {
-                reg__out_T out__;
                 out__.r__ = (ret);
                 out__.flagp = flagp;
                 return out__;
@@ -57998,7 +57891,6 @@ reg(regengine_T *re, int paren)
             ret = nullptr;
             --bt_reg_parse_depth;
             {
-                reg__out_T out__;
                 out__.r__ = (ret);
                 out__.flagp = flagp;
                 return out__;
@@ -58011,7 +57903,6 @@ reg(regengine_T *re, int paren)
     }
     --bt_reg_parse_depth;
     {
-        reg__out_T out__;
         out__.r__ = (ret);
         out__.flagp = flagp;
         return out__;
@@ -61027,6 +60918,7 @@ typedef struct
     static execreg_line_continuation__out_T
 execreg_line_continuation(string_T *lines, long idx)
 {
+    execreg_line_continuation__out_T out__;
     garray_T ga;
     long cmd_start = idx;
     long cmd_end = idx;
@@ -61072,7 +60964,6 @@ execreg_line_continuation(string_T *lines, long idx)
     ga_clear(&ga);
     idx = cmd_start;
     {
-        execreg_line_continuation__out_T out__;
         out__.r__ = (str);
         out__.idx = idx;
         return out__;
@@ -61348,6 +61239,7 @@ insert_reg(int regname, int literally_arg)
 get_spec_reg(int regname, char_u **argp, bool errmsg)
 {
     int allocated;
+    get_spec_reg__out_T out__;
     int cnt;
     *argp = nullptr;
     allocated = FALSE;
@@ -61360,7 +61252,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         }
         *argp = nullptr;
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61368,7 +61259,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
     case '#':
         *argp = getaltfname(errmsg);
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61380,7 +61270,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         }
         *argp = last_cmdline;
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61392,7 +61281,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         }
         *argp = last_search_pat();
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61405,7 +61293,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
             emsg(_(e_no_inserted_text_yet));
         }
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61415,7 +61302,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         if (!errmsg)
         {
             {
-                get_spec_reg__out_T out__;
                 out__.r__ = (FALSE);
                 out__.allocated = allocated;
                 return out__;
@@ -61424,7 +61310,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         *argp = file_name_at_cursor(FNAME_MESS | FNAME_HYP | (regname == Ctrl_P ? FNAME_EXP : 0), 1L, nullptr);
         allocated = TRUE;
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61434,7 +61319,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         if (!errmsg)
         {
             {
-                get_spec_reg__out_T out__;
                 out__.r__ = (FALSE);
                 out__.allocated = allocated;
                 return out__;
@@ -61444,7 +61328,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         *argp = cnt ? vim_strnsave(*argp, cnt) : nullptr;
         allocated = TRUE;
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61453,7 +61336,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         if (!errmsg)
         {
             {
-                get_spec_reg__out_T out__;
                 out__.r__ = (FALSE);
                 out__.allocated = allocated;
                 return out__;
@@ -61461,7 +61343,6 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
         }
         *argp = ml_get_buf(curwin->w_buffer, curwin->w_cursor.lnum, FALSE);
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
@@ -61469,14 +61350,12 @@ get_spec_reg(int regname, char_u **argp, bool errmsg)
     case '_':
         *argp = (char_u *)"";
         {
-            get_spec_reg__out_T out__;
             out__.r__ = (TRUE);
             out__.allocated = allocated;
             return out__;
         }
     }
     {
-        get_spec_reg__out_T out__;
         out__.r__ = (FALSE);
         out__.allocated = allocated;
         return out__;
@@ -65003,6 +64882,7 @@ get_trans_bufname(buf_T *buf)
 fillchar_status(win_T *wp)
 {
     int attr;
+    fillchar_status__out_T out__;
     int fill;
     bool override_success = push_highlight_overrides(wp->w_hl, wp->w_hl_len);
     if (wp == curwin)
@@ -65020,7 +64900,6 @@ fillchar_status(win_T *wp)
         pop_highlight_overrides();
     }
     {
-        fillchar_status__out_T out__;
         out__.r__ = (fill);
         out__.attr = attr;
         return out__;
@@ -65045,6 +64924,7 @@ vsep_row_is_curwin(win_T *wp, int row)
 fillchar_vsep(win_T *wp, int row)
 {
     int attr;
+    fillchar_vsep__out_T out__;
     bool override_success = push_highlight_overrides(wp->w_hl, wp->w_hl_len);
     if (vsep_row_is_curwin(wp, row))
     {
@@ -65061,7 +64941,6 @@ fillchar_vsep(win_T *wp, int row)
     if (attr == 0 && wp->w_fill_chars.vert == ' ')
     {
         {
-            fillchar_vsep__out_T out__;
             out__.r__ = ('|');
             out__.attr = attr;
             return out__;
@@ -65070,7 +64949,6 @@ fillchar_vsep(win_T *wp, int row)
     else
     {
         {
-            fillchar_vsep__out_T out__;
             out__.r__ = (wp->w_fill_chars.vert);
             out__.attr = attr;
             return out__;
@@ -66254,13 +66132,13 @@ searchit(win_T *win, buf_T *buf, pos_T *pos, pos_T *end_pos, int dir, char_u *pa
     static parse_search_pattern_offset__out_T
 parse_search_pattern_offset(char_u *pat, usize patlen, int search_delim, int options, char_u **strcopy, char_u *searchstr, usize searchstrlen, char_u *dircp, soffset_T *offset)
 {
+    parse_search_pattern_offset__out_T out__;
     int cmdlen = 0;
     char_u *p;
     char_u *ps;
     if (pat == nullptr || *pat == NUL)
     {
         {
-            parse_search_pattern_offset__out_T out__;
             out__.r__ = (0);
             out__.pat = pat;
             out__.patlen = patlen;
@@ -66329,7 +66207,6 @@ parse_search_pattern_offset(char_u *pat, usize patlen, int search_delim, int opt
     patlen -= p - pat;
     pat = p;
     {
-        parse_search_pattern_offset__out_T out__;
         out__.r__ = (cmdlen);
         out__.pat = pat;
         out__.patlen = patlen;
@@ -66837,6 +66714,7 @@ typedef struct
     static find_mps_values__out_T
 find_mps_values(int initc, int findc, int backwards, bool switchit)
 {
+    find_mps_values__out_T out__;
     char_u *ptr;
     ptr = curbuf->b_p_mps;
     while (*ptr != NUL)
@@ -66856,7 +66734,6 @@ find_mps_values(int initc, int findc, int backwards, bool switchit)
                 backwards = FALSE;
             }
             {
-                find_mps_values__out_T out__;
                 out__.initc = initc;
                 out__.findc = findc;
                 out__.backwards = backwards;
@@ -66879,7 +66756,6 @@ find_mps_values(int initc, int findc, int backwards, bool switchit)
                 backwards = TRUE;
             }
             {
-                find_mps_values__out_T out__;
                 out__.initc = initc;
                 out__.findc = findc;
                 out__.backwards = backwards;
@@ -66893,7 +66769,6 @@ find_mps_values(int initc, int findc, int backwards, bool switchit)
         }
     }
     {
-        find_mps_values__out_T out__;
         out__.initc = initc;
         out__.findc = findc;
         out__.backwards = backwards;
@@ -70080,11 +69955,11 @@ typedef struct
     static modifiers2keycode__out_T
 modifiers2keycode(int modifiers, int key, char_u *string)
 {
+    modifiers2keycode__out_T out__;
     int new_slen = 0;
     if (modifiers == 0)
     {
         {
-            modifiers2keycode__out_T out__;
             out__.r__ = (0);
             out__.key = key;
             return out__;
@@ -70098,7 +69973,6 @@ modifiers2keycode(int modifiers, int key, char_u *string)
         string[new_slen++] = modifiers;
     }
     {
-        modifiers2keycode__out_T out__;
         out__.r__ = (new_slen);
         out__.key = key;
         return out__;
@@ -70464,6 +70338,7 @@ typedef struct
     static handle_csi__out_T
 handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsize, int *buflen, char_u *key_name, int slen)
 {
+    handle_csi__out_T out__;
     int first = -1;
     int trail;
     int arg[3] =
@@ -70492,7 +70367,6 @@ handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsi
             if (ap >= tp + len)
             {
                 {
-                    handle_csi__out_T out__;
                     out__.r__ = (-1);
                     out__.slen = slen;
                     return out__;
@@ -70510,7 +70384,6 @@ handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsi
                     if (ap >= tp + len)
                     {
                         {
-                            handle_csi__out_T out__;
                             out__.r__ = (-1);
                             out__.slen = slen;
                             return out__;
@@ -70544,7 +70417,6 @@ handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsi
         if (ap >= tp + len)
         {
             {
-                handle_csi__out_T out__;
                 out__.r__ = (-1);
                 out__.slen = slen;
                 return out__;
@@ -70567,7 +70439,6 @@ handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsi
     {
         int res = handle_csi_function_key(argc, arg, trail, csi_len, key_name, offset, buf, bufsize, buflen);
         {
-            handle_csi__out_T out__;
             out__.r__ = (res <= 0 ? res : len + res);
             out__.slen = slen;
             return out__;
@@ -70645,7 +70516,6 @@ handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsi
     {
         bool iskitty = argc == 2 && (trail == 'u' || trail == '~');
         {
-            handle_csi__out_T out__;
             out__.r__ = (len + handle_key_with_modifier(arg, csi_len, offset, buf, bufsize, buflen, iskitty, trail));
             out__.slen = slen;
             return out__;
@@ -70654,14 +70524,12 @@ handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsi
     else if (argc == 1 && (trail == 'u' || trail == '~'))
     {
         {
-            handle_csi__out_T out__;
             out__.r__ = (len + handle_key_without_modifier(arg, csi_len, offset, buf, bufsize, buflen, trail));
             out__.slen = slen;
             return out__;
         }
     }
     {
-        handle_csi__out_T out__;
         out__.r__ = (0);
         out__.slen = slen;
         return out__;
@@ -70727,6 +70595,7 @@ typedef struct
     static handle_osc__out_T
 handle_osc(char_u *tp, int len, char_u *key_name, int slen)
 {
+    handle_osc__out_T out__;
     char_u last_char;
     if (!osc_state.processing)
     {
@@ -70735,7 +70604,6 @@ handle_osc(char_u *tp, int len, char_u *key_name, int slen)
         if (len < cur + 1 + (tp[0] != OSC))
         {
             {
-                handle_osc__out_T out__;
                 out__.r__ = (FAIL);
                 out__.slen = slen;
                 return out__;
@@ -70768,7 +70636,6 @@ handle_osc(char_u *tp, int len, char_u *key_name, int slen)
                 redraw_asap(UPD_CLEAR);
             }
             {
-                handle_osc__out_T out__;
                 out__.r__ = (OK);
                 out__.slen = slen;
                 return out__;
@@ -70783,7 +70650,6 @@ handle_osc(char_u *tp, int len, char_u *key_name, int slen)
         ga_clear(&osc_state.buf);
         osc_state.processing = FALSE;
         {
-            handle_osc__out_T out__;
             out__.r__ = (FAIL);
             out__.slen = slen;
             return out__;
@@ -70792,7 +70658,6 @@ handle_osc(char_u *tp, int len, char_u *key_name, int slen)
     ga_concat(&osc_state.buf, tp);
     slen = len;
     {
-        handle_osc__out_T out__;
         out__.r__ = (OK);
         out__.slen = slen;
         return out__;
@@ -70808,6 +70673,7 @@ typedef struct
     static handle_dcs__out_T
 handle_dcs(char_u *tp, char_u *argp, int len, char_u *key_name, int slen)
 {
+    handle_dcs__out_T out__;
     int i;
     int j;
     j = 1 + (tp[0] == ESC);
@@ -70864,14 +70730,12 @@ handle_dcs(char_u *tp, char_u *argp, int len, char_u *key_name, int slen)
     if (i == len)
     {
         {
-            handle_dcs__out_T out__;
             out__.r__ = (FAIL);
             out__.slen = slen;
             return out__;
         }
     }
     {
-        handle_dcs__out_T out__;
         out__.r__ = (OK);
         out__.slen = slen;
         return out__;
@@ -71152,6 +71016,7 @@ check_termcode(int max_offset, char_u *buf, int bufsize, int *buflen)
 replace_termcodes(char_u *from, scid_T sid_arg, int flags, int *did_simplify)
 {
     char_u *bufp;
+    replace_termcodes__out_T out__;
     find_term_bykeys__out_T find_term_bykeys__o;
     int i;
     int slen;
@@ -71172,7 +71037,6 @@ replace_termcodes(char_u *from, scid_T sid_arg, int flags, int *did_simplify)
     {
         bufp = nullptr;
         {
-            replace_termcodes__out_T out__;
             out__.r__ = (from);
             out__.bufp = bufp;
             return out__;
@@ -71252,7 +71116,6 @@ replace_termcodes(char_u *from, scid_T sid_arg, int flags, int *did_simplify)
         from = bufp;
     }
     {
-        replace_termcodes__out_T out__;
         out__.r__ = (from);
         out__.bufp = bufp;
         return out__;
@@ -71262,6 +71125,7 @@ replace_termcodes(char_u *from, scid_T sid_arg, int flags, int *did_simplify)
     static find_term_bykeys__out_T
 find_term_bykeys(char_u *src, int matchlen)
 {
+    find_term_bykeys__out_T out__;
     int i;
     int j;
     int len = (int)musl_strlen((char *)(src));
@@ -71277,7 +71141,6 @@ find_term_bykeys(char_u *src, int matchlen)
     if (*src == NUL || vim_strchr(termleader, *src) == nullptr)
     {
         {
-            find_term_bykeys__out_T out__;
             out__.r__ = (-1);
             out__.matchlen = matchlen;
             return out__;
@@ -71342,7 +71205,6 @@ find_term_bykeys(char_u *src, int matchlen)
         matchlen = foundlen;
     }
     {
-        find_term_bykeys__out_T out__;
         out__.r__ = (found);
         out__.matchlen = matchlen;
         return out__;
@@ -74975,6 +74837,7 @@ win_comp_pos(void)
     static frame_comp_pos__out_T
 frame_comp_pos(frame_T *topfrp, int row, int col)
 {
+    frame_comp_pos__out_T out__;
     win_T *wp;
     int h;
     wp = topfrp->fr_win;
@@ -74992,7 +74855,6 @@ frame_comp_pos(frame_T *topfrp, int row, int col)
         col += wp->w_width + wp->w_vsep_width;
     }
     {
-        frame_comp_pos__out_T out__;
         out__.row = row;
         out__.col = col;
         return out__;

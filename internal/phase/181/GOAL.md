@@ -66,9 +66,21 @@ and returns one uncopied (`heldStructs`, `crefactor/togo`): one object a
 call, allocated where the callee returns; 198 `return x.copy()` and every
 `o.set(f(...))` of a result gone.
 
+**The Clojure editor** did the same and more: it made every struct local of
+a function when the function began, so a callee with four returns made four
+result objects a call. The step now declares one struct a callee, `out__`,
+at its top, which every return fills; and the Clojure backend returns a
+struct local nothing else holds uncopied, as the Java's does. Its copies
+318 -> 86 (a result's none), its result objects 376 -> 238 sites -- one a
+callee. A caller still copies a result into its own struct (`.set`, 104
+sites): a Clojure struct local is one object, filled in place, and taking
+the callee's instead would make it a name bound anew; the copy is of a few
+fields, into an object made once a call of the caller. The heavy case did not move
+(4.4 times the C): allocation there is not what the Clojure pays for.
+
 **Measured:** 94 out-parameters of 61 functions (7 returning the one value,
 54 a struct, 14 taking no value in) and 66 struct locals; the product
-75,650 -> 77,769 lines (the result structs, and a declaration a member).
+75,650 -> 77,631 lines (the result structs, and a declaration a member).
 The Java editor's one-element boxes 440 -> 324 and its `[0]` reads 4,802 ->
 4,009; its `pos_T` objects 129 -> 78, and a result object where a callee
 returns. The Clojure editor's

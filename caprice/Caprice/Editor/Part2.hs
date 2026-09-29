@@ -8829,7 +8829,7 @@ key_protocol_enabled ed' = do
 handle_mapping :: Ed -> Int32 -> Int32 -> Int32 -> IO (Int32, Int32, Int32, Int32)
 handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
   let
-    j'2 !keylenp1 !mapdepth1 !mp1 !mp_match_len1 !max_mlen1 !want_termcode1 !keylen1 !local_State1 !is_plug_map1 !in_osc1 !out___r__1 !out___keylenp1 !out___timedout1 !out___mapdepth1 !out___2_r__1 !out___2_keylenp1 !out___2_timedout1 !out___2_mapdepth1 !out___3_r__1 !out___3_keylenp1 !out___3_timedout1 !out___3_mapdepth1 !out___4_r__1 !out___4_keylenp1 !out___4_timedout1 !out___4_mapdepth1 !out___5_r__1 !out___5_keylenp1 !out___5_timedout1 !out___5_mapdepth1 !out___6_r__1 !out___6_keylenp1 !out___6_timedout1 !out___6_mapdepth1 !out___7_r__1 !out___7_keylenp1 !out___7_timedout1 !out___7_mapdepth1 !out___8_r__1 !out___8_keylenp1 !out___8_timedout1 !out___8_mapdepth1 = do
+    j'2 !keylenp1 !mapdepth1 !mp1 !mp_match_len1 !max_mlen1 !want_termcode1 !keylen1 !local_State1 !is_plug_map1 !in_osc1 !out___r__1 !out___keylenp1 !out___timedout1 !out___mapdepth1 = do
       r'1 <- rdP (addr'typebuf ed') typebuf_T'tb_buf
       r'2 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off
       r'3 <- rdW8 (pAdd r'1 (fromIntegral r'2)) 0
@@ -8847,12 +8847,12 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'28 <- get_buf_maphash_list ed' local_State1 tb_c1'1
           r'29 <- get_maphash_list ed' local_State1 tb_c1'1
           if r'28 == nullPtr
-            then j'5 keylenp1 mapdepth1 r'29 nullPtr max_mlen1 want_termcode1 tb_c1'1 keylen1 local_State1 is_plug_map1 in_osc1 out___r__1 out___keylenp1 out___timedout1 out___mapdepth1 out___2_r__1 out___2_keylenp1 out___2_timedout1 out___2_mapdepth1 out___3_r__1 out___3_keylenp1 out___3_timedout1 out___3_mapdepth1 out___4_r__1 out___4_keylenp1 out___4_timedout1 out___4_mapdepth1 out___5_r__1 out___5_keylenp1 out___5_timedout1 out___5_mapdepth1 out___6_r__1 out___6_keylenp1 out___6_timedout1 out___6_mapdepth1 out___7_r__1 out___7_keylenp1 out___7_timedout1 out___7_mapdepth1 out___8_r__1 out___8_keylenp1 out___8_timedout1 out___8_mapdepth1
-            else j'5 keylenp1 mapdepth1 r'28 r'29 max_mlen1 want_termcode1 tb_c1'1 keylen1 local_State1 is_plug_map1 in_osc1 out___r__1 out___keylenp1 out___timedout1 out___mapdepth1 out___2_r__1 out___2_keylenp1 out___2_timedout1 out___2_mapdepth1 out___3_r__1 out___3_keylenp1 out___3_timedout1 out___3_mapdepth1 out___4_r__1 out___4_keylenp1 out___4_timedout1 out___4_mapdepth1 out___5_r__1 out___5_keylenp1 out___5_timedout1 out___5_mapdepth1 out___6_r__1 out___6_keylenp1 out___6_timedout1 out___6_mapdepth1 out___7_r__1 out___7_keylenp1 out___7_timedout1 out___7_mapdepth1 out___8_r__1 out___8_keylenp1 out___8_timedout1 out___8_mapdepth1
-        else j'34 keylenp1 mapdepth1 mp1 mp_match_len1 max_mlen1 want_termcode1 keylen1 in_osc1 out___r__1 out___keylenp1 out___timedout1 out___mapdepth1 out___2_r__1 out___2_keylenp1 out___2_timedout1 out___2_mapdepth1 out___3_r__1 out___3_keylenp1 out___3_timedout1 out___3_mapdepth1 out___4_r__1 out___4_keylenp1 out___4_timedout1 out___4_mapdepth1 out___5_r__1 out___5_keylenp1 out___5_timedout1 out___5_mapdepth1 out___6_r__1 out___6_keylenp1 out___6_timedout1 out___6_mapdepth1 out___7_r__1 out___7_keylenp1 out___7_timedout1 out___7_mapdepth1 out___8_r__1 out___8_keylenp1 out___8_timedout1 out___8_mapdepth1
-    j'5 !keylenp2 !mapdepth2 !mp3 !mp2'1 !max_mlen2 !want_termcode2 !tb_c1'2 !keylen2 !local_State2 !is_plug_map2 !in_osc2 !out___r__2 !out___keylenp2 !out___timedout2 !out___mapdepth2 !out___2_r__2 !out___2_keylenp2 !out___2_timedout2 !out___2_mapdepth2 !out___3_r__2 !out___3_keylenp2 !out___3_timedout2 !out___3_mapdepth2 !out___4_r__2 !out___4_keylenp2 !out___4_timedout2 !out___4_mapdepth2 !out___5_r__2 !out___5_keylenp2 !out___5_timedout2 !out___5_mapdepth2 !out___6_r__2 !out___6_keylenp2 !out___6_timedout2 !out___6_mapdepth2 !out___7_r__2 !out___7_keylenp2 !out___7_timedout2 !out___7_mapdepth2 !out___8_r__2 !out___8_keylenp2 !out___8_timedout2 !out___8_mapdepth2 = do
-      loop'6 keylenp2 mapdepth2 mp3 mp2'1 nullPtr (0 :: Int32) max_mlen2 want_termcode2 tb_c1'2 keylen2 local_State2 is_plug_map2 in_osc2 out___r__2 out___keylenp2 out___timedout2 out___mapdepth2 out___2_r__2 out___2_keylenp2 out___2_timedout2 out___2_mapdepth2 out___3_r__2 out___3_keylenp2 out___3_timedout2 out___3_mapdepth2 out___4_r__2 out___4_keylenp2 out___4_timedout2 out___4_mapdepth2 out___5_r__2 out___5_keylenp2 out___5_timedout2 out___5_mapdepth2 out___6_r__2 out___6_keylenp2 out___6_timedout2 out___6_mapdepth2 out___7_r__2 out___7_keylenp2 out___7_timedout2 out___7_mapdepth2 out___8_r__2 out___8_keylenp2 out___8_timedout2 out___8_mapdepth2
-    loop'6 !keylenp3 !mapdepth3 !mp4 !mp2'2 !mp_match1 !mp_match_len2 !max_mlen3 !want_termcode3 !tb_c1'3 !keylen3 !local_State3 !is_plug_map3 !in_osc3 !out___r__3 !out___keylenp3 !out___timedout3 !out___mapdepth3 !out___2_r__3 !out___2_keylenp3 !out___2_timedout3 !out___2_mapdepth3 !out___3_r__3 !out___3_keylenp3 !out___3_timedout3 !out___3_mapdepth3 !out___4_r__3 !out___4_keylenp3 !out___4_timedout3 !out___4_mapdepth3 !out___5_r__3 !out___5_keylenp3 !out___5_timedout3 !out___5_mapdepth3 !out___6_r__3 !out___6_keylenp3 !out___6_timedout3 !out___6_mapdepth3 !out___7_r__3 !out___7_keylenp3 !out___7_timedout3 !out___7_mapdepth3 !out___8_r__3 !out___8_keylenp3 !out___8_timedout3 !out___8_mapdepth3 = do
+            then j'5 keylenp1 mapdepth1 r'29 nullPtr max_mlen1 want_termcode1 tb_c1'1 keylen1 local_State1 is_plug_map1 in_osc1 out___r__1 out___keylenp1 out___timedout1 out___mapdepth1
+            else j'5 keylenp1 mapdepth1 r'28 r'29 max_mlen1 want_termcode1 tb_c1'1 keylen1 local_State1 is_plug_map1 in_osc1 out___r__1 out___keylenp1 out___timedout1 out___mapdepth1
+        else j'34 keylenp1 mapdepth1 mp1 mp_match_len1 max_mlen1 want_termcode1 keylen1 in_osc1 out___r__1 out___keylenp1 out___timedout1 out___mapdepth1
+    j'5 !keylenp2 !mapdepth2 !mp3 !mp2'1 !max_mlen2 !want_termcode2 !tb_c1'2 !keylen2 !local_State2 !is_plug_map2 !in_osc2 !out___r__2 !out___keylenp2 !out___timedout2 !out___mapdepth2 = do
+      loop'6 keylenp2 mapdepth2 mp3 mp2'1 nullPtr (0 :: Int32) max_mlen2 want_termcode2 tb_c1'2 keylen2 local_State2 is_plug_map2 in_osc2 out___r__2 out___keylenp2 out___timedout2 out___mapdepth2
+    loop'6 !keylenp3 !mapdepth3 !mp4 !mp2'2 !mp_match1 !mp_match_len2 !max_mlen3 !want_termcode3 !tb_c1'3 !keylen3 !local_State3 !is_plug_map3 !in_osc3 !out___r__3 !out___keylenp3 !out___timedout3 !out___mapdepth3 = do
       if mp4 /= nullPtr
         then do
           r'30 <- rdP mp4 mapblock_T'm_keys
@@ -8860,10 +8860,10 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'33 <- if ((fromIntegral r'31 :: Int32) == tb_c1'3) then (do { r'32 <- rdI32 mp4 mapblock_T'm_mode; pure ((r'32 .&. local_State3) /= 0) }) else pure False
           r'43 <- if r'33 then (do { r'34 <- rdB mp4 mapblock_T'm_simplified; r'36 <- if r'34 then (key_protocol_enabled ed') else pure False; r'38 <- if r'36 then (do { r'37 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; pure (r'37 == 0) }) else pure False; r'42 <- if r'38 then (do { r'39 <- rdP (addr'typebuf ed') typebuf_T'tb_noremap; r'40 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'41 <- rdW8 (pAdd r'39 (fromIntegral r'40)) 0; pure (((fromIntegral r'41 :: Int32) .&. RM_SIMPLIFIED) == 0) }) else pure False; pure (not r'42) }) else pure False
           if r'43
-            then loop'9 keylenp3 mapdepth3 mp4 mp2'2 mp_match1 mp_match_len2 max_mlen3 want_termcode3 tb_c1'3 (1 :: Int32) local_State3 is_plug_map3 in_osc3 out___r__3 out___keylenp3 out___timedout3 out___mapdepth3 out___2_r__3 out___2_keylenp3 out___2_timedout3 out___2_mapdepth3 out___3_r__3 out___3_keylenp3 out___3_timedout3 out___3_mapdepth3 out___4_r__3 out___4_keylenp3 out___4_timedout3 out___4_mapdepth3 out___5_r__3 out___5_keylenp3 out___5_timedout3 out___5_mapdepth3 out___6_r__3 out___6_keylenp3 out___6_timedout3 out___6_mapdepth3 out___7_r__3 out___7_keylenp3 out___7_timedout3 out___7_mapdepth3 out___8_r__3 out___8_keylenp3 out___8_timedout3 out___8_mapdepth3
-            else j'92 keylenp3 mapdepth3 mp4 mp2'2 mp_match1 mp_match_len2 max_mlen3 want_termcode3 tb_c1'3 keylen3 local_State3 is_plug_map3 in_osc3 out___r__3 out___keylenp3 out___timedout3 out___mapdepth3 out___2_r__3 out___2_keylenp3 out___2_timedout3 out___2_mapdepth3 out___3_r__3 out___3_keylenp3 out___3_timedout3 out___3_mapdepth3 out___4_r__3 out___4_keylenp3 out___4_timedout3 out___4_mapdepth3 out___5_r__3 out___5_keylenp3 out___5_timedout3 out___5_mapdepth3 out___6_r__3 out___6_keylenp3 out___6_timedout3 out___6_mapdepth3 out___7_r__3 out___7_keylenp3 out___7_timedout3 out___7_mapdepth3 out___8_r__3 out___8_keylenp3 out___8_timedout3 out___8_mapdepth3
-        else j'32 keylenp3 mapdepth3 mp4 mp_match1 mp_match_len2 max_mlen3 want_termcode3 keylen3 in_osc3 out___r__3 out___keylenp3 out___timedout3 out___mapdepth3 out___2_r__3 out___2_keylenp3 out___2_timedout3 out___2_mapdepth3 out___3_r__3 out___3_keylenp3 out___3_timedout3 out___3_mapdepth3 out___4_r__3 out___4_keylenp3 out___4_timedout3 out___4_mapdepth3 out___5_r__3 out___5_keylenp3 out___5_timedout3 out___5_mapdepth3 out___6_r__3 out___6_keylenp3 out___6_timedout3 out___6_mapdepth3 out___7_r__3 out___7_keylenp3 out___7_timedout3 out___7_mapdepth3 out___8_r__3 out___8_keylenp3 out___8_timedout3 out___8_mapdepth3
-    loop'9 !keylenp4 !mapdepth4 !mp5 !mp2'3 !mp_match2 !mp_match_len3 !max_mlen4 !want_termcode4 !tb_c1'4 !mlen1 !local_State4 !is_plug_map4 !in_osc4 !out___r__4 !out___keylenp4 !out___timedout4 !out___mapdepth4 !out___2_r__4 !out___2_keylenp4 !out___2_timedout4 !out___2_mapdepth4 !out___3_r__4 !out___3_keylenp4 !out___3_timedout4 !out___3_mapdepth4 !out___4_r__4 !out___4_keylenp4 !out___4_timedout4 !out___4_mapdepth4 !out___5_r__4 !out___5_keylenp4 !out___5_timedout4 !out___5_mapdepth4 !out___6_r__4 !out___6_keylenp4 !out___6_timedout4 !out___6_mapdepth4 !out___7_r__4 !out___7_keylenp4 !out___7_timedout4 !out___7_mapdepth4 !out___8_r__4 !out___8_keylenp4 !out___8_timedout4 !out___8_mapdepth4 = do
+            then loop'9 keylenp3 mapdepth3 mp4 mp2'2 mp_match1 mp_match_len2 max_mlen3 want_termcode3 tb_c1'3 (1 :: Int32) local_State3 is_plug_map3 in_osc3 out___r__3 out___keylenp3 out___timedout3 out___mapdepth3
+            else j'92 keylenp3 mapdepth3 mp4 mp2'2 mp_match1 mp_match_len2 max_mlen3 want_termcode3 tb_c1'3 keylen3 local_State3 is_plug_map3 in_osc3 out___r__3 out___keylenp3 out___timedout3 out___mapdepth3
+        else j'32 keylenp3 mapdepth3 mp4 mp_match1 mp_match_len2 max_mlen3 want_termcode3 keylen3 in_osc3 out___r__3 out___keylenp3 out___timedout3 out___mapdepth3
+    loop'9 !keylenp4 !mapdepth4 !mp5 !mp2'3 !mp_match2 !mp_match_len3 !max_mlen4 !want_termcode4 !tb_c1'4 !mlen1 !local_State4 !is_plug_map4 !in_osc4 !out___r__4 !out___keylenp4 !out___timedout4 !out___mapdepth4 = do
       r'44 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
       if mlen1 < r'44
         then do
@@ -8874,20 +8874,20 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'48 <- rdP mp5 mapblock_T'm_keys
           r'49 <- rdW8 (pAdd r'48 (fromIntegral mlen1)) 0
           if (fromIntegral r'49 :: Int32) /= c2'1
-            then j'12 keylenp4 mapdepth4 mp5 mp2'3 mp_match2 mp_match_len3 max_mlen4 want_termcode4 tb_c1'4 mlen1 local_State4 is_plug_map4 in_osc4 out___r__4 out___keylenp4 out___timedout4 out___mapdepth4 out___2_r__4 out___2_keylenp4 out___2_timedout4 out___2_mapdepth4 out___3_r__4 out___3_keylenp4 out___3_timedout4 out___3_mapdepth4 out___4_r__4 out___4_keylenp4 out___4_timedout4 out___4_mapdepth4 out___5_r__4 out___5_keylenp4 out___5_timedout4 out___5_mapdepth4 out___6_r__4 out___6_keylenp4 out___6_timedout4 out___6_mapdepth4 out___7_r__4 out___7_keylenp4 out___7_timedout4 out___7_mapdepth4 out___8_r__4 out___8_keylenp4 out___8_timedout4 out___8_mapdepth4
+            then j'12 keylenp4 mapdepth4 mp5 mp2'3 mp_match2 mp_match_len3 max_mlen4 want_termcode4 tb_c1'4 mlen1 local_State4 is_plug_map4 in_osc4 out___r__4 out___keylenp4 out___timedout4 out___mapdepth4
             else do
               let !mlen2 = mlen1 + 1
-              loop'9 keylenp4 mapdepth4 mp5 mp2'3 mp_match2 mp_match_len3 max_mlen4 want_termcode4 tb_c1'4 mlen2 local_State4 is_plug_map4 in_osc4 out___r__4 out___keylenp4 out___timedout4 out___mapdepth4 out___2_r__4 out___2_keylenp4 out___2_timedout4 out___2_mapdepth4 out___3_r__4 out___3_keylenp4 out___3_timedout4 out___3_mapdepth4 out___4_r__4 out___4_keylenp4 out___4_timedout4 out___4_mapdepth4 out___5_r__4 out___5_keylenp4 out___5_timedout4 out___5_mapdepth4 out___6_r__4 out___6_keylenp4 out___6_timedout4 out___6_mapdepth4 out___7_r__4 out___7_keylenp4 out___7_timedout4 out___7_mapdepth4 out___8_r__4 out___8_keylenp4 out___8_timedout4 out___8_mapdepth4
-        else j'12 keylenp4 mapdepth4 mp5 mp2'3 mp_match2 mp_match_len3 max_mlen4 want_termcode4 tb_c1'4 mlen1 local_State4 is_plug_map4 in_osc4 out___r__4 out___keylenp4 out___timedout4 out___mapdepth4 out___2_r__4 out___2_keylenp4 out___2_timedout4 out___2_mapdepth4 out___3_r__4 out___3_keylenp4 out___3_timedout4 out___3_mapdepth4 out___4_r__4 out___4_keylenp4 out___4_timedout4 out___4_mapdepth4 out___5_r__4 out___5_keylenp4 out___5_timedout4 out___5_mapdepth4 out___6_r__4 out___6_keylenp4 out___6_timedout4 out___6_mapdepth4 out___7_r__4 out___7_keylenp4 out___7_timedout4 out___7_mapdepth4 out___8_r__4 out___8_keylenp4 out___8_timedout4 out___8_mapdepth4
-    j'12 !keylenp5 !mapdepth5 !mp6 !mp2'4 !mp_match3 !mp_match_len4 !max_mlen5 !want_termcode5 !tb_c1'5 !mlen3 !local_State5 !is_plug_map5 !in_osc5 !out___r__5 !out___keylenp5 !out___timedout5 !out___mapdepth5 !out___2_r__5 !out___2_keylenp5 !out___2_timedout5 !out___2_mapdepth5 !out___3_r__5 !out___3_keylenp5 !out___3_timedout5 !out___3_mapdepth5 !out___4_r__5 !out___4_keylenp5 !out___4_timedout5 !out___4_mapdepth5 !out___5_r__5 !out___5_keylenp5 !out___5_timedout5 !out___5_mapdepth5 !out___6_r__5 !out___6_keylenp5 !out___6_timedout5 !out___6_mapdepth5 !out___7_r__5 !out___7_keylenp5 !out___7_timedout5 !out___7_mapdepth5 !out___8_r__5 !out___8_keylenp5 !out___8_timedout5 !out___8_mapdepth5 = do
+              loop'9 keylenp4 mapdepth4 mp5 mp2'3 mp_match2 mp_match_len3 max_mlen4 want_termcode4 tb_c1'4 mlen2 local_State4 is_plug_map4 in_osc4 out___r__4 out___keylenp4 out___timedout4 out___mapdepth4
+        else j'12 keylenp4 mapdepth4 mp5 mp2'3 mp_match2 mp_match_len3 max_mlen4 want_termcode4 tb_c1'4 mlen1 local_State4 is_plug_map4 in_osc4 out___r__4 out___keylenp4 out___timedout4 out___mapdepth4
+    j'12 !keylenp5 !mapdepth5 !mp6 !mp2'4 !mp_match3 !mp_match_len4 !max_mlen5 !want_termcode5 !tb_c1'5 !mlen3 !local_State5 !is_plug_map5 !in_osc5 !out___r__5 !out___keylenp5 !out___timedout5 !out___mapdepth5 = do
       r'50 <- rdP mp6 mapblock_T'm_keys
       wrP fr' 0 r'50
       r'51 <- mb_unescape ed' fr'
       r'54 <- if (r'51 /= nullPtr) then (do { r'52 <- rdI8 (pAdd (addr'mb_bytelen_tab ed') (fromIntegral tb_c1'5)) 0; r'53 <- utfc_ptr2len ed' r'51; pure ((fromIntegral r'52 :: Int32) > r'53) }) else pure False
       if r'54
-        then j'14 keylenp5 mapdepth5 mp6 mp2'4 mp_match3 mp_match_len4 max_mlen5 want_termcode5 tb_c1'5 (0 :: Int32) local_State5 is_plug_map5 in_osc5 out___r__5 out___keylenp5 out___timedout5 out___mapdepth5 out___2_r__5 out___2_keylenp5 out___2_timedout5 out___2_mapdepth5 out___3_r__5 out___3_keylenp5 out___3_timedout5 out___3_mapdepth5 out___4_r__5 out___4_keylenp5 out___4_timedout5 out___4_mapdepth5 out___5_r__5 out___5_keylenp5 out___5_timedout5 out___5_mapdepth5 out___6_r__5 out___6_keylenp5 out___6_timedout5 out___6_mapdepth5 out___7_r__5 out___7_keylenp5 out___7_timedout5 out___7_mapdepth5 out___8_r__5 out___8_keylenp5 out___8_timedout5 out___8_mapdepth5
-        else j'14 keylenp5 mapdepth5 mp6 mp2'4 mp_match3 mp_match_len4 max_mlen5 want_termcode5 tb_c1'5 mlen3 local_State5 is_plug_map5 in_osc5 out___r__5 out___keylenp5 out___timedout5 out___mapdepth5 out___2_r__5 out___2_keylenp5 out___2_timedout5 out___2_mapdepth5 out___3_r__5 out___3_keylenp5 out___3_timedout5 out___3_mapdepth5 out___4_r__5 out___4_keylenp5 out___4_timedout5 out___4_mapdepth5 out___5_r__5 out___5_keylenp5 out___5_timedout5 out___5_mapdepth5 out___6_r__5 out___6_keylenp5 out___6_timedout5 out___6_mapdepth5 out___7_r__5 out___7_keylenp5 out___7_timedout5 out___7_mapdepth5 out___8_r__5 out___8_keylenp5 out___8_timedout5 out___8_mapdepth5
-    j'14 !keylenp6 !mapdepth6 !mp7 !mp2'5 !mp_match4 !mp_match_len5 !max_mlen6 !want_termcode6 !tb_c1'6 !mlen4 !local_State6 !is_plug_map6 !in_osc6 !out___r__6 !out___keylenp6 !out___timedout6 !out___mapdepth6 !out___2_r__6 !out___2_keylenp6 !out___2_timedout6 !out___2_mapdepth6 !out___3_r__6 !out___3_keylenp6 !out___3_timedout6 !out___3_mapdepth6 !out___4_r__6 !out___4_keylenp6 !out___4_timedout6 !out___4_mapdepth6 !out___5_r__6 !out___5_keylenp6 !out___5_timedout6 !out___5_mapdepth6 !out___6_r__6 !out___6_keylenp6 !out___6_timedout6 !out___6_mapdepth6 !out___7_r__6 !out___7_keylenp6 !out___7_timedout6 !out___7_mapdepth6 !out___8_r__6 !out___8_keylenp6 !out___8_timedout6 !out___8_mapdepth6 = do
+        then j'14 keylenp5 mapdepth5 mp6 mp2'4 mp_match3 mp_match_len4 max_mlen5 want_termcode5 tb_c1'5 (0 :: Int32) local_State5 is_plug_map5 in_osc5 out___r__5 out___keylenp5 out___timedout5 out___mapdepth5
+        else j'14 keylenp5 mapdepth5 mp6 mp2'4 mp_match3 mp_match_len4 max_mlen5 want_termcode5 tb_c1'5 mlen3 local_State5 is_plug_map5 in_osc5 out___r__5 out___keylenp5 out___timedout5 out___mapdepth5
+    j'14 !keylenp6 !mapdepth6 !mp7 !mp2'5 !mp_match4 !mp_match_len5 !max_mlen6 !want_termcode6 !tb_c1'6 !mlen4 !local_State6 !is_plug_map6 !in_osc6 !out___r__6 !out___keylenp6 !out___timedout6 !out___mapdepth6 = do
       r'55 <- rdI32 mp7 mapblock_T'm_keylen
       r'59 <- if (mlen4 == r'55) then pure True else (do { r'56 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; if (mlen4 == r'56) then (do { r'57 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; pure (r'57 < r'55) }) else pure False })
       if r'59
@@ -8898,62 +8898,62 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'62 <- rdW8 s1 0
           r'71 <- if (((fromIntegral r'62 :: Int32) .&. (-9)) == RM_SCRIPT) then (do { r'63 <- rdP mp7 mapblock_T'm_keys; r'64 <- rdW8 r'63 0; r'67 <- if ((fromIntegral r'64 :: Int32) /= 128) then pure True else (do { r'65 <- rdP mp7 mapblock_T'm_keys; r'66 <- rdW8 r'65 1; pure ((fromIntegral r'66 :: Int32) /= KS_EXTRA) }); if r'67 then pure True else (do { r'68 <- rdP mp7 mapblock_T'm_keys; r'69 <- rdW8 r'68 2; pure ((fromIntegral r'69 :: Int32) /= KE_SNR) }) }) else pure False
           if r'71
-            then j'92 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 want_termcode6 tb_c1'6 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6 out___2_r__6 out___2_keylenp6 out___2_timedout6 out___2_mapdepth6 out___3_r__6 out___3_keylenp6 out___3_timedout6 out___3_mapdepth6 out___4_r__6 out___4_keylenp6 out___4_timedout6 out___4_mapdepth6 out___5_r__6 out___5_keylenp6 out___5_timedout6 out___5_mapdepth6 out___6_r__6 out___6_keylenp6 out___6_timedout6 out___6_mapdepth6 out___7_r__6 out___7_keylenp6 out___7_timedout6 out___7_mapdepth6 out___8_r__6 out___8_keylenp6 out___8_timedout6 out___8_mapdepth6
-            else loop'23 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 want_termcode6 tb_c1'6 r'55 local_State6 is_plug_map6 in_osc6 s1 mlen4 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6 out___2_r__6 out___2_keylenp6 out___2_timedout6 out___2_mapdepth6 out___3_r__6 out___3_keylenp6 out___3_timedout6 out___3_mapdepth6 out___4_r__6 out___4_keylenp6 out___4_timedout6 out___4_mapdepth6 out___5_r__6 out___5_keylenp6 out___5_timedout6 out___5_mapdepth6 out___6_r__6 out___6_keylenp6 out___6_timedout6 out___6_mapdepth6 out___7_r__6 out___7_keylenp6 out___7_timedout6 out___7_mapdepth6 out___8_r__6 out___8_keylenp6 out___8_timedout6 out___8_mapdepth6
+            then j'92 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 want_termcode6 tb_c1'6 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6
+            else loop'23 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 want_termcode6 tb_c1'6 r'55 local_State6 is_plug_map6 in_osc6 s1 mlen4 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6
         else do
           if max_mlen6 < mlen4
             then do
               r'72 <- rdP mp7 mapblock_T'm_keys
               r'73 <- rdW8 (pAdd r'72 (fromIntegral mlen4)) 0
               let !want_termcode7 = b2i ((fromIntegral r'73 :: Int32) == 128) :: Int32
-              j'19 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 mlen4 want_termcode7 tb_c1'6 mlen4 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6 out___2_r__6 out___2_keylenp6 out___2_timedout6 out___2_mapdepth6 out___3_r__6 out___3_keylenp6 out___3_timedout6 out___3_mapdepth6 out___4_r__6 out___4_keylenp6 out___4_timedout6 out___4_mapdepth6 out___5_r__6 out___5_keylenp6 out___5_timedout6 out___5_mapdepth6 out___6_r__6 out___6_keylenp6 out___6_timedout6 out___6_mapdepth6 out___7_r__6 out___7_keylenp6 out___7_timedout6 out___7_mapdepth6 out___8_r__6 out___8_keylenp6 out___8_timedout6 out___8_mapdepth6
+              j'19 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 mlen4 want_termcode7 tb_c1'6 mlen4 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6
             else do
               r'76 <- if (max_mlen6 == mlen4) then (do { r'74 <- rdP mp7 mapblock_T'm_keys; r'75 <- rdW8 (pAdd r'74 (fromIntegral mlen4)) 0; pure ((fromIntegral r'75 :: Int32) == 128) }) else pure False
               if r'76
-                then j'19 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 (1 :: Int32) tb_c1'6 mlen4 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6 out___2_r__6 out___2_keylenp6 out___2_timedout6 out___2_mapdepth6 out___3_r__6 out___3_keylenp6 out___3_timedout6 out___3_mapdepth6 out___4_r__6 out___4_keylenp6 out___4_timedout6 out___4_mapdepth6 out___5_r__6 out___5_keylenp6 out___5_timedout6 out___5_mapdepth6 out___6_r__6 out___6_keylenp6 out___6_timedout6 out___6_mapdepth6 out___7_r__6 out___7_keylenp6 out___7_timedout6 out___7_mapdepth6 out___8_r__6 out___8_keylenp6 out___8_timedout6 out___8_mapdepth6
-                else j'19 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 want_termcode6 tb_c1'6 mlen4 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6 out___2_r__6 out___2_keylenp6 out___2_timedout6 out___2_mapdepth6 out___3_r__6 out___3_keylenp6 out___3_timedout6 out___3_mapdepth6 out___4_r__6 out___4_keylenp6 out___4_timedout6 out___4_mapdepth6 out___5_r__6 out___5_keylenp6 out___5_timedout6 out___5_mapdepth6 out___6_r__6 out___6_keylenp6 out___6_timedout6 out___6_mapdepth6 out___7_r__6 out___7_keylenp6 out___7_timedout6 out___7_mapdepth6 out___8_r__6 out___8_keylenp6 out___8_timedout6 out___8_mapdepth6
-    j'19 !keylenp7 !mapdepth7 !mp8 !mp2'6 !mp_match5 !mp_match_len6 !max_mlen7 !want_termcode8 !tb_c1'7 !mlen5 !keylen4 !local_State7 !is_plug_map7 !in_osc7 !out___r__7 !out___keylenp7 !out___timedout7 !out___mapdepth7 !out___2_r__7 !out___2_keylenp7 !out___2_timedout7 !out___2_mapdepth7 !out___3_r__7 !out___3_keylenp7 !out___3_timedout7 !out___3_mapdepth7 !out___4_r__7 !out___4_keylenp7 !out___4_timedout7 !out___4_mapdepth7 !out___5_r__7 !out___5_keylenp7 !out___5_timedout7 !out___5_mapdepth7 !out___6_r__7 !out___6_keylenp7 !out___6_timedout7 !out___6_mapdepth7 !out___7_r__7 !out___7_keylenp7 !out___7_timedout7 !out___7_mapdepth7 !out___8_r__7 !out___8_keylenp7 !out___8_timedout7 !out___8_mapdepth7 = do
+                then j'19 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 (1 :: Int32) tb_c1'6 mlen4 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6
+                else j'19 keylenp6 mapdepth6 mp7 mp2'5 mp_match4 mp_match_len5 max_mlen6 want_termcode6 tb_c1'6 mlen4 r'55 local_State6 is_plug_map6 in_osc6 out___r__6 out___keylenp6 out___timedout6 out___mapdepth6
+    j'19 !keylenp7 !mapdepth7 !mp8 !mp2'6 !mp_match5 !mp_match_len6 !max_mlen7 !want_termcode8 !tb_c1'7 !mlen5 !keylen4 !local_State7 !is_plug_map7 !in_osc7 !out___r__7 !out___keylenp7 !out___timedout7 !out___mapdepth7 = do
       r'77 <- rdP mp8 mapblock_T'm_keys
       r'78 <- rdW8 (pAdd r'77 (fromIntegral mlen5)) 0
       if ((fromIntegral r'78 :: Word32) - (ch 'A')) < 26
-        then j'92 keylenp7 mapdepth7 mp8 mp2'6 mp_match5 mp_match_len6 max_mlen7 (1 :: Int32) tb_c1'7 keylen4 local_State7 is_plug_map7 in_osc7 out___r__7 out___keylenp7 out___timedout7 out___mapdepth7 out___2_r__7 out___2_keylenp7 out___2_timedout7 out___2_mapdepth7 out___3_r__7 out___3_keylenp7 out___3_timedout7 out___3_mapdepth7 out___4_r__7 out___4_keylenp7 out___4_timedout7 out___4_mapdepth7 out___5_r__7 out___5_keylenp7 out___5_timedout7 out___5_mapdepth7 out___6_r__7 out___6_keylenp7 out___6_timedout7 out___6_mapdepth7 out___7_r__7 out___7_keylenp7 out___7_timedout7 out___7_mapdepth7 out___8_r__7 out___8_keylenp7 out___8_timedout7 out___8_mapdepth7
-        else j'92 keylenp7 mapdepth7 mp8 mp2'6 mp_match5 mp_match_len6 max_mlen7 want_termcode8 tb_c1'7 keylen4 local_State7 is_plug_map7 in_osc7 out___r__7 out___keylenp7 out___timedout7 out___mapdepth7 out___2_r__7 out___2_keylenp7 out___2_timedout7 out___2_mapdepth7 out___3_r__7 out___3_keylenp7 out___3_timedout7 out___3_mapdepth7 out___4_r__7 out___4_keylenp7 out___4_timedout7 out___4_mapdepth7 out___5_r__7 out___5_keylenp7 out___5_timedout7 out___5_mapdepth7 out___6_r__7 out___6_keylenp7 out___6_timedout7 out___6_mapdepth7 out___7_r__7 out___7_keylenp7 out___7_timedout7 out___7_mapdepth7 out___8_r__7 out___8_keylenp7 out___8_timedout7 out___8_mapdepth7
-    loop'23 !keylenp8 !mapdepth8 !mp9 !mp2'7 !mp_match6 !mp_match_len7 !max_mlen8 !want_termcode9 !tb_c1'8 !keylen5 !local_State8 !is_plug_map8 !in_osc8 !s2 !n1 !out___r__8 !out___keylenp8 !out___timedout8 !out___mapdepth8 !out___2_r__8 !out___2_keylenp8 !out___2_timedout8 !out___2_mapdepth8 !out___3_r__8 !out___3_keylenp8 !out___3_timedout8 !out___3_mapdepth8 !out___4_r__8 !out___4_keylenp8 !out___4_timedout8 !out___4_mapdepth8 !out___5_r__8 !out___5_keylenp8 !out___5_timedout8 !out___5_mapdepth8 !out___6_r__8 !out___6_keylenp8 !out___6_timedout8 !out___6_mapdepth8 !out___7_r__8 !out___7_keylenp8 !out___7_timedout8 !out___7_mapdepth8 !out___8_r__8 !out___8_keylenp8 !out___8_timedout8 !out___8_mapdepth8 = do
+        then j'92 keylenp7 mapdepth7 mp8 mp2'6 mp_match5 mp_match_len6 max_mlen7 (1 :: Int32) tb_c1'7 keylen4 local_State7 is_plug_map7 in_osc7 out___r__7 out___keylenp7 out___timedout7 out___mapdepth7
+        else j'92 keylenp7 mapdepth7 mp8 mp2'6 mp_match5 mp_match_len6 max_mlen7 want_termcode8 tb_c1'7 keylen4 local_State7 is_plug_map7 in_osc7 out___r__7 out___keylenp7 out___timedout7 out___mapdepth7
+    loop'23 !keylenp8 !mapdepth8 !mp9 !mp2'7 !mp_match6 !mp_match_len7 !max_mlen8 !want_termcode9 !tb_c1'8 !keylen5 !local_State8 !is_plug_map8 !in_osc8 !s2 !n1 !out___r__8 !out___keylenp8 !out___timedout8 !out___mapdepth8 = do
       let !n2 = n1 - 1
       if n2 >= 0
         then do
           let !s3 = pAdd s2 1
           r'79 <- rdW8 s2 0
           if ((fromIntegral r'79 :: Int32) .&. 5) /= 0
-            then j'26 keylenp8 mapdepth8 mp9 mp2'7 mp_match6 mp_match_len7 max_mlen8 want_termcode9 tb_c1'8 keylen5 local_State8 is_plug_map8 in_osc8 n2 out___r__8 out___keylenp8 out___timedout8 out___mapdepth8 out___2_r__8 out___2_keylenp8 out___2_timedout8 out___2_mapdepth8 out___3_r__8 out___3_keylenp8 out___3_timedout8 out___3_mapdepth8 out___4_r__8 out___4_keylenp8 out___4_timedout8 out___4_mapdepth8 out___5_r__8 out___5_keylenp8 out___5_timedout8 out___5_mapdepth8 out___6_r__8 out___6_keylenp8 out___6_timedout8 out___6_mapdepth8 out___7_r__8 out___7_keylenp8 out___7_timedout8 out___7_mapdepth8 out___8_r__8 out___8_keylenp8 out___8_timedout8 out___8_mapdepth8
-            else loop'23 keylenp8 mapdepth8 mp9 mp2'7 mp_match6 mp_match_len7 max_mlen8 want_termcode9 tb_c1'8 keylen5 local_State8 is_plug_map8 in_osc8 s3 n2 out___r__8 out___keylenp8 out___timedout8 out___mapdepth8 out___2_r__8 out___2_keylenp8 out___2_timedout8 out___2_mapdepth8 out___3_r__8 out___3_keylenp8 out___3_timedout8 out___3_mapdepth8 out___4_r__8 out___4_keylenp8 out___4_timedout8 out___4_mapdepth8 out___5_r__8 out___5_keylenp8 out___5_timedout8 out___5_mapdepth8 out___6_r__8 out___6_keylenp8 out___6_timedout8 out___6_mapdepth8 out___7_r__8 out___7_keylenp8 out___7_timedout8 out___7_mapdepth8 out___8_r__8 out___8_keylenp8 out___8_timedout8 out___8_mapdepth8
-        else j'26 keylenp8 mapdepth8 mp9 mp2'7 mp_match6 mp_match_len7 max_mlen8 want_termcode9 tb_c1'8 keylen5 local_State8 is_plug_map8 in_osc8 n2 out___r__8 out___keylenp8 out___timedout8 out___mapdepth8 out___2_r__8 out___2_keylenp8 out___2_timedout8 out___2_mapdepth8 out___3_r__8 out___3_keylenp8 out___3_timedout8 out___3_mapdepth8 out___4_r__8 out___4_keylenp8 out___4_timedout8 out___4_mapdepth8 out___5_r__8 out___5_keylenp8 out___5_timedout8 out___5_mapdepth8 out___6_r__8 out___6_keylenp8 out___6_timedout8 out___6_mapdepth8 out___7_r__8 out___7_keylenp8 out___7_timedout8 out___7_mapdepth8 out___8_r__8 out___8_keylenp8 out___8_timedout8 out___8_mapdepth8
-    j'26 !keylenp9 !mapdepth9 !mp10 !mp2'8 !mp_match7 !mp_match_len8 !max_mlen9 !want_termcode10 !tb_c1'9 !keylen6 !local_State9 !is_plug_map9 !in_osc9 !n3 !out___r__9 !out___keylenp9 !out___timedout9 !out___mapdepth9 !out___2_r__9 !out___2_keylenp9 !out___2_timedout9 !out___2_mapdepth9 !out___3_r__9 !out___3_keylenp9 !out___3_timedout9 !out___3_mapdepth9 !out___4_r__9 !out___4_keylenp9 !out___4_timedout9 !out___4_mapdepth9 !out___5_r__9 !out___5_keylenp9 !out___5_timedout9 !out___5_mapdepth9 !out___6_r__9 !out___6_keylenp9 !out___6_timedout9 !out___6_mapdepth9 !out___7_r__9 !out___7_keylenp9 !out___7_timedout9 !out___7_mapdepth9 !out___8_r__9 !out___8_keylenp9 !out___8_timedout9 !out___8_mapdepth9 = do
+            then j'26 keylenp8 mapdepth8 mp9 mp2'7 mp_match6 mp_match_len7 max_mlen8 want_termcode9 tb_c1'8 keylen5 local_State8 is_plug_map8 in_osc8 n2 out___r__8 out___keylenp8 out___timedout8 out___mapdepth8
+            else loop'23 keylenp8 mapdepth8 mp9 mp2'7 mp_match6 mp_match_len7 max_mlen8 want_termcode9 tb_c1'8 keylen5 local_State8 is_plug_map8 in_osc8 s3 n2 out___r__8 out___keylenp8 out___timedout8 out___mapdepth8
+        else j'26 keylenp8 mapdepth8 mp9 mp2'7 mp_match6 mp_match_len7 max_mlen8 want_termcode9 tb_c1'8 keylen5 local_State8 is_plug_map8 in_osc8 n2 out___r__8 out___keylenp8 out___timedout8 out___mapdepth8
+    j'26 !keylenp9 !mapdepth9 !mp10 !mp2'8 !mp_match7 !mp_match_len8 !max_mlen9 !want_termcode10 !tb_c1'9 !keylen6 !local_State9 !is_plug_map9 !in_osc9 !n3 !out___r__9 !out___keylenp9 !out___timedout9 !out___mapdepth9 = do
       if (not is_plug_map9) && (n3 >= 0)
-        then j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9 out___2_r__9 out___2_keylenp9 out___2_timedout9 out___2_mapdepth9 out___3_r__9 out___3_keylenp9 out___3_timedout9 out___3_mapdepth9 out___4_r__9 out___4_keylenp9 out___4_timedout9 out___4_mapdepth9 out___5_r__9 out___5_keylenp9 out___5_timedout9 out___5_mapdepth9 out___6_r__9 out___6_keylenp9 out___6_timedout9 out___6_mapdepth9 out___7_r__9 out___7_keylenp9 out___7_timedout9 out___7_mapdepth9 out___8_r__9 out___8_keylenp9 out___8_timedout9 out___8_mapdepth9
+        then j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
         else do
           r'80 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
           if keylen6 > r'80
             then do
               r'83 <- if (not (timedout /= 0)) then (do { r'82 <- if (mp_match7 /= nullPtr) then (do { r'81 <- rdI8 mp_match7 mapblock_T'm_nowait; pure (r'81 /= 0) }) else pure False; pure (not r'82) }) else pure False
               if r'83
-                then j'32 keylenp9 mapdepth9 mp10 mp_match7 mp_match_len8 max_mlen9 want_termcode10 (-2 :: Int32) in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9 out___2_r__9 out___2_keylenp9 out___2_timedout9 out___2_mapdepth9 out___3_r__9 out___3_keylenp9 out___3_timedout9 out___3_mapdepth9 out___4_r__9 out___4_keylenp9 out___4_timedout9 out___4_mapdepth9 out___5_r__9 out___5_keylenp9 out___5_timedout9 out___5_mapdepth9 out___6_r__9 out___6_keylenp9 out___6_timedout9 out___6_mapdepth9 out___7_r__9 out___7_keylenp9 out___7_timedout9 out___7_mapdepth9 out___8_r__9 out___8_keylenp9 out___8_timedout9 out___8_mapdepth9
-                else j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9 out___2_r__9 out___2_keylenp9 out___2_timedout9 out___2_mapdepth9 out___3_r__9 out___3_keylenp9 out___3_timedout9 out___3_mapdepth9 out___4_r__9 out___4_keylenp9 out___4_timedout9 out___4_mapdepth9 out___5_r__9 out___5_keylenp9 out___5_timedout9 out___5_mapdepth9 out___6_r__9 out___6_keylenp9 out___6_timedout9 out___6_mapdepth9 out___7_r__9 out___7_keylenp9 out___7_timedout9 out___7_mapdepth9 out___8_r__9 out___8_keylenp9 out___8_timedout9 out___8_mapdepth9
+                then j'32 keylenp9 mapdepth9 mp10 mp_match7 mp_match_len8 max_mlen9 want_termcode10 (-2 :: Int32) in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
+                else j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
             else do
               if keylen6 > mp_match_len8
-                then j'92 keylenp9 mapdepth9 mp10 mp2'8 mp10 keylen6 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9 out___2_r__9 out___2_keylenp9 out___2_timedout9 out___2_mapdepth9 out___3_r__9 out___3_keylenp9 out___3_timedout9 out___3_mapdepth9 out___4_r__9 out___4_keylenp9 out___4_timedout9 out___4_mapdepth9 out___5_r__9 out___5_keylenp9 out___5_timedout9 out___5_mapdepth9 out___6_r__9 out___6_keylenp9 out___6_timedout9 out___6_mapdepth9 out___7_r__9 out___7_keylenp9 out___7_timedout9 out___7_mapdepth9 out___8_r__9 out___8_keylenp9 out___8_timedout9 out___8_mapdepth9
-                else j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9 out___2_r__9 out___2_keylenp9 out___2_timedout9 out___2_mapdepth9 out___3_r__9 out___3_keylenp9 out___3_timedout9 out___3_mapdepth9 out___4_r__9 out___4_keylenp9 out___4_timedout9 out___4_mapdepth9 out___5_r__9 out___5_keylenp9 out___5_timedout9 out___5_mapdepth9 out___6_r__9 out___6_keylenp9 out___6_timedout9 out___6_mapdepth9 out___7_r__9 out___7_keylenp9 out___7_timedout9 out___7_mapdepth9 out___8_r__9 out___8_keylenp9 out___8_timedout9 out___8_mapdepth9
-    j'32 !keylenp10 !mapdepth10 !mp11 !mp_match8 !mp_match_len9 !max_mlen10 !want_termcode11 !keylen7 !in_osc10 !out___r__10 !out___keylenp10 !out___timedout10 !out___mapdepth10 !out___2_r__10 !out___2_keylenp10 !out___2_timedout10 !out___2_mapdepth10 !out___3_r__10 !out___3_keylenp10 !out___3_timedout10 !out___3_mapdepth10 !out___4_r__10 !out___4_keylenp10 !out___4_timedout10 !out___4_mapdepth10 !out___5_r__10 !out___5_keylenp10 !out___5_timedout10 !out___5_mapdepth10 !out___6_r__10 !out___6_keylenp10 !out___6_timedout10 !out___6_mapdepth10 !out___7_r__10 !out___7_keylenp10 !out___7_timedout10 !out___7_mapdepth10 !out___8_r__10 !out___8_keylenp10 !out___8_timedout10 !out___8_mapdepth10 = do
+                then j'92 keylenp9 mapdepth9 mp10 mp2'8 mp10 keylen6 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
+                else j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
+    j'32 !keylenp10 !mapdepth10 !mp11 !mp_match8 !mp_match_len9 !max_mlen10 !want_termcode11 !keylen7 !in_osc10 !out___r__10 !out___keylenp10 !out___timedout10 !out___mapdepth10 = do
       if (keylen7 /= (-2)) && (mp_match8 /= nullPtr)
-        then j'34 keylenp10 mapdepth10 mp_match8 mp_match_len9 max_mlen10 want_termcode11 mp_match_len9 in_osc10 out___r__10 out___keylenp10 out___timedout10 out___mapdepth10 out___2_r__10 out___2_keylenp10 out___2_timedout10 out___2_mapdepth10 out___3_r__10 out___3_keylenp10 out___3_timedout10 out___3_mapdepth10 out___4_r__10 out___4_keylenp10 out___4_timedout10 out___4_mapdepth10 out___5_r__10 out___5_keylenp10 out___5_timedout10 out___5_mapdepth10 out___6_r__10 out___6_keylenp10 out___6_timedout10 out___6_mapdepth10 out___7_r__10 out___7_keylenp10 out___7_timedout10 out___7_mapdepth10 out___8_r__10 out___8_keylenp10 out___8_timedout10 out___8_mapdepth10
-        else j'34 keylenp10 mapdepth10 mp11 mp_match_len9 max_mlen10 want_termcode11 keylen7 in_osc10 out___r__10 out___keylenp10 out___timedout10 out___mapdepth10 out___2_r__10 out___2_keylenp10 out___2_timedout10 out___2_mapdepth10 out___3_r__10 out___3_keylenp10 out___3_timedout10 out___3_mapdepth10 out___4_r__10 out___4_keylenp10 out___4_timedout10 out___4_mapdepth10 out___5_r__10 out___5_keylenp10 out___5_timedout10 out___5_mapdepth10 out___6_r__10 out___6_keylenp10 out___6_timedout10 out___6_mapdepth10 out___7_r__10 out___7_keylenp10 out___7_timedout10 out___7_mapdepth10 out___8_r__10 out___8_keylenp10 out___8_timedout10 out___8_mapdepth10
-    j'34 !keylenp11 !mapdepth11 !mp12 !mp_match_len10 !max_mlen11 !want_termcode12 !keylen8 !in_osc11 !out___r__11 !out___keylenp11 !out___timedout11 !out___mapdepth11 !out___2_r__11 !out___2_keylenp11 !out___2_timedout11 !out___2_mapdepth11 !out___3_r__11 !out___3_keylenp11 !out___3_timedout11 !out___3_mapdepth11 !out___4_r__11 !out___4_keylenp11 !out___4_timedout11 !out___4_mapdepth11 !out___5_r__11 !out___5_keylenp11 !out___5_timedout11 !out___5_mapdepth11 !out___6_r__11 !out___6_keylenp11 !out___6_timedout11 !out___6_mapdepth11 !out___7_r__11 !out___7_keylenp11 !out___7_timedout11 !out___7_mapdepth11 !out___8_r__11 !out___8_keylenp11 !out___8_timedout11 !out___8_mapdepth11 = do
+        then j'34 keylenp10 mapdepth10 mp_match8 mp_match_len9 max_mlen10 want_termcode11 mp_match_len9 in_osc10 out___r__10 out___keylenp10 out___timedout10 out___mapdepth10
+        else j'34 keylenp10 mapdepth10 mp11 mp_match_len9 max_mlen10 want_termcode11 keylen7 in_osc10 out___r__10 out___keylenp10 out___timedout10 out___mapdepth10
+    j'34 !keylenp11 !mapdepth11 !mp12 !mp_match_len10 !max_mlen11 !want_termcode12 !keylen8 !in_osc11 !out___r__11 !out___keylenp11 !out___timedout11 !out___mapdepth11 = do
       r'86 <- if (not in_osc11) then (do { r'84 <- p_pt ed'; r'85 <- rdW8 r'84 0; pure ((fromIntegral r'85 :: Int32) /= NUL) }) else pure False
       r'88 <- if (r'86 && (mp12 == nullPtr)) then (do { r'87 <- c'State ed'; pure ((r'87 .&. 17) /= 0) }) else pure False
       if r'88
-        then loop'36 keylenp11 mapdepth11 mp12 mp_match_len10 max_mlen11 want_termcode12 (0 :: Int32) keylen8 in_osc11 out___r__11 out___keylenp11 out___timedout11 out___mapdepth11 out___2_r__11 out___2_keylenp11 out___2_timedout11 out___2_mapdepth11 out___3_r__11 out___3_keylenp11 out___3_timedout11 out___3_mapdepth11 out___4_r__11 out___4_keylenp11 out___4_timedout11 out___4_mapdepth11 out___5_r__11 out___5_keylenp11 out___5_timedout11 out___5_mapdepth11 out___6_r__11 out___6_keylenp11 out___6_timedout11 out___6_mapdepth11 out___7_r__11 out___7_keylenp11 out___7_timedout11 out___7_mapdepth11 out___8_r__11 out___8_keylenp11 out___8_timedout11 out___8_mapdepth11
-        else j'44 keylenp11 mapdepth11 mp12 mp_match_len10 max_mlen11 want_termcode12 keylen8 in_osc11 out___r__11 out___keylenp11 out___timedout11 out___mapdepth11 out___2_r__11 out___2_keylenp11 out___2_timedout11 out___2_mapdepth11 out___3_r__11 out___3_keylenp11 out___3_timedout11 out___3_mapdepth11 out___4_r__11 out___4_keylenp11 out___4_timedout11 out___4_mapdepth11 out___5_r__11 out___5_keylenp11 out___5_timedout11 out___5_mapdepth11 out___6_r__11 out___6_keylenp11 out___6_timedout11 out___6_mapdepth11 out___7_r__11 out___7_keylenp11 out___7_timedout11 out___7_mapdepth11 out___8_r__11 out___8_keylenp11 out___8_timedout11 out___8_mapdepth11
-    loop'36 !keylenp12 !mapdepth12 !mp13 !mp_match_len11 !max_mlen12 !want_termcode13 !mlen6 !keylen9 !in_osc12 !out___r__12 !out___keylenp12 !out___timedout12 !out___mapdepth12 !out___2_r__12 !out___2_keylenp12 !out___2_timedout12 !out___2_mapdepth12 !out___3_r__12 !out___3_keylenp12 !out___3_timedout12 !out___3_mapdepth12 !out___4_r__12 !out___4_keylenp12 !out___4_timedout12 !out___4_mapdepth12 !out___5_r__12 !out___5_keylenp12 !out___5_timedout12 !out___5_mapdepth12 !out___6_r__12 !out___6_keylenp12 !out___6_timedout12 !out___6_mapdepth12 !out___7_r__12 !out___7_keylenp12 !out___7_timedout12 !out___7_mapdepth12 !out___8_r__12 !out___8_keylenp12 !out___8_timedout12 !out___8_mapdepth12 = do
+        then loop'36 keylenp11 mapdepth11 mp12 mp_match_len10 max_mlen11 want_termcode12 (0 :: Int32) keylen8 in_osc11 out___r__11 out___keylenp11 out___timedout11 out___mapdepth11
+        else j'44 keylenp11 mapdepth11 mp12 mp_match_len10 max_mlen11 want_termcode12 keylen8 in_osc11 out___r__11 out___keylenp11 out___timedout11 out___mapdepth11
+    loop'36 !keylenp12 !mapdepth12 !mp13 !mp_match_len11 !max_mlen12 !want_termcode13 !mlen6 !keylen9 !in_osc12 !out___r__12 !out___keylenp12 !out___timedout12 !out___mapdepth12 = do
       r'89 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
       r'92 <- if (mlen6 < r'89) then (do { r'90 <- p_pt ed'; r'91 <- rdW8 (pAdd r'90 (fromIntegral mlen6)) 0; pure (r'91 /= 0) }) else pure False
       if r'92
@@ -8964,12 +8964,12 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'96 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off
           r'97 <- rdW8 (pAdd r'95 (fromIntegral (r'96 + mlen6))) 0
           if (fromIntegral r'94 :: Int32) /= (fromIntegral r'97 :: Int32)
-            then j'39 keylenp12 mapdepth12 mp13 mp_match_len11 max_mlen12 want_termcode13 mlen6 keylen9 in_osc12 out___r__12 out___keylenp12 out___timedout12 out___mapdepth12 out___2_r__12 out___2_keylenp12 out___2_timedout12 out___2_mapdepth12 out___3_r__12 out___3_keylenp12 out___3_timedout12 out___3_mapdepth12 out___4_r__12 out___4_keylenp12 out___4_timedout12 out___4_mapdepth12 out___5_r__12 out___5_keylenp12 out___5_timedout12 out___5_mapdepth12 out___6_r__12 out___6_keylenp12 out___6_timedout12 out___6_mapdepth12 out___7_r__12 out___7_keylenp12 out___7_timedout12 out___7_mapdepth12 out___8_r__12 out___8_keylenp12 out___8_timedout12 out___8_mapdepth12
+            then j'39 keylenp12 mapdepth12 mp13 mp_match_len11 max_mlen12 want_termcode13 mlen6 keylen9 in_osc12 out___r__12 out___keylenp12 out___timedout12 out___mapdepth12
             else do
               let !mlen7 = mlen6 + 1
-              loop'36 keylenp12 mapdepth12 mp13 mp_match_len11 max_mlen12 want_termcode13 mlen7 keylen9 in_osc12 out___r__12 out___keylenp12 out___timedout12 out___mapdepth12 out___2_r__12 out___2_keylenp12 out___2_timedout12 out___2_mapdepth12 out___3_r__12 out___3_keylenp12 out___3_timedout12 out___3_mapdepth12 out___4_r__12 out___4_keylenp12 out___4_timedout12 out___4_mapdepth12 out___5_r__12 out___5_keylenp12 out___5_timedout12 out___5_mapdepth12 out___6_r__12 out___6_keylenp12 out___6_timedout12 out___6_mapdepth12 out___7_r__12 out___7_keylenp12 out___7_timedout12 out___7_mapdepth12 out___8_r__12 out___8_keylenp12 out___8_timedout12 out___8_mapdepth12
-        else j'39 keylenp12 mapdepth12 mp13 mp_match_len11 max_mlen12 want_termcode13 mlen6 keylen9 in_osc12 out___r__12 out___keylenp12 out___timedout12 out___mapdepth12 out___2_r__12 out___2_keylenp12 out___2_timedout12 out___2_mapdepth12 out___3_r__12 out___3_keylenp12 out___3_timedout12 out___3_mapdepth12 out___4_r__12 out___4_keylenp12 out___4_timedout12 out___4_mapdepth12 out___5_r__12 out___5_keylenp12 out___5_timedout12 out___5_mapdepth12 out___6_r__12 out___6_keylenp12 out___6_timedout12 out___6_mapdepth12 out___7_r__12 out___7_keylenp12 out___7_timedout12 out___7_mapdepth12 out___8_r__12 out___8_keylenp12 out___8_timedout12 out___8_mapdepth12
-    j'39 !keylenp13 !mapdepth13 !mp14 !mp_match_len12 !max_mlen13 !want_termcode14 !mlen8 !keylen10 !in_osc13 !out___r__13 !out___keylenp13 !out___timedout13 !out___mapdepth13 !out___2_r__13 !out___2_keylenp13 !out___2_timedout13 !out___2_mapdepth13 !out___3_r__13 !out___3_keylenp13 !out___3_timedout13 !out___3_mapdepth13 !out___4_r__13 !out___4_keylenp13 !out___4_timedout13 !out___4_mapdepth13 !out___5_r__13 !out___5_keylenp13 !out___5_timedout13 !out___5_mapdepth13 !out___6_r__13 !out___6_keylenp13 !out___6_timedout13 !out___6_mapdepth13 !out___7_r__13 !out___7_keylenp13 !out___7_timedout13 !out___7_mapdepth13 !out___8_r__13 !out___8_keylenp13 !out___8_timedout13 !out___8_mapdepth13 = do
+              loop'36 keylenp12 mapdepth12 mp13 mp_match_len11 max_mlen12 want_termcode13 mlen7 keylen9 in_osc12 out___r__12 out___keylenp12 out___timedout12 out___mapdepth12
+        else j'39 keylenp12 mapdepth12 mp13 mp_match_len11 max_mlen12 want_termcode13 mlen6 keylen9 in_osc12 out___r__12 out___keylenp12 out___timedout12 out___mapdepth12
+    j'39 !keylenp13 !mapdepth13 !mp14 !mp_match_len12 !max_mlen13 !want_termcode14 !mlen8 !keylen10 !in_osc13 !out___r__13 !out___keylenp13 !out___timedout13 !out___mapdepth13 = do
       r'98 <- p_pt ed'
       r'99 <- rdW8 (pAdd r'98 (fromIntegral mlen8)) 0
       if (fromIntegral r'99 :: Int32) == NUL
@@ -8982,19 +8982,19 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
               r'103 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen
               r'104 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen
               gotchars ed' (pAdd (pAdd r'101 (fromIntegral r'102)) (fromIntegral r'103)) (mlen8 - r'104)
-              j'89 mapdepth13 mlen8 keylen10 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13 out___2_r__13 out___2_keylenp13 out___2_timedout13 out___2_mapdepth13 out___3_r__13 out___3_keylenp13 out___3_timedout13 out___3_mapdepth13 out___4_r__13 out___4_keylenp13 out___4_timedout13 out___4_mapdepth13 out___5_r__13 out___5_keylenp13 out___5_timedout13 out___5_mapdepth13 out___6_r__13 out___6_keylenp13 out___6_timedout13 out___6_mapdepth13 out___7_r__13 out___7_keylenp13 out___7_timedout13 out___7_mapdepth13 out___8_r__13 out___8_keylenp13 out___8_timedout13 out___8_mapdepth13
-            else j'89 mapdepth13 mlen8 keylen10 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13 out___2_r__13 out___2_keylenp13 out___2_timedout13 out___2_mapdepth13 out___3_r__13 out___3_keylenp13 out___3_timedout13 out___3_mapdepth13 out___4_r__13 out___4_keylenp13 out___4_timedout13 out___4_mapdepth13 out___5_r__13 out___5_keylenp13 out___5_timedout13 out___5_mapdepth13 out___6_r__13 out___6_keylenp13 out___6_timedout13 out___6_mapdepth13 out___7_r__13 out___7_keylenp13 out___7_timedout13 out___7_mapdepth13 out___8_r__13 out___8_keylenp13 out___8_timedout13 out___8_mapdepth13
+              j'89 mapdepth13 mlen8 keylen10 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
+            else j'89 mapdepth13 mlen8 keylen10 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
         else do
           r'105 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
           if mlen8 == r'105
-            then j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen13 want_termcode14 (-1 :: Int32) in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13 out___2_r__13 out___2_keylenp13 out___2_timedout13 out___2_mapdepth13 out___3_r__13 out___3_keylenp13 out___3_timedout13 out___3_mapdepth13 out___4_r__13 out___4_keylenp13 out___4_timedout13 out___4_mapdepth13 out___5_r__13 out___5_keylenp13 out___5_timedout13 out___5_mapdepth13 out___6_r__13 out___6_keylenp13 out___6_timedout13 out___6_mapdepth13 out___7_r__13 out___7_keylenp13 out___7_timedout13 out___7_mapdepth13 out___8_r__13 out___8_keylenp13 out___8_timedout13 out___8_mapdepth13
+            then j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen13 want_termcode14 (-1 :: Int32) in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
             else do
               if max_mlen13 < mlen8
                 then do
                   let !max_mlen14 = mlen8 + 1
-                  j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen14 want_termcode14 keylen10 in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13 out___2_r__13 out___2_keylenp13 out___2_timedout13 out___2_mapdepth13 out___3_r__13 out___3_keylenp13 out___3_timedout13 out___3_mapdepth13 out___4_r__13 out___4_keylenp13 out___4_timedout13 out___4_mapdepth13 out___5_r__13 out___5_keylenp13 out___5_timedout13 out___5_mapdepth13 out___6_r__13 out___6_keylenp13 out___6_timedout13 out___6_mapdepth13 out___7_r__13 out___7_keylenp13 out___7_timedout13 out___7_mapdepth13 out___8_r__13 out___8_keylenp13 out___8_timedout13 out___8_mapdepth13
-                else j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen13 want_termcode14 keylen10 in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13 out___2_r__13 out___2_keylenp13 out___2_timedout13 out___2_mapdepth13 out___3_r__13 out___3_keylenp13 out___3_timedout13 out___3_mapdepth13 out___4_r__13 out___4_keylenp13 out___4_timedout13 out___4_mapdepth13 out___5_r__13 out___5_keylenp13 out___5_timedout13 out___5_mapdepth13 out___6_r__13 out___6_keylenp13 out___6_timedout13 out___6_mapdepth13 out___7_r__13 out___7_keylenp13 out___7_timedout13 out___7_mapdepth13 out___8_r__13 out___8_keylenp13 out___8_timedout13 out___8_mapdepth13
-    j'44 !keylenp14 !mapdepth14 !mp15 !mp_match_len13 !max_mlen15 !want_termcode15 !keylen11 !in_osc14 !out___r__14 !out___keylenp14 !out___timedout14 !out___mapdepth14 !out___2_r__14 !out___2_keylenp14 !out___2_timedout14 !out___2_mapdepth14 !out___3_r__14 !out___3_keylenp14 !out___3_timedout14 !out___3_mapdepth14 !out___4_r__14 !out___4_keylenp14 !out___4_timedout14 !out___4_mapdepth14 !out___5_r__14 !out___5_keylenp14 !out___5_timedout14 !out___5_mapdepth14 !out___6_r__14 !out___6_keylenp14 !out___6_timedout14 !out___6_mapdepth14 !out___7_r__14 !out___7_keylenp14 !out___7_timedout14 !out___7_mapdepth14 !out___8_r__14 !out___8_keylenp14 !out___8_timedout14 !out___8_mapdepth14 = do
+                  j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen14 want_termcode14 keylen10 in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
+                else j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen13 want_termcode14 keylen10 in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
+    j'44 !keylenp14 !mapdepth14 !mp15 !mp_match_len13 !max_mlen15 !want_termcode15 !keylen11 !in_osc14 !out___r__14 !out___keylenp14 !out___timedout14 !out___mapdepth14 = do
       r'110 <- if in_osc14 then pure True else (do { r'109 <- if ((mp15 == nullPtr) || ((max_mlen15 + want_termcode15) > mp_match_len13)) then pure True else (do { r'108 <- if (mp_match_len13 == 1) then (do { r'106 <- rdP mp15 mapblock_T'm_keys; r'107 <- rdW8 r'106 0; pure ((fromIntegral r'107 :: Int32) == ESC) }) else pure False; pure (r'108 && (not (timedout /= 0))) }); pure (r'109 && (keylen11 /= (-2))) })
       if r'110
         then do
@@ -9006,43 +9006,43 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
               if r'122
                 then do
                   r'123 <- check_termcode ed' (max_mlen15 + 1) nullPtr 0 nullPtr
-                  j'50 keylenp14 mapdepth14 mp15 mp_match_len13 max_mlen15 r'123 keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14 out___2_r__14 out___2_keylenp14 out___2_timedout14 out___2_mapdepth14 out___3_r__14 out___3_keylenp14 out___3_timedout14 out___3_mapdepth14 out___4_r__14 out___4_keylenp14 out___4_timedout14 out___4_mapdepth14 out___5_r__14 out___5_keylenp14 out___5_timedout14 out___5_mapdepth14 out___6_r__14 out___6_keylenp14 out___6_timedout14 out___6_mapdepth14 out___7_r__14 out___7_keylenp14 out___7_timedout14 out___7_mapdepth14 out___8_r__14 out___8_keylenp14 out___8_timedout14 out___8_mapdepth14
-                else j'50 keylenp14 mapdepth14 mp15 mp_match_len13 max_mlen15 (0 :: Int32) keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14 out___2_r__14 out___2_keylenp14 out___2_timedout14 out___2_mapdepth14 out___3_r__14 out___3_keylenp14 out___3_timedout14 out___3_mapdepth14 out___4_r__14 out___4_keylenp14 out___4_timedout14 out___4_mapdepth14 out___5_r__14 out___5_keylenp14 out___5_timedout14 out___5_mapdepth14 out___6_r__14 out___6_keylenp14 out___6_timedout14 out___6_mapdepth14 out___7_r__14 out___7_keylenp14 out___7_timedout14 out___7_mapdepth14 out___8_r__14 out___8_keylenp14 out___8_timedout14 out___8_mapdepth14
-            else j'56 mapdepth14 mp15 mp_match_len13 (0 :: Int32) out___r__14 out___keylenp14 out___timedout14 out___mapdepth14 out___2_r__14 out___2_keylenp14 out___2_timedout14 out___2_mapdepth14 out___3_r__14 out___3_keylenp14 out___3_timedout14 out___3_mapdepth14 out___4_r__14 out___4_keylenp14 out___4_timedout14 out___4_mapdepth14 out___5_r__14 out___5_keylenp14 out___5_timedout14 out___5_mapdepth14 out___6_r__14 out___6_keylenp14 out___6_timedout14 out___6_mapdepth14 out___7_r__14 out___7_keylenp14 out___7_timedout14 out___7_mapdepth14 out___8_r__14 out___8_keylenp14 out___8_timedout14 out___8_mapdepth14
-        else j'62 mapdepth14 mp15 keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14 out___2_r__14 out___2_keylenp14 out___2_timedout14 out___2_mapdepth14 out___3_r__14 out___3_keylenp14 out___3_timedout14 out___3_mapdepth14 out___4_r__14 out___4_keylenp14 out___4_timedout14 out___4_mapdepth14 out___5_r__14 out___5_keylenp14 out___5_timedout14 out___5_mapdepth14 out___6_r__14 out___6_keylenp14 out___6_timedout14 out___6_mapdepth14 out___7_r__14 out___7_keylenp14 out___7_timedout14 out___7_mapdepth14 out___8_r__14 out___8_keylenp14 out___8_timedout14 out___8_mapdepth14
-    j'50 !keylenp15 !mapdepth15 !mp16 !mp_match_len14 !max_mlen16 !keylen12 !save_keylen1 !out___r__15 !out___keylenp15 !out___timedout15 !out___mapdepth15 !out___2_r__15 !out___2_keylenp15 !out___2_timedout15 !out___2_mapdepth15 !out___3_r__15 !out___3_keylenp15 !out___3_timedout15 !out___3_mapdepth15 !out___4_r__15 !out___4_keylenp15 !out___4_timedout15 !out___4_mapdepth15 !out___5_r__15 !out___5_keylenp15 !out___5_timedout15 !out___5_mapdepth15 !out___6_r__15 !out___6_keylenp15 !out___6_timedout15 !out___6_mapdepth15 !out___7_r__15 !out___7_keylenp15 !out___7_timedout15 !out___7_mapdepth15 !out___8_r__15 !out___8_keylenp15 !out___8_timedout15 !out___8_mapdepth15 = do
+                  j'50 keylenp14 mapdepth14 mp15 mp_match_len13 max_mlen15 r'123 keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14
+                else j'50 keylenp14 mapdepth14 mp15 mp_match_len13 max_mlen15 (0 :: Int32) keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14
+            else j'56 mapdepth14 mp15 mp_match_len13 (0 :: Int32) out___r__14 out___keylenp14 out___timedout14 out___mapdepth14
+        else j'62 mapdepth14 mp15 keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14
+    j'50 !keylenp15 !mapdepth15 !mp16 !mp_match_len14 !max_mlen16 !keylen12 !save_keylen1 !out___r__15 !out___keylenp15 !out___timedout15 !out___mapdepth15 = do
       if ((keylen12 == 0) && (save_keylen1 == (-1))) && (not (timedout /= 0))
-        then j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 (-1 :: Int32) out___r__15 out___keylenp15 out___timedout15 out___mapdepth15 out___2_r__15 out___2_keylenp15 out___2_timedout15 out___2_mapdepth15 out___3_r__15 out___3_keylenp15 out___3_timedout15 out___3_mapdepth15 out___4_r__15 out___4_keylenp15 out___4_timedout15 out___4_mapdepth15 out___5_r__15 out___5_keylenp15 out___5_timedout15 out___5_mapdepth15 out___6_r__15 out___6_keylenp15 out___6_timedout15 out___6_mapdepth15 out___7_r__15 out___7_keylenp15 out___7_timedout15 out___7_mapdepth15 out___8_r__15 out___8_keylenp15 out___8_timedout15 out___8_mapdepth15
-        else j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 keylen12 out___r__15 out___keylenp15 out___timedout15 out___mapdepth15 out___2_r__15 out___2_keylenp15 out___2_timedout15 out___2_mapdepth15 out___3_r__15 out___3_keylenp15 out___3_timedout15 out___3_mapdepth15 out___4_r__15 out___4_keylenp15 out___4_timedout15 out___4_mapdepth15 out___5_r__15 out___5_keylenp15 out___5_timedout15 out___5_mapdepth15 out___6_r__15 out___6_keylenp15 out___6_timedout15 out___6_mapdepth15 out___7_r__15 out___7_keylenp15 out___7_timedout15 out___7_mapdepth15 out___8_r__15 out___8_keylenp15 out___8_timedout15 out___8_mapdepth15
-    j'52 !keylenp16 !mapdepth16 !mp17 !mp_match_len15 !max_mlen17 !keylen13 !out___r__16 !out___keylenp16 !out___timedout16 !out___mapdepth16 !out___2_r__16 !out___2_keylenp16 !out___2_timedout16 !out___2_mapdepth16 !out___3_r__16 !out___3_keylenp16 !out___3_timedout16 !out___3_mapdepth16 !out___4_r__16 !out___4_keylenp16 !out___4_timedout16 !out___4_mapdepth16 !out___5_r__16 !out___5_keylenp16 !out___5_timedout16 !out___5_mapdepth16 !out___6_r__16 !out___6_keylenp16 !out___6_timedout16 !out___6_mapdepth16 !out___7_r__16 !out___7_keylenp16 !out___7_timedout16 !out___7_mapdepth16 !out___8_r__16 !out___8_keylenp16 !out___8_timedout16 !out___8_mapdepth16 = do
+        then j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 (-1 :: Int32) out___r__15 out___keylenp15 out___timedout15 out___mapdepth15
+        else j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 keylen12 out___r__15 out___keylenp15 out___timedout15 out___mapdepth15
+    j'52 !keylenp16 !mapdepth16 !mp17 !mp_match_len15 !max_mlen17 !keylen13 !out___r__16 !out___keylenp16 !out___timedout16 !out___mapdepth16 = do
       r'125 <- if (keylen13 == 0) then (do { r'124 <- no_reduce_keys ed'; pure (not (r'124 /= 0)) }) else pure False
       if r'125
         then do
           r'126 <- check_simplify_modifier ed' (max_mlen17 + 1)
           if r'126 < 0
             then pure ((0 :: Int32), keylenp16, timedout, mapdepth16)
-            else j'54 mapdepth16 mp17 mp_match_len15 r'126 out___r__16 out___keylenp16 out___timedout16 out___mapdepth16 out___2_r__16 out___2_keylenp16 out___2_timedout16 out___2_mapdepth16 out___3_r__16 out___3_keylenp16 out___3_timedout16 out___3_mapdepth16 out___4_r__16 out___4_keylenp16 out___4_timedout16 out___4_mapdepth16 out___5_r__16 out___5_keylenp16 out___5_timedout16 out___5_mapdepth16 out___6_r__16 out___6_keylenp16 out___6_timedout16 out___6_mapdepth16 out___7_r__16 out___7_keylenp16 out___7_timedout16 out___7_mapdepth16 out___8_r__16 out___8_keylenp16 out___8_timedout16 out___8_mapdepth16
-        else j'54 mapdepth16 mp17 mp_match_len15 keylen13 out___r__16 out___keylenp16 out___timedout16 out___mapdepth16 out___2_r__16 out___2_keylenp16 out___2_timedout16 out___2_mapdepth16 out___3_r__16 out___3_keylenp16 out___3_timedout16 out___3_mapdepth16 out___4_r__16 out___4_keylenp16 out___4_timedout16 out___4_mapdepth16 out___5_r__16 out___5_keylenp16 out___5_timedout16 out___5_mapdepth16 out___6_r__16 out___6_keylenp16 out___6_timedout16 out___6_mapdepth16 out___7_r__16 out___7_keylenp16 out___7_timedout16 out___7_mapdepth16 out___8_r__16 out___8_keylenp16 out___8_timedout16 out___8_mapdepth16
-    j'54 !mapdepth17 !mp18 !mp_match_len16 !keylen14 !out___r__17 !out___keylenp17 !out___timedout17 !out___mapdepth17 !out___2_r__17 !out___2_keylenp17 !out___2_timedout17 !out___2_mapdepth17 !out___3_r__17 !out___3_keylenp17 !out___3_timedout17 !out___3_mapdepth17 !out___4_r__17 !out___4_keylenp17 !out___4_timedout17 !out___4_mapdepth17 !out___5_r__17 !out___5_keylenp17 !out___5_timedout17 !out___5_mapdepth17 !out___6_r__17 !out___6_keylenp17 !out___6_timedout17 !out___6_mapdepth17 !out___7_r__17 !out___7_keylenp17 !out___7_timedout17 !out___7_mapdepth17 !out___8_r__17 !out___8_keylenp17 !out___8_timedout17 !out___8_mapdepth17 = do
+            else j'54 mapdepth16 mp17 mp_match_len15 r'126 out___r__16 out___keylenp16 out___timedout16 out___mapdepth16
+        else j'54 mapdepth16 mp17 mp_match_len15 keylen13 out___r__16 out___keylenp16 out___timedout16 out___mapdepth16
+    j'54 !mapdepth17 !mp18 !mp_match_len16 !keylen14 !out___r__17 !out___keylenp17 !out___timedout17 !out___mapdepth17 = do
       r'129 <- if (keylen14 < 0) then (do { r'127 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; r'128 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; pure (r'127 == r'128) }) else pure False
       if r'129
-        then j'56 mapdepth17 mp18 mp_match_len16 (0 :: Int32) out___r__17 out___keylenp17 out___timedout17 out___mapdepth17 out___2_r__17 out___2_keylenp17 out___2_timedout17 out___2_mapdepth17 out___3_r__17 out___3_keylenp17 out___3_timedout17 out___3_mapdepth17 out___4_r__17 out___4_keylenp17 out___4_timedout17 out___4_mapdepth17 out___5_r__17 out___5_keylenp17 out___5_timedout17 out___5_mapdepth17 out___6_r__17 out___6_keylenp17 out___6_timedout17 out___6_mapdepth17 out___7_r__17 out___7_keylenp17 out___7_timedout17 out___7_mapdepth17 out___8_r__17 out___8_keylenp17 out___8_timedout17 out___8_mapdepth17
-        else j'56 mapdepth17 mp18 mp_match_len16 keylen14 out___r__17 out___keylenp17 out___timedout17 out___mapdepth17 out___2_r__17 out___2_keylenp17 out___2_timedout17 out___2_mapdepth17 out___3_r__17 out___3_keylenp17 out___3_timedout17 out___3_mapdepth17 out___4_r__17 out___4_keylenp17 out___4_timedout17 out___4_mapdepth17 out___5_r__17 out___5_keylenp17 out___5_timedout17 out___5_mapdepth17 out___6_r__17 out___6_keylenp17 out___6_timedout17 out___6_mapdepth17 out___7_r__17 out___7_keylenp17 out___7_timedout17 out___7_mapdepth17 out___8_r__17 out___8_keylenp17 out___8_timedout17 out___8_mapdepth17
-    j'56 !mapdepth18 !mp19 !mp_match_len17 !keylen15 !out___r__18 !out___keylenp18 !out___timedout18 !out___mapdepth18 !out___2_r__18 !out___2_keylenp18 !out___2_timedout18 !out___2_mapdepth18 !out___3_r__18 !out___3_keylenp18 !out___3_timedout18 !out___3_mapdepth18 !out___4_r__18 !out___4_keylenp18 !out___4_timedout18 !out___4_mapdepth18 !out___5_r__18 !out___5_keylenp18 !out___5_timedout18 !out___5_mapdepth18 !out___6_r__18 !out___6_keylenp18 !out___6_timedout18 !out___6_mapdepth18 !out___7_r__18 !out___7_keylenp18 !out___7_timedout18 !out___7_mapdepth18 !out___8_r__18 !out___8_keylenp18 !out___8_timedout18 !out___8_mapdepth18 = do
+        then j'56 mapdepth17 mp18 mp_match_len16 (0 :: Int32) out___r__17 out___keylenp17 out___timedout17 out___mapdepth17
+        else j'56 mapdepth17 mp18 mp_match_len16 keylen14 out___r__17 out___keylenp17 out___timedout17 out___mapdepth17
+    j'56 !mapdepth18 !mp19 !mp_match_len17 !keylen15 !out___r__18 !out___keylenp18 !out___timedout18 !out___mapdepth18 = do
       if keylen15 == 0
         then do
           if mp19 == nullPtr
             then pure ((1 :: Int32), keylen15, timedout, mapdepth18)
-            else j'58 mapdepth18 mp19 mp_match_len17 keylen15 out___r__18 out___keylenp18 out___timedout18 out___mapdepth18 out___2_r__18 out___2_keylenp18 out___2_timedout18 out___2_mapdepth18 out___3_r__18 out___3_keylenp18 out___3_timedout18 out___3_mapdepth18 out___4_r__18 out___4_keylenp18 out___4_timedout18 out___4_mapdepth18 out___5_r__18 out___5_keylenp18 out___5_timedout18 out___5_mapdepth18 out___6_r__18 out___6_keylenp18 out___6_timedout18 out___6_mapdepth18 out___7_r__18 out___7_keylenp18 out___7_timedout18 out___7_mapdepth18 out___8_r__18 out___8_keylenp18 out___8_timedout18 out___8_mapdepth18
-        else j'58 mapdepth18 mp19 mp_match_len17 keylen15 out___r__18 out___keylenp18 out___timedout18 out___mapdepth18 out___2_r__18 out___2_keylenp18 out___2_timedout18 out___2_mapdepth18 out___3_r__18 out___3_keylenp18 out___3_timedout18 out___3_mapdepth18 out___4_r__18 out___4_keylenp18 out___4_timedout18 out___4_mapdepth18 out___5_r__18 out___5_keylenp18 out___5_timedout18 out___5_mapdepth18 out___6_r__18 out___6_keylenp18 out___6_timedout18 out___6_mapdepth18 out___7_r__18 out___7_keylenp18 out___7_timedout18 out___7_mapdepth18 out___8_r__18 out___8_keylenp18 out___8_timedout18 out___8_mapdepth18
-    j'58 !mapdepth19 !mp20 !mp_match_len18 !keylen16 !out___r__19 !out___keylenp19 !out___timedout19 !out___mapdepth19 !out___2_r__19 !out___2_keylenp19 !out___2_timedout19 !out___2_mapdepth19 !out___3_r__19 !out___3_keylenp19 !out___3_timedout19 !out___3_mapdepth19 !out___4_r__19 !out___4_keylenp19 !out___4_timedout19 !out___4_mapdepth19 !out___5_r__19 !out___5_keylenp19 !out___5_timedout19 !out___5_mapdepth19 !out___6_r__19 !out___6_keylenp19 !out___6_timedout19 !out___6_mapdepth19 !out___7_r__19 !out___7_keylenp19 !out___7_timedout19 !out___7_mapdepth19 !out___8_r__19 !out___8_keylenp19 !out___8_timedout19 !out___8_mapdepth19 = do
+            else j'58 mapdepth18 mp19 mp_match_len17 keylen15 out___r__18 out___keylenp18 out___timedout18 out___mapdepth18
+        else j'58 mapdepth18 mp19 mp_match_len17 keylen15 out___r__18 out___keylenp18 out___timedout18 out___mapdepth18
+    j'58 !mapdepth19 !mp20 !mp_match_len18 !keylen16 !out___r__19 !out___keylenp19 !out___timedout19 !out___mapdepth19 = do
       if keylen16 > 0
         then pure ((2 :: Int32), keylen16, timedout, mapdepth19)
         else do
           if (mp20 == nullPtr) || (keylen16 < 0)
-            then j'62 mapdepth19 mp20 (-1 :: Int32) out___r__19 out___keylenp19 out___timedout19 out___mapdepth19 out___2_r__19 out___2_keylenp19 out___2_timedout19 out___2_mapdepth19 out___3_r__19 out___3_keylenp19 out___3_timedout19 out___3_mapdepth19 out___4_r__19 out___4_keylenp19 out___4_timedout19 out___4_mapdepth19 out___5_r__19 out___5_keylenp19 out___5_timedout19 out___5_mapdepth19 out___6_r__19 out___6_keylenp19 out___6_timedout19 out___6_mapdepth19 out___7_r__19 out___7_keylenp19 out___7_timedout19 out___7_mapdepth19 out___8_r__19 out___8_keylenp19 out___8_timedout19 out___8_mapdepth19
-            else j'62 mapdepth19 mp20 mp_match_len18 out___r__19 out___keylenp19 out___timedout19 out___mapdepth19 out___2_r__19 out___2_keylenp19 out___2_timedout19 out___2_mapdepth19 out___3_r__19 out___3_keylenp19 out___3_timedout19 out___3_mapdepth19 out___4_r__19 out___4_keylenp19 out___4_timedout19 out___4_mapdepth19 out___5_r__19 out___5_keylenp19 out___5_timedout19 out___5_mapdepth19 out___6_r__19 out___6_keylenp19 out___6_timedout19 out___6_mapdepth19 out___7_r__19 out___7_keylenp19 out___7_timedout19 out___7_mapdepth19 out___8_r__19 out___8_keylenp19 out___8_timedout19 out___8_mapdepth19
-    j'62 !mapdepth20 !mp21 !keylen17 !out___r__20 !out___keylenp20 !out___timedout20 !out___mapdepth20 !out___2_r__20 !out___2_keylenp20 !out___2_timedout20 !out___2_mapdepth20 !out___3_r__20 !out___3_keylenp20 !out___3_timedout20 !out___3_mapdepth20 !out___4_r__20 !out___4_keylenp20 !out___4_timedout20 !out___4_mapdepth20 !out___5_r__20 !out___5_keylenp20 !out___5_timedout20 !out___5_mapdepth20 !out___6_r__20 !out___6_keylenp20 !out___6_timedout20 !out___6_mapdepth20 !out___7_r__20 !out___7_keylenp20 !out___7_timedout20 !out___7_mapdepth20 !out___8_r__20 !out___8_keylenp20 !out___8_timedout20 !out___8_mapdepth20 = do
+            then j'62 mapdepth19 mp20 (-1 :: Int32) out___r__19 out___keylenp19 out___timedout19 out___mapdepth19
+            else j'62 mapdepth19 mp20 mp_match_len18 out___r__19 out___keylenp19 out___timedout19 out___mapdepth19
+    j'62 !mapdepth20 !mp21 !keylen17 !out___r__20 !out___keylenp20 !out___timedout20 !out___mapdepth20 = do
       r'131 <- if (keylen17 >= 0) then (do { r'130 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; pure (keylen17 <= r'130) }) else pure False
       if r'131
         then do
@@ -9054,10 +9054,10 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
               r'135 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen
               r'136 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen
               gotchars ed' (pAdd (pAdd r'133 (fromIntegral r'134)) (fromIntegral r'135)) (keylen17 - r'136)
-              j'66 mapdepth20 mp21 keylen17 out___r__20 out___keylenp20 out___timedout20 out___mapdepth20 out___2_r__20 out___2_keylenp20 out___2_timedout20 out___2_mapdepth20 out___3_r__20 out___3_keylenp20 out___3_timedout20 out___3_mapdepth20 out___4_r__20 out___4_keylenp20 out___4_timedout20 out___4_mapdepth20 out___5_r__20 out___5_keylenp20 out___5_timedout20 out___5_mapdepth20 out___6_r__20 out___6_keylenp20 out___6_timedout20 out___6_mapdepth20 out___7_r__20 out___7_keylenp20 out___7_timedout20 out___7_mapdepth20 out___8_r__20 out___8_keylenp20 out___8_timedout20 out___8_mapdepth20
-            else j'66 mapdepth20 mp21 keylen17 out___r__20 out___keylenp20 out___timedout20 out___mapdepth20 out___2_r__20 out___2_keylenp20 out___2_timedout20 out___2_mapdepth20 out___3_r__20 out___3_keylenp20 out___3_timedout20 out___3_mapdepth20 out___4_r__20 out___4_keylenp20 out___4_timedout20 out___4_mapdepth20 out___5_r__20 out___5_keylenp20 out___5_timedout20 out___5_mapdepth20 out___6_r__20 out___6_keylenp20 out___6_timedout20 out___6_mapdepth20 out___7_r__20 out___7_keylenp20 out___7_timedout20 out___7_mapdepth20 out___8_r__20 out___8_keylenp20 out___8_timedout20 out___8_mapdepth20
+              j'66 mapdepth20 mp21 keylen17 out___r__20 out___keylenp20 out___timedout20 out___mapdepth20
+            else j'66 mapdepth20 mp21 keylen17 out___r__20 out___keylenp20 out___timedout20 out___mapdepth20
         else pure ((3 :: Int32), keylen17, timedout, mapdepth20)
-    j'66 !mapdepth21 !mp22 !keylen18 !out___r__21 !out___keylenp21 !out___timedout21 !out___mapdepth21 !out___2_r__21 !out___2_keylenp21 !out___2_timedout21 !out___2_mapdepth21 !out___3_r__21 !out___3_keylenp21 !out___3_timedout21 !out___3_mapdepth21 !out___4_r__21 !out___4_keylenp21 !out___4_timedout21 !out___4_mapdepth21 !out___5_r__21 !out___5_keylenp21 !out___5_timedout21 !out___5_mapdepth21 !out___6_r__21 !out___6_keylenp21 !out___6_timedout21 !out___6_mapdepth21 !out___7_r__21 !out___7_keylenp21 !out___7_timedout21 !out___7_mapdepth21 !out___8_r__21 !out___8_keylenp21 !out___8_timedout21 !out___8_mapdepth21 = do
+    j'66 !mapdepth21 !mp22 !keylen18 !out___r__21 !out___keylenp21 !out___timedout21 !out___mapdepth21 = do
       r'137 <- rdI32 (addr'typebuf ed') typebuf_T'tb_silent
       set'cmd_silent ed' (b2i (r'137 > 0) :: Int32)
       del_typebuf ed' keylen18 0
@@ -9071,10 +9071,10 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           if (r'141 .&. MODE_CMDLINE) /= 0
             then do
               redrawcmdline ed'
-              j'83 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21 out___2_r__21 out___2_keylenp21 out___2_timedout21 out___2_mapdepth21 out___3_r__21 out___3_keylenp21 out___3_timedout21 out___3_mapdepth21 out___4_r__21 out___4_keylenp21 out___4_timedout21 out___4_mapdepth21 out___5_r__21 out___5_keylenp21 out___5_timedout21 out___5_mapdepth21 out___6_r__21 out___6_keylenp21 out___6_timedout21 out___6_mapdepth21 out___7_r__21 out___7_keylenp21 out___7_timedout21 out___7_mapdepth21 out___8_r__21 out___8_keylenp21 out___8_timedout21 out___8_mapdepth21
+              j'83 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21
             else do
               setcursor ed'
-              j'83 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21 out___2_r__21 out___2_keylenp21 out___2_timedout21 out___2_mapdepth21 out___3_r__21 out___3_keylenp21 out___3_timedout21 out___3_mapdepth21 out___4_r__21 out___4_keylenp21 out___4_timedout21 out___4_mapdepth21 out___5_r__21 out___5_keylenp21 out___5_timedout21 out___5_mapdepth21 out___6_r__21 out___6_keylenp21 out___6_timedout21 out___6_mapdepth21 out___7_r__21 out___7_keylenp21 out___7_timedout21 out___7_mapdepth21 out___8_r__21 out___8_keylenp21 out___8_timedout21 out___8_mapdepth21
+              j'83 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21
         else do
           r'142 <- c'VIsual_active ed'
           r'144 <- if (r'142 /= 0) then (do { r'143 <- c'VIsual_select ed'; pure (r'143 /= 0) }) else pure False
@@ -9083,38 +9083,38 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
             then do
               set'c'VIsual_select ed' FALSE
               _ <- ins_typebuf ed' (Ptr "\128\245X\0"#) (-1) 0 True FALSE
-              j'69 mapdepth22 mp22 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21 out___2_r__21 out___2_keylenp21 out___2_timedout21 out___2_mapdepth21 out___3_r__21 out___3_keylenp21 out___3_timedout21 out___3_mapdepth21 out___4_r__21 out___4_keylenp21 out___4_timedout21 out___4_mapdepth21 out___5_r__21 out___5_keylenp21 out___5_timedout21 out___5_mapdepth21 out___6_r__21 out___6_keylenp21 out___6_timedout21 out___6_mapdepth21 out___7_r__21 out___7_keylenp21 out___7_timedout21 out___7_mapdepth21 out___8_r__21 out___8_keylenp21 out___8_timedout21 out___8_mapdepth21
-            else j'69 mapdepth22 mp22 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21 out___2_r__21 out___2_keylenp21 out___2_timedout21 out___2_mapdepth21 out___3_r__21 out___3_keylenp21 out___3_timedout21 out___3_mapdepth21 out___4_r__21 out___4_keylenp21 out___4_timedout21 out___4_mapdepth21 out___5_r__21 out___5_keylenp21 out___5_timedout21 out___5_mapdepth21 out___6_r__21 out___6_keylenp21 out___6_timedout21 out___6_mapdepth21 out___7_r__21 out___7_keylenp21 out___7_timedout21 out___7_mapdepth21 out___8_r__21 out___8_keylenp21 out___8_timedout21 out___8_mapdepth21
-    j'69 !mapdepth23 !mp23 !keylen19 !out___r__22 !out___keylenp22 !out___timedout22 !out___mapdepth22 !out___2_r__22 !out___2_keylenp22 !out___2_timedout22 !out___2_mapdepth22 !out___3_r__22 !out___3_keylenp22 !out___3_timedout22 !out___3_mapdepth22 !out___4_r__22 !out___4_keylenp22 !out___4_timedout22 !out___4_mapdepth22 !out___5_r__22 !out___5_keylenp22 !out___5_timedout22 !out___5_mapdepth22 !out___6_r__22 !out___6_keylenp22 !out___6_timedout22 !out___6_mapdepth22 !out___7_r__22 !out___7_keylenp22 !out___7_timedout22 !out___7_mapdepth22 !out___8_r__22 !out___8_keylenp22 !out___8_timedout22 !out___8_mapdepth22 = do
+              j'69 mapdepth22 mp22 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21
+            else j'69 mapdepth22 mp22 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21
+    j'69 !mapdepth23 !mp23 !keylen19 !out___r__22 !out___keylenp22 !out___timedout22 !out___mapdepth22 = do
       r'148 <- rdP mp23 mapblock_T'm_str
       if r'148 == nullPtr
-        then j'77 mapdepth23 keylen19 False out___r__22 out___keylenp22 out___timedout22 out___mapdepth22 out___2_r__22 out___2_keylenp22 out___2_timedout22 out___2_mapdepth22 out___3_r__22 out___3_keylenp22 out___3_timedout22 out___3_mapdepth22 out___4_r__22 out___4_keylenp22 out___4_timedout22 out___4_mapdepth22 out___5_r__22 out___5_keylenp22 out___5_timedout22 out___5_mapdepth22 out___6_r__22 out___6_keylenp22 out___6_timedout22 out___6_mapdepth22 out___7_r__22 out___7_keylenp22 out___7_timedout22 out___7_mapdepth22 out___8_r__22 out___8_keylenp22 out___8_timedout22 out___8_mapdepth22
+        then j'77 mapdepth23 keylen19 False out___r__22 out___keylenp22 out___timedout22 out___mapdepth22
         else do
           r'149 <- rdI32 mp23 mapblock_T'm_noremap
           if r'149 /= REMAP_YES
             then do
               r'150 <- rdI32 mp23 mapblock_T'm_noremap
-              j'75 mapdepth23 mp23 keylen19 r'148 r'150 out___r__22 out___keylenp22 out___timedout22 out___mapdepth22 out___2_r__22 out___2_keylenp22 out___2_timedout22 out___2_mapdepth22 out___3_r__22 out___3_keylenp22 out___3_timedout22 out___3_mapdepth22 out___4_r__22 out___4_keylenp22 out___4_timedout22 out___4_mapdepth22 out___5_r__22 out___5_keylenp22 out___5_timedout22 out___5_mapdepth22 out___6_r__22 out___6_keylenp22 out___6_timedout22 out___6_mapdepth22 out___7_r__22 out___7_keylenp22 out___7_timedout22 out___7_mapdepth22 out___8_r__22 out___8_keylenp22 out___8_timedout22 out___8_mapdepth22
+              j'75 mapdepth23 mp23 keylen19 r'148 r'150 out___r__22 out___keylenp22 out___timedout22 out___mapdepth22
             else do
               r'151 <- rdP mp23 mapblock_T'm_keys
               r'152 <- musl_strncmp (castPtr r'148) (castPtr r'151) (fromIntegral keylen19 :: Word64)
               r'160 <- if (r'152 == 0) then pure True else (do { r'153 <- rdP mp23 mapblock_T'm_alt; if (r'153 /= nullPtr) then (do { r'154 <- rdP mp23 mapblock_T'm_alt; r'155 <- rdP r'154 mapblock_T'm_keys; r'156 <- rdP mp23 mapblock_T'm_alt; r'157 <- rdI32 r'156 mapblock_T'm_keylen; r'158 <- musl_strncmp (castPtr r'148) (castPtr r'155) (fromIntegral r'157 :: Word64); pure (r'158 == 0) }) else pure False })
               if r'160
-                then j'75 mapdepth23 mp23 keylen19 r'148 (-3 :: Int32) out___r__22 out___keylenp22 out___timedout22 out___mapdepth22 out___2_r__22 out___2_keylenp22 out___2_timedout22 out___2_mapdepth22 out___3_r__22 out___3_keylenp22 out___3_timedout22 out___3_mapdepth22 out___4_r__22 out___4_keylenp22 out___4_timedout22 out___4_mapdepth22 out___5_r__22 out___5_keylenp22 out___5_timedout22 out___5_mapdepth22 out___6_r__22 out___6_keylenp22 out___6_timedout22 out___6_mapdepth22 out___7_r__22 out___7_keylenp22 out___7_timedout22 out___7_mapdepth22 out___8_r__22 out___8_keylenp22 out___8_timedout22 out___8_mapdepth22
-                else j'75 mapdepth23 mp23 keylen19 r'148 (REMAP_YES :: Int32) out___r__22 out___keylenp22 out___timedout22 out___mapdepth22 out___2_r__22 out___2_keylenp22 out___2_timedout22 out___2_mapdepth22 out___3_r__22 out___3_keylenp22 out___3_timedout22 out___3_mapdepth22 out___4_r__22 out___4_keylenp22 out___4_timedout22 out___4_mapdepth22 out___5_r__22 out___5_keylenp22 out___5_timedout22 out___5_mapdepth22 out___6_r__22 out___6_keylenp22 out___6_timedout22 out___6_mapdepth22 out___7_r__22 out___7_keylenp22 out___7_timedout22 out___7_mapdepth22 out___8_r__22 out___8_keylenp22 out___8_timedout22 out___8_mapdepth22
-    j'75 !mapdepth24 !mp24 !keylen20 !map_str1 !noremap1 !out___r__23 !out___keylenp23 !out___timedout23 !out___mapdepth23 !out___2_r__23 !out___2_keylenp23 !out___2_timedout23 !out___2_mapdepth23 !out___3_r__23 !out___3_keylenp23 !out___3_timedout23 !out___3_mapdepth23 !out___4_r__23 !out___4_keylenp23 !out___4_timedout23 !out___4_mapdepth23 !out___5_r__23 !out___5_keylenp23 !out___5_timedout23 !out___5_mapdepth23 !out___6_r__23 !out___6_keylenp23 !out___6_timedout23 !out___6_mapdepth23 !out___7_r__23 !out___7_keylenp23 !out___7_timedout23 !out___7_mapdepth23 !out___8_r__23 !out___8_keylenp23 !out___8_timedout23 !out___8_mapdepth23 = do
+                then j'75 mapdepth23 mp23 keylen19 r'148 (-3 :: Int32) out___r__22 out___keylenp22 out___timedout22 out___mapdepth22
+                else j'75 mapdepth23 mp23 keylen19 r'148 (REMAP_YES :: Int32) out___r__22 out___keylenp22 out___timedout22 out___mapdepth22
+    j'75 !mapdepth24 !mp24 !keylen20 !map_str1 !noremap1 !out___r__23 !out___keylenp23 !out___timedout23 !out___mapdepth23 = do
       r'161 <- cmd_silent ed'
       r'163 <- if (r'161 /= 0) then pure True else (do { r'162 <- rdI8 mp24 mapblock_T'm_silent; pure (r'162 /= 0) })
       r'164 <- ins_typebuf ed' map_str1 noremap1 0 True (b2i r'163 :: Int32)
-      j'77 mapdepth24 keylen20 r'164 out___r__23 out___keylenp23 out___timedout23 out___mapdepth23 out___2_r__23 out___2_keylenp23 out___2_timedout23 out___2_mapdepth23 out___3_r__23 out___3_keylenp23 out___3_timedout23 out___3_mapdepth23 out___4_r__23 out___4_keylenp23 out___4_timedout23 out___4_mapdepth23 out___5_r__23 out___5_keylenp23 out___5_timedout23 out___5_mapdepth23 out___6_r__23 out___6_keylenp23 out___6_timedout23 out___6_mapdepth23 out___7_r__23 out___7_keylenp23 out___7_timedout23 out___7_mapdepth23 out___8_r__23 out___8_keylenp23 out___8_timedout23 out___8_mapdepth23
-    j'77 !mapdepth25 !keylen21 !i1 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+      j'77 mapdepth24 keylen20 r'164 out___r__23 out___keylenp23 out___timedout23 out___mapdepth23
+    j'77 !mapdepth25 !keylen21 !i1 _ _ _ _ = do
       if (b2i i1 :: Int32) == FAIL
         then pure ((0 :: Int32), keylen21, timedout, mapdepth25)
         else pure ((2 :: Int32), keylen21, timedout, mapdepth25)
-    j'83 !keylen22 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'83 !keylen22 _ _ _ _ = do
       flush_buffers ed' FLUSH_MINIMAL
       pure ((0 :: Int32), keylen22, timedout, (0 :: Int32))
-    j'89 !mapdepth26 !mlen9 !keylen23 !out___r__26 !out___keylenp26 !out___timedout26 !out___mapdepth26 !out___2_r__26 !out___2_keylenp26 !out___2_timedout26 !out___2_mapdepth26 !out___3_r__26 !out___3_keylenp26 !out___3_timedout26 !out___3_mapdepth26 !out___4_r__26 !out___4_keylenp26 !out___4_timedout26 !out___4_mapdepth26 !out___5_r__26 !out___5_keylenp26 !out___5_timedout26 !out___5_mapdepth26 !out___6_r__26 !out___6_keylenp26 !out___6_timedout26 !out___6_mapdepth26 !out___7_r__26 !out___7_keylenp26 !out___7_timedout26 !out___7_mapdepth26 !out___8_r__26 !out___8_keylenp26 !out___8_timedout26 !out___8_mapdepth26 = do
+    j'89 !mapdepth26 !mlen9 !keylen23 !out___r__26 !out___keylenp26 !out___timedout26 !out___mapdepth26 = do
       del_typebuf ed' mlen9 0
       r'165 <- p_paste ed'
       set_option_value_give_err ed' (Ptr "paste\0"#) (b2i (not (r'165 /= 0)) :: Int64) nullPtr 0
@@ -9125,21 +9125,21 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'167 <- c'Rows ed'
           set'msg_row ed' (fromIntegral (r'167 - 1) :: Int32)
           msg_clr_eos ed'
-          j'91 mapdepth26 keylen23 out___r__26 out___keylenp26 out___timedout26 out___mapdepth26 out___2_r__26 out___2_keylenp26 out___2_timedout26 out___2_mapdepth26 out___3_r__26 out___3_keylenp26 out___3_timedout26 out___3_mapdepth26 out___4_r__26 out___4_keylenp26 out___4_timedout26 out___4_mapdepth26 out___5_r__26 out___5_keylenp26 out___5_timedout26 out___5_mapdepth26 out___6_r__26 out___6_keylenp26 out___6_timedout26 out___6_mapdepth26 out___7_r__26 out___7_keylenp26 out___7_timedout26 out___7_mapdepth26 out___8_r__26 out___8_keylenp26 out___8_timedout26 out___8_mapdepth26
-        else j'91 mapdepth26 keylen23 out___r__26 out___keylenp26 out___timedout26 out___mapdepth26 out___2_r__26 out___2_keylenp26 out___2_timedout26 out___2_mapdepth26 out___3_r__26 out___3_keylenp26 out___3_timedout26 out___3_mapdepth26 out___4_r__26 out___4_keylenp26 out___4_timedout26 out___4_mapdepth26 out___5_r__26 out___5_keylenp26 out___5_timedout26 out___5_mapdepth26 out___6_r__26 out___6_keylenp26 out___6_timedout26 out___6_mapdepth26 out___7_r__26 out___7_keylenp26 out___7_timedout26 out___7_mapdepth26 out___8_r__26 out___8_keylenp26 out___8_timedout26 out___8_mapdepth26
-    j'91 !mapdepth27 !keylen24 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+          j'91 mapdepth26 keylen23 out___r__26 out___keylenp26 out___timedout26 out___mapdepth26
+        else j'91 mapdepth26 keylen23 out___r__26 out___keylenp26 out___timedout26 out___mapdepth26
+    j'91 !mapdepth27 !keylen24 _ _ _ _ = do
       status_redraw_all ed'
       redraw_statuslines ed'
       _ <- showmode ed'
       setcursor ed'
       pure ((2 :: Int32), keylen24, timedout, mapdepth27)
-    j'92 !keylenp17 !mapdepth28 !mp25 !mp2'9 !mp_match9 !mp_match_len19 !max_mlen18 !want_termcode16 !tb_c1'10 !keylen25 !local_State10 !is_plug_map10 !in_osc15 !out___r__28 !out___keylenp28 !out___timedout28 !out___mapdepth28 !out___2_r__28 !out___2_keylenp28 !out___2_timedout28 !out___2_mapdepth28 !out___3_r__28 !out___3_keylenp28 !out___3_timedout28 !out___3_mapdepth28 !out___4_r__28 !out___4_keylenp28 !out___4_timedout28 !out___4_mapdepth28 !out___5_r__28 !out___5_keylenp28 !out___5_timedout28 !out___5_mapdepth28 !out___6_r__28 !out___6_keylenp28 !out___6_timedout28 !out___6_mapdepth28 !out___7_r__28 !out___7_keylenp28 !out___7_timedout28 !out___7_mapdepth28 !out___8_r__28 !out___8_keylenp28 !out___8_timedout28 !out___8_mapdepth28 = do
+    j'92 !keylenp17 !mapdepth28 !mp25 !mp2'9 !mp_match9 !mp_match_len19 !max_mlen18 !want_termcode16 !tb_c1'10 !keylen25 !local_State10 !is_plug_map10 !in_osc15 !out___r__28 !out___keylenp28 !out___timedout28 !out___mapdepth28 = do
       r'169 <- rdP mp25 mapblock_T'm_next
       if r'169 == nullPtr
-        then loop'6 keylenp17 mapdepth28 mp2'9 nullPtr mp_match9 mp_match_len19 max_mlen18 want_termcode16 tb_c1'10 keylen25 local_State10 is_plug_map10 in_osc15 out___r__28 out___keylenp28 out___timedout28 out___mapdepth28 out___2_r__28 out___2_keylenp28 out___2_timedout28 out___2_mapdepth28 out___3_r__28 out___3_keylenp28 out___3_timedout28 out___3_mapdepth28 out___4_r__28 out___4_keylenp28 out___4_timedout28 out___4_mapdepth28 out___5_r__28 out___5_keylenp28 out___5_timedout28 out___5_mapdepth28 out___6_r__28 out___6_keylenp28 out___6_timedout28 out___6_mapdepth28 out___7_r__28 out___7_keylenp28 out___7_timedout28 out___7_mapdepth28 out___8_r__28 out___8_keylenp28 out___8_timedout28 out___8_mapdepth28
+        then loop'6 keylenp17 mapdepth28 mp2'9 nullPtr mp_match9 mp_match_len19 max_mlen18 want_termcode16 tb_c1'10 keylen25 local_State10 is_plug_map10 in_osc15 out___r__28 out___keylenp28 out___timedout28 out___mapdepth28
         else do
           r'170 <- rdP mp25 mapblock_T'm_next
-          loop'6 keylenp17 mapdepth28 r'170 mp2'9 mp_match9 mp_match_len19 max_mlen18 want_termcode16 tb_c1'10 keylen25 local_State10 is_plug_map10 in_osc15 out___r__28 out___keylenp28 out___timedout28 out___mapdepth28 out___2_r__28 out___2_keylenp28 out___2_timedout28 out___2_mapdepth28 out___3_r__28 out___3_keylenp28 out___3_timedout28 out___3_mapdepth28 out___4_r__28 out___4_keylenp28 out___4_timedout28 out___4_mapdepth28 out___5_r__28 out___5_keylenp28 out___5_timedout28 out___5_mapdepth28 out___6_r__28 out___6_keylenp28 out___6_timedout28 out___6_mapdepth28 out___7_r__28 out___7_keylenp28 out___7_timedout28 out___7_mapdepth28 out___8_r__28 out___8_keylenp28 out___8_timedout28 out___8_mapdepth28
+          loop'6 keylenp17 mapdepth28 r'170 mp2'9 mp_match9 mp_match_len19 max_mlen18 want_termcode16 tb_c1'10 keylen25 local_State10 is_plug_map10 in_osc15 out___r__28 out___keylenp28 out___timedout28 out___mapdepth28
   r'171 <- get_real_state ed'
   r'172 <- in_osc_sequence ed'
   r'174 <- if (not r'172) then (do { r'173 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; pure (r'173 >= 3) }) else pure False
@@ -9147,8 +9147,8 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
   r'182 <- if r'178 then (do { r'179 <- rdP (addr'typebuf ed') typebuf_T'tb_buf; r'180 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'181 <- rdW8 (pAdd r'179 (fromIntegral (r'180 + 1))) 0; pure ((fromIntegral r'181 :: Int32) == KS_EXTRA) }) else pure False
   r'186 <- if r'182 then (do { r'183 <- rdP (addr'typebuf ed') typebuf_T'tb_buf; r'184 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'185 <- rdW8 (pAdd r'183 (fromIntegral (r'184 + 2))) 0; pure ((fromIntegral r'185 :: Int32) == KE_PLUG) }) else pure False
   if r'186
-    then j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 True r'172 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-    else j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 False r'172 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    then j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 True r'172 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    else j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 False r'172 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 vgetorpeek :: Ed -> Bool -> IO Int32
 vgetorpeek ed' advance = frame 32 $ \fr' -> do
@@ -9812,7 +9812,7 @@ init_highlight ed' both reset = do
 lookup_color :: Ed -> Int32 -> Bool -> Int32 -> IO (Int32, Int32)
 lookup_color ed' idx foreground boldp = do
   let
-    j'6 !boldp1 !color1 !p1 !out___r__1 !out___boldp1 !out___2_r__1 !out___2_boldp1 = do
+    j'6 !boldp1 !color1 !p1 !out___r__1 !out___boldp1 = do
       r'1 <- rdW8 p1 0
       r'6 <- if ((fromIntegral r'1 :: Int32) /= NUL) then (do { r'2 <- t_colors ed'; if (r'2 > 256) then pure True else (do { r'3 <- musl_strlen (castPtr p1); r'4 <- rdW8 (pAdd (pAdd p1 (fromIntegral r'3)) (-1)) 0; pure ((fromIntegral r'4 :: Int32) == (ch 'm')) }) }) else pure False
       if r'6
@@ -9821,21 +9821,21 @@ lookup_color ed' idx foreground boldp = do
           if r'7 == 88
             then do
               r'8 <- rdI32 (pAdd (addr'color_numbers_88 ed') ((fromIntegral idx) * 4)) 0
-              j'17 boldp1 r'8 out___r__1 out___boldp1 out___2_r__1 out___2_boldp1
+              j'17 boldp1 r'8 out___r__1 out___boldp1
             else do
               r'9 <- t_colors ed'
               if r'9 >= 256
                 then do
                   r'10 <- rdI32 (pAdd (addr'color_numbers_256 ed') ((fromIntegral idx) * 4)) 0
-                  j'17 boldp1 r'10 out___r__1 out___boldp1 out___2_r__1 out___2_boldp1
+                  j'17 boldp1 r'10 out___r__1 out___boldp1
                 else do
                   r'11 <- rdI32 (pAdd (addr'color_numbers_8 ed') ((fromIntegral idx) * 4)) 0
-                  j'17 boldp1 r'11 out___r__1 out___boldp1 out___2_r__1 out___2_boldp1
-        else j'17 boldp1 color1 out___r__1 out___boldp1 out___2_r__1 out___2_boldp1
-    j'16 !boldp2 !color2 !out___r__2 !out___boldp2 !out___2_r__2 !out___2_boldp2 = do
+                  j'17 boldp1 r'11 out___r__1 out___boldp1
+        else j'17 boldp1 color1 out___r__1 out___boldp1
+    j'16 !boldp2 !color2 !out___r__2 !out___boldp2 = do
       let !color3 = color2 .&. 7
-      j'17 boldp2 color3 out___r__2 out___boldp2 out___2_r__2 out___2_boldp2
-    j'17 !boldp3 !color4 _ _ _ _ = do
+      j'17 boldp2 color3 out___r__2 out___boldp2
+    j'17 !boldp3 !color4 _ _ = do
       pure (color4, boldp3)
   r'12 <- rdI32 (pAdd (addr'color_numbers_16 ed') ((fromIntegral idx) * 4)) 0
   if r'12 < 0
@@ -9848,9 +9848,9 @@ lookup_color ed' idx foreground boldp = do
           if foreground
             then do
               if (r'14 .&. 8) /= 0
-                then j'16 (TRUE :: Int32) r'14 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-                else j'16 (FALSE :: Int32) r'14 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-            else j'16 boldp r'14 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+                then j'16 (TRUE :: Int32) r'14 (0 :: Int32) (0 :: Int32)
+                else j'16 (FALSE :: Int32) r'14 (0 :: Int32) (0 :: Int32)
+            else j'16 boldp r'14 (0 :: Int32) (0 :: Int32)
         else do
           r'15 <- t_colors ed'
           r'17 <- if (r'15 == 16) then pure True else (do { r'16 <- t_colors ed'; pure (r'16 == 88) })
@@ -9862,11 +9862,11 @@ lookup_color ed' idx foreground boldp = do
               if (fromIntegral r'21 :: Int32) /= NUL
                 then do
                   r'22 <- rdP (addr'term_strings ed') 440
-                  j'6 boldp r'12 r'22 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+                  j'6 boldp r'12 r'22 (0 :: Int32) (0 :: Int32)
                 else do
                   r'23 <- rdP (addr'term_strings ed') 400
-                  j'6 boldp r'12 r'23 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-            else j'17 boldp r'12 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+                  j'6 boldp r'12 r'23 (0 :: Int32) (0 :: Int32)
+            else j'17 boldp r'12 (0 :: Int32) (0 :: Int32)
 
 highlight_group_link :: Ed -> Ptr Char_u -> Int32 -> Ptr Char_u -> Int32 -> Bool -> Bool -> Bool -> IO ()
 highlight_group_link ed' from_hg from_len to_hg to_len dodefault forceit init = do
@@ -11632,21 +11632,21 @@ push_highlight_overrides ed' arr len = do
 parse_winhighlight :: Ed -> Ptr Char_u -> Int32 -> Ptr Int8 -> IO (Ptr Hl_override_T, Int32, Ptr Int8)
 parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
   let
-    loop'2 !len1 !errmsg1 !p1 !i1 !num1 !n_colons1 !out___r__1 !out___len1 !out___errmsg1 !out___2_r__1 !out___2_len1 !out___2_errmsg1 !out___3_r__1 !out___3_len1 !out___3_errmsg1 !out___4_r__1 !out___4_len1 !out___4_errmsg1 !out___5_r__1 !out___5_len1 !out___5_errmsg1 !out___6_r__1 !out___6_len1 !out___6_errmsg1 !out___7_r__1 !out___7_len1 !out___7_errmsg1 !out___8_r__1 !out___8_len1 !out___8_errmsg1 !out___9_r__1 !out___9_len1 !out___9_errmsg1 !out___10_r__1 !out___10_len1 !out___10_errmsg1 !out___11_r__1 !out___11_len1 !out___11_errmsg1 = do
+    loop'2 !len1 !errmsg1 !p1 !i1 !num1 !n_colons1 !out___r__1 !out___len1 !out___errmsg1 = do
       r'1 <- vim_strchr ed' p1 (ch ',')
       if r'1 /= nullPtr
         then do
           let !p2 = pAdd r'1 1
           let !num2 = num1 + 1
-          loop'2 len1 errmsg1 p2 i1 num2 n_colons1 out___r__1 out___len1 out___errmsg1 out___2_r__1 out___2_len1 out___2_errmsg1 out___3_r__1 out___3_len1 out___3_errmsg1 out___4_r__1 out___4_len1 out___4_errmsg1 out___5_r__1 out___5_len1 out___5_errmsg1 out___6_r__1 out___6_len1 out___6_errmsg1 out___7_r__1 out___7_len1 out___7_errmsg1 out___8_r__1 out___8_len1 out___8_errmsg1 out___9_r__1 out___9_len1 out___9_errmsg1 out___10_r__1 out___10_len1 out___10_errmsg1 out___11_r__1 out___11_len1 out___11_errmsg1
-        else loop'4 len1 errmsg1 opt i1 num1 n_colons1 out___r__1 out___len1 out___errmsg1 out___2_r__1 out___2_len1 out___2_errmsg1 out___3_r__1 out___3_len1 out___3_errmsg1 out___4_r__1 out___4_len1 out___4_errmsg1 out___5_r__1 out___5_len1 out___5_errmsg1 out___6_r__1 out___6_len1 out___6_errmsg1 out___7_r__1 out___7_len1 out___7_errmsg1 out___8_r__1 out___8_len1 out___8_errmsg1 out___9_r__1 out___9_len1 out___9_errmsg1 out___10_r__1 out___10_len1 out___10_errmsg1 out___11_r__1 out___11_len1 out___11_errmsg1
-    loop'4 !len2 !errmsg2 !p3 !i2 !num3 !n_colons2 !out___r__2 !out___len2 !out___errmsg2 !out___2_r__2 !out___2_len2 !out___2_errmsg2 !out___3_r__2 !out___3_len2 !out___3_errmsg2 !out___4_r__2 !out___4_len2 !out___4_errmsg2 !out___5_r__2 !out___5_len2 !out___5_errmsg2 !out___6_r__2 !out___6_len2 !out___6_errmsg2 !out___7_r__2 !out___7_len2 !out___7_errmsg2 !out___8_r__2 !out___8_len2 !out___8_errmsg2 !out___9_r__2 !out___9_len2 !out___9_errmsg2 !out___10_r__2 !out___10_len2 !out___10_errmsg2 !out___11_r__2 !out___11_len2 !out___11_errmsg2 = do
+          loop'2 len1 errmsg1 p2 i1 num2 n_colons1 out___r__1 out___len1 out___errmsg1
+        else loop'4 len1 errmsg1 opt i1 num1 n_colons1 out___r__1 out___len1 out___errmsg1
+    loop'4 !len2 !errmsg2 !p3 !i2 !num3 !n_colons2 !out___r__2 !out___len2 !out___errmsg2 = do
       r'2 <- vim_strchr ed' p3 (ch ':')
       if r'2 /= nullPtr
         then do
           let !p4 = pAdd r'2 1
           let !n_colons3 = n_colons2 + 1
-          loop'4 len2 errmsg2 p4 i2 num3 n_colons3 out___r__2 out___len2 out___errmsg2 out___2_r__2 out___2_len2 out___2_errmsg2 out___3_r__2 out___3_len2 out___3_errmsg2 out___4_r__2 out___4_len2 out___4_errmsg2 out___5_r__2 out___5_len2 out___5_errmsg2 out___6_r__2 out___6_len2 out___6_errmsg2 out___7_r__2 out___7_len2 out___7_errmsg2 out___8_r__2 out___8_len2 out___8_errmsg2 out___9_r__2 out___9_len2 out___9_errmsg2 out___10_r__2 out___10_len2 out___10_errmsg2 out___11_r__2 out___11_len2 out___11_errmsg2
+          loop'4 len2 errmsg2 p4 i2 num3 n_colons3 out___r__2 out___len2 out___errmsg2
         else do
           if num3 /= n_colons2
             then do
@@ -11655,8 +11655,8 @@ parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
             else do
               r'3 <- alloc ed' (8 * (fromIntegral num3 :: Word64))
               let !arr1 = castPtr r'3
-              loop'7 len2 errmsg2 opt arr1 i2 num3 out___r__2 out___len2 out___errmsg2 out___2_r__2 out___2_len2 out___2_errmsg2 out___3_r__2 out___3_len2 out___3_errmsg2 out___4_r__2 out___4_len2 out___4_errmsg2 out___5_r__2 out___5_len2 out___5_errmsg2 out___6_r__2 out___6_len2 out___6_errmsg2 out___7_r__2 out___7_len2 out___7_errmsg2 out___8_r__2 out___8_len2 out___8_errmsg2 out___9_r__2 out___9_len2 out___9_errmsg2 out___10_r__2 out___10_len2 out___10_errmsg2 out___11_r__2 out___11_len2 out___11_errmsg2
-    loop'7 !len3 !errmsg4 !p5 !arr2 !i3 !num4 !out___r__3 !out___len3 !out___errmsg3 !out___2_r__3 !out___2_len3 !out___2_errmsg3 !out___3_r__3 !out___3_len3 !out___3_errmsg3 !out___4_r__3 !out___4_len3 !out___4_errmsg3 !out___5_r__3 !out___5_len3 !out___5_errmsg3 !out___6_r__3 !out___6_len3 !out___6_errmsg3 !out___7_r__3 !out___7_len3 !out___7_errmsg3 !out___8_r__3 !out___8_len3 !out___8_errmsg3 !out___9_r__3 !out___9_len3 !out___9_errmsg3 !out___10_r__3 !out___10_len3 !out___10_errmsg3 !out___11_r__3 !out___11_len3 !out___11_errmsg3 = do
+              loop'7 len2 errmsg2 opt arr1 i2 num3 out___r__2 out___len2 out___errmsg2
+    loop'7 !len3 !errmsg4 !p5 !arr2 !i3 !num4 !out___r__3 !out___len3 !out___errmsg3 = do
       let !i4 = i3 + 1
       let !override1 = pAdd arr2 ((fromIntegral i3) * 8)
       wrP fr' 0 p5
@@ -11696,20 +11696,20 @@ parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
                     then do
                       r'9 <- musl_strlen (castPtr p6)
                       wrI32 fr' 36 (fromIntegral r'9 :: Int32)
-                      j'13 len3 errmsg4 p6 arr2 i4 num4 override1 r'8 out___r__3 out___len3 out___errmsg3 out___2_r__3 out___2_len3 out___2_errmsg3 out___3_r__3 out___3_len3 out___3_errmsg3 out___4_r__3 out___4_len3 out___4_errmsg3 out___5_r__3 out___5_len3 out___5_errmsg3 out___6_r__3 out___6_len3 out___6_errmsg3 out___7_r__3 out___7_len3 out___7_errmsg3 out___8_r__3 out___8_len3 out___8_errmsg3 out___9_r__3 out___9_len3 out___9_errmsg3 out___10_r__3 out___10_len3 out___10_errmsg3 out___11_r__3 out___11_len3 out___11_errmsg3
+                      j'13 len3 errmsg4 p6 arr2 i4 num4 override1 r'8 out___r__3 out___len3 out___errmsg3
                     else do
                       r'10 <- rdP fr' 8
                       wrI32 fr' 36 (fromIntegral (fromIntegral (quot (pSub r'8 r'10) 1) :: Int64) :: Int32)
                       let !tmp1 = pAdd r'8 1
-                      j'13 len3 errmsg4 tmp1 arr2 i4 num4 override1 tmp1 out___r__3 out___len3 out___errmsg3 out___2_r__3 out___2_len3 out___2_errmsg3 out___3_r__3 out___3_len3 out___3_errmsg3 out___4_r__3 out___4_len3 out___4_errmsg3 out___5_r__3 out___5_len3 out___5_errmsg3 out___6_r__3 out___6_len3 out___6_errmsg3 out___7_r__3 out___7_len3 out___7_errmsg3 out___8_r__3 out___8_len3 out___8_errmsg3 out___9_r__3 out___9_len3 out___9_errmsg3 out___10_r__3 out___10_len3 out___10_errmsg3 out___11_r__3 out___11_len3 out___11_errmsg3
-    j'13 !len4 !errmsg8 !p7 !arr3 !i5 !num5 !override2 !tmp2 !out___r__4 !out___len4 !out___errmsg4 !out___2_r__4 !out___2_len4 !out___2_errmsg4 !out___3_r__4 !out___3_len4 !out___3_errmsg4 !out___4_r__4 !out___4_len4 !out___4_errmsg4 !out___5_r__4 !out___5_len4 !out___5_errmsg4 !out___6_r__4 !out___6_len4 !out___6_errmsg4 !out___7_r__4 !out___7_len4 !out___7_errmsg4 !out___8_r__4 !out___8_len4 !out___8_errmsg4 !out___9_r__4 !out___9_len4 !out___9_errmsg4 !out___10_r__4 !out___10_len4 !out___10_errmsg4 !out___11_r__4 !out___11_len4 !out___11_errmsg4 = do
+                      j'13 len3 errmsg4 tmp1 arr2 i4 num4 override1 tmp1 out___r__3 out___len3 out___errmsg3
+    j'13 !len4 !errmsg8 !p7 !arr3 !i5 !num5 !override2 !tmp2 !out___r__4 !out___len4 !out___errmsg4 = do
       r'11 <- rdI32 fr' 36
       if r'11 == 0
         then do
           let !errmsg9 = addr'e_invalid_argument ed'
           pure (nullPtr, len4, errmsg9)
-        else loop'15 len4 errmsg8 p7 arr3 i5 num5 override2 tmp2 (0 :: Int32) out___r__4 out___len4 out___errmsg4 out___2_r__4 out___2_len4 out___2_errmsg4 out___3_r__4 out___3_len4 out___3_errmsg4 out___4_r__4 out___4_len4 out___4_errmsg4 out___5_r__4 out___5_len4 out___5_errmsg4 out___6_r__4 out___6_len4 out___6_errmsg4 out___7_r__4 out___7_len4 out___7_errmsg4 out___8_r__4 out___8_len4 out___8_errmsg4 out___9_r__4 out___9_len4 out___9_errmsg4 out___10_r__4 out___10_len4 out___10_errmsg4 out___11_r__4 out___11_len4 out___11_errmsg4
-    loop'15 !len5 !errmsg10 !p8 !arr4 !i6 !num6 !override3 !tmp3 !k1 !out___r__5 !out___len5 !out___errmsg5 !out___2_r__5 !out___2_len5 !out___2_errmsg5 !out___3_r__5 !out___3_len5 !out___3_errmsg5 !out___4_r__5 !out___4_len5 !out___4_errmsg5 !out___5_r__5 !out___5_len5 !out___5_errmsg5 !out___6_r__5 !out___6_len5 !out___6_errmsg5 !out___7_r__5 !out___7_len5 !out___7_errmsg5 !out___8_r__5 !out___8_len5 !out___8_errmsg5 !out___9_r__5 !out___9_len5 !out___9_errmsg5 !out___10_r__5 !out___10_len5 !out___10_errmsg5 !out___11_r__5 !out___11_len5 !out___11_errmsg5 = do
+        else loop'15 len4 errmsg8 p7 arr3 i5 num5 override2 tmp2 (0 :: Int32) out___r__4 out___len4 out___errmsg4
+    loop'15 !len5 !errmsg10 !p8 !arr4 !i6 !num6 !override3 !tmp3 !k1 !out___r__5 !out___len5 !out___errmsg5 = do
       if k1 < 2
         then do
           r'12 <- rdP (pAdd (pAdd fr' 16) ((fromIntegral k1) * 8)) 0
@@ -11723,7 +11723,7 @@ parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
                 then do
                   let !errmsg11 = addr'e_invalid_argument ed'
                   pure (nullPtr, len5, errmsg11)
-                else loop'28 len5 errmsg10 p8 arr4 i6 num6 override3 tmp3 k1 r'13 (0 :: Int32) out___r__5 out___len5 out___errmsg5 out___2_r__5 out___2_len5 out___2_errmsg5 out___3_r__5 out___3_len5 out___3_errmsg5 out___4_r__5 out___4_len5 out___4_errmsg5 out___5_r__5 out___5_len5 out___5_errmsg5 out___6_r__5 out___6_len5 out___6_errmsg5 out___7_r__5 out___7_len5 out___7_errmsg5 out___8_r__5 out___8_len5 out___8_errmsg5 out___9_r__5 out___9_len5 out___9_errmsg5 out___10_r__5 out___10_len5 out___10_errmsg5 out___11_r__5 out___11_len5 out___11_errmsg5
+                else loop'28 len5 errmsg10 p8 arr4 i6 num6 override3 tmp3 k1 r'13 (0 :: Int32) out___r__5 out___len5 out___errmsg5
             else do
               r'17 <- syn_check_group ed' r'13 r'15
               if r'17 == 0
@@ -11747,8 +11747,8 @@ parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
                         then do
                           r'29 <- rdP (pAdd (pAdd fr' 64) ((fromIntegral k1) * 8)) 0
                           wrI32 r'29 0 (-69)
-                          j'33 len5 errmsg10 p8 arr4 i6 num6 override3 tmp3 k1 out___r__5 out___len5 out___errmsg5 out___2_r__5 out___2_len5 out___2_errmsg5 out___3_r__5 out___3_len5 out___3_errmsg5 out___4_r__5 out___4_len5 out___4_errmsg5 out___5_r__5 out___5_len5 out___5_errmsg5 out___6_r__5 out___6_len5 out___6_errmsg5 out___7_r__5 out___7_len5 out___7_errmsg5 out___8_r__5 out___8_len5 out___8_errmsg5 out___9_r__5 out___9_len5 out___9_errmsg5 out___10_r__5 out___10_len5 out___10_errmsg5 out___11_r__5 out___11_len5 out___11_errmsg5
-                        else j'33 len5 errmsg10 p8 arr4 i6 num6 override3 tmp3 k1 out___r__5 out___len5 out___errmsg5 out___2_r__5 out___2_len5 out___2_errmsg5 out___3_r__5 out___3_len5 out___3_errmsg5 out___4_r__5 out___4_len5 out___4_errmsg5 out___5_r__5 out___5_len5 out___5_errmsg5 out___6_r__5 out___6_len5 out___6_errmsg5 out___7_r__5 out___7_len5 out___7_errmsg5 out___8_r__5 out___8_len5 out___8_errmsg5 out___9_r__5 out___9_len5 out___9_errmsg5 out___10_r__5 out___10_len5 out___10_errmsg5 out___11_r__5 out___11_len5 out___11_errmsg5
+                          j'33 len5 errmsg10 p8 arr4 i6 num6 override3 tmp3 k1 out___r__5 out___len5 out___errmsg5
+                        else j'33 len5 errmsg10 p8 arr4 i6 num6 override3 tmp3 k1 out___r__5 out___len5 out___errmsg5
         else do
           r'30 <- rdI32 fr' 56
           wrI32 override3 hl_override_T'from r'30
@@ -11756,19 +11756,19 @@ parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
           wrI32 override3 hl_override_T'to r'31
           if tmp3 == nullPtr
             then pure (arr4, num6, errmsg10)
-            else loop'7 len5 errmsg10 p8 arr4 i6 num6 out___r__5 out___len5 out___errmsg5 out___2_r__5 out___2_len5 out___2_errmsg5 out___3_r__5 out___3_len5 out___3_errmsg5 out___4_r__5 out___4_len5 out___4_errmsg5 out___5_r__5 out___5_len5 out___5_errmsg5 out___6_r__5 out___6_len5 out___6_errmsg5 out___7_r__5 out___7_len5 out___7_errmsg5 out___8_r__5 out___8_len5 out___8_errmsg5 out___9_r__5 out___9_len5 out___9_errmsg5 out___10_r__5 out___10_len5 out___10_errmsg5 out___11_r__5 out___11_len5 out___11_errmsg5
-    loop'28 !len6 !errmsg14 !p9 !arr5 !i7 !num7 !override4 !tmp4 !k2 !name1 !hlf1 !out___r__6 !out___len6 !out___errmsg6 !out___2_r__6 !out___2_len6 !out___2_errmsg6 !out___3_r__6 !out___3_len6 !out___3_errmsg6 !out___4_r__6 !out___4_len6 !out___4_errmsg6 !out___5_r__6 !out___5_len6 !out___5_errmsg6 !out___6_r__6 !out___6_len6 !out___6_errmsg6 !out___7_r__6 !out___7_len6 !out___7_errmsg6 !out___8_r__6 !out___8_len6 !out___8_errmsg6 !out___9_r__6 !out___9_len6 !out___9_errmsg6 !out___10_r__6 !out___10_len6 !out___10_errmsg6 !out___11_r__6 !out___11_len6 !out___11_errmsg6 = do
+            else loop'7 len5 errmsg10 p8 arr4 i6 num6 out___r__5 out___len5 out___errmsg5
+    loop'28 !len6 !errmsg14 !p9 !arr5 !i7 !num7 !override4 !tmp4 !k2 !name1 !hlf1 !out___r__6 !out___len6 !out___errmsg6 = do
       if hlf1 < 70
         then do
           r'32 <- rdI32 (pAdd (addr'hl_flags ed') ((fromIntegral hlf1) * 4)) 0
           r'33 <- rdW8 name1 1
           if r'32 == (fromIntegral r'33 :: Int32)
-            then j'31 len6 errmsg14 p9 arr5 i7 num7 override4 tmp4 k2 hlf1 out___r__6 out___len6 out___errmsg6 out___2_r__6 out___2_len6 out___2_errmsg6 out___3_r__6 out___3_len6 out___3_errmsg6 out___4_r__6 out___4_len6 out___4_errmsg6 out___5_r__6 out___5_len6 out___5_errmsg6 out___6_r__6 out___6_len6 out___6_errmsg6 out___7_r__6 out___7_len6 out___7_errmsg6 out___8_r__6 out___8_len6 out___8_errmsg6 out___9_r__6 out___9_len6 out___9_errmsg6 out___10_r__6 out___10_len6 out___10_errmsg6 out___11_r__6 out___11_len6 out___11_errmsg6
+            then j'31 len6 errmsg14 p9 arr5 i7 num7 override4 tmp4 k2 hlf1 out___r__6 out___len6 out___errmsg6
             else do
               let !hlf2 = hlf1 + 1
-              loop'28 len6 errmsg14 p9 arr5 i7 num7 override4 tmp4 k2 name1 hlf2 out___r__6 out___len6 out___errmsg6 out___2_r__6 out___2_len6 out___2_errmsg6 out___3_r__6 out___3_len6 out___3_errmsg6 out___4_r__6 out___4_len6 out___4_errmsg6 out___5_r__6 out___5_len6 out___5_errmsg6 out___6_r__6 out___6_len6 out___6_errmsg6 out___7_r__6 out___7_len6 out___7_errmsg6 out___8_r__6 out___8_len6 out___8_errmsg6 out___9_r__6 out___9_len6 out___9_errmsg6 out___10_r__6 out___10_len6 out___10_errmsg6 out___11_r__6 out___11_len6 out___11_errmsg6
-        else j'31 len6 errmsg14 p9 arr5 i7 num7 override4 tmp4 k2 hlf1 out___r__6 out___len6 out___errmsg6 out___2_r__6 out___2_len6 out___2_errmsg6 out___3_r__6 out___3_len6 out___3_errmsg6 out___4_r__6 out___4_len6 out___4_errmsg6 out___5_r__6 out___5_len6 out___5_errmsg6 out___6_r__6 out___6_len6 out___6_errmsg6 out___7_r__6 out___7_len6 out___7_errmsg6 out___8_r__6 out___8_len6 out___8_errmsg6 out___9_r__6 out___9_len6 out___9_errmsg6 out___10_r__6 out___10_len6 out___10_errmsg6 out___11_r__6 out___11_len6 out___11_errmsg6
-    j'31 !len7 !errmsg15 !p10 !arr6 !i8 !num8 !override5 !tmp5 !k3 !hlf3 !out___r__7 !out___len7 !out___errmsg7 !out___2_r__7 !out___2_len7 !out___2_errmsg7 !out___3_r__7 !out___3_len7 !out___3_errmsg7 !out___4_r__7 !out___4_len7 !out___4_errmsg7 !out___5_r__7 !out___5_len7 !out___5_errmsg7 !out___6_r__7 !out___6_len7 !out___6_errmsg7 !out___7_r__7 !out___7_len7 !out___7_errmsg7 !out___8_r__7 !out___8_len7 !out___8_errmsg7 !out___9_r__7 !out___9_len7 !out___9_errmsg7 !out___10_r__7 !out___10_len7 !out___10_errmsg7 !out___11_r__7 !out___11_len7 !out___11_errmsg7 = do
+              loop'28 len6 errmsg14 p9 arr5 i7 num7 override4 tmp4 k2 name1 hlf2 out___r__6 out___len6 out___errmsg6
+        else j'31 len6 errmsg14 p9 arr5 i7 num7 override4 tmp4 k2 hlf1 out___r__6 out___len6 out___errmsg6
+    j'31 !len7 !errmsg15 !p10 !arr6 !i8 !num8 !override5 !tmp5 !k3 !hlf3 !out___r__7 !out___len7 !out___errmsg7 = do
       if hlf3 >= HLF_COUNT
         then do
           let !errmsg16 = addr'e_invalid_argument ed'
@@ -11776,14 +11776,14 @@ parse_winhighlight ed' opt len errmsg = frame 80 $ \fr' -> do
         else do
           r'34 <- rdP (pAdd (pAdd fr' 64) ((fromIntegral k3) * 8)) 0
           wrI32 r'34 0 (negate hlf3)
-          j'33 len7 errmsg15 p10 arr6 i8 num8 override5 tmp5 k3 out___r__7 out___len7 out___errmsg7 out___2_r__7 out___2_len7 out___2_errmsg7 out___3_r__7 out___3_len7 out___3_errmsg7 out___4_r__7 out___4_len7 out___4_errmsg7 out___5_r__7 out___5_len7 out___5_errmsg7 out___6_r__7 out___6_len7 out___6_errmsg7 out___7_r__7 out___7_len7 out___7_errmsg7 out___8_r__7 out___8_len7 out___8_errmsg7 out___9_r__7 out___9_len7 out___9_errmsg7 out___10_r__7 out___10_len7 out___10_errmsg7 out___11_r__7 out___11_len7 out___11_errmsg7
-    j'33 !len8 !errmsg17 !p11 !arr7 !i9 !num9 !override6 !tmp6 !k4 !out___r__8 !out___len8 !out___errmsg8 !out___2_r__8 !out___2_len8 !out___2_errmsg8 !out___3_r__8 !out___3_len8 !out___3_errmsg8 !out___4_r__8 !out___4_len8 !out___4_errmsg8 !out___5_r__8 !out___5_len8 !out___5_errmsg8 !out___6_r__8 !out___6_len8 !out___6_errmsg8 !out___7_r__8 !out___7_len8 !out___7_errmsg8 !out___8_r__8 !out___8_len8 !out___8_errmsg8 !out___9_r__8 !out___9_len8 !out___9_errmsg8 !out___10_r__8 !out___10_len8 !out___10_errmsg8 !out___11_r__8 !out___11_len8 !out___11_errmsg8 = do
+          j'33 len7 errmsg15 p10 arr6 i8 num8 override5 tmp5 k3 out___r__7 out___len7 out___errmsg7
+    j'33 !len8 !errmsg17 !p11 !arr7 !i9 !num9 !override6 !tmp6 !k4 !out___r__8 !out___len8 !out___errmsg8 = do
       let !k5 = k4 + 1
-      loop'15 len8 errmsg17 p11 arr7 i9 num9 override6 tmp6 k5 out___r__8 out___len8 out___errmsg8 out___2_r__8 out___2_len8 out___2_errmsg8 out___3_r__8 out___3_len8 out___3_errmsg8 out___4_r__8 out___4_len8 out___4_errmsg8 out___5_r__8 out___5_len8 out___5_errmsg8 out___6_r__8 out___6_len8 out___6_errmsg8 out___7_r__8 out___7_len8 out___7_errmsg8 out___8_r__8 out___8_len8 out___8_errmsg8 out___9_r__8 out___9_len8 out___9_errmsg8 out___10_r__8 out___10_len8 out___10_errmsg8 out___11_r__8 out___11_len8 out___11_errmsg8
+      loop'15 len8 errmsg17 p11 arr7 i9 num9 override6 tmp6 k5 out___r__8 out___len8 out___errmsg8
   r'35 <- rdW8 opt 0
   if (fromIntegral r'35 :: Int32) == NUL
     then pure (nullPtr, len, errmsg)
-    else loop'2 len errmsg opt (0 :: Int32) (1 :: Int32) (0 :: Int32) nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr nullPtr (0 :: Int32) nullPtr
+    else loop'2 len errmsg opt (0 :: Int32) (1 :: Int32) (0 :: Int32) nullPtr (0 :: Int32) nullPtr
 
 update_winhighlight :: Ed -> Ptr Win_T -> Ptr Char_u -> IO (Ptr Int8)
 update_winhighlight ed' wp opt = do
@@ -17028,10 +17028,10 @@ special_to_buf key modifiers escape_ks dst = do
 find_special_key :: Ed -> Ptr (Ptr Char_u) -> Int32 -> Int32 -> Ptr Int32 -> IO (Int32, Int32)
 find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
   let
-    j'3 !modp1 !src1 !in_string1 !l1 !out___r__1 !out___modp1 !out___2_r__1 !out___2_modp1 !out___3_r__1 !out___3_modp1 !out___4_r__1 !out___4_modp1 !out___5_r__1 !out___5_modp1 = do
+    j'3 !modp1 !src1 !in_string1 !l1 !out___r__1 !out___modp1 = do
       let !bp1 = pAdd src1 1
-      loop'4 modp1 src1 src1 bp1 in_string1 l1 out___r__1 out___modp1 out___2_r__1 out___2_modp1 out___3_r__1 out___3_modp1 out___4_r__1 out___4_modp1 out___5_r__1 out___5_modp1
-    loop'4 !modp2 !last_dash1 !src2 !bp2 !in_string2 !l2 !out___r__2 !out___modp2 !out___2_r__2 !out___2_modp2 !out___3_r__2 !out___3_modp2 !out___4_r__2 !out___4_modp2 !out___5_r__2 !out___5_modp2 = do
+      loop'4 modp1 src1 src1 bp1 in_string1 l1 out___r__1 out___modp1
+    loop'4 !modp2 !last_dash1 !src2 !bp2 !in_string2 !l2 !out___r__2 !out___modp2 = do
       r'1 <- rdW8 bp2 0
       r'4 <- if ((fromIntegral r'1 :: Int32) == (ch '-')) then pure True else (do { r'2 <- rdW8 bp2 0; let { !r'3 = vim_isNormalIDc (fromIntegral r'2 :: Int32) }; pure r'3 })
       if r'4
@@ -17048,7 +17048,7 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
                   if r'11
                     then do
                       let !bp3 = pAdd bp2 (fromIntegral r'7)
-                      j'11 modp2 bp2 src2 bp3 in_string2 r'7 out___r__2 out___modp2 out___2_r__2 out___2_modp2 out___3_r__2 out___3_modp2 out___4_r__2 out___4_modp2 out___5_r__2 out___5_modp2
+                      j'11 modp2 bp2 src2 bp3 in_string2 r'7 out___r__2 out___modp2
                     else do
                       r'13 <- if (in_string2 /= 0) then (do { r'12 <- rdW8 bp2 1; pure ((fromIntegral r'12 :: Int32) == (ch '\\')) }) else pure False
                       r'15 <- if r'13 then (do { r'14 <- rdW8 bp2 2; pure ((fromIntegral r'14 :: Int32) == (ch '"')) }) else pure False
@@ -17056,12 +17056,12 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
                       if r'17
                         then do
                           let !bp4 = pAdd bp2 2
-                          j'11 modp2 bp2 src2 bp4 in_string2 r'7 out___r__2 out___modp2 out___2_r__2 out___2_modp2 out___3_r__2 out___3_modp2 out___4_r__2 out___4_modp2 out___5_r__2 out___5_modp2
-                        else j'11 modp2 bp2 src2 bp2 in_string2 r'7 out___r__2 out___modp2 out___2_r__2 out___2_modp2 out___3_r__2 out___3_modp2 out___4_r__2 out___4_modp2 out___5_r__2 out___5_modp2
-                else j'11 modp2 bp2 src2 bp2 in_string2 l2 out___r__2 out___modp2 out___2_r__2 out___2_modp2 out___3_r__2 out___3_modp2 out___4_r__2 out___4_modp2 out___5_r__2 out___5_modp2
-            else j'11 modp2 last_dash1 src2 bp2 in_string2 l2 out___r__2 out___modp2 out___2_r__2 out___2_modp2 out___3_r__2 out___3_modp2 out___4_r__2 out___4_modp2 out___5_r__2 out___5_modp2
-        else j'15 modp2 last_dash1 src2 bp2 in_string2 l2 out___r__2 out___modp2 out___2_r__2 out___2_modp2 out___3_r__2 out___3_modp2 out___4_r__2 out___4_modp2 out___5_r__2 out___5_modp2
-    j'11 !modp3 !last_dash2 !src3 !bp5 !in_string3 !l3 !out___r__3 !out___modp3 !out___2_r__3 !out___2_modp3 !out___3_r__3 !out___3_modp3 !out___4_r__3 !out___4_modp3 !out___5_r__3 !out___5_modp3 = do
+                          j'11 modp2 bp2 src2 bp4 in_string2 r'7 out___r__2 out___modp2
+                        else j'11 modp2 bp2 src2 bp2 in_string2 r'7 out___r__2 out___modp2
+                else j'11 modp2 bp2 src2 bp2 in_string2 l2 out___r__2 out___modp2
+            else j'11 modp2 last_dash1 src2 bp2 in_string2 l2 out___r__2 out___modp2
+        else j'15 modp2 last_dash1 src2 bp2 in_string2 l2 out___r__2 out___modp2
+    j'11 !modp3 !last_dash2 !src3 !bp5 !in_string3 !l3 !out___r__3 !out___modp3 = do
       r'18 <- rdW8 bp5 0
       r'20 <- if ((fromIntegral r'18 :: Int32) == (ch 't')) then (do { r'19 <- rdW8 bp5 1; pure ((fromIntegral r'19 :: Int32) == (ch '_')) }) else pure False
       r'22 <- if r'20 then (do { r'21 <- rdW8 bp5 2; pure (r'21 /= 0) }) else pure False
@@ -17069,7 +17069,7 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
       if r'24
         then do
           let !bp6 = pAdd bp5 3
-          j'50 modp3 last_dash2 src3 bp6 in_string3 l3 out___r__3 out___modp3 out___2_r__3 out___2_modp3 out___3_r__3 out___3_modp3 out___4_r__3 out___4_modp3 out___5_r__3 out___5_modp3
+          j'50 modp3 last_dash2 src3 bp6 in_string3 l3 out___r__3 out___modp3
         else do
           r'25 <- musl_strncasecmp (castPtr bp5) (Ptr "char-\0"#) 5
           if r'25 == 0
@@ -17082,18 +17082,18 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
                   pure ((0 :: Int32), modp3)
                 else do
                   let !bp7 = pAdd bp5 (fromIntegral (r'26 + 5))
-                  j'15 modp3 last_dash2 src3 bp7 in_string3 r'26 out___r__3 out___modp3 out___2_r__3 out___2_modp3 out___3_r__3 out___3_modp3 out___4_r__3 out___4_modp3 out___5_r__3 out___5_modp3
-            else j'50 modp3 last_dash2 src3 bp5 in_string3 l3 out___r__3 out___modp3 out___2_r__3 out___2_modp3 out___3_r__3 out___3_modp3 out___4_r__3 out___4_modp3 out___5_r__3 out___5_modp3
-    j'15 !modp4 !last_dash3 !src4 !bp8 !in_string4 !l4 !out___r__4 !out___modp4 !out___2_r__4 !out___2_modp4 !out___3_r__4 !out___3_modp4 !out___4_r__4 !out___4_modp4 !out___5_r__4 !out___5_modp4 = do
+                  j'15 modp3 last_dash2 src3 bp7 in_string3 r'26 out___r__3 out___modp3
+            else j'50 modp3 last_dash2 src3 bp5 in_string3 l3 out___r__3 out___modp3
+    j'15 !modp4 !last_dash3 !src4 !bp8 !in_string4 !l4 !out___r__4 !out___modp4 = do
       r'29 <- rdW8 bp8 0
       if (fromIntegral r'29 :: Int32) == (ch '>')
         then do
           let !end_of_name1 = pAdd bp8 1
           wrI32 fr' 0 0
           let !bp9 = pAdd src4 1
-          loop'17 modp4 last_dash3 end_of_name1 bp9 in_string4 l4 out___r__4 out___modp4 out___2_r__4 out___2_modp4 out___3_r__4 out___3_modp4 out___4_r__4 out___4_modp4 out___5_r__4 out___5_modp4
-        else j'33 modp4 out___r__4 out___modp4 out___2_r__4 out___2_modp4 out___3_r__4 out___3_modp4 out___4_r__4 out___4_modp4 out___5_r__4 out___5_modp4
-    loop'17 !modp5 !last_dash4 !end_of_name2 !bp10 !in_string5 !l5 !out___r__5 !out___modp5 !out___2_r__5 !out___2_modp5 !out___3_r__5 !out___3_modp5 !out___4_r__5 !out___4_modp5 !out___5_r__5 !out___5_modp5 = do
+          loop'17 modp4 last_dash3 end_of_name1 bp9 in_string4 l4 out___r__4 out___modp4
+        else j'33 modp4 out___r__4 out___modp4
+    loop'17 !modp5 !last_dash4 !end_of_name2 !bp10 !in_string5 !l5 !out___r__5 !out___modp5 = do
       if bp10 < last_dash4
         then do
           r'30 <- rdW8 bp10 0
@@ -17102,17 +17102,17 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
               r'31 <- rdW8 bp10 0
               r'32 <- name_to_mod_mask ed' (fromIntegral r'31 :: Int32)
               if r'32 == 0
-                then j'22 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5 out___2_r__5 out___2_modp5 out___3_r__5 out___3_modp5 out___4_r__5 out___4_modp5 out___5_r__5 out___5_modp5
+                then j'22 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5
                 else do
                   r'33 <- rdI32 fr' 0
                   wrI32 fr' 0 (r'33 .|. r'32)
-                  j'21 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5 out___2_r__5 out___2_modp5 out___3_r__5 out___3_modp5 out___4_r__5 out___4_modp5 out___5_r__5 out___5_modp5
-            else j'21 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5 out___2_r__5 out___2_modp5 out___3_r__5 out___3_modp5 out___4_r__5 out___4_modp5 out___5_r__5 out___5_modp5
-        else j'22 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5 out___2_r__5 out___2_modp5 out___3_r__5 out___3_modp5 out___4_r__5 out___4_modp5 out___5_r__5 out___5_modp5
-    j'21 !modp6 !last_dash5 !end_of_name3 !bp11 !in_string6 !l6 !out___r__6 !out___modp6 !out___2_r__6 !out___2_modp6 !out___3_r__6 !out___3_modp6 !out___4_r__6 !out___4_modp6 !out___5_r__6 !out___5_modp6 = do
+                  j'21 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5
+            else j'21 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5
+        else j'22 modp5 last_dash4 end_of_name2 bp10 in_string5 l5 out___r__5 out___modp5
+    j'21 !modp6 !last_dash5 !end_of_name3 !bp11 !in_string6 !l6 !out___r__6 !out___modp6 = do
       let !bp12 = pAdd bp11 1
-      loop'17 modp6 last_dash5 end_of_name3 bp12 in_string6 l6 out___r__6 out___modp6 out___2_r__6 out___2_modp6 out___3_r__6 out___3_modp6 out___4_r__6 out___4_modp6 out___5_r__6 out___5_modp6
-    j'22 !modp7 !last_dash6 !end_of_name4 !bp13 !in_string7 !l7 !out___r__7 !out___modp7 !out___2_r__7 !out___2_modp7 !out___3_r__7 !out___3_modp7 !out___4_r__7 !out___4_modp7 !out___5_r__7 !out___5_modp7 = do
+      loop'17 modp6 last_dash5 end_of_name3 bp12 in_string6 l6 out___r__6 out___modp6
+    j'22 !modp7 !last_dash6 !end_of_name4 !bp13 !in_string7 !l7 !out___r__7 !out___modp7 = do
       if bp13 >= last_dash6
         then do
           r'34 <- musl_strncasecmp (pAdd last_dash6 1) (Ptr "char-\0"#) 5
@@ -17128,41 +17128,41 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
                 else do
                   r'40 <- rdW64 fr' 8
                   let !key1 = fromIntegral r'40 :: Int32
-                  j'32 modp7 end_of_name4 key1 out___r__7 out___modp7 out___2_r__7 out___2_modp7 out___3_r__7 out___3_modp7 out___4_r__7 out___4_modp7 out___5_r__7 out___5_modp7
+                  j'32 modp7 end_of_name4 key1 out___r__7 out___modp7
             else do
               r'42 <- if (in_string7 /= 0) then (do { r'41 <- rdW8 last_dash6 1; pure ((fromIntegral r'41 :: Int32) == (ch '\\')) }) else pure False
               r'44 <- if r'42 then (do { r'43 <- rdW8 last_dash6 2; pure ((fromIntegral r'43 :: Int32) == (ch '"')) }) else pure False
               if r'44
-                then j'26 modp7 last_dash6 end_of_name4 (2 :: Int32) out___r__7 out___modp7 out___2_r__7 out___2_modp7 out___3_r__7 out___3_modp7 out___4_r__7 out___4_modp7 out___5_r__7 out___5_modp7
-                else j'26 modp7 last_dash6 end_of_name4 (1 :: Int32) out___r__7 out___modp7 out___2_r__7 out___2_modp7 out___3_r__7 out___3_modp7 out___4_r__7 out___4_modp7 out___5_r__7 out___5_modp7
-        else j'33 modp7 out___r__7 out___modp7 out___2_r__7 out___2_modp7 out___3_r__7 out___3_modp7 out___4_r__7 out___4_modp7 out___5_r__7 out___5_modp7
-    j'26 !modp8 !last_dash7 !end_of_name5 !off1 !out___r__8 !out___modp8 !out___2_r__8 !out___2_modp8 !out___3_r__8 !out___3_modp8 !out___4_r__8 !out___4_modp8 !out___5_r__8 !out___5_modp8 = do
+                then j'26 modp7 last_dash6 end_of_name4 (2 :: Int32) out___r__7 out___modp7
+                else j'26 modp7 last_dash6 end_of_name4 (1 :: Int32) out___r__7 out___modp7
+        else j'33 modp7 out___r__7 out___modp7
+    j'26 !modp8 !last_dash7 !end_of_name5 !off1 !out___r__8 !out___modp8 = do
       r'45 <- utfc_ptr2len ed' (pAdd last_dash7 (fromIntegral off1))
       r'46 <- rdI32 fr' 0
       r'48 <- if (r'46 /= 0) then (do { r'47 <- rdW8 (pAdd last_dash7 (fromIntegral (r'45 + off1))) 0; pure ((fromIntegral r'47 :: Int32) == (ch '>')) }) else pure False
       if r'48
         then do
           r'49 <- utf_ptr2char ed' (pAdd last_dash7 (fromIntegral off1))
-          j'32 modp8 end_of_name5 r'49 out___r__8 out___modp8 out___2_r__8 out___2_modp8 out___3_r__8 out___3_modp8 out___4_r__8 out___4_modp8 out___5_r__8 out___5_modp8
+          j'32 modp8 end_of_name5 r'49 out___r__8 out___modp8
         else do
           r'50 <- get_special_key_code ed' (pAdd last_dash7 (fromIntegral off1))
           if not ((flags .&. FSK_KEEP_X_KEY) /= 0)
             then do
               let !r'51 = handle_x_keys r'50
-              j'32 modp8 end_of_name5 r'51 out___r__8 out___modp8 out___2_r__8 out___2_modp8 out___3_r__8 out___3_modp8 out___4_r__8 out___4_modp8 out___5_r__8 out___5_modp8
-            else j'32 modp8 end_of_name5 r'50 out___r__8 out___modp8 out___2_r__8 out___2_modp8 out___3_r__8 out___3_modp8 out___4_r__8 out___4_modp8 out___5_r__8 out___5_modp8
-    j'32 !modp9 !end_of_name6 !key2 !out___r__9 !out___modp9 !out___2_r__9 !out___2_modp9 !out___3_r__9 !out___3_modp9 !out___4_r__9 !out___4_modp9 !out___5_r__9 !out___5_modp9 = do
+              j'32 modp8 end_of_name5 r'51 out___r__8 out___modp8
+            else j'32 modp8 end_of_name5 r'50 out___r__8 out___modp8
+    j'32 !modp9 !end_of_name6 !key2 !out___r__9 !out___modp9 = do
       if key2 /= NUL
         then do
           r'52 <- simplify_key ed' key2 fr'
           if (flags .&. FSK_KEYCODE) == 0
             then do
               if r'52 == K_BS
-                then j'44 end_of_name6 (BS :: Int32) out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
+                then j'44 end_of_name6 (BS :: Int32) out___r__9 out___modp9
                 else do
                   if (r'52 == K_DEL) || (r'52 == K_KDEL)
-                    then j'44 end_of_name6 (DEL :: Int32) out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
-                    else j'44 end_of_name6 r'52 out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
+                    then j'44 end_of_name6 (DEL :: Int32) out___r__9 out___modp9
+                    else j'44 end_of_name6 r'52 out___r__9 out___modp9
             else do
               r'56 <- if ((r'52 == 27) && ((flags .&. FSK_FROM_PART) /= 0)) then (do { r'53 <- kitty_protocol_state ed'; if (r'53 == KKPS_ENABLED) then pure True else (do { r'54 <- kitty_protocol_state ed'; pure (r'54 == KKPS_DISABLED) }) }) else pure False
               if r'56
@@ -17172,26 +17172,26 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
                       if did_simplify /= nullPtr
                         then do
                           wrI32 did_simplify 0 TRUE
-                          j'44 end_of_name6 r'52 out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
-                        else j'44 end_of_name6 r'52 out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
-                    else j'44 end_of_name6 (K_ESC :: Int32) out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
-                else j'44 end_of_name6 r'52 out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
-        else j'33 modp9 out___r__9 out___modp9 out___2_r__9 out___2_modp9 out___3_r__9 out___3_modp9 out___4_r__9 out___4_modp9 out___5_r__9 out___5_modp9
-    j'33 !modp10 _ _ _ _ _ _ _ _ _ _ = do
+                          j'44 end_of_name6 r'52 out___r__9 out___modp9
+                        else j'44 end_of_name6 r'52 out___r__9 out___modp9
+                    else j'44 end_of_name6 (K_ESC :: Int32) out___r__9 out___modp9
+                else j'44 end_of_name6 r'52 out___r__9 out___modp9
+        else j'33 modp9 out___r__9 out___modp9
+    j'33 !modp10 _ _ = do
       pure ((0 :: Int32), modp10)
-    j'44 !end_of_name7 !key3 !out___r__11 !out___modp11 !out___2_r__11 !out___2_modp11 !out___3_r__11 !out___3_modp11 !out___4_r__11 !out___4_modp11 !out___5_r__11 !out___5_modp11 = do
+    j'44 !end_of_name7 !key3 !out___r__11 !out___modp11 = do
       if not (key3 < 0)
         then do
           r'57 <- extract_modifiers key3 fr' (flags .&. FSK_SIMPLIFY) did_simplify
-          j'46 end_of_name7 r'57 out___r__11 out___modp11 out___2_r__11 out___2_modp11 out___3_r__11 out___3_modp11 out___4_r__11 out___4_modp11 out___5_r__11 out___5_modp11
-        else j'46 end_of_name7 key3 out___r__11 out___modp11 out___2_r__11 out___2_modp11 out___3_r__11 out___3_modp11 out___4_r__11 out___4_modp11 out___5_r__11 out___5_modp11
-    j'46 !end_of_name8 !key4 _ _ _ _ _ _ _ _ _ _ = do
+          j'46 end_of_name7 r'57 out___r__11 out___modp11
+        else j'46 end_of_name7 key3 out___r__11 out___modp11
+    j'46 !end_of_name8 !key4 _ _ = do
       r'58 <- rdI32 fr' 0
       wrP srcp 0 end_of_name8
       pure (key4, r'58)
-    j'50 !modp11 !last_dash8 !src5 !bp14 !in_string8 !l8 !out___r__13 !out___modp13 !out___2_r__13 !out___2_modp13 !out___3_r__13 !out___3_modp13 !out___4_r__13 !out___4_modp13 !out___5_r__13 !out___5_modp13 = do
+    j'50 !modp11 !last_dash8 !src5 !bp14 !in_string8 !l8 !out___r__13 !out___modp13 = do
       let !bp15 = pAdd bp14 1
-      loop'4 modp11 last_dash8 src5 bp15 in_string8 l8 out___r__13 out___modp13 out___2_r__13 out___2_modp13 out___3_r__13 out___3_modp13 out___4_r__13 out___4_modp13 out___5_r__13 out___5_modp13
+      loop'4 modp11 last_dash8 src5 bp15 in_string8 l8 out___r__13 out___modp13
   let !in_string9 = flags .&. FSK_IN_STRING
   r'59 <- rdP srcp 0
   r'60 <- rdW8 r'59 0
@@ -17202,8 +17202,8 @@ find_special_key ed' srcp modp flags did_simplify = frame 16 $ \fr' -> do
       if (fromIntegral r'61 :: Int32) == (ch '*')
         then do
           let !src6 = pAdd r'59 1
-          j'3 modp src6 in_string9 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-        else j'3 modp r'59 in_string9 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+          j'3 modp src6 in_string9 (0 :: Int32) (0 :: Int32) (0 :: Int32)
+        else j'3 modp r'59 in_string9 (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 get_special_key_code :: Ed -> Ptr Char_u -> IO Int32
 get_special_key_code ed' name = frame 40 $ \fr' -> do
@@ -20926,7 +20926,7 @@ skip_regexp_ex ed' startp dirc magic newp dropped magic_val = do
 read_limits :: Ed -> IO (Int32, Int64, Int64)
 read_limits ed' = do
   let
-    j'2 !reverse1 !out___r__1 !out___minval1 !out___maxval1 !out___2_r__1 !out___2_minval1 !out___2_maxval1 = do
+    j'2 !reverse1 !out___r__1 !out___minval1 !out___maxval1 = do
       r'1 <- regparse ed'
       r'2 <- getdigits (addr'regparse ed')
       r'3 <- regparse ed'
@@ -20941,23 +20941,23 @@ read_limits ed' = do
           if r'8
             then do
               r'9 <- getdigits (addr'regparse ed')
-              j'9 r'2 r'9 reverse1 out___r__1 out___minval1 out___maxval1 out___2_r__1 out___2_minval1 out___2_maxval1
-            else j'9 r'2 (2147418112 :: Int64) reverse1 out___r__1 out___minval1 out___maxval1 out___2_r__1 out___2_minval1 out___2_maxval1
+              j'9 r'2 r'9 reverse1 out___r__1 out___minval1 out___maxval1
+            else j'9 r'2 (2147418112 :: Int64) reverse1 out___r__1 out___minval1 out___maxval1
         else do
           r'10 <- rdW8 r'1 0
           if ((fromIntegral r'10 :: Word32) - (ch '0')) < 10
-            then j'9 r'2 r'2 reverse1 out___r__1 out___minval1 out___maxval1 out___2_r__1 out___2_minval1 out___2_maxval1
-            else j'9 r'2 (2147418112 :: Int64) reverse1 out___r__1 out___minval1 out___maxval1 out___2_r__1 out___2_minval1 out___2_maxval1
-    j'9 !minval1 !maxval1 !reverse2 !out___r__2 !out___minval2 !out___maxval2 !out___2_r__2 !out___2_minval2 !out___2_maxval2 = do
+            then j'9 r'2 r'2 reverse1 out___r__1 out___minval1 out___maxval1
+            else j'9 r'2 (2147418112 :: Int64) reverse1 out___r__1 out___minval1 out___maxval1
+    j'9 !minval1 !maxval1 !reverse2 !out___r__2 !out___minval2 !out___maxval2 = do
       r'11 <- regparse ed'
       r'12 <- rdW8 r'11 0
       if (fromIntegral r'12 :: Int32) == (ch '\\')
         then do
           r'13 <- regparse ed'
           set'regparse ed' (pAdd r'13 1)
-          j'11 minval1 maxval1 reverse2 out___r__2 out___minval2 out___maxval2 out___2_r__2 out___2_minval2 out___2_maxval2
-        else j'11 minval1 maxval1 reverse2 out___r__2 out___minval2 out___maxval2 out___2_r__2 out___2_minval2 out___2_maxval2
-    j'11 !minval2 !maxval2 !reverse3 !out___r__3 !out___minval3 !out___maxval3 !out___2_r__3 !out___2_minval3 !out___2_maxval3 = do
+          j'11 minval1 maxval1 reverse2 out___r__2 out___minval2 out___maxval2
+        else j'11 minval1 maxval1 reverse2 out___r__2 out___minval2 out___maxval2
+    j'11 !minval2 !maxval2 !reverse3 !out___r__3 !out___minval3 !out___maxval3 = do
       r'14 <- regparse ed'
       r'15 <- rdW8 r'14 0
       if (fromIntegral r'15 :: Int32) /= (ch '}')
@@ -20974,9 +20974,9 @@ read_limits ed' = do
           pure ((FAIL :: Int32), minval2, maxval2)
         else do
           if ((not reverse3) && (minval2 > maxval2)) || (reverse3 && (minval2 < maxval2))
-            then j'14 maxval2 minval2 out___r__3 out___minval3 out___maxval3 out___2_r__3 out___2_minval3 out___2_maxval3
-            else j'14 minval2 maxval2 out___r__3 out___minval3 out___maxval3 out___2_r__3 out___2_minval3 out___2_maxval3
-    j'14 !minval3 !maxval3 _ _ _ _ _ _ = do
+            then j'14 maxval2 minval2 out___r__3 out___minval3 out___maxval3
+            else j'14 minval2 maxval2 out___r__3 out___minval3 out___maxval3
+    j'14 !minval3 !maxval3 _ _ _ = do
       skipchr ed'
       pure ((OK :: Int32), minval3, maxval3)
   r'24 <- regparse ed'
@@ -20985,8 +20985,8 @@ read_limits ed' = do
     then do
       r'26 <- regparse ed'
       set'regparse ed' (pAdd r'26 1)
-      j'2 True (0 :: Int32) (0 :: Int64) (0 :: Int64) (0 :: Int32) (0 :: Int64) (0 :: Int64)
-    else j'2 False (0 :: Int32) (0 :: Int64) (0 :: Int64) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+      j'2 True (0 :: Int32) (0 :: Int64) (0 :: Int64)
+    else j'2 False (0 :: Int32) (0 :: Int64) (0 :: Int64)
 
 reg_getline_common :: Ed -> Ptr Regengine_T -> Linenr_T -> Reg_getline_flags_T -> Ptr (Ptr Char_u) -> Ptr Colnr_T -> IO ()
 reg_getline_common ed' re lnum flags line length = do
@@ -21245,7 +21245,7 @@ reg_nextline ed' re = do
 match_with_backref :: Ed -> Ptr Regengine_T -> Linenr_T -> Colnr_T -> Linenr_T -> Colnr_T -> Int32 -> IO (Int32, Int32)
 match_with_backref ed' re start_lnum start_col end_lnum end_col bytelen = do
   let
-    loop'3 !bytelen1 !clnum1 !ccol1 !cstrncmp__o_r__1 !cstrncmp__o_n1 !out___r__1 !out___bytelen1 !out___2_r__1 !out___2_bytelen1 !out___3_r__1 !out___3_bytelen1 !out___4_r__1 !out___4_bytelen1 = do
+    loop'3 !bytelen1 !clnum1 !ccol1 !out___r__1 !out___bytelen1 !cstrncmp__o_r__1 !cstrncmp__o_n1 = do
       r'1 <- rdP re (regengine_T'rex + regexec_T'line)
       r'2 <- rdP re regengine_T'reg_tofree
       if r'1 /= r'2
@@ -21261,10 +21261,10 @@ match_with_backref ed' re start_lnum start_col end_lnum end_col bytelen = do
               r'8 <- alloc ed' (fromIntegral len2 :: Word64)
               wrP re regengine_T'reg_tofree (castPtr r'8)
               wrW32 re regengine_T'reg_tofreelen (fromIntegral len2 :: Word32)
-              j'6 bytelen1 clnum1 ccol1 cstrncmp__o_r__1 cstrncmp__o_n1 out___r__1 out___bytelen1 out___2_r__1 out___2_bytelen1 out___3_r__1 out___3_bytelen1 out___4_r__1 out___4_bytelen1
-            else j'6 bytelen1 clnum1 ccol1 cstrncmp__o_r__1 cstrncmp__o_n1 out___r__1 out___bytelen1 out___2_r__1 out___2_bytelen1 out___3_r__1 out___3_bytelen1 out___4_r__1 out___4_bytelen1
-        else j'7 bytelen1 clnum1 ccol1 cstrncmp__o_r__1 cstrncmp__o_n1 out___r__1 out___bytelen1 out___2_r__1 out___2_bytelen1 out___3_r__1 out___3_bytelen1 out___4_r__1 out___4_bytelen1
-    j'6 !bytelen2 !clnum2 !ccol2 !cstrncmp__o_r__2 !cstrncmp__o_n2 !out___r__2 !out___bytelen2 !out___2_r__2 !out___2_bytelen2 !out___3_r__2 !out___3_bytelen2 !out___4_r__2 !out___4_bytelen2 = do
+              j'6 bytelen1 clnum1 ccol1 out___r__1 out___bytelen1 cstrncmp__o_r__1 cstrncmp__o_n1
+            else j'6 bytelen1 clnum1 ccol1 out___r__1 out___bytelen1 cstrncmp__o_r__1 cstrncmp__o_n1
+        else j'7 bytelen1 clnum1 ccol1 out___r__1 out___bytelen1 cstrncmp__o_r__1 cstrncmp__o_n1
+    j'6 !bytelen2 !clnum2 !ccol2 !out___r__2 !out___bytelen2 !cstrncmp__o_r__2 !cstrncmp__o_n2 = do
       r'9 <- rdP re regengine_T'reg_tofree
       r'10 <- rdP re (regengine_T'rex + regexec_T'line)
       _ <- musl_strcpy (castPtr r'9) (castPtr r'10)
@@ -21274,18 +21274,18 @@ match_with_backref ed' re start_lnum start_col end_lnum end_col bytelen = do
       wrP re (regengine_T'rex + regexec_T'input) (pAdd r'12 (fromIntegral (fromIntegral (quot (pSub r'13 r'14) 1) :: Int64)))
       r'15 <- rdP re regengine_T'reg_tofree
       wrP re (regengine_T'rex + regexec_T'line) r'15
-      j'7 bytelen2 clnum2 ccol2 cstrncmp__o_r__2 cstrncmp__o_n2 out___r__2 out___bytelen2 out___2_r__2 out___2_bytelen2 out___3_r__2 out___3_bytelen2 out___4_r__2 out___4_bytelen2
-    j'7 !bytelen3 !clnum3 !ccol3 !cstrncmp__o_r__3 !cstrncmp__o_n3 !out___r__3 !out___bytelen3 !out___2_r__3 !out___2_bytelen3 !out___3_r__3 !out___3_bytelen3 !out___4_r__3 !out___4_bytelen3 = do
+      j'7 bytelen2 clnum2 ccol2 out___r__2 out___bytelen2 cstrncmp__o_r__2 cstrncmp__o_n2
+    j'7 !bytelen3 !clnum3 !ccol3 !out___r__3 !out___bytelen3 !cstrncmp__o_r__3 !cstrncmp__o_n3 = do
       r'16 <- reg_getline ed' re clnum3
       if clnum3 == end_lnum
         then do
           let !len3 = end_col - ccol3
-          j'10 bytelen3 clnum3 ccol3 len3 r'16 cstrncmp__o_r__3 cstrncmp__o_n3 out___r__3 out___bytelen3 out___2_r__3 out___2_bytelen3 out___3_r__3 out___3_bytelen3 out___4_r__3 out___4_bytelen3
+          j'10 bytelen3 clnum3 ccol3 len3 r'16 out___r__3 out___bytelen3 cstrncmp__o_r__3 cstrncmp__o_n3
         else do
           r'17 <- reg_getline_len ed' re clnum3
           let !len4 = r'17 - ccol3
-          j'10 bytelen3 clnum3 ccol3 len4 r'16 cstrncmp__o_r__3 cstrncmp__o_n3 out___r__3 out___bytelen3 out___2_r__3 out___2_bytelen3 out___3_r__3 out___3_bytelen3 out___4_r__3 out___4_bytelen3
-    j'10 !bytelen4 !clnum4 !ccol4 !len5 !p1 !cstrncmp__o_r__4 !cstrncmp__o_n4 !out___r__4 !out___bytelen4 !out___2_r__4 !out___2_bytelen4 !out___3_r__4 !out___3_bytelen4 !out___4_r__4 !out___4_bytelen4 = do
+          j'10 bytelen3 clnum3 ccol3 len4 r'16 out___r__3 out___bytelen3 cstrncmp__o_r__3 cstrncmp__o_n3
+    j'10 !bytelen4 !clnum4 !ccol4 !len5 !p1 !out___r__4 !out___bytelen4 !cstrncmp__o_r__4 !cstrncmp__o_n4 = do
       r'18 <- rdI32 re (regengine_T'rex + regexec_T'reg_ic)
       let !t1'1 = not (r'18 /= 0)
       if t1'1
@@ -21293,9 +21293,9 @@ match_with_backref ed' re start_lnum start_col end_lnum end_col bytelen = do
           r'19 <- rdP re (regengine_T'rex + regexec_T'input)
           (r'20, r'21) <- cstrncmp ed' re (pAdd p1 (fromIntegral ccol4)) r'19 len5
           let !t1'2 = r'20 /= 0
-          j'12 bytelen4 clnum4 ccol4 r'21 p1 t1'2 r'20 r'21 out___r__4 out___bytelen4 out___2_r__4 out___2_bytelen4 out___3_r__4 out___3_bytelen4 out___4_r__4 out___4_bytelen4
-        else j'12 bytelen4 clnum4 ccol4 len5 p1 t1'1 cstrncmp__o_r__4 cstrncmp__o_n4 out___r__4 out___bytelen4 out___2_r__4 out___2_bytelen4 out___3_r__4 out___3_bytelen4 out___4_r__4 out___4_bytelen4
-    j'12 !bytelen5 !clnum5 !ccol5 !len6 !p2 !t1'3 !cstrncmp__o_r__5 !cstrncmp__o_n5 !out___r__5 !out___bytelen5 !out___2_r__5 !out___2_bytelen5 !out___3_r__5 !out___3_bytelen5 !out___4_r__5 !out___4_bytelen5 = do
+          j'12 bytelen4 clnum4 ccol4 r'21 p1 t1'2 out___r__4 out___bytelen4 r'20 r'21
+        else j'12 bytelen4 clnum4 ccol4 len5 p1 t1'1 out___r__4 out___bytelen4 cstrncmp__o_r__4 cstrncmp__o_n4
+    j'12 !bytelen5 !clnum5 !ccol5 !len6 !p2 !t1'3 !out___r__5 !out___bytelen5 !cstrncmp__o_r__5 !cstrncmp__o_n5 = do
       r'26 <- if t1'3 then pure True else (do { r'22 <- rdI32 re (regengine_T'rex + regexec_T'reg_ic); if (r'22 /= 0) then (do { r'23 <- rdP re (regengine_T'rex + regexec_T'input); r'24 <- mb_strnicmp ed' (pAdd p2 (fromIntegral ccol5)) r'23 (fromIntegral len6 :: Word64); pure (r'24 /= 0) }) else pure False })
       if r'26
         then pure ((RA_NOMATCH :: Int32), bytelen5)
@@ -21303,9 +21303,9 @@ match_with_backref ed' re start_lnum start_col end_lnum end_col bytelen = do
           if True
             then do
               let !bytelen6 = bytelen5 + len6
-              j'15 bytelen6 clnum5 cstrncmp__o_r__5 cstrncmp__o_n5 out___r__5 out___bytelen5 out___2_r__5 out___2_bytelen5 out___3_r__5 out___3_bytelen5 out___4_r__5 out___4_bytelen5
-            else j'15 bytelen5 clnum5 cstrncmp__o_r__5 cstrncmp__o_n5 out___r__5 out___bytelen5 out___2_r__5 out___2_bytelen5 out___3_r__5 out___3_bytelen5 out___4_r__5 out___4_bytelen5
-    j'15 !bytelen7 !clnum6 !cstrncmp__o_r__6 !cstrncmp__o_n6 !out___r__6 !out___bytelen6 !out___2_r__6 !out___2_bytelen6 !out___3_r__6 !out___3_bytelen6 !out___4_r__6 !out___4_bytelen6 = do
+              j'15 bytelen6 clnum5 out___r__5 out___bytelen5 cstrncmp__o_r__5 cstrncmp__o_n5
+            else j'15 bytelen5 clnum5 out___r__5 out___bytelen5 cstrncmp__o_r__5 cstrncmp__o_n5
+    j'15 !bytelen7 !clnum6 !out___r__6 !out___bytelen6 !cstrncmp__o_r__6 !cstrncmp__o_n6 = do
       if clnum6 == end_lnum
         then pure ((RA_MATCH :: Int32), bytelen7)
         else do
@@ -21316,17 +21316,17 @@ match_with_backref ed' re start_lnum start_col end_lnum end_col bytelen = do
             else do
               reg_nextline ed' re
               if True
-                then j'19 (0 :: Int32) clnum6 cstrncmp__o_r__6 cstrncmp__o_n6 out___r__6 out___bytelen6 out___2_r__6 out___2_bytelen6 out___3_r__6 out___3_bytelen6 out___4_r__6 out___4_bytelen6
-                else j'19 bytelen7 clnum6 cstrncmp__o_r__6 cstrncmp__o_n6 out___r__6 out___bytelen6 out___2_r__6 out___2_bytelen6 out___3_r__6 out___3_bytelen6 out___4_r__6 out___4_bytelen6
-    j'19 !bytelen8 !clnum7 !cstrncmp__o_r__7 !cstrncmp__o_n7 !out___r__7 !out___bytelen7 !out___2_r__7 !out___2_bytelen7 !out___3_r__7 !out___3_bytelen7 !out___4_r__7 !out___4_bytelen7 = do
+                then j'19 (0 :: Int32) clnum6 out___r__6 out___bytelen6 cstrncmp__o_r__6 cstrncmp__o_n6
+                else j'19 bytelen7 clnum6 out___r__6 out___bytelen6 cstrncmp__o_r__6 cstrncmp__o_n6
+    j'19 !bytelen8 !clnum7 !out___r__7 !out___bytelen7 !cstrncmp__o_r__7 !cstrncmp__o_n7 = do
       let !clnum8 = clnum7 + 1
       r'29 <- got_int ed'
       if r'29 /= 0
         then pure ((RA_FAIL :: Int32), bytelen8)
-        else loop'3 bytelen8 clnum8 (0 :: Int32) cstrncmp__o_r__7 cstrncmp__o_n7 out___r__7 out___bytelen7 out___2_r__7 out___2_bytelen7 out___3_r__7 out___3_bytelen7 out___4_r__7 out___4_bytelen7
+        else loop'3 bytelen8 clnum8 (0 :: Int32) out___r__7 out___bytelen7 cstrncmp__o_r__7 cstrncmp__o_n7
   if True
-    then loop'3 (0 :: Int32) start_lnum start_col (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-    else loop'3 bytelen start_lnum start_col (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    then loop'3 (0 :: Int32) start_lnum start_col (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    else loop'3 bytelen start_lnum start_col (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 re_mult_next :: Ed -> Ptr Int8 -> IO Bool
 re_mult_next ed' what = do
@@ -22560,22 +22560,22 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
 regpiece :: Ed -> Ptr Regengine_T -> Int32 -> IO (Ptr Char_u, Int32)
 regpiece ed' re flagp = frame 4 $ \fr' -> do
   let
-    j'9 !flagp1 !ret1 !minval1 !maxval1 !read_limits__o_r__1 !read_limits__o_minval1 !read_limits__o_maxval1 !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 !out___3_r__1 !out___3_flagp1 !out___4_r__1 !out___4_flagp1 !out___5_r__1 !out___5_flagp1 !out___6_r__1 !out___6_flagp1 !out___7_r__1 !out___7_flagp1 !out___8_r__1 !out___8_flagp1 = do
+    j'9 !flagp1 !ret1 !minval1 !maxval1 !out___r__1 !out___flagp1 !read_limits__o_r__1 !read_limits__o_minval1 !read_limits__o_maxval1 = do
       if (minval1 > 0) && (maxval1 > 0)
         then do
           r'1 <- rdI32 fr' 0
           let !flagp2 = HASWIDTH .|. (r'1 .&. 24)
-          j'36 flagp2 ret1 read_limits__o_r__1 read_limits__o_minval1 read_limits__o_maxval1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1 out___3_r__1 out___3_flagp1 out___4_r__1 out___4_flagp1 out___5_r__1 out___5_flagp1 out___6_r__1 out___6_flagp1 out___7_r__1 out___7_flagp1 out___8_r__1 out___8_flagp1
-        else j'36 flagp1 ret1 read_limits__o_r__1 read_limits__o_minval1 read_limits__o_maxval1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1 out___3_r__1 out___3_flagp1 out___4_r__1 out___4_flagp1 out___5_r__1 out___5_flagp1 out___6_r__1 out___6_flagp1 out___7_r__1 out___7_flagp1 out___8_r__1 out___8_flagp1
-    j'12 !flagp3 !ret2 !read_limits__o_r__2 !read_limits__o_minval2 !read_limits__o_maxval2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 !out___3_r__2 !out___3_flagp2 !out___4_r__2 !out___4_flagp2 !out___5_r__2 !out___5_flagp2 !out___6_r__2 !out___6_flagp2 !out___7_r__2 !out___7_flagp2 !out___8_r__2 !out___8_flagp2 = do
+          j'36 flagp2 ret1 out___r__1 out___flagp1 read_limits__o_r__1 read_limits__o_minval1 read_limits__o_maxval1
+        else j'36 flagp1 ret1 out___r__1 out___flagp1 read_limits__o_r__1 read_limits__o_minval1 read_limits__o_maxval1
+    j'12 !flagp3 !ret2 !out___r__2 !out___flagp2 !read_limits__o_r__2 !read_limits__o_minval2 !read_limits__o_maxval2 = do
       reginsert ed' BRANCH ret2
       r'2 <- regnode ed' BRANCH
       regtail ed' re ret2 r'2
       r'3 <- regnode ed' NOTHING
       regtail ed' re ret2 r'3
       regoptail ed' re ret2 r'3
-      j'36 flagp3 ret2 read_limits__o_r__2 read_limits__o_minval2 read_limits__o_maxval2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2
-    j'20 !flagp4 !ret3 !lop1 !nr1 !read_limits__o_r__3 !read_limits__o_minval3 !read_limits__o_maxval3 !out___r__3 !out___flagp3 !out___2_r__3 !out___2_flagp3 !out___3_r__3 !out___3_flagp3 !out___4_r__3 !out___4_flagp3 !out___5_r__3 !out___5_flagp3 !out___6_r__3 !out___6_flagp3 !out___7_r__3 !out___7_flagp3 !out___8_r__3 !out___8_flagp3 = do
+      j'36 flagp3 ret2 out___r__2 out___flagp2 read_limits__o_r__2 read_limits__o_minval2 read_limits__o_maxval2
+    j'20 !flagp4 !ret3 !lop1 !nr1 !out___r__3 !out___flagp3 !read_limits__o_r__3 !read_limits__o_minval3 !read_limits__o_maxval3 = do
       if lop1 == END
         then do
           r'4 <- c'IObuff ed'
@@ -22594,27 +22594,27 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
               r'12 <- regnode ed' BHPOS
               regtail ed' re ret3 r'12
               let !flagp5 = flagp4 .|. HASLOOKBH
-              j'23 flagp5 ret3 lop1 nr1 read_limits__o_r__3 read_limits__o_minval3 read_limits__o_maxval3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3 out___3_r__3 out___3_flagp3 out___4_r__3 out___4_flagp3 out___5_r__3 out___5_flagp3 out___6_r__3 out___6_flagp3 out___7_r__3 out___7_flagp3 out___8_r__3 out___8_flagp3
-            else j'23 flagp4 ret3 lop1 nr1 read_limits__o_r__3 read_limits__o_minval3 read_limits__o_maxval3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3 out___3_r__3 out___3_flagp3 out___4_r__3 out___4_flagp3 out___5_r__3 out___5_flagp3 out___6_r__3 out___6_flagp3 out___7_r__3 out___7_flagp3 out___8_r__3 out___8_flagp3
-    j'23 !flagp6 !ret4 !lop2 !nr2 !read_limits__o_r__4 !read_limits__o_minval4 !read_limits__o_maxval4 !out___r__4 !out___flagp4 !out___2_r__4 !out___2_flagp4 !out___3_r__4 !out___3_flagp4 !out___4_r__4 !out___4_flagp4 !out___5_r__4 !out___5_flagp4 !out___6_r__4 !out___6_flagp4 !out___7_r__4 !out___7_flagp4 !out___8_r__4 !out___8_flagp4 = do
+              j'23 flagp5 ret3 lop1 nr1 out___r__3 out___flagp3 read_limits__o_r__3 read_limits__o_minval3 read_limits__o_maxval3
+            else j'23 flagp4 ret3 lop1 nr1 out___r__3 out___flagp3 read_limits__o_r__3 read_limits__o_minval3 read_limits__o_maxval3
+    j'23 !flagp6 !ret4 !lop2 !nr2 !out___r__4 !out___flagp4 !read_limits__o_r__4 !read_limits__o_minval4 !read_limits__o_maxval4 = do
       r'13 <- regnode ed' END
       regtail ed' re ret4 r'13
       if (lop2 == BEHIND) || (lop2 == NOBEHIND)
         then do
           if nr2 < 0
-            then j'27 flagp6 ret4 lop2 (0 :: Int64) read_limits__o_r__4 read_limits__o_minval4 read_limits__o_maxval4 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4 out___3_r__4 out___3_flagp4 out___4_r__4 out___4_flagp4 out___5_r__4 out___5_flagp4 out___6_r__4 out___6_flagp4 out___7_r__4 out___7_flagp4 out___8_r__4 out___8_flagp4
-            else j'27 flagp6 ret4 lop2 nr2 read_limits__o_r__4 read_limits__o_minval4 read_limits__o_maxval4 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4 out___3_r__4 out___3_flagp4 out___4_r__4 out___4_flagp4 out___5_r__4 out___5_flagp4 out___6_r__4 out___6_flagp4 out___7_r__4 out___7_flagp4 out___8_r__4 out___8_flagp4
+            then j'27 flagp6 ret4 lop2 (0 :: Int64) out___r__4 out___flagp4 read_limits__o_r__4 read_limits__o_minval4 read_limits__o_maxval4
+            else j'27 flagp6 ret4 lop2 nr2 out___r__4 out___flagp4 read_limits__o_r__4 read_limits__o_minval4 read_limits__o_maxval4
         else do
           reginsert ed' lop2 ret4
-          j'36 flagp6 ret4 read_limits__o_r__4 read_limits__o_minval4 read_limits__o_maxval4 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4 out___3_r__4 out___3_flagp4 out___4_r__4 out___4_flagp4 out___5_r__4 out___5_flagp4 out___6_r__4 out___6_flagp4 out___7_r__4 out___7_flagp4 out___8_r__4 out___8_flagp4
-    j'27 !flagp7 !ret5 !lop3 !nr3 !read_limits__o_r__5 !read_limits__o_minval5 !read_limits__o_maxval5 !out___r__5 !out___flagp5 !out___2_r__5 !out___2_flagp5 !out___3_r__5 !out___3_flagp5 !out___4_r__5 !out___4_flagp5 !out___5_r__5 !out___5_flagp5 !out___6_r__5 !out___6_flagp5 !out___7_r__5 !out___7_flagp5 !out___8_r__5 !out___8_flagp5 = do
+          j'36 flagp6 ret4 out___r__4 out___flagp4 read_limits__o_r__4 read_limits__o_minval4 read_limits__o_maxval4
+    j'27 !flagp7 !ret5 !lop3 !nr3 !out___r__5 !out___flagp5 !read_limits__o_r__5 !read_limits__o_minval5 !read_limits__o_maxval5 = do
       reginsert_nr ed' lop3 nr3 ret5
-      j'36 flagp7 ret5 read_limits__o_r__5 read_limits__o_minval5 read_limits__o_maxval5 out___r__5 out___flagp5 out___2_r__5 out___2_flagp5 out___3_r__5 out___3_flagp5 out___4_r__5 out___4_flagp5 out___5_r__5 out___5_flagp5 out___6_r__5 out___6_flagp5 out___7_r__5 out___7_flagp5 out___8_r__5 out___8_flagp5
-    j'32 !ret6 !read_limits__o_r__6 !read_limits__o_minval6 !read_limits__o_maxval6 !out___r__6 !out___flagp6 !out___2_r__6 !out___2_flagp6 !out___3_r__6 !out___3_flagp6 !out___4_r__6 !out___4_flagp6 !out___5_r__6 !out___5_flagp6 !out___6_r__6 !out___6_flagp6 !out___7_r__6 !out___7_flagp6 !out___8_r__6 !out___8_flagp6 = do
+      j'36 flagp7 ret5 out___r__5 out___flagp5 read_limits__o_r__5 read_limits__o_minval5 read_limits__o_maxval5
+    j'32 !ret6 !out___r__6 !out___flagp6 !read_limits__o_r__6 !read_limits__o_minval6 !read_limits__o_maxval6 = do
       r'14 <- rdI32 fr' 0
       let !flagp8 = 1 .|. (r'14 .&. 24)
-      j'36 flagp8 ret6 read_limits__o_r__6 read_limits__o_minval6 read_limits__o_maxval6 out___r__6 out___flagp6 out___2_r__6 out___2_flagp6 out___3_r__6 out___3_flagp6 out___4_r__6 out___4_flagp6 out___5_r__6 out___5_flagp6 out___6_r__6 out___6_flagp6 out___7_r__6 out___7_flagp6 out___8_r__6 out___8_flagp6
-    j'36 !flagp9 !ret7 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+      j'36 flagp8 ret6 out___r__6 out___flagp6 read_limits__o_r__6 read_limits__o_minval6 read_limits__o_maxval6
+    j'36 !flagp9 !ret7 _ _ _ _ _ = do
       r'15 <- peekchr ed'
       let !r'16 = re_multi_type r'15
       if r'16 /= NOT_MULTI
@@ -22666,7 +22666,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
               if (r'41 .&. SIMPLE) /= 0
                 then do
                   reginsert ed' STAR r'36
-                  j'36 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                  j'36 flagp10 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
                 else do
                   reginsert ed' BRANCH r'36
                   r'42 <- regnode ed' BACK
@@ -22676,13 +22676,13 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
                   regtail ed' re r'36 r'43
                   r'44 <- regnode ed' NOTHING
                   regtail ed' re r'36 r'44
-                  j'36 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                  j'36 flagp10 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
             -213 -> do
               r'45 <- rdI32 fr' 0
               if (r'45 .&. SIMPLE) /= 0
                 then do
                   reginsert ed' PLUS r'36
-                  j'32 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                  j'32 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
                 else do
                   r'46 <- regnode ed' BRANCH
                   regtail ed' re r'36 r'46
@@ -22692,25 +22692,25 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
                   regtail ed' re r'46 r'48
                   r'49 <- regnode ed' NOTHING
                   regtail ed' re r'36 r'49
-                  j'32 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                  j'32 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
             -192 -> do
               r'50 <- getdecchrs ed'
               r'51 <- getchr ed'
               let !r'52 = no_Magic r'51
               case (r'52 :: Int32) of
-                61 {- '=' -} -> j'20 flagp10 r'36 (MATCH :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-                33 {- '!' -} -> j'20 flagp10 r'36 (NOMATCH :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-                62 {- '>' -} -> j'20 flagp10 r'36 (SUBPAT :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                61 {- '=' -} -> j'20 flagp10 r'36 (MATCH :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+                33 {- '!' -} -> j'20 flagp10 r'36 (NOMATCH :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+                62 {- '>' -} -> j'20 flagp10 r'36 (SUBPAT :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
                 60 {- '<' -} -> do
                   r'53 <- getchr ed'
                   let !r'54 = no_Magic r'53
                   case (r'54 :: Int32) of
-                    61 {- '=' -} -> j'20 flagp10 r'36 (BEHIND :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-                    33 {- '!' -} -> j'20 flagp10 r'36 (NOBEHIND :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-                    _ -> j'20 flagp10 r'36 (END :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-                _ -> j'20 flagp10 r'36 (END :: Int32) r'50 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-            -193 -> j'12 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-            -195 -> j'12 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                    61 {- '=' -} -> j'20 flagp10 r'36 (BEHIND :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+                    33 {- '!' -} -> j'20 flagp10 r'36 (NOBEHIND :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+                    _ -> j'20 flagp10 r'36 (END :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+                _ -> j'20 flagp10 r'36 (END :: Int32) r'50 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+            -193 -> j'12 flagp10 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
+            -195 -> j'12 flagp10 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
             -133 -> do
               (r'55, r'56, r'57) <- read_limits ed'
               if not (r'55 /= 0)
@@ -22721,7 +22721,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
                     then do
                       reginsert ed' BRACE_SIMPLE r'36
                       reginsert_limits ed' re BRACE_LIMITS r'56 r'57 r'36
-                      j'9 flagp10 r'36 r'56 r'57 r'55 r'56 r'57 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                      j'9 flagp10 r'36 r'56 r'57 nullPtr (0 :: Int32) r'55 r'56 r'57
                     else do
                       r'59 <- num_complex_braces ed'
                       if r'59 >= 10
@@ -22745,56 +22745,56 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
                           reginsert_limits ed' re BRACE_LIMITS r'56 r'57 r'36
                           r'70 <- num_complex_braces ed'
                           set'num_complex_braces ed' (r'70 + 1)
-                          j'9 flagp10 r'36 r'56 r'57 r'55 r'56 r'57 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-            _ -> j'36 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+                          j'9 flagp10 r'36 r'56 r'57 nullPtr (0 :: Int32) r'55 r'56 r'57
+            _ -> j'36 flagp10 r'36 nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int64) (0 :: Int64)
 
 regconcat :: Ed -> Ptr Regengine_T -> IO (Ptr Char_u, Int32)
 regconcat ed' re = do
   let
-    loop'1 !flagp1 !first1 !chain1 !flags1 !cont1 !regpiece__o_r__1 !regpiece__o_flagp1 !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 = do
+    loop'1 !flagp1 !first1 !chain1 !flags1 !cont1 !out___r__1 !out___flagp1 !regpiece__o_r__1 !regpiece__o_flagp1 = do
       if cont1
         then do
           r'1 <- peekchr ed'
           case (r'1 :: Int32) of
-            NUL -> j'20 flagp1 first1 chain1 flags1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-            -132 -> j'20 flagp1 first1 chain1 flags1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-            -218 -> j'20 flagp1 first1 chain1 flags1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-            -215 -> j'20 flagp1 first1 chain1 flags1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+            NUL -> j'20 flagp1 first1 chain1 flags1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
+            -132 -> j'20 flagp1 first1 chain1 flags1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
+            -218 -> j'20 flagp1 first1 chain1 flags1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
+            -215 -> j'20 flagp1 first1 chain1 flags1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -166 -> do
               r'2 <- regflags ed'
               set'regflags ed' (r'2 .|. RF_ICOMBINE)
               skipchr_keepstart ed'
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -157 -> do
               r'3 <- regflags ed'
               set'regflags ed' (r'3 .|. RF_ICASE)
               skipchr_keepstart ed'
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -189 -> do
               r'4 <- regflags ed'
               set'regflags ed' (r'4 .|. RF_NOICASE)
               skipchr_keepstart ed'
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -138 -> do
               set'reg_magic ed' MAGIC_ALL
               skipchr_keepstart ed'
               set'curchr ed' (-1)
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -147 -> do
               set'reg_magic ed' MAGIC_ON
               skipchr_keepstart ed'
               set'curchr ed' (-1)
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -179 -> do
               set'reg_magic ed' MAGIC_OFF
               skipchr_keepstart ed'
               set'curchr ed' (-1)
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             -170 -> do
               set'reg_magic ed' MAGIC_NONE
               skipchr_keepstart ed'
               set'curchr ed' (-1)
-              loop'1 flagp1 first1 chain1 flags1 cont1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+              loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             _ -> do
               (r'5, r'6) <- regpiece ed' re flags1
               r'8 <- if (r'5 == nullPtr) then pure True else (do { r'7 <- rdI32 re regengine_T'reg_toolong; pure (r'7 /= 0) })
@@ -22805,30 +22805,30 @@ regconcat ed' re = do
                   if chain1 == nullPtr
                     then do
                       let !flagp3 = flagp2 .|. (r'6 .&. SPSTART)
-                      j'10 flagp3 first1 r'5 r'6 cont1 r'5 r'6 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+                      j'10 flagp3 first1 r'5 r'6 cont1 out___r__1 out___flagp1 r'5 r'6
                     else do
                       regtail ed' re chain1 r'5
-                      j'10 flagp2 first1 r'5 r'6 cont1 r'5 r'6 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+                      j'10 flagp2 first1 r'5 r'6 cont1 out___r__1 out___flagp1 r'5 r'6
         else do
           if first1 == nullPtr
             then do
               r'9 <- regnode ed' NOTHING
-              j'4 flagp1 r'9 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-            else j'4 flagp1 first1 regpiece__o_r__1 regpiece__o_flagp1 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-    j'4 !flagp4 !first2 _ _ _ _ _ _ = do
+              j'4 flagp1 r'9 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
+            else j'4 flagp1 first1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
+    j'4 !flagp4 !first2 _ _ _ _ = do
       pure (first2, flagp4)
-    j'10 !flagp5 !first3 !latest1 !flags2 !cont2 !regpiece__o_r__3 !regpiece__o_flagp3 !out___r__3 !out___flagp3 !out___2_r__3 !out___2_flagp3 = do
+    j'10 !flagp5 !first3 !latest1 !flags2 !cont2 !out___r__3 !out___flagp3 !regpiece__o_r__3 !regpiece__o_flagp3 = do
       if first3 == nullPtr
-        then loop'1 flagp5 latest1 latest1 flags2 cont2 regpiece__o_r__3 regpiece__o_flagp3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3
-        else loop'1 flagp5 first3 latest1 flags2 cont2 regpiece__o_r__3 regpiece__o_flagp3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3
-    j'20 !flagp6 !first4 !chain2 !flags3 !regpiece__o_r__4 !regpiece__o_flagp4 !out___r__4 !out___flagp4 !out___2_r__4 !out___2_flagp4 = do
-      loop'1 flagp6 first4 chain2 flags3 False regpiece__o_r__4 regpiece__o_flagp4 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4
-  loop'1 (WORST :: Int32) nullPtr nullPtr (0 :: Int32) True nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+        then loop'1 flagp5 latest1 latest1 flags2 cont2 out___r__3 out___flagp3 regpiece__o_r__3 regpiece__o_flagp3
+        else loop'1 flagp5 first3 latest1 flags2 cont2 out___r__3 out___flagp3 regpiece__o_r__3 regpiece__o_flagp3
+    j'20 !flagp6 !first4 !chain2 !flags3 !out___r__4 !out___flagp4 !regpiece__o_r__4 !regpiece__o_flagp4 = do
+      loop'1 flagp6 first4 chain2 flags3 False out___r__4 out___flagp4 regpiece__o_r__4 regpiece__o_flagp4
+  loop'1 (WORST :: Int32) nullPtr nullPtr (0 :: Int32) True nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
 regbranch :: Ed -> Ptr Regengine_T -> IO (Ptr Char_u, Int32)
 regbranch ed' re = do
   let
-    loop'1 !flagp1 !ret1 !chain1 _ _ !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 = do
+    loop'1 !flagp1 !ret1 !chain1 !out___r__1 !out___flagp1 _ _ = do
       (r'1, r'2) <- regconcat ed' re
       if r'1 == nullPtr
         then pure (nullPtr, flagp1)
@@ -22838,31 +22838,31 @@ regbranch ed' re = do
           if chain1 /= nullPtr
             then do
               regtail ed' re chain1 r'1
-              j'4 flagp3 ret1 r'1 r'1 r'2 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-            else j'4 flagp3 ret1 r'1 r'1 r'2 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-    j'4 !flagp4 !ret2 !latest1 !regconcat__o_r__2 !regconcat__o_flagp2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 = do
+              j'4 flagp3 ret1 r'1 out___r__1 out___flagp1 r'1 r'2
+            else j'4 flagp3 ret1 r'1 out___r__1 out___flagp1 r'1 r'2
+    j'4 !flagp4 !ret2 !latest1 !out___r__2 !out___flagp2 !regconcat__o_r__2 !regconcat__o_flagp2 = do
       r'3 <- peekchr ed'
       if r'3 /= (-218)
-        then j'7 flagp4 ret2 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
+        then j'7 flagp4 ret2 out___r__2 out___flagp2 regconcat__o_r__2 regconcat__o_flagp2
         else do
           skipchr ed'
           r'4 <- regnode ed' END
           regtail ed' re latest1 r'4
           r'5 <- rdI32 re regengine_T'reg_toolong
           if r'5 /= 0
-            then j'7 flagp4 ret2 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
+            then j'7 flagp4 ret2 out___r__2 out___flagp2 regconcat__o_r__2 regconcat__o_flagp2
             else do
               reginsert ed' MATCH latest1
-              loop'1 flagp4 ret2 latest1 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
-    j'7 !flagp5 !ret3 _ _ _ _ _ _ = do
+              loop'1 flagp4 ret2 latest1 out___r__2 out___flagp2 regconcat__o_r__2 regconcat__o_flagp2
+    j'7 !flagp5 !ret3 _ _ _ _ = do
       pure (ret3, flagp5)
   r'6 <- regnode ed' BRANCH
-  loop'1 (8 :: Int32) r'6 nullPtr nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+  loop'1 (8 :: Int32) r'6 nullPtr nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
 reg :: Ed -> Ptr Regengine_T -> Int32 -> IO (Ptr Char_u, Int32)
 reg ed' re paren = do
   let
-    j'6 !flagp1 !ret1 !parno1 _ _ !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 !out___3_r__1 !out___3_flagp1 !out___4_r__1 !out___4_flagp1 !out___5_r__1 !out___5_flagp1 !out___6_r__1 !out___6_flagp1 !out___7_r__1 !out___7_flagp1 !out___8_r__1 !out___8_flagp1 !out___9_r__1 !out___9_flagp1 = do
+    j'6 !flagp1 !ret1 !parno1 !out___r__1 !out___flagp1 _ _ = do
       r'1 <- bt_reg_parse_depth ed'
       if r'1 >= REG_MAX_PAREN_DEPTH
         then do
@@ -22883,18 +22883,18 @@ reg ed' re paren = do
               if ret1 /= nullPtr
                 then do
                   regtail ed' re ret1 r'5
-                  j'11 flagp1 ret1 parno1 r'6 r'5 r'6 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1 out___3_r__1 out___3_flagp1 out___4_r__1 out___4_flagp1 out___5_r__1 out___5_flagp1 out___6_r__1 out___6_flagp1 out___7_r__1 out___7_flagp1 out___8_r__1 out___8_flagp1 out___9_r__1 out___9_flagp1
-                else j'11 flagp1 r'5 parno1 r'6 r'5 r'6 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1 out___3_r__1 out___3_flagp1 out___4_r__1 out___4_flagp1 out___5_r__1 out___5_flagp1 out___6_r__1 out___6_flagp1 out___7_r__1 out___7_flagp1 out___8_r__1 out___8_flagp1 out___9_r__1 out___9_flagp1
-    j'11 !flagp2 !ret2 !parno2 !flags1 !regbranch__o_r__2 !regbranch__o_flagp2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 !out___3_r__2 !out___3_flagp2 !out___4_r__2 !out___4_flagp2 !out___5_r__2 !out___5_flagp2 !out___6_r__2 !out___6_flagp2 !out___7_r__2 !out___7_flagp2 !out___8_r__2 !out___8_flagp2 !out___9_r__2 !out___9_flagp2 = do
+                  j'11 flagp1 ret1 parno1 r'6 out___r__1 out___flagp1 r'5 r'6
+                else j'11 flagp1 r'5 parno1 r'6 out___r__1 out___flagp1 r'5 r'6
+    j'11 !flagp2 !ret2 !parno2 !flags1 !out___r__2 !out___flagp2 !regbranch__o_r__2 !regbranch__o_flagp2 = do
       if not ((flags1 .&. HASWIDTH) /= 0)
         then do
           let !flagp3 = flagp2 .&. (-2)
-          j'13 flagp3 ret2 parno2 flags1 regbranch__o_r__2 regbranch__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2 out___9_r__2 out___9_flagp2
-        else j'13 flagp2 ret2 parno2 flags1 regbranch__o_r__2 regbranch__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2 out___9_r__2 out___9_flagp2
-    j'13 !flagp4 !ret3 !parno3 !flags2 !regbranch__o_r__3 !regbranch__o_flagp3 !out___r__3 !out___flagp3 !out___2_r__3 !out___2_flagp3 !out___3_r__3 !out___3_flagp3 !out___4_r__3 !out___4_flagp3 !out___5_r__3 !out___5_flagp3 !out___6_r__3 !out___6_flagp3 !out___7_r__3 !out___7_flagp3 !out___8_r__3 !out___8_flagp3 !out___9_r__3 !out___9_flagp3 = do
+          j'13 flagp3 ret2 parno2 flags1 out___r__2 out___flagp2 regbranch__o_r__2 regbranch__o_flagp2
+        else j'13 flagp2 ret2 parno2 flags1 out___r__2 out___flagp2 regbranch__o_r__2 regbranch__o_flagp2
+    j'13 !flagp4 !ret3 !parno3 !flags2 !out___r__3 !out___flagp3 !regbranch__o_r__3 !regbranch__o_flagp3 = do
       let !flagp5 = flagp4 .|. (flags2 .&. 28)
-      loop'14 flagp5 ret3 parno3 regbranch__o_r__3 regbranch__o_flagp3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3 out___3_r__3 out___3_flagp3 out___4_r__3 out___4_flagp3 out___5_r__3 out___5_flagp3 out___6_r__3 out___6_flagp3 out___7_r__3 out___7_flagp3 out___8_r__3 out___8_flagp3 out___9_r__3 out___9_flagp3
-    loop'14 !flagp6 !ret4 !parno4 !regbranch__o_r__4 !regbranch__o_flagp4 !out___r__4 !out___flagp4 !out___2_r__4 !out___2_flagp4 !out___3_r__4 !out___3_flagp4 !out___4_r__4 !out___4_flagp4 !out___5_r__4 !out___5_flagp4 !out___6_r__4 !out___6_flagp4 !out___7_r__4 !out___7_flagp4 !out___8_r__4 !out___8_flagp4 !out___9_r__4 !out___9_flagp4 = do
+      loop'14 flagp5 ret3 parno3 out___r__3 out___flagp3 regbranch__o_r__3 regbranch__o_flagp3
+    loop'14 !flagp6 !ret4 !parno4 !out___r__4 !out___flagp4 !regbranch__o_r__4 !regbranch__o_flagp4 = do
       r'8 <- peekchr ed'
       if r'8 == (-132)
         then do
@@ -22911,18 +22911,18 @@ reg ed' re paren = do
               if not ((r'10 .&. HASWIDTH) /= 0)
                 then do
                   let !flagp7 = flagp6 .&. (-2)
-                  j'33 flagp7 ret4 parno4 r'10 r'9 r'10 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4 out___3_r__4 out___3_flagp4 out___4_r__4 out___4_flagp4 out___5_r__4 out___5_flagp4 out___6_r__4 out___6_flagp4 out___7_r__4 out___7_flagp4 out___8_r__4 out___8_flagp4 out___9_r__4 out___9_flagp4
-                else j'33 flagp6 ret4 parno4 r'10 r'9 r'10 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4 out___3_r__4 out___3_flagp4 out___4_r__4 out___4_flagp4 out___5_r__4 out___5_flagp4 out___6_r__4 out___6_flagp4 out___7_r__4 out___7_flagp4 out___8_r__4 out___8_flagp4 out___9_r__4 out___9_flagp4
+                  j'33 flagp7 ret4 parno4 r'10 out___r__4 out___flagp4 r'9 r'10
+                else j'33 flagp6 ret4 parno4 r'10 out___r__4 out___flagp4 r'9 r'10
         else do
           r'14 <- regnode ed' (if (paren == REG_PAREN) then (MCLOSE + parno4) else (if (paren == REG_NPAREN) then (NCLOSE :: Int32) else (END :: Int32)))
           regtail ed' re ret4 r'14
-          loop'16 flagp6 ret4 ret4 r'14 parno4 regbranch__o_r__4 regbranch__o_flagp4 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4 out___3_r__4 out___3_flagp4 out___4_r__4 out___4_flagp4 out___5_r__4 out___5_flagp4 out___6_r__4 out___6_flagp4 out___7_r__4 out___7_flagp4 out___8_r__4 out___8_flagp4 out___9_r__4 out___9_flagp4
-    loop'16 !flagp8 !ret5 !br1 !ender1 !parno5 !regbranch__o_r__5 !regbranch__o_flagp5 !out___r__5 !out___flagp5 !out___2_r__5 !out___2_flagp5 !out___3_r__5 !out___3_flagp5 !out___4_r__5 !out___4_flagp5 !out___5_r__5 !out___5_flagp5 !out___6_r__5 !out___6_flagp5 !out___7_r__5 !out___7_flagp5 !out___8_r__5 !out___8_flagp5 !out___9_r__5 !out___9_flagp5 = do
+          loop'16 flagp6 ret4 ret4 r'14 parno4 out___r__4 out___flagp4 regbranch__o_r__4 regbranch__o_flagp4
+    loop'16 !flagp8 !ret5 !br1 !ender1 !parno5 !out___r__5 !out___flagp5 !regbranch__o_r__5 !regbranch__o_flagp5 = do
       if br1 /= nullPtr
         then do
           regoptail ed' re br1 ender1
           r'15 <- regnext ed' re br1
-          loop'16 flagp8 ret5 r'15 ender1 parno5 regbranch__o_r__5 regbranch__o_flagp5 out___r__5 out___flagp5 out___2_r__5 out___2_flagp5 out___3_r__5 out___3_flagp5 out___4_r__5 out___4_flagp5 out___5_r__5 out___5_flagp5 out___6_r__5 out___6_flagp5 out___7_r__5 out___7_flagp5 out___8_r__5 out___8_flagp5 out___9_r__5 out___9_flagp5
+          loop'16 flagp8 ret5 r'15 ender1 parno5 out___r__5 out___flagp5 regbranch__o_r__5 regbranch__o_flagp5
         else do
           r'17 <- if (paren /= REG_NOPAREN) then (do { r'16 <- getchr ed'; pure (r'16 /= (-215)) }) else pure False
           if r'17
@@ -22984,15 +22984,15 @@ reg ed' re paren = do
                   if paren == REG_PAREN
                     then do
                       wrW8 (pAdd (addr'had_endbrace ed') (fromIntegral parno5)) 0 TRUE
-                      j'21 flagp8 ret5 regbranch__o_r__5 regbranch__o_flagp5 out___r__5 out___flagp5 out___2_r__5 out___2_flagp5 out___3_r__5 out___3_flagp5 out___4_r__5 out___4_flagp5 out___5_r__5 out___5_flagp5 out___6_r__5 out___6_flagp5 out___7_r__5 out___7_flagp5 out___8_r__5 out___8_flagp5 out___9_r__5 out___9_flagp5
-                    else j'21 flagp8 ret5 regbranch__o_r__5 regbranch__o_flagp5 out___r__5 out___flagp5 out___2_r__5 out___2_flagp5 out___3_r__5 out___3_flagp5 out___4_r__5 out___4_flagp5 out___5_r__5 out___5_flagp5 out___6_r__5 out___6_flagp5 out___7_r__5 out___7_flagp5 out___8_r__5 out___8_flagp5 out___9_r__5 out___9_flagp5
-    j'21 !flagp9 !ret6 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+                      j'21 flagp8 ret5 out___r__5 out___flagp5 regbranch__o_r__5 regbranch__o_flagp5
+                    else j'21 flagp8 ret5 out___r__5 out___flagp5 regbranch__o_r__5 regbranch__o_flagp5
+    j'21 !flagp9 !ret6 _ _ _ _ = do
       r'51 <- bt_reg_parse_depth ed'
       set'bt_reg_parse_depth ed' (r'51 - 1)
       pure (ret6, flagp9)
-    j'33 !flagp10 !ret7 !parno6 !flags3 !regbranch__o_r__7 !regbranch__o_flagp7 !out___r__7 !out___flagp7 !out___2_r__7 !out___2_flagp7 !out___3_r__7 !out___3_flagp7 !out___4_r__7 !out___4_flagp7 !out___5_r__7 !out___5_flagp7 !out___6_r__7 !out___6_flagp7 !out___7_r__7 !out___7_flagp7 !out___8_r__7 !out___8_flagp7 !out___9_r__7 !out___9_flagp7 = do
+    j'33 !flagp10 !ret7 !parno6 !flags3 !out___r__7 !out___flagp7 !regbranch__o_r__7 !regbranch__o_flagp7 = do
       let !flagp11 = flagp10 .|. (flags3 .&. 28)
-      loop'14 flagp11 ret7 parno6 regbranch__o_r__7 regbranch__o_flagp7 out___r__7 out___flagp7 out___2_r__7 out___2_flagp7 out___3_r__7 out___3_flagp7 out___4_r__7 out___4_flagp7 out___5_r__7 out___5_flagp7 out___6_r__7 out___6_flagp7 out___7_r__7 out___7_flagp7 out___8_r__7 out___8_flagp7 out___9_r__7 out___9_flagp7
+      loop'14 flagp11 ret7 parno6 out___r__7 out___flagp7 regbranch__o_r__7 regbranch__o_flagp7
   if paren == REG_PAREN
     then do
       r'52 <- regnpar ed'
@@ -23013,13 +23013,13 @@ reg ed' re paren = do
           r'62 <- regnpar ed'
           set'regnpar ed' (r'62 + 1)
           r'63 <- regnode ed' (MOPEN + r'61)
-          j'6 (HASWIDTH :: Int32) r'63 r'61 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+          j'6 (HASWIDTH :: Int32) r'63 r'61 nullPtr (0 :: Int32) nullPtr (0 :: Int32)
     else do
       if paren == REG_NPAREN
         then do
           r'64 <- regnode ed' NOPEN
-          j'6 (HASWIDTH :: Int32) r'64 (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-        else j'6 (HASWIDTH :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+          j'6 (HASWIDTH :: Int32) r'64 (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+        else j'6 (HASWIDTH :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
 bt_regcomp :: Ed -> Ptr Regengine_T -> Ptr Char_u -> Int32 -> IO (Ptr Regprog_T)
 bt_regcomp ed' re expr re_flags = do
@@ -28160,13 +28160,13 @@ fillchar_status ed' wp = do
 fillchar_vsep :: Ed -> Ptr Win_T -> Int32 -> IO (Int32, Int32)
 fillchar_vsep ed' wp row = do
   let
-    j'3 !attr1 !override_success1 !out___r__1 !out___attr1 !out___2_r__1 !out___2_attr1 = do
+    j'3 !attr1 !override_success1 !out___r__1 !out___attr1 = do
       if override_success1
         then do
           pop_highlight_overrides ed'
-          j'5 attr1 out___r__1 out___attr1 out___2_r__1 out___2_attr1
-        else j'5 attr1 out___r__1 out___attr1 out___2_r__1 out___2_attr1
-    j'5 !attr2 _ _ _ _ = do
+          j'5 attr1 out___r__1 out___attr1
+        else j'5 attr1 out___r__1 out___attr1
+    j'5 !attr2 _ _ = do
       r'2 <- if (attr2 == 0) then (do { r'1 <- rdI32 wp (win_T'w_fill_chars + fill_chars_T'vert); pure (r'1 == (ch ' ')) }) else pure False
       if r'2
         then pure ((ch '|' :: Int32), attr2)
@@ -28180,10 +28180,10 @@ fillchar_vsep ed' wp row = do
   if r'7
     then do
       r'8 <- rdI32 (addr'highlight_attr ed') 80
-      j'3 r'8 r'6 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+      j'3 r'8 r'6 (0 :: Int32) (0 :: Int32)
     else do
       r'9 <- rdI32 (addr'highlight_attr ed') 84
-      j'3 r'9 r'6 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+      j'3 r'9 r'6 (0 :: Int32) (0 :: Int32)
 
 typed_ahead :: Ed -> IO Bool
 typed_ahead ed' = do
@@ -28865,16 +28865,16 @@ searchit ed' win buf pos end_pos dir pat patlen count options1 pat_use extra_arg
 parse_search_pattern_offset :: Ed -> Ptr Char_u -> Usize -> Int32 -> Int32 -> Ptr (Ptr Char_u) -> Ptr Char_u -> Usize -> Ptr Char_u -> Ptr Soffset_T -> IO (Int32, Ptr Char_u, Usize, Ptr Char_u, Usize, Ptr Char_u)
 parse_search_pattern_offset ed' pat patlen search_delim options1 strcopy searchstr searchstrlen dircp offset = do
   let
-    j'3 !pat1 !patlen1 !searchstr1 !searchstrlen1 !dircp1 !cmdlen1 !p1 !out___r__1 !out___pat1 !out___patlen1 !out___searchstr1 !out___searchstrlen1 !out___dircp1 !out___2_r__1 !out___2_pat1 !out___2_patlen1 !out___2_searchstr1 !out___2_searchstrlen1 !out___2_dircp1 = do
+    j'3 !pat1 !patlen1 !searchstr1 !searchstrlen1 !dircp1 !cmdlen1 !p1 !out___r__1 !out___pat1 !out___patlen1 !out___searchstr1 !out___searchstrlen1 !out___dircp1 = do
       r'1 <- rdW8 p1 0
       if (fromIntegral r'1 :: Int32) == search_delim
         then do
           let !searchstrlen2 = fromIntegral (fromIntegral (quot (pSub p1 pat1) 1) :: Int64) :: Word64
           let !p2 = pAdd p1 1
           wrW8 p1 0 NUL
-          j'5 pat1 patlen1 searchstr1 searchstrlen2 p1 cmdlen1 p2 out___r__1 out___pat1 out___patlen1 out___searchstr1 out___searchstrlen1 out___dircp1 out___2_r__1 out___2_pat1 out___2_patlen1 out___2_searchstr1 out___2_searchstrlen1 out___2_dircp1
-        else j'5 pat1 patlen1 searchstr1 searchstrlen1 dircp1 cmdlen1 p1 out___r__1 out___pat1 out___patlen1 out___searchstr1 out___searchstrlen1 out___dircp1 out___2_r__1 out___2_pat1 out___2_patlen1 out___2_searchstr1 out___2_searchstrlen1 out___2_dircp1
-    j'5 !pat2 !patlen2 !searchstr2 !searchstrlen3 !dircp2 !cmdlen2 !p3 !out___r__2 !out___pat2 !out___patlen2 !out___searchstr2 !out___searchstrlen2 !out___dircp2 !out___2_r__2 !out___2_pat2 !out___2_patlen2 !out___2_searchstr2 !out___2_searchstrlen2 !out___2_dircp2 = do
+          j'5 pat1 patlen1 searchstr1 searchstrlen2 p1 cmdlen1 p2 out___r__1 out___pat1 out___patlen1 out___searchstr1 out___searchstrlen1 out___dircp1
+        else j'5 pat1 patlen1 searchstr1 searchstrlen1 dircp1 cmdlen1 p1 out___r__1 out___pat1 out___patlen1 out___searchstr1 out___searchstrlen1 out___dircp1
+    j'5 !pat2 !patlen2 !searchstr2 !searchstrlen3 !dircp2 !cmdlen2 !p3 !out___r__2 !out___pat2 !out___patlen2 !out___searchstr2 !out___searchstrlen2 !out___dircp2 = do
       wrI32 offset soffset_T'line FALSE
       wrI32 offset soffset_T'end FALSE
       wrI64 offset soffset_T'off 0
@@ -28884,7 +28884,7 @@ parse_search_pattern_offset ed' pat patlen search_delim options1 strcopy searchs
       if r'6
         then do
           wrI32 offset soffset_T'line TRUE
-          j'11 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2 out___2_r__2 out___2_pat2 out___2_patlen2 out___2_searchstr2 out___2_searchstrlen2 out___2_dircp2
+          j'11 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2
         else do
           r'12 <- if ((options1 .&. SEARCH_OPT) /= 0) then (do { r'7 <- rdW8 p3 0; r'9 <- if ((fromIntegral r'7 :: Int32) == (ch 'e')) then pure True else (do { r'8 <- rdW8 p3 0; pure ((fromIntegral r'8 :: Int32) == (ch 's')) }); if r'9 then pure True else (do { r'10 <- rdW8 p3 0; pure ((fromIntegral r'10 :: Int32) == (ch 'b')) }) }) else pure False
           if r'12
@@ -28893,13 +28893,13 @@ parse_search_pattern_offset ed' pat patlen search_delim options1 strcopy searchs
               if (fromIntegral r'13 :: Int32) == (ch 'e')
                 then do
                   wrI32 offset soffset_T'end SEARCH_END
-                  j'9 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2 out___2_r__2 out___2_pat2 out___2_patlen2 out___2_searchstr2 out___2_searchstrlen2 out___2_dircp2
-                else j'9 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2 out___2_r__2 out___2_pat2 out___2_patlen2 out___2_searchstr2 out___2_searchstrlen2 out___2_dircp2
-            else j'11 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2 out___2_r__2 out___2_pat2 out___2_patlen2 out___2_searchstr2 out___2_searchstrlen2 out___2_dircp2
-    j'9 !pat3 !patlen3 !searchstr3 !searchstrlen4 !dircp3 !cmdlen3 !p4 !out___r__3 !out___pat3 !out___patlen3 !out___searchstr3 !out___searchstrlen3 !out___dircp3 !out___2_r__3 !out___2_pat3 !out___2_patlen3 !out___2_searchstr3 !out___2_searchstrlen3 !out___2_dircp3 = do
+                  j'9 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2
+                else j'9 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2
+            else j'11 pat2 patlen2 searchstr2 searchstrlen3 dircp2 cmdlen2 p3 out___r__2 out___pat2 out___patlen2 out___searchstr2 out___searchstrlen2 out___dircp2
+    j'9 !pat3 !patlen3 !searchstr3 !searchstrlen4 !dircp3 !cmdlen3 !p4 !out___r__3 !out___pat3 !out___patlen3 !out___searchstr3 !out___searchstrlen3 !out___dircp3 = do
       let !p5 = pAdd p4 1
-      j'11 pat3 patlen3 searchstr3 searchstrlen4 dircp3 cmdlen3 p5 out___r__3 out___pat3 out___patlen3 out___searchstr3 out___searchstrlen3 out___dircp3 out___2_r__3 out___2_pat3 out___2_patlen3 out___2_searchstr3 out___2_searchstrlen3 out___2_dircp3
-    j'11 !pat4 !patlen4 !searchstr4 !searchstrlen5 !dircp4 !cmdlen4 !p6 !out___r__4 !out___pat4 !out___patlen4 !out___searchstr4 !out___searchstrlen4 !out___dircp4 !out___2_r__4 !out___2_pat4 !out___2_patlen4 !out___2_searchstr4 !out___2_searchstrlen4 !out___2_dircp4 = do
+      j'11 pat3 patlen3 searchstr3 searchstrlen4 dircp3 cmdlen3 p5 out___r__3 out___pat3 out___patlen3 out___searchstr3 out___searchstrlen3 out___dircp3
+    j'11 !pat4 !patlen4 !searchstr4 !searchstrlen5 !dircp4 !cmdlen4 !p6 !out___r__4 !out___pat4 !out___patlen4 !out___searchstr4 !out___searchstrlen4 !out___dircp4 = do
       r'14 <- rdW8 p6 0
       r'16 <- if (((fromIntegral r'14 :: Word32) - (ch '0')) < 10) then pure True else (do { r'15 <- rdW8 p6 0; pure ((fromIntegral r'15 :: Int32) == (ch '+')) })
       r'18 <- if r'16 then pure True else (do { r'17 <- rdW8 p6 0; pure ((fromIntegral r'17 :: Int32) == (ch '-')) })
@@ -28911,28 +28911,28 @@ parse_search_pattern_offset ed' pat patlen search_delim options1 strcopy searchs
             then do
               r'22 <- musl_atol (castPtr p6)
               wrI64 offset soffset_T'off r'22
-              j'17 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4 out___2_r__4 out___2_pat4 out___2_patlen4 out___2_searchstr4 out___2_searchstrlen4 out___2_dircp4
+              j'17 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4
             else do
               r'23 <- rdW8 p6 0
               if (fromIntegral r'23 :: Int32) == (ch '-')
                 then do
                   wrI64 offset soffset_T'off (-1)
-                  j'17 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4 out___2_r__4 out___2_pat4 out___2_patlen4 out___2_searchstr4 out___2_searchstrlen4 out___2_dircp4
+                  j'17 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4
                 else do
                   wrI64 offset soffset_T'off 1
-                  j'17 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4 out___2_r__4 out___2_pat4 out___2_patlen4 out___2_searchstr4 out___2_searchstrlen4 out___2_dircp4
-        else j'19 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4 out___2_r__4 out___2_pat4 out___2_patlen4 out___2_searchstr4 out___2_searchstrlen4 out___2_dircp4
-    j'17 !pat5 !patlen5 !searchstr5 !searchstrlen6 !dircp5 !cmdlen5 !p7 !out___r__5 !out___pat5 !out___patlen5 !out___searchstr5 !out___searchstrlen5 !out___dircp5 !out___2_r__5 !out___2_pat5 !out___2_patlen5 !out___2_searchstr5 !out___2_searchstrlen5 !out___2_dircp5 = do
+                  j'17 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4
+        else j'19 pat4 patlen4 searchstr4 searchstrlen5 dircp4 cmdlen4 p6 out___r__4 out___pat4 out___patlen4 out___searchstr4 out___searchstrlen4 out___dircp4
+    j'17 !pat5 !patlen5 !searchstr5 !searchstrlen6 !dircp5 !cmdlen5 !p7 !out___r__5 !out___pat5 !out___patlen5 !out___searchstr5 !out___searchstrlen5 !out___dircp5 = do
       let !p8 = pAdd p7 1
-      loop'18 pat5 patlen5 searchstr5 searchstrlen6 dircp5 cmdlen5 p8 out___r__5 out___pat5 out___patlen5 out___searchstr5 out___searchstrlen5 out___dircp5 out___2_r__5 out___2_pat5 out___2_patlen5 out___2_searchstr5 out___2_searchstrlen5 out___2_dircp5
-    loop'18 !pat6 !patlen6 !searchstr6 !searchstrlen7 !dircp6 !cmdlen6 !p9 !out___r__6 !out___pat6 !out___patlen6 !out___searchstr6 !out___searchstrlen6 !out___dircp6 !out___2_r__6 !out___2_pat6 !out___2_patlen6 !out___2_searchstr6 !out___2_searchstrlen6 !out___2_dircp6 = do
+      loop'18 pat5 patlen5 searchstr5 searchstrlen6 dircp5 cmdlen5 p8 out___r__5 out___pat5 out___patlen5 out___searchstr5 out___searchstrlen5 out___dircp5
+    loop'18 !pat6 !patlen6 !searchstr6 !searchstrlen7 !dircp6 !cmdlen6 !p9 !out___r__6 !out___pat6 !out___patlen6 !out___searchstr6 !out___searchstrlen6 !out___dircp6 = do
       r'24 <- rdW8 p9 0
       if ((fromIntegral r'24 :: Word32) - (ch '0')) < 10
         then do
           let !p10 = pAdd p9 1
-          loop'18 pat6 patlen6 searchstr6 searchstrlen7 dircp6 cmdlen6 p10 out___r__6 out___pat6 out___patlen6 out___searchstr6 out___searchstrlen6 out___dircp6 out___2_r__6 out___2_pat6 out___2_patlen6 out___2_searchstr6 out___2_searchstrlen6 out___2_dircp6
-        else j'19 pat6 patlen6 searchstr6 searchstrlen7 dircp6 cmdlen6 p9 out___r__6 out___pat6 out___patlen6 out___searchstr6 out___searchstrlen6 out___dircp6 out___2_r__6 out___2_pat6 out___2_patlen6 out___2_searchstr6 out___2_searchstrlen6 out___2_dircp6
-    j'19 !pat7 !patlen7 !searchstr7 !searchstrlen8 !dircp7 !cmdlen7 !p11 _ _ _ _ _ _ _ _ _ _ _ _ = do
+          loop'18 pat6 patlen6 searchstr6 searchstrlen7 dircp6 cmdlen6 p10 out___r__6 out___pat6 out___patlen6 out___searchstr6 out___searchstrlen6 out___dircp6
+        else j'19 pat6 patlen6 searchstr6 searchstrlen7 dircp6 cmdlen6 p9 out___r__6 out___pat6 out___patlen6 out___searchstr6 out___searchstrlen6 out___dircp6
+    j'19 !pat7 !patlen7 !searchstr7 !searchstrlen8 !dircp7 !cmdlen7 !p11 _ _ _ _ _ _ = do
       let !cmdlen8 = cmdlen7 + (fromIntegral (fromIntegral (quot (pSub p11 pat7) 1) :: Int64) :: Int32)
       let !patlen8 = patlen7 - (fromIntegral (fromIntegral (quot (pSub p11 pat7) 1) :: Int64) :: Word64)
       pure (cmdlen8, p11, patlen8, searchstr7, searchstrlen8, dircp7)
@@ -28951,8 +28951,8 @@ parse_search_pattern_offset ed' pat patlen search_delim options1 strcopy searchs
           let !cmdlen9 = (0 :: Int32) + (fromIntegral (patlen - r'32) :: Int32)
           r'33 <- rdP strcopy 0
           r'34 <- rdP strcopy 0
-          j'3 r'33 r'32 r'34 r'32 nullPtr cmdlen9 r'29 (0 :: Int32) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr (0 :: Int32) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr
-        else j'3 pat patlen pat patlen nullPtr (0 :: Int32) r'29 (0 :: Int32) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr (0 :: Int32) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr
+          j'3 r'33 r'32 r'34 r'32 nullPtr cmdlen9 r'29 (0 :: Int32) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr
+        else j'3 pat patlen pat patlen nullPtr (0 :: Int32) r'29 (0 :: Int32) nullPtr (0 :: Word64) nullPtr (0 :: Word64) nullPtr
 
 do_search :: Ed -> Ptr Oparg_T -> Int32 -> Int32 -> Ptr Char_u -> Usize -> Int64 -> Int32 -> Ptr Searchit_arg_T -> IO Int32
 do_search ed' oap dirc search_delim pat patlen count options1 sia = frame 64 $ \fr' -> do
@@ -31609,13 +31609,13 @@ handle_csi_function_key ed' argc arg trail csi_len key_name offset buf bufsize b
 handle_csi :: Ed -> Ptr Char_u -> Int32 -> Ptr Char_u -> Int32 -> Ptr Char_u -> Int32 -> Ptr Int32 -> Ptr Char_u -> Int32 -> IO (Int32, Int32)
 handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ \fr' -> do
   let
-    j'2 !slen1 !first1 !argc1 !ap1 !out___r__1 !out___slen1 !out___2_r__1 !out___2_slen1 !out___3_r__1 !out___3_slen1 !out___4_r__1 !out___4_slen1 !out___5_r__1 !out___5_slen1 !out___6_r__1 !out___6_slen1 !out___7_r__1 !out___7_slen1 = do
+    j'2 !slen1 !first1 !argc1 !ap1 !out___r__1 !out___slen1 = do
       if (first1 >= (ch 'A')) && (first1 <= (ch 'Z'))
         then do
           let !ap2 = pAdd ap1 (-1)
-          j'28 slen1 (-1 :: Int32) first1 argc1 ap2 out___r__1 out___slen1 out___2_r__1 out___2_slen1 out___3_r__1 out___3_slen1 out___4_r__1 out___4_slen1 out___5_r__1 out___5_slen1 out___6_r__1 out___6_slen1 out___7_r__1 out___7_slen1
-        else loop'4 slen1 first1 (0 :: Int32) ap1 out___r__1 out___slen1 out___2_r__1 out___2_slen1 out___3_r__1 out___3_slen1 out___4_r__1 out___4_slen1 out___5_r__1 out___5_slen1 out___6_r__1 out___6_slen1 out___7_r__1 out___7_slen1
-    loop'4 !slen2 !first2 !argc2 !ap3 !out___r__2 !out___slen2 !out___2_r__2 !out___2_slen2 !out___3_r__2 !out___3_slen2 !out___4_r__2 !out___4_slen2 !out___5_r__2 !out___5_slen2 !out___6_r__2 !out___6_slen2 !out___7_r__2 !out___7_slen2 = do
+          j'28 slen1 (-1 :: Int32) first1 argc1 ap2 out___r__1 out___slen1
+        else loop'4 slen1 first1 (0 :: Int32) ap1 out___r__1 out___slen1
+    loop'4 !slen2 !first2 !argc2 !ap3 !out___r__2 !out___slen2 = do
       if argc2 < 3
         then do
           if ap3 >= (pAdd tp (fromIntegral len))
@@ -31626,16 +31626,16 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                 then do
                   let !argc3 = argc2 + 1
                   wrI32 (pAdd fr' ((fromIntegral argc2) * 4)) 0 (-1)
-                  j'17 slen2 first2 argc3 ap3 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2 out___5_r__2 out___5_slen2 out___6_r__2 out___6_slen2 out___7_r__2 out___7_slen2
+                  j'17 slen2 first2 argc3 ap3 out___r__2 out___slen2
                 else do
                   r'2 <- rdW8 ap3 0
                   if ((fromIntegral r'2 :: Word32) - (ch '0')) < 10
                     then do
                       wrI32 (pAdd fr' ((fromIntegral argc2) * 4)) 0 0
-                      loop'9 slen2 first2 argc2 ap3 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2 out___5_r__2 out___5_slen2 out___6_r__2 out___6_slen2 out___7_r__2 out___7_slen2
-                    else j'17 slen2 first2 argc2 ap3 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2 out___5_r__2 out___5_slen2 out___6_r__2 out___6_slen2 out___7_r__2 out___7_slen2
-        else loop'19 slen2 first2 argc2 ap3 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2 out___5_r__2 out___5_slen2 out___6_r__2 out___6_slen2 out___7_r__2 out___7_slen2
-    loop'9 !slen3 !first3 !argc4 !ap4 !out___r__3 !out___slen3 !out___2_r__3 !out___2_slen3 !out___3_r__3 !out___3_slen3 !out___4_r__3 !out___4_slen3 !out___5_r__3 !out___5_slen3 !out___6_r__3 !out___6_slen3 !out___7_r__3 !out___7_slen3 = do
+                      loop'9 slen2 first2 argc2 ap3 out___r__2 out___slen2
+                    else j'17 slen2 first2 argc2 ap3 out___r__2 out___slen2
+        else loop'19 slen2 first2 argc2 ap3 out___r__2 out___slen2
+    loop'9 !slen3 !first3 !argc4 !ap4 !out___r__3 !out___slen3 = do
       if ap4 >= (pAdd tp (fromIntegral len))
         then pure ((-1 :: Int32), slen3)
         else do
@@ -31643,7 +31643,7 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
           if not (((fromIntegral r'3 :: Word32) - (ch '0')) < 10)
             then do
               let !argc5 = argc4 + 1
-              j'17 slen3 first3 argc5 ap4 out___r__3 out___slen3 out___2_r__3 out___2_slen3 out___3_r__3 out___3_slen3 out___4_r__3 out___4_slen3 out___5_r__3 out___5_slen3 out___6_r__3 out___6_slen3 out___7_r__3 out___7_slen3
+              j'17 slen3 first3 argc5 ap4 out___r__3 out___slen3
             else do
               r'4 <- rdI32 (pAdd fr' ((fromIntegral argc4) * 4)) 0
               if r'4 <= 214748363
@@ -31651,33 +31651,33 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                   r'5 <- rdI32 (pAdd fr' ((fromIntegral argc4) * 4)) 0
                   r'6 <- rdW8 ap4 0
                   wrI32 (pAdd fr' ((fromIntegral argc4) * 4)) 0 ((r'5 * 10) + ((fromIntegral r'6 :: Int32) - (ch '0')))
-                  j'13 slen3 first3 argc4 ap4 out___r__3 out___slen3 out___2_r__3 out___2_slen3 out___3_r__3 out___3_slen3 out___4_r__3 out___4_slen3 out___5_r__3 out___5_slen3 out___6_r__3 out___6_slen3 out___7_r__3 out___7_slen3
-                else j'13 slen3 first3 argc4 ap4 out___r__3 out___slen3 out___2_r__3 out___2_slen3 out___3_r__3 out___3_slen3 out___4_r__3 out___4_slen3 out___5_r__3 out___5_slen3 out___6_r__3 out___6_slen3 out___7_r__3 out___7_slen3
-    j'13 !slen4 !first4 !argc6 !ap5 !out___r__4 !out___slen4 !out___2_r__4 !out___2_slen4 !out___3_r__4 !out___3_slen4 !out___4_r__4 !out___4_slen4 !out___5_r__4 !out___5_slen4 !out___6_r__4 !out___6_slen4 !out___7_r__4 !out___7_slen4 = do
+                  j'13 slen3 first3 argc4 ap4 out___r__3 out___slen3
+                else j'13 slen3 first3 argc4 ap4 out___r__3 out___slen3
+    j'13 !slen4 !first4 !argc6 !ap5 !out___r__4 !out___slen4 = do
       let !ap6 = pAdd ap5 1
-      loop'9 slen4 first4 argc6 ap6 out___r__4 out___slen4 out___2_r__4 out___2_slen4 out___3_r__4 out___3_slen4 out___4_r__4 out___4_slen4 out___5_r__4 out___5_slen4 out___6_r__4 out___6_slen4 out___7_r__4 out___7_slen4
-    j'17 !slen5 !first5 !argc7 !ap7 !out___r__5 !out___slen5 !out___2_r__5 !out___2_slen5 !out___3_r__5 !out___3_slen5 !out___4_r__5 !out___4_slen5 !out___5_r__5 !out___5_slen5 !out___6_r__5 !out___6_slen5 !out___7_r__5 !out___7_slen5 = do
+      loop'9 slen4 first4 argc6 ap6 out___r__4 out___slen4
+    j'17 !slen5 !first5 !argc7 !ap7 !out___r__5 !out___slen5 = do
       r'7 <- rdW8 ap7 0
       if (fromIntegral r'7 :: Int32) == (ch ';')
         then do
           let !ap8 = pAdd ap7 1
-          loop'4 slen5 first5 argc7 ap8 out___r__5 out___slen5 out___2_r__5 out___2_slen5 out___3_r__5 out___3_slen5 out___4_r__5 out___4_slen5 out___5_r__5 out___5_slen5 out___6_r__5 out___6_slen5 out___7_r__5 out___7_slen5
-        else loop'19 slen5 first5 argc7 ap7 out___r__5 out___slen5 out___2_r__5 out___2_slen5 out___3_r__5 out___3_slen5 out___4_r__5 out___4_slen5 out___5_r__5 out___5_slen5 out___6_r__5 out___6_slen5 out___7_r__5 out___7_slen5
-    loop'19 !slen6 !first6 !argc8 !ap9 !out___r__6 !out___slen6 !out___2_r__6 !out___2_slen6 !out___3_r__6 !out___3_slen6 !out___4_r__6 !out___4_slen6 !out___5_r__6 !out___5_slen6 !out___6_r__6 !out___6_slen6 !out___7_r__6 !out___7_slen6 = do
+          loop'4 slen5 first5 argc7 ap8 out___r__5 out___slen5
+        else loop'19 slen5 first5 argc7 ap7 out___r__5 out___slen5
+    loop'19 !slen6 !first6 !argc8 !ap9 !out___r__6 !out___slen6 = do
       r'11 <- if (ap9 < (pAdd tp (fromIntegral len))) then (do { r'8 <- rdW8 ap9 0; r'10 <- if ((fromIntegral r'8 :: Int32) >= (ch '{')) then (do { r'9 <- rdW8 ap9 0; pure ((fromIntegral r'9 :: Int32) <= (ch '~')) }) else pure False; pure (not r'10) }) else pure False
       r'15 <- if r'11 then (do { r'12 <- rdW8 ap9 0; r'14 <- if (((fromIntegral r'12 :: Word32) - (ch 'A')) < 26) then pure True else (do { r'13 <- rdW8 ap9 0; pure (((fromIntegral r'13 :: Word32) - (ch 'a')) < 26) }); pure (not r'14) }) else pure False
       if r'15
         then do
           let !ap10 = pAdd ap9 1
-          loop'19 slen6 first6 argc8 ap10 out___r__6 out___slen6 out___2_r__6 out___2_slen6 out___3_r__6 out___3_slen6 out___4_r__6 out___4_slen6 out___5_r__6 out___5_slen6 out___6_r__6 out___6_slen6 out___7_r__6 out___7_slen6
+          loop'19 slen6 first6 argc8 ap10 out___r__6 out___slen6
         else do
           if ap9 >= (pAdd tp (fromIntegral len))
             then pure ((-1 :: Int32), slen6)
             else do
               r'16 <- rdW8 ap9 0
               let !trail1 = fromIntegral r'16 :: Int32
-              j'28 slen6 first6 trail1 argc8 ap9 out___r__6 out___slen6 out___2_r__6 out___2_slen6 out___3_r__6 out___3_slen6 out___4_r__6 out___4_slen6 out___5_r__6 out___5_slen6 out___6_r__6 out___6_slen6 out___7_r__6 out___7_slen6
-    j'28 !slen7 !first7 !trail2 !argc9 !ap11 !out___r__7 !out___slen7 !out___2_r__7 !out___2_slen7 !out___3_r__7 !out___3_slen7 !out___4_r__7 !out___4_slen7 !out___5_r__7 !out___5_slen7 !out___6_r__7 !out___6_slen7 !out___7_r__7 !out___7_slen7 = do
+              j'28 slen6 first6 trail1 argc8 ap9 out___r__6 out___slen6
+    j'28 !slen7 !first7 !trail2 !argc9 !ap11 !out___r__7 !out___slen7 = do
       let !csi_len1 = (fromIntegral (fromIntegral (quot (pSub ap11 tp) 1) :: Int64) :: Int32) + 1
       if ((first7 == (ch '>')) && ((argc9 == 1) || (argc9 == 2))) && (trail2 == (ch 'm'))
         then do
@@ -31686,28 +31686,28 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
             then do
               r'18 <- rdI32 fr' 4
               set'modify_otherkeys_state ed' (if (r'18 == 2) then (MOKS_ENABLED :: Int32) else (MOKS_OFF :: Int32))
-              j'56 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
-            else j'56 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+              j'56 csi_len1 out___r__7 out___slen7
+            else j'56 csi_len1 out___r__7 out___slen7
         else do
           r'22 <- if ((first7 == (-1)) && (((fromIntegral trail2 :: Word32) - (ch 'A')) < 26)) then (if (argc9 == 0) then pure True else (if (argc9 == 2) then (do { r'19 <- rdI32 fr' 0; pure (r'19 == 1) }) else pure False)) else pure False
           if r'22
             then do
               r'23 <- handle_csi_function_key ed' argc9 fr' trail2 csi_len1 key_name offset buf bufsize buflen
-              let !out___4_r__8 = if (r'23 <= 0) then r'23 else (len + r'23)
-              pure (out___4_r__8, slen7)
+              let !out___r__8 = if (r'23 <= 0) then r'23 else (len + r'23)
+              pure (out___r__8, slen7)
             else do
               if ((first7 == (-1)) && (argc9 == 2)) && (trail2 == (ch 'R'))
                 then do
                   handle_u7_response ed' fr' tp csi_len1
                   wrW8 key_name 0 253
                   wrW8 key_name 1 53
-                  j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                  j'57 csi_len1 out___r__7 out___slen7
                 else do
                   if (first7 == (ch '?')) && (trail2 == (ch 'c'))
                     then do
                       wrW8 key_name 0 253
                       wrW8 key_name 1 53
-                      j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                      j'57 csi_len1 out___r__7 out___slen7
                     else do
                       r'25 <- if (((first7 == (ch '?')) && (trail2 == (ch 'y'))) && (argc9 == 2)) then (do { r'24 <- rdI32 fr' 0; pure (r'24 == 2026) }) else pure False
                       if r'25
@@ -31722,9 +31722,9 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                                 2026 -> do
                                   set'sync_output_setting ed' r'26
                                   set_option_value_give_err ed' (Ptr "termsync\0"#) (b2i ((r'26 == 1) || (r'26 == 2)) :: Int64) nullPtr 0
-                                  j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
-                                _ -> j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
-                            else j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                                  j'57 csi_len1 out___r__7 out___slen7
+                                _ -> j'57 csi_len1 out___r__7 out___slen7
+                            else j'57 csi_len1 out___r__7 out___slen7
                         else do
                           r'29 <- if ((first7 == (ch '?')) && (argc9 == 1)) then (do { r'28 <- rdI32 fr' 0; pure (r'28 == 1) }) else pure False
                           if r'29 && (trail2 == (ch 'z'))
@@ -31732,7 +31732,7 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                               wrW8 key_name 0 253
                               wrW8 key_name 1 53
                               _ <- do_cmdline_cmd ed' (Ptr "stop\0"#)
-                              j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                              j'57 csi_len1 out___r__7 out___slen7
                             else do
                               r'32 <- if (argc9 >= 3) then (do { r'31 <- rdI32 fr' 0; pure (r'31 == 48) }) else pure False
                               if r'32
@@ -31742,7 +31742,7 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                                   wrW8 key_name 0 253
                                   wrW8 key_name 1 53
                                   set_shellsize ed' r'34 r'33 1
-                                  j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                                  j'57 csi_len1 out___r__7 out___slen7
                                 else do
                                   r'35 <- rdP (addr'term_strings ed') 552
                                   r'36 <- rdW8 r'35 0
@@ -31751,7 +31751,7 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                                       handle_version_response ed' first7 fr' argc9 tp
                                       wrW8 key_name 0 253
                                       wrW8 key_name 1 53
-                                      j'57 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                                      j'57 csi_len1 out___r__7 out___slen7
                                     else do
                                       if ((first7 == (ch '?')) && (argc9 == 1)) && (trail2 == (ch 'u'))
                                         then do
@@ -31759,35 +31759,35 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                                           if r'37 == (ch '0')
                                             then do
                                               set'kitty_protocol_state ed' KKPS_OFF
-                                              j'44 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                                              j'44 csi_len1 out___r__7 out___slen7
                                             else do
                                               set'kitty_protocol_state ed' KKPS_ENABLED
                                               set'seenModifyOtherKeys ed' FALSE
-                                              j'44 csi_len1 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
+                                              j'44 csi_len1 out___r__7 out___slen7
                                         else do
                                           r'38 <- rdI32 fr' 0
                                           if (((r'38 == 27) && (argc9 == 3)) && (trail2 == (ch '~'))) || ((argc9 == 2) && ((trail2 == (ch 'u')) || (trail2 == (ch '~'))))
                                             then do
                                               let !iskitty1 = (argc9 == 2) && ((trail2 == (ch 'u')) || (trail2 == (ch '~')))
                                               r'39 <- handle_key_with_modifier ed' fr' csi_len1 offset buf bufsize buflen iskitty1 trail2
-                                              let !out___5_r__8 = len + r'39
-                                              pure (out___5_r__8, slen7)
+                                              let !out___r__9 = len + r'39
+                                              pure (out___r__9, slen7)
                                             else do
                                               if (argc9 == 1) && ((trail2 == (ch 'u')) || (trail2 == (ch '~')))
                                                 then do
                                                   r'40 <- handle_key_without_modifier ed' fr' csi_len1 offset buf bufsize buflen trail2
-                                                  let !out___6_r__8 = len + r'40
-                                                  pure (out___6_r__8, slen7)
-                                                else j'57 slen7 out___r__7 out___slen7 out___2_r__7 out___2_slen7 out___3_r__7 out___3_slen7 out___4_r__7 out___4_slen7 out___5_r__7 out___5_slen7 out___6_r__7 out___6_slen7 out___7_r__7 out___7_slen7
-    j'44 !csi_len2 !out___r__8 !out___slen8 !out___2_r__8 !out___2_slen8 !out___3_r__8 !out___3_slen8 !out___4_r__9 !out___4_slen8 !out___5_r__9 !out___5_slen8 !out___6_r__9 !out___6_slen8 !out___7_r__8 !out___7_slen8 = do
+                                                  let !out___r__10 = len + r'40
+                                                  pure (out___r__10, slen7)
+                                                else j'57 slen7 out___r__7 out___slen7
+    j'44 !csi_len2 !out___r__11 !out___slen8 = do
       wrW8 key_name 0 253
       wrW8 key_name 1 53
-      j'57 csi_len2 out___r__8 out___slen8 out___2_r__8 out___2_slen8 out___3_r__8 out___3_slen8 out___4_r__9 out___4_slen8 out___5_r__9 out___5_slen8 out___6_r__9 out___6_slen8 out___7_r__8 out___7_slen8
-    j'56 !csi_len3 !out___r__9 !out___slen9 !out___2_r__9 !out___2_slen9 !out___3_r__9 !out___3_slen9 !out___4_r__10 !out___4_slen9 !out___5_r__10 !out___5_slen9 !out___6_r__10 !out___6_slen9 !out___7_r__9 !out___7_slen9 = do
+      j'57 csi_len2 out___r__11 out___slen8
+    j'56 !csi_len3 !out___r__12 !out___slen9 = do
       wrW8 key_name 0 253
       wrW8 key_name 1 53
-      j'57 csi_len3 out___r__9 out___slen9 out___2_r__9 out___2_slen9 out___3_r__9 out___3_slen9 out___4_r__10 out___4_slen9 out___5_r__10 out___5_slen9 out___6_r__10 out___6_slen9 out___7_r__9 out___7_slen9
-    j'57 !slen8 _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+      j'57 csi_len3 out___r__12 out___slen9
+    j'57 !slen8 _ _ = do
       pure ((0 :: Int32), slen8)
   fillMem (pAdd fr' 0) 0 12
   wrI32 (pAdd fr' 0) 0 (-1)
@@ -31799,8 +31799,8 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
       let !ap12 = pAdd argp 1
       r'42 <- rdW8 argp 0
       let !first8 = fromIntegral r'42 :: Int32
-      j'2 slen first8 (0 :: Int32) ap12 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-    else j'2 slen (-1 :: Int32) (0 :: Int32) argp (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+      j'2 slen first8 (0 :: Int32) ap12 (0 :: Int32) (0 :: Int32)
+    else j'2 slen (-1 :: Int32) (0 :: Int32) argp (0 :: Int32) (0 :: Int32)
 
 check_for_color_response :: Ed -> Ptr Char_u -> Int32 -> IO ()
 check_for_color_response ed' resp len = do
@@ -31859,10 +31859,10 @@ in_osc_sequence ed' = do
 handle_osc :: Ed -> Ptr Char_u -> Int32 -> Ptr Char_u -> Int32 -> IO (Bool, Int32)
 handle_osc ed' tp len key_name slen = do
   let
-    j'4 !slen1 !last_char1 !out___r__1 !out___slen1 !out___2_r__1 !out___2_slen1 !out___3_r__1 !out___3_slen1 !out___4_r__1 !out___4_slen1 = do
+    j'4 !slen1 !last_char1 !out___r__1 !out___slen1 = do
       wrW8 key_name 0 253
-      loop'5 slen1 last_char1 (0 :: Int32) out___r__1 out___slen1 out___2_r__1 out___2_slen1 out___3_r__1 out___3_slen1 out___4_r__1 out___4_slen1
-    loop'5 !slen2 !last_char2 !i1 !out___r__2 !out___slen2 !out___2_r__2 !out___2_slen2 !out___3_r__2 !out___3_slen2 !out___4_r__2 !out___4_slen2 = do
+      loop'5 slen1 last_char1 (0 :: Int32) out___r__1 out___slen1
+    loop'5 !slen2 !last_char2 !i1 !out___r__2 !out___slen2 = do
       if i1 < len
         then do
           r'1 <- rdW8 (pAdd tp (fromIntegral i1)) 0
@@ -31886,11 +31886,11 @@ handle_osc ed' tp len key_name slen = do
               if (fromIntegral r'20 :: Int32) /= (fromIntegral r'18 :: Int32)
                 then do
                   _ <- redraw_asap ed' UPD_CLEAR
-                  j'13 slen3 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2
-                else j'13 slen3 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2
+                  j'13 slen3 out___r__2 out___slen2
+                else j'13 slen3 out___r__2 out___slen2
             else do
               let !i2 = i1 + 1
-              loop'5 slen2 last_char2 i2 out___r__2 out___slen2 out___2_r__2 out___2_slen2 out___3_r__2 out___3_slen2 out___4_r__2 out___4_slen2
+              loop'5 slen2 last_char2 i2 out___r__2 out___slen2
         else do
           wrW8 key_name 1 53
           r'22 <- Caprice.Host.musl_now_ms ed'
@@ -31913,7 +31913,7 @@ handle_osc ed' tp len key_name slen = do
             else do
               ga_concat ed' (pAdd (addr'osc_state ed') oscstate_T'buf) tp
               pure (True, len)
-    j'13 !slen4 _ _ _ _ _ _ _ _ = do
+    j'13 !slen4 _ _ = do
       pure (True, slen4)
   r'34 <- rdB (addr'osc_state ed') oscstate_T'processing
   if not r'34
@@ -31930,35 +31930,35 @@ handle_osc ed' tp len key_name slen = do
           wrB (addr'osc_state ed') oscstate_T'processing True
           r'38 <- rdW8 tp 0
           wrW8 (addr'osc_state ed') oscstate_T'start_char r'38
-          j'4 slen (0 :: Word8) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+          j'4 slen (0 :: Word8) False (0 :: Int32)
     else do
       r'39 <- rdP (addr'osc_state ed') (oscstate_T'buf + garray_T'ga_data)
       r'40 <- rdI32 (addr'osc_state ed') (oscstate_T'buf + garray_T'ga_len)
       r'41 <- rdW8 (pAdd (castPtr r'39) (fromIntegral (r'40 - 1))) 0
-      j'4 slen r'41 False (0 :: Int32) False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+      j'4 slen r'41 False (0 :: Int32)
 
 handle_dcs :: Ptr Char_u -> Ptr Char_u -> Int32 -> Ptr Char_u -> Int32 -> IO (Bool, Int32)
 handle_dcs tp argp len key_name slen = do
   let
-    loop'4 !slen1 !i1 !j1 !out___r__1 !out___slen1 !out___2_r__1 !out___2_slen1 = do
+    loop'4 !slen1 !i1 !j1 !out___r__1 !out___slen1 = do
       if i1 < len
         then do
           r'3 <- if ((i1 - j1) == 3) then (do { r'1 <- rdW8 (pAdd tp (fromIntegral i1)) 0; let { !r'2 = musl_isdigit (fromIntegral r'1 :: Int32) }; pure (not r'2) }) else pure False
           if r'3
-            then j'19 slen1 i1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
+            then j'19 slen1 i1 out___r__1 out___slen1
             else do
               r'5 <- if ((i1 - j1) == 4) then (do { r'4 <- rdW8 (pAdd tp (fromIntegral i1)) 0; pure ((fromIntegral r'4 :: Int32) /= (ch ' ')) }) else pure False
               if r'5
-                then j'19 slen1 i1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
+                then j'19 slen1 i1 out___r__1 out___slen1
                 else do
                   r'7 <- if ((i1 - j1) == 5) then (do { r'6 <- rdW8 (pAdd tp (fromIntegral i1)) 0; pure ((fromIntegral r'6 :: Int32) /= (ch 'q')) }) else pure False
                   if r'7
-                    then j'19 slen1 i1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
+                    then j'19 slen1 i1 out___r__1 out___slen1
                     else do
                       r'9 <- if ((i1 - j1) == 6) then (do { r'8 <- rdW8 (pAdd tp (fromIntegral i1)) 0; pure ((fromIntegral r'8 :: Int32) /= ESC) }) else pure False
                       r'11 <- if r'9 then (do { r'10 <- rdW8 (pAdd tp (fromIntegral i1)) 0; pure ((fromIntegral r'10 :: Int32) /= STERM) }) else pure False
                       if r'11
-                        then j'19 slen1 i1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
+                        then j'19 slen1 i1 out___r__1 out___slen1
                         else do
                           r'13 <- if ((i1 - j1) == 6) then (do { r'12 <- rdW8 (pAdd tp (fromIntegral i1)) 0; pure ((fromIntegral r'12 :: Int32) == STERM) }) else pure False
                           r'16 <- if r'13 then pure True else (if ((i1 - j1) == 7) then (do { r'14 <- rdW8 (pAdd tp (fromIntegral i1)) 0; pure ((fromIntegral r'14 :: Int32) == (ch '\\')) }) else pure False)
@@ -31967,12 +31967,12 @@ handle_dcs tp argp len key_name slen = do
                               wrW8 key_name 0 253
                               wrW8 key_name 1 53
                               let !slen2 = i1 + 1
-                              j'19 slen2 i1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
+                              j'19 slen2 i1 out___r__1 out___slen1
                             else do
                               let !i2 = i1 + 1
-                              loop'4 slen1 i2 j1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
-        else j'19 slen1 i1 out___r__1 out___slen1 out___2_r__1 out___2_slen1
-    loop'13 !slen3 !i3 !out___r__2 !out___slen2 !out___2_r__2 !out___2_slen2 = do
+                              loop'4 slen1 i2 j1 out___r__1 out___slen1
+        else j'19 slen1 i1 out___r__1 out___slen1
+    loop'13 !slen3 !i3 !out___r__2 !out___slen2 = do
       if i3 < len
         then do
           r'17 <- rdW8 (pAdd tp (fromIntegral i3)) 0
@@ -31984,32 +31984,32 @@ handle_dcs tp argp len key_name slen = do
               wrW8 key_name 1 53
               r'22 <- rdW8 (pAdd tp (fromIntegral i3)) 0
               let !slen4 = (i3 + 1) + (b2i ((fromIntegral r'22 :: Int32) == ESC) :: Int32)
-              j'19 slen4 i3 out___r__2 out___slen2 out___2_r__2 out___2_slen2
+              j'19 slen4 i3 out___r__2 out___slen2
             else do
               let !i4 = i3 + 1
-              loop'13 slen3 i4 out___r__2 out___slen2 out___2_r__2 out___2_slen2
-        else j'19 slen3 i3 out___r__2 out___slen2 out___2_r__2 out___2_slen2
-    j'19 !slen5 !i5 _ _ _ _ = do
+              loop'13 slen3 i4 out___r__2 out___slen2
+        else j'19 slen3 i3 out___r__2 out___slen2
+    j'19 !slen5 !i5 _ _ = do
       if i5 == len
         then pure (False, slen5)
         else pure (True, slen5)
   r'23 <- rdW8 tp 0
   let !j2 = 1 + (b2i ((fromIntegral r'23 :: Int32) == ESC) :: Int32)
   if len < (j2 + 3)
-    then j'19 slen len False (0 :: Int32) False (0 :: Int32)
+    then j'19 slen len False (0 :: Int32)
     else do
       r'24 <- rdW8 argp 1
       r'26 <- if ((fromIntegral r'24 :: Int32) /= (ch '+')) then (do { r'25 <- rdW8 argp 1; pure ((fromIntegral r'25 :: Int32) /= (ch '$')) }) else pure False
       r'30 <- if r'26 then pure True else (do { r'27 <- rdW8 argp 2; if ((fromIntegral r'27 :: Int32) /= (ch 'r')) then (do { r'28 <- rdW8 argp 2; pure ((fromIntegral r'28 :: Int32) /= (ch 'R')) }) else pure False })
       if r'30
-        then j'19 slen (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+        then j'19 slen (0 :: Int32) False (0 :: Int32)
         else do
           r'31 <- rdW8 argp 1
           if (fromIntegral r'31 :: Int32) == (ch '+')
-            then loop'13 slen j2 False (0 :: Int32) False (0 :: Int32)
+            then loop'13 slen j2 False (0 :: Int32)
             else do
               let !i6 = j2 + 3
-              loop'4 slen i6 j2 False (0 :: Int32) False (0 :: Int32)
+              loop'4 slen i6 j2 False (0 :: Int32)
 
 check_termcode :: Ed -> Int32 -> Ptr Char_u -> Int32 -> Ptr Int32 -> IO Int32
 check_termcode ed' max_offset buf bufsize buflen = frame 9 $ \fr' -> do

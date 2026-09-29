@@ -4155,8 +4155,8 @@ utf_ptr2char_and_len ed' p = do
       if r'7
         then do
           r'8 <- rdW8 p 0
-          let !out___2_r__1 = fromIntegral r'8 :: Int32
-          pure (out___2_r__1, (1 :: Int32))
+          let !out___r__2 = fromIntegral r'8 :: Int32
+          pure (out___r__2, (1 :: Int32))
         else do
           r'9 <- rdW8 p 0
           r'10 <- rdW8 p 1
@@ -4168,8 +4168,8 @@ utf_ptr2char_and_len ed' p = do
               if ((fromIntegral r'11 :: Int32) .&. 192) /= 128
                 then do
                   r'12 <- rdW8 p 0
-                  let !out___4_r__1 = fromIntegral r'12 :: Int32
-                  pure (out___4_r__1, (1 :: Int32))
+                  let !out___r__3 = fromIntegral r'12 :: Int32
+                  pure (out___r__3, (1 :: Int32))
                 else do
                   r'13 <- rdW8 p 0
                   r'14 <- rdW8 p 1
@@ -4182,8 +4182,8 @@ utf_ptr2char_and_len ed' p = do
                       if ((fromIntegral r'16 :: Int32) .&. 192) /= 128
                         then do
                           r'17 <- rdW8 p 0
-                          let !out___6_r__1 = fromIntegral r'17 :: Int32
-                          pure (out___6_r__1, (1 :: Int32))
+                          let !out___r__4 = fromIntegral r'17 :: Int32
+                          pure (out___r__4, (1 :: Int32))
                         else do
                           r'18 <- rdW8 p 0
                           r'19 <- rdW8 p 1
@@ -4197,8 +4197,8 @@ utf_ptr2char_and_len ed' p = do
                               if ((fromIntegral r'22 :: Int32) .&. 192) /= 128
                                 then do
                                   r'23 <- rdW8 p 0
-                                  let !out___8_r__1 = fromIntegral r'23 :: Int32
-                                  pure (out___8_r__1, (1 :: Int32))
+                                  let !out___r__5 = fromIntegral r'23 :: Int32
+                                  pure (out___r__5, (1 :: Int32))
                                 else do
                                   r'24 <- rdW8 p 0
                                   r'25 <- rdW8 p 1
@@ -4213,8 +4213,8 @@ utf_ptr2char_and_len ed' p = do
                                       if ((fromIntegral r'29 :: Int32) .&. 192) /= 128
                                         then do
                                           r'30 <- rdW8 p 0
-                                          let !out___10_r__1 = fromIntegral r'30 :: Int32
-                                          pure (out___10_r__1, (1 :: Int32))
+                                          let !out___r__6 = fromIntegral r'30 :: Int32
+                                          pure (out___r__6, (1 :: Int32))
                                         else do
                                           r'31 <- rdW8 p 0
                                           r'32 <- rdW8 p 1
@@ -4222,28 +4222,28 @@ utf_ptr2char_and_len ed' p = do
                                           r'34 <- rdW8 p 3
                                           r'35 <- rdW8 p 4
                                           r'36 <- rdW8 p 5
-                                          let !out___11_r__1 = (((((shiftL ((fromIntegral r'31 :: Int32) .&. 1) 30) + (shiftL ((fromIntegral r'32 :: Int32) .&. 63) 24)) + (shiftL ((fromIntegral r'33 :: Int32) .&. 63) 18)) + (shiftL ((fromIntegral r'34 :: Int32) .&. 63) 12)) + (shiftL ((fromIntegral r'35 :: Int32) .&. 63) 6)) + ((fromIntegral r'36 :: Int32) .&. 63)
-                                          pure (out___11_r__1, (6 :: Int32))
+                                          let !out___r__7 = (((((shiftL ((fromIntegral r'31 :: Int32) .&. 1) 30) + (shiftL ((fromIntegral r'32 :: Int32) .&. 63) 24)) + (shiftL ((fromIntegral r'33 :: Int32) .&. 63) 18)) + (shiftL ((fromIntegral r'34 :: Int32) .&. 63) 12)) + (shiftL ((fromIntegral r'35 :: Int32) .&. 63) 6)) + ((fromIntegral r'36 :: Int32) .&. 63)
+                                          pure (out___r__7, (6 :: Int32))
 
 utf_ptr2char_and_len_len :: Ed -> Ptr Char_u -> Int32 -> IO (Int32, Int32)
 utf_ptr2char_and_len_len ed' p size = do
   let
-    loop'24 !len1 !i1 !out___r__1 !out___lenp1 !out___2_r__1 !out___2_lenp1 !out___3_r__1 !out___3_lenp1 !out___4_r__1 !out___4_lenp1 !out___5_r__1 !out___5_lenp1 !out___6_r__1 !out___6_lenp1 !out___7_r__1 !out___7_lenp1 !out___8_r__1 !out___8_lenp1 !out___9_r__1 !out___9_lenp1 !out___10_r__1 !out___10_lenp1 !out___11_r__1 !out___11_lenp1 !out___12_r__1 !out___12_lenp1 !out___13_r__1 !out___13_lenp1 !out___14_r__1 !out___14_lenp1 !out___15_r__1 !out___15_lenp1 = do
+    loop'24 !len1 !i1 !out___r__1 !out___lenp1 = do
       if i1 < size
         then do
           r'1 <- rdW8 (pAdd p (fromIntegral i1)) 0
           if ((fromIntegral r'1 :: Int32) .&. 192) /= 128
             then do
               r'2 <- rdW8 p 0
-              let !out___4_r__2 = fromIntegral r'2 :: Int32
-              pure (out___4_r__2, (1 :: Int32))
+              let !out___r__2 = fromIntegral r'2 :: Int32
+              pure (out___r__2, (1 :: Int32))
             else do
               let !i2 = i1 + 1
-              loop'24 len1 i2 out___r__1 out___lenp1 out___2_r__1 out___2_lenp1 out___3_r__1 out___3_lenp1 out___4_r__1 out___4_lenp1 out___5_r__1 out___5_lenp1 out___6_r__1 out___6_lenp1 out___7_r__1 out___7_lenp1 out___8_r__1 out___8_lenp1 out___9_r__1 out___9_lenp1 out___10_r__1 out___10_lenp1 out___11_r__1 out___11_lenp1 out___12_r__1 out___12_lenp1 out___13_r__1 out___13_lenp1 out___14_r__1 out___14_lenp1 out___15_r__1 out___15_lenp1
+              loop'24 len1 i2 out___r__1 out___lenp1
         else do
           r'3 <- rdW8 p 0
-          let !out___5_r__2 = fromIntegral r'3 :: Int32
-          pure (out___5_r__2, len1)
+          let !out___r__3 = fromIntegral r'3 :: Int32
+          pure (out___r__3, len1)
   if size < 1
     then pure ((NUL :: Int32), (1 :: Int32))
     else do
@@ -4251,8 +4251,8 @@ utf_ptr2char_and_len_len ed' p size = do
       if (fromIntegral r'4 :: Int32) < 128
         then do
           r'5 <- rdW8 p 0
-          let !out___2_r__2 = fromIntegral r'5 :: Int32
-          pure (out___2_r__2, (1 :: Int32))
+          let !out___r__4 = fromIntegral r'5 :: Int32
+          pure (out___r__4, (1 :: Int32))
         else do
           r'6 <- rdW8 p 0
           r'7 <- rdI8 (pAdd (addr'utf8len_tab_zero ed') (fromIntegral r'6)) 0
@@ -4260,18 +4260,18 @@ utf_ptr2char_and_len_len ed' p size = do
           if len2 <= 1
             then do
               r'8 <- rdW8 p 0
-              let !out___3_r__2 = fromIntegral r'8 :: Int32
-              pure (out___3_r__2, (1 :: Int32))
+              let !out___r__5 = fromIntegral r'8 :: Int32
+              pure (out___r__5, (1 :: Int32))
             else do
               if len2 > size
-                then loop'24 len2 (1 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+                then loop'24 len2 (1 :: Int32) (0 :: Int32) (0 :: Int32)
                 else do
                   r'9 <- rdW8 p 1
                   if ((fromIntegral r'9 :: Int32) .&. 192) /= 128
                     then do
                       r'10 <- rdW8 p 0
-                      let !out___6_r__2 = fromIntegral r'10 :: Int32
-                      pure (out___6_r__2, (1 :: Int32))
+                      let !out___r__6 = fromIntegral r'10 :: Int32
+                      pure (out___r__6, (1 :: Int32))
                     else do
                       r'11 <- rdW8 p 0
                       r'12 <- rdW8 p 1
@@ -4283,8 +4283,8 @@ utf_ptr2char_and_len_len ed' p size = do
                           if ((fromIntegral r'13 :: Int32) .&. 192) /= 128
                             then do
                               r'14 <- rdW8 p 0
-                              let !out___8_r__2 = fromIntegral r'14 :: Int32
-                              pure (out___8_r__2, (1 :: Int32))
+                              let !out___r__7 = fromIntegral r'14 :: Int32
+                              pure (out___r__7, (1 :: Int32))
                             else do
                               r'15 <- rdW8 p 0
                               r'16 <- rdW8 p 1
@@ -4297,8 +4297,8 @@ utf_ptr2char_and_len_len ed' p size = do
                                   if ((fromIntegral r'18 :: Int32) .&. 192) /= 128
                                     then do
                                       r'19 <- rdW8 p 0
-                                      let !out___10_r__2 = fromIntegral r'19 :: Int32
-                                      pure (out___10_r__2, (1 :: Int32))
+                                      let !out___r__8 = fromIntegral r'19 :: Int32
+                                      pure (out___r__8, (1 :: Int32))
                                     else do
                                       r'20 <- rdW8 p 0
                                       r'21 <- rdW8 p 1
@@ -4312,8 +4312,8 @@ utf_ptr2char_and_len_len ed' p size = do
                                           if ((fromIntegral r'24 :: Int32) .&. 192) /= 128
                                             then do
                                               r'25 <- rdW8 p 0
-                                              let !out___12_r__2 = fromIntegral r'25 :: Int32
-                                              pure (out___12_r__2, (1 :: Int32))
+                                              let !out___r__9 = fromIntegral r'25 :: Int32
+                                              pure (out___r__9, (1 :: Int32))
                                             else do
                                               r'26 <- rdW8 p 0
                                               r'27 <- rdW8 p 1
@@ -4328,8 +4328,8 @@ utf_ptr2char_and_len_len ed' p size = do
                                                   if ((fromIntegral r'31 :: Int32) .&. 192) /= 128
                                                     then do
                                                       r'32 <- rdW8 p 0
-                                                      let !out___14_r__2 = fromIntegral r'32 :: Int32
-                                                      pure (out___14_r__2, (1 :: Int32))
+                                                      let !out___r__10 = fromIntegral r'32 :: Int32
+                                                      pure (out___r__10, (1 :: Int32))
                                                     else do
                                                       r'33 <- rdW8 p 0
                                                       r'34 <- rdW8 p 1
@@ -4337,8 +4337,8 @@ utf_ptr2char_and_len_len ed' p size = do
                                                       r'36 <- rdW8 p 3
                                                       r'37 <- rdW8 p 4
                                                       r'38 <- rdW8 p 5
-                                                      let !out___15_r__2 = (((((shiftL ((fromIntegral r'33 :: Int32) .&. 1) 30) + (shiftL ((fromIntegral r'34 :: Int32) .&. 63) 24)) + (shiftL ((fromIntegral r'35 :: Int32) .&. 63) 18)) + (shiftL ((fromIntegral r'36 :: Int32) .&. 63) 12)) + (shiftL ((fromIntegral r'37 :: Int32) .&. 63) 6)) + ((fromIntegral r'38 :: Int32) .&. 63)
-                                                      pure (out___15_r__2, (6 :: Int32))
+                                                      let !out___r__11 = (((((shiftL ((fromIntegral r'33 :: Int32) .&. 1) 30) + (shiftL ((fromIntegral r'34 :: Int32) .&. 63) 24)) + (shiftL ((fromIntegral r'35 :: Int32) .&. 63) 18)) + (shiftL ((fromIntegral r'36 :: Int32) .&. 63) 12)) + (shiftL ((fromIntegral r'37 :: Int32) .&. 63) 6)) + ((fromIntegral r'38 :: Int32) .&. 63)
+                                                      pure (out___r__11, (6 :: Int32))
 
 utf_iscomposinglike_char :: Ed -> Int32 -> Int32 -> IO Bool
 utf_iscomposinglike_char ed' _c1 c2 = do
@@ -4355,7 +4355,7 @@ utf_ptr2char ed' p = do
 utf_safe_read_char_adv :: Ed -> Ptr Char_u -> Usize -> IO (Int32, Ptr Char_u, Usize)
 utf_safe_read_char_adv ed' s n = do
   let
-    j'4 !s1 !n1 _ _ _ _ _ _ _ _ _ _ _ _ = do
+    j'4 !s1 !n1 _ _ _ = do
       pure ((-1 :: Int32), s1, n1)
   if n == 0
     then pure ((0 :: Int32), s, n)
@@ -4368,8 +4368,8 @@ utf_safe_read_char_adv ed' s n = do
           let !n2 = n - 1
           let !s2 = pAdd s 1
           r'3 <- rdW8 s 0
-          let !out___2_r__2 = fromIntegral r'3 :: Int32
-          pure (out___2_r__2, s2, n2)
+          let !out___r__2 = fromIntegral r'3 :: Int32
+          pure (out___r__2, s2, n2)
         else do
           if (fromIntegral k1 :: Word64) <= n
             then do
@@ -4381,8 +4381,8 @@ utf_safe_read_char_adv ed' s n = do
                   let !s3 = pAdd s (fromIntegral k1)
                   let !n3 = n - (fromIntegral k1 :: Word64)
                   pure (r'4, s3, n3)
-                else j'4 s n (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64)
-            else j'4 s n (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64)
+                else j'4 s n (0 :: Int32) nullPtr (0 :: Word64)
+            else j'4 s n (0 :: Int32) nullPtr (0 :: Word64)
 
 mb_ptr2char_adv :: Ed -> Ptr (Ptr Char_u) -> IO Int32
 mb_ptr2char_adv ed' pp = do
@@ -8721,7 +8721,7 @@ check_prevcol ed' linep col ch' prevcol = do
 find_mps_values :: Ed -> Int32 -> Int32 -> Int32 -> Bool -> IO (Int32, Int32, Int32)
 find_mps_values ed' initc findc backwards switchit = do
   let
-    loop'1 !initc1 !findc1 !backwards1 !ptr1 !out___initc1 !out___findc1 !out___backwards1 !out___2_initc1 !out___2_findc1 !out___2_backwards1 !out___3_initc1 !out___3_findc1 !out___3_backwards1 = do
+    loop'1 !initc1 !findc1 !backwards1 !ptr1 !out___initc1 !out___findc1 !out___backwards1 = do
       r'1 <- rdW8 ptr1 0
       if (fromIntegral r'1 :: Int32) /= NUL
         then do
@@ -8732,11 +8732,11 @@ find_mps_values ed' initc findc backwards switchit = do
                 then do
                   r'3 <- utfc_ptr2len ed' ptr1
                   r'4 <- utf_ptr2char ed' (pAdd (pAdd ptr1 (fromIntegral r'3)) 1)
-                  j'15 r'4 initc1 (TRUE :: Int32) out___initc1 out___findc1 out___backwards1 out___2_initc1 out___2_findc1 out___2_backwards1 out___3_initc1 out___3_findc1 out___3_backwards1
+                  j'15 r'4 initc1 (TRUE :: Int32) out___initc1 out___findc1 out___backwards1
                 else do
                   r'5 <- utfc_ptr2len ed' ptr1
                   r'6 <- utf_ptr2char ed' (pAdd (pAdd ptr1 (fromIntegral r'5)) 1)
-                  j'15 initc1 r'6 (FALSE :: Int32) out___initc1 out___findc1 out___backwards1 out___2_initc1 out___2_findc1 out___2_backwards1 out___3_initc1 out___3_findc1 out___3_backwards1
+                  j'15 initc1 r'6 (FALSE :: Int32) out___initc1 out___findc1 out___backwards1
             else do
               r'7 <- utfc_ptr2len ed' ptr1
               let !t1'1 = r'7 + 1
@@ -8747,10 +8747,10 @@ find_mps_values ed' initc findc backwards switchit = do
                   if switchit
                     then do
                       r'9 <- utf_ptr2char ed' ptr1
-                      j'11 r'9 initc1 (FALSE :: Int32) out___initc1 out___findc1 out___backwards1 out___2_initc1 out___2_findc1 out___2_backwards1 out___3_initc1 out___3_findc1 out___3_backwards1
+                      j'11 r'9 initc1 (FALSE :: Int32) out___initc1 out___findc1 out___backwards1
                     else do
                       r'10 <- utf_ptr2char ed' ptr1
-                      j'11 initc1 r'10 (TRUE :: Int32) out___initc1 out___findc1 out___backwards1 out___2_initc1 out___2_findc1 out___2_backwards1 out___3_initc1 out___3_findc1 out___3_backwards1
+                      j'11 initc1 r'10 (TRUE :: Int32) out___initc1 out___findc1 out___backwards1
                 else do
                   r'11 <- utfc_ptr2len ed' ptr2
                   let !ptr3 = pAdd ptr2 (fromIntegral r'11)
@@ -8758,16 +8758,16 @@ find_mps_values ed' initc findc backwards switchit = do
                   if (fromIntegral r'12 :: Int32) == (ch ',')
                     then do
                       let !ptr4 = pAdd ptr3 1
-                      loop'1 initc1 findc1 backwards1 ptr4 out___initc1 out___findc1 out___backwards1 out___2_initc1 out___2_findc1 out___2_backwards1 out___3_initc1 out___3_findc1 out___3_backwards1
-                    else loop'1 initc1 findc1 backwards1 ptr3 out___initc1 out___findc1 out___backwards1 out___2_initc1 out___2_findc1 out___2_backwards1 out___3_initc1 out___3_findc1 out___3_backwards1
+                      loop'1 initc1 findc1 backwards1 ptr4 out___initc1 out___findc1 out___backwards1
+                    else loop'1 initc1 findc1 backwards1 ptr3 out___initc1 out___findc1 out___backwards1
         else pure (initc1, findc1, backwards1)
-    j'11 !initc2 !findc2 !backwards2 _ _ _ _ _ _ _ _ _ = do
+    j'11 !initc2 !findc2 !backwards2 _ _ _ = do
       pure (initc2, findc2, backwards2)
-    j'15 !initc3 !findc3 !backwards3 _ _ _ _ _ _ _ _ _ = do
+    j'15 !initc3 !findc3 !backwards3 _ _ _ = do
       pure (initc3, findc3, backwards3)
   r'13 <- curbuf ed'
   r'14 <- rdP r'13 buf_T'b_p_mps
-  loop'1 initc findc backwards r'14 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+  loop'1 initc findc backwards r'14 (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 vim_strup :: Ptr Char_u -> IO ()
 vim_strup p = do
@@ -9630,7 +9630,7 @@ modifiers2keycode :: Ed -> Int32 -> Int32 -> Ptr Char_u -> IO (Int32, Int32)
 modifiers2keycode ed' modifiers key string = frame 4 $ \fr' -> do
   wrI32 fr' 0 modifiers
   let
-    j'3 !key1 !new_slen1 _ _ _ _ = do
+    j'3 !key1 !new_slen1 _ _ = do
       pure (new_slen1, key1)
   r'1 <- rdI32 fr' 0
   if r'1 == 0
@@ -9647,8 +9647,8 @@ modifiers2keycode ed' modifiers key string = frame 4 $ \fr' -> do
           let !new_slen4 = new_slen3 + 1
           r'4 <- rdI32 fr' 0
           wrW8 (pAdd string (fromIntegral new_slen3)) 0 (fromIntegral r'4 :: Word8)
-          j'3 r'2 new_slen4 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-        else j'3 r'2 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+          j'3 r'2 new_slen4 (0 :: Int32) (0 :: Int32)
+        else j'3 r'2 (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 add_key_to_buf :: Int32 -> Ptr Char_u -> IO Int32
 add_key_to_buf key buf = do

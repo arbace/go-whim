@@ -976,24 +976,24 @@ may_adjust_incsearch_highlighting ed' firstc count is_state c = frame 60 $ \fr' 
 may_add_char_to_search :: Ed -> Int32 -> Int32 -> Ptr Incsearch_state_T -> IO (Bool, Int32)
 may_add_char_to_search ed' firstc c is_state = frame 12 $ \fr' -> do
   let
-    j'3 !c1 _ _ _ _ _ _ = do
+    j'3 !c1 _ _ = do
       pure (True, c1)
-    j'6 !c2 !out___r__2 !out___c2 !out___2_r__2 !out___2_c2 !out___3_r__2 !out___3_c2 = do
+    j'6 !c2 !out___r__2 !out___c2 = do
       r'1 <- rdI32 fr' 8
       r'4 <- if (c2 == r'1) then pure True else (do { r'2 <- magic_isset ed'; r'3 <- vim_strchr ed' (castPtr (if (r'2 /= 0) then (Ptr "\\~^$.*[\0"#) else (Ptr "\\^$\0"#))) c2; pure (r'3 /= nullPtr) })
       if r'4
         then do
           stuffcharReadbuff ed' c2
-          j'8 (ch '\\' :: Int32) out___r__2 out___c2 out___2_r__2 out___2_c2 out___3_r__2 out___3_c2
-        else j'8 c2 out___r__2 out___c2 out___2_r__2 out___2_c2 out___3_r__2 out___3_c2
-    j'8 !c3 !out___r__3 !out___c3 !out___2_r__3 !out___2_c3 !out___3_r__3 !out___3_c3 = do
+          j'8 (ch '\\' :: Int32) out___r__2 out___c2
+        else j'8 c2 out___r__2 out___c2
+    j'8 !c3 !out___r__3 !out___c3 = do
       let !r'5 = utf_char2len c3
       r'6 <- ml_get_cursor ed'
       r'7 <- utfc_ptr2len ed' r'6
       if r'5 /= r'7
-        then loop'10 c3 c3 out___r__3 out___c3 out___2_r__3 out___2_c3 out___3_r__3 out___3_c3
-        else j'12 c3 out___r__3 out___c3 out___2_r__3 out___2_c3 out___3_r__3 out___3_c3
-    loop'10 !c4 !save_c1 !out___r__4 !out___c4 !out___2_r__4 !out___2_c4 !out___3_r__4 !out___3_c4 = do
+        then loop'10 c3 c3 out___r__3 out___c3
+        else j'12 c3 out___r__3 out___c3
+    loop'10 !c4 !save_c1 !out___r__4 !out___c4 = do
       let !r'8 = utf_char2len c4
       r'9 <- ml_get_cursor ed'
       r'10 <- utfc_ptr2len ed' r'9
@@ -1005,9 +1005,9 @@ may_add_char_to_search ed' firstc c is_state = frame 12 $ \fr' -> do
           wrI32 r'12 (win_T'w_cursor + pos_T'col) (r'13 + r'11)
           r'14 <- gchar_cursor ed'
           stuffcharReadbuff ed' r'14
-          loop'10 r'14 save_c1 out___r__4 out___c4 out___2_r__4 out___2_c4 out___3_r__4 out___3_c4
-        else j'12 save_c1 out___r__4 out___c4 out___2_r__4 out___2_c4 out___3_r__4 out___3_c4
-    j'12 !c5 _ _ _ _ _ _ = do
+          loop'10 r'14 save_c1 out___r__4 out___c4
+        else j'12 save_c1 out___r__4 out___c4
+    j'12 !c5 _ _ = do
       pure (False, c5)
   save_last_search_pattern ed'
   r'15 <- do_incsearch_highlighting ed' firstc (pAdd fr' 8) is_state fr' (pAdd fr' 4)
@@ -1031,10 +1031,10 @@ may_add_char_to_search ed' firstc c is_state = frame 12 $ \fr' -> do
               if r'25
                 then do
                   r'26 <- vim_tolower ed' r'18
-                  j'6 r'26 False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-                else j'6 r'18 False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-            else j'3 r'18 False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
-        else j'3 c False (0 :: Int32) False (0 :: Int32) False (0 :: Int32)
+                  j'6 r'26 False (0 :: Int32)
+                else j'6 r'18 False (0 :: Int32)
+            else j'3 r'18 False (0 :: Int32)
+        else j'3 c False (0 :: Int32)
 
 cmdline_init :: Ed -> IO ()
 cmdline_init ed' = do
@@ -1224,7 +1224,7 @@ cmdline_insert_reg ed' _gotesc = do
 cmdline_browse_history :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Usize -> Int32 -> Int32 -> Ptr Expand_T -> IO (Int32, Ptr Char_u, Usize, Int32)
 cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp = do
   let
-    loop'4 !orig_hiscnt1 !hiscnt1 !lookfor1 !lookforlen1 !old_firstc1 !len1 !out___r__1 !out___curcmdstr1 !out___curcmdstrlen1 !out___hiscnt_p1 !out___2_r__1 !out___2_curcmdstr1 !out___2_curcmdstrlen1 !out___2_hiscnt_p1 !out___3_r__1 !out___3_curcmdstr1 !out___3_curcmdstrlen1 !out___3_hiscnt_p1 !out___4_r__1 !out___4_curcmdstr1 !out___4_curcmdstrlen1 !out___4_hiscnt_p1 !out___5_r__1 !out___5_curcmdstr1 !out___5_curcmdstrlen1 !out___5_hiscnt_p1 = do
+    loop'4 !orig_hiscnt1 !hiscnt1 !lookfor1 !lookforlen1 !old_firstc1 !len1 !out___r__1 !out___curcmdstr1 !out___curcmdstrlen1 !out___hiscnt_p1 = do
       if ((((c == K_UP) || (c == K_S_UP)) || (c == Ctrl_P)) || (c == K_PAGEUP)) || (c == K_KPAGEUP)
         then do
           r'1 <- get_hislen ed'
@@ -1232,78 +1232,78 @@ cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp =
             then do
               r'2 <- get_hisidx ed' histype
               r'3 <- rdI32 r'2 0
-              j'18 orig_hiscnt1 r'3 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
+              j'18 orig_hiscnt1 r'3 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
             else do
               r'7 <- if (hiscnt1 == 0) then (do { r'4 <- get_hisidx ed' histype; r'5 <- rdI32 r'4 0; r'6 <- get_hislen ed'; pure (r'5 /= (r'6 - 1)) }) else pure False
               if r'7
                 then do
                   r'8 <- get_hislen ed'
                   let !hiscnt2 = r'8 - 1
-                  j'18 orig_hiscnt1 hiscnt2 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
+                  j'18 orig_hiscnt1 hiscnt2 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
                 else do
                   r'9 <- get_hisidx ed' histype
                   r'10 <- rdI32 r'9 0
                   if hiscnt1 /= (r'10 + 1)
                     then do
                       let !hiscnt3 = hiscnt1 - 1
-                      j'18 orig_hiscnt1 hiscnt3 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
-                    else j'21 orig_hiscnt1 orig_hiscnt1 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
+                      j'18 orig_hiscnt1 hiscnt3 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
+                    else j'21 orig_hiscnt1 orig_hiscnt1 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
         else do
           r'11 <- get_hisidx ed' histype
           r'12 <- rdI32 r'11 0
           if hiscnt1 == r'12
             then do
               r'13 <- get_hislen ed'
-              j'21 orig_hiscnt1 r'13 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
+              j'21 orig_hiscnt1 r'13 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
             else do
               r'14 <- get_hislen ed'
               if hiscnt1 == r'14
-                then j'21 orig_hiscnt1 hiscnt1 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
+                then j'21 orig_hiscnt1 hiscnt1 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
                 else do
                   r'15 <- get_hislen ed'
                   if hiscnt1 == (r'15 - 1)
-                    then j'18 orig_hiscnt1 (0 :: Int32) lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
+                    then j'18 orig_hiscnt1 (0 :: Int32) lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
                     else do
                       let !hiscnt4 = hiscnt1 + 1
-                      j'18 orig_hiscnt1 hiscnt4 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1 out___2_r__1 out___2_curcmdstr1 out___2_curcmdstrlen1 out___2_hiscnt_p1 out___3_r__1 out___3_curcmdstr1 out___3_curcmdstrlen1 out___3_hiscnt_p1 out___4_r__1 out___4_curcmdstr1 out___4_curcmdstrlen1 out___4_hiscnt_p1 out___5_r__1 out___5_curcmdstr1 out___5_curcmdstrlen1 out___5_hiscnt_p1
-    j'18 !orig_hiscnt2 !hiscnt5 !lookfor2 !lookforlen2 !old_firstc2 !len2 !out___r__2 !out___curcmdstr2 !out___curcmdstrlen2 !out___hiscnt_p2 !out___2_r__2 !out___2_curcmdstr2 !out___2_curcmdstrlen2 !out___2_hiscnt_p2 !out___3_r__2 !out___3_curcmdstr2 !out___3_curcmdstrlen2 !out___3_hiscnt_p2 !out___4_r__2 !out___4_curcmdstr2 !out___4_curcmdstrlen2 !out___4_hiscnt_p2 !out___5_r__2 !out___5_curcmdstr2 !out___5_curcmdstrlen2 !out___5_hiscnt_p2 = do
+                      j'18 orig_hiscnt1 hiscnt4 lookfor1 lookforlen1 old_firstc1 len1 out___r__1 out___curcmdstr1 out___curcmdstrlen1 out___hiscnt_p1
+    j'18 !orig_hiscnt2 !hiscnt5 !lookfor2 !lookforlen2 !old_firstc2 !len2 !out___r__2 !out___curcmdstr2 !out___curcmdstrlen2 !out___hiscnt_p2 = do
       r'18 <- if (hiscnt5 < 0) then pure True else (do { r'16 <- get_histentry ed' histype; r'17 <- rdP (pAdd r'16 ((fromIntegral hiscnt5) * 32)) histentry_T'hisstr; pure (r'17 == nullPtr) })
       if r'18
-        then j'21 orig_hiscnt2 orig_hiscnt2 lookfor2 lookforlen2 old_firstc2 len2 out___r__2 out___curcmdstr2 out___curcmdstrlen2 out___hiscnt_p2 out___2_r__2 out___2_curcmdstr2 out___2_curcmdstrlen2 out___2_hiscnt_p2 out___3_r__2 out___3_curcmdstr2 out___3_curcmdstrlen2 out___3_hiscnt_p2 out___4_r__2 out___4_curcmdstr2 out___4_curcmdstrlen2 out___4_hiscnt_p2 out___5_r__2 out___5_curcmdstr2 out___5_curcmdstrlen2 out___5_hiscnt_p2
+        then j'21 orig_hiscnt2 orig_hiscnt2 lookfor2 lookforlen2 old_firstc2 len2 out___r__2 out___curcmdstr2 out___curcmdstrlen2 out___hiscnt_p2
         else do
           r'22 <- if (((c /= K_UP) && (c /= K_DOWN)) || (hiscnt5 == orig_hiscnt2)) then pure True else (do { r'19 <- get_histentry ed' histype; r'20 <- rdP (pAdd r'19 ((fromIntegral hiscnt5) * 32)) histentry_T'hisstr; r'21 <- musl_strncmp (castPtr r'20) (castPtr lookfor2) lookforlen2; pure (r'21 == 0) })
           if r'22
-            then j'21 orig_hiscnt2 hiscnt5 lookfor2 lookforlen2 old_firstc2 len2 out___r__2 out___curcmdstr2 out___curcmdstrlen2 out___hiscnt_p2 out___2_r__2 out___2_curcmdstr2 out___2_curcmdstrlen2 out___2_hiscnt_p2 out___3_r__2 out___3_curcmdstr2 out___3_curcmdstrlen2 out___3_hiscnt_p2 out___4_r__2 out___4_curcmdstr2 out___4_curcmdstrlen2 out___4_hiscnt_p2 out___5_r__2 out___5_curcmdstr2 out___5_curcmdstrlen2 out___5_hiscnt_p2
-            else loop'4 orig_hiscnt2 hiscnt5 lookfor2 lookforlen2 old_firstc2 len2 out___r__2 out___curcmdstr2 out___curcmdstrlen2 out___hiscnt_p2 out___2_r__2 out___2_curcmdstr2 out___2_curcmdstrlen2 out___2_hiscnt_p2 out___3_r__2 out___3_curcmdstr2 out___3_curcmdstrlen2 out___3_hiscnt_p2 out___4_r__2 out___4_curcmdstr2 out___4_curcmdstrlen2 out___4_hiscnt_p2 out___5_r__2 out___5_curcmdstr2 out___5_curcmdstrlen2 out___5_hiscnt_p2
-    j'21 !orig_hiscnt3 !hiscnt6 !lookfor3 !lookforlen3 !old_firstc3 !len3 !out___r__3 !out___curcmdstr3 !out___curcmdstrlen3 !out___hiscnt_p3 !out___2_r__3 !out___2_curcmdstr3 !out___2_curcmdstrlen3 !out___2_hiscnt_p3 !out___3_r__3 !out___3_curcmdstr3 !out___3_curcmdstrlen3 !out___3_hiscnt_p3 !out___4_r__3 !out___4_curcmdstr3 !out___4_curcmdstrlen3 !out___4_hiscnt_p3 !out___5_r__3 !out___5_curcmdstr3 !out___5_curcmdstrlen3 !out___5_hiscnt_p3 = do
+            then j'21 orig_hiscnt2 hiscnt5 lookfor2 lookforlen2 old_firstc2 len2 out___r__2 out___curcmdstr2 out___curcmdstrlen2 out___hiscnt_p2
+            else loop'4 orig_hiscnt2 hiscnt5 lookfor2 lookforlen2 old_firstc2 len2 out___r__2 out___curcmdstr2 out___curcmdstrlen2 out___hiscnt_p2
+    j'21 !orig_hiscnt3 !hiscnt6 !lookfor3 !lookforlen3 !old_firstc3 !len3 !out___r__3 !out___curcmdstr3 !out___curcmdstrlen3 !out___hiscnt_p3 = do
       if hiscnt6 /= orig_hiscnt3
         then do
           dealloc_cmdbuff ed'
           wrI32 xp expand_T'xp_context EXPAND_NOTHING
           r'23 <- get_hislen ed'
           if hiscnt6 == r'23
-            then j'26 hiscnt6 lookfor3 lookforlen3 lookfor3 lookforlen3 old_firstc3 len3 out___r__3 out___curcmdstr3 out___curcmdstrlen3 out___hiscnt_p3 out___2_r__3 out___2_curcmdstr3 out___2_curcmdstrlen3 out___2_hiscnt_p3 out___3_r__3 out___3_curcmdstr3 out___3_curcmdstrlen3 out___3_hiscnt_p3 out___4_r__3 out___4_curcmdstr3 out___4_curcmdstrlen3 out___4_hiscnt_p3 out___5_r__3 out___5_curcmdstr3 out___5_curcmdstrlen3 out___5_hiscnt_p3
+            then j'26 hiscnt6 lookfor3 lookforlen3 lookfor3 lookforlen3 old_firstc3 len3 out___r__3 out___curcmdstr3 out___curcmdstrlen3 out___hiscnt_p3
             else do
               r'24 <- get_histentry ed' histype
               r'25 <- rdP (pAdd r'24 ((fromIntegral hiscnt6) * 32)) histentry_T'hisstr
               r'26 <- get_histentry ed' histype
               r'27 <- rdW64 (pAdd r'26 ((fromIntegral hiscnt6) * 32)) histentry_T'hisstrlen
-              j'26 hiscnt6 lookfor3 lookforlen3 r'25 r'27 old_firstc3 len3 out___r__3 out___curcmdstr3 out___curcmdstrlen3 out___hiscnt_p3 out___2_r__3 out___2_curcmdstr3 out___2_curcmdstrlen3 out___2_hiscnt_p3 out___3_r__3 out___3_curcmdstr3 out___3_curcmdstrlen3 out___3_hiscnt_p3 out___4_r__3 out___4_curcmdstr3 out___4_curcmdstrlen3 out___4_hiscnt_p3 out___5_r__3 out___5_curcmdstr3 out___5_curcmdstrlen3 out___5_hiscnt_p3
+              j'26 hiscnt6 lookfor3 lookforlen3 r'25 r'27 old_firstc3 len3 out___r__3 out___curcmdstr3 out___curcmdstrlen3 out___hiscnt_p3
         else do
           beep_flush ed'
           pure ((CMDLINE_NOT_CHANGED :: Int32), lookfor3, lookforlen3, hiscnt6)
-    j'26 !hiscnt7 !lookfor4 !lookforlen4 !p1 !plen1 !old_firstc4 !len4 !out___r__4 !out___curcmdstr4 !out___curcmdstrlen4 !out___hiscnt_p4 !out___2_r__4 !out___2_curcmdstr4 !out___2_curcmdstrlen4 !out___2_hiscnt_p4 !out___3_r__4 !out___3_curcmdstr4 !out___3_curcmdstrlen4 !out___3_hiscnt_p4 !out___4_r__4 !out___4_curcmdstr4 !out___4_curcmdstrlen4 !out___4_hiscnt_p4 !out___5_r__4 !out___5_curcmdstr4 !out___5_curcmdstrlen4 !out___5_hiscnt_p4 = do
+    j'26 !hiscnt7 !lookfor4 !lookforlen4 !p1 !plen1 !old_firstc4 !len4 !out___r__4 !out___curcmdstr4 !out___curcmdstrlen4 !out___hiscnt_p4 = do
       let !t1'1 = (histype == HIST_SEARCH) && (p1 /= lookfor4)
       if t1'1
         then do
           r'28 <- rdW8 (pAdd p1 (fromIntegral (plen1 + 1))) 0
           let !old_firstc5 = fromIntegral r'28 :: Int32
           let !t1'2 = old_firstc5 /= firstc
-          j'28 hiscnt7 lookfor4 lookforlen4 p1 plen1 old_firstc5 t1'2 len4 out___r__4 out___curcmdstr4 out___curcmdstrlen4 out___hiscnt_p4 out___2_r__4 out___2_curcmdstr4 out___2_curcmdstrlen4 out___2_hiscnt_p4 out___3_r__4 out___3_curcmdstr4 out___3_curcmdstrlen4 out___3_hiscnt_p4 out___4_r__4 out___4_curcmdstr4 out___4_curcmdstrlen4 out___4_hiscnt_p4 out___5_r__4 out___5_curcmdstr4 out___5_curcmdstrlen4 out___5_hiscnt_p4
-        else j'28 hiscnt7 lookfor4 lookforlen4 p1 plen1 old_firstc4 t1'1 len4 out___r__4 out___curcmdstr4 out___curcmdstrlen4 out___hiscnt_p4 out___2_r__4 out___2_curcmdstr4 out___2_curcmdstrlen4 out___2_hiscnt_p4 out___3_r__4 out___3_curcmdstr4 out___3_curcmdstrlen4 out___3_hiscnt_p4 out___4_r__4 out___4_curcmdstr4 out___4_curcmdstrlen4 out___4_hiscnt_p4 out___5_r__4 out___5_curcmdstr4 out___5_curcmdstrlen4 out___5_hiscnt_p4
-    j'28 !hiscnt8 !lookfor5 !lookforlen5 !p2 !plen2 !old_firstc6 !t1'3 !len5 !out___r__5 !out___curcmdstr5 !out___curcmdstrlen5 !out___hiscnt_p5 !out___2_r__5 !out___2_curcmdstr5 !out___2_curcmdstrlen5 !out___2_hiscnt_p5 !out___3_r__5 !out___3_curcmdstr5 !out___3_curcmdstrlen5 !out___3_hiscnt_p5 !out___4_r__5 !out___4_curcmdstr5 !out___4_curcmdstrlen5 !out___4_hiscnt_p5 !out___5_r__5 !out___5_curcmdstr5 !out___5_curcmdstrlen5 !out___5_hiscnt_p5 = do
+          j'28 hiscnt7 lookfor4 lookforlen4 p1 plen1 old_firstc5 t1'2 len4 out___r__4 out___curcmdstr4 out___curcmdstrlen4 out___hiscnt_p4
+        else j'28 hiscnt7 lookfor4 lookforlen4 p1 plen1 old_firstc4 t1'1 len4 out___r__4 out___curcmdstr4 out___curcmdstrlen4 out___hiscnt_p4
+    j'28 !hiscnt8 !lookfor5 !lookforlen5 !p2 !plen2 !old_firstc6 !t1'3 !len5 !out___r__5 !out___curcmdstr5 !out___curcmdstrlen5 !out___hiscnt_p5 = do
       if t1'3
-        then loop'33 hiscnt8 lookfor5 lookforlen5 p2 old_firstc6 (0 :: Int32) len5 out___r__5 out___curcmdstr5 out___curcmdstrlen5 out___hiscnt_p5 out___2_r__5 out___2_curcmdstr5 out___2_curcmdstrlen5 out___2_hiscnt_p5 out___3_r__5 out___3_curcmdstr5 out___3_curcmdstrlen5 out___3_hiscnt_p5 out___4_r__5 out___4_curcmdstr5 out___4_curcmdstrlen5 out___4_hiscnt_p5 out___5_r__5 out___5_curcmdstr5 out___5_curcmdstrlen5 out___5_hiscnt_p5
+        then loop'33 hiscnt8 lookfor5 lookforlen5 p2 old_firstc6 (0 :: Int32) len5 out___r__5 out___curcmdstr5 out___curcmdstrlen5 out___hiscnt_p5
         else do
           alloc_cmdbuff ed' plen2
           r'29 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
@@ -1315,21 +1315,21 @@ cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp =
               wrI32 (addr'ccline ed') cmdline_info_T'cmdlen (fromIntegral plen2 :: Int32)
               r'32 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdlen
               wrI32 (addr'ccline ed') cmdline_info_T'cmdpos r'32
-              j'35 hiscnt8 lookfor5 lookforlen5 out___r__5 out___curcmdstr5 out___curcmdstrlen5 out___hiscnt_p5 out___2_r__5 out___2_curcmdstr5 out___2_curcmdstrlen5 out___2_hiscnt_p5 out___3_r__5 out___3_curcmdstr5 out___3_curcmdstrlen5 out___3_hiscnt_p5 out___4_r__5 out___4_curcmdstr5 out___4_curcmdstrlen5 out___4_hiscnt_p5 out___5_r__5 out___5_curcmdstr5 out___5_curcmdstrlen5 out___5_hiscnt_p5
-    loop'33 !hiscnt9 !lookfor6 !lookforlen6 !p3 !old_firstc7 !i1 !len6 !out___r__6 !out___curcmdstr6 !out___curcmdstrlen6 !out___hiscnt_p6 !out___2_r__6 !out___2_curcmdstr6 !out___2_curcmdstrlen6 !out___2_hiscnt_p6 !out___3_r__6 !out___3_curcmdstr6 !out___3_curcmdstrlen6 !out___3_hiscnt_p6 !out___4_r__6 !out___4_curcmdstr6 !out___4_curcmdstrlen6 !out___4_hiscnt_p6 !out___5_r__6 !out___5_curcmdstr6 !out___5_curcmdstrlen6 !out___5_hiscnt_p6 = do
+              j'35 hiscnt8 lookfor5 lookforlen5 out___r__5 out___curcmdstr5 out___curcmdstrlen5 out___hiscnt_p5
+    loop'33 !hiscnt9 !lookfor6 !lookforlen6 !p3 !old_firstc7 !i1 !len6 !out___r__6 !out___curcmdstr6 !out___curcmdstrlen6 !out___hiscnt_p6 = do
       if i1 <= 1
-        then loop'37 hiscnt9 lookfor6 lookforlen6 p3 old_firstc7 i1 (0 :: Int32) (0 :: Word64) out___r__6 out___curcmdstr6 out___curcmdstrlen6 out___hiscnt_p6 out___2_r__6 out___2_curcmdstr6 out___2_curcmdstrlen6 out___2_hiscnt_p6 out___3_r__6 out___3_curcmdstr6 out___3_curcmdstrlen6 out___3_hiscnt_p6 out___4_r__6 out___4_curcmdstr6 out___4_curcmdstrlen6 out___4_hiscnt_p6 out___5_r__6 out___5_curcmdstr6 out___5_curcmdstrlen6 out___5_hiscnt_p6
+        then loop'37 hiscnt9 lookfor6 lookforlen6 p3 old_firstc7 i1 (0 :: Int32) (0 :: Word64) out___r__6 out___curcmdstr6 out___curcmdstrlen6 out___hiscnt_p6
         else do
           r'33 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
           wrW8 (pAdd r'33 (fromIntegral len6)) 0 NUL
           wrI32 (addr'ccline ed') cmdline_info_T'cmdlen (fromIntegral len6 :: Int32)
           r'34 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdlen
           wrI32 (addr'ccline ed') cmdline_info_T'cmdpos r'34
-          j'35 hiscnt9 lookfor6 lookforlen6 out___r__6 out___curcmdstr6 out___curcmdstrlen6 out___hiscnt_p6 out___2_r__6 out___2_curcmdstr6 out___2_curcmdstrlen6 out___2_hiscnt_p6 out___3_r__6 out___3_curcmdstr6 out___3_curcmdstrlen6 out___3_hiscnt_p6 out___4_r__6 out___4_curcmdstr6 out___4_curcmdstrlen6 out___4_hiscnt_p6 out___5_r__6 out___5_curcmdstr6 out___5_curcmdstrlen6 out___5_hiscnt_p6
-    j'35 !hiscnt10 !lookfor7 !lookforlen7 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
+          j'35 hiscnt9 lookfor6 lookforlen6 out___r__6 out___curcmdstr6 out___curcmdstrlen6 out___hiscnt_p6
+    j'35 !hiscnt10 !lookfor7 !lookforlen7 _ _ _ _ = do
       redrawcmd ed'
       pure ((CMDLINE_CHANGED :: Int32), lookfor7, lookforlen7, hiscnt10)
-    loop'37 !hiscnt11 !lookfor8 !lookforlen8 !p4 !old_firstc8 !i2 !j1 !len7 !out___r__8 !out___curcmdstr8 !out___curcmdstrlen8 !out___hiscnt_p8 !out___2_r__8 !out___2_curcmdstr8 !out___2_curcmdstrlen8 !out___2_hiscnt_p8 !out___3_r__8 !out___3_curcmdstr8 !out___3_curcmdstrlen8 !out___3_hiscnt_p8 !out___4_r__8 !out___4_curcmdstr8 !out___4_curcmdstrlen8 !out___4_hiscnt_p8 !out___5_r__8 !out___5_curcmdstr8 !out___5_curcmdstrlen8 !out___5_hiscnt_p8 = do
+    loop'37 !hiscnt11 !lookfor8 !lookforlen8 !p4 !old_firstc8 !i2 !j1 !len7 !out___r__8 !out___curcmdstr8 !out___curcmdstrlen8 !out___hiscnt_p8 = do
       r'35 <- rdW8 (pAdd p4 (fromIntegral j1)) 0
       if (fromIntegral r'35 :: Int32) /= NUL
         then do
@@ -1341,8 +1341,8 @@ cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp =
                 then do
                   r'40 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
                   wrW8 (pAdd r'40 (fromIntegral len7)) 0 (fromIntegral firstc :: Word8)
-                  j'51 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
-                else j'51 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
+                  j'51 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
+                else j'51 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
             else do
               r'41 <- rdW8 (pAdd p4 (fromIntegral j1)) 0
               r'44 <- if ((fromIntegral r'41 :: Int32) == firstc) then (if (j1 == 0) then pure True else (do { r'42 <- rdW8 (pAdd p4 (fromIntegral (j1 - 1))) 0; pure ((fromIntegral r'42 :: Int32) /= (ch '\\')) })) else pure False
@@ -1352,9 +1352,9 @@ cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp =
                     then do
                       r'45 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
                       wrW8 (pAdd r'45 (fromIntegral len7)) 0 (ch '\\')
-                      j'46 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
-                    else j'46 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
-                else j'47 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
+                      j'46 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
+                    else j'46 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
+                else j'47 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 j1 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
         else do
           if i2 == 0
             then do
@@ -1362,26 +1362,26 @@ cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp =
               r'46 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
               if r'46 == nullPtr
                 then pure ((GOTO_NORMAL_MODE :: Int32), lookfor8, lookforlen8, hiscnt11)
-                else j'40 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
-            else j'40 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8 out___2_r__8 out___2_curcmdstr8 out___2_curcmdstrlen8 out___2_hiscnt_p8 out___3_r__8 out___3_curcmdstr8 out___3_curcmdstrlen8 out___3_hiscnt_p8 out___4_r__8 out___4_curcmdstr8 out___4_curcmdstrlen8 out___4_hiscnt_p8 out___5_r__8 out___5_curcmdstr8 out___5_curcmdstrlen8 out___5_hiscnt_p8
-    j'40 !hiscnt12 !lookfor9 !lookforlen9 !p5 !old_firstc9 !i3 !len8 !out___r__9 !out___curcmdstr9 !out___curcmdstrlen9 !out___hiscnt_p9 !out___2_r__9 !out___2_curcmdstr9 !out___2_curcmdstrlen9 !out___2_hiscnt_p9 !out___3_r__9 !out___3_curcmdstr9 !out___3_curcmdstrlen9 !out___3_hiscnt_p9 !out___4_r__9 !out___4_curcmdstr9 !out___4_curcmdstrlen9 !out___4_hiscnt_p9 !out___5_r__9 !out___5_curcmdstr9 !out___5_curcmdstrlen9 !out___5_hiscnt_p9 = do
+                else j'40 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
+            else j'40 hiscnt11 lookfor8 lookforlen8 p4 old_firstc8 i2 len7 out___r__8 out___curcmdstr8 out___curcmdstrlen8 out___hiscnt_p8
+    j'40 !hiscnt12 !lookfor9 !lookforlen9 !p5 !old_firstc9 !i3 !len8 !out___r__9 !out___curcmdstr9 !out___curcmdstrlen9 !out___hiscnt_p9 = do
       let !i4 = i3 + 1
-      loop'33 hiscnt12 lookfor9 lookforlen9 p5 old_firstc9 i4 len8 out___r__9 out___curcmdstr9 out___curcmdstrlen9 out___hiscnt_p9 out___2_r__9 out___2_curcmdstr9 out___2_curcmdstrlen9 out___2_hiscnt_p9 out___3_r__9 out___3_curcmdstr9 out___3_curcmdstrlen9 out___3_hiscnt_p9 out___4_r__9 out___4_curcmdstr9 out___4_curcmdstrlen9 out___4_hiscnt_p9 out___5_r__9 out___5_curcmdstr9 out___5_curcmdstrlen9 out___5_hiscnt_p9
-    j'46 !hiscnt13 !lookfor10 !lookforlen10 !p6 !old_firstc10 !i5 !j2 !len9 !out___r__10 !out___curcmdstr10 !out___curcmdstrlen10 !out___hiscnt_p10 !out___2_r__10 !out___2_curcmdstr10 !out___2_curcmdstrlen10 !out___2_hiscnt_p10 !out___3_r__10 !out___3_curcmdstr10 !out___3_curcmdstrlen10 !out___3_hiscnt_p10 !out___4_r__10 !out___4_curcmdstr10 !out___4_curcmdstrlen10 !out___4_hiscnt_p10 !out___5_r__10 !out___5_curcmdstr10 !out___5_curcmdstrlen10 !out___5_hiscnt_p10 = do
+      loop'33 hiscnt12 lookfor9 lookforlen9 p5 old_firstc9 i4 len8 out___r__9 out___curcmdstr9 out___curcmdstrlen9 out___hiscnt_p9
+    j'46 !hiscnt13 !lookfor10 !lookforlen10 !p6 !old_firstc10 !i5 !j2 !len9 !out___r__10 !out___curcmdstr10 !out___curcmdstrlen10 !out___hiscnt_p10 = do
       let !len10 = len9 + 1
-      j'47 hiscnt13 lookfor10 lookforlen10 p6 old_firstc10 i5 j2 len10 out___r__10 out___curcmdstr10 out___curcmdstrlen10 out___hiscnt_p10 out___2_r__10 out___2_curcmdstr10 out___2_curcmdstrlen10 out___2_hiscnt_p10 out___3_r__10 out___3_curcmdstr10 out___3_curcmdstrlen10 out___3_hiscnt_p10 out___4_r__10 out___4_curcmdstr10 out___4_curcmdstrlen10 out___4_hiscnt_p10 out___5_r__10 out___5_curcmdstr10 out___5_curcmdstrlen10 out___5_hiscnt_p10
-    j'47 !hiscnt14 !lookfor11 !lookforlen11 !p7 !old_firstc11 !i6 !j3 !len11 !out___r__11 !out___curcmdstr11 !out___curcmdstrlen11 !out___hiscnt_p11 !out___2_r__11 !out___2_curcmdstr11 !out___2_curcmdstrlen11 !out___2_hiscnt_p11 !out___3_r__11 !out___3_curcmdstr11 !out___3_curcmdstrlen11 !out___3_hiscnt_p11 !out___4_r__11 !out___4_curcmdstr11 !out___4_curcmdstrlen11 !out___4_hiscnt_p11 !out___5_r__11 !out___5_curcmdstr11 !out___5_curcmdstrlen11 !out___5_hiscnt_p11 = do
+      j'47 hiscnt13 lookfor10 lookforlen10 p6 old_firstc10 i5 j2 len10 out___r__10 out___curcmdstr10 out___curcmdstrlen10 out___hiscnt_p10
+    j'47 !hiscnt14 !lookfor11 !lookforlen11 !p7 !old_firstc11 !i6 !j3 !len11 !out___r__11 !out___curcmdstr11 !out___curcmdstrlen11 !out___hiscnt_p11 = do
       if i6 > 0
         then do
           r'48 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
           r'47 <- rdW8 (pAdd p7 (fromIntegral j3)) 0
           wrW8 (pAdd r'48 (fromIntegral len11)) 0 r'47
-          j'51 hiscnt14 lookfor11 lookforlen11 p7 old_firstc11 i6 j3 len11 out___r__11 out___curcmdstr11 out___curcmdstrlen11 out___hiscnt_p11 out___2_r__11 out___2_curcmdstr11 out___2_curcmdstrlen11 out___2_hiscnt_p11 out___3_r__11 out___3_curcmdstr11 out___3_curcmdstrlen11 out___3_hiscnt_p11 out___4_r__11 out___4_curcmdstr11 out___4_curcmdstrlen11 out___4_hiscnt_p11 out___5_r__11 out___5_curcmdstr11 out___5_curcmdstrlen11 out___5_hiscnt_p11
-        else j'51 hiscnt14 lookfor11 lookforlen11 p7 old_firstc11 i6 j3 len11 out___r__11 out___curcmdstr11 out___curcmdstrlen11 out___hiscnt_p11 out___2_r__11 out___2_curcmdstr11 out___2_curcmdstrlen11 out___2_hiscnt_p11 out___3_r__11 out___3_curcmdstr11 out___3_curcmdstrlen11 out___3_hiscnt_p11 out___4_r__11 out___4_curcmdstr11 out___4_curcmdstrlen11 out___4_hiscnt_p11 out___5_r__11 out___5_curcmdstr11 out___5_curcmdstrlen11 out___5_hiscnt_p11
-    j'51 !hiscnt15 !lookfor12 !lookforlen12 !p8 !old_firstc12 !i7 !j4 !len12 !out___r__12 !out___curcmdstr12 !out___curcmdstrlen12 !out___hiscnt_p12 !out___2_r__12 !out___2_curcmdstr12 !out___2_curcmdstrlen12 !out___2_hiscnt_p12 !out___3_r__12 !out___3_curcmdstr12 !out___3_curcmdstrlen12 !out___3_hiscnt_p12 !out___4_r__12 !out___4_curcmdstr12 !out___4_curcmdstrlen12 !out___4_hiscnt_p12 !out___5_r__12 !out___5_curcmdstr12 !out___5_curcmdstrlen12 !out___5_hiscnt_p12 = do
+          j'51 hiscnt14 lookfor11 lookforlen11 p7 old_firstc11 i6 j3 len11 out___r__11 out___curcmdstr11 out___curcmdstrlen11 out___hiscnt_p11
+        else j'51 hiscnt14 lookfor11 lookforlen11 p7 old_firstc11 i6 j3 len11 out___r__11 out___curcmdstr11 out___curcmdstrlen11 out___hiscnt_p11
+    j'51 !hiscnt15 !lookfor12 !lookforlen12 !p8 !old_firstc12 !i7 !j4 !len12 !out___r__12 !out___curcmdstr12 !out___curcmdstrlen12 !out___hiscnt_p12 = do
       let !len13 = len12 + 1
       let !j5 = j4 + 1
-      loop'37 hiscnt15 lookfor12 lookforlen12 p8 old_firstc12 i7 j5 len13 out___r__12 out___curcmdstr12 out___curcmdstrlen12 out___hiscnt_p12 out___2_r__12 out___2_curcmdstr12 out___2_curcmdstrlen12 out___2_hiscnt_p12 out___3_r__12 out___3_curcmdstr12 out___3_curcmdstrlen12 out___3_hiscnt_p12 out___4_r__12 out___4_curcmdstr12 out___4_curcmdstrlen12 out___4_hiscnt_p12 out___5_r__12 out___5_curcmdstr12 out___5_curcmdstrlen12 out___5_hiscnt_p12
+      loop'37 hiscnt15 lookfor12 lookforlen12 p8 old_firstc12 i7 j5 len13 out___r__12 out___curcmdstr12 out___curcmdstrlen12 out___hiscnt_p12
   r'49 <- get_hislen ed'
   if (r'49 == 0) || (firstc == NUL)
     then pure ((CMDLINE_NOT_CHANGED :: Int32), curcmdstr, curcmdstrlen, hiscnt_p)
@@ -1395,8 +1395,8 @@ cmdline_browse_history ed' c firstc curcmdstr curcmdstrlen histype hiscnt_p xp =
           wrW8 (pAdd r'52 (fromIntegral r'53)) 0 NUL
           r'54 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
           let !lookforlen13 = fromIntegral r'54 :: Word64
-          loop'4 hiscnt_p hiscnt_p r'52 lookforlen13 (0 :: Int32) (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32)
-        else loop'4 hiscnt_p hiscnt_p curcmdstr curcmdstrlen (0 :: Int32) (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32)
+          loop'4 hiscnt_p hiscnt_p r'52 lookforlen13 (0 :: Int32) (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32)
+        else loop'4 hiscnt_p hiscnt_p curcmdstr curcmdstrlen (0 :: Int32) (0 :: Word64) (0 :: Int32) nullPtr (0 :: Word64) (0 :: Int32)
 
 init_ccline :: Ed -> Int32 -> Int32 -> IO Bool
 init_ccline ed' firstc indent = do
@@ -9160,11 +9160,11 @@ vim_strnicmp_asc s1 s2 len = do
 replace_termcodes :: Ed -> Ptr Char_u -> Scid_T -> Int32 -> Ptr Int32 -> IO (Ptr Char_u, Ptr Char_u)
 replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
   let
-    j'5 !from1 !dlen1 !do_backslash1 !do_special1 !do_key_code1 !result1 !len1 !find_term_bykeys__o_r__1 !find_term_bykeys__o_matchlen1 !out___r__1 !out___bufp1 !out___2_r__1 !out___2_bufp1 = do
+    j'5 !from1 !dlen1 !do_backslash1 !do_special1 !do_key_code1 !result1 !len1 !out___r__1 !out___bufp1 !find_term_bykeys__o_r__1 !find_term_bykeys__o_matchlen1 = do
       r'1 <- rdP fr' 0
       wrP fr' 0 (pAdd r'1 2)
-      loop'7 from1 dlen1 do_backslash1 do_special1 do_key_code1 result1 len1 find_term_bykeys__o_r__1 find_term_bykeys__o_matchlen1 out___r__1 out___bufp1 out___2_r__1 out___2_bufp1
-    loop'7 !from2 !dlen2 !do_backslash2 !do_special2 !do_key_code2 !result2 !len2 !find_term_bykeys__o_r__2 !find_term_bykeys__o_matchlen2 !out___r__2 !out___bufp2 !out___2_r__2 !out___2_bufp2 = do
+      loop'7 from1 dlen1 do_backslash1 do_special1 do_key_code1 result1 len1 out___r__1 out___bufp1 find_term_bykeys__o_r__1 find_term_bykeys__o_matchlen1
+    loop'7 !from2 !dlen2 !do_backslash2 !do_special2 !do_key_code2 !result2 !len2 !out___r__2 !out___bufp2 !find_term_bykeys__o_r__2 !find_term_bykeys__o_matchlen2 = do
       r'2 <- rdP fr' 0
       r'3 <- rdW8 r'2 0
       if (fromIntegral r'3 :: Int32) /= NUL
@@ -9177,11 +9177,11 @@ replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
               if r'8 > 0
                 then do
                   let !dlen3 = dlen2 + (fromIntegral r'8 :: Word64)
-                  loop'7 from2 dlen3 do_backslash2 do_special2 do_key_code2 result2 len2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2 out___r__2 out___bufp2 out___2_r__2 out___2_bufp2
-                else j'10 from2 dlen2 do_backslash2 do_special2 do_key_code2 result2 len2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2 out___r__2 out___bufp2 out___2_r__2 out___2_bufp2
-            else j'10 from2 dlen2 do_backslash2 do_special2 do_key_code2 result2 len2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2 out___r__2 out___bufp2 out___2_r__2 out___2_bufp2
-        else j'24 from2 dlen2 result2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2 out___r__2 out___bufp2 out___2_r__2 out___2_bufp2
-    j'10 !from3 !dlen4 !do_backslash3 !do_special3 !do_key_code3 !result3 !len3 !find_term_bykeys__o_r__3 !find_term_bykeys__o_matchlen3 !out___r__3 !out___bufp3 !out___2_r__3 !out___2_bufp3 = do
+                  loop'7 from2 dlen3 do_backslash2 do_special2 do_key_code2 result2 len2 out___r__2 out___bufp2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2
+                else j'10 from2 dlen2 do_backslash2 do_special2 do_key_code2 result2 len2 out___r__2 out___bufp2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2
+            else j'10 from2 dlen2 do_backslash2 do_special2 do_key_code2 result2 len2 out___r__2 out___bufp2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2
+        else j'24 from2 dlen2 result2 out___r__2 out___bufp2 find_term_bykeys__o_r__2 find_term_bykeys__o_matchlen2
+    j'10 !from3 !dlen4 !do_backslash3 !do_special3 !do_key_code3 !result3 !len3 !out___r__3 !out___bufp3 !find_term_bykeys__o_r__3 !find_term_bykeys__o_matchlen3 = do
       if do_key_code3
         then do
           r'9 <- rdP fr' 0
@@ -9200,10 +9200,10 @@ replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
               wrW8 (pAdd result3 (fromIntegral dlen6)) 0 r'15
               r'16 <- rdP fr' 0
               wrP fr' 0 (pAdd r'16 (fromIntegral r'11))
-              loop'7 from3 dlen7 do_backslash3 do_special3 do_key_code3 result3 r'11 r'10 r'11 out___r__3 out___bufp3 out___2_r__3 out___2_bufp3
-            else j'12 from3 dlen4 do_backslash3 do_special3 do_key_code3 result3 r'11 r'10 r'11 out___r__3 out___bufp3 out___2_r__3 out___2_bufp3
-        else j'12 from3 dlen4 do_backslash3 do_special3 do_key_code3 result3 len3 find_term_bykeys__o_r__3 find_term_bykeys__o_matchlen3 out___r__3 out___bufp3 out___2_r__3 out___2_bufp3
-    j'12 !from4 !dlen8 !do_backslash4 !do_special4 !do_key_code4 !result4 !len4 !find_term_bykeys__o_r__4 !find_term_bykeys__o_matchlen4 !out___r__4 !out___bufp4 !out___2_r__4 !out___2_bufp4 = do
+              loop'7 from3 dlen7 do_backslash3 do_special3 do_key_code3 result3 r'11 out___r__3 out___bufp3 r'10 r'11
+            else j'12 from3 dlen4 do_backslash3 do_special3 do_key_code3 result3 r'11 out___r__3 out___bufp3 r'10 r'11
+        else j'12 from3 dlen4 do_backslash3 do_special3 do_key_code3 result3 len3 out___r__3 out___bufp3 find_term_bykeys__o_r__3 find_term_bykeys__o_matchlen3
+    j'12 !from4 !dlen8 !do_backslash4 !do_special4 !do_key_code4 !result4 !len4 !out___r__4 !out___bufp4 !find_term_bykeys__o_r__4 !find_term_bykeys__o_matchlen4 = do
       r'17 <- rdP fr' 0
       r'18 <- rdW8 r'17 0
       let !key1 = fromIntegral r'18 :: Int32
@@ -9219,15 +9219,15 @@ replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
                 then do
                   let !dlen9 = dlen8 + 1
                   wrW8 (pAdd result4 (fromIntegral dlen8)) 0 (fromIntegral key1 :: Word8)
-                  j'24 from4 dlen9 result4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4 out___r__4 out___bufp4 out___2_r__4 out___2_bufp4
-                else j'24 from4 dlen8 result4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4 out___r__4 out___bufp4 out___2_r__4 out___2_bufp4
-            else j'14 from4 dlen8 do_backslash4 do_special4 do_key_code4 result4 len4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4 out___r__4 out___bufp4 out___2_r__4 out___2_bufp4
-        else j'14 from4 dlen8 do_backslash4 do_special4 do_key_code4 result4 len4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4 out___r__4 out___bufp4 out___2_r__4 out___2_bufp4
-    j'14 !from5 !dlen10 !do_backslash5 !do_special5 !do_key_code5 !result5 !len5 !find_term_bykeys__o_r__5 !find_term_bykeys__o_matchlen5 !out___r__5 !out___bufp5 !out___2_r__5 !out___2_bufp5 = do
+                  j'24 from4 dlen9 result4 out___r__4 out___bufp4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4
+                else j'24 from4 dlen8 result4 out___r__4 out___bufp4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4
+            else j'14 from4 dlen8 do_backslash4 do_special4 do_key_code4 result4 len4 out___r__4 out___bufp4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4
+        else j'14 from4 dlen8 do_backslash4 do_special4 do_key_code4 result4 len4 out___r__4 out___bufp4 find_term_bykeys__o_r__4 find_term_bykeys__o_matchlen4
+    j'14 !from5 !dlen10 !do_backslash5 !do_special5 !do_key_code5 !result5 !len5 !out___r__5 !out___bufp5 !find_term_bykeys__o_r__5 !find_term_bykeys__o_matchlen5 = do
       r'22 <- rdP fr' 0
       r'23 <- utfc_ptr2len ed' r'22
-      loop'15 from5 r'23 dlen10 do_backslash5 do_special5 do_key_code5 result5 len5 find_term_bykeys__o_r__5 find_term_bykeys__o_matchlen5 out___r__5 out___bufp5 out___2_r__5 out___2_bufp5
-    loop'15 !from6 !i1 !dlen11 !do_backslash6 !do_special6 !do_key_code6 !result6 !len6 !find_term_bykeys__o_r__6 !find_term_bykeys__o_matchlen6 !out___r__6 !out___bufp6 !out___2_r__6 !out___2_bufp6 = do
+      loop'15 from5 r'23 dlen10 do_backslash5 do_special5 do_key_code5 result5 len5 out___r__5 out___bufp5 find_term_bykeys__o_r__5 find_term_bykeys__o_matchlen5
+    loop'15 !from6 !i1 !dlen11 !do_backslash6 !do_special6 !do_key_code6 !result6 !len6 !out___r__6 !out___bufp6 !find_term_bykeys__o_r__6 !find_term_bykeys__o_matchlen6 = do
       if i1 > 0
         then do
           r'24 <- rdP fr' 0
@@ -9240,26 +9240,26 @@ replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
               wrW8 (pAdd result6 (fromIntegral dlen12)) 0 KS_SPECIAL
               let !dlen14 = dlen13 + 1
               wrW8 (pAdd result6 (fromIntegral dlen13)) 0 (ch 'X')
-              j'20 from6 i1 dlen14 do_backslash6 do_special6 do_key_code6 result6 len6 find_term_bykeys__o_r__6 find_term_bykeys__o_matchlen6 out___r__6 out___bufp6 out___2_r__6 out___2_bufp6
+              j'20 from6 i1 dlen14 do_backslash6 do_special6 do_key_code6 result6 len6 out___r__6 out___bufp6 find_term_bykeys__o_r__6 find_term_bykeys__o_matchlen6
             else do
               let !dlen15 = dlen11 + 1
               r'26 <- rdP fr' 0
               r'27 <- rdW8 r'26 0
               wrW8 (pAdd result6 (fromIntegral dlen11)) 0 r'27
-              j'20 from6 i1 dlen15 do_backslash6 do_special6 do_key_code6 result6 len6 find_term_bykeys__o_r__6 find_term_bykeys__o_matchlen6 out___r__6 out___bufp6 out___2_r__6 out___2_bufp6
-        else loop'7 from6 dlen11 do_backslash6 do_special6 do_key_code6 result6 len6 find_term_bykeys__o_r__6 find_term_bykeys__o_matchlen6 out___r__6 out___bufp6 out___2_r__6 out___2_bufp6
-    j'20 !from7 !i2 !dlen16 !do_backslash7 !do_special7 !do_key_code7 !result7 !len7 !find_term_bykeys__o_r__7 !find_term_bykeys__o_matchlen7 !out___r__7 !out___bufp7 !out___2_r__7 !out___2_bufp7 = do
+              j'20 from6 i1 dlen15 do_backslash6 do_special6 do_key_code6 result6 len6 out___r__6 out___bufp6 find_term_bykeys__o_r__6 find_term_bykeys__o_matchlen6
+        else loop'7 from6 dlen11 do_backslash6 do_special6 do_key_code6 result6 len6 out___r__6 out___bufp6 find_term_bykeys__o_r__6 find_term_bykeys__o_matchlen6
+    j'20 !from7 !i2 !dlen16 !do_backslash7 !do_special7 !do_key_code7 !result7 !len7 !out___r__7 !out___bufp7 !find_term_bykeys__o_r__7 !find_term_bykeys__o_matchlen7 = do
       r'28 <- rdP fr' 0
       wrP fr' 0 (pAdd r'28 1)
       let !i3 = i2 - 1
-      loop'15 from7 i3 dlen16 do_backslash7 do_special7 do_key_code7 result7 len7 find_term_bykeys__o_r__7 find_term_bykeys__o_matchlen7 out___r__7 out___bufp7 out___2_r__7 out___2_bufp7
-    j'24 !from8 !dlen17 !result8 !find_term_bykeys__o_r__8 !find_term_bykeys__o_matchlen8 !out___r__8 !out___bufp8 !out___2_r__8 !out___2_bufp8 = do
+      loop'15 from7 i3 dlen16 do_backslash7 do_special7 do_key_code7 result7 len7 out___r__7 out___bufp7 find_term_bykeys__o_r__7 find_term_bykeys__o_matchlen7
+    j'24 !from8 !dlen17 !result8 !out___r__8 !out___bufp8 !find_term_bykeys__o_r__8 !find_term_bykeys__o_matchlen8 = do
       wrW8 (pAdd result8 (fromIntegral dlen17)) 0 NUL
       r'29 <- vim_strsave ed' result8
       if r'29 /= nullPtr
-        then j'26 r'29 r'29 find_term_bykeys__o_r__8 find_term_bykeys__o_matchlen8 out___r__8 out___bufp8 out___2_r__8 out___2_bufp8
-        else j'26 from8 r'29 find_term_bykeys__o_r__8 find_term_bykeys__o_matchlen8 out___r__8 out___bufp8 out___2_r__8 out___2_bufp8
-    j'26 !from9 !bufp1 _ _ _ _ _ _ = do
+        then j'26 r'29 r'29 out___r__8 out___bufp8 find_term_bykeys__o_r__8 find_term_bykeys__o_matchlen8
+        else j'26 from8 r'29 out___r__8 out___bufp8 find_term_bykeys__o_r__8 find_term_bykeys__o_matchlen8
+    j'26 !from9 !bufp1 _ _ _ _ = do
       pure (from9, bufp1)
   r'30 <- p_cpo ed'
   r'31 <- vim_strchr ed' r'30 CPO_BSLASH
@@ -9294,25 +9294,25 @@ replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
             then do
               let !dlen20 = dlen19 + 1
               wrW8 (pAdd result9 (fromIntegral dlen19)) 0 (ch ';')
-              j'5 from dlen20 do_backslash8 do_special8 do_key_code8 result9 (0 :: Int32) (0 :: Int32) (0 :: Int32) nullPtr nullPtr nullPtr nullPtr
+              j'5 from dlen20 do_backslash8 do_special8 do_key_code8 result9 (0 :: Int32) nullPtr nullPtr (0 :: Int32) (0 :: Int32)
             else do
               let !dlen21 = dlen19 + 1
               r'48 <- rdP fr' 0
               r'49 <- rdW8 r'48 1
               wrW8 (pAdd result9 (fromIntegral dlen19)) 0 r'49
-              j'5 from dlen21 do_backslash8 do_special8 do_key_code8 result9 (0 :: Int32) (0 :: Int32) (0 :: Int32) nullPtr nullPtr nullPtr nullPtr
-        else loop'7 from (0 :: Word64) do_backslash8 do_special8 do_key_code8 result9 (0 :: Int32) (0 :: Int32) (0 :: Int32) nullPtr nullPtr nullPtr nullPtr
+              j'5 from dlen21 do_backslash8 do_special8 do_key_code8 result9 (0 :: Int32) nullPtr nullPtr (0 :: Int32) (0 :: Int32)
+        else loop'7 from (0 :: Word64) do_backslash8 do_special8 do_key_code8 result9 (0 :: Int32) nullPtr nullPtr (0 :: Int32) (0 :: Int32)
 
 find_term_bykeys :: Ed -> Ptr Char_u -> Int32 -> IO (Int32, Int32)
 find_term_bykeys ed' src matchlen = do
   let
-    j'2 !matchlen1 !len1 !found1 !foundlen1 !out___r__1 !out___matchlen1 !out___2_r__1 !out___2_matchlen1 = do
+    j'2 !matchlen1 !len1 !found1 !foundlen1 !out___r__1 !out___matchlen1 = do
       r'1 <- rdW8 src 0
       r'4 <- if ((fromIntegral r'1 :: Int32) == NUL) then pure True else (do { r'2 <- rdW8 src 0; r'3 <- vim_strchr ed' (addr'termleader ed') (fromIntegral r'2 :: Int32); pure (r'3 == nullPtr) })
       if r'4
         then pure ((-1 :: Int32), matchlen1)
-        else loop'4 matchlen1 (0 :: Int32) len1 found1 foundlen1 out___r__1 out___matchlen1 out___2_r__1 out___2_matchlen1
-    loop'4 !matchlen2 !i1 !len2 !found2 !foundlen2 !out___r__2 !out___matchlen2 !out___2_r__2 !out___2_matchlen2 = do
+        else loop'4 matchlen1 (0 :: Int32) len1 found1 foundlen1 out___r__1 out___matchlen1
+    loop'4 !matchlen2 !i1 !len2 !found2 !foundlen2 !out___r__2 !out___matchlen2 = do
       r'5 <- tc_len ed'
       if i1 < r'5
         then do
@@ -9332,66 +9332,66 @@ find_term_bykeys ed' src matchlen = do
                   if (fromIntegral r'14 :: Int32) == (fromIntegral r'17 :: Int32)
                     then do
                       let !thislen1 = r'9 + 1
-                      j'22 matchlen2 i1 len2 found2 foundlen2 thislen1 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
+                      j'22 matchlen2 i1 len2 found2 foundlen2 thislen1 out___r__2 out___matchlen2
                     else do
                       r'18 <- rdW8 (pAdd src (fromIntegral r'9)) 0
                       if ((fromIntegral r'18 :: Int32) /= (ch ';')) && (r'9 == (r'7 - 3))
-                        then j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
+                        then j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2
                         else do
                           r'19 <- termcodes ed'
                           r'20 <- rdP (pAdd r'19 ((fromIntegral i1) * 24)) termcode'code
                           r'21 <- rdW8 (pAdd r'20 (fromIntegral r'9)) 0
                           r'25 <- if ((fromIntegral r'21 :: Int32) == (ch '@')) then (do { r'22 <- rdW8 (pAdd src (fromIntegral r'9)) 0; if ((fromIntegral r'22 :: Int32) /= (ch '1')) then pure True else (do { r'23 <- rdW8 (pAdd src (fromIntegral (r'9 + 1))) 0; pure ((fromIntegral r'23 :: Int32) /= (ch ';')) }) }) else pure False
                           if r'25
-                            then j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
+                            then j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2
                             else do
                               let !j1 = r'7 - 2
-                              loop'16 matchlen2 i1 j1 len2 found2 foundlen2 r'7 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
-                else j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
+                              loop'16 matchlen2 i1 j1 len2 found2 foundlen2 r'7 out___r__2 out___matchlen2
+                else j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2
             else do
               r'29 <- if ((r'7 > foundlen2) && (len2 >= r'7)) then (do { r'26 <- termcodes ed'; r'27 <- rdP (pAdd r'26 ((fromIntegral i1) * 24)) termcode'code; r'28 <- musl_strncmp (castPtr r'27) (castPtr src) (fromIntegral r'7 :: Word64); pure (r'28 == 0) }) else pure False
               if r'29
-                then j'24 matchlen2 i1 len2 i1 r'7 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
-                else j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
+                then j'24 matchlen2 i1 len2 i1 r'7 out___r__2 out___matchlen2
+                else j'24 matchlen2 i1 len2 found2 foundlen2 out___r__2 out___matchlen2
         else do
           if True && (found2 >= 0)
-            then j'7 foundlen2 found2 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
-            else j'7 matchlen2 found2 out___r__2 out___matchlen2 out___2_r__2 out___2_matchlen2
-    j'7 !matchlen3 !found3 _ _ _ _ = do
+            then j'7 foundlen2 found2 out___r__2 out___matchlen2
+            else j'7 matchlen2 found2 out___r__2 out___matchlen2
+    j'7 !matchlen3 !found3 _ _ = do
       pure (found3, matchlen3)
-    loop'16 !matchlen4 !i2 !j2 !len3 !found4 !foundlen3 !slen1 !out___r__4 !out___matchlen4 !out___2_r__4 !out___2_matchlen4 = do
+    loop'16 !matchlen4 !i2 !j2 !len3 !found4 !foundlen3 !slen1 !out___r__4 !out___matchlen4 = do
       r'36 <- if (j2 < len3) then (do { r'30 <- rdW8 (pAdd src (fromIntegral j2)) 0; let { !r'31 = musl_isdigit (fromIntegral r'30 :: Int32) }; r'33 <- if r'31 then pure True else (do { r'32 <- rdW8 (pAdd src (fromIntegral j2)) 0; pure ((fromIntegral r'32 :: Int32) == (ch '-')) }); if r'33 then pure True else (do { r'34 <- rdW8 (pAdd src (fromIntegral j2)) 0; pure ((fromIntegral r'34 :: Int32) == (ch ';')) }) }) else pure False
       if r'36
         then do
           let !j3 = j2 + 1
-          loop'16 matchlen4 i2 j3 len3 found4 foundlen3 slen1 out___r__4 out___matchlen4 out___2_r__4 out___2_matchlen4
+          loop'16 matchlen4 i2 j3 len3 found4 foundlen3 slen1 out___r__4 out___matchlen4
         else do
           let !j4 = j2 + 1
           if len3 < j4
-            then j'24 matchlen4 i2 len3 found4 foundlen3 out___r__4 out___matchlen4 out___2_r__4 out___2_matchlen4
+            then j'24 matchlen4 i2 len3 found4 foundlen3 out___r__4 out___matchlen4
             else do
               r'37 <- rdW8 (pAdd src (fromIntegral (j4 - 1))) 0
               r'38 <- termcodes ed'
               r'39 <- rdP (pAdd r'38 ((fromIntegral i2) * 24)) termcode'code
               r'40 <- rdW8 (pAdd r'39 (fromIntegral (slen1 - 1))) 0
               if (fromIntegral r'37 :: Int32) /= (fromIntegral r'40 :: Int32)
-                then j'24 matchlen4 i2 len3 found4 foundlen3 out___r__4 out___matchlen4 out___2_r__4 out___2_matchlen4
-                else j'22 matchlen4 i2 len3 found4 foundlen3 j4 out___r__4 out___matchlen4 out___2_r__4 out___2_matchlen4
-    j'22 !matchlen5 !i3 !len4 !found5 !foundlen4 !thislen2 !out___r__5 !out___matchlen5 !out___2_r__5 !out___2_matchlen5 = do
+                then j'24 matchlen4 i2 len3 found4 foundlen3 out___r__4 out___matchlen4
+                else j'22 matchlen4 i2 len3 found4 foundlen3 j4 out___r__4 out___matchlen4
+    j'22 !matchlen5 !i3 !len4 !found5 !foundlen4 !thislen2 !out___r__5 !out___matchlen5 = do
       if thislen2 > foundlen4
-        then j'24 matchlen5 i3 len4 i3 thislen2 out___r__5 out___matchlen5 out___2_r__5 out___2_matchlen5
-        else j'24 matchlen5 i3 len4 found5 foundlen4 out___r__5 out___matchlen5 out___2_r__5 out___2_matchlen5
-    j'24 !matchlen6 !i4 !len5 !found6 !foundlen5 !out___r__6 !out___matchlen6 !out___2_r__6 !out___2_matchlen6 = do
+        then j'24 matchlen5 i3 len4 i3 thislen2 out___r__5 out___matchlen5
+        else j'24 matchlen5 i3 len4 found5 foundlen4 out___r__5 out___matchlen5
+    j'24 !matchlen6 !i4 !len5 !found6 !foundlen5 !out___r__6 !out___matchlen6 = do
       let !i5 = i4 + 1
-      loop'4 matchlen6 i5 len5 found6 foundlen5 out___r__6 out___matchlen6 out___2_r__6 out___2_matchlen6
+      loop'4 matchlen6 i5 len5 found6 foundlen5 out___r__6 out___matchlen6
   r'41 <- musl_strlen (castPtr src)
   let !len6 = fromIntegral r'41 :: Int32
   r'42 <- need_gather ed'
   if r'42 /= 0
     then do
       gather_termleader ed'
-      j'2 matchlen len6 (-1 :: Int32) (1 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-    else j'2 matchlen len6 (-1 :: Int32) (1 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+      j'2 matchlen len6 (-1 :: Int32) (1 :: Int32) (0 :: Int32) (0 :: Int32)
+    else j'2 matchlen len6 (-1 :: Int32) (1 :: Int32) (0 :: Int32) (0 :: Int32)
 
 end_word :: Ed -> Int64 -> Int32 -> Bool -> Bool -> IO Bool
 end_word ed' count bigword stop empty = do
