@@ -7723,7 +7723,7 @@ find_ident_at_pos ed' wp lnum startcol text textcol find_type = frame 8 $ \fr' -
                 then do
                   r'50 <- rdI32 fr' 0
                   (r'51, r'52) <- find_is_eval_item (pAdd ptr12 (fromIntegral r'50)) fr' bn5 FORWARD
-                  j'30 startcol12 ptr12 i12 this_class8 r'52 r'51 r'51 r'52
+                  j'30 startcol12 ptr12 i12 this_class8 bn5 r'51 r'51 r'52
                 else j'30 startcol12 ptr12 i12 this_class8 bn5 r'49 find_is_eval_item__o_r__11 find_is_eval_item__o_bnp11
         else j'32 startcol12 ptr12 i12 this_class8 bn5 t4'1 find_is_eval_item__o_r__11 find_is_eval_item__o_bnp11
     j'30 !startcol13 !ptr13 !i13 !this_class9 !bn6 !t6'1 !find_is_eval_item__o_r__12 !find_is_eval_item__o_bnp12 = do
@@ -8590,7 +8590,7 @@ insert_reg ed' regname literally_arg = frame 8 $ \fr' -> do
               r'36 <- stuff_inserted ed' NUL 1 True
               j'25 r'36 False (0 :: Int32)
             else do
-              (r'37, r'38) <- get_spec_reg ed' regname fr' (0 :: Int32) True
+              (r'37, r'38) <- get_spec_reg ed' regname fr' True
               if r'37
                 then do
                   r'39 <- rdP fr' 0
@@ -8606,8 +8606,8 @@ insert_reg ed' regname literally_arg = frame 8 $ \fr' -> do
                     then j'6 True (TRUE :: Int32) r'37 r'38
                     else j'6 True literally_arg r'37 r'38
 
-get_spec_reg :: Ed -> Int32 -> Ptr (Ptr Char_u) -> Int32 -> Bool -> IO (Bool, Int32)
-get_spec_reg ed' regname argp _allocated errmsg = do
+get_spec_reg :: Ed -> Int32 -> Ptr (Ptr Char_u) -> Bool -> IO (Bool, Int32)
+get_spec_reg ed' regname argp errmsg = do
   let
     j'6 !allocated1 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ = do
       if not errmsg
@@ -9684,7 +9684,7 @@ do_put ed' regname expr_result dir count flags = frame 96 $ \fr' -> do
           wrP fr' (string_T'string + 8) expr_result
           j'6 dir (0 :: Int32) (0 :: Int64) nullPtr (0 :: Int64) r'402 r'404 r'406 r'408 r'410 r'412 r'413 False (0 :: Int32)
         else do
-          (r'420, r'421) <- get_spec_reg ed' regname (pAdd fr' (string_T'string + 8)) (FALSE :: Int32) True
+          (r'420, r'421) <- get_spec_reg ed' regname (pAdd fr' (string_T'string + 8)) True
           r'423 <- if r'420 then (do { r'422 <- rdP fr' (string_T'string + 8); pure (r'422 == nullPtr) }) else pure False
           if r'423
             then pure ()

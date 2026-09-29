@@ -2298,8 +2298,8 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
           if (fromIntegral r'185 :: Int32) == NUL
             then do
               wrI32 fr' 348 0
-              j'102 r'183 ptr20 in_curline28 lcs_eol_one28 lcs_prec_todo28 n_attr29 saved_attr2'28 n_attr3'28 saved_attr3'28 skip_cells29 skipped_cells28 area_highlighting26 vi_attr25 r'182 extra_check28 multi_attr28 trailcol30 leadcol30 in_multispace28 multispace_pos30 sign_present28 num_attr28 did_line_attr28 r'184 prepare_search_hl_line__o_r__28 prepare_search_hl_line__o_line28 prepare_search_hl_line__o_search_attr28 r'182 r'183 r'184
-            else j'102 r'183 ptr20 in_curline28 lcs_eol_one28 lcs_prec_todo28 n_attr29 saved_attr2'28 n_attr3'28 saved_attr3'28 skip_cells29 skipped_cells28 area_highlighting26 vi_attr25 r'182 extra_check28 multi_attr28 trailcol30 leadcol30 in_multispace28 multispace_pos30 sign_present28 num_attr28 did_line_attr28 r'184 prepare_search_hl_line__o_r__28 prepare_search_hl_line__o_line28 prepare_search_hl_line__o_search_attr28 r'182 r'183 r'184
+              j'102 r'183 ptr20 in_curline28 lcs_eol_one28 lcs_prec_todo28 n_attr29 saved_attr2'28 n_attr3'28 saved_attr3'28 skip_cells29 skipped_cells28 area_highlighting26 vi_attr25 r'182 extra_check28 multi_attr28 trailcol30 leadcol30 in_multispace28 multispace_pos30 sign_present28 num_attr28 did_line_attr28 on_last_col28 prepare_search_hl_line__o_r__28 prepare_search_hl_line__o_line28 prepare_search_hl_line__o_search_attr28 r'182 r'183 r'184
+            else j'102 r'183 ptr20 in_curline28 lcs_eol_one28 lcs_prec_todo28 n_attr29 saved_attr2'28 n_attr3'28 saved_attr3'28 skip_cells29 skipped_cells28 area_highlighting26 vi_attr25 r'182 extra_check28 multi_attr28 trailcol30 leadcol30 in_multispace28 multispace_pos30 sign_present28 num_attr28 did_line_attr28 on_last_col28 prepare_search_hl_line__o_r__28 prepare_search_hl_line__o_line28 prepare_search_hl_line__o_search_attr28 r'182 r'183 r'184
         else j'102 line20 ptr19 in_curline28 lcs_eol_one28 lcs_prec_todo28 n_attr29 saved_attr2'28 n_attr3'28 saved_attr3'28 skip_cells29 skipped_cells28 area_highlighting26 vi_attr25 search_attr28 extra_check28 multi_attr28 trailcol30 leadcol30 in_multispace28 multispace_pos30 sign_present28 num_attr28 did_line_attr28 on_last_col28 prepare_search_hl_line__o_r__28 prepare_search_hl_line__o_line28 prepare_search_hl_line__o_search_attr28 update_search_hl__o_r__28 update_search_hl__o_line28 update_search_hl__o_on_last_col28
     j'102 !line21 !ptr21 !in_curline29 !lcs_eol_one29 !lcs_prec_todo29 !n_attr30 !saved_attr2'29 !n_attr3'29 !saved_attr3'29 !skip_cells30 !skipped_cells29 !area_highlighting27 !vi_attr26 !search_attr29 !extra_check29 !multi_attr29 !trailcol31 !leadcol31 !in_multispace29 !multispace_pos31 !sign_present29 !num_attr29 !did_line_attr29 !on_last_col29 !prepare_search_hl_line__o_r__29 !prepare_search_hl_line__o_line29 !prepare_search_hl_line__o_search_attr29 !update_search_hl__o_r__29 !update_search_hl__o_line29 !update_search_hl__o_on_last_col29 = do
       r'186 <- rdI32 fr' 280
@@ -3592,30 +3592,30 @@ win_redr_status ed' wp ignore_pum = do
                 then do
                   r'27 <- rdI32 wp win_T'w_wincol
                   screen_puts_len ed' (addr'showcmd_buf ed') width1 row7 (((r'27 + this_ru_col5) - width1) - 1) attr7
-                  j'24 row7 attr7 fillchar_status__o_r__7 fillchar_status__o_attr7 fillchar_vsep__o_r__7 fillchar_vsep__o_attr7
-                else j'24 row7 attr7 fillchar_status__o_r__7 fillchar_status__o_attr7 fillchar_vsep__o_r__7 fillchar_vsep__o_attr7
-            else j'29 row7 attr7 fillchar_status__o_r__7 fillchar_status__o_attr7 fillchar_vsep__o_r__7 fillchar_vsep__o_attr7
-    j'24 !row8 !attr8 !fillchar_status__o_r__8 !fillchar_status__o_attr8 !fillchar_vsep__o_r__8 !fillchar_vsep__o_attr8 = do
+                  j'24 row7 fillchar_status__o_r__7 fillchar_status__o_attr7 fillchar_vsep__o_r__7 fillchar_vsep__o_attr7
+                else j'24 row7 fillchar_status__o_r__7 fillchar_status__o_attr7 fillchar_vsep__o_r__7 fillchar_vsep__o_attr7
+            else j'29 row7 fillchar_status__o_r__7 fillchar_status__o_attr7 fillchar_vsep__o_r__7 fillchar_vsep__o_attr7
+    j'24 !row8 !fillchar_status__o_r__8 !fillchar_status__o_attr8 !fillchar_vsep__o_r__8 !fillchar_vsep__o_attr8 = do
       showcmd_update_clear_state ed'
-      j'29 row8 attr8 fillchar_status__o_r__8 fillchar_status__o_attr8 fillchar_vsep__o_r__8 fillchar_vsep__o_attr8
-    j'29 !row9 !attr9 !fillchar_status__o_r__9 !fillchar_status__o_attr9 !fillchar_vsep__o_r__9 !fillchar_vsep__o_attr9 = do
+      j'29 row8 fillchar_status__o_r__8 fillchar_status__o_attr8 fillchar_vsep__o_r__8 fillchar_vsep__o_attr8
+    j'29 !row9 !fillchar_status__o_r__9 !fillchar_status__o_attr9 !fillchar_vsep__o_r__9 !fillchar_vsep__o_attr9 = do
       r'28 <- rdI32 wp win_T'w_vsep_width
       r'30 <- if (r'28 /= 0) then (do { r'29 <- rdI32 wp win_T'w_status_height; pure (r'29 /= 0) }) else pure False
       r'32 <- if r'30 then (redrawing ed') else pure False
       if r'32
-        then loop'31 row9 attr9 (0 :: Int32) fillchar_status__o_r__9 fillchar_status__o_attr9 fillchar_vsep__o_r__9 fillchar_vsep__o_attr9
+        then loop'31 row9 (0 :: Int32) fillchar_status__o_r__9 fillchar_status__o_attr9 fillchar_vsep__o_r__9 fillchar_vsep__o_attr9
         else j'32 fillchar_status__o_r__9 fillchar_status__o_attr9 fillchar_vsep__o_r__9 fillchar_vsep__o_attr9
-    loop'31 !row10 !attr10 !i5 !fillchar_status__o_r__10 !fillchar_status__o_attr10 !fillchar_vsep__o_r__10 !fillchar_vsep__o_attr10 = do
+    loop'31 !row10 !i5 !fillchar_status__o_r__10 !fillchar_status__o_attr10 !fillchar_vsep__o_r__10 !fillchar_vsep__o_attr10 = do
       r'33 <- rdI32 wp win_T'w_status_height
       if i5 < r'33
         then do
           let !r1 = row10 + i5
-          (r'34, r'35) <- fillchar_vsep ed' attr10 wp r1
+          (r'34, r'35) <- fillchar_vsep ed' wp r1
           r'36 <- rdI32 wp win_T'w_wincol
           r'37 <- rdI32 wp win_T'w_width
           screen_putchar ed' r'34 r1 (r'36 + r'37) r'35
           let !i6 = i5 + 1
-          loop'31 row10 r'35 i6 fillchar_status__o_r__10 fillchar_status__o_attr10 r'34 r'35
+          loop'31 row10 i6 fillchar_status__o_r__10 fillchar_status__o_attr10 r'34 r'35
         else j'32 fillchar_status__o_r__10 fillchar_status__o_attr10 fillchar_vsep__o_r__10 fillchar_vsep__o_attr10
     j'32 _ _ _ _ = do
       set'win_redr_status'busy ed' False
@@ -3631,15 +3631,15 @@ win_redr_status ed' wp ignore_pum = do
       if r'40 == 0
         then do
           set'redraw_cmdline ed' TRUE
-          j'29 r'39 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+          j'29 r'39 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
         else do
           r'41 <- redrawing ed'
           if not r'41
             then do
               wrB wp win_T'w_redr_status True
-              j'29 r'39 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+              j'29 r'39 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
             else do
-              (r'42, r'43) <- fillchar_status ed' (0 :: Int32) wp
+              (r'42, r'43) <- fillchar_status ed' wp
               r'44 <- rdP wp win_T'w_buffer
               get_trans_bufname ed' r'44
               r'45 <- c'NameBuff ed'
@@ -3675,13 +3675,13 @@ showruler ed' always = do
 win_redr_ruler :: Ed -> Ptr Win_T -> Bool -> Bool -> IO ()
 win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
   let
-    j'4 !empty_line1 !attr1 !fillchar_status__o_r__1 !fillchar_status__o_attr1 = do
+    j'4 !empty_line1 !fillchar_status__o_r__1 !fillchar_status__o_attr1 = do
       r'1 <- c'State ed'
       r'6 <- if ((r'1 .&. MODE_INSERT) == 0) then (do { r'2 <- rdP wp win_T'w_buffer; r'3 <- rdI64 wp (win_T'w_cursor + pos_T'lnum); r'4 <- ml_get_buf ed' r'2 r'3 False; r'5 <- rdW8 r'4 0; pure ((fromIntegral r'5 :: Int32) == NUL) }) else pure False
       if r'6
-        then j'6 True attr1 fillchar_status__o_r__1 fillchar_status__o_attr1
-        else j'6 empty_line1 attr1 fillchar_status__o_r__1 fillchar_status__o_attr1
-    j'6 !empty_line2 !attr2 !fillchar_status__o_r__2 !fillchar_status__o_attr2 = do
+        then j'6 True fillchar_status__o_r__1 fillchar_status__o_attr1
+        else j'6 empty_line1 fillchar_status__o_r__1 fillchar_status__o_attr1
+    j'6 !empty_line2 !fillchar_status__o_r__2 !fillchar_status__o_attr2 = do
       validate_virtcol_win ed' wp
       r'7 <- redraw_cmdline ed'
       r'10 <- if ((r'7 /= 0) || always) then pure True else (do { r'8 <- rdI64 wp (win_T'w_cursor + pos_T'lnum); r'9 <- rdI64 wp (win_T'w_ru_cursor + pos_T'lnum); pure (r'8 /= r'9) })
@@ -3701,7 +3701,7 @@ win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
           if r'32 /= 0
             then do
               r'33 <- statusline_row wp
-              (r'34, r'35) <- fillchar_status ed' attr2 wp
+              (r'34, r'35) <- fillchar_status ed' wp
               r'36 <- rdI32 wp win_T'w_wincol
               r'37 <- rdI32 wp win_T'w_width
               j'10 empty_line2 r'33 r'34 r'35 r'36 r'37 r'31 r'34 r'35
@@ -3712,7 +3712,7 @@ win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
               r'40 <- cmdline_width ed'
               j'10 empty_line2 row1 (ch ' ' :: Int32) (0 :: Int32) r'39 r'40 r'31 fillchar_status__o_r__2 fillchar_status__o_attr2
         else pure ()
-    j'10 !empty_line3 !row2 !fillchar1 !attr3 !off1 !width1 !override_success1 !fillchar_status__o_r__3 !fillchar_status__o_attr3 = do
+    j'10 !empty_line3 !row2 !fillchar1 !attr1 !off1 !width1 !override_success1 !fillchar_status__o_r__3 !fillchar_status__o_attr3 = do
       r'41 <- rdI32 wp win_T'w_virtcol
       wrI32 fr' 0 r'41
       r'42 <- rdI32 wp (win_T'w_onebuf_opt + winopt_T'wo_list)
@@ -3722,9 +3722,9 @@ win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
           wrI32 wp (win_T'w_onebuf_opt + winopt_T'wo_list) FALSE
           getvvcol ed' wp (pAdd wp win_T'w_cursor) nullPtr fr' nullPtr 0
           wrI32 wp (win_T'w_onebuf_opt + winopt_T'wo_list) TRUE
-          j'12 empty_line3 row2 fillchar1 attr3 off1 width1 override_success1 fillchar_status__o_r__3 fillchar_status__o_attr3
-        else j'12 empty_line3 row2 fillchar1 attr3 off1 width1 override_success1 fillchar_status__o_r__3 fillchar_status__o_attr3
-    j'12 !empty_line4 !row3 !fillchar2 !attr4 !off2 !width2 !override_success2 !fillchar_status__o_r__4 !fillchar_status__o_attr4 = do
+          j'12 empty_line3 row2 fillchar1 attr1 off1 width1 override_success1 fillchar_status__o_r__3 fillchar_status__o_attr3
+        else j'12 empty_line3 row2 fillchar1 attr1 off1 width1 override_success1 fillchar_status__o_r__3 fillchar_status__o_attr3
+    j'12 !empty_line4 !row3 !fillchar2 !attr2 !off2 !width2 !override_success2 !fillchar_status__o_r__4 !fillchar_status__o_attr4 = do
       let !r'45 = c'_ (Ptr "%ld,\0"#)
       r'46 <- rdP wp win_T'w_buffer
       r'47 <- rdI32 r'46 (buf_T'b_ml + memline_T'ml_flags)
@@ -3741,34 +3741,34 @@ win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
       if r'57 == 0
         then do
           let !n1'2 = n1'1 + 1
-          j'14 empty_line4 row3 fillchar2 attr4 off2 width2 bufferlen1 r'55 n1'2 override_success2 fillchar_status__o_r__4 fillchar_status__o_attr4
-        else j'14 empty_line4 row3 fillchar2 attr4 off2 width2 bufferlen1 r'55 n1'1 override_success2 fillchar_status__o_r__4 fillchar_status__o_attr4
-    j'14 !empty_line5 !row4 !fillchar3 !attr5 !off3 !width3 !bufferlen2 !rel_poslen1 !n1'3 !override_success3 !fillchar_status__o_r__5 !fillchar_status__o_attr5 = do
+          j'14 empty_line4 row3 fillchar2 attr2 off2 width2 bufferlen1 r'55 n1'2 override_success2 fillchar_status__o_r__4 fillchar_status__o_attr4
+        else j'14 empty_line4 row3 fillchar2 attr2 off2 width2 bufferlen1 r'55 n1'1 override_success2 fillchar_status__o_r__4 fillchar_status__o_attr4
+    j'14 !empty_line5 !row4 !fillchar3 !attr3 !off3 !width3 !bufferlen2 !rel_poslen1 !n1'3 !override_success3 !fillchar_status__o_r__5 !fillchar_status__o_attr5 = do
       r'58 <- ru_col ed'
       r'59 <- cmdline_width ed'
       let !this_ru_col1 = r'58 - (r'59 - width3)
       let !n2'1 = quot (width3 + 1) 2
       if this_ru_col1 < n2'1
-        then j'16 empty_line5 row4 fillchar3 attr5 off3 width3 bufferlen2 rel_poslen1 n2'1 n1'3 override_success3 fillchar_status__o_r__5 fillchar_status__o_attr5
-        else j'16 empty_line5 row4 fillchar3 attr5 off3 width3 bufferlen2 rel_poslen1 this_ru_col1 n1'3 override_success3 fillchar_status__o_r__5 fillchar_status__o_attr5
-    j'16 !empty_line6 !row5 !fillchar4 !attr6 !off4 !width4 !bufferlen3 !rel_poslen2 !this_ru_col2 !n1'4 !override_success4 !fillchar_status__o_r__6 !fillchar_status__o_attr6 = do
+        then j'16 empty_line5 row4 fillchar3 attr3 off3 width3 bufferlen2 rel_poslen1 n2'1 n1'3 override_success3 fillchar_status__o_r__5 fillchar_status__o_attr5
+        else j'16 empty_line5 row4 fillchar3 attr3 off3 width3 bufferlen2 rel_poslen1 this_ru_col1 n1'3 override_success3 fillchar_status__o_r__5 fillchar_status__o_attr5
+    j'16 !empty_line6 !row5 !fillchar4 !attr4 !off4 !width4 !bufferlen3 !rel_poslen2 !this_ru_col2 !n1'4 !override_success4 !fillchar_status__o_r__6 !fillchar_status__o_attr6 = do
       if (this_ru_col2 + n1'4) < width4
-        then loop'18 empty_line6 row5 fillchar4 attr6 off4 width4 bufferlen3 rel_poslen2 this_ru_col2 n1'4 override_success4 fillchar_status__o_r__6 fillchar_status__o_attr6
-        else j'20 empty_line6 row5 fillchar4 attr6 off4 width4 bufferlen3 this_ru_col2 override_success4 fillchar_status__o_r__6 fillchar_status__o_attr6
-    loop'18 !empty_line7 !row6 !fillchar5 !attr7 !off5 !width5 !bufferlen4 !rel_poslen3 !this_ru_col3 !n1'5 !override_success5 !fillchar_status__o_r__7 !fillchar_status__o_attr7 = do
+        then loop'18 empty_line6 row5 fillchar4 attr4 off4 width4 bufferlen3 rel_poslen2 this_ru_col2 n1'4 override_success4 fillchar_status__o_r__6 fillchar_status__o_attr6
+        else j'20 empty_line6 row5 fillchar4 attr4 off4 width4 bufferlen3 this_ru_col2 override_success4 fillchar_status__o_r__6 fillchar_status__o_attr6
+    loop'18 !empty_line7 !row6 !fillchar5 !attr5 !off5 !width5 !bufferlen4 !rel_poslen3 !this_ru_col3 !n1'5 !override_success5 !fillchar_status__o_r__7 !fillchar_status__o_attr7 = do
       if ((this_ru_col3 + n1'5) < width5) && (RULER_BUF_LEN > ((bufferlen4 + rel_poslen3) + 1))
         then do
           r'60 <- utf_char2bytes fillchar5 (pAdd (pAdd fr' 4) (fromIntegral bufferlen4))
           let !bufferlen5 = bufferlen4 + r'60
           let !n1'6 = n1'5 + 1
-          loop'18 empty_line7 row6 fillchar5 attr7 off5 width5 bufferlen5 rel_poslen3 this_ru_col3 n1'6 override_success5 fillchar_status__o_r__7 fillchar_status__o_attr7
+          loop'18 empty_line7 row6 fillchar5 attr5 off5 width5 bufferlen5 rel_poslen3 this_ru_col3 n1'6 override_success5 fillchar_status__o_r__7 fillchar_status__o_attr7
         else do
           r'61 <- Caprice.Host.vim_snprintf ed' (pAdd (pAdd fr' 4) (fromIntegral bufferlen4)) (fromIntegral (RULER_BUF_LEN - bufferlen4) :: Word64) (Ptr "%s\0"#) [VP (pAdd fr' 74)]
           let !bufferlen6 = bufferlen4 + r'61
-          j'20 empty_line7 row6 fillchar5 attr7 off5 width5 bufferlen6 this_ru_col3 override_success5 fillchar_status__o_r__7 fillchar_status__o_attr7
-    j'20 !empty_line8 !row7 !fillchar6 !attr8 !off6 !width6 !bufferlen7 !this_ru_col4 !override_success6 !fillchar_status__o_r__8 !fillchar_status__o_attr8 = do
-      loop'21 empty_line8 row7 fillchar6 attr8 off6 width6 bufferlen7 this_ru_col4 (0 :: Int32) (0 :: Int32) override_success6 fillchar_status__o_r__8 fillchar_status__o_attr8
-    loop'21 !empty_line9 !row8 !fillchar7 !attr9 !off7 !width7 !bufferlen8 !this_ru_col5 !n1'7 !n2'2 !override_success7 !fillchar_status__o_r__9 !fillchar_status__o_attr9 = do
+          j'20 empty_line7 row6 fillchar5 attr5 off5 width5 bufferlen6 this_ru_col3 override_success5 fillchar_status__o_r__7 fillchar_status__o_attr7
+    j'20 !empty_line8 !row7 !fillchar6 !attr6 !off6 !width6 !bufferlen7 !this_ru_col4 !override_success6 !fillchar_status__o_r__8 !fillchar_status__o_attr8 = do
+      loop'21 empty_line8 row7 fillchar6 attr6 off6 width6 bufferlen7 this_ru_col4 (0 :: Int32) (0 :: Int32) override_success6 fillchar_status__o_r__8 fillchar_status__o_attr8
+    loop'21 !empty_line9 !row8 !fillchar7 !attr7 !off7 !width7 !bufferlen8 !this_ru_col5 !n1'7 !n2'2 !override_success7 !fillchar_status__o_r__9 !fillchar_status__o_attr9 = do
       r'62 <- rdW8 (pAdd (pAdd fr' 4) (fromIntegral n1'7)) 0
       if (fromIntegral r'62 :: Int32) /= NUL
         then do
@@ -3777,16 +3777,16 @@ win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
           if (this_ru_col5 + n2'3) > width7
             then do
               wrW8 (pAdd (pAdd fr' 4) (fromIntegral n1'7)) 0 NUL
-              j'25 empty_line9 row8 fillchar7 attr9 off7 width7 n1'7 this_ru_col5 override_success7 fillchar_status__o_r__9 fillchar_status__o_attr9
+              j'25 empty_line9 row8 fillchar7 attr7 off7 width7 n1'7 this_ru_col5 override_success7 fillchar_status__o_r__9 fillchar_status__o_attr9
             else do
               r'64 <- utfc_ptr2len ed' (pAdd (pAdd fr' 4) (fromIntegral n1'7))
               let !n1'8 = n1'7 + r'64
-              loop'21 empty_line9 row8 fillchar7 attr9 off7 width7 bufferlen8 this_ru_col5 n1'8 n2'3 override_success7 fillchar_status__o_r__9 fillchar_status__o_attr9
-        else j'25 empty_line9 row8 fillchar7 attr9 off7 width7 bufferlen8 this_ru_col5 override_success7 fillchar_status__o_r__9 fillchar_status__o_attr9
-    j'25 !empty_line10 !row9 !fillchar8 !attr10 !off8 !width8 !bufferlen9 !this_ru_col6 !override_success8 _ _ = do
-      screen_puts ed' (pAdd fr' 4) row9 (this_ru_col6 + off8) attr10
+              loop'21 empty_line9 row8 fillchar7 attr7 off7 width7 bufferlen8 this_ru_col5 n1'8 n2'3 override_success7 fillchar_status__o_r__9 fillchar_status__o_attr9
+        else j'25 empty_line9 row8 fillchar7 attr7 off7 width7 bufferlen8 this_ru_col5 override_success7 fillchar_status__o_r__9 fillchar_status__o_attr9
+    j'25 !empty_line10 !row9 !fillchar8 !attr8 !off8 !width8 !bufferlen9 !this_ru_col6 !override_success8 _ _ = do
+      screen_puts ed' (pAdd fr' 4) row9 (this_ru_col6 + off8) attr8
       r'65 <- redraw_cmdline ed'
-      screen_fill ed' row9 (row9 + 1) ((this_ru_col6 + off8) + bufferlen9) (off8 + width8) fillchar8 fillchar8 attr10
+      screen_fill ed' row9 (row9 + 1) ((this_ru_col6 + off8) + bufferlen9) (off8 + width8) fillchar8 fillchar8 attr8
       set'redraw_cmdline ed' r'65
       copyMem (pAdd wp win_T'w_ru_cursor) (pAdd wp win_T'w_cursor) 16
       r'66 <- rdI32 wp win_T'w_virtcol
@@ -3819,8 +3819,8 @@ win_redr_ruler ed' wp always _ignore_pum = frame 144 $ \fr' -> do
               r'78 <- edit_submode ed'
               if r'78 /= nullPtr
                 then pure ()
-                else j'4 False (0 :: Int32) (0 :: Int32) (0 :: Int32)
-            else j'4 False (0 :: Int32) (0 :: Int32) (0 :: Int32)
+                else j'4 False (0 :: Int32) (0 :: Int32)
+            else j'4 False (0 :: Int32) (0 :: Int32)
 
 win_update :: Ed -> Ptr Win_T -> IO ()
 win_update ed' wp = frame 40 $ \fr' -> do
@@ -9209,10 +9209,10 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
             then do
               (r'16, r'17, r'18, r'19) <- handle_mapping ed' keylen1 timedout5 mapdepth5
               if r'16 == 2
-                then loop'10 r'18 r'19 mode_deleted5 r'16 r'17 r'18 r'19
+                then loop'10 r'18 mapdepth5 mode_deleted5 r'16 r'17 r'18 r'19
                 else do
                   if r'16 == 0
-                    then j'110 (-1 :: Int32) r'18 r'19 mode_deleted5 r'16 r'17 r'18 r'19
+                    then j'110 (-1 :: Int32) r'18 mapdepth5 mode_deleted5 r'16 r'17 r'18 r'19
                     else do
                       if r'16 == 1
                         then do
@@ -9228,15 +9228,15 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
                               if r'24 > 0
                                 then do
                                   set'c'KeyTyped ed' FALSE
-                                  j'98 c2 r'18 r'19 mode_deleted5 r'16 r'17 r'18 r'19
+                                  j'98 c2 r'18 mapdepth5 mode_deleted5 r'16 r'17 r'18 r'19
                                 else do
                                   set'c'KeyTyped ed' TRUE
                                   r'25 <- rdP (addr'typebuf ed') typebuf_T'tb_buf
                                   r'26 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off
                                   gotchars ed' (pAdd r'25 (fromIntegral r'26)) 1
-                                  j'98 c2 r'18 r'19 mode_deleted5 r'16 r'17 r'18 r'19
-                            else j'110 c2 r'18 r'19 mode_deleted5 r'16 r'17 r'18 r'19
-                        else j'18 r'18 r'19 mode_deleted5 r'17 r'16 r'17 r'18 r'19
+                                  j'98 c2 r'18 mapdepth5 mode_deleted5 r'16 r'17 r'18 r'19
+                            else j'110 c2 r'18 mapdepth5 mode_deleted5 r'16 r'17 r'18 r'19
+                        else j'18 r'18 mapdepth5 mode_deleted5 r'17 r'16 r'17 r'18 r'19
             else j'18 timedout5 mapdepth5 mode_deleted5 keylen1 handle_mapping__o_r__5 handle_mapping__o_keylenp5 handle_mapping__o_timedout5 handle_mapping__o_mapdepth5
     j'18 !timedout6 !mapdepth6 !mode_deleted6 !keylen2 !handle_mapping__o_r__6 !handle_mapping__o_keylenp6 !handle_mapping__o_timedout6 !handle_mapping__o_mapdepth6 = do
       r'27 <- curwin ed'
@@ -15381,8 +15381,8 @@ msg_puts_display ed' str maxlen attr recurse = do
       r'93 <- if ((r'90 /= 0) && (not recurse)) then (do { r'92 <- if (s21 == (pAdd sb_str18 1)) then (do { r'91 <- rdW8 sb_str18 0; pure ((fromIntegral r'91 :: Int32) == (ch '\n')) }) else pure False; pure (not r'92) }) else pure False
       if r'93
         then do
-          (r'94, r'95) <- store_sb_text ed' sb_str18 s21 attr sb_col18 False
-          j'58 r'94 r'95
+          (_, _) <- store_sb_text ed' sb_str18 s21 attr sb_col18 False
+          j'58 store_sb_text__o_sb_str18 store_sb_text__o_sb_col18
         else j'58 store_sb_text__o_sb_str18 store_sb_text__o_sb_col18
     j'58 _ _ = do
       msg_check ed'
@@ -20923,8 +20923,8 @@ skip_regexp_ex ed' startp dirc magic newp dropped magic_val = do
     then j'3 startp (MAGIC_ON :: Int32) startp (0 :: Word64)
     else j'3 startp (MAGIC_OFF :: Int32) startp (0 :: Word64)
 
-read_limits :: Ed -> Int64 -> Int64 -> IO (Int32, Int64, Int64)
-read_limits ed' _minval _maxval = do
+read_limits :: Ed -> IO (Int32, Int64, Int64)
+read_limits ed' = do
   let
     j'2 !reverse1 !out___r__1 !out___minval1 !out___maxval1 !out___2_r__1 !out___2_minval1 !out___2_maxval1 = do
       r'1 <- regparse ed'
@@ -21429,7 +21429,7 @@ regatom_delim ed' c delim_nl flagp = do
 regatom :: Ed -> Ptr Regengine_T -> Ptr Int32 -> IO (Ptr Char_u)
 regatom ed' re flagp = frame 4 $ \fr' -> do
   let
-    loop'1 !flags1 !c1 !sw1 !extra1 !delim_nl1 !save_prev_at_start1 !reg__o_r__1 !reg__o_flagp1 = do
+    loop'1 !c1 !sw1 !extra1 !delim_nl1 !save_prev_at_start1 !reg__o_r__1 !reg__o_flagp1 = do
       case (sw1 :: Int32) of
         -162 -> do
           r'1 <- regnode ed' BOL
@@ -21481,7 +21481,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                       r'20 <- rdI32 flagp 0
                       wrI32 flagp 0 (r'20 .|. HASNL)
                       if r'6 == (ch '[')
-                        then loop'1 flags1 r'6 (-165 :: Int32) (ADD_NL :: Int32) delim_nl1 save_prev_at_start1 reg__o_r__1 reg__o_flagp1
+                        then loop'1 r'6 (-165 :: Int32) (ADD_NL :: Int32) delim_nl1 save_prev_at_start1 reg__o_r__1 reg__o_flagp1
                         else j'269 r'6 (ADD_NL :: Int32) reg__o_r__1 reg__o_flagp1
         -210 -> j'269 c1 extra1 reg__o_r__1 reg__o_flagp1
         -151 -> j'269 c1 extra1 reg__o_r__1 reg__o_flagp1
@@ -21540,7 +21540,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               set'rc_did_emsg ed' TRUE
               pure nullPtr
             else do
-              (r'35, r'36) <- reg ed' re REG_PAREN flags1
+              (r'35, r'36) <- reg ed' re REG_PAREN
               if r'35 == nullPtr
                 then pure nullPtr
                 else do
@@ -21618,7 +21618,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                   set'rc_did_emsg ed' TRUE
                   pure nullPtr
                 else do
-                  (r'62, r'63) <- reg ed' re REG_NPAREN flags1
+                  (r'62, r'63) <- reg ed' re REG_NPAREN
                   if r'62 == nullPtr
                     then pure nullPtr
                     else do
@@ -22555,7 +22555,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
   r'393 <- prev_at_start ed'
   wrI32 flagp 0 WORST
   r'394 <- getchr ed'
-  loop'1 (0 :: Int32) r'394 r'394 (0 :: Int32) False r'393 nullPtr (0 :: Int32)
+  loop'1 r'394 r'394 (0 :: Int32) False r'393 nullPtr (0 :: Int32)
 
 regpiece :: Ed -> Ptr Regengine_T -> Int32 -> IO (Ptr Char_u, Int32)
 regpiece ed' re flagp = frame 4 $ \fr' -> do
@@ -22712,7 +22712,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
             -193 -> j'12 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
             -195 -> j'12 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
             -133 -> do
-              (r'55, r'56, r'57) <- read_limits ed' (0 :: Int64) (0 :: Int64)
+              (r'55, r'56, r'57) <- read_limits ed'
               if not (r'55 /= 0)
                 then pure (nullPtr, flagp10)
                 else do
@@ -22748,8 +22748,8 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
                           j'9 flagp10 r'36 r'56 r'57 r'55 r'56 r'57 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
             _ -> j'36 flagp10 r'36 (0 :: Int32) (0 :: Int64) (0 :: Int64) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
-regconcat :: Ed -> Ptr Regengine_T -> Int32 -> IO (Ptr Char_u, Int32)
-regconcat ed' re _flagp = do
+regconcat :: Ed -> Ptr Regengine_T -> IO (Ptr Char_u, Int32)
+regconcat ed' re = do
   let
     loop'1 !flagp1 !first1 !chain1 !flags1 !cont1 !regpiece__o_r__1 !regpiece__o_flagp1 !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 = do
       if cont1
@@ -22825,11 +22825,11 @@ regconcat ed' re _flagp = do
       loop'1 flagp6 first4 chain2 flags3 False regpiece__o_r__4 regpiece__o_flagp4 out___r__4 out___flagp4 out___2_r__4 out___2_flagp4
   loop'1 (WORST :: Int32) nullPtr nullPtr (0 :: Int32) True nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
-regbranch :: Ed -> Ptr Regengine_T -> Int32 -> IO (Ptr Char_u, Int32)
-regbranch ed' re _flagp = do
+regbranch :: Ed -> Ptr Regengine_T -> IO (Ptr Char_u, Int32)
+regbranch ed' re = do
   let
-    loop'1 !flagp1 !ret1 !chain1 !flags1 _ _ !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 = do
-      (r'1, r'2) <- regconcat ed' re flags1
+    loop'1 !flagp1 !ret1 !chain1 _ _ !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 = do
+      (r'1, r'2) <- regconcat ed' re
       if r'1 == nullPtr
         then pure (nullPtr, flagp1)
         else do
@@ -22838,9 +22838,9 @@ regbranch ed' re _flagp = do
           if chain1 /= nullPtr
             then do
               regtail ed' re chain1 r'1
-              j'4 flagp3 ret1 r'1 r'2 r'1 r'2 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-            else j'4 flagp3 ret1 r'1 r'2 r'1 r'2 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
-    j'4 !flagp4 !ret2 !latest1 !flags2 !regconcat__o_r__2 !regconcat__o_flagp2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 = do
+              j'4 flagp3 ret1 r'1 r'1 r'2 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+            else j'4 flagp3 ret1 r'1 r'1 r'2 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1
+    j'4 !flagp4 !ret2 !latest1 !regconcat__o_r__2 !regconcat__o_flagp2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 = do
       r'3 <- peekchr ed'
       if r'3 /= (-218)
         then j'7 flagp4 ret2 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
@@ -22853,16 +22853,16 @@ regbranch ed' re _flagp = do
             then j'7 flagp4 ret2 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
             else do
               reginsert ed' MATCH latest1
-              loop'1 flagp4 ret2 latest1 flags2 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
+              loop'1 flagp4 ret2 latest1 regconcat__o_r__2 regconcat__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2
     j'7 !flagp5 !ret3 _ _ _ _ _ _ = do
       pure (ret3, flagp5)
   r'6 <- regnode ed' BRANCH
-  loop'1 (8 :: Int32) r'6 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+  loop'1 (8 :: Int32) r'6 nullPtr nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
-reg :: Ed -> Ptr Regengine_T -> Int32 -> Int32 -> IO (Ptr Char_u, Int32)
-reg ed' re paren _flagp = do
+reg :: Ed -> Ptr Regengine_T -> Int32 -> IO (Ptr Char_u, Int32)
+reg ed' re paren = do
   let
-    j'6 !flagp1 !ret1 !parno1 !flags1 _ _ !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 !out___3_r__1 !out___3_flagp1 !out___4_r__1 !out___4_flagp1 !out___5_r__1 !out___5_flagp1 !out___6_r__1 !out___6_flagp1 !out___7_r__1 !out___7_flagp1 !out___8_r__1 !out___8_flagp1 !out___9_r__1 !out___9_flagp1 = do
+    j'6 !flagp1 !ret1 !parno1 _ _ !out___r__1 !out___flagp1 !out___2_r__1 !out___2_flagp1 !out___3_r__1 !out___3_flagp1 !out___4_r__1 !out___4_flagp1 !out___5_r__1 !out___5_flagp1 !out___6_r__1 !out___6_flagp1 !out___7_r__1 !out___7_flagp1 !out___8_r__1 !out___8_flagp1 !out___9_r__1 !out___9_flagp1 = do
       r'1 <- bt_reg_parse_depth ed'
       if r'1 >= REG_MAX_PAREN_DEPTH
         then do
@@ -22873,7 +22873,7 @@ reg ed' re paren _flagp = do
         else do
           r'4 <- bt_reg_parse_depth ed'
           set'bt_reg_parse_depth ed' (r'4 + 1)
-          (r'5, r'6) <- regbranch ed' re flags1
+          (r'5, r'6) <- regbranch ed' re
           if r'5 == nullPtr
             then do
               r'7 <- bt_reg_parse_depth ed'
@@ -22885,21 +22885,21 @@ reg ed' re paren _flagp = do
                   regtail ed' re ret1 r'5
                   j'11 flagp1 ret1 parno1 r'6 r'5 r'6 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1 out___3_r__1 out___3_flagp1 out___4_r__1 out___4_flagp1 out___5_r__1 out___5_flagp1 out___6_r__1 out___6_flagp1 out___7_r__1 out___7_flagp1 out___8_r__1 out___8_flagp1 out___9_r__1 out___9_flagp1
                 else j'11 flagp1 r'5 parno1 r'6 r'5 r'6 out___r__1 out___flagp1 out___2_r__1 out___2_flagp1 out___3_r__1 out___3_flagp1 out___4_r__1 out___4_flagp1 out___5_r__1 out___5_flagp1 out___6_r__1 out___6_flagp1 out___7_r__1 out___7_flagp1 out___8_r__1 out___8_flagp1 out___9_r__1 out___9_flagp1
-    j'11 !flagp2 !ret2 !parno2 !flags2 !regbranch__o_r__2 !regbranch__o_flagp2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 !out___3_r__2 !out___3_flagp2 !out___4_r__2 !out___4_flagp2 !out___5_r__2 !out___5_flagp2 !out___6_r__2 !out___6_flagp2 !out___7_r__2 !out___7_flagp2 !out___8_r__2 !out___8_flagp2 !out___9_r__2 !out___9_flagp2 = do
-      if not ((flags2 .&. HASWIDTH) /= 0)
+    j'11 !flagp2 !ret2 !parno2 !flags1 !regbranch__o_r__2 !regbranch__o_flagp2 !out___r__2 !out___flagp2 !out___2_r__2 !out___2_flagp2 !out___3_r__2 !out___3_flagp2 !out___4_r__2 !out___4_flagp2 !out___5_r__2 !out___5_flagp2 !out___6_r__2 !out___6_flagp2 !out___7_r__2 !out___7_flagp2 !out___8_r__2 !out___8_flagp2 !out___9_r__2 !out___9_flagp2 = do
+      if not ((flags1 .&. HASWIDTH) /= 0)
         then do
           let !flagp3 = flagp2 .&. (-2)
-          j'13 flagp3 ret2 parno2 flags2 regbranch__o_r__2 regbranch__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2 out___9_r__2 out___9_flagp2
-        else j'13 flagp2 ret2 parno2 flags2 regbranch__o_r__2 regbranch__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2 out___9_r__2 out___9_flagp2
-    j'13 !flagp4 !ret3 !parno3 !flags3 !regbranch__o_r__3 !regbranch__o_flagp3 !out___r__3 !out___flagp3 !out___2_r__3 !out___2_flagp3 !out___3_r__3 !out___3_flagp3 !out___4_r__3 !out___4_flagp3 !out___5_r__3 !out___5_flagp3 !out___6_r__3 !out___6_flagp3 !out___7_r__3 !out___7_flagp3 !out___8_r__3 !out___8_flagp3 !out___9_r__3 !out___9_flagp3 = do
-      let !flagp5 = flagp4 .|. (flags3 .&. 28)
-      loop'14 flagp5 ret3 parno3 flags3 regbranch__o_r__3 regbranch__o_flagp3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3 out___3_r__3 out___3_flagp3 out___4_r__3 out___4_flagp3 out___5_r__3 out___5_flagp3 out___6_r__3 out___6_flagp3 out___7_r__3 out___7_flagp3 out___8_r__3 out___8_flagp3 out___9_r__3 out___9_flagp3
-    loop'14 !flagp6 !ret4 !parno4 !flags4 !regbranch__o_r__4 !regbranch__o_flagp4 !out___r__4 !out___flagp4 !out___2_r__4 !out___2_flagp4 !out___3_r__4 !out___3_flagp4 !out___4_r__4 !out___4_flagp4 !out___5_r__4 !out___5_flagp4 !out___6_r__4 !out___6_flagp4 !out___7_r__4 !out___7_flagp4 !out___8_r__4 !out___8_flagp4 !out___9_r__4 !out___9_flagp4 = do
+          j'13 flagp3 ret2 parno2 flags1 regbranch__o_r__2 regbranch__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2 out___9_r__2 out___9_flagp2
+        else j'13 flagp2 ret2 parno2 flags1 regbranch__o_r__2 regbranch__o_flagp2 out___r__2 out___flagp2 out___2_r__2 out___2_flagp2 out___3_r__2 out___3_flagp2 out___4_r__2 out___4_flagp2 out___5_r__2 out___5_flagp2 out___6_r__2 out___6_flagp2 out___7_r__2 out___7_flagp2 out___8_r__2 out___8_flagp2 out___9_r__2 out___9_flagp2
+    j'13 !flagp4 !ret3 !parno3 !flags2 !regbranch__o_r__3 !regbranch__o_flagp3 !out___r__3 !out___flagp3 !out___2_r__3 !out___2_flagp3 !out___3_r__3 !out___3_flagp3 !out___4_r__3 !out___4_flagp3 !out___5_r__3 !out___5_flagp3 !out___6_r__3 !out___6_flagp3 !out___7_r__3 !out___7_flagp3 !out___8_r__3 !out___8_flagp3 !out___9_r__3 !out___9_flagp3 = do
+      let !flagp5 = flagp4 .|. (flags2 .&. 28)
+      loop'14 flagp5 ret3 parno3 regbranch__o_r__3 regbranch__o_flagp3 out___r__3 out___flagp3 out___2_r__3 out___2_flagp3 out___3_r__3 out___3_flagp3 out___4_r__3 out___4_flagp3 out___5_r__3 out___5_flagp3 out___6_r__3 out___6_flagp3 out___7_r__3 out___7_flagp3 out___8_r__3 out___8_flagp3 out___9_r__3 out___9_flagp3
+    loop'14 !flagp6 !ret4 !parno4 !regbranch__o_r__4 !regbranch__o_flagp4 !out___r__4 !out___flagp4 !out___2_r__4 !out___2_flagp4 !out___3_r__4 !out___3_flagp4 !out___4_r__4 !out___4_flagp4 !out___5_r__4 !out___5_flagp4 !out___6_r__4 !out___6_flagp4 !out___7_r__4 !out___7_flagp4 !out___8_r__4 !out___8_flagp4 !out___9_r__4 !out___9_flagp4 = do
       r'8 <- peekchr ed'
       if r'8 == (-132)
         then do
           skipchr ed'
-          (r'9, r'10) <- regbranch ed' re flags4
+          (r'9, r'10) <- regbranch ed' re
           r'12 <- if (r'9 == nullPtr) then pure True else (do { r'11 <- rdI32 re regengine_T'reg_toolong; pure (r'11 /= 0) })
           if r'12
             then do
@@ -22990,9 +22990,9 @@ reg ed' re paren _flagp = do
       r'51 <- bt_reg_parse_depth ed'
       set'bt_reg_parse_depth ed' (r'51 - 1)
       pure (ret6, flagp9)
-    j'33 !flagp10 !ret7 !parno6 !flags5 !regbranch__o_r__7 !regbranch__o_flagp7 !out___r__7 !out___flagp7 !out___2_r__7 !out___2_flagp7 !out___3_r__7 !out___3_flagp7 !out___4_r__7 !out___4_flagp7 !out___5_r__7 !out___5_flagp7 !out___6_r__7 !out___6_flagp7 !out___7_r__7 !out___7_flagp7 !out___8_r__7 !out___8_flagp7 !out___9_r__7 !out___9_flagp7 = do
-      let !flagp11 = flagp10 .|. (flags5 .&. 28)
-      loop'14 flagp11 ret7 parno6 flags5 regbranch__o_r__7 regbranch__o_flagp7 out___r__7 out___flagp7 out___2_r__7 out___2_flagp7 out___3_r__7 out___3_flagp7 out___4_r__7 out___4_flagp7 out___5_r__7 out___5_flagp7 out___6_r__7 out___6_flagp7 out___7_r__7 out___7_flagp7 out___8_r__7 out___8_flagp7 out___9_r__7 out___9_flagp7
+    j'33 !flagp10 !ret7 !parno6 !flags3 !regbranch__o_r__7 !regbranch__o_flagp7 !out___r__7 !out___flagp7 !out___2_r__7 !out___2_flagp7 !out___3_r__7 !out___3_flagp7 !out___4_r__7 !out___4_flagp7 !out___5_r__7 !out___5_flagp7 !out___6_r__7 !out___6_flagp7 !out___7_r__7 !out___7_flagp7 !out___8_r__7 !out___8_flagp7 !out___9_r__7 !out___9_flagp7 = do
+      let !flagp11 = flagp10 .|. (flags3 .&. 28)
+      loop'14 flagp11 ret7 parno6 regbranch__o_r__7 regbranch__o_flagp7 out___r__7 out___flagp7 out___2_r__7 out___2_flagp7 out___3_r__7 out___3_flagp7 out___4_r__7 out___4_flagp7 out___5_r__7 out___5_flagp7 out___6_r__7 out___6_flagp7 out___7_r__7 out___7_flagp7 out___8_r__7 out___8_flagp7 out___9_r__7 out___9_flagp7
   if paren == REG_PAREN
     then do
       r'52 <- regnpar ed'
@@ -23013,13 +23013,13 @@ reg ed' re paren _flagp = do
           r'62 <- regnpar ed'
           set'regnpar ed' (r'62 + 1)
           r'63 <- regnode ed' (MOPEN + r'61)
-          j'6 (HASWIDTH :: Int32) r'63 r'61 (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+          j'6 (HASWIDTH :: Int32) r'63 r'61 nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
     else do
       if paren == REG_NPAREN
         then do
           r'64 <- regnode ed' NOPEN
-          j'6 (HASWIDTH :: Int32) r'64 (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
-        else j'6 (HASWIDTH :: Int32) nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+          j'6 (HASWIDTH :: Int32) r'64 (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
+        else j'6 (HASWIDTH :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32) nullPtr (0 :: Int32)
 
 bt_regcomp :: Ed -> Ptr Regengine_T -> Ptr Char_u -> Int32 -> IO (Ptr Regprog_T)
 bt_regcomp ed' re expr re_flags = do
@@ -23111,7 +23111,7 @@ bt_regcomp ed' re expr re_flags = do
       regcomp_start ed' re expr re_flags
       set'regcode ed' (addr'reg_calc_size_node ed')
       regc ed' REGMAGIC
-      (r'37, r'38) <- reg ed' re REG_NOPAREN (0 :: Int32)
+      (r'37, _) <- reg ed' re REG_NOPAREN
       if r'37 == nullPtr
         then pure nullPtr
         else do
@@ -23125,7 +23125,7 @@ bt_regcomp ed' re expr re_flags = do
           r'42 <- rdP r8 regprog_T'program
           set'regcode ed' r'42
           regc ed' REGMAGIC
-          (r'43, r'44) <- reg ed' re REG_NOPAREN r'38
+          (r'43, r'44) <- reg ed' re REG_NOPAREN
           r'46 <- if (r'43 == nullPtr) then pure True else (do { r'45 <- rdI32 re regengine_T'reg_toolong; pure (r'45 /= 0) })
           if r'46
             then do
@@ -24973,7 +24973,7 @@ regmatch ed' re scan _timed_out = do
           r'522 <- rdI32 rp1 regitem_T'rs_state
           case (r'522 :: Int32) of
             RS_NOPEN -> do
-              r'523 <- regstack_pop re scan41
+              r'523 <- regstack_pop re
               j'409 r'523 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_MOPEN -> do
               if status31 == RA_NOMATCH
@@ -24984,14 +24984,14 @@ regmatch ed' re scan _timed_out = do
                       r'525 <- rdP re (regengine_T'rex + regexec_T'reg_startpos)
                       r'526 <- rdI16 rp1 regitem_T'rs_no
                       copyMem (pAdd r'525 ((fromIntegral r'526) * 16)) (pAdd (pAdd rp1 (regitem_T'rs_un + anon'8'sesave)) (save_se_T'se_u + anon'7'pos)) 16
-                      j'407 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'407 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                     else do
                       r'528 <- rdP re (regengine_T'rex + regexec_T'reg_startp)
                       r'529 <- rdI16 rp1 regitem_T'rs_no
                       r'527 <- rdP (pAdd rp1 (regitem_T'rs_un + anon'8'sesave)) (save_se_T'se_u + anon'7'ptr)
                       wrP (pAdd r'528 ((fromIntegral r'529) * 8)) 0 r'527
-                      j'407 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                else j'407 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'407 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                else j'407 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_MCLOSE -> do
               if status31 == RA_NOMATCH
                 then do
@@ -25001,18 +25001,18 @@ regmatch ed' re scan _timed_out = do
                       r'531 <- rdP re (regengine_T'rex + regexec_T'reg_endpos)
                       r'532 <- rdI16 rp1 regitem_T'rs_no
                       copyMem (pAdd r'531 ((fromIntegral r'532) * 16)) (pAdd (pAdd rp1 (regitem_T'rs_un + anon'8'sesave)) (save_se_T'se_u + anon'7'pos)) 16
-                      j'402 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'402 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                     else do
                       r'534 <- rdP re (regengine_T'rex + regexec_T'reg_endp)
                       r'535 <- rdI16 rp1 regitem_T'rs_no
                       r'533 <- rdP (pAdd rp1 (regitem_T'rs_un + anon'8'sesave)) (save_se_T'se_u + anon'7'ptr)
                       wrP (pAdd r'534 ((fromIntegral r'535) * 8)) 0 r'533
-                      j'402 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                else j'402 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'402 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                else j'402 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_BRANCH -> do
               if status31 == RA_MATCH
                 then do
-                  r'536 <- regstack_pop re scan41
+                  r'536 <- regstack_pop re
                   j'409 r'536 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                 else do
                   if status31 /= RA_BREAK
@@ -25028,8 +25028,8 @@ regmatch ed' re scan _timed_out = do
                   r'538 <- rdI16 rp1 regitem_T'rs_no
                   r'539 <- rdI32 (pAdd (pAdd re regengine_T'brace_count) ((fromIntegral r'538) * 4)) 0
                   wrI32 (pAdd (pAdd re regengine_T'brace_count) ((fromIntegral r'538) * 4)) 0 (r'539 - 1)
-                  j'390 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                else j'390 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                  j'390 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                else j'390 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_BRCPLX_LONG -> do
               if status31 == RA_NOMATCH
                 then do
@@ -25037,29 +25037,29 @@ regmatch ed' re scan _timed_out = do
                   r'540 <- rdI16 rp1 regitem_T'rs_no
                   r'541 <- rdI32 (pAdd (pAdd re regengine_T'brace_count) ((fromIntegral r'540) * 4)) 0
                   wrI32 (pAdd (pAdd re regengine_T'brace_count) ((fromIntegral r'540) * 4)) 0 (r'541 - 1)
-                  j'386 scan41 rp1 (RA_CONT :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                else j'386 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                  j'386 rp1 (RA_CONT :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                else j'386 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_BRCPLX_SHORT -> do
               if status31 == RA_NOMATCH
                 then do
                   reg_restore ed' re (pAdd rp1 (regitem_T'rs_un + anon'8'regsave)) (pAdd re regengine_T'backpos)
-                  j'382 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                else j'382 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                  j'382 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                else j'382 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_NOMATCH -> do
               r'542 <- rdI16 rp1 regitem_T'rs_no
               if status31 == (if ((fromIntegral r'542 :: Int32) == NOMATCH) then (RA_MATCH :: Int32) else (RA_NOMATCH :: Int32))
-                then j'378 scan41 rp1 (RA_NOMATCH :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                then j'378 rp1 (RA_NOMATCH :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                 else do
                   r'543 <- rdI16 rp1 regitem_T'rs_no
                   if (fromIntegral r'543 :: Int32) /= SUBPAT
                     then do
                       reg_restore ed' re (pAdd rp1 (regitem_T'rs_un + anon'8'regsave)) (pAdd re regengine_T'backpos)
-                      j'378 scan41 rp1 (RA_CONT :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                    else j'378 scan41 rp1 (RA_CONT :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'378 rp1 (RA_CONT :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                    else j'378 rp1 (RA_CONT :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_BEHIND1 -> do
               if status31 == RA_NOMATCH
                 then do
-                  r'544 <- regstack_pop re scan41
+                  r'544 <- regstack_pop re
                   r'545 <- rdI32 re (regengine_T'regstack_behind + garray_T'ga_len)
                   wrI32 re (regengine_T'regstack_behind + garray_T'ga_len) (r'545 - 1)
                   r'546 <- rdI32 re regengine_T'regstack_bytes
@@ -25087,11 +25087,11 @@ regmatch ed' re scan _timed_out = do
                     then do
                       r'554 <- regstack_behind_top re
                       reg_restore ed' re (pAdd r'554 regbehind_T'save_after) (pAdd re regengine_T'backpos)
-                      j'370 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'370 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                     else do
                       r'555 <- regstack_behind_top re
                       restore_subexpr re r'555
-                      j'370 scan41 rp1 (RA_NOMATCH :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                      j'370 rp1 (RA_NOMATCH :: Int32) len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                 else do
                   r'556 <- rdP rp1 regitem_T'rs_scan
                   r'557 <- rdW8 r'556 3
@@ -25107,7 +25107,7 @@ regmatch ed' re scan _timed_out = do
                     then do
                       r'572 <- if (limit1 > 0) then (do { r'565 <- rdI64 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'lnum); r'566 <- rdI64 re (regengine_T'behind_pos + regsave_T'rs_u + anon'6'pos + lpos_T'lnum); r'570 <- if (r'565 < r'566) then (do { r'567 <- rdP re (regengine_T'rex + regexec_T'line); r'568 <- musl_strlen (castPtr r'567); pure (fromIntegral r'568 :: Int32) }) else (rdI32 re (regengine_T'behind_pos + regsave_T'rs_u + anon'6'pos + lpos_T'col)); r'571 <- rdI32 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'col); pure ((fromIntegral (r'570 - r'571) :: Int64) >= limit1) }) else pure False
                       if r'572
-                        then j'359 scan41 rp1 (FAIL :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                        then j'359 rp1 (FAIL :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                         else do
                           r'573 <- rdI32 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'col)
                           if r'573 == 0
@@ -25116,14 +25116,14 @@ regmatch ed' re scan _timed_out = do
                               r'575 <- rdI64 re (regengine_T'behind_pos + regsave_T'rs_u + anon'6'pos + lpos_T'lnum)
                               let !t37'1 = r'574 < r'575
                               if t37'1
-                                then j'355 scan41 rp1 (OK :: Int32) status31 len_4'43 t37'1 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                                then j'355 rp1 (OK :: Int32) status31 len_4'43 t37'1 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                                 else do
                                   r'576 <- rdI64 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'lnum)
                                   wrI64 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'lnum) (r'576 - 1)
                                   r'577 <- rdI64 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'lnum)
                                   r'578 <- reg_getline ed' re r'577
                                   let !t37'2 = r'578 == nullPtr
-                                  j'355 scan41 rp1 (OK :: Int32) status31 len_4'43 t37'2 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                                  j'355 rp1 (OK :: Int32) status31 len_4'43 t37'2 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                             else do
                               r'579 <- rdI64 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'lnum)
                               r'580 <- reg_getline ed' re r'579
@@ -25132,12 +25132,12 @@ regmatch ed' re scan _timed_out = do
                               let !t38'1 = r'582 + 1
                               r'583 <- rdI32 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'col)
                               wrI32 rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'col) (r'583 - t38'1)
-                              j'359 scan41 rp1 (OK :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                              j'359 rp1 (OK :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                     else do
                       r'584 <- rdP rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'ptr)
                       r'585 <- rdP re (regengine_T'rex + regexec_T'line)
                       if r'584 == r'585
-                        then j'359 scan41 rp1 (FAIL :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                        then j'359 rp1 (FAIL :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
                         else do
                           r'586 <- rdP re (regengine_T'rex + regexec_T'line)
                           r'587 <- rdP rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'ptr)
@@ -25147,8 +25147,8 @@ regmatch ed' re scan _timed_out = do
                           wrP rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'ptr) (pAdd r'589 (negate (fromIntegral t39'1)))
                           r'592 <- if (limit1 > 0) then (do { r'590 <- rdP re (regengine_T'behind_pos + regsave_T'rs_u + anon'6'ptr); r'591 <- rdP rp1 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'ptr); pure ((fromIntegral (quot (pSub r'590 r'591) 1) :: Int64) > limit1) }) else pure False
                           if r'592
-                            then j'359 scan41 rp1 (FAIL :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
-                            else j'359 scan41 rp1 (OK :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                            then j'359 rp1 (FAIL :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
+                            else j'359 rp1 (OK :: Int32) status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_STAR_LONG -> j'321 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             RS_STAR_SHORT -> j'321 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
             _ -> j'409 scan41 rp1 status31 len_4'43 cstrncmp__o_r__41 cstrncmp__o_n41 match_with_backref__o_r__41 match_with_backref__o_bytelen41 rst_nextb42 rst_nextb_ic41 rst_count42 rst_minval42 rst_maxval41
@@ -25157,7 +25157,7 @@ regmatch ed' re scan _timed_out = do
       r'593 <- regstack_star_top re
       if status32 == RA_MATCH
         then do
-          r'594 <- regstack_pop re scan43
+          r'594 <- regstack_pop re
           r'595 <- rdI32 re (regengine_T'regstack_star + garray_T'ga_len)
           wrI32 re (regengine_T'regstack_star + garray_T'ga_len) (r'595 - 1)
           r'596 <- rdI32 re regengine_T'regstack_bytes
@@ -25247,34 +25247,34 @@ regmatch ed' re scan _timed_out = do
     j'341 !scan47 !rp6 !status36 !len_4'48 !cstrncmp__o_r__46 !cstrncmp__o_n46 !match_with_backref__o_r__46 !match_with_backref__o_bytelen46 !rst_nextb47 !rst_nextb_ic46 !rst_count47 !rst_minval47 !rst_maxval46 = do
       if status36 /= RA_CONT
         then do
-          r'634 <- regstack_pop re scan47
+          r'634 <- regstack_pop re
           r'635 <- rdI32 re (regengine_T'regstack_star + garray_T'ga_len)
           wrI32 re (regengine_T'regstack_star + garray_T'ga_len) (r'635 - 1)
           r'636 <- rdI32 re regengine_T'regstack_bytes
           wrI32 re regengine_T'regstack_bytes (fromIntegral ((fromIntegral r'636 :: Word64) - 32) :: Int32)
           j'409 r'634 rp6 (RA_NOMATCH :: Int32) len_4'48 cstrncmp__o_r__46 cstrncmp__o_n46 match_with_backref__o_r__46 match_with_backref__o_bytelen46 rst_nextb47 rst_nextb_ic46 rst_count47 rst_minval47 rst_maxval46
         else j'409 scan47 rp6 status36 len_4'48 cstrncmp__o_r__46 cstrncmp__o_n46 match_with_backref__o_r__46 match_with_backref__o_bytelen46 rst_nextb47 rst_nextb_ic46 rst_count47 rst_minval47 rst_maxval46
-    j'355 !scan48 !rp7 !no6 !status37 !len_4'49 !t37'3 !cstrncmp__o_r__47 !cstrncmp__o_n47 !match_with_backref__o_r__47 !match_with_backref__o_bytelen47 !rst_nextb48 !rst_nextb_ic47 !rst_count48 !rst_minval48 !rst_maxval47 = do
+    j'355 !rp7 !no6 !status37 !len_4'49 !t37'3 !cstrncmp__o_r__47 !cstrncmp__o_n47 !match_with_backref__o_r__47 !match_with_backref__o_bytelen47 !rst_nextb48 !rst_nextb_ic47 !rst_count48 !rst_minval48 !rst_maxval47 = do
       if t37'3
-        then j'359 scan48 rp7 (FAIL :: Int32) status37 len_4'49 cstrncmp__o_r__47 cstrncmp__o_n47 match_with_backref__o_r__47 match_with_backref__o_bytelen47 rst_nextb48 rst_nextb_ic47 rst_count48 rst_minval48 rst_maxval47
+        then j'359 rp7 (FAIL :: Int32) status37 len_4'49 cstrncmp__o_r__47 cstrncmp__o_n47 match_with_backref__o_r__47 match_with_backref__o_bytelen47 rst_nextb48 rst_nextb_ic47 rst_count48 rst_minval48 rst_maxval47
         else do
           reg_restore ed' re (pAdd rp7 (regitem_T'rs_un + anon'8'regsave)) (pAdd re regengine_T'backpos)
           r'637 <- rdP re (regengine_T'rex + regexec_T'line)
           r'638 <- musl_strlen (castPtr r'637)
           wrI32 rp7 (regitem_T'rs_un + anon'8'regsave + regsave_T'rs_u + anon'6'pos + lpos_T'col) (fromIntegral r'638 :: Int32)
-          j'359 scan48 rp7 no6 status37 len_4'49 cstrncmp__o_r__47 cstrncmp__o_n47 match_with_backref__o_r__47 match_with_backref__o_bytelen47 rst_nextb48 rst_nextb_ic47 rst_count48 rst_minval48 rst_maxval47
-    j'359 !scan49 !rp8 !no7 !status38 !len_4'50 !cstrncmp__o_r__48 !cstrncmp__o_n48 !match_with_backref__o_r__48 !match_with_backref__o_bytelen48 !rst_nextb49 !rst_nextb_ic48 !rst_count49 !rst_minval49 !rst_maxval48 = do
+          j'359 rp7 no6 status37 len_4'49 cstrncmp__o_r__47 cstrncmp__o_n47 match_with_backref__o_r__47 match_with_backref__o_bytelen47 rst_nextb48 rst_nextb_ic47 rst_count48 rst_minval48 rst_maxval47
+    j'359 !rp8 !no7 !status38 !len_4'50 !cstrncmp__o_r__48 !cstrncmp__o_n48 !match_with_backref__o_r__48 !match_with_backref__o_bytelen48 !rst_nextb49 !rst_nextb_ic48 !rst_count49 !rst_minval49 !rst_maxval48 = do
       if no7 == OK
         then do
           reg_restore ed' re (pAdd rp8 (regitem_T'rs_un + anon'8'regsave)) (pAdd re regengine_T'backpos)
           r'639 <- rdP rp8 regitem_T'rs_scan
-          let !scan50 = pAdd (pAdd r'639 3) 4
+          let !scan48 = pAdd (pAdd r'639 3) 4
           if status38 == RA_MATCH
             then do
               r'640 <- regstack_behind_top re
               restore_subexpr re r'640
-              j'409 scan50 rp8 (RA_NOMATCH :: Int32) len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
-            else j'409 scan50 rp8 status38 len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
+              j'409 scan48 rp8 (RA_NOMATCH :: Int32) len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
+            else j'409 scan48 rp8 status38 len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
         else do
           r'641 <- regstack_behind_top re
           copyMem (pAdd re regengine_T'behind_pos) (pAdd r'641 regbehind_T'save_behind) 24
@@ -25283,83 +25283,83 @@ regmatch ed' re scan _timed_out = do
             then do
               r'643 <- regstack_behind_top re
               reg_restore ed' re (pAdd r'643 regbehind_T'save_after) (pAdd re regengine_T'backpos)
-              j'364 scan49 rp8 (RA_MATCH :: Int32) len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
+              j'364 rp8 (RA_MATCH :: Int32) len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
             else do
               if status38 == RA_MATCH
                 then do
                   r'644 <- regstack_behind_top re
                   restore_subexpr re r'644
-                  j'364 scan49 rp8 (RA_NOMATCH :: Int32) len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
-                else j'364 scan49 rp8 status38 len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
-    j'364 !scan51 !rp9 !status39 !len_4'51 !cstrncmp__o_r__49 !cstrncmp__o_n49 !match_with_backref__o_r__49 !match_with_backref__o_bytelen49 !rst_nextb50 !rst_nextb_ic49 !rst_count50 !rst_minval50 !rst_maxval49 = do
-      r'645 <- regstack_pop re scan51
+                  j'364 rp8 (RA_NOMATCH :: Int32) len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
+                else j'364 rp8 status38 len_4'50 cstrncmp__o_r__48 cstrncmp__o_n48 match_with_backref__o_r__48 match_with_backref__o_bytelen48 rst_nextb49 rst_nextb_ic48 rst_count49 rst_minval49 rst_maxval48
+    j'364 !rp9 !status39 !len_4'51 !cstrncmp__o_r__49 !cstrncmp__o_n49 !match_with_backref__o_r__49 !match_with_backref__o_bytelen49 !rst_nextb50 !rst_nextb_ic49 !rst_count50 !rst_minval50 !rst_maxval49 = do
+      r'645 <- regstack_pop re
       r'646 <- rdI32 re (regengine_T'regstack_behind + garray_T'ga_len)
       wrI32 re (regengine_T'regstack_behind + garray_T'ga_len) (r'646 - 1)
       r'647 <- rdI32 re regengine_T'regstack_bytes
       wrI32 re regengine_T'regstack_bytes (fromIntegral ((fromIntegral r'647 :: Word64) - 376) :: Int32)
       j'409 r'645 rp9 status39 len_4'51 cstrncmp__o_r__49 cstrncmp__o_n49 match_with_backref__o_r__49 match_with_backref__o_bytelen49 rst_nextb50 rst_nextb_ic49 rst_count50 rst_minval50 rst_maxval49
-    j'370 !scan52 !rp10 !status40 !len_4'52 !cstrncmp__o_r__50 !cstrncmp__o_n50 !match_with_backref__o_r__50 !match_with_backref__o_bytelen50 !rst_nextb51 !rst_nextb_ic50 !rst_count51 !rst_minval51 !rst_maxval50 = do
-      r'648 <- regstack_pop re scan52
+    j'370 !rp10 !status40 !len_4'52 !cstrncmp__o_r__50 !cstrncmp__o_n50 !match_with_backref__o_r__50 !match_with_backref__o_bytelen50 !rst_nextb51 !rst_nextb_ic50 !rst_count51 !rst_minval51 !rst_maxval50 = do
+      r'648 <- regstack_pop re
       r'649 <- rdI32 re (regengine_T'regstack_behind + garray_T'ga_len)
       wrI32 re (regengine_T'regstack_behind + garray_T'ga_len) (r'649 - 1)
       r'650 <- rdI32 re regengine_T'regstack_bytes
       wrI32 re regengine_T'regstack_bytes (fromIntegral ((fromIntegral r'650 :: Word64) - 376) :: Int32)
       j'409 r'648 rp10 status40 len_4'52 cstrncmp__o_r__50 cstrncmp__o_n50 match_with_backref__o_r__50 match_with_backref__o_bytelen50 rst_nextb51 rst_nextb_ic50 rst_count51 rst_minval51 rst_maxval50
-    j'378 !scan53 !rp11 !status41 !len_4'53 !cstrncmp__o_r__51 !cstrncmp__o_n51 !match_with_backref__o_r__51 !match_with_backref__o_bytelen51 !rst_nextb52 !rst_nextb_ic51 !rst_count52 !rst_minval52 !rst_maxval51 = do
-      r'651 <- regstack_pop re scan53
+    j'378 !rp11 !status41 !len_4'53 !cstrncmp__o_r__51 !cstrncmp__o_n51 !match_with_backref__o_r__51 !match_with_backref__o_bytelen51 !rst_nextb52 !rst_nextb_ic51 !rst_count52 !rst_minval52 !rst_maxval51 = do
+      r'651 <- regstack_pop re
       if status41 == RA_CONT
         then do
           r'652 <- regnext ed' re r'651
           j'409 r'652 rp11 status41 len_4'53 cstrncmp__o_r__51 cstrncmp__o_n51 match_with_backref__o_r__51 match_with_backref__o_bytelen51 rst_nextb52 rst_nextb_ic51 rst_count52 rst_minval52 rst_maxval51
         else j'409 r'651 rp11 status41 len_4'53 cstrncmp__o_r__51 cstrncmp__o_n51 match_with_backref__o_r__51 match_with_backref__o_bytelen51 rst_nextb52 rst_nextb_ic51 rst_count52 rst_minval52 rst_maxval51
-    j'382 !scan54 !rp12 !status42 !len_4'54 !cstrncmp__o_r__52 !cstrncmp__o_n52 !match_with_backref__o_r__52 !match_with_backref__o_bytelen52 !rst_nextb53 !rst_nextb_ic52 !rst_count53 !rst_minval53 !rst_maxval52 = do
-      r'653 <- regstack_pop re scan54
+    j'382 !rp12 !status42 !len_4'54 !cstrncmp__o_r__52 !cstrncmp__o_n52 !match_with_backref__o_r__52 !match_with_backref__o_bytelen52 !rst_nextb53 !rst_nextb_ic52 !rst_count53 !rst_minval53 !rst_maxval52 = do
+      r'653 <- regstack_pop re
       if status42 == RA_NOMATCH
         then do
-          let !scan55 = pAdd r'653 3
-          j'409 scan55 rp12 (RA_CONT :: Int32) len_4'54 cstrncmp__o_r__52 cstrncmp__o_n52 match_with_backref__o_r__52 match_with_backref__o_bytelen52 rst_nextb53 rst_nextb_ic52 rst_count53 rst_minval53 rst_maxval52
+          let !scan49 = pAdd r'653 3
+          j'409 scan49 rp12 (RA_CONT :: Int32) len_4'54 cstrncmp__o_r__52 cstrncmp__o_n52 match_with_backref__o_r__52 match_with_backref__o_bytelen52 rst_nextb53 rst_nextb_ic52 rst_count53 rst_minval53 rst_maxval52
         else j'409 r'653 rp12 status42 len_4'54 cstrncmp__o_r__52 cstrncmp__o_n52 match_with_backref__o_r__52 match_with_backref__o_bytelen52 rst_nextb53 rst_nextb_ic52 rst_count53 rst_minval53 rst_maxval52
-    j'386 !scan56 !rp13 !status43 !len_4'55 !cstrncmp__o_r__53 !cstrncmp__o_n53 !match_with_backref__o_r__53 !match_with_backref__o_bytelen53 !rst_nextb54 !rst_nextb_ic53 !rst_count54 !rst_minval54 !rst_maxval53 = do
-      r'654 <- regstack_pop re scan56
+    j'386 !rp13 !status43 !len_4'55 !cstrncmp__o_r__53 !cstrncmp__o_n53 !match_with_backref__o_r__53 !match_with_backref__o_bytelen53 !rst_nextb54 !rst_nextb_ic53 !rst_count54 !rst_minval54 !rst_maxval53 = do
+      r'654 <- regstack_pop re
       if status43 == RA_CONT
         then do
           r'655 <- regnext ed' re r'654
           j'409 r'655 rp13 status43 len_4'55 cstrncmp__o_r__53 cstrncmp__o_n53 match_with_backref__o_r__53 match_with_backref__o_bytelen53 rst_nextb54 rst_nextb_ic53 rst_count54 rst_minval54 rst_maxval53
         else j'409 r'654 rp13 status43 len_4'55 cstrncmp__o_r__53 cstrncmp__o_n53 match_with_backref__o_r__53 match_with_backref__o_bytelen53 rst_nextb54 rst_nextb_ic53 rst_count54 rst_minval54 rst_maxval53
-    j'390 !scan57 !rp14 !status44 !len_4'56 !cstrncmp__o_r__54 !cstrncmp__o_n54 !match_with_backref__o_r__54 !match_with_backref__o_bytelen54 !rst_nextb55 !rst_nextb_ic54 !rst_count55 !rst_minval55 !rst_maxval54 = do
-      r'656 <- regstack_pop re scan57
+    j'390 !rp14 !status44 !len_4'56 !cstrncmp__o_r__54 !cstrncmp__o_n54 !match_with_backref__o_r__54 !match_with_backref__o_bytelen54 !rst_nextb55 !rst_nextb_ic54 !rst_count55 !rst_minval55 !rst_maxval54 = do
+      r'656 <- regstack_pop re
       j'409 r'656 rp14 status44 len_4'56 cstrncmp__o_r__54 cstrncmp__o_n54 match_with_backref__o_r__54 match_with_backref__o_bytelen54 rst_nextb55 rst_nextb_ic54 rst_count55 rst_minval55 rst_maxval54
-    j'394 !scan58 !rp15 !status45 !len_4'57 !cstrncmp__o_r__55 !cstrncmp__o_n55 !match_with_backref__o_r__55 !match_with_backref__o_bytelen55 !rst_nextb56 !rst_nextb_ic55 !rst_count56 !rst_minval56 !rst_maxval55 = do
-      r'658 <- if (scan58 == nullPtr) then pure True else (do { r'657 <- rdW8 scan58 0; pure ((fromIntegral r'657 :: Int32) /= BRANCH) })
+    j'394 !scan50 !rp15 !status45 !len_4'57 !cstrncmp__o_r__55 !cstrncmp__o_n55 !match_with_backref__o_r__55 !match_with_backref__o_bytelen55 !rst_nextb56 !rst_nextb_ic55 !rst_count56 !rst_minval56 !rst_maxval55 = do
+      r'658 <- if (scan50 == nullPtr) then pure True else (do { r'657 <- rdW8 scan50 0; pure ((fromIntegral r'657 :: Int32) /= BRANCH) })
       if r'658
         then do
-          r'659 <- regstack_pop re scan58
+          r'659 <- regstack_pop re
           j'409 r'659 rp15 (RA_NOMATCH :: Int32) len_4'57 cstrncmp__o_r__55 cstrncmp__o_n55 match_with_backref__o_r__55 match_with_backref__o_bytelen55 rst_nextb56 rst_nextb_ic55 rst_count56 rst_minval56 rst_maxval55
         else do
-          r'660 <- regnext ed' re scan58
+          r'660 <- regnext ed' re scan50
           wrP rp15 regitem_T'rs_scan r'660
           reg_save re (pAdd rp15 (regitem_T'rs_un + anon'8'regsave)) (pAdd re regengine_T'backpos)
-          let !scan59 = pAdd scan58 3
-          j'409 scan59 rp15 status45 len_4'57 cstrncmp__o_r__55 cstrncmp__o_n55 match_with_backref__o_r__55 match_with_backref__o_bytelen55 rst_nextb56 rst_nextb_ic55 rst_count56 rst_minval56 rst_maxval55
-    j'402 !scan60 !rp16 !status46 !len_4'58 !cstrncmp__o_r__56 !cstrncmp__o_n56 !match_with_backref__o_r__56 !match_with_backref__o_bytelen56 !rst_nextb57 !rst_nextb_ic56 !rst_count57 !rst_minval57 !rst_maxval56 = do
-      r'661 <- regstack_pop re scan60
+          let !scan51 = pAdd scan50 3
+          j'409 scan51 rp15 status45 len_4'57 cstrncmp__o_r__55 cstrncmp__o_n55 match_with_backref__o_r__55 match_with_backref__o_bytelen55 rst_nextb56 rst_nextb_ic55 rst_count56 rst_minval56 rst_maxval55
+    j'402 !rp16 !status46 !len_4'58 !cstrncmp__o_r__56 !cstrncmp__o_n56 !match_with_backref__o_r__56 !match_with_backref__o_bytelen56 !rst_nextb57 !rst_nextb_ic56 !rst_count57 !rst_minval57 !rst_maxval56 = do
+      r'661 <- regstack_pop re
       j'409 r'661 rp16 status46 len_4'58 cstrncmp__o_r__56 cstrncmp__o_n56 match_with_backref__o_r__56 match_with_backref__o_bytelen56 rst_nextb57 rst_nextb_ic56 rst_count57 rst_minval57 rst_maxval56
-    j'407 !scan61 !rp17 !status47 !len_4'59 !cstrncmp__o_r__57 !cstrncmp__o_n57 !match_with_backref__o_r__57 !match_with_backref__o_bytelen57 !rst_nextb58 !rst_nextb_ic57 !rst_count58 !rst_minval58 !rst_maxval57 = do
-      r'662 <- regstack_pop re scan61
+    j'407 !rp17 !status47 !len_4'59 !cstrncmp__o_r__57 !cstrncmp__o_n57 !match_with_backref__o_r__57 !match_with_backref__o_bytelen57 !rst_nextb58 !rst_nextb_ic57 !rst_count58 !rst_minval58 !rst_maxval57 = do
+      r'662 <- regstack_pop re
       j'409 r'662 rp17 status47 len_4'59 cstrncmp__o_r__57 cstrncmp__o_n57 match_with_backref__o_r__57 match_with_backref__o_bytelen57 rst_nextb58 rst_nextb_ic57 rst_count58 rst_minval58 rst_maxval57
-    j'409 !scan62 !rp18 !status48 !len_4'60 !cstrncmp__o_r__58 !cstrncmp__o_n58 !match_with_backref__o_r__58 !match_with_backref__o_bytelen58 !rst_nextb59 !rst_nextb_ic58 !rst_count59 !rst_minval59 !rst_maxval58 = do
+    j'409 !scan52 !rp18 !status48 !len_4'60 !cstrncmp__o_r__58 !cstrncmp__o_n58 !match_with_backref__o_r__58 !match_with_backref__o_bytelen58 !rst_nextb59 !rst_nextb_ic58 !rst_count59 !rst_minval59 !rst_maxval58 = do
       r'665 <- if (status48 == RA_CONT) then pure True else (do { r'663 <- rdP re (regengine_T'regstack + garray_T'ga_data); r'664 <- rdI32 re (regengine_T'regstack + garray_T'ga_len); pure (rp18 == (pAdd (castPtr r'663) ((fromIntegral (r'664 - 1)) * 40))) })
       if r'665
-        then j'411 scan62 status48 len_4'60 cstrncmp__o_r__58 cstrncmp__o_n58 match_with_backref__o_r__58 match_with_backref__o_bytelen58 rst_nextb59 rst_nextb_ic58 rst_count59 rst_minval59 rst_maxval58
-        else loop'319 scan62 status48 len_4'60 cstrncmp__o_r__58 cstrncmp__o_n58 match_with_backref__o_r__58 match_with_backref__o_bytelen58 rst_nextb59 rst_nextb_ic58 rst_count59 rst_minval59 rst_maxval58
-    j'411 !scan63 !status49 !len_4'61 !cstrncmp__o_r__59 !cstrncmp__o_n59 !match_with_backref__o_r__59 !match_with_backref__o_bytelen59 !rst_nextb60 !rst_nextb_ic59 !rst_count60 !rst_minval60 !rst_maxval59 = do
+        then j'411 scan52 status48 len_4'60 cstrncmp__o_r__58 cstrncmp__o_n58 match_with_backref__o_r__58 match_with_backref__o_bytelen58 rst_nextb59 rst_nextb_ic58 rst_count59 rst_minval59 rst_maxval58
+        else loop'319 scan52 status48 len_4'60 cstrncmp__o_r__58 cstrncmp__o_n58 match_with_backref__o_r__58 match_with_backref__o_bytelen58 rst_nextb59 rst_nextb_ic58 rst_count59 rst_minval59 rst_maxval58
+    j'411 !scan53 !status49 !len_4'61 !cstrncmp__o_r__59 !cstrncmp__o_n59 !match_with_backref__o_r__59 !match_with_backref__o_bytelen59 !rst_nextb60 !rst_nextb_ic59 !rst_count60 !rst_minval60 !rst_maxval59 = do
       if status49 == RA_CONT
-        then loop'1 scan63 len_4'61 cstrncmp__o_r__59 cstrncmp__o_n59 match_with_backref__o_r__59 match_with_backref__o_bytelen59 rst_nextb60 rst_nextb_ic59 rst_count60 rst_minval60 rst_maxval59
+        then loop'1 scan53 len_4'61 cstrncmp__o_r__59 cstrncmp__o_n59 match_with_backref__o_r__59 match_with_backref__o_bytelen59 rst_nextb60 rst_nextb_ic59 rst_count60 rst_minval60 rst_maxval59
         else do
           r'666 <- rdI32 re (regengine_T'regstack + garray_T'ga_len)
           if (r'666 == 0) || (status49 == RA_FAIL)
             then do
-              if scan63 == nullPtr
+              if scan53 == nullPtr
                 then do
                   r'667 <- rdP re (regengine_T'alone + string_T'string)
                   if r'667 /= nullPtr
@@ -25370,7 +25370,7 @@ regmatch ed' re scan _timed_out = do
                       iemsg ed' (addr'e_corrupted_regexp_program ed')
                       j'417 status49 cstrncmp__o_r__59 cstrncmp__o_n59 match_with_backref__o_r__59 match_with_backref__o_bytelen59 rst_nextb60 rst_nextb_ic59 rst_count60 rst_minval60 rst_maxval59
                 else j'417 status49 cstrncmp__o_r__59 cstrncmp__o_n59 match_with_backref__o_r__59 match_with_backref__o_bytelen59 rst_nextb60 rst_nextb_ic59 rst_count60 rst_minval60 rst_maxval59
-            else loop'1 scan63 len_4'61 cstrncmp__o_r__59 cstrncmp__o_n59 match_with_backref__o_r__59 match_with_backref__o_bytelen59 rst_nextb60 rst_nextb_ic59 rst_count60 rst_minval60 rst_maxval59
+            else loop'1 scan53 len_4'61 cstrncmp__o_r__59 cstrncmp__o_n59 match_with_backref__o_r__59 match_with_backref__o_bytelen59 rst_nextb60 rst_nextb_ic59 rst_count60 rst_minval60 rst_maxval59
     j'417 !status50 _ _ _ _ _ _ _ _ _ = do
       pure (b2i (status50 == RA_MATCH) :: Int32)
   wrI32 re (regengine_T'regstack + garray_T'ga_len) 0
@@ -26001,15 +26001,15 @@ reset_screen_attr ed' = do
 screen_line :: Ed -> Ptr Win_T -> Int32 -> Int32 -> Int32 -> Int32 -> Colnr_T -> Int32 -> IO ()
 screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
   let
-    j'2 !row1 !endcol1 !last_vcol1 !col1 !hl1 !force1 !clear_next1 !override_success1 !fillchar_vsep__o_r__1 !fillchar_vsep__o_attr1 = do
+    j'2 !row1 !endcol1 !last_vcol1 !col1 !force1 !clear_next1 !override_success1 !fillchar_vsep__o_r__1 !fillchar_vsep__o_attr1 = do
       r'1 <- c'Columns ed'
       if (fromIntegral endcol1 :: Int64) > r'1
         then do
           r'2 <- c'Columns ed'
           let !endcol2 = fromIntegral r'2 :: Int32
-          j'4 row1 endcol2 last_vcol1 col1 hl1 force1 clear_next1 override_success1 fillchar_vsep__o_r__1 fillchar_vsep__o_attr1
-        else j'4 row1 endcol1 last_vcol1 col1 hl1 force1 clear_next1 override_success1 fillchar_vsep__o_r__1 fillchar_vsep__o_attr1
-    j'4 !row2 !endcol3 !last_vcol2 !col2 !hl2 !force2 !clear_next2 !override_success2 !fillchar_vsep__o_r__2 !fillchar_vsep__o_attr2 = do
+          j'4 row1 endcol2 last_vcol1 col1 force1 clear_next1 override_success1 fillchar_vsep__o_r__1 fillchar_vsep__o_attr1
+        else j'4 row1 endcol1 last_vcol1 col1 force1 clear_next1 override_success1 fillchar_vsep__o_r__1 fillchar_vsep__o_attr1
+    j'4 !row2 !endcol3 !last_vcol2 !col2 !force2 !clear_next2 !override_success2 !fillchar_vsep__o_r__2 !fillchar_vsep__o_attr2 = do
       r'3 <- current_ScreenLine ed'
       r'4 <- c'ScreenLines ed'
       let !off_from1 = fromIntegral (fromIntegral (quot (pSub r'3 r'4) 1) :: Int64) :: Word32
@@ -26023,15 +26023,15 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
       r'10 <- screen_Columns ed'
       let !max_off_to1 = r'9 + (fromIntegral r'10 :: Word32)
       r'11 <- char_needs_redraw ed' (fromIntegral off_from1 :: Int32) (fromIntegral off_to1 :: Int32) (endcol3 - col2)
-      loop'5 row2 endcol3 last_vcol2 off_from1 off_to1 max_off_from1 max_off_to1 col2 hl2 force2 r'11 clear_next2 override_success2 fillchar_vsep__o_r__2 fillchar_vsep__o_attr2
-    loop'5 !row3 !endcol4 !last_vcol3 !off_from2 !off_to2 !max_off_from2 !max_off_to2 !col3 !hl3 !force3 !redraw_next1 !clear_next3 !override_success3 !fillchar_vsep__o_r__3 !fillchar_vsep__o_attr3 = do
+      loop'5 row2 endcol3 last_vcol2 off_from1 off_to1 max_off_from1 max_off_to1 col2 force2 r'11 clear_next2 override_success2 fillchar_vsep__o_r__2 fillchar_vsep__o_attr2
+    loop'5 !row3 !endcol4 !last_vcol3 !off_from2 !off_to2 !max_off_from2 !max_off_to2 !col3 !force3 !redraw_next1 !clear_next3 !override_success3 !fillchar_vsep__o_r__3 !fillchar_vsep__o_attr3 = do
       if col3 < endcol4
         then do
           if (col3 + 1) < endcol4
             then do
               r'12 <- utf_off2cells ed' off_from2 max_off_from2
-              j'36 row3 endcol4 last_vcol3 off_from2 off_to2 max_off_from2 max_off_to2 col3 hl3 force3 redraw_next1 clear_next3 r'12 override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
-            else j'36 row3 endcol4 last_vcol3 off_from2 off_to2 max_off_from2 max_off_to2 col3 hl3 force3 redraw_next1 clear_next3 (1 :: Int32) override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
+              j'36 row3 endcol4 last_vcol3 off_from2 off_to2 max_off_from2 max_off_to2 col3 force3 redraw_next1 clear_next3 r'12 override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
+            else j'36 row3 endcol4 last_vcol3 off_from2 off_to2 max_off_from2 max_off_to2 col3 force3 redraw_next1 clear_next3 (1 :: Int32) override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
         else do
           if clear_next3
             then do
@@ -26040,13 +26040,13 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
               r'14 <- c'ScreenLinesUC ed'
               wrW32 (pAdd r'14 ((fromIntegral off_to2) * 4)) 0 0
               screen_char ed' off_to2 row3 (col3 + coloff)
-              j'8 row3 last_vcol3 off_to2 col3 hl3 override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
-            else j'8 row3 last_vcol3 off_to2 col3 hl3 override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
-    j'8 !row4 !last_vcol4 !off_to3 !col4 !hl4 !override_success4 !fillchar_vsep__o_r__4 !fillchar_vsep__o_attr4 = do
+              j'8 row3 last_vcol3 off_to2 col3 override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
+            else j'8 row3 last_vcol3 off_to2 col3 override_success3 fillchar_vsep__o_r__3 fillchar_vsep__o_attr3
+    j'8 !row4 !last_vcol4 !off_to3 !col4 !override_success4 !fillchar_vsep__o_r__4 !fillchar_vsep__o_attr4 = do
       if clear_width > 0
-        then loop'10 row4 last_vcol4 off_to3 col4 hl4 override_success4 fillchar_vsep__o_r__4 fillchar_vsep__o_attr4
-        else j'14 row4 off_to3 col4 hl4 override_success4 fillchar_vsep__o_r__4 fillchar_vsep__o_attr4
-    loop'10 !row5 !last_vcol5 !off_to4 !col5 !hl5 !override_success5 !fillchar_vsep__o_r__5 !fillchar_vsep__o_attr5 = do
+        then loop'10 row4 last_vcol4 off_to3 col4 override_success4 fillchar_vsep__o_r__4 fillchar_vsep__o_attr4
+        else j'14 row4 off_to3 col4 override_success4 fillchar_vsep__o_r__4 fillchar_vsep__o_attr4
+    loop'10 !row5 !last_vcol5 !off_to4 !col5 !override_success5 !fillchar_vsep__o_r__5 !fillchar_vsep__o_attr5 = do
       r'17 <- if (col5 < clear_width) then (do { r'15 <- c'ScreenLines ed'; r'16 <- rdW8 (pAdd r'15 (fromIntegral off_to4)) 0; pure ((fromIntegral r'16 :: Int32) == (ch ' ')) }) else pure False
       r'20 <- if r'17 then (do { r'18 <- c'ScreenAttrs ed'; r'19 <- rdW16 (pAdd r'18 ((fromIntegral off_to4) * 2)) 0; pure ((fromIntegral r'19 :: Int32) == 0) }) else pure False
       r'23 <- if r'20 then (do { r'21 <- c'ScreenLinesUC ed'; r'22 <- rdW32 (pAdd r'21 ((fromIntegral off_to4) * 4)) 0; pure (r'22 == 0) }) else pure False
@@ -26055,25 +26055,25 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           if (flags .&. SLF_INC_VCOL) /= 0
             then do
               let !last_vcol6 = last_vcol5 + 1
-              j'32 row5 last_vcol6 off_to4 col5 hl5 override_success5 last_vcol6 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
-            else j'32 row5 last_vcol5 off_to4 col5 hl5 override_success5 last_vcol5 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
+              j'32 row5 last_vcol6 off_to4 col5 override_success5 last_vcol6 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
+            else j'32 row5 last_vcol5 off_to4 col5 override_success5 last_vcol5 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
         else do
           if col5 < clear_width
             then do
               screen_fill ed' row5 (row5 + 1) (col5 + coloff) (clear_width + coloff) (ch ' ') (ch ' ') 0
-              loop'13 row5 last_vcol5 off_to4 col5 hl5 override_success5 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
-            else j'14 row5 off_to4 col5 hl5 override_success5 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
-    loop'13 !row6 !last_vcol7 !off_to5 !col6 !hl6 !override_success6 !fillchar_vsep__o_r__6 !fillchar_vsep__o_attr6 = do
+              loop'13 row5 last_vcol5 off_to4 col5 override_success5 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
+            else j'14 row5 off_to4 col5 override_success5 fillchar_vsep__o_r__5 fillchar_vsep__o_attr5
+    loop'13 !row6 !last_vcol7 !off_to5 !col6 !override_success6 !fillchar_vsep__o_r__6 !fillchar_vsep__o_attr6 = do
       if col6 < clear_width
         then do
           let !off_to6 = off_to5 + 1
           if (flags .&. SLF_INC_VCOL) /= 0
             then do
               let !last_vcol8 = last_vcol7 + 1
-              j'28 row6 last_vcol8 off_to6 col6 hl6 override_success6 off_to5 last_vcol8 fillchar_vsep__o_r__6 fillchar_vsep__o_attr6
-            else j'28 row6 last_vcol7 off_to6 col6 hl6 override_success6 off_to5 last_vcol7 fillchar_vsep__o_r__6 fillchar_vsep__o_attr6
-        else j'14 row6 off_to5 col6 hl6 override_success6 fillchar_vsep__o_r__6 fillchar_vsep__o_attr6
-    j'14 !row7 !off_to7 !col7 !hl7 !override_success7 !fillchar_vsep__o_r__7 !fillchar_vsep__o_attr7 = do
+              j'28 row6 last_vcol8 off_to6 col6 override_success6 off_to5 last_vcol8 fillchar_vsep__o_r__6 fillchar_vsep__o_attr6
+            else j'28 row6 last_vcol7 off_to6 col6 override_success6 off_to5 last_vcol7 fillchar_vsep__o_r__6 fillchar_vsep__o_attr6
+        else j'14 row6 off_to5 col6 override_success6 fillchar_vsep__o_r__6 fillchar_vsep__o_attr6
+    j'14 !row7 !off_to7 !col7 !override_success7 !fillchar_vsep__o_r__7 !fillchar_vsep__o_attr7 = do
       if clear_width > 0
         then do
           r'24 <- curwin ed'
@@ -26082,7 +26082,7 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           r'27 <- rdI32 r'26 frame_T'fr_width
           if (coloff + col7) < (r'25 + r'27)
             then do
-              (r'28, r'29) <- fillchar_vsep ed' hl7 wp row7
+              (r'28, r'29) <- fillchar_vsep ed' wp row7
               r'30 <- c'ScreenLines ed'
               r'31 <- rdW8 (pAdd r'30 (fromIntegral off_to7)) 0
               r'34 <- if ((fromIntegral r'31 :: Int32) /= (fromIntegral (fromIntegral r'28 :: Word8) :: Int32)) then pure True else (do { r'32 <- c'ScreenLinesUC ed'; r'33 <- rdW32 (pAdd r'32 ((fromIntegral off_to7) * 4)) 0; pure ((fromIntegral r'33 :: Int32) /= (if (r'28 >= 128) then r'28 else 0)) })
@@ -26121,18 +26121,18 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           pop_highlight_overrides ed'
           pure ()
         else pure ()
-    j'28 !row9 !last_vcol9 !off_to9 !col9 !hl8 !override_success10 !t2'1 !t3'1 !fillchar_vsep__o_r__10 !fillchar_vsep__o_attr10 = do
+    j'28 !row9 !last_vcol9 !off_to9 !col9 !override_success10 !t2'1 !t3'1 !fillchar_vsep__o_r__10 !fillchar_vsep__o_attr10 = do
       r'45 <- c'ScreenCols ed'
       wrI32 (pAdd r'45 ((fromIntegral t2'1) * 4)) 0 t3'1
       let !col10 = col9 + 1
-      loop'13 row9 last_vcol9 off_to9 col10 hl8 override_success10 fillchar_vsep__o_r__10 fillchar_vsep__o_attr10
-    j'32 !row10 !last_vcol10 !off_to10 !col11 !hl9 !override_success11 !t1'1 !fillchar_vsep__o_r__11 !fillchar_vsep__o_attr11 = do
+      loop'13 row9 last_vcol9 off_to9 col10 override_success10 fillchar_vsep__o_r__10 fillchar_vsep__o_attr10
+    j'32 !row10 !last_vcol10 !off_to10 !col11 !override_success11 !t1'1 !fillchar_vsep__o_r__11 !fillchar_vsep__o_attr11 = do
       r'46 <- c'ScreenCols ed'
       wrI32 (pAdd r'46 ((fromIntegral off_to10) * 4)) 0 t1'1
       let !off_to11 = off_to10 + 1
       let !col12 = col11 + 1
-      loop'10 row10 last_vcol10 off_to11 col12 hl9 override_success11 fillchar_vsep__o_r__11 fillchar_vsep__o_attr11
-    j'36 !row11 !endcol5 !last_vcol11 !off_from3 !off_to12 !max_off_from3 !max_off_to3 !col13 !hl10 !force4 !redraw_next2 !clear_next4 !char_cells1 !override_success12 !fillchar_vsep__o_r__12 !fillchar_vsep__o_attr12 = do
+      loop'10 row10 last_vcol10 off_to11 col12 override_success11 fillchar_vsep__o_r__11 fillchar_vsep__o_attr11
+    j'36 !row11 !endcol5 !last_vcol11 !off_from3 !off_to12 !max_off_from3 !max_off_to3 !col13 !force4 !redraw_next2 !clear_next4 !char_cells1 !override_success12 !fillchar_vsep__o_r__12 !fillchar_vsep__o_attr12 = do
       r'48 <- if force4 then pure True else (char_needs_redraw ed' (fromIntegral (off_from3 + (fromIntegral char_cells1 :: Word32)) :: Int32) (fromIntegral (off_to12 + (fromIntegral char_cells1 :: Word32)) :: Int32) ((endcol5 - col13) - char_cells1))
       if redraw_next2
         then do
@@ -26153,11 +26153,11 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
                   set'screen_attr ed' (fromIntegral r'63 :: Int32)
                   term_windgoto ed' row11 (col13 + coloff)
                   screen_stop_highlight ed'
-                  j'46 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 True True clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+                  j'46 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 True True clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
                 else do
                   set'screen_attr ed' 0
-                  j'46 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 True True clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
-            else j'46 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+                  j'46 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 True True clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+            else j'46 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
         else do
           r'64 <- p_wiv ed'
           if ((r'64 /= 0) && ((col13 + coloff) > 0)) && (off_to12 > 0)
@@ -26169,21 +26169,21 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
               if (fromIntegral r'66 :: Int32) == (fromIntegral r'68 :: Int32)
                 then do
                   set'screen_attr ed' 0
-                  j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+                  j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
                 else do
                   r'69 <- screen_attr ed'
                   if r'69 /= 0
                     then do
                       screen_stop_highlight ed'
-                      j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
-                    else j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
-            else j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 hl10 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
-    j'46 !row12 !endcol6 !last_vcol12 !off_from4 !off_to13 !max_off_from4 !max_off_to4 !col14 !hl11 !force5 !redraw_next3 !clear_next5 !char_cells2 !override_success13 !fillchar_vsep__o_r__13 !fillchar_vsep__o_attr13 = do
+                      j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+                    else j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+            else j'61 row11 endcol5 last_vcol11 off_from3 off_to12 max_off_from3 max_off_to3 col13 force4 r'48 clear_next4 char_cells1 override_success12 fillchar_vsep__o_r__12 fillchar_vsep__o_attr12
+    j'46 !row12 !endcol6 !last_vcol12 !off_from4 !off_to13 !max_off_from4 !max_off_to4 !col14 !force5 !redraw_next3 !clear_next5 !char_cells2 !override_success13 !fillchar_vsep__o_r__13 !fillchar_vsep__o_attr13 = do
       r'77 <- if ((col14 + char_cells2) == endcol6) then (do { r'71 <- if (char_cells2 == 1) then (do { r'70 <- utf_off2cells ed' off_to13 max_off_to4; pure (r'70 > 1) }) else pure False; if r'71 then pure True else (do { r'73 <- if (char_cells2 == 2) then (do { r'72 <- utf_off2cells ed' off_to13 max_off_to4; pure (r'72 == 1) }) else pure False; if r'73 then (do { r'74 <- utf_off2cells ed' (off_to13 + 1) max_off_to4; pure (r'74 > 1) }) else pure False }) }) else pure False
       if r'77
-        then j'48 row12 endcol6 last_vcol12 off_from4 off_to13 max_off_from4 max_off_to4 col14 hl11 force5 redraw_next3 True char_cells2 override_success13 fillchar_vsep__o_r__13 fillchar_vsep__o_attr13
-        else j'48 row12 endcol6 last_vcol12 off_from4 off_to13 max_off_from4 max_off_to4 col14 hl11 force5 redraw_next3 clear_next5 char_cells2 override_success13 fillchar_vsep__o_r__13 fillchar_vsep__o_attr13
-    j'48 !row13 !endcol7 !last_vcol13 !off_from5 !off_to14 !max_off_from5 !max_off_to5 !col15 !hl12 !force6 !redraw_next4 !clear_next6 !char_cells3 !override_success14 !fillchar_vsep__o_r__14 !fillchar_vsep__o_attr14 = do
+        then j'48 row12 endcol6 last_vcol12 off_from4 off_to13 max_off_from4 max_off_to4 col14 force5 redraw_next3 True char_cells2 override_success13 fillchar_vsep__o_r__13 fillchar_vsep__o_attr13
+        else j'48 row12 endcol6 last_vcol12 off_from4 off_to13 max_off_from4 max_off_to4 col14 force5 redraw_next3 clear_next5 char_cells2 override_success13 fillchar_vsep__o_r__13 fillchar_vsep__o_attr13
+    j'48 !row13 !endcol7 !last_vcol13 !off_from5 !off_to14 !max_off_from5 !max_off_to5 !col15 !force6 !redraw_next4 !clear_next6 !char_cells3 !override_success14 !fillchar_vsep__o_r__14 !fillchar_vsep__o_attr14 = do
       r'80 <- c'ScreenLines ed'
       r'78 <- c'ScreenLines ed'
       r'79 <- rdW8 (pAdd r'78 (fromIntegral off_from5)) 0
@@ -26195,9 +26195,9 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
       r'84 <- c'ScreenLinesUC ed'
       r'85 <- rdW32 (pAdd r'84 ((fromIntegral off_from5) * 4)) 0
       if r'85 /= 0
-        then loop'50 row13 endcol7 last_vcol13 off_from5 off_to14 max_off_from5 max_off_to5 col15 hl12 force6 redraw_next4 clear_next6 char_cells3 override_success14 (0 :: Int32) fillchar_vsep__o_r__14 fillchar_vsep__o_attr14
-        else j'51 row13 endcol7 last_vcol13 off_from5 off_to14 max_off_from5 max_off_to5 col15 hl12 force6 redraw_next4 clear_next6 char_cells3 override_success14 fillchar_vsep__o_r__14 fillchar_vsep__o_attr14
-    loop'50 !row14 !endcol8 !last_vcol14 !off_from6 !off_to15 !max_off_from6 !max_off_to6 !col16 !hl13 !force7 !redraw_next5 !clear_next7 !char_cells4 !override_success15 !i1 !fillchar_vsep__o_r__15 !fillchar_vsep__o_attr15 = do
+        then loop'50 row13 endcol7 last_vcol13 off_from5 off_to14 max_off_from5 max_off_to5 col15 force6 redraw_next4 clear_next6 char_cells3 override_success14 (0 :: Int32) fillchar_vsep__o_r__14 fillchar_vsep__o_attr14
+        else j'51 row13 endcol7 last_vcol13 off_from5 off_to14 max_off_from5 max_off_to5 col15 force6 redraw_next4 clear_next6 char_cells3 override_success14 fillchar_vsep__o_r__14 fillchar_vsep__o_attr14
+    loop'50 !row14 !endcol8 !last_vcol14 !off_from6 !off_to15 !max_off_from6 !max_off_to6 !col16 !force7 !redraw_next5 !clear_next7 !char_cells4 !override_success15 !i1 !fillchar_vsep__o_r__15 !fillchar_vsep__o_attr15 = do
       r'86 <- c'Screen_mco ed'
       if i1 < r'86
         then do
@@ -26206,9 +26206,9 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           r'88 <- rdW32 (pAdd r'87 ((fromIntegral off_from6) * 4)) 0
           wrW32 (pAdd r'89 ((fromIntegral off_to15) * 4)) 0 r'88
           let !i2 = i1 + 1
-          loop'50 row14 endcol8 last_vcol14 off_from6 off_to15 max_off_from6 max_off_to6 col16 hl13 force7 redraw_next5 clear_next7 char_cells4 override_success15 i2 fillchar_vsep__o_r__15 fillchar_vsep__o_attr15
-        else j'51 row14 endcol8 last_vcol14 off_from6 off_to15 max_off_from6 max_off_to6 col16 hl13 force7 redraw_next5 clear_next7 char_cells4 override_success15 fillchar_vsep__o_r__15 fillchar_vsep__o_attr15
-    j'51 !row15 !endcol9 !last_vcol15 !off_from7 !off_to16 !max_off_from7 !max_off_to7 !col17 !hl14 !force8 !redraw_next6 !clear_next8 !char_cells5 !override_success16 !fillchar_vsep__o_r__16 !fillchar_vsep__o_attr16 = do
+          loop'50 row14 endcol8 last_vcol14 off_from6 off_to15 max_off_from6 max_off_to6 col16 force7 redraw_next5 clear_next7 char_cells4 override_success15 i2 fillchar_vsep__o_r__15 fillchar_vsep__o_attr15
+        else j'51 row14 endcol8 last_vcol14 off_from6 off_to15 max_off_from6 max_off_to6 col16 force7 redraw_next5 clear_next7 char_cells4 override_success15 fillchar_vsep__o_r__15 fillchar_vsep__o_attr15
+    j'51 !row15 !endcol9 !last_vcol15 !off_from7 !off_to16 !max_off_from7 !max_off_to7 !col17 !force8 !redraw_next6 !clear_next8 !char_cells5 !override_success16 !fillchar_vsep__o_r__16 !fillchar_vsep__o_attr16 = do
       if char_cells5 == 2
         then do
           r'92 <- c'ScreenLines ed'
@@ -26217,26 +26217,26 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           wrW8 (pAdd r'92 (fromIntegral (off_to16 + 1))) 0 r'91
           r'93 <- c'ScreenLinesUC ed'
           wrW32 (pAdd r'93 ((fromIntegral (off_to16 + 1)) * 4)) 0 0
-          j'53 row15 endcol9 last_vcol15 off_from7 off_to16 max_off_from7 max_off_to7 col17 hl14 force8 redraw_next6 clear_next8 char_cells5 override_success16 fillchar_vsep__o_r__16 fillchar_vsep__o_attr16
-        else j'53 row15 endcol9 last_vcol15 off_from7 off_to16 max_off_from7 max_off_to7 col17 hl14 force8 redraw_next6 clear_next8 char_cells5 override_success16 fillchar_vsep__o_r__16 fillchar_vsep__o_attr16
-    j'53 !row16 !endcol10 !last_vcol16 !off_from8 !off_to17 !max_off_from8 !max_off_to8 !col18 !hl15 !force9 !redraw_next7 !clear_next9 !char_cells6 !override_success17 !fillchar_vsep__o_r__17 !fillchar_vsep__o_attr17 = do
+          j'53 row15 endcol9 last_vcol15 off_from7 off_to16 max_off_from7 max_off_to7 col17 force8 redraw_next6 clear_next8 char_cells5 override_success16 fillchar_vsep__o_r__16 fillchar_vsep__o_attr16
+        else j'53 row15 endcol9 last_vcol15 off_from7 off_to16 max_off_from7 max_off_to7 col17 force8 redraw_next6 clear_next8 char_cells5 override_success16 fillchar_vsep__o_r__16 fillchar_vsep__o_attr16
+    j'53 !row16 !endcol10 !last_vcol16 !off_from8 !off_to17 !max_off_from8 !max_off_to8 !col18 !force9 !redraw_next7 !clear_next9 !char_cells6 !override_success17 !fillchar_vsep__o_r__17 !fillchar_vsep__o_attr17 = do
       r'94 <- term_is_xterm ed'
       if r'94 /= 0
         then do
           r'95 <- c'ScreenAttrs ed'
           r'96 <- rdW16 (pAdd r'95 ((fromIntegral off_to17) * 2)) 0
-          let !hl16 = fromIntegral r'96 :: Int32
-          if hl16 > HL_ALL
+          let !hl1 = fromIntegral r'96 :: Int32
+          if hl1 > HL_ALL
             then do
-              r'97 <- syn_attr2attr ed' hl16
+              r'97 <- syn_attr2attr ed' hl1
               j'56 row16 endcol10 last_vcol16 off_from8 off_to17 max_off_from8 max_off_to8 col18 r'97 force9 redraw_next7 clear_next9 char_cells6 override_success17 fillchar_vsep__o_r__17 fillchar_vsep__o_attr17
-            else j'56 row16 endcol10 last_vcol16 off_from8 off_to17 max_off_from8 max_off_to8 col18 hl16 force9 redraw_next7 clear_next9 char_cells6 override_success17 fillchar_vsep__o_r__17 fillchar_vsep__o_attr17
-        else j'58 row16 endcol10 last_vcol16 off_from8 off_to17 max_off_from8 max_off_to8 col18 hl15 force9 redraw_next7 clear_next9 char_cells6 override_success17 fillchar_vsep__o_r__17 fillchar_vsep__o_attr17
-    j'56 !row17 !endcol11 !last_vcol17 !off_from9 !off_to18 !max_off_from9 !max_off_to9 !col19 !hl17 !force10 !redraw_next8 !clear_next10 !char_cells7 !override_success18 !fillchar_vsep__o_r__18 !fillchar_vsep__o_attr18 = do
-      if (hl17 .&. HL_BOLD) /= 0
-        then j'58 row17 endcol11 last_vcol17 off_from9 off_to18 max_off_from9 max_off_to9 col19 hl17 force10 True clear_next10 char_cells7 override_success18 fillchar_vsep__o_r__18 fillchar_vsep__o_attr18
-        else j'58 row17 endcol11 last_vcol17 off_from9 off_to18 max_off_from9 max_off_to9 col19 hl17 force10 redraw_next8 clear_next10 char_cells7 override_success18 fillchar_vsep__o_r__18 fillchar_vsep__o_attr18
-    j'58 !row18 !endcol12 !last_vcol18 !off_from10 !off_to19 !max_off_from10 !max_off_to10 !col20 !hl18 !force11 !redraw_next9 !clear_next11 !char_cells8 !override_success19 !fillchar_vsep__o_r__19 !fillchar_vsep__o_attr19 = do
+            else j'56 row16 endcol10 last_vcol16 off_from8 off_to17 max_off_from8 max_off_to8 col18 hl1 force9 redraw_next7 clear_next9 char_cells6 override_success17 fillchar_vsep__o_r__17 fillchar_vsep__o_attr17
+        else j'58 row16 endcol10 last_vcol16 off_from8 off_to17 max_off_from8 max_off_to8 col18 force9 redraw_next7 clear_next9 char_cells6 override_success17 fillchar_vsep__o_r__17 fillchar_vsep__o_attr17
+    j'56 !row17 !endcol11 !last_vcol17 !off_from9 !off_to18 !max_off_from9 !max_off_to9 !col19 !hl2 !force10 !redraw_next8 !clear_next10 !char_cells7 !override_success18 !fillchar_vsep__o_r__18 !fillchar_vsep__o_attr18 = do
+      if (hl2 .&. HL_BOLD) /= 0
+        then j'58 row17 endcol11 last_vcol17 off_from9 off_to18 max_off_from9 max_off_to9 col19 force10 True clear_next10 char_cells7 override_success18 fillchar_vsep__o_r__18 fillchar_vsep__o_attr18
+        else j'58 row17 endcol11 last_vcol17 off_from9 off_to18 max_off_from9 max_off_to9 col19 force10 redraw_next8 clear_next10 char_cells7 override_success18 fillchar_vsep__o_r__18 fillchar_vsep__o_attr18
+    j'58 !row18 !endcol12 !last_vcol18 !off_from10 !off_to19 !max_off_from10 !max_off_to10 !col20 !force11 !redraw_next9 !clear_next11 !char_cells8 !override_success19 !fillchar_vsep__o_r__19 !fillchar_vsep__o_attr19 = do
       r'100 <- c'ScreenAttrs ed'
       r'98 <- c'ScreenAttrs ed'
       r'99 <- rdW16 (pAdd r'98 ((fromIntegral off_from10) * 2)) 0
@@ -26247,12 +26247,12 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           r'101 <- c'ScreenAttrs ed'
           r'102 <- rdW16 (pAdd r'101 ((fromIntegral off_to19) * 2)) 0
           wrW16 (pAdd r'103 ((fromIntegral (off_to19 + 1)) * 2)) 0 r'102
-          j'60 row18 endcol12 last_vcol18 off_from10 off_to19 max_off_from10 max_off_to10 col20 hl18 force11 redraw_next9 clear_next11 char_cells8 override_success19 fillchar_vsep__o_r__19 fillchar_vsep__o_attr19
-        else j'60 row18 endcol12 last_vcol18 off_from10 off_to19 max_off_from10 max_off_to10 col20 hl18 force11 redraw_next9 clear_next11 char_cells8 override_success19 fillchar_vsep__o_r__19 fillchar_vsep__o_attr19
-    j'60 !row19 !endcol13 !last_vcol19 !off_from11 !off_to20 !max_off_from11 !max_off_to11 !col21 !hl19 !force12 !redraw_next10 !clear_next12 !char_cells9 !override_success20 !fillchar_vsep__o_r__20 !fillchar_vsep__o_attr20 = do
+          j'60 row18 endcol12 last_vcol18 off_from10 off_to19 max_off_from10 max_off_to10 col20 force11 redraw_next9 clear_next11 char_cells8 override_success19 fillchar_vsep__o_r__19 fillchar_vsep__o_attr19
+        else j'60 row18 endcol12 last_vcol18 off_from10 off_to19 max_off_from10 max_off_to10 col20 force11 redraw_next9 clear_next11 char_cells8 override_success19 fillchar_vsep__o_r__19 fillchar_vsep__o_attr19
+    j'60 !row19 !endcol13 !last_vcol19 !off_from11 !off_to20 !max_off_from11 !max_off_to11 !col21 !force12 !redraw_next10 !clear_next12 !char_cells9 !override_success20 !fillchar_vsep__o_r__20 !fillchar_vsep__o_attr20 = do
       screen_char ed' off_to20 row19 (col21 + coloff)
-      j'61 row19 endcol13 last_vcol19 off_from11 off_to20 max_off_from11 max_off_to11 col21 hl19 force12 redraw_next10 clear_next12 char_cells9 override_success20 fillchar_vsep__o_r__20 fillchar_vsep__o_attr20
-    j'61 !row20 !endcol14 !last_vcol20 !off_from12 !off_to21 !max_off_from12 !max_off_to12 !col22 !hl20 !force13 !redraw_next11 !clear_next13 !char_cells10 !override_success21 !fillchar_vsep__o_r__21 !fillchar_vsep__o_attr21 = do
+      j'61 row19 endcol13 last_vcol19 off_from11 off_to20 max_off_from11 max_off_to11 col21 force12 redraw_next10 clear_next12 char_cells9 override_success20 fillchar_vsep__o_r__20 fillchar_vsep__o_attr20
+    j'61 !row20 !endcol14 !last_vcol20 !off_from12 !off_to21 !max_off_from12 !max_off_to12 !col22 !force13 !redraw_next11 !clear_next13 !char_cells10 !override_success21 !fillchar_vsep__o_r__21 !fillchar_vsep__o_attr21 = do
       r'106 <- c'ScreenCols ed'
       r'104 <- c'ScreenCols ed'
       r'105 <- rdI32 (pAdd r'104 ((fromIntegral off_from12) * 4)) 0
@@ -26263,13 +26263,13 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
           r'107 <- c'ScreenCols ed'
           r'108 <- rdI32 (pAdd r'107 ((fromIntegral (off_from12 + 1)) * 4)) 0
           wrI32 (pAdd r'109 ((fromIntegral (off_to21 + 1)) * 4)) 0 r'108
-          j'63 row20 endcol14 last_vcol20 off_from12 off_to21 max_off_from12 max_off_to12 col22 hl20 force13 redraw_next11 clear_next13 char_cells10 override_success21 fillchar_vsep__o_r__21 fillchar_vsep__o_attr21
-        else j'63 row20 endcol14 last_vcol20 off_from12 off_to21 max_off_from12 max_off_to12 col22 hl20 force13 redraw_next11 clear_next13 char_cells10 override_success21 fillchar_vsep__o_r__21 fillchar_vsep__o_attr21
-    j'63 !row21 !endcol15 !last_vcol21 !off_from13 !off_to22 !max_off_from13 !max_off_to13 !col23 !hl21 !force14 !redraw_next12 !clear_next14 !char_cells11 !override_success22 !fillchar_vsep__o_r__22 !fillchar_vsep__o_attr22 = do
+          j'63 row20 endcol14 last_vcol20 off_from12 off_to21 max_off_from12 max_off_to12 col22 force13 redraw_next11 clear_next13 char_cells10 override_success21 fillchar_vsep__o_r__21 fillchar_vsep__o_attr21
+        else j'63 row20 endcol14 last_vcol20 off_from12 off_to21 max_off_from12 max_off_to12 col22 force13 redraw_next11 clear_next13 char_cells10 override_success21 fillchar_vsep__o_r__21 fillchar_vsep__o_attr21
+    j'63 !row21 !endcol15 !last_vcol21 !off_from13 !off_to22 !max_off_from13 !max_off_to13 !col23 !force14 !redraw_next12 !clear_next14 !char_cells11 !override_success22 !fillchar_vsep__o_r__22 !fillchar_vsep__o_attr22 = do
       let !off_to23 = off_to22 + (fromIntegral char_cells11 :: Word32)
       let !off_from14 = off_from13 + (fromIntegral char_cells11 :: Word32)
       let !col24 = col23 + char_cells11
-      loop'5 row21 endcol15 last_vcol21 off_from14 off_to23 max_off_from13 max_off_to13 col24 hl21 force14 redraw_next12 clear_next14 override_success22 fillchar_vsep__o_r__22 fillchar_vsep__o_attr22
+      loop'5 row21 endcol15 last_vcol21 off_from14 off_to23 max_off_from13 max_off_to13 col24 force14 redraw_next12 clear_next14 override_success22 fillchar_vsep__o_r__22 fillchar_vsep__o_attr22
   r'110 <- rdP wp win_T'w_hl
   r'111 <- rdI32 wp win_T'w_hl_len
   r'112 <- push_highlight_overrides ed' r'110 r'111
@@ -26278,31 +26278,31 @@ screen_line ed' wp row coloff endcol clear_width last_vcol flags = do
     then do
       r'114 <- c'Rows ed'
       let !row22 = fromIntegral (r'114 - 1) :: Int32
-      j'2 row22 endcol last_vcol (0 :: Int32) (0 :: Int32) False False r'112 (0 :: Int32) (0 :: Int32)
-    else j'2 row endcol last_vcol (0 :: Int32) (0 :: Int32) False False r'112 (0 :: Int32) (0 :: Int32)
+      j'2 row22 endcol last_vcol (0 :: Int32) False False r'112 (0 :: Int32) (0 :: Int32)
+    else j'2 row endcol last_vcol (0 :: Int32) False False r'112 (0 :: Int32) (0 :: Int32)
 
 draw_vsep_win :: Ed -> Ptr Win_T -> Int32 -> IO ()
 draw_vsep_win ed' wp row = do
   let
-    loop'2 !content_end1 !r1 !hl1 !hl_2'1 _ _ = do
+    loop'2 !content_end1 !r1 _ _ = do
       if r1 < content_end1
         then do
-          (r'1, r'2) <- fillchar_vsep ed' hl1 wp r1
+          (r'1, r'2) <- fillchar_vsep ed' wp r1
           r'3 <- rdI32 wp win_T'w_wincol
           r'4 <- rdI32 wp win_T'w_width
           r'5 <- rdI32 wp win_T'w_wincol
           r'6 <- rdI32 wp win_T'w_width
           screen_fill ed' r1 (r1 + 1) (r'3 + r'4) ((r'5 + r'6) + 1) r'1 (ch ' ') r'2
           let !r2 = r1 + 1
-          loop'2 content_end1 r2 r'2 hl_2'1 r'1 r'2
+          loop'2 content_end1 r2 r'1 r'2
         else do
           r'7 <- rdI32 wp win_T'w_status_height
           if r'7 /= 0
             then do
-              (r'8, r'9) <- fillchar_vsep ed' hl_2'1 wp content_end1
+              (r'8, r'9) <- fillchar_vsep ed' wp content_end1
               loop'5 content_end1 r'9 r'8 content_end1 r'8 r'9
             else pure ()
-    loop'5 !content_end2 !hl_2'2 !c_2'1 !r_2'1 !fillchar_vsep__o_r__2 !fillchar_vsep__o_attr2 = do
+    loop'5 !content_end2 !hl_2'1 !c_2'1 !r_2'1 !fillchar_vsep__o_r__2 !fillchar_vsep__o_attr2 = do
       r'10 <- rdI32 wp win_T'w_status_height
       if r_2'1 < (content_end2 + r'10)
         then do
@@ -26310,9 +26310,9 @@ draw_vsep_win ed' wp row = do
           r'12 <- rdI32 wp win_T'w_width
           r'13 <- rdI32 wp win_T'w_wincol
           r'14 <- rdI32 wp win_T'w_width
-          screen_fill ed' r_2'1 (r_2'1 + 1) (r'11 + r'12) ((r'13 + r'14) + 1) c_2'1 (ch ' ') hl_2'2
+          screen_fill ed' r_2'1 (r_2'1 + 1) (r'11 + r'12) ((r'13 + r'14) + 1) c_2'1 (ch ' ') hl_2'1
           let !r_2'2 = r_2'1 + 1
-          loop'5 content_end2 hl_2'2 c_2'1 r_2'2 fillchar_vsep__o_r__2 fillchar_vsep__o_attr2
+          loop'5 content_end2 hl_2'1 c_2'1 r_2'2 fillchar_vsep__o_r__2 fillchar_vsep__o_attr2
         else pure ()
   r'15 <- rdI32 wp win_T'w_vsep_width
   if not (r'15 /= 0)
@@ -26322,7 +26322,7 @@ draw_vsep_win ed' wp row = do
       r'17 <- rdI32 wp win_T'w_height
       let !content_end3 = r'16 + r'17
       r'20 <- if (row == 0) then (rdI32 wp win_T'w_winrow) else (do { r'19 <- rdI32 wp win_T'w_winrow; pure (r'19 + row) })
-      loop'2 content_end3 r'20 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+      loop'2 content_end3 r'20 (0 :: Int32) (0 :: Int32)
 
 screen_putchar :: Ed -> Int32 -> Int32 -> Int32 -> Int32 -> IO ()
 screen_putchar ed' c row col attr = frame 22 $ \fr' -> do
@@ -28132,8 +28132,8 @@ recording_mode ed' attr = frame 4 $ \fr' -> do
       msg_puts_attr ed' fr' attr
       pure ()
 
-fillchar_status :: Ed -> Int32 -> Ptr Win_T -> IO (Int32, Int32)
-fillchar_status ed' _attr wp = do
+fillchar_status :: Ed -> Ptr Win_T -> IO (Int32, Int32)
+fillchar_status ed' wp = do
   let
     j'3 !attr1 !fill1 !override_success1 !out___r__1 !out___attr1 = do
       if override_success1
@@ -28157,8 +28157,8 @@ fillchar_status ed' _attr wp = do
       r'8 <- rdI32 wp (win_T'w_fill_chars + fill_chars_T'stlnc)
       j'3 r'7 r'8 r'3 (0 :: Int32) (0 :: Int32)
 
-fillchar_vsep :: Ed -> Int32 -> Ptr Win_T -> Int32 -> IO (Int32, Int32)
-fillchar_vsep ed' _attr wp row = do
+fillchar_vsep :: Ed -> Ptr Win_T -> Int32 -> IO (Int32, Int32)
+fillchar_vsep ed' wp row = do
   let
     j'3 !attr1 !override_success1 !out___r__1 !out___attr1 !out___2_r__1 !out___2_attr1 = do
       if override_success1

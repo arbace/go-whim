@@ -27,6 +27,9 @@ static void keep(int *p) { kept = p; }
 static void twice(int *n) { bump(n); bump(n); }
 static void global_bump(int *n) { *n += 5; }
 static int both(int *a, int *b) { *a = 1; *b = 2; return 3; }
+static void early(int k, int *o) { if (k) return; *o = 7; }
+static void sink(int *o) { *o = 9; }
+static int setv(int k, int *o) { *o = k * 2; return k; }
 int main(void)
 {
     int q, r, len = -1, n = 5, m = 0, k = 0, h = 0, cnt = 0, a, b, e = 0;
@@ -53,6 +56,15 @@ int main(void)
     printf("%d %d\n", h, gv);
     if (both(&a, &b) == 3 && (e = a + b) > 0)
         printf("%d %d %d\n", a, b, e);
+    int kept_in = 4, unread = 0;
+    early(1, &kept_in);
+    early(0, &kept_in);
+    sink(&unread);
+    printf("%d\n", kept_in);
+    int kv = 1, kr = 0;
+    kr = setv(2, &kv);
+    kv = 5;
+    printf("%d %d\n", kr, kv);
     return 0;
 }
 `
@@ -65,11 +77,11 @@ func TestLocalOut(t *testing.T) {
 	}
 	got := string(out)
 	for _, want := range []string{
-		"split__o = split(47, q, r), q = split__o.q, r = split__o.r", // void, two: a struct
+		"split__o = split(47), q = split__o.q, r = split__o.r", // void, two, both written first: a struct, nothing in
 		"bump(&n)",                    // twice hands its pointer to bump
 		"maybe_len(\"abcdef\", &len)", // another call passes a global's address
 		"pick(5, &m)",                 // another call reads m unsequenced
-		"both__o = both(a, b), a = both__o.a, b = both__o.b, both__o.r__", // read after &&: sequenced
+		"both__o = both(), a = both__o.a, b = both__o.b, both__o.r__", // read after &&: sequenced
 		"(w = advance(w))", // a pointer's pointer
 		"keep(&k)",         // keep keeps the pointer
 		"twice(&h)",        // twice hands its pointer on

@@ -11190,7 +11190,7 @@
   nil)
 
 ;; C: utf_ptr2char_and_len
-(defn utf-ptr2char-and-len ^T_utf_ptr2char_and_len__out_T [^Editor ed ^BytePtr p ^long lenp]
+(defn utf-ptr2char-and-len ^T_utf_ptr2char_and_len__out_T [^Editor ed ^BytePtr p]
   (let [^T_utf_ptr2char_and_len__out_T out__ (new-T_utf_ptr2char_and_len__out_T)
         ^T_utf_ptr2char_and_len__out_T out___2 (new-T_utf_ptr2char_and_len__out_T)
         ^T_utf_ptr2char_and_len__out_T out___3 (new-T_utf_ptr2char_and_len__out_T)
@@ -11307,21 +11307,19 @@
 ;; C: utfc_ptr2len
 (defn utfc-ptr2len ^long [^Editor ed ^BytePtr p]
   (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)
-        len 0
-        cc-len 0
         b0 (bit-and (.get p) 0xff)]
     (if (== b0 (e NUL))
       0
       (if (and (< b0 128) (< (bit-and (.at p 1) 0xff) 128))
         1
-        (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p len))
+        (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
             (let [len (.lenp utf-ptr2char-and-len__o)
                   c (.r__ utf-ptr2char-and-len__o)]
               (if (and (== len 1) (>= b0 128))
                 1
                 (if (< (bit-and (.at p len) 0xff) 128)
                   len
-                  (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len) cc-len))
+                  (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
                       (let [cc-len (.lenp utf-ptr2char-and-len__o)
                             cc (.r__ utf-ptr2char-and-len__o)]
                         (if (utf-iscomposinglike-char? ed c cc)
@@ -11330,7 +11328,7 @@
                             (let [len (i32 (+ len cc-len))]
                               (if (< (bit-and (.at p len) 0xff) 128)
                                 len
-                                (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len) cc-len))
+                                (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
                                     (let [cc-len (.lenp utf-ptr2char-and-len__o)
                                           cc (.r__ utf-ptr2char-and-len__o)]
                                       (if (utf-iscomposing? ed cc)
@@ -11721,10 +11719,9 @@
 
 ;; C: utf_ptr2cells
 (defn utf-ptr2cells ^long [^Editor ed ^BytePtr p]
-  (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)
-        len 0]
+  (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)]
     (if (>= (bit-and (.get p) 0xff) 128)
-      (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p len))
+      (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
           (let [len (.lenp utf-ptr2char-and-len__o)
                 c (.r__ utf-ptr2char-and-len__o)]
             (if (or (== len 1) (== c (e NUL)))
@@ -11750,11 +11747,9 @@
 
 ;; C: utf_ptr2char
 (defn utf-ptr2char ^long [^Editor ed ^BytePtr p]
-  (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)
-        len 0]
-    (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p len))
-    (let [len (.lenp utf-ptr2char-and-len__o)]
-      (.r__ utf-ptr2char-and-len__o))))
+  (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)]
+    (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
+    (.r__ utf-ptr2char-and-len__o)))
 
 ;; C: vim_strchr
 (defn vim-strchr ^BytePtr [^Editor ed ^BytePtr string ^long c]
@@ -13314,7 +13309,7 @@
                   nil))))))))
 
 ;; C: utf_ptr2char_and_len_len
-(defn utf-ptr2char-and-len-len ^T_utf_ptr2char_and_len_len__out_T [^Editor ed ^BytePtr p ^long size ^long lenp]
+(defn utf-ptr2char-and-len-len ^T_utf_ptr2char_and_len_len__out_T [^Editor ed ^BytePtr p ^long size]
   (let [^T_utf_ptr2char_and_len_len__out_T out__ (new-T_utf_ptr2char_and_len_len__out_T)
         ^T_utf_ptr2char_and_len_len__out_T out___2 (new-T_utf_ptr2char_and_len_len__out_T)
         ^T_utf_ptr2char_and_len_len__out_T out___3 (new-T_utf_ptr2char_and_len_len__out_T)
@@ -13417,21 +13412,19 @@
 
 ;; C: utfc_ptr2len_len
 (defn utfc-ptr2len-len ^long [^Editor ed ^BytePtr p ^long size]
-  (let [^T_utf_ptr2char_and_len_len__out_T utf-ptr2char-and-len-len__o (new-T_utf_ptr2char_and_len_len__out_T)
-        len 0
-        cc-len 0]
+  (let [^T_utf_ptr2char_and_len_len__out_T utf-ptr2char-and-len-len__o (new-T_utf_ptr2char_and_len_len__out_T)]
     (if (or (< size 1) (== (bit-and (.get p) 0xff) (e NUL)))
       0
       (if (and (< (bit-and (.at p 0) 0xff) 128) (or (== size 1) (< (bit-and (.at p 1) 0xff) 128)))
         1
-        (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed p size len))
+        (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed p size))
             (let [len (.lenp utf-ptr2char-and-len-len__o)
                   c (.r__ utf-ptr2char-and-len-len__o)]
               (if (or (and (== len 1) (>= (bit-and (.at p 0) 0xff) 128)) (> len size))
                 1
                 (if (or (>= len size) (< (bit-and (.at p len) 0xff) 128))
                   len
-                  (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- size len)) cc-len))
+                  (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- size len))))
                       (let [cc-len (.lenp utf-ptr2char-and-len-len__o)
                             cc (.r__ utf-ptr2char-and-len-len__o)]
                         (if (or (> cc-len (i32 (- size len))) (not (utf-iscomposinglike-char? ed c cc)))
@@ -13442,7 +13435,7 @@
                               (let [len (i32 (+ len cc-len))]
                                 (if (or (>= len size) (< (bit-and (.at p len) 0xff) 128))
                                   len
-                                  (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- size len)) cc-len))
+                                  (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- size len))))
                                       (let [cc-len (.lenp utf-ptr2char-and-len-len__o)
                                             cc (.r__ utf-ptr2char-and-len-len__o)]
                                         (if (> cc-len (i32 (- size len)))
@@ -13455,80 +13448,76 @@
 ;; C: utfc_ptr2char
 (defn utfc-ptr2char ^long [^Editor ed ^BytePtr p ^IntPtr pcc]
   (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)]
-    (let [len 0
-          cc-len 0]
-      (let [i 0
-            _ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p len))
-            len (.lenp utf-ptr2char-and-len__o)
-            c (.r__ utf-ptr2char-and-len__o)]
-        (let [i (long (if (and (or (> len 1) (< (bit-and (.get p) 0xff) 128)) (>= (bit-and (.at p len) 0xff) 128))
-                 (let [_ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len) cc-len))
-                       cc-len (.lenp utf-ptr2char-and-len__o)
-                       cc (.r__ utf-ptr2char-and-len__o)]
-                   (if (utf-iscomposinglike-char? ed c cc)
-                     (loop [len len
-                            cc cc
-                            cc-len cc-len
-                            i i]
-                       (let [t1 i
-                             i (i32 (inc i))
-                             _ (.set pcc t1 (unchecked-int cc))]
-                         (if (== i (e MAX_MCO))
-                           i
-                           (let [len (i32 (+ len cc-len))]
-                             (if (< (bit-and (.at p len) 0xff) 128)
-                               i
-                               (let [_ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len) cc-len))
-                                     cc-len (.lenp utf-ptr2char-and-len__o)
-                                     cc (.r__ utf-ptr2char-and-len__o)]
-                                 (if (utf-iscomposing? ed cc)
-                                   (recur len cc cc-len i)
-                                   i)))))))
-                     i))
-                 i))]
-          (if (< i (e MAX_MCO))
-            (let [_ (.set pcc i (unchecked-int 0))]
-              c)
-            c))))))
+    (let [i 0
+          _ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
+          len (.lenp utf-ptr2char-and-len__o)
+          c (.r__ utf-ptr2char-and-len__o)]
+      (let [i (long (if (and (or (> len 1) (< (bit-and (.get p) 0xff) 128)) (>= (bit-and (.at p len) 0xff) 128))
+               (let [_ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
+                     cc-len (.lenp utf-ptr2char-and-len__o)
+                     cc (.r__ utf-ptr2char-and-len__o)]
+                 (if (utf-iscomposinglike-char? ed c cc)
+                   (loop [len len
+                          cc cc
+                          cc-len cc-len
+                          i i]
+                     (let [t1 i
+                           i (i32 (inc i))
+                           _ (.set pcc t1 (unchecked-int cc))]
+                       (if (== i (e MAX_MCO))
+                         i
+                         (let [len (i32 (+ len cc-len))]
+                           (if (< (bit-and (.at p len) 0xff) 128)
+                             i
+                             (let [_ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
+                                   cc-len (.lenp utf-ptr2char-and-len__o)
+                                   cc (.r__ utf-ptr2char-and-len__o)]
+                               (if (utf-iscomposing? ed cc)
+                                 (recur len cc cc-len i)
+                                 i)))))))
+                   i))
+               i))]
+        (if (< i (e MAX_MCO))
+          (let [_ (.set pcc i (unchecked-int 0))]
+            c)
+          c)))))
 
 ;; C: utfc_ptr2char_len
 (defn utfc-ptr2char-len ^long [^Editor ed ^BytePtr p ^IntPtr pcc ^long maxlen]
   (let [^T_utf_ptr2char_and_len_len__out_T utf-ptr2char-and-len-len__o (new-T_utf_ptr2char_and_len_len__out_T)]
-    (let [len 0
-          cc-len 0]
-      (let [i 0
-            _ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed p maxlen len))
-            len (.lenp utf-ptr2char-and-len-len__o)
-            c (.r__ utf-ptr2char-and-len-len__o)]
-        (let [i (long (if (and (and (or (> len 1) (< (bit-and (.get p) 0xff) 128)) (< len maxlen)) (>= (bit-and (.at p len) 0xff) 128))
-                 (let [_ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- maxlen len)) cc-len))
-                       cc-len (.lenp utf-ptr2char-and-len-len__o)
-                       cc (.r__ utf-ptr2char-and-len-len__o)]
-                   (if (and (<= cc-len (i32 (- maxlen len))) (utf-iscomposinglike-char? ed c cc))
-                     (loop [len len
-                            cc cc
-                            cc-len cc-len
-                            i i]
-                       (let [t1 i
-                             i (i32 (inc i))
-                             _ (.set pcc t1 (unchecked-int cc))]
-                         (if (== i (e MAX_MCO))
-                           i
-                           (let [len (i32 (+ len cc-len))]
-                             (if (or (>= len maxlen) (< (bit-and (.at p len) 0xff) 128))
-                               i
-                               (let [_ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- maxlen len)) cc-len))
-                                     cc-len (.lenp utf-ptr2char-and-len-len__o)
-                                     cc (.r__ utf-ptr2char-and-len-len__o)]
-                                 (if (or (> cc-len (i32 (- maxlen len))) (not (utf-iscomposing? ed cc)))
-                                   i
-                                   (recur len cc cc-len i))))))))
-                     i))
-                 i))]
-          (if (< i (e MAX_MCO))
-            (let [_ (.set pcc i (unchecked-int 0))]
-              c)
-            c))))))
+    (let [i 0
+          _ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed p maxlen))
+          len (.lenp utf-ptr2char-and-len-len__o)
+          c (.r__ utf-ptr2char-and-len-len__o)]
+      (let [i (long (if (and (and (or (> len 1) (< (bit-and (.get p) 0xff) 128)) (< len maxlen)) (>= (bit-and (.at p len) 0xff) 128))
+               (let [_ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- maxlen len))))
+                     cc-len (.lenp utf-ptr2char-and-len-len__o)
+                     cc (.r__ utf-ptr2char-and-len-len__o)]
+                 (if (and (<= cc-len (i32 (- maxlen len))) (utf-iscomposinglike-char? ed c cc))
+                   (loop [len len
+                          cc cc
+                          cc-len cc-len
+                          i i]
+                     (let [t1 i
+                           i (i32 (inc i))
+                           _ (.set pcc t1 (unchecked-int cc))]
+                       (if (== i (e MAX_MCO))
+                         i
+                         (let [len (i32 (+ len cc-len))]
+                           (if (or (>= len maxlen) (< (bit-and (.at p len) 0xff) 128))
+                             i
+                             (let [_ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- maxlen len))))
+                                   cc-len (.lenp utf-ptr2char-and-len-len__o)
+                                   cc (.r__ utf-ptr2char-and-len-len__o)]
+                               (if (or (> cc-len (i32 (- maxlen len))) (not (utf-iscomposing? ed cc)))
+                                 i
+                                 (recur len cc cc-len i))))))))
+                   i))
+               i))]
+        (if (< i (e MAX_MCO))
+          (let [_ (.set pcc i (unchecked-int 0))]
+            c)
+          c)))))
 
 ;; C: cterm_idx_to_rgb
 (defn cterm-idx-to-rgb [^Editor ed idx ^IntPtr r ^IntPtr g_ ^IntPtr b]
@@ -16345,21 +16334,19 @@
       (long (utf-strnicmp ed s1 s2 n1 n2)))))
 
 ;; C: mb_decompose
-(defn mb-decompose [^Editor ed c c1 ^IntPtr c2 ^IntPtr c3]
-  (let [c (long c)
-        c1 (long c1)]
-    (if (and (>= c 64288) (<= c 64335))
-      (let [d-a (.a ^T_decomp_T (aget (g ed decomp-table) (i32 (- c 64288))))
-            d-b (.b ^T_decomp_T (aget (g ed decomp-table) (i32 (- c 64288))))
-            d-c (.c ^T_decomp_T (aget (g ed decomp-table) (i32 (- c 64288))))
-            c1 d-a]
-        (.put c2 (unchecked-int d-b))
-        (.put c3 (unchecked-int d-c))
-        c1)
-      (let [c1 c]
-        (.put c2 (unchecked-int 0))
-        (.put c3 (unchecked-int 0))
-        c1))))
+(defn mb-decompose ^long [^Editor ed ^long c ^IntPtr c2 ^IntPtr c3]
+  (if (and (>= c 64288) (<= c 64335))
+    (let [d-a (.a ^T_decomp_T (aget (g ed decomp-table) (i32 (- c 64288))))
+          d-b (.b ^T_decomp_T (aget (g ed decomp-table) (i32 (- c 64288))))
+          d-c (.c ^T_decomp_T (aget (g ed decomp-table) (i32 (- c 64288))))
+          c1 d-a]
+      (.put c2 (unchecked-int d-b))
+      (.put c3 (unchecked-int d-c))
+      c1)
+    (let [c1 c]
+      (.put c2 (unchecked-int 0))
+      (.put c3 (unchecked-int 0))
+      c1)))
 
 (defn cstrncmp ^T_cstrncmp__out_T [^Editor ed ^S_regengine_S re ^BytePtr s1 ^BytePtr s2 n]
   (let [n (long n)
@@ -16367,9 +16354,7 @@
         ^objects str2 (object-array 1)
         ^ints junk (int-array 1)
         ^T_cstrncmp__out_T out__ (new-T_cstrncmp__out_T)
-        c11 0
-        c12 0
-        ^longs tl__ (long-array 7)
+        ^longs tl__ (long-array 5)
         ^objects to__ (object-array 2)
         j__3 (if (zero? (.reg-ic ^T_regexec_T (.-rex re)))
                (let [result (long (musl-strncmp ed s1 s2 n))]
@@ -16422,15 +16407,13 @@
           (let [c2 0
                 c1 c2
                 l__4 (loop [c1 c1
-                            c2 c2
-                            c11 c11
-                            c12 c12]
+                            c2 c2]
                        (if (< (i32 (.sub ^BytePtr (aget str1 0) s1)) n)
                          (let [c1 (long (mb-ptr2char-adv ed (Ptr. str1 0)))
                                c2 (long (mb-ptr2char-adv ed (Ptr. str2 0)))
                                j__5 (if (and (not (== c1 c2)) (or (zero? (.reg-ic ^T_regexec_T (.-rex re))) (not (== (long (utf-fold ed c1)) (long (utf-fold ed c2))))))
-                                      (let [c11 (long (mb-decompose ed c1 c11 (IntPtr. junk 0) (IntPtr. junk 0)))
-                                            c12 (long (mb-decompose ed c2 c12 (IntPtr. junk 0) (IntPtr. junk 0)))
+                                      (let [c11 (long (mb-decompose ed c1 (IntPtr. junk 0) (IntPtr. junk 0)))
+                                            c12 (long (mb-decompose ed c2 (IntPtr. junk 0) (IntPtr. junk 0)))
                                             c1 c11
                                             c2 c12]
                                         (if (and (not (== c11 c12)) (or (zero? (.reg-ic ^T_regexec_T (.-rex re))) (not (== (long (utf-fold ed c11)) (long (utf-fold ed c12))))))
@@ -16439,21 +16422,15 @@
                                               1)
                                           (do (aset tl__ 3 c1)
                                               (aset tl__ 4 c2)
-                                              (aset tl__ 5 c11)
-                                              (aset tl__ 6 c12)
                                               0)))
                                       (do (aset tl__ 3 c1)
                                           (aset tl__ 4 c2)
-                                          (aset tl__ 5 c11)
-                                          (aset tl__ 6 c12)
                                           0))]
                            (case (long j__5)
                              0
                                (let [c1 (aget tl__ 3)
-                                     c2 (aget tl__ 4)
-                                     c11 (aget tl__ 5)
-                                     c12 (aget tl__ 6)]
-                                 (recur c1 c2 c11 c12))
+                                     c2 (aget tl__ 4)]
+                                 (recur c1 c2))
                              1
                                (let [c1 (aget tl__ 3)
                                      c2 (aget tl__ 4)]
@@ -16815,9 +16792,8 @@
 
 ;; C: utf_ptr2len
 (defn utf-ptr2len ^long [^Editor ed ^BytePtr p]
-  (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)
-        len 0]
-    (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p len))
+  (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)]
+    (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
     (.lenp utf-ptr2char-and-len__o)))
 
 ;; C: reg_save_equal
@@ -17417,7 +17393,7 @@
             (recur i)))))))
 
 ;; C: regstack_pop
-(defn regstack-pop ^BytePtr [^Editor ed ^S_regengine_S re ^BytePtr scan]
+(defn regstack-pop ^BytePtr [^Editor ed ^S_regengine_S re]
   (let [^S_regitem_S rp (Ptr/ref (.add (GA_Ptr_S_regitem_S ^S_growarray (.-regstack re)) (i32 (- (.ga-len ^S_growarray (.-regstack re)) 1))))
         ^BytePtr scan (.rs-scan rp)]
     (.set-ga-len ^S_growarray (.-regstack re) (i32 (dec (.ga-len ^S_growarray (.-regstack re)))))
@@ -18766,7 +18742,7 @@
         k__16 (aget tl__ 10)]
     (case k__16
       0
-        (let [^BytePtr scan (regstack-pop ed re scan)]
+        (let [^BytePtr scan (regstack-pop ed re)]
           (aset to__ 0 scan)
           (aset tl__ 0 status)
           0)
@@ -18775,7 +18751,7 @@
               (if (nil? (.reg-match ^T_regexec_T (.-rex re)))
                 (.set ^T_lpos_T (.get (.add ^Ptr (.reg-startpos ^T_regexec_T (.-rex re)) (.rs-no rp))) (.-pos ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
                 (.put (.add ^Ptr (.reg-startp ^T_regexec_T (.-rex re)) (.rs-no rp)) (.ptr ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))))
-            (let [^BytePtr scan (regstack-pop ed re scan)]
+            (let [^BytePtr scan (regstack-pop ed re)]
               (aset to__ 0 scan)
               (aset tl__ 0 status)
               0))
@@ -18784,13 +18760,13 @@
               (if (nil? (.reg-match ^T_regexec_T (.-rex re)))
                 (.set ^T_lpos_T (.get (.add ^Ptr (.reg-endpos ^T_regexec_T (.-rex re)) (.rs-no rp))) (.-pos ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
                 (.put (.add ^Ptr (.reg-endp ^T_regexec_T (.-rex re)) (.rs-no rp)) (.ptr ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))))
-            (let [^BytePtr scan (regstack-pop ed re scan)]
+            (let [^BytePtr scan (regstack-pop ed re)]
               (aset to__ 0 scan)
               (aset tl__ 0 status)
               0))
       3
         (if (== status (e RA_MATCH))
-          (let [^BytePtr scan (regstack-pop ed re scan)]
+          (let [^BytePtr scan (regstack-pop ed re)]
             (aset to__ 0 scan)
             (aset tl__ 0 status)
             0)
@@ -18800,7 +18776,7 @@
                                     ^BytePtr (.rs-scan rp)))]
             (if (or (nil? scan) (not (== (bit-and (.get scan) 0xff) (e BRANCH))))
               (let [status (e RA_NOMATCH)
-                    ^BytePtr scan (regstack-pop ed re scan)]
+                    ^BytePtr scan (regstack-pop ed re)]
                 (aset to__ 0 scan)
                 (aset tl__ 0 status)
                 0)
@@ -18814,7 +18790,7 @@
         (do (when (== status (e RA_NOMATCH))
               (reg-restore ed re (.-regsave ^A_6 (.-rs-un rp)) (.-backpos re))
               (aset ^ints (.-brace-count re) (.rs-no rp) (unchecked-int (dec (long (aget ^ints (.-brace-count re) (.rs-no rp)))))))
-            (let [^BytePtr scan (regstack-pop ed re scan)]
+            (let [^BytePtr scan (regstack-pop ed re)]
               (aset to__ 0 scan)
               (aset tl__ 0 status)
               0))
@@ -18824,7 +18800,7 @@
                            (aset ^ints (.-brace-count re) (.rs-no rp) (unchecked-int (dec (long (aget ^ints (.-brace-count re) (.rs-no rp))))))
                            (e RA_CONT))
                        status)
-              ^BytePtr scan (regstack-pop ed re scan)]
+              ^BytePtr scan (regstack-pop ed re)]
           (if (== status (e RA_CONT))
             (let [^BytePtr scan (regnext ed re scan)]
               (aset to__ 0 scan)
@@ -18836,7 +18812,7 @@
       6
         (do (when (== status (e RA_NOMATCH))
               (reg-restore ed re (.-regsave ^A_6 (.-rs-un rp)) (.-backpos re)))
-            (let [^BytePtr scan (regstack-pop ed re scan)]
+            (let [^BytePtr scan (regstack-pop ed re)]
               (if (== status (e RA_NOMATCH))
                 (let [^BytePtr scan (.add scan 3)
                       status (e RA_CONT)]
@@ -18854,7 +18830,7 @@
                            status
                            (do (reg-restore ed re (.-regsave ^A_6 (.-rs-un rp)) (.-backpos re))
                                status))))
-              ^BytePtr scan (regstack-pop ed re scan)]
+              ^BytePtr scan (regstack-pop ed re)]
           (if (== status (e RA_CONT))
             (let [^BytePtr scan (regnext ed re scan)]
               (aset to__ 0 scan)
@@ -18865,7 +18841,7 @@
                 0)))
       8
         (if (== status (e RA_NOMATCH))
-          (let [^BytePtr scan (regstack-pop ed re scan)]
+          (let [^BytePtr scan (regstack-pop ed re)]
             (.set-ga-len ^S_growarray (.-regstack-behind re) (i32 (dec (.ga-len ^S_growarray (.-regstack-behind re)))))
             (.set-regstack-bytes re (i32 (- (.regstack-bytes re) 376)))
             (aset to__ 0 scan)
@@ -18884,7 +18860,6 @@
 
 (defn- regmatch__r9 ^long [^Editor ed ^longs tl__ ^objects to__]
   (let [^S_regengine_S re (aget to__ 4)
-        ^BytePtr scan (aget to__ 0)
         ^S_regitem_S rp (aget to__ 8)
         status (aget tl__ 0)
         k__16 (aget tl__ 10)]
@@ -18898,7 +18873,7 @@
                              (let [status (e RA_NOMATCH)]
                                (restore-subexpr ed re (regstack-behind-top ed re))
                                status))
-                    ^BytePtr scan (regstack-pop ed re scan)]
+                    ^BytePtr scan (regstack-pop ed re)]
                 (.set-ga-len ^S_growarray (.-regstack-behind re) (i32 (dec (.ga-len ^S_growarray (.-regstack-behind re)))))
                 (.set-regstack-bytes re (i32 (- (.regstack-bytes re) 376)))
                 (aset to__ 0 scan)
@@ -18952,7 +18927,7 @@
                                      (restore-subexpr ed re (regstack-behind-top ed re))
                                      status)
                                    status))
-                        ^BytePtr scan (regstack-pop ed re scan)]
+                        ^BytePtr scan (regstack-pop ed re)]
                     (.set-ga-len ^S_growarray (.-regstack-behind re) (i32 (dec (.ga-len ^S_growarray (.-regstack-behind re)))))
                     (.set-regstack-bytes re (i32 (- (.regstack-bytes re) 376)))
                     (aset to__ 0 scan)
@@ -18969,7 +18944,7 @@
       10
         (let [^S_regstar_S rst_2 (regstack-star-top ed re)]
           (if (== status (e RA_MATCH))
-            (let [^BytePtr scan (regstack-pop ed re scan)]
+            (let [^BytePtr scan (regstack-pop ed re)]
               (.set-ga-len ^S_growarray (.-regstack-star re) (i32 (dec (.ga-len ^S_growarray (.-regstack-star re)))))
               (.set-regstack-bytes re (i32 (- (.regstack-bytes re) 32)))
               (aset to__ 0 scan)
@@ -19048,7 +19023,7 @@
                     (do (aset to__ 0 scan)
                         (aset tl__ 0 status)
                         0)
-                    (let [^BytePtr scan (regstack-pop ed re scan)
+                    (let [^BytePtr scan (regstack-pop ed re)
                           _ (.set-ga-len ^S_growarray (.-regstack-star re) (i32 (dec (.ga-len ^S_growarray (.-regstack-star re)))))
                           _ (.set-regstack-bytes re (i32 (- (.regstack-bytes re) 32)))
                           status (e RA_NOMATCH)]
@@ -19206,7 +19181,6 @@
                                           (regmatch__r8 ed tl__ to__))
                                       (if (<= k__16 9)
                                         (do (aset to__ 4 re)
-                                            (aset to__ 0 scan)
                                             (aset to__ 8 rp)
                                             (aset tl__ 0 status)
                                             (aset tl__ 10 k__16)
@@ -22287,14 +22261,12 @@
 (defn regatom ^BytePtr [^Editor ed ^S_regengine_S re ^IntPtr flagp]
   (let [^T_reg__out_T reg__o (new-T_reg__out_T)
         ^ints vcol (int-array 1)
-        flags 0
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 3)]
     (loop [st 0
            ^S_regengine_S re re
            ^IntPtr flagp flagp
            ^BytePtr ret nil
-           flags flags
            c 0
            sw 0
            extra 0
@@ -22321,7 +22293,7 @@
                 _ (.put flagp (unchecked-int (e WORST)))
                 c (long (getchr ed))
                 sw c]
-            (recur 1 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+            (recur 1 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         1
           (case (case sw -162 0 -220 1 -196 2 -194 3 -161 4 (-136 -137 -139 -141 -144 -145 -148 -149 -151 -152 -154 -156 -159 -168 -169 -171 -173 -176 -177 -180 -181 -183 -184 -186 -188 -191 -210) 5 -146 6 -216 7 (-132 -215 -218 0) 8 (-133 -192 -193 -195 -213 -214) 9 -130 10 (-199 -200 -201 -202 -203 -204 -205 -206 -207) 11 -134 12 -219 13 -165 14 -1)
             0
@@ -22353,10 +22325,10 @@
                         (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASNL))))
                         (if (== c 91)
                           (let [sw -165]
-                            (recur 1 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                          (recur 34 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))))
+                            (recur 1 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 34 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))))
             5
-              (recur 34 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+              (recur 34 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
             6
               (if (zero? (g ed reg-string))
                 (let [^BytePtr ret (regnode ed (e NEWL))]
@@ -22369,7 +22341,7 @@
                   ret))
             7
               (if (zero? (g ed one-exactly))
-                (do (.set reg__o (reg ed re (e REG_PAREN) flags))
+                (do (.set reg__o (reg ed re (e REG_PAREN)))
                     (let [flags (.flagp reg__o)
                           ^BytePtr ret (.r__ reg__o)]
                       (when-not (nil? ret)
@@ -22398,7 +22370,7 @@
               (if (some? (g ed reg-prev-sub))
                 (let [^BytePtr ret (regnode ed (e EXACTLY))
                       ^BytePtr lp (g ed reg-prev-sub)]
-                  (recur 33 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 33 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                 (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0)))
                     (g! ed rc-did-emsg (e TRUE))
                     nil))
@@ -22425,7 +22397,7 @@
                 (case (case c 40 0 94 1 36 2 35 3 86 4 67 5 91 6 (100 111 117 120 85) 7 (102 116 125 41 93) 8 62 9 -1)
                   0
                     (if (zero? (g ed one-exactly))
-                      (do (.set reg__o (reg ed re (e REG_NPAREN) flags))
+                      (do (.set reg__o (reg ed re (e REG_NPAREN)))
                           (let [flags (.flagp reg__o)
                                 ^BytePtr ret (.r__ reg__o)]
                             (when-not (nil? ret)
@@ -22453,7 +22425,7 @@
                     (if (zero? (g ed one-exactly))
                       (let [^BytePtr lastnode nil
                             ^BytePtr ret nil]
-                        (recur 28 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                        (recur 28 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                           (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0))))
                           (g! ed rc-did-emsg (e TRUE))
@@ -22494,8 +22466,8 @@
                       (let [^BytePtr ret (regatom-delim ed c delim-nl flagp)]
                         (when-not (nil? ret)
                           ret))
-                      (recur 25 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                  (recur 25 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                      (recur 25 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 25 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
             14
               (let [^BytePtr lp_2 (skip-anyof ed (aget (g ed regparse) 0))]
                 (if (== (bit-and (.get lp_2) 0xff) 93)
@@ -22512,14 +22484,14 @@
                                    (regc ed (bit-and (.get t5) 0xff))
                                    startc)
                                  startc)]
-                    (recur 5 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                    (recur 5 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                   (if (zero? (g ed reg-strict))
-                    (recur 2 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+                    (recur 2 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
                     (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0)) (object-array [(if (> (g ed reg-magic) (e MAGIC_OFF)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                         (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0))))
                         (g! ed rc-did-emsg (e TRUE))
                         nil))))
-            (recur 2 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+            (recur 2 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         2
           (if (use-multibytecode ed c)
             (let [^BytePtr ret (regnode ed (e MULTIBYTECODE))]
@@ -22528,12 +22500,12 @@
               ret)
             (let [^BytePtr ret (regnode ed (e EXACTLY))
                   len_2 0]
-              (recur 3 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+              (recur 3 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
         3
           (if (and (not (== c (e NUL))) (or (== len_2 0) (and (== (long (re-multi-type ed (long (peekchr ed)))) (e NOT_MULTI)) (zero? (g ed one-exactly)) (not (< c 0)))))
             (let [c (long (no-Magic ed c))]
               (regmbc ed c)
-              (recur 4 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+              (recur 4 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
             (do (ungetchr ed)
                 (regc ed (e NUL))
                 (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASWIDTH))))
@@ -22546,10 +22518,10 @@
             (if (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (aget (g ed regparse) 0) l))))
               (do (regmbc ed (long (utf-ptr2char ed (aget (g ed regparse) 0))))
                   (skipchr ed)
-                  (recur 4 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 4 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
               (let [c (long (getchr ed))
                     len_2 (i32 (inc len_2))]
-                (recur 3 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+                (recur 3 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
         5
           (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)))
             (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45)
@@ -22557,7 +22529,7 @@
                   (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL)) (== startc -1) (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 92) (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 110)))
                     (do (regc ed 45)
                         (let [startc 45]
-                          (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                          (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
                     (let [endc 0
                           endc (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
                                  (long (get-coll-element ed (Ptr. (g ed regparse) 0)))
@@ -22577,8 +22549,8 @@
                             (do (emsg ed (gettext_ ed (BytePtr. (g ed e-range-too-large-in-character-class) 0)))
                                 (g! ed rc-did-emsg (e TRUE))
                                 nil)
-                            (recur 22 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                          (recur 21 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))
+                            (recur 22 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 21 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))
               (if (and (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))))))
                 (do (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
                     (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 110)
@@ -22588,7 +22560,7 @@
                               (.put flagp (unchecked-int (bit-or (long (.get flagp)) (e HASNL))))))
                           (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
                           (let [startc -1]
-                            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
                       (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 100) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 111) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 120) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 117) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 85))
                         (let [startc (long (coll-get-char ed))]
                           (if (== startc (e INT_MAX))
@@ -22597,14 +22569,14 @@
                                 nil)
                             (if (== startc 0)
                               (do (regc ed 10)
-                                  (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                                  (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                               (do (regmbc ed startc)
-                                  (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
+                                  (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
                         (let [^BytePtr t6 (aget (g ed regparse) 0)
                               _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
                               startc (long (backslash-trans ed (bit-and (.get t6) 0xff)))]
                           (regc ed startc)
-                          (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
+                          (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
                 (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
                   (let [c-class (long (get-char-class ed (Ptr. (g ed regparse) 0)))
                         startc -1]
@@ -22616,74 +22588,74 @@
                                   _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
                                   startc (bit-and (.get t7) 0xff)]
                               (regc ed startc)
-                              (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                              (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                             (do (regmbc ed c-class)
-                                (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+                                (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
                       0
                         (let [cu 1]
-                          (recur 20 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 20 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       1
                         (let [cu 1]
-                          (recur 19 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 19 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       2
                         (do (regc ed 32)
                             (regc ed 9)
-                            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       3
                         (let [cu 1]
-                          (recur 18 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 18 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       4
                         (let [cu 1]
-                          (recur 17 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 17 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       5
                         (let [cu 1]
-                          (recur 16 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 16 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       6
                         (let [cu 1]
-                          (recur 15 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 15 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       7
                         (let [cu 1]
-                          (recur 14 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 14 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       8
                         (let [cu 1]
-                          (recur 13 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 13 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       9
                         (let [cu 9]
-                          (recur 12 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 12 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       10
                         (let [cu 1]
-                          (recur 11 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 11 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       11
                         (let [cu 1]
-                          (recur 10 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 10 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       12
                         (do (regc ed 9)
-                            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       13
                         (do (regc ed 13)
-                            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       14
                         (do (regc ed 8)
-                            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       15
                         (do (regc ed 27)
-                            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       16
                         (let [cu 1]
-                          (recur 9 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 9 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       17
                         (let [cu 1]
-                          (recur 8 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                          (recur 8 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                       18
                         (let [cu 1]
-                          (recur 7 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-                      (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                          (recur 7 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                      (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
                   (let [startc (long (utf-ptr2char ed (aget (g ed regparse) 0)))
                         len (long (utfc-ptr2len ed (aget (g ed regparse) 0)))
                         startc (if (== (long (utf-char2len ed startc)) len)
                                  startc
                                  -1)]
-                    (recur 6 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
+                    (recur 6 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))))
             (do (regc ed (e NUL))
                 (g! ed prevchr-len 1)
                 (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)
@@ -22699,123 +22671,123 @@
               (let [^BytePtr t8 (aget (g ed regparse) 0)]
                 (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
                 (regc ed (bit-and (.get t8) 0xff))
-                (recur 6 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                (recur 6 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+              (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
         7
           (if (<= cu 255)
             (do (when (vim-isfilec? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 7 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 7 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         8
           (if (<= cu 255)
             (do (when (reg-iswordc? ed re cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 8 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 8 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         9
           (if (<= cu 255)
             (do (when (vim-isIDc? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 9 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 9 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         10
           (if (<= cu 255)
             (do (when (vim-isxdigit? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 10 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 10 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         11
           (if (<= cu 255)
             (do (when (vim-isupper? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 11 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 11 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         12
           (if (<= cu 13)
             (do (regc ed cu)
                 (let [cu (i32 (inc cu))]
-                  (recur 12 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                  (recur 12 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
             (do (regc ed 32)
-                (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
         13
           (if (< cu 128)
             (do (when (musl-ispunct? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 13 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 13 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         14
           (if (<= cu 255)
             (do (when (vim-isprintc? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 14 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 14 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         15
           (if (<= cu 255)
             (do (when (and (vim-islower? ed cu) (not (== cu 170)) (not (== cu 186)))
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 15 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 15 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         16
           (if (<= cu 127)
             (do (when (musl-isgraph? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 16 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 16 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         17
           (if (<= cu 127)
             (do (when (< (u32 (- (u32 cu) 48)) 10)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 17 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 17 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         18
           (if (<= cu 127)
             (do (when (musl-iscntrl? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 18 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 18 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         19
           (if (< cu 128)
             (do (when (musl-isalpha? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 19 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 19 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         20
           (if (< cu 128)
             (do (when (musl-isalnum? ed cu)
                   (regmbc ed cu))
                 (let [cu (i32 (inc cu))]
-                  (recur 20 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                  (recur 20 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         21
           (let [startc (i32 (inc startc))]
             (if (<= startc endc)
               (do (regc ed startc)
-                  (recur 21 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (recur 23 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                  (recur 21 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+              (recur 23 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
         22
           (let [startc (i32 (inc startc))]
             (if (<= startc endc)
               (do (regmbc ed startc)
-                  (recur 22 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-              (recur 23 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+                  (recur 22 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+              (recur 23 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
         23
           (let [startc -1]
-            (recur 24 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+            (recur 24 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         24
-          (recur 5 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+          (recur 5 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
         25
           (if (or (< (u32 (- (u32 c) 48)) 10) (== c 60) (== c 62) (== c 39) (== c 46))
             (let [n 0
@@ -22836,14 +22808,14 @@
                              0))
                   c (aget tl__ 0)
                   cur (boolean (aget to__ 0))]
-              (recur 26 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
-            (recur 27 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+              (recur 26 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+            (recur 27 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
         26
           (if (< (u32 (- (u32 c) 48)) 10)
             (let [got-digit true
                   n (+ (* n 10) (i32 (- c 48)))
                   c (long (getchr ed))]
-              (recur 26 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+              (recur 26 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
             (if (and (== (long (no-Magic ed c)) 39) (== n 0))
               (let [c (long (getchr ed))
                     ^BytePtr ret (regnode ed (e RE_MARK))]
@@ -22906,7 +22878,7 @@
                             (g! ed regcode (.add (g ed regcode) 1))
                             (.put t4 (unchecked-byte cmp))
                             ret)))))
-                (recur 27 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+                (recur 27 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
         27
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-character-after-str) 0))))
@@ -22923,11 +22895,11 @@
                 (let [^BytePtr lastbranch (regnode ed (e BRANCH))
                       ^BytePtr br (regnode ed (e NOTHING))]
                   (if (BytePtr/eq ret (BytePtr. (g ed reg-calc-size-node) 0))
-                    (recur 30 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+                    (recur 30 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
                     (do (regtail ed re lastnode br)
                         (regtail ed re lastbranch br)
                         (let [^BytePtr br ret]
-                          (recur 29 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))
+                          (recur 29 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))
               (if (== c (e NUL))
                 (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-missing-sb-after-str) 0)) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                     (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-missing-sb-after-str) 0))))
@@ -22936,32 +22908,32 @@
                 (let [^BytePtr br (regnode ed (e BRANCH))]
                   (if (nil? ret)
                     (let [^BytePtr ret br]
-                      (recur 32 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
+                      (recur 32 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))
                     (do (regtail ed re lastnode br)
                         (when (zero? (.reg-toolong re))
-                          (recur 32 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))))
+                          (recur 32 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))))))
         29
           (if (BytePtr/eq br lastnode)
-            (recur 30 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+            (recur 30 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
             (if (== (bit-and (.get br) 0xff) (e BRANCH))
               (do (regtail ed re br lastbranch)
                   (when (zero? (.reg-toolong re))
                     (let [^BytePtr br (.add br 3)]
-                      (recur 31 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+                      (recur 31 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
               (let [^BytePtr br (regnext ed re br)]
-                (recur 31 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+                (recur 31 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
         30
           (do (.put flagp (unchecked-int (bit-and (long (.get flagp)) -4)))
               ret)
         31
-          (recur 29 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
+          (recur 29 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)
         32
           (do (ungetchr ed)
               (g! ed one-exactly (e TRUE))
               (let [^BytePtr lastnode (regatom ed re flagp)]
                 (g! ed one-exactly (e FALSE))
                 (when-not (nil? lastnode)
-                  (recur 28 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
+                  (recur 28 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2))))
         33
           (if (== (bit-and (.get lp) 0xff) (e NUL))
             (do (regc ed (e NUL))
@@ -22975,7 +22947,7 @@
             (let [^BytePtr t1 lp
                   ^BytePtr lp (.add lp 1)]
               (regc ed (bit-and (.get t1) 0xff))
-              (recur 33 re flagp ret flags c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
+              (recur 33 re flagp ret c sw extra delim-nl save-prev-at-start lp lastbranch lastnode br n cmp cur got-digit startc endc cu len len_2)))
         34
           (let [^BytePtr p (vim-strchr ed (g ed classchars) (long (no-Magic ed c)))]
             (if (nil? p)
@@ -23056,7 +23028,7 @@
   (and (>= c 48) (<= c 57)))
 
 ;; C: read_limits
-(defn read-limits ^T_read_limits__out_T [^Editor ed ^long minval ^long maxval]
+(defn read-limits ^T_read_limits__out_T [^Editor ed]
   (let [^T_read_limits__out_T out__ (new-T_read_limits__out_T)
         ^T_read_limits__out_T out___2 (new-T_read_limits__out_T)
         ^longs tl__ (long-array 2)
@@ -23149,8 +23121,6 @@
         ^T_regpiece__out_T out___6 (new-T_regpiece__out_T)
         ^T_regpiece__out_T out___7 (new-T_regpiece__out_T)
         ^T_regpiece__out_T out___8 (new-T_regpiece__out_T)
-        minval 0
-        maxval 0
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 1)
         ^BytePtr ret (regatom ed re (IntPtr. flags 0))]
@@ -23240,7 +23210,7 @@
                                (aset tl__ 0 flagp)
                                0))
                        4
-                         (do (.set read-limits__o (read-limits ed minval maxval))
+                         (do (.set read-limits__o (read-limits ed))
                              (let [minval (.minval read-limits__o)
                                    maxval (.maxval read-limits__o)]
                                (if (zero? (.r__ read-limits__o))
@@ -23298,7 +23268,7 @@
                         (.set-flagp out___7 flagp)
                         (.copy ^T_regpiece__out_T out___7))))))))))))
 
-(defn regconcat ^T_regconcat__out_T [^Editor ed ^S_regengine_S re ^long flagp]
+(defn regconcat ^T_regconcat__out_T [^Editor ed ^S_regengine_S re]
   (let [^T_regpiece__out_T regpiece__o (new-T_regpiece__out_T)
         ^T_regconcat__out_T out__ (new-T_regconcat__out_T)
         ^T_regconcat__out_T out___2 (new-T_regconcat__out_T)
@@ -23439,18 +23409,16 @@
               (.set-flagp out___2 flagp)
               (.copy ^T_regconcat__out_T out___2)))))))
 
-(defn regbranch ^T_regbranch__out_T [^Editor ed ^S_regengine_S re ^long flagp]
+(defn regbranch ^T_regbranch__out_T [^Editor ed ^S_regengine_S re]
   (let [^T_regconcat__out_T regconcat__o (new-T_regconcat__out_T)
         ^T_regbranch__out_T out__ (new-T_regbranch__out_T)
         ^T_regbranch__out_T out___2 (new-T_regbranch__out_T)
-        flags 0
         ^BytePtr chain nil
         flagp 8
         ^BytePtr ret (regnode ed (e BRANCH))]
     (loop [flagp flagp
-           ^BytePtr chain chain
-           flags flags]
-      (.set regconcat__o (regconcat ed re flags))
+           ^BytePtr chain chain]
+      (.set regconcat__o (regconcat ed re))
       (let [flags (.flagp regconcat__o)
             ^BytePtr latest (.r__ regconcat__o)]
         (if (nil? latest)
@@ -23467,7 +23435,7 @@
                   (if (zero? (.reg-toolong re))
                     (do (reginsert ed (e MATCH) latest)
                         (let [^BytePtr chain latest]
-                          (recur flagp chain flags)))
+                          (recur flagp chain)))
                     (do (.set-r__ out___2 ret)
                         (.set-flagp out___2 flagp)
                         (.copy ^T_regbranch__out_T out___2))))
@@ -23475,7 +23443,7 @@
                   (.set-flagp out___2 flagp)
                   (.copy ^T_regbranch__out_T out___2)))))))))
 
-(defn reg ^T_reg__out_T [^Editor ed ^S_regengine_S re ^long paren ^long flagp]
+(defn reg ^T_reg__out_T [^Editor ed ^S_regengine_S re ^long paren]
   (let [^T_regbranch__out_T regbranch__o (new-T_regbranch__out_T)
         ^T_reg__out_T out__ (new-T_reg__out_T)
         ^T_reg__out_T out___2 (new-T_reg__out_T)
@@ -23486,7 +23454,6 @@
         ^T_reg__out_T out___7 (new-T_reg__out_T)
         ^T_reg__out_T out___8 (new-T_reg__out_T)
         ^T_reg__out_T out___9 (new-T_reg__out_T)
-        flags 0
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)
         parno 0
@@ -23526,7 +23493,7 @@
               (.set-flagp out___2 flagp)
               (.copy ^T_reg__out_T out___2))
           (do (g! ed bt-reg-parse-depth (i32 (inc (g ed bt-reg-parse-depth))))
-              (.set regbranch__o (regbranch ed re flags))
+              (.set regbranch__o (regbranch ed re))
               (let [flags (.flagp regbranch__o)
                     ^BytePtr br (.r__ regbranch__o)]
                 (if (nil? br)
@@ -23543,11 +23510,10 @@
                                 (bit-and flagp -2)
                                 flagp)
                         flagp (bit-or flagp (bit-and flags 28))]
-                    (loop [flagp flagp
-                           flags flags]
+                    (loop [flagp flagp]
                       (if (== (long (peekchr ed)) -132)
                         (do (skipchr ed)
-                            (.set regbranch__o (regbranch ed re flags))
+                            (.set regbranch__o (regbranch ed re))
                             (let [flags (.flagp regbranch__o)
                                   ^BytePtr br (.r__ regbranch__o)]
                               (if (or (nil? br) (not (zero? (.reg-toolong re))))
@@ -23561,7 +23527,7 @@
                                                   (bit-and flagp -2)
                                                   flagp)
                                           flagp (bit-or flagp (bit-and flags 28))]
-                                      (recur flagp flags))))))
+                                      (recur flagp))))))
                         (let [^BytePtr ender (regnode ed (if (== paren (e REG_PAREN)) (i32 (+ (e MCLOSE) parno)) (if (== paren (e REG_NPAREN)) (e NCLOSE) (e END))))
                               _ (regtail ed re ret ender)
                               ^BytePtr br ret]
@@ -23615,7 +23581,6 @@
 ;; C: bt_regcomp
 (defn bt-regcomp ^S_regprog [^Editor ed ^S_regengine_S re ^BytePtr expr ^long re-flags]
   (let [^T_reg__out_T reg__o (new-T_reg__out_T)
-        flags 0
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)]
     (if (nil? expr)
@@ -23626,72 +23591,71 @@
           (regcomp-start ed re expr re-flags)
           (g! ed regcode (BytePtr. (g ed reg-calc-size-node) 0))
           (regc ed (e REGMAGIC))
-          (.set reg__o (reg ed re (e REG_NOPAREN) flags))
-          (let [flags (.flagp reg__o)]
-            (when-not (nil? (.r__ reg__o))
-              (let [^S_regprog r (new-S_regprog)
-                    _ (.set-program r (BytePtr/alloc (g ed regsize)))
-                    _ (.set-re-in-use r (boolean false))
-                    _ (regcomp-start ed re expr re-flags)
-                    _ (g! ed regcode (.program r))
-                    _ (regc ed (e REGMAGIC))
-                    _ (.set reg__o (reg ed re (e REG_NOPAREN) flags))
-                    flags (.flagp reg__o)]
-                (if (or (nil? (.r__ reg__o)) (not (zero? (.reg-toolong re))))
-                  (when-not (zero? (.reg-toolong re))
-                    (emsg ed (gettext_ ed (BytePtr. (g ed e-pattern-too-long) 0)))
-                    (g! ed rc-did-emsg (e TRUE))
-                    nil)
-                  (do (.set-regstart r (e NUL))
-                      (.set-reganch r 0)
-                      (.set-regmust r nil)
-                      (.set-regmlen r 0)
-                      (.set-regflags r (g ed regflags))
-                      (when-not (zero? (bit-and flags (e HASNL)))
-                        (.set-regflags r (bit-or (.regflags r) (e RF_HASNL))))
-                      (when-not (zero? (bit-and flags (e HASLOOKBH)))
-                        (.set-regflags r (bit-or (.regflags r) (e RF_LOOKBH))))
-                      (let [^BytePtr scan (.add ^BytePtr (.program r) 1)]
-                        (if (== (bit-and (.get ^BytePtr (regnext ed re scan)) 0xff) (e END))
-                          (let [^BytePtr scan (.add scan 3)
-                                ^BytePtr scan (if (or (== (bit-and (.get scan) 0xff) (e BOL)) (== (bit-and (.get scan) 0xff) (e RE_BOF)))
-                                                (do (.set-reganch r (u8 (inc (.reganch r))))
-                                                    ^BytePtr (regnext ed re scan))
-                                                scan)]
-                            (if (== (bit-and (.get scan) 0xff) (e EXACTLY))
-                              (.set-regstart r (long (utf-ptr2char ed (.add scan 3))))
-                              (when (and (or (== (bit-and (.get scan) 0xff) (e BOW)) (== (bit-and (.get scan) 0xff) (e EOW)) (== (bit-and (.get scan) 0xff) (e NOTHING)) (== (bit-and (.get scan) 0xff) 80) (== (bit-and (.get scan) 0xff) (e NOPEN)) (== (bit-and (.get scan) 0xff) 90) (== (bit-and (.get scan) 0xff) (e NCLOSE))) (== (bit-and (.get ^BytePtr (regnext ed re scan)) 0xff) (e EXACTLY)))
-                                (.set-regstart r (long (utf-ptr2char ed (.add ^BytePtr (regnext ed re scan) 3))))))
-                            (if (and (or (not (zero? (bit-and flags (e SPSTART)))) (== (bit-and (.get scan) 0xff) (e BOW)) (== (bit-and (.get scan) 0xff) (e EOW))) (zero? (bit-and flags (e HASNL))))
-                              (let [^BytePtr longest nil
-                                    len 0]
-                                (loop [^BytePtr scan scan
-                                       ^BytePtr longest longest
-                                       len len]
-                                  (if (some? scan)
-                                    (let [j__1 (if (== (bit-and (.get scan) 0xff) (e EXACTLY))
-                                                 (let [scanlen (long (musl-strlen ed (.add scan 3)))]
-                                                   (if (>= (Long/compareUnsigned scanlen len) 0)
-                                                     (let [^BytePtr longest (.add scan 3)
-                                                           len (i32 scanlen)]
-                                                       (aset to__ 0 longest)
-                                                       (aset tl__ 0 len)
-                                                       0)
-                                                     (do (aset to__ 0 longest)
-                                                         (aset tl__ 0 len)
-                                                         0)))
-                                                 (do (aset to__ 0 longest)
+          (.set reg__o (reg ed re (e REG_NOPAREN)))
+          (when-not (nil? (.r__ reg__o))
+            (let [^S_regprog r (new-S_regprog)
+                  _ (.set-program r (BytePtr/alloc (g ed regsize)))
+                  _ (.set-re-in-use r (boolean false))
+                  _ (regcomp-start ed re expr re-flags)
+                  _ (g! ed regcode (.program r))
+                  _ (regc ed (e REGMAGIC))
+                  _ (.set reg__o (reg ed re (e REG_NOPAREN)))
+                  flags (.flagp reg__o)]
+              (if (or (nil? (.r__ reg__o)) (not (zero? (.reg-toolong re))))
+                (when-not (zero? (.reg-toolong re))
+                  (emsg ed (gettext_ ed (BytePtr. (g ed e-pattern-too-long) 0)))
+                  (g! ed rc-did-emsg (e TRUE))
+                  nil)
+                (do (.set-regstart r (e NUL))
+                    (.set-reganch r 0)
+                    (.set-regmust r nil)
+                    (.set-regmlen r 0)
+                    (.set-regflags r (g ed regflags))
+                    (when-not (zero? (bit-and flags (e HASNL)))
+                      (.set-regflags r (bit-or (.regflags r) (e RF_HASNL))))
+                    (when-not (zero? (bit-and flags (e HASLOOKBH)))
+                      (.set-regflags r (bit-or (.regflags r) (e RF_LOOKBH))))
+                    (let [^BytePtr scan (.add ^BytePtr (.program r) 1)]
+                      (if (== (bit-and (.get ^BytePtr (regnext ed re scan)) 0xff) (e END))
+                        (let [^BytePtr scan (.add scan 3)
+                              ^BytePtr scan (if (or (== (bit-and (.get scan) 0xff) (e BOL)) (== (bit-and (.get scan) 0xff) (e RE_BOF)))
+                                              (do (.set-reganch r (u8 (inc (.reganch r))))
+                                                  ^BytePtr (regnext ed re scan))
+                                              scan)]
+                          (if (== (bit-and (.get scan) 0xff) (e EXACTLY))
+                            (.set-regstart r (long (utf-ptr2char ed (.add scan 3))))
+                            (when (and (or (== (bit-and (.get scan) 0xff) (e BOW)) (== (bit-and (.get scan) 0xff) (e EOW)) (== (bit-and (.get scan) 0xff) (e NOTHING)) (== (bit-and (.get scan) 0xff) 80) (== (bit-and (.get scan) 0xff) (e NOPEN)) (== (bit-and (.get scan) 0xff) 90) (== (bit-and (.get scan) 0xff) (e NCLOSE))) (== (bit-and (.get ^BytePtr (regnext ed re scan)) 0xff) (e EXACTLY)))
+                              (.set-regstart r (long (utf-ptr2char ed (.add ^BytePtr (regnext ed re scan) 3))))))
+                          (if (and (or (not (zero? (bit-and flags (e SPSTART)))) (== (bit-and (.get scan) 0xff) (e BOW)) (== (bit-and (.get scan) 0xff) (e EOW))) (zero? (bit-and flags (e HASNL))))
+                            (let [^BytePtr longest nil
+                                  len 0]
+                              (loop [^BytePtr scan scan
+                                     ^BytePtr longest longest
+                                     len len]
+                                (if (some? scan)
+                                  (let [j__1 (if (== (bit-and (.get scan) 0xff) (e EXACTLY))
+                                               (let [scanlen (long (musl-strlen ed (.add scan 3)))]
+                                                 (if (>= (Long/compareUnsigned scanlen len) 0)
+                                                   (let [^BytePtr longest (.add scan 3)
+                                                         len (i32 scanlen)]
+                                                     (aset to__ 0 longest)
                                                      (aset tl__ 0 len)
-                                                     0))
-                                          ^BytePtr longest (aget to__ 0)
-                                          len (aget tl__ 0)
-                                          ^BytePtr scan (regnext ed re scan)]
-                                      (recur scan longest len))
-                                    (do (.set-regmust r longest)
-                                        (.set-regmlen r len)
-                                        r))))
-                              r))
-                          r)))))))))))
+                                                     0)
+                                                   (do (aset to__ 0 longest)
+                                                       (aset tl__ 0 len)
+                                                       0)))
+                                               (do (aset to__ 0 longest)
+                                                   (aset tl__ 0 len)
+                                                   0))
+                                        ^BytePtr longest (aget to__ 0)
+                                        len (aget tl__ 0)
+                                        ^BytePtr scan (regnext ed re scan)]
+                                    (recur scan longest len))
+                                  (do (.set-regmust r longest)
+                                      (.set-regmlen r len)
+                                      r))))
+                            r))
+                        r))))))))))
 
 ;; C: vim_regcomp
 (defn vim-regcomp ^S_regprog [^Editor ed ^BytePtr expr-arg ^long re-flags]
@@ -23802,7 +23766,7 @@
       nil)))
 
 ;; C: fillchar_vsep
-(defn fillchar-vsep ^T_fillchar_vsep__out_T [^Editor ed ^long attr ^S_window_S wp ^long row]
+(defn fillchar-vsep ^T_fillchar_vsep__out_T [^Editor ed ^S_window_S wp ^long row]
   (let [^T_fillchar_vsep__out_T out__ (new-T_fillchar_vsep__out_T)
         ^T_fillchar_vsep__out_T out___2 (new-T_fillchar_vsep__out_T)
         override-success (push-highlight-overrides ed (.w-hl wp) (.w-hl-len wp))
@@ -23821,24 +23785,21 @@
 
 ;; C: draw_vsep_win
 (defn draw-vsep-win [^Editor ed ^S_window_S wp ^long row]
-  (let [^T_fillchar_vsep__out_T fillchar-vsep__o (new-T_fillchar_vsep__out_T)
-        hl 0
-        hl_2 0]
+  (let [^T_fillchar_vsep__out_T fillchar-vsep__o (new-T_fillchar_vsep__out_T)]
     (when-not (zero? (.w-vsep-width wp))
       (let [content-end (i32 (+ (.w-winrow wp) (.w-height wp)))
             start-row (if (== row 0) (.w-winrow wp) (i32 (+ (.w-winrow wp) row)))
             r start-row]
-        (loop [r r
-               hl hl]
+        (loop [r r]
           (if (< r content-end)
-            (do (.set fillchar-vsep__o (fillchar-vsep ed hl wp r))
+            (do (.set fillchar-vsep__o (fillchar-vsep ed wp r))
                 (let [hl (.attr fillchar-vsep__o)
                       c (.r__ fillchar-vsep__o)
                       _ (screen-fill ed r (i32 (+ r 1)) (i32 (+ (.w-wincol wp) (.w-width wp))) (i32 (+ (i32 (+ (.w-wincol wp) (.w-width wp))) 1)) c 32 hl)
                       r (i32 (inc r))]
-                  (recur r hl)))
+                  (recur r)))
             (when-not (== (.w-status-height wp) 0)
-              (.set fillchar-vsep__o (fillchar-vsep ed hl_2 wp content-end))
+              (.set fillchar-vsep__o (fillchar-vsep ed wp content-end))
               (let [hl_2 (.attr fillchar-vsep__o)
                     c_2 (.r__ fillchar-vsep__o)
                     r_2 content-end]
@@ -24651,8 +24612,7 @@
         last-vcol (long last-vcol)
         flags (long flags)
         ^T_fillchar_vsep__out_T fillchar-vsep__o (new-T_fillchar_vsep__out_T)
-        hl 0
-        ^longs tl__ (long-array 4)
+        ^longs tl__ (long-array 3)
         ^objects to__ (object-array 2)]
     (loop [st 0
            ^S_window_S wp wp
@@ -24667,7 +24627,6 @@
            max-off-from 0
            max-off-to 0
            col 0
-           hl hl
            force_ false
            redraw-next false
            clear-next false
@@ -24691,7 +24650,7 @@
                 max-off-from (u32 (+ off-from (u32 (g ed screen-Columns))))
                 max-off-to (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 (g ed screen-Columns))))
                 redraw-next (char-needs-redraw? ed (i32 off-from) (i32 off-to) (i32 (- endcol col)))]
-            (recur 1 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))
+            (recur 1 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
         1
           (if (< col endcol)
             (let [char-cells (if (< (i32 (+ col 1)) endcol)
@@ -24728,25 +24687,25 @@
                   (.set (g ed ScreenLines) off-to (unchecked-byte (bit-and (.at (g ed ScreenLines) off-from) 0xff)))
                   (.set (g ed ScreenLinesUC) off-to (unchecked-int (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff)))
                   (if (== (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff) 0)
-                    (recur 6 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)
+                    (recur 6 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)
                     (let [i 0]
-                      (recur 5 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))))
+                      (recur 5 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))))
                 (if (and (not (zero? (long (aget (g ed p-wiv) 0)))) (> (i32 (+ col coloff)) 0) (> off-to 0))
                   (if (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) (bit-and (.at (g ed ScreenAttrs) (u32 (- off-to 1))) 0xffff))
                     (do (g! ed screen-attr 0)
-                        (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))
+                        (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
                     (if (== (g ed screen-attr) 0)
-                      (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)
+                      (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)
                       (do (screen-stop-highlight ed)
-                          (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))))
-                  (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))))
+                          (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))))
+                  (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))))
             (do (when clear-next
                   (.set (g ed ScreenLines) off-to (unchecked-byte 32))
                   (.set (g ed ScreenLinesUC) off-to (unchecked-int 0))
                   (screen-char ed off-to row (i32 (+ col coloff))))
                 (if (> clear-width 0)
-                  (recur 2 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)
-                  (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))))
+                  (recur 2 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)
+                  (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))))
         2
           (if (and (< col clear-width) (== (bit-and (.at (g ed ScreenLines) off-to) 0xff) 32) (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) 0) (== (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff) 0))
             (let [j__2 (if (zero? (bit-and flags (e SLF_INC_VCOL)))
@@ -24764,11 +24723,11 @@
               (.set (g ed ScreenCols) off-to (unchecked-int t1))
               (let [off-to (u32 (inc off-to))
                     col (i32 (inc col))]
-                (recur 2 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)))
+                (recur 2 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))
             (if (< col clear-width)
               (do (screen-fill ed row (i32 (+ row 1)) (i32 (+ col coloff)) (i32 (+ clear-width coloff)) 32 32 0)
-                  (recur 3 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))
-              (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)))
+                  (recur 3 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
+              (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))
         3
           (if (< col clear-width)
             (let [t2 off-to
@@ -24787,12 +24746,12 @@
                   t3 (aget tl__ 2)]
               (.set (g ed ScreenCols) t2 (unchecked-int t3))
               (let [col (i32 (inc col))]
-                (recur 3 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)))
-            (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))
+                (recur 3 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))
+            (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
         4
           (do (when (> clear-width 0)
                 (if (< (i32 (+ coloff col)) (i32 (+ (.w-wincol (g ed curwin)) (.fr-width (g ed topframe)))))
-                  (do (.set fillchar-vsep__o (fillchar-vsep ed hl wp row))
+                  (do (.set fillchar-vsep__o (fillchar-vsep ed wp row))
                       (let [hl (.attr fillchar-vsep__o)
                             c (.r__ fillchar-vsep__o)]
                         (when (or (not (== (bit-and (.at (g ed ScreenLines) off-to) 0xff) (u8 c))) (not (== (i32 (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff)) (if (>= c 128) c 0))) (not (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) hl)))
@@ -24812,35 +24771,26 @@
           (if (< i (g ed Screen-mco))
             (do (.set ^IntPtr (aget (g ed ScreenLinesC) i) off-to (unchecked-int (bit-and (.at ^IntPtr (aget (g ed ScreenLinesC) i) off-from) 0xffffffff)))
                 (let [i (i32 (inc i))]
-                  (recur 5 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)))
-            (recur 6 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i))
+                  (recur 5 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))
+            (recur 6 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
         6
           (do (when (== char-cells 2)
                 (.set (g ed ScreenLines) (u32 (+ off-to 1)) (unchecked-byte (bit-and (.at (g ed ScreenLines) (u32 (+ off-from 1))) 0xff)))
                 (.set (g ed ScreenLinesUC) (u32 (+ off-to 1)) (unchecked-int 0)))
-              (let [j__4 (if (zero? (g ed term-is-xterm))
-                           (do (aset tl__ 3 hl)
-                               (aset to__ 1 (Boolean/valueOf (boolean redraw-next)))
-                               0)
-                           (let [hl (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff)
-                                 hl (if (> hl (e HL_ALL))
-                                      (long (syn-attr2attr ed hl))
-                                      hl)]
-                             (if (zero? (bit-and hl (e HL_BOLD)))
-                               (do (aset tl__ 3 hl)
-                                   (aset to__ 1 (Boolean/valueOf (boolean redraw-next)))
-                                   0)
-                               (let [redraw-next true]
-                                 (aset tl__ 3 hl)
-                                 (aset to__ 1 (Boolean/valueOf (boolean redraw-next)))
-                                 0))))
-                    hl (aget tl__ 3)
-                    redraw-next (boolean (aget to__ 1))]
+              (let [redraw-next (if (zero? (g ed term-is-xterm))
+                                  redraw-next
+                                  (let [hl (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff)
+                                        hl (if (> hl (e HL_ALL))
+                                             (long (syn-attr2attr ed hl))
+                                             hl)]
+                                    (if (zero? (bit-and hl (e HL_BOLD)))
+                                      redraw-next
+                                      true)))]
                 (.set (g ed ScreenAttrs) off-to (unchecked-short (bit-and (.at (g ed ScreenAttrs) off-from) 0xffff)))
                 (when (== char-cells 2)
                   (.set (g ed ScreenAttrs) (u32 (+ off-to 1)) (unchecked-short (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff))))
                 (screen-char ed off-to row (i32 (+ col coloff)))
-                (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)))
+                (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))
         7
           (do (.set (g ed ScreenCols) off-to (unchecked-int (long (.at (g ed ScreenCols) off-from))))
               (when (== char-cells 2)
@@ -24848,7 +24798,7 @@
               (let [off-to (u32 (+ off-to (u32 char-cells)))
                     off-from (u32 (+ off-from (u32 char-cells)))
                     col (i32 (+ col char-cells))]
-                (recur 1 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col hl force_ redraw-next clear-next char-cells override-success i)))))))
+                (recur 1 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))))))
 
 ;; C: wlv_screen_line
 (defn wlv-screen-line [^Editor ed ^S_window_S wp ^T_winlinevars_T wlv clear-end]
@@ -28787,7 +28737,6 @@
                 v (.sub ptr line)
                 _ (.set update-search-hl__o (update-search-hl ed wp lnum (i32 v) line (g ed screen-search-hl) (IntPtr. has-match-conc 0) (IntPtr. match-conc 0) did-line-attr lcs-eol-one on-last-col))
                 ^BytePtr line (.line update-search-hl__o)
-                on-last-col (.on-last-col update-search-hl__o)
                 search-attr (.r__ update-search-hl__o)
                 ^BytePtr ptr (.add line v)]
             (if (== (bit-and (.get ptr) 0xff) (e NUL))
@@ -28795,13 +28744,11 @@
                   (aset fo__ 3 ptr)
                   (aset fl__ 13 v)
                   (aset fl__ 16 search-attr)
-                  (aset fl__ 25 on-last-col)
                   (recur 101))
               (do (aset fo__ 2 line)
                   (aset fo__ 3 ptr)
                   (aset fl__ 13 v)
                   (aset fl__ 16 search-attr)
-                  (aset fl__ 25 on-last-col)
                   (recur 102))))
         101
           (let [^S_window_S wp (aget fo__ 1)
@@ -37135,7 +37082,7 @@
   (i32 (+ (.w-winrow wp) (.w-height wp))))
 
 ;; C: fillchar_status
-(defn fillchar-status ^T_fillchar_status__out_T [^Editor ed ^long attr ^S_window_S wp]
+(defn fillchar-status ^T_fillchar_status__out_T [^Editor ed ^S_window_S wp]
   (let [^T_fillchar_status__out_T out__ (new-T_fillchar_status__out_T)
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)
@@ -37223,126 +37170,125 @@
         ^ints virtcol (int-array 1)
         ^bytes buffer (byte-array 70)
         ^bytes rel-pos (byte-array 70)]
-    (let [attr 0]
-      (let [^longs tl__ (long-array 6)]
-        (let [empty-line false]
-          (if (zero? (long (aget (g ed p-ru) 0)))
+    (let [^longs tl__ (long-array 6)]
+      (let [empty-line false]
+        (if (zero? (long (aget (g ed p-ru) 0)))
+          nil
+          (if (> (.lnum ^T_pos_T (.-w-cursor wp)) (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))))
             nil
-            (if (> (.lnum ^T_pos_T (.-w-cursor wp)) (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))))
-              nil
-              (let [j__1 (if (and (identical? wp (g ed curwin)) (== (.w-status-height (g ed curwin)) 0))
-                          (if (some? (g ed edit-submode))
-                            -1
-                            0)
-                          0)]
-                (if (== (long j__1) -1)
-                  nil
-                  (let [empty-line (if (and (== (bit-and (g ed State) (e MODE_INSERT)) 0) (== (bit-and (.get ^BytePtr (ml-get-buf ed (.w-buffer wp) (.lnum ^T_pos_T (.-w-cursor wp)) false)) 0xff) (e NUL)))
-                                    (let [empty-line true]
-                                      empty-line)
-                                    empty-line)]
-                    (let [_ (validate-virtcol-win ed wp)]
-                      (if (or (or (or (or (or (or (or (or (not (zero? (g ed redraw-cmdline))) always) (not (== (.lnum ^T_pos_T (.-w-cursor wp)) (.lnum ^T_pos_T (.-w-ru-cursor wp))))) (not (== (.col ^T_pos_T (.-w-cursor wp)) (.col ^T_pos_T (.-w-ru-cursor wp))))) (not (== (long (aget ^ints (.-w-virtcol wp) 0)) (.w-ru-virtcol wp)))) (not (== (.coladd ^T_pos_T (.-w-cursor wp)) (.coladd ^T_pos_T (.-w-ru-cursor wp))))) (not (== (.w-topline wp) (.w-ru-topline wp)))) (not (== (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))) (.w-ru-line-count wp)))) (not (== (if empty-line 1 0) (if (.w-ru-empty wp) 1 0))))
-                        (let [override-success (push-highlight-overrides ed (.w-hl wp) (.w-hl-len wp))
-                              _ (cursor-off ed)]
-                          (let [j__2 (if (zero? (.w-status-height wp))
-                                      (let [row (i32 (- (aget (g ed Rows) 0) 1))
-                                            fillchar 32
-                                            attr 0
-                                            off (g ed cmdline-col-off)
-                                            width (g ed cmdline-width)]
-                                        (do (aset tl__ 0 row)
-                                            (aset tl__ 1 fillchar)
-                                            (aset tl__ 2 attr)
-                                            (aset tl__ 3 off)
-                                            (aset tl__ 4 width)
-                                            0))
-                                      (let [row (long (statusline-row ed wp))
-                                            _ (.set fillchar-status__o (fillchar-status ed attr wp))
-                                            attr (.attr fillchar-status__o)
-                                            fillchar (.r__ fillchar-status__o)
-                                            off (.w-wincol wp)
-                                            width (.w-width wp)]
-                                        (do (aset tl__ 0 row)
-                                            (aset tl__ 1 fillchar)
-                                            (aset tl__ 2 attr)
-                                            (aset tl__ 3 off)
-                                            (aset tl__ 4 width)
-                                            0)))]
-                            (let [row (aget tl__ 0)
-                                  fillchar (aget tl__ 1)
-                                  attr (aget tl__ 2)
-                                  off (aget tl__ 3)
-                                  width (aget tl__ 4)]
-                              (let [_ (aset virtcol 0 (unchecked-int (long (aget ^ints (.-w-virtcol wp) 0))))]
-                                (do (if (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (== (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp)) (e NUL)))
-                                      (let [_ (aset ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0 (unchecked-int (e FALSE)))
-                                            _ (getvvcol ed wp (.-w-cursor wp) nil (IntPtr. virtcol 0) nil 0)
-                                            _ (aset ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0 (unchecked-int (e TRUE)))]
-                                        nil)
+            (let [j__1 (if (and (identical? wp (g ed curwin)) (== (.w-status-height (g ed curwin)) 0))
+                        (if (some? (g ed edit-submode))
+                          -1
+                          0)
+                        0)]
+              (if (== (long j__1) -1)
+                nil
+                (let [empty-line (if (and (== (bit-and (g ed State) (e MODE_INSERT)) 0) (== (bit-and (.get ^BytePtr (ml-get-buf ed (.w-buffer wp) (.lnum ^T_pos_T (.-w-cursor wp)) false)) 0xff) (e NUL)))
+                                  (let [empty-line true]
+                                    empty-line)
+                                  empty-line)]
+                  (let [_ (validate-virtcol-win ed wp)]
+                    (if (or (or (or (or (or (or (or (or (not (zero? (g ed redraw-cmdline))) always) (not (== (.lnum ^T_pos_T (.-w-cursor wp)) (.lnum ^T_pos_T (.-w-ru-cursor wp))))) (not (== (.col ^T_pos_T (.-w-cursor wp)) (.col ^T_pos_T (.-w-ru-cursor wp))))) (not (== (long (aget ^ints (.-w-virtcol wp) 0)) (.w-ru-virtcol wp)))) (not (== (.coladd ^T_pos_T (.-w-cursor wp)) (.coladd ^T_pos_T (.-w-ru-cursor wp))))) (not (== (.w-topline wp) (.w-ru-topline wp)))) (not (== (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))) (.w-ru-line-count wp)))) (not (== (if empty-line 1 0) (if (.w-ru-empty wp) 1 0))))
+                      (let [override-success (push-highlight-overrides ed (.w-hl wp) (.w-hl-len wp))
+                            _ (cursor-off ed)]
+                        (let [j__2 (if (zero? (.w-status-height wp))
+                                    (let [row (i32 (- (aget (g ed Rows) 0) 1))
+                                          fillchar 32
+                                          attr 0
+                                          off (g ed cmdline-col-off)
+                                          width (g ed cmdline-width)]
+                                      (do (aset tl__ 0 row)
+                                          (aset tl__ 1 fillchar)
+                                          (aset tl__ 2 attr)
+                                          (aset tl__ 3 off)
+                                          (aset tl__ 4 width)
+                                          0))
+                                    (let [row (long (statusline-row ed wp))
+                                          _ (.set fillchar-status__o (fillchar-status ed wp))
+                                          attr (.attr fillchar-status__o)
+                                          fillchar (.r__ fillchar-status__o)
+                                          off (.w-wincol wp)
+                                          width (.w-width wp)]
+                                      (do (aset tl__ 0 row)
+                                          (aset tl__ 1 fillchar)
+                                          (aset tl__ 2 attr)
+                                          (aset tl__ 3 off)
+                                          (aset tl__ 4 width)
+                                          0)))]
+                          (let [row (aget tl__ 0)
+                                fillchar (aget tl__ 1)
+                                attr (aget tl__ 2)
+                                off (aget tl__ 3)
+                                width (aget tl__ 4)]
+                            (let [_ (aset virtcol 0 (unchecked-int (long (aget ^ints (.-w-virtcol wp) 0))))]
+                              (do (if (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (== (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp)) (e NUL)))
+                                    (let [_ (aset ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0 (unchecked-int (e FALSE)))
+                                          _ (getvvcol ed wp (.-w-cursor wp) nil (IntPtr. virtcol 0) nil 0)
+                                          _ (aset ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0 (unchecked-int (e TRUE)))]
                                       nil)
-                                  (let [bufferlen (long (whim.cljhost/vim-snprintf ed (BytePtr. buffer 0) (e RULER_BUF_LEN) (gettext_ ed (BytePtr/lit "%ld,")) (object-array [(Long/valueOf (if (zero? (bit-and (.ml-flags ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))) (e ML_EMPTY))) (.lnum ^T_pos_T (.-w-cursor wp)) 0))])))
-                                        t1 (long (col-print ed (.add (BytePtr. buffer 0) bufferlen) (i32 (- (e RULER_BUF_LEN) bufferlen)) (if empty-line 0 (i32 (+ (.col ^T_pos_T (.-w-cursor wp)) 1))) (i32 (+ (long (aget virtcol 0)) 1))))
-                                        bufferlen (i32 (+ bufferlen t1))
-                                        rel-poslen (long (get-rel-pos ed wp (BytePtr. rel-pos 0) (e RULER_BUF_LEN)))
-                                        n1 (i32 (+ bufferlen (long (vim-strsize ed (BytePtr. rel-pos 0)))))]
-                                    (let [n1 (if (== (.w-status-height wp) 0)
-                                              (let [n1 (i32 (inc n1))]
-                                                n1)
-                                              n1)]
-                                      (let [this-ru-col (i32 (- (g ed ru-col) (i32 (- (g ed cmdline-width) width))))
-                                            n2 (i32 (quot (i32 (+ width 1)) 2))]
-                                        (let [this-ru-col (if (< this-ru-col n2)
-                                                           (let [this-ru-col n2]
-                                                             this-ru-col)
-                                                           this-ru-col)]
-                                          (let [bufferlen (long (if (< (i32 (+ this-ru-col n1)) width)
-                                                           (let [l__3 (loop [bufferlen bufferlen
-                                                                            n1 n1]
-                                                                       (if (and (< (i32 (+ this-ru-col n1)) width) (> (e RULER_BUF_LEN) (i32 (+ (i32 (+ bufferlen rel-poslen)) 1))))
-                                                                         (let [t2 (long (utf-char2bytes ed fillchar (.add (BytePtr. buffer 0) bufferlen)))
-                                                                               bufferlen (i32 (+ bufferlen t2))
-                                                                               n1 (i32 (inc n1))]
-                                                                           (recur bufferlen n1))
-                                                                         (do (aset tl__ 5 bufferlen)
-                                                                             0)))]
-                                                             (let [bufferlen (aget tl__ 5)]
-                                                               (let [t3 (long (whim.cljhost/vim-snprintf ed (.add (BytePtr. buffer 0) bufferlen) (i32 (- (e RULER_BUF_LEN) bufferlen)) (BytePtr/lit "%s") (object-array [(BytePtr. rel-pos 0)])))
-                                                                     bufferlen (i32 (+ bufferlen t3))]
-                                                                 bufferlen)))
-                                                           bufferlen))]
-                                            (let [n1 0
-                                                  n2 0]
-                                              (let [l__4 (loop [n1 n1
-                                                               n2 n2]
-                                                          (if (== (bit-and (aget buffer n1) 0xff) (e NUL))
-                                                            (do (aset tl__ 5 bufferlen)
-                                                                0)
-                                                            (let [t4 (long (utf-ptr2cells ed (.add (BytePtr. buffer 0) n1)))
-                                                                  n2 (i32 (+ n2 t4))]
-                                                              (if (> (i32 (+ this-ru-col n2)) width)
-                                                                (let [bufferlen n1
-                                                                      _ (aset buffer bufferlen (unchecked-byte (e NUL)))]
-                                                                  (do (aset tl__ 5 bufferlen)
-                                                                      0))
-                                                                (let [t5 (long (utfc-ptr2len ed (.add (BytePtr. buffer 0) n1)))
-                                                                      n1 (i32 (+ n1 t5))]
-                                                                  (recur n1 n2))))))]
-                                                (let [bufferlen (aget tl__ 5)]
-                                                  (let [_ (screen-puts ed (BytePtr. buffer 0) row (i32 (+ this-ru-col off)) attr)
-                                                        n1 (g ed redraw-cmdline)
-                                                        _ (screen-fill ed row (i32 (+ row 1)) (i32 (+ (i32 (+ this-ru-col off)) bufferlen)) (i32 (+ off width)) fillchar fillchar attr)
-                                                        _ (g! ed redraw-cmdline n1)
-                                                        _ (.set ^T_pos_T (.-w-ru-cursor wp) (.-w-cursor wp))
-                                                        _ (.set-w-ru-virtcol wp (long (aget ^ints (.-w-virtcol wp) 0)))
-                                                        _ (.set-w-ru-empty wp (boolean empty-line))
-                                                        _ (.set-w-ru-topline wp (.w-topline wp))
-                                                        _ (.set-w-ru-line-count wp (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))))]
-                                                    (if override-success
-                                                      (let [_ (pop-highlight-overrides ed)]
-                                                        nil)
-                                                      nil)))))))))))))))
-                        nil))))))))))))
+                                    nil)
+                                (let [bufferlen (long (whim.cljhost/vim-snprintf ed (BytePtr. buffer 0) (e RULER_BUF_LEN) (gettext_ ed (BytePtr/lit "%ld,")) (object-array [(Long/valueOf (if (zero? (bit-and (.ml-flags ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))) (e ML_EMPTY))) (.lnum ^T_pos_T (.-w-cursor wp)) 0))])))
+                                      t1 (long (col-print ed (.add (BytePtr. buffer 0) bufferlen) (i32 (- (e RULER_BUF_LEN) bufferlen)) (if empty-line 0 (i32 (+ (.col ^T_pos_T (.-w-cursor wp)) 1))) (i32 (+ (long (aget virtcol 0)) 1))))
+                                      bufferlen (i32 (+ bufferlen t1))
+                                      rel-poslen (long (get-rel-pos ed wp (BytePtr. rel-pos 0) (e RULER_BUF_LEN)))
+                                      n1 (i32 (+ bufferlen (long (vim-strsize ed (BytePtr. rel-pos 0)))))]
+                                  (let [n1 (if (== (.w-status-height wp) 0)
+                                            (let [n1 (i32 (inc n1))]
+                                              n1)
+                                            n1)]
+                                    (let [this-ru-col (i32 (- (g ed ru-col) (i32 (- (g ed cmdline-width) width))))
+                                          n2 (i32 (quot (i32 (+ width 1)) 2))]
+                                      (let [this-ru-col (if (< this-ru-col n2)
+                                                         (let [this-ru-col n2]
+                                                           this-ru-col)
+                                                         this-ru-col)]
+                                        (let [bufferlen (long (if (< (i32 (+ this-ru-col n1)) width)
+                                                         (let [l__3 (loop [bufferlen bufferlen
+                                                                          n1 n1]
+                                                                     (if (and (< (i32 (+ this-ru-col n1)) width) (> (e RULER_BUF_LEN) (i32 (+ (i32 (+ bufferlen rel-poslen)) 1))))
+                                                                       (let [t2 (long (utf-char2bytes ed fillchar (.add (BytePtr. buffer 0) bufferlen)))
+                                                                             bufferlen (i32 (+ bufferlen t2))
+                                                                             n1 (i32 (inc n1))]
+                                                                         (recur bufferlen n1))
+                                                                       (do (aset tl__ 5 bufferlen)
+                                                                           0)))]
+                                                           (let [bufferlen (aget tl__ 5)]
+                                                             (let [t3 (long (whim.cljhost/vim-snprintf ed (.add (BytePtr. buffer 0) bufferlen) (i32 (- (e RULER_BUF_LEN) bufferlen)) (BytePtr/lit "%s") (object-array [(BytePtr. rel-pos 0)])))
+                                                                   bufferlen (i32 (+ bufferlen t3))]
+                                                               bufferlen)))
+                                                         bufferlen))]
+                                          (let [n1 0
+                                                n2 0]
+                                            (let [l__4 (loop [n1 n1
+                                                             n2 n2]
+                                                        (if (== (bit-and (aget buffer n1) 0xff) (e NUL))
+                                                          (do (aset tl__ 5 bufferlen)
+                                                              0)
+                                                          (let [t4 (long (utf-ptr2cells ed (.add (BytePtr. buffer 0) n1)))
+                                                                n2 (i32 (+ n2 t4))]
+                                                            (if (> (i32 (+ this-ru-col n2)) width)
+                                                              (let [bufferlen n1
+                                                                    _ (aset buffer bufferlen (unchecked-byte (e NUL)))]
+                                                                (do (aset tl__ 5 bufferlen)
+                                                                    0))
+                                                              (let [t5 (long (utfc-ptr2len ed (.add (BytePtr. buffer 0) n1)))
+                                                                    n1 (i32 (+ n1 t5))]
+                                                                (recur n1 n2))))))]
+                                              (let [bufferlen (aget tl__ 5)]
+                                                (let [_ (screen-puts ed (BytePtr. buffer 0) row (i32 (+ this-ru-col off)) attr)
+                                                      n1 (g ed redraw-cmdline)
+                                                      _ (screen-fill ed row (i32 (+ row 1)) (i32 (+ (i32 (+ this-ru-col off)) bufferlen)) (i32 (+ off width)) fillchar fillchar attr)
+                                                      _ (g! ed redraw-cmdline n1)
+                                                      _ (.set ^T_pos_T (.-w-ru-cursor wp) (.-w-cursor wp))
+                                                      _ (.set-w-ru-virtcol wp (long (aget ^ints (.-w-virtcol wp) 0)))
+                                                      _ (.set-w-ru-empty wp (boolean empty-line))
+                                                      _ (.set-w-ru-topline wp (.w-topline wp))
+                                                      _ (.set-w-ru-line-count wp (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))))]
+                                                  (if override-success
+                                                    (let [_ (pop-highlight-overrides ed)]
+                                                      nil)
+                                                    nil)))))))))))))))
+                      nil)))))))))))
 
 ;; C: showcmd_update_clear_state
 (defn showcmd-update-clear-state [^Editor ed]
@@ -37364,120 +37310,108 @@
 ;; C: win_redr_status
 (defn win-redr-status [^Editor ed ^S_window_S wp ignore-pum]
   (let [^T_fillchar_status__out_T fillchar-status__o (new-T_fillchar_status__out_T)
-        ^T_fillchar_vsep__out_T fillchar-vsep__o (new-T_fillchar_vsep__out_T)]
-    (let [attr 0]
-      (let [^longs tl__ (long-array 2)
-            ^objects to__ (object-array 1)]
-        (if (g ed win-redr-status-busy)
-          nil
-          (let [_ (g! ed win-redr-status-busy true)
-                row (long (statusline-row ed wp))
-                _ (.set-w-redr-status wp (boolean false))]
-            (let [attr (long (if (== (.w-status-height wp) 0)
-                        (let [_ (g! ed redraw-cmdline (e TRUE))]
-                          attr)
-                        (if (redrawing ed)
-                          (let [_ (.set fillchar-status__o (fillchar-status ed attr wp))
-                                attr (.attr fillchar-status__o)
-                                fillchar (.r__ fillchar-status__o)
-                                _ (get-trans-bufname ed (.w-buffer wp))
-                                ^BytePtr p (g ed NameBuff)
-                                plen (i32 (long (musl-strlen ed p)))]
-                            (let [plen (if (and (or (bt-help? ed (.w-buffer wp)) (not (zero? (long (bufIsChanged ed (.w-buffer wp)))))) (< plen 4095))
-                                        (let [t1 plen
-                                              plen (i32 (inc plen))
-                                              ^BytePtr t2 (.add p t1)
-                                              _ (.put t2 (unchecked-byte 32))
-                                              _ (.put (.add p plen) (unchecked-byte (e NUL)))]
-                                          plen)
-                                        plen)]
-                              (let [plen (if (bt-help? ed (.w-buffer wp))
-                                          (let [t3 (long (whim.cljhost/vim-snprintf ed (.add p plen) (i32 (- (e PATH_MAX) plen)) (BytePtr/lit "%s") (object-array [(gettext_ ed (BytePtr/lit "[Help]"))])))
-                                                plen (i32 (+ plen t3))]
-                                            plen)
-                                          plen)]
-                                (do (if (zero? (long (bufIsChanged ed (.w-buffer wp))))
-                                      nil
-                                      (let [t4 (long (whim.cljhost/vim-snprintf ed (.add p plen) (i32 (- (e PATH_MAX) plen)) (BytePtr/lit "%s") (object-array [(BytePtr/lit "[+]")])))
-                                            plen (i32 (+ plen t4))]
-                                        nil))
-                                  (let [this-ru-col (i32 (- (g ed ru-col) (i32 (- (g ed cmdline-width) (.w-width wp)))))
-                                        n (i32 (quot (i32 (+ (.w-width wp) 1)) 2))]
-                                    (let [this-ru-col (if (< this-ru-col n)
-                                                       (let [this-ru-col n]
-                                                         this-ru-col)
-                                                       this-ru-col)]
-                                      (let [j__2 (if (<= this-ru-col 1)
-                                                  (let [^BytePtr p (BytePtr/lit "<")
-                                                        plen 1]
-                                                    (do (aset to__ 0 p)
-                                                        (aset tl__ 0 plen)
-                                                        0))
-                                                  (let [plen (long (mb-string2cells ed p -1))
-                                                        i 0]
-                                                    (let [l__1 (loop [i i
-                                                                     plen plen]
-                                                                (if (and (not (== (bit-and (.at p i) 0xff) (e NUL))) (>= plen (i32 (- this-ru-col 1))))
-                                                                  (let [t5 (long (utf-ptr2cells ed (.add p i)))
-                                                                        plen (i32 (- plen t5))]
-                                                                    (let [t6 (long (utfc-ptr2len ed (.add p i)))
-                                                                          i (i32 (+ i t6))]
-                                                                      (recur i plen)))
-                                                                  (do (aset tl__ 1 i)
-                                                                      (aset tl__ 0 plen)
-                                                                      0)))]
-                                                      (let [i (aget tl__ 1)
-                                                            plen (aget tl__ 0)]
-                                                        (if (> i 0)
-                                                          (let [^BytePtr p (.add (.add p i) (- 1))
-                                                                _ (.put p (unchecked-byte 60))
-                                                                plen (i32 (inc plen))]
-                                                            (do (aset to__ 0 p)
-                                                                (aset tl__ 0 plen)
-                                                                0))
-                                                          (do (aset to__ 0 p)
-                                                              (aset tl__ 0 plen)
-                                                              0))))))]
-                                        (let [^BytePtr p (aget to__ 0)
-                                              plen (aget tl__ 0)]
-                                          (let [_ (screen-puts ed p row (.w-wincol wp) attr)
-                                                _ (screen-fill ed row (i32 (+ row 1)) (i32 (+ plen (.w-wincol wp))) (i32 (+ this-ru-col (.w-wincol wp))) fillchar fillchar attr)
-                                                i 1]
-                                            (do (loop [i i]
-                                                  (if (< i (.w-status-height wp))
-                                                    (let [_ (screen-fill ed (i32 (+ row i)) (i32 (+ (i32 (+ row i)) 1)) (.w-wincol wp) (i32 (+ (.w-wincol wp) (.w-width wp))) fillchar fillchar attr)]
-                                                      (let [i (i32 (inc i))]
-                                                        (recur i)))
-                                                    nil))
-                                              (let [_ (win-redr-ruler ed wp true ignore-pum)]
-                                                (if (and (not (zero? (long (aget (g ed p-sc) 0)))) (== (bit-and (.get ^BytePtr (aget (g ed p-sloc) 0)) 0xff) 115))
-                                                  (let [n (i32 (- (i32 (- this-ru-col plen)) 2))
-                                                        width (if (< 10 n) 10 n)]
-                                                    (do (if (> width 0)
-                                                          (let [_ (screen-puts-len ed (BytePtr. (g ed showcmd-buf) 0) width row (i32 (- (i32 (- (i32 (+ (.w-wincol wp) this-ru-col)) width)) 1)) attr)]
-                                                            nil)
-                                                          nil)
-                                                      (let [_ (showcmd-update-clear-state ed)]
-                                                        attr)))
-                                                  attr))))))))))))
-                          (let [_ (.set-w-redr-status wp (boolean true))]
-                            attr))))]
-              (if (and (and (not (== (.w-vsep-width wp) 0)) (not (== (.w-status-height wp) 0))) (redrawing ed))
-                (let [i 0]
-                  (loop [attr attr
-                         i i]
-                    (if (< i (.w-status-height wp))
-                      (let [r (i32 (+ row i))
-                            _ (.set fillchar-vsep__o (fillchar-vsep ed attr wp r))
-                            attr (.attr fillchar-vsep__o)
-                            fillchar (.r__ fillchar-vsep__o)
-                            _ (screen-putchar ed fillchar r (i32 (+ (.w-wincol wp) (.w-width wp))) attr)]
-                        (let [i (i32 (inc i))]
-                          (recur attr i)))
-                      (let [_ (g! ed win-redr-status-busy false)]
-                        nil))))
-                (let [_ (g! ed win-redr-status-busy false)]
-                  nil)))))))))
+        ^T_fillchar_vsep__out_T fillchar-vsep__o (new-T_fillchar_vsep__out_T)
+        ^longs tl__ (long-array 2)
+        ^objects to__ (object-array 1)]
+    (when-not (g ed win-redr-status-busy)
+      (g! ed win-redr-status-busy true)
+      (let [row (long (statusline-row ed wp))]
+        (.set-w-redr-status wp (boolean false))
+        (if (== (.w-status-height wp) 0)
+          (g! ed redraw-cmdline (e TRUE))
+          (if (redrawing ed)
+            (do (.set fillchar-status__o (fillchar-status ed wp))
+                (let [attr (.attr fillchar-status__o)
+                      fillchar (.r__ fillchar-status__o)
+                      _ (get-trans-bufname ed (.w-buffer wp))
+                      ^BytePtr p (g ed NameBuff)
+                      plen (i32 (long (musl-strlen ed p)))
+                      plen (if (and (or (bt-help? ed (.w-buffer wp)) (not (zero? (long (bufIsChanged ed (.w-buffer wp)))))) (< plen 4095))
+                             (let [t1 plen
+                                   plen (i32 (inc plen))
+                                   ^BytePtr t2 (.add p t1)]
+                               (.put t2 (unchecked-byte 32))
+                               (.put (.add p plen) (unchecked-byte (e NUL)))
+                               plen)
+                             plen)
+                      plen (if (bt-help? ed (.w-buffer wp))
+                             (let [t3 (long (whim.cljhost/vim-snprintf ed (.add p plen) (i32 (- (e PATH_MAX) plen)) (BytePtr/lit "%s") (object-array [(gettext_ ed (BytePtr/lit "[Help]"))])))
+                                   plen (i32 (+ plen t3))]
+                               plen)
+                             plen)]
+                  (when-not (zero? (long (bufIsChanged ed (.w-buffer wp))))
+                    (let [t4 (long (whim.cljhost/vim-snprintf ed (.add p plen) (i32 (- (e PATH_MAX) plen)) (BytePtr/lit "%s") (object-array [(BytePtr/lit "[+]")])))
+                          plen (i32 (+ plen t4))]
+                      nil))
+                  (let [this-ru-col (i32 (- (g ed ru-col) (i32 (- (g ed cmdline-width) (.w-width wp)))))
+                        n (i32 (quot (i32 (+ (.w-width wp) 1)) 2))
+                        this-ru-col (if (< this-ru-col n)
+                                      n
+                                      this-ru-col)
+                        j__2 (if (<= this-ru-col 1)
+                               (let [^BytePtr p (BytePtr/lit "<")
+                                     plen 1]
+                                 (aset to__ 0 p)
+                                 (aset tl__ 0 plen)
+                                 0)
+                               (let [plen (long (mb-string2cells ed p -1))
+                                     i 0
+                                     l__1 (loop [i i
+                                                 plen plen]
+                                            (if (and (not (== (bit-and (.at p i) 0xff) (e NUL))) (>= plen (i32 (- this-ru-col 1))))
+                                              (let [t5 (long (utf-ptr2cells ed (.add p i)))
+                                                    plen (i32 (- plen t5))
+                                                    t6 (long (utfc-ptr2len ed (.add p i)))
+                                                    i (i32 (+ i t6))]
+                                                (recur i plen))
+                                              (do (aset tl__ 1 i)
+                                                  (aset tl__ 0 plen)
+                                                  0)))
+                                     i (aget tl__ 1)
+                                     plen (aget tl__ 0)]
+                                 (if (> i 0)
+                                   (let [^BytePtr p (.add (.add p i) (- 1))
+                                         _ (.put p (unchecked-byte 60))
+                                         plen (i32 (inc plen))]
+                                     (aset to__ 0 p)
+                                     (aset tl__ 0 plen)
+                                     0)
+                                   (do (aset to__ 0 p)
+                                       (aset tl__ 0 plen)
+                                       0))))
+                        ^BytePtr p (aget to__ 0)
+                        plen (aget tl__ 0)]
+                    (screen-puts ed p row (.w-wincol wp) attr)
+                    (screen-fill ed row (i32 (+ row 1)) (i32 (+ plen (.w-wincol wp))) (i32 (+ this-ru-col (.w-wincol wp))) fillchar fillchar attr)
+                    (let [i 1]
+                      (loop [i i]
+                        (when (< i (.w-status-height wp))
+                          (screen-fill ed (i32 (+ row i)) (i32 (+ (i32 (+ row i)) 1)) (.w-wincol wp) (i32 (+ (.w-wincol wp) (.w-width wp))) fillchar fillchar attr)
+                          (let [i (i32 (inc i))]
+                            (recur i))))
+                      (win-redr-ruler ed wp true ignore-pum)
+                      (when (and (not (zero? (long (aget (g ed p-sc) 0)))) (== (bit-and (.get ^BytePtr (aget (g ed p-sloc) 0)) 0xff) 115))
+                        (let [n (i32 (- (i32 (- this-ru-col plen)) 2))
+                              width (if (< 10 n) 10 n)]
+                          (when (> width 0)
+                            (screen-puts-len ed (BytePtr. (g ed showcmd-buf) 0) width row (i32 (- (i32 (- (i32 (+ (.w-wincol wp) this-ru-col)) width)) 1)) attr))
+                          (showcmd-update-clear-state ed)))))))
+            (.set-w-redr-status wp (boolean true))))
+        (if (and (not (== (.w-vsep-width wp) 0)) (not (== (.w-status-height wp) 0)) (redrawing ed))
+          (let [i 0]
+            (loop [i i]
+              (if (< i (.w-status-height wp))
+                (let [r (i32 (+ row i))
+                      _ (.set fillchar-vsep__o (fillchar-vsep ed wp r))
+                      attr (.attr fillchar-vsep__o)
+                      fillchar (.r__ fillchar-vsep__o)
+                      _ (screen-putchar ed fillchar r (i32 (+ (.w-wincol wp) (.w-width wp))) attr)
+                      i (i32 (inc i))]
+                  (recur i))
+                (do (g! ed win-redr-status-busy false)
+                    nil))))
+          (do (g! ed win-redr-status-busy false)
+              nil))))))
 
 ;; C: after_updating_screen
 (defn after-updating-screen [^Editor ed may-resize-shell]
@@ -48153,14 +48087,11 @@
               ^BytePtr sb-str (aget to__ 2)
               sb-col (aget tl__ 1)]
           (when (> t-col 0)
-            (let [t-col (long (t-puts ed t-col t-s s attr))]
-              nil))
+            (t-puts ed t-col t-s s attr))
           (if (and (not (zero? (long (aget (g ed p-more) 0)))) (not recurse) (not (and (BytePtr/eq s (.add sb-str 1)) (== (bit-and (.get sb-str) 0xff) 10))))
-            (do (.set store-sb-text__o (store-sb-text ed sb-str s attr sb-col false))
-                (let [^BytePtr sb-str (.sb-str store-sb-text__o)
-                      sb-col (.sb-col store-sb-text__o)]
-                  (msg-check ed)
-                  nil))
+            (do (store-sb-text ed sb-str s attr sb-col false)
+                (msg-check ed)
+                nil)
             (do (msg-check ed)
                 nil))))))
 
@@ -49575,7 +49506,6 @@
                 (do (.set handle-mapping__o (handle-mapping ed keylen timedout mapdepth))
                     (let [keylen (.keylenp handle-mapping__o)
                           timedout (.timedout handle-mapping__o)
-                          mapdepth (.mapdepth handle-mapping__o)
                           result (.r__ handle-mapping__o)]
                       (if (== result (e map_result_retry))
                         (recur 2 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)
@@ -50667,12 +50597,9 @@
 
 ;; C: win_comp_pos
 (defn win-comp-pos [^Editor ed]
-  (let [^T_frame_comp_pos__out_T frame-comp-pos__o (new-T_frame_comp_pos__out_T)
-        row 0
-        col 0
-        _ (.set frame-comp-pos__o (frame-comp-pos ed (g ed topframe) row col))
-        row (.row frame-comp-pos__o)
-        col (.col frame-comp-pos__o)]
+  (let [row 0
+        col 0]
+    (frame-comp-pos ed (g ed topframe) row col)
     nil))
 
 ;; C: cursor_down_inner
@@ -54255,7 +54182,7 @@
         ^ints col (int-array 1)
         ^ints prevcol (int-array 1)
         ^longs tl__ (long-array 4)
-        ^objects to__ (object-array 5)]
+        ^objects to__ (object-array 2)]
     (aset col 0 (unchecked-int 0))
     (let [this-class 0
           bn 0
@@ -54338,46 +54265,22 @@
                 startcol (i32 (- startcol (long (aget col 0))))
                 _ (aset col 0 (unchecked-int 0))
                 this-class (long (mb-get-class ed ptr))]
-            (loop [bn bn]
+            (loop []
               (let [t4 (not (== (bit-and (.at ptr (long (aget col 0))) 0xff) (e NUL)))
-                    j__6 (if t4
-                           (let [t5 (if (== i 0) (== (long (mb-get-class ed (.add ptr (long (aget col 0))))) this-class) (not (== (long (mb-get-class ed (.add ptr (long (aget col 0))))) 0)))
-                                 j__5 (if t5
-                                        (do (aset tl__ 2 bn)
-                                            (aset to__ 3 (Boolean/valueOf (boolean t5)))
-                                            0)
-                                        (let [t6 (and (not (zero? (bit-and find-type (e FIND_EVAL)))) (<= (long (aget col 0)) startcol))
-                                              j__4 (if t6
-                                                     (do (.set find-is-eval-item__o (find-is-eval-item ed (.add ptr (long (aget col 0))) (IntPtr. col 0) bn (e FORWARD)))
-                                                         (let [bn (.bnp find-is-eval-item__o)
-                                                               t6 (.r__ find-is-eval-item__o)]
-                                                           (aset tl__ 2 bn)
-                                                           (aset to__ 4 (Boolean/valueOf (boolean t6)))
-                                                           0))
-                                                     (do (aset tl__ 2 bn)
-                                                         (aset to__ 4 (Boolean/valueOf (boolean t6)))
-                                                         0))
-                                              bn (aget tl__ 2)
-                                              t6 (boolean (aget to__ 4))
-                                              t5 t6]
-                                          (aset tl__ 2 bn)
-                                          (aset to__ 3 (Boolean/valueOf (boolean t5)))
-                                          0))
-                                 bn (aget tl__ 2)
-                                 t5 (boolean (aget to__ 3))
-                                 t4 t5]
-                             (aset tl__ 2 bn)
-                             (aset to__ 2 (Boolean/valueOf (boolean t4)))
-                             0)
-                           (do (aset tl__ 2 bn)
-                               (aset to__ 2 (Boolean/valueOf (boolean t4)))
-                               0))
-                    bn (aget tl__ 2)
-                    t4 (boolean (aget to__ 2))]
+                    t4 (if t4
+                         (let [t5 (if (== i 0) (== (long (mb-get-class ed (.add ptr (long (aget col 0))))) this-class) (not (== (long (mb-get-class ed (.add ptr (long (aget col 0))))) 0)))]
+                           (if t5
+                             t5
+                             (let [t6 (and (not (zero? (bit-and find-type (e FIND_EVAL)))) (<= (long (aget col 0)) startcol))]
+                               (if t6
+                                 (do (.set find-is-eval-item__o (find-is-eval-item ed (.add ptr (long (aget col 0))) (IntPtr. col 0) bn (e FORWARD)))
+                                     (.r__ find-is-eval-item__o))
+                                 t6))))
+                         t4)]
                 (if t4
                   (let [t7 (long (utfc-ptr2len ed (.add ptr (long (aget col 0)))))]
                     (aset col 0 (unchecked-int (+ (long (aget col 0)) t7)))
-                    (recur bn))
+                    (recur))
                   (long (aget col 0)))))))))))
 
 ;; C: find_ident_under_cursor
@@ -54385,10 +54288,8 @@
   (long (find-ident-at-pos ed (g ed curwin) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.col ^T_pos_T (.-w-cursor (g ed curwin))) text nil find-type)))
 
 ;; C: get_spec_reg
-(defn get-spec-reg ^T_get_spec_reg__out_T [^Editor ed regname ^Ptr argp allocated errmsg]
-  (let [regname (long regname)
-        allocated (long allocated)
-        ^T_get_spec_reg__out_T out__ (new-T_get_spec_reg__out_T)
+(defn get-spec-reg ^T_get_spec_reg__out_T [^Editor ed ^long regname ^Ptr argp errmsg]
+  (let [^T_get_spec_reg__out_T out__ (new-T_get_spec_reg__out_T)
         ^T_get_spec_reg__out_T out___2 (new-T_get_spec_reg__out_T)
         ^T_get_spec_reg__out_T out___3 (new-T_get_spec_reg__out_T)
         ^T_get_spec_reg__out_T out___4 (new-T_get_spec_reg__out_T)
@@ -54607,7 +54508,6 @@
                 ^Ptr y-array nil
                 ^T_yankreg_T y-current-used nil
                 nr-lines 0
-                allocated (e FALSE)
                 orig-start-lnum (.lnum ^T_pos_T (.-b-op-start (g ed curbuf)))
                 orig-start-col (.col ^T_pos_T (.-b-op-start (g ed curbuf)))
                 orig-start-coladd (.coladd ^T_pos_T (.-b-op-start (g ed curbuf)))
@@ -54628,11 +54528,10 @@
                   (let [j__1 (if (and (== regname 61) (some? expr-result))
                                (do (aset ^objects (.-string insert-string) 0 expr-result)
                                    0)
-                               (do (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. ^objects (.-string insert-string) 0) allocated true))
-                                   (let [allocated (.allocated get-spec-reg__o)]
-                                     (if (and (.r__ get-spec-reg__o) (nil? (aget ^objects (.-string insert-string) 0)))
-                                       -1
-                                       0))))]
+                               (do (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. ^objects (.-string insert-string) 0) true))
+                                   (if (and (.r__ get-spec-reg__o) (nil? (aget ^objects (.-string insert-string) 0)))
+                                     -1
+                                     0)))]
                     (when-not (== (long j__1) -1)
                       (if (u-save ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
                         (let [j__2 (if (some? (aget ^objects (.-string insert-string) 0))
@@ -55257,7 +55156,6 @@
 (defn insert-reg [^Editor ed ^long regname ^long literally-arg]
   (let [^T_get_spec_reg__out_T get-spec-reg__o (new-T_get_spec_reg__out_T)
         ^objects arg (object-array 1)
-        allocated 0
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 1)
         retval true
@@ -55268,61 +55166,60 @@
         false
         (if (== regname 46)
           (stuff-inserted ed (e NUL) 1 true)
-          (do (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. arg 0) allocated true))
-              (let [allocated (.allocated get-spec-reg__o)]
-                (if (.r__ get-spec-reg__o)
-                  (if (nil? (aget arg 0))
+          (do (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. arg 0) true))
+              (if (.r__ get-spec-reg__o)
+                (if (nil? (aget arg 0))
+                  false
+                  (do (stuffescaped ed (aget arg 0) literally)
+                      retval))
+                (let [literally (if (get-yank-register ed regname (e FALSE))
+                                  (e TRUE)
+                                  literally)]
+                  (if (nil? (.y-array (g ed y-current)))
                     false
-                    (do (stuffescaped ed (aget arg 0) literally)
-                        retval))
-                  (let [literally (if (get-yank-register ed regname (e FALSE))
-                                    (e TRUE)
-                                    literally)]
-                    (if (nil? (.y-array (g ed y-current)))
-                      false
-                      (let [i 0]
-                        (loop [i i]
-                          (if (< i (.y-size (g ed y-current)))
-                            (let [j__2 (if (and (== regname 45) (== (.y-type (g ed y-current)) (e MCHAR)))
-                                         (let [dir -1
-                                               j__1 (if (== (bit-and (g ed State) (e REPLACE_FLAG)) 0)
-                                                      (do (aset tl__ 0 dir)
-                                                          0)
-                                                      (if (u-save-cursor ed)
-                                                        (do (del-chars ed (long (mb-charlen ed (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) 0)) 0))) true)
-                                                            (let [curpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                  curpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                  curpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
-                                                                  dir (if (oneright ed)
-                                                                        dir
-                                                                        (e FORWARD))]
-                                                              (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) curpos-lnum)
-                                                              (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) curpos-col)
-                                                              (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) curpos-coladd)
-                                                              (aset tl__ 0 dir)
-                                                              0))
-                                                        1))]
-                                           (case (long j__1)
-                                             0
-                                               (let [dir (aget tl__ 0)]
-                                                 (AppendCharToRedobuff ed (e Ctrl_R))
-                                                 (AppendCharToRedobuff ed regname)
-                                                 (do-put ed regname nil dir 1 (e PUT_CURSEND))
+                    (let [i 0]
+                      (loop [i i]
+                        (if (< i (.y-size (g ed y-current)))
+                          (let [j__2 (if (and (== regname 45) (== (.y-type (g ed y-current)) (e MCHAR)))
+                                       (let [dir -1
+                                             j__1 (if (== (bit-and (g ed State) (e REPLACE_FLAG)) 0)
+                                                    (do (aset tl__ 0 dir)
+                                                        0)
+                                                    (if (u-save-cursor ed)
+                                                      (do (del-chars ed (long (mb-charlen ed (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) 0)) 0))) true)
+                                                          (let [curpos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                curpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                curpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
+                                                                dir (if (oneright ed)
+                                                                      dir
+                                                                      (e FORWARD))]
+                                                            (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) curpos-lnum)
+                                                            (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) curpos-col)
+                                                            (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) curpos-coladd)
+                                                            (aset tl__ 0 dir)
+                                                            0))
+                                                      1))]
+                                         (case (long j__1)
+                                           0
+                                             (let [dir (aget tl__ 0)]
+                                               (AppendCharToRedobuff ed (e Ctrl_R))
+                                               (AppendCharToRedobuff ed regname)
+                                               (do-put ed regname nil dir 1 (e PUT_CURSEND))
+                                               0)
+                                           1
+                                             1))
+                                       (do (stuffescaped ed (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i)) 0) literally)
+                                           (if (or (== (.y-type (g ed y-current)) (e MLINE)) (< i (- (.y-size (g ed y-current)) 1)))
+                                             (do (stuffcharReadbuff ed 10)
                                                  0)
-                                             1
-                                               1))
-                                         (do (stuffescaped ed (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i)) 0) literally)
-                                             (if (or (== (.y-type (g ed y-current)) (e MLINE)) (< i (- (.y-size (g ed y-current)) 1)))
-                                               (do (stuffcharReadbuff ed 10)
-                                                   0)
-                                               0)))]
-                              (case (long j__2)
-                                0
-                                  (let [i (inc i)]
-                                    (recur i))
-                                1
-                                  false))
-                            retval))))))))))
+                                             0)))]
+                            (case (long j__2)
+                              0
+                                (let [i (inc i)]
+                                  (recur i))
+                              1
+                                false))
+                          retval)))))))))
       false)))
 
 ;; C: ins_reg
@@ -57301,8 +57198,7 @@
                         (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 13
                   (do (.set ins-bs__o (ins-bs ed c (e BACKSPACE_LINE) inserted-space))
-                      (let [inserted-space (.inserted-space-p ins-bs__o)
-                            did-backspace (.r__ ins-bs__o)
+                      (let [did-backspace (.r__ ins-bs__o)
                             inserted-space (e FALSE)]
                         (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 14
@@ -62230,16 +62126,14 @@
 (defn cmdline-paste [^Editor ed ^long regname literally remcr]
   (let [^T_get_spec_reg__out_T get-spec-reg__o (new-T_get_spec_reg__out_T)
         ^objects arg (object-array 1)
-        allocated 0
         ^objects to__ (object-array 2)]
     (if (and (not (== regname (e Ctrl_F))) (not (== regname (e Ctrl_P))) (not (== regname (e Ctrl_W))) (not (== regname (e Ctrl_A))) (not (== regname (e Ctrl_L))) (not (valid-yank-reg ed regname false)))
       false
       (do (line-breakcheck ed)
           (if (zero? (g ed got-int))
             (do (g! ed textlock (i32 (inc (g ed textlock))))
-                (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. arg 0) allocated true))
-                (let [allocated (.allocated get-spec-reg__o)
-                      i (if (.r__ get-spec-reg__o) 1 0)]
+                (.set get-spec-reg__o (get-spec-reg ed regname (Ptr. arg 0) true))
+                (let [i (if (.r__ get-spec-reg__o) 1 0)]
                   (g! ed textlock (i32 (dec (g ed textlock))))
                   (if (zero? i)
                     (cmdline-paste-reg ed regname literally remcr)
@@ -62574,8 +62468,6 @@
               searchstrlen (long (aget patlen 0))
               patlen-s (i32 (- (.cmdlen (g ed ccline)) (long (aget skiplen 0))))
               _ (.set parse-search-pattern-offset__o (parse-search-pattern-offset ed pat patlen-s (long (aget search-delim 0)) (e SEARCH_OPT) (Ptr. strcopy 0) searchstr searchstrlen dircp offset))
-              ^BytePtr pat (.pat parse-search-pattern-offset__o)
-              patlen-s (.patlen parse-search-pattern-offset__o)
               ^BytePtr searchstr (.searchstr parse-search-pattern-offset__o)
               searchstrlen (.searchstrlen parse-search-pattern-offset__o)
               ^BytePtr dircp (.dircp parse-search-pattern-offset__o)
@@ -62893,8 +62785,6 @@
                       11
                         (do (.set cmdline-browse-history__o (cmdline-browse-history ed c firstc lookfor lookforlen histype hiscnt xpc))
                             (let [^BytePtr lookfor (.curcmdstr cmdline-browse-history__o)
-                                  lookforlen (.curcmdstrlen cmdline-browse-history__o)
-                                  hiscnt (.hiscnt-p cmdline-browse-history__o)
                                   res (.r__ cmdline-browse-history__o)]
                               (if (== res (e CMDLINE_CHANGED))
                                 (recur 12 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
@@ -66992,7 +66882,7 @@
                   (.copy ^T_find_term_bykeys__out_T out___2)))))))))
 
 ;; C: replace_termcodes
-(defn replace-termcodes ^T_replace_termcodes__out_T [^Editor ed ^BytePtr from ^BytePtr bufp sid-arg flags ^IntPtr did-simplify]
+(defn replace-termcodes ^T_replace_termcodes__out_T [^Editor ed ^BytePtr from sid-arg flags ^IntPtr did-simplify]
   (let [sid-arg (long sid-arg)
         flags (long flags)
         ^T_find_term_bykeys__out_T find-term-bykeys__o (new-T_find_term_bykeys__out_T)
@@ -67190,9 +67080,7 @@
            haskey false
            do-print false
            keyround 0
-           ^BytePtr keys-buf nil
            ^BytePtr alt-keys-buf nil
-           ^BytePtr arg-buf nil
            retval 0
            do-backslash false
            ^Ptr abbr-table nil
@@ -67219,9 +67107,7 @@
         0
           (do (java.util.Arrays/fill mp-result nil)
               (let [len 0
-                    ^BytePtr keys-buf nil
                     ^BytePtr alt-keys-buf nil
-                    ^BytePtr arg-buf nil
                     retval 0
                     unique false
                     nowait false
@@ -67245,42 +67131,42 @@
                     unmap-lhs-only (boolean (aget to__ 0))]
                 (if (== maptype (e MAPTYPE_NOREMAP))
                   (let [noremap -1]
-                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                   (let [noremap (e REMAP_YES)]
-                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
+                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
         1
           (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<buffer>") 8)) 0)
             (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
                   ^Ptr map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)
                   ^Ptr abbr-table (Ptr. ^objects (.-b-first-abbr (g ed curbuf)) 0)]
-              (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+              (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
             (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<nowait>") 8)) 0)
               (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
                     nowait true]
-                (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
               (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<silent>") 8)) 0)
                 (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
                       silent true]
-                  (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                  (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                 (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<special>") 9)) 0)
                   (let [^BytePtr keys_ (skipwhite ed (.add keys_ 9))
                         special true]
-                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                    (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                   (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<unique>") 8)) 0)
                     (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
                           unique true]
-                      (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                      (recur 1 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                     (do (validate-maphash ed)
                         (let [^BytePtr p keys_
                               do-backslash (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BSLASH)))]
-                          (recur 2 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))))
+                          (recur 2 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))))
         2
           (if (and (not (zero? (bit-and (.get p) 0xff))) (or (== maptype (e MAPTYPE_UNMAP)) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))))
             (let [^BytePtr p (if (and (or (== (bit-and (.at p 0) 0xff) (e Ctrl_V)) (and do-backslash (== (bit-and (.at p 0) 0xff) 92))) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
                                ^BytePtr (.add p 1)
                                p)
                   ^BytePtr p (.add p 1)]
-              (recur 2 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+              (recur 2 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
             (let [^BytePtr p (if (== (bit-and (.get p) 0xff) (e NUL))
                                p
                                (let [^BytePtr t1 p
@@ -67299,12 +67185,11 @@
                                    flags (if special
                                            (bit-or flags (e REPTERM_SPECIAL))
                                            flags)]
-                               (.set replace-termcodes__o (replace-termcodes ed keys_ keys-buf 0 flags (IntPtr. did-simplify 0)))
-                               (let [^BytePtr keys-buf (.bufp replace-termcodes__o)
-                                     ^BytePtr new-keys (.r__ replace-termcodes__o)
+                               (.set replace-termcodes__o (replace-termcodes ed keys_ 0 flags (IntPtr. did-simplify 0)))
+                               (let [^BytePtr new-keys (.r__ replace-termcodes__o)
                                      ^BytePtr alt-keys-buf (if (zero? (long (aget did-simplify 0)))
                                                              alt-keys-buf
-                                                             (do (.set replace-termcodes__o (replace-termcodes ed keys_ alt-keys-buf 0 (bit-or flags (e REPTERM_NO_SIMPLIFY)) nil))
+                                                             (do (.set replace-termcodes__o (replace-termcodes ed keys_ 0 (bit-or flags (e REPTERM_NO_SIMPLIFY)) nil))
                                                                  ^BytePtr (.bufp replace-termcodes__o)))
                                      ^BytePtr keys_ new-keys]
                                  (aset to__ 1 keys_)
@@ -67319,13 +67204,11 @@
                       ^BytePtr rhs (if hasarg
                                      (if (== (long (musl-strcasecmp ed rhs (BytePtr/lit "<nop>"))) 0)
                                        ^BytePtr (BytePtr/lit "")
-                                       (do (.set replace-termcodes__o (replace-termcodes ed rhs arg-buf 0 (bit-or (e REPTERM_DO_LT) (if special (e REPTERM_SPECIAL) 0)) nil))
-                                           (let [^BytePtr arg-buf (.bufp replace-termcodes__o)
-                                                 ^BytePtr rhs (.r__ replace-termcodes__o)]
-                                             rhs)))
+                                       (do (.set replace-termcodes__o (replace-termcodes ed rhs 0 (bit-or (e REPTERM_DO_LT) (if special (e REPTERM_SPECIAL) 0)) nil))
+                                           ^BytePtr (.r__ replace-termcodes__o)))
                                      rhs)
                       keyround 1]
-                  (recur 3 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
+                  (recur 3 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
         3
           (if (<= keyround 2)
             (let [did-it false
@@ -67333,14 +67216,14 @@
                   keyround1-simplified (and (== keyround 1) (not (zero? (long (aget did-simplify 0)))))]
               (if (== keyround 2)
                 (if (nil? alt-keys-buf)
-                  (recur 22 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                  (recur 22 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                   (let [^BytePtr keys_ alt-keys-buf]
-                    (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                    (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
                 (if (and (some? alt-keys-buf) do-print)
                   (let [^BytePtr keys_ alt-keys-buf]
-                    (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                  (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-            (recur 22 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                    (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                  (recur 4 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
+            (recur 22 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         4
           (if haskey
             (let [len (i32 (long (musl-strlen ed keys_)))]
@@ -67356,9 +67239,9 @@
                         t2 (long (utfc-ptr2len ed p))
                         ^BytePtr p (.add p t2)
                         n 1]
-                    (recur 5 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                  (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
-            (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                    (recur 5 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                  (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
+            (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         5
           (if (.lt p (.add (BytePtr. keys-unescaped 0) keys-unescaped-len))
             (let [n (i32 (inc n))
@@ -67368,18 +67251,18 @@
                          same)
                   t3 (long (utfc-ptr2len ed p))
                   ^BytePtr p (.add p t3)]
-              (recur 5 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+              (recur 5 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
             (if (and last_ (> n 2) (>= same 0) (< same (i32 (- n 1))))
               1
               (let [n 0]
-                (recur 6 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
+                (recur 6 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
         6
           (if (< n len)
             (if (or (== (bit-and (.at keys_ n) 0xff) 32) (== (bit-and (.at keys_ n) 0xff) 9))
               1
               (let [n (i32 (inc n))]
-                (recur 6 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 6 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+            (recur 7 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         7
           (do (when (and haskey hasarg abbrev)
                 (g! ed no-abbr (e FALSE)))
@@ -67387,20 +67270,20 @@
                 (msg-start ed))
               (if (and unique (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)) haskey hasarg (not (== maptype (e MAPTYPE_UNMAP))))
                 (let [hash_ 0]
-                  (recur 8 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                  (recur 8 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
         8
           (if (and (< hash_ 256) (zero? (g ed got-int)))
             (if abbrev
               (if (== hash_ 0)
                 (let [^S_mapblock mp (aget (g ed first-abbr) 0)]
-                  (recur 9 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                  (recur 9 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
               (let [^S_mapblock mp (aget (g ed maphash) hash_)]
-                (recur 9 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 9 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+            (recur 11 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         9
-          (recur 10 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+          (recur 10 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
         10
           (if (and (some? mp) (zero? (g ed got-int)))
             (if (and (not (== (bit-and (.m-mode mp) mode) 0)) (== (.m-keylen mp) len) (== (long (musl-strncmp ed (.m-keys mp) keys_ len)) 0))
@@ -67412,33 +67295,33 @@
                     (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-global-mapping-already-exists-for-str) 0))))
                     5))
               (let [^S_mapblock mp (aget ^objects (.-m-next mp) 0)]
-                (recur 10 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                (recur 10 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
             (let [hash_ (i32 (inc hash_))]
-              (recur 8 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+              (recur 8 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
         11
           (let [did-local (if (and (not (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))) (not hasarg) (not (== maptype (e MAPTYPE_UNMAP))))
                             (long (list-mappings ed keyround abbrev haskey keys_ len mode did-local))
                             did-local)
                 num-rounds (if (and (== maptype (e MAPTYPE_UNMAP)) (not unmap-lhs-only)) 2 1)
                 round 0]
-            (recur 12 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 12 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         12
           (if (and (< round num-rounds) (not did-it) (zero? (g ed got-int)))
             (let [hash__2 0]
-              (recur 14 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+              (recur 14 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
             (if (== maptype (e MAPTYPE_UNMAP))
               (if did-it
                 (if (== (bit-and (.get keys_) 0xff) (e Ctrl_C))
                   (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
                     (do (.set-b-mapped-ctrl-c (g ed curbuf) (bit-and (.b-mapped-ctrl-c (g ed curbuf)) (bit-not mode)))
-                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                     (do (g! ed mapped-ctrl-c (bit-and (g ed mapped-ctrl-c) (bit-not mode)))
-                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                 (if keyround1-simplified
-                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                   (let [retval 2]
-                    (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
+                    (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
               (if (or (not haskey) (not hasarg))
                 (if (and (not did-it) (zero? did-local))
                   (if abbrev
@@ -67448,32 +67331,32 @@
                         retval))
                   retval)
                 (if did-it
-                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                  (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                   (do (aset mp-result (i32 (- keyround 1)) (map-add ed map-table abbr-table keys_ rhs orig-rhs noremap nowait silent mode abbrev keyround1-simplified))
                       (if (nil? (aget mp-result (i32 (- keyround 1))))
                         4
-                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))))
+                        (recur 13 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))))
         13
           (let [keyround (i32 (inc keyround))]
-            (recur 3 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 3 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         14
           (if (and (< hash__2 256) (zero? (g ed got-int)))
             (if abbrev
               (if (> hash__2 0)
-                (recur 21 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                (recur 21 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                 (let [^Ptr mpp abbr-table]
-                  (recur 15 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                  (recur 15 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
               (let [^Ptr mpp (.add map-table hash__2)]
-                (recur 15 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-            (recur 21 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 15 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+            (recur 21 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         15
           (let [^S_mapblock mp (.get mpp)]
-            (recur 16 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 16 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         16
           (if (and (some? mp) (zero? (g ed got-int)))
             (if (== (bit-and (.m-mode mp) mode) 0)
               (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-                (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
               (if haskey
                 (let [j__3 (if (zero? round)
                              (let [n (.m-keylen mp)
@@ -67492,12 +67375,12 @@
                     (if (== maptype (e MAPTYPE_UNMAP))
                       (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (bit-and (.get ^BytePtr (skipwhite ed (.add keys_ n))) 0xff) (e NUL)))))
                         (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-                          (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                          (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
                         (if (and keyround1-simplified (not (.m-simplified mp)))
-                          (recur 18 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                          (recur 18 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                           (do (.set-m-mode mp (bit-and (.m-mode mp) (bit-not mode)))
                               (let [did-it true]
-                                (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
+                                (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))))
                       (if hasarg
                         (if (== n len)
                           (if unique
@@ -67523,45 +67406,45 @@
                                     (.set-m-simplified mp (boolean keyround1-simplified))
                                     (aset mp-result (i32 (- keyround 1)) mp)
                                     (let [did-it true]
-                                      (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
-                                  (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
+                                      (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                                  (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
                           (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-                            (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                            (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
                         (if (.m-simplified mp)
-                          (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                          (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                           (do (showmap ed mp (not (Ptr/eq map-table (Ptr. (g ed maphash) 0))))
                               (let [did-it true]
-                                (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))
-                    (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
+                                (recur 17 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))
+                    (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)))
                 (if (.m-simplified mp)
-                  (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
+                  (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2)
                   (do (showmap ed mp (not (Ptr/eq map-table (Ptr. (g ed maphash) 0))))
                       (let [did-it true]
-                        (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))
-            (recur 18 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                        (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))))
+            (recur 18 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         17
           (if (== (.m-mode mp) 0)
             (do (map-free ed mpp)
-                (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
             (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128) (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff))]
               (if (and (not abbrev) (not (== new-hash hash__2)))
                 (do (.put mpp (aget ^objects (.-m-next mp) 0))
                     (aset ^objects (.-m-next mp) 0 (.at map-table new-hash))
                     (.set map-table new-hash mp)
-                    (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
-                (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
+                    (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+                (recur 19 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))))
         18
           (let [hash__2 (i32 (inc hash__2))]
-            (recur 14 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 14 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         19
           (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
-            (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 20 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         20
           (let [^S_mapblock mp (.get mpp)]
-            (recur 16 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 16 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         21
           (let [round (i32 (inc round))]
-            (recur 12 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround keys-buf alt-keys-buf arg-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
+            (recur 12 maptype arg mode abbrev keys_ mp mpp rhs p n len hasarg haskey do-print keyround alt-keys-buf retval do-backslash abbr-table map-table unique nowait silent special unmap-lhs-only noremap orig-rhs did-it did-local keyround1-simplified round num-rounds first_ last_ same keys-unescaped-len hash_ hash__2))
         22
           (if (and (some? (aget mp-result 0)) (some? (aget mp-result 1)))
             (do (.set-m-alt ^S_mapblock (aget mp-result 0) (aget mp-result 1))
@@ -67638,8 +67521,7 @@
       (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
           nil)
       (do (.set get-map-mode__o (get-map-mode ed cmdp forceit))
-          (let [^BytePtr cmdp (.cmdp get-map-mode__o)
-                mode (.r__ get-map-mode__o)]
+          (let [mode (.r__ get-map-mode__o)]
             (map-clear-mode ed (g ed curbuf) mode local abbr)
             nil)))))
 
@@ -73594,7 +73476,7 @@
         (.copy ^T_stropt_get_newval__out_T out__)))))
 
 ;; C: do_set_option_string
-(defn do-set-option-string ^T_do_set_option_string__out_T [^Editor ed opt-idx opt-flags ^BytePtr argp nextchar op-arg flags cp-val ^T_optvar_T varp-arg ^BytePtr errbuf errbuflen ^IntPtr value-checked ^BytePtr errmsg]
+(defn do-set-option-string ^T_do_set_option_string__out_T [^Editor ed opt-idx opt-flags ^BytePtr argp nextchar op-arg flags cp-val ^T_optvar_T varp-arg ^BytePtr errbuf errbuflen ^IntPtr value-checked]
   (let [opt-idx (long opt-idx)
         opt-flags (long opt-flags)
         nextchar (long nextchar)
@@ -73637,9 +73519,6 @@
                              ^BytePtr oldval)]
       (.set stropt-get-newval__o (stropt-get-newval ed nextchar opt-idx arg (.copy ^T_optvar_T varp) origval origval-l origval-g oldval op (i32 flags) cp-val))
       (let [^BytePtr arg (.argp stropt-get-newval__o)
-            ^BytePtr origval (.origval-arg stropt-get-newval__o)
-            ^BytePtr origval-l (.origval-l-arg stropt-get-newval__o)
-            ^BytePtr origval-g (.origval-g-arg stropt-get-newval__o)
             ^BytePtr oldval (.oldval-arg stropt-get-newval__o)
             op (.op-arg stropt-get-newval__o)
             ^BytePtr newval (.r__ stropt-get-newval__o)]
@@ -73737,7 +73616,7 @@
                      -1)
                    (if (zero? (bit-and flags (e P_NUM)))
                      (if (>= opt-idx 0)
-                       (do (.set do-set-option-string__o (do-set-option-string ed opt-idx opt-flags arg nextchar op flags cp-val (.copy ^T_optvar_T varp) errbuf errbuflen (IntPtr. value-checked 0) errmsg))
+                       (do (.set do-set-option-string__o (do-set-option-string ed opt-idx opt-flags arg nextchar op flags cp-val (.copy ^T_optvar_T varp) errbuf errbuflen (IntPtr. value-checked 0)))
                            (let [^BytePtr arg (.argp do-set-option-string__o)
                                  ^BytePtr errmsg (.errmsg do-set-option-string__o)]
                              (if (.r__ do-set-option-string__o)
@@ -74020,7 +73899,6 @@
                                (let [^BytePtr errmsg nil
                                      _ (aset startarg 0 (aget arg 0))
                                      _ (.set do-set-option__o (do-set-option ed opt-flags (Ptr. arg 0) arg-start (Ptr. startarg 0) did-show (IntPtr. stopopteval 0) (BytePtr. errbuf 0) (e ERR_BUFLEN)))
-                                     did-show (.did-show do-set-option__o)
                                      ^BytePtr errmsg (.r__ do-set-option__o)]
                                  (if (zero? (long (aget stopopteval 0)))
                                    (let [i 0]
@@ -74855,10 +74733,9 @@
 
 ;; C: did_set_pastetoggle
 (defn did-set-pastetoggle ^BytePtr [^Editor ed ^T_optset_T args]
-  (let [^T_replace_termcodes__out_T replace-termcodes__o (new-T_replace_termcodes__out_T)
-        ^BytePtr p nil]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (new-T_replace_termcodes__out_T)]
     (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed p-pt) 0)) 0xff))
-      (.set replace-termcodes__o (replace-termcodes ed (aget (g ed p-pt) 0) p 0 3 nil))
+      (.set replace-termcodes__o (replace-termcodes ed (aget (g ed p-pt) 0) 0 3 nil))
       (let [^BytePtr p (.bufp replace-termcodes__o)]
         (when (some? p)
           (free-string-option ed (aget (g ed p-pt) 0))

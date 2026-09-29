@@ -104,11 +104,11 @@ func TestDoWhileZero(t *testing.T) {
 	}
 	g := string(b)
 	for _, want := range []string{
-		"\tfor {\n\t\tk := a * 2\n",            // the body runs once: k declared where C does
-		"\t\tif b == 1 {\n\t\t\tbreak once1\n", // continue leaves the labeled for
-		"once1:\n\tfor {\n",
-		"\tfor {\n\t\tif a > 5 {\n\t\t\tbreak\n\t\t}\n\t\treturn a\n\t}\n\treturn -a", // no break after a return
-		"\t\tif !(n > 0) {\n\t\t\tbreak\n",                                            // a loop's test stays
+		"\tswitch {\n\tdefault:\n\t\tk := a * 2\n", // the body runs once: k declared where C does
+		"\t\tif b == 1 {\n\t\t\tbreak once1\n",     // continue leaves the labeled switch
+		"once1:\n\tswitch {\n",
+		"\tswitch {\n\tdefault:\n\t\tif a > 5 {\n\t\t\tbreak\n\t\t}\n\t\treturn a\n\t}\n\treturn -a", // a break leaves the switch
+		"\t\tif !(n > 0) {\n\t\t\tbreak\n", // a loop's test stays
 	} {
 		if !strings.Contains(g, want) {
 			t.Errorf("no %q in:\n%s", want, g)

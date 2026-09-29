@@ -11043,7 +11043,6 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 				v = int64(ptr.Sub(line))
 				update_search_hl__o = ed.update_search_hl(wp, lnum, int32(v), line, &ed.screen_search_hl, &has_match_conc, &match_conc, did_line_attr, lcs_eol_one, on_last_col)
 				line = update_search_hl__o.line
-				on_last_col = update_search_hl__o.on_last_col
 				search_attr = update_search_hl__o.r__
 				ptr = line.Add(int(v))
 				if int32(ptr.Get()) == NUL {
@@ -11708,7 +11707,7 @@ func (ed *Editor) win_redr_status(wp *S_window_S, ignore_pum bool) {
 		var plen int32
 		var this_ru_col int32
 		var n int32
-		fillchar_status__o = ed.fillchar_status(attr, wp)
+		fillchar_status__o = ed.fillchar_status(wp)
 		attr = fillchar_status__o.attr
 		fillchar = fillchar_status__o.r__
 		ed.get_trans_bufname(wp.w_buffer)
@@ -11772,7 +11771,7 @@ func (ed *Editor) win_redr_status(wp *S_window_S, ignore_pum bool) {
 		i = 0
 		for ; i < wp.w_status_height; i++ {
 			r := row + i
-			fillchar_vsep__o = ed.fillchar_vsep(attr, wp, r)
+			fillchar_vsep__o = ed.fillchar_vsep(wp, r)
 			attr = fillchar_vsep__o.attr
 			fillchar = fillchar_vsep__o.r__
 			ed.screen_putchar(fillchar, r, (wp.w_wincol + wp.w_width), attr)
@@ -11827,7 +11826,7 @@ func (ed *Editor) win_redr_ruler(wp *S_window_S, always bool, ignore_pum bool) {
 		ed.cursor_off()
 		if wp.w_status_height != 0 {
 			row = statusline_row(wp)
-			fillchar_status__o = ed.fillchar_status(attr, wp)
+			fillchar_status__o = ed.fillchar_status(wp)
 			attr = fillchar_status__o.attr
 			fillchar = fillchar_status__o.r__
 			off = wp.w_wincol
@@ -13068,7 +13067,6 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 			did_backspace = (ins_bs__o.r__)
 		case Ctrl_U:
 			ins_bs__o = ed.ins_bs(c, BACKSPACE_LINE, inserted_space)
-			inserted_space = ins_bs__o.inserted_space_p
 			did_backspace = (ins_bs__o.r__)
 			inserted_space = FALSE
 		case K_PASTESTART:
@@ -15957,7 +15955,8 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 				}
 				ed.curwin.w_cursor.lnum = lnum
 				do_again = false
-				for {
+				switch {
+				default:
 					if ((matchcol == prev_matchcol) && (regmatch.endpos[0].lnum == 0)) && (matchcol == regmatch.endpos[0].col) {
 						if int32(sub_firstline_string.At(int(matchcol))) == NUL {
 							skip_match = true
@@ -16194,7 +16193,6 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 							p1 = p1.Add(int(ed.utfc_ptr2len(p1) - 1))
 						}
 					}
-					break
 				}
 				lastone = (((((skip_match || (ed.got_int != 0)) || got_quit) || (lnum > line2)) || !((ed.ex_substitute_subflags.do_all != 0) || do_again)) || (((int32(sub_firstline_string.At(int(matchcol))) == NUL) && (nmatch <= 1)) && (re_multiline(regmatch.regprog) == 0)))
 				nmatch = -1
@@ -16707,7 +16705,8 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 		ed.quitmore--
 	}
 	save_cmdmod = ed.cmdmod
-	for {
+	switch {
+	default:
 		if (int32((*cmdlinep).At(0)) == '#') && (int32((*cmdlinep).At(1)) == '!') {
 			break
 		}
@@ -16896,7 +16895,6 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 		if !ea.errmsg.Nil() {
 			errormsg = ea.errmsg
 		}
-		break
 	}
 	if ed.curwin.w_cursor.lnum == 0 {
 		ed.curwin.w_cursor.lnum = 1
@@ -18858,8 +18856,6 @@ func (ed *Editor) may_adjust_incsearch_highlighting(firstc int32, count int64, i
 	searchstrlen = uint64(patlen)
 	patlen_s = uint64((ed.ccline.cmdlen - skiplen))
 	parse_search_pattern_offset__o = ed.parse_search_pattern_offset(pat, patlen_s, search_delim, SEARCH_OPT, &strcopy, searchstr, searchstrlen, dircp, &offset)
-	pat = parse_search_pattern_offset__o.pat
-	patlen_s = parse_search_pattern_offset__o.patlen
 	searchstr = parse_search_pattern_offset__o.searchstr
 	searchstrlen = parse_search_pattern_offset__o.searchstrlen
 	dircp = parse_search_pattern_offset__o.dircp
@@ -19397,7 +19393,8 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 		ed.ccline = cmdline_info_T{}
 	}
 	ed.init_incsearch_state(&is_state)
-	for {
+	switch {
+	default:
 		if !ed.init_ccline(firstc, indent) {
 			break
 		}
@@ -19602,8 +19599,6 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 			case K_UP, K_DOWN, K_S_UP, K_S_DOWN, K_PAGEUP, K_KPAGEUP, K_PAGEDOWN, K_KPAGEDOWN:
 				cmdline_browse_history__o = ed.cmdline_browse_history(c, firstc, lookfor, lookforlen, histype, hiscnt, &xpc)
 				lookfor = cmdline_browse_history__o.curcmdstr
-				lookforlen = cmdline_browse_history__o.curcmdstrlen
-				hiscnt = cmdline_browse_history__o.hiscnt_p
 				res = cmdline_browse_history__o.r__
 				if res == CMDLINE_CHANGED {
 					goto cmdline_changed
@@ -19690,7 +19685,6 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 		}
 		ed.State = save_State
 		ed.sb_text_end_cmdline()
-		break
 	}
 	p = ed.ccline.cmdbuff
 	ed.getcmdline_int_depth--
@@ -19969,7 +19963,6 @@ func (ed *Editor) cmdline_paste(regname int32, literally bool, remcr bool) bool 
 	var i int64
 	var arg Ptr[byte]
 	var p Ptr[byte]
-	var allocated int32
 	if (((((regname != Ctrl_F) && (regname != Ctrl_P)) && (regname != Ctrl_W)) && (regname != Ctrl_A)) && (regname != Ctrl_L)) && !ed.valid_yank_reg(regname, false) {
 		return false
 	}
@@ -19978,8 +19971,7 @@ func (ed *Editor) cmdline_paste(regname int32, literally bool, remcr bool) bool 
 		return false
 	}
 	ed.textlock++
-	get_spec_reg__o = ed.get_spec_reg(regname, &arg, allocated, true)
-	allocated = get_spec_reg__o.allocated
+	get_spec_reg__o = ed.get_spec_reg(regname, &arg, true)
 	i = int64(B2i(get_spec_reg__o.r__))
 	ed.textlock--
 	if i != 0 {
@@ -21995,7 +21987,6 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 					handle_mapping__o = ed.handle_mapping(keylen, timedout, mapdepth)
 					keylen = handle_mapping__o.keylenp
 					timedout = handle_mapping__o.timedout
-					mapdepth = handle_mapping__o.mapdepth
 					var result map_result_T = handle_mapping__o.r__
 					if result == map_result_retry {
 						continue
@@ -24942,9 +24933,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 	var haskey bool
 	var do_print bool
 	var keyround int32
-	var keys_buf Ptr[byte] = Ptr[byte]{}
 	var alt_keys_buf Ptr[byte] = Ptr[byte]{}
-	var arg_buf Ptr[byte] = Ptr[byte]{}
 	var retval int32 = 0
 	var do_backslash bool
 	var abbr_table **S_mapblock
@@ -25027,11 +25016,10 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 		if special {
 			flags |= REPTERM_SPECIAL
 		}
-		replace_termcodes__o = ed.replace_termcodes(keys, keys_buf, 0, flags, &did_simplify)
-		keys_buf = replace_termcodes__o.bufp
+		replace_termcodes__o = ed.replace_termcodes(keys, 0, flags, &did_simplify)
 		new_keys = replace_termcodes__o.r__
 		if did_simplify != 0 {
-			replace_termcodes__o = ed.replace_termcodes(keys, alt_keys_buf, 0, flags|REPTERM_NO_SIMPLIFY, nil)
+			replace_termcodes__o = ed.replace_termcodes(keys, 0, flags|REPTERM_NO_SIMPLIFY, nil)
 			alt_keys_buf = replace_termcodes__o.bufp
 			_ = replace_termcodes__o.r__
 		}
@@ -25048,8 +25036,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 			} else {
 				t2 = 0
 			}
-			replace_termcodes__o = ed.replace_termcodes(rhs, arg_buf, 0, REPTERM_DO_LT|t2, nil)
-			arg_buf = replace_termcodes__o.bufp
+			replace_termcodes__o = ed.replace_termcodes(rhs, 0, REPTERM_DO_LT|t2, nil)
 			rhs = replace_termcodes__o.r__
 		}
 	}
@@ -25339,7 +25326,6 @@ func (ed *Editor) map_clear(cmdp Ptr[byte], arg Ptr[byte], forceit bool, abbr bo
 		return
 	}
 	get_map_mode__o = get_map_mode(cmdp, (forceit))
-	cmdp = get_map_mode__o.cmdp
 	mode = get_map_mode__o.r__
 	ed.map_clear_mode(ed.curbuf, mode, (local), (abbr))
 }
@@ -27041,7 +27027,7 @@ func (ed *Editor) utf_ptr2cells(p Ptr[byte]) int32 {
 	var c int32
 	var len_ int32
 	if int32(p.Get()) >= 0x80 {
-		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p)
 		len_ = utf_ptr2char_and_len__o.lenp
 		c = utf_ptr2char_and_len__o.r__
 		if (len_ == 1) || (c == NUL) {
@@ -27081,7 +27067,8 @@ func (ed *Editor) utf_off2cells(off uint32, max_off uint32) int32 {
 	return t1
 }
 
-func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte], lenp int32) utf_ptr2char_and_len__out_T {
+func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte]) utf_ptr2char_and_len__out_T {
+	var lenp int32
 	var len_ int32
 	var c int32
 	if int32(p.At(0)) < 0x80 {
@@ -27172,9 +27159,10 @@ func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte], lenp int32) utf_ptr2char_and
 	return out___11
 }
 
-func (ed *Editor) utf_ptr2char_and_len_len(p Ptr[byte], size int32, lenp int32) utf_ptr2char_and_len_len__out_T {
+func (ed *Editor) utf_ptr2char_and_len_len(p Ptr[byte], size int32) utf_ptr2char_and_len_len__out_T {
 	var out___4 utf_ptr2char_and_len_len__out_T
 
+	var lenp int32
 	var len_ int32
 	var c int32
 	if size < 1 {
@@ -27298,10 +27286,7 @@ func (ed *Editor) utf_iscomposinglike_char(c1 int32, c2 int32) bool {
 }
 
 func (ed *Editor) utf_ptr2char(p Ptr[byte]) int32 {
-	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
-	var len_ int32
-	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
-	len_ = utf_ptr2char_and_len__o.lenp
+	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T = ed.utf_ptr2char_and_len(p)
 	return utf_ptr2char_and_len__o.r__
 }
 
@@ -27367,11 +27352,11 @@ func (ed *Editor) utfc_ptr2char(p Ptr[byte], pcc Ptr[int32]) int32 {
 	var cc int32
 	var cc_len int32
 	var i int32 = 0
-	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p)
 	len_ = utf_ptr2char_and_len__o.lenp
 	c = utf_ptr2char_and_len__o.r__
 	if ((len_ > 1) || (int32(p.Get()) < 0x80)) && (int32(p.At(int(len_))) >= 0x80) {
-		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)))
 		cc_len = utf_ptr2char_and_len__o.lenp
 		cc = utf_ptr2char_and_len__o.r__
 		if ed.utf_iscomposinglike_char(c, cc) {
@@ -27386,7 +27371,7 @@ func (ed *Editor) utfc_ptr2char(p Ptr[byte], pcc Ptr[int32]) int32 {
 				if int32(p.At(int(len_))) < 0x80 {
 					break
 				}
-				utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+				utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)))
 				cc_len = utf_ptr2char_and_len__o.lenp
 				cc = utf_ptr2char_and_len__o.r__
 				if !ed.utf_iscomposing(cc) {
@@ -27408,11 +27393,11 @@ func (ed *Editor) utfc_ptr2char_len(p Ptr[byte], pcc Ptr[int32], maxlen int32) i
 	var cc int32
 	var cc_len int32
 	var i int32 = 0
-	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p, maxlen, len_)
+	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p, maxlen)
 	len_ = utf_ptr2char_and_len_len__o.lenp
 	c = utf_ptr2char_and_len_len__o.r__
 	if (((len_ > 1) || (int32(p.Get()) < 0x80)) && (len_ < maxlen)) && (int32(p.At(int(len_))) >= 0x80) {
-		utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_, cc_len)
+		utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_)
 		cc_len = utf_ptr2char_and_len_len__o.lenp
 		cc = utf_ptr2char_and_len_len__o.r__
 		if (cc_len <= (maxlen - len_)) && ed.utf_iscomposinglike_char(c, cc) {
@@ -27427,7 +27412,7 @@ func (ed *Editor) utfc_ptr2char_len(p Ptr[byte], pcc Ptr[int32], maxlen int32) i
 				if (len_ >= maxlen) || (int32(p.At(int(len_))) < 0x80) {
 					break
 				}
-				utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_, cc_len)
+				utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), maxlen-len_)
 				cc_len = utf_ptr2char_and_len_len__o.lenp
 				cc = utf_ptr2char_and_len_len__o.r__
 				if (cc_len > (maxlen - len_)) || !ed.utf_iscomposing(cc) {
@@ -27459,7 +27444,7 @@ func (ed *Editor) utfc_char2bytes(off int32, buf Ptr[byte]) int32 {
 func (ed *Editor) utf_ptr2len(p Ptr[byte]) int32 {
 	var utf_ptr2char_and_len__o utf_ptr2char_and_len__out_T
 	var len_ int32
-	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p)
 	len_ = utf_ptr2char_and_len__o.lenp
 	_ = utf_ptr2char_and_len__o.r__
 	return len_
@@ -27478,7 +27463,7 @@ func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
 	if (b0 < 0x80) && (int32(p.At(1)) < 0x80) {
 		return 1
 	}
-	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p, len_)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p)
 	len_ = utf_ptr2char_and_len__o.lenp
 	c = utf_ptr2char_and_len__o.r__
 	if (len_ == 1) && (b0 >= 0x80) {
@@ -27487,7 +27472,7 @@ func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
 	if int32(p.At(int(len_))) < 0x80 {
 		return len_
 	}
-	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+	utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)))
 	cc_len = utf_ptr2char_and_len__o.lenp
 	cc = utf_ptr2char_and_len__o.r__
 	if !ed.utf_iscomposinglike_char(c, cc) {
@@ -27498,7 +27483,7 @@ func (ed *Editor) utfc_ptr2len(p Ptr[byte]) int32 {
 		if int32(p.At(int(len_))) < 0x80 {
 			return len_
 		}
-		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)), cc_len)
+		utf_ptr2char_and_len__o = ed.utf_ptr2char_and_len(p.Add(int(len_)))
 		cc_len = utf_ptr2char_and_len__o.lenp
 		cc = utf_ptr2char_and_len__o.r__
 		if !ed.utf_iscomposing(cc) {
@@ -27519,7 +27504,7 @@ func (ed *Editor) utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
 	if (int32(p.At(0)) < 0x80) && ((size == 1) || (int32(p.At(1)) < 0x80)) {
 		return 1
 	}
-	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p, size, len_)
+	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p, size)
 	len_ = utf_ptr2char_and_len_len__o.lenp
 	c = utf_ptr2char_and_len_len__o.r__
 	if ((len_ == 1) && (int32(p.At(0)) >= 0x80)) || (len_ > size) {
@@ -27528,7 +27513,7 @@ func (ed *Editor) utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
 	if (len_ >= size) || (int32(p.At(int(len_))) < 0x80) {
 		return len_
 	}
-	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_, cc_len)
+	utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_)
 	cc_len = utf_ptr2char_and_len_len__o.lenp
 	cc = utf_ptr2char_and_len_len__o.r__
 	if (cc_len > (size - len_)) || !ed.utf_iscomposinglike_char(c, cc) {
@@ -27539,7 +27524,7 @@ func (ed *Editor) utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
 		if (len_ >= size) || (int32(p.At(int(len_))) < 0x80) {
 			break
 		}
-		utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_, cc_len)
+		utf_ptr2char_and_len_len__o = ed.utf_ptr2char_and_len_len(p.Add(int(len_)), size-len_)
 		cc_len = utf_ptr2char_and_len_len__o.lenp
 		cc = utf_ptr2char_and_len_len__o.r__
 		if cc_len > (size - len_) {
@@ -30097,13 +30082,10 @@ func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recu
 		s = s.Add(1)
 	}
 	if t_col > 0 {
-		t_col = ed.t_puts(t_col, t_s, s, attr)
+		ed.t_puts(t_col, t_s, s, attr)
 	}
 	if ((ed.p_more != 0) && !recurse) && !((s == sb_str.Add(1)) && (int32(sb_str.Get()) == 10)) {
-		store_sb_text__o = ed.store_sb_text(sb_str, s, attr, sb_col, false)
-		sb_str = store_sb_text__o.sb_str
-		sb_col = store_sb_text__o.sb_col
-		_ = 0
+		ed.store_sb_text(sb_str, s, attr, sb_col, false)
 	}
 	ed.msg_check()
 }
@@ -34068,7 +34050,8 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		ca.cmdchar = c
 	}
 	idx = ed.find_command(ca.cmdchar)
-	for {
+	switch {
+	default:
 		if idx < 0 {
 			ed.clearopbeep(oap)
 			break
@@ -34146,7 +34129,6 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		if ed.normal_cmd_need_to_wait_for_msg(&ca, &old_pos) {
 			ed.normal_cmd_wait_for_msg()
 		}
-		break
 	}
 	ed.msg_nowait = FALSE
 	if oap.op_type == OP_NOP {
@@ -34354,7 +34336,6 @@ func (ed *Editor) find_ident_at_pos(wp *S_window_S, lnum linenr_T, startcol coln
 				var t5 bool = ((find_type & FIND_EVAL) != 0) && (col <= startcol)
 				if t5 {
 					find_is_eval_item__o = find_is_eval_item(ptr.Add(int(col)), &col, bn, FORWARD)
-					bn = find_is_eval_item__o.bnp
 					t5 = find_is_eval_item__o.r__
 				}
 				t6 = t5
@@ -37598,7 +37579,8 @@ func (ed *Editor) op_delete(oap *S_oparg_S) bool {
 			oap.motion_type = MLINE
 		}
 	}
-	for {
+	switch {
+	default:
 		if (((oap.motion_type == MCHAR) && (oap.line_count == 1)) && (oap.op_type == OP_DELETE)) && (int32(ed.ml_get(oap.start.lnum).Get()) == NUL) {
 			if ed.virtual_op != 0 {
 				break
@@ -37772,7 +37754,6 @@ func (ed *Editor) op_delete(oap *S_oparg_S) bool {
 			}
 		}
 		ed.msgmore(ed.curbuf.b_ml.ml_line_count - old_lcount)
-		break
 	}
 	if (ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0 {
 		if oap.block_mode != 0 {
@@ -38823,7 +38804,8 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 	ptr = ed.ml_get(pos.lnum)
 	linelen = ed.ml_get_len(pos.lnum)
 	col = pos.col
-	for {
+	switch {
+	default:
 		if (col + B2i(!(save_coladd == 0))) >= linelen {
 			break
 		}
@@ -39164,7 +39146,6 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 				ed.curbuf.b_op_end.col--
 			}
 		}
-		break
 	}
 	if visual != 0 {
 		ed.curwin.w_cursor.lnum = save_cursor_lnum
@@ -40481,7 +40462,8 @@ func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp Ptr[byte
 	var newval Ptr[byte]
 	var s Ptr[byte] = Ptr[byte]{}
 	var whichwrap Ptr[byte] = Mk[byte](80)
-	for {
+	switch {
+	default:
 		if nextchar == '&' {
 			newval = ed.stropt_get_default_val(opt_idx, varp, flags, cp_val)
 		} else {
@@ -40529,7 +40511,6 @@ func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp Ptr[byte
 				ed.stropt_remove_dupflags(newval, flags)
 			}
 		}
-		break
 	}
 	if !save_arg.Nil() {
 		arg = save_arg
@@ -40551,7 +40532,8 @@ func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp Ptr[byte
 	return out__
 }
 
-func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg Ptr[byte]) do_set_option_string__out_T {
+func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32) do_set_option_string__out_T {
+	var errmsg Ptr[byte]
 	var stropt_get_newval__o stropt_get_newval__out_T
 	arg := argp
 	op := op_arg
@@ -40579,9 +40561,6 @@ func (ed *Editor) do_set_option_string(opt_idx int32, opt_flags int32, argp Ptr[
 	}
 	stropt_get_newval__o = ed.stropt_get_newval(nextchar, opt_idx, arg, varp, origval, origval_l, origval_g, oldval, op, int32(flags), cp_val)
 	arg = stropt_get_newval__o.argp
-	origval = stropt_get_newval__o.origval_arg
-	origval_l = stropt_get_newval__o.origval_l_arg
-	origval_g = stropt_get_newval__o.origval_g_arg
 	oldval = stropt_get_newval__o.oldval_arg
 	op = stropt_get_newval__o.op_arg
 	newval = stropt_get_newval__o.r__
@@ -40779,7 +40758,7 @@ func (ed *Editor) do_set_option_value(opt_idx int32, opt_flags int32, argp Ptr[b
 				return out___3
 			}
 		} else if opt_idx >= 0 {
-			do_set_option_string__o = ed.do_set_option_string(opt_idx, opt_flags, arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen, &value_checked, errmsg)
+			do_set_option_string__o = ed.do_set_option_string(opt_idx, opt_flags, arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen, &value_checked)
 			arg = do_set_option_string__o.argp
 			errmsg = do_set_option_string__o.errmsg
 			if !do_set_option_string__o.r__ {
@@ -40990,7 +40969,6 @@ func (ed *Editor) do_set(arg_start Ptr[byte], opt_flags int32) bool {
 			errbuf = Mk[byte](80)
 			startarg := arg
 			do_set_option__o = ed.do_set_option(opt_flags, &arg, arg_start, &startarg, did_show, &stopopteval, errbuf, ERR_BUFLEN)
-			did_show = do_set_option__o.did_show
 			errmsg = do_set_option__o.r__
 			if stopopteval != 0 {
 				break
@@ -42736,7 +42714,7 @@ func (ed *Editor) did_set_pastetoggle(args *optset_T) Ptr[byte] {
 	var replace_termcodes__o replace_termcodes__out_T
 	var p Ptr[byte]
 	if ed.p_pt.Get() != 0 {
-		replace_termcodes__o = ed.replace_termcodes(ed.p_pt, p, 0, REPTERM_FROM_PART|REPTERM_DO_LT, nil)
+		replace_termcodes__o = ed.replace_termcodes(ed.p_pt, 0, REPTERM_FROM_PART|REPTERM_DO_LT, nil)
 		p = replace_termcodes__o.bufp
 		_ = replace_termcodes__o.r__
 		if !p.Nil() {
@@ -43523,7 +43501,9 @@ func (ed *Editor) getoctchrs() int64 {
 	return int64(nr)
 }
 
-func (ed *Editor) read_limits(minval int64, maxval int64) read_limits__out_T {
+func (ed *Editor) read_limits() read_limits__out_T {
+	var minval int64
+	var maxval int64
 	var reverse bool = false
 	var first_char Ptr[byte]
 	var tmp int64
@@ -43890,7 +43870,8 @@ func (ed *Editor) re_mult_next(what Ptr[byte]) bool {
 	return true
 }
 
-func (ed *Editor) mb_decompose(c int32, c1 int32, c2 *int32, c3 *int32) int32 {
+func (ed *Editor) mb_decompose(c int32, c2 *int32, c3 *int32) int32 {
+	var c1 int32
 	var d_a int32
 	var d_b int32
 	var d_c int32
@@ -43953,8 +43934,8 @@ func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n int3
 			c1 = ed.mb_ptr2char_adv(&str1)
 			c2 = ed.mb_ptr2char_adv(&str2)
 			if (c1 != c2) && ((re.rex.reg_ic == 0) || (ed.utf_fold(c1) != ed.utf_fold(c2))) {
-				c11 = ed.mb_decompose(c1, c11, &junk, &junk)
-				c12 = ed.mb_decompose(c2, c12, &junk, &junk)
+				c11 = ed.mb_decompose(c1, &junk, &junk)
+				c12 = ed.mb_decompose(c2, &junk, &junk)
 				c1 = c11
 				c2 = c12
 				if (c11 != c12) && ((re.rex.reg_ic == 0) || (ed.utf_fold(c11) != ed.utf_fold(c12))) {
@@ -44814,7 +44795,7 @@ func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 				ed.rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
-			reg__o = ed.reg(re, REG_PAREN, flags)
+			reg__o = ed.reg(re, REG_PAREN)
 			flags = reg__o.flagp
 			ret = reg__o.r__
 			if ret.Nil() {
@@ -44916,7 +44897,7 @@ func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 					ed.rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
-				reg__o = ed.reg(re, REG_NPAREN, flags)
+				reg__o = ed.reg(re, REG_NPAREN)
 				flags = reg__o.flagp
 				ret = reg__o.r__
 				if ret.Nil() {
@@ -45543,7 +45524,7 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp int32) regpiece__out_T {
 		ed.regtail(re, ret, next)
 		ed.regoptail(re, ret, next)
 	case -133:
-		read_limits__o = ed.read_limits(minval, maxval)
+		read_limits__o = ed.read_limits()
 		minval = read_limits__o.minval
 		maxval = read_limits__o.maxval
 		if read_limits__o.r__ == 0 {
@@ -45617,9 +45598,10 @@ func (ed *Editor) regpiece(re *S_regengine_S, flagp int32) regpiece__out_T {
 	return out___8
 }
 
-func (ed *Editor) regconcat(re *S_regengine_S, flagp int32) regconcat__out_T {
+func (ed *Editor) regconcat(re *S_regengine_S) regconcat__out_T {
 	var out__ regconcat__out_T
 
+	var flagp int32
 	var regpiece__o regpiece__out_T
 	var first Ptr[byte] = Ptr[byte]{}
 	var chain Ptr[byte] = Ptr[byte]{}
@@ -45686,9 +45668,10 @@ func (ed *Editor) regconcat(re *S_regengine_S, flagp int32) regconcat__out_T {
 	return out___2
 }
 
-func (ed *Editor) regbranch(re *S_regengine_S, flagp int32) regbranch__out_T {
+func (ed *Editor) regbranch(re *S_regengine_S) regbranch__out_T {
 	var out__ regbranch__out_T
 
+	var flagp int32
 	var regconcat__o regconcat__out_T
 	var ret Ptr[byte]
 	var chain Ptr[byte] = Ptr[byte]{}
@@ -45697,7 +45680,7 @@ func (ed *Editor) regbranch(re *S_regengine_S, flagp int32) regbranch__out_T {
 	flagp = WORST | HASNL
 	ret = ed.regnode(BRANCH)
 	for {
-		regconcat__o = ed.regconcat(re, flags)
+		regconcat__o = ed.regconcat(re)
 		flags = regconcat__o.flagp
 		latest = regconcat__o.r__
 		if latest.Nil() {
@@ -45727,9 +45710,10 @@ func (ed *Editor) regbranch(re *S_regengine_S, flagp int32) regbranch__out_T {
 	return out___2
 }
 
-func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp int32) reg__out_T {
+func (ed *Editor) reg(re *S_regengine_S, paren int32) reg__out_T {
 	var out___4 reg__out_T
 
+	var flagp int32
 	var regbranch__o regbranch__out_T
 	var ret Ptr[byte]
 	var br Ptr[byte]
@@ -45770,7 +45754,7 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp int32) reg__out_T {
 		return out___2
 	}
 	ed.bt_reg_parse_depth++
-	regbranch__o = ed.regbranch(re, flags)
+	regbranch__o = ed.regbranch(re)
 	flags = regbranch__o.flagp
 	br = regbranch__o.r__
 	if br.Nil() {
@@ -45792,7 +45776,7 @@ func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp int32) reg__out_T {
 	flagp |= flags & ((SPSTART | HASNL) | HASLOOKBH)
 	for ed.peekchr() == -132 {
 		ed.skipchr()
-		regbranch__o = ed.regbranch(re, flags)
+		regbranch__o = ed.regbranch(re)
 		flags = regbranch__o.flagp
 		br = regbranch__o.r__
 		if br.Nil() || (re.reg_toolong != 0) {
@@ -45914,8 +45898,7 @@ func (ed *Editor) bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) 
 	ed.regcomp_start(re, expr, re_flags)
 	ed.regcode = ed.reg_calc_size_node
 	ed.regc(REGMAGIC)
-	reg__o = ed.reg(re, REG_NOPAREN, flags)
-	flags = reg__o.flagp
+	reg__o = ed.reg(re, REG_NOPAREN)
 	if reg__o.r__.Nil() {
 		return nil
 	}
@@ -45925,7 +45908,7 @@ func (ed *Editor) bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) 
 	ed.regcomp_start(re, expr, re_flags)
 	ed.regcode = r.program
 	ed.regc(REGMAGIC)
-	reg__o = ed.reg(re, REG_NOPAREN, flags)
+	reg__o = ed.reg(re, REG_NOPAREN)
 	flags = reg__o.flagp
 	if reg__o.r__.Nil() || (re.reg_toolong != 0) {
 		if re.reg_toolong != 0 {
@@ -46368,7 +46351,8 @@ func (ed *Editor) regstack_push(re *S_regengine_S, state regstate_T, scan Ptr[by
 	return rp
 }
 
-func regstack_pop(re *S_regengine_S, scan Ptr[byte]) Ptr[byte] {
+func regstack_pop(re *S_regengine_S) Ptr[byte] {
+	var scan Ptr[byte]
 	var rp *S_regitem_S = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len - 1))
 	scan = rp.rs_scan
 	re.regstack.ga_len--
@@ -47241,7 +47225,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 			rp = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len - 1))
 			switch rp.rs_state {
 			case RS_NOPEN:
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 			case RS_MOPEN:
 				if status == RA_NOMATCH {
 					if re.rex.reg_match == nil {
@@ -47250,7 +47234,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						re.rex.reg_startp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 			case RS_MCLOSE:
 				if status == RA_NOMATCH {
 					if re.rex.reg_match == nil {
@@ -47259,10 +47243,10 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						re.rex.reg_endp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 			case RS_BRANCH:
 				if status == RA_MATCH {
-					scan = regstack_pop(re, scan)
+					scan = regstack_pop(re)
 				} else {
 					if status != RA_BREAK {
 						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
@@ -47270,7 +47254,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 					}
 					if scan.Nil() || (int32(scan.Get()) != BRANCH) {
 						status = RA_NOMATCH
-						scan = regstack_pop(re, scan)
+						scan = regstack_pop(re)
 					} else {
 						rp.rs_scan = ed.regnext(re, scan)
 						reg_save(re, &rp.rs_un.regsave, &re.backpos)
@@ -47282,14 +47266,14 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					re.brace_count[int(rp.rs_no)]--
 				}
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 			case RS_BRCPLX_LONG:
 				if status == RA_NOMATCH {
 					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					re.brace_count[int(rp.rs_no)]--
 					status = RA_CONT
 				}
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 				if status == RA_CONT {
 					scan = ed.regnext(re, scan)
 				}
@@ -47297,7 +47281,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 				if status == RA_NOMATCH {
 					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 				}
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 				if status == RA_NOMATCH {
 					scan = scan.Add(3)
 					status = RA_CONT
@@ -47317,13 +47301,13 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					}
 				}
-				scan = regstack_pop(re, scan)
+				scan = regstack_pop(re)
 				if status == RA_CONT {
 					scan = ed.regnext(re, scan)
 				}
 			case RS_BEHIND1:
 				if status == RA_NOMATCH {
-					scan = regstack_pop(re, scan)
+					scan = regstack_pop(re)
 					re.regstack_behind.ga_len--
 					re.regstack_bytes -= 376
 				} else {
@@ -47343,7 +47327,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 						status = RA_NOMATCH
 						restore_subexpr(re, regstack_behind_top(re))
 					}
-					scan = regstack_pop(re, scan)
+					scan = regstack_pop(re)
 					re.regstack_behind.ga_len--
 					re.regstack_bytes -= 376
 				} else {
@@ -47406,7 +47390,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 								restore_subexpr(re, regstack_behind_top(re))
 							}
 						}
-						scan = regstack_pop(re, scan)
+						scan = regstack_pop(re)
 						re.regstack_behind.ga_len--
 						re.regstack_bytes -= 376
 					}
@@ -47414,7 +47398,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 			case RS_STAR_LONG, RS_STAR_SHORT:
 				rst_2 := regstack_star_top(re)
 				if status == RA_MATCH {
-					scan = regstack_pop(re, scan)
+					scan = regstack_pop(re)
 					re.regstack_star.ga_len--
 					re.regstack_bytes -= 32
 					break
@@ -47466,7 +47450,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 					}
 				}
 				if status != RA_CONT {
-					scan = regstack_pop(re, scan)
+					scan = regstack_pop(re)
 					re.regstack_star.ga_len--
 					re.regstack_bytes -= 32
 					status = RA_NOMATCH
@@ -47549,7 +47533,8 @@ func (ed *Editor) bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol co
 		re.rex.reg_startp = View(re.rex.reg_match.startp[:])
 		re.rex.reg_endp = View(re.rex.reg_match.endp[:])
 	}
-	for {
+	switch {
+	default:
 		if (prog == nil) || line.Nil() {
 			if !re.alone.string_.Nil() {
 				re.failed = true
@@ -47653,7 +47638,6 @@ func (ed *Editor) bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol co
 				col += ed.utfc_ptr2len(re.rex.line.Add(int(col)))
 			}
 		}
-		break
 	}
 	if re.reg_tofreelen > 400 {
 		re.reg_tofree = Ptr[byte]{}
@@ -48321,7 +48305,6 @@ func (ed *Editor) insert_reg(regname int32, literally_arg int32) bool {
 	var i int64
 	var retval bool = true
 	var arg Ptr[byte]
-	var allocated int32
 	literally := literally_arg
 	ed.ui_breakcheck()
 	if ed.got_int != 0 {
@@ -48333,8 +48316,7 @@ func (ed *Editor) insert_reg(regname int32, literally_arg int32) bool {
 	if regname == '.' {
 		retval = (ed.stuff_inserted(NUL, 1, true))
 	} else {
-		get_spec_reg__o = ed.get_spec_reg(regname, &arg, allocated, true)
-		allocated = get_spec_reg__o.allocated
+		get_spec_reg__o = ed.get_spec_reg(regname, &arg, true)
 		if get_spec_reg__o.r__ {
 			if arg.Nil() {
 				return false
@@ -48382,7 +48364,8 @@ func (ed *Editor) insert_reg(regname int32, literally_arg int32) bool {
 	return (retval)
 }
 
-func (ed *Editor) get_spec_reg(regname int32, argp *Ptr[byte], allocated int32, errmsg bool) get_spec_reg__out_T {
+func (ed *Editor) get_spec_reg(regname int32, argp *Ptr[byte], errmsg bool) get_spec_reg__out_T {
+	var allocated int32
 	var cnt int32
 	*argp = Ptr[byte]{}
 	allocated = FALSE
@@ -48756,7 +48739,6 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	var y_current_used *yankreg_T
 	var nr_lines int64
 	var insert_string string_T
-	var allocated int32
 	var orig_start_lnum linenr_T
 	var orig_start_col colnr_T
 	var orig_start_coladd colnr_T
@@ -48814,7 +48796,6 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	y_array = Ptr[string_T]{}
 	y_current_used = nil
 	nr_lines = 0
-	allocated = FALSE
 	orig_start_lnum = ed.curbuf.b_op_start.lnum
 	orig_start_col = ed.curbuf.b_op_start.col
 	orig_start_coladd = ed.curbuf.b_op_start.coladd
@@ -48853,13 +48834,13 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	if (regname == '=') && !expr_result.Nil() {
 		insert_string.string_ = expr_result
 	} else {
-		get_spec_reg__o = ed.get_spec_reg(regname, &insert_string.string_, allocated, true)
-		allocated = get_spec_reg__o.allocated
+		get_spec_reg__o = ed.get_spec_reg(regname, &insert_string.string_, true)
 		if get_spec_reg__o.r__ && insert_string.string_.Nil() {
 			return
 		}
 	}
-	for {
+	switch {
+	default:
 		if !ed.u_save(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.lnum+1) {
 			break
 		}
@@ -49336,7 +49317,6 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 			}
 			ed.curwin.w_cursor.col = len__2
 		}
-		break
 	}
 	if ed.cmdmod.cmod_flags&CMOD_LOCKMARKS != 0 {
 		ed.curbuf.b_op_start.lnum = orig_start_lnum
@@ -49710,7 +49690,7 @@ func (ed *Editor) screen_line(wp *S_window_S, row int32, coloff int32, endcol in
 	if clear_width > 0 {
 		if (coloff + col) < (ed.curwin.w_wincol + ed.topframe.fr_width) {
 			var c int32
-			fillchar_vsep__o = ed.fillchar_vsep(hl, wp, row)
+			fillchar_vsep__o = ed.fillchar_vsep(wp, row)
 			hl = fillchar_vsep__o.attr
 			c = fillchar_vsep__o.r__
 			var t5 bool = int32(ed.ScreenLines.At(int(off_to))) != int32(byte(c))
@@ -49761,7 +49741,7 @@ func (ed *Editor) draw_vsep_win(wp *S_window_S, row int32) {
 	start_row := t1
 	r := start_row
 	for ; r < content_end; r++ {
-		fillchar_vsep__o = ed.fillchar_vsep(hl, wp, r)
+		fillchar_vsep__o = ed.fillchar_vsep(wp, r)
 		hl = fillchar_vsep__o.attr
 		c := fillchar_vsep__o.r__
 		ed.screen_fill(r, r+1, (wp.w_wincol + wp.w_width), (wp.w_wincol+wp.w_width)+1, c, ' ', hl)
@@ -49769,7 +49749,7 @@ func (ed *Editor) draw_vsep_win(wp *S_window_S, row int32) {
 	if wp.w_status_height != 0 {
 		var hl_2 int32
 		var c_2 int32
-		fillchar_vsep__o = ed.fillchar_vsep(hl_2, wp, content_end)
+		fillchar_vsep__o = ed.fillchar_vsep(wp, content_end)
 		hl_2 = fillchar_vsep__o.attr
 		c_2 = fillchar_vsep__o.r__
 		r_2 := content_end
@@ -50296,7 +50276,8 @@ func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, e
 		c = c1
 		col = start_col
 		for ; col < end_col; col++ {
-			for {
+			switch {
+			default:
 				var t3 bool = int32(ed.ScreenLines.At(int(off))) != c
 				if !t3 {
 					var t2 int32
@@ -50362,7 +50343,6 @@ func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, e
 						ed.screen_char(uint32(off), row, col)
 					}
 				}
-				break
 			}
 			ed.ScreenCols.Set(int(off), -1)
 			off++
@@ -51422,7 +51402,8 @@ func (ed *Editor) get_trans_bufname(buf *S_file_buffer) {
 	ed.trans_characters(ed.NameBuff, PATH_MAX)
 }
 
-func (ed *Editor) fillchar_status(attr int32, wp *S_window_S) fillchar_status__out_T {
+func (ed *Editor) fillchar_status(wp *S_window_S) fillchar_status__out_T {
+	var attr int32
 	var fill int32
 	var override_success bool = (ed.push_highlight_overrides(wp.w_hl, wp.w_hl_len))
 	if wp == ed.curwin {
@@ -51451,7 +51432,8 @@ func (ed *Editor) vsep_row_is_curwin(wp *S_window_S, row int32) bool {
 	return false
 }
 
-func (ed *Editor) fillchar_vsep(attr int32, wp *S_window_S, row int32) fillchar_vsep__out_T {
+func (ed *Editor) fillchar_vsep(wp *S_window_S, row int32) fillchar_vsep__out_T {
+	var attr int32
 	var override_success bool = (ed.push_highlight_overrides(wp.w_hl, wp.w_hl_len))
 	if ed.vsep_row_is_curwin(wp, row) {
 		attr = ed.highlight_attr[20]
@@ -56198,9 +56180,10 @@ func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32,
 	return 0
 }
 
-func (ed *Editor) replace_termcodes(from Ptr[byte], bufp Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) replace_termcodes__out_T {
+func (ed *Editor) replace_termcodes(from Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) replace_termcodes__out_T {
 	var len_ int32
 
+	var bufp Ptr[byte]
 	var find_term_bykeys__o find_term_bykeys__out_T
 	var i int32
 	var slen int32
@@ -58277,7 +58260,8 @@ func (ed *Editor) undo_time(step int64, sec bool, file bool, absolute bool) {
 	}
 	closest_start = closest
 	closest_seq = ed.curbuf.b_u_seq_cur
-	for {
+	switch {
+	default:
 		if target == 0 {
 			mark = ed.lastmark
 			break
@@ -58399,7 +58383,6 @@ func (ed *Editor) undo_time(step int64, sec bool, file bool, absolute bool) {
 				above = true
 			}
 		}
-		break
 	}
 	if (uhp != nil) || (target == 0) {
 		for ed.got_int == 0 {
@@ -59316,13 +59299,9 @@ func (ed *Editor) shell_new_columns() {
 }
 
 func (ed *Editor) win_comp_pos() {
-	var frame_comp_pos__o frame_comp_pos__out_T
 	var row int32 = 0
 	var col int32 = 0
-	frame_comp_pos__o = ed.frame_comp_pos(ed.topframe, row, col)
-	row = frame_comp_pos__o.row
-	col = frame_comp_pos__o.col
-	_ = 0
+	ed.frame_comp_pos(ed.topframe, row, col)
 }
 
 func (ed *Editor) frame_comp_pos(topfrp *S_frame_S, row int32, col int32) frame_comp_pos__out_T {

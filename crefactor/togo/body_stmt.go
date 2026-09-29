@@ -587,13 +587,14 @@ func isConstFalse(e cc.ExpressionNode) bool {
 }
 
 // once writes `do { body } while (0)`, C's block a break can leave, as Go's
-// `for { body; break }`: a break in the body leaves the for as it left the
-// do.  A continue, which in C tests the false condition and so leaves too, is
-// `break L` to the for labeled L -- labeled, since a switch in between would
-// take a bare break, and not a goto to its end, which Go refuses over a
-// declaration.  The body runs once, so it is no loop for the locals declared
-// in it: they are declared where C declares them.  The closing break is left
-// out after a body that ends in a jump of its own.
+// `switch { default: body }`: a break in the body leaves the switch as it
+// left the do, and the switch, which no loop is, says the body runs once --
+// `for { body; break }` said it too, but staticcheck reads a loop whose end
+// is a break as a loop that should not be one (SA4004).  A continue, which in
+// C tests the false condition and so leaves too, is `break L` to the switch
+// labeled L -- labeled, since a switch in between would take a bare break,
+// and not a goto to its end, which Go refuses over a declaration.  The locals
+// declared in the body are declared where C declares them.
 func (f *fnEmit) once(body *cc.Statement) {
 	cont := ""
 	if hasContinue(body) {
@@ -601,16 +602,14 @@ func (f *fnEmit) once(body *cc.Statement) {
 		f.line("%s:", lbl)
 		cont = "break " + lbl
 	}
-	f.line("for {")
+	f.line("switch {")
+	f.line("default:")
 	f.cont = append(f.cont, cont)
 	f.pushBreakable(false)
 	text := f.capture(func() { f.body(body) })
 	f.popBreakable()
 	f.cont = f.cont[:len(f.cont)-1]
 	f.out.WriteString(text)
-	if !terminates(strings.Split(text, "\n")) {
-		f.line("\tbreak")
-	}
 	f.line("}")
 }
 

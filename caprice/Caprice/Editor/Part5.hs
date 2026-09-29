@@ -1693,11 +1693,11 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
     j'45 !c8 !lookfor16 !lookforlen16 !hiscnt13 !histype13 !save_msg_scroll16 !save_State16 !some_key_typed16 !did_save_ccline16 !wild_type16 !prev_cmdbuff11 !trigger_cmdlinechanged11 !prev_cmdpos11 _ _ _ _ !may_add_char_to_search__o_r__16 !may_add_char_to_search__o_c16 = do
       (r'65, r'66, r'67, r'68) <- cmdline_browse_history ed' c8 firstc lookfor16 lookforlen16 histype13 hiscnt13 (pAdd fr' 160)
       if r'65 == CMDLINE_CHANGED
-        then j'96 r'66 r'67 r'68 histype13 save_msg_scroll16 save_State16 some_key_typed16 did_save_ccline16 wild_type16 prev_cmdbuff11 trigger_cmdlinechanged11 prev_cmdpos11 r'65 r'66 r'67 r'68 may_add_char_to_search__o_r__16 may_add_char_to_search__o_c16
+        then j'96 r'66 lookforlen16 hiscnt13 histype13 save_msg_scroll16 save_State16 some_key_typed16 did_save_ccline16 wild_type16 prev_cmdbuff11 trigger_cmdlinechanged11 prev_cmdpos11 r'65 r'66 r'67 r'68 may_add_char_to_search__o_r__16 may_add_char_to_search__o_c16
         else do
           if r'65 == GOTO_NORMAL_MODE
             then j'82 histype13 save_msg_scroll16 save_State16 some_key_typed16 did_save_ccline16 r'65 r'66 r'67 r'68 may_add_char_to_search__o_r__16 may_add_char_to_search__o_c16
-            else j'91 r'66 r'67 r'68 histype13 save_msg_scroll16 save_State16 some_key_typed16 did_save_ccline16 wild_type16 prev_cmdbuff11 trigger_cmdlinechanged11 prev_cmdpos11 r'65 r'66 r'67 r'68 may_add_char_to_search__o_r__16 may_add_char_to_search__o_c16
+            else j'91 r'66 lookforlen16 hiscnt13 histype13 save_msg_scroll16 save_State16 some_key_typed16 did_save_ccline16 wild_type16 prev_cmdbuff11 trigger_cmdlinechanged11 prev_cmdpos11 r'65 r'66 r'67 r'68 may_add_char_to_search__o_r__16 may_add_char_to_search__o_c16
     j'48 !c9 !do_abbr2 !lookfor17 !lookforlen17 !hiscnt14 !histype14 !save_msg_scroll17 !save_State17 !some_key_typed17 !did_save_ccline17 !wild_type17 !prev_cmdbuff12 !trigger_cmdlinechanged12 !prev_cmdpos12 !cmdline_browse_history__o_r__17 !cmdline_browse_history__o_curcmdstr17 !cmdline_browse_history__o_curcmdstrlen17 !cmdline_browse_history__o_hiscnt_p17 !may_add_char_to_search__o_r__17 !may_add_char_to_search__o_c17 = do
       r'71 <- if do_abbr2 then (if (c9 < 0) then pure True else (do { r'69 <- vim_iswordc ed' c9; pure (not r'69) })) else pure False
       if r'71 && (c9 == Ctrl_RSB)
@@ -2004,7 +2004,7 @@ cmdline_paste ed' regname literally remcr = frame 8 $ \fr' -> do
         else do
           r'17 <- textlock ed'
           set'textlock ed' (r'17 + 1)
-          (r'18, r'19) <- get_spec_reg ed' regname fr' (0 :: Int32) True
+          (r'18, r'19) <- get_spec_reg ed' regname fr' True
           let !i1 = b2i r'18 :: Int64
           r'20 <- textlock ed'
           set'textlock ed' (r'20 - 1)
@@ -2616,11 +2616,11 @@ list_mappings ed' keyround abbrev haskey keys keys_len mode did_local = frame 40
 do_map :: Ed -> Int32 -> Ptr Char_u -> Int32 -> Bool -> IO Int32
 do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
   let
-    j'2 !maptype1 !keys1 !len1 !keys_buf1 !alt_keys_buf1 !arg_buf1 !retval1 !abbr_table1 !map_table1 !unique1 !nowait1 !silent1 !special1 !unmap_lhs_only1 !replace_termcodes__o_r__1 !replace_termcodes__o_bufp1 = do
+    j'2 !maptype1 !keys1 !len1 !alt_keys_buf1 !retval1 !abbr_table1 !map_table1 !unique1 !nowait1 !silent1 !special1 !unmap_lhs_only1 !replace_termcodes__o_r__1 !replace_termcodes__o_bufp1 = do
       if maptype1 == MAPTYPE_NOREMAP
-        then loop'6 maptype1 keys1 len1 keys_buf1 alt_keys_buf1 arg_buf1 retval1 abbr_table1 map_table1 unique1 nowait1 silent1 special1 unmap_lhs_only1 (-1 :: Int32) replace_termcodes__o_r__1 replace_termcodes__o_bufp1
-        else loop'6 maptype1 keys1 len1 keys_buf1 alt_keys_buf1 arg_buf1 retval1 abbr_table1 map_table1 unique1 nowait1 silent1 special1 unmap_lhs_only1 (REMAP_YES :: Int32) replace_termcodes__o_r__1 replace_termcodes__o_bufp1
-    loop'6 !maptype2 !keys2 !len2 !keys_buf2 !alt_keys_buf2 !arg_buf2 !retval2 !abbr_table2 !map_table2 !unique2 !nowait2 !silent2 !special2 !unmap_lhs_only2 !noremap1 !replace_termcodes__o_r__2 !replace_termcodes__o_bufp2 = do
+        then loop'6 maptype1 keys1 len1 alt_keys_buf1 retval1 abbr_table1 map_table1 unique1 nowait1 silent1 special1 unmap_lhs_only1 (-1 :: Int32) replace_termcodes__o_r__1 replace_termcodes__o_bufp1
+        else loop'6 maptype1 keys1 len1 alt_keys_buf1 retval1 abbr_table1 map_table1 unique1 nowait1 silent1 special1 unmap_lhs_only1 (REMAP_YES :: Int32) replace_termcodes__o_r__1 replace_termcodes__o_bufp1
+    loop'6 !maptype2 !keys2 !len2 !alt_keys_buf2 !retval2 !abbr_table2 !map_table2 !unique2 !nowait2 !silent2 !special2 !unmap_lhs_only2 !noremap1 !replace_termcodes__o_r__2 !replace_termcodes__o_bufp2 = do
       r'1 <- musl_strncmp (castPtr keys2) (Ptr "<buffer>\0"#) 8
       if r'1 == 0
         then do
@@ -2629,38 +2629,38 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
           let !map_table3 = pAdd r'3 buf_T'b_maphash
           r'4 <- curbuf ed'
           let !abbr_table3 = pAdd r'4 buf_T'b_first_abbr
-          loop'6 maptype2 r'2 len2 keys_buf2 alt_keys_buf2 arg_buf2 retval2 abbr_table3 map_table3 unique2 nowait2 silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
+          loop'6 maptype2 r'2 len2 alt_keys_buf2 retval2 abbr_table3 map_table3 unique2 nowait2 silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
         else do
           r'5 <- musl_strncmp (castPtr keys2) (Ptr "<nowait>\0"#) 8
           if r'5 == 0
             then do
               r'6 <- skipwhite (pAdd keys2 8)
-              loop'6 maptype2 r'6 len2 keys_buf2 alt_keys_buf2 arg_buf2 retval2 abbr_table2 map_table2 unique2 True silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
+              loop'6 maptype2 r'6 len2 alt_keys_buf2 retval2 abbr_table2 map_table2 unique2 True silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
             else do
               r'7 <- musl_strncmp (castPtr keys2) (Ptr "<silent>\0"#) 8
               if r'7 == 0
                 then do
                   r'8 <- skipwhite (pAdd keys2 8)
-                  loop'6 maptype2 r'8 len2 keys_buf2 alt_keys_buf2 arg_buf2 retval2 abbr_table2 map_table2 unique2 nowait2 True special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
+                  loop'6 maptype2 r'8 len2 alt_keys_buf2 retval2 abbr_table2 map_table2 unique2 nowait2 True special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
                 else do
                   r'9 <- musl_strncmp (castPtr keys2) (Ptr "<special>\0"#) 9
                   if r'9 == 0
                     then do
                       r'10 <- skipwhite (pAdd keys2 9)
-                      loop'6 maptype2 r'10 len2 keys_buf2 alt_keys_buf2 arg_buf2 retval2 abbr_table2 map_table2 unique2 nowait2 silent2 True unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
+                      loop'6 maptype2 r'10 len2 alt_keys_buf2 retval2 abbr_table2 map_table2 unique2 nowait2 silent2 True unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
                     else do
                       r'11 <- musl_strncmp (castPtr keys2) (Ptr "<unique>\0"#) 8
                       if r'11 == 0
                         then do
                           r'12 <- skipwhite (pAdd keys2 8)
-                          loop'6 maptype2 r'12 len2 keys_buf2 alt_keys_buf2 arg_buf2 retval2 abbr_table2 map_table2 True nowait2 silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
+                          loop'6 maptype2 r'12 len2 alt_keys_buf2 retval2 abbr_table2 map_table2 True nowait2 silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
                         else do
                           validate_maphash ed'
                           r'13 <- p_cpo ed'
                           r'14 <- vim_strchr ed' r'13 CPO_BSLASH
                           let !do_backslash1 = r'14 == nullPtr
-                          loop'12 maptype2 keys2 keys2 len2 keys_buf2 alt_keys_buf2 arg_buf2 retval2 do_backslash1 abbr_table2 map_table2 unique2 nowait2 silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
-    loop'12 !maptype3 !keys3 !p1 !len3 !keys_buf3 !alt_keys_buf3 !arg_buf3 !retval3 !do_backslash2 !abbr_table4 !map_table4 !unique3 !nowait3 !silent3 !special3 !unmap_lhs_only3 !noremap2 !replace_termcodes__o_r__3 !replace_termcodes__o_bufp3 = do
+                          loop'12 maptype2 keys2 keys2 len2 alt_keys_buf2 retval2 do_backslash1 abbr_table2 map_table2 unique2 nowait2 silent2 special2 unmap_lhs_only2 noremap1 replace_termcodes__o_r__2 replace_termcodes__o_bufp2
+    loop'12 !maptype3 !keys3 !p1 !len3 !alt_keys_buf3 !retval3 !do_backslash2 !abbr_table4 !map_table4 !unique3 !nowait3 !silent3 !special3 !unmap_lhs_only3 !noremap2 !replace_termcodes__o_r__3 !replace_termcodes__o_bufp3 = do
       r'15 <- rdW8 p1 0
       r'20 <- if (r'15 /= 0) then (if (maptype3 == MAPTYPE_UNMAP) then pure True else (do { r'16 <- rdW8 p1 0; r'18 <- if ((fromIntegral r'16 :: Int32) == (ch ' ')) then pure True else (do { r'17 <- rdW8 p1 0; pure ((fromIntegral r'17 :: Int32) == (ch '\t')) }); pure (not r'18) })) else pure False
       if r'20
@@ -2671,17 +2671,17 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
           if r'26
             then do
               let !p2 = pAdd p1 1
-              j'141 maptype3 keys3 p2 len3 keys_buf3 alt_keys_buf3 arg_buf3 retval3 do_backslash2 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
-            else j'141 maptype3 keys3 p1 len3 keys_buf3 alt_keys_buf3 arg_buf3 retval3 do_backslash2 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
+              j'141 maptype3 keys3 p2 len3 alt_keys_buf3 retval3 do_backslash2 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
+            else j'141 maptype3 keys3 p1 len3 alt_keys_buf3 retval3 do_backslash2 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
         else do
           r'27 <- rdW8 p1 0
           if (fromIntegral r'27 :: Int32) /= NUL
             then do
               let !p3 = pAdd p1 1
               wrW8 p1 0 NUL
-              j'15 maptype3 keys3 p3 len3 keys_buf3 alt_keys_buf3 arg_buf3 retval3 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
-            else j'15 maptype3 keys3 p1 len3 keys_buf3 alt_keys_buf3 arg_buf3 retval3 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
-    j'15 !maptype4 !keys4 !p4 !len4 !keys_buf4 !alt_keys_buf4 !arg_buf4 !retval4 !abbr_table5 !map_table5 !unique4 !nowait4 !silent4 !special4 !unmap_lhs_only4 !noremap3 !replace_termcodes__o_r__4 !replace_termcodes__o_bufp4 = do
+              j'15 maptype3 keys3 p3 len3 alt_keys_buf3 retval3 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
+            else j'15 maptype3 keys3 p1 len3 alt_keys_buf3 retval3 abbr_table4 map_table4 unique3 nowait3 silent3 special3 unmap_lhs_only3 noremap2 replace_termcodes__o_r__3 replace_termcodes__o_bufp3
+    j'15 !maptype4 !keys4 !p4 !len4 !alt_keys_buf4 !retval4 !abbr_table5 !map_table5 !unique4 !nowait4 !silent4 !special4 !unmap_lhs_only4 !noremap3 !replace_termcodes__o_r__4 !replace_termcodes__o_bufp4 = do
       r'28 <- skipwhite p4
       r'29 <- rdW8 r'28 0
       let !hasarg1 = (fromIntegral r'29 :: Int32) /= NUL
@@ -2696,20 +2696,20 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
               if special4
                 then do
                   let !flags1 = (3 :: Int32) .|. REPTERM_SPECIAL
-                  j'19 maptype4 keys4 r'28 len4 hasarg1 haskey1 do_print1 keys_buf4 alt_keys_buf4 arg_buf4 retval4 abbr_table5 map_table5 unique4 nowait4 silent4 special4 unmap_lhs_only4 noremap3 flags1 replace_termcodes__o_r__4 replace_termcodes__o_bufp4
-                else j'19 maptype4 keys4 r'28 len4 hasarg1 haskey1 do_print1 keys_buf4 alt_keys_buf4 arg_buf4 retval4 abbr_table5 map_table5 unique4 nowait4 silent4 special4 unmap_lhs_only4 noremap3 (3 :: Int32) replace_termcodes__o_r__4 replace_termcodes__o_bufp4
-            else j'22 maptype4 keys4 r'28 len4 hasarg1 haskey1 do_print1 alt_keys_buf4 arg_buf4 retval4 abbr_table5 map_table5 unique4 nowait4 silent4 special4 unmap_lhs_only4 noremap3 replace_termcodes__o_r__4 replace_termcodes__o_bufp4
-    j'19 !maptype5 !keys5 !rhs1 !len5 !hasarg2 !haskey2 !do_print2 !keys_buf5 !alt_keys_buf5 !arg_buf5 !retval5 !abbr_table6 !map_table6 !unique5 !nowait5 !silent5 !special5 !unmap_lhs_only5 !noremap4 !flags2 _ _ = do
-      (r'31, r'32) <- replace_termcodes ed' keys5 keys_buf5 0 flags2 (pAdd fr' 16)
+                  j'19 maptype4 keys4 r'28 len4 hasarg1 haskey1 do_print1 alt_keys_buf4 retval4 abbr_table5 map_table5 unique4 nowait4 silent4 special4 unmap_lhs_only4 noremap3 flags1 replace_termcodes__o_r__4 replace_termcodes__o_bufp4
+                else j'19 maptype4 keys4 r'28 len4 hasarg1 haskey1 do_print1 alt_keys_buf4 retval4 abbr_table5 map_table5 unique4 nowait4 silent4 special4 unmap_lhs_only4 noremap3 (3 :: Int32) replace_termcodes__o_r__4 replace_termcodes__o_bufp4
+            else j'22 maptype4 keys4 r'28 len4 hasarg1 haskey1 do_print1 alt_keys_buf4 retval4 abbr_table5 map_table5 unique4 nowait4 silent4 special4 unmap_lhs_only4 noremap3 replace_termcodes__o_r__4 replace_termcodes__o_bufp4
+    j'19 !maptype5 !keys5 !rhs1 !len5 !hasarg2 !haskey2 !do_print2 !alt_keys_buf5 !retval5 !abbr_table6 !map_table6 !unique5 !nowait5 !silent5 !special5 !unmap_lhs_only5 !noremap4 !flags2 _ _ = do
+      (r'31, r'32) <- replace_termcodes ed' keys5 0 flags2 (pAdd fr' 16)
       r'33 <- rdI32 fr' 16
       if r'33 /= 0
         then do
-          (r'34, r'35) <- replace_termcodes ed' keys5 alt_keys_buf5 0 (flags2 .|. REPTERM_NO_SIMPLIFY) nullPtr
-          j'21 maptype5 rhs1 len5 hasarg2 haskey2 do_print2 r'35 arg_buf5 retval5 abbr_table6 map_table6 unique5 nowait5 silent5 special5 unmap_lhs_only5 noremap4 r'31 r'34 r'35
-        else j'21 maptype5 rhs1 len5 hasarg2 haskey2 do_print2 alt_keys_buf5 arg_buf5 retval5 abbr_table6 map_table6 unique5 nowait5 silent5 special5 unmap_lhs_only5 noremap4 r'31 r'31 r'32
-    j'21 !maptype6 !rhs2 !len6 !hasarg3 !haskey3 !do_print3 !alt_keys_buf6 !arg_buf6 !retval6 !abbr_table7 !map_table7 !unique6 !nowait6 !silent6 !special6 !unmap_lhs_only6 !noremap5 !new_keys1 !replace_termcodes__o_r__6 !replace_termcodes__o_bufp6 = do
-      j'22 maptype6 new_keys1 rhs2 len6 hasarg3 haskey3 do_print3 alt_keys_buf6 arg_buf6 retval6 abbr_table7 map_table7 unique6 nowait6 silent6 special6 unmap_lhs_only6 noremap5 replace_termcodes__o_r__6 replace_termcodes__o_bufp6
-    j'22 !maptype7 !keys6 !rhs3 !len7 !hasarg4 !haskey4 !do_print4 !alt_keys_buf7 !arg_buf7 !retval7 !abbr_table8 !map_table8 !unique7 !nowait7 !silent7 !special7 !unmap_lhs_only7 !noremap6 !replace_termcodes__o_r__7 !replace_termcodes__o_bufp7 = do
+          (r'34, r'35) <- replace_termcodes ed' keys5 0 (flags2 .|. REPTERM_NO_SIMPLIFY) nullPtr
+          j'21 maptype5 rhs1 len5 hasarg2 haskey2 do_print2 r'35 retval5 abbr_table6 map_table6 unique5 nowait5 silent5 special5 unmap_lhs_only5 noremap4 r'31 r'34 r'35
+        else j'21 maptype5 rhs1 len5 hasarg2 haskey2 do_print2 alt_keys_buf5 retval5 abbr_table6 map_table6 unique5 nowait5 silent5 special5 unmap_lhs_only5 noremap4 r'31 r'31 r'32
+    j'21 !maptype6 !rhs2 !len6 !hasarg3 !haskey3 !do_print3 !alt_keys_buf6 !retval6 !abbr_table7 !map_table7 !unique6 !nowait6 !silent6 !special6 !unmap_lhs_only6 !noremap5 !new_keys1 !replace_termcodes__o_r__6 !replace_termcodes__o_bufp6 = do
+      j'22 maptype6 new_keys1 rhs2 len6 hasarg3 haskey3 do_print3 alt_keys_buf6 retval6 abbr_table7 map_table7 unique6 nowait6 silent6 special6 unmap_lhs_only6 noremap5 replace_termcodes__o_r__6 replace_termcodes__o_bufp6
+    j'22 !maptype7 !keys6 !rhs3 !len7 !hasarg4 !haskey4 !do_print4 !alt_keys_buf7 !retval7 !abbr_table8 !map_table8 !unique7 !nowait7 !silent7 !special7 !unmap_lhs_only7 !noremap6 !replace_termcodes__o_r__7 !replace_termcodes__o_bufp7 = do
       if hasarg4
         then do
           r'36 <- musl_strcasecmp (castPtr rhs3) (Ptr "<nop>\0"#)
@@ -2718,7 +2718,7 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
               let !rhs4 = Ptr "\0"#
               j'26 maptype7 keys6 rhs4 len7 hasarg4 haskey4 do_print4 alt_keys_buf7 retval7 abbr_table8 map_table8 unique7 nowait7 silent7 unmap_lhs_only7 noremap6 rhs3 replace_termcodes__o_r__7 replace_termcodes__o_bufp7
             else do
-              (r'37, r'38) <- replace_termcodes ed' rhs3 arg_buf7 0 (REPTERM_DO_LT .|. (if special7 then (REPTERM_SPECIAL :: Int32) else (0 :: Int32))) nullPtr
+              (r'37, r'38) <- replace_termcodes ed' rhs3 0 (REPTERM_DO_LT .|. (if special7 then (REPTERM_SPECIAL :: Int32) else (0 :: Int32))) nullPtr
               j'26 maptype7 keys6 r'37 len7 hasarg4 haskey4 do_print4 alt_keys_buf7 retval7 abbr_table8 map_table8 unique7 nowait7 silent7 unmap_lhs_only7 noremap6 rhs3 r'37 r'38
         else j'26 maptype7 keys6 rhs3 len7 hasarg4 haskey4 do_print4 alt_keys_buf7 retval7 abbr_table8 map_table8 unique7 nowait7 silent7 unmap_lhs_only7 noremap6 rhs3 replace_termcodes__o_r__7 replace_termcodes__o_bufp7
     j'26 !maptype8 !keys7 !rhs5 !len8 !hasarg5 !haskey5 !do_print5 !alt_keys_buf8 !retval8 !abbr_table9 !map_table9 !unique8 !nowait8 !silent8 !unmap_lhs_only8 !noremap7 !orig_rhs1 !replace_termcodes__o_r__8 !replace_termcodes__o_bufp8 = do
@@ -3102,16 +3102,16 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
         else j'137 retval34 replace_termcodes__o_r__36 replace_termcodes__o_bufp36
     j'137 !retval35 _ _ = do
       pure retval35
-    j'141 !maptype33 !keys32 !p11 !len34 !keys_buf6 !alt_keys_buf33 !arg_buf8 !retval36 !do_backslash3 !abbr_table34 !map_table34 !unique33 !nowait33 !silent33 !special8 !unmap_lhs_only33 !noremap32 !replace_termcodes__o_r__38 !replace_termcodes__o_bufp38 = do
+    j'141 !maptype33 !keys32 !p11 !len34 !alt_keys_buf33 !retval36 !do_backslash3 !abbr_table34 !map_table34 !unique33 !nowait33 !silent33 !special8 !unmap_lhs_only33 !noremap32 !replace_termcodes__o_r__38 !replace_termcodes__o_bufp38 = do
       let !p12 = pAdd p11 1
-      loop'12 maptype33 keys32 p12 len34 keys_buf6 alt_keys_buf33 arg_buf8 retval36 do_backslash3 abbr_table34 map_table34 unique33 nowait33 silent33 special8 unmap_lhs_only33 noremap32 replace_termcodes__o_r__38 replace_termcodes__o_bufp38
+      loop'12 maptype33 keys32 p12 len34 alt_keys_buf33 retval36 do_backslash3 abbr_table34 map_table34 unique33 nowait33 silent33 special8 unmap_lhs_only33 noremap32 replace_termcodes__o_r__38 replace_termcodes__o_bufp38
   fillMem (pAdd fr' 0) 0 16
   wrI32 fr' 16 FALSE
   let !map_table35 = addr'maphash ed'
   let !abbr_table35 = addr'first_abbr ed'
   if maptype == MAPTYPE_UNMAP_LHS
-    then j'2 (MAPTYPE_UNMAP :: Int32) arg (0 :: Int32) nullPtr nullPtr nullPtr (0 :: Int32) abbr_table35 map_table35 False False False False True nullPtr nullPtr
-    else j'2 maptype arg (0 :: Int32) nullPtr nullPtr nullPtr (0 :: Int32) abbr_table35 map_table35 False False False False False nullPtr nullPtr
+    then j'2 (MAPTYPE_UNMAP :: Int32) arg (0 :: Int32) nullPtr (0 :: Int32) abbr_table35 map_table35 False False False False True nullPtr nullPtr
+    else j'2 maptype arg (0 :: Int32) nullPtr (0 :: Int32) abbr_table35 map_table35 False False False False False nullPtr nullPtr
 
 get_map_mode :: Ptr Char_u -> Bool -> IO (Int32, Ptr Char_u)
 get_map_mode cmdp forceit = do
@@ -9157,8 +9157,8 @@ vim_strnicmp_asc s1 s2 len = do
       pure i3
   loop'1 s1 s2 len (0 :: Int32)
 
-replace_termcodes :: Ed -> Ptr Char_u -> Ptr Char_u -> Scid_T -> Int32 -> Ptr Int32 -> IO (Ptr Char_u, Ptr Char_u)
-replace_termcodes ed' from _bufp _sid_arg flags did_simplify = frame 32 $ \fr' -> do
+replace_termcodes :: Ed -> Ptr Char_u -> Scid_T -> Int32 -> Ptr Int32 -> IO (Ptr Char_u, Ptr Char_u)
+replace_termcodes ed' from _sid_arg flags did_simplify = frame 32 $ \fr' -> do
   let
     j'5 !from1 !dlen1 !do_backslash1 !do_special1 !do_key_code1 !result1 !len1 !find_term_bykeys__o_r__1 !find_term_bykeys__o_matchlen1 !out___r__1 !out___bufp1 !out___2_r__1 !out___2_bufp1 = do
       r'1 <- rdP fr' 0

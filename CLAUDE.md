@@ -22,7 +22,7 @@ slim-vim.c  --whim-->  whim-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (the `Makefile`) removes capability on purpose, phases 0-181 from 180,870
-  lines to 77,762. It is two arcs, a coda, an empty phase, five for the Go's
+  lines to 77,769. It is two arcs, a coda, an empty phase, five for the Go's
   sake, the headers, the gotos, the parallel `:%s`, and the out-parameters
   and struct locals as values:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
@@ -68,7 +68,8 @@ slim-vim.c  --whim-->  whim-vim.c
     forward `goto` leaves -- to a label of a block that holds it, no loop or
     switch between -- in `do { ... } while (0);` and writes the goto `break;`
     (`crefactor/xform`'s `GotoBlock`); togo writes that do-while as Go's
-    `for { ...; break }`. After 170-172: 50 gotos, 11 labels. The C keeps 49
+    `switch { default: ... }`, a break leaving it as the C's does (`for { ...;
+    break }` before, which staticcheck reads as a loop unconditionally ended). After 170-172: 50 gotos, 11 labels. The C keeps 49
     gotos, all in the core (185 before 170): each leaves a loop or switch and
     needs a flag or a state variable, which a Java backend need not have (a
     labeled break says them). The Go keeps the same 49, in 8 functions, from 163 in 34:
@@ -116,9 +117,9 @@ slim-vim.c  --whim-->  whim-vim.c
     nothing else reaches, x not read unsequenced beside the call; the value
     returned, or with the result a struct of them) and a local struct of
     scalars its members' locals (`StructScalar`): 94 out-parameters of 61
-    functions, 66 structs. The Java's `[0]` reads 4,802 -> 4,009, the
-    Clojure's one-element arrays 637 -> 515; the Haskell prints a struct of
-    scalars returned as a tuple.
+    functions (14 taking no value in), 66 structs. The Java's `[0]` reads
+    4,802 -> 4,009, the Clojure's one-element arrays 637 -> 515; the Java
+    takes a struct a call returns as it is, the Haskell as a tuple.
 
   Phase 83 is the line between the two arcs.
 
@@ -411,7 +412,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 151 phases, **1,000 s**, 77,762 lines. A
+  before the reason. Measured: 151 phases, **1,010 s**, 77,769 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -429,8 +430,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **74 s**, 150 links 64 at a time, bound by
-  the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,000 s in
+  committed `whim-vim.c`. Measured: **68 s**, 150 links 64 at a time, bound by
+  the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,010 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose

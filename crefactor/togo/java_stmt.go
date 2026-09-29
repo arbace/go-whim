@@ -59,6 +59,10 @@ type jfn struct {
 	// goto is a labeled block, and a local declared inside one is out of
 	// scope after it, where C's is not
 	hoistAll bool
+	// held: the struct locals whose object nothing else can hold -- of
+	// scalars, their address never taken -- so a call's result is taken as
+	// it is and one returned is not copied (heldStructs)
+	held map[*cc.Declarator]bool
 }
 
 // a declaration written where C declares it, with its zero, which the next
@@ -197,6 +201,7 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 	d := fd.Declarator
 	ft, _ := d.Type().(*cc.FunctionType)
 	f := j.newFn(d.Name(), ft)
+	f.held = heldStructs(fd)
 	defer func() {
 		if r := recover(); r != nil {
 			u, ok := r.(unsupported)
@@ -1017,6 +1022,10 @@ func (f *jfn) jump(j *cc.JumpStatement) {
 		rt := f.ft.Result()
 		v := f.exprTo(j.ExpressionList, f.ret)
 		if isAggr(rt) {
+			if f.heldIdent(j.ExpressionList) != nil {
+				f.stmt1("return %s", v.s) // a local nothing else holds, dying here
+				return
+			}
 			f.stmt1("return %s.copy()", v.s) // a struct is returned by value
 			return
 		}
@@ -1176,4 +1185,83 @@ func switchBreak(cs *cc.CompoundStatement) bool {
 		live = jcomplete(st)
 	}
 	return false
+}
+
+// heldStructs are fd's struct locals -- not parameters, not static -- of
+// scalars and pointers, whose address, or a member's, is never taken:
+// nothing but the local holds its object, and no pointer points into it.
+// Assigned a call's result, which is a struct of its own (a copy, or a
+// local of the callee's that dies with it), the local takes that object;
+// returned, it is not copied, since it dies with the call.  C's value is the
+// same, and the calls allocate one object where they allocated three and
+// copied twice.
+func heldStructs(fd *cc.FunctionDefinition) map[*cc.Declarator]bool {
+	held := map[*cc.Declarator]bool{}
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if d, ok := n.(*cc.Declarator); ok && !d.IsParam() && d.StorageDuration() == cc.Automatic && scalarStruct(d.Type()) {
+			held[d] = true
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(fd.CompoundStatement)
+	var addr func(cc.Node)
+	addr = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+			if d := baseDecl(u.CastExpression); d != nil {
+				delete(held, d)
+			}
+		}
+		walkChildrenFn(n, addr)
+	}
+	addr(fd.CompoundStatement)
+	return held
+}
+
+// baseDecl is the variable an lvalue is, or is a member of: s for s, s.m,
+// (s).m.n.
+func baseDecl(e cc.ExpressionNode) *cc.Declarator {
+	for {
+		switch x := unparenE(e).(type) {
+		case *cc.PrimaryExpression:
+			if x.Case == cc.PrimaryExpressionIdent {
+				d, _ := x.ResolvedTo().(*cc.Declarator)
+				return d
+			}
+			return nil
+		case *cc.PostfixExpression:
+			if x.Case == cc.PostfixExpressionSelect {
+				e = x.PostfixExpression
+				continue
+			}
+			return nil
+		default:
+			return nil
+		}
+	}
+}
+
+// heldIdent is the held struct local e names, or nil.
+func (f *jfn) heldIdent(e cc.ExpressionNode) *cc.Declarator {
+	x, ok := unparenE(e).(*cc.PrimaryExpression)
+	if !ok || x.Case != cc.PrimaryExpressionIdent {
+		return nil
+	}
+	d, _ := x.ResolvedTo().(*cc.Declarator)
+	if d != nil && f.held[d] {
+		return d
+	}
+	return nil
+}
+
+// isCall says e is a call.
+func isCall(e cc.ExpressionNode) bool {
+	x, ok := unparenE(e).(*cc.PostfixExpression)
+	return ok && x.Case == cc.PostfixExpressionCall
 }

@@ -1677,8 +1677,8 @@ stropt_get_newval ed' nextchar opt_idx argp varp origval_arg origval_l_arg origv
               j'6 origval_arg origval_l_arg origval_g_arg oldval_arg op_arg r'26 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32)
             else j'6 origval_arg origval_l_arg origval_g_arg oldval_arg op_arg nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int32)
 
-do_set_option_string :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Int32 -> Set_op_T -> Long_u -> Int32 -> Ptr Optvar_T -> Ptr Int8 -> Usize -> Ptr Int32 -> Ptr Int8 -> IO (Bool, Ptr Char_u, Ptr Int8)
-do_set_option_string ed' opt_idx opt_flags argp nextchar op_arg flags cp_val varp_arg errbuf errbuflen value_checked _errmsg = frame 160 $ \fr' -> do
+do_set_option_string :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Int32 -> Set_op_T -> Long_u -> Int32 -> Ptr Optvar_T -> Ptr Int8 -> Usize -> Ptr Int32 -> IO (Bool, Ptr Char_u, Ptr Int8)
+do_set_option_string ed' opt_idx opt_flags argp nextchar op_arg flags cp_val varp_arg errbuf errbuflen value_checked = frame 160 $ \fr' -> do
   copyMem (pAdd fr' 0) varp_arg 32
   let
     j'2 !arg1 !op1 !origval_l1 !origval_g1 !stropt_get_newval__o_r__1 !stropt_get_newval__o_argp1 !stropt_get_newval__o_origval_arg1 !stropt_get_newval__o_origval_l_arg1 !stropt_get_newval__o_origval_g_arg1 !stropt_get_newval__o_oldval_arg1 !stropt_get_newval__o_op_arg1 !out___r__1 !out___argp1 !out___errmsg1 = do
@@ -1942,7 +1942,7 @@ do_set_option_value ed' opt_idx opt_flags argp prefix op flags varp key_name nex
             else do
               if opt_idx >= 0
                 then do
-                  (r'6, r'7, r'8) <- do_set_option_string ed' opt_idx opt_flags argp nextchar op flags cp_val fr' errbuf errbuflen (pAdd fr' 32) nullPtr
+                  (r'6, r'7, r'8) <- do_set_option_string ed' opt_idx opt_flags argp nextchar op flags cp_val fr' errbuf errbuflen (pAdd fr' 32)
                   if not r'6
                     then do
                       if r'8 /= nullPtr
@@ -2162,7 +2162,7 @@ do_set ed' arg_start opt_flags = frame 104 $ \fr' -> do
                   r'21 <- rdI32 fr' 8
                   if r'21 /= 0
                     then pure True
-                    else loop'7 (0 :: Int32) r'20 r'19 r'19 r'20
+                    else loop'7 (0 :: Int32) did_show1 r'19 r'19 r'20
         else pure True
     loop'7 !i1 !did_show2 !errmsg1 !do_set_option__o_r__2 !do_set_option__o_did_show2 = do
       if i1 < 2
@@ -3546,7 +3546,7 @@ did_set_pastetoggle ed' _args = do
   if r'2 /= 0
     then do
       r'3 <- p_pt ed'
-      (_, r'5) <- replace_termcodes ed' r'3 nullPtr 0 3 nullPtr
+      (_, r'5) <- replace_termcodes ed' r'3 0 3 nullPtr
       if r'5 /= nullPtr
         then do
           _ <- p_pt ed'

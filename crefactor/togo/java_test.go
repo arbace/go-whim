@@ -1729,3 +1729,13 @@ func TestJavaLocals(t *testing.T) {
 		}
 	}
 }
+
+// Structs returned and assigned, as phase 181 writes out-parameters: a held
+// local takes a call's result and is returned uncopied (heldStructs); the
+// output is gcc's.
+func TestJavaHeldStructs(t *testing.T) {
+	j := javaSame(t, hsTupleC)
+	if !strings.Contains(j, "divmod__o = divmod(") || !strings.Contains(j, "return out__;") {
+		t.Errorf("a held struct is copied still:\n%s", j)
+	}
+}

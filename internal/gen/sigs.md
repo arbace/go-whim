@@ -660,8 +660,8 @@ func utf_char2cells(c int32) int32
 func utf_ptr2cells(p Ptr[byte]) int32
 func mb_string2cells(p Ptr[byte], len_ int32) int32
 func utf_off2cells(off uint32, max_off uint32) int32
-func utf_ptr2char_and_len(p Ptr[byte], lenp int32) utf_ptr2char_and_len__out_T
-func utf_ptr2char_and_len_len(p Ptr[byte], size int32, lenp int32) utf_ptr2char_and_len_len__out_T
+func utf_ptr2char_and_len(p Ptr[byte]) utf_ptr2char_and_len__out_T
+func utf_ptr2char_and_len_len(p Ptr[byte], size int32) utf_ptr2char_and_len_len__out_T
 func utf_iscomposinglike_char(c1 int32, c2 int32) bool
 func utf_ptr2char(p Ptr[byte]) int32
 func utf_safe_read_char_adv(s Ptr[byte], n usize) utf_safe_read_char_adv__out_T
@@ -1130,7 +1130,7 @@ func prepend_item(str Ptr[byte], item Ptr[byte], item_len int32)
 func stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, flags int32) bool
 func stropt_remove_dupflags(newval Ptr[byte], flags int32)
 func stropt_get_newval(nextchar int32, opt_idx int32, argp Ptr[byte], varp optvar_T, origval_arg Ptr[byte], origval_l_arg Ptr[byte], origval_g_arg Ptr[byte], oldval_arg Ptr[byte], op_arg set_op_T, flags int32, cp_val int32) stropt_get_newval__out_T
-func do_set_option_string(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg Ptr[byte]) do_set_option_string__out_T
+func do_set_option_string(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32) do_set_option_string__out_T
 func do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_prefix_T, flags long_u, varp optvar_T, nextchar int32, afterchar int32, cp_val int32) Ptr[byte]
 func do_set_option_numeric(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) do_set_option_numeric__out_T
 func do_set_option_keycode(argp Ptr[byte], key_name []byte, nextchar int32) do_set_option_keycode__out_T
@@ -1299,7 +1299,7 @@ func ungetchr()
 func gethexchrs(maxinputlen int32) vimlong_T
 func getdecchrs() vimlong_T
 func getoctchrs() int64
-func read_limits(minval int64, maxval int64) read_limits__out_T
+func read_limits() read_limits__out_T
 func reg_iswordc(re *S_regengine_S, c int32) bool
 func reg_getline_common(re *S_regengine_S, lnum linenr_T, flags reg_getline_flags_T, line *Ptr[byte], length *colnr_T)
 func reg_getline(re *S_regengine_S, lnum linenr_T) Ptr[byte]
@@ -1311,7 +1311,7 @@ func cleanup_subexpr(re *S_regengine_S)
 func reg_nextline(re *S_regengine_S)
 func match_with_backref(re *S_regengine_S, start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen int32) match_with_backref__out_T
 func re_mult_next(what Ptr[byte]) bool
-func mb_decompose(c int32, c1 int32, c2 *int32, c3 *int32) int32
+func mb_decompose(c int32, c2 *int32, c3 *int32) int32
 func cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n int32) cstrncmp__out_T
 func cstrchr(re *S_regengine_S, s Ptr[byte], c int32) Ptr[byte]
 func do_upper(d *int32, c int32)
@@ -1336,9 +1336,9 @@ func seen_endbrace(refnum int32) bool
 func regatom_delim(c int32, delim_nl bool, flagp *int32) Ptr[byte]
 func regatom(re *S_regengine_S, flagp *int32) Ptr[byte]
 func regpiece(re *S_regengine_S, flagp int32) regpiece__out_T
-func regconcat(re *S_regengine_S, flagp int32) regconcat__out_T
-func regbranch(re *S_regengine_S, flagp int32) regbranch__out_T
-func reg(re *S_regengine_S, paren int32, flagp int32) reg__out_T
+func regconcat(re *S_regengine_S) regconcat__out_T
+func regbranch(re *S_regengine_S) regbranch__out_T
+func reg(re *S_regengine_S, paren int32) reg__out_T
 func bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) *S_regprog
 func coll_get_char() int32
 func bt_regfree(prog *S_regprog)
@@ -1351,7 +1351,7 @@ func regrepeat(re *S_regengine_S, p []byte, maxcount int64) int32
 func regstack_star_top(re *S_regengine_S) *S_regstar_S
 func regstack_behind_top(re *S_regengine_S) *S_regbehind_S
 func regstack_push(re *S_regengine_S, state regstate_T, scan Ptr[byte]) *S_regitem_S
-func regstack_pop(re *S_regengine_S, scan Ptr[byte]) Ptr[byte]
+func regstack_pop(re *S_regengine_S) Ptr[byte]
 func save_subexpr(re *S_regengine_S, bp *S_regbehind_S)
 func restore_subexpr(re *S_regengine_S, bp *S_regbehind_S)
 func regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) int32
@@ -1379,7 +1379,7 @@ func do_execreg(regname int32, colon bool, addcr bool, silent bool) bool
 func put_reedit_in_typebuf(silent bool)
 func put_in_typebuf(s Ptr[byte], esc bool, colon bool, silent bool) bool
 func insert_reg(regname int32, literally_arg int32) bool
-func get_spec_reg(regname int32, argp *Ptr[byte], allocated int32, errmsg bool) get_spec_reg__out_T
+func get_spec_reg(regname int32, argp *Ptr[byte], errmsg bool) get_spec_reg__out_T
 func cmdline_paste_reg(regname int32, literally_arg bool, remcr bool) bool
 func shift_delete_registers()
 func init_yank()
@@ -1445,9 +1445,9 @@ func clearmode()
 func recording_mode(attr int32)
 func draw_tabline()
 func get_trans_bufname(buf *S_file_buffer)
-func fillchar_status(attr int32, wp *S_window_S) fillchar_status__out_T
+func fillchar_status(wp *S_window_S) fillchar_status__out_T
 func vsep_row_is_curwin(wp *S_window_S, row int32) bool
-func fillchar_vsep(attr int32, wp *S_window_S, row int32) fillchar_vsep__out_T
+func fillchar_vsep(wp *S_window_S, row int32) fillchar_vsep__out_T
 func typed_ahead() bool
 func redrawing() bool
 func messaging() bool
@@ -1589,7 +1589,7 @@ func in_osc_sequence() bool
 func handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen int32) handle_osc__out_T
 func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen int32) handle_dcs__out_T
 func check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
-func replace_termcodes(from Ptr[byte], bufp Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) replace_termcodes__out_T
+func replace_termcodes(from Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) replace_termcodes__out_T
 func find_term_bykeys(src Ptr[byte], matchlen int32) find_term_bykeys__out_T
 func gather_termleader()
 func show_termcodes(flags int32)

@@ -845,6 +845,11 @@ func (f *jfn) assign(x *cc.AssignmentExpression) jlv {
 	if x.Case == cc.AssignmentExpressionAssign {
 		r := f.exprTo(x.AssignmentExpression, lv.t)
 		if isAggr(lv.c) {
+			if f.heldIdent(x.UnaryExpression) != nil && isCall(x.AssignmentExpression) {
+				// a call's result is a struct of its own: the local takes it
+				f.stmt1("%s = %s", lv.get, r.s)
+				return lv
+			}
 			f.stmt1("%s.set(%s)", lv.get, r.s) // C's assignment of a struct is a copy
 			return lv
 		}
