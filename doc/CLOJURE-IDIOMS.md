@@ -381,9 +381,38 @@ terminals' capabilities ...); a table holding an address stays code.
 `editor.clj` 69,590 -> 64,083 lines. The proof: every one of the 497
 file-scope objects of a new editor is the same, field by field, before and
 after (a changed row is seen); start-up 15-20 ms longer (the rows parsed).
-**Not done: the messages** as data the editors share -- 216 byte arrays that
-nothing may write, which needs the proof that nothing writes them through a
-pointer either, and no suite could see its failure (one editor a process).
+**Declined: the messages** as data the editors share (2026-09-29, at
+`6540f9f`). Byte arrays that nothing may write, and the proof must say
+nothing writes them through a pointer either: no suite could see it fail,
+since an editor writing its own copy behaves the same. After phase 181 there
+are 185 such arrays (a file-scope byte array initialized by a string). A
+flow analysis over the core was written to prove it (not kept). It followed
+each pointer from an array or a parameter, through locals, casts, `p + n`,
+`?:`, the members of local structs, and calls, with each function's
+summary of which arguments its result may be. An array counted as written
+where a pointer that may point into it was stored through, handed to a
+host function not declared read-only, called through, or stored in memory.
+Integers carried no pointer: every one of the core's 2,055
+integer-to-pointer casts is the constant 0. Measured:
+
+- **16-19 of the 185 are provably read-only.** Everything that reaches
+  `emsg` is not: `message_filtered` hands the message to the regex engine
+  for `:filter`, and the engine stores its subject in memory (`rex.line`,
+  `rex.input`, `reg_save`'s union).
+- **Following a pointer through the member it is stored in** also fails to
+  prove them. The analysis keyed stores by member name, as long as no struct
+  holding that member was cast to another pointer type, no union laid two
+  names' pointers over the same bytes, and no `&x->m` was taken. The engine
+  then writes its subject pointer through a `char_u **` into
+  `rex.reg_startp[no]` (`save_se_one`). That needs points-to for pointers
+  to pointers, resolved per call site. And once a struct read whole from
+  memory counts as holding what its members hold, as soundness needs,
+  164 fall again.
+- **With the regex engine's one store excused** (unsoundly), 177 of 185
+  were provable. So the obstacle is that one engine, but proving it takes
+  a field- and type-precise heap model: an L-sized proof, with no suite to
+  check it, to share 185 byte arrays. The tables above were the value the
+  item named.
 
 
 - **The pattern.** The C's file-scope objects are per editor, in slots

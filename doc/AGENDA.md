@@ -18,6 +18,14 @@ Nothing known.
 
 ## Declined, with the reason recorded
 
+- **The messages as data the Clojure editors share** (2026-09-29;
+  `CLOJURE-IDIOMS.md` item 4). A sound proof that nothing writes vim's 185
+  message arrays, not even through a pointer, reaches 16-19 of them.
+  Everything `emsg` prints goes through `:filter`'s regex engine, which
+  keeps its subject in memory and saves it through a `char_u **`. Excusing
+  that engine alone would give 177. Proving it needs a field- and
+  type-precise heap model, which no suite could check, to share byte arrays.
+  Declined.
 - **core.async for the Clojure editor's parallel `:%s`** (2026-09-28). The
   parallel body of `match_lines` (phase 177) was written five ways and
   measured, each built in place with its start-up cache, all answering the

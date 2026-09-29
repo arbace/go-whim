@@ -25,8 +25,8 @@ rule: a pointer into an array that never walks is a plain `*T` (`&a[i]`,
 unseen. That took the `Ptr` of another element type than `byte` from 320 to
 149, `Ptr[Ptr[byte]]` from 107 to 12, `Addr(` from 108 to 9 and `.P()` from
 462 to 86. The rest of it -- a forward-walking pointer as a resliced `[]T` --
-is not done: `Ptr[byte]` is C's string, compared and subtracted across the
-file, and one class. Item 10 is phase 168: a `goto` whose label marks
+is declined (*Declined: the C strings as Go slices*, below): `Ptr[byte]` is
+C's string, compared and subtracted across the file, and one class. Item 10 is phase 168: a `goto` whose label marks
 `return x` is that return, 19 of them, and seven functions with no `goto` left
 have their locals where C declares them. Items 11 and 12 are declined,
 measured on `editor/` as it stands after phase 168 (a throwaway `go/types`

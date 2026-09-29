@@ -348,7 +348,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    declined), JAVA.md (the Java backend: its design and milestones),
                    JAVA-IDIOMS.md, CLOJURE-IDIOMS.md and HASKELL-IDIOMS.md (how the
                    Java, Clojure and Haskell editors could be idiomatic,
-                   measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables, 5 in part, and
+                   measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, and
                    JAVA-IDIOMS.md's items 1-3, 4's masks and 6.1 (phase 174), HASKELL-IDIOMS.md's all but what it declines),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
