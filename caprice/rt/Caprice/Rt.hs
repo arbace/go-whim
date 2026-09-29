@@ -28,6 +28,7 @@ import Control.Concurrent.MVar (newEmptyMVar, putMVar, takeMVar)
 import Control.Exception (SomeException, throwIO, try)
 import Control.Monad (forM, forM_, unless)
 import Data.Bits
+import Data.Char (ord)
 import Data.Dynamic (Dynamic, fromDyn, toDyn)
 import Data.IORef (atomicWriteIORef, newIORef, readIORef)
 import Data.Int
@@ -139,6 +140,11 @@ copyMemNo dst src n = copyBytes dst src n
 -- | A truth value as a number: 1 or 0.
 b2i :: Num a => Bool -> a
 b2i b = if b then 1 else 0
+
+-- | A C character constant: 'x' as the integer of its code, of any type.
+ch :: Num a => Char -> a
+ch = fromIntegral . ord
+{-# INLINE ch #-}
 {-# INLINE b2i #-}
 
 -- | A pointer's bits.

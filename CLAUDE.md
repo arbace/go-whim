@@ -159,7 +159,7 @@ slim-vim.c  --whim-->  whim-vim.c
   substitutions and a `:g`, run on every editor of the run one at a time,
   required to answer as the reference does, each time reported beside the
   C's, and an editor over 25 times the C's time failing the run -- measured,
-  Go 0.5-0.6, Haskell 1.4-1.5, Java 1.8-2.1, Clojure 4.2-4.5 since the
+  Go 0.5-0.6, Haskell 1.4-1.6, Java 1.8-2.1, Clojure 4.2-4.5 since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
 
@@ -241,7 +241,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    printed forms back and takes their noise out, as
                    java_tidy.go the Java's redundant parentheses), and its
                    Haskell backend (hs*.go: `whim skel ... -hs F.hs`, the
-                   lowered form printed on C's own memory, doc/HASKELL.md). Its tests
+                   lowered form printed on C's own memory, doc/HASKELL.md:
+                   hsshape.go the blocks in place, hsnames.go a name for
+                   each binding, hsnamed.go the C's names for objects,
+                   members and constants). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
@@ -330,7 +333,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    JAVA-IDIOMS.md, CLOJURE-IDIOMS.md and HASKELL-IDIOMS.md (how the
                    Java, Clojure and Haskell editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables, 5 in part, and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks and 6.1 (phase 174), HASKELL-IDIOMS.md's 12),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks and 6.1 (phase 174), HASKELL-IDIOMS.md's 0-3, 7 and 12),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md (caprice, the Haskell editor:
@@ -375,7 +378,8 @@ make whim-test-java   # the quick suite with the Java editor too (whim test --ja
 go tool whim java --same-classes  # HEAD's Editor.java and the tree's compile to the same code: a spelling change's proof
 make bin/vijure       # the editor in Clojure: whim.editor generated, AOT-compiled, a launcher (CLJ_EDITOR=F: F's)
 make whim-test-clj    # the quick suite with the Clojure editor too (whim test --clojure; --wide --clojure)
-make bin/caprice      # the editor in Haskell: Caprice.Editor generated, compiled by GHC (three minutes when the core moved)
+make bin/caprice      # the editor in Haskell: Caprice.Editor generated, compiled by GHC (three minutes when the core moved; its time and peak printed)
+go tool whim caprice --lint  # the same, then ghc -Wall's warnings on the generated module, by flag (0 now)
 make whim-test-hs     # the quick suite with the Haskell editor too (whim test --haskell; --wide --haskell)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)

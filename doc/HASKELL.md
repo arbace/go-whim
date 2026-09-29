@@ -33,11 +33,14 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
 - **a pointer is an address**, `Ptr ()`: walking, comparing, subtracting and
   punning are C's, so none of the pointer analysis the other backends need
   is used -- nor the unions' discriminants, nor the string-as-slice question;
-- **the file-scope objects are one segment per editor**, each at its offset
-  (`edSeg ed'`), their initial values written when the editor is made; a
-  string literal is a primitive string literal (`Ptr "..."#`), static
-  memory GHC stores as its bytes; a compound literal in a file-scope
-  initializer gets room of its own in the segment;
+- **the file-scope objects are one segment per editor**, each at its offset,
+  read, written and addressed by accessors of its name (`curwin ed'`,
+  `set'curwin`, `addr'curwin`); a member's offset is a constant of its
+  struct's and its own name (`win_T'w_cursor`); their initial values are an
+  image of the constant bytes, copied in when the editor is made, and the
+  addresses written after it; a string literal is a primitive string literal
+  (`Ptr "..."#`), static memory GHC stores as its bytes; a compound literal
+  in a file-scope initializer gets room of its own in the segment;
 - **a local whose address is taken, or that is an array, a struct or a
   union, lives in its call's frame** (`frame n $ \fr' -> ...`,
   `allocaBytes`), zeroed; every other local is a Haskell binding;
@@ -52,17 +55,29 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
 Unsafe, and not idiomatic Haskell; but exactly the C's semantics, with the
 least translation.
 
-## Control flow: join points
+## Control flow: blocks in place, joins and loops as local functions
 
 The Clojure backend's lowered form (`crefactor/togo/lower.go`: a function as
-basic blocks in three-address form) is the input. Each block is a local
-function of the variables live at its start, each jump a tail call of one,
-and each assignment to a variable a new binding of its name, `!x <- pure e`
-(a `let` would be recursive in Haskell: `let !t = t + 1` is a loop, which is
-how the first run found out). GHC compiles a known tail call to a local
-function as a jump, so every construct -- early return, `break`,
-`continue`, fall-through and the 49 gotos -- is one mechanism, with no state
-machine and no nesting analysis: none of `clj_shape.go` is needed.
+basic blocks in three-address form) is the input (`hsshape.go`). A block
+that one jump reaches is written where the jump is -- straight on after a
+goto, the arm of an `if` or a `case` -- a block that only jumps is where it
+jumps, and the entry is the function's body; what is left is a local
+function of the variables live at its start: a join, which several places go
+on to, or a loop's head, which a jump back reaches (`loop'N`), each jump a
+tail call. GHC compiles a known tail call to a local function as a jump, so
+every construct -- early return, `break`, `continue`, fall-through and the
+49 gotos -- is one mechanism, with no state machine, no block copied, and
+none of `clj_shape.go`'s nesting rules: a local function may be called from
+anywhere in its scope.
+
+Each value of a variable is a name of its own (`hsnames.go`): `p`, then
+`let !p1 = ...`, and a block's parameters new names again, so no binding
+shadows another; a value that is a name or a literal is that name, bound to
+nothing; a parameter the function never assigns is read from its scope. So
+`ghc -Wall` has nothing to say about the module (`whim caprice --lint`).
+Enumerators are pattern synonyms of any integer type (`ESC`, `NUL`), in
+expressions and in `case`, and character constants `ch '-'`
+(`hsnamed.go`).
 
 An expression prints as the lines that run first -- each memory read and
 each call a binding of its own, in C's order -- and a pure value; an operand
@@ -125,15 +140,16 @@ sequential work slower.
 ## Measured
 
 - **The backend writes all 1,710 functions of the core and refuses none**:
-  122,743 lines of Haskell, 5.6 MB, tracked as `caprice/Caprice/Editor.hs`
-  (with its hs-boot) and refused by `whim-editor-check` when stale.
+  90,461 lines of Haskell, tracked as `caprice/Caprice/Editor.hs` (with its
+  hs-boot) and refused by `whim-editor-check` when stale -- 122,743 before
+  the three changes of `doc/HASKELL-IDIOMS.md` that made it read as Haskell.
 - **One module, not split**: the plan feared minutes and several GB; GHC
-  compiles it in 198 s and 4.9 GB at `-O0`, and 183 s and 4.0 GB at `-O1`,
-  which is what caprice uses. No `.hs-boot` for the core's own calls, no
-  function table for them. A build whose core has not moved skips it
-  (`caprice.Build` writes a source only when it differs), and the suite keeps
-  its two builds in `.cache/caprice-suite/`.
-- **Speed**: the heavy case 1.4-1.5 times the C (the Go 0.5, the Java 1.8-2.1,
+  compiles it in 196 s and 2.36 GB at `-O1` (213 s and 3.50 GB before those
+  changes), and `whim caprice` prints both beside every build. No `.hs-boot`
+  for the core's own calls, no function table for them. A build whose core
+  has not moved skips it (`caprice.Build` writes a source only when it
+  differs), and the suite keeps its two builds in `.cache/caprice-suite/`.
+- **Speed**: the heavy case 1.4-1.6 times the C (the Go 0.5, the Java 1.8-2.1,
   the Clojure 4.2-4.4). A `:%s` at 500,000 lines (the survey's buffer,
   `doc/PARALLEL-SUBSTITUTE.md`; seconds, median of three less the build):
 
@@ -152,6 +168,7 @@ sequential work slower.
 
 ## Not done
 
-- **Idiomatic Haskell**: the core is C in Haskell's syntax -- raw memory, IO
-  everywhere, join points. `doc/HASKELL-IDIOMS.md` surveys what could change,
-  measured and ranked; none of it is done but its item 12, the host.
+- **Idiomatic Haskell**: the core is still C's memory in IO -- untyped
+  pointers, out-parameters, structs as bytes. `doc/HASKELL-IDIOMS.md`
+  surveys what could change, measured and ranked; its items 0-3, 7 and 12
+  are done (the noise, the structure, the names, the image, the host).

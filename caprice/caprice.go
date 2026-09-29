@@ -22,7 +22,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/arbace/go-whim/internal/whim"
 )
@@ -62,11 +66,24 @@ func command(name string, args ...string) *exec.Cmd {
 // the core, dir/src/ the sources -- the generated Caprice/Editor.hs among
 // them -- dir/o/ GHC's objects, and the program at the path out, which it
 // returns.
-func Build(gen Gen, src, dir, out string) (string, error) {
+func Build(gen Gen, src, dir, out string) (string, GHCStats, error) {
 	if _, err := Generate(gen, src, dir); err != nil {
-		return "", err
+		return "", GHCStats{}, err
 	}
-	return Compile(dir, out)
+	return CompileStats(dir, out, "")
+}
+
+// GHCStats is what a compile cost GHC: its wall time and its peak resident
+// memory (its own and its children's, as wait4 reports them). The core is
+// one module of some 120,000 lines, so a change to how it is printed moves
+// these before it moves the editor: they are printed beside every build.
+type GHCStats struct {
+	Wall time.Duration
+	Peak int64 // bytes
+}
+
+func (s GHCStats) String() string {
+	return fmt.Sprintf("ghc %.1f s, %.2f GB peak", s.Wall.Seconds(), float64(s.Peak)/(1<<30))
 }
 
 // Generate cuts the core from src into dir/editor.c and writes the module
@@ -121,7 +138,8 @@ func Generate(gen Gen, src, dir string) (string, error) {
 // Compile writes the embedded sources into dir/src and compiles them with
 // the generated module into the program at out.
 func Compile(dir, out string) (string, error) {
-	return CompileMain(dir, out, "")
+	p, _, err := CompileStats(dir, out, "")
+	return p, err
 }
 
 // CompileMain is Compile with the program's module Main the file main
@@ -130,12 +148,19 @@ func Compile(dir, out string) (string, error) {
 // -- the search path among them, which is why main's directory is not added
 // to it -- so only Main is compiled.
 func CompileMain(dir, out, main string) (string, error) {
+	p, _, err := CompileStats(dir, out, main)
+	return p, err
+}
+
+// CompileStats is CompileMain, and what GHC cost.
+func CompileStats(dir, out, main string) (string, GHCStats, error) {
+	var st GHCStats
 	// GHC's recompilation check fingerprints the search path and the output
 	// directory as written: one build's relative path and another's absolute
 	// one would each recompile the core for the other.
 	dir, err := filepath.Abs(dir)
 	if err != nil {
-		return "", err
+		return "", st, err
 	}
 	srcDir := filepath.Join(dir, "src")
 	err = fs.WalkDir(sources, ".", func(path string, d fs.DirEntry, err error) error {
@@ -160,10 +185,10 @@ func CompileMain(dir, out, main string) (string, error) {
 		return writeIfDiffers(to, b)
 	})
 	if err != nil {
-		return "", err
+		return "", st, err
 	}
 	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {
-		return "", err
+		return "", st, err
 	}
 	args := append(append([]string{}, GHCFlags...), "-v0", "-i"+srcDir, "-outputdir", filepath.Join(dir, "o"), "-o", out)
 	if main == "" {
@@ -171,10 +196,17 @@ func CompileMain(dir, out, main string) (string, error) {
 	} else {
 		args = append(args, main)
 	}
-	if o, err := command("ghc", args...).CombinedOutput(); err != nil {
-		return "", fmt.Errorf("ghc: %v\n%s", err, o)
+	cmd := command("ghc", args...)
+	start := time.Now()
+	o, err := cmd.CombinedOutput()
+	st.Wall = time.Since(start)
+	if ru, ok := cmd.ProcessState.SysUsage().(*syscall.Rusage); ok {
+		st.Peak = ru.Maxrss * 1024
 	}
-	return out, nil
+	if err != nil {
+		return "", st, fmt.Errorf("ghc: %v\n%s", err, o)
+	}
+	return out, st, nil
 }
 
 // writeIfDiffers writes b to path unless path holds it already, keeping the
@@ -184,4 +216,76 @@ func writeIfDiffers(path string, b []byte) error {
 		return nil
 	}
 	return os.WriteFile(path, b, 0o644)
+}
+
+// Lint is `ghc -fno-code -Wall` on the generated module Caprice.Editor of the
+// build in dir -- a copy of its sources, the module's -w taken out -- and the
+// count of its warnings by flag: the printer's lint measure (clj-kondo's for
+// the Clojure). It is an instrument, not a step of the build: -Wall's own
+// analyses make it some minutes on the core.
+func Lint(dir string) (map[string]int, error) {
+	scratch, err := os.MkdirTemp("", "hslint.")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(scratch)
+	src := filepath.Join(dir, "src")
+	err = filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return err
+		}
+		rel, _ := filepath.Rel(src, path)
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		if rel == filepath.Join("Caprice", "Editor.hs") {
+			b = bytes.Replace(b, []byte("{-# OPTIONS_GHC -w #-}\n"), nil, 1)
+		}
+		to := filepath.Join(scratch, rel)
+		if err := os.MkdirAll(filepath.Dir(to), 0o755); err != nil {
+			return err
+		}
+		return os.WriteFile(to, b, 0o644)
+	})
+	if err != nil {
+		return nil, err
+	}
+	editor := filepath.Join(scratch, "Caprice", "Editor.hs")
+	o, err := command("ghc", "-fno-code", "-Wall", "-i"+scratch, editor).CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("ghc -fno-code -Wall: %v\n%s", err, o)
+	}
+	counts := map[string]int{}
+	for _, m := range lintRe.FindAllSubmatch(o, -1) {
+		if string(m[1]) == editor {
+			counts[string(m[2])]++
+		}
+	}
+	return counts, nil
+}
+
+// lintRe is a warning's file and flag in GHC's output.
+var lintRe = regexp.MustCompile(`(?m)^(\S+?):\d+:\d+: warning:[^\n]*?\[(-W[a-z-]+)`)
+
+// LintReport is Lint's counts, most first, and their total.
+func LintReport(counts map[string]int) string {
+	var flags []string
+	total := 0
+	for f, n := range counts {
+		flags = append(flags, f)
+		total += n
+	}
+	sort.Slice(flags, func(i, j int) bool {
+		if counts[flags[i]] != counts[flags[j]] {
+			return counts[flags[i]] > counts[flags[j]]
+		}
+		return flags[i] < flags[j]
+	})
+	var b strings.Builder
+	fmt.Fprintf(&b, "  -Wall        %d warnings in Caprice.Editor\n", total)
+	for _, f := range flags {
+		fmt.Fprintf(&b, "  %7d %s\n", counts[f], f)
+	}
+	return b.String()
 }

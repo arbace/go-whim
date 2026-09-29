@@ -693,12 +693,12 @@ Three patterns of one kind: the C has a name, the Haskell a number.
 
 | Rank | Item | Who | Cost | Risk | GHC time / peak | heavy | Idiom gained |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 0: GHC's time and peak reported | `caprice.go` | S | none | -- | -- | none directly: the measure every later item needs |
-| 2 | 1: the printer's noise, SSA names first | printer | S-M | none | lets: 207.9 s (base 202.8-204.5), 4.02 GB | same | 36,565 `-Wall` warnings toward 0; 16,924 typed literals, 2,682 double conversions |
-| 3 | 3: objects, members, constants by name | printer | S (objects), M | none | objects: 215.4 s (+6%); rest est. a few % | same | 11,657 segment sites, 16,052 member sites, 8,694 constants |
-| 4 | 2: structure: blocks in place, loops as `go` | printer + lowering's nesting | M | low | est. unchanged (same Core) | est. same | 12,717 of 19,384 local functions gone; every function structured |
+| 1 | 0: GHC's time and peak reported -- **done** | `caprice.go` | S | none | -- | -- | none directly: the measure every later item needs |
+| 2 | 1: the printer's noise, SSA names first -- **done** | printer | S-M | none | lets: 207.9 s (base 202.8-204.5), 4.02 GB | same | 36,565 `-Wall` warnings toward 0; 16,924 typed literals, 2,682 double conversions |
+| 3 | 3: objects, members, constants by name -- **done** | printer | S (objects), M | none | objects: 215.4 s (+6%); rest est. a few % | same | 11,657 segment sites, 16,052 member sites, 8,694 constants |
+| 4 | 2: structure: blocks in place, loops as `go` -- **done** | printer + lowering's nesting | M | low | est. unchanged (same Core) | est. same | 12,717 of 19,384 local functions gone; every function structured |
 | 5 | 5: pure functions; `ed'` where used | shared analysis + printer | S | none | 207.9 s | same | 58 pure functions; 221 without `ed'` |
-| 6 | 7: `initGlobals` as an image | printer | S | low | its part 10.0 -> 1.2 s; with 3 and 5: 203.0 s, 3.66 GB | same | 15,281 -> 1,779 lines |
+| 6 | 7: `initGlobals` as an image -- **done** | printer | S | low | its part 10.0 -> 1.2 s; with 3 and 5: 203.0 s, 3.66 GB | same | 15,281 -> 1,779 lines |
 | 7 | 8: modules by the call graph | printer + `Rt.hs` + `caprice.go` | M | cross-module inlining | 172.2 s, **1.77 GB** (-j4) | same | three modules and a top, not one |
 | 8 | 4: typed pointers | printer + `Rt.hs` + host | M | host signatures move | est. unchanged | est. same | `Ptr WinT` for `Ptr ()` at 1,413 parameters and 236 results |
 | 9 | 6: out-parameters as results | a C phase, or the printer | M | low | not measured | est. same | 78 out-parameters in 55 functions |
@@ -724,6 +724,85 @@ Three patterns of one kind: the C has a name, the Haskell a number.
 
 Item 8 is the one to do early if memory, not reading, is what hurts: the
 suite's two caprice builds side by side hold two peaks of 4.0 GB today.
+
+### Done: the first three (2026-09-29)
+
+All three, in the printer (`crefactor/togo`: `hsnames.go`, `hsshape.go`,
+`hsnamed.go`) and `caprice.go`, measured against HEAD's `Editor.hs` compiled
+the same way, one build at a time:
+
+| | before | after |
+| --- | ---: | ---: |
+| `Editor.hs` | 122,743 lines | 90,461 lines |
+| `ghc -Wall` on it | 36,562 warnings | **0** |
+| GHC, `-O1` | 213.3 s, 3.50 GB peak | 196.4 s, **2.36 GB** peak |
+| the heavy case | 1.5-1.6x the C | 1.4-1.6x the C |
+| local functions | 19,384 blocks, each one | 4,350 |
+
+- **Item 0**: `whim caprice` prints GHC's wall time and peak memory beside
+  every build (`caprice.GHCStats`, from wait4), and `whim caprice --lint`
+  counts `ghc -fno-code -Wall`'s warnings on the module by flag.
+- **Item 1**: every binding a name of its own (`p`, `p1`, `p2`; `let !p2 =
+  ...` where `!p <- pure ...` was), none shadowing another or the module's
+  top level -- the runtime's re-exported `Data.Bits` included, which a C
+  parameter named `shift` found; a value that is a name or a literal is that
+  name, with no binding; a result bound and unused `_ <-`, a parameter unused
+  `_` or `_name`; a literal without its annotation where the other operand,
+  the function's signature or the writer fixes the type; one conversion for
+  a conversion of a conversion that kept every value; `pAdd p (fromIntegral
+  n)` where `pAdd p (fromIntegral (fromIntegral n :: Int64) * 1)` was; `(f
+  x)` for `(do { r <- f x; pure r })`; `(a' !! i)` in the function table's
+  lambdas, which match any list.
+- **Item 2**: a block that one jump reaches is written there -- straight on
+  after a goto, as the arm of the `if` or the `case` -- a block that only
+  jumps is where it jumps, one that only returns a name or a constant is
+  written at each jump, and the entry is the function's body; what is left
+  as a local function is a join or a loop's head (`loop'N`). A parameter
+  the function never assigns is read from its scope, not passed along. No
+  block is copied, and no state machine is left.
+- **Item 3**: objects by accessor (`curwin ed'`, `set'curwin`,
+  `addr'curwin`: 469, 369 and 440 of them), member offsets by name
+  (`win_T'w_cursor + pos_T'lnum`: 768), enumerators as pattern synonyms of
+  any integer type (`ESC`, `NUL`: 853), in expressions and in case labels --
+  which the lowering now keeps beside each case value -- and character
+  constants `ch '-'` (a case label keeps the number, the character in a
+  comment beside it). Cost measured before the image: 193 s, so not the +6%
+  the objects alone cost in the survey's experiment.
+- **Item 7**: `initGlobals` copies the image of the objects' constant bytes
+  (runs of at most 1 KB) and writes only the addresses one by one.
+
+The survey's excerpts, as printed now:
+
+```haskell
+vim_strchr :: Ed -> P -> Int32 -> IO P
+vim_strchr ed' string c = do
+  let
+    loop'3 !p1 = do
+      r'1 <- rdW8 p1 0
+      let !b1 = fromIntegral r'1 :: Int32
+      if b1 /= NUL
+        then do
+          if b1 == c
+            then pure p1
+            else do
+              r'2 <- utfc_ptr2len ed' p1
+              let !p2 = pAdd p1 (fromIntegral r'2)
+              loop'3 p2
+        else pure nullPtr
+  ...
+
+check_cursor_lnum ed' = do
+  ...
+  r'4 <- curwin ed'
+  r'5 <- rdI64 r'4 (win_T'w_cursor + pos_T'lnum)
+  r'6 <- curbuf ed'
+  r'7 <- rdI64 r'6 (buf_T'b_ml + memline_T'ml_line_count)
+  if r'5 > r'7
+  ...
+```
+
+Found on the way: a character literal `'"'` read as the start of a string
+hid every name after it from the count of names used (`TestHsTokens`).
 
 ## What is not worth doing, and why
 

@@ -21,9 +21,28 @@ type hv struct {
 	val   string
 	ht    string
 	act   string
-	konst bool  // an integer constant, kv
-	kv    int64 // its value
-	lit   bool  // a string literal's address
+	konst bool   // an integer constant, kv
+	kv    int64  // its value
+	bare  string // a constant's literal without its type, where the place fixes it
+	lit   bool   // a string literal's address
+	// a conversion's operand and its type: a conversion of this value
+	// again may start from it (conv)
+	from, fromHt string
+	// a constant's C spelling (constSpelling), kept while its value is
+	spell     string
+	spellAtom bool
+}
+
+// plain is v where its type is fixed by the place it goes: a constant's
+// literal without the annotation.
+func (v hv) plain() string {
+	switch {
+	case v.konst && v.bare != "":
+		return v.bare
+	case v.konst && !v.lit && v.ht != "P" && v.val == hsLit(v.kv, v.ht):
+		return hsBare(v.kv, v.ht)
+	}
+	return v.val
 }
 
 // haddr is an lvalue's address: a base address and a constant offset.
@@ -31,6 +50,24 @@ type haddr struct {
 	base  hv
 	off   int
 	field *cc.Field // the member it is, when it is one
+	// the names: the file-scope object it is in, and whether it is that
+	// object whole; the members' offsets' names, and what they add up to
+	obj    *hobj
+	whole  bool
+	syms   []string
+	symOff int
+}
+
+// member is a with member fl of container type t added.
+func (f *hfn) member(a haddr, t cc.Type, fl *cc.Field) haddr {
+	a.off += int(fl.Offset())
+	a.field = fl
+	a.whole = false
+	if n := f.h.memberName(t, fl); n != "" {
+		a.syms = append(append([]string{}, a.syms...), n)
+		a.symOff += int(fl.Offset())
+	}
+	return a
 }
 
 func (f *hfn) lexpr(r lexpr) hv {
@@ -85,7 +122,10 @@ func (f *hfn) node(e cc.ExpressionNode) hv {
 		if v, known := intValue(e.Value()); known {
 			v = truncK(v, k)
 			ht := hsKindType(k)
-			return hv{val: hsLit(v, ht), ht: ht, konst: true, kv: v}
+			if sp, atom := f.h.constSpelling(e, v); sp != "" && ht != "Bool" {
+				return named(v, ht, sp, atom)
+			}
+			return hv{val: hsLit(v, ht), bare: hsBare(v, ht), ht: ht, konst: true, kv: v}
 		}
 	}
 	switch x := e.(type) {
@@ -256,11 +296,11 @@ func (f *hfn) ident(x *cc.PrimaryExpression) hv {
 				return f.varRead(v)
 			}
 		}
-		off, ok := f.h.segOff[f.h.g.a.declKey(d)]
+		a, ok := f.objAddr(f.h.g.a.declKey(d))
 		if !ok {
 			f.no(x, "an object with no place: %s", d.Name())
 		}
-		return f.readAt(haddr{base: hv{val: "(edSeg ed')", ht: "P"}, off: off}, d.Type())
+		return f.readAt(a, d.Type())
 	}
 	f.no(x, "a name %s", x.Token.SrcStr())
 	return hv{}
@@ -271,15 +311,15 @@ func (f *hfn) varRead(v *lvar) hv {
 	if off, ok := f.mem[v]; ok {
 		return f.readAt(haddr{base: hv{val: "fr'", ht: "P"}, off: off}, v.c)
 	}
-	return hv{val: v.name, ht: f.vtype(v)}
+	return hv{val: f.valueOf(f.cur, v), ht: f.vtype(v)}
 }
 
 // addrVal is an address as a value.
 func (f *hfn) addrVal(a haddr) hv {
-	if a.off == 0 {
+	if a.off == 0 && len(a.syms) == 0 {
 		return hv{binds: a.base.binds, val: a.base.val, ht: "P"}
 	}
-	return hv{binds: a.base.binds, val: fmt.Sprintf("(pAdd %s %s)", a.base.val, hsOff(a.off)), ht: "P"}
+	return hv{binds: a.base.binds, val: fmt.Sprintf("(pAdd %s %s)", a.base.val, offStr(a)), ht: "P"}
 }
 
 // readAt is the value of the object of type t at a: a scalar read, or the
@@ -298,7 +338,11 @@ func (f *hfn) readAt(a haddr, t cc.Type) hv {
 	}
 	ht := hsType(t)
 	r := f.tmp()
-	binds := append(append([]string{}, a.base.binds...), fmt.Sprintf("%s <- rd%s %s %s", r, hsAccess(ht), a.base.val, hsOff(a.off)))
+	read := fmt.Sprintf("%s <- rd%s %s %s", r, hsAccess(ht), a.base.val, offStr(a))
+	if a.whole && a.obj != nil {
+		read = fmt.Sprintf("%s <- %s ed'", r, a.obj.name)
+	}
+	binds := append(append([]string{}, a.base.binds...), read)
 	return hv{binds: binds, val: r, ht: ht}
 }
 
@@ -348,24 +392,20 @@ func (f *hfn) addrNode(e cc.ExpressionNode) haddr {
 					return haddr{base: hv{val: "fr'", ht: "P"}, off: off}
 				}
 			}
-			off, ok := f.h.segOff[f.h.g.a.declKey(d)]
+			a, ok := f.objAddr(f.h.g.a.declKey(d))
 			if !ok {
 				f.no(x, "an object with no place: %s", d.Name())
 			}
-			return haddr{base: hv{val: "(edSeg ed')", ht: "P"}, off: off}
+			return a
 		}
 	case *cc.PostfixExpression:
 		switch x.Case {
 		case cc.PostfixExpressionSelect:
 			a := f.addrOf(x.PostfixExpression)
-			fl := x.Field()
-			a.off += int(fl.Offset())
-			a.field = fl
-			return a
+			return f.member(a, x.PostfixExpression.Type(), x.Field())
 		case cc.PostfixExpressionPSelect:
 			p := f.expr(x.PostfixExpression)
-			fl := x.Field()
-			return haddr{base: p, off: int(fl.Offset()), field: fl}
+			return f.member(haddr{base: p}, x.PostfixExpression.Type(), x.Field())
 		case cc.PostfixExpressionIndex:
 			be, ie := x.PostfixExpression, x.ExpressionList
 			if !isPtrish(be.Type()) {
@@ -412,6 +452,19 @@ func hsLit(v int64, ht string) string {
 	return fmt.Sprintf("(%d :: %s)", v, ht)
 }
 
+// hsBare is v as a literal where the place fixes its type ht.
+func hsBare(v int64, ht string) string {
+	switch {
+	case ht == "Bool" || ht == "P":
+		return hsLit(v, ht)
+	case strings.HasPrefix(ht, "Word"):
+		return fmt.Sprint(uint64(v) & hsMask(ht))
+	case v < 0:
+		return fmt.Sprintf("(%d)", v)
+	}
+	return fmt.Sprint(v)
+}
+
 // hsString is a C string's bytes as a pointer to static memory: a
 // primitive string literal, which Haskell stores as its bytes.
 func hsString(s string) string {
@@ -446,7 +499,19 @@ func (f *hfn) conv(v hv, to string) hv {
 		if to == "Bool" && k != 0 {
 			k = 1
 		}
-		return hv{binds: v.binds, val: hsLit(k, to), ht: to, konst: true, kv: k}
+		if v.spell != "" && to != "Bool" && to != "P" && hsBare(k, to) == fmt.Sprint(k) && k == v.kv {
+			n := named(k, to, v.spell, v.spellAtom)
+			n.binds = v.binds
+			return n
+		}
+		return hv{binds: v.binds, val: hsLit(k, to), bare: hsBare(k, to), ht: to, konst: true, kv: k}
+	}
+	// a conversion of a conversion that kept every value is one conversion
+	if v.from != "" && hsKeeps(v.fromHt, v.ht) {
+		if v.fromHt == to {
+			return hv{binds: v.binds, val: v.from, ht: to}
+		}
+		v = hv{binds: v.binds, val: v.from, ht: v.fromHt}
 	}
 	var s string
 	switch {
@@ -464,8 +529,72 @@ func (f *hfn) conv(v hv, to string) hv {
 		s = "(i2p (fromIntegral " + v.val + "))"
 	default:
 		s = fmt.Sprintf("(fromIntegral %s :: %s)", v.val, to)
+		return hv{binds: v.binds, val: s, ht: to, from: v.val, fromHt: v.ht}
 	}
 	return hv{binds: v.binds, val: s, ht: to}
+}
+
+// hsKeeps says converting an integer of type a to type b keeps every value.
+func hsKeeps(a, b string) bool {
+	sa, ua, ok1 := hsIntType(a)
+	sb, ub, ok2 := hsIntType(b)
+	if !ok1 || !ok2 {
+		return false
+	}
+	if !ua {
+		return !ub && sb >= sa
+	}
+	return ub && sb >= sa || !ub && sb > sa
+}
+
+// hsIntType is an integer type's bits and whether it is unsigned.
+func hsIntType(ht string) (int, bool, bool) {
+	var n int
+	switch {
+	case strings.HasPrefix(ht, "Int"):
+		if _, err := fmt.Sscan(ht[3:], &n); err == nil {
+			return n, false, true
+		}
+	case strings.HasPrefix(ht, "Word"):
+		if _, err := fmt.Sscan(ht[4:], &n); err == nil {
+			return n, true, true
+		}
+	}
+	return 0, false, false
+}
+
+// toInt is an integer value as an Int, pAdd's and shiftL's operand: C's
+// conversion to a 64-bit offset, which fromIntegral from any integer type
+// is.
+func (f *hfn) toInt(v hv) string {
+	switch {
+	case v.konst:
+		return hsOff(int(v.kv))
+	case v.ht == "Bool":
+		return "(b2i " + v.val + ")"
+	case v.from != "" && hsKeeps(v.fromHt, v.ht):
+		return "(fromIntegral " + v.from + ")"
+	}
+	return "(fromIntegral " + v.val + ")"
+}
+
+// byteOff is n elements of size bytes, negated when neg, as pAdd's offset.
+func (f *hfn) byteOff(n hv, size int64, neg bool) string {
+	if n.konst {
+		k := n.kv * size
+		if neg {
+			k = -k
+		}
+		return hsOff(int(k))
+	}
+	s := f.toInt(n)
+	if size != 1 {
+		s = fmt.Sprintf("(%s * %d)", s, size)
+	}
+	if neg {
+		s = "(negate " + s + ")"
+	}
+	return s
 }
 
 // truth is v as a condition.
@@ -475,34 +604,49 @@ func (f *hfn) truth(v hv) hv { return f.conv(v, "Bool") }
 // usual type, which the expression's is.
 func (f *hfn) arith(op string, a, b hv, ht string) hv {
 	a = f.conv(a, ht)
-	if op == "<<" || op == ">>" {
-		b = f.conv(b, "Int64")
-	} else {
+	shift := op == "<<" || op == ">>"
+	if !shift {
 		b = f.conv(b, ht)
 	}
 	binds := append(append([]string{}, a.binds...), b.binds...)
+	av, bv := hsPair(a, b)
+	if shift {
+		av, bv = a.val, f.toInt(b)
+	}
 	var s string
 	switch op {
 	case "+", "-", "*":
-		s = fmt.Sprintf("(%s %s %s)", a.val, op, b.val)
+		s = fmt.Sprintf("(%s %s %s)", av, op, bv)
 	case "/":
-		s = fmt.Sprintf("(quot %s %s)", a.val, b.val)
+		s = fmt.Sprintf("(quot %s %s)", av, bv)
 	case "%":
-		s = fmt.Sprintf("(rem %s %s)", a.val, b.val)
+		s = fmt.Sprintf("(rem %s %s)", av, bv)
 	case "&":
-		s = fmt.Sprintf("(%s .&. %s)", a.val, b.val)
+		s = fmt.Sprintf("(%s .&. %s)", av, bv)
 	case "|":
-		s = fmt.Sprintf("(%s .|. %s)", a.val, b.val)
+		s = fmt.Sprintf("(%s .|. %s)", av, bv)
 	case "^":
-		s = fmt.Sprintf("(xor %s %s)", a.val, b.val)
+		s = fmt.Sprintf("(xor %s %s)", av, bv)
 	case "<<":
-		s = fmt.Sprintf("(shiftL %s (fromIntegral %s))", a.val, b.val)
+		s = fmt.Sprintf("(shiftL %s %s)", av, bv)
 	case ">>":
-		s = fmt.Sprintf("(shiftR %s (fromIntegral %s))", a.val, b.val)
+		s = fmt.Sprintf("(shiftR %s %s)", av, bv)
 	default:
 		f.no(nil, "an operator %s", op)
 	}
 	return hv{binds: binds, val: s, ht: ht}
+}
+
+// hsPair is two operands of one type: a constant without its annotation
+// when the other is not a constant, which fixes the type.
+func hsPair(a, b hv) (string, string) {
+	switch {
+	case a.konst && !b.konst:
+		return a.plain(), b.val
+	case b.konst && !a.konst:
+		return a.val, b.plain()
+	}
+	return a.val, b.val
 }
 
 // additive is + or -: of a pointer and an integer, of two pointers, or of
@@ -521,7 +665,7 @@ func (f *hfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 			pe, ie = re, le
 		}
 		p := f.expr(pe)
-		n := f.conv(f.expr(ie), "Int64")
+		n := f.expr(ie)
 		size := elemSize(pe.Type())
 		binds := append(append([]string{}, p.binds...), n.binds...)
 		if pe == le {
@@ -529,11 +673,7 @@ func (f *hfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 		} else {
 			binds = append(append([]string{}, n.binds...), p.binds...)
 		}
-		sign := ""
-		if op == "-" {
-			sign = "negate "
-		}
-		return hv{binds: binds, val: fmt.Sprintf("(pAdd %s (%s(fromIntegral %s * %d)))", p.val, sign, n.val, size), ht: "P"}
+		return hv{binds: binds, val: fmt.Sprintf("(pAdd %s %s)", p.val, f.byteOff(n, size, op == "-")), ht: "P"}
 	}
 	return f.arith(op, f.expr(le), f.expr(re), hsType(x.Type()))
 }
@@ -554,7 +694,8 @@ func (f *hfn) compare(op string, le, re cc.ExpressionNode) hv {
 	}
 	a, b = f.conv(a, ht), f.conv(b, ht)
 	binds := append(append([]string{}, a.binds...), b.binds...)
-	return hv{binds: binds, val: fmt.Sprintf("(%s %s %s)", a.val, op, b.val), ht: "Bool"}
+	av, bv := hsPair(a, b)
+	return hv{binds: binds, val: fmt.Sprintf("(%s %s %s)", av, op, bv), ht: "Bool"}
 }
 
 // logical is && (and) or ||: the right operand's lines run only when C
@@ -585,7 +726,17 @@ func doBlock(v hv) string {
 	if len(v.binds) == 0 {
 		return "pure " + v.val
 	}
-	return "(do { " + strings.Join(v.binds, "; ") + "; pure " + v.val + " })"
+	binds := v.binds
+	last := binds[len(binds)-1]
+	if strings.HasPrefix(last, v.val+" <- ") {
+		// its last action's result is the value: the action itself
+		act := strings.TrimPrefix(last, v.val+" <- ")
+		if len(binds) == 1 {
+			return "(" + act + ")"
+		}
+		return "(do { " + strings.Join(binds[:len(binds)-1], "; ") + "; " + act + " })"
+	}
+	return "(do { " + strings.Join(binds, "; ") + "; pure " + v.val + " })"
 }
 
 // ternary is ?:, each arm's lines only when it is chosen.
@@ -595,7 +746,8 @@ func (f *hfn) ternary(x *cc.ConditionalExpression) hv {
 	a := f.conv(f.expr(x.ExpressionList), ht)
 	b := f.conv(f.expr(x.ConditionalExpression), ht)
 	if len(a.binds) == 0 && len(b.binds) == 0 {
-		return hv{binds: c.binds, val: fmt.Sprintf("(if %s then %s else %s)", c.val, a.val, b.val), ht: ht}
+		av, bv := hsPair(a, b)
+		return hv{binds: c.binds, val: fmt.Sprintf("(if %s then %s else %s)", c.val, av, bv), ht: ht}
 	}
 	r := f.tmp()
 	line := fmt.Sprintf("%s <- if %s then %s else %s", r, c.val, doBlock(a), doBlock(b))
@@ -652,7 +804,11 @@ func (f *hfn) call(x *cc.PostfixExpression) hv {
 			}
 			v := f.conv(f.expr(a), hsParamType(pt))
 			binds = append(binds, v.binds...)
-			vals = append(vals, v.val)
+			if viaPtr {
+				vals = append(vals, v.val) // toRaw's, whose type it is
+			} else {
+				vals = append(vals, v.plain())
+			}
 			continue
 		}
 		v := f.expr(a)
@@ -662,8 +818,12 @@ func (f *hfn) call(x *cc.PostfixExpression) hv {
 			rest = append(rest, "VI (b2i "+v.val+")")
 		case v.ht == "P":
 			rest = append(rest, "VP "+v.val)
+		case strings.HasPrefix(v.ht, "Word") && v.konst:
+			rest = append(rest, "VU "+hsBare(v.kv, "Word64"))
 		case strings.HasPrefix(v.ht, "Word"):
 			rest = append(rest, "VU (fromIntegral "+v.val+")")
+		case v.konst:
+			rest = append(rest, "VI "+hsBare(v.kv, "Int64"))
 		default:
 			rest = append(rest, "VI (fromIntegral "+v.val+")")
 		}

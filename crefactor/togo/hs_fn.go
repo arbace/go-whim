@@ -12,6 +12,7 @@ package togo
 
 import (
 	"fmt"
+	"maps"
 	"regexp"
 	"strings"
 
@@ -29,6 +30,24 @@ type hfn struct {
 	sret      bool   // the result is a struct, written through sret'
 	ret       string // the Haskell type of the result
 	lines     []string
+
+	// the names: every binding is a name of its own, so none shadows another
+	// (hsnames.go)
+	base     map[*lvar]string // a variable's first name: its C name, unless taken
+	ver      map[*lvar]int
+	used     map[string]bool
+	cur      map[*lvar]string // a binding variable's value where the printing is: a name, or an atom
+	entryCur map[*lvar]string // the same, where the function starts
+
+	// the shape (hsshape.go)
+	live   map[*lblock]map[*lvar]bool
+	start  *lblock
+	fwd    map[*lblock]*lblock // a block that only jumps -> where it goes
+	inline map[*lblock]bool    // reached by one jump: written there
+	loop   map[*lblock]bool    // a loop's head: a jump back reaches it
+	fixed  map[*lvar]bool      // parameters never assigned: read from the scope
+
+	image []byte // initGlobals: the segment's constant bytes (hsnamed.go)
 }
 
 // function prints one function definition, or says why it cannot.
@@ -58,18 +77,27 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	f.sret = isAggr(ft.Result())
 	f.ret = hsType(ft.Result())
 	f.placeVars(fd)
+	f.nameVars()
 	sig, params := h.signature(d, lf)
-
-	// the blocks, each a local function of what is live at its start
-	live := lf.live()
-	var blocks []string
-	for _, b := range lf.blocks {
-		blocks = append(blocks, f.block(b, live))
+	first := 0
+	if f.sret {
+		first = 1 // sret' is the first
 	}
+	for i, v := range lf.params {
+		if first+i < len(params) {
+			params[first+i] = f.base[v]
+		}
+	}
+
+	// the blocks: those reached by one jump written where the jump is, the
+	// rest -- joins and loops' heads -- local functions of what is live at
+	// their start (hsshape.go)
+	f.live = lf.live()
+	f.shape()
 	var b strings.Builder
 	b.WriteString(sig + "\n")
 	fmt.Fprintf(&b, "%s ed' %s=", h.names[d.Name()], strings.Join(append(params, ""), " "))
-	body := "do\n"
+	var body []string
 	// the parameters that live in the frame: copied in
 	for _, v := range lf.params {
 		off, ok := f.mem[v]
@@ -77,22 +105,36 @@ func (h *hgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 			continue
 		}
 		if isAggr(v.c) {
-			body += fmt.Sprintf("  copyMem (pAdd fr' %d) %s %d\n", off, v.name, v.c.Size())
+			body = append(body, fmt.Sprintf("copyMem (pAdd fr' %d) %s %d", off, f.base[v], v.c.Size()))
 		} else {
-			body += fmt.Sprintf("  wr%s fr' %d %s\n", hsAccess(hsType(v.c)), off, v.name)
+			body = append(body, fmt.Sprintf("wr%s fr' %d %s", hsAccess(hsType(v.c)), off, f.base[v]))
 		}
 	}
-	body += "  let\n"
-	for _, bl := range blocks {
-		body += indent(bl, 4) + "\n"
+	var locals []string
+	for _, bl := range lf.blocks {
+		if f.local(bl) {
+			locals = append(locals, f.block(bl))
+		}
 	}
-	body += "  " + f.jump(lf.blocks[0], live, true)
+	f.cur = f.entryCur
+	start := []string{f.jump(f.start)}
+	if f.inline[f.start] {
+		start = f.body(f.start, 0)
+	}
+	if len(locals) > 0 {
+		body = append(body, "let")
+		for _, l := range locals {
+			body = append(body, indent(l, 2))
+		}
+	}
+	body = append(body, start...)
+	text := "do\n" + indent(strings.Join(body, "\n"), 2)
 	if f.frameSize > 0 {
-		fmt.Fprintf(&b, " frame %d $ \\fr' -> %s\n", f.frameSize, body)
+		fmt.Fprintf(&b, " frame %d $ \\fr' -> %s\n", f.frameSize, text)
 	} else {
-		fmt.Fprintf(&b, " %s\n", body)
+		fmt.Fprintf(&b, " %s\n", text)
 	}
-	return b.String(), ""
+	return hsTidy(b.String()), ""
 }
 
 // placeVars decides which variables live in the frame: an array, a struct
@@ -143,24 +185,19 @@ func (f *hfn) reg(v *lvar) bool {
 func (f *hfn) params(b *lblock, live map[*lblock]map[*lvar]bool) []*lvar {
 	set := map[*lvar]bool{}
 	for v := range live[b] {
-		if f.reg(v) {
+		if f.reg(v) && !f.fixed[v] {
 			set[v] = true
 		}
 	}
 	return f.lf.sortedVars(set)
 }
 
-// jump is a tail call of b with the variables it is a function of; from
-// the entry (entry), a variable not yet given a value is Java's zero, as C
-// leaves it unset.
-func (f *hfn) jump(b *lblock, live map[*lblock]map[*lvar]bool, entry bool) string {
-	parts := []string{fmt.Sprintf("j'%d", b.id)}
-	for _, v := range f.params(b, live) {
-		if entry && !v.param {
-			parts = append(parts, hsZero(f.vtype(v)))
-			continue
-		}
-		parts = append(parts, v.name)
+// jump is a tail call of b with the variables it is a function of, each
+// under its name where the jump is.
+func (f *hfn) jump(b *lblock) string {
+	parts := []string{f.bname(b)}
+	for _, v := range f.params(b, f.live) {
+		parts = append(parts, f.valueOf(f.cur, v))
 	}
 	return strings.Join(parts, " ")
 }
@@ -191,20 +228,53 @@ func hsZero(ht string) string {
 	return "(0 :: " + ht + ")"
 }
 
-// block is one block: a local function of what is live at its start, its
-// steps and its terminator.
-func (f *hfn) block(b *lblock, live map[*lblock]map[*lvar]bool) string {
-	var head []string
-	head = append(head, fmt.Sprintf("j'%d", b.id))
-	for _, v := range f.params(b, live) {
-		head = append(head, "!"+v.name)
+// block is a block that is a local function: of what is live at its
+// start, each a name of its own.
+func (f *hfn) block(b *lblock) string {
+	head := []string{f.bname(b)}
+	f.cur = map[*lvar]string{}
+	for v := range f.fixed {
+		f.cur[v] = f.base[v]
 	}
+	for _, v := range f.params(b, f.live) {
+		n := f.fresh(v)
+		f.cur[v] = n
+		head = append(head, "!"+n)
+	}
+	return strings.Join(head, " ") + " = do\n" + indent(strings.Join(f.body(b, 0), "\n"), 2)
+}
+
+// body is block b's lines where the printing is (f.cur): its steps, and its
+// terminator, into which a block reached by that one jump is written.
+func (f *hfn) body(b *lblock, depth int) []string {
+	if depth > 10000 {
+		f.no(nil, "blocks written in place without end")
+	}
+	saved := f.lines
 	f.lines = nil
 	for _, s := range b.steps {
 		f.step(s)
 	}
-	f.term(b, live)
-	return strings.Join(head, " ") + " = do\n" + indent(strings.Join(f.lines, "\n"), 2)
+	f.term(b, depth)
+	out := f.lines
+	f.lines = saved
+	return out
+}
+
+// arm is the code that goes to s: a jump, or s written in place -- on the
+// same line when it is one line, else a do block below.  cur is the names
+// where the arm starts; an arm's own bindings are its alone.
+func (f *hfn) arm(s *lblock, depth int, cur map[*lvar]string) string {
+	if !f.inline[s] {
+		f.cur = cur
+		return f.jump(s)
+	}
+	f.cur = maps.Clone(cur)
+	ls := f.body(s, depth+1)
+	if len(ls) == 1 && !strings.Contains(ls[0], "\n") {
+		return ls[0]
+	}
+	return "do\n" + indent(strings.Join(ls, "\n"), 2)
 }
 
 // emit adds a line to the current block.
@@ -216,6 +286,13 @@ func (f *hfn) emit(format string, args ...any) {
 func (f *hfn) flush(v hv) string {
 	f.lines = append(f.lines, v.binds...)
 	return v.val
+}
+
+// flushPlain is flush of a value whose type the place it goes fixes: a
+// literal without its annotation.
+func (f *hfn) flushPlain(v hv) string {
+	f.lines = append(f.lines, v.binds...)
+	return v.plain()
 }
 
 // step prints one step.
@@ -244,7 +321,9 @@ func (f *hfn) step(s lstep) {
 	}
 }
 
-// setVar gives variable v the value x.
+// setVar gives variable v the value x: a binding of a name of its own (a
+// let, strict as C's assignment), or, when x is a name or a literal, x
+// itself.
 func (f *hfn) setVar(v *lvar, x hv) {
 	if off, ok := f.mem[v]; ok {
 		if isAggr(v.c) {
@@ -253,13 +332,20 @@ func (f *hfn) setVar(v *lvar, x hv) {
 			return
 		}
 		x = f.conv(x, f.vtype(v))
-		val := f.flush(x)
+		val := f.flushPlain(x)
 		f.emit("wr%s fr' %d %s", hsAccess(f.vtype(v)), off, val)
 		return
 	}
 	x = f.conv(x, f.vtype(v))
 	val := f.flush(x)
-	f.emit("!%s <- pure %s", v.name, val)
+	if hsAtom(val) {
+		// a name or a literal: the variable is it, with no binding
+		f.cur[v] = val
+		return
+	}
+	n := f.fresh(v)
+	f.emit("let !%s = %s", n, hsUnparen(val))
+	f.cur[v] = n
 }
 
 // store writes x to the lvalue lhs.
@@ -273,15 +359,19 @@ func (f *hfn) store(lhs cc.ExpressionNode, x hv) {
 	base := f.flush(a.base)
 	if isAggr(t) {
 		src := f.flush(x)
-		f.emit("copyMem (pAdd %s %s) %s %d", base, hsOff(a.off), src, t.Size())
+		f.emit("copyMem %s %s %d", f.addrVal(haddr{base: hv{val: base, ht: "P"}, off: a.off, syms: a.syms, symOff: a.symOff}).val, src, t.Size())
 		return
 	}
 	if a.field != nil && a.field.IsBitfield() {
 		f.no(lhs, "a bit field")
 	}
 	ht := hsType(t)
-	val := f.flush(f.conv(x, ht))
-	f.emit("wr%s %s %s %s", hsAccess(ht), base, hsOff(a.off), val)
+	val := f.flushPlain(f.conv(x, ht))
+	if a.whole && a.obj != nil {
+		f.emit("set'%s ed' %s", a.obj.name, val)
+		return
+	}
+	f.emit("wr%s %s %s %s", hsAccess(ht), base, offStr(a), val)
 }
 
 // assignOp is lhs op= e: C's lhs = (T)(lhs op e), the operation in the
@@ -293,13 +383,8 @@ func (f *hfn) assignOp(s lstep) {
 	var nv hv
 	if isPtrish(lt) {
 		// pointer += or -= an integer
-		n := f.conv(r, "Int64")
-		size := elemSize(lt)
-		sign := ""
-		if s.aop == "-" {
-			sign = "negate "
-		}
-		nv = hv{binds: append(cur.v.binds, n.binds...), val: fmt.Sprintf("(pAdd %s (%s(fromIntegral %s * %d)))", cur.v.val, sign, n.val, size), ht: "P"}
+		off := f.byteOff(r, elemSize(lt), s.aop == "-")
+		nv = hv{binds: append(cur.v.binds, r.binds...), val: fmt.Sprintf("(pAdd %s %s)", cur.v.val, off), ht: "P"}
 	} else {
 		lk, _ := scalarKind(lt)
 		rk, ok := scalarKind(s.e.typeOf())
@@ -326,7 +411,7 @@ func (f *hfn) incDec(s lstep) {
 		if !s.inc {
 			d = -d
 		}
-		nv = hv{binds: cur.v.binds, val: fmt.Sprintf("(pAdd %s (%d))", cur.v.val, d), ht: "P"}
+		nv = hv{binds: cur.v.binds, val: fmt.Sprintf("(pAdd %s %s)", cur.v.val, hsOff(int(d))), ht: "P"}
 	case hsType(lt) == "Bool":
 		// ++ on a bool is true; -- is its negation
 		if s.inc {
@@ -340,7 +425,7 @@ func (f *hfn) incDec(s lstep) {
 		if !s.inc {
 			op = "-"
 		}
-		nv = hv{binds: cur.v.binds, val: fmt.Sprintf("(%s %s (1 :: %s))", cur.v.val, op, ht), ht: ht}
+		nv = hv{binds: cur.v.binds, val: fmt.Sprintf("(%s %s 1)", cur.v.val, op), ht: ht}
 	}
 	cur.write(f, nv)
 }
@@ -348,12 +433,11 @@ func (f *hfn) incDec(s lstep) {
 // hlv is an lvalue read, and how it is written back: a binding, or memory
 // at an address the read has already computed.
 type hlv struct {
-	v     hv
-	reg   *lvar
-	base  string
-	off   int
-	t     cc.Type
-	field *cc.Field
+	v    hv
+	reg  *lvar
+	base string
+	a    haddr
+	t    cc.Type
 }
 
 func (f *hfn) readLval(e cc.ExpressionNode) hlv {
@@ -368,8 +452,12 @@ func (f *hfn) readLval(e cc.ExpressionNode) hlv {
 	}
 	ht := hsType(t)
 	r := f.tmp()
-	f.emit("%s <- rd%s %s %s", r, hsAccess(ht), base, hsOff(a.off))
-	return hlv{v: hv{val: r, ht: ht}, base: base, off: a.off, t: t, field: a.field}
+	if a.whole && a.obj != nil {
+		f.emit("%s <- %s ed'", r, a.obj.name)
+	} else {
+		f.emit("%s <- rd%s %s %s", r, hsAccess(ht), base, offStr(a))
+	}
+	return hlv{v: hv{val: r, ht: ht}, base: base, a: a, t: t}
 }
 
 func (l hlv) write(f *hfn, x hv) {
@@ -378,8 +466,12 @@ func (l hlv) write(f *hfn, x hv) {
 		return
 	}
 	ht := hsType(l.t)
-	val := f.flush(f.conv(x, ht))
-	f.emit("wr%s %s %s %s", hsAccess(ht), l.base, hsOff(l.off), val)
+	val := f.flushPlain(f.conv(x, ht))
+	if l.a.whole && l.a.obj != nil {
+		f.emit("set'%s ed' %s", l.a.obj.name, val)
+		return
+	}
+	f.emit("wr%s %s %s %s", hsAccess(ht), l.base, offStr(l.a), val)
 }
 
 // initVar is a declared local's initializer where C declares it: a braced
@@ -417,11 +509,16 @@ func (f *hfn) initInto(base string, off int, t cc.Type, in *cc.Initializer) {
 		if it == nil {
 			it = t
 		}
+		img := f.image != nil && base == "(edSeg ed')"
 		if sv, ok := unparenE(e).Value().(cc.StringValue); ok && it.Kind() == cc.Array {
 			// a char array from a string: its bytes, as many as fit
 			n := min(int(it.Size()), len(sv))
 			for i := 0; i < n; i++ {
-				if sv[i] != 0 {
+				switch {
+				case sv[i] == 0:
+				case img:
+					f.poke(at+i, 1, uint64(sv[i]))
+				default:
 					f.emit("wrW8 %s %d %d", base, at+i, sv[i])
 				}
 			}
@@ -440,7 +537,16 @@ func (f *hfn) initInto(base string, off int, t cc.Type, in *cc.Initializer) {
 		if x.konst && x.kv == 0 && !x.lit {
 			return // the memory is zeroed
 		}
-		val := f.flush(f.conv(x, ht))
+		if img && x.konst && !x.lit && ht != "P" && len(x.binds) == 0 {
+			// a constant: its bytes in the image
+			k := f.conv(x, ht).kv
+			if ht == "Bool" && k != 0 {
+				k = 1
+			}
+			f.poke(at, int(it.Size()), uint64(k))
+			return
+		}
+		val := f.flushPlain(f.conv(x, ht))
 		f.emit("wr%s %s %d %s", hsAccess(ht), base, at, val)
 		return
 	}
@@ -450,17 +556,26 @@ func (f *hfn) initInto(base string, off int, t cc.Type, in *cc.Initializer) {
 }
 
 // term prints a block's terminator.
-func (f *hfn) term(b *lblock, live map[*lblock]map[*lvar]bool) {
+func (f *hfn) term(b *lblock, depth int) {
 	t := b.term
 	switch t.kind {
 	case tGoto:
-		f.emit("%s", f.jump(t.to[0], live, false))
+		to := f.resolve(t.to[0])
+		if f.inline[to] {
+			// straight on: its lines are this block's
+			f.lines = append(f.lines, f.body(to, depth+1)...)
+			return
+		}
+		f.emit("%s", f.jump(to))
 	case tIf:
 		c := f.truth(f.lexpr(t.cond))
 		cv := f.flush(c)
-		f.emit("if %s", cv)
-		f.emit("  then %s", f.jump(t.to[0], live, false))
-		f.emit("  else %s", f.jump(t.to[1], live, false))
+		cur := f.cur
+		then := f.arm(f.resolve(t.to[0]), depth, cur)
+		els := f.arm(f.resolve(t.to[1]), depth, cur)
+		f.emit("if %s", hsUnparen(cv))
+		f.emit("%s", indent("then "+then, 2))
+		f.emit("%s", indent("else "+els, 2))
 	case tSwitch:
 		x := f.lexpr(t.cond)
 		ht := x.ht
@@ -469,13 +584,14 @@ func (f *hfn) term(b *lblock, live map[*lblock]map[*lvar]bool) {
 			ht = "Int32"
 		}
 		v := f.flush(x)
+		cur := f.cur
 		f.emit("case (%s :: %s) of", v, ht)
 		for i, vs := range t.cases {
 			for _, cv := range vs {
-				f.emit("  %s -> %s", hsPattern(cv, ht), f.jump(t.to[i], live, false))
+				f.emit("%s", indent(f.h.hsLabel(cv, ht, t.labels[cv])+" -> "+f.arm(f.resolve(t.to[i]), depth, cur), 2))
 			}
 		}
-		f.emit("  _ -> %s", f.jump(t.to[len(t.to)-1], live, false))
+		f.emit("%s", indent("_ -> "+f.arm(f.resolve(t.to[len(t.to)-1]), depth, cur), 2))
 	case tRet:
 		switch {
 		case t.ret.isZero():
@@ -485,7 +601,7 @@ func (f *hfn) term(b *lblock, live map[*lblock]map[*lvar]bool) {
 			f.emit("copyMem sret' %s %d", src, f.lf.ft.Result().Size())
 			f.emit("pure ()")
 		default:
-			v := f.flush(f.conv(f.lexpr(t.ret), f.ret))
+			v := f.flushPlain(f.conv(f.lexpr(t.ret), f.ret))
 			f.emit("pure %s", v)
 		}
 	case tFall:
@@ -537,8 +653,13 @@ func (f *hfn) no(n cc.Node, format string, args ...any) {
 }
 
 func (f *hfn) tmp() string {
-	f.ntmp++
-	return fmt.Sprintf("r'%d", f.ntmp)
+	for {
+		f.ntmp++
+		n := fmt.Sprintf("r'%d", f.ntmp)
+		if !f.used[n] {
+			return n
+		}
+	}
 }
 
 // hsOff is a byte offset as an argument: a negative one in parentheses.

@@ -90,12 +90,13 @@ const (
 )
 
 type lterm struct {
-	kind  tkind
-	cond  lexpr
-	to    []*lblock
-	cases [][]int64 // tSwitch: the values that go to to[i]
-	ret   lexpr
-	at    cc.Node
+	kind   tkind
+	cond   lexpr
+	to     []*lblock
+	cases  [][]int64                   // tSwitch: the values that go to to[i]
+	labels map[int64]cc.ExpressionNode // tSwitch: each value's case label, as C spells it
+	ret    lexpr
+	at     cc.Node
 }
 
 // lblock is a basic block.
@@ -139,11 +140,12 @@ type lfn struct {
 }
 
 type lswitch struct {
-	b     *lblock // the block that switches
-	kind  jk      // the promoted type of the value
-	cases map[int64]*lblock
-	order []int64
-	def   *lblock
+	b      *lblock // the block that switches
+	kind   jk      // the promoted type of the value
+	cases  map[int64]*lblock
+	labels map[int64]cc.ExpressionNode
+	order  []int64
+	def    *lblock
 }
 
 // lowerFunction lowers one function definition; a construct it has no rule
@@ -415,6 +417,7 @@ func (f *lfn) labeled(l *cc.LabeledStatement) {
 			v = truncK(v, sw.kind)
 			if _, dup := sw.cases[v]; !dup {
 				sw.cases[v] = b
+				sw.labels[v] = l.ConstantExpression
 				sw.order = append(sw.order, v)
 			}
 		}
@@ -485,7 +488,7 @@ func (f *lfn) selection(s *cc.SelectionStatement) {
 			f.no(s, "a switch on a %s", s.ExpressionList.Type())
 		}
 		v := f.val(s.ExpressionList)
-		sw := &lswitch{b: f.cur, kind: promote(ck), cases: map[int64]*lblock{}}
+		sw := &lswitch{b: f.cur, kind: promote(ck), cases: map[int64]*lblock{}, labels: map[int64]cc.ExpressionNode{}}
 		join := f.newBlock("endswitch")
 		f.cur.term = lterm{kind: tSwitch, cond: v, at: s}
 		f.cur.ended = true
@@ -520,6 +523,7 @@ func (f *lfn) selection(s *cc.SelectionStatement) {
 		}
 		sw.b.term.to = append(to, def)
 		sw.b.term.cases = cases
+		sw.b.term.labels = sw.labels
 	}
 }
 

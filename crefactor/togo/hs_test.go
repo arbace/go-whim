@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 )
@@ -190,9 +191,9 @@ func TestHsControl(t *testing.T) {
 		from      *regexp.Regexp
 		repl      string
 	}{
-		{"unsigned division", javaIntsC, regexp.MustCompile(`pure \(quot a b\)`), "pure (fromIntegral (quot (fromIntegral a :: Int32) (fromIntegral b :: Int32)))"},
-		{"unsigned widening", javaIntsC, regexp.MustCompile(`\(fromIntegral c :: Int32\) \+ \(1 :: Int32\)`), "(fromIntegral (fromIntegral c :: Int8) :: Int32) + (1 :: Int32)"},
-		{"unsigned shift", javaIntsC, regexp.MustCompile(`pure \(shiftR a \(fromIntegral \(fromIntegral n :: Int64\)\)\)`), "pure (fromIntegral (shiftR (fromIntegral a :: Int32) (fromIntegral n)))"},
+		{"unsigned division", javaIntsC, regexp.MustCompile(`pure \(quot (a\w*) (b\w*)\)`), "pure (fromIntegral (quot (fromIntegral $1 :: Int32) (fromIntegral $2 :: Int32)))"},
+		{"unsigned widening", javaIntsC, regexp.MustCompile(`\(fromIntegral (c\w*) :: Int32\) \+ 1\b`), "(fromIntegral (fromIntegral $1 :: Int8) :: Int32) + 1"},
+		{"unsigned shift", javaIntsC, regexp.MustCompile(`pure \(shiftR (a\w*) \(fromIntegral (n\w*)\)\)`), "pure (fromIntegral (shiftR (fromIntegral $1 :: Int32) (fromIntegral $2)))"},
 		{"struct copy", javaStructsC, regexp.MustCompile(`copyMem \(pAdd fr' 80\) \(pAdd fr' 72\) 8`), "pure ()"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -210,5 +211,30 @@ func TestHsControl(t *testing.T) {
 				t.Errorf("the mutation %q did not move the output", c.name)
 			}
 		})
+	}
+}
+
+// hsTokens reads past what is not a name: a string, a character literal --
+// '"' among them, which once opened a string and hid every name after it --
+// and comments.
+func TestHsTokens(t *testing.T) {
+	got := strings.Join(hsTokens(`a (ch '"') b {- '"' -} c "x \" d" e -- f`+"\n"+`g' h'1 'q'`), " ")
+	if want := "a ch b c e g' h'1"; got != want {
+		t.Errorf("hsTokens = %q, want %q", got, want)
+	}
+}
+
+func TestHsUnparen(t *testing.T) {
+	for in, want := range map[string]string{
+		`(a + b)`:             `a + b`,
+		`(a) + (b)`:           `(a) + (b)`,
+		`(c == (ch '"'))`:     `c == (ch '"')`,
+		`(c == (ch ')')) + 1`: `(c == (ch ')')) + 1`,
+		`(f x' (y'))`:         `f x' (y')`,
+		`(Ptr "(("# :: P)`:    `Ptr "(("# :: P`,
+	} {
+		if got := hsUnparen(in); got != want {
+			t.Errorf("hsUnparen(%s) = %s, want %s", in, got, want)
+		}
 	}
 }
