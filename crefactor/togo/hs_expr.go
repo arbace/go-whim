@@ -708,7 +708,8 @@ func (f *hfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 		p := f.expr(pe)
 		n := f.expr(ie)
 		size := elemSize(pe.Type())
-		binds := append(append([]string{}, p.binds...), n.binds...)
+		// the operands' bindings in the C's order, left first
+		var binds []string
 		if pe == le {
 			binds = append(append([]string{}, p.binds...), n.binds...)
 		} else {
