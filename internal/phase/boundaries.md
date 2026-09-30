@@ -11,8 +11,8 @@ longer have a snapshot of their own. The 8 phases that edit nothing (82, 83,
 and the 14 same-purpose groups of §3d each run as one phase under their last
 number -- 39, 44-47, 51-52, 72, 100-101, 105-106, 117-118, 121, 143-144, 148,
 151, 153, 164 and 166-167 run inside the phase after them, so their rows are
-texts no build now stops at. The rest are unchanged. (Phases 170-180 came
-after this table was measured.)
+texts no build now stops at. The rest are unchanged. Rows 170-183 were added
+2026-09-30 by the same measure; rows 000-169 measured again the same.
 
 A row is the boundary AFTER that phase: after its sweep and canonical print,
 which every phase has now -- there are no stages, and every row parses.
@@ -203,4 +203,18 @@ phase  lines    F      O     P    T     S    E    M      N      binary    nm-u  
 167    75434    1743   769   0    127   51   4    751    1304   758632    15    yes
 168    75427    1743   769   0    127   51   4    751    1304   758632    15    yes
 169    75396    1743   769   0    127   51   4    751    1304   758632    15    yes
+170    75507    1743   769   0    127   51   4    751    1304   762728    15    yes
+171    75504    1743   769   0    127   51   4    751    1304   762728    15    yes
+172    75506    1743   769   0    127   51   4    751    1304   762728    15    yes
+173    75539    1743   769   0    127   51   4    751    1304   762728    15    yes
+174    75346    1745   769   0    127   51   4    751    1304   762728    15    yes
+175    75381    1749   769   0    127   51   4    751    1304   762728    15    yes
+176    75349    1749   754   0    128   52   4    767    1304   762728    15    yes
+177    75642    1752   754   0    130   52   4    778    1304   766824    15    yes
+178    75644    1752   754   0    130   52   4    778    1304   766824    15    yes
+179    75644    1752   754   0    130   52   4    778    1304   766824    15    yes
+180    75650    1752   754   0    130   52   4    778    1304   770920    17    yes
+181    77631    1752   754   0    184   52   4    914    1304   779112    17    yes
+182    77634    1755   754   0    184   52   4    914    1304   775016    17    yes
+183    77634    1755   754   0    184   52   4    914    1304   775016    17    yes
 ```
