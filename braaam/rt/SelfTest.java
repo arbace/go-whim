@@ -159,9 +159,139 @@ public final class SelfTest {
         check(Rt.obj(bx.add(1)) == boxes[1] && Rt.obj(first) == first, "a void * as the one object");
         check(Rt.ptr(first).get() == first && Rt.ptr(bx) == bx && Rt.ptr(null) == null, "a void * as a Ptr");
 
+        strings();
+
         if (failed > 0) {
             System.exit(1);
         }
         System.out.println("ok");
+    }
+
+    // --- Str against the C's loops, transcribed ------------------------------
+
+    static int u(BytePtr p, int k) {
+        return p.a[p.i + k] & 0xff;
+    }
+
+    static long refStrlen(BytePtr s) {
+        int k = 0;
+        while (s.at(k) != 0) {
+            k++;
+        }
+        return k;
+    }
+
+    static int refStrcmp(BytePtr l, BytePtr r) {
+        int k = 0;
+        while (l.at(k) == r.at(k) && l.at(k) != 0) {
+            k++;
+        }
+        return u(l, k) - u(r, k);
+    }
+
+    static int refStrncmp(BytePtr l, BytePtr r, long n) {
+        if (n-- == 0) {
+            return 0;
+        }
+        int k = 0;
+        while (l.at(k) != 0 && r.at(k) != 0 && n != 0 && l.at(k) == r.at(k)) {
+            k++;
+            n--;
+        }
+        return u(l, k) - u(r, k);
+    }
+
+    static int refStrchr(BytePtr s, long c) {
+        int k = 0;
+        while (s.at(k) != 0 && u(s, k) != (c & 0xff)) {
+            k++;
+        }
+        return u(s, k) == (c & 0xff) ? k : -1;
+    }
+
+    static int refStrstr(BytePtr h, BytePtr n) {
+        if (n.at(0) == 0) {
+            return 0;
+        }
+        for (int k = 0; h.at(k) != 0; k++) {
+            int i = 0;
+            while (n.at(i) != 0 && h.at(k + i) == n.at(i)) {
+                i++;
+            }
+            if (n.at(i) == 0) {
+                return k;
+            }
+        }
+        return -1;
+    }
+
+    static int refStrpbrk(BytePtr s, BytePtr b) {
+        for (int k = 0; s.at(k) != 0; k++) {
+            for (int c = 0; b.at(c) != 0; c++) {
+                if (s.at(k) == b.at(c)) {
+                    return k;
+                }
+            }
+        }
+        return -1;
+    }
+
+    static int off(BytePtr found, BytePtr base) {
+        return found == null ? -1 : (int) found.sub(base);
+    }
+
+    /** A random C string over a few bytes, some above 127, at an offset. */
+    static BytePtr rnd(java.util.Random r) {
+        byte[] alpha = {'a', 'b', 'c', (byte) 0x80, (byte) 0xff};
+        int n = r.nextInt(6), at = r.nextInt(3);
+        byte[] a = new byte[at + n + 1 + r.nextInt(3)];
+        for (int k = 0; k < n; k++) {
+            a[at + k] = alpha[r.nextInt(alpha.length)];
+        }
+        return new BytePtr(a, at);
+    }
+
+    static void strings() {
+        java.util.Random r = new java.util.Random(1);
+        int bad = 0;
+        for (int t = 0; t < 20000; t++) {
+            BytePtr x = rnd(r), y = rnd(r);
+            long n = r.nextInt(8);
+            int c = r.nextInt(3) == 0 ? 0 : x.at(r.nextInt((int) refStrlen(x) + 1));
+            if (Str.strlen(x) != refStrlen(x) || Str.strcmp(x, y) != refStrcmp(x, y)
+                || Str.strncmp(x, y, n) != refStrncmp(x, y, n)
+                || off(Str.strchr(x, c), x) != refStrchr(x, c)
+                || off(Str.strstr(x, y), x) != refStrstr(x, y)
+                || off(Str.strpbrk(x, y), x) != refStrpbrk(x, y)) {
+                bad++;
+            }
+            // the copies, against the bytes a C loop leaves
+            byte[] d1 = new byte[16], d2 = new byte[16];
+            java.util.Arrays.fill(d1, (byte) 'z');
+            java.util.Arrays.fill(d2, (byte) 'z');
+            BytePtr p1 = new BytePtr(d1, 1), p2 = new BytePtr(d2, 1);
+            Str.strncpy(p1, x, n);
+            for (int k = 0; k < n; k++) {
+                d2[1 + k] = k < refStrlen(x) ? x.at(k) : 0;
+            }
+            if (!java.util.Arrays.equals(d1, d2)) {
+                bad++;
+            }
+            Str.strcpy(p1, x);
+            Str.strcat(p1, y);
+            byte[] want = (BytePtr.str(x) + BytePtr.str(y)).getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+            if (Str.strlen(p1) != want.length || !java.util.Arrays.equals(java.util.Arrays.copyOfRange(d1, 1, 1 + want.length), want)) {
+                bad++;
+            }
+        }
+        check(bad == 0, "Str against the C's loops: " + bad + " of 20000 differ");
+        BytePtr h = BytePtr.lit("abc");
+        check(Str.strstr(h, BytePtr.lit("")) == h && Str.strchr(h, 'a') == h, "found at the start is the string");
+        check(Str.strcmp(BytePtr.lit("a\200"), BytePtr.lit("a\001")) == 127, "strcmp is the difference, unsigned");
+        // an overlapping strcpy onto its own start, which the C's forward
+        // loop does as vim's STRMOVE of a tail left does
+        byte[] o = {'x', 'a', 'b', 'c', 0, 'q'};
+        Str.strcpy(new BytePtr(o, 0), new BytePtr(o, 1));
+        check(o[0] == 'a' && o[1] == 'b' && o[2] == 'c' && o[3] == 0 && o[5] == 'q', "strcpy onto its own start");
     }
 }

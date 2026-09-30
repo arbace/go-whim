@@ -34,7 +34,28 @@ func copyGen(file string) vijure.Gen {
 		if err != nil {
 			return err
 		}
-		return os.WriteFile(cljOut, b, 0o644)
+		if err := os.WriteFile(cljOut, b, 0o644); err != nil {
+			return err
+		}
+		// and the parts it loads, when it was written in parts
+		parts, err := vijure.Parts(file)
+		if err != nil {
+			return err
+		}
+		for _, p := range parts {
+			b, err := os.ReadFile(filepath.Join(filepath.Dir(file), p))
+			if err != nil {
+				return err
+			}
+			dst := filepath.Join(filepath.Dir(cljOut), p)
+			if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+				return err
+			}
+			if err := os.WriteFile(dst, b, 0o644); err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 

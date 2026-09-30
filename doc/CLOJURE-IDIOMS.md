@@ -473,6 +473,22 @@ reach -- vim's error paths into the redraw -- names the member.
 
 ### 6. The functions of bytes: `musl_*`
 
+**Done** (2026-09-30). The nine C string functions the Go's `editor/libc.go`
+replaces are `braaam/rt`'s `Str` in the Clojure editor: `(defn musl-strlen
+^long [^Editor ed ^BytePtr s] (Str/strlen s))`, a runtime body each
+(`internal/whim/gen.go`), where the translation walked a `BytePtr` a byte
+and an allocation at a time. `Str` keeps musl's contracts exactly (a
+comparison's answer is the bytes' difference, unsigned; strchr finds the
+NUL; strcpy copies forward), and `SelfTest` holds each to the C's loop,
+transcribed, on 20,000 random pairs of strings with bytes above 127. Its
+control, a `strcmp` answering only the sign, fails 16,825 of them.
+`editor.clj` 86,938 -> 86,845 lines. The heavy case at 500, 5,000 and
+50,000 lines, against HEAD's build, three runs each: 1.57-1.60 s against
+1.64-1.74, 2.42-2.56 against 2.51-2.53, 10.1-11.7 against 10.2-10.5, the
+same screens -- the change is for reading, and about neutral for speed.
+The `is*`/`to*` and `strtol` stay translated; the Java editor keeps its
+translations too.
+
 - **The pattern.** 29 `musl_*` functions are translated byte by byte
   (`musl_strlen` 128 calls, `musl_strcmp`, `musl_strchr`, `musl_atoi`, the
   `is*`/`to*`); 13 of the 42 read-only loops of item 9 are theirs.
@@ -498,6 +514,24 @@ reach -- vim's error paths into the redraw -- names the member.
 
 ### 8. Namespaces
 
+**Done for the headroom, as files, not namespaces** (2026-09-30). `load()`
+had grown to **62,441 of its 65,535 bytes**, about 130 top-level forms of
+room, where the survey measured 54,382. Measured on a namespace of the
+forms' shapes, compiled ahead of time: a `defn` costs `load()` 24 bytes, a
+`definterface` with its `deftype` 30. So `whim.editor` now keeps its
+functions in four files it loads, `(load "editor/part1")`, each beginning
+`(in-ns 'whim.editor)`: clojure.core's own split (`core_print.clj`). Each
+file compiles to a class of its own with its own `load()`. Nothing is
+renamed, the glue's names resolve as before, and the functions keep their
+order, so what a part calls is defined or declared before it
+(`Profile.CljParts`). `load()` now: 18,475 bytes in the namespace's own file
+(the types, the data, the macros), about 11,000 in each part. Short
+sessions start in the same time within noise (0.32-0.42 s, both). `whim
+gen` tracks the parts and refuses one that is changed or extra (both
+controls seen); `whim test --clojure-editor F` takes the parts beside F.
+The namespaces by layer this item describes are not done: they would name
+across namespaces for the reader, and the headroom was the need.
+
 - **The pattern.** One namespace of 2,205 top-level forms, `load()` at
   54,382 of 65,535 bytes.
 - **Measured.** By vim's source files it cannot be split: of 55 files, **54
@@ -515,6 +549,16 @@ reach -- vim's error paths into the redraw -- names the member.
   headroom before anything adds top-level forms (items 3's comment lines, 4).
 
 ### 9. Loops that are sequence functions
+
+**Declined** (2026-09-30, measured on the generated namespace). Of its 756
+`loop`s, 7 count to a bound that is a literal or a local, and 3 of those
+have the shape `dotimes` says: no value, the counter rebound only by the
+final increment, the bound never rebound. The rest re-read a bound the body
+can change (`(< i (.pb-count pp))`, which C reads every turn and `dotimes`
+once), leave early, or step otherwise. `some`, `reduce` and `iterate`
+would box every element in the hot loops, as the survey says. Three loops
+do not pay for a recogniser; and the string functions' walks, 13 of the
+read-only loops the survey counted, are the runtime's now (item 6).
 
 - **The pattern.** Of the 188 structured `loop`s (the other 708 C loops are
   inside machines, item 2): **42 store nothing** -- a counter to a bound (19:

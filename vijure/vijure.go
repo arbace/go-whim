@@ -36,6 +36,21 @@ import (
 //go:embed src/whim/cljhost.clj src/whim/cljmain.clj
 var sources embed.FS
 
+// Parts are the files the namespace in editorClj loads, beside it
+// (editor/partN.clj), as paths relative to its directory: none when it was
+// written as one file.
+func Parts(editorClj string) ([]string, error) {
+	fs, err := filepath.Glob(filepath.Join(filepath.Dir(editorClj), "editor", "*.clj"))
+	if err != nil {
+		return nil, err
+	}
+	var out []string
+	for _, f := range fs {
+		out = append(out, filepath.Join("editor", filepath.Base(f)))
+	}
+	return out, nil
+}
+
 // Gen writes the namespace whim.editor of the C core editorC to cljOut, as
 // `whim skel <editorC> <dir> -clj <cljOut>` does.
 type Gen func(editorC, dir, cljOut string) error
@@ -143,6 +158,24 @@ func Compile(editorClj, dir, launcher string) (string, error) {
 	}
 	if err := os.WriteFile(filepath.Join(srcDir, "whim", "editor.clj"), ns, 0o644); err != nil {
 		return "", err
+	}
+	// and the parts it loads, when it was written in parts (CljParts)
+	parts, err := Parts(editorClj)
+	if err != nil {
+		return "", err
+	}
+	for _, p := range parts {
+		b, err := os.ReadFile(filepath.Join(filepath.Dir(editorClj), p))
+		if err != nil {
+			return "", err
+		}
+		dst := filepath.Join(srcDir, "whim", p)
+		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+			return "", err
+		}
+		if err := os.WriteFile(dst, b, 0o644); err != nil {
+			return "", err
+		}
 	}
 	// the Java runtime and host, as braaam compiles them
 	java, err := braaam.WriteRuntime(filepath.Join(dir, "java"))

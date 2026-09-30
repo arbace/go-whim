@@ -80,6 +80,15 @@ type Profile struct {
 	// calls back: declared in the module's hs-boot interface, which the
 	// host imports {-# SOURCE #-}, an object as its address, addr'NAME.
 	HsExports []string
+	// CljParts, when more than 1, is how many files the Clojure namespace's
+	// functions are written in: the namespace's own file holds the rest and
+	// loads them, `(load "editor/part1")`, each beginning `(in-ns ...)` --
+	// clojure.core's own split.  A file ahead of time is a class whose one
+	// method, load(), runs its top-level forms and is held to 64 KB, 24
+	// bytes a function; the functions keep their order, so what a part
+	// calls is defined or declared before it.
+	CljParts int
+
 	// HsParts is how many modules the Haskell functions are split into, by
 	// the call graph (hssplit.go): 0 or 1, one module.
 	HsParts int

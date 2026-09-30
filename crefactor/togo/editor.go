@@ -29,7 +29,9 @@ func (g *gen) writeEditor(path string, skip map[string]bool) error {
 	b.WriteString(inits)
 	b.WriteString("}\n\n")
 	for _, rb := range g.p.RuntimeBodies {
-		b.WriteString(g.runtimeBody(rb) + "\n")
+		if rb.Body != nil {
+			b.WriteString(g.runtimeBody(rb) + "\n")
+		}
 	}
 	b.WriteString(body)
 	src, err := format.Source([]byte(b.String()))

@@ -1,6 +1,8 @@
 package suite
 
 import (
+	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -27,15 +29,58 @@ func buildClojure(gen vijure.Gen, candSrc, dir string) (*jvmEditor, error) {
 	if err != nil {
 		return nil, err
 	}
-	src, err := os.ReadFile(cljOut)
-	if err != nil {
-		return nil, err
-	}
-	ctlSrc, err := writeControl(src, "editor.clj", ctlDir)
+	ctlSrc, err := cljControl(cljOut, ctlDir)
 	if err != nil {
 		return nil, err
 	}
 	return compileClojure(e, cljOut, ctlSrc, dir)
+}
+
+// cljControl writes the namespace in cljOut, and the parts it loads, into
+// dir with the control applied to the one file that holds the control's
+// string, and returns the namespace's file there.
+func cljControl(cljOut, dir string) (string, error) {
+	parts, err := vijure.Parts(cljOut)
+	if err != nil {
+		return "", err
+	}
+	files := append([]string{"editor.clj"}, parts...)
+	holder := ""
+	for _, f := range files {
+		b, err := os.ReadFile(filepath.Join(filepath.Dir(cljOut), f))
+		if err != nil {
+			return "", err
+		}
+		if bytes.Contains(b, []byte(javaControlOld)) {
+			if holder != "" {
+				return "", fmt.Errorf("suite: the control string %s is in %s and %s", javaControlOld, holder, f)
+			}
+			holder = f
+		}
+	}
+	if holder == "" {
+		return "", fmt.Errorf("suite: the control string %s is in no file of the namespace", javaControlOld)
+	}
+	for _, f := range files {
+		b, err := os.ReadFile(filepath.Join(filepath.Dir(cljOut), f))
+		if err != nil {
+			return "", err
+		}
+		dst := filepath.Join(dir, f)
+		if f == holder {
+			if _, err := writeControl(b, filepath.Base(f), filepath.Dir(dst)); err != nil {
+				return "", err
+			}
+			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+			return "", err
+		}
+		if err := os.WriteFile(dst, b, 0o644); err != nil {
+			return "", err
+		}
+	}
+	return filepath.Join(dir, "editor.clj"), nil
 }
 
 // compileClojure compiles the namespace in cljOut and its control in ctlSrc,

@@ -13,6 +13,7 @@ import (
 	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/internal/gen/pre"
 	"github.com/arbace/go-whim/internal/whim"
+	"github.com/arbace/go-whim/vijure"
 )
 
 // runGen writes editor/editor.go, braaam/Editor.java,
@@ -89,7 +90,12 @@ func runGen(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(cdir)
-	cljOut := filepath.Join(out, "editor.clj")
+	cljDir := filepath.Join(out, "clj")
+	if err := os.MkdirAll(cljDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	cljOut := filepath.Join(cljDir, "editor.clj")
 	if err := cljGen(editorC, cdir, cljOut); err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
@@ -127,6 +133,17 @@ func runGen(args []string) int {
 		return 1
 	}
 	made := map[string]bool{}
+	// the Clojure's parts, which its namespace loads
+	cljParts, err := vijure.Parts(cljOut)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	for _, p := range cljParts {
+		tracked := filepath.Join("vijure", "src", "whim", p)
+		made[tracked] = true
+		files = append(files, struct{ made, tracked string }{filepath.Join(cljDir, p), tracked})
+	}
 	// the Java: the package's files
 	javaFiles, err := braaam.Generated(javaDir)
 	if err != nil {
@@ -146,6 +163,8 @@ func runGen(args []string) int {
 	stale, _ := filepath.Glob(filepath.Join("caprice", "Caprice", "Editor", "*.hs"))
 	javaStale, _ := filepath.Glob(filepath.Join("braaam", "editor", "*.java"))
 	stale = append(stale, javaStale...)
+	cljStale, _ := filepath.Glob(filepath.Join("vijure", "src", "whim", "editor", "*.clj"))
+	stale = append(stale, cljStale...)
 	fail, changed := false, false
 	for _, f := range files {
 		made, err := os.ReadFile(f.made)
@@ -206,7 +225,12 @@ func runGen(args []string) int {
 		}
 		fmt.Printf("  %-12s %d lines, and %d in %d files beside it (whim.editor), generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")), n-bytes.Count(j, []byte("\n")), len(javaFiles)-1)
 		c, _ := os.ReadFile("vijure/src/whim/editor.clj")
-		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))
+		cn := 0
+		for _, p := range cljParts {
+			b, _ := os.ReadFile(filepath.Join("vijure", "src", "whim", p))
+			cn += bytes.Count(b, []byte("\n"))
+		}
+		fmt.Printf("  %-12s %d lines, and %d in the %d parts it loads, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")), cn, len(cljParts))
 		n = 0
 		for _, f := range hsFiles {
 			hs, _ := os.ReadFile(filepath.Join("caprice", "Caprice", f))

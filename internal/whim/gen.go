@@ -127,6 +127,12 @@ func matchLinesHs(string) string {
   pure (not failed)`
 }
 
+// cljStr is a C string function's Clojure body: the call of braaam/rt's
+// Str method of that name, on the C's parameters.
+func cljStr(call string) func(string) string {
+	return func(string) string { return "(Str/" + call + ")" }
+}
+
 func matchLinesClj(string) string {
 	return `(Rt/chunks n (reify whim.rt.Rt$Chunk
               (run [_ from to]
@@ -183,6 +189,18 @@ var Gen = togo.Profile{
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
 		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs},
+		// the C string functions in Clojure: braaam/rt's Str, as the Go's are
+		// editor/libc.go (Runtime above), not the musl translated a byte and
+		// a BytePtr at a time (doc/CLOJURE-IDIOMS.md, item 6)
+		{Name: "musl_strlen", Clj: cljStr("strlen s")},
+		{Name: "musl_strcpy", Clj: cljStr("strcpy dest src")},
+		{Name: "musl_strncpy", Clj: cljStr("strncpy dest src n")},
+		{Name: "musl_strcat", Clj: cljStr("strcat dest src")},
+		{Name: "musl_strcmp", Clj: cljStr("strcmp l r")},
+		{Name: "musl_strncmp", Clj: cljStr("strncmp ls rs n")},
+		{Name: "musl_strchr", Clj: cljStr("strchr s c")},
+		{Name: "musl_strstr", Clj: cljStr("strstr h n")},
+		{Name: "musl_strpbrk", Clj: cljStr("strpbrk s b")},
 	},
 	// what the Clojure host's printf reads of the core's state
 	CljExports: []string{"IObuff", "e_val_too_large"},
@@ -197,6 +215,11 @@ var Gen = togo.Profile{
 	// every jump between groups, so C1 compiles it early and cheaply, where
 	// one method of ex_substitute's ran interpreted (doc/CLOJURE-PROFILE.md)
 	CljSplit: 50000,
+	// The namespace's functions in 4 files it loads (clojure.core's own
+	// split): load(), one method a file, had 62,441 of its 65,535 bytes
+	// with every function in the one file, 24 bytes a function
+	// (doc/CLOJURE-IDIOMS.md, item 8).
+	CljParts: 4,
 	// the functions in eight modules by the call graph: GHC holds a part,
 	// not the whole (doc/HASKELL-IDIOMS.md, item 8)
 	HsParts:    8,
