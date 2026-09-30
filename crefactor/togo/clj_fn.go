@@ -51,16 +51,15 @@ type cvar struct {
 
 // cfn is one function being written.
 type cfn struct {
-	held         map[*cc.Declarator]bool // struct locals nothing else holds (heldStructs)
-	c            *cgen
-	lf           *lfn
-	name         string
-	vars         map[*lvar]*cvar
-	ret          string // the Java result type
-	pre          []cbind
-	ntmp         int
-	why          string // why it is a state machine
-	nvarsCarried int
+	held map[*cc.Declarator]bool // struct locals nothing else holds (heldStructs)
+	c    *cgen
+	lf   *lfn
+	name string
+	vars map[*lvar]*cvar
+	ret  string // the Java result type
+	pre  []cbind
+	ntmp int
+	why  string // why it is a state machine
 	// what the blocks became
 	steps map[*lblock][]cbind
 	terms map[*lblock]cterm

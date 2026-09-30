@@ -677,11 +677,7 @@ func (c *cgen) fnOrder(fds []*cc.FunctionDefinition) ([]string, []string) {
 		}
 	}
 	sort.Strings(forward)
-	var names []string
-	for _, n := range order {
-		names = append(names, n)
-	}
-	return names, forward
+	return append([]string(nil), order...), forward
 }
 
 // gaHelpers are the growarray's typed accessors: each makes or grows the

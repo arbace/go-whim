@@ -24,7 +24,6 @@ package togo
 import (
 	"fmt"
 	"reflect"
-	"sort"
 
 	"github.com/arbace/go-whim/crefactor/cc"
 )
@@ -421,9 +420,6 @@ func sameType(a, b cc.Type) bool {
 	return true
 }
 
-// flow: a value of expression src is stored into object dst, of type dt.
-func (a *an) flow(dst string, src cc.ExpressionNode) { a.flowT(dst, nil, src) }
-
 func isCharPtr(t cc.Type) bool {
 	if t == nil || t.Decay().Kind() != cc.Ptr {
 		return false
@@ -686,8 +682,6 @@ func (a *an) walk(n cc.Node) {
 	a.walkChildren(n)
 }
 
-var nodeType = reflect.TypeOf((*cc.Node)(nil)).Elem()
-
 func (a *an) walkChildren(n cc.Node) {
 	v := reflect.ValueOf(n)
 	if v.Kind() == reflect.Ptr {
@@ -713,15 +707,6 @@ func (a *an) walkChildren(n cc.Node) {
 			}
 		}
 	}
-}
-
-func sortedKeys[V any](m map[string]V) []string {
-	r := make([]string, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	sort.Strings(r)
-	return r
 }
 
 // walkChildrenFn calls f on every exported child node of n.
@@ -751,17 +736,3 @@ func walkChildrenFn(n cc.Node, f func(cc.Node)) {
 }
 
 func tagStr(t cc.Token) string { return t.SrcStr() }
-
-// spreadPuns carries a pun from a source to what it is stored into, one way:
-// varp = get_varp(p) makes varp a pun; strcpy(buf, varp) does not make buf one.
-func (a *an) spreadPuns() {
-	for changed := true; changed; {
-		changed = false
-		for _, e := range a.edges {
-			if a.u.punned(e[1]) && !a.u.punned(e[0]) {
-				a.u.markPun(e[0], "from "+e[1])
-				changed = true
-			}
-		}
-	}
-}

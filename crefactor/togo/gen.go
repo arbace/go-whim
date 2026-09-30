@@ -24,7 +24,6 @@ type gen struct {
 	aliases    []string           // typedef aliases
 	globals    []string           // var lines
 	sigs       []string           // signature lines for agents
-	notes      []string           // things an agent must know
 	seenEnum   map[*cc.EnumType]bool
 	globalName map[string]string // C global or static-local key -> Go name
 	defined    map[string]bool
@@ -366,9 +365,6 @@ func (g *gen) collect() {
 // collectBlockTypes emits enums declared inside a function (their constants
 // are file-wide in Go).
 func (g *gen) collectBlockTypes(fd *cc.FunctionDefinition) {
-	var visit func(n cc.Node)
-	visit = func(n cc.Node) {}
-	_ = visit
 	// enums inside functions are found through the declarator types of the
 	// function's locals by the walk below
 	walkDecls(fd.CompoundStatement, func(d *cc.Declarator) {

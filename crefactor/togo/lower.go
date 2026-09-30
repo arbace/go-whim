@@ -67,15 +67,14 @@ const (
 
 // lstep is one step of a block.
 type lstep struct {
-	op   lop
-	dst  *lvar
-	lhs  cc.ExpressionNode // an lvalue, read through the substitutions
-	e    lexpr
-	aop  string // opAssignOp's operator: + - * / % << >> & ^ |
-	inc  bool
-	in   *cc.Initializer
-	at   cc.Node
-	cdst string // opInit of a compound literal: its C type, for the C printer
+	op  lop
+	dst *lvar
+	lhs cc.ExpressionNode // an lvalue, read through the substitutions
+	e   lexpr
+	aop string // opAssignOp's operator: + - * / % << >> & ^ |
+	inc bool
+	in  *cc.Initializer
+	at  cc.Node
 }
 
 // tkind is how a block ends.
@@ -109,8 +108,6 @@ type lblock struct {
 	ended bool   // its terminator is set
 	head  bool   // a loop's head: the jump into it is kept, a block of its own
 }
-
-func (b *lblock) succs() []*lblock { return b.term.to }
 
 // lfn is one function lowered.
 type lfn struct {

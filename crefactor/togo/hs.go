@@ -574,7 +574,7 @@ func (h *hgen) initializers() ([]string, []string) {
 			failed = append(failed, name)
 			return
 		}
-		ls, err := f.catchInit(func() { f.initInto(fmt.Sprintf("(edSeg ed')"), off, t, in) })
+		ls, err := f.catchInit(func() { f.initInto("(edSeg ed')", off, t, in) })
 		if err != "" {
 			failed = append(failed, name+": "+err)
 			return
