@@ -486,8 +486,9 @@ control, a `strcmp` answering only the sign, fails 16,825 of them.
 50,000 lines, against HEAD's build, three runs each: 1.57-1.60 s against
 1.64-1.74, 2.42-2.56 against 2.51-2.53, 10.1-11.7 against 10.2-10.5, the
 same screens -- the change is for reading, and about neutral for speed.
-The `is*`/`to*` and `strtol` stay translated; the Java editor keeps its
-translations too.
+The `is*`/`to*` and `strtol` stay translated. The Java editor has the same
+nine bodies over `Str` too (`return Str.strlen(s);`): `Editor.java`
+55,038 -> 54,972 lines, its suites as the C.
 
 - **The pattern.** 29 `musl_*` functions are translated byte by byte
   (`musl_strlen` 128 calls, `musl_strcmp`, `musl_strchr`, `musl_atoi`, the

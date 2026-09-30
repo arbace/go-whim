@@ -4694,68 +4694,27 @@ public abstract class Editor {
     }
 
     long musl_strlen(BytePtr s) {
-        BytePtr a = s;
-        for (; s.get() != 0; s = s.add(1)) {
-        }
-        return s.sub(a);
+        return Str.strlen(s);
     }
 
     BytePtr musl_strcpy(BytePtr dest, BytePtr src) {
-        BytePtr d = dest;
-        while (true) {
-            d.put(src.get());
-            if (!((int) d.get() != 0)) {
-                break;
-            }
-            d = d.add(1);
-            src = src.add(1);
-        }
-        return dest;
+        return Str.strcpy(dest, src);
     }
 
     BytePtr musl_strncpy(BytePtr dest, BytePtr src, long n) {
-        BytePtr t1 = null;
-        BytePtr t2 = null;
-        BytePtr t3 = null;
-        BytePtr d = dest;
-        for (; n != 0 && src.get() != 0; n--) {
-            t1 = d;
-            d = d.add(1);
-            t2 = src;
-            src = src.add(1);
-            t1.put(t2.get());
-        }
-        for (; n != 0; n--) {
-            t3 = d;
-            d = d.add(1);
-            t3.put((byte) 0);
-        }
-        return dest;
+        return Str.strncpy(dest, src, n);
     }
 
     BytePtr musl_strcat(BytePtr dest, BytePtr src) {
-        musl_strcpy(dest.add((int) musl_strlen(dest)), src);
-        return dest;
+        return Str.strcat(dest, src);
     }
 
     int musl_strcmp(BytePtr l, BytePtr r) {
-        for (; (int) l.get() == (int) r.get() && l.get() != 0; l = l.add(1), r = r.add(1)) {
-        }
-        return l.u() - r.u();
+        return Str.strcmp(l, r);
     }
 
     int musl_strncmp(BytePtr ls, BytePtr rs, long n) {
-        long t1 = 0;
-        BytePtr l = ls;
-        BytePtr r = rs;
-        t1 = n;
-        n--;
-        if (t1 == 0) {
-            return 0;
-        }
-        for (; l.get() != 0 && r.get() != 0 && n != 0 && l.u() == r.u(); l = l.add(1), r = r.add(1), n--) {
-        }
-        return l.u() - r.u();
+        return Str.strncmp(ls, rs, n);
     }
 
     int musl_strcasecmp(BytePtr ls, BytePtr rs) {
@@ -4789,40 +4748,15 @@ public abstract class Editor {
     }
 
     BytePtr musl_strchr(BytePtr s, int c) {
-        byte ch = (byte) c;
-        for (; s.get() != 0 && s.u() != (ch & 0xff); s = s.add(1)) {
-        }
-        if (s.u() == (ch & 0xff)) {
-            return s;
-        }
-        return null;
+        return Str.strchr(s, c);
     }
 
     BytePtr musl_strstr(BytePtr h, BytePtr n) {
-        long i = 0;
-        if (n.at(0) == 0) {
-            return h;
-        }
-        for (; h.get() != 0; h = h.add(1)) {
-            for (i = 0L; n.at((int) i) != 0 && (int) h.at((int) i) == (int) n.at((int) i); i++) {
-            }
-            if (n.at((int) i) == 0) {
-                return h;
-            }
-        }
-        return null;
+        return Str.strstr(h, n);
     }
 
     BytePtr musl_strpbrk(BytePtr s, BytePtr b) {
-        BytePtr c = null;
-        for (; s.get() != 0; s = s.add(1)) {
-            for (c = b; c.get() != 0; c = c.add(1)) {
-                if ((int) s.get() == (int) c.get()) {
-                    return s;
-                }
-            }
-        }
-        return null;
+        return Str.strpbrk(s, b);
     }
 
     boolean musl_isdigit(int c) {

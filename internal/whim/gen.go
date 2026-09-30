@@ -127,6 +127,15 @@ func matchLinesHs(string) string {
   pure (not failed)`
 }
 
+// javaStr is a C string function's Java body: the return of braaam/rt's
+// Str method of that name, on the C's parameters.
+func javaStr(call string) func(string) string {
+	f := strings.Fields(call)
+	return func(string) string {
+		return "        return Str." + f[0] + "(" + strings.Join(f[1:], ", ") + ");\n"
+	}
+}
+
 // cljStr is a C string function's Clojure body: the call of braaam/rt's
 // Str method of that name, on the C's parameters.
 func cljStr(call string) func(string) string {
@@ -189,18 +198,18 @@ var Gen = togo.Profile{
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
 		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs},
-		// the C string functions in Clojure: braaam/rt's Str, as the Go's are
-		// editor/libc.go (Runtime above), not the musl translated a byte and
-		// a BytePtr at a time (doc/CLOJURE-IDIOMS.md, item 6)
-		{Name: "musl_strlen", Clj: cljStr("strlen s")},
-		{Name: "musl_strcpy", Clj: cljStr("strcpy dest src")},
-		{Name: "musl_strncpy", Clj: cljStr("strncpy dest src n")},
-		{Name: "musl_strcat", Clj: cljStr("strcat dest src")},
-		{Name: "musl_strcmp", Clj: cljStr("strcmp l r")},
-		{Name: "musl_strncmp", Clj: cljStr("strncmp ls rs n")},
-		{Name: "musl_strchr", Clj: cljStr("strchr s c")},
-		{Name: "musl_strstr", Clj: cljStr("strstr h n")},
-		{Name: "musl_strpbrk", Clj: cljStr("strpbrk s b")},
+		// the C string functions in Java and Clojure: braaam/rt's Str, as the
+		// Go's are editor/libc.go (Runtime above), not the musl translated a
+		// byte and a BytePtr at a time (doc/CLOJURE-IDIOMS.md, item 6)
+		{Name: "musl_strlen", Java: javaStr("strlen s"), Clj: cljStr("strlen s")},
+		{Name: "musl_strcpy", Java: javaStr("strcpy dest src"), Clj: cljStr("strcpy dest src")},
+		{Name: "musl_strncpy", Java: javaStr("strncpy dest src n"), Clj: cljStr("strncpy dest src n")},
+		{Name: "musl_strcat", Java: javaStr("strcat dest src"), Clj: cljStr("strcat dest src")},
+		{Name: "musl_strcmp", Java: javaStr("strcmp l r"), Clj: cljStr("strcmp l r")},
+		{Name: "musl_strncmp", Java: javaStr("strncmp ls rs n"), Clj: cljStr("strncmp ls rs n")},
+		{Name: "musl_strchr", Java: javaStr("strchr s c"), Clj: cljStr("strchr s c")},
+		{Name: "musl_strstr", Java: javaStr("strstr h n"), Clj: cljStr("strstr h n")},
+		{Name: "musl_strpbrk", Java: javaStr("strpbrk s b"), Clj: cljStr("strpbrk s b")},
 	},
 	// what the Clojure host's printf reads of the core's state
 	CljExports: []string{"IObuff", "e_val_too_large"},
