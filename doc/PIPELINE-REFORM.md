@@ -439,6 +439,24 @@ from reaching it:
      - the includes moved below the core (110).
      Where they land depends on anchors that the reorder moves.
    - **What contains it.** The final bytes check.
+**Measured on the product, 2026-09-30.** The fall-out closure cannot fold
+past what the product keeps, for a kind of object that the product has
+none of left:
+- **Globals.** Of the core's 339 scalar file-scope objects, none is read
+  but never written. Writes only disappear along the pipeline (the
+  behaviour changes add none to an existing object). So an object the
+  closure finds never written at any stage is one the product no longer
+  has. What remains open for globals is the *shape* of each fold, which is
+  item 1.
+- **Empty functions.** The product has none.
+- **Functions returning a constant.** The product has 2 of its 1,668:
+  - `did_set_number_relativenumber` is used as a value, which the rule
+    leaves alone.
+  - `ctrl_x_mode_scroll()` is still called in `if (ctrl_x_mode_scroll())`.
+  A closure that inlines constant-return functions would fold that call
+  and miss the bar. So that component takes an exception list, or stays
+  79's named step.
+
 4. **Enumerators pinned by the sweep.** A deleted enumerator pins its
    successor's value. The values are the originals, whatever the order, so
    this should be safe. It is not measured here.
