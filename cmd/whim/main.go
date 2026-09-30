@@ -114,6 +114,7 @@ var tools = map[string]tool{
 	"cemit":       {runCemit, "cemit <file.c> [--check]"},
 	"build":       {runBuild, "build [--check] [-v] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D] [--keep D]"},
 	"parse":       {runParse, "parse <file.c>"},
+	"cdiff":       {runCdiff, "cdiff [-n N] A.c B.c"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
 	"cut":         {runCut, "cut [FILE]"},
 	"gen":         {runGen, "gen [--check] [FILE]"},

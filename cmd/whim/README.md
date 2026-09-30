@@ -18,6 +18,7 @@ commit that has them.
 | `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `crefactor/cc` is what got linked |
 | `go tool whim reach` | what nothing reaches in a text, as a partition with gcc as its control (`crefactor/reach`); it deletes nothing |
 | `go tool whim measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`internal/phase/boundaries.md`) |
+| `go tool whim cdiff [-n N] A.c B.c` | the first difference between two C files, entity by entity: each top-level function, object, type, tag and assertion keyed by what it declares; the ones that differ (their first differing lines), the ones only in either, and whether the order is the same. Exit 0 only when they are the same (`doc/PIPELINE-REFORM.md` §7) |
 | `go tool whim score` | bytes to store and symbols to provide, slim-vim beside whim-vim, both built with the one line (`internal/score`) |
 | `go tool whim cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
 | `go tool whim cut` | the core of src/whim-vim.c (or FILE) on stdout: everything before the first `#include` (internal/whim's `Cut`), what every translation is written from |
