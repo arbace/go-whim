@@ -828,5 +828,8 @@ var Plan = []Phase{
 	{N: 183, Name: "a file-scope flag is bool",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim183"}},
+		}}, {N: 184, Name: "more flags are bool",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim184"}},
 		}},
 }

@@ -165,7 +165,7 @@
 ;; C: cmdline_insert_reg
 (defn cmdline-insert-reg ^long [^Editor ed ^IntPtr gotesc]
   (let [literally false
-        _ (putcmdline ed 34 (e TRUE))
+        _ (putcmdline ed 34 true)
         _ (g! ed no-mapping (i32 (inc (g ed no-mapping))))
         _ (g! ed allow-keys (i32 (inc (g ed allow-keys))))
         c (long (plain-vgetc ed))
@@ -788,7 +788,7 @@
                           (recur 5 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
                           (recur 11 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))
                       13
-                        (do (putcmdline ed 94 (e TRUE))
+                        (do (putcmdline ed 94 true)
                             (let [c (long (get-literal ed (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_SHIFT))))
                                   do-abbr false]
                               (g! ed extra-char (e NUL))
@@ -871,7 +871,7 @@
               (msg-check ed)
               (g! ed msg-scroll save-msg-scroll)
               (when some-key-typed
-                (g! ed need-wait-return (e FALSE)))
+                (g! ed need-wait-return false))
               (g! ed State save-State)
               (sb-text-end-cmdline ed)
               (recur 13 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))
@@ -905,7 +905,7 @@
     (getcmdline-int ed firstc count_ indent true)))
 
 (defn getexline ^BytePtr [^Editor ed ^long c ^long indent ^long options]
-  (if (and (not (zero? (g ed exec-from-reg))) (== (long (vpeekc ed)) 58))
+  (if (and (g ed exec-from-reg) (== (long (vpeekc ed)) 58))
     (do (vgetc ed)
         (getcmdline ed c 1 indent options))
     (getcmdline ed c 1 indent options)))
@@ -921,7 +921,7 @@
             c)]
     (if (do-execreg ed c true (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_EXECBUF))) true)
       (let [save-efr (g ed exec-from-reg)]
-        (g! ed exec-from-reg (e TRUE))
+        (g! ed exec-from-reg true)
         (loop []
           (if (or (not (stuff-empty? ed)) (> (.tb-len (g ed typebuf)) prev-len))
             (do (do-cmdline ed nil getexline 67)
@@ -1705,7 +1705,7 @@
     (screen-stop-highlight ed)
     (g! ed msg-didout (e FALSE))
     (g! ed msg-col 0)
-    (g! ed need-wait-return (e FALSE))
+    (g! ed need-wait-return false)
     (if (zero? (bit-and (g ed State) (e MODE_CMDLINE)))
       (do (out-flush ed)
           nil)
@@ -1836,10 +1836,10 @@
   (.set-save-msg-didout sst (g ed msg-didout))
   (.set-save-State sst (g ed State))
   (.set-save-insertmode sst (long (aget (g ed p-im) 0)))
-  (.set-save-finish-op sst (g ed finish-op))
+  (.set-save-finish-op sst (boolean (g ed finish-op)))
   (.set-save-opcount sst (i32 (g ed opcount)))
   (.set-save-reg-executing sst (g ed reg-executing))
-  (.set-save-pending-end-reg-executing sst (g ed pending-end-reg-executing))
+  (.set-save-pending-end-reg-executing sst (boolean (g ed pending-end-reg-executing)))
   (g! ed msg-scroll (e FALSE))
   (g! ed restart-edit 0)
   (aset (g ed p-im) 0 (unchecked-int (e FALSE)))
@@ -1924,18 +1924,17 @@
 ;; C: normal_cmd_get_count
 (defn normal-cmd-get-count ^T_normal_cmd_get_count__out_T [^Editor ed ^S_cmdarg_S cap c toplevel set-prevcount ctrl-w need-flushbuf]
   (let [c (long c)
-        ctrl-w (long ctrl-w)
         need-flushbuf (long need-flushbuf)
         ^T_normal_cmd_get_count__out_T out__ (new-T_normal_cmd_get_count__out_T)
-        ^longs tl__ (long-array 3)
-        ^objects to__ (object-array 1)
+        ^longs tl__ (long-array 2)
+        ^objects to__ (object-array 2)
         l__1 (loop [c c
-                    ctrl-w ctrl-w
+                    ctrl-w (boolean ctrl-w)
                     need-flushbuf need-flushbuf]
                (if (and (g ed VIsual-active) (not (zero? (g ed VIsual-select))))
                  (do (aset tl__ 0 c)
-                     (aset tl__ 1 ctrl-w)
-                     (aset tl__ 2 need-flushbuf)
+                     (aset to__ 0 (Boolean/valueOf (boolean ctrl-w)))
+                     (aset tl__ 1 need-flushbuf)
                      0)
                  (let [l__2 (loop [c c
                                    need-flushbuf need-flushbuf]
@@ -1946,25 +1945,25 @@
                                       (if (> (.count0 cap) 99999999)
                                         (.set-count0 cap 999999999)
                                         (.set-count0 cap (+ (* (.count0 cap) 10) (i32 (- c 48))))))
-                                    (when-not (zero? ctrl-w)
+                                    (when ctrl-w
                                       (g! ed no-mapping (i32 (inc (g ed no-mapping))))
                                       (g! ed allow-keys (i32 (inc (g ed allow-keys)))))
                                     (g! ed no-zero-mapping (i32 (inc (g ed no-zero-mapping))))
                                     (let [c (long (plain-vgetc ed))]
                                       (g! ed no-zero-mapping (i32 (dec (g ed no-zero-mapping))))
-                                      (when-not (zero? ctrl-w)
+                                      (when ctrl-w
                                         (g! ed no-mapping (i32 (dec (g ed no-mapping))))
                                         (g! ed allow-keys (i32 (dec (g ed allow-keys)))))
                                       (let [t1 (add-to-showcmd ed c)
                                             need-flushbuf (bit-or need-flushbuf (if t1 1 0))]
                                         (recur c need-flushbuf))))
                                 (do (aset tl__ 0 c)
-                                    (aset tl__ 2 need-flushbuf)
+                                    (aset tl__ 1 need-flushbuf)
                                     0)))
                        c (aget tl__ 0)
-                       need-flushbuf (aget tl__ 2)]
-                   (if (and (== c (e Ctrl_W)) (zero? ctrl-w) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)))
-                     (let [ctrl-w (e TRUE)
+                       need-flushbuf (aget tl__ 1)]
+                   (if (and (== c (e Ctrl_W)) (not ctrl-w) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)))
+                     (let [ctrl-w true
                            _ (.set-opcount cap (.count0 cap))
                            _ (.set-count0 cap 0)
                            _ (g! ed no-mapping (i32 (inc (g ed no-mapping))))
@@ -1974,14 +1973,14 @@
                            _ (g! ed allow-keys (i32 (dec (g ed allow-keys))))
                            t2 (add-to-showcmd ed c)
                            need-flushbuf (bit-or need-flushbuf (if t2 1 0))]
-                       (recur c ctrl-w need-flushbuf))
+                       (recur c (boolean ctrl-w) need-flushbuf))
                      (do (aset tl__ 0 c)
-                         (aset tl__ 1 ctrl-w)
-                         (aset tl__ 2 need-flushbuf)
+                         (aset to__ 0 (Boolean/valueOf (boolean ctrl-w)))
+                         (aset tl__ 1 need-flushbuf)
                          0)))))
         c (aget tl__ 0)
-        ctrl-w (aget tl__ 1)
-        need-flushbuf (aget tl__ 2)]
+        ctrl-w (boolean (aget to__ 0))
+        need-flushbuf (aget tl__ 1)]
     (if (== c (e K_CURSORHOLD))
       (do (.set-prev-opcount ^S_oparg_S (.oap cap) (.opcount cap))
           (.set-prev-count0 ^S_oparg_S (.oap cap) (.count0 cap)))
@@ -1994,7 +1993,7 @@
     (.set-opcount cap (.count0 cap))
     (.set-count1 cap (if (== (.count0 cap) 0) 1 (.count0 cap)))
     (.set-r__ out__ c)
-    (.set-ctrl-w out__ ctrl-w)
+    (.set-ctrl-w out__ (boolean ctrl-w))
     (.set-need-flushbuf out__ need-flushbuf)
     out__))
 
@@ -2136,7 +2135,7 @@
             lit false
             _ (g! ed no-mapping (i32 (inc (g ed no-mapping))))
             _ (g! ed allow-keys (i32 (inc (g ed allow-keys))))
-            _ (g! ed did-cursorhold (e TRUE))]
+            _ (g! ed did-cursorhold true)]
         (let [j__1 (if (== (.cmdchar cap) 103)
                     (let [_ (aset ^ints (.-nchar cap) 0 (unchecked-int (long (plain-vgetc ed))))
                           t1 (add-to-showcmd ed (long (aget ^ints (.-nchar cap) 0)))
@@ -2476,7 +2475,7 @@
             (when (== (.motion-type oap) (e MLINE))
               (fix-indent ed))
             (let [save-finish-op (g ed finish-op)
-                  _ (g! ed finish-op (e FALSE))
+                  _ (g! ed finish-op false)
                   retval (edit ed (e NUL) false 1)]
               (g! ed finish-op save-finish-op)
               (if (and (not (zero? (.block-mode oap))) (not (== (.lnum ^T_pos_T (.-start oap)) (.lnum ^T_pos_T (.-end oap)))) (zero? (g ed got-int)))
@@ -3918,7 +3917,7 @@
         old-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
         old-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
         old-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-    (when (and (or (not (zero? (g ed finish-op))) (g ed VIsual-active)) (not (== (.op-type oap) (e OP_NOP))))
+    (when (and (or (g ed finish-op) (g ed VIsual-active)) (not (== (.op-type oap) (e OP_NOP))))
       (let [redo-yank (and (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_YANK))) (not gui-yank))]
         (.set-is-VIsual oap (if (g ed VIsual-active) 1 0))
         (if (== (.motion-force oap) 86)
@@ -4206,7 +4205,7 @@
         ^S_cmdarg_S ca (new-S_cmdarg_S)
         ^T_pos_T old-pos (new-T_pos_T)
         ^longs tl__ (long-array 2)
-        ctrl-w (e FALSE)
+        ctrl-w false
         old-col (.w-curswant (g ed curwin))
         need-flushbuf (e FALSE)
         set-prevcount false
@@ -4214,8 +4213,8 @@
     (.zero ca)
     (.set-oap ca oap)
     (.set-opcount ca (g ed opcount))
-    (g! ed finish-op (if (not (== (.op-type oap) (e OP_NOP))) 1 0))
-    (when (and (zero? (g ed finish-op)) (zero? (.regname oap)))
+    (g! ed finish-op (not (== (.op-type oap) (e OP_NOP))))
+    (when (and (not (g ed finish-op)) (zero? (.regname oap)))
       (.set-opcount ca 0))
     (when (or (> (.prev-opcount oap) 0) (> (.prev-count0 oap) 0))
       (.set-opcount ca (.prev-opcount oap))
@@ -4250,10 +4249,10 @@
               ctrl-w (.ctrl-w normal-cmd-get-count__o)
               need-flushbuf (.need-flushbuf normal-cmd-get-count__o)
               c (.r__ normal-cmd-get-count__o)]
-          (if (zero? ctrl-w)
-            (.set-cmdchar ca c)
+          (if ctrl-w
             (do (aset ^ints (.-nchar ca) 0 (unchecked-int c))
-                (.set-cmdchar ca (e Ctrl_W))))
+                (.set-cmdchar ca (e Ctrl_W)))
+            (.set-cmdchar ca c))
           (let [idx (long (find-command ed (.cmdchar ca)))]
             (if (< idx 0)
               (clearopbeep ed oap)
@@ -4300,7 +4299,7 @@
                           (out-flush ed))
                         (when-not (== (.cmdchar ca) (e K_IGNORE))
                           (if (zero? (g ed ex-normal-busy))
-                            (g! ed did-cursorhold (e FALSE))
+                            (g! ed did-cursorhold false)
                             (g! ed did-cursorhold save-did-cursorhold)))
                         (g! ed State (e MODE_NORMAL))
                         (if (or (== (long (aget ^ints (.-nchar ca) 0)) (e ESC)) (== (long (aget ^ints (.-extra-char ca) 0)) (e ESC)))
@@ -4324,7 +4323,7 @@
                                           idx)]
                                 (.set-arg ca (.cmd-arg ^S_nv_cmd (aget (g ed nv-cmds) idx)))
                                 ((.cmd-func ^S_nv_cmd (aget (g ed nv-cmds) idx)) ed ca)
-                                (when (and (zero? (g ed finish-op)) (zero? (.op-type oap)) (or (< idx 0) (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_KEEPREG)))))
+                                (when (and (not (g ed finish-op)) (zero? (.op-type oap)) (or (< idx 0) (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_KEEPREG)))))
                                   (clearop ed oap))
                                 (when (> (g ed normal-cmd-old-mapped-len) 0)
                                   (g! ed normal-cmd-old-mapped-len (long (typebuf-maplen ed))))
@@ -4336,7 +4335,7 @@
                       nil))))
             (g! ed msg-nowait false)
             (when (== (.op-type oap) (e OP_NOP))
-              (g! ed finish-op (e FALSE)))
+              (g! ed finish-op false))
             (when (and (== (.op-type oap) (e OP_NOP)) (== (.regname oap) 0) (not (== (.cmdchar ca) (e K_CURSORHOLD))))
               (clear-showcmd ed))
             (checkpcmark ed)
@@ -4363,7 +4362,7 @@
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)]
     (clear-oparg oa)
-    (g! ed finish-op (e FALSE))
+    (g! ed finish-op false)
     (loop [c c]
       (let [t1 (or (not (stuff-empty? ed)) (and (or was-typed (not (typebuf-typed? ed))) (> (.tb-len (g ed typebuf)) 0)))
             j__2 (if t1
@@ -4492,7 +4491,7 @@
 
 ;; C: ex_nohlsearch
 (defn ex-nohlsearch [^Editor ed ^S_exarg eap]
-  (set-no-hlsearch ed (e TRUE))
+  (set-no-hlsearch ed true)
   (redraw-all-later ed (e UPD_SOME_VALID))
   nil)
 
@@ -4819,11 +4818,9 @@
   (let [keyround (long keyround)
         keys-len (long keys-len)
         mode (long mode)
-        did-local (long did-local)
         ^bytes buf (byte-array 200)
         ^bytes buf_2 (byte-array 200)
-        ^longs tl__ (long-array 2)
-        ^objects to__ (object-array 1)]
+        ^objects to__ (object-array 3)]
     (g! ed map-locked (i32 (inc (g ed map-locked))))
     (when (and (> (aget (g ed p-verbose) 0) 0) (== keyround 1))
       (when (g ed seenModifyOtherKeys)
@@ -4857,7 +4854,7 @@
           (whim.cljhost/vim-snprintf ed (BytePtr. buf_2 0) 200 (BytePtr/lit "Kitty keyboard protocol: %s\n") (object-array [name__2]))
           (msg-puts ed (BytePtr. buf_2 0)))))
     (let [hash_ 0]
-      (loop [did-local did-local
+      (loop [did-local (boolean did-local)
              hash_ hash_]
         (if (and (< hash_ 256) (zero? (g ed got-int)))
           (let [j__1 (if abbrev
@@ -4872,7 +4869,7 @@
             (case (long j__1)
               0
                 (let [^S_mapblock mp (aget to__ 0)
-                      l__2 (loop [did-local did-local
+                      l__2 (loop [did-local (boolean did-local)
                                   ^S_mapblock mp mp]
                              (if (and (some? mp) (zero? (g ed got-int)))
                                (let [did-local (if (and (not (.m-simplified mp)) (not (== (bit-and (.m-mode mp) mode) 0)))
@@ -4880,18 +4877,18 @@
                                                    (let [n (.m-keylen mp)]
                                                      (if (== (long (musl-strncmp (.m-keys mp) keys_ (if (< n keys-len) n keys-len))) 0)
                                                        (do (showmap ed mp true)
-                                                           (e TRUE))
+                                                           true)
                                                        did-local))
                                                    (do (showmap ed mp true)
-                                                       (e TRUE)))
+                                                       true))
                                                  did-local)
                                      ^S_mapblock mp (aget ^objects (.-m-next mp) 0)]
-                                 (recur did-local mp))
-                               (do (aset tl__ 1 did-local)
+                                 (recur (boolean did-local) mp))
+                               (do (aset to__ 2 (Boolean/valueOf (boolean did-local)))
                                    0)))
-                      did-local (aget tl__ 1)
+                      did-local (boolean (aget to__ 2))
                       hash_ (i32 (inc hash_))]
-                  (recur did-local hash_))
+                  (recur (boolean did-local) hash_))
               1
                 (do (g! ed map-locked (i32 (dec (g ed map-locked))))
                     did-local)))
@@ -5160,10 +5157,10 @@
           (recur s d))))))
 
 (defn- do-map__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
-        ^objects mp-result (aget fo__ 26)
-        ^ints did-simplify (aget fo__ 27)
-        ^bytes keys-unescaped (aget fo__ 28)
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 26)
+        ^objects mp-result (aget fo__ 27)
+        ^ints did-simplify (aget fo__ 28)
+        ^bytes keys-unescaped (aget fo__ 29)
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 3)]
     (loop [st st0__]
@@ -5453,49 +5450,49 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))]
             (if (<= keyround 2)
               (let [did-it false
-                    did-local (e FALSE)
+                    did-local false
                     keyround1-simplified (and (== keyround 1) (not (zero? (long (aget did-simplify 0)))))]
                 (if (== keyround 2)
                   (if (nil? alt-keys-buf)
                     (do (aset fo__ 3 keys_)
                         (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
-                        (aset fl__ 7 did-local)
-                        (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                        (aset fo__ 22 (Boolean/valueOf (boolean did-local)))
+                        (aset fo__ 23 (Boolean/valueOf (boolean keyround1-simplified)))
                         (recur 22))
                     (let [^BytePtr keys_ alt-keys-buf]
                       (aset fo__ 3 keys_)
                       (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
-                      (aset fl__ 7 did-local)
-                      (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                      (aset fo__ 22 (Boolean/valueOf (boolean did-local)))
+                      (aset fo__ 23 (Boolean/valueOf (boolean keyround1-simplified)))
                       (recur 4)))
                   (if (and (some? alt-keys-buf) do-print)
                     (let [^BytePtr keys_ alt-keys-buf]
                       (aset fo__ 3 keys_)
                       (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
-                      (aset fl__ 7 did-local)
-                      (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                      (aset fo__ 22 (Boolean/valueOf (boolean did-local)))
+                      (aset fo__ 23 (Boolean/valueOf (boolean keyround1-simplified)))
                       (recur 4))
                     (do (aset fo__ 3 keys_)
                         (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
-                        (aset fl__ 7 did-local)
-                        (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                        (aset fo__ 22 (Boolean/valueOf (boolean did-local)))
+                        (aset fo__ 23 (Boolean/valueOf (boolean keyround1-simplified)))
                         (recur 4)))))
               (do (aset fo__ 3 keys_)
                   (aset fo__ 21 (Boolean/valueOf (boolean did-it)))
-                  (aset fl__ 7 did-local)
-                  (aset fo__ 22 (Boolean/valueOf (boolean keyround1-simplified)))
+                  (aset fo__ 22 (Boolean/valueOf (boolean did-local)))
+                  (aset fo__ 23 (Boolean/valueOf (boolean keyround1-simplified)))
                   (recur 22))))
         st))))
 
 (defn- do-map__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
-        ^objects mp-result (aget fo__ 26)
-        ^ints did-simplify (aget fo__ 27)
-        ^bytes keys-unescaped (aget fo__ 28)]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 26)
+        ^objects mp-result (aget fo__ 27)
+        ^ints did-simplify (aget fo__ 28)
+        ^bytes keys-unescaped (aget fo__ 29)]
     (loop [st st0__]
       (case st
         4
@@ -5522,12 +5519,12 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                first_ (boolean (aget fo__ 23))
-                last_ (boolean (aget fo__ 24))
-                same (aget fl__ 10)
-                keys-unescaped-len (aget fl__ 11)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                first_ (boolean (aget fo__ 24))
+                last_ (boolean (aget fo__ 25))
+                same (aget fl__ 9)
+                keys-unescaped-len (aget fl__ 10)]
             (if haskey
               (let [len (i32 (long (musl-strlen keys_)))]
                 (if (> len (e MAXMAPLEN))
@@ -5548,28 +5545,28 @@
                       (aset fl__ 2 n)
                       (aset fl__ 3 len)
                       (aset fl__ 5 retval)
-                      (aset fo__ 23 (Boolean/valueOf (boolean first_)))
-                      (aset fo__ 24 (Boolean/valueOf (boolean last_)))
-                      (aset fl__ 10 same)
-                      (aset fl__ 11 keys-unescaped-len)
+                      (aset fo__ 24 (Boolean/valueOf (boolean first_)))
+                      (aset fo__ 25 (Boolean/valueOf (boolean last_)))
+                      (aset fl__ 9 same)
+                      (aset fl__ 10 keys-unescaped-len)
                       (recur 5))
                     (do (aset fo__ 7 p)
                         (aset fl__ 2 n)
                         (aset fl__ 3 len)
                         (aset fl__ 5 retval)
-                        (aset fo__ 23 (Boolean/valueOf (boolean first_)))
-                        (aset fo__ 24 (Boolean/valueOf (boolean last_)))
-                        (aset fl__ 10 same)
-                        (aset fl__ 11 keys-unescaped-len)
+                        (aset fo__ 24 (Boolean/valueOf (boolean first_)))
+                        (aset fo__ 25 (Boolean/valueOf (boolean last_)))
+                        (aset fl__ 9 same)
+                        (aset fl__ 10 keys-unescaped-len)
                         (recur 7)))))
               (do (aset fo__ 7 p)
                   (aset fl__ 2 n)
                   (aset fl__ 3 len)
                   (aset fl__ 5 retval)
-                  (aset fo__ 23 (Boolean/valueOf (boolean first_)))
-                  (aset fo__ 24 (Boolean/valueOf (boolean last_)))
-                  (aset fl__ 10 same)
-                  (aset fl__ 11 keys-unescaped-len)
+                  (aset fo__ 24 (Boolean/valueOf (boolean first_)))
+                  (aset fo__ 25 (Boolean/valueOf (boolean last_)))
+                  (aset fl__ 9 same)
+                  (aset fl__ 10 keys-unescaped-len)
                   (recur 7))))
         5
           (let [maptype (aget fl__ 0)
@@ -5595,12 +5592,12 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                first_ (boolean (aget fo__ 23))
-                last_ (boolean (aget fo__ 24))
-                same (aget fl__ 10)
-                keys-unescaped-len (aget fl__ 11)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                first_ (boolean (aget fo__ 24))
+                last_ (boolean (aget fo__ 25))
+                same (aget fl__ 9)
+                keys-unescaped-len (aget fl__ 10)]
             (if (.lt p (.add (BytePtr. keys-unescaped 0) keys-unescaped-len))
               (let [n (i32 (inc n))
                     last_ (vim-iswordp ed p)
@@ -5612,8 +5609,8 @@
                 (aset fo__ 7 p)
                 (aset fl__ 2 n)
                 (aset fl__ 5 retval)
-                (aset fo__ 24 (Boolean/valueOf (boolean last_)))
-                (aset fl__ 10 same)
+                (aset fo__ 25 (Boolean/valueOf (boolean last_)))
+                (aset fl__ 9 same)
                 (recur 5))
               (if (and last_ (> n 2) (>= same 0) (< same (i32 (- n 1))))
                 (let [retval 1]
@@ -5623,8 +5620,8 @@
                   (aset fo__ 7 p)
                   (aset fl__ 2 n)
                   (aset fl__ 5 retval)
-                  (aset fo__ 24 (Boolean/valueOf (boolean last_)))
-                  (aset fl__ 10 same)
+                  (aset fo__ 25 (Boolean/valueOf (boolean last_)))
+                  (aset fl__ 9 same)
                   (recur 6)))))
         6
           (let [maptype (aget fl__ 0)
@@ -5649,8 +5646,8 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))]
             (if (< n len)
               (if (or (== (.ub keys_ n) 32) (== (.ub keys_ n) 9))
                 (let [retval 1]
@@ -5685,18 +5682,18 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                hash_ (aget fl__ 12)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                hash_ (aget fl__ 11)]
             (when (and haskey hasarg abbrev)
               (g! ed no-abbr false))
             (when do-print
               (msg-start ed))
             (if (and unique (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)) haskey hasarg (not (== maptype (e MAPTYPE_UNMAP))))
               (let [hash_ 0]
-                (aset fl__ 12 hash_)
+                (aset fl__ 11 hash_)
                 (recur 8))
-              (do (aset fl__ 12 hash_)
+              (do (aset fl__ 11 hash_)
                   (recur 11))))
         8
           (let [maptype (aget fl__ 0)
@@ -5721,9 +5718,9 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                hash_ (aget fl__ 12)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                hash_ (aget fl__ 11)]
             (if (and (< hash_ 256) (zero? (g ed got-int)))
               (if abbrev
                 (if (== hash_ 0)
@@ -5760,9 +5757,9 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                hash_ (aget fl__ 12)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                hash_ (aget fl__ 11)]
             (recur 10))
         10
           (let [maptype (aget fl__ 0)
@@ -5787,9 +5784,9 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                hash_ (aget fl__ 12)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                hash_ (aget fl__ 11)]
             (if (and (some? mp) (zero? (g ed got-int)))
               (if (and (not (== (bit-and (.m-mode mp) mode) 0)) (== (.m-keylen mp) len) (== (long (musl-strncmp (.m-keys mp) keys_ len)) 0))
                 (if abbrev
@@ -5806,12 +5803,12 @@
                 (let [^S_mapblock mp (aget ^objects (.-m-next mp) 0)]
                   (aset fo__ 4 mp)
                   (aset fl__ 5 retval)
-                  (aset fl__ 12 hash_)
+                  (aset fl__ 11 hash_)
                   (recur 10)))
               (let [hash_ (i32 (inc hash_))]
                 (aset fo__ 4 mp)
                 (aset fl__ 5 retval)
-                (aset fl__ 12 hash_)
+                (aset fl__ 11 hash_)
                 (recur 8))))
         11
           (let [maptype (aget fl__ 0)
@@ -5835,26 +5832,26 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
                 did-local (if (and (not (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))) (not hasarg) (not (== maptype (e MAPTYPE_UNMAP))))
-                            (long (list-mappings ed keyround abbrev haskey keys_ len mode did-local))
+                            (list-mappings ed keyround abbrev haskey keys_ len mode did-local)
                             did-local)
                 num-rounds (if (and (== maptype (e MAPTYPE_UNMAP)) (not unmap-lhs-only)) 2 1)
                 round 0]
-            (aset fl__ 7 did-local)
-            (aset fl__ 8 round)
-            (aset fl__ 9 num-rounds)
+            (aset fo__ 22 (Boolean/valueOf (boolean did-local)))
+            (aset fl__ 7 round)
+            (aset fl__ 8 num-rounds)
             (recur 12))
         st))))
 
 (defn- do-map__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
-        ^objects mp-result (aget fo__ 26)
-        ^ints did-simplify (aget fo__ 27)
-        ^bytes keys-unescaped (aget fo__ 28)]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 26)
+        ^objects mp-result (aget fo__ 27)
+        ^ints did-simplify (aget fo__ 28)
+        ^bytes keys-unescaped (aget fo__ 29)]
     (loop [st st0__]
       (case st
         12
@@ -5879,15 +5876,15 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)]
             (if (and (< round num-rounds) (not did-it) (zero? (g ed got-int)))
               (let [hash__2 0]
                 (aset fl__ 5 retval)
-                (aset fl__ 13 hash__2)
+                (aset fl__ 12 hash__2)
                 (recur 14))
               (if (== maptype (e MAPTYPE_UNMAP))
                 (if did-it
@@ -5895,25 +5892,25 @@
                     (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
                       (do (.set-b-mapped-ctrl-c (g ed curbuf) (bit-and (.b-mapped-ctrl-c (g ed curbuf)) (bit-not mode)))
                           (aset fl__ 5 retval)
-                          (aset fl__ 13 hash__2)
+                          (aset fl__ 12 hash__2)
                           (recur 13))
                       (do (g! ed mapped-ctrl-c (bit-and (g ed mapped-ctrl-c) (bit-not mode)))
                           (aset fl__ 5 retval)
-                          (aset fl__ 13 hash__2)
+                          (aset fl__ 12 hash__2)
                           (recur 13)))
                     (do (aset fl__ 5 retval)
-                        (aset fl__ 13 hash__2)
+                        (aset fl__ 12 hash__2)
                         (recur 13)))
                   (if keyround1-simplified
                     (do (aset fl__ 5 retval)
-                        (aset fl__ 13 hash__2)
+                        (aset fl__ 12 hash__2)
                         (recur 13))
                     (let [retval 2]
                       (aset fl__ 5 retval)
-                      (aset fl__ 13 hash__2)
+                      (aset fl__ 12 hash__2)
                       (recur 13))))
                 (if (or (not haskey) (not hasarg))
-                  (if (and (not did-it) (zero? did-local))
+                  (if (and (not did-it) (not did-local))
                     (if abbrev
                       (do (msg ed (BytePtr/lit "No abbreviation found"))
                           (aset fo__ 0 (Long/valueOf retval))
@@ -5925,7 +5922,7 @@
                         -1))
                   (if did-it
                     (do (aset fl__ 5 retval)
-                        (aset fl__ 13 hash__2)
+                        (aset fl__ 12 hash__2)
                         (recur 13))
                     (do (aset mp-result (i32 (- keyround 1)) (map-add ed map-table abbr-table keys_ rhs orig-rhs noremap nowait silent mode abbrev keyround1-simplified))
                         (if (nil? (aget mp-result (i32 (- keyround 1))))
@@ -5933,7 +5930,7 @@
                             (aset fo__ 0 (Long/valueOf retval))
                             -1)
                           (do (aset fl__ 5 retval)
-                              (aset fl__ 13 hash__2)
+                              (aset fl__ 12 hash__2)
                               (recur 13)))))))))
         13
           (let [maptype (aget fl__ 0)
@@ -5982,11 +5979,11 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)]
             (if (and (< hash__2 256) (zero? (g ed got-int)))
               (if abbrev
                 (if (> hash__2 0)
@@ -6024,21 +6021,21 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)
                 ^S_mapblock mp (.get mpp)]
             (aset fo__ 4 mp)
             (recur 16))
         st))))
 
 (defn- do-map__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
-        ^objects mp-result (aget fo__ 26)
-        ^ints did-simplify (aget fo__ 27)
-        ^bytes keys-unescaped (aget fo__ 28)
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 26)
+        ^objects mp-result (aget fo__ 27)
+        ^ints did-simplify (aget fo__ 28)
+        ^bytes keys-unescaped (aget fo__ 29)
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)]
     (loop [st st0__]
@@ -6069,11 +6066,11 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)]
             (if (and (some? mp) (zero? (g ed got-int)))
               (if (== (bit-and (.m-mode mp) mode) 0)
                 (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
@@ -6236,11 +6233,11 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)]
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)]
             (if (== (.m-mode mp) 0)
               (do (map-free mpp)
                   (recur 20))
@@ -6273,13 +6270,13 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)
                 hash__2 (i32 (inc hash__2))]
-            (aset fl__ 13 hash__2)
+            (aset fl__ 12 hash__2)
             (recur 14))
         19
           (let [maptype (aget fl__ 0)
@@ -6305,11 +6302,11 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)
                 ^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
             (aset fo__ 5 mpp)
             (recur 20))
@@ -6337,11 +6334,11 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
-                hash__2 (aget fl__ 13)
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
+                hash__2 (aget fl__ 12)
                 ^S_mapblock mp (.get mpp)]
             (aset fo__ 4 mp)
             (recur 16))
@@ -6367,20 +6364,20 @@
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)
                 did-it (boolean (aget fo__ 21))
-                did-local (aget fl__ 7)
-                keyround1-simplified (boolean (aget fo__ 22))
-                round (aget fl__ 8)
-                num-rounds (aget fl__ 9)
+                did-local (boolean (aget fo__ 22))
+                keyround1-simplified (boolean (aget fo__ 23))
+                round (aget fl__ 7)
+                num-rounds (aget fl__ 8)
                 round (i32 (inc round))]
-            (aset fl__ 8 round)
+            (aset fl__ 7 round)
             (recur 12))
         st))))
 
 (defn- do-map__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 25)
-        ^objects mp-result (aget fo__ 26)
-        ^ints did-simplify (aget fo__ 27)
-        ^bytes keys-unescaped (aget fo__ 28)]
+  (let [^T_replace_termcodes__out_T replace-termcodes__o (aget fo__ 26)
+        ^objects mp-result (aget fo__ 27)
+        ^ints did-simplify (aget fo__ 28)
+        ^bytes keys-unescaped (aget fo__ 29)]
     (loop [st st0__]
       (case st
         22
@@ -6402,8 +6399,8 @@
         ^objects mp-result (object-array 2)
         ^ints did-simplify (int-array 1)
         ^bytes keys-unescaped (byte-array 51)
-        ^longs fl__ (long-array 14)
-        ^objects fo__ (object-array 29)]
+        ^longs fl__ (long-array 13)
+        ^objects fo__ (object-array 30)]
     (aset fl__ 0 maptype)
     (aset fo__ 1 arg)
     (aset fl__ 1 mode)
@@ -6423,20 +6420,20 @@
     (aset fo__ 19 false)
     (aset fl__ 6 0)
     (aset fo__ 21 false)
-    (aset fl__ 7 0)
     (aset fo__ 22 false)
-    (aset fl__ 8 0)
-    (aset fl__ 9 0)
     (aset fo__ 23 false)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
     (aset fo__ 24 false)
+    (aset fo__ 25 false)
+    (aset fl__ 9 0)
     (aset fl__ 10 0)
     (aset fl__ 11 0)
     (aset fl__ 12 0)
-    (aset fl__ 13 0)
-    (aset fo__ 25 replace-termcodes__o)
-    (aset fo__ 26 mp-result)
-    (aset fo__ 27 did-simplify)
-    (aset fo__ 28 keys-unescaped)
+    (aset fo__ 26 replace-termcodes__o)
+    (aset fo__ 27 mp-result)
+    (aset fo__ 28 did-simplify)
+    (aset fo__ 29 keys-unescaped)
     (loop [st 0]
       (let [r__ (if (<= st 3)
                   (do-map__0 ed fl__ fo__ st)
@@ -8028,7 +8025,7 @@
       (do (when (== i 2)
             (.set-motion-type ^S_oparg_S (.oap cap) (e MLINE)))
           (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)))
-    (if (and (not (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) prev-cursor-lnum) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) prev-cursor-col) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) prev-cursor-coladd))) (not (zero? (long (aget (g ed p-hls) 0)))) (zero? (g ed no-hlsearch)))
+    (if (and (not (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) prev-cursor-lnum) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) prev-cursor-col) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) prev-cursor-coladd))) (not (zero? (long (aget (g ed p-hls) 0)))) (not (g ed no-hlsearch)))
       (do (redraw-later ed (e UPD_SOME_VALID))
           (check-cursor ed)
           i)
@@ -8459,7 +8456,7 @@
       (.set-count1 cap (+ (.count1 cap) 1))
       (normal-search ed cap 0 nil 0 (bit-or (e SEARCH_MARK) (.arg cap)) nil)
       (.set-count1 cap (- (.count1 cap) 1)))
-    (when (and (> i 0) (not (zero? (long (aget (g ed p-hls) 0)))) (zero? (g ed no-hlsearch)))
+    (when (and (> i 0) (not (zero? (long (aget (g ed p-hls) 0)))) (not (g ed no-hlsearch)))
       (redraw-later ed (e UPD_SOME_VALID))
       nil)))
 
@@ -8469,75 +8466,75 @@
   nil)
 
 ;; C: set_csearch_until
-(defn set-csearch-until [^Editor ed ^long t-cmd]
+(defn set-csearch-until [^Editor ed t-cmd]
   (g! ed last-t-cmd t-cmd)
   nil)
 
-(defn searchc [^Editor ed ^S_cmdarg_S cap ^long t-cmd]
-  (let [^longs tl__ (long-array 4)
-        ^objects to__ (object-array 2)
+(defn searchc [^Editor ed ^S_cmdarg_S cap t-cmd]
+  (let [^longs tl__ (long-array 3)
+        ^objects to__ (object-array 3)
         c (long (aget ^ints (.-nchar cap) 0))
         dir (.arg cap)
         count_ (.count1 cap)
         stop true
         j__1 (if (== c (e NUL))
                (if (and (== (bit-and (long (aget (g ed lastc) 0)) 0xff) (e NUL)) (<= (g ed lastc-bytelen) 1))
-                 (do (aset to__ 1 (Boolean/valueOf (boolean false)))
+                 (do (aset to__ 2 (Boolean/valueOf (boolean false)))
                      -1)
                  (let [dir (if (zero? dir)
                              (g ed lastcdir)
                              (i32 (- (g ed lastcdir))))
                        t-cmd (g ed last-t-cmd)
                        c (bit-and (long (aget (g ed lastc) 0)) 0xff)]
-                   (if (and (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SCOLON))) (== count_ 1) (not (zero? t-cmd)))
+                   (if (and (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SCOLON))) (== count_ 1) t-cmd)
                      (let [stop false]
-                       (aset tl__ 0 t-cmd)
-                       (aset tl__ 1 c)
-                       (aset tl__ 2 dir)
-                       (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                       (aset to__ 0 (Boolean/valueOf (boolean t-cmd)))
+                       (aset tl__ 0 c)
+                       (aset tl__ 1 dir)
+                       (aset to__ 1 (Boolean/valueOf (boolean stop)))
                        0)
-                     (do (aset tl__ 0 t-cmd)
-                         (aset tl__ 1 c)
-                         (aset tl__ 2 dir)
-                         (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                     (do (aset to__ 0 (Boolean/valueOf (boolean t-cmd)))
+                         (aset tl__ 0 c)
+                         (aset tl__ 1 dir)
+                         (aset to__ 1 (Boolean/valueOf (boolean stop)))
                          0))))
                (if (g ed KeyStuffed)
-                 (do (aset tl__ 0 t-cmd)
-                     (aset tl__ 1 c)
-                     (aset tl__ 2 dir)
-                     (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                 (do (aset to__ 0 (Boolean/valueOf (boolean t-cmd)))
+                     (aset tl__ 0 c)
+                     (aset tl__ 1 dir)
+                     (aset to__ 1 (Boolean/valueOf (boolean stop)))
                      0)
                  (do (aset (g ed lastc) 0 (unchecked-byte c))
                      (set-csearch-direction ed dir)
                      (set-csearch-until ed t-cmd)
                      (g! ed lastc-bytelen (long (utf-char2bytes c (BytePtr. (g ed lastc-bytes) 0))))
                      (if (== (.ncharC1 cap) 0)
-                       (do (aset tl__ 0 t-cmd)
-                           (aset tl__ 1 c)
-                           (aset tl__ 2 dir)
-                           (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                       (do (aset to__ 0 (Boolean/valueOf (boolean t-cmd)))
+                           (aset tl__ 0 c)
+                           (aset tl__ 1 dir)
+                           (aset to__ 1 (Boolean/valueOf (boolean stop)))
                            0)
                        (let [t1 (long (utf-char2bytes (.ncharC1 cap) (.add (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))))]
                          (g! ed lastc-bytelen (i32 (+ (g ed lastc-bytelen) t1)))
                          (if (== (.ncharC2 cap) 0)
-                           (do (aset tl__ 0 t-cmd)
-                               (aset tl__ 1 c)
-                               (aset tl__ 2 dir)
-                               (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                           (do (aset to__ 0 (Boolean/valueOf (boolean t-cmd)))
+                               (aset tl__ 0 c)
+                               (aset tl__ 1 dir)
+                               (aset to__ 1 (Boolean/valueOf (boolean stop)))
                                0)
                            (let [t2 (long (utf-char2bytes (.ncharC2 cap) (.add (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))))]
                              (g! ed lastc-bytelen (i32 (+ (g ed lastc-bytelen) t2)))
-                             (aset tl__ 0 t-cmd)
-                             (aset tl__ 1 c)
-                             (aset tl__ 2 dir)
-                             (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                             (aset to__ 0 (Boolean/valueOf (boolean t-cmd)))
+                             (aset tl__ 0 c)
+                             (aset tl__ 1 dir)
+                             (aset to__ 1 (Boolean/valueOf (boolean stop)))
                              0)))))))]
     (if (== (long j__1) -1)
-      (boolean (aget to__ 1))
-      (let [t-cmd (aget tl__ 0)
-            c (aget tl__ 1)
-            dir (aget tl__ 2)
-            stop (boolean (aget to__ 0))]
+      (boolean (aget to__ 2))
+      (let [t-cmd (boolean (aget to__ 0))
+            c (aget tl__ 0)
+            dir (aget tl__ 1)
+            stop (boolean (aget to__ 1))]
         (if (== dir -1)
           (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))
           (.set-inclusive ^S_oparg_S (.oap cap) (e TRUE)))
@@ -8550,9 +8547,7 @@
             (let [t3 count_
                   count_ (dec count_)]
               (if (zero? t3)
-                (if (zero? t-cmd)
-                  (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)
-                      true)
+                (if t-cmd
                   (let [col (i32 (- col dir))]
                     (if (< dir 0)
                       (let [col (i32 (+ col (i32 (- (g ed lastc-bytelen) 1))))]
@@ -8561,7 +8556,9 @@
                       (let [t6 (long (utf-head-off ed p (.add p col)))
                             col (i32 (- col t6))]
                         (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)
-                        true))))
+                        true)))
+                  (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col)
+                      true))
                 (let [l__2 (loop [col col
                                   stop (boolean stop)]
                              (let [j__3 (if (> dir 0)
@@ -8569,17 +8566,17 @@
                                                 col (i32 (+ col t4))]
                                             (if (>= col len)
                                               2
-                                              (do (aset tl__ 3 col)
+                                              (do (aset tl__ 2 col)
                                                   0)))
                                           (if (== col 0)
                                             1
                                             (let [t5 (i32 (+ (long (utf-head-off ed p (.add (.add p col) (- 1)))) 1))
                                                   col (i32 (- col t5))]
-                                              (aset tl__ 3 col)
+                                              (aset tl__ 2 col)
                                               0)))]
                                (case (long j__3)
                                  0
-                                   (let [col (aget tl__ 3)
+                                   (let [col (aget tl__ 2)
                                          j__4 (if (<= (g ed lastc-bytelen) 1)
                                                 (if (and (== (.ub p col) c) stop)
                                                   1
@@ -8592,8 +8589,8 @@
                                          (let [stop true]
                                            (recur col (boolean stop)))
                                        1
-                                         (do (aset tl__ 3 col)
-                                             (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                                         (do (aset tl__ 2 col)
+                                             (aset to__ 1 (Boolean/valueOf (boolean stop)))
                                              1)))
                                  1
                                    0
@@ -8603,8 +8600,8 @@
                     0
                       false
                     1
-                      (let [col (aget tl__ 3)
-                            stop (boolean (aget to__ 0))]
+                      (let [col (aget tl__ 2)
+                            stop (boolean (aget to__ 1))]
                         (recur count_ col (boolean stop)))
                     2
                       false))))))))))
@@ -8622,7 +8619,7 @@
                 true
                 false)]
     (.set-motion-type ^S_oparg_S (.oap cap) (e MCHAR))
-    (if (or (< (long (aget ^ints (.-nchar cap) 0)) 0) (not (searchc ed cap (if t-cmd 1 0))))
+    (if (or (< (long (aget ^ints (.-nchar cap) 0)) 0) (not (searchc ed cap t-cmd)))
       (do (clearopbeep ed (.oap cap))
           (when cursor-dec
             (adjust-for-sel ed cap)
@@ -9033,7 +9030,7 @@
           (.set-op-type ^S_oparg_S (.oap cap) (e OP_DELETE))
           (.set-count1 cap 1)
           (nv-dollar ed cap)
-          (g! ed finish-op (e TRUE))
+          (g! ed finish-op true)
           (ResetRedobuff ed)
           (AppendCharToRedobuff ed 68)
           (.set-opcount cap 0)
@@ -9179,7 +9176,7 @@
                             nil)))))))))
     (do (.set-motion-force ^S_oparg_S (.oap cap) (.cmdchar cap))
         (g! ed motion-force (.motion-force ^S_oparg_S (.oap cap)))
-        (g! ed finish-op (e FALSE))
+        (g! ed finish-op false)
         nil)))
 
 ;; C: nv_suspend
@@ -10962,7 +10959,7 @@
 
 ;; C: nv_cursorhold
 (defn nv-cursorhold [^Editor ed ^S_cmdarg_S cap]
-  (g! ed did-cursorhold (e TRUE))
+  (g! ed did-cursorhold true)
   (.set-retval cap (bit-or (.retval cap) (e CA_COMMAND_BUSY)))
   nil)
 
@@ -13021,7 +13018,7 @@
 
 ;; C: did_set_hlsearch
 (defn did-set-hlsearch ^BytePtr [^Editor ed ^T_optset_T args]
-  (set-no-hlsearch ed (e FALSE))
+  (set-no-hlsearch ed false)
   nil)
 
 ;; C: did_set_ignorecase
@@ -14480,7 +14477,7 @@
         (do (g! ed current-oap prev-oap)
             nil)
         (do (when (stuff-empty? ed)
-              (when-not (zero? (g ed need-wait-return))
+              (when (g ed need-wait-return)
                 (wait-return ed (e FALSE)))
               (when (and (g ed need-start-insertmode) (goto-im? ed) (not (g ed VIsual-active)))
                 (g! ed need-start-insertmode false)
@@ -14538,7 +14535,7 @@
   (when (and (or (not (zero? (g ed did-emsg))) (not (zero? (g ed msg-didout)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 42)) (e NUL))))
     (g! ed newline-on-exit true))
   (term-enter ed)
-  (when (or (not (zero? (g ed need-wait-return))) (g ed msg-didany))
+  (when (or (g ed need-wait-return) (g ed msg-didany))
     (wait-return ed (e TRUE)))
   (starttermcap ed)
   (when (g ed scroll-region)
@@ -15610,7 +15607,7 @@
   (g! ed no-abbr true)
   (g! ed ctrl-c-interrupts true)
   (g! ed need-highlight-changed true)
-  (g! ed did-cursorhold (e TRUE))
+  (g! ed did-cursorhold true)
   (g! ed empty-option (BytePtr/lit ""))
   (Rt/init (g ed no-lines-msg) "--No lines in buffer--")
   (g! ed virtual-op (e MAYBE))
@@ -19008,7 +19005,7 @@
   (.set-magic ^S_spat (aget (g ed spats) 1) (e TRUE))
   (.set-dir ^S_soffset (.-off ^S_spat (aget (g ed spats) 1)) 47)
   (g! ed lastcdir (e FORWARD))
-  (g! ed last-t-cmd (e TRUE))
+  (g! ed last-t-cmd true)
   (g! ed lastc-bytelen 1)
   (.set-tr-start (g ed crv-status) -1)
   (.set-tr-start (g ed u7-status) -1)
@@ -19169,7 +19166,7 @@
   nil)
 
 (defn new-editor "An editor on host, a whim.host.Host: the C's file-scope objects as they start." [host]
-  (let [ed (Editor. host (long-array 217) (boolean-array 101) (object-array 488))]
+  (let [ed (Editor. host (long-array 206) (boolean-array 112) (object-array 488))]
     (make-objects-0 ed)
     (make-objects-1 ed)
     (init-globals-0 ed)

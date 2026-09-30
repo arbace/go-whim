@@ -6,7 +6,7 @@ import whim.rt.*;
 
 final class T_ins_bs__out_T implements Struct<T_ins_bs__out_T> {
     boolean r__;
-    int inserted_space_p;
+    boolean inserted_space_p;
 
     @Override
     public T_ins_bs__out_T set(T_ins_bs__out_T o) {

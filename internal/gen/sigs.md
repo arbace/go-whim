@@ -239,7 +239,7 @@ func redraw_statuslines()
 func redrawWinline(wp *S_window_S, lnum linenr_T)
 func redraw_win_range_later(wp *S_window_S, first linenr_T, last linenr_T)
 func edit_esc(count *int64, cmdchar int32, nomove bool, o_lnum *linenr_T) bool
-func edit_normalchar(c int32, inserted_space int32) int32
+func edit_normalchar(c int32, inserted_space bool) bool
 func edit(cmdchar int32, startln bool, count int64) bool
 func ins_redraw(ready bool)
 func ins_ctrl_v()
@@ -289,7 +289,7 @@ func ins_ctrl_o()
 func ins_shift(c int32, lastc int32)
 func ins_del()
 func ins_bs_one()
-func ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__out_T
+func ins_bs(c int32, mode int32, inserted_space_p bool) ins_bs__out_T
 func bracketed_paste(mode paste_mode_T, drop bool, gap *S_growarray) int32
 func ins_left()
 func ins_home(c int32)
@@ -390,7 +390,7 @@ func restore_current_state(sst *save_state_T)
 func ex_normal(eap *S_exarg)
 func exec_normal_cmd(cmd Ptr[byte], remap int32, silent bool)
 func exec_normal(was_typed bool, use_vpeekc bool, may_use_terminal_loop bool)
-func set_no_hlsearch(flag int32)
+func set_no_hlsearch(flag bool)
 func ex_nohlsearch(eap *S_exarg)
 func abandon_cmdline()
 func empty_pattern(p Ptr[byte], len_ usize, delim int32) bool
@@ -427,7 +427,7 @@ func dealloc_cmdbuff()
 func alloc_cmdbuff(len_ usize)
 func realloc_cmdbuff(len_ int32) bool
 func draw_cmdline(start int32, len_ int32)
-func putcmdline(c int32, shift int32)
+func putcmdline(c int32, shift bool)
 func unputcmdline()
 func put_on_cmdline(str Ptr[byte], len_ int32, redraw bool) bool
 func save_cmdline(ccp *cmdline_info_T)
@@ -515,7 +515,7 @@ func vpeekc() int32
 func char_avail() bool
 func check_simplify_modifier(max_offset int32) int32
 func key_protocol_enabled() bool
-func handle_mapping(keylenp int32, timedout int32, mapdepth int32) handle_mapping__out_T
+func handle_mapping(keylenp int32, timedout bool, mapdepth int32) handle_mapping__out_T
 func vungetc(c int32)
 func check_end_reg_executing(advance bool)
 func vgetorpeek(advance bool) int32
@@ -560,8 +560,8 @@ func syn_term_attr2entry(attr int32) *S_attr_entry
 func syn_cterm_attr2entry(attr int32) *S_attr_entry
 func highlight_list_one(id int32)
 func highlight_arg_to_string(type_ int32, iarg int32, sarg Ptr[byte], buf Ptr[byte]) Ptr[byte]
-func highlight_list_arg(id int32, didh int32, type_ int32, iarg int32, sarg Ptr[byte], name Ptr[byte]) int32
-func syn_list_header(did_header int32, outlen int32, id int32) bool
+func highlight_list_arg(id int32, didh bool, type_ int32, iarg int32, sarg Ptr[byte], name Ptr[byte]) bool
+func syn_list_header(did_header bool, outlen int32, id int32) bool
 func set_hl_attr(idx int32)
 func syn_override(id int32) int32
 func syn_name2id_len(name Ptr[byte], len_ int32) int32
@@ -593,7 +593,7 @@ func inindent(extra int32) bool
 func preprocs_left() int32
 func may_do_si() bool
 func ins_try_si(c int32)
-func change_indent(type_ int32, amount int32, round bool, replaced int32, call_changed_bytes int32)
+func change_indent(type_ int32, amount int32, round bool, replaced int32, call_changed_bytes bool)
 func copy_indent(size int32, src Ptr[byte]) bool
 func fix_indent()
 func ctrl_x_mode_scroll() bool
@@ -605,7 +605,7 @@ func map_free(mpp **S_mapblock)
 func map_mode_to_chars(mode int32) Ptr[byte]
 func showmap(mp *S_mapblock, local bool)
 func map_add(map_table Ptr[*S_mapblock], abbr_table **S_mapblock, keys Ptr[byte], rhs Ptr[byte], orig_rhs Ptr[byte], noremap int32, nowait bool, silent bool, mode int32, is_abbr bool, simplified bool) *S_mapblock
-func list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], keys_len int32, mode int32, did_local int32) int32
+func list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], keys_len int32, mode int32, did_local bool) bool
 func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32
 func get_map_mode(cmdp Ptr[byte], forceit bool) get_map_mode__out_T
 func map_clear(cmdp Ptr[byte], arg Ptr[byte], forceit bool, abbr bool)
@@ -951,7 +951,7 @@ func pagescroll(dir int32, count int64, half bool) bool
 func find_command(cmdchar int32) int32
 func check_text_locked(oap *S_oparg_S) bool
 func check_text_or_curbuf_locked(oap *S_oparg_S) bool
-func normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w int32, need_flushbuf int32) normal_cmd_get_count__out_T
+func normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w bool, need_flushbuf int32) normal_cmd_get_count__out_T
 func normal_cmd_needs_more_chars(cap_ *S_cmdarg_S, cmd_flags short_u) bool
 func normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, need_flushbuf int32) normal_cmd_get_more_chars__out_T
 func normal_cmd_need_to_wait_for_msg(cap_ *S_cmdarg_S, old_pos *pos_T) bool
@@ -1078,7 +1078,7 @@ func get_op_char(optype int32) int32
 func get_extra_op_char(optype int32) int32
 func op_shift(oap *S_oparg_S, curs_top bool, amount int32)
 func get_new_sw_indent(left bool, round int32, amount vimlong_T, sw_val vimlong_T) vimlong_T
-func shift_line(left bool, round int32, amount int32, call_changed_bytes int32)
+func shift_line(left bool, round int32, amount int32, call_changed_bytes bool)
 func shift_block(oap *S_oparg_S, amount int32)
 func block_insert(oap *S_oparg_S, s Ptr[byte], slen usize, b_insert bool, bdp *S_block_def)
 func op_delete(oap *S_oparg_S) bool
@@ -1474,17 +1474,17 @@ func ignorecase(pat Ptr[byte]) int32
 func ignorecase_opt(pat Ptr[byte], ic_in int32, scs int32) int32
 func pat_has_uppercase(pat Ptr[byte]) bool
 func set_csearch_direction(cdir int32)
-func set_csearch_until(t_cmd int32)
+func set_csearch_until(t_cmd bool)
 func last_search_pat() Ptr[byte]
 func last_pat_prog(regmatch *regmmatch_T)
 func searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_pos *pos_T, dir int32, pat Ptr[byte], patlen usize, count int64, options int32, pat_use int32, extra_arg *searchit_arg_T) int32
 func parse_search_pattern_offset(pat Ptr[byte], patlen usize, search_delim int32, options int32, strcopy *Ptr[byte], searchstr Ptr[byte], searchstrlen usize, dircp Ptr[byte], offset *S_soffset) parse_search_pattern_offset__out_T
 func do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat Ptr[byte], patlen usize, count int64, options int32, sia *searchit_arg_T) int32
-func searchc(cap_ *S_cmdarg_S, t_cmd int32) bool
+func searchc(cap_ *S_cmdarg_S, t_cmd bool) bool
 func findmatch(oap *S_oparg_S, initc int32) *pos_T
 func check_prevcol(linep Ptr[byte], col int32, ch int32, prevcol *int32) bool
 func find_rawstring_end(linep Ptr[byte], startpos *pos_T, endpos *pos_T) bool
-func find_mps_values(initc int32, findc int32, backwards int32, switchit bool) find_mps_values__out_T
+func find_mps_values(initc int32, findc int32, backwards bool, switchit bool) find_mps_values__out_T
 func findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtravel int32) *pos_T
 func showmatch(c int32)
 func is_zero_width(pattern Ptr[byte], patternlen usize, move bool, cur *pos_T, direction int32) int32

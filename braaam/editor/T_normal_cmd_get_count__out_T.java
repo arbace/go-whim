@@ -6,7 +6,7 @@ import whim.rt.*;
 
 final class T_normal_cmd_get_count__out_T implements Struct<T_normal_cmd_get_count__out_T> {
     int r__;
-    int ctrl_w;
+    boolean ctrl_w;
     int need_flushbuf;
 
     @Override

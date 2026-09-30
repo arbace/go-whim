@@ -10,10 +10,10 @@ final class T_save_state_T implements Struct<T_save_state_T> {
     int save_msg_didout;
     int save_State;
     int save_insertmode;
-    int save_finish_op;
+    boolean save_finish_op;
     int save_opcount;
     int save_reg_executing;
-    int save_pending_end_reg_executing;
+    boolean save_pending_end_reg_executing;
     int save_script_version;
     final T_tasave_T tabuf = new T_tasave_T();
 

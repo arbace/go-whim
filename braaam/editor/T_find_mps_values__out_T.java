@@ -7,7 +7,7 @@ import whim.rt.*;
 final class T_find_mps_values__out_T implements Struct<T_find_mps_values__out_T> {
     int initc;
     int findc;
-    int backwards;
+    boolean backwards;
 
     @Override
     public T_find_mps_values__out_T set(T_find_mps_values__out_T o) {

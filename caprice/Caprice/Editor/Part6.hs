@@ -675,7 +675,7 @@ nv_open ed' cap = do
 
 nv_cursorhold :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_cursorhold ed' cap = do
-  set'did_cursorhold ed' TRUE
+  set'did_cursorhold ed' True
   r'1 <- rdI32 cap cmdarg_T'retval
   wrI32 cap cmdarg_T'retval (r'1 .|. CA_COMMAND_BUSY)
   pure ()
@@ -2367,7 +2367,7 @@ did_set_compatible ed' _args = do
 
 did_set_hlsearch :: Ed -> Ptr Optset_T -> IO (Ptr Int8)
 did_set_hlsearch ed' _args = do
-  set_no_hlsearch ed' FALSE
+  set_no_hlsearch ed' False
   pure nullPtr
 
 did_set_ignorecase :: Ed -> Ptr Optset_T -> IO (Ptr Int8)
@@ -5732,7 +5732,7 @@ vim_main2 ed' = do
     j'2 = do
       term_enter ed'
       r'1 <- need_wait_return ed'
-      r'3 <- if (r'1 /= 0) then pure True else (msg_didany ed')
+      r'3 <- if r'1 then pure True else (msg_didany ed')
       if r'3
         then do
           wait_return ed' TRUE
@@ -5861,7 +5861,7 @@ main_loop ed' cmdwin = frame 120 $ \fr' -> do
           if r'1
             then do
               r'2 <- need_wait_return ed'
-              if r'2 /= 0
+              if r'2
                 then do
                   wait_return ed' FALSE
                   j'6 prev_oap1

@@ -3752,8 +3752,8 @@
   (set_line [v])
   (input [])
   (set_input [v])
-  (^long need_clear_subexpr [])
-  (set_need_clear_subexpr [^long v])
+  (^boolean need_clear_subexpr [])
+  (set_need_clear_subexpr [^boolean v])
   (^long reg_ic [])
   (set_reg_ic [^long v])
   (^boolean reg_icombine [])
@@ -3776,7 +3776,7 @@
     ^:unsynchronized-mutable ^long lnum
     ^:unsynchronized-mutable line
     ^:unsynchronized-mutable input
-    ^:unsynchronized-mutable ^long need-clear-subexpr
+    ^:unsynchronized-mutable ^boolean need-clear-subexpr
     ^:unsynchronized-mutable ^long reg-ic
     ^:unsynchronized-mutable ^boolean reg-icombine
     ^:unsynchronized-mutable ^long reg-maxcol]
@@ -3839,14 +3839,14 @@
     (set! lnum 0)
     (set! line nil)
     (set! input nil)
-    (set! need-clear-subexpr 0)
+    (set! need-clear-subexpr (boolean false))
     (set! reg-ic 0)
     (set! reg-icombine (boolean false))
     (set! reg-maxcol 0)
     nil
     this__))
 (defn new-T_regexec_T ^T_regexec_T []
-  (T_regexec_T. nil nil nil nil nil nil nil nil 0 0 false 0 nil nil 0 0 false 0))
+  (T_regexec_T. nil nil nil nil nil nil nil nil 0 0 false 0 nil nil false 0 false 0))
 (defn array-T_regexec_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_regexec_T)))
@@ -3916,8 +3916,8 @@
 
 ;; C struct struct regengine_S
 (definterface I_S_regengine_S
-  (^long rex_in_use [])
-  (set_rex_in_use [^long v])
+  (^boolean rex_in_use [])
+  (set_rex_in_use [^boolean v])
   (^long regstack_bytes [])
   (set_regstack_bytes [^long v])
   (^long bl_minval [])
@@ -3935,7 +3935,7 @@
   (copy [])
   (^boolean eq [o]))
 (deftype S_regengine_S [^T_regexec_T rex
-    ^:unsynchronized-mutable ^long rex-in-use
+    ^:unsynchronized-mutable ^boolean rex-in-use
     ^S_growarray regstack
     ^S_growarray regstack-star
     ^S_growarray regstack-behind
@@ -3988,7 +3988,7 @@
     this__)
   (zero [this__]
     (.zero rex)
-    (set! rex-in-use 0)
+    (set! rex-in-use (boolean false))
     (.zero regstack)
     (.zero regstack-star)
     (.zero regstack-behind)
@@ -4008,7 +4008,7 @@
     nil
     this__))
 (defn new-S_regengine_S ^S_regengine_S []
-  (S_regengine_S. (new-T_regexec_T) 0 (new-S_growarray) (new-S_growarray) (new-S_growarray) (new-S_growarray) 0 (new-T_regsave_T) 0 0 (long-array 10) (long-array 10) (int-array 10) nil 0 false (new-T_string_T) false))
+  (S_regengine_S. (new-T_regexec_T) false (new-S_growarray) (new-S_growarray) (new-S_growarray) (new-S_growarray) 0 (new-T_regsave_T) 0 0 (long-array 10) (long-array 10) (int-array 10) nil 0 false (new-T_string_T) false))
 (defn array-S_regengine_S ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-S_regengine_S)))
@@ -5358,8 +5358,8 @@
   (set_c_extra [^long v])
   (^long c_final [])
   (set_c_final [^long v])
-  (^long extra_for_textprop [])
-  (set_extra_for_textprop [^long v])
+  (^boolean extra_for_textprop [])
+  (set_extra_for_textprop [^boolean v])
   (^long saved_n_extra [])
   (set_saved_n_extra [^long v])
   (saved_p_extra [])
@@ -5370,8 +5370,8 @@
   (set_saved_extra_attr [^long v])
   (^long saved_n_attr_skip [])
   (set_saved_n_attr_skip [^long v])
-  (^long saved_extra_for_textprop [])
-  (set_saved_extra_for_textprop [^long v])
+  (^boolean saved_extra_for_textprop [])
+  (set_saved_extra_for_textprop [^boolean v])
   (^long saved_c_extra [])
   (set_saved_c_extra [^long v])
   (^long saved_c_final [])
@@ -5405,13 +5405,13 @@
     ^:unsynchronized-mutable ^long n-attr-skip
     ^:unsynchronized-mutable ^long c-extra
     ^:unsynchronized-mutable ^long c-final
-    ^:unsynchronized-mutable ^long extra-for-textprop
+    ^:unsynchronized-mutable ^boolean extra-for-textprop
     ^:unsynchronized-mutable ^long saved-n-extra
     ^:unsynchronized-mutable saved-p-extra
     ^:unsynchronized-mutable saved-p-extra-free
     ^:unsynchronized-mutable ^long saved-extra-attr
     ^:unsynchronized-mutable ^long saved-n-attr-skip
-    ^:unsynchronized-mutable ^long saved-extra-for-textprop
+    ^:unsynchronized-mutable ^boolean saved-extra-for-textprop
     ^:unsynchronized-mutable ^long saved-c-extra
     ^:unsynchronized-mutable ^long saved-c-final
     ^:unsynchronized-mutable ^long saved-char-attr
@@ -5516,13 +5516,13 @@
     (set! n-attr-skip 0)
     (set! c-extra 0)
     (set! c-final 0)
-    (set! extra-for-textprop 0)
+    (set! extra-for-textprop (boolean false))
     (set! saved-n-extra 0)
     (set! saved-p-extra nil)
     (set! saved-p-extra-free nil)
     (set! saved-extra-attr 0)
     (set! saved-n-attr-skip 0)
-    (set! saved-extra-for-textprop 0)
+    (set! saved-extra-for-textprop (boolean false))
     (set! saved-c-extra 0)
     (set! saved-c-final 0)
     (set! saved-char-attr 0)
@@ -5531,7 +5531,7 @@
     nil
     this__))
 (defn new-T_winlinevars_T ^T_winlinevars_T []
-  (T_winlinevars_T. 0 0 0 0 0 0 0 0 0 0 0 0 0 (int-array 1) (int-array 1) 0 0 nil nil 0 0 0 0 0 0 nil nil 0 0 0 0 0 0 (byte-array 86) 0))
+  (T_winlinevars_T. 0 0 0 0 0 0 0 0 0 0 0 0 0 (int-array 1) (int-array 1) 0 0 nil nil 0 0 0 0 false 0 nil nil 0 0 false 0 0 0 (byte-array 86) 0))
 (defn array-T_winlinevars_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_winlinevars_T)))
@@ -5887,12 +5887,12 @@
 (definterface I_T_ins_bs__out_T
   (^boolean r__ [])
   (set_r__ [^boolean v])
-  (^long inserted_space_p [])
-  (set_inserted_space_p [^long v])
+  (^boolean inserted_space_p [])
+  (set_inserted_space_p [^boolean v])
   (copy [])
   (^boolean eq [o]))
 (deftype T_ins_bs__out_T [^:unsynchronized-mutable ^boolean r__
-    ^:unsynchronized-mutable ^long inserted-space-p]
+    ^:unsynchronized-mutable ^boolean inserted-space-p]
   I_T_ins_bs__out_T
   (r__ [_] r__) (set_r__ [_ v__] (set! r__ v__) nil)
   (inserted_space_p [_] inserted-space-p) (set_inserted_space_p [_ v__] (set! inserted-space-p v__) nil)
@@ -5907,11 +5907,11 @@
     this__)
   (zero [this__]
     (set! r__ (boolean false))
-    (set! inserted-space-p 0)
+    (set! inserted-space-p (boolean false))
     nil
     this__))
 (defn new-T_ins_bs__out_T ^T_ins_bs__out_T []
-  (T_ins_bs__out_T. false 0))
+  (T_ins_bs__out_T. false false))
 (defn array-T_ins_bs__out_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_ins_bs__out_T)))
@@ -6224,14 +6224,14 @@
   (set_save_State [^long v])
   (^long save_insertmode [])
   (set_save_insertmode [^long v])
-  (^long save_finish_op [])
-  (set_save_finish_op [^long v])
+  (^boolean save_finish_op [])
+  (set_save_finish_op [^boolean v])
   (^long save_opcount [])
   (set_save_opcount [^long v])
   (^long save_reg_executing [])
   (set_save_reg_executing [^long v])
-  (^long save_pending_end_reg_executing [])
-  (set_save_pending_end_reg_executing [^long v])
+  (^boolean save_pending_end_reg_executing [])
+  (set_save_pending_end_reg_executing [^boolean v])
   (^long save_script_version [])
   (set_save_script_version [^long v])
   (copy [])
@@ -6241,10 +6241,10 @@
     ^:unsynchronized-mutable ^long save-msg-didout
     ^:unsynchronized-mutable ^long save-State
     ^:unsynchronized-mutable ^long save-insertmode
-    ^:unsynchronized-mutable ^long save-finish-op
+    ^:unsynchronized-mutable ^boolean save-finish-op
     ^:unsynchronized-mutable ^long save-opcount
     ^:unsynchronized-mutable ^long save-reg-executing
-    ^:unsynchronized-mutable ^long save-pending-end-reg-executing
+    ^:unsynchronized-mutable ^boolean save-pending-end-reg-executing
     ^:unsynchronized-mutable ^long save-script-version
     ^T_tasave_T tabuf]
   I_T_save_state_T
@@ -6282,16 +6282,16 @@
     (set! save-msg-didout 0)
     (set! save-State 0)
     (set! save-insertmode 0)
-    (set! save-finish-op 0)
+    (set! save-finish-op (boolean false))
     (set! save-opcount 0)
     (set! save-reg-executing 0)
-    (set! save-pending-end-reg-executing 0)
+    (set! save-pending-end-reg-executing (boolean false))
     (set! save-script-version 0)
     (.zero tabuf)
     nil
     this__))
 (defn new-T_save_state_T ^T_save_state_T []
-  (T_save_state_T. 0 0 0 0 0 0 0 0 0 0 (new-T_tasave_T)))
+  (T_save_state_T. 0 0 0 0 0 false 0 0 false 0 (new-T_tasave_T)))
 (defn array-T_save_state_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_save_state_T)))
@@ -6659,15 +6659,15 @@
   (set_r__ [^long v])
   (^long keylenp [])
   (set_keylenp [^long v])
-  (^long timedout [])
-  (set_timedout [^long v])
+  (^boolean timedout [])
+  (set_timedout [^boolean v])
   (^long mapdepth [])
   (set_mapdepth [^long v])
   (copy [])
   (^boolean eq [o]))
 (deftype T_handle_mapping__out_T [^:unsynchronized-mutable ^long r__
     ^:unsynchronized-mutable ^long keylenp
-    ^:unsynchronized-mutable ^long timedout
+    ^:unsynchronized-mutable ^boolean timedout
     ^:unsynchronized-mutable ^long mapdepth]
   I_T_handle_mapping__out_T
   (r__ [_] r__) (set_r__ [_ v__] (set! r__ v__) nil)
@@ -6688,12 +6688,12 @@
   (zero [this__]
     (set! r__ 0)
     (set! keylenp 0)
-    (set! timedout 0)
+    (set! timedout (boolean false))
     (set! mapdepth 0)
     nil
     this__))
 (defn new-T_handle_mapping__out_T ^T_handle_mapping__out_T []
-  (T_handle_mapping__out_T. 0 0 0 0))
+  (T_handle_mapping__out_T. 0 0 false 0))
 (defn array-T_handle_mapping__out_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_handle_mapping__out_T)))
@@ -7713,14 +7713,14 @@
 (definterface I_T_normal_cmd_get_count__out_T
   (^long r__ [])
   (set_r__ [^long v])
-  (^long ctrl_w [])
-  (set_ctrl_w [^long v])
+  (^boolean ctrl_w [])
+  (set_ctrl_w [^boolean v])
   (^long need_flushbuf [])
   (set_need_flushbuf [^long v])
   (copy [])
   (^boolean eq [o]))
 (deftype T_normal_cmd_get_count__out_T [^:unsynchronized-mutable ^long r__
-    ^:unsynchronized-mutable ^long ctrl-w
+    ^:unsynchronized-mutable ^boolean ctrl-w
     ^:unsynchronized-mutable ^long need-flushbuf]
   I_T_normal_cmd_get_count__out_T
   (r__ [_] r__) (set_r__ [_ v__] (set! r__ v__) nil)
@@ -7738,12 +7738,12 @@
     this__)
   (zero [this__]
     (set! r__ 0)
-    (set! ctrl-w 0)
+    (set! ctrl-w (boolean false))
     (set! need-flushbuf 0)
     nil
     this__))
 (defn new-T_normal_cmd_get_count__out_T ^T_normal_cmd_get_count__out_T []
-  (T_normal_cmd_get_count__out_T. 0 0 0))
+  (T_normal_cmd_get_count__out_T. 0 false 0))
 (defn array-T_normal_cmd_get_count__out_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_normal_cmd_get_count__out_T)))
@@ -8811,13 +8811,13 @@
 
 ;; C struct struct regbehind_S
 (definterface I_S_regbehind_S
-  (^long save_need_clear_subexpr [])
-  (set_save_need_clear_subexpr [^long v])
+  (^boolean save_need_clear_subexpr [])
+  (set_save_need_clear_subexpr [^boolean v])
   (copy [])
   (^boolean eq [o]))
 (deftype S_regbehind_S [^T_regsave_T save-after
     ^T_regsave_T save-behind
-    ^:unsynchronized-mutable ^long save-need-clear-subexpr
+    ^:unsynchronized-mutable ^boolean save-need-clear-subexpr
     ^objects save-start
     ^objects save-end]
   I_S_regbehind_S
@@ -8837,13 +8837,13 @@
   (zero [this__]
     (.zero save-after)
     (.zero save-behind)
-    (set! save-need-clear-subexpr 0)
+    (set! save-need-clear-subexpr (boolean false))
     (dotimes [k__37 10] (.zero ^T_save_se_T (aget save-start k__37)))
     (dotimes [k__40 10] (.zero ^T_save_se_T (aget save-end k__40)))
     nil
     this__))
 (defn new-S_regbehind_S ^S_regbehind_S []
-  (S_regbehind_S. (new-T_regsave_T) (new-T_regsave_T) 0 (array-T_save_se_T 10) (array-T_save_se_T 10)))
+  (S_regbehind_S. (new-T_regsave_T) (new-T_regsave_T) false (array-T_save_se_T 10) (array-T_save_se_T 10)))
 (defn array-S_regbehind_S ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-S_regbehind_S)))
@@ -8991,13 +8991,13 @@
   (set_initc [^long v])
   (^long findc [])
   (set_findc [^long v])
-  (^long backwards [])
-  (set_backwards [^long v])
+  (^boolean backwards [])
+  (set_backwards [^boolean v])
   (copy [])
   (^boolean eq [o]))
 (deftype T_find_mps_values__out_T [^:unsynchronized-mutable ^long initc
     ^:unsynchronized-mutable ^long findc
-    ^:unsynchronized-mutable ^long backwards]
+    ^:unsynchronized-mutable ^boolean backwards]
   I_T_find_mps_values__out_T
   (initc [_] initc) (set_initc [_ v__] (set! initc v__) nil)
   (findc [_] findc) (set_findc [_ v__] (set! findc v__) nil)
@@ -9015,11 +9015,11 @@
   (zero [this__]
     (set! initc 0)
     (set! findc 0)
-    (set! backwards 0)
+    (set! backwards (boolean false))
     nil
     this__))
 (defn new-T_find_mps_values__out_T ^T_find_mps_values__out_T []
-  (T_find_mps_values__out_T. 0 0 0))
+  (T_find_mps_values__out_T. 0 0 false))
 (defn array-T_find_mps_values__out_T ^objects [^long n]
   (let [a (object-array n)]
     (dotimes [k n] (aset a k (new-T_find_mps_values__out_T)))
@@ -9632,210 +9632,210 @@
     screen-cur-col [l 5]
     screen-search-hl [o 112 T_match_T]
     search-hl-has-cursor-lnum [l 6]
-    no-hlsearch [l 7]
+    no-hlsearch [z 0]
     TabPageIdxs [o 113 ShortPtr]
-    screen-pum-blend [l 8]
+    screen-pum-blend [l 7]
     pum-bg-attrs [o 114 ShortPtr]
     pum-bg-lines [o 115 BytePtr]
     pum-bg-linesUC [o 116 IntPtr]
     pum-bg-linesC [o 117 objects]
-    pum-bg-top [l 9]
-    pum-bg-bot [l 10]
-    pum-bg-cols [l 11]
-    screen-Rows [l 12]
-    screen-Columns [l 13]
+    pum-bg-top [l 8]
+    pum-bg-bot [l 9]
+    pum-bg-cols [l 10]
+    screen-Rows [l 11]
+    screen-Columns [l 12]
     mod-mask [o 118 ints]
-    vgetc-mod-mask [l 14]
-    vgetc-char [l 15]
-    cmdline-row [l 16]
-    cmdline-col-off [l 17]
-    cmdline-width [l 18]
-    redraw-cmdline [l 19]
-    redraw-mode [z 0]
-    clear-cmdline [z 1]
-    mode-displayed [z 2]
-    no-win-do-lines-ins [l 20]
-    exec-from-reg [l 21]
-    screen-cleared [l 22]
-    dollar-vcol [l 23]
+    vgetc-mod-mask [l 13]
+    vgetc-char [l 14]
+    cmdline-row [l 15]
+    cmdline-col-off [l 16]
+    cmdline-width [l 17]
+    redraw-cmdline [l 18]
+    redraw-mode [z 1]
+    clear-cmdline [z 2]
+    mode-displayed [z 3]
+    no-win-do-lines-ins [l 19]
+    exec-from-reg [z 4]
+    screen-cleared [l 20]
+    dollar-vcol [l 21]
     edit-submode [o 119 BytePtr]
     edit-submode-pre [o 120 BytePtr]
     edit-submode-extra [o 121 BytePtr]
-    edit-submode-highl [l 24]
-    msg-col [l 25]
-    msg-row [l 26]
-    msg-scrolled [l 27]
-    msg-scrolled-ign [z 3]
+    edit-submode-highl [l 22]
+    msg-col [l 23]
+    msg-row [l 24]
+    msg-scrolled [l 25]
+    msg-scrolled-ign [z 5]
     keep-msg [o 122 BytePtr]
-    keep-msg-attr [l 28]
-    keep-msg-more [z 4]
-    need-fileinfo [z 5]
-    msg-scroll [l 29]
-    msg-didout [l 30]
-    msg-didany [z 6]
-    msg-nowait [z 7]
-    emsg-off [l 31]
-    info-message [z 8]
-    msg-hist-off [z 9]
-    did-emsg [l 32]
-    called-emsg [l 33]
-    in-echowindow [l 34]
-    emsg-on-display [z 10]
-    rc-did-emsg [z 11]
-    no-wait-return [l 35]
-    need-wait-return [l 36]
-    did-wait-return [z 12]
-    quit-more [z 13]
-    newline-on-exit [z 14]
-    intr-char [l 37]
-    ex-keep-indent [z 15]
-    vgetc-busy [l 38]
-    lines-left [l 39]
-    msg-no-more [z 16]
+    keep-msg-attr [l 26]
+    keep-msg-more [z 6]
+    need-fileinfo [z 7]
+    msg-scroll [l 27]
+    msg-didout [l 28]
+    msg-didany [z 8]
+    msg-nowait [z 9]
+    emsg-off [l 29]
+    info-message [z 10]
+    msg-hist-off [z 11]
+    did-emsg [l 30]
+    called-emsg [l 31]
+    in-echowindow [z 12]
+    emsg-on-display [z 13]
+    rc-did-emsg [z 14]
+    no-wait-return [l 32]
+    need-wait-return [z 15]
+    did-wait-return [z 16]
+    quit-more [z 17]
+    newline-on-exit [z 18]
+    intr-char [l 33]
+    ex-keep-indent [z 19]
+    vgetc-busy [l 34]
+    lines-left [l 35]
+    msg-no-more [z 20]
     exestack [o 123 S_growarray]
     current-sctx [o 124 T_sctx_T]
-    scroll-region [z 17]
-    t-colors [l 40]
-    highlight-match [z 18]
-    search-match-lines [l 41]
-    search-match-endcol [l 42]
-    search-first-line [l 43]
-    search-last-line [l 44]
-    no-smartcase [l 45]
+    scroll-region [z 21]
+    t-colors [l 36]
+    highlight-match [z 22]
+    search-match-lines [l 37]
+    search-match-endcol [l 38]
+    search-first-line [l 39]
+    search-last-line [l 40]
+    no-smartcase [l 41]
     highlight-attr [o 125 ints]
-    cterm-normal-fg-color [l 46]
-    cterm-normal-fg-bold [l 47]
-    cterm-normal-bg-color [l 48]
-    cterm-normal-ul-color [l 49]
-    fallback-fg-rgb [l 50]
-    fallback-bg-rgb [l 51]
-    mouse-dragging [l 52]
-    updating-screen [l 53]
-    redraw-not-allowed [z 19]
+    cterm-normal-fg-color [l 42]
+    cterm-normal-fg-bold [l 43]
+    cterm-normal-bg-color [l 44]
+    cterm-normal-ul-color [l 45]
+    fallback-fg-rgb [l 46]
+    fallback-bg-rgb [l 47]
+    mouse-dragging [l 48]
+    updating-screen [l 49]
+    redraw-not-allowed [z 23]
     curwin [o 126 S_window_S]
-    pum-will-redraw [l 54]
+    pum-will-redraw [z 24]
     topframe [o 127 S_frame_S]
     curtab [o 128 S_tabpage_S]
-    redraw-tabline [z 20]
-    redraw-vseps [z 21]
+    redraw-tabline [z 25]
+    redraw-vseps [z 26]
     curbuf [o 129 S_file_buffer]
-    ru-col [l 55]
-    sc-col [l 56]
-    starting [l 57]
-    exiting [z 22]
-    really-exiting [z 23]
-    v-dying [l 58]
-    full-screen [l 59]
-    secure [l 60]
-    textlock [l 61]
-    curbuf-lock [l 62]
-    allbuf-lock [l 63]
+    ru-col [l 50]
+    sc-col [l 51]
+    starting [l 52]
+    exiting [z 27]
+    really-exiting [z 28]
+    v-dying [l 53]
+    full-screen [l 54]
+    secure [l 55]
+    textlock [l 56]
+    curbuf-lock [l 57]
+    allbuf-lock [l 58]
     VIsual [o 130 T_pos_T]
-    VIsual-active [z 24]
-    VIsual-select [l 64]
-    VIsual-select-reg [l 65]
-    VIsual-select-exclu-adj [z 25]
-    restart-VIsual-select [l 66]
-    VIsual-reselect [z 26]
-    VIsual-mode [l 67]
-    redo-VIsual-busy [z 27]
-    resel-VIsual-mode [l 68]
-    resel-VIsual-line-count [l 69]
-    resel-VIsual-vcol [l 70]
+    VIsual-active [z 29]
+    VIsual-select [l 59]
+    VIsual-select-reg [l 60]
+    VIsual-select-exclu-adj [z 30]
+    restart-VIsual-select [l 61]
+    VIsual-reselect [z 31]
+    VIsual-mode [l 62]
+    redo-VIsual-busy [z 32]
+    resel-VIsual-mode [l 63]
+    resel-VIsual-line-count [l 64]
+    resel-VIsual-vcol [l 65]
     where-paste-started [o 131 T_pos_T]
-    did-ai [z 28]
-    ai-col [l 71]
-    did-si [z 29]
-    can-si [l 72]
-    can-si-back [z 30]
-    old-indent [l 73]
+    did-ai [z 33]
+    ai-col [l 66]
+    did-si [z 34]
+    can-si [l 67]
+    can-si-back [z 35]
+    old-indent [l 68]
     saved-cursor [o 132 T_pos_T]
     Insstart [o 133 T_pos_T]
     Insstart-orig [o 134 T_pos_T]
-    orig-line-count [l 74]
-    vr-lines-changed [l 75]
+    orig-line-count [l 69]
+    vr-lines-changed [l 70]
     mb-bytelen-tab [o 135 bytes]
-    State [l 76]
-    finish-op [l 77]
-    opcount [l 78]
-    motion-force [l 79]
-    reg-recording [l 80]
-    reg-executing [l 81]
-    pending-end-reg-executing [l 82]
-    seenModifyOtherKeys [z 31]
-    modify-otherkeys-state [l 83]
-    kitty-protocol-state [l 84]
-    no-mapping [l 85]
-    no-zero-mapping [l 86]
-    allow-keys [l 87]
-    no-reduce-keys [z 32]
-    no-u-sync [l 88]
-    restart-edit [l 89]
-    arrow-used [z 33]
-    ins-at-eol [z 34]
-    no-abbr [z 35]
-    mapped-ctrl-c [l 90]
-    ctrl-c-interrupts [z 36]
+    State [l 71]
+    finish-op [z 36]
+    opcount [l 72]
+    motion-force [l 73]
+    reg-recording [l 74]
+    reg-executing [l 75]
+    pending-end-reg-executing [z 37]
+    seenModifyOtherKeys [z 38]
+    modify-otherkeys-state [l 76]
+    kitty-protocol-state [l 77]
+    no-mapping [l 78]
+    no-zero-mapping [l 79]
+    allow-keys [l 80]
+    no-reduce-keys [z 39]
+    no-u-sync [l 81]
+    restart-edit [l 82]
+    arrow-used [z 40]
+    ins-at-eol [z 41]
+    no-abbr [z 42]
+    mapped-ctrl-c [l 83]
+    ctrl-c-interrupts [z 43]
     cmdmod [o 136 T_cmdmod_T]
-    sticky-cmdmod-flags [l 91]
-    msg-silent [l 92]
-    emsg-silent [l 93]
-    emsg-noredir [l 94]
-    cmd-silent [z 37]
-    in-assert-fails [z 38]
+    sticky-cmdmod-flags [l 84]
+    msg-silent [l 85]
+    emsg-silent [l 86]
+    emsg-noredir [l 87]
+    cmd-silent [z 44]
+    in-assert-fails [z 45]
     IObuff [o 137 BytePtr]
     NameBuff [o 138 BytePtr]
     msg-buf [o 139 bytes]
-    RedrawingDisabled [l 95]
+    RedrawingDisabled [l 88]
     typebuf [o 140 T_typebuf_T]
-    ex-normal-busy [l 96]
-    ex-normal-lock [l 97]
-    stop-insert-mode [z 39]
-    KeyTyped [z 40]
-    KeyStuffed [z 41]
-    maptick [l 98]
-    must-redraw [l 99]
-    skip-redraw [z 42]
-    do-redraw [z 43]
-    need-highlight-changed [z 44]
-    read-cmd-fd [l 100]
-    got-int [l 101]
-    termcap-active [z 45]
-    term-entered [z 46]
-    searchcmdlen [l 102]
-    did-outofmem-msg [z 47]
-    undo-off [z 48]
-    global-busy [l 103]
-    listcmd-busy [z 49]
-    need-start-insertmode [z 50]
+    ex-normal-busy [l 89]
+    ex-normal-lock [l 90]
+    stop-insert-mode [z 46]
+    KeyTyped [z 47]
+    KeyStuffed [z 48]
+    maptick [l 91]
+    must-redraw [l 92]
+    skip-redraw [z 49]
+    do-redraw [z 50]
+    need-highlight-changed [z 51]
+    read-cmd-fd [l 93]
+    got-int [l 94]
+    termcap-active [z 52]
+    term-entered [z 53]
+    searchcmdlen [l 95]
+    did-outofmem-msg [z 54]
+    undo-off [z 55]
+    global-busy [l 96]
+    listcmd-busy [z 56]
+    need-start-insertmode [z 57]
     last-cmdline [o 141 BytePtr]
     repeat-cmdline [o 142 BytePtr]
     new-last-cmdline [o 143 BytePtr]
-    aucmd-cmdline-changed-count [l 104]
-    did-cursorhold [l 105]
+    aucmd-cmdline-changed-count [l 97]
+    did-cursorhold [z 58]
     last-cursormoved [o 144 T_pos_T]
-    replace-offset [l 106]
+    replace-offset [l 98]
     empty-option [o 145 BytePtr]
     longVersion [o 146 BytePtr]
-    km-stopsel [z 51]
-    km-startsel [z 52]
+    km-stopsel [z 59]
+    km-startsel [z 60]
     no-lines-msg [o 147 bytes]
-    sub-nsubs [l 107]
-    sub-nlines [l 108]
-    term-is-xterm [l 109]
-    virtual-op [l 110]
+    sub-nsubs [l 99]
+    sub-nlines [l 100]
+    term-is-xterm [l 101]
+    virtual-op [l 102]
     top-bot-msg [o 148 bytes]
     bot-top-msg [o 149 bytes]
     line-msg [o 150 bytes]
-    vim-ignored [l 111]
-    magic-overruled [l 112]
-    skip-win-fix-cursor [z 53]
-    skip-win-fix-scroll [z 54]
-    skip-update-topline [z 55]
+    vim-ignored [l 103]
+    magic-overruled [l 104]
+    skip-win-fix-cursor [z 61]
+    skip-win-fix-scroll [z 62]
+    skip-update-topline [z 63]
     showcmd-buf [o 151 bytes]
-    did-warn-clipboard [z 56]
-    allow-osc-key [l 113]
-    silence-w23-w24-msg [l 114]
+    did-warn-clipboard [z 64]
+    allow-osc-key [l 105]
+    silence-w23-w24-msg [l 106]
     e-interrupted [o 152 bytes]
     e-backslash-should-be-followed-by [o 153 bytes]
     e-invalid-range [o 154 bytes]
@@ -10014,62 +10014,62 @@
     e-unicode-val-too-large [o 327 bytes]
     e-osc-response-timed-out [o 328 bytes]
     e-leadtab-requires-tab [o 329 bytes]
-    buf-free-count [l 115]
-    top-file-num [l 116]
+    buf-free-count [l 107]
+    top-file-num [l 108]
     VIM-VERSION-DATE-ONLY [o 330 bytes]
     VIM-VERSION-LONG-ONLY [o 331 bytes]
-    chartab-initialized [z 57]
+    chartab-initialized [z 65]
     g-chartab [o 332 bytes]
     transchar-charbuf [o 333 bytes]
     cmdline-orig [o 334 T_string_T]
     history [o 335 objects]
     hisidx [o 336 ints]
     hisnum [o 337 ints]
-    hislen [l 117]
+    hislen [l 109]
     history-names [o 338 objects]
-    last-maptick [l 118]
-    did-update-one-window [z 58]
-    update-Insstart-orig [z 59]
+    last-maptick [l 110]
+    did-update-one-window [z 66]
+    update-Insstart-orig [z 67]
     last-insert [o 339 T_string_T]
-    last-insert-skip [l 119]
-    new-insert-skip [l 120]
-    did-restart-edit [l 121]
-    ins-need-undo [z 60]
-    dont-sync-undo [l 122]
-    pc-status [l 123]
+    last-insert-skip [l 111]
+    new-insert-skip [l 112]
+    did-restart-edit [l 113]
+    ins-need-undo [z 68]
+    dont-sync-undo [l 114]
+    pc-status [l 115]
     pc-bytes [o 340 bytes]
     pc-attr [o 341 ints]
-    pc-row [l 124]
-    pc-col [l 125]
+    pc-row [l 116]
+    pc-col [l 117]
     replace-stack [o 342 BytePtr]
-    replace-stack-nr [l 126]
-    replace-stack-len [l 127]
-    append-indent [l 128]
+    replace-stack-nr [l 118]
+    replace-stack-len [l 119]
+    append-indent [l 120]
     old-sub [o 343 BytePtr]
-    global-need-beginline [z 61]
-    quitmore [l 129]
+    global-need-beginline [z 69]
+    quitmore [l 121]
     cmdnames [o 344 objects]
     dollar-command [o 345 bytes]
     ex-error-buf [o 346 bytes]
     ccline [o 347 T_cmdline_info_T]
-    extra-char [l 130]
-    extra-char-shift [l 131]
+    extra-char [l 122]
+    extra-char-shift [z 70]
     prev-ccline [o 348 T_cmdline_info_T]
-    prev-ccline-used [z 62]
+    prev-ccline-used [z 71]
     redobuff [o 349 S_buffheader]
     old-redobuff [o 350 S_buffheader]
     recordbuff [o 351 S_buffheader]
-    typeahead-char [l 132]
-    block-redo [z 63]
-    KeyNoremap [l 133]
+    typeahead-char [l 123]
+    block-redo [z 72]
+    KeyNoremap [l 124]
     typebuf-init [o 352 bytes]
     noremapbuf-init [o 353 bytes]
-    last-recorded-len [l 134]
+    last-recorded-len [l 125]
     readbuf1 [o 354 S_buffheader]
     readbuf2 [o 355 S_buffheader]
-    old-char [l 135]
-    old-mod-mask [l 136]
-    old-KeyStuffed [z 64]
+    old-char [l 126]
+    old-mod-mask [l 127]
+    old-KeyStuffed [z 73]
     highlight-tab [o 356 objects]
     highlight-index-tab [o 357 objects]
     color-name-tab [o 358 objects]
@@ -10090,8 +10090,8 @@
     cterm-color-16 [o 373 longs]
     first-abbr [o 374 objects]
     maphash [o 375 objects]
-    maphash-valid [z 65]
-    map-locked [l 137]
+    maphash-valid [z 74]
+    map-locked [l 128]
     vimrc-mappings [o 376 objects]
     utf8len-tab [o 377 bytes]
     utf8len-tab-zero [o 378 bytes]
@@ -10100,34 +10100,34 @@
     foldCase [o 381 objects]
     toLower [o 382 objects]
     toUpper [o 383 objects]
-    lowest-marked [l 138]
+    lowest-marked [l 129]
     first-msg-hist [o 384 S_msg_hist]
     last-msg-hist [o 385 S_msg_hist]
-    msg-hist-len [l 139]
-    msg-hist-max [l 140]
-    msg-flags [l 141]
-    msg-wait [l 142]
-    last-sourcing-lnum [l 143]
+    msg-hist-len [l 130]
+    msg-hist-max [l 131]
+    msg-flags [l 132]
+    msg-wait [l 133]
+    last-sourcing-lnum [l 134]
     last-sourcing-name [o 386 BytePtr]
     last-msgchunk [o 387 objects]
-    do-clear-sb-text [l 144]
-    breakcheck-count [l 145]
+    do-clear-sb-text [l 135]
+    breakcheck-count [l 136]
     mod-mask-table [o 388 objects]
     modifier-keys-table [o 389 bytes]
     key-names-table [o 390 objects]
-    VIsual-mode-orig [l 146]
+    VIsual-mode-orig [l 137]
     nv-cmds [o 391 objects]
     nv-cmd-idx [o 392 shorts]
-    nv-max-linear [l 147]
+    nv-max-linear [l 138]
     old-showcmd-buf [o 393 bytes]
-    showcmd-is-clear [z 66]
-    showcmd-visual [z 67]
+    showcmd-is-clear [z 75]
+    showcmd-visual [z 76]
     opchars [o 394 objects]
-    p-ai-nopaste [l 148]
-    p-et-nopaste [l 149]
-    p-sts-nopaste [l 150]
-    p-tw-nopaste [l 151]
-    p-wm-nopaste [l 152]
+    p-ai-nopaste [l 139]
+    p-et-nopaste [l 140]
+    p-sts-nopaste [l 141]
+    p-tw-nopaste [l 142]
+    p-wm-nopaste [l 143]
     options [o 395 objects]
     p-ambw-values [o 396 objects]
     p-bg-values [o 397 objects]
@@ -10143,118 +10143,118 @@
     p-sloc-values [o 407 objects]
     signal-info [o 408 objects]
     reg-prev-sub [o 409 BytePtr]
-    reg-prev-sublen [l 153]
+    reg-prev-sublen [l 144]
     REGEXP-INRANGE [o 410 bytes]
     REGEXP-ABBR [o 411 bytes]
     class-tab [o 412 shorts]
     regparse [o 413 objects]
-    regnpar [l 154]
-    regflags [l 155]
-    reg-magic [l 156]
-    reg-string [l 157]
-    reg-strict [l 158]
+    regnpar [l 145]
+    regflags [l 146]
+    reg-magic [l 147]
+    reg-string [l 148]
+    reg-strict [l 149]
     META-flags [o 414 bytes]
-    curchr [l 159]
-    prevchr [l 160]
-    prevprevchr [l 161]
-    nextchr [l 162]
-    reg-cpo-lit [z 68]
-    reg-cpo-bsl [z 69]
-    prevchr-len [l 163]
-    at-start [l 164]
-    prev-at-start [l 165]
+    curchr [l 150]
+    prevchr [l 151]
+    prevprevchr [l 152]
+    nextchr [l 153]
+    reg-cpo-lit [z 77]
+    reg-cpo-bsl [z 78]
+    prevchr-len [l 154]
+    at-start [l 155]
+    prev-at-start [l 156]
     reg-engine [o 415 S_regengine_S]
     decomp-table [o 416 objects]
-    num-complex-braces [l 166]
+    num-complex-braces [l 157]
     regcode [o 417 BytePtr]
     reg-calc-size-node [o 418 bytes]
-    regsize [l 167]
-    bt-reg-parse-depth [l 168]
+    regsize [l 158]
+    bt-reg-parse-depth [l 159]
     had-endbrace [o 419 bytes]
-    one-exactly [z 70]
+    one-exactly [z 79]
     classchars [o 420 BytePtr]
     classcodes [o 421 ints]
     y-regs [o 422 objects]
     y-current [o 423 T_yankreg_T]
-    y-append [z 71]
+    y-append [z 80]
     y-previous [o 424 T_yankreg_T]
-    execreg-lastc [l 169]
-    screen-attr [l 170]
-    screen-char-attr [l 171]
+    execreg-lastc [l 160]
+    screen-attr [l 161]
+    screen-char-attr [l 162]
     fill-chars [o 425 T_fill_chars_T]
     filltab [o 426 objects]
     lcs-chars [o 427 T_lcs_chars_T]
     lcstab [o 428 objects]
     spats [o 429 objects]
-    last-idx [l 172]
+    last-idx [l 163]
     lastc [o 430 bytes]
-    lastcdir [l 173]
-    last-t-cmd [l 174]
+    lastcdir [l 164]
+    last-t-cmd [z 81]
     lastc-bytes [o 431 bytes]
-    lastc-bytelen [l 175]
+    lastc-bytelen [l 165]
     mr-pattern [o 432 BytePtr]
     saved-last-search-spat [o 433 S_spat]
-    did-save-last-search-spat [l 176]
-    saved-last-idx [l 177]
-    saved-no-hlsearch [l 178]
+    did-save-last-search-spat [l 166]
+    saved-last-idx [l 167]
+    saved-no-hlsearch [z 82]
     crv-status [o 434 T_termrequest_T]
     u7-status [o 435 T_termrequest_T]
     xcc-status [o 436 T_termrequest_T]
-    detected-8bit [z 72]
-    focus-state [l 179]
-    sync-output-setting [l 180]
-    sync-output-state [l 181]
+    detected-8bit [z 83]
+    focus-state [l 168]
+    sync-output-setting [l 169]
+    sync-output-state [l 170]
     builtin-xterm [o 437 objects]
     builtin-mok2 [o 438 objects]
     builtin-kitty [o 439 objects]
     builtin-debug [o 440 objects]
     builtin-256colors [o 441 objects]
     builtin-terminals [o 442 objects]
-    need-gather [z 73]
+    need-gather [z 84]
     termleader [o 443 bytes]
     term-props [o 444 objects]
     out-buf [o 445 bytes]
-    out-pos [l 182]
-    send-t-RK [z 74]
-    cursor-is-off [z 75]
-    cursor-is-asleep [z 76]
+    out-pos [l 171]
+    send-t-RK [z 85]
+    cursor-is-off [z 86]
+    cursor-is-asleep [z 87]
     termcodes [o 446 Ptr]
-    tc-max-len [l 183]
-    tc-len [l 184]
+    tc-max-len [l 172]
+    tc-len [l 173]
     osc-state [o 447 T_oscstate_T]
-    cls-bigword [l 185]
+    cls-bigword [l 174]
     inbuf [o 448 bytes]
-    inbufcount [l 186]
-    u-newcount [l 187]
-    u-oldcount [l 188]
-    undo-undoes [z 77]
-    lastmark [l 189]
-    did-initial-scroll-size-snapshot [z 78]
-    min-set-ch [l 190]
-    command-frame-height [z 79]
+    inbufcount [l 175]
+    u-newcount [l 176]
+    u-oldcount [l 177]
+    undo-undoes [z 88]
+    lastmark [l 178]
+    did-initial-scroll-size-snapshot [z 89]
+    min-set-ch [l 179]
+    command-frame-height [z 90]
     main-errors [o 449 objects]
     params [o 450 T_mparm_T]
     current-oap [o 451 S_oparg_S]
-    win-redr-status-busy [z 80]
-    win-update-recursive [z 81]
+    win-redr-status-busy [z 91]
+    win-update-recursive [z 92]
     edit-o-lnum [o 452 longs]
-    ins-esc-disabled-redraw [z 82]
+    ins-esc-disabled-redraw [z 93]
     ex-substitute-subflags [o 453 T_subflags_T]
-    do-cmdline-recursive [l 191]
-    do-cmdline-call-depth [l 192]
-    getcmdline-int-depth [l 193]
+    do-cmdline-recursive [l 180]
+    do-cmdline-call-depth [l 181]
+    getcmdline-int-depth [l 182]
     read-redo-bp [o 454 S_buffblock]
     read-redo-p [o 455 BytePtr]
     gotchars-state [o 456 T_gotchars_state_T]
     add-byte-to-showcmd-state [o 457 T_gotchars_state_T]
-    vgetc-last-vgetc-recorded-len [l 194]
-    init-highlight-had-both [z 83]
-    get-attr-entry-recursive [z 84]
+    vgetc-last-vgetc-recorded-len [l 183]
+    init-highlight-had-both [z 94]
+    get-attr-entry-recursive [z 95]
     cterm-idx-to-rgb-cube [o 458 ints]
     rgb-to-cterm-idx-cube [o 459 ints]
     hlf-get-id-prev [o 460 ints]
     getmark-buf-fnum-pos-copy [o 461 T_pos_T]
-    show-one-mark-did-title [z 85]
+    show-one-mark-did-title [z 96]
     mark-adjust-internal-initpos [o 462 T_pos_T]
     utf-char2cells-doublewidth [o 463 objects]
     utf-char2cells-emoji-wide [o 464 objects]
@@ -10263,61 +10263,61 @@
     utf-class-buf-classes [o 467 objects]
     mb-unescape-buf [o 468 bytes]
     ml-get-invalid-questions [o 469 bytes]
-    ml-get-buf-recursive [l 195]
-    ml-flush-line-entered [z 86]
-    msg-attr-keep-entered [l 196]
-    msg-source-recursive [z 87]
+    ml-get-buf-recursive [l 184]
+    ml-flush-line-entered [z 97]
+    msg-attr-keep-entered [l 185]
+    msg-source-recursive [z 98]
     str2special-buf [o 470 bytes]
-    do-more-prompt-entered [z 88]
-    vim-beep-did-init [z 89]
-    vim-beep-start-tv [l 197]
+    do-more-prompt-entered [z 99]
+    vim-beep-did-init [z 100]
+    vim-beep-start-tv [l 186]
     get-special-key-name-string [o 471 bytes]
-    normal-cmd-old-mapped-len [l 198]
-    check-visual-highlight-did-check [z 90]
+    normal-cmd-old-mapped-len [l 187]
+    check-visual-highlight-did-check [z 101]
     add-to-showcmd-ignore [o 472 ints]
     v-visop-trans [o 473 bytes]
     nv-optrans-ar [o 474 objects]
     nv-optrans-str [o 475 BytePtr]
-    do-addsub-hexupper [z 91]
+    do-addsub-hexupper [z 102]
     do-pending-operator-redo-VIsual [o 476 T_redo_VIsual_T]
-    did-set-paste-old-p-paste [l 199]
-    did-set-paste-save-sm [l 200]
-    did-set-paste-save-sta [l 201]
-    did-set-paste-save-ru [l 202]
+    did-set-paste-old-p-paste [l 188]
+    did-set-paste-save-sm [l 189]
+    did-set-paste-save-sta [l 190]
+    did-set-paste-save-ru [l 191]
     findoption-quick-tab [o 477 shorts]
     set-option-value-errbuf [o 478 bytes]
-    deathtrap-entered [l 203]
-    vim-handle-signal-got-signal [l 204]
-    vim-handle-signal-blocked [z 92]
+    deathtrap-entered [l 192]
+    vim-handle-signal-got-signal [l 193]
+    vim-handle-signal-blocked [z 103]
     get-char-class-char-class-tab [o 479 objects]
     get-char-class-last-entry [o 480 Ptr]
-    init-class-tab-done [z 93]
-    peekchr-after-slash [l 205]
-    do-record-regname [l 206]
-    screenalloc-entered [z 94]
-    screenalloc-done-outofmem-msg [z 95]
+    init-class-tab-done [z 104]
+    peekchr-after-slash [l 194]
+    do-record-regname [l 195]
+    screenalloc-entered [z 105]
+    screenalloc-done-outofmem-msg [z 106]
     findmatchlimit-pos [o 481 T_pos_T]
     update-search-stat-lastpos [o 482 T_pos_T]
-    update-search-stat-cur [l 207]
-    update-search-stat-cnt [l 208]
-    update-search-stat-exact-match [z 96]
-    update-search-stat-incomplete [l 209]
-    update-search-stat-last-maxcount [l 210]
-    update-search-stat-chgtick [l 211]
+    update-search-stat-cur [l 196]
+    update-search-stat-cnt [l 197]
+    update-search-stat-exact-match [z 107]
+    update-search-stat-incomplete [l 198]
+    update-search-stat-last-maxcount [l 199]
+    update-search-stat-chgtick [l 200]
     update-search-stat-lastpat [o 483 BytePtr]
-    update-search-stat-lastpatlen [l 212]
+    update-search-stat-lastpatlen [l 201]
     update-search-stat-lbuf [o 484 S_file_buffer]
     tltoa-buf [o 485 bytes]
     tgoto-buf [o 486 bytes]
-    win-new-shellsize-old-Rows [l 213]
-    win-new-shellsize-old-Columns [l 214]
-    win-new-shellsize-old-coloff [l 215]
-    set-shellsize-busy [z 97]
-    set-shellsize-do-run [z 98]
-    ui-breakcheck-force-recursive [z 99]
-    ui-focus-change-last-time [l 216]
+    win-new-shellsize-old-Rows [l 202]
+    win-new-shellsize-old-Columns [l 203]
+    win-new-shellsize-old-coloff [l 204]
+    set-shellsize-busy [z 108]
+    set-shellsize-do-run [z 109]
+    ui-breakcheck-force-recursive [z 110]
+    ui-focus-change-last-time [l 205]
     uc-fun-cmd-fcmd [o 487 bytes]
-    may-trigger-deferred-events-recursive [z 100]}"))
+    may-trigger-deferred-events-recursive [z 111]}"))
 
 (defmacro ^:private g
   "The file-scope object n of the editor ed."

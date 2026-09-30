@@ -19,7 +19,7 @@ final class T_regexec_T implements Struct<T_regexec_T> {
     long lnum;
     BytePtr line;
     BytePtr input;
-    int need_clear_subexpr;
+    boolean need_clear_subexpr;
     int reg_ic;
     boolean reg_icombine;
     int reg_maxcol;

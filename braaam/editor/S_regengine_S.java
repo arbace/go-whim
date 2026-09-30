@@ -6,7 +6,7 @@ import whim.rt.*;
 
 final class S_regengine_S implements Struct<S_regengine_S> {
     final T_regexec_T rex = new T_regexec_T();
-    int rex_in_use;
+    boolean rex_in_use;
     final S_growarray regstack = new S_growarray();
     final S_growarray regstack_star = new S_growarray();
     final S_growarray regstack_behind = new S_growarray();

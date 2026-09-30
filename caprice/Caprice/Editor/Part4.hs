@@ -797,7 +797,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
           j'116 lnum9 save_do_all18 save_do_ask18 sub18 got_quit22 got_match24 save_State4 first_line22 last_line22 old_line_count22 line2'10 nmatch8 sub_firstline_string9 sub_firstline_length10 endcolumn26 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 start_nsubs24 found8 found_count8 copycol7 matchcol9 prev_matchcol7 new_start_string7 new_start_length7 new_start_size7 did_sub7 nmatch_tl7 do_again4 skip_match7 sub_firstlnum8 did_split7 r'286
         else j'116 lnum9 save_do_all18 save_do_ask18 sub18 got_quit22 got_match24 save_State4 first_line22 last_line22 old_line_count22 line2'10 nmatch8 sub_firstline_string9 sub_firstline_length10 endcolumn26 old_cursor_lnum23 old_cursor_col23 old_cursor_coladd23 start_nsubs24 found8 found_count8 copycol7 matchcol9 prev_matchcol7 new_start_string7 new_start_length7 new_start_size7 did_sub7 nmatch_tl7 do_again4 skip_match7 sub_firstlnum8 did_split7 r'286
     j'116 !lnum10 !save_do_all19 !save_do_ask19 !sub19 !got_quit23 !got_match25 !save_State5 !first_line23 !last_line23 !old_line_count23 !line2'11 !nmatch9 !sub_firstline_string10 !sub_firstline_length11 !endcolumn27 !old_cursor_lnum24 !old_cursor_col24 !old_cursor_coladd24 !start_nsubs25 !found9 !found_count9 !copycol8 !matchcol10 !prev_matchcol8 !new_start_string8 !new_start_length8 !new_start_size8 !did_sub8 !nmatch_tl8 !do_again5 !skip_match8 !sub_firstlnum9 !did_split8 !typed2 = do
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       r'291 <- if (((typed2 == (ch 'q')) || (typed2 == ESC)) || (typed2 == Ctrl_C)) then pure True else (do { r'290 <- intr_char ed'; pure (typed2 == r'290) })
       if r'291
         then j'129 lnum10 save_do_all19 save_do_ask19 sub19 True got_match25 save_State5 first_line23 last_line23 old_line_count23 line2'11 nmatch9 sub_firstline_string10 sub_firstline_length11 endcolumn27 old_cursor_lnum24 old_cursor_col24 old_cursor_coladd24 start_nsubs25 found9 found_count9 copycol8 matchcol10 prev_matchcol8 new_start_string8 new_start_length8 new_start_size8 did_sub8 nmatch_tl8 do_again5 skip_match8 sub_firstlnum9 did_split8 typed2
@@ -1839,7 +1839,7 @@ ex_at ed' eap = do
           pure ()
         else do
           r'4 <- exec_from_reg ed'
-          set'exec_from_reg ed' TRUE
+          set'exec_from_reg ed' True
           loop'4 prev_len1 r'4
     loop'4 !prev_len2 !save_efr1 = do
       r'5 <- stuff_empty ed'
@@ -1957,7 +1957,7 @@ redraw_cmd ed' clear = do
       screen_stop_highlight ed'
       set'msg_didout ed' FALSE
       set'msg_col ed' 0
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       r'1 <- c'State ed'
       if (r'1 .&. MODE_CMDLINE) /= 0
         then do
@@ -2097,13 +2097,13 @@ save_current_state ed' sst = do
   r'5 <- p_im ed'
   wrI32 sst save_state_T'save_insertmode r'5
   r'6 <- finish_op ed'
-  wrI32 sst save_state_T'save_finish_op r'6
+  wrB sst save_state_T'save_finish_op r'6
   r'7 <- opcount ed'
   wrI32 sst save_state_T'save_opcount (fromIntegral r'7 :: Int32)
   r'8 <- reg_executing ed'
   wrI32 sst save_state_T'save_reg_executing r'8
   r'9 <- pending_end_reg_executing ed'
-  wrI32 sst save_state_T'save_pending_end_reg_executing r'9
+  wrB sst save_state_T'save_pending_end_reg_executing r'9
   set'msg_scroll ed' FALSE
   set'restart_edit ed' 0
   set'p_im ed' FALSE
@@ -2122,13 +2122,13 @@ restore_current_state ed' sst = do
   set'restart_edit ed' r'2
   r'3 <- rdI32 sst save_state_T'save_insertmode
   set'p_im ed' r'3
-  r'4 <- rdI32 sst save_state_T'save_finish_op
+  r'4 <- rdB sst save_state_T'save_finish_op
   set'finish_op ed' r'4
   r'5 <- rdI32 sst save_state_T'save_opcount
   set'opcount ed' (fromIntegral r'5 :: Int64)
   r'6 <- rdI32 sst save_state_T'save_reg_executing
   set'reg_executing ed' r'6
-  r'7 <- rdI32 sst save_state_T'save_pending_end_reg_executing
+  r'7 <- rdB sst save_state_T'save_pending_end_reg_executing
   set'pending_end_reg_executing ed' r'7
   r'8 <- msg_didout ed'
   r'9 <- rdI32 sst save_state_T'save_msg_didout
@@ -2663,7 +2663,7 @@ check_text_or_curbuf_locked ed' oap = do
               pure True
             else pure True
 
-normal_cmd_get_count :: Ed -> Ptr Cmdarg_T -> Int32 -> Bool -> Bool -> Int32 -> Int32 -> IO (Int32, Int32, Int32)
+normal_cmd_get_count :: Ed -> Ptr Cmdarg_T -> Int32 -> Bool -> Bool -> Bool -> Int32 -> IO (Int32, Bool, Int32)
 normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = do
   let
     loop'0 !c1 !ctrl_w1 !need_flushbuf1 !out___r__1 !out___ctrl_w1 !out___need_flushbuf1 = do
@@ -2693,7 +2693,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
                   wrI64 cap cmdarg_T'count0 ((r'8 * 10) + (fromIntegral (c2 - (ch '0')) :: Int64))
                   j'19 ctrl_w2 need_flushbuf2 out___r__2 out___ctrl_w2 out___need_flushbuf2
         else do
-          r'11 <- if ((c2 == Ctrl_W) && (not (ctrl_w2 /= 0))) then (do { r'9 <- rdP cap cmdarg_T'oap; r'10 <- rdI32 r'9 oparg_T'op_type; pure (r'10 == OP_NOP) }) else pure False
+          r'11 <- if ((c2 == Ctrl_W) && (not ctrl_w2)) then (do { r'9 <- rdP cap cmdarg_T'oap; r'10 <- rdI32 r'9 oparg_T'op_type; pure (r'10 == OP_NOP) }) else pure False
           if r'11
             then do
               r'12 <- rdI64 cap cmdarg_T'count0
@@ -2710,7 +2710,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
               set'allow_keys ed' (r'17 - 1)
               r'18 <- add_to_showcmd ed' r'15
               let !need_flushbuf3 = need_flushbuf2 .|. (b2i r'18 :: Int32)
-              loop'0 r'15 (TRUE :: Int32) need_flushbuf3 out___r__2 out___ctrl_w2 out___need_flushbuf2
+              loop'0 r'15 True need_flushbuf3 out___r__2 out___ctrl_w2 out___need_flushbuf2
             else j'4 c2 ctrl_w2 need_flushbuf2 out___r__2 out___ctrl_w2 out___need_flushbuf2
     j'4 !c3 !ctrl_w3 !need_flushbuf4 !out___r__3 !out___ctrl_w3 !out___need_flushbuf3 = do
       if c3 == K_CURSORHOLD
@@ -2753,7 +2753,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
       wrI64 cap cmdarg_T'count1 r'33
       pure (c4, ctrl_w4, need_flushbuf5)
     j'19 !ctrl_w5 !need_flushbuf6 !out___r__5 !out___ctrl_w5 !out___need_flushbuf5 = do
-      if ctrl_w5 /= 0
+      if ctrl_w5
         then do
           r'34 <- no_mapping ed'
           set'no_mapping ed' (r'34 + 1)
@@ -2767,7 +2767,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
       r'37 <- plain_vgetc ed'
       r'38 <- no_zero_mapping ed'
       set'no_zero_mapping ed' (r'38 - 1)
-      if ctrl_w6 /= 0
+      if ctrl_w6
         then do
           r'39 <- no_mapping ed'
           set'no_mapping ed' (r'39 - 1)
@@ -2779,7 +2779,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
       r'41 <- add_to_showcmd ed' c5
       let !need_flushbuf9 = need_flushbuf8 .|. (b2i r'41 :: Int32)
       loop'2 c5 ctrl_w7 need_flushbuf9 out___r__7 out___ctrl_w7 out___need_flushbuf7
-  loop'0 c ctrl_w need_flushbuf (0 :: Int32) (0 :: Int32) (0 :: Int32)
+  loop'0 c ctrl_w need_flushbuf (0 :: Int32) False (0 :: Int32)
 
 normal_cmd_needs_more_chars :: Ed -> Ptr Cmdarg_T -> Short_u -> IO Bool
 normal_cmd_needs_more_chars ed' cap cmd_flags = do
@@ -2929,7 +2929,7 @@ normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
   set'no_mapping ed' (r'53 + 1)
   r'54 <- allow_keys ed'
   set'allow_keys ed' (r'54 + 1)
-  set'did_cursorhold ed' TRUE
+  set'did_cursorhold ed' True
   r'55 <- rdI32 cap cmdarg_T'cmdchar
   if r'55 == (ch 'g')
     then do
@@ -3095,7 +3095,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       r'28 <- add_to_showcmd ed' c5
       let !need_flushbuf1 = b2i r'28 :: Int32
       (r'29, r'30, r'31) <- normal_cmd_get_count ed' fr' c5 toplevel set_prevcount8 ctrl_w8 need_flushbuf1
-      if r'30 /= 0
+      if r'30
         then do
           wrI32 fr' cmdarg_T'nchar r'29
           wrI32 fr' cmdarg_T'cmdchar Ctrl_W
@@ -3178,7 +3178,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
               set'did_cursorhold ed' save_did_cursorhold13
               j'41 old_col13 idx4 normal_cmd_get_count__o_r__13 normal_cmd_get_count__o_ctrl_w13 normal_cmd_get_count__o_need_flushbuf13 normal_cmd_get_more_chars__o_r__13 normal_cmd_get_more_chars__o_need_flushbuf13
             else do
-              set'did_cursorhold ed' FALSE
+              set'did_cursorhold ed' False
               j'41 old_col13 idx4 normal_cmd_get_count__o_r__13 normal_cmd_get_count__o_ctrl_w13 normal_cmd_get_count__o_need_flushbuf13 normal_cmd_get_more_chars__o_r__13 normal_cmd_get_more_chars__o_need_flushbuf13
         else j'41 old_col13 idx4 normal_cmd_get_count__o_r__13 normal_cmd_get_count__o_ctrl_w13 normal_cmd_get_count__o_need_flushbuf13 normal_cmd_get_more_chars__o_r__13 normal_cmd_get_more_chars__o_need_flushbuf13
     j'41 !old_col14 !idx5 !normal_cmd_get_count__o_r__14 !normal_cmd_get_count__o_ctrl_w14 !normal_cmd_get_count__o_need_flushbuf14 !normal_cmd_get_more_chars__o_r__14 !normal_cmd_get_more_chars__o_need_flushbuf14 = do
@@ -3235,7 +3235,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       r'76 <- rdP (pAdd (addr'nv_cmds ed') ((fromIntegral idx7) * 24)) nv_cmd'cmd_func
       callPtr ed' r'76 [toRaw fr'] >> pure ()
       r'77 <- finish_op ed'
-      r'79 <- if (not (r'77 /= 0)) then (do { r'78 <- rdI32 oap oparg_T'op_type; pure (not (r'78 /= 0)) }) else pure False
+      r'79 <- if (not r'77) then (do { r'78 <- rdI32 oap oparg_T'op_type; pure (not (r'78 /= 0)) }) else pure False
       r'82 <- if r'79 then (if (idx7 < 0) then pure True else (do { r'80 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx7) * 24)) nv_cmd'cmd_flags; pure (not (((fromIntegral r'80 :: Int32) .&. NV_KEEPREG) /= 0)) })) else pure False
       if r'82
         then do
@@ -3270,7 +3270,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       r'89 <- rdI32 oap oparg_T'op_type
       if r'89 == OP_NOP
         then do
-          set'finish_op ed' FALSE
+          set'finish_op ed' False
           j'63 normal_cmd_get_count__o_r__20 normal_cmd_get_count__o_ctrl_w20 normal_cmd_get_count__o_need_flushbuf20 normal_cmd_get_more_chars__o_r__20 normal_cmd_get_more_chars__o_need_flushbuf20
         else j'63 normal_cmd_get_count__o_r__20 normal_cmd_get_count__o_ctrl_w20 normal_cmd_get_count__o_need_flushbuf20 normal_cmd_get_more_chars__o_r__20 normal_cmd_get_more_chars__o_need_flushbuf20
     j'63 !normal_cmd_get_count__o_r__21 !normal_cmd_get_count__o_ctrl_w21 !normal_cmd_get_count__o_need_flushbuf21 !normal_cmd_get_more_chars__o_r__21 !normal_cmd_get_more_chars__o_need_flushbuf21 = do
@@ -3331,14 +3331,14 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
   r'125 <- opcount ed'
   wrI64 fr' cmdarg_T'opcount r'125
   r'126 <- rdI32 oap oparg_T'op_type
-  set'finish_op ed' (b2i (r'126 /= OP_NOP) :: Int32)
+  set'finish_op ed' (r'126 /= OP_NOP)
   r'127 <- finish_op ed'
-  r'129 <- if (not (r'127 /= 0)) then (do { r'128 <- rdI32 oap oparg_T'regname; pure (not (r'128 /= 0)) }) else pure False
+  r'129 <- if (not r'127) then (do { r'128 <- rdI32 oap oparg_T'regname; pure (not (r'128 /= 0)) }) else pure False
   if r'129
     then do
       wrI64 fr' cmdarg_T'opcount 0
-      j'2 (FALSE :: Int32) r'122 False r'123 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-    else j'2 (FALSE :: Int32) r'122 False r'123 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+      j'2 False r'122 False r'123 (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    else j'2 False r'122 False r'123 (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
 restore_visual_mode :: Ed -> IO ()
 restore_visual_mode ed' = do
@@ -3609,7 +3609,7 @@ op_shift ed' oap curs_top amount = do
                     then do
                       r'8 <- rdI32 oap oparg_T'op_type
                       r'9 <- p_sr ed'
-                      shift_line ed' (r'8 == OP_LSHIFT) r'9 amount FALSE
+                      shift_line ed' (r'8 == OP_LSHIFT) r'9 amount False
                       j'25 i2 block_col2
                     else j'25 i2 block_col2
         else do
@@ -5483,7 +5483,7 @@ op_change ed' oap = frame 72 $ \fr' -> do
         else j'14 pre_textlen5 pre_indent5
     j'14 !pre_textlen6 !pre_indent6 = do
       r'32 <- finish_op ed'
-      set'finish_op ed' FALSE
+      set'finish_op ed' False
       r'33 <- edit ed' NUL False 1
       set'finish_op ed' r'32
       r'34 <- rdI32 oap oparg_T'block_mode
@@ -7481,7 +7481,7 @@ do_pending_operator ed' cap old_col gui_yank = do
   r'337 <- curwin ed'
   r'338 <- rdI32 r'337 (win_T'w_cursor + pos_T'coladd)
   r'339 <- finish_op ed'
-  r'341 <- if (r'339 /= 0) then pure True else (c'VIsual_active ed')
+  r'341 <- if r'339 then pure True else (c'VIsual_active ed')
   r'343 <- if r'341 then (do { r'342 <- rdI32 r'332 oparg_T'op_type; pure (r'342 /= OP_NOP) }) else pure False
   if r'343
     then do
@@ -7659,7 +7659,7 @@ vim_regsub_multi :: Ed -> Ptr Regmmatch_T -> Linenr_T -> Ptr Char_u -> Ptr Char_
 vim_regsub_multi ed' rmp lnum source dest destlen flags = do
   let
     j'2 !re1 !rex_save_reg_match1 !rex_save_reg_mmatch1 !rex_save_reg_startp1 !rex_save_reg_endp1 !rex_save_reg_startpos1 !rex_save_reg_endpos1 !rex_save_reg_win1 !rex_save_reg_buf1 !rex_save_reg_firstlnum1 !rex_save_reg_maxline1 !rex_save_reg_line_lbr1 !rex_save_lnum1 !rex_save_line1 !rex_save_input1 !rex_save_need_clear_subexpr1 !rex_save_reg_ic1 !rex_save_reg_icombine1 !rex_save_reg_maxcol1 !rex_in_use_save1 = do
-      wrI32 re1 regengine_T'rex_in_use TRUE
+      wrB re1 regengine_T'rex_in_use True
       wrP re1 (regengine_T'rex + regexec_T'reg_match) nullPtr
       wrP re1 (regengine_T'rex + regexec_T'reg_mmatch) rmp
       r'1 <- curbuf ed'
@@ -7670,9 +7670,9 @@ vim_regsub_multi ed' rmp lnum source dest destlen flags = do
       wrI64 re1 (regengine_T'rex + regexec_T'reg_maxline) (r'3 - lnum)
       wrB re1 (regengine_T'rex + regexec_T'reg_line_lbr) False
       r'4 <- vim_regsub_both ed' re1 source dest destlen flags
-      wrI32 re1 regengine_T'rex_in_use rex_in_use_save1
-      r'5 <- rdI32 re1 regengine_T'rex_in_use
-      if r'5 /= 0
+      wrB re1 regengine_T'rex_in_use rex_in_use_save1
+      r'5 <- rdB re1 regengine_T'rex_in_use
+      if r'5
         then do
           wrP re1 (regengine_T'rex + regexec_T'reg_match) rex_save_reg_match1
           wrP re1 (regengine_T'rex + regexec_T'reg_mmatch) rex_save_reg_mmatch1
@@ -7688,7 +7688,7 @@ vim_regsub_multi ed' rmp lnum source dest destlen flags = do
           wrI64 re1 (regengine_T'rex + regexec_T'lnum) rex_save_lnum1
           wrP re1 (regengine_T'rex + regexec_T'line) rex_save_line1
           wrP re1 (regengine_T'rex + regexec_T'input) rex_save_input1
-          wrI32 re1 (regengine_T'rex + regexec_T'need_clear_subexpr) rex_save_need_clear_subexpr1
+          wrB re1 (regengine_T'rex + regexec_T'need_clear_subexpr) rex_save_need_clear_subexpr1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_ic) rex_save_reg_ic1
           wrB re1 (regengine_T'rex + regexec_T'reg_icombine) rex_save_reg_icombine1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_maxcol) rex_save_reg_maxcol1
@@ -7697,9 +7697,9 @@ vim_regsub_multi ed' rmp lnum source dest destlen flags = do
     j'4 !result1 = do
       pure result1
   let !re2 = addr'reg_engine ed'
-  r'6 <- rdI32 re2 regengine_T'rex_in_use
-  r'7 <- rdI32 re2 regengine_T'rex_in_use
-  if r'7 /= 0
+  r'6 <- rdB re2 regengine_T'rex_in_use
+  r'7 <- rdB re2 regengine_T'rex_in_use
+  if r'7
     then do
       r'8 <- rdP re2 (regengine_T'rex + regexec_T'reg_match)
       r'9 <- rdP re2 (regengine_T'rex + regexec_T'reg_mmatch)
@@ -7715,12 +7715,12 @@ vim_regsub_multi ed' rmp lnum source dest destlen flags = do
       r'19 <- rdI64 re2 (regengine_T'rex + regexec_T'lnum)
       r'20 <- rdP re2 (regengine_T'rex + regexec_T'line)
       r'21 <- rdP re2 (regengine_T'rex + regexec_T'input)
-      r'22 <- rdI32 re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
+      r'22 <- rdB re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
       r'23 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_ic)
       r'24 <- rdB re2 (regengine_T'rex + regexec_T'reg_icombine)
       r'25 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_maxcol)
       j'2 re2 r'8 r'9 r'10 r'11 r'12 r'13 r'14 r'15 r'16 r'17 r'18 r'19 r'20 r'21 r'22 r'23 r'24 r'25 r'6
-    else j'2 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr (0 :: Int32) (0 :: Int32) False (0 :: Int32) r'6
+    else j'2 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr False (0 :: Int32) False (0 :: Int32) r'6
 
 vim_regsub_both :: Ed -> Ptr Regengine_T -> Ptr Char_u -> Ptr Char_u -> Int32 -> Int32 -> IO Int32
 vim_regsub_both ed' re source dest destlen flags = frame 4 $ \fr' -> do
@@ -8346,7 +8346,7 @@ do_execreg ed' regname colon addcr silent = do
             else j'13 regname2 i2 remap2 execreg_line_continuation__o_r__2 execreg_line_continuation__o_idx2
         else do
           set'reg_executing ed' (if (regname2 == 0) then (ch '"') else regname2)
-          set'pending_end_reg_executing ed' FALSE
+          set'pending_end_reg_executing ed' False
           j'30 retval2 execreg_line_continuation__o_r__2 execreg_line_continuation__o_idx2
     j'13 !regname3 !i3 !remap3 !execreg_line_continuation__o_r__3 !execreg_line_continuation__o_idx3 = do
       r'26 <- y_current ed'

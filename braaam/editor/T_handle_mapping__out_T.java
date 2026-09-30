@@ -7,7 +7,7 @@ import whim.rt.*;
 final class T_handle_mapping__out_T implements Struct<T_handle_mapping__out_T> {
     int r__;
     int keylenp;
-    int timedout;
+    boolean timedout;
     int mapdepth;
 
     @Override

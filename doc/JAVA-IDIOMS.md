@@ -414,7 +414,12 @@ reasons it could drop:
 - a literal 0 or 1 assigned (`got_int = 0`, `need_wait_return = 0`),
   which the rule takes for no answer;
 - `|=` of an answer (`got_int |= ...`, `msg_didout |= ...`).
-Those three are a phase 184, queued in `doc/AGENDA.md`.
+**Done: phase 184** (2026-09-30), those three: 64 declarations, 11 flags
+among them; `TRUE`/`FALSE` 871 -> 779. What stays int now is flags saved
+in a local its function also uses for other values (`msg_scroll`,
+`redraw_cmdline`, `msg_didout`: the facts go by name, and a flow-sensitive
+analysis of the locals would be the next step), and `got_int`, which the
+host's signal handler sets.
 
 - **The pattern:** phase 166 made the core's yes-or-no functions, locals,
   members and parameters `bool`, and not the file-scope objects: **92** are

@@ -2104,8 +2104,8 @@ win_line_start ed' _wp wlv save_extra = do
       wrI32 wlv winlinevars_T'saved_extra_attr r'6
       r'7 <- rdI32 wlv winlinevars_T'n_attr_skip
       wrI32 wlv winlinevars_T'saved_n_attr_skip r'7
-      r'8 <- rdI32 wlv winlinevars_T'extra_for_textprop
-      wrI32 wlv winlinevars_T'saved_extra_for_textprop r'8
+      r'8 <- rdB wlv winlinevars_T'extra_for_textprop
+      wrB wlv winlinevars_T'saved_extra_for_textprop r'8
       r'9 <- rdI32 wlv winlinevars_T'c_extra
       wrI32 wlv winlinevars_T'saved_c_extra r'9
       r'10 <- rdI32 wlv winlinevars_T'c_final
@@ -2137,8 +2137,8 @@ win_line_continue wlv = do
       wrI32 wlv winlinevars_T'extra_attr r'7
       r'8 <- rdI32 wlv winlinevars_T'saved_n_attr_skip
       wrI32 wlv winlinevars_T'n_attr_skip r'8
-      r'9 <- rdI32 wlv winlinevars_T'saved_extra_for_textprop
-      wrI32 wlv winlinevars_T'extra_for_textprop r'9
+      r'9 <- rdB wlv winlinevars_T'saved_extra_for_textprop
+      wrB wlv winlinevars_T'extra_for_textprop r'9
       r'10 <- rdI32 wlv winlinevars_T'saved_char_attr
       wrI32 wlv winlinevars_T'char_attr r'10
       pure ()
@@ -2725,7 +2725,7 @@ check_nextcmd p = do
     then pure (pAdd r'1 1)
     else pure nullPtr
 
-set_no_hlsearch :: Ed -> Int32 -> IO ()
+set_no_hlsearch :: Ed -> Bool -> IO ()
 set_no_hlsearch ed' flag = do
   set'no_hlsearch ed' flag
   pure ()
@@ -3179,16 +3179,16 @@ can_get_old_char ed' = do
 check_end_reg_executing :: Ed -> Bool -> IO ()
 check_end_reg_executing ed' advance = do
   r'1 <- reg_executing ed'
-  r'5 <- if (r'1 /= 0) then (do { r'2 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; if (r'2 == 0) then pure True else (do { r'3 <- pending_end_reg_executing ed'; pure (r'3 /= 0) }) }) else pure False
+  r'5 <- if (r'1 /= 0) then (do { r'2 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; if (r'2 == 0) then pure True else (pending_end_reg_executing ed') }) else pure False
   if r'5
     then do
       if advance
         then do
           set'reg_executing ed' 0
-          set'pending_end_reg_executing ed' FALSE
+          set'pending_end_reg_executing ed' False
           pure ()
         else do
-          set'pending_end_reg_executing ed' TRUE
+          set'pending_end_reg_executing ed' True
           pure ()
     else pure ()
 
@@ -5234,7 +5234,7 @@ msg_check ed' = do
   r'5 <- if ((fromIntegral r'1 :: Int64) == (r'2 - 1)) then (do { r'3 <- msg_col ed'; r'4 <- sc_col ed'; pure (r'3 >= r'4) }) else pure False
   if r'5
     then do
-      set'need_wait_return ed' TRUE
+      set'need_wait_return ed' True
       set'redraw_cmdline ed' TRUE
       pure ()
     else pure ()
@@ -5542,7 +5542,7 @@ get_real_state ed' = do
             else pure MODE_VISUAL
         else do
           r'5 <- finish_op ed'
-          if r'5 /= 0
+          if r'5
             then pure MODE_OP_PENDING
             else j'3
     else j'3
@@ -6896,10 +6896,10 @@ cleanup_subexpr :: Ptr Regengine_T -> IO ()
 cleanup_subexpr re = do
   let
     j'4 = do
-      wrI32 re (regengine_T'rex + regexec_T'need_clear_subexpr) FALSE
+      wrB re (regengine_T'rex + regexec_T'need_clear_subexpr) False
       pure ()
-  r'1 <- rdI32 re (regengine_T'rex + regexec_T'need_clear_subexpr)
-  if not (r'1 /= 0)
+  r'1 <- rdB re (regengine_T'rex + regexec_T'need_clear_subexpr)
+  if not r'1
     then pure ()
     else do
       r'2 <- rdP re (regengine_T'rex + regexec_T'reg_match)
@@ -7471,10 +7471,10 @@ save_subexpr re bp = do
     j'7 !i2 = do
       let !i3 = i2 + 1
       loop'2 i3
-  r'8 <- rdI32 re (regengine_T'rex + regexec_T'need_clear_subexpr)
-  wrI32 bp regbehind_T'save_need_clear_subexpr r'8
-  r'9 <- rdI32 re (regengine_T'rex + regexec_T'need_clear_subexpr)
-  if r'9 /= 0
+  r'8 <- rdB re (regengine_T'rex + regexec_T'need_clear_subexpr)
+  wrB bp regbehind_T'save_need_clear_subexpr r'8
+  r'9 <- rdB re (regengine_T'rex + regexec_T'need_clear_subexpr)
+  if r'9
     then pure ()
     else loop'2 (0 :: Int32)
 
@@ -7504,10 +7504,10 @@ restore_subexpr re bp = do
     j'7 !i2 = do
       let !i3 = i2 + 1
       loop'2 i3
-  r'8 <- rdI32 bp regbehind_T'save_need_clear_subexpr
-  wrI32 re (regengine_T'rex + regexec_T'need_clear_subexpr) r'8
-  r'9 <- rdI32 re (regengine_T'rex + regexec_T'need_clear_subexpr)
-  if r'9 /= 0
+  r'8 <- rdB bp regbehind_T'save_need_clear_subexpr
+  wrB re (regengine_T'rex + regexec_T'need_clear_subexpr) r'8
+  r'9 <- rdB re (regengine_T'rex + regexec_T'need_clear_subexpr)
+  if r'9
     then pure ()
     else loop'2 (0 :: Int32)
 
@@ -8706,7 +8706,7 @@ check_prevcol ed' linep col ch' prevcol = do
       j'2 col4
     else j'2 col3
 
-find_mps_values :: Ed -> Int32 -> Int32 -> Int32 -> Bool -> IO (Int32, Int32, Int32)
+find_mps_values :: Ed -> Int32 -> Int32 -> Bool -> Bool -> IO (Int32, Int32, Bool)
 find_mps_values ed' initc findc backwards switchit = do
   let
     loop'1 !initc1 !findc1 !backwards1 !ptr1 !out___initc1 !out___findc1 !out___backwards1 = do
@@ -8720,11 +8720,11 @@ find_mps_values ed' initc findc backwards switchit = do
                 then do
                   r'3 <- utfc_ptr2len ed' ptr1
                   r'4 <- utf_ptr2char ed' (pAdd (pAdd ptr1 (fromIntegral r'3)) 1)
-                  j'15 r'4 initc1 (TRUE :: Int32) out___initc1 out___findc1 out___backwards1
+                  j'15 r'4 initc1 True out___initc1 out___findc1 out___backwards1
                 else do
                   r'5 <- utfc_ptr2len ed' ptr1
                   r'6 <- utf_ptr2char ed' (pAdd (pAdd ptr1 (fromIntegral r'5)) 1)
-                  j'15 initc1 r'6 (FALSE :: Int32) out___initc1 out___findc1 out___backwards1
+                  j'15 initc1 r'6 False out___initc1 out___findc1 out___backwards1
             else do
               r'7 <- utfc_ptr2len ed' ptr1
               let !t1'1 = r'7 + 1
@@ -8735,10 +8735,10 @@ find_mps_values ed' initc findc backwards switchit = do
                   if switchit
                     then do
                       r'9 <- utf_ptr2char ed' ptr1
-                      j'11 r'9 initc1 (FALSE :: Int32) out___initc1 out___findc1 out___backwards1
+                      j'11 r'9 initc1 False out___initc1 out___findc1 out___backwards1
                     else do
                       r'10 <- utf_ptr2char ed' ptr1
-                      j'11 initc1 r'10 (TRUE :: Int32) out___initc1 out___findc1 out___backwards1
+                      j'11 initc1 r'10 True out___initc1 out___findc1 out___backwards1
                 else do
                   r'11 <- utfc_ptr2len ed' ptr2
                   let !ptr3 = pAdd ptr2 (fromIntegral r'11)
@@ -8755,7 +8755,7 @@ find_mps_values ed' initc findc backwards switchit = do
       pure (initc3, findc3, backwards3)
   r'13 <- curbuf ed'
   r'14 <- rdP r'13 buf_T'b_p_mps
-  loop'1 initc findc backwards r'14 (0 :: Int32) (0 :: Int32) (0 :: Int32)
+  loop'1 initc findc backwards r'14 (0 :: Int32) (0 :: Int32) False
 
 vim_strup :: Ptr Char_u -> IO ()
 vim_strup p = do

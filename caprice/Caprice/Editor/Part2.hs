@@ -3407,7 +3407,7 @@ update_screen ed' type_arg = do
       j'28 type'9 no_update9 save_pum_will_redraw9 hid_cursor6
     j'28 !type'10 !no_update10 !save_pum_will_redraw10 !hid_cursor7 = do
       set'msg_scrolled ed' 0
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       j'29 type'10 no_update10 save_pum_will_redraw10 hid_cursor7
     j'29 !type'11 !no_update11 !save_pum_will_redraw11 !hid_cursor8 = do
       compute_cmdrow ed'
@@ -5741,7 +5741,7 @@ do_cmdline ed' cmdline fgetline flags = frame 8 $ \fr' -> do
           r'4 <- c'KeyTyped ed'
           if r'4 && (not ((flags .&. DOCMD_REPEAT) /= 0))
             then do
-              set'need_wait_return ed' FALSE
+              set'need_wait_return ed' False
               j'30 msg_didout_before_start5 did_inc_RedrawingDisabled5
             else j'30 msg_didout_before_start5 did_inc_RedrawingDisabled5
         else do
@@ -5836,12 +5836,12 @@ do_cmdline ed' cmdline fgetline flags = frame 8 $ \fr' -> do
       set'msg_scroll ed' FALSE
       if (b2i retval11 :: Int32) == FAIL
         then do
-          set'need_wait_return ed' FALSE
+          set'need_wait_return ed' False
           set'msg_didany ed' False
           j'38 retval11
         else do
           r'38 <- need_wait_return ed'
-          if r'38 /= 0
+          if r'38
             then do
               r'39 <- msg_didout ed'
               set'msg_didout ed' (r'39 .|. msg_didout_before_start12)
@@ -7496,7 +7496,7 @@ draw_cmdline ed' start len = do
   _ <- msg_outtrans_len ed' (pAdd r'1 (fromIntegral start)) len
   pure ()
 
-putcmdline :: Ed -> Int32 -> Int32 -> IO ()
+putcmdline :: Ed -> Int32 -> Bool -> IO ()
 putcmdline ed' c shift' = do
   let
     j'3 = do
@@ -7511,7 +7511,7 @@ putcmdline ed' c shift' = do
     else do
       set'msg_no_more ed' True
       msg_putchar ed' c
-      if shift' /= 0
+      if shift'
         then do
           r'2 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
           r'3 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdlen
@@ -7761,7 +7761,7 @@ redrawcmdline_ex ed' do_compute_cmdrow = do
   if r'1
     then pure ()
     else do
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       if do_compute_cmdrow
         then do
           compute_cmdrow ed'
@@ -7834,7 +7834,7 @@ redrawcmd ed' = do
           msg_clr_eos ed'
           pure ()
         else do
-          set'in_echowindow ed' FALSE
+          set'in_echowindow ed' False
           sb_text_restart_cmdline ed'
           msg_start ed'
           msg_starthere ed'
@@ -8813,7 +8813,7 @@ key_protocol_enabled ed' = do
   let !using_mok1 = r'4 /= 0
   if using_mok1 then pure True else (do { r'5 <- kitty_protocol_state ed'; pure (r'5 == KKPS_ENABLED) })
 
-handle_mapping :: Ed -> Int32 -> Int32 -> Int32 -> IO (Int32, Int32, Int32, Int32)
+handle_mapping :: Ed -> Int32 -> Bool -> Int32 -> IO (Int32, Int32, Bool, Int32)
 handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
   let
     j'2 !keylenp1 !mapdepth1 !mp1 !mp_match_len1 !max_mlen1 !want_termcode1 !keylen1 !local_State1 !is_plug_map1 !in_osc1 !out___r__1 !out___keylenp1 !out___timedout1 !out___mapdepth1 = do
@@ -8923,7 +8923,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
           r'81 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
           if keylen6 > r'81
             then do
-              r'84 <- if (not (timedout /= 0)) then (do { r'83 <- if (mp_match7 /= nullPtr) then (do { r'82 <- rdI8 mp_match7 mapblock_T'm_nowait; pure (r'82 /= 0) }) else pure False; pure (not r'83) }) else pure False
+              r'84 <- if (not timedout) then (do { r'83 <- if (mp_match7 /= nullPtr) then (do { r'82 <- rdI8 mp_match7 mapblock_T'm_nowait; pure (r'82 /= 0) }) else pure False; pure (not r'83) }) else pure False
               if r'84
                 then j'32 keylenp9 mapdepth9 mp10 mp_match7 mp_match_len8 max_mlen9 want_termcode10 (-2 :: Int32) in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
                 else j'92 keylenp9 mapdepth9 mp10 mp2'8 mp_match7 mp_match_len8 max_mlen9 want_termcode10 tb_c1'9 keylen6 local_State9 is_plug_map9 in_osc9 out___r__9 out___keylenp9 out___timedout9 out___mapdepth9
@@ -8983,14 +8983,14 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
                   j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen14 want_termcode14 keylen10 in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
                 else j'44 keylenp13 mapdepth13 mp14 mp_match_len12 max_mlen13 want_termcode14 keylen10 in_osc13 out___r__13 out___keylenp13 out___timedout13 out___mapdepth13
     j'44 !keylenp14 !mapdepth14 !mp15 !mp_match_len13 !max_mlen15 !want_termcode15 !keylen11 !in_osc14 !out___r__14 !out___keylenp14 !out___timedout14 !out___mapdepth14 = do
-      r'111 <- if in_osc14 then pure True else (do { r'110 <- if ((mp15 == nullPtr) || ((max_mlen15 + want_termcode15) > mp_match_len13)) then pure True else (do { r'109 <- if (mp_match_len13 == 1) then (do { r'107 <- rdP mp15 mapblock_T'm_keys; r'108 <- rdW8 r'107 0; pure ((fromIntegral r'108 :: Int32) == ESC) }) else pure False; pure (r'109 && (not (timedout /= 0))) }); pure (r'110 && (keylen11 /= (-2))) })
+      r'111 <- if in_osc14 then pure True else (do { r'110 <- if ((mp15 == nullPtr) || ((max_mlen15 + want_termcode15) > mp_match_len13)) then pure True else (do { r'109 <- if (mp_match_len13 == 1) then (do { r'107 <- rdP mp15 mapblock_T'm_keys; r'108 <- rdW8 r'107 0; pure ((fromIntegral r'108 :: Int32) == ESC) }) else pure False; pure (r'109 && (not timedout)) }); pure (r'110 && (keylen11 /= (-2))) })
       if r'111
         then do
           r'113 <- if in_osc14 then pure True else (do { r'112 <- no_mapping ed'; pure (r'112 == 0) })
           r'115 <- if r'113 then pure True else (do { r'114 <- allow_keys ed'; pure (r'114 /= 0) })
           if r'115
             then do
-              r'123 <- if in_osc14 then pure True else (do { r'116 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; r'122 <- if (r'116 == 0) then pure True else (do { r'117 <- p_remap ed'; if (r'117 /= 0) then (do { r'118 <- rdP (addr'typebuf ed') typebuf_T'tb_noremap; r'119 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'120 <- rdW8 (pAdd r'118 (fromIntegral r'119)) 0; pure (((fromIntegral r'120 :: Int32) .&. (-9)) == RM_YES) }) else pure False }); pure (r'122 && (not (timedout /= 0))) })
+              r'123 <- if in_osc14 then pure True else (do { r'116 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; r'122 <- if (r'116 == 0) then pure True else (do { r'117 <- p_remap ed'; if (r'117 /= 0) then (do { r'118 <- rdP (addr'typebuf ed') typebuf_T'tb_noremap; r'119 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'120 <- rdW8 (pAdd r'118 (fromIntegral r'119)) 0; pure (((fromIntegral r'120 :: Int32) .&. (-9)) == RM_YES) }) else pure False }); pure (r'122 && (not timedout)) })
               if r'123
                 then do
                   r'124 <- check_termcode ed' (max_mlen15 + 1) nullPtr 0 nullPtr
@@ -8999,7 +8999,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
             else j'56 mapdepth14 mp15 mp_match_len13 (0 :: Int32) out___r__14 out___keylenp14 out___timedout14 out___mapdepth14
         else j'62 mapdepth14 mp15 keylen11 out___r__14 out___keylenp14 out___timedout14 out___mapdepth14
     j'50 !keylenp15 !mapdepth15 !mp16 !mp_match_len14 !max_mlen16 !keylen12 !save_keylen1 !out___r__15 !out___keylenp15 !out___timedout15 !out___mapdepth15 = do
-      if ((keylen12 == 0) && (save_keylen1 == (-1))) && (not (timedout /= 0))
+      if ((keylen12 == 0) && (save_keylen1 == (-1))) && (not timedout)
         then j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 (-1 :: Int32) out___r__15 out___keylenp15 out___timedout15 out___mapdepth15
         else j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 keylen12 out___r__15 out___keylenp15 out___timedout15 out___mapdepth15
     j'52 !keylenp16 !mapdepth16 !mp17 !mp_match_len15 !max_mlen17 !keylen13 !out___r__16 !out___keylenp16 !out___timedout16 !out___mapdepth16 = do
@@ -9134,8 +9134,8 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
   r'182 <- if r'178 then (do { r'179 <- rdP (addr'typebuf ed') typebuf_T'tb_buf; r'180 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'181 <- rdW8 (pAdd r'179 (fromIntegral (r'180 + 1))) 0; pure ((fromIntegral r'181 :: Int32) == KS_EXTRA) }) else pure False
   r'186 <- if r'182 then (do { r'183 <- rdP (addr'typebuf ed') typebuf_T'tb_buf; r'184 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'185 <- rdW8 (pAdd r'183 (fromIntegral (r'184 + 2))) 0; pure ((fromIntegral r'185 :: Int32) == KE_PLUG) }) else pure False
   if r'186
-    then j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 True r'172 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-    else j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 False r'172 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    then j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 True r'172 (0 :: Int32) (0 :: Int32) False (0 :: Int32)
+    else j'2 keylenp mapdepth nullPtr (0 :: Int32) (0 :: Int32) (0 :: Int32) keylenp r'171 False r'172 (0 :: Int32) (0 :: Int32) False (0 :: Int32)
 
 vgetorpeek :: Ed -> Bool -> IO Int32
 vgetorpeek ed' advance = frame 32 $ \fr' -> do
@@ -9391,14 +9391,14 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
           r'134 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
           r'135 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen
           if r'134 >= (r'135 + MAXMAPLEN)
-            then loop'10 (TRUE :: Int32) mapdepth13 mode_deleted13 handle_mapping__o_r__13 handle_mapping__o_keylenp13 handle_mapping__o_timedout13 handle_mapping__o_mapdepth13
+            then loop'10 True mapdepth13 mode_deleted13 handle_mapping__o_r__13 handle_mapping__o_keylenp13 handle_mapping__o_timedout13 handle_mapping__o_mapdepth13
             else do
               r'136 <- ex_normal_busy ed'
               if r'136 > 0
                 then do
                   r'137 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
                   if r'137 > 0
-                    then loop'10 (TRUE :: Int32) mapdepth13 mode_deleted13 handle_mapping__o_r__13 handle_mapping__o_keylenp13 handle_mapping__o_timedout13 handle_mapping__o_mapdepth13
+                    then loop'10 True mapdepth13 mode_deleted13 handle_mapping__o_r__13 handle_mapping__o_keylenp13 handle_mapping__o_timedout13 handle_mapping__o_mapdepth13
                     else do
                       r'138 <- p_im ed'
                       r'140 <- if (r'138 /= 0) then (do { r'139 <- c'State ed'; pure ((r'139 .&. MODE_INSERT) /= 0) }) else pure False
@@ -9414,7 +9414,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
                   r'144 <- if ((r'142 .&. MODE_INSERT) /= 0) then pure True else (do { r'143 <- p_lz ed'; pure (r'143 /= 0) })
                   r'146 <- if r'144 then (do { r'145 <- c'State ed'; pure ((r'145 .&. MODE_CMDLINE) == 0) }) else pure False
                   r'148 <- if (r'146 && advance) then (do { r'147 <- must_redraw ed'; pure (r'147 /= 0) }) else pure False
-                  r'150 <- if r'148 then (do { r'149 <- need_wait_return ed'; pure (not (r'149 /= 0)) }) else pure False
+                  r'150 <- if r'148 then (do { r'149 <- need_wait_return ed'; pure (not r'149) }) else pure False
                   if r'150
                     then do
                       _ <- update_screen ed' 0
@@ -9486,13 +9486,13 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
           r'190 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off
           r'191 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
           r'192 <- rdW8 (pAdd r'189 (fromIntegral ((r'190 + r'191) - 1))) 0
-          putcmdline ed' (fromIntegral r'192 :: Int32) FALSE
+          putcmdline ed' (fromIntegral r'192 :: Int32) False
           j'54 timedout17 mapdepth17 mode_deleted17 keylen13 showcmd_idx5 True handle_mapping__o_r__17 handle_mapping__o_keylenp17 handle_mapping__o_timedout17 handle_mapping__o_mapdepth17
         else j'54 timedout17 mapdepth17 mode_deleted17 keylen13 showcmd_idx5 showing_partial3 handle_mapping__o_r__17 handle_mapping__o_keylenp17 handle_mapping__o_timedout17 handle_mapping__o_mapdepth17
     j'54 !timedout18 !mapdepth18 !mode_deleted18 !keylen14 !showcmd_idx6 !showing_partial4 !handle_mapping__o_r__18 !handle_mapping__o_keylenp18 !handle_mapping__o_timedout18 !handle_mapping__o_mapdepth18 = do
       r'193 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
       if r'193 == 0
-        then j'56 (FALSE :: Int32) mapdepth18 mode_deleted18 keylen14 showcmd_idx6 showing_partial4 handle_mapping__o_r__18 handle_mapping__o_keylenp18 handle_mapping__o_timedout18 handle_mapping__o_mapdepth18
+        then j'56 False mapdepth18 mode_deleted18 keylen14 showcmd_idx6 showing_partial4 handle_mapping__o_r__18 handle_mapping__o_keylenp18 handle_mapping__o_timedout18 handle_mapping__o_mapdepth18
         else j'56 timedout18 mapdepth18 mode_deleted18 keylen14 showcmd_idx6 showing_partial4 handle_mapping__o_r__18 handle_mapping__o_keylenp18 handle_mapping__o_timedout18 handle_mapping__o_mapdepth18
     j'56 !timedout19 !mapdepth19 !mode_deleted19 !keylen15 !showcmd_idx7 !showing_partial5 !handle_mapping__o_r__19 !handle_mapping__o_keylenp19 !handle_mapping__o_timedout19 !handle_mapping__o_mapdepth19 = do
       if advance
@@ -9555,7 +9555,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
                 then j'110 c12 timedout23 mapdepth23 mode_deleted23 handle_mapping__o_r__23 handle_mapping__o_keylenp23 handle_mapping__o_timedout23 handle_mapping__o_mapdepth23
                 else do
                   if wait_tb_len3 > 0
-                    then loop'10 (TRUE :: Int32) mapdepth23 mode_deleted23 handle_mapping__o_r__23 handle_mapping__o_keylenp23 handle_mapping__o_timedout23 handle_mapping__o_mapdepth23
+                    then loop'10 True mapdepth23 mode_deleted23 handle_mapping__o_r__23 handle_mapping__o_keylenp23 handle_mapping__o_timedout23 handle_mapping__o_mapdepth23
                     else loop'10 timedout23 mapdepth23 mode_deleted23 handle_mapping__o_r__23 handle_mapping__o_keylenp23 handle_mapping__o_timedout23 handle_mapping__o_mapdepth23
             else loop'74 timedout23 mapdepth23 mode_deleted23 handle_mapping__o_r__23 handle_mapping__o_keylenp23 handle_mapping__o_timedout23 handle_mapping__o_mapdepth23
     loop'74 !timedout24 !mapdepth24 !mode_deleted24 !handle_mapping__o_r__24 !handle_mapping__o_keylenp24 !handle_mapping__o_timedout24 !handle_mapping__o_mapdepth24 = do
@@ -9650,7 +9650,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
                     else j'120 c19 timedout31 handle_mapping__o_r__31 handle_mapping__o_keylenp31 handle_mapping__o_timedout31 handle_mapping__o_mapdepth31
             else j'120 c19 timedout31 handle_mapping__o_r__31 handle_mapping__o_keylenp31 handle_mapping__o_timedout31 handle_mapping__o_mapdepth31
     j'120 !c20 !timedout32 !handle_mapping__o_r__32 !handle_mapping__o_keylenp32 !handle_mapping__o_timedout32 !handle_mapping__o_mapdepth32 = do
-      if (timedout32 /= 0) && (c20 == ESC)
+      if timedout32 && (c20 == ESC)
         then do
           gotchars_ignore ed'
           j'122 c20 handle_mapping__o_r__32 handle_mapping__o_keylenp32 handle_mapping__o_timedout32 handle_mapping__o_mapdepth32
@@ -9669,8 +9669,8 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
       if advance
         then do
           set'c'KeyStuffed ed' False
-          j'3 (FALSE :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
-        else j'3 (FALSE :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
+          j'3 False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False (0 :: Int32)
+        else j'3 False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False (0 :: Int32)
 
 inchar :: Ed -> Ptr Char_u -> Int32 -> Int64 -> IO Int32
 inchar ed' buf maxlen wait_time = frame 154 $ \fr' -> do
@@ -11090,7 +11090,7 @@ highlight_list_one :: Ed -> Int32 -> IO ()
 highlight_list_one ed' id' = do
   let
     j'3 !didh1 = do
-      if not (didh1 /= 0)
+      if not didh1
         then do
           _ <- highlight_list_arg ed' id' didh1 LIST_STRING 0 (Ptr "cleared\0"#) (Ptr "\0"#)
           pure ()
@@ -11103,7 +11103,7 @@ highlight_list_one ed' id' = do
     then pure ()
     else do
       r'5 <- rdI32 sgp1 hl_group_T'sg_term
-      r'6 <- highlight_list_arg ed' id' (FALSE :: Int32) LIST_ATTR r'5 nullPtr (Ptr "term\0"#)
+      r'6 <- highlight_list_arg ed' id' False LIST_ATTR r'5 nullPtr (Ptr "term\0"#)
       r'7 <- rdP sgp1 hl_group_T'sg_start
       r'8 <- highlight_list_arg ed' id' r'6 LIST_STRING 0 r'7 (Ptr "start\0"#)
       r'9 <- rdP sgp1 hl_group_T'sg_stop
@@ -11131,7 +11131,7 @@ highlight_list_one ed' id' = do
           r'28 <- rdI32 (pAdd (castPtr r'27) ((fromIntegral (id' - 1)) * 88)) hl_group_T'sg_link
           r'29 <- rdP (pAdd (castPtr r'26) ((fromIntegral (r'28 - 1)) * 88)) hl_group_T'sg_name
           _ <- msg_outtrans ed' r'29
-          j'3 (TRUE :: Int32)
+          j'3 True
         else j'3 r'20
 
 highlight_arg_to_string :: Ed -> Int32 -> Int32 -> Ptr Char_u -> Ptr Char_u -> IO (Ptr Char_u)
@@ -11179,7 +11179,7 @@ highlight_arg_to_string ed' type' iarg sarg buf = do
           wrW8 buf 0 NUL
           loop'3 iarg (0 :: Word64) (0 :: Int32)
 
-highlight_list_arg :: Ed -> Int32 -> Int32 -> Int32 -> Int32 -> Ptr Char_u -> Ptr Int8 -> IO Int32
+highlight_list_arg :: Ed -> Int32 -> Bool -> Int32 -> Int32 -> Ptr Char_u -> Ptr Int8 -> IO Bool
 highlight_list_arg ed' id' didh type' iarg sarg name = frame 120 $ \fr' -> do
   let
     j'5 !didh1 !ts1 = do
@@ -11189,7 +11189,7 @@ highlight_list_arg ed' id' didh type' iarg sarg name = frame 120 $ \fr' -> do
       pure didh2
   r'2 <- got_int ed'
   if r'2 /= 0
-    then pure FALSE
+    then pure False
     else do
       if (if (type' == LIST_STRING) then (b2i (sarg == nullPtr) :: Int32) else (b2i (iarg == 0) :: Int32)) /= 0
         then pure didh
@@ -11208,11 +11208,11 @@ highlight_list_arg ed' id' didh type' iarg sarg name = frame 120 $ \fr' -> do
                   msg_puts_attr ed' name r'9
                   r'10 <- rdI32 (addr'highlight_attr ed') 12
                   msg_puts_attr ed' (Ptr "=\0"#) r'10
-                  j'5 (TRUE :: Int32) r'3
-                else j'5 (TRUE :: Int32) r'3
-            else j'6 (TRUE :: Int32)
+                  j'5 True r'3
+                else j'5 True r'3
+            else j'6 True
 
-syn_list_header :: Ed -> Int32 -> Int32 -> Int32 -> IO Bool
+syn_list_header :: Ed -> Bool -> Int32 -> Int32 -> IO Bool
 syn_list_header ed' did_header outlen id' = do
   let
     j'8 !endcol1 !newline1 !name_col1 = do
@@ -11233,7 +11233,7 @@ syn_list_header ed' did_header outlen id' = do
         else j'12 endcol3 newline2 name_col2
     j'12 !endcol5 !newline3 !name_col3 = do
       msg_advance ed' endcol5
-      if not (did_header /= 0)
+      if not did_header
         then do
           r'5 <- cmdline_width ed'
           if (endcol5 == (r'5 - 1)) && (endcol5 <= name_col3)
@@ -11249,7 +11249,7 @@ syn_list_header ed' did_header outlen id' = do
       j'16 newline4
     j'16 !newline5 = do
       pure newline5
-  if not (did_header /= 0)
+  if not did_header
     then do
       msg_putchar ed' (ch '\n')
       r'7 <- got_int ed'
@@ -12968,7 +12968,7 @@ next_search_hl ed' win search_hl shl lnum mincol cur = frame 4 $ \fr' -> do
           if shl == search_hl
             then do
               _ <- rdP shl (match_T'rm + regmmatch_T'regprog)
-              set_no_hlsearch ed' TRUE
+              set_no_hlsearch ed' True
               j'27
             else j'27
         else j'21 nmatched2 called_emsg_before3
@@ -14316,7 +14316,7 @@ msg_strtrunc ed' s force = do
     j'6 !buf3 = do
       pure buf3
   r'2 <- msg_scroll ed'
-  r'4 <- if (not (r'2 /= 0)) then (do { r'3 <- need_wait_return ed'; pure (not (r'3 /= 0)) }) else pure False
+  r'4 <- if (not (r'2 /= 0)) then (do { r'3 <- need_wait_return ed'; pure (not r'3) }) else pure False
   r'6 <- if r'4 then (shortmess ed' SHM_TRUNCALL) else pure False
   r'8 <- if r'6 then (do { r'7 <- msg_silent ed'; pure (r'7 == 0) }) else pure False
   if r'8 || force
@@ -14473,7 +14473,7 @@ emsg_core ed' s = do
       r'4 <- msg_scrolled ed'
       if r'4 /= 0
         then do
-          set'need_wait_return ed' TRUE
+          set'need_wait_return ed' True
           j'10 r'3
         else j'10 r'3
     j'10 !attr1 = do
@@ -14616,7 +14616,7 @@ wait_return ed' redraw = do
           if r'2 > 0
             then pure ()
             else do
-              set'need_wait_return ed' TRUE
+              set'need_wait_return ed' True
               r'3 <- no_wait_return ed'
               if r'3 /= 0
                 then do
@@ -14746,7 +14746,7 @@ wait_return ed' redraw = do
           j'33 r'38
         else j'33 r'38
     j'33 !tmpState1 = do
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       set'did_wait_return ed' True
       set'emsg_on_display ed' False
       set'lines_left ed' (-1)
@@ -14865,7 +14865,7 @@ msg_start ed' = do
           j'8
         else do
           r'6 <- msg_didout ed'
-          r'8 <- if (r'6 /= 0) then pure True else (do { r'7 <- in_echowindow ed'; pure (r'7 /= 0) })
+          r'8 <- if (r'6 /= 0) then pure True else (in_echowindow ed')
           if r'8
             then do
               msg_putchar ed' (ch '\n')
@@ -15095,7 +15095,7 @@ msg_puts_attr_len ed' str maxlen attr = do
       r'5 <- if r'3 then (do { r'4 <- musl_strcmp str (Ptr "\13\0"#); pure (r'4 /= 0) }) else pure False
       if r'5
         then do
-          set'need_wait_return ed' TRUE
+          set'need_wait_return ed' True
           j'7 attr3
         else j'7 attr3
     j'7 !attr4 = do
@@ -15184,7 +15184,7 @@ msg_puts_display ed' str maxlen attr recurse = do
         else j'16 s5 t_s5 t_col5 sb_str5 sb_col5 did_last_char1 wrap_col5 store_sb_text__o_sb_str5 store_sb_text__o_sb_col5
     j'16 !s6 !t_s6 !t_col6 !sb_str6 !sb_col6 !did_last_char2 !wrap_col6 !store_sb_text__o_sb_str6 !store_sb_text__o_sb_col6 = do
       inc_msg_scrolled ed'
-      set'need_wait_return ed' TRUE
+      set'need_wait_return ed' True
       set'redraw_cmdline ed' TRUE
       r'36 <- cmdline_row ed'
       if r'36 > 0
@@ -15610,7 +15610,7 @@ do_more_prompt ed' typed_char = do
           r'9 <- c'Rows ed'
           set'cmdline_row ed' (fromIntegral (r'9 - 1) :: Int32)
           set'skip_redraw ed' True
-          set'need_wait_return ed' FALSE
+          set'need_wait_return ed' False
           j'13 used_typed_char4 oldState4 (0 :: Int32) mp_last4 msg_attr1'5
         113 {- 'q' -} -> j'13 used_typed_char4 oldState4 (0 :: Int32) mp_last4 msg_attr1'5
         Ctrl_C -> j'13 used_typed_char4 oldState4 (0 :: Int32) mp_last4 msg_attr1'5
@@ -15942,7 +15942,7 @@ msg_clr_cmdline ed' = do
 msg_end :: Ed -> IO Bool
 msg_end ed' = do
   r'1 <- exiting ed'
-  r'3 <- if (not r'1) then (do { r'2 <- need_wait_return ed'; pure (r'2 /= 0) }) else pure False
+  r'3 <- if (not r'1) then (need_wait_return ed') else pure False
   r'5 <- if r'3 then (do { r'4 <- c'State ed'; pure (not ((r'4 .&. MODE_CMDLINE) /= 0)) }) else pure False
   if r'5
     then do
@@ -16304,7 +16304,7 @@ get_keystroke ed' = frame 4 $ \fr' -> do
           if r'13 == KEYLEN_REMOVED
             then do
               r'21 <- must_redraw ed'
-              r'23 <- if (r'21 /= 0) then (do { r'22 <- need_wait_return ed'; pure (not (r'22 /= 0)) }) else pure False
+              r'23 <- if (r'21 /= 0) then (do { r'22 <- need_wait_return ed'; pure (not r'22) }) else pure False
               r'25 <- if r'23 then (do { r'24 <- c'State ed'; pure ((r'24 .&. 12297) == 0) }) else pure False
               if r'25
                 then do
@@ -25285,7 +25285,7 @@ regtry ed' re prog col timed_out = do
       pure (1 + r'14)
   r'15 <- rdP re (regengine_T'rex + regexec_T'line)
   wrP re (regengine_T'rex + regexec_T'input) (pAdd r'15 (fromIntegral col))
-  wrI32 re (regengine_T'rex + regexec_T'need_clear_subexpr) TRUE
+  wrB re (regengine_T'rex + regexec_T'need_clear_subexpr) True
   r'16 <- rdP prog regprog_T'program
   r'17 <- regmatch ed' re (pAdd r'16 1) timed_out
   if r'17 == 0
@@ -25627,7 +25627,7 @@ vim_regexec_string :: Ed -> Ptr Regmatch_T -> Ptr Char_u -> Colnr_T -> Bool -> I
 vim_regexec_string ed' rmp line col nl = do
   let
     j'3 !re1 !rex_save_reg_match1 !rex_save_reg_mmatch1 !rex_save_reg_startp1 !rex_save_reg_endp1 !rex_save_reg_startpos1 !rex_save_reg_endpos1 !rex_save_reg_win1 !rex_save_reg_buf1 !rex_save_reg_firstlnum1 !rex_save_reg_maxline1 !rex_save_reg_line_lbr1 !rex_save_lnum1 !rex_save_line1 !rex_save_input1 !rex_save_need_clear_subexpr1 !rex_save_reg_ic1 !rex_save_reg_icombine1 !rex_save_reg_maxcol1 !rex_in_use_save1 = do
-      wrI32 re1 regengine_T'rex_in_use TRUE
+      wrB re1 regengine_T'rex_in_use True
       wrP re1 (regengine_T'rex + regexec_T'reg_startp) nullPtr
       wrP re1 (regengine_T'rex + regexec_T'reg_endp) nullPtr
       wrP re1 (regengine_T'rex + regexec_T'reg_startpos) nullPtr
@@ -25635,9 +25635,9 @@ vim_regexec_string ed' rmp line col nl = do
       r'1 <- bt_regexec_nl ed' re1 rmp line col nl
       r'2 <- rdP rmp regmatch_T'regprog
       wrB r'2 regprog_T're_in_use False
-      wrI32 re1 regengine_T'rex_in_use rex_in_use_save1
-      r'3 <- rdI32 re1 regengine_T'rex_in_use
-      if r'3 /= 0
+      wrB re1 regengine_T'rex_in_use rex_in_use_save1
+      r'3 <- rdB re1 regengine_T'rex_in_use
+      if r'3
         then do
           wrP re1 (regengine_T'rex + regexec_T'reg_match) rex_save_reg_match1
           wrP re1 (regengine_T'rex + regexec_T'reg_mmatch) rex_save_reg_mmatch1
@@ -25653,7 +25653,7 @@ vim_regexec_string ed' rmp line col nl = do
           wrI64 re1 (regengine_T'rex + regexec_T'lnum) rex_save_lnum1
           wrP re1 (regengine_T'rex + regexec_T'line) rex_save_line1
           wrP re1 (regengine_T'rex + regexec_T'input) rex_save_input1
-          wrI32 re1 (regengine_T'rex + regexec_T'need_clear_subexpr) rex_save_need_clear_subexpr1
+          wrB re1 (regengine_T'rex + regexec_T'need_clear_subexpr) rex_save_need_clear_subexpr1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_ic) rex_save_reg_ic1
           wrB re1 (regengine_T'rex + regexec_T'reg_icombine) rex_save_reg_icombine1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_maxcol) rex_save_reg_maxcol1
@@ -25662,7 +25662,7 @@ vim_regexec_string ed' rmp line col nl = do
     j'5 !result1 = do
       pure (result1 > 0)
   let !re2 = addr'reg_engine ed'
-  r'4 <- rdI32 re2 regengine_T'rex_in_use
+  r'4 <- rdB re2 regengine_T'rex_in_use
   r'5 <- rdP rmp regmatch_T'regprog
   r'6 <- rdB r'5 regprog_T're_in_use
   if r'6
@@ -25672,8 +25672,8 @@ vim_regexec_string ed' rmp line col nl = do
     else do
       r'8 <- rdP rmp regmatch_T'regprog
       wrB r'8 regprog_T're_in_use True
-      r'9 <- rdI32 re2 regengine_T'rex_in_use
-      if r'9 /= 0
+      r'9 <- rdB re2 regengine_T'rex_in_use
+      if r'9
         then do
           r'10 <- rdP re2 (regengine_T'rex + regexec_T'reg_match)
           r'11 <- rdP re2 (regengine_T'rex + regexec_T'reg_mmatch)
@@ -25689,12 +25689,12 @@ vim_regexec_string ed' rmp line col nl = do
           r'21 <- rdI64 re2 (regengine_T'rex + regexec_T'lnum)
           r'22 <- rdP re2 (regengine_T'rex + regexec_T'line)
           r'23 <- rdP re2 (regengine_T'rex + regexec_T'input)
-          r'24 <- rdI32 re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
+          r'24 <- rdB re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
           r'25 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_ic)
           r'26 <- rdB re2 (regengine_T'rex + regexec_T'reg_icombine)
           r'27 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_maxcol)
           j'3 re2 r'10 r'11 r'12 r'13 r'14 r'15 r'16 r'17 r'18 r'19 r'20 r'21 r'22 r'23 r'24 r'25 r'26 r'27 r'4
-        else j'3 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr (0 :: Int32) (0 :: Int32) False (0 :: Int32) r'4
+        else j'3 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr False (0 :: Int32) False (0 :: Int32) r'4
 
 vim_regexec :: Ed -> Ptr Regmatch_T -> Ptr Char_u -> Colnr_T -> IO Bool
 vim_regexec ed' rmp line col = do
@@ -25704,14 +25704,14 @@ vim_regexec_multi :: Ed -> Ptr Regmmatch_T -> Ptr Win_T -> Ptr Buf_T -> Linenr_T
 vim_regexec_multi ed' rmp win buf lnum col timed_out = do
   let
     j'3 !re1 !rex_save_reg_match1 !rex_save_reg_mmatch1 !rex_save_reg_startp1 !rex_save_reg_endp1 !rex_save_reg_startpos1 !rex_save_reg_endpos1 !rex_save_reg_win1 !rex_save_reg_buf1 !rex_save_reg_firstlnum1 !rex_save_reg_maxline1 !rex_save_reg_line_lbr1 !rex_save_lnum1 !rex_save_line1 !rex_save_input1 !rex_save_need_clear_subexpr1 !rex_save_reg_ic1 !rex_save_reg_icombine1 !rex_save_reg_maxcol1 !rex_in_use_save1 = do
-      wrI32 re1 regengine_T'rex_in_use TRUE
+      wrB re1 regengine_T'rex_in_use True
       r'1 <- bt_regexec_multi ed' re1 rmp win buf lnum col timed_out
       let !result1 = fromIntegral r'1 :: Int32
       r'2 <- rdP rmp regmmatch_T'regprog
       wrB r'2 regprog_T're_in_use False
-      wrI32 re1 regengine_T'rex_in_use rex_in_use_save1
-      r'3 <- rdI32 re1 regengine_T'rex_in_use
-      if r'3 /= 0
+      wrB re1 regengine_T'rex_in_use rex_in_use_save1
+      r'3 <- rdB re1 regengine_T'rex_in_use
+      if r'3
         then do
           wrP re1 (regengine_T'rex + regexec_T'reg_match) rex_save_reg_match1
           wrP re1 (regengine_T'rex + regexec_T'reg_mmatch) rex_save_reg_mmatch1
@@ -25727,7 +25727,7 @@ vim_regexec_multi ed' rmp win buf lnum col timed_out = do
           wrI64 re1 (regengine_T'rex + regexec_T'lnum) rex_save_lnum1
           wrP re1 (regengine_T'rex + regexec_T'line) rex_save_line1
           wrP re1 (regengine_T'rex + regexec_T'input) rex_save_input1
-          wrI32 re1 (regengine_T'rex + regexec_T'need_clear_subexpr) rex_save_need_clear_subexpr1
+          wrB re1 (regengine_T'rex + regexec_T'need_clear_subexpr) rex_save_need_clear_subexpr1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_ic) rex_save_reg_ic1
           wrB re1 (regengine_T'rex + regexec_T'reg_icombine) rex_save_reg_icombine1
           wrI32 re1 (regengine_T'rex + regexec_T'reg_maxcol) rex_save_reg_maxcol1
@@ -25736,7 +25736,7 @@ vim_regexec_multi ed' rmp win buf lnum col timed_out = do
     j'5 !result2 = do
       pure (fromIntegral (if (result2 <= 0) then 0 else result2) :: Int64)
   let !re2 = addr'reg_engine ed'
-  r'4 <- rdI32 re2 regengine_T'rex_in_use
+  r'4 <- rdB re2 regengine_T'rex_in_use
   r'5 <- rdP rmp regmmatch_T'regprog
   r'6 <- rdB r'5 regprog_T're_in_use
   if r'6
@@ -25746,8 +25746,8 @@ vim_regexec_multi ed' rmp win buf lnum col timed_out = do
     else do
       r'8 <- rdP rmp regmmatch_T'regprog
       wrB r'8 regprog_T're_in_use True
-      r'9 <- rdI32 re2 regengine_T'rex_in_use
-      if r'9 /= 0
+      r'9 <- rdB re2 regengine_T'rex_in_use
+      if r'9
         then do
           r'10 <- rdP re2 (regengine_T'rex + regexec_T'reg_match)
           r'11 <- rdP re2 (regengine_T'rex + regexec_T'reg_mmatch)
@@ -25763,12 +25763,12 @@ vim_regexec_multi ed' rmp win buf lnum col timed_out = do
           r'21 <- rdI64 re2 (regengine_T'rex + regexec_T'lnum)
           r'22 <- rdP re2 (regengine_T'rex + regexec_T'line)
           r'23 <- rdP re2 (regengine_T'rex + regexec_T'input)
-          r'24 <- rdI32 re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
+          r'24 <- rdB re2 (regengine_T'rex + regexec_T'need_clear_subexpr)
           r'25 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_ic)
           r'26 <- rdB re2 (regengine_T'rex + regexec_T'reg_icombine)
           r'27 <- rdI32 re2 (regengine_T'rex + regexec_T'reg_maxcol)
           j'3 re2 r'10 r'11 r'12 r'13 r'14 r'15 r'16 r'17 r'18 r'19 r'20 r'21 r'22 r'23 r'24 r'25 r'26 r'27 r'4
-        else j'3 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr (0 :: Int32) (0 :: Int32) False (0 :: Int32) r'4
+        else j'3 re2 nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr nullPtr (0 :: Int64) (0 :: Int64) False (0 :: Int64) nullPtr nullPtr False (0 :: Int32) False (0 :: Int32) r'4
 
 valid_yank_reg :: Ed -> Int32 -> Bool -> IO Bool
 valid_yank_reg ed' regname writing = do
@@ -26414,7 +26414,7 @@ screen_puts_len ed' text textlen row col attr_arg = frame 24 $ \fr' -> do
 start_search_hl :: Ed -> IO ()
 start_search_hl ed' = do
   r'1 <- p_hls ed'
-  r'3 <- if (not (r'1 /= 0)) then pure True else (do { r'2 <- no_hlsearch ed'; pure (r'2 /= 0) })
+  r'3 <- if (not (r'1 /= 0)) then pure True else (no_hlsearch ed')
   if r'3
     then pure ()
     else do
@@ -28151,7 +28151,7 @@ save_re_pat :: Ed -> Int32 -> Ptr Char_u -> Usize -> Int32 -> IO ()
 save_re_pat ed' idx pat patlen magic = do
   let
     j'3 = do
-      set_no_hlsearch ed' FALSE
+      set_no_hlsearch ed' False
       pure ()
   r'1 <- rdP (pAdd (addr'spats ed') ((fromIntegral idx) * 48)) spat_T'pat
   if r'1 == pat
@@ -28830,10 +28830,10 @@ do_search ed' oap dirc search_delim pat patlen count options1 sia = frame 64 $ \
         else j'9 dirc2 search_delim2 pat2 patlen2 old_off_dir1 old_off_line1 old_off_end1 old_off_off1 msgbuf2 msgbuflen2 has_offset2 parse_search_pattern_offset__o_r__2 parse_search_pattern_offset__o_pat2 parse_search_pattern_offset__o_patlen2 parse_search_pattern_offset__o_searchstr2 parse_search_pattern_offset__o_searchstrlen2 parse_search_pattern_offset__o_dircp2 org_pos_lnum2 org_pos_col2 org_pos_coladd2
     j'9 !dirc3 !search_delim3 !pat3 !patlen3 !old_off_dir2 !old_off_line2 !old_off_end2 !old_off_off2 !msgbuf3 !msgbuflen3 !has_offset3 !parse_search_pattern_offset__o_r__3 !parse_search_pattern_offset__o_pat3 !parse_search_pattern_offset__o_patlen3 !parse_search_pattern_offset__o_searchstr3 !parse_search_pattern_offset__o_searchstrlen3 !parse_search_pattern_offset__o_dircp3 !org_pos_lnum3 !org_pos_col3 !org_pos_coladd3 = do
       r'7 <- no_hlsearch ed'
-      if (r'7 /= 0) && (not ((options1 .&. SEARCH_KEEP) /= 0))
+      if r'7 && (not ((options1 .&. SEARCH_KEEP) /= 0))
         then do
           redraw_all_later ed' UPD_SOME_VALID
-          set_no_hlsearch ed' FALSE
+          set_no_hlsearch ed' False
           loop'12 dirc3 search_delim3 pat3 patlen3 old_off_dir2 old_off_line2 old_off_end2 old_off_off2 msgbuf3 msgbuflen3 has_offset3 parse_search_pattern_offset__o_r__3 parse_search_pattern_offset__o_pat3 parse_search_pattern_offset__o_patlen3 parse_search_pattern_offset__o_searchstr3 parse_search_pattern_offset__o_searchstrlen3 parse_search_pattern_offset__o_dircp3 org_pos_lnum3 org_pos_col3 org_pos_coladd3
         else loop'12 dirc3 search_delim3 pat3 patlen3 old_off_dir2 old_off_line2 old_off_end2 old_off_off2 msgbuf3 msgbuflen3 has_offset3 parse_search_pattern_offset__o_r__3 parse_search_pattern_offset__o_pat3 parse_search_pattern_offset__o_patlen3 parse_search_pattern_offset__o_searchstr3 parse_search_pattern_offset__o_searchstrlen3 parse_search_pattern_offset__o_dircp3 org_pos_lnum3 org_pos_col3 org_pos_coladd3
     loop'12 !dirc4 !search_delim4 !pat4 !patlen4 !old_off_dir3 !old_off_line3 !old_off_end3 !old_off_off3 !msgbuf4 !msgbuflen4 !has_offset4 !parse_search_pattern_offset__o_r__4 !parse_search_pattern_offset__o_pat4 !parse_search_pattern_offset__o_patlen4 !parse_search_pattern_offset__o_searchstr4 !parse_search_pattern_offset__o_searchstrlen4 !parse_search_pattern_offset__o_dircp4 !org_pos_lnum4 !org_pos_col4 !org_pos_coladd4 = do
@@ -29271,7 +29271,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
               (r'1, r'2, r'3) <- find_mps_values ed' initc1 findc1 backwards1 True
               if dir1 /= 0
                 then do
-                  let !backwards2 = if (dir1 == FORWARD) then (FALSE :: Int32) else (TRUE :: Int32)
+                  let !backwards2 = (if (dir1 == FORWARD) then (FALSE :: Int32) else (TRUE :: Int32)) /= 0
                   j'79 r'1 r'2 count1 backwards2 raw_string1 inquote1 linep1 comment_dir1 traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 r'1 r'2 r'3
                 else j'79 r'1 r'2 count1 r'3 raw_string1 inquote1 linep1 comment_dir1 traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 r'1 r'2 r'3
             else do
@@ -29303,7 +29303,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
                                 then do
                                   r'18 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
                                   wrI32 (addr'findmatchlimit'pos ed') pos_T'col (r'18 + 1)
-                                  j'22 initc1 findc1 count1 (FALSE :: Int32) raw_string1 inquote1 linep1 hash_dir1 (FORWARD :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
+                                  j'22 initc1 findc1 count1 False raw_string1 inquote1 linep1 hash_dir1 (FORWARD :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                                 else do
                                   r'19 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
                                   r'22 <- if (r'19 > 0) then (do { r'20 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col; r'21 <- rdW8 (pAdd linep1 (fromIntegral (r'20 - 1))) 0; pure ((fromIntegral r'21 :: Int32) == (ch '*')) }) else pure False
@@ -29311,7 +29311,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
                                     then do
                                       r'23 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
                                       wrI32 (addr'findmatchlimit'pos ed') pos_T'col (r'23 - 1)
-                                      j'22 initc1 findc1 count1 (TRUE :: Int32) raw_string1 inquote1 linep1 hash_dir1 (-1 :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
+                                      j'22 initc1 findc1 count1 True raw_string1 inquote1 linep1 hash_dir1 (-1 :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                                     else j'22 initc1 findc1 count1 backwards1 raw_string1 inquote1 linep1 hash_dir1 comment_dir1 traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                             else do
                               r'24 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
@@ -29321,12 +29321,12 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
                                   r'26 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
                                   r'27 <- rdW8 (pAdd linep1 (fromIntegral (r'26 + 1))) 0
                                   if (fromIntegral r'27 :: Int32) == (ch '/')
-                                    then j'22 initc1 findc1 count1 (TRUE :: Int32) raw_string1 inquote1 linep1 hash_dir1 (-1 :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
+                                    then j'22 initc1 findc1 count1 True raw_string1 inquote1 linep1 hash_dir1 (-1 :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                                     else do
                                       r'28 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
                                       r'31 <- if (r'28 > 0) then (do { r'29 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col; r'30 <- rdW8 (pAdd linep1 (fromIntegral (r'29 - 1))) 0; pure ((fromIntegral r'30 :: Int32) == (ch '/')) }) else pure False
                                       if r'31
-                                        then j'22 initc1 findc1 count1 (FALSE :: Int32) raw_string1 inquote1 linep1 hash_dir1 (FORWARD :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
+                                        then j'22 initc1 findc1 count1 False raw_string1 inquote1 linep1 hash_dir1 (FORWARD :: Int32) traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                                         else j'22 initc1 findc1 count1 backwards1 raw_string1 inquote1 linep1 hash_dir1 comment_dir1 traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                                 else j'22 initc1 findc1 count1 backwards1 raw_string1 inquote1 linep1 hash_dir1 comment_dir1 traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
                     else j'22 initc1 findc1 count1 backwards1 raw_string1 inquote1 linep1 hash_dir1 comment_dir1 traveled1 ignore_cend1 cpo_match1 cpo_bsl1 match_escaped1 comment_col1 skip_comments1 in_block_comment1 find_mps_values__o_initc1 find_mps_values__o_findc1 find_mps_values__o_backwards1
@@ -29492,20 +29492,20 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
         then pure nullPtr
         else j'84 initc10 findc7 count15 backwards8 raw_string7 inquote7 linep8 comment_dir7 traveled7 ignore_cend7 cpo_match7 cpo_bsl7 match_escaped7 comment_col7 skip_comments7 in_block_comment7 find_mps_values__o_initc11 find_mps_values__o_findc11 find_mps_values__o_backwards11
     j'83 !initc11 !findc8 !count16 !inquote8 !linep9 !comment_dir8 !traveled8 !ignore_cend8 !cpo_match8 !cpo_bsl8 !match_escaped8 !dir2 !comment_col8 !skip_comments8 !in_block_comment8 !find_mps_values__o_initc12 !find_mps_values__o_findc12 !find_mps_values__o_backwards12 = do
-      let !backwards9 = if (dir2 == FORWARD) then (FALSE :: Int32) else (TRUE :: Int32)
+      let !backwards9 = (if (dir2 == FORWARD) then (FALSE :: Int32) else (TRUE :: Int32)) /= 0
       let !raw_string8 = initc11 == (ch 'R')
       j'84 (NUL :: Int32) findc8 count16 backwards9 raw_string8 inquote8 linep9 comment_dir8 traveled8 ignore_cend8 cpo_match8 cpo_bsl8 match_escaped8 comment_col8 skip_comments8 in_block_comment8 find_mps_values__o_initc12 find_mps_values__o_findc12 find_mps_values__o_backwards12
     j'84 !initc12 !findc9 !count17 !backwards10 !raw_string9 !inquote9 !linep10 !comment_dir9 !traveled9 !ignore_cend9 !cpo_match9 !cpo_bsl9 !match_escaped9 !comment_col9 !skip_comments9 !in_block_comment9 !find_mps_values__o_initc13 !find_mps_values__o_findc13 !find_mps_values__o_backwards13 = do
       wrI64 fr' pos_T'lnum 0
       wrI32 fr' pos_T'col 0
       wrI32 fr' pos_T'coladd 0
-      if ((backwards10 /= 0) && (comment_dir9 /= 0)) || skip_comments9
+      if (backwards10 && (comment_dir9 /= 0)) || skip_comments9
         then do
           r'75 <- check_linecomment ed' linep10
           j'86 initc12 findc9 count17 backwards10 raw_string9 inquote9 linep10 (-1 :: Int32) comment_dir9 (MAYBE :: Int32) traveled9 ignore_cend9 cpo_match9 cpo_bsl9 match_escaped9 r'75 skip_comments9 in_block_comment9 find_mps_values__o_initc13 find_mps_values__o_findc13 find_mps_values__o_backwards13
         else j'86 initc12 findc9 count17 backwards10 raw_string9 inquote9 linep10 (-1 :: Int32) comment_dir9 (MAYBE :: Int32) traveled9 ignore_cend9 cpo_match9 cpo_bsl9 match_escaped9 comment_col9 skip_comments9 in_block_comment9 find_mps_values__o_initc13 find_mps_values__o_findc13 find_mps_values__o_backwards13
     j'86 !initc13 !findc10 !count18 !backwards11 !raw_string10 !inquote10 !linep11 !do_quotes1 !comment_dir10 !start_in_quotes1 !traveled10 !ignore_cend10 !cpo_match10 !cpo_bsl10 !match_escaped10 !comment_col10 !skip_comments10 !in_block_comment10 !find_mps_values__o_initc14 !find_mps_values__o_findc14 !find_mps_values__o_backwards14 = do
-      r'77 <- if (((skip_comments10 && (not in_block_comment10)) && (comment_col10 /= MAXCOL)) && (backwards11 /= 0)) then (do { r'76 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col; pure (r'76 > comment_col10) }) else pure False
+      r'77 <- if (((skip_comments10 && (not in_block_comment10)) && (comment_col10 /= MAXCOL)) && backwards11) then (do { r'76 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col; pure (r'76 > comment_col10) }) else pure False
       if r'77
         then do
           wrI32 (addr'findmatchlimit'pos ed') pos_T'col comment_col10
@@ -29515,7 +29515,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
       r'78 <- got_int ed'
       if not (r'78 /= 0)
         then do
-          if backwards12 /= 0
+          if backwards12
             then do
               r'79 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
               if r'79 == 0
@@ -29606,7 +29606,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
     j'109 !initc18 !findc15 !count23 !backwards16 !raw_string15 !inquote15 !linep14 !do_quotes4 !comment_dir15 !start_in_quotes6 !traveled17 !ignore_cend15 !cpo_match15 !cpo_bsl15 !match_escaped15 !comment_col15 !skip_comments15 !in_block_comment15 !find_mps_values__o_initc19 !find_mps_values__o_findc19 !find_mps_values__o_backwards19 = do
       if (skip_comments15 && (not (comment_dir15 /= 0))) && (not (inquote15 /= 0))
         then do
-          if backwards16 /= 0
+          if backwards16
             then do
               r'106 <- if (not in_block_comment15) then (do { r'105 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col; pure (r'105 > 0) }) else pure False
               r'109 <- if r'106 then (do { r'107 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col; r'108 <- rdW8 (pAdd linep14 (fromIntegral (r'107 - 1))) 0; pure ((fromIntegral r'108 :: Int32) == (ch '*')) }) else pure False
@@ -29731,7 +29731,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
       if r'191 /= 0
         then do
           r'192 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
-          if ptr1 == (pAdd (pAdd linep16 (fromIntegral r'192)) (fromIntegral backwards18))
+          if ptr1 == (pAdd (pAdd linep16 (fromIntegral r'192)) (b2i backwards18))
             then do
               let !at_start1'3 = do_quotes6 .&. 1
               j'142 initc20 findc17 count27 backwards18 raw_string17 inquote17 linep16 ptr1 do_quotes6 at_start1'3 comment_dir17 start_in_quotes8 traveled19 ignore_cend17 cpo_match17 cpo_bsl17 match_escaped17 comment_col17 skip_comments17 in_block_comment17 find_mps_values__o_initc21 find_mps_values__o_findc21 find_mps_values__o_backwards21
@@ -29749,7 +29749,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
                         then j'132 initc20 findc17 count27 backwards18 raw_string17 at_start1'2 linep16 (1 :: Int32) at_start1'2 comment_dir17 (TRUE :: Int32) traveled19 ignore_cend17 cpo_match17 cpo_bsl17 match_escaped17 comment_col17 skip_comments17 in_block_comment17 find_mps_values__o_initc21 find_mps_values__o_findc21 find_mps_values__o_backwards21
                         else j'132 initc20 findc17 count27 backwards18 raw_string17 at_start1'2 linep16 (1 :: Int32) at_start1'2 comment_dir17 start_in_quotes8 traveled19 ignore_cend17 cpo_match17 cpo_bsl17 match_escaped17 comment_col17 skip_comments17 in_block_comment17 find_mps_values__o_initc21 find_mps_values__o_findc21 find_mps_values__o_backwards21
                     else do
-                      if backwards18 /= 0
+                      if backwards18
                         then j'132 initc20 findc17 count27 backwards18 raw_string17 (TRUE :: Int32) linep16 (1 :: Int32) at_start1'2 comment_dir17 start_in_quotes8 traveled19 ignore_cend17 cpo_match17 cpo_bsl17 match_escaped17 comment_col17 skip_comments17 in_block_comment17 find_mps_values__o_initc21 find_mps_values__o_findc21 find_mps_values__o_backwards21
                         else j'132 initc20 findc17 count27 backwards18 raw_string17 (FALSE :: Int32) linep16 (1 :: Int32) at_start1'2 comment_dir17 start_in_quotes8 traveled19 ignore_cend17 cpo_match17 cpo_bsl17 match_escaped17 comment_col17 skip_comments17 in_block_comment17 find_mps_values__o_initc21 find_mps_values__o_findc21 find_mps_values__o_backwards21
                 else j'132 initc20 findc17 count27 backwards18 raw_string17 (FALSE :: Int32) linep16 do_quotes7 at_start1'2 comment_dir17 start_in_quotes8 traveled19 ignore_cend17 cpo_match17 cpo_bsl17 match_escaped17 comment_col17 skip_comments17 in_block_comment17 find_mps_values__o_initc21 find_mps_values__o_findc21 find_mps_values__o_backwards21
@@ -29770,7 +29770,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
                     then j'139 initc21 findc18 count28 backwards19 raw_string18 at_start1'4 (1 :: Int32) comment_dir18 (TRUE :: Int32) traveled20 ignore_cend18 cpo_match18 cpo_bsl18 match_escaped18 comment_col18 skip_comments18 in_block_comment18 find_mps_values__o_initc22 find_mps_values__o_findc22 find_mps_values__o_backwards22
                     else j'139 initc21 findc18 count28 backwards19 raw_string18 at_start1'4 (1 :: Int32) comment_dir18 start_in_quotes9 traveled20 ignore_cend18 cpo_match18 cpo_bsl18 match_escaped18 comment_col18 skip_comments18 in_block_comment18 find_mps_values__o_initc22 find_mps_values__o_findc22 find_mps_values__o_backwards22
                 else do
-                  if not (backwards19 /= 0)
+                  if not backwards19
                     then j'139 initc21 findc18 count28 backwards19 raw_string18 (TRUE :: Int32) (1 :: Int32) comment_dir18 start_in_quotes9 traveled20 ignore_cend18 cpo_match18 cpo_bsl18 match_escaped18 comment_col18 skip_comments18 in_block_comment18 find_mps_values__o_initc22 find_mps_values__o_findc22 find_mps_values__o_backwards22
                     else j'139 initc21 findc18 count28 backwards19 raw_string18 inquote18 (1 :: Int32) comment_dir18 start_in_quotes9 traveled20 ignore_cend18 cpo_match18 cpo_bsl18 match_escaped18 comment_col18 skip_comments18 in_block_comment18 find_mps_values__o_initc22 find_mps_values__o_findc22 find_mps_values__o_backwards22
             else j'139 initc21 findc18 count28 backwards19 raw_string18 inquote18 do_quotes8 comment_dir18 start_in_quotes9 traveled20 ignore_cend18 cpo_match18 cpo_bsl18 match_escaped18 comment_col18 skip_comments18 in_block_comment18 find_mps_values__o_initc22 find_mps_values__o_findc22 find_mps_values__o_backwards22
@@ -29822,7 +29822,7 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
         39 {- '\'' -} -> do
           if ((not cpo_match24) && (initc27 /= (ch '\''))) && (findc24 /= (ch '\''))
             then do
-              if backwards25 /= 0
+              if backwards25
                 then do
                   r'220 <- rdI32 (addr'findmatchlimit'pos ed') pos_T'col
                   if r'220 > 1
@@ -29950,11 +29950,11 @@ findmatchlimit ed' oap initc flags maxtravel = frame 24 $ \fr' -> do
   r'263 <- vim_strchr ed' r'262 CPO_MATCHBSL
   let !cpo_bsl31 = r'263 /= nullPtr
   if (flags .&. FM_BACKWARD) /= 0
-    then j'5 initc (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False (FALSE :: Int32) r'259 (0 :: Int32) (0 :: Int32) (0 :: Int32) False cpo_match31 cpo_bsl31 (0 :: Int32) (-1 :: Int32) (MAXCOL :: Int32) skip_comments31 False (0 :: Int32) (0 :: Int32) (0 :: Int32)
+    then j'5 initc (0 :: Int32) (0 :: Int32) False False (FALSE :: Int32) r'259 (0 :: Int32) (0 :: Int32) (0 :: Int32) False cpo_match31 cpo_bsl31 (0 :: Int32) (-1 :: Int32) (MAXCOL :: Int32) skip_comments31 False (0 :: Int32) (0 :: Int32) False
     else do
       if (flags .&. FM_FORWARD) /= 0
-        then j'5 initc (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False (FALSE :: Int32) r'259 (0 :: Int32) (0 :: Int32) (0 :: Int32) False cpo_match31 cpo_bsl31 (0 :: Int32) (FORWARD :: Int32) (MAXCOL :: Int32) skip_comments31 False (0 :: Int32) (0 :: Int32) (0 :: Int32)
-        else j'5 initc (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False (FALSE :: Int32) r'259 (0 :: Int32) (0 :: Int32) (0 :: Int32) False cpo_match31 cpo_bsl31 (0 :: Int32) (0 :: Int32) (MAXCOL :: Int32) skip_comments31 False (0 :: Int32) (0 :: Int32) (0 :: Int32)
+        then j'5 initc (0 :: Int32) (0 :: Int32) False False (FALSE :: Int32) r'259 (0 :: Int32) (0 :: Int32) (0 :: Int32) False cpo_match31 cpo_bsl31 (0 :: Int32) (FORWARD :: Int32) (MAXCOL :: Int32) skip_comments31 False (0 :: Int32) (0 :: Int32) False
+        else j'5 initc (0 :: Int32) (0 :: Int32) False False (FALSE :: Int32) r'259 (0 :: Int32) (0 :: Int32) (0 :: Int32) False cpo_match31 cpo_bsl31 (0 :: Int32) (0 :: Int32) (MAXCOL :: Int32) skip_comments31 False (0 :: Int32) (0 :: Int32) False
 
 showmatch :: Ed -> Int32 -> IO ()
 showmatch ed' c = frame 4 $ \fr' -> do
@@ -31074,7 +31074,7 @@ handle_u7_response ed' arg _tp _csi_len = do
   if r'7
     then do
       wrI32 (addr'u7_status ed') termrequest_T'tr_progress STATUS_GOT
-      set'did_cursorhold ed' TRUE
+      set'did_cursorhold ed' True
       r'8 <- rdI32 arg 4
       if r'8 == 2
         then do
@@ -31253,7 +31253,7 @@ handle_version_response ed' first arg argc tp = do
         else pure ()
   r'39 <- rdI32 arg 4
   wrI32 (addr'crv_status ed') termrequest_T'tr_progress STATUS_GOT
-  set'did_cursorhold ed' TRUE
+  set'did_cursorhold ed' True
   init_term_props ed' False
   r'40 <- rdW8 tp 0
   if (fromIntegral r'40 :: Int32) == CSI
@@ -32125,7 +32125,7 @@ check_termcode ed' max_offset buf bufsize buflen = frame 9 $ \fr' -> do
                   if not (r'121 /= 0)
                     then do
                       ui_focus_change ed' True
-                      set'did_cursorhold ed' TRUE
+                      set'did_cursorhold ed' True
                       set'focus_state ed' TRUE
                       j'71 slen15 len14 retval14 offset14 modifiers11 handle_csi__o_r__14 handle_csi__o_slen14 handle_dcs__o_r__14 handle_dcs__o_slen14 handle_osc__o_r__14 handle_osc__o_slen14 modifiers2keycode__o_r__14 modifiers2keycode__o_key14
                     else j'71 slen15 len14 retval14 offset14 modifiers11 handle_csi__o_r__14 handle_csi__o_slen14 handle_dcs__o_r__14 handle_dcs__o_slen14 handle_osc__o_r__14 handle_osc__o_slen14 modifiers2keycode__o_r__14 modifiers2keycode__o_key14
@@ -32137,7 +32137,7 @@ check_termcode ed' max_offset buf bufsize buflen = frame 9 $ \fr' -> do
                       if r'123 /= 0
                         then do
                           ui_focus_change ed' False
-                          set'did_cursorhold ed' TRUE
+                          set'did_cursorhold ed' True
                           set'focus_state ed' FALSE
                           j'68 slen15 len14 retval14 offset14 modifiers11 handle_csi__o_r__14 handle_csi__o_slen14 handle_dcs__o_r__14 handle_dcs__o_slen14 handle_osc__o_r__14 handle_osc__o_slen14 modifiers2keycode__o_r__14 modifiers2keycode__o_key14
                         else j'68 slen15 len14 retval14 offset14 modifiers11 handle_csi__o_r__14 handle_csi__o_slen14 handle_dcs__o_r__14 handle_dcs__o_slen14 handle_osc__o_r__14 handle_osc__o_slen14 modifiers2keycode__o_r__14 modifiers2keycode__o_key14

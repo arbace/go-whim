@@ -28,13 +28,13 @@ final class T_winlinevars_T implements Struct<T_winlinevars_T> {
     int n_attr_skip;
     int c_extra;
     int c_final;
-    int extra_for_textprop;
+    boolean extra_for_textprop;
     int saved_n_extra;
     BytePtr saved_p_extra;
     BytePtr saved_p_extra_free;
     int saved_extra_attr;
     int saved_n_attr_skip;
-    int saved_extra_for_textprop;
+    boolean saved_extra_for_textprop;
     int saved_c_extra;
     int saved_c_final;
     int saved_char_attr;

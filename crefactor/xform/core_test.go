@@ -427,3 +427,78 @@ main(void)
 		t.Errorf("without Globals a file-scope object was retyped:\n%s", got)
 	}
 }
+
+// With Relax: a flag saved in a local and restored, given a literal 0, or
+// |= and &= of an answer is bool, the compound written x = E || x; a flag
+// given |= of a number, compared with a code, or counted stays int; and the
+// program prints what it did.
+func TestBoolRetRelax(t *testing.T) {
+	k := BoolRetKnobs{Core: core, True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}, Globals: true, Relax: true}
+	src := `int printf(const char *, ...);
+enum
+{
+    NO = 0,
+    YES = 1
+};
+static int scroll = NO;
+static int broke = NO;
+static int seen = NO;
+static int mixed = NO;
+static int code = NO;
+static int counted = NO;
+static int calls;
+
+static int
+hit(int n)
+{
+    calls++;
+    return n > 1;
+}
+
+static void
+work(int n)
+{
+    int save = scroll;
+    scroll = YES;
+    broke = 0;
+    seen |= hit(n);
+    seen &= n < 9;
+    mixed |= 4;
+    code = n > 2;
+    counted = YES;
+    counted++;
+    scroll = save;
+}
+
+int
+main(void)
+{
+    work(3);
+    work(1);
+    if (code == 2)
+    {
+        return 1;
+    }
+    printf("%d %d %d %d %d %d %d\n", scroll, broke, seen, mixed, code, counted, calls);
+    return 0;
+}
+
+#include <stdio.h>
+`
+	want := gccRun(t, src)
+	got := run(t, BoolRet(k), src)
+	for _, w := range []string{"static bool scroll", "static bool broke", "static bool seen", "seen = (hit(n)) || seen",
+		"seen = (n < 9) && seen", "static int mixed", "static int code", "static int counted"} {
+		if !strings.Contains(got, w) {
+			t.Errorf("no %q in\n%s", w, got)
+		}
+	}
+	if o := gccRun(t, got); o != want {
+		t.Errorf("the program prints %q, the original %q\n%s", o, want, got)
+	}
+	// without Relax, phase 183's rule: the saved flag and the others stay int
+	k.Relax = false
+	if got := run(t, BoolRet(k), src); !strings.Contains(got, "static int scroll") || !strings.Contains(got, "static int seen") {
+		t.Errorf("without Relax a flag the old rule keeps int was retyped:\n%s", got)
+	}
+}

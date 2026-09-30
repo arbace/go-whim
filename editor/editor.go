@@ -707,10 +707,10 @@ type save_state_T struct {
 	save_msg_didout                int32
 	save_State                     int32
 	save_insertmode                int32
-	save_finish_op                 int32
+	save_finish_op                 bool
 	save_opcount                   int32
 	save_reg_executing             int32
-	save_pending_end_reg_executing int32
+	save_pending_end_reg_executing bool
 	save_script_version            int32
 	tabuf                          tasave_T
 }
@@ -920,13 +920,13 @@ type winlinevars_T struct {
 	n_attr_skip              int32
 	c_extra                  int32
 	c_final                  int32
-	extra_for_textprop       int32
+	extra_for_textprop       bool
 	saved_n_extra            int32
 	saved_p_extra            Ptr[byte]
 	saved_p_extra_free       Ptr[byte]
 	saved_extra_attr         int32
 	saved_n_attr_skip        int32
-	saved_extra_for_textprop int32
+	saved_extra_for_textprop bool
 	saved_c_extra            int32
 	saved_c_final            int32
 	saved_char_attr          int32
@@ -936,7 +936,7 @@ type winlinevars_T struct {
 
 type ins_bs__out_T struct {
 	r__              bool
-	inserted_space_p int32
+	inserted_space_p bool
 }
 
 type subflags_T struct {
@@ -1012,7 +1012,7 @@ type gotchars_state_T struct {
 type handle_mapping__out_T struct {
 	r__      int32
 	keylenp  int32
-	timedout int32
+	timedout bool
 	mapdepth int32
 }
 
@@ -1144,7 +1144,7 @@ type S_nv_cmd struct {
 
 type normal_cmd_get_count__out_T struct {
 	r__           int32
-	ctrl_w        int32
+	ctrl_w        bool
 	need_flushbuf int32
 }
 
@@ -1276,7 +1276,7 @@ type regexec_T struct {
 	lnum               linenr_T
 	line               Ptr[byte]
 	input              Ptr[byte]
-	need_clear_subexpr int32
+	need_clear_subexpr bool
 	reg_ic             int32
 	reg_icombine       bool
 	reg_maxcol         colnr_T
@@ -1292,7 +1292,7 @@ type regsave_T struct {
 
 type S_regengine_S struct {
 	rex             regexec_T
-	rex_in_use      int32
+	rex_in_use      bool
 	regstack        S_growarray
 	regstack_star   S_growarray
 	regstack_behind S_growarray
@@ -1343,7 +1343,7 @@ type save_se_T struct {
 type S_regbehind_S struct {
 	save_after              regsave_T
 	save_behind             regsave_T
-	save_need_clear_subexpr int32
+	save_need_clear_subexpr bool
 	save_start              [10]save_se_T
 	save_end                [10]save_se_T
 }
@@ -1412,7 +1412,7 @@ type S_searchstat struct {
 type find_mps_values__out_T struct {
 	initc     int32
 	findc     int32
-	backwards int32
+	backwards bool
 }
 
 type find_term_bykeys__out_T struct {
@@ -2903,7 +2903,7 @@ type Editor struct {
 	screen_cur_col                                         int32
 	screen_search_hl                                       match_T
 	search_hl_has_cursor_lnum                              linenr_T
-	no_hlsearch                                            int32
+	no_hlsearch                                            bool
 	TabPageIdxs                                            []int16
 	screen_pum_blend                                       int32
 	pum_bg_attrs                                           []sattr_T
@@ -2926,7 +2926,7 @@ type Editor struct {
 	clear_cmdline                                          bool
 	mode_displayed                                         bool
 	no_win_do_lines_ins                                    int32
-	exec_from_reg                                          int32
+	exec_from_reg                                          bool
 	screen_cleared                                         int32
 	dollar_vcol                                            colnr_T
 	edit_submode                                           Ptr[byte]
@@ -2950,11 +2950,11 @@ type Editor struct {
 	msg_hist_off                                           bool
 	did_emsg                                               int32
 	called_emsg                                            int32
-	in_echowindow                                          int32
+	in_echowindow                                          bool
 	emsg_on_display                                        bool
 	rc_did_emsg                                            bool
 	no_wait_return                                         int32
-	need_wait_return                                       int32
+	need_wait_return                                       bool
 	did_wait_return                                        bool
 	quit_more                                              bool
 	newline_on_exit                                        bool
@@ -2984,7 +2984,7 @@ type Editor struct {
 	updating_screen                                        int32
 	redraw_not_allowed                                     bool
 	curwin                                                 *S_window_S
-	pum_will_redraw                                        int32
+	pum_will_redraw                                        bool
 	topframe                                               *S_frame_S
 	curtab                                                 *S_tabpage_S
 	redraw_tabline                                         bool
@@ -3027,12 +3027,12 @@ type Editor struct {
 	vr_lines_changed                                       int32
 	mb_bytelen_tab                                         [256]byte
 	State                                                  int32
-	finish_op                                              int32
+	finish_op                                              bool
 	opcount                                                int64
 	motion_force                                           int32
 	reg_recording                                          int32
 	reg_executing                                          int32
-	pending_end_reg_executing                              int32
+	pending_end_reg_executing                              bool
 	seenModifyOtherKeys                                    bool
 	modify_otherkeys_state                                 mokstate_T
 	kitty_protocol_state                                   kkpstate_T
@@ -3083,7 +3083,7 @@ type Editor struct {
 	repeat_cmdline                                         Ptr[byte]
 	new_last_cmdline                                       Ptr[byte]
 	aucmd_cmdline_changed_count                            int32
-	did_cursorhold                                         int32
+	did_cursorhold                                         bool
 	last_cursormoved                                       pos_T
 	replace_offset                                         int32
 	empty_option                                           Ptr[byte]
@@ -3324,7 +3324,7 @@ type Editor struct {
 	ex_error_buf                                           Ptr[byte] // C: array of 480 char
 	ccline                                                 cmdline_info_T
 	extra_char                                             int32
-	extra_char_shift                                       int32
+	extra_char_shift                                       bool
 	prev_ccline                                            cmdline_info_T
 	prev_ccline_used                                       bool
 	redobuff                                               S_buffheader
@@ -3460,14 +3460,14 @@ type Editor struct {
 	last_idx                                               int32
 	lastc                                                  [2]byte
 	lastcdir                                               int32
-	last_t_cmd                                             int32
+	last_t_cmd                                             bool
 	lastc_bytes                                            Ptr[byte] // C: array of 22 char_u
 	lastc_bytelen                                          int32
 	mr_pattern                                             Ptr[byte]
 	saved_last_search_spat                                 S_spat
 	did_save_last_search_spat                              int32
 	saved_last_idx                                         int32
-	saved_no_hlsearch                                      int32
+	saved_no_hlsearch                                      bool
 	crv_status                                             termrequest_T
 	u7_status                                              termrequest_T
 	xcc_status                                             termrequest_T
@@ -4188,7 +4188,7 @@ func (ed *Editor) initGlobals() {
 	ed.no_abbr = true
 	ed.ctrl_c_interrupts = true
 	ed.need_highlight_changed = true
-	ed.did_cursorhold = TRUE
+	ed.did_cursorhold = true
 	ed.empty_option = S("")
 	copy(ed.no_lines_msg.Slice(22), "--No lines in buffer--")
 	ed.virtual_op = MAYBE
@@ -6417,7 +6417,7 @@ func (ed *Editor) initGlobals() {
 		{pat: Ptr[byte]{}, patlen: 0, magic: TRUE, no_scs: FALSE, off: S_soffset{dir: '/', line: 0, end: 0, off: 0}},
 	}
 	ed.lastcdir = FORWARD
-	ed.last_t_cmd = TRUE
+	ed.last_t_cmd = true
 	ed.lastc_bytelen = 1
 	ed.crv_status = termrequest_T{tr_progress: STATUS_GET, tr_start: -1}
 	ed.u7_status = termrequest_T{tr_progress: STATUS_GET, tr_start: -1}
@@ -8303,7 +8303,7 @@ func (ed *Editor) fileinfo(fullname int32, shorthelp bool, dont_truncate bool) {
 		ed.msg_scroll = n
 	} else {
 		p := ed.msg_trunc_attr(buffer, false, 0)
-		if (ed.restart_edit != 0) || ((ed.msg_scrolled != 0) && (ed.need_wait_return == 0)) {
+		if (ed.restart_edit != 0) || ((ed.msg_scrolled != 0) && !ed.need_wait_return) {
 			ed.set_keep_msg(p, 0)
 		}
 	}
@@ -10720,7 +10720,7 @@ func (ed *Editor) win_line_start(wp *S_window_S, wlv *winlinevars_T, save_extra 
 		wlv.p_extra_free = Ptr[byte]{}
 		wlv.saved_extra_attr = wlv.extra_attr
 		wlv.saved_n_attr_skip = wlv.n_attr_skip
-		wlv.saved_extra_for_textprop = wlv.extra_for_textprop
+		wlv.saved_extra_for_textprop = (wlv.extra_for_textprop)
 		wlv.saved_c_extra = wlv.c_extra
 		wlv.saved_c_final = wlv.c_final
 		wlv.saved_char_attr = 0
@@ -10740,7 +10740,7 @@ func win_line_continue(wlv *winlinevars_T) {
 		wlv.saved_p_extra_free = Ptr[byte]{}
 		wlv.extra_attr = wlv.saved_extra_attr
 		wlv.n_attr_skip = wlv.saved_n_attr_skip
-		wlv.extra_for_textprop = wlv.saved_extra_for_textprop
+		wlv.extra_for_textprop = (wlv.saved_extra_for_textprop)
 		wlv.char_attr = wlv.saved_char_attr
 	} else {
 		wlv.char_attr = wlv.win_attr
@@ -11556,7 +11556,7 @@ func (ed *Editor) update_screen(type_arg int32) bool {
 	type_ := type_arg
 	var wp *S_window_S
 	var no_update bool = false
-	save_pum_will_redraw := ed.pum_will_redraw
+	var save_pum_will_redraw bool = (ed.pum_will_redraw)
 	var override_success bool
 	if !ed.screen_valid(true) {
 		return false
@@ -11622,7 +11622,7 @@ func (ed *Editor) update_screen(type_arg int32) bool {
 			}
 		}
 		ed.msg_scrolled = 0
-		ed.need_wait_return = FALSE
+		ed.need_wait_return = false
 	}
 	ed.compute_cmdrow()
 	if ed.need_highlight_changed {
@@ -11661,7 +11661,7 @@ func (ed *Editor) update_screen(type_arg int32) bool {
 		ed.pop_highlight_overrides()
 	}
 	ed.end_search_hl()
-	ed.pum_will_redraw = save_pum_will_redraw
+	ed.pum_will_redraw = (save_pum_will_redraw)
 	if ed.redraw_vseps {
 		ed.redraw_vseps = false
 		wp = ed.curwin
@@ -12720,7 +12720,7 @@ func (ed *Editor) edit_esc(count *int64, cmdchar int32, nomove bool, o_lnum *lin
 		*o_lnum = ed.curwin.w_cursor.lnum
 	}
 	if ed.ins_esc(count, cmdchar, (nomove)) {
-		ed.did_cursorhold = FALSE
+		ed.did_cursorhold = false
 		if !ed.char_avail() && (ed.curbuf.b_last_changedtick_i == ed.curbuf.b_changedtick) {
 			ed.curbuf.b_last_changedtick = ed.curbuf.b_changedtick
 		}
@@ -12729,15 +12729,15 @@ func (ed *Editor) edit_esc(count *int64, cmdchar int32, nomove bool, o_lnum *lin
 	return false
 }
 
-func (ed *Editor) edit_normalchar(c int32, inserted_space int32) int32 {
+func (ed *Editor) edit_normalchar(c int32, inserted_space bool) bool {
 	ed.ins_try_si(c)
 	if c == (' ') {
-		inserted_space = TRUE
+		inserted_space = true
 	}
 	if ed.vim_iswordc(c) || (c != Ctrl_RSB) {
 		ed.insert_special(c, false, false)
 	}
-	return inserted_space
+	return (inserted_space)
 }
 
 func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
@@ -12752,7 +12752,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 	var i int32
 	var did_backspace bool = true
 	var old_topline linenr_T = 0
-	var inserted_space int32 = FALSE
+	var inserted_space bool = false
 	var replaceState int32 = (REPLACE_FLAG | MODE_INSERT)
 	var nomove bool = false
 	var ins_just_started bool = true
@@ -12954,7 +12954,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				continue
 			}
 		}
-		ed.did_cursorhold = TRUE
+		ed.did_cursorhold = true
 		if ed.KeyTyped && !ed.KeyStuffed {
 			ed.win_ensure_size()
 		}
@@ -13010,7 +13010,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 			continue
 		case Ctrl_Z:
 			if ed.p_im == 0 {
-				inserted_space = ed.edit_normalchar(c, inserted_space)
+				inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 				break
 			}
 			ed.do_cmdline_cmd(S("stop"))
@@ -13045,30 +13045,30 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				}
 				continue
 			}
-			inserted_space = FALSE
+			inserted_space = false
 		case Ctrl_R:
 			ed.ins_reg()
-			inserted_space = FALSE
+			inserted_space = false
 		case Ctrl_G:
 			ed.ins_ctrl_g()
 		case Ctrl_HAT:
 		case Ctrl_D, Ctrl_T:
 			ed.ins_shift(c, lastc)
-			inserted_space = FALSE
+			inserted_space = false
 		case K_DEL, K_KDEL:
 			ed.ins_del()
 		case K_BS, K_S_BS, Ctrl_H:
-			ins_bs__o = ed.ins_bs(c, BACKSPACE_CHAR, inserted_space)
-			inserted_space = ins_bs__o.inserted_space_p
+			ins_bs__o = ed.ins_bs(c, BACKSPACE_CHAR, (inserted_space))
+			inserted_space = (ins_bs__o.inserted_space_p)
 			did_backspace = (ins_bs__o.r__)
 		case Ctrl_W:
-			ins_bs__o = ed.ins_bs(c, BACKSPACE_WORD, inserted_space)
-			inserted_space = ins_bs__o.inserted_space_p
+			ins_bs__o = ed.ins_bs(c, BACKSPACE_WORD, (inserted_space))
+			inserted_space = (ins_bs__o.inserted_space_p)
 			did_backspace = (ins_bs__o.r__)
 		case Ctrl_U:
-			ins_bs__o = ed.ins_bs(c, BACKSPACE_LINE, inserted_space)
+			ins_bs__o = ed.ins_bs(c, BACKSPACE_LINE, (inserted_space))
 			did_backspace = (ins_bs__o.r__)
-			inserted_space = FALSE
+			inserted_space = false
 		case K_PASTESTART:
 			ed.bracketed_paste(PASTE_INSERT, false, nil)
 			if cmdchar == K_PASTESTART {
@@ -13087,7 +13087,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				ed.ins_need_undo = true
 			}
 		case K_CURSORHOLD:
-			ed.did_cursorhold = TRUE
+			ed.did_cursorhold = true
 			if ed.dont_sync_undo == TRUE {
 				ed.dont_sync_undo = MAYBE
 			}
@@ -13135,9 +13135,9 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 			c = TAB
 			fallthrough
 		case TAB:
-			inserted_space = FALSE
+			inserted_space = false
 			if ed.ins_tab() {
-				inserted_space = ed.edit_normalchar(c, inserted_space)
+				inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 			}
 		case K_KENTER:
 			c = CAR
@@ -13149,16 +13149,16 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				}
 				continue
 			}
-			inserted_space = FALSE
+			inserted_space = false
 		case Ctrl_K:
-			inserted_space = ed.edit_normalchar(c, inserted_space)
+			inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 		case Ctrl_X:
 		case Ctrl_RSB:
-			inserted_space = ed.edit_normalchar(c, inserted_space)
+			inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 		case Ctrl_F:
-			inserted_space = ed.edit_normalchar(c, inserted_space)
+			inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 		case 's', Ctrl_S:
-			inserted_space = ed.edit_normalchar(c, inserted_space)
+			inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 		case Ctrl_L:
 			if ed.p_im != 0 {
 				if ed.edit_esc(&count, cmdchar, (nomove), &ed.edit_o_lnum) {
@@ -13166,7 +13166,7 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				}
 				continue
 			}
-			inserted_space = ed.edit_normalchar(c, inserted_space)
+			inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 		case Ctrl_P, Ctrl_N:
 		case Ctrl_Y, Ctrl_E:
 			c = ed.ins_ctrl_ey(c)
@@ -13186,13 +13186,13 @@ func (ed *Editor) edit(cmdchar int32, startln bool, count int64) bool {
 				}
 				continue
 			}
-			inserted_space = ed.edit_normalchar(c, inserted_space)
+			inserted_space = (ed.edit_normalchar(c, (inserted_space)))
 		}
 		if (c != K_CURSORHOLD) && (c != K_COMPLETE_DELAY) {
-			ed.did_cursorhold = FALSE
+			ed.did_cursorhold = false
 		}
 		if ed.arrow_used {
-			inserted_space = FALSE
+			inserted_space = false
 		}
 	}
 }
@@ -14370,7 +14370,7 @@ func (ed *Editor) ins_shift(c int32, lastc int32) {
 		if lastc == '^' {
 			ed.old_indent = ed.get_indent()
 		}
-		ed.change_indent(INDENT_SET, 0, true, 0, TRUE)
+		ed.change_indent(INDENT_SET, 0, true, 0, true)
 	} else {
 		var t1 int32
 		if c == Ctrl_D {
@@ -14378,7 +14378,7 @@ func (ed *Editor) ins_shift(c int32, lastc int32) {
 		} else {
 			t1 = INDENT_INC
 		}
-		ed.change_indent(t1, 0, true, 0, TRUE)
+		ed.change_indent(t1, 0, true, 0, true)
 	}
 	if ed.did_ai && (int32(skipwhite(ed.ml_get_curline()).Get()) != NUL) {
 		ed.did_ai = false
@@ -14424,7 +14424,7 @@ func (ed *Editor) ins_bs_one() {
 	}
 }
 
-func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__out_T {
+func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p bool) ins_bs__out_T {
 	var out__ ins_bs__out_T
 	var lnum linenr_T
 	var cc int32
@@ -14439,12 +14439,12 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__ou
 	if ((ed.curbuf.b_ml.ml_line_count == 1) && (int32(ed.ml_get(1).Get()) == NUL)) || (((((ed.curwin.w_cursor.lnum == 1) && (ed.curwin.w_cursor.col == 0)) || (!ed.can_bs(BS_START) && (ed.arrow_used || ((ed.curwin.w_cursor.lnum == ed.Insstart_orig.lnum) && (ed.curwin.w_cursor.col <= ed.Insstart_orig.col))))) || (((!ed.can_bs(BS_INDENT) && !ed.arrow_used) && (ed.ai_col > 0)) && (ed.curwin.w_cursor.col <= ed.ai_col))) || (!ed.can_bs(BS_EOL) && (ed.curwin.w_cursor.col == 0))) {
 		ed.vim_beep(BO_BS)
 		out__.r__ = false
-		out__.inserted_space_p = inserted_space_p
+		out__.inserted_space_p = (inserted_space_p)
 		return out__
 	}
 	if !ed.stop_arrow() {
 		out__.r__ = false
-		out__.inserted_space_p = inserted_space_p
+		out__.inserted_space_p = (inserted_space_p)
 		return out__
 	}
 	in_indent = (ed.inindent(0))
@@ -14452,13 +14452,13 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__ou
 		if mode == BACKSPACE_CHAR {
 			ed.curwin.w_cursor.coladd--
 			out__.r__ = true
-			out__.inserted_space_p = inserted_space_p
+			out__.inserted_space_p = (inserted_space_p)
 			return out__
 		}
 		if mode == BACKSPACE_WORD {
 			ed.curwin.w_cursor.coladd = 0
 			out__.r__ = true
-			out__.inserted_space_p = inserted_space_p
+			out__.inserted_space_p = (inserted_space_p)
 			return out__
 		}
 		ed.curwin.w_cursor.coladd = 0
@@ -14468,7 +14468,7 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__ou
 		if ed.curwin.w_cursor.lnum == lnum {
 			if !ed.u_save((ed.curwin.w_cursor.lnum - 2), (ed.curwin.w_cursor.lnum + 1)) {
 				out__.r__ = false
-				out__.inserted_space_p = inserted_space_p
+				out__.inserted_space_p = (inserted_space_p)
 				return out__
 			}
 			ed.Insstart.lnum--
@@ -14516,7 +14516,7 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__ou
 			}
 			ed.curwin.w_cursor.col = save_col
 		}
-		if (mode == BACKSPACE_CHAR) && (((ed.p_sta != 0) && in_indent) || (((ed.get_sts_value() != 0) && (ed.curwin.w_cursor.col > 0)) && ((int32(ed.ml_get_cursor().Add(-1).Get()) == TAB) || ((int32(ed.ml_get_cursor().Add(-1).Get()) == (' ')) && ((inserted_space_p == 0) || ed.arrow_used))))) {
+		if (mode == BACKSPACE_CHAR) && (((ed.p_sta != 0) && in_indent) || (((ed.get_sts_value() != 0) && (ed.curwin.w_cursor.col > 0)) && ((int32(ed.ml_get_cursor().Add(-1).Get()) == TAB) || ((int32(ed.ml_get_cursor().Add(-1).Get()) == (' ')) && (!inserted_space_p || ed.arrow_used))))) {
 			var vcol colnr_T = 0
 			var want_vcol colnr_T
 			var line Ptr[byte]
@@ -14526,7 +14526,7 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__ou
 			var space_vcol colnr_T = 0
 			var prev_space bool = false
 			var want_col colnr_T
-			inserted_space_p = FALSE
+			inserted_space_p = false
 			line = ed.ml_get_curline()
 			ptr = line
 			space_ptr = ptr
@@ -14632,7 +14632,7 @@ func (ed *Editor) ins_bs(c int32, mode int32, inserted_space_p int32) ins_bs__ou
 		ed.dollar_vcol = ed.curwin.w_virtcol
 	}
 	out__.r__ = (did_backspace)
-	out__.inserted_space_p = inserted_space_p
+	out__.inserted_space_p = (inserted_space_p)
 	return out__
 }
 
@@ -15341,7 +15341,7 @@ func (ed *Editor) ex_append(eap *S_exarg) {
 	ed.State = MODE_INSERT
 	for {
 		ed.msg_scroll = TRUE
-		ed.need_wait_return = FALSE
+		ed.need_wait_return = false
 		if ed.curbuf.b_p_ai != 0 {
 			if ed.append_indent >= 0 {
 				indent = ed.append_indent
@@ -15451,7 +15451,7 @@ func (ed *Editor) ex_append(eap *S_exarg) {
 	ed.curwin.w_cursor.lnum = lnum
 	ed.check_cursor_lnum()
 	ed.beginline(BL_SOL | BL_FIX)
-	ed.need_wait_return = FALSE
+	ed.need_wait_return = false
 }
 
 func (ed *Editor) ex_change(eap *S_exarg) {
@@ -16037,7 +16037,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 							if !orig_line_string.Nil() {
 								ed.ml_replace(lnum, orig_line_string, false)
 							}
-							ed.need_wait_return = FALSE
+							ed.need_wait_return = false
 							if (((typed == 'q') || (typed == ESC)) || (typed == Ctrl_C)) || (typed == ed.intr_char) {
 								got_quit = true
 								break
@@ -16610,7 +16610,7 @@ func (ed *Editor) do_cmdline(cmdline Ptr[byte], fgetline func(int32, int32, getl
 			}
 			if t1 {
 				if ed.KeyTyped && ((flags & DOCMD_REPEAT) == 0) {
-					ed.need_wait_return = FALSE
+					ed.need_wait_return = false
 				}
 				retval = false
 				break
@@ -16667,9 +16667,9 @@ func (ed *Editor) do_cmdline(cmdline Ptr[byte], fgetline func(int32, int32, getl
 		ed.no_wait_return--
 		ed.msg_scroll = FALSE
 		if B2i(retval) == FAIL {
-			ed.need_wait_return = FALSE
+			ed.need_wait_return = false
 			ed.msg_didany = false
-		} else if ed.need_wait_return != 0 {
+		} else if ed.need_wait_return {
 			ed.msg_didout |= msg_didout_before_start
 			ed.wait_return(FALSE)
 		}
@@ -16687,7 +16687,7 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 	var ea S_exarg
 	var save_cmdmod cmdmod_T
 	save_reg_executing := ed.reg_executing
-	save_pending_end_reg_executing := ed.pending_end_reg_executing
+	var save_pending_end_reg_executing bool = (ed.pending_end_reg_executing)
 	var cmd Ptr[byte]
 	sourcing := flags & DOCMD_VERBOSE
 	var did_append_cmd bool = false
@@ -16906,7 +16906,7 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 	ed.undo_cmdmod(&ed.cmdmod)
 	ed.cmdmod = save_cmdmod
 	ed.reg_executing = save_reg_executing
-	ed.pending_end_reg_executing = save_pending_end_reg_executing
+	ed.pending_end_reg_executing = (save_pending_end_reg_executing)
 	if !ea.nextcmd.Nil() && (int32(ea.nextcmd.Get()) == NUL) {
 		ea.nextcmd = Ptr[byte]{}
 	}
@@ -18053,12 +18053,12 @@ func (ed *Editor) ex_at(eap *S_exarg) {
 		ed.beep_flush()
 		return
 	}
-	save_efr := ed.exec_from_reg
-	ed.exec_from_reg = TRUE
+	var save_efr bool = (ed.exec_from_reg)
+	ed.exec_from_reg = true
 	for !ed.stuff_empty() || (ed.typebuf.tb_len > prev_len) {
 		ed.do_cmdline(Ptr[byte]{}, ed.getexline, (DOCMD_NOWAIT|DOCMD_VERBOSE)|DOCMD_GETEXLINE)
 	}
-	ed.exec_from_reg = save_efr
+	ed.exec_from_reg = (save_efr)
 }
 
 func (ed *Editor) ex_undo(eap *S_exarg) {
@@ -18149,7 +18149,7 @@ func (ed *Editor) redraw_cmd(clear_ bool) {
 	ed.screen_stop_highlight()
 	ed.msg_didout = FALSE
 	ed.msg_col = 0
-	ed.need_wait_return = FALSE
+	ed.need_wait_return = false
 	if ed.State&MODE_CMDLINE != 0 {
 		ed.redrawcmdline()
 	}
@@ -18227,10 +18227,10 @@ func (ed *Editor) save_current_state(sst *save_state_T) bool {
 	sst.save_msg_didout = ed.msg_didout
 	sst.save_State = ed.State
 	sst.save_insertmode = ed.p_im
-	sst.save_finish_op = ed.finish_op
+	sst.save_finish_op = (ed.finish_op)
 	sst.save_opcount = int32(ed.opcount)
 	sst.save_reg_executing = ed.reg_executing
-	sst.save_pending_end_reg_executing = ed.pending_end_reg_executing
+	sst.save_pending_end_reg_executing = (ed.pending_end_reg_executing)
 	ed.msg_scroll = FALSE
 	ed.restart_edit = 0
 	ed.p_im = FALSE
@@ -18245,10 +18245,10 @@ func (ed *Editor) restore_current_state(sst *save_state_T) {
 	ed.msg_scroll = sst.save_msg_scroll
 	ed.restart_edit = sst.save_restart_edit
 	ed.p_im = sst.save_insertmode
-	ed.finish_op = sst.save_finish_op
+	ed.finish_op = (sst.save_finish_op)
 	ed.opcount = int64(sst.save_opcount)
 	ed.reg_executing = sst.save_reg_executing
-	ed.pending_end_reg_executing = sst.save_pending_end_reg_executing
+	ed.pending_end_reg_executing = (sst.save_pending_end_reg_executing)
 	ed.msg_didout |= sst.save_msg_didout
 	ed.current_sctx.sc_version = sst.save_script_version
 	ed.State = sst.save_State
@@ -18346,7 +18346,7 @@ func (ed *Editor) exec_normal(was_typed bool, use_vpeekc bool, may_use_terminal_
 	var oa S_oparg_S
 	var c int32
 	clear_oparg(&oa)
-	ed.finish_op = FALSE
+	ed.finish_op = false
 	for {
 		var t2 bool = !ed.stuff_empty() || ((was_typed || !ed.typebuf_typed()) && (ed.typebuf.tb_len > 0))
 		if !t2 {
@@ -18365,12 +18365,12 @@ func (ed *Editor) exec_normal(was_typed bool, use_vpeekc bool, may_use_terminal_
 	}
 }
 
-func (ed *Editor) set_no_hlsearch(flag int32) {
-	ed.no_hlsearch = flag
+func (ed *Editor) set_no_hlsearch(flag bool) {
+	ed.no_hlsearch = (flag)
 }
 
 func (ed *Editor) ex_nohlsearch(eap *S_exarg) {
-	ed.set_no_hlsearch(TRUE)
+	ed.set_no_hlsearch(true)
 	ed.redraw_all_later(UPD_SOME_VALID)
 }
 
@@ -18726,7 +18726,7 @@ func (ed *Editor) may_do_incsearch_highlighting(firstc int32, count int64, is_st
 	use_last_pat = ((patlen == 0) && (skiplen > 0)) && (int32(ed.ccline.cmdbuff.At(int(skiplen-1))) == next_char)
 	if (patlen == 0) && !use_last_pat {
 		found = 0
-		ed.set_no_hlsearch(TRUE)
+		ed.set_no_hlsearch(true)
 		ed.redraw_all_later(UPD_SOME_VALID)
 	} else {
 		var search_flags int32 = (SEARCH_OPT + SEARCH_NOOF) + SEARCH_PEEK
@@ -18793,9 +18793,9 @@ func (ed *Editor) may_do_incsearch_highlighting(firstc int32, count int64, is_st
 	if !use_last_pat {
 		next_char = int32(ed.ccline.cmdbuff.At(int(skiplen + patlen)))
 		ed.ccline.cmdbuff.Set(int(skiplen+patlen), NUL)
-		if ed.empty_pattern(ed.ccline.cmdbuff.Add(int(skiplen)), uint64(patlen), search_delim) && (ed.no_hlsearch == 0) {
+		if ed.empty_pattern(ed.ccline.cmdbuff.Add(int(skiplen)), uint64(patlen), search_delim) && !ed.no_hlsearch {
 			ed.redraw_all_later(UPD_SOME_VALID)
-			ed.set_no_hlsearch(TRUE)
+			ed.set_no_hlsearch(true)
 		}
 		ed.ccline.cmdbuff.Set(int(skiplen+patlen), byte(next_char))
 	}
@@ -19104,7 +19104,7 @@ func (ed *Editor) cmdline_insert_reg(gotesc *int32) int32 {
 	var i int32
 	var c int32
 	var literally bool = false
-	ed.putcmdline('"', TRUE)
+	ed.putcmdline('"', true)
 	ed.no_mapping++
 	ed.allow_keys++
 	c = ed.plain_vgetc()
@@ -19595,7 +19595,7 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 					goto cmdline_not_changed
 				}
 			case Ctrl_V, Ctrl_Q:
-				ed.putcmdline('^', TRUE)
+				ed.putcmdline('^', true)
 				c = ed.get_literal(ed.mod_mask & MOD_MASK_SHIFT)
 				do_abbr = false
 				ed.extra_char = NUL
@@ -19665,7 +19665,7 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 		ed.msg_check()
 		ed.msg_scroll = save_msg_scroll
 		if some_key_typed {
-			ed.need_wait_return = FALSE
+			ed.need_wait_return = false
 		}
 		ed.State = save_State
 		ed.sb_text_end_cmdline()
@@ -19753,7 +19753,7 @@ func (ed *Editor) correct_cmdspos(idx int32, cells int32) {
 }
 
 func (ed *Editor) getexline(c int32, indent int32, options getline_opt_T) Ptr[byte] {
-	if (ed.exec_from_reg != 0) && (ed.vpeekc() == ':') {
+	if ed.exec_from_reg && (ed.vpeekc() == ':') {
 		ed.vgetc()
 	}
 	return ed.getcmdline(c, 1, indent, options)
@@ -19804,19 +19804,19 @@ func (ed *Editor) draw_cmdline(start int32, len_ int32) {
 	ed.msg_outtrans_len(ed.ccline.cmdbuff.Add(int(start)), len_)
 }
 
-func (ed *Editor) putcmdline(c int32, shift int32) {
+func (ed *Editor) putcmdline(c int32, shift bool) {
 	if ed.cmd_silent {
 		return
 	}
 	ed.msg_no_more = true
 	ed.msg_putchar(c)
-	if shift != 0 {
+	if shift {
 		ed.draw_cmdline(ed.ccline.cmdpos, ed.ccline.cmdlen-ed.ccline.cmdpos)
 	}
 	ed.msg_no_more = false
 	ed.cursorcmd()
 	ed.extra_char = c
-	ed.extra_char_shift = shift
+	ed.extra_char_shift = (shift)
 }
 
 func (ed *Editor) unputcmdline() {
@@ -20022,7 +20022,7 @@ func (ed *Editor) redrawcmdline_ex(do_compute_cmdrow bool) {
 	if ed.cmd_silent {
 		return
 	}
-	ed.need_wait_return = FALSE
+	ed.need_wait_return = false
 	if do_compute_cmdrow {
 		ed.compute_cmdrow()
 	}
@@ -20053,7 +20053,7 @@ func (ed *Editor) redrawcmdprompt() {
 }
 
 func (ed *Editor) redrawcmd() {
-	save_in_echowindow := ed.in_echowindow
+	var save_in_echowindow bool = (ed.in_echowindow)
 	if ed.cmd_silent {
 		return
 	}
@@ -20062,7 +20062,7 @@ func (ed *Editor) redrawcmd() {
 		ed.msg_clr_eos()
 		return
 	}
-	ed.in_echowindow = FALSE
+	ed.in_echowindow = false
 	ed.sb_text_restart_cmdline()
 	ed.msg_start()
 	ed.msg_starthere()
@@ -20073,11 +20073,11 @@ func (ed *Editor) redrawcmd() {
 	ed.msg_no_more = false
 	ed.set_cmdspos_cursor()
 	if ed.extra_char != NUL {
-		ed.putcmdline(ed.extra_char, ed.extra_char_shift)
+		ed.putcmdline(ed.extra_char, (ed.extra_char_shift))
 	}
 	ed.msg_scroll = FALSE
 	ed.skip_redraw = false
-	ed.in_echowindow = save_in_echowindow
+	ed.in_echowindow = (save_in_echowindow)
 }
 
 func (ed *Editor) compute_cmdrow() {
@@ -21617,7 +21617,7 @@ func (ed *Editor) key_protocol_enabled() bool {
 	return using_mok || (ed.kitty_protocol_state == KKPS_ENABLED)
 }
 
-func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) handle_mapping__out_T {
+func (ed *Editor) handle_mapping(keylenp int32, timedout bool, mapdepth int32) handle_mapping__out_T {
 	var s []byte
 	var n int32
 
@@ -21690,7 +21690,7 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 							break cont2
 						}
 						if keylen > ed.typebuf.tb_len {
-							if (timedout == 0) && !((mp_match != nil) && (mp_match.m_nowait != 0)) {
+							if !timedout && !((mp_match != nil) && (mp_match.m_nowait != 0)) {
 								keylen = -2
 								break loop1
 							}
@@ -21749,7 +21749,7 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 			keylenp = keylen
 			out__.r__ = map_result_retry
 			out__.keylenp = keylenp
-			out__.timedout = timedout
+			out__.timedout = (timedout)
 			out__.mapdepth = mapdepth
 			return out__
 		}
@@ -21759,15 +21759,15 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 			max_mlen = mlen + 1
 		}
 	}
-	if in_osc || ((((mp == nil) || ((max_mlen + want_termcode) > mp_match_len)) || (((mp_match_len == 1) && (int32(mp.m_keys.Get()) == ESC)) && (timedout == 0))) && (keylen != -2)) {
+	if in_osc || ((((mp == nil) || ((max_mlen + want_termcode) > mp_match_len)) || (((mp_match_len == 1) && (int32(mp.m_keys.Get()) == ESC)) && !timedout)) && (keylen != -2)) {
 		save_keylen := keylen
 		if (in_osc || (ed.no_mapping == 0)) || (ed.allow_keys != 0) {
-			if in_osc || (((ed.typebuf.tb_maplen == 0) || ((ed.p_remap != 0) && ((int32(ed.typebuf.tb_noremap.At(int(ed.typebuf.tb_off))) & ^RM_SIMPLIFIED) == RM_YES))) && (timedout == 0)) {
+			if in_osc || (((ed.typebuf.tb_maplen == 0) || ((ed.p_remap != 0) && ((int32(ed.typebuf.tb_noremap.At(int(ed.typebuf.tb_off))) & ^RM_SIMPLIFIED) == RM_YES))) && !timedout) {
 				keylen = ed.check_termcode(max_mlen+1, Ptr[byte]{}, 0, nil)
 			} else {
 				keylen = 0
 			}
-			if ((keylen == 0) && (save_keylen == -1)) && (timedout == 0) {
+			if ((keylen == 0) && (save_keylen == -1)) && !timedout {
 				keylen = -1
 			}
 			if (keylen == 0) && !ed.no_reduce_keys {
@@ -21775,7 +21775,7 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 				if keylen < 0 {
 					out__.r__ = map_result_fail
 					out__.keylenp = keylenp
-					out__.timedout = timedout
+					out__.timedout = (timedout)
 					out__.mapdepth = mapdepth
 					return out__
 				}
@@ -21791,7 +21791,7 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 				keylenp = keylen
 				out__.r__ = map_result_get
 				out__.keylenp = keylenp
-				out__.timedout = timedout
+				out__.timedout = (timedout)
 				out__.mapdepth = mapdepth
 				return out__
 			}
@@ -21800,7 +21800,7 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 			keylenp = keylen
 			out__.r__ = map_result_retry
 			out__.keylenp = keylenp
-			out__.timedout = timedout
+			out__.timedout = (timedout)
 			out__.mapdepth = mapdepth
 			return out__
 		}
@@ -21830,7 +21830,7 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 			keylenp = keylen
 			out__.r__ = map_result_fail
 			out__.keylenp = keylenp
-			out__.timedout = timedout
+			out__.timedout = (timedout)
 			out__.mapdepth = mapdepth
 			return out__
 		}
@@ -21856,20 +21856,20 @@ func (ed *Editor) handle_mapping(keylenp int32, timedout int32, mapdepth int32) 
 		if B2i(i) == FAIL {
 			out__.r__ = map_result_fail
 			out__.keylenp = keylenp
-			out__.timedout = timedout
+			out__.timedout = (timedout)
 			out__.mapdepth = mapdepth
 			return out__
 		}
 		out__.r__ = map_result_retry
 		out__.keylenp = keylenp
-		out__.timedout = timedout
+		out__.timedout = (timedout)
 		out__.mapdepth = mapdepth
 		return out__
 	}
 	keylenp = keylen
 	out__.r__ = map_result_nomatch
 	out__.keylenp = keylenp
-	out__.timedout = timedout
+	out__.timedout = (timedout)
 	out__.mapdepth = mapdepth
 	return out__
 }
@@ -21881,12 +21881,12 @@ func (ed *Editor) vungetc(c int32) {
 }
 
 func (ed *Editor) check_end_reg_executing(advance bool) {
-	if (ed.reg_executing != 0) && ((ed.typebuf.tb_maplen == 0) || (ed.pending_end_reg_executing != 0)) {
+	if (ed.reg_executing != 0) && ((ed.typebuf.tb_maplen == 0) || ed.pending_end_reg_executing) {
 		if advance {
 			ed.reg_executing = 0
-			ed.pending_end_reg_executing = FALSE
+			ed.pending_end_reg_executing = false
 		} else {
-			ed.pending_end_reg_executing = TRUE
+			ed.pending_end_reg_executing = true
 		}
 	}
 }
@@ -21899,7 +21899,7 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 
 	var handle_mapping__o handle_mapping__out_T
 	var c int32
-	var timedout int32 = FALSE
+	var timedout bool = false
 	var mapdepth int32 = 0
 	var mode_deleted bool = false
 	var new_wcol int32
@@ -21958,9 +21958,9 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 					ed.cmd_silent = false
 					break
 				} else if ed.typebuf.tb_len > 0 {
-					handle_mapping__o = ed.handle_mapping(keylen, timedout, mapdepth)
+					handle_mapping__o = ed.handle_mapping(keylen, (timedout), mapdepth)
 					keylen = handle_mapping__o.keylenp
-					timedout = handle_mapping__o.timedout
+					timedout = (handle_mapping__o.timedout)
 					var result map_result_T = handle_mapping__o.r__
 					if result == map_result_retry {
 						continue
@@ -22052,12 +22052,12 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 				}
 				ed.typebuf.tb_len += c
 				if ed.typebuf.tb_len >= (ed.typebuf.tb_maplen + MAXMAPLEN) {
-					timedout = TRUE
+					timedout = true
 					continue
 				}
 				if ed.ex_normal_busy > 0 {
 					if ed.typebuf.tb_len > 0 {
-						timedout = TRUE
+						timedout = true
 						continue
 					}
 					if (ed.p_im != 0) && ((ed.State & MODE_INSERT) != 0) {
@@ -22070,7 +22070,7 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 					ed.typebuf.tb_no_abbr_cnt = 0
 					break
 				}
-				if ((((((ed.State & MODE_INSERT) != 0) || (ed.p_lz != 0)) && ((ed.State & MODE_CMDLINE) == 0)) && advance) && (ed.must_redraw != 0)) && (ed.need_wait_return == 0) {
+				if ((((((ed.State & MODE_INSERT) != 0) || (ed.p_lz != 0)) && ((ed.State & MODE_CMDLINE) == 0)) && advance) && (ed.must_redraw != 0)) && !ed.need_wait_return {
 					ed.update_screen(0)
 					ed.setcursor()
 				}
@@ -22100,12 +22100,12 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 						ed.curwin.w_wrow = old_wrow
 					}
 					if (((ed.State & MODE_CMDLINE) != 0) && !ed.get_cmdline_info().cmdbuff.Nil()) && (ed.ptr2cells(ed.typebuf.tb_buf.Add(int(ed.typebuf.tb_off)).Add(int(ed.typebuf.tb_len)).Add(-1)) == 1) {
-						ed.putcmdline(int32(ed.typebuf.tb_buf.At(int((ed.typebuf.tb_off+ed.typebuf.tb_len)-1))), FALSE)
+						ed.putcmdline(int32(ed.typebuf.tb_buf.At(int((ed.typebuf.tb_off+ed.typebuf.tb_len)-1))), false)
 						showing_partial = true
 					}
 				}
 				if ed.typebuf.tb_len == 0 {
-					timedout = FALSE
+					timedout = false
 				}
 				if advance {
 					if (ed.typebuf.tb_len == 0) || !((ed.p_timeout != 0) || ((ed.p_ttimeout != 0) && (keylen == -1))) {
@@ -22141,7 +22141,7 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 						break
 					}
 					if wait_tb_len > 0 {
-						timedout = TRUE
+						timedout = true
 						continue
 					}
 				} else {
@@ -22172,7 +22172,7 @@ func (ed *Editor) vgetorpeek(advance bool) int32 {
 			}
 		}
 	}
-	if (timedout != 0) && (c == ESC) {
+	if timedout && (c == ESC) {
 		ed.gotchars_ignore()
 	}
 	ed.vgetc_busy--
@@ -23391,28 +23391,28 @@ func (ed *Editor) syn_cterm_attr2entry(attr int32) *S_attr_entry {
 
 func (ed *Editor) highlight_list_one(id int32) {
 	var sgp *hl_group_T
-	var didh int32 = FALSE
+	var didh bool = false
 	sgp = GaData[hl_group_T](&ed.highlight_ga).Ref(int(id - 1))
 	if ed.message_filtered(sgp.sg_name) {
 		return
 	}
-	didh = ed.highlight_list_arg(id, didh, LIST_ATTR, sgp.sg_term, Ptr[byte]{}, S("term"))
-	didh = ed.highlight_list_arg(id, didh, LIST_STRING, 0, sgp.sg_start, S("start"))
-	didh = ed.highlight_list_arg(id, didh, LIST_STRING, 0, sgp.sg_stop, S("stop"))
-	didh = ed.highlight_list_arg(id, didh, LIST_ATTR, sgp.sg_cterm, Ptr[byte]{}, S("cterm"))
-	didh = ed.highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_fg, Ptr[byte]{}, S("ctermfg"))
-	didh = ed.highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_bg, Ptr[byte]{}, S("ctermbg"))
-	didh = ed.highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_ul, Ptr[byte]{}, S("ctermul"))
-	didh = ed.highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_font, Ptr[byte]{}, S("ctermfont"))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_ATTR, sgp.sg_term, Ptr[byte]{}, S("term")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_STRING, 0, sgp.sg_start, S("start")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_STRING, 0, sgp.sg_stop, S("stop")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_ATTR, sgp.sg_cterm, Ptr[byte]{}, S("cterm")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_INT, sgp.sg_cterm_fg, Ptr[byte]{}, S("ctermfg")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_INT, sgp.sg_cterm_bg, Ptr[byte]{}, S("ctermbg")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_INT, sgp.sg_cterm_ul, Ptr[byte]{}, S("ctermul")))
+	didh = (ed.highlight_list_arg(id, (didh), LIST_INT, sgp.sg_cterm_font, Ptr[byte]{}, S("ctermfont")))
 	if (sgp.sg_link != 0) && (ed.got_int == 0) {
-		ed.syn_list_header(didh, 9999, id)
-		didh = TRUE
+		ed.syn_list_header((didh), 9999, id)
+		didh = true
 		ed.msg_puts_attr(S("links to"), ed.highlight_attr[3])
 		ed.msg_putchar(' ')
 		ed.msg_outtrans(GaData[hl_group_T](&ed.highlight_ga).Ref(int(GaData[hl_group_T](&ed.highlight_ga).Ref(int(id-1)).sg_link - 1)).sg_name)
 	}
-	if didh == 0 {
-		ed.highlight_list_arg(id, didh, LIST_STRING, 0, S("cleared"), S(""))
+	if !didh {
+		ed.highlight_list_arg(id, (didh), LIST_STRING, 0, S("cleared"), S(""))
 	}
 }
 
@@ -23441,11 +23441,11 @@ func (ed *Editor) highlight_arg_to_string(type_ int32, iarg int32, sarg Ptr[byte
 	return buf
 }
 
-func (ed *Editor) highlight_list_arg(id int32, didh int32, type_ int32, iarg int32, sarg Ptr[byte], name Ptr[byte]) int32 {
+func (ed *Editor) highlight_list_arg(id int32, didh bool, type_ int32, iarg int32, sarg Ptr[byte], name Ptr[byte]) bool {
 	var buf Ptr[byte] = Mk[byte](120)
 	var ts Ptr[byte]
 	if ed.got_int != 0 {
-		return FALSE
+		return false
 	}
 	var t1 bool
 	if type_ == LIST_STRING {
@@ -23454,11 +23454,11 @@ func (ed *Editor) highlight_list_arg(id int32, didh int32, type_ int32, iarg int
 		t1 = (iarg == 0)
 	}
 	if t1 {
-		return didh
+		return (didh)
 	}
 	ts = ed.highlight_arg_to_string(type_, iarg, sarg, buf)
-	ed.syn_list_header(didh, int32(((uint64(ed.vim_strsize(ts)) + musl_strlen(name)) + 1)), id)
-	didh = TRUE
+	ed.syn_list_header((didh), int32(((uint64(ed.vim_strsize(ts)) + musl_strlen(name)) + 1)), id)
+	didh = true
 	if ed.got_int == 0 {
 		if int32(int8(name.Get())) != NUL {
 			ed.msg_puts_attr(name, ed.highlight_attr[3])
@@ -23466,14 +23466,14 @@ func (ed *Editor) highlight_list_arg(id int32, didh int32, type_ int32, iarg int
 		}
 		ed.msg_outtrans(ts)
 	}
-	return didh
+	return (didh)
 }
 
-func (ed *Editor) syn_list_header(did_header int32, outlen int32, id int32) bool {
+func (ed *Editor) syn_list_header(did_header bool, outlen int32, id int32) bool {
 	var endcol int32 = 19
 	var newline bool = true
 	var name_col int32 = 0
-	if did_header == 0 {
+	if !did_header {
 		ed.msg_putchar(10)
 		if ed.got_int != 0 {
 			return true
@@ -23498,7 +23498,7 @@ func (ed *Editor) syn_list_header(did_header int32, outlen int32, id int32) bool
 		endcol = ed.cmdline_width - 1
 	}
 	ed.msg_advance(endcol)
-	if did_header == 0 {
+	if !did_header {
 		if (endcol == (ed.cmdline_width - 1)) && (endcol <= name_col) {
 			ed.msg_putchar(' ')
 		}
@@ -24353,7 +24353,7 @@ func (ed *Editor) ins_try_si(c int32) {
 			ed.curwin.w_cursor.col = old_pos_col
 			ed.curwin.w_cursor.coladd = old_pos_coladd
 			if ed.State&VREPLACE_FLAG != 0 {
-				ed.change_indent(INDENT_SET, i, false, NUL, TRUE)
+				ed.change_indent(INDENT_SET, i, false, NUL, true)
 			} else {
 				ed.set_indent(i, SIN_CHANGED)
 			}
@@ -24379,7 +24379,7 @@ func (ed *Editor) ins_try_si(c int32) {
 				ed.curwin.w_cursor.coladd = old_pos_coladd
 			}
 			if temp {
-				ed.shift_line(true, FALSE, 1, TRUE)
+				ed.shift_line(true, FALSE, 1, true)
 			}
 		}
 	}
@@ -24392,7 +24392,7 @@ func (ed *Editor) ins_try_si(c int32) {
 	}
 }
 
-func (ed *Editor) change_indent(type_ int32, amount int32, round bool, replaced int32, call_changed_bytes int32) {
+func (ed *Editor) change_indent(type_ int32, amount int32, round bool, replaced int32, call_changed_bytes bool) {
 	var vcol int32
 	var last_vcol int32
 	var insstart_less int32
@@ -24427,7 +24427,7 @@ func (ed *Editor) change_indent(type_ int32, amount int32, round bool, replaced 
 	}
 	if type_ == INDENT_SET {
 		var t1 int32
-		if call_changed_bytes != 0 {
+		if call_changed_bytes {
 			t1 = SIN_CHANGED
 		} else {
 			t1 = 0
@@ -24438,7 +24438,7 @@ func (ed *Editor) change_indent(type_ int32, amount int32, round bool, replaced 
 		if ed.State&VREPLACE_FLAG != 0 {
 			ed.State = MODE_INSERT
 		}
-		ed.shift_line(type_ == INDENT_DEC, B2i(round), 1, call_changed_bytes)
+		ed.shift_line(type_ == INDENT_DEC, B2i(round), 1, (call_changed_bytes))
 		ed.State = save_State
 	}
 	insstart_less -= ed.curwin.w_cursor.col
@@ -24797,7 +24797,7 @@ func (ed *Editor) map_add(map_table Ptr[*S_mapblock], abbr_table **S_mapblock, k
 	return mp
 }
 
-func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], keys_len int32, mode int32, did_local int32) int32 {
+func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], keys_len int32, mode int32, did_local bool) bool {
 	var mp *S_mapblock
 
 	ed.map_locked++
@@ -24854,7 +24854,7 @@ func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys P
 			if !mp.m_simplified && ((mp.m_mode & mode) != 0) {
 				if !haskey {
 					ed.showmap(mp, true)
-					did_local = TRUE
+					did_local = true
 				} else {
 					n := mp.m_keylen
 					var t1 int32
@@ -24865,14 +24865,14 @@ func (ed *Editor) list_mappings(keyround int32, abbrev bool, haskey bool, keys P
 					}
 					if musl_strncmp(mp.m_keys, keys, uint64(t1)) == 0 {
 						ed.showmap(mp, true)
-						did_local = TRUE
+						did_local = true
 					}
 				}
 			}
 		}
 	}
 	ed.map_locked--
-	return did_local
+	return (did_local)
 }
 
 func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
@@ -25006,7 +25006,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 	keyround = 1
 	for ; keyround <= 2; keyround++ {
 		var did_it bool = false
-		var did_local int32 = FALSE
+		var did_local bool = false
 		keyround1_simplified := (keyround == 1) && (did_simplify != 0)
 		if keyround == 2 {
 			if alt_keys_buf.Nil() {
@@ -25086,7 +25086,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 			}
 		}
 		if ((map_table != View(ed.curbuf.b_maphash[:])) && !hasarg) && (maptype != MAPTYPE_UNMAP) {
-			did_local = ed.list_mappings(keyround, (abbrev), (haskey), keys, len_, mode, did_local)
+			did_local = (ed.list_mappings(keyround, (abbrev), (haskey), keys, len_, mode, (did_local)))
 		}
 		var t3 int32
 		if (maptype == MAPTYPE_UNMAP) && !unmap_lhs_only {
@@ -25218,7 +25218,7 @@ func (ed *Editor) do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) 
 			continue
 		}
 		if !haskey || !hasarg {
-			if !did_it && (did_local == 0) {
+			if !did_it && !did_local {
 				if abbrev {
 					ed.msg(S("No abbreviation found"))
 				} else {
@@ -26567,7 +26567,7 @@ func (ed *Editor) next_search_hl(win *S_window_S, search_hl *match_T, shl *match
 			if ((ed.called_emsg > called_emsg_before) || (ed.got_int != 0)) || (timed_out != 0) {
 				if shl == search_hl {
 					vim_regfree(shl.rm.regprog)
-					ed.set_no_hlsearch(TRUE)
+					ed.set_no_hlsearch(true)
 				}
 				shl.rm.regprog = nil
 				shl.lnum = 0
@@ -28797,7 +28797,7 @@ func (ed *Editor) msg_strtrunc(s Ptr[byte], force bool) Ptr[byte] {
 	var buf Ptr[byte] = Ptr[byte]{}
 	var len_ int32
 	var room int32
-	if ((((ed.msg_scroll == 0) && (ed.need_wait_return == 0)) && ed.shortmess(SHM_TRUNCALL)) && (ed.msg_silent == 0)) || force {
+	if ((((ed.msg_scroll == 0) && !ed.need_wait_return) && ed.shortmess(SHM_TRUNCALL)) && (ed.msg_silent == 0)) || force {
 		len_ = ed.vim_strsize(s)
 		if ed.msg_scrolled != 0 {
 			room = (int32((ed.Rows - int64(ed.msg_row))) * ed.cmdline_width) - 1
@@ -29056,7 +29056,7 @@ func (ed *Editor) emsg_core(s Ptr[byte]) int32 {
 	ed.emsg_on_display = true
 	attr = ed.highlight_attr[4]
 	if ed.msg_scrolled != 0 {
-		ed.need_wait_return = TRUE
+		ed.need_wait_return = true
 	}
 	ed.msg_scroll = TRUE
 	ed.msg_source(attr)
@@ -29284,7 +29284,7 @@ func (ed *Editor) wait_return(redraw int32) {
 	if ed.vgetc_busy > 0 {
 		return
 	}
-	ed.need_wait_return = TRUE
+	ed.need_wait_return = true
 	if ed.no_wait_return != 0 {
 		ed.cmdline_row = ed.msg_row
 		return
@@ -29362,7 +29362,7 @@ func (ed *Editor) wait_return(redraw int32) {
 	if ed.swapping_screen() && !ed.termcap_active {
 		ed.newline_on_exit = true
 	}
-	ed.need_wait_return = FALSE
+	ed.need_wait_return = false
 	ed.did_wait_return = true
 	ed.emsg_on_display = false
 	ed.lines_left = -1
@@ -29422,7 +29422,7 @@ func (ed *Editor) msg_start() {
 	if (ed.msg_scroll == 0) && (ed.full_screen != 0) {
 		ed.msg_row = ed.cmdline_row
 		ed.msg_col = 0
-	} else if (ed.msg_didout != 0) || (ed.in_echowindow != 0) {
+	} else if (ed.msg_didout != 0) || ed.in_echowindow {
 		ed.msg_putchar(10)
 		ed.cmdline_row = ed.msg_row
 	}
@@ -29887,7 +29887,7 @@ func (ed *Editor) msg_puts_attr_len(str Ptr[byte], maxlen int32, attr int32) {
 		attr &= ^MSG_HIST
 	}
 	if ((ed.msg_scrolled != 0) && !ed.msg_scrolled_ign) && (musl_strcmp(str, S("\r")) != 0) {
-		ed.need_wait_return = TRUE
+		ed.need_wait_return = true
 	}
 	ed.msg_didany = true
 	if ed.msg_use_printf() {
@@ -29943,7 +29943,7 @@ func (ed *Editor) msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recu
 				_ = 0
 			}
 			ed.inc_msg_scrolled()
-			ed.need_wait_return = TRUE
+			ed.need_wait_return = true
 			ed.redraw_cmdline = TRUE
 			if ed.cmdline_row > 0 {
 				ed.cmdline_row--
@@ -30259,7 +30259,7 @@ func (ed *Editor) do_more_prompt(typed_char int32) bool {
 			ed.typeahead_noflush(':')
 			ed.cmdline_row = int32(ed.Rows - 1)
 			ed.skip_redraw = true
-			ed.need_wait_return = FALSE
+			ed.need_wait_return = false
 			fallthrough
 		case 'q', Ctrl_C, ESC:
 			ed.got_int = TRUE
@@ -30414,7 +30414,7 @@ func (ed *Editor) msg_clr_cmdline() {
 }
 
 func (ed *Editor) msg_end() bool {
-	if (!ed.exiting && (ed.need_wait_return != 0)) && ((ed.State & MODE_CMDLINE) == 0) {
+	if (!ed.exiting && ed.need_wait_return) && ((ed.State & MODE_CMDLINE) == 0) {
 		ed.wait_return(FALSE)
 		return false
 	}
@@ -30424,7 +30424,7 @@ func (ed *Editor) msg_end() bool {
 
 func (ed *Editor) msg_check() {
 	if (int64(ed.msg_row) == (ed.Rows - 1)) && (ed.msg_col >= ed.sc_col) {
-		ed.need_wait_return = TRUE
+		ed.need_wait_return = true
 		ed.redraw_cmdline = TRUE
 	}
 }
@@ -30715,7 +30715,7 @@ func (ed *Editor) get_keystroke() int32 {
 			continue
 		}
 		if n == KEYLEN_REMOVED {
-			if ((ed.must_redraw != 0) && (ed.need_wait_return == 0)) && ((ed.State & ((MODE_CMDLINE | (0x2000 | MODE_NORMAL)) | MODE_ASKMORE)) == 0) {
+			if ((ed.must_redraw != 0) && !ed.need_wait_return) && ((ed.State & ((MODE_CMDLINE | (0x2000 | MODE_NORMAL)) | MODE_ASKMORE)) == 0) {
 				ed.update_screen(0)
 				ed.setcursor()
 			}
@@ -31892,7 +31892,7 @@ func (ed *Editor) get_real_state() int32 {
 				return MODE_SELECT
 			}
 			return MODE_VISUAL
-		} else if ed.finish_op != 0 {
+		} else if ed.finish_op {
 			return MODE_OP_PENDING
 		}
 	}
@@ -33694,7 +33694,7 @@ func (ed *Editor) check_text_or_curbuf_locked(oap *S_oparg_S) bool {
 	return true
 }
 
-func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w int32, need_flushbuf int32) normal_cmd_get_count__out_T {
+func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w bool, need_flushbuf int32) normal_cmd_get_count__out_T {
 	var out__ normal_cmd_get_count__out_T
 	for {
 		if !(ed.VIsual_active && (ed.VIsual_select != 0)) {
@@ -33707,21 +33707,21 @@ func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool,
 				} else {
 					cap_.count0 = (cap_.count0 * 10) + int64((c - '0'))
 				}
-				if ctrl_w != 0 {
+				if ctrl_w {
 					ed.no_mapping++
 					ed.allow_keys++
 				}
 				ed.no_zero_mapping++
 				c = ed.plain_vgetc()
 				ed.no_zero_mapping--
-				if ctrl_w != 0 {
+				if ctrl_w {
 					ed.no_mapping--
 					ed.allow_keys--
 				}
 				need_flushbuf |= B2i(ed.add_to_showcmd(c))
 			}
-			if ((c == Ctrl_W) && (ctrl_w == 0)) && (cap_.oap.op_type == OP_NOP) {
-				ctrl_w = TRUE
+			if ((c == Ctrl_W) && !ctrl_w) && (cap_.oap.op_type == OP_NOP) {
+				ctrl_w = true
 				cap_.opcount = cap_.count0
 				cap_.count0 = 0
 				ed.no_mapping++
@@ -33758,7 +33758,7 @@ func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool,
 	}
 	cap_.count1 = t1
 	out__.r__ = c
-	out__.ctrl_w = ctrl_w
+	out__.ctrl_w = (ctrl_w)
 	out__.need_flushbuf = need_flushbuf
 	return out__
 }
@@ -33777,7 +33777,7 @@ func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, nee
 	var lang bool
 	ed.no_mapping++
 	ed.allow_keys++
-	ed.did_cursorhold = TRUE
+	ed.did_cursorhold = true
 	if cap_.cmdchar == 'g' {
 		cap_.nchar = ed.plain_vgetc()
 		need_flushbuf |= B2i(ed.add_to_showcmd(cap_.nchar))
@@ -33919,19 +33919,19 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 	var normal_cmd_get_more_chars__o normal_cmd_get_more_chars__out_T
 	var ca S_cmdarg_S
 	var c int32
-	var ctrl_w int32 = FALSE
+	var ctrl_w bool = false
 	var old_col int32 = ed.curwin.w_curswant
 	var need_flushbuf int32 = FALSE
 	var old_pos pos_T
 	var mapped_len int32
 	var idx int32
 	var set_prevcount bool = false
-	save_did_cursorhold := ed.did_cursorhold
+	var save_did_cursorhold bool = (ed.did_cursorhold)
 	ca = S_cmdarg_S{}
 	ca.oap = oap
 	ca.opcount = ed.opcount
-	ed.finish_op = B2i((oap.op_type != OP_NOP))
-	if (ed.finish_op == 0) && (oap.regname == 0) {
+	ed.finish_op = (oap.op_type != OP_NOP)
+	if !ed.finish_op && (oap.regname == 0) {
 		ca.opcount = 0
 	}
 	if (oap.prev_opcount > 0) || (oap.prev_count0 > 0) {
@@ -33968,11 +33968,11 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		ed.win_ensure_size()
 	}
 	need_flushbuf = B2i(ed.add_to_showcmd(c))
-	normal_cmd_get_count__o = ed.normal_cmd_get_count(&ca, c, (toplevel), (set_prevcount), ctrl_w, need_flushbuf)
-	ctrl_w = normal_cmd_get_count__o.ctrl_w
+	normal_cmd_get_count__o = ed.normal_cmd_get_count(&ca, c, (toplevel), (set_prevcount), (ctrl_w), need_flushbuf)
+	ctrl_w = (normal_cmd_get_count__o.ctrl_w)
 	need_flushbuf = normal_cmd_get_count__o.need_flushbuf
 	c = normal_cmd_get_count__o.r__
-	if ctrl_w != 0 {
+	if ctrl_w {
 		ca.nchar = c
 		ca.cmdchar = Ctrl_W
 	} else {
@@ -34016,9 +34016,9 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		}
 		if ca.cmdchar != K_IGNORE {
 			if ed.ex_normal_busy != 0 {
-				ed.did_cursorhold = save_did_cursorhold
+				ed.did_cursorhold = (save_did_cursorhold)
 			} else {
-				ed.did_cursorhold = FALSE
+				ed.did_cursorhold = false
 			}
 		}
 		ed.State = MODE_NORMAL
@@ -34046,7 +34046,7 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		}
 		ca.arg = int32(ed.nv_cmds[int(idx)].cmd_arg)
 		ed.nv_cmds[int(idx)].cmd_func(&ca)
-		if ((ed.finish_op == 0) && (oap.op_type == 0)) && ((idx < 0) || ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_KEEPREG) == 0)) {
+		if (!ed.finish_op && (oap.op_type == 0)) && ((idx < 0) || ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_KEEPREG) == 0)) {
 			ed.clearop(oap)
 		}
 		if ed.normal_cmd_old_mapped_len > 0 {
@@ -34061,7 +34061,7 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 	}
 	ed.msg_nowait = false
 	if oap.op_type == OP_NOP {
-		ed.finish_op = FALSE
+		ed.finish_op = false
 	}
 	if ((oap.op_type == OP_NOP) && (oap.regname == 0)) && (ca.cmdchar != K_CURSORHOLD) {
 		ed.clear_showcmd()
@@ -35324,7 +35324,7 @@ func (ed *Editor) nv_next(cap_ *S_cmdarg_S) {
 		ed.normal_search(cap_, 0, Ptr[byte]{}, 0, SEARCH_MARK|cap_.arg, nil)
 		cap_.count1 -= 1
 	}
-	if ((i > 0) && (ed.p_hls != 0)) && (ed.no_hlsearch == 0) {
+	if ((i > 0) && (ed.p_hls != 0)) && !ed.no_hlsearch {
 		ed.redraw_later(UPD_SOME_VALID)
 	}
 }
@@ -35352,7 +35352,7 @@ func (ed *Editor) normal_search(cap_ *S_cmdarg_S, dir int32, pat Ptr[byte], patl
 		}
 		ed.curwin.w_cursor.coladd = 0
 	}
-	if (!(((ed.curwin.w_cursor.lnum == prev_cursor_lnum) && (ed.curwin.w_cursor.col == prev_cursor_col)) && (ed.curwin.w_cursor.coladd == prev_cursor_coladd)) && (ed.p_hls != 0)) && (ed.no_hlsearch == 0) {
+	if (!(((ed.curwin.w_cursor.lnum == prev_cursor_lnum) && (ed.curwin.w_cursor.col == prev_cursor_col)) && (ed.curwin.w_cursor.coladd == prev_cursor_coladd)) && (ed.p_hls != 0)) && !ed.no_hlsearch {
 		ed.redraw_later(UPD_SOME_VALID)
 	}
 	ed.check_cursor()
@@ -35372,7 +35372,7 @@ func (ed *Editor) nv_csearch(cap_ *S_cmdarg_S) {
 		t_cmd = false
 	}
 	cap_.oap.motion_type = MCHAR
-	if (cap_.nchar < 0) || !ed.searchc(cap_, B2i(t_cmd)) {
+	if (cap_.nchar < 0) || !ed.searchc(cap_, (t_cmd)) {
 		ed.clearopbeep(cap_.oap)
 		if cursor_dec {
 			ed.adjust_for_sel(cap_)
@@ -35853,7 +35853,7 @@ func (ed *Editor) nv_optrans(cap_ *S_cmdarg_S) {
 			cap_.oap.op_type = OP_DELETE
 			cap_.count1 = 1
 			ed.nv_dollar(cap_)
-			ed.finish_op = TRUE
+			ed.finish_op = true
 			ed.ResetRedobuff()
 			ed.AppendCharToRedobuff('D')
 		} else {
@@ -35920,7 +35920,7 @@ func (ed *Editor) nv_visual(cap_ *S_cmdarg_S) {
 	if cap_.oap.op_type != OP_NOP {
 		cap_.oap.motion_force = cap_.cmdchar
 		ed.motion_force = cap_.oap.motion_force
-		ed.finish_op = FALSE
+		ed.finish_op = false
 		return
 	}
 	ed.VIsual_select = cap_.arg
@@ -37081,7 +37081,7 @@ func (ed *Editor) nv_open(cap_ *S_cmdarg_S) {
 }
 
 func (ed *Editor) nv_cursorhold(cap_ *S_cmdarg_S) {
-	ed.did_cursorhold = TRUE
+	ed.did_cursorhold = true
 	cap_.retval |= CA_COMMAND_BUSY
 }
 
@@ -37150,7 +37150,7 @@ func (ed *Editor) op_shift(oap *S_oparg_S, curs_top bool, amount int32) {
 			ed.shift_block(oap, amount)
 		} else {
 			if (first_char != '#') || (ed.preprocs_left() == 0) {
-				ed.shift_line(oap.op_type == OP_LSHIFT, ed.p_sr, amount, FALSE)
+				ed.shift_line(oap.op_type == OP_LSHIFT, ed.p_sr, amount, false)
 			}
 		}
 		ed.curwin.w_cursor.lnum++
@@ -37221,7 +37221,7 @@ func (ed *Editor) get_new_sw_indent(left bool, round int32, amount vimlong_T, sw
 	return count
 }
 
-func (ed *Editor) shift_line(left bool, round int32, amount int32, call_changed_bytes int32) {
+func (ed *Editor) shift_line(left bool, round int32, amount int32, call_changed_bytes bool) {
 	var count vimlong_T
 	sw_val := ed.curbuf.b_p_sw
 	ts_val := ed.curbuf.b_p_ts
@@ -37231,10 +37231,10 @@ func (ed *Editor) shift_line(left bool, round int32, amount int32, call_changed_
 		count = ed.get_new_sw_indent((left), round, vimlong_T(amount), ts_val)
 	}
 	if ed.State&VREPLACE_FLAG != 0 {
-		ed.change_indent(INDENT_SET, trim_to_int(count), false, NUL, call_changed_bytes)
+		ed.change_indent(INDENT_SET, trim_to_int(count), false, NUL, (call_changed_bytes))
 	} else {
 		var t1 int32
-		if call_changed_bytes != 0 {
+		if call_changed_bytes {
 			t1 = SIN_CHANGED
 		} else {
 			t1 = 0
@@ -38270,10 +38270,10 @@ func (ed *Editor) op_change(oap *S_oparg_S) bool {
 	if oap.motion_type == MLINE {
 		ed.fix_indent()
 	}
-	save_finish_op := ed.finish_op
-	ed.finish_op = FALSE
+	var save_finish_op bool = (ed.finish_op)
+	ed.finish_op = false
 	retval = (ed.edit(NUL, false, 1))
-	ed.finish_op = save_finish_op
+	ed.finish_op = (save_finish_op)
 	if ((oap.block_mode != 0) && (oap.start.lnum != oap.end.lnum)) && (ed.got_int == 0) {
 		var ins_len int32
 		firstline = ed.ml_get(oap.start.lnum)
@@ -39366,7 +39366,7 @@ func (ed *Editor) do_pending_operator(cap_ *S_cmdarg_S, old_col int32, gui_yank 
 	old_cursor_lnum = ed.curwin.w_cursor.lnum
 	old_cursor_col = ed.curwin.w_cursor.col
 	old_cursor_coladd = ed.curwin.w_cursor.coladd
-	if ((ed.finish_op != 0) || ed.VIsual_active) && (oap.op_type != OP_NOP) {
+	if (ed.finish_op || ed.VIsual_active) && (oap.op_type != OP_NOP) {
 		redo_yank := !ed.vim_strchr(ed.p_cpo, CPO_YANK).Nil() && !gui_yank
 		oap.is_VIsual = B2i(ed.VIsual_active)
 		if oap.motion_force == 'V' {
@@ -41023,7 +41023,7 @@ func (ed *Editor) did_set_compatible(args *optset_T) Ptr[byte] {
 }
 
 func (ed *Editor) did_set_hlsearch(args *optset_T) Ptr[byte] {
-	ed.set_no_hlsearch(FALSE)
+	ed.set_no_hlsearch(false)
 	return Ptr[byte]{}
 }
 
@@ -43664,7 +43664,7 @@ func (ed *Editor) prog_magic_wrong(re *S_regengine_S) bool {
 }
 
 func cleanup_subexpr(re *S_regengine_S) {
-	if re.rex.need_clear_subexpr == 0 {
+	if !re.rex.need_clear_subexpr {
 		return
 	}
 	if re.rex.reg_match == nil {
@@ -43682,7 +43682,7 @@ func cleanup_subexpr(re *S_regengine_S) {
 		Zero(re.rex.reg_startp, 10)
 		Zero(re.rex.reg_endp, 10)
 	}
-	re.rex.need_clear_subexpr = FALSE
+	re.rex.need_clear_subexpr = false
 }
 
 func (ed *Editor) reg_nextline(re *S_regengine_S) {
@@ -43981,12 +43981,12 @@ func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[b
 	var rex_save_lnum linenr_T
 	var rex_save_line Ptr[byte]
 	var rex_save_input Ptr[byte]
-	var rex_save_need_clear_subexpr int32
+	var rex_save_need_clear_subexpr bool
 	var rex_save_reg_ic int32
 	var rex_save_reg_icombine bool
 	var rex_save_reg_maxcol colnr_T
-	rex_in_use_save := re.rex_in_use
-	if re.rex_in_use != 0 {
+	var rex_in_use_save bool = (re.rex_in_use)
+	if re.rex_in_use {
 		rex_save_reg_match = re.rex.reg_match
 		rex_save_reg_mmatch = re.rex.reg_mmatch
 		rex_save_reg_startp = re.rex.reg_startp
@@ -44001,12 +44001,12 @@ func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[b
 		rex_save_lnum = re.rex.lnum
 		rex_save_line = re.rex.line
 		rex_save_input = re.rex.input
-		rex_save_need_clear_subexpr = re.rex.need_clear_subexpr
+		rex_save_need_clear_subexpr = (re.rex.need_clear_subexpr)
 		rex_save_reg_ic = re.rex.reg_ic
 		rex_save_reg_icombine = (re.rex.reg_icombine)
 		rex_save_reg_maxcol = re.rex.reg_maxcol
 	}
-	re.rex_in_use = TRUE
+	re.rex_in_use = true
 	re.rex.reg_match = nil
 	re.rex.reg_mmatch = rmp
 	re.rex.reg_buf = ed.curbuf
@@ -44014,8 +44014,8 @@ func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[b
 	re.rex.reg_maxline = ed.curbuf.b_ml.ml_line_count - lnum
 	re.rex.reg_line_lbr = false
 	result = ed.vim_regsub_both(re, source, dest, destlen, flags)
-	re.rex_in_use = rex_in_use_save
-	if re.rex_in_use != 0 {
+	re.rex_in_use = (rex_in_use_save)
+	if re.rex_in_use {
 		re.rex.reg_match = rex_save_reg_match
 		re.rex.reg_mmatch = rex_save_reg_mmatch
 		re.rex.reg_startp = rex_save_reg_startp
@@ -44030,7 +44030,7 @@ func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[b
 		re.rex.lnum = rex_save_lnum
 		re.rex.line = rex_save_line
 		re.rex.input = rex_save_input
-		re.rex.need_clear_subexpr = rex_save_need_clear_subexpr
+		re.rex.need_clear_subexpr = (rex_save_need_clear_subexpr)
 		re.rex.reg_ic = rex_save_reg_ic
 		re.rex.reg_icombine = (rex_save_reg_icombine)
 		re.rex.reg_maxcol = rex_save_reg_maxcol
@@ -46239,8 +46239,8 @@ func regstack_pop(re *S_regengine_S) Ptr[byte] {
 
 func save_subexpr(re *S_regengine_S, bp *S_regbehind_S) {
 	var i int32
-	bp.save_need_clear_subexpr = re.rex.need_clear_subexpr
-	if re.rex.need_clear_subexpr != 0 {
+	bp.save_need_clear_subexpr = (re.rex.need_clear_subexpr)
+	if re.rex.need_clear_subexpr {
 		return
 	}
 	i = 0
@@ -46257,8 +46257,8 @@ func save_subexpr(re *S_regengine_S, bp *S_regbehind_S) {
 
 func restore_subexpr(re *S_regengine_S, bp *S_regbehind_S) {
 	var i int32
-	re.rex.need_clear_subexpr = bp.save_need_clear_subexpr
-	if re.rex.need_clear_subexpr != 0 {
+	re.rex.need_clear_subexpr = (bp.save_need_clear_subexpr)
+	if re.rex.need_clear_subexpr {
 		return
 	}
 	i = 0
@@ -47355,7 +47355,7 @@ func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) 
 
 func (ed *Editor) regtry(re *S_regengine_S, prog *S_regprog, col colnr_T, timed_out *int32) int64 {
 	re.rex.input = re.rex.line.Add(int(col))
-	re.rex.need_clear_subexpr = TRUE
+	re.rex.need_clear_subexpr = true
 	if ed.regmatch(re, prog.program.Add(1), timed_out) == 0 {
 		return 0
 	}
@@ -47608,17 +47608,17 @@ func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_
 	var rex_save_lnum linenr_T
 	var rex_save_line Ptr[byte]
 	var rex_save_input Ptr[byte]
-	var rex_save_need_clear_subexpr int32
+	var rex_save_need_clear_subexpr bool
 	var rex_save_reg_ic int32
 	var rex_save_reg_icombine bool
 	var rex_save_reg_maxcol colnr_T
-	rex_in_use_save := re.rex_in_use
+	var rex_in_use_save bool = (re.rex_in_use)
 	if rmp.regprog.re_in_use {
 		ed.emsg(ed.e_cannot_use_pattern_recursively)
 		return false
 	}
 	rmp.regprog.re_in_use = true
-	if re.rex_in_use != 0 {
+	if re.rex_in_use {
 		rex_save_reg_match = re.rex.reg_match
 		rex_save_reg_mmatch = re.rex.reg_mmatch
 		rex_save_reg_startp = re.rex.reg_startp
@@ -47633,20 +47633,20 @@ func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_
 		rex_save_lnum = re.rex.lnum
 		rex_save_line = re.rex.line
 		rex_save_input = re.rex.input
-		rex_save_need_clear_subexpr = re.rex.need_clear_subexpr
+		rex_save_need_clear_subexpr = (re.rex.need_clear_subexpr)
 		rex_save_reg_ic = re.rex.reg_ic
 		rex_save_reg_icombine = (re.rex.reg_icombine)
 		rex_save_reg_maxcol = re.rex.reg_maxcol
 	}
-	re.rex_in_use = TRUE
+	re.rex_in_use = true
 	re.rex.reg_startp = Ptr[Ptr[byte]]{}
 	re.rex.reg_endp = Ptr[Ptr[byte]]{}
 	re.rex.reg_startpos = Ptr[lpos_T]{}
 	re.rex.reg_endpos = Ptr[lpos_T]{}
 	result = ed.bt_regexec_nl(re, rmp, line, col, (nl))
 	rmp.regprog.re_in_use = false
-	re.rex_in_use = rex_in_use_save
-	if re.rex_in_use != 0 {
+	re.rex_in_use = (rex_in_use_save)
+	if re.rex_in_use {
 		re.rex.reg_match = rex_save_reg_match
 		re.rex.reg_mmatch = rex_save_reg_mmatch
 		re.rex.reg_startp = rex_save_reg_startp
@@ -47661,7 +47661,7 @@ func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_
 		re.rex.lnum = rex_save_lnum
 		re.rex.line = rex_save_line
 		re.rex.input = rex_save_input
-		re.rex.need_clear_subexpr = rex_save_need_clear_subexpr
+		re.rex.need_clear_subexpr = (rex_save_need_clear_subexpr)
 		re.rex.reg_ic = rex_save_reg_ic
 		re.rex.reg_icombine = (rex_save_reg_icombine)
 		re.rex.reg_maxcol = rex_save_reg_maxcol
@@ -47769,17 +47769,17 @@ func (ed *Editor) vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_fi
 	var rex_save_lnum linenr_T
 	var rex_save_line Ptr[byte]
 	var rex_save_input Ptr[byte]
-	var rex_save_need_clear_subexpr int32
+	var rex_save_need_clear_subexpr bool
 	var rex_save_reg_ic int32
 	var rex_save_reg_icombine bool
 	var rex_save_reg_maxcol colnr_T
-	rex_in_use_save := re.rex_in_use
+	var rex_in_use_save bool = (re.rex_in_use)
 	if rmp.regprog.re_in_use {
 		ed.emsg(ed.e_cannot_use_pattern_recursively)
 		return FALSE
 	}
 	rmp.regprog.re_in_use = true
-	if re.rex_in_use != 0 {
+	if re.rex_in_use {
 		rex_save_reg_match = re.rex.reg_match
 		rex_save_reg_mmatch = re.rex.reg_mmatch
 		rex_save_reg_startp = re.rex.reg_startp
@@ -47794,16 +47794,16 @@ func (ed *Editor) vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_fi
 		rex_save_lnum = re.rex.lnum
 		rex_save_line = re.rex.line
 		rex_save_input = re.rex.input
-		rex_save_need_clear_subexpr = re.rex.need_clear_subexpr
+		rex_save_need_clear_subexpr = (re.rex.need_clear_subexpr)
 		rex_save_reg_ic = re.rex.reg_ic
 		rex_save_reg_icombine = (re.rex.reg_icombine)
 		rex_save_reg_maxcol = re.rex.reg_maxcol
 	}
-	re.rex_in_use = TRUE
+	re.rex_in_use = true
 	result = int32(ed.bt_regexec_multi(re, rmp, win, buf, lnum, col, timed_out))
 	rmp.regprog.re_in_use = false
-	re.rex_in_use = rex_in_use_save
-	if re.rex_in_use != 0 {
+	re.rex_in_use = (rex_in_use_save)
+	if re.rex_in_use {
 		re.rex.reg_match = rex_save_reg_match
 		re.rex.reg_mmatch = rex_save_reg_mmatch
 		re.rex.reg_startp = rex_save_reg_startp
@@ -47818,7 +47818,7 @@ func (ed *Editor) vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_fi
 		re.rex.lnum = rex_save_lnum
 		re.rex.line = rex_save_line
 		re.rex.input = rex_save_input
-		re.rex.need_clear_subexpr = rex_save_need_clear_subexpr
+		re.rex.need_clear_subexpr = (rex_save_need_clear_subexpr)
 		re.rex.reg_ic = rex_save_reg_ic
 		re.rex.reg_icombine = (rex_save_reg_icombine)
 		re.rex.reg_maxcol = rex_save_reg_maxcol
@@ -48110,7 +48110,7 @@ func (ed *Editor) do_execreg(regname int32, colon bool, addcr bool, silent bool)
 			t2 = regname
 		}
 		ed.reg_executing = t2
-		ed.pending_end_reg_executing = FALSE
+		ed.pending_end_reg_executing = false
 	}
 	return (retval)
 }
@@ -49798,7 +49798,7 @@ func (ed *Editor) screen_puts_len(text Ptr[byte], textlen int32, row int32, col 
 }
 
 func (ed *Editor) start_search_hl() {
-	if (ed.p_hls == 0) || (ed.no_hlsearch != 0) {
+	if (ed.p_hls == 0) || ed.no_hlsearch {
 		return
 	}
 	ed.end_search_hl()
@@ -51103,7 +51103,7 @@ func (ed *Editor) showmode() int32 {
 	var length int32 = 0
 	var do_mode bool
 	var attr int32
-	var nwr_save int32
+	var nwr_save bool
 	var sub_attr int32
 	var show_ruler_with_pum bool = false
 	do_mode = ((ed.p_smd != 0) && (ed.msg_silent == 0)) && ((((ed.State & MODE_INSERT) != 0) || (ed.restart_edit != NUL)) || ed.VIsual_active)
@@ -51111,7 +51111,7 @@ func (ed *Editor) showmode() int32 {
 		if ed.skip_showmode() {
 			return 0
 		}
-		nwr_save = ed.need_wait_return
+		nwr_save = (ed.need_wait_return)
 		ed.check_for_delay(false)
 		need_clear = (ed.clear_cmdline)
 		if ed.clear_cmdline && (int64(ed.cmdline_row) < (ed.Rows - 1)) {
@@ -51204,7 +51204,7 @@ func (ed *Editor) showmode() int32 {
 		ed.msg_didout = FALSE
 		length = ed.msg_col
 		ed.msg_col = 0
-		ed.need_wait_return = nwr_save
+		ed.need_wait_return = (nwr_save)
 	} else if ed.clear_cmdline && (ed.msg_silent == 0) {
 		ed.msg_clr_cmdline()
 	} else if ed.redraw_mode {
@@ -51752,7 +51752,7 @@ func (ed *Editor) save_re_pat(idx int32, pat Ptr[byte], patlen usize, magic int3
 	if ed.p_hls != 0 {
 		ed.redraw_all_later(UPD_SOME_VALID)
 	}
-	ed.set_no_hlsearch(FALSE)
+	ed.set_no_hlsearch(false)
 }
 
 func (ed *Editor) save_last_search_pattern() {
@@ -51766,7 +51766,7 @@ func (ed *Editor) save_last_search_pattern() {
 		ed.saved_last_search_spat.patlen = ed.spats[RE_SEARCH].patlen
 	}
 	ed.saved_last_idx = ed.last_idx
-	ed.saved_no_hlsearch = ed.no_hlsearch
+	ed.saved_no_hlsearch = (ed.no_hlsearch)
 }
 
 func (ed *Editor) restore_last_search_pattern() {
@@ -51782,7 +51782,7 @@ func (ed *Editor) restore_last_search_pattern() {
 	ed.saved_last_search_spat.pat = Ptr[byte]{}
 	ed.saved_last_search_spat.patlen = 0
 	ed.last_idx = ed.saved_last_idx
-	ed.set_no_hlsearch(ed.saved_no_hlsearch)
+	ed.set_no_hlsearch((ed.saved_no_hlsearch))
 }
 
 func (ed *Editor) ignorecase(pat Ptr[byte]) int32 {
@@ -51840,8 +51840,8 @@ func (ed *Editor) set_csearch_direction(cdir int32) {
 	ed.lastcdir = cdir
 }
 
-func (ed *Editor) set_csearch_until(t_cmd int32) {
-	ed.last_t_cmd = t_cmd
+func (ed *Editor) set_csearch_until(t_cmd bool) {
+	ed.last_t_cmd = (t_cmd)
 }
 
 func (ed *Editor) last_search_pat() Ptr[byte] {
@@ -52344,9 +52344,9 @@ func (ed *Editor) do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat 
 			dirc = '/'
 		}
 	}
-	if (ed.no_hlsearch != 0) && ((options & SEARCH_KEEP) == 0) {
+	if ed.no_hlsearch && ((options & SEARCH_KEEP) == 0) {
 		ed.redraw_all_later(UPD_SOME_VALID)
-		ed.set_no_hlsearch(FALSE)
+		ed.set_no_hlsearch(false)
 	}
 	for {
 		show_top_bot_msg = false
@@ -52574,7 +52574,7 @@ end_do_search:
 	return retval
 }
 
-func (ed *Editor) searchc(cap_ *S_cmdarg_S, t_cmd int32) bool {
+func (ed *Editor) searchc(cap_ *S_cmdarg_S, t_cmd bool) bool {
 	c := cap_.nchar
 	dir := cap_.arg
 	count := cap_.count1
@@ -52586,7 +52586,7 @@ func (ed *Editor) searchc(cap_ *S_cmdarg_S, t_cmd int32) bool {
 		if !ed.KeyStuffed {
 			ed.lastc[0] = byte(c)
 			ed.set_csearch_direction(dir)
-			ed.set_csearch_until(t_cmd)
+			ed.set_csearch_until((t_cmd))
 			ed.lastc_bytelen = utf_char2bytes(c, ed.lastc_bytes)
 			if cap_.ncharC1 != 0 {
 				ed.lastc_bytelen += utf_char2bytes(cap_.ncharC1, ed.lastc_bytes.Add(int(ed.lastc_bytelen)))
@@ -52604,9 +52604,9 @@ func (ed *Editor) searchc(cap_ *S_cmdarg_S, t_cmd int32) bool {
 		} else {
 			dir = ed.lastcdir
 		}
-		t_cmd = ed.last_t_cmd
+		t_cmd = (ed.last_t_cmd)
 		c = int32(ed.lastc[0])
-		if (ed.vim_strchr(ed.p_cpo, CPO_SCOLON).Nil() && (count == 1)) && (t_cmd != 0) {
+		if (ed.vim_strchr(ed.p_cpo, CPO_SCOLON).Nil() && (count == 1)) && t_cmd {
 			stop = false
 		}
 	}
@@ -52646,7 +52646,7 @@ func (ed *Editor) searchc(cap_ *S_cmdarg_S, t_cmd int32) bool {
 			stop = true
 		}
 	}
-	if t_cmd != 0 {
+	if t_cmd {
 		col -= dir
 		if dir < 0 {
 			col += ed.lastc_bytelen - 1
@@ -52716,7 +52716,7 @@ func (ed *Editor) find_rawstring_end(linep Ptr[byte], startpos *pos_T, endpos *p
 	return (found)
 }
 
-func (ed *Editor) find_mps_values(initc int32, findc int32, backwards int32, switchit bool) find_mps_values__out_T {
+func (ed *Editor) find_mps_values(initc int32, findc int32, backwards bool, switchit bool) find_mps_values__out_T {
 	var prev Ptr[byte]
 
 	var out__ find_mps_values__out_T
@@ -52726,14 +52726,14 @@ func (ed *Editor) find_mps_values(initc int32, findc int32, backwards int32, swi
 			if switchit {
 				findc = initc
 				initc = ed.utf_ptr2char(ptr.Add(int(ed.utfc_ptr2len(ptr))).Add(1))
-				backwards = TRUE
+				backwards = true
 			} else {
 				findc = ed.utf_ptr2char(ptr.Add(int(ed.utfc_ptr2len(ptr))).Add(1))
-				backwards = FALSE
+				backwards = false
 			}
 			out__.initc = initc
 			out__.findc = findc
-			out__.backwards = backwards
+			out__.backwards = (backwards)
 			return out__
 		}
 		prev = ptr
@@ -52742,14 +52742,14 @@ func (ed *Editor) find_mps_values(initc int32, findc int32, backwards int32, swi
 			if switchit {
 				findc = initc
 				initc = ed.utf_ptr2char(prev)
-				backwards = FALSE
+				backwards = false
 			} else {
 				findc = ed.utf_ptr2char(prev)
-				backwards = TRUE
+				backwards = true
 			}
 			out__.initc = initc
 			out__.findc = findc
-			out__.backwards = backwards
+			out__.backwards = (backwards)
 			return out__
 		}
 		ptr = ptr.Add(int(ed.utfc_ptr2len(ptr)))
@@ -52759,7 +52759,7 @@ func (ed *Editor) find_mps_values(initc int32, findc int32, backwards int32, swi
 	}
 	out__.initc = initc
 	out__.findc = findc
-	out__.backwards = backwards
+	out__.backwards = (backwards)
 	return out__
 }
 
@@ -52771,7 +52771,7 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 	var findc int32 = 0
 	var c int32
 	var count int32 = 0
-	var backwards int32 = FALSE
+	var backwards bool = false
 	var raw_string bool = false
 	var inquote int32 = FALSE
 	var linep Ptr[byte]
@@ -52808,27 +52808,27 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 		if initc == '/' {
 			ignore_cend = true
 		}
-		var t1 int32
+		var t1 bool
 		if dir == FORWARD {
-			t1 = FALSE
+			t1 = false
 		} else {
-			t1 = TRUE
+			t1 = true
 		}
 		backwards = t1
 		raw_string = (initc == 'R')
 		initc = NUL
 	} else if (initc != '#') && (initc != NUL) {
-		find_mps_values__o = ed.find_mps_values(initc, findc, backwards, true)
+		find_mps_values__o = ed.find_mps_values(initc, findc, (backwards), true)
 		initc = find_mps_values__o.initc
 		findc = find_mps_values__o.findc
-		backwards = find_mps_values__o.backwards
+		backwards = (find_mps_values__o.backwards)
 		_ = 0
 		if dir != 0 {
-			var t2 int32
+			var t2 bool
 			if dir == FORWARD {
-				t2 = FALSE
+				t2 = false
 			} else {
-				t2 = TRUE
+				t2 = true
 			}
 			backwards = t2
 		}
@@ -52849,20 +52849,20 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 				} else if int32(linep.At(int(ed.findmatchlimit_pos.col))) == '/' {
 					if int32(linep.At(int(ed.findmatchlimit_pos.col+1))) == '*' {
 						comment_dir = FORWARD
-						backwards = FALSE
+						backwards = false
 						ed.findmatchlimit_pos.col++
 					} else if (ed.findmatchlimit_pos.col > 0) && (int32(linep.At(int(ed.findmatchlimit_pos.col-1))) == '*') {
 						comment_dir = -1
-						backwards = TRUE
+						backwards = true
 						ed.findmatchlimit_pos.col--
 					}
 				} else if int32(linep.At(int(ed.findmatchlimit_pos.col))) == '*' {
 					if int32(linep.At(int(ed.findmatchlimit_pos.col+1))) == '/' {
 						comment_dir = -1
-						backwards = TRUE
+						backwards = true
 					} else if (ed.findmatchlimit_pos.col > 0) && (int32(linep.At(int(ed.findmatchlimit_pos.col-1))) == '/') {
 						comment_dir = FORWARD
-						backwards = FALSE
+						backwards = false
 					}
 				}
 			}
@@ -52875,10 +52875,10 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 					if initc == NUL {
 						break
 					}
-					find_mps_values__o = ed.find_mps_values(initc, findc, backwards, false)
+					find_mps_values__o = ed.find_mps_values(initc, findc, (backwards), false)
 					initc = find_mps_values__o.initc
 					findc = find_mps_values__o.findc
-					backwards = find_mps_values__o.backwards
+					backwards = (find_mps_values__o.backwards)
 					_ = 0
 					if findc != 0 {
 						break
@@ -52970,14 +52970,14 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 	match_pos.lnum = 0
 	match_pos.col = 0
 	match_pos.coladd = 0
-	if ((backwards != 0) && (comment_dir != 0)) || skip_comments {
+	if (backwards && (comment_dir != 0)) || skip_comments {
 		comment_col = ed.check_linecomment(linep)
 	}
-	if (((skip_comments && !in_block_comment) && (comment_col != MAXCOL)) && (backwards != 0)) && (ed.findmatchlimit_pos.col > comment_col) {
+	if (((skip_comments && !in_block_comment) && (comment_col != MAXCOL)) && backwards) && (ed.findmatchlimit_pos.col > comment_col) {
 		ed.findmatchlimit_pos.col = comment_col
 	}
 	for ed.got_int == 0 {
-		if backwards != 0 {
+		if backwards {
 			if ed.findmatchlimit_pos.col == 0 {
 				if ed.findmatchlimit_pos.lnum == 1 {
 					break
@@ -53032,7 +53032,7 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 			}
 		}
 		if (skip_comments && (comment_dir == 0)) && (inquote == 0) {
-			if backwards != 0 {
+			if backwards {
 				if (((!in_block_comment && (ed.findmatchlimit_pos.col > 0)) && (int32(linep.At(int(ed.findmatchlimit_pos.col-1))) == '*')) && (int32(linep.At(int(ed.findmatchlimit_pos.col))) == '/')) && ((comment_col == MAXCOL) || (ed.findmatchlimit_pos.col < comment_col)) {
 					in_block_comment = true
 				} else if ((in_block_comment && (ed.findmatchlimit_pos.col > 0)) && (int32(linep.At(int(ed.findmatchlimit_pos.col-1))) == '/')) && (int32(linep.At(int(ed.findmatchlimit_pos.col))) == '*') {
@@ -53101,7 +53101,7 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 			at_start = do_quotes
 			ptr = linep
 			for ; ptr.Get() != 0; ptr = ptr.Add(1) {
-				if ptr == linep.Add(int(ed.findmatchlimit_pos.col)).Add(int(backwards)) {
+				if ptr == linep.Add(int(ed.findmatchlimit_pos.col)).Add(int(B2i(backwards))) {
 					at_start = (do_quotes & 1)
 				}
 				if (int32(ptr.Get()) == '"') && (((ptr == linep) || (int32(ptr.At(-1)) != 39)) || (int32(ptr.At(1)) != 39)) {
@@ -53121,7 +53121,7 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 						if inquote != 0 {
 							start_in_quotes = TRUE
 						}
-					} else if backwards != 0 {
+					} else if backwards {
 						inquote = TRUE
 					}
 				}
@@ -53134,7 +53134,7 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 							if inquote != 0 {
 								start_in_quotes = TRUE
 							}
-						} else if backwards == 0 {
+						} else if !backwards {
 							inquote = TRUE
 						}
 					}
@@ -53167,7 +53167,7 @@ func (ed *Editor) findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtr
 			}
 		case 39:
 			if (!cpo_match && (initc != 39)) && (findc != 39) {
-				if backwards != 0 {
+				if backwards {
 					if ed.findmatchlimit_pos.col > 1 {
 						if int32(linep.At(int(ed.findmatchlimit_pos.col-2))) == 39 {
 							ed.findmatchlimit_pos.col -= 2
@@ -55173,7 +55173,7 @@ func (ed *Editor) handle_u7_response(arg []int32, tp Ptr[byte], csi_len int32) {
 	if (arg[0] == 2) && (arg[1] >= 2) {
 		var aw Ptr[byte] = Ptr[byte]{}
 		ed.u7_status.tr_progress = STATUS_GOT
-		ed.did_cursorhold = TRUE
+		ed.did_cursorhold = true
 		if arg[1] == 2 {
 			aw = S("single")
 		} else if arg[1] == 3 {
@@ -55201,7 +55201,7 @@ func (ed *Editor) handle_u7_response(arg []int32, tp Ptr[byte], csi_len int32) {
 func (ed *Editor) handle_version_response(first int32, arg []int32, argc int32, tp Ptr[byte]) {
 	version := arg[1]
 	ed.crv_status.tr_progress = STATUS_GOT
-	ed.did_cursorhold = TRUE
+	ed.did_cursorhold = true
 	ed.init_term_props(false)
 	if int32(tp.At(0)) == CSI {
 		ed.switch_to_8bit()
@@ -55980,14 +55980,14 @@ func (ed *Editor) check_termcode(max_offset int32, buf Ptr[byte], bufsize int32,
 			if int32(key_name.At(1)) == KE_FOCUSGAINED {
 				if ed.focus_state == 0 {
 					ed.ui_focus_change(true)
-					ed.did_cursorhold = TRUE
+					ed.did_cursorhold = true
 					ed.focus_state = TRUE
 				}
 				key_name.Set(1, 53)
 			} else if int32(key_name.At(1)) == KE_FOCUSLOST {
 				if ed.focus_state != 0 {
 					ed.ui_focus_change(false)
-					ed.did_cursorhold = TRUE
+					ed.did_cursorhold = true
 					ed.focus_state = FALSE
 				}
 				key_name.Set(1, 53)
@@ -59570,7 +59570,7 @@ func (ed *Editor) vim_main2() int32 {
 		ed.newline_on_exit = true
 	}
 	ed.term_enter()
-	if (ed.need_wait_return != 0) || ed.msg_didany {
+	if ed.need_wait_return || ed.msg_didany {
 		ed.wait_return(TRUE)
 	}
 	ed.starttermcap()
@@ -59628,7 +59628,7 @@ func (ed *Editor) common_init_2(paramp *mparm_T) {
 }
 
 func (ed *Editor) op_pending() bool {
-	return !((((((ed.current_oap != nil) && (ed.finish_op == 0)) && (ed.current_oap.prev_opcount == 0)) && (ed.current_oap.prev_count0 == 0)) && (ed.current_oap.op_type == OP_NOP)) && (ed.current_oap.regname == NUL))
+	return !((((((ed.current_oap != nil) && !ed.finish_op) && (ed.current_oap.prev_opcount == 0)) && (ed.current_oap.prev_count0 == 0)) && (ed.current_oap.op_type == OP_NOP)) && (ed.current_oap.regname == NUL))
 }
 
 func (ed *Editor) is_safe_now() bool {
@@ -59659,7 +59659,7 @@ func (ed *Editor) main_loop(cmdwin bool) {
 	clear_oparg(&oa)
 	for !cmdwin {
 		if ed.stuff_empty() {
-			if ed.need_wait_return != 0 {
+			if ed.need_wait_return {
 				ed.wait_return(FALSE)
 			}
 			if (ed.need_start_insertmode && ed.goto_im()) && !ed.VIsual_active {

@@ -7,7 +7,7 @@ import whim.rt.*;
 final class S_regbehind_S implements Struct<S_regbehind_S> {
     final T_regsave_T save_after = new T_regsave_T();
     final T_regsave_T save_behind = new T_regsave_T();
-    int save_need_clear_subexpr;
+    boolean save_need_clear_subexpr;
     final T_save_se_T[] save_start = T_save_se_T.array(10);
     final T_save_se_T[] save_end = T_save_se_T.array(10);
 

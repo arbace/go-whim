@@ -18,7 +18,7 @@
         argc (long argc)
         version (long (.at arg 1))]
     (.set-tr-progress (g ed crv-status) (e STATUS_GOT))
-    (g! ed did-cursorhold (e TRUE))
+    (g! ed did-cursorhold true)
     (init-term-props ed false)
     (when (== (.ub tp 0) (e CSI))
       (switch-to-8bit ed))
@@ -869,13 +869,13 @@
                           (if (== (bit-and (long (aget key-name 1)) 0xff) (e KE_FOCUSGAINED))
                             (do (when (zero? (g ed focus-state))
                                   (ui-focus-change ed true)
-                                  (g! ed did-cursorhold (e TRUE))
+                                  (g! ed did-cursorhold true)
                                   (g! ed focus-state (e TRUE)))
                                 (aset key-name 1 (unchecked-byte 53)))
                             (when (== (bit-and (long (aget key-name 1)) 0xff) (e KE_FOCUSLOST))
                               (when-not (zero? (g ed focus-state))
                                 (ui-focus-change ed false)
-                                (g! ed did-cursorhold (e TRUE))
+                                (g! ed did-cursorhold true)
                                 (g! ed focus-state (e FALSE)))
                               (aset key-name 1 (unchecked-byte 53)))))
                         (let [key_ (long (handle-x-keys (i32 (- (i32 (+ (bit-and (long (aget key-name 0)) 0xff) (i32 (bit-shift-left (bit-and (long (aget key-name 1)) 0xff) 8))))))))
@@ -1004,7 +1004,7 @@
             (if (and (< n 0) (or (zero? (long (aget (g ed p-ttimeout) 0))) (< (* waited 100) (if (< (aget (g ed p-ttm) 0) 0) (aget (g ed p-tm) 0) (aget (g ed p-ttm) 0)))))
               (recur buf buflen waited)
               (if (== n (e KEYLEN_REMOVED))
-                (if (and (not (== (g ed must-redraw) 0)) (zero? (g ed need-wait-return)) (== (bit-and (g ed State) 12297) 0))
+                (if (and (not (== (g ed must-redraw) 0)) (not (g ed need-wait-return)) (== (bit-and (g ed State) 12297) 0))
                   (do (update-screen ed 0)
                       (setcursor ed)
                       (recur buf buflen waited))
@@ -1224,7 +1224,7 @@
                                             ^BytePtr sb-str (aget to__ 2)
                                             sb-col (aget tl__ 1)]
                                         (inc-msg-scrolled ed)
-                                        (g! ed need-wait-return (e TRUE))
+                                        (g! ed need-wait-return true)
                                         (g! ed redraw-cmdline (e TRUE))
                                         (when (> (g ed cmdline-row) 0)
                                           (g! ed cmdline-row (i32 (dec (g ed cmdline-row)))))
@@ -1498,7 +1498,7 @@
                 (do (typeahead-noflush ed 58)
                     (g! ed cmdline-row (i32 (- (aget (g ed Rows) 0) 1)))
                     (g! ed skip-redraw true)
-                    (g! ed need-wait-return (e FALSE))
+                    (g! ed need-wait-return false)
                     (recur 4 typed-char used-typed-char oldState toscroll mp-last mp i msg-attr did-clear))
               9
                 (recur 4 typed-char used-typed-char oldState toscroll mp-last mp i msg-attr did-clear)
@@ -1659,7 +1659,7 @@
       (if (== (g ed msg-silent) 0)
         (if (> (g ed vgetc-busy) 0)
           nil
-          (let [_ (g! ed need-wait-return (e TRUE))]
+          (let [_ (g! ed need-wait-return true)]
             (if (zero? (g ed no-wait-return))
               (let [oldState (g ed State)]
                 (let [c (long (if (g ed quit-more)
@@ -1742,7 +1742,7 @@
                             (let [_ (g! ed newline-on-exit true)]
                               nil)
                             nil)
-                        (let [_ (g! ed need-wait-return (e FALSE))
+                        (let [_ (g! ed need-wait-return false)
                               _ (g! ed did-wait-return true)
                               _ (g! ed emsg-on-display false)
                               _ (g! ed lines-left -1)
@@ -2213,7 +2213,7 @@
         0))))
 
 ;; C: handle_mapping
-(defn handle-mapping ^T_handle_mapping__out_T [^Editor ed ^long keylenp ^long timedout ^long mapdepth]
+(defn handle-mapping ^T_handle_mapping__out_T [^Editor ed ^long keylenp timedout ^long mapdepth]
   (let [^T_handle_mapping__out_T out__ (new-T_handle_mapping__out_T)
         ^objects p1 (object-array 1)
         ^longs tl__ (long-array 3)
@@ -2329,7 +2329,7 @@
           (if (and (not is-plug-map) (>= n 0))
             (recur 11 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)
             (if (> keylen (.tb-len (g ed typebuf)))
-              (if (and (zero? timedout) (not (and (some? mp-match) (not (zero? (.m-nowait mp-match))))))
+              (if (and (not timedout) (not (and (some? mp-match) (not (zero? (.m-nowait mp-match))))))
                 (let [keylen -2]
                   (recur 6 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
                 (recur 11 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
@@ -2373,7 +2373,7 @@
                 (let [keylenp keylen]
                   (.set-r__ out__ (e map_result_retry))
                   (.set-keylenp out__ keylenp)
-                  (.set-timedout out__ timedout)
+                  (.set-timedout out__ (boolean timedout))
                   (.set-mapdepth out__ mapdepth)
                   out__))
             (if (== mlen (.tb-len (g ed typebuf)))
@@ -2384,13 +2384,13 @@
                   (recur 10 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
                 (recur 10 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))))
         10
-          (let [j__6 (if (or in-osc (and (or (nil? mp) (> (i32 (+ max-mlen want-termcode)) mp-match-len) (and (== mp-match-len 1) (== (.ub ^BytePtr (.m-keys mp)) (e ESC)) (zero? timedout))) (not (== keylen -2))))
+          (let [j__6 (if (or in-osc (and (or (nil? mp) (> (i32 (+ max-mlen want-termcode)) mp-match-len) (and (== mp-match-len 1) (== (.ub ^BytePtr (.m-keys mp)) (e ESC)) (not timedout))) (not (== keylen -2))))
                        (let [save-keylen keylen
                              j__4 (if (or in-osc (== (g ed no-mapping) 0) (not (== (g ed allow-keys) 0)))
-                                    (let [keylen (if (or in-osc (and (or (== (.tb-maplen (g ed typebuf)) 0) (and (not (zero? (long (aget (g ed p-remap) 0)))) (== (bit-and (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) -9) (e RM_YES)))) (zero? timedout)))
+                                    (let [keylen (if (or in-osc (and (or (== (.tb-maplen (g ed typebuf)) 0) (and (not (zero? (long (aget (g ed p-remap) 0)))) (== (bit-and (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) -9) (e RM_YES)))) (not timedout)))
                                                    (long (check-termcode ed (i32 (+ max-mlen 1)) nil 0 nil))
                                                    0)
-                                          keylen (if (and (== keylen 0) (== save-keylen -1) (zero? timedout))
+                                          keylen (if (and (== keylen 0) (== save-keylen -1) (not timedout))
                                                    -1
                                                    keylen)
                                           j__3 (if (and (== keylen 0) (not (g ed no-reduce-keys)))
@@ -2398,7 +2398,7 @@
                                                    (if (< keylen 0)
                                                      (do (.set-r__ out__ (e map_result_fail))
                                                          (.set-keylenp out__ keylenp)
-                                                         (.set-timedout out__ timedout)
+                                                         (.set-timedout out__ (boolean timedout))
                                                          (.set-mapdepth out__ mapdepth)
                                                          (aset to__ 2 out__)
                                                          -1)
@@ -2428,7 +2428,7 @@
                                           (let [keylenp keylen]
                                             (.set-r__ out__ (e map_result_get))
                                             (.set-keylenp out__ keylenp)
-                                            (.set-timedout out__ timedout)
+                                            (.set-timedout out__ (boolean timedout))
                                             (.set-mapdepth out__ mapdepth)
                                             (aset to__ 2 out__)
                                             -1)
@@ -2441,7 +2441,7 @@
                                  (let [keylenp keylen]
                                    (.set-r__ out__ (e map_result_retry))
                                    (.set-keylenp out__ keylenp)
-                                   (.set-timedout out__ timedout)
+                                   (.set-timedout out__ (boolean timedout))
                                    (.set-mapdepth out__ mapdepth)
                                    (aset to__ 2 out__)
                                    -1)
@@ -2473,7 +2473,7 @@
                                     keylenp keylen]
                                 (.set-r__ out__ (e map_result_fail))
                                 (.set-keylenp out__ keylenp)
-                                (.set-timedout out__ timedout)
+                                (.set-timedout out__ (boolean timedout))
                                 (.set-mapdepth out__ mapdepth)
                                 out__))
                           (do (when (and (g ed VIsual-active) (not (zero? (g ed VIsual-select))) (not (zero? (bit-and (.m-mode mp) (e MODE_VISUAL)))))
@@ -2492,18 +2492,18 @@
                                 (if (== (if i 1 0) (e FAIL))
                                   (do (.set-r__ out__ (e map_result_fail))
                                       (.set-keylenp out__ keylenp)
-                                      (.set-timedout out__ timedout)
+                                      (.set-timedout out__ (boolean timedout))
                                       (.set-mapdepth out__ mapdepth)
                                       out__)
                                   (do (.set-r__ out__ (e map_result_retry))
                                       (.set-keylenp out__ keylenp)
-                                      (.set-timedout out__ timedout)
+                                      (.set-timedout out__ (boolean timedout))
                                       (.set-mapdepth out__ mapdepth)
                                       out__)))))))
                   (let [keylenp keylen]
                     (.set-r__ out__ (e map_result_nomatch))
                     (.set-keylenp out__ keylenp)
-                    (.set-timedout out__ timedout)
+                    (.set-timedout out__ (boolean timedout))
                     (.set-mapdepth out__ mapdepth)
                     out__)))))
         11
@@ -2747,7 +2747,7 @@
     (loop [st 0
            advance advance
            c 0
-           timedout 0
+           timedout false
            mapdepth 0
            mode-deleted false
            new-wcol 0
@@ -2762,7 +2762,7 @@
            showing-partial false]
       (case st
         0
-          (let [timedout (e FALSE)
+          (let [timedout false
                 mapdepth 0
                 mode-deleted false]
             (if (and (> (g ed vgetc-busy) 0) (== (g ed ex-normal-busy) 0))
@@ -2919,11 +2919,11 @@
                   (recur 8 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
             (do (.set-tb-len (g ed typebuf) (i32 (+ (.tb-len (g ed typebuf)) c)))
                 (if (>= (.tb-len (g ed typebuf)) (i32 (+ (.tb-maplen (g ed typebuf)) (e MAXMAPLEN))))
-                  (let [timedout (e TRUE)]
+                  (let [timedout true]
                     (recur 2 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                   (if (> (g ed ex-normal-busy) 0)
                     (if (> (.tb-len (g ed typebuf)) 0)
-                      (let [timedout (e TRUE)]
+                      (let [timedout true]
                         (recur 2 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                       (let [c (if (and (not (zero? (long (aget (g ed p-im) 0)))) (not (zero? (bit-and (g ed State) (e MODE_INSERT)))))
                                 (e Ctrl_L)
@@ -2932,7 +2932,7 @@
                                   (e Ctrl_C)))]
                         (.set-tb-no-abbr-cnt (g ed typebuf) 0)
                         (recur 13 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
-                    (do (when (and (or (not (== (bit-and (g ed State) (e MODE_INSERT)) 0)) (not (zero? (long (aget (g ed p-lz) 0))))) (== (bit-and (g ed State) (e MODE_CMDLINE)) 0) advance (not (== (g ed must-redraw) 0)) (zero? (g ed need-wait-return)))
+                    (do (when (and (or (not (== (bit-and (g ed State) (e MODE_INSERT)) 0)) (not (zero? (long (aget (g ed p-lz) 0))))) (== (bit-and (g ed State) (e MODE_CMDLINE)) 0) advance (not (== (g ed must-redraw) 0)) (not (g ed need-wait-return)))
                           (update-screen ed 0)
                           (setcursor ed))
                         (let [showcmd-idx 0
@@ -2966,13 +2966,13 @@
                 (recur 10 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
         10
           (if (and (not (zero? (bit-and (g ed State) (e MODE_CMDLINE)))) (some? (.cmdbuff ^T_cmdline_info_T (get-cmdline-info ed))) (== (long (ptr2cells ed (.add (.add (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) (.tb-len (g ed typebuf))) (- 1)))) 1))
-            (do (putcmdline ed (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (- (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf)))) 1))) (e FALSE))
+            (do (putcmdline ed (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (- (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf)))) 1))) false)
                 (let [showing-partial true]
                   (recur 11 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
             (recur 11 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
         11
           (let [timedout (if (== (.tb-len (g ed typebuf)) 0)
-                           (e FALSE)
+                           false
                            timedout)
                 wait-time (if advance
                             (if (or (== (.tb-len (g ed typebuf)) 0) (not (or (not (zero? (long (aget (g ed p-timeout) 0)))) (and (not (zero? (long (aget (g ed p-ttimeout) 0)))) (== keylen -1)))))
@@ -2996,7 +2996,7 @@
               (if (== c (e NUL))
                 (if advance
                   (if (> wait-tb-len 0)
-                    (let [timedout (e TRUE)]
+                    (let [timedout true]
                       (recur 2 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                     (recur 2 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                   (recur 13 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
@@ -3021,7 +3021,7 @@
                       (if (and (not (zero? (.tb-len (g ed typebuf)))) (not (g ed KeyTyped)))
                         (g! ed redraw-cmdline (e TRUE))
                         (showmode ed)))))
-                (if (and (not (zero? timedout)) (== c (e ESC)))
+                (if (and timedout (== c (e ESC)))
                   (do (gotchars-ignore ed)
                       (g! ed vgetc-busy (i32 (dec (g ed vgetc-busy))))
                       c)
@@ -4474,7 +4474,7 @@
                      (bit-and attr -4097))
                  attr)]
       (when (and (not (== (g ed msg-scrolled) 0)) (not (g ed msg-scrolled-ign)) (not (== (long (musl-strcmp str_ (BytePtr/lit "\015"))) 0)))
-        (g! ed need-wait-return (e TRUE)))
+        (g! ed need-wait-return true))
       (g! ed msg-didany true)
       (if (msg-use-printf ed)
         (do (whim.cljhost/host-message ed str_ maxlen (if (not (g ed info-message)) 1 0))
@@ -4520,7 +4520,7 @@
   (if (and (zero? (g ed msg-scroll)) (not (zero? (g ed full-screen))))
     (do (g! ed msg-row (g ed cmdline-row))
         (g! ed msg-col 0))
-    (when (or (not (zero? (g ed msg-didout))) (not (zero? (g ed in-echowindow))))
+    (when (or (not (zero? (g ed msg-didout))) (g ed in-echowindow))
       (msg-putchar ed 10)
       (g! ed cmdline-row (g ed msg-row))))
   (when (or (not (g ed msg-didany)) (< (g ed lines-left) 0))
@@ -4571,7 +4571,7 @@
         (do (g! ed emsg-on-display true)
             (let [attr (long (aget (g ed highlight-attr) 4))]
               (when-not (== (g ed msg-scrolled) 0)
-                (g! ed need-wait-return (e TRUE)))
+                (g! ed need-wait-return true))
               (g! ed msg-scroll (e TRUE))
               (msg-source ed attr)
               (g! ed msg-nowait false)
@@ -4841,7 +4841,7 @@
             (g! ed msg-scroll n)
             nil))
       (let [^BytePtr p (msg-trunc-attr ed buffer false 0)]
-        (when (or (not (== (g ed restart-edit) 0)) (and (not (zero? (g ed msg-scrolled))) (zero? (g ed need-wait-return))))
+        (when (or (not (== (g ed restart-edit) 0)) (and (not (zero? (g ed msg-scrolled))) (not (g ed need-wait-return))))
           (set-keep-msg ed p 0)
           nil)))))
 
@@ -5865,7 +5865,7 @@
     (when (and (g ed ins-at-eol) (== (long (gchar-cursor ed)) (e NUL)))
       (.put o-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
     (if (ins-esc ed count_ cmdchar nomove)
-      (do (g! ed did-cursorhold (e FALSE))
+      (do (g! ed did-cursorhold false)
           (if (and (not (char-avail ed)) (== (.b-last-changedtick-i (g ed curbuf)) (.b-changedtick (g ed curbuf))))
             (do (.set-b-last-changedtick (g ed curbuf) (.b-changedtick (g ed curbuf)))
                 true)
@@ -5919,14 +5919,13 @@
 (defn shift-line [^Editor ed left round amount call-changed-bytes]
   (let [round (long round)
         amount (long amount)
-        call-changed-bytes (long call-changed-bytes)
         sw-val (aget ^longs (.-b-p-sw (g ed curbuf)) 0)
         ts-val (aget ^longs (.-b-p-ts (g ed curbuf)) 0)
         count_ (if (== sw-val 0)
                  (long (get-new-sw-indent ed left round amount ts-val))
                  (long (get-new-sw-indent ed left round amount sw-val)))]
     (if (zero? (bit-and (g ed State) (e VREPLACE_FLAG)))
-      (do (set-indent ed (long (trim-to-int count_)) (if (zero? call-changed-bytes) 0 (e SIN_CHANGED)))
+      (do (set-indent ed (long (trim-to-int count_)) (if call-changed-bytes (e SIN_CHANGED) 0))
           nil)
       (do (change-indent ed (e INDENT_SET) (long (trim-to-int count_)) false (e NUL) call-changed-bytes)
           nil))))
@@ -6098,7 +6097,6 @@
   (let [type_ (long type_)
         amount (long amount)
         replaced (long replaced)
-        call-changed-bytes (long call-changed-bytes)
         ^T_chartabsize_T cts (new-T_chartabsize_T)
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 1)]
@@ -6150,7 +6148,7 @@
                             -1
                             start-col)]
             (if (== type_ (e INDENT_SET))
-              (set-indent ed amount (if (zero? call-changed-bytes) 0 (e SIN_CHANGED)))
+              (set-indent ed amount (if call-changed-bytes (e SIN_CHANGED) 0))
               (let [save-State (g ed State)]
                 (when-not (zero? (bit-and (g ed State) (e VREPLACE_FLAG)))
                   (g! ed State (e MODE_INSERT)))
@@ -6307,7 +6305,7 @@
                                   (if (zero? (bit-and (g ed State) (e VREPLACE_FLAG)))
                                     (let [_ (set-indent ed i (e SIN_CHANGED))]
                                       nil)
-                                    (let [_ (change-indent ed (e INDENT_SET) i false (e NUL) (e TRUE))]
+                                    (let [_ (change-indent ed (e INDENT_SET) i false (e NUL) true)]
                                       nil)))))))))
                     (if (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)
                       (let [temp true]
@@ -6334,7 +6332,7 @@
                                             temp))))
                                     temp))]
                           (if temp
-                            (let [_ (shift-line ed true (e FALSE) 1 (e TRUE))]
+                            (let [_ (shift-line ed true (e FALSE) 1 true)]
                               nil)
                             nil)))
                       nil)))))
@@ -6799,10 +6797,10 @@
           nil)))))
 
 ;; C: edit_normalchar
-(defn edit-normalchar ^long [^Editor ed ^long c ^long inserted-space]
+(defn edit-normalchar [^Editor ed ^long c inserted-space]
   (ins-try-si ed c)
   (let [inserted-space (if (== c 32)
-                         (e TRUE)
+                         true
                          inserted-space)]
     (if (or (vim-iswordc? ed c) (not (== c (e Ctrl_RSB))))
       (do (insert-special ed c false false)
@@ -6865,7 +6863,7 @@
 
 ;; C: op_pending
 (defn op-pending? [^Editor ed]
-  (not (and (some? (g ed current-oap)) (zero? (g ed finish-op)) (== (.prev-opcount (g ed current-oap)) 0) (== (.prev-count0 (g ed current-oap)) 0) (== (.op-type (g ed current-oap)) (e OP_NOP)) (== (.regname (g ed current-oap)) (e NUL)))))
+  (not (and (some? (g ed current-oap)) (not (g ed finish-op)) (== (.prev-opcount (g ed current-oap)) 0) (== (.prev-count0 (g ed current-oap)) 0) (== (.op-type (g ed current-oap)) (e OP_NOP)) (== (.regname (g ed current-oap)) (e NUL)))))
 
 ;; C: work_pending
 (defn work-pending? [^Editor ed]
@@ -9566,8 +9564,8 @@
             (replace-pop-ins ed))
           (when (== lastc 94)
             (g! ed old-indent (long (get-indent ed))))
-          (change-indent ed (e INDENT_SET) 0 true 0 (e TRUE)))
-      (change-indent ed (if (== c (e Ctrl_D)) (e INDENT_DEC) (e INDENT_INC)) 0 true 0 (e TRUE)))
+          (change-indent ed (e INDENT_SET) 0 true 0 true))
+      (change-indent ed (if (== c (e Ctrl_D)) (e INDENT_DEC) (e INDENT_INC)) 0 true 0 true))
     (when (and (g ed did-ai) (not (== (.ub ^BytePtr (skipwhite (ml-get-curline ed))) (e NUL))))
       (g! ed did-ai false))
     (g! ed did-si false)
@@ -9743,7 +9741,7 @@
     nil))
 
 ;; C: ins_bs
-(defn ins-bs ^T_ins_bs__out_T [^Editor ed ^long c ^long mode ^long inserted-space-p]
+(defn ins-bs ^T_ins_bs__out_T [^Editor ed ^long c ^long mode inserted-space-p]
   (let [^T_ins_bs__out_T out__ (new-T_ins_bs__out_T)
         ^ints cpc (int-array 6)
         ^longs tl__ (long-array 2)
@@ -9777,7 +9775,7 @@
             (if (or (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (.ub ^BytePtr (ml-get ed 1)) (e NUL))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)) (and (not (can-bs ed (e BS_START))) (or (g ed arrow-used) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart-orig))) (<= (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart-orig)))))) (and (not (can-bs ed (e BS_INDENT))) (not (g ed arrow-used)) (> (g ed ai-col) 0) (<= (.col ^T_pos_T (.-w-cursor (g ed curwin))) (g ed ai-col))) (and (not (can-bs ed (e BS_EOL))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)))
               (do (vim-beep ed (e BO_BS))
                   (.set-r__ out__ (boolean false))
-                  (.set-inserted-space-p out__ inserted-space-p)
+                  (.set-inserted-space-p out__ (boolean inserted-space-p))
                   out__)
               (if (stop-arrow ed)
                 (let [in-indent (inindent ed 0)
@@ -9785,13 +9783,13 @@
                              (if (== mode (e BACKSPACE_CHAR))
                                (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))
                                    (.set-r__ out__ (boolean true))
-                                   (.set-inserted-space-p out__ inserted-space-p)
+                                   (.set-inserted-space-p out__ (boolean inserted-space-p))
                                    (aset to__ 0 out__)
                                    -1)
                                (if (== mode (e BACKSPACE_WORD))
                                  (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
                                      (.set-r__ out__ (boolean true))
-                                     (.set-inserted-space-p out__ inserted-space-p)
+                                     (.set-inserted-space-p out__ (boolean inserted-space-p))
                                      (aset to__ 0 out__)
                                      -1)
                                  (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
@@ -9807,7 +9805,7 @@
                                          (.set-col (g ed Insstart) (long (ml-get-len ed (.lnum (g ed Insstart)))))
                                          0)
                                      (do (.set-r__ out__ (boolean false))
-                                         (.set-inserted-space-p out__ inserted-space-p)
+                                         (.set-inserted-space-p out__ (boolean inserted-space-p))
                                          (aset to__ 0 out__)
                                          -1))
                                    0)]
@@ -9856,11 +9854,11 @@
                                        0))
                             mincol (aget tl__ 0)
                             call-fix-indent (boolean (aget to__ 1))]
-                        (if (and (== mode (e BACKSPACE_CHAR)) (or (and (not (zero? (long (aget (g ed p-sta) 0)))) in-indent) (and (not (== (long (get-sts-value ed)) 0)) (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (== (.ub (.add ^BytePtr (ml-get-cursor ed) (- 1))) (e TAB)) (and (== (.ub (.add ^BytePtr (ml-get-cursor ed) (- 1))) 32) (or (zero? inserted-space-p) (g ed arrow-used)))))))
+                        (if (and (== mode (e BACKSPACE_CHAR)) (or (and (not (zero? (long (aget (g ed p-sta) 0)))) in-indent) (and (not (== (long (get-sts-value ed)) 0)) (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (== (.ub (.add ^BytePtr (ml-get-cursor ed) (- 1))) (e TAB)) (and (== (.ub (.add ^BytePtr (ml-get-cursor ed) (- 1))) 32) (or (not inserted-space-p) (g ed arrow-used)))))))
                           (let [vcol 0
                                 space-vcol 0
                                 prev-space false
-                                inserted-space-p (e FALSE)
+                                inserted-space-p false
                                 ^BytePtr line (ml-get-curline ed)
                                 ^BytePtr ptr line
                                 ^BytePtr space-ptr ptr
@@ -9871,7 +9869,7 @@
                                 cclass (long (mb-get-class ed (ml-get-cursor ed)))]
                             (recur 1 c mode inserted-space-p cc temp mincol did-backspace in-indent oldState call-fix-indent vcol want-vcol line ptr cursor-ptr space-ptr space-vcol prev-space want-col cclass)))))))
                 (do (.set-r__ out__ (boolean false))
-                    (.set-inserted-space-p out__ inserted-space-p)
+                    (.set-inserted-space-p out__ (boolean inserted-space-p))
                     out__))))
         1
           (do (dec-cursor ed)
@@ -9983,10 +9981,10 @@
               (if (and (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BACKSPACE))) (== (g ed dollar-vcol) -1))
                 (do (g! ed dollar-vcol (long (aget ^ints (.-w-virtcol (g ed curwin)) 0)))
                     (.set-r__ out__ (boolean did-backspace))
-                    (.set-inserted-space-p out__ inserted-space-p)
+                    (.set-inserted-space-p out__ (boolean inserted-space-p))
                     out__)
                 (do (.set-r__ out__ (boolean did-backspace))
-                    (.set-inserted-space-p out__ inserted-space-p)
+                    (.set-inserted-space-p out__ (boolean inserted-space-p))
                     out__)))))))
 
 (defn getcmdkeycmd ^BytePtr [^Editor ed ^long promptc ^long indent ^long do-concat]
@@ -11100,7 +11098,7 @@
            lastc 0
            did-backspace false
            old-topline 0
-           inserted-space 0
+           inserted-space false
            replaceState 0
            nomove false
            ins-just-started false]
@@ -11111,7 +11109,7 @@
                 lastc 0
                 did-backspace true
                 old-topline 0
-                inserted-space (e FALSE)
+                inserted-space false
                 replaceState 272
                 nomove false
                 ins-just-started true]
@@ -11274,7 +11272,7 @@
                 (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
             (recur 4 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
         4
-          (do (g! ed did-cursorhold (e TRUE))
+          (do (g! ed did-cursorhold true)
               (when (and (g ed KeyTyped) (not (g ed KeyStuffed)))
                 (win-ensure-size ed))
               (if (== c (e Ctrl_BSL))
@@ -11321,7 +11319,7 @@
                       (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 1
                   (if (zero? (long (aget (g ed p-im) 0)))
-                    (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                    (let [inserted-space (edit-normalchar ed c inserted-space)]
                       (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                     (do (do-cmdline-cmd ed (BytePtr/lit "stop"))
                         (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
@@ -11352,18 +11350,18 @@
                     (if (edit-esc ed (LongPtr. count_ 0) cmdchar nomove (LongPtr. (g ed edit-o-lnum) 0))
                       (== c (e Ctrl_O))
                       (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
-                    (let [inserted-space (e FALSE)]
+                    (let [inserted-space false]
                       (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 7
                   (do (ins-reg ed)
-                      (let [inserted-space (e FALSE)]
+                      (let [inserted-space false]
                         (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 8
                   (do (ins-ctrl-g ed)
                       (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                 9
                   (do (ins-shift ed c lastc)
-                      (let [inserted-space (e FALSE)]
+                      (let [inserted-space false]
                         (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 10
                   (do (ins-del ed)
@@ -11381,7 +11379,7 @@
                 13
                   (do (.set ins-bs__o (ins-bs ed c (e BACKSPACE_LINE) inserted-space))
                       (let [did-backspace (.r__ ins-bs__o)
-                            inserted-space (e FALSE)]
+                            inserted-space false]
                         (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 14
                   (do (bracketed-paste ed (e PASTE_INSERT) false nil)
@@ -11399,7 +11397,7 @@
                           (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                       (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
                 16
-                  (do (g! ed did-cursorhold (e TRUE))
+                  (do (g! ed did-cursorhold true)
                       (if (== (g ed dont-sync-undo) (e TRUE))
                         (do (g! ed dont-sync-undo (e MAYBE))
                             (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
@@ -11462,20 +11460,20 @@
                 31
                   (recur 6 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)
                 32
-                  (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                  (let [inserted-space (edit-normalchar ed c inserted-space)]
                     (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                 33
-                  (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                  (let [inserted-space (edit-normalchar ed c inserted-space)]
                     (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                 34
-                  (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                  (let [inserted-space (edit-normalchar ed c inserted-space)]
                     (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                 35
-                  (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                  (let [inserted-space (edit-normalchar ed c inserted-space)]
                     (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                 36
                   (if (zero? (long (aget (g ed p-im) 0)))
-                    (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                    (let [inserted-space (edit-normalchar ed c inserted-space)]
                       (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                     (if (edit-esc ed (LongPtr. count_ 0) cmdchar nomove (LongPtr. (g ed edit-o-lnum) 0))
                       (== c (e Ctrl_O))
@@ -11494,26 +11492,26 @@
                     (if (edit-esc ed (LongPtr. count_ 0) cmdchar nomove (LongPtr. (g ed edit-o-lnum) 0))
                       (== c (e Ctrl_O))
                       (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
-                  (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+                  (let [inserted-space (edit-normalchar ed c inserted-space)]
                     (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))))))
         6
           (if (and (not (ins-eol ed c)) (zero? (long (aget (g ed p-im) 0))))
             (if (edit-esc ed (LongPtr. count_ 0) cmdchar nomove (LongPtr. (g ed edit-o-lnum) 0))
               (== c (e Ctrl_O))
               (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
-            (let [inserted-space (e FALSE)]
+            (let [inserted-space false]
               (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
         7
-          (let [inserted-space (e FALSE)]
+          (let [inserted-space false]
             (if (ins-tab ed)
-              (let [inserted-space (long (edit-normalchar ed c inserted-space))]
+              (let [inserted-space (edit-normalchar ed c inserted-space)]
                 (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
               (recur 8 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))
         8
           (do (when (and (not (== c (e K_CURSORHOLD))) (not (== c (e K_COMPLETE_DELAY))))
-                (g! ed did-cursorhold (e FALSE)))
+                (g! ed did-cursorhold false))
               (if (g ed arrow-used)
-                (let [inserted-space (e FALSE)]
+                (let [inserted-space false]
                   (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started))
                 (recur 1 cmdchar startln c esc-now ptr lastc did-backspace old-topline inserted-space replaceState nomove ins-just-started)))))))
 
@@ -12222,7 +12220,7 @@
                         indent indent
                         empty_ empty_]
                    (g! ed msg-scroll (e TRUE))
-                   (g! ed need-wait-return (e FALSE))
+                   (g! ed need-wait-return false)
                    (let [indent (if (zero? (long (aget ^ints (.-b-p-ai (g ed curbuf)) 0)))
                                   indent
                                   (if (>= (g ed append-indent) 0)
@@ -12319,7 +12317,7 @@
         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
         (check-cursor-lnum ed)
         (beginline ed 6)
-        (g! ed need-wait-return (e FALSE))
+        (g! ed need-wait-return false)
         nil))))
 
 ;; C: ex_change
@@ -13154,34 +13152,15 @@
         rex-save-lnum 0
         ^BytePtr rex-save-line nil
         ^BytePtr rex-save-input nil
-        rex-save-need-clear-subexpr 0
+        rex-save-need-clear-subexpr false
         rex-save-reg-ic 0
         rex-save-reg-icombine false
         rex-save-reg-maxcol 0
-        ^longs tl__ (long-array 7)
-        ^objects to__ (object-array 12)
+        ^longs tl__ (long-array 6)
+        ^objects to__ (object-array 13)
         ^S_regengine_S re (g ed reg-engine)
         rex-in-use-save (.rex-in-use re)
-        j__1 (if (zero? (.rex-in-use re))
-               (do (aset to__ 0 rex-save-reg-match)
-                   (aset to__ 1 rex-save-reg-mmatch)
-                   (aset to__ 2 rex-save-reg-startp)
-                   (aset to__ 3 rex-save-reg-endp)
-                   (aset to__ 4 rex-save-reg-startpos)
-                   (aset to__ 5 rex-save-reg-endpos)
-                   (aset to__ 6 rex-save-reg-win)
-                   (aset to__ 7 rex-save-reg-buf)
-                   (aset tl__ 0 rex-save-reg-firstlnum)
-                   (aset tl__ 1 rex-save-reg-maxline)
-                   (aset to__ 8 (Boolean/valueOf (boolean rex-save-reg-line-lbr)))
-                   (aset tl__ 2 rex-save-lnum)
-                   (aset to__ 9 rex-save-line)
-                   (aset to__ 10 rex-save-input)
-                   (aset tl__ 3 rex-save-need-clear-subexpr)
-                   (aset tl__ 4 rex-save-reg-ic)
-                   (aset to__ 11 (Boolean/valueOf (boolean rex-save-reg-icombine)))
-                   (aset tl__ 5 rex-save-reg-maxcol)
-                   0)
+        j__1 (if (.rex-in-use re)
                (let [^T_regmatch_T rex-save-reg-match (.reg-match ^T_regexec_T (.-rex re))
                      ^T_regmmatch_T rex-save-reg-mmatch (.reg-mmatch ^T_regexec_T (.-rex re))
                      ^Ptr rex-save-reg-startp (.reg-startp ^T_regexec_T (.-rex re))
@@ -13214,11 +13193,30 @@
                  (aset tl__ 2 rex-save-lnum)
                  (aset to__ 9 rex-save-line)
                  (aset to__ 10 rex-save-input)
-                 (aset tl__ 3 rex-save-need-clear-subexpr)
-                 (aset tl__ 4 rex-save-reg-ic)
-                 (aset to__ 11 (Boolean/valueOf (boolean rex-save-reg-icombine)))
-                 (aset tl__ 5 rex-save-reg-maxcol)
-                 0))
+                 (aset to__ 11 (Boolean/valueOf (boolean rex-save-need-clear-subexpr)))
+                 (aset tl__ 3 rex-save-reg-ic)
+                 (aset to__ 12 (Boolean/valueOf (boolean rex-save-reg-icombine)))
+                 (aset tl__ 4 rex-save-reg-maxcol)
+                 0)
+               (do (aset to__ 0 rex-save-reg-match)
+                   (aset to__ 1 rex-save-reg-mmatch)
+                   (aset to__ 2 rex-save-reg-startp)
+                   (aset to__ 3 rex-save-reg-endp)
+                   (aset to__ 4 rex-save-reg-startpos)
+                   (aset to__ 5 rex-save-reg-endpos)
+                   (aset to__ 6 rex-save-reg-win)
+                   (aset to__ 7 rex-save-reg-buf)
+                   (aset tl__ 0 rex-save-reg-firstlnum)
+                   (aset tl__ 1 rex-save-reg-maxline)
+                   (aset to__ 8 (Boolean/valueOf (boolean rex-save-reg-line-lbr)))
+                   (aset tl__ 2 rex-save-lnum)
+                   (aset to__ 9 rex-save-line)
+                   (aset to__ 10 rex-save-input)
+                   (aset to__ 11 (Boolean/valueOf (boolean rex-save-need-clear-subexpr)))
+                   (aset tl__ 3 rex-save-reg-ic)
+                   (aset to__ 12 (Boolean/valueOf (boolean rex-save-reg-icombine)))
+                   (aset tl__ 4 rex-save-reg-maxcol)
+                   0))
         ^T_regmatch_T rex-save-reg-match (aget to__ 0)
         ^T_regmmatch_T rex-save-reg-mmatch (aget to__ 1)
         ^Ptr rex-save-reg-startp (aget to__ 2)
@@ -13233,11 +13231,11 @@
         rex-save-lnum (aget tl__ 2)
         ^BytePtr rex-save-line (aget to__ 9)
         ^BytePtr rex-save-input (aget to__ 10)
-        rex-save-need-clear-subexpr (aget tl__ 3)
-        rex-save-reg-ic (aget tl__ 4)
-        rex-save-reg-icombine (boolean (aget to__ 11))
-        rex-save-reg-maxcol (aget tl__ 5)]
-    (.set-rex-in-use re (e TRUE))
+        rex-save-need-clear-subexpr (boolean (aget to__ 11))
+        rex-save-reg-ic (aget tl__ 3)
+        rex-save-reg-icombine (boolean (aget to__ 12))
+        rex-save-reg-maxcol (aget tl__ 4)]
+    (.set-rex-in-use re (boolean true))
     (.set-reg-match ^T_regexec_T (.-rex re) nil)
     (.set-reg-mmatch ^T_regexec_T (.-rex re) rmp)
     (.set-reg-buf ^T_regexec_T (.-rex re) (g ed curbuf))
@@ -13245,9 +13243,8 @@
     (.set-reg-maxline ^T_regexec_T (.-rex re) (- (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) lnum))
     (.set-reg-line-lbr ^T_regexec_T (.-rex re) (boolean false))
     (let [result (long (vim-regsub-both ed re source dest destlen flags))]
-      (.set-rex-in-use re rex-in-use-save)
-      (if (zero? (.rex-in-use re))
-        result
+      (.set-rex-in-use re (boolean rex-in-use-save))
+      (if (.rex-in-use re)
         (do (.set-reg-match ^T_regexec_T (.-rex re) rex-save-reg-match)
             (.set-reg-mmatch ^T_regexec_T (.-rex re) rex-save-reg-mmatch)
             (.set-reg-startp ^T_regexec_T (.-rex re) rex-save-reg-startp)
@@ -13262,11 +13259,12 @@
             (.set-lnum ^T_regexec_T (.-rex re) rex-save-lnum)
             (.set-line ^T_regexec_T (.-rex re) rex-save-line)
             (.set-input ^T_regexec_T (.-rex re) rex-save-input)
-            (.set-need-clear-subexpr ^T_regexec_T (.-rex re) rex-save-need-clear-subexpr)
+            (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (boolean rex-save-need-clear-subexpr))
             (.set-reg-ic ^T_regexec_T (.-rex re) rex-save-reg-ic)
             (.set-reg-icombine ^T_regexec_T (.-rex re) (boolean rex-save-reg-icombine))
             (.set-reg-maxcol ^T_regexec_T (.-rex re) rex-save-reg-maxcol)
-            result)))))
+            result)
+        result))))
 
 ;; C: u_inssub
 (defn u-inssub [^Editor ed ^long lnum]
@@ -14068,7 +14066,7 @@
                   (aset (g ed p-lz) 0 (unchecked-int save-p-lz))
                   (when (some? orig-line-string)
                     (ml-replace ed lnum orig-line-string false))
-                  (g! ed need-wait-return (e FALSE))
+                  (g! ed need-wait-return false)
                   (if (or (== typed 113) (== typed (e ESC)) (== typed (e Ctrl_C)) (== typed (g ed intr-char)))
                     (let [got-quit true]
                       (aset fl__ 1 i)
@@ -16157,7 +16155,7 @@
                   (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
                   (if (zero? (.block-mode oap))
                     (when (or (not (== first-char 35)) (zero? (long (preprocs-left ed))))
-                      (shift-line ed (== (.op-type oap) (e OP_LSHIFT)) (long (aget (g ed p-sr) 0)) amount (e FALSE)))
+                      (shift-line ed (== (.op-type oap) (e OP_LSHIFT)) (long (aget (g ed p-sr) 0)) amount false))
                     (shift-block ed oap amount)))
                 (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                 (recur i))
@@ -16571,7 +16569,7 @@
                                       1
                                         false))
                                   (do (g! ed reg-executing (if (== regname 0) 34 regname))
-                                      (g! ed pending-end-reg-executing (e FALSE))
+                                      (g! ed pending-end-reg-executing false)
                                       retval))))))))))))))))
 
 ;; C: save_cmdline
@@ -16942,7 +16940,7 @@
                   use-last-pat (and (== (long (aget patlen 0)) 0) (> (long (aget skiplen 0)) 0) (== (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (- (long (aget skiplen 0)) 1))) next-char))
                   found (if (and (== (long (aget patlen 0)) 0) (not use-last-pat))
                           (let [found 0]
-                            (set-no-hlsearch ed (e TRUE))
+                            (set-no-hlsearch ed true)
                             (redraw-all-later ed (e UPD_SOME_VALID))
                             found)
                           (let [search-flags 2192
@@ -17011,9 +17009,9 @@
                 (when-not use-last-pat
                   (let [next-char (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0)))))]
                     (.set ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0)))) (unchecked-byte (e NUL)))
-                    (when (and (empty-pattern ed (.add ^BytePtr (.cmdbuff (g ed ccline)) (long (aget skiplen 0))) (long (aget patlen 0)) (long (aget search-delim 0))) (zero? (g ed no-hlsearch)))
+                    (when (and (empty-pattern ed (.add ^BytePtr (.cmdbuff (g ed ccline)) (long (aget skiplen 0))) (long (aget patlen 0)) (long (aget search-delim 0))) (not (g ed no-hlsearch)))
                       (redraw-all-later ed (e UPD_SOME_VALID))
-                      (set-no-hlsearch ed (e TRUE)))
+                      (set-no-hlsearch ed true))
                     (.set ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0)))) (unchecked-byte next-char))))
                 (validate-cursor ed)
                 (when (and (not (zero? (long (aget (g ed p-ru) 0)))) (> (.w-status-height (g ed curwin)) 0))

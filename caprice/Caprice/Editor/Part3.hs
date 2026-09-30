@@ -225,7 +225,7 @@ fileinfo ed' fullname _shorthelp dont_truncate = do
         else do
           r'57 <- msg_trunc_attr ed' buffer2 False 0
           r'58 <- restart_edit ed'
-          r'62 <- if (r'58 /= 0) then pure True else (do { r'59 <- msg_scrolled ed'; if (r'59 /= 0) then (do { r'60 <- need_wait_return ed'; pure (not (r'60 /= 0)) }) else pure False })
+          r'62 <- if (r'58 /= 0) then pure True else (do { r'59 <- msg_scrolled ed'; if (r'59 /= 0) then (do { r'60 <- need_wait_return ed'; pure (not r'60) }) else pure False })
           if r'62
             then do
               set_keep_msg ed' (castPtr r'57) 0
@@ -1029,7 +1029,7 @@ edit_esc ed' count cmdchar nomove o_lnum = do
       r'1 <- ins_esc ed' count cmdchar nomove
       if r'1
         then do
-          set'did_cursorhold ed' FALSE
+          set'did_cursorhold ed' False
           r'2 <- char_avail ed'
           r'7 <- if (not r'2) then (do { r'3 <- curbuf ed'; r'4 <- rdI64 r'3 buf_T'b_last_changedtick_i; r'5 <- curbuf ed'; r'6 <- rdI64 r'5 buf_T'b_changedtick; pure (r'4 == r'6) }) else pure False
           if r'7
@@ -1051,7 +1051,7 @@ edit_esc ed' count cmdchar nomove o_lnum = do
       j'2
     else j'2
 
-edit_normalchar :: Ed -> Int32 -> Int32 -> IO Int32
+edit_normalchar :: Ed -> Int32 -> Bool -> IO Bool
 edit_normalchar ed' c inserted_space = do
   let
     j'2 !inserted_space1 = do
@@ -1065,7 +1065,7 @@ edit_normalchar ed' c inserted_space = do
       pure inserted_space2
   ins_try_si ed' c
   if c == (ch ' ')
-    then j'2 (TRUE :: Int32)
+    then j'2 True
     else j'2 inserted_space
 
 edit :: Ed -> Int32 -> Bool -> Int64 -> IO Bool
@@ -1395,7 +1395,7 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
             else loop'47 c26 False lastc1'30 did_backspace27 old_topline25 inserted_space29 replaceState29 nomove28 ins_just_started29 ins_bs__o_r__29 ins_bs__o_inserted_space_p29 inserted_string29 inserted_length29
         else j'85 c26 esc_now27 lastc1'30 did_backspace27 old_topline25 inserted_space29 replaceState29 nomove28 ins_just_started29 ins_bs__o_r__29 ins_bs__o_inserted_space_p29 inserted_string29 inserted_length29
     j'85 !c27 !esc_now28 !lastc1'31 !did_backspace28 !old_topline26 !inserted_space30 !replaceState30 !nomove29 !ins_just_started30 !ins_bs__o_r__30 !ins_bs__o_inserted_space_p30 !inserted_string30 !inserted_length30 = do
-      set'did_cursorhold ed' TRUE
+      set'did_cursorhold ed' True
       r'110 <- c'KeyTyped ed'
       r'112 <- if r'110 then (do { r'111 <- c'KeyStuffed ed'; pure (not r'111) }) else pure False
       if r'112
@@ -1479,7 +1479,7 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
                 Ctrl_A -> j'157 c30 esc_now31 lastc1'34 did_backspace31 old_topline29 inserted_space33 replaceState33 nomove32 ins_just_started33 ins_bs__o_r__33 ins_bs__o_inserted_space_p33 inserted_string33 inserted_length33
                 Ctrl_R -> do
                   ins_reg ed'
-                  j'179 c30 esc_now31 lastc1'34 did_backspace31 old_topline29 (FALSE :: Int32) replaceState33 nomove32 ins_just_started33 ins_bs__o_r__33 ins_bs__o_inserted_space_p33 inserted_string33 inserted_length33
+                  j'179 c30 esc_now31 lastc1'34 did_backspace31 old_topline29 False replaceState33 nomove32 ins_just_started33 ins_bs__o_r__33 ins_bs__o_inserted_space_p33 inserted_string33 inserted_length33
                 Ctrl_G -> do
                   ins_ctrl_g ed'
                   j'179 c30 esc_now31 lastc1'34 did_backspace31 old_topline29 inserted_space33 replaceState33 nomove32 ins_just_started33 ins_bs__o_r__33 ins_bs__o_inserted_space_p33 inserted_string33 inserted_length33
@@ -1496,7 +1496,7 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
                   j'179 c30 esc_now31 lastc1'34 r'126 old_topline29 r'127 replaceState33 nomove32 ins_just_started33 r'126 r'127 inserted_string33 inserted_length33
                 Ctrl_U -> do
                   (r'128, r'129) <- ins_bs ed' c30 BACKSPACE_LINE inserted_space33
-                  j'179 c30 esc_now31 lastc1'34 r'128 old_topline29 (FALSE :: Int32) replaceState33 nomove32 ins_just_started33 r'128 r'129 inserted_string33 inserted_length33
+                  j'179 c30 esc_now31 lastc1'34 r'128 old_topline29 False replaceState33 nomove32 ins_just_started33 r'128 r'129 inserted_string33 inserted_length33
                 K_PASTESTART -> do
                   _ <- bracketed_paste ed' PASTE_INSERT False nullPtr
                   if cmdchar == K_PASTESTART
@@ -1511,7 +1511,7 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
                 K_COMMAND -> j'145 c30 esc_now31 lastc1'34 did_backspace31 old_topline29 inserted_space33 replaceState33 nomove32 ins_just_started33 ins_bs__o_r__33 ins_bs__o_inserted_space_p33 inserted_string33 inserted_length33
                 K_SCRIPT_COMMAND -> j'145 c30 esc_now31 lastc1'34 did_backspace31 old_topline29 inserted_space33 replaceState33 nomove32 ins_just_started33 ins_bs__o_r__33 ins_bs__o_inserted_space_p33 inserted_string33 inserted_length33
                 K_CURSORHOLD -> do
-                  set'did_cursorhold ed' TRUE
+                  set'did_cursorhold ed' True
                   r'132 <- dont_sync_undo ed'
                   if r'132 == TRUE
                     then do
@@ -1650,14 +1650,14 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
           if r'155
             then pure (c33 == Ctrl_O)
             else loop'47 c33 esc_now34 lastc1'37 did_backspace34 old_topline32 inserted_space36 replaceState36 nomove35 ins_just_started36 ins_bs__o_r__36 ins_bs__o_inserted_space_p36 inserted_string36 inserted_length36
-        else j'179 c33 esc_now34 lastc1'37 did_backspace34 old_topline32 (FALSE :: Int32) replaceState36 nomove35 ins_just_started36 ins_bs__o_r__36 ins_bs__o_inserted_space_p36 inserted_string36 inserted_length36
+        else j'179 c33 esc_now34 lastc1'37 did_backspace34 old_topline32 False replaceState36 nomove35 ins_just_started36 ins_bs__o_r__36 ins_bs__o_inserted_space_p36 inserted_string36 inserted_length36
     j'121 !c34 !esc_now35 !lastc1'38 !did_backspace35 !old_topline33 !replaceState37 !nomove36 !ins_just_started37 !ins_bs__o_r__37 !ins_bs__o_inserted_space_p37 !inserted_string37 !inserted_length37 = do
       r'156 <- ins_tab ed'
       if r'156
         then do
-          r'157 <- edit_normalchar ed' c34 (FALSE :: Int32)
+          r'157 <- edit_normalchar ed' c34 False
           j'179 c34 esc_now35 lastc1'38 did_backspace35 old_topline33 r'157 replaceState37 nomove36 ins_just_started37 ins_bs__o_r__37 ins_bs__o_inserted_space_p37 inserted_string37 inserted_length37
-        else j'179 c34 esc_now35 lastc1'38 did_backspace35 old_topline33 (FALSE :: Int32) replaceState37 nomove36 ins_just_started37 ins_bs__o_r__37 ins_bs__o_inserted_space_p37 inserted_string37 inserted_length37
+        else j'179 c34 esc_now35 lastc1'38 did_backspace35 old_topline33 False replaceState37 nomove36 ins_just_started37 ins_bs__o_r__37 ins_bs__o_inserted_space_p37 inserted_string37 inserted_length37
     j'123 !c35 !esc_now36 !lastc1'39 !did_backspace36 !old_topline34 !inserted_space37 !replaceState38 !nomove37 !ins_just_started38 !ins_bs__o_r__38 !ins_bs__o_inserted_space_p38 !inserted_string38 !inserted_length38 = do
       ins_pagedown ed'
       j'179 c35 esc_now36 lastc1'39 did_backspace36 old_topline34 inserted_space37 replaceState38 nomove37 ins_just_started38 ins_bs__o_r__38 ins_bs__o_inserted_space_p38 inserted_string38 inserted_length38
@@ -1698,7 +1698,7 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
       j'179 c43 esc_now44 lastc1'47 did_backspace43 old_topline42 inserted_space45 replaceState46 nomove45 ins_just_started46 ins_bs__o_r__46 ins_bs__o_inserted_space_p46 inserted_string46 inserted_length46
     j'154 !c44 !esc_now45 !lastc1'48 !did_backspace44 !old_topline43 !replaceState47 !nomove46 !ins_just_started47 !ins_bs__o_r__47 !ins_bs__o_inserted_space_p47 !inserted_string47 !inserted_length47 = do
       ins_shift ed' c44 lastc1'48
-      j'179 c44 esc_now45 lastc1'48 did_backspace44 old_topline43 (FALSE :: Int32) replaceState47 nomove46 ins_just_started47 ins_bs__o_r__47 ins_bs__o_inserted_space_p47 inserted_string47 inserted_length47
+      j'179 c44 esc_now45 lastc1'48 did_backspace44 old_topline43 False replaceState47 nomove46 ins_just_started47 ins_bs__o_r__47 ins_bs__o_inserted_space_p47 inserted_string47 inserted_length47
     j'157 !c45 !esc_now46 !lastc1'49 !did_backspace45 !old_topline44 !inserted_space46 !replaceState48 !nomove47 !ins_just_started48 !ins_bs__o_r__48 !ins_bs__o_inserted_space_p48 !inserted_string48 !inserted_length48 = do
       r'174 <- stuff_inserted ed' NUL 1 (c45 == Ctrl_A)
       r'176 <- if ((not r'174) && (c45 /= Ctrl_A)) then (do { r'175 <- p_im ed'; pure (not (r'175 /= 0)) }) else pure False
@@ -1708,7 +1708,7 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
           if r'177
             then pure (c45 == Ctrl_O)
             else loop'47 c45 esc_now46 lastc1'49 did_backspace45 old_topline44 inserted_space46 replaceState48 nomove47 ins_just_started48 ins_bs__o_r__48 ins_bs__o_inserted_space_p48 inserted_string48 inserted_length48
-        else j'179 c45 esc_now46 lastc1'49 did_backspace45 old_topline44 (FALSE :: Int32) replaceState48 nomove47 ins_just_started48 ins_bs__o_r__48 ins_bs__o_inserted_space_p48 inserted_string48 inserted_length48
+        else j'179 c45 esc_now46 lastc1'49 did_backspace45 old_topline44 False replaceState48 nomove47 ins_just_started48 ins_bs__o_r__48 ins_bs__o_inserted_space_p48 inserted_string48 inserted_length48
     j'161 !c46 !esc_now47 !lastc1'50 !did_backspace46 !old_topline45 !inserted_space47 !replaceState49 !nomove48 !ins_just_started49 !ins_bs__o_r__49 !ins_bs__o_inserted_space_p49 !inserted_string49 !inserted_length49 = do
       stuffcharReadbuff ed' K_HELP
       r'178 <- p_im ed'
@@ -1752,13 +1752,13 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
     j'179 !c51 !esc_now52 !lastc1'55 !did_backspace51 !old_topline50 !inserted_space52 !replaceState54 !nomove53 !ins_just_started54 !ins_bs__o_r__54 !ins_bs__o_inserted_space_p54 !inserted_string54 !inserted_length54 = do
       if (c51 /= K_CURSORHOLD) && (c51 /= K_COMPLETE_DELAY)
         then do
-          set'did_cursorhold ed' FALSE
+          set'did_cursorhold ed' False
           j'181 c51 esc_now52 lastc1'55 did_backspace51 old_topline50 inserted_space52 replaceState54 nomove53 ins_just_started54 ins_bs__o_r__54 ins_bs__o_inserted_space_p54 inserted_string54 inserted_length54
         else j'181 c51 esc_now52 lastc1'55 did_backspace51 old_topline50 inserted_space52 replaceState54 nomove53 ins_just_started54 ins_bs__o_r__54 ins_bs__o_inserted_space_p54 inserted_string54 inserted_length54
     j'181 !c52 !esc_now53 !lastc1'56 !did_backspace52 !old_topline51 !inserted_space53 !replaceState55 !nomove54 !ins_just_started55 !ins_bs__o_r__55 !ins_bs__o_inserted_space_p55 !inserted_string55 !inserted_length55 = do
       r'185 <- arrow_used ed'
       if r'185
-        then loop'47 c52 esc_now53 lastc1'56 did_backspace52 old_topline51 (FALSE :: Int32) replaceState55 nomove54 ins_just_started55 ins_bs__o_r__55 ins_bs__o_inserted_space_p55 inserted_string55 inserted_length55
+        then loop'47 c52 esc_now53 lastc1'56 did_backspace52 old_topline51 False replaceState55 nomove54 ins_just_started55 ins_bs__o_r__55 ins_bs__o_inserted_space_p55 inserted_string55 inserted_length55
         else loop'47 c52 esc_now53 lastc1'56 did_backspace52 old_topline51 inserted_space53 replaceState55 nomove54 ins_just_started55 ins_bs__o_r__55 ins_bs__o_inserted_space_p55 inserted_string55 inserted_length55
   r'186 <- restart_edit ed'
   set'did_restart_edit ed' r'186
@@ -1782,9 +1782,9 @@ edit ed' cmdchar startln count = frame 24 $ \fr' -> do
           if r'195
             then do
               _ <- highlight_changed ed'
-              j'4 (0 :: Int32) False nullPtr (0 :: Int32) True (0 :: Int64) (FALSE :: Int32) (272 :: Int32) False True r'190 r'192 r'194 False (0 :: Int32) nullPtr (0 :: Word64)
-            else j'4 (0 :: Int32) False nullPtr (0 :: Int32) True (0 :: Int64) (FALSE :: Int32) (272 :: Int32) False True r'190 r'192 r'194 False (0 :: Int32) nullPtr (0 :: Word64)
-        else j'6 (0 :: Int32) False nullPtr (0 :: Int32) True (0 :: Int64) (FALSE :: Int32) (272 :: Int32) False True False (0 :: Int32) nullPtr (0 :: Word64)
+              j'4 (0 :: Int32) False nullPtr (0 :: Int32) True (0 :: Int64) False (272 :: Int32) False True r'190 r'192 r'194 False False nullPtr (0 :: Word64)
+            else j'4 (0 :: Int32) False nullPtr (0 :: Int32) True (0 :: Int64) False (272 :: Int32) False True r'190 r'192 r'194 False False nullPtr (0 :: Word64)
+        else j'6 (0 :: Int32) False nullPtr (0 :: Int32) True (0 :: Int64) False (272 :: Int32) False True False False nullPtr (0 :: Word64)
 
 ins_redraw :: Ed -> Bool -> IO ()
 ins_redraw ed' _ready = do
@@ -3184,7 +3184,7 @@ ins_shift ed' c lastc1 = do
           j'7
         else j'7
     j'7 = do
-      change_indent ed' INDENT_SET 0 True 0 TRUE
+      change_indent ed' INDENT_SET 0 True 0 True
       j'8
     j'8 = do
       r'2 <- did_ai ed'
@@ -3218,7 +3218,7 @@ ins_shift ed' c lastc1 = do
               j'5
             else j'5
         else do
-          change_indent ed' (if (c == Ctrl_D) then (INDENT_DEC :: Int32) else (INDENT_INC :: Int32)) 0 True 0 TRUE
+          change_indent ed' (if (c == Ctrl_D) then (INDENT_DEC :: Int32) else (INDENT_INC :: Int32)) 0 True 0 True
           j'8
 
 ins_del :: Ed -> IO ()
@@ -3285,7 +3285,7 @@ ins_bs_one ed' = do
       _ <- del_char ed' False
       pure ()
 
-ins_bs :: Ed -> Int32 -> Int32 -> Int32 -> IO (Bool, Int32)
+ins_bs :: Ed -> Int32 -> Int32 -> Bool -> IO (Bool, Bool)
 ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
   let
     j'6 !mode1 !inserted_space_p1 !temp1 !did_backspace1 !in_indent1 !call_fix_indent1 !out___r__1 !out___inserted_space_p1 = do
@@ -3334,14 +3334,14 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
       wrI32 r'23 (win_T'w_cursor + pos_T'col) save_col1
       j'11 mode2 inserted_space_p2 temp2 mincol1 in_indent2 call_fix_indent2 out___r__2 out___inserted_space_p2
     j'11 !mode3 !inserted_space_p3 !temp3 !mincol2 !in_indent3 !call_fix_indent3 !out___r__3 !out___inserted_space_p3 = do
-      r'39 <- if (mode3 == BACKSPACE_CHAR) then (do { r'24 <- p_sta ed'; if ((r'24 /= 0) && in_indent3) then pure True else (do { r'25 <- get_sts_value ed'; r'28 <- if (r'25 /= 0) then (do { r'26 <- curwin ed'; r'27 <- rdI32 r'26 (win_T'w_cursor + pos_T'col); pure (r'27 > 0) }) else pure False; if r'28 then (do { r'29 <- ml_get_cursor ed'; r'30 <- rdW8 (pAdd r'29 (-1)) 0; if ((fromIntegral r'30 :: Int32) == TAB) then pure True else (do { r'31 <- ml_get_cursor ed'; r'32 <- rdW8 (pAdd r'31 (-1)) 0; if ((fromIntegral r'32 :: Int32) == (ch ' ')) then (if (not (inserted_space_p3 /= 0)) then pure True else (arrow_used ed')) else pure False }) }) else pure False }) }) else pure False
+      r'39 <- if (mode3 == BACKSPACE_CHAR) then (do { r'24 <- p_sta ed'; if ((r'24 /= 0) && in_indent3) then pure True else (do { r'25 <- get_sts_value ed'; r'28 <- if (r'25 /= 0) then (do { r'26 <- curwin ed'; r'27 <- rdI32 r'26 (win_T'w_cursor + pos_T'col); pure (r'27 > 0) }) else pure False; if r'28 then (do { r'29 <- ml_get_cursor ed'; r'30 <- rdW8 (pAdd r'29 (-1)) 0; if ((fromIntegral r'30 :: Int32) == TAB) then pure True else (do { r'31 <- ml_get_cursor ed'; r'32 <- rdW8 (pAdd r'31 (-1)) 0; if ((fromIntegral r'32 :: Int32) == (ch ' ')) then (if (not inserted_space_p3) then pure True else (arrow_used ed')) else pure False }) }) else pure False }) }) else pure False
       if r'39
         then do
           r'40 <- ml_get_curline ed'
           r'41 <- curwin ed'
           r'42 <- rdI32 r'41 (win_T'w_cursor + pos_T'col)
           let !cursor_ptr1 = pAdd r'40 (fromIntegral r'42)
-          loop'26 (FALSE :: Int32) in_indent3 call_fix_indent3 (0 :: Int32) r'40 r'40 cursor_ptr1 r'40 (0 :: Int32) False out___r__3 out___inserted_space_p3
+          loop'26 False in_indent3 call_fix_indent3 (0 :: Int32) r'40 r'40 cursor_ptr1 r'40 (0 :: Int32) False out___r__3 out___inserted_space_p3
         else do
           r'43 <- ml_get_cursor ed'
           r'44 <- mb_get_class ed' r'43
@@ -3613,8 +3613,8 @@ ins_bs ed' c mode inserted_space_p = frame 24 $ \fr' -> do
                     else do
                       r'190 <- curwin ed'
                       wrI32 r'190 (win_T'w_cursor + pos_T'coladd) 0
-                      j'6 mode inserted_space_p (0 :: Int32) False r'184 False False (0 :: Int32)
-            else j'6 mode inserted_space_p (0 :: Int32) False r'184 False False (0 :: Int32)
+                      j'6 mode inserted_space_p (0 :: Int32) False r'184 False False False
+            else j'6 mode inserted_space_p (0 :: Int32) False r'184 False False False
 
 ins_left :: Ed -> IO ()
 ins_left ed' = frame 16 $ \fr' -> do
@@ -4628,7 +4628,7 @@ ex_append ed' eap = do
       loop'9 did_undo4 lnum5 indent4 empty4
     loop'9 !did_undo5 !lnum6 !indent5 !empty5 = do
       set'msg_scroll ed' TRUE
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       r'7 <- curbuf ed'
       r'8 <- rdI32 r'7 buf_T'b_p_ai
       if r'8 /= 0
@@ -4794,7 +4794,7 @@ ex_append ed' eap = do
       wrI64 r'64 (win_T'w_cursor + pos_T'lnum) lnum21
       check_cursor_lnum ed'
       beginline ed' 6
-      set'need_wait_return ed' FALSE
+      set'need_wait_return ed' False
       pure ()
   r'65 <- rdI64 eap exarg_T'line2
   r'66 <- curbuf ed'
@@ -5660,7 +5660,7 @@ ins_try_si ed' c = do
     j'13 !temp4 = do
       if temp4
         then do
-          shift_line ed' True FALSE 1 TRUE
+          shift_line ed' True FALSE 1 True
           j'25
         else j'25
     loop'17 !pos2 !old_pos_lnum4 !old_pos_col4 !old_pos_coladd4 !ptr1 !i3 = do
@@ -5701,7 +5701,7 @@ ins_try_si ed' c = do
       r'53 <- c'State ed'
       if (r'53 .&. VREPLACE_FLAG) /= 0
         then do
-          change_indent ed' INDENT_SET r'49 False NUL TRUE
+          change_indent ed' INDENT_SET r'49 False NUL True
           j'25
         else do
           _ <- set_indent ed' r'49 SIN_CHANGED
@@ -5743,7 +5743,7 @@ ins_try_si ed' c = do
         else j'3 nullPtr t1'2
     else j'25
 
-change_indent :: Ed -> Int32 -> Int32 -> Bool -> Int32 -> Int32 -> IO ()
+change_indent :: Ed -> Int32 -> Int32 -> Bool -> Int32 -> Bool -> IO ()
 change_indent ed' type' amount round replaced call_changed_bytes = frame 32 $ \fr' -> do
   let
     j'2 !replaced1 !orig_col1 !orig_line1 = do
@@ -5776,7 +5776,7 @@ change_indent ed' type' amount round replaced call_changed_bytes = frame 32 $ \f
     j'6 !replaced3 !vcol3 !insstart_less2 !new_cursor_col3 !save_p_list2 !start_col2 !orig_col3 !orig_line3 = do
       if type' == INDENT_SET
         then do
-          _ <- set_indent ed' amount (if (call_changed_bytes /= 0) then (SIN_CHANGED :: Int32) else (0 :: Int32))
+          _ <- set_indent ed' amount (if call_changed_bytes then (SIN_CHANGED :: Int32) else (0 :: Int32))
           j'11 replaced3 vcol3 insstart_less2 new_cursor_col3 save_p_list2 start_col2 orig_col3 orig_line3
         else do
           r'16 <- c'State ed'
@@ -8112,7 +8112,7 @@ get_new_sw_indent ed' left round amount sw_val = do
           let !count5 = count3 + (sw_val * amount)
           j'12 count5
 
-shift_line :: Ed -> Bool -> Int32 -> Int32 -> Int32 -> IO ()
+shift_line :: Ed -> Bool -> Int32 -> Int32 -> Bool -> IO ()
 shift_line ed' left round amount call_changed_bytes = do
   let
     j'3 !count1 = do
@@ -8124,7 +8124,7 @@ shift_line ed' left round amount call_changed_bytes = do
           pure ()
         else do
           let !r'3 = trim_to_int count1
-          _ <- set_indent ed' r'3 (if (call_changed_bytes /= 0) then (SIN_CHANGED :: Int32) else (0 :: Int32))
+          _ <- set_indent ed' r'3 (if call_changed_bytes then (SIN_CHANGED :: Int32) else (0 :: Int32))
           pure ()
   r'5 <- curbuf ed'
   r'6 <- rdI64 r'5 buf_T'b_p_sw
@@ -10134,7 +10134,7 @@ frame_setwidth curfrp width = do
 op_pending :: Ed -> IO Bool
 op_pending ed' = do
   r'1 <- current_oap ed'
-  r'3 <- if (r'1 /= nullPtr) then (do { r'2 <- finish_op ed'; pure (not (r'2 /= 0)) }) else pure False
+  r'3 <- if (r'1 /= nullPtr) then (do { r'2 <- finish_op ed'; pure (not r'2) }) else pure False
   r'6 <- if r'3 then (do { r'4 <- current_oap ed'; r'5 <- rdI64 r'4 oparg_T'prev_opcount; pure (r'5 == 0) }) else pure False
   r'9 <- if r'6 then (do { r'7 <- current_oap ed'; r'8 <- rdI64 r'7 oparg_T'prev_count0; pure (r'8 == 0) }) else pure False
   r'12 <- if r'9 then (do { r'10 <- current_oap ed'; r'11 <- rdI32 r'10 oparg_T'op_type; pure (r'11 == OP_NOP) }) else pure False

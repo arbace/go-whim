@@ -1874,12 +1874,12 @@
 
 ;; C: check_end_reg_executing
 (defn check-end-reg-executing [^Editor ed advance]
-  (when (and (not (== (g ed reg-executing) 0)) (or (== (.tb-maplen (g ed typebuf)) 0) (not (zero? (g ed pending-end-reg-executing)))))
+  (when (and (not (== (g ed reg-executing) 0)) (or (== (.tb-maplen (g ed typebuf)) 0) (g ed pending-end-reg-executing)))
     (if advance
       (do (g! ed reg-executing 0)
-          (g! ed pending-end-reg-executing (e FALSE))
+          (g! ed pending-end-reg-executing false)
           nil)
-      (do (g! ed pending-end-reg-executing (e TRUE))
+      (do (g! ed pending-end-reg-executing true)
           nil))))
 
 ;; C: read_readbuf
@@ -3852,9 +3852,9 @@
       (if (zero? (g ed VIsual-select))
         (e MODE_VISUAL)
         (e MODE_SELECT))
-      (if (zero? (g ed finish-op))
-        (g ed State)
-        (e MODE_OP_PENDING)))))
+      (if (g ed finish-op)
+        (e MODE_OP_PENDING)
+        (g ed State)))))
 
 ;; C: vim_is_input_buf_empty
 (defn vim-is-input-buf-empty? [^Editor ed]
@@ -6286,15 +6286,15 @@
 
 ;; C: cleanup_subexpr
 (defn cleanup-subexpr [^S_regengine_S re]
-  (when-not (zero? (.need-clear-subexpr ^T_regexec_T (.-rex re)))
+  (when (.need-clear-subexpr ^T_regexec_T (.-rex re))
     (if (nil? (.reg-match ^T_regexec_T (.-rex re)))
       (do (let [p__1 ^Ptr (.reg-startpos ^T_regexec_T (.-rex re))] (dotimes [k__2 10] (.set-lnum ^T_lpos_T (.at p__1 k__2) -1) (.set-col ^T_lpos_T (.at p__1 k__2) -1)))
           (let [p__3 ^Ptr (.reg-endpos ^T_regexec_T (.-rex re))] (dotimes [k__4 10] (.set-lnum ^T_lpos_T (.at p__3 k__4) -1) (.set-col ^T_lpos_T (.at p__3 k__4) -1)))
-          (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (e FALSE))
+          (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (boolean false))
           nil)
       (do (Rt/zero ^Ptr (.reg-startp ^T_regexec_T (.-rex re)) 10)
           (Rt/zero ^Ptr (.reg-endp ^T_regexec_T (.-rex re)) 10)
-          (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (e FALSE))
+          (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (boolean false))
           nil))))
 
 ;; C: regstack_push
@@ -6841,8 +6841,8 @@
 
 ;; C: save_subexpr
 (defn save-subexpr [^S_regengine_S re ^S_regbehind_S bp]
-  (.set-save-need-clear-subexpr bp (.need-clear-subexpr ^T_regexec_T (.-rex re)))
-  (when (zero? (.need-clear-subexpr ^T_regexec_T (.-rex re)))
+  (.set-save-need-clear-subexpr bp (boolean (.need-clear-subexpr ^T_regexec_T (.-rex re))))
+  (when-not (.need-clear-subexpr ^T_regexec_T (.-rex re))
     (let [i 0]
       (loop [i i]
         (when (< i (e NSUBEXP))
@@ -6877,8 +6877,8 @@
 
 ;; C: restore_subexpr
 (defn restore-subexpr [^S_regengine_S re ^S_regbehind_S bp]
-  (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (.save-need-clear-subexpr bp))
-  (when (zero? (.need-clear-subexpr ^T_regexec_T (.-rex re)))
+  (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (boolean (.save-need-clear-subexpr bp)))
+  (when-not (.need-clear-subexpr ^T_regexec_T (.-rex re))
     (let [i 0]
       (loop [i i]
         (when (< i (e NSUBEXP))
@@ -8663,7 +8663,7 @@
 (defn regtry [^Editor ed ^S_regengine_S re ^S_regprog prog col ^IntPtr timed-out]
   (let [col (long col)]
     (.set-input ^T_regexec_T (.-rex re) (.add ^BytePtr (.line ^T_regexec_T (.-rex re)) col))
-    (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (e TRUE))
+    (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (boolean true))
     (if (== (long (regmatch ed re (.add ^BytePtr (.program prog) 1) timed-out)) 0)
       0
       (do (cleanup-subexpr re)
@@ -8912,38 +8912,19 @@
         rex-save-lnum 0
         ^BytePtr rex-save-line nil
         ^BytePtr rex-save-input nil
-        rex-save-need-clear-subexpr 0
+        rex-save-need-clear-subexpr false
         rex-save-reg-ic 0
         rex-save-reg-icombine false
         rex-save-reg-maxcol 0
-        ^longs tl__ (long-array 6)
-        ^objects to__ (object-array 13)
+        ^longs tl__ (long-array 5)
+        ^objects to__ (object-array 14)
         ^S_regengine_S re (g ed reg-engine)
         rex-in-use-save (.rex-in-use re)]
     (if (.re-in-use ^S_regprog (.regprog rmp))
       (do (emsg ed (BytePtr. (g ed e-cannot-use-pattern-recursively) 0))
           false)
       (do (.set-re-in-use ^S_regprog (.regprog rmp) (boolean true))
-          (let [j__1 (if (zero? (.rex-in-use re))
-                       (do (aset to__ 0 rex-save-reg-match)
-                           (aset to__ 1 rex-save-reg-mmatch)
-                           (aset to__ 2 rex-save-reg-startp)
-                           (aset to__ 3 rex-save-reg-endp)
-                           (aset to__ 4 rex-save-reg-startpos)
-                           (aset to__ 5 rex-save-reg-endpos)
-                           (aset to__ 6 rex-save-reg-win)
-                           (aset to__ 7 rex-save-reg-buf)
-                           (aset tl__ 0 rex-save-reg-firstlnum)
-                           (aset tl__ 1 rex-save-reg-maxline)
-                           (aset to__ 8 (Boolean/valueOf (boolean rex-save-reg-line-lbr)))
-                           (aset tl__ 2 rex-save-lnum)
-                           (aset to__ 9 rex-save-line)
-                           (aset to__ 10 rex-save-input)
-                           (aset tl__ 3 rex-save-need-clear-subexpr)
-                           (aset tl__ 4 rex-save-reg-ic)
-                           (aset to__ 11 (Boolean/valueOf (boolean rex-save-reg-icombine)))
-                           (aset tl__ 5 rex-save-reg-maxcol)
-                           0)
+          (let [j__1 (if (.rex-in-use re)
                        (let [^T_regmatch_T rex-save-reg-match (.reg-match ^T_regexec_T (.-rex re))
                              ^T_regmmatch_T rex-save-reg-mmatch (.reg-mmatch ^T_regexec_T (.-rex re))
                              ^Ptr rex-save-reg-startp (.reg-startp ^T_regexec_T (.-rex re))
@@ -8976,11 +8957,30 @@
                          (aset tl__ 2 rex-save-lnum)
                          (aset to__ 9 rex-save-line)
                          (aset to__ 10 rex-save-input)
-                         (aset tl__ 3 rex-save-need-clear-subexpr)
-                         (aset tl__ 4 rex-save-reg-ic)
-                         (aset to__ 11 (Boolean/valueOf (boolean rex-save-reg-icombine)))
-                         (aset tl__ 5 rex-save-reg-maxcol)
-                         0))
+                         (aset to__ 11 (Boolean/valueOf (boolean rex-save-need-clear-subexpr)))
+                         (aset tl__ 3 rex-save-reg-ic)
+                         (aset to__ 12 (Boolean/valueOf (boolean rex-save-reg-icombine)))
+                         (aset tl__ 4 rex-save-reg-maxcol)
+                         0)
+                       (do (aset to__ 0 rex-save-reg-match)
+                           (aset to__ 1 rex-save-reg-mmatch)
+                           (aset to__ 2 rex-save-reg-startp)
+                           (aset to__ 3 rex-save-reg-endp)
+                           (aset to__ 4 rex-save-reg-startpos)
+                           (aset to__ 5 rex-save-reg-endpos)
+                           (aset to__ 6 rex-save-reg-win)
+                           (aset to__ 7 rex-save-reg-buf)
+                           (aset tl__ 0 rex-save-reg-firstlnum)
+                           (aset tl__ 1 rex-save-reg-maxline)
+                           (aset to__ 8 (Boolean/valueOf (boolean rex-save-reg-line-lbr)))
+                           (aset tl__ 2 rex-save-lnum)
+                           (aset to__ 9 rex-save-line)
+                           (aset to__ 10 rex-save-input)
+                           (aset to__ 11 (Boolean/valueOf (boolean rex-save-need-clear-subexpr)))
+                           (aset tl__ 3 rex-save-reg-ic)
+                           (aset to__ 12 (Boolean/valueOf (boolean rex-save-reg-icombine)))
+                           (aset tl__ 4 rex-save-reg-maxcol)
+                           0))
                 ^T_regmatch_T rex-save-reg-match (aget to__ 0)
                 ^T_regmmatch_T rex-save-reg-mmatch (aget to__ 1)
                 ^Ptr rex-save-reg-startp (aget to__ 2)
@@ -8995,20 +8995,19 @@
                 rex-save-lnum (aget tl__ 2)
                 ^BytePtr rex-save-line (aget to__ 9)
                 ^BytePtr rex-save-input (aget to__ 10)
-                rex-save-need-clear-subexpr (aget tl__ 3)
-                rex-save-reg-ic (aget tl__ 4)
-                rex-save-reg-icombine (boolean (aget to__ 11))
-                rex-save-reg-maxcol (aget tl__ 5)]
-            (.set-rex-in-use re (e TRUE))
+                rex-save-need-clear-subexpr (boolean (aget to__ 11))
+                rex-save-reg-ic (aget tl__ 3)
+                rex-save-reg-icombine (boolean (aget to__ 12))
+                rex-save-reg-maxcol (aget tl__ 4)]
+            (.set-rex-in-use re (boolean true))
             (.set-reg-startp ^T_regexec_T (.-rex re) nil)
             (.set-reg-endp ^T_regexec_T (.-rex re) nil)
             (.set-reg-startpos ^T_regexec_T (.-rex re) nil)
             (.set-reg-endpos ^T_regexec_T (.-rex re) nil)
             (let [result (long (bt-regexec-nl ed re rmp line col nl))]
               (.set-re-in-use ^S_regprog (.regprog rmp) (boolean false))
-              (.set-rex-in-use re rex-in-use-save)
-              (if (zero? (.rex-in-use re))
-                (> result 0)
+              (.set-rex-in-use re (boolean rex-in-use-save))
+              (if (.rex-in-use re)
                 (do (.set-reg-match ^T_regexec_T (.-rex re) rex-save-reg-match)
                     (.set-reg-mmatch ^T_regexec_T (.-rex re) rex-save-reg-mmatch)
                     (.set-reg-startp ^T_regexec_T (.-rex re) rex-save-reg-startp)
@@ -9023,11 +9022,12 @@
                     (.set-lnum ^T_regexec_T (.-rex re) rex-save-lnum)
                     (.set-line ^T_regexec_T (.-rex re) rex-save-line)
                     (.set-input ^T_regexec_T (.-rex re) rex-save-input)
-                    (.set-need-clear-subexpr ^T_regexec_T (.-rex re) rex-save-need-clear-subexpr)
+                    (.set-need-clear-subexpr ^T_regexec_T (.-rex re) (boolean rex-save-need-clear-subexpr))
                     (.set-reg-ic ^T_regexec_T (.-rex re) rex-save-reg-ic)
                     (.set-reg-icombine ^T_regexec_T (.-rex re) (boolean rex-save-reg-icombine))
                     (.set-reg-maxcol ^T_regexec_T (.-rex re) rex-save-reg-maxcol)
-                    (> result 0)))))))))
+                    (> result 0))
+                (> result 0))))))))
 
 ;; C: vim_regexec
 (defn vim-regexec [^Editor ed ^T_regmatch_T rmp ^BytePtr line ^long col]
@@ -9177,7 +9177,7 @@
 ;; C: msg_strtrunc
 (defn msg-strtrunc ^BytePtr [^Editor ed ^BytePtr s force_]
   (let [^BytePtr buf nil]
-    (if (or (and (zero? (g ed msg-scroll)) (zero? (g ed need-wait-return)) (shortmess ed (e SHM_TRUNCALL)) (== (g ed msg-silent) 0)) force_)
+    (if (or (and (zero? (g ed msg-scroll)) (not (g ed need-wait-return)) (shortmess ed (e SHM_TRUNCALL)) (== (g ed msg-silent) 0)) force_)
       (let [len (long (vim-strsize ed s))
             room (if (== (g ed msg-scrolled) 0)
                    (i32 (- (i32 (+ (i32 (* (i32 (- (- (aget (g ed Rows) 0) (g ed msg-row)) 1)) (g ed cmdline-width))) (g ed sc-col))) 1))
@@ -9285,7 +9285,7 @@
 
 ;; C: msg_end
 (defn msg-end [^Editor ed]
-  (if (and (not (g ed exiting)) (not (zero? (g ed need-wait-return))) (zero? (bit-and (g ed State) (e MODE_CMDLINE))))
+  (if (and (not (g ed exiting)) (g ed need-wait-return) (zero? (bit-and (g ed State) (e MODE_CMDLINE))))
     (do (wait-return ed (e FALSE))
         false)
     (do (out-flush ed)

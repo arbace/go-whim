@@ -2427,10 +2427,10 @@ typedef struct
     int save_msg_didout;
     int save_State;
     int save_insertmode;
-    int save_finish_op;
+    bool save_finish_op;
     int save_opcount;
     int save_reg_executing;
-    int save_pending_end_reg_executing;
+    bool save_pending_end_reg_executing;
     int save_script_version;
     tasave_T tabuf;
 } save_state_T;
@@ -3100,7 +3100,7 @@ static void exec_normal_cmd(char_u *cmd, int remap, bool silent);
 
 static void exec_normal(bool was_typed, bool use_vpeekc, bool may_use_terminal_loop);
 
-static void set_no_hlsearch(int flag);
+static void set_no_hlsearch(bool flag);
 
 static bool parse_pattern_and_range(pos_T *incsearch_start, int *search_delim, int *skiplen, int *patlen);
 
@@ -3118,7 +3118,7 @@ static char_u *getexline(int c, int indent, getline_opt_T options);
 
 static bool realloc_cmdbuff(int len);
 
-static void putcmdline(int c, int shift);
+static void putcmdline(int c, bool shift);
 
 static bool put_on_cmdline(char_u *str, int len, bool redraw);
 
@@ -3234,7 +3234,7 @@ static attrentry_T *syn_term_attr2entry(int attr);
 
 static attrentry_T *syn_cterm_attr2entry(int attr);
 
-static bool syn_list_header(int did_header, int outlen, int id);
+static bool syn_list_header(bool did_header, int outlen, int id);
 
 static int syn_namen2id(char_u *linep, int len);
 
@@ -3274,7 +3274,7 @@ static bool may_do_si(void);
 
 static void ins_try_si(int c);
 
-static void change_indent(int type, int amount, bool round, int replaced, int call_changed_bytes);
+static void change_indent(int type, int amount, bool round, int replaced, bool call_changed_bytes);
 
 static bool copy_indent(int size, char_u *src);
 
@@ -3822,7 +3822,7 @@ static int get_op_type(int char1, int char2);
 
 static void op_shift(oparg_T *oap, bool curs_top, int amount);
 
-static void shift_line(bool left, int round, int amount, int call_changed_bytes);
+static void shift_line(bool left, int round, int amount, bool call_changed_bytes);
 
 static bool op_delete(oparg_T *oap);
 
@@ -4217,7 +4217,7 @@ static parse_search_pattern_offset__out_T parse_search_pattern_offset(char_u *pa
 
 static int do_search(oparg_T *oap, int dirc, int search_delim, char_u *pat, usize patlen, long count, int options, searchit_arg_T *sia);
 
-static bool searchc(cmdarg_T *cap, int t_cmd);
+static bool searchc(cmdarg_T *cap, bool t_cmd);
 
 static pos_T *findmatch(oparg_T *oap, int initc);
 
@@ -4587,7 +4587,7 @@ static match_T screen_search_hl;
 
 static linenr_T search_hl_has_cursor_lnum = 0;
 
-static int no_hlsearch = FALSE;
+static bool no_hlsearch = FALSE;
 
 static short *TabPageIdxs = nullptr;
 
@@ -4633,7 +4633,7 @@ static bool mode_displayed = FALSE;
 
 static int no_win_do_lines_ins = FALSE;
 
-static int exec_from_reg = FALSE;
+static bool exec_from_reg = FALSE;
 
 static int screen_cleared = FALSE;
 
@@ -4681,7 +4681,7 @@ static int did_emsg;
 
 static int called_emsg;
 
-static int in_echowindow;
+static bool in_echowindow;
 
 static bool emsg_on_display = FALSE;
 
@@ -4689,7 +4689,7 @@ static bool rc_did_emsg = FALSE;
 
 static int no_wait_return = 0;
 
-static int need_wait_return = 0;
+static bool need_wait_return = 0;
 
 static bool did_wait_return = FALSE;
 
@@ -4759,7 +4759,7 @@ static bool redraw_not_allowed = FALSE;
 
 static win_T *curwin;
 
-static int pum_will_redraw = FALSE;
+static bool pum_will_redraw = FALSE;
 
 static frame_T *topframe;
 
@@ -4850,7 +4850,7 @@ static char mb_bytelen_tab[256];
 
 static int State = MODE_NORMAL;
 
-static int finish_op = FALSE;
+static bool finish_op = FALSE;
 
 static long opcount = 0;
 
@@ -4860,7 +4860,7 @@ static int reg_recording = 0;
 
 static int reg_executing = 0;
 
-static int pending_end_reg_executing = FALSE;
+static bool pending_end_reg_executing = FALSE;
 
 static bool seenModifyOtherKeys = FALSE;
 
@@ -4991,7 +4991,7 @@ static char_u *new_last_cmdline = nullptr;
 
 static int aucmd_cmdline_changed_count = 0;
 
-static int did_cursorhold = TRUE;
+static bool did_cursorhold = TRUE;
 
 static pos_T last_cursormoved =
 {
@@ -9056,13 +9056,13 @@ typedef struct
     int n_attr_skip;
     int c_extra;
     int c_final;
-    int extra_for_textprop;
+    bool extra_for_textprop;
     int saved_n_extra;
     char_u *saved_p_extra;
     char_u *saved_p_extra_free;
     int saved_extra_attr;
     int saved_n_attr_skip;
-    int saved_extra_for_textprop;
+    bool saved_extra_for_textprop;
     int saved_c_extra;
     int saved_c_final;
     int saved_char_attr;
@@ -10215,7 +10215,7 @@ update_screen(int type_arg)
     int type = type_arg;
     win_T *wp;
     bool no_update = FALSE;
-    int save_pum_will_redraw = pum_will_redraw;
+    bool save_pum_will_redraw = pum_will_redraw;
     bool override_success;
     if (!screen_valid(TRUE))
     {
@@ -11669,10 +11669,10 @@ static void ins_del(void);
 typedef struct
 {
     bool r__;
-    int inserted_space_p;
+    bool inserted_space_p;
 } ins_bs__out_T;
 
-static ins_bs__out_T ins_bs(int c, int mode, int inserted_space_p);
+static ins_bs__out_T ins_bs(int c, int mode, bool inserted_space_p);
 
 static void ins_left(void);
 
@@ -11735,8 +11735,8 @@ edit_esc(long *count, int cmdchar, bool nomove, linenr_T *o_lnum)
     return FALSE;
 }
 
-    static int
-edit_normalchar(int c, int inserted_space)
+    static bool
+edit_normalchar(int c, bool inserted_space)
 {
     ins_try_si(c);
     if (c == ' ')
@@ -12069,7 +12069,7 @@ edit(int cmdchar, bool startln, long count)
     int i;
     bool did_backspace = TRUE;
     linenr_T old_topline = 0;
-    int inserted_space = FALSE;
+    bool inserted_space = FALSE;
     int replaceState = (REPLACE_FLAG | MODE_INSERT);
     bool nomove = FALSE;
     bool ins_just_started = TRUE;
@@ -14174,7 +14174,7 @@ ins_bs_one(void)
 }
 
     static ins_bs__out_T
-ins_bs(int c, int mode, int inserted_space_p)
+ins_bs(int c, int mode, bool inserted_space_p)
 {
     ins_bs__out_T out__;
     linenr_T lnum;
@@ -17006,7 +17006,7 @@ do_one_cmd(char_u **cmdlinep, int flags, char_u *(*fgetline)(int, int, getline_o
     exarg_T ea;
     cmdmod_T save_cmdmod;
     int save_reg_executing = reg_executing;
-    int save_pending_end_reg_executing = pending_end_reg_executing;
+    bool save_pending_end_reg_executing = pending_end_reg_executing;
     char_u *cmd;
     int sourcing = flags & DOCMD_VERBOSE;
     bool did_append_cmd = FALSE;
@@ -18769,7 +18769,7 @@ ex_at(exarg_T *eap)
         beep_flush();
         return;
     }
-    int save_efr = exec_from_reg;
+    bool save_efr = exec_from_reg;
     exec_from_reg = TRUE;
     while (!stuff_empty() || typebuf.tb_len > prev_len)
     {
@@ -19088,7 +19088,7 @@ exec_normal(bool was_typed, bool use_vpeekc, bool may_use_terminal_loop)
 }
 
     static void
-set_no_hlsearch(int flag)
+set_no_hlsearch(bool flag)
 {
     no_hlsearch = flag;
 }
@@ -19112,7 +19112,7 @@ static cmdline_info_T ccline;
 
 static int extra_char = NUL;
 
-static int extra_char_shift;
+static bool extra_char_shift;
 
 static char_u *getcmdline_int(int firstc, long count, int indent, bool clear_ccline);
 
@@ -20772,7 +20772,7 @@ draw_cmdline(int start, int len)
 }
 
     static void
-putcmdline(int c, int shift)
+putcmdline(int c, bool shift)
 {
     if (cmd_silent)
     {
@@ -21088,7 +21088,7 @@ redrawcmdprompt(void)
     static void
 redrawcmd(void)
 {
-    int save_in_echowindow = in_echowindow;
+    bool save_in_echowindow = in_echowindow;
     if (cmd_silent)
     {
         return;
@@ -23061,12 +23061,12 @@ typedef struct
 {
     int r__;
     int keylenp;
-    int timedout;
+    bool timedout;
     int mapdepth;
 } handle_mapping__out_T;
 
     static handle_mapping__out_T
-handle_mapping(int keylenp, int timedout, int mapdepth)
+handle_mapping(int keylenp, bool timedout, int mapdepth)
 {
     handle_mapping__out_T out__;
     mapblock_T *mp = nullptr;
@@ -23413,7 +23413,7 @@ vgetorpeek(bool advance)
 {
     handle_mapping__out_T handle_mapping__o;
     int c;
-    int timedout = FALSE;
+    bool timedout = FALSE;
     int mapdepth = 0;
     bool mode_deleted = FALSE;
     int new_wcol;
@@ -24173,7 +24173,7 @@ static void set_hl_attr(int idx);
 
 static void highlight_list_one(int id);
 
-static int highlight_list_arg(int id, int didh, int type, int iarg, char_u *sarg, char *name);
+static bool highlight_list_arg(int id, bool didh, int type, int iarg, char_u *sarg, char *name);
 
 static int syn_add_group(char_u *name);
 
@@ -25762,7 +25762,7 @@ enum { LIST_INT = 3 };
 highlight_list_one(int id)
 {
     hl_group_T *sgp;
-    int didh = FALSE;
+    bool didh = FALSE;
     sgp = &((hl_group_T *)((highlight_ga.ga_data)))[id - 1];
     if (message_filtered(sgp->sg_name))
     {
@@ -25824,8 +25824,8 @@ highlight_arg_to_string(int type, int iarg, char_u *sarg, char_u *buf)
     return buf;
 }
 
-    static int
-highlight_list_arg(int id, int didh, int type, int iarg, char_u *sarg, char *name)
+    static bool
+highlight_list_arg(int id, bool didh, int type, int iarg, char_u *sarg, char *name)
 {
     char_u buf[MAX_ATTR_LEN];
     char_u *ts;
@@ -25853,7 +25853,7 @@ highlight_list_arg(int id, int didh, int type, int iarg, char_u *sarg, char *nam
 }
 
     static bool
-syn_list_header(int did_header, int outlen, int id)
+syn_list_header(bool did_header, int outlen, int id)
 {
     int endcol = 19;
     bool newline = TRUE;
@@ -27013,7 +27013,7 @@ ins_try_si(int c)
 }
 
     static void
-change_indent(int type, int amount, bool round, int replaced, int call_changed_bytes)
+change_indent(int type, int amount, bool round, int replaced, bool call_changed_bytes)
 {
     int vcol;
     int last_vcol;
@@ -27500,8 +27500,8 @@ map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *r
     return mp;
 }
 
-    static int
-list_mappings(int keyround, bool abbrev, bool haskey, char_u *keys, int keys_len, int mode, int did_local)
+    static bool
+list_mappings(int keyround, bool abbrev, bool haskey, char_u *keys, int keys_len, int mode, bool did_local)
 {
     ++map_locked;
     if (p_verbose > 0 && keyround == 1)
@@ -27738,7 +27738,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
     for (keyround = 1; keyround <= 2; ++keyround)
     {
         bool did_it = FALSE;
-        int did_local = FALSE;
+        bool did_local = FALSE;
         bool keyround1_simplified = keyround == 1 && did_simplify;
         int round;
         int num_rounds;
@@ -41786,12 +41786,12 @@ check_text_or_curbuf_locked(oparg_T *oap)
 typedef struct
 {
     int r__;
-    int ctrl_w;
+    bool ctrl_w;
     int need_flushbuf;
 } normal_cmd_get_count__out_T;
 
     static normal_cmd_get_count__out_T
-normal_cmd_get_count(cmdarg_T *cap, int c, bool toplevel, bool set_prevcount, int ctrl_w, int need_flushbuf)
+normal_cmd_get_count(cmdarg_T *cap, int c, bool toplevel, bool set_prevcount, bool ctrl_w, int need_flushbuf)
 {
     normal_cmd_get_count__out_T out__;
     for (;;)
@@ -42073,7 +42073,7 @@ normal_cmd(oparg_T *oap, bool toplevel)
     normal_cmd_get_more_chars__out_T normal_cmd_get_more_chars__o;
     cmdarg_T ca;
     int c;
-    int ctrl_w = FALSE;
+    bool ctrl_w = FALSE;
     int old_col = curwin->w_curswant;
     int need_flushbuf = FALSE;
     pos_T old_pos;
@@ -42081,7 +42081,7 @@ normal_cmd(oparg_T *oap, bool toplevel)
     static int old_mapped_len = 0;
     int idx;
     bool set_prevcount = FALSE;
-    int save_did_cursorhold = did_cursorhold;
+    bool save_did_cursorhold = did_cursorhold;
     musl_memset((&(ca)), (0), (sizeof(ca)));
     ca.oap = oap;
     ca.opcount = opcount;
@@ -46304,7 +46304,7 @@ get_new_sw_indent(bool left, int round, vimlong_T amount, vimlong_T sw_val)
 }
 
     static void
-shift_line(bool left, int round, int amount, int call_changed_bytes)
+shift_line(bool left, int round, int amount, bool call_changed_bytes)
 {
     vimlong_T count;
     long sw_val = curbuf->b_p_sw;
@@ -47513,7 +47513,7 @@ op_change(oparg_T *oap)
     {
         fix_indent();
     }
-    int save_finish_op = finish_op;
+    bool save_finish_op = finish_op;
     finish_op = FALSE;
     retval = edit(NUL, FALSE, (linenr_T)1);
     finish_op = save_finish_op;
@@ -54849,7 +54849,7 @@ typedef struct
     linenr_T lnum;
     char_u *line;
     char_u *input;
-    int need_clear_subexpr;
+    bool need_clear_subexpr;
     int reg_ic;
     bool reg_icombine;
     colnr_T reg_maxcol;
@@ -54868,7 +54868,7 @@ typedef struct
 struct regengine_S
 {
     regexec_T rex;
-    int rex_in_use;
+    bool rex_in_use;
     garray_T regstack;
     garray_T regstack_star;
     garray_T regstack_behind;
@@ -55572,7 +55572,7 @@ vim_regsub_multi(regmmatch_T *rmp, linenr_T lnum, char_u *source, char_u *dest, 
     typeof(((regexec_T *)0)->reg_ic) rex_save_reg_ic;
     typeof(((regexec_T *)0)->reg_icombine) rex_save_reg_icombine;
     typeof(((regexec_T *)0)->reg_maxcol) rex_save_reg_maxcol;
-    int rex_in_use_save = re->rex_in_use;
+    bool rex_in_use_save = re->rex_in_use;
     if (re->rex_in_use)
     {
         {
@@ -56220,7 +56220,7 @@ typedef struct regbehind_S
 {
     regsave_T save_after;
     regsave_T save_behind;
-    int save_need_clear_subexpr;
+    bool save_need_clear_subexpr;
     save_se_T save_start[NSUBEXP];
     save_se_T save_end[NSUBEXP];
 } regbehind_T;
@@ -60463,7 +60463,7 @@ vim_regexec_string(regmatch_T *rmp, char_u *line, colnr_T col, bool nl)
     typeof(((regexec_T *)0)->reg_ic) rex_save_reg_ic;
     typeof(((regexec_T *)0)->reg_icombine) rex_save_reg_icombine;
     typeof(((regexec_T *)0)->reg_maxcol) rex_save_reg_maxcol;
-    int rex_in_use_save = re->rex_in_use;
+    bool rex_in_use_save = re->rex_in_use;
     if (rmp->regprog->re_in_use)
     {
         emsg(e_cannot_use_pattern_recursively);
@@ -60645,7 +60645,7 @@ vim_regexec_multi(regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum, colnr
     typeof(((regexec_T *)0)->reg_ic) rex_save_reg_ic;
     typeof(((regexec_T *)0)->reg_icombine) rex_save_reg_icombine;
     typeof(((regexec_T *)0)->reg_maxcol) rex_save_reg_maxcol;
-    int rex_in_use_save = re->rex_in_use;
+    bool rex_in_use_save = re->rex_in_use;
     if (rmp->regprog->re_in_use)
     {
         emsg(e_cannot_use_pattern_recursively);
@@ -64662,7 +64662,7 @@ showmode(void)
     int length = 0;
     bool do_mode;
     int attr;
-    int nwr_save;
+    bool nwr_save;
     int sub_attr;
     bool show_ruler_with_pum = FALSE;
     do_mode = p_smd && msg_silent == 0 && ((State & MODE_INSERT) || restart_edit != NUL || VIsual_active);
@@ -65482,7 +65482,7 @@ static char_u lastc[2] =
 
 static int lastcdir = FORWARD;
 
-static int last_t_cmd = TRUE;
+static bool last_t_cmd = TRUE;
 
 static char_u lastc_bytes[MB_MAXBYTES + 1];
 
@@ -65586,7 +65586,7 @@ static int did_save_last_search_spat = 0;
 
 static int saved_last_idx = 0;
 
-static int saved_no_hlsearch = 0;
+static bool saved_no_hlsearch = 0;
 
     static void
 save_last_search_pattern(void)
@@ -65708,7 +65708,7 @@ set_csearch_direction(int cdir)
 }
 
     static void
-set_csearch_until(int t_cmd)
+set_csearch_until(bool t_cmd)
 {
     last_t_cmd = t_cmd;
 }
@@ -66540,7 +66540,7 @@ end_do_search:
 }
 
     static bool
-searchc(cmdarg_T *cap, int t_cmd)
+searchc(cmdarg_T *cap, bool t_cmd)
 {
     int c = cap->nchar;
     int dir = cap->arg;
@@ -66711,11 +66711,11 @@ typedef struct
 {
     int initc;
     int findc;
-    int backwards;
+    bool backwards;
 } find_mps_values__out_T;
 
     static find_mps_values__out_T
-find_mps_values(int initc, int findc, int backwards, bool switchit)
+find_mps_values(int initc, int findc, bool backwards, bool switchit)
 {
     find_mps_values__out_T out__;
     char_u *ptr;
@@ -66787,7 +66787,7 @@ findmatchlimit(oparg_T *oap, int initc, int flags, int maxtravel)
     int findc = 0;
     int c;
     int count = 0;
-    int backwards = FALSE;
+    bool backwards = FALSE;
     bool raw_string = FALSE;
     int inquote = FALSE;
     char_u *linep;

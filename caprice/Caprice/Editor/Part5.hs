@@ -170,12 +170,12 @@ exec_normal ed' was_typed use_vpeekc _may_use_terminal_loop = frame 120 $ \fr' -
           loop'1 c3
         else pure ()
   clear_oparg fr'
-  set'finish_op ed' FALSE
+  set'finish_op ed' False
   loop'1 (0 :: Int32)
 
 ex_nohlsearch :: Ed -> Ptr Exarg_T -> IO ()
 ex_nohlsearch ed' _eap = do
-  set_no_hlsearch ed' TRUE
+  set_no_hlsearch ed' True
   redraw_all_later ed' UPD_SOME_VALID
   pure ()
 
@@ -576,7 +576,7 @@ may_do_incsearch_highlighting ed' firstc count is_state = frame 12 $ \fr' -> do
       r'12 <- rdI32 fr' 4
       if (r'12 == 0) && (not r'11)
         then do
-          set_no_hlsearch ed' TRUE
+          set_no_hlsearch ed' True
           redraw_all_later ed' UPD_SOME_VALID
           j'19 (0 :: Int32) r'11
         else do
@@ -703,11 +703,11 @@ may_do_incsearch_highlighting ed' firstc count is_state = frame 12 $ \fr' -> do
           r'71 <- rdI32 fr' 4
           r'72 <- rdI32 fr' 8
           r'73 <- empty_pattern ed' (pAdd r'69 (fromIntegral r'70)) (fromIntegral r'71 :: Word64) r'72
-          r'75 <- if r'73 then (do { r'74 <- no_hlsearch ed'; pure (not (r'74 /= 0)) }) else pure False
+          r'75 <- if r'73 then (do { r'74 <- no_hlsearch ed'; pure (not r'74) }) else pure False
           if r'75
             then do
               redraw_all_later ed' UPD_SOME_VALID
-              set_no_hlsearch ed' TRUE
+              set_no_hlsearch ed' True
               j'28 found4 end_pos_lnum1 end_pos_col1 end_pos_coladd1 next_char4
             else j'28 found4 end_pos_lnum1 end_pos_col1 end_pos_coladd1 next_char4
         else j'29 found4 end_pos_lnum1 end_pos_col1 end_pos_coladd1
@@ -1210,7 +1210,7 @@ cmdline_insert_reg ed' _gotesc = do
     j'6 !literally4 = do
       redrawcmd ed'
       pure (if literally4 then (CMDLINE_CHANGED :: Int32) else (CMDLINE_NOT_CHANGED :: Int32))
-  putcmdline ed' (ch '"') TRUE
+  putcmdline ed' (ch '"') True
   r'5 <- no_mapping ed'
   set'no_mapping ed' (r'5 + 1)
   r'6 <- allow_keys ed'
@@ -1667,7 +1667,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
                       j'48 c6 True lookfor13 lookforlen13 hiscnt10 histype10 save_msg_scroll13 save_State13 some_key_typed13 did_save_ccline13 wild_type13 prev_cmdbuff8 trigger_cmdlinechanged8 prev_cmdpos8 cmdline_browse_history__o_r__13 cmdline_browse_history__o_curcmdstr13 cmdline_browse_history__o_curcmdstrlen13 cmdline_browse_history__o_hiscnt_p13 may_add_char_to_search__o_r__13 may_add_char_to_search__o_c13
                     else j'48 c6 True lookfor13 lookforlen13 hiscnt10 histype10 save_msg_scroll13 save_State13 some_key_typed13 did_save_ccline13 wild_type13 prev_cmdbuff8 trigger_cmdlinechanged8 prev_cmdpos8 cmdline_browse_history__o_r__13 cmdline_browse_history__o_curcmdstr13 cmdline_browse_history__o_curcmdstrlen13 cmdline_browse_history__o_hiscnt_p13 may_add_char_to_search__o_r__13 may_add_char_to_search__o_c13
     j'42 !lookfor14 !lookforlen14 !hiscnt11 !histype11 !save_msg_scroll14 !save_State14 !some_key_typed14 !did_save_ccline14 !wild_type14 !prev_cmdbuff9 !trigger_cmdlinechanged9 !prev_cmdpos9 !cmdline_browse_history__o_r__14 !cmdline_browse_history__o_curcmdstr14 !cmdline_browse_history__o_curcmdstrlen14 !cmdline_browse_history__o_hiscnt_p14 !may_add_char_to_search__o_r__14 !may_add_char_to_search__o_c14 = do
-      putcmdline ed' (ch '^') TRUE
+      putcmdline ed' (ch '^') True
       r'55 <- mod_mask ed'
       r'56 <- get_literal ed' (r'55 .&. MOD_MASK_SHIFT)
       set'extra_char ed' NUL
@@ -1859,7 +1859,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
       set'msg_scroll ed' save_msg_scroll32
       if some_key_typed32
         then do
-          set'need_wait_return ed' FALSE
+          set'need_wait_return ed' False
           j'90 save_State32 did_save_ccline32 cmdline_browse_history__o_r__32 cmdline_browse_history__o_curcmdstr32 cmdline_browse_history__o_curcmdstrlen32 cmdline_browse_history__o_hiscnt_p32 may_add_char_to_search__o_r__32 may_add_char_to_search__o_c32
         else j'90 save_State32 did_save_ccline32 cmdline_browse_history__o_r__32 cmdline_browse_history__o_curcmdstr32 cmdline_browse_history__o_curcmdstrlen32 cmdline_browse_history__o_hiscnt_p32 may_add_char_to_search__o_r__32 may_add_char_to_search__o_c32
     j'90 !save_State33 !did_save_ccline33 !cmdline_browse_history__o_r__33 !cmdline_browse_history__o_curcmdstr33 !cmdline_browse_history__o_curcmdstrlen33 !cmdline_browse_history__o_hiscnt_p33 !may_add_char_to_search__o_r__33 !may_add_char_to_search__o_c33 = do
@@ -1922,7 +1922,7 @@ getexline ed' c indent options1 = do
     j'2 = do
       getcmdline ed' c 1 indent options1
   r'2 <- exec_from_reg ed'
-  r'4 <- if (r'2 /= 0) then (do { r'3 <- vpeekc ed'; pure (r'3 == (ch ':')) }) else pure False
+  r'4 <- if r'2 then (do { r'3 <- vpeekc ed'; pure (r'3 == (ch ':')) }) else pure False
   if r'4
     then do
       _ <- vgetc ed'
@@ -2488,7 +2488,7 @@ map_add ed' map_table abbr_table keys rhs orig_rhs noremap nowait silent mode is
           j'4 mp3
     else j'4 mp3
 
-list_mappings :: Ed -> Int32 -> Bool -> Bool -> Ptr Char_u -> Int32 -> Int32 -> Int32 -> IO Int32
+list_mappings :: Ed -> Int32 -> Bool -> Bool -> Ptr Char_u -> Int32 -> Int32 -> Bool -> IO Bool
 list_mappings ed' keyround abbrev haskey keys keys_len mode did_local = frame 400 $ \fr' -> do
   let
     j'3 !did_local1 = do
@@ -2573,7 +2573,7 @@ list_mappings ed' keyround abbrev haskey keys keys_len mode did_local = frame 40
               if not haskey
                 then do
                   showmap ed' mp1 True
-                  j'31 (TRUE :: Int32) hash2 mp1
+                  j'31 True hash2 mp1
                 else do
                   r'18 <- rdI32 mp1 mapblock_T'm_keylen
                   r'19 <- rdP mp1 mapblock_T'm_keys
@@ -2581,7 +2581,7 @@ list_mappings ed' keyround abbrev haskey keys keys_len mode did_local = frame 40
                   if r'20 == 0
                     then do
                       showmap ed' mp1 True
-                      j'31 (TRUE :: Int32) hash2 mp1
+                      j'31 True hash2 mp1
                     else j'31 did_local7 hash2 mp1
             else j'31 did_local7 hash2 mp1
         else do
@@ -2725,11 +2725,11 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
             then do
               if alt_keys_buf9 == nullPtr
                 then j'135 retval9 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
-                else j'33 maptype9 alt_keys_buf9 rhs6 len9 hasarg6 haskey6 do_print6 keyround1 alt_keys_buf9 retval9 abbr_table10 map_table10 unique9 nowait9 silent9 unmap_lhs_only9 noremap8 orig_rhs2 False (FALSE :: Int32) r'40 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
+                else j'33 maptype9 alt_keys_buf9 rhs6 len9 hasarg6 haskey6 do_print6 keyround1 alt_keys_buf9 retval9 abbr_table10 map_table10 unique9 nowait9 silent9 unmap_lhs_only9 noremap8 orig_rhs2 False False r'40 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
             else do
               if (alt_keys_buf9 /= nullPtr) && do_print6
-                then j'33 maptype9 alt_keys_buf9 rhs6 len9 hasarg6 haskey6 do_print6 keyround1 alt_keys_buf9 retval9 abbr_table10 map_table10 unique9 nowait9 silent9 unmap_lhs_only9 noremap8 orig_rhs2 False (FALSE :: Int32) r'40 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
-                else j'33 maptype9 keys8 rhs6 len9 hasarg6 haskey6 do_print6 keyround1 alt_keys_buf9 retval9 abbr_table10 map_table10 unique9 nowait9 silent9 unmap_lhs_only9 noremap8 orig_rhs2 False (FALSE :: Int32) r'40 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
+                then j'33 maptype9 alt_keys_buf9 rhs6 len9 hasarg6 haskey6 do_print6 keyround1 alt_keys_buf9 retval9 abbr_table10 map_table10 unique9 nowait9 silent9 unmap_lhs_only9 noremap8 orig_rhs2 False False r'40 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
+                else j'33 maptype9 keys8 rhs6 len9 hasarg6 haskey6 do_print6 keyround1 alt_keys_buf9 retval9 abbr_table10 map_table10 unique9 nowait9 silent9 unmap_lhs_only9 noremap8 orig_rhs2 False False r'40 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
         else j'135 retval9 replace_termcodes__o_r__9 replace_termcodes__o_bufp9
     j'33 !maptype10 !keys9 !rhs7 !len10 !hasarg7 !haskey7 !do_print7 !keyround2 !alt_keys_buf10 !retval10 !abbr_table11 !map_table11 !unique10 !nowait10 !silent10 !unmap_lhs_only10 !noremap9 !orig_rhs3 !did_it1 !did_local1 !keyround1_simplified1 !replace_termcodes__o_r__10 !replace_termcodes__o_bufp10 = do
       if haskey7
@@ -2882,7 +2882,7 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
             else do
               if (not haskey17) || (not hasarg17)
                 then do
-                  if (not did_it11) && (not (did_local11 /= 0))
+                  if (not did_it11) && (not did_local11)
                     then do
                       if abbrev
                         then do
@@ -5836,7 +5836,7 @@ nv_next ed' cap = frame 4 $ \fr' -> do
   let
     j'2 !i1 = do
       r'2 <- if (i1 > 0) then (do { r'1 <- p_hls ed'; pure (r'1 /= 0) }) else pure False
-      r'4 <- if r'2 then (do { r'3 <- no_hlsearch ed'; pure (not (r'3 /= 0)) }) else pure False
+      r'4 <- if r'2 then (do { r'3 <- no_hlsearch ed'; pure (not r'3) }) else pure False
       if r'4
         then do
           redraw_later ed' UPD_SOME_VALID
@@ -5890,7 +5890,7 @@ normal_search ed' cap dir pat patlen opt wrapped = frame 16 $ \fr' -> do
       r'8 <- if (r'5 == prev_cursor_lnum3) then (do { r'6 <- curwin ed'; r'7 <- rdI32 r'6 (win_T'w_cursor + pos_T'col); pure (r'7 == prev_cursor_col3) }) else pure False
       r'11 <- if r'8 then (do { r'9 <- curwin ed'; r'10 <- rdI32 r'9 (win_T'w_cursor + pos_T'coladd); pure (r'10 == prev_cursor_coladd3) }) else pure False
       r'13 <- if (not r'11) then (do { r'12 <- p_hls ed'; pure (r'12 /= 0) }) else pure False
-      r'15 <- if r'13 then (do { r'14 <- no_hlsearch ed'; pure (not (r'14 /= 0)) }) else pure False
+      r'15 <- if r'13 then (do { r'14 <- no_hlsearch ed'; pure (not r'14) }) else pure False
       if r'15
         then do
           redraw_later ed' UPD_SOME_VALID
@@ -5937,7 +5937,7 @@ nv_csearch ed' cap = frame 8 $ \fr' -> do
       r'4 <- rdP cap cmdarg_T'oap
       wrI32 r'4 oparg_T'motion_type MCHAR
       r'5 <- rdI32 cap cmdarg_T'nchar
-      r'7 <- if (r'5 < 0) then pure True else (do { r'6 <- searchc ed' cap (b2i t_cmd1 :: Int32); pure (not r'6) })
+      r'7 <- if (r'5 < 0) then pure True else (do { r'6 <- searchc ed' cap t_cmd1; pure (not r'6) })
       if r'7
         then do
           r'8 <- rdP cap cmdarg_T'oap
@@ -6841,7 +6841,7 @@ nv_optrans ed' cap = do
           wrI32 r'14 oparg_T'op_type OP_DELETE
           wrI64 cap cmdarg_T'count1 1
           nv_dollar ed' cap
-          set'finish_op ed' TRUE
+          set'finish_op ed' True
           c'ResetRedobuff ed'
           c'AppendCharToRedobuff ed' (ch 'D')
           j'6
@@ -6949,7 +6949,7 @@ nv_visual ed' cap = do
           r'5 <- rdP cap cmdarg_T'oap
           r'6 <- rdI32 r'5 oparg_T'motion_force
           set'motion_force ed' r'6
-          set'finish_op ed' FALSE
+          set'finish_op ed' False
           pure ()
         else do
           r'7 <- rdI32 cap cmdarg_T'arg
@@ -8696,12 +8696,12 @@ set_csearch_direction ed' cdir = do
   set'lastcdir ed' cdir
   pure ()
 
-set_csearch_until :: Ed -> Int32 -> IO ()
+set_csearch_until :: Ed -> Bool -> IO ()
 set_csearch_until ed' t_cmd = do
   set'last_t_cmd ed' t_cmd
   pure ()
 
-searchc :: Ed -> Ptr Cmdarg_T -> Int32 -> IO Bool
+searchc :: Ed -> Ptr Cmdarg_T -> Bool -> IO Bool
 searchc ed' cap t_cmd = do
   let
     j'5 !dir1 !count1 !stop1 = do
@@ -8710,7 +8710,7 @@ searchc ed' cap t_cmd = do
       let !c1 = fromIntegral r'2 :: Int32
       r'3 <- p_cpo ed'
       r'4 <- vim_strchr ed' r'3 CPO_SCOLON
-      if ((r'4 == nullPtr) && (count1 == 1)) && (r'1 /= 0)
+      if ((r'4 == nullPtr) && (count1 == 1)) && r'1
         then j'12 r'1 c1 dir1 count1 False
         else j'12 r'1 c1 dir1 count1 stop1
     j'12 !t_cmd1 !c2 !dir2 !count2 !stop2 = do
@@ -8734,7 +8734,7 @@ searchc ed' cap t_cmd = do
       if count4 /= 0
         then loop'23 t_cmd3 c4 dir4 count5 col1 p1 len1 stop4
         else do
-          if t_cmd3 /= 0
+          if t_cmd3
             then do
               let !col2 = col1 - dir4
               if dir4 < 0

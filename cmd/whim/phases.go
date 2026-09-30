@@ -121,4 +121,5 @@ import (
 	_ "github.com/arbace/go-whim/internal/phase/179"
 	_ "github.com/arbace/go-whim/internal/phase/180"
 	_ "github.com/arbace/go-whim/internal/phase/183"
+	_ "github.com/arbace/go-whim/internal/phase/184"
 )

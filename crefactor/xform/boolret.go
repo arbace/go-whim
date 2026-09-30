@@ -28,13 +28,20 @@ type BoolRetKnobs struct {
 	// Globals takes the core's file-scope objects too: an `int` object that
 	// only ever holds an answer is bool (globalCandidates).
 	Globals bool
+	// Relax takes what the rule of phases 166 and 183 left int: the fixed
+	// point is the greatest (a flag saved in a local and restored from it
+	// is an answer), a literal 0 or 1 assigned to a file-scope object is
+	// one, and so is `x |= E` or `x &= E` of an answer E into one, which is
+	// then written `x = E || x` (`&&`): E evaluated as before, x read.
+	Relax bool
 }
 
 // boolRet is one run's knobs, as sets.
 type boolRet struct {
-	k   BoolRetKnobs
-	yes map[string]bool // the constants that are true
-	no  map[string]bool // the constants that are false
+	k        BoolRetKnobs
+	compound []compoundAssign // Relax: the |= and &= of an answer into a candidate
+	yes      map[string]bool  // the constants that are true
+	no       map[string]bool  // the constants that are false
 }
 
 func (b *boolRet) answer(s string) bool { return b.yes[s] || b.no[s] }
@@ -74,6 +81,7 @@ func BoolRet(k BoolRetKnobs) Step {
 }
 
 func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
+	b.compound = nil
 	const path = file
 	host := text[cut:]
 	ast, err := parse(text)
@@ -179,72 +187,73 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 		globals = b.globalCandidates(ast, path, cut, host)
 	}
 	// the fixpoint: a function is a question when all its returns are, and a
-	// member holds one when every value it is given is
+	// member, a parameter, a file-scope object holds one when every value it
+	// is given is.  Each candidate is a check against what is known.
+	allAnswers := func(as []assign, yes map[string]bool) bool {
+		for _, a := range as {
+			if !b.boolish(a.e, yes, a.lf, 0) {
+				return false
+			}
+		}
+		return true
+	}
+	cands := map[string]func(map[string]bool) bool{}
+	for k, pc := range params {
+		if !pc.bad && len(pc.assigns) > 0 {
+			as := pc.assigns
+			cands[k] = func(yes map[string]bool) bool { return allAnswers(as, yes) }
+		}
+	}
+	for m, fc := range fields {
+		if !fc.bad && len(fc.assigns) > 0 {
+			as := fc.assigns
+			cands["."+m] = func(yes map[string]bool) bool { return allAnswers(as, yes) }
+		}
+	}
+	for g, gc := range globals {
+		if !gc.bad && len(gc.assigns) > 0 {
+			as := gc.assigns
+			cands["g:"+g] = func(yes map[string]bool) bool { return allAnswers(as, yes) }
+		}
+	}
+	for name, f := range fns {
+		if len(f.returns) > 0 {
+			f := f
+			cands[name] = func(yes map[string]bool) bool {
+				for _, r := range f.returns {
+					if r == nil || !b.boolish(r, yes, f.locals, 0) {
+						return false
+					}
+				}
+				return true
+			}
+		}
+	}
 	yes := map[string]bool{}
-	for grew := true; grew; {
-		grew = false
-		for k, pc := range params {
-			if yes[k] || pc.bad || len(pc.assigns) == 0 {
-				continue
-			}
-			all := true
-			for _, as := range pc.assigns {
-				if !b.boolish(as.e, yes, as.lf, 0) {
-					all = false
-					break
+	if !b.k.Relax {
+		// the least: nothing is an answer until shown one
+		for grew := true; grew; {
+			grew = false
+			for k, check := range cands {
+				if !yes[k] && check(yes) {
+					yes[k] = true
+					grew = true
 				}
-			}
-			if all {
-				yes[k] = true
-				grew = true
 			}
 		}
-		for m, fc := range fields {
-			if yes["."+m] || fc.bad {
-				continue
-			}
-			all := true
-			for _, as := range fc.assigns {
-				if !b.boolish(as.e, yes, as.lf, 0) {
-					all = false
-					break
-				}
-			}
-			if all && len(fc.assigns) > 0 {
-				yes["."+m] = true
-				grew = true
-			}
+	} else {
+		// the greatest: every candidate is one until shown not -- a flag
+		// saved in a local and restored from it holds only what it held
+		for k := range cands {
+			yes[k] = true
 		}
-		for g, gc := range globals {
-			if yes["g:"+g] || gc.bad || len(gc.assigns) == 0 {
-				continue
-			}
-			all := true
-			for _, as := range gc.assigns {
-				if !b.boolish(as.e, yes, as.lf, 0) {
-					all = false
-					break
+		for shrank := true; shrank; {
+			shrank = false
+			for k := range yes {
+				if !cands[k](yes) {
+					delete(yes, k)
+					shrank = true
 				}
-			}
-			if all {
-				yes["g:"+g] = true
-				grew = true
-			}
-		}
-		for name, f := range fns {
-			if yes[name] || len(f.returns) == 0 {
-				continue
-			}
-			all := true
-			for _, r := range f.returns {
-				if r == nil || !b.boolish(r, yes, f.locals, 0) {
-					all = false
-					break
-				}
-			}
-			if all {
-				yes[name] = true
-				grew = true
 			}
 		}
 	}
@@ -305,13 +314,36 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 		})
 	}
 	sort.Strings(names)
-	sort.Slice(toks, func(i, j int) bool { return toks[i].Position().Offset > toks[j].Position().Offset })
+	type edit1 struct {
+		a, z int
+		s    string
+	}
+	var edits []edit1
 	for _, t := range toks {
 		o := t.Position().Offset
 		if string(text[o:o+3]) != "int" {
 			return nil, p.Die("the `int` of a retyped function is not at %d", o)
 		}
-		text = append(append(append([]byte{}, text[:o]...), "bool"...), text[o+3:]...)
+		edits = append(edits, edit1{o, o + 3, "bool"})
+	}
+	// Relax: a |= or &= of an answer into a bool, written as the bool's own
+	nCompound := 0
+	for _, c := range b.compound {
+		if !yes["g:"+c.name] {
+			continue
+		}
+		a, z := spanOf(c.x, text)
+		ra, rz := spanOf(c.x.AssignmentExpression, text)
+		op := "||"
+		if c.x.Case == cc.AssignmentExpressionAnd {
+			op = "&&"
+		}
+		edits = append(edits, edit1{a, z, c.name + " = (" + string(text[ra:rz]) + ") " + op + " " + c.name})
+		nCompound++
+	}
+	sort.Slice(edits, func(i, j int) bool { return edits[i].a > edits[j].a })
+	for _, e := range edits {
+		text = append(append(append([]byte{}, text[:e.a]...), e.s...), text[e.z:]...)
 	}
 	// ---- the callers: `f() == false` is `!f()`, `f() != false` is `f()` -----
 	cmp := 0
@@ -334,6 +366,9 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 	p.Say(fmt.Sprintf("%d parameters that are only ever given an answer are bool too", nParams))
 	if b.k.Globals {
 		p.Say(fmt.Sprintf("%d file-scope objects that only ever hold an answer are bool too", nGlobals))
+	}
+	if b.k.Relax {
+		p.Say(fmt.Sprintf("%d |= and &= of an answer into one are written x = E || x", nCompound))
 	}
 	return text, nil
 }
@@ -937,6 +972,12 @@ func (b *boolRet) comparedWithCode(n cc.Node, name func(cc.ExpressionNode) strin
 	})
 }
 
+// compoundAssign is `name |= E` or `name &= E` into a file-scope object.
+type compoundAssign struct {
+	name string
+	x    *cc.AssignmentExpression
+}
+
 // globalCandidates collects the core's file-scope objects that may hold an
 // answer, by name, with every value given one: its initializer and each
 // assignment in a function that has no local or parameter of that name.
@@ -1047,9 +1088,15 @@ func (b *boolRet) globalCandidates(ast *cc.AST, path string, cut int, host []byt
 			switch x := n.(type) {
 			case *cc.AssignmentExpression:
 				if m := ident(x.UnaryExpression); m != "" {
-					if x.Case == cc.AssignmentExpressionAssign {
+					switch {
+					case x.Case == cc.AssignmentExpressionAssign && b.k.Relax && literal01(x.AssignmentExpression):
+						// a 0 or a 1: no answer, and none against
+					case x.Case == cc.AssignmentExpressionAssign:
 						get(m).assigns = append(get(m).assigns, assign{x.AssignmentExpression, lf})
-					} else if x.Case != cc.AssignmentExpressionCond {
+					case b.k.Relax && (x.Case == cc.AssignmentExpressionOr || x.Case == cc.AssignmentExpressionAnd):
+						get(m).assigns = append(get(m).assigns, assign{x.AssignmentExpression, lf})
+						b.compound = append(b.compound, compoundAssign{m, x})
+					case x.Case != cc.AssignmentExpressionCond:
 						get(m).bad = true
 					}
 				}
