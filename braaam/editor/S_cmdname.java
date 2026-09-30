@@ -22,12 +22,13 @@ final class S_cmdname implements Struct<S_cmdname> {
         this.cmd_addr_type = cmd_addr_type;
     }
 
-    public S_cmdname set(S_cmdname o$) {
-        cmd_name = o$.cmd_name;
-        cmd_minlen = o$.cmd_minlen;
-        cmd_func = o$.cmd_func;
-        cmd_argt = o$.cmd_argt;
-        cmd_addr_type = o$.cmd_addr_type;
+    @Override
+    public S_cmdname set(S_cmdname o) {
+        cmd_name = o.cmd_name;
+        cmd_minlen = o.cmd_minlen;
+        cmd_func = o.cmd_func;
+        cmd_argt = o.cmd_argt;
+        cmd_addr_type = o.cmd_addr_type;
         return this;
     }
 
@@ -35,6 +36,7 @@ final class S_cmdname implements Struct<S_cmdname> {
         return new S_cmdname().set(this);
     }
 
+    @Override
     public S_cmdname zero() {
         return set(new S_cmdname());
     }

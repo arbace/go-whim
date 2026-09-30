@@ -16,9 +16,10 @@ final class T_builtin_tcap_T implements Struct<T_builtin_tcap_T> {
         this.bitc_table = bitc_table;
     }
 
-    public T_builtin_tcap_T set(T_builtin_tcap_T o$) {
-        bitc_name = o$.bitc_name;
-        bitc_table = o$.bitc_table;
+    @Override
+    public T_builtin_tcap_T set(T_builtin_tcap_T o) {
+        bitc_name = o.bitc_name;
+        bitc_table = o.bitc_table;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class T_builtin_tcap_T implements Struct<T_builtin_tcap_T> {
         return new T_builtin_tcap_T().set(this);
     }
 
+    @Override
     public T_builtin_tcap_T zero() {
         return set(new T_builtin_tcap_T());
     }

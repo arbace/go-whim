@@ -9,10 +9,11 @@ final class T_normal_cmd_get_count__out_T implements Struct<T_normal_cmd_get_cou
     int ctrl_w;
     int need_flushbuf;
 
-    public T_normal_cmd_get_count__out_T set(T_normal_cmd_get_count__out_T o$) {
-        r__ = o$.r__;
-        ctrl_w = o$.ctrl_w;
-        need_flushbuf = o$.need_flushbuf;
+    @Override
+    public T_normal_cmd_get_count__out_T set(T_normal_cmd_get_count__out_T o) {
+        r__ = o.r__;
+        ctrl_w = o.ctrl_w;
+        need_flushbuf = o.need_flushbuf;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_normal_cmd_get_count__out_T implements Struct<T_normal_cmd_get_cou
         return new T_normal_cmd_get_count__out_T().set(this);
     }
 
+    @Override
     public T_normal_cmd_get_count__out_T zero() {
         return set(new T_normal_cmd_get_count__out_T());
     }

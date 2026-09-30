@@ -10,11 +10,12 @@ final class T_parse_option_name__out_T implements Struct<T_parse_option_name__ou
     int lenp;
     int keyp;
 
-    public T_parse_option_name__out_T set(T_parse_option_name__out_T o$) {
-        r__ = o$.r__;
-        opt_idxp = o$.opt_idxp;
-        lenp = o$.lenp;
-        keyp = o$.keyp;
+    @Override
+    public T_parse_option_name__out_T set(T_parse_option_name__out_T o) {
+        r__ = o.r__;
+        opt_idxp = o.opt_idxp;
+        lenp = o.lenp;
+        keyp = o.keyp;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_parse_option_name__out_T implements Struct<T_parse_option_name__ou
         return new T_parse_option_name__out_T().set(this);
     }
 
+    @Override
     public T_parse_option_name__out_T zero() {
         return set(new T_parse_option_name__out_T());
     }

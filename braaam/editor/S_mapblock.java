@@ -17,18 +17,19 @@ final class S_mapblock implements Struct<S_mapblock> {
     byte m_silent;
     byte m_nowait;
 
-    public S_mapblock set(S_mapblock o$) {
-        m_next[0] = o$.m_next[0];
-        m_alt = o$.m_alt;
-        m_keys = o$.m_keys;
-        m_str = o$.m_str;
-        m_orig_str = o$.m_orig_str;
-        m_keylen = o$.m_keylen;
-        m_mode = o$.m_mode;
-        m_simplified = o$.m_simplified;
-        m_noremap = o$.m_noremap;
-        m_silent = o$.m_silent;
-        m_nowait = o$.m_nowait;
+    @Override
+    public S_mapblock set(S_mapblock o) {
+        m_next[0] = o.m_next[0];
+        m_alt = o.m_alt;
+        m_keys = o.m_keys;
+        m_str = o.m_str;
+        m_orig_str = o.m_orig_str;
+        m_keylen = o.m_keylen;
+        m_mode = o.m_mode;
+        m_simplified = o.m_simplified;
+        m_noremap = o.m_noremap;
+        m_silent = o.m_silent;
+        m_nowait = o.m_nowait;
         return this;
     }
 
@@ -36,6 +37,7 @@ final class S_mapblock implements Struct<S_mapblock> {
         return new S_mapblock().set(this);
     }
 
+    @Override
     public S_mapblock zero() {
         return set(new S_mapblock());
     }

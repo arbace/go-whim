@@ -16,9 +16,10 @@ final class T_tcap_entry_T implements Struct<T_tcap_entry_T> {
         this.bt_string = bt_string;
     }
 
-    public T_tcap_entry_T set(T_tcap_entry_T o$) {
-        bt_entry = o$.bt_entry;
-        bt_string = o$.bt_string;
+    @Override
+    public T_tcap_entry_T set(T_tcap_entry_T o) {
+        bt_entry = o.bt_entry;
+        bt_string = o.bt_string;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class T_tcap_entry_T implements Struct<T_tcap_entry_T> {
         return new T_tcap_entry_T().set(this);
     }
 
+    @Override
     public T_tcap_entry_T zero() {
         return set(new T_tcap_entry_T());
     }

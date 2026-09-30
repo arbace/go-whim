@@ -8,9 +8,10 @@ final class S_attr_entry implements Struct<S_attr_entry> {
     short ae_attr;
     final A_2 ae_u = new A_2();
 
-    public S_attr_entry set(S_attr_entry o$) {
-        ae_attr = o$.ae_attr;
-        ae_u.set(o$.ae_u);
+    @Override
+    public S_attr_entry set(S_attr_entry o) {
+        ae_attr = o.ae_attr;
+        ae_u.set(o.ae_u);
         return this;
     }
 
@@ -18,6 +19,7 @@ final class S_attr_entry implements Struct<S_attr_entry> {
         return new S_attr_entry().set(this);
     }
 
+    @Override
     public S_attr_entry zero() {
         return set(new S_attr_entry());
     }

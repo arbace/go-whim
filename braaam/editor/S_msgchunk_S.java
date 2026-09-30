@@ -12,13 +12,14 @@ final class S_msgchunk_S implements Struct<S_msgchunk_S> {
     int sb_attr;
     BytePtr sb_text;
 
-    public S_msgchunk_S set(S_msgchunk_S o$) {
-        sb_next = o$.sb_next;
-        sb_prev[0] = o$.sb_prev[0];
-        sb_eol = o$.sb_eol;
-        sb_msg_col = o$.sb_msg_col;
-        sb_attr = o$.sb_attr;
-        sb_text = o$.sb_text;
+    @Override
+    public S_msgchunk_S set(S_msgchunk_S o) {
+        sb_next = o.sb_next;
+        sb_prev[0] = o.sb_prev[0];
+        sb_eol = o.sb_eol;
+        sb_msg_col = o.sb_msg_col;
+        sb_attr = o.sb_attr;
+        sb_text = o.sb_text;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_msgchunk_S implements Struct<S_msgchunk_S> {
         return new S_msgchunk_S().set(this);
     }
 
+    @Override
     public S_msgchunk_S zero() {
         return set(new S_msgchunk_S());
     }

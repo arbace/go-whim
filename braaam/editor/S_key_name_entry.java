@@ -20,11 +20,12 @@ final class S_key_name_entry implements Struct<S_key_name_entry> {
         this.is_alt = is_alt;
     }
 
-    public S_key_name_entry set(S_key_name_entry o$) {
-        enabled = o$.enabled;
-        key = o$.key;
-        name.set(o$.name);
-        is_alt = o$.is_alt;
+    @Override
+    public S_key_name_entry set(S_key_name_entry o) {
+        enabled = o.enabled;
+        key = o.key;
+        name.set(o.name);
+        is_alt = o.is_alt;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class S_key_name_entry implements Struct<S_key_name_entry> {
         return new S_key_name_entry().set(this);
     }
 
+    @Override
     public S_key_name_entry zero() {
         return set(new S_key_name_entry());
     }

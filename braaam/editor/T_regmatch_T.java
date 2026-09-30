@@ -11,12 +11,13 @@ final class T_regmatch_T implements Struct<T_regmatch_T> {
     int rm_matchcol;
     boolean rm_ic;
 
-    public T_regmatch_T set(T_regmatch_T o$) {
-        regprog = o$.regprog;
-        System.arraycopy(o$.startp, 0, startp, 0, 10);
-        System.arraycopy(o$.endp, 0, endp, 0, 10);
-        rm_matchcol = o$.rm_matchcol;
-        rm_ic = o$.rm_ic;
+    @Override
+    public T_regmatch_T set(T_regmatch_T o) {
+        regprog = o.regprog;
+        System.arraycopy(o.startp, 0, startp, 0, 10);
+        System.arraycopy(o.endp, 0, endp, 0, 10);
+        rm_matchcol = o.rm_matchcol;
+        rm_ic = o.rm_ic;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class T_regmatch_T implements Struct<T_regmatch_T> {
         return new T_regmatch_T().set(this);
     }
 
+    @Override
     public T_regmatch_T zero() {
         return set(new T_regmatch_T());
     }

@@ -20,11 +20,12 @@ final class S_nv_cmd implements Struct<S_nv_cmd> {
         this.cmd_arg = (short) cmd_arg;
     }
 
-    public S_nv_cmd set(S_nv_cmd o$) {
-        cmd_char = o$.cmd_char;
-        cmd_func = o$.cmd_func;
-        cmd_flags = o$.cmd_flags;
-        cmd_arg = o$.cmd_arg;
+    @Override
+    public S_nv_cmd set(S_nv_cmd o) {
+        cmd_char = o.cmd_char;
+        cmd_func = o.cmd_func;
+        cmd_flags = o.cmd_flags;
+        cmd_arg = o.cmd_arg;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class S_nv_cmd implements Struct<S_nv_cmd> {
         return new S_nv_cmd().set(this);
     }
 
+    @Override
     public S_nv_cmd zero() {
         return set(new S_nv_cmd());
     }

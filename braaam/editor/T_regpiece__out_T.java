@@ -8,9 +8,10 @@ final class T_regpiece__out_T implements Struct<T_regpiece__out_T> {
     BytePtr r__;
     int flagp;
 
-    public T_regpiece__out_T set(T_regpiece__out_T o$) {
-        r__ = o$.r__;
-        flagp = o$.flagp;
+    @Override
+    public T_regpiece__out_T set(T_regpiece__out_T o) {
+        r__ = o.r__;
+        flagp = o.flagp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_regpiece__out_T implements Struct<T_regpiece__out_T> {
         return new T_regpiece__out_T().set(this);
     }
 
+    @Override
     public T_regpiece__out_T zero() {
         return set(new T_regpiece__out_T());
     }

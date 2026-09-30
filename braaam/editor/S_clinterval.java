@@ -18,10 +18,11 @@ final class S_clinterval implements Struct<S_clinterval> {
         this.class_ = class_;
     }
 
-    public S_clinterval set(S_clinterval o$) {
-        first = o$.first;
-        last = o$.last;
-        class_ = o$.class_;
+    @Override
+    public S_clinterval set(S_clinterval o) {
+        first = o.first;
+        last = o.last;
+        class_ = o.class_;
         return this;
     }
 
@@ -29,6 +30,7 @@ final class S_clinterval implements Struct<S_clinterval> {
         return new S_clinterval().set(this);
     }
 
+    @Override
     public S_clinterval zero() {
         return set(new S_clinterval());
     }

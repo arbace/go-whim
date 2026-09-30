@@ -10,11 +10,12 @@ final class S_frame_S implements Struct<S_frame_S> {
     int fr_height;
     S_window_S fr_win;
 
-    public S_frame_S set(S_frame_S o$) {
-        fr_layout = o$.fr_layout;
-        fr_width = o$.fr_width;
-        fr_height = o$.fr_height;
-        fr_win = o$.fr_win;
+    @Override
+    public S_frame_S set(S_frame_S o) {
+        fr_layout = o.fr_layout;
+        fr_width = o.fr_width;
+        fr_height = o.fr_height;
+        fr_win = o.fr_win;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class S_frame_S implements Struct<S_frame_S> {
         return new S_frame_S().set(this);
     }
 
+    @Override
     public S_frame_S zero() {
         return set(new S_frame_S());
     }

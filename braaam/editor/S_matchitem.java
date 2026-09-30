@@ -18,19 +18,20 @@ final class S_matchitem implements Struct<S_matchitem> {
     final T_match_T mit_hl = new T_match_T();
     int mit_hlg_id;
 
-    public S_matchitem set(S_matchitem o$) {
-        mit_next = o$.mit_next;
-        mit_id = o$.mit_id;
-        mit_priority = o$.mit_priority;
-        mit_pattern = o$.mit_pattern;
-        mit_match.set(o$.mit_match);
-        mit_pos_array = o$.mit_pos_array;
-        mit_pos_count = o$.mit_pos_count;
-        mit_pos_cur = o$.mit_pos_cur;
-        mit_toplnum = o$.mit_toplnum;
-        mit_botlnum = o$.mit_botlnum;
-        mit_hl.set(o$.mit_hl);
-        mit_hlg_id = o$.mit_hlg_id;
+    @Override
+    public S_matchitem set(S_matchitem o) {
+        mit_next = o.mit_next;
+        mit_id = o.mit_id;
+        mit_priority = o.mit_priority;
+        mit_pattern = o.mit_pattern;
+        mit_match.set(o.mit_match);
+        mit_pos_array = o.mit_pos_array;
+        mit_pos_count = o.mit_pos_count;
+        mit_pos_cur = o.mit_pos_cur;
+        mit_toplnum = o.mit_toplnum;
+        mit_botlnum = o.mit_botlnum;
+        mit_hl.set(o.mit_hl);
+        mit_hlg_id = o.mit_hlg_id;
         return this;
     }
 
@@ -38,6 +39,7 @@ final class S_matchitem implements Struct<S_matchitem> {
         return new S_matchitem().set(this);
     }
 
+    @Override
     public S_matchitem zero() {
         return set(new S_matchitem());
     }

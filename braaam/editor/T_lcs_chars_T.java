@@ -21,22 +21,23 @@ final class T_lcs_chars_T implements Struct<T_lcs_chars_T> {
     IntPtr multispace;
     IntPtr leadmultispace;
 
-    public T_lcs_chars_T set(T_lcs_chars_T o$) {
-        eol[0] = o$.eol[0];
-        ext[0] = o$.ext[0];
-        prec[0] = o$.prec[0];
-        nbsp[0] = o$.nbsp[0];
-        space[0] = o$.space[0];
-        tab1 = o$.tab1;
-        tab2[0] = o$.tab2[0];
-        tab3 = o$.tab3;
-        trail[0] = o$.trail[0];
-        lead[0] = o$.lead[0];
-        leadtab1 = o$.leadtab1;
-        leadtab2[0] = o$.leadtab2[0];
-        leadtab3 = o$.leadtab3;
-        multispace = o$.multispace;
-        leadmultispace = o$.leadmultispace;
+    @Override
+    public T_lcs_chars_T set(T_lcs_chars_T o) {
+        eol[0] = o.eol[0];
+        ext[0] = o.ext[0];
+        prec[0] = o.prec[0];
+        nbsp[0] = o.nbsp[0];
+        space[0] = o.space[0];
+        tab1 = o.tab1;
+        tab2[0] = o.tab2[0];
+        tab3 = o.tab3;
+        trail[0] = o.trail[0];
+        lead[0] = o.lead[0];
+        leadtab1 = o.leadtab1;
+        leadtab2[0] = o.leadtab2[0];
+        leadtab3 = o.leadtab3;
+        multispace = o.multispace;
+        leadmultispace = o.leadmultispace;
         return this;
     }
 
@@ -44,6 +45,7 @@ final class T_lcs_chars_T implements Struct<T_lcs_chars_T> {
         return new T_lcs_chars_T().set(this);
     }
 
+    @Override
     public T_lcs_chars_T zero() {
         return set(new T_lcs_chars_T());
     }

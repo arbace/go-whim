@@ -22,23 +22,24 @@ final class T_winopt_T implements Struct<T_winopt_T> {
     long wo_wrap_flags;
     final BytePtr[] wo_whl = new BytePtr[1];
 
-    public T_winopt_T set(T_winopt_T o$) {
-        wo_wcr[0] = o$.wo_wcr[0];
-        wo_list[0] = o$.wo_list[0];
-        wo_lcs[0] = o$.wo_lcs[0];
-        wo_fcs[0] = o$.wo_fcs[0];
-        wo_nu[0] = o$.wo_nu[0];
-        wo_rnu[0] = o$.wo_rnu[0];
-        wo_ve[0] = o$.wo_ve[0];
-        wo_ve_flags[0] = o$.wo_ve_flags[0];
-        wo_scr[0] = o$.wo_scr[0];
-        wo_sms[0] = o$.wo_sms[0];
-        wo_wrap[0] = o$.wo_wrap[0];
-        wo_siso[0] = o$.wo_siso[0];
-        wo_so[0] = o$.wo_so[0];
-        wo_sop[0] = o$.wo_sop[0];
-        wo_wrap_flags = o$.wo_wrap_flags;
-        wo_whl[0] = o$.wo_whl[0];
+    @Override
+    public T_winopt_T set(T_winopt_T o) {
+        wo_wcr[0] = o.wo_wcr[0];
+        wo_list[0] = o.wo_list[0];
+        wo_lcs[0] = o.wo_lcs[0];
+        wo_fcs[0] = o.wo_fcs[0];
+        wo_nu[0] = o.wo_nu[0];
+        wo_rnu[0] = o.wo_rnu[0];
+        wo_ve[0] = o.wo_ve[0];
+        wo_ve_flags[0] = o.wo_ve_flags[0];
+        wo_scr[0] = o.wo_scr[0];
+        wo_sms[0] = o.wo_sms[0];
+        wo_wrap[0] = o.wo_wrap[0];
+        wo_siso[0] = o.wo_siso[0];
+        wo_so[0] = o.wo_so[0];
+        wo_sop[0] = o.wo_sop[0];
+        wo_wrap_flags = o.wo_wrap_flags;
+        wo_whl[0] = o.wo_whl[0];
         return this;
     }
 
@@ -46,6 +47,7 @@ final class T_winopt_T implements Struct<T_winopt_T> {
         return new T_winopt_T().set(this);
     }
 
+    @Override
     public T_winopt_T zero() {
         return set(new T_winopt_T());
     }

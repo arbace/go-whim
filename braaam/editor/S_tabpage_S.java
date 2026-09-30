@@ -9,10 +9,11 @@ final class S_tabpage_S implements Struct<S_tabpage_S> {
     S_window_S tp_curwin;
     long tp_ch_used;
 
-    public S_tabpage_S set(S_tabpage_S o$) {
-        tp_topframe = o$.tp_topframe;
-        tp_curwin = o$.tp_curwin;
-        tp_ch_used = o$.tp_ch_used;
+    @Override
+    public S_tabpage_S set(S_tabpage_S o) {
+        tp_topframe = o.tp_topframe;
+        tp_curwin = o.tp_curwin;
+        tp_ch_used = o.tp_ch_used;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class S_tabpage_S implements Struct<S_tabpage_S> {
         return new S_tabpage_S().set(this);
     }
 
+    @Override
     public S_tabpage_S zero() {
         return set(new S_tabpage_S());
     }

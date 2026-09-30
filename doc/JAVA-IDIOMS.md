@@ -390,6 +390,9 @@ seen. The records the survey mentions are not done.
 
 ### 7. `int` truth values the C still has
 
+**Not done** (measured 2026-09-30): `TRUE`/`FALSE` named 1,195 times in
+`braaam/editor/`, `b ? 1 : 0` 183.
+
 - **The pattern:** phase 166 made the core's yes-or-no functions, locals,
   members and parameters `bool`, and not the file-scope objects: **92** are
   still `static int x = TRUE;` or `= FALSE;` in `whim-vim.c` (`VIsual_active`,
@@ -421,6 +424,8 @@ seen. The records the survey mentions are not done.
 
 ### 9. Side effects the Go had to split and Java need not
 
+**Not done** (measured 2026-09-30): 410 temporaries assigned (`t1 = ...`).
+
 - **The pattern:** Java, unlike Go, has `i++`, `--len` and assignment as
   expressions, and evaluates left to right. The backend splits them as the
   Go must: `ccline.cmdbuff[i++] = ccline.cmdbuff[j++];` is five lines with
@@ -438,6 +443,26 @@ seen. The records the survey mentions are not done.
   order is the whole of it; the suites and `TestJavaControl2`-style controls.
 
 ### 10. Small printer rules
+
+**Done in part** (2026-09-30), measured on `braaam/editor/`:
+- `@Override` on every struct class's `set` and `zero` (324), and the other
+  object named `o` (`o$` only where a member is `o`);
+- `!(a == b)` as `a != b`, and the reverse, where the one `==` or `!=` is
+  the top of the expression (`flipEq`);
+- the host methods' parameters by the C prototype's names
+  (`host_message(BytePtr msg, int len, int err)`);
+- these four leave the class files as they were: `whim java
+  --same-classes`, 200 classes, 200 byte for byte;
+- C's 25 fall-throughs marked `// fall through`, and their 10 methods
+  `@SuppressWarnings("fallthrough")`;
+- a compound assignment that narrows (javac's lossy-conversions, 40) with
+  its right side narrowed instead: `posp.col += (int) col_amount`, the same
+  bits for `+ - * & | ^`, the ones it applies to.
+`javac -Xlint:all` on the Java editor now reports one warning, the FFM
+API's `[restricted]` in the host. Already so: the empty `for`s (0) and the
+named package (item 11). Not done: the arrow-form switches, phase 173's
+blocks as labeled blocks (11), `private` and `static`, and the class-level
+`@SuppressWarnings` narrowed.
 
 Each is S and none; the counts are the Java's today.
 
@@ -529,6 +554,9 @@ it was.
 
 ### 12. Names
 
+**Not done**, as the survey advises: the class names first, the rest last
+if ever (`GO-IDIOMS.md` item 13's verdict).
+
 - **The pattern:** Checkstyle's naming checks on `Editor.java`: `MethodName`
   1,563, `MemberName` 1,477, `LocalVariableName` 1,035, `ParameterName` 546,
   `TypeName` 105. 1,526 of the 1,735 methods are snake_case (`ml_get_buf_len`,
@@ -549,6 +577,14 @@ it was.
   if ever -- the Go's verdict (`GO-IDIOMS.md` item 13).
 
 ### 13. The runtime and the host
+
+**Done:** `Printf.formatOverflowError` is gone. The Go's
+`format_overflow_error` is reached only when `overflow_err` is set, which
+it never is (`hostTvs` is 0), and the Java port had folded that, so no
+call reached it; `Printf.Core.eValTooLarge`, which only it used, went too,
+with its implementations in `Whim.java` and `cljhost.clj`, and the
+Clojure's `e_val_too_large` export. The pointer classes as records are
+not done.
 
 - **Idiomatic already:** `host/Host.java` is an interface in Java's types (a
   `record TtyKeys`, `byte[]`, offset and length), the embedding host's end is

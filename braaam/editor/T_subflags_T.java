@@ -14,15 +14,16 @@ final class T_subflags_T implements Struct<T_subflags_T> {
     int do_number;
     int do_ic;
 
-    public T_subflags_T set(T_subflags_T o$) {
-        do_all = o$.do_all;
-        do_ask = o$.do_ask;
-        do_count = o$.do_count;
-        do_error = o$.do_error;
-        do_print = o$.do_print;
-        do_list = o$.do_list;
-        do_number = o$.do_number;
-        do_ic = o$.do_ic;
+    @Override
+    public T_subflags_T set(T_subflags_T o) {
+        do_all = o.do_all;
+        do_ask = o.do_ask;
+        do_count = o.do_count;
+        do_error = o.do_error;
+        do_print = o.do_print;
+        do_list = o.do_list;
+        do_number = o.do_number;
+        do_ic = o.do_ic;
         return this;
     }
 
@@ -30,6 +31,7 @@ final class T_subflags_T implements Struct<T_subflags_T> {
         return new T_subflags_T().set(this);
     }
 
+    @Override
     public T_subflags_T zero() {
         return set(new T_subflags_T());
     }

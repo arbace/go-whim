@@ -9,10 +9,11 @@ final class S_data_line implements Struct<S_data_line> {
     int dl_len;
     byte dl_marked;
 
-    public S_data_line set(S_data_line o$) {
-        dl_text = o$.dl_text;
-        dl_len = o$.dl_len;
-        dl_marked = o$.dl_marked;
+    @Override
+    public S_data_line set(S_data_line o) {
+        dl_text = o.dl_text;
+        dl_len = o.dl_len;
+        dl_marked = o.dl_marked;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class S_data_line implements Struct<S_data_line> {
         return new S_data_line().set(this);
     }
 
+    @Override
     public S_data_line zero() {
         return set(new S_data_line());
     }

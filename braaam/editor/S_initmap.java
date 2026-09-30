@@ -16,9 +16,10 @@ final class S_initmap implements Struct<S_initmap> {
         this.mode = mode;
     }
 
-    public S_initmap set(S_initmap o$) {
-        arg = o$.arg;
-        mode = o$.mode;
+    @Override
+    public S_initmap set(S_initmap o) {
+        arg = o.arg;
+        mode = o.mode;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_initmap implements Struct<S_initmap> {
         return new S_initmap().set(this);
     }
 
+    @Override
     public S_initmap zero() {
         return set(new S_initmap());
     }

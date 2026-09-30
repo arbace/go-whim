@@ -10,11 +10,12 @@ final class T_get_list_range__out_T implements Struct<T_get_list_range__out_T> {
     int num1;
     int num2;
 
-    public T_get_list_range__out_T set(T_get_list_range__out_T o$) {
-        r__ = o$.r__;
-        str = o$.str;
-        num1 = o$.num1;
-        num2 = o$.num2;
+    @Override
+    public T_get_list_range__out_T set(T_get_list_range__out_T o) {
+        r__ = o.r__;
+        str = o.str;
+        num1 = o.num1;
+        num2 = o.num2;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_get_list_range__out_T implements Struct<T_get_list_range__out_T> {
         return new T_get_list_range__out_T().set(this);
     }
 
+    @Override
     public T_get_list_range__out_T zero() {
         return set(new T_get_list_range__out_T());
     }

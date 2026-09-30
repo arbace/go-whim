@@ -9,10 +9,11 @@ final class T_utf_safe_read_char_adv__out_T implements Struct<T_utf_safe_read_ch
     BytePtr s;
     long n;
 
-    public T_utf_safe_read_char_adv__out_T set(T_utf_safe_read_char_adv__out_T o$) {
-        r__ = o$.r__;
-        s = o$.s;
-        n = o$.n;
+    @Override
+    public T_utf_safe_read_char_adv__out_T set(T_utf_safe_read_char_adv__out_T o) {
+        r__ = o.r__;
+        s = o.s;
+        n = o.n;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_utf_safe_read_char_adv__out_T implements Struct<T_utf_safe_read_ch
         return new T_utf_safe_read_char_adv__out_T().set(this);
     }
 
+    @Override
     public T_utf_safe_read_char_adv__out_T zero() {
         return set(new T_utf_safe_read_char_adv__out_T());
     }

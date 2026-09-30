@@ -8,9 +8,10 @@ final class T_modifiers2keycode__out_T implements Struct<T_modifiers2keycode__ou
     int r__;
     int key;
 
-    public T_modifiers2keycode__out_T set(T_modifiers2keycode__out_T o$) {
-        r__ = o$.r__;
-        key = o$.key;
+    @Override
+    public T_modifiers2keycode__out_T set(T_modifiers2keycode__out_T o) {
+        r__ = o.r__;
+        key = o.key;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_modifiers2keycode__out_T implements Struct<T_modifiers2keycode__ou
         return new T_modifiers2keycode__out_T().set(this);
     }
 
+    @Override
     public T_modifiers2keycode__out_T zero() {
         return set(new T_modifiers2keycode__out_T());
     }

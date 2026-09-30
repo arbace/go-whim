@@ -8,9 +8,10 @@ final class T_normal_cmd_get_more_chars__out_T implements Struct<T_normal_cmd_ge
     int r__;
     int need_flushbuf;
 
-    public T_normal_cmd_get_more_chars__out_T set(T_normal_cmd_get_more_chars__out_T o$) {
-        r__ = o$.r__;
-        need_flushbuf = o$.need_flushbuf;
+    @Override
+    public T_normal_cmd_get_more_chars__out_T set(T_normal_cmd_get_more_chars__out_T o) {
+        r__ = o.r__;
+        need_flushbuf = o.need_flushbuf;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_normal_cmd_get_more_chars__out_T implements Struct<T_normal_cmd_ge
         return new T_normal_cmd_get_more_chars__out_T().set(this);
     }
 
+    @Override
     public T_normal_cmd_get_more_chars__out_T zero() {
         return set(new T_normal_cmd_get_more_chars__out_T());
     }

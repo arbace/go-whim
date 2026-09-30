@@ -16,9 +16,10 @@ final class T_string_T implements Struct<T_string_T> {
         this.length = length;
     }
 
-    public T_string_T set(T_string_T o$) {
-        string[0] = o$.string[0];
-        length = o$.length;
+    @Override
+    public T_string_T set(T_string_T o) {
+        string[0] = o.string[0];
+        length = o.length;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class T_string_T implements Struct<T_string_T> {
         return new T_string_T().set(this);
     }
 
+    @Override
     public T_string_T zero() {
         return set(new T_string_T());
     }

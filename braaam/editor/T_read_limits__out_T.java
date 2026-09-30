@@ -9,10 +9,11 @@ final class T_read_limits__out_T implements Struct<T_read_limits__out_T> {
     long minval;
     long maxval;
 
-    public T_read_limits__out_T set(T_read_limits__out_T o$) {
-        r__ = o$.r__;
-        minval = o$.minval;
-        maxval = o$.maxval;
+    @Override
+    public T_read_limits__out_T set(T_read_limits__out_T o) {
+        r__ = o.r__;
+        minval = o.minval;
+        maxval = o.maxval;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_read_limits__out_T implements Struct<T_read_limits__out_T> {
         return new T_read_limits__out_T().set(this);
     }
 
+    @Override
     public T_read_limits__out_T zero() {
         return set(new T_read_limits__out_T());
     }

@@ -12,13 +12,14 @@ final class T_viewstate_T implements Struct<T_viewstate_T> {
     long vs_botline;
     long vs_empty_rows;
 
-    public T_viewstate_T set(T_viewstate_T o$) {
-        vs_curswant = o$.vs_curswant;
-        vs_leftcol = o$.vs_leftcol;
-        vs_skipcol = o$.vs_skipcol;
-        vs_topline = o$.vs_topline;
-        vs_botline = o$.vs_botline;
-        vs_empty_rows = o$.vs_empty_rows;
+    @Override
+    public T_viewstate_T set(T_viewstate_T o) {
+        vs_curswant = o.vs_curswant;
+        vs_leftcol = o.vs_leftcol;
+        vs_skipcol = o.vs_skipcol;
+        vs_topline = o.vs_topline;
+        vs_botline = o.vs_botline;
+        vs_empty_rows = o.vs_empty_rows;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class T_viewstate_T implements Struct<T_viewstate_T> {
         return new T_viewstate_T().set(this);
     }
 
+    @Override
     public T_viewstate_T zero() {
         return set(new T_viewstate_T());
     }

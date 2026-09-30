@@ -50,8 +50,7 @@
 (defn- core-object
   "The core's file-scope object sym on ed: whim.editor/<sym> is a function of
   the editor that gives it, or -- for a constant the editors share -- the
-  value itself.  Only the printf's error paths read one (IObuff and
-  e-val-too-large)."
+  value itself.  Only the printf's error paths read one (IObuff)."
   [sym ed]
   (let [v (deref (or (requiring-resolve sym)
                      (throw (IllegalStateException. (str "whim.cljhost: the core has no " sym)))))]
@@ -206,7 +205,6 @@
     (iobuff [_] (bytes-ptr (core-object 'whim.editor/IObuff ed)))
     (emsgIobuffRoom [_] (long (emsg-iobuff-room* ed)))
     (iobuffOr [_ s] (iobuff-or* ed s))
-    (eValTooLarge [_] (bytes-ptr (core-object 'whim.editor/e-val-too-large ed)))
     (utfcPtr2len [_ p] (int (utfc-ptr2len* ed p)))
     (utfPtr2cells [_ p] (int (utf-ptr2cells* ed p)))))
 

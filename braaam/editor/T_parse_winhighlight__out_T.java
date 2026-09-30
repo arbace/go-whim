@@ -9,10 +9,11 @@ final class T_parse_winhighlight__out_T implements Struct<T_parse_winhighlight__
     int len;
     BytePtr errmsg;
 
-    public T_parse_winhighlight__out_T set(T_parse_winhighlight__out_T o$) {
-        r__ = o$.r__;
-        len = o$.len;
-        errmsg = o$.errmsg;
+    @Override
+    public T_parse_winhighlight__out_T set(T_parse_winhighlight__out_T o) {
+        r__ = o.r__;
+        len = o.len;
+        errmsg = o.errmsg;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_parse_winhighlight__out_T implements Struct<T_parse_winhighlight__
         return new T_parse_winhighlight__out_T().set(this);
     }
 
+    @Override
     public T_parse_winhighlight__out_T zero() {
         return set(new T_parse_winhighlight__out_T());
     }

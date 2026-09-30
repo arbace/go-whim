@@ -9,10 +9,11 @@ final class T_line_count_info__out_T implements Struct<T_line_count_info__out_T>
     long wc;
     long cc;
 
-    public T_line_count_info__out_T set(T_line_count_info__out_T o$) {
-        r__ = o$.r__;
-        wc = o$.wc;
-        cc = o$.cc;
+    @Override
+    public T_line_count_info__out_T set(T_line_count_info__out_T o) {
+        r__ = o.r__;
+        wc = o.wc;
+        cc = o.cc;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_line_count_info__out_T implements Struct<T_line_count_info__out_T>
         return new T_line_count_info__out_T().set(this);
     }
 
+    @Override
     public T_line_count_info__out_T zero() {
         return set(new T_line_count_info__out_T());
     }

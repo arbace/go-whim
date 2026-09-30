@@ -9,10 +9,11 @@ final class S_block_hdr implements Struct<S_block_hdr> {
     S_pointer_block bh_ptr;
     S_data_block bh_data;
 
-    public S_block_hdr set(S_block_hdr o$) {
-        bh_id = o$.bh_id;
-        bh_ptr = o$.bh_ptr;
-        bh_data = o$.bh_data;
+    @Override
+    public S_block_hdr set(S_block_hdr o) {
+        bh_id = o.bh_id;
+        bh_ptr = o.bh_ptr;
+        bh_data = o.bh_data;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class S_block_hdr implements Struct<S_block_hdr> {
         return new S_block_hdr().set(this);
     }
 
+    @Override
     public S_block_hdr zero() {
         return set(new S_block_hdr());
     }

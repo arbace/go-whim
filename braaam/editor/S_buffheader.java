@@ -11,12 +11,13 @@ final class S_buffheader implements Struct<S_buffheader> {
     int bh_space;
     int bh_create_newblock;
 
-    public S_buffheader set(S_buffheader o$) {
-        bh_first.set(o$.bh_first);
-        bh_curr = o$.bh_curr;
-        bh_index = o$.bh_index;
-        bh_space = o$.bh_space;
-        bh_create_newblock = o$.bh_create_newblock;
+    @Override
+    public S_buffheader set(S_buffheader o) {
+        bh_first.set(o.bh_first);
+        bh_curr = o.bh_curr;
+        bh_index = o.bh_index;
+        bh_space = o.bh_space;
+        bh_create_newblock = o.bh_create_newblock;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class S_buffheader implements Struct<S_buffheader> {
         return new S_buffheader().set(this);
     }
 
+    @Override
     public S_buffheader zero() {
         return set(new S_buffheader());
     }

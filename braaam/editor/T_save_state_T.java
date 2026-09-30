@@ -17,18 +17,19 @@ final class T_save_state_T implements Struct<T_save_state_T> {
     int save_script_version;
     final T_tasave_T tabuf = new T_tasave_T();
 
-    public T_save_state_T set(T_save_state_T o$) {
-        save_msg_scroll = o$.save_msg_scroll;
-        save_restart_edit = o$.save_restart_edit;
-        save_msg_didout = o$.save_msg_didout;
-        save_State = o$.save_State;
-        save_insertmode = o$.save_insertmode;
-        save_finish_op = o$.save_finish_op;
-        save_opcount = o$.save_opcount;
-        save_reg_executing = o$.save_reg_executing;
-        save_pending_end_reg_executing = o$.save_pending_end_reg_executing;
-        save_script_version = o$.save_script_version;
-        tabuf.set(o$.tabuf);
+    @Override
+    public T_save_state_T set(T_save_state_T o) {
+        save_msg_scroll = o.save_msg_scroll;
+        save_restart_edit = o.save_restart_edit;
+        save_msg_didout = o.save_msg_didout;
+        save_State = o.save_State;
+        save_insertmode = o.save_insertmode;
+        save_finish_op = o.save_finish_op;
+        save_opcount = o.save_opcount;
+        save_reg_executing = o.save_reg_executing;
+        save_pending_end_reg_executing = o.save_pending_end_reg_executing;
+        save_script_version = o.save_script_version;
+        tabuf.set(o.tabuf);
         return this;
     }
 
@@ -36,6 +37,7 @@ final class T_save_state_T implements Struct<T_save_state_T> {
         return new T_save_state_T().set(this);
     }
 
+    @Override
     public T_save_state_T zero() {
         return set(new T_save_state_T());
     }

@@ -8,10 +8,11 @@ final class S_data_block implements Struct<S_data_block> {
     long db_line_count;
     final S_data_line[] db_line = S_data_line.array(64);
 
-    public S_data_block set(S_data_block o$) {
-        db_line_count = o$.db_line_count;
+    @Override
+    public S_data_block set(S_data_block o) {
+        db_line_count = o.db_line_count;
         for (int k$0 = 0; k$0 < 64; k$0++) {
-            db_line[k$0].set(o$.db_line[k$0]);
+            db_line[k$0].set(o.db_line[k$0]);
         }
         return this;
     }
@@ -20,6 +21,7 @@ final class S_data_block implements Struct<S_data_block> {
         return new S_data_block().set(this);
     }
 
+    @Override
     public S_data_block zero() {
         return set(new S_data_block());
     }

@@ -11,12 +11,13 @@ final class S_regstar_S implements Struct<S_regstar_S> {
     long minval;
     long maxval;
 
-    public S_regstar_S set(S_regstar_S o$) {
-        nextb = o$.nextb;
-        nextb_ic = o$.nextb_ic;
-        count = o$.count;
-        minval = o$.minval;
-        maxval = o$.maxval;
+    @Override
+    public S_regstar_S set(S_regstar_S o) {
+        nextb = o.nextb;
+        nextb_ic = o.nextb_ic;
+        count = o.count;
+        minval = o.minval;
+        maxval = o.maxval;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class S_regstar_S implements Struct<S_regstar_S> {
         return new S_regstar_S().set(this);
     }
 
+    @Override
     public S_regstar_S zero() {
         return set(new S_regstar_S());
     }

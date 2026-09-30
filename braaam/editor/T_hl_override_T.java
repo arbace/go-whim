@@ -8,9 +8,10 @@ final class T_hl_override_T implements Struct<T_hl_override_T> {
     int from;
     int to_;
 
-    public T_hl_override_T set(T_hl_override_T o$) {
-        from = o$.from;
-        to_ = o$.to_;
+    @Override
+    public T_hl_override_T set(T_hl_override_T o) {
+        from = o.from;
+        to_ = o.to_;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_hl_override_T implements Struct<T_hl_override_T> {
         return new T_hl_override_T().set(this);
     }
 
+    @Override
     public T_hl_override_T zero() {
         return set(new T_hl_override_T());
     }

@@ -16,9 +16,10 @@ final class T_keyvalue_T implements Struct<T_keyvalue_T> {
         this.value.set(value);
     }
 
-    public T_keyvalue_T set(T_keyvalue_T o$) {
-        key = o$.key;
-        value.set(o$.value);
+    @Override
+    public T_keyvalue_T set(T_keyvalue_T o) {
+        key = o.key;
+        value.set(o.value);
         return this;
     }
 
@@ -26,6 +27,7 @@ final class T_keyvalue_T implements Struct<T_keyvalue_T> {
         return new T_keyvalue_T().set(this);
     }
 
+    @Override
     public T_keyvalue_T zero() {
         return set(new T_keyvalue_T());
     }

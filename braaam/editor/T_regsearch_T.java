@@ -11,12 +11,13 @@ final class T_regsearch_T implements Struct<T_regsearch_T> {
     int nsub;
     int pos;
 
-    public T_regsearch_T set(T_regsearch_T o$) {
-        col = o$.col;
-        nmatch = o$.nmatch;
-        matchcol = o$.matchcol;
-        nsub = o$.nsub;
-        pos = o$.pos;
+    @Override
+    public T_regsearch_T set(T_regsearch_T o) {
+        col = o.col;
+        nmatch = o.nmatch;
+        matchcol = o.matchcol;
+        nsub = o.nsub;
+        pos = o.pos;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class T_regsearch_T implements Struct<T_regsearch_T> {
         return new T_regsearch_T().set(this);
     }
 
+    @Override
     public T_regsearch_T zero() {
         return set(new T_regsearch_T());
     }

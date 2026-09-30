@@ -8,9 +8,10 @@ final class T_find_is_eval_item__out_T implements Struct<T_find_is_eval_item__ou
     boolean r__;
     int bnp;
 
-    public T_find_is_eval_item__out_T set(T_find_is_eval_item__out_T o$) {
-        r__ = o$.r__;
-        bnp = o$.bnp;
+    @Override
+    public T_find_is_eval_item__out_T set(T_find_is_eval_item__out_T o) {
+        r__ = o.r__;
+        bnp = o.bnp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_find_is_eval_item__out_T implements Struct<T_find_is_eval_item__ou
         return new T_find_is_eval_item__out_T().set(this);
     }
 
+    @Override
     public T_find_is_eval_item__out_T zero() {
         return set(new T_find_is_eval_item__out_T());
     }

@@ -10,10 +10,11 @@ final class A_4 implements Struct<A_4> {
     int boolean_;
     BytePtr string;
 
-    public A_4 set(A_4 o$) {
-        number = o$.number;
-        boolean_ = o$.boolean_;
-        string = o$.string;
+    @Override
+    public A_4 set(A_4 o) {
+        number = o.number;
+        boolean_ = o.boolean_;
+        string = o.string;
         return this;
     }
 
@@ -21,6 +22,7 @@ final class A_4 implements Struct<A_4> {
         return new A_4().set(this);
     }
 
+    @Override
     public A_4 zero() {
         return set(new A_4());
     }

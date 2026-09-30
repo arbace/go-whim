@@ -8,9 +8,10 @@ final class T_handle_dcs__out_T implements Struct<T_handle_dcs__out_T> {
     boolean r__;
     int slen;
 
-    public T_handle_dcs__out_T set(T_handle_dcs__out_T o$) {
-        r__ = o$.r__;
-        slen = o$.slen;
+    @Override
+    public T_handle_dcs__out_T set(T_handle_dcs__out_T o) {
+        r__ = o.r__;
+        slen = o.slen;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_handle_dcs__out_T implements Struct<T_handle_dcs__out_T> {
         return new T_handle_dcs__out_T().set(this);
     }
 
+    @Override
     public T_handle_dcs__out_T zero() {
         return set(new T_handle_dcs__out_T());
     }

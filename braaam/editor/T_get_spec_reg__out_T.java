@@ -8,9 +8,10 @@ final class T_get_spec_reg__out_T implements Struct<T_get_spec_reg__out_T> {
     boolean r__;
     int allocated;
 
-    public T_get_spec_reg__out_T set(T_get_spec_reg__out_T o$) {
-        r__ = o$.r__;
-        allocated = o$.allocated;
+    @Override
+    public T_get_spec_reg__out_T set(T_get_spec_reg__out_T o) {
+        r__ = o.r__;
+        allocated = o.allocated;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_get_spec_reg__out_T implements Struct<T_get_spec_reg__out_T> {
         return new T_get_spec_reg__out_T().set(this);
     }
 
+    @Override
     public T_get_spec_reg__out_T zero() {
         return set(new T_get_spec_reg__out_T());
     }

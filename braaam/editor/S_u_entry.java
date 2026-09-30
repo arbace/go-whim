@@ -12,13 +12,14 @@ final class S_u_entry implements Struct<S_u_entry> {
     Ptr<T_undoline_T> ue_array;
     long ue_size;
 
-    public S_u_entry set(S_u_entry o$) {
-        ue_next = o$.ue_next;
-        ue_top = o$.ue_top;
-        ue_bot = o$.ue_bot;
-        ue_lcount = o$.ue_lcount;
-        ue_array = o$.ue_array;
-        ue_size = o$.ue_size;
+    @Override
+    public S_u_entry set(S_u_entry o) {
+        ue_next = o.ue_next;
+        ue_top = o.ue_top;
+        ue_bot = o.ue_bot;
+        ue_lcount = o.ue_lcount;
+        ue_array = o.ue_array;
+        ue_size = o.ue_size;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_u_entry implements Struct<S_u_entry> {
         return new S_u_entry().set(this);
     }
 
+    @Override
     public S_u_entry zero() {
         return set(new S_u_entry());
     }

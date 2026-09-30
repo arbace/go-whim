@@ -23,24 +23,25 @@ final class S_exarg implements Struct<S_exarg> {
     BytePtr errmsg;
     Fn1 ea_getline;
 
-    public S_exarg set(S_exarg o$) {
-        arg[0] = o$.arg[0];
-        nextcmd = o$.nextcmd;
-        cmd[0] = o$.cmd[0];
-        cmdlinep = o$.cmdlinep;
-        cmdidx = o$.cmdidx;
-        argt = o$.argt;
-        forceit = o$.forceit;
-        addr_count = o$.addr_count;
-        line1 = o$.line1;
-        line2 = o$.line2;
-        addr_type = o$.addr_type;
-        flags = o$.flags;
-        do_ecmd_cmd = o$.do_ecmd_cmd;
-        amount = o$.amount;
-        regname = o$.regname;
-        errmsg = o$.errmsg;
-        ea_getline = o$.ea_getline;
+    @Override
+    public S_exarg set(S_exarg o) {
+        arg[0] = o.arg[0];
+        nextcmd = o.nextcmd;
+        cmd[0] = o.cmd[0];
+        cmdlinep = o.cmdlinep;
+        cmdidx = o.cmdidx;
+        argt = o.argt;
+        forceit = o.forceit;
+        addr_count = o.addr_count;
+        line1 = o.line1;
+        line2 = o.line2;
+        addr_type = o.addr_type;
+        flags = o.flags;
+        do_ecmd_cmd = o.do_ecmd_cmd;
+        amount = o.amount;
+        regname = o.regname;
+        errmsg = o.errmsg;
+        ea_getline = o.ea_getline;
         return this;
     }
 
@@ -48,6 +49,7 @@ final class S_exarg implements Struct<S_exarg> {
         return new S_exarg().set(this);
     }
 
+    @Override
     public S_exarg zero() {
         return set(new S_exarg());
     }

@@ -8,9 +8,10 @@ final class S_backpos_S implements Struct<S_backpos_S> {
     BytePtr bp_scan;
     final T_regsave_T bp_pos = new T_regsave_T();
 
-    public S_backpos_S set(S_backpos_S o$) {
-        bp_scan = o$.bp_scan;
-        bp_pos.set(o$.bp_pos);
+    @Override
+    public S_backpos_S set(S_backpos_S o) {
+        bp_scan = o.bp_scan;
+        bp_pos.set(o.bp_pos);
         return this;
     }
 
@@ -18,6 +19,7 @@ final class S_backpos_S implements Struct<S_backpos_S> {
         return new S_backpos_S().set(this);
     }
 
+    @Override
     public S_backpos_S zero() {
         return set(new S_backpos_S());
     }

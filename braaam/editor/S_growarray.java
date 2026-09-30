@@ -11,12 +11,13 @@ final class S_growarray implements Struct<S_growarray> {
     int ga_growsize;
     Object ga_data;
 
-    public S_growarray set(S_growarray o$) {
-        ga_len = o$.ga_len;
-        ga_maxlen = o$.ga_maxlen;
-        ga_itemsize = o$.ga_itemsize;
-        ga_growsize = o$.ga_growsize;
-        ga_data = o$.ga_data;
+    @Override
+    public S_growarray set(S_growarray o) {
+        ga_len = o.ga_len;
+        ga_maxlen = o.ga_maxlen;
+        ga_itemsize = o.ga_itemsize;
+        ga_growsize = o.ga_growsize;
+        ga_data = o.ga_data;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class S_growarray implements Struct<S_growarray> {
         return new S_growarray().set(this);
     }
 
+    @Override
     public S_growarray zero() {
         return set(new S_growarray());
     }

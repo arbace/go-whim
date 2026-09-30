@@ -21,24 +21,25 @@ final class S_u_header implements Struct<S_u_header> {
     long uh_time;
     long uh_save_nr;
 
-    public S_u_header set(S_u_header o$) {
-        uh_next = o$.uh_next;
-        uh_prev = o$.uh_prev;
-        uh_alt_next = o$.uh_alt_next;
-        uh_alt_prev = o$.uh_alt_prev;
-        uh_seq = o$.uh_seq;
-        uh_walk = o$.uh_walk;
-        uh_entry = o$.uh_entry;
-        uh_getbot_entry = o$.uh_getbot_entry;
-        uh_cursor.set(o$.uh_cursor);
-        uh_cursor_vcol = o$.uh_cursor_vcol;
-        uh_flags = o$.uh_flags;
+    @Override
+    public S_u_header set(S_u_header o) {
+        uh_next = o.uh_next;
+        uh_prev = o.uh_prev;
+        uh_alt_next = o.uh_alt_next;
+        uh_alt_prev = o.uh_alt_prev;
+        uh_seq = o.uh_seq;
+        uh_walk = o.uh_walk;
+        uh_entry = o.uh_entry;
+        uh_getbot_entry = o.uh_getbot_entry;
+        uh_cursor.set(o.uh_cursor);
+        uh_cursor_vcol = o.uh_cursor_vcol;
+        uh_flags = o.uh_flags;
         for (int k$0 = 0; k$0 < 26; k$0++) {
-            uh_namedm[k$0].set(o$.uh_namedm[k$0]);
+            uh_namedm[k$0].set(o.uh_namedm[k$0]);
         }
-        uh_visual.set(o$.uh_visual);
-        uh_time = o$.uh_time;
-        uh_save_nr = o$.uh_save_nr;
+        uh_visual.set(o.uh_visual);
+        uh_time = o.uh_time;
+        uh_save_nr = o.uh_save_nr;
         return this;
     }
 
@@ -46,6 +47,7 @@ final class S_u_header implements Struct<S_u_header> {
         return new S_u_header().set(this);
     }
 
+    @Override
     public S_u_header zero() {
         return set(new S_u_header());
     }

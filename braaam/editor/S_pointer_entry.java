@@ -8,9 +8,10 @@ final class S_pointer_entry implements Struct<S_pointer_entry> {
     S_block_hdr pe_block;
     long pe_line_count;
 
-    public S_pointer_entry set(S_pointer_entry o$) {
-        pe_block = o$.pe_block;
-        pe_line_count = o$.pe_line_count;
+    @Override
+    public S_pointer_entry set(S_pointer_entry o) {
+        pe_block = o.pe_block;
+        pe_line_count = o.pe_line_count;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class S_pointer_entry implements Struct<S_pointer_entry> {
         return new S_pointer_entry().set(this);
     }
 
+    @Override
     public S_pointer_entry zero() {
         return set(new S_pointer_entry());
     }

@@ -8,9 +8,10 @@ final class T_ins_bs__out_T implements Struct<T_ins_bs__out_T> {
     boolean r__;
     int inserted_space_p;
 
-    public T_ins_bs__out_T set(T_ins_bs__out_T o$) {
-        r__ = o$.r__;
-        inserted_space_p = o$.inserted_space_p;
+    @Override
+    public T_ins_bs__out_T set(T_ins_bs__out_T o) {
+        r__ = o.r__;
+        inserted_space_p = o.inserted_space_p;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_ins_bs__out_T implements Struct<T_ins_bs__out_T> {
         return new T_ins_bs__out_T().set(this);
     }
 
+    @Override
     public T_ins_bs__out_T zero() {
         return set(new T_ins_bs__out_T());
     }

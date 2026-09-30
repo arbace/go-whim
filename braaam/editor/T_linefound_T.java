@@ -10,11 +10,12 @@ final class T_linefound_T implements Struct<T_linefound_T> {
     int n;
     int next;
 
-    public T_linefound_T set(T_linefound_T o$) {
-        searches = o$.searches;
-        pos = o$.pos;
-        n = o$.n;
-        next = o$.next;
+    @Override
+    public T_linefound_T set(T_linefound_T o) {
+        searches = o.searches;
+        pos = o.pos;
+        n = o.n;
+        next = o.next;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_linefound_T implements Struct<T_linefound_T> {
         return new T_linefound_T().set(this);
     }
 
+    @Override
     public T_linefound_T zero() {
         return set(new T_linefound_T());
     }

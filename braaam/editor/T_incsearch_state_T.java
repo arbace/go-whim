@@ -15,16 +15,17 @@ final class T_incsearch_state_T implements Struct<T_incsearch_state_T> {
     boolean incsearch_postponed;
     int magic_overruled_save;
 
-    public T_incsearch_state_T set(T_incsearch_state_T o$) {
-        search_start.set(o$.search_start);
-        save_cursor.set(o$.save_cursor);
-        init_viewstate.set(o$.init_viewstate);
-        old_viewstate.set(o$.old_viewstate);
-        match_start.set(o$.match_start);
-        match_end.set(o$.match_end);
-        did_incsearch = o$.did_incsearch;
-        incsearch_postponed = o$.incsearch_postponed;
-        magic_overruled_save = o$.magic_overruled_save;
+    @Override
+    public T_incsearch_state_T set(T_incsearch_state_T o) {
+        search_start.set(o.search_start);
+        save_cursor.set(o.save_cursor);
+        init_viewstate.set(o.init_viewstate);
+        old_viewstate.set(o.old_viewstate);
+        match_start.set(o.match_start);
+        match_end.set(o.match_end);
+        did_incsearch = o.did_incsearch;
+        incsearch_postponed = o.incsearch_postponed;
+        magic_overruled_save = o.magic_overruled_save;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class T_incsearch_state_T implements Struct<T_incsearch_state_T> {
         return new T_incsearch_state_T().set(this);
     }
 
+    @Override
     public T_incsearch_state_T zero() {
         return set(new T_incsearch_state_T());
     }

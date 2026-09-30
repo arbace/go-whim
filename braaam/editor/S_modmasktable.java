@@ -18,10 +18,11 @@ final class S_modmasktable implements Struct<S_modmasktable> {
         this.name = (byte) name;
     }
 
-    public S_modmasktable set(S_modmasktable o$) {
-        mod_mask = o$.mod_mask;
-        mod_flag = o$.mod_flag;
-        name = o$.name;
+    @Override
+    public S_modmasktable set(S_modmasktable o) {
+        mod_mask = o.mod_mask;
+        mod_flag = o.mod_flag;
+        name = o.name;
         return this;
     }
 
@@ -29,6 +30,7 @@ final class S_modmasktable implements Struct<S_modmasktable> {
         return new S_modmasktable().set(this);
     }
 
+    @Override
     public S_modmasktable zero() {
         return set(new S_modmasktable());
     }

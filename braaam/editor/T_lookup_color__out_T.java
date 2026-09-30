@@ -8,9 +8,10 @@ final class T_lookup_color__out_T implements Struct<T_lookup_color__out_T> {
     int r__;
     int boldp;
 
-    public T_lookup_color__out_T set(T_lookup_color__out_T o$) {
-        r__ = o$.r__;
-        boldp = o$.boldp;
+    @Override
+    public T_lookup_color__out_T set(T_lookup_color__out_T o) {
+        r__ = o.r__;
+        boldp = o.boldp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_lookup_color__out_T implements Struct<T_lookup_color__out_T> {
         return new T_lookup_color__out_T().set(this);
     }
 
+    @Override
     public T_lookup_color__out_T zero() {
         return set(new T_lookup_color__out_T());
     }

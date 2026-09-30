@@ -23,24 +23,25 @@ final class T_hl_group_T implements Struct<T_hl_group_T> {
     int sg_deflink;
     int sg_set;
 
-    public T_hl_group_T set(T_hl_group_T o$) {
-        sg_name = o$.sg_name;
-        sg_name_u = o$.sg_name_u;
-        sg_cleared = o$.sg_cleared;
-        sg_term = o$.sg_term;
-        sg_start = o$.sg_start;
-        sg_stop = o$.sg_stop;
-        sg_term_attr = o$.sg_term_attr;
-        sg_cterm = o$.sg_cterm;
-        sg_cterm_bold = o$.sg_cterm_bold;
-        sg_cterm_fg = o$.sg_cterm_fg;
-        sg_cterm_bg = o$.sg_cterm_bg;
-        sg_cterm_ul = o$.sg_cterm_ul;
-        sg_cterm_attr = o$.sg_cterm_attr;
-        sg_cterm_font = o$.sg_cterm_font;
-        sg_link = o$.sg_link;
-        sg_deflink = o$.sg_deflink;
-        sg_set = o$.sg_set;
+    @Override
+    public T_hl_group_T set(T_hl_group_T o) {
+        sg_name = o.sg_name;
+        sg_name_u = o.sg_name_u;
+        sg_cleared = o.sg_cleared;
+        sg_term = o.sg_term;
+        sg_start = o.sg_start;
+        sg_stop = o.sg_stop;
+        sg_term_attr = o.sg_term_attr;
+        sg_cterm = o.sg_cterm;
+        sg_cterm_bold = o.sg_cterm_bold;
+        sg_cterm_fg = o.sg_cterm_fg;
+        sg_cterm_bg = o.sg_cterm_bg;
+        sg_cterm_ul = o.sg_cterm_ul;
+        sg_cterm_attr = o.sg_cterm_attr;
+        sg_cterm_font = o.sg_cterm_font;
+        sg_link = o.sg_link;
+        sg_deflink = o.sg_deflink;
+        sg_set = o.sg_set;
         return this;
     }
 
@@ -48,6 +49,7 @@ final class T_hl_group_T implements Struct<T_hl_group_T> {
         return new T_hl_group_T().set(this);
     }
 
+    @Override
     public T_hl_group_T zero() {
         return set(new T_hl_group_T());
     }
@@ -60,56 +62,56 @@ final class T_hl_group_T implements Struct<T_hl_group_T> {
         return a;
     }
 
-    boolean eq(T_hl_group_T o$) {
-        if (!BytePtr.eq(sg_name, o$.sg_name)) {
+    boolean eq(T_hl_group_T o) {
+        if (!BytePtr.eq(sg_name, o.sg_name)) {
             return false;
         }
-        if (!BytePtr.eq(sg_name_u, o$.sg_name_u)) {
+        if (!BytePtr.eq(sg_name_u, o.sg_name_u)) {
             return false;
         }
-        if (!(sg_cleared == o$.sg_cleared)) {
+        if (sg_cleared != o.sg_cleared) {
             return false;
         }
-        if (!(sg_term == o$.sg_term)) {
+        if (sg_term != o.sg_term) {
             return false;
         }
-        if (!BytePtr.eq(sg_start, o$.sg_start)) {
+        if (!BytePtr.eq(sg_start, o.sg_start)) {
             return false;
         }
-        if (!BytePtr.eq(sg_stop, o$.sg_stop)) {
+        if (!BytePtr.eq(sg_stop, o.sg_stop)) {
             return false;
         }
-        if (!(sg_term_attr == o$.sg_term_attr)) {
+        if (sg_term_attr != o.sg_term_attr) {
             return false;
         }
-        if (!(sg_cterm == o$.sg_cterm)) {
+        if (sg_cterm != o.sg_cterm) {
             return false;
         }
-        if (!(sg_cterm_bold == o$.sg_cterm_bold)) {
+        if (sg_cterm_bold != o.sg_cterm_bold) {
             return false;
         }
-        if (!(sg_cterm_fg == o$.sg_cterm_fg)) {
+        if (sg_cterm_fg != o.sg_cterm_fg) {
             return false;
         }
-        if (!(sg_cterm_bg == o$.sg_cterm_bg)) {
+        if (sg_cterm_bg != o.sg_cterm_bg) {
             return false;
         }
-        if (!(sg_cterm_ul == o$.sg_cterm_ul)) {
+        if (sg_cterm_ul != o.sg_cterm_ul) {
             return false;
         }
-        if (!(sg_cterm_attr == o$.sg_cterm_attr)) {
+        if (sg_cterm_attr != o.sg_cterm_attr) {
             return false;
         }
-        if (!(sg_cterm_font == o$.sg_cterm_font)) {
+        if (sg_cterm_font != o.sg_cterm_font) {
             return false;
         }
-        if (!(sg_link == o$.sg_link)) {
+        if (sg_link != o.sg_link) {
             return false;
         }
-        if (!(sg_deflink == o$.sg_deflink)) {
+        if (sg_deflink != o.sg_deflink) {
             return false;
         }
-        if (!(sg_set == o$.sg_set)) {
+        if (sg_set != o.sg_set) {
             return false;
         }
         return true;

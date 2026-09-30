@@ -8,9 +8,10 @@ final class T_one_letter_cmd__out_T implements Struct<T_one_letter_cmd__out_T> {
     boolean r__;
     int idx;
 
-    public T_one_letter_cmd__out_T set(T_one_letter_cmd__out_T o$) {
-        r__ = o$.r__;
-        idx = o$.idx;
+    @Override
+    public T_one_letter_cmd__out_T set(T_one_letter_cmd__out_T o) {
+        r__ = o.r__;
+        idx = o.idx;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_one_letter_cmd__out_T implements Struct<T_one_letter_cmd__out_T> {
         return new T_one_letter_cmd__out_T().set(this);
     }
 
+    @Override
     public T_one_letter_cmd__out_T zero() {
         return set(new T_one_letter_cmd__out_T());
     }

@@ -212,7 +212,7 @@ var Gen = togo.Profile{
 		{Name: "musl_strpbrk", Java: javaStr("strpbrk s b"), Clj: cljStr("strpbrk s b")},
 	},
 	// what the Clojure host's printf reads of the core's state
-	CljExports: []string{"IObuff", "e_val_too_large"},
+	CljExports: []string{"IObuff"},
 	// caprice, the Haskell editor: its module, its host's, and what the host
 	// calls back -- the printf's error messages and cells, and the death
 	// of a SIGHUP or a SIGTERM (caprice/host)

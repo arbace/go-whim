@@ -8,9 +8,10 @@ final class T_lineoff_T implements Struct<T_lineoff_T> {
     long lnum;
     int height;
 
-    public T_lineoff_T set(T_lineoff_T o$) {
-        lnum = o$.lnum;
-        height = o$.height;
+    @Override
+    public T_lineoff_T set(T_lineoff_T o) {
+        lnum = o.lnum;
+        height = o.height;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_lineoff_T implements Struct<T_lineoff_T> {
         return new T_lineoff_T().set(this);
     }
 
+    @Override
     public T_lineoff_T zero() {
         return set(new T_lineoff_T());
     }

@@ -9,10 +9,11 @@ final class T_prepare_search_hl_line__out_T implements Struct<T_prepare_search_h
     BytePtr line;
     int search_attr;
 
-    public T_prepare_search_hl_line__out_T set(T_prepare_search_hl_line__out_T o$) {
-        r__ = o$.r__;
-        line = o$.line;
-        search_attr = o$.search_attr;
+    @Override
+    public T_prepare_search_hl_line__out_T set(T_prepare_search_hl_line__out_T o) {
+        r__ = o.r__;
+        line = o.line;
+        search_attr = o.search_attr;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_prepare_search_hl_line__out_T implements Struct<T_prepare_search_h
         return new T_prepare_search_hl_line__out_T().set(this);
     }
 
+    @Override
     public T_prepare_search_hl_line__out_T zero() {
         return set(new T_prepare_search_hl_line__out_T());
     }

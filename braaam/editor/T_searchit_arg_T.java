@@ -8,9 +8,10 @@ final class T_searchit_arg_T implements Struct<T_searchit_arg_T> {
     long sa_stop_lnum;
     boolean sa_wrapped;
 
-    public T_searchit_arg_T set(T_searchit_arg_T o$) {
-        sa_stop_lnum = o$.sa_stop_lnum;
-        sa_wrapped = o$.sa_wrapped;
+    @Override
+    public T_searchit_arg_T set(T_searchit_arg_T o) {
+        sa_stop_lnum = o.sa_stop_lnum;
+        sa_wrapped = o.sa_wrapped;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_searchit_arg_T implements Struct<T_searchit_arg_T> {
         return new T_searchit_arg_T().set(this);
     }
 
+    @Override
     public T_searchit_arg_T zero() {
         return set(new T_searchit_arg_T());
     }

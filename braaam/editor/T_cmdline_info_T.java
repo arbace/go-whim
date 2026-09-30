@@ -19,20 +19,21 @@ final class T_cmdline_info_T implements Struct<T_cmdline_info_T> {
     int xp_context;
     boolean cmdbuff_replaced;
 
-    public T_cmdline_info_T set(T_cmdline_info_T o$) {
-        cmdbuff = o$.cmdbuff;
-        cmdbufflen = o$.cmdbufflen;
-        cmdlen = o$.cmdlen;
-        cmdpos = o$.cmdpos;
-        cmdspos = o$.cmdspos;
-        cmdfirstc = o$.cmdfirstc;
-        cmdindent = o$.cmdindent;
-        cmdprompt = o$.cmdprompt;
-        cmdattr = o$.cmdattr;
-        overstrike = o$.overstrike;
-        xpc = o$.xpc;
-        xp_context = o$.xp_context;
-        cmdbuff_replaced = o$.cmdbuff_replaced;
+    @Override
+    public T_cmdline_info_T set(T_cmdline_info_T o) {
+        cmdbuff = o.cmdbuff;
+        cmdbufflen = o.cmdbufflen;
+        cmdlen = o.cmdlen;
+        cmdpos = o.cmdpos;
+        cmdspos = o.cmdspos;
+        cmdfirstc = o.cmdfirstc;
+        cmdindent = o.cmdindent;
+        cmdprompt = o.cmdprompt;
+        cmdattr = o.cmdattr;
+        overstrike = o.overstrike;
+        xpc = o.xpc;
+        xp_context = o.xp_context;
+        cmdbuff_replaced = o.cmdbuff_replaced;
         return this;
     }
 
@@ -40,6 +41,7 @@ final class T_cmdline_info_T implements Struct<T_cmdline_info_T> {
         return new T_cmdline_info_T().set(this);
     }
 
+    @Override
     public T_cmdline_info_T zero() {
         return set(new T_cmdline_info_T());
     }

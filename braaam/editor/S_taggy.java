@@ -7,8 +7,9 @@ import whim.rt.*;
 final class S_taggy implements Struct<S_taggy> {
     final S_filemark fmark = new S_filemark();
 
-    public S_taggy set(S_taggy o$) {
-        fmark.set(o$.fmark);
+    @Override
+    public S_taggy set(S_taggy o) {
+        fmark.set(o.fmark);
         return this;
     }
 
@@ -16,6 +17,7 @@ final class S_taggy implements Struct<S_taggy> {
         return new S_taggy().set(this);
     }
 
+    @Override
     public S_taggy zero() {
         return set(new S_taggy());
     }

@@ -9,10 +9,11 @@ final class T_bufref_T implements Struct<T_bufref_T> {
     int br_fnum;
     int br_buf_free_count;
 
-    public T_bufref_T set(T_bufref_T o$) {
-        br_buf = o$.br_buf;
-        br_fnum = o$.br_fnum;
-        br_buf_free_count = o$.br_buf_free_count;
+    @Override
+    public T_bufref_T set(T_bufref_T o) {
+        br_buf = o.br_buf;
+        br_fnum = o.br_fnum;
+        br_buf_free_count = o.br_buf_free_count;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_bufref_T implements Struct<T_bufref_T> {
         return new T_bufref_T().set(this);
     }
 
+    @Override
     public T_bufref_T zero() {
         return set(new T_bufref_T());
     }

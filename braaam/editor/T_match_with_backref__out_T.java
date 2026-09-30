@@ -8,9 +8,10 @@ final class T_match_with_backref__out_T implements Struct<T_match_with_backref__
     int r__;
     int bytelen;
 
-    public T_match_with_backref__out_T set(T_match_with_backref__out_T o$) {
-        r__ = o$.r__;
-        bytelen = o$.bytelen;
+    @Override
+    public T_match_with_backref__out_T set(T_match_with_backref__out_T o) {
+        r__ = o.r__;
+        bytelen = o.bytelen;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_match_with_backref__out_T implements Struct<T_match_with_backref__
         return new T_match_with_backref__out_T().set(this);
     }
 
+    @Override
     public T_match_with_backref__out_T zero() {
         return set(new T_match_with_backref__out_T());
     }

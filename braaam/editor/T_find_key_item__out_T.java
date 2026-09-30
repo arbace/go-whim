@@ -8,9 +8,10 @@ final class T_find_key_item__out_T implements Struct<T_find_key_item__out_T> {
     BytePtr r__;
     int itemlenp;
 
-    public T_find_key_item__out_T set(T_find_key_item__out_T o$) {
-        r__ = o$.r__;
-        itemlenp = o$.itemlenp;
+    @Override
+    public T_find_key_item__out_T set(T_find_key_item__out_T o) {
+        r__ = o.r__;
+        itemlenp = o.itemlenp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_find_key_item__out_T implements Struct<T_find_key_item__out_T> {
         return new T_find_key_item__out_T().set(this);
     }
 
+    @Override
     public T_find_key_item__out_T zero() {
         return set(new T_find_key_item__out_T());
     }

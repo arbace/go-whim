@@ -10,11 +10,12 @@ final class T_yankreg_T implements Struct<T_yankreg_T> {
     byte y_type;
     int y_width;
 
-    public T_yankreg_T set(T_yankreg_T o$) {
-        y_array = o$.y_array;
-        y_size = o$.y_size;
-        y_type = o$.y_type;
-        y_width = o$.y_width;
+    @Override
+    public T_yankreg_T set(T_yankreg_T o) {
+        y_array = o.y_array;
+        y_size = o.y_size;
+        y_type = o.y_type;
+        y_width = o.y_width;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_yankreg_T implements Struct<T_yankreg_T> {
         return new T_yankreg_T().set(this);
     }
 
+    @Override
     public T_yankreg_T zero() {
         return set(new T_yankreg_T());
     }

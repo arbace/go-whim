@@ -10,11 +10,12 @@ final class T_oscstate_T implements Struct<T_oscstate_T> {
     final S_growarray buf = new S_growarray();
     long start_tv;
 
-    public T_oscstate_T set(T_oscstate_T o$) {
-        processing = o$.processing;
-        start_char = o$.start_char;
-        buf.set(o$.buf);
-        start_tv = o$.start_tv;
+    @Override
+    public T_oscstate_T set(T_oscstate_T o) {
+        processing = o.processing;
+        start_char = o.start_char;
+        buf.set(o.buf);
+        start_tv = o.start_tv;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_oscstate_T implements Struct<T_oscstate_T> {
         return new T_oscstate_T().set(this);
     }
 
+    @Override
     public T_oscstate_T zero() {
         return set(new T_oscstate_T());
     }

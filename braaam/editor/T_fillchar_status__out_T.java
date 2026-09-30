@@ -8,9 +8,10 @@ final class T_fillchar_status__out_T implements Struct<T_fillchar_status__out_T>
     int r__;
     int attr;
 
-    public T_fillchar_status__out_T set(T_fillchar_status__out_T o$) {
-        r__ = o$.r__;
-        attr = o$.attr;
+    @Override
+    public T_fillchar_status__out_T set(T_fillchar_status__out_T o) {
+        r__ = o.r__;
+        attr = o.attr;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_fillchar_status__out_T implements Struct<T_fillchar_status__out_T>
         return new T_fillchar_status__out_T().set(this);
     }
 
+    @Override
     public T_fillchar_status__out_T zero() {
         return set(new T_fillchar_status__out_T());
     }

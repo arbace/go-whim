@@ -8,9 +8,10 @@ final class T_get_buffcont__out_T implements Struct<T_get_buffcont__out_T> {
     BytePtr r__;
     long len;
 
-    public T_get_buffcont__out_T set(T_get_buffcont__out_T o$) {
-        r__ = o$.r__;
-        len = o$.len;
+    @Override
+    public T_get_buffcont__out_T set(T_get_buffcont__out_T o) {
+        r__ = o.r__;
+        len = o.len;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_get_buffcont__out_T implements Struct<T_get_buffcont__out_T> {
         return new T_get_buffcont__out_T().set(this);
     }
 
+    @Override
     public T_get_buffcont__out_T zero() {
         return set(new T_get_buffcont__out_T());
     }

@@ -451,7 +451,7 @@ func (j *jgen) memberName(fl *cc.Field, i int) string {
 	return j.jName(fl.Name())
 }
 
-// structClass is a struct's Java class -- the other object o$, a name no C
+// structClass is a struct's Java class -- the other object o (o$ when a member is o), a name no C
 // member has -- its members, set() -- C's
 // assignment, a copy of every member -- copy(), array(n), n of them, and
 // eq(), C's memcmp() == 0 of two, when some code compares them.  A union is
@@ -461,6 +461,13 @@ func (j *jgen) memberName(fl *cc.Field, i int) string {
 // address-taken local is: &s->m is a pointer over that array.
 func (j *jgen) structClass(name string, t cc.Type) string {
 	var b, set, eq strings.Builder
+	// the other object: o, unless a member is named so
+	other := "o"
+	for k, fl := range members(t) {
+		if fl != nil && j.memberName(fl, k) == "o" {
+			other = "o$"
+		}
+	}
 	fmt.Fprintf(&b, "    static final class %s implements Struct<%s> {\n", name, name)
 	if t.Kind() == cc.Union {
 		b.WriteString("        // C union: every member is its own field here\n")
@@ -473,14 +480,14 @@ func (j *jgen) structClass(name string, t cc.Type) string {
 		ft, why := j.jt(fl.Type(), fieldKey(fl))
 		if why != "" {
 			fmt.Fprintf(&b, "        Object %s; // C: %s -- %s\n", fname, fl.Type(), why)
-			fmt.Fprintf(&set, "            %s = o$.%s;\n", fname, fname)
-			fmt.Fprintf(&eq, "            if (%s != o$.%s) {\n                return false;\n            }\n", fname, fname)
+			fmt.Fprintf(&set, "            %s = %s.%s;\n", fname, other, fname)
+			fmt.Fprintf(&eq, "            if (%s != %s.%s) {\n                return false;\n            }\n", fname, other, fname)
 			continue
 		}
 		if j.boxedField[fieldKey(fl)] {
 			fmt.Fprintf(&b, "        final %s[] %s = new %s[1];\n", ft, fname, raw(ft))
-			fmt.Fprintf(&set, "            %s[0] = o$.%s[0];\n", fname, fname)
-			eq.WriteString(eqStmt(fname+"[0]", "o$."+fname+"[0]", fl.Type(), ft, 0, "            "))
+			fmt.Fprintf(&set, "            %s[0] = %s.%s[0];\n", fname, other, fname)
+			eq.WriteString(eqStmt(fname+"[0]", other+"."+fname+"[0]", fl.Type(), ft, 0, "            "))
 			continue
 		}
 		switch fl.Type().Kind() {
@@ -488,26 +495,26 @@ func (j *jgen) structClass(name string, t cc.Type) string {
 			nw, why := j.jnew(fl.Type(), ft)
 			if why != "" {
 				fmt.Fprintf(&b, "        Object %s; // C: %s -- %s\n", fname, fl.Type(), why)
-				fmt.Fprintf(&set, "            %s = o$.%s;\n", fname, fname)
+				fmt.Fprintf(&set, "            %s = %s.%s;\n", fname, other, fname)
 				continue
 			}
 			fmt.Fprintf(&b, "        final %s %s = %s;\n", ft, fname, nw)
-			set.WriteString(copyStmt(fname, "o$."+fname, fl.Type(), 0, "            "))
+			set.WriteString(copyStmt(fname, other+"."+fname, fl.Type(), 0, "            "))
 		default:
 			fmt.Fprintf(&b, "        %s %s;\n", ft, fname)
-			fmt.Fprintf(&set, "            %s = o$.%s;\n", fname, fname)
+			fmt.Fprintf(&set, "            %s = %s.%s;\n", fname, other, fname)
 		}
-		eq.WriteString(eqStmt(fname, "o$."+fname, fl.Type(), ft, 0, "            "))
+		eq.WriteString(eqStmt(fname, other+"."+fname, fl.Type(), ft, 0, "            "))
 	}
 	if j.ctorClass[name] {
 		b.WriteString(j.ctorText(name, t))
 	}
-	fmt.Fprintf(&b, "\n        public %s set(%s o$) {\n%s            return this;\n        }\n", name, name, set.String())
+	fmt.Fprintf(&b, "\n        @Override\n        public %s set(%s %s) {\n%s            return this;\n        }\n", name, name, other, set.String())
 	fmt.Fprintf(&b, "\n        %s copy() {\n            return new %s().set(this);\n        }\n", name, name)
-	fmt.Fprintf(&b, "\n        public %s zero() {\n            return set(new %s());\n        }\n", name, name)
+	fmt.Fprintf(&b, "\n        @Override\n        public %s zero() {\n            return set(new %s());\n        }\n", name, name)
 	fmt.Fprintf(&b, "\n        static %s[] array(int n) {\n            %s[] a = new %s[n];\n            for (int k = 0; k < n; k++) {\n                a[k] = new %s();\n            }\n            return a;\n        }\n", name, name, name, name)
 	if j.needEq[name] {
-		fmt.Fprintf(&b, "\n        boolean eq(%s o$) {\n%s            return true;\n        }\n", name, eq.String())
+		fmt.Fprintf(&b, "\n        boolean eq(%s %s) {\n%s            return true;\n        }\n", name, other, eq.String())
 	}
 	b.WriteString("    }\n")
 	return b.String()
@@ -839,12 +846,28 @@ func (j *jgen) params(d *cc.Declarator, ft *cc.FunctionType) string {
 		if p.Type() == nil || p.Type().Kind() == cc.Void {
 			continue
 		}
-		ps = append(ps, fmt.Sprintf("%s p%d", j.sigType(p.Type(), fmt.Sprintf("param:%s:%d", d.Name(), i)), i))
+		ps = append(ps, fmt.Sprintf("%s %s", j.sigType(p.Type(), fmt.Sprintf("param:%s:%d", d.Name(), i)), paramName(j, ft, i)))
 	}
 	if ft.IsVariadic() {
 		ps = append(ps, "Object... args")
 	}
 	return strings.Join(ps, ", ")
+}
+
+// paramName is a signature's i-th parameter: the C's name for it where
+// the prototype gives one no other parameter has, else p<i>.
+func paramName(j *jgen, ft *cc.FunctionType, i int) string {
+	ps := ft.Parameters()
+	n := ps[i].Name()
+	if n == "" {
+		return fmt.Sprintf("p%d", i)
+	}
+	for k, q := range ps {
+		if k != i && q.Name() == n {
+			return fmt.Sprintf("p%d", i)
+		}
+	}
+	return j.jName(n)
 }
 
 // stub is a refused function: its signature, and a body that throws with

@@ -79,84 +79,85 @@ final class S_file_buffer implements Struct<S_file_buffer> {
     boolean b_shortname;
     int b_mapped_ctrl_c;
 
-    public S_file_buffer set(S_file_buffer o$) {
-        b_ml.set(o$.b_ml);
-        b_nwindows = o$.b_nwindows;
-        b_flags = o$.b_flags;
-        b_locked = o$.b_locked;
-        b_locked_split = o$.b_locked_split;
-        b_fnum = o$.b_fnum;
-        b_changed[0] = o$.b_changed[0];
-        b_changedtick = o$.b_changedtick;
-        b_last_changedtick = o$.b_last_changedtick;
-        b_last_changedtick_pum = o$.b_last_changedtick_pum;
-        b_last_changedtick_i = o$.b_last_changedtick_i;
-        b_saving = o$.b_saving;
-        b_mod_set = o$.b_mod_set;
-        b_mod_top = o$.b_mod_top;
-        b_mod_bot = o$.b_mod_bot;
-        b_mod_xlines = o$.b_mod_xlines;
-        b_wininfo = o$.b_wininfo;
+    @Override
+    public S_file_buffer set(S_file_buffer o) {
+        b_ml.set(o.b_ml);
+        b_nwindows = o.b_nwindows;
+        b_flags = o.b_flags;
+        b_locked = o.b_locked;
+        b_locked_split = o.b_locked_split;
+        b_fnum = o.b_fnum;
+        b_changed[0] = o.b_changed[0];
+        b_changedtick = o.b_changedtick;
+        b_last_changedtick = o.b_last_changedtick;
+        b_last_changedtick_pum = o.b_last_changedtick_pum;
+        b_last_changedtick_i = o.b_last_changedtick_i;
+        b_saving = o.b_saving;
+        b_mod_set = o.b_mod_set;
+        b_mod_top = o.b_mod_top;
+        b_mod_bot = o.b_mod_bot;
+        b_mod_xlines = o.b_mod_xlines;
+        b_wininfo = o.b_wininfo;
         for (int k$0 = 0; k$0 < 26; k$0++) {
-            b_namedm[k$0].set(o$.b_namedm[k$0]);
+            b_namedm[k$0].set(o.b_namedm[k$0]);
         }
-        b_visual.set(o$.b_visual);
-        b_last_cursor.set(o$.b_last_cursor);
-        b_last_insert.set(o$.b_last_insert);
-        b_last_change.set(o$.b_last_change);
+        b_visual.set(o.b_visual);
+        b_last_cursor.set(o.b_last_cursor);
+        b_last_insert.set(o.b_last_insert);
+        b_last_change.set(o.b_last_change);
         for (int k$0 = 0; k$0 < 100; k$0++) {
-            b_changelist[k$0].set(o$.b_changelist[k$0]);
+            b_changelist[k$0].set(o.b_changelist[k$0]);
         }
-        b_changelistlen = o$.b_changelistlen;
-        b_new_change = o$.b_new_change;
-        System.arraycopy(o$.b_chartab, 0, b_chartab, 0, 32);
-        System.arraycopy(o$.b_maphash, 0, b_maphash, 0, 256);
-        b_first_abbr[0] = o$.b_first_abbr[0];
-        b_op_start.set(o$.b_op_start);
-        b_op_start_orig.set(o$.b_op_start_orig);
-        b_op_end.set(o$.b_op_end);
-        b_modified_was_set = o$.b_modified_was_set;
-        b_u_oldhead = o$.b_u_oldhead;
-        b_u_newhead = o$.b_u_newhead;
-        b_u_curhead = o$.b_u_curhead;
-        b_u_numhead = o$.b_u_numhead;
-        b_u_synced = o$.b_u_synced;
-        b_u_seq_last = o$.b_u_seq_last;
-        b_u_save_nr_last = o$.b_u_save_nr_last;
-        b_u_seq_cur = o$.b_u_seq_cur;
-        b_u_time_cur = o$.b_u_time_cur;
-        b_u_save_nr_cur = o$.b_u_save_nr_cur;
-        b_u_line_ptr.set(o$.b_u_line_ptr);
-        b_u_line_lnum = o$.b_u_line_lnum;
-        b_u_line_colnr = o$.b_u_line_colnr;
-        b_p_initialized = o$.b_p_initialized;
-        b_p_ai[0] = o$.b_p_ai[0];
-        b_p_ai_nopaste = o$.b_p_ai_nopaste;
-        b_bkc_flags = o$.b_bkc_flags;
-        b_p_ci[0] = o$.b_p_ci[0];
-        b_cot_flags = o$.b_cot_flags;
-        b_p_et[0] = o$.b_p_et[0];
-        b_p_et_nopaste = o$.b_p_et_nopaste;
-        b_p_isk[0] = o$.b_p_isk[0];
-        b_p_mps[0] = o$.b_p_mps[0];
-        b_p_ma[0] = o$.b_p_ma[0];
-        b_p_nf[0] = o$.b_p_nf[0];
-        b_p_pi[0] = o$.b_p_pi[0];
-        b_p_qe[0] = o$.b_p_qe[0];
-        b_p_sw[0] = o$.b_p_sw[0];
-        b_p_si[0] = o$.b_p_si[0];
-        b_p_sts[0] = o$.b_p_sts[0];
-        b_p_sts_nopaste = o$.b_p_sts_nopaste;
-        b_p_ts[0] = o$.b_p_ts[0];
-        b_p_tw[0] = o$.b_p_tw[0];
-        b_p_tw_nopaste = o$.b_p_tw_nopaste;
-        b_p_wm[0] = o$.b_p_wm[0];
-        b_p_wm_nopaste = o$.b_p_wm_nopaste;
-        b_tc_flags = o$.b_tc_flags;
-        b_p_ul[0] = o$.b_p_ul[0];
-        b_help = o$.b_help;
-        b_shortname = o$.b_shortname;
-        b_mapped_ctrl_c = o$.b_mapped_ctrl_c;
+        b_changelistlen = o.b_changelistlen;
+        b_new_change = o.b_new_change;
+        System.arraycopy(o.b_chartab, 0, b_chartab, 0, 32);
+        System.arraycopy(o.b_maphash, 0, b_maphash, 0, 256);
+        b_first_abbr[0] = o.b_first_abbr[0];
+        b_op_start.set(o.b_op_start);
+        b_op_start_orig.set(o.b_op_start_orig);
+        b_op_end.set(o.b_op_end);
+        b_modified_was_set = o.b_modified_was_set;
+        b_u_oldhead = o.b_u_oldhead;
+        b_u_newhead = o.b_u_newhead;
+        b_u_curhead = o.b_u_curhead;
+        b_u_numhead = o.b_u_numhead;
+        b_u_synced = o.b_u_synced;
+        b_u_seq_last = o.b_u_seq_last;
+        b_u_save_nr_last = o.b_u_save_nr_last;
+        b_u_seq_cur = o.b_u_seq_cur;
+        b_u_time_cur = o.b_u_time_cur;
+        b_u_save_nr_cur = o.b_u_save_nr_cur;
+        b_u_line_ptr.set(o.b_u_line_ptr);
+        b_u_line_lnum = o.b_u_line_lnum;
+        b_u_line_colnr = o.b_u_line_colnr;
+        b_p_initialized = o.b_p_initialized;
+        b_p_ai[0] = o.b_p_ai[0];
+        b_p_ai_nopaste = o.b_p_ai_nopaste;
+        b_bkc_flags = o.b_bkc_flags;
+        b_p_ci[0] = o.b_p_ci[0];
+        b_cot_flags = o.b_cot_flags;
+        b_p_et[0] = o.b_p_et[0];
+        b_p_et_nopaste = o.b_p_et_nopaste;
+        b_p_isk[0] = o.b_p_isk[0];
+        b_p_mps[0] = o.b_p_mps[0];
+        b_p_ma[0] = o.b_p_ma[0];
+        b_p_nf[0] = o.b_p_nf[0];
+        b_p_pi[0] = o.b_p_pi[0];
+        b_p_qe[0] = o.b_p_qe[0];
+        b_p_sw[0] = o.b_p_sw[0];
+        b_p_si[0] = o.b_p_si[0];
+        b_p_sts[0] = o.b_p_sts[0];
+        b_p_sts_nopaste = o.b_p_sts_nopaste;
+        b_p_ts[0] = o.b_p_ts[0];
+        b_p_tw[0] = o.b_p_tw[0];
+        b_p_tw_nopaste = o.b_p_tw_nopaste;
+        b_p_wm[0] = o.b_p_wm[0];
+        b_p_wm_nopaste = o.b_p_wm_nopaste;
+        b_tc_flags = o.b_tc_flags;
+        b_p_ul[0] = o.b_p_ul[0];
+        b_help = o.b_help;
+        b_shortname = o.b_shortname;
+        b_mapped_ctrl_c = o.b_mapped_ctrl_c;
         return this;
     }
 
@@ -164,6 +165,7 @@ final class S_file_buffer implements Struct<S_file_buffer> {
         return new S_file_buffer().set(this);
     }
 
+    @Override
     public S_file_buffer zero() {
         return set(new S_file_buffer());
     }

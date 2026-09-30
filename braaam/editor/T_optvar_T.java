@@ -20,11 +20,12 @@ final class T_optvar_T implements Struct<T_optvar_T> {
         this.ov_win = ov_win;
     }
 
-    public T_optvar_T set(T_optvar_T o$) {
-        ov_int = o$.ov_int;
-        ov_long = o$.ov_long;
-        ov_str = o$.ov_str;
-        ov_win = o$.ov_win;
+    @Override
+    public T_optvar_T set(T_optvar_T o) {
+        ov_int = o.ov_int;
+        ov_long = o.ov_long;
+        ov_str = o.ov_str;
+        ov_win = o.ov_win;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class T_optvar_T implements Struct<T_optvar_T> {
         return new T_optvar_T().set(this);
     }
 
+    @Override
     public T_optvar_T zero() {
         return set(new T_optvar_T());
     }

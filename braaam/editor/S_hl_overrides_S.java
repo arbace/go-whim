@@ -10,11 +10,12 @@ final class S_hl_overrides_S implements Struct<S_hl_overrides_S> {
     S_hl_overrides_S next;
     final int[] attr = new int[70];
 
-    public S_hl_overrides_S set(S_hl_overrides_S o$) {
-        arr = o$.arr;
-        len = o$.len;
-        next = o$.next;
-        System.arraycopy(o$.attr, 0, attr, 0, 70);
+    @Override
+    public S_hl_overrides_S set(S_hl_overrides_S o) {
+        arr = o.arr;
+        len = o.len;
+        next = o.next;
+        System.arraycopy(o.attr, 0, attr, 0, 70);
         return this;
     }
 
@@ -22,6 +23,7 @@ final class S_hl_overrides_S implements Struct<S_hl_overrides_S> {
         return new S_hl_overrides_S().set(this);
     }
 
+    @Override
     public S_hl_overrides_S zero() {
         return set(new S_hl_overrides_S());
     }

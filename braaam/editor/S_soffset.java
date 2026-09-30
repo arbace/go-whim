@@ -20,11 +20,12 @@ final class S_soffset implements Struct<S_soffset> {
         this.off = off;
     }
 
-    public S_soffset set(S_soffset o$) {
-        dir = o$.dir;
-        line = o$.line;
-        end = o$.end;
-        off = o$.off;
+    @Override
+    public S_soffset set(S_soffset o) {
+        dir = o.dir;
+        line = o.line;
+        end = o.end;
+        off = o.off;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class S_soffset implements Struct<S_soffset> {
         return new S_soffset().set(this);
     }
 
+    @Override
     public S_soffset zero() {
         return set(new S_soffset());
     }

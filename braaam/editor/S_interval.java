@@ -16,9 +16,10 @@ final class S_interval implements Struct<S_interval> {
         this.last = last;
     }
 
-    public S_interval set(S_interval o$) {
-        first = o$.first;
-        last = o$.last;
+    @Override
+    public S_interval set(S_interval o) {
+        first = o.first;
+        last = o.last;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_interval implements Struct<S_interval> {
         return new S_interval().set(this);
     }
 
+    @Override
     public S_interval zero() {
         return set(new S_interval());
     }

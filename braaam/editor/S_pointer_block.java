@@ -8,10 +8,11 @@ final class S_pointer_block implements Struct<S_pointer_block> {
     short pb_count;
     final S_pointer_entry[] pb_pointer = S_pointer_entry.array(255);
 
-    public S_pointer_block set(S_pointer_block o$) {
-        pb_count = o$.pb_count;
+    @Override
+    public S_pointer_block set(S_pointer_block o) {
+        pb_count = o.pb_count;
         for (int k$0 = 0; k$0 < 255; k$0++) {
-            pb_pointer[k$0].set(o$.pb_pointer[k$0]);
+            pb_pointer[k$0].set(o.pb_pointer[k$0]);
         }
         return this;
     }
@@ -20,6 +21,7 @@ final class S_pointer_block implements Struct<S_pointer_block> {
         return new S_pointer_block().set(this);
     }
 
+    @Override
     public S_pointer_block zero() {
         return set(new S_pointer_block());
     }

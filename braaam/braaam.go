@@ -63,6 +63,11 @@ func Build(gen Gen, src, dir, launcher string, edit func([]byte) ([]byte, error)
 		return "", err
 	}
 	srcDir := filepath.Join(dir, "src")
+	// written afresh: a file of a build before (the one-file Editor.java)
+	// would otherwise stay beside what this one writes
+	if err := os.RemoveAll(srcDir); err != nil {
+		return "", err
+	}
 	if err := os.MkdirAll(srcDir, 0o755); err != nil {
 		return "", err
 	}

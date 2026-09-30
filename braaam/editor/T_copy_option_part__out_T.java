@@ -8,9 +8,10 @@ final class T_copy_option_part__out_T implements Struct<T_copy_option_part__out_
     int r__;
     BytePtr option;
 
-    public T_copy_option_part__out_T set(T_copy_option_part__out_T o$) {
-        r__ = o$.r__;
-        option = o$.option;
+    @Override
+    public T_copy_option_part__out_T set(T_copy_option_part__out_T o) {
+        r__ = o.r__;
+        option = o.option;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_copy_option_part__out_T implements Struct<T_copy_option_part__out_
         return new T_copy_option_part__out_T().set(this);
     }
 
+    @Override
     public T_copy_option_part__out_T zero() {
         return set(new T_copy_option_part__out_T());
     }

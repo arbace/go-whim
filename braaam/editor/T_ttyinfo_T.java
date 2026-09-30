@@ -10,11 +10,12 @@ final class T_ttyinfo_T implements Struct<T_ttyinfo_T> {
     int interrupt;
     boolean nl_does_cr;
 
-    public T_ttyinfo_T set(T_ttyinfo_T o$) {
-        backspace = o$.backspace;
-        enter = o$.enter;
-        interrupt = o$.interrupt;
-        nl_does_cr = o$.nl_does_cr;
+    @Override
+    public T_ttyinfo_T set(T_ttyinfo_T o) {
+        backspace = o.backspace;
+        enter = o.enter;
+        interrupt = o.interrupt;
+        nl_does_cr = o.nl_does_cr;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_ttyinfo_T implements Struct<T_ttyinfo_T> {
         return new T_ttyinfo_T().set(this);
     }
 
+    @Override
     public T_ttyinfo_T zero() {
         return set(new T_ttyinfo_T());
     }

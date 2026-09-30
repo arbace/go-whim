@@ -8,9 +8,10 @@ final class T_utf_ptr2char_and_len_len__out_T implements Struct<T_utf_ptr2char_a
     int r__;
     int lenp;
 
-    public T_utf_ptr2char_and_len_len__out_T set(T_utf_ptr2char_and_len_len__out_T o$) {
-        r__ = o$.r__;
-        lenp = o$.lenp;
+    @Override
+    public T_utf_ptr2char_and_len_len__out_T set(T_utf_ptr2char_and_len_len__out_T o) {
+        r__ = o.r__;
+        lenp = o.lenp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_utf_ptr2char_and_len_len__out_T implements Struct<T_utf_ptr2char_a
         return new T_utf_ptr2char_and_len_len__out_T().set(this);
     }
 
+    @Override
     public T_utf_ptr2char_and_len_len__out_T zero() {
         return set(new T_utf_ptr2char_and_len_len__out_T());
     }

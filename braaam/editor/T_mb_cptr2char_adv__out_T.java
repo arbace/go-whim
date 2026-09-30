@@ -8,9 +8,10 @@ final class T_mb_cptr2char_adv__out_T implements Struct<T_mb_cptr2char_adv__out_
     int r__;
     BytePtr pp;
 
-    public T_mb_cptr2char_adv__out_T set(T_mb_cptr2char_adv__out_T o$) {
-        r__ = o$.r__;
-        pp = o$.pp;
+    @Override
+    public T_mb_cptr2char_adv__out_T set(T_mb_cptr2char_adv__out_T o) {
+        r__ = o.r__;
+        pp = o.pp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_mb_cptr2char_adv__out_T implements Struct<T_mb_cptr2char_adv__out_
         return new T_mb_cptr2char_adv__out_T().set(this);
     }
 
+    @Override
     public T_mb_cptr2char_adv__out_T zero() {
         return set(new T_mb_cptr2char_adv__out_T());
     }

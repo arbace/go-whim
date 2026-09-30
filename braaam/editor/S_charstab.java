@@ -16,9 +16,10 @@ final class S_charstab implements Struct<S_charstab> {
         this.name.set(name);
     }
 
-    public S_charstab set(S_charstab o$) {
-        cp = o$.cp;
-        name.set(o$.name);
+    @Override
+    public S_charstab set(S_charstab o) {
+        cp = o.cp;
+        name.set(o.name);
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_charstab implements Struct<S_charstab> {
         return new S_charstab().set(this);
     }
 
+    @Override
     public S_charstab zero() {
         return set(new S_charstab());
     }

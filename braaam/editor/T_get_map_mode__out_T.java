@@ -8,9 +8,10 @@ final class T_get_map_mode__out_T implements Struct<T_get_map_mode__out_T> {
     int r__;
     BytePtr cmdp;
 
-    public T_get_map_mode__out_T set(T_get_map_mode__out_T o$) {
-        r__ = o$.r__;
-        cmdp = o$.cmdp;
+    @Override
+    public T_get_map_mode__out_T set(T_get_map_mode__out_T o) {
+        r__ = o.r__;
+        cmdp = o.cmdp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_get_map_mode__out_T implements Struct<T_get_map_mode__out_T> {
         return new T_get_map_mode__out_T().set(this);
     }
 
+    @Override
     public T_get_map_mode__out_T zero() {
         return set(new T_get_map_mode__out_T());
     }

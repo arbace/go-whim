@@ -24,25 +24,26 @@ final class S_oparg_S implements Struct<S_oparg_S> {
     long prev_count0;
     int excl_tr_ws;
 
-    public S_oparg_S set(S_oparg_S o$) {
-        op_type = o$.op_type;
-        regname = o$.regname;
-        motion_type = o$.motion_type;
-        motion_force = o$.motion_force;
-        use_reg_one = o$.use_reg_one;
-        inclusive = o$.inclusive;
-        end_adjusted = o$.end_adjusted;
-        start.set(o$.start);
-        end.set(o$.end);
-        line_count = o$.line_count;
-        empty = o$.empty;
-        is_VIsual = o$.is_VIsual;
-        block_mode = o$.block_mode;
-        start_vcol[0] = o$.start_vcol[0];
-        end_vcol[0] = o$.end_vcol[0];
-        prev_opcount = o$.prev_opcount;
-        prev_count0 = o$.prev_count0;
-        excl_tr_ws = o$.excl_tr_ws;
+    @Override
+    public S_oparg_S set(S_oparg_S o) {
+        op_type = o.op_type;
+        regname = o.regname;
+        motion_type = o.motion_type;
+        motion_force = o.motion_force;
+        use_reg_one = o.use_reg_one;
+        inclusive = o.inclusive;
+        end_adjusted = o.end_adjusted;
+        start.set(o.start);
+        end.set(o.end);
+        line_count = o.line_count;
+        empty = o.empty;
+        is_VIsual = o.is_VIsual;
+        block_mode = o.block_mode;
+        start_vcol[0] = o.start_vcol[0];
+        end_vcol[0] = o.end_vcol[0];
+        prev_opcount = o.prev_opcount;
+        prev_count0 = o.prev_count0;
+        excl_tr_ws = o.excl_tr_ws;
         return this;
     }
 
@@ -50,6 +51,7 @@ final class S_oparg_S implements Struct<S_oparg_S> {
         return new S_oparg_S().set(this);
     }
 
+    @Override
     public S_oparg_S zero() {
         return set(new S_oparg_S());
     }

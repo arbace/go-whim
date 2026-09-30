@@ -14,15 +14,16 @@ final class T_cmdmod_T implements Struct<T_cmdmod_T> {
     int cmod_save_msg_scroll;
     int cmod_did_esilent;
 
-    public T_cmdmod_T set(T_cmdmod_T o$) {
-        cmod_flags = o$.cmod_flags;
-        cmod_filter_regmatch.set(o$.cmod_filter_regmatch);
-        cmod_filter_force = o$.cmod_filter_force;
-        cmod_verbose = o$.cmod_verbose;
-        cmod_verbose_save = o$.cmod_verbose_save;
-        cmod_save_msg_silent = o$.cmod_save_msg_silent;
-        cmod_save_msg_scroll = o$.cmod_save_msg_scroll;
-        cmod_did_esilent = o$.cmod_did_esilent;
+    @Override
+    public T_cmdmod_T set(T_cmdmod_T o) {
+        cmod_flags = o.cmod_flags;
+        cmod_filter_regmatch.set(o.cmod_filter_regmatch);
+        cmod_filter_force = o.cmod_filter_force;
+        cmod_verbose = o.cmod_verbose;
+        cmod_verbose_save = o.cmod_verbose_save;
+        cmod_save_msg_silent = o.cmod_save_msg_silent;
+        cmod_save_msg_scroll = o.cmod_save_msg_scroll;
+        cmod_did_esilent = o.cmod_did_esilent;
         return this;
     }
 
@@ -30,6 +31,7 @@ final class T_cmdmod_T implements Struct<T_cmdmod_T> {
         return new T_cmdmod_T().set(this);
     }
 
+    @Override
     public T_cmdmod_T zero() {
         return set(new T_cmdmod_T());
     }

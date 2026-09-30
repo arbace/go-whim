@@ -10,11 +10,12 @@ final class T_opt_backspace_nr2str__out_T implements Struct<T_opt_backspace_nr2s
     BytePtr origval_g_p;
     BytePtr oldval_p;
 
-    public T_opt_backspace_nr2str__out_T set(T_opt_backspace_nr2str__out_T o$) {
-        origval_p = o$.origval_p;
-        origval_l_p = o$.origval_l_p;
-        origval_g_p = o$.origval_g_p;
-        oldval_p = o$.oldval_p;
+    @Override
+    public T_opt_backspace_nr2str__out_T set(T_opt_backspace_nr2str__out_T o) {
+        origval_p = o.origval_p;
+        origval_l_p = o.origval_l_p;
+        origval_g_p = o.origval_g_p;
+        oldval_p = o.oldval_p;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_opt_backspace_nr2str__out_T implements Struct<T_opt_backspace_nr2s
         return new T_opt_backspace_nr2str__out_T().set(this);
     }
 
+    @Override
     public T_opt_backspace_nr2str__out_T zero() {
         return set(new T_opt_backspace_nr2str__out_T());
     }

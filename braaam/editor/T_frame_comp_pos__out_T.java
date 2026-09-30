@@ -8,9 +8,10 @@ final class T_frame_comp_pos__out_T implements Struct<T_frame_comp_pos__out_T> {
     int row;
     int col;
 
-    public T_frame_comp_pos__out_T set(T_frame_comp_pos__out_T o$) {
-        row = o$.row;
-        col = o$.col;
+    @Override
+    public T_frame_comp_pos__out_T set(T_frame_comp_pos__out_T o) {
+        row = o.row;
+        col = o.col;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_frame_comp_pos__out_T implements Struct<T_frame_comp_pos__out_T> {
         return new T_frame_comp_pos__out_T().set(this);
     }
 
+    @Override
     public T_frame_comp_pos__out_T zero() {
         return set(new T_frame_comp_pos__out_T());
     }

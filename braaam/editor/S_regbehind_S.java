@@ -11,15 +11,16 @@ final class S_regbehind_S implements Struct<S_regbehind_S> {
     final T_save_se_T[] save_start = T_save_se_T.array(10);
     final T_save_se_T[] save_end = T_save_se_T.array(10);
 
-    public S_regbehind_S set(S_regbehind_S o$) {
-        save_after.set(o$.save_after);
-        save_behind.set(o$.save_behind);
-        save_need_clear_subexpr = o$.save_need_clear_subexpr;
+    @Override
+    public S_regbehind_S set(S_regbehind_S o) {
+        save_after.set(o.save_after);
+        save_behind.set(o.save_behind);
+        save_need_clear_subexpr = o.save_need_clear_subexpr;
         for (int k$0 = 0; k$0 < 10; k$0++) {
-            save_start[k$0].set(o$.save_start[k$0]);
+            save_start[k$0].set(o.save_start[k$0]);
         }
         for (int k$0 = 0; k$0 < 10; k$0++) {
-            save_end[k$0].set(o$.save_end[k$0]);
+            save_end[k$0].set(o.save_end[k$0]);
         }
         return this;
     }
@@ -28,6 +29,7 @@ final class S_regbehind_S implements Struct<S_regbehind_S> {
         return new S_regbehind_S().set(this);
     }
 
+    @Override
     public S_regbehind_S zero() {
         return set(new S_regbehind_S());
     }

@@ -8,9 +8,10 @@ final class T_vim_append_digit_long__out_T implements Struct<T_vim_append_digit_
     boolean r__;
     long value;
 
-    public T_vim_append_digit_long__out_T set(T_vim_append_digit_long__out_T o$) {
-        r__ = o$.r__;
-        value = o$.value;
+    @Override
+    public T_vim_append_digit_long__out_T set(T_vim_append_digit_long__out_T o) {
+        r__ = o.r__;
+        value = o.value;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_vim_append_digit_long__out_T implements Struct<T_vim_append_digit_
         return new T_vim_append_digit_long__out_T().set(this);
     }
 
+    @Override
     public T_vim_append_digit_long__out_T zero() {
         return set(new T_vim_append_digit_long__out_T());
     }

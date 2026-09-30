@@ -20,11 +20,12 @@ final class T_convertStruct implements Struct<T_convertStruct> {
         this.offset = offset;
     }
 
-    public T_convertStruct set(T_convertStruct o$) {
-        rangeStart = o$.rangeStart;
-        rangeEnd = o$.rangeEnd;
-        step = o$.step;
-        offset = o$.offset;
+    @Override
+    public T_convertStruct set(T_convertStruct o) {
+        rangeStart = o.rangeStart;
+        rangeEnd = o.rangeEnd;
+        step = o.step;
+        offset = o.offset;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class T_convertStruct implements Struct<T_convertStruct> {
         return new T_convertStruct().set(this);
     }
 
+    @Override
     public T_convertStruct zero() {
         return set(new T_convertStruct());
     }

@@ -10,11 +10,12 @@ final class T_cmdline_browse_history__out_T implements Struct<T_cmdline_browse_h
     long curcmdstrlen;
     int hiscnt_p;
 
-    public T_cmdline_browse_history__out_T set(T_cmdline_browse_history__out_T o$) {
-        r__ = o$.r__;
-        curcmdstr = o$.curcmdstr;
-        curcmdstrlen = o$.curcmdstrlen;
-        hiscnt_p = o$.hiscnt_p;
+    @Override
+    public T_cmdline_browse_history__out_T set(T_cmdline_browse_history__out_T o) {
+        r__ = o.r__;
+        curcmdstr = o.curcmdstr;
+        curcmdstrlen = o.curcmdstrlen;
+        hiscnt_p = o.hiscnt_p;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_cmdline_browse_history__out_T implements Struct<T_cmdline_browse_h
         return new T_cmdline_browse_history__out_T().set(this);
     }
 
+    @Override
     public T_cmdline_browse_history__out_T zero() {
         return set(new T_cmdline_browse_history__out_T());
     }

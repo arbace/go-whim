@@ -11,12 +11,13 @@ final class T_gotchars_state_T implements Struct<T_gotchars_state_T> {
     int pending_special;
     int pending_mbyte;
 
-    public T_gotchars_state_T set(T_gotchars_state_T o$) {
-        System.arraycopy(o$.buf, 0, buf, 0, 67);
-        prev_c = o$.prev_c;
-        buflen = o$.buflen;
-        pending_special = o$.pending_special;
-        pending_mbyte = o$.pending_mbyte;
+    @Override
+    public T_gotchars_state_T set(T_gotchars_state_T o) {
+        System.arraycopy(o.buf, 0, buf, 0, 67);
+        prev_c = o.prev_c;
+        buflen = o.buflen;
+        pending_special = o.pending_special;
+        pending_mbyte = o.pending_mbyte;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class T_gotchars_state_T implements Struct<T_gotchars_state_T> {
         return new T_gotchars_state_T().set(this);
     }
 
+    @Override
     public T_gotchars_state_T zero() {
         return set(new T_gotchars_state_T());
     }

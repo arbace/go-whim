@@ -16,9 +16,10 @@ final class S_signalinfo implements Struct<S_signalinfo> {
         this.name = name;
     }
 
-    public S_signalinfo set(S_signalinfo o$) {
-        sig = o$.sig;
-        name = o$.name;
+    @Override
+    public S_signalinfo set(S_signalinfo o) {
+        sig = o.sig;
+        name = o.name;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_signalinfo implements Struct<S_signalinfo> {
         return new S_signalinfo().set(this);
     }
 
+    @Override
     public S_signalinfo zero() {
         return set(new S_signalinfo());
     }

@@ -9,10 +9,11 @@ final class T_estack_T implements Struct<T_estack_T> {
     BytePtr es_name;
     int es_type;
 
-    public T_estack_T set(T_estack_T o$) {
-        es_lnum = o$.es_lnum;
-        es_name = o$.es_name;
-        es_type = o$.es_type;
+    @Override
+    public T_estack_T set(T_estack_T o) {
+        es_lnum = o.es_lnum;
+        es_name = o.es_name;
+        es_type = o.es_type;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_estack_T implements Struct<T_estack_T> {
         return new T_estack_T().set(this);
     }
 
+    @Override
     public T_estack_T zero() {
         return set(new T_estack_T());
     }

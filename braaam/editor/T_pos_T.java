@@ -9,10 +9,11 @@ final class T_pos_T implements Struct<T_pos_T> {
     int col;
     int coladd;
 
-    public T_pos_T set(T_pos_T o$) {
-        lnum = o$.lnum;
-        col = o$.col;
-        coladd = o$.coladd;
+    @Override
+    public T_pos_T set(T_pos_T o) {
+        lnum = o.lnum;
+        col = o.col;
+        coladd = o.coladd;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_pos_T implements Struct<T_pos_T> {
         return new T_pos_T().set(this);
     }
 
+    @Override
     public T_pos_T zero() {
         return set(new T_pos_T());
     }

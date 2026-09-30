@@ -331,7 +331,50 @@ func jnot(s string) string {
 	if strings.HasPrefix(s, "!") && jparen(s[1:]) == s[1:] {
 		return s[1:]
 	}
+	if f, ok := flipEq(s); ok {
+		return f
+	}
 	return "!" + jparen(s)
+}
+
+// flipEq is s, a comparison for equality at its top, as its negation: a ==
+// b as a != b and the reverse, where nothing binds more loosely than the
+// one == or != beside it at the top.
+func flipEq(s string) (string, bool) {
+	toks, ok := jlex(s)
+	if !ok {
+		return "", false
+	}
+	depth, at := 0, -1
+	for _, t := range toks {
+		switch t.s {
+		case "(", "[", "{":
+			depth++
+			continue
+		case ")", "]", "}":
+			depth--
+			continue
+		}
+		if depth != 0 {
+			continue
+		}
+		switch t.s {
+		case "==", "!=":
+			if at >= 0 {
+				return "", false // a == b == c
+			}
+			at = t.start
+		case "&&", "||", "?", ":", "&", "^", "|", "=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=", "->":
+			return "", false
+		}
+	}
+	if at < 0 {
+		return "", false
+	}
+	if s[at] == '=' {
+		return s[:at] + "!=" + s[at+2:], true
+	}
+	return s[:at] + "==" + s[at+2:], true
 }
 
 var jcallRe = regexp.MustCompile(`\.?[A-Za-z_]\w*\(`)
@@ -954,6 +997,16 @@ func (f *jfn) assign(x *cc.AssignmentExpression) jlv {
 	}
 	if direct {
 		rhs := f.convK(r, common)
+		switch op {
+		case "+", "-", "*", "&", "|", "^":
+			// a result's low bits are its operands' low bits: the right
+			// side narrowed to the left's type is what Java's implicit
+			// narrowing of the result gives, said where it happens
+			// (javac's lossy-conversions)
+			if lk.size < common.size {
+				rhs = f.convK(r, lk)
+			}
+		}
 		jop := op
 		if op == "<<" || op == ">>" {
 			rhs = f.convK(r, jInt)

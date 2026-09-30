@@ -11,12 +11,13 @@ final class T_mparm_T implements Struct<T_mparm_T> {
     final BytePtr[] commands = new BytePtr[10];
     boolean want_full_screen;
 
-    public T_mparm_T set(T_mparm_T o$) {
-        argc = o$.argc;
-        argv = o$.argv;
-        n_commands = o$.n_commands;
-        System.arraycopy(o$.commands, 0, commands, 0, 10);
-        want_full_screen = o$.want_full_screen;
+    @Override
+    public T_mparm_T set(T_mparm_T o) {
+        argc = o.argc;
+        argv = o.argv;
+        n_commands = o.n_commands;
+        System.arraycopy(o.commands, 0, commands, 0, 10);
+        want_full_screen = o.want_full_screen;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class T_mparm_T implements Struct<T_mparm_T> {
         return new T_mparm_T().set(this);
     }
 
+    @Override
     public T_mparm_T zero() {
         return set(new T_mparm_T());
     }

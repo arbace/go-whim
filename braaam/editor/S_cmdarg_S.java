@@ -18,19 +18,20 @@ final class S_cmdarg_S implements Struct<S_cmdarg_S> {
     int retval;
     BytePtr searchbuf;
 
-    public S_cmdarg_S set(S_cmdarg_S o$) {
-        oap = o$.oap;
-        cmdchar = o$.cmdchar;
-        nchar[0] = o$.nchar[0];
-        ncharC1 = o$.ncharC1;
-        ncharC2 = o$.ncharC2;
-        extra_char[0] = o$.extra_char[0];
-        opcount = o$.opcount;
-        count0 = o$.count0;
-        count1 = o$.count1;
-        arg = o$.arg;
-        retval = o$.retval;
-        searchbuf = o$.searchbuf;
+    @Override
+    public S_cmdarg_S set(S_cmdarg_S o) {
+        oap = o.oap;
+        cmdchar = o.cmdchar;
+        nchar[0] = o.nchar[0];
+        ncharC1 = o.ncharC1;
+        ncharC2 = o.ncharC2;
+        extra_char[0] = o.extra_char[0];
+        opcount = o.opcount;
+        count0 = o.count0;
+        count1 = o.count1;
+        arg = o.arg;
+        retval = o.retval;
+        searchbuf = o.searchbuf;
         return this;
     }
 
@@ -38,6 +39,7 @@ final class S_cmdarg_S implements Struct<S_cmdarg_S> {
         return new S_cmdarg_S().set(this);
     }
 
+    @Override
     public S_cmdarg_S zero() {
         return set(new S_cmdarg_S());
     }

@@ -323,11 +323,6 @@ final class Whim extends Editor implements Printf.Core {
     }
 
     @Override
-    public BytePtr eValTooLarge() {
-        return new BytePtr(e_val_too_large, 0);
-    }
-
-    @Override
     public int utfcPtr2len(BytePtr p) {
         return utfc_ptr2len(p);
     }

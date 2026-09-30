@@ -12,17 +12,18 @@ final class T_regmmatch_T implements Struct<T_regmmatch_T> {
     int rmm_ic;
     int rmm_maxcol;
 
-    public T_regmmatch_T set(T_regmmatch_T o$) {
-        regprog = o$.regprog;
+    @Override
+    public T_regmmatch_T set(T_regmmatch_T o) {
+        regprog = o.regprog;
         for (int k$0 = 0; k$0 < 10; k$0++) {
-            startpos[k$0].set(o$.startpos[k$0]);
+            startpos[k$0].set(o.startpos[k$0]);
         }
         for (int k$0 = 0; k$0 < 10; k$0++) {
-            endpos[k$0].set(o$.endpos[k$0]);
+            endpos[k$0].set(o.endpos[k$0]);
         }
-        rmm_matchcol = o$.rmm_matchcol;
-        rmm_ic = o$.rmm_ic;
-        rmm_maxcol = o$.rmm_maxcol;
+        rmm_matchcol = o.rmm_matchcol;
+        rmm_ic = o.rmm_ic;
+        rmm_maxcol = o.rmm_maxcol;
         return this;
     }
 
@@ -30,6 +31,7 @@ final class T_regmmatch_T implements Struct<T_regmmatch_T> {
         return new T_regmmatch_T().set(this);
     }
 
+    @Override
     public T_regmmatch_T zero() {
         return set(new T_regmmatch_T());
     }

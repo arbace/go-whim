@@ -8,9 +8,10 @@ final class A_1 implements Struct<A_1> {
     BytePtr start;
     BytePtr stop;
 
-    public A_1 set(A_1 o$) {
-        start = o$.start;
-        stop = o$.stop;
+    @Override
+    public A_1 set(A_1 o) {
+        start = o.start;
+        stop = o.stop;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class A_1 implements Struct<A_1> {
         return new A_1().set(this);
     }
 
+    @Override
     public A_1 zero() {
         return set(new A_1());
     }

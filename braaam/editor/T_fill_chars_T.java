@@ -19,20 +19,21 @@ final class T_fill_chars_T implements Struct<T_fill_chars_T> {
     final int[] trunc = new int[1];
     final int[] truncrl = new int[1];
 
-    public T_fill_chars_T set(T_fill_chars_T o$) {
-        stl[0] = o$.stl[0];
-        stlnc[0] = o$.stlnc[0];
-        vert[0] = o$.vert[0];
-        fold[0] = o$.fold[0];
-        foldopen[0] = o$.foldopen[0];
-        foldclosed[0] = o$.foldclosed[0];
-        foldsep[0] = o$.foldsep[0];
-        foldinner[0] = o$.foldinner[0];
-        diff[0] = o$.diff[0];
-        eob[0] = o$.eob[0];
-        lastline[0] = o$.lastline[0];
-        trunc[0] = o$.trunc[0];
-        truncrl[0] = o$.truncrl[0];
+    @Override
+    public T_fill_chars_T set(T_fill_chars_T o) {
+        stl[0] = o.stl[0];
+        stlnc[0] = o.stlnc[0];
+        vert[0] = o.vert[0];
+        fold[0] = o.fold[0];
+        foldopen[0] = o.foldopen[0];
+        foldclosed[0] = o.foldclosed[0];
+        foldsep[0] = o.foldsep[0];
+        foldinner[0] = o.foldinner[0];
+        diff[0] = o.diff[0];
+        eob[0] = o.eob[0];
+        lastline[0] = o.lastline[0];
+        trunc[0] = o.trunc[0];
+        truncrl[0] = o.truncrl[0];
         return this;
     }
 
@@ -40,6 +41,7 @@ final class T_fill_chars_T implements Struct<T_fill_chars_T> {
         return new T_fill_chars_T().set(this);
     }
 
+    @Override
     public T_fill_chars_T zero() {
         return set(new T_fill_chars_T());
     }

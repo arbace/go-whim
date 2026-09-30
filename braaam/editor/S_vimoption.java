@@ -31,16 +31,17 @@ final class S_vimoption implements Struct<S_vimoption> {
         System.arraycopy(def_num, 0, this.def_num, 0, def_num.length);
     }
 
-    public S_vimoption set(S_vimoption o$) {
-        fullname = o$.fullname;
-        shortname = o$.shortname;
-        flags[0] = o$.flags[0];
-        var_.set(o$.var_);
-        indir = o$.indir;
-        opt_did_set_cb = o$.opt_did_set_cb;
-        opt_expand_cb = o$.opt_expand_cb;
-        System.arraycopy(o$.def_str, 0, def_str, 0, 2);
-        System.arraycopy(o$.def_num, 0, def_num, 0, 2);
+    @Override
+    public S_vimoption set(S_vimoption o) {
+        fullname = o.fullname;
+        shortname = o.shortname;
+        flags[0] = o.flags[0];
+        var_.set(o.var_);
+        indir = o.indir;
+        opt_did_set_cb = o.opt_did_set_cb;
+        opt_expand_cb = o.opt_expand_cb;
+        System.arraycopy(o.def_str, 0, def_str, 0, 2);
+        System.arraycopy(o.def_num, 0, def_num, 0, 2);
         return this;
     }
 
@@ -48,6 +49,7 @@ final class S_vimoption implements Struct<S_vimoption> {
         return new S_vimoption().set(this);
     }
 
+    @Override
     public S_vimoption zero() {
         return set(new S_vimoption());
     }

@@ -9,10 +9,11 @@ final class T_do_set_option_string__out_T implements Struct<T_do_set_option_stri
     BytePtr argp;
     BytePtr errmsg;
 
-    public T_do_set_option_string__out_T set(T_do_set_option_string__out_T o$) {
-        r__ = o$.r__;
-        argp = o$.argp;
-        errmsg = o$.errmsg;
+    @Override
+    public T_do_set_option_string__out_T set(T_do_set_option_string__out_T o) {
+        r__ = o.r__;
+        argp = o.argp;
+        errmsg = o.errmsg;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_do_set_option_string__out_T implements Struct<T_do_set_option_stri
         return new T_do_set_option_string__out_T().set(this);
     }
 
+    @Override
     public T_do_set_option_string__out_T zero() {
         return set(new T_do_set_option_string__out_T());
     }

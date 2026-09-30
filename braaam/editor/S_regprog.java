@@ -15,16 +15,17 @@ final class S_regprog implements Struct<S_regprog> {
     int regmlen;
     BytePtr program;
 
-    public S_regprog set(S_regprog o$) {
-        regflags = o$.regflags;
-        re_engine = o$.re_engine;
-        re_flags = o$.re_flags;
-        re_in_use = o$.re_in_use;
-        regstart = o$.regstart;
-        reganch = o$.reganch;
-        regmust = o$.regmust;
-        regmlen = o$.regmlen;
-        program = o$.program;
+    @Override
+    public S_regprog set(S_regprog o) {
+        regflags = o.regflags;
+        re_engine = o.re_engine;
+        re_flags = o.re_flags;
+        re_in_use = o.re_in_use;
+        regstart = o.regstart;
+        reganch = o.reganch;
+        regmust = o.regmust;
+        regmlen = o.regmlen;
+        program = o.program;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class S_regprog implements Struct<S_regprog> {
         return new S_regprog().set(this);
     }
 
+    @Override
     public S_regprog zero() {
         return set(new S_regprog());
     }

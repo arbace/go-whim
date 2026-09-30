@@ -9,10 +9,11 @@ final class S_w_line implements Struct<S_w_line> {
     short wl_size;
     byte wl_valid;
 
-    public S_w_line set(S_w_line o$) {
-        wl_lnum = o$.wl_lnum;
-        wl_size = o$.wl_size;
-        wl_valid = o$.wl_valid;
+    @Override
+    public S_w_line set(S_w_line o) {
+        wl_lnum = o.wl_lnum;
+        wl_size = o.wl_size;
+        wl_valid = o.wl_valid;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class S_w_line implements Struct<S_w_line> {
         return new S_w_line().set(this);
     }
 
+    @Override
     public S_w_line zero() {
         return set(new S_w_line());
     }

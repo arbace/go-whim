@@ -9,9 +9,10 @@ final class A_2 implements Struct<A_2> {
     final A_1 term = new A_1();
     final A_3 cterm = new A_3();
 
-    public A_2 set(A_2 o$) {
-        term.set(o$.term);
-        cterm.set(o$.cterm);
+    @Override
+    public A_2 set(A_2 o) {
+        term.set(o.term);
+        cterm.set(o.cterm);
         return this;
     }
 
@@ -19,6 +20,7 @@ final class A_2 implements Struct<A_2> {
         return new A_2().set(this);
     }
 
+    @Override
     public A_2 zero() {
         return set(new A_2());
     }

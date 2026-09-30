@@ -13,14 +13,15 @@ final class T_optexpand_T implements Struct<T_optexpand_T> {
     S_expand oe_xp;
     BytePtr oe_set_arg;
 
-    public T_optexpand_T set(T_optexpand_T o$) {
-        oe_varp = o$.oe_varp;
-        oe_opt_value = o$.oe_opt_value;
-        oe_append = o$.oe_append;
-        oe_include_orig_val = o$.oe_include_orig_val;
-        oe_regmatch = o$.oe_regmatch;
-        oe_xp = o$.oe_xp;
-        oe_set_arg = o$.oe_set_arg;
+    @Override
+    public T_optexpand_T set(T_optexpand_T o) {
+        oe_varp = o.oe_varp;
+        oe_opt_value = o.oe_opt_value;
+        oe_append = o.oe_append;
+        oe_include_orig_val = o.oe_include_orig_val;
+        oe_regmatch = o.oe_regmatch;
+        oe_xp = o.oe_xp;
+        oe_set_arg = o.oe_set_arg;
         return this;
     }
 
@@ -28,6 +29,7 @@ final class T_optexpand_T implements Struct<T_optexpand_T> {
         return new T_optexpand_T().set(this);
     }
 
+    @Override
     public T_optexpand_T zero() {
         return set(new T_optexpand_T());
     }

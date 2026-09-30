@@ -10,11 +10,12 @@ final class S_regitem_S implements Struct<S_regitem_S> {
     BytePtr rs_scan;
     final A_6 rs_un = new A_6();
 
-    public S_regitem_S set(S_regitem_S o$) {
-        rs_state = o$.rs_state;
-        rs_no = o$.rs_no;
-        rs_scan = o$.rs_scan;
-        rs_un.set(o$.rs_un);
+    @Override
+    public S_regitem_S set(S_regitem_S o) {
+        rs_state = o.rs_state;
+        rs_no = o.rs_no;
+        rs_scan = o.rs_scan;
+        rs_un.set(o.rs_un);
         return this;
     }
 
@@ -22,6 +23,7 @@ final class S_regitem_S implements Struct<S_regitem_S> {
         return new S_regitem_S().set(this);
     }
 
+    @Override
     public S_regitem_S zero() {
         return set(new S_regitem_S());
     }

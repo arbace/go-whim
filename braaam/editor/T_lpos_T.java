@@ -8,9 +8,10 @@ final class T_lpos_T implements Struct<T_lpos_T> {
     long lnum;
     int col;
 
-    public T_lpos_T set(T_lpos_T o$) {
-        lnum = o$.lnum;
-        col = o$.col;
+    @Override
+    public T_lpos_T set(T_lpos_T o) {
+        lnum = o.lnum;
+        col = o.col;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_lpos_T implements Struct<T_lpos_T> {
         return new T_lpos_T().set(this);
     }
 
+    @Override
     public T_lpos_T zero() {
         return set(new T_lpos_T());
     }

@@ -8,9 +8,10 @@ final class T_store_sb_text__out_T implements Struct<T_store_sb_text__out_T> {
     BytePtr sb_str;
     int sb_col;
 
-    public T_store_sb_text__out_T set(T_store_sb_text__out_T o$) {
-        sb_str = o$.sb_str;
-        sb_col = o$.sb_col;
+    @Override
+    public T_store_sb_text__out_T set(T_store_sb_text__out_T o) {
+        sb_str = o.sb_str;
+        sb_col = o.sb_col;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_store_sb_text__out_T implements Struct<T_store_sb_text__out_T> {
         return new T_store_sb_text__out_T().set(this);
     }
 
+    @Override
     public T_store_sb_text__out_T zero() {
         return set(new T_store_sb_text__out_T());
     }

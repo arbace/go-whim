@@ -9,10 +9,11 @@ final class S_buffblock implements Struct<S_buffblock> {
     long b_strlen;
     BytePtr b_str;
 
-    public S_buffblock set(S_buffblock o$) {
-        b_next = o$.b_next;
-        b_strlen = o$.b_strlen;
-        b_str = o$.b_str;
+    @Override
+    public S_buffblock set(S_buffblock o) {
+        b_next = o.b_next;
+        b_strlen = o.b_strlen;
+        b_str = o.b_str;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class S_buffblock implements Struct<S_buffblock> {
         return new S_buffblock().set(this);
     }
 
+    @Override
     public S_buffblock zero() {
         return set(new S_buffblock());
     }

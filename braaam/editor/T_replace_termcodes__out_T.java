@@ -8,9 +8,10 @@ final class T_replace_termcodes__out_T implements Struct<T_replace_termcodes__ou
     BytePtr r__;
     BytePtr bufp;
 
-    public T_replace_termcodes__out_T set(T_replace_termcodes__out_T o$) {
-        r__ = o$.r__;
-        bufp = o$.bufp;
+    @Override
+    public T_replace_termcodes__out_T set(T_replace_termcodes__out_T o) {
+        r__ = o.r__;
+        bufp = o.bufp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_replace_termcodes__out_T implements Struct<T_replace_termcodes__ou
         return new T_replace_termcodes__out_T().set(this);
     }
 
+    @Override
     public T_replace_termcodes__out_T zero() {
         return set(new T_replace_termcodes__out_T());
     }

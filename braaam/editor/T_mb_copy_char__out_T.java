@@ -8,9 +8,10 @@ final class T_mb_copy_char__out_T implements Struct<T_mb_copy_char__out_T> {
     BytePtr fp;
     BytePtr tp;
 
-    public T_mb_copy_char__out_T set(T_mb_copy_char__out_T o$) {
-        fp = o$.fp;
-        tp = o$.tp;
+    @Override
+    public T_mb_copy_char__out_T set(T_mb_copy_char__out_T o) {
+        fp = o.fp;
+        tp = o.tp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_mb_copy_char__out_T implements Struct<T_mb_copy_char__out_T> {
         return new T_mb_copy_char__out_T().set(this);
     }
 
+    @Override
     public T_mb_copy_char__out_T zero() {
         return set(new T_mb_copy_char__out_T());
     }

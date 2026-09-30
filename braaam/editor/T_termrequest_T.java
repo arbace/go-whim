@@ -8,9 +8,10 @@ final class T_termrequest_T implements Struct<T_termrequest_T> {
     int tr_progress;
     long tr_start;
 
-    public T_termrequest_T set(T_termrequest_T o$) {
-        tr_progress = o$.tr_progress;
-        tr_start = o$.tr_start;
+    @Override
+    public T_termrequest_T set(T_termrequest_T o) {
+        tr_progress = o.tr_progress;
+        tr_start = o.tr_start;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_termrequest_T implements Struct<T_termrequest_T> {
         return new T_termrequest_T().set(this);
     }
 
+    @Override
     public T_termrequest_T zero() {
         return set(new T_termrequest_T());
     }

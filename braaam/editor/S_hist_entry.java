@@ -11,12 +11,13 @@ final class S_hist_entry implements Struct<S_hist_entry> {
     long hisstrlen;
     long time_set;
 
-    public S_hist_entry set(S_hist_entry o$) {
-        hisnum = o$.hisnum;
-        viminfo = o$.viminfo;
-        hisstr = o$.hisstr;
-        hisstrlen = o$.hisstrlen;
-        time_set = o$.time_set;
+    @Override
+    public S_hist_entry set(S_hist_entry o) {
+        hisnum = o.hisnum;
+        viminfo = o.viminfo;
+        hisstr = o.hisstr;
+        hisstrlen = o.hisstrlen;
+        time_set = o.time_set;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class S_hist_entry implements Struct<S_hist_entry> {
         return new S_hist_entry().set(this);
     }
 
+    @Override
     public S_hist_entry zero() {
         return set(new S_hist_entry());
     }

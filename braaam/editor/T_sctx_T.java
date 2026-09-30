@@ -7,8 +7,9 @@ import whim.rt.*;
 final class T_sctx_T implements Struct<T_sctx_T> {
     int sc_version;
 
-    public T_sctx_T set(T_sctx_T o$) {
-        sc_version = o$.sc_version;
+    @Override
+    public T_sctx_T set(T_sctx_T o) {
+        sc_version = o.sc_version;
         return this;
     }
 
@@ -16,6 +17,7 @@ final class T_sctx_T implements Struct<T_sctx_T> {
         return new T_sctx_T().set(this);
     }
 
+    @Override
     public T_sctx_T zero() {
         return set(new T_sctx_T());
     }

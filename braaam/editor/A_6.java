@@ -9,9 +9,10 @@ final class A_6 implements Struct<A_6> {
     final T_save_se_T sesave = new T_save_se_T();
     final T_regsave_T regsave = new T_regsave_T();
 
-    public A_6 set(A_6 o$) {
-        sesave.set(o$.sesave);
-        regsave.set(o$.regsave);
+    @Override
+    public A_6 set(A_6 o) {
+        sesave.set(o.sesave);
+        regsave.set(o.regsave);
         return this;
     }
 
@@ -19,6 +20,7 @@ final class A_6 implements Struct<A_6> {
         return new A_6().set(this);
     }
 
+    @Override
     public A_6 zero() {
         return set(new A_6());
     }

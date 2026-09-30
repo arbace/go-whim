@@ -20,21 +20,22 @@ final class S_memline implements Struct<S_memline> {
     long ml_locked_high;
     int ml_locked_lineadd;
 
-    public S_memline set(S_memline o$) {
-        ml_line_count = o$.ml_line_count;
-        ml_root = o$.ml_root;
-        ml_stack = o$.ml_stack;
-        ml_stack_top = o$.ml_stack_top;
-        ml_stack_size = o$.ml_stack_size;
-        ml_flags = o$.ml_flags;
-        ml_line_len = o$.ml_line_len;
-        ml_line_textlen = o$.ml_line_textlen;
-        ml_line_lnum = o$.ml_line_lnum;
-        ml_line_ptr = o$.ml_line_ptr;
-        ml_locked = o$.ml_locked;
-        ml_locked_low = o$.ml_locked_low;
-        ml_locked_high = o$.ml_locked_high;
-        ml_locked_lineadd = o$.ml_locked_lineadd;
+    @Override
+    public S_memline set(S_memline o) {
+        ml_line_count = o.ml_line_count;
+        ml_root = o.ml_root;
+        ml_stack = o.ml_stack;
+        ml_stack_top = o.ml_stack_top;
+        ml_stack_size = o.ml_stack_size;
+        ml_flags = o.ml_flags;
+        ml_line_len = o.ml_line_len;
+        ml_line_textlen = o.ml_line_textlen;
+        ml_line_lnum = o.ml_line_lnum;
+        ml_line_ptr = o.ml_line_ptr;
+        ml_locked = o.ml_locked;
+        ml_locked_low = o.ml_locked_low;
+        ml_locked_high = o.ml_locked_high;
+        ml_locked_lineadd = o.ml_locked_lineadd;
         return this;
     }
 
@@ -42,6 +43,7 @@ final class S_memline implements Struct<S_memline> {
         return new S_memline().set(this);
     }
 
+    @Override
     public S_memline zero() {
         return set(new S_memline());
     }

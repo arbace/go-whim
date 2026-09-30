@@ -24,25 +24,26 @@ final class S_regengine_S implements Struct<S_regengine_S> {
     final T_string_T alone = new T_string_T();
     boolean failed;
 
-    public S_regengine_S set(S_regengine_S o$) {
-        rex.set(o$.rex);
-        rex_in_use = o$.rex_in_use;
-        regstack.set(o$.regstack);
-        regstack_star.set(o$.regstack_star);
-        regstack_behind.set(o$.regstack_behind);
-        backpos.set(o$.backpos);
-        regstack_bytes = o$.regstack_bytes;
-        behind_pos.set(o$.behind_pos);
-        bl_minval = o$.bl_minval;
-        bl_maxval = o$.bl_maxval;
-        System.arraycopy(o$.brace_min, 0, brace_min, 0, 10);
-        System.arraycopy(o$.brace_max, 0, brace_max, 0, 10);
-        System.arraycopy(o$.brace_count, 0, brace_count, 0, 10);
-        reg_tofree = o$.reg_tofree;
-        reg_tofreelen = o$.reg_tofreelen;
-        reg_toolong = o$.reg_toolong;
-        alone.set(o$.alone);
-        failed = o$.failed;
+    @Override
+    public S_regengine_S set(S_regengine_S o) {
+        rex.set(o.rex);
+        rex_in_use = o.rex_in_use;
+        regstack.set(o.regstack);
+        regstack_star.set(o.regstack_star);
+        regstack_behind.set(o.regstack_behind);
+        backpos.set(o.backpos);
+        regstack_bytes = o.regstack_bytes;
+        behind_pos.set(o.behind_pos);
+        bl_minval = o.bl_minval;
+        bl_maxval = o.bl_maxval;
+        System.arraycopy(o.brace_min, 0, brace_min, 0, 10);
+        System.arraycopy(o.brace_max, 0, brace_max, 0, 10);
+        System.arraycopy(o.brace_count, 0, brace_count, 0, 10);
+        reg_tofree = o.reg_tofree;
+        reg_tofreelen = o.reg_tofreelen;
+        reg_toolong = o.reg_toolong;
+        alone.set(o.alone);
+        failed = o.failed;
         return this;
     }
 
@@ -50,6 +51,7 @@ final class S_regengine_S implements Struct<S_regengine_S> {
         return new S_regengine_S().set(this);
     }
 
+    @Override
     public S_regengine_S zero() {
         return set(new S_regengine_S());
     }

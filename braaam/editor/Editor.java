@@ -4609,22 +4609,22 @@ public abstract class Editor {
     }
 
     // the host: declared, and not defined here
-    abstract Object host_alloc(long p0);
-    abstract void host_exit(int p0);
-    abstract void host_message(BytePtr p0, int p1, int p2);
-    abstract void host_raise(int p0);
+    abstract Object host_alloc(long n);
+    abstract void host_exit(int r);
+    abstract void host_message(BytePtr msg, int len, int err);
+    abstract void host_raise(int sig);
     abstract long host_time();
-    abstract int host_write(BytePtr p0, int p1);
-    abstract void musl_delay(long p0, int p1);
-    abstract int musl_get_winsize(IntPtr p0, IntPtr p1);
+    abstract int host_write(BytePtr s, int len);
+    abstract void musl_delay(long ms, int interruptible);
+    abstract int musl_get_winsize(IntPtr rows, IntPtr cols);
     abstract void musl_host_init();
     abstract long musl_now_ms();
-    abstract int musl_read_input(BytePtr p0, int p1);
+    abstract int musl_read_input(BytePtr buf, int len);
     abstract void musl_suspend();
     abstract void musl_term_start();
     abstract void musl_term_stop();
-    abstract int musl_tty_keys(int p0, IntPtr p1, IntPtr p2, IntPtr p3, IntPtr p4);
-    abstract int musl_wait_for_input(long p0);
+    abstract int musl_tty_keys(int fd, IntPtr bs, IntPtr intr, IntPtr cr, IntPtr nlcr);
+    abstract int musl_wait_for_input(long ms);
     abstract int vim_snprintf(BytePtr p0, long p1, BytePtr p2, Object... args);
 
     private static BytePtr GA_BytePtr(S_growarray gap) {
@@ -5239,7 +5239,7 @@ public abstract class Editor {
                 buf = null;
             }
         }
-        if (!(buf == curbuf) || curbuf == null) {
+        if (buf != curbuf || curbuf == null) {
             buf = new S_file_buffer();
             init_changedtick(buf);
         }
@@ -5805,7 +5805,7 @@ public abstract class Editor {
                 do {
                     col = n;
                     count = (long) utf_ptr2len(oldp.add(n));
-                    n += count;
+                    n += (int) count;
                 } while (utf_iscomposing(utf_ptr2char(oldp.add(n))));
                 fixpos = 0;
             }
@@ -5832,7 +5832,7 @@ public abstract class Editor {
         if (alloc_newp) {
             ml_replace(lnum, newp, false);
         } else {
-            curbuf.b_ml.ml_line_len -= count;
+            curbuf.b_ml.ml_line_len -= (int) count;
             curbuf.b_ml.ml_line_textlen = 0;
         }
         inserted_bytes(lnum, col, (int) -count);
@@ -6187,7 +6187,7 @@ public abstract class Editor {
             }
             for (c = 1; c < 256; c++) {
                 if (c >= 160) {
-                    g_chartab[c] |= CT_FNAME_CHAR;
+                    g_chartab[c] |= (byte) CT_FNAME_CHAR;
                 }
             }
         }
@@ -6267,31 +6267,31 @@ public abstract class Editor {
                 if (!do_isalpha || vim_islower(c) || vim_isupper(c)) {
                     if (BytePtr.eq(var_, p_isi[0])) {
                         if (tilde) {
-                            g_chartab[c] &= ~CT_ID_CHAR;
+                            g_chartab[c] &= (byte) ~CT_ID_CHAR;
                         } else {
-                            g_chartab[c] |= CT_ID_CHAR;
+                            g_chartab[c] |= (byte) CT_ID_CHAR;
                         }
                     } else if (BytePtr.eq(var_, p_isp[0])) {
                         if (c < ' ' || c > '~') {
                             if (tilde) {
                                 g_chartab[c] = (byte) ((g_chartab[c] & 0xff & ~CT_CELL_MASK) + ((dy_flags[0] & DY_UHEX) != 0 ? 4 : 2));
-                                g_chartab[c] &= ~CT_PRINT_CHAR;
+                                g_chartab[c] &= (byte) ~CT_PRINT_CHAR;
                             } else {
                                 g_chartab[c] = (byte) ((g_chartab[c] & 0xff & ~CT_CELL_MASK) + 1);
-                                g_chartab[c] |= CT_PRINT_CHAR;
+                                g_chartab[c] |= (byte) CT_PRINT_CHAR;
                             }
                         }
                     } else if (BytePtr.eq(var_, p_isf[0])) {
                         if (tilde) {
-                            g_chartab[c] &= ~CT_FNAME_CHAR;
+                            g_chartab[c] &= (byte) ~CT_FNAME_CHAR;
                         } else {
-                            g_chartab[c] |= CT_FNAME_CHAR;
+                            g_chartab[c] |= (byte) CT_FNAME_CHAR;
                         }
                     } else {
                         if (tilde) {
-                            buf.b_chartab[c >>> 3] &= ~(1 << (c & 7));
+                            buf.b_chartab[c >>> 3] &= (byte) ~(1 << (c & 7));
                         } else {
-                            buf.b_chartab[c >>> 3] |= 1 << (c & 7);
+                            buf.b_chartab[c >>> 3] |= (byte) (1 << (c & 7));
                         }
                     }
                 }
@@ -8996,7 +8996,7 @@ public abstract class Editor {
                             if (wp.w_lines_valid != 0) {
                                 top_end = i;
                                 scrolled_down = true;
-                                wp.w_lines_valid += j;
+                                wp.w_lines_valid += (int) j;
                                 if (wp.w_lines_valid > wp.w_height) {
                                     wp.w_lines_valid = wp.w_height;
                                 }
@@ -9328,7 +9328,7 @@ public abstract class Editor {
                                 }
                             } else {
                                 j -= (long) i;
-                                wp.w_lines_valid += j;
+                                wp.w_lines_valid += (int) j;
                                 if (wp.w_lines_valid > wp.w_height) {
                                     wp.w_lines_valid = wp.w_height;
                                 }
@@ -9426,7 +9426,7 @@ public abstract class Editor {
             draw_vsep_win(wp, row);
             if (eof) {
                 wp.w_botline = buf.b_ml.ml_line_count + 1L;
-            } else if (dollar_vcol == -1 || !(wp == curwin)) {
+            } else if (dollar_vcol == -1 || wp != curwin) {
                 wp.w_botline = lnum;
             }
             if (false) {
@@ -9436,7 +9436,7 @@ public abstract class Editor {
             }
         }
         wp.w_redr_type = 0;
-        if (dollar_vcol == -1 || !(wp == curwin)) {
+        if (dollar_vcol == -1 || wp != curwin) {
             wp.w_valid |= VALID_BOTLINE;
             if (wp == curwin && wp.w_botline != old_botline && !win_update_recursive) {
                 S_window_S wwp;
@@ -9652,6 +9652,7 @@ public abstract class Editor {
         return inserted_space;
     }
 
+    @SuppressWarnings("fallthrough")
     boolean edit(int cmdchar, boolean startln, long count_arg) {
         long[] count = new long[] {count_arg};
         boolean t1 = false;
@@ -9902,6 +9903,7 @@ public abstract class Editor {
             }
             switch (c) {
                 case ESC:
+                // fall through
                 case Ctrl_C:
                     if (goto_im()) {
                         if (got_int != 0) {
@@ -10092,6 +10094,7 @@ public abstract class Editor {
                     break;
                 case K_TC_k_B:
                     c = TAB;
+                // fall through
                 case TAB:
                     inserted_space = FALSE;
                     if (ins_tab()) {
@@ -10101,6 +10104,7 @@ public abstract class Editor {
                     break;
                 case K_KENTER:
                     c = CAR;
+                // fall through
                 case CAR:
                 case NL:
                     if (!ins_eol(c) && p_im[0] == 0) {
@@ -11202,6 +11206,7 @@ public abstract class Editor {
         return true;
     }
 
+    @SuppressWarnings("fallthrough")
     boolean ins_start_select(int c) {
         if (km_startsel == 0) {
             return false;
@@ -11216,6 +11221,7 @@ public abstract class Editor {
                 if ((mod_mask[0] & MOD_MASK_SHIFT) == 0) {
                     break;
                 }
+            // fall through
             case K_TC_HASH_4:
             case K_TC_PCT_i:
             case K_S_UP:
@@ -16051,6 +16057,7 @@ public abstract class Editor {
         return getcmdline_int(firstc, count, indent, true);
     }
 
+    @SuppressWarnings("fallthrough")
     BytePtr getcmdline_int(int firstc, long count, int indent, boolean clear_ccline) {
         T_cmdline_browse_history__out_T cmdline_browse_history__o = new T_cmdline_browse_history__out_T();
         T_may_add_char_to_search__out_T may_add_char_to_search__o = new T_may_add_char_to_search__out_T();
@@ -16325,6 +16332,7 @@ public abstract class Editor {
                                     break;
                                 case Ctrl_N:
                                 case Ctrl_P:
+                                // fall through
                                 case K_UP:
                                 case K_DOWN:
                                 case K_S_UP:
@@ -17030,7 +17038,7 @@ public abstract class Editor {
         while (true) {
             t1 = count;
             count--;
-            if (!(t1 != 0)) {
+            if (t1 == 0) {
                 break;
             }
         }
@@ -17228,7 +17236,7 @@ public abstract class Editor {
         if (buf.bh_create_newblock == 0 && buf.bh_space >= (int) slen) {
             vim_strncpy(buf.bh_curr.b_str.add((int) buf.bh_curr.b_strlen), s, slen);
             buf.bh_curr.b_strlen += slen;
-            buf.bh_space -= slen;
+            buf.bh_space -= (int) slen;
         } else {
             long len;
             S_buffblock p;
@@ -17563,7 +17571,7 @@ public abstract class Editor {
         int c = 0;
         while (true) {
             c = read_redo(false, old_redo);
-            if (!(c != NUL)) {
+            if (c == NUL) {
                 break;
             }
             add_char_buff(readbuf2, c);
@@ -17616,7 +17624,7 @@ public abstract class Editor {
         start_stuff();
         while (true) {
             c = read_redo(false, false);
-            if (!(c != NUL)) {
+            if (c == NUL) {
                 break;
             }
             if (vim_strchr(BytePtr.lit("AaIiRrOo"), c) != null) {
@@ -18325,7 +18333,7 @@ public abstract class Editor {
             mp_match = null;
             mp_match_len = 0;
             for (;;) {
-                if (!(mp != null)) {
+                if (mp == null) {
                     break;
                 }
                 c1: {
@@ -20468,7 +20476,7 @@ public abstract class Editor {
         }
         while (true) {
             p = vim_strchr(p, ',');
-            if (!(p != null)) {
+            if (p == null) {
                 break;
             }
             p = p.add(1);
@@ -20477,7 +20485,7 @@ public abstract class Editor {
         p = opt;
         while (true) {
             p = vim_strchr(p, ':');
-            if (!(p != null)) {
+            if (p == null) {
                 break;
             }
             p = p.add(1);
@@ -22548,7 +22556,7 @@ public abstract class Editor {
                 win.w_old_cursor_lnum = one_adjust_nodel(win.w_old_cursor_lnum, line1, line2, amount, amount_after);
                 win.w_old_visual_lnum = one_adjust_nodel(win.w_old_visual_lnum, line1, line2, amount, amount_after);
             }
-            if (!(win == curwin)) {
+            if (win != curwin) {
                 if (win.w_topline >= line1 && win.w_topline <= line2) {
                     if (amount == LONG_MAX) {
                         if (line1 <= 1L) {
@@ -22607,7 +22615,7 @@ public abstract class Editor {
                 } else if (posp.col < spaces_removed) {
                     posp.col = (int) (col_amount + (long) spaces_removed);
                 } else {
-                    posp.col += col_amount;
+                    posp.col += (int) col_amount;
                 }
             }
         }
@@ -22619,7 +22627,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         posp = curbuf.b_last_change;
@@ -22630,7 +22638,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         for (i = 0; i < curbuf.b_changelistlen; i++) {
@@ -22642,7 +22650,7 @@ public abstract class Editor {
                 } else if (posp.col < spaces_removed) {
                     posp.col = (int) (col_amount + (long) spaces_removed);
                 } else {
-                    posp.col += col_amount;
+                    posp.col += (int) col_amount;
                 }
             }
         }
@@ -22654,7 +22662,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         posp = curbuf.b_visual.vi_end;
@@ -22665,7 +22673,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         posp = curwin.w_pcmark;
@@ -22676,7 +22684,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         posp = curwin.w_prev_pcmark;
@@ -22687,7 +22695,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         posp = saved_cursor;
@@ -22698,7 +22706,7 @@ public abstract class Editor {
             } else if (posp.col < spaces_removed) {
                 posp.col = (int) (col_amount + (long) spaces_removed);
             } else {
-                posp.col += col_amount;
+                posp.col += (int) col_amount;
             }
         }
         win = curwin;
@@ -22713,12 +22721,12 @@ public abstract class Editor {
                         } else if (posp.col < spaces_removed) {
                             posp.col = (int) (col_amount + (long) spaces_removed);
                         } else {
-                            posp.col += col_amount;
+                            posp.col += (int) col_amount;
                         }
                     }
                 }
             }
-            if (!(win == curwin)) {
+            if (win != curwin) {
                 posp = win.w_cursor;
                 if (posp.lnum == lnum && posp.col >= mincol) {
                     posp.lnum += lnum_amount;
@@ -22727,7 +22735,7 @@ public abstract class Editor {
                     } else if (posp.col < spaces_removed) {
                         posp.col = (int) (col_amount + (long) spaces_removed);
                     } else {
-                        posp.col += col_amount;
+                        posp.col += (int) col_amount;
                     }
                 }
             }
@@ -22952,7 +22960,7 @@ public abstract class Editor {
             }
             shl.lnum = lnum;
             if (shl.rm.regprog != null) {
-                boolean regprog_is_copy = !(shl == search_hl) && cur != null && shl == cur.mit_hl
+                boolean regprog_is_copy = shl != search_hl && cur != null && shl == cur.mit_hl
                         && cur.mit_match.regprog == cur.mit_hl.rm.regprog;
                 nmatched = vim_regexec_multi(shl.rm, win, shl.buf, lnum, matchcol, new IntPtr(timed_out, 0));
                 if (regprog_is_copy) {
@@ -23019,7 +23027,7 @@ public abstract class Editor {
                     }
                 }
             }
-            if (!(shl == search_hl) && cur != null) {
+            if (shl != search_hl && cur != null) {
                 cur = cur.mit_next;
             }
         }
@@ -23087,7 +23095,7 @@ public abstract class Editor {
                 }
                 area_highlighting = true;
             }
-            if (!(shl == search_hl) && cur != null) {
+            if (shl != search_hl && cur != null) {
                 cur = cur.mit_next;
             }
         }
@@ -23157,7 +23165,7 @@ public abstract class Editor {
                 }
                 break;
             }
-            if (!(shl == search_hl) && cur != null) {
+            if (shl != search_hl && cur != null) {
                 cur = cur.mit_next;
             }
         }
@@ -23174,7 +23182,7 @@ public abstract class Editor {
                 search_attr = shl.attr_cur;
                 on_last_col = col + 1 >= shl.endcol ? 1 : 0;
             }
-            if (!(shl == search_hl) && cur != null) {
+            if (shl != search_hl && cur != null) {
                 cur = cur.mit_next;
             }
         }
@@ -23228,7 +23236,7 @@ public abstract class Editor {
             if (col - 1L == (long) shl.startcol && (shl == search_hl || shl.is_addpos == 0)) {
                 char_attr = shl.attr;
             }
-            if (!(shl == search_hl) && cur != null) {
+            if (shl != search_hl && cur != null) {
                 cur = cur.mit_next;
             }
         }
@@ -24591,7 +24599,7 @@ public abstract class Editor {
                 for (;;) {
                     hp_new = ml_new_ptr();
                     pp_new = hp_new.bh_ptr;
-                    if (!(hp == buf.b_ml.ml_root)) {
+                    if (hp != buf.b_ml.ml_root) {
                         break;
                     }
                     pp_new.pb_count = pp.pb_count;
@@ -24610,7 +24618,7 @@ public abstract class Editor {
                     Rt.moveStructs(new Ptr<S_pointer_entry>(pp_new.pb_pointer, 0),
                             new Ptr<S_pointer_entry>(pp.pb_pointer, pb_idx + 1), (int) (long) total_moved);
                     pp_new.pb_count = (short) total_moved;
-                    pp.pb_count -= total_moved - 1;
+                    pp.pb_count -= (short) (total_moved - 1);
                     pp.pb_pointer[pb_idx + 1].pe_block = bp_right;
                     pp.pb_pointer[pb_idx + 1].pe_line_count = line_count_right;
                 } else {
@@ -25530,7 +25538,7 @@ public abstract class Editor {
             for (; p != null && got_int == 0; p = p.next) {
                 c++;
             }
-            c -= eap.line2;
+            c -= (int) eap.line2;
             for (p = first_msg_hist; p != null && got_int == 0 && c > 0; p = p.next, c--) {
             }
         }
@@ -26432,6 +26440,7 @@ public abstract class Editor {
         return !msg_check_screen() || (swapping_screen() && termcap_active == 0);
     }
 
+    @SuppressWarnings("fallthrough")
     boolean do_more_prompt(int typed_char) {
         int used_typed_char = typed_char;
         int oldState = State;
@@ -26506,6 +26515,7 @@ public abstract class Editor {
                     cmdline_row = (int) (Rows[0] - 1L);
                     skip_redraw = TRUE;
                     need_wait_return = FALSE;
+                // fall through
                 case 'q':
                 case Ctrl_C:
                 case ESC:
@@ -26813,7 +26823,7 @@ public abstract class Editor {
         }
         lines += 1;
         if (col > ((long) width)) {
-            lines += (col - (long) width) / (long) (width + win_col_off2(wp)) + 1L;
+            lines += (int) ((col - (long) width) / (long) (width + win_col_off2(wp)) + 1L);
         }
         return lines;
     }
@@ -28916,8 +28926,8 @@ public abstract class Editor {
             curwin.w_botline--;
             invalidate_botline();
         }
-        curwin.w_wrow += done;
-        curwin.w_cline_row += done;
+        curwin.w_wrow += (int) done;
+        curwin.w_cline_row += (int) done;
         wrow = curwin.w_wrow;
         if (curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_width != 0) {
             validate_virtcol();
@@ -30640,7 +30650,7 @@ public abstract class Editor {
             while (true) {
                 t1 = dist;
                 dist--;
-                if (!(t1 != 0)) {
+                if (t1 == 0) {
                     break;
                 }
                 if (dir == -1) {
@@ -30753,6 +30763,7 @@ public abstract class Editor {
         return false;
     }
 
+    @SuppressWarnings("fallthrough")
     void nv_zet(S_cmdarg_S cap) {
         long n;
         int[] col = new int[1];
@@ -30785,10 +30796,12 @@ public abstract class Editor {
                         curwin.w_cursor.lnum = curwin.w_botline;
                     }
                 }
+            // fall through
             case NL:
             case CAR:
             case K_KENTER:
                 beginline(BL_WHITE | BL_FIX);
+            // fall through
             case 't':
                 scroll_cursor_top(0, true);
                 redraw_later(UPD_VALID);
@@ -30796,6 +30809,7 @@ public abstract class Editor {
                 break;
             case '.':
                 beginline(BL_WHITE | BL_FIX);
+            // fall through
             case 'z':
                 scroll_cursor_halfway(TRUE, FALSE);
                 redraw_later(UPD_VALID);
@@ -30810,8 +30824,10 @@ public abstract class Editor {
                 } else {
                     curwin.w_cursor.lnum = curwin.w_topline - 1L;
                 }
+            // fall through
             case '-':
                 beginline(BL_WHITE | BL_FIX);
+            // fall through
             case 'b':
                 scroll_cursor_bot(0, true);
                 redraw_later(UPD_VALID);
@@ -30819,6 +30835,7 @@ public abstract class Editor {
                 break;
             case 'H':
                 cap.count1 *= (long) (curwin.w_width / 2);
+            // fall through
             case 'h':
             case K_LEFT:
                 if (curwin.w_onebuf_opt.wo_wrap[0] == 0) {
@@ -30827,6 +30844,7 @@ public abstract class Editor {
                 break;
             case 'L':
                 cap.count1 *= (long) (curwin.w_width / 2);
+            // fall through
             case 'l':
             case K_RIGHT:
                 if (curwin.w_onebuf_opt.wo_wrap[0] == 0) {
@@ -30837,7 +30855,7 @@ public abstract class Editor {
                 if (curwin.w_onebuf_opt.wo_wrap[0] == 0) {
                     getvcol(curwin, curwin.w_cursor, new IntPtr(col, 0), null, null, 0);
                     if ((long) col[0] > siso) {
-                        col[0] -= siso;
+                        col[0] -= (int) siso;
                     } else {
                         col[0] = 0;
                     }
@@ -31510,7 +31528,7 @@ public abstract class Editor {
             }
             if (gchar_cursor() == NUL) {
                 coladvance_force((int) ((long) getviscol() + cap.count1));
-                curwin.w_cursor.col -= cap.count1;
+                curwin.w_cursor.col -= (int) cap.count1;
             } else if (gchar_cursor() == TAB) {
                 coladvance_force(getviscol());
             }
@@ -31877,7 +31895,7 @@ public abstract class Editor {
                 if (VIsual_mode == 'v') {
                     if (resel_VIsual_line_count <= 1L) {
                         update_curswant_force();
-                        curwin.w_curswant += (long) resel_VIsual_vcol * cap.count0;
+                        curwin.w_curswant += (int) ((long) resel_VIsual_vcol * cap.count0);
                         if (p_sel[0].get() != 'e') {
                             curwin.w_curswant--;
                         }
@@ -31895,7 +31913,7 @@ public abstract class Editor {
                     int tmp_cursor_coladd = curwin.w_cursor.coladd;
                     curwin.w_cursor.set(VIsual);
                     update_curswant_force();
-                    curwin.w_curswant += (long) resel_VIsual_vcol * cap.count0 - 1L;
+                    curwin.w_curswant += (int) ((long) resel_VIsual_vcol * cap.count0 - 1L);
                     curwin.w_cursor.lnum = tmp_cursor_lnum;
                     curwin.w_cursor.col = tmp_cursor_col;
                     curwin.w_cursor.coladd = tmp_cursor_coladd;
@@ -32152,6 +32170,7 @@ public abstract class Editor {
         nv_edit(cap);
     }
 
+    @SuppressWarnings("fallthrough")
     void nv_g_cmd(S_cmdarg_S cap) {
         S_oparg_S oap = cap.oap;
         int i;
@@ -32185,6 +32204,7 @@ public abstract class Editor {
                 break;
             case K_BS:
                 cap.nchar[0] = Ctrl_H;
+            // fall through
             case 'h':
             case 'H':
             case Ctrl_H:
@@ -32279,6 +32299,7 @@ public abstract class Editor {
                 break;
             case '\'':
                 cap.arg = TRUE;
+            // fall through
             case '`':
                 nv_gomark(cap);
                 break;
@@ -32685,6 +32706,7 @@ public abstract class Editor {
         }
     }
 
+    @SuppressWarnings("fallthrough")
     void nv_edit(S_cmdarg_S cap) {
         long t1 = 0;
         if (cap.cmdchar == K_INS || cap.cmdchar == K_KINS) {
@@ -32748,6 +32770,7 @@ public abstract class Editor {
                     if (curwin.w_cursor.col == 0) {
                         break;
                     }
+                // fall through
                 case 'a':
                     if (virtual_active() != 0
                             && (curwin.w_cursor.coladd > 0 || ml_get_cursor().get() == NUL
@@ -34109,7 +34132,7 @@ public abstract class Editor {
             if (bd.textcol > ((int) pre_indent)) {
                 long new_indent = (long) getwhitecols(firstline);
                 pre_textlen += new_indent - pre_indent;
-                bd.textcol += new_indent - pre_indent;
+                bd.textcol += (int) (new_indent - pre_indent);
             }
             ins_len = (int) ((long) ml_get_len(oap.start.lnum) - pre_textlen);
             if (ins_len > 0) {
@@ -34559,7 +34582,7 @@ public abstract class Editor {
         linelen = ml_get_len(pos.lnum);
         col = pos.col;
         do {
-            if (col + (!(save_coladd == 0) ? 1 : 0) >= linelen) {
+            if (col + (save_coladd != 0 ? 1 : 0) >= linelen) {
                 break;
             }
             if (VIsual_active == 0) {
@@ -34648,7 +34671,7 @@ public abstract class Editor {
                             firstdigit = 'a';
                         }
                     } else {
-                        firstdigit -= Prenum1;
+                        firstdigit -= (int) Prenum1;
                     }
                 } else {
                     if ((long) (26 - (firstdigit < 'a' ? firstdigit - 'A' : firstdigit - 'a') - 1) < Prenum1) {
@@ -34658,7 +34681,7 @@ public abstract class Editor {
                             firstdigit = 'z';
                         }
                     } else {
-                        firstdigit += Prenum1;
+                        firstdigit += (int) Prenum1;
                     }
                 }
                 curwin.w_cursor.col = col;
@@ -35998,7 +36021,7 @@ public abstract class Editor {
             find_key_item__o = find_key_item(str, key, keylen, itemlen);
             itemlen = find_key_item__o.itemlenp;
             found = find_key_item__o.r__;
-            if (!(found != null)) {
+            if (found == null) {
                 break;
             }
             if (BytePtr.eq(found, skip)) {
@@ -36822,7 +36845,7 @@ public abstract class Editor {
 
     BytePtr did_set_modified(T_optset_T args) {
         redraw_titles();
-        curbuf.b_modified_was_set = !(args.os_newval.boolean_ == 0);
+        curbuf.b_modified_was_set = args.os_newval.boolean_ != 0;
         return null;
     }
 
@@ -38774,8 +38797,8 @@ public abstract class Editor {
                 class_tab[i] = 0;
             }
         }
-        class_tab[' '] |= RI_WHITE;
-        class_tab['\t'] |= RI_WHITE;
+        class_tab[' '] |= (short) RI_WHITE;
+        class_tab['\t'] |= (short) RI_WHITE;
         init_class_tab_done = true;
     }
 
@@ -39260,7 +39283,7 @@ public abstract class Editor {
         int[] end2 = new int[1];
         int cols;
         int curswant;
-        if (!(re.rex.reg_buf == curbuf) || VIsual.lnum == 0L || !(re.rex.reg_match == null)) {
+        if (re.rex.reg_buf != curbuf || VIsual.lnum == 0L || !(re.rex.reg_match == null)) {
             return false;
         }
         if (VIsual_active != 0) {
@@ -39753,7 +39776,7 @@ public abstract class Editor {
                 t1 = src;
                 src = src.add(1);
                 c = t1.u();
-                if (!(c != NUL)) {
+                if (c == NUL) {
                     break;
                 }
                 if (c == '&' && (flags & REGSUB_MAGIC) != 0) {
@@ -40284,6 +40307,7 @@ public abstract class Editor {
         return ret;
     }
 
+    @SuppressWarnings("fallthrough")
     BytePtr regatom(S_regengine_S re, IntPtr flagp) {
         BytePtr lp = null;
         BytePtr t1 = null;
@@ -40365,6 +40389,7 @@ public abstract class Editor {
                         sw = '[' - 256;
                         continue;
                     }
+                // fall through
                 case '.' - 256:
                 case 'i' - 256:
                 case 'I' - 256:
@@ -40576,7 +40601,7 @@ public abstract class Editor {
                             ret = null;
                             while (true) {
                                 c = getchr();
-                                if (!(c != ']')) {
+                                if (c == ']') {
                                     break;
                                 }
                                 if (c == NUL) {
@@ -40695,6 +40720,7 @@ public abstract class Editor {
                                 }
                                 break;
                             }
+                        // fall through
                         default:
                             if (Integer.compareUnsigned(c - '0', 10) < 0 || c == '<' || c == '>' || c == '\''
                                     || c == '.') {
@@ -41041,6 +41067,7 @@ public abstract class Editor {
                         rc_did_emsg = TRUE;
                         return null;
                     }
+                // fall through
                 default:
                     if (use_multibytecode(c)) {
                         ret = regnode(MULTIBYTECODE);
@@ -41637,6 +41664,7 @@ public abstract class Editor {
         pp.put(re.rex.input);
     }
 
+    @SuppressWarnings("fallthrough")
     int regrepeat(S_regengine_S re, BytePtr p, long maxcount) {
         int l = 0;
         int len_2 = 0;
@@ -41668,6 +41696,7 @@ public abstract class Editor {
             case IDENT:
             case IDENT + ADD_NL:
                 testval = TRUE;
+            // fall through
             case SIDENT:
             case SIDENT + ADD_NL:
                 while (count < maxcount) {
@@ -41696,6 +41725,7 @@ public abstract class Editor {
             case KWORD:
             case KWORD + ADD_NL:
                 testval = TRUE;
+            // fall through
             case SKWORD:
             case SKWORD + ADD_NL:
                 while (count < maxcount) {
@@ -41724,6 +41754,7 @@ public abstract class Editor {
             case FNAME:
             case FNAME + ADD_NL:
                 testval = TRUE;
+            // fall through
             case SFNAME:
             case SFNAME + ADD_NL:
                 while (count < maxcount) {
@@ -41752,6 +41783,7 @@ public abstract class Editor {
             case PRINT:
             case PRINT + ADD_NL:
                 testval = TRUE;
+            // fall through
             case SPRINT:
             case SPRINT + ADD_NL:
                 while (count < maxcount) {
@@ -41970,6 +42002,7 @@ public abstract class Editor {
             case ANYOF:
             case ANYOF + ADD_NL:
                 testval = TRUE;
+            // fall through
             case ANYBUT:
             case ANYBUT + ADD_NL:
                 while (count < maxcount) {
@@ -42056,7 +42089,7 @@ public abstract class Editor {
         rp.rs_state = state;
         rp.rs_scan = scan;
         re.regstack.ga_len++;
-        re.regstack_bytes += 40L;
+        re.regstack_bytes += 40;
         return rp;
     }
 
@@ -42064,7 +42097,7 @@ public abstract class Editor {
         S_regitem_S rp = GA_Ptr_S_regitem_S(re.regstack).at(re.regstack.ga_len - 1);
         BytePtr scan = rp.rs_scan;
         re.regstack.ga_len--;
-        re.regstack_bytes -= 40L;
+        re.regstack_bytes -= 40;
         return scan;
     }
 
@@ -42818,7 +42851,7 @@ public abstract class Editor {
                                     status = RA_FAIL;
                                 } else {
                                     re.regstack_star.ga_len++;
-                                    re.regstack_bytes += 32L;
+                                    re.regstack_bytes += 32;
                                     rp = regstack_push(re, rst.minval <= rst.maxval ? RS_STAR_LONG : RS_STAR_SHORT,
                                             scan);
                                     if (rp == null) {
@@ -42858,7 +42891,7 @@ public abstract class Editor {
                                 status = RA_FAIL;
                             } else {
                                 re.regstack_behind.ga_len++;
-                                re.regstack_bytes += 376L;
+                                re.regstack_bytes += 376;
                                 rp = regstack_push(re, RS_BEHIND1, scan);
                                 if (rp == null) {
                                     status = RA_FAIL;
@@ -43063,7 +43096,7 @@ public abstract class Editor {
                         if (status == RA_NOMATCH) {
                             scan = regstack_pop(re);
                             re.regstack_behind.ga_len--;
-                            re.regstack_bytes -= 376L;
+                            re.regstack_bytes -= 376;
                         } else {
                             reg_save(re, regstack_behind_top(re).save_after, re.backpos);
                             t2 = regstack_behind_top(re);
@@ -43085,7 +43118,7 @@ public abstract class Editor {
                             }
                             scan = regstack_pop(re);
                             re.regstack_behind.ga_len--;
-                            re.regstack_bytes -= 376L;
+                            re.regstack_bytes -= 376;
                         } else {
                             no = OK;
                             limit = ((rp.rs_scan.at(3) & 0xffL) << 24) + ((rp.rs_scan.at(4) & 0xffL) << 16) + ((rp.rs_scan.at(5) & 0xffL) << 8) + (rp.rs_scan.at(6) & 0xffL);
@@ -43140,7 +43173,7 @@ public abstract class Editor {
                                 }
                                 scan = regstack_pop(re);
                                 re.regstack_behind.ga_len--;
-                                re.regstack_bytes -= 376L;
+                                re.regstack_bytes -= 376;
                             }
                         }
                         break;
@@ -43150,7 +43183,7 @@ public abstract class Editor {
                         if (status == RA_MATCH) {
                             scan = regstack_pop(re);
                             re.regstack_star.ga_len--;
-                            re.regstack_bytes -= 32L;
+                            re.regstack_bytes -= 32;
                             break;
                         }
                         if (status != RA_BREAK) {
@@ -43204,7 +43237,7 @@ public abstract class Editor {
                         if (status != RA_CONT) {
                             scan = regstack_pop(re);
                             re.regstack_star.ga_len--;
-                            re.regstack_bytes -= 32L;
+                            re.regstack_bytes -= 32;
                             status = RA_NOMATCH;
                         }
                         break;
@@ -43322,7 +43355,7 @@ public abstract class Editor {
                 if (re.rex.reg_ic == 0) {
                     while (true) {
                         s = vim_strchr(s, c);
-                        if (!(s != null)) {
+                        if (s == null) {
                             break;
                         }
                         cstrncmp__o = cstrncmp(re, s, prog.regmust, regmlen);
@@ -43335,7 +43368,7 @@ public abstract class Editor {
                 } else {
                     while (true) {
                         s = cstrchr(re, s, c);
-                        if (!(s != null)) {
+                        if (s == null) {
                             break;
                         }
                         cstrncmp__o = cstrncmp(re, s, prog.regmust, regmlen);
@@ -44333,7 +44366,7 @@ public abstract class Editor {
                     break;
             }
         }
-        if (!(curr == y_current)) {
+        if (curr != y_current) {
             long j = 0;
             Ptr<T_string_T> new_ptr = new Ptr<T_string_T>(T_string_T.array((int) (curr.y_size + y_current.y_size)), 0);
             for (j = 0L; j < curr.y_size; j++) {
@@ -44926,7 +44959,7 @@ public abstract class Editor {
                         changed_lines(curbuf.b_op_start.lnum, 0, curbuf.b_op_start.lnum, nr_lines);
                     }
                     if (y_current_used != null
-                            && (!(y_current_used == y_current) || !Ptr.eq(y_current.y_array, y_array))) {
+                            && (y_current_used != y_current || !Ptr.eq(y_current.y_array, y_array))) {
                         emsg(gettext_(new BytePtr(e_yank_register_changed_while_using_it, 0)));
                         break;
                     }
@@ -45917,7 +45950,7 @@ public abstract class Editor {
                     while (true) {
                         t1 = col;
                         col--;
-                        if (!(t1 != 0)) {
+                        if (t1 == 0) {
                             break;
                         }
                         space_to_screenline(off, 0);
@@ -48344,7 +48377,7 @@ public abstract class Editor {
         while (true) {
             t1 = count;
             count--;
-            if (!(t1 != 0)) {
+            if (t1 == 0) {
                 break;
             }
             for (;;) {
@@ -48471,6 +48504,7 @@ public abstract class Editor {
         return out__;
     }
 
+    @SuppressWarnings("fallthrough")
     T_pos_T findmatchlimit(S_oparg_S oap, int initc, int flags, int maxtravel) {
         boolean t1 = false;
         int t2 = 0;
@@ -48897,6 +48931,7 @@ public abstract class Editor {
                             }
                         }
                     }
+                // fall through
                 default:
                     if (skip_comments
                             && (in_block_comment || (comment_col != MAXCOL && findmatchlimit_pos.col >= comment_col))) {
@@ -49364,7 +49399,7 @@ public abstract class Editor {
         p2 = p;
         while (true) {
             c = p2.u();
-            if (!(c != NUL)) {
+            if (c == NUL) {
                 break;
             }
             t1 = p2;
@@ -49437,7 +49472,7 @@ public abstract class Editor {
         }
         while (true) {
             b = p.u();
-            if (!(b != NUL)) {
+            if (b == NUL) {
                 break;
             }
             if (b == c) {
@@ -52863,7 +52898,7 @@ public abstract class Editor {
             maxlen = (long) inbufcount;
         }
         Rt.memmove(buf, new BytePtr(inbuf, 0), maxlen);
-        inbufcount -= maxlen;
+        inbufcount -= (int) maxlen;
         if (inbufcount > 0 && maxlen > 0L) {
             Rt.memmove(new BytePtr(inbuf, 0), new BytePtr(inbuf, 0).add((int) maxlen), (long) inbufcount);
         }
@@ -53120,7 +53155,7 @@ public abstract class Editor {
                     if (uep == null) {
                         break;
                     }
-                    if ((!(curbuf.b_u_newhead.uh_getbot_entry == uep) ? uep.ue_top + uep.ue_size + 1L != (uep.ue_bot == 0L ? curbuf.b_ml.ml_line_count + 1L : uep.ue_bot) : uep.ue_lcount != curbuf.b_ml.ml_line_count) || (uep.ue_size > 1L && top >= uep.ue_top && top + 2L <= uep.ue_top + uep.ue_size + 1L)) {
+                    if ((curbuf.b_u_newhead.uh_getbot_entry != uep ? uep.ue_top + uep.ue_size + 1L != (uep.ue_bot == 0L ? curbuf.b_ml.ml_line_count + 1L : uep.ue_bot) : uep.ue_lcount != curbuf.b_ml.ml_line_count) || (uep.ue_size > 1L && top >= uep.ue_top && top + 2L <= uep.ue_top + uep.ue_size + 1L)) {
                         break;
                     }
                     if (uep.ue_size == 1L && uep.ue_top == top) {
@@ -53228,7 +53263,7 @@ public abstract class Editor {
         while (true) {
             t1 = count;
             count--;
-            if (!(t1 != 0)) {
+            if (t1 == 0) {
                 break;
             }
             if (undo_undoes != 0) {
@@ -53462,7 +53497,7 @@ public abstract class Editor {
                     while (last.uh_alt_next != null && last.uh_alt_next.uh_walk == mark) {
                         last = last.uh_alt_next;
                     }
-                    if (!(last == uhp)) {
+                    if (last != uhp) {
                         while (uhp.uh_alt_prev != null) {
                             uhp = uhp.uh_alt_prev;
                         }

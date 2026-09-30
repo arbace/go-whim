@@ -9,10 +9,11 @@ final class T_termprop_T implements Struct<T_termprop_T> {
     boolean tpr_set_by_termresponse;
     int tpr_status;
 
-    public T_termprop_T set(T_termprop_T o$) {
-        tpr_name = o$.tpr_name;
-        tpr_set_by_termresponse = o$.tpr_set_by_termresponse;
-        tpr_status = o$.tpr_status;
+    @Override
+    public T_termprop_T set(T_termprop_T o) {
+        tpr_name = o.tpr_name;
+        tpr_set_by_termresponse = o.tpr_set_by_termresponse;
+        tpr_status = o.tpr_status;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_termprop_T implements Struct<T_termprop_T> {
         return new T_termprop_T().set(this);
     }
 
+    @Override
     public T_termprop_T zero() {
         return set(new T_termprop_T());
     }

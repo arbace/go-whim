@@ -8,9 +8,10 @@ final class S_filemark implements Struct<S_filemark> {
     final T_pos_T mark = new T_pos_T();
     int fnum;
 
-    public S_filemark set(S_filemark o$) {
-        mark.set(o$.mark);
-        fnum = o$.fnum;
+    @Override
+    public S_filemark set(S_filemark o) {
+        mark.set(o.mark);
+        fnum = o.fnum;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class S_filemark implements Struct<S_filemark> {
         return new S_filemark().set(this);
     }
 
+    @Override
     public S_filemark zero() {
         return set(new S_filemark());
     }

@@ -41,42 +41,43 @@ final class T_winlinevars_T implements Struct<T_winlinevars_T> {
     final byte[] extra = new byte[86];
     int filler_lines;
 
-    public T_winlinevars_T set(T_winlinevars_T o$) {
-        draw_state = o$.draw_state;
-        lnum = o$.lnum;
-        startrow = o$.startrow;
-        row = o$.row;
-        screen_row = o$.screen_row;
-        vcol = o$.vcol;
-        col = o$.col;
-        vcol_off_tp = o$.vcol_off_tp;
-        eol_hl_off = o$.eol_hl_off;
-        off = o$.off;
-        win_attr = o$.win_attr;
-        line_attr = o$.line_attr;
-        screen_line_flags = o$.screen_line_flags;
-        fromcol[0] = o$.fromcol[0];
-        tocol[0] = o$.tocol[0];
-        char_attr = o$.char_attr;
-        n_extra = o$.n_extra;
-        p_extra = o$.p_extra;
-        p_extra_free = o$.p_extra_free;
-        extra_attr = o$.extra_attr;
-        n_attr_skip = o$.n_attr_skip;
-        c_extra = o$.c_extra;
-        c_final = o$.c_final;
-        extra_for_textprop = o$.extra_for_textprop;
-        saved_n_extra = o$.saved_n_extra;
-        saved_p_extra = o$.saved_p_extra;
-        saved_p_extra_free = o$.saved_p_extra_free;
-        saved_extra_attr = o$.saved_extra_attr;
-        saved_n_attr_skip = o$.saved_n_attr_skip;
-        saved_extra_for_textprop = o$.saved_extra_for_textprop;
-        saved_c_extra = o$.saved_c_extra;
-        saved_c_final = o$.saved_c_final;
-        saved_char_attr = o$.saved_char_attr;
-        System.arraycopy(o$.extra, 0, extra, 0, 86);
-        filler_lines = o$.filler_lines;
+    @Override
+    public T_winlinevars_T set(T_winlinevars_T o) {
+        draw_state = o.draw_state;
+        lnum = o.lnum;
+        startrow = o.startrow;
+        row = o.row;
+        screen_row = o.screen_row;
+        vcol = o.vcol;
+        col = o.col;
+        vcol_off_tp = o.vcol_off_tp;
+        eol_hl_off = o.eol_hl_off;
+        off = o.off;
+        win_attr = o.win_attr;
+        line_attr = o.line_attr;
+        screen_line_flags = o.screen_line_flags;
+        fromcol[0] = o.fromcol[0];
+        tocol[0] = o.tocol[0];
+        char_attr = o.char_attr;
+        n_extra = o.n_extra;
+        p_extra = o.p_extra;
+        p_extra_free = o.p_extra_free;
+        extra_attr = o.extra_attr;
+        n_attr_skip = o.n_attr_skip;
+        c_extra = o.c_extra;
+        c_final = o.c_final;
+        extra_for_textprop = o.extra_for_textprop;
+        saved_n_extra = o.saved_n_extra;
+        saved_p_extra = o.saved_p_extra;
+        saved_p_extra_free = o.saved_p_extra_free;
+        saved_extra_attr = o.saved_extra_attr;
+        saved_n_attr_skip = o.saved_n_attr_skip;
+        saved_extra_for_textprop = o.saved_extra_for_textprop;
+        saved_c_extra = o.saved_c_extra;
+        saved_c_final = o.saved_c_final;
+        saved_char_attr = o.saved_char_attr;
+        System.arraycopy(o.extra, 0, extra, 0, 86);
+        filler_lines = o.filler_lines;
         return this;
     }
 
@@ -84,6 +85,7 @@ final class T_winlinevars_T implements Struct<T_winlinevars_T> {
         return new T_winlinevars_T().set(this);
     }
 
+    @Override
     public T_winlinevars_T zero() {
         return set(new T_winlinevars_T());
     }

@@ -13,14 +13,15 @@ final class T_stropt_get_newval__out_T implements Struct<T_stropt_get_newval__ou
     BytePtr oldval_arg;
     int op_arg;
 
-    public T_stropt_get_newval__out_T set(T_stropt_get_newval__out_T o$) {
-        r__ = o$.r__;
-        argp = o$.argp;
-        origval_arg = o$.origval_arg;
-        origval_l_arg = o$.origval_l_arg;
-        origval_g_arg = o$.origval_g_arg;
-        oldval_arg = o$.oldval_arg;
-        op_arg = o$.op_arg;
+    @Override
+    public T_stropt_get_newval__out_T set(T_stropt_get_newval__out_T o) {
+        r__ = o.r__;
+        argp = o.argp;
+        origval_arg = o.origval_arg;
+        origval_l_arg = o.origval_l_arg;
+        origval_g_arg = o.origval_g_arg;
+        oldval_arg = o.oldval_arg;
+        op_arg = o.op_arg;
         return this;
     }
 
@@ -28,6 +29,7 @@ final class T_stropt_get_newval__out_T implements Struct<T_stropt_get_newval__ou
         return new T_stropt_get_newval__out_T().set(this);
     }
 
+    @Override
     public T_stropt_get_newval__out_T zero() {
         return set(new T_stropt_get_newval__out_T());
     }

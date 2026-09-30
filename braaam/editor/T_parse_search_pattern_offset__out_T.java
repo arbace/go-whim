@@ -12,13 +12,14 @@ final class T_parse_search_pattern_offset__out_T implements Struct<T_parse_searc
     long searchstrlen;
     BytePtr dircp;
 
-    public T_parse_search_pattern_offset__out_T set(T_parse_search_pattern_offset__out_T o$) {
-        r__ = o$.r__;
-        pat = o$.pat;
-        patlen = o$.patlen;
-        searchstr = o$.searchstr;
-        searchstrlen = o$.searchstrlen;
-        dircp = o$.dircp;
+    @Override
+    public T_parse_search_pattern_offset__out_T set(T_parse_search_pattern_offset__out_T o) {
+        r__ = o.r__;
+        pat = o.pat;
+        patlen = o.patlen;
+        searchstr = o.searchstr;
+        searchstrlen = o.searchstrlen;
+        dircp = o.dircp;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class T_parse_search_pattern_offset__out_T implements Struct<T_parse_searc
         return new T_parse_search_pattern_offset__out_T().set(this);
     }
 
+    @Override
     public T_parse_search_pattern_offset__out_T zero() {
         return set(new T_parse_search_pattern_offset__out_T());
     }

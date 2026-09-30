@@ -9,10 +9,11 @@ final class T_undoline_T implements Struct<T_undoline_T> {
     long ul_len;
     int ul_textlen;
 
-    public T_undoline_T set(T_undoline_T o$) {
-        ul_line = o$.ul_line;
-        ul_len = o$.ul_len;
-        ul_textlen = o$.ul_textlen;
+    @Override
+    public T_undoline_T set(T_undoline_T o) {
+        ul_line = o.ul_line;
+        ul_len = o.ul_len;
+        ul_textlen = o.ul_textlen;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_undoline_T implements Struct<T_undoline_T> {
         return new T_undoline_T().set(this);
     }
 
+    @Override
     public T_undoline_T zero() {
         return set(new T_undoline_T());
     }

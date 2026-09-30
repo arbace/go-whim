@@ -10,11 +10,12 @@ final class T_visualinfo_T implements Struct<T_visualinfo_T> {
     int vi_mode;
     int vi_curswant;
 
-    public T_visualinfo_T set(T_visualinfo_T o$) {
-        vi_start.set(o$.vi_start);
-        vi_end.set(o$.vi_end);
-        vi_mode = o$.vi_mode;
-        vi_curswant = o$.vi_curswant;
+    @Override
+    public T_visualinfo_T set(T_visualinfo_T o) {
+        vi_start.set(o.vi_start);
+        vi_end.set(o.vi_end);
+        vi_mode = o.vi_mode;
+        vi_curswant = o.vi_curswant;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_visualinfo_T implements Struct<T_visualinfo_T> {
         return new T_visualinfo_T().set(this);
     }
 
+    @Override
     public T_visualinfo_T zero() {
         return set(new T_visualinfo_T());
     }

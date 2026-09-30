@@ -13,14 +13,15 @@ final class T_tasave_T implements Struct<T_tasave_T> {
     final S_buffheader save_readbuf2 = new S_buffheader();
     S_growarray save_inputbuf;
 
-    public T_tasave_T set(T_tasave_T o$) {
-        save_typebuf.set(o$.save_typebuf);
-        typebuf_valid = o$.typebuf_valid;
-        old_char = o$.old_char;
-        old_mod_mask = o$.old_mod_mask;
-        save_readbuf1.set(o$.save_readbuf1);
-        save_readbuf2.set(o$.save_readbuf2);
-        save_inputbuf = o$.save_inputbuf;
+    @Override
+    public T_tasave_T set(T_tasave_T o) {
+        save_typebuf.set(o.save_typebuf);
+        typebuf_valid = o.typebuf_valid;
+        old_char = o.old_char;
+        old_mod_mask = o.old_mod_mask;
+        save_readbuf1.set(o.save_readbuf1);
+        save_readbuf2.set(o.save_readbuf2);
+        save_inputbuf = o.save_inputbuf;
         return this;
     }
 
@@ -28,6 +29,7 @@ final class T_tasave_T implements Struct<T_tasave_T> {
         return new T_tasave_T().set(this);
     }
 
+    @Override
     public T_tasave_T zero() {
         return set(new T_tasave_T());
     }

@@ -22,12 +22,13 @@ final class S_spat implements Struct<S_spat> {
         this.off.set(off);
     }
 
-    public S_spat set(S_spat o$) {
-        pat = o$.pat;
-        patlen = o$.patlen;
-        magic = o$.magic;
-        no_scs = o$.no_scs;
-        off.set(o$.off);
+    @Override
+    public S_spat set(S_spat o) {
+        pat = o.pat;
+        patlen = o.patlen;
+        magic = o.magic;
+        no_scs = o.no_scs;
+        off.set(o.off);
         return this;
     }
 
@@ -35,6 +36,7 @@ final class S_spat implements Struct<S_spat> {
         return new S_spat().set(this);
     }
 
+    @Override
     public S_spat zero() {
         return set(new S_spat());
     }

@@ -10,11 +10,12 @@ final class S_info_pointer implements Struct<S_info_pointer> {
     long ip_high;
     int ip_index;
 
-    public S_info_pointer set(S_info_pointer o$) {
-        ip_block = o$.ip_block;
-        ip_low = o$.ip_low;
-        ip_high = o$.ip_high;
-        ip_index = o$.ip_index;
+    @Override
+    public S_info_pointer set(S_info_pointer o) {
+        ip_block = o.ip_block;
+        ip_low = o.ip_low;
+        ip_high = o.ip_high;
+        ip_index = o.ip_index;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class S_info_pointer implements Struct<S_info_pointer> {
         return new S_info_pointer().set(this);
     }
 
+    @Override
     public S_info_pointer zero() {
         return set(new S_info_pointer());
     }

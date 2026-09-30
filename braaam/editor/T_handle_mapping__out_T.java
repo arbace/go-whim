@@ -10,11 +10,12 @@ final class T_handle_mapping__out_T implements Struct<T_handle_mapping__out_T> {
     int timedout;
     int mapdepth;
 
-    public T_handle_mapping__out_T set(T_handle_mapping__out_T o$) {
-        r__ = o$.r__;
-        keylenp = o$.keylenp;
-        timedout = o$.timedout;
-        mapdepth = o$.mapdepth;
+    @Override
+    public T_handle_mapping__out_T set(T_handle_mapping__out_T o) {
+        r__ = o.r__;
+        keylenp = o.keylenp;
+        timedout = o.timedout;
+        mapdepth = o.mapdepth;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class T_handle_mapping__out_T implements Struct<T_handle_mapping__out_T> {
         return new T_handle_mapping__out_T().set(this);
     }
 
+    @Override
     public T_handle_mapping__out_T zero() {
         return set(new T_handle_mapping__out_T());
     }

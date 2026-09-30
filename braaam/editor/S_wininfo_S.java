@@ -12,13 +12,14 @@ final class S_wininfo_S implements Struct<S_wininfo_S> {
     final T_winopt_T wi_opt = new T_winopt_T();
     boolean wi_optset;
 
-    public S_wininfo_S set(S_wininfo_S o$) {
-        wi_next = o$.wi_next;
-        wi_prev = o$.wi_prev;
-        wi_win = o$.wi_win;
-        wi_fpos.set(o$.wi_fpos);
-        wi_opt.set(o$.wi_opt);
-        wi_optset = o$.wi_optset;
+    @Override
+    public S_wininfo_S set(S_wininfo_S o) {
+        wi_next = o.wi_next;
+        wi_prev = o.wi_prev;
+        wi_win = o.wi_win;
+        wi_fpos.set(o.wi_fpos);
+        wi_opt.set(o.wi_opt);
+        wi_optset = o.wi_optset;
         return this;
     }
 
@@ -26,6 +27,7 @@ final class S_wininfo_S implements Struct<S_wininfo_S> {
         return new S_wininfo_S().set(this);
     }
 
+    @Override
     public S_wininfo_S zero() {
         return set(new S_wininfo_S());
     }

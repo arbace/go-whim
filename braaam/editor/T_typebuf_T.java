@@ -15,16 +15,17 @@ final class T_typebuf_T implements Struct<T_typebuf_T> {
     int tb_no_abbr_cnt;
     int tb_change_cnt;
 
-    public T_typebuf_T set(T_typebuf_T o$) {
-        tb_buf = o$.tb_buf;
-        tb_noremap = o$.tb_noremap;
-        tb_buflen = o$.tb_buflen;
-        tb_off = o$.tb_off;
-        tb_len = o$.tb_len;
-        tb_maplen = o$.tb_maplen;
-        tb_silent = o$.tb_silent;
-        tb_no_abbr_cnt = o$.tb_no_abbr_cnt;
-        tb_change_cnt = o$.tb_change_cnt;
+    @Override
+    public T_typebuf_T set(T_typebuf_T o) {
+        tb_buf = o.tb_buf;
+        tb_noremap = o.tb_noremap;
+        tb_buflen = o.tb_buflen;
+        tb_off = o.tb_off;
+        tb_len = o.tb_len;
+        tb_maplen = o.tb_maplen;
+        tb_silent = o.tb_silent;
+        tb_no_abbr_cnt = o.tb_no_abbr_cnt;
+        tb_change_cnt = o.tb_change_cnt;
         return this;
     }
 
@@ -32,6 +33,7 @@ final class T_typebuf_T implements Struct<T_typebuf_T> {
         return new T_typebuf_T().set(this);
     }
 
+    @Override
     public T_typebuf_T zero() {
         return set(new T_typebuf_T());
     }

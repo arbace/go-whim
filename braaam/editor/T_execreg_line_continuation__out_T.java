@@ -8,9 +8,10 @@ final class T_execreg_line_continuation__out_T implements Struct<T_execreg_line_
     BytePtr r__;
     long idx;
 
-    public T_execreg_line_continuation__out_T set(T_execreg_line_continuation__out_T o$) {
-        r__ = o$.r__;
-        idx = o$.idx;
+    @Override
+    public T_execreg_line_continuation__out_T set(T_execreg_line_continuation__out_T o) {
+        r__ = o.r__;
+        idx = o.idx;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_execreg_line_continuation__out_T implements Struct<T_execreg_line_
         return new T_execreg_line_continuation__out_T().set(this);
     }
 
+    @Override
     public T_execreg_line_continuation__out_T zero() {
         return set(new T_execreg_line_continuation__out_T());
     }

@@ -18,10 +18,11 @@ final class T_decomp_T implements Struct<T_decomp_T> {
         this.c = c;
     }
 
-    public T_decomp_T set(T_decomp_T o$) {
-        a = o$.a;
-        b = o$.b;
-        c = o$.c;
+    @Override
+    public T_decomp_T set(T_decomp_T o) {
+        a = o.a;
+        b = o.b;
+        c = o.c;
         return this;
     }
 
@@ -29,6 +30,7 @@ final class T_decomp_T implements Struct<T_decomp_T> {
         return new T_decomp_T().set(this);
     }
 
+    @Override
     public T_decomp_T zero() {
         return set(new T_decomp_T());
     }

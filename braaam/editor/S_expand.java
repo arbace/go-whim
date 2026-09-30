@@ -18,19 +18,20 @@ final class S_expand implements Struct<S_expand> {
     Ptr<BytePtr> xp_files_menu;
     Ptr<BytePtr> xp_files_info;
 
-    public S_expand set(S_expand o$) {
-        xp_pattern = o$.xp_pattern;
-        xp_context = o$.xp_context;
-        xp_prefix = o$.xp_prefix;
-        xp_backslash = o$.xp_backslash;
-        xp_shell = o$.xp_shell;
-        xp_numfiles = o$.xp_numfiles;
-        xp_orig = o$.xp_orig;
-        xp_files = o$.xp_files;
-        xp_files_abbr = o$.xp_files_abbr;
-        xp_files_kind = o$.xp_files_kind;
-        xp_files_menu = o$.xp_files_menu;
-        xp_files_info = o$.xp_files_info;
+    @Override
+    public S_expand set(S_expand o) {
+        xp_pattern = o.xp_pattern;
+        xp_context = o.xp_context;
+        xp_prefix = o.xp_prefix;
+        xp_backslash = o.xp_backslash;
+        xp_shell = o.xp_shell;
+        xp_numfiles = o.xp_numfiles;
+        xp_orig = o.xp_orig;
+        xp_files = o.xp_files;
+        xp_files_abbr = o.xp_files_abbr;
+        xp_files_kind = o.xp_files_kind;
+        xp_files_menu = o.xp_files_menu;
+        xp_files_info = o.xp_files_info;
         return this;
     }
 
@@ -38,6 +39,7 @@ final class S_expand implements Struct<S_expand> {
         return new S_expand().set(this);
     }
 
+    @Override
     public S_expand zero() {
         return set(new S_expand());
     }

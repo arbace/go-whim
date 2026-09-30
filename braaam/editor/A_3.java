@@ -10,11 +10,12 @@ final class A_3 implements Struct<A_3> {
     short ul_color;
     short font;
 
-    public A_3 set(A_3 o$) {
-        fg_color = o$.fg_color;
-        bg_color = o$.bg_color;
-        ul_color = o$.ul_color;
-        font = o$.font;
+    @Override
+    public A_3 set(A_3 o) {
+        fg_color = o.fg_color;
+        bg_color = o.bg_color;
+        ul_color = o.ul_color;
+        font = o.font;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class A_3 implements Struct<A_3> {
         return new A_3().set(this);
     }
 
+    @Override
     public A_3 zero() {
         return set(new A_3());
     }

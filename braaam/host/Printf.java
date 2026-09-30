@@ -43,8 +43,6 @@ public final class Printf {
         BytePtr iobuff();
         long emsgIobuffRoom();
         BytePtr iobuffOr(BytePtr s);
-        /** e_val_too_large, the core's message. */
-        BytePtr eValTooLarge();
         /** The bytes of the character at p, with its composing ones, and its cells. */
         int utfcPtr2len(BytePtr p);
         int utfPtr2cells(BytePtr p);
@@ -410,18 +408,6 @@ public final class Printf {
         }
         ap.t[arg - 1] = type;
         return true;
-    }
-
-    private void formatOverflowError(BytePtr pstart) {
-        BytePtr p = pstart;
-        while (isDigit(p.get())) {
-            p = p.add(1);
-        }
-        long arglen = p.sub(pstart);
-        BytePtr argcopy = BytePtr.alloc(arglen + 1);
-        Rt.memmove(argcopy, pstart, arglen);
-        snprintf(ed.iobuff(), ed.emsgIobuffRoom(), ed.gettext(ed.eValTooLarge()), argcopy);
-        ed.error(ed.iobuffOr(ed.gettext(ed.eValTooLarge())));
     }
 
     /** A cursor into the format, and the number get_unsigned_int reads. */

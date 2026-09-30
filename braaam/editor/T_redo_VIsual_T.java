@@ -11,12 +11,13 @@ final class T_redo_VIsual_T implements Struct<T_redo_VIsual_T> {
     long rv_count;
     int rv_arg;
 
-    public T_redo_VIsual_T set(T_redo_VIsual_T o$) {
-        rv_mode = o$.rv_mode;
-        rv_line_count = o$.rv_line_count;
-        rv_vcol = o$.rv_vcol;
-        rv_count = o$.rv_count;
-        rv_arg = o$.rv_arg;
+    @Override
+    public T_redo_VIsual_T set(T_redo_VIsual_T o) {
+        rv_mode = o.rv_mode;
+        rv_line_count = o.rv_line_count;
+        rv_vcol = o.rv_vcol;
+        rv_count = o.rv_count;
+        rv_arg = o.rv_arg;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class T_redo_VIsual_T implements Struct<T_redo_VIsual_T> {
         return new T_redo_VIsual_T().set(this);
     }
 
+    @Override
     public T_redo_VIsual_T zero() {
         return set(new T_redo_VIsual_T());
     }

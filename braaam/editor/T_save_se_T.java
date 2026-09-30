@@ -7,8 +7,9 @@ import whim.rt.*;
 final class T_save_se_T implements Struct<T_save_se_T> {
     final A_5 se_u = new A_5();
 
-    public T_save_se_T set(T_save_se_T o$) {
-        se_u.set(o$.se_u);
+    @Override
+    public T_save_se_T set(T_save_se_T o) {
+        se_u.set(o.se_u);
         return this;
     }
 
@@ -16,6 +17,7 @@ final class T_save_se_T implements Struct<T_save_se_T> {
         return new T_save_se_T().set(this);
     }
 
+    @Override
     public T_save_se_T zero() {
         return set(new T_save_se_T());
     }

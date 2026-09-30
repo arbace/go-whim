@@ -11,12 +11,13 @@ final class T_chartabsize_T implements Struct<T_chartabsize_T> {
     int cts_vcol;
     int cts_max_head_vcol;
 
-    public T_chartabsize_T set(T_chartabsize_T o$) {
-        cts_win = o$.cts_win;
-        cts_line = o$.cts_line;
-        cts_ptr = o$.cts_ptr;
-        cts_vcol = o$.cts_vcol;
-        cts_max_head_vcol = o$.cts_max_head_vcol;
+    @Override
+    public T_chartabsize_T set(T_chartabsize_T o) {
+        cts_win = o.cts_win;
+        cts_line = o.cts_line;
+        cts_ptr = o.cts_ptr;
+        cts_vcol = o.cts_vcol;
+        cts_max_head_vcol = o.cts_max_head_vcol;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class T_chartabsize_T implements Struct<T_chartabsize_T> {
         return new T_chartabsize_T().set(this);
     }
 
+    @Override
     public T_chartabsize_T zero() {
         return set(new T_chartabsize_T());
     }

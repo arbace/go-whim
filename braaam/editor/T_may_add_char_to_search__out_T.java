@@ -8,9 +8,10 @@ final class T_may_add_char_to_search__out_T implements Struct<T_may_add_char_to_
     boolean r__;
     int c;
 
-    public T_may_add_char_to_search__out_T set(T_may_add_char_to_search__out_T o$) {
-        r__ = o$.r__;
-        c = o$.c;
+    @Override
+    public T_may_add_char_to_search__out_T set(T_may_add_char_to_search__out_T o) {
+        r__ = o.r__;
+        c = o.c;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_may_add_char_to_search__out_T implements Struct<T_may_add_char_to_
         return new T_may_add_char_to_search__out_T().set(this);
     }
 
+    @Override
     public T_may_add_char_to_search__out_T zero() {
         return set(new T_may_add_char_to_search__out_T());
     }

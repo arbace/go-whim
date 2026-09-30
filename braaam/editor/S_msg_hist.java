@@ -9,10 +9,11 @@ final class S_msg_hist implements Struct<S_msg_hist> {
     BytePtr msg;
     int attr;
 
-    public S_msg_hist set(S_msg_hist o$) {
-        next = o$.next;
-        msg = o$.msg;
-        attr = o$.attr;
+    @Override
+    public S_msg_hist set(S_msg_hist o) {
+        next = o.next;
+        msg = o.msg;
+        attr = o.attr;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class S_msg_hist implements Struct<S_msg_hist> {
         return new S_msg_hist().set(this);
     }
 
+    @Override
     public S_msg_hist zero() {
         return set(new S_msg_hist());
     }

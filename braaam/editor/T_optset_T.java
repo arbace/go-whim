@@ -16,17 +16,18 @@ final class T_optset_T implements Struct<T_optset_T> {
     BytePtr os_errbuf;
     long os_errbuflen;
 
-    public T_optset_T set(T_optset_T o$) {
-        os_varp.set(o$.os_varp);
-        os_idx = o$.os_idx;
-        os_flags = o$.os_flags;
-        os_op = o$.os_op;
-        os_oldval.set(o$.os_oldval);
-        os_newval.set(o$.os_newval);
-        os_value_checked = o$.os_value_checked;
-        os_restore_chartab = o$.os_restore_chartab;
-        os_errbuf = o$.os_errbuf;
-        os_errbuflen = o$.os_errbuflen;
+    @Override
+    public T_optset_T set(T_optset_T o) {
+        os_varp.set(o.os_varp);
+        os_idx = o.os_idx;
+        os_flags = o.os_flags;
+        os_op = o.os_op;
+        os_oldval.set(o.os_oldval);
+        os_newval.set(o.os_newval);
+        os_value_checked = o.os_value_checked;
+        os_restore_chartab = o.os_restore_chartab;
+        os_errbuf = o.os_errbuf;
+        os_errbuflen = o.os_errbuflen;
         return this;
     }
 
@@ -34,6 +35,7 @@ final class T_optset_T implements Struct<T_optset_T> {
         return new T_optset_T().set(this);
     }
 
+    @Override
     public T_optset_T zero() {
         return set(new T_optset_T());
     }

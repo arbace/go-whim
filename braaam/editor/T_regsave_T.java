@@ -8,9 +8,10 @@ final class T_regsave_T implements Struct<T_regsave_T> {
     final A_5 rs_u = new A_5();
     int rs_len;
 
-    public T_regsave_T set(T_regsave_T o$) {
-        rs_u.set(o$.rs_u);
-        rs_len = o$.rs_len;
+    @Override
+    public T_regsave_T set(T_regsave_T o) {
+        rs_u.set(o.rs_u);
+        rs_len = o.rs_len;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_regsave_T implements Struct<T_regsave_T> {
         return new T_regsave_T().set(this);
     }
 
+    @Override
     public T_regsave_T zero() {
         return set(new T_regsave_T());
     }

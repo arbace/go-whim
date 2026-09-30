@@ -1488,7 +1488,7 @@ func TestJavaControl2(t *testing.T) {
 		{"variadic promotion", javaVarargsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(uc & 0xff\)`), "uc"},
 		{"struct move", javaGrowC, javaGrowProfile, javaGrowHarnessC, regexp.MustCompile(`Rt\.moveStructs\(`), "Rt.memmove("},
 		{"member address", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`new IntPtr\(([\w.]+)\.ts, 0\)`), "new IntPtr(new int[] {$1.ts[0]}, 0)"},
-		{"union copy", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`\n\s+number = o\$\.number;`), ""},
+		{"union copy", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`\n\s+number = o\$?\.number;`), ""},
 		{"function pointer", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`this::sub\b`), "this::mul"},
 		{"goto", javaGotoC, Profile{}, javaHarnessC, regexp.MustCompile(`break L_next;`), "break L_skip;"},
 	} {

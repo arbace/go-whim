@@ -20,21 +20,22 @@ final class S_block_def implements Struct<S_block_def> {
     int end_char_vcols;
     int start_char_vcols;
 
-    public S_block_def set(S_block_def o$) {
-        startspaces = o$.startspaces;
-        endspaces = o$.endspaces;
-        textlen = o$.textlen;
-        textstart = o$.textstart;
-        textcol = o$.textcol;
-        start_vcol = o$.start_vcol;
-        end_vcol = o$.end_vcol;
-        is_short = o$.is_short;
-        is_MAX = o$.is_MAX;
-        is_oneChar = o$.is_oneChar;
-        pre_whitesp = o$.pre_whitesp;
-        pre_whitesp_c = o$.pre_whitesp_c;
-        end_char_vcols = o$.end_char_vcols;
-        start_char_vcols = o$.start_char_vcols;
+    @Override
+    public S_block_def set(S_block_def o) {
+        startspaces = o.startspaces;
+        endspaces = o.endspaces;
+        textlen = o.textlen;
+        textstart = o.textstart;
+        textcol = o.textcol;
+        start_vcol = o.start_vcol;
+        end_vcol = o.end_vcol;
+        is_short = o.is_short;
+        is_MAX = o.is_MAX;
+        is_oneChar = o.is_oneChar;
+        pre_whitesp = o.pre_whitesp;
+        pre_whitesp_c = o.pre_whitesp_c;
+        end_char_vcols = o.end_char_vcols;
+        start_char_vcols = o.start_char_vcols;
         return this;
     }
 
@@ -42,6 +43,7 @@ final class S_block_def implements Struct<S_block_def> {
         return new S_block_def().set(this);
     }
 
+    @Override
     public S_block_def zero() {
         return set(new S_block_def());
     }

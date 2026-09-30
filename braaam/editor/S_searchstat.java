@@ -11,12 +11,13 @@ final class S_searchstat implements Struct<S_searchstat> {
     int incomplete;
     int last_maxcount;
 
-    public S_searchstat set(S_searchstat o$) {
-        cur = o$.cur;
-        cnt = o$.cnt;
-        exact_match = o$.exact_match;
-        incomplete = o$.incomplete;
-        last_maxcount = o$.last_maxcount;
+    @Override
+    public S_searchstat set(S_searchstat o) {
+        cur = o.cur;
+        cnt = o.cnt;
+        exact_match = o.exact_match;
+        incomplete = o.incomplete;
+        last_maxcount = o.last_maxcount;
         return this;
     }
 
@@ -24,6 +25,7 @@ final class S_searchstat implements Struct<S_searchstat> {
         return new S_searchstat().set(this);
     }
 
+    @Override
     public S_searchstat zero() {
         return set(new S_searchstat());
     }

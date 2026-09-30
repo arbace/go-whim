@@ -10,11 +10,12 @@ final class S_termcode implements Struct<S_termcode> {
     int len;
     int modlen;
 
-    public S_termcode set(S_termcode o$) {
-        System.arraycopy(o$.name, 0, name, 0, 2);
-        code = o$.code;
-        len = o$.len;
-        modlen = o$.modlen;
+    @Override
+    public S_termcode set(S_termcode o) {
+        System.arraycopy(o.name, 0, name, 0, 2);
+        code = o.code;
+        len = o.len;
+        modlen = o.modlen;
         return this;
     }
 
@@ -22,6 +23,7 @@ final class S_termcode implements Struct<S_termcode> {
         return new S_termcode().set(this);
     }
 
+    @Override
     public S_termcode zero() {
         return set(new S_termcode());
     }

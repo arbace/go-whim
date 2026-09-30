@@ -24,25 +24,26 @@ final class T_regexec_T implements Struct<T_regexec_T> {
     boolean reg_icombine;
     int reg_maxcol;
 
-    public T_regexec_T set(T_regexec_T o$) {
-        reg_match = o$.reg_match;
-        reg_mmatch = o$.reg_mmatch;
-        reg_startp = o$.reg_startp;
-        reg_endp = o$.reg_endp;
-        reg_startpos = o$.reg_startpos;
-        reg_endpos = o$.reg_endpos;
-        reg_win = o$.reg_win;
-        reg_buf = o$.reg_buf;
-        reg_firstlnum = o$.reg_firstlnum;
-        reg_maxline = o$.reg_maxline;
-        reg_line_lbr = o$.reg_line_lbr;
-        lnum = o$.lnum;
-        line = o$.line;
-        input = o$.input;
-        need_clear_subexpr = o$.need_clear_subexpr;
-        reg_ic = o$.reg_ic;
-        reg_icombine = o$.reg_icombine;
-        reg_maxcol = o$.reg_maxcol;
+    @Override
+    public T_regexec_T set(T_regexec_T o) {
+        reg_match = o.reg_match;
+        reg_mmatch = o.reg_mmatch;
+        reg_startp = o.reg_startp;
+        reg_endp = o.reg_endp;
+        reg_startpos = o.reg_startpos;
+        reg_endpos = o.reg_endpos;
+        reg_win = o.reg_win;
+        reg_buf = o.reg_buf;
+        reg_firstlnum = o.reg_firstlnum;
+        reg_maxline = o.reg_maxline;
+        reg_line_lbr = o.reg_line_lbr;
+        lnum = o.lnum;
+        line = o.line;
+        input = o.input;
+        need_clear_subexpr = o.need_clear_subexpr;
+        reg_ic = o.reg_ic;
+        reg_icombine = o.reg_icombine;
+        reg_maxcol = o.reg_maxcol;
         return this;
     }
 
@@ -50,6 +51,7 @@ final class T_regexec_T implements Struct<T_regexec_T> {
         return new T_regexec_T().set(this);
     }
 
+    @Override
     public T_regexec_T zero() {
         return set(new T_regexec_T());
     }

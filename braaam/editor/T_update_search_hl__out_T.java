@@ -9,10 +9,11 @@ final class T_update_search_hl__out_T implements Struct<T_update_search_hl__out_
     BytePtr line;
     int on_last_col;
 
-    public T_update_search_hl__out_T set(T_update_search_hl__out_T o$) {
-        r__ = o$.r__;
-        line = o$.line;
-        on_last_col = o$.on_last_col;
+    @Override
+    public T_update_search_hl__out_T set(T_update_search_hl__out_T o) {
+        r__ = o.r__;
+        line = o.line;
+        on_last_col = o.on_last_col;
         return this;
     }
 
@@ -20,6 +21,7 @@ final class T_update_search_hl__out_T implements Struct<T_update_search_hl__out_
         return new T_update_search_hl__out_T().set(this);
     }
 
+    @Override
     public T_update_search_hl__out_T zero() {
         return set(new T_update_search_hl__out_T());
     }

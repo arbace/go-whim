@@ -8,9 +8,10 @@ final class T_find_term_bykeys__out_T implements Struct<T_find_term_bykeys__out_
     int r__;
     int matchlen;
 
-    public T_find_term_bykeys__out_T set(T_find_term_bykeys__out_T o$) {
-        r__ = o$.r__;
-        matchlen = o$.matchlen;
+    @Override
+    public T_find_term_bykeys__out_T set(T_find_term_bykeys__out_T o) {
+        r__ = o.r__;
+        matchlen = o.matchlen;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_find_term_bykeys__out_T implements Struct<T_find_term_bykeys__out_
         return new T_find_term_bykeys__out_T().set(this);
     }
 
+    @Override
     public T_find_term_bykeys__out_T zero() {
         return set(new T_find_term_bykeys__out_T());
     }

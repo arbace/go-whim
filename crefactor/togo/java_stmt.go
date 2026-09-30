@@ -43,18 +43,19 @@ func (l *jlocal) ref() string {
 
 // jfn is one method being written.
 type jfn struct {
-	j      *jgen
-	name   string
-	ft     *cc.FunctionType
-	out    *strings.Builder
-	indent int
-	locals []*jlocal // declared at the method's top, in order
-	byDecl map[*cc.Declarator]*jlocal
-	taken  map[string]bool
-	tmp    int
-	cont   []string                   // per loop: what a continue is -- "continue", or "break cN"
-	gotoOK map[*cc.JumpStatement]bool // a goto whose labeled block is written
-	ret    string                     // the Java result type
+	fallsThrough bool // a switch in it falls through, as C meant: the method says so to javac
+	j            *jgen
+	name         string
+	ft           *cc.FunctionType
+	out          *strings.Builder
+	indent       int
+	locals       []*jlocal // declared at the method's top, in order
+	byDecl       map[*cc.Declarator]*jlocal
+	taken        map[string]bool
+	tmp          int
+	cont         []string                   // per loop: what a continue is -- "continue", or "break cN"
+	gotoOK       map[*cc.JumpStatement]bool // a goto whose labeled block is written
+	ret          string                     // the Java result type
 	// hoistAll: the method has a goto, so every local is at its top -- a
 	// goto is a labeled block, and a local declared inside one is out of
 	// scope after it, where C's is not
@@ -284,7 +285,11 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 		f.stmt1("throw new IllegalStateException(%s)", javaQuote(d.Name()+": the end of a function with a result"))
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "\n    %s %s(%s) {\n", f.ret, j.jName(d.Name()), strings.Join(ps, ", "))
+	b.WriteString("\n")
+	if f.fallsThrough {
+		b.WriteString("    @SuppressWarnings(\"fallthrough\")\n") // C's, meant: each marked
+	}
+	fmt.Fprintf(&b, "    %s %s(%s) {\n", f.ret, j.jName(d.Name()), strings.Join(ps, ", "))
 	for _, s := range boxes {
 		b.WriteString(s)
 	}
@@ -826,6 +831,7 @@ func (f *jfn) switchStmt(s *cc.SelectionStatement) {
 	}
 	f.line("switch (%s) {", f.convK(v, pk))
 	live := false
+	fell := false // a case's statements may complete: the next label falls into it
 	f.indent++
 	for l := s.Statement.CompoundStatement.BlockItemList; l != nil; l = l.BlockItemList {
 		it := l.BlockItem
@@ -836,6 +842,12 @@ func (f *jfn) switchStmt(s *cc.SelectionStatement) {
 			continue
 		}
 		labels, st := caseChain(it)
+		if fell && len(labels) > 0 {
+			// C's fall-through, meant: said so, and javac told
+			f.line("// fall through")
+			f.fallsThrough = true
+		}
+		fell = false
 		for _, ls := range labels {
 			switch ls.Case {
 			case cc.LabeledStatementCaseLabel:
@@ -854,6 +866,7 @@ func (f *jfn) switchStmt(s *cc.SelectionStatement) {
 		f.stmt(st)
 		f.indent--
 		live = jcomplete(st)
+		fell = live
 	}
 	f.indent--
 	f.line("}")

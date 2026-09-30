@@ -8,9 +8,10 @@ final class T_do_set_option_numeric__out_T implements Struct<T_do_set_option_num
     BytePtr r__;
     BytePtr argp;
 
-    public T_do_set_option_numeric__out_T set(T_do_set_option_numeric__out_T o$) {
-        r__ = o$.r__;
-        argp = o$.argp;
+    @Override
+    public T_do_set_option_numeric__out_T set(T_do_set_option_numeric__out_T o) {
+        r__ = o.r__;
+        argp = o.argp;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_do_set_option_numeric__out_T implements Struct<T_do_set_option_num
         return new T_do_set_option_numeric__out_T().set(this);
     }
 
+    @Override
     public T_do_set_option_numeric__out_T zero() {
         return set(new T_do_set_option_numeric__out_T());
     }

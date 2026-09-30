@@ -19190,6 +19190,3 @@
 (defn IObuff "The file-scope object IObuff of the editor ed, for the host." [^Editor ed]
   (g ed IObuff))
 
-(defn e-val-too-large "The file-scope object e_val_too_large of the editor ed, for the host." [^Editor ed]
-  (g ed e-val-too-large))
-

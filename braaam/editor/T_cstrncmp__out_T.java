@@ -8,9 +8,10 @@ final class T_cstrncmp__out_T implements Struct<T_cstrncmp__out_T> {
     int r__;
     int n;
 
-    public T_cstrncmp__out_T set(T_cstrncmp__out_T o$) {
-        r__ = o$.r__;
-        n = o$.n;
+    @Override
+    public T_cstrncmp__out_T set(T_cstrncmp__out_T o) {
+        r__ = o.r__;
+        n = o.n;
         return this;
     }
 
@@ -18,6 +19,7 @@ final class T_cstrncmp__out_T implements Struct<T_cstrncmp__out_T> {
         return new T_cstrncmp__out_T().set(this);
     }
 
+    @Override
     public T_cstrncmp__out_T zero() {
         return set(new T_cstrncmp__out_T());
     }

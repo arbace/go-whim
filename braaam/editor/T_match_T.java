@@ -16,17 +16,18 @@ final class T_match_T implements Struct<T_match_T> {
     byte is_addpos;
     byte has_cursor;
 
-    public T_match_T set(T_match_T o$) {
-        rm.set(o$.rm);
-        buf = o$.buf;
-        lnum = o$.lnum;
-        attr = o$.attr;
-        attr_cur = o$.attr_cur;
-        first_lnum = o$.first_lnum;
-        startcol = o$.startcol;
-        endcol = o$.endcol;
-        is_addpos = o$.is_addpos;
-        has_cursor = o$.has_cursor;
+    @Override
+    public T_match_T set(T_match_T o) {
+        rm.set(o.rm);
+        buf = o.buf;
+        lnum = o.lnum;
+        attr = o.attr;
+        attr_cur = o.attr_cur;
+        first_lnum = o.first_lnum;
+        startcol = o.startcol;
+        endcol = o.endcol;
+        is_addpos = o.is_addpos;
+        has_cursor = o.has_cursor;
         return this;
     }
 
@@ -34,6 +35,7 @@ final class T_match_T implements Struct<T_match_T> {
         return new T_match_T().set(this);
     }
 
+    @Override
     public T_match_T zero() {
         return set(new T_match_T());
     }

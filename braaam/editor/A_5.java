@@ -9,9 +9,10 @@ final class A_5 implements Struct<A_5> {
     BytePtr ptr;
     final T_lpos_T pos = new T_lpos_T();
 
-    public A_5 set(A_5 o$) {
-        ptr = o$.ptr;
-        pos.set(o$.pos);
+    @Override
+    public A_5 set(A_5 o) {
+        ptr = o.ptr;
+        pos.set(o.pos);
         return this;
     }
 
@@ -19,6 +20,7 @@ final class A_5 implements Struct<A_5> {
         return new A_5().set(this);
     }
 
+    @Override
     public A_5 zero() {
         return set(new A_5());
     }
