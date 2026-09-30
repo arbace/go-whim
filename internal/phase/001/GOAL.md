@@ -1,5 +1,13 @@
 # Phase 1 — no `$VIMRUNTIME`
 
+**Its first step is the command line** (`argvfront`, the pipeline reform's
+first drop package, `doc/PIPELINE-REFORM.md` §7): `command_line_scan()` is cut
+on the seed to what the product accepts, `+{command}` and nothing else. So are
+the calls of `parse_command_name()` and `early_arg_scan()`, main's `--clean`
+prescan, and the error enumerators with `main_errors[]`'s rows. Thirteen phases
+had cut it an option or two at a time. What the options set is still folded
+where it was.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

@@ -9,21 +9,10 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-const cleanPrescan = `    for (i = 1; i < argc; ++i)
-    {
-        if (strcasecmp((char *)(argv[i]), (char *)("--clean")) == 0)
-        {
-            params.clean = TRUE;
-            break;
-        }
-    }
-    `
-
 // optreadersLiteral: each must occur exactly once.
 var optreadersLiteral = []struct{ what, old, new string }{
-	{"-nb: the scan that existed to refuse it",
-		"    early_arg_scan(paramp);\n", ""},
-	{"--clean: the pre-scan of argv at the top of main", cleanPrescan, ""},
+	// -nb's early scan and --clean's pre-scan of argv: the command line's
+	// own, gone with it (argvfront, the reform's D1)
 	{"--clean: main passing set_init_1 what only --clean could set",
 		"set_init_1(paramp->clean);", "set_init_1();"},
 	{"--clean: set_init_1 taking it",

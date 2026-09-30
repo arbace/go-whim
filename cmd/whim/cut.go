@@ -84,6 +84,3 @@ func runFold(args []string) int {
 
 // runDropoptions is tools/dropoptions.py.
 
-// runDropopts is tools/dropopts.py -- NOT tools/dropoptions.py, which is a
-// different tool with a confusingly similar name: that one removes rows from
-// options[], this one removes options from command_line_scan.

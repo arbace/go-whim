@@ -103,10 +103,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// tty_fail a second reader, or moves the pause Out of the branch, this
 	// fails loudly instead of taking a decision that is no longer the one
 	// written down.
-	e.CountIs(`tty_fail`, 3, "tty_fail")
+	e.CountIs(`tty_fail`, 2, "tty_fail")
 	e.CountIs(`ui_delay\(2005L`, 1, "ui_delay(2005L")
 	e.CountIs(`\bisatty\(`, 5, "isatty")
-	e.Say("tty_fail has its field, its one write and its one read; the 2005 ms pause is the only one")
+	e.Say("tty_fail has its field and its one read (--ttyfail went with the command line); the 2005 ms pause is the only one")
 
 	// ---- 1. the warnings, the pause and the exit -------------------------
 	// One `else if` in a chain, so FoldNever takes the whole branch and
@@ -116,14 +116,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"both warnings, the flush, the --ttyfail exit and the two-second pause")
 	})
 
-	// ---- 2. the flag that asked for the exit -----------------------------
-	// The test can no longer be true -- there is no --ttyfail -- so FoldNever
-	// keeps what it chose between: the else branch, where an unrecognised
-	// word after `--` is ME_UNKNOWN_OPTION and a bare `--` sets had_minmin.
-	e.InFunction("command_line_scan", func(e *edit.E) {
-		e.FoldNever(edit.Head(`if (strncasecmp((char *)(argv[0] + argv_idx), (char *)("ttyfail"), (7)) == 0)`), 1,
-			"--ttyfail, which is now an unknown option like any other")
-	})
+	// ---- 2. the flag that asked for the exit went with the command line
+	// (argvfront, the reform's D1)
 
 	// ---- 3. the argument check_tty no longer reads -----------------------
 	// The alternative is __attribute__((unused)) on a parameter nothing will

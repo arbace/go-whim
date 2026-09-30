@@ -91,7 +91,6 @@ package p122
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"regexp"
 	"sort"
@@ -105,21 +104,6 @@ import (
 func init() { phase.Register("whim122", Edit) }
 
 var (
-	w122SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
-	w122Label     = regexp.MustCompile(`(?m)^[ \t]*(case .*?|default):$`)
-	w122WantArg   = regexp.MustCompile(edit.Head("if (want_argument)"))
-	w122SetWant   = regexp.MustCompile(`\n[ \t]*want_argument = FALSE;\n`)
-	w122OneDflt   = regexp.MustCompile(`(?s)\A\s*\n[ \t]*default:\n(.*)\z`)
-	w122ReadC     = regexp.MustCompile(`\n[ \t]*c = argv\[0\]\[argv_idx\+\+\];\n`)
-	w122DashArm   = regexp.MustCompile(edit.Head("else if (argv[0][0] == '-')"))
-	w122PlainElse = regexp.MustCompile(`\A\s*\n[ \t]*else\n`)
-	w122EnumPair  = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
-	// The canonical text puts a blank line between two file-scope declarations,
-	// so the run of ME_* enumerators carries one between each pair.  The same
-	// sites, and the run is rewritten in the same shape below.
-	w122EnumRun   = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
-	w122Table     = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
-	w122ArgProto  = regexp.MustCompile(`(?m)^static void mainerr_arg_missing\([^)]*\);\n`)
 	w122EmptyName = `^[ \t]*if \(term != nullptr && \*term == NUL\)$`
 	w122GivenNone = regexp.MustCompile(edit.Head("if (term == nullptr || *term == NUL)"))
 	w122Assign    = regexp.MustCompile(`(?s)\A\s*\n[ \t]*term = (.*?);\n[ \t]*\z`)
@@ -142,9 +126,7 @@ var (
 	w122ReqDecl   = regexp.MustCompile(`\n[ \t]*char_u +\*requested = term;\n`)
 	// w122DeclOnly: a local's declaration, what is left of it for the sweep.
 	w122DeclOnly = map[string]*regexp.Regexp{
-		"want_argument": regexp.MustCompile(`\bint +want_argument;`),
-		"c":             regexp.MustCompile(`\bint +c;`),
-		"requested":     regexp.MustCompile(`\bchar_u +\*requested = term;`),
+		"requested": regexp.MustCompile(`\bchar_u +\*requested = term;`),
 	}
 )
 
@@ -183,281 +165,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return append(Out, t[z:]...), nil
 	}
 
-	// ---- 0. the parser: the option letters, read Out of the switch -------
-	// Nothing is written down here.  Which letters `-` accepts is the first
-	// `switch (c)` in command_line_scan(), and this phase removes every one;
-	// what is left is the `default:` that was always there.
-	parser := func(s []byte) ([]byte, error) {
-		b := edit.Blank(s)
-		sw := w122SwitchC.FindAllIndex(s, -1)
-		if len(sw) != 2 {
-			return nil, p.Die("command_line_scan() holds %d `switch (c)`, and this phase is written "+
-				"against the two phase 88 left -- the letter and its argument", len(sw))
-		}
-		o := sw[0][0] + bytes.IndexByte(b[sw[0][0]:], '{')
-		c := edit.Match(b, o)
-		if c < 0 {
-			return nil, p.Die("the option switch is not balanced")
-		}
-		Body := append([]byte(nil), s[o+1:c]...)
-		var labels []string
-		for _, m := range w122Label.FindAllSubmatch(Body, -1) {
-			labels = append(labels, string(m[1]))
-		}
-		var letters []string
-		nDefault := 0
-		for _, x := range labels {
-			if x == "default" {
-				nDefault++
-			} else {
-				letters = append(letters, x)
-			}
-		}
-		if len(letters) == 0 {
-			return nil, p.Die("the option switch accepts no letter at all: there is nothing here to " +
-				"remove and every assertion below would be vacuous")
-		}
-		if nDefault != 1 || labels[len(labels)-1] != "default" {
-			return nil, p.Die("the option switch is %s, and this phase needs one default, last",
-				edit.PyRepr(strings.Join(labels, ", ")))
-		}
-		for _, lab := range letters {
-			re := regexp.MustCompile(`\n[ \t]*` + regexp.QuoteMeta(lab) + `:\n(?:[^\n]*\n)*?[ \t]*break;\n`)
-			n := len(re.FindAll(Body, -1))
-			if n != 1 {
-				return nil, p.Die("%s has %d arms in the shape `case: ... break;`, and this phase "+
-					"removes whole arms", lab, n)
-			}
-			Body = re.ReplaceAll(Body, []byte("\n"))
-		}
-		Out := append([]byte(nil), s[:o+1]...)
-		Out = append(Out, Body...)
-		Out = append(Out, s[c:]...)
-		s = Out
-		var last []string
-		for _, x := range letters {
-			f := strings.Fields(x)
-			last = append(last, f[len(f)-1])
-		}
-		p.Sayf("the option letters are READ OUT of the switch and not written here: %s go, "+
-			"and the default that answered everything else stays", strings.Join(last, " "))
-
-		// want_argument can no longer be TRUE, so its block cannot run.
-		// What is in it is stated as a partition of the block's own text.
-		m := w122WantArg.FindIndex(s)
-		if m == nil {
-			return nil, p.Die("command_line_scan() has no `if (want_argument)` to fold")
-		}
-		bb := edit.Blank(s)
-		ob := m[1] + bytes.IndexByte(bb[m[1]:], '{')
-		cb := edit.Match(bb, ob)
-		inside := s[ob+1 : cb]
-		for _, name := range []string{"parmp->term", "ME_GARBAGE", "mainerr_arg_missing"} {
-			if k := bytes.Count(inside, []byte(name)); k != 1 {
-				return nil, p.Die("the want_argument block names %s %d times, and this phase is "+
-					"written against the one", name, k)
-			}
-		}
-		if !bytes.Contains(inside, []byte("switch (c)")) {
-			return nil, p.Die("the want_argument block does not hold the argument switch, so this " +
-				"phase has misread what it is deleting")
-		}
-		folded, err := edit.FoldNever(s, "(?m)"+w122WantArg.String(), 1)
-		if err != nil {
-			return nil, p.Die("the want_argument block would not fold -- %v", err)
-		}
-		s = folded
-		s = w122SetWant.ReplaceAll(s, []byte("\n"))
-		if w122Mentions(s, "want_argument") != 1 || !w122DeclOnly["want_argument"].Match(s) {
-			return nil, p.Die("want_argument survives the fold, beyond its declaration")
-		}
-		p.Say("want_argument is FALSE for ever, so the block it guarded goes: the " +
-			"argument switch, `parmp->term`, ME_GARBAGE and mainerr_arg_missing with it")
-
-		// The letter switch is one `default:` now, so it IS its Body.  That
-		// is only a rewrite because mainerr() does not return, which is read
-		// off mainerr() itself, below.
-		bb = edit.Blank(s)
-		i := bytes.Index(s, []byte("switch (c)"))
-		o = i + bytes.IndexByte(bb[i:], '{')
-		c = edit.Match(bb, o)
-		mm := w122OneDflt.FindSubmatchIndex(s[o+1 : c])
-		if mm == nil {
-			return nil, p.Die("the option switch did not reduce to one default label: %s",
-				edit.PyRepr(string(s[o+1:c])))
-		}
-		Inner := s[o+1+mm[2] : o+1+mm[3]]
-		k := bytes.LastIndexByte(s[:bytes.LastIndexByte(s[:i], '\n')], '\n') + 1
-		end := c + bytes.IndexByte(s[c:], '\n') + 1
-		ded := append(bytes.TrimRight(Inner, " \n"), '\n')
-		Out = append([]byte(nil), s[:k+1]...)
-		Out = append(Out, ded...)
-		Out = append(Out, s[end:]...)
-		s = Out
-		s = w122ReadC.ReplaceAll(s, []byte("\n"))
-		if w122Mentions(s, "c") != 1 || !w122DeclOnly["c"].Match(s) {
-			return nil, p.Die("`c` survives in command_line_scan(), beyond its declaration")
-		}
-		return s, nil
-	}
-
-	// collapse: the two arms do the same thing now, so the chain is one else.
-	collapse := func(s []byte) ([]byte, error) {
-		b := edit.Blank(s)
-		m := w122DashArm.FindIndex(s)
-		if m == nil {
-			return nil, p.Die("command_line_scan() has no `-` arm left to collapse")
-		}
-		k := bytes.LastIndexByte(s[:m[0]], '\n') + 1
-		o1 := m[1] + bytes.IndexByte(b[m[1]:], '{')
-		c1 := edit.Match(b, o1)
-		nxt := w122PlainElse.FindIndex(s[c1+1:])
-		if nxt == nil {
-			return nil, p.Die("the `-` arm is not followed by a plain else, so collapsing it would " +
-				"change which branch runs")
-		}
-		o2 := c1 + 1 + nxt[1] + bytes.IndexByte(b[c1+1+nxt[1]:], '{')
-		c2 := edit.Match(b, o2)
-		a1 := string(bytes.TrimSpace(edit.CollapseWS(s[o1+1 : c1])))
-		a2 := string(bytes.TrimSpace(edit.CollapseWS(s[o2+1 : c2])))
-		if a1 != a2 {
-			return nil, p.Die("the `-` arm and the last arm are not the same statement -- %s against "+
-				"%s -- so they do not collapse", edit.PyRepr(a1), edit.PyRepr(a2))
-		}
-		p.Sayf("a word beginning with `-` and any other word are now the same statement, "+
-			"%s, so the chain is ONE else and what is kept is the else arm's own text: "+
-			"the command line is `+{command}` and nothing else", a1)
-		Out := append([]byte(nil), s[:k+1]...)
-		return append(Out, s[c1+2:]...), nil
-	}
-
-	t, err := inFunction(text, "command_line_scan", parser)
-	if err != nil {
-		return nil, err
-	}
-	t, err = inFunction(t, "command_line_scan", collapse)
-	if err != nil {
-		return nil, err
-	}
-
-	// mainerr() is what makes dropping `c = argv[0][argv_idx++];` a rewrite
-	// and not a change: it does not return.  Read off its definition.
-	ma, mz, err := span(t, "mainerr")
-	if err != nil {
-		return nil, err
-	}
-	if !bytes.Contains(t[ma:mz], []byte("mch_exit(")) {
-		return nil, p.Die("mainerr() does not end the process, so the option arm cannot simply be its " +
-			"call and the increment it dropped would have mattered")
-	}
-
-	// ---- 1. the two enumerators and the two rows -------------------------
-	if k := w122Mentions(t, "mainerr_arg_missing"); k != 2 {
-		return nil, p.Die("mainerr_arg_missing has %d mentions after the fold, expected its "+
-			"definition and its prototype", k)
-	}
-	t2, dropped := edit.DeleteDefinition(t, "mainerr_arg_missing")
-	if !dropped {
-		return nil, p.Die("mainerr_arg_missing() is not defined in this file")
-	}
-	t = w122ArgProto.ReplaceAll(t2, nil)
-	if w122Mentions(t, "mainerr_arg_missing") > 0 {
-		return nil, p.Die("mainerr_arg_missing survives its own deletion")
-	}
-
-	pairs := w122EnumPair.FindAllSubmatch(t, -1)
-	okOrder := len(pairs) > 0
-	for k, m := range pairs {
-		if v, _ := strconv.Atoi(string(m[2])); v != k {
-			okOrder = false
-		}
-	}
-	if !okOrder {
-		var shown []string
-		for _, m := range pairs {
-			shown = append(shown, "('"+string(m[1])+"', '"+string(m[2])+"')")
-		}
-		return nil, p.Die("the ME_* enumerators are not 0..%d in order: [%s]",
-			len(pairs)-1, strings.Join(shown, ", "))
-	}
-	var enumNames []string
-	for _, m := range pairs {
-		enumNames = append(enumNames, string(m[1]))
-	}
-	var dead []string
-	for _, n := range enumNames {
-		if w122Mentions(t, n) == 1 {
-			dead = append(dead, n)
-		}
-	}
-	if len(dead) == 0 {
-		return nil, p.Die("no ME_* enumerator lost its last use, so this phase removed nothing the " +
-			"table is indexed by and the renumbering below would be vacuous")
-	}
-	enumsLoc := w122EnumRun.FindIndex(t)
-	tableLoc := w122Table.FindSubmatchIndex(t)
-	if tableLoc == nil {
-		return nil, p.Die("main_errors[] is not where it was")
-	}
-	rowsRaw := bytes.SplitAfter(t[tableLoc[2]:tableLoc[3]], []byte{'\n'})
-	var rows [][]byte
-	for _, r := range rowsRaw {
-		if len(r) > 0 {
-			rows = append(rows, r)
-		}
-	}
-	if len(rows) != len(pairs)+1 {
-		return nil, p.Die("main_errors[] has %d rows for %d enumerators; this phase only knows the "+
-			"shape where the one extra row is the unreachable one whim left",
-			len(rows), len(pairs))
-	}
-	var drop []int
-	for _, n := range dead {
-		drop = append(drop, indexOfStr(enumNames, n))
-	}
-	sort.Ints(drop)
-	var keep []string
-	for _, n := range enumNames {
-		if !edit.ContainsStr(dead, n) {
-			keep = append(keep, n)
-		}
-	}
-	var newEnum bytes.Buffer
-	for k, n := range keep {
-		fmt.Fprintf(&newEnum, "enum { %s = %d };\n", n, k)
-	}
-	var newRows bytes.Buffer
-	for k, r := range rows {
-		if !containsInt(drop, k) {
-			newRows.Write(r)
-		}
-	}
-	t = bytes.Replace(t, t[enumsLoc[0]:enumsLoc[1]], newEnum.Bytes(), 1)
-	tableLoc = w122Table.FindSubmatchIndex(t)
-	t = bytes.Replace(t, t[tableLoc[0]:tableLoc[1]],
-		[]byte("static char *(main_errors[]) =\n{\n"+newRows.String()+"};\n"), 1)
-
-	var droppedRows, renumbered []string
-	for _, i := range drop {
-		droppedRows = append(droppedRows, strings.TrimSpace(strings.TrimSuffix(
-			strings.TrimSpace(string(rows[i])), ",")))
-	}
-	for k, n := range keep {
-		if indexOfStr(enumNames, n) != k {
-			renumbered = append(renumbered, fmt.Sprintf("%s %d->%d", n, indexOfStr(enumNames, n), k))
-		}
-	}
-	rn := strings.Join(renumbered, ", ")
-	if rn == "" {
-		rn = "nothing renumbers"
-	}
-	p.Sayf("%s lost their last use, and each takes the main_errors[] row it indexes -- %s; "+
-		"%s.  The enumerator and the row are ONE thing: deadenums.py would take the "+
-		"enumerator and leave the row, and the rows are positional",
-		strings.Join(dead, " and "), strings.Join(droppedRows, " / "), rn)
-	p.Sayf("main_errors[] keeps its last row, %s, which no enumerator named before this "+
-		"phase either -- whim's leftover, and internal/phase/088/edit.go's sentence",
-		strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(string(rows[len(rows)-1])), ",")))
+	// ---- 0-1. the option letters, want_argument's block, mainerr_arg_missing
+	// and the two rows they indexed went with the command line (argvfront,
+	// the reform's D1)
+	t := text
+	var err error
 
 	// ---- 2. termcapinit() takes no name ----------------------------------
 	var dflt string
@@ -781,9 +493,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s still has %d mentions", name, k)
 		}
 	}
-	// want_argument, c and requested are left declared and read by nothing,
-	// which is what the sweep takes.
-	for _, name := range []string{"want_argument", "requested"} {
+	// requested is left declared and read by nothing, which is what the
+	// sweep takes.
+	for _, name := range []string{"requested"} {
 		if k := w122Mentions(t, name); k != 1 || !w122DeclOnly[name].Match(t) {
 			return nil, p.Die("%s still has %d mentions, beyond its declaration", name, k-1)
 		}
@@ -798,26 +510,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("report_default_term has %d mentions, and this phase leaves it at one -- "+
 			"its own definition, which is what the sweep takes", k)
 	}
-	p.Sayf("0 mentions of %s; want_argument, c, requested and report_default_term are down to their declarations and are the "+
+	p.Sayf("0 mentions of %s; requested and report_default_term are down to their declarations and are the "+
 		"sweep's; ME_UNKNOWN_OPTION, ME_EXTRA_CMD, MAX_ARG_CMDS, exe_commands and "+
 		"'paste' are untouched", strings.Join(goneNames, ", "))
 	return t, nil
-}
-
-func indexOfStr(xs []string, x string) int {
-	for i, v := range xs {
-		if v == x {
-			return i
-		}
-	}
-	return -1
-}
-
-func containsInt(xs []int, x int) bool {
-	for _, v := range xs {
-		if v == x {
-			return true
-		}
-	}
-	return false
 }

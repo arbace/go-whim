@@ -40,7 +40,7 @@ type tool struct {
 var order = []string{
 	"sweep",
 	"funcreach",
-	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
+	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
 	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "pre", "gocat",
 }
@@ -55,7 +55,6 @@ var tools = map[string]tool{
 	"retire":      {fileStep("retire"), "retire <file> <command>..."},
 	"droplocal":   {fileStep("droplocal"), "droplocal <file> <field>..."},
 	"nointro":     {fileStep("nointro"), "nointro <file>"},
-	"noargv0":     {fileStep("noargv0"), "noargv0 <file>"},
 	"noglob":      {fileStep("noglob"), "noglob <file>"},
 	"noequiclass": {fileStep("noequiclass"), "noequiclass <file>"},
 	"nowild":      {fileStep("nowild"), "nowild <file>"},
@@ -69,7 +68,6 @@ var tools = map[string]tool{
 	"query":       {runQuery, "query <phase> <file>"},
 	"noruntime":   {fileStep("noruntime"), "noruntime <file>"},
 	"noabbr":      {fileStep("noabbr"), "noabbr <file>"},
-	"dropopts":    {fileStep("dropopts"), "dropopts <file> <-x|--long>..."},
 	"nostartup":   {fileStep("nostartup"), "nostartup <file>"},
 	"nohome":      {fileStep("nohome"), "nohome <file>"},
 	"nocmdargs":   {fileStep("nocmdargs"), "nocmdargs <file>"},

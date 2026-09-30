@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 )
@@ -41,45 +40,6 @@ func NoIntro(text []byte, w io.Writer) ([]byte, error) {
 	}
 	text = splash.ReplaceAll(text, nil)
 	fmt.Fprintf(w, "  nointro      :intro and :version to ex_ni, %d splash call sites cut\n", n)
-	return text, nil
-}
-
-// noargv0Required is every option that must still select the mode argv[0]
-// used to.
-var noargv0Required = []struct{ opt, proof string }{
-	{"Z", "restricted = TRUE;"},
-	{"R", "readonlymode = TRUE;"},
-	{"y", "evim_mode = TRUE;"},
-	{"e", "exmode_active = EXMODE_NORMAL;"},
-	{"E", "exmode_active = EXMODE_VIM;"},
-}
-
-// NoArgv0 removes the editor's sensitivity to its own name.
-//
-// It first proves every mode argv[0] could select is still reachable by an
-// OPTION.  Without that the cut would REMOVE capability rather than relocate
-// it, which is a different phase and a different declaration.
-func NoArgv0(text []byte, w io.Writer) ([]byte, error) {
-	var missing []string
-	for _, r := range noargv0Required {
-		if !bytes.Contains(text, []byte(r.proof)) {
-			missing = append(missing, "-"+r.opt)
-		}
-	}
-	if len(missing) > 0 {
-		return nil, fmt.Errorf("noargv0: these options no longer select their mode, so "+
-			"dropping the name sensitivity would REMOVE capability rather than relocate "+
-			"it: %s", strings.Join(missing, ", "))
-	}
-	pat := regexp.MustCompile(edit.Line("parse_command_name(&params);"))
-	n := len(pat.FindAll(text, -1))
-	if n != 1 {
-		return nil, fmt.Errorf("noargv0: expected exactly one call to parse_command_name, "+
-			"removed %d -- main() has moved under this phase", n)
-	}
-	text = pat.ReplaceAll(text, nil)
-	fmt.Fprintf(w, "  argv0        name sensitivity gone; %d options still select every "+
-		"mode it could\n", len(noargv0Required))
 	return text, nil
 }
 

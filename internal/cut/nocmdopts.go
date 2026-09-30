@@ -5,31 +5,11 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-// nocmdoptsInParser is SCOPED TO THE PARSER.
-//
-// `case 't':` occurs in get_c_indent() as well, three thousand lines away and
-// about 'cinoptions', and a substitution with count=1 takes whichever comes
-// first in the FILE.  It did: the first attempt cut a branch out of the C
-// indenter and gcc reported a duplicate case value in a function this phase
-// never meant to touch.  Everything that edits the option parser is applied to
-// command_line_scan()'s body alone.
-var nocmdoptsInParser = []struct{ what, pat, repl string }{
-	{"-t, which ran a :tag that is not implemented",
-		`(?m)[ \t]*case 't':\n(?:[^\n]*\n)*?[ \t]*break;\n`, ""},
-	{"-t's argument",
-		`(?m)[ \t]*case 't':\n[ \t]*parmp->tagname = \(char_u \*\)argv\[0\];\n[ \t]*break;\n`, ""},
-	{"-i's argument, which set an option wired to NULL",
-		`(?m)[ \t]*case 'i':\n` +
-			`[ \t]*set_option_value_give_err\(\(char_u \*\)"vif", 0L, \(char_u \*\)argv\[0\], 0\);\n` +
-			`[ \t]*break;\n`, ""},
-	// Phase 3 already took `case 'd':` out of this group, with -d itself.
-	{"-i from the list of options that take one",
-		`(?m)([ \t]*case 'S':\n)[ \t]*case 'i':\n`, "${1}"},
-}
+// The parser's half -- -t, -t's argument, -i -- is the command line's own,
+// cut with it (argvfront, the reform's D1).
 
 // nocmdoptsElsewhere are the fields the four options set, their now-unreachable
 // readers, and restricted mode.
@@ -75,26 +55,6 @@ var nocmdoptsElsewhere = []struct {
 // NoCmdOpts removes -t, -i, -y and -Z, the fields they set, and restricted
 // mode.
 func NoCmdOpts(text []byte, w io.Writer) ([]byte, error) {
-	blanked := edit.Blank(text)
-	defs := dead.FuncDefinitions(text, blanked)
-	span, ok := defs["command_line_scan"]
-	if !ok {
-		return nil, fmt.Errorf("nocmdopts: command_line_scan is not defined at file scope")
-	}
-	body := text[span[0]:span[1]]
-	for _, e := range nocmdoptsInParser {
-		var hit bool
-		body, hit = replaceFirst(regexp.MustCompile(e.pat), body, e.repl)
-		if !hit {
-			return nil, fmt.Errorf("nocmdopts: %s -- not found in the option parser", e.what)
-		}
-		fmt.Fprintf(w, "  nocmdopts    %s\n", e.what)
-	}
-	var buf []byte
-	buf = append(buf, text[:span[0]]...)
-	buf = append(buf, body...)
-	text = append(buf, text[span[1]:]...)
-
 	for _, e := range nocmdoptsElsewhere {
 		re := regexp.MustCompile(e.pat)
 		n := len(re.FindAll(text, -1))

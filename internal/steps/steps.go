@@ -43,7 +43,7 @@ var ops = map[string]Step{
 	"lfonly":      plain(cut.LfOnly),
 	"noabbr":      plain(cut.NoAbbr),
 	"noarglist":   plain(cut.NoArgList),
-	"noargv0":     plain(cut.NoArgv0),
+	"argvfront":   plain(cut.ArgvFront),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -97,7 +97,6 @@ var ops = map[string]Step{
 	"dropoptions": dropOptions,
 	"droplocal":   dropLocal,
 	"retire":      retire,
-	"dropopts":    dropOpts,
 	"funcreach":   funcReach,
 	"cmdidxs":     cmdIdxs,
 	"edit":        runEdit,
@@ -215,14 +214,6 @@ func retire(t []byte, args []string, w io.Writer) ([]byte, error) {
 			len(already), strings.Join(already, " "))
 	}
 	return out, nil
-}
-
-// dropOpts is `dropopts <-x|--long>...`, the command-line options.
-func dropOpts(t []byte, args []string, w io.Writer) ([]byte, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("dropopts: no option named")
-	}
-	return cut.DropOpts(t, args, w)
 }
 
 // funcReach is `funcreach [--delete]`: the floor is the tool's and refusing on

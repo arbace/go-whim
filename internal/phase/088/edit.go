@@ -92,10 +92,8 @@ package p088
 //
 
 import (
-	"fmt"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
@@ -104,26 +102,13 @@ import (
 
 func init() { phase.Register("whim88", Edit) }
 
-var (
-	// The canonical text puts a blank line between two file-scope declarations,
-	// so the run of ME_* enumerators is five lines with four blanks among them.
-	// The same five sites, and the run is rewritten in the same shape below.
-	w88EnumRun  = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
-	w88EnumLine = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
-	w88Table    = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
-)
-
 // w88Before is every identifier this phase removes at the mentions it has before
 // it, plus the ones it must NOT move -- `read_stdin` as a parameter (23 of its
 // 26 mentions belong to the phase that stops reading bytes) and the five kept
 // ME_* / MAX_ARG_CMDS.
 var w88Before = map[string]int{
-	"had_minmin": 4, "edit_type": 7, "EDIT_NONE": 3, "EDIT_FILE": 2,
-	"EDIT_STDIN": 4, "ME_TOO_MANY_ARGS": 3, "buflist_add": 3,
-	"read_stdin": 26, "read_cmd_fd": 13, "ME_UNKNOWN_OPTION": 3,
-	"ME_ARG_MISSING": 2, "ME_GARBAGE": 2, "ME_EXTRA_CMD": 2,
-	"MAX_ARG_CMDS": 4, "want_argument": 4, "mainerr_arg_missing": 3,
-	"exe_commands": 3,
+	"edit_type": 3, "EDIT_STDIN": 3, "read_stdin": 26, "read_cmd_fd": 12,
+	"ME_UNKNOWN_OPTION": 2, "ME_EXTRA_CMD": 2, "MAX_ARG_CMDS": 4, "exe_commands": 3,
 }
 
 // w88After is the same names once the cut has run: each removed name is down to
@@ -131,12 +116,8 @@ var w88Before = map[string]int{
 // as a number per name, so a use that survived shows up HERE and not as a
 // warning five minutes later.
 var w88After = map[string]int{
-	"had_minmin": 1, "edit_type": 1, "EDIT_NONE": 1, "EDIT_FILE": 1,
-	"EDIT_STDIN": 1, "ME_TOO_MANY_ARGS": 0, "buflist_add": 2,
-	"read_stdin": 25, "read_cmd_fd": 12, "ME_UNKNOWN_OPTION": 3,
-	"ME_ARG_MISSING": 2, "ME_GARBAGE": 2, "ME_EXTRA_CMD": 2,
-	"MAX_ARG_CMDS": 4, "want_argument": 4, "mainerr_arg_missing": 3,
-	"exe_commands": 3,
+	"edit_type": 1, "EDIT_STDIN": 1, "read_stdin": 25, "read_cmd_fd": 12,
+	"ME_UNKNOWN_OPTION": 2, "ME_EXTRA_CMD": 2, "MAX_ARG_CMDS": 4, "exe_commands": 3,
 }
 
 // Whim88 leaves the command line as `+{command}` and `-T {term}`: the file
@@ -192,100 +173,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w88Before[name])
 		}
 	}
-	p.Say("17 identifiers at their counted mentions: had_minmin 4, edit_type 7, " +
+	p.Say("8 identifiers at their counted mentions: edit_type 3, " +
 		"read_stdin 26 (23 of them a parameter)")
 
-	// ---- 1. the parser: three ways to name a file or a stream -----------------
-	if text, err = within(text, "command_line_scan", w88lit1, w88lit2,
-		"a file argument is an unknown option: buflist_add loses its only caller", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "command_line_scan", w88lit5, "",
-		"a bare `-` is an unknown option: EDIT_STDIN and read_cmd_fd = 2 go", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "command_line_scan", w88lit6, "",
-		"`--` no longer ends the options", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "command_line_scan", `if (argv[0][0] == '+' && !had_minmin)`,
-		`if (argv[0][0] == '+')`, "so +cmd is +cmd wherever it appears", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "command_line_scan", `else if (argv[0][0] == '-' && !had_minmin)`,
-		`else if (argv[0][0] == '-')`, "and an option is an option", 1); err != nil {
-		return nil, err
-	}
-
-	// ---- 2. ME_TOO_MANY_ARGS, and the row it indexes --------------------------
-	// ONE PARSE OF BOTH LISTS, and the edit is computed from it: the enumerators
-	// are main_errors[]'s indices, so the two cannot be edited separately without
-	// the numbering being a guess.
-	const gone = "ME_TOO_MANY_ARGS"
-	enums := w88EnumRun.FindString(string(text))
-	if enums == "" {
-		return nil, p.Die("the ME_* enumerators are not a run of `enum { NAME = N };` lines")
-	}
-	pairs := w88EnumLine.FindAllStringSubmatch(enums, -1)
-	var repr []string
-	for i, pr := range pairs {
-		if v, _ := strconv.Atoi(pr[2]); v != i {
-			for _, q := range pairs {
-				repr = append(repr, "("+edit.PyRepr(q[1])+", "+edit.PyRepr(q[2])+")")
-			}
-			return nil, p.Die("the ME_* enumerators are not 0..%d in order: [%s]",
-				len(pairs)-1, strings.Join(repr, ", "))
-		}
-	}
-	tm := w88Table.FindStringSubmatchIndex(string(text))
-	if tm == nil {
-		return nil, p.Die("main_errors[] is not where it was")
-	}
-	whole := string(text[tm[0]:tm[1]])
-	rows := splitLinesKeep(string(text[tm[2]:tm[3]]))
-	if len(rows) != len(pairs)+1 {
-		return nil, p.Die("main_errors[] has %d rows for %d enumerators; this phase only knows the "+
-			"shape where the one extra row is the unreachable one whim left", len(rows), len(pairs))
-	}
-	names := make([]string, len(pairs))
-	for i, pr := range pairs {
-		names[i] = pr[1]
-	}
-	i := edit.IndexOf(names, gone)
-	if i < 0 {
-		return nil, p.Die("%s is not among the ME_* enumerators", gone)
-	}
-	if !strings.Contains(rows[i], "Too many edit arguments") {
-		return nil, p.Die("main_errors[%d] is %s, which is not %s's row",
-			i, edit.PyRepr(strings.TrimSpace(rows[i])), gone)
-	}
-	var kept []string
-	for _, n := range names {
-		if n != gone {
-			kept = append(kept, n)
-		}
-	}
-	var newEnums, newRows strings.Builder
-	for k, n := range kept {
-		fmt.Fprintf(&newEnums, "enum { %s = %d };\n\n", n, k)
-	}
-	for k, r := range rows {
-		if k != i {
-			newRows.WriteString(r)
-		}
-	}
-	text = []byte(strings.ReplaceAll(
-		strings.ReplaceAll(string(text), enums, newEnums.String()),
-		whole, "static char *(main_errors[]) =\n{\n"+newRows.String()+"};\n"))
-	var moved []string
-	for k, n := range kept {
-		if o := edit.IndexOf(names, n); o != k {
-			moved = append(moved, fmt.Sprintf("%s %d->%d", n, o, k))
-		}
-	}
-	p.Sayf("%s and its row go; %s", gone, strings.Join(moved, ", "))
-	p.Sayf("main_errors[] keeps its sixth row, %s, which no enumerator named before this "+
-		"phase either", strings.TrimSpace(strings.TrimRight(strings.TrimSpace(rows[len(rows)-1]), ",")))
+	// ---- 1-2. the parser's file argument, `-` and `--`, and ME_TOO_MANY_ARGS
+	// with its row, went with the command line (argvfront, the reform's D1)
 
 	// ---- 3. what params.edit_type is once nothing assigns it ------------------
 	if text, err = inFunction(text, "vim_main2", func(s []byte) ([]byte, error) {
@@ -311,10 +203,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				name, k, w88After[name], why)
 		}
 	}
-	if strings.Contains(string(text), "Too many edit arguments") {
-		return nil, p.Die("'Too many edit arguments' survives the edit")
-	}
-	p.Say("every use of the six is gone; the field, three enumerators, read_stdin and " +
-		"buflist_add are what the sweep takes")
+	p.Say("edit_type's readers are gone; the field, EDIT_STDIN and read_stdin are what the sweep takes")
 	return text, nil
 }

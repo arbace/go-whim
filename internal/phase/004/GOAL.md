@@ -1,5 +1,10 @@
 # Phase 4 — the binary's name stops choosing what it does
 
+**A record now.** Phase 1's `argvfront` (the pipeline reform's first drop
+package, `doc/PIPELINE-REFORM.md` §7) cuts the whole command line on the seed,
+`parse_command_name()`'s call with it, so this phase has no plan entry and its
+cutter went. What follows is why the name stopped choosing.
+
 `parse_command_name()` reads `argv[0]` and picks a mode from it: a leading `r`
 is restricted mode, `e` selects evim, `g` the GUI, and `view`, `diff` and `ex`
 prefixes each change it again. **That is a Unix *installation* convention** —

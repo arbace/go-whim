@@ -93,14 +93,9 @@ func keepElse(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
 
 // NoRecover takes recovery away: nothing can set recoverymode any more.
 func NoRecover(text []byte, w io.Writer) ([]byte, error) {
-	text, err := cutCounted(text,
-		`(?m)[ \t]*case 'r':\n[ \t]*case 'L':\n`+
-			`[ \t]*recoverymode = 1;\n[ \t]*break;\n`,
-		"norecover", "-r and -L in command_line_scan", 1)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  norecover    -r and -L, the only two things that set recoverymode")
+	// -r and -L, the only two things that set recoverymode, went with the
+	// command line (argvfront, the reform's D1)
+	var err error
 
 	// recover_names is the one reader of p_dir left, and dropoptions --strict
 	// refuses 'directory' later in this phase with no sweep between; the

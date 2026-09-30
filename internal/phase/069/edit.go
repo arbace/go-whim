@@ -56,10 +56,8 @@ import (
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("onearg", text, w)
 
-	// 1. one file argument, and the name still reaching curbuf
-	e.InFunction("command_line_scan", func(e *edit.E) {
-		e.Literal(w69OldArg, w69NewArg, 1, "a second file argument, and the list that held them")
-	})
+	// 1. a second file argument: the command line's own, gone with it
+	// (argvfront, the reform's D1)
 
 	// 2. :next and :previous
 	for _, c := range []struct{ Name, handler string }{{"next", "ex_next"}, {"previous", "ex_previous"}} {

@@ -45,6 +45,7 @@ var Plan = []Phase{
 	{N: 0, Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true},
 	{N: 1, Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
+			{Op: "argvfront"},
 			{Op: "noruntime"},
 		}},
 	{N: 2, Name: "the options for features that are not here",
@@ -55,12 +56,7 @@ var Plan = []Phase{
 	{N: 3, Name: "no introduction, and the command line says only what the editor still decides",
 		Steps: []Step{
 			{Op: "nointro"},
-			{Op: "dropopts", Args: []string{"-h", "-?", "-A", "-F", "-H", "-g", "-f", "-X", "-Y", "-d", "-U", "-l", "-C", "-N", "-n", "-p", "-V", "--help", "--version", "--clean", "--literal", "--nofork", "--noplugin", "--not-a-term", "--gui-dialog-file", "--startuptime", "--log"}},
 			{Op: "optreaders"},
-		}},
-	{N: 4, Name: "the binary's name stops choosing what it does",
-		Steps: []Step{
-			{Op: "noargv0"},
 		}},
 	{N: 5, Name: "one regexp engine, not two",
 		Steps: []Step{
@@ -136,7 +132,6 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nostartup"},
 			{Op: "dropoptions", Args: []string{"--strict", "exrc"}},
-			{Op: "dropopts", Args: []string{"-y", "-Z", "-u"}},
 			{Op: "nocmdopts"},
 			{Op: "dropoptions", Args: []string{"--strict", "viminfo", "viminfofile"}},
 		}},
@@ -300,7 +295,6 @@ var Plan = []Phase{
 		}},
 	{N: 50, Name: "only LF text files",
 		Steps: []Step{
-			{Op: "dropopts", Args: []string{"-b"}},
 			{Op: "lfonly"},
 			{Op: "dropoptions", Args: []string{"--local", "binary", "fileformat", "endofline", "fixendofline", "endoffile", "textmode"}},
 			{Op: "dropoptions", Args: []string{"fileformats", "textauto"}},

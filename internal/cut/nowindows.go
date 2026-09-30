@@ -234,20 +234,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	if text, err = e.inFunction(text, "command_line_scan", func(s []byte) ([]byte, error) {
-		s, held, err := DropShort(s, 0, map[string]bool{"o": true, "O": true})
-		if err != nil {
-			return nil, err
-		}
-		if !setEqual(held, "o", "O") {
-			return nil, fmt.Errorf("nowindows: -o and -O are not both labels in the option "+
-				"switch: %s", pyList(sortedKeys(held)))
-		}
-		fmt.Fprintln(w, "  nowindows    -o and -O are unknown options")
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
+	// -o and -O are the command line's own, cut with it (argvfront, the
+	// reform's D1)
 	if text, err = e.inFunction(text, "create_windows", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.dropIfPlain(s, `^[ \t]*if \(parmp->window_count == -1\)$`,

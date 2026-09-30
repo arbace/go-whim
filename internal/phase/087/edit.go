@@ -87,7 +87,6 @@ package p087
 //
 
 import (
-	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -99,9 +98,9 @@ import (
 func init() { phase.Register("whim87", Edit) }
 
 var w87Before = map[string]int{
-	"exmode_active": 49, "silent_mode": 23, "pending_exmode_active": 4,
+	"exmode_active": 44, "silent_mode": 21, "pending_exmode_active": 4,
 	"exmode_plus": 3, "exmode_was": 2, "do_exmode": 4, "getexmodeline": 6,
-	"nv_exmode": 3, "EXMODE_NORMAL": 6, "EXMODE_VIM": 5, "BO_EX": 2,
+	"nv_exmode": 3, "EXMODE_NORMAL": 5, "EXMODE_VIM": 4, "BO_EX": 2,
 	"ex_pressedreturn": 7, "ex_no_reprint": 11, "ex_exitval": 3,
 	"previous_got_int": 4, "use_plus_cmd": 5, "s_vbuf": 4,
 	"e_at_end_of_file": 2, "noexmode": 4, "check_tty": 2,
@@ -256,15 +255,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// They go BEFORE the `case NUL` fold below, because until they do there are
 	// two `if (exmode_active)` in command_line_scan and a counted fold refuses --
 	// loudly, which is the point.
-	for _, o := range []struct{ opt, Body string }{
-		{"e", w87lit6}, {"E", w87lit7}, {"s", w87lit8}, {"v", w87lit9},
-	} {
-		if text, err = literal(text,
-			fmt.Sprintf("            case '%s':\n%s                break;\n", o.opt, o.Body), "",
-			fmt.Sprintf("-%s is an unknown option", o.opt), 1); err != nil {
-			return nil, err
-		}
-	}
+	// -e -E -s -v went with the command line (argvfront, the reform's D1).
 
 	// ---- 3. every reader of exmode_active, in file order ----------------------
 	type act struct {
@@ -346,8 +337,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			What: "and runs normal_cmd, which is now the only thing it can run"},
 		{kind: "never", fn: "getout", Pat: line("if (exmode_active)"), n: 1,
 			What: "the exit status is the one getout was given"},
-		{kind: "never", fn: "command_line_scan", Pat: line("if (exmode_active)"), n: 1,
-			What: "a bare `-` is stdin again, which the argv phase owns"},
 	} {
 		if a.kind != "" {
 			text, err = fold(text, a.kind, a.fn, a.Pat, a.What, a.n)

@@ -482,6 +482,33 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      87, 88 and 122, and restate their counts.
    - This is the probe for the fall-out closure: how much of the flags'
      residue it takes, and how many shape edits remain.
+   - **D1a, done (branch `reform-d1`).** The argument parser was moved to
+     the front with no closure, as a first step.
+     - **The cut.** `internal/cut/argvfront.go`, the first step of phase 1:
+       - `command_line_scan()`'s body is the product's;
+       - the calls of `parse_command_name()` and `early_arg_scan()` go;
+       - main's `--clean` prescan goes;
+       - the ME_* enumerators and `main_errors[]` rows are rewritten to
+         the product's two and three, in one place. Phases 88 and 122 had
+         each renumbered part of the way.
+     - **What it replaced.** Each argument half of 3, 4, 18, 21, 35, 40,
+       43, 50, 69, 85, 87, 88 and 122 is deleted:
+       - all three `dropopts` steps;
+       - phase 4's plan entry, which is a record only now;
+       - phase 88's parser and table sections;
+       - phase 122's letter switch and renumbering.
+       The counts those phases assert were restated on the new text.
+     - **Size.** The Go lost 588 lines net: 170 added, 758 deleted.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       - In order: 153 phases, 999 s (1,005 before).
+       - The parallel check: 152 links, 70 s.
+       - The time did not move. The halves cut were small, and the phases
+         they sat in still run. What D1a buys is fewer places, not seconds.
+     - **What stays.** The flags the options set (`params.*`,
+       `exmode_active`, `silent_mode`, `read_cmd_fd`, `edit_type`) are
+       still folded by the phases that folded them. Each is now never
+       written from phase 1 on. D1b replaces those folds with the closure,
+       and that is where §6 item 1 gets tested.
 3. **D2 Ex table.** Delete rows at once, remove every `retire` step, and
    restate the named edits that survive.
 4. **D3 options.** Default-as-initialiser, then remove 54, 55 and 95 and the
