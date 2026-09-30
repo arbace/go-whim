@@ -371,6 +371,7 @@ final class Constants {
     static final int HL_INVERSE = 1;
     static final int HL_ITALIC = 4;
     static final int HL_NOCOMBINE = 512;
+    static final int HL_NORMAL = 0;
     static final int HL_STANDOUT = 256;
     static final int HL_STRIKETHROUGH = 1024;
     static final int HL_UNDERCURL = 16;

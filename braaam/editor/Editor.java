@@ -989,7 +989,6 @@ public abstract class Editor {
         initGlobals4();
         initGlobals5();
         initGlobals6();
-        initGlobals7();
     }
 
     private void initGlobals0() {
@@ -1218,10 +1217,8 @@ public abstract class Editor {
             '0' + VIM_VERSION_MAJOR, '.', '0' + VIM_VERSION_MINOR, NUL);
         Rt.rows(hisidx,
             -1, -1, -1, -1, -1);
-        history_names[0] = BytePtr.lit("cmd");
-        history_names[1] = BytePtr.lit("search");
-        history_names[2] = BytePtr.lit("expr");
-        history_names[3] = BytePtr.lit("input");
+        Rt.rows(history_names,
+            BytePtr.lit("cmd"), BytePtr.lit("search"), BytePtr.lit("expr"), BytePtr.lit("input"), null);
         last_maptick = -1;
         update_Insstart_orig = TRUE;
         Rt.rows(cmdnames,
@@ -1440,57 +1437,24 @@ public abstract class Editor {
         t5 = new byte[1];
         readbuf2.bh_first.b_str = new BytePtr(t5, 0);
         old_char = -1;
-        highlight_tab[0].key = HL_BOLD;
-        highlight_tab[0].value.string[0] = BytePtr.lit("bold");
-        highlight_tab[0].value.length = 4L;
-        highlight_tab[1].key = HL_INVERSE;
-        highlight_tab[1].value.string[0] = BytePtr.lit("inverse");
-        highlight_tab[1].value.length = 7L;
-        highlight_tab[2].key = HL_ITALIC;
-        highlight_tab[2].value.string[0] = BytePtr.lit("italic");
-        highlight_tab[2].value.length = 6L;
-        highlight_tab[3].key = HL_NOCOMBINE;
-        highlight_tab[3].value.string[0] = BytePtr.lit("nocombine");
-        highlight_tab[3].value.length = 9L;
-        highlight_tab[4].value.string[0] = BytePtr.lit("NONE");
-        highlight_tab[4].value.length = 4L;
-        highlight_tab[5].key = HL_INVERSE;
-        highlight_tab[5].value.string[0] = BytePtr.lit("reverse");
-        highlight_tab[5].value.length = 7L;
-        highlight_tab[6].key = HL_STANDOUT;
-        highlight_tab[6].value.string[0] = BytePtr.lit("standout");
-        highlight_tab[6].value.length = 8L;
-        highlight_tab[7].key = HL_STRIKETHROUGH;
-        highlight_tab[7].value.string[0] = BytePtr.lit("strikethrough");
-        highlight_tab[7].value.length = 13L;
-        highlight_tab[8].key = HL_UNDERCURL;
-        highlight_tab[8].value.string[0] = BytePtr.lit("undercurl");
-        highlight_tab[8].value.length = 9L;
-        highlight_tab[9].key = HL_UNDERDASHED;
-        highlight_tab[9].value.string[0] = BytePtr.lit("underdashed");
-        highlight_tab[9].value.length = 11L;
-        highlight_tab[10].key = HL_UNDERDOTTED;
-        highlight_tab[10].value.string[0] = BytePtr.lit("underdotted");
-        highlight_tab[10].value.length = 11L;
-        highlight_tab[11].key = HL_UNDERDOUBLE;
-        highlight_tab[11].value.string[0] = BytePtr.lit("underdouble");
-        highlight_tab[11].value.length = 11L;
-        highlight_tab[12].key = HL_UNDERLINE;
-        highlight_tab[12].value.string[0] = BytePtr.lit("underline");
-        highlight_tab[12].value.length = 9L;
-        highlight_index_tab[0] = highlight_tab[0];
-        highlight_index_tab[1] = highlight_tab[6];
-        highlight_index_tab[2] = highlight_tab[12];
-        highlight_index_tab[3] = highlight_tab[8];
-        highlight_index_tab[4] = highlight_tab[11];
-        highlight_index_tab[5] = highlight_tab[10];
-        highlight_index_tab[6] = highlight_tab[9];
-        highlight_index_tab[7] = highlight_tab[2];
-        highlight_index_tab[8] = highlight_tab[5];
-        highlight_index_tab[9] = highlight_tab[1];
-        highlight_index_tab[10] = highlight_tab[3];
-        highlight_index_tab[11] = highlight_tab[7];
-        highlight_index_tab[12] = highlight_tab[4];
+        Rt.rows(highlight_tab,
+            new T_keyvalue_T(HL_BOLD, new T_string_T(BytePtr.lit("bold"), 4L)),
+            new T_keyvalue_T(HL_INVERSE, new T_string_T(BytePtr.lit("inverse"), 7L)),
+            new T_keyvalue_T(HL_ITALIC, new T_string_T(BytePtr.lit("italic"), 6L)),
+            new T_keyvalue_T(HL_NOCOMBINE, new T_string_T(BytePtr.lit("nocombine"), 9L)),
+            new T_keyvalue_T(HL_NORMAL, new T_string_T(BytePtr.lit("NONE"), 4L)),
+            new T_keyvalue_T(HL_INVERSE, new T_string_T(BytePtr.lit("reverse"), 7L)),
+            new T_keyvalue_T(HL_STANDOUT, new T_string_T(BytePtr.lit("standout"), 8L)),
+            new T_keyvalue_T(HL_STRIKETHROUGH, new T_string_T(BytePtr.lit("strikethrough"), 13L)),
+            new T_keyvalue_T(HL_UNDERCURL, new T_string_T(BytePtr.lit("undercurl"), 9L)),
+            new T_keyvalue_T(HL_UNDERDASHED, new T_string_T(BytePtr.lit("underdashed"), 11L)),
+            new T_keyvalue_T(HL_UNDERDOTTED, new T_string_T(BytePtr.lit("underdotted"), 11L)),
+            new T_keyvalue_T(HL_UNDERDOUBLE, new T_string_T(BytePtr.lit("underdouble"), 11L)),
+            new T_keyvalue_T(HL_UNDERLINE, new T_string_T(BytePtr.lit("underline"), 9L)));
+        Rt.rows(highlight_index_tab,
+            highlight_tab[0], highlight_tab[6], highlight_tab[12], highlight_tab[8], highlight_tab[11],
+            highlight_tab[10], highlight_tab[9], highlight_tab[2], highlight_tab[5], highlight_tab[1],
+            highlight_tab[3], highlight_tab[7], highlight_tab[4]);
         Rt.rows(color_name_tab,
             new T_keyvalue_T(BLACK, new T_string_T(BytePtr.lit("Black"), 5L)),
             new T_keyvalue_T(BLUE, new T_string_T(BytePtr.lit("Blue"), 4L)),
@@ -1520,82 +1484,88 @@ public abstract class Editor {
             new T_keyvalue_T(RED, new T_string_T(BytePtr.lit("Red"), 3L)),
             new T_keyvalue_T(WHITE, new T_string_T(BytePtr.lit("White"), 5L)),
             new T_keyvalue_T(YELLOW, new T_string_T(BytePtr.lit("Yellow"), 6L)));
-    }
-
-    private void initGlobals1() {
         Rt.rows(hl_flags,
             '8', '~', '@', 'd', 'e', 'h', 'i', 'l', 'y', 'm', 'M', 'n', 'a', 'b', 'N', 'G', 'O', 'r', 's', 'S', 'c',
             '|', 't', 'v', 'V', 'w', 'W', 'f', 'F', 'A', 'C', 'D', 'T', 'E', '-', '>', 'B', 'P', 'R', 'L', '+', '=',
             'k', '<', '[', ']', '{', '}', 'x', 'X', 'j', 'H', 'p', 'J', 'Q', '*', '#', '_', '!', '.', 'o', 'q', 'z',
             'Z', 'g', '%', '^', '&', 'I', '(');
-        highlight_init_both[0] = BytePtr.lit("ErrorMsg term=standout ctermbg=DarkRed ctermfg=White");
-        highlight_init_both[1] = BytePtr.lit("IncSearch term=reverse,bold,underline cterm=reverse");
-        highlight_init_both[2] = BytePtr.lit("ModeMsg term=bold cterm=bold");
-        highlight_init_both[3] = BytePtr.lit("NonText term=bold ctermfg=Blue");
-        highlight_init_both[4] = BytePtr.lit("StatusLine term=reverse,bold cterm=reverse,bold");
-        highlight_init_both[5] = BytePtr.lit("StatusLineNC term=reverse cterm=reverse");
-        highlight_init_both[6] = BytePtr.lit("default link EndOfBuffer NonText");
-        highlight_init_both[7] = BytePtr.lit("VertSplit term=reverse cterm=reverse");
-        highlight_init_both[8] = BytePtr.lit("default link VertSplitNC VertSplit");
-        highlight_init_both[9] = BytePtr.lit("PmenuSbar term=NONE ctermbg=Grey");
-        highlight_init_both[10] = BytePtr.lit("TabLineSel term=bold cterm=bold");
-        highlight_init_both[11] = BytePtr.lit("TabLineFill term=reverse cterm=reverse");
-        highlight_init_both[12] = BytePtr.lit("default link TabPanel TabLine");
-        highlight_init_both[13] = BytePtr.lit("default link TabPanelSel TabLineSel");
-        highlight_init_both[14] = BytePtr.lit("default link TabPanelFill TabLineFill");
-        highlight_init_both[15] = BytePtr.lit("default link QuickFixLine Search");
-        highlight_init_both[16] = BytePtr.lit("default link CursorLineSign SignColumn");
-        highlight_init_both[17] = BytePtr.lit("default link CursorLineFold FoldColumn");
-        highlight_init_both[18] = BytePtr.lit("default link CurSearch Search");
-        highlight_init_both[19] = BytePtr.lit("default link PmenuKind Pmenu");
-        highlight_init_both[20] = BytePtr.lit("default link PmenuKindSel PmenuSel");
-        highlight_init_both[21] = BytePtr.lit("default link PmenuMatch Pmenu");
-        highlight_init_both[22] = BytePtr.lit("default link PmenuMatchSel PmenuSel");
-        highlight_init_both[23] = BytePtr.lit("default link PmenuExtra Pmenu");
-        highlight_init_both[24] = BytePtr.lit("default link PmenuExtraSel PmenuSel");
-        highlight_init_both[25] = BytePtr.lit("default link PmenuBorder Pmenu");
-        highlight_init_both[26] = BytePtr.lit("default link PopupSelected PmenuSel");
-        highlight_init_both[27] = BytePtr.lit("default link Popup Pmenu");
-        highlight_init_both[28] = BytePtr.lit("default link PopupBorder Pmenu");
-        highlight_init_both[29] = BytePtr.lit("default link PopupTitle Pmenu");
-        highlight_init_both[30] = BytePtr.lit("default link MessageWindow WarningMsg");
-        highlight_init_both[31] = BytePtr.lit("default link PopupNotification WarningMsg");
-        highlight_init_both[32] = BytePtr.lit("default link PreInsert Added");
-        highlight_init_both[33] = BytePtr.lit("Normal cterm=NONE");
-        highlight_init_light[0] = BytePtr.lit("Directory term=bold ctermfg=DarkBlue");
-        highlight_init_light[1] = BytePtr.lit("LineNr term=NONE ctermfg=Brown");
-        highlight_init_light[2] = BytePtr.lit("CursorLineNr term=bold cterm=underline ctermfg=Brown");
-        highlight_init_light[3] = BytePtr.lit("MoreMsg term=bold ctermfg=DarkGreen");
-        highlight_init_light[4] = BytePtr.lit("Question term=standout ctermfg=DarkGreen");
-        highlight_init_light[5] = BytePtr.lit("Search term=reverse ctermbg=Yellow ctermfg=NONE");
-        highlight_init_light[6] = BytePtr.lit("PmenuThumb term=reverse ctermbg=Black");
-        highlight_init_light[7] = BytePtr.lit("PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey");
-        highlight_init_light[8] = BytePtr.lit("Pmenu term=reverse ctermbg=LightMagenta ctermfg=Black");
-        highlight_init_light[9] = BytePtr.lit("PmenuSel term=underline ctermbg=LightGrey ctermfg=Black");
-        highlight_init_light[10] = BytePtr.lit("SpecialKey term=NONE ctermfg=DarkBlue");
-        highlight_init_light[11] = BytePtr.lit("Title term=bold ctermfg=DarkMagenta");
-        highlight_init_light[12] = BytePtr.lit("WarningMsg term=standout ctermfg=DarkRed");
-        highlight_init_light[13] = BytePtr.lit("WildMenu term=underline ctermbg=Yellow ctermfg=Black");
-        highlight_init_light[14] = BytePtr.lit("Visual ctermbg=Grey ctermfg=Black");
-        highlight_init_light[15] = BytePtr.lit("TabLine term=underline cterm=underline ctermfg=black ctermbg=LightGrey");
-        highlight_init_light[16] = BytePtr.lit("MatchParen term=reverse ctermbg=Cyan");
-        highlight_init_dark[0] = BytePtr.lit("Directory term=bold ctermfg=LightCyan");
-        highlight_init_dark[1] = BytePtr.lit("LineNr term=NONE ctermfg=Yellow");
-        highlight_init_dark[2] = BytePtr.lit("CursorLineNr term=bold cterm=underline ctermfg=Yellow");
-        highlight_init_dark[3] = BytePtr.lit("MoreMsg term=bold ctermfg=LightGreen");
-        highlight_init_dark[4] = BytePtr.lit("Question term=standout ctermfg=LightGreen");
-        highlight_init_dark[5] = BytePtr.lit("Search term=reverse ctermbg=Yellow ctermfg=Black");
-        highlight_init_dark[6] = BytePtr.lit("SpecialKey term=NONE ctermfg=LightBlue");
-        highlight_init_dark[7] = BytePtr.lit("PmenuThumb term=reverse ctermbg=White");
-        highlight_init_dark[8] = BytePtr.lit("PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey");
-        highlight_init_dark[9] = BytePtr.lit("Pmenu term=reverse ctermbg=Magenta ctermfg=Black");
-        highlight_init_dark[10] = BytePtr.lit("PmenuSel term=underline ctermbg=Black ctermfg=DarkGrey");
-        highlight_init_dark[11] = BytePtr.lit("Title term=bold ctermfg=LightMagenta");
-        highlight_init_dark[12] = BytePtr.lit("WarningMsg term=standout ctermfg=LightRed");
-        highlight_init_dark[13] = BytePtr.lit("WildMenu term=underline ctermbg=Yellow ctermfg=Black");
-        highlight_init_dark[14] = BytePtr.lit("Visual ctermbg=Grey ctermfg=Black");
-        highlight_init_dark[15] = BytePtr.lit("TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey");
-        highlight_init_dark[16] = BytePtr.lit("MatchParen term=reverse ctermbg=DarkCyan");
+        Rt.rows(highlight_init_both,
+            BytePtr.lit("ErrorMsg term=standout ctermbg=DarkRed ctermfg=White"),
+            BytePtr.lit("IncSearch term=reverse,bold,underline cterm=reverse"),
+            BytePtr.lit("ModeMsg term=bold cterm=bold"),
+            BytePtr.lit("NonText term=bold ctermfg=Blue"),
+            BytePtr.lit("StatusLine term=reverse,bold cterm=reverse,bold"),
+            BytePtr.lit("StatusLineNC term=reverse cterm=reverse"),
+            BytePtr.lit("default link EndOfBuffer NonText"),
+            BytePtr.lit("VertSplit term=reverse cterm=reverse"),
+            BytePtr.lit("default link VertSplitNC VertSplit"),
+            BytePtr.lit("PmenuSbar term=NONE ctermbg=Grey"),
+            BytePtr.lit("TabLineSel term=bold cterm=bold"),
+            BytePtr.lit("TabLineFill term=reverse cterm=reverse"),
+            BytePtr.lit("default link TabPanel TabLine"),
+            BytePtr.lit("default link TabPanelSel TabLineSel"),
+            BytePtr.lit("default link TabPanelFill TabLineFill"),
+            BytePtr.lit("default link QuickFixLine Search"),
+            BytePtr.lit("default link CursorLineSign SignColumn"),
+            BytePtr.lit("default link CursorLineFold FoldColumn"),
+            BytePtr.lit("default link CurSearch Search"),
+            BytePtr.lit("default link PmenuKind Pmenu"),
+            BytePtr.lit("default link PmenuKindSel PmenuSel"),
+            BytePtr.lit("default link PmenuMatch Pmenu"),
+            BytePtr.lit("default link PmenuMatchSel PmenuSel"),
+            BytePtr.lit("default link PmenuExtra Pmenu"),
+            BytePtr.lit("default link PmenuExtraSel PmenuSel"),
+            BytePtr.lit("default link PmenuBorder Pmenu"),
+            BytePtr.lit("default link PopupSelected PmenuSel"),
+            BytePtr.lit("default link Popup Pmenu"),
+            BytePtr.lit("default link PopupBorder Pmenu"),
+            BytePtr.lit("default link PopupTitle Pmenu"),
+            BytePtr.lit("default link MessageWindow WarningMsg"),
+            BytePtr.lit("default link PopupNotification WarningMsg"),
+            BytePtr.lit("default link PreInsert Added"),
+            BytePtr.lit("Normal cterm=NONE"),
+            null);
+    }
+
+    private void initGlobals1() {
+        Rt.rows(highlight_init_light,
+            BytePtr.lit("Directory term=bold ctermfg=DarkBlue"),
+            BytePtr.lit("LineNr term=NONE ctermfg=Brown"),
+            BytePtr.lit("CursorLineNr term=bold cterm=underline ctermfg=Brown"),
+            BytePtr.lit("MoreMsg term=bold ctermfg=DarkGreen"),
+            BytePtr.lit("Question term=standout ctermfg=DarkGreen"),
+            BytePtr.lit("Search term=reverse ctermbg=Yellow ctermfg=NONE"),
+            BytePtr.lit("PmenuThumb term=reverse ctermbg=Black"),
+            BytePtr.lit("PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey"),
+            BytePtr.lit("Pmenu term=reverse ctermbg=LightMagenta ctermfg=Black"),
+            BytePtr.lit("PmenuSel term=underline ctermbg=LightGrey ctermfg=Black"),
+            BytePtr.lit("SpecialKey term=NONE ctermfg=DarkBlue"),
+            BytePtr.lit("Title term=bold ctermfg=DarkMagenta"),
+            BytePtr.lit("WarningMsg term=standout ctermfg=DarkRed"),
+            BytePtr.lit("WildMenu term=underline ctermbg=Yellow ctermfg=Black"),
+            BytePtr.lit("Visual ctermbg=Grey ctermfg=Black"),
+            BytePtr.lit("TabLine term=underline cterm=underline ctermfg=black ctermbg=LightGrey"),
+            BytePtr.lit("MatchParen term=reverse ctermbg=Cyan"),
+            null);
+        Rt.rows(highlight_init_dark,
+            BytePtr.lit("Directory term=bold ctermfg=LightCyan"),
+            BytePtr.lit("LineNr term=NONE ctermfg=Yellow"),
+            BytePtr.lit("CursorLineNr term=bold cterm=underline ctermfg=Yellow"),
+            BytePtr.lit("MoreMsg term=bold ctermfg=LightGreen"),
+            BytePtr.lit("Question term=standout ctermfg=LightGreen"),
+            BytePtr.lit("Search term=reverse ctermbg=Yellow ctermfg=Black"),
+            BytePtr.lit("SpecialKey term=NONE ctermfg=LightBlue"),
+            BytePtr.lit("PmenuThumb term=reverse ctermbg=White"),
+            BytePtr.lit("PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey"),
+            BytePtr.lit("Pmenu term=reverse ctermbg=Magenta ctermfg=Black"),
+            BytePtr.lit("PmenuSel term=underline ctermbg=Black ctermfg=DarkGrey"),
+            BytePtr.lit("Title term=bold ctermfg=LightMagenta"),
+            BytePtr.lit("WarningMsg term=standout ctermfg=LightRed"),
+            BytePtr.lit("WildMenu term=underline ctermbg=Yellow ctermfg=Black"),
+            BytePtr.lit("Visual ctermbg=Grey ctermfg=Black"),
+            BytePtr.lit("TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey"),
+            BytePtr.lit("MatchParen term=reverse ctermbg=DarkCyan"),
+            null);
         Rt.rows(color_numbers_16,
             0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, -1);
         Rt.rows(color_numbers_88,
@@ -1958,9 +1928,6 @@ public abstract class Editor {
             new S_interval(129742L, 129755L),
             new S_interval(129760L, 129768L),
             new S_interval(129776L, 129784L));
-    }
-
-    private void initGlobals2() {
         Rt.rows(foldCase,
             new T_convertStruct(65, 90, 1, 32),
             new T_convertStruct(181, 181, -1, 775),
@@ -2168,6 +2135,9 @@ public abstract class Editor {
             new T_convertStruct(71840, 71871, 1, 32),
             new T_convertStruct(93760, 93791, 1, 32),
             new T_convertStruct(125184, 125217, 1, 34));
+    }
+
+    private void initGlobals2() {
         Rt.rows(toLower,
             new T_convertStruct(65, 90, 1, 32),
             new T_convertStruct(192, 214, 1, 32),
@@ -2552,9 +2522,6 @@ public abstract class Editor {
             new T_convertStruct(71872, 71903, 1, -32),
             new T_convertStruct(93792, 93823, 1, -32),
             new T_convertStruct(125218, 125251, 1, -34));
-    }
-
-    private void initGlobals3() {
         msg_hist_max = 500;
         msg_flags = MESSAGES_HIT_ENTER | MESSAGES_HISTORY;
         Rt.rows(mod_mask_table,
@@ -2599,6 +2566,9 @@ public abstract class Editor {
             MOD_MASK_SHIFT, KS_EXTRA, KE_S_F33, 'F', 'N', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F34, 'F', 'O', MOD_MASK_SHIFT,
             KS_EXTRA, KE_S_F35, 'F', 'P', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F36, 'F', 'Q', MOD_MASK_SHIFT, KS_EXTRA,
             KE_S_F37, 'F', 'R', MOD_MASK_SHIFT, 'k', 'B', KS_EXTRA, KE_TAB, NUL);
+    }
+
+    private void initGlobals3() {
         Rt.rows(key_names_table,
             new S_key_name_entry(TRUE, K_BS, new T_string_T(BytePtr.lit("BackSpace"), 9L), TRUE),
             new S_key_name_entry(TRUE, '|', new T_string_T(BytePtr.lit("Bar"), 3L), FALSE),
@@ -2924,81 +2894,37 @@ public abstract class Editor {
             162, 155);
         nv_max_linear = 126;
         showcmd_is_clear = TRUE;
-        opchars[1][0] = 'd';
-        opchars[1][2] = OPF_CHANGE;
-        opchars[2][0] = 'y';
-        opchars[3][0] = 'c';
-        opchars[3][2] = OPF_CHANGE;
-        opchars[4][0] = '<';
-        opchars[4][2] = OPF_LINES | OPF_CHANGE;
-        opchars[5][0] = '>';
-        opchars[5][2] = OPF_LINES | OPF_CHANGE;
-        opchars[6][0] = '!';
-        opchars[6][2] = OPF_LINES | OPF_CHANGE;
-        opchars[7][0] = 'g';
-        opchars[7][1] = '~';
-        opchars[7][2] = OPF_CHANGE;
-        opchars[8][0] = '=';
-        opchars[8][2] = OPF_LINES | OPF_CHANGE;
-        opchars[9][0] = 'g';
-        opchars[9][1] = 'q';
-        opchars[9][2] = OPF_LINES | OPF_CHANGE;
-        opchars[10][0] = ':';
-        opchars[10][2] = OPF_LINES;
-        opchars[11][0] = 'g';
-        opchars[11][1] = 'U';
-        opchars[11][2] = OPF_CHANGE;
-        opchars[12][0] = 'g';
-        opchars[12][1] = 'u';
-        opchars[12][2] = OPF_CHANGE;
-        opchars[13][0] = 'J';
-        opchars[13][2] = OPF_LINES | OPF_CHANGE;
-        opchars[14][0] = 'g';
-        opchars[14][1] = 'J';
-        opchars[14][2] = OPF_LINES | OPF_CHANGE;
-        opchars[15][0] = 'g';
-        opchars[15][1] = '?';
-        opchars[15][2] = OPF_CHANGE;
-        opchars[16][0] = 'r';
-        opchars[16][2] = OPF_CHANGE;
-        opchars[17][0] = 'I';
-        opchars[17][2] = OPF_CHANGE;
-        opchars[18][0] = 'A';
-        opchars[18][2] = OPF_CHANGE;
-        opchars[19][0] = 'z';
-        opchars[19][1] = 'f';
-        opchars[19][2] = OPF_LINES;
-        opchars[20][0] = 'z';
-        opchars[20][1] = 'o';
-        opchars[20][2] = OPF_LINES;
-        opchars[21][0] = 'z';
-        opchars[21][1] = 'O';
-        opchars[21][2] = OPF_LINES;
-        opchars[22][0] = 'z';
-        opchars[22][1] = 'c';
-        opchars[22][2] = OPF_LINES;
-        opchars[23][0] = 'z';
-        opchars[23][1] = 'C';
-        opchars[23][2] = OPF_LINES;
-        opchars[24][0] = 'z';
-        opchars[24][1] = 'd';
-        opchars[24][2] = OPF_LINES;
-        opchars[25][0] = 'z';
-        opchars[25][1] = 'D';
-        opchars[25][2] = OPF_LINES;
-        opchars[26][0] = 'g';
-        opchars[26][1] = 'w';
-        opchars[26][2] = OPF_LINES | OPF_CHANGE;
-        opchars[27][0] = 'g';
-        opchars[27][1] = '@';
-        opchars[27][2] = OPF_CHANGE;
-        opchars[28][0] = Ctrl_A;
-        opchars[28][2] = OPF_CHANGE;
-        opchars[29][0] = Ctrl_X;
-        opchars[29][2] = OPF_CHANGE;
-    }
-
-    private void initGlobals4() {
+        Rt.rows(opchars,
+            new byte[] {NUL, NUL, 0},
+            new byte[] {'d', NUL, OPF_CHANGE},
+            new byte[] {'y', NUL, 0},
+            new byte[] {'c', NUL, OPF_CHANGE},
+            new byte[] {'<', NUL, OPF_LINES | OPF_CHANGE},
+            new byte[] {'>', NUL, OPF_LINES | OPF_CHANGE},
+            new byte[] {'!', NUL, OPF_LINES | OPF_CHANGE},
+            new byte[] {'g', '~', OPF_CHANGE},
+            new byte[] {'=', NUL, OPF_LINES | OPF_CHANGE},
+            new byte[] {'g', 'q', OPF_LINES | OPF_CHANGE},
+            new byte[] {':', NUL, OPF_LINES},
+            new byte[] {'g', 'U', OPF_CHANGE},
+            new byte[] {'g', 'u', OPF_CHANGE},
+            new byte[] {'J', NUL, OPF_LINES | OPF_CHANGE},
+            new byte[] {'g', 'J', OPF_LINES | OPF_CHANGE},
+            new byte[] {'g', '?', OPF_CHANGE},
+            new byte[] {'r', NUL, OPF_CHANGE},
+            new byte[] {'I', NUL, OPF_CHANGE},
+            new byte[] {'A', NUL, OPF_CHANGE},
+            new byte[] {'z', 'f', OPF_LINES},
+            new byte[] {'z', 'o', OPF_LINES},
+            new byte[] {'z', 'O', OPF_LINES},
+            new byte[] {'z', 'c', OPF_LINES},
+            new byte[] {'z', 'C', OPF_LINES},
+            new byte[] {'z', 'd', OPF_LINES},
+            new byte[] {'z', 'D', OPF_LINES},
+            new byte[] {'g', 'w', OPF_LINES | OPF_CHANGE},
+            new byte[] {'g', '@', OPF_CHANGE},
+            new byte[] {Ctrl_A, NUL, OPF_CHANGE},
+            new byte[] {Ctrl_X, NUL, OPF_CHANGE});
         Rt.rows(options,
             new S_vimoption(BytePtr.lit("ambiwidth"), BytePtr.lit("ambw"), P_STRING | P_VI_DEF | P_RCLR,
                     new T_optvar_T(null, null, new Ptr<BytePtr>(p_ambw, 0), 0), PV_NONE, fp_did_set_ambiwidth, null,
@@ -3571,54 +3497,38 @@ public abstract class Editor {
                     new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_ESU), 0), PV_NONE,
                     fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
             new S_vimoption());
-        p_ambw_values[0] = BytePtr.lit("single");
-        p_ambw_values[1] = BytePtr.lit("double");
-        p_bg_values[0] = BytePtr.lit("light");
-        p_bg_values[1] = BytePtr.lit("dark");
-        p_bo_values[0] = BytePtr.lit("all");
-        p_bo_values[1] = BytePtr.lit("backspace");
-        p_bo_values[2] = BytePtr.lit("cursor");
-        p_bo_values[3] = BytePtr.lit("copy");
-        p_bo_values[4] = BytePtr.lit("ctrlg");
-        p_bo_values[5] = BytePtr.lit("error");
-        p_bo_values[6] = BytePtr.lit("esc");
-        p_bo_values[7] = BytePtr.lit("ex");
-        p_bo_values[8] = BytePtr.lit("hangul");
-        p_bo_values[9] = BytePtr.lit("insertmode");
-        p_bo_values[10] = BytePtr.lit("lang");
-        p_bo_values[11] = BytePtr.lit("mess");
-        p_bo_values[12] = BytePtr.lit("showmatch");
-        p_bo_values[13] = BytePtr.lit("operator");
-        p_bo_values[14] = BytePtr.lit("register");
-        p_bo_values[15] = BytePtr.lit("term");
-        p_nf_values[0] = BytePtr.lit("bin");
-        p_nf_values[1] = BytePtr.lit("octal");
-        p_nf_values[2] = BytePtr.lit("hex");
-        p_nf_values[3] = BytePtr.lit("alpha");
-        p_nf_values[4] = BytePtr.lit("unsigned");
-        p_nf_values[5] = BytePtr.lit("blank");
-        p_cmp_values[0] = BytePtr.lit("internal");
-        p_cmp_values[1] = BytePtr.lit("keepascii");
-        p_dy_values[0] = BytePtr.lit("lastline");
-        p_dy_values[1] = BytePtr.lit("truncate");
-        p_dy_values[2] = BytePtr.lit("uhex");
-        p_ve_values[0] = BytePtr.lit("block");
-        p_ve_values[1] = BytePtr.lit("insert");
-        p_ve_values[2] = BytePtr.lit("all");
-        p_ve_values[3] = BytePtr.lit("onemore");
-        p_ve_values[4] = BytePtr.lit("none");
-        p_ve_values[5] = BytePtr.lit("NONE");
-        p_sel_values[0] = BytePtr.lit("inclusive");
-        p_sel_values[1] = BytePtr.lit("exclusive");
-        p_sel_values[2] = BytePtr.lit("old");
-        p_slm_values[0] = BytePtr.lit("cmd");
-        p_km_values[0] = BytePtr.lit("startsel");
-        p_km_values[1] = BytePtr.lit("stopsel");
-        p_bs_values[0] = BytePtr.lit("indent");
-        p_bs_values[1] = BytePtr.lit("eol");
-        p_bs_values[2] = BytePtr.lit("start");
-        p_bs_values[3] = BytePtr.lit("nostop");
-        p_sloc_values[0] = BytePtr.lit("last");
+    }
+
+    private void initGlobals4() {
+        Rt.rows(p_ambw_values,
+            BytePtr.lit("single"), BytePtr.lit("double"), null);
+        Rt.rows(p_bg_values,
+            BytePtr.lit("light"), BytePtr.lit("dark"), null);
+        Rt.rows(p_bo_values,
+            BytePtr.lit("all"), BytePtr.lit("backspace"), BytePtr.lit("cursor"), BytePtr.lit("copy"),
+            BytePtr.lit("ctrlg"), BytePtr.lit("error"), BytePtr.lit("esc"), BytePtr.lit("ex"), BytePtr.lit("hangul"),
+            BytePtr.lit("insertmode"), BytePtr.lit("lang"), BytePtr.lit("mess"), BytePtr.lit("showmatch"),
+            BytePtr.lit("operator"), BytePtr.lit("register"), BytePtr.lit("term"), null);
+        Rt.rows(p_nf_values,
+            BytePtr.lit("bin"), BytePtr.lit("octal"), BytePtr.lit("hex"), BytePtr.lit("alpha"),
+            BytePtr.lit("unsigned"), BytePtr.lit("blank"), null);
+        Rt.rows(p_cmp_values,
+            BytePtr.lit("internal"), BytePtr.lit("keepascii"), null);
+        Rt.rows(p_dy_values,
+            BytePtr.lit("lastline"), BytePtr.lit("truncate"), BytePtr.lit("uhex"), null);
+        Rt.rows(p_ve_values,
+            BytePtr.lit("block"), BytePtr.lit("insert"), BytePtr.lit("all"), BytePtr.lit("onemore"),
+            BytePtr.lit("none"), BytePtr.lit("NONE"), null);
+        Rt.rows(p_sel_values,
+            BytePtr.lit("inclusive"), BytePtr.lit("exclusive"), BytePtr.lit("old"), null);
+        Rt.rows(p_slm_values,
+            BytePtr.lit("cmd"), null);
+        Rt.rows(p_km_values,
+            BytePtr.lit("startsel"), BytePtr.lit("stopsel"), null);
+        Rt.rows(p_bs_values,
+            BytePtr.lit("indent"), BytePtr.lit("eol"), BytePtr.lit("start"), BytePtr.lit("nostop"), null);
+        Rt.rows(p_sloc_values,
+            BytePtr.lit("last"), null);
         Rt.rows(signal_info,
             new S_signalinfo(SIGHUP, BytePtr.lit("HUP")),
             new S_signalinfo(SIGTERM, BytePtr.lit("TERM")),
@@ -3720,285 +3630,146 @@ public abstract class Editor {
         u7_status.tr_start = -1L;
         xcc_status.tr_start = -1L;
         focus_state = MAYBE;
-        builtin_xterm[0].bt_entry = KS_CE;
-        builtin_xterm[0].bt_string = BytePtr.lit("\033[K");
-        builtin_xterm[1].bt_entry = KS_AL;
-        builtin_xterm[1].bt_string = BytePtr.lit("\033[L");
-        builtin_xterm[2].bt_entry = KS_CAL;
-        builtin_xterm[2].bt_string = BytePtr.lit("\033[%dL");
-        builtin_xterm[3].bt_entry = KS_DL;
-        builtin_xterm[3].bt_string = BytePtr.lit("\033[M");
-        builtin_xterm[4].bt_entry = KS_CDL;
-        builtin_xterm[4].bt_string = BytePtr.lit("\033[%dM");
-        builtin_xterm[5].bt_entry = KS_CS;
-        builtin_xterm[5].bt_string = BytePtr.lit("\033[%i%d;%dr");
-        builtin_xterm[6].bt_entry = KS_CL;
-        builtin_xterm[6].bt_string = BytePtr.lit("\033[H\033[2J");
-        builtin_xterm[7].bt_entry = KS_CD;
-        builtin_xterm[7].bt_string = BytePtr.lit("\033[J");
-        builtin_xterm[8].bt_entry = KS_ME;
-        builtin_xterm[8].bt_string = BytePtr.lit("\033[m");
-        builtin_xterm[9].bt_entry = KS_MR;
-        builtin_xterm[9].bt_string = BytePtr.lit("\033[7m");
-        builtin_xterm[10].bt_entry = KS_MD;
-        builtin_xterm[10].bt_string = BytePtr.lit("\033[1m");
-        builtin_xterm[11].bt_entry = KS_UE;
-        builtin_xterm[11].bt_string = BytePtr.lit("\033[m");
-        builtin_xterm[12].bt_entry = KS_US;
-        builtin_xterm[12].bt_string = BytePtr.lit("\033[4m");
-        builtin_xterm[13].bt_entry = KS_STE;
-        builtin_xterm[13].bt_string = BytePtr.lit("\033[29m");
-        builtin_xterm[14].bt_entry = KS_STS;
-        builtin_xterm[14].bt_string = BytePtr.lit("\033[9m");
-        builtin_xterm[15].bt_entry = KS_MS;
-        builtin_xterm[15].bt_string = BytePtr.lit("y");
-        builtin_xterm[16].bt_entry = KS_UT;
-        builtin_xterm[16].bt_string = BytePtr.lit("y");
-        builtin_xterm[17].bt_entry = KS_LE;
-        builtin_xterm[17].bt_string = BytePtr.lit("\010");
-        builtin_xterm[18].bt_entry = KS_VI;
-        builtin_xterm[18].bt_string = BytePtr.lit("\033[?25l");
-        builtin_xterm[19].bt_entry = KS_VE;
-        builtin_xterm[19].bt_string = BytePtr.lit("\033[?25h");
-        builtin_xterm[20].bt_entry = KS_VS;
-        builtin_xterm[20].bt_string = BytePtr.lit("\033[?12h");
-        builtin_xterm[21].bt_entry = KS_CVS;
-        builtin_xterm[21].bt_string = BytePtr.lit("\033[?12l");
-        builtin_xterm[22].bt_entry = KS_CSH;
-        builtin_xterm[22].bt_string = BytePtr.lit("\033[%d q");
-        builtin_xterm[23].bt_entry = KS_CRC;
-        builtin_xterm[23].bt_string = BytePtr.lit("\033[?12$p");
-        builtin_xterm[24].bt_entry = KS_CRS;
-        builtin_xterm[24].bt_string = BytePtr.lit("\033P$q q\033\\");
-        builtin_xterm[25].bt_entry = KS_CM;
-        builtin_xterm[25].bt_string = BytePtr.lit("\033[%i%d;%dH");
-        builtin_xterm[26].bt_entry = KS_SR;
-        builtin_xterm[26].bt_string = BytePtr.lit("\033M");
-        builtin_xterm[27].bt_entry = KS_CRI;
-        builtin_xterm[27].bt_string = BytePtr.lit("\033[%dC");
-        builtin_xterm[28].bt_entry = KS_KS;
-        builtin_xterm[28].bt_string = BytePtr.lit("\033[?1h\033=");
-        builtin_xterm[29].bt_entry = KS_KE;
-        builtin_xterm[29].bt_string = BytePtr.lit("\033[?1l\033>");
-        builtin_xterm[30].bt_entry = KS_CIS;
-        builtin_xterm[30].bt_string = BytePtr.lit("\033]1;");
-        builtin_xterm[31].bt_entry = KS_CIE;
-        builtin_xterm[31].bt_string = BytePtr.lit("\007");
-        builtin_xterm[32].bt_entry = KS_TS;
-        builtin_xterm[32].bt_string = BytePtr.lit("\033]2;");
-        builtin_xterm[33].bt_entry = KS_FS;
-        builtin_xterm[33].bt_string = BytePtr.lit("\007");
-        builtin_xterm[34].bt_entry = KS_CSC;
-        builtin_xterm[34].bt_string = BytePtr.lit("\033]12;");
-        builtin_xterm[35].bt_entry = KS_CEC;
-        builtin_xterm[35].bt_string = BytePtr.lit("\007");
-        builtin_xterm[36].bt_entry = KS_CWS;
-        builtin_xterm[36].bt_string = BytePtr.lit("\033[8;%d;%dt");
-        builtin_xterm[37].bt_entry = KS_CWP;
-        builtin_xterm[37].bt_string = BytePtr.lit("\033[3;%d;%dt");
-        builtin_xterm[38].bt_entry = KS_CGP;
-        builtin_xterm[38].bt_string = BytePtr.lit("\033[13t");
-        builtin_xterm[39].bt_entry = KS_CRV;
-        builtin_xterm[39].bt_string = BytePtr.lit("\033[>c");
-        builtin_xterm[40].bt_entry = KS_CXM;
-        builtin_xterm[40].bt_string = BytePtr.lit("\033[?1006;1000%?%p1%{1}%=%th%el%;");
-        builtin_xterm[41].bt_entry = KS_RFG;
-        builtin_xterm[41].bt_string = BytePtr.lit("\033]10;?\007");
-        builtin_xterm[42].bt_entry = KS_RBG;
-        builtin_xterm[42].bt_string = BytePtr.lit("\033]11;?\007");
-        builtin_xterm[43].bt_entry = KS_U7;
-        builtin_xterm[43].bt_string = BytePtr.lit("\033[6n");
-        builtin_xterm[44].bt_entry = KS_CAU;
-        builtin_xterm[44].bt_string = BytePtr.lit("\033[58;5;%dm");
-        builtin_xterm[45].bt_entry = KS_CBD;
-        builtin_xterm[45].bt_string = BytePtr.lit("\033[?2004l");
-        builtin_xterm[46].bt_entry = KS_CST;
-        builtin_xterm[46].bt_string = BytePtr.lit("\033[22;2t");
-        builtin_xterm[47].bt_entry = KS_CRT;
-        builtin_xterm[47].bt_string = BytePtr.lit("\033[23;2t");
-        builtin_xterm[48].bt_entry = KS_SSI;
-        builtin_xterm[48].bt_string = BytePtr.lit("\033[22;1t");
-        builtin_xterm[49].bt_entry = KS_SRI;
-        builtin_xterm[49].bt_string = BytePtr.lit("\033[23;1t");
-        builtin_xterm[50].bt_entry = KS_FD;
-        builtin_xterm[50].bt_string = BytePtr.lit("\033[?1004l");
-        builtin_xterm[51].bt_entry = KS_FE;
-        builtin_xterm[51].bt_string = BytePtr.lit("\033[?1004h");
-        builtin_xterm[52].bt_entry = K_UP;
-        builtin_xterm[52].bt_string = BytePtr.lit("\033O*A");
-        builtin_xterm[53].bt_entry = K_DOWN;
-        builtin_xterm[53].bt_string = BytePtr.lit("\033O*B");
-        builtin_xterm[54].bt_entry = K_RIGHT;
-        builtin_xterm[54].bt_string = BytePtr.lit("\033O*C");
-        builtin_xterm[55].bt_entry = K_LEFT;
-        builtin_xterm[55].bt_string = BytePtr.lit("\033O*D");
-        builtin_xterm[56].bt_entry = K_XUP;
-        builtin_xterm[56].bt_string = BytePtr.lit("\033[@;*A");
-        builtin_xterm[57].bt_entry = K_XDOWN;
-        builtin_xterm[57].bt_string = BytePtr.lit("\033[@;*B");
-        builtin_xterm[58].bt_entry = K_XRIGHT;
-        builtin_xterm[58].bt_string = BytePtr.lit("\033[@;*C");
-        builtin_xterm[59].bt_entry = K_XLEFT;
-        builtin_xterm[59].bt_string = BytePtr.lit("\033[@;*D");
-        builtin_xterm[60].bt_entry = K_XF1;
-        builtin_xterm[60].bt_string = BytePtr.lit("\033O*P");
-        builtin_xterm[61].bt_entry = K_XF2;
-        builtin_xterm[61].bt_string = BytePtr.lit("\033O*Q");
-        builtin_xterm[62].bt_entry = K_XF3;
-        builtin_xterm[62].bt_string = BytePtr.lit("\033O*R");
-        builtin_xterm[63].bt_entry = K_XF4;
-        builtin_xterm[63].bt_string = BytePtr.lit("\033O*S");
-        builtin_xterm[64].bt_entry = K_F1;
-        builtin_xterm[64].bt_string = BytePtr.lit("\033[11;*~");
-        builtin_xterm[65].bt_entry = K_F2;
-        builtin_xterm[65].bt_string = BytePtr.lit("\033[12;*~");
-        builtin_xterm[66].bt_entry = K_F3;
-        builtin_xterm[66].bt_string = BytePtr.lit("\033[13;*~");
-        builtin_xterm[67].bt_entry = K_F4;
-        builtin_xterm[67].bt_string = BytePtr.lit("\033[14;*~");
-        builtin_xterm[68].bt_entry = K_F5;
-        builtin_xterm[68].bt_string = BytePtr.lit("\033[15;*~");
-        builtin_xterm[69].bt_entry = K_F6;
-        builtin_xterm[69].bt_string = BytePtr.lit("\033[17;*~");
-        builtin_xterm[70].bt_entry = K_F7;
-        builtin_xterm[70].bt_string = BytePtr.lit("\033[18;*~");
-        builtin_xterm[71].bt_entry = K_F8;
-        builtin_xterm[71].bt_string = BytePtr.lit("\033[19;*~");
-        builtin_xterm[72].bt_entry = K_F9;
-        builtin_xterm[72].bt_string = BytePtr.lit("\033[20;*~");
-        builtin_xterm[73].bt_entry = K_F10;
-        builtin_xterm[73].bt_string = BytePtr.lit("\033[21;*~");
-        builtin_xterm[74].bt_entry = K_F11;
-        builtin_xterm[74].bt_string = BytePtr.lit("\033[23;*~");
-        builtin_xterm[75].bt_entry = K_F12;
-        builtin_xterm[75].bt_string = BytePtr.lit("\033[24;*~");
-        builtin_xterm[76].bt_entry = K_TC_k_B;
-        builtin_xterm[76].bt_string = BytePtr.lit("\033[Z");
-        builtin_xterm[77].bt_entry = K_HELP;
-        builtin_xterm[77].bt_string = BytePtr.lit("\033[28;*~");
-        builtin_xterm[78].bt_entry = K_UNDO;
-        builtin_xterm[78].bt_string = BytePtr.lit("\033[26;*~");
-        builtin_xterm[79].bt_entry = K_INS;
-        builtin_xterm[79].bt_string = BytePtr.lit("\033[2;*~");
-        builtin_xterm[80].bt_entry = K_HOME;
-        builtin_xterm[80].bt_string = BytePtr.lit("\033[@;*H");
-        builtin_xterm[81].bt_entry = K_KHOME;
-        builtin_xterm[81].bt_string = BytePtr.lit("\033[1;*~");
-        builtin_xterm[82].bt_entry = K_XHOME;
-        builtin_xterm[82].bt_string = BytePtr.lit("\033O*H");
-        builtin_xterm[83].bt_entry = K_ZHOME;
-        builtin_xterm[83].bt_string = BytePtr.lit("\033[7;*~");
-        builtin_xterm[84].bt_entry = K_END;
-        builtin_xterm[84].bt_string = BytePtr.lit("\033[@;*F");
-        builtin_xterm[85].bt_entry = K_KEND;
-        builtin_xterm[85].bt_string = BytePtr.lit("\033[4;*~");
-        builtin_xterm[86].bt_entry = K_XEND;
-        builtin_xterm[86].bt_string = BytePtr.lit("\033O*F");
-        builtin_xterm[87].bt_entry = K_ZEND;
-        builtin_xterm[87].bt_string = BytePtr.lit("\033[8;*~");
-        builtin_xterm[88].bt_entry = K_PAGEUP;
-        builtin_xterm[88].bt_string = BytePtr.lit("\033[5;*~");
-        builtin_xterm[89].bt_entry = K_PAGEDOWN;
-        builtin_xterm[89].bt_string = BytePtr.lit("\033[6;*~");
-        builtin_xterm[90].bt_entry = K_KPLUS;
-        builtin_xterm[90].bt_string = BytePtr.lit("\033O*k");
-        builtin_xterm[91].bt_entry = K_KMINUS;
-        builtin_xterm[91].bt_string = BytePtr.lit("\033O*m");
-        builtin_xterm[92].bt_entry = K_KDIVIDE;
-        builtin_xterm[92].bt_string = BytePtr.lit("\033O*o");
-        builtin_xterm[93].bt_entry = K_KMULTIPLY;
-        builtin_xterm[93].bt_string = BytePtr.lit("\033O*j");
-        builtin_xterm[94].bt_entry = K_KENTER;
-        builtin_xterm[94].bt_string = BytePtr.lit("\033O*M");
-        builtin_xterm[95].bt_entry = K_KPOINT;
-        builtin_xterm[95].bt_string = BytePtr.lit("\033O*n");
-        builtin_xterm[96].bt_entry = K_K0;
-        builtin_xterm[96].bt_string = BytePtr.lit("\033O*p");
-        builtin_xterm[97].bt_entry = K_K1;
-        builtin_xterm[97].bt_string = BytePtr.lit("\033O*q");
-        builtin_xterm[98].bt_entry = K_K2;
-        builtin_xterm[98].bt_string = BytePtr.lit("\033O*r");
-        builtin_xterm[99].bt_entry = K_K3;
-        builtin_xterm[99].bt_string = BytePtr.lit("\033O*s");
-        builtin_xterm[100].bt_entry = K_K4;
-        builtin_xterm[100].bt_string = BytePtr.lit("\033O*t");
-        builtin_xterm[101].bt_entry = K_K5;
-        builtin_xterm[101].bt_string = BytePtr.lit("\033O*u");
-        builtin_xterm[102].bt_entry = K_K6;
-        builtin_xterm[102].bt_string = BytePtr.lit("\033O*v");
-        builtin_xterm[103].bt_entry = K_K7;
-        builtin_xterm[103].bt_string = BytePtr.lit("\033O*w");
-        builtin_xterm[104].bt_entry = K_K8;
-        builtin_xterm[104].bt_string = BytePtr.lit("\033O*x");
-        builtin_xterm[105].bt_entry = K_K9;
-        builtin_xterm[105].bt_string = BytePtr.lit("\033O*y");
-        builtin_xterm[106].bt_entry = K_KDEL;
-        builtin_xterm[106].bt_string = BytePtr.lit("\033[3;*~");
-        builtin_xterm[107].bt_entry = K_PASTESTART;
-        builtin_xterm[107].bt_string = BytePtr.lit("\033[200~");
-        builtin_xterm[108].bt_entry = K_PASTEEND;
-        builtin_xterm[108].bt_string = BytePtr.lit("\033[201~");
-        builtin_xterm[109].bt_entry = KS_CCO;
-        builtin_xterm[109].bt_string = BytePtr.lit("8");
-        builtin_xterm[110].bt_entry = KS_CAB;
-        builtin_xterm[110].bt_string = BytePtr.lit("\033[4%dm");
-        builtin_xterm[111].bt_entry = KS_CAF;
-        builtin_xterm[111].bt_string = BytePtr.lit("\033[3%dm");
-        builtin_xterm[112].bt_entry = KS_OP;
-        builtin_xterm[112].bt_string = BytePtr.lit("\033[0m");
-        builtin_xterm[113].bt_entry = BT_EXTRA_KEYS;
-        builtin_xterm[113].bt_string = BytePtr.lit("");
-        builtin_xterm[114].bt_entry = K_TC_k_0;
-        builtin_xterm[114].bt_string = BytePtr.lit("\033[10;*~");
-        builtin_xterm[115].bt_entry = K_F13;
-        builtin_xterm[115].bt_string = BytePtr.lit("\033[25;*~");
-        builtin_xterm[116].bt_entry = K_F16;
-        builtin_xterm[116].bt_string = BytePtr.lit("\033[29;*~");
-        builtin_xterm[117].bt_entry = K_F17;
-        builtin_xterm[117].bt_string = BytePtr.lit("\033[31;*~");
-        builtin_xterm[118].bt_entry = K_F18;
-        builtin_xterm[118].bt_string = BytePtr.lit("\033[32;*~");
-        builtin_xterm[119].bt_entry = K_F19;
-        builtin_xterm[119].bt_string = BytePtr.lit("\033[33;*~");
-        builtin_xterm[120].bt_entry = K_F20;
-        builtin_xterm[120].bt_string = BytePtr.lit("\033[34;*~");
-        builtin_xterm[121].bt_entry = K_F21;
-        builtin_xterm[121].bt_string = BytePtr.lit("\033[42;*~");
-        builtin_xterm[122].bt_entry = K_F22;
-        builtin_xterm[122].bt_string = BytePtr.lit("\033[43;*~");
-        builtin_xterm[123].bt_entry = K_F23;
-        builtin_xterm[123].bt_string = BytePtr.lit("\033[44;*~");
-        builtin_xterm[124].bt_entry = K_F24;
-        builtin_xterm[124].bt_string = BytePtr.lit("\033[45;*~");
-        builtin_xterm[125].bt_entry = K_F25;
-        builtin_xterm[125].bt_string = BytePtr.lit("\033[46;*~");
-        builtin_xterm[126].bt_entry = K_F26;
-        builtin_xterm[126].bt_string = BytePtr.lit("\033[47;*~");
-        builtin_xterm[127].bt_entry = K_F27;
-        builtin_xterm[127].bt_string = BytePtr.lit("\033[48;*~");
-        builtin_xterm[128].bt_entry = K_F28;
-        builtin_xterm[128].bt_string = BytePtr.lit("\033[49;*~");
-        builtin_xterm[129].bt_entry = K_F29;
-        builtin_xterm[129].bt_string = BytePtr.lit("\033[50;*~");
-        builtin_xterm[130].bt_entry = K_F30;
-        builtin_xterm[130].bt_string = BytePtr.lit("\033[51;*~");
-        builtin_xterm[131].bt_entry = K_F31;
-        builtin_xterm[131].bt_string = BytePtr.lit("\033[52;*~");
-        builtin_xterm[132].bt_entry = K_F32;
-        builtin_xterm[132].bt_string = BytePtr.lit("\033[53;*~");
-        builtin_xterm[133].bt_entry = K_F33;
-        builtin_xterm[133].bt_string = BytePtr.lit("\033[54;*~");
-        builtin_xterm[134].bt_entry = K_F34;
-        builtin_xterm[134].bt_string = BytePtr.lit("\033[55;*~");
-        builtin_xterm[135].bt_entry = K_F35;
-        builtin_xterm[135].bt_string = BytePtr.lit("\033[56;*~");
-        builtin_xterm[136].bt_entry = K_F36;
-        builtin_xterm[136].bt_string = BytePtr.lit("\033[57;*~");
-        builtin_xterm[137].bt_entry = K_F37;
-        builtin_xterm[137].bt_string = BytePtr.lit("\033[58;*~");
-    }
-
-    private void initGlobals5() {
+        Rt.rows(builtin_xterm,
+            new T_tcap_entry_T(KS_CE, BytePtr.lit("\033[K")),
+            new T_tcap_entry_T(KS_AL, BytePtr.lit("\033[L")),
+            new T_tcap_entry_T(KS_CAL, BytePtr.lit("\033[%dL")),
+            new T_tcap_entry_T(KS_DL, BytePtr.lit("\033[M")),
+            new T_tcap_entry_T(KS_CDL, BytePtr.lit("\033[%dM")),
+            new T_tcap_entry_T(KS_CS, BytePtr.lit("\033[%i%d;%dr")),
+            new T_tcap_entry_T(KS_CL, BytePtr.lit("\033[H\033[2J")),
+            new T_tcap_entry_T(KS_CD, BytePtr.lit("\033[J")),
+            new T_tcap_entry_T(KS_ME, BytePtr.lit("\033[m")),
+            new T_tcap_entry_T(KS_MR, BytePtr.lit("\033[7m")),
+            new T_tcap_entry_T(KS_MD, BytePtr.lit("\033[1m")),
+            new T_tcap_entry_T(KS_UE, BytePtr.lit("\033[m")),
+            new T_tcap_entry_T(KS_US, BytePtr.lit("\033[4m")),
+            new T_tcap_entry_T(KS_STE, BytePtr.lit("\033[29m")),
+            new T_tcap_entry_T(KS_STS, BytePtr.lit("\033[9m")),
+            new T_tcap_entry_T(KS_MS, BytePtr.lit("y")),
+            new T_tcap_entry_T(KS_UT, BytePtr.lit("y")),
+            new T_tcap_entry_T(KS_LE, BytePtr.lit("\010")),
+            new T_tcap_entry_T(KS_VI, BytePtr.lit("\033[?25l")),
+            new T_tcap_entry_T(KS_VE, BytePtr.lit("\033[?25h")),
+            new T_tcap_entry_T(KS_VS, BytePtr.lit("\033[?12h")),
+            new T_tcap_entry_T(KS_CVS, BytePtr.lit("\033[?12l")),
+            new T_tcap_entry_T(KS_CSH, BytePtr.lit("\033[%d q")),
+            new T_tcap_entry_T(KS_CRC, BytePtr.lit("\033[?12$p")),
+            new T_tcap_entry_T(KS_CRS, BytePtr.lit("\033P$q q\033\\")),
+            new T_tcap_entry_T(KS_CM, BytePtr.lit("\033[%i%d;%dH")),
+            new T_tcap_entry_T(KS_SR, BytePtr.lit("\033M")),
+            new T_tcap_entry_T(KS_CRI, BytePtr.lit("\033[%dC")),
+            new T_tcap_entry_T(KS_KS, BytePtr.lit("\033[?1h\033=")),
+            new T_tcap_entry_T(KS_KE, BytePtr.lit("\033[?1l\033>")),
+            new T_tcap_entry_T(KS_CIS, BytePtr.lit("\033]1;")),
+            new T_tcap_entry_T(KS_CIE, BytePtr.lit("\007")),
+            new T_tcap_entry_T(KS_TS, BytePtr.lit("\033]2;")),
+            new T_tcap_entry_T(KS_FS, BytePtr.lit("\007")),
+            new T_tcap_entry_T(KS_CSC, BytePtr.lit("\033]12;")),
+            new T_tcap_entry_T(KS_CEC, BytePtr.lit("\007")),
+            new T_tcap_entry_T(KS_CWS, BytePtr.lit("\033[8;%d;%dt")),
+            new T_tcap_entry_T(KS_CWP, BytePtr.lit("\033[3;%d;%dt")),
+            new T_tcap_entry_T(KS_CGP, BytePtr.lit("\033[13t")),
+            new T_tcap_entry_T(KS_CRV, BytePtr.lit("\033[>c")),
+            new T_tcap_entry_T(KS_CXM, BytePtr.lit("\033[?1006;1000%?%p1%{1}%=%th%el%;")),
+            new T_tcap_entry_T(KS_RFG, BytePtr.lit("\033]10;?\007")),
+            new T_tcap_entry_T(KS_RBG, BytePtr.lit("\033]11;?\007")),
+            new T_tcap_entry_T(KS_U7, BytePtr.lit("\033[6n")),
+            new T_tcap_entry_T(KS_CAU, BytePtr.lit("\033[58;5;%dm")),
+            new T_tcap_entry_T(KS_CBD, BytePtr.lit("\033[?2004l")),
+            new T_tcap_entry_T(KS_CST, BytePtr.lit("\033[22;2t")),
+            new T_tcap_entry_T(KS_CRT, BytePtr.lit("\033[23;2t")),
+            new T_tcap_entry_T(KS_SSI, BytePtr.lit("\033[22;1t")),
+            new T_tcap_entry_T(KS_SRI, BytePtr.lit("\033[23;1t")),
+            new T_tcap_entry_T(KS_FD, BytePtr.lit("\033[?1004l")),
+            new T_tcap_entry_T(KS_FE, BytePtr.lit("\033[?1004h")),
+            new T_tcap_entry_T(K_UP, BytePtr.lit("\033O*A")),
+            new T_tcap_entry_T(K_DOWN, BytePtr.lit("\033O*B")),
+            new T_tcap_entry_T(K_RIGHT, BytePtr.lit("\033O*C")),
+            new T_tcap_entry_T(K_LEFT, BytePtr.lit("\033O*D")),
+            new T_tcap_entry_T(K_XUP, BytePtr.lit("\033[@;*A")),
+            new T_tcap_entry_T(K_XDOWN, BytePtr.lit("\033[@;*B")),
+            new T_tcap_entry_T(K_XRIGHT, BytePtr.lit("\033[@;*C")),
+            new T_tcap_entry_T(K_XLEFT, BytePtr.lit("\033[@;*D")),
+            new T_tcap_entry_T(K_XF1, BytePtr.lit("\033O*P")),
+            new T_tcap_entry_T(K_XF2, BytePtr.lit("\033O*Q")),
+            new T_tcap_entry_T(K_XF3, BytePtr.lit("\033O*R")),
+            new T_tcap_entry_T(K_XF4, BytePtr.lit("\033O*S")),
+            new T_tcap_entry_T(K_F1, BytePtr.lit("\033[11;*~")),
+            new T_tcap_entry_T(K_F2, BytePtr.lit("\033[12;*~")),
+            new T_tcap_entry_T(K_F3, BytePtr.lit("\033[13;*~")),
+            new T_tcap_entry_T(K_F4, BytePtr.lit("\033[14;*~")),
+            new T_tcap_entry_T(K_F5, BytePtr.lit("\033[15;*~")),
+            new T_tcap_entry_T(K_F6, BytePtr.lit("\033[17;*~")),
+            new T_tcap_entry_T(K_F7, BytePtr.lit("\033[18;*~")),
+            new T_tcap_entry_T(K_F8, BytePtr.lit("\033[19;*~")),
+            new T_tcap_entry_T(K_F9, BytePtr.lit("\033[20;*~")),
+            new T_tcap_entry_T(K_F10, BytePtr.lit("\033[21;*~")),
+            new T_tcap_entry_T(K_F11, BytePtr.lit("\033[23;*~")),
+            new T_tcap_entry_T(K_F12, BytePtr.lit("\033[24;*~")),
+            new T_tcap_entry_T(K_TC_k_B, BytePtr.lit("\033[Z")),
+            new T_tcap_entry_T(K_HELP, BytePtr.lit("\033[28;*~")),
+            new T_tcap_entry_T(K_UNDO, BytePtr.lit("\033[26;*~")),
+            new T_tcap_entry_T(K_INS, BytePtr.lit("\033[2;*~")),
+            new T_tcap_entry_T(K_HOME, BytePtr.lit("\033[@;*H")),
+            new T_tcap_entry_T(K_KHOME, BytePtr.lit("\033[1;*~")),
+            new T_tcap_entry_T(K_XHOME, BytePtr.lit("\033O*H")),
+            new T_tcap_entry_T(K_ZHOME, BytePtr.lit("\033[7;*~")),
+            new T_tcap_entry_T(K_END, BytePtr.lit("\033[@;*F")),
+            new T_tcap_entry_T(K_KEND, BytePtr.lit("\033[4;*~")),
+            new T_tcap_entry_T(K_XEND, BytePtr.lit("\033O*F")),
+            new T_tcap_entry_T(K_ZEND, BytePtr.lit("\033[8;*~")),
+            new T_tcap_entry_T(K_PAGEUP, BytePtr.lit("\033[5;*~")),
+            new T_tcap_entry_T(K_PAGEDOWN, BytePtr.lit("\033[6;*~")),
+            new T_tcap_entry_T(K_KPLUS, BytePtr.lit("\033O*k")),
+            new T_tcap_entry_T(K_KMINUS, BytePtr.lit("\033O*m")),
+            new T_tcap_entry_T(K_KDIVIDE, BytePtr.lit("\033O*o")),
+            new T_tcap_entry_T(K_KMULTIPLY, BytePtr.lit("\033O*j")),
+            new T_tcap_entry_T(K_KENTER, BytePtr.lit("\033O*M")),
+            new T_tcap_entry_T(K_KPOINT, BytePtr.lit("\033O*n")),
+            new T_tcap_entry_T(K_K0, BytePtr.lit("\033O*p")),
+            new T_tcap_entry_T(K_K1, BytePtr.lit("\033O*q")),
+            new T_tcap_entry_T(K_K2, BytePtr.lit("\033O*r")),
+            new T_tcap_entry_T(K_K3, BytePtr.lit("\033O*s")),
+            new T_tcap_entry_T(K_K4, BytePtr.lit("\033O*t")),
+            new T_tcap_entry_T(K_K5, BytePtr.lit("\033O*u")),
+            new T_tcap_entry_T(K_K6, BytePtr.lit("\033O*v")),
+            new T_tcap_entry_T(K_K7, BytePtr.lit("\033O*w")),
+            new T_tcap_entry_T(K_K8, BytePtr.lit("\033O*x")),
+            new T_tcap_entry_T(K_K9, BytePtr.lit("\033O*y")),
+            new T_tcap_entry_T(K_KDEL, BytePtr.lit("\033[3;*~")),
+            new T_tcap_entry_T(K_PASTESTART, BytePtr.lit("\033[200~")),
+            new T_tcap_entry_T(K_PASTEEND, BytePtr.lit("\033[201~")),
+            new T_tcap_entry_T(KS_CCO, BytePtr.lit("8")),
+            new T_tcap_entry_T(KS_CAB, BytePtr.lit("\033[4%dm")),
+            new T_tcap_entry_T(KS_CAF, BytePtr.lit("\033[3%dm")),
+            new T_tcap_entry_T(KS_OP, BytePtr.lit("\033[0m")),
+            new T_tcap_entry_T(BT_EXTRA_KEYS, BytePtr.lit("")),
+            new T_tcap_entry_T(K_TC_k_0, BytePtr.lit("\033[10;*~")),
+            new T_tcap_entry_T(K_F13, BytePtr.lit("\033[25;*~")),
+            new T_tcap_entry_T(K_F16, BytePtr.lit("\033[29;*~")),
+            new T_tcap_entry_T(K_F17, BytePtr.lit("\033[31;*~")),
+            new T_tcap_entry_T(K_F18, BytePtr.lit("\033[32;*~")),
+            new T_tcap_entry_T(K_F19, BytePtr.lit("\033[33;*~")),
+            new T_tcap_entry_T(K_F20, BytePtr.lit("\033[34;*~")),
+            new T_tcap_entry_T(K_F21, BytePtr.lit("\033[42;*~")),
+            new T_tcap_entry_T(K_F22, BytePtr.lit("\033[43;*~")),
+            new T_tcap_entry_T(K_F23, BytePtr.lit("\033[44;*~")),
+            new T_tcap_entry_T(K_F24, BytePtr.lit("\033[45;*~")),
+            new T_tcap_entry_T(K_F25, BytePtr.lit("\033[46;*~")),
+            new T_tcap_entry_T(K_F26, BytePtr.lit("\033[47;*~")),
+            new T_tcap_entry_T(K_F27, BytePtr.lit("\033[48;*~")),
+            new T_tcap_entry_T(K_F28, BytePtr.lit("\033[49;*~")),
+            new T_tcap_entry_T(K_F29, BytePtr.lit("\033[50;*~")),
+            new T_tcap_entry_T(K_F30, BytePtr.lit("\033[51;*~")),
+            new T_tcap_entry_T(K_F31, BytePtr.lit("\033[52;*~")),
+            new T_tcap_entry_T(K_F32, BytePtr.lit("\033[53;*~")),
+            new T_tcap_entry_T(K_F33, BytePtr.lit("\033[54;*~")),
+            new T_tcap_entry_T(K_F34, BytePtr.lit("\033[55;*~")),
+            new T_tcap_entry_T(K_F35, BytePtr.lit("\033[56;*~")),
+            new T_tcap_entry_T(K_F36, BytePtr.lit("\033[57;*~")),
+            new T_tcap_entry_T(K_F37, BytePtr.lit("\033[58;*~")),
+            new T_tcap_entry_T());
         Rt.rows(builtin_mok2,
             new T_tcap_entry_T(KS_CTI, BytePtr.lit("\033[>4;2m")),
             new T_tcap_entry_T(KS_CRK, BytePtr.lit("\033[?4m")),
@@ -4011,298 +3782,157 @@ public abstract class Editor {
             new T_tcap_entry_T(KS_RFG, BytePtr.lit("\033]10;?\033\\")),
             new T_tcap_entry_T(KS_RBG, BytePtr.lit("\033]11;?\033\\")),
             new T_tcap_entry_T());
-        builtin_debug[0].bt_entry = KS_CE;
-        builtin_debug[0].bt_string = BytePtr.lit("[CE]");
-        builtin_debug[1].bt_entry = KS_CD;
-        builtin_debug[1].bt_string = BytePtr.lit("[CD]");
-        builtin_debug[2].bt_entry = KS_AL;
-        builtin_debug[2].bt_string = BytePtr.lit("[AL]");
-        builtin_debug[3].bt_entry = KS_CAL;
-        builtin_debug[3].bt_string = BytePtr.lit("[CAL%d]");
-        builtin_debug[4].bt_entry = KS_DL;
-        builtin_debug[4].bt_string = BytePtr.lit("[DL]");
-        builtin_debug[5].bt_entry = KS_CDL;
-        builtin_debug[5].bt_string = BytePtr.lit("[CDL%d]");
-        builtin_debug[6].bt_entry = KS_CS;
-        builtin_debug[6].bt_string = BytePtr.lit("[%dCS%d]");
-        builtin_debug[7].bt_entry = KS_CSV;
-        builtin_debug[7].bt_string = BytePtr.lit("[%dCSV%d]");
-        builtin_debug[8].bt_entry = KS_CAB;
-        builtin_debug[8].bt_string = BytePtr.lit("[CAB%d]");
-        builtin_debug[9].bt_entry = KS_CAF;
-        builtin_debug[9].bt_string = BytePtr.lit("[CAF%d]");
-        builtin_debug[10].bt_entry = KS_CSB;
-        builtin_debug[10].bt_string = BytePtr.lit("[CSB%d]");
-        builtin_debug[11].bt_entry = KS_CSF;
-        builtin_debug[11].bt_string = BytePtr.lit("[CSF%d]");
-        builtin_debug[12].bt_entry = KS_CAU;
-        builtin_debug[12].bt_string = BytePtr.lit("[CAU%d]");
-        builtin_debug[13].bt_entry = KS_OP;
-        builtin_debug[13].bt_string = BytePtr.lit("[OP]");
-        builtin_debug[14].bt_entry = KS_LE;
-        builtin_debug[14].bt_string = BytePtr.lit("[LE]");
-        builtin_debug[15].bt_entry = KS_CL;
-        builtin_debug[15].bt_string = BytePtr.lit("[CL]");
-        builtin_debug[16].bt_entry = KS_VI;
-        builtin_debug[16].bt_string = BytePtr.lit("[VI]");
-        builtin_debug[17].bt_entry = KS_VE;
-        builtin_debug[17].bt_string = BytePtr.lit("[VE]");
-        builtin_debug[18].bt_entry = KS_VS;
-        builtin_debug[18].bt_string = BytePtr.lit("[VS]");
-        builtin_debug[19].bt_entry = KS_ME;
-        builtin_debug[19].bt_string = BytePtr.lit("[ME]");
-        builtin_debug[20].bt_entry = KS_MR;
-        builtin_debug[20].bt_string = BytePtr.lit("[MR]");
-        builtin_debug[21].bt_entry = KS_MB;
-        builtin_debug[21].bt_string = BytePtr.lit("[MB]");
-        builtin_debug[22].bt_entry = KS_MD;
-        builtin_debug[22].bt_string = BytePtr.lit("[MD]");
-        builtin_debug[23].bt_entry = KS_SE;
-        builtin_debug[23].bt_string = BytePtr.lit("[SE]");
-        builtin_debug[24].bt_entry = KS_SO;
-        builtin_debug[24].bt_string = BytePtr.lit("[SO]");
-        builtin_debug[25].bt_entry = KS_UE;
-        builtin_debug[25].bt_string = BytePtr.lit("[UE]");
-        builtin_debug[26].bt_entry = KS_US;
-        builtin_debug[26].bt_string = BytePtr.lit("[US]");
-        builtin_debug[27].bt_entry = KS_UCE;
-        builtin_debug[27].bt_string = BytePtr.lit("[UCE]");
-        builtin_debug[28].bt_entry = KS_UCS;
-        builtin_debug[28].bt_string = BytePtr.lit("[UCS]");
-        builtin_debug[29].bt_entry = KS_USS;
-        builtin_debug[29].bt_string = BytePtr.lit("[USS]");
-        builtin_debug[30].bt_entry = KS_DS;
-        builtin_debug[30].bt_string = BytePtr.lit("[DS]");
-        builtin_debug[31].bt_entry = KS_CDS;
-        builtin_debug[31].bt_string = BytePtr.lit("[CDS]");
-        builtin_debug[32].bt_entry = KS_STE;
-        builtin_debug[32].bt_string = BytePtr.lit("[STE]");
-        builtin_debug[33].bt_entry = KS_STS;
-        builtin_debug[33].bt_string = BytePtr.lit("[STS]");
-        builtin_debug[34].bt_entry = KS_MS;
-        builtin_debug[34].bt_string = BytePtr.lit("[MS]");
-        builtin_debug[35].bt_entry = KS_UT;
-        builtin_debug[35].bt_string = BytePtr.lit("[UT]");
-        builtin_debug[36].bt_entry = KS_XN;
-        builtin_debug[36].bt_string = BytePtr.lit("[XN]");
-        builtin_debug[37].bt_entry = KS_CM;
-        builtin_debug[37].bt_string = BytePtr.lit("[%dCM%d]");
-        builtin_debug[38].bt_entry = KS_SR;
-        builtin_debug[38].bt_string = BytePtr.lit("[SR]");
-        builtin_debug[39].bt_entry = KS_CRI;
-        builtin_debug[39].bt_string = BytePtr.lit("[CRI%d]");
-        builtin_debug[40].bt_entry = KS_VB;
-        builtin_debug[40].bt_string = BytePtr.lit("[VB]");
-        builtin_debug[41].bt_entry = KS_KS;
-        builtin_debug[41].bt_string = BytePtr.lit("[KS]");
-        builtin_debug[42].bt_entry = KS_KE;
-        builtin_debug[42].bt_string = BytePtr.lit("[KE]");
-        builtin_debug[43].bt_entry = KS_TI;
-        builtin_debug[43].bt_string = BytePtr.lit("[TI]");
-        builtin_debug[44].bt_entry = KS_TE;
-        builtin_debug[44].bt_string = BytePtr.lit("[TE]");
-        builtin_debug[45].bt_entry = KS_CIS;
-        builtin_debug[45].bt_string = BytePtr.lit("[CIS]");
-        builtin_debug[46].bt_entry = KS_CIE;
-        builtin_debug[46].bt_string = BytePtr.lit("[CIE]");
-        builtin_debug[47].bt_entry = KS_CSC;
-        builtin_debug[47].bt_string = BytePtr.lit("[CSC]");
-        builtin_debug[48].bt_entry = KS_CEC;
-        builtin_debug[48].bt_string = BytePtr.lit("[CEC]");
-        builtin_debug[49].bt_entry = KS_TS;
-        builtin_debug[49].bt_string = BytePtr.lit("[TS]");
-        builtin_debug[50].bt_entry = KS_FS;
-        builtin_debug[50].bt_string = BytePtr.lit("[FS]");
-        builtin_debug[51].bt_entry = KS_CWS;
-        builtin_debug[51].bt_string = BytePtr.lit("[%dCWS%d]");
-        builtin_debug[52].bt_entry = KS_CWP;
-        builtin_debug[52].bt_string = BytePtr.lit("[%dCWP%d]");
-        builtin_debug[53].bt_entry = KS_CRV;
-        builtin_debug[53].bt_string = BytePtr.lit("[CRV]");
-        builtin_debug[54].bt_entry = KS_CXM;
-        builtin_debug[54].bt_string = BytePtr.lit("[CXM]");
-        builtin_debug[55].bt_entry = KS_U7;
-        builtin_debug[55].bt_string = BytePtr.lit("[U7]");
-        builtin_debug[56].bt_entry = KS_RFG;
-        builtin_debug[56].bt_string = BytePtr.lit("[RFG]");
-        builtin_debug[57].bt_entry = KS_RBG;
-        builtin_debug[57].bt_string = BytePtr.lit("[RBG]");
-        builtin_debug[58].bt_entry = KS_CF;
-        builtin_debug[58].bt_string = BytePtr.lit("[CF%d]");
-        builtin_debug[59].bt_entry = K_UP;
-        builtin_debug[59].bt_string = BytePtr.lit("[KU]");
-        builtin_debug[60].bt_entry = K_DOWN;
-        builtin_debug[60].bt_string = BytePtr.lit("[KD]");
-        builtin_debug[61].bt_entry = K_LEFT;
-        builtin_debug[61].bt_string = BytePtr.lit("[KL]");
-        builtin_debug[62].bt_entry = K_RIGHT;
-        builtin_debug[62].bt_string = BytePtr.lit("[KR]");
-        builtin_debug[63].bt_entry = K_XUP;
-        builtin_debug[63].bt_string = BytePtr.lit("[xKU]");
-        builtin_debug[64].bt_entry = K_XDOWN;
-        builtin_debug[64].bt_string = BytePtr.lit("[xKD]");
-        builtin_debug[65].bt_entry = K_XLEFT;
-        builtin_debug[65].bt_string = BytePtr.lit("[xKL]");
-        builtin_debug[66].bt_entry = K_XRIGHT;
-        builtin_debug[66].bt_string = BytePtr.lit("[xKR]");
-        builtin_debug[67].bt_entry = K_S_UP;
-        builtin_debug[67].bt_string = BytePtr.lit("[S-KU]");
-        builtin_debug[68].bt_entry = K_S_DOWN;
-        builtin_debug[68].bt_string = BytePtr.lit("[S-KD]");
-        builtin_debug[69].bt_entry = K_TC_HASH_4;
-        builtin_debug[69].bt_string = BytePtr.lit("[S-KL]");
-        builtin_debug[70].bt_entry = K_C_LEFT;
-        builtin_debug[70].bt_string = BytePtr.lit("[C-KL]");
-        builtin_debug[71].bt_entry = K_TC_PCT_i;
-        builtin_debug[71].bt_string = BytePtr.lit("[S-KR]");
-        builtin_debug[72].bt_entry = K_C_RIGHT;
-        builtin_debug[72].bt_string = BytePtr.lit("[C-KR]");
-        builtin_debug[73].bt_entry = K_F1;
-        builtin_debug[73].bt_string = BytePtr.lit("[F1]");
-        builtin_debug[74].bt_entry = K_XF1;
-        builtin_debug[74].bt_string = BytePtr.lit("[xF1]");
-        builtin_debug[75].bt_entry = K_F2;
-        builtin_debug[75].bt_string = BytePtr.lit("[F2]");
-        builtin_debug[76].bt_entry = K_XF2;
-        builtin_debug[76].bt_string = BytePtr.lit("[xF2]");
-        builtin_debug[77].bt_entry = K_F3;
-        builtin_debug[77].bt_string = BytePtr.lit("[F3]");
-        builtin_debug[78].bt_entry = K_XF3;
-        builtin_debug[78].bt_string = BytePtr.lit("[xF3]");
-        builtin_debug[79].bt_entry = K_F4;
-        builtin_debug[79].bt_string = BytePtr.lit("[F4]");
-        builtin_debug[80].bt_entry = K_XF4;
-        builtin_debug[80].bt_string = BytePtr.lit("[xF4]");
-        builtin_debug[81].bt_entry = K_F5;
-        builtin_debug[81].bt_string = BytePtr.lit("[F5]");
-        builtin_debug[82].bt_entry = K_F6;
-        builtin_debug[82].bt_string = BytePtr.lit("[F6]");
-        builtin_debug[83].bt_entry = K_F7;
-        builtin_debug[83].bt_string = BytePtr.lit("[F7]");
-        builtin_debug[84].bt_entry = K_F8;
-        builtin_debug[84].bt_string = BytePtr.lit("[F8]");
-        builtin_debug[85].bt_entry = K_F9;
-        builtin_debug[85].bt_string = BytePtr.lit("[F9]");
-        builtin_debug[86].bt_entry = K_F10;
-        builtin_debug[86].bt_string = BytePtr.lit("[F10]");
-        builtin_debug[87].bt_entry = K_F11;
-        builtin_debug[87].bt_string = BytePtr.lit("[F11]");
-        builtin_debug[88].bt_entry = K_F12;
-        builtin_debug[88].bt_string = BytePtr.lit("[F12]");
-        builtin_debug[89].bt_entry = K_S_F1;
-        builtin_debug[89].bt_string = BytePtr.lit("[S-F1]");
-        builtin_debug[90].bt_entry = K_S_XF1;
-        builtin_debug[90].bt_string = BytePtr.lit("[S-xF1]");
-        builtin_debug[91].bt_entry = K_S_F2;
-        builtin_debug[91].bt_string = BytePtr.lit("[S-F2]");
-        builtin_debug[92].bt_entry = K_S_XF2;
-        builtin_debug[92].bt_string = BytePtr.lit("[S-xF2]");
-        builtin_debug[93].bt_entry = K_S_F3;
-        builtin_debug[93].bt_string = BytePtr.lit("[S-F3]");
-        builtin_debug[94].bt_entry = K_S_XF3;
-        builtin_debug[94].bt_string = BytePtr.lit("[S-xF3]");
-        builtin_debug[95].bt_entry = K_S_F4;
-        builtin_debug[95].bt_string = BytePtr.lit("[S-F4]");
-        builtin_debug[96].bt_entry = K_S_XF4;
-        builtin_debug[96].bt_string = BytePtr.lit("[S-xF4]");
-        builtin_debug[97].bt_entry = K_S_F5;
-        builtin_debug[97].bt_string = BytePtr.lit("[S-F5]");
-        builtin_debug[98].bt_entry = K_S_F6;
-        builtin_debug[98].bt_string = BytePtr.lit("[S-F6]");
-        builtin_debug[99].bt_entry = K_S_F7;
-        builtin_debug[99].bt_string = BytePtr.lit("[S-F7]");
-        builtin_debug[100].bt_entry = K_S_F8;
-        builtin_debug[100].bt_string = BytePtr.lit("[S-F8]");
-        builtin_debug[101].bt_entry = K_S_F9;
-        builtin_debug[101].bt_string = BytePtr.lit("[S-F9]");
-        builtin_debug[102].bt_entry = K_S_F10;
-        builtin_debug[102].bt_string = BytePtr.lit("[S-F10]");
-        builtin_debug[103].bt_entry = K_S_F11;
-        builtin_debug[103].bt_string = BytePtr.lit("[S-F11]");
-        builtin_debug[104].bt_entry = K_S_F12;
-        builtin_debug[104].bt_string = BytePtr.lit("[S-F12]");
-        builtin_debug[105].bt_entry = K_HELP;
-        builtin_debug[105].bt_string = BytePtr.lit("[HELP]");
-        builtin_debug[106].bt_entry = K_UNDO;
-        builtin_debug[106].bt_string = BytePtr.lit("[UNDO]");
-        builtin_debug[107].bt_entry = K_BS;
-        builtin_debug[107].bt_string = BytePtr.lit("[BS]");
-        builtin_debug[108].bt_entry = K_INS;
-        builtin_debug[108].bt_string = BytePtr.lit("[INS]");
-        builtin_debug[109].bt_entry = K_KINS;
-        builtin_debug[109].bt_string = BytePtr.lit("[KINS]");
-        builtin_debug[110].bt_entry = K_DEL;
-        builtin_debug[110].bt_string = BytePtr.lit("[DEL]");
-        builtin_debug[111].bt_entry = K_KDEL;
-        builtin_debug[111].bt_string = BytePtr.lit("[KDEL]");
-        builtin_debug[112].bt_entry = K_HOME;
-        builtin_debug[112].bt_string = BytePtr.lit("[HOME]");
-        builtin_debug[113].bt_entry = K_TC_HASH_2;
-        builtin_debug[113].bt_string = BytePtr.lit("[C-HOME]");
-        builtin_debug[114].bt_entry = K_C_HOME;
-        builtin_debug[114].bt_string = BytePtr.lit("[C-HOME]");
-        builtin_debug[115].bt_entry = K_KHOME;
-        builtin_debug[115].bt_string = BytePtr.lit("[KHOME]");
-        builtin_debug[116].bt_entry = K_XHOME;
-        builtin_debug[116].bt_string = BytePtr.lit("[XHOME]");
-        builtin_debug[117].bt_entry = K_ZHOME;
-        builtin_debug[117].bt_string = BytePtr.lit("[ZHOME]");
-        builtin_debug[118].bt_entry = K_END;
-        builtin_debug[118].bt_string = BytePtr.lit("[END]");
-        builtin_debug[119].bt_entry = K_TC_STAR_7;
-        builtin_debug[119].bt_string = BytePtr.lit("[C-END]");
-        builtin_debug[120].bt_entry = K_C_END;
-        builtin_debug[120].bt_string = BytePtr.lit("[C-END]");
-        builtin_debug[121].bt_entry = K_KEND;
-        builtin_debug[121].bt_string = BytePtr.lit("[KEND]");
-        builtin_debug[122].bt_entry = K_XEND;
-        builtin_debug[122].bt_string = BytePtr.lit("[XEND]");
-        builtin_debug[123].bt_entry = K_ZEND;
-        builtin_debug[123].bt_string = BytePtr.lit("[ZEND]");
-        builtin_debug[124].bt_entry = K_PAGEUP;
-        builtin_debug[124].bt_string = BytePtr.lit("[PAGEUP]");
-        builtin_debug[125].bt_entry = K_PAGEDOWN;
-        builtin_debug[125].bt_string = BytePtr.lit("[PAGEDOWN]");
-        builtin_debug[126].bt_entry = K_KPAGEUP;
-        builtin_debug[126].bt_string = BytePtr.lit("[KPAGEUP]");
-        builtin_debug[127].bt_entry = K_KPAGEDOWN;
-        builtin_debug[127].bt_string = BytePtr.lit("[KPAGEDOWN]");
-        builtin_debug[128].bt_entry = K_KPLUS;
-        builtin_debug[128].bt_string = BytePtr.lit("[KPLUS]");
-        builtin_debug[129].bt_entry = K_KMINUS;
-        builtin_debug[129].bt_string = BytePtr.lit("[KMINUS]");
-        builtin_debug[130].bt_entry = K_KDIVIDE;
-        builtin_debug[130].bt_string = BytePtr.lit("[KDIVIDE]");
-        builtin_debug[131].bt_entry = K_KMULTIPLY;
-        builtin_debug[131].bt_string = BytePtr.lit("[KMULTIPLY]");
-        builtin_debug[132].bt_entry = K_KENTER;
-        builtin_debug[132].bt_string = BytePtr.lit("[KENTER]");
-        builtin_debug[133].bt_entry = K_KPOINT;
-        builtin_debug[133].bt_string = BytePtr.lit("[KPOINT]");
-        builtin_debug[134].bt_entry = K_PASTESTART;
-        builtin_debug[134].bt_string = BytePtr.lit("[PASTE-START]");
-        builtin_debug[135].bt_entry = K_PASTEEND;
-        builtin_debug[135].bt_string = BytePtr.lit("[PASTE-END]");
-        builtin_debug[136].bt_entry = K_K0;
-        builtin_debug[136].bt_string = BytePtr.lit("[K0]");
-        builtin_debug[137].bt_entry = K_K1;
-        builtin_debug[137].bt_string = BytePtr.lit("[K1]");
-        builtin_debug[138].bt_entry = K_K2;
-        builtin_debug[138].bt_string = BytePtr.lit("[K2]");
-        builtin_debug[139].bt_entry = K_K3;
-        builtin_debug[139].bt_string = BytePtr.lit("[K3]");
-        builtin_debug[140].bt_entry = K_K4;
-        builtin_debug[140].bt_string = BytePtr.lit("[K4]");
-        builtin_debug[141].bt_entry = K_K5;
-        builtin_debug[141].bt_string = BytePtr.lit("[K5]");
-        builtin_debug[142].bt_entry = K_K6;
-        builtin_debug[142].bt_string = BytePtr.lit("[K6]");
-        builtin_debug[143].bt_entry = K_K7;
-        builtin_debug[143].bt_string = BytePtr.lit("[K7]");
-        builtin_debug[144].bt_entry = K_K8;
-        builtin_debug[144].bt_string = BytePtr.lit("[K8]");
-        builtin_debug[145].bt_entry = K_K9;
-        builtin_debug[145].bt_string = BytePtr.lit("[K9]");
+        Rt.rows(builtin_debug,
+            new T_tcap_entry_T(KS_CE, BytePtr.lit("[CE]")),
+            new T_tcap_entry_T(KS_CD, BytePtr.lit("[CD]")),
+            new T_tcap_entry_T(KS_AL, BytePtr.lit("[AL]")),
+            new T_tcap_entry_T(KS_CAL, BytePtr.lit("[CAL%d]")),
+            new T_tcap_entry_T(KS_DL, BytePtr.lit("[DL]")),
+            new T_tcap_entry_T(KS_CDL, BytePtr.lit("[CDL%d]")),
+            new T_tcap_entry_T(KS_CS, BytePtr.lit("[%dCS%d]")),
+            new T_tcap_entry_T(KS_CSV, BytePtr.lit("[%dCSV%d]")),
+            new T_tcap_entry_T(KS_CAB, BytePtr.lit("[CAB%d]")),
+            new T_tcap_entry_T(KS_CAF, BytePtr.lit("[CAF%d]")),
+            new T_tcap_entry_T(KS_CSB, BytePtr.lit("[CSB%d]")),
+            new T_tcap_entry_T(KS_CSF, BytePtr.lit("[CSF%d]")),
+            new T_tcap_entry_T(KS_CAU, BytePtr.lit("[CAU%d]")),
+            new T_tcap_entry_T(KS_OP, BytePtr.lit("[OP]")),
+            new T_tcap_entry_T(KS_LE, BytePtr.lit("[LE]")),
+            new T_tcap_entry_T(KS_CL, BytePtr.lit("[CL]")),
+            new T_tcap_entry_T(KS_VI, BytePtr.lit("[VI]")),
+            new T_tcap_entry_T(KS_VE, BytePtr.lit("[VE]")),
+            new T_tcap_entry_T(KS_VS, BytePtr.lit("[VS]")),
+            new T_tcap_entry_T(KS_ME, BytePtr.lit("[ME]")),
+            new T_tcap_entry_T(KS_MR, BytePtr.lit("[MR]")),
+            new T_tcap_entry_T(KS_MB, BytePtr.lit("[MB]")),
+            new T_tcap_entry_T(KS_MD, BytePtr.lit("[MD]")),
+            new T_tcap_entry_T(KS_SE, BytePtr.lit("[SE]")),
+            new T_tcap_entry_T(KS_SO, BytePtr.lit("[SO]")),
+            new T_tcap_entry_T(KS_UE, BytePtr.lit("[UE]")),
+            new T_tcap_entry_T(KS_US, BytePtr.lit("[US]")),
+            new T_tcap_entry_T(KS_UCE, BytePtr.lit("[UCE]")),
+            new T_tcap_entry_T(KS_UCS, BytePtr.lit("[UCS]")),
+            new T_tcap_entry_T(KS_USS, BytePtr.lit("[USS]")),
+            new T_tcap_entry_T(KS_DS, BytePtr.lit("[DS]")),
+            new T_tcap_entry_T(KS_CDS, BytePtr.lit("[CDS]")),
+            new T_tcap_entry_T(KS_STE, BytePtr.lit("[STE]")),
+            new T_tcap_entry_T(KS_STS, BytePtr.lit("[STS]")),
+            new T_tcap_entry_T(KS_MS, BytePtr.lit("[MS]")),
+            new T_tcap_entry_T(KS_UT, BytePtr.lit("[UT]")),
+            new T_tcap_entry_T(KS_XN, BytePtr.lit("[XN]")),
+            new T_tcap_entry_T(KS_CM, BytePtr.lit("[%dCM%d]")),
+            new T_tcap_entry_T(KS_SR, BytePtr.lit("[SR]")),
+            new T_tcap_entry_T(KS_CRI, BytePtr.lit("[CRI%d]")),
+            new T_tcap_entry_T(KS_VB, BytePtr.lit("[VB]")),
+            new T_tcap_entry_T(KS_KS, BytePtr.lit("[KS]")),
+            new T_tcap_entry_T(KS_KE, BytePtr.lit("[KE]")),
+            new T_tcap_entry_T(KS_TI, BytePtr.lit("[TI]")),
+            new T_tcap_entry_T(KS_TE, BytePtr.lit("[TE]")),
+            new T_tcap_entry_T(KS_CIS, BytePtr.lit("[CIS]")),
+            new T_tcap_entry_T(KS_CIE, BytePtr.lit("[CIE]")),
+            new T_tcap_entry_T(KS_CSC, BytePtr.lit("[CSC]")),
+            new T_tcap_entry_T(KS_CEC, BytePtr.lit("[CEC]")),
+            new T_tcap_entry_T(KS_TS, BytePtr.lit("[TS]")),
+            new T_tcap_entry_T(KS_FS, BytePtr.lit("[FS]")),
+            new T_tcap_entry_T(KS_CWS, BytePtr.lit("[%dCWS%d]")),
+            new T_tcap_entry_T(KS_CWP, BytePtr.lit("[%dCWP%d]")),
+            new T_tcap_entry_T(KS_CRV, BytePtr.lit("[CRV]")),
+            new T_tcap_entry_T(KS_CXM, BytePtr.lit("[CXM]")),
+            new T_tcap_entry_T(KS_U7, BytePtr.lit("[U7]")),
+            new T_tcap_entry_T(KS_RFG, BytePtr.lit("[RFG]")),
+            new T_tcap_entry_T(KS_RBG, BytePtr.lit("[RBG]")),
+            new T_tcap_entry_T(KS_CF, BytePtr.lit("[CF%d]")),
+            new T_tcap_entry_T(K_UP, BytePtr.lit("[KU]")),
+            new T_tcap_entry_T(K_DOWN, BytePtr.lit("[KD]")),
+            new T_tcap_entry_T(K_LEFT, BytePtr.lit("[KL]")),
+            new T_tcap_entry_T(K_RIGHT, BytePtr.lit("[KR]")),
+            new T_tcap_entry_T(K_XUP, BytePtr.lit("[xKU]")),
+            new T_tcap_entry_T(K_XDOWN, BytePtr.lit("[xKD]")),
+            new T_tcap_entry_T(K_XLEFT, BytePtr.lit("[xKL]")),
+            new T_tcap_entry_T(K_XRIGHT, BytePtr.lit("[xKR]")),
+            new T_tcap_entry_T(K_S_UP, BytePtr.lit("[S-KU]")),
+            new T_tcap_entry_T(K_S_DOWN, BytePtr.lit("[S-KD]")),
+            new T_tcap_entry_T(K_TC_HASH_4, BytePtr.lit("[S-KL]")),
+            new T_tcap_entry_T(K_C_LEFT, BytePtr.lit("[C-KL]")),
+            new T_tcap_entry_T(K_TC_PCT_i, BytePtr.lit("[S-KR]")),
+            new T_tcap_entry_T(K_C_RIGHT, BytePtr.lit("[C-KR]")),
+            new T_tcap_entry_T(K_F1, BytePtr.lit("[F1]")),
+            new T_tcap_entry_T(K_XF1, BytePtr.lit("[xF1]")),
+            new T_tcap_entry_T(K_F2, BytePtr.lit("[F2]")),
+            new T_tcap_entry_T(K_XF2, BytePtr.lit("[xF2]")),
+            new T_tcap_entry_T(K_F3, BytePtr.lit("[F3]")),
+            new T_tcap_entry_T(K_XF3, BytePtr.lit("[xF3]")),
+            new T_tcap_entry_T(K_F4, BytePtr.lit("[F4]")),
+            new T_tcap_entry_T(K_XF4, BytePtr.lit("[xF4]")),
+            new T_tcap_entry_T(K_F5, BytePtr.lit("[F5]")),
+            new T_tcap_entry_T(K_F6, BytePtr.lit("[F6]")),
+            new T_tcap_entry_T(K_F7, BytePtr.lit("[F7]")),
+            new T_tcap_entry_T(K_F8, BytePtr.lit("[F8]")),
+            new T_tcap_entry_T(K_F9, BytePtr.lit("[F9]")),
+            new T_tcap_entry_T(K_F10, BytePtr.lit("[F10]")),
+            new T_tcap_entry_T(K_F11, BytePtr.lit("[F11]")),
+            new T_tcap_entry_T(K_F12, BytePtr.lit("[F12]")),
+            new T_tcap_entry_T(K_S_F1, BytePtr.lit("[S-F1]")),
+            new T_tcap_entry_T(K_S_XF1, BytePtr.lit("[S-xF1]")),
+            new T_tcap_entry_T(K_S_F2, BytePtr.lit("[S-F2]")),
+            new T_tcap_entry_T(K_S_XF2, BytePtr.lit("[S-xF2]")),
+            new T_tcap_entry_T(K_S_F3, BytePtr.lit("[S-F3]")),
+            new T_tcap_entry_T(K_S_XF3, BytePtr.lit("[S-xF3]")),
+            new T_tcap_entry_T(K_S_F4, BytePtr.lit("[S-F4]")),
+            new T_tcap_entry_T(K_S_XF4, BytePtr.lit("[S-xF4]")),
+            new T_tcap_entry_T(K_S_F5, BytePtr.lit("[S-F5]")),
+            new T_tcap_entry_T(K_S_F6, BytePtr.lit("[S-F6]")),
+            new T_tcap_entry_T(K_S_F7, BytePtr.lit("[S-F7]")),
+            new T_tcap_entry_T(K_S_F8, BytePtr.lit("[S-F8]")),
+            new T_tcap_entry_T(K_S_F9, BytePtr.lit("[S-F9]")),
+            new T_tcap_entry_T(K_S_F10, BytePtr.lit("[S-F10]")),
+            new T_tcap_entry_T(K_S_F11, BytePtr.lit("[S-F11]")),
+            new T_tcap_entry_T(K_S_F12, BytePtr.lit("[S-F12]")),
+            new T_tcap_entry_T(K_HELP, BytePtr.lit("[HELP]")),
+            new T_tcap_entry_T(K_UNDO, BytePtr.lit("[UNDO]")),
+            new T_tcap_entry_T(K_BS, BytePtr.lit("[BS]")),
+            new T_tcap_entry_T(K_INS, BytePtr.lit("[INS]")),
+            new T_tcap_entry_T(K_KINS, BytePtr.lit("[KINS]")),
+            new T_tcap_entry_T(K_DEL, BytePtr.lit("[DEL]")),
+            new T_tcap_entry_T(K_KDEL, BytePtr.lit("[KDEL]")),
+            new T_tcap_entry_T(K_HOME, BytePtr.lit("[HOME]")),
+            new T_tcap_entry_T(K_TC_HASH_2, BytePtr.lit("[C-HOME]")),
+            new T_tcap_entry_T(K_C_HOME, BytePtr.lit("[C-HOME]")),
+            new T_tcap_entry_T(K_KHOME, BytePtr.lit("[KHOME]")),
+            new T_tcap_entry_T(K_XHOME, BytePtr.lit("[XHOME]")),
+            new T_tcap_entry_T(K_ZHOME, BytePtr.lit("[ZHOME]")),
+            new T_tcap_entry_T(K_END, BytePtr.lit("[END]")),
+            new T_tcap_entry_T(K_TC_STAR_7, BytePtr.lit("[C-END]")),
+            new T_tcap_entry_T(K_C_END, BytePtr.lit("[C-END]")),
+            new T_tcap_entry_T(K_KEND, BytePtr.lit("[KEND]")),
+            new T_tcap_entry_T(K_XEND, BytePtr.lit("[XEND]")),
+            new T_tcap_entry_T(K_ZEND, BytePtr.lit("[ZEND]")),
+            new T_tcap_entry_T(K_PAGEUP, BytePtr.lit("[PAGEUP]")),
+            new T_tcap_entry_T(K_PAGEDOWN, BytePtr.lit("[PAGEDOWN]")),
+            new T_tcap_entry_T(K_KPAGEUP, BytePtr.lit("[KPAGEUP]")),
+            new T_tcap_entry_T(K_KPAGEDOWN, BytePtr.lit("[KPAGEDOWN]")),
+            new T_tcap_entry_T(K_KPLUS, BytePtr.lit("[KPLUS]")),
+            new T_tcap_entry_T(K_KMINUS, BytePtr.lit("[KMINUS]")),
+            new T_tcap_entry_T(K_KDIVIDE, BytePtr.lit("[KDIVIDE]")),
+            new T_tcap_entry_T(K_KMULTIPLY, BytePtr.lit("[KMULTIPLY]")),
+            new T_tcap_entry_T(K_KENTER, BytePtr.lit("[KENTER]")),
+            new T_tcap_entry_T(K_KPOINT, BytePtr.lit("[KPOINT]")),
+            new T_tcap_entry_T(K_PASTESTART, BytePtr.lit("[PASTE-START]")),
+            new T_tcap_entry_T(K_PASTEEND, BytePtr.lit("[PASTE-END]")),
+            new T_tcap_entry_T(K_K0, BytePtr.lit("[K0]")),
+            new T_tcap_entry_T(K_K1, BytePtr.lit("[K1]")),
+            new T_tcap_entry_T(K_K2, BytePtr.lit("[K2]")),
+            new T_tcap_entry_T(K_K3, BytePtr.lit("[K3]")),
+            new T_tcap_entry_T(K_K4, BytePtr.lit("[K4]")),
+            new T_tcap_entry_T(K_K5, BytePtr.lit("[K5]")),
+            new T_tcap_entry_T(K_K6, BytePtr.lit("[K6]")),
+            new T_tcap_entry_T(K_K7, BytePtr.lit("[K7]")),
+            new T_tcap_entry_T(K_K8, BytePtr.lit("[K8]")),
+            new T_tcap_entry_T(K_K9, BytePtr.lit("[K9]")),
+            new T_tcap_entry_T());
+    }
+
+    private void initGlobals5() {
         Rt.rows(builtin_256colors,
             new T_tcap_entry_T(KS_CCO, BytePtr.lit("256")),
             new T_tcap_entry_T(KS_CAB, BytePtr.lit("\033[48;5;%dm")),
@@ -4314,9 +3944,10 @@ public abstract class Editor {
             new T_builtin_tcap_T());
         min_set_ch = 1;
         command_frame_height = TRUE;
-        main_errors[0] = BytePtr.lit("Unknown option argument");
-        main_errors[1] = BytePtr.lit("Too many \"+command\", \"-c command\" or \"--cmd command\" arguments");
-        main_errors[2] = BytePtr.lit("Invalid argument for");
+        Rt.rows(main_errors,
+            BytePtr.lit("Unknown option argument"),
+            BytePtr.lit("Too many \"+command\", \"-c command\" or \"--cmd command\" arguments"),
+            BytePtr.lit("Invalid argument for"));
         ex_substitute_subflags.do_error = TRUE;
         Rt.rows(cterm_idx_to_rgb_cube,
             0, 95, 135, 175, 215, 255);
@@ -4446,9 +4077,6 @@ public abstract class Editor {
             new S_interval(129776L, 129784L),
             new S_interval(131072L, 196605L),
             new S_interval(196608L, 262141L));
-    }
-
-    private void initGlobals6() {
         Rt.rows(utf_char2cells_emoji_wide,
             new S_interval(9197L, 9199L),
             new S_interval(9201L, 9202L),
@@ -4861,7 +4489,7 @@ public abstract class Editor {
             new S_interval(917760L, 917999L));
     }
 
-    private void initGlobals7() {
+    private void initGlobals6() {
         Rt.rows(utf_printable_nonprint,
             new S_interval(1807L, 1807L),
             new S_interval(6155L, 6158L),
@@ -4950,14 +4578,9 @@ public abstract class Editor {
             K_MOUSERIGHT, K_X1MOUSE, K_X1DRAG, K_X1RELEASE, K_X2MOUSE, K_X2DRAG, K_X2RELEASE, K_CURSORHOLD, K_COMMAND,
             K_SCRIPT_COMMAND, 0);
         Rt.init(v_visop_trans, "YyDdCcxdXdAAIIrr");
-        nv_optrans_ar[0] = BytePtr.lit("dl");
-        nv_optrans_ar[1] = BytePtr.lit("dh");
-        nv_optrans_ar[2] = BytePtr.lit("d$");
-        nv_optrans_ar[3] = BytePtr.lit("c$");
-        nv_optrans_ar[4] = BytePtr.lit("cl");
-        nv_optrans_ar[5] = BytePtr.lit("cc");
-        nv_optrans_ar[6] = BytePtr.lit("yy");
-        nv_optrans_ar[7] = BytePtr.lit(":s\015");
+        Rt.rows(nv_optrans_ar,
+            BytePtr.lit("dl"), BytePtr.lit("dh"), BytePtr.lit("d$"), BytePtr.lit("c$"), BytePtr.lit("cl"),
+            BytePtr.lit("cc"), BytePtr.lit("yy"), BytePtr.lit(":s\015"));
         nv_optrans_str = BytePtr.lit("xXDCsSY&");
         vim_handle_signal_blocked = true;
         Rt.rows(get_char_class_char_class_tab,

@@ -966,33 +966,44 @@ func (j *jgen) fields() (string, []string, []string) {
 			}
 		}
 	}
-	// the fields an initial value names: an element of one may be held
-	// before its table is written, so its rows are not replaced
+	// the fields an initial value names before their own rows are written:
+	// it may hold an element the rows replace.  The initial values are
+	// written in this order -- the file's objects, then the hoisted statics
+	// -- so a table named only by what comes after it is written first.
 	statics := map[*cc.Declarator]string{}
-	for _, s := range j.g.a.statics {
-		statics[s.d] = j.staticName(s.fn, s.d.Name())
+	pos := map[string]int{}
+	for i, name := range order {
+		pos[j.jName(name)] = i
 	}
-	named := func(in *cc.Initializer) {
+	for i, s := range j.g.a.statics {
+		statics[s.d] = j.staticName(s.fn, s.d.Name())
+		pos[statics[s.d]] = len(order) + i
+	}
+	named := func(in *cc.Initializer, at int) {
 		walkNodes(in, func(n cc.Node) {
 			d := identDecl(n)
 			if d == nil {
 				return
 			}
+			name := ""
 			if s, ok := statics[d]; ok {
-				j.initNamed[s] = true
+				name = s
 			} else if _, ok := globals[d.Name()]; ok && d.StorageDuration() == cc.Static {
-				j.initNamed[j.jName(d.Name())] = true
+				name = j.jName(d.Name())
+			}
+			if name != "" && pos[name] >= at {
+				j.initNamed[name] = true
 			}
 		})
 	}
-	for _, name := range order {
+	for i, name := range order {
 		if in := globals[name].in; in != nil {
-			named(in)
+			named(in, i)
 		}
 	}
-	for _, s := range j.g.a.statics {
+	for i, s := range j.g.a.statics {
 		if s.init != nil {
-			named(s.init)
+			named(s.init, len(order)+i)
 		}
 	}
 	for _, name := range order {

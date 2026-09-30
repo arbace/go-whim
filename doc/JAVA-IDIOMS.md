@@ -285,13 +285,19 @@ ways. A line breaker fix went first (`jbreak`: the rest of a broken line
 breaks at the call it is in; lines over 120 columns 148 -> 119, the same
 classes byte for byte).
 
-Not done:
-- `builtin_xterm`, `builtin_debug` and the other terminals, which
-  `builtin_terminals` names, so a row would replace an element it holds;
-- `opchars`, an array of arrays;
-- the smaller tables of arrays and the statics' tables (`highlight_tab`,
-  `highlight_init_both`).
-The records the survey mentions are not done either.
+**And the rest** (2026-09-30): a table of references is `Rt.rows(t,
+BytePtr.lit("all"), ...)` (the `p_*_values` lists, `highlight_init_*`,
+`history_names`), and a table of arrays an array a row, as long as the C's
+(`opchars`: `new byte[] {'d', NUL, OPF_CHANGE}`). A table another initial
+value names keeps its statements only when that value is written at or
+before it: the rows keep the array, so a later value that holds it
+(`builtin_terminals` holding `builtin_xterm`) sees them, and only an
+element held before its row is written would go stale. That frees the
+builtin terminals. 69 tables are rows; no table is written a member at a
+time any more (829 statements -> 0 in the initialisers). `Editor.java`
+55,415 -> 55,038 lines. The dump against the editor from before item 5 is
+the same, 18,529 lines, and its control (`opchars[1]`'s third byte) is
+seen. The records the survey mentions are not done.
 
 - **The pattern:** the C's tables are initialised one member per statement:
   `foldCase[0].rangeStart = 65; foldCase[0].rangeEnd = 90; ...` (`:8206`) for

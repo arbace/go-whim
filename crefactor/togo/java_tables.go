@@ -152,6 +152,54 @@ func (f *jfn) rowsInit(target, name string, t cc.Type, key string, in *cc.Initia
 		f.rowsText(target, rows, false)
 		return true
 	}
+	ejt := f.jt(elem, "elem:"+key)
+	switch elem.Kind() {
+	case cc.Ptr:
+		// a table of references: each as the element takes it
+		for _, it := range items {
+			if it.Case != cc.InitializerExpr {
+				return false
+			}
+			v, ok := f.rowScalar(it.AssignmentExpression, elem, ejt, false)
+			if !ok {
+				return false
+			}
+			rows = append(rows, v)
+		}
+		f.rowsText(target, rows, false)
+		return true
+	case cc.Array:
+		// a table of arrays of numbers or references: an array a row, as
+		// long as the C's, what the row does not say its zero
+		inner := elem.(*cc.ArrayType)
+		switch inner.Elem().Kind() {
+		case cc.Array, cc.Struct, cc.Union:
+			return false
+		}
+		ijt := elemJ(ejt)
+		for _, it := range items {
+			if it.Case != cc.InitializerInitList {
+				return false
+			}
+			var els []string
+			for l := it.InitializerList; l != nil; l = l.InitializerList {
+				if l.Designation != nil || l.Initializer.Case != cc.InitializerExpr {
+					return false
+				}
+				v, ok := f.rowScalar(l.Initializer.AssignmentExpression, inner.Elem(), ijt, false)
+				if !ok {
+					return false
+				}
+				els = append(els, v)
+			}
+			for int64(len(els)) < inner.Len() {
+				els = append(els, zeroOf(ijt))
+			}
+			rows = append(rows, "new "+raw(ijt)+"[] {"+strings.Join(els, ", ")+"}")
+		}
+		f.rowsText(target, rows, true)
+		return true
+	}
 	if _, rowOK := f.j.rowClass(elem); !rowOK {
 		return false
 	}
@@ -299,9 +347,14 @@ func (f *jfn) rowArg(v jval, k, pk jk) string {
 	return jlit(jwant(v.cv, k), pk)
 }
 
-// rowsText writes Rt.rows(target, ...): a row a line, or numbers as many
-// to a line as fit.
+// rowsText writes Rt.rows(target, ...): a row a line, or short rows --
+// numbers, short strings -- as many to a line as fit.
 func (f *jfn) rowsText(target string, rows []string, oneALine bool) {
+	for _, r := range rows {
+		if len(r) > 30 {
+			oneALine = true
+		}
+	}
 	ind := strings.Repeat("    ", f.indent+1)
 	f.line("Rt.rows(%s,", target)
 	if oneALine {
