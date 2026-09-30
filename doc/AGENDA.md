@@ -9,7 +9,13 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-Nothing queued.
+- **Phase 184: more flags `bool`** (measured 2026-09-30, `doc/JAVA-IDIOMS.md`
+  item 7). Phase 183's rule keeps int the flags that the Java still sets
+  `= TRUE`/`= FALSE` 379 times (`redraw_cmdline`, `msg_scroll`, `got_int`,
+  `msg_didout`, `need_wait_return`, `did_cursorhold`), for three reasons
+  the rule could drop: a save-and-restore cycle (a greatest fixed point
+  proves it), a literal 0 or 1 assigned, and `|=` of an answer. A C phase,
+  so every editor gains; the build and its checks, about 40 minutes.
 
 ## Known stale, not yet scoped
 

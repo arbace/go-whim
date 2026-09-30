@@ -337,6 +337,15 @@ func jnot(s string) string {
 	return "!" + jparen(s)
 }
 
+// boolIs is the answer b compared for equality (eq) or not with a truth
+// value (one): b, or its negation.
+func boolIs(b string, eq, one bool) string {
+	if eq == one {
+		return b
+	}
+	return jnot(b)
+}
+
 // flipEq is s, a comparison for equality at its top, as its negation: a ==
 // b as a != b and the reverse, where nothing binds more loosely than the
 // one == or != beside it at the top.
@@ -1348,6 +1357,18 @@ func (f *jfn) compare(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) 
 		return jval{s: a + "." + m + "(" + b + ")", t: "boolean", c: x.Type()}
 	}
 	l, r := f.expr(le), f.expr(re)
+	if op == "==" || op == "!=" {
+		// answers compared: two as themselves, not as C's 0 and 1; one with
+		// 0 or 1 -- OK, FALSE -- as itself or its negation
+		switch {
+		case l.t == "boolean" && r.t == "boolean":
+			return jval{s: jparen(l.s) + " " + op + " " + jparen(r.s), t: "boolean", c: x.Type()}
+		case l.t == "boolean" && r.konst && (r.cv == 0 || r.cv == 1):
+			return jval{s: boolIs(l.s, op == "==", r.cv == 1), t: "boolean", c: x.Type()}
+		case r.t == "boolean" && l.konst && (l.cv == 0 || l.cv == 1):
+			return jval{s: boolIs(r.s, op == "==", l.cv == 1), t: "boolean", c: x.Type()}
+		}
+	}
 	kl, okl := scalarKind(lt)
 	kr, okr := scalarKind(rt)
 	if !okl || !okr {

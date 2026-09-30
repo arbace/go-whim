@@ -5062,7 +5062,7 @@ public abstract class Editor {
         }
         if ((got_int != 0 && vim_strchr(p_cpo[0], CPO_INTMOD) != null) || curbuf.b_modified_was_set) {
             changed();
-        } else if ((retval ? 1 : 0) == OK) {
+        } else if (retval) {
             unchanged(curbuf, false, true);
         }
         curbuf.b_last_changedtick = curbuf.b_changedtick;
@@ -5074,7 +5074,7 @@ public abstract class Editor {
         if ((curwin.w_valid & VALID_TOPLINE) == 0) {
             curwin.w_topline = 1L;
         }
-        if ((retval ? 1 : 0) != OK) {
+        if (!retval) {
             return retval;
         }
         if (bufref_valid(old_curbuf) && old_curbuf.br_buf.b_ml.ml_root != null) {
@@ -8672,8 +8672,7 @@ public abstract class Editor {
         if (redraw_cmdline != 0 || always || wp.w_cursor.lnum != wp.w_ru_cursor.lnum
                 || wp.w_cursor.col != wp.w_ru_cursor.col || wp.w_virtcol[0] != wp.w_ru_virtcol
                 || wp.w_cursor.coladd != wp.w_ru_cursor.coladd || wp.w_topline != wp.w_ru_topline
-                || wp.w_buffer.b_ml.ml_line_count != wp.w_ru_line_count
-                || (empty_line ? 1 : 0) != (wp.w_ru_empty ? 1 : 0)) {
+                || wp.w_buffer.b_ml.ml_line_count != wp.w_ru_line_count || empty_line != wp.w_ru_empty) {
             int row;
             int fillchar;
             int attr = 0;
@@ -13318,7 +13317,7 @@ public abstract class Editor {
             }
             no_wait_return--;
             msg_scroll = FALSE;
-            if ((retval ? 1 : 0) == FAIL) {
+            if (!retval) {
                 need_wait_return = FALSE;
                 msg_didany = false;
             } else if (need_wait_return != 0) {
@@ -16315,7 +16314,7 @@ public abstract class Editor {
         } else {
             retval = true;
         }
-        if ((retval ? 1 : 0) == OK) {
+        if (retval) {
             if (!ccline.overstrike) {
                 Rt.memmove(ccline.cmdbuff.add(ccline.cmdpos).add(len), ccline.cmdbuff.add(ccline.cmdpos),
                         (long) (ccline.cmdlen - ccline.cmdpos));
@@ -18164,7 +18163,7 @@ public abstract class Editor {
                 i = ins_typebuf(map_str, noremap, 0, true, cmd_silent || mp.m_silent != 0 ? 1 : 0);
             }
             keylenp = keylen;
-            if ((i ? 1 : 0) == FAIL) {
+            if (!i) {
                 out__.r__ = map_result_fail;
                 out__.keylenp = keylenp;
                 out__.timedout = timedout;
@@ -19239,10 +19238,9 @@ public abstract class Editor {
         for (i = 0; i < table.ga_len; i++) {
             taep = GA_Ptr_S_attr_entry(table).at(i);
             if ((int) aep.ae_attr == (int) taep.ae_attr
-                    && ((table == term_attr_table
-                    && (aep.ae_u.term.start == null ? 1 : 0) == (taep.ae_u.term.start == null ? 1 : 0)
+                    && ((table == term_attr_table && (aep.ae_u.term.start == null) == (taep.ae_u.term.start == null)
                     && (aep.ae_u.term.start == null || musl_strcmp(aep.ae_u.term.start, taep.ae_u.term.start) == 0)
-                    && (aep.ae_u.term.stop == null ? 1 : 0) == (taep.ae_u.term.stop == null ? 1 : 0)
+                    && (aep.ae_u.term.stop == null) == (taep.ae_u.term.stop == null)
                     && (aep.ae_u.term.stop == null || musl_strcmp(aep.ae_u.term.stop, taep.ae_u.term.stop) == 0))
                     || (table == cterm_attr_table
                     && (aep.ae_u.cterm.fg_color & 0xffff) == (taep.ae_u.cterm.fg_color & 0xffff)
@@ -21119,7 +21117,7 @@ public abstract class Editor {
                     while (p.lt(new BytePtr(keys_unescaped, 0).add((int) keys_unescaped_len))) {
                         n++;
                         last = vim_iswordp(p);
-                        if (same == -1 && (last ? 1 : 0) != (first ? 1 : 0)) {
+                        if (same == -1 && last != first) {
                             same = n - 1;
                         }
                         p = p.add(utfc_ptr2len(p));
@@ -21721,7 +21719,7 @@ public abstract class Editor {
         } else if (c == '<' || c == '>') {
             startp = buf.b_visual.vi_start;
             endp = buf.b_visual.vi_end;
-            if (((c == '<' ? 1 : 0) == ((startp.lnum != endp.lnum ? startp.lnum < endp.lnum : (startp.col != endp.col ? startp.col < endp.col : startp.coladd < endp.coladd)) ? 1 : 0) || endp.lnum == 0L) && startp.lnum != 0L) {
+            if (((c == '<') == (startp.lnum != endp.lnum ? startp.lnum < endp.lnum : (startp.col != endp.col ? startp.col < endp.col : startp.coladd < endp.coladd)) || endp.lnum == 0L) && startp.lnum != 0L) {
                 posp = startp;
             } else {
                 posp = endp;
@@ -22312,7 +22310,7 @@ public abstract class Editor {
         S_matchitem prev = cur;
         int rtype = UPD_SOME_VALID;
         if (id < 1) {
-            if ((perr ? 1 : 0) == TRUE) {
+            if (perr) {
                 vim_snprintf(IObuff, emsg_iobuff_room(),
                         new BytePtr(e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2, 0), id);
                 emsg(iobuff_or(new BytePtr(e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2, 0)));
@@ -22324,7 +22322,7 @@ public abstract class Editor {
             cur = cur.mit_next;
         }
         if (cur == null) {
-            if ((perr ? 1 : 0) == TRUE) {
+            if (perr) {
                 vim_snprintf(IObuff, emsg_iobuff_room(), new BytePtr(e_id_not_found_nr, 0), id);
                 emsg(iobuff_or(new BytePtr(e_id_not_found_nr, 0)));
             }
@@ -26608,7 +26606,7 @@ public abstract class Editor {
 
     private boolean coladvance(int wantcol) {
         boolean rc = getvpos(curwin.w_cursor, wantcol);
-        if (wantcol == MAXCOL || (rc ? 1 : 0) == FAIL) {
+        if (wantcol == MAXCOL || !rc) {
             curwin.w_valid &= ~VALID_VIRTCOL;
         } else if (ml_get_cursor().get() != TAB) {
             set_valid_virtcol(curwin, wantcol);
@@ -26658,7 +26656,7 @@ public abstract class Editor {
             }
             col = cts.cts_vcol;
             idx = (int) cts.cts_ptr.sub(line);
-            if (col > wcol || (virtual_active() == 0 && (one_more ? 1 : 0) == 0)) {
+            if (col > wcol || (virtual_active() == 0 && !one_more)) {
                 idx -= 1;
                 col -= csize;
             }
@@ -28198,7 +28196,7 @@ public abstract class Editor {
             curwin.w_curswant = col;
             rc = coladvance(curwin.w_curswant);
             curwin.w_valid &= ~(VALID_WROW | VALID_WCOL | VALID_CHEIGHT | VALID_CROW | VALID_VIRTCOL);
-            if ((rc ? 1 : 0) == FAIL && curwin.w_skipcol > 0 && curwin.w_cursor.lnum < curbuf.b_ml.ml_line_count) {
+            if (!rc && curwin.w_skipcol > 0 && curwin.w_cursor.lnum < curbuf.b_ml.ml_line_count) {
                 validate_virtcol();
                 if (curwin.w_virtcol[0] < curwin.w_skipcol + overlap) {
                     curwin.w_cursor.lnum++;
@@ -30272,7 +30270,7 @@ public abstract class Editor {
                 restart_edit = 0;
             }
         }
-        if ((cmd_result ? 1 : 0) == FAIL) {
+        if (!cmd_result) {
             clearop(cap.oap);
         } else if (cap.oap.op_type != OP_NOP
                 && (cap.oap.start.lnum > curbuf.b_ml.ml_line_count
@@ -32158,7 +32156,7 @@ public abstract class Editor {
             default -> flag = false;
         }
         curbuf.b_p_mps[0] = mps_save;
-        if ((flag ? 1 : 0) == FAIL) {
+        if (!flag) {
             clearopbeep(cap.oap);
         }
         adjust_cursor_col();
@@ -40938,8 +40936,7 @@ public abstract class Editor {
                         if (got_int != 0) {
                             break;
                         }
-                    } else if ((vim_isprintc(utf_ptr2char(scan)) ? 1 : 0) == 1
-                            && (testval != 0 || !ascii_isdigit(scan.u()))) {
+                    } else if (vim_isprintc(utf_ptr2char(scan)) && (testval != 0 || !ascii_isdigit(scan.u()))) {
                         scan = scan.add(utfc_ptr2len(scan));
                     } else if (re.rex.reg_line_lbr && scan.get() == '\n'
                             && (p.u() >= ANY + ADD_NL && p.u() <= NUPPER + ADD_NL)) {
@@ -41618,7 +41615,7 @@ public abstract class Editor {
                             BytePtr q = scan.add(3);
                             if (c == NUL) {
                                 status = RA_NOMATCH;
-                            } else if ((cstrchr(re, q, c) == null ? 1 : 0) == (op == ANYOF ? 1 : 0)) {
+                            } else if ((cstrchr(re, q, c) == null) == (op == ANYOF)) {
                                 status = RA_NOMATCH;
                             } else {
                                 int len_2 = 0;
@@ -43047,7 +43044,7 @@ public abstract class Editor {
                 }
                 escaped = vim_strsave_escape_csi(str);
                 retval = ins_typebuf(escaped, remap, 0, true, silent ? 1 : 0);
-                if ((retval ? 1 : 0) == FAIL) {
+                if (!retval) {
                     return false;
                 }
                 if (colon && !ins_typebuf(BytePtr.lit(":"), remap, 0, true, silent ? 1 : 0)) {
@@ -43093,7 +43090,7 @@ public abstract class Editor {
         if (colon) {
             retval = ins_typebuf(BytePtr.lit("\n"), -1, 0, true, silent ? 1 : 0);
         }
-        if ((retval ? 1 : 0) == OK) {
+        if (retval) {
             BytePtr p;
             if (esc) {
                 p = vim_strsave_escape_csi(s);
@@ -43106,7 +43103,7 @@ public abstract class Editor {
                 retval = ins_typebuf(p, esc ? -1 : REMAP_YES, 0, true, silent ? 1 : 0);
             }
         }
-        if (colon && (retval ? 1 : 0) == OK) {
+        if (colon && retval) {
             retval = ins_typebuf(BytePtr.lit(":"), -1, 0, true, silent ? 1 : 0);
         }
         return retval;
@@ -50937,7 +50934,7 @@ public abstract class Editor {
                 && curwin.w_cursor.coladd == VIsual.coladd)) {
             back_in_line();
             start_pos.set(curwin.w_cursor);
-            if ((cls() == 0 ? 1 : 0) == (include ? 1 : 0)) {
+            if ((cls() == 0) == include) {
                 if (!end_word(1L, bigword ? 1 : 0, true, true)) {
                     return false;
                 }
@@ -50968,7 +50965,7 @@ public abstract class Editor {
                 if (decl(curwin.w_cursor) == -1) {
                     return false;
                 }
-                if ((include ? 1 : 0) != (cls() != 0 ? 1 : 0)) {
+                if (include != (cls() != 0)) {
                     if (!bck_word(1L, bigword ? 1 : 0, true)) {
                         return false;
                     }
@@ -50982,7 +50979,7 @@ public abstract class Editor {
                 if (incl(curwin.w_cursor) == -1) {
                     return false;
                 }
-                if ((include ? 1 : 0) != (cls() == 0 ? 1 : 0)) {
+                if (include != (cls() == 0)) {
                     if (!fwd_word(1L, bigword ? 1 : 0, TRUE) && count > 1L) {
                         return false;
                     }
@@ -51517,7 +51514,7 @@ public abstract class Editor {
             retval = true;
         }
         check_shellsize();
-        if ((retval ? 1 : 0) == OK) {
+        if (retval) {
             set_number_default(BytePtr.lit("lines"), Rows[0]);
             set_number_default(BytePtr.lit("columns"), Columns[0]);
         }

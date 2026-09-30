@@ -399,6 +399,23 @@ shadowed by a local stays `int`. In the Java: `VIsual_active != 0` and
 : 0` 183 -> 173. What is left of them is ints that hold more than an
 answer, or flags one of those rules keeps.
 
+**What is left, surveyed** (2026-09-30). `? 1 : 0`, 173: 54 an answer stored
+in an int, 27 arithmetic (`n - (c == NUL ? 1 : 0)`), 17 an answer compared
+with a truth constant (`(retval ? 1 : 0) == OK`, the C's `retval == OK` on a
+`bool`), 15 two answers compared as numbers, the rest indexes and arguments.
+The printer now compares answers as themselves (`empty_line !=
+wp.w_ru_empty`, `else if (retval)`): 173 -> 138, a control seen.
+`TRUE`/`FALSE`, 873: 378 arguments -- 155 of them rows of `key_name_entry`
+and `nv_cmds`, whose members a positional initialiser fills and so stay
+int -- and 379 assignments, to flags phase 183's rule keeps int for three
+reasons it could drop:
+- the save-and-restore idiom, `int save = msg_scroll; ... msg_scroll =
+  save;`, a cycle a least fixed point never proves (a greatest would);
+- a literal 0 or 1 assigned (`got_int = 0`, `need_wait_return = 0`),
+  which the rule takes for no answer;
+- `|=` of an answer (`got_int |= ...`, `msg_didout |= ...`).
+Those three are a phase 184, queued in `doc/AGENDA.md`.
+
 - **The pattern:** phase 166 made the core's yes-or-no functions, locals,
   members and parameters `bool`, and not the file-scope objects: **92** are
   still `static int x = TRUE;` or `= FALSE;` in `whim-vim.c` (`VIsual_active`,

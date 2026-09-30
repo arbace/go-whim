@@ -1517,9 +1517,12 @@ static int left(int m)
     }
     return m;
 }
+static _Bool big(int x) { return x > 2; }
 void run(void)
 {
     int j;
+    out(big(3) == 1);
+    out(big(1) != big(5));
     fill(4);
     out(sum_back(4));
     out(left(1));
@@ -1553,6 +1556,7 @@ func TestJavaControl2(t *testing.T) {
 		{"inline condition step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(--k >= 0\)`), "(k-- >= 0)"},
 		{"inline assignment", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(v = buf\[--k\]\)`), "(v = buf[k--])"},
 		{"sequenced step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`--m == 0`), "m-- == 0"},
+		{"answers compared", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`big\(1\) != big\(5\)`), "big(1) == big(5)"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			dir := t.TempDir()
@@ -1864,7 +1868,7 @@ func TestJavaFiles(t *testing.T) {
 func TestJavaSteps(t *testing.T) {
 	prog := javaSame(t, javaStepsC)
 	for _, want := range []string{"buf[i++] = v;", "while (--k >= 0)", "buf2[n++] = k;",
-		"(v = buf[--k]) != 0", "m > 0 && --m == 0"} {
+		"(v = buf[--k]) != 0", "m > 0 && --m == 0", "big(1) != big(5)"} {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in\n%s", want, numbered(prog))
 		}
