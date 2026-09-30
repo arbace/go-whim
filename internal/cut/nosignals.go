@@ -54,6 +54,8 @@ var nosignalsCuts = []struct {
 // the same hole.
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
+//
+//lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
 const cookTerminalNote = `// settmode() returns at once when !full_screen, and deathtrap()
 // clears it before this runs -- so on the way out from a signal
 // the one thing this function exists for never happened: the

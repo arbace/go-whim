@@ -12,7 +12,6 @@ package p143
 // $state/old.c, for the check.
 
 import (
-	"fmt"
 	"io"
 	"strings"
 
@@ -138,7 +137,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if strings.Contains(s, "goto ") || strings.Contains(s, "collection:") {
 		return nil, p.Die("regatom() still jumps")
 	}
-	p.Say(fmt.Sprintf("regatom() dispatches on sw in a loop that runs once, and `\\_[` dispatches again to the collection: no goto left"))
+	p.Say("regatom() dispatches on sw in a loop that runs once, and `\\_[` dispatches again to the collection: no goto left")
 
 	// the helper goes before regatom(), whose head starts the definition
 	Out := string(text[:a]) + helper + s + string(text[z:])

@@ -38,6 +38,7 @@ func checkHeavy(w io.Writer, rev string, b *builds) error {
 		return fmt.Errorf("the heavy case on %s: %w", rev, err)
 	}
 	if bytes.Contains(ref, []byte("Error reading input")) {
+		//lint:ignore ST1005 it ends in the command :q!, not in punctuation
 		return fmt.Errorf("the heavy case ran out of input on %s: its keys never reach :q!", rev)
 	}
 	type editor struct{ name, bin string }

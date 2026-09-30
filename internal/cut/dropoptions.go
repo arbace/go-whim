@@ -71,6 +71,7 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 				if !reachedBy.Match(line) {
 					continue
 				}
+				//lint:ignore ST1005 advice to a person, in sentences, quoted verbatim by the phase's record
 				return text, false, fmt.Errorf(
 					"dropoptions: '%s' is reached by name as \"%s\" here, not only "+
 						"through its variable:\n    %s\nA lookup of a row that is not "+
@@ -109,6 +110,7 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 			if len(reads) > 3 {
 				reads = reads[:3]
 			}
+			//lint:ignore ST1005 advice to a person, in sentences, quoted verbatim by the phase's record
 			return text, false, fmt.Errorf(
 				"dropoptions: '%s' still has readers of %s, so its row is not inert -- "+
 					"it is what initialises a variable live code dereferences:\n    %s\n"+
@@ -119,6 +121,7 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 	// A buffer- or window-local option's row ALSO initialises its global.
 	if !local {
 		if pv := pvOfRow.Find(text[start:rowEnd]); pv != nil && string(pv) != "PV_NONE" {
+			//lint:ignore ST1005 advice to a person, in sentences, quoted verbatim by the phase's record
 			return text, false, fmt.Errorf(
 				// One space after "startup.", not two.  The Python's string
 				// concatenation puts it there, the recorded phase output

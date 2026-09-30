@@ -16,6 +16,8 @@ import (
 // Python's own constant rather than retyped, so the two cannot drift.
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
+//
+//lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
 const nochdirFullNameNote = "// The dance that used to be here chdir'd into the leading directory of a\n" +
 	"// relative name, asked getcwd() where that landed, and chdir'd back -- so\n" +
 	"// that `..` and a symlinked directory were resolved on the way.  Nothing\n" +
@@ -68,6 +70,8 @@ const nochdirFullName = "    int buflen = 0;\n" +
 // nochdirDirname is mch_dirname, asked once.
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
+//
+//lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
 const nochdirDirnameNote = "// Asked once.  Nothing can move this process -- :cd, :lcd and :tcd are\n" +
 	"// ex_ni, :! does not fork, and mch_FullName() no longer chdirs -- so every\n" +
 	"// later call is asking the kernel a question whose answer cannot have\n" +

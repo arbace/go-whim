@@ -218,6 +218,7 @@ func Compare(cases []Case, ref, cand string) ([]string, error) {
 		// Every case ends in :q!; one that reads to EOF left a mode too late
 		// and typed the rest of its keys as text, so it tests less than it says.
 		if bytes.Contains(a, []byte("Error reading input")) {
+			//lint:ignore ST1005 it ends in the command :q!, not in punctuation
 			return nil, fmt.Errorf("%s ran out of input on the reference: its keys never reach :q!", c.Name)
 		}
 		b, eb, err := Run(cand, c.Keys)

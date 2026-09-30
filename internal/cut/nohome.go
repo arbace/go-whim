@@ -12,6 +12,8 @@ import (
 // homeReplaceCopy is what home_replace becomes: a bounded copy.
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
+//
+//lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
 const homeReplaceNote = `// A name is shown as what it is.  This was the shortening of a path under
 // $HOME to ~/..., and its thirteen callers are every place that displays a
 // file name to the user; they keep working, and see the name unchanged.

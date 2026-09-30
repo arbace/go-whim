@@ -442,7 +442,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	a, b, _ = structOf("pointer_block")
 	lines = vimtext.SpliceLines(lines, a, b+1, w128b1)
 
-	a, b, members = structOf("data_block")
+	a, _, members = structOf("data_block")
 	tails = nil
 	for _, m := range members {
 		f := strings.Fields(m)

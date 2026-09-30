@@ -14,6 +14,8 @@ import (
 // function than as a `copy_char` flag that is now always true.
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
+//
+//lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
 const envNote = `// $VAR is part of a name, not a place to look one up.  There is no
 // environment to ask, so what is left of this is the escape handling and
 // the bound on dstlen: a name reaches its caller as it was written.
