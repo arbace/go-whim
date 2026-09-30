@@ -640,7 +640,11 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 			f.stmt1("%s.set(%s)", target, v.s)
 		default:
 			v := f.exprTo(e, jt)
-			f.stmt1("%s = %s", target, f.conv(v, jt, t))
+			c := f.conv(v, jt, t)
+			if k, ok := scalarKind(t); ok {
+				c = narrowConst(c, v, k)
+			}
+			f.stmt1("%s = %s", target, c)
 		}
 		return
 	}

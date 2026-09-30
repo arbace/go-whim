@@ -801,6 +801,7 @@ public abstract class Editor {
     static final int MOKS_INITIAL = 0;
     static final int MOKS_OFF = 1;
     static final int MOPEN = 80;
+    static final int MSCR_DOWN = 0;
     static final int MSCR_UP = 1;
     static final int MSG_BUF_LEN = 480;
     static final int MSG_HIST = 4096;
@@ -2929,6 +2930,17 @@ public abstract class Editor {
         long cmd_argt;
         int cmd_addr_type;
 
+        S_cmdname() {
+        }
+
+        S_cmdname(BytePtr cmd_name, int cmd_minlen, Fn2 cmd_func, long cmd_argt, int cmd_addr_type) {
+            this.cmd_name = cmd_name;
+            this.cmd_minlen = cmd_minlen;
+            this.cmd_func = cmd_func;
+            this.cmd_argt = cmd_argt;
+            this.cmd_addr_type = cmd_addr_type;
+        }
+
         public S_cmdname set(S_cmdname o$) {
             cmd_name = o$.cmd_name;
             cmd_minlen = o$.cmd_minlen;
@@ -4074,6 +4086,14 @@ public abstract class Editor {
         BytePtr arg;
         int mode;
 
+        S_initmap() {
+        }
+
+        S_initmap(BytePtr arg, int mode) {
+            this.arg = arg;
+            this.mode = mode;
+        }
+
         public S_initmap set(S_initmap o$) {
             arg = o$.arg;
             mode = o$.mode;
@@ -4213,6 +4233,14 @@ public abstract class Editor {
         long first;
         long last;
 
+        S_interval() {
+        }
+
+        S_interval(long first, long last) {
+            this.first = first;
+            this.last = last;
+        }
+
         public S_interval set(S_interval o$) {
             first = o$.first;
             last = o$.last;
@@ -4324,6 +4352,15 @@ public abstract class Editor {
         int last;
         int class_;
 
+        S_clinterval() {
+        }
+
+        S_clinterval(int first, int last, int class_) {
+            this.first = first;
+            this.last = last;
+            this.class_ = class_;
+        }
+
         public S_clinterval set(S_clinterval o$) {
             first = o$.first;
             last = o$.last;
@@ -4353,6 +4390,16 @@ public abstract class Editor {
         int rangeEnd;
         int step;
         int offset;
+
+        T_convertStruct() {
+        }
+
+        T_convertStruct(int rangeStart, int rangeEnd, int step, int offset) {
+            this.rangeStart = rangeStart;
+            this.rangeEnd = rangeEnd;
+            this.step = step;
+            this.offset = offset;
+        }
 
         public T_convertStruct set(T_convertStruct o$) {
             rangeStart = o$.rangeStart;
@@ -4674,6 +4721,15 @@ public abstract class Editor {
         short mod_flag;
         byte name;
 
+        S_modmasktable() {
+        }
+
+        S_modmasktable(int mod_mask, int mod_flag, int name) {
+            this.mod_mask = (short) mod_mask;
+            this.mod_flag = (short) mod_flag;
+            this.name = (byte) name;
+        }
+
         public S_modmasktable set(S_modmasktable o$) {
             mod_mask = o$.mod_mask;
             mod_flag = o$.mod_flag;
@@ -4835,6 +4891,16 @@ public abstract class Editor {
         Fn5 cmd_func;
         short cmd_flags;
         short cmd_arg;
+
+        S_nv_cmd() {
+        }
+
+        S_nv_cmd(int cmd_char, Fn5 cmd_func, int cmd_flags, int cmd_arg) {
+            this.cmd_char = cmd_char;
+            this.cmd_func = cmd_func;
+            this.cmd_flags = (short) cmd_flags;
+            this.cmd_arg = (short) cmd_arg;
+        }
 
         public S_nv_cmd set(S_nv_cmd o$) {
             cmd_char = o$.cmd_char;
@@ -5469,6 +5535,14 @@ public abstract class Editor {
         int sig;
         BytePtr name;
 
+        S_signalinfo() {
+        }
+
+        S_signalinfo(int sig, BytePtr name) {
+            this.sig = sig;
+            this.name = name;
+        }
+
         public S_signalinfo set(S_signalinfo o$) {
             sig = o$.sig;
             name = o$.name;
@@ -5728,6 +5802,15 @@ public abstract class Editor {
         int a;
         int b;
         int c;
+
+        T_decomp_T() {
+        }
+
+        T_decomp_T(int a, int b, int c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
 
         public T_decomp_T set(T_decomp_T o$) {
             a = o$.a;
@@ -6279,6 +6362,14 @@ public abstract class Editor {
         int bt_entry;
         BytePtr bt_string;
 
+        T_tcap_entry_T() {
+        }
+
+        T_tcap_entry_T(int bt_entry, BytePtr bt_string) {
+            this.bt_entry = bt_entry;
+            this.bt_string = bt_string;
+        }
+
         public T_tcap_entry_T set(T_tcap_entry_T o$) {
             bt_entry = o$.bt_entry;
             bt_string = o$.bt_string;
@@ -6305,6 +6396,14 @@ public abstract class Editor {
     static final class T_builtin_tcap_T implements Struct<T_builtin_tcap_T> {
         BytePtr bitc_name;
         Ptr<T_tcap_entry_T> bitc_table;
+
+        T_builtin_tcap_T() {
+        }
+
+        T_builtin_tcap_T(BytePtr bitc_name, Ptr<T_tcap_entry_T> bitc_table) {
+            this.bitc_name = bitc_name;
+            this.bitc_table = bitc_table;
+        }
 
         public T_builtin_tcap_T set(T_builtin_tcap_T o$) {
             bitc_name = o$.bitc_name;
@@ -7835,15 +7934,14 @@ public abstract class Editor {
         initGlobals6();
         initGlobals7();
         initGlobals8();
-        initGlobals9();
-        initGlobals10();
-        initGlobals11();
-        initGlobals12();
-        initGlobals13();
-        initGlobals14();
     }
 
     private void initGlobals0() {
+        byte[] t1 = null;
+        byte[] t2 = null;
+        byte[] t3 = null;
+        byte[] t4 = null;
+        byte[] t5 = null;
         p_spk = BytePtr.lit("cursor");
         p_wh = 1L;
         p_wmh = 1L;
@@ -8059,505 +8157,209 @@ public abstract class Editor {
         Rt.init(e_leadtab_requires_tab, "E1572: 'listchars' field \"leadtab\" requires \"tab\" to be specified");
         top_file_num = 1;
         Rt.init(VIM_VERSION_DATE_ONLY, "2026 Feb 14");
-        VIM_VERSION_LONG_ONLY[0] = (byte) 'V';
-        VIM_VERSION_LONG_ONLY[1] = (byte) 'I';
-        VIM_VERSION_LONG_ONLY[2] = (byte) 'M';
-        VIM_VERSION_LONG_ONLY[3] = (byte) ' ';
-        VIM_VERSION_LONG_ONLY[4] = (byte) '-';
-        VIM_VERSION_LONG_ONLY[5] = (byte) ' ';
-        VIM_VERSION_LONG_ONLY[6] = (byte) 'V';
-        VIM_VERSION_LONG_ONLY[7] = (byte) 'i';
-        VIM_VERSION_LONG_ONLY[8] = (byte) ' ';
-        VIM_VERSION_LONG_ONLY[9] = (byte) 'I';
-        VIM_VERSION_LONG_ONLY[10] = (byte) 'M';
-        VIM_VERSION_LONG_ONLY[11] = (byte) 'p';
-        VIM_VERSION_LONG_ONLY[12] = (byte) 'r';
-        VIM_VERSION_LONG_ONLY[13] = (byte) 'o';
-        VIM_VERSION_LONG_ONLY[14] = (byte) 'v';
-        VIM_VERSION_LONG_ONLY[15] = (byte) 'e';
-        VIM_VERSION_LONG_ONLY[16] = (byte) 'd';
-        VIM_VERSION_LONG_ONLY[17] = (byte) ' ';
-        VIM_VERSION_LONG_ONLY[18] = (byte) ('0' + VIM_VERSION_MAJOR);
-        VIM_VERSION_LONG_ONLY[19] = (byte) '.';
-        VIM_VERSION_LONG_ONLY[20] = (byte) ('0' + VIM_VERSION_MINOR);
-        hisidx[0] = -1;
-        hisidx[1] = -1;
-        hisidx[2] = -1;
-        hisidx[3] = -1;
-        hisidx[4] = -1;
+        Rt.rows(VIM_VERSION_LONG_ONLY,
+            'V', 'I', 'M', ' ', '-', ' ', 'V', 'i', ' ', 'I', 'M', 'p', 'r', 'o', 'v', 'e', 'd', ' ',
+            '0' + VIM_VERSION_MAJOR, '.', '0' + VIM_VERSION_MINOR, NUL);
+        Rt.rows(hisidx,
+            -1, -1, -1, -1, -1);
         history_names[0] = BytePtr.lit("cmd");
         history_names[1] = BytePtr.lit("search");
         history_names[2] = BytePtr.lit("expr");
         history_names[3] = BytePtr.lit("input");
         last_maptick = -1;
         update_Insstart_orig = TRUE;
-        cmdnames[0].cmd_name = BytePtr.lit("append");
-        cmdnames[0].cmd_minlen = 1;
-        cmdnames[0].cmd_func = fp_ex_append;
-        cmdnames[0].cmd_argt = EX_BANG | EX_RANGE | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[1].cmd_name = BytePtr.lit("ascii");
-        cmdnames[1].cmd_minlen = 2;
-        cmdnames[1].cmd_func = fp_do_ascii;
-        cmdnames[1].cmd_argt = EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[1].cmd_addr_type = ADDR_NONE;
-        cmdnames[2].cmd_name = BytePtr.lit("change");
-        cmdnames[2].cmd_minlen = 1;
-        cmdnames[2].cmd_func = fp_ex_change;
-        cmdnames[2].cmd_argt = EX_BANG | EX_WHOLEFOLD | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[3].cmd_name = BytePtr.lit("changes");
-        cmdnames[3].cmd_minlen = 7;
-        cmdnames[3].cmd_func = fp_ex_changes;
-        cmdnames[3].cmd_argt = EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[3].cmd_addr_type = ADDR_NONE;
-        cmdnames[4].cmd_name = BytePtr.lit("cmap");
-        cmdnames[4].cmd_minlen = 2;
-        cmdnames[4].cmd_func = fp_ex_map;
-        cmdnames[4].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[4].cmd_addr_type = ADDR_NONE;
-        cmdnames[5].cmd_name = BytePtr.lit("cmapclear");
-        cmdnames[5].cmd_minlen = 5;
-        cmdnames[5].cmd_func = fp_ex_mapclear;
-        cmdnames[5].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[5].cmd_addr_type = ADDR_NONE;
-        cmdnames[6].cmd_name = BytePtr.lit("cnoremap");
-        cmdnames[6].cmd_minlen = 3;
-        cmdnames[6].cmd_func = fp_ex_map;
-        cmdnames[6].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[6].cmd_addr_type = ADDR_NONE;
-        cmdnames[7].cmd_name = BytePtr.lit("copy");
-        cmdnames[7].cmd_minlen = 2;
-        cmdnames[7].cmd_func = fp_ex_copymove;
-        cmdnames[7].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[8].cmd_name = BytePtr.lit("cquit");
-        cmdnames[8].cmd_minlen = 2;
-        cmdnames[8].cmd_func = fp_ex_cquit;
-        cmdnames[8].cmd_argt = EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_BANG;
-        cmdnames[8].cmd_addr_type = ADDR_UNSIGNED;
-        cmdnames[9].cmd_name = BytePtr.lit("cunmap");
-        cmdnames[9].cmd_minlen = 2;
-        cmdnames[9].cmd_func = fp_ex_unmap;
-        cmdnames[9].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[9].cmd_addr_type = ADDR_NONE;
-        cmdnames[10].cmd_name = BytePtr.lit("delete");
-        cmdnames[10].cmd_minlen = 1;
-        cmdnames[10].cmd_func = fp_ex_operators;
-        cmdnames[10].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[11].cmd_name = BytePtr.lit("delmarks");
-        cmdnames[11].cmd_minlen = 4;
-        cmdnames[11].cmd_func = fp_ex_delmarks;
-        cmdnames[11].cmd_argt = EX_BANG | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[11].cmd_addr_type = ADDR_NONE;
-        cmdnames[12].cmd_name = BytePtr.lit("display");
-        cmdnames[12].cmd_minlen = 2;
-        cmdnames[12].cmd_func = fp_ex_display;
-        cmdnames[12].cmd_argt = EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[12].cmd_addr_type = ADDR_NONE;
-        cmdnames[13].cmd_name = BytePtr.lit("earlier");
-        cmdnames[13].cmd_minlen = 2;
-        cmdnames[13].cmd_func = fp_ex_later;
-        cmdnames[13].cmd_argt = EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[13].cmd_addr_type = ADDR_NONE;
-        cmdnames[14].cmd_name = BytePtr.lit("filter");
-        cmdnames[14].cmd_minlen = 4;
-        cmdnames[14].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[14].cmd_argt = EX_BANG | EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM;
-        cmdnames[14].cmd_addr_type = ADDR_NONE;
-        cmdnames[15].cmd_name = BytePtr.lit("fixdel");
-        cmdnames[15].cmd_minlen = 3;
-        cmdnames[15].cmd_func = fp_do_fixdel;
-        cmdnames[15].cmd_argt = EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[15].cmd_addr_type = ADDR_NONE;
-        cmdnames[16].cmd_name = BytePtr.lit("global");
-        cmdnames[16].cmd_minlen = 1;
-        cmdnames[16].cmd_func = fp_ex_global;
-        cmdnames[16].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_DFLALL | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[17].cmd_name = BytePtr.lit("highlight");
-        cmdnames[17].cmd_minlen = 2;
-        cmdnames[17].cmd_func = fp_ex_highlight;
-        cmdnames[17].cmd_argt = EX_BANG | EX_EXTRA | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[17].cmd_addr_type = ADDR_NONE;
-        cmdnames[18].cmd_name = BytePtr.lit("history");
-        cmdnames[18].cmd_minlen = 3;
-        cmdnames[18].cmd_func = fp_ex_history;
-        cmdnames[18].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[18].cmd_addr_type = ADDR_NONE;
-        cmdnames[19].cmd_name = BytePtr.lit("insert");
-        cmdnames[19].cmd_minlen = 1;
-        cmdnames[19].cmd_func = fp_ex_append;
-        cmdnames[19].cmd_argt = EX_BANG | EX_RANGE | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[20].cmd_name = BytePtr.lit("imap");
-        cmdnames[20].cmd_minlen = 2;
-        cmdnames[20].cmd_func = fp_ex_map;
-        cmdnames[20].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[20].cmd_addr_type = ADDR_NONE;
-        cmdnames[21].cmd_name = BytePtr.lit("imapclear");
-        cmdnames[21].cmd_minlen = 5;
-        cmdnames[21].cmd_func = fp_ex_mapclear;
-        cmdnames[21].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[21].cmd_addr_type = ADDR_NONE;
-        cmdnames[22].cmd_name = BytePtr.lit("inoremap");
-        cmdnames[22].cmd_minlen = 3;
-        cmdnames[22].cmd_func = fp_ex_map;
-        cmdnames[22].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[22].cmd_addr_type = ADDR_NONE;
-        cmdnames[23].cmd_name = BytePtr.lit("iput");
-        cmdnames[23].cmd_minlen = 2;
-        cmdnames[23].cmd_func = fp_ex_iput;
-        cmdnames[23].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[24].cmd_name = BytePtr.lit("iunmap");
-        cmdnames[24].cmd_minlen = 2;
-        cmdnames[24].cmd_func = fp_ex_unmap;
-        cmdnames[24].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[24].cmd_addr_type = ADDR_NONE;
-        cmdnames[25].cmd_name = BytePtr.lit("join");
-        cmdnames[25].cmd_minlen = 1;
-        cmdnames[25].cmd_func = fp_ex_join;
-        cmdnames[25].cmd_argt = EX_BANG | EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[26].cmd_name = BytePtr.lit("k");
-        cmdnames[26].cmd_minlen = 1;
-        cmdnames[26].cmd_func = fp_ex_mark;
-        cmdnames[26].cmd_argt = EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[27].cmd_name = BytePtr.lit("keepmarks");
-        cmdnames[27].cmd_minlen = 2;
-        cmdnames[27].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[27].cmd_argt = EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM;
-        cmdnames[27].cmd_addr_type = ADDR_NONE;
-        cmdnames[28].cmd_name = BytePtr.lit("keepjumps");
-        cmdnames[28].cmd_minlen = 5;
-        cmdnames[28].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[28].cmd_argt = EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM;
-        cmdnames[28].cmd_addr_type = ADDR_NONE;
-        cmdnames[29].cmd_name = BytePtr.lit("keeppatterns");
-        cmdnames[29].cmd_minlen = 5;
-        cmdnames[29].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[29].cmd_argt = EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM;
-        cmdnames[29].cmd_addr_type = ADDR_NONE;
-        cmdnames[30].cmd_name = BytePtr.lit("list");
-        cmdnames[30].cmd_minlen = 1;
-        cmdnames[30].cmd_func = fp_ex_print;
-        cmdnames[30].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[31].cmd_name = BytePtr.lit("later");
-        cmdnames[31].cmd_minlen = 3;
-        cmdnames[31].cmd_func = fp_ex_later;
-        cmdnames[31].cmd_argt = EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[31].cmd_addr_type = ADDR_NONE;
-        cmdnames[32].cmd_name = BytePtr.lit("lockmarks");
-        cmdnames[32].cmd_minlen = 3;
-        cmdnames[32].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[32].cmd_argt = EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM;
-        cmdnames[32].cmd_addr_type = ADDR_NONE;
-        cmdnames[33].cmd_name = BytePtr.lit("move");
-        cmdnames[33].cmd_minlen = 1;
-        cmdnames[33].cmd_func = fp_ex_copymove;
-        cmdnames[33].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[34].cmd_name = BytePtr.lit("mark");
-        cmdnames[34].cmd_minlen = 2;
-        cmdnames[34].cmd_func = fp_ex_mark;
-        cmdnames[34].cmd_argt = EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[35].cmd_name = BytePtr.lit("map");
-        cmdnames[35].cmd_minlen = 3;
-        cmdnames[35].cmd_func = fp_ex_map;
-        cmdnames[35].cmd_argt = EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[35].cmd_addr_type = ADDR_NONE;
-        cmdnames[36].cmd_name = BytePtr.lit("mapclear");
-        cmdnames[36].cmd_minlen = 4;
-        cmdnames[36].cmd_func = fp_ex_mapclear;
-        cmdnames[36].cmd_argt = EX_EXTRA | EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[36].cmd_addr_type = ADDR_NONE;
-        cmdnames[37].cmd_name = BytePtr.lit("marks");
-        cmdnames[37].cmd_minlen = 5;
-        cmdnames[37].cmd_func = fp_ex_marks;
-        cmdnames[37].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[37].cmd_addr_type = ADDR_NONE;
-        cmdnames[38].cmd_name = BytePtr.lit("match");
-        cmdnames[38].cmd_minlen = 3;
-        cmdnames[38].cmd_func = fp_ex_match;
-        cmdnames[38].cmd_argt = EX_RANGE | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[38].cmd_addr_type = ADDR_OTHER;
-        cmdnames[39].cmd_name = BytePtr.lit("messages");
-        cmdnames[39].cmd_minlen = 3;
-        cmdnames[39].cmd_func = fp_ex_messages;
-        cmdnames[39].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_RANGE | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[39].cmd_addr_type = ADDR_OTHER;
-        cmdnames[40].cmd_name = BytePtr.lit("nmap");
-        cmdnames[40].cmd_minlen = 2;
-        cmdnames[40].cmd_func = fp_ex_map;
-        cmdnames[40].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[40].cmd_addr_type = ADDR_NONE;
-        cmdnames[41].cmd_name = BytePtr.lit("nmapclear");
-        cmdnames[41].cmd_minlen = 5;
-        cmdnames[41].cmd_func = fp_ex_mapclear;
-        cmdnames[41].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[41].cmd_addr_type = ADDR_NONE;
-        cmdnames[42].cmd_name = BytePtr.lit("nnoremap");
-        cmdnames[42].cmd_minlen = 2;
-        cmdnames[42].cmd_func = fp_ex_map;
-        cmdnames[42].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[42].cmd_addr_type = ADDR_NONE;
-        cmdnames[43].cmd_name = BytePtr.lit("noremap");
-        cmdnames[43].cmd_minlen = 2;
-        cmdnames[43].cmd_func = fp_ex_map;
-        cmdnames[43].cmd_argt = EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[43].cmd_addr_type = ADDR_NONE;
-        cmdnames[44].cmd_name = BytePtr.lit("nohlsearch");
-        cmdnames[44].cmd_minlen = 3;
-        cmdnames[44].cmd_func = fp_ex_nohlsearch;
-        cmdnames[44].cmd_argt = EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[44].cmd_addr_type = ADDR_NONE;
-        cmdnames[45].cmd_name = BytePtr.lit("normal");
-        cmdnames[45].cmd_minlen = 4;
-        cmdnames[45].cmd_func = fp_ex_normal;
-        cmdnames[45].cmd_argt = EX_RANGE | EX_BANG | EX_EXTRA | EX_NEEDARG | EX_NOTRLCOM | EX_CTRLV | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[46].cmd_name = BytePtr.lit("number");
-        cmdnames[46].cmd_minlen = 2;
-        cmdnames[46].cmd_func = fp_ex_print;
-        cmdnames[46].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[47].cmd_name = BytePtr.lit("nunmap");
-        cmdnames[47].cmd_minlen = 3;
-        cmdnames[47].cmd_func = fp_ex_unmap;
-        cmdnames[47].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[47].cmd_addr_type = ADDR_NONE;
-        cmdnames[48].cmd_name = BytePtr.lit("omap");
-        cmdnames[48].cmd_minlen = 2;
-        cmdnames[48].cmd_func = fp_ex_map;
-        cmdnames[48].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[48].cmd_addr_type = ADDR_NONE;
-        cmdnames[49].cmd_name = BytePtr.lit("omapclear");
-        cmdnames[49].cmd_minlen = 5;
-        cmdnames[49].cmd_func = fp_ex_mapclear;
-        cmdnames[49].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[49].cmd_addr_type = ADDR_NONE;
-        cmdnames[50].cmd_name = BytePtr.lit("onoremap");
-        cmdnames[50].cmd_minlen = 3;
-        cmdnames[50].cmd_func = fp_ex_map;
-        cmdnames[50].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[50].cmd_addr_type = ADDR_NONE;
-        cmdnames[51].cmd_name = BytePtr.lit("ounmap");
-        cmdnames[51].cmd_minlen = 2;
-        cmdnames[51].cmd_func = fp_ex_unmap;
-        cmdnames[51].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[51].cmd_addr_type = ADDR_NONE;
-        cmdnames[52].cmd_name = BytePtr.lit("print");
-        cmdnames[52].cmd_minlen = 1;
-        cmdnames[52].cmd_func = fp_ex_print;
-        cmdnames[52].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK;
-        cmdnames[53].cmd_name = BytePtr.lit("put");
-        cmdnames[53].cmd_minlen = 2;
-        cmdnames[53].cmd_func = fp_ex_put;
-        cmdnames[53].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[54].cmd_name = BytePtr.lit("quit");
-        cmdnames[54].cmd_minlen = 1;
-        cmdnames[54].cmd_func = fp_ex_quit;
-        cmdnames[54].cmd_argt = EX_BANG | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[54].cmd_addr_type = ADDR_WINDOWS;
-        cmdnames[55].cmd_name = BytePtr.lit("redo");
-        cmdnames[55].cmd_minlen = 3;
-        cmdnames[55].cmd_func = fp_ex_redo;
-        cmdnames[55].cmd_argt = EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[55].cmd_addr_type = ADDR_NONE;
-        cmdnames[56].cmd_name = BytePtr.lit("redraw");
-        cmdnames[56].cmd_minlen = 4;
-        cmdnames[56].cmd_func = fp_ex_redraw;
-        cmdnames[56].cmd_argt = EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[56].cmd_addr_type = ADDR_NONE;
-        cmdnames[57].cmd_name = BytePtr.lit("redrawstatus");
-        cmdnames[57].cmd_minlen = 7;
-        cmdnames[57].cmd_func = fp_ex_redrawstatus;
-        cmdnames[57].cmd_argt = EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[57].cmd_addr_type = ADDR_NONE;
-        cmdnames[58].cmd_name = BytePtr.lit("registers");
-        cmdnames[58].cmd_minlen = 3;
-        cmdnames[58].cmd_func = fp_ex_display;
-        cmdnames[58].cmd_argt = EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[58].cmd_addr_type = ADDR_NONE;
-        cmdnames[59].cmd_name = BytePtr.lit("substitute");
-        cmdnames[59].cmd_minlen = 1;
-        cmdnames[59].cmd_func = fp_ex_substitute;
-        cmdnames[59].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[60].cmd_name = BytePtr.lit("set");
-        cmdnames[60].cmd_minlen = 2;
-        cmdnames[60].cmd_func = fp_ex_set;
-        cmdnames[60].cmd_argt = EX_BANG | EX_TRLBAR | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK;
-        cmdnames[60].cmd_addr_type = ADDR_NONE;
-        cmdnames[61].cmd_name = BytePtr.lit("silent");
-        cmdnames[61].cmd_minlen = 3;
-        cmdnames[61].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[61].cmd_argt = EX_NEEDARG | EX_EXTRA | EX_BANG | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[61].cmd_addr_type = ADDR_NONE;
-        cmdnames[62].cmd_name = BytePtr.lit("smagic");
-        cmdnames[62].cmd_minlen = 2;
-        cmdnames[62].cmd_func = fp_ex_submagic;
-        cmdnames[62].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[63].cmd_name = BytePtr.lit("smap");
-        cmdnames[63].cmd_minlen = 4;
-        cmdnames[63].cmd_func = fp_ex_map;
-        cmdnames[63].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[63].cmd_addr_type = ADDR_NONE;
-        cmdnames[64].cmd_name = BytePtr.lit("smapclear");
-        cmdnames[64].cmd_minlen = 5;
-        cmdnames[64].cmd_func = fp_ex_mapclear;
-        cmdnames[64].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[64].cmd_addr_type = ADDR_NONE;
-        cmdnames[65].cmd_name = BytePtr.lit("snomagic");
-        cmdnames[65].cmd_minlen = 3;
-        cmdnames[65].cmd_func = fp_ex_submagic;
-        cmdnames[65].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[66].cmd_name = BytePtr.lit("snoremap");
-        cmdnames[66].cmd_minlen = 4;
-        cmdnames[66].cmd_func = fp_ex_map;
-        cmdnames[66].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[66].cmd_addr_type = ADDR_NONE;
-        cmdnames[67].cmd_name = BytePtr.lit("stop");
-        cmdnames[67].cmd_minlen = 2;
-        cmdnames[67].cmd_func = fp_ex_stop;
-        cmdnames[67].cmd_argt = EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[67].cmd_addr_type = ADDR_NONE;
-        cmdnames[68].cmd_name = BytePtr.lit("sunmap");
-        cmdnames[68].cmd_minlen = 4;
-        cmdnames[68].cmd_func = fp_ex_unmap;
-        cmdnames[68].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[68].cmd_addr_type = ADDR_NONE;
-        cmdnames[69].cmd_name = BytePtr.lit("suspend");
-        cmdnames[69].cmd_minlen = 3;
-        cmdnames[69].cmd_func = fp_ex_stop;
-        cmdnames[69].cmd_argt = EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[69].cmd_addr_type = ADDR_NONE;
-        cmdnames[70].cmd_name = BytePtr.lit("t");
-        cmdnames[70].cmd_minlen = 1;
-        cmdnames[70].cmd_func = fp_ex_copymove;
-        cmdnames[70].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[71].cmd_name = BytePtr.lit("undo");
-        cmdnames[71].cmd_minlen = 1;
-        cmdnames[71].cmd_func = fp_ex_undo;
-        cmdnames[71].cmd_argt = EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[71].cmd_addr_type = ADDR_OTHER;
-        cmdnames[72].cmd_name = BytePtr.lit("undojoin");
-        cmdnames[72].cmd_minlen = 5;
-        cmdnames[72].cmd_func = fp_ex_undojoin;
-        cmdnames[72].cmd_argt = EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[72].cmd_addr_type = ADDR_NONE;
-        cmdnames[73].cmd_name = BytePtr.lit("undolist");
-        cmdnames[73].cmd_minlen = 5;
-        cmdnames[73].cmd_func = fp_ex_undolist;
-        cmdnames[73].cmd_argt = EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[73].cmd_addr_type = ADDR_NONE;
-        cmdnames[74].cmd_name = BytePtr.lit("unmap");
-        cmdnames[74].cmd_minlen = 3;
-        cmdnames[74].cmd_func = fp_ex_unmap;
-        cmdnames[74].cmd_argt = EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[74].cmd_addr_type = ADDR_NONE;
-        cmdnames[75].cmd_name = BytePtr.lit("unsilent");
-        cmdnames[75].cmd_minlen = 3;
-        cmdnames[75].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[75].cmd_argt = EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[75].cmd_addr_type = ADDR_NONE;
-        cmdnames[76].cmd_name = BytePtr.lit("vglobal");
-        cmdnames[76].cmd_minlen = 1;
-        cmdnames[76].cmd_func = fp_ex_global;
-        cmdnames[76].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_DFLALL | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[77].cmd_name = BytePtr.lit("verbose");
-        cmdnames[77].cmd_minlen = 4;
-        cmdnames[77].cmd_func = fp_ex_wrongmodifier;
-        cmdnames[77].cmd_argt = EX_NEEDARG | EX_RANGE | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[77].cmd_addr_type = ADDR_OTHER;
-        cmdnames[78].cmd_name = BytePtr.lit("vmap");
-        cmdnames[78].cmd_minlen = 2;
-        cmdnames[78].cmd_func = fp_ex_map;
-        cmdnames[78].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[78].cmd_addr_type = ADDR_NONE;
-        cmdnames[79].cmd_name = BytePtr.lit("vmapclear");
-        cmdnames[79].cmd_minlen = 5;
-        cmdnames[79].cmd_func = fp_ex_mapclear;
-        cmdnames[79].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[79].cmd_addr_type = ADDR_NONE;
-        cmdnames[80].cmd_name = BytePtr.lit("vnoremap");
-        cmdnames[80].cmd_minlen = 2;
-        cmdnames[80].cmd_func = fp_ex_map;
-        cmdnames[80].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[80].cmd_addr_type = ADDR_NONE;
-        cmdnames[81].cmd_name = BytePtr.lit("vunmap");
-        cmdnames[81].cmd_minlen = 2;
-        cmdnames[81].cmd_func = fp_ex_unmap;
-        cmdnames[81].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[81].cmd_addr_type = ADDR_NONE;
-        cmdnames[82].cmd_name = BytePtr.lit("winsize");
-        cmdnames[82].cmd_minlen = 2;
-        cmdnames[82].cmd_func = fp_ex_winsize;
-        cmdnames[82].cmd_argt = EX_EXTRA | EX_NEEDARG | EX_TRLBAR;
-        cmdnames[82].cmd_addr_type = ADDR_NONE;
-        cmdnames[83].cmd_name = BytePtr.lit("xmap");
-        cmdnames[83].cmd_minlen = 2;
-        cmdnames[83].cmd_func = fp_ex_map;
-        cmdnames[83].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[83].cmd_addr_type = ADDR_NONE;
-        cmdnames[84].cmd_name = BytePtr.lit("xmapclear");
-        cmdnames[84].cmd_minlen = 5;
-        cmdnames[84].cmd_func = fp_ex_mapclear;
-        cmdnames[84].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[84].cmd_addr_type = ADDR_NONE;
-        cmdnames[85].cmd_name = BytePtr.lit("xnoremap");
-        cmdnames[85].cmd_minlen = 2;
-        cmdnames[85].cmd_func = fp_ex_map;
-        cmdnames[85].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[85].cmd_addr_type = ADDR_NONE;
-        cmdnames[86].cmd_name = BytePtr.lit("xunmap");
-        cmdnames[86].cmd_minlen = 2;
-        cmdnames[86].cmd_func = fp_ex_unmap;
-        cmdnames[86].cmd_argt = EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[86].cmd_addr_type = ADDR_NONE;
-        cmdnames[87].cmd_name = BytePtr.lit("yank");
-        cmdnames[87].cmd_minlen = 1;
-        cmdnames[87].cmd_func = fp_ex_operators;
-        cmdnames[87].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[88].cmd_name = BytePtr.lit("z");
-        cmdnames[88].cmd_minlen = 1;
-        cmdnames[88].cmd_func = fp_ex_z;
-        cmdnames[88].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[89].cmd_name = BytePtr.lit("#");
-        cmdnames[89].cmd_minlen = 1;
-        cmdnames[89].cmd_func = fp_ex_print;
-        cmdnames[89].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[90].cmd_name = BytePtr.lit("&");
-        cmdnames[90].cmd_minlen = 1;
-        cmdnames[90].cmd_func = fp_ex_substitute;
-        cmdnames[90].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK;
-        cmdnames[91].cmd_name = BytePtr.lit("*");
-        cmdnames[91].cmd_minlen = 1;
-        cmdnames[91].cmd_func = fp_ex_at;
-        cmdnames[91].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[92].cmd_name = BytePtr.lit("<");
-        cmdnames[92].cmd_minlen = 1;
-        cmdnames[92].cmd_func = fp_ex_operators;
-        cmdnames[92].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[93].cmd_name = BytePtr.lit("=");
-        cmdnames[93].cmd_minlen = 1;
-        cmdnames[93].cmd_func = fp_ex_equal;
-        cmdnames[93].cmd_argt = EX_RANGE | EX_TRLBAR | EX_DFLALL | EX_FLAGS | EX_CMDWIN | EX_LOCK_OK;
-        cmdnames[94].cmd_name = BytePtr.lit(">");
-        cmdnames[94].cmd_minlen = 1;
-        cmdnames[94].cmd_func = fp_ex_operators;
-        cmdnames[94].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY;
-        cmdnames[95].cmd_name = BytePtr.lit("@");
-        cmdnames[95].cmd_minlen = 1;
-        cmdnames[95].cmd_func = fp_ex_at;
-        cmdnames[95].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK;
-        cmdnames[96].cmd_name = BytePtr.lit("~");
-        cmdnames[96].cmd_minlen = 1;
-        cmdnames[96].cmd_func = fp_ex_substitute;
-        cmdnames[96].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK;
-        cmdnames[97].cmd_name = BytePtr.lit("Print");
-        cmdnames[97].cmd_minlen = 1;
-        cmdnames[97].cmd_func = fp_ex_print;
-        cmdnames[97].cmd_argt = EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK;
-    }
-
-    private void initGlobals1() {
-        byte[] t1 = null;
-        byte[] t2 = null;
-        byte[] t3 = null;
-        byte[] t4 = null;
-        byte[] t5 = null;
-        dollar_command[0] = (byte) '$';
+        Rt.rows(cmdnames,
+            new S_cmdname(BytePtr.lit("append"), 1, fp_ex_append,
+                    EX_BANG | EX_RANGE | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("ascii"), 2, fp_do_ascii, EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("change"), 1, fp_ex_change,
+                    EX_BANG | EX_WHOLEFOLD | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("changes"), 7, fp_ex_changes, EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("cmap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("cmapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("cnoremap"), 3, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("copy"), 2, fp_ex_copymove,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("cquit"), 2, fp_ex_cquit, EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_BANG,
+                    ADDR_UNSIGNED),
+            new S_cmdname(BytePtr.lit("cunmap"), 2, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("delete"), 1, fp_ex_operators,
+                    EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("delmarks"), 4, fp_ex_delmarks,
+                    EX_BANG | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("display"), 2, fp_ex_display,
+                    EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("earlier"), 2, fp_ex_later,
+                    EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("filter"), 4, fp_ex_wrongmodifier, EX_BANG | EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("fixdel"), 3, fp_do_fixdel, EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("global"), 1, fp_ex_global,
+                    EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_DFLALL | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("highlight"), 2, fp_ex_highlight,
+                    EX_BANG | EX_EXTRA | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("history"), 3, fp_ex_history, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("insert"), 1, fp_ex_append,
+                    EX_BANG | EX_RANGE | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("imap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("imapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("inoremap"), 3, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("iput"), 2, fp_ex_iput,
+                    EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("iunmap"), 2, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("join"), 1, fp_ex_join,
+                    EX_BANG | EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("k"), 1, fp_ex_mark,
+                    EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("keepmarks"), 2, fp_ex_wrongmodifier, EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("keepjumps"), 5, fp_ex_wrongmodifier, EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("keeppatterns"), 5, fp_ex_wrongmodifier, EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("list"), 1, fp_ex_print,
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("later"), 3, fp_ex_later,
+                    EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("lockmarks"), 3, fp_ex_wrongmodifier, EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("move"), 1, fp_ex_copymove,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("mark"), 2, fp_ex_mark,
+                    EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("map"), 3, fp_ex_map,
+                    EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("mapclear"), 4, fp_ex_mapclear,
+                    EX_EXTRA | EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("marks"), 5, fp_ex_marks, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("match"), 3, fp_ex_match, EX_RANGE | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_OTHER),
+            new S_cmdname(BytePtr.lit("messages"), 3, fp_ex_messages,
+                    EX_EXTRA | EX_TRLBAR | EX_RANGE | EX_CMDWIN | EX_LOCK_OK, ADDR_OTHER),
+            new S_cmdname(BytePtr.lit("nmap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("nmapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("nnoremap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("noremap"), 2, fp_ex_map,
+                    EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("nohlsearch"), 3, fp_ex_nohlsearch,
+                    EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("normal"), 4, fp_ex_normal,
+                    EX_RANGE | EX_BANG | EX_EXTRA | EX_NEEDARG | EX_NOTRLCOM | EX_CTRLV | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("number"), 2, fp_ex_print,
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("nunmap"), 3, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("omap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("omapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("onoremap"), 3, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("ounmap"), 2, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("print"), 1, fp_ex_print,
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("put"), 2, fp_ex_put,
+                    EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("quit"), 1, fp_ex_quit,
+                    EX_BANG | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_WINDOWS),
+            new S_cmdname(BytePtr.lit("redo"), 3, fp_ex_redo, EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("redraw"), 4, fp_ex_redraw, EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("redrawstatus"), 7, fp_ex_redrawstatus,
+                    EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("registers"), 3, fp_ex_display,
+                    EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("substitute"), 1, fp_ex_substitute,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("set"), 2, fp_ex_set,
+                    EX_BANG | EX_TRLBAR | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("silent"), 3, fp_ex_wrongmodifier,
+                    EX_NEEDARG | EX_EXTRA | EX_BANG | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("smagic"), 2, fp_ex_submagic,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("smap"), 4, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("smapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("snomagic"), 3, fp_ex_submagic,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("snoremap"), 4, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("stop"), 2, fp_ex_stop, EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("sunmap"), 4, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("suspend"), 3, fp_ex_stop, EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("t"), 1, fp_ex_copymove,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("undo"), 1, fp_ex_undo,
+                    EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_OTHER),
+            new S_cmdname(BytePtr.lit("undojoin"), 5, fp_ex_undojoin, EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("undolist"), 5, fp_ex_undolist, EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("unmap"), 3, fp_ex_unmap,
+                    EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("unsilent"), 3, fp_ex_wrongmodifier,
+                    EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("vglobal"), 1, fp_ex_global,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_DFLALL | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("verbose"), 4, fp_ex_wrongmodifier,
+                    EX_NEEDARG | EX_RANGE | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_OTHER),
+            new S_cmdname(BytePtr.lit("vmap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("vmapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("vnoremap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("vunmap"), 2, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("winsize"), 2, fp_ex_winsize, EX_EXTRA | EX_NEEDARG | EX_TRLBAR, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("xmap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("xmapclear"), 5, fp_ex_mapclear, EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_NONE),
+            new S_cmdname(BytePtr.lit("xnoremap"), 2, fp_ex_map,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("xunmap"), 2, fp_ex_unmap,
+                    EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
+            new S_cmdname(BytePtr.lit("yank"), 1, fp_ex_operators,
+                    EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("z"), 1, fp_ex_z,
+                    EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("#"), 1, fp_ex_print,
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("&"), 1, fp_ex_substitute,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("*"), 1, fp_ex_at,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("<"), 1, fp_ex_operators,
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("="), 1, fp_ex_equal,
+                    EX_RANGE | EX_TRLBAR | EX_DFLALL | EX_FLAGS | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit(">"), 1, fp_ex_operators,
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("@"), 1, fp_ex_at,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("~"), 1, fp_ex_substitute,
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK, ADDR_LINES),
+            new S_cmdname(BytePtr.lit("Print"), 1, fp_ex_print,
+                    ((((((EX_RANGE | EX_WHOLEFOLD) | EX_COUNT) | EX_FLAGS) | EX_TRLBAR) | EX_CMDWIN) | EX_LOCK_OK), ADDR_LINES));
+        Rt.rows(dollar_command,
+            '$', 0);
         t1 = new byte[1];
         redobuff.bh_first.b_str = new BytePtr(t1, 0);
         t2 = new byte[1];
@@ -8703,76 +8505,14 @@ public abstract class Editor {
         color_name_tab[27].key = YELLOW;
         color_name_tab[27].value.string[0] = BytePtr.lit("Yellow");
         color_name_tab[27].value.length = 6L;
-        hl_flags[0] = '8';
-        hl_flags[1] = '~';
-        hl_flags[2] = '@';
-        hl_flags[3] = 'd';
-        hl_flags[4] = 'e';
-        hl_flags[5] = 'h';
-        hl_flags[6] = 'i';
-        hl_flags[7] = 'l';
-        hl_flags[8] = 'y';
-        hl_flags[9] = 'm';
-        hl_flags[10] = 'M';
-        hl_flags[11] = 'n';
-        hl_flags[12] = 'a';
-        hl_flags[13] = 'b';
-        hl_flags[14] = 'N';
-        hl_flags[15] = 'G';
-        hl_flags[16] = 'O';
-        hl_flags[17] = 'r';
-        hl_flags[18] = 's';
-        hl_flags[19] = 'S';
-        hl_flags[20] = 'c';
-        hl_flags[21] = '|';
-        hl_flags[22] = 't';
-        hl_flags[23] = 'v';
-        hl_flags[24] = 'V';
-        hl_flags[25] = 'w';
-        hl_flags[26] = 'W';
-        hl_flags[27] = 'f';
-        hl_flags[28] = 'F';
-        hl_flags[29] = 'A';
-        hl_flags[30] = 'C';
-        hl_flags[31] = 'D';
-        hl_flags[32] = 'T';
-        hl_flags[33] = 'E';
-        hl_flags[34] = '-';
-        hl_flags[35] = '>';
-        hl_flags[36] = 'B';
-        hl_flags[37] = 'P';
-        hl_flags[38] = 'R';
-        hl_flags[39] = 'L';
-        hl_flags[40] = '+';
-        hl_flags[41] = '=';
-        hl_flags[42] = 'k';
-        hl_flags[43] = '<';
-        hl_flags[44] = '[';
-        hl_flags[45] = ']';
-        hl_flags[46] = '{';
-        hl_flags[47] = '}';
-        hl_flags[48] = 'x';
-        hl_flags[49] = 'X';
-        hl_flags[50] = 'j';
-        hl_flags[51] = 'H';
-        hl_flags[52] = 'p';
-        hl_flags[53] = 'J';
-        hl_flags[54] = 'Q';
-        hl_flags[55] = '*';
-        hl_flags[56] = '#';
-        hl_flags[57] = '_';
-        hl_flags[58] = '!';
-        hl_flags[59] = '.';
-        hl_flags[60] = 'o';
-        hl_flags[61] = 'q';
-        hl_flags[62] = 'z';
-        hl_flags[63] = 'Z';
-        hl_flags[64] = 'g';
-        hl_flags[65] = '%';
-        hl_flags[66] = '^';
-        hl_flags[67] = '&';
-        hl_flags[68] = 'I';
-        hl_flags[69] = '(';
+    }
+
+    private void initGlobals1() {
+        Rt.rows(hl_flags,
+            '8', '~', '@', 'd', 'e', 'h', 'i', 'l', 'y', 'm', 'M', 'n', 'a', 'b', 'N', 'G', 'O', 'r', 's', 'S', 'c',
+            '|', 't', 'v', 'V', 'w', 'W', 'f', 'F', 'A', 'C', 'D', 'T', 'E', '-', '>', 'B', 'P', 'R', 'L', '+', '=',
+            'k', '<', '[', ']', '{', '}', 'x', 'X', 'j', 'H', 'p', 'J', 'Q', '*', '#', '_', '!', '.', 'o', 'q', 'z',
+            'Z', 'g', '%', '^', '&', 'I', '(');
         highlight_init_both[0] = BytePtr.lit("ErrorMsg term=standout ctermbg=DarkRed ctermfg=White");
         highlight_init_both[1] = BytePtr.lit("IncSearch term=reverse,bold,underline cterm=reverse");
         highlight_init_both[2] = BytePtr.lit("ModeMsg term=bold cterm=bold");
@@ -8841,4007 +8581,1009 @@ public abstract class Editor {
         highlight_init_dark[14] = BytePtr.lit("Visual ctermbg=Grey ctermfg=Black");
         highlight_init_dark[15] = BytePtr.lit("TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey");
         highlight_init_dark[16] = BytePtr.lit("MatchParen term=reverse ctermbg=DarkCyan");
-        color_numbers_16[1] = 1;
-        color_numbers_16[2] = 2;
-        color_numbers_16[3] = 3;
-        color_numbers_16[4] = 4;
-        color_numbers_16[5] = 5;
-        color_numbers_16[6] = 6;
-        color_numbers_16[7] = 6;
-        color_numbers_16[8] = 7;
-        color_numbers_16[9] = 7;
-        color_numbers_16[10] = 7;
-        color_numbers_16[11] = 7;
-        color_numbers_16[12] = 8;
-        color_numbers_16[13] = 8;
-        color_numbers_16[14] = 9;
-        color_numbers_16[15] = 9;
-        color_numbers_16[16] = 10;
-        color_numbers_16[17] = 10;
-        color_numbers_16[18] = 11;
-        color_numbers_16[19] = 11;
-        color_numbers_16[20] = 12;
-        color_numbers_16[21] = 12;
-        color_numbers_16[22] = 13;
-        color_numbers_16[23] = 13;
-        color_numbers_16[24] = 14;
-        color_numbers_16[25] = 14;
-        color_numbers_16[26] = 15;
-        color_numbers_16[27] = -1;
-        color_numbers_88[1] = 4;
-        color_numbers_88[2] = 2;
-        color_numbers_88[3] = 6;
-        color_numbers_88[4] = 1;
-        color_numbers_88[5] = 5;
-        color_numbers_88[6] = 32;
-        color_numbers_88[7] = 72;
-        color_numbers_88[8] = 84;
-        color_numbers_88[9] = 84;
-        color_numbers_88[10] = 7;
-        color_numbers_88[11] = 7;
-        color_numbers_88[12] = 82;
-        color_numbers_88[13] = 82;
-        color_numbers_88[14] = 12;
-        color_numbers_88[15] = 43;
-        color_numbers_88[16] = 10;
-        color_numbers_88[17] = 61;
-        color_numbers_88[18] = 14;
-        color_numbers_88[19] = 63;
-        color_numbers_88[20] = 9;
-        color_numbers_88[21] = 74;
-        color_numbers_88[22] = 13;
-        color_numbers_88[23] = 75;
-        color_numbers_88[24] = 11;
-        color_numbers_88[25] = 78;
-        color_numbers_88[26] = 15;
-        color_numbers_88[27] = -1;
-        color_numbers_256[1] = 4;
-        color_numbers_256[2] = 2;
-        color_numbers_256[3] = 6;
-        color_numbers_256[4] = 1;
-        color_numbers_256[5] = 5;
-        color_numbers_256[6] = 130;
-        color_numbers_256[7] = 3;
-        color_numbers_256[8] = 248;
-        color_numbers_256[9] = 248;
-        color_numbers_256[10] = 7;
-        color_numbers_256[11] = 7;
-        color_numbers_256[12] = 242;
-        color_numbers_256[13] = 242;
-        color_numbers_256[14] = 12;
-        color_numbers_256[15] = 81;
-        color_numbers_256[16] = 10;
-        color_numbers_256[17] = 121;
-        color_numbers_256[18] = 14;
-        color_numbers_256[19] = 159;
-        color_numbers_256[20] = 9;
-        color_numbers_256[21] = 224;
-        color_numbers_256[22] = 13;
-        color_numbers_256[23] = 225;
-        color_numbers_256[24] = 11;
-        color_numbers_256[25] = 229;
-        color_numbers_256[26] = 15;
-        color_numbers_256[27] = -1;
-        color_numbers_8[1] = 4;
-        color_numbers_8[2] = 2;
-        color_numbers_8[3] = 6;
-        color_numbers_8[4] = 1;
-        color_numbers_8[5] = 5;
-        color_numbers_8[6] = 3;
-        color_numbers_8[7] = 3;
-        color_numbers_8[8] = 7;
-        color_numbers_8[9] = 7;
-        color_numbers_8[10] = 7;
-        color_numbers_8[11] = 7;
-        color_numbers_8[12] = 8;
-        color_numbers_8[13] = 8;
-        color_numbers_8[14] = 12;
-        color_numbers_8[15] = 12;
-        color_numbers_8[16] = 10;
-        color_numbers_8[17] = 10;
-        color_numbers_8[18] = 14;
-        color_numbers_8[19] = 14;
-        color_numbers_8[20] = 9;
-        color_numbers_8[21] = 9;
-        color_numbers_8[22] = 13;
-        color_numbers_8[23] = 13;
-        color_numbers_8[24] = 11;
-        color_numbers_8[25] = 11;
-        color_numbers_8[26] = 15;
-        color_numbers_8[27] = -1;
-        cterm_color_16[1] = 12582912L;
-        cterm_color_16[2] = 32768L;
-        cterm_color_16[3] = 8421376L;
-        cterm_color_16[4] = 192L;
-        cterm_color_16[5] = 12583104L;
-        cterm_color_16[6] = 16512L;
-        cterm_color_16[7] = 12632256L;
-        cterm_color_16[8] = 8421504L;
-        cterm_color_16[9] = 16744576L;
-        cterm_color_16[10] = 65280L;
-        cterm_color_16[11] = 16776960L;
-        cterm_color_16[12] = 6316287L;
-        cterm_color_16[13] = 16728319L;
-        cterm_color_16[14] = 65535L;
-        cterm_color_16[15] = 16777215L;
+        Rt.rows(color_numbers_16,
+            0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, -1);
+        Rt.rows(color_numbers_88,
+            0, 4, 2, 6, 1, 5, 32, 72, 84, 84, 7, 7, 82, 82, 12, 43, 10, 61, 14, 63, 9, 74, 13, 75, 11, 78, 15, -1);
+        Rt.rows(color_numbers_256,
+            0, 4, 2, 6, 1, 5, 130, 3, 248, 248, 7, 7, 242, 242, 12, 81, 10, 121, 14, 159, 9, 224, 13, 225, 11, 229, 15,
+            -1);
+        Rt.rows(color_numbers_8,
+            0, 4, 2, 6, 1, 5, 3, 3, 7, 7, 7, 7, 8, 8, 12, 12, 10, 10, 14, 14, 9, 9, 13, 13, 11, 11, 15, -1);
+        Rt.rows(cterm_color_16,
+            0L, 12582912L, 32768L, 8421376L, 192L, 12583104L, 16512L, 12632256L, 8421504L, 16744576L, 65280L,
+            16776960L, 6316287L, 16728319L, 65535L, 16777215L);
+        Rt.rows(vimrc_mappings,
+            new S_initmap(BytePtr.lit("<Tab> %"), MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING),
+            new S_initmap(BytePtr.lit("\302\247 <C-_>"), MODE_INSERT | MODE_CMDLINE),
+            new S_initmap(BytePtr.lit("\303\251 u"), MODE_NORMAL),
+            new S_initmap(BytePtr.lit("\303\241 <C-R>"), MODE_NORMAL));
+        Rt.rows(utf8len_tab,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+            6, 6, 1, 1);
+        Rt.rows(utf8len_tab_zero,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+            6, 6, 0, 0);
+        Rt.rows(ambiguous,
+            new S_interval(161L, 161L),
+            new S_interval(164L, 164L),
+            new S_interval(167L, 168L),
+            new S_interval(170L, 170L),
+            new S_interval(173L, 174L),
+            new S_interval(176L, 180L),
+            new S_interval(182L, 186L),
+            new S_interval(188L, 191L),
+            new S_interval(198L, 198L),
+            new S_interval(208L, 208L),
+            new S_interval(215L, 216L),
+            new S_interval(222L, 225L),
+            new S_interval(230L, 230L),
+            new S_interval(232L, 234L),
+            new S_interval(236L, 237L),
+            new S_interval(240L, 240L),
+            new S_interval(242L, 243L),
+            new S_interval(247L, 250L),
+            new S_interval(252L, 252L),
+            new S_interval(254L, 254L),
+            new S_interval(257L, 257L),
+            new S_interval(273L, 273L),
+            new S_interval(275L, 275L),
+            new S_interval(283L, 283L),
+            new S_interval(294L, 295L),
+            new S_interval(299L, 299L),
+            new S_interval(305L, 307L),
+            new S_interval(312L, 312L),
+            new S_interval(319L, 322L),
+            new S_interval(324L, 324L),
+            new S_interval(328L, 331L),
+            new S_interval(333L, 333L),
+            new S_interval(338L, 339L),
+            new S_interval(358L, 359L),
+            new S_interval(363L, 363L),
+            new S_interval(462L, 462L),
+            new S_interval(464L, 464L),
+            new S_interval(466L, 466L),
+            new S_interval(468L, 468L),
+            new S_interval(470L, 470L),
+            new S_interval(472L, 472L),
+            new S_interval(474L, 474L),
+            new S_interval(476L, 476L),
+            new S_interval(593L, 593L),
+            new S_interval(609L, 609L),
+            new S_interval(708L, 708L),
+            new S_interval(711L, 711L),
+            new S_interval(713L, 715L),
+            new S_interval(717L, 717L),
+            new S_interval(720L, 720L),
+            new S_interval(728L, 731L),
+            new S_interval(733L, 733L),
+            new S_interval(735L, 735L),
+            new S_interval(768L, 879L),
+            new S_interval(913L, 929L),
+            new S_interval(931L, 937L),
+            new S_interval(945L, 961L),
+            new S_interval(963L, 969L),
+            new S_interval(1025L, 1025L),
+            new S_interval(1040L, 1103L),
+            new S_interval(1105L, 1105L),
+            new S_interval(8208L, 8208L),
+            new S_interval(8211L, 8214L),
+            new S_interval(8216L, 8217L),
+            new S_interval(8220L, 8221L),
+            new S_interval(8224L, 8226L),
+            new S_interval(8228L, 8231L),
+            new S_interval(8240L, 8240L),
+            new S_interval(8242L, 8243L),
+            new S_interval(8245L, 8245L),
+            new S_interval(8251L, 8251L),
+            new S_interval(8254L, 8254L),
+            new S_interval(8308L, 8308L),
+            new S_interval(8319L, 8319L),
+            new S_interval(8321L, 8324L),
+            new S_interval(8364L, 8364L),
+            new S_interval(8451L, 8451L),
+            new S_interval(8453L, 8453L),
+            new S_interval(8457L, 8457L),
+            new S_interval(8467L, 8467L),
+            new S_interval(8470L, 8470L),
+            new S_interval(8481L, 8482L),
+            new S_interval(8486L, 8486L),
+            new S_interval(8491L, 8491L),
+            new S_interval(8531L, 8532L),
+            new S_interval(8539L, 8542L),
+            new S_interval(8544L, 8555L),
+            new S_interval(8560L, 8569L),
+            new S_interval(8585L, 8585L),
+            new S_interval(8592L, 8601L),
+            new S_interval(8632L, 8633L),
+            new S_interval(8658L, 8658L),
+            new S_interval(8660L, 8660L),
+            new S_interval(8679L, 8679L),
+            new S_interval(8704L, 8704L),
+            new S_interval(8706L, 8707L),
+            new S_interval(8711L, 8712L),
+            new S_interval(8715L, 8715L),
+            new S_interval(8719L, 8719L),
+            new S_interval(8721L, 8721L),
+            new S_interval(8725L, 8725L),
+            new S_interval(8730L, 8730L),
+            new S_interval(8733L, 8736L),
+            new S_interval(8739L, 8739L),
+            new S_interval(8741L, 8741L),
+            new S_interval(8743L, 8748L),
+            new S_interval(8750L, 8750L),
+            new S_interval(8756L, 8759L),
+            new S_interval(8764L, 8765L),
+            new S_interval(8776L, 8776L),
+            new S_interval(8780L, 8780L),
+            new S_interval(8786L, 8786L),
+            new S_interval(8800L, 8801L),
+            new S_interval(8804L, 8807L),
+            new S_interval(8810L, 8811L),
+            new S_interval(8814L, 8815L),
+            new S_interval(8834L, 8835L),
+            new S_interval(8838L, 8839L),
+            new S_interval(8853L, 8853L),
+            new S_interval(8857L, 8857L),
+            new S_interval(8869L, 8869L),
+            new S_interval(8895L, 8895L),
+            new S_interval(8978L, 8978L),
+            new S_interval(9312L, 9449L),
+            new S_interval(9451L, 9547L),
+            new S_interval(9552L, 9587L),
+            new S_interval(9600L, 9615L),
+            new S_interval(9618L, 9621L),
+            new S_interval(9632L, 9633L),
+            new S_interval(9635L, 9641L),
+            new S_interval(9650L, 9651L),
+            new S_interval(9654L, 9655L),
+            new S_interval(9660L, 9661L),
+            new S_interval(9664L, 9665L),
+            new S_interval(9670L, 9672L),
+            new S_interval(9675L, 9675L),
+            new S_interval(9678L, 9681L),
+            new S_interval(9698L, 9701L),
+            new S_interval(9711L, 9711L),
+            new S_interval(9733L, 9734L),
+            new S_interval(9737L, 9737L),
+            new S_interval(9742L, 9743L),
+            new S_interval(9756L, 9756L),
+            new S_interval(9758L, 9758L),
+            new S_interval(9792L, 9792L),
+            new S_interval(9794L, 9794L),
+            new S_interval(9824L, 9825L),
+            new S_interval(9827L, 9829L),
+            new S_interval(9831L, 9834L),
+            new S_interval(9836L, 9837L),
+            new S_interval(9839L, 9839L),
+            new S_interval(9886L, 9887L),
+            new S_interval(9919L, 9919L),
+            new S_interval(9926L, 9933L),
+            new S_interval(9935L, 9939L),
+            new S_interval(9941L, 9953L),
+            new S_interval(9955L, 9955L),
+            new S_interval(9960L, 9961L),
+            new S_interval(9963L, 9969L),
+            new S_interval(9972L, 9972L),
+            new S_interval(9974L, 9977L),
+            new S_interval(9979L, 9980L),
+            new S_interval(9982L, 9983L),
+            new S_interval(10045L, 10045L),
+            new S_interval(10102L, 10111L),
+            new S_interval(11094L, 11097L),
+            new S_interval(12872L, 12879L),
+            new S_interval(57344L, 63743L),
+            new S_interval(65024L, 65039L),
+            new S_interval(65533L, 65533L),
+            new S_interval(127232L, 127242L),
+            new S_interval(127248L, 127277L),
+            new S_interval(127280L, 127337L),
+            new S_interval(127344L, 127373L),
+            new S_interval(127375L, 127376L),
+            new S_interval(127387L, 127404L),
+            new S_interval(917760L, 917999L),
+            new S_interval(983040L, 1048573L),
+            new S_interval(1048576L, 1114109L));
+        Rt.rows(emoji_all,
+            new S_interval(8252L, 8252L),
+            new S_interval(8265L, 8265L),
+            new S_interval(8482L, 8482L),
+            new S_interval(8505L, 8505L),
+            new S_interval(8596L, 8601L),
+            new S_interval(8617L, 8618L),
+            new S_interval(8986L, 8987L),
+            new S_interval(9000L, 9000L),
+            new S_interval(9167L, 9167L),
+            new S_interval(9193L, 9203L),
+            new S_interval(9208L, 9210L),
+            new S_interval(9410L, 9410L),
+            new S_interval(9642L, 9643L),
+            new S_interval(9654L, 9654L),
+            new S_interval(9664L, 9664L),
+            new S_interval(9723L, 9726L),
+            new S_interval(9728L, 9732L),
+            new S_interval(9742L, 9742L),
+            new S_interval(9745L, 9745L),
+            new S_interval(9748L, 9749L),
+            new S_interval(9752L, 9752L),
+            new S_interval(9757L, 9757L),
+            new S_interval(9760L, 9760L),
+            new S_interval(9762L, 9763L),
+            new S_interval(9766L, 9766L),
+            new S_interval(9770L, 9770L),
+            new S_interval(9774L, 9775L),
+            new S_interval(9784L, 9786L),
+            new S_interval(9792L, 9792L),
+            new S_interval(9794L, 9794L),
+            new S_interval(9800L, 9811L),
+            new S_interval(9823L, 9824L),
+            new S_interval(9827L, 9827L),
+            new S_interval(9829L, 9830L),
+            new S_interval(9832L, 9832L),
+            new S_interval(9851L, 9851L),
+            new S_interval(9854L, 9855L),
+            new S_interval(9874L, 9879L),
+            new S_interval(9881L, 9881L),
+            new S_interval(9883L, 9884L),
+            new S_interval(9888L, 9889L),
+            new S_interval(9895L, 9895L),
+            new S_interval(9898L, 9899L),
+            new S_interval(9904L, 9905L),
+            new S_interval(9917L, 9918L),
+            new S_interval(9924L, 9925L),
+            new S_interval(9928L, 9928L),
+            new S_interval(9934L, 9935L),
+            new S_interval(9937L, 9937L),
+            new S_interval(9939L, 9940L),
+            new S_interval(9961L, 9962L),
+            new S_interval(9968L, 9973L),
+            new S_interval(9975L, 9978L),
+            new S_interval(9981L, 9981L),
+            new S_interval(9986L, 9986L),
+            new S_interval(9989L, 9989L),
+            new S_interval(9992L, 9997L),
+            new S_interval(9999L, 9999L),
+            new S_interval(10002L, 10002L),
+            new S_interval(10004L, 10004L),
+            new S_interval(10006L, 10006L),
+            new S_interval(10013L, 10013L),
+            new S_interval(10017L, 10017L),
+            new S_interval(10024L, 10024L),
+            new S_interval(10035L, 10036L),
+            new S_interval(10052L, 10052L),
+            new S_interval(10055L, 10055L),
+            new S_interval(10060L, 10060L),
+            new S_interval(10062L, 10062L),
+            new S_interval(10067L, 10069L),
+            new S_interval(10071L, 10071L),
+            new S_interval(10083L, 10084L),
+            new S_interval(10133L, 10135L),
+            new S_interval(10145L, 10145L),
+            new S_interval(10160L, 10160L),
+            new S_interval(10175L, 10175L),
+            new S_interval(10548L, 10549L),
+            new S_interval(11013L, 11015L),
+            new S_interval(11035L, 11036L),
+            new S_interval(11088L, 11088L),
+            new S_interval(11093L, 11093L),
+            new S_interval(12336L, 12336L),
+            new S_interval(12349L, 12349L),
+            new S_interval(12951L, 12951L),
+            new S_interval(12953L, 12953L),
+            new S_interval(126980L, 126980L),
+            new S_interval(127183L, 127183L),
+            new S_interval(127344L, 127345L),
+            new S_interval(127358L, 127359L),
+            new S_interval(127374L, 127374L),
+            new S_interval(127377L, 127386L),
+            new S_interval(127462L, 127487L),
+            new S_interval(127489L, 127490L),
+            new S_interval(127514L, 127514L),
+            new S_interval(127535L, 127535L),
+            new S_interval(127538L, 127546L),
+            new S_interval(127568L, 127569L),
+            new S_interval(127744L, 127777L),
+            new S_interval(127780L, 127891L),
+            new S_interval(127894L, 127895L),
+            new S_interval(127897L, 127899L),
+            new S_interval(127902L, 127984L),
+            new S_interval(127987L, 127989L),
+            new S_interval(127991L, 128253L),
+            new S_interval(128255L, 128317L),
+            new S_interval(128329L, 128334L),
+            new S_interval(128336L, 128359L),
+            new S_interval(128367L, 128368L),
+            new S_interval(128371L, 128378L),
+            new S_interval(128391L, 128391L),
+            new S_interval(128394L, 128397L),
+            new S_interval(128400L, 128400L),
+            new S_interval(128405L, 128406L),
+            new S_interval(128420L, 128421L),
+            new S_interval(128424L, 128424L),
+            new S_interval(128433L, 128434L),
+            new S_interval(128444L, 128444L),
+            new S_interval(128450L, 128452L),
+            new S_interval(128465L, 128467L),
+            new S_interval(128476L, 128478L),
+            new S_interval(128481L, 128481L),
+            new S_interval(128483L, 128483L),
+            new S_interval(128488L, 128488L),
+            new S_interval(128495L, 128495L),
+            new S_interval(128499L, 128499L),
+            new S_interval(128506L, 128591L),
+            new S_interval(128640L, 128709L),
+            new S_interval(128715L, 128722L),
+            new S_interval(128725L, 128727L),
+            new S_interval(128732L, 128741L),
+            new S_interval(128745L, 128745L),
+            new S_interval(128747L, 128748L),
+            new S_interval(128752L, 128752L),
+            new S_interval(128755L, 128764L),
+            new S_interval(128992L, 129003L),
+            new S_interval(129008L, 129008L),
+            new S_interval(129292L, 129338L),
+            new S_interval(129340L, 129349L),
+            new S_interval(129351L, 129535L),
+            new S_interval(129648L, 129660L),
+            new S_interval(129664L, 129672L),
+            new S_interval(129680L, 129725L),
+            new S_interval(129727L, 129733L),
+            new S_interval(129742L, 129755L),
+            new S_interval(129760L, 129768L),
+            new S_interval(129776L, 129784L));
     }
 
     private void initGlobals2() {
-        vimrc_mappings[0].arg = BytePtr.lit("<Tab> %");
-        vimrc_mappings[0].mode = MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING;
-        vimrc_mappings[1].arg = BytePtr.lit("\302\247 <C-_>");
-        vimrc_mappings[1].mode = MODE_INSERT | MODE_CMDLINE;
-        vimrc_mappings[2].arg = BytePtr.lit("\303\251 u");
-        vimrc_mappings[2].mode = MODE_NORMAL;
-        vimrc_mappings[3].arg = BytePtr.lit("\303\241 <C-R>");
-        vimrc_mappings[3].mode = MODE_NORMAL;
-        utf8len_tab[0] = (byte) 1;
-        utf8len_tab[1] = (byte) 1;
-        utf8len_tab[2] = (byte) 1;
-        utf8len_tab[3] = (byte) 1;
-        utf8len_tab[4] = (byte) 1;
-        utf8len_tab[5] = (byte) 1;
-        utf8len_tab[6] = (byte) 1;
-        utf8len_tab[7] = (byte) 1;
-        utf8len_tab[8] = (byte) 1;
-        utf8len_tab[9] = (byte) 1;
-        utf8len_tab[10] = (byte) 1;
-        utf8len_tab[11] = (byte) 1;
-        utf8len_tab[12] = (byte) 1;
-        utf8len_tab[13] = (byte) 1;
-        utf8len_tab[14] = (byte) 1;
-        utf8len_tab[15] = (byte) 1;
-        utf8len_tab[16] = (byte) 1;
-        utf8len_tab[17] = (byte) 1;
-        utf8len_tab[18] = (byte) 1;
-        utf8len_tab[19] = (byte) 1;
-        utf8len_tab[20] = (byte) 1;
-        utf8len_tab[21] = (byte) 1;
-        utf8len_tab[22] = (byte) 1;
-        utf8len_tab[23] = (byte) 1;
-        utf8len_tab[24] = (byte) 1;
-        utf8len_tab[25] = (byte) 1;
-        utf8len_tab[26] = (byte) 1;
-        utf8len_tab[27] = (byte) 1;
-        utf8len_tab[28] = (byte) 1;
-        utf8len_tab[29] = (byte) 1;
-        utf8len_tab[30] = (byte) 1;
-        utf8len_tab[31] = (byte) 1;
-        utf8len_tab[32] = (byte) 1;
-        utf8len_tab[33] = (byte) 1;
-        utf8len_tab[34] = (byte) 1;
-        utf8len_tab[35] = (byte) 1;
-        utf8len_tab[36] = (byte) 1;
-        utf8len_tab[37] = (byte) 1;
-        utf8len_tab[38] = (byte) 1;
-        utf8len_tab[39] = (byte) 1;
-        utf8len_tab[40] = (byte) 1;
-        utf8len_tab[41] = (byte) 1;
-        utf8len_tab[42] = (byte) 1;
-        utf8len_tab[43] = (byte) 1;
-        utf8len_tab[44] = (byte) 1;
-        utf8len_tab[45] = (byte) 1;
-        utf8len_tab[46] = (byte) 1;
-        utf8len_tab[47] = (byte) 1;
-        utf8len_tab[48] = (byte) 1;
-        utf8len_tab[49] = (byte) 1;
-        utf8len_tab[50] = (byte) 1;
-        utf8len_tab[51] = (byte) 1;
-        utf8len_tab[52] = (byte) 1;
-        utf8len_tab[53] = (byte) 1;
-        utf8len_tab[54] = (byte) 1;
-        utf8len_tab[55] = (byte) 1;
-        utf8len_tab[56] = (byte) 1;
-        utf8len_tab[57] = (byte) 1;
-        utf8len_tab[58] = (byte) 1;
-        utf8len_tab[59] = (byte) 1;
-        utf8len_tab[60] = (byte) 1;
-        utf8len_tab[61] = (byte) 1;
-        utf8len_tab[62] = (byte) 1;
-        utf8len_tab[63] = (byte) 1;
-        utf8len_tab[64] = (byte) 1;
-        utf8len_tab[65] = (byte) 1;
-        utf8len_tab[66] = (byte) 1;
-        utf8len_tab[67] = (byte) 1;
-        utf8len_tab[68] = (byte) 1;
-        utf8len_tab[69] = (byte) 1;
-        utf8len_tab[70] = (byte) 1;
-        utf8len_tab[71] = (byte) 1;
-        utf8len_tab[72] = (byte) 1;
-        utf8len_tab[73] = (byte) 1;
-        utf8len_tab[74] = (byte) 1;
-        utf8len_tab[75] = (byte) 1;
-        utf8len_tab[76] = (byte) 1;
-        utf8len_tab[77] = (byte) 1;
-        utf8len_tab[78] = (byte) 1;
-        utf8len_tab[79] = (byte) 1;
-        utf8len_tab[80] = (byte) 1;
-        utf8len_tab[81] = (byte) 1;
-        utf8len_tab[82] = (byte) 1;
-        utf8len_tab[83] = (byte) 1;
-        utf8len_tab[84] = (byte) 1;
-        utf8len_tab[85] = (byte) 1;
-        utf8len_tab[86] = (byte) 1;
-        utf8len_tab[87] = (byte) 1;
-        utf8len_tab[88] = (byte) 1;
-        utf8len_tab[89] = (byte) 1;
-        utf8len_tab[90] = (byte) 1;
-        utf8len_tab[91] = (byte) 1;
-        utf8len_tab[92] = (byte) 1;
-        utf8len_tab[93] = (byte) 1;
-        utf8len_tab[94] = (byte) 1;
-        utf8len_tab[95] = (byte) 1;
-        utf8len_tab[96] = (byte) 1;
-        utf8len_tab[97] = (byte) 1;
-        utf8len_tab[98] = (byte) 1;
-        utf8len_tab[99] = (byte) 1;
-        utf8len_tab[100] = (byte) 1;
-        utf8len_tab[101] = (byte) 1;
-        utf8len_tab[102] = (byte) 1;
-        utf8len_tab[103] = (byte) 1;
-        utf8len_tab[104] = (byte) 1;
-        utf8len_tab[105] = (byte) 1;
-        utf8len_tab[106] = (byte) 1;
-        utf8len_tab[107] = (byte) 1;
-        utf8len_tab[108] = (byte) 1;
-        utf8len_tab[109] = (byte) 1;
-        utf8len_tab[110] = (byte) 1;
-        utf8len_tab[111] = (byte) 1;
-        utf8len_tab[112] = (byte) 1;
-        utf8len_tab[113] = (byte) 1;
-        utf8len_tab[114] = (byte) 1;
-        utf8len_tab[115] = (byte) 1;
-        utf8len_tab[116] = (byte) 1;
-        utf8len_tab[117] = (byte) 1;
-        utf8len_tab[118] = (byte) 1;
-        utf8len_tab[119] = (byte) 1;
-        utf8len_tab[120] = (byte) 1;
-        utf8len_tab[121] = (byte) 1;
-        utf8len_tab[122] = (byte) 1;
-        utf8len_tab[123] = (byte) 1;
-        utf8len_tab[124] = (byte) 1;
-        utf8len_tab[125] = (byte) 1;
-        utf8len_tab[126] = (byte) 1;
-        utf8len_tab[127] = (byte) 1;
-        utf8len_tab[128] = (byte) 1;
-        utf8len_tab[129] = (byte) 1;
-        utf8len_tab[130] = (byte) 1;
-        utf8len_tab[131] = (byte) 1;
-        utf8len_tab[132] = (byte) 1;
-        utf8len_tab[133] = (byte) 1;
-        utf8len_tab[134] = (byte) 1;
-        utf8len_tab[135] = (byte) 1;
-        utf8len_tab[136] = (byte) 1;
-        utf8len_tab[137] = (byte) 1;
-        utf8len_tab[138] = (byte) 1;
-        utf8len_tab[139] = (byte) 1;
-        utf8len_tab[140] = (byte) 1;
-        utf8len_tab[141] = (byte) 1;
-        utf8len_tab[142] = (byte) 1;
-        utf8len_tab[143] = (byte) 1;
-        utf8len_tab[144] = (byte) 1;
-        utf8len_tab[145] = (byte) 1;
-        utf8len_tab[146] = (byte) 1;
-        utf8len_tab[147] = (byte) 1;
-        utf8len_tab[148] = (byte) 1;
-        utf8len_tab[149] = (byte) 1;
-        utf8len_tab[150] = (byte) 1;
-        utf8len_tab[151] = (byte) 1;
-        utf8len_tab[152] = (byte) 1;
-        utf8len_tab[153] = (byte) 1;
-        utf8len_tab[154] = (byte) 1;
-        utf8len_tab[155] = (byte) 1;
-        utf8len_tab[156] = (byte) 1;
-        utf8len_tab[157] = (byte) 1;
-        utf8len_tab[158] = (byte) 1;
-        utf8len_tab[159] = (byte) 1;
-        utf8len_tab[160] = (byte) 1;
-        utf8len_tab[161] = (byte) 1;
-        utf8len_tab[162] = (byte) 1;
-        utf8len_tab[163] = (byte) 1;
-        utf8len_tab[164] = (byte) 1;
-        utf8len_tab[165] = (byte) 1;
-        utf8len_tab[166] = (byte) 1;
-        utf8len_tab[167] = (byte) 1;
-        utf8len_tab[168] = (byte) 1;
-        utf8len_tab[169] = (byte) 1;
-        utf8len_tab[170] = (byte) 1;
-        utf8len_tab[171] = (byte) 1;
-        utf8len_tab[172] = (byte) 1;
-        utf8len_tab[173] = (byte) 1;
-        utf8len_tab[174] = (byte) 1;
-        utf8len_tab[175] = (byte) 1;
-        utf8len_tab[176] = (byte) 1;
-        utf8len_tab[177] = (byte) 1;
-        utf8len_tab[178] = (byte) 1;
-        utf8len_tab[179] = (byte) 1;
-        utf8len_tab[180] = (byte) 1;
-        utf8len_tab[181] = (byte) 1;
-        utf8len_tab[182] = (byte) 1;
-        utf8len_tab[183] = (byte) 1;
-        utf8len_tab[184] = (byte) 1;
-        utf8len_tab[185] = (byte) 1;
-        utf8len_tab[186] = (byte) 1;
-        utf8len_tab[187] = (byte) 1;
-        utf8len_tab[188] = (byte) 1;
-        utf8len_tab[189] = (byte) 1;
-        utf8len_tab[190] = (byte) 1;
-        utf8len_tab[191] = (byte) 1;
-        utf8len_tab[192] = (byte) 2;
-        utf8len_tab[193] = (byte) 2;
-        utf8len_tab[194] = (byte) 2;
-        utf8len_tab[195] = (byte) 2;
-        utf8len_tab[196] = (byte) 2;
-        utf8len_tab[197] = (byte) 2;
-        utf8len_tab[198] = (byte) 2;
-        utf8len_tab[199] = (byte) 2;
-        utf8len_tab[200] = (byte) 2;
-        utf8len_tab[201] = (byte) 2;
-        utf8len_tab[202] = (byte) 2;
-        utf8len_tab[203] = (byte) 2;
-        utf8len_tab[204] = (byte) 2;
-        utf8len_tab[205] = (byte) 2;
-        utf8len_tab[206] = (byte) 2;
-        utf8len_tab[207] = (byte) 2;
-        utf8len_tab[208] = (byte) 2;
-        utf8len_tab[209] = (byte) 2;
-        utf8len_tab[210] = (byte) 2;
-        utf8len_tab[211] = (byte) 2;
-        utf8len_tab[212] = (byte) 2;
-        utf8len_tab[213] = (byte) 2;
-        utf8len_tab[214] = (byte) 2;
-        utf8len_tab[215] = (byte) 2;
-        utf8len_tab[216] = (byte) 2;
-        utf8len_tab[217] = (byte) 2;
-        utf8len_tab[218] = (byte) 2;
-        utf8len_tab[219] = (byte) 2;
-        utf8len_tab[220] = (byte) 2;
-        utf8len_tab[221] = (byte) 2;
-        utf8len_tab[222] = (byte) 2;
-        utf8len_tab[223] = (byte) 2;
-        utf8len_tab[224] = (byte) 3;
-        utf8len_tab[225] = (byte) 3;
-        utf8len_tab[226] = (byte) 3;
-        utf8len_tab[227] = (byte) 3;
-        utf8len_tab[228] = (byte) 3;
-        utf8len_tab[229] = (byte) 3;
-        utf8len_tab[230] = (byte) 3;
-        utf8len_tab[231] = (byte) 3;
-        utf8len_tab[232] = (byte) 3;
-        utf8len_tab[233] = (byte) 3;
-        utf8len_tab[234] = (byte) 3;
-        utf8len_tab[235] = (byte) 3;
-        utf8len_tab[236] = (byte) 3;
-        utf8len_tab[237] = (byte) 3;
-        utf8len_tab[238] = (byte) 3;
-        utf8len_tab[239] = (byte) 3;
-        utf8len_tab[240] = (byte) 4;
-        utf8len_tab[241] = (byte) 4;
-        utf8len_tab[242] = (byte) 4;
-        utf8len_tab[243] = (byte) 4;
-        utf8len_tab[244] = (byte) 4;
-        utf8len_tab[245] = (byte) 4;
-        utf8len_tab[246] = (byte) 4;
-        utf8len_tab[247] = (byte) 4;
-        utf8len_tab[248] = (byte) 5;
-        utf8len_tab[249] = (byte) 5;
-        utf8len_tab[250] = (byte) 5;
-        utf8len_tab[251] = (byte) 5;
-        utf8len_tab[252] = (byte) 6;
-        utf8len_tab[253] = (byte) 6;
-        utf8len_tab[254] = (byte) 1;
-        utf8len_tab[255] = (byte) 1;
-        utf8len_tab_zero[0] = (byte) 1;
-        utf8len_tab_zero[1] = (byte) 1;
-        utf8len_tab_zero[2] = (byte) 1;
-        utf8len_tab_zero[3] = (byte) 1;
-        utf8len_tab_zero[4] = (byte) 1;
-        utf8len_tab_zero[5] = (byte) 1;
-        utf8len_tab_zero[6] = (byte) 1;
-        utf8len_tab_zero[7] = (byte) 1;
-        utf8len_tab_zero[8] = (byte) 1;
-        utf8len_tab_zero[9] = (byte) 1;
-        utf8len_tab_zero[10] = (byte) 1;
-        utf8len_tab_zero[11] = (byte) 1;
-        utf8len_tab_zero[12] = (byte) 1;
-        utf8len_tab_zero[13] = (byte) 1;
-        utf8len_tab_zero[14] = (byte) 1;
-        utf8len_tab_zero[15] = (byte) 1;
-        utf8len_tab_zero[16] = (byte) 1;
-        utf8len_tab_zero[17] = (byte) 1;
-        utf8len_tab_zero[18] = (byte) 1;
-        utf8len_tab_zero[19] = (byte) 1;
-        utf8len_tab_zero[20] = (byte) 1;
-        utf8len_tab_zero[21] = (byte) 1;
-        utf8len_tab_zero[22] = (byte) 1;
-        utf8len_tab_zero[23] = (byte) 1;
-        utf8len_tab_zero[24] = (byte) 1;
-        utf8len_tab_zero[25] = (byte) 1;
-        utf8len_tab_zero[26] = (byte) 1;
-        utf8len_tab_zero[27] = (byte) 1;
-        utf8len_tab_zero[28] = (byte) 1;
-        utf8len_tab_zero[29] = (byte) 1;
-        utf8len_tab_zero[30] = (byte) 1;
-        utf8len_tab_zero[31] = (byte) 1;
-        utf8len_tab_zero[32] = (byte) 1;
-        utf8len_tab_zero[33] = (byte) 1;
-        utf8len_tab_zero[34] = (byte) 1;
-        utf8len_tab_zero[35] = (byte) 1;
-        utf8len_tab_zero[36] = (byte) 1;
-        utf8len_tab_zero[37] = (byte) 1;
-        utf8len_tab_zero[38] = (byte) 1;
-        utf8len_tab_zero[39] = (byte) 1;
-        utf8len_tab_zero[40] = (byte) 1;
-        utf8len_tab_zero[41] = (byte) 1;
-        utf8len_tab_zero[42] = (byte) 1;
-        utf8len_tab_zero[43] = (byte) 1;
-        utf8len_tab_zero[44] = (byte) 1;
-        utf8len_tab_zero[45] = (byte) 1;
-        utf8len_tab_zero[46] = (byte) 1;
-        utf8len_tab_zero[47] = (byte) 1;
-        utf8len_tab_zero[48] = (byte) 1;
-        utf8len_tab_zero[49] = (byte) 1;
-        utf8len_tab_zero[50] = (byte) 1;
-        utf8len_tab_zero[51] = (byte) 1;
-        utf8len_tab_zero[52] = (byte) 1;
-        utf8len_tab_zero[53] = (byte) 1;
-        utf8len_tab_zero[54] = (byte) 1;
-        utf8len_tab_zero[55] = (byte) 1;
-        utf8len_tab_zero[56] = (byte) 1;
-        utf8len_tab_zero[57] = (byte) 1;
-        utf8len_tab_zero[58] = (byte) 1;
-        utf8len_tab_zero[59] = (byte) 1;
-        utf8len_tab_zero[60] = (byte) 1;
-        utf8len_tab_zero[61] = (byte) 1;
-        utf8len_tab_zero[62] = (byte) 1;
-        utf8len_tab_zero[63] = (byte) 1;
-        utf8len_tab_zero[64] = (byte) 1;
-        utf8len_tab_zero[65] = (byte) 1;
-        utf8len_tab_zero[66] = (byte) 1;
-        utf8len_tab_zero[67] = (byte) 1;
-        utf8len_tab_zero[68] = (byte) 1;
-        utf8len_tab_zero[69] = (byte) 1;
-        utf8len_tab_zero[70] = (byte) 1;
-        utf8len_tab_zero[71] = (byte) 1;
-        utf8len_tab_zero[72] = (byte) 1;
-        utf8len_tab_zero[73] = (byte) 1;
-        utf8len_tab_zero[74] = (byte) 1;
-        utf8len_tab_zero[75] = (byte) 1;
-        utf8len_tab_zero[76] = (byte) 1;
-        utf8len_tab_zero[77] = (byte) 1;
-        utf8len_tab_zero[78] = (byte) 1;
-        utf8len_tab_zero[79] = (byte) 1;
-        utf8len_tab_zero[80] = (byte) 1;
-        utf8len_tab_zero[81] = (byte) 1;
-        utf8len_tab_zero[82] = (byte) 1;
-        utf8len_tab_zero[83] = (byte) 1;
-        utf8len_tab_zero[84] = (byte) 1;
-        utf8len_tab_zero[85] = (byte) 1;
-        utf8len_tab_zero[86] = (byte) 1;
-        utf8len_tab_zero[87] = (byte) 1;
-        utf8len_tab_zero[88] = (byte) 1;
-        utf8len_tab_zero[89] = (byte) 1;
-        utf8len_tab_zero[90] = (byte) 1;
-        utf8len_tab_zero[91] = (byte) 1;
-        utf8len_tab_zero[92] = (byte) 1;
-        utf8len_tab_zero[93] = (byte) 1;
-        utf8len_tab_zero[94] = (byte) 1;
-        utf8len_tab_zero[95] = (byte) 1;
-        utf8len_tab_zero[96] = (byte) 1;
-        utf8len_tab_zero[97] = (byte) 1;
-        utf8len_tab_zero[98] = (byte) 1;
-        utf8len_tab_zero[99] = (byte) 1;
-        utf8len_tab_zero[100] = (byte) 1;
-        utf8len_tab_zero[101] = (byte) 1;
-        utf8len_tab_zero[102] = (byte) 1;
-        utf8len_tab_zero[103] = (byte) 1;
-        utf8len_tab_zero[104] = (byte) 1;
-        utf8len_tab_zero[105] = (byte) 1;
-        utf8len_tab_zero[106] = (byte) 1;
-        utf8len_tab_zero[107] = (byte) 1;
-        utf8len_tab_zero[108] = (byte) 1;
-        utf8len_tab_zero[109] = (byte) 1;
-        utf8len_tab_zero[110] = (byte) 1;
-        utf8len_tab_zero[111] = (byte) 1;
-        utf8len_tab_zero[112] = (byte) 1;
-        utf8len_tab_zero[113] = (byte) 1;
-        utf8len_tab_zero[114] = (byte) 1;
-        utf8len_tab_zero[115] = (byte) 1;
-        utf8len_tab_zero[116] = (byte) 1;
-        utf8len_tab_zero[117] = (byte) 1;
-        utf8len_tab_zero[118] = (byte) 1;
-        utf8len_tab_zero[119] = (byte) 1;
-        utf8len_tab_zero[120] = (byte) 1;
-        utf8len_tab_zero[121] = (byte) 1;
-        utf8len_tab_zero[122] = (byte) 1;
-        utf8len_tab_zero[123] = (byte) 1;
-        utf8len_tab_zero[124] = (byte) 1;
-        utf8len_tab_zero[125] = (byte) 1;
-        utf8len_tab_zero[126] = (byte) 1;
-        utf8len_tab_zero[127] = (byte) 1;
-        utf8len_tab_zero[192] = (byte) 2;
-        utf8len_tab_zero[193] = (byte) 2;
-        utf8len_tab_zero[194] = (byte) 2;
-        utf8len_tab_zero[195] = (byte) 2;
-        utf8len_tab_zero[196] = (byte) 2;
-        utf8len_tab_zero[197] = (byte) 2;
-        utf8len_tab_zero[198] = (byte) 2;
-        utf8len_tab_zero[199] = (byte) 2;
-        utf8len_tab_zero[200] = (byte) 2;
-        utf8len_tab_zero[201] = (byte) 2;
-        utf8len_tab_zero[202] = (byte) 2;
-        utf8len_tab_zero[203] = (byte) 2;
-        utf8len_tab_zero[204] = (byte) 2;
-        utf8len_tab_zero[205] = (byte) 2;
-        utf8len_tab_zero[206] = (byte) 2;
-        utf8len_tab_zero[207] = (byte) 2;
-        utf8len_tab_zero[208] = (byte) 2;
-        utf8len_tab_zero[209] = (byte) 2;
-        utf8len_tab_zero[210] = (byte) 2;
-        utf8len_tab_zero[211] = (byte) 2;
-        utf8len_tab_zero[212] = (byte) 2;
-        utf8len_tab_zero[213] = (byte) 2;
-        utf8len_tab_zero[214] = (byte) 2;
-        utf8len_tab_zero[215] = (byte) 2;
-        utf8len_tab_zero[216] = (byte) 2;
-        utf8len_tab_zero[217] = (byte) 2;
-        utf8len_tab_zero[218] = (byte) 2;
-        utf8len_tab_zero[219] = (byte) 2;
-        utf8len_tab_zero[220] = (byte) 2;
-        utf8len_tab_zero[221] = (byte) 2;
-        utf8len_tab_zero[222] = (byte) 2;
-        utf8len_tab_zero[223] = (byte) 2;
-        utf8len_tab_zero[224] = (byte) 3;
-        utf8len_tab_zero[225] = (byte) 3;
-        utf8len_tab_zero[226] = (byte) 3;
-        utf8len_tab_zero[227] = (byte) 3;
-        utf8len_tab_zero[228] = (byte) 3;
-        utf8len_tab_zero[229] = (byte) 3;
-        utf8len_tab_zero[230] = (byte) 3;
-        utf8len_tab_zero[231] = (byte) 3;
-        utf8len_tab_zero[232] = (byte) 3;
-        utf8len_tab_zero[233] = (byte) 3;
-        utf8len_tab_zero[234] = (byte) 3;
-        utf8len_tab_zero[235] = (byte) 3;
-        utf8len_tab_zero[236] = (byte) 3;
-        utf8len_tab_zero[237] = (byte) 3;
-        utf8len_tab_zero[238] = (byte) 3;
-        utf8len_tab_zero[239] = (byte) 3;
-        utf8len_tab_zero[240] = (byte) 4;
-        utf8len_tab_zero[241] = (byte) 4;
-        utf8len_tab_zero[242] = (byte) 4;
-        utf8len_tab_zero[243] = (byte) 4;
-        utf8len_tab_zero[244] = (byte) 4;
-        utf8len_tab_zero[245] = (byte) 4;
-        utf8len_tab_zero[246] = (byte) 4;
-        utf8len_tab_zero[247] = (byte) 4;
-        utf8len_tab_zero[248] = (byte) 5;
-        utf8len_tab_zero[249] = (byte) 5;
-        utf8len_tab_zero[250] = (byte) 5;
-        utf8len_tab_zero[251] = (byte) 5;
-        utf8len_tab_zero[252] = (byte) 6;
-        utf8len_tab_zero[253] = (byte) 6;
+        Rt.rows(foldCase,
+            new T_convertStruct(65, 90, 1, 32),
+            new T_convertStruct(181, 181, -1, 775),
+            new T_convertStruct(192, 214, 1, 32),
+            new T_convertStruct(216, 222, 1, 32),
+            new T_convertStruct(256, 302, 2, 1),
+            new T_convertStruct(306, 310, 2, 1),
+            new T_convertStruct(313, 327, 2, 1),
+            new T_convertStruct(330, 374, 2, 1),
+            new T_convertStruct(376, 376, -1, -121),
+            new T_convertStruct(377, 381, 2, 1),
+            new T_convertStruct(383, 383, -1, -268),
+            new T_convertStruct(385, 385, -1, 210),
+            new T_convertStruct(386, 388, 2, 1),
+            new T_convertStruct(390, 390, -1, 206),
+            new T_convertStruct(391, 391, -1, 1),
+            new T_convertStruct(393, 394, 1, 205),
+            new T_convertStruct(395, 395, -1, 1),
+            new T_convertStruct(398, 398, -1, 79),
+            new T_convertStruct(399, 399, -1, 202),
+            new T_convertStruct(400, 400, -1, 203),
+            new T_convertStruct(401, 401, -1, 1),
+            new T_convertStruct(403, 403, -1, 205),
+            new T_convertStruct(404, 404, -1, 207),
+            new T_convertStruct(406, 406, -1, 211),
+            new T_convertStruct(407, 407, -1, 209),
+            new T_convertStruct(408, 408, -1, 1),
+            new T_convertStruct(412, 412, -1, 211),
+            new T_convertStruct(413, 413, -1, 213),
+            new T_convertStruct(415, 415, -1, 214),
+            new T_convertStruct(416, 420, 2, 1),
+            new T_convertStruct(422, 422, -1, 218),
+            new T_convertStruct(423, 423, -1, 1),
+            new T_convertStruct(425, 425, -1, 218),
+            new T_convertStruct(428, 428, -1, 1),
+            new T_convertStruct(430, 430, -1, 218),
+            new T_convertStruct(431, 431, -1, 1),
+            new T_convertStruct(433, 434, 1, 217),
+            new T_convertStruct(435, 437, 2, 1),
+            new T_convertStruct(439, 439, -1, 219),
+            new T_convertStruct(440, 444, 4, 1),
+            new T_convertStruct(452, 452, -1, 2),
+            new T_convertStruct(453, 453, -1, 1),
+            new T_convertStruct(455, 455, -1, 2),
+            new T_convertStruct(456, 456, -1, 1),
+            new T_convertStruct(458, 458, -1, 2),
+            new T_convertStruct(459, 475, 2, 1),
+            new T_convertStruct(478, 494, 2, 1),
+            new T_convertStruct(497, 497, -1, 2),
+            new T_convertStruct(498, 500, 2, 1),
+            new T_convertStruct(502, 502, -1, -97),
+            new T_convertStruct(503, 503, -1, -56),
+            new T_convertStruct(504, 542, 2, 1),
+            new T_convertStruct(544, 544, -1, -130),
+            new T_convertStruct(546, 562, 2, 1),
+            new T_convertStruct(570, 570, -1, 10795),
+            new T_convertStruct(571, 571, -1, 1),
+            new T_convertStruct(573, 573, -1, -163),
+            new T_convertStruct(574, 574, -1, 10792),
+            new T_convertStruct(577, 577, -1, 1),
+            new T_convertStruct(579, 579, -1, -195),
+            new T_convertStruct(580, 580, -1, 69),
+            new T_convertStruct(581, 581, -1, 71),
+            new T_convertStruct(582, 590, 2, 1),
+            new T_convertStruct(837, 837, -1, 116),
+            new T_convertStruct(880, 882, 2, 1),
+            new T_convertStruct(886, 886, -1, 1),
+            new T_convertStruct(895, 895, -1, 116),
+            new T_convertStruct(902, 902, -1, 38),
+            new T_convertStruct(904, 906, 1, 37),
+            new T_convertStruct(908, 908, -1, 64),
+            new T_convertStruct(910, 911, 1, 63),
+            new T_convertStruct(913, 929, 1, 32),
+            new T_convertStruct(931, 939, 1, 32),
+            new T_convertStruct(962, 962, -1, 1),
+            new T_convertStruct(975, 975, -1, 8),
+            new T_convertStruct(976, 976, -1, -30),
+            new T_convertStruct(977, 977, -1, -25),
+            new T_convertStruct(981, 981, -1, -15),
+            new T_convertStruct(982, 982, -1, -22),
+            new T_convertStruct(984, 1006, 2, 1),
+            new T_convertStruct(1008, 1008, -1, -54),
+            new T_convertStruct(1009, 1009, -1, -48),
+            new T_convertStruct(1012, 1012, -1, -60),
+            new T_convertStruct(1013, 1013, -1, -64),
+            new T_convertStruct(1015, 1015, -1, 1),
+            new T_convertStruct(1017, 1017, -1, -7),
+            new T_convertStruct(1018, 1018, -1, 1),
+            new T_convertStruct(1021, 1023, 1, -130),
+            new T_convertStruct(1024, 1039, 1, 80),
+            new T_convertStruct(1040, 1071, 1, 32),
+            new T_convertStruct(1120, 1152, 2, 1),
+            new T_convertStruct(1162, 1214, 2, 1),
+            new T_convertStruct(1216, 1216, -1, 15),
+            new T_convertStruct(1217, 1229, 2, 1),
+            new T_convertStruct(1232, 1326, 2, 1),
+            new T_convertStruct(1329, 1366, 1, 48),
+            new T_convertStruct(4256, 4293, 1, 7264),
+            new T_convertStruct(4295, 4301, 6, 7264),
+            new T_convertStruct(5112, 5117, 1, -8),
+            new T_convertStruct(7296, 7296, -1, -6222),
+            new T_convertStruct(7297, 7297, -1, -6221),
+            new T_convertStruct(7298, 7298, -1, -6212),
+            new T_convertStruct(7299, 7300, 1, -6210),
+            new T_convertStruct(7301, 7301, -1, -6211),
+            new T_convertStruct(7302, 7302, -1, -6204),
+            new T_convertStruct(7303, 7303, -1, -6180),
+            new T_convertStruct(7304, 7304, -1, 35267),
+            new T_convertStruct(7305, 7305, -1, 1),
+            new T_convertStruct(7312, 7354, 1, -3008),
+            new T_convertStruct(7357, 7359, 1, -3008),
+            new T_convertStruct(7680, 7828, 2, 1),
+            new T_convertStruct(7835, 7835, -1, -58),
+            new T_convertStruct(7838, 7838, -1, -7615),
+            new T_convertStruct(7840, 7934, 2, 1),
+            new T_convertStruct(7944, 7951, 1, -8),
+            new T_convertStruct(7960, 7965, 1, -8),
+            new T_convertStruct(7976, 7983, 1, -8),
+            new T_convertStruct(7992, 7999, 1, -8),
+            new T_convertStruct(8008, 8013, 1, -8),
+            new T_convertStruct(8025, 8031, 2, -8),
+            new T_convertStruct(8040, 8047, 1, -8),
+            new T_convertStruct(8072, 8079, 1, -8),
+            new T_convertStruct(8088, 8095, 1, -8),
+            new T_convertStruct(8104, 8111, 1, -8),
+            new T_convertStruct(8120, 8121, 1, -8),
+            new T_convertStruct(8122, 8123, 1, -74),
+            new T_convertStruct(8124, 8124, -1, -9),
+            new T_convertStruct(8126, 8126, -1, -7173),
+            new T_convertStruct(8136, 8139, 1, -86),
+            new T_convertStruct(8140, 8140, -1, -9),
+            new T_convertStruct(8147, 8147, -1, -7235),
+            new T_convertStruct(8152, 8153, 1, -8),
+            new T_convertStruct(8154, 8155, 1, -100),
+            new T_convertStruct(8163, 8163, -1, -7219),
+            new T_convertStruct(8168, 8169, 1, -8),
+            new T_convertStruct(8170, 8171, 1, -112),
+            new T_convertStruct(8172, 8172, -1, -7),
+            new T_convertStruct(8184, 8185, 1, -128),
+            new T_convertStruct(8186, 8187, 1, -126),
+            new T_convertStruct(8188, 8188, -1, -9),
+            new T_convertStruct(8486, 8486, -1, -7517),
+            new T_convertStruct(8490, 8490, -1, -8383),
+            new T_convertStruct(8491, 8491, -1, -8262),
+            new T_convertStruct(8498, 8498, -1, 28),
+            new T_convertStruct(8544, 8559, 1, 16),
+            new T_convertStruct(8579, 8579, -1, 1),
+            new T_convertStruct(9398, 9423, 1, 26),
+            new T_convertStruct(11264, 11311, 1, 48),
+            new T_convertStruct(11360, 11360, -1, 1),
+            new T_convertStruct(11362, 11362, -1, -10743),
+            new T_convertStruct(11363, 11363, -1, -3814),
+            new T_convertStruct(11364, 11364, -1, -10727),
+            new T_convertStruct(11367, 11371, 2, 1),
+            new T_convertStruct(11373, 11373, -1, -10780),
+            new T_convertStruct(11374, 11374, -1, -10749),
+            new T_convertStruct(11375, 11375, -1, -10783),
+            new T_convertStruct(11376, 11376, -1, -10782),
+            new T_convertStruct(11378, 11381, 3, 1),
+            new T_convertStruct(11390, 11391, 1, -10815),
+            new T_convertStruct(11392, 11490, 2, 1),
+            new T_convertStruct(11499, 11501, 2, 1),
+            new T_convertStruct(11506, 42560, 31054, 1),
+            new T_convertStruct(42562, 42604, 2, 1),
+            new T_convertStruct(42624, 42650, 2, 1),
+            new T_convertStruct(42786, 42798, 2, 1),
+            new T_convertStruct(42802, 42862, 2, 1),
+            new T_convertStruct(42873, 42875, 2, 1),
+            new T_convertStruct(42877, 42877, -1, -35332),
+            new T_convertStruct(42878, 42886, 2, 1),
+            new T_convertStruct(42891, 42891, -1, 1),
+            new T_convertStruct(42893, 42893, -1, -42280),
+            new T_convertStruct(42896, 42898, 2, 1),
+            new T_convertStruct(42902, 42920, 2, 1),
+            new T_convertStruct(42922, 42922, -1, -42308),
+            new T_convertStruct(42923, 42923, -1, -42319),
+            new T_convertStruct(42924, 42924, -1, -42315),
+            new T_convertStruct(42925, 42925, -1, -42305),
+            new T_convertStruct(42926, 42926, -1, -42308),
+            new T_convertStruct(42928, 42928, -1, -42258),
+            new T_convertStruct(42929, 42929, -1, -42282),
+            new T_convertStruct(42930, 42930, -1, -42261),
+            new T_convertStruct(42931, 42931, -1, 928),
+            new T_convertStruct(42932, 42946, 2, 1),
+            new T_convertStruct(42948, 42948, -1, -48),
+            new T_convertStruct(42949, 42949, -1, -42307),
+            new T_convertStruct(42950, 42950, -1, -35384),
+            new T_convertStruct(42951, 42953, 2, 1),
+            new T_convertStruct(42955, 42955, -1, -42343),
+            new T_convertStruct(42956, 42960, 4, 1),
+            new T_convertStruct(42966, 42970, 2, 1),
+            new T_convertStruct(42972, 42972, -1, -42561),
+            new T_convertStruct(42997, 42997, -1, 1),
+            new T_convertStruct(43888, 43967, 1, -38864),
+            new T_convertStruct(64261, 64261, -1, 1),
+            new T_convertStruct(65313, 65338, 1, 32),
+            new T_convertStruct(66560, 66599, 1, 40),
+            new T_convertStruct(66736, 66771, 1, 40),
+            new T_convertStruct(66928, 66938, 1, 39),
+            new T_convertStruct(66940, 66954, 1, 39),
+            new T_convertStruct(66956, 66962, 1, 39),
+            new T_convertStruct(66964, 66965, 1, 39),
+            new T_convertStruct(68736, 68786, 1, 64),
+            new T_convertStruct(68944, 68965, 1, 32),
+            new T_convertStruct(71840, 71871, 1, 32),
+            new T_convertStruct(93760, 93791, 1, 32),
+            new T_convertStruct(125184, 125217, 1, 34));
+        Rt.rows(toLower,
+            new T_convertStruct(65, 90, 1, 32),
+            new T_convertStruct(192, 214, 1, 32),
+            new T_convertStruct(216, 222, 1, 32),
+            new T_convertStruct(256, 302, 2, 1),
+            new T_convertStruct(304, 304, -1, -199),
+            new T_convertStruct(306, 310, 2, 1),
+            new T_convertStruct(313, 327, 2, 1),
+            new T_convertStruct(330, 374, 2, 1),
+            new T_convertStruct(376, 376, -1, -121),
+            new T_convertStruct(377, 381, 2, 1),
+            new T_convertStruct(385, 385, -1, 210),
+            new T_convertStruct(386, 388, 2, 1),
+            new T_convertStruct(390, 390, -1, 206),
+            new T_convertStruct(391, 391, -1, 1),
+            new T_convertStruct(393, 394, 1, 205),
+            new T_convertStruct(395, 395, -1, 1),
+            new T_convertStruct(398, 398, -1, 79),
+            new T_convertStruct(399, 399, -1, 202),
+            new T_convertStruct(400, 400, -1, 203),
+            new T_convertStruct(401, 401, -1, 1),
+            new T_convertStruct(403, 403, -1, 205),
+            new T_convertStruct(404, 404, -1, 207),
+            new T_convertStruct(406, 406, -1, 211),
+            new T_convertStruct(407, 407, -1, 209),
+            new T_convertStruct(408, 408, -1, 1),
+            new T_convertStruct(412, 412, -1, 211),
+            new T_convertStruct(413, 413, -1, 213),
+            new T_convertStruct(415, 415, -1, 214),
+            new T_convertStruct(416, 420, 2, 1),
+            new T_convertStruct(422, 422, -1, 218),
+            new T_convertStruct(423, 423, -1, 1),
+            new T_convertStruct(425, 425, -1, 218),
+            new T_convertStruct(428, 428, -1, 1),
+            new T_convertStruct(430, 430, -1, 218),
+            new T_convertStruct(431, 431, -1, 1),
+            new T_convertStruct(433, 434, 1, 217),
+            new T_convertStruct(435, 437, 2, 1),
+            new T_convertStruct(439, 439, -1, 219),
+            new T_convertStruct(440, 444, 4, 1),
+            new T_convertStruct(452, 452, -1, 2),
+            new T_convertStruct(453, 453, -1, 1),
+            new T_convertStruct(455, 455, -1, 2),
+            new T_convertStruct(456, 456, -1, 1),
+            new T_convertStruct(458, 458, -1, 2),
+            new T_convertStruct(459, 475, 2, 1),
+            new T_convertStruct(478, 494, 2, 1),
+            new T_convertStruct(497, 497, -1, 2),
+            new T_convertStruct(498, 500, 2, 1),
+            new T_convertStruct(502, 502, -1, -97),
+            new T_convertStruct(503, 503, -1, -56),
+            new T_convertStruct(504, 542, 2, 1),
+            new T_convertStruct(544, 544, -1, -130),
+            new T_convertStruct(546, 562, 2, 1),
+            new T_convertStruct(570, 570, -1, 10795),
+            new T_convertStruct(571, 571, -1, 1),
+            new T_convertStruct(573, 573, -1, -163),
+            new T_convertStruct(574, 574, -1, 10792),
+            new T_convertStruct(577, 577, -1, 1),
+            new T_convertStruct(579, 579, -1, -195),
+            new T_convertStruct(580, 580, -1, 69),
+            new T_convertStruct(581, 581, -1, 71),
+            new T_convertStruct(582, 590, 2, 1),
+            new T_convertStruct(880, 882, 2, 1),
+            new T_convertStruct(886, 886, -1, 1),
+            new T_convertStruct(895, 895, -1, 116),
+            new T_convertStruct(902, 902, -1, 38),
+            new T_convertStruct(904, 906, 1, 37),
+            new T_convertStruct(908, 908, -1, 64),
+            new T_convertStruct(910, 911, 1, 63),
+            new T_convertStruct(913, 929, 1, 32),
+            new T_convertStruct(931, 939, 1, 32),
+            new T_convertStruct(975, 975, -1, 8),
+            new T_convertStruct(984, 1006, 2, 1),
+            new T_convertStruct(1012, 1012, -1, -60),
+            new T_convertStruct(1015, 1015, -1, 1),
+            new T_convertStruct(1017, 1017, -1, -7),
+            new T_convertStruct(1018, 1018, -1, 1),
+            new T_convertStruct(1021, 1023, 1, -130),
+            new T_convertStruct(1024, 1039, 1, 80),
+            new T_convertStruct(1040, 1071, 1, 32),
+            new T_convertStruct(1120, 1152, 2, 1),
+            new T_convertStruct(1162, 1214, 2, 1),
+            new T_convertStruct(1216, 1216, -1, 15),
+            new T_convertStruct(1217, 1229, 2, 1),
+            new T_convertStruct(1232, 1326, 2, 1),
+            new T_convertStruct(1329, 1366, 1, 48),
+            new T_convertStruct(4256, 4293, 1, 7264),
+            new T_convertStruct(4295, 4301, 6, 7264),
+            new T_convertStruct(5024, 5103, 1, 38864),
+            new T_convertStruct(5104, 5109, 1, 8),
+            new T_convertStruct(7305, 7305, -1, 1),
+            new T_convertStruct(7312, 7354, 1, -3008),
+            new T_convertStruct(7357, 7359, 1, -3008),
+            new T_convertStruct(7680, 7828, 2, 1),
+            new T_convertStruct(7838, 7838, -1, -7615),
+            new T_convertStruct(7840, 7934, 2, 1),
+            new T_convertStruct(7944, 7951, 1, -8),
+            new T_convertStruct(7960, 7965, 1, -8),
+            new T_convertStruct(7976, 7983, 1, -8),
+            new T_convertStruct(7992, 7999, 1, -8),
+            new T_convertStruct(8008, 8013, 1, -8),
+            new T_convertStruct(8025, 8031, 2, -8),
+            new T_convertStruct(8040, 8047, 1, -8),
+            new T_convertStruct(8072, 8079, 1, -8),
+            new T_convertStruct(8088, 8095, 1, -8),
+            new T_convertStruct(8104, 8111, 1, -8),
+            new T_convertStruct(8120, 8121, 1, -8),
+            new T_convertStruct(8122, 8123, 1, -74),
+            new T_convertStruct(8124, 8124, -1, -9),
+            new T_convertStruct(8136, 8139, 1, -86),
+            new T_convertStruct(8140, 8140, -1, -9),
+            new T_convertStruct(8152, 8153, 1, -8),
+            new T_convertStruct(8154, 8155, 1, -100),
+            new T_convertStruct(8168, 8169, 1, -8),
+            new T_convertStruct(8170, 8171, 1, -112),
+            new T_convertStruct(8172, 8172, -1, -7),
+            new T_convertStruct(8184, 8185, 1, -128),
+            new T_convertStruct(8186, 8187, 1, -126),
+            new T_convertStruct(8188, 8188, -1, -9),
+            new T_convertStruct(8486, 8486, -1, -7517),
+            new T_convertStruct(8490, 8490, -1, -8383),
+            new T_convertStruct(8491, 8491, -1, -8262),
+            new T_convertStruct(8498, 8498, -1, 28),
+            new T_convertStruct(8544, 8559, 1, 16),
+            new T_convertStruct(8579, 8579, -1, 1),
+            new T_convertStruct(9398, 9423, 1, 26),
+            new T_convertStruct(11264, 11311, 1, 48),
+            new T_convertStruct(11360, 11360, -1, 1),
+            new T_convertStruct(11362, 11362, -1, -10743),
+            new T_convertStruct(11363, 11363, -1, -3814),
+            new T_convertStruct(11364, 11364, -1, -10727),
+            new T_convertStruct(11367, 11371, 2, 1),
+            new T_convertStruct(11373, 11373, -1, -10780),
+            new T_convertStruct(11374, 11374, -1, -10749),
+            new T_convertStruct(11375, 11375, -1, -10783),
+            new T_convertStruct(11376, 11376, -1, -10782),
+            new T_convertStruct(11378, 11381, 3, 1),
+            new T_convertStruct(11390, 11391, 1, -10815),
+            new T_convertStruct(11392, 11490, 2, 1),
+            new T_convertStruct(11499, 11501, 2, 1),
+            new T_convertStruct(11506, 42560, 31054, 1),
+            new T_convertStruct(42562, 42604, 2, 1),
+            new T_convertStruct(42624, 42650, 2, 1),
+            new T_convertStruct(42786, 42798, 2, 1),
+            new T_convertStruct(42802, 42862, 2, 1),
+            new T_convertStruct(42873, 42875, 2, 1),
+            new T_convertStruct(42877, 42877, -1, -35332),
+            new T_convertStruct(42878, 42886, 2, 1),
+            new T_convertStruct(42891, 42891, -1, 1),
+            new T_convertStruct(42893, 42893, -1, -42280),
+            new T_convertStruct(42896, 42898, 2, 1),
+            new T_convertStruct(42902, 42920, 2, 1),
+            new T_convertStruct(42922, 42922, -1, -42308),
+            new T_convertStruct(42923, 42923, -1, -42319),
+            new T_convertStruct(42924, 42924, -1, -42315),
+            new T_convertStruct(42925, 42925, -1, -42305),
+            new T_convertStruct(42926, 42926, -1, -42308),
+            new T_convertStruct(42928, 42928, -1, -42258),
+            new T_convertStruct(42929, 42929, -1, -42282),
+            new T_convertStruct(42930, 42930, -1, -42261),
+            new T_convertStruct(42931, 42931, -1, 928),
+            new T_convertStruct(42932, 42946, 2, 1),
+            new T_convertStruct(42948, 42948, -1, -48),
+            new T_convertStruct(42949, 42949, -1, -42307),
+            new T_convertStruct(42950, 42950, -1, -35384),
+            new T_convertStruct(42951, 42953, 2, 1),
+            new T_convertStruct(42955, 42955, -1, -42343),
+            new T_convertStruct(42956, 42960, 4, 1),
+            new T_convertStruct(42966, 42970, 2, 1),
+            new T_convertStruct(42972, 42972, -1, -42561),
+            new T_convertStruct(42997, 42997, -1, 1),
+            new T_convertStruct(65313, 65338, 1, 32),
+            new T_convertStruct(66560, 66599, 1, 40),
+            new T_convertStruct(66736, 66771, 1, 40),
+            new T_convertStruct(66928, 66938, 1, 39),
+            new T_convertStruct(66940, 66954, 1, 39),
+            new T_convertStruct(66956, 66962, 1, 39),
+            new T_convertStruct(66964, 66965, 1, 39),
+            new T_convertStruct(68736, 68786, 1, 64),
+            new T_convertStruct(68944, 68965, 1, 32),
+            new T_convertStruct(71840, 71871, 1, 32),
+            new T_convertStruct(93760, 93791, 1, 32),
+            new T_convertStruct(125184, 125217, 1, 34));
+        Rt.rows(toUpper,
+            new T_convertStruct(97, 122, 1, -32),
+            new T_convertStruct(181, 181, -1, 743),
+            new T_convertStruct(223, 223, -1, 7615),
+            new T_convertStruct(224, 246, 1, -32),
+            new T_convertStruct(248, 254, 1, -32),
+            new T_convertStruct(255, 255, -1, 121),
+            new T_convertStruct(257, 303, 2, -1),
+            new T_convertStruct(305, 305, -1, -232),
+            new T_convertStruct(307, 311, 2, -1),
+            new T_convertStruct(314, 328, 2, -1),
+            new T_convertStruct(331, 375, 2, -1),
+            new T_convertStruct(378, 382, 2, -1),
+            new T_convertStruct(383, 383, -1, -300),
+            new T_convertStruct(384, 384, -1, 195),
+            new T_convertStruct(387, 389, 2, -1),
+            new T_convertStruct(392, 396, 4, -1),
+            new T_convertStruct(402, 402, -1, -1),
+            new T_convertStruct(405, 405, -1, 97),
+            new T_convertStruct(409, 409, -1, -1),
+            new T_convertStruct(410, 410, -1, 163),
+            new T_convertStruct(411, 411, -1, 42561),
+            new T_convertStruct(414, 414, -1, 130),
+            new T_convertStruct(417, 421, 2, -1),
+            new T_convertStruct(424, 429, 5, -1),
+            new T_convertStruct(432, 436, 4, -1),
+            new T_convertStruct(438, 441, 3, -1),
+            new T_convertStruct(445, 445, -1, -1),
+            new T_convertStruct(447, 447, -1, 56),
+            new T_convertStruct(453, 453, -1, -1),
+            new T_convertStruct(454, 454, -1, -2),
+            new T_convertStruct(456, 456, -1, -1),
+            new T_convertStruct(457, 457, -1, -2),
+            new T_convertStruct(459, 459, -1, -1),
+            new T_convertStruct(460, 460, -1, -2),
+            new T_convertStruct(462, 476, 2, -1),
+            new T_convertStruct(477, 477, -1, -79),
+            new T_convertStruct(479, 495, 2, -1),
+            new T_convertStruct(498, 498, -1, -1),
+            new T_convertStruct(499, 499, -1, -2),
+            new T_convertStruct(501, 505, 4, -1),
+            new T_convertStruct(507, 543, 2, -1),
+            new T_convertStruct(547, 563, 2, -1),
+            new T_convertStruct(572, 572, -1, -1),
+            new T_convertStruct(575, 576, 1, 10815),
+            new T_convertStruct(578, 583, 5, -1),
+            new T_convertStruct(585, 591, 2, -1),
+            new T_convertStruct(592, 592, -1, 10783),
+            new T_convertStruct(593, 593, -1, 10780),
+            new T_convertStruct(594, 594, -1, 10782),
+            new T_convertStruct(595, 595, -1, -210),
+            new T_convertStruct(596, 596, -1, -206),
+            new T_convertStruct(598, 599, 1, -205),
+            new T_convertStruct(601, 601, -1, -202),
+            new T_convertStruct(603, 603, -1, -203),
+            new T_convertStruct(604, 604, -1, 42319),
+            new T_convertStruct(608, 608, -1, -205),
+            new T_convertStruct(609, 609, -1, 42315),
+            new T_convertStruct(611, 611, -1, -207),
+            new T_convertStruct(612, 612, -1, 42343),
+            new T_convertStruct(613, 613, -1, 42280),
+            new T_convertStruct(614, 614, -1, 42308),
+            new T_convertStruct(616, 616, -1, -209),
+            new T_convertStruct(617, 617, -1, -211),
+            new T_convertStruct(618, 618, -1, 42308),
+            new T_convertStruct(619, 619, -1, 10743),
+            new T_convertStruct(620, 620, -1, 42305),
+            new T_convertStruct(623, 623, -1, -211),
+            new T_convertStruct(625, 625, -1, 10749),
+            new T_convertStruct(626, 626, -1, -213),
+            new T_convertStruct(629, 629, -1, -214),
+            new T_convertStruct(637, 637, -1, 10727),
+            new T_convertStruct(640, 640, -1, -218),
+            new T_convertStruct(642, 642, -1, 42307),
+            new T_convertStruct(643, 643, -1, -218),
+            new T_convertStruct(647, 647, -1, 42282),
+            new T_convertStruct(648, 648, -1, -218),
+            new T_convertStruct(649, 649, -1, -69),
+            new T_convertStruct(650, 651, 1, -217),
+            new T_convertStruct(652, 652, -1, -71),
+            new T_convertStruct(658, 658, -1, -219),
+            new T_convertStruct(669, 669, -1, 42261),
+            new T_convertStruct(670, 670, -1, 42258),
+            new T_convertStruct(837, 837, -1, 84),
+            new T_convertStruct(881, 883, 2, -1),
+            new T_convertStruct(887, 887, -1, -1),
+            new T_convertStruct(891, 893, 1, 130),
+            new T_convertStruct(940, 940, -1, -38),
+            new T_convertStruct(941, 943, 1, -37),
+            new T_convertStruct(945, 961, 1, -32),
+            new T_convertStruct(962, 962, -1, -31),
+            new T_convertStruct(963, 971, 1, -32),
+            new T_convertStruct(972, 972, -1, -64),
+            new T_convertStruct(973, 974, 1, -63),
+            new T_convertStruct(976, 976, -1, -62),
+            new T_convertStruct(977, 977, -1, -57),
+            new T_convertStruct(981, 981, -1, -47),
+            new T_convertStruct(982, 982, -1, -54),
+            new T_convertStruct(983, 983, -1, -8),
+            new T_convertStruct(985, 1007, 2, -1),
+            new T_convertStruct(1008, 1008, -1, -86),
+            new T_convertStruct(1009, 1009, -1, -80),
+            new T_convertStruct(1010, 1010, -1, 7),
+            new T_convertStruct(1011, 1011, -1, -116),
+            new T_convertStruct(1013, 1013, -1, -96),
+            new T_convertStruct(1016, 1019, 3, -1),
+            new T_convertStruct(1072, 1103, 1, -32),
+            new T_convertStruct(1104, 1119, 1, -80),
+            new T_convertStruct(1121, 1153, 2, -1),
+            new T_convertStruct(1163, 1215, 2, -1),
+            new T_convertStruct(1218, 1230, 2, -1),
+            new T_convertStruct(1231, 1231, -1, -15),
+            new T_convertStruct(1233, 1327, 2, -1),
+            new T_convertStruct(1377, 1414, 1, -48),
+            new T_convertStruct(4304, 4346, 1, 3008),
+            new T_convertStruct(4349, 4351, 1, 3008),
+            new T_convertStruct(5112, 5117, 1, -8),
+            new T_convertStruct(7296, 7296, -1, -6254),
+            new T_convertStruct(7297, 7297, -1, -6253),
+            new T_convertStruct(7298, 7298, -1, -6244),
+            new T_convertStruct(7299, 7300, 1, -6242),
+            new T_convertStruct(7301, 7301, -1, -6243),
+            new T_convertStruct(7302, 7302, -1, -6236),
+            new T_convertStruct(7303, 7303, -1, -6181),
+            new T_convertStruct(7304, 7304, -1, 35266),
+            new T_convertStruct(7306, 7306, -1, -1),
+            new T_convertStruct(7545, 7545, -1, 35332),
+            new T_convertStruct(7549, 7549, -1, 3814),
+            new T_convertStruct(7566, 7566, -1, 35384),
+            new T_convertStruct(7681, 7829, 2, -1),
+            new T_convertStruct(7835, 7835, -1, -59),
+            new T_convertStruct(7841, 7935, 2, -1),
+            new T_convertStruct(7936, 7943, 1, 8),
+            new T_convertStruct(7952, 7957, 1, 8),
+            new T_convertStruct(7968, 7975, 1, 8),
+            new T_convertStruct(7984, 7991, 1, 8),
+            new T_convertStruct(8000, 8005, 1, 8),
+            new T_convertStruct(8017, 8023, 2, 8),
+            new T_convertStruct(8032, 8039, 1, 8),
+            new T_convertStruct(8048, 8049, 1, 74),
+            new T_convertStruct(8050, 8053, 1, 86),
+            new T_convertStruct(8054, 8055, 1, 100),
+            new T_convertStruct(8056, 8057, 1, 128),
+            new T_convertStruct(8058, 8059, 1, 112),
+            new T_convertStruct(8060, 8061, 1, 126),
+            new T_convertStruct(8064, 8071, 1, 8),
+            new T_convertStruct(8080, 8087, 1, 8),
+            new T_convertStruct(8096, 8103, 1, 8),
+            new T_convertStruct(8112, 8113, 1, 8),
+            new T_convertStruct(8115, 8115, -1, 9),
+            new T_convertStruct(8126, 8126, -1, -7205),
+            new T_convertStruct(8131, 8131, -1, 9),
+            new T_convertStruct(8144, 8145, 1, 8),
+            new T_convertStruct(8160, 8161, 1, 8),
+            new T_convertStruct(8165, 8165, -1, 7),
+            new T_convertStruct(8179, 8179, -1, 9),
+            new T_convertStruct(8526, 8526, -1, -28),
+            new T_convertStruct(8560, 8575, 1, -16),
+            new T_convertStruct(8580, 8580, -1, -1),
+            new T_convertStruct(9424, 9449, 1, -26),
+            new T_convertStruct(11312, 11359, 1, -48),
+            new T_convertStruct(11361, 11361, -1, -1),
+            new T_convertStruct(11365, 11365, -1, -10795),
+            new T_convertStruct(11366, 11366, -1, -10792),
+            new T_convertStruct(11368, 11372, 2, -1),
+            new T_convertStruct(11379, 11382, 3, -1),
+            new T_convertStruct(11393, 11491, 2, -1),
+            new T_convertStruct(11500, 11502, 2, -1),
+            new T_convertStruct(11507, 11507, -1, -1),
+            new T_convertStruct(11520, 11557, 1, -7264),
+            new T_convertStruct(11559, 11565, 6, -7264),
+            new T_convertStruct(42561, 42605, 2, -1),
+            new T_convertStruct(42625, 42651, 2, -1),
+            new T_convertStruct(42787, 42799, 2, -1),
+            new T_convertStruct(42803, 42863, 2, -1),
+            new T_convertStruct(42874, 42876, 2, -1),
+            new T_convertStruct(42879, 42887, 2, -1),
+            new T_convertStruct(42892, 42897, 5, -1),
+            new T_convertStruct(42899, 42899, -1, -1),
+            new T_convertStruct(42900, 42900, -1, 48),
+            new T_convertStruct(42903, 42921, 2, -1),
+            new T_convertStruct(42933, 42947, 2, -1),
+            new T_convertStruct(42952, 42954, 2, -1),
+            new T_convertStruct(42957, 42961, 4, -1),
+            new T_convertStruct(42967, 42971, 2, -1),
+            new T_convertStruct(42998, 42998, -1, -1),
+            new T_convertStruct(43859, 43859, -1, -928),
+            new T_convertStruct(43888, 43967, 1, -38864),
+            new T_convertStruct(65345, 65370, 1, -32),
+            new T_convertStruct(66600, 66639, 1, -40),
+            new T_convertStruct(66776, 66811, 1, -40),
+            new T_convertStruct(66967, 66977, 1, -39),
+            new T_convertStruct(66979, 66993, 1, -39),
+            new T_convertStruct(66995, 67001, 1, -39),
+            new T_convertStruct(67003, 67004, 1, -39),
+            new T_convertStruct(68800, 68850, 1, -64),
+            new T_convertStruct(68976, 68997, 1, -32),
+            new T_convertStruct(71872, 71903, 1, -32),
+            new T_convertStruct(93792, 93823, 1, -32),
+            new T_convertStruct(125218, 125251, 1, -34));
     }
 
     private void initGlobals3() {
-        ambiguous[0].first = 161L;
-        ambiguous[0].last = 161L;
-        ambiguous[1].first = 164L;
-        ambiguous[1].last = 164L;
-        ambiguous[2].first = 167L;
-        ambiguous[2].last = 168L;
-        ambiguous[3].first = 170L;
-        ambiguous[3].last = 170L;
-        ambiguous[4].first = 173L;
-        ambiguous[4].last = 174L;
-        ambiguous[5].first = 176L;
-        ambiguous[5].last = 180L;
-        ambiguous[6].first = 182L;
-        ambiguous[6].last = 186L;
-        ambiguous[7].first = 188L;
-        ambiguous[7].last = 191L;
-        ambiguous[8].first = 198L;
-        ambiguous[8].last = 198L;
-        ambiguous[9].first = 208L;
-        ambiguous[9].last = 208L;
-        ambiguous[10].first = 215L;
-        ambiguous[10].last = 216L;
-        ambiguous[11].first = 222L;
-        ambiguous[11].last = 225L;
-        ambiguous[12].first = 230L;
-        ambiguous[12].last = 230L;
-        ambiguous[13].first = 232L;
-        ambiguous[13].last = 234L;
-        ambiguous[14].first = 236L;
-        ambiguous[14].last = 237L;
-        ambiguous[15].first = 240L;
-        ambiguous[15].last = 240L;
-        ambiguous[16].first = 242L;
-        ambiguous[16].last = 243L;
-        ambiguous[17].first = 247L;
-        ambiguous[17].last = 250L;
-        ambiguous[18].first = 252L;
-        ambiguous[18].last = 252L;
-        ambiguous[19].first = 254L;
-        ambiguous[19].last = 254L;
-        ambiguous[20].first = 257L;
-        ambiguous[20].last = 257L;
-        ambiguous[21].first = 273L;
-        ambiguous[21].last = 273L;
-        ambiguous[22].first = 275L;
-        ambiguous[22].last = 275L;
-        ambiguous[23].first = 283L;
-        ambiguous[23].last = 283L;
-        ambiguous[24].first = 294L;
-        ambiguous[24].last = 295L;
-        ambiguous[25].first = 299L;
-        ambiguous[25].last = 299L;
-        ambiguous[26].first = 305L;
-        ambiguous[26].last = 307L;
-        ambiguous[27].first = 312L;
-        ambiguous[27].last = 312L;
-        ambiguous[28].first = 319L;
-        ambiguous[28].last = 322L;
-        ambiguous[29].first = 324L;
-        ambiguous[29].last = 324L;
-        ambiguous[30].first = 328L;
-        ambiguous[30].last = 331L;
-        ambiguous[31].first = 333L;
-        ambiguous[31].last = 333L;
-        ambiguous[32].first = 338L;
-        ambiguous[32].last = 339L;
-        ambiguous[33].first = 358L;
-        ambiguous[33].last = 359L;
-        ambiguous[34].first = 363L;
-        ambiguous[34].last = 363L;
-        ambiguous[35].first = 462L;
-        ambiguous[35].last = 462L;
-        ambiguous[36].first = 464L;
-        ambiguous[36].last = 464L;
-        ambiguous[37].first = 466L;
-        ambiguous[37].last = 466L;
-        ambiguous[38].first = 468L;
-        ambiguous[38].last = 468L;
-        ambiguous[39].first = 470L;
-        ambiguous[39].last = 470L;
-        ambiguous[40].first = 472L;
-        ambiguous[40].last = 472L;
-        ambiguous[41].first = 474L;
-        ambiguous[41].last = 474L;
-        ambiguous[42].first = 476L;
-        ambiguous[42].last = 476L;
-        ambiguous[43].first = 593L;
-        ambiguous[43].last = 593L;
-        ambiguous[44].first = 609L;
-        ambiguous[44].last = 609L;
-        ambiguous[45].first = 708L;
-        ambiguous[45].last = 708L;
-        ambiguous[46].first = 711L;
-        ambiguous[46].last = 711L;
-        ambiguous[47].first = 713L;
-        ambiguous[47].last = 715L;
-        ambiguous[48].first = 717L;
-        ambiguous[48].last = 717L;
-        ambiguous[49].first = 720L;
-        ambiguous[49].last = 720L;
-        ambiguous[50].first = 728L;
-        ambiguous[50].last = 731L;
-        ambiguous[51].first = 733L;
-        ambiguous[51].last = 733L;
-        ambiguous[52].first = 735L;
-        ambiguous[52].last = 735L;
-        ambiguous[53].first = 768L;
-        ambiguous[53].last = 879L;
-        ambiguous[54].first = 913L;
-        ambiguous[54].last = 929L;
-        ambiguous[55].first = 931L;
-        ambiguous[55].last = 937L;
-        ambiguous[56].first = 945L;
-        ambiguous[56].last = 961L;
-        ambiguous[57].first = 963L;
-        ambiguous[57].last = 969L;
-        ambiguous[58].first = 1025L;
-        ambiguous[58].last = 1025L;
-        ambiguous[59].first = 1040L;
-        ambiguous[59].last = 1103L;
-        ambiguous[60].first = 1105L;
-        ambiguous[60].last = 1105L;
-        ambiguous[61].first = 8208L;
-        ambiguous[61].last = 8208L;
-        ambiguous[62].first = 8211L;
-        ambiguous[62].last = 8214L;
-        ambiguous[63].first = 8216L;
-        ambiguous[63].last = 8217L;
-        ambiguous[64].first = 8220L;
-        ambiguous[64].last = 8221L;
-        ambiguous[65].first = 8224L;
-        ambiguous[65].last = 8226L;
-        ambiguous[66].first = 8228L;
-        ambiguous[66].last = 8231L;
-        ambiguous[67].first = 8240L;
-        ambiguous[67].last = 8240L;
-        ambiguous[68].first = 8242L;
-        ambiguous[68].last = 8243L;
-        ambiguous[69].first = 8245L;
-        ambiguous[69].last = 8245L;
-        ambiguous[70].first = 8251L;
-        ambiguous[70].last = 8251L;
-        ambiguous[71].first = 8254L;
-        ambiguous[71].last = 8254L;
-        ambiguous[72].first = 8308L;
-        ambiguous[72].last = 8308L;
-        ambiguous[73].first = 8319L;
-        ambiguous[73].last = 8319L;
-        ambiguous[74].first = 8321L;
-        ambiguous[74].last = 8324L;
-        ambiguous[75].first = 8364L;
-        ambiguous[75].last = 8364L;
-        ambiguous[76].first = 8451L;
-        ambiguous[76].last = 8451L;
-        ambiguous[77].first = 8453L;
-        ambiguous[77].last = 8453L;
-        ambiguous[78].first = 8457L;
-        ambiguous[78].last = 8457L;
-        ambiguous[79].first = 8467L;
-        ambiguous[79].last = 8467L;
-        ambiguous[80].first = 8470L;
-        ambiguous[80].last = 8470L;
-        ambiguous[81].first = 8481L;
-        ambiguous[81].last = 8482L;
-        ambiguous[82].first = 8486L;
-        ambiguous[82].last = 8486L;
-        ambiguous[83].first = 8491L;
-        ambiguous[83].last = 8491L;
-        ambiguous[84].first = 8531L;
-        ambiguous[84].last = 8532L;
-        ambiguous[85].first = 8539L;
-        ambiguous[85].last = 8542L;
-        ambiguous[86].first = 8544L;
-        ambiguous[86].last = 8555L;
-        ambiguous[87].first = 8560L;
-        ambiguous[87].last = 8569L;
-        ambiguous[88].first = 8585L;
-        ambiguous[88].last = 8585L;
-        ambiguous[89].first = 8592L;
-        ambiguous[89].last = 8601L;
-        ambiguous[90].first = 8632L;
-        ambiguous[90].last = 8633L;
-        ambiguous[91].first = 8658L;
-        ambiguous[91].last = 8658L;
-        ambiguous[92].first = 8660L;
-        ambiguous[92].last = 8660L;
-        ambiguous[93].first = 8679L;
-        ambiguous[93].last = 8679L;
-        ambiguous[94].first = 8704L;
-        ambiguous[94].last = 8704L;
-        ambiguous[95].first = 8706L;
-        ambiguous[95].last = 8707L;
-        ambiguous[96].first = 8711L;
-        ambiguous[96].last = 8712L;
-        ambiguous[97].first = 8715L;
-        ambiguous[97].last = 8715L;
-        ambiguous[98].first = 8719L;
-        ambiguous[98].last = 8719L;
-        ambiguous[99].first = 8721L;
-        ambiguous[99].last = 8721L;
-        ambiguous[100].first = 8725L;
-        ambiguous[100].last = 8725L;
-        ambiguous[101].first = 8730L;
-        ambiguous[101].last = 8730L;
-        ambiguous[102].first = 8733L;
-        ambiguous[102].last = 8736L;
-        ambiguous[103].first = 8739L;
-        ambiguous[103].last = 8739L;
-        ambiguous[104].first = 8741L;
-        ambiguous[104].last = 8741L;
-        ambiguous[105].first = 8743L;
-        ambiguous[105].last = 8748L;
-        ambiguous[106].first = 8750L;
-        ambiguous[106].last = 8750L;
-        ambiguous[107].first = 8756L;
-        ambiguous[107].last = 8759L;
-        ambiguous[108].first = 8764L;
-        ambiguous[108].last = 8765L;
-        ambiguous[109].first = 8776L;
-        ambiguous[109].last = 8776L;
-        ambiguous[110].first = 8780L;
-        ambiguous[110].last = 8780L;
-        ambiguous[111].first = 8786L;
-        ambiguous[111].last = 8786L;
-        ambiguous[112].first = 8800L;
-        ambiguous[112].last = 8801L;
-        ambiguous[113].first = 8804L;
-        ambiguous[113].last = 8807L;
-        ambiguous[114].first = 8810L;
-        ambiguous[114].last = 8811L;
-        ambiguous[115].first = 8814L;
-        ambiguous[115].last = 8815L;
-        ambiguous[116].first = 8834L;
-        ambiguous[116].last = 8835L;
-        ambiguous[117].first = 8838L;
-        ambiguous[117].last = 8839L;
-        ambiguous[118].first = 8853L;
-        ambiguous[118].last = 8853L;
-        ambiguous[119].first = 8857L;
-        ambiguous[119].last = 8857L;
-        ambiguous[120].first = 8869L;
-        ambiguous[120].last = 8869L;
-        ambiguous[121].first = 8895L;
-        ambiguous[121].last = 8895L;
-        ambiguous[122].first = 8978L;
-        ambiguous[122].last = 8978L;
-        ambiguous[123].first = 9312L;
-        ambiguous[123].last = 9449L;
-        ambiguous[124].first = 9451L;
-        ambiguous[124].last = 9547L;
-        ambiguous[125].first = 9552L;
-        ambiguous[125].last = 9587L;
-        ambiguous[126].first = 9600L;
-        ambiguous[126].last = 9615L;
-        ambiguous[127].first = 9618L;
-        ambiguous[127].last = 9621L;
-        ambiguous[128].first = 9632L;
-        ambiguous[128].last = 9633L;
-        ambiguous[129].first = 9635L;
-        ambiguous[129].last = 9641L;
-        ambiguous[130].first = 9650L;
-        ambiguous[130].last = 9651L;
-        ambiguous[131].first = 9654L;
-        ambiguous[131].last = 9655L;
-        ambiguous[132].first = 9660L;
-        ambiguous[132].last = 9661L;
-        ambiguous[133].first = 9664L;
-        ambiguous[133].last = 9665L;
-        ambiguous[134].first = 9670L;
-        ambiguous[134].last = 9672L;
-        ambiguous[135].first = 9675L;
-        ambiguous[135].last = 9675L;
-        ambiguous[136].first = 9678L;
-        ambiguous[136].last = 9681L;
-        ambiguous[137].first = 9698L;
-        ambiguous[137].last = 9701L;
-        ambiguous[138].first = 9711L;
-        ambiguous[138].last = 9711L;
-        ambiguous[139].first = 9733L;
-        ambiguous[139].last = 9734L;
-        ambiguous[140].first = 9737L;
-        ambiguous[140].last = 9737L;
-        ambiguous[141].first = 9742L;
-        ambiguous[141].last = 9743L;
-        ambiguous[142].first = 9756L;
-        ambiguous[142].last = 9756L;
-        ambiguous[143].first = 9758L;
-        ambiguous[143].last = 9758L;
-        ambiguous[144].first = 9792L;
-        ambiguous[144].last = 9792L;
-        ambiguous[145].first = 9794L;
-        ambiguous[145].last = 9794L;
-        ambiguous[146].first = 9824L;
-        ambiguous[146].last = 9825L;
-        ambiguous[147].first = 9827L;
-        ambiguous[147].last = 9829L;
-        ambiguous[148].first = 9831L;
-        ambiguous[148].last = 9834L;
-        ambiguous[149].first = 9836L;
-        ambiguous[149].last = 9837L;
-        ambiguous[150].first = 9839L;
-        ambiguous[150].last = 9839L;
-        ambiguous[151].first = 9886L;
-        ambiguous[151].last = 9887L;
-        ambiguous[152].first = 9919L;
-        ambiguous[152].last = 9919L;
-        ambiguous[153].first = 9926L;
-        ambiguous[153].last = 9933L;
-        ambiguous[154].first = 9935L;
-        ambiguous[154].last = 9939L;
-        ambiguous[155].first = 9941L;
-        ambiguous[155].last = 9953L;
-        ambiguous[156].first = 9955L;
-        ambiguous[156].last = 9955L;
-        ambiguous[157].first = 9960L;
-        ambiguous[157].last = 9961L;
-        ambiguous[158].first = 9963L;
-        ambiguous[158].last = 9969L;
-        ambiguous[159].first = 9972L;
-        ambiguous[159].last = 9972L;
-        ambiguous[160].first = 9974L;
-        ambiguous[160].last = 9977L;
-        ambiguous[161].first = 9979L;
-        ambiguous[161].last = 9980L;
-        ambiguous[162].first = 9982L;
-        ambiguous[162].last = 9983L;
-        ambiguous[163].first = 10045L;
-        ambiguous[163].last = 10045L;
-        ambiguous[164].first = 10102L;
-        ambiguous[164].last = 10111L;
-        ambiguous[165].first = 11094L;
-        ambiguous[165].last = 11097L;
-        ambiguous[166].first = 12872L;
-        ambiguous[166].last = 12879L;
-        ambiguous[167].first = 57344L;
-        ambiguous[167].last = 63743L;
-        ambiguous[168].first = 65024L;
-        ambiguous[168].last = 65039L;
-        ambiguous[169].first = 65533L;
-        ambiguous[169].last = 65533L;
-        ambiguous[170].first = 127232L;
-        ambiguous[170].last = 127242L;
-        ambiguous[171].first = 127248L;
-        ambiguous[171].last = 127277L;
-        ambiguous[172].first = 127280L;
-        ambiguous[172].last = 127337L;
-        ambiguous[173].first = 127344L;
-        ambiguous[173].last = 127373L;
-        ambiguous[174].first = 127375L;
-        ambiguous[174].last = 127376L;
-        ambiguous[175].first = 127387L;
-        ambiguous[175].last = 127404L;
-        ambiguous[176].first = 917760L;
-        ambiguous[176].last = 917999L;
-        ambiguous[177].first = 983040L;
-        ambiguous[177].last = 1048573L;
-        ambiguous[178].first = 1048576L;
-        ambiguous[178].last = 1114109L;
-        emoji_all[0].first = 8252L;
-        emoji_all[0].last = 8252L;
-        emoji_all[1].first = 8265L;
-        emoji_all[1].last = 8265L;
-        emoji_all[2].first = 8482L;
-        emoji_all[2].last = 8482L;
-        emoji_all[3].first = 8505L;
-        emoji_all[3].last = 8505L;
-        emoji_all[4].first = 8596L;
-        emoji_all[4].last = 8601L;
-        emoji_all[5].first = 8617L;
-        emoji_all[5].last = 8618L;
-        emoji_all[6].first = 8986L;
-        emoji_all[6].last = 8987L;
-        emoji_all[7].first = 9000L;
-        emoji_all[7].last = 9000L;
-        emoji_all[8].first = 9167L;
-        emoji_all[8].last = 9167L;
-        emoji_all[9].first = 9193L;
-        emoji_all[9].last = 9203L;
-        emoji_all[10].first = 9208L;
-        emoji_all[10].last = 9210L;
-        emoji_all[11].first = 9410L;
-        emoji_all[11].last = 9410L;
-        emoji_all[12].first = 9642L;
-        emoji_all[12].last = 9643L;
-        emoji_all[13].first = 9654L;
-        emoji_all[13].last = 9654L;
-        emoji_all[14].first = 9664L;
-        emoji_all[14].last = 9664L;
-        emoji_all[15].first = 9723L;
-        emoji_all[15].last = 9726L;
-        emoji_all[16].first = 9728L;
-        emoji_all[16].last = 9732L;
-        emoji_all[17].first = 9742L;
-        emoji_all[17].last = 9742L;
-        emoji_all[18].first = 9745L;
-        emoji_all[18].last = 9745L;
-        emoji_all[19].first = 9748L;
-        emoji_all[19].last = 9749L;
-        emoji_all[20].first = 9752L;
-        emoji_all[20].last = 9752L;
-        emoji_all[21].first = 9757L;
-        emoji_all[21].last = 9757L;
-        emoji_all[22].first = 9760L;
-        emoji_all[22].last = 9760L;
-        emoji_all[23].first = 9762L;
-        emoji_all[23].last = 9763L;
-        emoji_all[24].first = 9766L;
-        emoji_all[24].last = 9766L;
-        emoji_all[25].first = 9770L;
-        emoji_all[25].last = 9770L;
-        emoji_all[26].first = 9774L;
-        emoji_all[26].last = 9775L;
-        emoji_all[27].first = 9784L;
-        emoji_all[27].last = 9786L;
-        emoji_all[28].first = 9792L;
-        emoji_all[28].last = 9792L;
-        emoji_all[29].first = 9794L;
-        emoji_all[29].last = 9794L;
-        emoji_all[30].first = 9800L;
-        emoji_all[30].last = 9811L;
-        emoji_all[31].first = 9823L;
-        emoji_all[31].last = 9824L;
-        emoji_all[32].first = 9827L;
-        emoji_all[32].last = 9827L;
-        emoji_all[33].first = 9829L;
-        emoji_all[33].last = 9830L;
-        emoji_all[34].first = 9832L;
-        emoji_all[34].last = 9832L;
-        emoji_all[35].first = 9851L;
-        emoji_all[35].last = 9851L;
-        emoji_all[36].first = 9854L;
-        emoji_all[36].last = 9855L;
-        emoji_all[37].first = 9874L;
-        emoji_all[37].last = 9879L;
-        emoji_all[38].first = 9881L;
-        emoji_all[38].last = 9881L;
-        emoji_all[39].first = 9883L;
-        emoji_all[39].last = 9884L;
-        emoji_all[40].first = 9888L;
-        emoji_all[40].last = 9889L;
-        emoji_all[41].first = 9895L;
-        emoji_all[41].last = 9895L;
-        emoji_all[42].first = 9898L;
-        emoji_all[42].last = 9899L;
-        emoji_all[43].first = 9904L;
-        emoji_all[43].last = 9905L;
-        emoji_all[44].first = 9917L;
-        emoji_all[44].last = 9918L;
-        emoji_all[45].first = 9924L;
-        emoji_all[45].last = 9925L;
-        emoji_all[46].first = 9928L;
-        emoji_all[46].last = 9928L;
-        emoji_all[47].first = 9934L;
-        emoji_all[47].last = 9935L;
-        emoji_all[48].first = 9937L;
-        emoji_all[48].last = 9937L;
-        emoji_all[49].first = 9939L;
-        emoji_all[49].last = 9940L;
-        emoji_all[50].first = 9961L;
-        emoji_all[50].last = 9962L;
-        emoji_all[51].first = 9968L;
-        emoji_all[51].last = 9973L;
-        emoji_all[52].first = 9975L;
-        emoji_all[52].last = 9978L;
-        emoji_all[53].first = 9981L;
-        emoji_all[53].last = 9981L;
-        emoji_all[54].first = 9986L;
-        emoji_all[54].last = 9986L;
-        emoji_all[55].first = 9989L;
-        emoji_all[55].last = 9989L;
-        emoji_all[56].first = 9992L;
-        emoji_all[56].last = 9997L;
-        emoji_all[57].first = 9999L;
-        emoji_all[57].last = 9999L;
-        emoji_all[58].first = 10002L;
-        emoji_all[58].last = 10002L;
-        emoji_all[59].first = 10004L;
-        emoji_all[59].last = 10004L;
-        emoji_all[60].first = 10006L;
-        emoji_all[60].last = 10006L;
-        emoji_all[61].first = 10013L;
-        emoji_all[61].last = 10013L;
-        emoji_all[62].first = 10017L;
-        emoji_all[62].last = 10017L;
-        emoji_all[63].first = 10024L;
-        emoji_all[63].last = 10024L;
-        emoji_all[64].first = 10035L;
-        emoji_all[64].last = 10036L;
-        emoji_all[65].first = 10052L;
-        emoji_all[65].last = 10052L;
-        emoji_all[66].first = 10055L;
-        emoji_all[66].last = 10055L;
-        emoji_all[67].first = 10060L;
-        emoji_all[67].last = 10060L;
-        emoji_all[68].first = 10062L;
-        emoji_all[68].last = 10062L;
-        emoji_all[69].first = 10067L;
-        emoji_all[69].last = 10069L;
-        emoji_all[70].first = 10071L;
-        emoji_all[70].last = 10071L;
-        emoji_all[71].first = 10083L;
-        emoji_all[71].last = 10084L;
-        emoji_all[72].first = 10133L;
-        emoji_all[72].last = 10135L;
-        emoji_all[73].first = 10145L;
-        emoji_all[73].last = 10145L;
-        emoji_all[74].first = 10160L;
-        emoji_all[74].last = 10160L;
-        emoji_all[75].first = 10175L;
-        emoji_all[75].last = 10175L;
-        emoji_all[76].first = 10548L;
-        emoji_all[76].last = 10549L;
-        emoji_all[77].first = 11013L;
-        emoji_all[77].last = 11015L;
-        emoji_all[78].first = 11035L;
-        emoji_all[78].last = 11036L;
-        emoji_all[79].first = 11088L;
-        emoji_all[79].last = 11088L;
-        emoji_all[80].first = 11093L;
-        emoji_all[80].last = 11093L;
-        emoji_all[81].first = 12336L;
-        emoji_all[81].last = 12336L;
-        emoji_all[82].first = 12349L;
-        emoji_all[82].last = 12349L;
-        emoji_all[83].first = 12951L;
-        emoji_all[83].last = 12951L;
-        emoji_all[84].first = 12953L;
-        emoji_all[84].last = 12953L;
-        emoji_all[85].first = 126980L;
-        emoji_all[85].last = 126980L;
-        emoji_all[86].first = 127183L;
-        emoji_all[86].last = 127183L;
-        emoji_all[87].first = 127344L;
-        emoji_all[87].last = 127345L;
-        emoji_all[88].first = 127358L;
-        emoji_all[88].last = 127359L;
-        emoji_all[89].first = 127374L;
-        emoji_all[89].last = 127374L;
-        emoji_all[90].first = 127377L;
-        emoji_all[90].last = 127386L;
-        emoji_all[91].first = 127462L;
-        emoji_all[91].last = 127487L;
-        emoji_all[92].first = 127489L;
-        emoji_all[92].last = 127490L;
-        emoji_all[93].first = 127514L;
-        emoji_all[93].last = 127514L;
-        emoji_all[94].first = 127535L;
-        emoji_all[94].last = 127535L;
-        emoji_all[95].first = 127538L;
-        emoji_all[95].last = 127546L;
-        emoji_all[96].first = 127568L;
-        emoji_all[96].last = 127569L;
-        emoji_all[97].first = 127744L;
-        emoji_all[97].last = 127777L;
-        emoji_all[98].first = 127780L;
-        emoji_all[98].last = 127891L;
-        emoji_all[99].first = 127894L;
-        emoji_all[99].last = 127895L;
-        emoji_all[100].first = 127897L;
-        emoji_all[100].last = 127899L;
-        emoji_all[101].first = 127902L;
-        emoji_all[101].last = 127984L;
-        emoji_all[102].first = 127987L;
-        emoji_all[102].last = 127989L;
-        emoji_all[103].first = 127991L;
-        emoji_all[103].last = 128253L;
-        emoji_all[104].first = 128255L;
-        emoji_all[104].last = 128317L;
-        emoji_all[105].first = 128329L;
-        emoji_all[105].last = 128334L;
-        emoji_all[106].first = 128336L;
-        emoji_all[106].last = 128359L;
-        emoji_all[107].first = 128367L;
-        emoji_all[107].last = 128368L;
-        emoji_all[108].first = 128371L;
-        emoji_all[108].last = 128378L;
-        emoji_all[109].first = 128391L;
-        emoji_all[109].last = 128391L;
-        emoji_all[110].first = 128394L;
-        emoji_all[110].last = 128397L;
-        emoji_all[111].first = 128400L;
-        emoji_all[111].last = 128400L;
-        emoji_all[112].first = 128405L;
-        emoji_all[112].last = 128406L;
-        emoji_all[113].first = 128420L;
-        emoji_all[113].last = 128421L;
-        emoji_all[114].first = 128424L;
-        emoji_all[114].last = 128424L;
-        emoji_all[115].first = 128433L;
-        emoji_all[115].last = 128434L;
-        emoji_all[116].first = 128444L;
-        emoji_all[116].last = 128444L;
-        emoji_all[117].first = 128450L;
-        emoji_all[117].last = 128452L;
-        emoji_all[118].first = 128465L;
-        emoji_all[118].last = 128467L;
-        emoji_all[119].first = 128476L;
-        emoji_all[119].last = 128478L;
-        emoji_all[120].first = 128481L;
-        emoji_all[120].last = 128481L;
-        emoji_all[121].first = 128483L;
-        emoji_all[121].last = 128483L;
-        emoji_all[122].first = 128488L;
-        emoji_all[122].last = 128488L;
-        emoji_all[123].first = 128495L;
-        emoji_all[123].last = 128495L;
-        emoji_all[124].first = 128499L;
-        emoji_all[124].last = 128499L;
-        emoji_all[125].first = 128506L;
-        emoji_all[125].last = 128591L;
-        emoji_all[126].first = 128640L;
-        emoji_all[126].last = 128709L;
-        emoji_all[127].first = 128715L;
-        emoji_all[127].last = 128722L;
-        emoji_all[128].first = 128725L;
-        emoji_all[128].last = 128727L;
-        emoji_all[129].first = 128732L;
-        emoji_all[129].last = 128741L;
-        emoji_all[130].first = 128745L;
-        emoji_all[130].last = 128745L;
-        emoji_all[131].first = 128747L;
-        emoji_all[131].last = 128748L;
-        emoji_all[132].first = 128752L;
-        emoji_all[132].last = 128752L;
-        emoji_all[133].first = 128755L;
-        emoji_all[133].last = 128764L;
-        emoji_all[134].first = 128992L;
-        emoji_all[134].last = 129003L;
-        emoji_all[135].first = 129008L;
-        emoji_all[135].last = 129008L;
-        emoji_all[136].first = 129292L;
-        emoji_all[136].last = 129338L;
-        emoji_all[137].first = 129340L;
-        emoji_all[137].last = 129349L;
-        emoji_all[138].first = 129351L;
-        emoji_all[138].last = 129535L;
-        emoji_all[139].first = 129648L;
-        emoji_all[139].last = 129660L;
-        emoji_all[140].first = 129664L;
-        emoji_all[140].last = 129672L;
-        emoji_all[141].first = 129680L;
-        emoji_all[141].last = 129725L;
-        emoji_all[142].first = 129727L;
-        emoji_all[142].last = 129733L;
-        emoji_all[143].first = 129742L;
-        emoji_all[143].last = 129755L;
-        emoji_all[144].first = 129760L;
-        emoji_all[144].last = 129768L;
-        emoji_all[145].first = 129776L;
-        emoji_all[145].last = 129784L;
-    }
-
-    private void initGlobals4() {
-        foldCase[0].rangeStart = 65;
-        foldCase[0].rangeEnd = 90;
-        foldCase[0].step = 1;
-        foldCase[0].offset = 32;
-        foldCase[1].rangeStart = 181;
-        foldCase[1].rangeEnd = 181;
-        foldCase[1].step = -1;
-        foldCase[1].offset = 775;
-        foldCase[2].rangeStart = 192;
-        foldCase[2].rangeEnd = 214;
-        foldCase[2].step = 1;
-        foldCase[2].offset = 32;
-        foldCase[3].rangeStart = 216;
-        foldCase[3].rangeEnd = 222;
-        foldCase[3].step = 1;
-        foldCase[3].offset = 32;
-        foldCase[4].rangeStart = 256;
-        foldCase[4].rangeEnd = 302;
-        foldCase[4].step = 2;
-        foldCase[4].offset = 1;
-        foldCase[5].rangeStart = 306;
-        foldCase[5].rangeEnd = 310;
-        foldCase[5].step = 2;
-        foldCase[5].offset = 1;
-        foldCase[6].rangeStart = 313;
-        foldCase[6].rangeEnd = 327;
-        foldCase[6].step = 2;
-        foldCase[6].offset = 1;
-        foldCase[7].rangeStart = 330;
-        foldCase[7].rangeEnd = 374;
-        foldCase[7].step = 2;
-        foldCase[7].offset = 1;
-        foldCase[8].rangeStart = 376;
-        foldCase[8].rangeEnd = 376;
-        foldCase[8].step = -1;
-        foldCase[8].offset = -121;
-        foldCase[9].rangeStart = 377;
-        foldCase[9].rangeEnd = 381;
-        foldCase[9].step = 2;
-        foldCase[9].offset = 1;
-        foldCase[10].rangeStart = 383;
-        foldCase[10].rangeEnd = 383;
-        foldCase[10].step = -1;
-        foldCase[10].offset = -268;
-        foldCase[11].rangeStart = 385;
-        foldCase[11].rangeEnd = 385;
-        foldCase[11].step = -1;
-        foldCase[11].offset = 210;
-        foldCase[12].rangeStart = 386;
-        foldCase[12].rangeEnd = 388;
-        foldCase[12].step = 2;
-        foldCase[12].offset = 1;
-        foldCase[13].rangeStart = 390;
-        foldCase[13].rangeEnd = 390;
-        foldCase[13].step = -1;
-        foldCase[13].offset = 206;
-        foldCase[14].rangeStart = 391;
-        foldCase[14].rangeEnd = 391;
-        foldCase[14].step = -1;
-        foldCase[14].offset = 1;
-        foldCase[15].rangeStart = 393;
-        foldCase[15].rangeEnd = 394;
-        foldCase[15].step = 1;
-        foldCase[15].offset = 205;
-        foldCase[16].rangeStart = 395;
-        foldCase[16].rangeEnd = 395;
-        foldCase[16].step = -1;
-        foldCase[16].offset = 1;
-        foldCase[17].rangeStart = 398;
-        foldCase[17].rangeEnd = 398;
-        foldCase[17].step = -1;
-        foldCase[17].offset = 79;
-        foldCase[18].rangeStart = 399;
-        foldCase[18].rangeEnd = 399;
-        foldCase[18].step = -1;
-        foldCase[18].offset = 202;
-        foldCase[19].rangeStart = 400;
-        foldCase[19].rangeEnd = 400;
-        foldCase[19].step = -1;
-        foldCase[19].offset = 203;
-        foldCase[20].rangeStart = 401;
-        foldCase[20].rangeEnd = 401;
-        foldCase[20].step = -1;
-        foldCase[20].offset = 1;
-        foldCase[21].rangeStart = 403;
-        foldCase[21].rangeEnd = 403;
-        foldCase[21].step = -1;
-        foldCase[21].offset = 205;
-        foldCase[22].rangeStart = 404;
-        foldCase[22].rangeEnd = 404;
-        foldCase[22].step = -1;
-        foldCase[22].offset = 207;
-        foldCase[23].rangeStart = 406;
-        foldCase[23].rangeEnd = 406;
-        foldCase[23].step = -1;
-        foldCase[23].offset = 211;
-        foldCase[24].rangeStart = 407;
-        foldCase[24].rangeEnd = 407;
-        foldCase[24].step = -1;
-        foldCase[24].offset = 209;
-        foldCase[25].rangeStart = 408;
-        foldCase[25].rangeEnd = 408;
-        foldCase[25].step = -1;
-        foldCase[25].offset = 1;
-        foldCase[26].rangeStart = 412;
-        foldCase[26].rangeEnd = 412;
-        foldCase[26].step = -1;
-        foldCase[26].offset = 211;
-        foldCase[27].rangeStart = 413;
-        foldCase[27].rangeEnd = 413;
-        foldCase[27].step = -1;
-        foldCase[27].offset = 213;
-        foldCase[28].rangeStart = 415;
-        foldCase[28].rangeEnd = 415;
-        foldCase[28].step = -1;
-        foldCase[28].offset = 214;
-        foldCase[29].rangeStart = 416;
-        foldCase[29].rangeEnd = 420;
-        foldCase[29].step = 2;
-        foldCase[29].offset = 1;
-        foldCase[30].rangeStart = 422;
-        foldCase[30].rangeEnd = 422;
-        foldCase[30].step = -1;
-        foldCase[30].offset = 218;
-        foldCase[31].rangeStart = 423;
-        foldCase[31].rangeEnd = 423;
-        foldCase[31].step = -1;
-        foldCase[31].offset = 1;
-        foldCase[32].rangeStart = 425;
-        foldCase[32].rangeEnd = 425;
-        foldCase[32].step = -1;
-        foldCase[32].offset = 218;
-        foldCase[33].rangeStart = 428;
-        foldCase[33].rangeEnd = 428;
-        foldCase[33].step = -1;
-        foldCase[33].offset = 1;
-        foldCase[34].rangeStart = 430;
-        foldCase[34].rangeEnd = 430;
-        foldCase[34].step = -1;
-        foldCase[34].offset = 218;
-        foldCase[35].rangeStart = 431;
-        foldCase[35].rangeEnd = 431;
-        foldCase[35].step = -1;
-        foldCase[35].offset = 1;
-        foldCase[36].rangeStart = 433;
-        foldCase[36].rangeEnd = 434;
-        foldCase[36].step = 1;
-        foldCase[36].offset = 217;
-        foldCase[37].rangeStart = 435;
-        foldCase[37].rangeEnd = 437;
-        foldCase[37].step = 2;
-        foldCase[37].offset = 1;
-        foldCase[38].rangeStart = 439;
-        foldCase[38].rangeEnd = 439;
-        foldCase[38].step = -1;
-        foldCase[38].offset = 219;
-        foldCase[39].rangeStart = 440;
-        foldCase[39].rangeEnd = 444;
-        foldCase[39].step = 4;
-        foldCase[39].offset = 1;
-        foldCase[40].rangeStart = 452;
-        foldCase[40].rangeEnd = 452;
-        foldCase[40].step = -1;
-        foldCase[40].offset = 2;
-        foldCase[41].rangeStart = 453;
-        foldCase[41].rangeEnd = 453;
-        foldCase[41].step = -1;
-        foldCase[41].offset = 1;
-        foldCase[42].rangeStart = 455;
-        foldCase[42].rangeEnd = 455;
-        foldCase[42].step = -1;
-        foldCase[42].offset = 2;
-        foldCase[43].rangeStart = 456;
-        foldCase[43].rangeEnd = 456;
-        foldCase[43].step = -1;
-        foldCase[43].offset = 1;
-        foldCase[44].rangeStart = 458;
-        foldCase[44].rangeEnd = 458;
-        foldCase[44].step = -1;
-        foldCase[44].offset = 2;
-        foldCase[45].rangeStart = 459;
-        foldCase[45].rangeEnd = 475;
-        foldCase[45].step = 2;
-        foldCase[45].offset = 1;
-        foldCase[46].rangeStart = 478;
-        foldCase[46].rangeEnd = 494;
-        foldCase[46].step = 2;
-        foldCase[46].offset = 1;
-        foldCase[47].rangeStart = 497;
-        foldCase[47].rangeEnd = 497;
-        foldCase[47].step = -1;
-        foldCase[47].offset = 2;
-        foldCase[48].rangeStart = 498;
-        foldCase[48].rangeEnd = 500;
-        foldCase[48].step = 2;
-        foldCase[48].offset = 1;
-        foldCase[49].rangeStart = 502;
-        foldCase[49].rangeEnd = 502;
-        foldCase[49].step = -1;
-        foldCase[49].offset = -97;
-        foldCase[50].rangeStart = 503;
-        foldCase[50].rangeEnd = 503;
-        foldCase[50].step = -1;
-        foldCase[50].offset = -56;
-        foldCase[51].rangeStart = 504;
-        foldCase[51].rangeEnd = 542;
-        foldCase[51].step = 2;
-        foldCase[51].offset = 1;
-        foldCase[52].rangeStart = 544;
-        foldCase[52].rangeEnd = 544;
-        foldCase[52].step = -1;
-        foldCase[52].offset = -130;
-        foldCase[53].rangeStart = 546;
-        foldCase[53].rangeEnd = 562;
-        foldCase[53].step = 2;
-        foldCase[53].offset = 1;
-        foldCase[54].rangeStart = 570;
-        foldCase[54].rangeEnd = 570;
-        foldCase[54].step = -1;
-        foldCase[54].offset = 10795;
-        foldCase[55].rangeStart = 571;
-        foldCase[55].rangeEnd = 571;
-        foldCase[55].step = -1;
-        foldCase[55].offset = 1;
-        foldCase[56].rangeStart = 573;
-        foldCase[56].rangeEnd = 573;
-        foldCase[56].step = -1;
-        foldCase[56].offset = -163;
-        foldCase[57].rangeStart = 574;
-        foldCase[57].rangeEnd = 574;
-        foldCase[57].step = -1;
-        foldCase[57].offset = 10792;
-        foldCase[58].rangeStart = 577;
-        foldCase[58].rangeEnd = 577;
-        foldCase[58].step = -1;
-        foldCase[58].offset = 1;
-        foldCase[59].rangeStart = 579;
-        foldCase[59].rangeEnd = 579;
-        foldCase[59].step = -1;
-        foldCase[59].offset = -195;
-        foldCase[60].rangeStart = 580;
-        foldCase[60].rangeEnd = 580;
-        foldCase[60].step = -1;
-        foldCase[60].offset = 69;
-        foldCase[61].rangeStart = 581;
-        foldCase[61].rangeEnd = 581;
-        foldCase[61].step = -1;
-        foldCase[61].offset = 71;
-        foldCase[62].rangeStart = 582;
-        foldCase[62].rangeEnd = 590;
-        foldCase[62].step = 2;
-        foldCase[62].offset = 1;
-        foldCase[63].rangeStart = 837;
-        foldCase[63].rangeEnd = 837;
-        foldCase[63].step = -1;
-        foldCase[63].offset = 116;
-        foldCase[64].rangeStart = 880;
-        foldCase[64].rangeEnd = 882;
-        foldCase[64].step = 2;
-        foldCase[64].offset = 1;
-        foldCase[65].rangeStart = 886;
-        foldCase[65].rangeEnd = 886;
-        foldCase[65].step = -1;
-        foldCase[65].offset = 1;
-        foldCase[66].rangeStart = 895;
-        foldCase[66].rangeEnd = 895;
-        foldCase[66].step = -1;
-        foldCase[66].offset = 116;
-        foldCase[67].rangeStart = 902;
-        foldCase[67].rangeEnd = 902;
-        foldCase[67].step = -1;
-        foldCase[67].offset = 38;
-        foldCase[68].rangeStart = 904;
-        foldCase[68].rangeEnd = 906;
-        foldCase[68].step = 1;
-        foldCase[68].offset = 37;
-        foldCase[69].rangeStart = 908;
-        foldCase[69].rangeEnd = 908;
-        foldCase[69].step = -1;
-        foldCase[69].offset = 64;
-        foldCase[70].rangeStart = 910;
-        foldCase[70].rangeEnd = 911;
-        foldCase[70].step = 1;
-        foldCase[70].offset = 63;
-        foldCase[71].rangeStart = 913;
-        foldCase[71].rangeEnd = 929;
-        foldCase[71].step = 1;
-        foldCase[71].offset = 32;
-        foldCase[72].rangeStart = 931;
-        foldCase[72].rangeEnd = 939;
-        foldCase[72].step = 1;
-        foldCase[72].offset = 32;
-        foldCase[73].rangeStart = 962;
-        foldCase[73].rangeEnd = 962;
-        foldCase[73].step = -1;
-        foldCase[73].offset = 1;
-        foldCase[74].rangeStart = 975;
-        foldCase[74].rangeEnd = 975;
-        foldCase[74].step = -1;
-        foldCase[74].offset = 8;
-        foldCase[75].rangeStart = 976;
-        foldCase[75].rangeEnd = 976;
-        foldCase[75].step = -1;
-        foldCase[75].offset = -30;
-        foldCase[76].rangeStart = 977;
-        foldCase[76].rangeEnd = 977;
-        foldCase[76].step = -1;
-        foldCase[76].offset = -25;
-        foldCase[77].rangeStart = 981;
-        foldCase[77].rangeEnd = 981;
-        foldCase[77].step = -1;
-        foldCase[77].offset = -15;
-        foldCase[78].rangeStart = 982;
-        foldCase[78].rangeEnd = 982;
-        foldCase[78].step = -1;
-        foldCase[78].offset = -22;
-        foldCase[79].rangeStart = 984;
-        foldCase[79].rangeEnd = 1006;
-        foldCase[79].step = 2;
-        foldCase[79].offset = 1;
-        foldCase[80].rangeStart = 1008;
-        foldCase[80].rangeEnd = 1008;
-        foldCase[80].step = -1;
-        foldCase[80].offset = -54;
-        foldCase[81].rangeStart = 1009;
-        foldCase[81].rangeEnd = 1009;
-        foldCase[81].step = -1;
-        foldCase[81].offset = -48;
-        foldCase[82].rangeStart = 1012;
-        foldCase[82].rangeEnd = 1012;
-        foldCase[82].step = -1;
-        foldCase[82].offset = -60;
-        foldCase[83].rangeStart = 1013;
-        foldCase[83].rangeEnd = 1013;
-        foldCase[83].step = -1;
-        foldCase[83].offset = -64;
-        foldCase[84].rangeStart = 1015;
-        foldCase[84].rangeEnd = 1015;
-        foldCase[84].step = -1;
-        foldCase[84].offset = 1;
-        foldCase[85].rangeStart = 1017;
-        foldCase[85].rangeEnd = 1017;
-        foldCase[85].step = -1;
-        foldCase[85].offset = -7;
-        foldCase[86].rangeStart = 1018;
-        foldCase[86].rangeEnd = 1018;
-        foldCase[86].step = -1;
-        foldCase[86].offset = 1;
-        foldCase[87].rangeStart = 1021;
-        foldCase[87].rangeEnd = 1023;
-        foldCase[87].step = 1;
-        foldCase[87].offset = -130;
-        foldCase[88].rangeStart = 1024;
-        foldCase[88].rangeEnd = 1039;
-        foldCase[88].step = 1;
-        foldCase[88].offset = 80;
-        foldCase[89].rangeStart = 1040;
-        foldCase[89].rangeEnd = 1071;
-        foldCase[89].step = 1;
-        foldCase[89].offset = 32;
-        foldCase[90].rangeStart = 1120;
-        foldCase[90].rangeEnd = 1152;
-        foldCase[90].step = 2;
-        foldCase[90].offset = 1;
-        foldCase[91].rangeStart = 1162;
-        foldCase[91].rangeEnd = 1214;
-        foldCase[91].step = 2;
-        foldCase[91].offset = 1;
-        foldCase[92].rangeStart = 1216;
-        foldCase[92].rangeEnd = 1216;
-        foldCase[92].step = -1;
-        foldCase[92].offset = 15;
-        foldCase[93].rangeStart = 1217;
-        foldCase[93].rangeEnd = 1229;
-        foldCase[93].step = 2;
-        foldCase[93].offset = 1;
-        foldCase[94].rangeStart = 1232;
-        foldCase[94].rangeEnd = 1326;
-        foldCase[94].step = 2;
-        foldCase[94].offset = 1;
-        foldCase[95].rangeStart = 1329;
-        foldCase[95].rangeEnd = 1366;
-        foldCase[95].step = 1;
-        foldCase[95].offset = 48;
-        foldCase[96].rangeStart = 4256;
-        foldCase[96].rangeEnd = 4293;
-        foldCase[96].step = 1;
-        foldCase[96].offset = 7264;
-        foldCase[97].rangeStart = 4295;
-        foldCase[97].rangeEnd = 4301;
-        foldCase[97].step = 6;
-        foldCase[97].offset = 7264;
-        foldCase[98].rangeStart = 5112;
-        foldCase[98].rangeEnd = 5117;
-        foldCase[98].step = 1;
-        foldCase[98].offset = -8;
-        foldCase[99].rangeStart = 7296;
-        foldCase[99].rangeEnd = 7296;
-        foldCase[99].step = -1;
-        foldCase[99].offset = -6222;
-        foldCase[100].rangeStart = 7297;
-        foldCase[100].rangeEnd = 7297;
-        foldCase[100].step = -1;
-        foldCase[100].offset = -6221;
-        foldCase[101].rangeStart = 7298;
-        foldCase[101].rangeEnd = 7298;
-        foldCase[101].step = -1;
-        foldCase[101].offset = -6212;
-        foldCase[102].rangeStart = 7299;
-        foldCase[102].rangeEnd = 7300;
-        foldCase[102].step = 1;
-        foldCase[102].offset = -6210;
-        foldCase[103].rangeStart = 7301;
-        foldCase[103].rangeEnd = 7301;
-        foldCase[103].step = -1;
-        foldCase[103].offset = -6211;
-        foldCase[104].rangeStart = 7302;
-        foldCase[104].rangeEnd = 7302;
-        foldCase[104].step = -1;
-        foldCase[104].offset = -6204;
-        foldCase[105].rangeStart = 7303;
-        foldCase[105].rangeEnd = 7303;
-        foldCase[105].step = -1;
-        foldCase[105].offset = -6180;
-        foldCase[106].rangeStart = 7304;
-        foldCase[106].rangeEnd = 7304;
-        foldCase[106].step = -1;
-        foldCase[106].offset = 35267;
-        foldCase[107].rangeStart = 7305;
-        foldCase[107].rangeEnd = 7305;
-        foldCase[107].step = -1;
-        foldCase[107].offset = 1;
-        foldCase[108].rangeStart = 7312;
-        foldCase[108].rangeEnd = 7354;
-        foldCase[108].step = 1;
-        foldCase[108].offset = -3008;
-        foldCase[109].rangeStart = 7357;
-        foldCase[109].rangeEnd = 7359;
-        foldCase[109].step = 1;
-        foldCase[109].offset = -3008;
-        foldCase[110].rangeStart = 7680;
-        foldCase[110].rangeEnd = 7828;
-        foldCase[110].step = 2;
-        foldCase[110].offset = 1;
-        foldCase[111].rangeStart = 7835;
-        foldCase[111].rangeEnd = 7835;
-        foldCase[111].step = -1;
-        foldCase[111].offset = -58;
-        foldCase[112].rangeStart = 7838;
-        foldCase[112].rangeEnd = 7838;
-        foldCase[112].step = -1;
-        foldCase[112].offset = -7615;
-        foldCase[113].rangeStart = 7840;
-        foldCase[113].rangeEnd = 7934;
-        foldCase[113].step = 2;
-        foldCase[113].offset = 1;
-        foldCase[114].rangeStart = 7944;
-        foldCase[114].rangeEnd = 7951;
-        foldCase[114].step = 1;
-        foldCase[114].offset = -8;
-        foldCase[115].rangeStart = 7960;
-        foldCase[115].rangeEnd = 7965;
-        foldCase[115].step = 1;
-        foldCase[115].offset = -8;
-        foldCase[116].rangeStart = 7976;
-        foldCase[116].rangeEnd = 7983;
-        foldCase[116].step = 1;
-        foldCase[116].offset = -8;
-        foldCase[117].rangeStart = 7992;
-        foldCase[117].rangeEnd = 7999;
-        foldCase[117].step = 1;
-        foldCase[117].offset = -8;
-        foldCase[118].rangeStart = 8008;
-        foldCase[118].rangeEnd = 8013;
-        foldCase[118].step = 1;
-        foldCase[118].offset = -8;
-        foldCase[119].rangeStart = 8025;
-        foldCase[119].rangeEnd = 8031;
-        foldCase[119].step = 2;
-        foldCase[119].offset = -8;
-        foldCase[120].rangeStart = 8040;
-        foldCase[120].rangeEnd = 8047;
-        foldCase[120].step = 1;
-        foldCase[120].offset = -8;
-        foldCase[121].rangeStart = 8072;
-        foldCase[121].rangeEnd = 8079;
-        foldCase[121].step = 1;
-        foldCase[121].offset = -8;
-        foldCase[122].rangeStart = 8088;
-        foldCase[122].rangeEnd = 8095;
-        foldCase[122].step = 1;
-        foldCase[122].offset = -8;
-        foldCase[123].rangeStart = 8104;
-        foldCase[123].rangeEnd = 8111;
-        foldCase[123].step = 1;
-        foldCase[123].offset = -8;
-        foldCase[124].rangeStart = 8120;
-        foldCase[124].rangeEnd = 8121;
-        foldCase[124].step = 1;
-        foldCase[124].offset = -8;
-        foldCase[125].rangeStart = 8122;
-        foldCase[125].rangeEnd = 8123;
-        foldCase[125].step = 1;
-        foldCase[125].offset = -74;
-        foldCase[126].rangeStart = 8124;
-        foldCase[126].rangeEnd = 8124;
-        foldCase[126].step = -1;
-        foldCase[126].offset = -9;
-        foldCase[127].rangeStart = 8126;
-        foldCase[127].rangeEnd = 8126;
-        foldCase[127].step = -1;
-        foldCase[127].offset = -7173;
-        foldCase[128].rangeStart = 8136;
-        foldCase[128].rangeEnd = 8139;
-        foldCase[128].step = 1;
-        foldCase[128].offset = -86;
-        foldCase[129].rangeStart = 8140;
-        foldCase[129].rangeEnd = 8140;
-        foldCase[129].step = -1;
-        foldCase[129].offset = -9;
-        foldCase[130].rangeStart = 8147;
-        foldCase[130].rangeEnd = 8147;
-        foldCase[130].step = -1;
-        foldCase[130].offset = -7235;
-        foldCase[131].rangeStart = 8152;
-        foldCase[131].rangeEnd = 8153;
-        foldCase[131].step = 1;
-        foldCase[131].offset = -8;
-        foldCase[132].rangeStart = 8154;
-        foldCase[132].rangeEnd = 8155;
-        foldCase[132].step = 1;
-        foldCase[132].offset = -100;
-        foldCase[133].rangeStart = 8163;
-        foldCase[133].rangeEnd = 8163;
-        foldCase[133].step = -1;
-        foldCase[133].offset = -7219;
-        foldCase[134].rangeStart = 8168;
-        foldCase[134].rangeEnd = 8169;
-        foldCase[134].step = 1;
-        foldCase[134].offset = -8;
-        foldCase[135].rangeStart = 8170;
-        foldCase[135].rangeEnd = 8171;
-        foldCase[135].step = 1;
-        foldCase[135].offset = -112;
-        foldCase[136].rangeStart = 8172;
-        foldCase[136].rangeEnd = 8172;
-        foldCase[136].step = -1;
-        foldCase[136].offset = -7;
-        foldCase[137].rangeStart = 8184;
-        foldCase[137].rangeEnd = 8185;
-        foldCase[137].step = 1;
-        foldCase[137].offset = -128;
-        foldCase[138].rangeStart = 8186;
-        foldCase[138].rangeEnd = 8187;
-        foldCase[138].step = 1;
-        foldCase[138].offset = -126;
-        foldCase[139].rangeStart = 8188;
-        foldCase[139].rangeEnd = 8188;
-        foldCase[139].step = -1;
-        foldCase[139].offset = -9;
-        foldCase[140].rangeStart = 8486;
-        foldCase[140].rangeEnd = 8486;
-        foldCase[140].step = -1;
-        foldCase[140].offset = -7517;
-        foldCase[141].rangeStart = 8490;
-        foldCase[141].rangeEnd = 8490;
-        foldCase[141].step = -1;
-        foldCase[141].offset = -8383;
-        foldCase[142].rangeStart = 8491;
-        foldCase[142].rangeEnd = 8491;
-        foldCase[142].step = -1;
-        foldCase[142].offset = -8262;
-        foldCase[143].rangeStart = 8498;
-        foldCase[143].rangeEnd = 8498;
-        foldCase[143].step = -1;
-        foldCase[143].offset = 28;
-        foldCase[144].rangeStart = 8544;
-        foldCase[144].rangeEnd = 8559;
-        foldCase[144].step = 1;
-        foldCase[144].offset = 16;
-        foldCase[145].rangeStart = 8579;
-        foldCase[145].rangeEnd = 8579;
-        foldCase[145].step = -1;
-        foldCase[145].offset = 1;
-        foldCase[146].rangeStart = 9398;
-        foldCase[146].rangeEnd = 9423;
-        foldCase[146].step = 1;
-        foldCase[146].offset = 26;
-        foldCase[147].rangeStart = 11264;
-        foldCase[147].rangeEnd = 11311;
-        foldCase[147].step = 1;
-        foldCase[147].offset = 48;
-        foldCase[148].rangeStart = 11360;
-        foldCase[148].rangeEnd = 11360;
-        foldCase[148].step = -1;
-        foldCase[148].offset = 1;
-        foldCase[149].rangeStart = 11362;
-        foldCase[149].rangeEnd = 11362;
-        foldCase[149].step = -1;
-        foldCase[149].offset = -10743;
-        foldCase[150].rangeStart = 11363;
-        foldCase[150].rangeEnd = 11363;
-        foldCase[150].step = -1;
-        foldCase[150].offset = -3814;
-        foldCase[151].rangeStart = 11364;
-        foldCase[151].rangeEnd = 11364;
-        foldCase[151].step = -1;
-        foldCase[151].offset = -10727;
-        foldCase[152].rangeStart = 11367;
-        foldCase[152].rangeEnd = 11371;
-        foldCase[152].step = 2;
-        foldCase[152].offset = 1;
-        foldCase[153].rangeStart = 11373;
-        foldCase[153].rangeEnd = 11373;
-        foldCase[153].step = -1;
-        foldCase[153].offset = -10780;
-        foldCase[154].rangeStart = 11374;
-        foldCase[154].rangeEnd = 11374;
-        foldCase[154].step = -1;
-        foldCase[154].offset = -10749;
-        foldCase[155].rangeStart = 11375;
-        foldCase[155].rangeEnd = 11375;
-        foldCase[155].step = -1;
-        foldCase[155].offset = -10783;
-        foldCase[156].rangeStart = 11376;
-        foldCase[156].rangeEnd = 11376;
-        foldCase[156].step = -1;
-        foldCase[156].offset = -10782;
-        foldCase[157].rangeStart = 11378;
-        foldCase[157].rangeEnd = 11381;
-        foldCase[157].step = 3;
-        foldCase[157].offset = 1;
-        foldCase[158].rangeStart = 11390;
-        foldCase[158].rangeEnd = 11391;
-        foldCase[158].step = 1;
-        foldCase[158].offset = -10815;
-        foldCase[159].rangeStart = 11392;
-        foldCase[159].rangeEnd = 11490;
-        foldCase[159].step = 2;
-        foldCase[159].offset = 1;
-        foldCase[160].rangeStart = 11499;
-        foldCase[160].rangeEnd = 11501;
-        foldCase[160].step = 2;
-        foldCase[160].offset = 1;
-        foldCase[161].rangeStart = 11506;
-        foldCase[161].rangeEnd = 42560;
-        foldCase[161].step = 31054;
-        foldCase[161].offset = 1;
-        foldCase[162].rangeStart = 42562;
-        foldCase[162].rangeEnd = 42604;
-        foldCase[162].step = 2;
-        foldCase[162].offset = 1;
-        foldCase[163].rangeStart = 42624;
-        foldCase[163].rangeEnd = 42650;
-        foldCase[163].step = 2;
-        foldCase[163].offset = 1;
-        foldCase[164].rangeStart = 42786;
-        foldCase[164].rangeEnd = 42798;
-        foldCase[164].step = 2;
-        foldCase[164].offset = 1;
-        foldCase[165].rangeStart = 42802;
-        foldCase[165].rangeEnd = 42862;
-        foldCase[165].step = 2;
-        foldCase[165].offset = 1;
-        foldCase[166].rangeStart = 42873;
-        foldCase[166].rangeEnd = 42875;
-        foldCase[166].step = 2;
-        foldCase[166].offset = 1;
-        foldCase[167].rangeStart = 42877;
-        foldCase[167].rangeEnd = 42877;
-        foldCase[167].step = -1;
-        foldCase[167].offset = -35332;
-        foldCase[168].rangeStart = 42878;
-        foldCase[168].rangeEnd = 42886;
-        foldCase[168].step = 2;
-        foldCase[168].offset = 1;
-        foldCase[169].rangeStart = 42891;
-        foldCase[169].rangeEnd = 42891;
-        foldCase[169].step = -1;
-        foldCase[169].offset = 1;
-        foldCase[170].rangeStart = 42893;
-        foldCase[170].rangeEnd = 42893;
-        foldCase[170].step = -1;
-        foldCase[170].offset = -42280;
-        foldCase[171].rangeStart = 42896;
-        foldCase[171].rangeEnd = 42898;
-        foldCase[171].step = 2;
-        foldCase[171].offset = 1;
-        foldCase[172].rangeStart = 42902;
-        foldCase[172].rangeEnd = 42920;
-        foldCase[172].step = 2;
-        foldCase[172].offset = 1;
-        foldCase[173].rangeStart = 42922;
-        foldCase[173].rangeEnd = 42922;
-        foldCase[173].step = -1;
-        foldCase[173].offset = -42308;
-        foldCase[174].rangeStart = 42923;
-        foldCase[174].rangeEnd = 42923;
-        foldCase[174].step = -1;
-        foldCase[174].offset = -42319;
-        foldCase[175].rangeStart = 42924;
-        foldCase[175].rangeEnd = 42924;
-        foldCase[175].step = -1;
-        foldCase[175].offset = -42315;
-        foldCase[176].rangeStart = 42925;
-        foldCase[176].rangeEnd = 42925;
-        foldCase[176].step = -1;
-        foldCase[176].offset = -42305;
-        foldCase[177].rangeStart = 42926;
-        foldCase[177].rangeEnd = 42926;
-        foldCase[177].step = -1;
-        foldCase[177].offset = -42308;
-        foldCase[178].rangeStart = 42928;
-        foldCase[178].rangeEnd = 42928;
-        foldCase[178].step = -1;
-        foldCase[178].offset = -42258;
-        foldCase[179].rangeStart = 42929;
-        foldCase[179].rangeEnd = 42929;
-        foldCase[179].step = -1;
-        foldCase[179].offset = -42282;
-        foldCase[180].rangeStart = 42930;
-        foldCase[180].rangeEnd = 42930;
-        foldCase[180].step = -1;
-        foldCase[180].offset = -42261;
-        foldCase[181].rangeStart = 42931;
-        foldCase[181].rangeEnd = 42931;
-        foldCase[181].step = -1;
-        foldCase[181].offset = 928;
-        foldCase[182].rangeStart = 42932;
-        foldCase[182].rangeEnd = 42946;
-        foldCase[182].step = 2;
-        foldCase[182].offset = 1;
-        foldCase[183].rangeStart = 42948;
-        foldCase[183].rangeEnd = 42948;
-        foldCase[183].step = -1;
-        foldCase[183].offset = -48;
-        foldCase[184].rangeStart = 42949;
-        foldCase[184].rangeEnd = 42949;
-        foldCase[184].step = -1;
-        foldCase[184].offset = -42307;
-        foldCase[185].rangeStart = 42950;
-        foldCase[185].rangeEnd = 42950;
-        foldCase[185].step = -1;
-        foldCase[185].offset = -35384;
-        foldCase[186].rangeStart = 42951;
-        foldCase[186].rangeEnd = 42953;
-        foldCase[186].step = 2;
-        foldCase[186].offset = 1;
-        foldCase[187].rangeStart = 42955;
-        foldCase[187].rangeEnd = 42955;
-        foldCase[187].step = -1;
-        foldCase[187].offset = -42343;
-        foldCase[188].rangeStart = 42956;
-        foldCase[188].rangeEnd = 42960;
-        foldCase[188].step = 4;
-        foldCase[188].offset = 1;
-        foldCase[189].rangeStart = 42966;
-        foldCase[189].rangeEnd = 42970;
-        foldCase[189].step = 2;
-        foldCase[189].offset = 1;
-        foldCase[190].rangeStart = 42972;
-        foldCase[190].rangeEnd = 42972;
-        foldCase[190].step = -1;
-        foldCase[190].offset = -42561;
-        foldCase[191].rangeStart = 42997;
-        foldCase[191].rangeEnd = 42997;
-        foldCase[191].step = -1;
-        foldCase[191].offset = 1;
-        foldCase[192].rangeStart = 43888;
-        foldCase[192].rangeEnd = 43967;
-        foldCase[192].step = 1;
-        foldCase[192].offset = -38864;
-        foldCase[193].rangeStart = 64261;
-        foldCase[193].rangeEnd = 64261;
-        foldCase[193].step = -1;
-        foldCase[193].offset = 1;
-        foldCase[194].rangeStart = 65313;
-        foldCase[194].rangeEnd = 65338;
-        foldCase[194].step = 1;
-        foldCase[194].offset = 32;
-        foldCase[195].rangeStart = 66560;
-        foldCase[195].rangeEnd = 66599;
-        foldCase[195].step = 1;
-        foldCase[195].offset = 40;
-        foldCase[196].rangeStart = 66736;
-        foldCase[196].rangeEnd = 66771;
-        foldCase[196].step = 1;
-        foldCase[196].offset = 40;
-        foldCase[197].rangeStart = 66928;
-        foldCase[197].rangeEnd = 66938;
-        foldCase[197].step = 1;
-        foldCase[197].offset = 39;
-        foldCase[198].rangeStart = 66940;
-        foldCase[198].rangeEnd = 66954;
-        foldCase[198].step = 1;
-        foldCase[198].offset = 39;
-        foldCase[199].rangeStart = 66956;
-        foldCase[199].rangeEnd = 66962;
-        foldCase[199].step = 1;
-        foldCase[199].offset = 39;
-        foldCase[200].rangeStart = 66964;
-        foldCase[200].rangeEnd = 66965;
-        foldCase[200].step = 1;
-        foldCase[200].offset = 39;
-        foldCase[201].rangeStart = 68736;
-        foldCase[201].rangeEnd = 68786;
-        foldCase[201].step = 1;
-        foldCase[201].offset = 64;
-        foldCase[202].rangeStart = 68944;
-        foldCase[202].rangeEnd = 68965;
-        foldCase[202].step = 1;
-        foldCase[202].offset = 32;
-        foldCase[203].rangeStart = 71840;
-        foldCase[203].rangeEnd = 71871;
-        foldCase[203].step = 1;
-        foldCase[203].offset = 32;
-        foldCase[204].rangeStart = 93760;
-        foldCase[204].rangeEnd = 93791;
-        foldCase[204].step = 1;
-        foldCase[204].offset = 32;
-        foldCase[205].rangeStart = 125184;
-        foldCase[205].rangeEnd = 125217;
-        foldCase[205].step = 1;
-        foldCase[205].offset = 34;
-    }
-
-    private void initGlobals5() {
-        toLower[0].rangeStart = 65;
-        toLower[0].rangeEnd = 90;
-        toLower[0].step = 1;
-        toLower[0].offset = 32;
-        toLower[1].rangeStart = 192;
-        toLower[1].rangeEnd = 214;
-        toLower[1].step = 1;
-        toLower[1].offset = 32;
-        toLower[2].rangeStart = 216;
-        toLower[2].rangeEnd = 222;
-        toLower[2].step = 1;
-        toLower[2].offset = 32;
-        toLower[3].rangeStart = 256;
-        toLower[3].rangeEnd = 302;
-        toLower[3].step = 2;
-        toLower[3].offset = 1;
-        toLower[4].rangeStart = 304;
-        toLower[4].rangeEnd = 304;
-        toLower[4].step = -1;
-        toLower[4].offset = -199;
-        toLower[5].rangeStart = 306;
-        toLower[5].rangeEnd = 310;
-        toLower[5].step = 2;
-        toLower[5].offset = 1;
-        toLower[6].rangeStart = 313;
-        toLower[6].rangeEnd = 327;
-        toLower[6].step = 2;
-        toLower[6].offset = 1;
-        toLower[7].rangeStart = 330;
-        toLower[7].rangeEnd = 374;
-        toLower[7].step = 2;
-        toLower[7].offset = 1;
-        toLower[8].rangeStart = 376;
-        toLower[8].rangeEnd = 376;
-        toLower[8].step = -1;
-        toLower[8].offset = -121;
-        toLower[9].rangeStart = 377;
-        toLower[9].rangeEnd = 381;
-        toLower[9].step = 2;
-        toLower[9].offset = 1;
-        toLower[10].rangeStart = 385;
-        toLower[10].rangeEnd = 385;
-        toLower[10].step = -1;
-        toLower[10].offset = 210;
-        toLower[11].rangeStart = 386;
-        toLower[11].rangeEnd = 388;
-        toLower[11].step = 2;
-        toLower[11].offset = 1;
-        toLower[12].rangeStart = 390;
-        toLower[12].rangeEnd = 390;
-        toLower[12].step = -1;
-        toLower[12].offset = 206;
-        toLower[13].rangeStart = 391;
-        toLower[13].rangeEnd = 391;
-        toLower[13].step = -1;
-        toLower[13].offset = 1;
-        toLower[14].rangeStart = 393;
-        toLower[14].rangeEnd = 394;
-        toLower[14].step = 1;
-        toLower[14].offset = 205;
-        toLower[15].rangeStart = 395;
-        toLower[15].rangeEnd = 395;
-        toLower[15].step = -1;
-        toLower[15].offset = 1;
-        toLower[16].rangeStart = 398;
-        toLower[16].rangeEnd = 398;
-        toLower[16].step = -1;
-        toLower[16].offset = 79;
-        toLower[17].rangeStart = 399;
-        toLower[17].rangeEnd = 399;
-        toLower[17].step = -1;
-        toLower[17].offset = 202;
-        toLower[18].rangeStart = 400;
-        toLower[18].rangeEnd = 400;
-        toLower[18].step = -1;
-        toLower[18].offset = 203;
-        toLower[19].rangeStart = 401;
-        toLower[19].rangeEnd = 401;
-        toLower[19].step = -1;
-        toLower[19].offset = 1;
-        toLower[20].rangeStart = 403;
-        toLower[20].rangeEnd = 403;
-        toLower[20].step = -1;
-        toLower[20].offset = 205;
-        toLower[21].rangeStart = 404;
-        toLower[21].rangeEnd = 404;
-        toLower[21].step = -1;
-        toLower[21].offset = 207;
-        toLower[22].rangeStart = 406;
-        toLower[22].rangeEnd = 406;
-        toLower[22].step = -1;
-        toLower[22].offset = 211;
-        toLower[23].rangeStart = 407;
-        toLower[23].rangeEnd = 407;
-        toLower[23].step = -1;
-        toLower[23].offset = 209;
-        toLower[24].rangeStart = 408;
-        toLower[24].rangeEnd = 408;
-        toLower[24].step = -1;
-        toLower[24].offset = 1;
-        toLower[25].rangeStart = 412;
-        toLower[25].rangeEnd = 412;
-        toLower[25].step = -1;
-        toLower[25].offset = 211;
-        toLower[26].rangeStart = 413;
-        toLower[26].rangeEnd = 413;
-        toLower[26].step = -1;
-        toLower[26].offset = 213;
-        toLower[27].rangeStart = 415;
-        toLower[27].rangeEnd = 415;
-        toLower[27].step = -1;
-        toLower[27].offset = 214;
-        toLower[28].rangeStart = 416;
-        toLower[28].rangeEnd = 420;
-        toLower[28].step = 2;
-        toLower[28].offset = 1;
-        toLower[29].rangeStart = 422;
-        toLower[29].rangeEnd = 422;
-        toLower[29].step = -1;
-        toLower[29].offset = 218;
-        toLower[30].rangeStart = 423;
-        toLower[30].rangeEnd = 423;
-        toLower[30].step = -1;
-        toLower[30].offset = 1;
-        toLower[31].rangeStart = 425;
-        toLower[31].rangeEnd = 425;
-        toLower[31].step = -1;
-        toLower[31].offset = 218;
-        toLower[32].rangeStart = 428;
-        toLower[32].rangeEnd = 428;
-        toLower[32].step = -1;
-        toLower[32].offset = 1;
-        toLower[33].rangeStart = 430;
-        toLower[33].rangeEnd = 430;
-        toLower[33].step = -1;
-        toLower[33].offset = 218;
-        toLower[34].rangeStart = 431;
-        toLower[34].rangeEnd = 431;
-        toLower[34].step = -1;
-        toLower[34].offset = 1;
-        toLower[35].rangeStart = 433;
-        toLower[35].rangeEnd = 434;
-        toLower[35].step = 1;
-        toLower[35].offset = 217;
-        toLower[36].rangeStart = 435;
-        toLower[36].rangeEnd = 437;
-        toLower[36].step = 2;
-        toLower[36].offset = 1;
-        toLower[37].rangeStart = 439;
-        toLower[37].rangeEnd = 439;
-        toLower[37].step = -1;
-        toLower[37].offset = 219;
-        toLower[38].rangeStart = 440;
-        toLower[38].rangeEnd = 444;
-        toLower[38].step = 4;
-        toLower[38].offset = 1;
-        toLower[39].rangeStart = 452;
-        toLower[39].rangeEnd = 452;
-        toLower[39].step = -1;
-        toLower[39].offset = 2;
-        toLower[40].rangeStart = 453;
-        toLower[40].rangeEnd = 453;
-        toLower[40].step = -1;
-        toLower[40].offset = 1;
-        toLower[41].rangeStart = 455;
-        toLower[41].rangeEnd = 455;
-        toLower[41].step = -1;
-        toLower[41].offset = 2;
-        toLower[42].rangeStart = 456;
-        toLower[42].rangeEnd = 456;
-        toLower[42].step = -1;
-        toLower[42].offset = 1;
-        toLower[43].rangeStart = 458;
-        toLower[43].rangeEnd = 458;
-        toLower[43].step = -1;
-        toLower[43].offset = 2;
-        toLower[44].rangeStart = 459;
-        toLower[44].rangeEnd = 475;
-        toLower[44].step = 2;
-        toLower[44].offset = 1;
-        toLower[45].rangeStart = 478;
-        toLower[45].rangeEnd = 494;
-        toLower[45].step = 2;
-        toLower[45].offset = 1;
-        toLower[46].rangeStart = 497;
-        toLower[46].rangeEnd = 497;
-        toLower[46].step = -1;
-        toLower[46].offset = 2;
-        toLower[47].rangeStart = 498;
-        toLower[47].rangeEnd = 500;
-        toLower[47].step = 2;
-        toLower[47].offset = 1;
-        toLower[48].rangeStart = 502;
-        toLower[48].rangeEnd = 502;
-        toLower[48].step = -1;
-        toLower[48].offset = -97;
-        toLower[49].rangeStart = 503;
-        toLower[49].rangeEnd = 503;
-        toLower[49].step = -1;
-        toLower[49].offset = -56;
-        toLower[50].rangeStart = 504;
-        toLower[50].rangeEnd = 542;
-        toLower[50].step = 2;
-        toLower[50].offset = 1;
-        toLower[51].rangeStart = 544;
-        toLower[51].rangeEnd = 544;
-        toLower[51].step = -1;
-        toLower[51].offset = -130;
-        toLower[52].rangeStart = 546;
-        toLower[52].rangeEnd = 562;
-        toLower[52].step = 2;
-        toLower[52].offset = 1;
-        toLower[53].rangeStart = 570;
-        toLower[53].rangeEnd = 570;
-        toLower[53].step = -1;
-        toLower[53].offset = 10795;
-        toLower[54].rangeStart = 571;
-        toLower[54].rangeEnd = 571;
-        toLower[54].step = -1;
-        toLower[54].offset = 1;
-        toLower[55].rangeStart = 573;
-        toLower[55].rangeEnd = 573;
-        toLower[55].step = -1;
-        toLower[55].offset = -163;
-        toLower[56].rangeStart = 574;
-        toLower[56].rangeEnd = 574;
-        toLower[56].step = -1;
-        toLower[56].offset = 10792;
-        toLower[57].rangeStart = 577;
-        toLower[57].rangeEnd = 577;
-        toLower[57].step = -1;
-        toLower[57].offset = 1;
-        toLower[58].rangeStart = 579;
-        toLower[58].rangeEnd = 579;
-        toLower[58].step = -1;
-        toLower[58].offset = -195;
-        toLower[59].rangeStart = 580;
-        toLower[59].rangeEnd = 580;
-        toLower[59].step = -1;
-        toLower[59].offset = 69;
-        toLower[60].rangeStart = 581;
-        toLower[60].rangeEnd = 581;
-        toLower[60].step = -1;
-        toLower[60].offset = 71;
-        toLower[61].rangeStart = 582;
-        toLower[61].rangeEnd = 590;
-        toLower[61].step = 2;
-        toLower[61].offset = 1;
-        toLower[62].rangeStart = 880;
-        toLower[62].rangeEnd = 882;
-        toLower[62].step = 2;
-        toLower[62].offset = 1;
-        toLower[63].rangeStart = 886;
-        toLower[63].rangeEnd = 886;
-        toLower[63].step = -1;
-        toLower[63].offset = 1;
-        toLower[64].rangeStart = 895;
-        toLower[64].rangeEnd = 895;
-        toLower[64].step = -1;
-        toLower[64].offset = 116;
-        toLower[65].rangeStart = 902;
-        toLower[65].rangeEnd = 902;
-        toLower[65].step = -1;
-        toLower[65].offset = 38;
-        toLower[66].rangeStart = 904;
-        toLower[66].rangeEnd = 906;
-        toLower[66].step = 1;
-        toLower[66].offset = 37;
-        toLower[67].rangeStart = 908;
-        toLower[67].rangeEnd = 908;
-        toLower[67].step = -1;
-        toLower[67].offset = 64;
-        toLower[68].rangeStart = 910;
-        toLower[68].rangeEnd = 911;
-        toLower[68].step = 1;
-        toLower[68].offset = 63;
-        toLower[69].rangeStart = 913;
-        toLower[69].rangeEnd = 929;
-        toLower[69].step = 1;
-        toLower[69].offset = 32;
-        toLower[70].rangeStart = 931;
-        toLower[70].rangeEnd = 939;
-        toLower[70].step = 1;
-        toLower[70].offset = 32;
-        toLower[71].rangeStart = 975;
-        toLower[71].rangeEnd = 975;
-        toLower[71].step = -1;
-        toLower[71].offset = 8;
-        toLower[72].rangeStart = 984;
-        toLower[72].rangeEnd = 1006;
-        toLower[72].step = 2;
-        toLower[72].offset = 1;
-        toLower[73].rangeStart = 1012;
-        toLower[73].rangeEnd = 1012;
-        toLower[73].step = -1;
-        toLower[73].offset = -60;
-        toLower[74].rangeStart = 1015;
-        toLower[74].rangeEnd = 1015;
-        toLower[74].step = -1;
-        toLower[74].offset = 1;
-        toLower[75].rangeStart = 1017;
-        toLower[75].rangeEnd = 1017;
-        toLower[75].step = -1;
-        toLower[75].offset = -7;
-        toLower[76].rangeStart = 1018;
-        toLower[76].rangeEnd = 1018;
-        toLower[76].step = -1;
-        toLower[76].offset = 1;
-        toLower[77].rangeStart = 1021;
-        toLower[77].rangeEnd = 1023;
-        toLower[77].step = 1;
-        toLower[77].offset = -130;
-        toLower[78].rangeStart = 1024;
-        toLower[78].rangeEnd = 1039;
-        toLower[78].step = 1;
-        toLower[78].offset = 80;
-        toLower[79].rangeStart = 1040;
-        toLower[79].rangeEnd = 1071;
-        toLower[79].step = 1;
-        toLower[79].offset = 32;
-        toLower[80].rangeStart = 1120;
-        toLower[80].rangeEnd = 1152;
-        toLower[80].step = 2;
-        toLower[80].offset = 1;
-        toLower[81].rangeStart = 1162;
-        toLower[81].rangeEnd = 1214;
-        toLower[81].step = 2;
-        toLower[81].offset = 1;
-        toLower[82].rangeStart = 1216;
-        toLower[82].rangeEnd = 1216;
-        toLower[82].step = -1;
-        toLower[82].offset = 15;
-        toLower[83].rangeStart = 1217;
-        toLower[83].rangeEnd = 1229;
-        toLower[83].step = 2;
-        toLower[83].offset = 1;
-        toLower[84].rangeStart = 1232;
-        toLower[84].rangeEnd = 1326;
-        toLower[84].step = 2;
-        toLower[84].offset = 1;
-        toLower[85].rangeStart = 1329;
-        toLower[85].rangeEnd = 1366;
-        toLower[85].step = 1;
-        toLower[85].offset = 48;
-        toLower[86].rangeStart = 4256;
-        toLower[86].rangeEnd = 4293;
-        toLower[86].step = 1;
-        toLower[86].offset = 7264;
-        toLower[87].rangeStart = 4295;
-        toLower[87].rangeEnd = 4301;
-        toLower[87].step = 6;
-        toLower[87].offset = 7264;
-        toLower[88].rangeStart = 5024;
-        toLower[88].rangeEnd = 5103;
-        toLower[88].step = 1;
-        toLower[88].offset = 38864;
-        toLower[89].rangeStart = 5104;
-        toLower[89].rangeEnd = 5109;
-        toLower[89].step = 1;
-        toLower[89].offset = 8;
-        toLower[90].rangeStart = 7305;
-        toLower[90].rangeEnd = 7305;
-        toLower[90].step = -1;
-        toLower[90].offset = 1;
-        toLower[91].rangeStart = 7312;
-        toLower[91].rangeEnd = 7354;
-        toLower[91].step = 1;
-        toLower[91].offset = -3008;
-        toLower[92].rangeStart = 7357;
-        toLower[92].rangeEnd = 7359;
-        toLower[92].step = 1;
-        toLower[92].offset = -3008;
-        toLower[93].rangeStart = 7680;
-        toLower[93].rangeEnd = 7828;
-        toLower[93].step = 2;
-        toLower[93].offset = 1;
-        toLower[94].rangeStart = 7838;
-        toLower[94].rangeEnd = 7838;
-        toLower[94].step = -1;
-        toLower[94].offset = -7615;
-        toLower[95].rangeStart = 7840;
-        toLower[95].rangeEnd = 7934;
-        toLower[95].step = 2;
-        toLower[95].offset = 1;
-        toLower[96].rangeStart = 7944;
-        toLower[96].rangeEnd = 7951;
-        toLower[96].step = 1;
-        toLower[96].offset = -8;
-        toLower[97].rangeStart = 7960;
-        toLower[97].rangeEnd = 7965;
-        toLower[97].step = 1;
-        toLower[97].offset = -8;
-        toLower[98].rangeStart = 7976;
-        toLower[98].rangeEnd = 7983;
-        toLower[98].step = 1;
-        toLower[98].offset = -8;
-        toLower[99].rangeStart = 7992;
-        toLower[99].rangeEnd = 7999;
-        toLower[99].step = 1;
-        toLower[99].offset = -8;
-        toLower[100].rangeStart = 8008;
-        toLower[100].rangeEnd = 8013;
-        toLower[100].step = 1;
-        toLower[100].offset = -8;
-        toLower[101].rangeStart = 8025;
-        toLower[101].rangeEnd = 8031;
-        toLower[101].step = 2;
-        toLower[101].offset = -8;
-        toLower[102].rangeStart = 8040;
-        toLower[102].rangeEnd = 8047;
-        toLower[102].step = 1;
-        toLower[102].offset = -8;
-        toLower[103].rangeStart = 8072;
-        toLower[103].rangeEnd = 8079;
-        toLower[103].step = 1;
-        toLower[103].offset = -8;
-        toLower[104].rangeStart = 8088;
-        toLower[104].rangeEnd = 8095;
-        toLower[104].step = 1;
-        toLower[104].offset = -8;
-        toLower[105].rangeStart = 8104;
-        toLower[105].rangeEnd = 8111;
-        toLower[105].step = 1;
-        toLower[105].offset = -8;
-        toLower[106].rangeStart = 8120;
-        toLower[106].rangeEnd = 8121;
-        toLower[106].step = 1;
-        toLower[106].offset = -8;
-        toLower[107].rangeStart = 8122;
-        toLower[107].rangeEnd = 8123;
-        toLower[107].step = 1;
-        toLower[107].offset = -74;
-        toLower[108].rangeStart = 8124;
-        toLower[108].rangeEnd = 8124;
-        toLower[108].step = -1;
-        toLower[108].offset = -9;
-        toLower[109].rangeStart = 8136;
-        toLower[109].rangeEnd = 8139;
-        toLower[109].step = 1;
-        toLower[109].offset = -86;
-        toLower[110].rangeStart = 8140;
-        toLower[110].rangeEnd = 8140;
-        toLower[110].step = -1;
-        toLower[110].offset = -9;
-        toLower[111].rangeStart = 8152;
-        toLower[111].rangeEnd = 8153;
-        toLower[111].step = 1;
-        toLower[111].offset = -8;
-        toLower[112].rangeStart = 8154;
-        toLower[112].rangeEnd = 8155;
-        toLower[112].step = 1;
-        toLower[112].offset = -100;
-        toLower[113].rangeStart = 8168;
-        toLower[113].rangeEnd = 8169;
-        toLower[113].step = 1;
-        toLower[113].offset = -8;
-        toLower[114].rangeStart = 8170;
-        toLower[114].rangeEnd = 8171;
-        toLower[114].step = 1;
-        toLower[114].offset = -112;
-        toLower[115].rangeStart = 8172;
-        toLower[115].rangeEnd = 8172;
-        toLower[115].step = -1;
-        toLower[115].offset = -7;
-        toLower[116].rangeStart = 8184;
-        toLower[116].rangeEnd = 8185;
-        toLower[116].step = 1;
-        toLower[116].offset = -128;
-        toLower[117].rangeStart = 8186;
-        toLower[117].rangeEnd = 8187;
-        toLower[117].step = 1;
-        toLower[117].offset = -126;
-        toLower[118].rangeStart = 8188;
-        toLower[118].rangeEnd = 8188;
-        toLower[118].step = -1;
-        toLower[118].offset = -9;
-        toLower[119].rangeStart = 8486;
-        toLower[119].rangeEnd = 8486;
-        toLower[119].step = -1;
-        toLower[119].offset = -7517;
-        toLower[120].rangeStart = 8490;
-        toLower[120].rangeEnd = 8490;
-        toLower[120].step = -1;
-        toLower[120].offset = -8383;
-        toLower[121].rangeStart = 8491;
-        toLower[121].rangeEnd = 8491;
-        toLower[121].step = -1;
-        toLower[121].offset = -8262;
-        toLower[122].rangeStart = 8498;
-        toLower[122].rangeEnd = 8498;
-        toLower[122].step = -1;
-        toLower[122].offset = 28;
-        toLower[123].rangeStart = 8544;
-        toLower[123].rangeEnd = 8559;
-        toLower[123].step = 1;
-        toLower[123].offset = 16;
-        toLower[124].rangeStart = 8579;
-        toLower[124].rangeEnd = 8579;
-        toLower[124].step = -1;
-        toLower[124].offset = 1;
-        toLower[125].rangeStart = 9398;
-        toLower[125].rangeEnd = 9423;
-        toLower[125].step = 1;
-        toLower[125].offset = 26;
-        toLower[126].rangeStart = 11264;
-        toLower[126].rangeEnd = 11311;
-        toLower[126].step = 1;
-        toLower[126].offset = 48;
-        toLower[127].rangeStart = 11360;
-        toLower[127].rangeEnd = 11360;
-        toLower[127].step = -1;
-        toLower[127].offset = 1;
-        toLower[128].rangeStart = 11362;
-        toLower[128].rangeEnd = 11362;
-        toLower[128].step = -1;
-        toLower[128].offset = -10743;
-        toLower[129].rangeStart = 11363;
-        toLower[129].rangeEnd = 11363;
-        toLower[129].step = -1;
-        toLower[129].offset = -3814;
-        toLower[130].rangeStart = 11364;
-        toLower[130].rangeEnd = 11364;
-        toLower[130].step = -1;
-        toLower[130].offset = -10727;
-        toLower[131].rangeStart = 11367;
-        toLower[131].rangeEnd = 11371;
-        toLower[131].step = 2;
-        toLower[131].offset = 1;
-        toLower[132].rangeStart = 11373;
-        toLower[132].rangeEnd = 11373;
-        toLower[132].step = -1;
-        toLower[132].offset = -10780;
-        toLower[133].rangeStart = 11374;
-        toLower[133].rangeEnd = 11374;
-        toLower[133].step = -1;
-        toLower[133].offset = -10749;
-        toLower[134].rangeStart = 11375;
-        toLower[134].rangeEnd = 11375;
-        toLower[134].step = -1;
-        toLower[134].offset = -10783;
-        toLower[135].rangeStart = 11376;
-        toLower[135].rangeEnd = 11376;
-        toLower[135].step = -1;
-        toLower[135].offset = -10782;
-        toLower[136].rangeStart = 11378;
-        toLower[136].rangeEnd = 11381;
-        toLower[136].step = 3;
-        toLower[136].offset = 1;
-        toLower[137].rangeStart = 11390;
-        toLower[137].rangeEnd = 11391;
-        toLower[137].step = 1;
-        toLower[137].offset = -10815;
-        toLower[138].rangeStart = 11392;
-        toLower[138].rangeEnd = 11490;
-        toLower[138].step = 2;
-        toLower[138].offset = 1;
-        toLower[139].rangeStart = 11499;
-        toLower[139].rangeEnd = 11501;
-        toLower[139].step = 2;
-        toLower[139].offset = 1;
-        toLower[140].rangeStart = 11506;
-        toLower[140].rangeEnd = 42560;
-        toLower[140].step = 31054;
-        toLower[140].offset = 1;
-        toLower[141].rangeStart = 42562;
-        toLower[141].rangeEnd = 42604;
-        toLower[141].step = 2;
-        toLower[141].offset = 1;
-        toLower[142].rangeStart = 42624;
-        toLower[142].rangeEnd = 42650;
-        toLower[142].step = 2;
-        toLower[142].offset = 1;
-        toLower[143].rangeStart = 42786;
-        toLower[143].rangeEnd = 42798;
-        toLower[143].step = 2;
-        toLower[143].offset = 1;
-        toLower[144].rangeStart = 42802;
-        toLower[144].rangeEnd = 42862;
-        toLower[144].step = 2;
-        toLower[144].offset = 1;
-        toLower[145].rangeStart = 42873;
-        toLower[145].rangeEnd = 42875;
-        toLower[145].step = 2;
-        toLower[145].offset = 1;
-        toLower[146].rangeStart = 42877;
-        toLower[146].rangeEnd = 42877;
-        toLower[146].step = -1;
-        toLower[146].offset = -35332;
-        toLower[147].rangeStart = 42878;
-        toLower[147].rangeEnd = 42886;
-        toLower[147].step = 2;
-        toLower[147].offset = 1;
-        toLower[148].rangeStart = 42891;
-        toLower[148].rangeEnd = 42891;
-        toLower[148].step = -1;
-        toLower[148].offset = 1;
-        toLower[149].rangeStart = 42893;
-        toLower[149].rangeEnd = 42893;
-        toLower[149].step = -1;
-        toLower[149].offset = -42280;
-        toLower[150].rangeStart = 42896;
-        toLower[150].rangeEnd = 42898;
-        toLower[150].step = 2;
-        toLower[150].offset = 1;
-        toLower[151].rangeStart = 42902;
-        toLower[151].rangeEnd = 42920;
-        toLower[151].step = 2;
-        toLower[151].offset = 1;
-        toLower[152].rangeStart = 42922;
-        toLower[152].rangeEnd = 42922;
-        toLower[152].step = -1;
-        toLower[152].offset = -42308;
-        toLower[153].rangeStart = 42923;
-        toLower[153].rangeEnd = 42923;
-        toLower[153].step = -1;
-        toLower[153].offset = -42319;
-        toLower[154].rangeStart = 42924;
-        toLower[154].rangeEnd = 42924;
-        toLower[154].step = -1;
-        toLower[154].offset = -42315;
-        toLower[155].rangeStart = 42925;
-        toLower[155].rangeEnd = 42925;
-        toLower[155].step = -1;
-        toLower[155].offset = -42305;
-        toLower[156].rangeStart = 42926;
-        toLower[156].rangeEnd = 42926;
-        toLower[156].step = -1;
-        toLower[156].offset = -42308;
-        toLower[157].rangeStart = 42928;
-        toLower[157].rangeEnd = 42928;
-        toLower[157].step = -1;
-        toLower[157].offset = -42258;
-        toLower[158].rangeStart = 42929;
-        toLower[158].rangeEnd = 42929;
-        toLower[158].step = -1;
-        toLower[158].offset = -42282;
-        toLower[159].rangeStart = 42930;
-        toLower[159].rangeEnd = 42930;
-        toLower[159].step = -1;
-        toLower[159].offset = -42261;
-        toLower[160].rangeStart = 42931;
-        toLower[160].rangeEnd = 42931;
-        toLower[160].step = -1;
-        toLower[160].offset = 928;
-        toLower[161].rangeStart = 42932;
-        toLower[161].rangeEnd = 42946;
-        toLower[161].step = 2;
-        toLower[161].offset = 1;
-        toLower[162].rangeStart = 42948;
-        toLower[162].rangeEnd = 42948;
-        toLower[162].step = -1;
-        toLower[162].offset = -48;
-        toLower[163].rangeStart = 42949;
-        toLower[163].rangeEnd = 42949;
-        toLower[163].step = -1;
-        toLower[163].offset = -42307;
-        toLower[164].rangeStart = 42950;
-        toLower[164].rangeEnd = 42950;
-        toLower[164].step = -1;
-        toLower[164].offset = -35384;
-        toLower[165].rangeStart = 42951;
-        toLower[165].rangeEnd = 42953;
-        toLower[165].step = 2;
-        toLower[165].offset = 1;
-        toLower[166].rangeStart = 42955;
-        toLower[166].rangeEnd = 42955;
-        toLower[166].step = -1;
-        toLower[166].offset = -42343;
-        toLower[167].rangeStart = 42956;
-        toLower[167].rangeEnd = 42960;
-        toLower[167].step = 4;
-        toLower[167].offset = 1;
-        toLower[168].rangeStart = 42966;
-        toLower[168].rangeEnd = 42970;
-        toLower[168].step = 2;
-        toLower[168].offset = 1;
-        toLower[169].rangeStart = 42972;
-        toLower[169].rangeEnd = 42972;
-        toLower[169].step = -1;
-        toLower[169].offset = -42561;
-        toLower[170].rangeStart = 42997;
-        toLower[170].rangeEnd = 42997;
-        toLower[170].step = -1;
-        toLower[170].offset = 1;
-        toLower[171].rangeStart = 65313;
-        toLower[171].rangeEnd = 65338;
-        toLower[171].step = 1;
-        toLower[171].offset = 32;
-        toLower[172].rangeStart = 66560;
-        toLower[172].rangeEnd = 66599;
-        toLower[172].step = 1;
-        toLower[172].offset = 40;
-        toLower[173].rangeStart = 66736;
-        toLower[173].rangeEnd = 66771;
-        toLower[173].step = 1;
-        toLower[173].offset = 40;
-        toLower[174].rangeStart = 66928;
-        toLower[174].rangeEnd = 66938;
-        toLower[174].step = 1;
-        toLower[174].offset = 39;
-        toLower[175].rangeStart = 66940;
-        toLower[175].rangeEnd = 66954;
-        toLower[175].step = 1;
-        toLower[175].offset = 39;
-        toLower[176].rangeStart = 66956;
-        toLower[176].rangeEnd = 66962;
-        toLower[176].step = 1;
-        toLower[176].offset = 39;
-        toLower[177].rangeStart = 66964;
-        toLower[177].rangeEnd = 66965;
-        toLower[177].step = 1;
-        toLower[177].offset = 39;
-        toLower[178].rangeStart = 68736;
-        toLower[178].rangeEnd = 68786;
-        toLower[178].step = 1;
-        toLower[178].offset = 64;
-        toLower[179].rangeStart = 68944;
-        toLower[179].rangeEnd = 68965;
-        toLower[179].step = 1;
-        toLower[179].offset = 32;
-        toLower[180].rangeStart = 71840;
-        toLower[180].rangeEnd = 71871;
-        toLower[180].step = 1;
-        toLower[180].offset = 32;
-        toLower[181].rangeStart = 93760;
-        toLower[181].rangeEnd = 93791;
-        toLower[181].step = 1;
-        toLower[181].offset = 32;
-        toLower[182].rangeStart = 125184;
-        toLower[182].rangeEnd = 125217;
-        toLower[182].step = 1;
-        toLower[182].offset = 34;
-    }
-
-    private void initGlobals6() {
-        toUpper[0].rangeStart = 97;
-        toUpper[0].rangeEnd = 122;
-        toUpper[0].step = 1;
-        toUpper[0].offset = -32;
-        toUpper[1].rangeStart = 181;
-        toUpper[1].rangeEnd = 181;
-        toUpper[1].step = -1;
-        toUpper[1].offset = 743;
-        toUpper[2].rangeStart = 223;
-        toUpper[2].rangeEnd = 223;
-        toUpper[2].step = -1;
-        toUpper[2].offset = 7615;
-        toUpper[3].rangeStart = 224;
-        toUpper[3].rangeEnd = 246;
-        toUpper[3].step = 1;
-        toUpper[3].offset = -32;
-        toUpper[4].rangeStart = 248;
-        toUpper[4].rangeEnd = 254;
-        toUpper[4].step = 1;
-        toUpper[4].offset = -32;
-        toUpper[5].rangeStart = 255;
-        toUpper[5].rangeEnd = 255;
-        toUpper[5].step = -1;
-        toUpper[5].offset = 121;
-        toUpper[6].rangeStart = 257;
-        toUpper[6].rangeEnd = 303;
-        toUpper[6].step = 2;
-        toUpper[6].offset = -1;
-        toUpper[7].rangeStart = 305;
-        toUpper[7].rangeEnd = 305;
-        toUpper[7].step = -1;
-        toUpper[7].offset = -232;
-        toUpper[8].rangeStart = 307;
-        toUpper[8].rangeEnd = 311;
-        toUpper[8].step = 2;
-        toUpper[8].offset = -1;
-        toUpper[9].rangeStart = 314;
-        toUpper[9].rangeEnd = 328;
-        toUpper[9].step = 2;
-        toUpper[9].offset = -1;
-        toUpper[10].rangeStart = 331;
-        toUpper[10].rangeEnd = 375;
-        toUpper[10].step = 2;
-        toUpper[10].offset = -1;
-        toUpper[11].rangeStart = 378;
-        toUpper[11].rangeEnd = 382;
-        toUpper[11].step = 2;
-        toUpper[11].offset = -1;
-        toUpper[12].rangeStart = 383;
-        toUpper[12].rangeEnd = 383;
-        toUpper[12].step = -1;
-        toUpper[12].offset = -300;
-        toUpper[13].rangeStart = 384;
-        toUpper[13].rangeEnd = 384;
-        toUpper[13].step = -1;
-        toUpper[13].offset = 195;
-        toUpper[14].rangeStart = 387;
-        toUpper[14].rangeEnd = 389;
-        toUpper[14].step = 2;
-        toUpper[14].offset = -1;
-        toUpper[15].rangeStart = 392;
-        toUpper[15].rangeEnd = 396;
-        toUpper[15].step = 4;
-        toUpper[15].offset = -1;
-        toUpper[16].rangeStart = 402;
-        toUpper[16].rangeEnd = 402;
-        toUpper[16].step = -1;
-        toUpper[16].offset = -1;
-        toUpper[17].rangeStart = 405;
-        toUpper[17].rangeEnd = 405;
-        toUpper[17].step = -1;
-        toUpper[17].offset = 97;
-        toUpper[18].rangeStart = 409;
-        toUpper[18].rangeEnd = 409;
-        toUpper[18].step = -1;
-        toUpper[18].offset = -1;
-        toUpper[19].rangeStart = 410;
-        toUpper[19].rangeEnd = 410;
-        toUpper[19].step = -1;
-        toUpper[19].offset = 163;
-        toUpper[20].rangeStart = 411;
-        toUpper[20].rangeEnd = 411;
-        toUpper[20].step = -1;
-        toUpper[20].offset = 42561;
-        toUpper[21].rangeStart = 414;
-        toUpper[21].rangeEnd = 414;
-        toUpper[21].step = -1;
-        toUpper[21].offset = 130;
-        toUpper[22].rangeStart = 417;
-        toUpper[22].rangeEnd = 421;
-        toUpper[22].step = 2;
-        toUpper[22].offset = -1;
-        toUpper[23].rangeStart = 424;
-        toUpper[23].rangeEnd = 429;
-        toUpper[23].step = 5;
-        toUpper[23].offset = -1;
-        toUpper[24].rangeStart = 432;
-        toUpper[24].rangeEnd = 436;
-        toUpper[24].step = 4;
-        toUpper[24].offset = -1;
-        toUpper[25].rangeStart = 438;
-        toUpper[25].rangeEnd = 441;
-        toUpper[25].step = 3;
-        toUpper[25].offset = -1;
-        toUpper[26].rangeStart = 445;
-        toUpper[26].rangeEnd = 445;
-        toUpper[26].step = -1;
-        toUpper[26].offset = -1;
-        toUpper[27].rangeStart = 447;
-        toUpper[27].rangeEnd = 447;
-        toUpper[27].step = -1;
-        toUpper[27].offset = 56;
-        toUpper[28].rangeStart = 453;
-        toUpper[28].rangeEnd = 453;
-        toUpper[28].step = -1;
-        toUpper[28].offset = -1;
-        toUpper[29].rangeStart = 454;
-        toUpper[29].rangeEnd = 454;
-        toUpper[29].step = -1;
-        toUpper[29].offset = -2;
-        toUpper[30].rangeStart = 456;
-        toUpper[30].rangeEnd = 456;
-        toUpper[30].step = -1;
-        toUpper[30].offset = -1;
-        toUpper[31].rangeStart = 457;
-        toUpper[31].rangeEnd = 457;
-        toUpper[31].step = -1;
-        toUpper[31].offset = -2;
-        toUpper[32].rangeStart = 459;
-        toUpper[32].rangeEnd = 459;
-        toUpper[32].step = -1;
-        toUpper[32].offset = -1;
-        toUpper[33].rangeStart = 460;
-        toUpper[33].rangeEnd = 460;
-        toUpper[33].step = -1;
-        toUpper[33].offset = -2;
-        toUpper[34].rangeStart = 462;
-        toUpper[34].rangeEnd = 476;
-        toUpper[34].step = 2;
-        toUpper[34].offset = -1;
-        toUpper[35].rangeStart = 477;
-        toUpper[35].rangeEnd = 477;
-        toUpper[35].step = -1;
-        toUpper[35].offset = -79;
-        toUpper[36].rangeStart = 479;
-        toUpper[36].rangeEnd = 495;
-        toUpper[36].step = 2;
-        toUpper[36].offset = -1;
-        toUpper[37].rangeStart = 498;
-        toUpper[37].rangeEnd = 498;
-        toUpper[37].step = -1;
-        toUpper[37].offset = -1;
-        toUpper[38].rangeStart = 499;
-        toUpper[38].rangeEnd = 499;
-        toUpper[38].step = -1;
-        toUpper[38].offset = -2;
-        toUpper[39].rangeStart = 501;
-        toUpper[39].rangeEnd = 505;
-        toUpper[39].step = 4;
-        toUpper[39].offset = -1;
-        toUpper[40].rangeStart = 507;
-        toUpper[40].rangeEnd = 543;
-        toUpper[40].step = 2;
-        toUpper[40].offset = -1;
-        toUpper[41].rangeStart = 547;
-        toUpper[41].rangeEnd = 563;
-        toUpper[41].step = 2;
-        toUpper[41].offset = -1;
-        toUpper[42].rangeStart = 572;
-        toUpper[42].rangeEnd = 572;
-        toUpper[42].step = -1;
-        toUpper[42].offset = -1;
-        toUpper[43].rangeStart = 575;
-        toUpper[43].rangeEnd = 576;
-        toUpper[43].step = 1;
-        toUpper[43].offset = 10815;
-        toUpper[44].rangeStart = 578;
-        toUpper[44].rangeEnd = 583;
-        toUpper[44].step = 5;
-        toUpper[44].offset = -1;
-        toUpper[45].rangeStart = 585;
-        toUpper[45].rangeEnd = 591;
-        toUpper[45].step = 2;
-        toUpper[45].offset = -1;
-        toUpper[46].rangeStart = 592;
-        toUpper[46].rangeEnd = 592;
-        toUpper[46].step = -1;
-        toUpper[46].offset = 10783;
-        toUpper[47].rangeStart = 593;
-        toUpper[47].rangeEnd = 593;
-        toUpper[47].step = -1;
-        toUpper[47].offset = 10780;
-        toUpper[48].rangeStart = 594;
-        toUpper[48].rangeEnd = 594;
-        toUpper[48].step = -1;
-        toUpper[48].offset = 10782;
-        toUpper[49].rangeStart = 595;
-        toUpper[49].rangeEnd = 595;
-        toUpper[49].step = -1;
-        toUpper[49].offset = -210;
-        toUpper[50].rangeStart = 596;
-        toUpper[50].rangeEnd = 596;
-        toUpper[50].step = -1;
-        toUpper[50].offset = -206;
-        toUpper[51].rangeStart = 598;
-        toUpper[51].rangeEnd = 599;
-        toUpper[51].step = 1;
-        toUpper[51].offset = -205;
-        toUpper[52].rangeStart = 601;
-        toUpper[52].rangeEnd = 601;
-        toUpper[52].step = -1;
-        toUpper[52].offset = -202;
-        toUpper[53].rangeStart = 603;
-        toUpper[53].rangeEnd = 603;
-        toUpper[53].step = -1;
-        toUpper[53].offset = -203;
-        toUpper[54].rangeStart = 604;
-        toUpper[54].rangeEnd = 604;
-        toUpper[54].step = -1;
-        toUpper[54].offset = 42319;
-        toUpper[55].rangeStart = 608;
-        toUpper[55].rangeEnd = 608;
-        toUpper[55].step = -1;
-        toUpper[55].offset = -205;
-        toUpper[56].rangeStart = 609;
-        toUpper[56].rangeEnd = 609;
-        toUpper[56].step = -1;
-        toUpper[56].offset = 42315;
-        toUpper[57].rangeStart = 611;
-        toUpper[57].rangeEnd = 611;
-        toUpper[57].step = -1;
-        toUpper[57].offset = -207;
-        toUpper[58].rangeStart = 612;
-        toUpper[58].rangeEnd = 612;
-        toUpper[58].step = -1;
-        toUpper[58].offset = 42343;
-        toUpper[59].rangeStart = 613;
-        toUpper[59].rangeEnd = 613;
-        toUpper[59].step = -1;
-        toUpper[59].offset = 42280;
-        toUpper[60].rangeStart = 614;
-        toUpper[60].rangeEnd = 614;
-        toUpper[60].step = -1;
-        toUpper[60].offset = 42308;
-        toUpper[61].rangeStart = 616;
-        toUpper[61].rangeEnd = 616;
-        toUpper[61].step = -1;
-        toUpper[61].offset = -209;
-        toUpper[62].rangeStart = 617;
-        toUpper[62].rangeEnd = 617;
-        toUpper[62].step = -1;
-        toUpper[62].offset = -211;
-        toUpper[63].rangeStart = 618;
-        toUpper[63].rangeEnd = 618;
-        toUpper[63].step = -1;
-        toUpper[63].offset = 42308;
-        toUpper[64].rangeStart = 619;
-        toUpper[64].rangeEnd = 619;
-        toUpper[64].step = -1;
-        toUpper[64].offset = 10743;
-        toUpper[65].rangeStart = 620;
-        toUpper[65].rangeEnd = 620;
-        toUpper[65].step = -1;
-        toUpper[65].offset = 42305;
-        toUpper[66].rangeStart = 623;
-        toUpper[66].rangeEnd = 623;
-        toUpper[66].step = -1;
-        toUpper[66].offset = -211;
-        toUpper[67].rangeStart = 625;
-        toUpper[67].rangeEnd = 625;
-        toUpper[67].step = -1;
-        toUpper[67].offset = 10749;
-        toUpper[68].rangeStart = 626;
-        toUpper[68].rangeEnd = 626;
-        toUpper[68].step = -1;
-        toUpper[68].offset = -213;
-        toUpper[69].rangeStart = 629;
-        toUpper[69].rangeEnd = 629;
-        toUpper[69].step = -1;
-        toUpper[69].offset = -214;
-        toUpper[70].rangeStart = 637;
-        toUpper[70].rangeEnd = 637;
-        toUpper[70].step = -1;
-        toUpper[70].offset = 10727;
-        toUpper[71].rangeStart = 640;
-        toUpper[71].rangeEnd = 640;
-        toUpper[71].step = -1;
-        toUpper[71].offset = -218;
-        toUpper[72].rangeStart = 642;
-        toUpper[72].rangeEnd = 642;
-        toUpper[72].step = -1;
-        toUpper[72].offset = 42307;
-        toUpper[73].rangeStart = 643;
-        toUpper[73].rangeEnd = 643;
-        toUpper[73].step = -1;
-        toUpper[73].offset = -218;
-        toUpper[74].rangeStart = 647;
-        toUpper[74].rangeEnd = 647;
-        toUpper[74].step = -1;
-        toUpper[74].offset = 42282;
-        toUpper[75].rangeStart = 648;
-        toUpper[75].rangeEnd = 648;
-        toUpper[75].step = -1;
-        toUpper[75].offset = -218;
-        toUpper[76].rangeStart = 649;
-        toUpper[76].rangeEnd = 649;
-        toUpper[76].step = -1;
-        toUpper[76].offset = -69;
-        toUpper[77].rangeStart = 650;
-        toUpper[77].rangeEnd = 651;
-        toUpper[77].step = 1;
-        toUpper[77].offset = -217;
-        toUpper[78].rangeStart = 652;
-        toUpper[78].rangeEnd = 652;
-        toUpper[78].step = -1;
-        toUpper[78].offset = -71;
-        toUpper[79].rangeStart = 658;
-        toUpper[79].rangeEnd = 658;
-        toUpper[79].step = -1;
-        toUpper[79].offset = -219;
-        toUpper[80].rangeStart = 669;
-        toUpper[80].rangeEnd = 669;
-        toUpper[80].step = -1;
-        toUpper[80].offset = 42261;
-        toUpper[81].rangeStart = 670;
-        toUpper[81].rangeEnd = 670;
-        toUpper[81].step = -1;
-        toUpper[81].offset = 42258;
-        toUpper[82].rangeStart = 837;
-        toUpper[82].rangeEnd = 837;
-        toUpper[82].step = -1;
-        toUpper[82].offset = 84;
-        toUpper[83].rangeStart = 881;
-        toUpper[83].rangeEnd = 883;
-        toUpper[83].step = 2;
-        toUpper[83].offset = -1;
-        toUpper[84].rangeStart = 887;
-        toUpper[84].rangeEnd = 887;
-        toUpper[84].step = -1;
-        toUpper[84].offset = -1;
-        toUpper[85].rangeStart = 891;
-        toUpper[85].rangeEnd = 893;
-        toUpper[85].step = 1;
-        toUpper[85].offset = 130;
-        toUpper[86].rangeStart = 940;
-        toUpper[86].rangeEnd = 940;
-        toUpper[86].step = -1;
-        toUpper[86].offset = -38;
-        toUpper[87].rangeStart = 941;
-        toUpper[87].rangeEnd = 943;
-        toUpper[87].step = 1;
-        toUpper[87].offset = -37;
-        toUpper[88].rangeStart = 945;
-        toUpper[88].rangeEnd = 961;
-        toUpper[88].step = 1;
-        toUpper[88].offset = -32;
-        toUpper[89].rangeStart = 962;
-        toUpper[89].rangeEnd = 962;
-        toUpper[89].step = -1;
-        toUpper[89].offset = -31;
-        toUpper[90].rangeStart = 963;
-        toUpper[90].rangeEnd = 971;
-        toUpper[90].step = 1;
-        toUpper[90].offset = -32;
-        toUpper[91].rangeStart = 972;
-        toUpper[91].rangeEnd = 972;
-        toUpper[91].step = -1;
-        toUpper[91].offset = -64;
-        toUpper[92].rangeStart = 973;
-        toUpper[92].rangeEnd = 974;
-        toUpper[92].step = 1;
-        toUpper[92].offset = -63;
-        toUpper[93].rangeStart = 976;
-        toUpper[93].rangeEnd = 976;
-        toUpper[93].step = -1;
-        toUpper[93].offset = -62;
-        toUpper[94].rangeStart = 977;
-        toUpper[94].rangeEnd = 977;
-        toUpper[94].step = -1;
-        toUpper[94].offset = -57;
-        toUpper[95].rangeStart = 981;
-        toUpper[95].rangeEnd = 981;
-        toUpper[95].step = -1;
-        toUpper[95].offset = -47;
-        toUpper[96].rangeStart = 982;
-        toUpper[96].rangeEnd = 982;
-        toUpper[96].step = -1;
-        toUpper[96].offset = -54;
-        toUpper[97].rangeStart = 983;
-        toUpper[97].rangeEnd = 983;
-        toUpper[97].step = -1;
-        toUpper[97].offset = -8;
-        toUpper[98].rangeStart = 985;
-        toUpper[98].rangeEnd = 1007;
-        toUpper[98].step = 2;
-        toUpper[98].offset = -1;
-        toUpper[99].rangeStart = 1008;
-        toUpper[99].rangeEnd = 1008;
-        toUpper[99].step = -1;
-        toUpper[99].offset = -86;
-        toUpper[100].rangeStart = 1009;
-        toUpper[100].rangeEnd = 1009;
-        toUpper[100].step = -1;
-        toUpper[100].offset = -80;
-        toUpper[101].rangeStart = 1010;
-        toUpper[101].rangeEnd = 1010;
-        toUpper[101].step = -1;
-        toUpper[101].offset = 7;
-        toUpper[102].rangeStart = 1011;
-        toUpper[102].rangeEnd = 1011;
-        toUpper[102].step = -1;
-        toUpper[102].offset = -116;
-        toUpper[103].rangeStart = 1013;
-        toUpper[103].rangeEnd = 1013;
-        toUpper[103].step = -1;
-        toUpper[103].offset = -96;
-        toUpper[104].rangeStart = 1016;
-        toUpper[104].rangeEnd = 1019;
-        toUpper[104].step = 3;
-        toUpper[104].offset = -1;
-        toUpper[105].rangeStart = 1072;
-        toUpper[105].rangeEnd = 1103;
-        toUpper[105].step = 1;
-        toUpper[105].offset = -32;
-        toUpper[106].rangeStart = 1104;
-        toUpper[106].rangeEnd = 1119;
-        toUpper[106].step = 1;
-        toUpper[106].offset = -80;
-        toUpper[107].rangeStart = 1121;
-        toUpper[107].rangeEnd = 1153;
-        toUpper[107].step = 2;
-        toUpper[107].offset = -1;
-        toUpper[108].rangeStart = 1163;
-        toUpper[108].rangeEnd = 1215;
-        toUpper[108].step = 2;
-        toUpper[108].offset = -1;
-        toUpper[109].rangeStart = 1218;
-        toUpper[109].rangeEnd = 1230;
-        toUpper[109].step = 2;
-        toUpper[109].offset = -1;
-        toUpper[110].rangeStart = 1231;
-        toUpper[110].rangeEnd = 1231;
-        toUpper[110].step = -1;
-        toUpper[110].offset = -15;
-        toUpper[111].rangeStart = 1233;
-        toUpper[111].rangeEnd = 1327;
-        toUpper[111].step = 2;
-        toUpper[111].offset = -1;
-        toUpper[112].rangeStart = 1377;
-        toUpper[112].rangeEnd = 1414;
-        toUpper[112].step = 1;
-        toUpper[112].offset = -48;
-        toUpper[113].rangeStart = 4304;
-        toUpper[113].rangeEnd = 4346;
-        toUpper[113].step = 1;
-        toUpper[113].offset = 3008;
-        toUpper[114].rangeStart = 4349;
-        toUpper[114].rangeEnd = 4351;
-        toUpper[114].step = 1;
-        toUpper[114].offset = 3008;
-        toUpper[115].rangeStart = 5112;
-        toUpper[115].rangeEnd = 5117;
-        toUpper[115].step = 1;
-        toUpper[115].offset = -8;
-        toUpper[116].rangeStart = 7296;
-        toUpper[116].rangeEnd = 7296;
-        toUpper[116].step = -1;
-        toUpper[116].offset = -6254;
-        toUpper[117].rangeStart = 7297;
-        toUpper[117].rangeEnd = 7297;
-        toUpper[117].step = -1;
-        toUpper[117].offset = -6253;
-        toUpper[118].rangeStart = 7298;
-        toUpper[118].rangeEnd = 7298;
-        toUpper[118].step = -1;
-        toUpper[118].offset = -6244;
-        toUpper[119].rangeStart = 7299;
-        toUpper[119].rangeEnd = 7300;
-        toUpper[119].step = 1;
-        toUpper[119].offset = -6242;
-        toUpper[120].rangeStart = 7301;
-        toUpper[120].rangeEnd = 7301;
-        toUpper[120].step = -1;
-        toUpper[120].offset = -6243;
-        toUpper[121].rangeStart = 7302;
-        toUpper[121].rangeEnd = 7302;
-        toUpper[121].step = -1;
-        toUpper[121].offset = -6236;
-        toUpper[122].rangeStart = 7303;
-        toUpper[122].rangeEnd = 7303;
-        toUpper[122].step = -1;
-        toUpper[122].offset = -6181;
-        toUpper[123].rangeStart = 7304;
-        toUpper[123].rangeEnd = 7304;
-        toUpper[123].step = -1;
-        toUpper[123].offset = 35266;
-        toUpper[124].rangeStart = 7306;
-        toUpper[124].rangeEnd = 7306;
-        toUpper[124].step = -1;
-        toUpper[124].offset = -1;
-        toUpper[125].rangeStart = 7545;
-        toUpper[125].rangeEnd = 7545;
-        toUpper[125].step = -1;
-        toUpper[125].offset = 35332;
-        toUpper[126].rangeStart = 7549;
-        toUpper[126].rangeEnd = 7549;
-        toUpper[126].step = -1;
-        toUpper[126].offset = 3814;
-        toUpper[127].rangeStart = 7566;
-        toUpper[127].rangeEnd = 7566;
-        toUpper[127].step = -1;
-        toUpper[127].offset = 35384;
-        toUpper[128].rangeStart = 7681;
-        toUpper[128].rangeEnd = 7829;
-        toUpper[128].step = 2;
-        toUpper[128].offset = -1;
-        toUpper[129].rangeStart = 7835;
-        toUpper[129].rangeEnd = 7835;
-        toUpper[129].step = -1;
-        toUpper[129].offset = -59;
-        toUpper[130].rangeStart = 7841;
-        toUpper[130].rangeEnd = 7935;
-        toUpper[130].step = 2;
-        toUpper[130].offset = -1;
-        toUpper[131].rangeStart = 7936;
-        toUpper[131].rangeEnd = 7943;
-        toUpper[131].step = 1;
-        toUpper[131].offset = 8;
-        toUpper[132].rangeStart = 7952;
-        toUpper[132].rangeEnd = 7957;
-        toUpper[132].step = 1;
-        toUpper[132].offset = 8;
-        toUpper[133].rangeStart = 7968;
-        toUpper[133].rangeEnd = 7975;
-        toUpper[133].step = 1;
-        toUpper[133].offset = 8;
-        toUpper[134].rangeStart = 7984;
-        toUpper[134].rangeEnd = 7991;
-        toUpper[134].step = 1;
-        toUpper[134].offset = 8;
-        toUpper[135].rangeStart = 8000;
-        toUpper[135].rangeEnd = 8005;
-        toUpper[135].step = 1;
-        toUpper[135].offset = 8;
-        toUpper[136].rangeStart = 8017;
-        toUpper[136].rangeEnd = 8023;
-        toUpper[136].step = 2;
-        toUpper[136].offset = 8;
-        toUpper[137].rangeStart = 8032;
-        toUpper[137].rangeEnd = 8039;
-        toUpper[137].step = 1;
-        toUpper[137].offset = 8;
-        toUpper[138].rangeStart = 8048;
-        toUpper[138].rangeEnd = 8049;
-        toUpper[138].step = 1;
-        toUpper[138].offset = 74;
-        toUpper[139].rangeStart = 8050;
-        toUpper[139].rangeEnd = 8053;
-        toUpper[139].step = 1;
-        toUpper[139].offset = 86;
-        toUpper[140].rangeStart = 8054;
-        toUpper[140].rangeEnd = 8055;
-        toUpper[140].step = 1;
-        toUpper[140].offset = 100;
-        toUpper[141].rangeStart = 8056;
-        toUpper[141].rangeEnd = 8057;
-        toUpper[141].step = 1;
-        toUpper[141].offset = 128;
-        toUpper[142].rangeStart = 8058;
-        toUpper[142].rangeEnd = 8059;
-        toUpper[142].step = 1;
-        toUpper[142].offset = 112;
-        toUpper[143].rangeStart = 8060;
-        toUpper[143].rangeEnd = 8061;
-        toUpper[143].step = 1;
-        toUpper[143].offset = 126;
-        toUpper[144].rangeStart = 8064;
-        toUpper[144].rangeEnd = 8071;
-        toUpper[144].step = 1;
-        toUpper[144].offset = 8;
-        toUpper[145].rangeStart = 8080;
-        toUpper[145].rangeEnd = 8087;
-        toUpper[145].step = 1;
-        toUpper[145].offset = 8;
-        toUpper[146].rangeStart = 8096;
-        toUpper[146].rangeEnd = 8103;
-        toUpper[146].step = 1;
-        toUpper[146].offset = 8;
-        toUpper[147].rangeStart = 8112;
-        toUpper[147].rangeEnd = 8113;
-        toUpper[147].step = 1;
-        toUpper[147].offset = 8;
-        toUpper[148].rangeStart = 8115;
-        toUpper[148].rangeEnd = 8115;
-        toUpper[148].step = -1;
-        toUpper[148].offset = 9;
-        toUpper[149].rangeStart = 8126;
-        toUpper[149].rangeEnd = 8126;
-        toUpper[149].step = -1;
-        toUpper[149].offset = -7205;
-        toUpper[150].rangeStart = 8131;
-        toUpper[150].rangeEnd = 8131;
-        toUpper[150].step = -1;
-        toUpper[150].offset = 9;
-        toUpper[151].rangeStart = 8144;
-        toUpper[151].rangeEnd = 8145;
-        toUpper[151].step = 1;
-        toUpper[151].offset = 8;
-        toUpper[152].rangeStart = 8160;
-        toUpper[152].rangeEnd = 8161;
-        toUpper[152].step = 1;
-        toUpper[152].offset = 8;
-        toUpper[153].rangeStart = 8165;
-        toUpper[153].rangeEnd = 8165;
-        toUpper[153].step = -1;
-        toUpper[153].offset = 7;
-        toUpper[154].rangeStart = 8179;
-        toUpper[154].rangeEnd = 8179;
-        toUpper[154].step = -1;
-        toUpper[154].offset = 9;
-        toUpper[155].rangeStart = 8526;
-        toUpper[155].rangeEnd = 8526;
-        toUpper[155].step = -1;
-        toUpper[155].offset = -28;
-        toUpper[156].rangeStart = 8560;
-        toUpper[156].rangeEnd = 8575;
-        toUpper[156].step = 1;
-        toUpper[156].offset = -16;
-        toUpper[157].rangeStart = 8580;
-        toUpper[157].rangeEnd = 8580;
-        toUpper[157].step = -1;
-        toUpper[157].offset = -1;
-        toUpper[158].rangeStart = 9424;
-        toUpper[158].rangeEnd = 9449;
-        toUpper[158].step = 1;
-        toUpper[158].offset = -26;
-        toUpper[159].rangeStart = 11312;
-        toUpper[159].rangeEnd = 11359;
-        toUpper[159].step = 1;
-        toUpper[159].offset = -48;
-        toUpper[160].rangeStart = 11361;
-        toUpper[160].rangeEnd = 11361;
-        toUpper[160].step = -1;
-        toUpper[160].offset = -1;
-        toUpper[161].rangeStart = 11365;
-        toUpper[161].rangeEnd = 11365;
-        toUpper[161].step = -1;
-        toUpper[161].offset = -10795;
-        toUpper[162].rangeStart = 11366;
-        toUpper[162].rangeEnd = 11366;
-        toUpper[162].step = -1;
-        toUpper[162].offset = -10792;
-        toUpper[163].rangeStart = 11368;
-        toUpper[163].rangeEnd = 11372;
-        toUpper[163].step = 2;
-        toUpper[163].offset = -1;
-        toUpper[164].rangeStart = 11379;
-        toUpper[164].rangeEnd = 11382;
-        toUpper[164].step = 3;
-        toUpper[164].offset = -1;
-        toUpper[165].rangeStart = 11393;
-        toUpper[165].rangeEnd = 11491;
-        toUpper[165].step = 2;
-        toUpper[165].offset = -1;
-        toUpper[166].rangeStart = 11500;
-        toUpper[166].rangeEnd = 11502;
-        toUpper[166].step = 2;
-        toUpper[166].offset = -1;
-        toUpper[167].rangeStart = 11507;
-        toUpper[167].rangeEnd = 11507;
-        toUpper[167].step = -1;
-        toUpper[167].offset = -1;
-        toUpper[168].rangeStart = 11520;
-        toUpper[168].rangeEnd = 11557;
-        toUpper[168].step = 1;
-        toUpper[168].offset = -7264;
-        toUpper[169].rangeStart = 11559;
-        toUpper[169].rangeEnd = 11565;
-        toUpper[169].step = 6;
-        toUpper[169].offset = -7264;
-        toUpper[170].rangeStart = 42561;
-        toUpper[170].rangeEnd = 42605;
-        toUpper[170].step = 2;
-        toUpper[170].offset = -1;
-        toUpper[171].rangeStart = 42625;
-        toUpper[171].rangeEnd = 42651;
-        toUpper[171].step = 2;
-        toUpper[171].offset = -1;
-        toUpper[172].rangeStart = 42787;
-        toUpper[172].rangeEnd = 42799;
-        toUpper[172].step = 2;
-        toUpper[172].offset = -1;
-        toUpper[173].rangeStart = 42803;
-        toUpper[173].rangeEnd = 42863;
-        toUpper[173].step = 2;
-        toUpper[173].offset = -1;
-        toUpper[174].rangeStart = 42874;
-        toUpper[174].rangeEnd = 42876;
-        toUpper[174].step = 2;
-        toUpper[174].offset = -1;
-        toUpper[175].rangeStart = 42879;
-        toUpper[175].rangeEnd = 42887;
-        toUpper[175].step = 2;
-        toUpper[175].offset = -1;
-        toUpper[176].rangeStart = 42892;
-        toUpper[176].rangeEnd = 42897;
-        toUpper[176].step = 5;
-        toUpper[176].offset = -1;
-        toUpper[177].rangeStart = 42899;
-        toUpper[177].rangeEnd = 42899;
-        toUpper[177].step = -1;
-        toUpper[177].offset = -1;
-        toUpper[178].rangeStart = 42900;
-        toUpper[178].rangeEnd = 42900;
-        toUpper[178].step = -1;
-        toUpper[178].offset = 48;
-        toUpper[179].rangeStart = 42903;
-        toUpper[179].rangeEnd = 42921;
-        toUpper[179].step = 2;
-        toUpper[179].offset = -1;
-        toUpper[180].rangeStart = 42933;
-        toUpper[180].rangeEnd = 42947;
-        toUpper[180].step = 2;
-        toUpper[180].offset = -1;
-        toUpper[181].rangeStart = 42952;
-        toUpper[181].rangeEnd = 42954;
-        toUpper[181].step = 2;
-        toUpper[181].offset = -1;
-        toUpper[182].rangeStart = 42957;
-        toUpper[182].rangeEnd = 42961;
-        toUpper[182].step = 4;
-        toUpper[182].offset = -1;
-        toUpper[183].rangeStart = 42967;
-        toUpper[183].rangeEnd = 42971;
-        toUpper[183].step = 2;
-        toUpper[183].offset = -1;
-        toUpper[184].rangeStart = 42998;
-        toUpper[184].rangeEnd = 42998;
-        toUpper[184].step = -1;
-        toUpper[184].offset = -1;
-        toUpper[185].rangeStart = 43859;
-        toUpper[185].rangeEnd = 43859;
-        toUpper[185].step = -1;
-        toUpper[185].offset = -928;
-        toUpper[186].rangeStart = 43888;
-        toUpper[186].rangeEnd = 43967;
-        toUpper[186].step = 1;
-        toUpper[186].offset = -38864;
-        toUpper[187].rangeStart = 65345;
-        toUpper[187].rangeEnd = 65370;
-        toUpper[187].step = 1;
-        toUpper[187].offset = -32;
-        toUpper[188].rangeStart = 66600;
-        toUpper[188].rangeEnd = 66639;
-        toUpper[188].step = 1;
-        toUpper[188].offset = -40;
-        toUpper[189].rangeStart = 66776;
-        toUpper[189].rangeEnd = 66811;
-        toUpper[189].step = 1;
-        toUpper[189].offset = -40;
-        toUpper[190].rangeStart = 66967;
-        toUpper[190].rangeEnd = 66977;
-        toUpper[190].step = 1;
-        toUpper[190].offset = -39;
-        toUpper[191].rangeStart = 66979;
-        toUpper[191].rangeEnd = 66993;
-        toUpper[191].step = 1;
-        toUpper[191].offset = -39;
-        toUpper[192].rangeStart = 66995;
-        toUpper[192].rangeEnd = 67001;
-        toUpper[192].step = 1;
-        toUpper[192].offset = -39;
-        toUpper[193].rangeStart = 67003;
-        toUpper[193].rangeEnd = 67004;
-        toUpper[193].step = 1;
-        toUpper[193].offset = -39;
-        toUpper[194].rangeStart = 68800;
-        toUpper[194].rangeEnd = 68850;
-        toUpper[194].step = 1;
-        toUpper[194].offset = -64;
-        toUpper[195].rangeStart = 68976;
-        toUpper[195].rangeEnd = 68997;
-        toUpper[195].step = 1;
-        toUpper[195].offset = -32;
-        toUpper[196].rangeStart = 71872;
-        toUpper[196].rangeEnd = 71903;
-        toUpper[196].step = 1;
-        toUpper[196].offset = -32;
-        toUpper[197].rangeStart = 93792;
-        toUpper[197].rangeEnd = 93823;
-        toUpper[197].step = 1;
-        toUpper[197].offset = -32;
-        toUpper[198].rangeStart = 125218;
-        toUpper[198].rangeEnd = 125251;
-        toUpper[198].step = 1;
-        toUpper[198].offset = -34;
-    }
-
-    private void initGlobals7() {
         msg_hist_max = 500;
         msg_flags = MESSAGES_HIT_ENTER | MESSAGES_HISTORY;
-        mod_mask_table[0].mod_mask = (short) MOD_MASK_ALT;
-        mod_mask_table[0].mod_flag = (short) MOD_MASK_ALT;
-        mod_mask_table[0].name = (byte) 77;
-        mod_mask_table[1].mod_mask = (short) MOD_MASK_META;
-        mod_mask_table[1].mod_flag = (short) MOD_MASK_META;
-        mod_mask_table[1].name = (byte) 84;
-        mod_mask_table[2].mod_mask = (short) MOD_MASK_CTRL;
-        mod_mask_table[2].mod_flag = (short) MOD_MASK_CTRL;
-        mod_mask_table[2].name = (byte) 67;
-        mod_mask_table[3].mod_mask = (short) MOD_MASK_SHIFT;
-        mod_mask_table[3].mod_flag = (short) MOD_MASK_SHIFT;
-        mod_mask_table[3].name = (byte) 83;
-        mod_mask_table[4].mod_mask = (short) (MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK);
-        mod_mask_table[4].mod_flag = (short) MOD_MASK_2CLICK;
-        mod_mask_table[4].name = (byte) 50;
-        mod_mask_table[5].mod_mask = (short) (MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK);
-        mod_mask_table[5].mod_flag = (short) MOD_MASK_3CLICK;
-        mod_mask_table[5].name = (byte) 51;
-        mod_mask_table[6].mod_mask = (short) (MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK);
-        mod_mask_table[6].mod_flag = (short) MOD_MASK_4CLICK;
-        mod_mask_table[6].name = (byte) 52;
-        mod_mask_table[7].mod_mask = (short) MOD_MASK_ALT;
-        mod_mask_table[7].mod_flag = (short) MOD_MASK_ALT;
-        mod_mask_table[7].name = (byte) 65;
-        modifier_keys_table[0] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[1] = (byte) '&';
-        modifier_keys_table[2] = (byte) '9';
-        modifier_keys_table[3] = (byte) '@';
-        modifier_keys_table[4] = (byte) '1';
-        modifier_keys_table[5] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[6] = (byte) '&';
-        modifier_keys_table[7] = (byte) '0';
-        modifier_keys_table[8] = (byte) '@';
-        modifier_keys_table[9] = (byte) '2';
-        modifier_keys_table[10] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[11] = (byte) '*';
-        modifier_keys_table[12] = (byte) '1';
-        modifier_keys_table[13] = (byte) '@';
-        modifier_keys_table[14] = (byte) '4';
-        modifier_keys_table[15] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[16] = (byte) '*';
-        modifier_keys_table[17] = (byte) '2';
-        modifier_keys_table[18] = (byte) '@';
-        modifier_keys_table[19] = (byte) '5';
-        modifier_keys_table[20] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[21] = (byte) '*';
-        modifier_keys_table[22] = (byte) '3';
-        modifier_keys_table[23] = (byte) '@';
-        modifier_keys_table[24] = (byte) '6';
-        modifier_keys_table[25] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[26] = (byte) '*';
-        modifier_keys_table[27] = (byte) '4';
-        modifier_keys_table[28] = (byte) 'k';
-        modifier_keys_table[29] = (byte) 'D';
-        modifier_keys_table[30] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[31] = (byte) '*';
-        modifier_keys_table[32] = (byte) '5';
-        modifier_keys_table[33] = (byte) 'k';
-        modifier_keys_table[34] = (byte) 'L';
-        modifier_keys_table[35] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[36] = (byte) '*';
-        modifier_keys_table[37] = (byte) '7';
-        modifier_keys_table[38] = (byte) '@';
-        modifier_keys_table[39] = (byte) '7';
-        modifier_keys_table[40] = (byte) MOD_MASK_CTRL;
-        modifier_keys_table[41] = (byte) KS_EXTRA;
-        modifier_keys_table[42] = (byte) KE_C_END;
-        modifier_keys_table[43] = (byte) '@';
-        modifier_keys_table[44] = (byte) '7';
-        modifier_keys_table[45] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[46] = (byte) '*';
-        modifier_keys_table[47] = (byte) '9';
-        modifier_keys_table[48] = (byte) '@';
-        modifier_keys_table[49] = (byte) '9';
-        modifier_keys_table[50] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[51] = (byte) '*';
-        modifier_keys_table[52] = (byte) '0';
-        modifier_keys_table[53] = (byte) '@';
-        modifier_keys_table[54] = (byte) '0';
-        modifier_keys_table[55] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[56] = (byte) '#';
-        modifier_keys_table[57] = (byte) '1';
-        modifier_keys_table[58] = (byte) '%';
-        modifier_keys_table[59] = (byte) '1';
-        modifier_keys_table[60] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[61] = (byte) '#';
-        modifier_keys_table[62] = (byte) '2';
-        modifier_keys_table[63] = (byte) 'k';
-        modifier_keys_table[64] = (byte) 'h';
-        modifier_keys_table[65] = (byte) MOD_MASK_CTRL;
-        modifier_keys_table[66] = (byte) KS_EXTRA;
-        modifier_keys_table[67] = (byte) KE_C_HOME;
-        modifier_keys_table[68] = (byte) 'k';
-        modifier_keys_table[69] = (byte) 'h';
-        modifier_keys_table[70] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[71] = (byte) '#';
-        modifier_keys_table[72] = (byte) '3';
-        modifier_keys_table[73] = (byte) 'k';
-        modifier_keys_table[74] = (byte) 'I';
-        modifier_keys_table[75] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[76] = (byte) '#';
-        modifier_keys_table[77] = (byte) '4';
-        modifier_keys_table[78] = (byte) 'k';
-        modifier_keys_table[79] = (byte) 'l';
-        modifier_keys_table[80] = (byte) MOD_MASK_CTRL;
-        modifier_keys_table[81] = (byte) KS_EXTRA;
-        modifier_keys_table[82] = (byte) KE_C_LEFT;
-        modifier_keys_table[83] = (byte) 'k';
-        modifier_keys_table[84] = (byte) 'l';
-        modifier_keys_table[85] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[86] = (byte) '%';
-        modifier_keys_table[87] = (byte) 'a';
-        modifier_keys_table[88] = (byte) '%';
-        modifier_keys_table[89] = (byte) '3';
-        modifier_keys_table[90] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[91] = (byte) '%';
-        modifier_keys_table[92] = (byte) 'b';
-        modifier_keys_table[93] = (byte) '%';
-        modifier_keys_table[94] = (byte) '4';
-        modifier_keys_table[95] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[96] = (byte) '%';
-        modifier_keys_table[97] = (byte) 'c';
-        modifier_keys_table[98] = (byte) '%';
-        modifier_keys_table[99] = (byte) '5';
-        modifier_keys_table[100] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[101] = (byte) '%';
-        modifier_keys_table[102] = (byte) 'd';
-        modifier_keys_table[103] = (byte) '%';
-        modifier_keys_table[104] = (byte) '7';
-        modifier_keys_table[105] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[106] = (byte) '%';
-        modifier_keys_table[107] = (byte) 'e';
-        modifier_keys_table[108] = (byte) '%';
-        modifier_keys_table[109] = (byte) '8';
-        modifier_keys_table[110] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[111] = (byte) '%';
-        modifier_keys_table[112] = (byte) 'f';
-        modifier_keys_table[113] = (byte) '%';
-        modifier_keys_table[114] = (byte) '9';
-        modifier_keys_table[115] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[116] = (byte) '%';
-        modifier_keys_table[117] = (byte) 'g';
-        modifier_keys_table[118] = (byte) '%';
-        modifier_keys_table[119] = (byte) '0';
-        modifier_keys_table[120] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[121] = (byte) '%';
-        modifier_keys_table[122] = (byte) 'h';
-        modifier_keys_table[123] = (byte) '&';
-        modifier_keys_table[124] = (byte) '3';
-        modifier_keys_table[125] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[126] = (byte) '%';
-        modifier_keys_table[127] = (byte) 'i';
-        modifier_keys_table[128] = (byte) 'k';
-        modifier_keys_table[129] = (byte) 'r';
-        modifier_keys_table[130] = (byte) MOD_MASK_CTRL;
-        modifier_keys_table[131] = (byte) KS_EXTRA;
-        modifier_keys_table[132] = (byte) KE_C_RIGHT;
-        modifier_keys_table[133] = (byte) 'k';
-        modifier_keys_table[134] = (byte) 'r';
-        modifier_keys_table[135] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[136] = (byte) '%';
-        modifier_keys_table[137] = (byte) 'j';
-        modifier_keys_table[138] = (byte) '&';
-        modifier_keys_table[139] = (byte) '5';
-        modifier_keys_table[140] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[141] = (byte) '!';
-        modifier_keys_table[142] = (byte) '1';
-        modifier_keys_table[143] = (byte) '&';
-        modifier_keys_table[144] = (byte) '6';
-        modifier_keys_table[145] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[146] = (byte) '!';
-        modifier_keys_table[147] = (byte) '2';
-        modifier_keys_table[148] = (byte) '&';
-        modifier_keys_table[149] = (byte) '7';
-        modifier_keys_table[150] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[151] = (byte) '!';
-        modifier_keys_table[152] = (byte) '3';
-        modifier_keys_table[153] = (byte) '&';
-        modifier_keys_table[154] = (byte) '8';
-        modifier_keys_table[155] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[156] = (byte) KS_EXTRA;
-        modifier_keys_table[157] = (byte) KE_S_UP;
-        modifier_keys_table[158] = (byte) 'k';
-        modifier_keys_table[159] = (byte) 'u';
-        modifier_keys_table[160] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[161] = (byte) KS_EXTRA;
-        modifier_keys_table[162] = (byte) KE_S_DOWN;
-        modifier_keys_table[163] = (byte) 'k';
-        modifier_keys_table[164] = (byte) 'd';
-        modifier_keys_table[165] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[166] = (byte) KS_EXTRA;
-        modifier_keys_table[167] = (byte) KE_S_XF1;
-        modifier_keys_table[168] = (byte) KS_EXTRA;
-        modifier_keys_table[169] = (byte) KE_XF1;
-        modifier_keys_table[170] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[171] = (byte) KS_EXTRA;
-        modifier_keys_table[172] = (byte) KE_S_XF2;
-        modifier_keys_table[173] = (byte) KS_EXTRA;
-        modifier_keys_table[174] = (byte) KE_XF2;
-        modifier_keys_table[175] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[176] = (byte) KS_EXTRA;
-        modifier_keys_table[177] = (byte) KE_S_XF3;
-        modifier_keys_table[178] = (byte) KS_EXTRA;
-        modifier_keys_table[179] = (byte) KE_XF3;
-        modifier_keys_table[180] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[181] = (byte) KS_EXTRA;
-        modifier_keys_table[182] = (byte) KE_S_XF4;
-        modifier_keys_table[183] = (byte) KS_EXTRA;
-        modifier_keys_table[184] = (byte) KE_XF4;
-        modifier_keys_table[185] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[186] = (byte) KS_EXTRA;
-        modifier_keys_table[187] = (byte) KE_S_F1;
-        modifier_keys_table[188] = (byte) 'k';
-        modifier_keys_table[189] = (byte) '1';
-        modifier_keys_table[190] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[191] = (byte) KS_EXTRA;
-        modifier_keys_table[192] = (byte) KE_S_F2;
-        modifier_keys_table[193] = (byte) 'k';
-        modifier_keys_table[194] = (byte) '2';
-        modifier_keys_table[195] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[196] = (byte) KS_EXTRA;
-        modifier_keys_table[197] = (byte) KE_S_F3;
-        modifier_keys_table[198] = (byte) 'k';
-        modifier_keys_table[199] = (byte) '3';
-        modifier_keys_table[200] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[201] = (byte) KS_EXTRA;
-        modifier_keys_table[202] = (byte) KE_S_F4;
-        modifier_keys_table[203] = (byte) 'k';
-        modifier_keys_table[204] = (byte) '4';
-        modifier_keys_table[205] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[206] = (byte) KS_EXTRA;
-        modifier_keys_table[207] = (byte) KE_S_F5;
-        modifier_keys_table[208] = (byte) 'k';
-        modifier_keys_table[209] = (byte) '5';
-        modifier_keys_table[210] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[211] = (byte) KS_EXTRA;
-        modifier_keys_table[212] = (byte) KE_S_F6;
-        modifier_keys_table[213] = (byte) 'k';
-        modifier_keys_table[214] = (byte) '6';
-        modifier_keys_table[215] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[216] = (byte) KS_EXTRA;
-        modifier_keys_table[217] = (byte) KE_S_F7;
-        modifier_keys_table[218] = (byte) 'k';
-        modifier_keys_table[219] = (byte) '7';
-        modifier_keys_table[220] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[221] = (byte) KS_EXTRA;
-        modifier_keys_table[222] = (byte) KE_S_F8;
-        modifier_keys_table[223] = (byte) 'k';
-        modifier_keys_table[224] = (byte) '8';
-        modifier_keys_table[225] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[226] = (byte) KS_EXTRA;
-        modifier_keys_table[227] = (byte) KE_S_F9;
-        modifier_keys_table[228] = (byte) 'k';
-        modifier_keys_table[229] = (byte) '9';
-        modifier_keys_table[230] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[231] = (byte) KS_EXTRA;
-        modifier_keys_table[232] = (byte) KE_S_F10;
-        modifier_keys_table[233] = (byte) 'k';
-        modifier_keys_table[234] = (byte) ';';
-        modifier_keys_table[235] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[236] = (byte) KS_EXTRA;
-        modifier_keys_table[237] = (byte) KE_S_F11;
-        modifier_keys_table[238] = (byte) 'F';
-        modifier_keys_table[239] = (byte) '1';
-        modifier_keys_table[240] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[241] = (byte) KS_EXTRA;
-        modifier_keys_table[242] = (byte) KE_S_F12;
-        modifier_keys_table[243] = (byte) 'F';
-        modifier_keys_table[244] = (byte) '2';
-        modifier_keys_table[245] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[246] = (byte) KS_EXTRA;
-        modifier_keys_table[247] = (byte) KE_S_F13;
-        modifier_keys_table[248] = (byte) 'F';
-        modifier_keys_table[249] = (byte) '3';
-        modifier_keys_table[250] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[251] = (byte) KS_EXTRA;
-        modifier_keys_table[252] = (byte) KE_S_F14;
-        modifier_keys_table[253] = (byte) 'F';
-        modifier_keys_table[254] = (byte) '4';
-        modifier_keys_table[255] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[256] = (byte) KS_EXTRA;
-        modifier_keys_table[257] = (byte) KE_S_F15;
-        modifier_keys_table[258] = (byte) 'F';
-        modifier_keys_table[259] = (byte) '5';
-        modifier_keys_table[260] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[261] = (byte) KS_EXTRA;
-        modifier_keys_table[262] = (byte) KE_S_F16;
-        modifier_keys_table[263] = (byte) 'F';
-        modifier_keys_table[264] = (byte) '6';
-        modifier_keys_table[265] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[266] = (byte) KS_EXTRA;
-        modifier_keys_table[267] = (byte) KE_S_F17;
-        modifier_keys_table[268] = (byte) 'F';
-        modifier_keys_table[269] = (byte) '7';
-        modifier_keys_table[270] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[271] = (byte) KS_EXTRA;
-        modifier_keys_table[272] = (byte) KE_S_F18;
-        modifier_keys_table[273] = (byte) 'F';
-        modifier_keys_table[274] = (byte) '8';
-        modifier_keys_table[275] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[276] = (byte) KS_EXTRA;
-        modifier_keys_table[277] = (byte) KE_S_F19;
-        modifier_keys_table[278] = (byte) 'F';
-        modifier_keys_table[279] = (byte) '9';
-        modifier_keys_table[280] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[281] = (byte) KS_EXTRA;
-        modifier_keys_table[282] = (byte) KE_S_F20;
-        modifier_keys_table[283] = (byte) 'F';
-        modifier_keys_table[284] = (byte) 'A';
-        modifier_keys_table[285] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[286] = (byte) KS_EXTRA;
-        modifier_keys_table[287] = (byte) KE_S_F21;
-        modifier_keys_table[288] = (byte) 'F';
-        modifier_keys_table[289] = (byte) 'B';
-        modifier_keys_table[290] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[291] = (byte) KS_EXTRA;
-        modifier_keys_table[292] = (byte) KE_S_F22;
-        modifier_keys_table[293] = (byte) 'F';
-        modifier_keys_table[294] = (byte) 'C';
-        modifier_keys_table[295] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[296] = (byte) KS_EXTRA;
-        modifier_keys_table[297] = (byte) KE_S_F23;
-        modifier_keys_table[298] = (byte) 'F';
-        modifier_keys_table[299] = (byte) 'D';
-        modifier_keys_table[300] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[301] = (byte) KS_EXTRA;
-        modifier_keys_table[302] = (byte) KE_S_F24;
-        modifier_keys_table[303] = (byte) 'F';
-        modifier_keys_table[304] = (byte) 'E';
-        modifier_keys_table[305] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[306] = (byte) KS_EXTRA;
-        modifier_keys_table[307] = (byte) KE_S_F25;
-        modifier_keys_table[308] = (byte) 'F';
-        modifier_keys_table[309] = (byte) 'F';
-        modifier_keys_table[310] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[311] = (byte) KS_EXTRA;
-        modifier_keys_table[312] = (byte) KE_S_F26;
-        modifier_keys_table[313] = (byte) 'F';
-        modifier_keys_table[314] = (byte) 'G';
-        modifier_keys_table[315] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[316] = (byte) KS_EXTRA;
-        modifier_keys_table[317] = (byte) KE_S_F27;
-        modifier_keys_table[318] = (byte) 'F';
-        modifier_keys_table[319] = (byte) 'H';
-        modifier_keys_table[320] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[321] = (byte) KS_EXTRA;
-        modifier_keys_table[322] = (byte) KE_S_F28;
-        modifier_keys_table[323] = (byte) 'F';
-        modifier_keys_table[324] = (byte) 'I';
-        modifier_keys_table[325] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[326] = (byte) KS_EXTRA;
-        modifier_keys_table[327] = (byte) KE_S_F29;
-        modifier_keys_table[328] = (byte) 'F';
-        modifier_keys_table[329] = (byte) 'J';
-        modifier_keys_table[330] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[331] = (byte) KS_EXTRA;
-        modifier_keys_table[332] = (byte) KE_S_F30;
-        modifier_keys_table[333] = (byte) 'F';
-        modifier_keys_table[334] = (byte) 'K';
-        modifier_keys_table[335] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[336] = (byte) KS_EXTRA;
-        modifier_keys_table[337] = (byte) KE_S_F31;
-        modifier_keys_table[338] = (byte) 'F';
-        modifier_keys_table[339] = (byte) 'L';
-        modifier_keys_table[340] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[341] = (byte) KS_EXTRA;
-        modifier_keys_table[342] = (byte) KE_S_F32;
-        modifier_keys_table[343] = (byte) 'F';
-        modifier_keys_table[344] = (byte) 'M';
-        modifier_keys_table[345] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[346] = (byte) KS_EXTRA;
-        modifier_keys_table[347] = (byte) KE_S_F33;
-        modifier_keys_table[348] = (byte) 'F';
-        modifier_keys_table[349] = (byte) 'N';
-        modifier_keys_table[350] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[351] = (byte) KS_EXTRA;
-        modifier_keys_table[352] = (byte) KE_S_F34;
-        modifier_keys_table[353] = (byte) 'F';
-        modifier_keys_table[354] = (byte) 'O';
-        modifier_keys_table[355] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[356] = (byte) KS_EXTRA;
-        modifier_keys_table[357] = (byte) KE_S_F35;
-        modifier_keys_table[358] = (byte) 'F';
-        modifier_keys_table[359] = (byte) 'P';
-        modifier_keys_table[360] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[361] = (byte) KS_EXTRA;
-        modifier_keys_table[362] = (byte) KE_S_F36;
-        modifier_keys_table[363] = (byte) 'F';
-        modifier_keys_table[364] = (byte) 'Q';
-        modifier_keys_table[365] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[366] = (byte) KS_EXTRA;
-        modifier_keys_table[367] = (byte) KE_S_F37;
-        modifier_keys_table[368] = (byte) 'F';
-        modifier_keys_table[369] = (byte) 'R';
-        modifier_keys_table[370] = (byte) MOD_MASK_SHIFT;
-        modifier_keys_table[371] = (byte) 'k';
-        modifier_keys_table[372] = (byte) 'B';
-        modifier_keys_table[373] = (byte) KS_EXTRA;
-        modifier_keys_table[374] = (byte) KE_TAB;
-    }
-
-    private void initGlobals8() {
+        Rt.rows(mod_mask_table,
+            new S_modmasktable(MOD_MASK_ALT, MOD_MASK_ALT, 77),
+            new S_modmasktable(MOD_MASK_META, MOD_MASK_META, 84),
+            new S_modmasktable(MOD_MASK_CTRL, MOD_MASK_CTRL, 67),
+            new S_modmasktable(MOD_MASK_SHIFT, MOD_MASK_SHIFT, 83),
+            new S_modmasktable(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK, MOD_MASK_2CLICK, 50),
+            new S_modmasktable(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK, MOD_MASK_3CLICK, 51),
+            new S_modmasktable(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK, MOD_MASK_4CLICK, 52),
+            new S_modmasktable(MOD_MASK_ALT, MOD_MASK_ALT, 65),
+            new S_modmasktable());
+        Rt.rows(modifier_keys_table,
+            MOD_MASK_SHIFT, '&', '9', '@', '1', MOD_MASK_SHIFT, '&', '0', '@', '2', MOD_MASK_SHIFT, '*', '1', '@', '4',
+            MOD_MASK_SHIFT, '*', '2', '@', '5', MOD_MASK_SHIFT, '*', '3', '@', '6', MOD_MASK_SHIFT, '*', '4', 'k', 'D',
+            MOD_MASK_SHIFT, '*', '5', 'k', 'L', MOD_MASK_SHIFT, '*', '7', '@', '7', MOD_MASK_CTRL, KS_EXTRA, KE_C_END,
+            '@', '7', MOD_MASK_SHIFT, '*', '9', '@', '9', MOD_MASK_SHIFT, '*', '0', '@', '0', MOD_MASK_SHIFT, '#', '1',
+            '%', '1', MOD_MASK_SHIFT, '#', '2', 'k', 'h', MOD_MASK_CTRL, KS_EXTRA, KE_C_HOME, 'k', 'h', MOD_MASK_SHIFT,
+            '#', '3', 'k', 'I', MOD_MASK_SHIFT, '#', '4', 'k', 'l', MOD_MASK_CTRL, KS_EXTRA, KE_C_LEFT, 'k', 'l',
+            MOD_MASK_SHIFT, '%', 'a', '%', '3', MOD_MASK_SHIFT, '%', 'b', '%', '4', MOD_MASK_SHIFT, '%', 'c', '%', '5',
+            MOD_MASK_SHIFT, '%', 'd', '%', '7', MOD_MASK_SHIFT, '%', 'e', '%', '8', MOD_MASK_SHIFT, '%', 'f', '%', '9',
+            MOD_MASK_SHIFT, '%', 'g', '%', '0', MOD_MASK_SHIFT, '%', 'h', '&', '3', MOD_MASK_SHIFT, '%', 'i', 'k', 'r',
+            MOD_MASK_CTRL, KS_EXTRA, KE_C_RIGHT, 'k', 'r', MOD_MASK_SHIFT, '%', 'j', '&', '5', MOD_MASK_SHIFT, '!',
+            '1', '&', '6', MOD_MASK_SHIFT, '!', '2', '&', '7', MOD_MASK_SHIFT, '!', '3', '&', '8', MOD_MASK_SHIFT,
+            KS_EXTRA, KE_S_UP, 'k', 'u', MOD_MASK_SHIFT, KS_EXTRA, KE_S_DOWN, 'k', 'd', MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_XF1, KS_EXTRA, KE_XF1, MOD_MASK_SHIFT, KS_EXTRA, KE_S_XF2, KS_EXTRA, KE_XF2, MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_XF3, KS_EXTRA, KE_XF3, MOD_MASK_SHIFT, KS_EXTRA, KE_S_XF4, KS_EXTRA, KE_XF4, MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_F1, 'k', '1', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F2, 'k', '2', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F3, 'k',
+            '3', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F4, 'k', '4', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F5, 'k', '5',
+            MOD_MASK_SHIFT, KS_EXTRA, KE_S_F6, 'k', '6', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F7, 'k', '7', MOD_MASK_SHIFT,
+            KS_EXTRA, KE_S_F8, 'k', '8', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F9, 'k', '9', MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_F10, 'k', ';', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F11, 'F', '1', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F12, 'F',
+            '2', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F13, 'F', '3', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F14, 'F', '4',
+            MOD_MASK_SHIFT, KS_EXTRA, KE_S_F15, 'F', '5', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F16, 'F', '6', MOD_MASK_SHIFT,
+            KS_EXTRA, KE_S_F17, 'F', '7', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F18, 'F', '8', MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_F19, 'F', '9', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F20, 'F', 'A', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F21, 'F',
+            'B', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F22, 'F', 'C', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F23, 'F', 'D',
+            MOD_MASK_SHIFT, KS_EXTRA, KE_S_F24, 'F', 'E', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F25, 'F', 'F', MOD_MASK_SHIFT,
+            KS_EXTRA, KE_S_F26, 'F', 'G', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F27, 'F', 'H', MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_F28, 'F', 'I', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F29, 'F', 'J', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F30, 'F',
+            'K', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F31, 'F', 'L', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F32, 'F', 'M',
+            MOD_MASK_SHIFT, KS_EXTRA, KE_S_F33, 'F', 'N', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F34, 'F', 'O', MOD_MASK_SHIFT,
+            KS_EXTRA, KE_S_F35, 'F', 'P', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F36, 'F', 'Q', MOD_MASK_SHIFT, KS_EXTRA,
+            KE_S_F37, 'F', 'R', MOD_MASK_SHIFT, 'k', 'B', KS_EXTRA, KE_TAB, NUL);
         key_names_table[0].enabled = TRUE;
         key_names_table[0].key = K_BS;
         key_names_table[0].name.string[0] = BytePtr.lit("BackSpace");
@@ -13319,769 +10061,286 @@ public abstract class Editor {
         key_names_table[116].name.length = 5L;
     }
 
-    private void initGlobals9() {
-        nv_cmds[0].cmd_func = fp_nv_error;
-        nv_cmds[1].cmd_char = Ctrl_A;
-        nv_cmds[1].cmd_func = fp_nv_addsub;
-        nv_cmds[2].cmd_char = Ctrl_B;
-        nv_cmds[2].cmd_func = fp_nv_page;
-        nv_cmds[2].cmd_flags = (short) NV_STS;
-        nv_cmds[2].cmd_arg = (short) -1;
-        nv_cmds[3].cmd_char = Ctrl_C;
-        nv_cmds[3].cmd_func = fp_nv_esc;
-        nv_cmds[3].cmd_arg = (short) TRUE;
-        nv_cmds[4].cmd_char = Ctrl_D;
-        nv_cmds[4].cmd_func = fp_nv_halfpage;
-        nv_cmds[5].cmd_char = Ctrl_E;
-        nv_cmds[5].cmd_func = fp_nv_scroll_line;
-        nv_cmds[5].cmd_arg = (short) TRUE;
-        nv_cmds[6].cmd_char = Ctrl_F;
-        nv_cmds[6].cmd_func = fp_nv_page;
-        nv_cmds[6].cmd_flags = (short) NV_STS;
-        nv_cmds[6].cmd_arg = (short) FORWARD;
-        nv_cmds[7].cmd_char = Ctrl_G;
-        nv_cmds[7].cmd_func = fp_nv_ctrlg;
-        nv_cmds[8].cmd_char = Ctrl_H;
-        nv_cmds[8].cmd_func = fp_nv_ctrlh;
-        nv_cmds[9].cmd_char = Ctrl_I;
-        nv_cmds[9].cmd_func = fp_nv_error;
-        nv_cmds[10].cmd_char = NL;
-        nv_cmds[10].cmd_func = fp_nv_down;
-        nv_cmds[11].cmd_char = Ctrl_K;
-        nv_cmds[11].cmd_func = fp_nv_error;
-        nv_cmds[12].cmd_char = Ctrl_L;
-        nv_cmds[12].cmd_func = fp_nv_clear;
-        nv_cmds[13].cmd_char = CAR;
-        nv_cmds[13].cmd_func = fp_nv_down;
-        nv_cmds[13].cmd_arg = (short) TRUE;
-        nv_cmds[14].cmd_char = Ctrl_N;
-        nv_cmds[14].cmd_func = fp_nv_down;
-        nv_cmds[14].cmd_flags = (short) NV_STS;
-        nv_cmds[15].cmd_char = Ctrl_O;
-        nv_cmds[15].cmd_func = fp_nv_ctrlo;
-        nv_cmds[16].cmd_char = Ctrl_P;
-        nv_cmds[16].cmd_func = fp_nv_up;
-        nv_cmds[16].cmd_flags = (short) NV_STS;
-        nv_cmds[17].cmd_char = Ctrl_Q;
-        nv_cmds[17].cmd_func = fp_nv_visual;
-        nv_cmds[18].cmd_char = Ctrl_R;
-        nv_cmds[18].cmd_func = fp_nv_redo_or_register;
-        nv_cmds[19].cmd_char = Ctrl_S;
-        nv_cmds[19].cmd_func = fp_nv_ignore;
-        nv_cmds[20].cmd_char = Ctrl_T;
-        nv_cmds[20].cmd_func = fp_nv_tagpop;
-        nv_cmds[20].cmd_flags = (short) NV_NCW;
-        nv_cmds[21].cmd_char = Ctrl_U;
-        nv_cmds[21].cmd_func = fp_nv_halfpage;
-        nv_cmds[22].cmd_char = Ctrl_V;
-        nv_cmds[22].cmd_func = fp_nv_visual;
-        nv_cmds[23].cmd_char = Ctrl_W;
-        nv_cmds[23].cmd_func = fp_nv_error;
-        nv_cmds[24].cmd_char = Ctrl_X;
-        nv_cmds[24].cmd_func = fp_nv_addsub;
-        nv_cmds[25].cmd_char = Ctrl_Y;
-        nv_cmds[25].cmd_func = fp_nv_scroll_line;
-        nv_cmds[26].cmd_char = Ctrl_Z;
-        nv_cmds[26].cmd_func = fp_nv_suspend;
-        nv_cmds[27].cmd_char = ESC;
-        nv_cmds[27].cmd_func = fp_nv_esc;
-        nv_cmds[28].cmd_char = Ctrl_BSL;
-        nv_cmds[28].cmd_func = fp_nv_normal;
-        nv_cmds[28].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[29].cmd_char = Ctrl_RSB;
-        nv_cmds[29].cmd_func = fp_nv_error;
-        nv_cmds[29].cmd_flags = (short) NV_NCW;
-        nv_cmds[30].cmd_char = Ctrl_HAT;
-        nv_cmds[30].cmd_func = fp_nv_error;
-        nv_cmds[30].cmd_flags = (short) NV_NCW;
-        nv_cmds[31].cmd_char = Ctrl__;
-        nv_cmds[31].cmd_func = fp_nv_error;
-        nv_cmds[32].cmd_char = ' ';
-        nv_cmds[32].cmd_func = fp_nv_right;
-        nv_cmds[33].cmd_char = '!';
-        nv_cmds[33].cmd_func = fp_nv_error;
-        nv_cmds[34].cmd_char = '"';
-        nv_cmds[34].cmd_func = fp_nv_regname;
-        nv_cmds[34].cmd_flags = (short) (2 | NV_NCH | NV_KEEPREG);
-        nv_cmds[35].cmd_char = '#';
-        nv_cmds[35].cmd_func = fp_nv_ident;
-        nv_cmds[36].cmd_char = '$';
-        nv_cmds[36].cmd_func = fp_nv_dollar;
-        nv_cmds[37].cmd_char = '%';
-        nv_cmds[37].cmd_func = fp_nv_percent;
-        nv_cmds[38].cmd_char = '&';
-        nv_cmds[38].cmd_func = fp_nv_optrans;
-        nv_cmds[39].cmd_char = '\'';
-        nv_cmds[39].cmd_func = fp_nv_gomark;
-        nv_cmds[39].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[39].cmd_arg = (short) TRUE;
-        nv_cmds[40].cmd_char = '(';
-        nv_cmds[40].cmd_func = fp_nv_error;
-        nv_cmds[40].cmd_arg = (short) -1;
-        nv_cmds[41].cmd_char = ')';
-        nv_cmds[41].cmd_func = fp_nv_error;
-        nv_cmds[41].cmd_arg = (short) FORWARD;
-        nv_cmds[42].cmd_char = '*';
-        nv_cmds[42].cmd_func = fp_nv_ident;
-        nv_cmds[43].cmd_char = '+';
-        nv_cmds[43].cmd_func = fp_nv_down;
-        nv_cmds[43].cmd_arg = (short) TRUE;
-        nv_cmds[44].cmd_char = ',';
-        nv_cmds[44].cmd_func = fp_nv_csearch;
-        nv_cmds[44].cmd_arg = (short) TRUE;
-        nv_cmds[45].cmd_char = '-';
-        nv_cmds[45].cmd_func = fp_nv_up;
-        nv_cmds[45].cmd_arg = (short) TRUE;
-        nv_cmds[46].cmd_char = '.';
-        nv_cmds[46].cmd_func = fp_nv_dot;
-        nv_cmds[46].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[47].cmd_char = '/';
-        nv_cmds[47].cmd_func = fp_nv_search;
-        nv_cmds[48].cmd_char = '0';
-        nv_cmds[48].cmd_func = fp_nv_beginline;
-        nv_cmds[49].cmd_char = '1';
-        nv_cmds[49].cmd_func = fp_nv_ignore;
-        nv_cmds[50].cmd_char = '2';
-        nv_cmds[50].cmd_func = fp_nv_ignore;
-        nv_cmds[51].cmd_char = '3';
-        nv_cmds[51].cmd_func = fp_nv_ignore;
-        nv_cmds[52].cmd_char = '4';
-        nv_cmds[52].cmd_func = fp_nv_ignore;
-        nv_cmds[53].cmd_char = '5';
-        nv_cmds[53].cmd_func = fp_nv_ignore;
-        nv_cmds[54].cmd_char = '6';
-        nv_cmds[54].cmd_func = fp_nv_ignore;
-        nv_cmds[55].cmd_char = '7';
-        nv_cmds[55].cmd_func = fp_nv_ignore;
-        nv_cmds[56].cmd_char = '8';
-        nv_cmds[56].cmd_func = fp_nv_ignore;
-        nv_cmds[57].cmd_char = '9';
-        nv_cmds[57].cmd_func = fp_nv_ignore;
-        nv_cmds[58].cmd_char = ':';
-        nv_cmds[58].cmd_func = fp_nv_colon;
-        nv_cmds[59].cmd_char = ';';
-        nv_cmds[59].cmd_func = fp_nv_csearch;
-        nv_cmds[60].cmd_char = '<';
-        nv_cmds[60].cmd_func = fp_nv_operator;
-        nv_cmds[60].cmd_flags = (short) NV_RL;
-        nv_cmds[61].cmd_char = '=';
-        nv_cmds[61].cmd_func = fp_nv_error;
-        nv_cmds[62].cmd_char = '>';
-        nv_cmds[62].cmd_func = fp_nv_operator;
-        nv_cmds[62].cmd_flags = (short) NV_RL;
-        nv_cmds[63].cmd_char = '?';
-        nv_cmds[63].cmd_func = fp_nv_search;
-        nv_cmds[64].cmd_char = '@';
-        nv_cmds[64].cmd_func = fp_nv_at;
-        nv_cmds[64].cmd_flags = (short) (2 | NV_NCH);
-        nv_cmds[65].cmd_char = 'A';
-        nv_cmds[65].cmd_func = fp_nv_edit;
-        nv_cmds[66].cmd_char = 'B';
-        nv_cmds[66].cmd_func = fp_nv_bck_word;
-        nv_cmds[66].cmd_arg = (short) 1;
-        nv_cmds[67].cmd_char = 'C';
-        nv_cmds[67].cmd_func = fp_nv_abbrev;
-        nv_cmds[67].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[68].cmd_char = 'D';
-        nv_cmds[68].cmd_func = fp_nv_abbrev;
-        nv_cmds[68].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[69].cmd_char = 'E';
-        nv_cmds[69].cmd_func = fp_nv_wordcmd;
-        nv_cmds[69].cmd_arg = (short) TRUE;
-        nv_cmds[70].cmd_char = 'F';
-        nv_cmds[70].cmd_func = fp_nv_csearch;
-        nv_cmds[70].cmd_flags = (short) (4 | NV_NCH | NV_LANG);
-        nv_cmds[70].cmd_arg = (short) -1;
-        nv_cmds[71].cmd_char = 'G';
-        nv_cmds[71].cmd_func = fp_nv_goto;
-        nv_cmds[71].cmd_arg = (short) TRUE;
-        nv_cmds[72].cmd_char = 'H';
-        nv_cmds[72].cmd_func = fp_nv_scroll;
-        nv_cmds[73].cmd_char = 'I';
-        nv_cmds[73].cmd_func = fp_nv_edit;
-        nv_cmds[74].cmd_char = 'J';
-        nv_cmds[74].cmd_func = fp_nv_join;
-        nv_cmds[75].cmd_char = 'K';
-        nv_cmds[75].cmd_func = fp_nv_error;
-        nv_cmds[76].cmd_char = 'L';
-        nv_cmds[76].cmd_func = fp_nv_scroll;
-        nv_cmds[77].cmd_char = 'M';
-        nv_cmds[77].cmd_func = fp_nv_scroll;
-        nv_cmds[78].cmd_char = 'N';
-        nv_cmds[78].cmd_func = fp_nv_next;
-        nv_cmds[78].cmd_arg = (short) SEARCH_REV;
-        nv_cmds[79].cmd_char = 'O';
-        nv_cmds[79].cmd_func = fp_nv_open;
-        nv_cmds[80].cmd_char = 'P';
-        nv_cmds[80].cmd_func = fp_nv_put;
-        nv_cmds[81].cmd_char = 'Q';
-        nv_cmds[81].cmd_func = fp_nv_error;
-        nv_cmds[81].cmd_flags = (short) NV_NCW;
-        nv_cmds[82].cmd_char = 'R';
-        nv_cmds[82].cmd_func = fp_nv_Replace;
-        nv_cmds[83].cmd_char = 'S';
-        nv_cmds[83].cmd_func = fp_nv_subst;
-        nv_cmds[83].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[84].cmd_char = 'T';
-        nv_cmds[84].cmd_func = fp_nv_csearch;
-        nv_cmds[84].cmd_flags = (short) (4 | NV_NCH | NV_LANG);
-        nv_cmds[84].cmd_arg = (short) -1;
-        nv_cmds[85].cmd_char = 'U';
-        nv_cmds[85].cmd_func = fp_nv_Undo;
-        nv_cmds[86].cmd_char = 'V';
-        nv_cmds[86].cmd_func = fp_nv_visual;
-        nv_cmds[87].cmd_char = 'W';
-        nv_cmds[87].cmd_func = fp_nv_wordcmd;
-        nv_cmds[87].cmd_arg = (short) TRUE;
-        nv_cmds[88].cmd_char = 'X';
-        nv_cmds[88].cmd_func = fp_nv_abbrev;
-        nv_cmds[88].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[89].cmd_char = 'Y';
-        nv_cmds[89].cmd_func = fp_nv_abbrev;
-        nv_cmds[89].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[90].cmd_char = 'Z';
-        nv_cmds[90].cmd_func = fp_nv_Zet;
-        nv_cmds[90].cmd_flags = (short) (2 | NV_NCH | NV_NCW);
-        nv_cmds[91].cmd_char = '[';
-        nv_cmds[91].cmd_func = fp_nv_brackets;
-        nv_cmds[91].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[91].cmd_arg = (short) -1;
-        nv_cmds[92].cmd_char = '\\';
-        nv_cmds[92].cmd_func = fp_nv_error;
-        nv_cmds[93].cmd_char = ']';
-        nv_cmds[93].cmd_func = fp_nv_brackets;
-        nv_cmds[93].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[93].cmd_arg = (short) FORWARD;
-        nv_cmds[94].cmd_char = '^';
-        nv_cmds[94].cmd_func = fp_nv_beginline;
-        nv_cmds[94].cmd_arg = (short) (BL_WHITE | BL_FIX);
-        nv_cmds[95].cmd_char = '_';
-        nv_cmds[95].cmd_func = fp_nv_lineop;
-        nv_cmds[96].cmd_char = '`';
-        nv_cmds[96].cmd_func = fp_nv_gomark;
-        nv_cmds[96].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[97].cmd_char = 'a';
-        nv_cmds[97].cmd_func = fp_nv_edit;
-        nv_cmds[97].cmd_flags = (short) NV_NCH;
-        nv_cmds[98].cmd_char = 'b';
-        nv_cmds[98].cmd_func = fp_nv_bck_word;
-        nv_cmds[99].cmd_char = 'c';
-        nv_cmds[99].cmd_func = fp_nv_operator;
-        nv_cmds[100].cmd_char = 'd';
-        nv_cmds[100].cmd_func = fp_nv_operator;
-        nv_cmds[101].cmd_char = 'e';
-        nv_cmds[101].cmd_func = fp_nv_wordcmd;
-        nv_cmds[102].cmd_char = 'f';
-        nv_cmds[102].cmd_func = fp_nv_csearch;
-        nv_cmds[102].cmd_flags = (short) (4 | NV_NCH | NV_LANG);
-        nv_cmds[102].cmd_arg = (short) FORWARD;
-        nv_cmds[103].cmd_char = 'g';
-        nv_cmds[103].cmd_func = fp_nv_g_cmd;
-        nv_cmds[103].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[104].cmd_char = 'h';
-        nv_cmds[104].cmd_func = fp_nv_left;
-        nv_cmds[104].cmd_flags = (short) NV_RL;
-        nv_cmds[105].cmd_char = 'i';
-        nv_cmds[105].cmd_func = fp_nv_edit;
-        nv_cmds[105].cmd_flags = (short) NV_NCH;
-        nv_cmds[106].cmd_char = 'j';
-        nv_cmds[106].cmd_func = fp_nv_down;
-        nv_cmds[107].cmd_char = 'k';
-        nv_cmds[107].cmd_func = fp_nv_up;
-        nv_cmds[108].cmd_char = 'l';
-        nv_cmds[108].cmd_func = fp_nv_right;
-        nv_cmds[108].cmd_flags = (short) NV_RL;
-        nv_cmds[109].cmd_char = 'm';
-        nv_cmds[109].cmd_func = fp_nv_mark;
-        nv_cmds[109].cmd_flags = (short) (2 | NV_NCH);
-        nv_cmds[110].cmd_char = 'n';
-        nv_cmds[110].cmd_func = fp_nv_next;
-        nv_cmds[111].cmd_char = 'o';
-        nv_cmds[111].cmd_func = fp_nv_open;
-        nv_cmds[112].cmd_char = 'p';
-        nv_cmds[112].cmd_func = fp_nv_put;
-        nv_cmds[113].cmd_char = 'q';
-        nv_cmds[113].cmd_func = fp_nv_record;
-        nv_cmds[113].cmd_flags = (short) NV_NCH;
-        nv_cmds[114].cmd_char = 'r';
-        nv_cmds[114].cmd_func = fp_nv_replace;
-        nv_cmds[114].cmd_flags = (short) (2 | NV_NCH | NV_LANG);
-        nv_cmds[115].cmd_char = 's';
-        nv_cmds[115].cmd_func = fp_nv_subst;
-        nv_cmds[115].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[116].cmd_char = 't';
-        nv_cmds[116].cmd_func = fp_nv_csearch;
-        nv_cmds[116].cmd_flags = (short) (4 | NV_NCH | NV_LANG);
-        nv_cmds[116].cmd_arg = (short) FORWARD;
-        nv_cmds[117].cmd_char = 'u';
-        nv_cmds[117].cmd_func = fp_nv_undo;
-        nv_cmds[118].cmd_char = 'v';
-        nv_cmds[118].cmd_func = fp_nv_visual;
-        nv_cmds[119].cmd_char = 'w';
-        nv_cmds[119].cmd_func = fp_nv_wordcmd;
-        nv_cmds[120].cmd_char = 'x';
-        nv_cmds[120].cmd_func = fp_nv_abbrev;
-        nv_cmds[120].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[121].cmd_char = 'y';
-        nv_cmds[121].cmd_func = fp_nv_operator;
-        nv_cmds[122].cmd_char = 'z';
-        nv_cmds[122].cmd_func = fp_nv_zet;
-        nv_cmds[122].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[123].cmd_char = '{';
-        nv_cmds[123].cmd_func = fp_nv_error;
-        nv_cmds[123].cmd_arg = (short) -1;
-        nv_cmds[124].cmd_char = '|';
-        nv_cmds[124].cmd_func = fp_nv_pipe;
-        nv_cmds[125].cmd_char = '}';
-        nv_cmds[125].cmd_func = fp_nv_error;
-        nv_cmds[125].cmd_arg = (short) FORWARD;
-        nv_cmds[126].cmd_char = '~';
-        nv_cmds[126].cmd_func = fp_nv_tilde;
-        nv_cmds[127].cmd_char = POUND;
-        nv_cmds[127].cmd_func = fp_nv_ident;
-        nv_cmds[128].cmd_char = K_MOUSEUP;
-        nv_cmds[128].cmd_func = fp_nv_error;
-        nv_cmds[128].cmd_arg = (short) MSCR_UP;
-        nv_cmds[129].cmd_char = K_MOUSEDOWN;
-        nv_cmds[129].cmd_func = fp_nv_error;
-        nv_cmds[130].cmd_char = K_MOUSELEFT;
-        nv_cmds[130].cmd_func = fp_nv_error;
-        nv_cmds[130].cmd_arg = (short) -1;
-        nv_cmds[131].cmd_char = K_MOUSERIGHT;
-        nv_cmds[131].cmd_func = fp_nv_error;
-        nv_cmds[131].cmd_arg = (short) -2;
-        nv_cmds[132].cmd_char = K_LEFTMOUSE;
-        nv_cmds[132].cmd_func = fp_nv_error;
-        nv_cmds[133].cmd_char = K_LEFTMOUSE_NM;
-        nv_cmds[133].cmd_func = fp_nv_error;
-        nv_cmds[134].cmd_char = K_LEFTDRAG;
-        nv_cmds[134].cmd_func = fp_nv_error;
-        nv_cmds[135].cmd_char = K_LEFTRELEASE;
-        nv_cmds[135].cmd_func = fp_nv_error;
-        nv_cmds[136].cmd_char = K_LEFTRELEASE_NM;
-        nv_cmds[136].cmd_func = fp_nv_error;
-        nv_cmds[137].cmd_char = K_MOUSEMOVE;
-        nv_cmds[137].cmd_func = fp_nv_error;
-        nv_cmds[138].cmd_char = K_MIDDLEMOUSE;
-        nv_cmds[138].cmd_func = fp_nv_error;
-        nv_cmds[139].cmd_char = K_MIDDLEDRAG;
-        nv_cmds[139].cmd_func = fp_nv_error;
-        nv_cmds[140].cmd_char = K_MIDDLERELEASE;
-        nv_cmds[140].cmd_func = fp_nv_error;
-        nv_cmds[141].cmd_char = K_RIGHTMOUSE;
-        nv_cmds[141].cmd_func = fp_nv_error;
-        nv_cmds[142].cmd_char = K_RIGHTDRAG;
-        nv_cmds[142].cmd_func = fp_nv_error;
-        nv_cmds[143].cmd_char = K_RIGHTRELEASE;
-        nv_cmds[143].cmd_func = fp_nv_error;
-        nv_cmds[144].cmd_char = K_X1MOUSE;
-        nv_cmds[144].cmd_func = fp_nv_error;
-        nv_cmds[145].cmd_char = K_X1DRAG;
-        nv_cmds[145].cmd_func = fp_nv_error;
-        nv_cmds[146].cmd_char = K_X1RELEASE;
-        nv_cmds[146].cmd_func = fp_nv_error;
-        nv_cmds[147].cmd_char = K_X2MOUSE;
-        nv_cmds[147].cmd_func = fp_nv_error;
-        nv_cmds[148].cmd_char = K_X2DRAG;
-        nv_cmds[148].cmd_func = fp_nv_error;
-        nv_cmds[149].cmd_char = K_X2RELEASE;
-        nv_cmds[149].cmd_func = fp_nv_error;
-        nv_cmds[150].cmd_char = K_IGNORE;
-        nv_cmds[150].cmd_func = fp_nv_ignore;
-        nv_cmds[150].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[151].cmd_char = K_NOP;
-        nv_cmds[151].cmd_func = fp_nv_nop;
-        nv_cmds[152].cmd_char = K_INS;
-        nv_cmds[152].cmd_func = fp_nv_edit;
-        nv_cmds[153].cmd_char = K_KINS;
-        nv_cmds[153].cmd_func = fp_nv_edit;
-        nv_cmds[154].cmd_char = K_BS;
-        nv_cmds[154].cmd_func = fp_nv_ctrlh;
-        nv_cmds[155].cmd_char = K_UP;
-        nv_cmds[155].cmd_func = fp_nv_up;
-        nv_cmds[155].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[156].cmd_char = K_S_UP;
-        nv_cmds[156].cmd_func = fp_nv_page;
-        nv_cmds[156].cmd_flags = (short) NV_SS;
-        nv_cmds[156].cmd_arg = (short) -1;
-        nv_cmds[157].cmd_char = K_DOWN;
-        nv_cmds[157].cmd_func = fp_nv_down;
-        nv_cmds[157].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[158].cmd_char = K_S_DOWN;
-        nv_cmds[158].cmd_func = fp_nv_page;
-        nv_cmds[158].cmd_flags = (short) NV_SS;
-        nv_cmds[158].cmd_arg = (short) FORWARD;
-        nv_cmds[159].cmd_char = K_LEFT;
-        nv_cmds[159].cmd_func = fp_nv_left;
-        nv_cmds[159].cmd_flags = (short) (NV_SSS | NV_STS | NV_RL);
-        nv_cmds[160].cmd_char = K_TC_HASH_4;
-        nv_cmds[160].cmd_func = fp_nv_bck_word;
-        nv_cmds[160].cmd_flags = (short) (NV_SS | NV_RL);
-        nv_cmds[161].cmd_char = K_C_LEFT;
-        nv_cmds[161].cmd_func = fp_nv_bck_word;
-        nv_cmds[161].cmd_flags = (short) (NV_SSS | NV_RL | NV_STS);
-        nv_cmds[161].cmd_arg = (short) 1;
-        nv_cmds[162].cmd_char = K_RIGHT;
-        nv_cmds[162].cmd_func = fp_nv_right;
-        nv_cmds[162].cmd_flags = (short) (NV_SSS | NV_STS | NV_RL);
-        nv_cmds[163].cmd_char = K_TC_PCT_i;
-        nv_cmds[163].cmd_func = fp_nv_wordcmd;
-        nv_cmds[163].cmd_flags = (short) (NV_SS | NV_RL);
-        nv_cmds[164].cmd_char = K_C_RIGHT;
-        nv_cmds[164].cmd_func = fp_nv_wordcmd;
-        nv_cmds[164].cmd_flags = (short) (NV_SSS | NV_RL | NV_STS);
-        nv_cmds[164].cmd_arg = (short) TRUE;
-        nv_cmds[165].cmd_char = K_PAGEUP;
-        nv_cmds[165].cmd_func = fp_nv_page;
-        nv_cmds[165].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[165].cmd_arg = (short) -1;
-        nv_cmds[166].cmd_char = K_KPAGEUP;
-        nv_cmds[166].cmd_func = fp_nv_page;
-        nv_cmds[166].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[166].cmd_arg = (short) -1;
-        nv_cmds[167].cmd_char = K_PAGEDOWN;
-        nv_cmds[167].cmd_func = fp_nv_page;
-        nv_cmds[167].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[167].cmd_arg = (short) FORWARD;
-        nv_cmds[168].cmd_char = K_KPAGEDOWN;
-        nv_cmds[168].cmd_func = fp_nv_page;
-        nv_cmds[168].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[168].cmd_arg = (short) FORWARD;
-        nv_cmds[169].cmd_char = K_END;
-        nv_cmds[169].cmd_func = fp_nv_end;
-        nv_cmds[169].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[170].cmd_char = K_KEND;
-        nv_cmds[170].cmd_func = fp_nv_end;
-        nv_cmds[170].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[171].cmd_char = K_TC_STAR_7;
-        nv_cmds[171].cmd_func = fp_nv_end;
-        nv_cmds[171].cmd_flags = (short) NV_SS;
-        nv_cmds[172].cmd_char = K_C_END;
-        nv_cmds[172].cmd_func = fp_nv_end;
-        nv_cmds[172].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[172].cmd_arg = (short) TRUE;
-        nv_cmds[173].cmd_char = K_HOME;
-        nv_cmds[173].cmd_func = fp_nv_home;
-        nv_cmds[173].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[174].cmd_char = K_KHOME;
-        nv_cmds[174].cmd_func = fp_nv_home;
-        nv_cmds[174].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[175].cmd_char = K_TC_HASH_2;
-        nv_cmds[175].cmd_func = fp_nv_home;
-        nv_cmds[175].cmd_flags = (short) NV_SS;
-        nv_cmds[176].cmd_char = K_C_HOME;
-        nv_cmds[176].cmd_func = fp_nv_goto;
-        nv_cmds[176].cmd_flags = (short) (NV_SSS | NV_STS);
-        nv_cmds[177].cmd_char = K_DEL;
-        nv_cmds[177].cmd_func = fp_nv_abbrev;
-        nv_cmds[178].cmd_char = K_KDEL;
-        nv_cmds[178].cmd_func = fp_nv_abbrev;
-        nv_cmds[179].cmd_char = K_UNDO;
-        nv_cmds[179].cmd_func = fp_nv_kundo;
-        nv_cmds[180].cmd_char = K_HELP;
-        nv_cmds[180].cmd_func = fp_nv_help;
-        nv_cmds[180].cmd_flags = (short) NV_NCW;
-        nv_cmds[181].cmd_char = K_F1;
-        nv_cmds[181].cmd_func = fp_nv_help;
-        nv_cmds[181].cmd_flags = (short) NV_NCW;
-        nv_cmds[182].cmd_char = K_XF1;
-        nv_cmds[182].cmd_func = fp_nv_help;
-        nv_cmds[182].cmd_flags = (short) NV_NCW;
-        nv_cmds[183].cmd_char = -(KS_SELECT + ('X' << 8));
-        nv_cmds[183].cmd_func = fp_nv_select;
-        nv_cmds[184].cmd_char = -(KS_VER_SCROLLBAR + ('X' << 8));
-        nv_cmds[184].cmd_func = fp_nv_error;
-        nv_cmds[185].cmd_char = -(KS_HOR_SCROLLBAR + ('X' << 8));
-        nv_cmds[185].cmd_func = fp_nv_error;
-        nv_cmds[186].cmd_char = -(KS_TABLINE + ('X' << 8));
-        nv_cmds[186].cmd_func = fp_nv_error;
-        nv_cmds[187].cmd_char = -(KS_TABMENU + ('X' << 8));
-        nv_cmds[187].cmd_func = fp_nv_error;
-        nv_cmds[188].cmd_char = K_F21;
-        nv_cmds[188].cmd_func = fp_nv_error;
-        nv_cmds[188].cmd_flags = (short) (4 | NV_NCH);
-        nv_cmds[189].cmd_char = K_DROP;
-        nv_cmds[189].cmd_func = fp_nv_error;
-        nv_cmds[189].cmd_flags = (short) NV_STS;
-        nv_cmds[190].cmd_char = K_CURSORHOLD;
-        nv_cmds[190].cmd_func = fp_nv_cursorhold;
-        nv_cmds[190].cmd_flags = (short) NV_KEEPREG;
-        nv_cmds[191].cmd_char = K_PASTESTART;
-        nv_cmds[191].cmd_func = fp_nv_edit;
-        nv_cmds[192].cmd_char = K_COMMAND;
-        nv_cmds[192].cmd_func = fp_nv_colon;
-        nv_cmds[193].cmd_char = K_SCRIPT_COMMAND;
-        nv_cmds[193].cmd_func = fp_nv_colon;
-    }
-
-    private void initGlobals10() {
-        nv_cmd_idx[1] = (short) 1;
-        nv_cmd_idx[2] = (short) 2;
-        nv_cmd_idx[3] = (short) 3;
-        nv_cmd_idx[4] = (short) 4;
-        nv_cmd_idx[5] = (short) 5;
-        nv_cmd_idx[6] = (short) 6;
-        nv_cmd_idx[7] = (short) 7;
-        nv_cmd_idx[8] = (short) 8;
-        nv_cmd_idx[9] = (short) 9;
-        nv_cmd_idx[10] = (short) 10;
-        nv_cmd_idx[11] = (short) 11;
-        nv_cmd_idx[12] = (short) 12;
-        nv_cmd_idx[13] = (short) 13;
-        nv_cmd_idx[14] = (short) 14;
-        nv_cmd_idx[15] = (short) 15;
-        nv_cmd_idx[16] = (short) 16;
-        nv_cmd_idx[17] = (short) 17;
-        nv_cmd_idx[18] = (short) 18;
-        nv_cmd_idx[19] = (short) 19;
-        nv_cmd_idx[20] = (short) 20;
-        nv_cmd_idx[21] = (short) 21;
-        nv_cmd_idx[22] = (short) 22;
-        nv_cmd_idx[23] = (short) 23;
-        nv_cmd_idx[24] = (short) 24;
-        nv_cmd_idx[25] = (short) 25;
-        nv_cmd_idx[26] = (short) 26;
-        nv_cmd_idx[27] = (short) 27;
-        nv_cmd_idx[28] = (short) 28;
-        nv_cmd_idx[29] = (short) 29;
-        nv_cmd_idx[30] = (short) 30;
-        nv_cmd_idx[31] = (short) 31;
-        nv_cmd_idx[32] = (short) 32;
-        nv_cmd_idx[33] = (short) 33;
-        nv_cmd_idx[34] = (short) 34;
-        nv_cmd_idx[35] = (short) 35;
-        nv_cmd_idx[36] = (short) 36;
-        nv_cmd_idx[37] = (short) 37;
-        nv_cmd_idx[38] = (short) 38;
-        nv_cmd_idx[39] = (short) 39;
-        nv_cmd_idx[40] = (short) 40;
-        nv_cmd_idx[41] = (short) 41;
-        nv_cmd_idx[42] = (short) 42;
-        nv_cmd_idx[43] = (short) 43;
-        nv_cmd_idx[44] = (short) 44;
-        nv_cmd_idx[45] = (short) 45;
-        nv_cmd_idx[46] = (short) 46;
-        nv_cmd_idx[47] = (short) 47;
-        nv_cmd_idx[48] = (short) 48;
-        nv_cmd_idx[49] = (short) 49;
-        nv_cmd_idx[50] = (short) 50;
-        nv_cmd_idx[51] = (short) 51;
-        nv_cmd_idx[52] = (short) 52;
-        nv_cmd_idx[53] = (short) 53;
-        nv_cmd_idx[54] = (short) 54;
-        nv_cmd_idx[55] = (short) 55;
-        nv_cmd_idx[56] = (short) 56;
-        nv_cmd_idx[57] = (short) 57;
-        nv_cmd_idx[58] = (short) 58;
-        nv_cmd_idx[59] = (short) 59;
-        nv_cmd_idx[60] = (short) 60;
-        nv_cmd_idx[61] = (short) 61;
-        nv_cmd_idx[62] = (short) 62;
-        nv_cmd_idx[63] = (short) 63;
-        nv_cmd_idx[64] = (short) 64;
-        nv_cmd_idx[65] = (short) 65;
-        nv_cmd_idx[66] = (short) 66;
-        nv_cmd_idx[67] = (short) 67;
-        nv_cmd_idx[68] = (short) 68;
-        nv_cmd_idx[69] = (short) 69;
-        nv_cmd_idx[70] = (short) 70;
-        nv_cmd_idx[71] = (short) 71;
-        nv_cmd_idx[72] = (short) 72;
-        nv_cmd_idx[73] = (short) 73;
-        nv_cmd_idx[74] = (short) 74;
-        nv_cmd_idx[75] = (short) 75;
-        nv_cmd_idx[76] = (short) 76;
-        nv_cmd_idx[77] = (short) 77;
-        nv_cmd_idx[78] = (short) 78;
-        nv_cmd_idx[79] = (short) 79;
-        nv_cmd_idx[80] = (short) 80;
-        nv_cmd_idx[81] = (short) 81;
-        nv_cmd_idx[82] = (short) 82;
-        nv_cmd_idx[83] = (short) 83;
-        nv_cmd_idx[84] = (short) 84;
-        nv_cmd_idx[85] = (short) 85;
-        nv_cmd_idx[86] = (short) 86;
-        nv_cmd_idx[87] = (short) 87;
-        nv_cmd_idx[88] = (short) 88;
-        nv_cmd_idx[89] = (short) 89;
-        nv_cmd_idx[90] = (short) 90;
-        nv_cmd_idx[91] = (short) 91;
-        nv_cmd_idx[92] = (short) 92;
-        nv_cmd_idx[93] = (short) 93;
-        nv_cmd_idx[94] = (short) 94;
-        nv_cmd_idx[95] = (short) 95;
-        nv_cmd_idx[96] = (short) 96;
-        nv_cmd_idx[97] = (short) 97;
-        nv_cmd_idx[98] = (short) 98;
-        nv_cmd_idx[99] = (short) 99;
-        nv_cmd_idx[100] = (short) 100;
-        nv_cmd_idx[101] = (short) 101;
-        nv_cmd_idx[102] = (short) 102;
-        nv_cmd_idx[103] = (short) 103;
-        nv_cmd_idx[104] = (short) 104;
-        nv_cmd_idx[105] = (short) 105;
-        nv_cmd_idx[106] = (short) 106;
-        nv_cmd_idx[107] = (short) 107;
-        nv_cmd_idx[108] = (short) 108;
-        nv_cmd_idx[109] = (short) 109;
-        nv_cmd_idx[110] = (short) 110;
-        nv_cmd_idx[111] = (short) 111;
-        nv_cmd_idx[112] = (short) 112;
-        nv_cmd_idx[113] = (short) 113;
-        nv_cmd_idx[114] = (short) 114;
-        nv_cmd_idx[115] = (short) 115;
-        nv_cmd_idx[116] = (short) 116;
-        nv_cmd_idx[117] = (short) 117;
-        nv_cmd_idx[118] = (short) 118;
-        nv_cmd_idx[119] = (short) 119;
-        nv_cmd_idx[120] = (short) 120;
-        nv_cmd_idx[121] = (short) 121;
-        nv_cmd_idx[122] = (short) 122;
-        nv_cmd_idx[123] = (short) 123;
-        nv_cmd_idx[124] = (short) 124;
-        nv_cmd_idx[125] = (short) 125;
-        nv_cmd_idx[126] = (short) 126;
-        nv_cmd_idx[127] = (short) 127;
-        nv_cmd_idx[128] = (short) 156;
-        nv_cmd_idx[129] = (short) 158;
-        nv_cmd_idx[130] = (short) 132;
-        nv_cmd_idx[131] = (short) 134;
-        nv_cmd_idx[132] = (short) 135;
-        nv_cmd_idx[133] = (short) 138;
-        nv_cmd_idx[134] = (short) 139;
-        nv_cmd_idx[135] = (short) 180;
-        nv_cmd_idx[136] = (short) 174;
-        nv_cmd_idx[137] = (short) 181;
-        nv_cmd_idx[138] = (short) 140;
-        nv_cmd_idx[139] = (short) 175;
-        nv_cmd_idx[140] = (short) 141;
-        nv_cmd_idx[141] = (short) 166;
-        nv_cmd_idx[142] = (short) 142;
-        nv_cmd_idx[143] = (short) 160;
-        nv_cmd_idx[144] = (short) 170;
-        nv_cmd_idx[145] = (short) 143;
-        nv_cmd_idx[146] = (short) 168;
-        nv_cmd_idx[147] = (short) 150;
-        nv_cmd_idx[148] = (short) 171;
-        nv_cmd_idx[149] = (short) 169;
-        nv_cmd_idx[150] = (short) 179;
-        nv_cmd_idx[151] = (short) 182;
-        nv_cmd_idx[152] = (short) 188;
-        nv_cmd_idx[153] = (short) 177;
-        nv_cmd_idx[154] = (short) 133;
-        nv_cmd_idx[155] = (short) 136;
-        nv_cmd_idx[156] = (short) 152;
-        nv_cmd_idx[157] = (short) 129;
-        nv_cmd_idx[158] = (short) 128;
-        nv_cmd_idx[159] = (short) 130;
-        nv_cmd_idx[160] = (short) 167;
-        nv_cmd_idx[161] = (short) 131;
-        nv_cmd_idx[162] = (short) 153;
-        nv_cmd_idx[163] = (short) 165;
-        nv_cmd_idx[164] = (short) 178;
-        nv_cmd_idx[165] = (short) 191;
-        nv_cmd_idx[166] = (short) 161;
-        nv_cmd_idx[167] = (short) 164;
-        nv_cmd_idx[168] = (short) 176;
-        nv_cmd_idx[169] = (short) 187;
-        nv_cmd_idx[170] = (short) 186;
-        nv_cmd_idx[171] = (short) 183;
-        nv_cmd_idx[172] = (short) 185;
-        nv_cmd_idx[173] = (short) 184;
-        nv_cmd_idx[174] = (short) 172;
-        nv_cmd_idx[175] = (short) 144;
-        nv_cmd_idx[176] = (short) 145;
-        nv_cmd_idx[177] = (short) 146;
-        nv_cmd_idx[178] = (short) 147;
-        nv_cmd_idx[179] = (short) 148;
-        nv_cmd_idx[180] = (short) 149;
-        nv_cmd_idx[181] = (short) 189;
-        nv_cmd_idx[182] = (short) 190;
-        nv_cmd_idx[183] = (short) 151;
-        nv_cmd_idx[184] = (short) 154;
-        nv_cmd_idx[185] = (short) 157;
-        nv_cmd_idx[186] = (short) 137;
-        nv_cmd_idx[187] = (short) 192;
-        nv_cmd_idx[188] = (short) 173;
-        nv_cmd_idx[189] = (short) 193;
-        nv_cmd_idx[190] = (short) 163;
-        nv_cmd_idx[191] = (short) 159;
-        nv_cmd_idx[192] = (short) 162;
-        nv_cmd_idx[193] = (short) 155;
+    private void initGlobals4() {
+        Rt.rows(nv_cmds,
+            new S_nv_cmd(NUL, fp_nv_error, 0, 0),
+            new S_nv_cmd(Ctrl_A, fp_nv_addsub, 0, 0),
+            new S_nv_cmd(Ctrl_B, fp_nv_page, NV_STS, -1),
+            new S_nv_cmd(Ctrl_C, fp_nv_esc, 0, TRUE),
+            new S_nv_cmd(Ctrl_D, fp_nv_halfpage, 0, 0),
+            new S_nv_cmd(Ctrl_E, fp_nv_scroll_line, 0, TRUE),
+            new S_nv_cmd(Ctrl_F, fp_nv_page, NV_STS, FORWARD),
+            new S_nv_cmd(Ctrl_G, fp_nv_ctrlg, 0, 0),
+            new S_nv_cmd(Ctrl_H, fp_nv_ctrlh, 0, 0),
+            new S_nv_cmd(Ctrl_I, fp_nv_error, 0, 0),
+            new S_nv_cmd(NL, fp_nv_down, 0, FALSE),
+            new S_nv_cmd(Ctrl_K, fp_nv_error, 0, 0),
+            new S_nv_cmd(Ctrl_L, fp_nv_clear, 0, 0),
+            new S_nv_cmd(CAR, fp_nv_down, 0, TRUE),
+            new S_nv_cmd(Ctrl_N, fp_nv_down, NV_STS, FALSE),
+            new S_nv_cmd(Ctrl_O, fp_nv_ctrlo, 0, 0),
+            new S_nv_cmd(Ctrl_P, fp_nv_up, NV_STS, FALSE),
+            new S_nv_cmd(Ctrl_Q, fp_nv_visual, 0, FALSE),
+            new S_nv_cmd(Ctrl_R, fp_nv_redo_or_register, 0, 0),
+            new S_nv_cmd(Ctrl_S, fp_nv_ignore, 0, 0),
+            new S_nv_cmd(Ctrl_T, fp_nv_tagpop, NV_NCW, 0),
+            new S_nv_cmd(Ctrl_U, fp_nv_halfpage, 0, 0),
+            new S_nv_cmd(Ctrl_V, fp_nv_visual, 0, FALSE),
+            new S_nv_cmd(Ctrl_W, fp_nv_error, 0, 0),
+            new S_nv_cmd(Ctrl_X, fp_nv_addsub, 0, 0),
+            new S_nv_cmd(Ctrl_Y, fp_nv_scroll_line, 0, FALSE),
+            new S_nv_cmd(Ctrl_Z, fp_nv_suspend, 0, 0),
+            new S_nv_cmd(ESC, fp_nv_esc, 0, FALSE),
+            new S_nv_cmd(Ctrl_BSL, fp_nv_normal, 4 | NV_NCH, 0),
+            new S_nv_cmd(Ctrl_RSB, fp_nv_error, NV_NCW, 0),
+            new S_nv_cmd(Ctrl_HAT, fp_nv_error, NV_NCW, 0),
+            new S_nv_cmd(Ctrl__, fp_nv_error, 0, 0),
+            new S_nv_cmd(' ', fp_nv_right, 0, 0),
+            new S_nv_cmd('!', fp_nv_error, 0, 0),
+            new S_nv_cmd('"', fp_nv_regname, 2 | NV_NCH | NV_KEEPREG, 0),
+            new S_nv_cmd('#', fp_nv_ident, 0, 0),
+            new S_nv_cmd('$', fp_nv_dollar, 0, 0),
+            new S_nv_cmd('%', fp_nv_percent, 0, 0),
+            new S_nv_cmd('&', fp_nv_optrans, 0, 0),
+            new S_nv_cmd('\'', fp_nv_gomark, 4 | NV_NCH, TRUE),
+            new S_nv_cmd('(', fp_nv_error, 0, -1),
+            new S_nv_cmd(')', fp_nv_error, 0, FORWARD),
+            new S_nv_cmd('*', fp_nv_ident, 0, 0),
+            new S_nv_cmd('+', fp_nv_down, 0, TRUE),
+            new S_nv_cmd(',', fp_nv_csearch, 0, TRUE),
+            new S_nv_cmd('-', fp_nv_up, 0, TRUE),
+            new S_nv_cmd('.', fp_nv_dot, NV_KEEPREG, 0),
+            new S_nv_cmd('/', fp_nv_search, 0, FALSE),
+            new S_nv_cmd('0', fp_nv_beginline, 0, 0),
+            new S_nv_cmd('1', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('2', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('3', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('4', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('5', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('6', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('7', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('8', fp_nv_ignore, 0, 0),
+            new S_nv_cmd('9', fp_nv_ignore, 0, 0),
+            new S_nv_cmd(':', fp_nv_colon, 0, 0),
+            new S_nv_cmd(';', fp_nv_csearch, 0, FALSE),
+            new S_nv_cmd('<', fp_nv_operator, NV_RL, 0),
+            new S_nv_cmd('=', fp_nv_error, 0, 0),
+            new S_nv_cmd('>', fp_nv_operator, NV_RL, 0),
+            new S_nv_cmd('?', fp_nv_search, 0, FALSE),
+            new S_nv_cmd('@', fp_nv_at, 2 | NV_NCH, FALSE),
+            new S_nv_cmd('A', fp_nv_edit, 0, 0),
+            new S_nv_cmd('B', fp_nv_bck_word, 0, 1),
+            new S_nv_cmd('C', fp_nv_abbrev, NV_KEEPREG, 0),
+            new S_nv_cmd('D', fp_nv_abbrev, NV_KEEPREG, 0),
+            new S_nv_cmd('E', fp_nv_wordcmd, 0, TRUE),
+            new S_nv_cmd('F', fp_nv_csearch, 4 | NV_NCH | NV_LANG, -1),
+            new S_nv_cmd('G', fp_nv_goto, 0, TRUE),
+            new S_nv_cmd('H', fp_nv_scroll, 0, 0),
+            new S_nv_cmd('I', fp_nv_edit, 0, 0),
+            new S_nv_cmd('J', fp_nv_join, 0, 0),
+            new S_nv_cmd('K', fp_nv_error, 0, 0),
+            new S_nv_cmd('L', fp_nv_scroll, 0, 0),
+            new S_nv_cmd('M', fp_nv_scroll, 0, 0),
+            new S_nv_cmd('N', fp_nv_next, 0, SEARCH_REV),
+            new S_nv_cmd('O', fp_nv_open, 0, 0),
+            new S_nv_cmd('P', fp_nv_put, 0, 0),
+            new S_nv_cmd('Q', fp_nv_error, NV_NCW, 0),
+            new S_nv_cmd('R', fp_nv_Replace, 0, FALSE),
+            new S_nv_cmd('S', fp_nv_subst, NV_KEEPREG, 0),
+            new S_nv_cmd('T', fp_nv_csearch, 4 | NV_NCH | NV_LANG, -1),
+            new S_nv_cmd('U', fp_nv_Undo, 0, 0),
+            new S_nv_cmd('V', fp_nv_visual, 0, FALSE),
+            new S_nv_cmd('W', fp_nv_wordcmd, 0, TRUE),
+            new S_nv_cmd('X', fp_nv_abbrev, NV_KEEPREG, 0),
+            new S_nv_cmd('Y', fp_nv_abbrev, NV_KEEPREG, 0),
+            new S_nv_cmd('Z', fp_nv_Zet, 2 | NV_NCH | NV_NCW, 0),
+            new S_nv_cmd('[', fp_nv_brackets, 4 | NV_NCH, -1),
+            new S_nv_cmd('\\', fp_nv_error, 0, 0),
+            new S_nv_cmd(']', fp_nv_brackets, 4 | NV_NCH, FORWARD),
+            new S_nv_cmd('^', fp_nv_beginline, 0, BL_WHITE | BL_FIX),
+            new S_nv_cmd('_', fp_nv_lineop, 0, 0),
+            new S_nv_cmd('`', fp_nv_gomark, 4 | NV_NCH, FALSE),
+            new S_nv_cmd('a', fp_nv_edit, NV_NCH, 0),
+            new S_nv_cmd('b', fp_nv_bck_word, 0, 0),
+            new S_nv_cmd('c', fp_nv_operator, 0, 0),
+            new S_nv_cmd('d', fp_nv_operator, 0, 0),
+            new S_nv_cmd('e', fp_nv_wordcmd, 0, FALSE),
+            new S_nv_cmd('f', fp_nv_csearch, 4 | NV_NCH | NV_LANG, FORWARD),
+            new S_nv_cmd('g', fp_nv_g_cmd, 4 | NV_NCH, FALSE),
+            new S_nv_cmd('h', fp_nv_left, NV_RL, 0),
+            new S_nv_cmd('i', fp_nv_edit, NV_NCH, 0),
+            new S_nv_cmd('j', fp_nv_down, 0, FALSE),
+            new S_nv_cmd('k', fp_nv_up, 0, FALSE),
+            new S_nv_cmd('l', fp_nv_right, NV_RL, 0),
+            new S_nv_cmd('m', fp_nv_mark, 2 | NV_NCH, 0),
+            new S_nv_cmd('n', fp_nv_next, 0, 0),
+            new S_nv_cmd('o', fp_nv_open, 0, 0),
+            new S_nv_cmd('p', fp_nv_put, 0, 0),
+            new S_nv_cmd('q', fp_nv_record, NV_NCH, 0),
+            new S_nv_cmd('r', fp_nv_replace, 2 | NV_NCH | NV_LANG, 0),
+            new S_nv_cmd('s', fp_nv_subst, NV_KEEPREG, 0),
+            new S_nv_cmd('t', fp_nv_csearch, 4 | NV_NCH | NV_LANG, FORWARD),
+            new S_nv_cmd('u', fp_nv_undo, 0, 0),
+            new S_nv_cmd('v', fp_nv_visual, 0, FALSE),
+            new S_nv_cmd('w', fp_nv_wordcmd, 0, FALSE),
+            new S_nv_cmd('x', fp_nv_abbrev, NV_KEEPREG, 0),
+            new S_nv_cmd('y', fp_nv_operator, 0, 0),
+            new S_nv_cmd('z', fp_nv_zet, 4 | NV_NCH, 0),
+            new S_nv_cmd('{', fp_nv_error, 0, -1),
+            new S_nv_cmd('|', fp_nv_pipe, 0, 0),
+            new S_nv_cmd('}', fp_nv_error, 0, FORWARD),
+            new S_nv_cmd('~', fp_nv_tilde, 0, 0),
+            new S_nv_cmd(POUND, fp_nv_ident, 0, 0),
+            new S_nv_cmd(K_MOUSEUP, fp_nv_error, 0, MSCR_UP),
+            new S_nv_cmd(K_MOUSEDOWN, fp_nv_error, 0, MSCR_DOWN),
+            new S_nv_cmd(K_MOUSELEFT, fp_nv_error, 0, -1),
+            new S_nv_cmd(K_MOUSERIGHT, fp_nv_error, 0, -2),
+            new S_nv_cmd(K_LEFTMOUSE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_LEFTMOUSE_NM, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_LEFTDRAG, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_LEFTRELEASE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_LEFTRELEASE_NM, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_MOUSEMOVE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_MIDDLEMOUSE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_MIDDLEDRAG, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_MIDDLERELEASE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_RIGHTMOUSE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_RIGHTDRAG, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_RIGHTRELEASE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_X1MOUSE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_X1DRAG, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_X1RELEASE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_X2MOUSE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_X2DRAG, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_X2RELEASE, fp_nv_error, 0, 0),
+            new S_nv_cmd(K_IGNORE, fp_nv_ignore, NV_KEEPREG, 0),
+            new S_nv_cmd(K_NOP, fp_nv_nop, 0, 0),
+            new S_nv_cmd(K_INS, fp_nv_edit, 0, 0),
+            new S_nv_cmd(K_KINS, fp_nv_edit, 0, 0),
+            new S_nv_cmd(K_BS, fp_nv_ctrlh, 0, 0),
+            new S_nv_cmd(K_UP, fp_nv_up, NV_SSS | NV_STS, FALSE),
+            new S_nv_cmd(K_S_UP, fp_nv_page, NV_SS, -1),
+            new S_nv_cmd(K_DOWN, fp_nv_down, NV_SSS | NV_STS, FALSE),
+            new S_nv_cmd(K_S_DOWN, fp_nv_page, NV_SS, FORWARD),
+            new S_nv_cmd(K_LEFT, fp_nv_left, NV_SSS | NV_STS | NV_RL, 0),
+            new S_nv_cmd(K_TC_HASH_4, fp_nv_bck_word, NV_SS | NV_RL, 0),
+            new S_nv_cmd(K_C_LEFT, fp_nv_bck_word, NV_SSS | NV_RL | NV_STS, 1),
+            new S_nv_cmd(K_RIGHT, fp_nv_right, NV_SSS | NV_STS | NV_RL, 0),
+            new S_nv_cmd(K_TC_PCT_i, fp_nv_wordcmd, NV_SS | NV_RL, FALSE),
+            new S_nv_cmd(K_C_RIGHT, fp_nv_wordcmd, NV_SSS | NV_RL | NV_STS, TRUE),
+            new S_nv_cmd(K_PAGEUP, fp_nv_page, NV_SSS | NV_STS, -1),
+            new S_nv_cmd(K_KPAGEUP, fp_nv_page, NV_SSS | NV_STS, -1),
+            new S_nv_cmd(K_PAGEDOWN, fp_nv_page, NV_SSS | NV_STS, FORWARD),
+            new S_nv_cmd(K_KPAGEDOWN, fp_nv_page, NV_SSS | NV_STS, FORWARD),
+            new S_nv_cmd(K_END, fp_nv_end, NV_SSS | NV_STS, FALSE),
+            new S_nv_cmd(K_KEND, fp_nv_end, NV_SSS | NV_STS, FALSE),
+            new S_nv_cmd(K_TC_STAR_7, fp_nv_end, NV_SS, FALSE),
+            new S_nv_cmd(K_C_END, fp_nv_end, NV_SSS | NV_STS, TRUE),
+            new S_nv_cmd(K_HOME, fp_nv_home, NV_SSS | NV_STS, 0),
+            new S_nv_cmd(K_KHOME, fp_nv_home, NV_SSS | NV_STS, 0),
+            new S_nv_cmd(K_TC_HASH_2, fp_nv_home, NV_SS, 0),
+            new S_nv_cmd(K_C_HOME, fp_nv_goto, NV_SSS | NV_STS, FALSE),
+            new S_nv_cmd(K_DEL, fp_nv_abbrev, 0, 0),
+            new S_nv_cmd(K_KDEL, fp_nv_abbrev, 0, 0),
+            new S_nv_cmd(K_UNDO, fp_nv_kundo, 0, 0),
+            new S_nv_cmd(K_HELP, fp_nv_help, NV_NCW, 0),
+            new S_nv_cmd(K_F1, fp_nv_help, NV_NCW, 0),
+            new S_nv_cmd(K_XF1, fp_nv_help, NV_NCW, 0),
+            new S_nv_cmd(-(KS_SELECT + ('X' << 8)), fp_nv_select, 0, 0),
+            new S_nv_cmd(-(KS_VER_SCROLLBAR + ('X' << 8)), fp_nv_error, 0, 0),
+            new S_nv_cmd(-(KS_HOR_SCROLLBAR + ('X' << 8)), fp_nv_error, 0, 0),
+            new S_nv_cmd(-(KS_TABLINE + ('X' << 8)), fp_nv_error, 0, 0),
+            new S_nv_cmd(-(KS_TABMENU + ('X' << 8)), fp_nv_error, 0, 0),
+            new S_nv_cmd(K_F21, fp_nv_error, 4 | NV_NCH, 0),
+            new S_nv_cmd(K_DROP, fp_nv_error, NV_STS, 0),
+            new S_nv_cmd(K_CURSORHOLD, fp_nv_cursorhold, NV_KEEPREG, 0),
+            new S_nv_cmd(K_PASTESTART, fp_nv_edit, 0, 0),
+            new S_nv_cmd(K_COMMAND, fp_nv_colon, 0, 0),
+            new S_nv_cmd(K_SCRIPT_COMMAND, fp_nv_colon, 0, 0));
+        Rt.rows(nv_cmd_idx,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+            29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55,
+            56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82,
+            83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107,
+            108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 156,
+            158, 132, 134, 135, 138, 139, 180, 174, 181, 140, 175, 141, 166, 142, 160, 170, 143, 168, 150, 171, 169,
+            179, 182, 188, 177, 133, 136, 152, 129, 128, 130, 167, 131, 153, 165, 178, 191, 161, 164, 176, 187, 186,
+            183, 185, 184, 172, 144, 145, 146, 147, 148, 149, 189, 190, 151, 154, 157, 137, 192, 173, 193, 163, 159,
+            162, 155);
         nv_max_linear = 126;
         showcmd_is_clear = TRUE;
-        opchars[1][0] = (byte) 'd';
-        opchars[1][2] = (byte) OPF_CHANGE;
-        opchars[2][0] = (byte) 'y';
-        opchars[3][0] = (byte) 'c';
-        opchars[3][2] = (byte) OPF_CHANGE;
-        opchars[4][0] = (byte) '<';
-        opchars[4][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[5][0] = (byte) '>';
-        opchars[5][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[6][0] = (byte) '!';
-        opchars[6][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[7][0] = (byte) 'g';
-        opchars[7][1] = (byte) '~';
-        opchars[7][2] = (byte) OPF_CHANGE;
-        opchars[8][0] = (byte) '=';
-        opchars[8][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[9][0] = (byte) 'g';
-        opchars[9][1] = (byte) 'q';
-        opchars[9][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[10][0] = (byte) ':';
-        opchars[10][2] = (byte) OPF_LINES;
-        opchars[11][0] = (byte) 'g';
-        opchars[11][1] = (byte) 'U';
-        opchars[11][2] = (byte) OPF_CHANGE;
-        opchars[12][0] = (byte) 'g';
-        opchars[12][1] = (byte) 'u';
-        opchars[12][2] = (byte) OPF_CHANGE;
-        opchars[13][0] = (byte) 'J';
-        opchars[13][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[14][0] = (byte) 'g';
-        opchars[14][1] = (byte) 'J';
-        opchars[14][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[15][0] = (byte) 'g';
-        opchars[15][1] = (byte) '?';
-        opchars[15][2] = (byte) OPF_CHANGE;
-        opchars[16][0] = (byte) 'r';
-        opchars[16][2] = (byte) OPF_CHANGE;
-        opchars[17][0] = (byte) 'I';
-        opchars[17][2] = (byte) OPF_CHANGE;
-        opchars[18][0] = (byte) 'A';
-        opchars[18][2] = (byte) OPF_CHANGE;
-        opchars[19][0] = (byte) 'z';
-        opchars[19][1] = (byte) 'f';
-        opchars[19][2] = (byte) OPF_LINES;
-        opchars[20][0] = (byte) 'z';
-        opchars[20][1] = (byte) 'o';
-        opchars[20][2] = (byte) OPF_LINES;
-        opchars[21][0] = (byte) 'z';
-        opchars[21][1] = (byte) 'O';
-        opchars[21][2] = (byte) OPF_LINES;
-        opchars[22][0] = (byte) 'z';
-        opchars[22][1] = (byte) 'c';
-        opchars[22][2] = (byte) OPF_LINES;
-        opchars[23][0] = (byte) 'z';
-        opchars[23][1] = (byte) 'C';
-        opchars[23][2] = (byte) OPF_LINES;
-        opchars[24][0] = (byte) 'z';
-        opchars[24][1] = (byte) 'd';
-        opchars[24][2] = (byte) OPF_LINES;
-        opchars[25][0] = (byte) 'z';
-        opchars[25][1] = (byte) 'D';
-        opchars[25][2] = (byte) OPF_LINES;
-        opchars[26][0] = (byte) 'g';
-        opchars[26][1] = (byte) 'w';
-        opchars[26][2] = (byte) (OPF_LINES | OPF_CHANGE);
-        opchars[27][0] = (byte) 'g';
-        opchars[27][1] = (byte) '@';
-        opchars[27][2] = (byte) OPF_CHANGE;
-        opchars[28][0] = (byte) Ctrl_A;
-        opchars[28][2] = (byte) OPF_CHANGE;
-        opchars[29][0] = (byte) Ctrl_X;
-        opchars[29][2] = (byte) OPF_CHANGE;
+        opchars[1][0] = 'd';
+        opchars[1][2] = OPF_CHANGE;
+        opchars[2][0] = 'y';
+        opchars[3][0] = 'c';
+        opchars[3][2] = OPF_CHANGE;
+        opchars[4][0] = '<';
+        opchars[4][2] = OPF_LINES | OPF_CHANGE;
+        opchars[5][0] = '>';
+        opchars[5][2] = OPF_LINES | OPF_CHANGE;
+        opchars[6][0] = '!';
+        opchars[6][2] = OPF_LINES | OPF_CHANGE;
+        opchars[7][0] = 'g';
+        opchars[7][1] = '~';
+        opchars[7][2] = OPF_CHANGE;
+        opchars[8][0] = '=';
+        opchars[8][2] = OPF_LINES | OPF_CHANGE;
+        opchars[9][0] = 'g';
+        opchars[9][1] = 'q';
+        opchars[9][2] = OPF_LINES | OPF_CHANGE;
+        opchars[10][0] = ':';
+        opchars[10][2] = OPF_LINES;
+        opchars[11][0] = 'g';
+        opchars[11][1] = 'U';
+        opchars[11][2] = OPF_CHANGE;
+        opchars[12][0] = 'g';
+        opchars[12][1] = 'u';
+        opchars[12][2] = OPF_CHANGE;
+        opchars[13][0] = 'J';
+        opchars[13][2] = OPF_LINES | OPF_CHANGE;
+        opchars[14][0] = 'g';
+        opchars[14][1] = 'J';
+        opchars[14][2] = OPF_LINES | OPF_CHANGE;
+        opchars[15][0] = 'g';
+        opchars[15][1] = '?';
+        opchars[15][2] = OPF_CHANGE;
+        opchars[16][0] = 'r';
+        opchars[16][2] = OPF_CHANGE;
+        opchars[17][0] = 'I';
+        opchars[17][2] = OPF_CHANGE;
+        opchars[18][0] = 'A';
+        opchars[18][2] = OPF_CHANGE;
+        opchars[19][0] = 'z';
+        opchars[19][1] = 'f';
+        opchars[19][2] = OPF_LINES;
+        opchars[20][0] = 'z';
+        opchars[20][1] = 'o';
+        opchars[20][2] = OPF_LINES;
+        opchars[21][0] = 'z';
+        opchars[21][1] = 'O';
+        opchars[21][2] = OPF_LINES;
+        opchars[22][0] = 'z';
+        opchars[22][1] = 'c';
+        opchars[22][2] = OPF_LINES;
+        opchars[23][0] = 'z';
+        opchars[23][1] = 'C';
+        opchars[23][2] = OPF_LINES;
+        opchars[24][0] = 'z';
+        opchars[24][1] = 'd';
+        opchars[24][2] = OPF_LINES;
+        opchars[25][0] = 'z';
+        opchars[25][1] = 'D';
+        opchars[25][2] = OPF_LINES;
+        opchars[26][0] = 'g';
+        opchars[26][1] = 'w';
+        opchars[26][2] = OPF_LINES | OPF_CHANGE;
+        opchars[27][0] = 'g';
+        opchars[27][1] = '@';
+        opchars[27][2] = OPF_CHANGE;
+        opchars[28][0] = Ctrl_A;
+        opchars[28][2] = OPF_CHANGE;
+        opchars[29][0] = Ctrl_X;
+        opchars[29][2] = OPF_CHANGE;
         options[0].fullname = BytePtr.lit("ambiwidth");
         options[0].shortname = BytePtr.lit("ambw");
         options[0].flags[0] = P_STRING | P_VI_DEF | P_RCLR;
@@ -15054,7 +11313,7 @@ public abstract class Editor {
         options[183].def_str[0] = BytePtr.lit("");
     }
 
-    private void initGlobals11() {
+    private void initGlobals5() {
         p_ambw_values[0] = BytePtr.lit("single");
         p_ambw_values[1] = BytePtr.lit("double");
         p_bg_values[0] = BytePtr.lit("light");
@@ -15103,186 +11362,70 @@ public abstract class Editor {
         p_bs_values[2] = BytePtr.lit("start");
         p_bs_values[3] = BytePtr.lit("nostop");
         p_sloc_values[0] = BytePtr.lit("last");
-        signal_info[0].sig = SIGHUP;
-        signal_info[0].name = BytePtr.lit("HUP");
-        signal_info[1].sig = SIGTERM;
-        signal_info[1].name = BytePtr.lit("TERM");
-        signal_info[2].sig = -1;
-        signal_info[2].name = BytePtr.lit("Unknown!");
+        Rt.rows(signal_info,
+            new S_signalinfo(SIGHUP, BytePtr.lit("HUP")),
+            new S_signalinfo(SIGTERM, BytePtr.lit("TERM")),
+            new S_signalinfo(-1, BytePtr.lit("Unknown!")));
         Rt.init(REGEXP_INRANGE, "]^-n\\");
         Rt.init(REGEXP_ABBR, "nrtebdoxuU");
-        META_flags[37] = (byte) 1;
-        META_flags[38] = (byte) 1;
-        META_flags[40] = (byte) 1;
-        META_flags[41] = (byte) 1;
-        META_flags[42] = (byte) 1;
-        META_flags[43] = (byte) 1;
-        META_flags[46] = (byte) 1;
-        META_flags[49] = (byte) 1;
-        META_flags[50] = (byte) 1;
-        META_flags[51] = (byte) 1;
-        META_flags[52] = (byte) 1;
-        META_flags[53] = (byte) 1;
-        META_flags[54] = (byte) 1;
-        META_flags[55] = (byte) 1;
-        META_flags[56] = (byte) 1;
-        META_flags[57] = (byte) 1;
-        META_flags[60] = (byte) 1;
-        META_flags[61] = (byte) 1;
-        META_flags[62] = (byte) 1;
-        META_flags[63] = (byte) 1;
-        META_flags[64] = (byte) 1;
-        META_flags[65] = (byte) 1;
-        META_flags[67] = (byte) 1;
-        META_flags[68] = (byte) 1;
-        META_flags[70] = (byte) 1;
-        META_flags[72] = (byte) 1;
-        META_flags[73] = (byte) 1;
-        META_flags[75] = (byte) 1;
-        META_flags[76] = (byte) 1;
-        META_flags[77] = (byte) 1;
-        META_flags[79] = (byte) 1;
-        META_flags[80] = (byte) 1;
-        META_flags[83] = (byte) 1;
-        META_flags[85] = (byte) 1;
-        META_flags[86] = (byte) 1;
-        META_flags[87] = (byte) 1;
-        META_flags[88] = (byte) 1;
-        META_flags[90] = (byte) 1;
-        META_flags[91] = (byte) 1;
-        META_flags[95] = (byte) 1;
-        META_flags[97] = (byte) 1;
-        META_flags[99] = (byte) 1;
-        META_flags[100] = (byte) 1;
-        META_flags[102] = (byte) 1;
-        META_flags[104] = (byte) 1;
-        META_flags[105] = (byte) 1;
-        META_flags[107] = (byte) 1;
-        META_flags[108] = (byte) 1;
-        META_flags[109] = (byte) 1;
-        META_flags[110] = (byte) 1;
-        META_flags[111] = (byte) 1;
-        META_flags[112] = (byte) 1;
-        META_flags[115] = (byte) 1;
-        META_flags[117] = (byte) 1;
-        META_flags[118] = (byte) 1;
-        META_flags[119] = (byte) 1;
-        META_flags[120] = (byte) 1;
-        META_flags[122] = (byte) 1;
-        META_flags[123] = (byte) 1;
-        META_flags[124] = (byte) 1;
-        META_flags[126] = (byte) 1;
-        decomp_table[0].a = 1506;
-        decomp_table[1].a = 1488;
-        decomp_table[2].a = 1491;
-        decomp_table[3].a = 1492;
-        decomp_table[4].a = 1499;
-        decomp_table[5].a = 1500;
-        decomp_table[6].a = 1501;
-        decomp_table[7].a = 1512;
-        decomp_table[8].a = 1514;
-        decomp_table[9].a = '+';
-        decomp_table[10].a = 1513;
-        decomp_table[10].b = 1473;
-        decomp_table[11].a = 1513;
-        decomp_table[11].b = 1474;
-        decomp_table[12].a = 1513;
-        decomp_table[12].b = 1473;
-        decomp_table[12].c = 1468;
-        decomp_table[13].a = 1513;
-        decomp_table[13].b = 1474;
-        decomp_table[13].c = 1468;
-        decomp_table[14].a = 1488;
-        decomp_table[14].b = 1463;
-        decomp_table[15].a = 1488;
-        decomp_table[15].b = 1464;
-        decomp_table[16].a = 1488;
-        decomp_table[16].b = 1460;
-        decomp_table[17].a = 1489;
-        decomp_table[17].b = 1468;
-        decomp_table[18].a = 1490;
-        decomp_table[18].b = 1468;
-        decomp_table[19].a = 1491;
-        decomp_table[19].b = 1468;
-        decomp_table[20].a = 1492;
-        decomp_table[20].b = 1468;
-        decomp_table[21].a = 1493;
-        decomp_table[21].b = 1468;
-        decomp_table[22].a = 1494;
-        decomp_table[22].b = 1468;
-        decomp_table[23].a = 64311;
-        decomp_table[24].a = 1496;
-        decomp_table[24].b = 1468;
-        decomp_table[25].a = 1497;
-        decomp_table[25].b = 1468;
-        decomp_table[26].a = 1498;
-        decomp_table[26].b = 1468;
-        decomp_table[27].a = 1499;
-        decomp_table[27].b = 1468;
-        decomp_table[28].a = 1500;
-        decomp_table[28].b = 1468;
-        decomp_table[29].a = 64317;
-        decomp_table[30].a = 1502;
-        decomp_table[30].b = 1468;
-        decomp_table[31].a = 64319;
-        decomp_table[32].a = 1504;
-        decomp_table[32].b = 1468;
-        decomp_table[33].a = 1505;
-        decomp_table[33].b = 1468;
-        decomp_table[34].a = 64322;
-        decomp_table[35].a = 1507;
-        decomp_table[35].b = 1468;
-        decomp_table[36].a = 1508;
-        decomp_table[36].b = 1468;
-        decomp_table[37].a = 64325;
-        decomp_table[38].a = 1510;
-        decomp_table[38].b = 1468;
-        decomp_table[39].a = 1511;
-        decomp_table[39].b = 1468;
-        decomp_table[40].a = 1512;
-        decomp_table[40].b = 1468;
-        decomp_table[41].a = 1513;
-        decomp_table[41].b = 1468;
-        decomp_table[42].a = 1514;
-        decomp_table[42].b = 1468;
-        decomp_table[43].a = 1493;
-        decomp_table[43].b = 1465;
-        decomp_table[44].a = 1489;
-        decomp_table[44].b = 1471;
-        decomp_table[45].a = 1499;
-        decomp_table[45].b = 1471;
-        decomp_table[46].a = 1508;
-        decomp_table[46].b = 1471;
-        decomp_table[47].a = 1488;
-        decomp_table[47].b = 1500;
+        Rt.rows(META_flags,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0,
+            1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1,
+            1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1);
+        Rt.rows(decomp_table,
+            new T_decomp_T(1506, 0, 0),
+            new T_decomp_T(1488, 0, 0),
+            new T_decomp_T(1491, 0, 0),
+            new T_decomp_T(1492, 0, 0),
+            new T_decomp_T(1499, 0, 0),
+            new T_decomp_T(1500, 0, 0),
+            new T_decomp_T(1501, 0, 0),
+            new T_decomp_T(1512, 0, 0),
+            new T_decomp_T(1514, 0, 0),
+            new T_decomp_T('+', 0, 0),
+            new T_decomp_T(1513, 1473, 0),
+            new T_decomp_T(1513, 1474, 0),
+            new T_decomp_T(1513, 1473, 1468),
+            new T_decomp_T(1513, 1474, 1468),
+            new T_decomp_T(1488, 1463, 0),
+            new T_decomp_T(1488, 1464, 0),
+            new T_decomp_T(1488, 1460, 0),
+            new T_decomp_T(1489, 1468, 0),
+            new T_decomp_T(1490, 1468, 0),
+            new T_decomp_T(1491, 1468, 0),
+            new T_decomp_T(1492, 1468, 0),
+            new T_decomp_T(1493, 1468, 0),
+            new T_decomp_T(1494, 1468, 0),
+            new T_decomp_T(64311, 0, 0),
+            new T_decomp_T(1496, 1468, 0),
+            new T_decomp_T(1497, 1468, 0),
+            new T_decomp_T(1498, 1468, 0),
+            new T_decomp_T(1499, 1468, 0),
+            new T_decomp_T(1500, 1468, 0),
+            new T_decomp_T(64317, 0, 0),
+            new T_decomp_T(1502, 1468, 0),
+            new T_decomp_T(64319, 0, 0),
+            new T_decomp_T(1504, 1468, 0),
+            new T_decomp_T(1505, 1468, 0),
+            new T_decomp_T(64322, 0, 0),
+            new T_decomp_T(1507, 1468, 0),
+            new T_decomp_T(1508, 1468, 0),
+            new T_decomp_T(64325, 0, 0),
+            new T_decomp_T(1510, 1468, 0),
+            new T_decomp_T(1511, 1468, 0),
+            new T_decomp_T(1512, 1468, 0),
+            new T_decomp_T(1513, 1468, 0),
+            new T_decomp_T(1514, 1468, 0),
+            new T_decomp_T(1493, 1465, 0),
+            new T_decomp_T(1489, 1471, 0),
+            new T_decomp_T(1499, 1471, 0),
+            new T_decomp_T(1508, 1471, 0),
+            new T_decomp_T(1488, 1500, 0));
         classchars = BytePtr.lit(".iIkKfFpPsSdDxXoOwWhHaAlLuU");
-        classcodes[0] = ANY;
-        classcodes[1] = IDENT;
-        classcodes[2] = SIDENT;
-        classcodes[3] = KWORD;
-        classcodes[4] = SKWORD;
-        classcodes[5] = FNAME;
-        classcodes[6] = SFNAME;
-        classcodes[7] = PRINT;
-        classcodes[8] = SPRINT;
-        classcodes[9] = RE_WHITE;
-        classcodes[10] = NWHITE;
-        classcodes[11] = DIGIT;
-        classcodes[12] = NDIGIT;
-        classcodes[13] = HEX;
-        classcodes[14] = NHEX;
-        classcodes[15] = OCTAL;
-        classcodes[16] = NOCTAL;
-        classcodes[17] = WORD;
-        classcodes[18] = NWORD;
-        classcodes[19] = HEAD;
-        classcodes[20] = NHEAD;
-        classcodes[21] = ALPHA;
-        classcodes[22] = NALPHA;
-        classcodes[23] = LOWER;
-        classcodes[24] = NLOWER;
-        classcodes[25] = UPPER;
-        classcodes[26] = NUPPER;
+        Rt.rows(classcodes,
+            ANY, IDENT, SIDENT, KWORD, SKWORD, FNAME, SFNAME, PRINT, SPRINT, RE_WHITE, NWHITE, DIGIT, NDIGIT, HEX,
+            NHEX, OCTAL, NOCTAL, WORD, NWORD, HEAD, NHEAD, ALPHA, NALPHA, LOWER, NLOWER, UPPER, NUPPER);
         filltab[0].cp = new IntPtr(fill_chars.stl, 0);
         filltab[0].name.string[0] = BytePtr.lit("stl");
         filltab[0].name.length = 3L;
@@ -15644,23 +11787,19 @@ public abstract class Editor {
         builtin_xterm[137].bt_string = BytePtr.lit("\033[58;*~");
     }
 
-    private void initGlobals12() {
-        builtin_mok2[0].bt_entry = KS_CTI;
-        builtin_mok2[0].bt_string = BytePtr.lit("\033[>4;2m");
-        builtin_mok2[1].bt_entry = KS_CRK;
-        builtin_mok2[1].bt_string = BytePtr.lit("\033[?4m");
-        builtin_mok2[2].bt_entry = KS_CTE;
-        builtin_mok2[2].bt_string = BytePtr.lit("\033[>4;m");
-        builtin_kitty[0].bt_entry = KS_CTI;
-        builtin_kitty[0].bt_string = BytePtr.lit("\033[=1;1u");
-        builtin_kitty[1].bt_entry = KS_CRK;
-        builtin_kitty[1].bt_string = BytePtr.lit("\033[?u");
-        builtin_kitty[2].bt_entry = KS_CTE;
-        builtin_kitty[2].bt_string = BytePtr.lit("\033[>4;m\033[=0;1u");
-        builtin_kitty[3].bt_entry = KS_RFG;
-        builtin_kitty[3].bt_string = BytePtr.lit("\033]10;?\033\\");
-        builtin_kitty[4].bt_entry = KS_RBG;
-        builtin_kitty[4].bt_string = BytePtr.lit("\033]11;?\033\\");
+    private void initGlobals6() {
+        Rt.rows(builtin_mok2,
+            new T_tcap_entry_T(KS_CTI, BytePtr.lit("\033[>4;2m")),
+            new T_tcap_entry_T(KS_CRK, BytePtr.lit("\033[?4m")),
+            new T_tcap_entry_T(KS_CTE, BytePtr.lit("\033[>4;m")),
+            new T_tcap_entry_T());
+        Rt.rows(builtin_kitty,
+            new T_tcap_entry_T(KS_CTI, BytePtr.lit("\033[=1;1u")),
+            new T_tcap_entry_T(KS_CRK, BytePtr.lit("\033[?u")),
+            new T_tcap_entry_T(KS_CTE, BytePtr.lit("\033[>4;m\033[=0;1u")),
+            new T_tcap_entry_T(KS_RFG, BytePtr.lit("\033]10;?\033\\")),
+            new T_tcap_entry_T(KS_RBG, BytePtr.lit("\033]11;?\033\\")),
+            new T_tcap_entry_T());
         builtin_debug[0].bt_entry = KS_CE;
         builtin_debug[0].bt_string = BytePtr.lit("[CE]");
         builtin_debug[1].bt_entry = KS_CD;
@@ -15953,1349 +12092,652 @@ public abstract class Editor {
         builtin_debug[144].bt_string = BytePtr.lit("[K8]");
         builtin_debug[145].bt_entry = K_K9;
         builtin_debug[145].bt_string = BytePtr.lit("[K9]");
-        builtin_256colors[0].bt_entry = KS_CCO;
-        builtin_256colors[0].bt_string = BytePtr.lit("256");
-        builtin_256colors[1].bt_entry = KS_CAB;
-        builtin_256colors[1].bt_string = BytePtr.lit("\033[48;5;%dm");
-        builtin_256colors[2].bt_entry = KS_CAF;
-        builtin_256colors[2].bt_string = BytePtr.lit("\033[38;5;%dm");
-        builtin_terminals[0].bitc_name = BytePtr.lit("xterm-256color");
-        builtin_terminals[0].bitc_table = new Ptr<T_tcap_entry_T>(builtin_xterm, 0);
-        builtin_terminals[1].bitc_name = BytePtr.lit("debug");
-        builtin_terminals[1].bitc_table = new Ptr<T_tcap_entry_T>(builtin_debug, 0);
+        Rt.rows(builtin_256colors,
+            new T_tcap_entry_T(KS_CCO, BytePtr.lit("256")),
+            new T_tcap_entry_T(KS_CAB, BytePtr.lit("\033[48;5;%dm")),
+            new T_tcap_entry_T(KS_CAF, BytePtr.lit("\033[38;5;%dm")),
+            new T_tcap_entry_T());
+        Rt.rows(builtin_terminals,
+            new T_builtin_tcap_T(BytePtr.lit("xterm-256color"), new Ptr<T_tcap_entry_T>(builtin_xterm, 0)),
+            new T_builtin_tcap_T(BytePtr.lit("debug"), new Ptr<T_tcap_entry_T>(builtin_debug, 0)),
+            new T_builtin_tcap_T());
         min_set_ch = 1;
         command_frame_height = TRUE;
         main_errors[0] = BytePtr.lit("Unknown option argument");
         main_errors[1] = BytePtr.lit("Too many \"+command\", \"-c command\" or \"--cmd command\" arguments");
         main_errors[2] = BytePtr.lit("Invalid argument for");
         ex_substitute_subflags.do_error = TRUE;
-        cterm_idx_to_rgb_cube[1] = 95;
-        cterm_idx_to_rgb_cube[2] = 135;
-        cterm_idx_to_rgb_cube[3] = 175;
-        cterm_idx_to_rgb_cube[4] = 215;
-        cterm_idx_to_rgb_cube[5] = 255;
-        rgb_to_cterm_idx_cube[1] = 95;
-        rgb_to_cterm_idx_cube[2] = 135;
-        rgb_to_cterm_idx_cube[3] = 175;
-        rgb_to_cterm_idx_cube[4] = 215;
-        rgb_to_cterm_idx_cube[5] = 255;
+        Rt.rows(cterm_idx_to_rgb_cube,
+            0, 95, 135, 175, 215, 255);
+        Rt.rows(rgb_to_cterm_idx_cube,
+            0, 95, 135, 175, 215, 255);
         mark_adjust_internal_initpos.lnum = 1L;
-        utf_char2cells_doublewidth[0].first = 4352L;
-        utf_char2cells_doublewidth[0].last = 4447L;
-        utf_char2cells_doublewidth[1].first = 8986L;
-        utf_char2cells_doublewidth[1].last = 8987L;
-        utf_char2cells_doublewidth[2].first = 9001L;
-        utf_char2cells_doublewidth[2].last = 9002L;
-        utf_char2cells_doublewidth[3].first = 9193L;
-        utf_char2cells_doublewidth[3].last = 9196L;
-        utf_char2cells_doublewidth[4].first = 9200L;
-        utf_char2cells_doublewidth[4].last = 9200L;
-        utf_char2cells_doublewidth[5].first = 9203L;
-        utf_char2cells_doublewidth[5].last = 9203L;
-        utf_char2cells_doublewidth[6].first = 9725L;
-        utf_char2cells_doublewidth[6].last = 9726L;
-        utf_char2cells_doublewidth[7].first = 9748L;
-        utf_char2cells_doublewidth[7].last = 9749L;
-        utf_char2cells_doublewidth[8].first = 9776L;
-        utf_char2cells_doublewidth[8].last = 9783L;
-        utf_char2cells_doublewidth[9].first = 9800L;
-        utf_char2cells_doublewidth[9].last = 9811L;
-        utf_char2cells_doublewidth[10].first = 9855L;
-        utf_char2cells_doublewidth[10].last = 9855L;
-        utf_char2cells_doublewidth[11].first = 9866L;
-        utf_char2cells_doublewidth[11].last = 9871L;
-        utf_char2cells_doublewidth[12].first = 9875L;
-        utf_char2cells_doublewidth[12].last = 9875L;
-        utf_char2cells_doublewidth[13].first = 9889L;
-        utf_char2cells_doublewidth[13].last = 9889L;
-        utf_char2cells_doublewidth[14].first = 9898L;
-        utf_char2cells_doublewidth[14].last = 9899L;
-        utf_char2cells_doublewidth[15].first = 9917L;
-        utf_char2cells_doublewidth[15].last = 9918L;
-        utf_char2cells_doublewidth[16].first = 9924L;
-        utf_char2cells_doublewidth[16].last = 9925L;
-        utf_char2cells_doublewidth[17].first = 9934L;
-        utf_char2cells_doublewidth[17].last = 9934L;
-        utf_char2cells_doublewidth[18].first = 9940L;
-        utf_char2cells_doublewidth[18].last = 9940L;
-        utf_char2cells_doublewidth[19].first = 9962L;
-        utf_char2cells_doublewidth[19].last = 9962L;
-        utf_char2cells_doublewidth[20].first = 9970L;
-        utf_char2cells_doublewidth[20].last = 9971L;
-        utf_char2cells_doublewidth[21].first = 9973L;
-        utf_char2cells_doublewidth[21].last = 9973L;
-        utf_char2cells_doublewidth[22].first = 9978L;
-        utf_char2cells_doublewidth[22].last = 9978L;
-        utf_char2cells_doublewidth[23].first = 9981L;
-        utf_char2cells_doublewidth[23].last = 9981L;
-        utf_char2cells_doublewidth[24].first = 9989L;
-        utf_char2cells_doublewidth[24].last = 9989L;
-        utf_char2cells_doublewidth[25].first = 9994L;
-        utf_char2cells_doublewidth[25].last = 9995L;
-        utf_char2cells_doublewidth[26].first = 10024L;
-        utf_char2cells_doublewidth[26].last = 10024L;
-        utf_char2cells_doublewidth[27].first = 10060L;
-        utf_char2cells_doublewidth[27].last = 10060L;
-        utf_char2cells_doublewidth[28].first = 10062L;
-        utf_char2cells_doublewidth[28].last = 10062L;
-        utf_char2cells_doublewidth[29].first = 10067L;
-        utf_char2cells_doublewidth[29].last = 10069L;
-        utf_char2cells_doublewidth[30].first = 10071L;
-        utf_char2cells_doublewidth[30].last = 10071L;
-        utf_char2cells_doublewidth[31].first = 10133L;
-        utf_char2cells_doublewidth[31].last = 10135L;
-        utf_char2cells_doublewidth[32].first = 10160L;
-        utf_char2cells_doublewidth[32].last = 10160L;
-        utf_char2cells_doublewidth[33].first = 10175L;
-        utf_char2cells_doublewidth[33].last = 10175L;
-        utf_char2cells_doublewidth[34].first = 11035L;
-        utf_char2cells_doublewidth[34].last = 11036L;
-        utf_char2cells_doublewidth[35].first = 11088L;
-        utf_char2cells_doublewidth[35].last = 11088L;
-        utf_char2cells_doublewidth[36].first = 11093L;
-        utf_char2cells_doublewidth[36].last = 11093L;
-        utf_char2cells_doublewidth[37].first = 11904L;
-        utf_char2cells_doublewidth[37].last = 11929L;
-        utf_char2cells_doublewidth[38].first = 11931L;
-        utf_char2cells_doublewidth[38].last = 12019L;
-        utf_char2cells_doublewidth[39].first = 12032L;
-        utf_char2cells_doublewidth[39].last = 12245L;
-        utf_char2cells_doublewidth[40].first = 12272L;
-        utf_char2cells_doublewidth[40].last = 12350L;
-        utf_char2cells_doublewidth[41].first = 12353L;
-        utf_char2cells_doublewidth[41].last = 12438L;
-        utf_char2cells_doublewidth[42].first = 12441L;
-        utf_char2cells_doublewidth[42].last = 12543L;
-        utf_char2cells_doublewidth[43].first = 12549L;
-        utf_char2cells_doublewidth[43].last = 12591L;
-        utf_char2cells_doublewidth[44].first = 12593L;
-        utf_char2cells_doublewidth[44].last = 12686L;
-        utf_char2cells_doublewidth[45].first = 12688L;
-        utf_char2cells_doublewidth[45].last = 12773L;
-        utf_char2cells_doublewidth[46].first = 12783L;
-        utf_char2cells_doublewidth[46].last = 12830L;
-        utf_char2cells_doublewidth[47].first = 12832L;
-        utf_char2cells_doublewidth[47].last = 12871L;
-        utf_char2cells_doublewidth[48].first = 12880L;
-        utf_char2cells_doublewidth[48].last = 42124L;
-        utf_char2cells_doublewidth[49].first = 42128L;
-        utf_char2cells_doublewidth[49].last = 42182L;
-        utf_char2cells_doublewidth[50].first = 43360L;
-        utf_char2cells_doublewidth[50].last = 43388L;
-        utf_char2cells_doublewidth[51].first = 44032L;
-        utf_char2cells_doublewidth[51].last = 55203L;
-        utf_char2cells_doublewidth[52].first = 63744L;
-        utf_char2cells_doublewidth[52].last = 64255L;
-        utf_char2cells_doublewidth[53].first = 65040L;
-        utf_char2cells_doublewidth[53].last = 65049L;
-        utf_char2cells_doublewidth[54].first = 65072L;
-        utf_char2cells_doublewidth[54].last = 65106L;
-        utf_char2cells_doublewidth[55].first = 65108L;
-        utf_char2cells_doublewidth[55].last = 65126L;
-        utf_char2cells_doublewidth[56].first = 65128L;
-        utf_char2cells_doublewidth[56].last = 65131L;
-        utf_char2cells_doublewidth[57].first = 65281L;
-        utf_char2cells_doublewidth[57].last = 65376L;
-        utf_char2cells_doublewidth[58].first = 65504L;
-        utf_char2cells_doublewidth[58].last = 65510L;
-        utf_char2cells_doublewidth[59].first = 94176L;
-        utf_char2cells_doublewidth[59].last = 94179L;
-        utf_char2cells_doublewidth[60].first = 94192L;
-        utf_char2cells_doublewidth[60].last = 94193L;
-        utf_char2cells_doublewidth[61].first = 94208L;
-        utf_char2cells_doublewidth[61].last = 100343L;
-        utf_char2cells_doublewidth[62].first = 100352L;
-        utf_char2cells_doublewidth[62].last = 101589L;
-        utf_char2cells_doublewidth[63].first = 101631L;
-        utf_char2cells_doublewidth[63].last = 101640L;
-        utf_char2cells_doublewidth[64].first = 110576L;
-        utf_char2cells_doublewidth[64].last = 110579L;
-        utf_char2cells_doublewidth[65].first = 110581L;
-        utf_char2cells_doublewidth[65].last = 110587L;
-        utf_char2cells_doublewidth[66].first = 110589L;
-        utf_char2cells_doublewidth[66].last = 110590L;
-        utf_char2cells_doublewidth[67].first = 110592L;
-        utf_char2cells_doublewidth[67].last = 110882L;
-        utf_char2cells_doublewidth[68].first = 110898L;
-        utf_char2cells_doublewidth[68].last = 110898L;
-        utf_char2cells_doublewidth[69].first = 110928L;
-        utf_char2cells_doublewidth[69].last = 110930L;
-        utf_char2cells_doublewidth[70].first = 110933L;
-        utf_char2cells_doublewidth[70].last = 110933L;
-        utf_char2cells_doublewidth[71].first = 110948L;
-        utf_char2cells_doublewidth[71].last = 110951L;
-        utf_char2cells_doublewidth[72].first = 110960L;
-        utf_char2cells_doublewidth[72].last = 111355L;
-        utf_char2cells_doublewidth[73].first = 119552L;
-        utf_char2cells_doublewidth[73].last = 119638L;
-        utf_char2cells_doublewidth[74].first = 119648L;
-        utf_char2cells_doublewidth[74].last = 119670L;
-        utf_char2cells_doublewidth[75].first = 126980L;
-        utf_char2cells_doublewidth[75].last = 126980L;
-        utf_char2cells_doublewidth[76].first = 127183L;
-        utf_char2cells_doublewidth[76].last = 127183L;
-        utf_char2cells_doublewidth[77].first = 127374L;
-        utf_char2cells_doublewidth[77].last = 127374L;
-        utf_char2cells_doublewidth[78].first = 127377L;
-        utf_char2cells_doublewidth[78].last = 127386L;
-        utf_char2cells_doublewidth[79].first = 127488L;
-        utf_char2cells_doublewidth[79].last = 127490L;
-        utf_char2cells_doublewidth[80].first = 127504L;
-        utf_char2cells_doublewidth[80].last = 127547L;
-        utf_char2cells_doublewidth[81].first = 127552L;
-        utf_char2cells_doublewidth[81].last = 127560L;
-        utf_char2cells_doublewidth[82].first = 127568L;
-        utf_char2cells_doublewidth[82].last = 127569L;
-        utf_char2cells_doublewidth[83].first = 127584L;
-        utf_char2cells_doublewidth[83].last = 127589L;
-        utf_char2cells_doublewidth[84].first = 127744L;
-        utf_char2cells_doublewidth[84].last = 127776L;
-        utf_char2cells_doublewidth[85].first = 127789L;
-        utf_char2cells_doublewidth[85].last = 127797L;
-        utf_char2cells_doublewidth[86].first = 127799L;
-        utf_char2cells_doublewidth[86].last = 127868L;
-        utf_char2cells_doublewidth[87].first = 127870L;
-        utf_char2cells_doublewidth[87].last = 127891L;
-        utf_char2cells_doublewidth[88].first = 127904L;
-        utf_char2cells_doublewidth[88].last = 127946L;
-        utf_char2cells_doublewidth[89].first = 127951L;
-        utf_char2cells_doublewidth[89].last = 127955L;
-        utf_char2cells_doublewidth[90].first = 127968L;
-        utf_char2cells_doublewidth[90].last = 127984L;
-        utf_char2cells_doublewidth[91].first = 127988L;
-        utf_char2cells_doublewidth[91].last = 127988L;
-        utf_char2cells_doublewidth[92].first = 127992L;
-        utf_char2cells_doublewidth[92].last = 128062L;
-        utf_char2cells_doublewidth[93].first = 128064L;
-        utf_char2cells_doublewidth[93].last = 128064L;
-        utf_char2cells_doublewidth[94].first = 128066L;
-        utf_char2cells_doublewidth[94].last = 128252L;
-        utf_char2cells_doublewidth[95].first = 128255L;
-        utf_char2cells_doublewidth[95].last = 128317L;
-        utf_char2cells_doublewidth[96].first = 128331L;
-        utf_char2cells_doublewidth[96].last = 128334L;
-        utf_char2cells_doublewidth[97].first = 128336L;
-        utf_char2cells_doublewidth[97].last = 128359L;
-        utf_char2cells_doublewidth[98].first = 128378L;
-        utf_char2cells_doublewidth[98].last = 128378L;
-        utf_char2cells_doublewidth[99].first = 128405L;
-        utf_char2cells_doublewidth[99].last = 128406L;
-        utf_char2cells_doublewidth[100].first = 128420L;
-        utf_char2cells_doublewidth[100].last = 128420L;
-        utf_char2cells_doublewidth[101].first = 128507L;
-        utf_char2cells_doublewidth[101].last = 128591L;
-        utf_char2cells_doublewidth[102].first = 128640L;
-        utf_char2cells_doublewidth[102].last = 128709L;
-        utf_char2cells_doublewidth[103].first = 128716L;
-        utf_char2cells_doublewidth[103].last = 128716L;
-        utf_char2cells_doublewidth[104].first = 128720L;
-        utf_char2cells_doublewidth[104].last = 128722L;
-        utf_char2cells_doublewidth[105].first = 128725L;
-        utf_char2cells_doublewidth[105].last = 128727L;
-        utf_char2cells_doublewidth[106].first = 128732L;
-        utf_char2cells_doublewidth[106].last = 128735L;
-        utf_char2cells_doublewidth[107].first = 128747L;
-        utf_char2cells_doublewidth[107].last = 128748L;
-        utf_char2cells_doublewidth[108].first = 128756L;
-        utf_char2cells_doublewidth[108].last = 128764L;
-        utf_char2cells_doublewidth[109].first = 128992L;
-        utf_char2cells_doublewidth[109].last = 129003L;
-        utf_char2cells_doublewidth[110].first = 129008L;
-        utf_char2cells_doublewidth[110].last = 129008L;
-        utf_char2cells_doublewidth[111].first = 129292L;
-        utf_char2cells_doublewidth[111].last = 129338L;
-        utf_char2cells_doublewidth[112].first = 129340L;
-        utf_char2cells_doublewidth[112].last = 129349L;
-        utf_char2cells_doublewidth[113].first = 129351L;
-        utf_char2cells_doublewidth[113].last = 129535L;
-        utf_char2cells_doublewidth[114].first = 129648L;
-        utf_char2cells_doublewidth[114].last = 129660L;
-        utf_char2cells_doublewidth[115].first = 129664L;
-        utf_char2cells_doublewidth[115].last = 129673L;
-        utf_char2cells_doublewidth[116].first = 129679L;
-        utf_char2cells_doublewidth[116].last = 129734L;
-        utf_char2cells_doublewidth[117].first = 129742L;
-        utf_char2cells_doublewidth[117].last = 129756L;
-        utf_char2cells_doublewidth[118].first = 129759L;
-        utf_char2cells_doublewidth[118].last = 129769L;
-        utf_char2cells_doublewidth[119].first = 129776L;
-        utf_char2cells_doublewidth[119].last = 129784L;
-        utf_char2cells_doublewidth[120].first = 131072L;
-        utf_char2cells_doublewidth[120].last = 196605L;
-        utf_char2cells_doublewidth[121].first = 196608L;
-        utf_char2cells_doublewidth[121].last = 262141L;
+        Rt.rows(utf_char2cells_doublewidth,
+            new S_interval(4352L, 4447L),
+            new S_interval(8986L, 8987L),
+            new S_interval(9001L, 9002L),
+            new S_interval(9193L, 9196L),
+            new S_interval(9200L, 9200L),
+            new S_interval(9203L, 9203L),
+            new S_interval(9725L, 9726L),
+            new S_interval(9748L, 9749L),
+            new S_interval(9776L, 9783L),
+            new S_interval(9800L, 9811L),
+            new S_interval(9855L, 9855L),
+            new S_interval(9866L, 9871L),
+            new S_interval(9875L, 9875L),
+            new S_interval(9889L, 9889L),
+            new S_interval(9898L, 9899L),
+            new S_interval(9917L, 9918L),
+            new S_interval(9924L, 9925L),
+            new S_interval(9934L, 9934L),
+            new S_interval(9940L, 9940L),
+            new S_interval(9962L, 9962L),
+            new S_interval(9970L, 9971L),
+            new S_interval(9973L, 9973L),
+            new S_interval(9978L, 9978L),
+            new S_interval(9981L, 9981L),
+            new S_interval(9989L, 9989L),
+            new S_interval(9994L, 9995L),
+            new S_interval(10024L, 10024L),
+            new S_interval(10060L, 10060L),
+            new S_interval(10062L, 10062L),
+            new S_interval(10067L, 10069L),
+            new S_interval(10071L, 10071L),
+            new S_interval(10133L, 10135L),
+            new S_interval(10160L, 10160L),
+            new S_interval(10175L, 10175L),
+            new S_interval(11035L, 11036L),
+            new S_interval(11088L, 11088L),
+            new S_interval(11093L, 11093L),
+            new S_interval(11904L, 11929L),
+            new S_interval(11931L, 12019L),
+            new S_interval(12032L, 12245L),
+            new S_interval(12272L, 12350L),
+            new S_interval(12353L, 12438L),
+            new S_interval(12441L, 12543L),
+            new S_interval(12549L, 12591L),
+            new S_interval(12593L, 12686L),
+            new S_interval(12688L, 12773L),
+            new S_interval(12783L, 12830L),
+            new S_interval(12832L, 12871L),
+            new S_interval(12880L, 42124L),
+            new S_interval(42128L, 42182L),
+            new S_interval(43360L, 43388L),
+            new S_interval(44032L, 55203L),
+            new S_interval(63744L, 64255L),
+            new S_interval(65040L, 65049L),
+            new S_interval(65072L, 65106L),
+            new S_interval(65108L, 65126L),
+            new S_interval(65128L, 65131L),
+            new S_interval(65281L, 65376L),
+            new S_interval(65504L, 65510L),
+            new S_interval(94176L, 94179L),
+            new S_interval(94192L, 94193L),
+            new S_interval(94208L, 100343L),
+            new S_interval(100352L, 101589L),
+            new S_interval(101631L, 101640L),
+            new S_interval(110576L, 110579L),
+            new S_interval(110581L, 110587L),
+            new S_interval(110589L, 110590L),
+            new S_interval(110592L, 110882L),
+            new S_interval(110898L, 110898L),
+            new S_interval(110928L, 110930L),
+            new S_interval(110933L, 110933L),
+            new S_interval(110948L, 110951L),
+            new S_interval(110960L, 111355L),
+            new S_interval(119552L, 119638L),
+            new S_interval(119648L, 119670L),
+            new S_interval(126980L, 126980L),
+            new S_interval(127183L, 127183L),
+            new S_interval(127374L, 127374L),
+            new S_interval(127377L, 127386L),
+            new S_interval(127488L, 127490L),
+            new S_interval(127504L, 127547L),
+            new S_interval(127552L, 127560L),
+            new S_interval(127568L, 127569L),
+            new S_interval(127584L, 127589L),
+            new S_interval(127744L, 127776L),
+            new S_interval(127789L, 127797L),
+            new S_interval(127799L, 127868L),
+            new S_interval(127870L, 127891L),
+            new S_interval(127904L, 127946L),
+            new S_interval(127951L, 127955L),
+            new S_interval(127968L, 127984L),
+            new S_interval(127988L, 127988L),
+            new S_interval(127992L, 128062L),
+            new S_interval(128064L, 128064L),
+            new S_interval(128066L, 128252L),
+            new S_interval(128255L, 128317L),
+            new S_interval(128331L, 128334L),
+            new S_interval(128336L, 128359L),
+            new S_interval(128378L, 128378L),
+            new S_interval(128405L, 128406L),
+            new S_interval(128420L, 128420L),
+            new S_interval(128507L, 128591L),
+            new S_interval(128640L, 128709L),
+            new S_interval(128716L, 128716L),
+            new S_interval(128720L, 128722L),
+            new S_interval(128725L, 128727L),
+            new S_interval(128732L, 128735L),
+            new S_interval(128747L, 128748L),
+            new S_interval(128756L, 128764L),
+            new S_interval(128992L, 129003L),
+            new S_interval(129008L, 129008L),
+            new S_interval(129292L, 129338L),
+            new S_interval(129340L, 129349L),
+            new S_interval(129351L, 129535L),
+            new S_interval(129648L, 129660L),
+            new S_interval(129664L, 129673L),
+            new S_interval(129679L, 129734L),
+            new S_interval(129742L, 129756L),
+            new S_interval(129759L, 129769L),
+            new S_interval(129776L, 129784L),
+            new S_interval(131072L, 196605L),
+            new S_interval(196608L, 262141L));
     }
 
-    private void initGlobals13() {
-        utf_char2cells_emoji_wide[0].first = 9197L;
-        utf_char2cells_emoji_wide[0].last = 9199L;
-        utf_char2cells_emoji_wide[1].first = 9201L;
-        utf_char2cells_emoji_wide[1].last = 9202L;
-        utf_char2cells_emoji_wide[2].first = 9208L;
-        utf_char2cells_emoji_wide[2].last = 9210L;
-        utf_char2cells_emoji_wide[3].first = 9410L;
-        utf_char2cells_emoji_wide[3].last = 9410L;
-        utf_char2cells_emoji_wide[4].first = 9757L;
-        utf_char2cells_emoji_wide[4].last = 9757L;
-        utf_char2cells_emoji_wide[5].first = 9928L;
-        utf_char2cells_emoji_wide[5].last = 9928L;
-        utf_char2cells_emoji_wide[6].first = 9935L;
-        utf_char2cells_emoji_wide[6].last = 9935L;
-        utf_char2cells_emoji_wide[7].first = 9937L;
-        utf_char2cells_emoji_wide[7].last = 9937L;
-        utf_char2cells_emoji_wide[8].first = 9939L;
-        utf_char2cells_emoji_wide[8].last = 9939L;
-        utf_char2cells_emoji_wide[9].first = 9961L;
-        utf_char2cells_emoji_wide[9].last = 9961L;
-        utf_char2cells_emoji_wide[10].first = 9968L;
-        utf_char2cells_emoji_wide[10].last = 9969L;
-        utf_char2cells_emoji_wide[11].first = 9975L;
-        utf_char2cells_emoji_wide[11].last = 9977L;
-        utf_char2cells_emoji_wide[12].first = 9996L;
-        utf_char2cells_emoji_wide[12].last = 9997L;
-        utf_char2cells_emoji_wide[13].first = 10548L;
-        utf_char2cells_emoji_wide[13].last = 10549L;
-        utf_char2cells_emoji_wide[14].first = 127344L;
-        utf_char2cells_emoji_wide[14].last = 127369L;
-        utf_char2cells_emoji_wide[15].first = 127462L;
-        utf_char2cells_emoji_wide[15].last = 127487L;
-        utf_char2cells_emoji_wide[16].first = 127777L;
-        utf_char2cells_emoji_wide[16].last = 127777L;
-        utf_char2cells_emoji_wide[17].first = 127780L;
-        utf_char2cells_emoji_wide[17].last = 127788L;
-        utf_char2cells_emoji_wide[18].first = 127798L;
-        utf_char2cells_emoji_wide[18].last = 127798L;
-        utf_char2cells_emoji_wide[19].first = 127869L;
-        utf_char2cells_emoji_wide[19].last = 127869L;
-        utf_char2cells_emoji_wide[20].first = 127894L;
-        utf_char2cells_emoji_wide[20].last = 127895L;
-        utf_char2cells_emoji_wide[21].first = 127897L;
-        utf_char2cells_emoji_wide[21].last = 127899L;
-        utf_char2cells_emoji_wide[22].first = 127902L;
-        utf_char2cells_emoji_wide[22].last = 127903L;
-        utf_char2cells_emoji_wide[23].first = 127947L;
-        utf_char2cells_emoji_wide[23].last = 127950L;
-        utf_char2cells_emoji_wide[24].first = 127956L;
-        utf_char2cells_emoji_wide[24].last = 127967L;
-        utf_char2cells_emoji_wide[25].first = 127987L;
-        utf_char2cells_emoji_wide[25].last = 127989L;
-        utf_char2cells_emoji_wide[26].first = 127991L;
-        utf_char2cells_emoji_wide[26].last = 127991L;
-        utf_char2cells_emoji_wide[27].first = 128063L;
-        utf_char2cells_emoji_wide[27].last = 128063L;
-        utf_char2cells_emoji_wide[28].first = 128065L;
-        utf_char2cells_emoji_wide[28].last = 128065L;
-        utf_char2cells_emoji_wide[29].first = 128253L;
-        utf_char2cells_emoji_wide[29].last = 128253L;
-        utf_char2cells_emoji_wide[30].first = 128329L;
-        utf_char2cells_emoji_wide[30].last = 128330L;
-        utf_char2cells_emoji_wide[31].first = 128367L;
-        utf_char2cells_emoji_wide[31].last = 128368L;
-        utf_char2cells_emoji_wide[32].first = 128371L;
-        utf_char2cells_emoji_wide[32].last = 128377L;
-        utf_char2cells_emoji_wide[33].first = 128391L;
-        utf_char2cells_emoji_wide[33].last = 128391L;
-        utf_char2cells_emoji_wide[34].first = 128394L;
-        utf_char2cells_emoji_wide[34].last = 128397L;
-        utf_char2cells_emoji_wide[35].first = 128400L;
-        utf_char2cells_emoji_wide[35].last = 128400L;
-        utf_char2cells_emoji_wide[36].first = 128421L;
-        utf_char2cells_emoji_wide[36].last = 128421L;
-        utf_char2cells_emoji_wide[37].first = 128424L;
-        utf_char2cells_emoji_wide[37].last = 128424L;
-        utf_char2cells_emoji_wide[38].first = 128433L;
-        utf_char2cells_emoji_wide[38].last = 128434L;
-        utf_char2cells_emoji_wide[39].first = 128444L;
-        utf_char2cells_emoji_wide[39].last = 128444L;
-        utf_char2cells_emoji_wide[40].first = 128450L;
-        utf_char2cells_emoji_wide[40].last = 128452L;
-        utf_char2cells_emoji_wide[41].first = 128465L;
-        utf_char2cells_emoji_wide[41].last = 128467L;
-        utf_char2cells_emoji_wide[42].first = 128476L;
-        utf_char2cells_emoji_wide[42].last = 128478L;
-        utf_char2cells_emoji_wide[43].first = 128481L;
-        utf_char2cells_emoji_wide[43].last = 128481L;
-        utf_char2cells_emoji_wide[44].first = 128483L;
-        utf_char2cells_emoji_wide[44].last = 128483L;
-        utf_char2cells_emoji_wide[45].first = 128488L;
-        utf_char2cells_emoji_wide[45].last = 128488L;
-        utf_char2cells_emoji_wide[46].first = 128495L;
-        utf_char2cells_emoji_wide[46].last = 128495L;
-        utf_char2cells_emoji_wide[47].first = 128499L;
-        utf_char2cells_emoji_wide[47].last = 128499L;
-        utf_char2cells_emoji_wide[48].first = 128506L;
-        utf_char2cells_emoji_wide[48].last = 128506L;
-        utf_char2cells_emoji_wide[49].first = 128715L;
-        utf_char2cells_emoji_wide[49].last = 128719L;
-        utf_char2cells_emoji_wide[50].first = 128736L;
-        utf_char2cells_emoji_wide[50].last = 128741L;
-        utf_char2cells_emoji_wide[51].first = 128745L;
-        utf_char2cells_emoji_wide[51].last = 128745L;
-        utf_char2cells_emoji_wide[52].first = 128752L;
-        utf_char2cells_emoji_wide[52].last = 128752L;
-        utf_char2cells_emoji_wide[53].first = 128755L;
-        utf_char2cells_emoji_wide[53].last = 128755L;
-        utf_iscomposing_combining[0].first = 768L;
-        utf_iscomposing_combining[0].last = 879L;
-        utf_iscomposing_combining[1].first = 1155L;
-        utf_iscomposing_combining[1].last = 1161L;
-        utf_iscomposing_combining[2].first = 1425L;
-        utf_iscomposing_combining[2].last = 1469L;
-        utf_iscomposing_combining[3].first = 1471L;
-        utf_iscomposing_combining[3].last = 1471L;
-        utf_iscomposing_combining[4].first = 1473L;
-        utf_iscomposing_combining[4].last = 1474L;
-        utf_iscomposing_combining[5].first = 1476L;
-        utf_iscomposing_combining[5].last = 1477L;
-        utf_iscomposing_combining[6].first = 1479L;
-        utf_iscomposing_combining[6].last = 1479L;
-        utf_iscomposing_combining[7].first = 1552L;
-        utf_iscomposing_combining[7].last = 1562L;
-        utf_iscomposing_combining[8].first = 1611L;
-        utf_iscomposing_combining[8].last = 1631L;
-        utf_iscomposing_combining[9].first = 1648L;
-        utf_iscomposing_combining[9].last = 1648L;
-        utf_iscomposing_combining[10].first = 1750L;
-        utf_iscomposing_combining[10].last = 1756L;
-        utf_iscomposing_combining[11].first = 1759L;
-        utf_iscomposing_combining[11].last = 1764L;
-        utf_iscomposing_combining[12].first = 1767L;
-        utf_iscomposing_combining[12].last = 1768L;
-        utf_iscomposing_combining[13].first = 1770L;
-        utf_iscomposing_combining[13].last = 1773L;
-        utf_iscomposing_combining[14].first = 1809L;
-        utf_iscomposing_combining[14].last = 1809L;
-        utf_iscomposing_combining[15].first = 1840L;
-        utf_iscomposing_combining[15].last = 1866L;
-        utf_iscomposing_combining[16].first = 1958L;
-        utf_iscomposing_combining[16].last = 1968L;
-        utf_iscomposing_combining[17].first = 2027L;
-        utf_iscomposing_combining[17].last = 2035L;
-        utf_iscomposing_combining[18].first = 2045L;
-        utf_iscomposing_combining[18].last = 2045L;
-        utf_iscomposing_combining[19].first = 2070L;
-        utf_iscomposing_combining[19].last = 2073L;
-        utf_iscomposing_combining[20].first = 2075L;
-        utf_iscomposing_combining[20].last = 2083L;
-        utf_iscomposing_combining[21].first = 2085L;
-        utf_iscomposing_combining[21].last = 2087L;
-        utf_iscomposing_combining[22].first = 2089L;
-        utf_iscomposing_combining[22].last = 2093L;
-        utf_iscomposing_combining[23].first = 2137L;
-        utf_iscomposing_combining[23].last = 2139L;
-        utf_iscomposing_combining[24].first = 2199L;
-        utf_iscomposing_combining[24].last = 2207L;
-        utf_iscomposing_combining[25].first = 2250L;
-        utf_iscomposing_combining[25].last = 2273L;
-        utf_iscomposing_combining[26].first = 2275L;
-        utf_iscomposing_combining[26].last = 2306L;
-        utf_iscomposing_combining[27].first = 2362L;
-        utf_iscomposing_combining[27].last = 2362L;
-        utf_iscomposing_combining[28].first = 2364L;
-        utf_iscomposing_combining[28].last = 2364L;
-        utf_iscomposing_combining[29].first = 2369L;
-        utf_iscomposing_combining[29].last = 2376L;
-        utf_iscomposing_combining[30].first = 2381L;
-        utf_iscomposing_combining[30].last = 2381L;
-        utf_iscomposing_combining[31].first = 2385L;
-        utf_iscomposing_combining[31].last = 2391L;
-        utf_iscomposing_combining[32].first = 2402L;
-        utf_iscomposing_combining[32].last = 2403L;
-        utf_iscomposing_combining[33].first = 2433L;
-        utf_iscomposing_combining[33].last = 2433L;
-        utf_iscomposing_combining[34].first = 2492L;
-        utf_iscomposing_combining[34].last = 2492L;
-        utf_iscomposing_combining[35].first = 2497L;
-        utf_iscomposing_combining[35].last = 2500L;
-        utf_iscomposing_combining[36].first = 2509L;
-        utf_iscomposing_combining[36].last = 2509L;
-        utf_iscomposing_combining[37].first = 2530L;
-        utf_iscomposing_combining[37].last = 2531L;
-        utf_iscomposing_combining[38].first = 2558L;
-        utf_iscomposing_combining[38].last = 2558L;
-        utf_iscomposing_combining[39].first = 2561L;
-        utf_iscomposing_combining[39].last = 2562L;
-        utf_iscomposing_combining[40].first = 2620L;
-        utf_iscomposing_combining[40].last = 2620L;
-        utf_iscomposing_combining[41].first = 2625L;
-        utf_iscomposing_combining[41].last = 2626L;
-        utf_iscomposing_combining[42].first = 2631L;
-        utf_iscomposing_combining[42].last = 2632L;
-        utf_iscomposing_combining[43].first = 2635L;
-        utf_iscomposing_combining[43].last = 2637L;
-        utf_iscomposing_combining[44].first = 2641L;
-        utf_iscomposing_combining[44].last = 2641L;
-        utf_iscomposing_combining[45].first = 2672L;
-        utf_iscomposing_combining[45].last = 2673L;
-        utf_iscomposing_combining[46].first = 2677L;
-        utf_iscomposing_combining[46].last = 2677L;
-        utf_iscomposing_combining[47].first = 2689L;
-        utf_iscomposing_combining[47].last = 2690L;
-        utf_iscomposing_combining[48].first = 2748L;
-        utf_iscomposing_combining[48].last = 2748L;
-        utf_iscomposing_combining[49].first = 2753L;
-        utf_iscomposing_combining[49].last = 2757L;
-        utf_iscomposing_combining[50].first = 2759L;
-        utf_iscomposing_combining[50].last = 2760L;
-        utf_iscomposing_combining[51].first = 2765L;
-        utf_iscomposing_combining[51].last = 2765L;
-        utf_iscomposing_combining[52].first = 2786L;
-        utf_iscomposing_combining[52].last = 2787L;
-        utf_iscomposing_combining[53].first = 2810L;
-        utf_iscomposing_combining[53].last = 2815L;
-        utf_iscomposing_combining[54].first = 2817L;
-        utf_iscomposing_combining[54].last = 2817L;
-        utf_iscomposing_combining[55].first = 2876L;
-        utf_iscomposing_combining[55].last = 2876L;
-        utf_iscomposing_combining[56].first = 2879L;
-        utf_iscomposing_combining[56].last = 2879L;
-        utf_iscomposing_combining[57].first = 2881L;
-        utf_iscomposing_combining[57].last = 2884L;
-        utf_iscomposing_combining[58].first = 2893L;
-        utf_iscomposing_combining[58].last = 2893L;
-        utf_iscomposing_combining[59].first = 2901L;
-        utf_iscomposing_combining[59].last = 2902L;
-        utf_iscomposing_combining[60].first = 2914L;
-        utf_iscomposing_combining[60].last = 2915L;
-        utf_iscomposing_combining[61].first = 2946L;
-        utf_iscomposing_combining[61].last = 2946L;
-        utf_iscomposing_combining[62].first = 3008L;
-        utf_iscomposing_combining[62].last = 3008L;
-        utf_iscomposing_combining[63].first = 3021L;
-        utf_iscomposing_combining[63].last = 3021L;
-        utf_iscomposing_combining[64].first = 3072L;
-        utf_iscomposing_combining[64].last = 3072L;
-        utf_iscomposing_combining[65].first = 3076L;
-        utf_iscomposing_combining[65].last = 3076L;
-        utf_iscomposing_combining[66].first = 3132L;
-        utf_iscomposing_combining[66].last = 3132L;
-        utf_iscomposing_combining[67].first = 3134L;
-        utf_iscomposing_combining[67].last = 3136L;
-        utf_iscomposing_combining[68].first = 3142L;
-        utf_iscomposing_combining[68].last = 3144L;
-        utf_iscomposing_combining[69].first = 3146L;
-        utf_iscomposing_combining[69].last = 3149L;
-        utf_iscomposing_combining[70].first = 3157L;
-        utf_iscomposing_combining[70].last = 3158L;
-        utf_iscomposing_combining[71].first = 3170L;
-        utf_iscomposing_combining[71].last = 3171L;
-        utf_iscomposing_combining[72].first = 3201L;
-        utf_iscomposing_combining[72].last = 3201L;
-        utf_iscomposing_combining[73].first = 3260L;
-        utf_iscomposing_combining[73].last = 3260L;
-        utf_iscomposing_combining[74].first = 3263L;
-        utf_iscomposing_combining[74].last = 3263L;
-        utf_iscomposing_combining[75].first = 3270L;
-        utf_iscomposing_combining[75].last = 3270L;
-        utf_iscomposing_combining[76].first = 3276L;
-        utf_iscomposing_combining[76].last = 3277L;
-        utf_iscomposing_combining[77].first = 3298L;
-        utf_iscomposing_combining[77].last = 3299L;
-        utf_iscomposing_combining[78].first = 3328L;
-        utf_iscomposing_combining[78].last = 3329L;
-        utf_iscomposing_combining[79].first = 3387L;
-        utf_iscomposing_combining[79].last = 3388L;
-        utf_iscomposing_combining[80].first = 3393L;
-        utf_iscomposing_combining[80].last = 3396L;
-        utf_iscomposing_combining[81].first = 3405L;
-        utf_iscomposing_combining[81].last = 3405L;
-        utf_iscomposing_combining[82].first = 3426L;
-        utf_iscomposing_combining[82].last = 3427L;
-        utf_iscomposing_combining[83].first = 3457L;
-        utf_iscomposing_combining[83].last = 3457L;
-        utf_iscomposing_combining[84].first = 3530L;
-        utf_iscomposing_combining[84].last = 3530L;
-        utf_iscomposing_combining[85].first = 3538L;
-        utf_iscomposing_combining[85].last = 3540L;
-        utf_iscomposing_combining[86].first = 3542L;
-        utf_iscomposing_combining[86].last = 3542L;
-        utf_iscomposing_combining[87].first = 3633L;
-        utf_iscomposing_combining[87].last = 3633L;
-        utf_iscomposing_combining[88].first = 3636L;
-        utf_iscomposing_combining[88].last = 3642L;
-        utf_iscomposing_combining[89].first = 3655L;
-        utf_iscomposing_combining[89].last = 3662L;
-        utf_iscomposing_combining[90].first = 3761L;
-        utf_iscomposing_combining[90].last = 3761L;
-        utf_iscomposing_combining[91].first = 3764L;
-        utf_iscomposing_combining[91].last = 3772L;
-        utf_iscomposing_combining[92].first = 3784L;
-        utf_iscomposing_combining[92].last = 3790L;
-        utf_iscomposing_combining[93].first = 3864L;
-        utf_iscomposing_combining[93].last = 3865L;
-        utf_iscomposing_combining[94].first = 3893L;
-        utf_iscomposing_combining[94].last = 3893L;
-        utf_iscomposing_combining[95].first = 3895L;
-        utf_iscomposing_combining[95].last = 3895L;
-        utf_iscomposing_combining[96].first = 3897L;
-        utf_iscomposing_combining[96].last = 3897L;
-        utf_iscomposing_combining[97].first = 3953L;
-        utf_iscomposing_combining[97].last = 3966L;
-        utf_iscomposing_combining[98].first = 3968L;
-        utf_iscomposing_combining[98].last = 3972L;
-        utf_iscomposing_combining[99].first = 3974L;
-        utf_iscomposing_combining[99].last = 3975L;
-        utf_iscomposing_combining[100].first = 3981L;
-        utf_iscomposing_combining[100].last = 3991L;
-        utf_iscomposing_combining[101].first = 3993L;
-        utf_iscomposing_combining[101].last = 4028L;
-        utf_iscomposing_combining[102].first = 4038L;
-        utf_iscomposing_combining[102].last = 4038L;
-        utf_iscomposing_combining[103].first = 4141L;
-        utf_iscomposing_combining[103].last = 4144L;
-        utf_iscomposing_combining[104].first = 4146L;
-        utf_iscomposing_combining[104].last = 4151L;
-        utf_iscomposing_combining[105].first = 4153L;
-        utf_iscomposing_combining[105].last = 4154L;
-        utf_iscomposing_combining[106].first = 4157L;
-        utf_iscomposing_combining[106].last = 4158L;
-        utf_iscomposing_combining[107].first = 4184L;
-        utf_iscomposing_combining[107].last = 4185L;
-        utf_iscomposing_combining[108].first = 4190L;
-        utf_iscomposing_combining[108].last = 4192L;
-        utf_iscomposing_combining[109].first = 4209L;
-        utf_iscomposing_combining[109].last = 4212L;
-        utf_iscomposing_combining[110].first = 4226L;
-        utf_iscomposing_combining[110].last = 4226L;
-        utf_iscomposing_combining[111].first = 4229L;
-        utf_iscomposing_combining[111].last = 4230L;
-        utf_iscomposing_combining[112].first = 4237L;
-        utf_iscomposing_combining[112].last = 4237L;
-        utf_iscomposing_combining[113].first = 4253L;
-        utf_iscomposing_combining[113].last = 4253L;
-        utf_iscomposing_combining[114].first = 4957L;
-        utf_iscomposing_combining[114].last = 4959L;
-        utf_iscomposing_combining[115].first = 5906L;
-        utf_iscomposing_combining[115].last = 5908L;
-        utf_iscomposing_combining[116].first = 5938L;
-        utf_iscomposing_combining[116].last = 5939L;
-        utf_iscomposing_combining[117].first = 5970L;
-        utf_iscomposing_combining[117].last = 5971L;
-        utf_iscomposing_combining[118].first = 6002L;
-        utf_iscomposing_combining[118].last = 6003L;
-        utf_iscomposing_combining[119].first = 6068L;
-        utf_iscomposing_combining[119].last = 6069L;
-        utf_iscomposing_combining[120].first = 6071L;
-        utf_iscomposing_combining[120].last = 6077L;
-        utf_iscomposing_combining[121].first = 6086L;
-        utf_iscomposing_combining[121].last = 6086L;
-        utf_iscomposing_combining[122].first = 6089L;
-        utf_iscomposing_combining[122].last = 6099L;
-        utf_iscomposing_combining[123].first = 6109L;
-        utf_iscomposing_combining[123].last = 6109L;
-        utf_iscomposing_combining[124].first = 6155L;
-        utf_iscomposing_combining[124].last = 6157L;
-        utf_iscomposing_combining[125].first = 6159L;
-        utf_iscomposing_combining[125].last = 6159L;
-        utf_iscomposing_combining[126].first = 6277L;
-        utf_iscomposing_combining[126].last = 6278L;
-        utf_iscomposing_combining[127].first = 6313L;
-        utf_iscomposing_combining[127].last = 6313L;
-        utf_iscomposing_combining[128].first = 6432L;
-        utf_iscomposing_combining[128].last = 6434L;
-        utf_iscomposing_combining[129].first = 6439L;
-        utf_iscomposing_combining[129].last = 6440L;
-        utf_iscomposing_combining[130].first = 6450L;
-        utf_iscomposing_combining[130].last = 6450L;
-        utf_iscomposing_combining[131].first = 6457L;
-        utf_iscomposing_combining[131].last = 6459L;
-        utf_iscomposing_combining[132].first = 6679L;
-        utf_iscomposing_combining[132].last = 6680L;
-        utf_iscomposing_combining[133].first = 6683L;
-        utf_iscomposing_combining[133].last = 6683L;
-        utf_iscomposing_combining[134].first = 6742L;
-        utf_iscomposing_combining[134].last = 6742L;
-        utf_iscomposing_combining[135].first = 6744L;
-        utf_iscomposing_combining[135].last = 6750L;
-        utf_iscomposing_combining[136].first = 6752L;
-        utf_iscomposing_combining[136].last = 6752L;
-        utf_iscomposing_combining[137].first = 6754L;
-        utf_iscomposing_combining[137].last = 6754L;
-        utf_iscomposing_combining[138].first = 6757L;
-        utf_iscomposing_combining[138].last = 6764L;
-        utf_iscomposing_combining[139].first = 6771L;
-        utf_iscomposing_combining[139].last = 6780L;
-        utf_iscomposing_combining[140].first = 6783L;
-        utf_iscomposing_combining[140].last = 6783L;
-        utf_iscomposing_combining[141].first = 6832L;
-        utf_iscomposing_combining[141].last = 6862L;
-        utf_iscomposing_combining[142].first = 6912L;
-        utf_iscomposing_combining[142].last = 6915L;
-        utf_iscomposing_combining[143].first = 6964L;
-        utf_iscomposing_combining[143].last = 6964L;
-        utf_iscomposing_combining[144].first = 6966L;
-        utf_iscomposing_combining[144].last = 6970L;
-        utf_iscomposing_combining[145].first = 6972L;
-        utf_iscomposing_combining[145].last = 6972L;
-        utf_iscomposing_combining[146].first = 6978L;
-        utf_iscomposing_combining[146].last = 6978L;
-        utf_iscomposing_combining[147].first = 7019L;
-        utf_iscomposing_combining[147].last = 7027L;
-        utf_iscomposing_combining[148].first = 7040L;
-        utf_iscomposing_combining[148].last = 7041L;
-        utf_iscomposing_combining[149].first = 7074L;
-        utf_iscomposing_combining[149].last = 7077L;
-        utf_iscomposing_combining[150].first = 7080L;
-        utf_iscomposing_combining[150].last = 7081L;
-        utf_iscomposing_combining[151].first = 7083L;
-        utf_iscomposing_combining[151].last = 7085L;
-        utf_iscomposing_combining[152].first = 7142L;
-        utf_iscomposing_combining[152].last = 7142L;
-        utf_iscomposing_combining[153].first = 7144L;
-        utf_iscomposing_combining[153].last = 7145L;
-        utf_iscomposing_combining[154].first = 7149L;
-        utf_iscomposing_combining[154].last = 7149L;
-        utf_iscomposing_combining[155].first = 7151L;
-        utf_iscomposing_combining[155].last = 7153L;
-        utf_iscomposing_combining[156].first = 7212L;
-        utf_iscomposing_combining[156].last = 7219L;
-        utf_iscomposing_combining[157].first = 7222L;
-        utf_iscomposing_combining[157].last = 7223L;
-        utf_iscomposing_combining[158].first = 7376L;
-        utf_iscomposing_combining[158].last = 7378L;
-        utf_iscomposing_combining[159].first = 7380L;
-        utf_iscomposing_combining[159].last = 7392L;
-        utf_iscomposing_combining[160].first = 7394L;
-        utf_iscomposing_combining[160].last = 7400L;
-        utf_iscomposing_combining[161].first = 7405L;
-        utf_iscomposing_combining[161].last = 7405L;
-        utf_iscomposing_combining[162].first = 7412L;
-        utf_iscomposing_combining[162].last = 7412L;
-        utf_iscomposing_combining[163].first = 7416L;
-        utf_iscomposing_combining[163].last = 7417L;
-        utf_iscomposing_combining[164].first = 7616L;
-        utf_iscomposing_combining[164].last = 7679L;
-        utf_iscomposing_combining[165].first = 8400L;
-        utf_iscomposing_combining[165].last = 8432L;
-        utf_iscomposing_combining[166].first = 11503L;
-        utf_iscomposing_combining[166].last = 11505L;
-        utf_iscomposing_combining[167].first = 11647L;
-        utf_iscomposing_combining[167].last = 11647L;
-        utf_iscomposing_combining[168].first = 11744L;
-        utf_iscomposing_combining[168].last = 11775L;
-        utf_iscomposing_combining[169].first = 12330L;
-        utf_iscomposing_combining[169].last = 12333L;
-        utf_iscomposing_combining[170].first = 12441L;
-        utf_iscomposing_combining[170].last = 12442L;
-        utf_iscomposing_combining[171].first = 42607L;
-        utf_iscomposing_combining[171].last = 42610L;
-        utf_iscomposing_combining[172].first = 42612L;
-        utf_iscomposing_combining[172].last = 42621L;
-        utf_iscomposing_combining[173].first = 42654L;
-        utf_iscomposing_combining[173].last = 42655L;
-        utf_iscomposing_combining[174].first = 42736L;
-        utf_iscomposing_combining[174].last = 42737L;
-        utf_iscomposing_combining[175].first = 43010L;
-        utf_iscomposing_combining[175].last = 43010L;
-        utf_iscomposing_combining[176].first = 43014L;
-        utf_iscomposing_combining[176].last = 43014L;
-        utf_iscomposing_combining[177].first = 43019L;
-        utf_iscomposing_combining[177].last = 43019L;
-        utf_iscomposing_combining[178].first = 43045L;
-        utf_iscomposing_combining[178].last = 43046L;
-        utf_iscomposing_combining[179].first = 43052L;
-        utf_iscomposing_combining[179].last = 43052L;
-        utf_iscomposing_combining[180].first = 43204L;
-        utf_iscomposing_combining[180].last = 43205L;
-        utf_iscomposing_combining[181].first = 43232L;
-        utf_iscomposing_combining[181].last = 43249L;
-        utf_iscomposing_combining[182].first = 43263L;
-        utf_iscomposing_combining[182].last = 43263L;
-        utf_iscomposing_combining[183].first = 43302L;
-        utf_iscomposing_combining[183].last = 43309L;
-        utf_iscomposing_combining[184].first = 43335L;
-        utf_iscomposing_combining[184].last = 43345L;
-        utf_iscomposing_combining[185].first = 43392L;
-        utf_iscomposing_combining[185].last = 43394L;
-        utf_iscomposing_combining[186].first = 43443L;
-        utf_iscomposing_combining[186].last = 43443L;
-        utf_iscomposing_combining[187].first = 43446L;
-        utf_iscomposing_combining[187].last = 43449L;
-        utf_iscomposing_combining[188].first = 43452L;
-        utf_iscomposing_combining[188].last = 43453L;
-        utf_iscomposing_combining[189].first = 43493L;
-        utf_iscomposing_combining[189].last = 43493L;
-        utf_iscomposing_combining[190].first = 43561L;
-        utf_iscomposing_combining[190].last = 43566L;
-        utf_iscomposing_combining[191].first = 43569L;
-        utf_iscomposing_combining[191].last = 43570L;
-        utf_iscomposing_combining[192].first = 43573L;
-        utf_iscomposing_combining[192].last = 43574L;
-        utf_iscomposing_combining[193].first = 43587L;
-        utf_iscomposing_combining[193].last = 43587L;
-        utf_iscomposing_combining[194].first = 43596L;
-        utf_iscomposing_combining[194].last = 43596L;
-        utf_iscomposing_combining[195].first = 43644L;
-        utf_iscomposing_combining[195].last = 43644L;
-        utf_iscomposing_combining[196].first = 43696L;
-        utf_iscomposing_combining[196].last = 43696L;
-        utf_iscomposing_combining[197].first = 43698L;
-        utf_iscomposing_combining[197].last = 43700L;
-        utf_iscomposing_combining[198].first = 43703L;
-        utf_iscomposing_combining[198].last = 43704L;
-        utf_iscomposing_combining[199].first = 43710L;
-        utf_iscomposing_combining[199].last = 43711L;
-        utf_iscomposing_combining[200].first = 43713L;
-        utf_iscomposing_combining[200].last = 43713L;
-        utf_iscomposing_combining[201].first = 43756L;
-        utf_iscomposing_combining[201].last = 43757L;
-        utf_iscomposing_combining[202].first = 43766L;
-        utf_iscomposing_combining[202].last = 43766L;
-        utf_iscomposing_combining[203].first = 44005L;
-        utf_iscomposing_combining[203].last = 44005L;
-        utf_iscomposing_combining[204].first = 44008L;
-        utf_iscomposing_combining[204].last = 44008L;
-        utf_iscomposing_combining[205].first = 44013L;
-        utf_iscomposing_combining[205].last = 44013L;
-        utf_iscomposing_combining[206].first = 64286L;
-        utf_iscomposing_combining[206].last = 64286L;
-        utf_iscomposing_combining[207].first = 65024L;
-        utf_iscomposing_combining[207].last = 65039L;
-        utf_iscomposing_combining[208].first = 65056L;
-        utf_iscomposing_combining[208].last = 65071L;
-        utf_iscomposing_combining[209].first = 66045L;
-        utf_iscomposing_combining[209].last = 66045L;
-        utf_iscomposing_combining[210].first = 66272L;
-        utf_iscomposing_combining[210].last = 66272L;
-        utf_iscomposing_combining[211].first = 66422L;
-        utf_iscomposing_combining[211].last = 66426L;
-        utf_iscomposing_combining[212].first = 68097L;
-        utf_iscomposing_combining[212].last = 68099L;
-        utf_iscomposing_combining[213].first = 68101L;
-        utf_iscomposing_combining[213].last = 68102L;
-        utf_iscomposing_combining[214].first = 68108L;
-        utf_iscomposing_combining[214].last = 68111L;
-        utf_iscomposing_combining[215].first = 68152L;
-        utf_iscomposing_combining[215].last = 68154L;
-        utf_iscomposing_combining[216].first = 68159L;
-        utf_iscomposing_combining[216].last = 68159L;
-        utf_iscomposing_combining[217].first = 68325L;
-        utf_iscomposing_combining[217].last = 68326L;
-        utf_iscomposing_combining[218].first = 68900L;
-        utf_iscomposing_combining[218].last = 68903L;
-        utf_iscomposing_combining[219].first = 68969L;
-        utf_iscomposing_combining[219].last = 68973L;
-        utf_iscomposing_combining[220].first = 69291L;
-        utf_iscomposing_combining[220].last = 69292L;
-        utf_iscomposing_combining[221].first = 69372L;
-        utf_iscomposing_combining[221].last = 69375L;
-        utf_iscomposing_combining[222].first = 69446L;
-        utf_iscomposing_combining[222].last = 69456L;
-        utf_iscomposing_combining[223].first = 69506L;
-        utf_iscomposing_combining[223].last = 69509L;
-        utf_iscomposing_combining[224].first = 69633L;
-        utf_iscomposing_combining[224].last = 69633L;
-        utf_iscomposing_combining[225].first = 69688L;
-        utf_iscomposing_combining[225].last = 69702L;
-        utf_iscomposing_combining[226].first = 69744L;
-        utf_iscomposing_combining[226].last = 69744L;
-        utf_iscomposing_combining[227].first = 69747L;
-        utf_iscomposing_combining[227].last = 69748L;
-        utf_iscomposing_combining[228].first = 69759L;
-        utf_iscomposing_combining[228].last = 69761L;
-        utf_iscomposing_combining[229].first = 69811L;
-        utf_iscomposing_combining[229].last = 69814L;
-        utf_iscomposing_combining[230].first = 69817L;
-        utf_iscomposing_combining[230].last = 69818L;
-        utf_iscomposing_combining[231].first = 69826L;
-        utf_iscomposing_combining[231].last = 69826L;
-        utf_iscomposing_combining[232].first = 69888L;
-        utf_iscomposing_combining[232].last = 69890L;
-        utf_iscomposing_combining[233].first = 69927L;
-        utf_iscomposing_combining[233].last = 69931L;
-        utf_iscomposing_combining[234].first = 69933L;
-        utf_iscomposing_combining[234].last = 69940L;
-        utf_iscomposing_combining[235].first = 70003L;
-        utf_iscomposing_combining[235].last = 70003L;
-        utf_iscomposing_combining[236].first = 70016L;
-        utf_iscomposing_combining[236].last = 70017L;
-        utf_iscomposing_combining[237].first = 70070L;
-        utf_iscomposing_combining[237].last = 70078L;
-        utf_iscomposing_combining[238].first = 70089L;
-        utf_iscomposing_combining[238].last = 70092L;
-        utf_iscomposing_combining[239].first = 70095L;
-        utf_iscomposing_combining[239].last = 70095L;
-        utf_iscomposing_combining[240].first = 70191L;
-        utf_iscomposing_combining[240].last = 70193L;
-        utf_iscomposing_combining[241].first = 70196L;
-        utf_iscomposing_combining[241].last = 70196L;
-        utf_iscomposing_combining[242].first = 70198L;
-        utf_iscomposing_combining[242].last = 70199L;
-        utf_iscomposing_combining[243].first = 70206L;
-        utf_iscomposing_combining[243].last = 70206L;
-        utf_iscomposing_combining[244].first = 70209L;
-        utf_iscomposing_combining[244].last = 70209L;
-        utf_iscomposing_combining[245].first = 70367L;
-        utf_iscomposing_combining[245].last = 70367L;
-        utf_iscomposing_combining[246].first = 70371L;
-        utf_iscomposing_combining[246].last = 70378L;
-        utf_iscomposing_combining[247].first = 70400L;
-        utf_iscomposing_combining[247].last = 70401L;
-        utf_iscomposing_combining[248].first = 70459L;
-        utf_iscomposing_combining[248].last = 70460L;
-        utf_iscomposing_combining[249].first = 70464L;
-        utf_iscomposing_combining[249].last = 70464L;
-        utf_iscomposing_combining[250].first = 70502L;
-        utf_iscomposing_combining[250].last = 70508L;
-        utf_iscomposing_combining[251].first = 70512L;
-        utf_iscomposing_combining[251].last = 70516L;
-        utf_iscomposing_combining[252].first = 70587L;
-        utf_iscomposing_combining[252].last = 70592L;
-        utf_iscomposing_combining[253].first = 70606L;
-        utf_iscomposing_combining[253].last = 70606L;
-        utf_iscomposing_combining[254].first = 70608L;
-        utf_iscomposing_combining[254].last = 70608L;
-        utf_iscomposing_combining[255].first = 70610L;
-        utf_iscomposing_combining[255].last = 70610L;
-        utf_iscomposing_combining[256].first = 70625L;
-        utf_iscomposing_combining[256].last = 70626L;
-        utf_iscomposing_combining[257].first = 70712L;
-        utf_iscomposing_combining[257].last = 70719L;
-        utf_iscomposing_combining[258].first = 70722L;
-        utf_iscomposing_combining[258].last = 70724L;
-        utf_iscomposing_combining[259].first = 70726L;
-        utf_iscomposing_combining[259].last = 70726L;
-        utf_iscomposing_combining[260].first = 70750L;
-        utf_iscomposing_combining[260].last = 70750L;
-        utf_iscomposing_combining[261].first = 70835L;
-        utf_iscomposing_combining[261].last = 70840L;
-        utf_iscomposing_combining[262].first = 70842L;
-        utf_iscomposing_combining[262].last = 70842L;
-        utf_iscomposing_combining[263].first = 70847L;
-        utf_iscomposing_combining[263].last = 70848L;
-        utf_iscomposing_combining[264].first = 70850L;
-        utf_iscomposing_combining[264].last = 70851L;
-        utf_iscomposing_combining[265].first = 71090L;
-        utf_iscomposing_combining[265].last = 71093L;
-        utf_iscomposing_combining[266].first = 71100L;
-        utf_iscomposing_combining[266].last = 71101L;
-        utf_iscomposing_combining[267].first = 71103L;
-        utf_iscomposing_combining[267].last = 71104L;
-        utf_iscomposing_combining[268].first = 71132L;
-        utf_iscomposing_combining[268].last = 71133L;
-        utf_iscomposing_combining[269].first = 71219L;
-        utf_iscomposing_combining[269].last = 71226L;
-        utf_iscomposing_combining[270].first = 71229L;
-        utf_iscomposing_combining[270].last = 71229L;
-        utf_iscomposing_combining[271].first = 71231L;
-        utf_iscomposing_combining[271].last = 71232L;
-        utf_iscomposing_combining[272].first = 71339L;
-        utf_iscomposing_combining[272].last = 71339L;
-        utf_iscomposing_combining[273].first = 71341L;
-        utf_iscomposing_combining[273].last = 71341L;
-        utf_iscomposing_combining[274].first = 71344L;
-        utf_iscomposing_combining[274].last = 71349L;
-        utf_iscomposing_combining[275].first = 71351L;
-        utf_iscomposing_combining[275].last = 71351L;
-        utf_iscomposing_combining[276].first = 71453L;
-        utf_iscomposing_combining[276].last = 71453L;
-        utf_iscomposing_combining[277].first = 71455L;
-        utf_iscomposing_combining[277].last = 71455L;
-        utf_iscomposing_combining[278].first = 71458L;
-        utf_iscomposing_combining[278].last = 71461L;
-        utf_iscomposing_combining[279].first = 71463L;
-        utf_iscomposing_combining[279].last = 71467L;
-        utf_iscomposing_combining[280].first = 71727L;
-        utf_iscomposing_combining[280].last = 71735L;
-        utf_iscomposing_combining[281].first = 71737L;
-        utf_iscomposing_combining[281].last = 71738L;
-        utf_iscomposing_combining[282].first = 71995L;
-        utf_iscomposing_combining[282].last = 71996L;
-        utf_iscomposing_combining[283].first = 71998L;
-        utf_iscomposing_combining[283].last = 71998L;
-        utf_iscomposing_combining[284].first = 72003L;
-        utf_iscomposing_combining[284].last = 72003L;
-        utf_iscomposing_combining[285].first = 72148L;
-        utf_iscomposing_combining[285].last = 72151L;
-        utf_iscomposing_combining[286].first = 72154L;
-        utf_iscomposing_combining[286].last = 72155L;
-        utf_iscomposing_combining[287].first = 72160L;
-        utf_iscomposing_combining[287].last = 72160L;
-        utf_iscomposing_combining[288].first = 72193L;
-        utf_iscomposing_combining[288].last = 72202L;
-        utf_iscomposing_combining[289].first = 72243L;
-        utf_iscomposing_combining[289].last = 72248L;
-        utf_iscomposing_combining[290].first = 72251L;
-        utf_iscomposing_combining[290].last = 72254L;
-        utf_iscomposing_combining[291].first = 72263L;
-        utf_iscomposing_combining[291].last = 72263L;
-        utf_iscomposing_combining[292].first = 72273L;
-        utf_iscomposing_combining[292].last = 72278L;
-        utf_iscomposing_combining[293].first = 72281L;
-        utf_iscomposing_combining[293].last = 72283L;
-        utf_iscomposing_combining[294].first = 72330L;
-        utf_iscomposing_combining[294].last = 72342L;
-        utf_iscomposing_combining[295].first = 72344L;
-        utf_iscomposing_combining[295].last = 72345L;
-        utf_iscomposing_combining[296].first = 72752L;
-        utf_iscomposing_combining[296].last = 72758L;
-        utf_iscomposing_combining[297].first = 72760L;
-        utf_iscomposing_combining[297].last = 72765L;
-        utf_iscomposing_combining[298].first = 72767L;
-        utf_iscomposing_combining[298].last = 72767L;
-        utf_iscomposing_combining[299].first = 72850L;
-        utf_iscomposing_combining[299].last = 72871L;
-        utf_iscomposing_combining[300].first = 72874L;
-        utf_iscomposing_combining[300].last = 72880L;
-        utf_iscomposing_combining[301].first = 72882L;
-        utf_iscomposing_combining[301].last = 72883L;
-        utf_iscomposing_combining[302].first = 72885L;
-        utf_iscomposing_combining[302].last = 72886L;
-        utf_iscomposing_combining[303].first = 73009L;
-        utf_iscomposing_combining[303].last = 73014L;
-        utf_iscomposing_combining[304].first = 73018L;
-        utf_iscomposing_combining[304].last = 73018L;
-        utf_iscomposing_combining[305].first = 73020L;
-        utf_iscomposing_combining[305].last = 73021L;
-        utf_iscomposing_combining[306].first = 73023L;
-        utf_iscomposing_combining[306].last = 73029L;
-        utf_iscomposing_combining[307].first = 73031L;
-        utf_iscomposing_combining[307].last = 73031L;
-        utf_iscomposing_combining[308].first = 73104L;
-        utf_iscomposing_combining[308].last = 73105L;
-        utf_iscomposing_combining[309].first = 73109L;
-        utf_iscomposing_combining[309].last = 73109L;
-        utf_iscomposing_combining[310].first = 73111L;
-        utf_iscomposing_combining[310].last = 73111L;
-        utf_iscomposing_combining[311].first = 73459L;
-        utf_iscomposing_combining[311].last = 73460L;
-        utf_iscomposing_combining[312].first = 73472L;
-        utf_iscomposing_combining[312].last = 73473L;
-        utf_iscomposing_combining[313].first = 73526L;
-        utf_iscomposing_combining[313].last = 73530L;
-        utf_iscomposing_combining[314].first = 73536L;
-        utf_iscomposing_combining[314].last = 73536L;
-        utf_iscomposing_combining[315].first = 73538L;
-        utf_iscomposing_combining[315].last = 73538L;
-        utf_iscomposing_combining[316].first = 73562L;
-        utf_iscomposing_combining[316].last = 73562L;
-        utf_iscomposing_combining[317].first = 78912L;
-        utf_iscomposing_combining[317].last = 78912L;
-        utf_iscomposing_combining[318].first = 78919L;
-        utf_iscomposing_combining[318].last = 78933L;
-        utf_iscomposing_combining[319].first = 90398L;
-        utf_iscomposing_combining[319].last = 90409L;
-        utf_iscomposing_combining[320].first = 90413L;
-        utf_iscomposing_combining[320].last = 90415L;
-        utf_iscomposing_combining[321].first = 92912L;
-        utf_iscomposing_combining[321].last = 92916L;
-        utf_iscomposing_combining[322].first = 92976L;
-        utf_iscomposing_combining[322].last = 92982L;
-        utf_iscomposing_combining[323].first = 94031L;
-        utf_iscomposing_combining[323].last = 94031L;
-        utf_iscomposing_combining[324].first = 94095L;
-        utf_iscomposing_combining[324].last = 94098L;
-        utf_iscomposing_combining[325].first = 94180L;
-        utf_iscomposing_combining[325].last = 94180L;
-        utf_iscomposing_combining[326].first = 113821L;
-        utf_iscomposing_combining[326].last = 113822L;
-        utf_iscomposing_combining[327].first = 118528L;
-        utf_iscomposing_combining[327].last = 118573L;
-        utf_iscomposing_combining[328].first = 118576L;
-        utf_iscomposing_combining[328].last = 118598L;
-        utf_iscomposing_combining[329].first = 119143L;
-        utf_iscomposing_combining[329].last = 119145L;
-        utf_iscomposing_combining[330].first = 119163L;
-        utf_iscomposing_combining[330].last = 119170L;
-        utf_iscomposing_combining[331].first = 119173L;
-        utf_iscomposing_combining[331].last = 119179L;
-        utf_iscomposing_combining[332].first = 119210L;
-        utf_iscomposing_combining[332].last = 119213L;
-        utf_iscomposing_combining[333].first = 119362L;
-        utf_iscomposing_combining[333].last = 119364L;
-        utf_iscomposing_combining[334].first = 121344L;
-        utf_iscomposing_combining[334].last = 121398L;
-        utf_iscomposing_combining[335].first = 121403L;
-        utf_iscomposing_combining[335].last = 121452L;
-        utf_iscomposing_combining[336].first = 121461L;
-        utf_iscomposing_combining[336].last = 121461L;
-        utf_iscomposing_combining[337].first = 121476L;
-        utf_iscomposing_combining[337].last = 121476L;
-        utf_iscomposing_combining[338].first = 121499L;
-        utf_iscomposing_combining[338].last = 121503L;
-        utf_iscomposing_combining[339].first = 121505L;
-        utf_iscomposing_combining[339].last = 121519L;
-        utf_iscomposing_combining[340].first = 122880L;
-        utf_iscomposing_combining[340].last = 122886L;
-        utf_iscomposing_combining[341].first = 122888L;
-        utf_iscomposing_combining[341].last = 122904L;
-        utf_iscomposing_combining[342].first = 122907L;
-        utf_iscomposing_combining[342].last = 122913L;
-        utf_iscomposing_combining[343].first = 122915L;
-        utf_iscomposing_combining[343].last = 122916L;
-        utf_iscomposing_combining[344].first = 122918L;
-        utf_iscomposing_combining[344].last = 122922L;
-        utf_iscomposing_combining[345].first = 123023L;
-        utf_iscomposing_combining[345].last = 123023L;
-        utf_iscomposing_combining[346].first = 123184L;
-        utf_iscomposing_combining[346].last = 123190L;
-        utf_iscomposing_combining[347].first = 123566L;
-        utf_iscomposing_combining[347].last = 123566L;
-        utf_iscomposing_combining[348].first = 123628L;
-        utf_iscomposing_combining[348].last = 123631L;
-        utf_iscomposing_combining[349].first = 124140L;
-        utf_iscomposing_combining[349].last = 124143L;
-        utf_iscomposing_combining[350].first = 124398L;
-        utf_iscomposing_combining[350].last = 124399L;
-        utf_iscomposing_combining[351].first = 125136L;
-        utf_iscomposing_combining[351].last = 125142L;
-        utf_iscomposing_combining[352].first = 125252L;
-        utf_iscomposing_combining[352].last = 125258L;
-        utf_iscomposing_combining[353].first = 917760L;
-        utf_iscomposing_combining[353].last = 917999L;
+    private void initGlobals7() {
+        Rt.rows(utf_char2cells_emoji_wide,
+            new S_interval(9197L, 9199L),
+            new S_interval(9201L, 9202L),
+            new S_interval(9208L, 9210L),
+            new S_interval(9410L, 9410L),
+            new S_interval(9757L, 9757L),
+            new S_interval(9928L, 9928L),
+            new S_interval(9935L, 9935L),
+            new S_interval(9937L, 9937L),
+            new S_interval(9939L, 9939L),
+            new S_interval(9961L, 9961L),
+            new S_interval(9968L, 9969L),
+            new S_interval(9975L, 9977L),
+            new S_interval(9996L, 9997L),
+            new S_interval(10548L, 10549L),
+            new S_interval(127344L, 127369L),
+            new S_interval(127462L, 127487L),
+            new S_interval(127777L, 127777L),
+            new S_interval(127780L, 127788L),
+            new S_interval(127798L, 127798L),
+            new S_interval(127869L, 127869L),
+            new S_interval(127894L, 127895L),
+            new S_interval(127897L, 127899L),
+            new S_interval(127902L, 127903L),
+            new S_interval(127947L, 127950L),
+            new S_interval(127956L, 127967L),
+            new S_interval(127987L, 127989L),
+            new S_interval(127991L, 127991L),
+            new S_interval(128063L, 128063L),
+            new S_interval(128065L, 128065L),
+            new S_interval(128253L, 128253L),
+            new S_interval(128329L, 128330L),
+            new S_interval(128367L, 128368L),
+            new S_interval(128371L, 128377L),
+            new S_interval(128391L, 128391L),
+            new S_interval(128394L, 128397L),
+            new S_interval(128400L, 128400L),
+            new S_interval(128421L, 128421L),
+            new S_interval(128424L, 128424L),
+            new S_interval(128433L, 128434L),
+            new S_interval(128444L, 128444L),
+            new S_interval(128450L, 128452L),
+            new S_interval(128465L, 128467L),
+            new S_interval(128476L, 128478L),
+            new S_interval(128481L, 128481L),
+            new S_interval(128483L, 128483L),
+            new S_interval(128488L, 128488L),
+            new S_interval(128495L, 128495L),
+            new S_interval(128499L, 128499L),
+            new S_interval(128506L, 128506L),
+            new S_interval(128715L, 128719L),
+            new S_interval(128736L, 128741L),
+            new S_interval(128745L, 128745L),
+            new S_interval(128752L, 128752L),
+            new S_interval(128755L, 128755L));
+        Rt.rows(utf_iscomposing_combining,
+            new S_interval(768L, 879L),
+            new S_interval(1155L, 1161L),
+            new S_interval(1425L, 1469L),
+            new S_interval(1471L, 1471L),
+            new S_interval(1473L, 1474L),
+            new S_interval(1476L, 1477L),
+            new S_interval(1479L, 1479L),
+            new S_interval(1552L, 1562L),
+            new S_interval(1611L, 1631L),
+            new S_interval(1648L, 1648L),
+            new S_interval(1750L, 1756L),
+            new S_interval(1759L, 1764L),
+            new S_interval(1767L, 1768L),
+            new S_interval(1770L, 1773L),
+            new S_interval(1809L, 1809L),
+            new S_interval(1840L, 1866L),
+            new S_interval(1958L, 1968L),
+            new S_interval(2027L, 2035L),
+            new S_interval(2045L, 2045L),
+            new S_interval(2070L, 2073L),
+            new S_interval(2075L, 2083L),
+            new S_interval(2085L, 2087L),
+            new S_interval(2089L, 2093L),
+            new S_interval(2137L, 2139L),
+            new S_interval(2199L, 2207L),
+            new S_interval(2250L, 2273L),
+            new S_interval(2275L, 2306L),
+            new S_interval(2362L, 2362L),
+            new S_interval(2364L, 2364L),
+            new S_interval(2369L, 2376L),
+            new S_interval(2381L, 2381L),
+            new S_interval(2385L, 2391L),
+            new S_interval(2402L, 2403L),
+            new S_interval(2433L, 2433L),
+            new S_interval(2492L, 2492L),
+            new S_interval(2497L, 2500L),
+            new S_interval(2509L, 2509L),
+            new S_interval(2530L, 2531L),
+            new S_interval(2558L, 2558L),
+            new S_interval(2561L, 2562L),
+            new S_interval(2620L, 2620L),
+            new S_interval(2625L, 2626L),
+            new S_interval(2631L, 2632L),
+            new S_interval(2635L, 2637L),
+            new S_interval(2641L, 2641L),
+            new S_interval(2672L, 2673L),
+            new S_interval(2677L, 2677L),
+            new S_interval(2689L, 2690L),
+            new S_interval(2748L, 2748L),
+            new S_interval(2753L, 2757L),
+            new S_interval(2759L, 2760L),
+            new S_interval(2765L, 2765L),
+            new S_interval(2786L, 2787L),
+            new S_interval(2810L, 2815L),
+            new S_interval(2817L, 2817L),
+            new S_interval(2876L, 2876L),
+            new S_interval(2879L, 2879L),
+            new S_interval(2881L, 2884L),
+            new S_interval(2893L, 2893L),
+            new S_interval(2901L, 2902L),
+            new S_interval(2914L, 2915L),
+            new S_interval(2946L, 2946L),
+            new S_interval(3008L, 3008L),
+            new S_interval(3021L, 3021L),
+            new S_interval(3072L, 3072L),
+            new S_interval(3076L, 3076L),
+            new S_interval(3132L, 3132L),
+            new S_interval(3134L, 3136L),
+            new S_interval(3142L, 3144L),
+            new S_interval(3146L, 3149L),
+            new S_interval(3157L, 3158L),
+            new S_interval(3170L, 3171L),
+            new S_interval(3201L, 3201L),
+            new S_interval(3260L, 3260L),
+            new S_interval(3263L, 3263L),
+            new S_interval(3270L, 3270L),
+            new S_interval(3276L, 3277L),
+            new S_interval(3298L, 3299L),
+            new S_interval(3328L, 3329L),
+            new S_interval(3387L, 3388L),
+            new S_interval(3393L, 3396L),
+            new S_interval(3405L, 3405L),
+            new S_interval(3426L, 3427L),
+            new S_interval(3457L, 3457L),
+            new S_interval(3530L, 3530L),
+            new S_interval(3538L, 3540L),
+            new S_interval(3542L, 3542L),
+            new S_interval(3633L, 3633L),
+            new S_interval(3636L, 3642L),
+            new S_interval(3655L, 3662L),
+            new S_interval(3761L, 3761L),
+            new S_interval(3764L, 3772L),
+            new S_interval(3784L, 3790L),
+            new S_interval(3864L, 3865L),
+            new S_interval(3893L, 3893L),
+            new S_interval(3895L, 3895L),
+            new S_interval(3897L, 3897L),
+            new S_interval(3953L, 3966L),
+            new S_interval(3968L, 3972L),
+            new S_interval(3974L, 3975L),
+            new S_interval(3981L, 3991L),
+            new S_interval(3993L, 4028L),
+            new S_interval(4038L, 4038L),
+            new S_interval(4141L, 4144L),
+            new S_interval(4146L, 4151L),
+            new S_interval(4153L, 4154L),
+            new S_interval(4157L, 4158L),
+            new S_interval(4184L, 4185L),
+            new S_interval(4190L, 4192L),
+            new S_interval(4209L, 4212L),
+            new S_interval(4226L, 4226L),
+            new S_interval(4229L, 4230L),
+            new S_interval(4237L, 4237L),
+            new S_interval(4253L, 4253L),
+            new S_interval(4957L, 4959L),
+            new S_interval(5906L, 5908L),
+            new S_interval(5938L, 5939L),
+            new S_interval(5970L, 5971L),
+            new S_interval(6002L, 6003L),
+            new S_interval(6068L, 6069L),
+            new S_interval(6071L, 6077L),
+            new S_interval(6086L, 6086L),
+            new S_interval(6089L, 6099L),
+            new S_interval(6109L, 6109L),
+            new S_interval(6155L, 6157L),
+            new S_interval(6159L, 6159L),
+            new S_interval(6277L, 6278L),
+            new S_interval(6313L, 6313L),
+            new S_interval(6432L, 6434L),
+            new S_interval(6439L, 6440L),
+            new S_interval(6450L, 6450L),
+            new S_interval(6457L, 6459L),
+            new S_interval(6679L, 6680L),
+            new S_interval(6683L, 6683L),
+            new S_interval(6742L, 6742L),
+            new S_interval(6744L, 6750L),
+            new S_interval(6752L, 6752L),
+            new S_interval(6754L, 6754L),
+            new S_interval(6757L, 6764L),
+            new S_interval(6771L, 6780L),
+            new S_interval(6783L, 6783L),
+            new S_interval(6832L, 6862L),
+            new S_interval(6912L, 6915L),
+            new S_interval(6964L, 6964L),
+            new S_interval(6966L, 6970L),
+            new S_interval(6972L, 6972L),
+            new S_interval(6978L, 6978L),
+            new S_interval(7019L, 7027L),
+            new S_interval(7040L, 7041L),
+            new S_interval(7074L, 7077L),
+            new S_interval(7080L, 7081L),
+            new S_interval(7083L, 7085L),
+            new S_interval(7142L, 7142L),
+            new S_interval(7144L, 7145L),
+            new S_interval(7149L, 7149L),
+            new S_interval(7151L, 7153L),
+            new S_interval(7212L, 7219L),
+            new S_interval(7222L, 7223L),
+            new S_interval(7376L, 7378L),
+            new S_interval(7380L, 7392L),
+            new S_interval(7394L, 7400L),
+            new S_interval(7405L, 7405L),
+            new S_interval(7412L, 7412L),
+            new S_interval(7416L, 7417L),
+            new S_interval(7616L, 7679L),
+            new S_interval(8400L, 8432L),
+            new S_interval(11503L, 11505L),
+            new S_interval(11647L, 11647L),
+            new S_interval(11744L, 11775L),
+            new S_interval(12330L, 12333L),
+            new S_interval(12441L, 12442L),
+            new S_interval(42607L, 42610L),
+            new S_interval(42612L, 42621L),
+            new S_interval(42654L, 42655L),
+            new S_interval(42736L, 42737L),
+            new S_interval(43010L, 43010L),
+            new S_interval(43014L, 43014L),
+            new S_interval(43019L, 43019L),
+            new S_interval(43045L, 43046L),
+            new S_interval(43052L, 43052L),
+            new S_interval(43204L, 43205L),
+            new S_interval(43232L, 43249L),
+            new S_interval(43263L, 43263L),
+            new S_interval(43302L, 43309L),
+            new S_interval(43335L, 43345L),
+            new S_interval(43392L, 43394L),
+            new S_interval(43443L, 43443L),
+            new S_interval(43446L, 43449L),
+            new S_interval(43452L, 43453L),
+            new S_interval(43493L, 43493L),
+            new S_interval(43561L, 43566L),
+            new S_interval(43569L, 43570L),
+            new S_interval(43573L, 43574L),
+            new S_interval(43587L, 43587L),
+            new S_interval(43596L, 43596L),
+            new S_interval(43644L, 43644L),
+            new S_interval(43696L, 43696L),
+            new S_interval(43698L, 43700L),
+            new S_interval(43703L, 43704L),
+            new S_interval(43710L, 43711L),
+            new S_interval(43713L, 43713L),
+            new S_interval(43756L, 43757L),
+            new S_interval(43766L, 43766L),
+            new S_interval(44005L, 44005L),
+            new S_interval(44008L, 44008L),
+            new S_interval(44013L, 44013L),
+            new S_interval(64286L, 64286L),
+            new S_interval(65024L, 65039L),
+            new S_interval(65056L, 65071L),
+            new S_interval(66045L, 66045L),
+            new S_interval(66272L, 66272L),
+            new S_interval(66422L, 66426L),
+            new S_interval(68097L, 68099L),
+            new S_interval(68101L, 68102L),
+            new S_interval(68108L, 68111L),
+            new S_interval(68152L, 68154L),
+            new S_interval(68159L, 68159L),
+            new S_interval(68325L, 68326L),
+            new S_interval(68900L, 68903L),
+            new S_interval(68969L, 68973L),
+            new S_interval(69291L, 69292L),
+            new S_interval(69372L, 69375L),
+            new S_interval(69446L, 69456L),
+            new S_interval(69506L, 69509L),
+            new S_interval(69633L, 69633L),
+            new S_interval(69688L, 69702L),
+            new S_interval(69744L, 69744L),
+            new S_interval(69747L, 69748L),
+            new S_interval(69759L, 69761L),
+            new S_interval(69811L, 69814L),
+            new S_interval(69817L, 69818L),
+            new S_interval(69826L, 69826L),
+            new S_interval(69888L, 69890L),
+            new S_interval(69927L, 69931L),
+            new S_interval(69933L, 69940L),
+            new S_interval(70003L, 70003L),
+            new S_interval(70016L, 70017L),
+            new S_interval(70070L, 70078L),
+            new S_interval(70089L, 70092L),
+            new S_interval(70095L, 70095L),
+            new S_interval(70191L, 70193L),
+            new S_interval(70196L, 70196L),
+            new S_interval(70198L, 70199L),
+            new S_interval(70206L, 70206L),
+            new S_interval(70209L, 70209L),
+            new S_interval(70367L, 70367L),
+            new S_interval(70371L, 70378L),
+            new S_interval(70400L, 70401L),
+            new S_interval(70459L, 70460L),
+            new S_interval(70464L, 70464L),
+            new S_interval(70502L, 70508L),
+            new S_interval(70512L, 70516L),
+            new S_interval(70587L, 70592L),
+            new S_interval(70606L, 70606L),
+            new S_interval(70608L, 70608L),
+            new S_interval(70610L, 70610L),
+            new S_interval(70625L, 70626L),
+            new S_interval(70712L, 70719L),
+            new S_interval(70722L, 70724L),
+            new S_interval(70726L, 70726L),
+            new S_interval(70750L, 70750L),
+            new S_interval(70835L, 70840L),
+            new S_interval(70842L, 70842L),
+            new S_interval(70847L, 70848L),
+            new S_interval(70850L, 70851L),
+            new S_interval(71090L, 71093L),
+            new S_interval(71100L, 71101L),
+            new S_interval(71103L, 71104L),
+            new S_interval(71132L, 71133L),
+            new S_interval(71219L, 71226L),
+            new S_interval(71229L, 71229L),
+            new S_interval(71231L, 71232L),
+            new S_interval(71339L, 71339L),
+            new S_interval(71341L, 71341L),
+            new S_interval(71344L, 71349L),
+            new S_interval(71351L, 71351L),
+            new S_interval(71453L, 71453L),
+            new S_interval(71455L, 71455L),
+            new S_interval(71458L, 71461L),
+            new S_interval(71463L, 71467L),
+            new S_interval(71727L, 71735L),
+            new S_interval(71737L, 71738L),
+            new S_interval(71995L, 71996L),
+            new S_interval(71998L, 71998L),
+            new S_interval(72003L, 72003L),
+            new S_interval(72148L, 72151L),
+            new S_interval(72154L, 72155L),
+            new S_interval(72160L, 72160L),
+            new S_interval(72193L, 72202L),
+            new S_interval(72243L, 72248L),
+            new S_interval(72251L, 72254L),
+            new S_interval(72263L, 72263L),
+            new S_interval(72273L, 72278L),
+            new S_interval(72281L, 72283L),
+            new S_interval(72330L, 72342L),
+            new S_interval(72344L, 72345L),
+            new S_interval(72752L, 72758L),
+            new S_interval(72760L, 72765L),
+            new S_interval(72767L, 72767L),
+            new S_interval(72850L, 72871L),
+            new S_interval(72874L, 72880L),
+            new S_interval(72882L, 72883L),
+            new S_interval(72885L, 72886L),
+            new S_interval(73009L, 73014L),
+            new S_interval(73018L, 73018L),
+            new S_interval(73020L, 73021L),
+            new S_interval(73023L, 73029L),
+            new S_interval(73031L, 73031L),
+            new S_interval(73104L, 73105L),
+            new S_interval(73109L, 73109L),
+            new S_interval(73111L, 73111L),
+            new S_interval(73459L, 73460L),
+            new S_interval(73472L, 73473L),
+            new S_interval(73526L, 73530L),
+            new S_interval(73536L, 73536L),
+            new S_interval(73538L, 73538L),
+            new S_interval(73562L, 73562L),
+            new S_interval(78912L, 78912L),
+            new S_interval(78919L, 78933L),
+            new S_interval(90398L, 90409L),
+            new S_interval(90413L, 90415L),
+            new S_interval(92912L, 92916L),
+            new S_interval(92976L, 92982L),
+            new S_interval(94031L, 94031L),
+            new S_interval(94095L, 94098L),
+            new S_interval(94180L, 94180L),
+            new S_interval(113821L, 113822L),
+            new S_interval(118528L, 118573L),
+            new S_interval(118576L, 118598L),
+            new S_interval(119143L, 119145L),
+            new S_interval(119163L, 119170L),
+            new S_interval(119173L, 119179L),
+            new S_interval(119210L, 119213L),
+            new S_interval(119362L, 119364L),
+            new S_interval(121344L, 121398L),
+            new S_interval(121403L, 121452L),
+            new S_interval(121461L, 121461L),
+            new S_interval(121476L, 121476L),
+            new S_interval(121499L, 121503L),
+            new S_interval(121505L, 121519L),
+            new S_interval(122880L, 122886L),
+            new S_interval(122888L, 122904L),
+            new S_interval(122907L, 122913L),
+            new S_interval(122915L, 122916L),
+            new S_interval(122918L, 122922L),
+            new S_interval(123023L, 123023L),
+            new S_interval(123184L, 123190L),
+            new S_interval(123566L, 123566L),
+            new S_interval(123628L, 123631L),
+            new S_interval(124140L, 124143L),
+            new S_interval(124398L, 124399L),
+            new S_interval(125136L, 125142L),
+            new S_interval(125252L, 125258L),
+            new S_interval(917760L, 917999L));
     }
 
-    private void initGlobals14() {
-        utf_printable_nonprint[0].first = 1807L;
-        utf_printable_nonprint[0].last = 1807L;
-        utf_printable_nonprint[1].first = 6155L;
-        utf_printable_nonprint[1].last = 6158L;
-        utf_printable_nonprint[2].first = 8203L;
-        utf_printable_nonprint[2].last = 8207L;
-        utf_printable_nonprint[3].first = 8234L;
-        utf_printable_nonprint[3].last = 8238L;
-        utf_printable_nonprint[4].first = 8288L;
-        utf_printable_nonprint[4].last = 8303L;
-        utf_printable_nonprint[5].first = 55296L;
-        utf_printable_nonprint[5].last = 57343L;
-        utf_printable_nonprint[6].first = 65279L;
-        utf_printable_nonprint[6].last = 65279L;
-        utf_printable_nonprint[7].first = 65529L;
-        utf_printable_nonprint[7].last = 65531L;
-        utf_printable_nonprint[8].first = 65534L;
-        utf_printable_nonprint[8].last = 65535L;
-        utf_class_buf_classes[0].first = 894;
-        utf_class_buf_classes[0].last = 894;
-        utf_class_buf_classes[0].class_ = 1;
-        utf_class_buf_classes[1].first = 903;
-        utf_class_buf_classes[1].last = 903;
-        utf_class_buf_classes[1].class_ = 1;
-        utf_class_buf_classes[2].first = 1370;
-        utf_class_buf_classes[2].last = 1375;
-        utf_class_buf_classes[2].class_ = 1;
-        utf_class_buf_classes[3].first = 1417;
-        utf_class_buf_classes[3].last = 1417;
-        utf_class_buf_classes[3].class_ = 1;
-        utf_class_buf_classes[4].first = 1470;
-        utf_class_buf_classes[4].last = 1470;
-        utf_class_buf_classes[4].class_ = 1;
-        utf_class_buf_classes[5].first = 1472;
-        utf_class_buf_classes[5].last = 1472;
-        utf_class_buf_classes[5].class_ = 1;
-        utf_class_buf_classes[6].first = 1475;
-        utf_class_buf_classes[6].last = 1475;
-        utf_class_buf_classes[6].class_ = 1;
-        utf_class_buf_classes[7].first = 1523;
-        utf_class_buf_classes[7].last = 1524;
-        utf_class_buf_classes[7].class_ = 1;
-        utf_class_buf_classes[8].first = 1548;
-        utf_class_buf_classes[8].last = 1548;
-        utf_class_buf_classes[8].class_ = 1;
-        utf_class_buf_classes[9].first = 1563;
-        utf_class_buf_classes[9].last = 1563;
-        utf_class_buf_classes[9].class_ = 1;
-        utf_class_buf_classes[10].first = 1567;
-        utf_class_buf_classes[10].last = 1567;
-        utf_class_buf_classes[10].class_ = 1;
-        utf_class_buf_classes[11].first = 1642;
-        utf_class_buf_classes[11].last = 1645;
-        utf_class_buf_classes[11].class_ = 1;
-        utf_class_buf_classes[12].first = 1748;
-        utf_class_buf_classes[12].last = 1748;
-        utf_class_buf_classes[12].class_ = 1;
-        utf_class_buf_classes[13].first = 1792;
-        utf_class_buf_classes[13].last = 1805;
-        utf_class_buf_classes[13].class_ = 1;
-        utf_class_buf_classes[14].first = 2404;
-        utf_class_buf_classes[14].last = 2405;
-        utf_class_buf_classes[14].class_ = 1;
-        utf_class_buf_classes[15].first = 2416;
-        utf_class_buf_classes[15].last = 2416;
-        utf_class_buf_classes[15].class_ = 1;
-        utf_class_buf_classes[16].first = 3572;
-        utf_class_buf_classes[16].last = 3572;
-        utf_class_buf_classes[16].class_ = 1;
-        utf_class_buf_classes[17].first = 3663;
-        utf_class_buf_classes[17].last = 3663;
-        utf_class_buf_classes[17].class_ = 1;
-        utf_class_buf_classes[18].first = 3674;
-        utf_class_buf_classes[18].last = 3675;
-        utf_class_buf_classes[18].class_ = 1;
-        utf_class_buf_classes[19].first = 3844;
-        utf_class_buf_classes[19].last = 3858;
-        utf_class_buf_classes[19].class_ = 1;
-        utf_class_buf_classes[20].first = 3898;
-        utf_class_buf_classes[20].last = 3901;
-        utf_class_buf_classes[20].class_ = 1;
-        utf_class_buf_classes[21].first = 3973;
-        utf_class_buf_classes[21].last = 3973;
-        utf_class_buf_classes[21].class_ = 1;
-        utf_class_buf_classes[22].first = 4170;
-        utf_class_buf_classes[22].last = 4175;
-        utf_class_buf_classes[22].class_ = 1;
-        utf_class_buf_classes[23].first = 4347;
-        utf_class_buf_classes[23].last = 4347;
-        utf_class_buf_classes[23].class_ = 1;
-        utf_class_buf_classes[24].first = 4961;
-        utf_class_buf_classes[24].last = 4968;
-        utf_class_buf_classes[24].class_ = 1;
-        utf_class_buf_classes[25].first = 5741;
-        utf_class_buf_classes[25].last = 5742;
-        utf_class_buf_classes[25].class_ = 1;
-        utf_class_buf_classes[26].first = 5760;
-        utf_class_buf_classes[26].last = 5760;
-        utf_class_buf_classes[27].first = 5787;
-        utf_class_buf_classes[27].last = 5788;
-        utf_class_buf_classes[27].class_ = 1;
-        utf_class_buf_classes[28].first = 5867;
-        utf_class_buf_classes[28].last = 5869;
-        utf_class_buf_classes[28].class_ = 1;
-        utf_class_buf_classes[29].first = 5941;
-        utf_class_buf_classes[29].last = 5942;
-        utf_class_buf_classes[29].class_ = 1;
-        utf_class_buf_classes[30].first = 6100;
-        utf_class_buf_classes[30].last = 6108;
-        utf_class_buf_classes[30].class_ = 1;
-        utf_class_buf_classes[31].first = 6144;
-        utf_class_buf_classes[31].last = 6154;
-        utf_class_buf_classes[31].class_ = 1;
-        utf_class_buf_classes[32].first = 8192;
-        utf_class_buf_classes[32].last = 8203;
-        utf_class_buf_classes[33].first = 8204;
-        utf_class_buf_classes[33].last = 8231;
-        utf_class_buf_classes[33].class_ = 1;
-        utf_class_buf_classes[34].first = 8232;
-        utf_class_buf_classes[34].last = 8233;
-        utf_class_buf_classes[35].first = 8234;
-        utf_class_buf_classes[35].last = 8238;
-        utf_class_buf_classes[35].class_ = 1;
-        utf_class_buf_classes[36].first = 8239;
-        utf_class_buf_classes[36].last = 8239;
-        utf_class_buf_classes[37].first = 8240;
-        utf_class_buf_classes[37].last = 8286;
-        utf_class_buf_classes[37].class_ = 1;
-        utf_class_buf_classes[38].first = 8287;
-        utf_class_buf_classes[38].last = 8287;
-        utf_class_buf_classes[39].first = 8288;
-        utf_class_buf_classes[39].last = 8303;
-        utf_class_buf_classes[39].class_ = 1;
-        utf_class_buf_classes[40].first = 8304;
-        utf_class_buf_classes[40].last = 8319;
-        utf_class_buf_classes[40].class_ = 8304;
-        utf_class_buf_classes[41].first = 8320;
-        utf_class_buf_classes[41].last = 8340;
-        utf_class_buf_classes[41].class_ = 8320;
-        utf_class_buf_classes[42].first = 8352;
-        utf_class_buf_classes[42].last = 10239;
-        utf_class_buf_classes[42].class_ = 1;
-        utf_class_buf_classes[43].first = 10240;
-        utf_class_buf_classes[43].last = 10495;
-        utf_class_buf_classes[43].class_ = 10240;
-        utf_class_buf_classes[44].first = 10496;
-        utf_class_buf_classes[44].last = 10648;
-        utf_class_buf_classes[44].class_ = 1;
-        utf_class_buf_classes[45].first = 10712;
-        utf_class_buf_classes[45].last = 10715;
-        utf_class_buf_classes[45].class_ = 1;
-        utf_class_buf_classes[46].first = 10748;
-        utf_class_buf_classes[46].last = 10749;
-        utf_class_buf_classes[46].class_ = 1;
-        utf_class_buf_classes[47].first = 11776;
-        utf_class_buf_classes[47].last = 11903;
-        utf_class_buf_classes[47].class_ = 1;
-        utf_class_buf_classes[48].first = 12288;
-        utf_class_buf_classes[48].last = 12288;
-        utf_class_buf_classes[49].first = 12289;
-        utf_class_buf_classes[49].last = 12320;
-        utf_class_buf_classes[49].class_ = 1;
-        utf_class_buf_classes[50].first = 12336;
-        utf_class_buf_classes[50].last = 12336;
-        utf_class_buf_classes[50].class_ = 1;
-        utf_class_buf_classes[51].first = 12349;
-        utf_class_buf_classes[51].last = 12349;
-        utf_class_buf_classes[51].class_ = 1;
-        utf_class_buf_classes[52].first = 12352;
-        utf_class_buf_classes[52].last = 12447;
-        utf_class_buf_classes[52].class_ = 12352;
-        utf_class_buf_classes[53].first = 12448;
-        utf_class_buf_classes[53].last = 12543;
-        utf_class_buf_classes[53].class_ = 12448;
-        utf_class_buf_classes[54].first = 13056;
-        utf_class_buf_classes[54].last = 40959;
-        utf_class_buf_classes[54].class_ = 19968;
-        utf_class_buf_classes[55].first = 44032;
-        utf_class_buf_classes[55].last = 55203;
-        utf_class_buf_classes[55].class_ = 44032;
-        utf_class_buf_classes[56].first = 63744;
-        utf_class_buf_classes[56].last = 64255;
-        utf_class_buf_classes[56].class_ = 19968;
-        utf_class_buf_classes[57].first = 64830;
-        utf_class_buf_classes[57].last = 64831;
-        utf_class_buf_classes[57].class_ = 1;
-        utf_class_buf_classes[58].first = 65072;
-        utf_class_buf_classes[58].last = 65131;
-        utf_class_buf_classes[58].class_ = 1;
-        utf_class_buf_classes[59].first = 65280;
-        utf_class_buf_classes[59].last = 65295;
-        utf_class_buf_classes[59].class_ = 1;
-        utf_class_buf_classes[60].first = 65306;
-        utf_class_buf_classes[60].last = 65312;
-        utf_class_buf_classes[60].class_ = 1;
-        utf_class_buf_classes[61].first = 65339;
-        utf_class_buf_classes[61].last = 65344;
-        utf_class_buf_classes[61].class_ = 1;
-        utf_class_buf_classes[62].first = 65371;
-        utf_class_buf_classes[62].last = 65381;
-        utf_class_buf_classes[62].class_ = 1;
-        utf_class_buf_classes[63].first = 118784;
-        utf_class_buf_classes[63].last = 119375;
-        utf_class_buf_classes[63].class_ = 1;
-        utf_class_buf_classes[64].first = 119808;
-        utf_class_buf_classes[64].last = 120831;
-        utf_class_buf_classes[64].class_ = 1;
-        utf_class_buf_classes[65].first = 126976;
-        utf_class_buf_classes[65].last = 127743;
-        utf_class_buf_classes[65].class_ = 1;
-        utf_class_buf_classes[66].first = 127744;
-        utf_class_buf_classes[66].last = 129535;
-        utf_class_buf_classes[66].class_ = 1;
-        utf_class_buf_classes[67].first = 131072;
-        utf_class_buf_classes[67].last = 173791;
-        utf_class_buf_classes[67].class_ = 19968;
-        utf_class_buf_classes[68].first = 173824;
-        utf_class_buf_classes[68].last = 177983;
-        utf_class_buf_classes[68].class_ = 19968;
-        utf_class_buf_classes[69].first = 177984;
-        utf_class_buf_classes[69].last = 178207;
-        utf_class_buf_classes[69].class_ = 19968;
-        utf_class_buf_classes[70].first = 194560;
-        utf_class_buf_classes[70].last = 195103;
-        utf_class_buf_classes[70].class_ = 19968;
-        add_to_showcmd_ignore[0] = K_IGNORE;
-        add_to_showcmd_ignore[1] = K_PASTESTART;
-        add_to_showcmd_ignore[2] = K_LEFTMOUSE;
-        add_to_showcmd_ignore[3] = K_LEFTDRAG;
-        add_to_showcmd_ignore[4] = K_LEFTRELEASE;
-        add_to_showcmd_ignore[5] = K_MOUSEMOVE;
-        add_to_showcmd_ignore[6] = K_MIDDLEMOUSE;
-        add_to_showcmd_ignore[7] = K_MIDDLEDRAG;
-        add_to_showcmd_ignore[8] = K_MIDDLERELEASE;
-        add_to_showcmd_ignore[9] = K_RIGHTMOUSE;
-        add_to_showcmd_ignore[10] = K_RIGHTDRAG;
-        add_to_showcmd_ignore[11] = K_RIGHTRELEASE;
-        add_to_showcmd_ignore[12] = K_MOUSEDOWN;
-        add_to_showcmd_ignore[13] = K_MOUSEUP;
-        add_to_showcmd_ignore[14] = K_MOUSELEFT;
-        add_to_showcmd_ignore[15] = K_MOUSERIGHT;
-        add_to_showcmd_ignore[16] = K_X1MOUSE;
-        add_to_showcmd_ignore[17] = K_X1DRAG;
-        add_to_showcmd_ignore[18] = K_X1RELEASE;
-        add_to_showcmd_ignore[19] = K_X2MOUSE;
-        add_to_showcmd_ignore[20] = K_X2DRAG;
-        add_to_showcmd_ignore[21] = K_X2RELEASE;
-        add_to_showcmd_ignore[22] = K_CURSORHOLD;
-        add_to_showcmd_ignore[23] = K_COMMAND;
-        add_to_showcmd_ignore[24] = K_SCRIPT_COMMAND;
+    private void initGlobals8() {
+        Rt.rows(utf_printable_nonprint,
+            new S_interval(1807L, 1807L),
+            new S_interval(6155L, 6158L),
+            new S_interval(8203L, 8207L),
+            new S_interval(8234L, 8238L),
+            new S_interval(8288L, 8303L),
+            new S_interval(55296L, 57343L),
+            new S_interval(65279L, 65279L),
+            new S_interval(65529L, 65531L),
+            new S_interval(65534L, 65535L));
+        Rt.rows(utf_class_buf_classes,
+            new S_clinterval(894, 894, 1),
+            new S_clinterval(903, 903, 1),
+            new S_clinterval(1370, 1375, 1),
+            new S_clinterval(1417, 1417, 1),
+            new S_clinterval(1470, 1470, 1),
+            new S_clinterval(1472, 1472, 1),
+            new S_clinterval(1475, 1475, 1),
+            new S_clinterval(1523, 1524, 1),
+            new S_clinterval(1548, 1548, 1),
+            new S_clinterval(1563, 1563, 1),
+            new S_clinterval(1567, 1567, 1),
+            new S_clinterval(1642, 1645, 1),
+            new S_clinterval(1748, 1748, 1),
+            new S_clinterval(1792, 1805, 1),
+            new S_clinterval(2404, 2405, 1),
+            new S_clinterval(2416, 2416, 1),
+            new S_clinterval(3572, 3572, 1),
+            new S_clinterval(3663, 3663, 1),
+            new S_clinterval(3674, 3675, 1),
+            new S_clinterval(3844, 3858, 1),
+            new S_clinterval(3898, 3901, 1),
+            new S_clinterval(3973, 3973, 1),
+            new S_clinterval(4170, 4175, 1),
+            new S_clinterval(4347, 4347, 1),
+            new S_clinterval(4961, 4968, 1),
+            new S_clinterval(5741, 5742, 1),
+            new S_clinterval(5760, 5760, 0),
+            new S_clinterval(5787, 5788, 1),
+            new S_clinterval(5867, 5869, 1),
+            new S_clinterval(5941, 5942, 1),
+            new S_clinterval(6100, 6108, 1),
+            new S_clinterval(6144, 6154, 1),
+            new S_clinterval(8192, 8203, 0),
+            new S_clinterval(8204, 8231, 1),
+            new S_clinterval(8232, 8233, 0),
+            new S_clinterval(8234, 8238, 1),
+            new S_clinterval(8239, 8239, 0),
+            new S_clinterval(8240, 8286, 1),
+            new S_clinterval(8287, 8287, 0),
+            new S_clinterval(8288, 8303, 1),
+            new S_clinterval(8304, 8319, 8304),
+            new S_clinterval(8320, 8340, 8320),
+            new S_clinterval(8352, 10239, 1),
+            new S_clinterval(10240, 10495, 10240),
+            new S_clinterval(10496, 10648, 1),
+            new S_clinterval(10712, 10715, 1),
+            new S_clinterval(10748, 10749, 1),
+            new S_clinterval(11776, 11903, 1),
+            new S_clinterval(12288, 12288, 0),
+            new S_clinterval(12289, 12320, 1),
+            new S_clinterval(12336, 12336, 1),
+            new S_clinterval(12349, 12349, 1),
+            new S_clinterval(12352, 12447, 12352),
+            new S_clinterval(12448, 12543, 12448),
+            new S_clinterval(13056, 40959, 19968),
+            new S_clinterval(44032, 55203, 44032),
+            new S_clinterval(63744, 64255, 19968),
+            new S_clinterval(64830, 64831, 1),
+            new S_clinterval(65072, 65131, 1),
+            new S_clinterval(65280, 65295, 1),
+            new S_clinterval(65306, 65312, 1),
+            new S_clinterval(65339, 65344, 1),
+            new S_clinterval(65371, 65381, 1),
+            new S_clinterval(118784, 119375, 1),
+            new S_clinterval(119808, 120831, 1),
+            new S_clinterval(126976, 127743, 1),
+            new S_clinterval(127744, 129535, 1),
+            new S_clinterval(131072, 173791, 19968),
+            new S_clinterval(173824, 177983, 19968),
+            new S_clinterval(177984, 178207, 19968),
+            new S_clinterval(194560, 195103, 19968));
+        Rt.rows(add_to_showcmd_ignore,
+            K_IGNORE, K_PASTESTART, K_LEFTMOUSE, K_LEFTDRAG, K_LEFTRELEASE, K_MOUSEMOVE, K_MIDDLEMOUSE, K_MIDDLEDRAG,
+            K_MIDDLERELEASE, K_RIGHTMOUSE, K_RIGHTDRAG, K_RIGHTRELEASE, K_MOUSEDOWN, K_MOUSEUP, K_MOUSELEFT,
+            K_MOUSERIGHT, K_X1MOUSE, K_X1DRAG, K_X1RELEASE, K_X2MOUSE, K_X2DRAG, K_X2RELEASE, K_CURSORHOLD, K_COMMAND,
+            K_SCRIPT_COMMAND, 0);
         Rt.init(v_visop_trans, "YyDdCcxdXdAAIIrr");
         nv_optrans_ar[0] = BytePtr.lit("dl");
         nv_optrans_ar[1] = BytePtr.lit("dh");
@@ -17363,32 +12805,9 @@ public abstract class Editor {
         get_char_class_char_class_tab[18].key = CLASS_XDIGIT;
         get_char_class_char_class_tab[18].value.string[0] = BytePtr.lit("xdigit:]");
         get_char_class_char_class_tab[18].value.length = 8L;
-        uc_fun_cmd_fcmd[0] = (byte) -124;
-        uc_fun_cmd_fcmd[1] = (byte) -81;
-        uc_fun_cmd_fcmd[2] = (byte) 96;
-        uc_fun_cmd_fcmd[3] = (byte) -71;
-        uc_fun_cmd_fcmd[4] = (byte) -81;
-        uc_fun_cmd_fcmd[5] = (byte) -75;
-        uc_fun_cmd_fcmd[6] = (byte) 96;
-        uc_fun_cmd_fcmd[7] = (byte) -92;
-        uc_fun_cmd_fcmd[8] = (byte) -91;
-        uc_fun_cmd_fcmd[9] = (byte) -83;
-        uc_fun_cmd_fcmd[10] = (byte) -95;
-        uc_fun_cmd_fcmd[11] = (byte) -82;
-        uc_fun_cmd_fcmd[12] = (byte) -92;
-        uc_fun_cmd_fcmd[13] = (byte) 96;
-        uc_fun_cmd_fcmd[14] = (byte) -95;
-        uc_fun_cmd_fcmd[15] = (byte) 96;
-        uc_fun_cmd_fcmd[16] = (byte) -77;
-        uc_fun_cmd_fcmd[17] = (byte) -88;
-        uc_fun_cmd_fcmd[18] = (byte) -78;
-        uc_fun_cmd_fcmd[19] = (byte) -75;
-        uc_fun_cmd_fcmd[20] = (byte) -94;
-        uc_fun_cmd_fcmd[21] = (byte) -94;
-        uc_fun_cmd_fcmd[22] = (byte) -91;
-        uc_fun_cmd_fcmd[23] = (byte) -78;
-        uc_fun_cmd_fcmd[24] = (byte) -71;
-        uc_fun_cmd_fcmd[25] = (byte) 127;
+        Rt.rows(uc_fun_cmd_fcmd,
+            -124, -81, 96, -71, -81, -75, 96, -92, -91, -83, -95, -82, -92, 96, -95, 96, -77, -88, -78, -75, -94, -94,
+            -91, -78, -71, 127, 0);
     }
 
     // the host: declared, and not defined here
@@ -18382,7 +13801,7 @@ public abstract class Editor {
                 if (wp.w_lines.at(i).wl_valid != 0) {
                     if (wp.w_lines.at(i).wl_lnum >= lnum) {
                         if (wp.w_lines.at(i).wl_lnum < lnume || i == 0) {
-                            wp.w_lines.at(i).wl_valid = (byte) FALSE;
+                            wp.w_lines.at(i).wl_valid = FALSE;
                         } else if (xtra != 0L) {
                             wp.w_lines.at(i).wl_lnum += xtra;
                         }
@@ -18500,7 +13919,7 @@ public abstract class Editor {
         byte[] buf = new byte[22];
         int n = utf_char2bytes(c, new BytePtr(buf, 0));
         if (buf[0] == 0) {
-            buf[0] = (byte) '\n';
+            buf[0] = '\n';
         }
         ins_char_bytes(new BytePtr(buf, 0), n);
     }
@@ -19017,13 +14436,13 @@ public abstract class Editor {
             while (c <= '~') {
                 t2 = c;
                 c++;
-                g_chartab[t2] = (byte) (1 + CT_PRINT_CHAR);
+                g_chartab[t2] = 1 + CT_PRINT_CHAR;
             }
             while (c < 256) {
                 if (c >= 160) {
                     t3 = c;
                     c++;
-                    g_chartab[t3] = (byte) (CT_PRINT_CHAR + 1);
+                    g_chartab[t3] = CT_PRINT_CHAR + 1;
                 } else {
                     t4 = c;
                     c++;
@@ -19179,14 +14598,14 @@ public abstract class Editor {
     BytePtr transchar_buf(S_file_buffer buf, int c) {
         int i = 0;
         if (c < 0) {
-            transchar_charbuf[0] = (byte) '~';
-            transchar_charbuf[1] = (byte) '@';
+            transchar_charbuf[0] = '~';
+            transchar_charbuf[1] = '@';
             i = 2;
             c = c == 128 ? KS_SPECIAL : (c == NUL ? KS_ZERO : -c & 255);
         }
         if ((chartab_initialized == 0 && (c >= ' ' && c <= '~')) || (c < 256 && vim_isprintc_strict(c))) {
             transchar_charbuf[i] = (byte) c;
-            transchar_charbuf[i + 1] = (byte) NUL;
+            transchar_charbuf[i + 1] = NUL;
         } else {
             transchar_nonprint(buf, new BytePtr(transchar_charbuf, 0).add(i), c);
         }
@@ -21672,7 +17091,7 @@ public abstract class Editor {
                 n2 += utf_ptr2cells(new BytePtr(buffer, 0).add(n1));
                 if (this_ru_col + n2 > width) {
                     bufferlen = n1;
-                    buffer[bufferlen] = (byte) NUL;
+                    buffer[bufferlen] = NUL;
                     break;
                 }
             }
@@ -21851,7 +17270,7 @@ public abstract class Editor {
                                 while (idx >= 0) {
                                     t1 = idx;
                                     idx--;
-                                    wp.w_lines.at(t1).wl_valid = (byte) FALSE;
+                                    wp.w_lines.at(t1).wl_valid = FALSE;
                                 }
                             }
                         } else {
@@ -22064,7 +17483,7 @@ public abstract class Editor {
             wp.w_old_visual_col = VIsual.col;
             wp.w_old_curswant = curwin.w_curswant;
         } else {
-            wp.w_old_visual_mode = (byte) 0;
+            wp.w_old_visual_mode = 0;
             wp.w_old_cursor_lnum = 0L;
             wp.w_old_visual_lnum = 0L;
             wp.w_old_visual_col = 0;
@@ -22181,10 +17600,10 @@ public abstract class Editor {
                                     wp.w_lines.at(i).set(wp.w_lines.at((int) ((long) i - j)));
                                 }
                                 while (i >= idx) {
-                                    wp.w_lines.at(i).wl_size = (short) 0;
+                                    wp.w_lines.at(i).wl_size = 0;
                                     t4 = i;
                                     i--;
-                                    wp.w_lines.at(t4).wl_valid = (byte) FALSE;
+                                    wp.w_lines.at(t4).wl_valid = FALSE;
                                 }
                             }
                         }
@@ -22199,7 +17618,7 @@ public abstract class Editor {
                     row = win_line(wp, lnum, srow, wp.w_height, 0);
                 }
                 wp.w_lines.at(idx).wl_lnum = lnum;
-                wp.w_lines.at(idx).wl_valid = (byte) TRUE;
+                wp.w_lines.at(idx).wl_valid = TRUE;
                 boolean is_curline = wp == curwin && lnum == wp.w_cursor.lnum;
                 if (row > wp.w_height || (long) (row + wp.w_winrow) >= Rows[0]) {
                     if (dollar_vcol == -1 || !is_curline) {
@@ -23339,7 +18758,7 @@ public abstract class Editor {
                 i++;
                 buf[t3] = (byte) vgetc();
             }
-            buf[i] = (byte) NUL;
+            buf[i] = NUL;
             ins_str(new BytePtr(buf, 0), (long) i);
             if ((flags & INSCHAR_CTRLV) != 0) {
                 redo_literal(buf[0] & 0xff);
@@ -23356,7 +18775,7 @@ public abstract class Editor {
             if (cc > 1) {
                 byte[] buf_2 = new byte[22];
                 utf_char2bytes(c, new BytePtr(buf_2, 0));
-                buf_2[cc] = (byte) NUL;
+                buf_2[cc] = NUL;
                 ins_char_bytes(new BytePtr(buf_2, 0), cc);
                 AppendCharToRedobuff(c);
             } else {
@@ -24070,10 +19489,10 @@ public abstract class Editor {
                 stuffcharReadbuff(Ctrl_O);
                 if (mod_mask[0] != 0) {
                     byte[] buf = new byte[4];
-                    buf[0] = (byte) -128;
+                    buf[0] = -128;
                     buf[1] = (byte) KS_MODIFIER;
                     buf[2] = (byte) mod_mask[0];
-                    buf[3] = (byte) NUL;
+                    buf[3] = NUL;
                     stuffReadbuffLen(new BytePtr(buf, 0), 3L);
                 }
                 stuffcharReadbuff(c);
@@ -24413,7 +19832,7 @@ public abstract class Editor {
                 break;
             }
             idx += utf_char2bytes(c, new BytePtr(buf, 0).add(idx));
-            buf[idx] = (byte) NUL;
+            buf[idx] = NUL;
             if (end != null && musl_strncmp(new BytePtr(buf, 0), end, (long) idx) == 0) {
                 if (end.at(idx) == NUL) {
                     break;
@@ -24875,12 +20294,12 @@ public abstract class Editor {
                 transchar_nonprint(curbuf, new BytePtr(buf3, 0), c);
                 vim_snprintf(new BytePtr(buf1, 0), 20L, BytePtr.lit("  <%s>"), new BytePtr(buf3, 0));
             } else {
-                buf1[0] = (byte) NUL;
+                buf1[0] = NUL;
             }
             if (c >= 128) {
                 vim_snprintf(new BytePtr(buf2, 0), 20L, BytePtr.lit("  <M-%s>"), transchar(c & 127));
             } else {
-                buf2[0] = (byte) NUL;
+                buf2[0] = NUL;
             }
             vim_snprintf(IObuff, 1025L, gettext_(BytePtr.lit("<%s>%s%s  %d,  Hex %02x,  Octal %03o")), transchar(c),
                     new BytePtr(buf1, 0), new BytePtr(buf2, 0), cval, cval, cval);
@@ -26019,7 +21438,7 @@ public abstract class Editor {
             if (got_int != 0) {
                 musl_strcpy(new BytePtr(msg_buf, 0), gettext_(BytePtr.lit("(Interrupted) ")));
             } else {
-                msg_buf[0] = (byte) NUL;
+                msg_buf[0] = NUL;
             }
             msg_single = count_only != 0 ? NGETTEXT(BytePtr.lit("%ld match on %ld line"),
                     BytePtr.lit("%ld matches on %ld line"), sub_nsubs) : NGETTEXT(BytePtr.lit("%ld substitution on %ld line"), BytePtr.lit("%ld substitutions on %ld line"), sub_nsubs);
@@ -30123,14 +25542,14 @@ public abstract class Editor {
                 c = bytes[i] & 0xff;
             }
             if (c < 0 || c == 128 || c == NUL) {
-                temp[0] = (byte) -128;
+                temp[0] = -128;
                 temp[1] = (byte) (c == 128 ? KS_SPECIAL : (c == NUL ? KS_ZERO : -c & 255));
                 temp[2] = (byte) (c == 128 || c == NUL ? 'X' : (-c >>> 8) & 255);
-                temp[3] = (byte) NUL;
+                temp[3] = NUL;
                 templen = 3L;
             } else {
                 temp[0] = (byte) c;
-                temp[1] = (byte) NUL;
+                temp[1] = NUL;
                 templen = 1L;
             }
             add_buff(buf, new BytePtr(temp, 0), templen);
@@ -30567,7 +25986,7 @@ public abstract class Editor {
     int ins_char_typebuf(int c, int modifiers) {
         byte[] buf = new byte[67];
         int len = special_to_buf(c, modifiers, true, new BytePtr(buf, 0));
-        buf[len] = (byte) NUL;
+        buf[len] = NUL;
         ins_typebuf(new BytePtr(buf, 0), KeyNoremap, 0, KeyTyped == 0, cmd_silent);
         return len;
     }
@@ -30690,7 +26109,7 @@ public abstract class Editor {
                 continue;
             }
             if (reg_recording != 0) {
-                gotchars_state.buf[(int) gotchars_state.buflen] = (byte) NUL;
+                gotchars_state.buf[(int) gotchars_state.buflen] = NUL;
                 add_buff(recordbuff, new BytePtr(gotchars_state.buf, 0), gotchars_state.buflen);
                 last_recorded_len += gotchars_state.buflen;
             }
@@ -30702,9 +26121,9 @@ public abstract class Editor {
 
     void gotchars_ignore() {
         byte[] nop_buf = new byte[3];
-        nop_buf[0] = (byte) -128;
+        nop_buf[0] = -128;
         nop_buf[1] = (byte) KS_EXTRA;
-        nop_buf[2] = (byte) KE_IGNORE;
+        nop_buf[2] = KE_IGNORE;
         gotchars(new BytePtr(nop_buf, 0), 3);
     }
 
@@ -30828,7 +26247,7 @@ public abstract class Editor {
         if (!gotchars_add_byte(add_byte_to_showcmd_state, byte_)) {
             return;
         }
-        add_byte_to_showcmd_state.buf[(int) add_byte_to_showcmd_state.buflen] = (byte) NUL;
+        add_byte_to_showcmd_state.buf[(int) add_byte_to_showcmd_state.buflen] = NUL;
         add_byte_to_showcmd_state.buflen = 0L;
         ptr[0] = new BytePtr(add_byte_to_showcmd_state.buf, 0);
         if (ptr[0].u(0) == 128 && ptr[0].u(1) == KS_MODIFIER && ptr[0].at(2) != NUL) {
@@ -31092,7 +26511,7 @@ public abstract class Editor {
                         vgetc_mod_mask = tp.u(2);
                     }
                     if (new_c < 0) {
-                        new_string[0] = (byte) -128;
+                        new_string[0] = -128;
                         new_string[1] = (byte) (new_c == 128 ? KS_SPECIAL : (new_c == NUL ? KS_ZERO : -new_c & 255));
                         new_string[2] = (byte) (new_c == 128 || new_c == NUL ? 'X' : (-new_c >>> 8) & 255);
                         len = 3;
@@ -32165,7 +27584,7 @@ public abstract class Editor {
         }
         if (musl_strncmp(arg, BytePtr.lit("t_"), 2L) == 0) {
             off = 0;
-            buf[0] = (byte) 0;
+            buf[0] = 0;
             while (arg.at(off) != NUL) {
                 for (len = 0; arg.at(off + len) != 0 && arg.at(off + len) != ','; len++) {
                 }
@@ -32200,7 +27619,7 @@ public abstract class Editor {
                     buf[t1] = t2.get();
                 }
             }
-            buf[off] = (byte) NUL;
+            buf[off] = NUL;
         }
         if (musl_strcmp(new BytePtr(buf, 0), BytePtr.lit("NONE")) == 0) {
             p[0] = null;
@@ -32984,7 +28403,7 @@ public abstract class Editor {
             len = MAX_SYN_NAME;
         }
         Rt.memmove(new BytePtr(name_u, 0), name, (long) len);
-        name_u[len] = (byte) NUL;
+        name_u[len] = NUL;
         vim_strup(new BytePtr(name_u, 0));
         for (i = 0; i < highlight_ga.ga_len; i++) {
             if (musl_strcmp(GA_Ptr_T_hl_group_T(highlight_ga).at(i).sg_name_u, new BytePtr(name_u, 0)) == 0) {
@@ -34849,7 +30268,7 @@ public abstract class Editor {
                                     if (p.u() < 128) {
                                         buf[0] = p.at(0);
                                         buf[1] = p.at(1);
-                                        buf[2] = (byte) NUL;
+                                        buf[2] = NUL;
                                         add_termcap_entry(new BytePtr(buf, 0), false);
                                     }
                                     p = p.add(1);
@@ -35745,8 +31164,8 @@ public abstract class Editor {
             shl.rm.startpos[0].col = start;
             shl.rm.endpos[0].lnum = 0L;
             shl.rm.endpos[0].col = end;
-            shl.is_addpos = (byte) TRUE;
-            shl.has_cursor = (byte) FALSE;
+            shl.is_addpos = TRUE;
+            shl.has_cursor = FALSE;
             match.mit_pos_cur = found + 1;
             return 1;
         }
@@ -35868,9 +31287,9 @@ public abstract class Editor {
         if (wp.w_cursor.lnum >= shl.lnum && wp.w_cursor.lnum <= shl.lnum + linecount
                 && (wp.w_cursor.lnum > shl.lnum || wp.w_cursor.col >= shl.rm.startpos[0].col)
                 && (wp.w_cursor.lnum < shl.lnum + linecount || wp.w_cursor.col < shl.rm.endpos[0].col)) {
-            shl.has_cursor = (byte) TRUE;
+            shl.has_cursor = TRUE;
         } else {
-            shl.has_cursor = (byte) FALSE;
+            shl.has_cursor = FALSE;
         }
     }
 
@@ -35891,8 +31310,8 @@ public abstract class Editor {
             shl.startcol = MAXCOL;
             shl.endcol = MAXCOL;
             shl.attr_cur = 0;
-            shl.is_addpos = (byte) FALSE;
-            shl.has_cursor = (byte) FALSE;
+            shl.is_addpos = FALSE;
+            shl.has_cursor = FALSE;
             if (cur != null) {
                 cur.mit_pos_cur = 0;
             }
@@ -37067,7 +32486,7 @@ public abstract class Editor {
             if (str.u(n) == 128 && str.u(n + 1) == KS_SPECIAL && str.at(n + 2) == 'X') {
                 t1 = m;
                 m++;
-                mb_unescape_buf[t1] = (byte) -128;
+                mb_unescape_buf[t1] = -128;
                 n += 2;
             } else if (str.u(n) == 128 && str.u(n + 1) == KS_EXTRA && str.at(n + 2) == KE_CSI) {
                 t2 = m;
@@ -37081,7 +32500,7 @@ public abstract class Editor {
                 m++;
                 mb_unescape_buf[t3] = str.at(n);
             }
-            mb_unescape_buf[m] = (byte) NUL;
+            mb_unescape_buf[m] = NUL;
             if (utfc_ptr2len(new BytePtr(mb_unescape_buf, 0)) > 1) {
                 pp.put(str.add(n).add(1));
                 return new BytePtr(mb_unescape_buf, 0);
@@ -37143,7 +32562,7 @@ public abstract class Editor {
         hp = ml_new_ptr();
         buf.b_ml.ml_root = hp;
         pp = hp.bh_ptr;
-        pp.pb_count = (short) 1;
+        pp.pb_count = 1;
         pp.pb_pointer[0].pe_line_count = 1L;
         hp = ml_new_data();
         buf.b_ml.ml_root.bh_ptr.pb_pointer[0].pe_block = hp;
@@ -37332,7 +32751,7 @@ public abstract class Editor {
             }
             dp.db_line[db_idx + 1].dl_text = text;
             dp.db_line[db_idx + 1].dl_len = len;
-            dp.db_line[db_idx + 1].dl_marked = (byte) FALSE;
+            dp.db_line[db_idx + 1].dl_marked = FALSE;
             dp.db_line_count++;
         } else {
             long line_count_left;
@@ -37377,7 +32796,7 @@ public abstract class Editor {
             if (!in_left) {
                 dp_right.db_line[0].dl_text = text;
                 dp_right.db_line[0].dl_len = len;
-                dp_right.db_line[0].dl_marked = (byte) FALSE;
+                dp_right.db_line[0].dl_marked = FALSE;
                 line_count_right++;
             }
             if (lines_moved != 0) {
@@ -37389,7 +32808,7 @@ public abstract class Editor {
             if (in_left) {
                 dp_left.db_line[(int) line_count_left].dl_text = text;
                 dp_left.db_line[(int) line_count_left].dl_len = len;
-                dp_left.db_line[(int) line_count_left].dl_marked = (byte) FALSE;
+                dp_left.db_line[(int) line_count_left].dl_marked = FALSE;
                 line_count_left++;
             }
             dp_left.db_line_count = line_count_left;
@@ -37435,7 +32854,7 @@ public abstract class Editor {
                     pp_new.pb_count = pp.pb_count;
                     Rt.moveStructs(new Ptr<S_pointer_entry>(pp_new.pb_pointer, 0),
                             new Ptr<S_pointer_entry>(pp.pb_pointer, 0), (int) (pp.pb_count & 0xffffL));
-                    pp.pb_count = (short) 1;
+                    pp.pb_count = 1;
                     pp.pb_pointer[0].pe_block = hp_new;
                     pp.pb_pointer[0].pe_line_count = buf.b_ml.ml_line_count;
                     hp = hp_new;
@@ -37452,7 +32871,7 @@ public abstract class Editor {
                     pp.pb_pointer[pb_idx + 1].pe_block = bp_right;
                     pp.pb_pointer[pb_idx + 1].pe_line_count = line_count_right;
                 } else {
-                    pp_new.pb_count = (short) 1;
+                    pp_new.pb_count = 1;
                     pp_new.pb_pointer[0].pe_block = bp_right;
                     pp_new.pb_pointer[0].pe_line_count = line_count_right;
                 }
@@ -37631,7 +33050,7 @@ public abstract class Editor {
             return;
         }
         dp = hp.bh_data;
-        dp.db_line[(int) (lnum - curbuf.b_ml.ml_locked_low)].dl_marked = (byte) TRUE;
+        dp.db_line[(int) (lnum - curbuf.b_ml.ml_locked_low)].dl_marked = TRUE;
     }
 
     long ml_firstmarked() {
@@ -37650,7 +33069,7 @@ public abstract class Editor {
             dp = hp.bh_data;
             for (i = (int) (lnum - curbuf.b_ml.ml_locked_low); lnum <= curbuf.b_ml.ml_locked_high; i++, lnum++) {
                 if (dp.db_line[i].dl_marked != 0) {
-                    dp.db_line[i].dl_marked = (byte) FALSE;
+                    dp.db_line[i].dl_marked = FALSE;
                     lowest_marked = lnum + 1L;
                     return lnum;
                 }
@@ -37675,7 +33094,7 @@ public abstract class Editor {
             dp = hp.bh_data;
             for (i = (int) (lnum - curbuf.b_ml.ml_locked_low); lnum <= curbuf.b_ml.ml_locked_high; i++, lnum++) {
                 if (dp.db_line[i].dl_marked != 0) {
-                    dp.db_line[i].dl_marked = (byte) FALSE;
+                    dp.db_line[i].dl_marked = FALSE;
                 }
             }
         }
@@ -37717,7 +33136,7 @@ public abstract class Editor {
     S_block_hdr ml_new_data() {
         S_data_block dp = new S_data_block();
         S_block_hdr hp = new S_block_hdr();
-        hp.bh_id = (short) (('d' << 8) + 'a');
+        hp.bh_id = ('d' << 8) + 'a';
         hp.bh_data = dp;
         dp.db_line_count = 0L;
         return hp;
@@ -37726,9 +33145,9 @@ public abstract class Editor {
     S_block_hdr ml_new_ptr() {
         S_pointer_block pp = new S_pointer_block();
         S_block_hdr hp = new S_block_hdr();
-        hp.bh_id = (short) (('p' << 8) + 't');
+        hp.bh_id = ('p' << 8) + 't';
         hp.bh_ptr = pp;
-        pp.pb_count = (short) 0;
+        pp.pb_count = 0;
         return hp;
     }
 
@@ -38563,13 +33982,13 @@ public abstract class Editor {
         int t1 = 0;
         byte[] buf = new byte[22];
         if (c < 0) {
-            buf[0] = (byte) -128;
+            buf[0] = -128;
             buf[1] = (byte) (c == 128 ? KS_SPECIAL : (c == NUL ? KS_ZERO : -c & 255));
             buf[2] = (byte) (c == 128 || c == NUL ? 'X' : (-c >>> 8) & 255);
-            buf[3] = (byte) NUL;
+            buf[3] = NUL;
         } else {
             t1 = utf_char2bytes(c, new BytePtr(buf, 0));
-            buf[t1] = (byte) NUL;
+            buf[t1] = NUL;
         }
         msg_puts_attr(new BytePtr(buf, 0), attr);
     }
@@ -38719,7 +34138,7 @@ public abstract class Editor {
             return get_special_key_name(c, modifiers);
         }
         str2special_buf[0] = (byte) c;
-        str2special_buf[1] = (byte) NUL;
+        str2special_buf[1] = NUL;
         return new BytePtr(str2special_buf, 0);
     }
 
@@ -38808,10 +34227,10 @@ public abstract class Editor {
                     } else if (curwin.w_lcs_chars.nbsp[0] != NUL && list != 0
                             && (utf_ptr2char(s) == 160 || utf_ptr2char(s) == 8239)) {
                         int len = utf_char2bytes(curwin.w_lcs_chars.nbsp[0], new BytePtr(buf, 0));
-                        buf[len] = (byte) NUL;
+                        buf[len] = NUL;
                     } else {
                         Rt.memmove(new BytePtr(buf, 0), s, (long) l);
-                        buf[l] = (byte) NUL;
+                        buf[l] = NUL;
                     }
                     msg_puts(new BytePtr(buf, 0));
                     s = s.add(l);
@@ -39144,7 +34563,7 @@ public abstract class Editor {
             }
             mp.sb_next = null;
         } else if (finish && last_msgchunk[0] != null) {
-            last_msgchunk[0].sb_eol = (byte) TRUE;
+            last_msgchunk[0].sb_eol = TRUE;
         }
         sb_str = s;
         sb_col = 0;
@@ -39224,7 +34643,7 @@ public abstract class Editor {
 
     void msg_sb_eol() {
         if (last_msgchunk[0] != null) {
-            last_msgchunk[0].sb_eol = (byte) TRUE;
+            last_msgchunk[0].sb_eol = TRUE;
         }
     }
 
@@ -40480,7 +35899,7 @@ public abstract class Editor {
         int idx;
         int len;
         int table_idx;
-        get_special_key_name_string[0] = (byte) '<';
+        get_special_key_name_string[0] = '<';
         idx = 1;
         if (c < 0 && (-c & 255) == KS_KEY) {
             c = (-c >>> 8) & 255;
@@ -40514,17 +35933,17 @@ public abstract class Editor {
                 get_special_key_name_string[t1] = mod_mask_table[i].name;
                 t2 = idx;
                 idx++;
-                get_special_key_name_string[t2] = (byte) 45;
+                get_special_key_name_string[t2] = 45;
             }
         }
         if (table_idx < 0) {
             if (c < 0) {
                 t3 = idx;
                 idx++;
-                get_special_key_name_string[t3] = (byte) 't';
+                get_special_key_name_string[t3] = 't';
                 t4 = idx;
                 idx++;
-                get_special_key_name_string[t4] = (byte) '_';
+                get_special_key_name_string[t4] = '_';
                 t5 = idx;
                 idx++;
                 get_special_key_name_string[t5] = (byte) (-c & 255);
@@ -40559,8 +35978,8 @@ public abstract class Editor {
         }
         t10 = idx;
         idx++;
-        get_special_key_name_string[t10] = (byte) '>';
-        get_special_key_name_string[idx] = (byte) NUL;
+        get_special_key_name_string[t10] = '>';
+        get_special_key_name_string[idx] = NUL;
         return new BytePtr(get_special_key_name_string, 0);
     }
 
@@ -40868,7 +36287,7 @@ public abstract class Editor {
             byte[] string = new byte[3];
             string[0] = name.at(2);
             string[1] = name.at(3);
-            string[2] = (byte) NUL;
+            string[2] = NUL;
             if (add_termcap_entry(new BytePtr(string, 0), false)) {
                 return -(name.u(2) + (name.u(3) << 8));
             }
@@ -43270,10 +38689,10 @@ public abstract class Editor {
                             bytes);
                 }
             }
-            showcmd_buf[SHOWCMD_COLS] = (byte) NUL;
+            showcmd_buf[SHOWCMD_COLS] = NUL;
             showcmd_visual = TRUE;
         } else {
-            showcmd_buf[0] = (byte) NUL;
+            showcmd_buf[0] = NUL;
             showcmd_visual = FALSE;
             if (showcmd_is_clear != 0) {
                 return;
@@ -43294,7 +38713,7 @@ public abstract class Editor {
             return false;
         }
         if (showcmd_visual != 0) {
-            showcmd_buf[0] = (byte) NUL;
+            showcmd_buf[0] = NUL;
             showcmd_visual = FALSE;
         }
         if (c < 0) {
@@ -43311,7 +38730,7 @@ public abstract class Editor {
             }
         } else {
             t1 = utf_char2bytes(c, new BytePtr(mbyte_buf, 0));
-            mbyte_buf[t1] = (byte) NUL;
+            mbyte_buf[t1] = NUL;
             p = new BytePtr(mbyte_buf, 0);
         }
         old_len = (int) musl_strlen(new BytePtr(showcmd_buf, 0));
@@ -43344,7 +38763,7 @@ public abstract class Editor {
         if (len > old_len) {
             len = old_len;
         }
-        showcmd_buf[old_len - len] = (byte) NUL;
+        showcmd_buf[old_len - len] = NUL;
         if (!char_avail()) {
             display_showcmd();
         }
@@ -47638,7 +43057,7 @@ public abstract class Editor {
                         buf2len++;
                         buf2[t4] = (byte) (((n[0] >>> (bit - 1)) & 1L) != 0 ? '1' : '0');
                     }
-                    buf2[buf2len] = (byte) NUL;
+                    buf2[buf2len] = NUL;
                 } else if (pre[0] == 0) {
                     buf2len = vim_snprintf(new BytePtr(buf2, 0), NUMBUFLEN, BytePtr.lit("%llu"), n[0]);
                 } else if (pre[0] == '0') {
@@ -47871,7 +43290,7 @@ public abstract class Editor {
                     vim_snprintf(new BytePtr(buf1, 0), 50L, gettext_(BytePtr.lit("%ld Cols; ")),
                             (long) (oparg.end_vcol[0] - oparg.start_vcol[0] + 1));
                 } else {
-                    buf1[0] = (byte) NUL;
+                    buf1[0] = NUL;
                 }
                 if (char_count_cursor == byte_count_cursor && char_count == byte_count) {
                     vim_snprintf(IObuff, 1025L,
@@ -51467,7 +46886,7 @@ public abstract class Editor {
         }
         intr_char = info.interrupt;
         buf[0] = (byte) info.backspace;
-        buf[1] = (byte) NUL;
+        buf[1] = NUL;
         add_termcode(BytePtr.lit("kb"), new BytePtr(buf, 0), FALSE);
         p = find_termcode(BytePtr.lit("kD"));
         if (p != null && p.u(0) == (buf[0] & 0xff) && p.u(1) == (buf[1] & 0xff)) {
@@ -51590,21 +47009,21 @@ public abstract class Editor {
         }
         for (i = 0; i < 256; i++) {
             if (i >= '0' && i <= '7') {
-                class_tab[i] = (short) (RI_DIGIT + RI_HEX + RI_OCTAL + RI_WORD);
+                class_tab[i] = RI_DIGIT + RI_HEX + RI_OCTAL + RI_WORD;
             } else if (i >= '8' && i <= '9') {
-                class_tab[i] = (short) (RI_DIGIT + RI_HEX + RI_WORD);
+                class_tab[i] = RI_DIGIT + RI_HEX + RI_WORD;
             } else if (i >= 'a' && i <= 'f') {
-                class_tab[i] = (short) (RI_HEX + RI_WORD + RI_HEAD + RI_ALPHA + RI_LOWER);
+                class_tab[i] = RI_HEX + RI_WORD + RI_HEAD + RI_ALPHA + RI_LOWER;
             } else if (i >= 'g' && i <= 'z') {
-                class_tab[i] = (short) (RI_WORD + RI_HEAD + RI_ALPHA + RI_LOWER);
+                class_tab[i] = RI_WORD + RI_HEAD + RI_ALPHA + RI_LOWER;
             } else if (i >= 'A' && i <= 'F') {
-                class_tab[i] = (short) (RI_HEX + RI_WORD + RI_HEAD + RI_ALPHA + RI_UPPER);
+                class_tab[i] = RI_HEX + RI_WORD + RI_HEAD + RI_ALPHA + RI_UPPER;
             } else if (i >= 'G' && i <= 'Z') {
-                class_tab[i] = (short) (RI_WORD + RI_HEAD + RI_ALPHA + RI_UPPER);
+                class_tab[i] = RI_WORD + RI_HEAD + RI_ALPHA + RI_UPPER;
             } else if (i == '_') {
-                class_tab[i] = (short) (RI_WORD + RI_HEAD);
+                class_tab[i] = RI_WORD + RI_HEAD;
             } else {
-                class_tab[i] = (short) 0;
+                class_tab[i] = 0;
             }
         }
         class_tab[' '] |= RI_WHITE;
@@ -52414,13 +47833,13 @@ public abstract class Editor {
         BytePtr p = null;
         long newsublen = 0L;
         byte[] tilde = new byte[3];
-        tilde[0] = (byte) '~';
+        tilde[0] = '~';
         long tildelen = 1L;
         boolean error = false;
         if (magic == 0) {
-            tilde[0] = (byte) '\\';
-            tilde[1] = (byte) '~';
-            tilde[2] = (byte) NUL;
+            tilde[0] = '\\';
+            tilde[1] = '~';
+            tilde[2] = NUL;
             tildelen = 2L;
         }
         for (p = newsub; p.get() != 0; p = p.add(1)) {
@@ -54305,7 +49724,7 @@ public abstract class Editor {
             }
         }
         if (paren == REG_PAREN) {
-            had_endbrace[parno] = (byte) TRUE;
+            had_endbrace[parno] = TRUE;
         }
         bt_reg_parse_depth--;
         out__.r__ = ret;
@@ -54350,7 +49769,7 @@ public abstract class Editor {
             return null;
         }
         r.regstart = NUL;
-        r.reganch = (byte) 0;
+        r.reganch = 0;
         r.regmust = null;
         r.regmlen = 0;
         r.regflags = regflags;
@@ -56677,7 +52096,7 @@ public abstract class Editor {
             y_current.y_array.at(0).string[0] = p;
             y_current.y_array.at(0).length = plen;
             y_current.y_size = 1L;
-            y_current.y_type = (byte) MCHAR;
+            y_current.y_type = MCHAR;
         }
         return true;
     }
@@ -56819,22 +52238,22 @@ public abstract class Editor {
             return;
         }
         byte[] buf = new byte[11];
-        buf[0] = (byte) -128;
+        buf[0] = -128;
         buf[1] = (byte) KS_EXTRA;
-        buf[2] = (byte) KE_COMMAND;
-        buf[3] = (byte) 's';
-        buf[4] = (byte) 't';
-        buf[5] = (byte) 'a';
-        buf[6] = (byte) 'r';
-        buf[7] = (byte) 't';
-        buf[8] = (byte) 'i';
-        buf[9] = (byte) CAR;
+        buf[2] = KE_COMMAND;
+        buf[3] = 's';
+        buf[4] = 't';
+        buf[5] = 'a';
+        buf[6] = 'r';
+        buf[7] = 't';
+        buf[8] = 'i';
+        buf[9] = CAR;
         if (restart_edit == 'R') {
-            buf[8] = (byte) 'r';
+            buf[8] = 'r';
         } else if (restart_edit == 'V') {
-            buf[8] = (byte) 'g';
+            buf[8] = 'g';
         } else if (restart_edit == 'A') {
-            buf[8] = (byte) '!';
+            buf[8] = '!';
         }
         if (ins_typebuf(new BytePtr(buf, 0), -1, 0, true, silent ? 1 : 0)) {
             restart_edit = NUL;
@@ -57130,7 +52549,7 @@ public abstract class Editor {
         y_idx = 0L;
         lnum = oap.start.lnum;
         if (oap.block_mode != 0) {
-            y_current.y_type = (byte) MBLOCK;
+            y_current.y_type = MBLOCK;
             y_current.y_width = oap.end_vcol[0] - oap.start_vcol[0];
             if (curwin.w_curswant == MAXCOL && y_current.y_width > 0) {
                 y_current.y_width--;
@@ -57173,7 +52592,7 @@ public abstract class Editor {
             }
             curr.y_array = new_ptr;
             if (yanktype == MLINE) {
-                curr.y_type = (byte) MLINE;
+                curr.y_type = MLINE;
             }
             if (curr.y_type == MCHAR && vim_strchr(p_cpo[0], CPO_REGAPPEND) == null) {
                 pnew = BytePtr.alloc(curr.y_array.at((int) (curr.y_size - 1L)).length + y_current.y_array.at(0).length + 1L);
@@ -57206,7 +52625,7 @@ public abstract class Editor {
             if (yanklines > p_report[0]) {
                 byte[] namebuf = new byte[100];
                 if (oap.regname == NUL) {
-                    namebuf[0] = (byte) NUL;
+                    namebuf[0] = NUL;
                 } else {
                     vim_snprintf(new BytePtr(namebuf, 0), 100L, gettext_(BytePtr.lit(" into \"%c")), oap.regname);
                 }
@@ -58268,7 +53687,7 @@ public abstract class Editor {
         int t1 = 0;
         byte[] buf = new byte[22];
         t1 = utf_char2bytes(c, new BytePtr(buf, 0));
-        buf[t1] = (byte) NUL;
+        buf[t1] = NUL;
         screen_puts(new BytePtr(buf, 0), row, col, attr);
     }
 
@@ -58644,7 +54063,7 @@ public abstract class Editor {
                 screen_cur_col++;
             }
             t1 = utfc_char2bytes(off, new BytePtr(buf, 0));
-            buf[t1] = (byte) NUL;
+            buf[t1] = NUL;
             out_str(new BytePtr(buf, 0));
         } else {
             out_char(ScreenLines.u(off));
@@ -60950,13 +56369,13 @@ public abstract class Editor {
                         if (spats[0].off.end != 0) {
                             t2 = off_len;
                             off_len++;
-                            off_buf[(int) t2] = (byte) 'e';
+                            off_buf[(int) t2] = 'e';
                         } else if (spats[0].off.line == 0) {
                             t3 = off_len;
                             off_len++;
-                            off_buf[(int) t3] = (byte) 's';
+                            off_buf[(int) t3] = 's';
                         }
-                        off_buf[(int) off_len] = (byte) NUL;
+                        off_buf[(int) off_len] = NUL;
                         if (spats[0].off.off != 0L || spats[0].off.line != 0) {
                             off_len += (long) vim_snprintf(new BytePtr(off_buf, 0).add((int) off_len), 40L - off_len,
                                     BytePtr.lit("%+ld"), spats[0].off.off);
@@ -62016,8 +57435,8 @@ public abstract class Editor {
         }
         if (show_top_bot_msg && Long.compareUnsigned(len + 2L, SEARCH_STAT_BUF_LEN) < 0) {
             Rt.memmove(new BytePtr(t, 0).add(2), new BytePtr(t, 0), len);
-            t[0] = (byte) 'W';
-            t[1] = (byte) ' ';
+            t[0] = 'W';
+            t[1] = ' ';
             len += 2L;
         }
         if (Long.compareUnsigned(len, msgbuflen) > 0) {
@@ -62413,7 +57832,7 @@ public abstract class Editor {
         if (t_colors > 1) {
             vim_snprintf(new BytePtr(nr_colors, 0), 20L, BytePtr.lit("%d"), t_colors);
         } else {
-            nr_colors[0] = (byte) NUL;
+            nr_colors[0] = NUL;
         }
         set_string_option_direct(BytePtr.lit("t_Co"), -1, new BytePtr(nr_colors, 0), OPT_FREE, 0);
     }
@@ -62534,10 +57953,10 @@ public abstract class Editor {
         term_is_xterm = vim_is_xterm(term) ? 1 : 0;
         byte[] name = new byte[3];
         name[0] = (byte) KS_EXTRA;
-        name[1] = (byte) KE_FOCUSGAINED;
-        name[2] = (byte) NUL;
+        name[1] = KE_FOCUSGAINED;
+        name[2] = NUL;
         add_termcode(new BytePtr(name, 0), BytePtr.lit("\033[I"), FALSE);
-        name[1] = (byte) KE_FOCUSLOST;
+        name[1] = KE_FOCUSLOST;
         add_termcode(new BytePtr(name, 0), BytePtr.lit("\033[O"), FALSE);
         need_gather = TRUE;
         focus_state = MAYBE;
@@ -63608,7 +59027,7 @@ public abstract class Editor {
             return -1;
         }
         new_slen += add_key_to_buf(key, new BytePtr(string, 0).add(new_slen));
-        string[new_slen] = (byte) NUL;
+        string[new_slen] = NUL;
         if (!put_string_in_typebuf(offset, csi_len, new BytePtr(string, 0), new_slen, buf, bufsize, buflen)) {
             return -1;
         }
@@ -63619,52 +59038,52 @@ public abstract class Editor {
         byte[] key_name = new byte[2];
         switch (arg) {
             case 11:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '1';
+                key_name[0] = 'k';
+                key_name[1] = '1';
                 break;
             case 12:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '2';
+                key_name[0] = 'k';
+                key_name[1] = '2';
                 break;
             case 13:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '3';
+                key_name[0] = 'k';
+                key_name[1] = '3';
                 break;
             case 14:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '4';
+                key_name[0] = 'k';
+                key_name[1] = '4';
                 break;
             case 15:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '5';
+                key_name[0] = 'k';
+                key_name[1] = '5';
                 break;
             case 17:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '6';
+                key_name[0] = 'k';
+                key_name[1] = '6';
                 break;
             case 18:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '7';
+                key_name[0] = 'k';
+                key_name[1] = '7';
                 break;
             case 19:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '8';
+                key_name[0] = 'k';
+                key_name[1] = '8';
                 break;
             case 20:
-                key_name[0] = (byte) 'k';
-                key_name[1] = (byte) '9';
+                key_name[0] = 'k';
+                key_name[1] = '9';
                 break;
             case 21:
-                key_name[0] = (byte) 'F';
-                key_name[1] = (byte) ';';
+                key_name[0] = 'F';
+                key_name[1] = ';';
                 break;
             case 23:
-                key_name[0] = (byte) 'F';
-                key_name[1] = (byte) '1';
+                key_name[0] = 'F';
+                key_name[1] = '1';
                 break;
             case 24:
-                key_name[0] = (byte) 'F';
-                key_name[1] = (byte) '2';
+                key_name[0] = 'F';
+                key_name[1] = '2';
                 break;
         }
         if (key_name[0] != 0) {
@@ -63698,13 +59117,13 @@ public abstract class Editor {
         byte[] string = new byte[7];
         int new_slen;
         if (arg.at(0) == ESC) {
-            string[0] = (byte) -128;
+            string[0] = -128;
             string[1] = (byte) KS_EXTRA;
-            string[2] = (byte) KE_ESC;
+            string[2] = KE_ESC;
             new_slen = 3;
         } else if (arg.at(0) >= 11 && arg.at(0) <= 24 && trail == '~') {
             int key = parse_csi_f_keys(arg.at(0));
-            string[0] = (byte) -128;
+            string[0] = -128;
             string[1] = (byte) (-key & 255);
             string[2] = (byte) ((-key >>> 8) & 255);
             new_slen = 3;
@@ -63964,7 +59383,7 @@ public abstract class Editor {
             osc_state.start_tv = musl_now_ms();
             osc_state.processing = true;
             osc_state.start_char = tp.at(0);
-            last_char = (byte) 0;
+            last_char = 0;
         } else {
             last_char = GA_BytePtr(osc_state.buf).at(osc_state.buf.ga_len - 1);
         }
@@ -64104,8 +59523,8 @@ public abstract class Editor {
             }
             if (osc_state.processing) {
                 tp.set(len, (byte) NUL);
-                key_name[0] = (byte) NUL;
-                key_name[1] = (byte) NUL;
+                key_name[0] = NUL;
+                key_name[1] = NUL;
                 modifiers = 0;
                 handle_osc__o = handle_osc(tp, len, new BytePtr(key_name, 0), slen);
                 slen = handle_osc__o.slen;
@@ -64123,8 +59542,8 @@ public abstract class Editor {
                     continue;
                 }
                 tp.set(len, (byte) NUL);
-                key_name[0] = (byte) NUL;
-                key_name[1] = (byte) NUL;
+                key_name[0] = NUL;
+                key_name[1] = NUL;
                 modifiers = 0;
                 int keypad_index_found = -1;
                 int keypad_slen_found = 0;
@@ -64244,14 +59663,14 @@ public abstract class Editor {
                         did_cursorhold = TRUE;
                         focus_state = TRUE;
                     }
-                    key_name[1] = (byte) KE_IGNORE;
+                    key_name[1] = KE_IGNORE;
                 } else if (key_name[1] == KE_FOCUSLOST) {
                     if (focus_state != 0) {
                         ui_focus_change(false);
                         did_cursorhold = TRUE;
                         focus_state = FALSE;
                     }
-                    key_name[1] = (byte) KE_IGNORE;
+                    key_name[1] = KE_IGNORE;
                 }
             }
             key = handle_x_keys(-((key_name[0] & 0xff) + ((key_name[1] & 0xff) << 8)));
@@ -64268,7 +59687,7 @@ public abstract class Editor {
             } else {
                 t1 = new_slen;
                 new_slen++;
-                string[t1] = (byte) -128;
+                string[t1] = -128;
                 t2 = new_slen;
                 new_slen++;
                 string[t2] = key_name[0];
@@ -64475,13 +59894,13 @@ public abstract class Editor {
         int t1 = 0;
         int i = 0;
         int len = 0;
-        termleader[len] = (byte) NUL;
+        termleader[len] = NUL;
         for (i = 0; i < tc_len; i++) {
             if (vim_strchr(new BytePtr(termleader, 0), termcodes.at(i).code.u(0)) == null) {
                 t1 = len;
                 len++;
                 termleader[t1] = termcodes.at(i).code.at(0);
-                termleader[len] = (byte) NUL;
+                termleader[len] = NUL;
             }
         }
         need_gather = FALSE;
@@ -65722,7 +61141,7 @@ public abstract class Editor {
             read_error_exit();
         }
         if (got_int != 0) {
-            inbuf[0] = (byte) 3;
+            inbuf[0] = 3;
             inbufcount = 1;
         } else {
             while (len > 0) {
@@ -66583,7 +62002,7 @@ public abstract class Editor {
             uhp = curbuf.b_u_newhead;
         }
         if (uhp == null) {
-            msgbuf[0] = (byte) NUL;
+            msgbuf[0] = NUL;
         } else {
             add_time(new BytePtr(msgbuf, 0), 80L, uhp.uh_time);
         }
@@ -67032,7 +62451,7 @@ public abstract class Editor {
     void new_frame(S_window_S wp) {
         S_frame_S frp = new S_frame_S();
         wp.w_frame = frp;
-        frp.fr_layout = (byte) FR_LEAF;
+        frp.fr_layout = FR_LEAF;
         frp.fr_win = wp;
     }
 
@@ -67548,7 +62967,7 @@ public abstract class Editor {
         estack_init();
         cmdline_init();
         for (int i = 0; i < 256; i++) {
-            mb_bytelen_tab[i] = (byte) 1;
+            mb_bytelen_tab[i] = 1;
         }
         IObuff = BytePtr.alloc(1025L);
         t1 = IObuff == null;

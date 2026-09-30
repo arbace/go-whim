@@ -56,6 +56,8 @@ type jgen struct {
 	classOrder  []string          // the struct classes, in the order met
 	classType   map[string]cc.Type
 	needEq      map[string]bool      // a class some code compares whole (memcmp)
+	ctorClass   map[string]bool      // a class a table's rows are made of: its constructors (java_tables.go)
+	initNamed   map[string]bool      // a field some initial value names: its table keeps its statements
 	boxedField  map[string]bool      // a member whose address is taken, by fieldKey
 	gaUsed      map[string]*gaHelper // the growarray's typed accessors, by the Java pointer type
 	ifaces      map[string]*jiface   // the functional interfaces, by their signature
@@ -497,6 +499,9 @@ func (j *jgen) structClass(name string, t cc.Type) string {
 		}
 		eq.WriteString(eqStmt(fname, "o$."+fname, fl.Type(), ft, 0, "            "))
 	}
+	if j.ctorClass[name] {
+		b.WriteString(j.ctorText(name, t))
+	}
 	fmt.Fprintf(&b, "\n        public %s set(%s o$) {\n%s            return this;\n        }\n", name, name, set.String())
 	fmt.Fprintf(&b, "\n        %s copy() {\n            return new %s().set(this);\n        }\n", name, name)
 	fmt.Fprintf(&b, "\n        public %s zero() {\n            return set(new %s());\n        }\n", name, name)
@@ -621,7 +626,7 @@ func (g *gen) writeJava(path string) error {
 	class := strings.TrimSuffix(filepath.Base(path), ".java")
 	j := &jgen{g: g, class: class, structs: map[string]string{}, boxed: map[*cc.Declarator]bool{}, boxedGlobal: map[string]bool{},
 		enums: map[string]string{}, enumVal: map[string]jnum{}, defined: map[string]bool{},
-		classType: map[string]cc.Type{}, needEq: map[string]bool{}, boxedField: map[string]bool{},
+		classType: map[string]cc.Type{}, needEq: map[string]bool{}, ctorClass: map[string]bool{}, initNamed: map[string]bool{}, boxedField: map[string]bool{},
 		gaUsed: map[string]*gaHelper{}, ifaces: map[string]*jiface{}, ifaceByName: map[string]*jiface{},
 		fnRefs: map[string]string{}, fnRefText: map[string]string{}}
 	j.boxes()
@@ -914,6 +919,9 @@ func (j *jgen) fields() (string, []string, []string) {
 					f.line("// refused: the initial value of %s: %s", d.Name(), u.why)
 				}
 			}()
+			if !j.isBoxed(d) && f.rowsInit(target, name, t, key, in) {
+				return
+			}
 			f.initInto(target, t, key, in, true)
 		})
 		cur.WriteString(text)
@@ -953,6 +961,35 @@ func (j *jgen) fields() (string, []string, []string) {
 			if id.Initializer != nil {
 				gl.in = id.Initializer
 			}
+		}
+	}
+	// the fields an initial value names: an element of one may be held
+	// before its table is written, so its rows are not replaced
+	statics := map[*cc.Declarator]string{}
+	for _, s := range j.g.a.statics {
+		statics[s.d] = j.staticName(s.fn, s.d.Name())
+	}
+	named := func(in *cc.Initializer) {
+		walkNodes(in, func(n cc.Node) {
+			d := identDecl(n)
+			if d == nil {
+				return
+			}
+			if s, ok := statics[d]; ok {
+				j.initNamed[s] = true
+			} else if _, ok := globals[d.Name()]; ok && d.StorageDuration() == cc.Static {
+				j.initNamed[j.jName(d.Name())] = true
+			}
+		})
+	}
+	for _, name := range order {
+		if in := globals[name].in; in != nil {
+			named(in)
+		}
+	}
+	for _, s := range j.g.a.statics {
+		if s.init != nil {
+			named(s.init)
 		}
 	}
 	for _, name := range order {

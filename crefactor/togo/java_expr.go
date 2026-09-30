@@ -910,7 +910,11 @@ func (f *jfn) assign(x *cc.AssignmentExpression) jlv {
 			f.stmt1("%s.set(%s)", lv.get, r.s) // C's assignment of a struct is a copy
 			return lv
 		}
-		f.stmt1("%s", lv.set(f.conv(r, lv.t, lv.c)))
+		v := f.conv(r, lv.t, lv.c)
+		if lk, ok := scalarKind(lv.c); ok && lv.op {
+			v = narrowConst(v, r, lk)
+		}
+		f.stmt1("%s", lv.set(v))
 		return lv
 	}
 	ops := map[cc.AssignmentExpressionCase]string{cc.AssignmentExpressionMul: "*", cc.AssignmentExpressionDiv: "/", cc.AssignmentExpressionMod: "%",
@@ -965,6 +969,31 @@ func (f *jfn) assign(x *cc.AssignmentExpression) jlv {
 	res := f.arith(op, f.convK(lval, common), r, common)
 	f.stmt1("%s", lv.set(f.convK(jval{s: res, t: common.java(), kind: &common}, lk)))
 	return lv
+}
+
+// narrowConst is s, constant r as kind k, without the cast to byte or
+// short that Java's assignment makes itself: an int constant that fits the
+// variable's type is narrowed by `=` (JLS 5.2), not by a call's argument,
+// so only an assignment's right side is handed here.
+func narrowConst(s string, r jval, k jk) string {
+	if !r.konst || k.boolean || k.size != 1 && k.size != 2 {
+		return s
+	}
+	pre := "(" + k.java() + ") "
+	if !strings.HasPrefix(s, pre) {
+		return s
+	}
+	in := s[len(pre):]
+	if !r.named {
+		return in // jlit's literal: its value is k's
+	}
+	if r.jn.size == 0 || r.jn.size > 4 || jwant(r.jn.v, k) != r.jn.v {
+		return s
+	}
+	if strings.HasPrefix(in, "(") && strings.HasSuffix(in, ")") && wholeExpr(in[1:len(in)-1]) {
+		in = in[1 : len(in)-1]
+	}
+	return in
 }
 
 // arith is a op b in common kind k, a already converted: C's arithmetic on

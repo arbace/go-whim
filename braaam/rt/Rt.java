@@ -187,6 +187,42 @@ public final class Rt {
         return a;
     }
 
+    // --- a table's rows: its initial value, from its start ------------------
+
+    /** A table's rows into the array a holds: a[k] = rows[k]. */
+    @SafeVarargs
+    public static <T> void rows(T[] a, T... rows) {
+        for (int k = 0; k < rows.length; k++) {
+            a[k] = rows[k];
+        }
+    }
+
+    /** A table of bytes: each an int, narrowed as C converts it. */
+    public static void rows(byte[] a, int... rows) {
+        for (int k = 0; k < rows.length; k++) {
+            a[k] = (byte) rows[k];
+        }
+    }
+
+    /** A table of shorts: each an int, narrowed as C converts it. */
+    public static void rows(short[] a, int... rows) {
+        for (int k = 0; k < rows.length; k++) {
+            a[k] = (short) rows[k];
+        }
+    }
+
+    public static void rows(int[] a, int... rows) {
+        System.arraycopy(rows, 0, a, 0, rows.length);
+    }
+
+    public static void rows(long[] a, long... rows) {
+        System.arraycopy(rows, 0, a, 0, rows.length);
+    }
+
+    public static void rows(boolean[] a, boolean... rows) {
+        System.arraycopy(rows, 0, a, 0, rows.length);
+    }
+
     // --- a void * read back as what it holds --------------------------------
 
     /**

@@ -1606,8 +1606,8 @@ func TestJavaNames(t *testing.T) {
 	prog := javaSame(t, javaNamesC)
 	for _, want := range []string{
 		"case ESC:", "case K_INS:", `case '\\':`, `case '\t':`, "case 'z' - 'a' + 1:",
-		"P_BOOL | P_VI_DEF", "= P_RCLR;", "= BIGL;", "BIGL + 1L",
-		"(byte) M_SHIFT", "(byte) '&'", `(byte) '\\'`, "2147483647",
+		"new S_opt(P_BOOL | P_VI_DEF, BIGL)", "new S_opt(P_RCLR, BIGL + 1L)",
+		`M_SHIFT, '&', '\\');`, "2147483647",
 	} {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in\n%s", want, numbered(prog))

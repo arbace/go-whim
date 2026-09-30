@@ -239,6 +239,45 @@ reads `p.u()` or `p.u(k)`.
 
 ### 5. Tables written a member at a time, and constant casts
 
+**Done** (2026-09-30; `crefactor/togo/java_tables.go`, `narrowConst` in
+`java_expr.go`). A table of structs whose members are all numbers and
+references is `Rt.rows(table, new T(...), ...)`, a row a line, through a
+constructor of the members in order, written for the 11 classes whose
+tables use one (a `byte` or `short` member taken as an `int` and narrowed
+by it, since Java does not narrow a constant in a call). A table of numbers
+is `Rt.rows(a, 1, 1, 2, ...)`. A designator that names the row's own
+place, as `cmdnames`' `[CMD_append]` does, is allowed. `Rt.rows` fills the
+array the field already holds, in the `initGlobals` method the statements
+were in, so every pointer to the array still holds it, and what the rows
+name (the `fp_*` references) exists already. A table another initial value
+names keeps its statements, since an element captured before its row is
+written would go stale. 39 tables are rows now: `nv_cmds`, `cmdnames`,
+`foldCase`, `toLower`, `toUpper`, the Unicode intervals, `utf8len_tab`,
+the colour tables and the rest. And an `=` of an int constant that fits a
+`byte` or `short` drops its cast, since Java's assignment narrows it
+(`a[k] = NUL;`); a call's argument keeps its cast.
+
+Measured: `Editor.java` 67,801 -> 63,220 lines. The element-at-a-time
+initialiser statements went 9,539 -> 2,772. `= (byte) K;` went
+1,098 -> 27 and `= (short) K;` 298 -> 21: what is left is not a constant
+(`(byte) c`) or does not fit (`(byte) KS_EXTRA`, 253). The proof: a
+throwaway dumper builds an editor from HEAD's `Editor.java` and one from
+this one, walks every object reachable from each, in field-name order
+(functions by the `fp_` field that holds them, a shared object by where it
+was first seen), and the two dumps are the same, 18,529 lines. The
+control, one row's value changed, is seen at its line. The quick and wide
+suites with `--java` answer as the C does.
+
+Not done:
+- `options`, 970 statements: `flags` is held in a one-element array,
+  `var_` is a union and `def_str` an array;
+- `key_names_table` and `color_name_tab`: a `string_T` member;
+- `builtin_xterm` and the other terminals, which `builtin_terminals`
+  names;
+- `opchars`, an array of arrays.
+Each wants a row form of its own (a nested constructor, a union's
+member), and the records the survey mentions are not done either.
+
 - **The pattern:** the C's tables are initialised one member per statement:
   `foldCase[0].rangeStart = 65; foldCase[0].rangeEnd = 90; ...` (`:8206`) for
   `{0x41, 0x5a, 1, 32}`, and the option `ambiwidth` as six statements
