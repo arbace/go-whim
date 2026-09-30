@@ -2240,6 +2240,7 @@ declared `delta.md`.
 - [Phase 179 — no mark is cleared when none was set](../internal/phase/179/GOAL.md)
 - [Phase 180 — the host's clock can be held still](../internal/phase/180/GOAL.md)
 - [Phase 181 — an out-parameter a value, a struct local its members](../internal/phase/181/GOAL.md)
+- [Phase 182 — gettext's identity not called, the ASCII tests named, constant ifs their branch](../internal/phase/182/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

@@ -21,10 +21,10 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, phases 0-181 from 180,870
-  lines to 77,631. It is two arcs, a coda, an empty phase, five for the Go's
-  sake, the headers, the gotos, the parallel `:%s`, and the out-parameters
-  and struct locals as values:
+- **whim** (the `Makefile`) removes capability on purpose, phases 0-182 from 180,870
+  lines to 77,634. It is two arcs, a coda, an empty phase, five for the Go's
+  sake, the headers, the gotos, the parallel `:%s`, the out-parameters
+  and struct locals as values, and the C spelled plainly:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,025 lines at q82;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
@@ -120,6 +120,15 @@ slim-vim.c  --whim-->  whim-vim.c
     functions (14 taking no value in), 66 structs. The Java's `[0]` reads
     4,802 -> 4,009, the Clojure's one-element arrays 637 -> 515; the Java
     takes a struct a call returns as it is, the Haskell as a tuple.
+  - **phase 182** spells plainly what the preprocessor left
+    (`crefactor/xform`'s `plainc.go`): gettext's identity `_()` is not
+    called, each call its argument (399); `(unsigned)c - 'A' < 26` and its
+    kin are `ascii_isupper(c)`, `_islower`, `_isdigit` again (136); an `if`
+    of a constant condition is the branch it takes (8). The Java's
+    `gettext_(` 400 -> 1 and `Integer.compareUnsigned` 150 -> 17. Taking
+    the constant `if (1) { len = 0; }` showed three parameters whose value
+    the function never reads; the Go writes them `_` with a local of the
+    name (`deadInParams`), which keeps `editor/` staticcheck-clean.
 
   Phase 83 is the line between the two arcs.
 
@@ -392,7 +401,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
                      # bin/caprice
-make whim-build      # the 151 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 152 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj or Editor.hs that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
@@ -421,7 +430,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 151 phases, **990 s**, 77,631 lines. A
+  before the reason. Measured: 152 phases, **974 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -439,8 +448,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **66 s**, 150 links 64 at a time, bound by
-  the machine's load and no longer by one link (phase 54 was 44 s alone), against 990 s in
+  committed `whim-vim.c`. Measured: **98 s**, 151 links 64 at a time, bound by
+  the machine's load and no longer by one link (phase 54 was 44 s alone), against 974 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -488,7 +497,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 151 of them, in order, numbered 0-181: 8 phases that
+`p_N = f_N(p_{N-1})` -- 152 of them, in order, numbered 0-182: 8 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry), and the
 14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
@@ -543,7 +552,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 182.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 183.
 The pipeline's goal is met; a phase now is for the Go editor, where the C is
 the cause of what the generator cannot make idiomatic. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering

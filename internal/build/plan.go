@@ -819,4 +819,10 @@ var Plan = []Phase{
 			{Op: "localout"},
 			{Op: "structscalar"},
 		}},
+	{N: 182, Name: "gettext's identity not called, the ASCII tests named, constant ifs their branch",
+		Steps: []Step{
+			{Op: "identity"},
+			{Op: "asciiclass"},
+			{Op: "constbranch"},
+		}},
 }

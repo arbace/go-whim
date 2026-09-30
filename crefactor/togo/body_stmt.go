@@ -819,8 +819,10 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 		walkChildrenFn(n, names)
 	}
 	names(fd.CompoundStatement)
-	// parameters
-	var ps []string
+	// parameters: one whose value the function never reads is `_`, and
+	// the name a local of its own (deadIn)
+	var ps, deadLocals []string
+	deadIn := deadInParams(fd)
 	for i, p := range ft.Parameters() {
 		if p.Type() != nil && p.Type().Kind() == cc.Void {
 			continue
@@ -830,7 +832,12 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 			pn = fmt.Sprintf("p%d", i)
 		}
 		pk := fmt.Sprintf("param:%s:%d", d.Name(), i)
-		ps = append(ps, g.goName(pn)+" "+g.goType(p.Type(), pk))
+		if deadIn[pn] {
+			ps = append(ps, "_ "+g.goType(p.Type(), pk))
+			deadLocals = append(deadLocals, fmt.Sprintf("\tvar %s %s\n", g.goName(pn), g.goType(p.Type(), pk)))
+		} else {
+			ps = append(ps, g.goName(pn)+" "+g.goType(p.Type(), pk))
+		}
 		f.taken[g.goName(pn)] = true
 	}
 	if ft.IsVariadic() {
@@ -852,6 +859,10 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 	}
 	b.WriteString(" {\n")
 	hoisted := 0
+	for _, l := range deadLocals {
+		b.WriteString(l)
+		hoisted++
+	}
 	for _, l := range f.locals {
 		if !l.scoped {
 			fmt.Fprintf(&b, "\tvar %s %s\n", l.name, l.typ)
@@ -1053,4 +1064,61 @@ func scopedDecls(body string, locals []*local) string {
 		}
 		return s[1] + "var " + s[2] + " " + s[3] + " = "
 	})
+}
+
+// deadInParams are the parameters whose value, as the caller passed it, the
+// function never reads: the first top-level statement to name one stores
+// to it (`len = 0;`, its right side not reading it), before which nothing
+// names it -- and no label lets a jump reach past that store.
+func deadInParams(fd *cc.FunctionDefinition) map[string]bool {
+	out := map[string]bool{}
+	ft, _ := fd.Declarator.Type().(*cc.FunctionType)
+	if ft == nil || hasGoto(fd.CompoundStatement) {
+		return out
+	}
+	names := func(n cc.Node, pn string) bool {
+		found := false
+		walkNodes(n, func(m cc.Node) {
+			if d := identDecl(m); d != nil && d.IsParam() && d.Name() == pn {
+				found = true
+			}
+		})
+		return found
+	}
+	// scan says the items store to pn before anything names it (true, true),
+	// name it first (false, true), or neither (false, false); a block is
+	// its items, in order
+	var scan func(l *cc.BlockItemList, pn string) (bool, bool)
+	scan = func(l *cc.BlockItemList, pn string) (bool, bool) {
+		for ; l != nil; l = l.BlockItemList {
+			it := l.BlockItem
+			if st := it.Statement; it.Case == cc.BlockItemStmt {
+				switch {
+				case st.Case == cc.StatementCompound:
+					if dead, stop := scan(st.CompoundStatement.BlockItemList, pn); stop {
+						return dead, true
+					}
+					continue
+				case st.Case == cc.StatementExpr && st.ExpressionStatement.ExpressionList != nil:
+					if as, ok := unparenE(st.ExpressionStatement.ExpressionList).(*cc.AssignmentExpression); ok && as.Case == cc.AssignmentExpressionAssign {
+						if d := identDecl(unparenE(as.UnaryExpression)); d != nil && d.IsParam() && d.Name() == pn && !names(as.AssignmentExpression, pn) {
+							return true, true
+						}
+					}
+				}
+			}
+			if names(it, pn) {
+				return false, true
+			}
+		}
+		return false, false
+	}
+	for _, p := range ft.Parameters() {
+		if pn := p.Name(); pn != "" {
+			if dead, _ := scan(fd.CompoundStatement.BlockItemList, pn); dead {
+				out[pn] = true
+			}
+		}
+	}
+	return out
 }

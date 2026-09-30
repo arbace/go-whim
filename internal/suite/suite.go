@@ -235,7 +235,7 @@ func Compare(cases []Case, ref, cand string) ([]string, error) {
 
 // The control changes a string the editor prints in insert mode, which the
 // cases show on the screen.
-const controlOld, controlNew = `_(" INSERT")`, `_(" INSERX")`
+const controlOld, controlNew = `" INSERT"`, `" INSERX"`
 
 // Check builds the reference from src/whim-vim.c at rev and the candidate from
 // candSrc, compares them on every case, and requires the control to be seen.

@@ -408,6 +408,15 @@ seen. The records the survey mentions are not done.
 
 ### 8. What else the C spells that no one would write
 
+**Done: phase 182** (2026-09-30; `crefactor/xform`'s `plainc.go`). Its three
+steps know no code base: a call of an identity function is its argument,
+cast by the body's cast where the types differ (`_()`, 399 calls); C's
+one-comparison ASCII class tests are `ascii_isupper`, `_islower` and
+`_isdigit`, defined at the core's top (136 tests); an `if` of a constant
+condition is the branch it takes (8, the survey's two among them). In the
+Java: `gettext_(` 400 -> 1 (its definition), `Integer.compareUnsigned` 150
+-> 17. Every editor, all 80 and all 240 cases as HEAD's C.
+
 - **`_()`, gettext, is the identity** (`whim-vim.c:825`) and is called 441
   times: `gettext_(BytePtr.lit("E123: ..."))` 391 times in the Java, 399
   in the Go. A C phase drops the calls (the host names `gettext_`, so the
