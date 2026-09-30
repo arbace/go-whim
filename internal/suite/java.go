@@ -45,21 +45,37 @@ type jvmEditor struct {
 // buildJava builds the Java editor from candSrc, and its control, under dir.
 func buildJava(gen braaam.Gen, candSrc, dir string) (*jvmEditor, error) {
 	e := &jvmEditor{name: "Java", where: "braaam/", file: "Editor.java", launcher: "braaam",
-		frame: regexp.MustCompile(`^\tat (?:Editor|Whim)\.([A-Za-z0-9_$]+)\(`)}
+		frame: regexp.MustCompile(`^\tat (?:whim\.editor\.)?(?:Editor|Whim)\.([A-Za-z0-9_$]+)\(`)}
 	jdir, cdir := filepath.Join(dir, "java"), filepath.Join(dir, "java-control")
 	bin, err := braaam.Build(gen, candSrc, jdir, filepath.Join(dir, "braaam"), nil)
 	if err != nil {
 		return nil, err
 	}
-	src, err := os.ReadFile(filepath.Join(jdir, "src", "Editor.java"))
+	// the control: the generated package again, its Editor.java changed
+	genDir, ctlDir := filepath.Join(jdir, "src", "editor"), filepath.Join(cdir, "src", "editor")
+	files, err := braaam.Generated(genDir)
 	if err != nil {
 		return nil, err
 	}
-	ctlSrc, err := writeControl(src, "Editor.java", filepath.Join(cdir, "src"))
-	if err != nil {
+	if err := os.MkdirAll(ctlDir, 0o755); err != nil {
 		return nil, err
 	}
-	ctl, err := braaam.Compile(ctlSrc, cdir, filepath.Join(dir, "braaam-control"))
+	for _, g := range files {
+		src, err := os.ReadFile(filepath.Join(genDir, g))
+		if err != nil {
+			return nil, err
+		}
+		if g == "Editor.java" {
+			if _, err := writeControl(src, g, ctlDir); err != nil {
+				return nil, err
+			}
+			continue
+		}
+		if err := os.WriteFile(filepath.Join(ctlDir, g), src, 0o644); err != nil {
+			return nil, err
+		}
+	}
+	ctl, err := braaam.Compile(ctlDir, cdir, filepath.Join(dir, "braaam-control"))
 	if err != nil {
 		return nil, err
 	}

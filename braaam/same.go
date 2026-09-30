@@ -15,8 +15,8 @@ import (
 )
 
 // SAME CLASSES: the proof of a change to how the Java is spelled.  javac
-// folds a constant expression and drops parentheses, so an Editor.java that
-// names a constant the old one wrote as its value, or loses a pair of
+// folds a constant expression and drops parentheses, so a generated package
+// that names a constant the old one wrote as its value, or loses a pair of
 // parentheses, compiles to the same code -- the Java's SOURCE_DATE_EPOCH
 // comparison, with nothing run (doc/JAVA-IDIOMS.md).  Not always to the same
 // bytes: a constant named for the first time is a field of its own and moves
@@ -26,8 +26,8 @@ import (
 // ldc, a jump's target as the number of the instruction it reaches, and the
 // constant fields' declarations and the blank lines left out.
 
-// Same compiles the Java editor twice -- with oldJava as its Editor.java,
-// then newJava -- each with the embedded sources and no debugging
+// Same compiles the Java editor twice -- with the generated package in the
+// directory oldJava, then in newJava -- each with the embedded sources and no debugging
 // information (-g:none), under dir, and returns nil when every class of the
 // two is the same: its bytes, or its code.  It writes a line of counts to w.
 func Same(oldJava, newJava, dir string, w io.Writer) error {
@@ -38,16 +38,22 @@ func Same(oldJava, newJava, dir string, w io.Writer) error {
 		if err != nil {
 			return err
 		}
-		ed := filepath.Join(d, "src", "Editor.java")
-		b, err := os.ReadFile(src)
+		gen, err := Generated(src)
 		if err != nil {
 			return err
 		}
-		if err := os.WriteFile(ed, b, 0o644); err != nil {
-			return err
+		if len(gen) == 0 {
+			return fmt.Errorf("%s: no generated Java files", src)
+		}
+		for _, g := range gen {
+			abs, err := filepath.Abs(filepath.Join(src, g))
+			if err != nil {
+				return err
+			}
+			files = append(files, abs)
 		}
 		classes[i] = filepath.Join(d, "classes")
-		args := append([]string{"-g:none", "-nowarn", "-encoding", "UTF-8", "-d", classes[i]}, append(files, ed)...)
+		args := append([]string{"-g:none", "-nowarn", "-encoding", "UTF-8", "-d", classes[i]}, files...)
 		if out, err := exec.Command("javac", args...).CombinedOutput(); err != nil {
 			return fmt.Errorf("javac %s: %v\n%s", src, err, out)
 		}

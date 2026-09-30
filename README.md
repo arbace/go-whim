@@ -26,7 +26,7 @@ product, `src/whim-vim.c`, is tracked, and `make whim-build-check` requires it
 back byte for byte.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
-from each other: `editor/editor.go`, `braaam/Editor.java` and
+from each other: `editor/editor.go`, `braaam/editor/` and
 `vijure/src/whim/editor.clj` are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
@@ -43,7 +43,7 @@ make                   # fetch the input if it moved, then every editor: bin/whi
                        # bin/vijure and vijure.jar
 make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the three translations
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a stale editor.go, Editor.java or editor.clj
+make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj or Editor.hs
 make whim-test         # the quick suite; whim-test-wide, whim-test-java
 make go-test           # the Go packages' tests
 make bin/whim-vim      # the C editor's binary

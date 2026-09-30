@@ -159,6 +159,11 @@ var Gen = togo.Profile{
 	// host's state is editorHost, which Editor embeds.  What the hand-written
 	// files declare is read from them when the generator runs (cmd/whim gen).
 	Instance: &togo.Instance{Type: "Editor", Receiver: "ed", Init: "initGlobals", Embed: "editorHost"},
+	// The Java editor (braaam/editor/) is package whim.editor, written as
+	// Java writes a package: a file a class, the constants imported
+	// statically (doc/JAVA-IDIOMS.md, item 11).
+	JavaPackage: "whim.editor",
+	JavaFiles:   true,
 	// vim's _(), the identity once gettext went; _ is Go's blank.
 	Rename: map[string]string{"_": "gettext_"},
 	// The C functions editor/crt.go replaces: their calls are translated,

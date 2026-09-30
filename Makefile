@@ -184,11 +184,11 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # II.4c).  Every translation is written from the core, and each cuts it for
 # itself (internal/whim's Cut: everything before the first `^ *# *include `,
 # trailing blank lines dropped, a result holding a directive refused): `whim gen`
-# for editor.go and the tracked Editor.java and editor.clj, `whim java` and
+# for editor.go and the tracked braaam/editor/ and editor.clj, `whim java` and
 # `whim clj` for their builds.  Nothing is written under src/; `go tool whim cut`
 # prints the core, to read.
 #
-# editor/editor.go is GENERATED, and so are braaam/Editor.java and
+# editor/editor.go is GENERATED, and so are braaam/editor/ (package whim.editor) and
 # vijure/src/whim/editor.clj: `go tool whim gen` writes them whole from
 # whim-vim.c's core, and they are tracked, so they must be what the program
 # writes from the tracked whim-vim.c.  Each is written only when that differs, so
@@ -197,7 +197,7 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # whim-editor-check run on whim-vim.c as it stands: through whim-vim.c's own rule
 # they would start a build.
 .PHONY: editor/editor.go
-editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, Editor.java, editor.clj
+editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -205,7 +205,7 @@ whim-editor:
 	@go tool whim gen
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if a tracked editor.go, Editor.java or editor.clj is not what the generator writes
+whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj or Editor.hs is not what the generator writes
 	@go tool whim gen --check
 
 # ==== the editor in Go
@@ -251,12 +251,12 @@ editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLI
 
 # ==== the editor in Java
 # The editor in Java (braaam/, doc/JAVA.md): the core cut from whim-vim.c and
-# written as Editor.java by crefactor/togo's Java backend, compiled with javac
+# written as package whim.editor (braaam/editor/) by crefactor/togo's Java backend, compiled with javac
 # beside braaam's runtime, host and glue into lib/braaam/classes, and bin/braaam
 # a launcher script that runs it as a binary is run.  It needs a JDK (22 or
 # later, for the Foreign Function & Memory API).
 .PHONY: bin/braaam
-bin/braaam: src/whim-vim.c force  ## the editor in Java: Editor.java generated, compiled, and a launcher
+bin/braaam: src/whim-vim.c force  ## the editor in Java: whim.editor generated, compiled, and a launcher
 	@go tool whim java
 
 # braaam.jar is the same classes as one executable jar, at the top of the
@@ -269,7 +269,7 @@ bin/braaam: src/whim-vim.c force  ## the editor in Java: Editor.java generated, 
 # times for vijure.jar).
 .PHONY: braaam.jar
 braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [args]
-	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/braaam/manifest.txt
+	@printf 'Main-Class: whim.editor.Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/braaam/manifest.txt
 	@jar --create --file $@ --manifest lib/braaam/manifest.txt -C lib/braaam/classes .
 	@printf '  %-12s %s bytes, the core in Java (braaam/): java -jar %s\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"

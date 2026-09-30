@@ -1739,3 +1739,60 @@ func TestJavaHeldStructs(t *testing.T) {
 		t.Errorf("a held struct is copied still:\n%s", j)
 	}
 }
+
+// The class as a package of files (Profile.JavaFiles): the struct classes,
+// the function interfaces and the constants files of their own, which the
+// class and the harness, in the package, compile with and print what the C
+// prints.
+func TestJavaFiles(t *testing.T) {
+	requireTools(t)
+	for _, c := range []struct{ name, src, file string }{
+		{"structs", javaStructsC, ""},
+		{"names", javaNamesC, "Constants.java"},
+		{"pointers", javaPointersC, ""},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			jdir := filepath.Join(dir, "p")
+			if err := os.MkdirAll(jdir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			src := filepath.Join(dir, "prog.c")
+			if err := os.WriteFile(src, []byte(c.src), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			if rc := Run([]string{src, dir, "-java", filepath.Join(jdir, "Prog.java")}, io.Discard, Profile{JavaPackage: "p", JavaFiles: true}); rc != 0 {
+				t.Fatalf("the generator refused: %d", rc)
+			}
+			if r, _ := os.ReadFile(filepath.Join(jdir, "Prog.java.refused")); len(r) > 0 {
+				t.Fatalf("refused:\n%s", r)
+			}
+			files, _ := filepath.Glob(filepath.Join(jdir, "*.java"))
+			if len(files) < 2 {
+				t.Fatalf("%d files: the class was not split", len(files))
+			}
+			if c.file != "" {
+				if _, err := os.Stat(filepath.Join(jdir, c.file)); err != nil {
+					t.Fatalf("no %s", c.file)
+				}
+			}
+			main := filepath.Join(jdir, "Main.java")
+			if err := os.WriteFile(main, []byte("package p;\n\n"+javaHarness), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			rt, _ := filepath.Glob(filepath.Join(runtimeDir, "*.java"))
+			classes := filepath.Join(dir, "classes")
+			args := append(append([]string{"-nowarn", "-d", classes}, files...), main)
+			if o, err := exec.Command("javac", append(args, rt...)...).CombinedOutput(); err != nil {
+				t.Fatalf("javac: %v\n%s", err, o)
+			}
+			o, err := exec.Command("java", "-cp", classes, "p.Main").CombinedOutput()
+			if err != nil {
+				t.Fatalf("java: %v\n%s", err, o)
+			}
+			if want := cOutput(t, dir, c.src); string(o) != want {
+				t.Errorf("the Java prints\n%s\nthe C\n%s", diffLines(string(o), want), want)
+			}
+		})
+	}
+}

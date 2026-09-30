@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/arbace/go-whim/braaam"
 	"github.com/arbace/go-whim/crefactor/togo"
@@ -38,8 +39,8 @@ func javaGen(editorC, dir, javaOut string) error {
 // is given, so a build elsewhere writes nothing under bin/.
 //
 // --same-classes builds nothing to run: it compiles the editor with two
-// Editor.java -- HEAD's braaam/Editor.java and the working tree's, or OLD
-// and NEW -- and requires the two to compile to the same code
+// generated packages -- HEAD's braaam/editor/ and the working tree's, or the
+// directories OLD and NEW -- and requires the two to compile to the same code
 // (braaam.Same): the proof of a change to how the Java is spelled.
 func runJava(args []string) int {
 	file, out, link := "src/whim-vim.c", filepath.Join("lib", "braaam"), filepath.Join("bin", "braaam")
@@ -89,13 +90,22 @@ func sameClasses(args []string) int {
 	var old, cur string
 	switch len(args) {
 	case 0:
-		b, err := exec.Command("git", "show", "HEAD:braaam/Editor.java").Output()
-		if err != nil {
-			return fail(fmt.Errorf("git show HEAD:braaam/Editor.java: %w", err))
-		}
-		old, cur = filepath.Join(dir, "HEAD.java"), filepath.Join("braaam", "Editor.java")
-		if err := os.WriteFile(old, b, 0o644); err != nil {
+		old, cur = filepath.Join(dir, "HEAD"), filepath.Join("braaam", "editor")
+		if err := os.MkdirAll(old, 0o755); err != nil {
 			return fail(err)
+		}
+		ls, err := exec.Command("git", "ls-tree", "--name-only", "HEAD", "braaam/editor/").Output()
+		if err != nil {
+			return fail(fmt.Errorf("git ls-tree HEAD braaam/editor/: %w", err))
+		}
+		for _, f := range strings.Fields(string(ls)) {
+			b, err := exec.Command("git", "show", "HEAD:"+f).Output()
+			if err != nil {
+				return fail(fmt.Errorf("git show HEAD:%s: %w", f, err))
+			}
+			if err := os.WriteFile(filepath.Join(old, filepath.Base(f)), b, 0o644); err != nil {
+				return fail(err)
+			}
 		}
 	case 2:
 		old, cur = args[0], args[1]

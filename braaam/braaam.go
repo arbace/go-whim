@@ -1,5 +1,7 @@
-// Package braaam builds the editor in Java: the core, Editor.java, written
-// by crefactor/togo's Java backend from the core half of a whim-vim.c, and
+// Package braaam builds the editor in Java: the core, the package
+// whim.editor (Editor.java and a file for each of its classes, tracked in
+// editor/), written by crefactor/togo's Java backend from the core half of a
+// whim-vim.c, and
 // beside it the Java sources kept here by hand -- the runtime (rt/, package
 // whim.rt), the host (host/, package whim.host: the Host interface, the
 // terminal host, vim_snprintf) and the glue and launcher (Whim.java) --
@@ -26,13 +28,31 @@ import (
 var sources embed.FS
 
 // Gen writes the Java class of the C core editorC to javaOut, as `whim skel
-// <editorC> <dir> -java <javaOut>` does.
+// <editorC> <dir> -java <javaOut>` does: with the profile's JavaFiles, the
+// package's files beside it.
 type Gen func(editorC, dir, javaOut string) error
 
+// MainClass is the launcher's class: the glue, in the generated package.
+const MainClass = "whim.editor.Whim"
+
+// Generated are the Java files the backend wrote in dir, sorted.
+func Generated(dir string) ([]string, error) {
+	fs, err := filepath.Glob(filepath.Join(dir, "*.java"))
+	if err != nil {
+		return nil, err
+	}
+	var out []string
+	for _, f := range fs {
+		out = append(out, filepath.Base(f))
+	}
+	return out, nil
+}
+
 // Build is the editor in Java from the C file src, in dir: dir/src/ the
-// sources, dir/classes/ what javac made of them, and the launcher
-// at the path launcher, which it returns.  edit, when not nil, is applied to the
-// generated Editor.java before it is compiled -- the suite's control.
+// sources (the generated package in dir/src/editor/), dir/classes/ what
+// javac made of them, and the launcher at the path launcher, which it
+// returns.  edit, when not nil, is applied to the generated Editor.java
+// before it is compiled -- the suite's control.
 func Build(gen Gen, src, dir, launcher string, edit func([]byte) ([]byte, error)) (string, error) {
 	c, err := os.ReadFile(src)
 	if err != nil {
@@ -50,7 +70,11 @@ func Build(gen Gen, src, dir, launcher string, edit func([]byte) ([]byte, error)
 	if err := os.WriteFile(editorC, core, 0o644); err != nil {
 		return "", err
 	}
-	javaOut := filepath.Join(srcDir, "Editor.java")
+	genDir := filepath.Join(srcDir, "editor")
+	if err := os.MkdirAll(genDir, 0o755); err != nil {
+		return "", err
+	}
+	javaOut := filepath.Join(genDir, "Editor.java")
 	// The generator's by-products (the skeleton's .go files, the facts) go in
 	// a directory of their own, removed after: under the module they would
 	// be a package `go build ./...` tries.
@@ -78,22 +102,29 @@ func Build(gen Gen, src, dir, launcher string, edit func([]byte) ([]byte, error)
 			return "", err
 		}
 	}
-	return Compile(javaOut, dir, launcher)
+	return Compile(genDir, dir, launcher)
 }
 
-// Compile compiles editorJava with the embedded sources into dir/classes and
-// writes the launcher at the path launcher, which it returns.
-func Compile(editorJava, dir, launcher string) (string, error) {
+// Compile compiles the generated package in genDir with the embedded
+// sources into dir/classes and writes the launcher at the path launcher,
+// which it returns.
+func Compile(genDir, dir, launcher string) (string, error) {
 	srcDir := filepath.Join(dir, "src")
 	files, err := WriteSources(srcDir)
 	if err != nil {
 		return "", err
 	}
-	abs, err := filepath.Abs(editorJava)
+	gen, err := Generated(genDir)
 	if err != nil {
 		return "", err
 	}
-	files = append(files, abs)
+	for _, g := range gen {
+		abs, err := filepath.Abs(filepath.Join(genDir, g))
+		if err != nil {
+			return "", err
+		}
+		files = append(files, abs)
+	}
 	classes := filepath.Join(dir, "classes")
 	if err := os.RemoveAll(classes); err != nil {
 		return "", err
@@ -204,8 +235,8 @@ func WriteLauncher(path, classes string) (string, error) {
 	}
 	var b strings.Builder
 	b.WriteString("#!/bin/sh\n# The editor in Java (braaam/): written by braaam.WriteLauncher.\n")
-	fmt.Fprintf(&b, "exec %s %s -cp %s -Dwhim.argv0=\"$0\" Whim \"$@\"\n",
-		ShellQuote(java), strings.Join(JVMFlags, " "), ShellQuote(abs))
+	fmt.Fprintf(&b, "exec %s %s -cp %s -Dwhim.argv0=\"$0\" %s \"$@\"\n",
+		ShellQuote(java), strings.Join(JVMFlags, " "), ShellQuote(abs), MainClass)
 	if err := os.WriteFile(path, []byte(b.String()), 0o755); err != nil {
 		return "", err
 	}

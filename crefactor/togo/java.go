@@ -773,6 +773,9 @@ func (g *gen) writeJava(path string) error {
 	if err := os.WriteFile(path+".refused", []byte(report.String()), 0o644); err != nil {
 		return err
 	}
+	if g.p.JavaFiles {
+		return j.writeJavaFiles(path, class, len(hostNames) > 0, written, total, replaced, classes, fields, inits, host.String(), methods.String())
+	}
 	return os.WriteFile(path, []byte(jtidyFile(b.String())), 0o644)
 }
 
@@ -1096,15 +1099,8 @@ func (j *jgen) fnIfaceK(ft *cc.FunctionType, key, rkey string) (string, string) 
 
 // ifaceDecls declares the functional interfaces, in the order they were met.
 func (j *jgen) ifaceDecls() string {
-	fs := make([]*jiface, 0, len(j.ifaces))
-	for _, f := range j.ifaces {
-		fs = append(fs, f)
-	}
-	sort.Slice(fs, func(a, b int) bool {
-		return len(fs[a].name) < len(fs[b].name) || len(fs[a].name) == len(fs[b].name) && fs[a].name < fs[b].name
-	})
 	var b strings.Builder
-	for _, f := range fs {
+	for _, f := range j.ifaceList() {
 		var ps []string
 		for i, p := range f.params {
 			ps = append(ps, fmt.Sprintf("%s a%d", p, i))

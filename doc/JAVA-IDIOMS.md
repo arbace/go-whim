@@ -459,6 +459,37 @@ says whether they do; the switch forms, the labeled block, `private` and
 
 ### 11. One class, one file
 
+**Done: the first form** (2026-09-30; `crefactor/togo/java_files.go`,
+`Profile.JavaFiles`). The Java editor is the package `whim.editor`, written
+into `braaam/editor/` as Java writes a package:
+- `Editor.java`, its fields, their initial values and its methods: 55,415
+  lines, where the one file was 62,440;
+- `Constants.java`, the C's 1,171 lines of constants, which a file that
+  names one imports statically (`import static whim.editor.Constants.*`);
+- a file for each of the 162 struct classes and 11 function interfaces,
+  top-level and package-private.
+Nothing is renamed: the classes are the ones the nested classes were, so
+`Editor` names them as it did. `Whim.java`, the glue, joined the package,
+since `Editor`'s host methods are package-private; the launcher's class is
+`whim.editor.Whim`. `whim gen` keeps the directory as it keeps the Haskell's
+parts: a file changed, missing or extra is refused by `whim-editor-check`
+(both controls seen). `whim java --same-classes` compares two generated
+packages.
+
+Verified: the throwaway dumper builds an editor from the one-file
+`Editor.java` and one from the package, and every object reachable from
+each is the same, 18,529 lines. The quick and wide suites with `--java`
+answer as the C does, and the control is seen by 76 and by 100. javac warns
+(`-Xlint:unchecked,rawtypes`) in `Editor.java` alone, so the struct classes
+carry no `@SuppressWarnings`. `TestJavaFiles` compiles three programs split
+so, with a harness in their package, and requires what the C prints.
+
+Not done: the table initialisers as a class of their own. They name the
+editor's fields and its function references (`fp_*`) unqualified, and a
+class of their own would qualify each (`ed.options`) in 3,985 lines, so
+they stay in `Editor`. The class split by subsystem is declined below, as
+it was.
+
 - **The pattern:** `Editor` is 65,356 lines: 1,735 methods, 986 fields, 926
   constants, 105 nested classes, 11 interfaces. PMD calls it a `GodClass`,
   `TooManyMethods` and `TooManyFields`; the Go is the same shape (one

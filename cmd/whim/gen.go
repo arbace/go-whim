@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/arbace/go-whim/braaam"
 	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/internal/gen/pre"
@@ -57,15 +58,21 @@ func runGen(args []string) int {
 		return rc
 	}
 	// The same core in Java (doc/JAVA.md), tracked beside the Go and held to
-	// the same check: braaam/Editor.java is what the Java backend writes, and
-	// the backend refuses nothing -- a refusal would be a method that throws.
+	// the same check: braaam/editor/, the package whim.editor, is what the
+	// Java backend writes, and the backend refuses nothing -- a refusal
+	// would be a method that throws.
 	jdir, err := os.MkdirTemp("", "jgen")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	defer os.RemoveAll(jdir)
-	javaOut := filepath.Join(out, "Editor.java")
+	javaDir := filepath.Join(out, "java")
+	if err := os.MkdirAll(javaDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	javaOut := filepath.Join(javaDir, "Editor.java")
 	if err := javaGen(editorC, jdir, javaOut); err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
@@ -111,7 +118,6 @@ func runGen(args []string) int {
 	files := []struct{ made, tracked string }{
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
-		{javaOut, "braaam/Editor.java"},
 		{cljOut, "vijure/src/whim/editor.clj"},
 	}
 	// the Haskell: the module, its hs-boot, and its parts
@@ -121,12 +127,25 @@ func runGen(args []string) int {
 		return 1
 	}
 	made := map[string]bool{}
+	// the Java: the package's files
+	javaFiles, err := braaam.Generated(javaDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	for _, f := range javaFiles {
+		tracked := filepath.Join("braaam", "editor", f)
+		made[tracked] = true
+		files = append(files, struct{ made, tracked string }{filepath.Join(javaDir, f), tracked})
+	}
 	for _, f := range hsFiles {
 		tracked := filepath.Join("caprice", "Caprice", f)
 		made[tracked] = true
 		files = append(files, struct{ made, tracked string }{filepath.Join(out, f), tracked})
 	}
 	stale, _ := filepath.Glob(filepath.Join("caprice", "Caprice", "Editor", "*.hs"))
+	javaStale, _ := filepath.Glob(filepath.Join("braaam", "editor", "*.java"))
+	stale = append(stale, javaStale...)
 	fail, changed := false, false
 	for _, f := range files {
 		made, err := os.ReadFile(f.made)
@@ -173,17 +192,22 @@ func runGen(args []string) int {
 		return 1
 	case check:
 		fmt.Printf("  %-12s is what internal/gen writes from whim-vim.c\n", "editor.go")
-		fmt.Printf("  %-12s is what the Java backend writes from whim-vim.c\n", "Editor.java")
+		fmt.Printf("  %-12s is what the Java backend writes from whim-vim.c\n", "whim.editor")
 		fmt.Printf("  %-12s is what the Clojure backend writes from whim-vim.c\n", "editor.clj")
 		fmt.Printf("  %-12s is what the Haskell backend writes from whim-vim.c\n", "Editor.hs")
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
-		j, _ := os.ReadFile("braaam/Editor.java")
-		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
+		j, _ := os.ReadFile("braaam/editor/Editor.java")
+		n := 0
+		for _, f := range javaFiles {
+			b, _ := os.ReadFile(filepath.Join("braaam", "editor", f))
+			n += bytes.Count(b, []byte("\n"))
+		}
+		fmt.Printf("  %-12s %d lines, and %d in %d files beside it (whim.editor), generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")), n-bytes.Count(j, []byte("\n")), len(javaFiles)-1)
 		c, _ := os.ReadFile("vijure/src/whim/editor.clj")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))
-		n := 0
+		n = 0
 		for _, f := range hsFiles {
 			hs, _ := os.ReadFile(filepath.Join("caprice", "Caprice", f))
 			n += bytes.Count(hs, []byte("\n"))

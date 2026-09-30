@@ -51,6 +51,12 @@ type Profile struct {
 	// JavaPackage is the package of the Java class -java writes; "" is the
 	// unnamed package.  The class is named after the file.
 	JavaPackage string
+	// JavaFiles writes the class in its package as Java writes one: in the
+	// -java file's directory, the class's file holds its fields and
+	// methods, Constants.java the constants (imported statically), and each
+	// struct class and function interface a file of its own.  It needs a
+	// JavaPackage, since the unnamed package cannot be imported from.
+	JavaFiles bool
 
 	// CljNamespace is the namespace -clj writes; "" is whim.editor.
 	CljNamespace string

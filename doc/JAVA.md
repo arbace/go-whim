@@ -42,7 +42,10 @@ Java's own limits, which the emitter must respect:
   it reads (`an`, the pointer classes). A mode of `Run`:
   `whim skel <editor.c> <dir> -java <dir>/Editor.java` writes the class,
   named after the file, and beside it `Editor.java.refused`, every function
-  refused with its reason. `java.go` is the frame (types, struct classes, the
+  refused with its reason; with the profile's `JavaFiles` (whim's), the
+  class's package as files: `Editor.java` the fields, their initial values
+  and the methods, `Constants.java` the constants, imported statically, and
+  a file for each struct class and function interface (`java_files.go`). `java.go` is the frame (types, struct classes, the
   class, the report), `java_expr.go` the expressions, `java_stmt.go` the
   statements and methods; `java_test.go` the tests.
 - `braaam/rt/`: the runtime, by hand, package `whim.rt` -- `BytePtr`,
@@ -58,9 +61,9 @@ Java's own limits, which the emitter must respect:
   `read` and `write` through the Foreign Function & Memory API, JDK 22 and
   later, as the Go's `syscall` does) and `Whim.java` (the glue, a subclass of
   `Editor`, and the launcher's `main`) -- and `braaam.go`, the Go that builds
-  it: `Editor.java` generated from a `whim-vim.c`, compiled with the rest, and
-  a launcher script. `Editor.java` is generated and tracked (`braaam/Editor.java`,
-  milestone 4); `make bin/braaam` compiles it under `lib/braaam/`, and `make braaam.jar` packs the classes as
+  it: the package `whim.editor` generated from a `whim-vim.c`, compiled with
+  the rest, and a launcher script. It is generated and tracked
+  (`braaam/editor/`, milestone 4; one file until JAVA-IDIOMS.md item 11); `make bin/braaam` compiles it under `lib/braaam/`, and `make braaam.jar` packs the classes as
   `./braaam.jar`. *Milestone
   3, as built*.
 

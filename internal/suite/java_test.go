@@ -43,7 +43,7 @@ func termProbe(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b = []byte(strings.Replace(string(b), " Whim ", " TermProbe ", 1))
+	b = []byte(strings.Replace(string(b), " "+braaam.MainClass+" ", " TermProbe ", 1))
 	if err := os.WriteFile(bin, b, 0o755); err != nil {
 		t.Fatal(err)
 	}

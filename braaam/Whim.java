@@ -1,3 +1,7 @@
+package whim.editor;
+
+import static whim.editor.Constants.*;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -23,8 +27,8 @@ import whim.rt.Ptr;
  * in Java's types.  vim's printf is {@link Printf}, which needs no operating
  * system.  A process holds any number of editors, each on its own Host.
  *
- * <p>It is in the unnamed package because {@code Editor} is, and its host
- * methods are package-private.
+ * <p>It is in the generated package, whim.editor, because {@code Editor}'s
+ * host methods are package-private.
  */
 final class Whim extends Editor implements Printf.Core {
     private final Host host;
