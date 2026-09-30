@@ -268,15 +268,30 @@ was first seen), and the two dumps are the same, 18,529 lines. The
 control, one row's value changed, is seen at its line. The quick and wide
 suites with `--java` answer as the C does.
 
+**And then** the forms a row's member can take (2026-09-30):
+- a member held in a one-element array, taken as its value;
+- a struct member whose class is a row class, as a nested row
+  (`new T_optvar_T(null, null, new Ptr<BytePtr>(p_ambw, 0), 0)`), set
+  into it;
+- an array of plain elements, as `new BytePtr[] {BytePtr.lit("single"),
+  null}`, copied into the member's array from its start.
+`options` (970 statements), `key_names_table` and `color_name_tab` are rows
+now: 46 tables in all. `Editor.java` 63,253 -> 62,440 lines, and the
+element-at-a-time statements 2,772 -> 1,112. The same dump, against the
+editor from before item 5, is the same, 18,529 lines. Its control changed a
+nested array's value (`ambiwidth`'s default); the dump saw it, and saw that
+`p_ambw_values` shares the one object with `options[0].def_str[0]` both
+ways. A line breaker fix went first (`jbreak`: the rest of a broken line
+breaks at the call it is in; lines over 120 columns 148 -> 119, the same
+classes byte for byte).
+
 Not done:
-- `options`, 970 statements: `flags` is held in a one-element array,
-  `var_` is a union and `def_str` an array;
-- `key_names_table` and `color_name_tab`: a `string_T` member;
-- `builtin_xterm` and the other terminals, which `builtin_terminals`
-  names;
-- `opchars`, an array of arrays.
-Each wants a row form of its own (a nested constructor, a union's
-member), and the records the survey mentions are not done either.
+- `builtin_xterm`, `builtin_debug` and the other terminals, which
+  `builtin_terminals` names, so a row would replace an element it holds;
+- `opchars`, an array of arrays;
+- the smaller tables of arrays and the statics' tables (`highlight_tab`,
+  `highlight_init_both`).
+The records the survey mentions are not done either.
 
 - **The pattern:** the C's tables are initialised one member per statement:
   `foldCase[0].rangeStart = 65; foldCase[0].rangeEnd = 90; ...` (`:8206`) for

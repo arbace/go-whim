@@ -42,6 +42,7 @@ public abstract class Editor {
     static final int BF_READERR = 64;
     static final int BF_RECOVERED = 1;
     static final int BHPOS = 19;
+    static final int BLACK = 0;
     static final int BLN_CURBUF = 1;
     static final int BLN_DUMMY = 4;
     static final int BLN_LISTED = 2;
@@ -1182,6 +1183,16 @@ public abstract class Editor {
         Ptr<BytePtr> ov_str;
         int ov_win;
 
+        T_optvar_T() {
+        }
+
+        T_optvar_T(IntPtr ov_int, LongPtr ov_long, Ptr<BytePtr> ov_str, int ov_win) {
+            this.ov_int = ov_int;
+            this.ov_long = ov_long;
+            this.ov_str = ov_str;
+            this.ov_win = ov_win;
+        }
+
         public T_optvar_T set(T_optvar_T o$) {
             ov_int = o$.ov_int;
             ov_long = o$.ov_long;
@@ -2069,6 +2080,14 @@ public abstract class Editor {
     static final class T_string_T implements Struct<T_string_T> {
         final BytePtr[] string = new BytePtr[1];
         long length;
+
+        T_string_T() {
+        }
+
+        T_string_T(BytePtr string, long length) {
+            this.string[0] = string;
+            this.length = length;
+        }
 
         public T_string_T set(T_string_T o$) {
             string[0] = o$.string[0];
@@ -3354,6 +3373,16 @@ public abstract class Editor {
         int end;
         long off;
 
+        S_soffset() {
+        }
+
+        S_soffset(int dir, int line, int end, long off) {
+            this.dir = dir;
+            this.line = line;
+            this.end = end;
+            this.off = off;
+        }
+
         public S_soffset set(S_soffset o$) {
             dir = o$.dir;
             line = o$.line;
@@ -3831,6 +3860,14 @@ public abstract class Editor {
     static final class T_keyvalue_T implements Struct<T_keyvalue_T> {
         int key;
         final T_string_T value = new T_string_T();
+
+        T_keyvalue_T() {
+        }
+
+        T_keyvalue_T(int key, T_string_T value) {
+            this.key = key;
+            this.value.set(value);
+        }
 
         public T_keyvalue_T set(T_keyvalue_T o$) {
             key = o$.key;
@@ -4760,6 +4797,16 @@ public abstract class Editor {
         final T_string_T name = new T_string_T();
         int is_alt;
 
+        S_key_name_entry() {
+        }
+
+        S_key_name_entry(int enabled, int key, T_string_T name, int is_alt) {
+            this.enabled = enabled;
+            this.key = key;
+            this.name.set(name);
+            this.is_alt = is_alt;
+        }
+
         public S_key_name_entry set(S_key_name_entry o$) {
             enabled = o$.enabled;
             key = o$.key;
@@ -5164,6 +5211,22 @@ public abstract class Editor {
         Fn11 opt_expand_cb;
         final BytePtr[] def_str = new BytePtr[2];
         final long[] def_num = new long[2];
+
+        S_vimoption() {
+        }
+
+        S_vimoption(BytePtr fullname, BytePtr shortname, long flags, T_optvar_T var_, int indir, Fn6 opt_did_set_cb,
+                Fn11 opt_expand_cb, BytePtr[] def_str, long[] def_num) {
+            this.fullname = fullname;
+            this.shortname = shortname;
+            this.flags[0] = flags;
+            this.var_.set(var_);
+            this.indir = indir;
+            this.opt_did_set_cb = opt_did_set_cb;
+            this.opt_expand_cb = opt_expand_cb;
+            System.arraycopy(def_str, 0, this.def_str, 0, def_str.length);
+            System.arraycopy(def_num, 0, this.def_num, 0, def_num.length);
+        }
 
         public S_vimoption set(S_vimoption o$) {
             fullname = o$.fullname;
@@ -6211,6 +6274,14 @@ public abstract class Editor {
         IntPtr cp;
         final T_string_T name = new T_string_T();
 
+        S_charstab() {
+        }
+
+        S_charstab(IntPtr cp, T_string_T name) {
+            this.cp = cp;
+            this.name.set(name);
+        }
+
         public S_charstab set(S_charstab o$) {
             cp = o$.cp;
             name.set(o$.name);
@@ -6240,6 +6311,17 @@ public abstract class Editor {
         int magic;
         int no_scs;
         final S_soffset off = new S_soffset();
+
+        S_spat() {
+        }
+
+        S_spat(BytePtr pat, long patlen, int magic, int no_scs, S_soffset off) {
+            this.pat = pat;
+            this.patlen = patlen;
+            this.magic = magic;
+            this.no_scs = no_scs;
+            this.off.set(off);
+        }
 
         public S_spat set(S_spat o$) {
             pat = o$.pat;
@@ -7933,7 +8015,6 @@ public abstract class Editor {
         initGlobals5();
         initGlobals6();
         initGlobals7();
-        initGlobals8();
     }
 
     private void initGlobals0() {
@@ -8435,89 +8516,35 @@ public abstract class Editor {
         highlight_index_tab[10] = highlight_tab[3];
         highlight_index_tab[11] = highlight_tab[7];
         highlight_index_tab[12] = highlight_tab[4];
-        color_name_tab[0].value.string[0] = BytePtr.lit("Black");
-        color_name_tab[0].value.length = 5L;
-        color_name_tab[1].key = BLUE;
-        color_name_tab[1].value.string[0] = BytePtr.lit("Blue");
-        color_name_tab[1].value.length = 4L;
-        color_name_tab[2].key = BROWN;
-        color_name_tab[2].value.string[0] = BytePtr.lit("Brown");
-        color_name_tab[2].value.length = 5L;
-        color_name_tab[3].key = CYAN;
-        color_name_tab[3].value.string[0] = BytePtr.lit("Cyan");
-        color_name_tab[3].value.length = 4L;
-        color_name_tab[4].key = DARKBLUE;
-        color_name_tab[4].value.string[0] = BytePtr.lit("DarkBlue");
-        color_name_tab[4].value.length = 8L;
-        color_name_tab[5].key = DARKCYAN;
-        color_name_tab[5].value.string[0] = BytePtr.lit("DarkCyan");
-        color_name_tab[5].value.length = 8L;
-        color_name_tab[6].key = DARKGRAY;
-        color_name_tab[6].value.string[0] = BytePtr.lit("DarkGray");
-        color_name_tab[6].value.length = 8L;
-        color_name_tab[7].key = DARKGREEN;
-        color_name_tab[7].value.string[0] = BytePtr.lit("DarkGreen");
-        color_name_tab[7].value.length = 9L;
-        color_name_tab[8].key = DARKGREY;
-        color_name_tab[8].value.string[0] = BytePtr.lit("DarkGrey");
-        color_name_tab[8].value.length = 8L;
-        color_name_tab[9].key = DARKMAGENTA;
-        color_name_tab[9].value.string[0] = BytePtr.lit("DarkMagenta");
-        color_name_tab[9].value.length = 11L;
-        color_name_tab[10].key = DARKRED;
-        color_name_tab[10].value.string[0] = BytePtr.lit("DarkRed");
-        color_name_tab[10].value.length = 7L;
-        color_name_tab[11].key = DARKYELLOW;
-        color_name_tab[11].value.string[0] = BytePtr.lit("DarkYellow");
-        color_name_tab[11].value.length = 10L;
-        color_name_tab[12].key = GRAY;
-        color_name_tab[12].value.string[0] = BytePtr.lit("Gray");
-        color_name_tab[12].value.length = 4L;
-        color_name_tab[13].key = GREEN;
-        color_name_tab[13].value.string[0] = BytePtr.lit("Green");
-        color_name_tab[13].value.length = 5L;
-        color_name_tab[14].key = GREY;
-        color_name_tab[14].value.string[0] = BytePtr.lit("Grey");
-        color_name_tab[14].value.length = 4L;
-        color_name_tab[15].key = LIGHTBLUE;
-        color_name_tab[15].value.string[0] = BytePtr.lit("LightBlue");
-        color_name_tab[15].value.length = 9L;
-        color_name_tab[16].key = LIGHTCYAN;
-        color_name_tab[16].value.string[0] = BytePtr.lit("LightCyan");
-        color_name_tab[16].value.length = 9L;
-        color_name_tab[17].key = LIGHTGRAY;
-        color_name_tab[17].value.string[0] = BytePtr.lit("LightGray");
-        color_name_tab[17].value.length = 9L;
-        color_name_tab[18].key = LIGHTGREEN;
-        color_name_tab[18].value.string[0] = BytePtr.lit("LightGreen");
-        color_name_tab[18].value.length = 10L;
-        color_name_tab[19].key = LIGHTGREY;
-        color_name_tab[19].value.string[0] = BytePtr.lit("LightGrey");
-        color_name_tab[19].value.length = 9L;
-        color_name_tab[20].key = LIGHTMAGENTA;
-        color_name_tab[20].value.string[0] = BytePtr.lit("LightMagenta");
-        color_name_tab[20].value.length = 12L;
-        color_name_tab[21].key = LIGHTRED;
-        color_name_tab[21].value.string[0] = BytePtr.lit("LightRed");
-        color_name_tab[21].value.length = 8L;
-        color_name_tab[22].key = LIGHTYELLOW;
-        color_name_tab[22].value.string[0] = BytePtr.lit("LightYellow");
-        color_name_tab[22].value.length = 11L;
-        color_name_tab[23].key = MAGENTA;
-        color_name_tab[23].value.string[0] = BytePtr.lit("Magenta");
-        color_name_tab[23].value.length = 7L;
-        color_name_tab[24].key = NONE;
-        color_name_tab[24].value.string[0] = BytePtr.lit("NONE");
-        color_name_tab[24].value.length = 4L;
-        color_name_tab[25].key = RED;
-        color_name_tab[25].value.string[0] = BytePtr.lit("Red");
-        color_name_tab[25].value.length = 3L;
-        color_name_tab[26].key = WHITE;
-        color_name_tab[26].value.string[0] = BytePtr.lit("White");
-        color_name_tab[26].value.length = 5L;
-        color_name_tab[27].key = YELLOW;
-        color_name_tab[27].value.string[0] = BytePtr.lit("Yellow");
-        color_name_tab[27].value.length = 6L;
+        Rt.rows(color_name_tab,
+            new T_keyvalue_T(BLACK, new T_string_T(BytePtr.lit("Black"), 5L)),
+            new T_keyvalue_T(BLUE, new T_string_T(BytePtr.lit("Blue"), 4L)),
+            new T_keyvalue_T(BROWN, new T_string_T(BytePtr.lit("Brown"), 5L)),
+            new T_keyvalue_T(CYAN, new T_string_T(BytePtr.lit("Cyan"), 4L)),
+            new T_keyvalue_T(DARKBLUE, new T_string_T(BytePtr.lit("DarkBlue"), 8L)),
+            new T_keyvalue_T(DARKCYAN, new T_string_T(BytePtr.lit("DarkCyan"), 8L)),
+            new T_keyvalue_T(DARKGRAY, new T_string_T(BytePtr.lit("DarkGray"), 8L)),
+            new T_keyvalue_T(DARKGREEN, new T_string_T(BytePtr.lit("DarkGreen"), 9L)),
+            new T_keyvalue_T(DARKGREY, new T_string_T(BytePtr.lit("DarkGrey"), 8L)),
+            new T_keyvalue_T(DARKMAGENTA, new T_string_T(BytePtr.lit("DarkMagenta"), 11L)),
+            new T_keyvalue_T(DARKRED, new T_string_T(BytePtr.lit("DarkRed"), 7L)),
+            new T_keyvalue_T(DARKYELLOW, new T_string_T(BytePtr.lit("DarkYellow"), 10L)),
+            new T_keyvalue_T(GRAY, new T_string_T(BytePtr.lit("Gray"), 4L)),
+            new T_keyvalue_T(GREEN, new T_string_T(BytePtr.lit("Green"), 5L)),
+            new T_keyvalue_T(GREY, new T_string_T(BytePtr.lit("Grey"), 4L)),
+            new T_keyvalue_T(LIGHTBLUE, new T_string_T(BytePtr.lit("LightBlue"), 9L)),
+            new T_keyvalue_T(LIGHTCYAN, new T_string_T(BytePtr.lit("LightCyan"), 9L)),
+            new T_keyvalue_T(LIGHTGRAY, new T_string_T(BytePtr.lit("LightGray"), 9L)),
+            new T_keyvalue_T(LIGHTGREEN, new T_string_T(BytePtr.lit("LightGreen"), 10L)),
+            new T_keyvalue_T(LIGHTGREY, new T_string_T(BytePtr.lit("LightGrey"), 9L)),
+            new T_keyvalue_T(LIGHTMAGENTA, new T_string_T(BytePtr.lit("LightMagenta"), 12L)),
+            new T_keyvalue_T(LIGHTRED, new T_string_T(BytePtr.lit("LightRed"), 8L)),
+            new T_keyvalue_T(LIGHTYELLOW, new T_string_T(BytePtr.lit("LightYellow"), 11L)),
+            new T_keyvalue_T(MAGENTA, new T_string_T(BytePtr.lit("Magenta"), 7L)),
+            new T_keyvalue_T(NONE, new T_string_T(BytePtr.lit("NONE"), 4L)),
+            new T_keyvalue_T(RED, new T_string_T(BytePtr.lit("Red"), 3L)),
+            new T_keyvalue_T(WHITE, new T_string_T(BytePtr.lit("White"), 5L)),
+            new T_keyvalue_T(YELLOW, new T_string_T(BytePtr.lit("Yellow"), 6L)));
     }
 
     private void initGlobals1() {
@@ -9597,484 +9624,124 @@ public abstract class Editor {
             MOD_MASK_SHIFT, KS_EXTRA, KE_S_F33, 'F', 'N', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F34, 'F', 'O', MOD_MASK_SHIFT,
             KS_EXTRA, KE_S_F35, 'F', 'P', MOD_MASK_SHIFT, KS_EXTRA, KE_S_F36, 'F', 'Q', MOD_MASK_SHIFT, KS_EXTRA,
             KE_S_F37, 'F', 'R', MOD_MASK_SHIFT, 'k', 'B', KS_EXTRA, KE_TAB, NUL);
-        key_names_table[0].enabled = TRUE;
-        key_names_table[0].key = K_BS;
-        key_names_table[0].name.string[0] = BytePtr.lit("BackSpace");
-        key_names_table[0].name.length = 9L;
-        key_names_table[0].is_alt = TRUE;
-        key_names_table[1].enabled = TRUE;
-        key_names_table[1].key = '|';
-        key_names_table[1].name.string[0] = BytePtr.lit("Bar");
-        key_names_table[1].name.length = 3L;
-        key_names_table[2].enabled = TRUE;
-        key_names_table[2].key = K_BS;
-        key_names_table[2].name.string[0] = BytePtr.lit("BS");
-        key_names_table[2].name.length = 2L;
-        key_names_table[3].enabled = TRUE;
-        key_names_table[3].key = '\\';
-        key_names_table[3].name.string[0] = BytePtr.lit("Bslash");
-        key_names_table[3].name.length = 6L;
-        key_names_table[4].enabled = TRUE;
-        key_names_table[4].key = K_COMMAND;
-        key_names_table[4].name.string[0] = BytePtr.lit("Cmd");
-        key_names_table[4].name.length = 3L;
-        key_names_table[5].enabled = TRUE;
-        key_names_table[5].key = CAR;
-        key_names_table[5].name.string[0] = BytePtr.lit("CR");
-        key_names_table[5].name.length = 2L;
-        key_names_table[6].enabled = TRUE;
-        key_names_table[6].key = CSI;
-        key_names_table[6].name.string[0] = BytePtr.lit("CSI");
-        key_names_table[6].name.length = 3L;
-        key_names_table[7].enabled = TRUE;
-        key_names_table[7].key = K_CURSORHOLD;
-        key_names_table[7].name.string[0] = BytePtr.lit("CursorHold");
-        key_names_table[7].name.length = 10L;
-        key_names_table[8].enabled = TRUE;
-        key_names_table[8].key = K_DEL;
-        key_names_table[8].name.string[0] = BytePtr.lit("Del");
-        key_names_table[8].name.length = 3L;
-        key_names_table[9].enabled = TRUE;
-        key_names_table[9].key = K_DEL;
-        key_names_table[9].name.string[0] = BytePtr.lit("Delete");
-        key_names_table[9].name.length = 6L;
-        key_names_table[9].is_alt = TRUE;
-        key_names_table[10].enabled = TRUE;
-        key_names_table[10].key = K_DOWN;
-        key_names_table[10].name.string[0] = BytePtr.lit("Down");
-        key_names_table[10].name.length = 4L;
-        key_names_table[11].enabled = TRUE;
-        key_names_table[11].key = K_DROP;
-        key_names_table[11].name.string[0] = BytePtr.lit("Drop");
-        key_names_table[11].name.length = 4L;
-        key_names_table[12].enabled = TRUE;
-        key_names_table[12].key = K_END;
-        key_names_table[12].name.string[0] = BytePtr.lit("End");
-        key_names_table[12].name.length = 3L;
-        key_names_table[13].enabled = TRUE;
-        key_names_table[13].key = CAR;
-        key_names_table[13].name.string[0] = BytePtr.lit("Enter");
-        key_names_table[13].name.length = 5L;
-        key_names_table[13].is_alt = TRUE;
-        key_names_table[14].enabled = TRUE;
-        key_names_table[14].key = ESC;
-        key_names_table[14].name.string[0] = BytePtr.lit("Esc");
-        key_names_table[14].name.length = 3L;
-        key_names_table[15].enabled = TRUE;
-        key_names_table[15].key = K_F1;
-        key_names_table[15].name.string[0] = BytePtr.lit("F1");
-        key_names_table[15].name.length = 2L;
-        key_names_table[16].enabled = TRUE;
-        key_names_table[16].key = K_F10;
-        key_names_table[16].name.string[0] = BytePtr.lit("F10");
-        key_names_table[16].name.length = 3L;
-        key_names_table[17].enabled = TRUE;
-        key_names_table[17].key = K_F11;
-        key_names_table[17].name.string[0] = BytePtr.lit("F11");
-        key_names_table[17].name.length = 3L;
-        key_names_table[18].enabled = TRUE;
-        key_names_table[18].key = K_F12;
-        key_names_table[18].name.string[0] = BytePtr.lit("F12");
-        key_names_table[18].name.length = 3L;
-        key_names_table[19].enabled = TRUE;
-        key_names_table[19].key = K_F13;
-        key_names_table[19].name.string[0] = BytePtr.lit("F13");
-        key_names_table[19].name.length = 3L;
-        key_names_table[20].enabled = TRUE;
-        key_names_table[20].key = K_F14;
-        key_names_table[20].name.string[0] = BytePtr.lit("F14");
-        key_names_table[20].name.length = 3L;
-        key_names_table[21].enabled = TRUE;
-        key_names_table[21].key = K_F15;
-        key_names_table[21].name.string[0] = BytePtr.lit("F15");
-        key_names_table[21].name.length = 3L;
-        key_names_table[22].enabled = TRUE;
-        key_names_table[22].key = K_F16;
-        key_names_table[22].name.string[0] = BytePtr.lit("F16");
-        key_names_table[22].name.length = 3L;
-        key_names_table[23].enabled = TRUE;
-        key_names_table[23].key = K_F17;
-        key_names_table[23].name.string[0] = BytePtr.lit("F17");
-        key_names_table[23].name.length = 3L;
-        key_names_table[24].enabled = TRUE;
-        key_names_table[24].key = K_F18;
-        key_names_table[24].name.string[0] = BytePtr.lit("F18");
-        key_names_table[24].name.length = 3L;
-        key_names_table[25].enabled = TRUE;
-        key_names_table[25].key = K_F19;
-        key_names_table[25].name.string[0] = BytePtr.lit("F19");
-        key_names_table[25].name.length = 3L;
-        key_names_table[26].enabled = TRUE;
-        key_names_table[26].key = K_F2;
-        key_names_table[26].name.string[0] = BytePtr.lit("F2");
-        key_names_table[26].name.length = 2L;
-        key_names_table[27].enabled = TRUE;
-        key_names_table[27].key = K_F20;
-        key_names_table[27].name.string[0] = BytePtr.lit("F20");
-        key_names_table[27].name.length = 3L;
-        key_names_table[28].enabled = TRUE;
-        key_names_table[28].key = K_F21;
-        key_names_table[28].name.string[0] = BytePtr.lit("F21");
-        key_names_table[28].name.length = 3L;
-        key_names_table[29].enabled = TRUE;
-        key_names_table[29].key = K_F22;
-        key_names_table[29].name.string[0] = BytePtr.lit("F22");
-        key_names_table[29].name.length = 3L;
-        key_names_table[30].enabled = TRUE;
-        key_names_table[30].key = K_F23;
-        key_names_table[30].name.string[0] = BytePtr.lit("F23");
-        key_names_table[30].name.length = 3L;
-        key_names_table[31].enabled = TRUE;
-        key_names_table[31].key = K_F24;
-        key_names_table[31].name.string[0] = BytePtr.lit("F24");
-        key_names_table[31].name.length = 3L;
-        key_names_table[32].enabled = TRUE;
-        key_names_table[32].key = K_F25;
-        key_names_table[32].name.string[0] = BytePtr.lit("F25");
-        key_names_table[32].name.length = 3L;
-        key_names_table[33].enabled = TRUE;
-        key_names_table[33].key = K_F26;
-        key_names_table[33].name.string[0] = BytePtr.lit("F26");
-        key_names_table[33].name.length = 3L;
-        key_names_table[34].enabled = TRUE;
-        key_names_table[34].key = K_F27;
-        key_names_table[34].name.string[0] = BytePtr.lit("F27");
-        key_names_table[34].name.length = 3L;
-        key_names_table[35].enabled = TRUE;
-        key_names_table[35].key = K_F28;
-        key_names_table[35].name.string[0] = BytePtr.lit("F28");
-        key_names_table[35].name.length = 3L;
-        key_names_table[36].enabled = TRUE;
-        key_names_table[36].key = K_F29;
-        key_names_table[36].name.string[0] = BytePtr.lit("F29");
-        key_names_table[36].name.length = 3L;
-        key_names_table[37].enabled = TRUE;
-        key_names_table[37].key = K_F3;
-        key_names_table[37].name.string[0] = BytePtr.lit("F3");
-        key_names_table[37].name.length = 2L;
-        key_names_table[38].enabled = TRUE;
-        key_names_table[38].key = K_F30;
-        key_names_table[38].name.string[0] = BytePtr.lit("F30");
-        key_names_table[38].name.length = 3L;
-        key_names_table[39].enabled = TRUE;
-        key_names_table[39].key = K_F31;
-        key_names_table[39].name.string[0] = BytePtr.lit("F31");
-        key_names_table[39].name.length = 3L;
-        key_names_table[40].enabled = TRUE;
-        key_names_table[40].key = K_F32;
-        key_names_table[40].name.string[0] = BytePtr.lit("F32");
-        key_names_table[40].name.length = 3L;
-        key_names_table[41].enabled = TRUE;
-        key_names_table[41].key = K_F33;
-        key_names_table[41].name.string[0] = BytePtr.lit("F33");
-        key_names_table[41].name.length = 3L;
-        key_names_table[42].enabled = TRUE;
-        key_names_table[42].key = K_F34;
-        key_names_table[42].name.string[0] = BytePtr.lit("F34");
-        key_names_table[42].name.length = 3L;
-        key_names_table[43].enabled = TRUE;
-        key_names_table[43].key = K_F35;
-        key_names_table[43].name.string[0] = BytePtr.lit("F35");
-        key_names_table[43].name.length = 3L;
-        key_names_table[44].enabled = TRUE;
-        key_names_table[44].key = K_F36;
-        key_names_table[44].name.string[0] = BytePtr.lit("F36");
-        key_names_table[44].name.length = 3L;
-        key_names_table[45].enabled = TRUE;
-        key_names_table[45].key = K_F37;
-        key_names_table[45].name.string[0] = BytePtr.lit("F37");
-        key_names_table[45].name.length = 3L;
-        key_names_table[46].enabled = TRUE;
-        key_names_table[46].key = K_F4;
-        key_names_table[46].name.string[0] = BytePtr.lit("F4");
-        key_names_table[46].name.length = 2L;
-        key_names_table[47].enabled = TRUE;
-        key_names_table[47].key = K_F5;
-        key_names_table[47].name.string[0] = BytePtr.lit("F5");
-        key_names_table[47].name.length = 2L;
-        key_names_table[48].enabled = TRUE;
-        key_names_table[48].key = K_F6;
-        key_names_table[48].name.string[0] = BytePtr.lit("F6");
-        key_names_table[48].name.length = 2L;
-        key_names_table[49].enabled = TRUE;
-        key_names_table[49].key = K_F7;
-        key_names_table[49].name.string[0] = BytePtr.lit("F7");
-        key_names_table[49].name.length = 2L;
-        key_names_table[50].enabled = TRUE;
-        key_names_table[50].key = K_F8;
-        key_names_table[50].name.string[0] = BytePtr.lit("F8");
-        key_names_table[50].name.length = 2L;
-        key_names_table[51].enabled = TRUE;
-        key_names_table[51].key = K_F9;
-        key_names_table[51].name.string[0] = BytePtr.lit("F9");
-        key_names_table[51].name.length = 2L;
-        key_names_table[52].enabled = TRUE;
-        key_names_table[52].key = K_FOCUSGAINED;
-        key_names_table[52].name.string[0] = BytePtr.lit("FocusGained");
-        key_names_table[52].name.length = 11L;
-        key_names_table[53].enabled = TRUE;
-        key_names_table[53].key = K_FOCUSLOST;
-        key_names_table[53].name.string[0] = BytePtr.lit("FocusLost");
-        key_names_table[53].name.length = 9L;
-        key_names_table[54].enabled = TRUE;
-        key_names_table[54].key = K_HELP;
-        key_names_table[54].name.string[0] = BytePtr.lit("Help");
-        key_names_table[54].name.length = 4L;
-        key_names_table[55].enabled = TRUE;
-        key_names_table[55].key = K_HOME;
-        key_names_table[55].name.string[0] = BytePtr.lit("Home");
-        key_names_table[55].name.length = 4L;
-        key_names_table[56].enabled = TRUE;
-        key_names_table[56].key = K_IGNORE;
-        key_names_table[56].name.string[0] = BytePtr.lit("Ignore");
-        key_names_table[56].name.length = 6L;
-        key_names_table[57].enabled = TRUE;
-        key_names_table[57].key = K_INS;
-        key_names_table[57].name.string[0] = BytePtr.lit("Ins");
-        key_names_table[57].name.length = 3L;
-        key_names_table[57].is_alt = TRUE;
-        key_names_table[58].enabled = TRUE;
-        key_names_table[58].key = K_INS;
-        key_names_table[58].name.string[0] = BytePtr.lit("Insert");
-        key_names_table[58].name.length = 6L;
-        key_names_table[59].enabled = TRUE;
-        key_names_table[59].key = K_K0;
-        key_names_table[59].name.string[0] = BytePtr.lit("k0");
-        key_names_table[59].name.length = 2L;
-        key_names_table[60].enabled = TRUE;
-        key_names_table[60].key = K_K1;
-        key_names_table[60].name.string[0] = BytePtr.lit("k1");
-        key_names_table[60].name.length = 2L;
-        key_names_table[61].enabled = TRUE;
-        key_names_table[61].key = K_K2;
-        key_names_table[61].name.string[0] = BytePtr.lit("k2");
-        key_names_table[61].name.length = 2L;
-        key_names_table[62].enabled = TRUE;
-        key_names_table[62].key = K_K3;
-        key_names_table[62].name.string[0] = BytePtr.lit("k3");
-        key_names_table[62].name.length = 2L;
-        key_names_table[63].enabled = TRUE;
-        key_names_table[63].key = K_K4;
-        key_names_table[63].name.string[0] = BytePtr.lit("k4");
-        key_names_table[63].name.length = 2L;
-        key_names_table[64].enabled = TRUE;
-        key_names_table[64].key = K_K5;
-        key_names_table[64].name.string[0] = BytePtr.lit("k5");
-        key_names_table[64].name.length = 2L;
-        key_names_table[65].enabled = TRUE;
-        key_names_table[65].key = K_K6;
-        key_names_table[65].name.string[0] = BytePtr.lit("k6");
-        key_names_table[65].name.length = 2L;
-        key_names_table[66].enabled = TRUE;
-        key_names_table[66].key = K_K7;
-        key_names_table[66].name.string[0] = BytePtr.lit("k7");
-        key_names_table[66].name.length = 2L;
-        key_names_table[67].enabled = TRUE;
-        key_names_table[67].key = K_K8;
-        key_names_table[67].name.string[0] = BytePtr.lit("k8");
-        key_names_table[67].name.length = 2L;
-        key_names_table[68].enabled = TRUE;
-        key_names_table[68].key = K_K9;
-        key_names_table[68].name.string[0] = BytePtr.lit("k9");
-        key_names_table[68].name.length = 2L;
-        key_names_table[69].enabled = TRUE;
-        key_names_table[69].key = K_KDEL;
-        key_names_table[69].name.string[0] = BytePtr.lit("kDel");
-        key_names_table[69].name.length = 4L;
-        key_names_table[70].enabled = TRUE;
-        key_names_table[70].key = K_KDIVIDE;
-        key_names_table[70].name.string[0] = BytePtr.lit("kDivide");
-        key_names_table[70].name.length = 7L;
-        key_names_table[71].enabled = TRUE;
-        key_names_table[71].key = K_KEND;
-        key_names_table[71].name.string[0] = BytePtr.lit("kEnd");
-        key_names_table[71].name.length = 4L;
-        key_names_table[72].enabled = TRUE;
-        key_names_table[72].key = K_KENTER;
-        key_names_table[72].name.string[0] = BytePtr.lit("kEnter");
-        key_names_table[72].name.length = 6L;
-        key_names_table[73].enabled = TRUE;
-        key_names_table[73].key = K_KHOME;
-        key_names_table[73].name.string[0] = BytePtr.lit("kHome");
-        key_names_table[73].name.length = 5L;
-        key_names_table[74].enabled = TRUE;
-        key_names_table[74].key = K_KINS;
-        key_names_table[74].name.string[0] = BytePtr.lit("kInsert");
-        key_names_table[74].name.length = 7L;
-        key_names_table[75].enabled = TRUE;
-        key_names_table[75].key = K_KMINUS;
-        key_names_table[75].name.string[0] = BytePtr.lit("kMinus");
-        key_names_table[75].name.length = 6L;
-        key_names_table[76].enabled = TRUE;
-        key_names_table[76].key = K_KMULTIPLY;
-        key_names_table[76].name.string[0] = BytePtr.lit("kMultiply");
-        key_names_table[76].name.length = 9L;
-        key_names_table[77].enabled = TRUE;
-        key_names_table[77].key = K_KPAGEDOWN;
-        key_names_table[77].name.string[0] = BytePtr.lit("kPageDown");
-        key_names_table[77].name.length = 9L;
-        key_names_table[78].enabled = TRUE;
-        key_names_table[78].key = K_KPAGEUP;
-        key_names_table[78].name.string[0] = BytePtr.lit("kPageUp");
-        key_names_table[78].name.length = 7L;
-        key_names_table[79].enabled = TRUE;
-        key_names_table[79].key = K_KPLUS;
-        key_names_table[79].name.string[0] = BytePtr.lit("kPlus");
-        key_names_table[79].name.length = 5L;
-        key_names_table[80].enabled = TRUE;
-        key_names_table[80].key = K_KPOINT;
-        key_names_table[80].name.string[0] = BytePtr.lit("kPoint");
-        key_names_table[80].name.length = 6L;
-        key_names_table[81].enabled = TRUE;
-        key_names_table[81].key = K_LEFT;
-        key_names_table[81].name.string[0] = BytePtr.lit("Left");
-        key_names_table[81].name.length = 4L;
-        key_names_table[82].enabled = TRUE;
-        key_names_table[82].key = NL;
-        key_names_table[82].name.string[0] = BytePtr.lit("LF");
-        key_names_table[82].name.length = 2L;
-        key_names_table[82].is_alt = TRUE;
-        key_names_table[83].enabled = TRUE;
-        key_names_table[83].key = NL;
-        key_names_table[83].name.string[0] = BytePtr.lit("LineFeed");
-        key_names_table[83].name.length = 8L;
-        key_names_table[83].is_alt = TRUE;
-        key_names_table[84].enabled = TRUE;
-        key_names_table[84].key = '<';
-        key_names_table[84].name.string[0] = BytePtr.lit("lt");
-        key_names_table[84].name.length = 2L;
-        key_names_table[85].enabled = TRUE;
-        key_names_table[85].key = NL;
-        key_names_table[85].name.string[0] = BytePtr.lit("NewLine");
-        key_names_table[85].name.length = 7L;
-        key_names_table[85].is_alt = TRUE;
-        key_names_table[86].enabled = TRUE;
-        key_names_table[86].key = NL;
-        key_names_table[86].name.string[0] = BytePtr.lit("NL");
-        key_names_table[86].name.length = 2L;
-        key_names_table[87].enabled = TRUE;
-        key_names_table[87].key = -(KS_ZERO + ('X' << 8));
-        key_names_table[87].name.string[0] = BytePtr.lit("Nul");
-        key_names_table[87].name.length = 3L;
-        key_names_table[88].enabled = TRUE;
-        key_names_table[88].key = OSC;
-        key_names_table[88].name.string[0] = BytePtr.lit("OSC");
-        key_names_table[88].name.length = 3L;
-        key_names_table[89].enabled = TRUE;
-        key_names_table[89].key = K_PAGEDOWN;
-        key_names_table[89].name.string[0] = BytePtr.lit("PageDown");
-        key_names_table[89].name.length = 8L;
-        key_names_table[90].enabled = TRUE;
-        key_names_table[90].key = K_PAGEUP;
-        key_names_table[90].name.string[0] = BytePtr.lit("PageUp");
-        key_names_table[90].name.length = 6L;
-        key_names_table[91].enabled = TRUE;
-        key_names_table[91].key = K_PASTEEND;
-        key_names_table[91].name.string[0] = BytePtr.lit("PasteEnd");
-        key_names_table[91].name.length = 8L;
-        key_names_table[92].enabled = TRUE;
-        key_names_table[92].key = K_PASTESTART;
-        key_names_table[92].name.string[0] = BytePtr.lit("PasteStart");
-        key_names_table[92].name.length = 10L;
-        key_names_table[93].enabled = TRUE;
-        key_names_table[93].key = K_PLUG;
-        key_names_table[93].name.string[0] = BytePtr.lit("Plug");
-        key_names_table[93].name.length = 4L;
-        key_names_table[94].enabled = TRUE;
-        key_names_table[94].key = CAR;
-        key_names_table[94].name.string[0] = BytePtr.lit("Return");
-        key_names_table[94].name.length = 6L;
-        key_names_table[94].is_alt = TRUE;
-        key_names_table[95].enabled = TRUE;
-        key_names_table[95].key = K_RIGHT;
-        key_names_table[95].name.string[0] = BytePtr.lit("Right");
-        key_names_table[95].name.length = 5L;
-        key_names_table[96].enabled = TRUE;
-        key_names_table[96].key = K_SCRIPT_COMMAND;
-        key_names_table[96].name.string[0] = BytePtr.lit("ScriptCmd");
-        key_names_table[96].name.length = 9L;
-        key_names_table[97].key = K_SNR;
-        key_names_table[97].name.string[0] = BytePtr.lit("SNR");
-        key_names_table[97].name.length = 3L;
-        key_names_table[98].enabled = TRUE;
-        key_names_table[98].key = ' ';
-        key_names_table[98].name.string[0] = BytePtr.lit("Space");
-        key_names_table[98].name.length = 5L;
-        key_names_table[99].enabled = TRUE;
-        key_names_table[99].key = TAB;
-        key_names_table[99].name.string[0] = BytePtr.lit("Tab");
-        key_names_table[99].name.length = 3L;
-        key_names_table[100].enabled = TRUE;
-        key_names_table[100].key = K_TAB;
-        key_names_table[100].name.string[0] = BytePtr.lit("Tab");
-        key_names_table[100].name.length = 3L;
-        key_names_table[101].enabled = TRUE;
-        key_names_table[101].key = K_UNDO;
-        key_names_table[101].name.string[0] = BytePtr.lit("Undo");
-        key_names_table[101].name.length = 4L;
-        key_names_table[102].enabled = TRUE;
-        key_names_table[102].key = K_UP;
-        key_names_table[102].name.string[0] = BytePtr.lit("Up");
-        key_names_table[102].name.length = 2L;
-        key_names_table[103].enabled = TRUE;
-        key_names_table[103].key = K_CSI;
-        key_names_table[103].name.string[0] = BytePtr.lit("xCSI");
-        key_names_table[103].name.length = 4L;
-        key_names_table[104].enabled = TRUE;
-        key_names_table[104].key = K_XDOWN;
-        key_names_table[104].name.string[0] = BytePtr.lit("xDown");
-        key_names_table[104].name.length = 5L;
-        key_names_table[105].enabled = TRUE;
-        key_names_table[105].key = K_XEND;
-        key_names_table[105].name.string[0] = BytePtr.lit("xEnd");
-        key_names_table[105].name.length = 4L;
-        key_names_table[106].enabled = TRUE;
-        key_names_table[106].key = K_XF1;
-        key_names_table[106].name.string[0] = BytePtr.lit("xF1");
-        key_names_table[106].name.length = 3L;
-        key_names_table[107].enabled = TRUE;
-        key_names_table[107].key = K_XF2;
-        key_names_table[107].name.string[0] = BytePtr.lit("xF2");
-        key_names_table[107].name.length = 3L;
-        key_names_table[108].enabled = TRUE;
-        key_names_table[108].key = K_XF3;
-        key_names_table[108].name.string[0] = BytePtr.lit("xF3");
-        key_names_table[108].name.length = 3L;
-        key_names_table[109].enabled = TRUE;
-        key_names_table[109].key = K_XF4;
-        key_names_table[109].name.string[0] = BytePtr.lit("xF4");
-        key_names_table[109].name.length = 3L;
-        key_names_table[110].enabled = TRUE;
-        key_names_table[110].key = K_XHOME;
-        key_names_table[110].name.string[0] = BytePtr.lit("xHome");
-        key_names_table[110].name.length = 5L;
-        key_names_table[111].enabled = TRUE;
-        key_names_table[111].key = K_XLEFT;
-        key_names_table[111].name.string[0] = BytePtr.lit("xLeft");
-        key_names_table[111].name.length = 5L;
-        key_names_table[112].enabled = TRUE;
-        key_names_table[112].key = K_OSC;
-        key_names_table[112].name.string[0] = BytePtr.lit("xOSC");
-        key_names_table[112].name.length = 4L;
-        key_names_table[113].enabled = TRUE;
-        key_names_table[113].key = K_XRIGHT;
-        key_names_table[113].name.string[0] = BytePtr.lit("xRight");
-        key_names_table[113].name.length = 6L;
-        key_names_table[114].enabled = TRUE;
-        key_names_table[114].key = K_XUP;
-        key_names_table[114].name.string[0] = BytePtr.lit("xUp");
-        key_names_table[114].name.length = 3L;
-        key_names_table[115].enabled = TRUE;
-        key_names_table[115].key = K_ZEND;
-        key_names_table[115].name.string[0] = BytePtr.lit("zEnd");
-        key_names_table[115].name.length = 4L;
-        key_names_table[116].enabled = TRUE;
-        key_names_table[116].key = K_ZHOME;
-        key_names_table[116].name.string[0] = BytePtr.lit("zHome");
-        key_names_table[116].name.length = 5L;
-    }
-
-    private void initGlobals4() {
+        Rt.rows(key_names_table,
+            new S_key_name_entry(TRUE, K_BS, new T_string_T(BytePtr.lit("BackSpace"), 9L), TRUE),
+            new S_key_name_entry(TRUE, '|', new T_string_T(BytePtr.lit("Bar"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_BS, new T_string_T(BytePtr.lit("BS"), 2L), FALSE),
+            new S_key_name_entry(TRUE, '\\', new T_string_T(BytePtr.lit("Bslash"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_COMMAND, new T_string_T(BytePtr.lit("Cmd"), 3L), FALSE),
+            new S_key_name_entry(TRUE, CAR, new T_string_T(BytePtr.lit("CR"), 2L), FALSE),
+            new S_key_name_entry(TRUE, CSI, new T_string_T(BytePtr.lit("CSI"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_CURSORHOLD, new T_string_T(BytePtr.lit("CursorHold"), 10L), FALSE),
+            new S_key_name_entry(TRUE, K_DEL, new T_string_T(BytePtr.lit("Del"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_DEL, new T_string_T(BytePtr.lit("Delete"), 6L), TRUE),
+            new S_key_name_entry(TRUE, K_DOWN, new T_string_T(BytePtr.lit("Down"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_DROP, new T_string_T(BytePtr.lit("Drop"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_END, new T_string_T(BytePtr.lit("End"), 3L), FALSE),
+            new S_key_name_entry(TRUE, CAR, new T_string_T(BytePtr.lit("Enter"), 5L), TRUE),
+            new S_key_name_entry(TRUE, ESC, new T_string_T(BytePtr.lit("Esc"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F1, new T_string_T(BytePtr.lit("F1"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F10, new T_string_T(BytePtr.lit("F10"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F11, new T_string_T(BytePtr.lit("F11"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F12, new T_string_T(BytePtr.lit("F12"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F13, new T_string_T(BytePtr.lit("F13"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F14, new T_string_T(BytePtr.lit("F14"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F15, new T_string_T(BytePtr.lit("F15"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F16, new T_string_T(BytePtr.lit("F16"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F17, new T_string_T(BytePtr.lit("F17"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F18, new T_string_T(BytePtr.lit("F18"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F19, new T_string_T(BytePtr.lit("F19"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F2, new T_string_T(BytePtr.lit("F2"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F20, new T_string_T(BytePtr.lit("F20"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F21, new T_string_T(BytePtr.lit("F21"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F22, new T_string_T(BytePtr.lit("F22"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F23, new T_string_T(BytePtr.lit("F23"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F24, new T_string_T(BytePtr.lit("F24"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F25, new T_string_T(BytePtr.lit("F25"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F26, new T_string_T(BytePtr.lit("F26"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F27, new T_string_T(BytePtr.lit("F27"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F28, new T_string_T(BytePtr.lit("F28"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F29, new T_string_T(BytePtr.lit("F29"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F3, new T_string_T(BytePtr.lit("F3"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F30, new T_string_T(BytePtr.lit("F30"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F31, new T_string_T(BytePtr.lit("F31"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F32, new T_string_T(BytePtr.lit("F32"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F33, new T_string_T(BytePtr.lit("F33"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F34, new T_string_T(BytePtr.lit("F34"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F35, new T_string_T(BytePtr.lit("F35"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F36, new T_string_T(BytePtr.lit("F36"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F37, new T_string_T(BytePtr.lit("F37"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_F4, new T_string_T(BytePtr.lit("F4"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F5, new T_string_T(BytePtr.lit("F5"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F6, new T_string_T(BytePtr.lit("F6"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F7, new T_string_T(BytePtr.lit("F7"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F8, new T_string_T(BytePtr.lit("F8"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_F9, new T_string_T(BytePtr.lit("F9"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_FOCUSGAINED, new T_string_T(BytePtr.lit("FocusGained"), 11L), FALSE),
+            new S_key_name_entry(TRUE, K_FOCUSLOST, new T_string_T(BytePtr.lit("FocusLost"), 9L), FALSE),
+            new S_key_name_entry(TRUE, K_HELP, new T_string_T(BytePtr.lit("Help"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_HOME, new T_string_T(BytePtr.lit("Home"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_IGNORE, new T_string_T(BytePtr.lit("Ignore"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_INS, new T_string_T(BytePtr.lit("Ins"), 3L), TRUE),
+            new S_key_name_entry(TRUE, K_INS, new T_string_T(BytePtr.lit("Insert"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_K0, new T_string_T(BytePtr.lit("k0"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K1, new T_string_T(BytePtr.lit("k1"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K2, new T_string_T(BytePtr.lit("k2"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K3, new T_string_T(BytePtr.lit("k3"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K4, new T_string_T(BytePtr.lit("k4"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K5, new T_string_T(BytePtr.lit("k5"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K6, new T_string_T(BytePtr.lit("k6"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K7, new T_string_T(BytePtr.lit("k7"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K8, new T_string_T(BytePtr.lit("k8"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_K9, new T_string_T(BytePtr.lit("k9"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_KDEL, new T_string_T(BytePtr.lit("kDel"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_KDIVIDE, new T_string_T(BytePtr.lit("kDivide"), 7L), FALSE),
+            new S_key_name_entry(TRUE, K_KEND, new T_string_T(BytePtr.lit("kEnd"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_KENTER, new T_string_T(BytePtr.lit("kEnter"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_KHOME, new T_string_T(BytePtr.lit("kHome"), 5L), FALSE),
+            new S_key_name_entry(TRUE, K_KINS, new T_string_T(BytePtr.lit("kInsert"), 7L), FALSE),
+            new S_key_name_entry(TRUE, K_KMINUS, new T_string_T(BytePtr.lit("kMinus"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_KMULTIPLY, new T_string_T(BytePtr.lit("kMultiply"), 9L), FALSE),
+            new S_key_name_entry(TRUE, K_KPAGEDOWN, new T_string_T(BytePtr.lit("kPageDown"), 9L), FALSE),
+            new S_key_name_entry(TRUE, K_KPAGEUP, new T_string_T(BytePtr.lit("kPageUp"), 7L), FALSE),
+            new S_key_name_entry(TRUE, K_KPLUS, new T_string_T(BytePtr.lit("kPlus"), 5L), FALSE),
+            new S_key_name_entry(TRUE, K_KPOINT, new T_string_T(BytePtr.lit("kPoint"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_LEFT, new T_string_T(BytePtr.lit("Left"), 4L), FALSE),
+            new S_key_name_entry(TRUE, NL, new T_string_T(BytePtr.lit("LF"), 2L), TRUE),
+            new S_key_name_entry(TRUE, NL, new T_string_T(BytePtr.lit("LineFeed"), 8L), TRUE),
+            new S_key_name_entry(TRUE, '<', new T_string_T(BytePtr.lit("lt"), 2L), FALSE),
+            new S_key_name_entry(TRUE, NL, new T_string_T(BytePtr.lit("NewLine"), 7L), TRUE),
+            new S_key_name_entry(TRUE, NL, new T_string_T(BytePtr.lit("NL"), 2L), FALSE),
+            new S_key_name_entry(TRUE, -(KS_ZERO + ('X' << 8)), new T_string_T(BytePtr.lit("Nul"), 3L), FALSE),
+            new S_key_name_entry(TRUE, OSC, new T_string_T(BytePtr.lit("OSC"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_PAGEDOWN, new T_string_T(BytePtr.lit("PageDown"), 8L), FALSE),
+            new S_key_name_entry(TRUE, K_PAGEUP, new T_string_T(BytePtr.lit("PageUp"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_PASTEEND, new T_string_T(BytePtr.lit("PasteEnd"), 8L), FALSE),
+            new S_key_name_entry(TRUE, K_PASTESTART, new T_string_T(BytePtr.lit("PasteStart"), 10L), FALSE),
+            new S_key_name_entry(TRUE, K_PLUG, new T_string_T(BytePtr.lit("Plug"), 4L), FALSE),
+            new S_key_name_entry(TRUE, CAR, new T_string_T(BytePtr.lit("Return"), 6L), TRUE),
+            new S_key_name_entry(TRUE, K_RIGHT, new T_string_T(BytePtr.lit("Right"), 5L), FALSE),
+            new S_key_name_entry(TRUE, K_SCRIPT_COMMAND, new T_string_T(BytePtr.lit("ScriptCmd"), 9L), FALSE),
+            new S_key_name_entry(FALSE, K_SNR, new T_string_T(BytePtr.lit("SNR"), 3L), FALSE),
+            new S_key_name_entry(TRUE, ' ', new T_string_T(BytePtr.lit("Space"), 5L), FALSE),
+            new S_key_name_entry(TRUE, TAB, new T_string_T(BytePtr.lit("Tab"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_TAB, new T_string_T(BytePtr.lit("Tab"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_UNDO, new T_string_T(BytePtr.lit("Undo"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_UP, new T_string_T(BytePtr.lit("Up"), 2L), FALSE),
+            new S_key_name_entry(TRUE, K_CSI, new T_string_T(BytePtr.lit("xCSI"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_XDOWN, new T_string_T(BytePtr.lit("xDown"), 5L), FALSE),
+            new S_key_name_entry(TRUE, K_XEND, new T_string_T(BytePtr.lit("xEnd"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_XF1, new T_string_T(BytePtr.lit("xF1"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_XF2, new T_string_T(BytePtr.lit("xF2"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_XF3, new T_string_T(BytePtr.lit("xF3"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_XF4, new T_string_T(BytePtr.lit("xF4"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_XHOME, new T_string_T(BytePtr.lit("xHome"), 5L), FALSE),
+            new S_key_name_entry(TRUE, K_XLEFT, new T_string_T(BytePtr.lit("xLeft"), 5L), FALSE),
+            new S_key_name_entry(TRUE, K_OSC, new T_string_T(BytePtr.lit("xOSC"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_XRIGHT, new T_string_T(BytePtr.lit("xRight"), 6L), FALSE),
+            new S_key_name_entry(TRUE, K_XUP, new T_string_T(BytePtr.lit("xUp"), 3L), FALSE),
+            new S_key_name_entry(TRUE, K_ZEND, new T_string_T(BytePtr.lit("zEnd"), 4L), FALSE),
+            new S_key_name_entry(TRUE, K_ZHOME, new T_string_T(BytePtr.lit("zHome"), 5L), FALSE));
         Rt.rows(nv_cmds,
             new S_nv_cmd(NUL, fp_nv_error, 0, 0),
             new S_nv_cmd(Ctrl_A, fp_nv_addsub, 0, 0),
@@ -10354,979 +10021,581 @@ public abstract class Editor {
         opchars[28][2] = OPF_CHANGE;
         opchars[29][0] = Ctrl_X;
         opchars[29][2] = OPF_CHANGE;
-        options[0].fullname = BytePtr.lit("ambiwidth");
-        options[0].shortname = BytePtr.lit("ambw");
-        options[0].flags[0] = P_STRING | P_VI_DEF | P_RCLR;
-        options[0].var_.ov_str = new Ptr<BytePtr>(p_ambw, 0);
-        options[0].opt_did_set_cb = fp_did_set_ambiwidth;
-        options[0].def_str[0] = BytePtr.lit("single");
-        options[1].fullname = BytePtr.lit("autoindent");
-        options[1].shortname = BytePtr.lit("ai");
-        options[1].flags[0] = P_BOOL | P_VI_DEF;
-        options[1].var_.ov_int = new IntPtr(p_ai, 0);
-        options[1].indir = PV_BUF + BV_AI;
-        options[1].def_num[0] = TRUE;
-        options[2].fullname = BytePtr.lit("background");
-        options[2].shortname = BytePtr.lit("bg");
-        options[2].flags[0] = P_STRING | P_VI_DEF | P_RCLR | P_HLONLY;
-        options[2].var_.ov_str = new Ptr<BytePtr>(p_bg, 0);
-        options[2].opt_did_set_cb = fp_did_set_background;
-        options[2].def_str[0] = BytePtr.lit("light");
-        options[3].fullname = BytePtr.lit("backspace");
-        options[3].shortname = BytePtr.lit("bs");
-        options[3].flags[0] = P_STRING | P_VIM | P_ONECOMMA | P_NODUP;
-        options[3].var_.ov_str = new Ptr<BytePtr>(p_bs, 0);
-        options[3].opt_did_set_cb = fp_did_set_backspace;
-        options[3].def_str[0] = BytePtr.lit("");
-        options[3].def_str[1] = BytePtr.lit("indent,eol,start");
-        options[4].fullname = BytePtr.lit("belloff");
-        options[4].shortname = BytePtr.lit("bo");
-        options[4].flags[0] = P_STRING | P_VI_DEF | P_COMMA | P_NODUP;
-        options[4].var_.ov_str = new Ptr<BytePtr>(p_bo, 0);
-        options[4].opt_did_set_cb = fp_did_set_belloff;
-        options[4].def_str[0] = BytePtr.lit("");
-        options[5].fullname = BytePtr.lit("casemap");
-        options[5].shortname = BytePtr.lit("cmp");
-        options[5].flags[0] = P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP;
-        options[5].var_.ov_str = new Ptr<BytePtr>(p_cmp, 0);
-        options[5].opt_did_set_cb = fp_did_set_casemap;
-        options[5].def_str[0] = BytePtr.lit("internal,keepascii");
-        options[6].fullname = BytePtr.lit("cmdheight");
-        options[6].shortname = BytePtr.lit("ch");
-        options[6].flags[0] = P_NUM | P_VI_DEF | P_RALL;
-        options[6].var_.ov_long = new LongPtr(p_ch, 0);
-        options[6].opt_did_set_cb = fp_did_set_cmdheight;
-        options[6].def_num[0] = 1L;
-        options[7].fullname = BytePtr.lit("columns");
-        options[7].shortname = BytePtr.lit("co");
-        options[7].flags[0] = P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR;
-        options[7].var_.ov_long = new LongPtr(Columns, 0);
-        options[7].def_num[0] = 80L;
-        options[8].fullname = BytePtr.lit("compatible");
-        options[8].shortname = BytePtr.lit("cp");
-        options[8].flags[0] = P_BOOL | P_RALL;
-        options[8].var_.ov_int = new IntPtr(p_cp, 0);
-        options[8].opt_did_set_cb = fp_did_set_compatible;
-        options[9].fullname = BytePtr.lit("copyindent");
-        options[9].shortname = BytePtr.lit("ci");
-        options[9].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[9].var_.ov_int = new IntPtr(p_ci, 0);
-        options[9].indir = PV_BUF + BV_CI;
-        options[10].fullname = BytePtr.lit("cpoptions");
-        options[10].shortname = BytePtr.lit("cpo");
-        options[10].flags[0] = P_STRING | P_VIM | P_RALL | P_FLAGLIST;
-        options[10].var_.ov_str = new Ptr<BytePtr>(p_cpo, 0);
-        options[10].opt_did_set_cb = fp_did_set_cpoptions;
-        options[10].def_str[0] = BytePtr.lit("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;");
-        options[10].def_str[1] = BytePtr.lit("aABceFsz");
-        options[11].fullname = BytePtr.lit("delcombine");
-        options[11].shortname = BytePtr.lit("deco");
-        options[11].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[11].var_.ov_int = new IntPtr(p_deco, 0);
-        options[12].fullname = BytePtr.lit("display");
-        options[12].shortname = BytePtr.lit("dy");
-        options[12].flags[0] = P_STRING | P_VI_DEF | P_ONECOMMA | P_RALL | P_NODUP;
-        options[12].var_.ov_str = new Ptr<BytePtr>(p_dy, 0);
-        options[12].opt_did_set_cb = fp_did_set_display;
-        options[12].def_str[0] = BytePtr.lit("");
-        options[13].fullname = BytePtr.lit("edcompatible");
-        options[13].shortname = BytePtr.lit("ed");
-        options[13].flags[0] = P_BOOL | P_VI_DEF;
-        options[13].var_.ov_int = new IntPtr(p_ed, 0);
-        options[14].fullname = BytePtr.lit("emoji");
-        options[14].shortname = BytePtr.lit("emo");
-        options[14].flags[0] = P_BOOL | P_VI_DEF | P_RCLR;
-        options[14].var_.ov_int = new IntPtr(p_emoji, 0);
-        options[14].opt_did_set_cb = fp_did_set_ambiwidth;
-        options[14].def_num[0] = TRUE;
-        options[15].fullname = BytePtr.lit("errorbells");
-        options[15].shortname = BytePtr.lit("eb");
-        options[15].flags[0] = P_BOOL | P_VI_DEF;
-        options[15].var_.ov_int = new IntPtr(p_eb, 0);
-        options[16].fullname = BytePtr.lit("esckeys");
-        options[16].shortname = BytePtr.lit("ek");
-        options[16].flags[0] = P_BOOL | P_VIM;
-        options[16].var_.ov_int = new IntPtr(p_ek, 0);
-        options[16].def_num[1] = TRUE;
-        options[17].fullname = BytePtr.lit("expandtab");
-        options[17].shortname = BytePtr.lit("et");
-        options[17].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[17].var_.ov_int = new IntPtr(p_et, 0);
-        options[17].indir = PV_BUF + BV_ET;
-        options[17].def_num[0] = TRUE;
-        options[18].fullname = BytePtr.lit("fillchars");
-        options[18].shortname = BytePtr.lit("fcs");
-        options[18].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON;
-        options[18].var_.ov_str = new Ptr<BytePtr>(p_fcs, 0);
-        options[18].indir = PV_BOTH + (PV_WIN + WV_FCS);
-        options[18].opt_did_set_cb = fp_did_set_chars_option;
-        options[18].def_str[0] = BytePtr.lit("vert:|,fold:-,eob:~,lastline:@");
-        options[19].fullname = BytePtr.lit("gdefault");
-        options[19].shortname = BytePtr.lit("gd");
-        options[19].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[19].var_.ov_int = new IntPtr(p_gd, 0);
-        options[20].fullname = BytePtr.lit("highlight");
-        options[20].shortname = BytePtr.lit("hl");
-        options[20].flags[0] = P_STRING | P_VI_DEF | P_RCLR | P_ONECOMMA | P_NODUP | P_COLON;
-        options[20].var_.ov_str = new Ptr<BytePtr>(p_hl, 0);
-        options[20].opt_did_set_cb = fp_did_set_highlight;
-        options[20].def_str[0] = BytePtr.lit("8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert");
-        options[21].fullname = BytePtr.lit("history");
-        options[21].shortname = BytePtr.lit("hi");
-        options[21].flags[0] = P_NUM | P_VIM;
-        options[21].var_.ov_long = new LongPtr(p_hi, 0);
-        options[21].def_num[0] = 9999L;
-        options[21].def_num[1] = 9999L;
-        options[22].fullname = BytePtr.lit("hlsearch");
-        options[22].shortname = BytePtr.lit("hls");
-        options[22].flags[0] = P_BOOL | P_VI_DEF | P_VIM | P_RALL | P_HLONLY;
-        options[22].var_.ov_int = new IntPtr(p_hls, 0);
-        options[22].opt_did_set_cb = fp_did_set_hlsearch;
-        options[22].def_num[0] = TRUE;
-        options[23].fullname = BytePtr.lit("ignorecase");
-        options[23].shortname = BytePtr.lit("ic");
-        options[23].flags[0] = P_BOOL | P_VI_DEF;
-        options[23].var_.ov_int = new IntPtr(p_ic, 0);
-        options[23].opt_did_set_cb = fp_did_set_ignorecase;
-        options[24].fullname = BytePtr.lit("incsearch");
-        options[24].shortname = BytePtr.lit("is");
-        options[24].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[24].var_.ov_int = new IntPtr(p_is, 0);
-        options[25].fullname = BytePtr.lit("insertmode");
-        options[25].shortname = BytePtr.lit("im");
-        options[25].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[25].var_.ov_int = new IntPtr(p_im, 0);
-        options[25].opt_did_set_cb = fp_did_set_insertmode;
-        options[26].fullname = BytePtr.lit("isfname");
-        options[26].shortname = BytePtr.lit("isf");
-        options[26].flags[0] = P_STRING | P_VI_DEF | P_COMMA | P_NODUP;
-        options[26].var_.ov_str = new Ptr<BytePtr>(p_isf, 0);
-        options[26].opt_did_set_cb = fp_did_set_isopt;
-        options[26].def_str[0] = BytePtr.lit("@,48-57,/,.,-,_,+,,,#,$,%,~,=");
-        options[27].fullname = BytePtr.lit("isident");
-        options[27].shortname = BytePtr.lit("isi");
-        options[27].flags[0] = P_STRING | P_VI_DEF | P_COMMA | P_NODUP;
-        options[27].var_.ov_str = new Ptr<BytePtr>(p_isi, 0);
-        options[27].opt_did_set_cb = fp_did_set_isopt;
-        options[27].def_str[0] = BytePtr.lit("@,48-57,_,192-255");
-        options[28].fullname = BytePtr.lit("iskeyword");
-        options[28].shortname = BytePtr.lit("isk");
-        options[28].flags[0] = P_STRING | P_ALLOCED | P_VIM | P_COMMA | P_NODUP;
-        options[28].var_.ov_str = new Ptr<BytePtr>(p_isk, 0);
-        options[28].indir = PV_BUF + BV_ISK;
-        options[28].opt_did_set_cb = fp_did_set_iskeyword;
-        options[28].def_str[0] = BytePtr.lit("@,48-57,_");
-        options[28].def_str[1] = BytePtr.lit("@,48-57,_,192-255");
-        options[29].fullname = BytePtr.lit("isprint");
-        options[29].shortname = BytePtr.lit("isp");
-        options[29].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_COMMA | P_NODUP;
-        options[29].var_.ov_str = new Ptr<BytePtr>(p_isp, 0);
-        options[29].opt_did_set_cb = fp_did_set_isopt;
-        options[29].def_str[0] = BytePtr.lit("@,161-255");
-        options[30].fullname = BytePtr.lit("joinspaces");
-        options[30].shortname = BytePtr.lit("js");
-        options[30].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[30].var_.ov_int = new IntPtr(p_js, 0);
-        options[31].fullname = BytePtr.lit("keymodel");
-        options[31].shortname = BytePtr.lit("km");
-        options[31].flags[0] = P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP;
-        options[31].var_.ov_str = new Ptr<BytePtr>(p_km, 0);
-        options[31].opt_did_set_cb = fp_did_set_keymodel;
-        options[31].def_str[0] = BytePtr.lit("startsel");
-        options[32].fullname = BytePtr.lit("keyprotocol");
-        options[32].shortname = BytePtr.lit("kpc");
-        options[32].flags[0] = P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP | P_COLON;
-        options[32].var_.ov_str = new Ptr<BytePtr>(p_kpc, 0);
-        options[32].opt_did_set_cb = fp_did_set_keyprotocol;
-        options[32].def_str[0] = BytePtr.lit("kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2");
-        options[33].fullname = BytePtr.lit("laststatus");
-        options[33].shortname = BytePtr.lit("ls");
-        options[33].flags[0] = P_NUM | P_VI_DEF | P_RALL;
-        options[33].var_.ov_long = new LongPtr(p_ls, 0);
-        options[33].opt_did_set_cb = fp_did_set_laststatus;
-        options[33].def_num[0] = 1L;
-        options[34].fullname = BytePtr.lit("lazyredraw");
-        options[34].shortname = BytePtr.lit("lz");
-        options[34].flags[0] = P_BOOL | P_VI_DEF;
-        options[34].var_.ov_int = new IntPtr(p_lz, 0);
-        options[34].def_num[0] = TRUE;
-        options[35].fullname = BytePtr.lit("lines");
-        options[35].flags[0] = P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR;
-        options[35].var_.ov_long = new LongPtr(Rows, 0);
-        options[35].def_num[0] = 24L;
-        options[36].fullname = BytePtr.lit("list");
-        options[36].flags[0] = P_BOOL | P_VI_DEF | P_RWIN;
-        options[36].var_.ov_win = 1;
-        options[36].indir = PV_WIN + WV_LIST;
-        options[37].fullname = BytePtr.lit("listchars");
-        options[37].shortname = BytePtr.lit("lcs");
-        options[37].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON;
-        options[37].var_.ov_str = new Ptr<BytePtr>(p_lcs, 0);
-        options[37].indir = PV_BOTH + (PV_WIN + WV_LCS);
-        options[37].opt_did_set_cb = fp_did_set_chars_option;
-        options[37].def_str[0] = BytePtr.lit("eol:$");
-        options[38].fullname = BytePtr.lit("magic");
-        options[38].flags[0] = P_BOOL | P_VI_DEF;
-        options[38].var_.ov_int = new IntPtr(p_magic, 0);
-        options[38].def_num[0] = TRUE;
-        options[39].fullname = BytePtr.lit("matchpairs");
-        options[39].shortname = BytePtr.lit("mps");
-        options[39].flags[0] = P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP;
-        options[39].var_.ov_str = new Ptr<BytePtr>(p_mps, 0);
-        options[39].indir = PV_BUF + BV_MPS;
-        options[39].opt_did_set_cb = fp_did_set_matchpairs;
-        options[39].def_str[0] = BytePtr.lit("(:),{:},[:]");
-        options[40].fullname = BytePtr.lit("matchtime");
-        options[40].shortname = BytePtr.lit("mat");
-        options[40].flags[0] = P_NUM | P_VI_DEF;
-        options[40].var_.ov_long = new LongPtr(p_mat, 0);
-        options[40].def_num[0] = 5L;
-        options[41].fullname = BytePtr.lit("maxcombine");
-        options[41].shortname = BytePtr.lit("mco");
-        options[41].flags[0] = P_NUM | P_VI_DEF | P_CURSWANT;
-        options[41].var_.ov_long = new LongPtr(p_mco, 0);
-        options[41].opt_did_set_cb = fp_did_set_maxcombine;
-        options[41].def_num[0] = 2L;
-        options[42].fullname = BytePtr.lit("maxmapdepth");
-        options[42].shortname = BytePtr.lit("mmd");
-        options[42].flags[0] = P_NUM | P_VI_DEF;
-        options[42].var_.ov_long = new LongPtr(p_mmd, 0);
-        options[42].def_num[0] = 1000L;
-        options[43].fullname = BytePtr.lit("maxmempattern");
-        options[43].shortname = BytePtr.lit("mmp");
-        options[43].flags[0] = P_NUM | P_VI_DEF;
-        options[43].var_.ov_long = new LongPtr(p_mmp, 0);
-        options[43].def_num[0] = 1000L;
-        options[44].fullname = BytePtr.lit("maxsearchcount");
-        options[44].shortname = BytePtr.lit("msc");
-        options[44].flags[0] = P_NUM | P_VI_DEF;
-        options[44].var_.ov_long = new LongPtr(p_msc, 0);
-        options[44].opt_did_set_cb = fp_did_set_maxsearchcount;
-        options[44].def_num[0] = 99L;
-        options[45].fullname = BytePtr.lit("messagesopt");
-        options[45].shortname = BytePtr.lit("mopt");
-        options[45].flags[0] = P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_COLON | P_NODUP;
-        options[45].var_.ov_str = new Ptr<BytePtr>(p_mopt, 0);
-        options[45].opt_did_set_cb = fp_did_set_messagesopt;
-        options[45].def_str[0] = BytePtr.lit("hit-enter,history:500");
-        options[46].fullname = BytePtr.lit("modifiable");
-        options[46].shortname = BytePtr.lit("ma");
-        options[46].flags[0] = P_BOOL | P_VI_DEF | P_NOGLOB;
-        options[46].var_.ov_int = new IntPtr(p_ma, 0);
-        options[46].indir = PV_BUF + BV_MA;
-        options[46].opt_did_set_cb = fp_did_set_modifiable;
-        options[46].def_num[0] = TRUE;
-        options[47].fullname = BytePtr.lit("modified");
-        options[47].shortname = BytePtr.lit("mod");
-        options[47].flags[0] = P_BOOL | P_NO_MKRC | P_VI_DEF | P_RSTAT;
-        options[47].var_.ov_int = new IntPtr(p_mod, 0);
-        options[47].indir = PV_BUF + BV_MOD;
-        options[47].opt_did_set_cb = fp_did_set_modified;
-        options[48].fullname = BytePtr.lit("more");
-        options[48].flags[0] = P_BOOL | P_VIM;
-        options[48].var_.ov_int = new IntPtr(p_more, 0);
-        options[48].def_num[1] = TRUE;
-        options[49].fullname = BytePtr.lit("nrformats");
-        options[49].shortname = BytePtr.lit("nf");
-        options[49].flags[0] = P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP;
-        options[49].var_.ov_str = new Ptr<BytePtr>(p_nf, 0);
-        options[49].indir = PV_BUF + BV_NF;
-        options[49].opt_did_set_cb = fp_did_set_nrformats;
-        options[49].def_str[0] = BytePtr.lit("bin,octal,hex");
-        options[50].fullname = BytePtr.lit("number");
-        options[50].shortname = BytePtr.lit("nu");
-        options[50].flags[0] = P_BOOL | P_VI_DEF | P_RWIN;
-        options[50].var_.ov_win = 1;
-        options[50].indir = PV_WIN + WV_NU;
-        options[50].opt_did_set_cb = fp_did_set_number_relativenumber;
-        options[51].fullname = BytePtr.lit("osctimeoutlen");
-        options[51].shortname = BytePtr.lit("ost");
-        options[51].flags[0] = P_NUM | P_VI_DEF;
-        options[51].var_.ov_long = new LongPtr(p_ost, 0);
-        options[51].opt_did_set_cb = fp_did_set_osctimeoutlen;
-        options[51].def_num[0] = 1000L;
-        options[52].fullname = BytePtr.lit("paste");
-        options[52].flags[0] = P_BOOL | P_VI_DEF | P_PRI_MKRC;
-        options[52].var_.ov_int = new IntPtr(p_paste, 0);
-        options[52].opt_did_set_cb = fp_did_set_paste;
-        options[53].fullname = BytePtr.lit("pastetoggle");
-        options[53].shortname = BytePtr.lit("pt");
-        options[53].flags[0] = P_STRING | P_VI_DEF;
-        options[53].var_.ov_str = new Ptr<BytePtr>(p_pt, 0);
-        options[53].opt_did_set_cb = fp_did_set_pastetoggle;
-        options[53].def_str[0] = BytePtr.lit("");
-        options[54].fullname = BytePtr.lit("preserveindent");
-        options[54].shortname = BytePtr.lit("pi");
-        options[54].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[54].var_.ov_int = new IntPtr(p_pi, 0);
-        options[54].indir = PV_BUF + BV_PI;
-        options[55].fullname = BytePtr.lit("quoteescape");
-        options[55].shortname = BytePtr.lit("qe");
-        options[55].flags[0] = P_STRING | P_ALLOCED | P_VI_DEF;
-        options[55].var_.ov_str = new Ptr<BytePtr>(p_qe, 0);
-        options[55].indir = PV_BUF + BV_QE;
-        options[55].def_str[0] = BytePtr.lit("\\");
-        options[56].fullname = BytePtr.lit("relativenumber");
-        options[56].shortname = BytePtr.lit("rnu");
-        options[56].flags[0] = P_BOOL | P_VI_DEF | P_RWIN;
-        options[56].var_.ov_win = 1;
-        options[56].indir = PV_WIN + WV_RNU;
-        options[56].opt_did_set_cb = fp_did_set_number_relativenumber;
-        options[57].fullname = BytePtr.lit("remap");
-        options[57].flags[0] = P_BOOL | P_VI_DEF;
-        options[57].var_.ov_int = new IntPtr(p_remap, 0);
-        options[57].def_num[0] = TRUE;
-        options[58].fullname = BytePtr.lit("report");
-        options[58].flags[0] = P_NUM | P_VI_DEF;
-        options[58].var_.ov_long = new LongPtr(p_report, 0);
-        options[58].def_num[0] = 2L;
-        options[59].fullname = BytePtr.lit("ruler");
-        options[59].shortname = BytePtr.lit("ru");
-        options[59].flags[0] = P_BOOL | P_VIM | P_RSTAT;
-        options[59].var_.ov_int = new IntPtr(p_ru, 0);
-        options[59].def_num[0] = TRUE;
-        options[59].def_num[1] = TRUE;
-        options[60].fullname = BytePtr.lit("scroll");
-        options[60].shortname = BytePtr.lit("scr");
-        options[60].flags[0] = P_NUM | P_NO_MKRC | P_VI_DEF;
-        options[60].var_.ov_win = 1;
-        options[60].indir = PV_WIN + WV_SCROLL;
-        options[61].fullname = BytePtr.lit("scrolljump");
-        options[61].shortname = BytePtr.lit("sj");
-        options[61].flags[0] = P_NUM | P_VI_DEF | P_VIM;
-        options[61].var_.ov_long = new LongPtr(p_sj, 0);
-        options[61].def_num[0] = 1L;
-        options[62].fullname = BytePtr.lit("scrolloff");
-        options[62].shortname = BytePtr.lit("so");
-        options[62].flags[0] = P_NUM | P_VI_DEF | P_VIM | P_RALL;
-        options[62].var_.ov_long = new LongPtr(p_so, 0);
-        options[62].indir = PV_BOTH + (PV_WIN + WV_SO);
-        options[62].def_num[0] = 1L;
-        options[63].fullname = BytePtr.lit("scrolloffpad");
-        options[63].shortname = BytePtr.lit("sop");
-        options[63].flags[0] = P_NUM | P_VI_DEF | P_VIM | P_RALL;
-        options[63].var_.ov_long = new LongPtr(p_sop, 0);
-        options[63].indir = PV_BOTH + (PV_WIN + WV_SOP);
-        options[64].fullname = BytePtr.lit("selection");
-        options[64].shortname = BytePtr.lit("sel");
-        options[64].flags[0] = P_STRING | P_VI_DEF;
-        options[64].var_.ov_str = new Ptr<BytePtr>(p_sel, 0);
-        options[64].opt_did_set_cb = fp_did_set_selection;
-        options[64].def_str[0] = BytePtr.lit("inclusive");
-        options[65].fullname = BytePtr.lit("selectmode");
-        options[65].shortname = BytePtr.lit("slm");
-        options[65].flags[0] = P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP;
-        options[65].var_.ov_str = new Ptr<BytePtr>(p_slm, 0);
-        options[65].opt_did_set_cb = fp_did_set_selectmode;
-        options[65].def_str[0] = BytePtr.lit("");
-        options[66].fullname = BytePtr.lit("shiftround");
-        options[66].shortname = BytePtr.lit("sr");
-        options[66].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[66].var_.ov_int = new IntPtr(p_sr, 0);
-        options[66].def_num[0] = TRUE;
-        options[67].fullname = BytePtr.lit("shiftwidth");
-        options[67].shortname = BytePtr.lit("sw");
-        options[67].flags[0] = P_NUM | P_VI_DEF;
-        options[67].var_.ov_long = new LongPtr(p_sw, 0);
-        options[67].indir = PV_BUF + BV_SW;
-        options[67].opt_did_set_cb = fp_did_set_shiftwidth_tabstop;
-        options[67].def_num[0] = 4L;
-        options[68].fullname = BytePtr.lit("shortmess");
-        options[68].shortname = BytePtr.lit("shm");
-        options[68].flags[0] = P_STRING | P_VIM | P_FLAGLIST;
-        options[68].var_.ov_str = new Ptr<BytePtr>(p_shm, 0);
-        options[68].opt_did_set_cb = fp_did_set_shortmess;
-        options[68].def_str[0] = BytePtr.lit("S");
-        options[68].def_str[1] = BytePtr.lit("filnxtToOS");
-        options[69].fullname = BytePtr.lit("showcmd");
-        options[69].shortname = BytePtr.lit("sc");
-        options[69].flags[0] = P_BOOL | P_VIM;
-        options[69].var_.ov_int = new IntPtr(p_sc, 0);
-        options[69].def_num[1] = TRUE;
-        options[70].fullname = BytePtr.lit("showcmdloc");
-        options[70].shortname = BytePtr.lit("sloc");
-        options[70].flags[0] = P_STRING | P_RSTAT;
-        options[70].var_.ov_str = new Ptr<BytePtr>(p_sloc, 0);
-        options[70].opt_did_set_cb = fp_did_set_showcmdloc;
-        options[70].def_str[0] = BytePtr.lit("last");
-        options[70].def_str[1] = BytePtr.lit("last");
-        options[71].fullname = BytePtr.lit("showmatch");
-        options[71].shortname = BytePtr.lit("sm");
-        options[71].flags[0] = P_BOOL | P_VI_DEF;
-        options[71].var_.ov_int = new IntPtr(p_sm, 0);
-        options[72].fullname = BytePtr.lit("showmode");
-        options[72].shortname = BytePtr.lit("smd");
-        options[72].flags[0] = P_BOOL | P_VIM;
-        options[72].var_.ov_int = new IntPtr(p_smd, 0);
-        options[72].def_num[1] = TRUE;
-        options[73].fullname = BytePtr.lit("sidescroll");
-        options[73].shortname = BytePtr.lit("ss");
-        options[73].flags[0] = P_NUM | P_VI_DEF;
-        options[73].var_.ov_long = new LongPtr(p_ss, 0);
-        options[74].fullname = BytePtr.lit("sidescrolloff");
-        options[74].shortname = BytePtr.lit("siso");
-        options[74].flags[0] = P_NUM | P_VI_DEF | P_VIM | P_RBUF;
-        options[74].var_.ov_long = new LongPtr(p_siso, 0);
-        options[74].indir = PV_BOTH + (PV_WIN + WV_SISO);
-        options[75].fullname = BytePtr.lit("smartcase");
-        options[75].shortname = BytePtr.lit("scs");
-        options[75].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[75].var_.ov_int = new IntPtr(p_scs, 0);
-        options[76].fullname = BytePtr.lit("smartindent");
-        options[76].shortname = BytePtr.lit("si");
-        options[76].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[76].var_.ov_int = new IntPtr(p_si, 0);
-        options[76].indir = PV_BUF + BV_SI;
-        options[76].def_num[0] = TRUE;
-        options[77].fullname = BytePtr.lit("smarttab");
-        options[77].shortname = BytePtr.lit("sta");
-        options[77].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[77].var_.ov_int = new IntPtr(p_sta, 0);
-        options[77].def_num[0] = TRUE;
-        options[78].fullname = BytePtr.lit("smoothscroll");
-        options[78].shortname = BytePtr.lit("sms");
-        options[78].flags[0] = P_BOOL | P_VI_DEF | P_RWIN;
-        options[78].var_.ov_win = 1;
-        options[78].indir = PV_WIN + WV_SMS;
-        options[78].opt_did_set_cb = fp_did_set_smoothscroll;
-        options[79].fullname = BytePtr.lit("softtabstop");
-        options[79].shortname = BytePtr.lit("sts");
-        options[79].flags[0] = P_NUM | P_VI_DEF | P_VIM;
-        options[79].var_.ov_long = new LongPtr(p_sts, 0);
-        options[79].indir = PV_BUF + BV_STS;
-        options[79].def_num[0] = 4L;
-        options[80].fullname = BytePtr.lit("startofline");
-        options[80].shortname = BytePtr.lit("sol");
-        options[80].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[80].var_.ov_int = new IntPtr(p_sol, 0);
-        options[80].def_num[0] = TRUE;
-        options[81].fullname = BytePtr.lit("tabstop");
-        options[81].shortname = BytePtr.lit("ts");
-        options[81].flags[0] = P_NUM | P_VI_DEF | P_RBUF;
-        options[81].var_.ov_long = new LongPtr(p_ts, 0);
-        options[81].indir = PV_BUF + BV_TS;
-        options[81].opt_did_set_cb = fp_did_set_shiftwidth_tabstop;
-        options[81].def_num[0] = 4L;
-        options[82].fullname = BytePtr.lit("term");
-        options[82].flags[0] = P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL;
-        options[82].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_NAME);
-        options[82].opt_did_set_cb = fp_did_set_term;
-        options[82].def_str[0] = BytePtr.lit("");
-        options[83].fullname = BytePtr.lit("termsync");
-        options[83].shortname = BytePtr.lit("tsy");
-        options[83].flags[0] = P_BOOL | P_VI_DEF;
-        options[83].var_.ov_int = new IntPtr(p_tsy, 0);
-        options[83].opt_did_set_cb = fp_did_set_termsync;
-        options[84].fullname = BytePtr.lit("terse");
-        options[84].flags[0] = P_BOOL | P_VI_DEF;
-        options[84].var_.ov_int = new IntPtr(p_terse, 0);
-        options[84].opt_did_set_cb = fp_did_set_terse;
-        options[85].fullname = BytePtr.lit("textwidth");
-        options[85].shortname = BytePtr.lit("tw");
-        options[85].flags[0] = P_NUM | P_VI_DEF | P_VIM | P_RBUF | P_HLONLY;
-        options[85].var_.ov_long = new LongPtr(p_tw, 0);
-        options[85].indir = PV_BUF + BV_TW;
-        options[85].opt_did_set_cb = fp_did_set_textwidth;
-        options[86].fullname = BytePtr.lit("tildeop");
-        options[86].shortname = BytePtr.lit("top");
-        options[86].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[86].var_.ov_int = new IntPtr(p_to, 0);
-        options[87].fullname = BytePtr.lit("timeout");
-        options[87].shortname = BytePtr.lit("to");
-        options[87].flags[0] = P_BOOL | P_VI_DEF;
-        options[87].var_.ov_int = new IntPtr(p_timeout, 0);
-        options[87].def_num[0] = TRUE;
-        options[88].fullname = BytePtr.lit("timeoutlen");
-        options[88].shortname = BytePtr.lit("tm");
-        options[88].flags[0] = P_NUM | P_VI_DEF;
-        options[88].var_.ov_long = new LongPtr(p_tm, 0);
-        options[88].def_num[0] = 1000L;
-        options[89].fullname = BytePtr.lit("ttimeout");
-        options[89].flags[0] = P_BOOL | P_VI_DEF | P_VIM;
-        options[89].var_.ov_int = new IntPtr(p_ttimeout, 0);
-        options[90].fullname = BytePtr.lit("ttimeoutlen");
-        options[90].shortname = BytePtr.lit("ttm");
-        options[90].flags[0] = P_NUM | P_VI_DEF;
-        options[90].var_.ov_long = new LongPtr(p_ttm, 0);
-        options[90].def_num[0] = -1L;
-        options[91].fullname = BytePtr.lit("ttyfast");
-        options[91].shortname = BytePtr.lit("tf");
-        options[91].flags[0] = P_BOOL | P_NO_MKRC | P_VI_DEF;
-        options[91].var_.ov_int = new IntPtr(p_tf, 0);
-        options[91].def_num[0] = TRUE;
-        options[92].fullname = BytePtr.lit("ttyscroll");
-        options[92].shortname = BytePtr.lit("tsl");
-        options[92].flags[0] = P_NUM | P_VI_DEF;
-        options[92].var_.ov_long = new LongPtr(p_ttyscroll, 0);
-        options[92].def_num[0] = 999L;
-        options[93].fullname = BytePtr.lit("ttytype");
-        options[93].shortname = BytePtr.lit("tty");
-        options[93].flags[0] = P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL;
-        options[93].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_NAME);
-        options[93].opt_did_set_cb = fp_did_set_term;
-        options[93].def_str[0] = BytePtr.lit("");
-        options[94].fullname = BytePtr.lit("undolevels");
-        options[94].shortname = BytePtr.lit("ul");
-        options[94].flags[0] = P_NUM | P_VI_DEF;
-        options[94].var_.ov_long = new LongPtr(p_ul, 0);
-        options[94].indir = PV_BOTH + (PV_BUF + BV_UL);
-        options[94].opt_did_set_cb = fp_did_set_undolevels;
-        options[94].def_num[0] = 9999L;
-        options[95].fullname = BytePtr.lit("verbose");
-        options[95].shortname = BytePtr.lit("vbs");
-        options[95].flags[0] = P_NUM | P_VI_DEF;
-        options[95].var_.ov_long = new LongPtr(p_verbose, 0);
-        options[96].fullname = BytePtr.lit("virtualedit");
-        options[96].shortname = BytePtr.lit("ve");
-        options[96].flags[0] = P_STRING | P_ONECOMMA | P_NODUP | P_VI_DEF | P_VIM | P_CURSWANT;
-        options[96].var_.ov_str = new Ptr<BytePtr>(p_ve, 0);
-        options[96].indir = PV_BOTH + (PV_WIN + WV_VE);
-        options[96].opt_did_set_cb = fp_did_set_virtualedit;
-        options[96].def_str[0] = BytePtr.lit("");
-        options[96].def_str[1] = BytePtr.lit("");
-        options[97].fullname = BytePtr.lit("visualbell");
-        options[97].shortname = BytePtr.lit("vb");
-        options[97].flags[0] = P_BOOL | P_VI_DEF;
-        options[97].var_.ov_int = new IntPtr(p_vb, 0);
-        options[98].fullname = BytePtr.lit("weirdinvert");
-        options[98].shortname = BytePtr.lit("wiv");
-        options[98].flags[0] = P_BOOL | P_VI_DEF | P_RCLR;
-        options[98].var_.ov_int = new IntPtr(p_wiv, 0);
-        options[98].opt_did_set_cb = fp_did_set_weirdinvert;
-        options[99].fullname = BytePtr.lit("whichwrap");
-        options[99].shortname = BytePtr.lit("ww");
-        options[99].flags[0] = P_STRING | P_VIM | P_ONECOMMA | P_FLAGLIST;
-        options[99].var_.ov_str = new Ptr<BytePtr>(p_ww, 0);
-        options[99].opt_did_set_cb = fp_did_set_whichwrap;
-        options[99].def_str[0] = BytePtr.lit("");
-        options[99].def_str[1] = BytePtr.lit("b,s");
-        options[100].fullname = BytePtr.lit("wincolor");
-        options[100].shortname = BytePtr.lit("wcr");
-        options[100].flags[0] = P_STRING | P_ALLOCED | P_VI_DEF | P_RWIN;
-        options[100].var_.ov_win = 1;
-        options[100].indir = PV_WIN + WV_WCR;
-        options[100].opt_did_set_cb = fp_did_set_wincolor;
-        options[100].def_str[0] = BytePtr.lit("");
-        options[101].fullname = BytePtr.lit("window");
-        options[101].shortname = BytePtr.lit("wi");
-        options[101].flags[0] = P_NUM | P_VI_DEF;
-        options[101].var_.ov_long = new LongPtr(p_window, 0);
-        options[101].opt_did_set_cb = fp_did_set_window;
-        options[102].fullname = BytePtr.lit("winhighlight");
-        options[102].shortname = BytePtr.lit("whl");
-        options[102].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON;
-        options[102].var_.ov_win = 1;
-        options[102].indir = PV_WIN + WV_WHL;
-        options[102].opt_did_set_cb = fp_did_set_winhighlight;
-        options[102].def_str[0] = BytePtr.lit("");
-        options[103].fullname = BytePtr.lit("wrap");
-        options[103].flags[0] = P_BOOL | P_VI_DEF | P_RWIN;
-        options[103].var_.ov_win = 1;
-        options[103].indir = PV_WIN + WV_WRAP;
-        options[103].opt_did_set_cb = fp_did_set_wrap;
-        options[103].def_num[0] = TRUE;
-        options[104].fullname = BytePtr.lit("wrapmargin");
-        options[104].shortname = BytePtr.lit("wm");
-        options[104].flags[0] = P_NUM | P_VI_DEF;
-        options[104].var_.ov_long = new LongPtr(p_wm, 0);
-        options[104].indir = PV_BUF + BV_WM;
-        options[105].fullname = BytePtr.lit("wrapscan");
-        options[105].shortname = BytePtr.lit("ws");
-        options[105].flags[0] = P_BOOL | P_VI_DEF;
-        options[105].var_.ov_int = new IntPtr(p_ws, 0);
-        options[105].def_num[0] = TRUE;
-        options[106].fullname = BytePtr.lit("writedelay");
-        options[106].shortname = BytePtr.lit("wd");
-        options[106].flags[0] = P_NUM | P_VI_DEF;
-        options[106].var_.ov_long = new LongPtr(p_wd, 0);
-        options[107].fullname = BytePtr.lit("t_AB");
-        options[107].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[107].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CAB);
-        options[107].opt_did_set_cb = fp_did_set_term_option;
-        options[107].def_str[0] = BytePtr.lit("");
-        options[108].fullname = BytePtr.lit("t_AF");
-        options[108].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[108].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CAF);
-        options[108].opt_did_set_cb = fp_did_set_term_option;
-        options[108].def_str[0] = BytePtr.lit("");
-        options[109].fullname = BytePtr.lit("t_AU");
-        options[109].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[109].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CAU);
-        options[109].opt_did_set_cb = fp_did_set_term_option;
-        options[109].def_str[0] = BytePtr.lit("");
-        options[110].fullname = BytePtr.lit("t_AL");
-        options[110].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[110].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CAL);
-        options[110].opt_did_set_cb = fp_did_set_term_option;
-        options[110].def_str[0] = BytePtr.lit("");
-        options[111].fullname = BytePtr.lit("t_al");
-        options[111].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[111].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_AL);
-        options[111].opt_did_set_cb = fp_did_set_term_option;
-        options[111].def_str[0] = BytePtr.lit("");
-        options[112].fullname = BytePtr.lit("t_bc");
-        options[112].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[112].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_BC);
-        options[112].opt_did_set_cb = fp_did_set_term_option;
-        options[112].def_str[0] = BytePtr.lit("");
-        options[113].fullname = BytePtr.lit("t_BE");
-        options[113].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[113].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CBE);
-        options[113].opt_did_set_cb = fp_did_set_term_option;
-        options[113].def_str[0] = BytePtr.lit("");
-        options[114].fullname = BytePtr.lit("t_BD");
-        options[114].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[114].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CBD);
-        options[114].opt_did_set_cb = fp_did_set_term_option;
-        options[114].def_str[0] = BytePtr.lit("");
-        options[115].fullname = BytePtr.lit("t_cd");
-        options[115].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[115].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CD);
-        options[115].opt_did_set_cb = fp_did_set_term_option;
-        options[115].def_str[0] = BytePtr.lit("");
-        options[116].fullname = BytePtr.lit("t_ce");
-        options[116].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[116].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CE);
-        options[116].opt_did_set_cb = fp_did_set_term_option;
-        options[116].def_str[0] = BytePtr.lit("");
-        options[117].fullname = BytePtr.lit("t_Ce");
-        options[117].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[117].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_UCE);
-        options[117].opt_did_set_cb = fp_did_set_term_option;
-        options[117].def_str[0] = BytePtr.lit("");
-        options[118].fullname = BytePtr.lit("t_CF");
-        options[118].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[118].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CF);
-        options[118].opt_did_set_cb = fp_did_set_term_option;
-        options[118].def_str[0] = BytePtr.lit("");
-        options[119].fullname = BytePtr.lit("t_cl");
-        options[119].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[119].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CL);
-        options[119].opt_did_set_cb = fp_did_set_term_option;
-        options[119].def_str[0] = BytePtr.lit("");
-        options[120].fullname = BytePtr.lit("t_cm");
-        options[120].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[120].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CM);
-        options[120].opt_did_set_cb = fp_did_set_term_option;
-        options[120].def_str[0] = BytePtr.lit("");
-        options[121].fullname = BytePtr.lit("t_Co");
-        options[121].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[121].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CCO);
-        options[121].opt_did_set_cb = fp_did_set_term_option;
-        options[121].def_str[0] = BytePtr.lit("");
-        options[122].fullname = BytePtr.lit("t_CS");
-        options[122].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[122].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CCS);
-        options[122].opt_did_set_cb = fp_did_set_term_option;
-        options[122].def_str[0] = BytePtr.lit("");
-        options[123].fullname = BytePtr.lit("t_Cs");
-        options[123].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[123].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_UCS);
-        options[123].opt_did_set_cb = fp_did_set_term_option;
-        options[123].def_str[0] = BytePtr.lit("");
-        options[124].fullname = BytePtr.lit("t_cs");
-        options[124].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[124].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CS);
-        options[124].opt_did_set_cb = fp_did_set_term_option;
-        options[124].def_str[0] = BytePtr.lit("");
-        options[125].fullname = BytePtr.lit("t_CV");
-        options[125].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[125].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CSV);
-        options[125].opt_did_set_cb = fp_did_set_term_option;
-        options[125].def_str[0] = BytePtr.lit("");
-        options[126].fullname = BytePtr.lit("t_da");
-        options[126].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[126].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_DA);
-        options[126].opt_did_set_cb = fp_did_set_term_option;
-        options[126].def_str[0] = BytePtr.lit("");
-        options[127].fullname = BytePtr.lit("t_db");
-        options[127].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[127].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_DB);
-        options[127].opt_did_set_cb = fp_did_set_term_option;
-        options[127].def_str[0] = BytePtr.lit("");
-        options[128].fullname = BytePtr.lit("t_DL");
-        options[128].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[128].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CDL);
-        options[128].opt_did_set_cb = fp_did_set_term_option;
-        options[128].def_str[0] = BytePtr.lit("");
-        options[129].fullname = BytePtr.lit("t_dl");
-        options[129].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[129].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_DL);
-        options[129].opt_did_set_cb = fp_did_set_term_option;
-        options[129].def_str[0] = BytePtr.lit("");
-        options[130].fullname = BytePtr.lit("t_ds");
-        options[130].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[130].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_DS);
-        options[130].opt_did_set_cb = fp_did_set_term_option;
-        options[130].def_str[0] = BytePtr.lit("");
-        options[131].fullname = BytePtr.lit("t_Ds");
-        options[131].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[131].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CDS);
-        options[131].opt_did_set_cb = fp_did_set_term_option;
-        options[131].def_str[0] = BytePtr.lit("");
-        options[132].fullname = BytePtr.lit("t_fs");
-        options[132].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[132].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_FS);
-        options[132].opt_did_set_cb = fp_did_set_term_option;
-        options[132].def_str[0] = BytePtr.lit("");
-        options[133].fullname = BytePtr.lit("t_fd");
-        options[133].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[133].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_FD);
-        options[133].opt_did_set_cb = fp_did_set_term_option;
-        options[133].def_str[0] = BytePtr.lit("");
-        options[134].fullname = BytePtr.lit("t_fe");
-        options[134].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[134].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_FE);
-        options[134].opt_did_set_cb = fp_did_set_term_option;
-        options[134].def_str[0] = BytePtr.lit("");
-        options[135].fullname = BytePtr.lit("t_IE");
-        options[135].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[135].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CIE);
-        options[135].opt_did_set_cb = fp_did_set_term_option;
-        options[135].def_str[0] = BytePtr.lit("");
-        options[136].fullname = BytePtr.lit("t_IS");
-        options[136].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[136].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CIS);
-        options[136].opt_did_set_cb = fp_did_set_term_option;
-        options[136].def_str[0] = BytePtr.lit("");
-        options[137].fullname = BytePtr.lit("t_ke");
-        options[137].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[137].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_KE);
-        options[137].opt_did_set_cb = fp_did_set_term_option;
-        options[137].def_str[0] = BytePtr.lit("");
-        options[138].fullname = BytePtr.lit("t_ks");
-        options[138].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[138].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_KS);
-        options[138].opt_did_set_cb = fp_did_set_term_option;
-        options[138].def_str[0] = BytePtr.lit("");
-        options[139].fullname = BytePtr.lit("t_le");
-        options[139].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[139].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_LE);
-        options[139].opt_did_set_cb = fp_did_set_term_option;
-        options[139].def_str[0] = BytePtr.lit("");
-        options[140].fullname = BytePtr.lit("t_mb");
-        options[140].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[140].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_MB);
-        options[140].opt_did_set_cb = fp_did_set_term_option;
-        options[140].def_str[0] = BytePtr.lit("");
-        options[141].fullname = BytePtr.lit("t_md");
-        options[141].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[141].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_MD);
-        options[141].opt_did_set_cb = fp_did_set_term_option;
-        options[141].def_str[0] = BytePtr.lit("");
-        options[142].fullname = BytePtr.lit("t_me");
-        options[142].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[142].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_ME);
-        options[142].opt_did_set_cb = fp_did_set_term_option;
-        options[142].def_str[0] = BytePtr.lit("");
-        options[143].fullname = BytePtr.lit("t_mr");
-        options[143].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[143].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_MR);
-        options[143].opt_did_set_cb = fp_did_set_term_option;
-        options[143].def_str[0] = BytePtr.lit("");
-        options[144].fullname = BytePtr.lit("t_ms");
-        options[144].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[144].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_MS);
-        options[144].opt_did_set_cb = fp_did_set_term_option;
-        options[144].def_str[0] = BytePtr.lit("");
-        options[145].fullname = BytePtr.lit("t_nd");
-        options[145].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[145].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_ND);
-        options[145].opt_did_set_cb = fp_did_set_term_option;
-        options[145].def_str[0] = BytePtr.lit("");
-        options[146].fullname = BytePtr.lit("t_op");
-        options[146].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[146].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_OP);
-        options[146].opt_did_set_cb = fp_did_set_term_option;
-        options[146].def_str[0] = BytePtr.lit("");
-        options[147].fullname = BytePtr.lit("t_RI");
-        options[147].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[147].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CRI);
-        options[147].opt_did_set_cb = fp_did_set_term_option;
-        options[147].def_str[0] = BytePtr.lit("");
-        options[148].fullname = BytePtr.lit("t_Ri");
-        options[148].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[148].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_SRI);
-        options[148].opt_did_set_cb = fp_did_set_term_option;
-        options[148].def_str[0] = BytePtr.lit("");
-        options[149].fullname = BytePtr.lit("t_RK");
-        options[149].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[149].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CRK);
-        options[149].opt_did_set_cb = fp_did_set_term_option;
-        options[149].def_str[0] = BytePtr.lit("");
-        options[150].fullname = BytePtr.lit("t_RT");
-        options[150].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[150].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CRT);
-        options[150].opt_did_set_cb = fp_did_set_term_option;
-        options[150].def_str[0] = BytePtr.lit("");
-        options[151].fullname = BytePtr.lit("t_RV");
-        options[151].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[151].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CRV);
-        options[151].opt_did_set_cb = fp_did_set_term_option;
-        options[151].def_str[0] = BytePtr.lit("");
-        options[152].fullname = BytePtr.lit("t_Sb");
-        options[152].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[152].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CSB);
-        options[152].opt_did_set_cb = fp_did_set_term_option;
-        options[152].def_str[0] = BytePtr.lit("");
-        options[153].fullname = BytePtr.lit("t_se");
-        options[153].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[153].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_SE);
-        options[153].opt_did_set_cb = fp_did_set_term_option;
-        options[153].def_str[0] = BytePtr.lit("");
-        options[154].fullname = BytePtr.lit("t_Sf");
-        options[154].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[154].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CSF);
-        options[154].opt_did_set_cb = fp_did_set_term_option;
-        options[154].def_str[0] = BytePtr.lit("");
-        options[155].fullname = BytePtr.lit("t_Si");
-        options[155].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[155].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_SSI);
-        options[155].opt_did_set_cb = fp_did_set_term_option;
-        options[155].def_str[0] = BytePtr.lit("");
-        options[156].fullname = BytePtr.lit("t_so");
-        options[156].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[156].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_SO);
-        options[156].opt_did_set_cb = fp_did_set_term_option;
-        options[156].def_str[0] = BytePtr.lit("");
-        options[157].fullname = BytePtr.lit("t_sr");
-        options[157].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[157].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_SR);
-        options[157].opt_did_set_cb = fp_did_set_term_option;
-        options[157].def_str[0] = BytePtr.lit("");
-        options[158].fullname = BytePtr.lit("t_ST");
-        options[158].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[158].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CST);
-        options[158].opt_did_set_cb = fp_did_set_term_option;
-        options[158].def_str[0] = BytePtr.lit("");
-        options[159].fullname = BytePtr.lit("t_Te");
-        options[159].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[159].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_STE);
-        options[159].opt_did_set_cb = fp_did_set_term_option;
-        options[159].def_str[0] = BytePtr.lit("");
-        options[160].fullname = BytePtr.lit("t_te");
-        options[160].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[160].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_TE);
-        options[160].opt_did_set_cb = fp_did_set_term_option;
-        options[160].def_str[0] = BytePtr.lit("");
-        options[161].fullname = BytePtr.lit("t_TE");
-        options[161].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[161].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CTE);
-        options[161].opt_did_set_cb = fp_did_set_term_option;
-        options[161].def_str[0] = BytePtr.lit("");
-        options[162].fullname = BytePtr.lit("t_ti");
-        options[162].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[162].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_TI);
-        options[162].opt_did_set_cb = fp_did_set_term_option;
-        options[162].def_str[0] = BytePtr.lit("");
-        options[163].fullname = BytePtr.lit("t_TI");
-        options[163].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[163].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CTI);
-        options[163].opt_did_set_cb = fp_did_set_term_option;
-        options[163].def_str[0] = BytePtr.lit("");
-        options[164].fullname = BytePtr.lit("t_Ts");
-        options[164].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[164].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_STS);
-        options[164].opt_did_set_cb = fp_did_set_term_option;
-        options[164].def_str[0] = BytePtr.lit("");
-        options[165].fullname = BytePtr.lit("t_ts");
-        options[165].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[165].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_TS);
-        options[165].opt_did_set_cb = fp_did_set_term_option;
-        options[165].def_str[0] = BytePtr.lit("");
-        options[166].fullname = BytePtr.lit("t_ue");
-        options[166].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[166].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_UE);
-        options[166].opt_did_set_cb = fp_did_set_term_option;
-        options[166].def_str[0] = BytePtr.lit("");
-        options[167].fullname = BytePtr.lit("t_us");
-        options[167].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[167].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_US);
-        options[167].opt_did_set_cb = fp_did_set_term_option;
-        options[167].def_str[0] = BytePtr.lit("");
-        options[168].fullname = BytePtr.lit("t_Us");
-        options[168].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[168].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_USS);
-        options[168].opt_did_set_cb = fp_did_set_term_option;
-        options[168].def_str[0] = BytePtr.lit("");
-        options[169].fullname = BytePtr.lit("t_ut");
-        options[169].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[169].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_UT);
-        options[169].opt_did_set_cb = fp_did_set_term_option;
-        options[169].def_str[0] = BytePtr.lit("");
-        options[170].fullname = BytePtr.lit("t_vb");
-        options[170].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[170].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_VB);
-        options[170].opt_did_set_cb = fp_did_set_term_option;
-        options[170].def_str[0] = BytePtr.lit("");
-        options[171].fullname = BytePtr.lit("t_ve");
-        options[171].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[171].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_VE);
-        options[171].opt_did_set_cb = fp_did_set_term_option;
-        options[171].def_str[0] = BytePtr.lit("");
-        options[172].fullname = BytePtr.lit("t_vi");
-        options[172].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[172].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_VI);
-        options[172].opt_did_set_cb = fp_did_set_term_option;
-        options[172].def_str[0] = BytePtr.lit("");
-        options[173].fullname = BytePtr.lit("t_VS");
-        options[173].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[173].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CVS);
-        options[173].opt_did_set_cb = fp_did_set_term_option;
-        options[173].def_str[0] = BytePtr.lit("");
-        options[174].fullname = BytePtr.lit("t_vs");
-        options[174].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[174].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_VS);
-        options[174].opt_did_set_cb = fp_did_set_term_option;
-        options[174].def_str[0] = BytePtr.lit("");
-        options[175].fullname = BytePtr.lit("t_WS");
-        options[175].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[175].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CWS);
-        options[175].opt_did_set_cb = fp_did_set_term_option;
-        options[175].def_str[0] = BytePtr.lit("");
-        options[176].fullname = BytePtr.lit("t_xn");
-        options[176].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[176].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_XN);
-        options[176].opt_did_set_cb = fp_did_set_term_option;
-        options[176].def_str[0] = BytePtr.lit("");
-        options[177].fullname = BytePtr.lit("t_xs");
-        options[177].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[177].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_XS);
-        options[177].opt_did_set_cb = fp_did_set_term_option;
-        options[177].def_str[0] = BytePtr.lit("");
-        options[178].fullname = BytePtr.lit("t_ZH");
-        options[178].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[178].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CZH);
-        options[178].opt_did_set_cb = fp_did_set_term_option;
-        options[178].def_str[0] = BytePtr.lit("");
-        options[179].fullname = BytePtr.lit("t_ZR");
-        options[179].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[179].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_CZR);
-        options[179].opt_did_set_cb = fp_did_set_term_option;
-        options[179].def_str[0] = BytePtr.lit("");
-        options[180].fullname = BytePtr.lit("t_8u");
-        options[180].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[180].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_8U);
-        options[180].opt_did_set_cb = fp_did_set_term_option;
-        options[180].def_str[0] = BytePtr.lit("");
-        options[181].fullname = BytePtr.lit("t_xo");
-        options[181].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[181].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_XON);
-        options[181].opt_did_set_cb = fp_did_set_term_option;
-        options[181].def_str[0] = BytePtr.lit("");
-        options[182].fullname = BytePtr.lit("t_BS");
-        options[182].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[182].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_BSU);
-        options[182].opt_did_set_cb = fp_did_set_term_option;
-        options[182].def_str[0] = BytePtr.lit("");
-        options[183].fullname = BytePtr.lit("t_ES");
-        options[183].flags[0] = P_STRING | P_VI_DEF | P_RALL | P_SECURE;
-        options[183].var_.ov_str = new Ptr<BytePtr>(term_strings, KS_ESU);
-        options[183].opt_did_set_cb = fp_did_set_term_option;
-        options[183].def_str[0] = BytePtr.lit("");
     }
 
-    private void initGlobals5() {
+    private void initGlobals4() {
+        Rt.rows(options,
+            new S_vimoption(BytePtr.lit("ambiwidth"), BytePtr.lit("ambw"), P_STRING | P_VI_DEF | P_RCLR,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_ambw, 0), 0), PV_NONE, fp_did_set_ambiwidth, null,
+                    new BytePtr[] {BytePtr.lit("single"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("autoindent"), BytePtr.lit("ai"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_ai, 0), null, null, 0), PV_BUF + BV_AI, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("background"), BytePtr.lit("bg"), P_STRING | P_VI_DEF | P_RCLR | P_HLONLY,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_bg, 0), 0), PV_NONE, fp_did_set_background, null,
+                    new BytePtr[] {BytePtr.lit("light"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("backspace"), BytePtr.lit("bs"), P_STRING | P_VIM | P_ONECOMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_bs, 0), 0), PV_NONE, fp_did_set_backspace, null,
+                    new BytePtr[] {BytePtr.lit(""), BytePtr.lit("indent,eol,start")}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("belloff"), BytePtr.lit("bo"), P_STRING | P_VI_DEF | P_COMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_bo, 0), 0), PV_NONE, fp_did_set_belloff, null,
+                    new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("casemap"), BytePtr.lit("cmp"), P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_cmp, 0), 0), PV_NONE, fp_did_set_casemap, null,
+                    new BytePtr[] {BytePtr.lit("internal,keepascii"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("cmdheight"), BytePtr.lit("ch"), P_NUM | P_VI_DEF | P_RALL,
+                    new T_optvar_T(null, new LongPtr(p_ch, 0), null, 0), PV_NONE, fp_did_set_cmdheight, null,
+                    new BytePtr[] {null, null}, new long[] {1L, 0L}),
+            new S_vimoption(BytePtr.lit("columns"), BytePtr.lit("co"),
+                    P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR,
+                    new T_optvar_T(null, new LongPtr(Columns, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {80L, 0L}),
+            new S_vimoption(BytePtr.lit("compatible"), BytePtr.lit("cp"), P_BOOL | P_RALL,
+                    new T_optvar_T(new IntPtr(p_cp, 0), null, null, 0), PV_NONE, fp_did_set_compatible, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, FALSE}),
+            new S_vimoption(BytePtr.lit("copyindent"), BytePtr.lit("ci"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_ci, 0), null, null, 0), PV_BUF + BV_CI, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("cpoptions"), BytePtr.lit("cpo"), P_STRING | P_VIM | P_RALL | P_FLAGLIST,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_cpo, 0), 0), PV_NONE, fp_did_set_cpoptions, null,
+                    new BytePtr[] {BytePtr.lit("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;"),
+                    BytePtr.lit("aABceFsz")}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("delcombine"), BytePtr.lit("deco"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_deco, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("display"), BytePtr.lit("dy"),
+                    P_STRING | P_VI_DEF | P_ONECOMMA | P_RALL | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_dy, 0), 0), PV_NONE, fp_did_set_display, null,
+                    new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("edcompatible"), BytePtr.lit("ed"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_ed, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("emoji"), BytePtr.lit("emo"), P_BOOL | P_VI_DEF | P_RCLR,
+                    new T_optvar_T(new IntPtr(p_emoji, 0), null, null, 0), PV_NONE, fp_did_set_ambiwidth, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("errorbells"), BytePtr.lit("eb"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_eb, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("esckeys"), BytePtr.lit("ek"), P_BOOL | P_VIM,
+                    new T_optvar_T(new IntPtr(p_ek, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, TRUE}),
+            new S_vimoption(BytePtr.lit("expandtab"), BytePtr.lit("et"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_et, 0), null, null, 0), PV_BUF + BV_ET, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("fillchars"), BytePtr.lit("fcs"),
+                    P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_fcs, 0), 0), PV_BOTH + (PV_WIN + WV_FCS),
+                    fp_did_set_chars_option, null, new BytePtr[] {BytePtr.lit("vert:|,fold:-,eob:~,lastline:@"), null},
+                    new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("gdefault"), BytePtr.lit("gd"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_gd, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("highlight"), BytePtr.lit("hl"),
+                    P_STRING | P_VI_DEF | P_RCLR | P_ONECOMMA | P_NODUP | P_COLON,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_hl, 0), 0), PV_NONE, fp_did_set_highlight, null,
+                    new BytePtr[] {BytePtr.lit("8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("history"), BytePtr.lit("hi"), P_NUM | P_VIM,
+                    new T_optvar_T(null, new LongPtr(p_hi, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {9999L, 9999L}),
+            new S_vimoption(BytePtr.lit("hlsearch"), BytePtr.lit("hls"), P_BOOL | P_VI_DEF | P_VIM | P_RALL | P_HLONLY,
+                    new T_optvar_T(new IntPtr(p_hls, 0), null, null, 0), PV_NONE, fp_did_set_hlsearch, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("ignorecase"), BytePtr.lit("ic"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_ic, 0), null, null, 0), PV_NONE, fp_did_set_ignorecase, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("incsearch"), BytePtr.lit("is"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_is, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("insertmode"), BytePtr.lit("im"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_im, 0), null, null, 0), PV_NONE, fp_did_set_insertmode, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("isfname"), BytePtr.lit("isf"), P_STRING | P_VI_DEF | P_COMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_isf, 0), 0), PV_NONE, fp_did_set_isopt, null,
+                    new BytePtr[] {BytePtr.lit("@,48-57,/,.,-,_,+,,,#,$,%,~,="), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("isident"), BytePtr.lit("isi"), P_STRING | P_VI_DEF | P_COMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_isi, 0), 0), PV_NONE, fp_did_set_isopt, null,
+                    new BytePtr[] {BytePtr.lit("@,48-57,_,192-255"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("iskeyword"), BytePtr.lit("isk"),
+                    P_STRING | P_ALLOCED | P_VIM | P_COMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_isk, 0), 0), PV_BUF + BV_ISK, fp_did_set_iskeyword,
+                    null, new BytePtr[] {BytePtr.lit("@,48-57,_"), BytePtr.lit("@,48-57,_,192-255")},
+                    new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("isprint"), BytePtr.lit("isp"),
+                    P_STRING | P_VI_DEF | P_RALL | P_COMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_isp, 0), 0), PV_NONE, fp_did_set_isopt, null,
+                    new BytePtr[] {BytePtr.lit("@,161-255"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("joinspaces"), BytePtr.lit("js"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_js, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("keymodel"), BytePtr.lit("km"), P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_km, 0), 0), PV_NONE, fp_did_set_keymodel, null,
+                    new BytePtr[] {BytePtr.lit("startsel"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("keyprotocol"), BytePtr.lit("kpc"),
+                    P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP | P_COLON,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_kpc, 0), 0), PV_NONE, fp_did_set_keyprotocol, null,
+                    new BytePtr[] {BytePtr.lit("kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2"), null},
+                    new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("laststatus"), BytePtr.lit("ls"), P_NUM | P_VI_DEF | P_RALL,
+                    new T_optvar_T(null, new LongPtr(p_ls, 0), null, 0), PV_NONE, fp_did_set_laststatus, null,
+                    new BytePtr[] {null, null}, new long[] {1L, 0L}),
+            new S_vimoption(BytePtr.lit("lazyredraw"), BytePtr.lit("lz"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_lz, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("lines"), null, P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR,
+                    new T_optvar_T(null, new LongPtr(Rows, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {24L, 0L}),
+            new S_vimoption(BytePtr.lit("list"), null, P_BOOL | P_VI_DEF | P_RWIN, new T_optvar_T(null, null, null, 1),
+                    PV_WIN + WV_LIST, null, null, new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("listchars"), BytePtr.lit("lcs"),
+                    P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_lcs, 0), 0), PV_BOTH + (PV_WIN + WV_LCS),
+                    fp_did_set_chars_option, null, new BytePtr[] {BytePtr.lit("eol:$"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("magic"), null, P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_magic, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("matchpairs"), BytePtr.lit("mps"),
+                    P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_mps, 0), 0), PV_BUF + BV_MPS, fp_did_set_matchpairs,
+                    null, new BytePtr[] {BytePtr.lit("(:),{:},[:]"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("matchtime"), BytePtr.lit("mat"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_mat, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {5L, 0L}),
+            new S_vimoption(BytePtr.lit("maxcombine"), BytePtr.lit("mco"), P_NUM | P_VI_DEF | P_CURSWANT,
+                    new T_optvar_T(null, new LongPtr(p_mco, 0), null, 0), PV_NONE, fp_did_set_maxcombine, null,
+                    new BytePtr[] {null, null}, new long[] {2L, 0L}),
+            new S_vimoption(BytePtr.lit("maxmapdepth"), BytePtr.lit("mmd"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_mmd, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {1000L, 0L}),
+            new S_vimoption(BytePtr.lit("maxmempattern"), BytePtr.lit("mmp"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_mmp, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {1000L, 0L}),
+            new S_vimoption(BytePtr.lit("maxsearchcount"), BytePtr.lit("msc"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_msc, 0), null, 0), PV_NONE, fp_did_set_maxsearchcount, null,
+                    new BytePtr[] {null, null}, new long[] {99L, 0L}),
+            new S_vimoption(BytePtr.lit("messagesopt"), BytePtr.lit("mopt"),
+                    P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_COLON | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_mopt, 0), 0), PV_NONE, fp_did_set_messagesopt, null,
+                    new BytePtr[] {BytePtr.lit("hit-enter,history:500"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("modifiable"), BytePtr.lit("ma"), P_BOOL | P_VI_DEF | P_NOGLOB,
+                    new T_optvar_T(new IntPtr(p_ma, 0), null, null, 0), PV_BUF + BV_MA, fp_did_set_modifiable, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("modified"), BytePtr.lit("mod"), P_BOOL | P_NO_MKRC | P_VI_DEF | P_RSTAT,
+                    new T_optvar_T(new IntPtr(p_mod, 0), null, null, 0), PV_BUF + BV_MOD, fp_did_set_modified, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("more"), null, P_BOOL | P_VIM,
+                    new T_optvar_T(new IntPtr(p_more, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, TRUE}),
+            new S_vimoption(BytePtr.lit("nrformats"), BytePtr.lit("nf"),
+                    P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_nf, 0), 0), PV_BUF + BV_NF, fp_did_set_nrformats,
+                    null, new BytePtr[] {BytePtr.lit("bin,octal,hex"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("number"), BytePtr.lit("nu"), P_BOOL | P_VI_DEF | P_RWIN,
+                    new T_optvar_T(null, null, null, 1), PV_WIN + WV_NU, fp_did_set_number_relativenumber, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("osctimeoutlen"), BytePtr.lit("ost"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_ost, 0), null, 0), PV_NONE, fp_did_set_osctimeoutlen, null,
+                    new BytePtr[] {null, null}, new long[] {1000L, 0L}),
+            new S_vimoption(BytePtr.lit("paste"), null, P_BOOL | P_VI_DEF | P_PRI_MKRC,
+                    new T_optvar_T(new IntPtr(p_paste, 0), null, null, 0), PV_NONE, fp_did_set_paste, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("pastetoggle"), BytePtr.lit("pt"), P_STRING | P_VI_DEF,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_pt, 0), 0), PV_NONE, fp_did_set_pastetoggle, null,
+                    new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("preserveindent"), BytePtr.lit("pi"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_pi, 0), null, null, 0), PV_BUF + BV_PI, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("quoteescape"), BytePtr.lit("qe"), P_STRING | P_ALLOCED | P_VI_DEF,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_qe, 0), 0), PV_BUF + BV_QE, null, null,
+                    new BytePtr[] {BytePtr.lit("\\"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("relativenumber"), BytePtr.lit("rnu"), P_BOOL | P_VI_DEF | P_RWIN,
+                    new T_optvar_T(null, null, null, 1), PV_WIN + WV_RNU, fp_did_set_number_relativenumber, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("remap"), null, P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_remap, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("report"), null, P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_report, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {2L, 0L}),
+            new S_vimoption(BytePtr.lit("ruler"), BytePtr.lit("ru"), P_BOOL | P_VIM | P_RSTAT,
+                    new T_optvar_T(new IntPtr(p_ru, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {TRUE, TRUE}),
+            new S_vimoption(BytePtr.lit("scroll"), BytePtr.lit("scr"), P_NUM | P_NO_MKRC | P_VI_DEF,
+                    new T_optvar_T(null, null, null, 1), PV_WIN + WV_SCROLL, null, null, new BytePtr[] {null, null},
+                    new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("scrolljump"), BytePtr.lit("sj"), P_NUM | P_VI_DEF | P_VIM,
+                    new T_optvar_T(null, new LongPtr(p_sj, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {1L, 0L}),
+            new S_vimoption(BytePtr.lit("scrolloff"), BytePtr.lit("so"), P_NUM | P_VI_DEF | P_VIM | P_RALL,
+                    new T_optvar_T(null, new LongPtr(p_so, 0), null, 0), PV_BOTH + (PV_WIN + WV_SO), null, null,
+                    new BytePtr[] {null, null}, new long[] {1L, 0L}),
+            new S_vimoption(BytePtr.lit("scrolloffpad"), BytePtr.lit("sop"), P_NUM | P_VI_DEF | P_VIM | P_RALL,
+                    new T_optvar_T(null, new LongPtr(p_sop, 0), null, 0), PV_BOTH + (PV_WIN + WV_SOP), null, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("selection"), BytePtr.lit("sel"), P_STRING | P_VI_DEF,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_sel, 0), 0), PV_NONE, fp_did_set_selection, null,
+                    new BytePtr[] {BytePtr.lit("inclusive"), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("selectmode"), BytePtr.lit("slm"), P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_slm, 0), 0), PV_NONE, fp_did_set_selectmode, null,
+                    new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("shiftround"), BytePtr.lit("sr"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_sr, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("shiftwidth"), BytePtr.lit("sw"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_sw, 0), null, 0), PV_BUF + BV_SW, fp_did_set_shiftwidth_tabstop,
+                    null, new BytePtr[] {null, null}, new long[] {4L, 0L}),
+            new S_vimoption(BytePtr.lit("shortmess"), BytePtr.lit("shm"), P_STRING | P_VIM | P_FLAGLIST,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_shm, 0), 0), PV_NONE, fp_did_set_shortmess, null,
+                    new BytePtr[] {BytePtr.lit("S"), BytePtr.lit("filnxtToOS")}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("showcmd"), BytePtr.lit("sc"), P_BOOL | P_VIM,
+                    new T_optvar_T(new IntPtr(p_sc, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, TRUE}),
+            new S_vimoption(BytePtr.lit("showcmdloc"), BytePtr.lit("sloc"), P_STRING | P_RSTAT,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_sloc, 0), 0), PV_NONE, fp_did_set_showcmdloc, null,
+                    new BytePtr[] {BytePtr.lit("last"), BytePtr.lit("last")}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("showmatch"), BytePtr.lit("sm"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_sm, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("showmode"), BytePtr.lit("smd"), P_BOOL | P_VIM,
+                    new T_optvar_T(new IntPtr(p_smd, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, TRUE}),
+            new S_vimoption(BytePtr.lit("sidescroll"), BytePtr.lit("ss"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_ss, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("sidescrolloff"), BytePtr.lit("siso"), P_NUM | P_VI_DEF | P_VIM | P_RBUF,
+                    new T_optvar_T(null, new LongPtr(p_siso, 0), null, 0), PV_BOTH + (PV_WIN + WV_SISO), null, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("smartcase"), BytePtr.lit("scs"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_scs, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("smartindent"), BytePtr.lit("si"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_si, 0), null, null, 0), PV_BUF + BV_SI, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("smarttab"), BytePtr.lit("sta"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_sta, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("smoothscroll"), BytePtr.lit("sms"), P_BOOL | P_VI_DEF | P_RWIN,
+                    new T_optvar_T(null, null, null, 1), PV_WIN + WV_SMS, fp_did_set_smoothscroll, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("softtabstop"), BytePtr.lit("sts"), P_NUM | P_VI_DEF | P_VIM,
+                    new T_optvar_T(null, new LongPtr(p_sts, 0), null, 0), PV_BUF + BV_STS, null, null,
+                    new BytePtr[] {null, null}, new long[] {4L, 0L}),
+            new S_vimoption(BytePtr.lit("startofline"), BytePtr.lit("sol"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_sol, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("tabstop"), BytePtr.lit("ts"), P_NUM | P_VI_DEF | P_RBUF,
+                    new T_optvar_T(null, new LongPtr(p_ts, 0), null, 0), PV_BUF + BV_TS, fp_did_set_shiftwidth_tabstop,
+                    null, new BytePtr[] {null, null}, new long[] {4L, 0L}),
+            new S_vimoption(BytePtr.lit("term"), null,
+                    P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_NAME), 0), PV_NONE, fp_did_set_term,
+                    null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("termsync"), BytePtr.lit("tsy"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_tsy, 0), null, null, 0), PV_NONE, fp_did_set_termsync, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("terse"), null, P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_terse, 0), null, null, 0), PV_NONE, fp_did_set_terse, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("textwidth"), BytePtr.lit("tw"), P_NUM | P_VI_DEF | P_VIM | P_RBUF | P_HLONLY,
+                    new T_optvar_T(null, new LongPtr(p_tw, 0), null, 0), PV_BUF + BV_TW, fp_did_set_textwidth, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("tildeop"), BytePtr.lit("top"), P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_to, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("timeout"), BytePtr.lit("to"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_timeout, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("timeoutlen"), BytePtr.lit("tm"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_tm, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {1000L, 0L}),
+            new S_vimoption(BytePtr.lit("ttimeout"), null, P_BOOL | P_VI_DEF | P_VIM,
+                    new T_optvar_T(new IntPtr(p_ttimeout, 0), null, null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("ttimeoutlen"), BytePtr.lit("ttm"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_ttm, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {-1L, 0L}),
+            new S_vimoption(BytePtr.lit("ttyfast"), BytePtr.lit("tf"), P_BOOL | P_NO_MKRC | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_tf, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("ttyscroll"), BytePtr.lit("tsl"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_ttyscroll, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {999L, 0L}),
+            new S_vimoption(BytePtr.lit("ttytype"), BytePtr.lit("tty"),
+                    P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_NAME), 0), PV_NONE, fp_did_set_term,
+                    null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("undolevels"), BytePtr.lit("ul"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_ul, 0), null, 0), PV_BOTH + (PV_BUF + BV_UL),
+                    fp_did_set_undolevels, null, new BytePtr[] {null, null}, new long[] {9999L, 0L}),
+            new S_vimoption(BytePtr.lit("verbose"), BytePtr.lit("vbs"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_verbose, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("virtualedit"), BytePtr.lit("ve"),
+                    P_STRING | P_ONECOMMA | P_NODUP | P_VI_DEF | P_VIM | P_CURSWANT,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_ve, 0), 0), PV_BOTH + (PV_WIN + WV_VE),
+                    fp_did_set_virtualedit, null, new BytePtr[] {BytePtr.lit(""), BytePtr.lit("")},
+                    new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("visualbell"), BytePtr.lit("vb"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_vb, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("weirdinvert"), BytePtr.lit("wiv"), P_BOOL | P_VI_DEF | P_RCLR,
+                    new T_optvar_T(new IntPtr(p_wiv, 0), null, null, 0), PV_NONE, fp_did_set_weirdinvert, null,
+                    new BytePtr[] {null, null}, new long[] {FALSE, 0L}),
+            new S_vimoption(BytePtr.lit("whichwrap"), BytePtr.lit("ww"), P_STRING | P_VIM | P_ONECOMMA | P_FLAGLIST,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(p_ww, 0), 0), PV_NONE, fp_did_set_whichwrap, null,
+                    new BytePtr[] {BytePtr.lit(""), BytePtr.lit("b,s")}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("wincolor"), BytePtr.lit("wcr"), P_STRING | P_ALLOCED | P_VI_DEF | P_RWIN,
+                    new T_optvar_T(null, null, null, 1), PV_WIN + WV_WCR, fp_did_set_wincolor, null,
+                    new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("window"), BytePtr.lit("wi"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_window, 0), null, 0), PV_NONE, fp_did_set_window, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("winhighlight"), BytePtr.lit("whl"),
+                    P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, new T_optvar_T(null, null, null, 1),
+                    PV_WIN + WV_WHL, fp_did_set_winhighlight, null, new BytePtr[] {BytePtr.lit(""), null},
+                    new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("wrap"), null, P_BOOL | P_VI_DEF | P_RWIN, new T_optvar_T(null, null, null, 1),
+                    PV_WIN + WV_WRAP, fp_did_set_wrap, null, new BytePtr[] {null, null}, new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("wrapmargin"), BytePtr.lit("wm"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_wm, 0), null, 0), PV_BUF + BV_WM, null, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("wrapscan"), BytePtr.lit("ws"), P_BOOL | P_VI_DEF,
+                    new T_optvar_T(new IntPtr(p_ws, 0), null, null, 0), PV_NONE, null, null, new BytePtr[] {null, null},
+                    new long[] {TRUE, 0L}),
+            new S_vimoption(BytePtr.lit("writedelay"), BytePtr.lit("wd"), P_NUM | P_VI_DEF,
+                    new T_optvar_T(null, new LongPtr(p_wd, 0), null, 0), PV_NONE, null, null,
+                    new BytePtr[] {null, null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_AB"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CAB), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_AF"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CAF), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_AU"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CAU), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_AL"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CAL), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_al"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_AL), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_bc"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_BC), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_BE"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CBE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_BD"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CBD), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_cd"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CD), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ce"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Ce"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_UCE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_CF"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CF), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_cl"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CL), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_cm"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CM), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Co"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CCO), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_CS"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CCS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Cs"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_UCS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_cs"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_CV"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CSV), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_da"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_DA), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_db"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_DB), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_DL"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CDL), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_dl"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_DL), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ds"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_DS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Ds"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CDS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_fs"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_FS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_fd"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_FD), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_fe"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_FE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_IE"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CIE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_IS"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CIS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ke"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_KE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ks"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_KS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_le"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_LE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_mb"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_MB), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_md"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_MD), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_me"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_ME), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_mr"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_MR), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ms"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_MS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_nd"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_ND), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_op"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_OP), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_RI"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CRI), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Ri"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_SRI), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_RK"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CRK), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_RT"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CRT), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_RV"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CRV), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Sb"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CSB), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_se"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_SE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Sf"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CSF), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Si"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_SSI), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_so"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_SO), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_sr"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_SR), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ST"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CST), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Te"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_STE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_te"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_TE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_TE"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CTE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ti"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_TI), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_TI"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CTI), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Ts"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_STS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ts"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_TS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ue"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_UE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_us"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_US), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_Us"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_USS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ut"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_UT), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_vb"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_VB), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ve"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_VE), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_vi"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_VI), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_VS"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CVS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_vs"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_VS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_WS"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CWS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_xn"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_XN), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_xs"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_XS), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ZH"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CZH), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ZR"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_CZR), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_8u"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_8U), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_xo"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_XON), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_BS"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_BSU), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption(BytePtr.lit("t_ES"), null, P_STRING | P_VI_DEF | P_RALL | P_SECURE,
+                    new T_optvar_T(null, null, new Ptr<BytePtr>(term_strings, KS_ESU), 0), PV_NONE,
+                    fp_did_set_term_option, null, new BytePtr[] {BytePtr.lit(""), null}, new long[] {0L, 0L}),
+            new S_vimoption());
         p_ambw_values[0] = BytePtr.lit("single");
         p_ambw_values[1] = BytePtr.lit("double");
         p_bg_values[0] = BytePtr.lit("light");
@@ -11439,82 +10708,36 @@ public abstract class Editor {
         Rt.rows(classcodes,
             ANY, IDENT, SIDENT, KWORD, SKWORD, FNAME, SFNAME, PRINT, SPRINT, RE_WHITE, NWHITE, DIGIT, NDIGIT, HEX,
             NHEX, OCTAL, NOCTAL, WORD, NWORD, HEAD, NHEAD, ALPHA, NALPHA, LOWER, NLOWER, UPPER, NUPPER);
-        filltab[0].cp = new IntPtr(fill_chars.stl, 0);
-        filltab[0].name.string[0] = BytePtr.lit("stl");
-        filltab[0].name.length = 3L;
-        filltab[1].cp = new IntPtr(fill_chars.stlnc, 0);
-        filltab[1].name.string[0] = BytePtr.lit("stlnc");
-        filltab[1].name.length = 5L;
-        filltab[2].cp = new IntPtr(fill_chars.vert, 0);
-        filltab[2].name.string[0] = BytePtr.lit("vert");
-        filltab[2].name.length = 4L;
-        filltab[3].cp = new IntPtr(fill_chars.fold, 0);
-        filltab[3].name.string[0] = BytePtr.lit("fold");
-        filltab[3].name.length = 4L;
-        filltab[4].cp = new IntPtr(fill_chars.foldopen, 0);
-        filltab[4].name.string[0] = BytePtr.lit("foldopen");
-        filltab[4].name.length = 8L;
-        filltab[5].cp = new IntPtr(fill_chars.foldclosed, 0);
-        filltab[5].name.string[0] = BytePtr.lit("foldclose");
-        filltab[5].name.length = 9L;
-        filltab[6].cp = new IntPtr(fill_chars.foldsep, 0);
-        filltab[6].name.string[0] = BytePtr.lit("foldsep");
-        filltab[6].name.length = 7L;
-        filltab[7].cp = new IntPtr(fill_chars.foldinner, 0);
-        filltab[7].name.string[0] = BytePtr.lit("foldinner");
-        filltab[7].name.length = 9L;
-        filltab[8].cp = new IntPtr(fill_chars.diff, 0);
-        filltab[8].name.string[0] = BytePtr.lit("diff");
-        filltab[8].name.length = 4L;
-        filltab[9].cp = new IntPtr(fill_chars.eob, 0);
-        filltab[9].name.string[0] = BytePtr.lit("eob");
-        filltab[9].name.length = 3L;
-        filltab[10].cp = new IntPtr(fill_chars.lastline, 0);
-        filltab[10].name.string[0] = BytePtr.lit("lastline");
-        filltab[10].name.length = 8L;
-        filltab[11].cp = new IntPtr(fill_chars.trunc, 0);
-        filltab[11].name.string[0] = BytePtr.lit("trunc");
-        filltab[11].name.length = 5L;
-        filltab[12].cp = new IntPtr(fill_chars.truncrl, 0);
-        filltab[12].name.string[0] = BytePtr.lit("truncrl");
-        filltab[12].name.length = 7L;
-        lcstab[0].cp = new IntPtr(lcs_chars.eol, 0);
-        lcstab[0].name.string[0] = BytePtr.lit("eol");
-        lcstab[0].name.length = 3L;
-        lcstab[1].cp = new IntPtr(lcs_chars.ext, 0);
-        lcstab[1].name.string[0] = BytePtr.lit("extends");
-        lcstab[1].name.length = 7L;
-        lcstab[2].cp = new IntPtr(lcs_chars.nbsp, 0);
-        lcstab[2].name.string[0] = BytePtr.lit("nbsp");
-        lcstab[2].name.length = 4L;
-        lcstab[3].cp = new IntPtr(lcs_chars.prec, 0);
-        lcstab[3].name.string[0] = BytePtr.lit("precedes");
-        lcstab[3].name.length = 8L;
-        lcstab[4].cp = new IntPtr(lcs_chars.space, 0);
-        lcstab[4].name.string[0] = BytePtr.lit("space");
-        lcstab[4].name.length = 5L;
-        lcstab[5].cp = new IntPtr(lcs_chars.tab2, 0);
-        lcstab[5].name.string[0] = BytePtr.lit("tab");
-        lcstab[5].name.length = 3L;
-        lcstab[6].cp = new IntPtr(lcs_chars.leadtab2, 0);
-        lcstab[6].name.string[0] = BytePtr.lit("leadtab");
-        lcstab[6].name.length = 7L;
-        lcstab[7].cp = new IntPtr(lcs_chars.trail, 0);
-        lcstab[7].name.string[0] = BytePtr.lit("trail");
-        lcstab[7].name.length = 5L;
-        lcstab[8].cp = new IntPtr(lcs_chars.lead, 0);
-        lcstab[8].name.string[0] = BytePtr.lit("lead");
-        lcstab[8].name.length = 4L;
-        lcstab[9].name.string[0] = BytePtr.lit("conceal");
-        lcstab[9].name.length = 7L;
-        lcstab[10].name.string[0] = BytePtr.lit("multispace");
-        lcstab[10].name.length = 10L;
-        lcstab[11].name.string[0] = BytePtr.lit("leadmultispace");
-        lcstab[11].name.length = 14L;
-        spats[0].magic = TRUE;
-        spats[0].off.dir = '/';
-        spats[1].magic = TRUE;
-        spats[1].off.dir = '/';
+        Rt.rows(filltab,
+            new S_charstab(new IntPtr(fill_chars.stl, 0), new T_string_T(BytePtr.lit("stl"), 3L)),
+            new S_charstab(new IntPtr(fill_chars.stlnc, 0), new T_string_T(BytePtr.lit("stlnc"), 5L)),
+            new S_charstab(new IntPtr(fill_chars.vert, 0), new T_string_T(BytePtr.lit("vert"), 4L)),
+            new S_charstab(new IntPtr(fill_chars.fold, 0), new T_string_T(BytePtr.lit("fold"), 4L)),
+            new S_charstab(new IntPtr(fill_chars.foldopen, 0), new T_string_T(BytePtr.lit("foldopen"), 8L)),
+            new S_charstab(new IntPtr(fill_chars.foldclosed, 0), new T_string_T(BytePtr.lit("foldclose"), 9L)),
+            new S_charstab(new IntPtr(fill_chars.foldsep, 0), new T_string_T(BytePtr.lit("foldsep"), 7L)),
+            new S_charstab(new IntPtr(fill_chars.foldinner, 0), new T_string_T(BytePtr.lit("foldinner"), 9L)),
+            new S_charstab(new IntPtr(fill_chars.diff, 0), new T_string_T(BytePtr.lit("diff"), 4L)),
+            new S_charstab(new IntPtr(fill_chars.eob, 0), new T_string_T(BytePtr.lit("eob"), 3L)),
+            new S_charstab(new IntPtr(fill_chars.lastline, 0), new T_string_T(BytePtr.lit("lastline"), 8L)),
+            new S_charstab(new IntPtr(fill_chars.trunc, 0), new T_string_T(BytePtr.lit("trunc"), 5L)),
+            new S_charstab((new IntPtr(fill_chars.truncrl, 0)), new T_string_T(BytePtr.lit("truncrl"), 7L)));
+        Rt.rows(lcstab,
+            new S_charstab(new IntPtr(lcs_chars.eol, 0), new T_string_T(BytePtr.lit("eol"), 3L)),
+            new S_charstab(new IntPtr(lcs_chars.ext, 0), new T_string_T(BytePtr.lit("extends"), 7L)),
+            new S_charstab(new IntPtr(lcs_chars.nbsp, 0), new T_string_T(BytePtr.lit("nbsp"), 4L)),
+            new S_charstab(new IntPtr(lcs_chars.prec, 0), new T_string_T(BytePtr.lit("precedes"), 8L)),
+            new S_charstab(new IntPtr(lcs_chars.space, 0), new T_string_T(BytePtr.lit("space"), 5L)),
+            new S_charstab(new IntPtr(lcs_chars.tab2, 0), new T_string_T(BytePtr.lit("tab"), 3L)),
+            new S_charstab(new IntPtr(lcs_chars.leadtab2, 0), new T_string_T(BytePtr.lit("leadtab"), 7L)),
+            new S_charstab(new IntPtr(lcs_chars.trail, 0), new T_string_T(BytePtr.lit("trail"), 5L)),
+            new S_charstab(new IntPtr(lcs_chars.lead, 0), new T_string_T(BytePtr.lit("lead"), 4L)),
+            new S_charstab(null, new T_string_T(BytePtr.lit("conceal"), 7L)),
+            new S_charstab(null, new T_string_T(BytePtr.lit("multispace"), 10L)),
+            new S_charstab(null, new T_string_T(BytePtr.lit("leadmultispace"), 14L)));
+        Rt.rows(spats,
+            new S_spat(null, 0L, TRUE, FALSE, new S_soffset('/', 0, 0, 0L)),
+            new S_spat(null, 0L, TRUE, FALSE, new S_soffset('/', 0, 0, 0L)));
         lastcdir = FORWARD;
         last_t_cmd = TRUE;
         lastc_bytelen = 1;
@@ -11800,7 +11023,7 @@ public abstract class Editor {
         builtin_xterm[137].bt_string = BytePtr.lit("\033[58;*~");
     }
 
-    private void initGlobals6() {
+    private void initGlobals5() {
         Rt.rows(builtin_mok2,
             new T_tcap_entry_T(KS_CTI, BytePtr.lit("\033[>4;2m")),
             new T_tcap_entry_T(KS_CRK, BytePtr.lit("\033[?4m")),
@@ -12250,7 +11473,7 @@ public abstract class Editor {
             new S_interval(196608L, 262141L));
     }
 
-    private void initGlobals7() {
+    private void initGlobals6() {
         Rt.rows(utf_char2cells_emoji_wide,
             new S_interval(9197L, 9199L),
             new S_interval(9201L, 9202L),
@@ -12663,7 +11886,7 @@ public abstract class Editor {
             new S_interval(917760L, 917999L));
     }
 
-    private void initGlobals8() {
+    private void initGlobals7() {
         Rt.rows(utf_printable_nonprint,
             new S_interval(1807L, 1807L),
             new S_interval(6155L, 6158L),
@@ -12762,62 +11985,26 @@ public abstract class Editor {
         nv_optrans_ar[7] = BytePtr.lit(":s\015");
         nv_optrans_str = BytePtr.lit("xXDCsSY&");
         vim_handle_signal_blocked = true;
-        get_char_class_char_class_tab[0].value.string[0] = BytePtr.lit("alnum:]");
-        get_char_class_char_class_tab[0].value.length = 7L;
-        get_char_class_char_class_tab[1].key = CLASS_ALPHA;
-        get_char_class_char_class_tab[1].value.string[0] = BytePtr.lit("alpha:]");
-        get_char_class_char_class_tab[1].value.length = 7L;
-        get_char_class_char_class_tab[2].key = CLASS_BACKSPACE;
-        get_char_class_char_class_tab[2].value.string[0] = BytePtr.lit("backspace:]");
-        get_char_class_char_class_tab[2].value.length = 11L;
-        get_char_class_char_class_tab[3].key = CLASS_BLANK;
-        get_char_class_char_class_tab[3].value.string[0] = BytePtr.lit("blank:]");
-        get_char_class_char_class_tab[3].value.length = 7L;
-        get_char_class_char_class_tab[4].key = CLASS_CNTRL;
-        get_char_class_char_class_tab[4].value.string[0] = BytePtr.lit("cntrl:]");
-        get_char_class_char_class_tab[4].value.length = 7L;
-        get_char_class_char_class_tab[5].key = CLASS_DIGIT;
-        get_char_class_char_class_tab[5].value.string[0] = BytePtr.lit("digit:]");
-        get_char_class_char_class_tab[5].value.length = 7L;
-        get_char_class_char_class_tab[6].key = CLASS_ESCAPE;
-        get_char_class_char_class_tab[6].value.string[0] = BytePtr.lit("escape:]");
-        get_char_class_char_class_tab[6].value.length = 8L;
-        get_char_class_char_class_tab[7].key = CLASS_FNAME;
-        get_char_class_char_class_tab[7].value.string[0] = BytePtr.lit("fname:]");
-        get_char_class_char_class_tab[7].value.length = 7L;
-        get_char_class_char_class_tab[8].key = CLASS_GRAPH;
-        get_char_class_char_class_tab[8].value.string[0] = BytePtr.lit("graph:]");
-        get_char_class_char_class_tab[8].value.length = 7L;
-        get_char_class_char_class_tab[9].key = CLASS_IDENT;
-        get_char_class_char_class_tab[9].value.string[0] = BytePtr.lit("ident:]");
-        get_char_class_char_class_tab[9].value.length = 7L;
-        get_char_class_char_class_tab[10].key = CLASS_KEYWORD;
-        get_char_class_char_class_tab[10].value.string[0] = BytePtr.lit("keyword:]");
-        get_char_class_char_class_tab[10].value.length = 9L;
-        get_char_class_char_class_tab[11].key = CLASS_LOWER;
-        get_char_class_char_class_tab[11].value.string[0] = BytePtr.lit("lower:]");
-        get_char_class_char_class_tab[11].value.length = 7L;
-        get_char_class_char_class_tab[12].key = CLASS_PRINT;
-        get_char_class_char_class_tab[12].value.string[0] = BytePtr.lit("print:]");
-        get_char_class_char_class_tab[12].value.length = 7L;
-        get_char_class_char_class_tab[13].key = CLASS_PUNCT;
-        get_char_class_char_class_tab[13].value.string[0] = BytePtr.lit("punct:]");
-        get_char_class_char_class_tab[13].value.length = 7L;
-        get_char_class_char_class_tab[14].key = CLASS_RETURN;
-        get_char_class_char_class_tab[14].value.string[0] = BytePtr.lit("return:]");
-        get_char_class_char_class_tab[14].value.length = 8L;
-        get_char_class_char_class_tab[15].key = CLASS_SPACE;
-        get_char_class_char_class_tab[15].value.string[0] = BytePtr.lit("space:]");
-        get_char_class_char_class_tab[15].value.length = 7L;
-        get_char_class_char_class_tab[16].key = CLASS_TAB;
-        get_char_class_char_class_tab[16].value.string[0] = BytePtr.lit("tab:]");
-        get_char_class_char_class_tab[16].value.length = 5L;
-        get_char_class_char_class_tab[17].key = CLASS_UPPER;
-        get_char_class_char_class_tab[17].value.string[0] = BytePtr.lit("upper:]");
-        get_char_class_char_class_tab[17].value.length = 7L;
-        get_char_class_char_class_tab[18].key = CLASS_XDIGIT;
-        get_char_class_char_class_tab[18].value.string[0] = BytePtr.lit("xdigit:]");
-        get_char_class_char_class_tab[18].value.length = 8L;
+        Rt.rows(get_char_class_char_class_tab,
+            new T_keyvalue_T(CLASS_ALNUM, new T_string_T(BytePtr.lit("alnum:]"), 7L)),
+            new T_keyvalue_T(CLASS_ALPHA, new T_string_T(BytePtr.lit("alpha:]"), 7L)),
+            new T_keyvalue_T(CLASS_BACKSPACE, new T_string_T(BytePtr.lit("backspace:]"), 11L)),
+            new T_keyvalue_T(CLASS_BLANK, new T_string_T(BytePtr.lit("blank:]"), 7L)),
+            new T_keyvalue_T(CLASS_CNTRL, new T_string_T(BytePtr.lit("cntrl:]"), 7L)),
+            new T_keyvalue_T(CLASS_DIGIT, new T_string_T(BytePtr.lit("digit:]"), 7L)),
+            new T_keyvalue_T(CLASS_ESCAPE, new T_string_T(BytePtr.lit("escape:]"), 8L)),
+            new T_keyvalue_T(CLASS_FNAME, new T_string_T(BytePtr.lit("fname:]"), 7L)),
+            new T_keyvalue_T(CLASS_GRAPH, new T_string_T(BytePtr.lit("graph:]"), 7L)),
+            new T_keyvalue_T(CLASS_IDENT, new T_string_T(BytePtr.lit("ident:]"), 7L)),
+            new T_keyvalue_T(CLASS_KEYWORD, new T_string_T(BytePtr.lit("keyword:]"), 9L)),
+            new T_keyvalue_T(CLASS_LOWER, new T_string_T(BytePtr.lit("lower:]"), 7L)),
+            new T_keyvalue_T(CLASS_PRINT, new T_string_T(BytePtr.lit("print:]"), 7L)),
+            new T_keyvalue_T(CLASS_PUNCT, new T_string_T(BytePtr.lit("punct:]"), 7L)),
+            new T_keyvalue_T(CLASS_RETURN, new T_string_T(BytePtr.lit("return:]"), 8L)),
+            new T_keyvalue_T(CLASS_SPACE, new T_string_T(BytePtr.lit("space:]"), 7L)),
+            new T_keyvalue_T(CLASS_TAB, new T_string_T(BytePtr.lit("tab:]"), 5L)),
+            new T_keyvalue_T(CLASS_UPPER, new T_string_T(BytePtr.lit("upper:]"), 7L)),
+            new T_keyvalue_T(CLASS_XDIGIT, new T_string_T(BytePtr.lit("xdigit:]"), 8L)));
         Rt.rows(uc_fun_cmd_fcmd,
             -124, -81, 96, -71, -81, -75, 96, -92, -91, -83, -95, -82, -92, 96, -95, 96, -77, -88, -78, -75, -94, -94,
             -91, -78, -71, 127, 0);

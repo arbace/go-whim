@@ -28,11 +28,49 @@ import (
 	"github.com/arbace/go-whim/crefactor/cc"
 )
 
-// rowClass says a struct is one a table row can be made of: every member a
-// number, a boolean or a reference held plainly -- no array, struct, union,
-// bitfield, or member held in a one-element array.
-func (j *jgen) rowClass(t cc.Type) (string, bool) {
-	if t.Kind() != cc.Struct {
+// A member's form in a row: how its constructor takes it.
+const (
+	formPlain  = iota // a number, a boolean or a reference: as it is
+	formBoxed         // held in a one-element array: its value
+	formStruct        // a struct of a row class: a row of its own, set into it
+	formArray         // an array of plain elements: an array, copied into it
+)
+
+// rowForm is fl's form in a row, and false when a row cannot hold it: a
+// union, a bitfield, an array of arrays or of structs, a struct that is
+// not a row class.
+func (j *jgen) rowForm(fl *cc.Field, depth int) (int, bool) {
+	if fl == nil || fl.IsBitfield() {
+		return 0, false
+	}
+	if _, why := j.jt(fl.Type(), fieldKey(fl)); why != "" {
+		return 0, false
+	}
+	if j.boxedField[fieldKey(fl)] {
+		return formBoxed, true
+	}
+	switch t := fl.Type(); t.Kind() {
+	case cc.Union:
+		return 0, false
+	case cc.Struct:
+		_, ok := j.rowClassAt(t, depth+1)
+		return formStruct, ok
+	case cc.Array:
+		switch t.(*cc.ArrayType).Elem().Kind() {
+		case cc.Struct, cc.Union, cc.Array:
+			return 0, false
+		}
+		return formArray, true
+	}
+	return formPlain, true
+}
+
+// rowClass says a struct is one a table row can be made of, every member
+// of a form a row holds, and names its class.
+func (j *jgen) rowClass(t cc.Type) (string, bool) { return j.rowClassAt(t, 0) }
+
+func (j *jgen) rowClassAt(t cc.Type, depth int) (string, bool) {
+	if t.Kind() != cc.Struct || depth > 4 {
 		return "", false
 	}
 	name, why := j.structName(t)
@@ -40,14 +78,7 @@ func (j *jgen) rowClass(t cc.Type) (string, bool) {
 		return "", false
 	}
 	for _, fl := range members(t) {
-		if fl == nil || fl.IsBitfield() || j.boxedField[fieldKey(fl)] {
-			return "", false
-		}
-		switch fl.Type().Kind() {
-		case cc.Struct, cc.Union, cc.Array:
-			return "", false
-		}
-		if _, why := j.jt(fl.Type(), fieldKey(fl)); why != "" {
+		if _, ok := j.rowForm(fl, depth); !ok {
 			return "", false
 		}
 	}
@@ -121,53 +152,135 @@ func (f *jfn) rowsInit(target, name string, t cc.Type, key string, in *cc.Initia
 		f.rowsText(target, rows, false)
 		return true
 	}
-	cls, rowOK := f.j.rowClass(elem)
-	if !rowOK {
+	if _, rowOK := f.j.rowClass(elem); !rowOK {
 		return false
 	}
-	fs := members(elem)
+	used := map[string]bool{}
 	for _, it := range items {
-		if zeroInit(it) {
-			rows = append(rows, "new "+cls+"()")
-			continue
-		}
-		if it.Case != cc.InitializerInitList {
+		r, ok := f.rowValue(elem, it, used)
+		if !ok {
 			return false
 		}
-		var args []string
-		i := 0
-		for l := it.InitializerList; l != nil; l = l.InitializerList {
-			if l.Designation != nil || i >= len(fs) || l.Initializer.Case != cc.InitializerExpr {
-				return false
-			}
-			fl := fs[i]
-			i++
-			mjt := f.jt(fl.Type(), fieldKey(fl))
-			var s string
-			pre := f.capture(func() {
-				v := f.exprTo(l.Initializer.AssignmentExpression, mjt)
-				if k, isNum := scalarKind(fl.Type()); isNum && (k.size == 1 || k.size == 2) && !k.boolean {
-					if !v.konst {
-						f.no(nil, "a byte member of no constant value")
-					}
-					s = f.rowArg(v, k, jInt)
-				} else {
-					s = f.conv(v, mjt, fl.Type())
-				}
-			})
-			if pre != "" {
-				return false // the value needed statements of its own
-			}
-			args = append(args, s)
-		}
-		for ; i < len(fs); i++ {
-			args = append(args, zeroOf(ctorParam(f.jt(fs[i].Type(), fieldKey(fs[i])))))
-		}
-		rows = append(rows, "new "+cls+"("+strings.Join(args, ", ")+")")
+		rows = append(rows, r)
 	}
-	f.j.ctorClass[cls] = true
+	for c := range used {
+		f.j.ctorClass[c] = true
+	}
 	f.rowsText(target, rows, true)
 	return true
+}
+
+// rowValue is a struct t's initial value in as a row, `new T(...)`, and
+// false when it is not one; used gathers the classes whose constructors
+// it calls.
+func (f *jfn) rowValue(t cc.Type, in *cc.Initializer, used map[string]bool) (string, bool) {
+	cls, _ := f.j.rowClass(t)
+	if zeroInit(in) {
+		return "new " + cls + "()", true
+	}
+	if in.Case != cc.InitializerInitList {
+		return "", false
+	}
+	used[cls] = true
+	fs := members(t)
+	var args []string
+	i := 0
+	for l := in.InitializerList; l != nil; l = l.InitializerList {
+		if l.Designation != nil || i >= len(fs) {
+			return "", false
+		}
+		fl := fs[i]
+		i++
+		form, _ := f.j.rowForm(fl, 0)
+		switch form {
+		case formStruct:
+			v, ok := f.rowValue(fl.Type(), l.Initializer, used)
+			if !ok {
+				return "", false
+			}
+			args = append(args, v)
+			continue
+		case formArray:
+			v, ok := f.rowArray(fl, l.Initializer)
+			if !ok {
+				return "", false
+			}
+			args = append(args, v)
+			continue
+		}
+		if l.Initializer.Case != cc.InitializerExpr {
+			return "", false
+		}
+		v, ok := f.rowScalar(l.Initializer.AssignmentExpression, fl.Type(), f.jt(fl.Type(), fieldKey(fl)), true)
+		if !ok {
+			return "", false
+		}
+		args = append(args, v)
+	}
+	for ; i < len(fs); i++ {
+		args = append(args, f.rowZero(fs[i]))
+	}
+	return "new " + cls + "(" + strings.Join(args, ", ") + ")", true
+}
+
+// rowScalar is a number's or reference's value e, of C type t and Java type
+// jt; arg says it is a constructor's argument, where a byte or short is
+// taken as an int, and not an array initialiser's element, where Java
+// narrows a constant itself.
+func (f *jfn) rowScalar(e cc.ExpressionNode, t cc.Type, jt string, arg bool) (s string, ok bool) {
+	pre := f.capture(func() {
+		v := f.exprTo(e, jt)
+		k, isNum := scalarKind(t)
+		switch {
+		case isNum && arg && (k.size == 1 || k.size == 2) && !k.boolean:
+			if !v.konst {
+				f.no(nil, "a byte member of no constant value")
+			}
+			s = f.rowArg(v, k, jInt)
+		case isNum:
+			s = narrowConst(f.conv(v, jt, t), v, k)
+		default:
+			s = f.conv(v, jt, t)
+		}
+	})
+	return s, pre == "" // a value that needed statements of its own is not a row's
+}
+
+// rowArray is an array member's initial value, `new E[] {a, b}`: as long
+// as the initialiser, which the constructor copies from the start.
+func (f *jfn) rowArray(fl *cc.Field, in *cc.Initializer) (string, bool) {
+	at := fl.Type().(*cc.ArrayType)
+	ajt := f.jt(fl.Type(), fieldKey(fl))
+	ejt := elemJ(ajt)
+	if in.Case != cc.InitializerInitList {
+		return "", false
+	}
+	var els []string
+	for l := in.InitializerList; l != nil; l = l.InitializerList {
+		if l.Designation != nil || l.Initializer.Case != cc.InitializerExpr {
+			return "", false
+		}
+		v, ok := f.rowScalar(l.Initializer.AssignmentExpression, at.Elem(), ejt, false)
+		if !ok {
+			return "", false
+		}
+		els = append(els, v)
+	}
+	return "new " + raw(ejt) + "[] {" + strings.Join(els, ", ") + "}", true
+}
+
+// rowZero is a member's argument for a row that says nothing of it.
+func (f *jfn) rowZero(fl *cc.Field) string {
+	jt := f.jt(fl.Type(), fieldKey(fl))
+	form, _ := f.j.rowForm(fl, 0)
+	switch form {
+	case formStruct:
+		cls, _ := f.j.rowClass(fl.Type())
+		return "new " + cls + "()"
+	case formArray:
+		return "new " + raw(elemJ(jt)) + "[0]"
+	}
+	return zeroOf(ctorParam(jt))
 }
 
 // rowArg is a constant v of kind k as the argument of kind pk that the
@@ -217,17 +330,33 @@ func (f *jfn) rowsText(target string, rows []string, oneALine bool) {
 }
 
 // ctorText is the constructors a row class gets: none, and its members in
-// order.
+// order -- a boxed member's value, a struct member's row set into it, an
+// array member's elements copied into it from the start.
 func (j *jgen) ctorText(name string, t cc.Type) string {
 	var ps, body []string
 	for i, fl := range members(t) {
 		fname := j.memberName(fl, i)
 		jt, _ := j.jt(fl.Type(), fieldKey(fl))
-		ps = append(ps, ctorParam(jt)+" "+fname)
-		if ctorParam(jt) != jt {
-			body = append(body, "            this."+fname+" = ("+jt+") "+fname+";\n")
-		} else {
-			body = append(body, "            this."+fname+" = "+fname+";\n")
+		form, _ := j.rowForm(fl, 0)
+		switch form {
+		case formStruct:
+			ps = append(ps, jt+" "+fname)
+			body = append(body, "            this."+fname+".set("+fname+");\n")
+		case formArray:
+			ps = append(ps, jt+" "+fname)
+			body = append(body, "            System.arraycopy("+fname+", 0, this."+fname+", 0, "+fname+".length);\n")
+		default:
+			dst := "this." + fname
+			if form == formBoxed {
+				dst += "[0]"
+			}
+			p := ctorParam(jt)
+			ps = append(ps, p+" "+fname)
+			if p != jt {
+				body = append(body, "            "+dst+" = ("+jt+") "+fname+";\n")
+			} else {
+				body = append(body, "            "+dst+" = "+fname+";\n")
+			}
 		}
 	}
 	return "\n        " + name + "() {\n        }\n\n        " + name + "(" + strings.Join(ps, ", ") + ") {\n" + strings.Join(body, "") + "        }\n"
