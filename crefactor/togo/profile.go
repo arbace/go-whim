@@ -80,6 +80,10 @@ type Profile struct {
 	// calls back: declared in the module's hs-boot interface, which the
 	// host imports {-# SOURCE #-}, an object as its address, addr'NAME.
 	HsExports []string
+	// CljGlue are the functions the hand-written glue calls by name, the
+	// editor first: they keep it, whatever they do (clj_ed.go).
+	CljGlue []string
+
 	// CljParts, when more than 1, is how many files the Clojure namespace's
 	// functions are written in: the namespace's own file holds the rest and
 	// loads them, `(load "editor/part1")`, each beginning `(in-ns ...)` --

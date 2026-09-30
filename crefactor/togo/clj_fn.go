@@ -565,7 +565,11 @@ func (e lexpr) typeOf() cc.Type {
 func (f *cfn) header(body string) string {
 	lf := f.lf
 	c := f.c
-	prim := len(lf.params)+1 <= 4
+	edP := 1 // the editor, first
+	if c.noEd[f.name] {
+		edP = 0
+	}
+	prim := len(lf.params)+edP <= 4
 	var ps []string
 	var starts []cbind
 	for _, v := range lf.params {
@@ -619,7 +623,10 @@ func (f *cfn) header(body string) string {
 	if c.fnName(f.name) != f.name {
 		fmt.Fprintf(&b, ";; C: %s\n", f.name) // the C's name, for a grep
 	}
-	fmt.Fprintf(&b, "(defn %s %s[^Editor ed%s]\n", c.fnName(f.name), ret, strings.Join(append([]string{""}, ps...), " "))
+	if edP == 1 {
+		ps = append([]string{"^Editor ed"}, ps...)
+	}
+	fmt.Fprintf(&b, "(defn %s %s[%s]\n", c.fnName(f.name), ret, strings.Join(ps, " "))
 	if len(starts) > 0 {
 		fmt.Fprintf(&b, "  (let [%s]\n", bindText(starts, "\n        "))
 		b.WriteString(indent(body, 4))

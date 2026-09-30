@@ -28,7 +28,7 @@
             ^BytePtr p (mb-prevptr ed (.cmdbuff (g ed ccline)) p)
             ^BytePtr p (if (== c (e Ctrl_W))
                          (let [l__1 (loop [^BytePtr p p]
-                                      (if (and (.gt p ^BytePtr (.cmdbuff (g ed ccline))) (vim-isspace? ed (.ub p)))
+                                      (if (and (.gt p ^BytePtr (.cmdbuff (g ed ccline))) (vim-isspace? (.ub p)))
                                         (let [^BytePtr p (mb-prevptr ed (.cmdbuff (g ed ccline)) p)]
                                           (recur p))
                                         (do (aset to__ 0 p)
@@ -152,7 +152,7 @@
                                              0)))
                                 ^BytePtr w (aget to__ 0)
                                 len (i32 (.sub (.add ^BytePtr (.cmdbuff (g ed ccline)) (.cmdpos (g ed ccline))) w))]
-                            (if (if (zero? (long (aget (g ed p-ic) 0))) (== (long (musl-strncmp ed w (aget arg 0) len)) 0) (== (long (musl-strncasecmp ed w (aget arg 0) len)) 0))
+                            (if (if (zero? (long (aget (g ed p-ic) 0))) (== (long (musl-strncmp w (aget arg 0) len)) 0) (== (long (musl-strncasecmp w (aget arg 0) len)) 0))
                               (let [^BytePtr p (.add p len)]
                                 (cmdline-paste-str ed p literally)
                                 true)
@@ -211,18 +211,18 @@
                               (do (stuffcharReadbuff ed c)
                                   92)
                               c)]
-                      (if (== (long (utf-char2len ed c)) (long (utfc-ptr2len ed (ml-get-cursor ed))))
+                      (if (== (long (utf-char2len c)) (long (utfc-ptr2len ed (ml-get-cursor ed))))
                         (do (.set-r__ out__ (boolean false))
                             (.set-c out__ c)
                             out__)
                         (let [save-c c]
                           (loop [c c]
-                            (if (== (long (utf-char2len ed c)) (long (utfc-ptr2len ed (ml-get-cursor ed))))
+                            (if (== (long (utf-char2len c)) (long (utfc-ptr2len ed (ml-get-cursor ed))))
                               (let [c save-c]
                                 (.set-r__ out__ (boolean false))
                                 (.set-c out__ c)
                                 out__)
-                              (let [t1 (long (utf-char2len ed c))
+                              (let [t1 (long (utf-char2len c))
                                     _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) t1)))
                                     c (long (gchar-cursor ed))]
                                 (stuffcharReadbuff ed c)
@@ -277,7 +277,7 @@
                   (.set-hiscnt-p out__ hiscnt-p)
                   out__)
               (let [j__1 (if (nil? lookfor)
-                           (let [^BytePtr lookfor (vim-strnsave ed (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline)))
+                           (let [^BytePtr lookfor (vim-strnsave (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline)))
                                  _ (.set lookfor (.cmdpos (g ed ccline)) (unchecked-byte (e NUL)))
                                  lookforlen (.cmdpos (g ed ccline))]
                              (aset to__ 0 lookfor)
@@ -316,7 +316,7 @@
           (if (or (< hiscnt 0) (nil? (.hisstr ^S_hist_entry (.at ^Ptr (get-histentry ed histype) hiscnt))))
             (let [hiscnt orig-hiscnt]
               (recur 3 c firstc curcmdstr curcmdstrlen histype hiscnt-p xp orig-hiscnt hiscnt lookfor lookforlen p old-firstc i j len))
-            (if (or (and (not (== c (e K_UP))) (not (== c (e K_DOWN)))) (== hiscnt orig-hiscnt) (== (long (musl-strncmp ed (.hisstr ^S_hist_entry (.at ^Ptr (get-histentry ed histype) hiscnt)) lookfor lookforlen)) 0))
+            (if (or (and (not (== c (e K_UP))) (not (== c (e K_DOWN)))) (== hiscnt orig-hiscnt) (== (long (musl-strncmp (.hisstr ^S_hist_entry (.at ^Ptr (get-histentry ed histype) hiscnt)) lookfor lookforlen)) 0))
               (recur 3 c firstc curcmdstr curcmdstrlen histype hiscnt-p xp orig-hiscnt hiscnt lookfor lookforlen p old-firstc i j len)
               (recur 1 c firstc curcmdstr curcmdstrlen histype hiscnt-p xp orig-hiscnt hiscnt lookfor lookforlen p old-firstc i j len)))
         3
@@ -372,7 +372,7 @@
                             (.set-curcmdstrlen out__ curcmdstrlen)
                             (.set-hiscnt-p out__ hiscnt-p)
                             out__)
-                          (do (musl-strcpy ed (.cmdbuff (g ed ccline)) p)
+                          (do (musl-strcpy (.cmdbuff (g ed ccline)) p)
                               (.set-cmdlen (g ed ccline) (i32 plen))
                               (.set-cmdpos (g ed ccline) (.cmdlen (g ed ccline)))
                               (recur 5 c firstc curcmdstr curcmdstrlen histype hiscnt-p xp orig-hiscnt hiscnt lookfor lookforlen p old-firstc i j len))))))))
@@ -622,7 +622,7 @@
               (if (== (g ed getcmdline-int-depth) 50)
                 (do (emsg ed (gettext_ ed (BytePtr. (g ed e-command-too-recursive) 0)))
                     (recur 13 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))
-                (do (ExpandInit ed xpc)
+                (do (ExpandInit xpc)
                     (.set-xpc (g ed ccline) xpc)
                     (clear-cmdline-orig ed)
                     (when (zero? (g ed cmd-silent))
@@ -640,7 +640,7 @@
                     (term-enter ed)
                     (init-history ed)
                     (let [hiscnt (long (get-hislen ed))
-                          histype (long (hist-char2type ed firstc))]
+                          histype (long (hist-char2type firstc))]
                       (when-not (zero? (g ed did-emsg))
                         (redrawcmd ed))
                       (g! ed did-emsg (e FALSE))
@@ -656,9 +656,9 @@
                 some-key-typed (if (and (== (g ed ex-normal-busy) 0) (stuff-empty? ed) (== (.tb-len (g ed typebuf)) 0))
                                  true
                                  some-key-typed)]
-            (may-trigger-safestate ed true)
+            (may-trigger-safestate true)
             (let [^BytePtr prev-cmdbuff (if (some? (.cmdbuff (g ed ccline)))
-                                          ^BytePtr (vim-strsave ed (.cmdbuff (g ed ccline)))
+                                          ^BytePtr (vim-strsave (.cmdbuff (g ed ccline)))
                                           prev-cmdbuff)]
               (recur 2 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
         2
@@ -814,7 +814,7 @@
             (if (or (< c 0) (not (== (long (aget (g ed mod-mask) 0)) 0)))
               (do (put-on-cmdline ed (get-special-key-name ed c (long (aget (g ed mod-mask) 0))) -1 true)
                   (recur 12 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))
-              (let [j (long (utf-char2bytes ed c (g ed IObuff)))]
+              (let [j (long (utf-char2bytes c (g ed IObuff)))]
                 (.set (g ed IObuff) j (unchecked-byte (e NUL)))
                 (put-on-cmdline ed (g ed IObuff) j true)
                 (recur 12 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))))
@@ -857,7 +857,7 @@
                 (redrawcmd ed)
                 (recur 12 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
         10
-          (do (ExpandCleanup ed xpc)
+          (do (ExpandCleanup xpc)
               (.set-xpc (g ed ccline) nil)
               (clear-cmdline-orig ed)
               (finish-incsearch-highlighting ed (long (aget gotesc 0)) is-state false)
@@ -865,7 +865,7 @@
                 (when (and (not (zero? (.cmdlen (g ed ccline)))) (not (== firstc (e NUL))) (or some-key-typed (== histype (e HIST_SEARCH))))
                   (add-to-history ed histype (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline)) true (if (== histype (e HIST_SEARCH)) firstc (e NUL)))
                   (when (== firstc 58)
-                    (g! ed new-last-cmdline (vim-strnsave ed (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline))))))
+                    (g! ed new-last-cmdline (vim-strnsave (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline))))))
                 (when-not (zero? (long (aget gotesc 0)))
                   (abandon-cmdline ed)))
               (msg-check ed)
@@ -885,7 +885,7 @@
         12
           (do (when (or (not (zero? (g ed KeyTyped))) (== (long (vpeekc ed)) (e NUL)))
                 (may-do-incsearch-highlighting ed firstc count_ is-state))
-              (if (and trigger-cmdlinechanged (or (not (== (.cmdpos (g ed ccline)) prev-cmdpos)) (and (some? prev-cmdbuff) (not (== (long (musl-strcmp ed prev-cmdbuff (.cmdbuff (g ed ccline)))) 0)))))
+              (if (and trigger-cmdlinechanged (or (not (== (.cmdpos (g ed ccline)) prev-cmdpos)) (and (some? prev-cmdbuff) (not (== (long (musl-strcmp prev-cmdbuff (.cmdbuff (g ed ccline)))) 0)))))
                 (recur 1 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
                 (recur 1 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
         13
@@ -963,7 +963,7 @@
                 new-curpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
                 ^S_u_entry newlist nil
                 ^S_u_header curhead (.b-u-curhead (g ed curbuf))
-                _ (block-autocmds ed)
+                _ (block-autocmds)
                 old-flags (.uh-flags curhead)
                 new-flags (i32 (+ (if (zero? (long (aget ^ints (.-b-changed (g ed curbuf)) 0))) 0 (e UH_CHANGED)) (if (zero? (bit-and (.ml-flags ^S_memline (.-b-ml (g ed curbuf))) (e ML_EMPTY))) 0 (e UH_EMPTYBUF))))
                 _ (setpcmark ed)
@@ -983,7 +983,7 @@
                         (+ (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1)
                         bot)]
               (if (or (> top (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (>= top bot) (> bot (+ (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1)))
-                (do (unblock-autocmds ed)
+                (do (unblock-autocmds)
                     (iemsg ed (BytePtr. (g ed e-u-undo-line-numbers-wrong) 0))
                     (changed ed)
                     nil)
@@ -1048,16 +1048,16 @@
                     (.set-b-u-seq-cur (g ed curbuf) 0)))
                 (if (== (.uh-save-nr curhead) 0)
                   (do (.set-b-u-time-cur (g ed curbuf) (.uh-time curhead))
-                      (unblock-autocmds ed)
+                      (unblock-autocmds)
                       nil)
                   (if undo
                     (do (.set-b-u-save-nr-cur (g ed curbuf) (- (.uh-save-nr curhead) 1))
                         (.set-b-u-time-cur (g ed curbuf) (.uh-time curhead))
-                        (unblock-autocmds ed)
+                        (unblock-autocmds)
                         nil)
                     (do (.set-b-u-save-nr-cur (g ed curbuf) (.uh-save-nr curhead))
                         (.set-b-u-time-cur (g ed curbuf) (.uh-time curhead))
-                        (unblock-autocmds ed)
+                        (unblock-autocmds)
                         nil)))))
         3
           (if (and (< i newsize) (< i oldsize))
@@ -1143,7 +1143,7 @@
 ;; C: add_time
 (defn add-time [^Editor ed ^BytePtr buf ^long buflen ^long tt]
   (let [seconds (- (long (whim.cljhost/host-time ed)) tt)]
-    (whim.cljhost/vim-snprintf ed buf buflen (NGETTEXT ed (BytePtr/lit "%ld second ago") (BytePtr/lit "%ld seconds ago") seconds) (object-array [(Long/valueOf seconds)]))
+    (whim.cljhost/vim-snprintf ed buf buflen (NGETTEXT (BytePtr/lit "%ld second ago") (BytePtr/lit "%ld seconds ago") seconds) (object-array [(Long/valueOf seconds)]))
     nil))
 
 ;; C: u_undo_end
@@ -1631,8 +1631,8 @@
                  (aset to__ 0 (Boolean/valueOf (boolean sec)))
                  (aset to__ 1 (Boolean/valueOf (boolean file)))
                  0)
-               (if (musl-isdigit? ed (.ub ^BytePtr (aget p 0)))
-                 (let [count_ (long (getdigits ed (Ptr. p 0)))]
+               (if (musl-isdigit? (.ub ^BytePtr (aget p 0)))
+                 (let [count_ (long (getdigits (Ptr. p 0)))]
                    (case (.ub ^BytePtr (aget p 0))
                      115
                        (do (aset p 0 (.add ^BytePtr (aget p 0) 1))
@@ -1869,9 +1869,9 @@
     (.set (g ed typebuf) (.-save-typebuf tp)))
   (g! ed old-char (.old-char tp))
   (g! ed old-mod-mask (.old-mod-mask tp))
-  (free-buff ed (g ed readbuf1))
+  (free-buff (g ed readbuf1))
   (.set (g ed readbuf1) (.-save-readbuf1 tp))
-  (free-buff ed (g ed readbuf2))
+  (free-buff (g ed readbuf2))
   (.set (g ed readbuf2) (.-save-readbuf2 tp))
   (set-input-buf ed (.save-inputbuf tp) overwrite)
   nil)
@@ -1896,7 +1896,7 @@
   (.tb-maplen (g ed typebuf)))
 
 ;; C: delete_buff_tail
-(defn delete-buff-tail [^Editor ed ^S_buffheader buf ^long slen]
+(defn delete-buff-tail [^S_buffheader buf ^long slen]
   (when-not (nil? (.bh-curr buf))
     (when-not (< (Long/compareUnsigned (.b-strlen ^S_buffblock (.bh-curr buf)) slen) 0)
       (.set ^BytePtr (.b-str ^S_buffblock (.bh-curr buf)) (- (.b-strlen ^S_buffblock (.bh-curr buf)) slen) (unchecked-byte (e NUL)))
@@ -1906,14 +1906,14 @@
 
 (defn ungetchars [^Editor ed ^long len]
   (when-not (== (g ed reg-recording) 0)
-    (delete-buff-tail ed (g ed recordbuff) len)
+    (delete-buff-tail (g ed recordbuff) len)
     (g! ed last-recorded-len (- (g ed last-recorded-len) len))
     nil))
 
 ;; C: del_from_showcmd
 (defn del-from-showcmd [^Editor ed ^long len]
   (when-not (zero? (long (aget (g ed p-sc) 0)))
-    (let [old-len (i32 (long (musl-strlen ed (BytePtr. (g ed showcmd-buf) 0))))
+    (let [old-len (i32 (long (musl-strlen (BytePtr. (g ed showcmd-buf) 0))))
           len (if (> len old-len)
                 old-len
                 len)]
@@ -2268,7 +2268,7 @@
                     out__))))))))))
 
 ;; C: is_ex_cmdchar
-(defn is-ex-cmdchar? [^Editor ed ^S_cmdarg_S cap]
+(defn is-ex-cmdchar? [^S_cmdarg_S cap]
   (or (== (.cmdchar cap) 58) (== (.cmdchar cap) (e K_COMMAND)) (== (.cmdchar cap) (e K_SCRIPT_COMMAND))))
 
 ;; C: get_extra_op_char
@@ -2424,7 +2424,7 @@
 
 (defn CancelRedo [^Editor ed]
   (when (zero? (g ed block-redo))
-    (free-buff ed (g ed redobuff))
+    (free-buff (g ed redobuff))
     (.set (g ed redobuff) (g ed old-redobuff))
     (.set-b-next ^S_buffblock (.-bh-first (g ed old-redobuff)) nil)
     (start-stuff ed)
@@ -2467,7 +2467,7 @@
                              (coladvance-force ed (long (getviscol ed))))
                            (let [^BytePtr firstline (ml-get ed (.lnum ^T_pos_T (.-start oap)))
                                  pre-textlen (long (ml-get-len ed (.lnum ^T_pos_T (.-start oap))))
-                                 pre-indent (long (getwhitecols ed firstline))]
+                                 pre-indent (long (getwhitecols firstline))]
                              (.set-textcol bd (.col ^T_pos_T (.-w-cursor (g ed curwin))))
                              (aset tl__ 0 pre-textlen)
                              (aset tl__ 1 pre-indent)
@@ -2483,7 +2483,7 @@
               (if (and (not (zero? (.block-mode oap))) (not (== (.lnum ^T_pos_T (.-start oap)) (.lnum ^T_pos_T (.-end oap)))) (zero? (g ed got-int)))
                 (let [^BytePtr firstline (ml-get ed (.lnum ^T_pos_T (.-start oap)))
                       pre-textlen (if (> (.textcol bd) (i32 pre-indent))
-                                    (let [new-indent (long (getwhitecols ed firstline))
+                                    (let [new-indent (long (getwhitecols firstline))
                                           pre-textlen (+ pre-textlen (- new-indent pre-indent))]
                                       (.set-textcol bd (i32 (+ (.textcol bd) (- new-indent pre-indent))))
                                       pre-textlen)
@@ -2492,7 +2492,7 @@
                   (if (> ins-len 0)
                     (let [^BytePtr ins-text (BytePtr/alloc (i32 (+ ins-len 1)))]
                       (if (some? ins-text)
-                        (do (vim-strncpy ed ins-text (.add firstline (.textcol bd)) ins-len)
+                        (do (vim-strncpy ins-text (.add firstline (.textcol bd)) ins-len)
                             (let [linenr (+ (.lnum ^T_pos_T (.-start oap)) 1)]
                               (loop [linenr linenr]
                                 (if (<= linenr (.lnum ^T_pos_T (.-end oap)))
@@ -2509,7 +2509,7 @@
                                               _ (Rt/memset (.add newp newlen) (unchecked-int 32) (.coladd vpos))
                                               newlen (+ newlen (.coladd vpos))]
                                           (Rt/memmove (.add newp newlen) ins-text ins-len)
-                                          (musl-strcpy ed (.add (.add newp newlen) ins-len) (.add oldp (.textcol bd)))
+                                          (musl-strcpy (.add (.add newp newlen) ins-len) (.add oldp (.textcol bd)))
                                           (ml-replace ed linenr newp false)))
                                       (let [linenr (inc linenr)]
                                         (recur linenr)))
@@ -2682,8 +2682,8 @@
                         nil)
                       nil)
                   (if (> (.line-count oap) (aget (g ed p-report) 0))
-                    (let [_ (long (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (NGETTEXT ed (BytePtr/lit "%ld line changed") (BytePtr/lit "%ld lines changed") (.line-count oap)) (object-array [(Long/valueOf (.line-count oap))])))
-                          _ (long (msg ed (iobuff-or ed (NGETTEXT ed (BytePtr/lit "%ld line changed") (BytePtr/lit "%ld lines changed") (.line-count oap)))))]
+                    (let [_ (long (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (NGETTEXT (BytePtr/lit "%ld line changed") (BytePtr/lit "%ld lines changed") (.line-count oap)) (object-array [(Long/valueOf (.line-count oap))])))
+                          _ (long (msg ed (iobuff-or ed (NGETTEXT (BytePtr/lit "%ld line changed") (BytePtr/lit "%ld lines changed") (.line-count oap)))))]
                       nil)
                     nil)))))
           nil)))))
@@ -2781,7 +2781,7 @@
                                offset (if (> spaces 0)
                                         (i32 (+ offset count_))
                                         offset)]
-                           (musl-strcpy ed (.add newp offset) oldp)
+                           (musl-strcpy (.add newp offset) oldp)
                            (ml-replace ed lnum newp false)
                            (when b-insert
                              (inserted-bytes ed lnum startcol (i32 slen)))
@@ -2991,7 +2991,7 @@
                             ins-len (aget tl__ 6)
                             t1 (boolean (aget to__ 1))]
                         (when t1
-                          (let [^BytePtr ins-text (vim-strnsave ed firstline ins-len)]
+                          (let [^BytePtr ins-text (vim-strnsave firstline ins-len)]
                             (when (u-save ed (.lnum ^T_pos_T (.-start oap)) (+ (.lnum ^T_pos_T (.-end oap)) 1))
                               (block-insert ed oap ins-text ins-len (== (.op-type oap) (e OP_INSERT)) bd))
                             (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (.col ^T_pos_T (.-start oap)))
@@ -3067,7 +3067,7 @@
                   n (long (gchar-cursor ed))
                   done (if (== n (e NUL))
                          done
-                         (let [new-byte-len (long (utf-char2len ed c))
+                         (let [new-byte-len (long (utf-char2len c))
                                old-byte-len (long (utfc-ptr2len ed (ml-get-cursor ed)))]
                            (if (or (> new-byte-len 1) (> old-byte-len 1))
                              (do (when (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum ^T_pos_T (.-end oap)))
@@ -3098,7 +3098,7 @@
             (recur 5 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols))
         2
           (if (>= virtcols 0)
-            (do (if (> (long (utf-char2len ed c)) 1)
+            (do (if (> (long (utf-char2len c)) 1)
                   (replace-character ed c)
                   (pbyte ed (.copy ^T_pos_T (.-w-cursor (g ed curwin))) c))
                 (if (== (long (inc_ ed (.-w-cursor (g ed curwin)))) -1)
@@ -3142,7 +3142,7 @@
                         n (aget tl__ 1)
                         numc (aget tl__ 2)
                         num-chars numc
-                        t1 (long (utf-char2len ed c))
+                        t1 (long (utf-char2len c))
                         numc (i32 (* numc t1))
                         n (i32 (+ n (i32 (- numc (.textlen bd)))))
                         ^BytePtr oldp (ml-get-curline ed)
@@ -3156,7 +3156,7 @@
                     (if (or had-ctrl-v-cr (and (not (== c 13)) (not (== c 10))))
                       (recur 6 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols)
                       (let [^BytePtr after-p (BytePtr/alloc (- (+ oldlen 1 n) newlen))]
-                        (musl-strcpy ed after-p (.add (.add oldp (.textcol bd)) (.textlen bd)))
+                        (musl-strcpy after-p (.add (.add oldp (.textcol bd)) (.textlen bd)))
                         (recur 7 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols))))))
             (recur 5 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols))
         5
@@ -3171,13 +3171,13 @@
         6
           (let [num-chars (i32 (dec num-chars))]
             (if (>= num-chars 0)
-              (let [t2 (long (utf-char2bytes ed c (.add newp newlen)))
+              (let [t2 (long (utf-char2bytes c (.add newp newlen)))
                     newlen (+ newlen t2)]
                 (recur 6 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols))
               (if (.is-short bd)
                 (recur 7 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols)
                 (do (Rt/memset (.add newp newlen) (unchecked-int 32) (.endspaces bd))
-                    (musl-strcpy ed (.add (.add newp newlen) (.endspaces bd)) (.add (.add oldp (.textcol bd)) (.textlen bd)))
+                    (musl-strcpy (.add (.add newp newlen) (.endspaces bd)) (.add (.add oldp (.textcol bd)) (.textlen bd)))
                     (recur 7 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols)))))
         7
           (do (ml-replace ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) newp false)
@@ -3244,7 +3244,7 @@
                         maxlen)
                       maxlen)]
           (let [_ (aset overflow 0 (unchecked-int (e FALSE)))
-                length (long (vim-str2nr ed (.add ptr col) (IntPtr. pre 0) length (i32 (+ (i32 (+ (i32 (+ 0 (if do-bin (e STR2NR_BIN) 0))) (if do-oct (e STR2NR_OCT) 0))) (if do-hex (e STR2NR_HEX) 0))) nil (LongPtr. n 0) maxlen false (IntPtr. overflow 0)))]
+                length (long (vim-str2nr (.add ptr col) (IntPtr. pre 0) length (i32 (+ (i32 (+ (i32 (+ 0 (if do-bin (e STR2NR_BIN) 0))) (if do-oct (e STR2NR_OCT) 0))) (if do-hex (e STR2NR_HEX) 0))) nil (LongPtr. n 0) maxlen false (IntPtr. overflow 0)))]
             (let [j__6 (if (and (not (zero? (long (aget pre 0)))) (not (zero? negative)))
                         (let [col (i32 (inc col))
                               length (i32 (dec length))
@@ -3344,8 +3344,8 @@
                                               (do (loop [c c
                                                          i i]
                                                     (if (< i todel)
-                                                      (do (if (and (< c 256) (musl-isalpha? ed (u8 c)))
-                                                            (if (musl-isupper? ed (u8 c))
+                                                      (do (if (and (< c 256) (musl-isalpha? (u8 c)))
+                                                            (if (musl-isupper? (u8 c))
                                                               (let [_ (g! ed do-addsub-hexupper true)]
                                                                 nil)
                                                               (let [_ (g! ed do-addsub-hexupper false)]
@@ -3447,7 +3447,7 @@
                                                                                     ptr)]
                                                                   (let [_ (.put ptr (unchecked-byte (e NUL)))
                                                                         buf1len (i32 (.sub ptr buf1))
-                                                                        _ (musl-strcpy ed (.add buf1 buf1len) (BytePtr. buf2 0))
+                                                                        _ (musl-strcpy (.add buf1 buf1len) (BytePtr. buf2 0))
                                                                         buf1len (i32 (+ buf1len buf2len))
                                                                         save-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
                                                                         save-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
@@ -3532,7 +3532,7 @@
                       (let [col (long (if (zero? (g ed VIsual-active))
                                  (let [col (long (if do-bin
                                             (loop [col col]
-                                              (if (and (> col 0) (vim-isbdigit? ed (.ub ptr col)))
+                                              (if (and (> col 0) (vim-isbdigit? (.ub ptr col)))
                                                 (let [col (i32 (dec col))
                                                       t1 (long (utf-head-off ed ptr (.add ptr col)))
                                                       col (i32 (- col t1))]
@@ -3541,31 +3541,31 @@
                                             col))]
                                    (let [col (long (if do-hex
                                               (loop [col col]
-                                                (if (and (> col 0) (vim-isxdigit? ed (.ub ptr col)))
+                                                (if (and (> col 0) (vim-isxdigit? (.ub ptr col)))
                                                   (let [col (i32 (dec col))
                                                         t2 (long (utf-head-off ed ptr (.add ptr col)))
                                                         col (i32 (- col t2))]
                                                     (recur col))
                                                   col))
                                               col))]
-                                     (let [col (long (if (and (and do-bin do-hex) (not (and (and (and (and (> col 0) (or (== (.ub ptr col) 88) (== (.ub ptr col) 120))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (.ub ptr (i32 (+ col 1)))))))
+                                     (let [col (long (if (and (and do-bin do-hex) (not (and (and (and (and (> col 0) (or (== (.ub ptr col) 88) (== (.ub ptr col) 120))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? (.ub ptr (i32 (+ col 1)))))))
                                                 (let [col (.col pos)]
                                                   (loop [col col]
-                                                    (if (and (> col 0) (vim-isdigit? ed (.ub ptr col)))
+                                                    (if (and (> col 0) (vim-isdigit? (.ub ptr col)))
                                                       (let [col (i32 (dec col))
                                                             t3 (long (utf-head-off ed ptr (.add ptr col)))
                                                             col (i32 (- col t3))]
                                                         (recur col))
                                                       col)))
                                                 col))]
-                                       (if (or (and (and (and (and (and do-hex (> col 0)) (or (== (.ub ptr col) 88) (== (.ub ptr col) 120))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (.ub ptr (i32 (+ col 1))))) (and (and (and (and (and do-bin (> col 0)) (or (== (.ub ptr col) 66) (== (.ub ptr col) 98))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isbdigit? ed (.ub ptr (i32 (+ col 1))))))
+                                       (if (or (and (and (and (and (and do-hex (> col 0)) (or (== (.ub ptr col) 88) (== (.ub ptr col) 120))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? (.ub ptr (i32 (+ col 1))))) (and (and (and (and (and do-bin (> col 0)) (or (== (.ub ptr col) 66) (== (.ub ptr col) 98))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isbdigit? (.ub ptr (i32 (+ col 1))))))
                                          (let [col (i32 (dec col))
                                                t4 (long (utf-head-off ed ptr (.add ptr col)))
                                                col (i32 (- col t4))]
                                            col)
                                          (let [col (.col pos)]
                                            (let [l__1 (loop [col col]
-                                                       (if (and (and (not (== (.ub ptr col) (e NUL))) (not (vim-isdigit? ed (.ub ptr col)))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
+                                                       (if (and (and (not (== (.ub ptr col) (e NUL))) (not (vim-isdigit? (.ub ptr col)))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
                                                          (let [t5 (long (utfc-ptr2len ed (.add ptr col)))
                                                                col (i32 (+ col t5))]
                                                            (recur col))
@@ -3573,7 +3573,7 @@
                                                              0)))]
                                              (let [col (aget tl__ 0)]
                                                (loop [col col]
-                                                 (if (and (and (> col 0) (vim-isdigit? ed (.ub ptr (i32 (- col 1))))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
+                                                 (if (and (and (> col 0) (vim-isdigit? (.ub ptr (i32 (- col 1))))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
                                                    (let [col (i32 (dec col))
                                                          t6 (long (utf-head-off ed ptr (.add ptr col)))
                                                          col (i32 (- col t6))]
@@ -3589,7 +3589,7 @@
                                         0)
                                     (let [l__2 (loop [length length
                                                      col col]
-                                                (if (and (and (and (not (== (.ub ptr col) (e NUL))) (> length 0)) (not (vim-isdigit? ed (.ub ptr col)))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
+                                                (if (and (and (and (not (== (.ub ptr col) (e NUL))) (> length 0)) (not (vim-isdigit? (.ub ptr col)))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
                                                   (let [mb-len (long (utfc-ptr2len ed (.add ptr col)))
                                                         col (i32 (+ col mb-len))
                                                         length (i32 (- length mb-len))]
@@ -3638,7 +3638,7 @@
                                     (let [j__13 (if (and do-alpha (or (< (u32 (- (u32 firstdigit) 65)) 26) (< (u32 (- (u32 firstdigit) 97)) 26)))
                                                  (let [firstdigit (if (== op-type (e OP_NR_SUB))
                                                                    (if (< (if (< firstdigit 97) (i32 (- firstdigit 65)) (i32 (- firstdigit 97))) Prenum1)
-                                                                     (if (musl-isupper? ed (u8 firstdigit))
+                                                                     (if (musl-isupper? (u8 firstdigit))
                                                                        (let [firstdigit 65]
                                                                          firstdigit)
                                                                        (let [firstdigit 97]
@@ -3646,7 +3646,7 @@
                                                                      (let [firstdigit (i32 (- firstdigit Prenum1))]
                                                                        firstdigit))
                                                                    (if (< (i32 (- (i32 (- 26 (if (< firstdigit 97) (i32 (- firstdigit 65)) (i32 (- firstdigit 97))))) 1)) Prenum1)
-                                                                     (if (musl-isupper? ed (u8 firstdigit))
+                                                                     (if (musl-isupper? (u8 firstdigit))
                                                                        (let [firstdigit 90]
                                                                          firstdigit)
                                                                        (let [firstdigit 122]
@@ -3908,8 +3908,8 @@
                   (.set-col ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-col)
                   (.set-coladd ^T_pos_T (.-b-op-start (g ed curbuf)) startpos-coladd))
                 (when (> change-cnt (aget (g ed p-report) 0))
-                  (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (NGETTEXT ed (BytePtr/lit "%d line changed") (BytePtr/lit "%d lines changed") change-cnt) (object-array [(Integer/valueOf (unchecked-int change-cnt))]))
-                  (msg ed (iobuff-or ed (NGETTEXT ed (BytePtr/lit "%d line changed") (BytePtr/lit "%d lines changed") change-cnt)))
+                  (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (NGETTEXT (BytePtr/lit "%d line changed") (BytePtr/lit "%d lines changed") change-cnt) (object-array [(Integer/valueOf (unchecked-int change-cnt))]))
+                  (msg ed (iobuff-or ed (NGETTEXT (BytePtr/lit "%d line changed") (BytePtr/lit "%d lines changed") change-cnt)))
                   nil))))))))
 
 ;; C: do_pending_operator
@@ -3937,13 +3937,13 @@
               (g! ed VIsual-mode (e Ctrl_V))
               (g! ed VIsual-select (e FALSE))
               (g! ed VIsual-reselect (e FALSE)))))
-        (when (and (or redo-yank (not (== (.op-type oap) (e OP_YANK)))) (or (zero? (g ed VIsual-active)) (not (zero? (.motion-force oap))) (and (not (zero? (g ed VIsual-active))) (is-ex-cmdchar? ed cap) (not (== (.op-type oap) (e OP_COLON))))) (not (== (.cmdchar cap) 68)))
+        (when (and (or redo-yank (not (== (.op-type oap) (e OP_YANK)))) (or (zero? (g ed VIsual-active)) (not (zero? (.motion-force oap))) (and (not (zero? (g ed VIsual-active))) (is-ex-cmdchar? cap) (not (== (.op-type oap) (e OP_COLON))))) (not (== (.cmdchar cap) 68)))
           (prep-redo ed (.regname oap) (.count0 cap) (long (get-op-char ed (.op-type oap))) (long (get-extra-op-char ed (.op-type oap))) (.motion-force oap) (.cmdchar cap) (long (aget ^ints (.-nchar cap) 0)))
           (if (or (== (.cmdchar cap) 47) (== (.cmdchar cap) 63))
             (do (when (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_REDO)))
                   (AppendToRedobuffLit ed (.searchbuf cap) -1))
                 (AppendToRedobuff ed (BytePtr/lit "\n")))
-            (when (is-ex-cmdchar? ed cap)
+            (when (is-ex-cmdchar? cap)
               (if (nil? (g ed repeat-cmdline))
                 (ResetRedobuff ed)
                 (do (if (== (.cmdchar cap) 58)
@@ -4022,7 +4022,7 @@
             (when (and (or redo-yank (not (== (.op-type oap) (e OP_YANK)))) (not (== (.op-type oap) (e OP_COLON))) (== (.motion-force oap) (e NUL)))
               (if (and (== (.cmdchar cap) 103) (or (== (long (aget ^ints (.-nchar cap) 0)) 110) (== (long (aget ^ints (.-nchar cap) 0)) 78)))
                 (prep-redo ed (.regname oap) (.count0 cap) (long (get-op-char ed (.op-type oap))) (long (get-extra-op-char ed (.op-type oap))) (.motion-force oap) (.cmdchar cap) (long (aget ^ints (.-nchar cap) 0)))
-                (when-not (is-ex-cmdchar? ed cap)
+                (when-not (is-ex-cmdchar? cap)
                   (let [opchar (long (get-op-char ed (.op-type oap)))
                         extra-opchar (long (get-extra-op-char ed (.op-type oap)))
                         nchar (if (== (.op-type oap) (e OP_REPLACE)) (long (aget ^ints (.-nchar cap) 0)) (e NUL))
@@ -4179,7 +4179,7 @@
             _ (setcursor ed)
             _ (update-screen ed 0)
             _ (g! ed keep-msg kmsg)
-            ^BytePtr kmsg (vim-strsave ed (g ed keep-msg))]
+            ^BytePtr kmsg (vim-strsave (g ed keep-msg))]
         (msg-attr ed kmsg (g ed keep-msg-attr))))
     (setcursor ed)
     (cursor-on ed)
@@ -4363,7 +4363,7 @@
         c 0
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)]
-    (clear-oparg ed oa)
+    (clear-oparg oa)
     (g! ed finish-op (e FALSE))
     (loop [c c]
       (let [t1 (or (not (stuff-empty? ed)) (and (or was-typed (not (typebuf-typed? ed))) (> (.tb-len (g ed typebuf)) 0)))
@@ -4424,7 +4424,7 @@
         1
           (if (== (.ub p) (e NUL))
             (if (> len 0)
-              (let [^BytePtr arg (BytePtr/alloc (+ (long (musl-strlen ed (aget ^objects (.-arg eap) 0))) len 1))
+              (let [^BytePtr arg (BytePtr/alloc (+ (long (musl-strlen (aget ^objects (.-arg eap) 0))) len 1))
                     len 0
                     ^BytePtr p (aget ^objects (.-arg eap) 0)]
                 (recur 2 eap arg l p len))
@@ -4450,7 +4450,7 @@
                   (.set-line1 eap (inc (.line1 eap)))
                   (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) t5)
                   (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
-                  (check-cursor-moved ed (g ed curwin))))
+                  (check-cursor-moved (g ed curwin))))
               (exec-normal-cmd ed (if (some? arg) arg (aget ^objects (.-arg eap) 0)) (if (.forceit eap) -1 (e REMAP_YES)) false)
               (if (and (> (.addr-count eap) 0) (<= (.line1 eap) (.line2 eap)) (zero? (g ed got-int)))
                 (recur 4 eap arg l p len)
@@ -4509,12 +4509,12 @@
   nil)
 
 ;; C: home_replace
-(defn home-replace [^Editor ed ^S_file_buffer buf ^BytePtr src ^BytePtr dst dstlen one]
+(defn home-replace [^S_file_buffer buf ^BytePtr src ^BytePtr dst dstlen one]
   (let [dstlen (long dstlen)]
     (if (nil? src)
       (do (.put dst (unchecked-byte (e NUL)))
           0)
-      (let [len (long (musl-strlen ed src))]
+      (let [len (long (musl-strlen src))]
         (if (>= (Long/compareUnsigned len dstlen) 0)
           (let [len (- dstlen 1)]
             (Rt/memmove dst src len)
@@ -4528,11 +4528,11 @@
 (defn get-recorded ^BytePtr [^Editor ed]
   (let [^T_get_buffcont__out_T get-buffcont__o (new-T_get_buffcont__out_T)
         len 0]
-    (.set get-buffcont__o (get-buffcont ed (g ed recordbuff) true len))
+    (.set get-buffcont__o (get-buffcont (g ed recordbuff) true len))
     (let [len (.len get-buffcont__o)
           ^BytePtr p (.r__ get-buffcont__o)]
       (when-not (nil? p)
-        (free-buff ed (g ed recordbuff))
+        (free-buff (g ed recordbuff))
         (let [len (if (>= (Long/compareUnsigned len (g ed last-recorded-len)) 0)
                     (let [len (- len (g ed last-recorded-len))]
                       (.set p len (unchecked-byte (e NUL)))
@@ -4587,22 +4587,22 @@
         opt-flags (long opt-flags)
         set-sid (long set-sid)
         ^S_window_S save-curwin (g ed curwin)]
-    (block-autocmds ed)
+    (block-autocmds)
     (g! ed curwin wp)
     (g! ed curbuf (.w-buffer (g ed curwin)))
     (set-string-option-direct ed name_ opt-idx val_ opt-flags set-sid)
     (g! ed curwin save-curwin)
     (g! ed curbuf (.w-buffer (g ed curwin)))
-    (unblock-autocmds ed)
+    (unblock-autocmds)
     nil))
 
 ;; C: update_wincolor
 (defn update-wincolor ^BytePtr [^Editor ed ^S_window_S wp ^BytePtr opt]
-  (let [^BytePtr str_ (if (== (.ub opt) (e NUL)) (BytePtr/lit "") (BytePtr/alloc (+ 4 (long (musl-strlen ed opt)))))]
+  (let [^BytePtr str_ (if (== (.ub opt) (e NUL)) (BytePtr/lit "") (BytePtr/alloc (+ 4 (long (musl-strlen opt)))))]
     (if (nil? str_)
       (BytePtr. (g ed e-out-of-memory) 0)
       (do (when-not (== (.ub opt) (e NUL))
-            (whim.cljhost/vim-snprintf ed str_ (+ 4 (long (musl-strlen ed opt))) (BytePtr/lit "!(:%s") (object-array [opt])))
+            (whim.cljhost/vim-snprintf ed str_ (+ 4 (long (musl-strlen opt))) (BytePtr/lit "!(:%s") (object-array [opt])))
           (let [^BytePtr errmsg (update-winhighlight ed wp str_)]
             (if (nil? errmsg)
               (do (set-string-option-direct-in-win ed wp (BytePtr/lit "winhighlight") -1 str_ 5 0)
@@ -4612,7 +4612,7 @@
 ;; C: map_mode_to_chars
 (defn map-mode-to-chars ^BytePtr [^Editor ed ^long mode]
   (let [^S_growarray mapmode (new-S_growarray)]
-    (ga-init2 ed mapmode 1 7)
+    (ga-init2 mapmode 1 7)
     (if (== (bit-and mode 24) 24)
       (do (ga-append ed mapmode 33)
           (ga-append ed mapmode (e NUL))
@@ -4758,7 +4758,7 @@
           (let [^BytePtr mapchars (map-mode-to-chars ed (.m-mode mp))
                 len (if (some? mapchars)
                       (do (msg-puts ed mapchars)
-                          (i32 (long (musl-strlen ed mapchars))))
+                          (i32 (long (musl-strlen mapchars))))
                       len)]
             (loop [len len]
               (let [len (i32 (inc len))]
@@ -4796,11 +4796,11 @@
       (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
         (.set-b-mapped-ctrl-c (g ed curbuf) (bit-or (.b-mapped-ctrl-c (g ed curbuf)) mode))
         (g! ed mapped-ctrl-c (bit-or (g ed mapped-ctrl-c) mode))))
-    (.set-m-keys mp (vim-strsave ed keys_))
-    (.set-m-str mp (vim-strsave ed rhs))
-    (.set-m-orig-str mp (vim-strsave ed orig-rhs))
+    (.set-m-keys mp (vim-strsave keys_))
+    (.set-m-str mp (vim-strsave rhs))
+    (.set-m-orig-str mp (vim-strsave orig-rhs))
     (when-not (or (nil? (.m-keys mp)) (nil? (.m-str mp)))
-      (.set-m-keylen mp (i32 (long (musl-strlen ed (.m-keys mp)))))
+      (.set-m-keylen mp (i32 (long (musl-strlen (.m-keys mp)))))
       (.set-m-noremap mp noremap)
       (.set-m-nowait mp (if nowait 1 0))
       (.set-m-silent mp (if silent 1 0))
@@ -4879,7 +4879,7 @@
                                (let [did-local (if (and (not (.m-simplified mp)) (not (== (bit-and (.m-mode mp) mode) 0)))
                                                  (if haskey
                                                    (let [n (.m-keylen mp)]
-                                                     (if (== (long (musl-strncmp ed (.m-keys mp) keys_ (if (< n keys-len) n keys-len))) 0)
+                                                     (if (== (long (musl-strncmp (.m-keys mp) keys_ (if (< n keys-len) n keys-len))) 0)
                                                        (do (showmap ed mp true)
                                                            (e TRUE))
                                                        did-local))
@@ -4904,7 +4904,7 @@
   (let [^T_find_term_bykeys__out_T out__ (new-T_find_term_bykeys__out_T)
         ^longs tl__ (long-array 4)
         ^objects to__ (object-array 1)
-        len (i32 (long (musl-strlen ed src)))
+        len (i32 (long (musl-strlen src)))
         found -1
         foundlen 1]
     (when-not (zero? (g ed need-gather))
@@ -4921,7 +4921,7 @@
             (let [slen (.len ^S_termcode (.at (g ed termcodes) i))
                   modslen (.modlen ^S_termcode (.at (g ed termcodes) i))
                   j__3 (if (> modslen 0)
-                         (if (and (> len modslen) (== (long (musl-strncmp ed (.code ^S_termcode (.at (g ed termcodes) i)) src modslen)) 0))
+                         (if (and (> len modslen) (== (long (musl-strncmp (.code ^S_termcode (.at (g ed termcodes) i)) src modslen)) 0))
                            (let [thislen 0
                                  j__2 (if (== (.ub src modslen) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- slen 1))))
                                         (let [thislen (i32 (+ modslen 1))]
@@ -4933,7 +4933,7 @@
                                             1
                                             (let [j (i32 (- slen 2))
                                                   l__1 (loop [j j]
-                                                         (if (and (< j len) (or (musl-isdigit? ed (.ub src j)) (== (.ub src j) 45) (== (.ub src j) 59)))
+                                                         (if (and (< j len) (or (musl-isdigit? (.ub src j)) (== (.ub src j) 45) (== (.ub src j) 59)))
                                                            (let [j (i32 (inc j))]
                                                              (recur j))
                                                            (do (aset tl__ 3 j)
@@ -4966,7 +4966,7 @@
                            (do (aset tl__ 0 found)
                                (aset tl__ 1 foundlen)
                                0))
-                         (if (and (> slen foundlen) (>= len slen) (== (long (musl-strncmp ed (.code ^S_termcode (.at (g ed termcodes) i)) src slen)) 0))
+                         (if (and (> slen foundlen) (>= len slen) (== (long (musl-strncmp (.code ^S_termcode (.at (g ed termcodes) i)) src slen)) 0))
                            (let [found i
                                  foundlen slen]
                              (aset tl__ 0 found)
@@ -5015,8 +5015,8 @@
                 do-special (or (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SPECI))) (not (zero? (bit-and flags (e REPTERM_SPECIAL)))))
                 do-key-code (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_KEYCODE)))]
             (aset src 0 from)
-            (ga-init2 ed ga 1 100)
-            (if (ga-grow ed ga (i32 (+ (* (long (musl-strlen ed (aget src 0))) 6) 1)))
+            (ga-init2 ga 1 100)
+            (if (ga-grow ed ga (i32 (+ (* (long (musl-strlen (aget src 0))) 6) 1)))
               (let [^BytePtr result (GA_BytePtr ga)
                     dlen (if (and (not (zero? (bit-and flags (e REPTERM_FROM_PART)))) (== (.ub ^BytePtr (aget src 0) 0) 35) (< (u32 (- (.ub ^BytePtr (aget src 0) 1) 48)) 10))
                            (let [t1 dlen
@@ -5045,7 +5045,7 @@
         1
           (if (== (.ub ^BytePtr (aget src 0)) (e NUL))
             (recur 6 from flags did-simplify i dlen do-backslash do-special do-key-code result len)
-            (if (and do-special (or (not (zero? (bit-and flags (e REPTERM_DO_LT)))) (not (== (long (musl-strncmp ed (aget src 0) (BytePtr/lit "<lt>") 4)) 0))))
+            (if (and do-special (or (not (zero? (bit-and flags (e REPTERM_DO_LT)))) (not (== (long (musl-strncmp (aget src 0) (BytePtr/lit "<lt>") 4)) 0))))
               (let [fsk-flags (bit-or (e FSK_KEYCODE) (if (zero? (bit-and flags (e REPTERM_NO_SIMPLIFY))) (e FSK_SIMPLIFY) 0) (if (zero? (bit-and flags (e REPTERM_FROM_PART))) 0 (e FSK_FROM_PART)))
                     slen (long (trans-special ed (Ptr. src 0) (.add result dlen) fsk-flags true did-simplify))]
                 (if (> slen 0)
@@ -5111,7 +5111,7 @@
             (recur 1 from flags did-simplify i dlen do-backslash do-special do-key-code result len))
         6
           (do (.set result dlen (unchecked-byte (e NUL)))
-              (let [^BytePtr bufp (vim-strsave ed result)]
+              (let [^BytePtr bufp (vim-strsave result)]
                 (if (some? bufp)
                   (let [^BytePtr from bufp]
                     (.set-r__ out__ from)
@@ -5122,7 +5122,7 @@
                       out__))))))))
 
 ;; C: vim_unescape_csi
-(defn vim-unescape-csi ^long [^Editor ed ^BytePtr p]
+(defn vim-unescape-csi ^long [^BytePtr p]
   (let [^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)
         ^BytePtr s p
@@ -5259,8 +5259,8 @@
                 special (boolean (aget fo__ 18))
                 unmap-lhs-only (boolean (aget fo__ 19))
                 noremap (aget fl__ 6)]
-            (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<buffer>") 8)) 0)
-              (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+            (if (== (long (musl-strncmp keys_ (BytePtr/lit "<buffer>") 8)) 0)
+              (let [^BytePtr keys_ (skipwhite (.add keys_ 8))
                     ^Ptr map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)
                     ^Ptr abbr-table (Ptr. ^objects (.-b-first-abbr (g ed curbuf)) 0)]
                 (aset fo__ 3 keys_)
@@ -5273,8 +5273,8 @@
                 (aset fo__ 17 (Boolean/valueOf (boolean silent)))
                 (aset fo__ 18 (Boolean/valueOf (boolean special)))
                 (recur 1))
-              (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<nowait>") 8)) 0)
-                (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+              (if (== (long (musl-strncmp keys_ (BytePtr/lit "<nowait>") 8)) 0)
+                (let [^BytePtr keys_ (skipwhite (.add keys_ 8))
                       nowait true]
                   (aset fo__ 3 keys_)
                   (aset fo__ 7 p)
@@ -5286,8 +5286,8 @@
                   (aset fo__ 17 (Boolean/valueOf (boolean silent)))
                   (aset fo__ 18 (Boolean/valueOf (boolean special)))
                   (recur 1))
-                (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<silent>") 8)) 0)
-                  (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+                (if (== (long (musl-strncmp keys_ (BytePtr/lit "<silent>") 8)) 0)
+                  (let [^BytePtr keys_ (skipwhite (.add keys_ 8))
                         silent true]
                     (aset fo__ 3 keys_)
                     (aset fo__ 7 p)
@@ -5299,8 +5299,8 @@
                     (aset fo__ 17 (Boolean/valueOf (boolean silent)))
                     (aset fo__ 18 (Boolean/valueOf (boolean special)))
                     (recur 1))
-                  (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<special>") 9)) 0)
-                    (let [^BytePtr keys_ (skipwhite ed (.add keys_ 9))
+                  (if (== (long (musl-strncmp keys_ (BytePtr/lit "<special>") 9)) 0)
+                    (let [^BytePtr keys_ (skipwhite (.add keys_ 9))
                           special true]
                       (aset fo__ 3 keys_)
                       (aset fo__ 7 p)
@@ -5312,8 +5312,8 @@
                       (aset fo__ 17 (Boolean/valueOf (boolean silent)))
                       (aset fo__ 18 (Boolean/valueOf (boolean special)))
                       (recur 1))
-                    (if (== (long (musl-strncmp ed keys_ (BytePtr/lit "<unique>") 8)) 0)
-                      (let [^BytePtr keys_ (skipwhite ed (.add keys_ 8))
+                    (if (== (long (musl-strncmp keys_ (BytePtr/lit "<unique>") 8)) 0)
+                      (let [^BytePtr keys_ (skipwhite (.add keys_ 8))
                             unique true]
                         (aset fo__ 3 keys_)
                         (aset fo__ 7 p)
@@ -5384,7 +5384,7 @@
                                        ^BytePtr p (.add p 1)]
                                    (.put t1 (unchecked-byte (e NUL)))
                                    p))
-                    ^BytePtr p (skipwhite ed p)
+                    ^BytePtr p (skipwhite p)
                     ^BytePtr rhs p
                     hasarg (not (== (.ub rhs) (e NUL)))
                     haskey (not (== (.ub keys_) (e NUL)))
@@ -5415,7 +5415,7 @@
                         ^BytePtr alt-keys-buf (aget to__ 2)
                         ^BytePtr orig-rhs rhs
                         ^BytePtr rhs (if hasarg
-                                       (if (== (long (musl-strcasecmp ed rhs (BytePtr/lit "<nop>"))) 0)
+                                       (if (== (long (musl-strcasecmp rhs (BytePtr/lit "<nop>"))) 0)
                                          ^BytePtr (BytePtr/lit "")
                                          (do (.set replace-termcodes__o (replace-termcodes ed rhs 0 (bit-or (e REPTERM_DO_LT) (if special (e REPTERM_SPECIAL) 0)) nil))
                                              ^BytePtr (.r__ replace-termcodes__o)))
@@ -5530,7 +5530,7 @@
                 same (aget fl__ 10)
                 keys-unescaped-len (aget fl__ 11)]
             (if haskey
-              (let [len (i32 (long (musl-strlen ed keys_)))]
+              (let [len (i32 (long (musl-strlen keys_)))]
                 (if (> len (e MAXMAPLEN))
                   (let [retval 1]
                     (aset fo__ 0 (Long/valueOf retval))
@@ -5538,7 +5538,7 @@
                   (if (and abbrev (not (== maptype (e MAPTYPE_UNMAP))))
                     (let [same -1
                           _ (Rt/memmove (BytePtr. keys-unescaped 0) keys_ (i32 (+ len 1)))
-                          keys-unescaped-len (long (vim-unescape-csi ed (BytePtr. keys-unescaped 0)))
+                          keys-unescaped-len (long (vim-unescape-csi (BytePtr. keys-unescaped 0)))
                           ^BytePtr p (BytePtr. keys-unescaped 0)
                           first_ (vim-iswordp ed p)
                           last_ first_
@@ -5792,7 +5792,7 @@
                 keyround1-simplified (boolean (aget fo__ 22))
                 hash_ (aget fl__ 12)]
             (if (and (some? mp) (zero? (g ed got-int)))
-              (if (and (not (== (bit-and (.m-mode mp) mode) 0)) (== (.m-keylen mp) len) (== (long (musl-strncmp ed (.m-keys mp) keys_ len)) 0))
+              (if (and (not (== (bit-and (.m-mode mp) mode) 0)) (== (.m-keylen mp) len) (== (long (musl-strncmp (.m-keys mp) keys_ len)) 0))
                 (if abbrev
                   (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-global-abbreviation-already-exists-for-str) 0)) (object-array [(.m-keys mp)]))
                       (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-global-abbreviation-already-exists-for-str) 0))))
@@ -6091,16 +6091,16 @@
                                   (aset to__ 0 p)
                                   (aset tl__ 0 n)
                                   0)
-                                (let [n (i32 (long (musl-strlen ed (.m-str mp))))
+                                (let [n (i32 (long (musl-strlen (.m-str mp))))
                                       ^BytePtr p (.m-str mp)]
                                   (aset to__ 0 p)
                                   (aset tl__ 0 n)
                                   0))
                         ^BytePtr p (aget to__ 0)
                         n (aget tl__ 0)]
-                    (if (== (long (musl-strncmp ed p keys_ (if (< n len) n len))) 0)
+                    (if (== (long (musl-strncmp p keys_ (if (< n len) n len))) 0)
                       (if (== maptype (e MAPTYPE_UNMAP))
-                        (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (.ub ^BytePtr (skipwhite ed (.add keys_ n))) (e NUL)))))
+                        (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (.ub ^BytePtr (skipwhite (.add keys_ n))) (e NUL)))))
                           (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
                             (aset fo__ 5 mpp)
                             (aset fo__ 7 p)
@@ -6139,12 +6139,12 @@
                                       -1)))
                               (do (.set-m-mode mp (bit-and (.m-mode mp) (bit-not mode)))
                                   (if (and (== (.m-mode mp) 0) (not did-it))
-                                    (let [^BytePtr newstr (vim-strsave ed rhs)]
+                                    (let [^BytePtr newstr (vim-strsave rhs)]
                                       (when (some? (.m-alt mp))
                                         (.set-m-alt ^S_mapblock (.m-alt mp) nil)
                                         (.set-m-alt mp (.m-alt ^S_mapblock (.m-alt mp))))
                                       (.set-m-str mp newstr)
-                                      (.set-m-orig-str mp (vim-strsave ed orig-rhs))
+                                      (.set-m-orig-str mp (vim-strsave orig-rhs))
                                       (.set-m-noremap mp noremap)
                                       (.set-m-nowait mp (if nowait 1 0))
                                       (.set-m-silent mp (if silent 1 0))
@@ -6243,7 +6243,7 @@
                 num-rounds (aget fl__ 9)
                 hash__2 (aget fl__ 13)]
             (if (== (.m-mode mp) 0)
-              (do (map-free ed mpp)
+              (do (map-free mpp)
                   (recur 20))
               (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (.ub ^BytePtr (.m-keys mp) 0) 128) (.ub ^BytePtr (.m-keys mp) 0))]
                 (if (and (not abbrev) (not (== new-hash hash__2)))
@@ -6453,7 +6453,7 @@
           (recur r__))))))
 
 ;; C: get_map_mode
-(defn get-map-mode ^T_get_map_mode__out_T [^Editor ed ^BytePtr cmdp forceit]
+(defn get-map-mode ^T_get_map_mode__out_T [^BytePtr cmdp forceit]
   (let [^T_get_map_mode__out_T out__ (new-T_get_map_mode__out_T)
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)
@@ -6516,11 +6516,11 @@
 ;; C: map_clear
 (defn map-clear [^Editor ed ^BytePtr cmdp ^BytePtr arg forceit abbr]
   (let [^T_get_map_mode__out_T get-map-mode__o (new-T_get_map_mode__out_T)
-        local (== (long (musl-strcmp ed arg (BytePtr/lit "<buffer>"))) 0)]
+        local (== (long (musl-strcmp arg (BytePtr/lit "<buffer>"))) 0)]
     (if (and (not local) (not (== (.ub arg) (e NUL))))
       (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
           nil)
-      (do (.set get-map-mode__o (get-map-mode ed cmdp forceit))
+      (do (.set get-map-mode__o (get-map-mode cmdp forceit))
           (let [mode (.r__ get-map-mode__o)]
             (map-clear-mode ed (g ed curbuf) mode local abbr)
             nil)))))
@@ -6616,7 +6616,7 @@
 (defn add-map [^Editor ed ^BytePtr map_ ^long mode nore]
   (let [^BytePtr cpo-save (aget (g ed p-cpo) 0)
         _ (aset (g ed p-cpo) 0 (g ed empty-option))
-        ^BytePtr s (vim-strsave ed map_)]
+        ^BytePtr s (vim-strsave map_)]
     (do-map ed (if nore (e MAPTYPE_NOREMAP) (e MAPTYPE_MAP)) s mode false)
     (aset (g ed p-cpo) 0 cpo-save)
     nil))
@@ -6634,7 +6634,7 @@
 (defn do-exmap [^Editor ed ^S_exarg eap isabbrev]
   (let [^T_get_map_mode__out_T get-map-mode__o (new-T_get_map_mode__out_T)
         ^BytePtr cmdp (aget ^objects (.-cmd eap) 0)
-        _ (.set get-map-mode__o (get-map-mode ed cmdp (or (.forceit eap) isabbrev)))
+        _ (.set get-map-mode__o (get-map-mode cmdp (or (.forceit eap) isabbrev)))
         ^BytePtr cmdp (.cmdp get-map-mode__o)
         mode (.r__ get-map-mode__o)]
     (case (long (do-map ed (if (== (.ub cmdp) 110) (e MAPTYPE_NOREMAP) (if (== (.ub cmdp) 117) (e MAPTYPE_UNMAP) (e MAPTYPE_MAP))) (aget ^objects (.-arg eap) 0) mode isabbrev))
@@ -6714,8 +6714,8 @@
 ;; C: mark_line
 (defn mark-line ^BytePtr [^Editor ed ^T_pos_T mp ^long lead-len]
   (if (or (== (.lnum mp) 0) (> (.lnum mp) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
-    (vim-strsave ed (BytePtr/lit "-invalid-"))
-    (let [^BytePtr s (vim-strnsave ed (skipwhite ed (ml-get ed (.lnum mp))) (* (aget (g ed Columns) 0) 5))
+    (vim-strsave (BytePtr/lit "-invalid-"))
+    (let [^BytePtr s (vim-strnsave (skipwhite (ml-get ed (.lnum mp))) (* (aget (g ed Columns) 0) 5))
           len 0
           ^BytePtr p s]
       (loop [^BytePtr p p
@@ -6795,7 +6795,7 @@
   (let [^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)]
     (if (and (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL)) (.forceit eap))
-      (do (clrallmarks ed (g ed curbuf))
+      (do (clrallmarks (g ed curbuf))
           nil)
       (if (.forceit eap)
         (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
@@ -6964,7 +6964,7 @@
           (if (== (long j__2) -1)
             (aget tl__ 1)
             (let [id (aget tl__ 0)
-                  hlg-id (long (syn-namen2id ed grp (i32 (long (musl-strlen ed grp)))))]
+                  hlg-id (long (syn-namen2id ed grp (i32 (long (musl-strlen grp)))))]
               (if (== hlg-id 0)
                 (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-no-such-highlight-group-name-str) 0)) (object-array [grp]))
                     (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-no-such-highlight-group-name-str) 0))))
@@ -6988,7 +6988,7 @@
                     (let [^S_matchitem m (new-S_matchitem)
                           _ (.set-mit-id m id)
                           _ (.set-mit-priority m prio)
-                          _ (.set-mit-pattern m (when-not (nil? pat) (vim-strsave ed pat)))
+                          _ (.set-mit-pattern m (when-not (nil? pat) (vim-strsave pat)))
                           _ (.set-mit-hlg-id m hlg-id)
                           _ (.set-regprog ^T_regmmatch_T (.-mit-match m) regprog)
                           _ (.set-rmm-ic ^T_regmmatch_T (.-mit-match m) (e FALSE))
@@ -7037,7 +7037,7 @@
             (do (if (identical? cur prev)
                   (.set-w-match-head wp (.mit-next cur))
                   (.set-mit-next prev (.mit-next cur)))
-                (vim-regfree ed (.regprog ^T_regmmatch_T (.-mit-match cur)))
+                (vim-regfree (.regprog ^T_regmmatch_T (.-mit-match cur)))
                 (if (== (.mit-toplnum cur) 0)
                   (do (redraw-win-later ed wp rtype)
                       0)
@@ -7052,23 +7052,23 @@
     (if (<= (.line2 eap) 3)
       (let [id (i32 (.line2 eap))]
         (match-delete ed (g ed curwin) id false)
-        (if (ends-excmd2? ed (aget ^objects (.-cmd eap) 0) (aget ^objects (.-arg eap) 0))
+        (if (ends-excmd2? (aget ^objects (.-cmd eap) 0) (aget ^objects (.-arg eap) 0))
           (let [^BytePtr end (aget ^objects (.-arg eap) 0)]
-            (.set-nextcmd eap (find-nextcmd ed end))
+            (.set-nextcmd eap (find-nextcmd end))
             nil)
-          (if (and (== (long (musl-strncasecmp ed (aget ^objects (.-arg eap) 0) (BytePtr/lit "none") 4)) 0) (or (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 4) 32) (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 4) 9) (ends-excmd2? ed (aget ^objects (.-arg eap) 0) (.add ^BytePtr (aget ^objects (.-arg eap) 0) 4))))
+          (if (and (== (long (musl-strncasecmp (aget ^objects (.-arg eap) 0) (BytePtr/lit "none") 4)) 0) (or (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 4) 32) (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 4) 9) (ends-excmd2? (aget ^objects (.-arg eap) 0) (.add ^BytePtr (aget ^objects (.-arg eap) 0) 4))))
             (let [^BytePtr end (.add ^BytePtr (aget ^objects (.-arg eap) 0) 4)]
-              (.set-nextcmd eap (find-nextcmd ed end))
+              (.set-nextcmd eap (find-nextcmd end))
               nil)
-            (let [^BytePtr p (skiptowhite ed (aget ^objects (.-arg eap) 0))
-                  ^BytePtr g_ (vim-strnsave ed (aget ^objects (.-arg eap) 0) (.sub p ^BytePtr (aget ^objects (.-arg eap) 0)))
-                  ^BytePtr p (skipwhite ed p)]
+            (let [^BytePtr p (skiptowhite (aget ^objects (.-arg eap) 0))
+                  ^BytePtr g_ (vim-strnsave (aget ^objects (.-arg eap) 0) (.sub p ^BytePtr (aget ^objects (.-arg eap) 0)))
+                  ^BytePtr p (skipwhite p)]
               (if (== (.ub p) (e NUL))
                 (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0)) (object-array [(aget ^objects (.-arg eap) 0)]))
                     (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0))))
                     nil)
                 (let [^BytePtr end (skip-regexp ed (.add p 1) (.ub p) (e TRUE))]
-                  (if (and (not (== (.ub end) (e NUL))) (not (ends-excmd2? ed end (skipwhite ed (.add end 1)))))
+                  (if (and (not (== (.ub end) (e NUL))) (not (ends-excmd2? end (skipwhite (.add end 1)))))
                     (do (.set-errmsg eap (ex-errmsg ed (BytePtr. (g ed e-trailing-characters-str) 0) end))
                         nil)
                     (if (== (.ub end) (.ub p))
@@ -7076,7 +7076,7 @@
                         (.put end (unchecked-byte (e NUL)))
                         (match-add ed (g ed curwin) g_ (.add p 1) 10 id nil)
                         (.put end (unchecked-byte c))
-                        (.set-nextcmd eap (find-nextcmd ed end))
+                        (.set-nextcmd eap (find-nextcmd end))
                         nil)
                       (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0)) (object-array [p]))
                           (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0))))
@@ -7114,7 +7114,7 @@
           (if (< i len)
             (let [j__1 (if (== clen 0)
                          (let [rlen (if (> i 0)
-                                      (do (musl-strcpy ed (.add (g ed IObuff) rlen) (BytePtr/lit "+ "))
+                                      (do (musl-strcpy (.add (g ed IObuff) rlen) (BytePtr/lit "+ "))
                                           (i32 (+ rlen 2)))
                                       rlen)
                                clen (long (utf-ptr2len ed (.add line i)))]
@@ -7128,7 +7128,7 @@
                   clen (aget tl__ 1)]
               (whim.cljhost/vim-snprintf ed (.add (g ed IObuff) rlen) (i32 (- 1025 rlen)) (BytePtr/lit "%02x ") (object-array [(Integer/valueOf (unchecked-int (if (== (.ub line i) (e NL)) (e NUL) (.ub line i))))]))
               (let [clen (i32 (dec clen))
-                    t1 (i32 (long (musl-strlen ed (.add (g ed IObuff) rlen))))
+                    t1 (i32 (long (musl-strlen (.add (g ed IObuff) rlen))))
                     rlen (i32 (+ rlen t1))]
                 (if (> rlen 1005)
                   (do (msg ed (g ed IObuff))
@@ -7151,7 +7151,7 @@
                    (if (== (.ub p) (e NUL))
                      0
                      (let [len (long (utf-ptr2len ed p))]
-                       (if (and (>= (.ub p) 128) (or (== len 1) (not (== (long (utf-char2len ed (long (utf-ptr2char ed p)))) len))))
+                       (if (and (>= (.ub p) 128) (or (== len 1) (not (== (long (utf-char2len (long (utf-ptr2char ed p)))) len))))
                          (do (aset to__ 0 p)
                              1)
                          (let [^BytePtr p (.add p len)]
@@ -7200,24 +7200,24 @@
                     (g! ed msg-hist-max messages-history-new)
                     (check-msg-hist ed)
                     true)))))
-        (let [j__1 (if (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "hit-enter") 9)) 0)
+        (let [j__1 (if (== (long (musl-strncmp (aget p 0) (BytePtr/lit "hit-enter") 9)) 0)
                      (do (aset p 0 (.add ^BytePtr (aget p 0) 9))
                          (let [messages-flags-new (bit-or messages-flags-new (e MESSAGES_HIT_ENTER))]
                            (aset tl__ 0 messages-flags-new)
                            (aset tl__ 1 messages-wait-new)
                            (aset tl__ 2 messages-history-new)
                            0))
-                     (if (and (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "wait:") 5)) 0) (< (u32 (- (.ub ^BytePtr (aget p 0) 5) 48)) 10))
+                     (if (and (== (long (musl-strncmp (aget p 0) (BytePtr/lit "wait:") 5)) 0) (< (u32 (- (.ub ^BytePtr (aget p 0) 5) 48)) 10))
                        (do (aset p 0 (.add ^BytePtr (aget p 0) 5))
-                           (let [messages-wait-new (i32 (long (getdigits ed (Ptr. p 0))))
+                           (let [messages-wait-new (i32 (long (getdigits (Ptr. p 0))))
                                  messages-flags-new (bit-or messages-flags-new (e MESSAGES_WAIT))]
                              (aset tl__ 0 messages-flags-new)
                              (aset tl__ 1 messages-wait-new)
                              (aset tl__ 2 messages-history-new)
                              0))
-                       (if (and (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "history:") 8)) 0) (< (u32 (- (.ub ^BytePtr (aget p 0) 8) 48)) 10))
+                       (if (and (== (long (musl-strncmp (aget p 0) (BytePtr/lit "history:") 8)) 0) (< (u32 (- (.ub ^BytePtr (aget p 0) 8) 48)) 10))
                          (do (aset p 0 (.add ^BytePtr (aget p 0) 8))
-                             (let [messages-history-new (i32 (long (getdigits ed (Ptr. p 0))))
+                             (let [messages-history-new (i32 (long (getdigits (Ptr. p 0))))
                                    messages-flags-new (bit-or messages-flags-new (e MESSAGES_HISTORY))]
                                (aset tl__ 0 messages-flags-new)
                                (aset tl__ 1 messages-wait-new)
@@ -7240,7 +7240,7 @@
 (defn ex-messages [^Editor ed ^S_exarg eap]
   (let [^longs tl__ (long-array 1)
         c 0]
-    (if (== (long (musl-strcmp ed (aget ^objects (.-arg eap) 0) (BytePtr/lit "clear"))) 0)
+    (if (== (long (musl-strcmp (aget ^objects (.-arg eap) 0) (BytePtr/lit "clear"))) 0)
       (let [keep_ (i32 (if (== (.addr-count eap) 0) 0 (.line2 eap)))]
         (loop []
           (when (> (g ed msg-hist-len) keep_)
@@ -7287,9 +7287,9 @@
     (loop [buf-len buf-len]
       (when-not (zero? (.ub ^BytePtr (aget sp 0)))
         (let [^BytePtr s (str2special ed (Ptr. sp 0) false false)
-              s-len (long (musl-strlen ed s))]
+              s-len (long (musl-strlen s))]
           (when (< (Long/compareUnsigned (+ buf-len s-len) len) 0)
-            (musl-strcpy ed (.add buf buf-len) s)
+            (musl-strcpy (.add buf buf-len) s)
             (let [buf-len (+ buf-len s-len)]
               (recur buf-len))))))))
 
@@ -7300,7 +7300,7 @@
 
 ;; C: show_sb_text
 (defn show-sb-text [^Editor ed]
-  (let [^S_msgchunk_S mp (msg-sb-start ed (aget (g ed last-msgchunk) 0))]
+  (let [^S_msgchunk_S mp (msg-sb-start (aget (g ed last-msgchunk) 0))]
     (if (or (nil? mp) (nil? (aget ^objects (.-sb-prev mp) 0)))
       (do (vim-beep ed (e BO_MESS))
           nil)
@@ -7309,12 +7309,12 @@
           nil))))
 
 ;; C: expand_env_esc
-(defn expand-env-esc [^Editor ed ^BytePtr srcp ^BytePtr dst dstlen ^BytePtr esc-chars one ^BytePtr startstr]
+(defn expand-env-esc [^BytePtr srcp ^BytePtr dst dstlen ^BytePtr esc-chars one ^BytePtr startstr]
   (let [dstlen (long dstlen)
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 2)
         ^BytePtr dst-start dst
-        ^BytePtr src (skipwhite ed srcp)
+        ^BytePtr src (skipwhite srcp)
         dstlen (i32 (dec dstlen))]
     (loop [^BytePtr dst dst
            dstlen dstlen
@@ -7361,7 +7361,7 @@
             (.sub dst dst-start))))))
 
 ;; C: vim_append_digit_long
-(defn vim-append-digit-long ^T_vim_append_digit_long__out_T [^Editor ed ^long value ^long digit]
+(defn vim-append-digit-long ^T_vim_append_digit_long__out_T [^long value ^long digit]
   (let [^T_vim_append_digit_long__out_T out__ (new-T_vim_append_digit_long__out_T)
         x value]
     (if (> x (quot (- (e LONG_MAX) digit) 10))
@@ -7460,7 +7460,7 @@
             (let [^BytePtr p (if (and (not (== (.ub p) (e NUL))) (not (== (.ub p) 44)))
                                ^BytePtr (.add p 1)
                                p)
-                  ^BytePtr p (skip-to-option-part ed p)
+                  ^BytePtr p (skip-to-option-part p)
                   ^BytePtr option p]
               (.set-r__ out__ len)
               (.set-option out__ option)
@@ -7582,7 +7582,7 @@
               (let [n (quot n 10)]
                 (recur n))
               (if (< (u32 (- (u32 nchar) 48)) 10)
-                (do (.set vim-append-digit-long__o (vim-append-digit-long ed n (i32 (- nchar 48))))
+                (do (.set vim-append-digit-long__o (vim-append-digit-long n (i32 (- nchar 48))))
                     (let [n (.value vim-append-digit-long__o)]
                       (if (.r__ vim-append-digit-long__o)
                         (recur n)
@@ -7614,7 +7614,7 @@
             (let [i 0]
               (loop [i i]
                 (if (< i (.y-size reg))
-                  (do (aset ^objects (.-string ^T_string_T (.at ^Ptr (.y-array reg) i)) 0 (vim-strnsave ed (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i)) 0) (.length ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i))))
+                  (do (aset ^objects (.-string ^T_string_T (.at ^Ptr (.y-array reg) i)) 0 (vim-strnsave (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i)) 0) (.length ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i))))
                       (.set-length ^T_string_T (.at ^Ptr (.y-array reg) i) (.length ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i)))
                       (let [i (i32 (inc i))]
                         (recur i)))
@@ -7843,12 +7843,12 @@
         4
           (do (scroll-cursor-bot ed 0 true)
               (redraw-later ed (e UPD_VALID))
-              (set-fraction ed (g ed curwin))
+              (set-fraction (g ed curwin))
               nil)
         5
           (do (scroll-cursor-halfway ed (e TRUE) (e FALSE))
               (redraw-later ed (e UPD_VALID))
-              (set-fraction ed (g ed curwin))
+              (set-fraction (g ed curwin))
               nil)
         6
           (do (beginline ed 5)
@@ -7856,7 +7856,7 @@
         7
           (do (scroll-cursor-top ed 0 true)
               (redraw-later ed (e UPD_VALID))
-              (set-fraction ed (g ed curwin))
+              (set-fraction (g ed curwin))
               nil)))))
 
 ;; C: nv_colon
@@ -7903,7 +7903,7 @@
 
 ;; C: v_visop
 (defn v-visop [^Editor ed ^S_cmdarg_S cap]
-  (if (musl-isupper? ed (u8 (.cmdchar cap)))
+  (if (musl-isupper? (u8 (.cmdchar cap)))
     (if (== (g ed VIsual-mode) (e Ctrl_V))
       (if (or (== (.cmdchar cap) 67) (== (.cmdchar cap) 68))
         (do (.set-w-curswant (g ed curwin) (e MAXCOL))
@@ -8081,7 +8081,7 @@
               _ (setpcmark ed)
               _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (.sub ^BytePtr (aget ptr 0) ^BytePtr (ml-get-curline ed))))
               buflen (if (and (not g-cmd) (vim-iswordp ed (aget ptr 0)))
-                       (do (musl-strcpy ed buf (BytePtr/lit "\\<"))
+                       (do (musl-strcpy buf (BytePtr/lit "\\<"))
                            2)
                        buflen)]
           (g! ed no-smartcase (e TRUE))
@@ -8130,7 +8130,7 @@
                   (do (.put p (unchecked-byte (e NUL)))
                       (let [buflen (.sub p buf)
                             buflen (if (and (not g-cmd) (vim-iswordp ed (mb-prevptr ed (ml-get-curline ed) (aget ptr 0))))
-                                     (do (musl-strcpy ed (.add buf buflen) (BytePtr/lit "\\>"))
+                                     (do (musl-strcpy (.add buf buflen) (BytePtr/lit "\\>"))
                                          (+ buflen 2))
                                      buflen)]
                         (init-history ed)
@@ -8445,7 +8445,7 @@
     (if (nil? (.searchbuf cap))
       (do (clearop ed oap)
           nil)
-      (do (normal-search ed cap (.cmdchar cap) (.searchbuf cap) (long (musl-strlen ed (.searchbuf cap))) (if (or (not (zero? (.arg cap))) (not (and (== save-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== save-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== save-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))) 0 (e SEARCH_MARK)) nil)
+      (do (normal-search ed cap (.cmdchar cap) (.searchbuf cap) (long (musl-strlen (.searchbuf cap))) (if (or (not (zero? (.arg cap))) (not (and (== save-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== save-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== save-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))) 0 (e SEARCH_MARK)) nil)
           nil))))
 
 ;; C: nv_next
@@ -8506,14 +8506,14 @@
                  (do (aset (g ed lastc) 0 (unchecked-byte c))
                      (set-csearch-direction ed dir)
                      (set-csearch-until ed t-cmd)
-                     (g! ed lastc-bytelen (long (utf-char2bytes ed c (BytePtr. (g ed lastc-bytes) 0))))
+                     (g! ed lastc-bytelen (long (utf-char2bytes c (BytePtr. (g ed lastc-bytes) 0))))
                      (if (== (.ncharC1 cap) 0)
                        (do (aset tl__ 0 t-cmd)
                            (aset tl__ 1 c)
                            (aset tl__ 2 dir)
                            (aset to__ 0 (Boolean/valueOf (boolean stop)))
                            0)
-                       (let [t1 (long (utf-char2bytes ed (.ncharC1 cap) (.add (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))))]
+                       (let [t1 (long (utf-char2bytes (.ncharC1 cap) (.add (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))))]
                          (g! ed lastc-bytelen (i32 (+ (g ed lastc-bytelen) t1)))
                          (if (== (.ncharC2 cap) 0)
                            (do (aset tl__ 0 t-cmd)
@@ -8521,7 +8521,7 @@
                                (aset tl__ 2 dir)
                                (aset to__ 0 (Boolean/valueOf (boolean stop)))
                                0)
-                           (let [t2 (long (utf-char2bytes ed (.ncharC2 cap) (.add (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))))]
+                           (let [t2 (long (utf-char2bytes (.ncharC2 cap) (.add (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))))]
                              (g! ed lastc-bytelen (i32 (+ (g ed lastc-bytelen) t2)))
                              (aset tl__ 0 t-cmd)
                              (aset tl__ 1 c)
@@ -8585,7 +8585,7 @@
                                                 (if (and (== (.ub p col) c) stop)
                                                   1
                                                   0)
-                                                (if (and (== (long (musl-strncmp ed (.add p col) (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))) 0) stop)
+                                                (if (and (== (long (musl-strncmp (.add p col) (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))) 0) stop)
                                                   1
                                                   0))]
                                      (case (long j__4)
@@ -10035,7 +10035,7 @@
       (coladvance ed 2147483647)
       (g! ed State save-State)
       nil)
-    (let [t1 (i32 (long (musl-strlen ed (ml-get-cursor ed))))]
+    (let [t1 (i32 (long (musl-strlen (ml-get-cursor ed))))]
       (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) t1)))
       nil)))
 
@@ -10177,7 +10177,7 @@
                        (do (.set pos cur)
                            (e SEARCH_START)))]
             (if (== (long (searchit ed (g ed curwin) (g ed curbuf) pos nil direction pattern patternlen 1 (i32 (+ (e SEARCH_KEEP) flag)) (e RE_SEARCH) nil)) (e FAIL))
-              (do (vim-regfree ed (.regprog regmatch))
+              (do (vim-regfree (.regprog regmatch))
                   result)
               (let [l__2 (loop []
                            (.set-col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0) (i32 (inc (.col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)))))
@@ -10192,9 +10192,9 @@
                     nmatched (aget tl__ 2)]
                 (if (== (g ed called-emsg) called-emsg-before)
                   (let [result (if (and (not (== nmatched 0)) (== (.lnum ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)) (.lnum ^T_lpos_T (aget ^objects (.-endpos regmatch) 0))) (== (.col ^T_lpos_T (aget ^objects (.-startpos regmatch) 0)) (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)))) 1 0)]
-                    (vim-regfree ed (.regprog regmatch))
+                    (vim-regfree (.regprog regmatch))
                     result)
-                  (do (vim-regfree ed (.regprog regmatch))
+                  (do (vim-regfree (.regprog regmatch))
                       result))))))
       -1)))
 
@@ -10334,7 +10334,7 @@
            is-word is-word]
       (if (and (< i limit) (not (== (.ub line i) (e NUL))))
         (let [j__1 (if (zero? is-word)
-                     (if (vim-isspace? ed (.ub line i))
+                     (if (vim-isspace? (.ub line i))
                        (do (aset tl__ 0 words)
                            (aset tl__ 1 is-word)
                            0)
@@ -10342,7 +10342,7 @@
                          (aset tl__ 0 words)
                          (aset tl__ 1 is-word)
                          0))
-                     (if (vim-isspace? ed (.ub line i))
+                     (if (vim-isspace? (.ub line i))
                        (let [words (inc words)
                              is-word 0]
                          (aset tl__ 0 words)
@@ -10852,7 +10852,7 @@
         nil)))
 
 (defn anyBufIsChanged ^long [^Editor ed]
-  (long (bufIsChanged ed (g ed curbuf))))
+  (long (bufIsChanged (g ed curbuf))))
 
 ;; C: nv_esc
 (defn nv-esc [^Editor ed ^S_cmdarg_S cap]
@@ -10885,14 +10885,14 @@
     false
     (if (== regname 95)
       true
-      (let [plen (long (musl-strlen ed p))]
+      (let [plen (long (musl-strlen p))]
         (get-yank-register ed regname (e TRUE))
         (if (and (not (zero? (g ed y-append))) (some? (.y-array (g ed y-current))))
           (let [^T_string_T pp (Ptr/ref (.add ^Ptr (.y-array (g ed y-current)) (- (.y-size (g ed y-current)) 1)))
                 tmplen (+ (.length pp) plen)
                 ^BytePtr tmp (BytePtr/alloc (+ tmplen 1))]
-            (musl-strcpy ed tmp (aget ^objects (.-string pp) 0))
-            (musl-strcpy ed (.add tmp (.length pp)) p)
+            (musl-strcpy tmp (aget ^objects (.-string pp) 0))
+            (musl-strcpy (.add tmp (.length pp)) p)
             (aset ^objects (.-string pp) 0 tmp)
             (.set-length pp tmplen)
             true)
@@ -10918,7 +10918,7 @@
         (let [^BytePtr p (get-recorded ed)]
           (if (nil? p)
             false
-            (do (vim-unescape-csi ed p)
+            (do (vim-unescape-csi p)
                 (let [^T_yankreg_T old-y-previous (g ed y-previous)
                       ^T_yankreg_T old-y-current (g ed y-current)
                       retval (stuff-yank ed (g ed do-record-regname) p)]
@@ -10968,23 +10968,23 @@
   nil)
 
 ;; C: istermoption
-(defn istermoption? [^Editor ed ^Ptr p]
+(defn istermoption? [^Ptr p]
   (and (== (long (.at ^BytePtr (.fullname ^S_vimoption (.get p)) 0)) 116) (== (long (.at ^BytePtr (.fullname ^S_vimoption (.get p)) 1)) 95)))
 
 ;; C: istermoption_idx
 (defn istermoption-idx? [^Editor ed ^long opt-idx]
-  (istermoption? ed (Ptr. (g ed options) opt-idx)))
+  (istermoption? (Ptr. (g ed options) opt-idx)))
 
 ;; C: option_expand
 (defn option-expand ^BytePtr [^Editor ed ^long opt-idx ^BytePtr val_]
-  (when-not (or (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0) (e P_EXPAND))) (optvar-is-null? ed (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx)))))
-    (when-not (and (some? val_) (> (Long/compareUnsigned (long (musl-strlen ed val_)) (e PATH_MAX)) 0))
+  (when-not (or (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0) (e P_EXPAND))) (optvar-is-null? (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx)))))
+    (when-not (and (some? val_) (> (Long/compareUnsigned (long (musl-strlen val_)) (e PATH_MAX)) 0))
       (let [^BytePtr val_ (if (nil? val_)
                             ^BytePtr (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx))))
                             val_)
             esc false]
-        (expand-env-esc ed val_ (g ed NameBuff) (e PATH_MAX) (when esc (BytePtr/lit " \t")) false nil)
-        (when-not (== (long (musl-strcmp ed (g ed NameBuff) val_)) 0)
+        (expand-env-esc val_ (g ed NameBuff) (e PATH_MAX) (when esc (BytePtr/lit " \t")) false nil)
+        (when-not (== (long (musl-strcmp (g ed NameBuff) val_)) 0)
           (g ed NameBuff))))))
 
 ;; C: set_init_expand_env
@@ -10993,12 +10993,12 @@
         opt-idx 0]
     (loop [opt-idx opt-idx]
       (when-not (istermoption-idx? ed opt-idx)
-        (let [^BytePtr p (if (and (not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0) (e P_GETTEXT)))) (not (optvar-is-null? ed (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx))))))
+        (let [^BytePtr p (if (and (not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0) (e P_GETTEXT)))) (not (optvar-is-null? (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx))))))
                            ^BytePtr (gettext_ ed (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx)))))
                            ^BytePtr (option-expand ed opt-idx nil))
               t1 (some? p)
               j__1 (if t1
-                     (let [^BytePtr p (vim-strsave ed p)
+                     (let [^BytePtr p (vim-strsave p)
                            t1 (some? p)]
                        (aset to__ 0 p)
                        (aset to__ 1 (Boolean/valueOf (boolean t1)))
@@ -11021,7 +11021,7 @@
         both (== (bit-and opt-flags 6) 0)
         _ (.set varp (get-varp-scope ed (Ptr. (g ed options) opt-idx) (if both (e OPT_LOCAL) opt-flags)))
         flags (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0)]
-    (when-not (optvar-is-null? ed (.copy ^T_optvar_T varp))
+    (when-not (optvar-is-null? (.copy ^T_optvar_T varp))
       (let [dvi (if (or (not (zero? (bit-and flags (e P_VI_DEF)))) (not (zero? compatible))) (e VI_DEFAULT) (e VIM_DEFAULT))]
         (if (zero? (bit-and flags (e P_STRING)))
           (if (zero? (bit-and flags (e P_NUM)))
@@ -11030,7 +11030,7 @@
                   (let [^IntPtr t2 (.ov-int ^T_optvar_T (get-varp-scope ed (Ptr. (g ed options) opt-idx) (e OPT_GLOBAL)))]
                     (.put t2 (unchecked-int (long (.get ^IntPtr (.ov-int varp))))))))
             (if (== (.indir ^S_vimoption (aget (g ed options) opt-idx)) 8202)
-              (win-comp-scroll ed (g ed curwin))
+              (win-comp-scroll (g ed curwin))
               (let [def-val (aget ^longs (.-def-num ^S_vimoption (aget (g ed options) opt-idx)) dvi)]
                 (if (or (LongPtr/eq ^LongPtr (.ov-long varp) (LongPtr. ^longs (.-wo-so ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) (LongPtr/eq ^LongPtr (.ov-long varp) (LongPtr. ^longs (.-wo-siso ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) (LongPtr/eq ^LongPtr (.ov-long varp) (LongPtr. ^longs (.-wo-sop ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))
                   (.put ^LongPtr (.ov-long varp) -1)
@@ -11040,7 +11040,7 @@
                     (.put t1 def-val))))))
           (if (== (.indir ^S_vimoption (aget (g ed options) opt-idx)) (e PV_NONE))
             (do (when (and (not (zero? (bit-and opt-flags (e OPT_FREE)))) (not (zero? (bit-and flags (e P_ALLOCED)))))
-                  (free-string-option ed (.get ^Ptr (.ov-str varp))))
+                  (free-string-option (.get ^Ptr (.ov-str varp))))
                 (.put ^Ptr (.ov-str varp) (aget ^objects (.-def-str ^S_vimoption (aget (g ed options) opt-idx)) dvi))
                 (aset ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0 (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0) -9)))
             (set-string-option-direct ed nil opt-idx (aget ^objects (.-def-str ^S_vimoption (aget (g ed options) opt-idx)) dvi) opt-flags 0)))
@@ -11057,7 +11057,7 @@
     (loop [i i]
       (if (istermoption-idx? ed i)
         (let [^S_window_S wp (g ed curwin)]
-          (win-comp-scroll ed wp)
+          (win-comp-scroll wp)
           nil)
         (do (when (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) i)) 0) (e P_NODEFAULT)))
               (set-option-default ed i opt-flags (long (aget (g ed p-cp) 0))))
@@ -11071,7 +11071,7 @@
   nil)
 
 ;; C: opt_strings_flags
-(defn opt-strings-flags [^Editor ed ^BytePtr val_ ^Ptr values ^IntPtr flagp list_]
+(defn opt-strings-flags [^BytePtr val_ ^Ptr values ^IntPtr flagp list_]
   (let [^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)
         new-flags 0]
@@ -11086,8 +11086,8 @@
               l__1 (loop [i i]
                      (if (nil? (.at values i))
                        1
-                       (let [len (i32 (long (musl-strlen ed (.at values i))))]
-                         (if (and (== (long (musl-strncmp ed (.at values i) val_ len)) 0) (or (and list_ (== (.ub val_ len) 44)) (== (.ub val_ len) (e NUL))))
+                       (let [len (i32 (long (musl-strlen (.at values i))))]
+                         (if (and (== (long (musl-strncmp (.at values i) val_ len)) 0) (or (and list_ (== (.ub val_ len) 44)) (== (.ub val_ len) (e NUL))))
                            (do (aset tl__ 0 i)
                                (aset tl__ 1 len)
                                0)
@@ -11105,10 +11105,10 @@
 
 ;; C: didset_string_options
 (defn didset-string-options [^Editor ed]
-  (opt-strings-flags ed (aget (g ed p-cmp) 0) (Ptr. (g ed p-cmp-values) 0) (IntPtr. (g ed cmp-flags) 0) true)
-  (opt-strings-flags ed (aget (g ed p-bo) 0) (Ptr. (g ed p-bo-values) 0) (IntPtr. (g ed bo-flags) 0) true)
-  (opt-strings-flags ed (aget (g ed p-dy) 0) (Ptr. (g ed p-dy-values) 0) (IntPtr. (g ed dy-flags) 0) true)
-  (opt-strings-flags ed (aget (g ed p-ve) 0) (Ptr. (g ed p-ve-values) 0) (IntPtr. (g ed ve-flags) 0) true)
+  (opt-strings-flags (aget (g ed p-cmp) 0) (Ptr. (g ed p-cmp-values) 0) (IntPtr. (g ed cmp-flags) 0) true)
+  (opt-strings-flags (aget (g ed p-bo) 0) (Ptr. (g ed p-bo-values) 0) (IntPtr. (g ed bo-flags) 0) true)
+  (opt-strings-flags (aget (g ed p-dy) 0) (Ptr. (g ed p-dy-values) 0) (IntPtr. (g ed dy-flags) 0) true)
+  (opt-strings-flags (aget (g ed p-ve) 0) (Ptr. (g ed p-ve-values) 0) (IntPtr. (g ed ve-flags) 0) true)
   nil)
 
 ;; C: get_encoded_char_adv
@@ -11121,7 +11121,7 @@
                bytes_ bytes_]
           (if (> bytes_ 0)
             (do (.put p (.add ^BytePtr (.get p) 2))
-                (let [n (long (hexhex2nr ed (.get p)))]
+                (let [n (long (hexhex2nr (.get p)))]
                   (if (< n 0)
                     0
                     (let [num_ (+ (* num_ 256) n)
@@ -11270,16 +11270,16 @@
               (recur 5 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))
         5
           (if (< i entries)
-            (if (and (== (long (musl-strncmp ed p (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (.length ^T_string_T (.-name_ ^S_charstab (.at tab i))))) 0) (== (.ub p (.length ^T_string_T (.-name_ ^S_charstab (.at tab i)))) 58))
+            (if (and (== (long (musl-strncmp p (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (.length ^T_string_T (.-name_ ^S_charstab (.at tab i))))) 0) (== (.ub p (.length ^T_string_T (.-name_ ^S_charstab (.at tab i)))) 58))
               (do (aset s 0 (.add (.add p (.length ^T_string_T (.-name_ ^S_charstab (.at tab i)))) 1))
-                  (if (and is-listchars (== (long (musl-strcmp ed (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (BytePtr/lit "multispace"))) 0))
+                  (if (and is-listchars (== (long (musl-strcmp (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (BytePtr/lit "multispace"))) 0))
                     (if (== round 0)
                       (let [^BytePtr last-multispace p
                             multispace-len 0]
                         (recur 12 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
                       (let [multispace-pos 0]
                         (recur 11 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))
-                    (if (and is-listchars (== (long (musl-strcmp ed (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (BytePtr/lit "leadmultispace"))) 0))
+                    (if (and is-listchars (== (long (musl-strcmp (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (BytePtr/lit "leadmultispace"))) 0))
                       (if (== round 0)
                         (let [^BytePtr last-lmultispace p
                               lead-multispace-len 0]
@@ -11451,7 +11451,7 @@
 (defn set-string-default-esc [^Editor ed ^BytePtr name_ ^BytePtr val_ escape]
   (let [^BytePtr p (if (and escape (some? (vim-strchr ed val_ 32)))
                      ^BytePtr (vim-strsave-escaped ed val_ (BytePtr/lit " "))
-                     ^BytePtr (vim-strsave ed val_))]
+                     ^BytePtr (vim-strsave val_))]
     (when-not (nil? p)
       (let [opt-idx (long (findoption ed name_))]
         (when-not (< opt-idx 0)
@@ -11465,16 +11465,14 @@
   nil)
 
 ;; C: find_dup_item
-(defn find-dup-item ^BytePtr [^Editor ed ^BytePtr origval ^BytePtr newval newvallen flags]
-  (let [newvallen (long newvallen)
-        flags (long flags)
-        bs 0]
+(defn find-dup-item ^BytePtr [^BytePtr origval ^BytePtr newval ^long newvallen ^long flags]
+  (let [bs 0]
     (when-not (nil? origval)
       (let [^BytePtr s origval]
         (loop [bs bs
                ^BytePtr s s]
           (when-not (== (.ub s) (e NUL))
-            (if (and (or (zero? (bit-and flags (e P_COMMA))) (BytePtr/eq s origval) (and (== (.ub s -1) 44) (zero? (bit-and bs 1)))) (== (long (musl-strncmp ed s newval newvallen)) 0) (or (zero? (bit-and flags (e P_COMMA))) (== (.ub s newvallen) 44) (== (.ub s newvallen) (e NUL))))
+            (if (and (or (zero? (bit-and flags (e P_COMMA))) (BytePtr/eq s origval) (and (== (.ub s -1) 44) (zero? (bit-and bs 1)))) (== (long (musl-strncmp s newval newvallen)) 0) (or (zero? (bit-and flags (e P_COMMA))) (== (.ub s newvallen) 44) (== (.ub s newvallen) (e NUL))))
               s
               (let [bs (if (or (and (.gt s (.add origval 1)) (== (.ub s -1) 92) (not (== (.ub s -2) 44))) (and (BytePtr/eq s (.add origval 1)) (== (.ub s -1) 92)))
                          (i32 (inc bs))
@@ -11484,7 +11482,7 @@
 
 ;; C: term_bg_default
 (defn term-bg-default ^BytePtr [^Editor ed]
-  (if (or (== (long (musl-strcmp ed (aget (g ed term-strings) 0) (BytePtr/lit "linux"))) 0) (== (long (musl-strcmp ed (aget (g ed term-strings) 0) (BytePtr/lit "screen.linux"))) 0) (== (long (musl-strncmp ed (aget (g ed term-strings) 0) (BytePtr/lit "cygwin") 6)) 0) (== (long (musl-strncmp ed (aget (g ed term-strings) 0) (BytePtr/lit "putty") 5)) 0))
+  (if (or (== (long (musl-strcmp (aget (g ed term-strings) 0) (BytePtr/lit "linux"))) 0) (== (long (musl-strcmp (aget (g ed term-strings) 0) (BytePtr/lit "screen.linux"))) 0) (== (long (musl-strncmp (aget (g ed term-strings) 0) (BytePtr/lit "cygwin") 6)) 0) (== (long (musl-strncmp (aget (g ed term-strings) 0) (BytePtr/lit "putty") 5)) 0))
     (BytePtr/lit "dark")
     (BytePtr/lit "light")))
 
@@ -11504,13 +11502,13 @@
         nil))))
 
 ;; C: optval_default
-(defn optval-default? [^Editor ed ^Ptr p ^T_optvar_T varp ^long compatible]
-  (if (optvar-is-null? ed (.copy ^T_optvar_T varp))
+(defn optval-default? [^Ptr p ^T_optvar_T varp ^long compatible]
+  (if (optvar-is-null? (.copy ^T_optvar_T varp))
     true
     (let [dvi (if (or (not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_VI_DEF)))) (not (zero? compatible))) (e VI_DEFAULT) (e VIM_DEFAULT))]
       (if (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_NUM)))
         (if (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_BOOL)))
-          (== (long (musl-strcmp ed (.get ^Ptr (.ov-str varp)) (aget ^objects (.-def-str ^S_vimoption (.get p)) dvi))) 0)
+          (== (long (musl-strcmp (.get ^Ptr (.ov-str varp)) (aget ^objects (.-def-str ^S_vimoption (.get p)) dvi))) 0)
           (== (long (.get ^IntPtr (.ov-int varp))) (i32 (aget ^longs (.-def-num ^S_vimoption (.get p)) dvi))))
         (== (.get ^LongPtr (.ov-long varp)) (aget ^longs (.-def-num ^S_vimoption (.get p)) dvi))))))
 
@@ -11527,9 +11525,9 @@
             (if (Ptr/eq ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get opp))) (Ptr. (g ed p-pt) 0))
               (do (str2specialbuf ed (aget (g ed p-pt) 0) (g ed NameBuff) (e PATH_MAX))
                   nil)
-              (do (vim-strncpy ed (g ed NameBuff) s 4095)
+              (do (vim-strncpy (g ed NameBuff) s 4095)
                   nil))
-            (do (home-replace ed nil s (g ed NameBuff) (e PATH_MAX) false)
+            (do (home-replace nil s (g ed NameBuff) (e PATH_MAX) false)
                 nil))))
       (do (whim.cljhost/vim-snprintf ed (g ed NameBuff) (e PATH_MAX) (BytePtr/lit "%ld") (object-array [(Long/valueOf (.get ^LongPtr (.ov-long varp)))]))
           nil))))
@@ -11574,17 +11572,17 @@
                        (if (some? (.fullname ^S_vimoption (.get p)))
                          (let [item-count (if (message-filtered ed (.fullname ^S_vimoption (.get p)))
                                             item-count
-                                            (do (.set varp (optvar-none ed))
-                                                (let [isterm (istermoption? ed p)]
+                                            (do (.set varp (optvar-none))
+                                                (let [isterm (istermoption? p)]
                                                   (if (== (bit-and opt-flags 6) 0)
                                                     (.set varp (get-varp ed p))
                                                     (when (and (not (== (.indir ^S_vimoption (.get p)) (e PV_NONE))) (not isterm))
                                                       (.set varp (get-varp-scope ed p opt-flags))))
-                                                  (if (and (not (optvar-is-null? ed (.copy ^T_optvar_T varp))) (or (and (== all 2) isterm) (and (== all 1) (not isterm)) (and (== all 0) (not (optval-default? ed p (.copy ^T_optvar_T varp) (long (aget (g ed p-cp) 0)))))))
+                                                  (if (and (not (optvar-is-null? (.copy ^T_optvar_T varp))) (or (and (== all 2) isterm) (and (== all 1) (not isterm)) (and (== all 0) (not (optval-default? p (.copy ^T_optvar_T varp) (long (aget (g ed p-cp) 0)))))))
                                                     (let [len (if (zero? (bit-and opt-flags (e OPT_ONECOLUMN)))
                                                                 (if (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_BOOL)))
                                                                   (do (option-value2string ed p opt-flags)
-                                                                      (i32 (+ (i32 (+ (i32 (long (musl-strlen ed (.fullname ^S_vimoption (.get p))))) (long (vim-strsize ed (g ed NameBuff))))) 1)))
+                                                                      (i32 (+ (i32 (+ (i32 (long (musl-strlen (.fullname ^S_vimoption (.get p))))) (long (vim-strsize ed (g ed NameBuff))))) 1)))
                                                                   1)
                                                                 (i32 (aget (g ed Columns) 0)))]
                                                       (if (or (and (<= len 17) (== run 1)) (and (> len 17) (== run 2)))
@@ -11643,8 +11641,8 @@
   (let [^BytePtr p (get-special-key-name ed (i32 (- (i32 (+ (.ub name_ 0) (i32 (bit-shift-left (.ub name_ 1) 8)))))) 0)]
     (if (== (.ub p 1) 116)
       (.set (g ed IObuff) 5 (unchecked-byte (e NUL)))
-      (musl-strcpy ed (.add (g ed IObuff) 5) p))
-    (let [len (i32 (long (musl-strlen ed (g ed IObuff))))]
+      (musl-strcpy (.add (g ed IObuff) 5) p))
+    (let [len (i32 (long (musl-strlen (g ed IObuff))))]
       (loop [len len]
         (let [t1 len
               len (i32 (inc len))]
@@ -11724,15 +11722,15 @@
                 (recur run)))))))))
 
 ;; C: get_option_prefix
-(defn get-option-prefix ^long [^Editor ed ^Ptr argp]
+(defn get-option-prefix ^long [^Ptr argp]
   (let [prefix (e PREFIX_NONE)
         ^BytePtr arg (.get argp)]
-    (if (and (== (long (musl-strncmp ed arg (BytePtr/lit "no") 2)) 0) (not (== (long (musl-strncmp ed arg (BytePtr/lit "novice") 6)) 0)))
+    (if (and (== (long (musl-strncmp arg (BytePtr/lit "no") 2)) 0) (not (== (long (musl-strncmp arg (BytePtr/lit "novice") 6)) 0)))
       (let [prefix (e PREFIX_NO)
             ^BytePtr arg (.add arg 2)]
         (.put argp arg)
         prefix)
-      (if (== (long (musl-strncmp ed arg (BytePtr/lit "inv") 3)) 0)
+      (if (== (long (musl-strncmp arg (BytePtr/lit "inv") 3)) 0)
         (let [prefix (e PREFIX_INV)
               ^BytePtr arg (.add arg 3)]
           (.put argp arg)
@@ -11823,7 +11821,7 @@
                 out__))))))))
 
 ;; C: get_opt_op
-(defn get-opt-op ^long [^Editor ed ^BytePtr arg]
+(defn get-opt-op ^long [^BytePtr arg]
   (let [op (e OP_NONE)]
     (if (and (not (== (.ub arg) (e NUL))) (== (.ub (.add arg 1)) 61))
       (if (== (.ub arg) 43)
@@ -11858,7 +11856,7 @@
         cp-val (long cp-val)]
     (if (or (== nextchar 61) (== nextchar 58))
       (BytePtr. (g ed e-invalid-argument) 0)
-      (when-not (or (< opt-idx 0) (optvar-is-null? ed (.copy ^T_optvar_T varp)))
+      (when-not (or (< opt-idx 0) (optvar-is-null? (.copy ^T_optvar_T varp)))
         (if (== nextchar 33)
           (let [value (bit-xor (long (.get ^IntPtr (.ov-int varp))) 1)]
             (set-bool-option ed opt-idx (.copy ^T_optvar_T varp) (i32 value) opt-flags))
@@ -11888,7 +11886,7 @@
         ^objects to__ (object-array 1)
         ^BytePtr arg argp
         ^BytePtr errmsg nil]
-    (if (or (< opt-idx 0) (optvar-is-null? ed (.copy ^T_optvar_T varp)))
+    (if (or (< opt-idx 0) (optvar-is-null? (.copy ^T_optvar_T varp)))
       (do (.set-r__ out__ nil)
           (.set-argp out__ argp)
           out__)
@@ -11897,7 +11895,7 @@
                    (do (aset value 0 (aget ^longs (.-def-num ^S_vimoption (aget (g ed options) opt-idx)) (if (or (not (zero? (bit-and flags (e P_VI_DEF)))) (not (zero? cp-val))) (e VI_DEFAULT) (e VIM_DEFAULT))))
                        0)
                    (if (or (== (.ub arg) 45) (< (u32 (- (.ub arg) 48)) 10))
-                     (let [i (long (vim-str2nr ed arg nil i 15 (LongPtr. value 0) nil 0 true nil))]
+                     (let [i (long (vim-str2nr arg nil i 15 (LongPtr. value 0) nil 0 true nil))]
                        (if (or (== i 0) (and (not (== (.ub arg i) (e NUL))) (not (or (== (.ub arg i) 32) (== (.ub arg i) 9)))))
                          (let [^BytePtr errmsg (BytePtr. (g ed e-number-required-after-equal) 0)
                                ^BytePtr argp arg]
@@ -11947,21 +11945,21 @@
             ^BytePtr s (if (nil? s)
                          ^BytePtr newval
                          s)]
-        ^BytePtr (vim-strsave ed s)))))
+        ^BytePtr (vim-strsave s)))))
 
 ;; C: opt_backspace_nr2str
 (defn opt-backspace-nr2str ^T_opt_backspace_nr2str__out_T [^Editor ed ^T_optvar_T varp ^BytePtr origval-p ^BytePtr origval-l-p ^BytePtr origval-g-p ^BytePtr oldval-p]
   (let [^T_opt_backspace_nr2str__out_T out__ (new-T_opt_backspace_nr2str__out_T)
-        i (i32 (long (getdigits ed (.ov-str varp))))]
+        i (i32 (long (getdigits (.ov-str varp))))]
     (case i
       0
         (.put ^Ptr (.ov-str varp) (g ed empty-option))
       1
-        (.put ^Ptr (.ov-str varp) (vim-strnsave ed (BytePtr/lit "indent,eol") 10))
+        (.put ^Ptr (.ov-str varp) (vim-strnsave (BytePtr/lit "indent,eol") 10))
       2
-        (.put ^Ptr (.ov-str varp) (vim-strnsave ed (BytePtr/lit "indent,eol,start") 16))
+        (.put ^Ptr (.ov-str varp) (vim-strnsave (BytePtr/lit "indent,eol,start") 16))
       3
-        (.put ^Ptr (.ov-str varp) (vim-strnsave ed (BytePtr/lit "indent,eol,nostop") 17))
+        (.put ^Ptr (.ov-str varp) (vim-strnsave (BytePtr/lit "indent,eol,nostop") 17))
       nil)
     (let [^BytePtr origval-p (if (BytePtr/eq origval-p oldval-p)
                                ^BytePtr (.get ^Ptr (.ov-str varp))
@@ -11980,29 +11978,29 @@
       out__)))
 
 ;; C: opt_whichwrap_nr2str
-(defn opt-whichwrap-nr2str ^BytePtr [^Editor ed ^Ptr argp ^BytePtr whichwrap]
+(defn opt-whichwrap-nr2str ^BytePtr [^Ptr argp ^BytePtr whichwrap]
   (let [len 0
         _ (.put whichwrap (unchecked-byte (e NUL)))
-        i (i32 (long (getdigits ed argp)))
+        i (i32 (long (getdigits argp)))
         len (if (zero? (bit-and i 1))
               len
-              (do (musl-strcpy ed whichwrap (BytePtr/lit "b,"))
+              (do (musl-strcpy whichwrap (BytePtr/lit "b,"))
                   (+ len 2)))
         len (if (zero? (bit-and i 2))
               len
-              (do (musl-strcpy ed (.add whichwrap len) (BytePtr/lit "s,"))
+              (do (musl-strcpy (.add whichwrap len) (BytePtr/lit "s,"))
                   (+ len 2)))
         len (if (zero? (bit-and i 4))
               len
-              (do (musl-strcpy ed (.add whichwrap len) (BytePtr/lit "h,l,"))
+              (do (musl-strcpy (.add whichwrap len) (BytePtr/lit "h,l,"))
                   (+ len 4)))
         len (if (zero? (bit-and i 8))
               len
-              (do (musl-strcpy ed (.add whichwrap len) (BytePtr/lit "<,>,"))
+              (do (musl-strcpy (.add whichwrap len) (BytePtr/lit "<,>,"))
                   (+ len 4)))
         len (if (zero? (bit-and i 16))
               len
-              (do (musl-strcpy ed (.add whichwrap len) (BytePtr/lit "[,],"))
+              (do (musl-strcpy (.add whichwrap len) (BytePtr/lit "[,],"))
                   (+ len 4)))]
     (if (== (.ub whichwrap) (e NUL))
       whichwrap
@@ -12016,10 +12014,10 @@
         ^objects to__ (object-array 3)
         ^BytePtr arg (.get argp)
         ^BytePtr s nil
-        newlen (u32 (+ (u32 (long (musl-strlen ed arg))) 1))
+        newlen (u32 (+ (u32 (long (musl-strlen arg))) 1))
         newlen (if (== op (e OP_NONE))
                  newlen
-                 (let [t1 (u32 (+ (u32 (long (musl-strlen ed origval))) 1))
+                 (let [t1 (u32 (+ (u32 (long (musl-strlen origval))) 1))
                        newlen (u32 (+ newlen t1))]
                    newlen))
         ^BytePtr newval (BytePtr/alloc newlen)
@@ -12060,15 +12058,15 @@
         ^BytePtr s (option-expand ed opt-idx newval)]
     (if (nil? s)
       newval
-      (let [newlen (u32 (+ (u32 (long (musl-strlen ed s))) 1))]
+      (let [newlen (u32 (+ (u32 (long (musl-strlen s))) 1))]
         (if (== op (e OP_NONE))
           (let [^BytePtr newval (BytePtr/alloc newlen)]
-            (musl-strcpy ed newval s)
+            (musl-strcpy newval s)
             newval)
-          (let [t1 (u32 (+ (u32 (long (musl-strlen ed origval))) 1))
+          (let [t1 (u32 (+ (u32 (long (musl-strlen origval))) 1))
                 newlen (u32 (+ newlen t1))
                 ^BytePtr newval (BytePtr/alloc newlen)]
-            (musl-strcpy ed newval s)
+            (musl-strcpy newval s)
             newval))))))
 
 ;; C: find_key_item
@@ -12082,10 +12080,10 @@
         (do (.set-r__ out__ nil)
             (.set-itemlenp out__ itemlenp)
             out__)
-        (if (and (or (BytePtr/eq p src) (== (.ub (.add p (- 1))) 44)) (== (long (musl-strncmp ed p key_ keylen)) 0))
+        (if (and (or (BytePtr/eq p src) (== (.ub (.add p (- 1))) 44)) (== (long (musl-strncmp p key_ keylen)) 0))
           (let [^BytePtr end (vim-strchr ed p 44)
                 ^BytePtr end (if (nil? end)
-                               ^BytePtr (.add p (long (musl-strlen ed p)))
+                               ^BytePtr (.add p (long (musl-strlen p)))
                                end)
                 itemlenp (i32 (.sub end p))]
             (.set-r__ out__ p)
@@ -12095,12 +12093,12 @@
             (recur p)))))))
 
 ;; C: remove_comma_item
-(defn remove-comma-item [^Editor ed ^BytePtr str_ ^BytePtr item ^long itemlen]
+(defn remove-comma-item [^BytePtr str_ ^BytePtr item ^long itemlen]
   (if (== (.ub item itemlen) 44)
-    (do (Rt/memmove item (.add (.add item itemlen) 1) (+ (long (musl-strlen ed (.add (.add item itemlen) 1))) 1))
+    (do (Rt/memmove item (.add (.add item itemlen) 1) (+ (long (musl-strlen (.add (.add item itemlen) 1))) 1))
         nil)
     (if (and (.gt item str_) (== (.ub (.add item (- 1))) 44))
-      (do (Rt/memmove (.add item (- 1)) (.add item itemlen) (+ (long (musl-strlen ed (.add item itemlen))) 1))
+      (do (Rt/memmove (.add item (- 1)) (.add item itemlen) (+ (long (musl-strlen (.add item itemlen))) 1))
           nil)
       (do (.put item (unchecked-byte (e NUL)))
           nil))))
@@ -12137,14 +12135,14 @@
               0
                 (let [itemlen (aget tl__ 0)
                       ^BytePtr found (aget to__ 0)]
-                  (remove-comma-item ed str_ found itemlen)
+                  (remove-comma-item str_ found itemlen)
                   (recur itemlen))
               1
                 nil)))))))
 
 ;; C: prepend_item
-(defn prepend-item [^Editor ed ^BytePtr str_ ^BytePtr item ^long item-len]
-  (let [len (i32 (long (musl-strlen ed str_)))
+(defn prepend-item [^BytePtr str_ ^BytePtr item ^long item-len]
+  (let [len (i32 (long (musl-strlen str_)))
         comma (if (> len 0) 1 0)]
     (Rt/memmove (.add (.add str_ item-len) comma) str_ (+ len 1))
     (Rt/memmove str_ item item-len)
@@ -12153,8 +12151,8 @@
       nil)))
 
 ;; C: append_item
-(defn append-item [^Editor ed ^BytePtr str_ ^BytePtr item ^long item-len]
-  (let [len (i32 (long (musl-strlen ed str_)))]
+(defn append-item [^BytePtr str_ ^BytePtr item ^long item-len]
+  (let [len (i32 (long (musl-strlen str_)))]
     (if (> len 0)
       (let [t1 len
             len (i32 (inc len))]
@@ -12174,13 +12172,13 @@
         old-itemlen 0]
     (if (and (nil? (vim-strchr ed newval 58)) (nil? (vim-strchr ed newval 44)))
       false
-      (let [^BytePtr newval-copy (vim-strsave ed newval)
-            _ (musl-strcpy ed newval origval)
+      (let [^BytePtr newval-copy (vim-strsave newval)
+            _ (musl-strcpy newval origval)
             ^BytePtr item-start newval-copy]
         (loop [^BytePtr item-start item-start
                old-itemlen old-itemlen]
           (let [^BytePtr p (vim-strchr ed item-start 44)
-                item-len (if (nil? p) (i32 (long (musl-strlen ed item-start))) (i32 (.sub p item-start)))
+                item-len (if (nil? p) (i32 (long (musl-strlen item-start))) (i32 (.sub p item-start)))
                 old-itemlen (if (> item-len 0)
                               (let [^BytePtr colon (vim-strchr ed item-start 58)]
                                 (if (and (some? colon) (.lt colon (.add item-start item-len)))
@@ -12190,37 +12188,37 @@
                                           (let [old-itemlen (.itemlenp find-key-item__o)
                                                 ^BytePtr found (.r__ find-key-item__o)]
                                             (if (some? found)
-                                              (if (and (== old-itemlen item-len) (== (long (musl-strncmp ed found item-start item-len)) 0))
+                                              (if (and (== old-itemlen item-len) (== (long (musl-strncmp found item-start item-len)) 0))
                                                 (do (remove-key-item ed newval item-start keylen found)
                                                     old-itemlen)
                                                 (do (remove-key-item ed newval item-start keylen nil)
                                                     (if (== op (e OP_PREPENDING))
-                                                      (do (prepend-item ed newval item-start item-len)
+                                                      (do (prepend-item newval item-start item-len)
                                                           old-itemlen)
-                                                      (do (append-item ed newval item-start item-len)
+                                                      (do (append-item newval item-start item-len)
                                                           old-itemlen))))
                                               (if (== op (e OP_PREPENDING))
-                                                (do (prepend-item ed newval item-start item-len)
+                                                (do (prepend-item newval item-start item-len)
                                                     old-itemlen)
-                                                (do (append-item ed newval item-start item-len)
+                                                (do (append-item newval item-start item-len)
                                                     old-itemlen)))))
                                       (if (== op (e OP_REMOVING))
                                         (do (remove-key-item ed newval item-start keylen nil)
                                             old-itemlen)
                                         old-itemlen)))
                                   (if (or (== op (e OP_ADDING)) (== op (e OP_PREPENDING)))
-                                    (let [^BytePtr found_2 (find-dup-item ed newval item-start item-len (e P_COMMA))]
+                                    (let [^BytePtr found_2 (find-dup-item newval item-start item-len (e P_COMMA))]
                                       (if (nil? found_2)
                                         (if (== op (e OP_PREPENDING))
-                                          (do (prepend-item ed newval item-start item-len)
+                                          (do (prepend-item newval item-start item-len)
                                               old-itemlen)
-                                          (do (append-item ed newval item-start item-len)
+                                          (do (append-item newval item-start item-len)
                                               old-itemlen))
                                         old-itemlen))
                                     (if (== op (e OP_REMOVING))
-                                      (let [^BytePtr found_3 (find-dup-item ed newval item-start item-len (e P_COMMA))]
+                                      (let [^BytePtr found_3 (find-dup-item newval item-start item-len (e P_COMMA))]
                                         (if (some? found_3)
-                                          (do (remove-comma-item ed newval found_3 item-len)
+                                          (do (remove-comma-item newval found_3 item-len)
                                               old-itemlen)
                                           old-itemlen))
                                       old-itemlen))))
@@ -12231,33 +12229,31 @@
                 (recur item-start old-itemlen)))))))))
 
 ;; C: stropt_concat_with_comma
-(defn stropt-concat-with-comma [^Editor ed ^BytePtr origval ^BytePtr newval op flags]
-  (let [op (long op)
-        flags (long flags)
-        len 0
+(defn stropt-concat-with-comma [^BytePtr origval ^BytePtr newval ^long op ^long flags]
+  (let [len 0
         comma (and (not (zero? (bit-and flags (e P_COMMA)))) (not (== (.ub origval) (e NUL))) (not (== (.ub newval) (e NUL))))
         len (if (== op (e OP_ADDING))
-              (let [len (i32 (long (musl-strlen ed origval)))
+              (let [len (i32 (long (musl-strlen origval)))
                     len (if (and comma (> len 1) (== (bit-and flags (e P_ONECOMMA)) (e P_ONECOMMA)) (== (.ub origval (i32 (- len 1))) 44) (not (== (.ub origval (i32 (- len 2))) 92)))
                           (i32 (dec len))
                           len)]
-                (Rt/memmove (.add (.add newval len) (if comma 1 0)) newval (+ (long (musl-strlen ed newval)) 1))
+                (Rt/memmove (.add (.add newval len) (if comma 1 0)) newval (+ (long (musl-strlen newval)) 1))
                 (Rt/memmove newval origval len)
                 len)
-              (let [len (i32 (long (musl-strlen ed newval)))]
-                (Rt/memmove (.add (.add newval len) (if comma 1 0)) origval (+ (long (musl-strlen ed origval)) 1))
+              (let [len (i32 (long (musl-strlen newval)))]
+                (Rt/memmove (.add (.add newval len) (if comma 1 0)) origval (+ (long (musl-strlen origval)) 1))
                 len))]
     (when comma
       (.set newval len (unchecked-byte 44))
       nil)))
 
 ;; C: stropt_remove_val
-(defn stropt-remove-val [^Editor ed ^BytePtr origval ^BytePtr newval flags ^BytePtr strval len]
+(defn stropt-remove-val [^BytePtr origval ^BytePtr newval flags ^BytePtr strval len]
   (let [flags (long flags)
         len (long len)
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 1)]
-    (musl-strcpy ed newval origval)
+    (musl-strcpy newval origval)
     (when-not (zero? (.ub strval))
       (let [j__1 (if (zero? (bit-and flags (e P_COMMA)))
                    (do (aset to__ 0 strval)
@@ -12279,7 +12275,7 @@
                        0)))
             ^BytePtr strval (aget to__ 0)
             len (aget tl__ 0)]
-        (Rt/memmove (.add newval (.sub strval origval)) (.add strval len) (+ (long (musl-strlen ed (.add strval len))) 1))
+        (Rt/memmove (.add newval (.sub strval origval)) (.add strval len) (+ (long (musl-strlen (.add strval len))) 1))
         nil))))
 
 ;; C: stropt_remove_dupflags
@@ -12289,11 +12285,11 @@
       (when-not (zero? (.ub s))
         (let [j__1 (if (zero? (bit-and flags (e P_ONECOMMA)))
                      (if (and (or (zero? (bit-and flags (e P_COMMA))) (not (== (.ub s) 44))) (some? (vim-strchr ed (.add s 1) (.ub s))))
-                       (do (Rt/memmove s (.add s 1) (+ (long (musl-strlen ed (.add s 1))) 1))
+                       (do (Rt/memmove s (.add s 1) (+ (long (musl-strlen (.add s 1))) 1))
                            1)
                        0)
                      (if (and (not (== (.ub s) 44)) (== (.ub (.add s 1)) 44) (some? (vim-strchr ed (.add s 2) (.ub s))))
-                       (do (Rt/memmove s (.add s 2) (+ (long (musl-strlen ed (.add s 2))) 1))
+                       (do (Rt/memmove s (.add s 2) (+ (long (musl-strlen (.add s 2))) 1))
                            1)
                        0))]
           (case (long j__1)
@@ -12348,7 +12344,7 @@
                                         (aset to__ 4 save-arg)
                                         0))
                                   (if (and (Ptr/eq ^Ptr (.ov-str varp) (Ptr. (g ed p-ww) 0)) (< (u32 (- (.ub ^BytePtr (aget arg 0)) 48)) 10))
-                                    (let [^BytePtr t (opt-whichwrap-nr2str ed (Ptr. arg 0) (BytePtr. whichwrap 0))
+                                    (let [^BytePtr t (opt-whichwrap-nr2str (Ptr. arg 0) (BytePtr. whichwrap 0))
                                           ^BytePtr save-arg (aget arg 0)]
                                       (aset arg 0 t)
                                       (aset to__ 0 origval)
@@ -12385,15 +12381,15 @@
                                       op
                                       (let [len 0
                                             j__3 (if (or (== op (e OP_REMOVING)) (not (zero? (bit-and flags (e P_NODUP)))))
-                                                   (let [len (i32 (long (musl-strlen ed newval)))
-                                                         ^BytePtr s (find-dup-item ed origval newval len flags)
+                                                   (let [len (i32 (long (musl-strlen newval)))
+                                                         ^BytePtr s (find-dup-item origval newval len flags)
                                                          op (if (and (or (== op (e OP_ADDING)) (== op (e OP_PREPENDING))) (some? s))
                                                               (let [op (e OP_NONE)]
-                                                                (musl-strcpy ed newval origval)
+                                                                (musl-strcpy newval origval)
                                                                 op)
                                                               op)]
                                                      (if (nil? s)
-                                                       (let [^BytePtr s (.add origval (i32 (long (musl-strlen ed origval))))]
+                                                       (let [^BytePtr s (.add origval (i32 (long (musl-strlen origval))))]
                                                          (aset tl__ 0 op)
                                                          (aset to__ 7 s)
                                                          (aset tl__ 1 len)
@@ -12410,10 +12406,10 @@
                                             ^BytePtr s (aget to__ 7)
                                             len (aget tl__ 1)]
                                         (if (or (== op (e OP_ADDING)) (== op (e OP_PREPENDING)))
-                                          (do (stropt-concat-with-comma ed origval newval op flags)
+                                          (do (stropt-concat-with-comma origval newval op flags)
                                               op)
                                           (if (== op (e OP_REMOVING))
-                                            (do (stropt-remove-val ed origval newval flags s len)
+                                            (do (stropt-remove-val origval newval flags s len)
                                                 op)
                                             op))))]
                              (if (zero? (bit-and flags (e P_FLAGLIST)))
@@ -12700,7 +12696,7 @@
       (case st
         0
           (do (aset errmsg 0 nil)
-              (let [prefix (long (get-option-prefix ed argp))
+              (let [prefix (long (get-option-prefix argp))
                     ^BytePtr arg (.get argp)
                     key_ 0
                     _ (.set parse-option-name__o (parse-option-name ed arg opt-idx len key_))
@@ -12717,7 +12713,7 @@
           (if (or (== (.ub arg len) 32) (== (.ub arg len) 9))
             (let [len (i32 (inc len))]
               (recur 1 opt-flags argp did-show stopopteval errbuf errbuflen opt-idx arg prefix op flags nextchar afterchar key_ len))
-            (let [op (long (get-opt-op ed (.add arg len)))
+            (let [op (long (get-opt-op (.add arg len)))
                   len (if (== op (e OP_NONE))
                         len
                         (i32 (inc len)))
@@ -12729,7 +12725,7 @@
                     (.set-did-show out__ did-show)
                     out__)
                 (if (>= opt-idx 0)
-                  (if (optvar-is-null? ed (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx))))
+                  (if (optvar-is-null? (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx))))
                     (do (when (and (nil? (vim-strchr ed (BytePtr/lit "=:!&<") nextchar)) (or (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0) (e P_BOOL))) (== nextchar 63)))
                           (aset errmsg 0 (BytePtr. (g ed e-option-not-supported) 0)))
                         (.put argp arg)
@@ -12740,7 +12736,7 @@
                       (.set varp (get-varp-scope ed (Ptr. (g ed options) opt-idx) opt-flags))
                       (recur 2 opt-flags argp did-show stopopteval errbuf errbuflen opt-idx arg prefix op flags nextchar afterchar key_ len)))
                   (let [flags (e P_STRING)]
-                    (.set varp (optvar-none ed))
+                    (.set varp (optvar-none))
                     (if (< key_ 0)
                       (do (aset key-name 0 (unchecked-byte (bit-and (i32 (- key_)) 255)))
                           (aset key-name 1 (unchecked-byte (bit-and (bit-shift-right (u32 (- key_)) 8) 255)))
@@ -12854,7 +12850,7 @@
         (loop [did-show did-show]
           (if (== (.ub ^BytePtr (aget arg 0)) (e NUL))
             true
-            (let [j__1 (if (and (== (long (musl-strncmp ed (aget arg 0) (BytePtr/lit "all") 3)) 0) (not (or (< (u32 (- (.ub ^BytePtr (aget arg 0) 3) 65)) 26) (< (u32 (- (.ub ^BytePtr (aget arg 0) 3) 97)) 26))))
+            (let [j__1 (if (and (== (long (musl-strncmp (aget arg 0) (BytePtr/lit "all") 3)) 0) (not (or (< (u32 (- (.ub ^BytePtr (aget arg 0) 3) 65)) 26) (< (u32 (- (.ub ^BytePtr (aget arg 0) 3) 97)) 26))))
                          (do (aset arg 0 (.add ^BytePtr (aget arg 0) 3))
                              (if (== (.ub ^BytePtr (aget arg 0)) 38)
                                (do (aset arg 0 (.add ^BytePtr (aget arg 0) 1))
@@ -12868,7 +12864,7 @@
                                    (let [did-show (e TRUE)]
                                      (aset tl__ 0 did-show)
                                      0))))
-                         (if (== (long (musl-strncmp ed (aget arg 0) (BytePtr/lit "termcap") 7)) 0)
+                         (if (== (long (musl-strncmp (aget arg 0) (BytePtr/lit "termcap") 7)) 0)
                            (do (showoptions ed 2 opt-flags)
                                (show-termcodes ed opt-flags)
                                (let [did-show (e TRUE)]
@@ -12891,7 +12887,7 @@
                                                (when (and (== (.ub t1) 92) (not (== (.ub ^BytePtr (aget arg 0)) (e NUL))))
                                                  (aset arg 0 (.add ^BytePtr (aget arg 0) 1)))
                                                (recur))))
-                                         (aset arg 0 (skipwhite ed (aget arg 0)))
+                                         (aset arg 0 (skipwhite (aget arg 0)))
                                          (when (== (.ub ^BytePtr (aget arg 0)) 61)
                                            (let [i (i32 (inc i))]
                                              (recur i)))))
@@ -12904,13 +12900,13 @@
               (case (long j__1)
                 0
                   (let [did-show (aget tl__ 0)]
-                    (aset arg 0 (skipwhite ed (aget arg 0)))
+                    (aset arg 0 (skipwhite (aget arg 0)))
                     (recur did-show))
                 1
                   (let [^BytePtr errmsg (aget to__ 0)
                         i (i32 (+ (long (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "%s") (object-array [(gettext_ ed errmsg)]))) 2))]
                     (when (< (+ i (.sub ^BytePtr (aget arg 0) ^BytePtr (aget startarg 0))) 1025)
-                      (musl-strcpy ed (.add (.add (g ed IObuff) i) (- 2)) (BytePtr/lit ": "))
+                      (musl-strcpy (.add (.add (g ed IObuff) i) (- 2)) (BytePtr/lit ": "))
                       (Rt/memmove (.add (g ed IObuff) i) ^BytePtr (aget startarg 0) (.sub ^BytePtr (aget arg 0) ^BytePtr (aget startarg 0)))
                       (.set (g ed IObuff) (+ i (.sub ^BytePtr (aget arg 0) ^BytePtr (aget startarg 0))) (unchecked-byte (e NUL))))
                     (trans-characters ed (g ed IObuff) 1025)
@@ -13053,7 +13049,7 @@
         nil)))
 
 ;; C: statusline_height
-(defn statusline-height ^long [^Editor ed ^S_window_S wp]
+(defn statusline-height ^long [^S_window_S wp]
   1)
 
 ;; C: last_status_rec
@@ -13068,14 +13064,14 @@
                  (if (<= (.fr-height fr) (long (frame-minheight ed fr nil)))
                    (do (emsg ed (gettext_ ed (BytePtr. (g ed e-not-enough-room) 0)))
                        -1)
-                   (do (.set-w-status-height wp (long (statusline-height ed wp)))
+                   (do (.set-w-status-height wp (long (statusline-height wp)))
                        (win-new-height ed wp (i32 (- (.w-height wp) (.w-status-height wp))))
                        (comp-col ed)
                        (redraw-all-later ed (e UPD_SOME_VALID))
                        0))
                  0))]
     (when-not (== (long j__1) -1)
-      (when (== (long (musl-abs ed (i32 (- (.w-height wp) (.w-prev-height wp))))) 1)
+      (when (== (long (musl-abs (i32 (- (.w-height wp) (.w-prev-height wp))))) 1)
         (.set-w-prev-height wp (.w-height wp))
         nil))))
 
@@ -13242,12 +13238,12 @@
 (defn did-set-terse ^BytePtr [^Editor ed ^T_optset_T args]
   (let [^BytePtr p (vim-strchr ed (aget (g ed p-shm) 0) (e SHM_SEARCH))]
     (if (and (not (zero? (long (aget (g ed p-terse) 0)))) (nil? p))
-      (do (musl-strcpy ed (g ed IObuff) (aget (g ed p-shm) 0))
-          (musl-strcat ed (g ed IObuff) (BytePtr/lit "s"))
+      (do (musl-strcpy (g ed IObuff) (aget (g ed p-shm) 0))
+          (musl-strcat (g ed IObuff) (BytePtr/lit "s"))
           (set-string-option-direct ed (BytePtr/lit "shm") -1 (g ed IObuff) (e OPT_FREE) 0)
           nil)
       (when (and (zero? (long (aget (g ed p-terse) 0))) (some? p))
-        (Rt/memmove p (.add p 1) (+ (long (musl-strlen ed (.add p 1))) 1))
+        (Rt/memmove p (.add p 1) (+ (long (musl-strlen (.add p 1))) 1))
         nil))))
 
 ;; C: did_set_textwidth
@@ -13334,11 +13330,11 @@
   (let [^Ptr p (Ptr. (g ed options) 0)]
     (loop [^Ptr p p]
       (if (some? (.fullname ^S_vimoption (.get p)))
-        (do (when (istermoption? ed p)
+        (do (when (istermoption? p)
               (when-not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_ALLOCED)))
-                (free-string-option ed (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get p))))))
+                (free-string-option (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get p))))))
               (when-not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_DEF_ALLOCED)))
-                (free-string-option ed (aget ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT))))
+                (free-string-option (aget ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT))))
               (.put ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get p))) (g ed empty-option))
               (aset ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT) (g ed empty-option))
               (aset ^longs (.-flags ^S_vimoption (.get p)) 0 (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) -137)))
@@ -13358,9 +13354,9 @@
   (let [^Ptr p (Ptr. (g ed options) 0)]
     (loop [^Ptr p p]
       (when (some? (.fullname ^S_vimoption (.get p)))
-        (when (and (istermoption? ed p) (not (BytePtr/eq ^BytePtr (aget ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT)) ^BytePtr (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get p)))))))
+        (when (and (istermoption? p) (not (BytePtr/eq ^BytePtr (aget ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT)) ^BytePtr (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get p)))))))
           (when-not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_DEF_ALLOCED)))
-            (free-string-option ed (aget ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT)))
+            (free-string-option (aget ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT)))
             (aset ^longs (.-flags ^S_vimoption (.get p)) 0 (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) -129)))
           (aset ^objects (.-def-str ^S_vimoption (.get p)) (e VI_DEFAULT) (.get ^Ptr (.ov-str ^T_optvar_T (.-var_ ^S_vimoption (.get p)))))
           (when-not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_ALLOCED)))
@@ -13378,7 +13374,7 @@
 
 ;; C: did_set_opt_flags
 (defn did-set-opt-flags ^BytePtr [^Editor ed ^BytePtr val_ ^Ptr values ^IntPtr flagp list_]
-  (when-not (opt-strings-flags ed val_ values flagp list_)
+  (when-not (opt-strings-flags val_ values flagp list_)
     (BytePtr. (g ed e-invalid-argument) 0)))
 
 ;; C: did_set_opt_strings
@@ -13397,8 +13393,8 @@
             (recur s)))))))
 
 ;; C: check_opt_strings
-(defn check-opt-strings [^Editor ed ^BytePtr val_ ^Ptr values list_]
-  (opt-strings-flags ed val_ values nil list_))
+(defn check-opt-strings [^BytePtr val_ ^Ptr values list_]
+  (opt-strings-flags val_ values nil list_))
 
 ;; C: check_chars_options
 (defn check-chars-options ^BytePtr [^Editor ed]
@@ -13414,13 +13410,13 @@
 
 ;; C: did_set_ambiwidth
 (defn did-set-ambiwidth ^BytePtr [^Editor ed ^T_optset_T args]
-  (if (check-opt-strings ed (aget (g ed p-ambw) 0) (Ptr. (g ed p-ambw-values) 0) false)
+  (if (check-opt-strings (aget (g ed p-ambw) 0) (Ptr. (g ed p-ambw-values) 0) false)
     (check-chars-options ed)
     (BytePtr. (g ed e-invalid-argument) 0)))
 
 ;; C: did_set_background
 (defn did-set-background ^BytePtr [^Editor ed ^T_optset_T args]
-  (if (check-opt-strings ed (aget (g ed p-bg) 0) (Ptr. (g ed p-bg-values) 0) false)
+  (if (check-opt-strings (aget (g ed p-bg) 0) (Ptr. (g ed p-bg-values) 0) false)
     (when-not (and (some? (.string ^A_4 (.-os-oldval args))) (== (.ub ^BytePtr (.string ^A_4 (.-os-oldval args)) 0) (.ub ^BytePtr (aget (g ed p-bg) 0))))
       (init-highlight ed false false)
       nil)
@@ -13431,7 +13427,7 @@
   (if (< (u32 (- (.ub ^BytePtr (aget (g ed p-bs) 0)) 48)) 10)
     (when (or (> (.ub ^BytePtr (aget (g ed p-bs) 0)) 51) (not (== (.ub ^BytePtr (aget (g ed p-bs) 0) 1) (e NUL))))
       (BytePtr. (g ed e-invalid-argument) 0))
-    (when-not (check-opt-strings ed (aget (g ed p-bs) 0) (Ptr. (g ed p-bs-values) 0) true)
+    (when-not (check-opt-strings (aget (g ed p-bs) 0) (Ptr. (g ed p-bs-values) 0) true)
       (BytePtr. (g ed e-invalid-argument) 0))))
 
 ;; C: did_set_belloff
@@ -13489,7 +13485,7 @@
 
 ;; C: did_set_display
 (defn did-set-display ^BytePtr [^Editor ed ^T_optset_T args]
-  (if (opt-strings-flags ed (aget (g ed p-dy) 0) (Ptr. (g ed p-dy-values) 0) (IntPtr. (g ed dy-flags) 0) true)
+  (if (opt-strings-flags (aget (g ed p-dy) 0) (Ptr. (g ed p-dy-values) 0) (IntPtr. (g ed dy-flags) 0) true)
     (do (init-chartab ed)
         nil)
     (BytePtr. (g ed e-invalid-argument) 0)))
@@ -13515,7 +13511,7 @@
 
 ;; C: did_set_keymodel
 (defn did-set-keymodel ^BytePtr [^Editor ed ^T_optset_T args]
-  (if (check-opt-strings ed (aget (g ed p-km) 0) (Ptr. (g ed p-km-values) 0) true)
+  (if (check-opt-strings (aget (g ed p-km) 0) (Ptr. (g ed p-km-values) 0) true)
     (do (g! ed km-stopsel (if (some? (vim-strchr ed (aget (g ed p-km) 0) 111)) 1 0))
         (g! ed km-startsel (if (some? (vim-strchr ed (aget (g ed p-km) 0) 97)) 1 0))
         nil)
@@ -13526,7 +13522,7 @@
   (let [^T_copy_option_part__out_T copy-option-part__o (new-T_copy_option_part__out_T)
         ^T_regmatch_T regmatch (new-T_regmatch_T)
         ^longs tl__ (long-array 2)
-        len (i32 (+ (i32 (long (musl-strlen ed (aget (g ed p-kpc) 0)))) 1))
+        len (i32 (+ (i32 (long (musl-strlen (aget (g ed p-kpc) 0)))) 1))
         ^BytePtr buf (BytePtr/alloc len)
         ret (e KEYPROTOCOL_FAIL)
         ^BytePtr p (aget (g ed p-kpc) 0)]
@@ -13539,15 +13535,15 @@
               (if (or (nil? colon) (BytePtr/eq colon buf) (== (.ub colon 1) (e NUL)))
                 ret
                 (do (.put colon (unchecked-byte (e NUL)))
-                    (let [j__1 (if (== (long (musl-strcmp ed (.add colon 1) (BytePtr/lit "none"))) 0)
+                    (let [j__1 (if (== (long (musl-strcmp (.add colon 1) (BytePtr/lit "none"))) 0)
                                  (let [prot (e KEYPROTOCOL_NONE)]
                                    (aset tl__ 0 prot)
                                    0)
-                                 (if (== (long (musl-strcmp ed (.add colon 1) (BytePtr/lit "mok2"))) 0)
+                                 (if (== (long (musl-strcmp (.add colon 1) (BytePtr/lit "mok2"))) 0)
                                    (let [prot (e KEYPROTOCOL_MOK2)]
                                      (aset tl__ 0 prot)
                                      0)
-                                   (if (== (long (musl-strcmp ed (.add colon 1) (BytePtr/lit "kitty"))) 0)
+                                   (if (== (long (musl-strcmp (.add colon 1) (BytePtr/lit "kitty"))) 0)
                                      (let [prot (e KEYPROTOCOL_KITTY)]
                                        (aset tl__ 0 prot)
                                        0)
@@ -13561,7 +13557,7 @@
                             (if (nil? (.regprog regmatch))
                               ret
                               (let [match (and (some? term) (vim-regexec ed regmatch term 0))]
-                                (vim-regfree ed (.regprog regmatch))
+                                (vim-regfree (.regprog regmatch))
                                 (if match
                                   prot
                                   (recur p)))))
@@ -13588,8 +13584,8 @@
           (when (and (not (== (.bt-entry ^T_tcap_entry_T (.get p)) 0)) (not (== (.bt-entry ^T_tcap_entry_T (.get p)) (e BT_EXTRA_KEYS))))
             (if (>= (.bt-entry ^T_tcap_entry_T (.get p)) 0)
               (if (or (nil? (aget (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p)))) (BytePtr/eq ^BytePtr (aget (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p))) (g ed empty-option)) overwrite)
-                (if (and term-8bit (not (== (long (term-7to8bit ed (.bt-string ^T_tcap_entry_T (.get p)))) 0)))
-                  (let [^BytePtr s (vim-strsave ed (.bt-string ^T_tcap_entry_T (.get p)))
+                (if (and term-8bit (not (== (long (term-7to8bit (.bt-string ^T_tcap_entry_T (.get p)))) 0)))
+                  (let [^BytePtr s (vim-strsave (.bt-string ^T_tcap_entry_T (.get p)))
                         ^BytePtr t s]
                     (recur 2 term entries overwrite term-8bit p s t))
                   (do (aset (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p)) (.bt-string ^T_tcap_entry_T (.get p)))
@@ -13606,9 +13602,9 @@
             (do (aset (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p)) s)
                 (set-term-option-alloced ed (Ptr. (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p))))
                 (recur 3 term entries overwrite term-8bit p s t))
-            (do (when-not (zero? (long (term-7to8bit ed t)))
-                  (.put t (unchecked-byte (long (term-7to8bit ed t))))
-                  (Rt/memmove (.add t 1) (.add t 2) (+ (long (musl-strlen ed (.add t 2))) 1)))
+            (do (when-not (zero? (long (term-7to8bit t)))
+                  (.put t (unchecked-byte (long (term-7to8bit t))))
+                  (Rt/memmove (.add t 1) (.add t 2) (+ (long (musl-strlen (.add t 2))) 1)))
                 (let [^BytePtr t (.add t 1)]
                   (recur 2 term entries overwrite term-8bit p s t))))
         3
@@ -13628,7 +13624,7 @@
             (when-not (and (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff) 80) (or (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) 83) (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) 69)))
               (let [^BytePtr s (.code ^S_termcode (.at (g ed termcodes) i))]
                 (when (and (some? s) (vim-regexec ed regmatch s 0))
-                  (let [len (long (musl-strlen ed s))
+                  (let [len (long (musl-strlen s))
                         ^BytePtr ns_ (BytePtr/alloc (+ len 3))]
                     (Rt/memmove ns_ s (- len 1))
                     (Rt/memmove (.add (.add ns_ len) (- 1)) (BytePtr/lit ";*~") 4)
@@ -13637,7 +13633,7 @@
                     (adjust-modlen ed i)))))
             (let [i (i32 (inc i))]
               (recur i)))
-          (do (vim-regfree ed (.regprog regmatch))
+          (do (vim-regfree (.regprog regmatch))
               nil))))))
 
 ;; C: apply_keyprotocol
@@ -13718,13 +13714,13 @@
       (.set replace-termcodes__o (replace-termcodes ed (aget (g ed p-pt) 0) 0 3 nil))
       (let [^BytePtr p (.bufp replace-termcodes__o)]
         (when (some? p)
-          (free-string-option ed (aget (g ed p-pt) 0))
+          (free-string-option (aget (g ed p-pt) 0))
           (aset (g ed p-pt) 0 p)
           nil)))))
 
 ;; C: did_set_selection
 (defn did-set-selection ^BytePtr [^Editor ed ^T_optset_T args]
-  (when (or (== (.ub ^BytePtr (aget (g ed p-sel) 0)) (e NUL)) (not (check-opt-strings ed (aget (g ed p-sel) 0) (Ptr. (g ed p-sel-values) 0) false)))
+  (when (or (== (.ub ^BytePtr (aget (g ed p-sel) 0)) (e NUL)) (not (check-opt-strings (aget (g ed p-sel) 0) (Ptr. (g ed p-sel-values) 0) false)))
     (BytePtr. (g ed e-invalid-argument) 0)))
 
 ;; C: did_set_selectmode
@@ -13799,10 +13795,10 @@
           nil)))))
 
 ;; C: vim_is_xterm
-(defn vim-is-xterm? [^Editor ed ^BytePtr name_]
+(defn vim-is-xterm? [^BytePtr name_]
   (if (nil? name_)
     false
-    (or (and (== (long (musl-strncasecmp ed name_ (BytePtr/lit "xterm") 5)) 0) (not (== (long (musl-strncasecmp ed name_ (BytePtr/lit "xterm-kitty") 11)) 0))) (== (long (musl-strncasecmp ed name_ (BytePtr/lit "nxterm") 6)) 0) (== (long (musl-strncasecmp ed name_ (BytePtr/lit "kterm") 5)) 0) (== (long (musl-strncasecmp ed name_ (BytePtr/lit "mlterm") 6)) 0) (== (long (musl-strncasecmp ed name_ (BytePtr/lit "rxvt") 4)) 0) (== (long (musl-strncasecmp ed name_ (BytePtr/lit "screen.xterm") 12)) 0) (== (long (musl-strcmp ed name_ (BytePtr/lit "builtin_xterm"))) 0))))
+    (or (and (== (long (musl-strncasecmp name_ (BytePtr/lit "xterm") 5)) 0) (not (== (long (musl-strncasecmp name_ (BytePtr/lit "xterm-kitty") 11)) 0))) (== (long (musl-strncasecmp name_ (BytePtr/lit "nxterm") 6)) 0) (== (long (musl-strncasecmp name_ (BytePtr/lit "kterm") 5)) 0) (== (long (musl-strncasecmp name_ (BytePtr/lit "mlterm") 6)) 0) (== (long (musl-strncasecmp name_ (BytePtr/lit "rxvt") 4)) 0) (== (long (musl-strncasecmp name_ (BytePtr/lit "screen.xterm") 12)) 0) (== (long (musl-strcmp name_ (BytePtr/lit "builtin_xterm"))) 0))))
 
 ;; C: set_termname
 (defn set-termname [^Editor ed ^BytePtr term]
@@ -13813,7 +13809,7 @@
         height 0
         ^BytePtr error-msg nil
         _ (g! ed detected-8bit (e FALSE))
-        ^BytePtr term (if (term-is-builtin? ed term)
+        ^BytePtr term (if (term-is-builtin? term)
                         ^BytePtr (.add term 8)
                         term)
         ^Ptr termp (find-builtin-term ed term)]
@@ -13825,14 +13821,14 @@
       (do (out-flush ed)
           (clear-termoptions ed)
           (parse-builtin-tcap ed term)
-          (when (and (some? (musl-strstr ed term (BytePtr/lit "256color"))) (or (term-strings-not-set? ed (e KS_CCO)) (< (long (musl-atoi ed (aget (g ed term-strings) 49))) 256)))
+          (when (and (some? (musl-strstr term (BytePtr/lit "256color"))) (or (term-strings-not-set? ed (e KS_CCO)) (< (long (musl-atoi (aget (g ed term-strings) 49))) 256)))
             (apply-builtin-tcap ed term (Ptr. (g ed builtin-256colors) 0) true))
           (let [kpc (long (match-keyprotocol ed term))]
             (apply-keyprotocol ed term kpc)
-            (if (== (long (musl-strcmp ed term (BytePtr/lit "pcterm"))) 0)
+            (if (== (long (musl-strcmp term (BytePtr/lit "pcterm"))) 0)
               (aset (g ed term-strings) 48 (BytePtr/lit "yes"))
               (aset (g ed term-strings) 48 (g ed empty-option)))
-            (when (and (some? (musl-strstr ed term (BytePtr/lit "kitty"))) (or (nil? (aget (g ed term-strings) 69)) (== (.ub ^BytePtr (aget (g ed term-strings) 69)) (e NUL))))
+            (when (and (some? (musl-strstr term (BytePtr/lit "kitty"))) (or (nil? (aget (g ed term-strings) 69)) (== (.ub ^BytePtr (aget (g ed term-strings) 69)) (e NUL))))
               (aset (g ed term-strings) 69 (BytePtr/lit "\033[>c")))
             (get-stty ed)
             (let [^BytePtr bs-p (find-termcode ed (BytePtr/lit "kb"))
@@ -13844,7 +13840,7 @@
                                   bs-p)]
               (when (and (or (nil? del-p) (== (.ub del-p) (e NUL))) (or (nil? bs-p) (not (== (.ub bs-p) (e DEL)))))
                 (add-termcode ed (BytePtr/lit "kD") (BytePtr/lit "\177") (e FALSE)))
-              (g! ed term-is-xterm (if (vim-is-xterm? ed term) 1 0))
+              (g! ed term-is-xterm (if (vim-is-xterm? term) 1 0))
               (aset name_ 0 (unchecked-byte (e KS_EXTRA)))
               (aset name_ 1 (unchecked-byte (e KE_FOCUSGAINED)))
               (aset name_ 2 (unchecked-byte (e NUL)))
@@ -13891,7 +13887,7 @@
   (let [^Ptr varp (.ov-str ^T_optvar_T (.-os-varp args))]
     (when-not (zero? (g ed full-screen))
       (when (Ptr/eq varp (Ptr. (g ed term-strings) 49))
-        (let [colors (long (musl-atoi ed (aget (g ed term-strings) 49)))]
+        (let [colors (long (musl-atoi (aget (g ed term-strings) 49)))]
           (when-not (== colors (g ed t-colors))
             (g! ed t-colors colors)
             (when (<= (g ed t-colors) 1)
@@ -13928,8 +13924,8 @@
     (if (and (not (zero? (bit-and (.os-flags args) (e OPT_LOCAL)))) (== (.ub ve) (e NUL)))
       (do (.put flags (unchecked-int 0))
           nil)
-      (if (opt-strings-flags ed ve (Ptr. (g ed p-ve-values) 0) flags true)
-        (when-not (== (long (musl-strcmp ed ve (.string ^A_4 (.-os-oldval args)))) 0)
+      (if (opt-strings-flags ve (Ptr. (g ed p-ve-values) 0) flags true)
+        (when-not (== (long (musl-strcmp ve (.string ^A_4 (.-os-oldval args)))) 0)
           (validate-virtcol ed)
           (coladvance ed (long (aget ^ints (.-w-virtcol (g ed curwin)) 0)))
           nil)
@@ -13953,7 +13949,7 @@
   (let [^longs tl__ (long-array 1)]
     (when-not (and (== (g ed deathtrap-entered) 0) (or (== sigarg (e SIGHUP)) (== sigarg (e SIGTERM))) (not (vim-handle-signal ed sigarg)))
       (g! ed deathtrap-entered (i32 (inc (g ed deathtrap-entered))))
-      (block-autocmds ed)
+      (block-autocmds)
       (g! ed v-dying (g ed deathtrap-entered))
       (let [i 0
             l__1 (loop [i i]
@@ -13993,7 +13989,7 @@
           (recur i))))))
 
 ;; C: get_register_name
-(defn get-register-name ^long [^Editor ed ^long num_]
+(defn get-register-name ^long [^long num_]
   (if (== num_ -1)
     34
     (if (< num_ 10)
@@ -14079,7 +14075,7 @@
             (recur 1 eap i n j p yb name_ attr arg type_ do-show))
         1
           (if (and (< i (e NUM_REGISTERS)) (zero? (g ed got-int)))
-            (let [name_ (long (get-register-name ed i))
+            (let [name_ (long (get-register-name i))
                   type_ (case (long (get-reg-type ed name_ nil))
                           1
                             108
@@ -14183,7 +14179,7 @@
     nil))
 
 ;; C: sort_strings
-(defn sort-strings [^Editor ed ^Ptr files ^long count_]
+(defn sort-strings [^Ptr files ^long count_]
   (let [^longs tl__ (long-array 1)
         i 1]
     (loop [i i]
@@ -14191,7 +14187,7 @@
         (let [^BytePtr s (.at files i)
               j i
               l__1 (loop [j j]
-                     (if (and (> j 0) (> (long (musl-strcmp ed (.at files (i32 (- j 1))) s)) 0))
+                     (if (and (> j 0) (> (long (musl-strcmp (.at files (i32 (- j 1))) s)) 0))
                        (do (.set files j (.at files (i32 (- j 1))))
                            (let [j (i32 (dec j))]
                              (recur j)))
@@ -14220,7 +14216,7 @@
         mark (g ed lastmark)
         _ (g! ed lastmark (i32 (inc (g ed lastmark))))
         nomark (g ed lastmark)
-        _ (ga-init2 ed ga 8 20)
+        _ (ga-init2 ga 8 20)
         ^S_u_header uhp (.b-u-oldhead (g ed curbuf))]
     (loop [^S_u_header uhp uhp
            changes changes]
@@ -14229,7 +14225,7 @@
                      (if (ga-grow ed ga 1)
                        (let [len (long (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "%6ld %7d  ") (object-array [(Long/valueOf (.uh-seq uhp)) (Integer/valueOf (unchecked-int changes))])))
                              _ (add-time ed (.add (g ed IObuff) len) (i32 (- 1025 len)) (.uh-time uhp))
-                             t1 (i32 (long (musl-strlen ed (.add (g ed IObuff) len))))
+                             t1 (i32 (long (musl-strlen (.add (g ed IObuff) len))))
                              len (i32 (+ len t1))
                              len (if (> (.uh-save-nr uhp) 0)
                                    (let [n (if (>= len 33) 0 (i32 (- 33 len)))
@@ -14239,7 +14235,7 @@
                                    len)
                              t3 (.ga-len ga)]
                          (.set-ga-len ga (i32 (inc (.ga-len ga))))
-                         (.set (GA_Ptr_BytePtr ga) t3 (vim-strnsave ed (g ed IObuff) len))
+                         (.set (GA_Ptr_BytePtr ga) t3 (vim-strnsave (g ed IObuff) len))
                          0)
                        1)
                      0)]
@@ -14282,7 +14278,7 @@
     (if (== (.ga-len ga) 0)
       (do (msg ed (gettext_ ed (BytePtr/lit "Nothing to undo")))
           nil)
-      (do (sort-strings ed (GA_Ptr_BytePtr ga) (.ga-len ga))
+      (do (sort-strings (GA_Ptr_BytePtr ga) (.ga-len ga))
           (msg-start ed)
           (msg-puts-attr ed (gettext_ ed (BytePtr/lit "number changes  when               saved")) (long (aget (g ed highlight-attr) 22)))
           (let [i 0]
@@ -14294,7 +14290,7 @@
                   (let [i (i32 (inc i))]
                     (recur i)))))
             (msg-end ed)
-            (ga-clear-strings ed ga)
+            (ga-clear-strings ga)
             nil)))))
 
 ;; C: ex_undojoin
@@ -14312,7 +14308,7 @@
 (defn init-longVersion [^Editor ed]
   (when-not (some? (g ed longVersion))
     (let [^BytePtr msg (gettext_ ed (BytePtr/lit "%s (%s)"))
-          len (- (+ (- (+ (long (musl-strlen ed msg)) 22) 1) 12) 1)]
+          len (- (+ (- (+ (long (musl-strlen msg)) 22) 1) 12) 1)]
       (g! ed longVersion (BytePtr/alloc len))
       (whim.cljhost/vim-snprintf ed (g ed longVersion) len msg (object-array [(BytePtr. (g ed VIM-VERSION-LONG-ONLY) 0) (BytePtr. (g ed VIM-VERSION-DATE-ONLY) 0)]))
       nil)))
@@ -14366,7 +14362,7 @@
 (defn win-alloc ^S_window_S [^Editor ed ^S_window_S after hidden]
   (let [^S_window_S new-wp (new-S_window_S)]
     (when (win-alloc-lines ed new-wp)
-      (block-autocmds ed)
+      (block-autocmds)
       (.set-w-wincol new-wp 0)
       (.set-w-width new-wp (i32 (aget (g ed Columns) 0)))
       (.set-w-topline new-wp 1)
@@ -14381,12 +14377,12 @@
       (aset ^longs (.-wo-siso ^T_winopt_T (.-w-allbuf-opt new-wp)) 0 (aget ^longs (.-wo-siso ^T_winopt_T (.-w-onebuf-opt new-wp)) 0))
       (.set-w-fraction new-wp 0)
       (.set-w-prev-fraction-row new-wp -1)
-      (unblock-autocmds ed)
+      (unblock-autocmds)
       (.set-w-next-match-id new-wp 1000)
       new-wp)))
 
 ;; C: new_frame
-(defn new-frame [^Editor ed ^S_window_S wp]
+(defn new-frame [^S_window_S wp]
   (let [^S_frame_S frp (new-S_frame_S)]
     (.set-w-frame wp frp)
     (.set-fr-layout frp (e FR_LEAF))
@@ -14404,7 +14400,7 @@
           (do (.set-w-buffer (g ed curwin) (g ed curbuf))
               (.set-b-nwindows (g ed curbuf) 1)
               (curwin-init ed)
-              (new-frame ed (g ed curwin))
+              (new-frame (g ed curwin))
               (if (nil? (.w-frame (g ed curwin)))
                 false
                 (do (g! ed topframe (.w-frame (g ed curwin)))
@@ -14481,7 +14477,7 @@
   (let [^S_oparg_S oa (new-S_oparg_S)
         ^S_oparg_S prev-oap (g ed current-oap)]
     (g! ed current-oap oa)
-    (clear-oparg ed oa)
+    (clear-oparg oa)
     (loop []
       (if cmdwin
         (do (g! ed current-oap prev-oap)
@@ -14502,7 +14498,7 @@
             (if (zero? (g ed skip-redraw))
               (when (or (not (zero? (g ed do-redraw))) (stuff-empty? ed))
                 (may-trigger-deferred-events ed)
-                (may-trigger-safestate ed (and (not (op-pending? ed)) (== (g ed restart-edit) 0)))
+                (may-trigger-safestate (and (not (op-pending? ed)) (== (g ed restart-edit) 0)))
                 (update-topline ed)
                 (validate-cursor ed)
                 (if (zero? (g ed VIsual-active))
@@ -14513,7 +14509,7 @@
                   (update-curbuf ed (e UPD_INVERTED)))
                 (redraw-statuslines ed)
                 (when (some? (g ed keep-msg))
-                  (let [^BytePtr p (vim-strsave ed (g ed keep-msg))]
+                  (let [^BytePtr p (vim-strsave (g ed keep-msg))]
                     (g! ed msg-hist-off (e TRUE))
                     (msg-attr ed p (g ed keep-msg-attr))
                     (g! ed msg-hist-off (e FALSE))))

@@ -501,6 +501,24 @@ translations too.
 
 ### 7. The editor as the first parameter
 
+**Done** (2026-09-30; `crefactor/togo/clj_ed.go`). A function that names no
+file-scope object or hoisted static, calls no host function and nothing
+through a pointer, and calls only functions that do the same, is written
+without the editor: `(defn getdigits ^long [^Ptr pp] ...)`, called as
+`(getdigits pp)`. Kept whatever they do:
+- the 165 functions used as values, whose signature is their table's;
+- the ten the glue calls by name (`Profile.CljGlue`);
+- a runtime body that names `ed`.
+The decision is held to what the printer writes. A function whose text
+still names `ed` (a machine's groups, an outlined region) keeps it, with
+its callers, and the functions are printed again. On the editor, all 220
+proposed held at the first printing. Functions taking the editor went
+1,784 -> 1,564, and `ed` tokens 26,979 -> 25,434. A function of four
+parameters, the editor gone, has a primitive signature now (item 10).
+The heavy case at 500, 5,000 and 50,000 lines is as before (1.66-1.69,
+2.61-2.88, 10.7-11.2 s against 1.64-1.95, 2.64-2.76, 10.8-11.8), with the
+same screens.
+
 - **The pattern.** Every C function takes `ed` first. **224 functions touch no
   file-scope object and no host function, even through what they call**
   (`musl_*`, `getdigits`, `check_cursor_moved`, `vim_strsave`, ...), and 143

@@ -215,6 +215,10 @@ var Gen = togo.Profile{
 	// every jump between groups, so C1 compiles it early and cheaply, where
 	// one method of ex_substitute's ran interpreted (doc/CLOJURE-PROFILE.md)
 	CljSplit: 50000,
+	// What vijure's glue (cljhost.clj, cljmain.clj) calls by name, the
+	// editor first: they keep it though some need none.
+	CljGlue: []string{"vim_main", "host_of", "deathtrap", "_", "emsg", "iemsg",
+		"emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells"},
 	// The namespace's functions in 4 files it loads (clojure.core's own
 	// split): load(), one method a file, had 62,441 of its 65,535 bytes
 	// with every function in the one file, 24 bytes a function

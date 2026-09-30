@@ -74,6 +74,7 @@ type cgen struct {
 	ns, hostNS string
 	hostFns    map[string]bool
 	preds      map[string]bool // the functions that are questions (clj_names.go)
+	noEd       map[string]bool // the functions that do without the editor (clj_ed.go)
 	// the tables as data (clj_tables.go)
 	tables      []string
 	fillers     []string
@@ -199,46 +200,63 @@ func (g *gen) writeClj(path string) error {
 	sort.Strings(hostNames)
 	c.allocSlots()
 
-	// the functions, written or refused
-	var report strings.Builder
-	texts := map[string]string{}
-	var fds []*cc.FunctionDefinition
-	written, replaced, total, structured, machine, split := 0, 0, 0, 0, 0, 0
-	whys := map[string]int{}
-	shapes := map[string]int{} // why a function is a state machine
+	// the functions, written or refused: again while a function thought to
+	// do without the editor was written naming it (clj_ed.go)
+	var all []*cc.FunctionDefinition
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationFuncDef {
-			continue
+		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef && !j.replaced(ed.FunctionDefinition.Declarator.Name()) {
+			all = append(all, ed.FunctionDefinition)
 		}
-		fd := ed.FunctionDefinition
-		total++
-		name := fd.Declarator.Name()
-		if j.replaced(name) {
-			replaced++
-			continue
+	}
+	c.noEd = c.edFree(all)
+	var report strings.Builder
+	var texts map[string]string
+	var fds []*cc.FunctionDefinition
+	var written, replaced, total, structured, machine, split int
+	var whys, shapes map[string]int // why refused; why a state machine
+	for {
+		report.Reset()
+		texts = map[string]string{}
+		fds = nil
+		written, replaced, total, structured, machine, split = 0, 0, 0, 0, 0, 0
+		whys, shapes = map[string]int{}, map[string]int{}
+		for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+			ed := tu.ExternalDeclaration
+			if ed.Case != cc.ExternalDeclarationFuncDef {
+				continue
+			}
+			fd := ed.FunctionDefinition
+			total++
+			name := fd.Declarator.Name()
+			if j.replaced(name) {
+				replaced++
+				continue
+			}
+			fds = append(fds, fd)
+			src, why, mode, shape := c.function(fd)
+			if why != "" {
+				fmt.Fprintf(&report, "%s: %s\n", name, why)
+				whys[reasonKey(why)]++
+				texts[name] = c.stub(fd.Declarator, why)
+				continue
+			}
+			written++
+			switch mode {
+			case "structured":
+				structured++
+			case "machine":
+				machine++
+				shapes[shape]++
+			case "split":
+				shapes[shape]++
+				machine++
+				split++
+			}
+			texts[name] = "\n" + src
 		}
-		fds = append(fds, fd)
-		src, why, mode, shape := c.function(fd)
-		if why != "" {
-			fmt.Fprintf(&report, "%s: %s\n", name, why)
-			whys[reasonKey(why)]++
-			texts[name] = c.stub(fd.Declarator, why)
-			continue
+		if !c.edHeld(c.noEd, texts, fds) {
+			break
 		}
-		written++
-		switch mode {
-		case "structured":
-			structured++
-		case "machine":
-			machine++
-			shapes[shape]++
-		case "split":
-			shapes[shape]++
-			machine++
-			split++
-		}
-		texts[name] = "\n" + src
 	}
 	inits, failed := c.initializers()
 	for _, f := range failed {

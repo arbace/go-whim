@@ -1735,7 +1735,10 @@ func (f *cfn) call(x *cc.PostfixExpression, to string) cv {
 	if f.c.hostFns[name] {
 		fn = f.c.hostNS + "/" + fn
 	}
-	call := "(" + fn + " ed" + strings.Join(append([]string{""}, as...), " ") + ")"
+	if !f.c.noEd[name] {
+		as = append([]string{"ed"}, as...)
+	}
+	call := "(" + strings.Join(append([]string{fn}, as...), " ") + ")"
 	return f.result(call, ft.Result(), "ret:"+name)
 }
 

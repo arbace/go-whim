@@ -340,7 +340,7 @@ void run(void)
 func TestCljShapes(t *testing.T) {
 	prog := cljSame(t, cljShapesC, Profile{}, javaHarnessC)
 	cljMatch(t, prog,
-		`(?s)\(defn sum \^long \[\^Editor ed \^long n\]\n  \(let \[t 0\n\s+i 0\]\n\s+\(loop \[t t\n\s+i i\]`,
+		`(?s)\(defn sum \^long \[\^long n\]\n  \(let \[t 0\n\s+i 0\]\n\s+\(loop \[t t\n\s+i i\]`,
 		`(?s)\(defn pick .*\(let \[r \(if \(> x 0\)`,
 		`(?s)\(defn back .*\(loop \[n n\n\s+t t\]`,
 		`(?s)\(defn two .*j__\d+ \(if \(> x 0\).*\(aset tl__ 0 a\)\s+\(aset tl__ 1 b\)\s+0\)\)\s+a \(aget tl__ 0\)\s+b \(aget tl__ 1\)\]`,
@@ -557,7 +557,7 @@ func TestCljNames(t *testing.T) {
 	prog := cljSame(t, cljNamesC, Profile{}, javaHarnessC)
 	cljMatch(t, prog,
 		`;; C: is_small\n\(defn is-small\? `,
-		`(?s)\(defn both-small\? .*\(is-small\? ed a\)`,
+		`(?s)\(defn both-small\? .*\(is-small\? a\)`,
 		`\(defn counts `,
 		`\(defn calls-counts `,
 		`\(defn sets-through `,
