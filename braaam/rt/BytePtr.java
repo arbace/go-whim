@@ -51,6 +51,17 @@ public final class BytePtr {
         return a[i + k] & 0xff;
     }
 
+    /** u() as a long: the Clojure editor's, whose arithmetic and locals are
+     *  longs -- an int would make a let or loop local an Object there. */
+    public long ub() {
+        return a[i] & 0xff;
+    }
+
+    /** u(k) as a long. */
+    public long ub(int k) {
+        return a[i + k] & 0xff;
+    }
+
     /** *p = v, and v. */
     public byte put(byte v) {
         a[i] = v;

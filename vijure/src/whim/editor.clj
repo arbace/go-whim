@@ -10472,7 +10472,7 @@
       (let [^BytePtr l (.add l 1)
             ^BytePtr r (.add r 1)]
         (recur l r))
-      (i32 (- (bit-and (.get l) 0xff) (bit-and (.get r) 0xff))))))
+      (i32 (- (.ub l) (.ub r))))))
 
 ;; C: musl_strncmp
 (defn musl-strncmp ^long [^Editor ed ^BytePtr ls ^BytePtr rs ^long n]
@@ -10485,12 +10485,12 @@
       (loop [n n
              ^BytePtr l l
              ^BytePtr r r]
-        (if (and (not (zero? (bit-and (.get l) 0xff))) (not (zero? (bit-and (.get r) 0xff))) (not (zero? n)) (== (bit-and (.get l) 0xff) (bit-and (.get r) 0xff)))
+        (if (and (not (zero? (.ub l))) (not (zero? (.ub r))) (not (zero? n)) (== (.ub l) (.ub r)))
           (let [^BytePtr l (.add l 1)
                 ^BytePtr r (.add r 1)
                 n (dec n)]
             (recur n l r))
-          (i32 (- (bit-and (.get l) 0xff) (bit-and (.get r) 0xff))))))))
+          (i32 (- (.ub l) (.ub r))))))))
 
 ;; C: musl_strcasecmp
 (defn musl-strcasecmp ^long [^Editor ed ^BytePtr ls ^BytePtr rs]
@@ -10498,11 +10498,11 @@
         ^BytePtr r rs]
     (loop [^BytePtr l l
            ^BytePtr r r]
-      (if (and (not (zero? (bit-and (.get l) 0xff))) (not (zero? (bit-and (.get r) 0xff))) (== (if (< (u32 (- (bit-and (.get l) 0xff) 65)) 26) (bit-or (bit-and (.get l) 0xff) 32) (bit-and (.get l) 0xff)) (if (< (u32 (- (bit-and (.get r) 0xff) 65)) 26) (bit-or (bit-and (.get r) 0xff) 32) (bit-and (.get r) 0xff))))
+      (if (and (not (zero? (.ub l))) (not (zero? (.ub r))) (== (if (< (u32 (- (.ub l) 65)) 26) (bit-or (.ub l) 32) (.ub l)) (if (< (u32 (- (.ub r) 65)) 26) (bit-or (.ub r) 32) (.ub r))))
         (let [^BytePtr l (.add l 1)
               ^BytePtr r (.add r 1)]
           (recur l r))
-        (i32 (- (if (< (u32 (- (bit-and (.get l) 0xff) 65)) 26) (bit-or (bit-and (.get l) 0xff) 32) (bit-and (.get l) 0xff)) (if (< (u32 (- (bit-and (.get r) 0xff) 65)) 26) (bit-or (bit-and (.get r) 0xff) 32) (bit-and (.get r) 0xff))))))))
+        (i32 (- (if (< (u32 (- (.ub l) 65)) 26) (bit-or (.ub l) 32) (.ub l)) (if (< (u32 (- (.ub r) 65)) 26) (bit-or (.ub r) 32) (.ub r))))))))
 
 ;; C: musl_strncasecmp
 (defn musl-strncasecmp ^long [^Editor ed ^BytePtr ls ^BytePtr rs ^long n]
@@ -10515,21 +10515,21 @@
       (loop [n n
              ^BytePtr l l
              ^BytePtr r r]
-        (if (and (not (zero? (bit-and (.get l) 0xff))) (not (zero? (bit-and (.get r) 0xff))) (not (zero? n)) (== (if (< (u32 (- (bit-and (.get l) 0xff) 65)) 26) (bit-or (bit-and (.get l) 0xff) 32) (bit-and (.get l) 0xff)) (if (< (u32 (- (bit-and (.get r) 0xff) 65)) 26) (bit-or (bit-and (.get r) 0xff) 32) (bit-and (.get r) 0xff))))
+        (if (and (not (zero? (.ub l))) (not (zero? (.ub r))) (not (zero? n)) (== (if (< (u32 (- (.ub l) 65)) 26) (bit-or (.ub l) 32) (.ub l)) (if (< (u32 (- (.ub r) 65)) 26) (bit-or (.ub r) 32) (.ub r))))
           (let [^BytePtr l (.add l 1)
                 ^BytePtr r (.add r 1)
                 n (dec n)]
             (recur n l r))
-          (i32 (- (if (< (u32 (- (bit-and (.get l) 0xff) 65)) 26) (bit-or (bit-and (.get l) 0xff) 32) (bit-and (.get l) 0xff)) (if (< (u32 (- (bit-and (.get r) 0xff) 65)) 26) (bit-or (bit-and (.get r) 0xff) 32) (bit-and (.get r) 0xff)))))))))
+          (i32 (- (if (< (u32 (- (.ub l) 65)) 26) (bit-or (.ub l) 32) (.ub l)) (if (< (u32 (- (.ub r) 65)) 26) (bit-or (.ub r) 32) (.ub r)))))))))
 
 ;; C: musl_strchr
 (defn musl-strchr ^BytePtr [^Editor ed ^BytePtr s ^long c]
   (let [ch (u8 c)]
     (loop [^BytePtr s s]
-      (if (and (not (zero? (long (.get s)))) (not (== (bit-and (.get s) 0xff) ch)))
+      (if (and (not (zero? (long (.get s)))) (not (== (.ub s) ch)))
         (let [^BytePtr s (.add s 1)]
           (recur s))
-        (when (== (bit-and (.get s) 0xff) ch)
+        (when (== (.ub s) ch)
           s)))))
 
 ;; C: musl_strstr
@@ -10884,12 +10884,12 @@
                 len)]
       (loop [^BytePtr s s
              len len]
-        (if (and (> len 0) (== (bit-and (.get s) 0xff) 10))
+        (if (and (> len 0) (== (.ub s) 10))
           (let [^BytePtr s (.add s 1)
                 len (i32 (dec len))]
             (recur s len))
           (loop [len len]
-            (if (and (> len 0) (== (bit-and (.at s (i32 (- len 1))) 0xff) 10))
+            (if (and (> len 0) (== (.ub s (i32 (- len 1))) 10))
               (let [len (i32 (dec len))]
                 (recur len))
               (do (.set-msg p (vim-strnsave ed s len))
@@ -10909,7 +10909,7 @@
 
 ;; C: swapping_screen
 (defn swapping-screen? [^Editor ed]
-  (and (not (zero? (g ed full-screen))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 42)) 0xff) (e NUL)))))
+  (and (not (zero? (g ed full-screen))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 42)) (e NUL)))))
 
 ;; C: ui_new_shellsize
 (defn ui-new-shellsize [^Editor ed]
@@ -11192,63 +11192,63 @@
 ;; C: utf_ptr2char_and_len
 (defn utf-ptr2char-and-len ^T_utf_ptr2char_and_len__out_T [^Editor ed ^BytePtr p]
   (let [^T_utf_ptr2char_and_len__out_T out__ (new-T_utf_ptr2char_and_len__out_T)]
-    (if (< (bit-and (.at p 0) 0xff) 128)
-      (let [lenp (if (== (bit-and (.at p 0) 0xff) (e NUL)) 0 1)]
-        (.set-r__ out__ (bit-and (.at p 0) 0xff))
+    (if (< (.ub p 0) 128)
+      (let [lenp (if (== (.ub p 0) (e NUL)) 0 1)]
+        (.set-r__ out__ (.ub p 0))
         (.set-lenp out__ lenp)
         out__)
-      (let [len (long (aget (g ed utf8len-tab-zero) (bit-and (.at p 0) 0xff)))]
-        (if (or (<= len 1) (not (== (bit-and (.at p 1) 0xff 192) 128)))
+      (let [len (long (aget (g ed utf8len-tab-zero) (.ub p 0)))]
+        (if (or (<= len 1) (not (== (bit-and (.ub p 1) 192) 128)))
           (let [lenp 1]
-            (.set-r__ out__ (bit-and (.at p 0) 0xff))
+            (.set-r__ out__ (.ub p 0))
             (.set-lenp out__ lenp)
             out__)
-          (let [c (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 31) 6)) (bit-and (.at p 1) 0xff 63)))]
+          (let [c (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 31) 6)) (bit-and (.ub p 1) 63)))]
             (if (== len 2)
               (let [lenp 2]
                 (.set-r__ out__ c)
                 (.set-lenp out__ lenp)
                 out__)
-              (if (== (bit-and (.at p 2) 0xff 192) 128)
-                (let [c (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 15) 12)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 6)))) (bit-and (.at p 2) 0xff 63)))]
+              (if (== (bit-and (.ub p 2) 192) 128)
+                (let [c (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 15) 12)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 6)))) (bit-and (.ub p 2) 63)))]
                   (if (== len 3)
                     (let [lenp 3]
                       (.set-r__ out__ c)
                       (.set-lenp out__ lenp)
                       out__)
-                    (if (== (bit-and (.at p 3) 0xff 192) 128)
-                      (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 7) 18)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 12)))) (i32 (bit-shift-left (bit-and (.at p 2) 0xff 63) 6)))) (bit-and (.at p 3) 0xff 63)))]
+                    (if (== (bit-and (.ub p 3) 192) 128)
+                      (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 7) 18)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 12)))) (i32 (bit-shift-left (bit-and (.ub p 2) 63) 6)))) (bit-and (.ub p 3) 63)))]
                         (if (== len 4)
                           (let [lenp 4]
                             (.set-r__ out__ c)
                             (.set-lenp out__ lenp)
                             out__)
-                          (if (== (bit-and (.at p 4) 0xff 192) 128)
-                            (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 3) 24)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 18)))) (i32 (bit-shift-left (bit-and (.at p 2) 0xff 63) 12)))) (i32 (bit-shift-left (bit-and (.at p 3) 0xff 63) 6)))) (bit-and (.at p 4) 0xff 63)))]
+                          (if (== (bit-and (.ub p 4) 192) 128)
+                            (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 3) 24)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 18)))) (i32 (bit-shift-left (bit-and (.ub p 2) 63) 12)))) (i32 (bit-shift-left (bit-and (.ub p 3) 63) 6)))) (bit-and (.ub p 4) 63)))]
                               (if (== len 5)
                                 (let [lenp 5]
                                   (.set-r__ out__ c)
                                   (.set-lenp out__ lenp)
                                   out__)
-                                (if (== (bit-and (.at p 5) 0xff 192) 128)
+                                (if (== (bit-and (.ub p 5) 192) 128)
                                   (let [lenp 6]
-                                    (.set-r__ out__ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 1) 30)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 24)))) (i32 (bit-shift-left (bit-and (.at p 2) 0xff 63) 18)))) (i32 (bit-shift-left (bit-and (.at p 3) 0xff 63) 12)))) (i32 (bit-shift-left (bit-and (.at p 4) 0xff 63) 6)))) (bit-and (.at p 5) 0xff 63))))
+                                    (.set-r__ out__ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 1) 30)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 24)))) (i32 (bit-shift-left (bit-and (.ub p 2) 63) 18)))) (i32 (bit-shift-left (bit-and (.ub p 3) 63) 12)))) (i32 (bit-shift-left (bit-and (.ub p 4) 63) 6)))) (bit-and (.ub p 5) 63))))
                                     (.set-lenp out__ lenp)
                                     out__)
                                   (let [lenp 1]
-                                    (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                                    (.set-r__ out__ (.ub p 0))
                                     (.set-lenp out__ lenp)
                                     out__))))
                             (let [lenp 1]
-                              (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                              (.set-r__ out__ (.ub p 0))
                               (.set-lenp out__ lenp)
                               out__))))
                       (let [lenp 1]
-                        (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                        (.set-r__ out__ (.ub p 0))
                         (.set-lenp out__ lenp)
                         out__))))
                 (let [lenp 1]
-                  (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                  (.set-r__ out__ (.ub p 0))
                   (.set-lenp out__ lenp)
                   out__)))))))))
 
@@ -11297,17 +11297,17 @@
 ;; C: utfc_ptr2len
 (defn utfc-ptr2len ^long [^Editor ed ^BytePtr p]
   (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)
-        b0 (bit-and (.get p) 0xff)]
+        b0 (.ub p)]
     (if (== b0 (e NUL))
       0
-      (if (and (< b0 128) (< (bit-and (.at p 1) 0xff) 128))
+      (if (and (< b0 128) (< (.ub p 1) 128))
         1
         (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
             (let [len (.lenp utf-ptr2char-and-len__o)
                   c (.r__ utf-ptr2char-and-len__o)]
               (if (and (== len 1) (>= b0 128))
                 1
-                (if (< (bit-and (.at p len) 0xff) 128)
+                (if (< (.ub p len) 128)
                   len
                   (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
                       (let [cc-len (.lenp utf-ptr2char-and-len__o)
@@ -11316,7 +11316,7 @@
                           (loop [len len
                                  cc-len cc-len]
                             (let [len (i32 (+ len cc-len))]
-                              (if (< (bit-and (.at p len) 0xff) 128)
+                              (if (< (.ub p len) 128)
                                 len
                                 (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
                                     (let [cc-len (.lenp utf-ptr2char-and-len__o)
@@ -11382,7 +11382,7 @@
 (defn vim-isprintc-strict? [^Editor ed ^long c]
   (if (>= c 256)
     (utf-printable? ed c)
-    (or (>= c 256) (and (> c 0) (not (zero? (bit-and (aget (g ed g-chartab) c) 0xff (e CT_PRINT_CHAR))))))))
+    (or (>= c 256) (and (> c 0) (not (zero? (bit-and (long (aget (g ed g-chartab) c)) 0xff (e CT_PRINT_CHAR))))))))
 
 ;; C: transchar_buf
 (defn transchar-buf ^BytePtr [^Editor ed ^S_file_buffer buf ^long c]
@@ -11428,7 +11428,7 @@
     (loop [^BytePtr buf buf
            len len
            room room]
-      (when-not (== (bit-and (.get buf) 0xff) 0)
+      (when-not (== (.ub buf) 0)
         (let [trs-len (long (utfc-ptr2len ed buf))
               j__2 (if (> trs-len 1)
                      (let [len (i32 (- len trs-len))]
@@ -11436,7 +11436,7 @@
                        (aset tl__ 1 room)
                        (aset tl__ 2 trs-len)
                        0)
-                     (let [^BytePtr trs (transchar-byte ed (bit-and (.get buf) 0xff))
+                     (let [^BytePtr trs (transchar-byte ed (.ub buf))
                            trs-len (i32 (long (musl-strlen ed trs)))
                            j__1 (if (> trs-len 1)
                                   (let [room (i32 (- room (i32 (- trs-len 1))))]
@@ -11482,7 +11482,7 @@
 (defn get-past-head ^BytePtr [^Editor ed ^BytePtr path]
   (let [^BytePtr retval path]
     (loop [^BytePtr retval retval]
-      (if (vim-ispathsep? ed (bit-and (.get retval) 0xff))
+      (if (vim-ispathsep? ed (.ub retval))
         (let [^BytePtr retval (.add retval 1)]
           (recur retval))
         retval))))
@@ -11498,9 +11498,9 @@
           ^BytePtr p1 p2]
       (loop [^BytePtr p1 p1
              ^BytePtr p2 p2]
-        (if (zero? (bit-and (.get p2) 0xff))
+        (if (zero? (.ub p2))
           p1
-          (let [^BytePtr p1 (if (vim-ispathsep-nocolon? ed (bit-and (.get p2) 0xff))
+          (let [^BytePtr p1 (if (vim-ispathsep-nocolon? ed (.ub p2))
                               ^BytePtr (.add p2 1)
                               p1)
                 t1 (long (utfc-ptr2len ed p2))
@@ -11523,18 +11523,18 @@
       (let [j__2 (if (.ge s tail)
                    (let [^BytePtr t1 d
                          ^BytePtr d (.add d 1)]
-                     (.put t1 (unchecked-byte (bit-and (.get s) 0xff)))
-                     (if (== (bit-and (.get s) 0xff) (e NUL))
+                     (.put t1 (unchecked-byte (.ub s)))
+                     (if (== (.ub s) (e NUL))
                        1
                        (do (aset to__ 0 s)
                            (aset to__ 1 d)
                            (aset to__ 2 (Boolean/valueOf (boolean skip)))
                            (aset tl__ 0 dirchunk-len)
                            0)))
-                   (if (vim-ispathsep? ed (bit-and (.get s) 0xff))
+                   (if (vim-ispathsep? ed (.ub s))
                      (let [^BytePtr t2 d
                            ^BytePtr d (.add d 1)
-                           _ (.put t2 (unchecked-byte (bit-and (.get s) 0xff)))
+                           _ (.put t2 (unchecked-byte (.ub s)))
                            skip false
                            dirchunk-len 0]
                        (aset to__ 0 s)
@@ -11550,8 +11550,8 @@
                            0)
                        (let [^BytePtr t3 d
                              ^BytePtr d (.add d 1)
-                             _ (.put t3 (unchecked-byte (bit-and (.get s) 0xff)))
-                             j__1 (if (and (not (== (bit-and (.get s) 0xff) 126)) (not (== (bit-and (.get s) 0xff) 46)))
+                             _ (.put t3 (unchecked-byte (.ub s)))
+                             j__1 (if (and (not (== (.ub s) 126)) (not (== (.ub s) 46)))
                                     (let [dirchunk-len (i32 (inc dirchunk-len))]
                                       (if (>= dirchunk-len trim-len)
                                         (let [skip true]
@@ -11575,7 +11575,7 @@
                                (let [^BytePtr t4 d
                                      ^BytePtr d (.add d 1)
                                      ^BytePtr s (.add s 1)]
-                                 (.put t4 (unchecked-byte (bit-and (.get s) 0xff)))
+                                 (.put t4 (unchecked-byte (.ub s)))
                                  (recur s d l))
                                (do (aset to__ 0 s)
                                    (aset to__ 1 d)
@@ -11674,7 +11674,7 @@
 (defn vim-isprintc? [^Editor ed ^long c]
   (if (>= c 256)
     (utf-printable? ed c)
-    (or (>= c 256) (and (> c 0) (not (zero? (bit-and (aget (g ed g-chartab) c) 0xff (e CT_PRINT_CHAR))))))))
+    (or (>= c 256) (and (> c 0) (not (zero? (bit-and (long (aget (g ed g-chartab) c)) 0xff (e CT_PRINT_CHAR))))))))
 
 ;; C: utf_char2cells
 (defn utf-char2cells ^long [^Editor ed ^long c]
@@ -11696,7 +11696,7 @@
                  0))]
     (if (== (long j__1) -1)
       (aget tl__ 0)
-      (if (and (>= c 128) (== (bit-and (.get ^BytePtr (aget (g ed p-ambw) 0)) 0xff) 100) (intable? ed (Ptr. (g ed ambiguous) 0) 2864 c))
+      (if (and (>= c 128) (== (.ub ^BytePtr (aget (g ed p-ambw) 0)) 100) (intable? ed (Ptr. (g ed ambiguous) 0) 2864 c))
         2
         1))))
 
@@ -11705,12 +11705,12 @@
     (i32 (+ (long (char2cells ed (if (== c 128) (e KS_SPECIAL) (if (== c (e NUL)) (e KS_ZERO) (bit-and (i32 (- c)) 255))))) 2))
     (if (>= c 128)
       (long (utf-char2cells ed c))
-      (bit-and (aget (g ed g-chartab) (bit-and c 255)) 0xff (e CT_CELL_MASK)))))
+      (bit-and (long (aget (g ed g-chartab) (bit-and c 255))) 0xff (e CT_CELL_MASK)))))
 
 ;; C: utf_ptr2cells
 (defn utf-ptr2cells ^long [^Editor ed ^BytePtr p]
   (let [^T_utf_ptr2char_and_len__out_T utf-ptr2char-and-len__o (new-T_utf_ptr2char_and_len__out_T)]
-    (if (>= (bit-and (.get p) 0xff) 128)
+    (if (>= (.ub p) 128)
       (do (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
           (let [len (.lenp utf-ptr2char-and-len__o)
                 c (.r__ utf-ptr2char-and-len__o)]
@@ -11722,9 +11722,9 @@
       1)))
 
 (defn ptr2cells ^long [^Editor ed ^BytePtr p]
-  (if (>= (bit-and (.get p) 0xff) 128)
+  (if (>= (.ub p) 128)
     (long (utf-ptr2cells ed p))
-    (bit-and (aget (g ed g-chartab) (bit-and (.get p) 0xff)) 0xff (e CT_CELL_MASK))))
+    (bit-and (long (aget (g ed g-chartab) (.ub p))) 0xff (e CT_CELL_MASK))))
 
 ;; C: win_col_off
 (defn win-col-off ^long [^Editor ed ^S_window_S wp]
@@ -11748,14 +11748,14 @@
       (vim-strbyte ed string c)
       (if (>= c 128)
         (loop [^BytePtr p p]
-          (when-not (== (bit-and (.get p) 0xff) (e NUL))
+          (when-not (== (.ub p) (e NUL))
             (let [l (long (utfc-ptr2len ed p))]
               (if (and (== (long (utf-ptr2char ed p)) c) (> l 1))
                 p
                 (let [^BytePtr p (.add p l)]
                   (recur p))))))
         (loop [^BytePtr p p]
-          (let [b (bit-and (.get p) 0xff)]
+          (let [b (.ub p)]
             (when-not (== b (e NUL))
               (if (== b c)
                 p
@@ -11788,11 +11788,11 @@
   (let [^S_window_S wp (.cts-win cts)
         ^BytePtr s (.cts-ptr cts)
         col (.cts-vcol cts)]
-    (if (and (== (bit-and (.get s) 0xff) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
+    (if (and (== (.ub s) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
       (let [n (i32 (aget ^longs (.-b-p-ts ^S_file_buffer (.w-buffer wp)) 0))]
         (i32 (- n (rem col n))))
       (let [n (long (ptr2cells ed s))]
-        (if (and (== n 2) (> (long (aget (g ed mb-bytelen-tab) (bit-and (.get s) 0xff))) 1) (in-win-border ed wp col))
+        (if (and (== n 2) (> (long (aget (g ed mb-bytelen-tab) (.ub s))) 1) (in-win-border ed wp col))
           (if (some? headp)
             (do (.put headp (unchecked-int 1))
                 3)
@@ -11805,7 +11805,7 @@
         ^BytePtr s (.cts-ptr cts)
         vcol (.cts-vcol cts)]
     (if (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
-      (if (and (== (bit-and (.get s) 0xff) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
+      (if (and (== (.ub s) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
         (let [ts (i32 (aget ^longs (.-b-p-ts ^S_file_buffer (.w-buffer wp)) 0))]
           (i32 (- ts (rem vcol ts))))
         (long (ptr2cells ed s)))
@@ -11815,7 +11815,7 @@
 (defn win-linetabsize-cts [^Editor ed ^T_chartabsize_T cts ^long len]
   (let [vcol (.cts-vcol cts)]
     (loop [vcol vcol]
-      (when (and (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))) (or (== len (e MAXCOL)) (.lt ^BytePtr (.cts-ptr cts) (.add ^BytePtr (.cts-line cts) len))))
+      (when (and (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))) (or (== len (e MAXCOL)) (.lt ^BytePtr (.cts-ptr cts) (.add ^BytePtr (.cts-line cts) len))))
         (let [t1 (long (win-lbr-chartabsize ed cts nil nil))
               vcol (+ vcol t1)]
           (if (> vcol (e MAXCOL))
@@ -11831,7 +11831,7 @@
   (let [^T_chartabsize_T cts (new-T_chartabsize_T)
         ^BytePtr s (ml-get-buf ed (.w-buffer wp) lnum false)]
     (init-chartabsize-arg ed cts wp lnum 0 s s)
-    (if (== (bit-and (.get s) 0xff) (e NUL))
+    (if (== (.ub s) (e NUL))
       1
       (do (win-linetabsize-cts ed cts 2147483647)
           (let [col (.cts-vcol cts)
@@ -11928,7 +11928,7 @@
                (let [l__1 (loop [vcol vcol
                                  ^BytePtr ptr ptr]
                             (aset head 0 (unchecked-int 0))
-                            (let [c (bit-and (.get ptr) 0xff)]
+                            (let [c (.ub ptr)]
                               (if (== c (e NUL))
                                 (let [incr 1]
                                   (aset tl__ 0 vcol)
@@ -11939,8 +11939,8 @@
                                              (i32 (- ts (rem vcol ts)))
                                              (let [incr (if (>= c 128)
                                                           (long (utf-ptr2cells ed ptr))
-                                                          (bit-and (aget (g ed g-chartab) c) 0xff (e CT_CELL_MASK)))]
-                                               (if (and (== incr 2) (not (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (> (long (aget (g ed mb-bytelen-tab) (bit-and (.get ptr) 0xff))) 1) (in-win-border ed wp vcol))
+                                                          (bit-and (long (aget (g ed g-chartab) c)) 0xff (e CT_CELL_MASK)))]
+                                               (if (and (== incr 2) (not (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (> (long (aget (g ed mb-bytelen-tab) (.ub ptr))) 1) (in-win-border ed wp vcol))
                                                  (let [incr (i32 (inc incr))]
                                                    (aset head 0 (unchecked-int 1))
                                                    incr)
@@ -11966,7 +11966,7 @@
                             (aset head 0 (unchecked-int 0))
                             (aset tail 0 (unchecked-int 0))
                             (let [incr (long (win-lbr-chartabsize ed cts (IntPtr. head 0) (IntPtr. tail 0)))]
-                              (if (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))
+                              (if (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))
                                 (let [incr 1]
                                   (aset tl__ 1 incr)
                                   0)
@@ -11987,14 +11987,14 @@
         vcol (aget tl__ 0)
         ^BytePtr ptr (aget to__ 0)
         incr (aget tl__ 1)]
-    (when (and (== (bit-and (.get ptr) 0xff) (e NUL)) (< (.col pos) (e MAXCOL)) (> (.col pos) (.sub ptr line)))
+    (when (and (== (.ub ptr) (e NUL)) (< (.col pos) (e MAXCOL)) (> (.col pos) (.sub ptr line)))
       (.set-col pos (i32 (.sub ptr line))))
     (when (some? start)
       (.put start (unchecked-int (+ vcol (long (aget head 0))))))
     (when (some? end)
       (.put end (unchecked-int (- (i32 (- (i32 (+ vcol incr)) (if (zero? (bit-and flags (e GETVCOL_END_EXCL_LBR))) 0 (long (aget tail 0))))) 1))))
     (when (some? cursor)
-      (if (and (== (bit-and (.get ptr) 0xff) (e TAB)) (not (zero? (bit-and (g ed State) (e MODE_NORMAL)))) (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (zero? (long (virtual-active ed))) (not (and (not (zero? (g ed VIsual-active))) (or (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (if (== (.lnum pos) (.lnum (g ed VIsual))) (if (== (.col pos) (.col (g ed VIsual))) (< (.coladd pos) (.coladd (g ed VIsual))) (< (.col pos) (.col (g ed VIsual)))) (< (.lnum pos) (.lnum (g ed VIsual)))) (and (== (.lnum pos) (.lnum (g ed VIsual))) (== (.col pos) (.col (g ed VIsual))) (== (.coladd pos) (.coladd (g ed VIsual))))))))
+      (if (and (== (.ub ptr) (e TAB)) (not (zero? (bit-and (g ed State) (e MODE_NORMAL)))) (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (zero? (long (virtual-active ed))) (not (and (not (zero? (g ed VIsual-active))) (or (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum pos) (.lnum (g ed VIsual))) (if (== (.col pos) (.col (g ed VIsual))) (< (.coladd pos) (.coladd (g ed VIsual))) (< (.col pos) (.col (g ed VIsual)))) (< (.lnum pos) (.lnum (g ed VIsual)))) (and (== (.lnum pos) (.lnum (g ed VIsual))) (== (.col pos) (.col (g ed VIsual))) (== (.coladd pos) (.coladd (g ed VIsual))))))))
         (do (.put cursor (unchecked-int (- (i32 (+ vcol incr)) 1)))
             nil)
         (do (.put cursor (unchecked-int (+ vcol (long (aget head 0)))))
@@ -12003,7 +12003,7 @@
 ;; C: ml_get_buf_len
 (defn ml-get-buf-len ^long [^Editor ed ^S_file_buffer buf ^long lnum]
   (let [^BytePtr line (ml-get-buf ed buf lnum false)]
-    (if (== (bit-and (.get line) 0xff) (e NUL))
+    (if (== (.ub line) (e NUL))
       0
       (if (<= (.ml-line-textlen ^S_memline (.-b-ml buf)) 0)
         (do (.set-ml-line-textlen ^S_memline (.-b-ml buf) (i32 (+ (i32 (long (musl-strlen ed line))) 1)))
@@ -12379,10 +12379,10 @@
   (if (nil? (.b-next ^S_buffblock (.-bh-first buf)))
     (e NUL)
     (let [^S_buffblock curr (.b-next ^S_buffblock (.-bh-first buf))
-          c (bit-and (.at ^BytePtr (.b-str curr) (.bh-index buf)) 0xff)]
+          c (.ub ^BytePtr (.b-str curr) (.bh-index buf))]
       (if advance
         (do (.set-bh-index buf (i32 (inc (.bh-index buf))))
-            (if (== (bit-and (.at ^BytePtr (.b-str curr) (.bh-index buf)) 0xff) (e NUL))
+            (if (== (.ub ^BytePtr (.b-str curr) (.bh-index buf)) (e NUL))
               (do (.set-b-next ^S_buffblock (.-bh-first buf) (.b-next curr))
                   (.set-bh-index buf 0)
                   c)
@@ -12449,17 +12449,17 @@
 
 ;; C: out_str
 (defn out-str [^Editor ed ^BytePtr s]
-  (when-not (or (nil? s) (== (bit-and (.get s) 0xff) (e NUL)))
+  (when-not (or (nil? s) (== (.ub s) (e NUL)))
     (when (> (g ed out-pos) 8111)
       (out-flush ed))
     (loop [^BytePtr s s]
-      (if (zero? (bit-and (.get s) 0xff))
+      (if (zero? (.ub s))
         (when-not (zero? (aget (g ed p-wd) 0))
           (out-flush ed)
           nil)
         (let [^BytePtr t1 s
               ^BytePtr s (.add s 1)]
-          (out-char-nf ed (bit-and (.get t1) 0xff))
+          (out-char-nf ed (.ub t1))
           (recur s))))))
 
 (defn tltoa ^BytePtr [^Editor ed ^long i]
@@ -12561,15 +12561,15 @@
   (let [^bytes buf (byte-array 20)
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 3)
-        i (if (== (bit-and (.get s) 0xff) (e CSI)) 1 2)
+        i (if (== (.ub s) (e CSI)) 1 2)
         t1 (and (>= n 8) (>= (g ed t-colors) 16))
         j__3 (if t1
-               (let [t2 (and (== (bit-and (.at s 0) 0xff) (e ESC)) (== (bit-and (.at s 1) 0xff) 91))
+               (let [t2 (and (== (.ub s 0) (e ESC)) (== (.ub s 1) 91))
                      j__2 (if t2
                             (do (aset tl__ 0 i)
                                 (aset to__ 1 (Boolean/valueOf (boolean t2)))
                                 0)
-                            (let [t3 (== (bit-and (.at s 0) 0xff) (e CSI))
+                            (let [t3 (== (.ub s 0) (e CSI))
                                   j__1 (if t3
                                          (let [i 1
                                                t3 (== i 1)]
@@ -12596,10 +12596,10 @@
                    0))
         i (aget tl__ 0)
         t1 (boolean (aget to__ 0))]
-    (if (and t1 (not (== (bit-and (.at s i) 0xff) (e NUL))) (or (== (long (musl-strcmp ed (.add (.add s i) 1) (BytePtr/lit "%p1%dm"))) 0) (== (long (musl-strcmp ed (.add (.add s i) 1) (BytePtr/lit "%dm"))) 0)) (or (== (bit-and (.at s i) 0xff) 51) (== (bit-and (.at s i) 0xff) 52)))
+    (if (and t1 (not (== (.ub s i) (e NUL))) (or (== (long (musl-strcmp ed (.add (.add s i) 1) (BytePtr/lit "%p1%dm"))) 0) (== (long (musl-strcmp ed (.add (.add s i) 1) (BytePtr/lit "%dm"))) 0)) (or (== (.ub s i) 51) (== (.ub s i) 52)))
       (let [^BytePtr format_ (BytePtr/lit "%s%s%%dm")
             ^BytePtr lead (if (== i 2) (BytePtr/lit "\033[") (BytePtr/lit "\233"))
-            ^BytePtr tail (if (== (bit-and (.at s i) 0xff) 51) (if (>= n 16) (BytePtr/lit "38;5;") (BytePtr/lit "9")) (if (>= n 16) (BytePtr/lit "48;5;") (BytePtr/lit "10")))]
+            ^BytePtr tail (if (== (.ub s i) 51) (if (>= n 16) (BytePtr/lit "38;5;") (BytePtr/lit "9")) (if (>= n 16) (BytePtr/lit "48;5;") (BytePtr/lit "10")))]
         (whim.cljhost/vim-snprintf ed (BytePtr. buf 0) 20 format_ (object-array [lead tail]))
         (out-str ed (tgoto ed (BytePtr. buf 0) 0 (if (>= n 16) n (i32 (- n 8)))))
         nil)
@@ -12608,8 +12608,8 @@
 
 ;; C: term_fg_color
 (defn term-fg-color [^Editor ed ^long n]
-  (if (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 55)) 0xff))
-    (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 50)) 0xff))
+  (if (zero? (.ub ^BytePtr (aget (g ed term-strings) 55)))
+    (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 50)))
       (term-color ed (aget (g ed term-strings) 50) n)
       nil)
     (do (term-color ed (aget (g ed term-strings) 55) n)
@@ -12617,8 +12617,8 @@
 
 ;; C: term_bg_color
 (defn term-bg-color [^Editor ed ^long n]
-  (if (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 56)) 0xff))
-    (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 51)) 0xff))
+  (if (zero? (.ub ^BytePtr (aget (g ed term-strings) 56)))
+    (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 51)))
       (term-color ed (aget (g ed term-strings) 51) n)
       nil)
     (do (term-color ed (aget (g ed term-strings) 56) n)
@@ -12626,7 +12626,7 @@
 
 ;; C: term_ul_color
 (defn term-ul-color [^Editor ed ^long n]
-  (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 57)) 0xff))
+  (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 57)))
     (term-color ed (aget (g ed term-strings) 57) n)
     nil))
 
@@ -12677,13 +12677,13 @@
                       (do (out-str ed (aget (g ed term-strings) 22))
                           do-ME)))
             is-under (bit-and (g ed screen-attr) 240)
-            do-ME (if (and (not (zero? is-under)) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 28)) 0xff) (e NUL))))
+            do-ME (if (and (not (zero? is-under)) (not (== (.ub ^BytePtr (aget (g ed term-strings) 28)) (e NUL))))
                     (if (== (long (musl-strcmp ed (aget (g ed term-strings) 28) (aget (g ed term-strings) 19))) 0)
                       true
                       (do (out-str ed (aget (g ed term-strings) 28))
                           do-ME))
                     do-ME)
-            do-ME (if (or (not (zero? (bit-and (g ed screen-attr) (e HL_UNDERLINE)))) (and (not (zero? is-under)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 28)) 0xff) (e NUL))))
+            do-ME (if (or (not (zero? (bit-and (g ed screen-attr) (e HL_UNDERLINE)))) (and (not (zero? is-under)) (== (.ub ^BytePtr (aget (g ed term-strings) 28)) (e NUL))))
                     (if (== (long (musl-strcmp ed (aget (g ed term-strings) 26) (aget (g ed term-strings) 19))) 0)
                       true
                       (do (out-str ed (aget (g ed term-strings) 26))
@@ -12759,7 +12759,7 @@
                        (let [col (i32 (- (g ed screen-Columns) 1))]
                          col)
                        col)]
-              (let [noinvcurs (if (and (not (zero? (g ed screen-attr))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 35)) 0xff) (e NUL)))
+              (let [noinvcurs (if (and (not (zero? (g ed screen-attr))) (== (.ub ^BytePtr (aget (g ed term-strings) 35)) (e NUL)))
                                (let [noinvcurs (e HIGHL_COST)]
                                  noinvcurs)
                                (let [noinvcurs 0]
@@ -12769,12 +12769,12 @@
                               (let [^BytePtr bs nil
                                     attr (g ed screen-attr)]
                                 (let [j__2 (if (and (== row (g ed screen-cur-row)) (< col (g ed screen-cur-col)))
-                                            (let [^BytePtr bs (if (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 58)) 0xff))
+                                            (let [^BytePtr bs (if (zero? (.ub ^BytePtr (aget (g ed term-strings) 58)))
                                                                (let [^BytePtr bs (aget (g ed term-strings) 47)]
                                                                  bs)
                                                                (let [^BytePtr bs (aget (g ed term-strings) 58)]
                                                                  bs))]
-                                              (let [cost (if (zero? (bit-and (.get bs) 0xff))
+                                              (let [cost (if (zero? (.ub bs))
                                                           (let [cost 999]
                                                             cost)
                                                           (let [cost (i32 (* (i32 (- (g ed screen-cur-col) col)) (i32 (long (musl-strlen ed bs)))))]
@@ -12857,7 +12857,7 @@
                                                                     (let [j__4 (if t1
                                                                                 (let [^ShortPtr t2 p
                                                                                       ^ShortPtr p (.add p 1)
-                                                                                      t1 (== (bit-and (.get t2) 0xffff) attr)]
+                                                                                      t1 (== (bit-and (long (.get t2)) 0xffff) attr)]
                                                                                   (do (aset to__ 1 p)
                                                                                       (aset to__ 2 (Boolean/valueOf (boolean t1)))
                                                                                       0))
@@ -12877,7 +12877,7 @@
                                                           (let [cost (long (if (== i 0)
                                                                       cost
                                                                       (let [^ShortPtr p (.add p -1)]
-                                                                        (let [j__6 (if (== (bit-and (.get p) 0xffff) 0)
+                                                                        (let [j__6 (if (== (bit-and (long (.get p)) 0xffff) 0)
                                                                                     (let [cost (i32 (+ cost noinvcurs))]
                                                                                       (loop [^ShortPtr p p
                                                                                              i i]
@@ -12885,7 +12885,7 @@
                                                                                           (let [j__5 (if t3
                                                                                                       (let [^ShortPtr t4 p
                                                                                                             ^ShortPtr p (.add p 1)
-                                                                                                            t3 (== (bit-and (.get t4) 0xffff) 0)]
+                                                                                                            t3 (== (bit-and (long (.get t4)) 0xffff) 0)]
                                                                                                         (do (aset to__ 1 p)
                                                                                                             (aset to__ 3 (Boolean/valueOf (boolean t3)))
                                                                                                             0))
@@ -12955,12 +12955,12 @@
                                                       nil)))
                                               (let [i (i32 (- col (g ed screen-cur-col)))]
                                                 (if (> i 0)
-                                                  (if (and (not (== (bit-and (.at ^BytePtr (aget (g ed term-strings) 59) 0) 0xff) (e NUL))) (== (bit-and (.at ^BytePtr (aget (g ed term-strings) 59) 1) 0xff) (e NUL)))
+                                                  (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 59) 0) (e NUL))) (== (.ub ^BytePtr (aget (g ed term-strings) 59) 1) (e NUL)))
                                                     (loop [i i]
                                                       (let [t5 i
                                                             i (i32 (dec i))]
                                                         (if (> t5 0)
-                                                          (let [_ (out-char ed (bit-and (.get ^BytePtr (aget (g ed term-strings) 59)) 0xff))]
+                                                          (let [_ (out-char ed (.ub ^BytePtr (aget (g ed term-strings) 59)))]
                                                             (recur i))
                                                           cost)))
                                                     (let [off (i32 (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 (g ed screen-cur-col)))))]
@@ -12969,11 +12969,11 @@
                                                         (let [t6 i
                                                               i (i32 (dec i))]
                                                           (if (> t6 0)
-                                                            (do (if (== (bit-and (.at (g ed ScreenAttrs) off) 0xffff) (g ed screen-attr))
+                                                            (do (if (== (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff) (g ed screen-attr))
                                                                   nil
                                                                   (let [_ (screen-stop-highlight ed)]
                                                                     nil))
-                                                              (let [_ (out-char ed (bit-and (.at (g ed ScreenLines) off) 0xff))
+                                                              (let [_ (out-char ed (.ub (g ed ScreenLines) off))
                                                                     off (i32 (inc off))]
                                                                 (recur i off)))
                                                             cost)))))
@@ -12986,7 +12986,7 @@
                             nil
                             (let [_ (screen-stop-highlight ed)]
                               nil))
-                        (if (and (and (== row (g ed screen-cur-row)) (> col (g ed screen-cur-col))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 38)) 0xff) (e NUL))))
+                        (if (and (and (== row (g ed screen-cur-row)) (> col (g ed screen-cur-col))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 38)) (e NUL))))
                           (let [_ (term-cursor-right ed (i32 (- col (g ed screen-cur-col))))]
                             (let [_ (g! ed screen-cur-row row)
                                   _ (g! ed screen-cur-col col)]
@@ -13058,13 +13058,13 @@
   (screen-stop-highlight ed)
   (reset-cterm-colors ed)
   (when-not (zero? (g ed termcap-active))
-    (when (and (not (zero? (long (aget (g ed p-ek) 0)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 88)) 0xff) (e NUL))))
+    (when (and (not (zero? (long (aget (g ed p-ek) 0)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 88)) (e NUL))))
       (out-str ed (aget (g ed term-strings) 88)))
     (out-str ed (aget (g ed term-strings) 83))
     (out-str ed (aget (g ed term-strings) 41))
     (out-flush ed)
     (g! ed termcap-active (e FALSE))
-    (when (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 45)) 0xff) (e NUL))) (or (== (g ed kitty-protocol-state) (e KKPS_ENABLED)) (== (g ed kitty-protocol-state) (e KKPS_DISABLED))))
+    (when (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 45)) (e NUL))) (or (== (g ed kitty-protocol-state) (e KKPS_ENABLED)) (== (g ed kitty-protocol-state) (e KKPS_DISABLED))))
       (out-str-t-TE ed))
     (out-str ed (aget (g ed term-strings) 45))
     (cursor-on ed)
@@ -13170,14 +13170,14 @@
   (let [col (long (check-col ed col))
         row (long (check-row ed row))
         off (i32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 col)))]
-    (if (and (some? (g ed ScreenLines)) (> col 0) (== (bit-and (.at (g ed ScreenLines) off) 0xff) 0) (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0))
+    (if (and (some? (g ed ScreenLines)) (> col 0) (== (.ub (g ed ScreenLines) off) 0) (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0))
       (i32 (- col 1))
       col)))
 
 ;; C: term_font
 (defn term-font [^Editor ed ^long n]
   (let [^bytes buf (byte-array 20)]
-    (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 90)) 0xff))
+    (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 90)))
       (whim.cljhost/vim-snprintf ed (BytePtr. buf 0) 20 (aget (g ed term-strings) 90) (object-array [(Integer/valueOf (unchecked-int (+ 9 n)))]))
       (out-str ed (BytePtr. buf 0))
       nil)))
@@ -13207,27 +13207,27 @@
                        0))
             attr (aget tl__ 0)
             ^S_attr_entry aep (aget to__ 0)]
-        (if (and (not (zero? (bit-and attr (e HL_BOLD)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 21)) 0xff) (e NUL))))
+        (if (and (not (zero? (bit-and attr (e HL_BOLD)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 21)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 21))
           (when (and (some? aep) (not (zero? (g ed cterm-normal-fg-bold))) (> (g ed t-colors) 1) (not (zero? (.fg-color ^A_1 (.-cterm ^A_2 (.-ae-u aep))))))
             (out-str ed (aget (g ed term-strings) 19))))
-        (when (and (not (zero? (bit-and attr (e HL_STANDOUT)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 23)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_STANDOUT)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 23)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 23)))
-        (when (and (not (zero? (bit-and attr (e HL_UNDERCURL)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 29)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_UNDERCURL)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 29)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 29)))
-        (when (and (not (zero? (bit-and attr (e HL_UNDERDOUBLE)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 30)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_UNDERDOUBLE)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 30)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 30)))
-        (when (and (not (zero? (bit-and attr (e HL_UNDERDOTTED)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 31)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_UNDERDOTTED)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 31)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 31)))
-        (when (and (not (zero? (bit-and attr (e HL_UNDERDASHED)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 32)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_UNDERDASHED)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 32)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 32)))
-        (when (and (or (not (zero? (bit-and attr (e HL_UNDERLINE)))) (and (not (zero? (bit-and attr (e HL_UNDERCURL)))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 29)) 0xff) (e NUL))) (and (not (zero? (bit-and attr (e HL_UNDERDOUBLE)))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 30)) 0xff) (e NUL))) (and (not (zero? (bit-and attr (e HL_UNDERDOTTED)))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 31)) 0xff) (e NUL))) (and (not (zero? (bit-and attr (e HL_UNDERDASHED)))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 32)) 0xff) (e NUL)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 27)) 0xff) (e NUL))))
+        (when (and (or (not (zero? (bit-and attr (e HL_UNDERLINE)))) (and (not (zero? (bit-and attr (e HL_UNDERCURL)))) (== (.ub ^BytePtr (aget (g ed term-strings) 29)) (e NUL))) (and (not (zero? (bit-and attr (e HL_UNDERDOUBLE)))) (== (.ub ^BytePtr (aget (g ed term-strings) 30)) (e NUL))) (and (not (zero? (bit-and attr (e HL_UNDERDOTTED)))) (== (.ub ^BytePtr (aget (g ed term-strings) 31)) (e NUL))) (and (not (zero? (bit-and attr (e HL_UNDERDASHED)))) (== (.ub ^BytePtr (aget (g ed term-strings) 32)) (e NUL)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 27)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 27)))
-        (when (and (not (zero? (bit-and attr (e HL_ITALIC)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 24)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_ITALIC)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 24)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 24)))
-        (when (and (not (zero? (bit-and attr (e HL_INVERSE)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 20)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_INVERSE)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 20)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 20)))
-        (when (and (not (zero? (bit-and attr (e HL_STRIKETHROUGH)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 34)) 0xff) (e NUL))))
+        (when (and (not (zero? (bit-and attr (e HL_STRIKETHROUGH)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 34)) (e NUL))))
           (out-str ed (aget (g ed term-strings) 34)))
         (when (some? aep)
           (when (and (> (g ed t-colors) 1) (> (.font ^A_1 (.-cterm ^A_2 (.-ae-u aep))) 0) (< (.font ^A_1 (.-cterm ^A_2 (.-ae-u aep))) 12))
@@ -13269,12 +13269,12 @@
 (defn screen-char [^Editor ed ^long off ^long row ^long col]
   (let [^bytes buf (byte-array 22)]
     (when-not (or (>= row (g ed screen-Rows)) (>= col (g ed screen-Columns)))
-      (if (and (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 53)) 0xff) (e NUL)) (== row (i32 (- (g ed screen-Rows) 1))) (== col (i32 (- (g ed screen-Columns) 1))))
+      (if (and (== (.ub ^BytePtr (aget (g ed term-strings) 53)) (e NUL)) (== row (i32 (- (g ed screen-Rows) 1))) (== col (i32 (- (g ed screen-Columns) 1))))
         (do (.set (g ed ScreenAttrs) off (unchecked-short 65535))
             (.set (g ed ScreenCols) off (unchecked-int -1))
             nil)
         (let [attr (if (== (g ed screen-char-attr) 0)
-                     (bit-and (.at (g ed ScreenAttrs) off) 0xffff)
+                     (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff)
                      (g ed screen-char-attr))]
           (when-not (== (g ed screen-attr) attr)
             (screen-stop-highlight ed))
@@ -13282,11 +13282,11 @@
           (when-not (== (g ed screen-attr) attr)
             (screen-start-highlight ed attr))
           (if (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0)
-            (do (out-char ed (bit-and (.at (g ed ScreenLines) off) 0xff))
+            (do (out-char ed (.ub (g ed ScreenLines) off))
                 (g! ed screen-cur-col (i32 (inc (g ed screen-cur-col))))
                 nil)
             (do (if (utf-ambiguous-width? ed (i32 (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff)))
-                  (do (when (== (bit-and (.get ^BytePtr (aget (g ed p-ambw) 0)) 0xff) 100)
+                  (do (when (== (.ub ^BytePtr (aget (g ed p-ambw) 0)) 100)
                         (out-str ed (BytePtr/lit "  "))
                         (term-windgoto ed row col))
                       (g! ed screen-cur-col 9999))
@@ -13306,99 +13306,99 @@
         (.set-r__ out__ (e NUL))
         (.set-lenp out__ lenp)
         out__)
-      (if (< (bit-and (.at p 0) 0xff) 128)
+      (if (< (.ub p 0) 128)
         (let [lenp 1]
-          (.set-r__ out__ (bit-and (.at p 0) 0xff))
+          (.set-r__ out__ (.ub p 0))
           (.set-lenp out__ lenp)
           out__)
-        (let [len (long (aget (g ed utf8len-tab-zero) (bit-and (.at p 0) 0xff)))]
+        (let [len (long (aget (g ed utf8len-tab-zero) (.ub p 0)))]
           (if (<= len 1)
             (let [lenp 1]
-              (.set-r__ out__ (bit-and (.at p 0) 0xff))
+              (.set-r__ out__ (.ub p 0))
               (.set-lenp out__ lenp)
               out__)
             (if (> len size)
               (let [i 1]
                 (loop [i i]
                   (if (< i size)
-                    (if (== (bit-and (.at p i) 0xff 192) 128)
+                    (if (== (bit-and (.ub p i) 192) 128)
                       (let [i (i32 (inc i))]
                         (recur i))
                       (let [lenp 1]
-                        (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                        (.set-r__ out__ (.ub p 0))
                         (.set-lenp out__ lenp)
                         out__))
                     (let [lenp len]
-                      (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                      (.set-r__ out__ (.ub p 0))
                       (.set-lenp out__ lenp)
                       out__))))
-              (if (== (bit-and (.at p 1) 0xff 192) 128)
-                (let [c (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 31) 6)) (bit-and (.at p 1) 0xff 63)))]
+              (if (== (bit-and (.ub p 1) 192) 128)
+                (let [c (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 31) 6)) (bit-and (.ub p 1) 63)))]
                   (if (== len 2)
                     (let [lenp 2]
                       (.set-r__ out__ c)
                       (.set-lenp out__ lenp)
                       out__)
-                    (if (== (bit-and (.at p 2) 0xff 192) 128)
-                      (let [c (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 15) 12)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 6)))) (bit-and (.at p 2) 0xff 63)))]
+                    (if (== (bit-and (.ub p 2) 192) 128)
+                      (let [c (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 15) 12)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 6)))) (bit-and (.ub p 2) 63)))]
                         (if (== len 3)
                           (let [lenp 3]
                             (.set-r__ out__ c)
                             (.set-lenp out__ lenp)
                             out__)
-                          (if (== (bit-and (.at p 3) 0xff 192) 128)
-                            (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 7) 18)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 12)))) (i32 (bit-shift-left (bit-and (.at p 2) 0xff 63) 6)))) (bit-and (.at p 3) 0xff 63)))]
+                          (if (== (bit-and (.ub p 3) 192) 128)
+                            (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 7) 18)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 12)))) (i32 (bit-shift-left (bit-and (.ub p 2) 63) 6)))) (bit-and (.ub p 3) 63)))]
                               (if (== len 4)
                                 (let [lenp 4]
                                   (.set-r__ out__ c)
                                   (.set-lenp out__ lenp)
                                   out__)
-                                (if (== (bit-and (.at p 4) 0xff 192) 128)
-                                  (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 3) 24)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 18)))) (i32 (bit-shift-left (bit-and (.at p 2) 0xff 63) 12)))) (i32 (bit-shift-left (bit-and (.at p 3) 0xff 63) 6)))) (bit-and (.at p 4) 0xff 63)))]
+                                (if (== (bit-and (.ub p 4) 192) 128)
+                                  (let [c (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 3) 24)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 18)))) (i32 (bit-shift-left (bit-and (.ub p 2) 63) 12)))) (i32 (bit-shift-left (bit-and (.ub p 3) 63) 6)))) (bit-and (.ub p 4) 63)))]
                                     (if (== len 5)
                                       (let [lenp 5]
                                         (.set-r__ out__ c)
                                         (.set-lenp out__ lenp)
                                         out__)
-                                      (if (== (bit-and (.at p 5) 0xff 192) 128)
+                                      (if (== (bit-and (.ub p 5) 192) 128)
                                         (let [lenp 6]
-                                          (.set-r__ out__ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.at p 0) 0xff 1) 30)) (i32 (bit-shift-left (bit-and (.at p 1) 0xff 63) 24)))) (i32 (bit-shift-left (bit-and (.at p 2) 0xff 63) 18)))) (i32 (bit-shift-left (bit-and (.at p 3) 0xff 63) 12)))) (i32 (bit-shift-left (bit-and (.at p 4) 0xff 63) 6)))) (bit-and (.at p 5) 0xff 63))))
+                                          (.set-r__ out__ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (+ (i32 (bit-shift-left (bit-and (.ub p 0) 1) 30)) (i32 (bit-shift-left (bit-and (.ub p 1) 63) 24)))) (i32 (bit-shift-left (bit-and (.ub p 2) 63) 18)))) (i32 (bit-shift-left (bit-and (.ub p 3) 63) 12)))) (i32 (bit-shift-left (bit-and (.ub p 4) 63) 6)))) (bit-and (.ub p 5) 63))))
                                           (.set-lenp out__ lenp)
                                           out__)
                                         (let [lenp 1]
-                                          (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                                          (.set-r__ out__ (.ub p 0))
                                           (.set-lenp out__ lenp)
                                           out__))))
                                   (let [lenp 1]
-                                    (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                                    (.set-r__ out__ (.ub p 0))
                                     (.set-lenp out__ lenp)
                                     out__))))
                             (let [lenp 1]
-                              (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                              (.set-r__ out__ (.ub p 0))
                               (.set-lenp out__ lenp)
                               out__))))
                       (let [lenp 1]
-                        (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                        (.set-r__ out__ (.ub p 0))
                         (.set-lenp out__ lenp)
                         out__))))
                 (let [lenp 1]
-                  (.set-r__ out__ (bit-and (.at p 0) 0xff))
+                  (.set-r__ out__ (.ub p 0))
                   (.set-lenp out__ lenp)
                   out__)))))))))
 
 ;; C: utfc_ptr2len_len
 (defn utfc-ptr2len-len ^long [^Editor ed ^BytePtr p ^long size]
   (let [^T_utf_ptr2char_and_len_len__out_T utf-ptr2char-and-len-len__o (new-T_utf_ptr2char_and_len_len__out_T)]
-    (if (or (< size 1) (== (bit-and (.get p) 0xff) (e NUL)))
+    (if (or (< size 1) (== (.ub p) (e NUL)))
       0
-      (if (and (< (bit-and (.at p 0) 0xff) 128) (or (== size 1) (< (bit-and (.at p 1) 0xff) 128)))
+      (if (and (< (.ub p 0) 128) (or (== size 1) (< (.ub p 1) 128)))
         1
         (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed p size))
             (let [len (.lenp utf-ptr2char-and-len-len__o)
                   c (.r__ utf-ptr2char-and-len-len__o)]
-              (if (or (and (== len 1) (>= (bit-and (.at p 0) 0xff) 128)) (> len size))
+              (if (or (and (== len 1) (>= (.ub p 0) 128)) (> len size))
                 1
-                (if (or (>= len size) (< (bit-and (.at p len) 0xff) 128))
+                (if (or (>= len size) (< (.ub p len) 128))
                   len
                   (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- size len))))
                       (let [cc-len (.lenp utf-ptr2char-and-len-len__o)
@@ -13409,7 +13409,7 @@
                                  cc-len cc-len]
                             (if (< len size)
                               (let [len (i32 (+ len cc-len))]
-                                (if (or (>= len size) (< (bit-and (.at p len) 0xff) 128))
+                                (if (or (>= len size) (< (.ub p len) 128))
                                   len
                                   (do (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- size len))))
                                       (let [cc-len (.lenp utf-ptr2char-and-len-len__o)
@@ -13428,7 +13428,7 @@
           _ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed p))
           len (.lenp utf-ptr2char-and-len__o)
           c (.r__ utf-ptr2char-and-len__o)]
-      (let [i (long (if (and (or (> len 1) (< (bit-and (.get p) 0xff) 128)) (>= (bit-and (.at p len) 0xff) 128))
+      (let [i (long (if (and (or (> len 1) (< (.ub p) 128)) (>= (.ub p len) 128))
                (let [_ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
                      cc-len (.lenp utf-ptr2char-and-len__o)
                      cc (.r__ utf-ptr2char-and-len__o)]
@@ -13443,7 +13443,7 @@
                        (if (== i (e MAX_MCO))
                          i
                          (let [len (i32 (+ len cc-len))]
-                           (if (< (bit-and (.at p len) 0xff) 128)
+                           (if (< (.ub p len) 128)
                              i
                              (let [_ (.set utf-ptr2char-and-len__o (utf-ptr2char-and-len ed (.add p len)))
                                    cc-len (.lenp utf-ptr2char-and-len__o)
@@ -13465,7 +13465,7 @@
           _ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed p maxlen))
           len (.lenp utf-ptr2char-and-len-len__o)
           c (.r__ utf-ptr2char-and-len-len__o)]
-      (let [i (long (if (and (and (or (> len 1) (< (bit-and (.get p) 0xff) 128)) (< len maxlen)) (>= (bit-and (.at p len) 0xff) 128))
+      (let [i (long (if (and (and (or (> len 1) (< (.ub p) 128)) (< len maxlen)) (>= (.ub p len) 128))
                (let [_ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- maxlen len))))
                      cc-len (.lenp utf-ptr2char-and-len-len__o)
                      cc (.r__ utf-ptr2char-and-len-len__o)]
@@ -13480,7 +13480,7 @@
                        (if (== i (e MAX_MCO))
                          i
                          (let [len (i32 (+ len cc-len))]
-                           (if (or (>= len maxlen) (< (bit-and (.at p len) 0xff) 128))
+                           (if (or (>= len maxlen) (< (.ub p len) 128))
                              i
                              (let [_ (.set utf-ptr2char-and-len-len__o (utf-ptr2char-and-len-len ed (.add p len) (i32 (- maxlen len))))
                                    cc-len (.lenp utf-ptr2char-and-len-len__o)
@@ -13776,7 +13776,7 @@
                       (.set-fg-color ^A_1 (.-cterm ^A_2 (.-ae-u new-en)) (.fg-color ^A_1 (.-cterm ^A_2 (.-ae-u popup-aep))))
                       (if (> (g ed cterm-normal-fg-color) 0)
                         (.set-fg-color ^A_1 (.-cterm ^A_2 (.-ae-u new-en)) (u16 (g ed cterm-normal-fg-color)))
-                        (.set-fg-color ^A_1 (.-cterm ^A_2 (.-ae-u new-en)) (u16 (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) 108) 1 16)))))
+                        (.set-fg-color ^A_1 (.-cterm ^A_2 (.-ae-u new-en)) (u16 (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) 108) 1 16)))))
                     (.set-ul-color ^A_1 (.-cterm ^A_2 (.-ae-u new-en)) (.ul-color ^A_1 (.-cterm ^A_2 (.-ae-u popup-aep))))
                     (.set-font ^A_1 (.-cterm ^A_2 (.-ae-u new-en)) (.font ^A_1 (.-cterm ^A_2 (.-ae-u popup-aep))))))
               (let [under-bg (if (some? char-aep) (.bg-color ^A_1 (.-cterm ^A_2 (.-ae-u char-aep))) 0)
@@ -13829,7 +13829,7 @@
 
 ;; C: utf_off2cells
 (defn utf-off2cells ^long [^Editor ed ^long off ^long max-off]
-  (if (and (< (u32 (+ off 1)) max-off) (== (bit-and (.at (g ed ScreenLines) (u32 (+ off 1))) 0xff) 0)) 2 1))
+  (if (and (< (u32 (+ off 1)) max-off) (== (.ub (g ed ScreenLines) (u32 (+ off 1))) 0)) 2 1))
 
 ;; C: screen_puts_len
 (defn screen-puts-len [^Editor ed ^BytePtr text textlen row col attr-arg]
@@ -13865,8 +13865,8 @@
                len len
                clear-next-cell (boolean clear-next-cell)
                force-redraw-next (boolean force-redraw-next)]
-          (if (and (< col (g ed screen-Columns)) (or (< len 0) (< (i32 (.sub ptr text)) len)) (not (== (bit-and (.get ptr) 0xff) (e NUL))))
-            (let [c (bit-and (.get ptr) 0xff)
+          (if (and (< col (g ed screen-Columns)) (or (< len 0) (< (i32 (.sub ptr text)) len)) (not (== (.ub ptr) (e NUL))))
+            (let [c (.ub ptr)
                   mbyte-blen (if (> len 0) (long (utfc-ptr2len-len ed ptr (i32 (.sub (.add text len) ptr)))) (long (utfc-ptr2len ed ptr)))
                   u8c (if (>= len 0) (long (utfc-ptr2char-len ed ptr (IntPtr. u8cc 0) (i32 (.sub (.add text len) ptr)))) (long (utfc-ptr2char ed ptr (IntPtr. u8cc 0))))
                   mbyte-cells (long (utf-char2cells ed u8c))
@@ -13886,13 +13886,13 @@
                   cell-attr attr
                   cell-attr (if (and (> (g ed screen-pum-blend) 0) (some? (g ed pum-bg-attrs)) (>= row (g ed pum-bg-top)) (< row (g ed pum-bg-bot)) (< col (g ed pum-bg-cols)))
                               (let [soff (i32 (+ (i32 (* (i32 (- row (g ed pum-bg-top))) (g ed pum-bg-cols))) col))
-                                    cell-attr (long (hl-blend-attr ed (bit-and (.at (g ed pum-bg-attrs) soff) 0xffff) attr (g ed screen-pum-blend) false))]
+                                    cell-attr (long (hl-blend-attr ed (bit-and (long (.at (g ed pum-bg-attrs) soff)) 0xffff) attr (g ed screen-pum-blend) false))]
                                 cell-attr)
                               cell-attr)
-                  need-redraw (or (not (== (bit-and (.at (g ed ScreenLines) off) 0xff) c)) (and (== mbyte-cells 2) (not (== (bit-and (.at (g ed ScreenLines) (u32 (+ off 1))) 0xff) 0))) false (not (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) (u32 (if (and (< c 128) (== (long (aget u8cc 0)) 0)) 0 u8c)))) (and (not (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0)) (screen-comp-differs? ed (i32 off) (IntPtr. u8cc 0))) (not (== (bit-and (.at (g ed ScreenAttrs) off) 0xffff) cell-attr)))
+                  need-redraw (or (not (== (.ub (g ed ScreenLines) off) c)) (and (== mbyte-cells 2) (not (== (.ub (g ed ScreenLines) (u32 (+ off 1))) 0))) false (not (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) (u32 (if (and (< c 128) (== (long (aget u8cc 0)) 0)) 0 u8c)))) (and (not (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0)) (screen-comp-differs? ed (i32 off) (IntPtr. u8cc 0))) (not (== (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff) cell-attr)))
                   j__2 (if (or need-redraw force-redraw-this)
-                         (let [force-redraw-next (if (and need-redraw (not (== (bit-and (.at (g ed ScreenLines) off) 0xff) 32)) (not (zero? (g ed term-is-xterm))))
-                                                   (let [n (bit-and (.at (g ed ScreenAttrs) off) 0xffff)
+                         (let [force-redraw-next (if (and need-redraw (not (== (.ub (g ed ScreenLines) off) 32)) (not (zero? (g ed term-is-xterm))))
+                                                   (let [n (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff)
                                                          n (if (> n (e HL_ALL))
                                                              (long (syn-attr2attr ed n))
                                                              n)]
@@ -13902,7 +13902,7 @@
                                                    force-redraw-next)
                                clear-next-cell (if clear-next-cell
                                                  false
-                                                 (if (and (if (< len 0) (== (bit-and (.at ptr mbyte-blen) 0xff) (e NUL)) (.ge (.add ptr mbyte-blen) (.add text len))) (or (and (== mbyte-cells 1) (> (long (utf-off2cells ed off max-off)) 1)) (and (== mbyte-cells 2) (== (long (utf-off2cells ed off max-off)) 1) (> (long (utf-off2cells ed (u32 (+ off 1)) max-off)) 1))))
+                                                 (if (and (if (< len 0) (== (.ub ptr mbyte-blen) (e NUL)) (.ge (.add ptr mbyte-blen) (.add text len))) (or (and (== mbyte-cells 1) (> (long (utf-off2cells ed off max-off)) 1)) (and (== mbyte-cells 2) (== (long (utf-off2cells ed off max-off)) 1) (> (long (utf-off2cells ed (u32 (+ off 1)) max-off)) 1))))
                                                    true
                                                    clear-next-cell))]
                            (.set (g ed ScreenLines) off (unchecked-byte c))
@@ -13944,7 +13944,7 @@
                   j__3 (if clear-next-cell
                          (let [^BytePtr ptr (BytePtr/lit " ")
                                len -1
-                               attr (bit-and (.at (g ed ScreenAttrs) off) 0xffff)]
+                               attr (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff)]
                            (aset tl__ 2 attr)
                            (aset to__ 2 ptr)
                            (aset tl__ 3 len)
@@ -13963,7 +13963,7 @@
 
 ;; C: can_clear
 (defn can-clear? [^Editor ed ^BytePtr p]
-  (and (not (== (bit-and (.get p) 0xff) (e NUL))) (or (<= (g ed t-colors) 1) (== (g ed cterm-normal-bg-color) 0) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 9)) 0xff) (e NUL))))))
+  (and (not (== (.ub p) (e NUL))) (or (<= (g ed t-colors) 1) (== (g ed cterm-normal-bg-color) 0) (not (== (.ub ^BytePtr (aget (g ed term-strings) 9)) (e NUL))))))
 
 ;; C: space_to_screenline
 (defn space-to-screenline [^Editor ed ^long off ^long attr]
@@ -14021,10 +14021,10 @@
         1
           (when (< row end-row)
             (when (and (> start-col 0) (not (== (long (mb-fix-col ed start-col row)) start-col)))
-              (let [left-attr (bit-and (.at (g ed ScreenAttrs) (u32 (- (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 start-col))) 1))) 0xffff)]
+              (let [left-attr (bit-and (long (.at (g ed ScreenAttrs) (u32 (- (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 start-col))) 1)))) 0xffff)]
                 (screen-puts-len ed (BytePtr/lit " ") 1 row (i32 (- start-col 1)) left-attr)))
             (when (and (< end-col (g ed screen-Columns)) (not (== (long (mb-fix-col ed end-col row)) end-col)))
-              (let [right-attr (bit-and (.at (g ed ScreenAttrs) (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 end-col)))) 0xffff)]
+              (let [right-attr (bit-and (long (.at (g ed ScreenAttrs) (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 end-col))))) 0xffff)]
                 (screen-puts-len ed (BytePtr/lit " ") 1 row end-col right-attr)))
             (let [did-delete false]
               (if (and (== c2 32) (== end-col (aget (g ed Columns) 0)) (can-clear? ed (aget (g ed term-strings) 1)) (or (== attr 0) (and norm-term (<= attr (e HL_ALL)) (== (bit-and attr -7) 0))))
@@ -14037,7 +14037,7 @@
                   (recur 2 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k))
                 (recur 5 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k))))
         2
-          (if (and (< off end-off) (== (bit-and (.at (g ed ScreenLines) off) 0xff) 32) (== (bit-and (.at (g ed ScreenAttrs) off) 0xffff) 0) (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0))
+          (if (and (< off end-off) (== (.ub (g ed ScreenLines) off) 32) (== (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff) 0) (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0))
             (let [off (i32 (inc off))]
               (recur 2 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k))
             (if (< off end-off)
@@ -14067,16 +14067,16 @@
             (recur 6 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k))
         6
           (if (< col end-col)
-            (if (or (not (== (bit-and (.at (g ed ScreenLines) off) 0xff) c)) (not (== (i32 (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff)) (if (>= c 128) c 0))) (not (== (bit-and (.at (g ed ScreenAttrs) off) 0xffff) attr)) (== (g ed must-redraw) (e UPD_CLEAR)) force-next)
+            (if (or (not (== (.ub (g ed ScreenLines) off) c)) (not (== (i32 (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff)) (if (>= c 128) c 0))) (not (== (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff) attr)) (== (g ed must-redraw) (e UPD_CLEAR)) force-next)
               (if (and (> (g ed screen-pum-blend) 0) (== c 32) (some? (g ed pum-bg-attrs)) (>= row (g ed pum-bg-top)) (< row (g ed pum-bg-bot)) (< col (g ed pum-bg-cols)))
                 (let [soff (i32 (+ (i32 (* (i32 (- row (g ed pum-bg-top))) (g ed pum-bg-cols))) col))]
                   (if (and (some? (g ed pum-bg-linesUC)) (> col start-col) (== (bit-and (.at (g ed pum-bg-linesUC) soff) 0xffffffff) 0) (not (== (bit-and (.at (g ed pum-bg-linesUC) (i32 (- soff 1))) 0xffffffff) 0)) (== (long (utf-char2cells ed (i32 (bit-and (.at (g ed pum-bg-linesUC) (i32 (- soff 1))) 0xffffffff)))) 2))
                     (do (.set (g ed ScreenLines) off (unchecked-byte 0))
                         (when (some? (g ed ScreenLinesUC))
                           (.set (g ed ScreenLinesUC) off (unchecked-int 0)))
-                        (.set (g ed ScreenAttrs) off (unchecked-short (bit-and (.at (g ed ScreenAttrs) (i32 (- off 1))) 0xffff)))
+                        (.set (g ed ScreenAttrs) off (unchecked-short (bit-and (long (.at (g ed ScreenAttrs) (i32 (- off 1)))) 0xffff)))
                         (recur 9 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k))
-                    (let [underlying-attr (bit-and (.at (g ed pum-bg-attrs) soff) 0xffff)]
+                    (let [underlying-attr (bit-and (long (.at (g ed pum-bg-attrs) soff)) 0xffff)]
                       (if (and (some? (g ed pum-bg-linesUC)) (or (and (not (== (bit-and (.at (g ed pum-bg-linesUC) soff) 0xffffffff) 0)) (== (long (utf-char2cells ed (i32 (bit-and (.at (g ed pum-bg-linesUC) soff) 0xffffffff)))) 2) (>= (i32 (+ col 1)) end-col)) (and (== col start-col) (== (bit-and (.at (g ed pum-bg-linesUC) soff) 0xffffffff) 0) (> col 0) (not (== (bit-and (.at (g ed pum-bg-linesUC) (i32 (- soff 1))) 0xffffffff) 0)) (== (long (utf-char2cells ed (i32 (bit-and (.at (g ed pum-bg-linesUC) (i32 (- soff 1))) 0xffffffff)))) 2))))
                         (do (.set (g ed ScreenLines) off (unchecked-byte 32))
                             (when (some? (g ed ScreenLinesUC))
@@ -14084,7 +14084,7 @@
                             (.set (g ed ScreenAttrs) off (unchecked-short (long (hl-pum-blend-attr ed underlying-attr attr (g ed screen-pum-blend)))))
                             (screen-char ed (u32 off) row col)
                             (recur 9 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k))
-                        (do (.set (g ed ScreenLines) off (unchecked-byte (bit-and (.at (g ed pum-bg-lines) soff) 0xff)))
+                        (do (.set (g ed ScreenLines) off (unchecked-byte (.ub (g ed pum-bg-lines) soff)))
                             (if (and (some? (g ed pum-bg-linesUC)) (some? (g ed ScreenLinesUC)))
                               (do (.set (g ed ScreenLinesUC) off (unchecked-int (bit-and (.at (g ed pum-bg-linesUC) soff) 0xffffffff)))
                                   (let [k 0]
@@ -14092,7 +14092,7 @@
                               (recur 8 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k)))))))
                 (let [force-next (if (zero? (g ed term-is-xterm))
                                    force-next
-                                   (if (and (not (== (bit-and (.at (g ed ScreenLines) off) 0xff) 32)) (or (> (bit-and (.at (g ed ScreenAttrs) off) 0xffff) (e HL_ALL)) (not (zero? (bit-and (.at (g ed ScreenAttrs) off) 0xffff (e HL_BOLD))))))
+                                   (if (and (not (== (.ub (g ed ScreenLines) off) 32)) (or (> (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff) (e HL_ALL)) (not (zero? (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff (e HL_BOLD))))))
                                      true
                                      false))]
                   (.set (g ed ScreenLines) off (unchecked-byte c))
@@ -14147,8 +14147,8 @@
 (defn msg-clr-eos-force [^Editor ed]
   (if (msg-use-printf ed)
     (when-not (zero? (g ed full-screen))
-      (if (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 8)) 0xff))
-        (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 1)) 0xff))
+      (if (zero? (.ub ^BytePtr (aget (g ed term-strings) 8)))
+        (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 1)))
           (out-str ed (aget (g ed term-strings) 1))
           nil)
         (do (out-str ed (aget (g ed term-strings) 8))
@@ -14239,7 +14239,7 @@
         3
           (if (< i n)
             (do (aset buf i (unchecked-byte (long (vgetorpeek ed true))))
-                (when (== (bit-and (aget buf i) 0xff) 128)
+                (when (== (bit-and (long (aget buf i)) 0xff) 128)
                   (let [c (long (vgetorpeek ed true))]
                     (when (and (== (long (vgetorpeek ed true)) (e KE_CSI)) (== c (e KS_EXTRA)))
                       (aset buf i (unchecked-byte (e CSI))))))
@@ -14458,10 +14458,10 @@
            ^BytePtr p p]
       (let [i (i32 (dec i))]
         (if (>= i 0)
-          (let [j__1 (if (or (== (bit-and (.at p 0) 0xff) (e NUL)) (and (== (bit-and (.at p 0) 0xff) 128) (or (< i 2) (not (== (bit-and (.at p 1) 0xff) (e KS_EXTRA))) (and (not (== (bit-and (.at p 2) 0xff) 96)) (not (== (bit-and (.at p 2) 0xff) 110))))))
+          (let [j__1 (if (or (== (.ub p 0) (e NUL)) (and (== (.ub p 0) 128) (or (< i 2) (not (== (.ub p 1) (e KS_EXTRA))) (and (not (== (.ub p 2) 96)) (not (== (.ub p 2) 110))))))
                        (do (Rt/memmove (.add p 3) (.add p 1) i)
-                           (.set p 2 (unchecked-byte (if (or (== (bit-and (.at p 0) 0xff) 128) (== (bit-and (.at p 0) 0xff) (e NUL))) 88 (bit-and (bit-shift-right (u32 (- (bit-and (.at p 0) 0xff))) 8) 255))))
-                           (.set p 1 (unchecked-byte (if (== (bit-and (.at p 0) 0xff) 128) (e KS_SPECIAL) (if (== (bit-and (.at p 0) 0xff) (e NUL)) (e KS_ZERO) (bit-and (i32 (- (bit-and (.at p 0) 0xff))) 255)))))
+                           (.set p 2 (unchecked-byte (if (or (== (.ub p 0) 128) (== (.ub p 0) (e NUL))) 88 (bit-and (bit-shift-right (u32 (- (.ub p 0))) 8) 255))))
+                           (.set p 1 (unchecked-byte (if (== (.ub p 0) 128) (e KS_SPECIAL) (if (== (.ub p 0) (e NUL)) (e KS_ZERO) (bit-and (i32 (- (.ub p 0))) 255)))))
                            (.set p 0 (unchecked-byte 128))
                            (let [^BytePtr p (.add p 2)
                                  len (i32 (+ len 2))]
@@ -14486,10 +14486,10 @@
     (loop [i i
            len len]
       (if (< i (g ed tc-len))
-        (let [len (if (nil? (vim-strchr ed (BytePtr. (g ed termleader) 0) (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) 0) 0xff)))
+        (let [len (if (nil? (vim-strchr ed (BytePtr. (g ed termleader) 0) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) 0)))
                     (let [t1 len
                           len (i32 (inc len))]
-                      (aset (g ed termleader) t1 (unchecked-byte (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) 0) 0xff)))
+                      (aset (g ed termleader) t1 (unchecked-byte (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) 0)))
                       (aset (g ed termleader) len (unchecked-byte (e NUL)))
                       len)
                     len)
@@ -14507,7 +14507,7 @@
 
 ;; C: ga_concat_len
 (defn ga-concat-len [^Editor ed ^S_growarray gap ^BytePtr s ^long len]
-  (when-not (or (nil? s) (== (bit-and (.get s) 0xff) (e NUL)) (== len 0))
+  (when-not (or (nil? s) (== (.ub s) (e NUL)) (== len 0))
     (when (ga-grow ed gap (i32 len))
       (Rt/memmove (.add (GA_BytePtr gap) (.ga-len gap)) s len)
       (.set-ga-len gap (i32 (+ (.ga-len gap) (i32 len))))
@@ -14562,26 +14562,26 @@
               (recur 3 arg opt-idx s p is-term-opt last-opt-idx tab-idx)))
           (recur 4 arg opt-idx s p is-term-opt last-opt-idx tab-idx))
       4
-        (if (or (< (bit-and (.at arg 0) 0xff) 97) (> (bit-and (.at arg 0) 0xff) 122))
+        (if (or (< (.ub arg 0) 97) (> (.ub arg 0) 122))
           -1
-          (let [is-term-opt (and (== (bit-and (.at arg 0) 0xff) 116) (== (bit-and (.at arg 1) 0xff) 95))
+          (let [is-term-opt (and (== (.ub arg 0) 116) (== (.ub arg 1) 95))
                 opt-idx (if is-term-opt
                           (long (aget (g ed findoption-quick-tab) 26))
-                          (long (aget (g ed findoption-quick-tab) (i32 (- (bit-and (.at arg 0) 0xff) 97)))))]
+                          (long (aget (g ed findoption-quick-tab) (i32 (- (.ub arg 0) 97)))))]
             (recur 5 arg opt-idx s p is-term-opt last-opt-idx tab-idx)))
       5
         (let [^BytePtr s (.fullname ^S_vimoption (aget (g ed options) opt-idx))]
-          (if (and (some? s) (== (long (.at s 0)) (bit-and (.at arg 0) 0xff)))
+          (if (and (some? s) (== (long (.at s 0)) (.ub arg 0)))
             (if (== (long (musl-strcmp ed arg s)) 0)
               (recur 6 arg opt-idx s p is-term-opt last-opt-idx tab-idx)
               (let [opt-idx (i32 (inc opt-idx))]
                 (recur 5 arg opt-idx s p is-term-opt last-opt-idx tab-idx)))
             (recur 6 arg opt-idx s p is-term-opt last-opt-idx tab-idx)))
       6
-        (let [^BytePtr s (when-not (and (some? s) (not (== (long (.at s 0)) (bit-and (.at arg 0) 0xff))))
+        (let [^BytePtr s (when-not (and (some? s) (not (== (long (.at s 0)) (.ub arg 0))))
                            s)]
           (if (and (nil? s) (not is-term-opt))
-            (let [opt-idx (long (aget (g ed findoption-quick-tab) (i32 (- (bit-and (.at arg 0) 0xff) 97))))]
+            (let [opt-idx (long (aget (g ed findoption-quick-tab) (i32 (- (.ub arg 0) 97))))]
               (recur 7 arg opt-idx s p is-term-opt last-opt-idx tab-idx))
             (recur 8 arg opt-idx s p is-term-opt last-opt-idx tab-idx)))
       7
@@ -14644,7 +14644,7 @@
         len (if true
               0
               len)
-        j__1 (if (== (bit-and (.at ptr 0) 0xff) 45)
+        j__1 (if (== (.ub ptr 0) 45)
                (let [negative true
                      ^BytePtr ptr (.add ptr 1)]
                  (aset to__ 0 ptr)
@@ -14655,19 +14655,19 @@
                    0))
         ^BytePtr ptr (aget to__ 0)
         negative (boolean (aget to__ 1))
-        j__2 (if (and (== (bit-and (.at ptr 0) 0xff) 48) (not (== (bit-and (.at ptr 1) 0xff) 56)) (not (== (bit-and (.at ptr 1) 0xff) 57)) (or (== maxlen 0) (> maxlen 1)))
-               (let [pre (bit-and (.at ptr 1) 0xff)]
-                 (if (and (not (zero? (bit-and what (e STR2NR_HEX)))) (or (== pre 88) (== pre 120)) (vim-isxdigit? ed (bit-and (.at ptr 2) 0xff)) (or (== maxlen 0) (> maxlen 2)))
+        j__2 (if (and (== (.ub ptr 0) 48) (not (== (.ub ptr 1) 56)) (not (== (.ub ptr 1) 57)) (or (== maxlen 0) (> maxlen 1)))
+               (let [pre (.ub ptr 1)]
+                 (if (and (not (zero? (bit-and what (e STR2NR_HEX)))) (or (== pre 88) (== pre 120)) (vim-isxdigit? ed (.ub ptr 2)) (or (== maxlen 0) (> maxlen 2)))
                    (let [^BytePtr ptr (.add ptr 2)]
                      (aset to__ 0 ptr)
                      (aset tl__ 1 pre)
                      0)
-                   (if (and (not (zero? (bit-and what (e STR2NR_BIN)))) (or (== pre 66) (== pre 98)) (vim-isbdigit? ed (bit-and (.at ptr 2) 0xff)) (or (== maxlen 0) (> maxlen 2)))
+                   (if (and (not (zero? (bit-and what (e STR2NR_BIN)))) (or (== pre 66) (== pre 98)) (vim-isbdigit? ed (.ub ptr 2)) (or (== maxlen 0) (> maxlen 2)))
                      (let [^BytePtr ptr (.add ptr 2)]
                        (aset to__ 0 ptr)
                        (aset tl__ 1 pre)
                        0)
-                     (if (and (not (zero? (bit-and what (e STR2NR_OOCT)))) (or (== pre 79) (== pre 111)) (vim-isodigit? ed (bit-and (.at ptr 2) 0xff)) (or (== maxlen 0) (> maxlen 2)))
+                     (if (and (not (zero? (bit-and what (e STR2NR_OOCT)))) (or (== pre 79) (== pre 111)) (vim-isodigit? ed (.ub ptr 2)) (or (== maxlen 0) (> maxlen 2)))
                        (let [^BytePtr ptr (.add ptr 2)]
                          (aset to__ 0 ptr)
                          (aset tl__ 1 pre)
@@ -14680,8 +14680,8 @@
                            (let [n 1]
                              (loop [pre pre
                                     n n]
-                               (if (and (not (== n maxlen)) (< (u32 (- (bit-and (.at ptr n) 0xff) 48)) 10))
-                                 (if (> (bit-and (.at ptr n) 0xff) 55)
+                               (if (and (not (== n maxlen)) (< (u32 (- (.ub ptr n) 48)) 10))
+                                 (if (> (.ub ptr n) 55)
                                    (let [pre 0]
                                      (aset to__ 0 ptr)
                                      (aset tl__ 1 pre)
@@ -14705,9 +14705,9 @@
                  (loop [^BytePtr ptr ptr
                         un un
                         n n]
-                   (if (and (<= 48 (bit-and (.get ptr) 0xff)) (<= (bit-and (.get ptr) 0xff) 49))
+                   (if (and (<= 48 (.ub ptr)) (<= (.ub ptr) 49))
                      (let [un (if (<= (Long/compareUnsigned un 9223372036854775807) 0)
-                                (+ (* 2 un) (i32 (- (bit-and (.get ptr) 0xff) 48)))
+                                (+ (* 2 un) (i32 (- (.ub ptr) 48)))
                                 (let [un (e ULLONG_MAX)]
                                   (if (some? overflow)
                                     (do (.put overflow (unchecked-int (e TRUE)))
@@ -14721,7 +14721,7 @@
                              (aset tl__ 2 un)
                              (aset tl__ 3 n)
                              0)
-                         (let [j__3 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (bit-and (.get ptr) 0xff) 39) (<= 48 (bit-and (.at ptr 1) 0xff)) (<= (bit-and (.at ptr 1) 0xff) 49))
+                         (let [j__3 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (.ub ptr) 39) (<= 48 (.ub ptr 1)) (<= (.ub ptr 1) 49))
                                       (let [^BytePtr ptr (.add ptr 1)
                                             t2 n
                                             n (i32 (inc n))]
@@ -14758,9 +14758,9 @@
                    (loop [^BytePtr ptr ptr
                           un un
                           n n]
-                     (if (and (<= 48 (bit-and (.get ptr) 0xff)) (<= (bit-and (.get ptr) 0xff) 55))
+                     (if (and (<= 48 (.ub ptr)) (<= (.ub ptr) 55))
                        (let [un (if (<= (Long/compareUnsigned un 2305843009213693951) 0)
-                                  (+ (* 8 un) (i32 (- (bit-and (.get ptr) 0xff) 48)))
+                                  (+ (* 8 un) (i32 (- (.ub ptr) 48)))
                                   (let [un (e ULLONG_MAX)]
                                     (if (some? overflow)
                                       (do (.put overflow (unchecked-int (e TRUE)))
@@ -14774,7 +14774,7 @@
                                (aset tl__ 2 un)
                                (aset tl__ 3 n)
                                0)
-                           (let [j__4 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (bit-and (.get ptr) 0xff) 39) (<= 48 (bit-and (.at ptr 1) 0xff)) (<= (bit-and (.at ptr 1) 0xff) 55))
+                           (let [j__4 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (.ub ptr) 39) (<= 48 (.ub ptr 1)) (<= (.ub ptr 1) 55))
                                         (let [^BytePtr ptr (.add ptr 1)
                                               t4 n
                                               n (i32 (inc n))]
@@ -14811,9 +14811,9 @@
                      (loop [^BytePtr ptr ptr
                             un un
                             n n]
-                       (if (vim-isxdigit? ed (bit-and (.get ptr) 0xff))
+                       (if (vim-isxdigit? ed (.ub ptr))
                          (let [un (if (<= (Long/compareUnsigned un 1152921504606846975) 0)
-                                    (+ (* 16 un) (long (hex2nr ed (bit-and (.get ptr) 0xff))))
+                                    (+ (* 16 un) (long (hex2nr ed (.ub ptr))))
                                     (let [un (e ULLONG_MAX)]
                                       (if (some? overflow)
                                         (do (.put overflow (unchecked-int (e TRUE)))
@@ -14827,7 +14827,7 @@
                                  (aset tl__ 2 un)
                                  (aset tl__ 3 n)
                                  0)
-                             (let [j__5 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (bit-and (.get ptr) 0xff) 39) (vim-isxdigit? ed (bit-and (.at ptr 1) 0xff)))
+                             (let [j__5 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (.ub ptr) 39) (vim-isxdigit? ed (.ub ptr 1)))
                                           (let [^BytePtr ptr (.add ptr 1)
                                                 t6 n
                                                 n (i32 (inc n))]
@@ -14860,8 +14860,8 @@
                    (loop [^BytePtr ptr ptr
                           un un
                           n n]
-                     (if (< (u32 (- (bit-and (.get ptr) 0xff) 48)) 10)
-                       (let [digit (i32 (- (bit-and (.get ptr) 0xff) 48))
+                     (if (< (u32 (- (.ub ptr) 48)) 10)
+                       (let [digit (i32 (- (.ub ptr) 48))
                              un (if (or (< (Long/compareUnsigned un 1844674407370955161) 0) (and (== un 1844674407370955161) (<= (Long/compareUnsigned digit 5) 0)))
                                   (+ (* 10 un) digit)
                                   (let [un (e ULLONG_MAX)]
@@ -14877,7 +14877,7 @@
                                (aset tl__ 2 un)
                                (aset tl__ 3 n)
                                0)
-                           (let [j__6 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (bit-and (.get ptr) 0xff) 39) (< (u32 (- (bit-and (.at ptr 1) 0xff) 48)) 10))
+                           (let [j__6 (if (and (not (zero? (bit-and what (e STR2NR_QUOTE)))) (== (.ub ptr) 39) (< (u32 (- (.ub ptr 1) 48)) 10))
                                         (let [^BytePtr ptr (.add ptr 1)
                                               t8 n
                                               n (i32 (inc n))]
@@ -14910,7 +14910,7 @@
         ^BytePtr ptr (aget to__ 0)
         un (aget tl__ 2)
         n (aget tl__ 3)]
-    (if (and strict (not (== (i32 (- n 1)) maxlen)) (or (< (u32 (- (bit-and (.get ptr) 0xff) 65)) 26) (< (u32 (- (bit-and (.get ptr) 0xff) 97)) 26) (< (u32 (- (bit-and (.get ptr) 0xff) 48)) 10)))
+    (if (and strict (not (== (i32 (- n 1)) maxlen)) (or (< (u32 (- (.ub ptr) 65)) 26) (< (u32 (- (.ub ptr) 97)) 26) (< (u32 (- (.ub ptr) 48)) 10)))
       len
       (do (when (some? prep)
             (.put prep (unchecked-int pre)))
@@ -14959,7 +14959,7 @@
   (let [i 0]
     (loop [i i]
       (when (< i (g ed tc-len))
-        (if (and (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0) 0xff) (bit-and (.at name_ 0) 0xff)) (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff) (bit-and (.at name_ 1) 0xff)))
+        (if (and (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff) (.ub name_ 0)) (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) (.ub name_ 1)))
           (.code ^S_termcode (.at (g ed termcodes) i))
           (let [i (i32 (inc i))]
             (recur i)))))))
@@ -15000,7 +15000,7 @@
     (let [i 0]
       (loop [i i]
         (when (< i (g ed tc-len))
-          (if (and (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0) 0xff) (bit-and (.at name_ 0) 0xff)) (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff) (bit-and (.at name_ 1) 0xff)))
+          (if (and (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff) (.ub name_ 0)) (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) (.ub name_ 1)))
             (do (del-termcode-idx ed i)
                 nil)
             (let [i (i32 (inc i))]
@@ -15008,20 +15008,20 @@
 
 ;; C: term_7to8bit
 (defn term-7to8bit ^long [^Editor ed ^BytePtr p]
-  (if (== (bit-and (.get p) 0xff) (e ESC))
-    (if (== (bit-and (.at p 1) 0xff) 91)
+  (if (== (.ub p) (e ESC))
+    (if (== (.ub p 1) 91)
       (e CSI)
-      (if (== (bit-and (.at p 1) 0xff) 93)
+      (if (== (.ub p 1) 93)
         (e OSC)
-        (if (== (bit-and (.at p 1) 0xff) 79)
+        (if (== (.ub p 1) 79)
           143
           0)))
     0))
 
 ;; C: termcode_star
 (defn termcode-star ^long [^Editor ed ^BytePtr code ^long len]
-  (if (and (>= len 3) (== (bit-and (.at code (i32 (- len 2))) 0xff) 42))
-    (if (and (>= len 5) (== (bit-and (.at code (i32 (- len 3))) 0xff) 59))
+  (if (and (>= len 3) (== (.ub code (i32 (- len 2))) 42))
+    (if (and (>= len 5) (== (.ub code (i32 (- len 3))) 59))
       2
       1)
     0))
@@ -15032,7 +15032,7 @@
   (let [j (long (termcode-star ed (.code ^S_termcode (.at (g ed termcodes) idx)) (.len ^S_termcode (.at (g ed termcodes) idx))))]
     (when-not (<= j 0)
       (.set-modlen ^S_termcode (.at (g ed termcodes) idx) (i32 (- (i32 (- (.len ^S_termcode (.at (g ed termcodes) idx)) 1)) j)))
-      (when (== (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) (i32 (- (.modlen ^S_termcode (.at (g ed termcodes) idx)) 1))) 0xff) 64)
+      (when (== (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) (i32 (- (.modlen ^S_termcode (.at (g ed termcodes) idx)) 1))) 64)
         (.set-modlen ^S_termcode (.at (g ed termcodes) idx) (i32 (dec (.modlen ^S_termcode (.at (g ed termcodes) idx)))))
         nil))))
 
@@ -15052,7 +15052,7 @@
            len 0]
       (case st
         0
-          (if (or (nil? string) (== (bit-and (.get string) 0xff) (e NUL)))
+          (if (or (nil? string) (== (.ub string) (e NUL)))
             (do (del-termcode ed name_)
                 nil)
             (let [^BytePtr s (vim-strsave ed string)]
@@ -15079,12 +15079,12 @@
             (recur 3 name_ string flags new-tc i j s len))
         3
           (if (< i (g ed tc-len))
-            (if (< (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0) 0xff) (bit-and (.at name_ 0) 0xff))
+            (if (< (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff) (.ub name_ 0))
               (recur 7 name_ string flags new-tc i j s len)
-              (if (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0) 0xff) (bit-and (.at name_ 0) 0xff))
-                (if (< (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff) (bit-and (.at name_ 1) 0xff))
+              (if (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff) (.ub name_ 0))
+                (if (< (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) (.ub name_ 1))
                   (recur 7 name_ string flags new-tc i j s len)
-                  (if (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff) (bit-and (.at name_ 1) 0xff))
+                  (if (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) (.ub name_ 1))
                     (let [t1 (== flags (e ATC_FROM_TERM))
                           j__1 (if t1
                                  (let [j (long (termcode-star ed (.code ^S_termcode (.at (g ed termcodes) i)) (.len ^S_termcode (.at (g ed termcodes) i))))
@@ -15098,7 +15098,7 @@
                           j (aget tl__ 0)
                           t1 (boolean (aget to__ 0))]
                       (if t1
-                        (when-not (and (== len (i32 (- (.len ^S_termcode (.at (g ed termcodes) i)) j))) (== (long (musl-strncmp ed s (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- len 1)))) 0) (== (bit-and (.at s (i32 (- len 1))) 0xff) (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- (.len ^S_termcode (.at (g ed termcodes) i)) 1))) 0xff)))
+                        (when-not (and (== len (i32 (- (.len ^S_termcode (.at (g ed termcodes) i)) j))) (== (long (musl-strncmp ed s (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- len 1)))) 0) (== (.ub s (i32 (- len 1))) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- (.len ^S_termcode (.at (g ed termcodes) i)) 1)))))
                           (recur 4 name_ string flags new-tc i j s len))
                         (do (g! ed tc-len (i32 (dec (g ed tc-len))))
                             (recur 6 name_ string flags new-tc i j s len))))
@@ -15115,8 +15115,8 @@
                   (recur 5 name_ string flags new-tc i j s len)))
             (recur 6 name_ string flags new-tc i j s len))
         6
-          (do (aset ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0 (unchecked-byte (bit-and (.at name_ 0) 0xff)))
-              (aset ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1 (unchecked-byte (bit-and (.at name_ 1) 0xff)))
+          (do (aset ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0 (unchecked-byte (.ub name_ 0)))
+              (aset ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1 (unchecked-byte (.ub name_ 1)))
               (.set-code ^S_termcode (.at (g ed termcodes) i) s)
               (.set-len ^S_termcode (.at (g ed termcodes) i) len)
               (adjust-modlen ed i)
@@ -15132,14 +15132,14 @@
     (if (and (not force_) (some? (find-termcode ed name_)))
       true
       (let [^BytePtr term (aget (g ed term-strings) 0)]
-        (if (or (nil? term) (== (bit-and (.get term) 0xff) (e NUL)))
+        (if (or (nil? term) (== (.ub term) (e NUL)))
           false
           (let [^BytePtr term (if (term-is-builtin? ed term)
                                 ^BytePtr (.add term 8)
                                 term)
                 ^Ptr termp (find-builtin-term ed term)
                 j__2 (if (some? termp)
-                       (let [key_ (i32 (- (i32 (+ (bit-and (.at name_ 0) 0xff) (i32 (bit-shift-left (bit-and (.at name_ 1) 0xff) 8))))))
+                       (let [key_ (i32 (- (i32 (+ (.ub name_ 0) (i32 (bit-shift-left (.ub name_ 1) 8))))))
                              ^Ptr termp (.add termp 1)
                              l__1 (loop [^Ptr termp termp]
                                     (if (== (.bt-entry ^T_tcap_entry_T (.get termp)) 0)
@@ -15178,8 +15178,8 @@
       (let [l__1 (loop [^BytePtr p1 p1
                         ^BytePtr p2 p2
                         result result]
-                   (if (and (vim-isNormalIDc? ed (bit-and (.get p1) 0xff)) (not (== (bit-and (.get p2) 0xff) (e NUL))))
-                     (let [result (i32 (- (if (or (< (bit-and (.get p1) 0xff) 65) (> (bit-and (.get p1) 0xff) 90)) (bit-and (.get p1) 0xff) (i32 (+ (bit-and (.get p1) 0xff) 32))) (if (or (< (bit-and (.get p2) 0xff) 65) (> (bit-and (.get p2) 0xff) 90)) (bit-and (.get p2) 0xff) (i32 (+ (bit-and (.get p2) 0xff) 32)))))]
+                   (if (and (vim-isNormalIDc? ed (.ub p1)) (not (== (.ub p2) (e NUL))))
+                     (let [result (i32 (- (if (or (< (.ub p1) 65) (> (.ub p1) 90)) (.ub p1) (i32 (+ (.ub p1) 32))) (if (or (< (.ub p2) 65) (> (.ub p2) 90)) (.ub p2) (i32 (+ (.ub p2) 32)))))]
                        (if (== result 0)
                          (let [^BytePtr p1 (.add p1 1)
                                ^BytePtr p2 (.add p2 1)]
@@ -15196,8 +15196,8 @@
             ^BytePtr p2 (aget to__ 1)
             result (aget tl__ 0)]
         (if (== result 0)
-          (if (== (bit-and (.get p2) 0xff) (e NUL))
-            (if (vim-isNormalIDc? ed (bit-and (.get p1) 0xff))
+          (if (== (.ub p2) (e NUL))
+            (if (vim-isNormalIDc? ed (.ub p1))
               1
               result)
             -1)
@@ -15237,12 +15237,12 @@
 (defn get-special-key-code ^long [^Editor ed ^BytePtr name_]
   (let [^bytes string (byte-array 3)
         ^S_key_name_entry target (new-S_key_name_entry)]
-    (if (and (== (bit-and (.at name_ 0) 0xff) 116) (== (bit-and (.at name_ 1) 0xff) 95) (not (== (bit-and (.at name_ 2) 0xff) (e NUL))) (not (== (bit-and (.at name_ 3) 0xff) (e NUL))))
-      (do (aset string 0 (unchecked-byte (bit-and (.at name_ 2) 0xff)))
-          (aset string 1 (unchecked-byte (bit-and (.at name_ 3) 0xff)))
+    (if (and (== (.ub name_ 0) 116) (== (.ub name_ 1) 95) (not (== (.ub name_ 2) (e NUL))) (not (== (.ub name_ 3) (e NUL))))
+      (do (aset string 0 (unchecked-byte (.ub name_ 2)))
+          (aset string 1 (unchecked-byte (.ub name_ 3)))
           (aset string 2 (unchecked-byte (e NUL)))
           (if (add-termcap-entry ed (BytePtr. string 0) false)
-            (i32 (- (i32 (+ (bit-and (.at name_ 2) 0xff) (i32 (bit-shift-left (bit-and (.at name_ 3) 0xff) 8))))))
+            (i32 (- (i32 (+ (.ub name_ 2) (i32 (bit-shift-left (.ub name_ 3) 8))))))
             0))
       (do (.set-enabled target (e TRUE))
           (.set-key_ target 0)
@@ -15302,11 +15302,11 @@
             key1 (i32 (bit-and (bit-shift-right (u32 (- key_)) 8) 255))
             i 0]
         (loop [i i]
-          (if (== (bit-and (aget (g ed modifier-keys-table) i) 0xff) (e NUL))
+          (if (== (bit-and (long (aget (g ed modifier-keys-table) i)) 0xff) (e NUL))
             key_
-            (if (and (== key0 (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 3))) 0xff)) (== key1 (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 4))) 0xff)) (not (zero? (bit-and (long (.get modifiers)) (bit-and (aget (g ed modifier-keys-table) i) 0xff)))))
-              (do (.put modifiers (unchecked-int (bit-and (long (.get modifiers)) (bit-not (bit-and (aget (g ed modifier-keys-table) i) 0xff)))))
-                  (i32 (- (i32 (+ (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 1))) 0xff) (i32 (bit-shift-left (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 2))) 0xff) 8)))))))
+            (if (and (== key0 (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 3)))) 0xff)) (== key1 (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 4)))) 0xff)) (not (zero? (bit-and (long (.get modifiers)) (bit-and (long (aget (g ed modifier-keys-table) i)) 0xff)))))
+              (do (.put modifiers (unchecked-int (bit-and (long (.get modifiers)) (bit-not (bit-and (long (aget (g ed modifier-keys-table) i)) 0xff)))))
+                  (i32 (- (i32 (+ (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 1)))) 0xff) (i32 (bit-shift-left (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 2)))) 0xff) 8)))))))
               (let [i (i32 (+ i (e MOD_KEYS_ENTRY_SIZE)))]
                 (recur i)))))))))
 
@@ -15390,8 +15390,8 @@
         0
           (let [in-string (bit-and flags (e FSK_IN_STRING))
                 ^BytePtr src (.get srcp)]
-            (if (== (bit-and (.at src 0) 0xff) 60)
-              (let [^BytePtr src (if (== (bit-and (.at src 1) 0xff) 42)
+            (if (== (.ub src 0) 60)
+              (let [^BytePtr src (if (== (.ub src 1) 42)
                                    ^BytePtr (.add src 1)
                                    src)
                     ^BytePtr last-dash src
@@ -15401,22 +15401,22 @@
                   (.set-modp out__ modp)
                   out__)))
         1
-          (if (or (== (bit-and (.get bp) 0xff) 45) (vim-isNormalIDc? ed (bit-and (.get bp) 0xff)))
-            (let [j__1 (if (== (bit-and (.get bp) 0xff) 45)
+          (if (or (== (.ub bp) 45) (vim-isNormalIDc? ed (.ub bp)))
+            (let [j__1 (if (== (.ub bp) 45)
                          (let [^BytePtr last-dash bp]
-                           (if (== (bit-and (.at bp 1) 0xff) (e NUL))
+                           (if (== (.ub bp 1) (e NUL))
                              (do (aset to__ 0 last-dash)
                                  (aset to__ 1 bp)
                                  (aset tl__ 0 l)
                                  0)
                              (let [l (long (utfc-ptr2len ed (.add bp 1)))]
-                               (if (and (not (and (not (zero? in-string)) (== (bit-and (.at bp 1) 0xff) 34))) (== (bit-and (.at bp (i32 (+ l 1))) 0xff) 62))
+                               (if (and (not (and (not (zero? in-string)) (== (.ub bp 1) 34))) (== (.ub bp (i32 (+ l 1))) 62))
                                  (let [^BytePtr bp (.add bp l)]
                                    (aset to__ 0 last-dash)
                                    (aset to__ 1 bp)
                                    (aset tl__ 0 l)
                                    0)
-                                 (if (and (not (zero? in-string)) (== (bit-and (.at bp 1) 0xff) 92) (== (bit-and (.at bp 2) 0xff) 34) (== (bit-and (.at bp 3) 0xff) 62))
+                                 (if (and (not (zero? in-string)) (== (.ub bp 1) 92) (== (.ub bp 2) 34) (== (.ub bp 3) 62))
                                    (let [^BytePtr bp (.add bp 2)]
                                      (aset to__ 0 last-dash)
                                      (aset to__ 1 bp)
@@ -15433,7 +15433,7 @@
                   ^BytePtr last-dash (aget to__ 0)
                   ^BytePtr bp (aget to__ 1)
                   l (aget tl__ 0)]
-              (if (and (== (bit-and (.at bp 0) 0xff) 116) (== (bit-and (.at bp 1) 0xff) 95) (not (zero? (bit-and (.at bp 2) 0xff))) (not (zero? (bit-and (.at bp 3) 0xff))))
+              (if (and (== (.ub bp 0) 116) (== (.ub bp 1) 95) (not (zero? (.ub bp 2))) (not (zero? (.ub bp 3))))
                 (let [^BytePtr bp (.add bp 3)]
                   (recur 6 srcp modp flags did-simplify last-dash end-of-name src bp in-string l))
                 (if (== (long (musl-strncasecmp ed bp (BytePtr/lit "char-") 5)) 0)
@@ -15448,7 +15448,7 @@
                   (recur 6 srcp modp flags did-simplify last-dash end-of-name src bp in-string l))))
             (recur 2 srcp modp flags did-simplify last-dash end-of-name src bp in-string l))
         2
-          (if (== (bit-and (.get bp) 0xff) 62)
+          (if (== (.ub bp) 62)
             (let [^BytePtr end-of-name (.add bp 1)
                   _ (aset modifiers 0 (unchecked-int 0))
                   ^BytePtr bp (.add src 1)]
@@ -15458,9 +15458,9 @@
                 out__))
         3
           (if (.lt bp last-dash)
-            (if (== (bit-and (.get bp) 0xff) 45)
+            (if (== (.ub bp) 45)
               (recur 4 srcp modp flags did-simplify last-dash end-of-name src bp in-string l)
-              (let [bit (long (name-to-mod-mask ed (bit-and (.get bp) 0xff)))]
+              (let [bit (long (name-to-mod-mask ed (.ub bp)))]
                 (if (== bit 0)
                   (recur 5 srcp modp flags did-simplify last-dash end-of-name src bp in-string l)
                   (do (aset modifiers 0 (unchecked-int (bit-or (long (aget modifiers 0)) bit)))
@@ -15471,7 +15471,7 @@
             (recur 3 srcp modp flags did-simplify last-dash end-of-name src bp in-string l))
         5
           (if (.ge bp last-dash)
-            (let [j__2 (if (and (== (long (musl-strncasecmp ed (.add last-dash 1) (BytePtr/lit "char-") 5)) 0) (< (u32 (- (bit-and (.at last-dash 6) 0xff) 48)) 10))
+            (let [j__2 (if (and (== (long (musl-strncasecmp ed (.add last-dash 1) (BytePtr/lit "char-") 5)) 0) (< (u32 (- (.ub last-dash 6) 48)) 10))
                          (let [l (long (vim-str2nr ed (.add last-dash 6) nil l 15 nil (LongPtr. n 0) 0 true nil))]
                            (if (== l 0)
                              (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
@@ -15483,11 +15483,11 @@
                                (aset tl__ 1 key_)
                                0)))
                          (let [off 1
-                               off (if (and (not (zero? in-string)) (== (bit-and (.at last-dash 1) 0xff) 92) (== (bit-and (.at last-dash 2) 0xff) 34))
+                               off (if (and (not (zero? in-string)) (== (.ub last-dash 1) 92) (== (.ub last-dash 2) 34))
                                      2
                                      off)
                                l (long (utfc-ptr2len ed (.add last-dash off)))]
-                           (if (and (not (== (long (aget modifiers 0)) 0)) (== (bit-and (.at last-dash (i32 (+ l off))) 0xff) 62))
+                           (if (and (not (== (long (aget modifiers 0)) 0)) (== (.ub last-dash (i32 (+ l off))) 62))
                              (let [key_ (long (utf-ptr2char ed (.add last-dash off)))]
                                (aset tl__ 1 key_)
                                0)
@@ -15541,9 +15541,9 @@
         ^objects arg (object-array 1)
         key_ 0]
     (aset arg 0 arg-arg)
-    (if (and (== (bit-and (.at ^BytePtr (aget arg 0) 0) 0xff) 116) (== (bit-and (.at ^BytePtr (aget arg 0) 1) 0xff) 95) (not (zero? (bit-and (.at ^BytePtr (aget arg 0) 2) 0xff))) (not (zero? (bit-and (.at ^BytePtr (aget arg 0) 3) 0xff))))
-      (if (or (not has-lt) (== (bit-and (.at ^BytePtr (aget arg 0) 4) 0xff) 62))
-        (i32 (- (i32 (+ (bit-and (.at ^BytePtr (aget arg 0) 2) 0xff) (i32 (bit-shift-left (bit-and (.at ^BytePtr (aget arg 0) 3) 0xff) 8))))))
+    (if (and (== (.ub ^BytePtr (aget arg 0) 0) 116) (== (.ub ^BytePtr (aget arg 0) 1) 95) (not (zero? (.ub ^BytePtr (aget arg 0) 2))) (not (zero? (.ub ^BytePtr (aget arg 0) 3))))
+      (if (or (not has-lt) (== (.ub ^BytePtr (aget arg 0) 4) 62))
+        (i32 (- (i32 (+ (.ub ^BytePtr (aget arg 0) 2) (i32 (bit-shift-left (.ub ^BytePtr (aget arg 0) 3) 8))))))
         key_)
       (if has-lt
         (do (aset arg 0 (.add ^BytePtr (aget arg 0) -1))
@@ -15574,11 +15574,11 @@
       8192
         (.copy ^T_optvar_T (optvar-int ed (IntPtr. ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))
       12289
-        (.copy (let [^T_optvar_T h__ (if (== (bit-and (.get ^BytePtr (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) 0xff) (e NUL)) (.-var_ ^S_vimoption (.get p)) (optvar-str ed (Ptr. ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))] h__))
+        (.copy (let [^T_optvar_T h__ (if (== (.ub ^BytePtr (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) (e NUL)) (.-var_ ^S_vimoption (.get p)) (optvar-str ed (Ptr. ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))] h__))
       12290
-        (.copy (let [^T_optvar_T h__ (if (== (bit-and (.get ^BytePtr (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) 0xff) (e NUL)) (.-var_ ^S_vimoption (.get p)) (optvar-str ed (Ptr. ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))] h__))
+        (.copy (let [^T_optvar_T h__ (if (== (.ub ^BytePtr (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) (e NUL)) (.-var_ ^S_vimoption (.get p)) (optvar-str ed (Ptr. ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))] h__))
       12296
-        (.copy (let [^T_optvar_T h__ (if (== (bit-and (.get ^BytePtr (aget ^objects (.-wo-ve ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) 0xff) (e NUL)) (.-var_ ^S_vimoption (.get p)) (optvar-str ed (Ptr. ^objects (.-wo-ve ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))] h__))
+        (.copy (let [^T_optvar_T h__ (if (== (.ub ^BytePtr (aget ^objects (.-wo-ve ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)) (e NUL)) (.-var_ ^S_vimoption (.get p)) (optvar-str ed (Ptr. ^objects (.-wo-ve ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))] h__))
       8198
         (.copy ^T_optvar_T (optvar-int ed (IntPtr. ^ints (.-wo-nu ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))
       8199
@@ -15651,49 +15651,49 @@
 
 (defn ttest [^Editor ed pairs]
   (check-options ed)
-  (when (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 36)) 0xff) (e NUL))
+  (when (== (.ub ^BytePtr (aget (g ed term-strings) 36)) (e NUL))
     (emsg ed (gettext_ ed (BytePtr. (g ed e-terminal-capability-cm-required) 0))))
-  (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 6)) 0xff) (e NUL))
+  (if (== (.ub ^BytePtr (aget (g ed term-strings) 6)) (e NUL))
     (g! ed scroll-region (e FALSE))
     (g! ed scroll-region (e TRUE)))
   (when pairs
-    (when (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 19)) 0xff) (e NUL))
+    (when (== (.ub ^BytePtr (aget (g ed term-strings) 19)) (e NUL))
       (aset (g ed term-strings) 54 (g ed empty-option))
       (aset (g ed term-strings) 21 (aget (g ed term-strings) 54))
       (aset (g ed term-strings) 20 (aget (g ed term-strings) 21))
       (aset (g ed term-strings) 19 (aget (g ed term-strings) 20)))
-    (when (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 23)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 22)) 0xff) (e NUL)))
+    (when (or (== (.ub ^BytePtr (aget (g ed term-strings) 23)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 22)) (e NUL)))
       (aset (g ed term-strings) 22 (g ed empty-option))
       (aset (g ed term-strings) 23 (aget (g ed term-strings) 22)))
-    (when (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 27)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 26)) 0xff) (e NUL)))
+    (when (or (== (.ub ^BytePtr (aget (g ed term-strings) 27)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 26)) (e NUL)))
       (aset (g ed term-strings) 26 (g ed empty-option))
       (aset (g ed term-strings) 27 (aget (g ed term-strings) 26)))
-    (when (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 24)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 25)) 0xff) (e NUL)))
+    (when (or (== (.ub ^BytePtr (aget (g ed term-strings) 24)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 25)) (e NUL)))
       (aset (g ed term-strings) 25 (g ed empty-option))
       (aset (g ed term-strings) 24 (aget (g ed term-strings) 25)))
-    (when (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 13)) 0xff) (e NUL))
+    (when (== (.ub ^BytePtr (aget (g ed term-strings) 13)) (e NUL))
       (aset (g ed term-strings) 12 (g ed empty-option)))
-    (when (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 19)) 0xff) (e NUL))
+    (when (== (.ub ^BytePtr (aget (g ed term-strings) 19)) (e NUL))
       (aset (g ed term-strings) 19 (aget (g ed term-strings) 22))
       (aset (g ed term-strings) 20 (aget (g ed term-strings) 23))
       (aset (g ed term-strings) 21 (aget (g ed term-strings) 23)))
-    (when (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 23)) 0xff) (e NUL))
+    (when (== (.ub ^BytePtr (aget (g ed term-strings) 23)) (e NUL))
       (aset (g ed term-strings) 22 (aget (g ed term-strings) 19))
-      (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 20)) 0xff) (e NUL))
+      (if (== (.ub ^BytePtr (aget (g ed term-strings) 20)) (e NUL))
         (aset (g ed term-strings) 23 (aget (g ed term-strings) 21))
         (aset (g ed term-strings) 23 (aget (g ed term-strings) 20))))
-    (when (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 24)) 0xff) (e NUL))
+    (when (== (.ub ^BytePtr (aget (g ed term-strings) 24)) (e NUL))
       (aset (g ed term-strings) 25 (aget (g ed term-strings) 19))
-      (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 20)) 0xff) (e NUL))
+      (if (== (.ub ^BytePtr (aget (g ed term-strings) 20)) (e NUL))
         (aset (g ed term-strings) 24 (aget (g ed term-strings) 21))
         (aset (g ed term-strings) 24 (aget (g ed term-strings) 20))))
-    (when (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 51)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 50)) 0xff) (e NUL)))
+    (when (or (== (.ub ^BytePtr (aget (g ed term-strings) 51)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 50)) (e NUL)))
       (aset (g ed term-strings) 51 (g ed empty-option))
       (aset (g ed term-strings) 50 (g ed empty-option)))
-    (when (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 56)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 55)) 0xff) (e NUL)))
+    (when (or (== (.ub ^BytePtr (aget (g ed term-strings) 56)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 55)) (e NUL)))
       (aset (g ed term-strings) 56 (g ed empty-option))
       (aset (g ed term-strings) 55 (g ed empty-option)))
-    (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 52)) 0xff) (e NUL))) 1 0))))
+    (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (.ub ^BytePtr (aget (g ed term-strings) 52)) (e NUL))) 1 0))))
   (g! ed need-gather (e TRUE))
   (g! ed t-colors (long (musl-atoi ed (aget (g ed term-strings) 49))))
   (set-rgb-term-prop ed)
@@ -15783,7 +15783,7 @@
 (defn skipdigits ^BytePtr [^Editor ed ^BytePtr q]
   (let [^BytePtr p q]
     (loop [^BytePtr p p]
-      (if (< (u32 (- (bit-and (.get p) 0xff) 48)) 10)
+      (if (< (u32 (- (.ub p) 48)) 10)
         (let [^BytePtr p (.add p 1)]
           (recur p))
         p))))
@@ -15791,7 +15791,7 @@
 (defn getdigits ^long [^Editor ed ^Ptr pp]
   (let [^BytePtr p (.get pp)
         retval (long (musl-strtol ed p nil 10))]
-    (if (== (bit-and (.get p) 0xff) 45)
+    (if (== (.ub p) 45)
       (let [^BytePtr p (.add p 1)
             ^BytePtr p (skipdigits ed p)]
         (.put pp p)
@@ -15809,11 +15809,11 @@
 
 ;; C: skip_to_option_part
 (defn skip-to-option-part ^BytePtr [^Editor ed ^BytePtr p]
-  (let [^BytePtr p (if (== (bit-and (.get p) 0xff) 44)
+  (let [^BytePtr p (if (== (.ub p) 44)
                      ^BytePtr (.add p 1)
                      p)]
     (loop [^BytePtr p p]
-      (if (== (bit-and (.get p) 0xff) 32)
+      (if (== (.ub p) 32)
         (let [^BytePtr p (.add p 1)]
           (recur p))
         p))))
@@ -15903,30 +15903,30 @@
         ^objects to__ (object-array 2)]
     (aset p 0 var_)
     (loop []
-      (if (zero? (bit-and (.get ^BytePtr (aget p 0)) 0xff))
+      (if (zero? (.ub ^BytePtr (aget p 0)))
         true
         (let [tilde false
               do-isalpha false
-              tilde (if (and (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 94) (not (== (bit-and (.at ^BytePtr (aget p 0) 1) 0xff) (e NUL))))
+              tilde (if (and (== (.ub ^BytePtr (aget p 0)) 94) (not (== (.ub ^BytePtr (aget p 0) 1) (e NUL))))
                       (let [tilde true]
                         (aset p 0 (.add ^BytePtr (aget p 0) 1))
                         tilde)
                       tilde)
-              c (if (< (u32 (- (bit-and (.get ^BytePtr (aget p 0)) 0xff) 48)) 10)
+              c (if (< (u32 (- (.ub ^BytePtr (aget p 0)) 48)) 10)
                   (i32 (long (getdigits ed (Ptr. p 0))))
                   (long (mb-ptr2char-adv ed (Ptr. p 0))))
               c2 -1
-              c2 (if (and (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 45) (not (== (bit-and (.at ^BytePtr (aget p 0) 1) 0xff) (e NUL))))
+              c2 (if (and (== (.ub ^BytePtr (aget p 0)) 45) (not (== (.ub ^BytePtr (aget p 0) 1) (e NUL))))
                    (do (aset p 0 (.add ^BytePtr (aget p 0) 1))
-                       (if (< (u32 (- (bit-and (.get ^BytePtr (aget p 0)) 0xff) 48)) 10)
+                       (if (< (u32 (- (.ub ^BytePtr (aget p 0)) 48)) 10)
                          (i32 (long (getdigits ed (Ptr. p 0))))
                          (long (mb-ptr2char-adv ed (Ptr. p 0)))))
                    c2)]
-          (if (or (<= c 0) (>= c 256) (and (< c2 c) (not (== c2 -1))) (>= c2 256) (not (or (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 44))))
+          (if (or (<= c 0) (>= c 256) (and (< c2 c) (not (== c2 -1))) (>= c2 256) (not (or (== (.ub ^BytePtr (aget p 0)) (e NUL)) (== (.ub ^BytePtr (aget p 0)) 44))))
             false
-            (let [trail-comma (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 44)]
+            (let [trail-comma (== (.ub ^BytePtr (aget p 0)) 44)]
               (aset p 0 (skip-to-option-part ed (aget p 0)))
-              (if (and trail-comma (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL)))
+              (if (and trail-comma (== (.ub ^BytePtr (aget p 0)) (e NUL)))
                 false
                 (if only-check
                   (recur)
@@ -15956,22 +15956,22 @@
                         (when (or (not do-isalpha) (vim-islower? ed c) (vim-isupper? ed c))
                           (if (BytePtr/eq var_ ^BytePtr (aget (g ed p-isi) 0))
                             (if tilde
-                              (aset (g ed g-chartab) c (unchecked-byte (bit-and (aget (g ed g-chartab) c) 0xff -33)))
-                              (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (aget (g ed g-chartab) c) 0xff) (e CT_ID_CHAR)))))
+                              (aset (g ed g-chartab) c (unchecked-byte (bit-and (long (aget (g ed g-chartab) c)) 0xff -33)))
+                              (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (long (aget (g ed g-chartab) c)) 0xff) (e CT_ID_CHAR)))))
                             (if (BytePtr/eq var_ ^BytePtr (aget (g ed p-isp) 0))
                               (when (or (< c 32) (> c 126))
                                 (if tilde
-                                  (do (aset (g ed g-chartab) c (unchecked-byte (+ (bit-and (aget (g ed g-chartab) c) 0xff -8) (if (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff (e DY_UHEX))) 2 4))))
-                                      (aset (g ed g-chartab) c (unchecked-byte (bit-and (aget (g ed g-chartab) c) 0xff -17))))
-                                  (do (aset (g ed g-chartab) c (unchecked-byte (+ (bit-and (aget (g ed g-chartab) c) 0xff -8) 1)))
-                                      (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (aget (g ed g-chartab) c) 0xff) (e CT_PRINT_CHAR)))))))
+                                  (do (aset (g ed g-chartab) c (unchecked-byte (+ (bit-and (long (aget (g ed g-chartab) c)) 0xff -8) (if (zero? (bit-and (aget (g ed dy-flags) 0) 0xffffffff (e DY_UHEX))) 2 4))))
+                                      (aset (g ed g-chartab) c (unchecked-byte (bit-and (long (aget (g ed g-chartab) c)) 0xff -17))))
+                                  (do (aset (g ed g-chartab) c (unchecked-byte (+ (bit-and (long (aget (g ed g-chartab) c)) 0xff -8) 1)))
+                                      (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (long (aget (g ed g-chartab) c)) 0xff) (e CT_PRINT_CHAR)))))))
                               (if (BytePtr/eq var_ ^BytePtr (aget (g ed p-isf) 0))
                                 (if tilde
-                                  (aset (g ed g-chartab) c (unchecked-byte (bit-and (aget (g ed g-chartab) c) 0xff -65)))
-                                  (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (aget (g ed g-chartab) c) 0xff) (e CT_FNAME_CHAR)))))
+                                  (aset (g ed g-chartab) c (unchecked-byte (bit-and (long (aget (g ed g-chartab) c)) 0xff -65)))
+                                  (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (long (aget (g ed g-chartab) c)) 0xff) (e CT_FNAME_CHAR)))))
                                 (if tilde
-                                  (aset ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3) (unchecked-byte (bit-and (aget ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3)) 0xff (bit-not (i32 (bit-shift-left 1 (bit-and c 7)))))))
-                                  (aset ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3) (unchecked-byte (bit-or (bit-and (aget ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3)) 0xff) (i32 (bit-shift-left 1 (bit-and c 7)))))))))))
+                                  (aset ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3) (unchecked-byte (bit-and (long (aget ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3))) 0xff (bit-not (i32 (bit-shift-left 1 (bit-and c 7)))))))
+                                  (aset ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3) (unchecked-byte (bit-or (bit-and (long (aget ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3))) 0xff) (i32 (bit-shift-left 1 (bit-and c 7)))))))))))
                         (let [c (i32 (inc c))]
                           (recur c))))
                     (recur)))))))))))
@@ -16020,7 +16020,7 @@
       4
         (if (< c 256)
           (do (when (>= c 160)
-                (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (aget (g ed g-chartab) c) 0xff) (e CT_FNAME_CHAR)))))
+                (aset (g ed g-chartab) c (unchecked-byte (bit-or (bit-and (long (aget (g ed g-chartab) c)) 0xff) (e CT_FNAME_CHAR)))))
               (let [c (i32 (inc c))]
                 (recur 4 buf global c i)))
           (recur 5 buf global c i))
@@ -16059,7 +16059,7 @@
   (when-not (nil? p)
     (let [^BytePtr p2 p]
       (loop [^BytePtr p2 p2]
-        (let [c (bit-and (.get p2) 0xff)]
+        (let [c (.ub p2)]
           (when-not (== c (e NUL))
             (let [^BytePtr t1 p2
                   ^BytePtr p2 (.add p2 1)]
@@ -16153,7 +16153,7 @@
 ;; C: prog_magic_wrong
 (defn prog-magic-wrong [^Editor ed ^S_regengine_S re]
   (let [^S_regprog prog (if (nil? (.reg-match ^T_regexec_T (.-rex re))) (.regprog ^T_regmmatch_T (.reg-mmatch ^T_regexec_T (.-rex re))) (.regprog ^T_regmatch_T (.reg-match ^T_regexec_T (.-rex re))))]
-    (if (== (bit-and (.get ^BytePtr (.program prog)) 0xff) (e REGMAGIC))
+    (if (== (.ub ^BytePtr (.program prog)) (e REGMAGIC))
       false
       (if (some? (aget ^objects (.-string ^T_string_T (.-alone re)) 0))
         (do (.set-failed re (boolean true))
@@ -16171,18 +16171,18 @@
           (.set-s out__ s)
           (.set-n out__ n)
           out__)
-      (let [k (long (aget (g ed utf8len-tab-zero) (bit-and (.get s) 0xff)))]
+      (let [k (long (aget (g ed utf8len-tab-zero) (.ub s)))]
         (if (== k 1)
           (let [n (dec n)
                 ^BytePtr t1 s
                 ^BytePtr s (.add s 1)]
-            (.set-r__ out__ (bit-and (.get t1) 0xff))
+            (.set-r__ out__ (.ub t1))
             (.set-s out__ s)
             (.set-n out__ n)
             out__)
           (let [j__1 (if (<= (Long/compareUnsigned k n) 0)
                        (let [c (long (utf-ptr2char ed s))]
-                         (if (or (not (== c (bit-and (.get s) 0xff))) (and (== c 195) (== (bit-and (.at s 1) 0xff) 131)))
+                         (if (or (not (== c (.ub s))) (and (== c 195) (== (.ub s 1) 131)))
                            (let [^BytePtr s (.add s k)
                                  n (- n k)]
                              (.set-r__ out__ c)
@@ -16265,8 +16265,8 @@
                      ^BytePtr s2 s2
                      n1 n1
                      n2 n2]
-                (if (and (> (Long/compareUnsigned n1 0) 0) (> (Long/compareUnsigned n2 0) 0) (not (== (bit-and (.get s1) 0xff) (e NUL))) (not (== (bit-and (.get s2) 0xff) (e NUL))))
-                  (let [cdiff (i32 (- (bit-and (.get s1) 0xff) (bit-and (.get s2) 0xff)))]
+                (if (and (> (Long/compareUnsigned n1 0) 0) (> (Long/compareUnsigned n2 0) 0) (not (== (.ub s1) (e NUL))) (not (== (.ub s2) (e NUL))))
+                  (let [cdiff (i32 (- (.ub s1) (.ub s2)))]
                     (if (== cdiff 0)
                       (let [^BytePtr s1 (.add s1 1)
                             ^BytePtr s2 (.add s2 1)
@@ -16274,10 +16274,10 @@
                             n2 (dec n2)]
                         (recur s1 s2 n1 n2))
                       cdiff))
-                  (let [n1 (if (and (> (Long/compareUnsigned n1 0) 0) (== (bit-and (.get s1) 0xff) (e NUL)))
+                  (let [n1 (if (and (> (Long/compareUnsigned n1 0) 0) (== (.ub s1) (e NUL)))
                              0
                              n1)
-                        n2 (if (and (> (Long/compareUnsigned n2 0) 0) (== (bit-and (.get s2) 0xff) (e NUL)))
+                        n2 (if (and (> (Long/compareUnsigned n2 0) 0) (== (.ub s2) (e NUL)))
                              0
                              n2)]
                     (if (and (== n1 0) (== n2 0))
@@ -16336,7 +16336,7 @@
                      l__1 (loop [^BytePtr p p
                                  n2 n2
                                  n1 n1]
-                            (if (and (> n1 0) (not (== (bit-and (.get p) 0xff) (e NUL))))
+                            (if (and (> n1 0) (not (== (.ub p) (e NUL))))
                               (let [t1 (long (utfc-ptr2len ed p))
                                     n1 (i32 (- n1 t1))
                                     t2 (long (utfc-ptr2len ed p))
@@ -16351,7 +16351,7 @@
                                  n2 n2]
                             (let [t3 n2
                                   n2 (i32 (dec n2))]
-                              (if (and (> t3 0) (not (== (bit-and (.get p) 0xff) (e NUL))))
+                              (if (and (> t3 0) (not (== (.ub p) (e NUL))))
                                 (let [t4 (long (utfc-ptr2len ed p))
                                       ^BytePtr p (.add p t4)]
                                   (recur p n2))
@@ -16475,13 +16475,13 @@
                 lc (aget tl__ 1)
                 ^BytePtr p s]
             (loop [^BytePtr p p]
-              (when-not (== (bit-and (.get p) 0xff) (e NUL))
+              (when-not (== (.ub p) (e NUL))
                 (let [uc (long (utf-ptr2char ed p))
                       j__2 (if (or (> c 128) (> uc 128))
-                             (if (and (or (< uc 128) (not (== uc (bit-and (.get p) 0xff)))) (== (long (utf-fold ed uc)) lc))
+                             (if (and (or (< uc 128) (not (== uc (.ub p)))) (== (long (utf-fold ed uc)) lc))
                                2
                                0)
-                             (if (or (== (bit-and (.get p) 0xff) c) (== (bit-and (.get p) 0xff) cc))
+                             (if (or (== (.ub p) c) (== (.ub p) cc))
                                1
                                0))]
                   (case (long j__2)
@@ -16504,9 +16504,9 @@
 
 (defn regnext ^BytePtr [^Editor ed ^S_regengine_S re ^BytePtr p]
   (when-not (or (BytePtr/eq p (BytePtr. (g ed reg-calc-size-node) 0)) (not (zero? (.reg-toolong re))))
-    (let [offset (i32 (+ (i32 (bit-shift-left (bit-and (.get (.add p 1)) 0xff 255) 8)) (bit-and (.get (.add p 2)) 0xff 255)))]
+    (let [offset (i32 (+ (i32 (bit-shift-left (bit-and (.ub (.add p 1)) 255) 8)) (bit-and (.ub (.add p 2)) 255)))]
       (when-not (== offset 0)
-        (if (== (bit-and (.get p) 0xff) (e BACK))
+        (if (== (.ub p) (e BACK))
           (.add p (- offset))
           (.add p offset))))))
 
@@ -16621,7 +16621,7 @@
           false
           (let [col (i32 (.sub ^BytePtr (.input ^T_regexec_T (.-rex re)) ^BytePtr (.line ^T_regexec_T (.-rex re))))]
             (if (== mode 118)
-              (if (or (and (== lnum (.lnum top)) (< col (.col top))) (and (== lnum (.lnum bot)) (>= col (i32 (+ (.col bot) (if (not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)) 1 0))))))
+              (if (or (and (== lnum (.lnum top)) (< col (.col top))) (and (== lnum (.lnum bot)) (>= col (i32 (+ (.col bot) (if (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)) 1 0))))))
                 false
                 true)
               (if (== mode (e Ctrl_V))
@@ -16636,17 +16636,17 @@
                     (.set-line ^T_regexec_T (.-rex re) (reg-getline ed re (.lnum ^T_regexec_T (.-rex re))))
                     (.set-input ^T_regexec_T (.-rex re) (.add ^BytePtr (.line ^T_regexec_T (.-rex re)) col))
                     (let [cols (long (win-linetabsize ed wp (+ (.reg-firstlnum ^T_regexec_T (.-rex re)) (.lnum ^T_regexec_T (.-rex re))) (.line ^T_regexec_T (.-rex re)) col))]
-                      (if (or (< cols (long (aget start 0))) (> cols (i32 (- (long (aget end 0)) (if (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) 1 0)))))
+                      (if (or (< cols (long (aget start 0))) (> cols (i32 (- (long (aget end 0)) (if (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) 1 0)))))
                         false
                         true)))
                 true))))))))
 
 ;; C: re_num_cmp
 (defn re-num-cmp? [^Editor ed ^long val_ ^BytePtr scan]
-  (let [n (+ (bit-shift-left (bit-and (.at scan 3) 0xff) 24) (bit-shift-left (bit-and (.at scan 4) 0xff) 16) (bit-shift-left (bit-and (.at scan 5) 0xff) 8) (bit-and (.at scan 6) 0xff))]
-    (if (== (bit-and (.at scan 7) 0xff) 62)
+  (let [n (+ (bit-shift-left (.ub scan 3) 24) (bit-shift-left (.ub scan 4) 16) (bit-shift-left (.ub scan 5) 8) (.ub scan 6))]
+    (if (== (.ub scan 7) 62)
       (> (Long/compareUnsigned val_ n) 0)
-      (if (== (bit-and (.at scan 7) 0xff) 60)
+      (if (== (.ub scan 7) 60)
         (< (Long/compareUnsigned val_ n) 0)
         (== val_ n)))))
 
@@ -16691,14 +16691,14 @@
 (defn vim-iswordc-buf? [^Editor ed ^long c ^S_file_buffer buf]
   (if (>= c 256)
     (>= (long (utf-class-buf ed c buf)) 2)
-    (and (> c 0) (not (== (bit-and (aget ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3)) 0xff (i32 (bit-shift-left 1 (bit-and c 7)))) 0)))))
+    (and (> c 0) (not (== (bit-and (long (aget ^bytes (.-b-chartab buf) (bit-shift-right (u32 c) 3))) 0xff (i32 (bit-shift-left 1 (bit-and c 7)))) 0)))))
 
 ;; C: mb_get_class_buf
 (defn mb-get-class-buf ^long [^Editor ed ^BytePtr p ^S_file_buffer buf]
-  (if (== (long (aget (g ed mb-bytelen-tab) (bit-and (.at p 0) 0xff))) 1)
-    (if (or (== (bit-and (.at p 0) 0xff) (e NUL)) (== (bit-and (.at p 0) 0xff) 32) (== (bit-and (.at p 0) 0xff) 9))
+  (if (== (long (aget (g ed mb-bytelen-tab) (.ub p 0))) 1)
+    (if (or (== (.ub p 0) (e NUL)) (== (.ub p 0) 32) (== (.ub p 0) 9))
       0
-      (if (vim-iswordc-buf? ed (bit-and (.at p 0) 0xff) buf)
+      (if (vim-iswordc-buf? ed (.ub p 0) buf)
         2
         1))
     (long (utf-class-buf ed (long (utf-ptr2char ed p)) buf))))
@@ -16707,26 +16707,26 @@
 (defn utf-head-off ^long [^Editor ed ^BytePtr base ^BytePtr p]
   (let [^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)]
-    (if (< (bit-and (.get p) 0xff) 128)
+    (if (< (.ub p) 128)
       0
       (let [^BytePtr q p]
         (loop [^BytePtr q q]
           (let [^BytePtr s q
                 l__1 (loop [^BytePtr s s]
-                       (if (== (bit-and (.at s 1) 0xff 192) 128)
+                       (if (== (bit-and (.ub s 1) 192) 128)
                          (let [^BytePtr s (.add s 1)]
                            (recur s))
                          (do (aset to__ 0 s)
                              0)))
                 ^BytePtr s (aget to__ 0)
                 l__2 (loop [^BytePtr q q]
-                       (if (and (.gt q base) (== (bit-and (.get q) 0xff 192) 128))
+                       (if (and (.gt q base) (== (bit-and (.ub q) 192) 128))
                          (let [^BytePtr q (.add q -1)]
                            (recur q))
                          (do (aset to__ 1 q)
                              0)))
                 ^BytePtr q (aget to__ 1)
-                len (long (aget (g ed utf8len-tab) (bit-and (.get q) 0xff)))]
+                len (long (aget (g ed utf8len-tab) (.ub q)))]
             (if (and (not (== len (i32 (+ (.sub s q) 1)))) (not (== len (i32 (+ (.sub p q) 1)))))
               0
               (if (.le q base)
@@ -16745,11 +16745,11 @@
 
 ;; C: vim_isIDc
 (defn vim-isIDc? [^Editor ed ^long c]
-  (and (> c 0) (< c 256) (not (zero? (bit-and (aget (g ed g-chartab) c) 0xff (e CT_ID_CHAR))))))
+  (and (> c 0) (< c 256) (not (zero? (bit-and (long (aget (g ed g-chartab) c)) 0xff (e CT_ID_CHAR))))))
 
 ;; C: vim_iswordp_buf
 (defn vim-iswordp-buf [^Editor ed ^BytePtr p ^S_file_buffer buf]
-  (let [c (bit-and (.get p) 0xff)]
+  (let [c (.ub p)]
     (if (> (long (aget (g ed mb-bytelen-tab) c)) 1)
       (let [c (long (utf-ptr2char ed p))]
         (vim-iswordc-buf? ed c buf))
@@ -16757,7 +16757,7 @@
 
 ;; C: vim_isfilec
 (defn vim-isfilec? [^Editor ed ^long c]
-  (or (>= c 256) (and (> c 0) (not (zero? (bit-and (aget (g ed g-chartab) c) 0xff (e CT_FNAME_CHAR)))))))
+  (or (>= c 256) (and (> c 0) (not (zero? (bit-and (long (aget (g ed g-chartab) c)) 0xff (e CT_FNAME_CHAR)))))))
 
 ;; C: utf_ptr2len
 (defn utf-ptr2len ^long [^Editor ed ^BytePtr p]
@@ -16926,7 +16926,7 @@
                 testval 0
                 ^BytePtr scan (.input ^T_regexec_T (.-rex re))
                 ^BytePtr opnd (.add p 3)]
-            (case (case (bit-and (.get p) 0xff) (20 50) 0 (23 53) 1 (24 54) 2 (25 55) 3 (26 56) 4 (27 57) 5 (28 58) 6 (29 59) 7 (30 60) 8 (31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78) 9 5 10 200 11 (21 51) 12 (22 52) 13 18 14 -1)
+            (case (case (.ub p) (20 50) 0 (23 53) 1 (24 54) 2 (25 55) 3 (26 56) 4 (27 57) 5 (28 58) 6 (29 59) 7 (30 60) 8 (31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78) 9 5 10 200 11 (21 51) 12 (22 52) 13 18 14 -1)
               0
                 (recur 24 re p maxcount count_ scan opnd mask testval cu cl i len cf)
               1
@@ -16950,7 +16950,7 @@
               8
                 (recur 12 re p maxcount count_ scan opnd mask testval cu cl i len cf)
               9
-                (let [j__1 (case (case (bit-and (.get p) 0xff) (31 61) 0 (32 62) 1 (33 63) 2 (34 64) 3 (35 65) 4 (36 66) 5 (37 67) 6 (38 68) 7 (39 69) 8 (40 70) 9 (41 71) 10 (42 72) 11 (43 73) 12 (44 74) 13 (45 75) 14 (46 76) 15 (47 77) 16 (48 78) 17 -1)
+                (let [j__1 (case (case (.ub p) (31 61) 0 (32 62) 1 (33 63) 2 (34 64) 3 (35 65) 4 (36 66) 5 (37 67) 6 (38 68) 7 (39 69) 8 (40 70) 9 (41 71) 10 (42 72) 11 (43 73) 12 (44 74) 13 (45 75) 14 (46 76) 15 (47 77) 16 (48 78) 17 -1)
                              0
                                (let [mask (e RI_WHITE)
                                      testval mask]
@@ -17058,10 +17058,10 @@
                   (recur 10 re p maxcount count_ scan opnd mask testval cu cl i len cf))
               10
                 (if (zero? (.reg-ic ^T_regexec_T (.-rex re)))
-                  (let [cu (bit-and (.get opnd) 0xff)]
+                  (let [cu (.ub opnd)]
                     (recur 8 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-                  (let [cu (long (vim-toupper ed (bit-and (.get opnd) 0xff)))
-                        cl (long (vim-tolower ed (bit-and (.get opnd) 0xff)))]
+                  (let [cu (long (vim-toupper ed (.ub opnd)))
+                        cl (long (vim-tolower ed (.ub opnd)))]
                     (recur 9 re p maxcount count_ scan opnd mask testval cu cl i len cf)))
               11
                 (let [cf 0
@@ -17088,7 +17088,7 @@
                     (.set-input ^T_regexec_T (.-rex re) scan)
                     (i32 count_)))))
         1
-          (if (and (< count_ maxcount) (or (and (== (bit-and (.get scan) 0xff) (e NUL)) (<= (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (not (.reg-line-lbr ^T_regexec_T (.-rex re))) (nil? (.reg-match ^T_regexec_T (.-rex re)))) (and (== (bit-and (.get scan) 0xff) 10) (.reg-line-lbr ^T_regexec_T (.-rex re)))))
+          (if (and (< count_ maxcount) (or (and (== (.ub scan) (e NUL)) (<= (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (not (.reg-line-lbr ^T_regexec_T (.-rex re))) (nil? (.reg-match ^T_regexec_T (.-rex re)))) (and (== (.ub scan) 10) (.reg-line-lbr ^T_regexec_T (.-rex re)))))
             (let [count_ (inc count_)]
               (if (.reg-line-lbr ^T_regexec_T (.-rex re))
                 (let [t6 (long (utfc-ptr2len ed (.input ^T_regexec_T (.-rex re))))]
@@ -17105,8 +17105,8 @@
           (recur 3 re p maxcount count_ scan opnd mask testval cu cl i len cf)
         3
           (if (< count_ maxcount)
-            (if (== (bit-and (.get scan) 0xff) (e NUL))
-              (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
+            (if (== (.ub scan) (e NUL))
+              (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
                 (do (.set-input ^T_regexec_T (.-rex re) scan)
                     (i32 count_))
                 (do (reg-nextline ed re)
@@ -17115,7 +17115,7 @@
                         (recur 4 re p maxcount count_ scan opnd mask testval cu cl i len cf)
                         (do (.set-input ^T_regexec_T (.-rex re) scan)
                             (i32 count_))))))
-              (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (bit-and (.get scan) 0xff) 10) (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))
+              (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (.ub scan) 10) (>= (.ub p) 50) (<= (.ub p) 78))
                 (let [^BytePtr scan (.add scan 1)]
                   (recur 4 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                 (let [len_2 (long (utfc-ptr2len ed scan))]
@@ -17125,7 +17125,7 @@
                           (i32 count_))
                       (let [^BytePtr scan (.add scan len_2)]
                         (recur 4 re p maxcount count_ scan opnd mask testval cu cl i len cf)))
-                    (if (== (if (nil? (cstrchr ed re opnd (bit-and (.get scan) 0xff))) 1 0) testval)
+                    (if (== (if (nil? (cstrchr ed re opnd (.ub scan))) 1 0) testval)
                       (do (.set-input ^T_regexec_T (.-rex re) scan)
                           (i32 count_))
                       (let [^BytePtr scan (.add scan 1)]
@@ -17143,7 +17143,7 @@
                 (i32 count_)))
         6
           (if (< i len)
-            (if (== (bit-and (.at opnd i) 0xff) (bit-and (.at scan i) 0xff))
+            (if (== (.ub opnd i) (.ub scan i))
               (let [i (i32 (inc i))]
                 (recur 6 re p maxcount count_ scan opnd mask testval cu cl i len cf))
               (recur 7 re p maxcount count_ scan opnd mask testval cu cl i len cf))
@@ -17156,14 +17156,14 @@
                   count_ (inc count_)]
               (recur 5 re p maxcount count_ scan opnd mask testval cu cl i len cf)))
         8
-          (if (and (< count_ maxcount) (== (bit-and (.get scan) 0xff) cu))
+          (if (and (< count_ maxcount) (== (.ub scan) cu))
             (let [count_ (inc count_)
                   ^BytePtr scan (.add scan 1)]
               (recur 8 re p maxcount count_ scan opnd mask testval cu cl i len cf))
             (do (.set-input ^T_regexec_T (.-rex re) scan)
                 (i32 count_)))
         9
-          (if (and (< count_ maxcount) (or (== (bit-and (.get scan) 0xff) cu) (== (bit-and (.get scan) 0xff) cl)))
+          (if (and (< count_ maxcount) (or (== (.ub scan) cu) (== (.ub scan) cl)))
             (let [count_ (inc count_)
                   ^BytePtr scan (.add scan 1)]
               (recur 9 re p maxcount count_ scan opnd mask testval cu cl i len cf))
@@ -17171,8 +17171,8 @@
                 (i32 count_)))
         10
           (if (< count_ maxcount)
-            (if (== (bit-and (.get scan) 0xff) (e NUL))
-              (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
+            (if (== (.ub scan) (e NUL))
+              (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
                 (do (.set-input ^T_regexec_T (.-rex re) scan)
                     (i32 count_))
                 (do (reg-nextline ed re)
@@ -17188,10 +17188,10 @@
                       (recur 11 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                     (do (.set-input ^T_regexec_T (.-rex re) scan)
                         (i32 count_)))
-                  (if (== (bit-and (long (aget (g ed class-tab) (bit-and (.get scan) 0xff))) mask) testval)
+                  (if (== (bit-and (long (aget (g ed class-tab) (.ub scan))) mask) testval)
                     (let [^BytePtr scan (.add scan 1)]
                       (recur 11 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-                    (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (bit-and (.get scan) 0xff) 10) (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))
+                    (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (.ub scan) 10) (>= (.ub p) 50) (<= (.ub p) 78))
                       (let [^BytePtr scan (.add scan 1)]
                         (recur 11 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                       (do (.set-input ^T_regexec_T (.-rex re) scan)
@@ -17205,8 +17205,8 @@
           (recur 13 re p maxcount count_ scan opnd mask testval cu cl i len cf)
         13
           (if (< count_ maxcount)
-            (if (== (bit-and (.get scan) 0xff) (e NUL))
-              (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
+            (if (== (.ub scan) (e NUL))
+              (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
                 (do (.set-input ^T_regexec_T (.-rex re) scan)
                     (i32 count_))
                 (do (reg-nextline ed re)
@@ -17215,11 +17215,11 @@
                         (recur 14 re p maxcount count_ scan opnd mask testval cu cl i len cf)
                         (do (.set-input ^T_regexec_T (.-rex re) scan)
                             (i32 count_))))))
-              (if (and (== (if (vim-isprintc? ed (long (utf-ptr2char ed scan))) 1 0) 1) (or (not (zero? testval)) (not (< (u32 (- (bit-and (.get scan) 0xff) 48)) 10))))
+              (if (and (== (if (vim-isprintc? ed (long (utf-ptr2char ed scan))) 1 0) 1) (or (not (zero? testval)) (not (< (u32 (- (.ub scan) 48)) 10))))
                 (let [t5 (long (utfc-ptr2len ed scan))
                       ^BytePtr scan (.add scan t5)]
                   (recur 14 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (bit-and (.get scan) 0xff) 10) (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))
+                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (.ub scan) 10) (>= (.ub p) 50) (<= (.ub p) 78))
                   (let [^BytePtr scan (.add scan 1)]
                     (recur 14 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
@@ -17233,12 +17233,12 @@
           (recur 16 re p maxcount count_ scan opnd mask testval cu cl i len cf)
         16
           (if (< count_ maxcount)
-            (if (and (vim-isfilec? ed (long (utf-ptr2char ed scan))) (or (not (zero? testval)) (not (< (u32 (- (bit-and (.get scan) 0xff) 48)) 10))))
+            (if (and (vim-isfilec? ed (long (utf-ptr2char ed scan))) (or (not (zero? testval)) (not (< (u32 (- (.ub scan) 48)) 10))))
               (let [t4 (long (utfc-ptr2len ed scan))
                     ^BytePtr scan (.add scan t4)]
                 (recur 17 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-              (if (== (bit-and (.get scan) 0xff) (e NUL))
-                (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
+              (if (== (.ub scan) (e NUL))
+                (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
                       (i32 count_))
                   (do (reg-nextline ed re)
@@ -17247,7 +17247,7 @@
                           (recur 17 re p maxcount count_ scan opnd mask testval cu cl i len cf)
                           (do (.set-input ^T_regexec_T (.-rex re) scan)
                               (i32 count_))))))
-                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (bit-and (.get scan) 0xff) 10) (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))
+                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (.ub scan) 10) (>= (.ub p) 50) (<= (.ub p) 78))
                   (let [^BytePtr scan (.add scan 1)]
                     (recur 17 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
@@ -17261,12 +17261,12 @@
           (recur 19 re p maxcount count_ scan opnd mask testval cu cl i len cf)
         19
           (if (< count_ maxcount)
-            (if (and (vim-iswordp-buf ed scan (.reg-buf ^T_regexec_T (.-rex re))) (or (not (zero? testval)) (not (< (u32 (- (bit-and (.get scan) 0xff) 48)) 10))))
+            (if (and (vim-iswordp-buf ed scan (.reg-buf ^T_regexec_T (.-rex re))) (or (not (zero? testval)) (not (< (u32 (- (.ub scan) 48)) 10))))
               (let [t3 (long (utfc-ptr2len ed scan))
                     ^BytePtr scan (.add scan t3)]
                 (recur 20 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-              (if (== (bit-and (.get scan) 0xff) (e NUL))
-                (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
+              (if (== (.ub scan) (e NUL))
+                (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
                       (i32 count_))
                   (do (reg-nextline ed re)
@@ -17275,7 +17275,7 @@
                           (recur 20 re p maxcount count_ scan opnd mask testval cu cl i len cf)
                           (do (.set-input ^T_regexec_T (.-rex re) scan)
                               (i32 count_))))))
-                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (bit-and (.get scan) 0xff) 10) (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))
+                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (.ub scan) 10) (>= (.ub p) 50) (<= (.ub p) 78))
                   (let [^BytePtr scan (.add scan 1)]
                     (recur 20 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
@@ -17289,12 +17289,12 @@
           (recur 22 re p maxcount count_ scan opnd mask testval cu cl i len cf)
         22
           (if (< count_ maxcount)
-            (if (and (vim-isIDc? ed (long (utf-ptr2char ed scan))) (or (not (zero? testval)) (not (< (u32 (- (bit-and (.get scan) 0xff) 48)) 10))))
+            (if (and (vim-isIDc? ed (long (utf-ptr2char ed scan))) (or (not (zero? testval)) (not (< (u32 (- (.ub scan) 48)) 10))))
               (let [t2 (long (utfc-ptr2len ed scan))
                     ^BytePtr scan (.add scan t2)]
                 (recur 23 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-              (if (== (bit-and (.get scan) 0xff) (e NUL))
-                (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
+              (if (== (.ub scan) (e NUL))
+                (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
                       (i32 count_))
                   (do (reg-nextline ed re)
@@ -17303,7 +17303,7 @@
                           (recur 23 re p maxcount count_ scan opnd mask testval cu cl i len cf)
                           (do (.set-input ^T_regexec_T (.-rex re) scan)
                               (i32 count_))))))
-                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (bit-and (.get scan) 0xff) 10) (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))
+                (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (== (.ub scan) 10) (>= (.ub p) 50) (<= (.ub p) 78))
                   (let [^BytePtr scan (.add scan 1)]
                     (recur 23 re p maxcount count_ scan opnd mask testval cu cl i len cf))
                   (do (.set-input ^T_regexec_T (.-rex re) scan)
@@ -17319,12 +17319,12 @@
             (do (.set-input ^T_regexec_T (.-rex re) scan)
                 (i32 count_)))
         25
-          (if (and (not (== (bit-and (.get scan) 0xff) (e NUL))) (< count_ maxcount))
+          (if (and (not (== (.ub scan) (e NUL))) (< count_ maxcount))
             (let [count_ (inc count_)
                   t1 (long (utfc-ptr2len ed scan))
                   ^BytePtr scan (.add scan t1)]
               (recur 25 re p maxcount count_ scan opnd mask testval cu cl i len cf))
-            (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (bit-and (.get p) 0xff) 50) (<= (bit-and (.get p) 0xff) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)) (== count_ maxcount))
+            (if (or (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (not (and (>= (.ub p) 50) (<= (.ub p) 78))) (> (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))) (.reg-line-lbr ^T_regexec_T (.-rex re)) (== count_ maxcount))
               (do (.set-input ^T_regexec_T (.-rex re) scan)
                   (i32 count_))
               (let [count_ (inc count_)
@@ -17487,8 +17487,8 @@
                 (aset tl__ 0 status)
                 (aset tl__ 1 len_4)
                 0))
-          (let [mark (bit-and (.at (.add scan 3) 0) 0xff)
-                cmp (bit-and (.at (.add scan 3) 1) 0xff)
+          (let [mark (.ub (.add scan 3) 0)
+                cmp (.ub (.add scan 3) 1)
                 col (if (nil? (.reg-match ^T_regexec_T (.-rex re))) (.sub ^BytePtr (.input ^T_regexec_T (.-rex re)) ^BytePtr (.line ^T_regexec_T (.-rex re))) 0)
                 ^T_pos_T pos (getmark-buf ed (.reg-buf ^T_regexec_T (.-rex re)) mark false)]
             (when (nil? (.reg-match ^T_regexec_T (.-rex re)))
@@ -17661,7 +17661,7 @@
             (aset tl__ 1 len_4)
             0))
       14
-        (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) 48)) 10) (not (vim-isIDc? ed c)))
+        (if (or (< (u32 (- (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) 48)) 10) (not (vim-isIDc? ed c)))
           (let [status (e RA_NOMATCH)]
             (aset to__ 1 next_)
             (aset tl__ 0 status)
@@ -17687,7 +17687,7 @@
             (aset tl__ 1 len_4)
             0))
       16
-        (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) 48)) 10) (not (vim-iswordp-buf ed (.input ^T_regexec_T (.-rex re)) (.reg-buf ^T_regexec_T (.-rex re)))))
+        (if (or (< (u32 (- (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) 48)) 10) (not (vim-iswordp-buf ed (.input ^T_regexec_T (.-rex re)) (.reg-buf ^T_regexec_T (.-rex re)))))
           (let [status (e RA_NOMATCH)]
             (aset to__ 1 next_)
             (aset tl__ 0 status)
@@ -17713,7 +17713,7 @@
             (aset tl__ 1 len_4)
             0))
       18
-        (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) 48)) 10) (not (vim-isfilec? ed c)))
+        (if (or (< (u32 (- (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) 48)) 10) (not (vim-isfilec? ed c)))
           (let [status (e RA_NOMATCH)]
             (aset to__ 1 next_)
             (aset tl__ 0 status)
@@ -17739,7 +17739,7 @@
             (aset tl__ 1 len_4)
             0))
       20
-        (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) 48)) 10) (not (vim-isprintc? ed (long (utf-ptr2char ed (.input ^T_regexec_T (.-rex re)))))))
+        (if (or (< (u32 (- (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) 48)) 10) (not (vim-isprintc? ed (long (utf-ptr2char ed (.input ^T_regexec_T (.-rex re)))))))
           (let [status (e RA_NOMATCH)]
             (aset to__ 1 next_)
             (aset tl__ 0 status)
@@ -18008,18 +18008,18 @@
     (case k__10
       39
         (let [^BytePtr opnd (.add scan 3)]
-          (if (and (not (== (bit-and (.get opnd) 0xff) (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff))) (zero? (.reg-ic ^T_regexec_T (.-rex re))))
+          (if (and (not (== (.ub opnd) (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))))) (zero? (.reg-ic ^T_regexec_T (.-rex re))))
             (let [status (e RA_NOMATCH)]
               (aset to__ 1 next_)
               (aset tl__ 0 status)
               (aset tl__ 1 len_4)
               0)
-            (if (== (bit-and (.get opnd) 0xff) (e NUL))
+            (if (== (.ub opnd) (e NUL))
               (do (aset to__ 1 next_)
                   (aset tl__ 0 status)
                   (aset tl__ 1 len_4)
                   0)
-              (let [j__2 (if (and (== (bit-and (.at opnd 1) 0xff) (e NUL)) (zero? (.reg-ic ^T_regexec_T (.-rex re))))
+              (let [j__2 (if (and (== (.ub opnd 1) (e NUL)) (zero? (.reg-ic ^T_regexec_T (.-rex re))))
                            (let [len 1]
                              (aset tl__ 0 status)
                              (aset tl__ 2 len)
@@ -18037,7 +18037,7 @@
                                  0))))
                     status (aget tl__ 0)
                     len (aget tl__ 2)
-                    status (if (and (not (== status (e RA_NOMATCH))) (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (.input ^T_regexec_T (.-rex re)) len)))) (not (.reg-icombine ^T_regexec_T (.-rex re))) (not (== (bit-and (.get next_) 0xff) (e RE_COMPOSING))))
+                    status (if (and (not (== status (e RA_NOMATCH))) (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (.input ^T_regexec_T (.-rex re)) len)))) (not (.reg-icombine ^T_regexec_T (.-rex re))) (not (== (.ub next_) (e RE_COMPOSING))))
                              (e RA_NOMATCH)
                              status)]
                 (if (== status (e RA_NOMATCH))
@@ -18078,7 +18078,7 @@
                   (let [i 0
                         l__3 (loop [i i]
                                (if (< i len_2)
-                                 (if (== (bit-and (.at q i) 0xff) (bit-and (.at ^BytePtr (.input ^T_regexec_T (.-rex re)) i) 0xff))
+                                 (if (== (.ub q i) (.ub ^BytePtr (.input ^T_regexec_T (.-rex re)) i))
                                    (let [i (i32 (inc i))]
                                      (recur i))
                                    (let [status (e RA_NOMATCH)]
@@ -18107,7 +18107,7 @@
                          (let [status (e RA_NOMATCH)
                                i_2 0]
                            (loop [i_2 i_2]
-                             (if (== (bit-and (.at ^BytePtr (.input ^T_regexec_T (.-rex re)) i_2) 0xff) (e NUL))
+                             (if (== (.ub ^BytePtr (.input ^T_regexec_T (.-rex re)) i_2) (e NUL))
                                (do (aset tl__ 0 status)
                                    (aset tl__ 4 len_3)
                                    0)
@@ -18165,17 +18165,7 @@
                     (aset to__ 1 next_)
                     (aset tl__ 0 status)
                     (aset tl__ 1 len_4)
-                    0))))))))
-
-(defn- regmatch__r4 ^long [^Editor ed ^longs tl__ ^objects to__]
-  (let [^S_regengine_S re (aget to__ 4)
-        ^BytePtr scan (aget to__ 0)
-        ^BytePtr next_ (aget to__ 1)
-        op (aget tl__ 9)
-        status (aget tl__ 0)
-        len_4 (aget tl__ 1)
-        k__10 (aget tl__ 7)]
-    (case k__10
+                    0)))))
       42
         (loop []
           (if (utf-iscomposing? ed (long (utf-ptr2char ed (.input ^T_regexec_T (.-rex re)))))
@@ -18185,7 +18175,19 @@
             (do (aset to__ 1 next_)
                 (aset tl__ 0 status)
                 (aset tl__ 1 len_4)
-                0)))
+                0))))))
+
+(defn- regmatch__r4 ^long [^Editor ed ^longs tl__ ^objects to__]
+  (let [^S_regengine_S re (aget to__ 4)
+        ^BytePtr scan (aget to__ 0)
+        ^T_cstrncmp__out_T cstrncmp__o (aget to__ 5)
+        ^T_match_with_backref__out_T match-with-backref__o (aget to__ 6)
+        ^BytePtr next_ (aget to__ 1)
+        op (aget tl__ 9)
+        status (aget tl__ 0)
+        len_4 (aget tl__ 1)
+        k__10 (aget tl__ 7)]
+    (case k__10
       43
         (do (aset to__ 1 next_)
             (aset tl__ 0 status)
@@ -18290,19 +18292,7 @@
                       (aset to__ 1 next_)
                       (aset tl__ 0 status)
                       (aset tl__ 1 len_4)
-                      0))))))))
-
-(defn- regmatch__r5 ^long [^Editor ed ^longs tl__ ^objects to__]
-  (let [^S_regengine_S re (aget to__ 4)
-        ^BytePtr scan (aget to__ 0)
-        ^T_cstrncmp__out_T cstrncmp__o (aget to__ 5)
-        ^T_match_with_backref__out_T match-with-backref__o (aget to__ 6)
-        ^BytePtr next_ (aget to__ 1)
-        op (aget tl__ 9)
-        status (aget tl__ 0)
-        len_4 (aget tl__ 1)
-        k__10 (aget tl__ 7)]
-    (case k__10
+                      0)))))
       48
         (let [no (i32 (- op (e BACKREF)))
               _ (cleanup-subexpr ed re)
@@ -18357,9 +18347,20 @@
           (aset to__ 1 next_)
           (aset tl__ 0 status)
           (aset tl__ 1 len_4)
-          0)
+          0))))
+
+(defn- regmatch__r5 ^long [^Editor ed ^longs tl__ ^objects to__]
+  (let [^S_regengine_S re (aget to__ 4)
+        ^BytePtr scan (aget to__ 0)
+        ^BytePtr next_ (aget to__ 1)
+        op (aget tl__ 9)
+        status (aget tl__ 0)
+        len_4 (aget tl__ 1)
+        ^S_regstar_S rst (aget to__ 7)
+        k__10 (aget tl__ 7)]
+    (case k__10
       49
-        (if (== (bit-and (.get next_) 0xff) (e BRANCH))
+        (if (== (.ub next_) (e BRANCH))
           (let [^S_regitem_S rp (regstack-push ed re (e RS_BRANCH) scan)]
             (if (nil? rp)
               (let [status (e RA_FAIL)]
@@ -18378,17 +18379,17 @@
             (aset tl__ 1 len_4)
             0))
       50
-        (if (== (bit-and (.get next_) 0xff) (e BRACE_SIMPLE))
-          (do (.set-bl-minval re (+ (bit-shift-left (bit-and (.at scan 3) 0xff) 24) (bit-shift-left (bit-and (.at scan 4) 0xff) 16) (bit-shift-left (bit-and (.at scan 5) 0xff) 8) (bit-and (.at scan 6) 0xff)))
-              (.set-bl-maxval re (+ (bit-shift-left (bit-and (.at (.add scan 4) 3) 0xff) 24) (bit-shift-left (bit-and (.at (.add scan 4) 4) 0xff) 16) (bit-shift-left (bit-and (.at (.add scan 4) 5) 0xff) 8) (bit-and (.at (.add scan 4) 6) 0xff)))
+        (if (== (.ub next_) (e BRACE_SIMPLE))
+          (do (.set-bl-minval re (+ (bit-shift-left (.ub scan 3) 24) (bit-shift-left (.ub scan 4) 16) (bit-shift-left (.ub scan 5) 8) (.ub scan 6)))
+              (.set-bl-maxval re (+ (bit-shift-left (.ub (.add scan 4) 3) 24) (bit-shift-left (.ub (.add scan 4) 4) 16) (bit-shift-left (.ub (.add scan 4) 5) 8) (.ub (.add scan 4) 6)))
               (aset to__ 1 next_)
               (aset tl__ 0 status)
               (aset tl__ 1 len_4)
               0)
-          (if (and (>= (bit-and (.get next_) 0xff) (e BRACE_COMPLEX)) (< (bit-and (.get next_) 0xff) 150))
-            (let [no (i32 (- (bit-and (.get next_) 0xff) (e BRACE_COMPLEX)))]
-              (aset ^longs (.-brace-min re) no (+ (bit-shift-left (bit-and (.at scan 3) 0xff) 24) (bit-shift-left (bit-and (.at scan 4) 0xff) 16) (bit-shift-left (bit-and (.at scan 5) 0xff) 8) (bit-and (.at scan 6) 0xff)))
-              (aset ^longs (.-brace-max re) no (+ (bit-shift-left (bit-and (.at (.add scan 4) 3) 0xff) 24) (bit-shift-left (bit-and (.at (.add scan 4) 4) 0xff) 16) (bit-shift-left (bit-and (.at (.add scan 4) 5) 0xff) 8) (bit-and (.at (.add scan 4) 6) 0xff)))
+          (if (and (>= (.ub next_) (e BRACE_COMPLEX)) (< (.ub next_) 150))
+            (let [no (i32 (- (.ub next_) (e BRACE_COMPLEX)))]
+              (aset ^longs (.-brace-min re) no (+ (bit-shift-left (.ub scan 3) 24) (bit-shift-left (.ub scan 4) 16) (bit-shift-left (.ub scan 5) 8) (.ub scan 6)))
+              (aset ^longs (.-brace-max re) no (+ (bit-shift-left (.ub (.add scan 4) 3) 24) (bit-shift-left (.ub (.add scan 4) 4) 16) (bit-shift-left (.ub (.add scan 4) 5) 8) (.ub (.add scan 4) 6)))
               (aset ^ints (.-brace-count re) no (unchecked-int 0))
               (aset to__ 1 next_)
               (aset tl__ 0 status)
@@ -18401,18 +18402,7 @@
                   (aset to__ 1 next_)
                   (aset tl__ 0 status)
                   (aset tl__ 1 len_4)
-                  0)))))))
-
-(defn- regmatch__r6 ^long [^Editor ed ^longs tl__ ^objects to__]
-  (let [^S_regengine_S re (aget to__ 4)
-        ^BytePtr scan (aget to__ 0)
-        ^BytePtr next_ (aget to__ 1)
-        op (aget tl__ 9)
-        status (aget tl__ 0)
-        len_4 (aget tl__ 1)
-        ^S_regstar_S rst (aget to__ 7)
-        k__10 (aget tl__ 7)]
-    (case k__10
+                  0))))
       51
         (let [no (i32 (- op (e BRACE_COMPLEX)))]
           (aset ^ints (.-brace-count re) no (unchecked-int (inc (long (aget ^ints (.-brace-count re) no)))))
@@ -18469,8 +18459,8 @@
                     (aset tl__ 1 len_4)
                     0)))))
       52
-        (do (if (== (bit-and (.get next_) 0xff) (e EXACTLY))
-              (do (.set-nextb rst (bit-and (.get (.add next_ 3)) 0xff))
+        (do (if (== (.ub next_) (e EXACTLY))
+              (do (.set-nextb rst (.ub (.add next_ 3)))
                   (if (zero? (.reg-ic ^T_regexec_T (.-rex re)))
                     (.set-nextb-ic rst (.nextb rst))
                     (if (vim-isupper? ed (.nextb rst))
@@ -18526,7 +18516,18 @@
                 (aset to__ 1 next_)
                 (aset tl__ 0 status)
                 (aset tl__ 1 len_4)
-                0)))
+                0))))))
+
+(defn- regmatch__r6 ^long [^Editor ed ^longs tl__ ^objects to__]
+  (let [^S_regengine_S re (aget to__ 4)
+        ^BytePtr scan (aget to__ 0)
+        ^BytePtr next_ (aget to__ 1)
+        op (aget tl__ 9)
+        c (aget tl__ 8)
+        status (aget tl__ 0)
+        len_4 (aget tl__ 1)
+        k__10 (aget tl__ 7)]
+    (case k__10
       53
         (let [^S_regitem_S rp (regstack-push ed re (e RS_NOMATCH) scan)]
           (if (nil? rp)
@@ -18573,17 +18574,7 @@
               (aset to__ 1 next_)
               (aset tl__ 0 status)
               (aset tl__ 1 len_4)
-              0))))))
-
-(defn- regmatch__r7 ^long [^Editor ed ^longs tl__ ^objects to__]
-  (let [^S_regengine_S re (aget to__ 4)
-        ^BytePtr next_ (aget to__ 1)
-        op (aget tl__ 9)
-        c (aget tl__ 8)
-        status (aget tl__ 0)
-        len_4 (aget tl__ 1)
-        k__10 (aget tl__ 7)]
-    (case k__10
+              0)))
       55
         (if (nil? (.reg-match ^T_regexec_T (.-rex re)))
           (if (or (not (== (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-behind-pos re)))) (i32 (.sub ^BytePtr (.input ^T_regexec_T (.-rex re)) ^BytePtr (.line ^T_regexec_T (.-rex re)))))) (not (== (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-behind-pos re)))) (.lnum ^T_regexec_T (.-rex re)))))
@@ -18646,7 +18637,7 @@
               cc (long (.at (BytePtr/lit ")]}>") idx))
               l__9 (loop [level level
                           ^BytePtr s s]
-                     (if (== (bit-and (.get s) 0xff) (e NUL))
+                     (if (== (.ub s) (e NUL))
                        (if (or (not with-nl) (not (nil? (.reg-match ^T_regexec_T (.-rex re)))) (.reg-line-lbr ^T_regexec_T (.-rex re)) (>= (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))))
                          (do (aset tl__ 6 level)
                              (aset to__ 3 s)
@@ -18658,12 +18649,12 @@
                                  (do (aset tl__ 6 level)
                                      (aset to__ 3 s)
                                      0)))))
-                       (let [level (if (== (bit-and (.get s) 0xff) oc)
+                       (let [level (if (== (.ub s) oc)
                                      (i32 (inc level))
-                                     (if (== (bit-and (.get s) 0xff) cc)
+                                     (if (== (.ub s) cc)
                                        (i32 (dec level))
                                        level))
-                             ^BytePtr s (if (< (bit-and (.get s) 0xff) 128)
+                             ^BytePtr s (if (< (.ub s) 128)
                                           ^BytePtr (.add s 1)
                                           (let [t35 (long (utfc-ptr2len ed s))
                                                 ^BytePtr s (.add s t35)]
@@ -18700,7 +18691,7 @@
               (aset tl__ 1 len_4)
               0)))))
 
-(defn- regmatch__r8 ^long [^Editor ed ^longs tl__ ^objects to__]
+(defn- regmatch__r7 ^long [^Editor ed ^longs tl__ ^objects to__]
   (let [^S_regengine_S re (aget to__ 4)
         ^BytePtr scan (aget to__ 0)
         ^S_regitem_S rp (aget to__ 8)
@@ -18740,7 +18731,7 @@
                                 scan
                                 (do (reg-restore ed re (.-regsave ^A_6 (.-rs-un rp)) (.-backpos re))
                                     ^BytePtr (.rs-scan rp)))]
-            (if (or (nil? scan) (not (== (bit-and (.get scan) 0xff) (e BRANCH))))
+            (if (or (nil? scan) (not (== (.ub scan) (e BRANCH))))
               (let [status (e RA_NOMATCH)
                     ^BytePtr scan (regstack-pop ed re)]
                 (aset to__ 0 scan)
@@ -18824,7 +18815,7 @@
                 (aset tl__ 0 status)
                 0))))))
 
-(defn- regmatch__r9 ^long [^Editor ed ^longs tl__ ^objects to__]
+(defn- regmatch__r8 ^long [^Editor ed ^longs tl__ ^objects to__]
   (let [^S_regengine_S re (aget to__ 4)
         ^S_regitem_S rp (aget to__ 8)
         status (aget tl__ 0)
@@ -18846,7 +18837,7 @@
                 (aset tl__ 0 status)
                 0))
           (let [no (e OK)
-                limit (+ (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 5) 0xff) 8) (bit-and (.at ^BytePtr (.rs-scan rp) 6) 0xff))
+                limit (+ (bit-shift-left (.ub ^BytePtr (.rs-scan rp) 3) 24) (bit-shift-left (.ub ^BytePtr (.rs-scan rp) 4) 16) (bit-shift-left (.ub ^BytePtr (.rs-scan rp) 5) 8) (.ub ^BytePtr (.rs-scan rp) 6))
                 no (if (nil? (.reg-match ^T_regexec_T (.-rex re)))
                      (if (and (> limit 0) (>= (i32 (- (if (< (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-behind-pos re))))) (i32 (long (musl-strlen ed (.line ^T_regexec_T (.-rex re))))) (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-behind-pos re))))) (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))))) limit))
                        (e FAIL)
@@ -18900,7 +18891,7 @@
                     (aset tl__ 0 status)
                     0))))))))
 
-(defn- regmatch__r10 ^long [^Editor ed ^longs tl__ ^objects to__]
+(defn- regmatch__r9 ^long [^Editor ed ^longs tl__ ^objects to__]
   (let [^S_regengine_S re (aget to__ 4)
         ^BytePtr scan (aget to__ 0)
         ^S_regitem_S rp (aget to__ 8)
@@ -18970,7 +18961,7 @@
                                 (case (long j__15)
                                   0
                                     (let [status (aget tl__ 0)]
-                                      (if (or (== (.nextb rst_2) (e NUL)) (== (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) (.nextb rst_2)) (== (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) (.nextb-ic rst_2)))
+                                      (if (or (== (.nextb rst_2) (e NUL)) (== (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) (.nextb rst_2)) (== (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) (.nextb-ic rst_2)))
                                         (do (reg-save ed re (.-regsave ^A_6 (.-rs-un rp)) (.-backpos re))
                                             (let [^BytePtr scan (regnext ed re (.rs-scan rp))
                                                   status (e RA_CONT)]
@@ -19027,14 +19018,14 @@
                        0)
                      (let [status (e RA_CONT)
                            ^BytePtr next_ (regnext ed re scan)
-                           op (bit-and (.get scan) 0xff)
-                           j__11 (if (and (not (.reg-line-lbr ^T_regexec_T (.-rex re))) (>= op 50) (<= op 78) (nil? (.reg-match ^T_regexec_T (.-rex re))) (== (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) (e NUL)) (<= (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))))
+                           op (.ub scan)
+                           j__11 (if (and (not (.reg-line-lbr ^T_regexec_T (.-rex re))) (>= op 50) (<= op 78) (nil? (.reg-match ^T_regexec_T (.-rex re))) (== (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) (e NUL)) (<= (.lnum ^T_regexec_T (.-rex re)) (.reg-maxline ^T_regexec_T (.-rex re))))
                                    (do (reg-nextline ed re)
                                        (aset to__ 1 next_)
                                        (aset tl__ 0 status)
                                        (aset tl__ 1 len_4)
                                        0)
-                                   (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (>= op 50) (<= op 78) (== (bit-and (.get ^BytePtr (.input ^T_regexec_T (.-rex re))) 0xff) 10))
+                                   (if (and (.reg-line-lbr ^T_regexec_T (.-rex re)) (>= op 50) (<= op 78) (== (.ub ^BytePtr (.input ^T_regexec_T (.-rex re))) 10))
                                      (let [t1 (long (utfc-ptr2len ed (.input ^T_regexec_T (.-rex re))))]
                                        (.set-input ^T_regexec_T (.-rex re) (.add ^BytePtr (.input ^T_regexec_T (.-rex re)) t1))
                                        (aset to__ 1 next_)
@@ -19071,7 +19062,7 @@
                                                  (aset tl__ 1 len_4)
                                                  (aset tl__ 7 k__10)
                                                  (regmatch__r2 ed tl__ to__))
-                                             (if (<= k__10 41)
+                                             (if (<= k__10 42)
                                                (do (aset to__ 4 re)
                                                    (aset to__ 0 scan)
                                                    (aset to__ 5 cstrncmp__o)
@@ -19082,44 +19073,36 @@
                                                    (aset tl__ 1 len_4)
                                                    (aset tl__ 7 k__10)
                                                    (regmatch__r3 ed tl__ to__))
-                                               (if (<= k__10 47)
+                                               (if (<= k__10 48)
                                                  (do (aset to__ 4 re)
                                                      (aset to__ 0 scan)
+                                                     (aset to__ 5 cstrncmp__o)
+                                                     (aset to__ 6 match-with-backref__o)
                                                      (aset to__ 1 next_)
                                                      (aset tl__ 9 op)
                                                      (aset tl__ 0 status)
                                                      (aset tl__ 1 len_4)
                                                      (aset tl__ 7 k__10)
                                                      (regmatch__r4 ed tl__ to__))
-                                                 (if (<= k__10 50)
+                                                 (if (<= k__10 52)
                                                    (do (aset to__ 4 re)
                                                        (aset to__ 0 scan)
-                                                       (aset to__ 5 cstrncmp__o)
-                                                       (aset to__ 6 match-with-backref__o)
                                                        (aset to__ 1 next_)
                                                        (aset tl__ 9 op)
                                                        (aset tl__ 0 status)
                                                        (aset tl__ 1 len_4)
+                                                       (aset to__ 7 rst)
                                                        (aset tl__ 7 k__10)
                                                        (regmatch__r5 ed tl__ to__))
-                                                   (if (<= k__10 54)
-                                                     (do (aset to__ 4 re)
-                                                         (aset to__ 0 scan)
-                                                         (aset to__ 1 next_)
-                                                         (aset tl__ 9 op)
-                                                         (aset tl__ 0 status)
-                                                         (aset tl__ 1 len_4)
-                                                         (aset to__ 7 rst)
-                                                         (aset tl__ 7 k__10)
-                                                         (regmatch__r6 ed tl__ to__))
-                                                     (do (aset to__ 4 re)
-                                                         (aset to__ 1 next_)
-                                                         (aset tl__ 9 op)
-                                                         (aset tl__ 8 c)
-                                                         (aset tl__ 0 status)
-                                                         (aset tl__ 1 len_4)
-                                                         (aset tl__ 7 k__10)
-                                                         (regmatch__r7 ed tl__ to__))))))))))))
+                                                   (do (aset to__ 4 re)
+                                                       (aset to__ 0 scan)
+                                                       (aset to__ 1 next_)
+                                                       (aset tl__ 9 op)
+                                                       (aset tl__ 8 c)
+                                                       (aset tl__ 0 status)
+                                                       (aset tl__ 1 len_4)
+                                                       (aset tl__ 7 k__10)
+                                                       (regmatch__r6 ed tl__ to__)))))))))))
                            ^BytePtr next_ (aget to__ 1)
                            status (aget tl__ 0)
                            len_4 (aget tl__ 1)]
@@ -19144,19 +19127,19 @@
                                           (aset to__ 8 rp)
                                           (aset tl__ 0 status)
                                           (aset tl__ 10 k__16)
-                                          (regmatch__r8 ed tl__ to__))
+                                          (regmatch__r7 ed tl__ to__))
                                       (if (<= k__16 9)
                                         (do (aset to__ 4 re)
                                             (aset to__ 8 rp)
                                             (aset tl__ 0 status)
                                             (aset tl__ 10 k__16)
-                                            (regmatch__r9 ed tl__ to__))
+                                            (regmatch__r8 ed tl__ to__))
                                         (do (aset to__ 4 re)
                                             (aset to__ 0 scan)
                                             (aset to__ 8 rp)
                                             (aset tl__ 0 status)
                                             (aset tl__ 10 k__16)
-                                            (regmatch__r10 ed tl__ to__)))))
+                                            (regmatch__r9 ed tl__ to__)))))
                             ^BytePtr scan (aget to__ 0)
                             status (aget tl__ 0)]
                         (if (or (== status (e RA_CONT)) (Ptr/is (.add (GA_Ptr_S_regitem_S ^S_growarray (.-regstack re)) (i32 (- (.ga-len ^S_growarray (.-regstack re)) 1))) rp))
@@ -19350,7 +19333,7 @@
                                                          (do (when-not (== (.lnum ^T_regexec_T (.-rex re)) 0)
                                                                (.set-lnum ^T_regexec_T (.-rex re) 0)
                                                                (.set-line ^T_regexec_T (.-rex re) (reg-getline ed re 0)))
-                                                             (if (== (bit-and (.at ^BytePtr (.line ^T_regexec_T (.-rex re)) col) 0xff) (e NUL))
+                                                             (if (== (.ub ^BytePtr (.line ^T_regexec_T (.-rex re)) col) (e NUL))
                                                                (do (aset tl__ 1 col)
                                                                    (aset tl__ 2 retval)
                                                                    0)
@@ -19572,7 +19555,7 @@
     (loop [^BytePtr s s
            len len
            size size]
-      (let [t1 (not (== (bit-and (.get s) 0xff) (e NUL)))
+      (let [t1 (not (== (.ub s) (e NUL)))
             j__1 (if t1
                    (let [len (i32 (dec len))
                          t1 (>= len 0)]
@@ -19604,7 +19587,7 @@
         ^longs tl__ (long-array 3)
         room (i32 (- room-in 3))
         len 0]
-    (if (== (bit-and (.get s) 0xff) (e NUL))
+    (if (== (.ub s) (e NUL))
       (when (> buflen 0)
         (.put buf (unchecked-byte (e NUL)))
         nil)
@@ -19616,7 +19599,7 @@
             l__1 (loop [len len
                         e_ e_]
                    (if (and (< (Long/compareUnsigned len half) 0) (< e_ buflen))
-                     (if (== (bit-and (.at s e_) 0xff) (e NUL))
+                     (if (== (.ub s e_) (e NUL))
                        (do (aset tl__ 1 e_)
                            1)
                        (let [n (long (ptr2cells ed (.add s e_)))]
@@ -19625,7 +19608,7 @@
                                (aset tl__ 1 e_)
                                0)
                            (let [len (+ len n)
-                                 _ (.set buf e_ (unchecked-byte (bit-and (.at s e_) 0xff)))
+                                 _ (.set buf e_ (unchecked-byte (.ub s e_)))
                                  n (long (utfc-ptr2len ed (.add s e_)))
                                  l__2 (loop [e_ e_
                                              n n]
@@ -19635,7 +19618,7 @@
                                               (if (== e_ buflen)
                                                 (do (aset tl__ 1 e_)
                                                     0)
-                                                (do (.set buf e_ (unchecked-byte (bit-and (.at s e_) 0xff)))
+                                                (do (.set buf e_ (unchecked-byte (.ub s e_)))
                                                     (recur e_ n))))
                                             (do (aset tl__ 1 e_)
                                                 0))))
@@ -19765,8 +19748,8 @@
                          (aset to__ 0 str_)
                          (aset to__ 1 plain-start)
                          0)
-                       (let [^BytePtr s (transchar-byte-buf ed nil (bit-and (.get str_) 0xff))
-                             j__2 (if (== (bit-and (.at s 1) 0xff) (e NUL))
+                       (let [^BytePtr s (transchar-byte-buf ed nil (.ub str_))
+                             j__2 (if (== (.ub s 1) (e NUL))
                                     (let [retval (i32 (inc retval))]
                                       (aset tl__ 1 retval)
                                       (aset to__ 1 plain-start)
@@ -19898,10 +19881,10 @@
   (let [^longs tl__ (long-array 1)
         ^BytePtr p name_
         l__1 (loop [^BytePtr p p]
-               (if (== (bit-and (.get p) 0xff) (e NUL))
+               (if (== (.ub p) (e NUL))
                  0
-                 (if (vim-isprintc? ed (bit-and (.get p) 0xff))
-                   (if (and (not (or (< (u32 (- (bit-and (.get p) 0xff) 65)) 26) (< (u32 (- (bit-and (.get p) 0xff) 97)) 26) (< (u32 (- (bit-and (.get p) 0xff) 48)) 10))) (not (== (bit-and (.get p) 0xff) 95)) (not (== (bit-and (.get p) 0xff) 46)) (not (== (bit-and (.get p) 0xff) 45)))
+                 (if (vim-isprintc? ed (.ub p))
+                   (if (and (not (or (< (u32 (- (.ub p) 65)) 26) (< (u32 (- (.ub p) 97)) 26) (< (u32 (- (.ub p) 48)) 10))) (not (== (.ub p) 95)) (not (== (.ub p) 46)) (not (== (.ub p) 45)))
                      (do (msg-source ed (long (aget (g ed highlight-attr) 25)))
                          (msg ed (gettext_ ed (BytePtr/lit "W18: Invalid character in group name")))
                          0)
@@ -20004,7 +19987,7 @@
         i 0
         num_ 1
         n-colons 0]
-    (if (== (bit-and (.get p) 0xff) (e NUL))
+    (if (== (.ub p) (e NUL))
       (do (.set-r__ out__ nil)
           (.set-len out__ len)
           (.set-errmsg out__ errmsg)
@@ -20057,7 +20040,7 @@
                                       (.set-errmsg out__ errmsg)
                                       out__)
                                     (let [^BytePtr p (.add p 1)]
-                                      (if (== (bit-and (.get p) 0xff) (e NUL))
+                                      (if (== (.ub p) (e NUL))
                                         (let [^BytePtr errmsg (BytePtr. (g ed e-invalid-argument) 0)]
                                           (.set-r__ out__ nil)
                                           (.set-len out__ len)
@@ -20089,12 +20072,12 @@
                                                              (if (< k 2)
                                                                (let [^BytePtr name_ (.get ^Ptr (aget names k))
                                                                      nlen (long (.get ^IntPtr (aget lens k)))
-                                                                     j__4 (if (== (bit-and (.get name_) 0xff) 33)
+                                                                     j__4 (if (== (.ub name_) 33)
                                                                             (if (== nlen 2)
                                                                               (let [hlf 0
                                                                                     l__3 (loop [hlf hlf]
                                                                                            (if (< hlf 70)
-                                                                                             (if (== (long (aget (g ed hl-flags) hlf)) (bit-and (.at name_ 1) 0xff))
+                                                                                             (if (== (long (aget (g ed hl-flags) hlf)) (.ub name_ 1))
                                                                                                (do (aset tl__ 0 hlf)
                                                                                                    0)
                                                                                                (let [hlf (i32 (inc hlf))]
@@ -20308,31 +20291,31 @@
           (recur 9 hlf i p default-hl attr id)
           (recur 4 hlf i p default-hl attr id))
       4
-        (if (zero? (bit-and (.get p) 0xff))
+        (if (zero? (.ub p))
           (recur 9 hlf i p default-hl attr id)
           (let [hlf 0]
             (recur 5 hlf i p default-hl attr id)))
       5
         (if (< hlf 70)
-          (if (== (long (aget (g ed hl-flags) hlf)) (bit-and (.get p) 0xff))
+          (if (== (long (aget (g ed hl-flags) hlf)) (.ub p))
             (recur 6 hlf i p default-hl attr id)
             (let [hlf (i32 (inc hlf))]
               (recur 5 hlf i p default-hl attr id)))
           (recur 6 hlf i p default-hl attr id))
       6
         (let [^BytePtr p (.add p 1)]
-          (if (or (== hlf 70) (== (bit-and (.get p) 0xff) (e NUL)))
+          (if (or (== hlf 70) (== (.ub p) (e NUL)))
             false
             (let [attr 0
                   id 0]
               (recur 7 hlf i p default-hl attr id))))
       7
-        (if (and (not (zero? (bit-and (.get p) 0xff))) (not (== (bit-and (.get p) 0xff) 44)))
-          (if (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))
+        (if (and (not (zero? (.ub p))) (not (== (.ub p) 44)))
+          (if (or (== (.ub p) 32) (== (.ub p) 9))
             (recur 8 hlf i p default-hl attr id)
             (if (> attr (e HL_ALL))
               false
-              (case (case (bit-and (.get p) 0xff) 98 0 105 1 (110 45) 2 114 3 115 4 117 5 99 6 50 7 100 8 61 9 116 10 58 11 -1)
+              (case (case (.ub p) 98 0 105 1 (110 45) 2 114 3 115 4 117 5 99 6 50 7 100 8 61 9 116 10 58 11 -1)
                 0
                   (let [attr (bit-or attr (e HL_BOLD))]
                     (recur 8 hlf i p default-hl attr id))
@@ -20367,7 +20350,7 @@
                     (recur 8 hlf i p default-hl attr id))
                 11
                   (let [^BytePtr p (.add p 1)]
-                    (if (or (not (zero? attr)) (== (bit-and (.get p) 0xff) (e NUL)))
+                    (if (or (not (zero? attr)) (== (.ub p) (e NUL)))
                       false
                       (let [^BytePtr end (vim-strchr ed p 44)
                             ^BytePtr end (if (nil? end)
@@ -20688,7 +20671,7 @@
 
 ;; C: mch_set_shellsize
 (defn mch-set-shellsize [^Editor ed]
-  (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 68)) 0xff))
+  (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 68)))
     (term-set-winsize ed (i32 (aget (g ed Rows) 0)) (i32 (aget (g ed Columns) 0)))
     (out-flush ed)
     (screen-start ed)
@@ -20848,7 +20831,7 @@
 
 ;; C: sync_output_active
 (defn sync-output-active? [^Editor ed]
-  (and (not (zero? (long (aget (g ed p-tsy) 0)))) (or (== (g ed sync-output-setting) 1) (== (g ed sync-output-setting) 2)) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 92)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 93)) 0xff) (e NUL)))))
+  (and (not (zero? (long (aget (g ed p-tsy) 0)))) (or (== (g ed sync-output-setting) 1) (== (g ed sync-output-setting) 2)) (not (== (.ub ^BytePtr (aget (g ed term-strings) 92)) (e NUL))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 93)) (e NUL)))))
 
 ;; C: cursor_off
 (defn cursor-off [^Editor ed]
@@ -20863,11 +20846,11 @@
     (out-flush ed))
   (let [^BytePtr p s]
     (loop [^BytePtr p p]
-      (if (== (bit-and (.get p) 0xff) (e NUL))
+      (if (== (.ub p) (e NUL))
         (when-not (zero? (aget (g ed p-wd) 0))
           (out-flush ed)
           nil)
-        (do (out-char-nf ed (bit-and (.get p) 0xff))
+        (do (out-char-nf ed (.ub p))
             (let [^BytePtr p (.add p 1)]
               (recur p)))))))
 
@@ -20877,7 +20860,7 @@
         allowed (and (not (zero? (long (aget (g ed p-tsy) 0)))) (or (== (g ed sync-output-setting) 1) (== (g ed sync-output-setting) 2)))]
     (if (zero? (bit-and flags (e TERM_SYNC_OUTPUT_FLUSH)))
       (if (zero? (bit-and flags (e TERM_SYNC_OUTPUT_OFF)))
-        (when-not (or (not allowed) in-gui (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 92)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 93)) 0xff) (e NUL)))
+        (when-not (or (not allowed) in-gui (== (.ub ^BytePtr (aget (g ed term-strings) 92)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 93)) (e NUL)))
           (if (zero? (bit-and flags (e TERM_SYNC_OUTPUT_ENABLE)))
             (if (zero? (bit-and flags (e TERM_SYNC_OUTPUT_DISABLE)))
               (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr/lit "Unknown sync output value %d") (object-array [(Integer/valueOf (unchecked-int flags))]))
@@ -20897,12 +20880,12 @@
               (when-not (> t1 0)
                 (out-str-nf ed (aget (g ed term-strings) 92))
                 nil))))
-        (when (and (> (g ed sync-output-state) 0) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 93)) 0xff) (e NUL))))
+        (when (and (> (g ed sync-output-state) 0) (not (== (.ub ^BytePtr (aget (g ed term-strings) 93)) (e NUL))))
           (out-str-nf ed (aget (g ed term-strings) 93))
           (out-flush ed)
           (g! ed sync-output-state 0)
           nil))
-      (when (and allowed (not in-gui) (> (g ed sync-output-state) 0) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 93)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 92)) 0xff) (e NUL))))
+      (when (and allowed (not in-gui) (> (g ed sync-output-state) 0) (not (== (.ub ^BytePtr (aget (g ed term-strings) 93)) (e NUL))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 92)) (e NUL))))
         (out-str-nf ed (aget (g ed term-strings) 93))
         (out-str-nf ed (aget (g ed term-strings) 92))
         (out-flush ed)
@@ -20986,8 +20969,8 @@
     (if (or (not (screen-valid ed true)) (<= line-count 0) (and (not force_) (> line-count (aget (g ed p-ttyscroll) 0))) (> end (aget (g ed Rows) 0)))
       false
       (let [result-empty (>= (i32 (+ row line-count)) end)
-            can-delete (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 11)) 0xff) (e NUL)) (can-clear? ed (aget (g ed term-strings) 1)))
-            j__1 (if (and (some? wp) (not (== (.w-width wp) (.fr-width (g ed topframe)))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL)))
+            can-delete (or (== (.ub ^BytePtr (aget (g ed term-strings) 11)) (e NUL)) (can-clear? ed (aget (g ed term-strings) 1)))
+            j__1 (if (and (some? wp) (not (== (.w-width wp) (.fr-width (g ed topframe)))) (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))
                    (if (> line-count 3)
                      (do (aset to__ 0 (Boolean/valueOf (boolean false)))
                          -1)
@@ -20998,11 +20981,11 @@
                      (let [type_ (e USE_T_CD)]
                        (aset tl__ 0 type_)
                        0)
-                     (if (and (== row 0) (or (== line-count 1) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 5)) 0xff) (e NUL))))
+                     (if (and (== row 0) (or (== line-count 1) (== (.ub ^BytePtr (aget (g ed term-strings) 5)) (e NUL))))
                        (let [type_ (e USE_NL)]
                          (aset tl__ 0 type_)
                          0)
-                       (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 5)) 0xff) (e NUL))) (> line-count 1) can-delete)
+                       (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 5)) (e NUL))) (> line-count 1) can-delete)
                          (let [type_ (e USE_T_CDL)]
                            (aset tl__ 0 type_)
                            0)
@@ -21010,11 +20993,11 @@
                            (let [type_ (e USE_T_CE)]
                              (aset tl__ 0 type_)
                              0)
-                           (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 4)) 0xff) (e NUL))) can-delete)
+                           (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 4)) (e NUL))) can-delete)
                              (let [type_ (e USE_T_DL)]
                                (aset tl__ 0 type_)
                                0)
-                             (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 5)) 0xff) (e NUL))) can-delete)
+                             (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 5)) (e NUL))) can-delete)
                                (let [type_ (e USE_T_CDL)]
                                  (aset tl__ 0 type_)
                                  0)
@@ -21023,10 +21006,10 @@
         (if (== (long j__1) -1)
           (boolean (aget to__ 0))
           (let [type_ (aget tl__ 0)
-                cursor-col (if (and (some? wp) (not (== (.w-wincol wp) 0)) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 48)) 0xff) (e NUL)))
+                cursor-col (if (and (some? wp) (not (== (.w-wincol wp) 0)) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL))) (== (.ub ^BytePtr (aget (g ed term-strings) 48)) (e NUL)))
                              (.w-wincol wp)
                              cursor-col)
-                j__2 (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 48)) 0xff) (e NUL))
+                j__2 (if (== (.ub ^BytePtr (aget (g ed term-strings) 48)) (e NUL))
                        (let [cursor-row (i32 (+ row off))
                              cursor-end (i32 (+ end off))]
                          (aset tl__ 1 cursor-row)
@@ -21065,7 +21048,7 @@
                                    (let [j (i32 (+ j line-count))]
                                      (if (<= j (i32 (- end 1)))
                                        (do (.set (g ed LineOffset) (i32 (- j line-count)) (unchecked-int (bit-and (.at (g ed LineOffset) j) 0xffffffff)))
-                                           (.set (g ed LineWraps) (i32 (- j line-count)) (unchecked-byte (bit-and (.at (g ed LineWraps) j) 0xff)))
+                                           (.set (g ed LineWraps) (i32 (- j line-count)) (unchecked-byte (.ub (g ed LineWraps) j)))
                                            (recur j))
                                        (do (aset tl__ 3 j)
                                            0))))
@@ -21110,7 +21093,7 @@
                                           (out-str ed (aget (g ed term-strings) 1))))
                                     (screen-start ed)
                                     (recur i)))))))))
-                    (if (and (not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 11)) 0xff))) (or (== type_ (e USE_T_DL)) (== type_ (e USE_T_CDL))))
+                    (if (and (not (zero? (.ub ^BytePtr (aget (g ed term-strings) 11)))) (or (== type_ (e USE_T_DL)) (== type_ (e USE_T_CDL))))
                       (let [i line-count]
                         (loop [i i]
                           (if (> i 0)
@@ -21141,7 +21124,7 @@
     (if (or (not (screen-valid ed true)) (<= line-count 0) (> line-count (aget (g ed p-ttyscroll) 0)) (> end (aget (g ed Rows) 0)))
       false
       (let [result-empty (>= (i32 (+ row line-count)) end)
-            j__1 (if (and (some? wp) (not (== (.w-width wp) (.fr-width (g ed topframe)))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL)))
+            j__1 (if (and (some? wp) (not (== (.w-width wp) (.fr-width (g ed topframe)))) (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))
                    (if (> line-count 3)
                      (do (aset to__ 0 (Boolean/valueOf (boolean false)))
                          -1)
@@ -21152,24 +21135,24 @@
                      (let [type_ (e USE_T_CD)]
                        (aset tl__ 0 type_)
                        0)
-                     (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 3)) 0xff) (e NUL))) (or (> line-count 1) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 2)) 0xff) (e NUL))))
+                     (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 3)) (e NUL))) (or (> line-count 1) (== (.ub ^BytePtr (aget (g ed term-strings) 2)) (e NUL))))
                        (let [type_ (e USE_T_CAL)]
                          (aset tl__ 0 type_)
                          0)
-                       (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 5)) 0xff) (e NUL))) result-empty (or (> line-count 1) (not can-ce)))
+                       (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 5)) (e NUL))) result-empty (or (> line-count 1) (not can-ce)))
                          (let [type_ (e USE_T_CDL)]
                            (aset tl__ 0 type_)
                            0)
-                         (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 2)) 0xff) (e NUL))
+                         (if (== (.ub ^BytePtr (aget (g ed term-strings) 2)) (e NUL))
                            (if (and can-ce result-empty)
                              (let [type_ (e USE_T_CE)]
                                (aset tl__ 0 type_)
                                0)
-                             (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 4)) 0xff) (e NUL))) result-empty)
+                             (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 4)) (e NUL))) result-empty)
                                (let [type_ (e USE_T_DL)]
                                  (aset tl__ 0 type_)
                                  0)
-                               (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 37)) 0xff) (e NUL))) (== row 0) (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 10)) 0xff) (e NUL)) can-ce))
+                               (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 37)) (e NUL))) (== row 0) (or (== (.ub ^BytePtr (aget (g ed term-strings) 10)) (e NUL)) can-ce))
                                  (let [type_ (e USE_T_SR)]
                                    (aset tl__ 0 type_)
                                    0)
@@ -21183,12 +21166,12 @@
           (let [type_ (aget tl__ 0)]
             (if (or (== type_ (e USE_T_CD)) (== type_ (e USE_T_CDL)) (== type_ (e USE_T_CE)) (== type_ (e USE_T_DL)))
               (screen-del-lines ed off row line-count end false 0 wp)
-              (do (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 11)) 0xff))
+              (do (when-not (zero? (.ub ^BytePtr (aget (g ed term-strings) 11)))
                     (screen-del-lines ed off (i32 (- end line-count)) line-count end false 0 wp))
-                  (let [cursor-col (if (and (some? wp) (not (== (.w-wincol wp) 0)) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL))) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 48)) 0xff) (e NUL)))
+                  (let [cursor-col (if (and (some? wp) (not (== (.w-wincol wp) 0)) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL))) (== (.ub ^BytePtr (aget (g ed term-strings) 48)) (e NUL)))
                                      (.w-wincol wp)
                                      cursor-col)
-                        cursor-row (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 48)) 0xff) (e NUL))
+                        cursor-row (if (== (.ub ^BytePtr (aget (g ed term-strings) 48)) (e NUL))
                                      (i32 (+ row off))
                                      row)
                         row (i32 (+ row off))
@@ -21217,7 +21200,7 @@
                                            (let [j (i32 (- j line-count))]
                                              (if (>= j row)
                                                (do (.set (g ed LineOffset) (i32 (+ j line-count)) (unchecked-int (bit-and (.at (g ed LineOffset) j) 0xffffffff)))
-                                                   (.set (g ed LineWraps) (i32 (+ j line-count)) (unchecked-byte (bit-and (.at (g ed LineWraps) j) 0xff)))
+                                                   (.set (g ed LineWraps) (i32 (+ j line-count)) (unchecked-byte (.ub (g ed LineWraps) j)))
                                                    (recur j))
                                                (do (aset tl__ 1 j)
                                                    0))))
@@ -21249,7 +21232,7 @@
                                       (screen-start ed)
                                       (let [i (i32 (inc i))]
                                         (recur i)))))))
-                            (if (and (== type_ (e USE_T_SR)) (not (zero? (bit-and (.get ^BytePtr (aget (g ed term-strings) 10)) 0xff))))
+                            (if (and (== type_ (e USE_T_SR)) (not (zero? (.ub ^BytePtr (aget (g ed term-strings) 10)))))
                               (let [i 0]
                                 (loop [i i]
                                   (if (< i line-count)
@@ -21354,7 +21337,7 @@
           (if (nil? (.hisstr ^S_hist_entry (.at ^Ptr (aget (g ed history) type_) i)))
             false
             (let [^BytePtr p (.hisstr ^S_hist_entry (.at ^Ptr (aget (g ed history) type_) i))]
-              (if (and (== (long (musl-strcmp ed str_ p)) 0) (not (and writing (not (zero? (.viminfo ^S_hist_entry (.at ^Ptr (aget (g ed history) type_) i)))))) (or (not (== type_ (e HIST_SEARCH))) (== sep (bit-and (.at p (+ (.hisstrlen ^S_hist_entry (.at ^Ptr (aget (g ed history) type_) i)) 1)) 0xff))))
+              (if (and (== (long (musl-strcmp ed str_ p)) 0) (not (and writing (not (zero? (.viminfo ^S_hist_entry (.at ^Ptr (aget (g ed history) type_) i)))))) (or (not (== type_ (e HIST_SEARCH))) (== sep (.ub p (+ (.hisstrlen ^S_hist_entry (.at ^Ptr (aget (g ed history) type_) i)) 1)))))
                 (if move-to-front
                   (let [last-i i]
                     (recur 2 type_ str_ move-to-front sep writing i last-i len))
@@ -21454,9 +21437,9 @@
 (defn get-coll-element ^long [^Editor ed ^Ptr pp]
   (let [l 1
         ^BytePtr p (.get pp)]
-    (if (and (not (== (bit-and (.at p 0) 0xff) (e NUL))) (== (bit-and (.at p 1) 0xff) 46) (not (== (bit-and (.at p 2) 0xff) (e NUL))))
+    (if (and (not (== (.ub p 0) (e NUL))) (== (.ub p 1) 46) (not (== (.ub p 2) (e NUL))))
       (let [l (long (utfc-ptr2len ed (.add p 2)))]
-        (if (and (== (bit-and (.at p (i32 (+ l 2))) 0xff) 46) (== (bit-and (.at p (i32 (+ l 3))) 0xff) 93))
+        (if (and (== (.ub p (i32 (+ l 2))) 46) (== (.ub p (i32 (+ l 3))) 93))
           (let [c (long (utf-ptr2char ed (.add p 2)))]
             (.put pp (.add ^BytePtr (.get pp) (i32 (+ l 4))))
             c)
@@ -21500,7 +21483,7 @@
 ;; C: get_char_class
 (defn get-char-class ^long [^Editor ed ^Ptr pp]
   (let [^T_keyvalue_T target (new-T_keyvalue_T)]
-    (if (and (== (bit-and (.at ^BytePtr (.get pp) 1) 0xff) 58) (< (u32 (- (bit-and (.at ^BytePtr (.get pp) 2) 0xff) 97)) 26) (< (u32 (- (bit-and (.at ^BytePtr (.get pp) 3) 0xff) 97)) 26) (< (u32 (- (bit-and (.at ^BytePtr (.get pp) 4) 0xff) 97)) 26))
+    (if (and (== (.ub ^BytePtr (.get pp) 1) 58) (< (u32 (- (.ub ^BytePtr (.get pp) 2) 97)) 26) (< (u32 (- (.ub ^BytePtr (.get pp) 3) 97)) 26) (< (u32 (- (.ub ^BytePtr (.get pp) 4) 97)) 26))
       (do (.set-key_ target 0)
           (aset ^objects (.-string ^T_string_T (.-value target)) 0 (.add ^BytePtr (.get pp) 2))
           (.set-length ^T_string_T (.-value target) 0)
@@ -21517,24 +21500,24 @@
 ;; C: skip_anyof
 (defn skip-anyof ^BytePtr [^Editor ed ^BytePtr p__1]
   (let [^objects p (doto (object-array 1) (aset 0 p__1))]
-    (when (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 94)
+    (when (== (.ub ^BytePtr (aget p 0)) 94)
       (aset p 0 (.add ^BytePtr (aget p 0) 1)))
-    (when (or (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 45))
+    (when (or (== (.ub ^BytePtr (aget p 0)) 93) (== (.ub ^BytePtr (aget p 0)) 45))
       (aset p 0 (.add ^BytePtr (aget p 0) 1)))
     (loop []
-      (if (and (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 93)))
+      (if (and (not (== (.ub ^BytePtr (aget p 0)) (e NUL))) (not (== (.ub ^BytePtr (aget p 0)) 93)))
         (let [l (long (utfc-ptr2len ed (aget p 0)))]
           (if (> l 1)
             (aset p 0 (.add ^BytePtr (aget p 0) l))
-            (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 45)
+            (if (== (.ub ^BytePtr (aget p 0)) 45)
               (do (aset p 0 (.add ^BytePtr (aget p 0) 1))
-                  (when (and (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 93)) (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))))
+                  (when (and (not (== (.ub ^BytePtr (aget p 0)) 93)) (not (== (.ub ^BytePtr (aget p 0)) (e NUL))))
                     (let [t1 (long (utfc-ptr2len ed (aget p 0)))]
                       (aset p 0 (.add ^BytePtr (aget p 0) t1)))))
-              (if (and (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (bit-and (.at ^BytePtr (aget p 0) 1) 0xff))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (bit-and (.at ^BytePtr (aget p 0) 1) 0xff))))))
+              (if (and (== (.ub ^BytePtr (aget p 0)) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (.ub ^BytePtr (aget p 0) 1))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (.ub ^BytePtr (aget p 0) 1))))))
                 (aset p 0 (.add ^BytePtr (aget p 0) 2))
-                (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 91)
-                  (when (and (== (long (get-char-class ed (Ptr. p 0))) (e CLASS_NONE)) (== (long (get-coll-element ed (Ptr. p 0))) 0) (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))))
+                (if (== (.ub ^BytePtr (aget p 0)) 91)
+                  (when (and (== (long (get-char-class ed (Ptr. p 0))) (e CLASS_NONE)) (== (long (get-coll-element ed (Ptr. p 0))) 0) (not (== (.ub ^BytePtr (aget p 0)) (e NUL))))
                     (aset p 0 (.add ^BytePtr (aget p 0) 1)))
                   (aset p 0 (.add ^BytePtr (aget p 0) 1))))))
           (recur))
@@ -21556,17 +21539,17 @@
                       mymagic mymagic
                       ^BytePtr p p
                       startplen startplen]
-                 (if (== (bit-and (.at p 0) 0xff) (e NUL))
+                 (if (== (.ub p 0) (e NUL))
                    (do (aset tl__ 0 mymagic)
                        (aset to__ 0 p)
                        0)
-                   (if (== (bit-and (.at p 0) 0xff) dirc)
+                   (if (== (.ub p 0) dirc)
                      (do (aset tl__ 0 mymagic)
                          (aset to__ 0 p)
                          0)
-                     (let [j__4 (if (or (and (== (bit-and (.at p 0) 0xff) 91) (>= mymagic (e MAGIC_ON))) (and (== (bit-and (.at p 0) 0xff) 92) (== (bit-and (.at p 1) 0xff) 91) (<= mymagic (e MAGIC_OFF))))
+                     (let [j__4 (if (or (and (== (.ub p 0) 91) (>= mymagic (e MAGIC_ON))) (and (== (.ub p 0) 92) (== (.ub p 1) 91) (<= mymagic (e MAGIC_OFF))))
                                   (let [^BytePtr p (skip-anyof ed (.add p 1))]
-                                    (if (== (bit-and (.at p 0) 0xff) (e NUL))
+                                    (if (== (.ub p 0) (e NUL))
                                       (do (aset tl__ 0 mymagic)
                                           (aset to__ 0 p)
                                           1)
@@ -21575,8 +21558,8 @@
                                           (aset to__ 0 p)
                                           (aset tl__ 1 startplen)
                                           0)))
-                                  (if (and (== (bit-and (.at p 0) 0xff) 92) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
-                                    (let [j__3 (if (and (== dirc 63) (some? newp) (== (bit-and (.at p 1) 0xff) 63))
+                                  (if (and (== (.ub p 0) 92) (not (== (.ub p 1) (e NUL))))
+                                    (let [j__3 (if (and (== dirc 63) (some? newp) (== (.ub p 1) 63))
                                                  (let [startplen (if (== startplen 0)
                                                                    (long (musl-strlen ed startp))
                                                                    startplen)
@@ -21617,14 +21600,14 @@
                                           ^BytePtr startp (aget to__ 1)
                                           ^BytePtr p (aget to__ 0)
                                           startplen (aget tl__ 1)]
-                                      (if (== (bit-and (.get p) 0xff) 118)
+                                      (if (== (.ub p) 118)
                                         (let [mymagic (e MAGIC_ALL)]
                                           (aset to__ 1 startp)
                                           (aset tl__ 0 mymagic)
                                           (aset to__ 0 p)
                                           (aset tl__ 1 startplen)
                                           0)
-                                        (if (== (bit-and (.get p) 0xff) 86)
+                                        (if (== (.ub p) 86)
                                           (let [mymagic (e MAGIC_NONE)]
                                             (aset to__ 1 startp)
                                             (aset tl__ 0 mymagic)
@@ -21671,7 +21654,7 @@
     (aset magic-val 0 (unchecked-int (e MAGIC_ON)))
     (skip-regexp-ex ed pat (e NUL) (long (magic-isset ed)) nil nil (IntPtr. magic-val 0))
     (loop [^BytePtr p p]
-      (if (== (bit-and (.get p) 0xff) (e NUL))
+      (if (== (.ub p) (e NUL))
         false
         (let [l (long (utfc-ptr2len ed p))
               j__1 (if (> l 1)
@@ -21680,31 +21663,31 @@
                        (let [^BytePtr p (.add p l)]
                          (aset to__ 0 p)
                          0))
-                     (if (and (== (bit-and (.get p) 0xff) 92) (<= (long (aget magic-val 0)) (e MAGIC_ON)))
-                       (if (and (== (bit-and (.at p 1) 0xff) 95) (not (== (bit-and (.at p 2) 0xff) (e NUL))))
+                     (if (and (== (.ub p) 92) (<= (long (aget magic-val 0)) (e MAGIC_ON)))
+                       (if (and (== (.ub p 1) 95) (not (== (.ub p 2) (e NUL))))
                          (let [^BytePtr p (.add p 3)]
                            (aset to__ 0 p)
                            0)
-                         (if (and (== (bit-and (.at p 1) 0xff) 37) (not (== (bit-and (.at p 2) 0xff) (e NUL))))
+                         (if (and (== (.ub p 1) 37) (not (== (.ub p 2) (e NUL))))
                            (let [^BytePtr p (.add p 3)]
                              (aset to__ 0 p)
                              0)
-                           (if (== (bit-and (.at p 1) 0xff) (e NUL))
+                           (if (== (.ub p 1) (e NUL))
                              (let [^BytePtr p (.add p 1)]
                                (aset to__ 0 p)
                                0)
                              (let [^BytePtr p (.add p 2)]
                                (aset to__ 0 p)
                                0))))
-                       (if (and (or (== (bit-and (.get p) 0xff) 37) (== (bit-and (.get p) 0xff) 95)) (== (long (aget magic-val 0)) (e MAGIC_ALL)))
-                         (if (== (bit-and (.at p 1) 0xff) (e NUL))
+                       (if (and (or (== (.ub p) 37) (== (.ub p) 95)) (== (long (aget magic-val 0)) (e MAGIC_ALL)))
+                         (if (== (.ub p 1) (e NUL))
                            (let [^BytePtr p (.add p 1)]
                              (aset to__ 0 p)
                              0)
                            (let [^BytePtr p (.add p 2)]
                              (aset to__ 0 p)
                              0))
-                         (if (vim-isupper? ed (bit-and (.get p) 0xff))
+                         (if (vim-isupper? ed (.ub p))
                            1
                            (let [^BytePtr p (.add p 1)]
                              (aset to__ 0 p)
@@ -21840,7 +21823,7 @@
 
 (defn peekchr ^long [^Editor ed]
   (if (== (g ed curchr) -1)
-    (do (g! ed curchr (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff))
+    (do (g! ed curchr (.ub ^BytePtr (aget (g ed regparse) 0) 0))
         (case (case (g ed curchr) (126 46 91) 0 (123 124 33 34 35 37 38 39 40 41 43 44 45 47 58 59 60 61 62 63 64 96) 1 42 2 94 3 36 4 92 5 -1)
           0
             (if (>= (g ed reg-magic) (e MAGIC_ON))
@@ -21870,25 +21853,25 @@
                     is-magic-all (== (g ed reg-magic) (e MAGIC_ALL))]
                 (loop [^BytePtr p p
                        is-magic-all (boolean is-magic-all)]
-                  (if (and (== (bit-and (.at p 0) 0xff) 92) (or (== (bit-and (.at p 1) 0xff) 99) (== (bit-and (.at p 1) 0xff) 67) (== (bit-and (.at p 1) 0xff) 109) (== (bit-and (.at p 1) 0xff) 77) (== (bit-and (.at p 1) 0xff) 118) (== (bit-and (.at p 1) 0xff) 86) (== (bit-and (.at p 1) 0xff) 90)))
-                    (let [is-magic-all (if (== (bit-and (.at p 1) 0xff) 118)
+                  (if (and (== (.ub p 0) 92) (or (== (.ub p 1) 99) (== (.ub p 1) 67) (== (.ub p 1) 109) (== (.ub p 1) 77) (== (.ub p 1) 118) (== (.ub p 1) 86) (== (.ub p 1) 90)))
+                    (let [is-magic-all (if (== (.ub p 1) 118)
                                          true
-                                         (if (or (== (bit-and (.at p 1) 0xff) 109) (== (bit-and (.at p 1) 0xff) 77) (== (bit-and (.at p 1) 0xff) 86))
+                                         (if (or (== (.ub p 1) 109) (== (.ub p 1) 77) (== (.ub p 1) 86))
                                            false
                                            is-magic-all))
                           ^BytePtr p (.add p 2)]
                       (recur p (boolean is-magic-all)))
-                    (if (or (== (bit-and (.at p 0) 0xff) (e NUL)) (and (== (bit-and (.at p 0) 0xff) 92) (or (== (bit-and (.at p 1) 0xff) 124) (== (bit-and (.at p 1) 0xff) 38) (== (bit-and (.at p 1) 0xff) 41) (== (bit-and (.at p 1) 0xff) 110))) (and is-magic-all (or (== (bit-and (.at p 0) 0xff) 124) (== (bit-and (.at p 0) 0xff) 38) (== (bit-and (.at p 0) 0xff) 41))) (== (g ed reg-magic) (e MAGIC_ALL)))
+                    (if (or (== (.ub p 0) (e NUL)) (and (== (.ub p 0) 92) (or (== (.ub p 1) 124) (== (.ub p 1) 38) (== (.ub p 1) 41) (== (.ub p 1) 110))) (and is-magic-all (or (== (.ub p 0) 124) (== (.ub p 0) 38) (== (.ub p 0) 41))) (== (g ed reg-magic) (e MAGIC_ALL)))
                       (do (g! ed curchr -220)
                           (g ed curchr))
                       (g ed curchr)))))
               (g ed curchr))
           5
-            (let [c (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff)]
+            (let [c (.ub ^BytePtr (aget (g ed regparse) 0) 1)]
               (if (== c (e NUL))
                 (do (g! ed curchr 92)
                     (g ed curchr))
-                (if (and (<= c 126) (not (zero? (bit-and (aget (g ed META-flags) c) 0xff))))
+                (if (and (<= c 126) (not (zero? (bit-and (long (aget (g ed META-flags) c)) 0xff))))
                   (do (g! ed curchr -1)
                       (g! ed prev-at-start (g ed at-start))
                       (g! ed at-start (e FALSE))
@@ -21917,11 +21900,11 @@
     (g ed curchr)))
 
 (defn skipchr [^Editor ed]
-  (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 92)
+  (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 92)
     (g! ed prevchr-len 1)
     (g! ed prevchr-len 0))
-  (when-not (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) (g ed prevchr-len)) 0xff) (e NUL))
-    (if (< (bit-and (.at ^BytePtr (aget (g ed regparse) 0) (g ed prevchr-len)) 0xff) 128)
+  (when-not (== (.ub ^BytePtr (aget (g ed regparse) 0) (g ed prevchr-len)) (e NUL))
+    (if (< (.ub ^BytePtr (aget (g ed regparse) 0) (g ed prevchr-len)) 128)
       (g! ed prevchr-len (i32 (inc (g ed prevchr-len))))
       (let [t1 (long (utf-ptr2len ed (.add ^BytePtr (aget (g ed regparse) 0) (g ed prevchr-len))))]
         (g! ed prevchr-len (i32 (+ (g ed prevchr-len) t1))))))
@@ -22030,19 +22013,19 @@
 ;; C: seen_endbrace
 (defn seen-endbrace [^Editor ed ^long refnum]
   (let [^objects to__ (object-array 2)]
-    (if (zero? (bit-and (aget (g ed had-endbrace) refnum) 0xff))
+    (if (zero? (bit-and (long (aget (g ed had-endbrace) refnum)) 0xff))
       (let [^BytePtr p (aget (g ed regparse) 0)
             l__1 (loop [^BytePtr p p]
-                   (if (== (bit-and (.get p) 0xff) (e NUL))
+                   (if (== (.ub p) (e NUL))
                      (do (aset to__ 0 p)
                          0)
-                     (if (and (== (bit-and (.at p 0) 0xff) 64) (== (bit-and (.at p 1) 0xff) 60) (or (== (bit-and (.at p 2) 0xff) 33) (== (bit-and (.at p 2) 0xff) 61)))
+                     (if (and (== (.ub p 0) 64) (== (.ub p 1) 60) (or (== (.ub p 2) 33) (== (.ub p 2) 61)))
                        (do (aset to__ 0 p)
                            0)
                        (let [^BytePtr p (.add p 1)]
                          (recur p)))))
             ^BytePtr p (aget to__ 0)]
-        (if (== (bit-and (.get p) 0xff) (e NUL))
+        (if (== (.ub p) (e NUL))
           (do (emsg ed (gettext_ ed (BytePtr. (g ed e-illegal-back-reference) 0)))
               (g! ed rc-did-emsg (e TRUE))
               false)
@@ -22072,7 +22055,7 @@
       (loop [^BytePtr scan scan]
         (let [^BytePtr temp (regnext ed re scan)]
           (if (nil? temp)
-            (let [offset (if (== (bit-and (.get scan) 0xff) (e BACK))
+            (let [offset (if (== (.ub scan) (e BACK))
                            (i32 (.sub scan val_))
                            (i32 (.sub val_ scan)))]
               (if (> offset 65535)
@@ -22098,7 +22081,7 @@
         i 0]
     (loop [nr nr
            i i]
-      (let [c (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff)]
+      (let [c (.ub ^BytePtr (aget (g ed regparse) 0) 0)]
         (if (or (< c 48) (> c 57))
           (if (== i 0)
             -1
@@ -22117,7 +22100,7 @@
         l__1 (loop [nr nr
                     i i]
                (if (and (< i 3) (< (Long/compareUnsigned nr 32) 0))
-                 (let [c (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff)]
+                 (let [c (.ub ^BytePtr (aget (g ed regparse) 0) 0)]
                    (if (or (< c 48) (> c 55))
                      (do (aset tl__ 0 nr)
                          (aset tl__ 1 i)
@@ -22144,7 +22127,7 @@
         l__1 (loop [nr nr
                     i i]
                (if (< i maxinputlen)
-                 (let [c (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff)]
+                 (let [c (.ub ^BytePtr (aget (g ed regparse) 0) 0)]
                    (if (vim-isxdigit? ed c)
                      (let [nr (bit-shift-left nr 4)
                            t1 (long (hex2nr ed c))
@@ -22189,7 +22172,7 @@
   (let [nr -1
         ^BytePtr t1 (aget (g ed regparse) 0)
         _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-        nr (case (bit-and (.get t1) 0xff)
+        nr (case (.ub t1)
              100
                (long (getdecchrs ed))
              111
@@ -22285,7 +22268,7 @@
                 c (aget fl__ 1)
                 extra (aget fl__ 3)
                 ^BytePtr lp_2 (skip-anyof ed (aget (g ed regparse) 0))]
-            (if (== (bit-and (.get lp_2) 0xff) 93)
+            (if (== (.ub lp_2) 93)
               (recur 16)
               (recur 3)))
         3
@@ -22401,7 +22384,7 @@
                 extra (aget fl__ 3)
                 startc (aget fl__ 9)
                 startc -1]
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 94)
+            (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 94)
               (do (aset fl__ 9 startc)
                   (recur 18))
               (do (aset fl__ 9 startc)
@@ -22430,7 +22413,7 @@
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)
                 startc (aget fl__ 9)]
-            (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45))
+            (if (or (== (.ub ^BytePtr (aget (g ed regparse) 0)) 93) (== (.ub ^BytePtr (aget (g ed regparse) 0)) 45))
               (recur 20)
               (recur 21)))
         20
@@ -22438,10 +22421,10 @@
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)
                 startc (aget fl__ 9)
-                startc (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff)
+                startc (.ub ^BytePtr (aget (g ed regparse) 0))
                 ^BytePtr t5 (aget (g ed regparse) 0)]
             (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-            (regc ed (bit-and (.get t5) 0xff))
+            (regc ed (.ub t5))
             (aset fl__ 9 startc)
             (recur 21))
         21
@@ -22455,7 +22438,7 @@
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)
                 startc (aget fl__ 9)]
-            (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)))
+            (if (and (not (== (.ub ^BytePtr (aget (g ed regparse) 0)) (e NUL))) (not (== (.ub ^BytePtr (aget (g ed regparse) 0)) 93)))
               (recur 26)
               (recur 23)))
         23
@@ -22463,7 +22446,7 @@
                 ^BytePtr ret (aget fo__ 3)]
             (regc ed (e NUL))
             (g! ed prevchr-len 1)
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93)
+            (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 93)
               (recur 24)
               (recur 25)))
         24
@@ -22482,21 +22465,21 @@
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)
                 startc (aget fl__ 9)]
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45)
+            (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 45)
               (recur 125)
               (recur 27)))
         27
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)]
-            (if (and (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff))))))
+            (if (and (== (.ub ^BytePtr (aget (g ed regparse) 0)) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (.ub ^BytePtr (aget (g ed regparse) 0) 1))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (.ub ^BytePtr (aget (g ed regparse) 0) 1))))))
               (recur 113)
               (recur 28)))
         28
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)]
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
+            (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 91)
               (recur 34)
               (recur 29)))
         29
@@ -22550,7 +22533,7 @@
                 len (aget fl__ 13)
                 ^BytePtr t8 (aget (g ed regparse) 0)]
             (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-            (regc ed (bit-and (.get t8) 0xff))
+            (regc ed (.ub t8))
             (recur 32))
         st))))
 
@@ -23334,7 +23317,7 @@
                 startc (aget fl__ 9)
                 ^BytePtr t7 (aget (g ed regparse) 0)
                 _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                startc (bit-and (.get t7) 0xff)]
+                startc (.ub t7)]
             (regc ed startc)
             (aset fl__ 9 startc)
             (recur 145))
@@ -23358,14 +23341,14 @@
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)]
             (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 110)
+            (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 110)
               (recur 121)
               (recur 114)))
         114
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)]
-            (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 100) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 111) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 120) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 117) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 85))
+            (if (or (== (.ub ^BytePtr (aget (g ed regparse) 0)) 100) (== (.ub ^BytePtr (aget (g ed regparse) 0)) 111) (== (.ub ^BytePtr (aget (g ed regparse) 0)) 120) (== (.ub ^BytePtr (aget (g ed regparse) 0)) 117) (== (.ub ^BytePtr (aget (g ed regparse) 0)) 85))
               (recur 116)
               (recur 115)))
         115
@@ -23375,7 +23358,7 @@
                 startc (aget fl__ 9)
                 ^BytePtr t6 (aget (g ed regparse) 0)
                 _ (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                startc (long (backslash-trans ed (bit-and (.get t6) 0xff)))]
+                startc (long (backslash-trans ed (.ub t6)))]
             (regc ed startc)
             (aset fl__ 9 startc)
             (recur 145))
@@ -23428,7 +23411,7 @@
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)]
-            (if (== (bit-and (.get ret) 0xff) (e ANYOF))
+            (if (== (.ub ret) (e ANYOF))
               (recur 123)
               (recur 124)))
         123
@@ -23453,7 +23436,7 @@
                 ^BytePtr ret (aget fo__ 3)
                 startc (aget fl__ 9)]
             (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-            (if (or (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 93) (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) (e NUL)) (== startc -1) (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 92) (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 110)))
+            (if (or (== (.ub ^BytePtr (aget (g ed regparse) 0)) 93) (== (.ub ^BytePtr (aget (g ed regparse) 0)) (e NUL)) (== startc -1) (and (== (.ub ^BytePtr (aget (g ed regparse) 0) 0) 92) (== (.ub ^BytePtr (aget (g ed regparse) 0) 1) 110)))
               (recur 144)
               (recur 126)))
         126
@@ -23463,7 +23446,7 @@
                 startc (aget fl__ 9)
                 endc (aget fl__ 10)
                 endc 0]
-            (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 91)
+            (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 91)
               (do (aset fl__ 10 endc)
                   (recur 127))
               (do (aset fl__ 10 endc)
@@ -23558,13 +23541,6 @@
                 endc (aget fl__ 10)]
             (regc ed startc)
             (recur 135))
-        st))))
-
-(defn- regatom__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_reg__out_T reg__o (aget fo__ 12)
-        ^ints vcol (aget fo__ 13)]
-    (loop [st st0__]
-      (case st
         137
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -23574,6 +23550,13 @@
             (if (> endc (i32 (+ startc 256)))
               (recur 142)
               (recur 138)))
+        st))))
+
+(defn- regatom__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         138
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -23679,7 +23662,7 @@
                 c (aget fl__ 1)
                 delim-nl (boolean (aget fo__ 5))
                 save-prev-at-start (aget fl__ 4)]
-            (if (and (not (< (u32 (- (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 48)) 10)) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 39)) (not (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 46)))
+            (if (and (not (< (u32 (- (.ub ^BytePtr (aget (g ed regparse) 0)) 48)) 10)) (not (== (.ub ^BytePtr (aget (g ed regparse) 0)) 39)) (not (== (.ub ^BytePtr (aget (g ed regparse) 0)) 46)))
               (recur 179)
               (recur 148)))
         148
@@ -23786,13 +23769,6 @@
               (g! ed rc-did-emsg (e TRUE))
               (aset fo__ 0 nil)
               -1)
-        st))))
-
-(defn- regatom__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_reg__out_T reg__o (aget fo__ 12)
-        ^ints vcol (aget fo__ 13)]
-    (loop [st st0__]
-      (case st
         158
           (let [c (aget fl__ 1)
                 save-prev-at-start (aget fl__ 4)
@@ -23802,6 +23778,13 @@
             (if (and cur (not (zero? n)))
               (recur 174)
               (recur 159)))
+        st))))
+
+(defn- regatom__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         159
           (let [c (aget fl__ 1)
                 save-prev-at-start (aget fl__ 4)
@@ -23992,13 +23975,6 @@
         182
           (do (aset fo__ 0 nil)
               -1)
-        st))))
-
-(defn- regatom__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_reg__out_T reg__o (aget fo__ 12)
-        ^ints vcol (aget fo__ 13)]
-    (loop [st st0__]
-      (case st
         183
           (let [^IntPtr flagp (aget fo__ 2)
                 c (aget fl__ 1)]
@@ -24014,6 +23990,13 @@
               85
                 (recur 185)
               (recur 184)))
+        st))))
+
+(defn- regatom__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         184
           (let [^IntPtr flagp (aget fo__ 2)
                 i (aget fl__ 6)
@@ -24192,7 +24175,7 @@
                 ^BytePtr lastbranch (aget fo__ 7)
                 ^BytePtr lastnode (aget fo__ 8)
                 ^BytePtr br (aget fo__ 9)]
-            (if (== (bit-and (.get br) 0xff) (e BRANCH))
+            (if (== (.ub br) (e BRANCH))
               (recur 209)
               (recur 208)))
         208
@@ -24205,13 +24188,6 @@
                 ^BytePtr br (regnext ed re br)]
             (aset fo__ 9 br)
             (recur 211))
-        st))))
-
-(defn- regatom__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_reg__out_T reg__o (aget fo__ 12)
-        ^ints vcol (aget fo__ 13)]
-    (loop [st st0__]
-      (case st
         209
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -24250,6 +24226,13 @@
               (g! ed rc-did-emsg (e TRUE))
               (aset fo__ 0 nil)
               -1)
+        st))))
+
+(defn- regatom__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         214
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -24338,7 +24321,7 @@
             (aset fo__ 3 ret)
             (recur 285))
         226
-          (if (and (== (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 0) 0xff) 61) (>= (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 48) (<= (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff) 50))
+          (if (and (== (.ub ^BytePtr (aget (g ed regparse) 0) 0) 61) (>= (.ub ^BytePtr (aget (g ed regparse) 0) 1) 48) (<= (.ub ^BytePtr (aget (g ed regparse) 0) 1) 50))
             (recur 228)
             (recur 227))
         227
@@ -24347,7 +24330,7 @@
             (aset fo__ 3 ret)
             (recur 285))
         228
-          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0)) (object-array [(Integer/valueOf (unchecked-int (bit-and (.at ^BytePtr (aget (g ed regparse) 0) 1) 0xff)))]))
+          (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0)) (object-array [(Integer/valueOf (unchecked-int (.ub ^BytePtr (aget (g ed regparse) 0) 1)))]))
               (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-atom-engine-must-be-at-start-of-pattern) 0))))
               (aset fo__ 0 nil)
               -1)
@@ -24425,13 +24408,6 @@
         239
           (do (aset fo__ 0 nil)
               -1)
-        st))))
-
-(defn- regatom__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_reg__out_T reg__o (aget fo__ 12)
-        ^ints vcol (aget fo__ 13)]
-    (loop [st st0__]
-      (case st
         240
           (let [^BytePtr ret (aget fo__ 3)
                 ^BytePtr ret (regnode ed 80)]
@@ -24461,6 +24437,13 @@
         244
           (do (aset fo__ 0 nil)
               -1)
+        st))))
+
+(defn- regatom__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         245
           (let [^IntPtr flagp (aget fo__ 2)]
             (if (some? (g ed reg-prev-sub))
@@ -24484,7 +24467,7 @@
           (let [^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)
                 ^BytePtr lp (aget fo__ 6)]
-            (if (== (bit-and (.get lp) 0xff) (e NUL))
+            (if (== (.ub lp) (e NUL))
               (recur 249)
               (recur 252)))
         249
@@ -24492,7 +24475,7 @@
                 ^BytePtr ret (aget fo__ 3)
                 ^BytePtr lp (aget fo__ 6)]
             (regc ed (e NUL))
-            (if (== (bit-and (.get (g ed reg-prev-sub)) 0xff) (e NUL))
+            (if (== (.ub (g ed reg-prev-sub)) (e NUL))
               (recur 285)
               (recur 250)))
         250
@@ -24514,7 +24497,7 @@
                 ^BytePtr lp (aget fo__ 6)
                 ^BytePtr t1 lp
                 ^BytePtr lp (.add lp 1)]
-            (regc ed (bit-and (.get t1) 0xff))
+            (regc ed (.ub t1))
             (aset fo__ 6 lp)
             (recur 248))
         253
@@ -24627,13 +24610,6 @@
             (if (== c 36)
               (recur 275)
               (recur 268)))
-        st))))
-
-(defn- regatom__11 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_reg__out_T reg__o (aget fo__ 12)
-        ^ints vcol (aget fo__ 13)]
-    (loop [st st0__]
-      (case st
         268
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -24659,6 +24635,13 @@
                   (recur 273))
               (do (aset fo__ 4 p)
                   (recur 270))))
+        st))))
+
+(defn- regatom__11 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_reg__out_T reg__o (aget fo__ 12)
+        ^ints vcol (aget fo__ 13)]
+    (loop [st st0__]
+      (case st
         270
           (let [^IntPtr flagp (aget fo__ 2)
                 c (aget fl__ 1)
@@ -24810,17 +24793,17 @@
                         (regatom__3 ed fl__ fo__ st)
                         (if (<= st 112)
                           (regatom__4 ed fl__ fo__ st)
-                          (if (<= st 136)
+                          (if (<= st 137)
                             (regatom__5 ed fl__ fo__ st)
-                            (if (<= st 157)
+                            (if (<= st 158)
                               (regatom__6 ed fl__ fo__ st)
-                              (if (<= st 182)
+                              (if (<= st 183)
                                 (regatom__7 ed fl__ fo__ st)
-                                (if (<= st 208)
+                                (if (<= st 213)
                                   (regatom__8 ed fl__ fo__ st)
-                                  (if (<= st 239)
+                                  (if (<= st 244)
                                     (regatom__9 ed fl__ fo__ st)
-                                    (if (<= st 267)
+                                    (if (<= st 269)
                                       (regatom__10 ed fl__ fo__ st)
                                       (regatom__11 ed fl__ fo__ st))))))))))))]
         (if (neg? r__)
@@ -24840,7 +24823,7 @@
           (let [^BytePtr dst (.add dst -1)
                 ^BytePtr t1 dst
                 ^BytePtr src (.add src -1)]
-            (.put t1 (unchecked-byte (bit-and (.get src) 0xff)))
+            (.put t1 (unchecked-byte (.ub src)))
             (recur src dst))
           (let [^BytePtr place opnd
                 ^BytePtr t2 place
@@ -24853,7 +24836,7 @@
             nil))))))
 
 (defn regoptail [^Editor ed ^S_regengine_S re ^BytePtr p ^BytePtr val_]
-  (when-not (or (nil? p) (BytePtr/eq p (BytePtr. (g ed reg-calc-size-node) 0)) (and (not (== (bit-and (.get p) 0xff) (e BRANCH))) (or (< (bit-and (.get p) 0xff) (e BRACE_COMPLEX)) (> (bit-and (.get p) 0xff) 149))))
+  (when-not (or (nil? p) (BytePtr/eq p (BytePtr. (g ed reg-calc-size-node) 0)) (and (not (== (.ub p) (e BRANCH))) (or (< (.ub p) (e BRACE_COMPLEX)) (> (.ub p) 149))))
     (regtail ed re (.add p 3) val_)
     nil))
 
@@ -24871,7 +24854,7 @@
           (let [^BytePtr dst (.add dst -1)
                 ^BytePtr t1 dst
                 ^BytePtr src (.add src -1)]
-            (.put t1 (unchecked-byte (bit-and (.get src) 0xff)))
+            (.put t1 (unchecked-byte (.ub src)))
             (recur src dst))
           (let [^BytePtr place opnd
                 ^BytePtr t2 place
@@ -24896,23 +24879,23 @@
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)
         reverse_ false
-        reverse_ (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 45)
+        reverse_ (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 45)
                    (do (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
                        true)
                    reverse_)
         ^BytePtr first-char (aget (g ed regparse) 0)
         minval (long (getdigits ed (Ptr. (g ed regparse) 0)))
-        maxval (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 44)
+        maxval (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 44)
                  (do (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1))
-                     (if (vim-isdigit? ed (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff))
+                     (if (vim-isdigit? ed (.ub ^BytePtr (aget (g ed regparse) 0)))
                        (long (getdigits ed (Ptr. (g ed regparse) 0)))
                        2147418112))
-                 (if (< (u32 (- (bit-and (.get first-char) 0xff) 48)) 10)
+                 (if (< (u32 (- (.ub first-char) 48)) 10)
                    minval
                    2147418112))]
-    (when (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 92)
+    (when (== (.ub ^BytePtr (aget (g ed regparse) 0)) 92)
       (aset (g ed regparse) 0 (.add ^BytePtr (aget (g ed regparse) 0) 1)))
-    (if (== (bit-and (.get ^BytePtr (aget (g ed regparse) 0)) 0xff) 125)
+    (if (== (.ub ^BytePtr (aget (g ed regparse) 0)) 125)
       (let [j__1 (if (or (and (not reverse_) (> minval maxval)) (and reverse_ (< minval maxval)))
                    (let [tmp minval
                          minval maxval
@@ -24955,7 +24938,7 @@
             (let [^BytePtr dst (.add dst -1)
                   ^BytePtr t1 dst
                   ^BytePtr src (.add src -1)]
-              (.put t1 (unchecked-byte (bit-and (.get src) 0xff)))
+              (.put t1 (unchecked-byte (.ub src)))
               (recur src dst))
             (let [^BytePtr place opnd
                   ^BytePtr t2 place
@@ -25461,24 +25444,24 @@
                     (when-not (zero? (bit-and flags (e HASLOOKBH)))
                       (.set-regflags r (bit-or (.regflags r) (e RF_LOOKBH))))
                     (let [^BytePtr scan (.add ^BytePtr (.program r) 1)]
-                      (if (== (bit-and (.get ^BytePtr (regnext ed re scan)) 0xff) (e END))
+                      (if (== (.ub ^BytePtr (regnext ed re scan)) (e END))
                         (let [^BytePtr scan (.add scan 3)
-                              ^BytePtr scan (if (or (== (bit-and (.get scan) 0xff) (e BOL)) (== (bit-and (.get scan) 0xff) (e RE_BOF)))
+                              ^BytePtr scan (if (or (== (.ub scan) (e BOL)) (== (.ub scan) (e RE_BOF)))
                                               (do (.set-reganch r (u8 (inc (.reganch r))))
                                                   ^BytePtr (regnext ed re scan))
                                               scan)]
-                          (if (== (bit-and (.get scan) 0xff) (e EXACTLY))
+                          (if (== (.ub scan) (e EXACTLY))
                             (.set-regstart r (long (utf-ptr2char ed (.add scan 3))))
-                            (when (and (or (== (bit-and (.get scan) 0xff) (e BOW)) (== (bit-and (.get scan) 0xff) (e EOW)) (== (bit-and (.get scan) 0xff) (e NOTHING)) (== (bit-and (.get scan) 0xff) 80) (== (bit-and (.get scan) 0xff) (e NOPEN)) (== (bit-and (.get scan) 0xff) 90) (== (bit-and (.get scan) 0xff) (e NCLOSE))) (== (bit-and (.get ^BytePtr (regnext ed re scan)) 0xff) (e EXACTLY)))
+                            (when (and (or (== (.ub scan) (e BOW)) (== (.ub scan) (e EOW)) (== (.ub scan) (e NOTHING)) (== (.ub scan) 80) (== (.ub scan) (e NOPEN)) (== (.ub scan) 90) (== (.ub scan) (e NCLOSE))) (== (.ub ^BytePtr (regnext ed re scan)) (e EXACTLY)))
                               (.set-regstart r (long (utf-ptr2char ed (.add ^BytePtr (regnext ed re scan) 3))))))
-                          (if (and (or (not (zero? (bit-and flags (e SPSTART)))) (== (bit-and (.get scan) 0xff) (e BOW)) (== (bit-and (.get scan) 0xff) (e EOW))) (zero? (bit-and flags (e HASNL))))
+                          (if (and (or (not (zero? (bit-and flags (e SPSTART)))) (== (.ub scan) (e BOW)) (== (.ub scan) (e EOW))) (zero? (bit-and flags (e HASNL))))
                             (let [^BytePtr longest nil
                                   len 0]
                               (loop [^BytePtr scan scan
                                      ^BytePtr longest longest
                                      len len]
                                 (if (some? scan)
-                                  (let [j__1 (if (== (bit-and (.get scan) 0xff) (e EXACTLY))
+                                  (let [j__1 (if (== (.ub scan) (e EXACTLY))
                                                (let [scanlen (long (musl-strlen ed (.add scan 3)))]
                                                  (if (>= (Long/compareUnsigned scanlen len) 0)
                                                    (let [^BytePtr longest (.add scan 3)
@@ -25525,7 +25508,7 @@
         ^objects to__ (object-array 2)]
     (g! ed rc-did-emsg (e FALSE))
     (let [magic (long (magic-isset ed))
-          j__1 (if (or (nil? pat) (== (bit-and (.get pat) 0xff) (e NUL)))
+          j__1 (if (or (nil? pat) (== (.ub pat) (e NUL)))
                  (let [i (if (== pat-use (e RE_LAST))
                            (g ed last-idx)
                            pat-use)]
@@ -25695,7 +25678,7 @@
 ;; C: scroll_region_set
 (defn scroll-region-set [^Editor ed ^S_window_S wp ^long off]
   (out-str ed (tgoto ed (aget (g ed term-strings) 6) (i32 (- (i32 (+ (.w-winrow wp) (.w-height wp))) 1)) (i32 (+ (.w-winrow wp) off))))
-  (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL))) (not (== (.w-width wp) (aget (g ed Columns) 0))))
+  (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL))) (not (== (.w-width wp) (aget (g ed Columns) 0))))
     (do (out-str ed (tgoto ed (aget (g ed term-strings) 76) (i32 (- (i32 (+ (.w-wincol wp) (.w-width wp))) 1)) (.w-wincol wp)))
         (screen-start ed)
         nil)
@@ -25705,7 +25688,7 @@
 ;; C: scroll_region_reset
 (defn scroll-region-reset [^Editor ed]
   (out-str ed (tgoto ed (aget (g ed term-strings) 6) (i32 (- (i32 (aget (g ed Rows) 0)) 1)) 0))
-  (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL))
+  (if (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL))
     (do (screen-start ed)
         nil)
     (do (out-str ed (tgoto ed (aget (g ed term-strings) 76) (i32 (- (i32 (aget (g ed Columns) 0)) 1)) 0))
@@ -25732,12 +25715,12 @@
             (do (when (zero? (g ed no-win-do-lines-ins))
                   (g! ed clear-cmdline (e TRUE)))
                 (if (or (not (zero? (g ed scroll-region))) (not (== (.w-width wp) (.fr-width (g ed topframe)))))
-                  (do (when (and (not (zero? (g ed scroll-region))) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL)))))
+                  (do (when (and (not (zero? (g ed scroll-region))) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))))
                         (scroll-region-set ed wp row))
                       (let [retval (if del
                                      (screen-del-lines ed (i32 (+ (.w-winrow wp) row)) 0 line-count (i32 (- (.w-height wp) row)) false clear-attr wp)
                                      (screen-ins-lines ed (i32 (+ (.w-winrow wp) row)) 0 line-count (i32 (- (.w-height wp) row)) clear-attr wp))]
-                        (if (and (not (zero? (g ed scroll-region))) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 76)) 0xff) (e NUL)))))
+                        (if (and (not (zero? (g ed scroll-region))) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))))
                           (do (scroll-region-reset ed)
                               (if retval 1 0))
                           (if retval 1 0))))
@@ -25817,7 +25800,7 @@
       (.put left (unchecked-int (long (aget from2 0))))
       (.put left (unchecked-int (long (aget from1 0)))))
     (if (> (long (aget to2 0)) (long (aget to1 0)))
-      (if (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (>= (i32 (- (long (aget from2 0)) 1)) (long (aget to1 0))))
+      (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (>= (i32 (- (long (aget from2 0)) 1)) (long (aget to1 0))))
         (do (.put right (unchecked-int (- (long (aget from2 0)) 1)))
             nil)
         (do (.put right (unchecked-int (long (aget to2 0))))
@@ -26087,7 +26070,7 @@
             (if (or (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SEARCH))) (and (== (.lnum ^T_lpos_T (aget ^objects (.-endpos ^T_regmmatch_T (.-rm shl)) 0)) 0) (<= (.col ^T_lpos_T (aget ^objects (.-endpos ^T_regmmatch_T (.-rm shl)) 0)) (.col ^T_lpos_T (aget ^objects (.-startpos ^T_regmmatch_T (.-rm shl)) 0)))))
               (let [matchcol (.col ^T_lpos_T (aget ^objects (.-startpos ^T_regmmatch_T (.-rm shl)) 0))
                     ^BytePtr ml (.add ^BytePtr (ml-get-buf ed (.buf shl) lnum false) matchcol)]
-                (if (== (bit-and (.get ml) 0xff) (e NUL))
+                (if (== (.ub ml) (e NUL))
                   (do (.set-lnum shl 0)
                       nil)
                   (let [t1 (long (utfc-ptr2len ed ml))
@@ -26272,7 +26255,7 @@
                            (when (identical? shl search-hl)
                              (check-cur-search-hl ed wp shl))
                            (when (== (.startcol shl) (.endcol shl))
-                             (if (== (bit-and (.at line (.endcol shl)) 0xff) (e NUL))
+                             (if (== (.ub line (.endcol shl)) (e NUL))
                                (.set-endcol shl (i32 (inc (.endcol shl))))
                                (let [t1 (long (utfc-ptr2len ed (.add line (.endcol shl))))]
                                  (.set-endcol shl (i32 (+ (.endcol shl) t1))))))
@@ -26411,7 +26394,7 @@
           (when (and (> (.w-skipcol wp) 0) (== (.startrow wlv) 0))
             (.set-p-extra wlv (BytePtr. ^bytes (.-extra wlv) 0))
             (loop []
-              (when (== (bit-and (.get ^BytePtr (.p-extra wlv)) 0xff) 32)
+              (when (== (.ub ^BytePtr (.p-extra wlv)) 32)
                 (.put ^BytePtr (.p-extra wlv) (unchecked-byte 45))
                 (.set-p-extra wlv (.add ^BytePtr (.p-extra wlv) 1))
                 (recur))))
@@ -26443,7 +26426,7 @@
 
 ;; C: char_needs_redraw
 (defn char-needs-redraw? [^Editor ed ^long off-from ^long off-to ^long cols]
-  (if (and (> cols 0) (or (not (== (bit-and (.at (g ed ScreenLines) off-from) 0xff) (bit-and (.at (g ed ScreenLines) off-to) 0xff))) (not (== (bit-and (.at (g ed ScreenAttrs) off-from) 0xffff) (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff))) (not (== (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff) (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff))) (and (not (== (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff) 0)) (comp-char-differs? ed off-from off-to)) (and (> (long (utf-off2cells ed (u32 off-from) (u32 (+ off-from cols)))) 1) (not (== (bit-and (.at (g ed ScreenLines) (i32 (+ off-from 1))) 0xff) (bit-and (.at (g ed ScreenLines) (i32 (+ off-to 1))) 0xff))))))
+  (if (and (> cols 0) (or (not (== (.ub (g ed ScreenLines) off-from) (.ub (g ed ScreenLines) off-to))) (not (== (bit-and (long (.at (g ed ScreenAttrs) off-from)) 0xffff) (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff))) (not (== (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff) (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff))) (and (not (== (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff) 0)) (comp-char-differs? ed off-from off-to)) (and (> (long (utf-off2cells ed (u32 off-from) (u32 (+ off-from cols)))) 1) (not (== (.ub (g ed ScreenLines) (i32 (+ off-from 1))) (.ub (g ed ScreenLines) (i32 (+ off-to 1))))))))
     true
     false))
 
@@ -26503,14 +26486,14 @@
                   redraw-this redraw-next
                   redraw-next (or force_ (char-needs-redraw? ed (i32 (+ off-from (u32 char-cells))) (i32 (+ off-to (u32 char-cells))) (i32 (- (i32 (- endcol col)) char-cells))))]
               (if redraw-this
-                (let [j__1 (if (and (not (zero? (long (aget (g ed p-wiv) 0)))) (not force_) (not (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) 0)) (not (== (bit-and (.at (g ed ScreenAttrs) off-from) 0xffff) (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff))))
+                (let [j__1 (if (and (not (zero? (long (aget (g ed p-wiv) 0)))) (not force_) (not (== (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff) 0)) (not (== (bit-and (long (.at (g ed ScreenAttrs) off-from)) 0xffff) (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff))))
                              (do (windgoto ed row (i32 (+ col coloff)))
                                  (out-str ed (aget (g ed term-strings) 1))
                                  (screen-start ed)
                                  (let [force_ true
                                        redraw-next true]
-                                   (if (and (> (i32 (+ col coloff)) 0) (not (== (bit-and (.at (g ed ScreenAttrs) (u32 (- off-to 1))) 0xffff) 0)))
-                                     (do (g! ed screen-attr (bit-and (.at (g ed ScreenAttrs) (u32 (- off-to 1))) 0xffff))
+                                   (if (and (> (i32 (+ col coloff)) 0) (not (== (bit-and (long (.at (g ed ScreenAttrs) (u32 (- off-to 1)))) 0xffff) 0)))
+                                     (do (g! ed screen-attr (bit-and (long (.at (g ed ScreenAttrs) (u32 (- off-to 1)))) 0xffff))
                                          (term-windgoto ed row (i32 (+ col coloff)))
                                          (screen-stop-highlight ed)
                                          (aset to__ 0 (Boolean/valueOf (boolean force_)))
@@ -26528,14 +26511,14 @@
                       clear-next (if (and (== (i32 (+ col char-cells)) endcol) (or (and (== char-cells 1) (> (long (utf-off2cells ed off-to max-off-to)) 1)) (and (== char-cells 2) (== (long (utf-off2cells ed off-to max-off-to)) 1) (> (long (utf-off2cells ed (u32 (+ off-to 1)) max-off-to)) 1))))
                                    true
                                    clear-next)]
-                  (.set (g ed ScreenLines) off-to (unchecked-byte (bit-and (.at (g ed ScreenLines) off-from) 0xff)))
+                  (.set (g ed ScreenLines) off-to (unchecked-byte (.ub (g ed ScreenLines) off-from)))
                   (.set (g ed ScreenLinesUC) off-to (unchecked-int (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff)))
                   (if (== (bit-and (.at (g ed ScreenLinesUC) off-from) 0xffffffff) 0)
                     (recur 6 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)
                     (let [i 0]
                       (recur 5 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))))
                 (if (and (not (zero? (long (aget (g ed p-wiv) 0)))) (> (i32 (+ col coloff)) 0) (> off-to 0))
-                  (if (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) (bit-and (.at (g ed ScreenAttrs) (u32 (- off-to 1))) 0xffff))
+                  (if (== (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff) (bit-and (long (.at (g ed ScreenAttrs) (u32 (- off-to 1)))) 0xffff))
                     (do (g! ed screen-attr 0)
                         (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
                     (if (== (g ed screen-attr) 0)
@@ -26551,7 +26534,7 @@
                   (recur 2 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)
                   (recur 4 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))))
         2
-          (if (and (< col clear-width) (== (bit-and (.at (g ed ScreenLines) off-to) 0xff) 32) (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) 0) (== (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff) 0))
+          (if (and (< col clear-width) (== (.ub (g ed ScreenLines) off-to) 32) (== (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff) 0) (== (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff) 0))
             (let [j__2 (if (zero? (bit-and flags (e SLF_INC_VCOL)))
                          (let [t1 last-vcol]
                            (aset tl__ 0 last-vcol)
@@ -26598,7 +26581,7 @@
                   (do (.set fillchar-vsep__o (fillchar-vsep ed wp row))
                       (let [hl (.attr fillchar-vsep__o)
                             c (.r__ fillchar-vsep__o)]
-                        (when (or (not (== (bit-and (.at (g ed ScreenLines) off-to) 0xff) (u8 c))) (not (== (i32 (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff)) (if (>= c 128) c 0))) (not (== (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff) hl)))
+                        (when (or (not (== (.ub (g ed ScreenLines) off-to) (u8 c))) (not (== (i32 (bit-and (.at (g ed ScreenLinesUC) off-to) 0xffffffff)) (if (>= c 128) c 0))) (not (== (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff) hl)))
                           (.set (g ed ScreenLines) off-to (unchecked-byte c))
                           (.set (g ed ScreenAttrs) off-to (unchecked-short hl))
                           (if (>= c 128)
@@ -26619,20 +26602,20 @@
             (recur 6 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i))
         6
           (do (when (== char-cells 2)
-                (.set (g ed ScreenLines) (u32 (+ off-to 1)) (unchecked-byte (bit-and (.at (g ed ScreenLines) (u32 (+ off-from 1))) 0xff)))
+                (.set (g ed ScreenLines) (u32 (+ off-to 1)) (unchecked-byte (.ub (g ed ScreenLines) (u32 (+ off-from 1)))))
                 (.set (g ed ScreenLinesUC) (u32 (+ off-to 1)) (unchecked-int 0)))
               (let [redraw-next (if (zero? (g ed term-is-xterm))
                                   redraw-next
-                                  (let [hl (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff)
+                                  (let [hl (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff)
                                         hl (if (> hl (e HL_ALL))
                                              (long (syn-attr2attr ed hl))
                                              hl)]
                                     (if (zero? (bit-and hl (e HL_BOLD)))
                                       redraw-next
                                       true)))]
-                (.set (g ed ScreenAttrs) off-to (unchecked-short (bit-and (.at (g ed ScreenAttrs) off-from) 0xffff)))
+                (.set (g ed ScreenAttrs) off-to (unchecked-short (bit-and (long (.at (g ed ScreenAttrs) off-from)) 0xffff)))
                 (when (== char-cells 2)
-                  (.set (g ed ScreenAttrs) (u32 (+ off-to 1)) (unchecked-short (bit-and (.at (g ed ScreenAttrs) off-to) 0xffff))))
+                  (.set (g ed ScreenAttrs) (u32 (+ off-to 1)) (unchecked-short (bit-and (long (.at (g ed ScreenAttrs) off-to)) 0xffff))))
                 (screen-char ed off-to row (i32 (+ col coloff)))
                 (recur 7 wp row coloff endcol clear-width last-vcol flags off-from off-to max-off-from max-off-to col force_ redraw-next clear-next char-cells override-success i)))
         7
@@ -26654,7 +26637,7 @@
             j__1 (if (and (not (zero? (long (aget ^ints (.-wo-nu ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (zero? (long (aget ^ints (.-wo-rnu ^T_winopt_T (.-w-onebuf-opt wp)) 0)))))
                    (loop [off off
                           skip skip]
-                     (if (and (< skip (.w-width wp)) (< (u32 (- (bit-and (.at (g ed ScreenLines) off) 0xff) 48)) 10))
+                     (if (and (< skip (.w-width wp)) (< (u32 (- (.ub (g ed ScreenLines) off) 48)) 10))
                        (let [off (i32 (inc off))
                              skip (i32 (inc skip))]
                          (recur off skip))
@@ -26781,7 +26764,7 @@
                                      ^S_matchitem (.mit-next cur)
                                      cur)]
               (recur 2 wp lnum col line search-hl did-line-attr lcs-eol-one on-last-col cur shl shl-flag pos-inprogress search-attr))
-            (let [search-attr (if (and (== (bit-and (.get (.add line col)) 0xff) (e NUL)) (or (>= did-line-attr 1) (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (== lcs-eol-one -1))))
+            (let [search-attr (if (and (== (.ub (.add line col)) (e NUL)) (or (>= did-line-attr 1) (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (== lcs-eol-one -1))))
                                 0
                                 search-attr)]
               (.set-r__ out__ search-attr)
@@ -26816,7 +26799,7 @@
                               (check-cur-search-hl ed wp shl))
                             (when (== (.startcol shl) (.endcol shl))
                               (let [^BytePtr p (.add line (.endcol shl))]
-                                (if (== (bit-and (.get p) 0xff) (e NUL))
+                                (if (== (.ub p) (e NUL))
                                   (.set-endcol shl (i32 (inc (.endcol shl))))
                                   (let [t1 (long (utfc-ptr2len ed p))]
                                     (.set-endcol shl (i32 (+ (.endcol shl) t1)))))))
@@ -26841,7 +26824,7 @@
 (defn byte2cells ^long [^Editor ed ^long b]
   (if (>= b 128)
     0
-    (bit-and (aget (g ed g-chartab) b) 0xff (e CT_CELL_MASK))))
+    (bit-and (long (aget (g ed g-chartab) b)) 0xff (e CT_CELL_MASK))))
 
 ;; C: get_prevcol_hl_flag
 (defn get-prevcol-hl-flag? [^Editor ed ^S_window_S wp ^T_match_T search-hl ^long curcol]
@@ -27945,7 +27928,7 @@
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)
                 ^T_pos_T bot (aget fo__ 12)]
-            (if (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (== (.col bot) 0) (== (.coladd bot) 0))
+            (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (== (.col bot) 0) (== (.coladd bot) 0))
               (recur 31)
               (recur 26)))
         26
@@ -28012,7 +27995,7 @@
                 on-last-col (aget fl__ 25)
                 ^T_pos_T bot (aget fo__ 12)]
             (.set pos bot)
-            (if (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+            (if (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
               (recur 29)
               (recur 28)))
         28
@@ -28558,7 +28541,7 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)]
-            (if (and (> trailcol 0) (or (== (bit-and (.at ptr (i32 (- trailcol 1))) 0xff) 32) (== (bit-and (.at ptr (i32 (- trailcol 1))) 0xff) 9)))
+            (if (and (> trailcol 0) (or (== (.ub ptr (i32 (- trailcol 1))) 32) (== (.ub ptr (i32 (- trailcol 1))) 9)))
               (recur 302)
               (recur 44)))
         44
@@ -28694,7 +28677,7 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)]
-            (if (or (== (bit-and (.at ptr leadcol) 0xff) 32) (== (bit-and (.at ptr leadcol) 0xff) 9))
+            (if (or (== (.ub ptr leadcol) 32) (== (.ub ptr leadcol) 9))
               (recur 301)
               (recur 48)))
         48
@@ -28728,24 +28711,9 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)]
-            (if (== (bit-and (.at ptr leadcol) 0xff) (e NUL))
+            (if (== (.ub ptr leadcol) (e NUL))
               (recur 50)
               (recur 49)))
-        st))))
-
-(defn- win-line__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
-    (loop [st st0__]
-      (case st
         49
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -28780,6 +28748,21 @@
                 leadcol (i32 (+ leadcol (i32 (+ (i32 (.sub ptr line)) 1))))]
             (aset fl__ 21 leadcol)
             (recur 51))
+        st))))
+
+(defn- win-line__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
+        ^T_winlinevars_T wlv (aget fo__ 20)
+        ^T_pos_T pos (aget fo__ 21)
+        ^ints area-attr (aget fo__ 22)
+        ^ints u8cc (aget fo__ 23)
+        ^ints match-conc (aget fo__ 24)
+        ^T_chartabsize_T cts (aget fo__ 25)
+        ^ints head (aget fo__ 26)
+        ^ints has-match-conc (aget fo__ 27)]
+    (loop [st st0__]
+      (case st
         50
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -29142,7 +29125,7 @@
             (let [charsize (long (win-lbr-chartabsize ed cts (IntPtr. head 0) nil))
                   _ (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) charsize)))
                   ^BytePtr prev-ptr (.cts-ptr cts)]
-              (if (== (bit-and (.get prev-ptr) 0xff) (e NUL))
+              (if (== (.ub prev-ptr) (e NUL))
                 (do (aset fo__ 13 prev-ptr)
                     (aset fl__ 27 charsize)
                     (recur 70))
@@ -29220,7 +29203,7 @@
                 on-last-col (aget fl__ 25)
                 ^BytePtr prev-ptr (aget fo__ 13)
                 charsize (aget fl__ 27)
-                in-multispace (and (== (bit-and (.get prev-ptr) 0xff) 32) (or (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 32) (and (.gt prev-ptr line) (== (bit-and (.at prev-ptr -1) 0xff) 32))))]
+                in-multispace (and (== (.ub prev-ptr) 32) (or (== (.ub ^BytePtr (.cts-ptr cts)) 32) (and (.gt prev-ptr line) (== (.ub prev-ptr -1) 32))))]
             (if in-multispace
               (do (aset fo__ 9 (Boolean/valueOf (boolean in-multispace)))
                   (recur 62))
@@ -30658,7 +30641,7 @@
                 ^BytePtr line (.line update-search-hl__o)
                 search-attr (.r__ update-search-hl__o)
                 ^BytePtr ptr (.add line v)]
-            (if (== (bit-and (.get ptr) 0xff) (e NUL))
+            (if (== (.ub ptr) (e NUL))
               (do (aset fo__ 2 line)
                   (aset fo__ 3 ptr)
                   (aset fl__ 13 v)
@@ -31193,7 +31176,7 @@
                 on-last-col (aget fl__ 25)
                 ^BytePtr prev-ptr_2 (aget fo__ 15)
                 ^BytePtr prev-ptr_2 ptr
-                c (bit-and (.get ptr) 0xff)]
+                c (.ub ptr)]
             (if (== c (e NUL))
               (do (aset fl__ 4 c)
                   (aset fo__ 15 prev-ptr_2)
@@ -31696,7 +31679,7 @@
                 ^BytePtr prev-ptr_2 (aget fo__ 15)]
             (transchar-hex ed (BytePtr. ^bytes (.-extra wlv) 0) mb-c)
             (.set-p-extra wlv (BytePtr. ^bytes (.-extra wlv) 0))
-            (let [c (bit-and (.get ^BytePtr (.p-extra wlv)) 0xff)
+            (let [c (.ub ^BytePtr (.p-extra wlv))
                   mb-c (long (mb-ptr2char-adv__p-extra ed wlv))
                   mb-utf8 (>= c 128)]
               (.set-n-extra wlv (i32 (long (musl-strlen ed (.p-extra wlv)))))
@@ -31828,7 +31811,7 @@
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)
                 ^BytePtr prev-ptr_2 (aget fo__ 15)]
-            (if (== (bit-and (.get ptr) 0xff) (e NUL))
+            (if (== (.ub ptr) (e NUL))
               (recur 133)
               (recur 131)))
         131
@@ -32214,7 +32197,7 @@
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)
                 ^BytePtr prev-ptr_2 (aget fo__ 15)
-                in-multispace (and (== c 32) (or (== (bit-and (.get ptr) 0xff) 32) (and (.gt prev-ptr_2 line) (== (bit-and (.at prev-ptr_2 -1) 0xff) 32))))]
+                in-multispace (and (== c 32) (or (== (.ub ptr) 32) (and (.gt prev-ptr_2 line) (== (.ub prev-ptr_2 -1) 32))))]
             (if in-multispace
               (do (aset fo__ 9 (Boolean/valueOf (boolean in-multispace)))
                   (recur 141))
@@ -33678,7 +33661,7 @@
             (.set-n-extra wlv (i32 (- (long (byte2cells ed c)) 1)))
             (let [^BytePtr t4 (.p-extra wlv)
                   _ (.set-p-extra wlv (.add ^BytePtr (.p-extra wlv) 1))
-                  c (bit-and (.get t4) 0xff)]
+                  c (.ub t4)]
               (if attr-pri
                 (do (aset fl__ 4 c)
                     (recur 179))
@@ -34643,7 +34626,7 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)
-                c (bit-and (.get ^BytePtr (.p-extra wlv)) 0xff)
+                c (.ub ^BytePtr (.p-extra wlv))
                 mb-c c
                 mb-l (long (utfc-ptr2len ed (.p-extra wlv)))
                 mb-utf8 false]
@@ -36109,7 +36092,7 @@
                 on-last-col (aget fl__ 25)
                 lcs-ext (aget fl__ 35)
                 lcs-ext (long (get-lcs-ext ed wp))]
-            (if (and (not (== lcs-ext (e NUL))) (== (.draw-state wlv) 3) (== (.col wlv) (i32 (- (.w-width wp) 1))) (or (not (== (bit-and (.get ptr) 0xff) (e NUL))) (> lcs-eol-one 0) (and (> (.n-extra wlv) 0) (or (not (== (.c-extra wlv) (e NUL))) (not (== (bit-and (.get ^BytePtr (.p-extra wlv)) 0xff) (e NUL)))))))
+            (if (and (not (== lcs-ext (e NUL))) (== (.draw-state wlv) 3) (== (.col wlv) (i32 (- (.w-width wp) 1))) (or (not (== (.ub ptr) (e NUL))) (> lcs-eol-one 0) (and (> (.n-extra wlv) 0) (or (not (== (.c-extra wlv) (e NUL))) (not (== (.ub ^BytePtr (.p-extra wlv)) (e NUL)))))))
               (do (aset fl__ 35 lcs-ext)
                   (recur 239))
               (do (aset fl__ 35 lcs-ext)
@@ -37607,7 +37590,7 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)]
-            (if (and (>= (.col wlv) (.w-width wp)) (or (not (== (.draw-state wlv) 3)) (not (== (bit-and (.get ptr) 0xff) (e NUL))) (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)) (e NUL))) (not (== lcs-eol-one -1))) (and (not (== (.n-extra wlv) 0)) (or (not (== (.c-extra wlv) (e NUL))) (not (== (bit-and (.get ^BytePtr (.p-extra wlv)) 0xff) (e NUL)))))))
+            (if (and (>= (.col wlv) (.w-width wp)) (or (not (== (.draw-state wlv) 3)) (not (== (.ub ptr) (e NUL))) (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)) (e NUL))) (not (== lcs-eol-one -1))) (and (not (== (.n-extra wlv) 0)) (or (not (== (.c-extra wlv) (e NUL))) (not (== (.ub ^BytePtr (.p-extra wlv)) (e NUL)))))))
               (recur 280)
               (recur 85)))
         280
@@ -37923,7 +37906,7 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)]
-            (if (> (long (aget (g ed mb-bytelen-tab) (bit-and (.at (g ed ScreenLines) (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (- (.fr-width (g ed topframe)) 1))))) 0xff))) 1)
+            (if (> (long (aget (g ed mb-bytelen-tab) (.ub (g ed ScreenLines) (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (- (.fr-width (g ed topframe)) 1))))))) 1)
               (recur 290)
               (recur 289)))
         289
@@ -37956,7 +37939,7 @@
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
                 on-last-col (aget fl__ 25)]
-            (out-char ed (bit-and (.at (g ed ScreenLines) (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (- (.fr-width (g ed topframe)) 1))))) 0xff))
+            (out-char ed (.ub (g ed ScreenLines) (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (- (.fr-width (g ed topframe)) 1))))))
             (recur 291))
         290
           (let [^S_window_S wp (aget fo__ 1)
@@ -38358,7 +38341,7 @@
                     (win-line__1 ed fl__ fo__ st)
                     (if (<= st 36)
                       (win-line__2 ed fl__ fo__ st)
-                      (if (<= st 48)
+                      (if (<= st 49)
                         (win-line__3 ed fl__ fo__ st)
                         (if (<= st 61)
                           (win-line__4 ed fl__ fo__ st)
@@ -40304,7 +40287,7 @@
         i 0]
     (loop [i i
            clen clen]
-      (if (and (or (< len 0) (< i len)) (not (== (bit-and (.at p i) 0xff) (e NUL))))
+      (if (and (or (< len 0) (< i len)) (not (== (.ub p i) (e NUL))))
         (let [t1 (long (utf-ptr2cells ed (.add p i)))
               clen (i32 (+ clen t1))
               t2 (long (utfc-ptr2len ed (.add p i)))
@@ -40368,7 +40351,7 @@
                         0)]
               (if (== (long j__1) -1)
                 nil
-                (let [empty-line (if (and (== (bit-and (g ed State) (e MODE_INSERT)) 0) (== (bit-and (.get ^BytePtr (ml-get-buf ed (.w-buffer wp) (.lnum ^T_pos_T (.-w-cursor wp)) false)) 0xff) (e NUL)))
+                (let [empty-line (if (and (== (bit-and (g ed State) (e MODE_INSERT)) 0) (== (.ub ^BytePtr (ml-get-buf ed (.w-buffer wp) (.lnum ^T_pos_T (.-w-cursor wp)) false)) (e NUL)))
                                   (let [empty-line true]
                                     empty-line)
                                   empty-line)]
@@ -40446,7 +40429,7 @@
                                                 n2 0]
                                             (let [l__4 (loop [n1 n1
                                                              n2 n2]
-                                                        (if (== (bit-and (aget buffer n1) 0xff) (e NUL))
+                                                        (if (== (bit-and (long (aget buffer n1)) 0xff) (e NUL))
                                                           (do (aset tl__ 5 bufferlen)
                                                               0)
                                                           (let [t4 (long (utf-ptr2cells ed (.add (BytePtr. buffer 0) n1)))
@@ -40477,7 +40460,7 @@
 
 ;; C: showcmd_update_clear_state
 (defn showcmd-update-clear-state [^Editor ed]
-  (g! ed showcmd-is-clear (if (== (bit-and (aget (g ed showcmd-buf) 0) 0xff) (e NUL)) 1 0))
+  (g! ed showcmd-is-clear (if (== (bit-and (long (aget (g ed showcmd-buf) 0)) 0xff) (e NUL)) 1 0))
   nil)
 
 ;; C: screen_putchar
@@ -40543,7 +40526,7 @@
                                      i 0
                                      l__1 (loop [i i
                                                  plen plen]
-                                            (if (and (not (== (bit-and (.at p i) 0xff) (e NUL))) (>= plen (i32 (- this-ru-col 1))))
+                                            (if (and (not (== (.ub p i) (e NUL))) (>= plen (i32 (- this-ru-col 1))))
                                               (let [t5 (long (utf-ptr2cells ed (.add p i)))
                                                     plen (i32 (- plen t5))
                                                     t6 (long (utfc-ptr2len ed (.add p i)))
@@ -40575,7 +40558,7 @@
                           (let [i (i32 (inc i))]
                             (recur i))))
                       (win-redr-ruler ed wp true ignore-pum)
-                      (when (and (not (zero? (long (aget (g ed p-sc) 0)))) (== (bit-and (.get ^BytePtr (aget (g ed p-sloc) 0)) 0xff) 115))
+                      (when (and (not (zero? (long (aget (g ed p-sc) 0)))) (== (.ub ^BytePtr (aget (g ed p-sloc) 0)) 115))
                         (let [n (i32 (- (i32 (- this-ru-col plen)) 2))
                               width (if (< 10 n) 10 n)]
                           (when (> width 0)
@@ -40660,7 +40643,7 @@
   (let [len (long (vim-strsize ed (BytePtr. (g ed showcmd-buf) 0)))]
     (showcmd-update-clear-state ed)
     (cursor-off ed)
-    (if (== (bit-and (.get ^BytePtr (aget (g ed p-sloc) 0)) 0xff) 115)
+    (if (== (.ub ^BytePtr (aget (g ed p-sloc) 0)) 115)
       (if (and (not (zero? (g ed showcmd-is-clear))) (zero? (g ed vgetc-busy)))
         (do (.set-w-redr-status (g ed curwin) (boolean true))
             (setcursor ed)
@@ -40668,7 +40651,7 @@
         (do (win-redr-status ed (g ed curwin) false)
             (setcursor ed)
             nil))
-      (if (== (bit-and (.get ^BytePtr (aget (g ed p-sloc) 0)) 0xff) 116)
+      (if (== (.ub ^BytePtr (aget (g ed p-sloc) 0)) 116)
         (if (and (not (zero? (g ed showcmd-is-clear))) (zero? (g ed vgetc-busy)))
           (do (g! ed redraw-tabline (e TRUE))
               (setcursor ed)
@@ -40728,7 +40711,7 @@
                     l__3 (loop [^BytePtr s s
                                 bytes_ bytes_
                                 chars_ chars_]
-                           (if (if (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (.lt s e_) (.le s e_))
+                           (if (if (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (.lt s e_) (.le s e_))
                              (let [l (long (utfc-ptr2len ed s))]
                                (if (== l 0)
                                  (let [bytes_ (i32 (inc bytes_))
@@ -41329,7 +41312,7 @@
       (g! ed ru-col 18)
       (when-not last-has-status
         (g! ed sc-col (g ed ru-col))))
-    (when (and (not (zero? (long (aget (g ed p-sc) 0)))) (== (bit-and (.get ^BytePtr (aget (g ed p-sloc) 0)) 0xff) 108))
+    (when (and (not (zero? (long (aget (g ed p-sc) 0)))) (== (.ub ^BytePtr (aget (g ed p-sloc) 0)) 108))
       (g! ed sc-col (i32 (+ (g ed sc-col) (e SHOWCMD_COLS))))
       (when (or (zero? (long (aget (g ed p-ru) 0))) last-has-status)
         (g! ed sc-col (i32 (inc (g ed sc-col))))))
@@ -41433,7 +41416,7 @@
         errbuflen (e ERR_BUFLEN)
         opt-idx (long (findoption ed name_))]
     (if (< opt-idx 0)
-      (let [t1 (and (== (long (musl-strlen ed name_)) 4) (== (bit-and (.at name_ 0) 0xff) 116) (== (bit-and (.at name_ 1) 0xff) 95))
+      (let [t1 (and (== (long (musl-strlen ed name_)) 4) (== (.ub name_ 0) 116) (== (.ub name_ 1) 95))
             j__1 (if t1
                    (let [key_ (long (find-key-option ed name_ false))
                          t1 (not (== key_ 0))]
@@ -41468,13 +41451,13 @@
                 (let [j__3 (if (and (== number 0) (some? string))
                              (let [idx 0
                                    l__2 (loop [idx idx]
-                                          (if (== (bit-and (.at string idx) 0xff) 48)
+                                          (if (== (.ub string idx) 48)
                                             (let [idx (i32 (inc idx))]
                                               (recur idx))
                                             (do (aset tl__ 1 idx)
                                                 0)))
                                    idx (aget tl__ 1)]
-                               (if (or (not (== (bit-and (.at string idx) 0xff) (e NUL))) (== idx 0))
+                               (if (or (not (== (.ub string idx) (e NUL))) (== idx 0))
                                  (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-number-required-after-str-equal-str) 0)) (object-array [name_ string]))
                                      (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-number-required-after-str-equal-str) 0))))
                                      (aset to__ 1 nil)
@@ -41580,23 +41563,23 @@
 
 ;; C: check_for_color_response
 (defn check-for-color-response [^Editor ed ^BytePtr resp ^long len]
-  (let [j (i32 (+ 1 (if (== (bit-and (.at resp 0) 0xff) (e ESC)) 1 0)))
+  (let [j (i32 (+ 1 (if (== (.ub resp 0) (e ESC)) 1 0)))
         ^BytePtr argp (.add resp j)]
-    (if (and (>= len (i32 (+ j 3))) (or (not (== (bit-and (.at argp 0) 0xff) 49)) (and (not (== (bit-and (.at argp 1) 0xff) 49)) (not (== (bit-and (.at argp 1) 0xff) 48))) (not (== (bit-and (.at argp 2) 0xff) 59))))
+    (if (and (>= len (i32 (+ j 3))) (or (not (== (.ub argp 0) 49)) (and (not (== (.ub argp 1) 49)) (not (== (.ub argp 1) 48))) (not (== (.ub argp 2) 59))))
       (let [i 0]
         nil)
       (let [i j]
         (loop [i i]
           (when (< i len)
-            (if (or (== (bit-and (.at resp i) 0xff) 7) (if (== (bit-and (.at resp 0) 0xff) (e OSC)) (== (bit-and (.at resp i) 0xff) (e STERM)) (and (== (bit-and (.at resp i) 0xff) (e ESC)) (< (i32 (+ i 1)) len) (== (bit-and (.at resp (i32 (+ i 1))) 0xff) 92))))
-              (let [is-bg (== (bit-and (.at argp 1) 0xff) 49)
-                    is-4digit (and (>= (i32 (- i j)) 21) (== (bit-and (.at resp (i32 (+ j 11))) 0xff) 47) (== (bit-and (.at resp (i32 (+ j 16))) 0xff) 47))]
-                (when (and (>= (i32 (- i j)) 15) (== (long (musl-strncmp ed (.add (.add resp j) 3) (BytePtr/lit "rgb:") 4)) 0) (or is-4digit (and (== (bit-and (.at resp (i32 (+ j 9))) 0xff) 47) (== (bit-and (.at resp (i32 (+ j 12))) 0xff) 47))))
+            (if (or (== (.ub resp i) 7) (if (== (.ub resp 0) (e OSC)) (== (.ub resp i) (e STERM)) (and (== (.ub resp i) (e ESC)) (< (i32 (+ i 1)) len) (== (.ub resp (i32 (+ i 1))) 92))))
+              (let [is-bg (== (.ub argp 1) 49)
+                    is-4digit (and (>= (i32 (- i j)) 21) (== (.ub resp (i32 (+ j 11))) 47) (== (.ub resp (i32 (+ j 16))) 47))]
+                (when (and (>= (i32 (- i j)) 15) (== (long (musl-strncmp ed (.add (.add resp j) 3) (BytePtr/lit "rgb:") 4)) 0) (or is-4digit (and (== (.ub resp (i32 (+ j 9))) 47) (== (.ub resp (i32 (+ j 12))) 47))))
                   (let [^BytePtr tp-r (.add (.add resp j) 7)
                         ^BytePtr tp-g (.add (.add resp j) (if is-4digit 12 10))
                         ^BytePtr tp-b (.add (.add resp j) (if is-4digit 17 13))]
                     (when is-bg
-                      (let [^BytePtr new-bg-val (if (< 162 (i32 (+ (i32 (+ (bit-and (.get tp-r) 0xff) (bit-and (.get tp-g) 0xff))) (bit-and (.get tp-b) 0xff)))) (BytePtr/lit "light") (BytePtr/lit "dark"))]
+                      (let [^BytePtr new-bg-val (if (< 162 (i32 (+ (i32 (+ (.ub tp-r) (.ub tp-g))) (.ub tp-b)))) (BytePtr/lit "light") (BytePtr/lit "dark"))]
                         (when (and (not (option-was-set ed (BytePtr/lit "bg"))) (not (== (long (musl-strcmp ed (aget (g ed p-bg) 0) new-bg-val)) 0)))
                           (set-option-value-give-err ed (BytePtr/lit "bg") 0 new-bg-val 0)
                           (reset-option-was-set ed (BytePtr/lit "bg"))
@@ -41607,7 +41590,7 @@
 
 ;; C: ga_concat
 (defn ga-concat [^Editor ed ^S_growarray gap ^BytePtr s]
-  (when-not (or (nil? s) (== (bit-and (.get s) 0xff) (e NUL)))
+  (when-not (or (nil? s) (== (.ub s) (e NUL)))
     (let [len (i32 (long (musl-strlen ed s)))]
       (when (ga-grow ed gap len)
         (Rt/memmove (.add (GA_BytePtr gap) (.ga-len gap)) s len)
@@ -41622,11 +41605,11 @@
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 1)
         j__1 (if (.processing (g ed osc-state))
-               (let [last-char (bit-and (.at (GA_BytePtr ^S_growarray (.-buf (g ed osc-state))) (i32 (- (.ga-len ^S_growarray (.-buf (g ed osc-state))) 1))) 0xff)]
+               (let [last-char (.ub (GA_BytePtr ^S_growarray (.-buf (g ed osc-state))) (i32 (- (.ga-len ^S_growarray (.-buf (g ed osc-state))) 1)))]
                  (aset tl__ 0 last-char)
                  0)
-               (let [cur (i32 (+ 1 (if (== (bit-and (.at tp 0) 0xff) (e ESC)) 1 0)))]
-                 (if (< len (i32 (+ (i32 (+ cur 1)) (if (not (== (bit-and (.at tp 0) 0xff) (e OSC))) 1 0))))
+               (let [cur (i32 (+ 1 (if (== (.ub tp 0) (e ESC)) 1 0)))]
+                 (if (< len (i32 (+ (i32 (+ cur 1)) (if (not (== (.ub tp 0) (e OSC))) 1 0))))
                    (do (.set-r__ out__ (boolean false))
                        (.set-slen out__ slen)
                        (aset to__ 0 out__)
@@ -41634,7 +41617,7 @@
                    (do (ga-init2 ed (.-buf (g ed osc-state)) 1 1024)
                        (.set-start-tv (g ed osc-state) (long (whim.cljhost/musl-now-ms ed)))
                        (.set-processing (g ed osc-state) (boolean true))
-                       (.set-start-char (g ed osc-state) (bit-and (.at tp 0) 0xff))
+                       (.set-start-char (g ed osc-state) (.ub tp 0))
                        (let [last-char 0]
                          (aset tl__ 0 last-char)
                          0)))))]
@@ -41645,15 +41628,15 @@
         (let [i 0]
           (loop [i i]
             (if (< i len)
-              (if (or (== (bit-and (.at tp i) 0xff) 7) (if (== (.start-char (g ed osc-state)) (e OSC)) (== (bit-and (.at tp i) 0xff) (e STERM)) (or (and (== (bit-and (.at tp i) 0xff) (e ESC)) (< (i32 (+ i 1)) len) (== (bit-and (.at tp (i32 (+ i 1))) 0xff) 92)) (and (== i 0) (== (bit-and (.at tp i) 0xff) 92) (== last-char (e ESC))))))
+              (if (or (== (.ub tp i) 7) (if (== (.start-char (g ed osc-state)) (e OSC)) (== (.ub tp i) (e STERM)) (or (and (== (.ub tp i) (e ESC)) (< (i32 (+ i 1)) len) (== (.ub tp (i32 (+ i 1))) 92)) (and (== i 0) (== (.ub tp i) 92) (== last-char (e ESC))))))
                 (do (.set-processing (g ed osc-state) (boolean false))
                     (.set key-name 1 (unchecked-byte 109))
-                    (ga-concat-len ed (.-buf (g ed osc-state)) tp (i32 (+ (i32 (+ i 1)) (if (== (bit-and (.at tp i) 0xff) (e ESC)) 1 0))))
+                    (ga-concat-len ed (.-buf (g ed osc-state)) tp (i32 (+ (i32 (+ i 1)) (if (== (.ub tp i) (e ESC)) 1 0))))
                     (ga-append ed (.-buf (g ed osc-state)) (e NUL))
-                    (let [slen (i32 (+ (i32 (+ i 1)) (if (== (bit-and (.at tp i) 0xff) (e ESC)) 1 0)))
+                    (let [slen (i32 (+ (i32 (+ i 1)) (if (== (.ub tp i) (e ESC)) 1 0)))
                           _ (check-for-color-response ed (GA_BytePtr ^S_growarray (.-buf (g ed osc-state))) (i32 (- (.ga-len ^S_growarray (.-buf (g ed osc-state))) 1)))
-                          savebg (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff)]
-                      (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) savebg)
+                          savebg (.ub ^BytePtr (aget (g ed p-bg) 0))]
+                      (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) savebg)
                         (do (.set-r__ out__ (boolean true))
                             (.set-slen out__ slen)
                             out__)
@@ -41972,7 +41955,7 @@
                      -1))]
       (if (== (long j__1) -1)
         (aget tl__ 0)
-        (let [key_ (i32 (- (i32 (+ (bit-and (.at key-name 0) 0xff) (i32 (bit-shift-left (bit-and (.at key-name 1) 0xff) 8))))))
+        (let [key_ (i32 (- (i32 (+ (.ub key-name 0) (i32 (bit-shift-left (.ub key-name 1) 8))))))
               modifiers (if (== argc 2) (long (decode-modifiers ed (long (.at arg 1)))) 0)]
           (put-key-modifiers-in-typebuf ed key_ modifiers csi-len offset buf bufsize buflen)
           csi-len)))))
@@ -42036,7 +42019,7 @@
 (defn skipwhite ^BytePtr [^Editor ed ^BytePtr q]
   (let [^BytePtr p q]
     (loop [^BytePtr p p]
-      (if (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))
+      (if (or (== (.ub p) 32) (== (.ub p) 9))
         (let [^BytePtr p (.add p 1)]
           (recur p))
         p))))
@@ -42046,52 +42029,52 @@
   (let [^objects to__ (object-array 3)
         ^BytePtr cmd cmd-start
         l__1 (loop [^BytePtr cmd cmd]
-               (if (some? (vim-strchr ed (BytePtr/lit " \t0123456789.$%'/?-+,;\\") (bit-and (.get cmd) 0xff)))
-                 (let [j__4 (if (== (bit-and (.get cmd) 0xff) 92)
-                              (if (or (== (bit-and (.at cmd 1) 0xff) 63) (== (bit-and (.at cmd 1) 0xff) 47) (== (bit-and (.at cmd 1) 0xff) 38))
+               (if (some? (vim-strchr ed (BytePtr/lit " \t0123456789.$%'/?-+,;\\") (.ub cmd)))
+                 (let [j__4 (if (== (.ub cmd) 92)
+                              (if (or (== (.ub cmd 1) 63) (== (.ub cmd 1) 47) (== (.ub cmd 1) 38))
                                 (let [^BytePtr cmd (.add cmd 1)]
                                   (aset to__ 0 cmd)
                                   0)
                                 (do (aset to__ 0 cmd)
                                     1))
-                              (if (== (bit-and (.get cmd) 0xff) 39)
+                              (if (== (.ub cmd) 39)
                                 (let [^BytePtr p cmd
                                       l__2 (loop [^BytePtr p p]
                                              (if (.gt p cmd-start)
                                                (let [^BytePtr p (.add p -1)]
-                                                 (if (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))
+                                                 (if (or (== (.ub p) 32) (== (.ub p) 9))
                                                    (recur p)
                                                    (do (aset to__ 1 p)
                                                        0)))
                                                (do (aset to__ 1 p)
                                                    0)))
                                       ^BytePtr p (aget to__ 1)]
-                                  (if (and (.gt cmd cmd-start) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))) (not (== (bit-and (.get p) 0xff) 44)) (not (== (bit-and (.get p) 0xff) 59)))
+                                  (if (and (.gt cmd cmd-start) (not (or (== (.ub p) 32) (== (.ub p) 9))) (not (== (.ub p) 44)) (not (== (.ub p) 59)))
                                     (do (aset to__ 0 cmd)
                                         1)
                                     (let [^BytePtr cmd (.add cmd 1)]
-                                      (if (and (== (bit-and (.get cmd) 0xff) (e NUL)) (some? ctx))
+                                      (if (and (== (.ub cmd) (e NUL)) (some? ctx))
                                         (do (.put ctx (unchecked-int (e EXPAND_NOTHING)))
                                             (aset to__ 0 cmd)
                                             0)
                                         (do (aset to__ 0 cmd)
                                             0)))))
-                                (if (or (== (bit-and (.get cmd) 0xff) 47) (== (bit-and (.get cmd) 0xff) 63))
+                                (if (or (== (.ub cmd) 47) (== (.ub cmd) 63))
                                   (let [^BytePtr t1 cmd
                                         ^BytePtr cmd (.add cmd 1)
-                                        delim (bit-and (.get t1) 0xff)
+                                        delim (.ub t1)
                                         l__3 (loop [^BytePtr cmd cmd]
-                                               (if (and (not (== (bit-and (.get cmd) 0xff) (e NUL))) (not (== (bit-and (.get cmd) 0xff) delim)))
+                                               (if (and (not (== (.ub cmd) (e NUL))) (not (== (.ub cmd) delim)))
                                                  (let [^BytePtr t2 cmd
                                                        ^BytePtr cmd (.add cmd 1)
-                                                       ^BytePtr cmd (if (and (== (bit-and (.get t2) 0xff) 92) (not (== (bit-and (.get cmd) 0xff) (e NUL))))
+                                                       ^BytePtr cmd (if (and (== (.ub t2) 92) (not (== (.ub cmd) (e NUL))))
                                                                       ^BytePtr (.add cmd 1)
                                                                       cmd)]
                                                    (recur cmd))
                                                  (do (aset to__ 0 cmd)
                                                      0)))
                                         ^BytePtr cmd (aget to__ 0)]
-                                    (if (and (== (bit-and (.get cmd) 0xff) (e NUL)) (some? ctx))
+                                    (if (and (== (.ub cmd) (e NUL)) (some? ctx))
                                       (do (.put ctx (unchecked-int (e EXPAND_NOTHING)))
                                           (aset to__ 0 cmd)
                                           0)
@@ -42102,7 +42085,7 @@
                    (case (long j__4)
                      0
                        (let [^BytePtr cmd (aget to__ 0)
-                             ^BytePtr cmd (if (== (bit-and (.get cmd) 0xff) (e NUL))
+                             ^BytePtr cmd (if (== (.ub cmd) (e NUL))
                                             cmd
                                             ^BytePtr (.add cmd 1))]
                          (recur cmd))
@@ -42114,10 +42097,10 @@
                      0)))
         ^BytePtr cmd (aget to__ 0)]
     (loop [^BytePtr cmd cmd]
-      (if (== (bit-and (.get cmd) 0xff) 58)
+      (if (== (.ub cmd) 58)
         (let [^BytePtr cmd (skipwhite ed (.add cmd 1))]
           (recur cmd))
-        (if (and skip-star (== (bit-and (.get cmd) 0xff) 42) (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_STAR))))
+        (if (and skip-star (== (.ub cmd) 42) (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_STAR))))
           ^BytePtr (skipwhite ed (.add cmd 1))
           cmd)))))
 
@@ -42131,13 +42114,13 @@
                (if (== (long (.at cmd i)) (e NUL))
                  (do (aset tl__ 0 i)
                      0)
-                 (if (== (bit-and (.at cmd i) 0xff) (bit-and (.at ^BytePtr (.get pp) i) 0xff))
+                 (if (== (.ub cmd i) (.ub ^BytePtr (.get pp) i))
                    (let [i (i32 (inc i))]
                      (recur i))
                    (do (aset tl__ 0 i)
                        0))))
         i (aget tl__ 0)]
-    (if (and (>= i len) (not (or (< (u32 (- (bit-and (.at ^BytePtr (.get pp) i) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ^BytePtr (.get pp) i) 0xff) 97)) 26))) (not (== (bit-and (.at ^BytePtr (.get pp) i) 0xff) 95)) (or (not noparen) (and (not (== (bit-and (.at ^BytePtr (.get pp) i) 0xff) 40)) (not (== (bit-and (.at ^BytePtr (.get pp) i) 0xff) 46)))))
+    (if (and (>= i len) (not (or (< (u32 (- (.ub ^BytePtr (.get pp) i) 65)) 26) (< (u32 (- (.ub ^BytePtr (.get pp) i) 97)) 26))) (not (== (.ub ^BytePtr (.get pp) i) 95)) (or (not noparen) (and (not (== (.ub ^BytePtr (.get pp) i) 40)) (not (== (.ub ^BytePtr (.get pp) i) 46)))))
       (do (.put pp (skipwhite ed (.add ^BytePtr (.get pp) i)))
           true)
       false)))
@@ -42152,7 +42135,7 @@
 
 (defn skiptowhite ^BytePtr [^Editor ed ^BytePtr p]
   (loop [^BytePtr p p]
-    (if (and (not (== (bit-and (.get p) 0xff) 32)) (not (== (bit-and (.get p) 0xff) 9)) (not (== (bit-and (.get p) 0xff) (e NUL))))
+    (if (and (not (== (.ub p) 32)) (not (== (.ub p) 9)) (not (== (.ub p) (e NUL))))
       (let [^BytePtr p (.add p 1)]
         (recur p))
       p)))
@@ -42163,14 +42146,14 @@
 
 ;; C: skip_vimgrep_pat_ext
 (defn skip-vimgrep-pat-ext ^BytePtr [^Editor ed ^BytePtr p ^Ptr s ^IntPtr flags ^Ptr nulp ^IntPtr cp]
-  (if (vim-isIDc? ed (bit-and (.get p) 0xff))
+  (if (vim-isIDc? ed (.ub p))
     (do (when (some? s)
           (.put s p))
         (let [^BytePtr p (skiptowhite ed p)]
-          (if (and (some? s) (not (== (bit-and (.get p) 0xff) (e NUL))))
+          (if (and (some? s) (not (== (.ub p) (e NUL))))
             (do (when (some? nulp)
                   (.put nulp p)
-                  (.put cp (unchecked-int (bit-and (.get p) 0xff))))
+                  (.put cp (unchecked-int (.ub p))))
                 (let [^BytePtr t1 p
                       ^BytePtr p (.add p 1)]
                   (.put t1 (unchecked-byte (e NUL)))
@@ -42178,21 +42161,21 @@
             p)))
     (do (when (some? s)
           (.put s (.add p 1)))
-        (let [c (bit-and (.get p) 0xff)
+        (let [c (.ub p)
               ^BytePtr p (skip-regexp ed (.add p 1) c (e TRUE))]
-          (when (== (bit-and (.get p) 0xff) c)
+          (when (== (.ub p) c)
             (when (some? s)
               (when (some? nulp)
                 (.put nulp p)
-                (.put cp (unchecked-int (bit-and (.get p) 0xff))))
+                (.put cp (unchecked-int (.ub p))))
               (.put p (unchecked-byte (e NUL))))
             (let [^BytePtr p (.add p 1)]
               (loop [^BytePtr p p]
-                (if (or (== (bit-and (.get p) 0xff) 103) (== (bit-and (.get p) 0xff) 106) (== (bit-and (.get p) 0xff) 102))
+                (if (or (== (.ub p) 103) (== (.ub p) 106) (== (.ub p) 102))
                   (do (when (some? flags)
-                        (if (== (bit-and (.get p) 0xff) 103)
+                        (if (== (.ub p) 103)
                           (.put flags (unchecked-int (bit-or (long (.get flags)) (e VGR_GLOBAL))))
-                          (if (== (bit-and (.get p) 0xff) 106)
+                          (if (== (.ub p) 106)
                             (.put flags (unchecked-int (bit-or (long (.get flags)) (e VGR_NOJUMP))))
                             (.put flags (unchecked-int (bit-or (long (.get flags)) (e VGR_FUZZY)))))))
                       (let [^BytePtr p (.add p 1)]
@@ -42240,16 +42223,16 @@
         1
           (recur 2 eap cmod skip-only orig-cmd cmd-start has-visual-range)
         2
-          (if (or (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 32) (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 9) (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 58))
+          (if (or (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 32) (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 9) (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 58))
             (do (aset ^objects (.-cmd eap) 0 (.add ^BytePtr (aget ^objects (.-cmd eap) 0) 1))
                 (recur 2 eap cmod skip-only orig-cmd cmd-start has-visual-range))
-            (if (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 10)
+            (if (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 10)
               (do (.set-nextcmd eap (.add ^BytePtr (aget ^objects (.-cmd eap) 0) 1))
                   false)
-              (if (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) (e NUL))
+              (if (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) (e NUL))
                 false
                 (do (aset p 0 (skip-range ed (aget ^objects (.-cmd eap) 0) true nil))
-                    (case (bit-and (.get ^BytePtr (aget p 0)) 0xff)
+                    (case (.ub ^BytePtr (aget p 0))
                       107
                         (if (checkforcmd-noparen ed (Ptr. ^objects (.-cmd eap) 0) (BytePtr/lit "keepmarks") 3)
                           (do (.set-cmod-flags cmod (bit-or (.cmod-flags cmod) (e CMOD_KEEPMARKS)))
@@ -42264,12 +42247,12 @@
                       102
                         (do (aset nulp 0 nil)
                             (aset c 0 (unchecked-int 0))
-                            (if (or (not (checkforcmd-noparen ed (Ptr. p 0) (BytePtr/lit "filter") 4)) (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL)) (ends-excmd? ed (bit-and (.get ^BytePtr (aget p 0)) 0xff)))
+                            (if (or (not (checkforcmd-noparen ed (Ptr. p 0) (BytePtr/lit "filter") 4)) (== (.ub ^BytePtr (aget p 0)) (e NUL)) (ends-excmd? ed (.ub ^BytePtr (aget p 0))))
                               (recur 5 eap cmod skip-only orig-cmd cmd-start has-visual-range)
-                              (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 33)
+                              (if (== (.ub ^BytePtr (aget p 0)) 33)
                                 (do (.set-cmod-filter-force cmod (boolean true))
                                     (aset p 0 (skipwhite ed (.add ^BytePtr (aget p 0) 1)))
-                                    (if (or (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL)) (ends-excmd? ed (bit-and (.get ^BytePtr (aget p 0)) 0xff)))
+                                    (if (or (== (.ub ^BytePtr (aget p 0)) (e NUL)) (ends-excmd? ed (.ub ^BytePtr (aget p 0))))
                                       (recur 5 eap cmod skip-only orig-cmd cmd-start has-visual-range)
                                       (recur 3 eap cmod skip-only orig-cmd cmd-start has-visual-range)))
                                 (recur 3 eap cmod skip-only orig-cmd cmd-start has-visual-range))))
@@ -42281,7 +42264,7 @@
                       115
                         (if (checkforcmd-noparen ed (Ptr. ^objects (.-cmd eap) 0) (BytePtr/lit "silent") 3)
                           (do (.set-cmod-flags cmod (bit-or (.cmod-flags cmod) (e CMOD_SILENT)))
-                              (if (and (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 33) (not (or (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) -1) 0xff) 32) (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) -1) 0xff) 9))))
+                              (if (and (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 33) (not (or (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0) -1) 32) (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0) -1) 9))))
                                 (do (aset ^objects (.-cmd eap) 0 (skipwhite ed (.add ^BytePtr (aget ^objects (.-cmd eap) 0) 1)))
                                     (.set-cmod-flags cmod (bit-or (.cmod-flags cmod) (e CMOD_ERRSILENT)))
                                     (recur 1 eap cmod skip-only orig-cmd cmd-start has-visual-range))
@@ -42294,7 +42277,7 @@
                           (recur 5 eap cmod skip-only orig-cmd cmd-start has-visual-range))
                       118
                         (if (checkforcmd-noparen ed (Ptr. p 0) (BytePtr/lit "verbose") 4)
-                          (do (if (vim-isdigit? ed (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff))
+                          (do (if (vim-isdigit? ed (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)))
                                 (.set-cmod-verbose cmod (i32 (+ (long (musl-atoi ed (aget ^objects (.-cmd eap) 0))) 1)))
                                 (.set-cmod-verbose cmod 2))
                               (aset ^objects (.-cmd eap) 0 (aget p 0))
@@ -42305,7 +42288,7 @@
           (do (if skip-only
                 (aset p 0 (skip-vimgrep-pat ed (aget p 0) nil nil))
                 (aset p 0 (skip-vimgrep-pat-ext ed (aget p 0) (Ptr. reg-pat 0) nil (Ptr. nulp 0) (IntPtr. c 0))))
-              (if (or (nil? (aget p 0)) (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL)))
+              (if (or (nil? (aget p 0)) (== (.ub ^BytePtr (aget p 0)) (e NUL)))
                 (recur 5 eap cmod skip-only orig-cmd cmd-start has-visual-range)
                 (if skip-only
                   (recur 4 eap cmod skip-only orig-cmd cmd-start has-visual-range)
@@ -42351,12 +42334,12 @@
 ;; C: one_letter_cmd
 (defn one-letter-cmd ^T_one_letter_cmd__out_T [^Editor ed ^BytePtr p ^long idx]
   (let [^T_one_letter_cmd__out_T out__ (new-T_one_letter_cmd__out_T)]
-    (if (and (== (bit-and (.at p 0) 0xff) 107) (or (not (== (bit-and (.at p 1) 0xff) 101)) (and (== (bit-and (.at p 1) 0xff) 101) (not (== (bit-and (.at p 2) 0xff) 101)))))
+    (if (and (== (.ub p 0) 107) (or (not (== (.ub p 1) 101)) (and (== (.ub p 1) 101) (not (== (.ub p 2) 101)))))
       (let [idx (e CMD_k)]
         (.set-r__ out__ (boolean true))
         (.set-idx out__ idx)
         out__)
-      (if (and (== (bit-and (.at p 0) 0xff) 115) (or (and (== (bit-and (.at p 1) 0xff) 99) (or (== (bit-and (.at p 2) 0xff) (e NUL)) (and (not (== (bit-and (.at p 2) 0xff) 115)) (not (== (bit-and (.at p 2) 0xff) 114)) (or (== (bit-and (.at p 3) 0xff) (e NUL)) (and (not (== (bit-and (.at p 3) 0xff) 105)) (not (== (bit-and (.at p 4) 0xff) 112))))))) (== (bit-and (.at p 1) 0xff) 103) (and (== (bit-and (.at p 1) 0xff) 105) (not (== (bit-and (.at p 2) 0xff) 109)) (not (== (bit-and (.at p 2) 0xff) 108)) (not (== (bit-and (.at p 2) 0xff) 103))) (== (bit-and (.at p 1) 0xff) 73) (and (== (bit-and (.at p 1) 0xff) 114) (not (== (bit-and (.at p 2) 0xff) 101)))))
+      (if (and (== (.ub p 0) 115) (or (and (== (.ub p 1) 99) (or (== (.ub p 2) (e NUL)) (and (not (== (.ub p 2) 115)) (not (== (.ub p 2) 114)) (or (== (.ub p 3) (e NUL)) (and (not (== (.ub p 3) 105)) (not (== (.ub p 4) 112))))))) (== (.ub p 1) 103) (and (== (.ub p 1) 105) (not (== (.ub p 2) 109)) (not (== (.ub p 2) 108)) (not (== (.ub p 2) 103))) (== (.ub p 1) 73) (and (== (.ub p 1) 114) (not (== (.ub p 2) 101)))))
         (let [idx (e CMD_substitute)]
           (.set-r__ out__ (boolean true))
           (.set-idx out__ idx)
@@ -42387,19 +42370,19 @@
               p)
             p))
         (loop [^BytePtr p p]
-          (if (or (< (u32 (- (bit-and (.get p) 0xff) 65)) 26) (< (u32 (- (bit-and (.get p) 0xff) 97)) 26))
+          (if (or (< (u32 (- (.ub p) 65)) 26) (< (u32 (- (.ub p) 97)) 26))
             (let [^BytePtr p (.add p 1)]
               (recur p))
-            (let [^BytePtr p (if (and (BytePtr/eq p ^BytePtr (aget ^objects (.-cmd eap) 0)) (some? (vim-strchr ed (BytePtr/lit "@*=><&~#") (bit-and (.get p) 0xff))))
+            (let [^BytePtr p (if (and (BytePtr/eq p ^BytePtr (aget ^objects (.-cmd eap) 0)) (some? (vim-strchr ed (BytePtr/lit "@*=><&~#") (.ub p))))
                               (let [^BytePtr p (.add p 1)]
                                 p)
                               p)]
               (let [len (i32 (.sub p ^BytePtr (aget ^objects (.-cmd eap) 0)))]
-                (let [len (long (if (and (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 100) (or (== (bit-and (.at p -1) 0xff) 108) (== (bit-and (.at p -1) 0xff) 112)))
+                (let [len (long (if (and (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 100) (or (== (.ub p -1) 108) (== (.ub p -1) 112)))
                            (let [i 0]
                              (let [l__1 (loop [i i]
                                          (if (< i len)
-                                           (if (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) i) 0xff) (bit-and (.at (BytePtr/lit "delete") i) 0xff))
+                                           (if (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0) i) (.ub (BytePtr/lit "delete") i))
                                              (let [i (i32 (inc i))]
                                                (recur i))
                                              (do (aset tl__ 0 i)
@@ -42409,7 +42392,7 @@
                                (let [i (aget tl__ 0)]
                                  (if (== i (i32 (- len 1)))
                                    (let [len (i32 (dec len))]
-                                     (if (== (bit-and (.at p -1) 0xff) 108)
+                                     (if (== (.ub p -1) 108)
                                        (let [_ (.set-flags eap (bit-or (.flags eap) (e EXFLAG_LIST)))]
                                          len)
                                        (let [_ (.set-flags eap (bit-or (.flags eap) (e EXFLAG_PRINT)))]
@@ -42428,9 +42411,9 @@
                                         (let [^BytePtr p (aget ^objects (.-cmd eap) 0)]
                                           p)
                                         p)]
-                        (let [^BytePtr p (if (and (and (or (== (.cmdidx eap) (e CMD_SIZE)) (== (.cmdidx eap) (e CMD_Print))) (>= (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 65)) (<= (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 90))
+                        (let [^BytePtr p (if (and (and (or (== (.cmdidx eap) (e CMD_SIZE)) (== (.cmdidx eap) (e CMD_Print))) (>= (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 65)) (<= (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 90))
                                           (loop [^BytePtr p p]
-                                            (if (or (or (< (u32 (- (bit-and (.get p) 0xff) 65)) 26) (< (u32 (- (bit-and (.get p) 0xff) 97)) 26)) (< (u32 (- (bit-and (.get p) 0xff) 48)) 10))
+                                            (if (or (or (< (u32 (- (.ub p) 65)) 26) (< (u32 (- (.ub p) 97)) 26)) (< (u32 (- (.ub p) 48)) 10))
                                               (let [^BytePtr p (.add p 1)]
                                                 (recur p))
                                               p))
@@ -42490,7 +42473,7 @@
         ^longs tl__ (long-array 3)
         ^objects to__ (object-array 5)
         cmdlen 0]
-    (if (or (nil? pat) (== (bit-and (.get pat) 0xff) (e NUL)))
+    (if (or (nil? pat) (== (.ub pat) (e NUL)))
       (do (.set-r__ out__ 0)
           (.set-pat out__ pat)
           (.set-patlen out__ patlen)
@@ -42527,7 +42510,7 @@
             ^BytePtr searchstr (aget to__ 1)
             searchstrlen (aget tl__ 1)
             cmdlen (aget tl__ 2)
-            j__2 (if (== (bit-and (.get p) 0xff) search-delim)
+            j__2 (if (== (.ub p) search-delim)
                    (let [searchstrlen (.sub p pat)
                          ^BytePtr dircp p
                          ^BytePtr t1 p
@@ -42547,23 +42530,23 @@
         (.set-line offset (e FALSE))
         (.set-end offset (e FALSE))
         (.set-off offset 0)
-        (let [^BytePtr p (if (or (== (bit-and (.get p) 0xff) 43) (== (bit-and (.get p) 0xff) 45) (< (u32 (- (bit-and (.get p) 0xff) 48)) 10))
+        (let [^BytePtr p (if (or (== (.ub p) 43) (== (.ub p) 45) (< (u32 (- (.ub p) 48)) 10))
                            (do (.set-line offset (e TRUE))
                                p)
-                           (if (and (not (zero? (bit-and options (e SEARCH_OPT)))) (or (== (bit-and (.get p) 0xff) 101) (== (bit-and (.get p) 0xff) 115) (== (bit-and (.get p) 0xff) 98)))
-                             (do (when (== (bit-and (.get p) 0xff) 101)
+                           (if (and (not (zero? (bit-and options (e SEARCH_OPT)))) (or (== (.ub p) 101) (== (.ub p) 115) (== (.ub p) 98)))
+                             (do (when (== (.ub p) 101)
                                    (.set-end offset (e SEARCH_END)))
                                  ^BytePtr (.add p 1))
                              p))
-              ^BytePtr p (if (or (< (u32 (- (bit-and (.get p) 0xff) 48)) 10) (== (bit-and (.get p) 0xff) 43) (== (bit-and (.get p) 0xff) 45))
-                           (do (if (or (< (u32 (- (bit-and (.get p) 0xff) 48)) 10) (< (u32 (- (bit-and (.get (.add p 1)) 0xff) 48)) 10))
+              ^BytePtr p (if (or (< (u32 (- (.ub p) 48)) 10) (== (.ub p) 43) (== (.ub p) 45))
+                           (do (if (or (< (u32 (- (.ub p) 48)) 10) (< (u32 (- (.ub (.add p 1)) 48)) 10))
                                  (.set-off offset (long (musl-atol ed p)))
-                                 (if (== (bit-and (.get p) 0xff) 45)
+                                 (if (== (.ub p) 45)
                                    (.set-off offset -1)
                                    (.set-off offset 1)))
                                (let [^BytePtr p (.add p 1)]
                                  (loop [^BytePtr p p]
-                                   (if (< (u32 (- (bit-and (.get p) 0xff) 48)) 10)
+                                   (if (< (u32 (- (.ub p) 48)) 10)
                                      (let [^BytePtr p (.add p 1)]
                                        (recur p))
                                      p))))
@@ -42639,11 +42622,11 @@
         j__1 (if (== (.col lp) (e MAXCOL))
                0
                (let [^BytePtr p (ml-get-pos ed lp)]
-                 (if (== (bit-and (.get p) 0xff) (e NUL))
+                 (if (== (.ub p) (e NUL))
                    0
                    (let [l (long (utfc-ptr2len ed p))]
                      (.set-col lp (i32 (+ (.col lp) l)))
-                     (aset tl__ 0 (if (== (bit-and (.at p l) 0xff) (e NUL)) 2 0))
+                     (aset tl__ 0 (if (== (.ub p l) (e NUL)) 2 0))
                      -1))))]
     (if (== (long j__1) -1)
       (aget tl__ 0)
@@ -42830,19 +42813,19 @@
                 (recur 13 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)))
             (recur 13 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))
         4
-          (if (and (== matchpos-lnum 0) (if (and (not (zero? (bit-and options (e SEARCH_END)))) first-match) (and (== nmatched 1) (< (i32 (- endpos-col 1)) (i32 (+ start-pos-col extra-col)))) (< (i32 (- matchpos-col (if (== (bit-and (.at ptr matchpos-col) 0xff) (e NUL)) 1 0))) (i32 (+ start-pos-col extra-col)))))
+          (if (and (== matchpos-lnum 0) (if (and (not (zero? (bit-and options (e SEARCH_END)))) first-match) (and (== nmatched 1) (< (i32 (- endpos-col 1)) (i32 (+ start-pos-col extra-col)))) (< (i32 (- matchpos-col (if (== (.ub ptr matchpos-col) (e NUL)) 1 0))) (i32 (+ start-pos-col extra-col)))))
             (if search-from-match-end
               (if (> nmatched 1)
                 (let [match-ok false]
                   (recur 6 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))
                 (let [matchcol endpos-col]
-                  (if (and (== matchcol matchpos-col) (not (== (bit-and (.at ptr matchcol) 0xff) (e NUL))))
+                  (if (and (== matchcol matchpos-col) (not (== (.ub ptr matchcol) (e NUL))))
                     (let [t1 (long (utfc-ptr2len ed (.add ptr matchcol)))
                           matchcol (i32 (+ matchcol t1))]
                       (recur 5 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))
                     (recur 5 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))))
               (let [matchcol (.rmm-matchcol regmatch)]
-                (if (== (bit-and (.at ptr matchcol) 0xff) (e NUL))
+                (if (== (.ub ptr matchcol) (e NUL))
                   (recur 5 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)
                   (let [t2 (long (utfc-ptr2len ed (.add ptr matchcol)))
                         matchcol (i32 (+ matchcol t2))]
@@ -42851,7 +42834,7 @@
         5
           (if (and (== matchcol 0) (not (zero? (bit-and options (e SEARCH_START)))))
             (recur 6 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)
-            (let [t3 (== (bit-and (.at ptr matchcol) 0xff) (e NUL))
+            (let [t3 (== (.ub ptr matchcol) (e NUL))
                   j__2 (if t3
                          (do (aset tl__ 2 nmatched)
                              (aset to__ 1 (Boolean/valueOf (boolean t3)))
@@ -42894,7 +42877,7 @@
                 (if (> nmatched 1)
                   (recur 10 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)
                   (let [matchcol endpos-col]
-                    (if (and (== matchcol matchpos-col) (not (== (bit-and (.at ptr matchcol) 0xff) (e NUL))))
+                    (if (and (== matchcol matchpos-col) (not (== (.ub ptr matchcol) (e NUL))))
                       (let [t4 (long (utfc-ptr2len ed (.add ptr matchcol)))
                             matchcol (i32 (+ matchcol t4))]
                         (recur 9 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))
@@ -42902,14 +42885,14 @@
                 (if (> matchpos-lnum 0)
                   (recur 10 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)
                   (let [matchcol matchpos-col]
-                    (if (== (bit-and (.at ptr matchcol) 0xff) (e NUL))
+                    (if (== (.ub ptr matchcol) (e NUL))
                       (recur 9 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)
                       (let [t5 (long (utfc-ptr2len ed (.add ptr matchcol)))
                             matchcol (i32 (+ matchcol t5))]
                         (recur 9 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end)))))))
             (recur 10 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))
         9
-          (let [t6 (== (bit-and (.at ptr matchcol) 0xff) (e NUL))
+          (let [t6 (== (.ub ptr matchcol) (e NUL))
                 j__3 (if t6
                        (do (aset tl__ 2 nmatched)
                            (aset to__ 2 (Boolean/valueOf (boolean t6)))
@@ -43198,7 +43181,7 @@
                 ^BytePtr searchstr pat
                 searchstrlen patlen
                 ^BytePtr dircp nil]
-            (if (or (nil? pat) (== (bit-and (.get pat) 0xff) (e NUL)) (== (bit-and (.get pat) 0xff) search-delim))
+            (if (or (nil? pat) (== (.ub pat) (e NUL)) (== (.ub pat) search-delim))
               (if (nil? (.pat ^S_spat (aget (g ed spats) (e RE_SEARCH))))
                 (if (nil? (.pat ^S_spat (aget (g ed spats) (e RE_SUBST))))
                   (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-previous-regular-expression) 0)))
@@ -43212,7 +43195,7 @@
                   (recur 2 oap dirc search-delim pat patlen count_ options sia searchstr searchstrlen old-off-dir old-off-line old-off-end old-off-off retval c dircp show-search-stats msgbuf msgbuflen has-offset show-top-bot-msg)))
               (recur 2 oap dirc search-delim pat patlen count_ options sia searchstr searchstrlen old-off-dir old-off-line old-off-end old-off-off retval c dircp show-search-stats msgbuf msgbuflen has-offset show-top-bot-msg)))
         2
-          (let [j__1 (if (and (some? pat) (not (== (bit-and (.get pat) 0xff) (e NUL))))
+          (let [j__1 (if (and (some? pat) (not (== (.ub pat) (e NUL))))
                        (do (.set parse-search-pattern-offset__o (parse-search-pattern-offset ed pat patlen search-delim options (Ptr. strcopy 0) searchstr searchstrlen dircp (.-off ^S_spat (aget (g ed spats) 0))))
                            (let [^BytePtr pat (.pat parse-search-pattern-offset__o)
                                  patlen (.patlen parse-search-pattern-offset__o)
@@ -43263,7 +43246,7 @@
                                              off-len)
                                            off-len))
                                        off-len)
-                             j__2 (if (== (bit-and (.get searchstr) 0xff) (e NUL))
+                             j__2 (if (== (.ub searchstr) (e NUL))
                                     (let [^BytePtr p (.pat ^S_spat (aget (g ed spats) 0))
                                           plen (.patlen ^S_spat (aget (g ed spats) 0))]
                                       (aset to__ 5 p)
@@ -43373,7 +43356,7 @@
                 (.set-col pos (e MAXCOL))
                 (recur 7 oap dirc search-delim pat patlen count_ options sia searchstr searchstrlen old-off-dir old-off-line old-off-end old-off-off retval c dircp show-search-stats msgbuf msgbuflen has-offset show-top-bot-msg)))
         7
-          (let [c (long (searchit ed (g ed curwin) (g ed curbuf) pos nil (if (== dirc 47) (e FORWARD) -1) searchstr searchstrlen count_ (i32 (+ (.end ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))) (bit-and options (i32 (+ 3372 (if (and (some? pat) (== (bit-and (.get pat) 0xff) 59)) 0 (e SEARCH_NOOF))))))) (e RE_LAST) sia))]
+          (let [c (long (searchit ed (g ed curwin) (g ed curbuf) pos nil (if (== dirc 47) (e FORWARD) -1) searchstr searchstrlen count_ (i32 (+ (.end ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))) (bit-and options (i32 (+ 3372 (if (and (some? pat) (== (.ub pat) 59)) 0 (e SEARCH_NOOF))))))) (e RE_LAST) sia))]
             (when (some? dircp)
               (.put dircp (unchecked-byte search-delim)))
             (let [show-top-bot-msg (if (and (not (shortmess ed (e SHM_SEARCH))) (some? sia) (.sa-wrapped sia))
@@ -43385,7 +43368,7 @@
                 (do (when (and (not (zero? (.end ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))))) (some? oap))
                       (.set-inclusive oap (e TRUE)))
                     (let [retval 1]
-                      (if (or (zero? (bit-and options (e SEARCH_NOOF))) (and (some? pat) (== (bit-and (.get pat) 0xff) 59)))
+                      (if (or (zero? (bit-and options (e SEARCH_NOOF))) (and (some? pat) (== (.ub pat) 59)))
                         (do (.set org-pos pos)
                             (if (zero? (.line ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))))
                               (if (< (.col pos) 2147483645)
@@ -43428,14 +43411,14 @@
         11
           (do (when show-search-stats
                 (cmdline-search-stat ed dirc pos (.-w-cursor (g ed curwin)) show-top-bot-msg msgbuf msgbuflen (or (not (== count_ 1)) has-offset) (i32 (aget (g ed p-msc) 0)) (e SEARCH_STAT_DEF_TIMEOUT)))
-              (if (or (zero? (bit-and options (e SEARCH_OPT))) (nil? pat) (not (== (bit-and (.get pat) 0xff) 59)))
+              (if (or (zero? (bit-and options (e SEARCH_OPT))) (nil? pat) (not (== (.ub pat) 59)))
                 (do (when-not (zero? (bit-and options (e SEARCH_MARK)))
                       (setpcmark ed))
                     (.set ^T_pos_T (.-w-cursor (g ed curwin)) pos)
                     (.set-w-set-curswant (g ed curwin) (boolean true))
                     (recur 12 oap dirc search-delim pat patlen count_ options sia searchstr searchstrlen old-off-dir old-off-line old-off-end old-off-off retval c dircp show-search-stats msgbuf msgbuflen has-offset show-top-bot-msg))
                 (let [^BytePtr pat (.add pat 1)
-                      dirc (bit-and (.get pat) 0xff)
+                      dirc (.ub pat)
                       search-delim dirc]
                   (if (and (not (== dirc 63)) (not (== dirc 47)))
                     (let [retval 0]
@@ -43474,7 +43457,7 @@
               (let [lnum (e LONG_MAX)]
                 (recur 1 ptr addr-type skip silent to-other-file i n lnum)))
         1
-          (case (case (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 46 0 36 1 39 2 (47 63) 3 92 4 -1)
+          (case (case (.ub ^BytePtr (aget cmd 0)) 46 0 36 1 39 2 (47 63) 3 92 4 -1)
             0
               (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                   (case (case addr-type (0 10) 0 1 1 (11 9) 2 -1)
@@ -43507,7 +43490,7 @@
                     (recur 4 ptr addr-type skip silent to-other-file i n lnum)))
             2
               (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                  (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) (e NUL))
+                  (if (== (.ub ^BytePtr (aget cmd 0)) (e NUL))
                     (do (aset cmd 0 nil)
                         (.put ptr (aget cmd 0))
                         lnum)
@@ -43515,7 +43498,7 @@
                       (if skip
                         (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                             (recur 4 ptr addr-type skip silent to-other-file i n lnum))
-                        (let [^T_pos_T fp (getmark ed (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) (and to-other-file (== (bit-and (.at ^BytePtr (aget cmd 0) 1) 0xff) (e NUL))))]
+                        (let [^T_pos_T fp (getmark ed (.ub ^BytePtr (aget cmd 0)) (and to-other-file (== (.ub ^BytePtr (aget cmd 0) 1) (e NUL))))]
                           (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                           (if (check-mark ed fp)
                             (let [lnum (.lnum fp)]
@@ -43530,11 +43513,11 @@
             3
               (let [^BytePtr t1 (aget cmd 0)
                     _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                    c (bit-and (.get t1) 0xff)]
+                    c (.ub t1)]
                 (if (== addr-type (e ADDR_LINES))
                   (if skip
                     (do (aset cmd 0 (skip-regexp ed (aget cmd 0) c (long (magic-isset ed))))
-                        (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) c)
+                        (if (== (.ub ^BytePtr (aget cmd 0)) c)
                           (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                               (recur 4 ptr addr-type skip silent to-other-file i n lnum))
                           (recur 4 ptr addr-type skip silent to-other-file i n lnum)))
@@ -43562,10 +43545,10 @@
             4
               (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                   (if (== addr-type (e ADDR_LINES))
-                    (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 38)
+                    (if (== (.ub ^BytePtr (aget cmd 0)) 38)
                       (let [i (e RE_SUBST)]
                         (recur 2 ptr addr-type skip silent to-other-file i n lnum))
-                      (if (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 63) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 47))
+                      (if (or (== (.ub ^BytePtr (aget cmd 0)) 63) (== (.ub ^BytePtr (aget cmd 0)) 47))
                         (let [i (e RE_SEARCH)]
                           (recur 2 ptr addr-type skip silent to-other-file i n lnum))
                         (do (emsg ed (gettext_ ed (BytePtr. (g ed e-backslash-should-be-followed-by) 0)))
@@ -43576,7 +43559,7 @@
                         (aset cmd 0 nil)
                         (.put ptr (aget cmd 0))
                         lnum)))
-            (if (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)
+            (if (< (u32 (- (.ub ^BytePtr (aget cmd 0)) 48)) 10)
               (let [lnum (long (getdigits ed (Ptr. cmd 0)))]
                 (recur 4 ptr addr-type skip silent to-other-file i n lnum))
               (recur 4 ptr addr-type skip silent to-other-file i n lnum)))
@@ -43586,11 +43569,11 @@
             (do (if (== lnum (e LONG_MAX))
                   (.set-lnum pos (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
                   (.set-lnum pos lnum))
-                (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 63)
+                (if (== (.ub ^BytePtr (aget cmd 0)) 63)
                   (.set-col pos 0)
                   (.set-col pos (e MAXCOL)))
                 (.set-coladd pos 0)
-                (if (== (long (searchit ed (g ed curwin) (g ed curbuf) pos nil (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 63) -1 (e FORWARD)) (BytePtr/lit "") 0 1 (e SEARCH_MSG) i nil)) (e FAIL))
+                (if (== (long (searchit ed (g ed curwin) (g ed curbuf) pos nil (if (== (.ub ^BytePtr (aget cmd 0)) 63) -1 (e FORWARD)) (BytePtr/lit "") 0 1 (e SEARCH_MSG) i nil)) (e FAIL))
                   (do (aset cmd 0 nil)
                       (.put ptr (aget cmd 0))
                       lnum)
@@ -43601,8 +43584,8 @@
               (recur 4 ptr addr-type skip silent to-other-file i n lnum))
         4
           (do (aset cmd 0 (skipwhite ed (aget cmd 0)))
-              (if (and (not (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 45)) (not (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 43)) (not (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)))
-                (if (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 47) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 63))
+              (if (and (not (== (.ub ^BytePtr (aget cmd 0)) 45)) (not (== (.ub ^BytePtr (aget cmd 0)) 43)) (not (< (u32 (- (.ub ^BytePtr (aget cmd 0)) 48)) 10)))
+                (if (or (== (.ub ^BytePtr (aget cmd 0)) 47) (== (.ub ^BytePtr (aget cmd 0)) 63))
                   (recur 1 ptr addr-type skip silent to-other-file i n lnum)
                   (do (.put ptr (aget cmd 0))
                       lnum))
@@ -43616,13 +43599,13 @@
                                  0
                                lnum)
                              lnum)
-                      i (if (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)
+                      i (if (< (u32 (- (.ub ^BytePtr (aget cmd 0)) 48)) 10)
                           43
                           (let [^BytePtr t2 (aget cmd 0)
                                 _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                i (bit-and (.get t2) 0xff)]
+                                i (.ub t2)]
                             i))]
-                  (if (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)
+                  (if (< (u32 (- (.ub ^BytePtr (aget cmd 0)) 48)) 10)
                     (let [n (long (getdigits ed (Ptr. cmd 0)))]
                       (if (== n (e LONG_MAX))
                         (do (emsg ed (gettext_ ed (BytePtr. (g ed e-line-number-out-of-range) 0)))
@@ -43648,11 +43631,11 @@
 (defn mb-adjustpos [^Editor ed ^S_file_buffer buf ^T_pos_T lp]
   (when (or (> (.col lp) 0) (> (.coladd lp) 1))
     (let [^BytePtr p (ml-get-buf ed buf (.lnum lp) false)]
-      (if (or (== (bit-and (.get p) 0xff) (e NUL)) (< (long (ml-get-buf-len ed buf (.lnum lp))) (.col lp)))
+      (if (or (== (.ub p) (e NUL)) (< (long (ml-get-buf-len ed buf (.lnum lp))) (.col lp)))
         (.set-col lp 0)
         (let [t1 (long (utf-head-off ed p (.add p (.col lp))))]
           (.set-col lp (i32 (- (.col lp) t1)))))
-      (when (and (== (.coladd lp) 1) (not (== (bit-and (.at p (.col lp)) 0xff) (e TAB))) (vim-isprintc? ed (long (utf-ptr2char ed (.add p (.col lp))))) (> (long (ptr2cells ed (.add p (.col lp)))) 1))
+      (when (and (== (.coladd lp) 1) (not (== (.ub p (.col lp)) (e TAB))) (vim-isprintc? ed (long (utf-ptr2char ed (.add p (.col lp))))) (> (long (ptr2cells ed (.add p (.col lp)))) 1))
         (.set-coladd lp 0)
         nil))))
 
@@ -43667,7 +43650,7 @@
     (if (== len 0)
       (.set-col ^T_pos_T (.-w-cursor win) 0)
       (if (>= (.col ^T_pos_T (.-w-cursor win)) len)
-        (if (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (zero? (g ed restart-edit))) (and (not (zero? (g ed VIsual-active))) (not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111))) (not (zero? (bit-and cur-ve-flags (e VE_ONEMORE)))) (not (zero? (long (virtual-active ed)))))
+        (if (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (zero? (g ed restart-edit))) (and (not (zero? (g ed VIsual-active))) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111))) (not (zero? (bit-and cur-ve-flags (e VE_ONEMORE)))) (not (zero? (long (virtual-active ed)))))
           (.set-col ^T_pos_T (.-w-cursor win) len)
           (do (.set-col ^T_pos_T (.-w-cursor win) (i32 (- len 1)))
               (mb-adjustpos ed (.w-buffer win) (.-w-cursor win))))
@@ -43724,7 +43707,7 @@
               (if (nil? (aget ^objects (.-cmd eap) 0))
                 (recur 5 eap errormsg silent address-count lnum need-check-cursor ret)
                 (if (== lnum (e LONG_MAX))
-                  (if (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 37)
+                  (if (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 37)
                     (do (aset ^objects (.-cmd eap) 0 (.add ^BytePtr (aget ^objects (.-cmd eap) 0) 1))
                         (case (case (.addr-type eap) (0 10) 0 1 1 9 2 -1)
                           0
@@ -43738,7 +43721,7 @@
                             (do (.put errormsg (gettext_ ed (BytePtr. (g ed e-invalid-range) 0)))
                                 (recur 5 eap errormsg silent address-count lnum need-check-cursor ret))
                           (recur 2 eap errormsg silent address-count lnum need-check-cursor ret)))
-                    (if (and (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 42) (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_STAR))))
+                    (if (and (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 42) (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_STAR))))
                       (if (== (.addr-type eap) (e ADDR_LINES))
                         (do (aset ^objects (.-cmd eap) 0 (.add ^BytePtr (aget ^objects (.-cmd eap) 0) 1))
                             (let [^T_pos_T fp (getmark ed 60 false)]
@@ -43761,14 +43744,14 @@
             (recur 3 eap errormsg silent address-count lnum need-check-cursor ret))
       3
         (do (.set-addr-count eap (i32 (inc (.addr-count eap))))
-            (if (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 59)
+            (if (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 59)
               (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.line2 eap))
                   (if (> (.line2 eap) 0)
                     (check-cursor ed)
                     (check-cursor-col ed))
                   (let [need-check-cursor true]
                     (recur 4 eap errormsg silent address-count lnum need-check-cursor ret)))
-              (if (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 44)
+              (if (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 44)
                 (recur 4 eap errormsg silent address-count lnum need-check-cursor ret)
                 (do (when (== (.addr-count eap) 1)
                       (.set-line1 eap (.line2 eap))
@@ -43788,7 +43771,7 @@
 ;; C: check_nextcmd
 (defn check-nextcmd ^BytePtr [^Editor ed ^BytePtr p]
   (let [^BytePtr s (skipwhite ed p)]
-    (when (== (bit-and (.get s) 0xff) 10)
+    (when (== (.ub s) 10)
       (.add s 1))))
 
 (defn linetabsize ^long [^Editor ed ^S_window_S wp ^long lnum]
@@ -43801,7 +43784,7 @@
 ;; C: lbr_chartabsize
 (defn lbr-chartabsize ^long [^Editor ed ^T_chartabsize_T cts]
   (if (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0)))
-    (if (and (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin)))))))
+    (if (and (== (.ub ^BytePtr (.cts-ptr cts)) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin)))))))
       (let [ts (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0))]
         (i32 (- ts (rem (.cts-vcol cts) ts))))
       (long (ptr2cells ed (.cts-ptr cts))))
@@ -44250,7 +44233,7 @@
                     (if (== (.m-mode mp) 0)
                       (do (map-free ed mpp)
                           (recur 3 buf mode local abbr mp mpp hash_))
-                      (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128) (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff))]
+                      (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (.ub ^BytePtr (.m-keys mp) 0) 128) (.ub ^BytePtr (.m-keys mp) 0))]
                         (if (and (not abbr) (not (== new-hash hash_)))
                           (do (.put mpp (aget ^objects (.-m-next mp) 0))
                               (if local
@@ -44592,7 +44575,7 @@
       (let [wcol wcol-arg
             col 0
             csize 0
-            one-more (or (or (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (== (g ed restart-edit) (e NUL)))) (and (not (zero? (g ed VIsual-active))) (not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111)))) (and (not (zero? (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)))) (< wcol (e MAXCOL))))
+            one-more (or (or (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (== (g ed restart-edit) (e NUL)))) (and (not (zero? (g ed VIsual-active))) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)))) (and (not (zero? (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)))) (< wcol (e MAXCOL))))
             ^BytePtr line (ml-get-buf ed (g ed curbuf) (.lnum pos) false)
             linelen (long (ml-get-buf-len ed (g ed curbuf) (.lnum pos)))]
         (let [j__4 (if (>= wcol (e MAXCOL))
@@ -44636,7 +44619,7 @@
                               csize (aget tl__ 3)]
                           (let [_ (init-chartabsize-arg ed cts (g ed curwin) (.lnum pos) 0 line line)]
                             (let [l__2 (loop [csize csize]
-                                        (if (and (<= (.cts-vcol cts) wcol) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
+                                        (if (and (<= (.cts-vcol cts) wcol) (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))))
                                           (let [csize (long (lbr-chartabsize-adv ed cts))
                                                 _ (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) csize)))]
                                             (recur csize))
@@ -44657,7 +44640,7 @@
                                     (let [idx (aget tl__ 1)
                                           col (aget tl__ 2)]
                                       (if (and (and (and (not (zero? (long (virtual-active ed)))) addspaces) (>= wcol 0)) (or (and (not (== col wcol)) (not (== col (i32 (+ wcol 1))))) (> csize 1)))
-                                        (if (== (bit-and (.at line idx) 0xff) (e NUL))
+                                        (if (== (.ub line idx) (e NUL))
                                           (let [correct (i32 (- wcol col))
                                                 ^BytePtr newline_ (BytePtr/alloc (i32 (+ (i32 (+ idx correct)) 1)))]
                                             (if (nil? newline_)
@@ -44666,7 +44649,7 @@
                                               (let [t 0]
                                                 (do (loop [t t]
                                                       (if (< t idx)
-                                                        (let [_ (.set newline_ t (unchecked-byte (bit-and (.at line t) 0xff)))]
+                                                        (let [_ (.set newline_ t (unchecked-byte (.ub line t)))]
                                                           (let [t (i32 (inc t))]
                                                             (recur t)))
                                                         nil))
@@ -44709,7 +44692,7 @@
                                                                        s)))
                                                                  (let [t1 s
                                                                        s (i32 (inc s))
-                                                                       _ (.set newline__2 t1 (unchecked-byte (bit-and (.at line t_2) 0xff)))]
+                                                                       _ (.set newline__2 t1 (unchecked-byte (.ub line t_2)))]
                                                                    s)))]
                                                           (let [t_2 (i32 (inc t_2))]
                                                             (recur t_2 s)))
@@ -44772,7 +44755,7 @@
     (if (or (== wantcol (e MAXCOL)) (== (if rc 1 0) (e FAIL)))
       (do (.set-w-valid (g ed curwin) (bit-and (.w-valid (g ed curwin)) -5))
           rc)
-      (if (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e TAB))
+      (if (== (.ub ^BytePtr (ml-get-cursor ed)) (e TAB))
         rc
         (do (set-valid-virtcol ed (g ed curwin) wantcol)
             rc)))))
@@ -44863,7 +44846,7 @@
         (when-not (zero? (bit-and flags 3))
           (let [^BytePtr ptr (ml-get-curline ed)]
             (loop [^BytePtr ptr ptr]
-              (when (and (or (== (bit-and (.get ptr) 0xff) 32) (== (bit-and (.get ptr) 0xff) 9)) (not (and (not (zero? (bit-and flags (e BL_FIX)))) (== (bit-and (.at ptr 1) 0xff) (e NUL)))))
+              (when (and (or (== (.ub ptr) 32) (== (.ub ptr) 9)) (not (and (not (zero? (bit-and flags (e BL_FIX)))) (== (.ub ptr 1) (e NUL)))))
                 (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
                 (let [^BytePtr ptr (.add ptr 1)]
                   (recur ptr))))))
@@ -44892,10 +44875,10 @@
 (defn uc-fun-cmd ^BytePtr [^Editor ed]
   (let [i 0]
     (loop [i i]
-      (if (zero? (bit-and (aget (g ed uc-fun-cmd-fcmd) i) 0xff))
+      (if (zero? (bit-and (long (aget (g ed uc-fun-cmd-fcmd) i)) 0xff))
         (do (.set (g ed IObuff) i (unchecked-byte (e NUL)))
             (g ed IObuff))
-        (do (.set (g ed IObuff) i (unchecked-byte (- (bit-and (aget (g ed uc-fun-cmd-fcmd) i) 0xff) 64)))
+        (do (.set (g ed IObuff) i (unchecked-byte (- (bit-and (long (aget (g ed uc-fun-cmd-fcmd) i)) 0xff) 64)))
             (let [i (i32 (inc i))]
               (recur i)))))))
 
@@ -44925,8 +44908,8 @@
     (let [^BytePtr d (.add (g ed IObuff) (long (musl-strlen ed (g ed IObuff))))]
       (loop [^BytePtr s s
              ^BytePtr d d]
-        (if (and (not (== (bit-and (.get s) 0xff) (e NUL))) (< (+ (.sub d (g ed IObuff)) 5) 1025))
-          (let [j__1 (if (and (== (bit-and (.at s 0) 0xff) 194) (== (bit-and (.at s 1) 0xff) 160))
+        (if (and (not (== (.ub s) (e NUL))) (< (+ (.sub d (g ed IObuff)) 5) 1025))
+          (let [j__1 (if (and (== (.ub s 0) 194) (== (.ub s 1) 160))
                        (let [^BytePtr s (.add s 2)
                              _ (musl-strcpy ed d (BytePtr/lit "<a0>"))
                              ^BytePtr d (.add d 4)]
@@ -44980,7 +44963,7 @@
 (defn out-str-t-BE [^Editor ed]
   (let [^BytePtr p nil
         ^objects to__ (object-array 3)
-        t2 (or (nil? (aget (g ed term-strings) 82)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 82)) 0xff) (e NUL)))
+        t2 (or (nil? (aget (g ed term-strings) 82)) (== (.ub ^BytePtr (aget (g ed term-strings) 82)) (e NUL)))
         j__1 (if t2
                (do (aset to__ 0 p)
                    (aset to__ 1 (Boolean/valueOf (boolean t2)))
@@ -44992,7 +44975,7 @@
                  0))
         ^BytePtr p (aget to__ 0)
         t2 (boolean (aget to__ 1))
-        t1 (or t2 (== (bit-and (.get p) 0xff) (e NUL)))
+        t1 (or t2 (== (.ub p) (e NUL)))
         j__2 (if t1
                (do (aset to__ 0 p)
                    (aset to__ 2 (Boolean/valueOf (boolean t1)))
@@ -45004,7 +44987,7 @@
                  0))
         ^BytePtr p (aget to__ 0)
         t1 (boolean (aget to__ 2))]
-    (when-not (or t1 (== (bit-and (.get p) 0xff) (e NUL)))
+    (when-not (or t1 (== (.ub p) (e NUL)))
       (out-str ed (aget (g ed term-strings) 82))
       nil)))
 
@@ -45600,7 +45583,7 @@
         j (i32 (- l 1))]
     (loop [j j]
       (if (>= j 0)
-        (do (replace-push ed (bit-and (.at p j) 0xff))
+        (do (replace-push ed (.ub p j))
             (let [j (i32 (dec j))]
               (recur j)))
         l))))
@@ -45611,9 +45594,9 @@
         count_ 0]
     (loop [^BytePtr ptr ptr
            count_ count_]
-      (if (zero? (bit-and (.get ptr) 0xff))
+      (if (zero? (.ub ptr))
         count_
-        (let [j__1 (if (== (bit-and (.get ptr) 0xff) (e TAB))
+        (let [j__1 (if (== (.ub ptr) (e TAB))
                      (if no-ts
                        (let [t1 (long (ptr2cells ed ptr))
                              count_ (i32 (+ count_ t1))]
@@ -45622,7 +45605,7 @@
                        (let [count_ (i32 (+ count_ (i32 (- ts (rem count_ ts)))))]
                          (aset tl__ 0 count_)
                          0))
-                     (if (== (bit-and (.get ptr) 0xff) 32)
+                     (if (== (.ub ptr) 32)
                        (let [count_ (i32 (inc count_))]
                          (aset tl__ 0 count_)
                          0)
@@ -45650,7 +45633,7 @@
         ^objects to__ (object-array 1)
         ^BytePtr ptr (aget ^objects (.-b-p-mps (g ed curbuf)) 0)]
     (loop [^BytePtr ptr ptr]
-      (if (== (bit-and (.get ptr) 0xff) (e NUL))
+      (if (== (.ub ptr) (e NUL))
         (do (.set-initc out__ initc)
             (.set-findc out__ findc)
             (.set-backwards out__ backwards)
@@ -45704,7 +45687,7 @@
                 out__)
               (let [t2 (long (utfc-ptr2len ed ptr))
                     ^BytePtr ptr (.add ptr t2)
-                    ^BytePtr ptr (if (== (bit-and (.get ptr) 0xff) 44)
+                    ^BytePtr ptr (if (== (.ub ptr) 44)
                                    ^BytePtr (.add ptr 1)
                                    ptr)]
                 (recur ptr)))))))))
@@ -45720,44 +45703,44 @@
                 col)
               col)]
     (if (nil? prevcol)
-      (not (zero? (if (and (>= col 0) (== (bit-and (.at linep col) 0xff) ch)) (e TRUE) (e FALSE))))
+      (not (zero? (if (and (>= col 0) (== (.ub linep col) ch)) (e TRUE) (e FALSE))))
       (do (.put prevcol (unchecked-int col))
-          (not (zero? (if (and (>= col 0) (== (bit-and (.at linep col) 0xff) ch)) (e TRUE) (e FALSE))))))))
+          (not (zero? (if (and (>= col 0) (== (.ub linep col) ch)) (e TRUE) (e FALSE))))))))
 
 ;; C: skip_string
 (defn skip-string ^BytePtr [^Editor ed ^BytePtr p]
   (let [^objects to__ (object-array 2)]
     (let [l__1 (loop [^BytePtr p p]
-                (let [j__5 (if (== (bit-and (.at p 0) 0xff) 39)
-                            (if (== (bit-and (.at p 1) 0xff) (e NUL))
+                (let [j__5 (if (== (.ub p 0) 39)
+                            (if (== (.ub p 1) (e NUL))
                               (do (aset to__ 0 p)
                                   1)
                               (let [i 2]
-                                (let [i (long (if (and (== (bit-and (.at p 1) 0xff) 92) (not (== (bit-and (.at p 2) 0xff) (e NUL))))
+                                (let [i (long (if (and (== (.ub p 1) 92) (not (== (.ub p 2) (e NUL))))
                                          (let [i (i32 (inc i))]
                                            (loop [i i]
-                                             (if (vim-isdigit? ed (bit-and (.at p (i32 (- i 1))) 0xff))
+                                             (if (vim-isdigit? ed (.ub p (i32 (- i 1))))
                                                (let [i (i32 (inc i))]
                                                  (recur i))
                                                i)))
                                          i))]
-                                  (if (and (not (== (bit-and (.at p (i32 (- i 1))) 0xff) (e NUL))) (== (bit-and (.at p i) 0xff) 39))
+                                  (if (and (not (== (.ub p (i32 (- i 1))) (e NUL))) (== (.ub p i) 39))
                                     (let [^BytePtr p (.add p i)]
                                       (do (aset to__ 0 p)
                                           0))
                                     (do (aset to__ 0 p)
                                         1)))))
-                            (if (== (bit-and (.at p 0) 0xff) 34)
+                            (if (== (.ub p 0) 34)
                               (let [^BytePtr p (.add p 1)]
                                 (let [l__2 (loop [^BytePtr p p]
-                                            (if (zero? (bit-and (.at p 0) 0xff))
+                                            (if (zero? (.ub p 0))
                                               (do (aset to__ 0 p)
                                                   0)
-                                              (let [j__3 (if (and (== (bit-and (.at p 0) 0xff) 92) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
+                                              (let [j__3 (if (and (== (.ub p 0) 92) (not (== (.ub p 1) (e NUL))))
                                                           (let [^BytePtr p (.add p 1)]
                                                             (do (aset to__ 0 p)
                                                                 0))
-                                                          (if (== (bit-and (.at p 0) 0xff) 34)
+                                                          (if (== (.ub p 0) 34)
                                                             (do (aset to__ 0 p)
                                                                 1)
                                                             (do (aset to__ 0 p)
@@ -45772,29 +45755,29 @@
                                                       (do (aset to__ 0 p)
                                                           0))))))]
                                   (let [^BytePtr p (aget to__ 0)]
-                                    (if (== (bit-and (.at p 0) 0xff) 34)
+                                    (if (== (.ub p 0) 34)
                                       (do (aset to__ 0 p)
                                           0)
                                       (do (aset to__ 0 p)
                                           1)))))
-                              (if (and (== (bit-and (.at p 0) 0xff) 82) (== (bit-and (.at p 1) 0xff) 34))
+                              (if (and (== (.ub p 0) 82) (== (.ub p 1) 34))
                                 (let [^BytePtr delim (.add p 2)
                                       ^BytePtr paren (vim-strchr ed delim 40)]
                                   (if (some? paren)
                                     (let [delim-len (.sub paren delim)
                                           ^BytePtr p (.add p 3)]
                                       (let [l__4 (loop [^BytePtr p p]
-                                                  (if (zero? (bit-and (.get p) 0xff))
+                                                  (if (zero? (.ub p))
                                                     (do (aset to__ 0 p)
                                                         0)
-                                                    (if (and (and (== (bit-and (.at p 0) 0xff) 41) (== (long (musl-strncmp ed (.add p 1) delim delim-len)) 0)) (== (bit-and (.at p (+ delim-len 1)) 0xff) 34))
+                                                    (if (and (and (== (.ub p 0) 41) (== (long (musl-strncmp ed (.add p 1) delim delim-len)) 0)) (== (.ub p (+ delim-len 1)) 34))
                                                       (let [^BytePtr p (.add p (+ delim-len 1))]
                                                         (do (aset to__ 0 p)
                                                             0))
                                                       (let [^BytePtr p (.add p 1)]
                                                         (recur p)))))]
                                         (let [^BytePtr p (aget to__ 0)]
-                                          (if (== (bit-and (.at p 0) 0xff) 34)
+                                          (if (== (.ub p 0) 34)
                                             (do (aset to__ 0 p)
                                                 0)
                                             (do (aset to__ 0 p)
@@ -45813,7 +45796,7 @@
                         (do (aset to__ 0 p)
                             0)))))]
       (let [^BytePtr p (aget to__ 0)]
-        (if (zero? (bit-and (.get p) 0xff))
+        (if (zero? (.ub p))
           (let [^BytePtr p (.add p -1)]
             p)
           p)))))
@@ -45824,20 +45807,20 @@
         ^objects to__ (object-array 1)
         ^BytePtr p line
         l__1 (loop [^BytePtr p p]
-               (if (== (bit-and (.get p) 0xff) (e NUL))
+               (if (== (.ub p) (e NUL))
                  (do (aset to__ 0 p)
                      0)
                  (let [^BytePtr p (skip-string ed p)]
-                   (if (== (bit-and (.get p) 0xff) (e NUL))
+                   (if (== (.ub p) (e NUL))
                      (do (aset to__ 0 p)
                          0)
-                     (if (and (== (bit-and (.at p 0) 0xff) 47) (== (bit-and (.at p 1) 0xff) 47) (or (BytePtr/eq p line) (not (== (bit-and (.at p -1) 0xff) 42)) (not (== (bit-and (.at p 2) 0xff) 42))))
+                     (if (and (== (.ub p 0) 47) (== (.ub p 1) 47) (or (BytePtr/eq p line) (not (== (.ub p -1) 42)) (not (== (.ub p 2) 42))))
                        (do (aset to__ 0 p)
                            0)
                        (let [^BytePtr p (.add p 1)]
                          (recur p)))))))
         ^BytePtr p (aget to__ 0)
-        ^BytePtr p (when-not (== (bit-and (.get p) 0xff) (e NUL))
+        ^BytePtr p (when-not (== (.ub p) (e NUL))
                      p)]
     (if (nil? p)
       (e MAXCOL)
@@ -45849,7 +45832,7 @@
         found false
         ^BytePtr p (.add (.add linep (.col startpos)) 1)]
     (loop [^BytePtr p p]
-      (if (and (not (zero? (bit-and (.get p) 0xff))) (not (== (bit-and (.get p) 0xff) 40)))
+      (if (and (not (zero? (.ub p))) (not (== (.ub p) 40)))
         (let [^BytePtr p (.add p 1)]
           (recur p))
         (let [delim-len (- (- (.sub p linep) (.col startpos)) 1)
@@ -45861,13 +45844,13 @@
               (let [^BytePtr line (ml-get ed lnum)
                     ^BytePtr p (.add line (if (== lnum (.lnum startpos)) (i32 (+ (.col startpos) 1)) 0))
                     l__1 (loop [^BytePtr p p]
-                           (if (zero? (bit-and (.get p) 0xff))
+                           (if (zero? (.ub p))
                              (do (aset to__ 0 (Boolean/valueOf (boolean found)))
                                  0)
                              (if (and (== lnum (.lnum endpos)) (>= (i32 (.sub p line)) (.col endpos)))
                                (do (aset to__ 0 (Boolean/valueOf (boolean found)))
                                    0)
-                               (if (and (== (bit-and (.get p) 0xff) 41) (== (long (musl-strncmp ed delim-copy (.add p 1) delim-len)) 0) (== (bit-and (.at p (+ delim-len 1)) 0xff) 34))
+                               (if (and (== (.ub p) 41) (== (long (musl-strncmp ed delim-copy (.add p 1) delim-len)) 0) (== (.ub p (+ delim-len 1)) 34))
                                  (let [found true]
                                    (aset to__ 0 (Boolean/valueOf (boolean found)))
                                    0)
@@ -46018,7 +46001,7 @@
                                     (aset tl__ 2 comment-dir)
                                     0)
                                 (let [^BytePtr ptr (skipwhite ed linep)]
-                                  (if (and (== (bit-and (.get ptr) 0xff) 35) (<= (.col (g ed findmatchlimit-pos)) (i32 (.sub ptr linep))))
+                                  (if (and (== (.ub ptr) 35) (<= (.col (g ed findmatchlimit-pos)) (i32 (.sub ptr linep))))
                                     (let [^BytePtr ptr (skipwhite ed (.add ptr 1))]
                                       (if (or (== (long (musl-strncmp ed ptr (BytePtr/lit "if") 2)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "endif") 5)) 0) (== (long (musl-strncmp ed ptr (BytePtr/lit "el") 2)) 0))
                                         (let [hash-dir 1]
@@ -46030,8 +46013,8 @@
                                             (aset tl__ 1 hash-dir)
                                             (aset tl__ 2 comment-dir)
                                             0)))
-                                    (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47)
-                                      (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42)
+                                    (if (== (.ub linep (.col (g ed findmatchlimit-pos))) 47)
+                                      (if (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 42)
                                         (let [comment-dir (e FORWARD)
                                               backwards (e FALSE)]
                                           (.set-col (g ed findmatchlimit-pos) (i32 (inc (.col (g ed findmatchlimit-pos)))))
@@ -46039,7 +46022,7 @@
                                           (aset tl__ 1 hash-dir)
                                           (aset tl__ 2 comment-dir)
                                           0)
-                                        (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42))
+                                        (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 42))
                                           (let [comment-dir -1
                                                 backwards (e TRUE)]
                                             (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos)))))
@@ -46051,15 +46034,15 @@
                                               (aset tl__ 1 hash-dir)
                                               (aset tl__ 2 comment-dir)
                                               0)))
-                                      (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42)
-                                        (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47)
+                                      (if (== (.ub linep (.col (g ed findmatchlimit-pos))) 42)
+                                        (if (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 47)
                                           (let [comment-dir -1
                                                 backwards (e TRUE)]
                                             (aset tl__ 0 backwards)
                                             (aset tl__ 1 hash-dir)
                                             (aset tl__ 2 comment-dir)
                                             0)
-                                          (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47))
+                                          (if (and (> (.col (g ed findmatchlimit-pos)) 0) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 47))
                                             (let [comment-dir (e FORWARD)
                                                   backwards (e FALSE)]
                                               (aset tl__ 0 backwards)
@@ -46078,7 +46061,7 @@
                         hash-dir (aget tl__ 1)
                         comment-dir (aget tl__ 2)]
                     (if (and (zero? hash-dir) (zero? comment-dir))
-                      (do (when (and (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) (e NUL)) (not (zero? (.col (g ed findmatchlimit-pos)))))
+                      (do (when (and (== (.ub linep (.col (g ed findmatchlimit-pos))) (e NUL)) (not (zero? (.col (g ed findmatchlimit-pos)))))
                             (.set-col (g ed findmatchlimit-pos) (i32 (dec (.col (g ed findmatchlimit-pos))))))
                           (aset fl__ 0 initc)
                           (aset fl__ 3 findc)
@@ -46183,7 +46166,7 @@
                 in-block-comment (boolean (aget fo__ 9))
                 bslcnt (aget fl__ 16)]
             (if (zero? findc)
-              (if (and (not cpo-match) (== (bit-and (.get ^BytePtr (skipwhite ed linep)) 0xff) 35))
+              (if (and (not cpo-match) (== (.ub ^BytePtr (skipwhite ed linep)) 35))
                 (let [hash-dir 1]
                   (aset fl__ 10 hash-dir)
                   (aset fl__ 16 bslcnt)
@@ -46317,7 +46300,7 @@
             (let [^BytePtr linep (ml-get ed (.lnum (g ed findmatchlimit-pos)))
                   _ (line-breakcheck ed)
                   ^BytePtr ptr (skipwhite ed linep)]
-              (if (== (bit-and (.get ptr) 0xff) 35)
+              (if (== (.ub ptr) 35)
                 (do (.set-col (g ed findmatchlimit-pos) (i32 (.sub ptr linep)))
                     (let [^BytePtr ptr (skipwhite ed (.add ptr 1))]
                       (if (> hash-dir 0)
@@ -46453,7 +46436,7 @@
                 in-block-comment (boolean (aget fo__ 9))]
             (if (zero? (g ed got-int))
               (if (zero? backwards)
-                (if (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) (e NUL))
+                (if (== (.ub linep (.col (g ed findmatchlimit-pos))) (e NUL))
                   (if (== (.lnum (g ed findmatchlimit-pos)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
                     (do (aset fo__ 3 linep)
                         (aset fl__ 8 do-quotes)
@@ -46595,19 +46578,19 @@
                 in-block-comment (boolean (aget fo__ 9))
                 in-block-comment (if (and skip-comments (zero? comment-dir) (zero? inquote))
                                    (if (zero? backwards)
-                                     (if (and (not in-block-comment) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47) (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42) (or (== comment-col (e MAXCOL)) (< (.col (g ed findmatchlimit-pos)) comment-col)))
+                                     (if (and (not in-block-comment) (== (.ub linep (.col (g ed findmatchlimit-pos))) 47) (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 42) (or (== comment-col (e MAXCOL)) (< (.col (g ed findmatchlimit-pos)) comment-col)))
                                        true
-                                       (if (and in-block-comment (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47))
+                                       (if (and in-block-comment (> (.col (g ed findmatchlimit-pos)) 0) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 42) (== (.ub linep (.col (g ed findmatchlimit-pos))) 47))
                                          false
                                          in-block-comment))
-                                     (if (and (not in-block-comment) (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47) (or (== comment-col (e MAXCOL)) (< (.col (g ed findmatchlimit-pos)) comment-col)))
+                                     (if (and (not in-block-comment) (> (.col (g ed findmatchlimit-pos)) 0) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 42) (== (.ub linep (.col (g ed findmatchlimit-pos))) 47) (or (== comment-col (e MAXCOL)) (< (.col (g ed findmatchlimit-pos)) comment-col)))
                                        true
-                                       (if (and in-block-comment (> (.col (g ed findmatchlimit-pos)) 0) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42))
+                                       (if (and in-block-comment (> (.col (g ed findmatchlimit-pos)) 0) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 47) (== (.ub linep (.col (g ed findmatchlimit-pos))) 42))
                                          false
                                          in-block-comment)))
                                    in-block-comment)]
-            (if (and (== (.col (g ed findmatchlimit-pos)) 0) (not (zero? (bit-and flags (e FM_BLOCKSTOP)))) (or (== (bit-and (.at linep 0) 0xff) 123) (== (bit-and (.at linep 0) 0xff) 125)))
-              (if (and (== (bit-and (.at linep 0) 0xff) findc) (== count_ 0))
+            (if (and (== (.col (g ed findmatchlimit-pos)) 0) (not (zero? (bit-and flags (e FM_BLOCKSTOP)))) (or (== (.ub linep 0) 123) (== (.ub linep 0) 125)))
+              (if (and (== (.ub linep 0) findc) (== count_ 0))
                 (do (aset fo__ 0 (g ed findmatchlimit-pos))
                     -1)
                 (do (aset fl__ 5 count_)
@@ -46645,7 +46628,7 @@
                         (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
                         (recur 12))))
                 (if (== comment-dir (e FORWARD))
-                  (if (and (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42) (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47))
+                  (if (and (== (.ub linep (.col (g ed findmatchlimit-pos))) 42) (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 47))
                     (do (.set-col (g ed findmatchlimit-pos) (i32 (inc (.col (g ed findmatchlimit-pos)))))
                         (aset fo__ 0 (g ed findmatchlimit-pos))
                         -1)
@@ -46665,7 +46648,7 @@
                         (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
                         (recur 9))
                     (if raw-string
-                      (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 82) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 34) (some? (vim-strchr ed (.add (.add linep (.col (g ed findmatchlimit-pos))) 1) 40)))
+                      (if (and (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 82) (== (.ub linep (.col (g ed findmatchlimit-pos))) 34) (some? (vim-strchr ed (.add (.add linep (.col (g ed findmatchlimit-pos))) 1) 40)))
                         (let [count_ (if (find-rawstring-end ed linep (g ed findmatchlimit-pos) (if (> count_ 0) match-pos (.-w-cursor (g ed curwin))))
                                        count_
                                        (let [count_ (i32 (inc count_))]
@@ -46687,7 +46670,7 @@
                             (aset fl__ 9 at-start)
                             (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
                             (recur 19)))
-                      (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 47) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 42) (or (== (.col (g ed findmatchlimit-pos)) 1) (not (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 42))) (< (.col (g ed findmatchlimit-pos)) comment-col))
+                      (if (and (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 47) (== (.ub linep (.col (g ed findmatchlimit-pos))) 42) (or (== (.col (g ed findmatchlimit-pos)) 1) (not (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 42))) (< (.col (g ed findmatchlimit-pos)) comment-col))
                         (let [count_ (i32 (inc count_))]
                           (.set match-pos (g ed findmatchlimit-pos))
                           (.set-col match-pos (i32 (dec (.col match-pos))))
@@ -46698,12 +46681,12 @@
                           (aset fl__ 9 at-start)
                           (aset fo__ 9 (Boolean/valueOf (boolean in-block-comment)))
                           (recur 19))
-                        (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 42) (== (bit-and (.at linep (.col (g ed findmatchlimit-pos))) 0xff) 47))
+                        (if (and (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 42) (== (.ub linep (.col (g ed findmatchlimit-pos))) 47))
                           (if (> count_ 0)
                             (do (.set (g ed findmatchlimit-pos) match-pos)
                                 (aset fo__ 0 (g ed findmatchlimit-pos))
                                 -1)
-                            (if (and (> (.col (g ed findmatchlimit-pos)) 1) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 47) (<= (.col (g ed findmatchlimit-pos)) comment-col))
+                            (if (and (> (.col (g ed findmatchlimit-pos)) 1) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 47) (<= (.col (g ed findmatchlimit-pos)) comment-col))
                               (do (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) 2)))
                                   (aset fo__ 0 (g ed findmatchlimit-pos))
                                   -1)
@@ -46758,11 +46741,11 @@
                 comment-col (aget fl__ 15)
                 skip-comments (boolean (aget fo__ 8))
                 in-block-comment (boolean (aget fo__ 9))]
-            (if (zero? (bit-and (.get ptr) 0xff))
+            (if (zero? (.ub ptr))
               (let [do-quotes (bit-and do-quotes 1)]
                 (if (zero? do-quotes)
                   (let [inquote (e FALSE)
-                        j__23 (if (== (bit-and (.at ptr -1) 0xff) 92)
+                        j__23 (if (== (.ub ptr -1) 92)
                                 (let [do-quotes 1]
                                   (if (== start-in-quotes (e MAYBE))
                                     (let [inquote at-start]
@@ -46795,7 +46778,7 @@
                         start-in-quotes (aget tl__ 2)]
                     (if (> (.lnum (g ed findmatchlimit-pos)) 1)
                       (let [^BytePtr ptr (ml-get ed (- (.lnum (g ed findmatchlimit-pos)) 1))
-                            j__24 (if (and (not (zero? (bit-and (.get ptr) 0xff))) (== (bit-and (.get (.add (.add ptr (long (ml-get-len ed (- (.lnum (g ed findmatchlimit-pos)) 1)))) (- 1))) 0xff) 92))
+                            j__24 (if (and (not (zero? (.ub ptr))) (== (.ub (.add (.add ptr (long (ml-get-len ed (- (.lnum (g ed findmatchlimit-pos)) 1)))) (- 1))) 92))
                                     (let [do-quotes 1]
                                       (if (== start-in-quotes (e MAYBE))
                                         (let [inquote at-start]
@@ -46851,10 +46834,10 @@
               (let [at-start (if (BytePtr/eq ptr (.add (.add linep (.col (g ed findmatchlimit-pos))) backwards))
                                (bit-and do-quotes 1)
                                at-start)
-                    do-quotes (if (and (== (bit-and (.get ptr) 0xff) 34) (or (BytePtr/eq ptr linep) (not (== (bit-and (.at ptr -1) 0xff) 39)) (not (== (bit-and (.at ptr 1) 0xff) 39))))
+                    do-quotes (if (and (== (.ub ptr) 34) (or (BytePtr/eq ptr linep) (not (== (.ub ptr -1) 39)) (not (== (.ub ptr 1) 39))))
                                 (i32 (inc do-quotes))
                                 do-quotes)
-                    ^BytePtr ptr (if (and (== (bit-and (.get ptr) 0xff) 92) (not (== (bit-and (.at ptr 1) 0xff) (e NUL))))
+                    ^BytePtr ptr (if (and (== (.ub ptr) 92) (not (== (.ub ptr 1) (e NUL))))
                                    ^BytePtr (.add ptr 1)
                                    ptr)
                     ^BytePtr ptr (.add ptr 1)]
@@ -46894,7 +46877,7 @@
                 c (long (utf-ptr2char ed (.add linep (.col (g ed findmatchlimit-pos)))))]
             (case c
               0
-                (if (or (== (.col (g ed findmatchlimit-pos)) 0) (not (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 0xff) 92)))
+                (if (or (== (.col (g ed findmatchlimit-pos)) 0) (not (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 1))) 92)))
                   (let [inquote (e FALSE)
                         start-in-quotes (e FALSE)]
                     (aset fl__ 4 c)
@@ -46923,20 +46906,20 @@
               39
                 (if (and (not cpo-match) (not (== initc 39)) (not (== findc 39)))
                   (if (zero? backwards)
-                    (if (zero? (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff))
+                    (if (zero? (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))))
                       (do (aset fl__ 4 c)
                           (aset fl__ 7 inquote)
                           (aset fl__ 12 start-in-quotes)
                           (aset fl__ 17 col_2)
                           (recur 13))
-                      (if (and (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 0xff) 92) (not (zero? (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 2))) 0xff))) (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 3))) 0xff) 39))
+                      (if (and (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 1))) 92) (not (zero? (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 2))))) (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 3))) 39))
                         (do (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) 3)))
                             (aset fl__ 4 c)
                             (aset fl__ 7 inquote)
                             (aset fl__ 12 start-in-quotes)
                             (aset fl__ 17 col_2)
                             (recur 18))
-                        (if (== (bit-and (.at linep (i32 (+ (.col (g ed findmatchlimit-pos)) 2))) 0xff) 39)
+                        (if (== (.ub linep (i32 (+ (.col (g ed findmatchlimit-pos)) 2))) 39)
                           (do (.set-col (g ed findmatchlimit-pos) (i32 (+ (.col (g ed findmatchlimit-pos)) 2)))
                               (aset fl__ 4 c)
                               (aset fl__ 7 inquote)
@@ -46949,14 +46932,14 @@
                               (aset fl__ 17 col_2)
                               (recur 13)))))
                     (if (> (.col (g ed findmatchlimit-pos)) 1)
-                      (if (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 39)
+                      (if (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 39)
                         (do (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) 2)))
                             (aset fl__ 4 c)
                             (aset fl__ 7 inquote)
                             (aset fl__ 12 start-in-quotes)
                             (aset fl__ 17 col_2)
                             (recur 18))
-                        (if (and (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 0xff) 92) (> (.col (g ed findmatchlimit-pos)) 2) (== (bit-and (.at linep (i32 (- (.col (g ed findmatchlimit-pos)) 3))) 0xff) 39))
+                        (if (and (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 2))) 92) (> (.col (g ed findmatchlimit-pos)) 2) (== (.ub linep (i32 (- (.col (g ed findmatchlimit-pos)) 3))) 39))
                           (do (.set-col (g ed findmatchlimit-pos) (i32 (- (.col (g ed findmatchlimit-pos)) 3)))
                               (aset fl__ 4 c)
                               (aset fl__ 7 inquote)
@@ -47116,7 +47099,7 @@
                 in-block-comment (boolean (aget fo__ 9))
                 col_2 (aget fl__ 17)]
             (if (>= col_2 0)
-              (if (== (bit-and (.at linep col_2) 0xff) 92)
+              (if (== (.ub linep col_2) 92)
                 (let [col_2 (i32 (dec col_2))]
                   (aset fl__ 17 col_2)
                   (recur 16))
@@ -47716,8 +47699,8 @@
                 (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) ind-len)
                 true))
         2
-          (if (and (> todo 0) (or (== (bit-and (.get s) 0xff) 32) (== (bit-and (.get s) 0xff) 9)))
-            (if (== (bit-and (.get s) 0xff) (e TAB))
+          (if (and (> todo 0) (or (== (.ub s) 32) (== (.ub s) 9)))
+            (if (== (.ub s) (e TAB))
               (let [tab-pad (i32 (- (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)) (rem ind-done (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)))))]
                 (if (< todo tab-pad)
                   (recur 4 size src p line s todo ind-len line-len ind-done round)
@@ -47733,7 +47716,7 @@
                 ^BytePtr p (if (some? p)
                              (let [^BytePtr t1 p
                                    ^BytePtr p (.add p 1)]
-                               (.put t1 (unchecked-byte (bit-and (.get s) 0xff)))
+                               (.put t1 (unchecked-byte (.ub s)))
                                p)
                              p)
                 ^BytePtr s (.add s 1)]
@@ -47850,8 +47833,8 @@
                 (recur 4 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
               (recur 6 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len)))
         1
-          (if (and (> todo 0) (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))
-            (if (== (bit-and (.get p) 0xff) (e TAB))
+          (if (and (> todo 0) (or (== (.ub p) 32) (== (.ub p) 9)))
+            (if (== (.ub p) (e TAB))
               (let [tab-pad (i32 (- (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)) (rem ind-done (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)))))]
                 (if (< todo tab-pad)
                   (recur 3 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len)
@@ -47882,7 +47865,7 @@
           (recur 5 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len)
         5
           (if (>= todo (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)))
-            (let [j__1 (if (== (bit-and (.get p) 0xff) (e TAB))
+            (let [j__1 (if (== (.ub p) (e TAB))
                          (let [^BytePtr p (.add p 1)]
                            (aset to__ 0 p)
                            (aset to__ 1 (Boolean/valueOf (boolean doit)))
@@ -47901,7 +47884,7 @@
           (recur 7 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len)
         7
           (if (> todo 0)
-            (let [j__2 (if (== (bit-and (.get p) 0xff) 32)
+            (let [j__2 (if (== (.ub p) 32)
                          (let [^BytePtr p (.add p 1)]
                            (aset to__ 0 p)
                            (aset to__ 1 (Boolean/valueOf (boolean doit)))
@@ -47915,7 +47898,7 @@
                   todo (i32 (dec todo))
                   ind-len (i32 (inc ind-len))]
               (recur 7 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
-            (if (and (not doit) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))) (zero? (bit-and flags (e SIN_INSERT))))
+            (if (and (not doit) (not (or (== (.ub p) 32) (== (.ub p) 9))) (zero? (bit-and flags (e SIN_INSERT))))
               false
               (let [j__3 (if (zero? (bit-and flags (e SIN_INSERT)))
                            (let [^BytePtr p (skipwhite ed p)
@@ -47946,12 +47929,12 @@
                   ^BytePtr s (.add s 1)
                   ^BytePtr t2 p
                   ^BytePtr p (.add p 1)
-                  _ (.put t1 (unchecked-byte (bit-and (.get t2) 0xff)))
+                  _ (.put t1 (unchecked-byte (.ub t2)))
                   orig-char-len (i32 (dec orig-char-len))]
               (recur 8 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
             (recur 9 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
         9
-          (if (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))
+          (if (or (== (.ub p) 32) (== (.ub p) 9))
             (let [^BytePtr p (.add p 1)]
               (recur 9 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
             (recur 10 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
@@ -47964,8 +47947,8 @@
               (recur 14 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
             (recur 16 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
         11
-          (if (and (> todo 0) (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))
-            (if (== (bit-and (.get p) 0xff) (e TAB))
+          (if (and (> todo 0) (or (== (.ub p) 32) (== (.ub p) 9)))
+            (if (== (.ub p) (e TAB))
               (let [tab-pad (i32 (- (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)) (rem ind-done (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)))))]
                 (if (< todo tab-pad)
                   (recur 13 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len)
@@ -47981,7 +47964,7 @@
                 ^BytePtr s (.add s 1)
                 ^BytePtr t4 p
                 ^BytePtr p (.add p 1)]
-            (.put t3 (unchecked-byte (bit-and (.get t4) 0xff)))
+            (.put t3 (unchecked-byte (.ub t4)))
             (recur 11 size flags p newline_ oldline s todo ind-len line-len doit ind-done retval orig-char-len))
         13
           (let [tab-pad (i32 (- (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)) (rem ind-done (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0)))))
@@ -48046,7 +48029,7 @@
            i i]
       (let [i (i32 (dec i))]
         (when (>= i 0)
-          (let [t1 (== (bit-and (.at (g ed replace-stack) i) 0xff) (e NUL))
+          (let [t1 (== (.ub (g ed replace-stack) i) (e NUL))
                 j__1 (if t1
                        (let [t2 off
                              off (i32 (dec off))
@@ -48069,7 +48052,7 @@
 (defn truncate-spaces [^Editor ed ^BytePtr line ^long len]
   (let [i (i32 (- (i32 len) 1))]
     (loop [i i]
-      (if (and (>= i 0) (or (== (bit-and (.at line i) 0xff) 32) (== (bit-and (.at line i) 0xff) 9)))
+      (if (and (>= i 0) (or (== (.ub line i) 32) (== (.ub line i) 9)))
         (do (when-not (zero? (bit-and (g ed State) (e REPLACE_FLAG)))
               (replace-join ed 0))
             (let [i (i32 (dec i))]
@@ -48239,24 +48222,24 @@
           rc))))
 
 (defn chartabsize ^long [^Editor ed ^BytePtr p ^long col]
-  (if (and (== (bit-and (.get p) 0xff) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin)))))))
+  (if (and (== (.ub p) (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin)))))))
     (let [ts (i32 (aget ^longs (.-b-p-ts (g ed curbuf)) 0))]
       (i32 (- ts (rem col ts))))
     (long (ptr2cells ed p))))
 
 ;; C: out_str_cf
 (defn out-str-cf [^Editor ed ^BytePtr s]
-  (when-not (or (nil? s) (== (bit-and (.get s) 0xff) (e NUL)))
+  (when-not (or (nil? s) (== (.ub s) (e NUL)))
     (when (> (g ed out-pos) 8111)
       (out-flush ed))
     (loop [^BytePtr s s]
-      (if (zero? (bit-and (.get s) 0xff))
+      (if (zero? (.ub s))
         (when-not (zero? (aget (g ed p-wd) 0))
           (out-flush ed)
           nil)
         (let [^BytePtr t1 s
               ^BytePtr s (.add s 1)]
-          (out-char-nf ed (bit-and (.get t1) 0xff))
+          (out-char-nf ed (.ub t1))
           (recur s))))))
 
 ;; C: vim_beep
@@ -48291,7 +48274,7 @@
         ^LongPtr siso (if (>= (aget ^longs (.-wo-siso ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0) 0) (LongPtr. ^longs (.-wo-siso ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0) (LongPtr. (g ed p-siso) 0))
         ^BytePtr p (aget ^objects (.-b-p-mps (g ed curbuf)) 0)
         l__1 (loop [^BytePtr p p]
-               (if (== (bit-and (.get p) 0xff) (e NUL))
+               (if (== (.ub p) (e NUL))
                  (do (aset to__ 0 p)
                      1)
                  (let [t1 (i32 (+ (long (utfc-ptr2len ed p)) 1))
@@ -48301,7 +48284,7 @@
                          1)
                      (let [t2 (long (utfc-ptr2len ed p))
                            ^BytePtr p (.add p t2)]
-                       (if (== (bit-and (.get p) 0xff) (e NUL))
+                       (if (== (.ub p) (e NUL))
                          0
                          (let [^BytePtr p (.add p 1)]
                            (recur p))))))))]
@@ -48310,7 +48293,7 @@
         nil
       1
         (let [^BytePtr p (aget to__ 0)]
-          (when-not (== (bit-and (.get p) 0xff) (e NUL))
+          (when-not (== (.ub p) (e NUL))
             (let [^T_pos_T lpos (findmatch ed nil (e NUL))]
               (if (nil? lpos)
                 (do (vim-beep ed (e BO_MATCH))
@@ -48371,7 +48354,7 @@
                      (aset tl__ 1 oldlen)
                      0)
                  (let [j__2 (if (zero? (bit-and (g ed State) (e VREPLACE_FLAG)))
-                              (if (== (bit-and (.at oldp col) 0xff) (e NUL))
+                              (if (== (.ub oldp col) (e NUL))
                                 (do (aset tl__ 0 newlen)
                                     (aset tl__ 1 oldlen)
                                     0)
@@ -48387,10 +48370,10 @@
                                 (let [new-vcol (i32 (+ (long (aget vcol 0)) (long (chartabsize ed buf (long (aget vcol 0))))))
                                       l__1 (loop [newlen newlen
                                                   oldlen oldlen]
-                                             (if (and (not (== (bit-and (.at oldp (i32 (+ col oldlen))) 0xff) (e NUL))) (< (long (aget vcol 0)) new-vcol))
+                                             (if (and (not (== (.ub oldp (i32 (+ col oldlen))) (e NUL))) (< (long (aget vcol 0)) new-vcol))
                                                (let [t1 (long (chartabsize ed (.add (.add oldp col) oldlen) (long (aget vcol 0))))]
                                                  (aset vcol 0 (unchecked-int (+ (long (aget vcol 0)) t1)))
-                                                 (if (and (> (long (aget vcol 0)) new-vcol) (== (bit-and (.at oldp (i32 (+ col oldlen))) 0xff) (e TAB)))
+                                                 (if (and (> (long (aget vcol 0)) new-vcol) (== (.ub oldp (i32 (+ col oldlen))) (e TAB)))
                                                    (do (aset tl__ 0 newlen)
                                                        (aset tl__ 1 oldlen)
                                                        0)
@@ -48528,7 +48511,7 @@
                       (let [^BytePtr p (.add saved-line (.col ^T_pos_T (.-w-cursor (g ed curwin))))]
                         (recur 1 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))))))
         1
-          (if (== (bit-and (.get p) 0xff) (e NUL))
+          (if (== (.ub p) (e NUL))
             (do (.set saved-line (.col ^T_pos_T (.-w-cursor (g ed curwin))) (unchecked-byte (e NUL)))
                 (recur 2 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
             (let [t1 (long (replace-push-mb ed p))
@@ -48539,10 +48522,10 @@
                        (let [^BytePtr p-extra (.add saved-line (.col ^T_pos_T (.-w-cursor (g ed curwin))))
                              first-char (if do-si
                                           (let [^BytePtr p (skipwhite ed p-extra)
-                                                first-char (bit-and (.get p) 0xff)]
+                                                first-char (.ub p)]
                                             first-char)
                                           first-char)
-                             saved-char (bit-and (.get p-extra) 0xff)]
+                             saved-char (.ub p-extra)]
                          (.put p-extra (unchecked-byte (e NUL)))
                          (aset to__ 0 p-extra)
                          (aset tl__ 0 saved-char)
@@ -48569,24 +48552,24 @@
                         newindent (if (== newindent 0)
                                     second-line-indent
                                     newindent)]
-                    (if (and (not trunc-line) do-si (not (== (bit-and (.get saved-line) 0xff) (e NUL))) (or (nil? p-extra) (not (== first-char 123))))
+                    (if (and (not trunc-line) do-si (not (== (.ub saved-line) (e NUL))) (or (nil? p-extra) (not (== first-char 123))))
                       (let [old-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
                             old-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
                             old-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
                             ^BytePtr ptr saved-line]
                         (if (== dir (e FORWARD))
-                          (if (== (bit-and (.at ptr 0) 0xff) 35)
+                          (if (== (.ub ptr 0) 35)
                             (recur 5 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)
                             (recur 6 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
-                          (if (== (bit-and (.at ptr 0) 0xff) 35)
+                          (if (== (.ub ptr 0) 35)
                             (let [was-backslashed false]
                               (recur 3 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
                             (recur 4 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))))
                       (recur 11 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
                   (recur 12 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))))
         3
-          (if (and (or (== (bit-and (.at ptr 0) 0xff) 35) was-backslashed) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
-            (let [was-backslashed (if (and (not (zero? (bit-and (.get ptr) 0xff))) (== (bit-and (.at ptr (- (long (musl-strlen ed ptr)) 1)) 0xff) 92))
+          (if (and (or (== (.ub ptr 0) 35) was-backslashed) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
+            (let [was-backslashed (if (and (not (zero? (.ub ptr))) (== (.ub ptr (- (long (musl-strlen ed ptr)) 1)) 92))
                                     true
                                     false)]
               (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
@@ -48599,13 +48582,13 @@
                 (recur 4 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))))
         4
           (let [^BytePtr p (skipwhite ed ptr)]
-            (if (== (bit-and (.get p) 0xff) 125)
+            (if (== (.ub p) 125)
               (do (g! ed did-si (e TRUE))
                   (recur 10 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
               (do (g! ed can-si-back (e TRUE))
                   (recur 10 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))))
         5
-          (if (and (== (bit-and (.at ptr 0) 0xff) 35) (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
+          (if (and (== (.ub ptr 0) 35) (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
             (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (dec (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                 (let [^BytePtr ptr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))]
                   (recur 5 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
@@ -48615,10 +48598,10 @@
           (let [^BytePtr p (.add (.add ptr (long (musl-strlen ed ptr))) (- 1))]
             (recur 7 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
         7
-          (if (and (.gt p ptr) (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))
+          (if (and (.gt p ptr) (or (== (.ub p) 32) (== (.ub p) 9)))
             (let [^BytePtr p (.add p -1)]
               (recur 7 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
-            (let [last-char (bit-and (.get p) 0xff)]
+            (let [last-char (.ub p)]
               (if (or (== last-char 123) (== last-char 59))
                 (let [^BytePtr p (if (.gt p ptr)
                                    ^BytePtr (.add p -1)
@@ -48626,12 +48609,12 @@
                   (recur 8 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
                 (recur 9 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))))
         8
-          (if (and (.gt p ptr) (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))
+          (if (and (.gt p ptr) (or (== (.ub p) 32) (== (.ub p) 9)))
             (let [^BytePtr p (.add p -1)]
               (recur 8 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
             (recur 9 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
         9
-          (let [newindent (if (== (bit-and (.get p) 0xff) 41)
+          (let [newindent (if (== (.ub p) 41)
                             (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (.sub p ptr)))
                                 (let [^T_pos_T pos (findmatch ed nil 40)]
                                   (if (some? pos)
@@ -48664,9 +48647,9 @@
                   (recur 14 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
             (recur 15 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
         13
-          (if (and (or (== (bit-and (.get p-extra) 0xff) 32) (== (bit-and (.get p-extra) 0xff) 9)) (not (utf-iscomposing? ed (long (utf-ptr2char ed (.add p-extra 1))))))
+          (if (and (or (== (.ub p-extra) 32) (== (.ub p-extra) 9)) (not (utf-iscomposing? ed (long (utf-ptr2char ed (.add p-extra 1))))))
             (do (when (and (not (zero? (bit-and (g ed State) (e REPLACE_FLAG)))) (zero? (bit-and (g ed State) (e VREPLACE_FLAG))))
-                  (replace-push ed (bit-and (.get p-extra) 0xff)))
+                  (replace-push ed (.ub p-extra)))
                 (let [^BytePtr p-extra (.add p-extra 1)
                       less-cols-off (i32 (inc less-cols-off))]
                   (recur 13 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
@@ -48824,7 +48807,7 @@
       (when (< i len)
         (let [c (if (< c 0)
                   c
-                  (bit-and (aget bytes_ i) 0xff))
+                  (bit-and (long (aget bytes_ i)) 0xff))
               templen (if (or (< c 0) (== c 128) (== c (e NUL)))
                         (do (aset temp 0 (unchecked-byte 128))
                             (aset temp 1 (unchecked-byte (if (== c 128) (e KS_SPECIAL) (if (== c (e NUL)) (e KS_ZERO) (bit-and (i32 (- c)) 255)))))
@@ -48844,27 +48827,27 @@
         ^BytePtr s str_]
     (when (zero? (g ed block-redo))
       (loop [^BytePtr s s]
-        (when (if (< len 0) (not (== (bit-and (.get s) 0xff) (e NUL))) (< (.sub s str_) len))
+        (when (if (< len 0) (not (== (.ub s) (e NUL))) (< (.sub s str_) len))
           (let [^BytePtr start s
                 l__1 (loop [^BytePtr s s]
-                       (if (and (>= (bit-and (.get s) 0xff) 32) (< (bit-and (.get s) 0xff) (e DEL)) (or (< len 0) (< (.sub s str_) len)))
+                       (if (and (>= (.ub s) 32) (< (.ub s) (e DEL)) (or (< len 0) (< (.sub s str_) len)))
                          (let [^BytePtr s (.add s 1)]
                            (recur s))
                          (do (aset to__ 0 s)
                              0)))
                 ^BytePtr s (aget to__ 0)
-                ^BytePtr s (if (and (== (bit-and (.get s) 0xff) (e NUL)) (or (== (bit-and (.at s -1) 0xff) 48) (== (bit-and (.at s -1) 0xff) 94)))
+                ^BytePtr s (if (and (== (.ub s) (e NUL)) (or (== (.ub s -1) 48) (== (.ub s -1) 94)))
                              ^BytePtr (.add s -1)
                              s)]
             (when (.gt s start)
               (add-buff ed (g ed redobuff) start (.sub s start)))
-            (when-not (or (== (bit-and (.get s) 0xff) (e NUL)) (and (>= len 0) (>= (.sub s str_) len)))
+            (when-not (or (== (.ub s) (e NUL)) (and (>= len 0) (>= (.sub s str_) len)))
               (.set mb-cptr2char-adv__o (mb-cptr2char-adv ed s))
               (let [^BytePtr s (.pp mb-cptr2char-adv__o)
                     c (.r__ mb-cptr2char-adv__o)]
-                (when (or (< c 32) (== c (e DEL)) (and (== (bit-and (.get s) 0xff) (e NUL)) (or (== c 48) (== c 94))))
+                (when (or (< c 32) (== c (e DEL)) (and (== (.ub s) (e NUL)) (or (== c 48) (== c 94))))
                   (add-char-buff ed (g ed redobuff) (e Ctrl_V)))
-                (if (and (== (bit-and (.get s) 0xff) (e NUL)) (== c 48))
+                (if (and (== (.ub s) (e NUL)) (== c 48))
                   (add-buff ed (g ed redobuff) (BytePtr/lit "048") 3)
                   (add-char-buff ed (g ed redobuff) c))
                 (recur s)))))))))
@@ -48903,7 +48886,7 @@
                              idx (i32 (+ idx t1))]
                          (aset buf idx (unchecked-byte (e NUL)))
                          (if (and (some? end) (== (long (musl-strncmp ed (BytePtr. buf 0) end idx)) 0))
-                           (if (== (bit-and (.at end idx) 0xff) (e NUL))
+                           (if (== (.ub end idx) (e NUL))
                              (do (aset tl__ 0 ret-char)
                                  0)
                              (recur idx ret-char))
@@ -48921,7 +48904,7 @@
                                                   ret-char)
                                               0
                                                 (if (stop-arrow ed)
-                                                  (let [c (bit-and (aget buf 0) 0xff)]
+                                                  (let [c (bit-and (long (aget buf 0)) 0xff)]
                                                     (if (and (== idx 1) (or (== c (e CAR)) (== c (e K_KENTER)) (== c (e NL))))
                                                       (do (ins-eol ed c)
                                                           ret-char)
@@ -49010,8 +48993,8 @@
 ;; C: skip_cmd_arg
 (defn skip-cmd-arg ^BytePtr [^Editor ed ^BytePtr p rembs]
   (loop [^BytePtr p p]
-    (if (and (not (zero? (bit-and (.get p) 0xff))) (not (vim-isspace? ed (bit-and (.get p) 0xff))))
-      (let [^BytePtr p (if (and (== (bit-and (.get p) 0xff) 92) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
+    (if (and (not (zero? (.ub p))) (not (vim-isspace? ed (.ub p))))
+      (let [^BytePtr p (if (and (== (.ub p) 92) (not (== (.ub p 1) (e NUL))))
                          (if rembs
                            (do (Rt/memmove p (.add p 1) (+ (long (musl-strlen ed (.add p 1))) 1))
                                p)
@@ -49026,16 +49009,16 @@
   (let [^objects to__ (object-array 3)
         ^BytePtr arg (.get argp)
         ^BytePtr command nil]
-    (if (== (bit-and (.get arg) 0xff) 43)
+    (if (== (.ub arg) 43)
       (let [^BytePtr arg (.add arg 1)
-            j__1 (if (or (vim-isspace? ed (bit-and (.get arg) 0xff)) (== (bit-and (.get arg) 0xff) (e NUL)))
+            j__1 (if (or (vim-isspace? ed (.ub arg)) (== (.ub arg) (e NUL)))
                    (let [^BytePtr command (BytePtr. (g ed dollar-command) 0)]
                      (aset to__ 0 arg)
                      (aset to__ 1 command)
                      0)
                    (let [^BytePtr command arg
                          ^BytePtr arg (skip-cmd-arg ed command true)]
-                     (if (== (bit-and (.get arg) 0xff) (e NUL))
+                     (if (== (.ub arg) (e NUL))
                        (do (aset to__ 0 arg)
                            (aset to__ 1 command)
                            0)
@@ -49069,7 +49052,7 @@
   (let [^BytePtr q (.add ptr (long (musl-strlen ed ptr)))]
     (loop [^BytePtr q q]
       (let [^BytePtr q (.add q -1)]
-        (when (and (.gt q ptr) (or (== (bit-and (.at q 0) 0xff) 32) (== (bit-and (.at q 0) 0xff) 9)) (not (== (bit-and (.at q -1) 0xff) 92)) (not (== (bit-and (.at q -1) 0xff) (e Ctrl_V))))
+        (when (and (.gt q ptr) (or (== (.ub q 0) 32) (== (.ub q 0) 9)) (not (== (.ub q -1) 92)) (not (== (.ub q -1) (e Ctrl_V))))
           (.put q (unchecked-byte (e NUL)))
           (recur q))))))
 
@@ -49078,18 +49061,18 @@
   (let [^objects to__ (object-array 1)
         ^BytePtr p (aget ^objects (.-arg eap) 0)]
     (loop [^BytePtr p p]
-      (when-not (zero? (bit-and (.get p) 0xff))
-        (let [j__1 (if (== (bit-and (.get p) 0xff) (e Ctrl_V))
+      (when-not (zero? (.ub p))
+        (let [j__1 (if (== (.ub p) (e Ctrl_V))
                      (let [^BytePtr p (if (zero? (bit-and (.argt eap) (e EX_CTRLV)))
                                         (do (Rt/memmove p (.add p 1) (+ (long (musl-strlen ed (.add p 1))) 1))
                                             p)
                                         ^BytePtr (.add p 1))]
-                       (if (== (bit-and (.get p) 0xff) (e NUL))
+                       (if (== (.ub p) (e NUL))
                          1
                          (do (aset to__ 0 p)
                              0)))
-                     (if (== (bit-and (.get p) 0xff) 10)
-                       (if (and (or (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BAR))) (zero? (bit-and (.argt eap) (e EX_CTRLV)))) (== (bit-and (.get (.add p (- 1))) 0xff) 92))
+                     (if (== (.ub p) 10)
+                       (if (and (or (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BAR))) (zero? (bit-and (.argt eap) (e EX_CTRLV)))) (== (.ub (.add p (- 1))) 92))
                          (do (Rt/memmove (.add p (- 1)) p (+ (long (musl-strlen ed p)) 1))
                              (let [^BytePtr p (.add p -1)]
                                (aset to__ 0 p)
@@ -49146,18 +49129,18 @@
 (defn getdigits-quoted ^long [^Editor ed ^Ptr pp]
   (let [^BytePtr p (.get pp)
         retval 0
-        ^BytePtr p (if (== (bit-and (.get p) 0xff) 45)
+        ^BytePtr p (if (== (.ub p) 45)
                      ^BytePtr (.add p 1)
                      p)]
     (loop [^BytePtr p p
            retval retval]
-      (if (< (u32 (- (bit-and (.get p) 0xff) 48)) 10)
+      (if (< (u32 (- (.ub p) 48)) 10)
         (let [retval (if (>= retval 922337203685477570)
                        (e LONG_MAX)
-                       (+ (- (* retval 10) 48) (bit-and (.get p) 0xff)))
+                       (+ (- (* retval 10) 48) (.ub p)))
               ^BytePtr p (.add p 1)]
           (recur p retval))
-        (if (== (bit-and (.get ^BytePtr (.get pp)) 0xff) 45)
+        (if (== (.ub ^BytePtr (.get pp)) 45)
           (if (== retval (e LONG_MAX))
             (let [retval (e LONG_MIN)]
               (.put pp p)
@@ -49171,10 +49154,10 @@
 ;; C: get_flags
 (defn get-flags [^Editor ed ^S_exarg eap]
   (loop []
-    (when (some? (vim-strchr ed (BytePtr/lit "lp#") (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff)))
-      (if (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) 108)
+    (when (some? (vim-strchr ed (BytePtr/lit "lp#") (.ub ^BytePtr (aget ^objects (.-arg eap) 0))))
+      (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) 108)
         (.set-flags eap (bit-or (.flags eap) (e EXFLAG_LIST)))
-        (if (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) 112)
+        (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) 112)
           (.set-flags eap (bit-or (.flags eap) (e EXFLAG_PRINT)))
           (.set-flags eap (bit-or (.flags eap) (e EXFLAG_NR)))))
       (aset ^objects (.-arg eap) 0 (skipwhite ed (.add ^BytePtr (aget ^objects (.-arg eap) 0) 1)))
@@ -49222,7 +49205,7 @@
               (let [_ (g! ed quitmore (i32 (dec (g ed quitmore))))]
                 nil))
           (let [_ (.set save-cmdmod (g ed cmdmod))]
-            (let [did-append-cmd (boolean (if (and (== (bit-and (.at ^BytePtr (.get cmdlinep) 0) 0xff) 35) (== (bit-and (.at ^BytePtr (.get cmdlinep) 1) 0xff) 33))
+            (let [did-append-cmd (boolean (if (and (== (.ub ^BytePtr (.get cmdlinep) 0) 35) (== (.ub ^BytePtr (.get cmdlinep) 1) 33))
                                   did-append-cmd
                                   (let [_ (aset ^objects (.-cmd ea) 0 (.get cmdlinep))
                                         _ (.set-cmdlinep ea cmdlinep)
@@ -49242,11 +49225,11 @@
                                           (if (parse-cmd-address ed ea (Ptr. errormsg 0) false)
                                             (let [_ (aset ^objects (.-cmd ea) 0 (skipwhite ed (aget ^objects (.-cmd ea) 0)))]
                                               (do (loop []
-                                                    (if (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd ea) 0)) 0xff) 58)
+                                                    (if (== (.ub ^BytePtr (aget ^objects (.-cmd ea) 0)) 58)
                                                       (let [_ (aset ^objects (.-cmd ea) 0 (skipwhite ed (.add ^BytePtr (aget ^objects (.-cmd ea) 0) 1)))]
                                                         (recur))
                                                       nil))
-                                                (let [t1 (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd ea) 0)) 0xff) (e NUL))]
+                                                (let [t1 (== (.ub ^BytePtr (aget ^objects (.-cmd ea) 0)) (e NUL))]
                                                   (let [t1 (if t1
                                                             t1
                                                             (let [_ (.set-nextcmd ea (check-nextcmd ed (aget ^objects (.-cmd ea) 0)))
@@ -49258,7 +49241,7 @@
                                                       (if (nil? p)
                                                         (let [_ (aset errormsg 0 (gettext_ ed (BytePtr. (g ed e-ambiguous-use-of-user-defined-command) 0)))]
                                                           did-append-cmd)
-                                                        (if (and (and (== (bit-and (.get p) 0xff) 33) (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd ea) 0) 1) 0xff) 105)) (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd ea) 0) 0) 0xff) 78))
+                                                        (if (and (and (== (.ub p) 33) (== (.ub ^BytePtr (aget ^objects (.-cmd ea) 0) 1) 105)) (== (.ub ^BytePtr (aget ^objects (.-cmd ea) 0) 0) 78))
                                                           (let [_ (aset errormsg 0 (uc-fun-cmd ed))]
                                                             did-append-cmd)
                                                           (if (== (.cmdidx ea) (e CMD_SIZE))
@@ -49274,7 +49257,7 @@
                                                                                     did-append-cmd)]
                                                                 (let [_ (aset errormsg 0 (g ed IObuff))]
                                                                   did-append-cmd)))
-                                                            (let [^BytePtr p (if (and (and (and (== (bit-and (.get p) 0xff) 33) (not (== (.cmdidx ea) (e CMD_substitute)))) (not (== (.cmdidx ea) (e CMD_smagic)))) (not (== (.cmdidx ea) (e CMD_snomagic))))
+                                                            (let [^BytePtr p (if (and (and (and (== (.ub p) 33) (not (== (.cmdidx ea) (e CMD_substitute)))) (not (== (.cmdidx ea) (e CMD_smagic)))) (not (== (.cmdidx ea) (e CMD_snomagic))))
                                                                               (let [^BytePtr p (.add p 1)
                                                                                     _ (.set-forceit ea (boolean true))]
                                                                                 p)
@@ -49334,7 +49317,7 @@
                                                                                     (do (if (or (== (.cmdidx ea) (e CMD_lshift)) (== (.cmdidx ea) (e CMD_rshift)))
                                                                                           (let [_ (.set-amount ea 1)]
                                                                                             (do (loop []
-                                                                                                  (if (== (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) (bit-and (.get ^BytePtr (aget ^objects (.-cmd ea) 0)) 0xff))
+                                                                                                  (if (== (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) (.ub ^BytePtr (aget ^objects (.-cmd ea) 0)))
                                                                                                     (let [_ (aset ^objects (.-arg ea) 0 (.add ^BytePtr (aget ^objects (.-arg ea) 0) 1))
                                                                                                           _ (.set-amount ea (i32 (inc (.amount ea))))]
                                                                                                       (recur))
@@ -49350,12 +49333,12 @@
                                                                                               (if (or (== (.cmdidx ea) (e CMD_global)) (== (.cmdidx ea) (e CMD_vglobal)))
                                                                                                 (let [^BytePtr p (aget ^objects (.-arg ea) 0)]
                                                                                                   (loop [^BytePtr p p]
-                                                                                                    (if (zero? (bit-and (.get p) 0xff))
+                                                                                                    (if (zero? (.ub p))
                                                                                                       nil
-                                                                                                      (let [j__4 (if (and (== (bit-and (.get p) 0xff) 92) (== (bit-and (.at p 1) 0xff) 10))
+                                                                                                      (let [j__4 (if (and (== (.ub p) 92) (== (.ub p 1) 10))
                                                                                                                   (let [_ (Rt/memmove p (.add p 1) (+ (long (musl-strlen ed (.add p 1))) 1))]
                                                                                                                     0)
-                                                                                                                  (if (== (bit-and (.get p) 0xff) 10)
+                                                                                                                  (if (== (.ub p) 10)
                                                                                                                     (let [_ (.set-nextcmd ea (.add p 1))
                                                                                                                           _ (.put p (unchecked-byte (e NUL)))]
                                                                                                                       1)
@@ -49373,21 +49356,21 @@
                                                                                                 (let [_ (address-default-all ed ea)]
                                                                                                   nil)
                                                                                                 nil)
-                                                                                            (let [j__5 (if (and (and (not (zero? (bit-and (.argt ea) (e EX_REGSTR)))) (not (== (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) (e NUL)))) (not (and (not (zero? (bit-and (.argt ea) (e EX_COUNT)))) (< (u32 (- (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) 48)) 10))))
-                                                                                                        (if (or (== (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) 42) (== (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) 43))
+                                                                                            (let [j__5 (if (and (and (not (zero? (bit-and (.argt ea) (e EX_REGSTR)))) (not (== (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) (e NUL)))) (not (and (not (zero? (bit-and (.argt ea) (e EX_COUNT)))) (< (u32 (- (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) 48)) 10))))
+                                                                                                        (if (or (== (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) 42) (== (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) 43))
                                                                                                           (let [_ (aset errormsg 0 (gettext_ ed (BytePtr. (g ed e-invalid-register-name) 0)))]
                                                                                                             1)
-                                                                                                          (if (valid-yank-reg ed (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) (and (not (== (.cmdidx ea) (e CMD_put))) (not (== (.cmdidx ea) (e CMD_iput)))))
+                                                                                                          (if (valid-yank-reg ed (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) (and (not (== (.cmdidx ea) (e CMD_put))) (not (== (.cmdidx ea) (e CMD_iput)))))
                                                                                                             (let [^BytePtr t2 (aget ^objects (.-arg ea) 0)
                                                                                                                   _ (aset ^objects (.-arg ea) 0 (.add ^BytePtr (aget ^objects (.-arg ea) 0) 1))
-                                                                                                                  _ (.set-regname ea (bit-and (.get t2) 0xff))
+                                                                                                                  _ (.set-regname ea (.ub t2))
                                                                                                                   _ (aset ^objects (.-arg ea) 0 (skipwhite ed (aget ^objects (.-arg ea) 0)))]
                                                                                                               0)
                                                                                                             0))
                                                                                                         0)]
                                                                                               (case (long j__5)
                                                                                                 0
-                                                                                                  (let [j__6 (if (and (not (zero? (bit-and (.argt ea) (e EX_COUNT)))) (< (u32 (- (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) 48)) 10))
+                                                                                                  (let [j__6 (if (and (not (zero? (bit-and (.argt ea) (e EX_COUNT)))) (< (u32 (- (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) 48)) 10))
                                                                                                               (let [n (long (getdigits-quoted ed (Ptr. ^objects (.-arg ea) 0)))
                                                                                                                     _ (aset ^objects (.-arg ea) 0 (skipwhite ed (aget ^objects (.-arg ea) 0)))]
                                                                                                                 (if (and (<= n 0) (== (bit-and (.argt ea) (e EX_ZEROR)) 0))
@@ -49417,10 +49400,10 @@
                                                                                                               nil
                                                                                                               (let [_ (get-flags ed ea)]
                                                                                                                 nil))
-                                                                                                          (if (and (zero? (bit-and (.argt ea) (e EX_EXTRA))) (not (== (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) (e NUL))))
+                                                                                                          (if (and (zero? (bit-and (.argt ea) (e EX_EXTRA))) (not (== (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) (e NUL))))
                                                                                                             (let [_ (aset errormsg 0 (ex-errmsg ed (BytePtr. (g ed e-trailing-characters-str) 0) (aget ^objects (.-arg ea) 0)))]
                                                                                                               did-append-cmd)
-                                                                                                            (if (and (not (zero? (bit-and (.argt ea) (e EX_NEEDARG)))) (== (bit-and (.get ^BytePtr (aget ^objects (.-arg ea) 0)) 0xff) (e NUL)))
+                                                                                                            (if (and (not (zero? (bit-and (.argt ea) (e EX_NEEDARG)))) (== (.ub ^BytePtr (aget ^objects (.-arg ea) 0)) (e NUL)))
                                                                                                               (let [_ (aset errormsg 0 (gettext_ ed (BytePtr. (g ed e-argument-required) 0)))]
                                                                                                                 did-append-cmd)
                                                                                                               (let [_ ((.cmd-func ^S_cmdname (aget (g ed cmdnames) (.cmdidx ea))) ed ea)]
@@ -49458,7 +49441,7 @@
                         _ (.set (g ed cmdmod) save-cmdmod)
                         _ (g! ed reg-executing save-reg-executing)
                         _ (g! ed pending-end-reg-executing save-pending-end-reg-executing)]
-                    (if (and (some? (.nextcmd ea)) (== (bit-and (.get ^BytePtr (.nextcmd ea)) 0xff) (e NUL)))
+                    (if (and (some? (.nextcmd ea)) (== (.ub ^BytePtr (.nextcmd ea)) (e NUL)))
                       (let [_ (.set-nextcmd ea nil)]
                         (.nextcmd ea))
                       (.nextcmd ea))))))))))))
@@ -49694,7 +49677,7 @@
 
 ;; C: ends_excmd2
 (defn ends-excmd2? [^Editor ed ^BytePtr cmd-start ^BytePtr cmd]
-  (let [c (bit-and (.get cmd) 0xff)]
+  (let [c (.ub cmd)]
     (or (== c (e NUL)) (== c 10))))
 
 ;; C: highlight_arg_to_string
@@ -49976,15 +49959,15 @@
     (.set-length ^T_string_T (.-value target) 0)
     (loop [attr attr
            off off]
-      (if (== (bit-and (.at arg off) 0xff) (e NUL))
-        (if (== (bit-and (.get key_) 0xff) 84)
+      (if (== (.ub arg off) (e NUL))
+        (if (== (.ub key_) 84)
           (if (or (not init) (zero? (bit-and (.sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) (e SG_TERM))))
             (do (when-not init
                   (.set-sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (bit-or (.sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) (e SG_TERM))))
                 (.set-sg-term ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) attr)
                 true)
             true)
-          (if (== (bit-and (.get key_) 0xff) 67)
+          (if (== (.ub key_) 67)
             (if (or (not init) (zero? (bit-and (.sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) (e SG_CTERM))))
               (do (when-not init
                     (.set-sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (bit-or (.sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) (e SG_CTERM))))
@@ -50001,7 +49984,7 @@
                     false)
                 (let [attr (bit-or attr (.key_ ^T_keyvalue_T (.get entry)))
                       off (+ off (.length ^T_string_T (.-value ^T_keyvalue_T (.get entry))))
-                      off (if (== (bit-and (.at arg off) 0xff) 44)
+                      off (if (== (.ub arg off) 44)
                             (inc off)
                             off)]
                   (recur attr off)))))))))
@@ -50030,10 +50013,10 @@
           (.set-boldp out__ boldp)
           out__)
         (if (or (== (g ed t-colors) 16) (== (g ed t-colors) 88) (>= (g ed t-colors) 256))
-          (let [^BytePtr p (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 55)) 0xff) (e NUL))
+          (let [^BytePtr p (if (== (.ub ^BytePtr (aget (g ed term-strings) 55)) (e NUL))
                              ^BytePtr (aget (g ed term-strings) 50)
                              ^BytePtr (aget (g ed term-strings) 55))]
-            (if (and (not (== (bit-and (.get p) 0xff) (e NUL))) (or (> (g ed t-colors) 256) (== (bit-and (.get (.add (.add p (long (musl-strlen ed p))) (- 1))) 0xff) 109)))
+            (if (and (not (== (.ub p) (e NUL))) (or (> (g ed t-colors) 256) (== (.ub (.add (.add p (long (musl-strlen ed p))) (- 1))) 109)))
               (if (== (g ed t-colors) 88)
                 (let [color (long (aget (g ed color-numbers-88) idx))]
                   (.set-r__ out__ color)
@@ -50084,7 +50067,7 @@
                    (if (< color 16)
                      (if (or (< color 7) (== color 8)) 1 0)
                      dark))]
-        (when (and (not (== dark -1)) (not (== dark (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) 100) 1 0))) (not (option-was-set ed (BytePtr/lit "bg"))))
+        (when (and (not (== dark -1)) (not (== dark (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) 100) 1 0))) (not (option-was-set ed (BytePtr/lit "bg"))))
           (set-option-value-give-err ed (BytePtr/lit "bg") 0 (if (zero? dark) (BytePtr/lit "light") (BytePtr/lit "dark")) 0)
           (reset-option-was-set ed (BytePtr/lit "bg"))
           nil)))))
@@ -50122,10 +50105,10 @@
       false
       (do (when-not init
             (.set-sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (bit-or (.sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) (e SG_CTERM))))
-          (when (and (== (bit-and (.at key_ 5) 0xff) 70) (.sg-cterm-bold ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)))
+          (when (and (== (.ub key_ 5) 70) (.sg-cterm-bold ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)))
             (.set-sg-cterm ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (bit-and (.sg-cterm ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) -3))
             (.set-sg-cterm-bold ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (boolean false)))
-          (let [j__1 (if (< (u32 (- (bit-and (.get arg) 0xff) 48)) 10)
+          (let [j__1 (if (< (u32 (- (.ub arg) 48)) 10)
                        (let [color (long (musl-atoi ed arg))]
                          (aset tl__ 0 color)
                          0)
@@ -50163,7 +50146,7 @@
                                      (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-color-name-or-number-not-recognized-str) 0))))
                                      (aset to__ 0 (Boolean/valueOf (boolean false)))
                                      -1)
-                                 (do (.set lookup-color__o (lookup-color ed (.key_ ^T_keyvalue_T (.get entry)) (== (bit-and (.at key_ 5) 0xff) 70) bold))
+                                 (do (.set lookup-color__o (lookup-color ed (.key_ ^T_keyvalue_T (.get entry)) (== (.ub key_ 5) 70) bold))
                                      (let [bold (.boldp lookup-color__o)
                                            color (.r__ lookup-color__o)]
                                        (if (== bold (e TRUE))
@@ -50180,10 +50163,10 @@
             (if (== (long j__1) -1)
               (boolean (aget to__ 0))
               (let [color (aget tl__ 0)]
-                (if (== (bit-and (.at key_ 5) 0xff) 70)
+                (if (== (.ub key_ 5) 70)
                   (do (highlight-set-ctermfg ed idx color is-normal-group)
                       true)
-                  (if (== (bit-and (.at key_ 5) 0xff) 66)
+                  (if (== (.ub key_ 5) 66)
                     (do (highlight-set-ctermbg ed idx color is-normal-group)
                         true)
                     (do (highlight-set-ctermul ed idx color is-normal-group)
@@ -50195,7 +50178,7 @@
     false
     (do (when-not init
           (.set-sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (bit-or (.sg-set ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx)) (e SG_CTERM))))
-        (if (< (u32 (- (bit-and (.get arg) 0xff) 48)) 10)
+        (if (< (u32 (- (.ub arg) 48)) 10)
           (let [font (long (musl-atoi ed arg))]
             (.set-sg-cterm-font ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (i32 (+ font 1)))
             true)
@@ -50208,7 +50191,7 @@
 ;; C: get_term_code
 (defn get-term-code ^BytePtr [^Editor ed ^BytePtr tname]
   (let [^T_optvar_T varp (new-T_optvar_T)]
-    (when-not (or (not (== (bit-and (.at tname 0) 0xff) 116)) (not (== (bit-and (.at tname 1) 0xff) 95)) (== (bit-and (.at tname 2) 0xff) (e NUL)) (== (bit-and (.at tname 3) 0xff) (e NUL)))
+    (when-not (or (not (== (.ub tname 0) 116)) (not (== (.ub tname 1) 95)) (== (.ub tname 2) (e NUL)) (== (.ub tname 3) (e NUL)))
       (let [opt-idx (long (findoption ed tname))]
         (if (>= opt-idx 0)
           (do (.set varp (get-varp ed (Ptr. (g ed options) opt-idx)))
@@ -50224,7 +50207,7 @@
     (loop [^BytePtr s s
            i i]
       (if (< i len)
-        (let [c (bit-and (aget temp i) 0xff)
+        (let [c (bit-and (long (aget temp i)) 0xff)
               ^BytePtr s (if (== c 128)
                            (let [^BytePtr t1 s
                                  ^BytePtr s (.add s 1)
@@ -50314,7 +50297,7 @@
                     (let [off 0]
                       (recur 1 idx key_ arg init off len)))))
         1
-          (if (and (< off 94) (not (zero? (bit-and (.get ^BytePtr (aget p 0)) 0xff))))
+          (if (and (< off 94) (not (zero? (.ub ^BytePtr (aget p 0)))))
             (let [len (long (trans-special ed (Ptr. p 0) (.add (BytePtr. buf 0) off) (e FSK_SIMPLIFY) false nil))
                   off (if (> len 0)
                         (i32 (+ off len))
@@ -50322,13 +50305,13 @@
                               off (i32 (inc off))
                               ^BytePtr t2 (aget p 0)]
                           (aset p 0 (.add ^BytePtr (aget p 0) 1))
-                          (aset buf t1 (unchecked-byte (bit-and (.get t2) 0xff)))
+                          (aset buf t1 (unchecked-byte (.ub t2)))
                           off))]
               (recur 1 idx key_ arg init off len))
             (do (aset buf off (unchecked-byte (e NUL)))
                 (recur 3 idx key_ arg init off len)))
         2
-          (if (== (bit-and (.at arg off) 0xff) (e NUL))
+          (if (== (.ub arg off) (e NUL))
             (recur 3 idx key_ arg init off len)
             (let [len 0]
               (recur 4 idx key_ arg init off len)))
@@ -50336,13 +50319,13 @@
           (do (if (== (long (musl-strcmp ed (BytePtr. buf 0) (BytePtr/lit "NONE"))) 0)
                 (aset p 0 nil)
                 (aset p 0 (vim-strsave ed (BytePtr. buf 0))))
-              (if (== (bit-and (.at key_ 2) 0xff) 65)
+              (if (== (.ub key_ 2) 65)
                 (do (.set-sg-start ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (aget p 0))
                     true)
                 (do (.set-sg-stop ^T_hl_group_T (.at (GA_Ptr_T_hl_group_T (g ed highlight-ga)) idx) (aget p 0))
                     true)))
         4
-          (if (and (not (zero? (bit-and (.at arg (i32 (+ off len))) 0xff))) (not (== (bit-and (.at arg (i32 (+ off len))) 0xff) 44)))
+          (if (and (not (zero? (.ub arg (i32 (+ off len))))) (not (== (.ub arg (i32 (+ off len))) 44)))
             (let [len (i32 (inc len))]
               (recur 4 idx key_ arg init off len))
             (let [^BytePtr tname (vim-strnsave ed (.add arg off) len)]
@@ -50355,7 +50338,7 @@
                     false)
                 (do (musl-strcat ed (BytePtr. buf 0) (aget p 0))
                     (let [off (i32 (+ off len))
-                          off (if (== (bit-and (.at arg off) 0xff) 44)
+                          off (if (== (.ub arg off) 44)
                                 (i32 (inc off))
                                 off)]
                       (recur 2 idx key_ arg init off len))))))))))
@@ -50377,13 +50360,13 @@
 ;; C: resolve_fallback_fg_to_rgb
 (defn resolve-fallback-fg-to-rgb [^Editor ed]
   (let [fgcolor-or-gui-fgcolor 33554431]
-    (g! ed fallback-fg-rgb (long (resolve-fallback-color ed (g ed cterm-normal-fg-color) fgcolor-or-gui-fgcolor (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) 108) 0 16777215))))
+    (g! ed fallback-fg-rgb (long (resolve-fallback-color ed (g ed cterm-normal-fg-color) fgcolor-or-gui-fgcolor (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) 108) 0 16777215))))
     nil))
 
 ;; C: resolve_fallback_bg_to_rgb
 (defn resolve-fallback-bg-to-rgb [^Editor ed]
   (let [bgcolor-or-gui-bgcolor 33554431]
-    (g! ed fallback-bg-rgb (long (resolve-fallback-color ed (g ed cterm-normal-bg-color) bgcolor-or-gui-bgcolor (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) 108) 16777215 0))))
+    (g! ed fallback-bg-rgb (long (resolve-fallback-color ed (g ed cterm-normal-bg-color) bgcolor-or-gui-bgcolor (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) 108) 16777215 0))))
     nil))
 
 ;; C: do_highlight
@@ -50504,13 +50487,13 @@
                                                            (if (ends-excmd2? ed line linep)
                                                              error
                                                              (let [^BytePtr key-start linep]
-                                                               (if (== (bit-and (.get linep) 0xff) 61)
+                                                               (if (== (.ub linep) 61)
                                                                  (let [_ (long (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-unexpected-equal-sign-str) 0)) (object-array [key-start])))
                                                                        _ (long (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-unexpected-equal-sign-str) 0)))))
                                                                        error true]
                                                                    error)
                                                                  (let [l__3 (loop [^BytePtr linep linep]
-                                                                             (if (and (and (not (zero? (bit-and (.get linep) 0xff))) (not (or (== (bit-and (.get linep) 0xff) 32) (== (bit-and (.get linep) 0xff) 9)))) (not (== (bit-and (.get linep) 0xff) 61)))
+                                                                             (if (and (and (not (zero? (.ub linep))) (not (or (== (.ub linep) 32) (== (.ub linep) 9)))) (not (== (.ub linep) 61)))
                                                                                (let [^BytePtr linep (.add linep 1)]
                                                                                  (recur linep))
                                                                                (do (aset to__ 2 linep)
@@ -50528,10 +50511,10 @@
                                                                                    nil))
                                                                                nil)
                                                                            (recur linep))
-                                                                         (if (== (bit-and (.get linep) 0xff) 61)
+                                                                         (if (== (.ub linep) 61)
                                                                            (let [^BytePtr linep (.add linep 1)
                                                                                  ^BytePtr linep (skipwhite ed linep)]
-                                                                             (let [j__4 (if (== (bit-and (.get linep) 0xff) 39)
+                                                                             (let [j__4 (if (== (.ub linep) 39)
                                                                                          (let [^BytePtr linep (.add linep 1)
                                                                                                ^BytePtr arg-start linep
                                                                                                ^BytePtr linep (vim-strchr ed linep 39)]
@@ -50562,7 +50545,7 @@
                                                                                              error true]
                                                                                          error)
                                                                                        (let [^BytePtr arg (vim-strnsave ed arg-start (.sub linep arg-start))]
-                                                                                         (let [^BytePtr linep (if (== (bit-and (.get linep) 0xff) 39)
+                                                                                         (let [^BytePtr linep (if (== (.ub linep) 39)
                                                                                                                (let [^BytePtr linep (.add linep 1)]
                                                                                                                  linep)
                                                                                                                linep)]
@@ -50667,7 +50650,7 @@
                  0
                  -1))]
     (when-not (== (long j__1) -1)
-      (let [^Ptr pp (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) 108)
+      (let [^Ptr pp (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) 108)
                       ^Ptr (Ptr. (g ed highlight-init-light) 0)
                       ^Ptr (Ptr. (g ed highlight-init-dark) 0))
             i 0]
@@ -50679,7 +50662,7 @@
             (do (when (< (g ed t-colors) 8)
                   (do-highlight ed (BytePtr/lit "Visual term=reverse cterm=reverse ctermbg=NONE ctermfg=NONE") false true))
                 (if (<= (g ed t-colors) 8)
-                  (if (== (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff) 108)
+                  (if (== (.ub ^BytePtr (aget (g ed p-bg) 0)) 108)
                     (do (do-highlight ed (BytePtr/lit "Search ctermfg=black") false true)
                         (resolve-fallback-fg-to-rgb ed)
                         (resolve-fallback-bg-to-rgb ed)
@@ -50708,7 +50691,7 @@
     (.set-tr-progress (g ed crv-status) (e STATUS_GOT))
     (g! ed did-cursorhold (e TRUE))
     (init-term-props ed false)
-    (when (== (bit-and (.at tp 0) 0xff) (e CSI))
+    (when (== (.ub tp 0) (e CSI))
       (switch-to-8bit ed))
     (let [version (if (> version 20000)
                     0
@@ -50760,7 +50743,7 @@
           (.set-tpr-status ^T_termprop_T (aget (g ed term-props) (e TPR_UNDERLINE_RGB)) (e TPR_YES)))
         (when (< version 279)
           (.set-tpr-status ^T_termprop_T (aget (g ed term-props) (e TPR_CURSOR_STYLE)) (e TPR_NO)))
-        (when (and (not (== (.tpr-status ^T_termprop_T (aget (g ed term-props) (e TPR_UNDERLINE_RGB))) (e TPR_YES))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 81)) 0xff) (e NUL))) (not (option-was-set ed (BytePtr/lit "t_8u"))))
+        (when (and (not (== (.tpr-status ^T_termprop_T (aget (g ed term-props) (e TPR_UNDERLINE_RGB))) (e TPR_YES))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 81)) (e NUL))) (not (option-was-set ed (BytePtr/lit "t_8u"))))
           (set-string-option-direct ed (BytePtr/lit "t_8u") -1 (BytePtr/lit "") (e OPT_FREE) 0)
           nil)))))
 
@@ -50806,9 +50789,9 @@
         (do (aset key-name 0 (unchecked-byte 70))
             (aset key-name 1 (unchecked-byte 50)))
       nil)
-    (if (zero? (bit-and (aget key-name 0) 0xff))
+    (if (zero? (bit-and (long (aget key-name 0)) 0xff))
       arg
-      (i32 (- (i32 (+ (bit-and (aget key-name 0) 0xff) (i32 (bit-shift-left (bit-and (aget key-name 1) 0xff) 8)))))))))
+      (i32 (- (i32 (+ (bit-and (long (aget key-name 0)) 0xff) (i32 (bit-shift-left (bit-and (long (aget key-name 1)) 0xff) 8)))))))))
 
 ;; C: handle_key_with_modifier
 (defn handle-key-with-modifier [^Editor ed ^IntPtr arg csi-len offset ^BytePtr buf bufsize ^IntPtr buflen iskitty trail]
@@ -50872,13 +50855,13 @@
         _ (aset arg 2 (unchecked-int -1))
         argc 0
         ^BytePtr ap argp
-        j__1 (if (< (u32 (- (bit-and (.get ap) 0xff) 48)) 10)
+        j__1 (if (< (u32 (- (.ub ap) 48)) 10)
                (do (aset tl__ 0 first_)
                    (aset to__ 0 ap)
                    0)
                (let [^BytePtr t1 ap
                      ^BytePtr ap (.add ap 1)
-                     first_ (bit-and (.get t1) 0xff)]
+                     first_ (.ub t1)]
                  (aset tl__ 0 first_)
                  (aset to__ 0 ap)
                  0))
@@ -50899,21 +50882,21 @@
                             (if (< argc 3)
                               (if (.ge ap (.add tp len))
                                 2
-                                (let [j__4 (if (== (bit-and (.get ap) 0xff) 59)
+                                (let [j__4 (if (== (.ub ap) 59)
                                              (let [t2 argc
                                                    argc (i32 (inc argc))]
                                                (aset arg t2 (unchecked-int -1))
                                                (aset tl__ 2 argc)
                                                (aset to__ 0 ap)
                                                0)
-                                             (if (< (u32 (- (bit-and (.get ap) 0xff) 48)) 10)
+                                             (if (< (u32 (- (.ub ap) 48)) 10)
                                                (do (aset arg argc (unchecked-int 0))
                                                    (let [l__3 (loop [^BytePtr ap ap]
                                                                 (if (.ge ap (.add tp len))
                                                                   1
-                                                                  (if (< (u32 (- (bit-and (.get ap) 0xff) 48)) 10)
+                                                                  (if (< (u32 (- (.ub ap) 48)) 10)
                                                                     (do (when (<= (long (aget arg argc)) 214748363)
-                                                                          (aset arg argc (unchecked-int (+ (i32 (* (long (aget arg argc)) 10)) (i32 (- (bit-and (.get ap) 0xff) 48))))))
+                                                                          (aset arg argc (unchecked-int (+ (i32 (* (long (aget arg argc)) 10)) (i32 (- (.ub ap) 48))))))
                                                                         (let [^BytePtr ap (.add ap 1)]
                                                                           (recur ap)))
                                                                     (do (aset to__ 0 ap)
@@ -50934,7 +50917,7 @@
                                     0
                                       (let [argc (aget tl__ 2)
                                             ^BytePtr ap (aget to__ 0)]
-                                        (if (== (bit-and (.get ap) 0xff) 59)
+                                        (if (== (.ub ap) 59)
                                           (let [^BytePtr ap (.add ap 1)]
                                             (recur argc ap))
                                           (do (aset tl__ 2 argc)
@@ -50955,7 +50938,7 @@
                      (let [argc (aget tl__ 2)
                            ^BytePtr ap (aget to__ 0)
                            l__5 (loop [^BytePtr ap ap]
-                                  (if (and (.lt ap (.add tp len)) (not (and (>= (bit-and (.get ap) 0xff) 123) (<= (bit-and (.get ap) 0xff) 126))) (not (or (< (u32 (- (bit-and (.get ap) 0xff) 65)) 26) (< (u32 (- (bit-and (.get ap) 0xff) 97)) 26))))
+                                  (if (and (.lt ap (.add tp len)) (not (and (>= (.ub ap) 123) (<= (.ub ap) 126))) (not (or (< (u32 (- (.ub ap) 65)) 26) (< (u32 (- (.ub ap) 97)) 26))))
                                     (let [^BytePtr ap (.add ap 1)]
                                       (recur ap))
                                     (do (aset to__ 0 ap)
@@ -50966,7 +50949,7 @@
                              (.set-slen out__ slen)
                              (aset to__ 1 out__)
                              -1)
-                         (let [trail (bit-and (.get ap) 0xff)]
+                         (let [trail (.ub ap)]
                            (aset tl__ 0 first_)
                            (aset tl__ 1 trail)
                            (aset tl__ 2 argc)
@@ -51050,7 +51033,7 @@
                         (.set-r__ out__ 0)
                         (.set-slen out__ slen)
                         out__)
-                      (if (and (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 69)) 0xff) (e NUL))) (.gt ap (.add argp 1)) (== trail 99))
+                      (if (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 69)) (e NUL))) (.gt ap (.add argp 1)) (== trail 99))
                         (do (handle-version-response ed first_ (IntPtr. arg 0) argc tp)
                             (let [slen csi-len]
                               (.set key-name 0 (unchecked-byte 253))
@@ -51089,25 +51072,25 @@
         ^T_handle_dcs__out_T out__ (new-T_handle_dcs__out_T)
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)
-        j (i32 (+ 1 (if (== (bit-and (.at tp 0) 0xff) (e ESC)) 1 0)))
+        j (i32 (+ 1 (if (== (.ub tp 0) (e ESC)) 1 0)))
         j__1 (if (< len (i32 (+ j 3)))
                (let [i len]
                  (aset tl__ 0 slen)
                  (aset tl__ 1 i)
                  0)
-               (if (or (and (not (== (bit-and (.at argp 1) 0xff) 43)) (not (== (bit-and (.at argp 1) 0xff) 36))) (and (not (== (bit-and (.at argp 2) 0xff) 114)) (not (== (bit-and (.at argp 2) 0xff) 82))))
+               (if (or (and (not (== (.ub argp 1) 43)) (not (== (.ub argp 1) 36))) (and (not (== (.ub argp 2) 114)) (not (== (.ub argp 2) 82))))
                  (let [i 0]
                    (aset tl__ 0 slen)
                    (aset tl__ 1 i)
                    0)
-                 (if (== (bit-and (.at argp 1) 0xff) 43)
+                 (if (== (.ub argp 1) 43)
                    (let [i j]
                      (loop [i i]
                        (if (< i len)
-                         (if (or (and (== (bit-and (.at tp i) 0xff) (e ESC)) (< (i32 (+ i 1)) len) (== (bit-and (.at tp (i32 (+ i 1))) 0xff) 92)) (== (bit-and (.at tp i) 0xff) (e STERM)))
+                         (if (or (and (== (.ub tp i) (e ESC)) (< (i32 (+ i 1)) len) (== (.ub tp (i32 (+ i 1))) 92)) (== (.ub tp i) (e STERM)))
                            (do (.set key-name 0 (unchecked-byte 253))
                                (.set key-name 1 (unchecked-byte 53))
-                               (let [slen (i32 (+ (i32 (+ i 1)) (if (== (bit-and (.at tp i) 0xff) (e ESC)) 1 0)))]
+                               (let [slen (i32 (+ (i32 (+ i 1)) (if (== (.ub tp i) (e ESC)) 1 0)))]
                                  (aset tl__ 0 slen)
                                  (aset tl__ 1 i)
                                  0))
@@ -51119,23 +51102,23 @@
                    (let [i (i32 (+ j 3))]
                      (loop [i i]
                        (if (< i len)
-                         (if (and (== (i32 (- i j)) 3) (not (musl-isdigit? ed (bit-and (.at tp i) 0xff))))
+                         (if (and (== (i32 (- i j)) 3) (not (musl-isdigit? ed (.ub tp i))))
                            (do (aset tl__ 0 slen)
                                (aset tl__ 1 i)
                                0)
-                           (if (and (== (i32 (- i j)) 4) (not (== (bit-and (.at tp i) 0xff) 32)))
+                           (if (and (== (i32 (- i j)) 4) (not (== (.ub tp i) 32)))
                              (do (aset tl__ 0 slen)
                                  (aset tl__ 1 i)
                                  0)
-                             (if (and (== (i32 (- i j)) 5) (not (== (bit-and (.at tp i) 0xff) 113)))
+                             (if (and (== (i32 (- i j)) 5) (not (== (.ub tp i) 113)))
                                (do (aset tl__ 0 slen)
                                    (aset tl__ 1 i)
                                    0)
-                               (if (and (== (i32 (- i j)) 6) (not (== (bit-and (.at tp i) 0xff) (e ESC))) (not (== (bit-and (.at tp i) 0xff) (e STERM))))
+                               (if (and (== (i32 (- i j)) 6) (not (== (.ub tp i) (e ESC))) (not (== (.ub tp i) (e STERM))))
                                  (do (aset tl__ 0 slen)
                                      (aset tl__ 1 i)
                                      0)
-                                 (if (or (and (== (i32 (- i j)) 6) (== (bit-and (.at tp i) 0xff) (e STERM))) (and (== (i32 (- i j)) 7) (== (bit-and (.at tp i) 0xff) 92)))
+                                 (if (or (and (== (i32 (- i j)) 6) (== (.ub tp i) (e STERM))) (and (== (i32 (- i j)) 7) (== (.ub tp i) 92)))
                                    (do (.set key-name 0 (unchecked-byte 253))
                                        (.set key-name 1 (unchecked-byte 53))
                                        (let [slen (i32 (+ i 1))]
@@ -51205,7 +51188,7 @@
               0
                 (let [^BytePtr tp (aget to__ 0)
                       len (aget tl__ 0)
-                      j__11 (if (== (bit-and (.get tp) 0xff) 128)
+                      j__11 (if (== (.ub tp) 128)
                               (let [offset (i32 (+ offset 2))]
                                 (aset tl__ 2 slen)
                                 (aset tl__ 3 offset)
@@ -51222,19 +51205,19 @@
                                                         (aset tl__ 5 modifiers)
                                                         0)
                                                     7)))
-                                            (let [i (bit-and (.get tp) 0xff)
+                                            (let [i (.ub tp)
                                                   ^BytePtr p (BytePtr. (g ed termleader) 0)
                                                   l__2 (loop [^BytePtr p p]
-                                                         (if (and (not (zero? (bit-and (.get p) 0xff))) (not (== (bit-and (.get p) 0xff) i)))
+                                                         (if (and (not (zero? (.ub p))) (not (== (.ub p) i)))
                                                            (let [^BytePtr p (.add p 1)]
                                                              (recur p))
                                                            (do (aset to__ 1 p)
                                                                0)))
                                                   ^BytePtr p (aget to__ 1)]
-                                              (if (== (bit-and (.get p) 0xff) (e NUL))
+                                              (if (== (.ub p) (e NUL))
                                                 (do (aset tl__ 2 slen)
                                                     8)
-                                                (if (and (== (bit-and (.get tp) 0xff) (e ESC)) (zero? (long (aget (g ed p-ek) 0))) (not (zero? (bit-and (g ed State) (e MODE_INSERT)))))
+                                                (if (and (== (.ub tp) (e ESC)) (zero? (long (aget (g ed p-ek) 0))) (not (zero? (bit-and (g ed State) (e MODE_INSERT)))))
                                                   (do (aset tl__ 2 slen)
                                                       8)
                                                   (do (.set tp len (unchecked-byte (e NUL)))
@@ -51262,7 +51245,7 @@
                                                                                   (let [j__5 (if (== (long (musl-strncmp ed (.code ^S_termcode (.at (g ed termcodes) idx)) tp (if (> slen len) len slen))) 0)
                                                                                                (if (< len slen)
                                                                                                  2
-                                                                                                 (let [j__4 (if (and (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0) 0xff) 75) (or (< (u32 (- (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1) 0xff) 48)) 10) (< (u32 (- (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1) 0xff) 65)) 26)))
+                                                                                                 (let [j__4 (if (and (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0)) 0xff) 75) (or (< (u32 (- (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1)) 0xff) 48)) 10) (< (u32 (- (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1)) 0xff) 65)) 26)))
                                                                                                               (let [is-keypad true]
                                                                                                                 (if (< keypad-index-found 0)
                                                                                                                   (let [keypad-index-found idx
@@ -51287,8 +51270,8 @@
                                                                                                          (aset tl__ 8 keypad-slen-found)
                                                                                                          (aset to__ 2 (Boolean/valueOf (boolean is-keypad)))
                                                                                                          0)
-                                                                                                     (do (aset key-name 0 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0) 0xff)))
-                                                                                                         (aset key-name 1 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1) 0xff)))
+                                                                                                     (do (aset key-name 0 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0)) 0xff)))
+                                                                                                         (aset key-name 1 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1)) 0xff)))
                                                                                                          (aset tl__ 7 keypad-index-found)
                                                                                                          (aset tl__ 8 keypad-slen-found)
                                                                                                          1))))
@@ -51312,22 +51295,22 @@
                                                                                                 (if (== (long (musl-strncmp ed (.code ^S_termcode (.at (g ed termcodes) idx)) tp (if (> modslen len) len modslen))) 0)
                                                                                                   (if (<= len modslen)
                                                                                                     2
-                                                                                                    (let [j__7 (if (== (bit-and (.at tp modslen) 0xff) (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) (i32 (- slen 1))) 0xff))
+                                                                                                    (let [j__7 (if (== (.ub tp modslen) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) (i32 (- slen 1))))
                                                                                                                  (let [slen (i32 (+ modslen 1))]
                                                                                                                    (aset tl__ 2 slen)
                                                                                                                    (aset tl__ 5 modifiers)
                                                                                                                    0)
-                                                                                                                 (if (and (not (== (bit-and (.at tp modslen) 0xff) 59)) (== modslen (i32 (- slen 3))))
+                                                                                                                 (if (and (not (== (.ub tp modslen) 59)) (== modslen (i32 (- slen 3))))
                                                                                                                    (do (aset tl__ 2 slen)
                                                                                                                        (aset tl__ 5 modifiers)
                                                                                                                        2)
-                                                                                                                   (if (and (== (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) modslen) 0xff) 64) (or (not (== (bit-and (.at tp modslen) 0xff) 49)) (not (== (bit-and (.at tp (i32 (+ modslen 1))) 0xff) 59))))
+                                                                                                                   (if (and (== (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) modslen) 64) (or (not (== (.ub tp modslen) 49)) (not (== (.ub tp (i32 (+ modslen 1))) 59))))
                                                                                                                      (do (aset tl__ 2 slen)
                                                                                                                          (aset tl__ 5 modifiers)
                                                                                                                          2)
                                                                                                                      (let [j (i32 (- slen 2))
                                                                                                                            l__6 (loop [j j]
-                                                                                                                                  (if (and (< j len) (or (musl-isdigit? ed (bit-and (.at tp j) 0xff)) (== (bit-and (.at tp j) 0xff) 45) (== (bit-and (.at tp j) 0xff) 59)))
+                                                                                                                                  (if (and (< j len) (or (musl-isdigit? ed (.ub tp j)) (== (.ub tp j) 45) (== (.ub tp j) 59)))
                                                                                                                                     (let [j (i32 (inc j))]
                                                                                                                                       (recur j))
                                                                                                                                     (do (aset tl__ 9 j)
@@ -51336,7 +51319,7 @@
                                                                                                                            j (i32 (inc j))]
                                                                                                                        (if (< len j)
                                                                                                                          1
-                                                                                                                         (if (== (bit-and (.at tp (i32 (- j 1))) 0xff) (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) (i32 (- slen 1))) 0xff))
+                                                                                                                         (if (== (.ub tp (i32 (- j 1))) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) idx)) (i32 (- slen 1))))
                                                                                                                            (let [^BytePtr modifiers-start (.add (.add tp slen) (- 2))
                                                                                                                                  n (long (musl-atoi ed modifiers-start))
                                                                                                                                  t1 (long (decode-modifiers ed n))
@@ -51352,7 +51335,7 @@
                                                                                                         0
                                                                                                           (let [slen (aget tl__ 2)
                                                                                                                 modifiers (aget tl__ 5)
-                                                                                                                j__8 (if (and (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0) 0xff) 75) (or (< (u32 (- (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1) 0xff) 48)) 10) (< (u32 (- (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1) 0xff) 65)) 26)))
+                                                                                                                j__8 (if (and (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0)) 0xff) 75) (or (< (u32 (- (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1)) 0xff) 48)) 10) (< (u32 (- (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1)) 0xff) 65)) 26)))
                                                                                                                        (let [is-keypad true]
                                                                                                                          (if (< keypad-index-found 0)
                                                                                                                            (let [keypad-index-found idx
@@ -51378,8 +51361,8 @@
                                                                                                                   (aset tl__ 7 keypad-index-found)
                                                                                                                   (aset tl__ 8 keypad-slen-found)
                                                                                                                   0)
-                                                                                                              (do (aset key-name 0 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0) 0xff)))
-                                                                                                                  (aset key-name 1 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1) 0xff)))
+                                                                                                              (do (aset key-name 0 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 0)) 0xff)))
+                                                                                                                  (aset key-name 1 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) idx)) 1)) 0xff)))
                                                                                                                   (aset tl__ 2 slen)
                                                                                                                   (aset tl__ 5 modifiers)
                                                                                                                   (aset tl__ 7 keypad-index-found)
@@ -51458,13 +51441,13 @@
                                                                   keypad-index-found (aget tl__ 7)
                                                                   keypad-slen-found (aget tl__ 8)
                                                                   slen (if (and (== idx (g ed tc-len)) (>= keypad-index-found 0))
-                                                                         (do (aset key-name 0 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) keypad-index-found)) 0) 0xff)))
-                                                                             (aset key-name 1 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) keypad-index-found)) 1) 0xff)))
+                                                                         (do (aset key-name 0 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) keypad-index-found)) 0)) 0xff)))
+                                                                             (aset key-name 1 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) keypad-index-found)) 1)) 0xff)))
                                                                              keypad-slen-found)
                                                                          slen)]
-                                                              (if (== (bit-and (aget key-name 0) 0xff) (e NUL))
-                                                                (let [^BytePtr argp (if (== (bit-and (.at tp 0) 0xff) (e ESC)) (.add tp 2) (.add tp 1))]
-                                                                  (if (and (or (and (== (bit-and (.at tp 0) 0xff) (e ESC)) (>= len 3) (== (bit-and (.at tp 1) 0xff) 91)) (and (== (bit-and (.at tp 0) 0xff) (e CSI)) (>= len 2))) (some? (vim-strchr ed (BytePtr/lit "0123456789>?ABCDEFHPQRS") (bit-and (.get argp) 0xff))))
+                                                              (if (== (bit-and (long (aget key-name 0)) 0xff) (e NUL))
+                                                                (let [^BytePtr argp (if (== (.ub tp 0) (e ESC)) (.add tp 2) (.add tp 1))]
+                                                                  (if (and (or (and (== (.ub tp 0) (e ESC)) (>= len 3) (== (.ub tp 1) 91)) (and (== (.ub tp 0) (e CSI)) (>= len 2))) (some? (vim-strchr ed (BytePtr/lit "0123456789>?ABCDEFHPQRS") (.ub argp))))
                                                                     (do (.set handle-csi__o (handle-csi ed tp len argp offset buf bufsize buflen (BytePtr. key-name 0) slen))
                                                                         (let [slen (.slen handle-csi__o)
                                                                               resp (.r__ handle-csi__o)]
@@ -51474,7 +51457,7 @@
                                                                                 0)
                                                                             (do (aset tl__ 4 resp)
                                                                                 5))))
-                                                                    (if (or (and (== (bit-and (.at tp 0) 0xff) (e ESC)) (>= len 2) (== (bit-and (.at tp 1) 0xff) 93)) (== (bit-and (.at tp 0) 0xff) (e OSC)))
+                                                                    (if (or (and (== (.ub tp 0) (e ESC)) (>= len 2) (== (.ub tp 1) 93)) (== (.ub tp 0) (e OSC)))
                                                                       (do (.set handle-osc__o (handle-osc ed tp len (BytePtr. key-name 0) slen))
                                                                           (let [slen (.slen handle-osc__o)]
                                                                             (if (.r__ handle-osc__o)
@@ -51482,7 +51465,7 @@
                                                                                   (aset tl__ 5 modifiers)
                                                                                   0)
                                                                               4)))
-                                                                      (if (or (and (== (bit-and (.at tp 0) 0xff) (e ESC)) (>= len 2) (== (bit-and (.at tp 1) 0xff) 80)) (== (bit-and (.at tp 0) 0xff) (e DCS)))
+                                                                      (if (or (and (== (.ub tp 0) (e ESC)) (>= len 2) (== (.ub tp 1) 80)) (== (.ub tp 0) (e DCS)))
                                                                         (do (.set handle-dcs__o (handle-dcs ed tp argp len (BytePtr. key-name 0) slen))
                                                                             (let [slen (.slen handle-dcs__o)]
                                                                               (if (.r__ handle-dcs__o)
@@ -51502,7 +51485,7 @@
                                   0
                                     (let [slen (aget tl__ 2)
                                           modifiers (aget tl__ 5)]
-                                      (if (== (bit-and (aget key-name 0) 0xff) (e NUL))
+                                      (if (== (bit-and (long (aget key-name 0)) 0xff) (e NUL))
                                         (do (aset tl__ 2 slen)
                                             (aset tl__ 3 offset)
                                             0)
@@ -51553,32 +51536,32 @@
                       (let [slen (aget tl__ 2)
                             offset (aget tl__ 3)
                             modifiers (aget tl__ 5)]
-                        (when (== (bit-and (aget key-name 0) 0xff) (e KS_EXTRA))
-                          (if (== (bit-and (aget key-name 1) 0xff) (e KE_FOCUSGAINED))
+                        (when (== (bit-and (long (aget key-name 0)) 0xff) (e KS_EXTRA))
+                          (if (== (bit-and (long (aget key-name 1)) 0xff) (e KE_FOCUSGAINED))
                             (do (when (zero? (g ed focus-state))
                                   (ui-focus-change ed true)
                                   (g! ed did-cursorhold (e TRUE))
                                   (g! ed focus-state (e TRUE)))
                                 (aset key-name 1 (unchecked-byte 53)))
-                            (when (== (bit-and (aget key-name 1) 0xff) (e KE_FOCUSLOST))
+                            (when (== (bit-and (long (aget key-name 1)) 0xff) (e KE_FOCUSLOST))
                               (when-not (zero? (g ed focus-state))
                                 (ui-focus-change ed false)
                                 (g! ed did-cursorhold (e TRUE))
                                 (g! ed focus-state (e FALSE)))
                               (aset key-name 1 (unchecked-byte 53)))))
-                        (let [key_ (long (handle-x-keys ed (i32 (- (i32 (+ (bit-and (aget key-name 0) 0xff) (i32 (bit-shift-left (bit-and (aget key-name 1) 0xff) 8))))))))
+                        (let [key_ (long (handle-x-keys ed (i32 (- (i32 (+ (bit-and (long (aget key-name 0)) 0xff) (i32 (bit-shift-left (bit-and (long (aget key-name 1)) 0xff) 8))))))))
                               _ (.set modifiers2keycode__o (modifiers2keycode ed modifiers key_ (BytePtr. string 0)))
                               key_ (.key_ modifiers2keycode__o)
                               new-slen (.r__ modifiers2keycode__o)
                               _ (aset key-name 0 (unchecked-byte (bit-and (i32 (- key_)) 255)))
                               _ (aset key-name 1 (unchecked-byte (bit-and (bit-shift-right (u32 (- key_)) 8) 255)))
-                              j__12 (if (== (bit-and (aget key-name 0) 0xff) (e KS_KEY))
-                                      (let [t2 (long (utf-char2bytes ed (bit-and (aget key-name 1) 0xff) (.add (BytePtr. string 0) new-slen)))
+                              j__12 (if (== (bit-and (long (aget key-name 0)) 0xff) (e KS_KEY))
+                                      (let [t2 (long (utf-char2bytes ed (bit-and (long (aget key-name 1)) 0xff) (.add (BytePtr. string 0) new-slen)))
                                             new-slen (i32 (+ new-slen t2))]
                                         (aset tl__ 10 retval)
                                         (aset tl__ 11 new-slen)
                                         0)
-                                      (if (or (.processing (g ed osc-state)) (and (== new-slen 0) (== (bit-and (aget key-name 0) 0xff) (e KS_EXTRA)) (== (bit-and (aget key-name 1) 0xff) (e KE_IGNORE))))
+                                      (if (or (.processing (g ed osc-state)) (and (== new-slen 0) (== (bit-and (long (aget key-name 0)) 0xff) (e KS_EXTRA)) (== (bit-and (long (aget key-name 1)) 0xff) (e KE_IGNORE))))
                                         (let [retval (e KEYLEN_REMOVED)]
                                           (aset tl__ 10 retval)
                                           (aset tl__ 11 new-slen)
@@ -51588,10 +51571,10 @@
                                               _ (aset string t3 (unchecked-byte 128))
                                               t4 new-slen
                                               new-slen (i32 (inc new-slen))
-                                              _ (aset string t4 (unchecked-byte (bit-and (aget key-name 0) 0xff)))
+                                              _ (aset string t4 (unchecked-byte (bit-and (long (aget key-name 0)) 0xff)))
                                               t5 new-slen
                                               new-slen (i32 (inc new-slen))]
-                                          (aset string t5 (unchecked-byte (bit-and (aget key-name 1) 0xff)))
+                                          (aset string t5 (unchecked-byte (bit-and (long (aget key-name 1)) 0xff)))
                                           (aset tl__ 10 retval)
                                           (aset tl__ 11 new-slen)
                                           0)))
@@ -51701,12 +51684,12 @@
                       (aset len 0 (unchecked-int n)))
                     (if (== (long (aget len 0)) 0)
                       (recur buf buflen waited)
-                      (let [n (bit-and (.at buf 0) 0xff)]
+                      (let [n (.ub buf 0)]
                         (if (== n 128)
-                          (let [n (if (== (bit-and (.at buf 1) 0xff) (e KS_SPECIAL)) 128 (if (== (bit-and (.at buf 1) 0xff) (e KS_ZERO)) -22783 (i32 (- (i32 (+ (bit-and (.at buf 1) 0xff) (i32 (bit-shift-left (bit-and (.at buf 2) 0xff) 8))))))))]
-                            (if (or (== (bit-and (.at buf 1) 0xff) (e KS_MODIFIER)) (== n (e K_IGNORE)))
-                              (do (when (== (bit-and (.at buf 1) 0xff) (e KS_MODIFIER))
-                                    (aset (g ed mod-mask) 0 (unchecked-int (bit-and (.at buf 2) 0xff))))
+                          (let [n (if (== (.ub buf 1) (e KS_SPECIAL)) 128 (if (== (.ub buf 1) (e KS_ZERO)) -22783 (i32 (- (i32 (+ (.ub buf 1) (i32 (bit-shift-left (.ub buf 2) 8))))))))]
+                            (if (or (== (.ub buf 1) (e KS_MODIFIER)) (== n (e K_IGNORE)))
+                              (do (when (== (.ub buf 1) (e KS_MODIFIER))
+                                    (aset (g ed mod-mask) 0 (unchecked-int (.ub buf 2))))
                                   (aset len 0 (unchecked-int (- (long (aget len 0)) 3)))
                                   (if (> (long (aget len 0)) 0)
                                     (do (Rt/memmove buf (.add buf 3) (long (aget len 0)))
@@ -51758,7 +51741,7 @@
   (screen-del-lines ed 0 0 1 (i32 (aget (g ed Rows) 0)) true 0 nil)
   (when-not (can-clear? ed (BytePtr/lit " "))
     (screen-fill ed (i32 (- (i32 (aget (g ed Rows) 0)) 1)) (i32 (aget (g ed Rows) 0)) (g ed cmdline-col-off) (i32 (+ (g ed cmdline-col-off) (g ed cmdline-width))) 32 32 (long (aget (g ed highlight-attr) 64)))
-    (when (== (bit-and (.at (g ed ScreenAttrs) (- (+ (bit-and (.at (g ed LineOffset) (- (aget (g ed Rows) 0) 2)) 0xffffffff) (aget (g ed Columns) 0)) 1)) 0xffff) 65535)
+    (when (== (bit-and (long (.at (g ed ScreenAttrs) (- (+ (bit-and (.at (g ed LineOffset) (- (aget (g ed Rows) 0) 2)) 0xffffffff) (aget (g ed Columns) 0)) 1))) 0xffff) 65535)
       (screen-fill ed (i32 (- (i32 (aget (g ed Rows) 0)) 2)) (i32 (- (i32 (aget (g ed Rows) 0)) 1)) (i32 (- (i32 (aget (g ed Columns) 0)) 1)) (i32 (aget (g ed Columns) 0)) 32 32 (long (aget (g ed highlight-attr) 64)))
       nil)))
 
@@ -51868,9 +51851,9 @@
                     t-col t-col
                     ^BytePtr sb-str sb-str
                     sb-col sb-col]
-               (if (and (or (< maxlen 0) (< (i32 (.sub s str_)) maxlen)) (not (== (bit-and (.get s) 0xff) (e NUL))))
+               (if (and (or (< maxlen 0) (< (i32 (.sub s str_)) maxlen)) (not (== (.ub s) (e NUL))))
                  (let [wrap-col (i32 (- (g ed cmdline-width) 1))
-                       j__5 (if (and (not recurse) (>= (g ed msg-row) (- (aget (g ed Rows) 0) 1)) (or (== (bit-and (.get s) 0xff) 10) (and (not (== (bit-and (.get s) 0xff) 13)) (>= (i32 (+ (g ed msg-col) t-col)) wrap-col)) (and (== (bit-and (.get s) 0xff) (e TAB)) (>= (i32 (+ (g ed msg-col) t-col)) (bit-and wrap-col -8))) (and (> (long (utf-ptr2cells ed s)) 1) (>= (i32 (+ (g ed msg-col) t-col)) (i32 (- wrap-col 1))))))
+                       j__5 (if (and (not recurse) (>= (g ed msg-row) (- (aget (g ed Rows) 0) 1)) (or (== (.ub s) 10) (and (not (== (.ub s) 13)) (>= (i32 (+ (g ed msg-col) t-col)) wrap-col)) (and (== (.ub s) (e TAB)) (>= (i32 (+ (g ed msg-col) t-col)) (bit-and wrap-col -8))) (and (> (long (utf-ptr2cells ed s)) 1) (>= (i32 (+ (g ed msg-col) t-col)) (i32 (- wrap-col 1))))))
                               (let [t-col (if (> t-col 0)
                                             (long (t-puts ed t-col t-s s attr))
                                             t-col)]
@@ -51884,7 +51867,7 @@
                                       (g! ed msg-row (i32 (- (aget (g ed Rows) 0) 2)))
                                       (when (>= (g ed msg-col) (g ed cmdline-width))
                                         (g! ed msg-col (i32 (- (g ed cmdline-width) 1))))
-                                      (let [j__2 (if (>= (bit-and (.get s) 0xff) 32)
+                                      (let [j__2 (if (>= (.ub s) 32)
                                                    (let [l (if (>= maxlen 0)
                                                              (long (utfc-ptr2len-len ed s (i32 (.sub (.add str_ maxlen) s))))
                                                              (long (utfc-ptr2len ed s)))
@@ -51950,8 +51933,8 @@
                              t-col (aget tl__ 0)
                              ^BytePtr sb-str (aget to__ 2)
                              sb-col (aget tl__ 1)
-                             wrap (or (== (bit-and (.get s) 0xff) 10) (>= (i32 (+ (g ed msg-col) t-col)) wrap-col) (and (> (long (utf-ptr2cells ed s)) 1) (>= (i32 (+ (g ed msg-col) t-col)) (i32 (- wrap-col 1)))))
-                             t-col (if (and (> t-col 0) (or wrap (== (bit-and (.get s) 0xff) 13) (== (bit-and (.get s) 0xff) 8) (== (bit-and (.get s) 0xff) 9) (== (bit-and (.get s) 0xff) (e BELL))))
+                             wrap (or (== (.ub s) 10) (>= (i32 (+ (g ed msg-col) t-col)) wrap-col) (and (> (long (utf-ptr2cells ed s)) 1) (>= (i32 (+ (g ed msg-col) t-col)) (i32 (- wrap-col 1)))))
+                             t-col (if (and (> t-col 0) (or wrap (== (.ub s) 13) (== (.ub s) 8) (== (.ub s) 9) (== (.ub s) (e BELL))))
                                      (long (t-puts ed t-col t-s s attr))
                                      t-col)
                              j__6 (if (and wrap (not (zero? (long (aget (g ed p-more) 0)))) (not recurse))
@@ -51966,7 +51949,7 @@
                                         0))
                              ^BytePtr sb-str (aget to__ 2)
                              sb-col (aget tl__ 1)
-                             j__7 (if (== (bit-and (.get s) 0xff) 10)
+                             j__7 (if (== (.ub s) 10)
                                     (do (g! ed msg-didout (e FALSE))
                                         (g! ed msg-col 0)
                                         (g! ed msg-row (i32 (inc (g ed msg-row))))
@@ -51980,13 +51963,13 @@
                                               (aset to__ 1 t-s)
                                               (aset tl__ 0 t-col)
                                               0)))
-                                    (if (== (bit-and (.get s) 0xff) 13)
+                                    (if (== (.ub s) 13)
                                       (do (g! ed msg-col 0)
                                           (aset to__ 0 s)
                                           (aset to__ 1 t-s)
                                           (aset tl__ 0 t-col)
                                           0)
-                                      (if (== (bit-and (.get s) 0xff) 8)
+                                      (if (== (.ub s) 8)
                                         (if (zero? (g ed msg-col))
                                           (do (aset to__ 0 s)
                                               (aset to__ 1 t-s)
@@ -51997,7 +51980,7 @@
                                               (aset to__ 1 t-s)
                                               (aset tl__ 0 t-col)
                                               0))
-                                        (if (== (bit-and (.get s) 0xff) (e TAB))
+                                        (if (== (.ub s) (e TAB))
                                           (loop []
                                             (msg-screen-putchar ed 32 attr)
                                             (if (zero? (bit-and (g ed msg-col) 7))
@@ -52006,7 +51989,7 @@
                                                   (aset tl__ 0 t-col)
                                                   0)
                                               (recur)))
-                                          (if (== (bit-and (.get s) 0xff) (e BELL))
+                                          (if (== (.ub s) (e BELL))
                                             (do (vim-beep ed (e BO_SH))
                                                 (aset to__ 0 s)
                                                 (aset to__ 1 t-s)
@@ -52023,7 +52006,7 @@
                                                     (aset to__ 1 t-s)
                                                     (aset tl__ 0 t-col)
                                                     0)
-                                                  (do (msg-screen-putchar ed (bit-and (.get s) 0xff) attr)
+                                                  (do (msg-screen-putchar ed (.ub s) attr)
                                                       (aset to__ 0 s)
                                                       (aset to__ 1 t-s)
                                                       (aset tl__ 0 t-col)
@@ -52078,7 +52061,7 @@
               sb-col (aget tl__ 1)]
           (when (> t-col 0)
             (t-puts ed t-col t-s s attr))
-          (if (and (not (zero? (long (aget (g ed p-more) 0)))) (not recurse) (not (and (BytePtr/eq s (.add sb-str 1)) (== (bit-and (.get sb-str) 0xff) 10))))
+          (if (and (not (zero? (long (aget (g ed p-more) 0)))) (not recurse) (not (and (BytePtr/eq s (.add sb-str 1)) (== (.ub sb-str) 10))))
             (do (store-sb-text ed sb-str s attr sb-col false)
                 (msg-check ed)
                 nil)
@@ -52092,7 +52075,7 @@
       (g! ed msg-row row)
       (g! ed msg-col (.sb-msg-col mp))
       (let [^BytePtr p (.sb-text mp)
-            ^BytePtr p (if (== (bit-and (.get p) 0xff) 10)
+            ^BytePtr p (if (== (.ub p) 10)
                          ^BytePtr (.add p 1)
                          p)]
         (msg-puts-display ed p -1 (.sb-attr mp) true)
@@ -52325,7 +52308,7 @@
     (out-str-t-TI ed)
     (out-str ed (aget (g ed term-strings) 40))
     (out-str-t-BE ed)
-    (when (and (not (zero? (long (aget (g ed p-ek) 0)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 89)) 0xff) (e NUL))))
+    (when (and (not (zero? (long (aget (g ed p-ek) 0)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 89)) (e NUL))))
       (out-str ed (aget (g ed term-strings) 89)))
     (out-flush ed)
     (g! ed termcap-active (e TRUE))
@@ -52566,7 +52549,7 @@
               (if (zero? (g ed got-int))
                 (loop [len len]
                   (when (> len 0)
-                    (when (and (not (zero? (g ed ctrl-c-interrupts))) (or (and (== (bit-and (aget (g ed inbuf) (g ed inbufcount)) 0xff) (e Ctrl_C)) (not (key-protocol-enabled? ed))) (and (>= len 10) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[27;5;99~") 10)) 0)) (and (>= len 10) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[27;5;67~") 10)) 0)) (and (>= len 7) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[99;5u") 7)) 0)) (and (>= len 7) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[67;5u") 7)) 0))))
+                    (when (and (not (zero? (g ed ctrl-c-interrupts))) (or (and (== (bit-and (long (aget (g ed inbuf) (g ed inbufcount))) 0xff) (e Ctrl_C)) (not (key-protocol-enabled? ed))) (and (>= len 10) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[27;5;99~") 10)) 0)) (and (>= len 10) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[27;5;67~") 10)) 0)) (and (>= len 7) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[99;5u") 7)) 0)) (and (>= len 7) (== (long (musl-strncmp ed (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) (BytePtr/lit "\033[67;5u") 7)) 0))))
                       (Rt/memmove (BytePtr. (g ed inbuf) 0) (.add (BytePtr. (g ed inbuf) 0) (g ed inbufcount)) len)
                       (g! ed inbufcount 0)
                       (g! ed got-int (e TRUE)))
@@ -52638,7 +52621,7 @@
                   (long (fix-input-buffer ed buf len)))))))
       (loop []
         (let [len (long (ui-inchar ed (BytePtr. dum 0) 153 0 0))]
-          (if (or (== len 0) (and (== len 1) (== (bit-and (aget dum 0) 0xff) (e Ctrl_C))))
+          (if (or (== len 0) (and (== len 1) (== (bit-and (long (aget dum 0)) 0xff) (e Ctrl_C))))
             (e FALSE)
             (recur)))))))
 
@@ -52677,7 +52660,7 @@
         t1 (.buflen state)
         _ (.set-buflen state (inc (.buflen state)))
         _ (aset ^bytes (.-buf state) t1 (unchecked-byte byte_))
-        c (bit-and (aget ^bytes (.-buf state) t1) 0xff)
+        c (bit-and (long (aget ^bytes (.-buf state) t1)) 0xff)
         retval false
         in-special (> (.pending-special state) 0)
         in-mbyte (> (.pending-mbyte state) 0)]
@@ -52749,7 +52732,7 @@
         (if (> t1 0)
           (let [^BytePtr t2 s
                 ^BytePtr s (.add s 1)]
-            (if (gotchars-add-byte ed (g ed gotchars-state) (bit-and (.get t2) 0xff))
+            (if (gotchars-add-byte ed (g ed gotchars-state) (.ub t2))
               (do (when-not (== (g ed reg-recording) 0)
                     (aset ^bytes (.-buf (g ed gotchars-state)) (.buflen (g ed gotchars-state)) (unchecked-byte (e NUL)))
                     (add-buff ed (g ed recordbuff) (BytePtr. ^bytes (.-buf (g ed gotchars-state)) 0) (.buflen (g ed gotchars-state)))
@@ -52786,8 +52769,8 @@
         n 0]
     (loop [n n
            m m]
-      (when (and (not (== (bit-and (.at str_ n) 0xff) (e NUL))) (< m 4))
-        (let [j__1 (if (and (== (bit-and (.at str_ n) 0xff) 128) (== (bit-and (.at str_ (i32 (+ n 1))) 0xff) (e KS_SPECIAL)) (== (bit-and (.at str_ (i32 (+ n 2))) 0xff) 88))
+      (when (and (not (== (.ub str_ n) (e NUL))) (< m 4))
+        (let [j__1 (if (and (== (.ub str_ n) 128) (== (.ub str_ (i32 (+ n 1))) (e KS_SPECIAL)) (== (.ub str_ (i32 (+ n 2))) 88))
                      (let [t1 m
                            m (i32 (inc m))
                            _ (aset (g ed mb-unescape-buf) t1 (unchecked-byte 128))
@@ -52795,7 +52778,7 @@
                        (aset tl__ 0 n)
                        (aset tl__ 1 m)
                        0)
-                     (if (and (== (bit-and (.at str_ n) 0xff) 128) (== (bit-and (.at str_ (i32 (+ n 1))) 0xff) (e KS_EXTRA)) (== (bit-and (.at str_ (i32 (+ n 2))) 0xff) 81))
+                     (if (and (== (.ub str_ n) 128) (== (.ub str_ (i32 (+ n 1))) (e KS_EXTRA)) (== (.ub str_ (i32 (+ n 2))) 81))
                        (let [t2 m
                              m (i32 (inc m))
                              _ (aset (g ed mb-unescape-buf) t2 (unchecked-byte (e CSI)))
@@ -52803,11 +52786,11 @@
                          (aset tl__ 0 n)
                          (aset tl__ 1 m)
                          0)
-                       (if (== (bit-and (.at str_ n) 0xff) 128)
+                       (if (== (.ub str_ n) 128)
                          1
                          (let [t3 m
                                m (i32 (inc m))]
-                           (aset (g ed mb-unescape-buf) t3 (unchecked-byte (bit-and (.at str_ n) 0xff)))
+                           (aset (g ed mb-unescape-buf) t3 (unchecked-byte (.ub str_ n)))
                            (aset tl__ 0 n)
                            (aset tl__ 1 m)
                            0))))]
@@ -52819,7 +52802,7 @@
                 (if (> (long (utfc-ptr2len ed (BytePtr. (g ed mb-unescape-buf) 0))) 1)
                   (do (.put pp (.add (.add str_ n) 1))
                       (BytePtr. (g ed mb-unescape-buf) 0))
-                  (when-not (< (bit-and (aget (g ed mb-unescape-buf) 0) 0xff) 128)
+                  (when-not (< (bit-and (long (aget (g ed mb-unescape-buf) 0)) 0xff) 128)
                     (let [n (i32 (inc n))]
                       (recur n m)))))
             1
@@ -52848,9 +52831,9 @@
         (if (>= (i32 (+ offset 3)) (.tb-len (g ed typebuf)))
           0
           (let [^BytePtr tp (.add (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) offset)
-                j__1 (if (and (or (== (bit-and (.at tp 0) 0xff) 128) (== (bit-and (.at tp 0) 0xff) (e CSI))) (== (bit-and (.at tp 1) 0xff) (e KS_MODIFIER)))
-                       (do (aset modifier 0 (unchecked-int (bit-and (.at tp 2) 0xff)))
-                           (let [c (bit-and (.at tp 3) 0xff)
+                j__1 (if (and (or (== (.ub tp 0) 128) (== (.ub tp 0) (e CSI))) (== (.ub tp 1) (e KS_MODIFIER)))
+                       (do (aset modifier 0 (unchecked-int (.ub tp 2)))
+                           (let [c (.ub tp 3)
                                  new-c (long (merge-modifyOtherKeys ed c (IntPtr. modifier 0)))]
                              (if (== new-c c)
                                0
@@ -52868,7 +52851,7 @@
                       key-offset offset]
                   (when (== offset 0)
                     (g! ed vgetc-char c)
-                    (g! ed vgetc-mod-mask (bit-and (.at tp 2) 0xff)))
+                    (g! ed vgetc-mod-mask (.ub tp 2)))
                   (let [len (if (< new-c 0)
                               (do (aset new-string 0 (unchecked-byte 128))
                                   (aset new-string 1 (unchecked-byte (if (== new-c 128) (e KS_SPECIAL) (if (== new-c (e NUL)) (e KS_ZERO) (bit-and (i32 (- new-c)) 255)))))
@@ -52894,7 +52877,7 @@
                             i 0]
                         (loop [i i]
                           (if (< i len)
-                            (do (.set ^BytePtr (.tb-noremap (g ed typebuf)) (i32 (+ (i32 (+ (.tb-off (g ed typebuf)) key-offset)) i)) (unchecked-byte (bit-or (bit-and (.at ^BytePtr (.tb-noremap (g ed typebuf)) (i32 (+ (i32 (+ (.tb-off (g ed typebuf)) key-offset)) i))) 0xff) (e RM_SIMPLIFIED))))
+                            (do (.set ^BytePtr (.tb-noremap (g ed typebuf)) (i32 (+ (i32 (+ (.tb-off (g ed typebuf)) key-offset)) i)) (unchecked-byte (bit-or (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (i32 (+ (i32 (+ (.tb-off (g ed typebuf)) key-offset)) i))) (e RM_SIMPLIFIED))))
                                 (let [i (i32 (inc i))]
                                   (recur i)))
                             len)))))))))
@@ -52934,11 +52917,11 @@
                 local-State (long (get-real-state ed))
                 is-plug-map false
                 in-osc (in-osc-sequence? ed)
-                is-plug-map (if (and (not in-osc) (>= (.tb-len (g ed typebuf)) 3) (== (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff) 128) (== (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) 1))) 0xff) (e KS_EXTRA)) (== (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) 2))) 0xff) (e KE_PLUG)))
+                is-plug-map (if (and (not in-osc) (>= (.tb-len (g ed typebuf)) 3) (== (.ub ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) 128) (== (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) 1))) (e KS_EXTRA)) (== (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) 2))) (e KE_PLUG)))
                               true
                               is-plug-map)
-                tb-c1 (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff)]
-            (if (and (not in-osc) (== (g ed no-mapping) 0) (not (zero? (long (is-maphash-valid ed)))) (or (== (g ed no-zero-mapping) 0) (not (== tb-c1 48))) (or (== (.tb-maplen (g ed typebuf)) 0) is-plug-map (and (not (zero? (long (aget (g ed p-remap) 0)))) (== (bit-and (.at ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff 5) 0))) (not (and (not (zero? (long (aget (g ed p-paste) 0)))) (not (zero? (bit-and (g ed State) 24))))) (not (and (== (g ed State) 8193) (or (== tb-c1 (e CAR)) (== tb-c1 32)))) (not (== (g ed State) (e MODE_ASKMORE))) (not (== (g ed State) (e MODE_CONFIRM))))
+                tb-c1 (.ub ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf)))]
+            (if (and (not in-osc) (== (g ed no-mapping) 0) (not (zero? (long (is-maphash-valid ed)))) (or (== (g ed no-zero-mapping) 0) (not (== tb-c1 48))) (or (== (.tb-maplen (g ed typebuf)) 0) is-plug-map (and (not (zero? (long (aget (g ed p-remap) 0)))) (== (bit-and (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) 5) 0))) (not (and (not (zero? (long (aget (g ed p-paste) 0)))) (not (zero? (bit-and (g ed State) 24))))) (not (and (== (g ed State) 8193) (or (== tb-c1 (e CAR)) (== tb-c1 32)))) (not (== (g ed State) (e MODE_ASKMORE))) (not (== (g ed State) (e MODE_CONFIRM))))
               (let [^S_mapblock mp (get-buf-maphash-list ed local-State tb-c1)
                     ^S_mapblock mp2 (get-maphash-list ed local-State tb-c1)
                     j__1 (if (nil? mp)
@@ -52958,15 +52941,15 @@
               (recur 7 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)))
         1
           (if (some? mp)
-            (if (and (== (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) tb-c1) (not (zero? (bit-and (.m-mode mp) local-State))) (not (and (.m-simplified mp) (key-protocol-enabled? ed) (== (.tb-maplen (g ed typebuf)) 0) (== (bit-and (.at ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff (e RM_SIMPLIFIED)) 0))))
+            (if (and (== (.ub ^BytePtr (.m-keys mp) 0) tb-c1) (not (zero? (bit-and (.m-mode mp) local-State))) (not (and (.m-simplified mp) (key-protocol-enabled? ed) (== (.tb-maplen (g ed typebuf)) 0) (== (bit-and (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) (e RM_SIMPLIFIED)) 0))))
               (let [mlen 1]
                 (recur 2 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
               (recur 11 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
             (recur 6 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
         2
           (if (< mlen (.tb-len (g ed typebuf)))
-            (let [c2 (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) mlen))) 0xff)]
-              (if (== (bit-and (.at ^BytePtr (.m-keys mp) mlen) 0xff) c2)
+            (let [c2 (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) mlen)))]
+              (if (== (.ub ^BytePtr (.m-keys mp) mlen) c2)
                 (let [mlen (i32 (inc mlen))]
                   (recur 2 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
                 (recur 3 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)))
@@ -52980,17 +52963,17 @@
                     keylen (.m-keylen mp)]
                 (if (or (== mlen keylen) (and (== mlen (.tb-len (g ed typebuf))) (< (.tb-len (g ed typebuf)) keylen)))
                   (let [^BytePtr s (.add ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf)))]
-                    (if (and (== (bit-and (.get s) 0xff -9) (e RM_SCRIPT)) (or (not (== (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128)) (not (== (bit-and (.at ^BytePtr (.m-keys mp) 1) 0xff) (e KS_EXTRA))) (not (== (bit-and (.at ^BytePtr (.m-keys mp) 2) 0xff) (e KE_SNR)))))
+                    (if (and (== (bit-and (.ub s) -9) (e RM_SCRIPT)) (or (not (== (.ub ^BytePtr (.m-keys mp) 0) 128)) (not (== (.ub ^BytePtr (.m-keys mp) 1) (e KS_EXTRA))) (not (== (.ub ^BytePtr (.m-keys mp) 2) (e KE_SNR)))))
                       (recur 11 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)
                       (let [n mlen]
                         (recur 4 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))))
                   (let [j__2 (if (< max-mlen mlen)
                                (let [max-mlen mlen
-                                     want-termcode (if (== (bit-and (.at ^BytePtr (.m-keys mp) mlen) 0xff) 128) 1 0)]
+                                     want-termcode (if (== (.ub ^BytePtr (.m-keys mp) mlen) 128) 1 0)]
                                  (aset tl__ 0 max-mlen)
                                  (aset tl__ 1 want-termcode)
                                  0)
-                               (if (and (== max-mlen mlen) (== (bit-and (.at ^BytePtr (.m-keys mp) mlen) 0xff) 128))
+                               (if (and (== max-mlen mlen) (== (.ub ^BytePtr (.m-keys mp) mlen) 128))
                                  (let [want-termcode 1]
                                    (aset tl__ 0 max-mlen)
                                    (aset tl__ 1 want-termcode)
@@ -53000,7 +52983,7 @@
                                      0)))
                         max-mlen (aget tl__ 0)
                         want-termcode (aget tl__ 1)]
-                    (if (< (u32 (- (bit-and (.at ^BytePtr (.m-keys mp) mlen) 0xff) 65)) 26)
+                    (if (< (u32 (- (.ub ^BytePtr (.m-keys mp) mlen) 65)) 26)
                       (let [want-termcode 1]
                         (recur 11 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
                       (recur 11 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))))))
@@ -53009,7 +52992,7 @@
             (if (>= n 0)
               (let [^BytePtr t1 s
                     ^BytePtr s (.add s 1)]
-                (if (zero? (bit-and (.get t1) 0xff 5))
+                (if (zero? (bit-and (.ub t1) 5))
                   (recur 4 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)
                   (recur 5 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)))
               (recur 5 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n)))
@@ -53033,19 +53016,19 @@
               (recur 7 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
             (recur 7 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
         7
-          (if (and (not in-osc) (not (== (bit-and (.get ^BytePtr (aget (g ed p-pt) 0)) 0xff) (e NUL))) (nil? mp) (not (zero? (bit-and (g ed State) 17))))
+          (if (and (not in-osc) (not (== (.ub ^BytePtr (aget (g ed p-pt) 0)) (e NUL))) (nil? mp) (not (zero? (bit-and (g ed State) 17))))
             (let [mlen 0]
               (recur 8 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
             (recur 10 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
         8
-          (if (and (< mlen (.tb-len (g ed typebuf))) (not (zero? (bit-and (.at ^BytePtr (aget (g ed p-pt) 0) mlen) 0xff))))
-            (if (== (bit-and (.at ^BytePtr (aget (g ed p-pt) 0) mlen) 0xff) (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) mlen))) 0xff))
+          (if (and (< mlen (.tb-len (g ed typebuf))) (not (zero? (.ub ^BytePtr (aget (g ed p-pt) 0) mlen))))
+            (if (== (.ub ^BytePtr (aget (g ed p-pt) 0) mlen) (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) mlen))))
               (let [mlen (i32 (inc mlen))]
                 (recur 8 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
               (recur 9 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
             (recur 9 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
         9
-          (if (== (bit-and (.at ^BytePtr (aget (g ed p-pt) 0) mlen) 0xff) (e NUL))
+          (if (== (.ub ^BytePtr (aget (g ed p-pt) 0) mlen) (e NUL))
             (do (when (> mlen (.tb-maplen (g ed typebuf)))
                   (gotchars ed (.add (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) (.tb-maplen (g ed typebuf))) (i32 (- mlen (.tb-maplen (g ed typebuf))))))
                 (del-typebuf ed mlen 0)
@@ -53072,10 +53055,10 @@
                   (recur 10 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))
                 (recur 10 keylenp timedout mapdepth mp mp2 mp-match mp-match-len max-mlen want-termcode tb-c1 mlen keylen local-State is-plug-map in-osc s n))))
         10
-          (let [j__6 (if (or in-osc (and (or (nil? mp) (> (i32 (+ max-mlen want-termcode)) mp-match-len) (and (== mp-match-len 1) (== (bit-and (.get ^BytePtr (.m-keys mp)) 0xff) (e ESC)) (zero? timedout))) (not (== keylen -2))))
+          (let [j__6 (if (or in-osc (and (or (nil? mp) (> (i32 (+ max-mlen want-termcode)) mp-match-len) (and (== mp-match-len 1) (== (.ub ^BytePtr (.m-keys mp)) (e ESC)) (zero? timedout))) (not (== keylen -2))))
                        (let [save-keylen keylen
                              j__4 (if (or in-osc (== (g ed no-mapping) 0) (not (== (g ed allow-keys) 0)))
-                                    (let [keylen (if (or in-osc (and (or (== (.tb-maplen (g ed typebuf)) 0) (and (not (zero? (long (aget (g ed p-remap) 0)))) (== (bit-and (.at ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff -9) (e RM_YES)))) (zero? timedout)))
+                                    (let [keylen (if (or in-osc (and (or (== (.tb-maplen (g ed typebuf)) 0) (and (not (zero? (long (aget (g ed p-remap) 0)))) (== (bit-and (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) -9) (e RM_YES)))) (zero? timedout)))
                                                    (long (check-termcode ed (i32 (+ max-mlen 1)) nil 0 nil))
                                                    0)
                                           keylen (if (and (== keylen 0) (== save-keylen -1) (zero? timedout))
@@ -53238,8 +53221,8 @@
     (when-not (or (nil? (g ed ScreenLines)) (>= row (g ed screen-Rows)) (>= col (g ed screen-Columns)))
       (let [off (u32 (+ (bit-and (.at (g ed LineOffset) row) 0xffffffff) (u32 col)))]
         (when (some? attrp)
-          (.put attrp (unchecked-int (bit-and (.at (g ed ScreenAttrs) off) 0xffff))))
-        (.set bytes_ 0 (unchecked-byte (bit-and (.at (g ed ScreenLines) off) 0xff)))
+          (.put attrp (unchecked-int (bit-and (long (.at (g ed ScreenAttrs) off)) 0xffff))))
+        (.set bytes_ 0 (unchecked-byte (.ub (g ed ScreenLines) off)))
         (.set bytes_ 1 (unchecked-byte (e NUL)))
         (when-not (== (bit-and (.at (g ed ScreenLinesUC) off) 0xffffffff) 0)
           (let [t1 (long (utfc-char2bytes ed (i32 off) bytes_))]
@@ -53306,7 +53289,7 @@
               (boolean (aget to__ 0))
               (let [^BytePtr p (if (or (<= c 127) (not (vim-isprintc? ed c)))
                                  (let [^BytePtr p (transchar ed c)]
-                                   (if (== (bit-and (.get p) 0xff) 32)
+                                   (if (== (.ub p) 32)
                                      (do (musl-strcpy ed p (BytePtr/lit "<20>"))
                                          p)
                                      p))
@@ -53337,12 +53320,12 @@
         (aset ^bytes (.-buf (g ed add-byte-to-showcmd-state)) (.buflen (g ed add-byte-to-showcmd-state)) (unchecked-byte (e NUL)))
         (.set-buflen (g ed add-byte-to-showcmd-state) 0)
         (aset ptr 0 (BytePtr. ^bytes (.-buf (g ed add-byte-to-showcmd-state)) 0))
-        (let [modifiers (if (and (== (bit-and (.at ^BytePtr (aget ptr 0) 0) 0xff) 128) (== (bit-and (.at ^BytePtr (aget ptr 0) 1) 0xff) (e KS_MODIFIER)) (not (== (bit-and (.at ^BytePtr (aget ptr 0) 2) 0xff) (e NUL))))
-                          (let [modifiers (bit-and (.at ^BytePtr (aget ptr 0) 2) 0xff)]
+        (let [modifiers (if (and (== (.ub ^BytePtr (aget ptr 0) 0) 128) (== (.ub ^BytePtr (aget ptr 0) 1) (e KS_MODIFIER)) (not (== (.ub ^BytePtr (aget ptr 0) 2) (e NUL))))
+                          (let [modifiers (.ub ^BytePtr (aget ptr 0) 2)]
                             (aset ptr 0 (.add ^BytePtr (aget ptr 0) 3))
                             modifiers)
                           modifiers)
-              j__1 (if (== (bit-and (.get ^BytePtr (aget ptr 0)) 0xff) (e NUL))
+              j__1 (if (== (.ub ^BytePtr (aget ptr 0)) (e NUL))
                      (do (aset tl__ 0 modifiers)
                          (aset tl__ 1 c)
                          0)
@@ -53351,7 +53334,7 @@
                                 (long (utf-ptr2char ed mb-ptr))
                                 (let [^BytePtr t2 (aget ptr 0)
                                       _ (aset ptr 0 (.add ^BytePtr (aget ptr 0) 1))
-                                      t1 (bit-and (.get t2) 0xff)]
+                                      t1 (.ub t2)]
                                   t1))
                            c t1]
                        (if (<= c 127)
@@ -53378,10 +53361,10 @@
           (when-not (== c (e NUL))
             (add-to-showcmd ed c))
           (loop []
-            (when-not (== (bit-and (.get ^BytePtr (aget ptr 0)) 0xff) (e NUL))
+            (when-not (== (.ub ^BytePtr (aget ptr 0)) (e NUL))
               (let [^BytePtr t3 (aget ptr 0)]
                 (aset ptr 0 (.add ^BytePtr (aget ptr 0) 1))
-                (add-to-showcmd ed (bit-and (.get t3) 0xff))
+                (add-to-showcmd ed (.ub t3))
                 (recur)))))))))
 
 ;; C: get_cmdline_info
@@ -53496,14 +53479,14 @@
                           (let [c -1]
                             (recur 13 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                           (if (== result (e map_result_get))
-                            (let [c (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff)]
+                            (let [c (.ub ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf)))]
                               (if advance
                                 (do (g! ed cmd-silent (if (> (.tb-silent (g ed typebuf)) 0) 1 0))
                                     (if (> (.tb-maplen (g ed typebuf)) 0)
                                       (g! ed KeyTyped (e FALSE))
                                       (do (g! ed KeyTyped (e TRUE))
                                           (gotchars ed (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) 1)))
-                                    (g! ed KeyNoremap (bit-and (.at ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff -9))
+                                    (g! ed KeyNoremap (bit-and (.ub ^BytePtr (.tb-noremap (g ed typebuf)) (.tb-off (g ed typebuf))) -9))
                                     (del-typebuf ed 1 0)
                                     (recur 13 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                                 (recur 13 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
@@ -53523,7 +53506,7 @@
           (let [c 0
                 new-wcol (.w-wcol (g ed curwin))
                 new-wrow (.w-wrow (g ed curwin))
-                t1 (and advance (== (.tb-len (g ed typebuf)) 1) (== (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) 0xff) (e ESC)) (zero? (g ed no-mapping)) (not (== (g ed kitty-protocol-state) (e KKPS_ENABLED))) (== (g ed ex-normal-busy) 0) (== (.tb-maplen (g ed typebuf)) 0) (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (or (not (zero? (long (aget (g ed p-timeout) 0)))) (and (== keylen -1) (not (zero? (long (aget (g ed p-ttimeout) 0)))))))
+                t1 (and advance (== (.tb-len (g ed typebuf)) 1) (== (.ub ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) (e ESC)) (zero? (g ed no-mapping)) (not (== (g ed kitty-protocol-state) (e KKPS_ENABLED))) (== (g ed ex-normal-busy) 0) (== (.tb-maplen (g ed typebuf)) 0) (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (or (not (zero? (long (aget (g ed p-timeout) 0)))) (and (== keylen -1) (not (zero? (long (aget (g ed p-ttimeout) 0)))))))
                 j__1 (if t1
                        (let [c (long (inchar ed (.add (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) (.tb-len (g ed typebuf))) 3 25))
                              t1 (== c 0)]
@@ -53547,7 +53530,7 @@
                   (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)
                     (recur 6 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)
                     (if (> (.w-wcol (g ed curwin)) 0)
-                      (if (and (not (zero? (g ed did-ai))) (== (bit-and (.get ^BytePtr (skipwhite ed (.add ^BytePtr (ml-get-curline ed) (.col ^T_pos_T (.-w-cursor (g ed curwin)))))) 0xff) (e NUL)))
+                      (if (and (not (zero? (g ed did-ai))) (== (.ub ^BytePtr (skipwhite ed (.add ^BytePtr (ml-get-curline ed) (.col ^T_pos_T (.-w-cursor (g ed curwin)))))) (e NUL)))
                         (do (.set-w-wcol (g ed curwin) 0)
                             (let [^BytePtr ptr (ml-get-curline ed)]
                               (init-chartabsize-arg ed cts (g ed curwin) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 0 ptr ptr)
@@ -53564,7 +53547,7 @@
               (recur 7 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
         4
           (if (.lt ^BytePtr (.cts-ptr cts) (.add ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))))
-            (do (when-not (or (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 32) (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 9))
+            (do (when-not (or (== (.ub ^BytePtr (.cts-ptr cts)) 32) (== (.ub ^BytePtr (.cts-ptr cts)) 9))
                   (.set-w-wcol (g ed curwin) (.cts-vcol cts)))
                 (let [t2 (long (lbr-chartabsize ed cts))
                       _ (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) t2)))
@@ -53628,7 +53611,7 @@
                           (if (and (> (.tb-len (g ed typebuf)) 0) advance)
                             (if (and (not (zero? (bit-and (g ed State) 17))) (not (== (g ed State) 8193)))
                               (let [showing-partial (if (and (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (== (long (ptr2cells ed (.add (.add (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) (.tb-len (g ed typebuf))) (- 1)))) 1))
-                                                      (do (edit-putchar ed (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (- (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf)))) 1))) 0xff) false)
+                                                      (do (edit-putchar ed (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (- (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf)))) 1))) false)
                                                           (setcursor ed)
                                                           true)
                                                       showing-partial)
@@ -53647,14 +53630,14 @@
           (if (< showcmd-idx (.tb-len (g ed typebuf)))
             (let [t6 showcmd-idx
                   showcmd-idx (i32 (inc showcmd-idx))]
-              (add-byte-to-showcmd ed (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) t6))) 0xff))
+              (add-byte-to-showcmd ed (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) t6))))
               (recur 9 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
             (do (.set-w-wcol (g ed curwin) old-wcol)
                 (.set-w-wrow (g ed curwin) old-wrow)
                 (recur 10 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
         10
           (if (and (not (zero? (bit-and (g ed State) (e MODE_CMDLINE)))) (some? (.cmdbuff ^T_cmdline_info_T (get-cmdline-info ed))) (== (long (ptr2cells ed (.add (.add (.add ^BytePtr (.tb-buf (g ed typebuf)) (.tb-off (g ed typebuf))) (.tb-len (g ed typebuf))) (- 1)))) 1))
-            (do (putcmdline ed (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (- (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf)))) 1))) 0xff) (e FALSE))
+            (do (putcmdline ed (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (- (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf)))) 1))) (e FALSE))
                 (let [showing-partial true]
                   (recur 11 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)))
             (recur 11 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
@@ -53690,7 +53673,7 @@
                   (recur 13 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))
                 (recur 12 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial))))
         12
-          (if (== (bit-and (.at ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf))))) 0xff) (e NUL))
+          (if (== (.ub ^BytePtr (.tb-buf (g ed typebuf)) (i32 (+ (.tb-off (g ed typebuf)) (.tb-len (g ed typebuf))))) (e NUL))
             (recur 2 advance c timedout mapdepth mode-deleted new-wcol new-wrow n old-wcol old-wrow keylen showcmd-idx col ptr showing-partial)
             (let [t7 (.tb-len (g ed typebuf))
                   _ (.set-tb-len (g ed typebuf) (i32 (inc (.tb-len (g ed typebuf)))))
@@ -53837,14 +53820,14 @@
         (let [^BytePtr line (ml-get-buf ed (.w-buffer wp) lnum false)]
           (init-chartabsize-arg ed cts wp lnum 0 line line)
           (loop []
-            (if (and (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))) (.lt ^BytePtr (.cts-ptr cts) (.add line column)))
+            (if (and (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))) (.lt ^BytePtr (.cts-ptr cts) (.add line column)))
               (let [t1 (long (win-lbr-chartabsize ed cts nil nil))
                     _ (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) t1)))
                     t2 (long (utfc-ptr2len ed (.cts-ptr cts)))]
                 (.set-cts-ptr cts (.add ^BytePtr (.cts-ptr cts) t2))
                 (recur))
               (let [col (.cts-vcol cts)
-                    col (if (and (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e TAB)) (not (zero? (bit-and (g ed State) (e MODE_NORMAL)))) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
+                    col (if (and (== (.ub ^BytePtr (.cts-ptr cts)) (e TAB)) (not (zero? (bit-and (g ed State) (e MODE_NORMAL)))) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
                           (let [t3 (i32 (- (long (win-lbr-chartabsize ed cts nil nil)) 1))
                                 col (+ col t3)]
                             col)
@@ -54186,7 +54169,7 @@
                       nil)
                   (let [eof-pressure (scrolloffpad-eof-pressure? ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.get so-ptr))
                         old-topline (.w-topline (g ed curwin))]
-                    (let [check-botline (if (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (bit-and (.get ^BytePtr (ml-get ed 1)) 0xff) (e NUL)))
+                    (let [check-botline (if (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (.ub ^BytePtr (ml-get ed 1)) (e NUL)))
                                          (do (if (== (.w-topline (g ed curwin)) 1)
                                                nil
                                                (let [_ (redraw-later ed (e UPD_NOT_VALID))]
@@ -54536,7 +54519,7 @@
   (.set-w-lines-valid wp 0)
   (changed-line-abv-curs-win ed wp)
   (invalidate-botline-win ed wp)
-  (if (and (identical? wp (g ed curwin)) (== (bit-and (.get (g ed p-spk)) 0xff) 99))
+  (if (and (identical? wp (g ed curwin)) (== (.ub (g ed p-spk)) 99))
     (do (curs-columns ed true)
         (redraw-win-later ed wp (e UPD_NOT_VALID))
         (.set-w-redr-status wp (boolean true))
@@ -54776,12 +54759,12 @@
 
 ;; C: win_fix_scroll
 (defn win-fix-scroll [^Editor ed ^long resize]
-  (when-not (== (bit-and (.get (g ed p-spk)) 0xff) 99)
+  (when-not (== (.ub (g ed p-spk)) 99)
     (g! ed skip-update-topline (e TRUE))
     (let [^S_window_S wp (g ed curwin)]
       (when-not (== (.w-height wp) (.w-prev-height wp))
         (.set-w-do-win-fix-cursor wp (boolean true))
-        (if (and (== (bit-and (.get (g ed p-spk)) 0xff) 115) (not (== (.w-winrow wp) (.w-prev-winrow wp))) (<= (- (.w-botline wp) 1) (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp)))))
+        (if (and (== (.ub (g ed p-spk)) 115) (not (== (.w-winrow wp) (.w-prev-winrow wp))) (<= (- (.w-botline wp) 1) (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp)))))
           (let [diff (i32 (+ (i32 (- (.w-winrow wp) (.w-prev-winrow wp))) (i32 (- (.w-height wp) (.w-prev-height wp)))))
                 cursor-lnum (.lnum ^T_pos_T (.-w-cursor wp))
                 cursor-col_ (.col ^T_pos_T (.-w-cursor wp))
@@ -54846,7 +54829,7 @@
                  height)]
     (when-not (== (.w-height wp) height)
       (let [j__1 (if (> (.w-height wp) 0)
-                   (do (when (and (identical? wp (g ed curwin)) (== (bit-and (.get (g ed p-spk)) 0xff) 99))
+                   (do (when (and (identical? wp (g ed curwin)) (== (.ub (g ed p-spk)) 99))
                          (validate-cursor ed))
                        (if (== (.w-height wp) prev-height)
                          (if (== (.w-wrow wp) (.w-prev-fraction-row wp))
@@ -54859,7 +54842,7 @@
           (.set-w-height wp height)
           (.set-w-redr-status wp (boolean true))
           (win-comp-scroll ed wp)
-          (when (and (zero? (g ed exiting)) (== (bit-and (.get (g ed p-spk)) 0xff) 99))
+          (when (and (zero? (g ed exiting)) (== (.ub (g ed p-spk)) 99))
             (when (zero? (long (aget ^ints (.-wo-sms ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
               (.set-w-skipcol wp 0))
             (scroll-to-fraction ed wp prev-height)
@@ -55312,7 +55295,7 @@
 
 ;; C: curbuf_reusable
 (defn curbuf-reusable [^Editor ed]
-  (and (some? (g ed curbuf)) (<= (.b-nwindows (g ed curbuf)) 1) (or (nil? (.ml-root ^S_memline (.-b-ml (g ed curbuf)))) (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (bit-and (.get ^BytePtr (ml-get ed 1)) 0xff) (e NUL)))) (zero? (long (curbufIsChanged ed)))))
+  (and (some? (g ed curbuf)) (<= (.b-nwindows (g ed curbuf)) 1) (or (nil? (.ml-root ^S_memline (.-b-ml (g ed curbuf)))) (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (.ub ^BytePtr (ml-get ed 1)) (e NUL)))) (zero? (long (curbufIsChanged ed)))))
 
 ;; C: check_buf_options
 (defn check-buf-options [^Editor ed ^S_file_buffer buf]
@@ -55564,7 +55547,7 @@
 (defn ins-char [^Editor ed ^long c]
   (let [^bytes buf (byte-array 22)
         n (long (utf-char2bytes ed c (BytePtr. buf 0)))]
-    (if (== (bit-and (aget buf 0) 0xff) 0)
+    (if (== (bit-and (long (aget buf 0)) 0xff) 0)
       (do (aset buf 0 (unchecked-byte 10))
           (ins-char-bytes ed (BytePtr. buf 0) n)
           nil)
@@ -55689,7 +55672,7 @@
     (loop [bytes_ bytes_
            i i
            ^BytePtr p p]
-      (if (and (< i count_) (not (== (bit-and (.get p) 0xff) (e NUL))))
+      (if (and (< i count_) (not (== (.ub p) (e NUL))))
         (let [l (long (utfc-ptr2len ed p))
               bytes_ (+ bytes_ l)
               ^BytePtr p (.add p l)
@@ -55700,7 +55683,7 @@
 ;; C: del_char
 (defn del-char [^Editor ed fixpos]
   (mb-adjust-cursor ed)
-  (if (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL))
+  (if (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL))
     false
     (del-chars ed 1 fixpos)))
 
@@ -55823,7 +55806,7 @@
     (init-chartabsize-arg ed cts (g ed curwin) 0 startcol s s)
     (let [vcol (.cts-vcol cts)]
       (loop [vcol vcol]
-        (if (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))
+        (if (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))
           (.cts-vcol cts)
           (let [t1 (long (lbr-chartabsize-adv ed cts))
                 vcol (+ vcol t1)]
@@ -55870,13 +55853,13 @@
   (long (getwhitecols ed (ml-get-curline ed))))
 
 (defn hexhex2nr ^long [^Editor ed ^BytePtr p]
-  (if (or (not (vim-isxdigit? ed (bit-and (.at p 0) 0xff))) (not (vim-isxdigit? ed (bit-and (.at p 1) 0xff))))
+  (if (or (not (vim-isxdigit? ed (.ub p 0))) (not (vim-isxdigit? ed (.ub p 1))))
     -1
-    (i32 (+ (i32 (bit-shift-left (long (hex2nr ed (bit-and (.at p 0) 0xff))) 4)) (long (hex2nr ed (bit-and (.at p 1) 0xff)))))))
+    (i32 (+ (i32 (bit-shift-left (long (hex2nr ed (.ub p 0))) 4)) (long (hex2nr ed (.ub p 1)))))))
 
 ;; C: rem_backslash
 (defn rem-backslash? [^Editor ed ^BytePtr str_]
-  (and (== (bit-and (.at str_ 0) 0xff) 92) (not (== (bit-and (.at str_ 1) 0xff) (e NUL)))))
+  (and (== (.ub str_ 0) 92) (not (== (.ub str_ 1) (e NUL)))))
 
 (defn FreeWild [^Editor ed ^long count_ ^Ptr files]
   (when-not (or (<= count_ 0) (nil? files))
@@ -56029,8 +56012,8 @@
               i
               (let [i (i32 (inc i))]
                 (recur i)))
-            (if (and (some? (vim-strchr ed (BytePtr/lit ":=@>?/") (bit-and (.at name_ 0) 0xff))) (== (bit-and (.at name_ 1) 0xff) (e NUL)))
-              (long (hist-char2type ed (bit-and (.at name_ 0) 0xff)))
+            (if (and (some? (vim-strchr ed (BytePtr/lit ":=@>?/") (.ub name_ 0))) (== (.ub name_ 1) (e NUL)))
+              (long (hist-char2type ed (.ub name_ 0)))
               -1)))))))
 
 ;; C: get_list_range
@@ -56042,7 +56025,7 @@
         ^objects to__ (object-array 3)
         first_ false
         ^BytePtr str_ (skipwhite ed str_)
-        j__1 (if (or (== (bit-and (.get str_) 0xff) 45) (vim-isdigit? ed (bit-and (.get str_) 0xff)))
+        j__1 (if (or (== (.ub str_) 45) (vim-isdigit? ed (.ub str_)))
                (let [len (long (vim-str2nr ed str_ nil len 0 (LongPtr. num_ 0) nil 0 false nil))
                      ^BytePtr str_ (.add str_ len)]
                  (if (> (aget num_ 0) (e INT_MAX))
@@ -56071,7 +56054,7 @@
             len (aget tl__ 1)
             first_ (boolean (aget to__ 1))
             ^BytePtr str_ (skipwhite ed str_)
-            j__2 (if (== (bit-and (.get str_) 0xff) 44)
+            j__2 (if (== (.ub str_) 44)
                    (let [^BytePtr str_ (skipwhite ed (.add str_ 1))
                          len (long (vim-str2nr ed str_ nil len 0 (LongPtr. num_ 0) nil 0 false nil))]
                      (if (> len 0)
@@ -56133,7 +56116,7 @@
     (if (== (g ed hislen) 0)
       (do (msg ed (gettext_ ed (BytePtr/lit "'history' option is zero")))
           nil)
-      (let [j__3 (if (or (< (u32 (- (bit-and (.get arg) 0xff) 48)) 10) (== (bit-and (.get arg) 0xff) 45) (== (bit-and (.get arg) 0xff) 44))
+      (let [j__3 (if (or (< (u32 (- (.ub arg) 48)) 10) (== (.ub arg) 45) (== (.ub arg) 44))
                    (let [^BytePtr end arg]
                      (aset tl__ 0 histype1)
                      (aset tl__ 1 histype2)
@@ -56141,13 +56124,13 @@
                      0)
                    (let [^BytePtr end arg
                          l__1 (loop [^BytePtr end end]
-                                (if (or (< (u32 (- (bit-and (.get end) 0xff) 65)) 26) (< (u32 (- (bit-and (.get end) 0xff) 97)) 26) (some? (vim-strchr ed (BytePtr/lit ":=@>/?") (bit-and (.get end) 0xff))))
+                                (if (or (< (u32 (- (.ub end) 65)) 26) (< (u32 (- (.ub end) 97)) 26) (some? (vim-strchr ed (BytePtr/lit ":=@>/?") (.ub end))))
                                   (let [^BytePtr end (.add end 1)]
                                     (recur end))
                                   (do (aset to__ 0 end)
                                       0)))
                          ^BytePtr end (aget to__ 0)
-                         i (bit-and (.get end) 0xff)
+                         i (.ub end)
                          _ (.put end (unchecked-byte (e NUL)))
                          histype1 (long (get-histtype ed arg))
                          j__2 (if (== histype1 -1)
@@ -56182,8 +56165,8 @@
             (let [^BytePtr end (.str_ get-list-range__o)
                   hisidx1 (.num1 get-list-range__o)
                   hisidx2 (.num2 get-list-range__o)]
-              (if (or (not (.r__ get-list-range__o)) (not (== (bit-and (.get end) 0xff) (e NUL))))
-                (if (== (bit-and (.get end) 0xff) (e NUL))
+              (if (or (not (.r__ get-list-range__o)) (not (== (.ub end) (e NUL))))
+                (if (== (.ub end) (e NUL))
                   (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-val-too-large) 0)) (object-array [arg]))
                       (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-val-too-large) 0))))
                       nil)
@@ -56252,22 +56235,22 @@
             (e FAIL)
             (do (g! ed read-redo-p (.b-str (g ed read-redo-bp)))
                 (e OK))))
-      (let [c (bit-and (.get (g ed read-redo-p)) 0xff)]
+      (let [c (.ub (g ed read-redo-p))]
         (if (== c (e NUL))
           c
-          (let [n (if (or (not (== c 128)) (== (bit-and (.at (g ed read-redo-p) 1) 0xff) (e KS_SPECIAL)))
+          (let [n (if (or (not (== c 128)) (== (.ub (g ed read-redo-p) 1) (e KS_SPECIAL)))
                     (if (or (< c 0) (> c 255)) 1 (long (aget (g ed mb-bytelen-tab) c)))
                     1)
                 i 0]
             (loop [c c
                    i i]
               (let [c (if (== c 128)
-                        (let [c (if (== (bit-and (.at (g ed read-redo-p) 1) 0xff) (e KS_SPECIAL)) 128 (if (== (bit-and (.at (g ed read-redo-p) 1) 0xff) (e KS_ZERO)) -22783 (i32 (- (i32 (+ (bit-and (.at (g ed read-redo-p) 1) 0xff) (i32 (bit-shift-left (bit-and (.at (g ed read-redo-p) 2) 0xff) 8))))))))]
+                        (let [c (if (== (.ub (g ed read-redo-p) 1) (e KS_SPECIAL)) 128 (if (== (.ub (g ed read-redo-p) 1) (e KS_ZERO)) -22783 (i32 (- (i32 (+ (.ub (g ed read-redo-p) 1) (i32 (bit-shift-left (.ub (g ed read-redo-p) 2) 8))))))))]
                           (g! ed read-redo-p (.add (g ed read-redo-p) 2))
                           c)
                         c)]
                 (g! ed read-redo-p (.add (g ed read-redo-p) 1))
-                (when (and (== (bit-and (.get (g ed read-redo-p)) 0xff) (e NUL)) (some? (.b-next (g ed read-redo-bp))))
+                (when (and (== (.ub (g ed read-redo-p)) (e NUL)) (some? (.b-next (g ed read-redo-bp))))
                   (g! ed read-redo-bp (.b-next (g ed read-redo-bp)))
                   (g! ed read-redo-p (.b-str (g ed read-redo-bp))))
                 (aset buf i (unchecked-byte c))
@@ -56275,7 +56258,7 @@
                   (if (== n 1)
                     c
                     (long (utf-ptr2char ed (BytePtr. buf 0))))
-                  (let [c (bit-and (.get (g ed read-redo-p)) 0xff)]
+                  (let [c (.ub (g ed read-redo-p))]
                     (if (== c (e NUL))
                       c
                       (let [i (i32 (inc i))]
@@ -56362,14 +56345,14 @@
                                            (let [^BytePtr str_ (.b-str bp)]
                                              (let [l__3 (loop [^BytePtr p2 p2
                                                               ^BytePtr str_ str_]
-                                                         (if (zero? (bit-and (.get str_) 0xff))
+                                                         (if (zero? (.ub str_))
                                                            (do (aset to__ 3 p2)
                                                                0)
                                                            (let [^BytePtr t2 p2
                                                                  ^BytePtr p2 (.add p2 1)
                                                                  ^BytePtr t3 str_
                                                                  ^BytePtr str_ (.add str_ 1)
-                                                                 _ (.put t2 (unchecked-byte (bit-and (.get t3) 0xff)))]
+                                                                 _ (.put t2 (unchecked-byte (.ub t3)))]
                                                              (recur p2 str_))))]
                                                (let [^BytePtr p2 (aget to__ 3)]
                                                  (let [^S_buffblock bp (.b-next bp)]
@@ -56425,7 +56408,7 @@
                 strip-col (if (and (== (long (gchar-cursor ed)) (e NUL)) (> strip-col 0))
                             (i32 (dec strip-col))
                             strip-col)]
-            (if (== (bit-and (.get ^BytePtr (skipwhite ed (.add ^BytePtr (ml-get-curline ed) strip-col))) 0xff) (e NUL))
+            (if (== (.ub ^BytePtr (skipwhite ed (.add ^BytePtr (ml-get-curline ed) strip-col))) (e NUL))
               (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) strip-col)
                   (let [l__1 (loop []
                                (when (and (== (long (gchar-cursor ed)) (e NUL)) (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0))
@@ -56474,7 +56457,7 @@
         (do (coladvance ed (i32 (- v 1)))
             (if (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 1)
               (let [^BytePtr ptr (ml-get-cursor ed)]
-                (if (and (not (== (bit-and (.get ptr) 0xff) (e TAB))) (vim-isprintc? ed (long (utf-ptr2char ed ptr))) (> (long (ptr2cells ed ptr)) 1))
+                (if (and (not (== (.ub ptr) (e TAB))) (vim-isprintc? ed (long (utf-ptr2char ed ptr))) (> (long (ptr2cells ed ptr)) 1))
                   (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
                       (.set-w-set-curswant (g ed curwin) (boolean true))
                       (adjust-skipcol ed)
@@ -56569,7 +56552,7 @@
         ^BytePtr ptr (ml-get-curline ed)]
     (loop [^BytePtr ptr ptr
            col col]
-      (if (or (== (bit-and (.get ptr) 0xff) 32) (== (bit-and (.get ptr) 0xff) 9))
+      (if (or (== (.ub ptr) 32) (== (.ub ptr) 9))
         (let [^BytePtr ptr (.add ptr 1)
               col (i32 (inc col))]
           (recur ptr col))
@@ -56633,7 +56616,7 @@
   (if (== (g ed replace-stack-nr) 0)
     -1
     (do (g! ed replace-stack-nr (dec (g ed replace-stack-nr)))
-        (bit-and (.at (g ed replace-stack) (g ed replace-stack-nr)) 0xff))))
+        (.ub (g ed replace-stack) (g ed replace-stack-nr)))))
 
 ;; C: del_char_after_col
 (defn del-char-after-col [^Editor ed ^long limit-col]
@@ -56646,7 +56629,7 @@
             (when-not (== l 0)
               (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) l)))
               (recur)))))
-      (if (or (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL)) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) ecol))
+      (if (or (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL)) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) ecol))
         false
         (do (del-bytes ed (i32 (- ecol (.col ^T_pos_T (.-w-cursor (g ed curwin))))) false true)
             true)))
@@ -56702,7 +56685,7 @@
                 (recur 4 cc n i))))
         4
           (when (>= i 0)
-            (replace-push ed (bit-and (aget buf i) 0xff))
+            (replace-push ed (bit-and (long (aget buf i)) 0xff))
             (let [i (i32 (dec i))]
               (recur 4 cc n i)))))))
 
@@ -56870,7 +56853,7 @@
               (when (> (.cts-vcol cts) 0)
                 (let [t1 (long (utfc-ptr2len ed (.cts-ptr cts)))]
                   (.set-cts-ptr cts (.add ^BytePtr (.cts-ptr cts) t1))))
-              (if (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))
+              (if (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))
                 (recur 2 type_ amount round replaced call-changed-bytes last-vcol insstart-less new-cursor-col i ptr save-p-list start-col orig-col orig-line ptrlen)
                 (let [t2 (long (lbr-chartabsize ed cts))]
                   (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) t2)))
@@ -56970,13 +56953,13 @@
                       (let [i (long (if (> i 0)
                                (loop [i i]
                                  (let [i (i32 (dec i))]
-                                   (if (and (> i 0) (or (== (bit-and (.at ptr i) 0xff) 32) (== (bit-and (.at ptr i) 0xff) 9)))
+                                   (if (and (> i 0) (or (== (.ub ptr i) 32) (== (.ub ptr i) 9)))
                                      (recur i)
                                      i)))
                                i))]
                         (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.lnum pos))
                               _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) i)
-                              t2 (== (bit-and (.at ptr i) 0xff) 41)]
+                              t2 (== (.ub ptr i) 41)]
                           (let [j__2 (if t2
                                       (let [^T_pos_T pos (findmatch ed nil 40)
                                             t2 (some? pos)]
@@ -57012,7 +56995,7 @@
                                             (if (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1)
                                               (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (dec (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                                                     ^BytePtr ptr (skipwhite ed (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))]
-                                                (if (and (not (== (bit-and (.get ptr) 0xff) 35)) (not (== (bit-and (.get ptr) 0xff) (e NUL))))
+                                                (if (and (not (== (.ub ptr) 35)) (not (== (.ub ptr) (e NUL))))
                                                   nil
                                                   (recur)))
                                               nil))
@@ -57065,13 +57048,13 @@
         (let [j__1 (if (< c 0)
                     (let [i 0]
                       (loop [i i]
-                        (if (== (bit-and (aget (g ed modifier-keys-table) i) 0xff) 0)
+                        (if (== (bit-and (long (aget (g ed modifier-keys-table) i)) 0xff) 0)
                           (do (aset tl__ 0 c)
                               (aset tl__ 1 modifiers)
                               0)
-                          (if (and (== (bit-and (i32 (- c)) 255) (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 1))) 0xff)) (== (i32 (bit-and (bit-shift-right (u32 (i32 (- c))) 8) 255)) (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 2))) 0xff)))
-                            (let [modifiers (bit-or modifiers (bit-and (aget (g ed modifier-keys-table) i) 0xff))
-                                  c (i32 (- (i32 (+ (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 3))) 0xff) (i32 (bit-shift-left (bit-and (aget (g ed modifier-keys-table) (i32 (+ i 4))) 0xff) 8))))))]
+                          (if (and (== (bit-and (i32 (- c)) 255) (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 1)))) 0xff)) (== (i32 (bit-and (bit-shift-right (u32 (i32 (- c))) 8) 255)) (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 2)))) 0xff)))
+                            (let [modifiers (bit-or modifiers (bit-and (long (aget (g ed modifier-keys-table) i)) 0xff))
+                                  c (i32 (- (i32 (+ (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 3)))) 0xff) (i32 (bit-shift-left (bit-and (long (aget (g ed modifier-keys-table) (i32 (+ i 4)))) 0xff) 8))))))]
                               (do (aset tl__ 0 c)
                                   (aset tl__ 1 modifiers)
                                   0))
@@ -57149,13 +57132,13 @@
                                            (let [^BytePtr s (transchar ed c)]
                                              (loop [idx idx
                                                     ^BytePtr s s]
-                                               (if (zero? (bit-and (.get s) 0xff))
+                                               (if (zero? (.ub s))
                                                  idx
                                                  (let [t9 idx
                                                        idx (i32 (inc idx))
                                                        ^BytePtr t10 s
                                                        ^BytePtr s (.add s 1)
-                                                       _ (aset (g ed get-special-key-name-string) t9 (unchecked-byte (bit-and (.get t10) 0xff)))]
+                                                       _ (aset (g ed get-special-key-name-string) t9 (unchecked-byte (.ub t10)))]
                                                    (recur idx s)))))))))
                                    (let [^T_string_T s_2 (.-name_ ^S_key_name_entry (aget (g ed key-names-table) table-idx))]
                                      (if (<= (Long/compareUnsigned (+ (+ (.length s_2) idx) 2) (e MAX_KEY_NAME_LEN)) 0)
@@ -57391,7 +57374,7 @@
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 2)
         textwidth (long (comp-textwidth ed))]
-    (when (and (> textwidth 0) (not (or (== c 32) (== c 9))) (not (and (not (zero? (bit-and (g ed State) (e REPLACE_FLAG)))) (zero? (bit-and (g ed State) (e VREPLACE_FLAG))) (not (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL))))))
+    (when (and (> textwidth 0) (not (or (== c 32) (== c 9))) (not (and (not (zero? (bit-and (g ed State) (e REPLACE_FLAG)))) (zero? (bit-and (g ed State) (e VREPLACE_FLAG))) (not (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL))))))
       (internal-format ed textwidth second-indent flags false c))
     (g! ed did-ai (e FALSE))
     (g! ed did-si (e FALSE))
@@ -57414,7 +57397,7 @@
                                     (do (aset tl__ 0 virtcol)
                                         (aset to__ 1 (Boolean/valueOf (boolean t2)))
                                         0)
-                                    (let [t3 (long (byte2cells ed (bit-and (aget buf (i32 (- i 1))) 0xff)))
+                                    (let [t3 (long (byte2cells ed (bit-and (long (aget buf (i32 (- i 1)))) 0xff)))
                                           virtcol (i32 (+ virtcol t3))
                                           t2 (< virtcol textwidth)]
                                       (aset tl__ 0 virtcol)
@@ -57431,7 +57414,7 @@
                            0))
                 virtcol (aget tl__ 0)
                 t1 (boolean (aget to__ 0))]
-            (if (and t1 (not (and (zero? (g ed no-abbr)) (not (vim-iswordc? ed c)) (vim-iswordc? ed (bit-and (aget buf (i32 (- i 1))) 0xff)))))
+            (if (and t1 (not (and (zero? (g ed no-abbr)) (not (vim-iswordc? ed c)) (vim-iswordc? ed (bit-and (long (aget buf (i32 (- i 1)))) 0xff)))))
               (let [t4 i
                     i (i32 (inc i))]
                 (aset buf t4 (unchecked-byte (long (vgetc ed))))
@@ -57440,9 +57423,9 @@
                   (ins-str ed (BytePtr. buf 0) i)
                   (let [i (if (zero? (bit-and flags (e INSCHAR_CTRLV)))
                             0
-                            (do (redo-literal ed (bit-and (aget buf 0) 0xff))
+                            (do (redo-literal ed (bit-and (long (aget buf 0)) 0xff))
                                 1))]
-                    (when-not (== (bit-and (aget buf i) 0xff) (e NUL))
+                    (when-not (== (bit-and (long (aget buf i)) 0xff) (e NUL))
                       (AppendToRedobuffLit ed (.add (BytePtr. buf 0) i) -1)
                       nil)))))))
       (let [cc (long (utf-char2len ed c))]
@@ -57466,7 +57449,7 @@
         j__1 (if (or (< c 0) (and (not (zero? (long (aget (g ed mod-mask) 0)))) allow-modmask))
                (let [^BytePtr p (get-special-key-name ed c (long (aget (g ed mod-mask) 0)))
                      len (i32 (long (musl-strlen ed p)))
-                     c (bit-and (.at p (i32 (- len 1))) 0xff)]
+                     c (.ub p (i32 (- len 1)))]
                  (if (> len 2)
                    (if (stop-arrow ed)
                      (do (.set p (i32 (- len 1)) (unchecked-byte (e NUL)))
@@ -57668,9 +57651,9 @@
         form 0
         argidx 0]
     (java.util.Arrays/fill arg (unchecked-int 0))
-    (if (and (>= (.tb-len (g ed typebuf)) 4) (or (== c (e CSI)) (and (== c (e ESC)) (== (bit-and (.get p) 0xff) 91))))
-      (let [idx (if (== (bit-and (.get p) 0xff) 91) 1 0)
-            j__1 (if (and (== (bit-and (.at p idx) 0xff) 50) (== (bit-and (.at p (i32 (+ idx 1))) 0xff) 55) (== (bit-and (.at p (i32 (+ idx 2))) 0xff) 59) (not (== (g ed kitty-protocol-state) (e KKPS_ENABLED))))
+    (if (and (>= (.tb-len (g ed typebuf)) 4) (or (== c (e CSI)) (and (== c (e ESC)) (== (.ub p) 91))))
+      (let [idx (if (== (.ub p) 91) 1 0)
+            j__1 (if (and (== (.ub p idx) 50) (== (.ub p (i32 (+ idx 1))) 55) (== (.ub p (i32 (+ idx 2))) 59) (not (== (g ed kitty-protocol-state) (e KKPS_ENABLED))))
                    (let [form 1
                          idx (i32 (+ idx 3))]
                      (aset tl__ 0 idx)
@@ -57684,12 +57667,12 @@
             l__2 (loop [idx idx
                         argidx argidx]
                    (if (and (< idx (.tb-len (g ed typebuf))) (< argidx 2))
-                     (let [j__3 (if (== (bit-and (.at p idx) 0xff) 59)
+                     (let [j__3 (if (== (.ub p idx) 59)
                                   (let [argidx (i32 (inc argidx))]
                                     (aset tl__ 3 argidx)
                                     0)
-                                  (if (< (u32 (- (bit-and (.at p idx) 0xff) 48)) 10)
-                                    (do (aset arg argidx (unchecked-int (+ (i32 (* (long (aget arg argidx)) 10)) (i32 (- (bit-and (.at p idx) 0xff) 48)))))
+                                  (if (< (u32 (- (.ub p idx) 48)) 10)
+                                    (do (aset arg argidx (unchecked-int (+ (i32 (* (long (aget arg argidx)) 10)) (i32 (- (.ub p idx) 48)))))
                                         (aset tl__ 3 argidx)
                                         0)
                                     (do (aset tl__ 3 argidx)
@@ -57710,7 +57693,7 @@
             idx (aget tl__ 0)
             argidx (aget tl__ 3)
             kitty-no-mods (and (== argidx 0) (== (g ed kitty-protocol-state) (e KKPS_ENABLED)))]
-        (if (and (< idx (.tb-len (g ed typebuf))) (== (bit-and (.at p idx) 0xff) (if (== form 1) 126 117)) (or (== argidx 1) kitty-no-mods))
+        (if (and (< idx (.tb-len (g ed typebuf))) (== (.ub p idx) (if (== form 1) 126 117)) (or (== argidx 1) kitty-no-mods))
           (do (.set-tb-off (g ed typebuf) (i32 (+ (.tb-off (g ed typebuf)) (i32 (+ idx 1)))))
               (.set-tb-len (g ed typebuf) (i32 (- (.tb-len (g ed typebuf)) (i32 (+ idx 1)))))
               (aset (g ed mod-mask) 0 (unchecked-int (if kitty-no-mods 0 (long (decode-modifiers ed (long (aget arg (if (zero? form) 1 0))))))))
@@ -57951,15 +57934,15 @@
             (let [^BytePtr p (.add (.add ^BytePtr (aget ^objects (.-string insert) 0) (.length insert)) (- 1))]
               (loop [^BytePtr p p]
                 (when (.ge p ^BytePtr (aget ^objects (.-string insert) 0))
-                  (if (== (bit-and (.get p) 0xff) (e ESC))
+                  (if (== (.ub p) (e ESC))
                     (do (.set-length insert (.sub p ^BytePtr (aget ^objects (.-string insert) 0)))
                         nil)
                     (let [^BytePtr p (.add p -1)]
                       (recur p)))))))
           (let [last_ (if (> (Long/compareUnsigned (.length insert) 0) 0)
                         (let [^BytePtr p_2 (.add (.add ^BytePtr (aget ^objects (.-string insert) 0) (.length insert)) (- 1))]
-                          (if (and (or (== (bit-and (.get p_2) 0xff) 48) (== (bit-and (.get p_2) 0xff) 94)) (or no-esc (and (== (bit-and (.get ^BytePtr (aget ^objects (.-string insert) 0)) 0xff) (e Ctrl_D)) (> count_ 1))))
-                            (let [last_ (bit-and (.get p_2) 0xff)]
+                          (if (and (or (== (.ub p_2) 48) (== (.ub p_2) 94)) (or no-esc (and (== (.ub ^BytePtr (aget ^objects (.-string insert) 0)) (e Ctrl_D)) (> count_ 1))))
+                            (let [last_ (.ub p_2)]
                               (.set-length insert (dec (.length insert)))
                               last_)
                             last_))
@@ -57995,7 +57978,7 @@
     (.set insert (get-last-insert ed))
     (when-not (nil? (aget ^objects (.-string insert) 0))
       (let [^BytePtr s (vim-strnsave ed (aget ^objects (.-string insert) 0) (.length insert))]
-        (if (and (> (Long/compareUnsigned (.length insert) 0) 0) (== (bit-and (.at s (- (.length insert) 1)) 0xff) (e ESC)))
+        (if (and (> (Long/compareUnsigned (.length insert) 0) 0) (== (.ub s (- (.length insert) 1)) (e ESC)))
           (do (.set-length insert (dec (.length insert)))
               (let [t1 (.length insert)]
                 (.set s t1 (unchecked-byte (e NUL)))
@@ -58029,11 +58012,11 @@
         is-url false
         ^BytePtr ptr (.add line col)]
     (loop [^BytePtr ptr ptr]
-      (if (and (not (== (bit-and (.get ptr) 0xff) (e NUL))) (not (vim-isfilec? ed (bit-and (.get ptr) 0xff))))
+      (if (and (not (== (.ub ptr) (e NUL))) (not (vim-isfilec? ed (.ub ptr))))
         (let [t1 (long (utfc-ptr2len ed ptr))
               ^BytePtr ptr (.add ptr t1)]
           (recur ptr))
-        (if (== (bit-and (.get ptr) 0xff) (e NUL))
+        (if (== (.ub ptr) (e NUL))
           (when-not (zero? (bit-and options (e FNAME_MESS)))
             (emsg ed (gettext_ ed (BytePtr. (g ed e-no-file-name-under-cursor) 0)))
             nil)
@@ -58044,7 +58027,7 @@
                                       (let [^BytePtr ptr (.add ptr (- (i32 (+ len 1))))]
                                         (aset to__ 0 ptr)
                                         0)
-                                      (if (or (vim-isfilec? ed (bit-and (.at ptr -1) 0xff)) (and (not (zero? (bit-and options (e FNAME_HYP)))) (not (zero? (long (path-is-url ed (.add ptr (- 1))))))))
+                                      (if (or (vim-isfilec? ed (.ub ptr -1)) (and (not (zero? (bit-and options (e FNAME_HYP)))) (not (zero? (long (path-is-url ed (.add ptr (- 1))))))))
                                         (let [^BytePtr ptr (.add ptr -1)]
                                           (aset to__ 0 ptr)
                                           0)
@@ -58065,8 +58048,8 @@
             (loop [len len
                    in-type (boolean in-type)
                    is-url (boolean is-url)]
-              (if (or (vim-isfilec? ed (bit-and (.at ptr len) 0xff)) (and (== (bit-and (.at ptr len) 0xff) 92) (== (bit-and (.at ptr (i32 (+ len 1))) 0xff) 32)) (and (not (zero? (bit-and options (e FNAME_HYP)))) (not (zero? (long (path-is-url ed (.add ptr len)))))) (and is-url (some? (vim-strchr ed (BytePtr/lit ":?&=") (bit-and (.at ptr len) 0xff)))))
-                (let [j__3 (if (or (and (>= (bit-and (.at ptr len) 0xff) 65) (<= (bit-and (.at ptr len) 0xff) 90)) (and (>= (bit-and (.at ptr len) 0xff) 97) (<= (bit-and (.at ptr len) 0xff) 122)))
+              (if (or (vim-isfilec? ed (.ub ptr len)) (and (== (.ub ptr len) 92) (== (.ub ptr (i32 (+ len 1))) 32)) (and (not (zero? (bit-and options (e FNAME_HYP)))) (not (zero? (long (path-is-url ed (.add ptr len)))))) (and is-url (some? (vim-strchr ed (BytePtr/lit ":?&=") (.ub ptr len)))))
+                (let [j__3 (if (or (and (>= (.ub ptr len) 65) (<= (.ub ptr len) 90)) (and (>= (.ub ptr len) 97) (<= (.ub ptr len) 122)))
                              (if (and in-type (not (zero? (long (path-is-url ed (.add (.add ptr len) 1))))))
                                (let [is-url true]
                                  (aset to__ 2 (Boolean/valueOf (boolean in-type)))
@@ -58081,13 +58064,13 @@
                                0))
                       in-type (boolean (aget to__ 2))
                       is-url (boolean (aget to__ 3))
-                      len (if (== (bit-and (.at ptr len) 0xff) 92)
+                      len (if (== (.ub ptr len) 92)
                             (i32 (inc len))
                             len)
                       t2 (long (utfc-ptr2len ed (.add ptr len)))
                       len (i32 (+ len t2))]
                   (recur len (boolean in-type) (boolean is-url)))
-                (let [len (if (and (> len 2) (some? (vim-strchr ed (BytePtr/lit ".,:;!") (bit-and (.at ptr (i32 (- len 1))) 0xff))) (not (== (bit-and (.at ptr (i32 (- len 2))) 0xff) 46)))
+                (let [len (if (and (> len 2) (some? (vim-strchr ed (BytePtr/lit ".,:;!") (.ub ptr (i32 (- len 1))))) (not (== (.ub ptr (i32 (- len 2))) 46)))
                             (i32 (dec len))
                             len)]
                   (if (some? file-lnum)
@@ -58101,12 +58084,12 @@
                           (if (== (long (musl-strncmp ed (aget p 0) match-text match-textlen)) 0)
                             (aset p 0 (.add ^BytePtr (aget p 0) match-textlen))
                             (aset p 0 (skipwhite ed (aget p 0))))))
-                      (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))
+                      (if (== (.ub ^BytePtr (aget p 0)) (e NUL))
                         (find-file-name-in-path ed ptr len options count_ rel-fname)
-                        (do (when-not (musl-isdigit? ed (bit-and (.get ^BytePtr (aget p 0)) 0xff))
+                        (do (when-not (musl-isdigit? ed (.ub ^BytePtr (aget p 0)))
                               (aset p 0 (.add ^BytePtr (aget p 0) 1)))
                             (aset p 0 (skipwhite ed (aget p 0)))
-                            (if (musl-isdigit? ed (bit-and (.get ^BytePtr (aget p 0)) 0xff))
+                            (if (musl-isdigit? ed (.ub ^BytePtr (aget p 0)))
                               (do (.put file-lnum (i32 (long (getdigits ed (Ptr. p 0)))))
                                   (find-file-name-in-path ed ptr len options count_ rel-fname))
                               (find-file-name-in-path ed ptr len options count_ rel-fname)))))
@@ -58125,11 +58108,11 @@
   (let [bnp (long bnp)
         dir (long dir)
         ^T_find_is_eval_item__out_T out__ (new-T_find_is_eval_item__out_T)
-        bnp (if (or (and (== (bit-and (.get ptr) 0xff) 93) (== dir -1)) (and (== (bit-and (.get ptr) 0xff) 91) (== dir (e FORWARD))))
+        bnp (if (or (and (== (.ub ptr) 93) (== dir -1)) (and (== (.ub ptr) 91) (== dir (e FORWARD))))
               (i32 (inc bnp))
               bnp)]
     (if (> bnp 0)
-      (if (or (and (== (bit-and (.get ptr) 0xff) 91) (== dir -1)) (and (== (bit-and (.get ptr) 0xff) 93) (== dir (e FORWARD))))
+      (if (or (and (== (.ub ptr) 91) (== dir -1)) (and (== (.ub ptr) 93) (== dir (e FORWARD))))
         (let [bnp (i32 (dec bnp))]
           (.set-r__ out__ (boolean true))
           (.set-bnp out__ bnp)
@@ -58137,11 +58120,11 @@
         (do (.set-r__ out__ (boolean true))
             (.set-bnp out__ bnp)
             out__))
-      (if (== (bit-and (.get ptr) 0xff) 46)
+      (if (== (.ub ptr) 46)
         (do (.set-r__ out__ (boolean true))
             (.set-bnp out__ bnp)
             out__)
-        (if (and (== (bit-and (.at ptr (if (== dir -1) 0 1)) 0xff) 62) (== (bit-and (.at ptr (if (== dir -1) -1 0)) 0xff) 45))
+        (if (and (== (.ub ptr (if (== dir -1) 0 1)) 62) (== (.ub ptr (if (== dir -1) -1 0)) 45))
           (do (.put colp (unchecked-int (+ (long (.get colp)) dir)))
               (.set-r__ out__ (boolean true))
               (.set-bnp out__ bnp)
@@ -58170,15 +58153,15 @@
                  (if (< i 2)
                    (do (aset col 0 (unchecked-int startcol))
                        (loop []
-                         (when-not (== (bit-and (.at ptr (long (aget col 0))) 0xff) (e NUL))
-                           (when-not (and (not (zero? (bit-and find-type (e FIND_EVAL)))) (== (bit-and (.at ptr (long (aget col 0))) 0xff) 93))
+                         (when-not (== (.ub ptr (long (aget col 0))) (e NUL))
+                           (when-not (and (not (zero? (bit-and find-type (e FIND_EVAL)))) (== (.ub ptr (long (aget col 0))) 93))
                              (let [this-class (long (mb-get-class ed (.add ptr (long (aget col 0)))))]
                                (when-not (and (not (== this-class 0)) (or (== i 1) (not (== this-class 1))))
                                  (let [t1 (long (utfc-ptr2len ed (.add ptr (long (aget col 0)))))]
                                    (aset col 0 (unchecked-int (+ (long (aget col 0)) t1)))
                                    (recur)))))))
-                       (let [bn (if (== (bit-and (.at ptr (long (aget col 0))) 0xff) 93) 1 0)
-                             this-class (if (and (not (zero? (bit-and find-type (e FIND_EVAL)))) (== (bit-and (.at ptr (long (aget col 0))) 0xff) 93))
+                       (let [bn (if (== (.ub ptr (long (aget col 0))) 93) 1 0)
+                             this-class (if (and (not (zero? (bit-and find-type (e FIND_EVAL)))) (== (.ub ptr (long (aget col 0))) 93))
                                           (long (mb-get-class ed (BytePtr/lit "a")))
                                           (long (mb-get-class ed (.add ptr (long (aget col 0))))))]
                          (loop [bn bn]
@@ -58226,7 +58209,7 @@
                        0)))
           i (aget tl__ 0)
           this-class (aget tl__ 1)]
-      (if (or (== (bit-and (.at ptr (long (aget col 0))) 0xff) (e NUL)) (and (== i 0) (not (== this-class 2))))
+      (if (or (== (.ub ptr (long (aget col 0))) (e NUL)) (and (== i 0) (not (== this-class 2))))
         (if (== (bit-and find-type (e FIND_NOERROR)) 0)
           (if (zero? (bit-and find-type (e FIND_STRING)))
             (do (emsg ed (gettext_ ed (BytePtr. (g ed e-no-identifier-under-cursor) 0)))
@@ -58243,7 +58226,7 @@
                 _ (aset col 0 (unchecked-int 0))
                 this-class (long (mb-get-class ed ptr))]
             (loop []
-              (let [t4 (not (== (bit-and (.at ptr (long (aget col 0))) 0xff) (e NUL)))
+              (let [t4 (not (== (.ub ptr (long (aget col 0))) (e NUL)))
                     t4 (if t4
                          (let [t5 (if (== i 0) (== (long (mb-get-class ed (.add ptr (long (aget col 0))))) this-class) (not (== (long (mb-get-class ed (.add ptr (long (aget col 0))))) 0)))]
                            (if t5
@@ -58523,7 +58506,7 @@
                                 (let [^BytePtr p (ml-get-cursor ed)
                                       ^BytePtr p-orig p
                                       plen (long (ml-get-cursor-len ed))
-                                      ^BytePtr p (if (and (== dir (e FORWARD)) (not (== (bit-and (.get p) 0xff) (e NUL))))
+                                      ^BytePtr p (if (and (== dir (e FORWARD)) (not (== (.ub p) (e NUL))))
                                                    (let [t1 (long (utfc-ptr2len ed p))
                                                          ^BytePtr p (.add p t1)]
                                                      p)
@@ -58532,7 +58515,7 @@
                                       _ (ml-append ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) ptr 0)
                                       ^BytePtr oldp (ml-get-curline ed)
                                       ^BytePtr p (.add oldp (.col ^T_pos_T (.-w-cursor (g ed curwin))))
-                                      ^BytePtr p (if (and (== dir (e FORWARD)) (not (== (bit-and (.get p) 0xff) (e NUL))))
+                                      ^BytePtr p (if (and (== dir (e FORWARD)) (not (== (.ub p) (e NUL))))
                                                    (let [t2 (long (utfc-ptr2len ed p))
                                                          ^BytePtr p (.add p t2)]
                                                      p)
@@ -58699,7 +58682,7 @@
                         lnum (if (== dir (e FORWARD))
                                (inc lnum)
                                lnum)]
-                    (if (if (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (bit-and (.get ^BytePtr (ml-get ed 1)) 0xff) (e NUL))) (u-save ed 0 2) (u-save ed (- lnum 1) lnum))
+                    (if (if (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (.ub ^BytePtr (ml-get ed 1)) (e NUL))) (u-save ed 0 2) (u-save ed (- lnum 1) lnum))
                       (do (aset fl__ 6 lnum)
                           (aset fl__ 8 y-type)
                           (recur 3))
@@ -59148,13 +59131,13 @@
                               lendiff (if (and (== cnt count_) (== i (- y-size 1)))
                                         (long (ml-get-len ed lnum))
                                         lendiff)
-                              j__25 (if (and (== (bit-and (.get ptr) 0xff) 35) (not (zero? (long (preprocs-left ed)))))
+                              j__25 (if (and (== (.ub ptr) 35) (not (zero? (long (preprocs-left ed)))))
                                       (let [indent 0]
                                         (aset tl__ 5 indent)
                                         (aset tl__ 3 indent-diff)
                                         (aset to__ 0 (Boolean/valueOf (boolean first-indent)))
                                         0)
-                                      (if (== (bit-and (.get ptr) 0xff) (e NUL))
+                                      (if (== (.ub ptr) (e NUL))
                                         (let [indent 0]
                                           (aset tl__ 5 indent)
                                           (aset tl__ 3 indent-diff)
@@ -59568,7 +59551,7 @@
                 bd-textcol (aget fl__ 24)
                 spaces (aget fl__ 26)
                 shortline (aget fl__ 27)]
-            (if (and (< (.cts-vcol cts) (long (aget col 0))) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
+            (if (and (< (.cts-vcol cts) (long (aget col 0))) (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))))
               (let [incr (long (lbr-chartabsize-adv ed cts))]
                 (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) incr)))
                 (aset fo__ 2 ptr)
@@ -59584,7 +59567,7 @@
               (do (aset vcol 0 (unchecked-int (.cts-vcol cts)))
                   (let [^BytePtr ptr (.cts-ptr cts)
                         bd-textcol (i32 (.sub ptr oldp))
-                        shortline (if (or (< (long (aget vcol 0)) (long (aget col 0))) (and (== (long (aget vcol 0)) (long (aget col 0))) (zero? (bit-and (.get ptr) 0xff)))) 1 0)
+                        shortline (if (or (< (long (aget vcol 0)) (long (aget col 0))) (and (== (long (aget vcol 0)) (long (aget col 0))) (zero? (.ub ptr)))) 1 0)
                         j__27 (if (< (long (aget vcol 0)) (long (aget col 0)))
                                 (let [bd-startspaces (i32 (- (long (aget col 0)) (long (aget vcol 0))))]
                                   (aset tl__ 0 delcount)
@@ -59599,7 +59582,7 @@
                                         delcount 1
                                         t4 (long (utf-head-off ed oldp (.add oldp bd-textcol)))
                                         bd-textcol (i32 (- bd-textcol t4))]
-                                    (if (== (bit-and (.at oldp bd-textcol) 0xff) (e TAB))
+                                    (if (== (.ub oldp bd-textcol) (e TAB))
                                       (do (aset tl__ 0 delcount)
                                           (aset tl__ 1 bd-startspaces)
                                           (aset tl__ 2 bd-endspaces)
@@ -59673,7 +59656,7 @@
                 bd-textcol (aget fl__ 24)
                 spaces (aget fl__ 26)
                 shortline (aget fl__ 27)]
-            (if (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))
+            (if (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))
               (if (< spaces 0)
                 (let [spaces 0]
                   (aset fl__ 26 spaces)
@@ -59977,10 +59960,10 @@
   (let [^T_mb_cptr2char_adv__out_T mb-cptr2char-adv__o (new-T_mb_cptr2char_adv__out_T)
         ^objects to__ (object-array 1)]
     (loop [^BytePtr arg arg]
-      (when-not (== (bit-and (.get arg) 0xff) (e NUL))
+      (when-not (== (.ub arg) (e NUL))
         (let [^BytePtr start arg
               l__1 (loop [^BytePtr arg arg]
-                     (if (or (and (>= (bit-and (.get arg) 0xff) 32) (< (bit-and (.get arg) 0xff) (e DEL))) (and (== (bit-and (.get arg) 0xff) 128) (zero? literally)))
+                     (if (or (and (>= (.ub arg) 32) (< (.ub arg) (e DEL))) (and (== (.ub arg) 128) (zero? literally)))
                        (let [^BytePtr arg (.add arg 1)]
                          (recur arg))
                        (do (aset to__ 0 arg)
@@ -59988,7 +59971,7 @@
               ^BytePtr arg (aget to__ 0)]
           (when (.gt arg start)
             (stuffReadbuffLen ed start (.sub arg start)))
-          (let [^BytePtr arg (if (== (bit-and (.get arg) 0xff) (e NUL))
+          (let [^BytePtr arg (if (== (.ub arg) (e NUL))
                                arg
                                (do (.set mb-cptr2char-adv__o (mb-cptr2char-adv ed arg))
                                    (let [^BytePtr arg (.pp mb-cptr2char-adv__o)
@@ -60007,7 +59990,7 @@
       (let [count_ 0]
         (loop [^BytePtr p p
                count_ count_]
-          (if (== (bit-and (.get p) 0xff) (e NUL))
+          (if (== (.ub p) (e NUL))
             count_
             (let [t1 (long (utfc-ptr2len ed p))
                   ^BytePtr p (.add p t1)
@@ -60017,10 +60000,10 @@
 (defn oneright [^Editor ed]
   (if (zero? (long (virtual-active ed)))
     (let [^BytePtr ptr (ml-get-cursor ed)]
-      (if (== (bit-and (.get ptr) 0xff) (e NUL))
+      (if (== (.ub ptr) (e NUL))
         false
         (let [l (long (utfc-ptr2len ed ptr))]
-          (if (and (== (bit-and (.at ptr l) 0xff) (e NUL)) (== (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)) 0))
+          (if (and (== (.ub ptr l) (e NUL)) (== (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)) 0))
             false
             (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) l)))
                 (.set-w-set-curswant (g ed curwin) (boolean true))
@@ -60029,7 +60012,7 @@
     (let [prevpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
           prevpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))
           ^BytePtr ptr (ml-get-cursor ed)]
-      (coladvance ed (i32 (+ (long (getviscol ed)) (if (and (not (== (bit-and (.get ptr) 0xff) (e TAB))) (vim-isprintc? ed (long (utf-ptr2char ed ptr)))) (long (ptr2cells ed ptr)) 1))))
+      (coladvance ed (i32 (+ (long (getviscol ed)) (if (and (not (== (.ub ptr) (e TAB))) (vim-isprintc? ed (long (utf-ptr2char ed ptr)))) (long (ptr2cells ed ptr)) 1))))
       (.set-w-set-curswant (g ed curwin) (boolean true))
       (not (zero? (if (or (not (== prevpos-col (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (not (== prevpos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))) (e OK) (e FAIL)))))))
 
@@ -60262,7 +60245,7 @@
             (g! ed old-indent (long (get-indent ed))))
           (change-indent ed (e INDENT_SET) 0 true 0 (e TRUE)))
       (change-indent ed (if (== c (e Ctrl_D)) (e INDENT_DEC) (e INDENT_INC)) 0 true 0 (e TRUE)))
-    (when (and (not (zero? (g ed did-ai))) (not (== (bit-and (.get ^BytePtr (skipwhite ed (ml-get-curline ed))) 0xff) (e NUL))))
+    (when (and (not (zero? (g ed did-ai))) (not (== (.ub ^BytePtr (skipwhite ed (ml-get-curline ed))) (e NUL))))
       (g! ed did-ai (e FALSE)))
     (g! ed did-si (e FALSE))
     (g! ed can-si (e FALSE))
@@ -60301,19 +60284,19 @@
                 (.set-col ^T_pos_T (.-b-op-start ^S_file_buffer (.w-buffer (g ed curwin))) (i32 (long (musl-strlen ed curr)))))
               (let [^BytePtr curr (if (and insert-space (> t 0))
                                     (let [^BytePtr curr (skipwhite ed curr)]
-                                      (if (and (not (== (bit-and (.get curr) 0xff) (e NUL))) (not (== (bit-and (.get curr) 0xff) 41)) (not (== sumsize 0)) (not (== endcurr1 (e TAB))))
+                                      (if (and (not (== (.ub curr) (e NUL))) (not (== (.ub curr) 41)) (not (== sumsize 0)) (not (== endcurr1 (e TAB))))
                                         (let [endcurr1 (if (== endcurr1 32)
                                                          endcurr2
-                                                         (do (.set spaces t (unchecked-byte (inc (bit-and (.at spaces t) 0xff))))
+                                                         (do (.set spaces t (unchecked-byte (inc (.ub spaces t))))
                                                              endcurr1))]
                                           (if (and (not (zero? (long (aget (g ed p-js) 0)))) (or (== endcurr1 46) (and (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_JOINSP))) (or (== endcurr1 63) (== endcurr1 33)))))
-                                            (do (.set spaces t (unchecked-byte (inc (bit-and (.at spaces t) 0xff))))
+                                            (do (.set spaces t (unchecked-byte (inc (.ub spaces t))))
                                                 curr)
                                             curr))
                                         curr))
                                     curr)
                     currsize (i32 (long (musl-strlen ed curr)))
-                    sumsize (i32 (+ sumsize (i32 (+ currsize (bit-and (.at spaces t) 0xff)))))
+                    sumsize (i32 (+ sumsize (i32 (+ currsize (.ub spaces t)))))
                     endcurr2 (e NUL)
                     endcurr1 endcurr2
                     j__1 (if (and insert-space (> currsize 0))
@@ -60341,7 +60324,7 @@
                   (let [t (inc t)]
                     (recur curr curr-start endcurr1 endcurr2 currsize sumsize t))
                   false)))
-            (let [col (i32 (- (i32 (- sumsize currsize)) (bit-and (.at spaces (- count_ 1)) 0xff)))
+            (let [col (i32 (- (i32 (- sumsize currsize)) (.ub spaces (- count_ 1))))
                   newp-len (i32 (+ sumsize 1))
                   ^BytePtr newp (BytePtr/alloc newp-len)
                   ^BytePtr cend (.add newp sumsize)
@@ -60354,12 +60337,12 @@
                      t t]
                 (let [^BytePtr cend (.add cend (- currsize))
                       _ (Rt/memmove cend curr currsize)
-                      ^BytePtr cend (if (> (bit-and (.at spaces t) 0xff) 0)
-                                      (let [^BytePtr cend (.add cend (- (bit-and (.at spaces t) 0xff)))]
-                                        (Rt/memset cend (unchecked-int 32) (bit-and (.at spaces t) 0xff))
+                      ^BytePtr cend (if (> (.ub spaces t) 0)
+                                      (let [^BytePtr cend (.add cend (- (.ub spaces t)))]
+                                        (Rt/memset cend (unchecked-int 32) (.ub spaces t))
                                         cend)
                                       cend)
-                      spaces-removed (i32 (- (.sub curr curr-start) (bit-and (.at spaces t) 0xff)))]
+                      spaces-removed (i32 (- (.sub curr curr-start) (.ub spaces t)))]
                   (mark-col-adjust ed (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) t) 0 (- t) (- (.sub cend newp) spaces-removed) spaces-removed)
                   (if (== t 0)
                     (do (ml-replace-len ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) newp (i32 newp-len) true false)
@@ -60387,7 +60370,7 @@
 
 ;; C: can_bs
 (defn can-bs [^Editor ed ^long what]
-  (case (bit-and (.get ^BytePtr (aget (g ed p-bs) 0)) 0xff)
+  (case (.ub ^BytePtr (aget (g ed p-bs) 0))
     51
       true
     50
@@ -60468,7 +60451,7 @@
           (let [temp 0
                 did-backspace false
                 call-fix-indent false]
-            (if (or (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (bit-and (.get ^BytePtr (ml-get ed 1)) 0xff) (e NUL))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)) (and (not (can-bs ed (e BS_START))) (or (not (zero? (g ed arrow-used))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart-orig))) (<= (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart-orig)))))) (and (not (can-bs ed (e BS_INDENT))) (zero? (g ed arrow-used)) (> (g ed ai-col) 0) (<= (.col ^T_pos_T (.-w-cursor (g ed curwin))) (g ed ai-col))) (and (not (can-bs ed (e BS_EOL))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)))
+            (if (or (and (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (.ub ^BytePtr (ml-get ed 1)) (e NUL))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)) (and (not (can-bs ed (e BS_START))) (or (not (zero? (g ed arrow-used))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart-orig))) (<= (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart-orig)))))) (and (not (can-bs ed (e BS_INDENT))) (zero? (g ed arrow-used)) (> (g ed ai-col) 0) (<= (.col ^T_pos_T (.-w-cursor (g ed curwin))) (g ed ai-col))) (and (not (can-bs ed (e BS_EOL))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0)))
               (do (vim-beep ed (e BO_BS))
                   (.set-r__ out__ (boolean false))
                   (.set-inserted-space-p out__ inserted-space-p)
@@ -60550,7 +60533,7 @@
                                        0))
                             mincol (aget tl__ 0)
                             call-fix-indent (boolean (aget to__ 1))]
-                        (if (and (== mode (e BACKSPACE_CHAR)) (or (and (not (zero? (long (aget (g ed p-sta) 0)))) in-indent) (and (not (== (long (get-sts-value ed)) 0)) (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (== (bit-and (.get (.add ^BytePtr (ml-get-cursor ed) (- 1))) 0xff) (e TAB)) (and (== (bit-and (.get (.add ^BytePtr (ml-get-cursor ed) (- 1))) 0xff) 32) (or (zero? inserted-space-p) (not (zero? (g ed arrow-used)))))))))
+                        (if (and (== mode (e BACKSPACE_CHAR)) (or (and (not (zero? (long (aget (g ed p-sta) 0)))) in-indent) (and (not (== (long (get-sts-value ed)) 0)) (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (== (.ub (.add ^BytePtr (ml-get-cursor ed) (- 1))) (e TAB)) (and (== (.ub (.add ^BytePtr (ml-get-cursor ed) (- 1))) 32) (or (zero? inserted-space-p) (not (zero? (g ed arrow-used)))))))))
                           (let [vcol 0
                                 space-vcol 0
                                 prev-space false
@@ -60595,7 +60578,7 @@
                   (recur 7 c mode inserted-space-p cc temp mincol did-backspace in-indent oldState call-fix-indent vcol want-vcol line ptr cursor-ptr space-ptr space-vcol prev-space want-col cclass))))
         3
           (if (.lt ptr cursor-ptr)
-            (let [cur-space (or (== (bit-and (.get ptr) 0xff) 32) (== (bit-and (.get ptr) 0xff) 9))
+            (let [cur-space (or (== (.ub ptr) 32) (== (.ub ptr) 9))
                   j__5 (if (and (not prev-space) cur-space)
                          (let [^BytePtr space-ptr ptr
                                space-vcol vcol]
@@ -60872,7 +60855,7 @@
                 true)))
       2
         (if (== (long (cls ed)) 0)
-          (if (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL)))
+          (if (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL)))
             (recur 4 count_ bigword stop)
             (if (== (long (dec-cursor ed)) -1)
               true
@@ -60961,7 +60944,7 @@
                     0
                       (let [l__3 (loop []
                                    (if (== (long (cls ed)) 0)
-                                     (if (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.get ^BytePtr (ml-get-curline ed)) 0xff) (e NUL)))
+                                     (if (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub ^BytePtr (ml-get-curline ed)) (e NUL)))
                                        1
                                        (let [i (long (inc-cursor ed))]
                                          (if (or (== i -1) (and (>= i 1) (not (zero? eol)) (== count_ 0)))
@@ -61609,7 +61592,7 @@
                           (aset ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0 (unchecked-int (e FALSE))))
                         (.set fpos (.-w-cursor (g ed curwin)))
                         (loop [^BytePtr ptr ptr]
-                          (if (and (> (.col fpos) 0) (or (== (bit-and (.at ptr -1) 0xff) 32) (== (bit-and (.at ptr -1) 0xff) 9)))
+                          (if (and (> (.col fpos) 0) (or (== (.ub ptr -1) 32) (== (.ub ptr -1) 9)))
                             (do (.set-col fpos (i32 (dec (.col fpos))))
                                 (let [^BytePtr ptr (.add ptr -1)]
                                   (recur ptr)))
@@ -61623,13 +61606,13 @@
                               (init-chartabsize-arg ed cts (g ed curwin) 0 (long (aget vcol 0)) tab tab)
                               (let [l__2 (loop [^BytePtr ptr ptr
                                                 change-col change-col]
-                                           (if (or (== (bit-and (.get ptr) 0xff) 32) (== (bit-and (.get ptr) 0xff) 9))
+                                           (if (or (== (.ub ptr) 32) (== (.ub ptr) 9))
                                              (let [i (long (lbr-chartabsize ed cts))]
                                                (if (> (i32 (+ (.cts-vcol cts) i)) (long (aget want-vcol 0)))
                                                  (do (aset to__ 0 ptr)
                                                      (aset tl__ 0 change-col)
                                                      0)
-                                                 (let [change-col (if (== (bit-and (.get ptr) 0xff) (e TAB))
+                                                 (let [change-col (if (== (.ub ptr) (e TAB))
                                                                     change-col
                                                                     (do (.put ptr (unchecked-byte (e TAB)))
                                                                         (if (< change-col 0)
@@ -61653,7 +61636,7 @@
                                   (let [repl-off 0
                                         _ (init-chartabsize-arg ed cts (g ed curwin) 0 (long (aget vcol 0)) ptr ptr)
                                         l__3 (loop [repl-off repl-off]
-                                               (if (and (< (.cts-vcol cts) (long (aget want-vcol 0))) (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 32))
+                                               (if (and (< (.cts-vcol cts) (long (aget want-vcol 0))) (== (.ub ^BytePtr (.cts-ptr cts)) 32))
                                                  (let [t2 (long (lbr-chartabsize ed cts))
                                                        _ (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) t2)))
                                                        _ (.set-cts-ptr cts (.add ^BytePtr (.cts-ptr cts) 1))
@@ -61743,7 +61726,7 @@
                 ^BytePtr prev-ptr line]
             (init-chartabsize-arg ed cts (g ed curwin) lnum 0 line line)
             (loop [^BytePtr prev-ptr prev-ptr]
-              (if (and (< (.cts-vcol cts) (long (aget ^ints (.-w-virtcol (g ed curwin)) 0))) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
+              (if (and (< (.cts-vcol cts) (long (aget ^ints (.-w-virtcol (g ed curwin)) 0))) (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))))
                 (let [^BytePtr prev-ptr (.cts-ptr cts)
                       t1 (long (lbr-chartabsize-adv ed cts))]
                   (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) t1)))
@@ -61875,7 +61858,7 @@
                           (let [t1 (or (and (not (zero? (g ed ins-at-eol))) (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (aget (g ed edit-o-lnum) 0))) (> (.w-curswant (g ed curwin)) (long (aget ^ints (.-w-virtcol (g ed curwin)) 0))))
                                 j__1 (if t1
                                        (let [^BytePtr ptr (.add ^BytePtr (ml-get-curline ed) (.col ^T_pos_T (.-w-cursor (g ed curwin))))
-                                             t1 (not (== (bit-and (.get ptr) 0xff) (e NUL)))]
+                                             t1 (not (== (.ub ptr) (e NUL)))]
                                          (aset to__ 0 ptr)
                                          (aset to__ 1 (Boolean/valueOf (boolean t1)))
                                          0)
@@ -61885,10 +61868,10 @@
                                 ^BytePtr ptr (aget to__ 0)
                                 t1 (boolean (aget to__ 1))]
                             (when t1
-                              (if (== (bit-and (.at ptr 1) 0xff) (e NUL))
+                              (if (== (.ub ptr 1) (e NUL))
                                 (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
                                 (let [i (long (utfc-ptr2len ed ptr))]
-                                  (when (== (bit-and (.at ptr i) 0xff) (e NUL))
+                                  (when (== (.ub ptr i) (e NUL))
                                     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) i)))))))
                             (g! ed ins-at-eol (e FALSE))))
                       (g! ed arrow-used (e FALSE)))
@@ -62443,7 +62426,7 @@
 ;; C: do_fixdel
 (defn do-fixdel [^Editor ed ^S_exarg eap]
   (let [^BytePtr p (find-termcode ed (BytePtr/lit "kb"))]
-    (add-termcode ed (BytePtr/lit "kD") (if (and (some? p) (== (bit-and (.get p) 0xff) (e DEL))) (BytePtr/lit "\010") (BytePtr/lit "\177")) (e FALSE))
+    (add-termcode ed (BytePtr/lit "kD") (if (and (some? p) (== (.ub p) (e DEL))) (BytePtr/lit "\010") (BytePtr/lit "\177")) (e FALSE))
     nil))
 
 ;; C: msg_prt_line
@@ -62473,20 +62456,20 @@
                                       trail
                                       (let [^BytePtr trail (.add s (long (musl-strlen ed s)))]
                                         (loop [^BytePtr trail trail]
-                                          (if (and (.gt trail s) (or (== (bit-and (.at trail -1) 0xff) 32) (== (bit-and (.at trail -1) 0xff) 9)))
+                                          (if (and (.gt trail s) (or (== (.ub trail -1) 32) (== (.ub trail -1) 9)))
                                             (let [^BytePtr trail (.add trail -1)]
                                               (recur trail))
                                             trail))))]
                  (if (or (not (zero? (long (aget ^ints (.-lead ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin))) 0)))) (some? (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin)))) (not (== (.leadtab1 ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin))) (e NUL))))
                    (let [^BytePtr lead s
                          l__1 (loop [^BytePtr lead lead]
-                                (if (or (== (bit-and (.at lead 0) 0xff) 32) (== (bit-and (.at lead 0) 0xff) 9))
+                                (if (or (== (.ub lead 0) 32) (== (.ub lead 0) 9))
                                   (let [^BytePtr lead (.add lead 1)]
                                     (recur lead))
                                   (do (aset to__ 1 lead)
                                       0)))
                          ^BytePtr lead (aget to__ 1)]
-                     (if (== (bit-and (.get lead) 0xff) (e NUL))
+                     (if (== (.ub lead) (e NUL))
                        (let [^BytePtr lead nil]
                          (aset to__ 0 trail)
                          (aset to__ 1 lead)
@@ -62499,7 +62482,7 @@
                        0))))
         ^BytePtr trail (aget to__ 0)
         ^BytePtr lead (aget to__ 1)]
-    (when (and (== (bit-and (.get s) 0xff) (e NUL)) (not (and (not (zero? list_)) (not (== (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin))) 0)) (e NUL))))))
+    (when (and (== (.ub s) (e NUL)) (not (and (not (zero? list_)) (not (== (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars (g ed curwin))) 0)) (e NUL))))))
       (msg-putchar ed 32))
     (loop [^BytePtr s s
            col col
@@ -62531,7 +62514,7 @@
                          (if (zero? c-extra)
                            (let [^BytePtr t1 p-extra
                                  ^BytePtr p-extra (.add p-extra 1)
-                                 c (bit-and (.get t1) 0xff)]
+                                 c (.ub t1)]
                              (aset to__ 2 s)
                              (aset tl__ 0 c)
                              (aset tl__ 1 col)
@@ -62584,12 +62567,12 @@
                          (let [attr 0
                                ^BytePtr t3 s
                                ^BytePtr s (.add s 1)
-                               c (bit-and (.get t3) 0xff)
+                               c (.ub t3)
                                j__3 (if (zero? list_)
                                       (do (aset to__ 4 (Boolean/valueOf (boolean in-multispace)))
                                           (aset tl__ 7 multispace-pos)
                                           0)
-                                      (let [in-multispace (and (== c 32) (or (== (bit-and (.get s) 0xff) 32) (and (> col 0) (== (bit-and (.at s -2) 0xff) 32))))]
+                                      (let [in-multispace (and (== c 32) (or (== (.ub s) 32) (and (> col 0) (== (.ub s -2) 32))))]
                                         (if in-multispace
                                           (do (aset to__ 4 (Boolean/valueOf (boolean in-multispace)))
                                               (aset tl__ 7 multispace-pos)
@@ -62706,7 +62689,7 @@
                                            c-final (e NUL)
                                            ^BytePtr t5 p-extra
                                            ^BytePtr p-extra (.add p-extra 1)
-                                           c (bit-and (.get t5) 0xff)
+                                           c (.ub t5)
                                            attr (long (aget (g ed highlight-attr) 0))]
                                        (aset to__ 2 s)
                                        (aset tl__ 0 c)
@@ -62935,7 +62918,7 @@
                                                        ^BytePtr (.add ^BytePtr (.nextcmd eap) (long (musl-strlen ed (.nextcmd eap))))
                                                        p)
                                           ^BytePtr theline (vim-strnsave ed (.nextcmd eap) (.sub p ^BytePtr (.nextcmd eap)))
-                                          ^BytePtr p (when-not (== (bit-and (.get p) 0xff) (e NUL))
+                                          ^BytePtr p (when-not (== (.ub p) (e NUL))
                                                        ^BytePtr (.add p 1))]
                                       (.set-nextcmd eap p)
                                       (aset to__ 0 theline)
@@ -62960,11 +62943,11 @@
                                          l__3 (loop [^BytePtr p p
                                                      vcol vcol]
                                                 (if (> indent vcol)
-                                                  (let [j__4 (if (== (bit-and (.get p) 0xff) 32)
+                                                  (let [j__4 (if (== (.ub p) 32)
                                                                (let [vcol (i32 (inc vcol))]
                                                                  (aset tl__ 1 vcol)
                                                                  0)
-                                                               (if (== (bit-and (.get p) 0xff) (e TAB))
+                                                               (if (== (.ub p) (e TAB))
                                                                  (let [vcol (i32 (+ vcol (i32 (- 8 (rem vcol 8)))))]
                                                                    (aset tl__ 1 vcol)
                                                                    0)
@@ -62980,10 +62963,10 @@
                                                   (do (aset to__ 1 p)
                                                       0)))
                                          ^BytePtr p (aget to__ 1)]
-                                     (if (or (and (== (bit-and (.at p 0) 0xff) 46) (== (bit-and (.at p 1) 0xff) (e NUL))) (and (not did-undo) (not (u-save ed lnum (+ lnum 1 (if (zero? empty_) 0 1))))))
+                                     (if (or (and (== (.ub p 0) 46) (== (.ub p 1) (e NUL))) (and (not did-undo) (not (u-save ed lnum (+ lnum 1 (if (zero? empty_) 0 1))))))
                                        (do (aset tl__ 0 lnum)
                                            0)
-                                       (do (when (== (bit-and (.at p 0) 0xff) (e NUL))
+                                       (do (when (== (.ub p 0) (e NUL))
                                              (.set theline 0 (unchecked-byte (e NUL))))
                                            (let [did-undo true]
                                              (ml-append ed lnum theline 0)
@@ -63055,23 +63038,23 @@
                   bigness)
         ^BytePtr x (aget ^objects (.-arg eap) 0)
         ^BytePtr kind x
-        ^BytePtr x (if (or (== (bit-and (.get kind) 0xff) 45) (== (bit-and (.get kind) 0xff) 43) (== (bit-and (.get kind) 0xff) 61) (== (bit-and (.get kind) 0xff) 94) (== (bit-and (.get kind) 0xff) 46))
+        ^BytePtr x (if (or (== (.ub kind) 45) (== (.ub kind) 43) (== (.ub kind) 61) (== (.ub kind) 94) (== (.ub kind) 46))
                      ^BytePtr (.add x 1)
                      x)]
     (loop [^BytePtr x x]
-      (if (or (== (bit-and (.get x) 0xff) 45) (== (bit-and (.get x) 0xff) 43))
+      (if (or (== (.ub x) 45) (== (.ub x) 43))
         (let [^BytePtr x (.add x 1)]
           (recur x))
-        (let [j__1 (if (== (bit-and (.get x) 0xff) 0)
+        (let [j__1 (if (== (.ub x) 0)
                      (do (aset tl__ 0 bigness)
                          0)
-                     (if (< (u32 (- (bit-and (.get x) 0xff) 48)) 10)
+                     (if (< (u32 (- (.ub x) 48)) 10)
                        (let [bigness (long (musl-atol ed x))
                              bigness (if (or (> bigness (* 2 (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))) (< bigness 0))
                                        (* 2 (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
                                        bigness)]
                          (aset (g ed p-window) 0 bigness)
-                         (if (== (bit-and (.get kind) 0xff) 61)
+                         (if (== (.ub kind) 61)
                            (let [bigness (+ bigness 2)]
                              (aset tl__ 0 bigness)
                              0)
@@ -63081,15 +63064,15 @@
                            -1)))]
           (when-not (== (long j__1) -1)
             (let [bigness (aget tl__ 0)
-                  ^BytePtr x (if (or (== (bit-and (.get kind) 0xff) 45) (== (bit-and (.get kind) 0xff) 43))
+                  ^BytePtr x (if (or (== (.ub kind) 45) (== (.ub kind) 43))
                                (let [^BytePtr x (.add kind 1)]
                                  (loop [^BytePtr x x]
-                                   (if (== (bit-and (.get x) 0xff) (bit-and (.get kind) 0xff))
+                                   (if (== (.ub x) (.ub kind))
                                      (let [^BytePtr x (.add x 1)]
                                        (recur x))
                                      x)))
                                x)
-                  j__2 (case (bit-and (.get kind) 0xff)
+                  j__2 (case (.ub kind)
                          45
                            (let [start (+ (- lnum (* bigness (.sub x kind))) 1)
                                  end (- (+ start bigness) 1)
@@ -63128,7 +63111,7 @@
                              (aset tl__ 4 curs)
                              0)
                          (let [start lnum
-                               start (if (== (bit-and (.get kind) 0xff) 43)
+                               start (if (== (.ub kind) 43)
                                        (+ start (+ (* bigness (- (.sub x kind) 1)) 1))
                                        (if (== (.addr-count eap) 0)
                                          (inc start)
@@ -63186,14 +63169,14 @@
 (defn skip-substitute ^BytePtr [^Editor ed ^BytePtr start ^long delimiter]
   (let [^BytePtr p start]
     (loop [^BytePtr p p]
-      (if (zero? (bit-and (.at p 0) 0xff))
+      (if (zero? (.ub p 0))
         p
-        (if (== (bit-and (.at p 0) 0xff) delimiter)
+        (if (== (.ub p 0) delimiter)
           (let [^BytePtr t1 p
                 ^BytePtr p (.add p 1)]
             (.put t1 (unchecked-byte (e NUL)))
             p)
-          (let [^BytePtr p (if (and (== (bit-and (.at p 0) 0xff) 92) (not (== (bit-and (.at p 1) 0xff) 0)))
+          (let [^BytePtr p (if (and (== (.ub p 0) 92) (not (== (.ub p 1) 0)))
                              ^BytePtr (.add p 1)
                              p)
                 t2 (long (utfc-ptr2len ed p))
@@ -63263,7 +63246,7 @@
                                 (recur k_2))))
                           (when do-all
                             (let [j__1 (if (and (== matchcol prev-matchcol) (== (.col ^T_lpos_T (aget ^objects (.-endpos m) 0)) matchcol))
-                                         (if (== (bit-and (.at line matchcol) 0xff) (e NUL))
+                                         (if (== (.ub line matchcol) (e NUL))
                                            1
                                            (let [t3 (long (utfc-ptr2len ed (.add line matchcol)))
                                                  matchcol (i32 (+ matchcol t3))]
@@ -63279,7 +63262,7 @@
                                 0
                                   (let [matchcol (aget tl__ 0)
                                         prev-matchcol (aget tl__ 1)]
-                                    (when-not (== (bit-and (.at line matchcol) 0xff) (e NUL))
+                                    (when-not (== (.ub line matchcol) (e NUL))
                                       (let [col matchcol]
                                         (recur col matchcol prev-matchcol))))
                                 1
@@ -63405,7 +63388,7 @@
         l__1 (loop [^BytePtr newsub newsub
                     ^BytePtr p p
                     newsublen newsublen]
-               (if (zero? (bit-and (.get p) 0xff))
+               (if (zero? (.ub p))
                  (do (aset to__ 0 newsub)
                      (aset to__ 1 p)
                      (aset to__ 2 (Boolean/valueOf (boolean error)))
@@ -63465,7 +63448,7 @@
                                       (aset to__ 1 p)
                                       (aset to__ 2 (Boolean/valueOf (boolean error)))
                                       1)))
-                              (let [^BytePtr p (if (and (== (bit-and (.get p) 0xff) 92) (not (zero? (bit-and (.at p 1) 0xff))))
+                              (let [^BytePtr p (if (and (== (.ub p) 92) (not (zero? (.ub p 1))))
                                                  ^BytePtr (.add p 1)
                                                  p)
                                     t1 (i32 (- (long (utfc-ptr2len ed p)) 1))
@@ -63570,33 +63553,33 @@
                 0
                 (let [^BytePtr src source
                       ^BytePtr dst dest]
-                  (if (and (== (bit-and (.at source 0) 0xff) 92) (== (bit-and (.at source 1) 0xff) 61))
+                  (if (and (== (.ub source 0) 92) (== (.ub source 1) 61))
                     (recur 17 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2)
                     (recur 1 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))))))
         1
           (let [^BytePtr t1 src
                 ^BytePtr src (.add src 1)
-                c (bit-and (.get t1) 0xff)]
+                c (.ub t1)]
             (if (== c (e NUL))
               (recur 17 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2)
               (if (and (== c 38) (not (zero? (bit-and flags (e REGSUB_MAGIC)))))
                 (let [no 0]
                   (recur 2 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))
-                (if (and (== c 92) (not (== (bit-and (.get src) 0xff) (e NUL))))
-                  (if (and (== (bit-and (.get src) 0xff) 38) (zero? (bit-and flags (e REGSUB_MAGIC))))
+                (if (and (== c 92) (not (== (.ub src) (e NUL))))
+                  (if (and (== (.ub src) 38) (zero? (bit-and flags (e REGSUB_MAGIC))))
                     (let [^BytePtr src (.add src 1)
                           no 0]
                       (recur 2 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))
-                    (if (and (<= 48 (bit-and (.get src) 0xff)) (<= (bit-and (.get src) 0xff) 57))
+                    (if (and (<= 48 (.ub src)) (<= (.ub src) 57))
                       (let [^BytePtr t2 src
                             ^BytePtr src (.add src 1)
-                            no (i32 (- (bit-and (.get t2) 0xff) 48))]
+                            no (i32 (- (.ub t2) 48))]
                         (recur 2 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))
-                      (if (nil? (vim-strchr ed (BytePtr/lit "uUlLeE") (bit-and (.get src) 0xff)))
+                      (if (nil? (vim-strchr ed (BytePtr/lit "uUlLeE") (.ub src)))
                         (recur 2 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2)
                         (let [^BytePtr t3 src
                               ^BytePtr src (.add src 1)]
-                          (case (case (bit-and (.get t3) 0xff) 117 0 85 1 108 2 76 3 (101 69) 4 -1)
+                          (case (case (.ub t3) 117 0 85 1 108 2 76 3 (101 69) 4 -1)
                             0
                               (let [^clojure.lang.IFn func-one do-upper]
                                 (recur 1 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))
@@ -63617,7 +63600,7 @@
                   (recur 2 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2)))))
         2
           (if (< no 0)
-            (if (and (== c 128) (not (== (bit-and (.at src 0) 0xff) (e NUL))) (not (== (bit-and (.at src 1) 0xff) (e NUL))))
+            (if (and (== c 128) (not (== (.ub src 0) (e NUL))) (not (== (.ub src 1) (e NUL))))
               (if (zero? copy)
                 (let [^BytePtr dst (.add dst 3)
                       ^BytePtr src (.add src 2)]
@@ -63632,15 +63615,15 @@
                         ^BytePtr dst (.add dst 1)
                         ^BytePtr t6 src
                         ^BytePtr src (.add src 1)
-                        _ (.put t5 (unchecked-byte (bit-and (.get t6) 0xff)))
+                        _ (.put t5 (unchecked-byte (.ub t6)))
                         ^BytePtr t7 dst
                         ^BytePtr dst (.add dst 1)
                         ^BytePtr t8 src
                         ^BytePtr src (.add src 1)]
-                    (.put t7 (unchecked-byte (bit-and (.get t8) 0xff)))
+                    (.put t7 (unchecked-byte (.ub t8)))
                     (recur 16 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))))
-              (if (and (== c 92) (not (== (bit-and (.get src) 0xff) (e NUL))))
-                (case (bit-and (.get src) 0xff)
+              (if (and (== c 92) (not (== (.ub src) (e NUL))))
+                (case (.ub src)
                   114
                     (let [c (e CAR)
                           ^BytePtr src (.add src 1)]
@@ -63719,19 +63702,19 @@
                     (do (.put dst (unchecked-byte (e CAR)))
                         (recur 7 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2)))))
               (recur 8 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))
-            (if (== (bit-and (.get s) 0xff) (e NUL))
+            (if (== (.ub s) (e NUL))
               (if (zero? copy)
                 (i32 (+ (.sub dst dest) 1))
                 (do (iemsg ed (BytePtr. (g ed e-damaged-match-string) 0))
                     (i32 (+ (.sub dst dest) 1))))
-              (if (and (not (zero? (bit-and flags (e REGSUB_BACKSLASH)))) (or (== (bit-and (.get s) 0xff) (e CAR)) (== (bit-and (.get s) 0xff) 92)))
+              (if (and (not (zero? (bit-and flags (e REGSUB_BACKSLASH)))) (or (== (.ub s) (e CAR)) (== (.ub s) 92)))
                 (if (zero? copy)
                   (recur 5 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2)
                   (if (.gt (.add dst 2) (.add dest destlen))
                     (do (iemsg ed (BytePtr/lit "vim_regsub_both(): not enough space"))
                         0)
                     (do (.set dst 0 (unchecked-byte 92))
-                        (.set dst 1 (unchecked-byte (bit-and (.get s) 0xff)))
+                        (.set dst 1 (unchecked-byte (.ub s)))
                         (recur 5 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))))
                 (let [c (long (utf-ptr2char ed s))
                       ^clojure.lang.IFn func-one (if (some? func-one)
@@ -63782,7 +63765,7 @@
         10
           (let [^BytePtr t9 src
                 ^BytePtr src (.add src 1)
-                c (bit-and (.get t9) 0xff)]
+                c (.ub t9)]
             (recur 11 re source dest destlen flags src dst s c no func-all func-one clnum len copy totlen charlen clen charlen_2))
         11
           (let [^clojure.lang.IFn func-one (if (some? func-one)
@@ -64021,21 +64004,21 @@
                   which-pat (if (== (.cmdidx eap) (e CMD_tilde))
                               (e RE_LAST)
                               (e RE_SUBST))
-                  j__50 (if (and (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) 0) 0xff) 115) (not (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) (e NUL))) (not (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 32) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 9))) (nil? (vim-strchr ed (BytePtr/lit "0123456789cegriIp|\"") (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))))
-                          (if (check-regexp-delim ed (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
-                            (let [j__49 (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 92)
+                  j__50 (if (and (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0) 0) 115) (not (== (.ub ^BytePtr (aget cmd 0)) (e NUL))) (not (or (== (.ub ^BytePtr (aget cmd 0)) 32) (== (.ub ^BytePtr (aget cmd 0)) 9))) (nil? (vim-strchr ed (BytePtr/lit "0123456789cegriIp|\"") (.ub ^BytePtr (aget cmd 0)))))
+                          (if (check-regexp-delim ed (.ub ^BytePtr (aget cmd 0)))
+                            (let [j__49 (if (== (.ub ^BytePtr (aget cmd 0)) 92)
                                           (do (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                              (if (nil? (vim-strchr ed (BytePtr/lit "/?&") (bit-and (.get ^BytePtr (aget cmd 0)) 0xff)))
+                                              (if (nil? (vim-strchr ed (BytePtr/lit "/?&") (.ub ^BytePtr (aget cmd 0))))
                                                 (do (emsg ed (gettext_ ed (BytePtr. (g ed e-backslash-should-be-followed-by) 0)))
                                                     -1)
-                                                (let [which-pat (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 38)
+                                                (let [which-pat (if (== (.ub ^BytePtr (aget cmd 0)) 38)
                                                                   which-pat
                                                                   (e RE_SEARCH))
                                                       ^BytePtr pat-string (BytePtr/lit "")
                                                       pat-length 0
                                                       ^BytePtr t1 (aget cmd 0)
                                                       _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                                      delimiter (bit-and (.get t1) 0xff)]
+                                                      delimiter (.ub t1)]
                                                   (aset to__ 1 pat-string)
                                                   (aset tl__ 0 pat-length)
                                                   (aset tl__ 2 delimiter)
@@ -64044,11 +64027,11 @@
                                           (let [which-pat (e RE_LAST)
                                                 ^BytePtr t2 (aget cmd 0)
                                                 _ (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
-                                                delimiter (bit-and (.get t2) 0xff)
+                                                delimiter (.ub t2)
                                                 ^BytePtr pat-string (aget cmd 0)
                                                 _ (aset cmd 0 (skip-regexp-ex ed (aget cmd 0) delimiter (long (magic-isset ed)) (Ptr. ^objects (.-arg eap) 0) nil nil))
                                                 pat-length (.sub ^BytePtr (aget cmd 0) pat-string)]
-                                            (if (== (bit-and (.at ^BytePtr (aget cmd 0) 0) 0xff) delimiter)
+                                            (if (== (.ub ^BytePtr (aget cmd 0) 0) delimiter)
                                               (let [^BytePtr t3 (aget cmd 0)]
                                                 (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                                                 (.put t3 (unchecked-byte (e NUL)))
@@ -64117,13 +64100,13 @@
                       pat-length (aget tl__ 0)
                       which-pat (aget tl__ 1)
                       endcolumn (boolean (aget to__ 2))]
-                  (if (and (some? pat-string) (== (long (musl-strcmp ed pat-string (BytePtr/lit "\\n"))) 0) (== (bit-and (.get sub) 0xff) (e NUL)) (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) (e NUL)) (and (== (bit-and (.at ^BytePtr (aget cmd 0) 1) 0xff) (e NUL)) (or (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 103) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 108) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 112) (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 35)))))
+                  (if (and (some? pat-string) (== (long (musl-strcmp ed pat-string (BytePtr/lit "\\n"))) 0) (== (.ub sub) (e NUL)) (or (== (.ub ^BytePtr (aget cmd 0)) (e NUL)) (and (== (.ub ^BytePtr (aget cmd 0) 1) (e NUL)) (or (== (.ub ^BytePtr (aget cmd 0)) 103) (== (.ub ^BytePtr (aget cmd 0)) 108) (== (.ub ^BytePtr (aget cmd 0)) 112) (== (.ub ^BytePtr (aget cmd 0)) 35)))))
                     (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.line1 eap))
-                        (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 108)
+                        (if (== (.ub ^BytePtr (aget cmd 0)) 108)
                           (.set-flags eap (e EXFLAG_LIST))
-                          (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 35)
+                          (if (== (.ub ^BytePtr (aget cmd 0)) 35)
                             (.set-flags eap (e EXFLAG_NR))
-                            (when (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 112)
+                            (when (== (.ub ^BytePtr (aget cmd 0)) 112)
                               (.set-flags eap (e EXFLAG_PRINT)))))
                         (let [joined-lines-count (+ (- (.line2 eap) (.line1 eap)) 1)
                               joined-lines-count (if (< (.line2 eap) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
@@ -64141,7 +64124,7 @@
                                 -1)
                             (do (add-to-history ed (e HIST_SEARCH) pat-string pat-length true (e NUL))
                                 -1))))
-                    (do (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 38)
+                    (do (if (== (.ub ^BytePtr (aget cmd 0)) 38)
                           (aset cmd 0 (.add ^BytePtr (aget cmd 0) 1))
                           (do (when (zero? (long (aget (g ed p-ed) 0)))
                                 (if (zero? (long (aget (g ed p-gd) 0)))
@@ -64194,48 +64177,48 @@
                 old-cursor-col (aget fl__ 15)
                 old-cursor-coladd (aget fl__ 16)
                 start-nsubs (aget fl__ 17)]
-            (if (zero? (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
+            (if (zero? (.ub ^BytePtr (aget cmd 0)))
               (do (aset fl__ 6 which-pat)
                   (recur 2))
-              (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 103)
+              (if (== (.ub ^BytePtr (aget cmd 0)) 103)
                 (do (.set-do-all (g ed ex-substitute-subflags) (if (zero? (.do-all (g ed ex-substitute-subflags))) 1 0))
                     (aset fl__ 6 which-pat)
                     (recur 17))
-                (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 99)
+                (if (== (.ub ^BytePtr (aget cmd 0)) 99)
                   (do (.set-do-ask (g ed ex-substitute-subflags) (if (zero? (.do-ask (g ed ex-substitute-subflags))) 1 0))
                       (aset fl__ 6 which-pat)
                       (recur 17))
-                  (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 110)
+                  (if (== (.ub ^BytePtr (aget cmd 0)) 110)
                     (do (.set-do-count (g ed ex-substitute-subflags) (e TRUE))
                         (aset fl__ 6 which-pat)
                         (recur 17))
-                    (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 101)
+                    (if (== (.ub ^BytePtr (aget cmd 0)) 101)
                       (do (.set-do-error (g ed ex-substitute-subflags) (if (zero? (.do-error (g ed ex-substitute-subflags))) 1 0))
                           (aset fl__ 6 which-pat)
                           (recur 17))
-                      (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 114)
+                      (if (== (.ub ^BytePtr (aget cmd 0)) 114)
                         (let [which-pat (e RE_LAST)]
                           (aset fl__ 6 which-pat)
                           (recur 17))
-                        (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 112)
+                        (if (== (.ub ^BytePtr (aget cmd 0)) 112)
                           (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
                               (aset fl__ 6 which-pat)
                               (recur 17))
-                          (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 35)
+                          (if (== (.ub ^BytePtr (aget cmd 0)) 35)
                             (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
                                 (.set-do-number (g ed ex-substitute-subflags) (e TRUE))
                                 (aset fl__ 6 which-pat)
                                 (recur 17))
-                            (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 108)
+                            (if (== (.ub ^BytePtr (aget cmd 0)) 108)
                               (do (.set-do-print (g ed ex-substitute-subflags) (e TRUE))
                                   (.set-do-list (g ed ex-substitute-subflags) (e TRUE))
                                   (aset fl__ 6 which-pat)
                                   (recur 17))
-                              (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 105)
+                              (if (== (.ub ^BytePtr (aget cmd 0)) 105)
                                 (do (.set-do-ic (g ed ex-substitute-subflags) 105)
                                     (aset fl__ 6 which-pat)
                                     (recur 17))
-                                (if (== (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 73)
+                                (if (== (.ub ^BytePtr (aget cmd 0)) 73)
                                   (do (.set-do-ic (g ed ex-substitute-subflags) 73)
                                       (aset fl__ 6 which-pat)
                                       (recur 17))
@@ -64271,7 +64254,7 @@
             (let [save-do-all (.do-all (g ed ex-substitute-subflags))
                   save-do-ask (.do-ask (g ed ex-substitute-subflags))
                   _ (aset cmd 0 (skipwhite ed (aget cmd 0)))
-                  j__51 (if (< (u32 (- (bit-and (.get ^BytePtr (aget cmd 0)) 0xff) 48)) 10)
+                  j__51 (if (< (u32 (- (.ub ^BytePtr (aget cmd 0)) 48)) 10)
                           (let [i (long (getdigits ed (Ptr. cmd 0)))]
                             (if (and (<= i 0) (not (zero? (.do-error (g ed ex-substitute-subflags)))))
                               (do (emsg ed (gettext_ ed (BytePtr. (g ed e-positive-count-required) 0)))
@@ -64291,7 +64274,7 @@
               (if (== (long j__51) -1)
                 -1
                 (do (aset cmd 0 (skipwhite ed (aget cmd 0)))
-                    (let [j__52 (if (zero? (bit-and (.get ^BytePtr (aget cmd 0)) 0xff))
+                    (let [j__52 (if (zero? (.ub ^BytePtr (aget cmd 0)))
                                   0
                                   (do (set-nextcmd ed eap (aget cmd 0))
                                       (if (nil? (.nextcmd eap))
@@ -64311,7 +64294,7 @@
                                     (.set-rmm-ic regmatch (e FALSE))))
                                 (let [^BytePtr sub-firstline-string nil
                                       sub-firstline-length 0
-                                      ^BytePtr sub (if (and (== (bit-and (.at sub 0) 0xff) 92) (== (bit-and (.at sub 1) 0xff) 61))
+                                      ^BytePtr sub (if (and (== (.ub sub 0) 92) (== (.ub sub 1) 61))
                                                      (let [^BytePtr p (vim-strsave ed sub)
                                                            ^BytePtr sub p]
                                                        sub)
@@ -64552,7 +64535,7 @@
                 (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
                 (let [do-again false]
                   (if (and (== matchcol prev-matchcol) (== (.lnum ^T_lpos_T (aget ^objects (.-endpos regmatch) 0)) 0) (== matchcol (.col ^T_lpos_T (aget ^objects (.-endpos regmatch) 0))))
-                    (if (== (bit-and (.at sub-firstline-string matchcol) 0xff) (e NUL))
+                    (if (== (.ub sub-firstline-string matchcol) (e NUL))
                       (let [skip-match true]
                         (aset fl__ 0 lnum)
                         (aset fl__ 7 save-State)
@@ -65119,7 +65102,7 @@
                 sub-firstlnum (aget fl__ 25)
                 did-split (boolean (aget fo__ 14))
                 ^BytePtr p1 (aget fo__ 15)]
-            (if (zero? (bit-and (.get p1) 0xff))
+            (if (zero? (.ub p1))
               (do (aset fl__ 0 lnum)
                   (aset fl__ 8 first-line)
                   (aset fl__ 9 last-line)
@@ -65129,7 +65112,7 @@
                   (aset fo__ 14 (Boolean/valueOf (boolean did-split)))
                   (aset fo__ 15 p1)
                   (recur 10))
-              (let [j__62 (if (and (== (bit-and (.at p1 0) 0xff) 92) (not (== (bit-and (.at p1 1) 0xff) (e NUL))))
+              (let [j__62 (if (and (== (.ub p1 0) 92) (not (== (.ub p1 1) (e NUL))))
                             (let [n (- new-start-length (.sub p1 new-start-string))
                                   _ (Rt/memmove p1 (.add p1 1) (+ n 1))
                                   new-start-length (dec new-start-length)]
@@ -65142,7 +65125,7 @@
                               (aset to__ 0 (Boolean/valueOf (boolean did-split)))
                               (aset to__ 1 p1)
                               0)
-                            (if (== (bit-and (.get p1) 0xff) (e CAR))
+                            (if (== (.ub p1) (e CAR))
                               (if (u-inssub ed lnum)
                                 (let [plen (i32 (+ (.sub p1 new-start-string) 1))
                                       _ (.put p1 (unchecked-byte (e NUL)))
@@ -65254,7 +65237,7 @@
                 skip-match (boolean (aget fo__ 13))
                 sub-firstlnum (aget fl__ 25)
                 did-split (boolean (aget fo__ 14))
-                lastone (or skip-match (not (zero? (g ed got-int))) got-quit (> lnum line2) (not (or (not (zero? (.do-all (g ed ex-substitute-subflags)))) do-again)) (and (== (bit-and (.at sub-firstline-string matchcol) 0xff) (e NUL)) (<= nmatch 1) (zero? (long (re-multiline ed (.regprog regmatch))))))
+                lastone (or skip-match (not (zero? (g ed got-int))) got-quit (> lnum line2) (not (or (not (zero? (.do-all (g ed ex-substitute-subflags)))) do-again)) (and (== (.ub sub-firstline-string matchcol) (e NUL)) (<= nmatch 1) (zero? (long (re-multiline ed (.regprog regmatch))))))
                 nmatch -1
                 t6 (or lastone (> nmatch-tl 0) (and (not (zero? (.do-ask (g ed ex-substitute-subflags)))) did-split))
                 j__63 (if t6
@@ -65683,7 +65666,7 @@
 (defn global-exe-one [^Editor ed ^BytePtr cmd ^long lnum]
   (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) lnum)
   (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
-  (if (or (== (bit-and (.get cmd) 0xff) (e NUL)) (== (bit-and (.get cmd) 0xff) 10))
+  (if (or (== (.ub cmd) (e NUL)) (== (.ub cmd) 10))
     (do (do-cmdline ed (BytePtr/lit "p") nil (e DOCMD_NOWAIT))
         nil)
     (do (do-cmdline ed cmd nil (e DOCMD_NOWAIT))
@@ -65816,15 +65799,15 @@
           nil)
       (let [type_ (if (.forceit eap)
                     118
-                    (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff))
+                    (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)))
             ^BytePtr cmd (aget ^objects (.-arg eap) 0)
             which-pat (e RE_LAST)
-            j__1 (if (== (bit-and (.get cmd) 0xff) 92)
+            j__1 (if (== (.ub cmd) 92)
                    (let [^BytePtr cmd (.add cmd 1)]
-                     (if (nil? (vim-strchr ed (BytePtr/lit "/?&") (bit-and (.get cmd) 0xff)))
+                     (if (nil? (vim-strchr ed (BytePtr/lit "/?&") (.ub cmd)))
                        (do (emsg ed (gettext_ ed (BytePtr. (g ed e-backslash-should-be-followed-by) 0)))
                            -1)
-                       (let [which-pat (if (== (bit-and (.get cmd) 0xff) 38)
+                       (let [which-pat (if (== (.ub cmd) 38)
                                          (e RE_SUBST)
                                          (e RE_SEARCH))
                              ^BytePtr cmd (.add cmd 1)
@@ -65835,15 +65818,15 @@
                          (aset tl__ 0 patlen)
                          (aset tl__ 1 which-pat)
                          0)))
-                   (if (== (bit-and (.get cmd) 0xff) (e NUL))
+                   (if (== (.ub cmd) (e NUL))
                      (do (emsg ed (gettext_ ed (BytePtr. (g ed e-regular-expression-missing-from-global) 0)))
                          -1)
-                     (if (check-regexp-delim ed (bit-and (.get cmd) 0xff))
-                       (let [delim (bit-and (.get cmd) 0xff)
+                     (if (check-regexp-delim ed (.ub cmd))
+                       (let [delim (.ub cmd)
                              ^BytePtr cmd (.add cmd 1)
                              ^BytePtr pat cmd
                              ^BytePtr cmd (skip-regexp-ex ed cmd delim (long (magic-isset ed)) (Ptr. ^objects (.-arg eap) 0) nil nil)
-                             ^BytePtr cmd (if (== (bit-and (.at cmd 0) 0xff) delim)
+                             ^BytePtr cmd (if (== (.ub cmd 0) delim)
                                             (let [^BytePtr t1 cmd
                                                   ^BytePtr cmd (.add cmd 1)]
                                               (.put t1 (unchecked-byte (e NUL)))
@@ -65909,15 +65892,15 @@
 ;; C: find_nextcmd
 (defn find-nextcmd ^BytePtr [^Editor ed ^BytePtr p]
   (loop [^BytePtr p p]
-    (if (== (bit-and (.get p) 0xff) 10)
+    (if (== (.ub p) 10)
       (.add p 1)
-      (when-not (== (bit-and (.get p) 0xff) (e NUL))
+      (when-not (== (.ub p) (e NUL))
         (let [^BytePtr p (.add p 1)]
           (recur p))))))
 
 ;; C: ex_highlight
 (defn ex-highlight [^Editor ed ^S_exarg eap]
-  (if (and (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) (e NUL)) (== (bit-and (.at ^BytePtr (aget ^objects (.-cmd eap) 0) 2) 0xff) 33))
+  (if (and (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL)) (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0) 2) 33))
     (do (msg ed (gettext_ ed (BytePtr/lit "Greetings, Vim user!")))
         (do-highlight ed (aget ^objects (.-arg eap) 0) (.forceit eap) false)
         nil)
@@ -65973,7 +65956,7 @@
 
 ;; C: scroll_start
 (defn scroll-start [^Editor ed]
-  (when-not (or (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 14)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 15)) 0xff) (e NUL)))
+  (when-not (or (== (.ub ^BytePtr (aget (g ed term-strings) 14)) (e NUL)) (== (.ub ^BytePtr (aget (g ed term-strings) 15)) (e NUL)))
     (out-str ed (aget (g ed term-strings) 14))
     (out-str ed (aget (g ed term-strings) 15))
     (screen-start ed)
@@ -66027,12 +66010,12 @@
 (defn ex-winsize [^Editor ed ^S_exarg eap]
   (let [^objects arg (object-array 1)]
     (aset arg 0 (aget ^objects (.-arg eap) 0))
-    (if (musl-isdigit? ed (bit-and (.get ^BytePtr (aget arg 0)) 0xff))
+    (if (musl-isdigit? ed (.ub ^BytePtr (aget arg 0)))
       (let [w (i32 (long (getdigits ed (Ptr. arg 0))))
             _ (aset arg 0 (skipwhite ed (aget arg 0)))
             ^BytePtr p (aget arg 0)
             h (i32 (long (getdigits ed (Ptr. arg 0))))]
-        (if (and (not (== (bit-and (.get p) 0xff) (e NUL))) (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) (e NUL)))
+        (if (and (not (== (.ub p) (e NUL))) (== (.ub ^BytePtr (aget arg 0)) (e NUL)))
           (do (set-shellsize ed w h (e TRUE))
               nil)
           (do (emsg ed (gettext_ ed (BytePtr. (g ed e-winsize-requires-two-number-arguments) 0)))
@@ -66051,7 +66034,7 @@
   (when-not (zero? (.inclusive oap))
     (let [^BytePtr line (ml-get ed (.lnum ^T_pos_T (.-end oap)))
           ^BytePtr ptr (.add line (.col ^T_pos_T (.-end oap)))]
-      (when-not (== (bit-and (.get ptr) 0xff) (e NUL))
+      (when-not (== (.ub ptr) (e NUL))
         (let [t1 (long (utf-head-off ed line ptr))
               ^BytePtr ptr (.add ptr (- t1))
               t2 (i32 (- (long (utfc-ptr2len ed ptr)) 1))
@@ -66101,10 +66084,10 @@
     (init-chartabsize-arg ed cts (g ed curwin) lnum (.start-vcol bdp) line line)
     (loop [incr incr
            ^BytePtr prev-pstart prev-pstart]
-      (if (and (< (.cts-vcol cts) (long (aget ^ints (.-start-vcol oap) 0))) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
+      (if (and (< (.cts-vcol cts) (long (aget ^ints (.-start-vcol oap) 0))) (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))))
         (let [incr (long (lbr-chartabsize ed cts))]
           (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) incr)))
-          (if (or (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 32) (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 9))
+          (if (or (== (.ub ^BytePtr (.cts-ptr cts)) 32) (== (.ub ^BytePtr (.cts-ptr cts)) 9))
             (do (.set-pre-whitesp bdp (i32 (+ (.pre-whitesp bdp) incr)))
                 (.set-pre-whitesp-c bdp (i32 (inc (.pre-whitesp-c bdp)))))
             (do (.set-pre-whitesp bdp 0)
@@ -66159,7 +66142,7 @@
                                      (let [^BytePtr prev-pend pend
                                            l__1 (loop [incr incr
                                                        ^BytePtr prev-pend prev-pend]
-                                                  (if (and (<= (.cts-vcol cts) (long (aget ^ints (.-end-vcol oap) 0))) (not (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) (e NUL))))
+                                                  (if (and (<= (.cts-vcol cts) (long (aget ^ints (.-end-vcol oap) 0))) (not (== (.ub ^BytePtr (.cts-ptr cts)) (e NUL))))
                                                     (let [^BytePtr prev-pend (.cts-ptr cts)
                                                           incr (long (lbr-chartabsize-adv ed cts))]
                                                       (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) incr)))
@@ -66230,7 +66213,7 @@
       (let [s (i32 (+ (.textlen bd) (.endspaces bd)))]
         (loop [^BytePtr pnew pnew
                s s]
-          (if (and (> s 0) (or (== (bit-and (.get (.add (.add ^BytePtr (.textstart bd) s) (- 1))) 0xff) 32) (== (bit-and (.get (.add (.add ^BytePtr (.textstart bd) s) (- 1))) 0xff) 9)))
+          (if (and (> s 0) (or (== (.ub (.add (.add ^BytePtr (.textstart bd) s) (- 1))) 32) (== (.ub (.add (.add ^BytePtr (.textstart bd) s) (- 1))) 9)))
             (let [s (i32 (- (i32 (- s (long (utf-head-off ed (.textstart bd) (.add (.add ^BytePtr (.textstart bd) s) (- 1)))))) 1))
                   ^BytePtr pnew (.add pnew -1)]
               (recur pnew s))
@@ -66270,7 +66253,7 @@
                    (if (zero? (g ed virtual-op))
                      endcol
                      (do (getvcol ed (g ed curwin) end (IntPtr. cs 0) nil (IntPtr. ce 0) 0)
-                         (if (or (== (bit-and (.at p endcol) 0xff) (e NUL)) (and (< (i32 (+ (long (aget cs 0)) (.coladd end))) (long (aget ce 0))) (== (long (utf-head-off ed p (.add p endcol))) 0)))
+                         (if (or (== (.ub p endcol) (e NUL)) (and (< (i32 (+ (long (aget cs 0)) (.coladd end))) (long (aget ce 0))) (== (long (utf-head-off ed p (.add p endcol))) 0)))
                            (if (and (== (.lnum start) (.lnum end)) (== (.col start) (.col end)))
                              (do (.set-is-oneChar bdp (boolean true))
                                  (.set-startspaces bdp (i32 (+ (i32 (- (.coladd end) (.coladd start))) inclusive)))
@@ -66320,7 +66303,7 @@
               (if (and (not (zero? (g ed y-append))) (some? (.y-array (g ed y-current))))
                 (g! ed y-current newreg)
                 (free-yank-all ed))
-              (let [j__1 (if (and (== (.motion-type oap) (e MCHAR)) (== (.col ^T_pos_T (.-start oap)) 0) (zero? (.inclusive oap)) (or (zero? (.is-VIsual oap)) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111)) (zero? (.block-mode oap)) (== (.col ^T_pos_T (.-end oap)) 0) (> yanklines 1))
+              (let [j__1 (if (and (== (.motion-type oap) (e MCHAR)) (== (.col ^T_pos_T (.-start oap)) 0) (zero? (.inclusive oap)) (or (zero? (.is-VIsual oap)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (zero? (.block-mode oap)) (== (.col ^T_pos_T (.-end oap)) 0) (> yanklines 1))
                            (let [yanktype (e MLINE)
                                  yankendlnum (dec yankendlnum)
                                  yanklines (dec yanklines)]
@@ -66509,13 +66492,13 @@
                       (mb-adjust-opend ed oap)
                       (when (and (== (.motion-type oap) (e MCHAR)) (zero? (.is-VIsual oap)) (zero? (.block-mode oap)) (> (.line-count oap) 1) (== (.motion-force oap) (e NUL)) (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_WORD))) (== (.op-type oap) (e OP_DELETE)))
                         (let [^BytePtr ptr (.add ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-end oap))) (.col ^T_pos_T (.-end oap)))
-                              ^BytePtr ptr (if (== (bit-and (.get ptr) 0xff) (e NUL))
+                              ^BytePtr ptr (if (== (.ub ptr) (e NUL))
                                              ptr
                                              ^BytePtr (.add ptr (.inclusive oap)))
                               ^BytePtr ptr (skipwhite ed ptr)]
-                          (when (and (== (bit-and (.get ptr) 0xff) (e NUL)) (inindent ed 0))
+                          (when (and (== (.ub ptr) (e NUL)) (inindent ed 0))
                             (.set-motion-type oap (e MLINE)))))
-                      (if (and (== (.motion-type oap) (e MCHAR)) (== (.line-count oap) 1) (== (.op-type oap) (e OP_DELETE)) (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-start oap)))) 0xff) (e NUL)))
+                      (if (and (== (.motion-type oap) (e MCHAR)) (== (.line-count oap) 1) (== (.op-type oap) (e OP_DELETE)) (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-start oap)))) (e NUL)))
                         (if (zero? (g ed virtual-op))
                           (if (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_EMPTYREGION)))
                             (do (beep-flush ed)
@@ -66759,7 +66742,7 @@
                              non-white-col (.start-vcol bd)]
                          (init-chartabsize-arg ed cts_2 (g ed curwin) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) non-white-col (.textstart bd) non-white)
                          (loop []
-                           (when (or (== (bit-and (.get ^BytePtr (.cts-ptr cts_2)) 0xff) 32) (== (bit-and (.get ^BytePtr (.cts-ptr cts_2)) 0xff) 9))
+                           (when (or (== (.ub ^BytePtr (.cts-ptr cts_2)) 32) (== (.ub ^BytePtr (.cts-ptr cts_2)) 9))
                              (let [incr (long (lbr-chartabsize-adv ed cts_2))]
                                (.set-cts-vcol cts_2 (i32 (+ (.cts-vcol cts_2) incr)))
                                (recur))))
@@ -66809,7 +66792,7 @@
                                            ws-vcol)))]
                          (init-chartabsize-arg ed cts (g ed curwin) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.start-vcol bd) (.textstart bd) (.textstart bd))
                          (let [l__1 (loop [total total]
-                                      (if (or (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 32) (== (bit-and (.get ^BytePtr (.cts-ptr cts)) 0xff) 9))
+                                      (if (or (== (.ub ^BytePtr (.cts-ptr cts)) 32) (== (.ub ^BytePtr (.cts-ptr cts)) 9))
                                         (let [incr (long (lbr-chartabsize-adv ed cts))
                                               total (i32 (+ total incr))]
                                           (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) incr)))
@@ -66859,7 +66842,7 @@
         (loop [i i]
           (let [i (dec i)]
             (if (>= i 0)
-              (let [first-char (bit-and (.get ^BytePtr (ml-get-curline ed)) 0xff)]
+              (let [first-char (.ub ^BytePtr (ml-get-curline ed))]
                 (if (== first-char (e NUL))
                   (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0)
                   (if (zero? (.block-mode oap))
@@ -67012,13 +66995,13 @@
         ^BytePtr p string]
     (loop [^BytePtr p p
            length length]
-      (if (zero? (bit-and (.get p) 0xff))
+      (if (zero? (.ub p))
         (let [^BytePtr escaped-string (BytePtr/alloc length)
               ^BytePtr p2 escaped-string
               ^BytePtr p string]
           (loop [^BytePtr p p
                  ^BytePtr p2 p2]
-            (if (zero? (bit-and (.get p) 0xff))
+            (if (zero? (.ub p))
               (do (.put p2 (unchecked-byte (e NUL)))
                   escaped-string)
               (let [l (long (utfc-ptr2len ed p))
@@ -67029,7 +67012,7 @@
                                  (aset to__ 0 p)
                                  (aset to__ 2 p2)
                                  0))
-                           (let [^BytePtr p2 (if (or (some? (vim-strchr ed esc-chars (bit-and (.get p) 0xff))) (and bsl (rem-backslash? ed p)))
+                           (let [^BytePtr p2 (if (or (some? (vim-strchr ed esc-chars (.ub p))) (and bsl (rem-backslash? ed p)))
                                                (let [^BytePtr t1 p2
                                                      ^BytePtr p2 (.add p2 1)]
                                                  (.put t1 (unchecked-byte cc))
@@ -67037,7 +67020,7 @@
                                                p2)
                                  ^BytePtr t2 p2
                                  ^BytePtr p2 (.add p2 1)]
-                             (.put t2 (unchecked-byte (bit-and (.get p) 0xff)))
+                             (.put t2 (unchecked-byte (.ub p)))
                              (aset to__ 0 p)
                              (aset to__ 2 p2)
                              0))
@@ -67052,7 +67035,7 @@
                        (aset to__ 0 p)
                        (aset tl__ 0 length)
                        0)
-                     (let [length (if (or (some? (vim-strchr ed esc-chars (bit-and (.get p) 0xff))) (and bsl (rem-backslash? ed p)))
+                     (let [length (if (or (some? (vim-strchr ed esc-chars (.ub p))) (and bsl (rem-backslash? ed p)))
                                     (u32 (inc length))
                                     length)
                            length (u32 (inc length))]
@@ -67097,25 +67080,25 @@
         ^BytePtr s p]
     (loop [^BytePtr s s
            ^BytePtr d d]
-      (if (== (bit-and (.get s) 0xff) (e NUL))
+      (if (== (.ub s) (e NUL))
         (do (.put d (unchecked-byte (e NUL)))
             res)
-        (let [j__1 (if (and (== (bit-and (.at s 0) 0xff) 128) (not (== (bit-and (.at s 1) 0xff) (e NUL))) (not (== (bit-and (.at s 2) 0xff) (e NUL))))
+        (let [j__1 (if (and (== (.ub s 0) 128) (not (== (.ub s 1) (e NUL))) (not (== (.ub s 2) (e NUL))))
                      (let [^BytePtr t1 d
                            ^BytePtr d (.add d 1)
                            ^BytePtr t2 s
                            ^BytePtr s (.add s 1)
-                           _ (.put t1 (unchecked-byte (bit-and (.get t2) 0xff)))
+                           _ (.put t1 (unchecked-byte (.ub t2)))
                            ^BytePtr t3 d
                            ^BytePtr d (.add d 1)
                            ^BytePtr t4 s
                            ^BytePtr s (.add s 1)
-                           _ (.put t3 (unchecked-byte (bit-and (.get t4) 0xff)))
+                           _ (.put t3 (unchecked-byte (.ub t4)))
                            ^BytePtr t5 d
                            ^BytePtr d (.add d 1)
                            ^BytePtr t6 s
                            ^BytePtr s (.add s 1)]
-                       (.put t5 (unchecked-byte (bit-and (.get t6) 0xff)))
+                       (.put t5 (unchecked-byte (.ub t6)))
                        (aset to__ 0 s)
                        (aset to__ 1 d)
                        0)
@@ -67161,7 +67144,7 @@
                (let [cmd-start (dec cmd-start)]
                  (if (> cmd-start 0)
                    (let [^BytePtr p (skipwhite ed (aget ^objects (.-string ^T_string_T (.at lines cmd-start)) 0))]
-                     (if (and (not (== (bit-and (.get p) 0xff) 92)) (or (not (== (bit-and (.at p 0) 0xff) 34)) (not (== (bit-and (.at p 1) 0xff) 92)) (not (== (bit-and (.at p 2) 0xff) 32))))
+                     (if (and (not (== (.ub p) 92)) (or (not (== (.ub p 0) 34)) (not (== (.ub p 1) 92)) (not (== (.ub p 2) 32))))
                        (do (aset tl__ 0 cmd-start)
                            0)
                        (recur cmd-start)))
@@ -67175,7 +67158,7 @@
       (if (<= j cmd-end)
         (let [^T_string_T tmp (Ptr/ref (.add lines j))
               ^BytePtr p_2 (skipwhite ed (aget ^objects (.-string tmp) 0))]
-          (when (== (bit-and (.get p_2) 0xff) 92)
+          (when (== (.ub p_2) 92)
             (when (> (.ga-len ga) 400)
               (if (> (.ga-len ga) 8000)
                 (.set-ga-growsize ga 8000)
@@ -67253,7 +67236,7 @@
                                         (let [^BytePtr str_ (aget ^objects (.-string ^T_string_T (.at ^Ptr (.y-array (g ed y-current)) i)) 0)
                                               j__3 (if (and colon (> i 0))
                                                      (let [^BytePtr p (skipwhite ed str_)]
-                                                       (if (or (== (bit-and (.get p) 0xff) 92) (and (== (bit-and (.at p 0) 0xff) 34) (== (bit-and (.at p 1) 0xff) 92) (== (bit-and (.at p 2) 0xff) 32)))
+                                                       (if (or (== (.ub p) 92) (and (== (.ub p 0) 34) (== (.ub p 1) 92) (== (.ub p 2) 32)))
                                                          (do (.set execreg-line-continuation__o (execreg-line-continuation ed (.y-array (g ed y-current)) i))
                                                              (let [i (.idx execreg-line-continuation__o)
                                                                    ^BytePtr str_ (.r__ execreg-line-continuation__o)]
@@ -67382,10 +67365,10 @@
 ;; C: empty_pattern_magic
 (defn empty-pattern-magic [^Editor ed ^BytePtr p ^long len ^long magic-val]
   (loop [len len]
-    (if (and (>= (Long/compareUnsigned len 2) 0) (== (bit-and (.at p (- len 2)) 0xff) 92) (some? (vim-strchr ed (BytePtr/lit "mMvVcCZ") (bit-and (.at p (- len 1)) 0xff))))
+    (if (and (>= (Long/compareUnsigned len 2) 0) (== (.ub p (- len 2)) 92) (some? (vim-strchr ed (BytePtr/lit "mMvVcCZ") (.ub p (- len 1)))))
       (let [len (- len 2)]
         (recur len))
-      (or (== len 0) (and (> (Long/compareUnsigned len 1) 0) (== (bit-and (.at p (- len 1)) 0xff) 124) (or (and (== (bit-and (.at p (- len 2)) 0xff) 92) (== magic-val (e MAGIC_ON))) (and (not (== (bit-and (.at p (- len 2)) 0xff) 92)) (== magic-val (e MAGIC_ALL)))))))))
+      (or (== len 0) (and (> (Long/compareUnsigned len 1) 0) (== (.ub p (- len 1)) 124) (or (and (== (.ub p (- len 2)) 92) (== magic-val (e MAGIC_ON))) (and (not (== (.ub p (- len 2)) 92)) (== magic-val (e MAGIC_ALL)))))))))
 
 ;; C: parse_pattern_and_range
 (defn parse-pattern-and-range [^Editor ed ^T_pos_T incsearch-start ^IntPtr search-delim ^IntPtr skiplen ^IntPtr patlen]
@@ -67408,22 +67391,22 @@
         _ (.set-addr-type ea (e ADDR_LINES))
         _ (parse-command-modifiers ed ea (Ptr. dummy 0) dummy-cmdmod true)
         ^BytePtr cmd (skip-range ed (aget ^objects (.-cmd ea) 0) true nil)]
-    (if (nil? (vim-strchr ed (BytePtr/lit "sgvlu") (bit-and (.get cmd) 0xff)))
+    (if (nil? (vim-strchr ed (BytePtr/lit "sgvlu") (.ub cmd)))
       false
       (let [^BytePtr p cmd]
         (loop [^BytePtr p p]
-          (if (or (< (u32 (- (bit-and (.get p) 0xff) 65)) 26) (< (u32 (- (bit-and (.get p) 0xff) 97)) 26))
+          (if (or (< (u32 (- (.ub p) 65)) 26) (< (u32 (- (.ub p) 97)) 26))
             (let [^BytePtr p (.add p 1)]
               (recur p))
-            (if (== (bit-and (.get ^BytePtr (skipwhite ed p)) 0xff) (e NUL))
+            (if (== (.ub ^BytePtr (skipwhite ed p)) (e NUL))
               false
               (let [j__4 (if (or (== (long (musl-strncmp ed cmd (BytePtr/lit "substitute") (.sub p cmd))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "smagic") (.sub p cmd))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "snomagic") (if (> (.sub p cmd) 3) (.sub p cmd) 3))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "vglobal") (.sub p cmd))) 0))
-                           (if (and (== (bit-and (.get cmd) 0xff) 115) (== (bit-and (.at cmd 1) 0xff) 109))
+                           (if (and (== (.ub cmd) 115) (== (.ub cmd 1) 109))
                              (do (g! ed magic-overruled (e OPTION_MAGIC_ON))
                                  (aset to__ 0 p)
                                  (aset to__ 1 (Boolean/valueOf (boolean delim-optional)))
                                  0)
-                             (if (and (== (bit-and (.get cmd) 0xff) 115) (== (bit-and (.at cmd 1) 0xff) 110))
+                             (if (and (== (.ub cmd) 115) (== (.ub cmd 1) 110))
                                (do (g! ed magic-overruled (e OPTION_MAGIC_OFF))
                                    (aset to__ 0 p)
                                    (aset to__ 1 (Boolean/valueOf (boolean delim-optional)))
@@ -67432,18 +67415,18 @@
                                    (aset to__ 1 (Boolean/valueOf (boolean delim-optional)))
                                    0)))
                            (if (or (== (long (musl-strncmp ed cmd (BytePtr/lit "sort") (if (> (.sub p cmd) 3) (.sub p cmd) 3))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "uniq") (if (> (.sub p cmd) 3) (.sub p cmd) 3))) 0))
-                             (let [^BytePtr p (if (== (bit-and (.get p) 0xff) 33)
+                             (let [^BytePtr p (if (== (.ub p) 33)
                                                 ^BytePtr (skipwhite ed (.add p 1))
                                                 p)
                                    l__1 (loop [^BytePtr p p]
                                           (let [^BytePtr p (skipwhite ed p)
-                                                t1 (< (u32 (- (bit-and (.get p) 0xff) 65)) 26)
+                                                t1 (< (u32 (- (.ub p) 65)) 26)
                                                 j__2 (if t1
                                                        (do (aset to__ 0 p)
                                                            (aset to__ 2 (Boolean/valueOf (boolean t1)))
                                                            0)
                                                        (let [^BytePtr p (skipwhite ed p)
-                                                             t1 (< (u32 (- (bit-and (.get p) 0xff) 97)) 26)]
+                                                             t1 (< (u32 (- (.ub p) 97)) 26)]
                                                          (aset to__ 0 p)
                                                          (aset to__ 2 (Boolean/valueOf (boolean t1)))
                                                          0))
@@ -67455,16 +67438,16 @@
                                               (do (aset to__ 0 p)
                                                   0))))
                                    ^BytePtr p (aget to__ 0)]
-                               (if (== (bit-and (.get p) 0xff) (e NUL))
+                               (if (== (.ub p) (e NUL))
                                  (do (aset to__ 3 (Boolean/valueOf (boolean false)))
                                      -1)
                                  (do (aset to__ 0 p)
                                      (aset to__ 1 (Boolean/valueOf (boolean delim-optional)))
                                      0)))
                              (if (or (== (long (musl-strncmp ed cmd (BytePtr/lit "vimgrep") (if (> (.sub p cmd) 3) (.sub p cmd) 3))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "vimgrepadd") (if (> (.sub p cmd) 8) (.sub p cmd) 8))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "lvimgrep") (if (> (.sub p cmd) 2) (.sub p cmd) 2))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "lvimgrepadd") (if (> (.sub p cmd) 9) (.sub p cmd) 9))) 0) (== (long (musl-strncmp ed cmd (BytePtr/lit "global") (.sub p cmd))) 0))
-                               (let [j__3 (if (== (bit-and (.get p) 0xff) 33)
+                               (let [j__3 (if (== (.ub p) 33)
                                             (let [^BytePtr p (.add p 1)]
-                                              (if (== (bit-and (.get ^BytePtr (skipwhite ed p)) 0xff) (e NUL))
+                                              (if (== (.ub ^BytePtr (skipwhite ed p)) (e NUL))
                                                 (do (aset to__ 3 (Boolean/valueOf (boolean false)))
                                                     -1)
                                                 (do (aset to__ 0 p)
@@ -67475,7 +67458,7 @@
                                    (do (aset to__ 3 (Boolean/valueOf (boolean (boolean (aget to__ 3)))))
                                        -1)
                                    (let [^BytePtr p (aget to__ 0)]
-                                     (if (== (bit-and (.get cmd) 0xff) 103)
+                                     (if (== (.ub cmd) 103)
                                        (do (aset to__ 0 p)
                                            (aset to__ 1 (Boolean/valueOf (boolean delim-optional)))
                                            0)
@@ -67490,14 +67473,14 @@
                   (let [^BytePtr p (aget to__ 0)
                         delim-optional (boolean (aget to__ 1))
                         ^BytePtr p (skipwhite ed p)
-                        j__5 (if (and delim-optional (vim-isIDc? ed (bit-and (.get p) 0xff)))
+                        j__5 (if (and delim-optional (vim-isIDc? ed (.ub p)))
                                (let [t2 32]
                                  (aset to__ 0 p)
                                  (aset tl__ 0 t2)
                                  0)
                                (let [^BytePtr t3 p
                                      ^BytePtr p (.add p 1)
-                                     t2 (bit-and (.get t3) 0xff)]
+                                     t2 (.ub t3)]
                                  (aset to__ 0 p)
                                  (aset tl__ 0 t2)
                                  0))
@@ -67506,12 +67489,12 @@
                         delim t2
                         _ (.put search-delim (unchecked-int delim))
                         ^BytePtr end (skip-regexp-ex ed p delim (long (magic-isset ed)) nil nil (IntPtr. magic 0))
-                        use-last-pat (and (BytePtr/eq end p) (== (bit-and (.get end) 0xff) delim))]
+                        use-last-pat (and (BytePtr/eq end p) (== (.ub end) delim))]
                     (if (and (BytePtr/eq end p) (not use-last-pat))
                       false
                       (let [j__6 (if use-last-pat
                                    0
-                                   (let [c (i8 (bit-and (.get end) 0xff))
+                                   (let [c (i8 (.ub end))
                                          _ (.put end (unchecked-byte (e NUL)))
                                          empty_ (empty-pattern-magic ed p (.sub end p) (long (aget magic 0)))]
                                      (.put end (unchecked-byte c))
@@ -67532,7 +67515,7 @@
                                   (let [reverse-match (< (.line2 ea) (.line1 ea))]
                                     (g! ed search-first-line (if reverse-match (.line2 ea) (.line1 ea)))
                                     (g! ed search-last-line (if reverse-match (.line1 ea) (.line2 ea))))
-                                  (when (and (== (bit-and (.at cmd 0) 0xff) 115) (not (== (bit-and (.at cmd 1) 0xff) 111)))
+                                  (when (and (== (.ub cmd 0) 115) (not (== (.ub cmd 1) 111)))
                                     (g! ed search-last-line (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
                                     (g! ed search-first-line (g ed search-last-line))))
                                 (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-lnum)
@@ -67645,8 +67628,8 @@
                     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (e MAXCOL)))
                 (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (g ed search-first-line))
                     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) 0))))
-            (let [next-char (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0))))) 0xff)
-                  use-last-pat (and (== (long (aget patlen 0)) 0) (> (long (aget skiplen 0)) 0) (== (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (i32 (- (long (aget skiplen 0)) 1))) 0xff) next-char))
+            (let [next-char (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0)))))
+                  use-last-pat (and (== (long (aget patlen 0)) 0) (> (long (aget skiplen 0)) 0) (== (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (- (long (aget skiplen 0)) 1))) next-char))
                   found (if (and (== (long (aget patlen 0)) 0) (not use-last-pat))
                           (let [found 0]
                             (set-no-hlsearch ed (e TRUE))
@@ -67716,7 +67699,7 @@
                     end-pos-col (aget tl__ 1)
                     end-pos-coladd (aget tl__ 2)]
                 (when-not use-last-pat
-                  (let [next-char (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0))))) 0xff)]
+                  (let [next-char (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0)))))]
                     (.set ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0)))) (unchecked-byte (e NUL)))
                     (when (and (empty-pattern ed (.add ^BytePtr (.cmdbuff (g ed ccline)) (long (aget skiplen 0))) (long (aget patlen 0)) (long (aget search-delim 0))) (zero? (g ed no-hlsearch)))
                       (redraw-all-later ed (e UPD_SOME_VALID))
@@ -67728,7 +67711,7 @@
                 (update-screen ed (e UPD_SOME_VALID))
                 (g! ed highlight-match (e FALSE))
                 (restore-last-search-pattern ed)
-                (if (== (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0))))) 0xff) (e NUL))
+                (if (== (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (+ (long (aget skiplen 0)) (long (aget patlen 0))))) (e NUL))
                   (when-not (== found 0)
                     (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) end-pos-lnum)
                     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) end-pos-col)
@@ -67784,7 +67767,7 @@
             ^BytePtr p (mb-prevptr ed (.cmdbuff (g ed ccline)) p)
             ^BytePtr p (if (== c (e Ctrl_W))
                          (let [l__1 (loop [^BytePtr p p]
-                                      (if (and (.gt p ^BytePtr (.cmdbuff (g ed ccline))) (vim-isspace? ed (bit-and (.get p) 0xff)))
+                                      (if (and (.gt p ^BytePtr (.cmdbuff (g ed ccline))) (vim-isspace? ed (.ub p)))
                                         (let [^BytePtr p (mb-prevptr ed (.cmdbuff (g ed ccline)) p)]
                                           (recur p))
                                         (do (aset to__ 0 p)
@@ -67814,7 +67797,7 @@
                     i (i32 (inc i))
                     t4 j
                     j (i32 (inc j))]
-                (.set ^BytePtr (.cmdbuff (g ed ccline)) t3 (unchecked-byte (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) t4) 0xff)))
+                (.set ^BytePtr (.cmdbuff (g ed ccline)) t3 (unchecked-byte (.ub ^BytePtr (.cmdbuff (g ed ccline)) t4)))
                 (recur i j))
               (do (.set ^BytePtr (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline)) (unchecked-byte (e NUL)))
                   (when (== (.cmdlen (g ed ccline)) 0)
@@ -67842,15 +67825,15 @@
       (do (put-on-cmdline ed s -1 true)
           nil)
       (loop [^BytePtr s s]
-        (when-not (== (bit-and (.get s) 0xff) (e NUL))
-          (let [cv (bit-and (.get s) 0xff)
-                ^BytePtr s (if (and (== cv (e Ctrl_V)) (not (zero? (bit-and (.at s 1) 0xff))))
+        (when-not (== (.ub s) (e NUL))
+          (let [cv (.ub s)
+                ^BytePtr s (if (and (== cv (e Ctrl_V)) (not (zero? (.ub s 1))))
                              ^BytePtr (.add s 1)
                              s)]
             (.set mb-cptr2char-adv__o (mb-cptr2char-adv ed s))
             (let [^BytePtr s (.pp mb-cptr2char-adv__o)
                   c (.r__ mb-cptr2char-adv__o)]
-              (when (or (== cv (e Ctrl_V)) (== c (e ESC)) (== c (e Ctrl_C)) (== c (e CAR)) (== c (e NL)) (== c (e Ctrl_L)) (== c (g ed intr-char)) (and (== c (e Ctrl_BSL)) (== (bit-and (.get s) 0xff) (e Ctrl_N))))
+              (when (or (== cv (e Ctrl_V)) (== c (e ESC)) (== c (e Ctrl_C)) (== c (e CAR)) (== c (e NL)) (== c (e Ctrl_L)) (== c (g ed intr-char)) (and (== c (e Ctrl_BSL)) (== (.ub s) (e Ctrl_N))))
                 (stuffcharReadbuff ed (e Ctrl_V)))
               (stuffcharReadbuff ed c)
               (recur s))))))))
@@ -68104,7 +68087,7 @@
                       plen (aget tl__ 1)
                       t1 (and (== histype (e HIST_SEARCH)) (not (BytePtr/eq p lookfor)))
                       j__3 (if t1
-                             (let [old-firstc (bit-and (.at p (+ plen 1)) 0xff)
+                             (let [old-firstc (.ub p (+ plen 1))
                                    t1 (not (== old-firstc firstc))]
                                (aset tl__ 2 old-firstc)
                                (aset to__ 3 (Boolean/valueOf (boolean t1)))
@@ -68153,7 +68136,7 @@
                 (.set-hiscnt-p out__ hiscnt-p)
                 out__))
         6
-          (if (== (bit-and (.at p j) 0xff) (e NUL))
+          (if (== (.ub p j) (e NUL))
             (if (== i 0)
               (do (alloc-cmdbuff ed len)
                   (if (nil? (.cmdbuff (g ed ccline)))
@@ -68168,18 +68151,18 @@
                       out__)
                     (recur 7 c firstc curcmdstr curcmdstrlen histype hiscnt-p xp orig-hiscnt hiscnt lookfor lookforlen p old-firstc i j len)))
               (recur 7 c firstc curcmdstr curcmdstrlen histype hiscnt-p xp orig-hiscnt hiscnt lookfor lookforlen p old-firstc i j len))
-            (let [len (if (and (== (bit-and (.at p j) 0xff) old-firstc) (or (== j 0) (not (== (bit-and (.at p (i32 (- j 1))) 0xff) 92))))
+            (let [len (if (and (== (.ub p j) old-firstc) (or (== j 0) (not (== (.ub p (i32 (- j 1))) 92))))
                         (if (> i 0)
                           (do (.set ^BytePtr (.cmdbuff (g ed ccline)) len (unchecked-byte firstc))
                               len)
                           len)
-                        (let [len (if (and (== (bit-and (.at p j) 0xff) firstc) (or (== j 0) (not (== (bit-and (.at p (i32 (- j 1))) 0xff) 92))))
+                        (let [len (if (and (== (.ub p j) firstc) (or (== j 0) (not (== (.ub p (i32 (- j 1))) 92))))
                                     (do (when (> i 0)
                                           (.set ^BytePtr (.cmdbuff (g ed ccline)) len (unchecked-byte 92)))
                                         (inc len))
                                     len)]
                           (if (> i 0)
-                            (do (.set ^BytePtr (.cmdbuff (g ed ccline)) len (unchecked-byte (bit-and (.at p j) 0xff)))
+                            (do (.set ^BytePtr (.cmdbuff (g ed ccline)) len (unchecked-byte (.ub p j)))
                                 len)
                             len)))
                   len (inc len)
@@ -68208,7 +68191,7 @@
         search-flags (e SEARCH_NOOF)]
     (save-last-search-pattern ed)
     (if (do-incsearch-highlighting ed firstc (IntPtr. search-delim 0) is-state (IntPtr. skiplen 0) (IntPtr. patlen 0))
-      (if (and (== (long (aget patlen 0)) 0) (== (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (long (aget skiplen 0))) 0xff) (e NUL)))
+      (if (and (== (long (aget patlen 0)) 0) (== (.ub ^BytePtr (.cmdbuff (g ed ccline)) (long (aget skiplen 0))) (e NUL)))
         (do (restore-last-search-pattern ed)
             false)
         (let [^BytePtr pat (.add ^BytePtr (.cmdbuff (g ed ccline)) (long (aget skiplen 0)))
@@ -68580,7 +68563,7 @@
                     _ (.set-cmdpos (g ed ccline) (i32 (- (.cmdpos (g ed ccline)) t4)))
                     t5 (long (cmdline-charsize ed (.cmdpos (g ed ccline))))]
                 (.set-cmdspos (g ed ccline) (i32 (- (.cmdspos (g ed ccline)) t5)))
-                (if (and (> (.cmdpos (g ed ccline)) 0) (or (== c (e K_TC_HASH_4)) (== c (e K_C_LEFT)) (not (zero? (bit-and (long (aget (g ed mod-mask) 0)) 6)))) (not (== (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (i32 (- (.cmdpos (g ed ccline)) 1))) 0xff) 32)))
+                (if (and (> (.cmdpos (g ed ccline)) 0) (or (== c (e K_TC_HASH_4)) (== c (e K_C_LEFT)) (not (zero? (bit-and (long (aget (g ed mod-mask) 0)) 6)))) (not (== (.ub ^BytePtr (.cmdbuff (g ed ccline)) (i32 (- (.cmdpos (g ed ccline)) 1))) 32)))
                   (recur 6 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
                   (do (set-cmdspos-cursor ed)
                       (recur 11 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))))
@@ -68593,7 +68576,7 @@
                 (do (.set-cmdspos (g ed ccline) (i32 (+ (.cmdspos (g ed ccline)) i)))
                     (let [t3 (long (utfc-ptr2len ed (.add ^BytePtr (.cmdbuff (g ed ccline)) (.cmdpos (g ed ccline)))))]
                       (.set-cmdpos (g ed ccline) (i32 (+ (.cmdpos (g ed ccline)) t3)))
-                      (if (and (or (== c (e K_TC_PCT_i)) (== c (e K_C_RIGHT)) (not (zero? (bit-and (long (aget (g ed mod-mask) 0)) 6)))) (not (== (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) (.cmdpos (g ed ccline))) 0xff) 32)))
+                      (if (and (or (== c (e K_TC_PCT_i)) (== c (e K_C_RIGHT)) (not (zero? (bit-and (long (aget (g ed mod-mask) 0)) 6)))) (not (== (.ub ^BytePtr (.cmdbuff (g ed ccline)) (.cmdpos (g ed ccline))) 32)))
                         (recur 7 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
                         (recur 8 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))))))
         8
@@ -68605,7 +68588,7 @@
                   i (i32 (inc i))
                   t2 j
                   j (i32 (inc j))]
-              (.set ^BytePtr (.cmdbuff (g ed ccline)) t1 (unchecked-byte (bit-and (.at ^BytePtr (.cmdbuff (g ed ccline)) t2) 0xff)))
+              (.set ^BytePtr (.cmdbuff (g ed ccline)) t1 (unchecked-byte (.ub ^BytePtr (.cmdbuff (g ed ccline)) t2)))
               (recur 9 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))
             (do (.set ^BytePtr (.cmdbuff (g ed ccline)) (.cmdlen (g ed ccline)) (unchecked-byte (e NUL)))
                 (when (== (.cmdlen (g ed ccline)) 0)
@@ -68671,8 +68654,8 @@
   (let [prev-len (.tb-len (g ed typebuf))
         _ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.line2 eap))
         _ (check-cursor-col ed)
-        c (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff)
-        c (if (or (== c (e NUL)) (and (== c 42) (== (bit-and (.get ^BytePtr (aget ^objects (.-cmd eap) 0)) 0xff) 42)))
+        c (.ub ^BytePtr (aget ^objects (.-arg eap) 0))
+        c (if (or (== c (e NUL)) (and (== c 42) (== (.ub ^BytePtr (aget ^objects (.-cmd eap) 0)) 42)))
             64
             c)]
     (if (do-execreg ed c true (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_EXECBUF))) true)
@@ -68766,7 +68749,7 @@
                 (check-cursor-lnum ed)
                 (.set-uh-entry curhead newlist)
                 (.set-uh-flags curhead new-flags)
-                (when (and (not (zero? (bit-and old-flags (e UH_EMPTYBUF)))) (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (bit-and (.get ^BytePtr (ml-get ed 1)) 0xff) (e NUL)))
+                (when (and (not (zero? (bit-and old-flags (e UH_EMPTYBUF)))) (== (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) (== (.ub ^BytePtr (ml-get ed 1)) (e NUL)))
                   (.set-ml-flags ^S_memline (.-b-ml (g ed curbuf)) (bit-or (.ml-flags ^S_memline (.-b-ml (g ed curbuf))) (e ML_EMPTY))))
                 (if (zero? (bit-and old-flags (e UH_CHANGED)))
                   (unchanged ed (g ed curbuf) false true)
@@ -69381,15 +69364,15 @@
         sec false
         file false
         _ (aset p 0 (aget ^objects (.-arg eap) 0))
-        j__1 (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))
+        j__1 (if (== (.ub ^BytePtr (aget p 0)) (e NUL))
                (let [count_ 1]
                  (aset tl__ 0 count_)
                  (aset to__ 0 (Boolean/valueOf (boolean sec)))
                  (aset to__ 1 (Boolean/valueOf (boolean file)))
                  0)
-               (if (musl-isdigit? ed (bit-and (.get ^BytePtr (aget p 0)) 0xff))
+               (if (musl-isdigit? ed (.ub ^BytePtr (aget p 0)))
                  (let [count_ (long (getdigits ed (Ptr. p 0)))]
-                   (case (bit-and (.get ^BytePtr (aget p 0)) 0xff)
+                   (case (.ub ^BytePtr (aget p 0))
                      115
                        (do (aset p 0 (.add ^BytePtr (aget p 0) 1))
                            (let [sec true]
@@ -69439,7 +69422,7 @@
         count_ (aget tl__ 0)
         sec (boolean (aget to__ 0))
         file (boolean (aget to__ 1))]
-    (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))
+    (if (== (.ub ^BytePtr (aget p 0)) (e NUL))
       (do (undo-time ed (if (== (.cmdidx eap) (e CMD_earlier)) (- count_) count_) sec file false)
           nil)
       (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0)) (object-array [(aget ^objects (.-arg eap) 0)]))
@@ -69496,16 +69479,16 @@
 
 ;; C: ex_mark
 (defn ex-mark [^Editor ed ^S_exarg eap]
-  (if (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) (e NUL))
+  (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL))
     (do (emsg ed (gettext_ ed (BytePtr. (g ed e-argument-required) 0)))
         nil)
-    (if (== (bit-and (.at ^BytePtr (aget ^objects (.-arg eap) 0) 1) 0xff) (e NUL))
+    (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 1) (e NUL))
       (let [pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
             pos-col_ (.col ^T_pos_T (.-w-cursor (g ed curwin)))
             pos-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.line2 eap))
         (beginline ed 5)
-        (when (== (long (setmark ed (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff))) (e FAIL))
+        (when (== (long (setmark ed (.ub ^BytePtr (aget ^objects (.-arg eap) 0)))) (e FAIL))
           (emsg ed (gettext_ ed (BytePtr. (g ed e-argument-must-be-letter-or-forward-backward-quote) 0))))
         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) pos-lnum)
         (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) pos-col_)
@@ -69764,7 +69747,7 @@
                       (i32 (- cmdchar))
                       cmdchar)]
         (if (<= cmdchar (g ed nv-max-linear))
-          (bit-and (aget (g ed nv-cmd-idx) cmdchar) 0xffff)
+          (bit-and (long (aget (g ed nv-cmd-idx) cmdchar)) 0xffff)
           (let [bot (i32 (+ (g ed nv-max-linear) 1))
                 top 193
                 idx -1]
@@ -69772,12 +69755,12 @@
                    bot bot]
               (if (<= bot top)
                 (let [i (i32 (quot (i32 (+ top bot)) 2))
-                      c (.cmd-char ^S_nv_cmd (aget (g ed nv-cmds) (bit-and (aget (g ed nv-cmd-idx) i) 0xffff)))
+                      c (.cmd-char ^S_nv_cmd (aget (g ed nv-cmds) (bit-and (long (aget (g ed nv-cmd-idx) i)) 0xffff)))
                       c (if (< c 0)
                           (i32 (- c))
                           c)]
                   (if (== cmdchar c)
-                    (bit-and (aget (g ed nv-cmd-idx) i) 0xffff)
+                    (bit-and (long (aget (g ed nv-cmd-idx) i)) 0xffff)
                     (let [j__1 (if (> cmdchar c)
                                  (let [bot (i32 (+ i 1))]
                                    (aset tl__ 0 top)
@@ -70081,8 +70064,8 @@
   (let [^T_mb_cptr2char_adv__out_T mb-cptr2char-adv__o (new-T_mb_cptr2char_adv__out_T)]
     (when (zero? (g ed block-redo))
       (loop [^BytePtr s s]
-        (when-not (== (bit-and (.get s) 0xff) (e NUL))
-          (let [^BytePtr s (if (and (== (bit-and (.get s) 0xff) 128) (not (== (bit-and (.at s 1) 0xff) (e NUL))) (not (== (bit-and (.at s 2) 0xff) (e NUL))))
+        (when-not (== (.ub s) (e NUL))
+          (let [^BytePtr s (if (and (== (.ub s) 128) (not (== (.ub s 1) (e NUL))) (not (== (.ub s 2) (e NUL))))
                              (do (add-buff ed (g ed redobuff) s 3)
                                  ^BytePtr (.add s 3))
                              (do (.set mb-cptr2char-adv__o (mb-cptr2char-adv ed s))
@@ -70122,7 +70105,7 @@
 
 ;; C: unadjust_for_sel
 (defn unadjust-for-sel [^Editor ed]
-  (if (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (not (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
+  (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
     (unadjust-for-sel-inner ed (if (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (.-w-cursor (g ed curwin)) (g ed VIsual)))
     false))
 
@@ -70145,7 +70128,7 @@
               (when (< (long (aget start 0)) (long (aget ^ints (.-start-vcol oap) 0)))
                 (aset ^ints (.-start-vcol oap) 0 (unchecked-int (long (aget start 0)))))
               (when (> (long (aget end 0)) (long (aget ^ints (.-end-vcol oap) 0)))
-                (if (and initial (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (>= (long (aget start 0)) 1) (>= (i32 (- (long (aget start 0)) 1)) (long (aget ^ints (.-end-vcol oap) 0))))
+                (if (and initial (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (>= (long (aget start 0)) 1) (>= (i32 (- (long (aget start 0)) 1)) (long (aget ^ints (.-end-vcol oap) 0))))
                   (aset ^ints (.-end-vcol oap) 0 (unchecked-int (- (long (aget start 0)) 1)))
                   (aset ^ints (.-end-vcol oap) 0 (unchecked-int (long (aget end 0)))))))
             (if (== (.w-curswant (g ed curwin)) (e MAXCOL))
@@ -70213,7 +70196,7 @@
                      -1)))]
     (if (== (long j__1) -1)
       (boolean (aget to__ 0))
-      (do (when (and (> l (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (not (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL))) (zero? (g ed virtual-op)))
+      (do (when (and (> l (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (not (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL))) (zero? (g ed virtual-op)))
             (inc-cursor ed))
           (let [j__2 (if (zero? (.block-mode oap))
                        (do (aset tl__ 0 pre-textlen)
@@ -70518,7 +70501,7 @@
                                _ (Rt/memmove (.add newp startcol) s slen)
                                offset (i32 (+ offset (i32 slen)))
                                j__2 (if (and (> spaces 0) (not (.is-short bdp)))
-                                      (if (== (bit-and (.get oldp) 0xff) (e TAB))
+                                      (if (== (.ub oldp) (e TAB))
                                         (do (Rt/memset (.add (.add newp offset) spaces) (unchecked-int 32) (i32 (- ts-val spaces)))
                                             (let [^BytePtr oldp (.add oldp 1)
                                                   count_ (i32 (inc count_))]
@@ -70618,7 +70601,7 @@
                    (if (and (not (zero? (.block-mode oap))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0))
                      (do (.set-w-set-curswant (g ed curwin) (boolean true))
                          (loop []
-                           (when (and (not (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (i32 (+ (.textcol bd) (.textlen bd)))))
+                           (when (and (not (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (i32 (+ (.textcol bd) (.textlen bd)))))
                              (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
                              (recur)))
                          (if (and (.is-short bd) (not (.is-MAX bd)))
@@ -70635,7 +70618,7 @@
                            0))
                      (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-end oap))
                          (check-cursor-col ed)
-                         (if (and (not (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL))) (not (== (long (aget ^ints (.-start-vcol oap) 0)) (long (aget ^ints (.-end-vcol oap) 0)))))
+                         (if (and (not (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL))) (not (== (long (aget ^ints (.-start-vcol oap) 0)) (long (aget ^ints (.-end-vcol oap) 0)))))
                            (do (inc-cursor ed)
                                0)
                            0)))
@@ -70872,7 +70855,7 @@
                 (block-prep ed oap bd (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (e TRUE))
                 (if (and (== (.textlen bd) 0) (or (zero? (g ed virtual-op)) (.is-MAX bd)))
                   (recur 8 oap c num-chars newp oldp newlen after-p had-ctrl-v-cr virtcols)
-                  (let [n (if (and (not (zero? (g ed virtual-op))) (.is-short bd) (== (bit-and (.get ^BytePtr (.textstart bd)) 0xff) (e NUL)))
+                  (let [n (if (and (not (zero? (g ed virtual-op))) (.is-short bd) (== (.ub ^BytePtr (.textstart bd)) (e NUL)))
                             (do (.set-lnum vpos (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
                                 (getvpos ed vpos (long (aget ^ints (.-start-vcol oap) 0)))
                                 (.set-startspaces bd (i32 (+ (.startspaces bd) (.coladd vpos))))
@@ -70975,8 +70958,8 @@
         startpos-coladd (aget tl__ 5)
         ^bytes buf2 (aget to__ 12)
         ^ints overflow (aget to__ 13)]
-    (let [j__5 (if (and (and (and (and (> col 0) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (zero? visual)) (not do-unsigned))
-                (if (and (and do-blank (>= col 2)) (not (or (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 32) (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 9))))
+    (let [j__5 (if (and (and (and (and (> col 0) (== (.ub ptr (i32 (- col 1))) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (zero? visual)) (not do-unsigned))
+                (if (and (and do-blank (>= col 2)) (not (or (== (.ub ptr (i32 (- col 2))) 32) (== (.ub ptr (i32 (- col 2))) 9))))
                   (let [blank-unsigned true]
                     (do (aset tl__ 0 col)
                         (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
@@ -71288,7 +71271,7 @@
                       (let [col (long (if (zero? (g ed VIsual-active))
                                  (let [col (long (if do-bin
                                             (loop [col col]
-                                              (if (and (> col 0) (vim-isbdigit? ed (bit-and (.at ptr col) 0xff)))
+                                              (if (and (> col 0) (vim-isbdigit? ed (.ub ptr col)))
                                                 (let [col (i32 (dec col))
                                                       t1 (long (utf-head-off ed ptr (.add ptr col)))
                                                       col (i32 (- col t1))]
@@ -71297,31 +71280,31 @@
                                             col))]
                                    (let [col (long (if do-hex
                                               (loop [col col]
-                                                (if (and (> col 0) (vim-isxdigit? ed (bit-and (.at ptr col) 0xff)))
+                                                (if (and (> col 0) (vim-isxdigit? ed (.ub ptr col)))
                                                   (let [col (i32 (dec col))
                                                         t2 (long (utf-head-off ed ptr (.add ptr col)))
                                                         col (i32 (- col t2))]
                                                     (recur col))
                                                   col))
                                               col))]
-                                     (let [col (long (if (and (and do-bin do-hex) (not (and (and (and (and (> col 0) (or (== (bit-and (.at ptr col) 0xff) 88) (== (bit-and (.at ptr col) 0xff) 120))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff)))))
+                                     (let [col (long (if (and (and do-bin do-hex) (not (and (and (and (and (> col 0) (or (== (.ub ptr col) 88) (== (.ub ptr col) 120))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (.ub ptr (i32 (+ col 1)))))))
                                                 (let [col (.col pos)]
                                                   (loop [col col]
-                                                    (if (and (> col 0) (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))
+                                                    (if (and (> col 0) (vim-isdigit? ed (.ub ptr col)))
                                                       (let [col (i32 (dec col))
                                                             t3 (long (utf-head-off ed ptr (.add ptr col)))
                                                             col (i32 (- col t3))]
                                                         (recur col))
                                                       col)))
                                                 col))]
-                                       (if (or (and (and (and (and (and do-hex (> col 0)) (or (== (bit-and (.at ptr col) 0xff) 88) (== (bit-and (.at ptr col) 0xff) 120))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff))) (and (and (and (and (and do-bin (> col 0)) (or (== (bit-and (.at ptr col) 0xff) 66) (== (bit-and (.at ptr col) 0xff) 98))) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isbdigit? ed (bit-and (.at ptr (i32 (+ col 1))) 0xff))))
+                                       (if (or (and (and (and (and (and do-hex (> col 0)) (or (== (.ub ptr col) 88) (== (.ub ptr col) 120))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isxdigit? ed (.ub ptr (i32 (+ col 1))))) (and (and (and (and (and do-bin (> col 0)) (or (== (.ub ptr col) 66) (== (.ub ptr col) 98))) (== (.ub ptr (i32 (- col 1))) 48)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (vim-isbdigit? ed (.ub ptr (i32 (+ col 1))))))
                                          (let [col (i32 (dec col))
                                                t4 (long (utf-head-off ed ptr (.add ptr col)))
                                                col (i32 (- col t4))]
                                            col)
                                          (let [col (.col pos)]
                                            (let [l__1 (loop [col col]
-                                                       (if (and (and (not (== (bit-and (.at ptr col) 0xff) (e NUL))) (not (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
+                                                       (if (and (and (not (== (.ub ptr col) (e NUL))) (not (vim-isdigit? ed (.ub ptr col)))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
                                                          (let [t5 (long (utfc-ptr2len ed (.add ptr col)))
                                                                col (i32 (+ col t5))]
                                                            (recur col))
@@ -71329,7 +71312,7 @@
                                                              0)))]
                                              (let [col (aget tl__ 0)]
                                                (loop [col col]
-                                                 (if (and (and (> col 0) (vim-isdigit? ed (bit-and (.at ptr (i32 (- col 1))) 0xff))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
+                                                 (if (and (and (> col 0) (vim-isdigit? ed (.ub ptr (i32 (- col 1))))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
                                                    (let [col (i32 (dec col))
                                                          t6 (long (utf-head-off ed ptr (.add ptr col)))
                                                          col (i32 (- col t6))]
@@ -71345,7 +71328,7 @@
                                         0)
                                     (let [l__2 (loop [length length
                                                      col col]
-                                                (if (and (and (and (not (== (bit-and (.at ptr col) 0xff) (e NUL))) (> length 0)) (not (vim-isdigit? ed (bit-and (.at ptr col) 0xff)))) (not (and do-alpha (or (< (u32 (- (bit-and (.at ptr col) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ptr col) 0xff) 97)) 26)))))
+                                                (if (and (and (and (not (== (.ub ptr col) (e NUL))) (> length 0)) (not (vim-isdigit? ed (.ub ptr col)))) (not (and do-alpha (or (< (u32 (- (.ub ptr col) 65)) 26) (< (u32 (- (.ub ptr col) 97)) 26)))))
                                                   (let [mb-len (long (utfc-ptr2len ed (.add ptr col)))
                                                         col (i32 (+ col mb-len))
                                                         length (i32 (- length mb-len))]
@@ -71357,8 +71340,8 @@
                                             col (aget tl__ 0)]
                                         (if (== length 0)
                                           1
-                                          (if (and (and (and (> col (.col pos)) (== (bit-and (.at ptr (i32 (- col 1))) 0xff) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (not do-unsigned))
-                                            (if (and (and do-blank (>= col 2)) (not (or (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 32) (== (bit-and (.at ptr (i32 (- col 2))) 0xff) 9))))
+                                          (if (and (and (and (> col (.col pos)) (== (.ub ptr (i32 (- col 1))) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (not do-unsigned))
+                                            (if (and (and do-blank (>= col 2)) (not (or (== (.ub ptr (i32 (- col 2))) 32) (== (.ub ptr (i32 (- col 2))) 9))))
                                               (let [blank-unsigned true]
                                                 (do (aset tl__ 1 length)
                                                     (aset tl__ 0 col)
@@ -71387,7 +71370,7 @@
                                     blank-unsigned (boolean (aget to__ 1))
                                     negative (aget tl__ 2)
                                     was-positive (boolean (aget to__ 2))]
-                                (let [firstdigit (bit-and (.at ptr col) 0xff)]
+                                (let [firstdigit (.ub ptr col)]
                                   (if (and (not (< (u32 (- (u32 firstdigit) 48)) 10)) (not (and do-alpha (or (< (u32 (- (u32 firstdigit) 65)) 26) (< (u32 (- (u32 firstdigit) 97)) 26)))))
                                     (let [_ (beep-flush ed)]
                                       did-change)
@@ -71801,9 +71784,9 @@
             (if (== (g ed VIsual-mode) 86)
               (.set-motion-type oap (e MLINE))
               (do (.set-motion-type oap (e MCHAR))
-                  (when (and (not (== (g ed VIsual-mode) (e Ctrl_V))) (== (bit-and (.get ^BytePtr (ml-get-pos ed (.-end oap))) 0xff) (e NUL)) (or include-line-break (zero? (g ed virtual-op))))
+                  (when (and (not (== (g ed VIsual-mode) (e Ctrl_V))) (== (.ub ^BytePtr (ml-get-pos ed (.-end oap))) (e NUL)) (or include-line-break (zero? (g ed virtual-op))))
                     (.set-inclusive oap (e FALSE))
-                    (when (and (not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111)) (zero? (long (op-on-lines ed (.op-type oap)))) (< (.lnum ^T_pos_T (.-end oap)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
+                    (when (and (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (zero? (long (op-on-lines ed (.op-type oap)))) (< (.lnum ^T_pos_T (.-end oap)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
                       (.set-lnum ^T_pos_T (.-end oap) (inc (.lnum ^T_pos_T (.-end oap))))
                       (.set-col ^T_pos_T (.-end oap) 0)
                       (.set-coladd ^T_pos_T (.-end oap) 0)
@@ -71824,7 +71807,7 @@
           (let [empty-region-error (and (not (zero? (.empty_ oap))) (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_EMPTYREGION))))]
             (when (and (not (zero? (.is-VIsual oap))) (or (not (zero? (.empty_ oap))) (zero? (long (aget ^ints (.-b-p-ma (g ed curbuf)) 0)))))
               (redraw-curbuf-later ed (e UPD_INVERTED)))
-            (if (and (== (.motion-type oap) (e MCHAR)) (== (.inclusive oap) (e FALSE)) (zero? (bit-and (.retval cap) (e CA_NO_ADJ_OP_END))) (== (.col ^T_pos_T (.-end oap)) 0) (or (zero? (.is-VIsual oap)) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111)) (zero? (.block-mode oap)) (> (.line-count oap) 1))
+            (if (and (== (.motion-type oap) (e MCHAR)) (== (.inclusive oap) (e FALSE)) (zero? (bit-and (.retval cap) (e CA_NO_ADJ_OP_END))) (== (.col ^T_pos_T (.-end oap)) 0) (or (zero? (.is-VIsual oap)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (zero? (.block-mode oap)) (> (.line-count oap) 1))
               (do (.set-end-adjusted oap (e TRUE))
                   (.set-line-count oap (dec (.line-count oap)))
                   (.set-lnum ^T_pos_T (.-end oap) (dec (.lnum ^T_pos_T (.-end oap))))
@@ -72178,7 +72161,7 @@
                       ^BytePtr p (aget ^objects (.-arg eap) 0)]
                   (recur 1 eap arg l p len)))))
         1
-          (if (== (bit-and (.get p) 0xff) (e NUL))
+          (if (== (.ub p) (e NUL))
             (if (> len 0)
               (let [^BytePtr arg (BytePtr/alloc (+ (long (musl-strlen ed (aget ^objects (.-arg eap) 0))) len 1))
                     len 0
@@ -72188,11 +72171,11 @@
             (let [l (i32 (- (long (utfc-ptr2len ed p)) 1))]
               (recur 7 eap arg l p len)))
         2
-          (if (== (bit-and (.get p) 0xff) (e NUL))
+          (if (== (.ub p) (e NUL))
             (recur 3 eap arg l p len)
             (let [t1 len
                   len (i32 (inc len))
-                  _ (.set arg t1 (unchecked-byte (bit-and (.get p) 0xff)))
+                  _ (.set arg t1 (unchecked-byte (.ub p)))
                   l (i32 (- (long (utfc-ptr2len ed p)) 1))]
               (recur 6 eap arg l p len)))
         3
@@ -72221,8 +72204,8 @@
             (let [t2 len
                   len (i32 (inc len))
                   ^BytePtr p (.add p 1)
-                  _ (.set arg t2 (unchecked-byte (bit-and (.get p) 0xff)))
-                  len (if (== (bit-and (.get p) 0xff) 128)
+                  _ (.set arg t2 (unchecked-byte (.ub p)))
+                  len (if (== (.ub p) 128)
                         (let [t3 len
                               len (i32 (inc len))
                               _ (.set arg t3 (unchecked-byte (e KS_SPECIAL)))
@@ -72239,7 +72222,7 @@
         7
           (if (> l 0)
             (let [^BytePtr p (.add p 1)
-                  len (if (== (bit-and (.get p) 0xff) 128)
+                  len (if (== (.ub p) 128)
                         (i32 (+ len 2))
                         len)
                   l (i32 (dec l))]
@@ -72294,7 +72277,7 @@
                       (.set p len (unchecked-byte (e NUL)))
                       len)
                     len)]
-          (if (and (> (Long/compareUnsigned len 0) 0) (not (== (g ed restart-edit) 0)) (== (bit-and (.at p (- len 1)) 0xff) (e Ctrl_O)))
+          (if (and (> (Long/compareUnsigned len 0) 0) (not (== (g ed restart-edit) 0)) (== (.ub p (- len 1)) (e Ctrl_O)))
             (do (.set p (- len 1) (unchecked-byte (e NUL)))
                 p)
             p))))))
@@ -72354,10 +72337,10 @@
 
 ;; C: update_wincolor
 (defn update-wincolor ^BytePtr [^Editor ed ^S_window_S wp ^BytePtr opt]
-  (let [^BytePtr str_ (if (== (bit-and (.get opt) 0xff) (e NUL)) (BytePtr/lit "") (BytePtr/alloc (+ 4 (long (musl-strlen ed opt)))))]
+  (let [^BytePtr str_ (if (== (.ub opt) (e NUL)) (BytePtr/lit "") (BytePtr/alloc (+ 4 (long (musl-strlen ed opt)))))]
     (if (nil? str_)
       (BytePtr. (g ed e-out-of-memory) 0)
-      (do (when-not (== (bit-and (.get opt) 0xff) (e NUL))
+      (do (when-not (== (.ub opt) (e NUL))
             (whim.cljhost/vim-snprintf ed str_ (+ 4 (long (musl-strlen ed opt))) (BytePtr/lit "!(:%s") (object-array [opt])))
           (let [^BytePtr errmsg (update-winhighlight ed wp str_)]
             (if (nil? errmsg)
@@ -72411,12 +72394,12 @@
         ^BytePtr p (mb-unescape ed sp)]
     (if (some? p)
       p
-      (let [c (bit-and (.get str_) 0xff)
-            j__3 (if (and (== c 128) (not (== (bit-and (.at str_ 1) 0xff) (e NUL))) (not (== (bit-and (.at str_ 2) 0xff) (e NUL))))
-                   (let [j__1 (if (== (bit-and (.at str_ 1) 0xff) (e KS_MODIFIER))
-                                (let [modifiers (bit-and (.at str_ 2) 0xff)
+      (let [c (.ub str_)
+            j__3 (if (and (== c 128) (not (== (.ub str_ 1) (e NUL))) (not (== (.ub str_ 2) (e NUL))))
+                   (let [j__1 (if (== (.ub str_ 1) (e KS_MODIFIER))
+                                (let [modifiers (.ub str_ 2)
                                       ^BytePtr str_ (.add str_ 3)
-                                      c (bit-and (.get str_) 0xff)]
+                                      c (.ub str_)]
                                   (aset tl__ 0 c)
                                   (aset to__ 0 str_)
                                   (aset tl__ 1 modifiers)
@@ -72428,8 +72411,8 @@
                          c (aget tl__ 0)
                          ^BytePtr str_ (aget to__ 0)
                          modifiers (aget tl__ 1)
-                         j__2 (if (and (== c 128) (not (== (bit-and (.at str_ 1) 0xff) (e NUL))) (not (== (bit-and (.at str_ 2) 0xff) (e NUL))))
-                                (let [c (if (== (bit-and (.at str_ 1) 0xff) (e KS_SPECIAL)) 128 (if (== (bit-and (.at str_ 1) 0xff) (e KS_ZERO)) -22783 (i32 (- (i32 (+ (bit-and (.at str_ 1) 0xff) (i32 (bit-shift-left (bit-and (.at str_ 2) 0xff) 8))))))))
+                         j__2 (if (and (== c 128) (not (== (.ub str_ 1) (e NUL))) (not (== (.ub str_ 2) (e NUL))))
+                                (let [c (if (== (.ub str_ 1) (e KS_SPECIAL)) 128 (if (== (.ub str_ 1) (e KS_ZERO)) -22783 (i32 (- (i32 (+ (.ub str_ 1) (i32 (bit-shift-left (.ub str_ 2) 8))))))))
                                       ^BytePtr str_ (.add str_ 2)]
                                   (aset tl__ 0 c)
                                   (aset to__ 0 str_)
@@ -72467,7 +72450,7 @@
                         (long (utf-ptr2char ed p_2))
                         (do (.put sp (.add str_ 1))
                             c))))
-                (do (.put sp (.add str_ (if (== (bit-and (.get str_) 0xff) (e NUL)) 0 1)))
+                (do (.put sp (.add str_ (if (== (.ub str_) (e NUL)) 0 1)))
                     c))]
         (if (or special (< c 32) (and replace-spaces (== c 32)) (and replace-others (or (== c 60) (== c 124) (== c 92))))
           (get-special-key-name ed c modifiers)
@@ -72482,9 +72465,9 @@
     (let [retval 0
           attr (long (aget (g ed highlight-attr) 0))]
       (loop [retval retval]
-        (if (== (bit-and (.get ^BytePtr (aget str_ 0)) 0xff) (e NUL))
+        (if (== (.ub ^BytePtr (aget str_ 0)) (e NUL))
           retval
-          (let [^BytePtr text (if (and (or (BytePtr/eq ^BytePtr (aget str_ 0) strstart) (== (bit-and (.at ^BytePtr (aget str_ 0) 1) 0xff) (e NUL))) (== (bit-and (.get ^BytePtr (aget str_ 0)) 0xff) 32))
+          (let [^BytePtr text (if (and (or (BytePtr/eq ^BytePtr (aget str_ 0) strstart) (== (.ub ^BytePtr (aget str_ 0) 1) (e NUL))) (== (.ub ^BytePtr (aget str_ 0)) 32))
                                 (let [^BytePtr text (BytePtr/lit "<Space>")]
                                   (aset str_ 0 (.add ^BytePtr (aget str_ 0) 1))
                                   text)
@@ -72535,7 +72518,7 @@
                               (if local
                                 (msg-putchar ed 64)
                                 (msg-putchar ed 32))
-                              (if (== (bit-and (.get ^BytePtr (.m-str mp)) 0xff) (e NUL))
+                              (if (== (.ub ^BytePtr (.m-str mp)) (e NUL))
                                 (msg-puts-attr ed (BytePtr/lit "<Nop>") (long (aget (g ed highlight-attr) 0)))
                                 (msg-outtrans-special ed (.m-str mp) false 0))
                               (msg-clr-eos ed)
@@ -72548,7 +72531,7 @@
   (let [noremap (long noremap)
         mode (long mode)
         ^S_mapblock mp (new-S_mapblock)]
-    (when (== (bit-and (.get keys_) 0xff) (e Ctrl_C))
+    (when (== (.ub keys_) (e Ctrl_C))
       (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
         (.set-b-mapped-ctrl-c (g ed curbuf) (bit-or (.b-mapped-ctrl-c (g ed curbuf)) mode))
         (g! ed mapped-ctrl-c (bit-or (g ed mapped-ctrl-c) mode))))
@@ -72566,7 +72549,7 @@
         (do (aset ^objects (.-m-next mp) 0 (.get abbr-table))
             (.put abbr-table mp)
             mp)
-        (let [n (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128) (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff))]
+        (let [n (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (.ub ^BytePtr (.m-keys mp) 0) 128) (.ub ^BytePtr (.m-keys mp) 0))]
           (aset ^objects (.-m-next mp) 0 (.at map-table n))
           (.set map-table n mp)
           mp)))))
@@ -72665,7 +72648,7 @@
         foundlen 1]
     (when-not (zero? (g ed need-gather))
       (gather-termleader ed))
-    (if (or (== (bit-and (.get src) 0xff) (e NUL)) (nil? (vim-strchr ed (BytePtr. (g ed termleader) 0) (bit-and (.get src) 0xff))))
+    (if (or (== (.ub src) (e NUL)) (nil? (vim-strchr ed (BytePtr. (g ed termleader) 0) (.ub src))))
       (do (.set-r__ out__ -1)
           (.set-matchlen out__ matchlen)
           out__)
@@ -72679,17 +72662,17 @@
                   j__3 (if (> modslen 0)
                          (if (and (> len modslen) (== (long (musl-strncmp ed (.code ^S_termcode (.at (g ed termcodes) i)) src modslen)) 0))
                            (let [thislen 0
-                                 j__2 (if (== (bit-and (.at src modslen) 0xff) (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- slen 1))) 0xff))
+                                 j__2 (if (== (.ub src modslen) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- slen 1))))
                                         (let [thislen (i32 (+ modslen 1))]
                                           (aset tl__ 2 thislen)
                                           0)
-                                        (if (and (not (== (bit-and (.at src modslen) 0xff) 59)) (== modslen (i32 (- slen 3))))
+                                        (if (and (not (== (.ub src modslen) 59)) (== modslen (i32 (- slen 3))))
                                           1
-                                          (if (and (== (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) modslen) 0xff) 64) (or (not (== (bit-and (.at src modslen) 0xff) 49)) (not (== (bit-and (.at src (i32 (+ modslen 1))) 0xff) 59))))
+                                          (if (and (== (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) modslen) 64) (or (not (== (.ub src modslen) 49)) (not (== (.ub src (i32 (+ modslen 1))) 59))))
                                             1
                                             (let [j (i32 (- slen 2))
                                                   l__1 (loop [j j]
-                                                         (if (and (< j len) (or (musl-isdigit? ed (bit-and (.at src j) 0xff)) (== (bit-and (.at src j) 0xff) 45) (== (bit-and (.at src j) 0xff) 59)))
+                                                         (if (and (< j len) (or (musl-isdigit? ed (.ub src j)) (== (.ub src j) 45) (== (.ub src j) 59)))
                                                            (let [j (i32 (inc j))]
                                                              (recur j))
                                                            (do (aset tl__ 3 j)
@@ -72698,7 +72681,7 @@
                                                   j (i32 (inc j))]
                                               (if (< len j)
                                                 1
-                                                (if (== (bit-and (.at src (i32 (- j 1))) 0xff) (bit-and (.at ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- slen 1))) 0xff))
+                                                (if (== (.ub src (i32 (- j 1))) (.ub ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) (i32 (- slen 1))))
                                                   (let [thislen j]
                                                     (aset tl__ 2 thislen)
                                                     0)
@@ -72774,21 +72757,21 @@
             (ga-init2 ed ga 1 100)
             (if (ga-grow ed ga (i32 (+ (* (long (musl-strlen ed (aget src 0))) 6) 1)))
               (let [^BytePtr result (GA_BytePtr ga)
-                    dlen (if (and (not (zero? (bit-and flags (e REPTERM_FROM_PART)))) (== (bit-and (.at ^BytePtr (aget src 0) 0) 0xff) 35) (< (u32 (- (bit-and (.at ^BytePtr (aget src 0) 1) 0xff) 48)) 10))
+                    dlen (if (and (not (zero? (bit-and flags (e REPTERM_FROM_PART)))) (== (.ub ^BytePtr (aget src 0) 0) 35) (< (u32 (- (.ub ^BytePtr (aget src 0) 1) 48)) 10))
                            (let [t1 dlen
                                  dlen (inc dlen)
                                  _ (.set result t1 (unchecked-byte 128))
                                  t2 dlen
                                  dlen (inc dlen)
                                  _ (.set result t2 (unchecked-byte 107))
-                                 dlen (if (== (bit-and (.at ^BytePtr (aget src 0) 1) 0xff) 48)
+                                 dlen (if (== (.ub ^BytePtr (aget src 0) 1) 48)
                                         (let [t3 dlen
                                               dlen (inc dlen)]
                                           (.set result t3 (unchecked-byte 59))
                                           dlen)
                                         (let [t4 dlen
                                               dlen (inc dlen)]
-                                          (.set result t4 (unchecked-byte (bit-and (.at ^BytePtr (aget src 0) 1) 0xff)))
+                                          (.set result t4 (unchecked-byte (.ub ^BytePtr (aget src 0) 1)))
                                           dlen))]
                              (aset src 0 (.add ^BytePtr (aget src 0) 2))
                              dlen)
@@ -72799,7 +72782,7 @@
                 (.set-bufp out__ bufp)
                 out__)))
         1
-          (if (== (bit-and (.get ^BytePtr (aget src 0)) 0xff) (e NUL))
+          (if (== (.ub ^BytePtr (aget src 0)) (e NUL))
             (recur 6 from flags did-simplify i dlen do-backslash do-special do-key-code result len)
             (if (and do-special (or (not (zero? (bit-and flags (e REPTERM_DO_LT)))) (not (== (long (musl-strncmp ed (aget src 0) (BytePtr/lit "<lt>") 4)) 0))))
               (let [fsk-flags (bit-or (e FSK_KEYCODE) (if (zero? (bit-and flags (e REPTERM_NO_SIMPLIFY))) (e FSK_SIMPLIFY) 0) (if (zero? (bit-and flags (e REPTERM_FROM_PART))) 0 (e FSK_FROM_PART)))
@@ -72820,19 +72803,19 @@
                           _ (.set result t5 (unchecked-byte 128))
                           t6 dlen
                           dlen (inc dlen)
-                          _ (.set result t6 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0) 0xff)))
+                          _ (.set result t6 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff)))
                           t7 dlen
                           dlen (inc dlen)]
-                      (.set result t7 (unchecked-byte (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff)))
+                      (.set result t7 (unchecked-byte (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff)))
                       (aset src 0 (.add ^BytePtr (aget src 0) len))
                       (recur 1 from flags did-simplify i dlen do-backslash do-special do-key-code result len))
                     (recur 3 from flags did-simplify i dlen do-backslash do-special do-key-code result len))))
             (recur 3 from flags did-simplify i dlen do-backslash do-special do-key-code result len))
         3
-          (let [key_ (bit-and (.get ^BytePtr (aget src 0)) 0xff)]
+          (let [key_ (.ub ^BytePtr (aget src 0))]
             (if (or (== key_ (e Ctrl_V)) (and do-backslash (== key_ 92)))
               (do (aset src 0 (.add ^BytePtr (aget src 0) 1))
-                  (if (== (bit-and (.get ^BytePtr (aget src 0)) 0xff) (e NUL))
+                  (if (== (.ub ^BytePtr (aget src 0)) (e NUL))
                     (if (zero? (bit-and flags (e REPTERM_FROM_PART)))
                       (recur 6 from flags did-simplify i dlen do-backslash do-special do-key-code result len)
                       (let [t8 dlen
@@ -72846,7 +72829,7 @@
             (recur 5 from flags did-simplify i dlen do-backslash do-special do-key-code result len))
         5
           (if (> i 0)
-            (let [dlen (if (== (bit-and (.get ^BytePtr (aget src 0)) 0xff) 128)
+            (let [dlen (if (== (.ub ^BytePtr (aget src 0)) 128)
                          (let [t9 dlen
                                dlen (inc dlen)
                                _ (.set result t9 (unchecked-byte 128))
@@ -72859,7 +72842,7 @@
                            dlen)
                          (let [t12 dlen
                                dlen (inc dlen)]
-                           (.set result t12 (unchecked-byte (bit-and (.get ^BytePtr (aget src 0)) 0xff)))
+                           (.set result t12 (unchecked-byte (.ub ^BytePtr (aget src 0))))
                            dlen))]
               (aset src 0 (.add ^BytePtr (aget src 0) 1))
               (let [i (i32 (dec i))]
@@ -72885,10 +72868,10 @@
         ^BytePtr d p]
     (loop [^BytePtr s s
            ^BytePtr d d]
-      (if (== (bit-and (.get s) 0xff) (e NUL))
+      (if (== (.ub s) (e NUL))
         (do (.put d (unchecked-byte (e NUL)))
             (.sub d p))
-        (let [j__1 (if (and (== (bit-and (.at s 0) 0xff) 128) (== (bit-and (.at s 1) 0xff) (e KS_SPECIAL)) (== (bit-and (.at s 2) 0xff) 88))
+        (let [j__1 (if (and (== (.ub s 0) 128) (== (.ub s 1) (e KS_SPECIAL)) (== (.ub s 2) 88))
                      (let [^BytePtr t1 d
                            ^BytePtr d (.add d 1)
                            _ (.put t1 (unchecked-byte 128))
@@ -72896,7 +72879,7 @@
                        (aset to__ 0 s)
                        (aset to__ 1 d)
                        0)
-                     (if (and (or (== (bit-and (.at s 0) 0xff) 128) (== (bit-and (.at s 0) 0xff) (e CSI))) (== (bit-and (.at s 1) 0xff) (e KS_EXTRA)) (== (bit-and (.at s 2) 0xff) 81))
+                     (if (and (or (== (.ub s 0) 128) (== (.ub s 0) (e CSI))) (== (.ub s 1) (e KS_EXTRA)) (== (.ub s 2) 81))
                        (let [^BytePtr t2 d
                              ^BytePtr d (.add d 1)
                              _ (.put t2 (unchecked-byte (e CSI)))
@@ -72908,7 +72891,7 @@
                              ^BytePtr d (.add d 1)
                              ^BytePtr t4 s
                              ^BytePtr s (.add s 1)]
-                         (.put t3 (unchecked-byte (bit-and (.get t4) 0xff)))
+                         (.put t3 (unchecked-byte (.ub t4)))
                          (aset to__ 0 s)
                          (aset to__ 1 d)
                          0)))
@@ -73118,8 +73101,8 @@
                 unmap-lhs-only (boolean (aget fo__ 19))
                 noremap (aget fl__ 6)
                 ^BytePtr orig-rhs (aget fo__ 20)]
-            (if (and (not (zero? (bit-and (.get p) 0xff))) (or (== maptype (e MAPTYPE_UNMAP)) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9)))))
-              (let [^BytePtr p (if (and (or (== (bit-and (.at p 0) 0xff) (e Ctrl_V)) (and do-backslash (== (bit-and (.at p 0) 0xff) 92))) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
+            (if (and (not (zero? (.ub p))) (or (== maptype (e MAPTYPE_UNMAP)) (not (or (== (.ub p) 32) (== (.ub p) 9)))))
+              (let [^BytePtr p (if (and (or (== (.ub p 0) (e Ctrl_V)) (and do-backslash (== (.ub p 0) 92))) (not (== (.ub p 1) (e NUL))))
                                  ^BytePtr (.add p 1)
                                  p)
                     ^BytePtr p (.add p 1)]
@@ -73134,7 +73117,7 @@
                 (aset fl__ 5 retval)
                 (aset fo__ 20 orig-rhs)
                 (recur 2))
-              (let [^BytePtr p (if (== (bit-and (.get p) 0xff) (e NUL))
+              (let [^BytePtr p (if (== (.ub p) (e NUL))
                                  p
                                  (let [^BytePtr t1 p
                                        ^BytePtr p (.add p 1)]
@@ -73142,8 +73125,8 @@
                                    p))
                     ^BytePtr p (skipwhite ed p)
                     ^BytePtr rhs p
-                    hasarg (not (== (bit-and (.get rhs) 0xff) (e NUL)))
-                    haskey (not (== (bit-and (.get keys_) 0xff) (e NUL)))
+                    hasarg (not (== (.ub rhs) (e NUL)))
+                    haskey (not (== (.ub keys_) (e NUL)))
                     do-print (or (not haskey) (and (not (== maptype (e MAPTYPE_UNMAP))) (not hasarg)))]
                 (if (and (== maptype (e MAPTYPE_UNMAP)) (not haskey))
                   (let [retval 1]
@@ -73409,7 +73392,7 @@
                 did-local (aget fl__ 7)
                 keyround1-simplified (boolean (aget fo__ 22))]
             (if (< n len)
-              (if (or (== (bit-and (.at keys_ n) 0xff) 32) (== (bit-and (.at keys_ n) 0xff) 9))
+              (if (or (== (.ub keys_ n) 32) (== (.ub keys_ n) 9))
                 (let [retval 1]
                   (aset fo__ 0 (Long/valueOf retval))
                   -1)
@@ -73648,7 +73631,7 @@
                 (recur 14))
               (if (== maptype (e MAPTYPE_UNMAP))
                 (if did-it
-                  (if (== (bit-and (.get keys_) 0xff) (e Ctrl_C))
+                  (if (== (.ub keys_) (e Ctrl_C))
                     (if (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0))
                       (do (.set-b-mapped-ctrl-c (g ed curbuf) (bit-and (.b-mapped-ctrl-c (g ed curbuf)) (bit-not mode)))
                           (aset fl__ 5 retval)
@@ -73856,7 +73839,7 @@
                         n (aget tl__ 0)]
                     (if (== (long (musl-strncmp ed p keys_ (if (< n len) n len))) 0)
                       (if (== maptype (e MAPTYPE_UNMAP))
-                        (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (bit-and (.get ^BytePtr (skipwhite ed (.add keys_ n))) 0xff) (e NUL)))))
+                        (if (and (not (== n len)) (or (not abbrev) (not (zero? round)) (> n len) (not (== (.ub ^BytePtr (skipwhite ed (.add keys_ n))) (e NUL)))))
                           (let [^Ptr mpp (Ptr. ^objects (.-m-next mp) 0)]
                             (aset fo__ 5 mpp)
                             (aset fo__ 7 p)
@@ -74001,7 +73984,7 @@
             (if (== (.m-mode mp) 0)
               (do (map-free ed mpp)
                   (recur 20))
-              (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff) 128) (bit-and (.at ^BytePtr (.m-keys mp) 0) 0xff))]
+              (let [new-hash (if (zero? (bit-and (.m-mode mp) 199)) (bit-xor (.ub ^BytePtr (.m-keys mp) 0) 128) (.ub ^BytePtr (.m-keys mp) 0))]
                 (if (and (not abbrev) (not (== new-hash hash__2)))
                   (do (.put mpp (aget ^objects (.-m-next mp) 0))
                       (aset ^objects (.-m-next mp) 0 (.at map-table new-hash))
@@ -74216,7 +74199,7 @@
         ^BytePtr p cmdp
         ^BytePtr t1 p
         ^BytePtr p (.add p 1)
-        modec (bit-and (.get t1) 0xff)
+        modec (.ub t1)
         j__1 (if (== modec 105)
                (let [mode (e MODE_INSERT)]
                  (aset to__ 0 p)
@@ -74227,7 +74210,7 @@
                    (aset to__ 0 p)
                    (aset tl__ 0 mode)
                    0)
-                 (if (and (== modec 110) (not (== (bit-and (.get p) 0xff) 111)))
+                 (if (and (== modec 110) (not (== (.ub p) 111)))
                    (let [mode (e MODE_NORMAL)]
                      (aset to__ 0 p)
                      (aset tl__ 0 mode)
@@ -74273,7 +74256,7 @@
 (defn map-clear [^Editor ed ^BytePtr cmdp ^BytePtr arg forceit abbr]
   (let [^T_get_map_mode__out_T get-map-mode__o (new-T_get_map_mode__out_T)
         local (== (long (musl-strcmp ed arg (BytePtr/lit "<buffer>"))) 0)]
-    (if (and (not local) (not (== (bit-and (.get arg) 0xff) (e NUL))))
+    (if (and (not local) (not (== (.ub arg) (e NUL))))
       (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
           nil)
       (do (.set get-map-mode__o (get-map-mode ed cmdp forceit))
@@ -74340,12 +74323,12 @@
                                                          ^BytePtr (.m-keys mp)
                                                          ^BytePtr (.m-str mp))]
                                         (loop [^BytePtr p p]
-                                          (when-not (zero? (bit-and (.get p) 0xff))
-                                            (let [^BytePtr p (if (== (bit-and (.get p) 0xff) 128)
+                                          (when-not (zero? (.ub p))
+                                            (let [^BytePtr p (if (== (.ub p) 128)
                                                                (let [^BytePtr p (.add p 1)]
-                                                                 (when (< (bit-and (.get p) 0xff) 128)
-                                                                   (aset buf 0 (unchecked-byte (bit-and (.at p 0) 0xff)))
-                                                                   (aset buf 1 (unchecked-byte (bit-and (.at p 1) 0xff)))
+                                                                 (when (< (.ub p) 128)
+                                                                   (aset buf 0 (unchecked-byte (.ub p 0)))
+                                                                   (aset buf 1 (unchecked-byte (.ub p 1)))
                                                                    (aset buf 2 (unchecked-byte (e NUL)))
                                                                    (add-termcap-entry ed (BytePtr. buf 0) false))
                                                                  ^BytePtr (.add p 1))
@@ -74393,7 +74376,7 @@
         _ (.set get-map-mode__o (get-map-mode ed cmdp (or (.forceit eap) isabbrev)))
         ^BytePtr cmdp (.cmdp get-map-mode__o)
         mode (.r__ get-map-mode__o)]
-    (case (long (do-map ed (if (== (bit-and (.get cmdp) 0xff) 110) (e MAPTYPE_NOREMAP) (if (== (bit-and (.get cmdp) 0xff) 117) (e MAPTYPE_UNMAP) (e MAPTYPE_MAP))) (aget ^objects (.-arg eap) 0) mode isabbrev))
+    (case (long (do-map ed (if (== (.ub cmdp) 110) (e MAPTYPE_NOREMAP) (if (== (.ub cmdp) 117) (e MAPTYPE_UNMAP) (e MAPTYPE_MAP))) (aget ^objects (.-arg eap) 0) mode isabbrev))
       1
         (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
             nil)
@@ -74476,7 +74459,7 @@
           ^BytePtr p s]
       (loop [^BytePtr p p
              len len]
-        (if (== (bit-and (.get p) 0xff) (e NUL))
+        (if (== (.ub p) (e NUL))
           (do (.put p (unchecked-byte (e NUL)))
               s)
           (let [t1 (long (ptr2cells ed p))
@@ -74522,7 +74505,7 @@
 ;; C: ex_marks
 (defn ex-marks [^Editor ed ^S_exarg eap]
   (let [^BytePtr arg (aget ^objects (.-arg eap) 0)
-        ^BytePtr arg (when-not (and (some? arg) (== (bit-and (.get arg) 0xff) (e NUL)))
+        ^BytePtr arg (when-not (and (some? arg) (== (.ub arg) (e NUL)))
                        arg)]
     (show-one-mark ed 39 arg (.-w-pcmark (g ed curwin)) nil true)
     (let [i 0]
@@ -74550,23 +74533,23 @@
 (defn ex-delmarks [^Editor ed ^S_exarg eap]
   (let [^longs tl__ (long-array 2)
         ^objects to__ (object-array 1)]
-    (if (and (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) (e NUL)) (.forceit eap))
+    (if (and (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL)) (.forceit eap))
       (do (clrallmarks ed (g ed curbuf))
           nil)
       (if (.forceit eap)
         (do (emsg ed (gettext_ ed (BytePtr. (g ed e-invalid-argument) 0)))
             nil)
-        (if (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) (e NUL))
+        (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL))
           (do (emsg ed (gettext_ ed (BytePtr. (g ed e-argument-required) 0)))
               nil)
           (let [^BytePtr p (aget ^objects (.-arg eap) 0)]
             (loop [^BytePtr p p]
-              (when-not (== (bit-and (.get p) 0xff) (e NUL))
-                (let [j__2 (if (< (u32 (- (bit-and (.get p) 0xff) 97)) 26)
-                             (let [j__1 (if (== (bit-and (.at p 1) 0xff) 45)
-                                          (let [from (bit-and (.get p) 0xff)
-                                                to (bit-and (.at p 2) 0xff)]
-                                            (if (or (not (< (u32 (- (bit-and (.at p 2) 0xff) 97)) 26)) (< to from))
+              (when-not (== (.ub p) (e NUL))
+                (let [j__2 (if (< (u32 (- (.ub p) 97)) 26)
+                             (let [j__1 (if (== (.ub p 1) 45)
+                                          (let [from (.ub p)
+                                                to (.ub p 2)]
+                                            (if (or (not (< (u32 (- (.ub p 2) 97)) 26)) (< to from))
                                               (do (aset to__ 0 p)
                                                   1)
                                               (let [^BytePtr p (.add p 2)]
@@ -74574,7 +74557,7 @@
                                                 (aset tl__ 0 from)
                                                 (aset tl__ 1 to)
                                                 0)))
-                                          (let [to (bit-and (.get p) 0xff)
+                                          (let [to (.ub p)
                                                 from to]
                                             (aset to__ 0 p)
                                             (aset tl__ 0 from)
@@ -74597,7 +74580,7 @@
                                    (let [^BytePtr p (aget to__ 0)]
                                      (aset to__ 0 p)
                                      2)))
-                             (case (bit-and (.get p) 0xff)
+                             (case (.ub p)
                                34
                                  (do (.set-lnum ^T_pos_T (.-b-last-cursor (g ed curbuf)) 0)
                                      (aset to__ 0 p)
@@ -74684,7 +74667,7 @@
         ^S_matchitem m nil
         ^S_regprog regprog nil
         rtype (e UPD_SOME_VALID)]
-    (if (or (== (bit-and (.get grp) 0xff) (e NUL)) (and (some? pat) (== (bit-and (.get pat) 0xff) (e NUL))))
+    (if (or (== (.ub grp) (e NUL)) (and (some? pat) (== (.ub pat) (e NUL))))
       -1
       (if (or (< id -1) (== id 0))
         (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-id-nr-must-be-greater-than-or-equal-to-one-1) 0)) (object-array [(Integer/valueOf (unchecked-int id))]))
@@ -74812,23 +74795,23 @@
           (let [^BytePtr end (aget ^objects (.-arg eap) 0)]
             (.set-nextcmd eap (find-nextcmd ed end))
             nil)
-          (if (and (== (long (musl-strncasecmp ed (aget ^objects (.-arg eap) 0) (BytePtr/lit "none") 4)) 0) (or (== (bit-and (.at ^BytePtr (aget ^objects (.-arg eap) 0) 4) 0xff) 32) (== (bit-and (.at ^BytePtr (aget ^objects (.-arg eap) 0) 4) 0xff) 9) (ends-excmd2? ed (aget ^objects (.-arg eap) 0) (.add ^BytePtr (aget ^objects (.-arg eap) 0) 4))))
+          (if (and (== (long (musl-strncasecmp ed (aget ^objects (.-arg eap) 0) (BytePtr/lit "none") 4)) 0) (or (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 4) 32) (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0) 4) 9) (ends-excmd2? ed (aget ^objects (.-arg eap) 0) (.add ^BytePtr (aget ^objects (.-arg eap) 0) 4))))
             (let [^BytePtr end (.add ^BytePtr (aget ^objects (.-arg eap) 0) 4)]
               (.set-nextcmd eap (find-nextcmd ed end))
               nil)
             (let [^BytePtr p (skiptowhite ed (aget ^objects (.-arg eap) 0))
                   ^BytePtr g_ (vim-strnsave ed (aget ^objects (.-arg eap) 0) (.sub p ^BytePtr (aget ^objects (.-arg eap) 0)))
                   ^BytePtr p (skipwhite ed p)]
-              (if (== (bit-and (.get p) 0xff) (e NUL))
+              (if (== (.ub p) (e NUL))
                 (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0)) (object-array [(aget ^objects (.-arg eap) 0)]))
                     (emsg ed (iobuff-or ed (gettext_ ed (BytePtr. (g ed e-invalid-argument-str) 0))))
                     nil)
-                (let [^BytePtr end (skip-regexp ed (.add p 1) (bit-and (.get p) 0xff) (e TRUE))]
-                  (if (and (not (== (bit-and (.get end) 0xff) (e NUL))) (not (ends-excmd2? ed end (skipwhite ed (.add end 1)))))
+                (let [^BytePtr end (skip-regexp ed (.add p 1) (.ub p) (e TRUE))]
+                  (if (and (not (== (.ub end) (e NUL))) (not (ends-excmd2? ed end (skipwhite ed (.add end 1)))))
                     (do (.set-errmsg eap (ex-errmsg ed (BytePtr. (g ed e-trailing-characters-str) 0) end))
                         nil)
-                    (if (== (bit-and (.get end) 0xff) (bit-and (.get p) 0xff))
-                      (let [c (bit-and (.get end) 0xff)]
+                    (if (== (.ub end) (.ub p))
+                      (let [c (.ub end)]
                         (.put end (unchecked-byte (e NUL)))
                         (match-add ed (g ed curwin) g_ (.add p 1) 10 id nil)
                         (.put end (unchecked-byte c))
@@ -74882,7 +74865,7 @@
                              0))
                   rlen (aget tl__ 0)
                   clen (aget tl__ 1)]
-              (whim.cljhost/vim-snprintf ed (.add (g ed IObuff) rlen) (i32 (- 1025 rlen)) (BytePtr/lit "%02x ") (object-array [(Integer/valueOf (unchecked-int (if (== (bit-and (.at line i) 0xff) (e NL)) (e NUL) (bit-and (.at line i) 0xff))))]))
+              (whim.cljhost/vim-snprintf ed (.add (g ed IObuff) rlen) (i32 (- 1025 rlen)) (BytePtr/lit "%02x ") (object-array [(Integer/valueOf (unchecked-int (if (== (.ub line i) (e NL)) (e NUL) (.ub line i))))]))
               (let [clen (i32 (dec clen))
                     t1 (i32 (long (musl-strlen ed (.add (g ed IObuff) rlen))))
                     rlen (i32 (+ rlen t1))]
@@ -74904,10 +74887,10 @@
     (loop []
       (let [^BytePtr p (ml-get-cursor ed)
             l__1 (loop [^BytePtr p p]
-                   (if (== (bit-and (.get p) 0xff) (e NUL))
+                   (if (== (.ub p) (e NUL))
                      0
                      (let [len (long (utf-ptr2len ed p))]
-                       (if (and (>= (bit-and (.get p) 0xff) 128) (or (== len 1) (not (== (long (utf-char2len ed (long (utf-ptr2char ed p)))) len))))
+                       (if (and (>= (.ub p) 128) (or (== len 1) (not (== (long (utf-char2len ed (long (utf-ptr2char ed p)))) len))))
                          (do (aset to__ 0 p)
                              1)
                          (let [^BytePtr p (.add p len)]
@@ -74942,7 +74925,7 @@
     (loop [messages-flags-new messages-flags-new
            messages-wait-new messages-wait-new
            messages-history-new messages-history-new]
-      (if (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))
+      (if (== (.ub ^BytePtr (aget p 0)) (e NUL))
         (if (zero? (bit-and messages-flags-new 3))
           false
           (if (zero? (bit-and messages-flags-new (e MESSAGES_HISTORY)))
@@ -74963,7 +74946,7 @@
                            (aset tl__ 1 messages-wait-new)
                            (aset tl__ 2 messages-history-new)
                            0))
-                     (if (and (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "wait:") 5)) 0) (< (u32 (- (bit-and (.at ^BytePtr (aget p 0) 5) 0xff) 48)) 10))
+                     (if (and (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "wait:") 5)) 0) (< (u32 (- (.ub ^BytePtr (aget p 0) 5) 48)) 10))
                        (do (aset p 0 (.add ^BytePtr (aget p 0) 5))
                            (let [messages-wait-new (i32 (long (getdigits ed (Ptr. p 0))))
                                  messages-flags-new (bit-or messages-flags-new (e MESSAGES_WAIT))]
@@ -74971,7 +74954,7 @@
                              (aset tl__ 1 messages-wait-new)
                              (aset tl__ 2 messages-history-new)
                              0))
-                       (if (and (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "history:") 8)) 0) (< (u32 (- (bit-and (.at ^BytePtr (aget p 0) 8) 0xff) 48)) 10))
+                       (if (and (== (long (musl-strncmp ed (aget p 0) (BytePtr/lit "history:") 8)) 0) (< (u32 (- (.ub ^BytePtr (aget p 0) 8) 48)) 10))
                          (do (aset p 0 (.add ^BytePtr (aget p 0) 8))
                              (let [messages-history-new (i32 (long (getdigits ed (Ptr. p 0))))
                                    messages-flags-new (bit-or messages-flags-new (e MESSAGES_HISTORY))]
@@ -74986,9 +74969,9 @@
               messages-flags-new (aget tl__ 0)
               messages-wait-new (aget tl__ 1)
               messages-history-new (aget tl__ 2)]
-          (if (and (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 44)) (not (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) (e NUL))))
+          (if (and (not (== (.ub ^BytePtr (aget p 0)) 44)) (not (== (.ub ^BytePtr (aget p 0)) (e NUL))))
             false
-            (do (when (== (bit-and (.get ^BytePtr (aget p 0)) 0xff) 44)
+            (do (when (== (.ub ^BytePtr (aget p 0)) 44)
                   (aset p 0 (.add ^BytePtr (aget p 0) 1)))
                 (recur messages-flags-new messages-wait-new messages-history-new))))))))
 
@@ -75002,7 +74985,7 @@
           (when (> (g ed msg-hist-len) keep_)
             (delete-first-msg ed)
             (recur))))
-      (if (== (bit-and (.get ^BytePtr (aget ^objects (.-arg eap) 0)) 0xff) (e NUL))
+      (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL))
         (do (g! ed msg-hist-off (e TRUE))
             (let [^S_msg_hist p (g ed first-msg-hist)
                   ^S_msg_hist p (if (== (.addr-count eap) 0)
@@ -75041,7 +75024,7 @@
         buf-len 0]
     (.put buf (unchecked-byte (e NUL)))
     (loop [buf-len buf-len]
-      (when-not (zero? (bit-and (.get ^BytePtr (aget sp 0)) 0xff))
+      (when-not (zero? (.ub ^BytePtr (aget sp 0)))
         (let [^BytePtr s (str2special ed (Ptr. sp 0) false false)
               s-len (long (musl-strlen ed s))]
           (when (< (Long/compareUnsigned (+ buf-len s-len) len) 0)
@@ -75075,13 +75058,13 @@
     (loop [^BytePtr dst dst
            dstlen dstlen
            ^BytePtr src src]
-      (if (and (not (zero? (bit-and (.get src) 0xff))) (> dstlen 0))
-        (let [j__1 (if (and (== (bit-and (.at src 0) 0xff) 92) (not (== (bit-and (.at src 1) 0xff) (e NUL))))
+      (if (and (not (zero? (.ub src))) (> dstlen 0))
+        (let [j__1 (if (and (== (.ub src 0) 92) (not (== (.ub src 1) (e NUL))))
                      (let [^BytePtr t1 dst
                            ^BytePtr dst (.add dst 1)
                            ^BytePtr t2 src
                            ^BytePtr src (.add src 1)
-                           _ (.put t1 (unchecked-byte (bit-and (.get t2) 0xff)))
+                           _ (.put t1 (unchecked-byte (.ub t2)))
                            dstlen (i32 (dec dstlen))]
                        (aset to__ 0 dst)
                        (aset tl__ 0 dstlen)
@@ -75099,7 +75082,7 @@
                            ^BytePtr dst (.add dst 1)
                            ^BytePtr t4 src
                            ^BytePtr src (.add src 1)
-                           _ (.put t3 (unchecked-byte (bit-and (.get t4) 0xff)))
+                           _ (.put t3 (unchecked-byte (.ub t4)))
                            dstlen (i32 (dec dstlen))]
                        (aset to__ 0 dst)
                        (aset tl__ 0 dstlen)
@@ -75131,7 +75114,7 @@
 
 ;; C: adjust_cursor_col
 (defn adjust-cursor-col [^Editor ed]
-  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (zero? (g ed VIsual-active)) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111)) (== (long (gchar-cursor ed)) (e NUL)))
+  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (zero? (g ed VIsual-active)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (== (long (gchar-cursor ed)) (e NUL)))
     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
     nil))
 
@@ -75184,12 +75167,12 @@
         ^objects to__ (object-array 2)
         len 0
         ^BytePtr p option
-        j__1 (if (== (bit-and (.get p) 0xff) 46)
+        j__1 (if (== (.ub p) 46)
                (let [t1 len
                      len (i32 (inc len))
                      ^BytePtr t2 p
                      ^BytePtr p (.add p 1)]
-                 (.set buf t1 (unchecked-byte (bit-and (.get t2) 0xff)))
+                 (.set buf t1 (unchecked-byte (.ub t2)))
                  (aset tl__ 0 len)
                  (aset to__ 0 p)
                  0)
@@ -75200,20 +75183,20 @@
         ^BytePtr p (aget to__ 0)]
     (loop [len len
            ^BytePtr p p]
-      (if (and (not (== (bit-and (.get p) 0xff) (e NUL))) (nil? (vim-strchr ed sep-chars (bit-and (.get p) 0xff))))
-        (let [^BytePtr p (if (and (== (bit-and (.at p 0) 0xff) 92) (some? (vim-strchr ed sep-chars (bit-and (.at p 1) 0xff))))
+      (if (and (not (== (.ub p) (e NUL))) (nil? (vim-strchr ed sep-chars (.ub p))))
+        (let [^BytePtr p (if (and (== (.ub p 0) 92) (some? (vim-strchr ed sep-chars (.ub p 1))))
                            ^BytePtr (.add p 1)
                            p)
               len (if (< len (i32 (- maxlen 1)))
                     (let [t3 len
                           len (i32 (inc len))]
-                      (.set buf t3 (unchecked-byte (bit-and (.get p) 0xff)))
+                      (.set buf t3 (unchecked-byte (.ub p)))
                       len)
                     len)
               ^BytePtr p (.add p 1)]
           (recur len p))
         (do (.set buf len (unchecked-byte (e NUL)))
-            (let [^BytePtr p (if (and (not (== (bit-and (.get p) 0xff) (e NUL))) (not (== (bit-and (.get p) 0xff) 44)))
+            (let [^BytePtr p (if (and (not (== (.ub p) (e NUL))) (not (== (.ub p) 44)))
                                ^BytePtr (.add p 1)
                                p)
                   ^BytePtr p (skip-to-option-part ed p)
@@ -75476,9 +75459,9 @@
           (when was-visual
             (.set ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))) (.-b-op-start (g ed curbuf)))
             (.set ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))) (.-b-op-end (g ed curbuf)))
-            (when (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+            (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
               (inc_ ed (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))))
-          (when (and (not (zero? empty_)) (== (bit-and (.get ^BytePtr (ml-get ed (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))) 0xff) (e NUL)))
+          (when (and (not (zero? empty_)) (== (.ub ^BytePtr (ml-get ed (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))) (e NUL)))
             (ml-delete-flags ed (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) (e ML_DEL_MESSAGE))
             (deleted-lines ed (+ (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1) 1)
             (when (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
@@ -75663,18 +75646,18 @@
     (if (== (g ed VIsual-mode) (e Ctrl_V))
       (if (or (== (.cmdchar cap) 67) (== (.cmdchar cap) 68))
         (do (.set-w-curswant (g ed curwin) (e MAXCOL))
-            (.set-cmdchar cap (bit-and (.get (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)) 0xff))
+            (.set-cmdchar cap (.ub (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)))
             (nv-operator ed cap)
             nil)
-        (do (.set-cmdchar cap (bit-and (.get (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)) 0xff))
+        (do (.set-cmdchar cap (.ub (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)))
             (nv-operator ed cap)
             nil))
       (do (g! ed VIsual-mode-orig (g ed VIsual-mode))
           (g! ed VIsual-mode 86)
-          (.set-cmdchar cap (bit-and (.get (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)) 0xff))
+          (.set-cmdchar cap (.ub (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)))
           (nv-operator ed cap)
           nil))
-    (do (.set-cmdchar cap (bit-and (.get (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)) 0xff))
+    (do (.set-cmdchar cap (.ub (.add ^BytePtr (vim-strchr ed (BytePtr. (g ed v-visop-trans) 0) (.cmdchar cap)) 1)))
         (nv-operator ed cap)
         nil)))
 
@@ -75701,9 +75684,9 @@
                              (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (dec (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                                  (coladvance ed 2147483647)
                                  (.set-w-set-curswant (g ed curwin) (boolean true))
-                                 (if (and (or (== (.op-type ^S_oparg_S (.oap cap)) (e OP_DELETE)) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_CHANGE))) (not (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL))))
+                                 (if (and (or (== (.op-type ^S_oparg_S (.oap cap)) (e OP_DELETE)) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_CHANGE))) (not (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL))))
                                    (let [^BytePtr cp (ml-get-cursor ed)]
-                                     (when-not (== (bit-and (.get cp) 0xff) (e NUL))
+                                     (when-not (== (.ub cp) (e NUL))
                                        (let [t1 (long (utfc-ptr2len ed cp))]
                                          (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) t1)))))
                                      (.set-retval cap (bit-or (.retval cap) (e CA_NO_ADJ_OP_END)))
@@ -75852,7 +75835,7 @@
               (let [t2 n
                     n (i32 (dec n))]
                 (if (> t2 0)
-                  (let [^BytePtr p (if (some? (vim-strchr ed aux-ptr (bit-and (.get ^BytePtr (aget ptr 0)) 0xff)))
+                  (let [^BytePtr p (if (some? (vim-strchr ed aux-ptr (.ub ^BytePtr (aget ptr 0))))
                                      (let [^BytePtr t3 p
                                            ^BytePtr p (.add p 1)]
                                        (.put t3 (unchecked-byte 92))
@@ -75868,7 +75851,7 @@
                                        ^BytePtr p (.add p 1)
                                        ^BytePtr t5 (aget ptr 0)
                                        _ (aset ptr 0 (.add ^BytePtr (aget ptr 0) 1))
-                                       _ (.put t4 (unchecked-byte (bit-and (.get t5) 0xff)))
+                                       _ (.put t4 (unchecked-byte (.ub t5)))
                                        i (i32 (inc i))
                                        n (i32 (dec n))]
                                    (recur p n i))
@@ -75881,7 +75864,7 @@
                         ^BytePtr p (.add p 1)
                         ^BytePtr t7 (aget ptr 0)]
                     (aset ptr 0 (.add ^BytePtr (aget ptr 0) 1))
-                    (.put t6 (unchecked-byte (bit-and (.get t7) 0xff)))
+                    (.put t6 (unchecked-byte (.ub t7)))
                     (recur p n))
                   (do (.put p (unchecked-byte (e NUL)))
                       (let [buflen (.sub p buf)
@@ -75964,7 +75947,7 @@
         0
           (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
               (g! ed cls-bigword bigword)
-              (when (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) 118) (not (zero? (g ed VIsual-select-exclu-adj))))
+              (when (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) 118) (not (zero? (g ed VIsual-select-exclu-adj))))
                 (unadjust-for-sel ed))
               (recur 1 count_ bigword stop empty_))
         1
@@ -75983,7 +75966,7 @@
               true))
         2
           (if (== (long (cls ed)) 0)
-            (if (and empty_ (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL)))
+            (if (and empty_ (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL)))
               (recur 4 count_ bigword stop empty_)
               (if (== (long (inc-cursor ed)) -1)
                 false
@@ -76000,7 +75983,7 @@
 
 ;; C: adjust_cursor
 (defn adjust-cursor [^Editor ed ^S_oparg_S oap]
-  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (gchar-cursor ed)) (e NUL)) (or (zero? (g ed VIsual-active)) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111)) (zero? (long (virtual-active ed))) (== (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)) 0))
+  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (gchar-cursor ed)) (e NUL)) (or (zero? (g ed VIsual-active)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (zero? (long (virtual-active ed))) (== (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)) 0))
     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
     (mb-adjust-cursor ed)
     (.set-inclusive oap (e TRUE))
@@ -76008,7 +75991,7 @@
 
 ;; C: adjust_for_sel
 (defn adjust-for-sel [^Editor ed ^S_cmdarg_S cap]
-  (when (and (not (zero? (g ed VIsual-active))) (not (zero? (.inclusive ^S_oparg_S (.oap cap)))) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (not (== (long (gchar-cursor ed)) (e NUL))) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+  (when (and (not (zero? (g ed VIsual-active))) (not (zero? (.inclusive ^S_oparg_S (.oap cap)))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (== (long (gchar-cursor ed)) (e NUL))) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
     (inc-cursor ed)
     (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))
     (g! ed VIsual-select-exclu-adj (e TRUE))
@@ -76071,16 +76054,16 @@
   (if (zero? (bit-and (long (aget (g ed mod-mask) 0)) 6))
     (do (.set-motion-type ^S_oparg_S (.oap cap) (e MCHAR))
         (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))
-        (let [past-line (if (and (not (zero? (g ed VIsual-active))) (not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 111))) 1 0)
+        (let [past-line (if (and (not (zero? (g ed VIsual-active))) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111))) 1 0)
               past-line (if (zero? (long (virtual-active ed)))
                           past-line
                           0)
               n (.count1 cap)]
           (loop [n n]
             (when (> n 0)
-              (let [j__1 (if (or (and (zero? past-line) (not (oneright ed))) (and (not (zero? past-line)) (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL))))
+              (let [j__1 (if (or (and (zero? past-line) (not (oneright ed))) (and (not (zero? past-line)) (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL))))
                            (if (and (or (and (== (.cmdchar cap) 32) (some? (vim-strchr ed (aget (g ed p-ww) 0) 115))) (and (== (.cmdchar cap) 108) (some? (vim-strchr ed (aget (g ed p-ww) 0) 108))) (and (== (.cmdchar cap) (e K_RIGHT)) (some? (vim-strchr ed (aget (g ed p-ww) 0) 62)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
-                             (if (and (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (zero? (.inclusive ^S_oparg_S (.oap cap))) (not (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL))))
+                             (if (and (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (zero? (.inclusive ^S_oparg_S (.oap cap))) (not (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL))))
                                (do (.set-inclusive ^S_oparg_S (.oap cap) (e TRUE))
                                    0)
                                (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
@@ -76108,7 +76091,7 @@
                       (when (== n (.count1 cap))
                         (beep-flush ed)
                         nil)
-                      (when-not (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL))
+                      (when-not (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL))
                         (.set-inclusive ^S_oparg_S (.oap cap) (e TRUE))
                         nil))))))))
     (if (zero? (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_CTRL)))
@@ -76238,14 +76221,14 @@
         count_ (.count1 cap)
         stop true
         j__1 (if (== c (e NUL))
-               (if (and (== (bit-and (aget (g ed lastc) 0) 0xff) (e NUL)) (<= (g ed lastc-bytelen) 1))
+               (if (and (== (bit-and (long (aget (g ed lastc) 0)) 0xff) (e NUL)) (<= (g ed lastc-bytelen) 1))
                  (do (aset to__ 1 (Boolean/valueOf (boolean false)))
                      -1)
                  (let [dir (if (zero? dir)
                              (g ed lastcdir)
                              (i32 (- (g ed lastcdir))))
                        t-cmd (g ed last-t-cmd)
-                       c (bit-and (aget (g ed lastc) 0) 0xff)]
+                       c (bit-and (long (aget (g ed lastc) 0)) 0xff)]
                    (if (and (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_SCOLON))) (== count_ 1) (not (zero? t-cmd)))
                      (let [stop false]
                        (aset tl__ 0 t-cmd)
@@ -76338,7 +76321,7 @@
                                  0
                                    (let [col (aget tl__ 3)
                                          j__4 (if (<= (g ed lastc-bytelen) 1)
-                                                (if (and (== (bit-and (.at p col) 0xff) c) stop)
+                                                (if (and (== (.ub p col) c) stop)
                                                   1
                                                   0)
                                                 (if (and (== (long (musl-strncmp ed (.add p col) (BytePtr. (g ed lastc-bytes) 0) (g ed lastc-bytelen))) 0) stop)
@@ -76371,7 +76354,7 @@
   (let [^ints scol (int-array 1)
         ^ints ecol (int-array 1)
         cursor-dec false
-        cursor-dec (if (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) 118) (not (zero? (g ed VIsual-select-exclu-adj))))
+        cursor-dec (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) 118) (not (zero? (g ed VIsual-select-exclu-adj))))
                      (do (unadjust-for-sel ed)
                          true)
                      cursor-dec)
@@ -76667,12 +76650,12 @@
           (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
           (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.lnum old-cursor))
           (.set-w-curswant (g ed curwin) (long (aget right 0)))
-          (when (and (>= (.lnum old-cursor) (.lnum (g ed VIsual))) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101))
+          (when (and (>= (.lnum old-cursor) (.lnum (g ed VIsual))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
             (.set-w-curswant (g ed curwin) (i32 (inc (.w-curswant (g ed curwin))))))
           (coladvance ed (.w-curswant (g ed curwin)))
           (when (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col old-cursor)) (or (zero? (long (virtual-active ed))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd old-cursor))))
             (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.lnum (g ed VIsual)))
-            (when (and (<= (.lnum old-cursor) (.lnum (g ed VIsual))) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101))
+            (when (and (<= (.lnum old-cursor) (.lnum (g ed VIsual))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
               (aset right 0 (unchecked-int (inc (long (aget right 0))))))
             (coladvance ed (long (aget right 0)))
             (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
@@ -76731,7 +76714,7 @@
   (let [^longs tl__ (long-array 1)
         did-change 0]
     (when-not (checkclearopq ed (.oap cap))
-      (if (and (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL)) (nil? (vim-strchr ed (aget (g ed p-ww) 0) 126)))
+      (if (and (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL)) (nil? (vim-strchr ed (aget (g ed p-ww) 0) 126)))
         (do (clearopbeep ed (.oap cap))
             nil)
         (do (prep-redo-cmd ed cap)
@@ -76887,7 +76870,7 @@
                       (if (<= (g ed resel-VIsual-line-count) 1)
                         (do (update-curswant-force ed)
                             (.set-w-curswant (g ed curwin) (i32 (+ (.w-curswant (g ed curwin)) (* (g ed resel-VIsual-vcol) (.count0 cap)))))
-                            (when-not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+                            (when-not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                               (.set-w-curswant (g ed curwin) (i32 (dec (.w-curswant (g ed curwin)))))))
                         (.set-w-curswant (g ed curwin) (g ed resel-VIsual-vcol)))
                       (coladvance ed (.w-curswant (g ed curwin))))
@@ -76904,7 +76887,7 @@
                           (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) tmp-cursor-lnum)
                           (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) tmp-cursor-col)
                           (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) tmp-cursor-coladd)
-                          (when (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+                          (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                             (.set-w-curswant (g ed curwin) (i32 (inc (.w-curswant (g ed curwin))))))
                           (coladvance ed (.w-curswant (g ed curwin))))
                         (.set-w-set-curswant (g ed curwin) (boolean true))))
@@ -76913,7 +76896,7 @@
                 (do (when (zero? (.arg cap))
                       (may-start-select ed 99))
                     (n-start-visual-mode ed (.cmdchar cap))
-                    (if (and (not (== (g ed VIsual-mode) 86)) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101))
+                    (if (and (not (== (g ed VIsual-mode) 86)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
                       (.set-count1 cap (inc (.count1 cap)))
                       (g! ed VIsual-select-exclu-adj (e FALSE)))
                     (let [t1 (> (.count0 cap) 0)
@@ -77010,10 +76993,10 @@
   (.set-w-curswant (g ed curwin) (e MAXCOL))
   (if (cursor-down ed (- (.count1 cap) 1) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)))
     (let [^BytePtr ptr (ml-get-curline ed)]
-      (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.at ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))) 0xff) (e NUL)))
+      (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (e NUL)))
         (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin)))))))
       (loop []
-        (if (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (== (bit-and (.at ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))) 0xff) 32) (== (bit-and (.at ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))) 0xff) 9)))
+        (if (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (== (.ub ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))) 32) (== (.ub ptr (.col ^T_pos_T (.-w-cursor (g ed curwin)))) 9)))
           (do (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
               (recur))
           (do (.set-w-set-curswant (g ed curwin) (boolean true))
@@ -77111,7 +77094,7 @@
                     0
                       (let [l__3 (loop []
                                    (if (== (long (cls ed)) 0)
-                                     (if (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.get ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) 0xff) (e NUL)))
+                                     (if (and (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub ^BytePtr (ml-get ed (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (e NUL)))
                                        1
                                        (let [i (long (dec-cursor ed))]
                                          (if (or (== i -1) (and eol (== i 1)))
@@ -77140,7 +77123,7 @@
     (.set-lnum start-pos 0)
     (.set-col start-pos 0)
     (.set-coladd start-pos 0)
-    (when (and (not (zero? (g ed VIsual-active))) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+    (when (and (not (zero? (g ed VIsual-active))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
       (dec-cursor ed))
     (let [j__2 (if (or (zero? (g ed VIsual-active)) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual)))))
                  (do (back-in-line ed)
@@ -77247,7 +77230,7 @@
                   (if (zero? (g ed VIsual-active))
                     (do (.set-inclusive oap (if inclusive 1 0))
                         true)
-                    (do (when (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) inclusive (or (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
+                    (do (when (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) inclusive (or (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
                           (inc-cursor ed))
                         (if (== (g ed VIsual-mode) 86)
                           (do (g! ed VIsual-mode 118)
@@ -77425,7 +77408,7 @@
                                   true)
                               (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) start-pos)
                                   true))))
-                      (do (when (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+                      (do (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                             (inc_ ed (.-w-cursor (g ed curwin))))
                           (when (and sol (not (== (long (gchar-cursor ed)) (e NUL))))
                             (inc_ ed (.-w-cursor (g ed curwin))))
@@ -77456,12 +77439,12 @@
         quotechar (long quotechar)
         ^longs tl__ (long-array 2)]
     (loop [col col]
-      (let [c (bit-and (.at line col) 0xff)]
+      (let [c (.ub line col)]
         (if (== c (e NUL))
           -1
           (let [j__1 (if (and (some? escape) (some? (vim-strchr ed escape c)))
                        (let [col (i32 (inc col))]
-                         (if (== (bit-and (.at line col) 0xff) (e NUL))
+                         (if (== (.ub line col) (e NUL))
                            2
                            (do (aset tl__ 0 col)
                                0)))
@@ -77494,13 +77477,13 @@
                 n 0]
             (let [n (long (if (some? escape)
                      (loop [n n]
-                       (if (and (> (i32 (- col-start n)) 0) (some? (vim-strchr ed escape (bit-and (.at line (i32 (- (i32 (- col-start n)) 1))) 0xff))))
+                       (if (and (> (i32 (- col-start n)) 0) (some? (vim-strchr ed escape (.ub line (i32 (- (i32 (- col-start n)) 1))))))
                          (let [n (i32 (inc n))]
                            (recur n))
                          n))
                      n))]
               (let [j__1 (if (zero? (bit-and n 1))
-                          (if (== (bit-and (.at line col-start) 0xff) quotechar)
+                          (if (== (.ub line col-start) quotechar)
                             (do (aset tl__ 0 col-start)
                                 1)
                             (do (aset tl__ 0 col-start)
@@ -77560,7 +77543,7 @@
                        (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
                          (let [vis-bef-curs (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                                vis-empty (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))]
-                           (if (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+                           (if (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                              (let [did-exclusive-adj (if vis-bef-curs
                                                        (do (dec-cursor ed)
                                                            true)
@@ -77605,14 +77588,14 @@
                 (if vis-empty
                   (recur 2 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)
                   (let [j__2 (if vis-bef-curs
-                               (let [inside-quotes (and (> (.col (g ed VIsual)) 0) (== (bit-and (.at line (i32 (- (.col (g ed VIsual)) 1))) 0xff) quotechar) (not (== (bit-and (.at line (.col ^T_pos_T (.-w-cursor (g ed curwin)))) 0xff) (e NUL))) (== (bit-and (.at line (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) 1))) 0xff) quotechar))
+                               (let [inside-quotes (and (> (.col (g ed VIsual)) 0) (== (.ub line (i32 (- (.col (g ed VIsual)) 1))) quotechar) (not (== (.ub line (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (e NUL))) (== (.ub line (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) 1))) quotechar))
                                      i (.col (g ed VIsual))
                                      col-end (.col ^T_pos_T (.-w-cursor (g ed curwin)))]
                                  (aset tl__ 0 col-end)
                                  (aset to__ 5 (Boolean/valueOf (boolean inside-quotes)))
                                  (aset tl__ 1 i)
                                  0)
-                               (let [inside-quotes (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.at line (i32 (- (.col ^T_pos_T (.-w-cursor (g ed curwin))) 1))) 0xff) quotechar) (not (== (bit-and (.at line (.col (g ed VIsual))) 0xff) (e NUL))) (== (bit-and (.at line (i32 (+ (.col (g ed VIsual)) 1))) 0xff) quotechar))
+                               (let [inside-quotes (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub line (i32 (- (.col ^T_pos_T (.-w-cursor (g ed curwin))) 1))) quotechar) (not (== (.ub line (.col (g ed VIsual))) (e NUL))) (== (.ub line (i32 (+ (.col (g ed VIsual)) 1))) quotechar))
                                      i (.col ^T_pos_T (.-w-cursor (g ed curwin)))
                                      col-end (.col (g ed VIsual))]
                                  (aset tl__ 0 col-end)
@@ -77625,17 +77608,17 @@
                     (recur 1 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))))))
         1
           (if (<= i col-end)
-            (if (== (bit-and (.at line i) 0xff) (e NUL))
+            (if (== (.ub line i) (e NUL))
               (recur 2 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)
               (let [t1 i
                     i (i32 (inc i))]
-                (if (== (bit-and (.at line t1) 0xff) quotechar)
+                (if (== (.ub line t1) quotechar)
                   (let [selected-quote true]
                     (recur 2 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
                   (recur 1 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))))
             (recur 2 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
         2
-          (if (and (not vis-empty) (== (bit-and (.at line col-start) 0xff) quotechar))
+          (if (and (not vis-empty) (== (.ub line col-start) quotechar))
             (if vis-bef-curs
               (let [col-start (long (find-next-quote ed line (i32 (+ col-start 1)) quotechar nil))]
                 (if (< col-start 0)
@@ -77647,15 +77630,15 @@
                         (recur 5 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
                       (recur 5 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)))))
               (let [col-end (long (find-prev-quote ed line col-start quotechar nil))]
-                (if (== (bit-and (.at line col-end) 0xff) quotechar)
+                (if (== (.ub line col-end) quotechar)
                   (let [col-start (long (find-prev-quote ed line col-end quotechar (aget ^objects (.-b-p-qe (g ed curbuf)) 0)))]
-                    (if (== (bit-and (.at line col-start) 0xff) quotechar)
+                    (if (== (.ub line col-start) quotechar)
                       (recur 5 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)
                       (let [col-start col-end
                             col-end (.col ^T_pos_T (.-w-cursor (g ed curwin)))]
                         (recur 5 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))))
                   (recur 9 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))))
-            (if (or (== (bit-and (.at line col-start) 0xff) quotechar) (not vis-empty))
+            (if (or (== (.ub line col-start) quotechar) (not vis-empty))
               (let [first-col col-start
                     first-col (if vis-empty
                                 first-col
@@ -77665,7 +77648,7 @@
                     col-start 0]
                 (recur 4 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
               (let [col-start (long (find-prev-quote ed line col-start quotechar (aget ^objects (.-b-p-qe (g ed curbuf)) 0)))]
-                (if (== (bit-and (.at line col-start) 0xff) quotechar)
+                (if (== (.ub line col-start) quotechar)
                   (recur 3 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)
                   (let [col-start (long (find-next-quote ed line col-start quotechar nil))]
                     (if (< col-start 0)
@@ -77689,17 +77672,17 @@
                       (recur 4 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)))))))
         5
           (if include
-            (if (or (== (bit-and (.at line (i32 (+ col-end 1))) 0xff) 32) (== (bit-and (.at line (i32 (+ col-end 1))) 0xff) 9))
+            (if (or (== (.ub line (i32 (+ col-end 1))) 32) (== (.ub line (i32 (+ col-end 1))) 9))
               (recur 7 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col)
               (recur 6 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
             (recur 8 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
         6
-          (if (and (> col-start 0) (or (== (bit-and (.at line (i32 (- col-start 1))) 0xff) 32) (== (bit-and (.at line (i32 (- col-start 1))) 0xff) 9)))
+          (if (and (> col-start 0) (or (== (.ub line (i32 (- col-start 1))) 32) (== (.ub line (i32 (- col-start 1))) 9)))
             (let [col-start (i32 (dec col-start))]
               (recur 6 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
             (recur 8 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
         7
-          (if (or (== (bit-and (.at line (i32 (+ col-end 1))) 0xff) 32) (== (bit-and (.at line (i32 (+ col-end 1))) 0xff) 9))
+          (if (or (== (.ub line (i32 (+ col-end 1))) 32) (== (.ub line (i32 (+ col-end 1))) 9))
             (let [col-end (i32 (inc col-end))]
               (recur 7 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
             (recur 8 oap count_ include quotechar line col-end col-start inclusive vis-empty vis-bef-curs did-exclusive-adj inside-quotes selected-quote i restore-vis-bef first-col))
@@ -77711,7 +77694,7 @@
             (if (zero? (g ed VIsual-active))
               (do (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin)))
                   (.set-motion-type oap (e MCHAR)))
-              (when (or vis-empty (and vis-bef-curs (not selected-quote) (or inside-quotes (and (not (== (bit-and (.at line (.col (g ed VIsual))) 0xff) quotechar)) (or (== (.col (g ed VIsual)) 0) (not (== (bit-and (.at line (i32 (- (.col (g ed VIsual)) 1))) 0xff) quotechar)))))))
+              (when (or vis-empty (and vis-bef-curs (not selected-quote) (or inside-quotes (and (not (== (.ub line (.col (g ed VIsual))) quotechar)) (or (== (.col (g ed VIsual)) 0) (not (== (.ub line (i32 (- (.col (g ed VIsual)) 1))) quotechar)))))))
                 (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
                 (redraw-curbuf-later ed (e UPD_INVERTED))))
             (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col-end)
@@ -77722,9 +77705,9 @@
                 (do (.set-inclusive oap (if inclusive 1 0))
                     true)
                 (do (if (or vis-empty vis-bef-curs)
-                      (when-not (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+                      (when-not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                         (dec-cursor ed))
-                      (do (when (or inside-quotes (and (not selected-quote) (not (== (bit-and (.at line (.col (g ed VIsual))) 0xff) quotechar)) (or (== (bit-and (.at line (.col (g ed VIsual))) 0xff) (e NUL)) (not (== (bit-and (.at line (i32 (+ (.col (g ed VIsual)) 1))) 0xff) quotechar)))))
+                      (do (when (or inside-quotes (and (not selected-quote) (not (== (.ub line (.col (g ed VIsual))) quotechar)) (or (== (.ub line (.col (g ed VIsual))) (e NUL)) (not (== (.ub line (i32 (+ (.col (g ed VIsual)) 1))) quotechar)))))
                             (dec-cursor ed)
                             (.set (g ed VIsual) (.-w-cursor (g ed curwin))))
                           (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col-start)))
@@ -77734,7 +77717,7 @@
                           true)
                       true)))))
         9
-          (if (and (not (zero? (g ed VIsual-active))) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101))
+          (if (and (not (zero? (g ed VIsual-active))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
             (do (when did-exclusive-adj
                   (inc-cursor ed))
                 (if restore-vis-bef
@@ -77830,7 +77813,7 @@
                         (nv-operator ed cap)
                         (do-pending-operator ed cap 0 false)
                         (.set-cmdchar cap (e K_PASTESTART))
-                        (when-not (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL))
+                        (when-not (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL))
                           (if (== old-visual-mode 86)
                             (when (and (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) old-pos-lnum) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum old-visual)))
                               (when (u-save-cursor ed)
@@ -77864,10 +77847,10 @@
                             (recur 1 cap)
                           (recur 2 cap))))))))
         1
-          (if (and (not (zero? (long (virtual-active ed)))) (or (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL)) (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e TAB))))
+          (if (and (not (zero? (long (virtual-active ed)))) (or (> (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL)) (== (.ub ^BytePtr (ml-get-cursor ed)) (e TAB))))
             (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (inc (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))
                 (recur 2 cap))
-            (if (== (bit-and (.get ^BytePtr (ml-get-cursor ed)) 0xff) (e NUL))
+            (if (== (.ub ^BytePtr (ml-get-cursor ed)) (e NUL))
               (recur 2 cap)
               (do (inc-cursor ed)
                   (recur 2 cap))))
@@ -77973,7 +77956,7 @@
           (let [old-p-ws (u8 (long (aget (g ed p-ws) 0)))
                 flags 0]
             (.set save-VIsual (g ed VIsual))
-            (when (and (not (zero? (g ed VIsual-active))) (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+            (when (and (not (zero? (g ed VIsual-active))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
               (dec-cursor ed))
             (let [skip-first-backward (and forward (not (zero? (g ed VIsual-active))) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))))]
               (.set pos (.-w-cursor (g ed curwin)))
@@ -78012,7 +77995,7 @@
                   (.set ^T_pos_T (.-w-cursor (g ed curwin)) pos)))
               (g! ed VIsual-active (e TRUE))
               (g! ed VIsual-mode 118)
-              (when (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101)
+              (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                 (if (and forward (or (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
                   (inc-cursor ed)
                   (when (and (not forward) (or (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))))))
@@ -78088,9 +78071,9 @@
            words words
            chars_ chars_
            is-word is-word]
-      (if (and (< i limit) (not (== (bit-and (.at line i) 0xff) (e NUL))))
+      (if (and (< i limit) (not (== (.ub line i) (e NUL))))
         (let [j__1 (if (zero? is-word)
-                     (if (vim-isspace? ed (bit-and (.at line i) 0xff))
+                     (if (vim-isspace? ed (.ub line i))
                        (do (aset tl__ 0 words)
                            (aset tl__ 1 is-word)
                            0)
@@ -78098,7 +78081,7 @@
                          (aset tl__ 0 words)
                          (aset tl__ 1 is-word)
                          0))
-                     (if (vim-isspace? ed (bit-and (.at line i) 0xff))
+                     (if (vim-isspace? ed (.ub line i))
                        (let [words (inc words)
                              is-word 0]
                          (aset tl__ 0 words)
@@ -78117,7 +78100,7 @@
                       words
                       (inc words))
               wc (+ wc words)
-              j__2 (if (and (< i limit) (== (bit-and (.at line i) 0xff) (e NUL)))
+              j__2 (if (and (< i limit) (== (.ub line i) (e NUL)))
                      (let [i (+ i eol-size)
                            chars_ (+ chars_ eol-size)]
                        (aset tl__ 2 i)
@@ -78164,7 +78147,7 @@
                                             (.set max-pos (.-w-cursor (g ed curwin))))
                                         (do (.set min-pos (.-w-cursor (g ed curwin)))
                                             (.set max-pos (g ed VIsual))))
-                                      (when (and (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) 101) (> (.col max-pos) 0))
+                                      (when (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (> (.col max-pos) 0))
                                         (.set-col max-pos (i32 (dec (.col max-pos)))))
                                       (when (== (g ed VIsual-mode) (e Ctrl_V))
                                         (.set-is-VIsual oparg 1)
@@ -78833,7 +78816,7 @@
         new-flags 0]
     (loop [^BytePtr val_ val_
            new-flags new-flags]
-      (if (zero? (bit-and (.get val_) 0xff))
+      (if (zero? (.ub val_))
         (if (some? flagp)
           (do (.put flagp (unchecked-int new-flags))
               true)
@@ -78843,7 +78826,7 @@
                      (if (nil? (.at values i))
                        1
                        (let [len (i32 (long (musl-strlen ed (.at values i))))]
-                         (if (and (== (long (musl-strncmp ed (.at values i) val_ len)) 0) (or (and list_ (== (bit-and (.at val_ len) 0xff) 44)) (== (bit-and (.at val_ len) 0xff) (e NUL))))
+                         (if (and (== (long (musl-strncmp ed (.at values i) val_ len)) 0) (or (and list_ (== (.ub val_ len) 44)) (== (.ub val_ len) (e NUL))))
                            (do (aset tl__ 0 i)
                                (aset tl__ 1 len)
                                0)
@@ -78853,7 +78836,7 @@
             0
               (let [i (aget tl__ 0)
                     len (aget tl__ 1)
-                    ^BytePtr val_ (.add val_ (i32 (+ len (if (== (bit-and (.at val_ len) 0xff) 44) 1 0))))
+                    ^BytePtr val_ (.add val_ (i32 (+ len (if (== (.ub val_ len) 44) 1 0))))
                     new-flags (bit-or new-flags (u32 (bit-shift-left 1 i)))]
                 (recur val_ new-flags))
             1
@@ -78870,9 +78853,9 @@
 ;; C: get_encoded_char_adv
 (defn get-encoded-char-adv ^long [^Editor ed ^Ptr p]
   (let [^BytePtr s (.get p)]
-    (if (and (== (bit-and (.at s 0) 0xff) 92) (or (== (bit-and (.at s 1) 0xff) 120) (== (bit-and (.at s 1) 0xff) 117) (== (bit-and (.at s 1) 0xff) 85)))
+    (if (and (== (.ub s 0) 92) (or (== (.ub s 1) 120) (== (.ub s 1) 117) (== (.ub s 1) 85)))
       (let [num_ 0
-            bytes_ (if (== (bit-and (.at s 1) 0xff) 120) 1 (if (== (bit-and (.at s 1) 0xff) 117) 2 4))]
+            bytes_ (if (== (.ub s 1) 120) 1 (if (== (.ub s 1) 117) 2 4))]
         (loop [num_ num_
                bytes_ bytes_]
           (if (> bytes_ 0)
@@ -78937,7 +78920,7 @@
                        (let [^Ptr tab (Ptr. (g ed lcstab) 0)
                              _ (.zero (g ed lcs-chars))
                              entries 12]
-                         (if (== (bit-and (.at ^BytePtr (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt wp)) 0) 0) 0xff) (e NUL))
+                         (if (== (.ub ^BytePtr (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt wp)) 0) 0) (e NUL))
                            (let [^BytePtr value (aget (g ed p-lcs) 0)]
                              (aset to__ 0 value)
                              (aset tl__ 0 entries)
@@ -78949,7 +78932,7 @@
                                0)))
                        (let [^Ptr tab (Ptr. (g ed filltab) 0)
                              entries 13]
-                         (if (== (bit-and (.at ^BytePtr (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt wp)) 0) 0) 0xff) (e NUL))
+                         (if (== (.ub ^BytePtr (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt wp)) 0) 0) (e NUL))
                            (let [^BytePtr value (aget (g ed p-fcs) 0)]
                              (aset to__ 0 value)
                              (aset tl__ 0 entries)
@@ -79017,7 +79000,7 @@
           (let [^BytePtr p value]
             (recur 4 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
         4
-          (if (zero? (bit-and (.get p) 0xff))
+          (if (zero? (.ub p))
             (if (and is-listchars has-leadtab (not has-tab))
               (BytePtr. (g ed e-leadtab-requires-tab) 0)
               (let [round (i32 (inc round))]
@@ -79026,7 +79009,7 @@
               (recur 5 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))
         5
           (if (< i entries)
-            (if (and (== (long (musl-strncmp ed p (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (.length ^T_string_T (.-name_ ^S_charstab (.at tab i))))) 0) (== (bit-and (.at p (.length ^T_string_T (.-name_ ^S_charstab (.at tab i)))) 0xff) 58))
+            (if (and (== (long (musl-strncmp ed p (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (.length ^T_string_T (.-name_ ^S_charstab (.at tab i))))) 0) (== (.ub p (.length ^T_string_T (.-name_ ^S_charstab (.at tab i)))) 58))
               (do (aset s 0 (.add (.add p (.length ^T_string_T (.-name_ ^S_charstab (.at tab i)))) 1))
                   (if (and is-listchars (== (long (musl-strcmp ed (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0) (BytePtr/lit "multispace"))) 0))
                     (if (== round 0)
@@ -79044,18 +79027,18 @@
                           (recur 8 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))
                       (let [c3 0
                             c2 c3]
-                        (if (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL))
+                        (if (== (.ub ^BytePtr (aget s 0)) (e NUL))
                           (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-number-of-characters-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0))
                           (let [c1 (long (get-encoded-char-adv ed (Ptr. s 0)))]
                             (if (> (long (char2cells ed c1)) 1)
                               (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-character-width-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0))
                               (if (or (IntPtr/eq ^IntPtr (.cp ^S_charstab (.at tab i)) (IntPtr. ^ints (.-tab2 (g ed lcs-chars)) 0)) (IntPtr/eq ^IntPtr (.cp ^S_charstab (.at tab i)) (IntPtr. ^ints (.-leadtab2 (g ed lcs-chars)) 0)))
-                                (if (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL))
+                                (if (== (.ub ^BytePtr (aget s 0)) (e NUL))
                                   (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-number-of-characters-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0))
                                   (let [c2 (long (get-encoded-char-adv ed (Ptr. s 0)))]
                                     (if (> (long (char2cells ed c2)) 1)
                                       (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-character-width-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0))
-                                      (if (or (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) 44) (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL)))
+                                      (if (or (== (.ub ^BytePtr (aget s 0)) 44) (== (.ub ^BytePtr (aget s 0)) (e NUL)))
                                         (recur 6 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)
                                         (let [c3 (long (get-encoded-char-adv ed (Ptr. s 0)))]
                                           (if (> (long (char2cells ed c3)) 1)
@@ -79072,7 +79055,7 @@
             (let [has-leadtab true]
               (recur 7 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))
         7
-          (if (or (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) 44) (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL)))
+          (if (or (== (.ub ^BytePtr (aget s 0)) 44) (== (.ub ^BytePtr (aget s 0)) (e NUL)))
             (do (when (> round 0)
                   (if (IntPtr/eq ^IntPtr (.cp ^S_charstab (.at tab i)) (IntPtr. ^ints (.-tab2 (g ed lcs-chars)) 0))
                     (do (.set-tab1 (g ed lcs-chars) c1)
@@ -79088,7 +79071,7 @@
                   (recur 14 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))
             (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-number-of-characters-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0)))
         8
-          (if (and (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) 44)))
+          (if (and (not (== (.ub ^BytePtr (aget s 0)) (e NUL))) (not (== (.ub ^BytePtr (aget s 0)) 44)))
             (let [c1 (long (get-encoded-char-adv ed (Ptr. s 0)))
                   multispace-pos_2 (if (and (BytePtr/eq p last-lmultispace) (some? (.leadmultispace (g ed lcs-chars))))
                                      (let [t2 multispace-pos_2
@@ -79099,7 +79082,7 @@
               (recur 8 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
             (recur 10 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
         9
-          (if (and (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) 44)))
+          (if (and (not (== (.ub ^BytePtr (aget s 0)) (e NUL))) (not (== (.ub ^BytePtr (aget s 0)) 44)))
             (let [c1 (long (get-encoded-char-adv ed (Ptr. s 0)))]
               (if (> (long (char2cells ed c1)) 1)
                 (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-character-width-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0))
@@ -79112,7 +79095,7 @@
           (let [^BytePtr p (aget s 0)]
             (recur 14 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
         11
-          (if (and (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) 44)))
+          (if (and (not (== (.ub ^BytePtr (aget s 0)) (e NUL))) (not (== (.ub ^BytePtr (aget s 0)) 44)))
             (let [c1 (long (get-encoded-char-adv ed (Ptr. s 0)))
                   multispace-pos (if (and (BytePtr/eq p last-multispace) (some? (.multispace (g ed lcs-chars))))
                                    (let [t1 multispace-pos
@@ -79123,7 +79106,7 @@
               (recur 11 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
             (recur 13 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2))
         12
-          (if (and (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) (e NUL))) (not (== (bit-and (.get ^BytePtr (aget s 0)) 0xff) 44)))
+          (if (and (not (== (.ub ^BytePtr (aget s 0)) (e NUL))) (not (== (.ub ^BytePtr (aget s 0)) 44)))
             (let [c1 (long (get-encoded-char-adv ed (Ptr. s 0)))]
               (if (> (long (char2cells ed c1)) 1)
                 (field-value-err ed errbuf errbuflen (BytePtr. (g ed e-wrong-character-width-for-field-str) 0) (aget ^objects (.-string ^T_string_T (.-name_ ^S_charstab (.at tab i))) 0))
@@ -79138,7 +79121,7 @@
         14
           (if (== i entries)
             (BytePtr. (g ed e-invalid-argument) 0)
-            (let [^BytePtr p (if (== (bit-and (.get p) 0xff) 44)
+            (let [^BytePtr p (if (== (.ub p) 44)
                                ^BytePtr (.add p 1)
                                p)]
               (recur 4 wp value is-listchars apply_ errbuf errbuflen round i entries p c1 c2 c3 last-multispace last-lmultispace multispace-len lead-multispace-len tab has-tab has-leadtab multispace-pos multispace-pos_2)))))))
@@ -79229,10 +79212,10 @@
       (let [^BytePtr s origval]
         (loop [bs bs
                ^BytePtr s s]
-          (when-not (== (bit-and (.get s) 0xff) (e NUL))
-            (if (and (or (zero? (bit-and flags (e P_COMMA))) (BytePtr/eq s origval) (and (== (bit-and (.at s -1) 0xff) 44) (zero? (bit-and bs 1)))) (== (long (musl-strncmp ed s newval newvallen)) 0) (or (zero? (bit-and flags (e P_COMMA))) (== (bit-and (.at s newvallen) 0xff) 44) (== (bit-and (.at s newvallen) 0xff) (e NUL))))
+          (when-not (== (.ub s) (e NUL))
+            (if (and (or (zero? (bit-and flags (e P_COMMA))) (BytePtr/eq s origval) (and (== (.ub s -1) 44) (zero? (bit-and bs 1)))) (== (long (musl-strncmp ed s newval newvallen)) 0) (or (zero? (bit-and flags (e P_COMMA))) (== (.ub s newvallen) 44) (== (.ub s newvallen) (e NUL))))
               s
-              (let [bs (if (or (and (.gt s (.add origval 1)) (== (bit-and (.at s -1) 0xff) 92) (not (== (bit-and (.at s -2) 0xff) 44))) (and (BytePtr/eq s (.add origval 1)) (== (bit-and (.at s -1) 0xff) 92)))
+              (let [bs (if (or (and (.gt s (.add origval 1)) (== (.ub s -1) 92) (not (== (.ub s -2) 44))) (and (BytePtr/eq s (.add origval 1)) (== (.ub s -1) 92)))
                          (i32 (inc bs))
                          0)
                     ^BytePtr s (.add s 1)]
@@ -79254,7 +79237,7 @@
       (aset (g ed p-window) 0 (- (aget (g ed Rows) 0) 1)))
     (set-number-default ed (BytePtr/lit "window") (- (aget (g ed Rows) 0) 1))
     (let [idx (long (findoption ed (BytePtr/lit "bg")))]
-      (when (and (>= idx 0) (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) idx)) 0) (e P_WAS_SET))) (== (bit-and (.get ^BytePtr (term-bg-default ed)) 0xff) 100))
+      (when (and (>= idx 0) (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) idx)) 0) (e P_WAS_SET))) (== (.ub ^BytePtr (term-bg-default ed)) 100))
         (set-string-option-direct ed nil idx (BytePtr/lit "dark") (e OPT_FREE) 0)
         (aset ^longs (.-flags ^S_vimoption (aget (g ed options) idx)) 0 (bit-and (aget ^longs (.-flags ^S_vimoption (aget (g ed options) idx)) 0) -257))
         nil))))
@@ -79386,18 +79369,18 @@
 
 ;; C: show_one_termcode
 (defn show-one-termcode ^long [^Editor ed ^BytePtr name_ ^BytePtr code printit]
-  (if (> (bit-and (.at name_ 0) 0xff) 126)
+  (if (> (.ub name_ 0) 126)
     (do (.set (g ed IObuff) 0 (unchecked-byte 32))
         (.set (g ed IObuff) 1 (unchecked-byte 32))
         (.set (g ed IObuff) 2 (unchecked-byte 32))
         (.set (g ed IObuff) 3 (unchecked-byte 32)))
     (do (.set (g ed IObuff) 0 (unchecked-byte 116))
         (.set (g ed IObuff) 1 (unchecked-byte 95))
-        (.set (g ed IObuff) 2 (unchecked-byte (bit-and (.at name_ 0) 0xff)))
-        (.set (g ed IObuff) 3 (unchecked-byte (bit-and (.at name_ 1) 0xff)))))
+        (.set (g ed IObuff) 2 (unchecked-byte (.ub name_ 0)))
+        (.set (g ed IObuff) 3 (unchecked-byte (.ub name_ 1)))))
   (.set (g ed IObuff) 4 (unchecked-byte 32))
-  (let [^BytePtr p (get-special-key-name ed (i32 (- (i32 (+ (bit-and (.at name_ 0) 0xff) (i32 (bit-shift-left (bit-and (.at name_ 1) 0xff) 8)))))) 0)]
-    (if (== (bit-and (.at p 1) 0xff) 116)
+  (let [^BytePtr p (get-special-key-name ed (i32 (- (i32 (+ (.ub name_ 0) (i32 (bit-shift-left (.ub name_ 1) 8)))))) 0)]
+    (if (== (.ub p 1) 116)
       (.set (g ed IObuff) 5 (unchecked-byte (e NUL)))
       (musl-strcpy ed (.add (g ed IObuff) 5) p))
     (let [len (i32 (long (musl-strlen ed (g ed IObuff))))]
@@ -79505,20 +79488,20 @@
     (let [^longs tl__ (long-array 3)
           ^objects to__ (object-array 1)]
       (let [key_ 0]
-        (let [j__1 (if (== (bit-and (.get arg) 0xff) 60)
+        (let [j__1 (if (== (.ub arg) 60)
                     (let [opt-idx -1]
-                      (let [len (long (if (and (and (and (== (bit-and (.at arg 1) 0xff) 116) (== (bit-and (.at arg 2) 0xff) 95)) (not (zero? (bit-and (.at arg 3) 0xff)))) (not (zero? (bit-and (.at arg 4) 0xff))))
+                      (let [len (long (if (and (and (and (== (.ub arg 1) 116) (== (.ub arg 2) 95)) (not (zero? (.ub arg 3)))) (not (zero? (.ub arg 4))))
                                  (let [len 5]
                                    len)
                                  (let [len 1]
                                    (loop [len len]
-                                     (if (and (not (== (bit-and (.at arg len) 0xff) (e NUL))) (not (== (bit-and (.at arg len) 0xff) 62)))
+                                     (if (and (not (== (.ub arg len) (e NUL))) (not (== (.ub arg len) 62)))
                                        (let [len (i32 (inc len))]
                                          (recur len))
                                        len)))))]
-                        (if (== (bit-and (.at arg len) 0xff) 62)
+                        (if (== (.ub arg len) 62)
                           (let [_ (.set arg len (unchecked-byte (e NUL)))]
-                            (let [opt-idx (if (and (== (bit-and (.at arg 1) 0xff) 116) (== (bit-and (.at arg 2) 0xff) 95))
+                            (let [opt-idx (if (and (== (.ub arg 1) 116) (== (.ub arg 2) 95))
                                            (let [opt-idx (long (findoption ed (.add arg 1)))]
                                              opt-idx)
                                            opt-idx)]
@@ -79542,15 +79525,15 @@
                             (do (aset to__ 0 out__)
                                 -1)))))
                     (let [len 0]
-                      (let [len (long (if (and (and (and (== (bit-and (.at arg 0) 0xff) 116) (== (bit-and (.at arg 1) 0xff) 95)) (not (zero? (bit-and (.at arg 2) 0xff)))) (not (zero? (bit-and (.at arg 3) 0xff))))
+                      (let [len (long (if (and (and (and (== (.ub arg 0) 116) (== (.ub arg 1) 95)) (not (zero? (.ub arg 2)))) (not (zero? (.ub arg 3))))
                                  (let [len 4]
                                    len)
                                  (loop [len len]
-                                   (if (or (or (or (< (u32 (- (bit-and (.at arg len) 0xff) 65)) 26) (< (u32 (- (bit-and (.at arg len) 0xff) 97)) 26)) (< (u32 (- (bit-and (.at arg len) 0xff) 48)) 10)) (== (bit-and (.at arg len) 0xff) 95))
+                                   (if (or (or (or (< (u32 (- (.ub arg len) 65)) 26) (< (u32 (- (.ub arg len) 97)) 26)) (< (u32 (- (.ub arg len) 48)) 10)) (== (.ub arg len) 95))
                                      (let [len (i32 (inc len))]
                                        (recur len))
                                      len))))]
-                        (let [nextchar (bit-and (.at arg len) 0xff)
+                        (let [nextchar (.ub arg len)
                               _ (.set arg len (unchecked-byte (e NUL)))
                               opt-idx (long (findoption ed arg))
                               _ (.set arg len (unchecked-byte (u8 nextchar)))]
@@ -79581,12 +79564,12 @@
 ;; C: get_opt_op
 (defn get-opt-op ^long [^Editor ed ^BytePtr arg]
   (let [op (e OP_NONE)]
-    (if (and (not (== (bit-and (.get arg) 0xff) (e NUL))) (== (bit-and (.get (.add arg 1)) 0xff) 61))
-      (if (== (bit-and (.get arg) 0xff) 43)
+    (if (and (not (== (.ub arg) (e NUL))) (== (.ub (.add arg 1)) 61))
+      (if (== (.ub arg) 43)
         (e OP_ADDING)
-        (if (== (bit-and (.get arg) 0xff) 94)
+        (if (== (.ub arg) 94)
           (e OP_PREPENDING)
-          (if (== (bit-and (.get arg) 0xff) 45)
+          (if (== (.ub arg) 45)
             (e OP_REMOVING)
             op)))
       op)))
@@ -79652,9 +79635,9 @@
             j__1 (if (== nextchar 38)
                    (do (aset value 0 (aget ^longs (.-def-num ^S_vimoption (aget (g ed options) opt-idx)) (if (or (not (zero? (bit-and flags (e P_VI_DEF)))) (not (zero? cp-val))) (e VI_DEFAULT) (e VIM_DEFAULT))))
                        0)
-                   (if (or (== (bit-and (.get arg) 0xff) 45) (< (u32 (- (bit-and (.get arg) 0xff) 48)) 10))
+                   (if (or (== (.ub arg) 45) (< (u32 (- (.ub arg) 48)) 10))
                      (let [i (long (vim-str2nr ed arg nil i 15 (LongPtr. value 0) nil 0 true nil))]
-                       (if (or (== i 0) (and (not (== (bit-and (.at arg i) 0xff) (e NUL))) (not (or (== (bit-and (.at arg i) 0xff) 32) (== (bit-and (.at arg i) 0xff) 9)))))
+                       (if (or (== i 0) (and (not (== (.ub arg i) (e NUL))) (not (or (== (.ub arg i) 32) (== (.ub arg i) 9)))))
                          (let [^BytePtr errmsg (BytePtr. (g ed e-number-required-after-equal) 0)
                                ^BytePtr argp arg]
                            (.set-r__ out__ errmsg)
@@ -79760,7 +79743,7 @@
               len
               (do (musl-strcpy ed (.add whichwrap len) (BytePtr/lit "[,],"))
                   (+ len 4)))]
-    (if (== (bit-and (.get whichwrap) 0xff) (e NUL))
+    (if (== (.ub whichwrap) (e NUL))
       whichwrap
       (do (.set whichwrap (- len 1) (unchecked-byte (e NUL)))
           whichwrap))))
@@ -79782,8 +79765,8 @@
         ^BytePtr s newval]
     (loop [^BytePtr arg arg
            ^BytePtr s s]
-      (if (and (not (== (bit-and (.get arg) 0xff) (e NUL))) (not (or (== (bit-and (.get arg) 0xff) 32) (== (bit-and (.get arg) 0xff) 9))))
-        (let [^BytePtr arg (if (and (== (bit-and (.get arg) 0xff) 92) (not (== (bit-and (.at arg 1) 0xff) (e NUL))))
+      (if (and (not (== (.ub arg) (e NUL))) (not (or (== (.ub arg) 32) (== (.ub arg) 9))))
+        (let [^BytePtr arg (if (and (== (.ub arg) 92) (not (== (.ub arg 1) (e NUL))))
                              ^BytePtr (.add arg 1)
                              arg)
               i (long (utfc-ptr2len ed arg))
@@ -79798,7 +79781,7 @@
                            ^BytePtr s (.add s 1)
                            ^BytePtr t3 arg
                            ^BytePtr arg (.add arg 1)]
-                       (.put t2 (unchecked-byte (bit-and (.get t3) 0xff)))
+                       (.put t2 (unchecked-byte (.ub t3)))
                        (aset to__ 0 arg)
                        (aset to__ 1 s)
                        0))
@@ -79834,11 +79817,11 @@
         ^T_find_key_item__out_T out__ (new-T_find_key_item__out_T)
         ^BytePtr p src]
     (loop [^BytePtr p p]
-      (if (== (bit-and (.get p) 0xff) (e NUL))
+      (if (== (.ub p) (e NUL))
         (do (.set-r__ out__ nil)
             (.set-itemlenp out__ itemlenp)
             out__)
-        (if (and (or (BytePtr/eq p src) (== (bit-and (.get (.add p (- 1))) 0xff) 44)) (== (long (musl-strncmp ed p key_ keylen)) 0))
+        (if (and (or (BytePtr/eq p src) (== (.ub (.add p (- 1))) 44)) (== (long (musl-strncmp ed p key_ keylen)) 0))
           (let [^BytePtr end (vim-strchr ed p 44)
                 ^BytePtr end (if (nil? end)
                                ^BytePtr (.add p (long (musl-strlen ed p)))
@@ -79852,10 +79835,10 @@
 
 ;; C: remove_comma_item
 (defn remove-comma-item [^Editor ed ^BytePtr str_ ^BytePtr item ^long itemlen]
-  (if (== (bit-and (.at item itemlen) 0xff) 44)
+  (if (== (.ub item itemlen) 44)
     (do (Rt/memmove item (.add (.add item itemlen) 1) (+ (long (musl-strlen ed (.add (.add item itemlen) 1))) 1))
         nil)
-    (if (and (.gt item str_) (== (bit-and (.get (.add item (- 1))) 0xff) 44))
+    (if (and (.gt item str_) (== (.ub (.add item (- 1))) 44))
       (do (Rt/memmove (.add item (- 1)) (.add item itemlen) (+ (long (musl-strlen ed (.add item itemlen))) 1))
           nil)
       (do (.put item (unchecked-byte (e NUL)))
@@ -79875,7 +79858,7 @@
         (when (some? found)
           (let [j__1 (if (BytePtr/eq found skip)
                        (let [^BytePtr next_ (.add found itemlen)
-                             ^BytePtr next_ (if (== (bit-and (.get next_) 0xff) 44)
+                             ^BytePtr next_ (if (== (.ub next_) 44)
                                               ^BytePtr (.add next_ 1)
                                               next_)]
                          (.set find-key-item__o (find-key-item ed next_ key_ keylen itemlen))
@@ -79991,10 +79974,10 @@
   (let [op (long op)
         flags (long flags)
         len 0
-        comma (and (not (zero? (bit-and flags (e P_COMMA)))) (not (== (bit-and (.get origval) 0xff) (e NUL))) (not (== (bit-and (.get newval) 0xff) (e NUL))))
+        comma (and (not (zero? (bit-and flags (e P_COMMA)))) (not (== (.ub origval) (e NUL))) (not (== (.ub newval) (e NUL))))
         len (if (== op (e OP_ADDING))
               (let [len (i32 (long (musl-strlen ed origval)))
-                    len (if (and comma (> len 1) (== (bit-and flags (e P_ONECOMMA)) (e P_ONECOMMA)) (== (bit-and (.at origval (i32 (- len 1))) 0xff) 44) (not (== (bit-and (.at origval (i32 (- len 2))) 0xff) 92)))
+                    len (if (and comma (> len 1) (== (bit-and flags (e P_ONECOMMA)) (e P_ONECOMMA)) (== (.ub origval (i32 (- len 1))) 44) (not (== (.ub origval (i32 (- len 2))) 92)))
                           (i32 (dec len))
                           len)]
                 (Rt/memmove (.add (.add newval len) (if comma 1 0)) newval (+ (long (musl-strlen ed newval)) 1))
@@ -80014,13 +79997,13 @@
         ^longs tl__ (long-array 1)
         ^objects to__ (object-array 1)]
     (musl-strcpy ed newval origval)
-    (when-not (zero? (bit-and (.get strval) 0xff))
+    (when-not (zero? (.ub strval))
       (let [j__1 (if (zero? (bit-and flags (e P_COMMA)))
                    (do (aset to__ 0 strval)
                        (aset tl__ 0 len)
                        0)
                    (if (BytePtr/eq strval origval)
-                     (if (== (bit-and (.at strval len) 0xff) 44)
+                     (if (== (.ub strval len) 44)
                        (let [len (i32 (inc len))]
                          (aset to__ 0 strval)
                          (aset tl__ 0 len)
@@ -80042,13 +80025,13 @@
 (defn stropt-remove-dupflags [^Editor ed ^BytePtr newval ^long flags]
   (let [^BytePtr s newval]
     (loop [^BytePtr s s]
-      (when-not (zero? (bit-and (.get s) 0xff))
+      (when-not (zero? (.ub s))
         (let [j__1 (if (zero? (bit-and flags (e P_ONECOMMA)))
-                     (if (and (or (zero? (bit-and flags (e P_COMMA))) (not (== (bit-and (.get s) 0xff) 44))) (some? (vim-strchr ed (.add s 1) (bit-and (.get s) 0xff))))
+                     (if (and (or (zero? (bit-and flags (e P_COMMA))) (not (== (.ub s) 44))) (some? (vim-strchr ed (.add s 1) (.ub s))))
                        (do (Rt/memmove s (.add s 1) (+ (long (musl-strlen ed (.add s 1))) 1))
                            1)
                        0)
-                     (if (and (not (== (bit-and (.get s) 0xff) 44)) (== (bit-and (.get (.add s 1)) 0xff) 44) (some? (vim-strchr ed (.add s 2) (bit-and (.get s) 0xff))))
+                     (if (and (not (== (.ub s) 44)) (== (.ub (.add s 1)) 44) (some? (vim-strchr ed (.add s 2) (.ub s))))
                        (do (Rt/memmove s (.add s 2) (+ (long (musl-strlen ed (.add s 2))) 1))
                            1)
                        0))]
@@ -80091,7 +80074,7 @@
                    (aset to__ 5 newval)
                    0)
                  (do (aset arg 0 (.add ^BytePtr (aget arg 0) 1))
-                     (let [j__1 (if (and (Ptr/eq ^Ptr (.ov-str varp) (Ptr. (g ed p-bs) 0)) (< (u32 (- (bit-and (.get ^BytePtr (.get ^Ptr (.ov-str varp))) 0xff) 48)) 10))
+                     (let [j__1 (if (and (Ptr/eq ^Ptr (.ov-str varp) (Ptr. (g ed p-bs) 0)) (< (u32 (- (.ub ^BytePtr (.get ^Ptr (.ov-str varp))) 48)) 10))
                                   (do (.set opt-backspace-nr2str__o (opt-backspace-nr2str ed (.copy ^T_optvar_T varp) origval origval-l origval-g oldval))
                                       (let [^BytePtr origval (.origval-p opt-backspace-nr2str__o)
                                             ^BytePtr origval-l (.origval-l-p opt-backspace-nr2str__o)
@@ -80103,7 +80086,7 @@
                                         (aset to__ 3 oldval)
                                         (aset to__ 4 save-arg)
                                         0))
-                                  (if (and (Ptr/eq ^Ptr (.ov-str varp) (Ptr. (g ed p-ww) 0)) (< (u32 (- (bit-and (.get ^BytePtr (aget arg 0)) 0xff) 48)) 10))
+                                  (if (and (Ptr/eq ^Ptr (.ov-str varp) (Ptr. (g ed p-ww) 0)) (< (u32 (- (.ub ^BytePtr (aget arg 0)) 48)) 10))
                                     (let [^BytePtr t (opt-whichwrap-nr2str ed (Ptr. arg 0) (BytePtr. whichwrap 0))
                                           ^BytePtr save-arg (aget arg 0)]
                                       (aset arg 0 t)
@@ -80302,8 +80285,8 @@
                (let [^BytePtr arg (.add arg 1)
                      ^BytePtr p arg
                      l__1 (loop [^BytePtr p p]
-                            (if (and (not (zero? (bit-and (.get p) 0xff))) (not (or (== (bit-and (.get p) 0xff) 32) (== (bit-and (.get p) 0xff) 9))))
-                              (let [^BytePtr p (if (and (== (bit-and (.get p) 0xff) 92) (not (== (bit-and (.at p 1) 0xff) (e NUL))))
+                            (if (and (not (zero? (.ub p))) (not (or (== (.ub p) 32) (== (.ub p) 9))))
+                              (let [^BytePtr p (if (and (== (.ub p) 92) (not (== (.ub p 1) (e NUL))))
                                                  ^BytePtr (.add p 1)
                                                  p)
                                     ^BytePtr p (.add p 1)]
@@ -80311,7 +80294,7 @@
                               (do (aset to__ 2 p)
                                   0)))
                      ^BytePtr p (aget to__ 2)
-                     nextchar (bit-and (.get p) 0xff)]
+                     nextchar (.ub p)]
                  (.put p (unchecked-byte (e NUL)))
                  (add-termcode ed key-name arg (e FALSE))
                  (.put p (unchecked-byte nextchar))
@@ -80464,20 +80447,20 @@
                     len (.lenp parse-option-name__o)
                     key_ (.keyp parse-option-name__o)]
                 (if (.r__ parse-option-name__o)
-                  (let [afterchar (bit-and (.at arg len) 0xff)]
+                  (let [afterchar (.ub arg len)]
                     (recur 1 opt-flags argp did-show stopopteval errbuf errbuflen opt-idx arg prefix op flags nextchar afterchar key_ len))
                   (do (.set-r__ out__ (BytePtr. (g ed e-invalid-argument) 0))
                       (.set-did-show out__ did-show)
                       out__))))
         1
-          (if (or (== (bit-and (.at arg len) 0xff) 32) (== (bit-and (.at arg len) 0xff) 9))
+          (if (or (== (.ub arg len) 32) (== (.ub arg len) 9))
             (let [len (i32 (inc len))]
               (recur 1 opt-flags argp did-show stopopteval errbuf errbuflen opt-idx arg prefix op flags nextchar afterchar key_ len))
             (let [op (long (get-opt-op ed (.add arg len)))
                   len (if (== op (e OP_NONE))
                         len
                         (i32 (inc len)))
-                  nextchar (bit-and (.at arg len) 0xff)]
+                  nextchar (.ub arg len)]
               (if (and (== opt-idx -1) (== key_ 0))
                 (do (aset errmsg 0 (BytePtr. (g ed e-unknown-option) 0))
                     (.put argp arg)
@@ -80509,8 +80492,8 @@
             (let [cp-val (long (aget (g ed p-cp) 0))
                   j__2 (if (some? (vim-strchr ed (BytePtr/lit "?=:!&") nextchar))
                          (let [^BytePtr arg (.add arg len)
-                               j__1 (if (and (== nextchar 38) (== (bit-and (.at arg 1) 0xff) 118) (== (bit-and (.at arg 2) 0xff) 105))
-                                      (if (== (bit-and (.at arg 3) 0xff) 109)
+                               j__1 (if (and (== nextchar 38) (== (.ub arg 1) 118) (== (.ub arg 2) 105))
+                                      (if (== (.ub arg 3) 109)
                                         (let [cp-val (e FALSE)
                                               ^BytePtr arg (.add arg 3)]
                                           (aset to__ 0 arg)
@@ -80526,7 +80509,7 @@
                                           0))
                                ^BytePtr arg (aget to__ 0)
                                cp-val (aget tl__ 0)]
-                           (if (and (some? (vim-strchr ed (BytePtr/lit "?!&<") nextchar)) (not (== (bit-and (.at arg 1) 0xff) (e NUL))) (not (or (== (bit-and (.at arg 1) 0xff) 32) (== (bit-and (.at arg 1) 0xff) 9))))
+                           (if (and (some? (vim-strchr ed (BytePtr/lit "?!&<") nextchar)) (not (== (.ub arg 1) (e NUL))) (not (or (== (.ub arg 1) 32) (== (.ub arg 1) 9))))
                              (do (aset errmsg 0 (BytePtr. (g ed e-trailing-characters) 0))
                                  (.put argp arg)
                                  (.set-r__ out__ (aget errmsg 0))
@@ -80603,16 +80586,16 @@
         ^objects to__ (object-array 2)]
     (aset arg 0 arg-start)
     (let [did-show (e FALSE)]
-      (if (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) (e NUL))
+      (if (== (.ub ^BytePtr (aget arg 0)) (e NUL))
         (do (showoptions ed 0 opt-flags)
             (let [did-show (e TRUE)]
               true))
         (loop [did-show did-show]
-          (if (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) (e NUL))
+          (if (== (.ub ^BytePtr (aget arg 0)) (e NUL))
             true
-            (let [j__1 (if (and (== (long (musl-strncmp ed (aget arg 0) (BytePtr/lit "all") 3)) 0) (not (or (< (u32 (- (bit-and (.at ^BytePtr (aget arg 0) 3) 0xff) 65)) 26) (< (u32 (- (bit-and (.at ^BytePtr (aget arg 0) 3) 0xff) 97)) 26))))
+            (let [j__1 (if (and (== (long (musl-strncmp ed (aget arg 0) (BytePtr/lit "all") 3)) 0) (not (or (< (u32 (- (.ub ^BytePtr (aget arg 0) 3) 65)) 26) (< (u32 (- (.ub ^BytePtr (aget arg 0) 3) 97)) 26))))
                          (do (aset arg 0 (.add ^BytePtr (aget arg 0) 3))
-                             (if (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) 38)
+                             (if (== (.ub ^BytePtr (aget arg 0)) 38)
                                (do (aset arg 0 (.add ^BytePtr (aget arg 0) 1))
                                    (set-options-default ed (bit-or (e OPT_FREE) opt-flags))
                                    (didset-options ed)
@@ -80641,14 +80624,14 @@
                                      (loop [i i]
                                        (when (< i 2)
                                          (loop []
-                                           (when (and (not (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) (e NUL))) (not (or (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) 32) (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) 9))))
+                                           (when (and (not (== (.ub ^BytePtr (aget arg 0)) (e NUL))) (not (or (== (.ub ^BytePtr (aget arg 0)) 32) (== (.ub ^BytePtr (aget arg 0)) 9))))
                                              (let [^BytePtr t1 (aget arg 0)]
                                                (aset arg 0 (.add ^BytePtr (aget arg 0) 1))
-                                               (when (and (== (bit-and (.get t1) 0xff) 92) (not (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) (e NUL))))
+                                               (when (and (== (.ub t1) 92) (not (== (.ub ^BytePtr (aget arg 0)) (e NUL))))
                                                  (aset arg 0 (.add ^BytePtr (aget arg 0) 1)))
                                                (recur))))
                                          (aset arg 0 (skipwhite ed (aget arg 0)))
-                                         (when (== (bit-and (.get ^BytePtr (aget arg 0)) 0xff) 61)
+                                         (when (== (.ub ^BytePtr (aget arg 0)) 61)
                                            (let [i (i32 (inc i))]
                                              (recur i)))))
                                      (if (some? errmsg)
@@ -81048,13 +81031,13 @@
 (defn did-set-weirdinvert ^BytePtr [^Editor ed ^T_optset_T args]
   (if (and (not (zero? (long (aget (g ed p-wiv) 0)))) (zero? (.boolean_ ^A_4 (.-os-oldval args))))
     (do (aset (g ed term-strings) 52 (BytePtr/lit "y"))
-        (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 52)) 0xff) (e NUL))) 1 0)))
+        (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (.ub ^BytePtr (aget (g ed term-strings) 52)) (e NUL))) 1 0)))
         nil)
     (if (and (zero? (long (aget (g ed p-wiv) 0))) (not (zero? (.boolean_ ^A_4 (.-os-oldval args)))))
       (do (aset (g ed term-strings) 52 (g ed empty-option))
-          (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 52)) 0xff) (e NUL))) 1 0)))
+          (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (.ub ^BytePtr (aget (g ed term-strings) 52)) (e NUL))) 1 0)))
           nil)
-      (do (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 52)) 0xff) (e NUL))) 1 0)))
+      (do (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (.ub ^BytePtr (aget (g ed term-strings) 52)) (e NUL))) 1 0)))
           nil))))
 
 ;; C: did_set_window
@@ -81146,9 +81129,9 @@
   (let [errbuflen (long errbuflen)
         ^BytePtr s val_]
     (loop [^BytePtr s s]
-      (when-not (zero? (bit-and (.get s) 0xff))
-        (if (nil? (vim-strchr ed flags (bit-and (.get s) 0xff)))
-          (illegal-char ed errbuf errbuflen (bit-and (.get s) 0xff))
+      (when-not (zero? (.ub s))
+        (if (nil? (vim-strchr ed flags (.ub s)))
+          (illegal-char ed errbuf errbuflen (.ub s))
           (let [^BytePtr s (.add s 1)]
             (recur s)))))))
 
@@ -81177,15 +81160,15 @@
 ;; C: did_set_background
 (defn did-set-background ^BytePtr [^Editor ed ^T_optset_T args]
   (if (check-opt-strings ed (aget (g ed p-bg) 0) (Ptr. (g ed p-bg-values) 0) false)
-    (when-not (and (some? (.string ^A_4 (.-os-oldval args))) (== (bit-and (.at ^BytePtr (.string ^A_4 (.-os-oldval args)) 0) 0xff) (bit-and (.get ^BytePtr (aget (g ed p-bg) 0)) 0xff)))
+    (when-not (and (some? (.string ^A_4 (.-os-oldval args))) (== (.ub ^BytePtr (.string ^A_4 (.-os-oldval args)) 0) (.ub ^BytePtr (aget (g ed p-bg) 0))))
       (init-highlight ed false false)
       nil)
     (BytePtr. (g ed e-invalid-argument) 0)))
 
 ;; C: did_set_backspace
 (defn did-set-backspace ^BytePtr [^Editor ed ^T_optset_T args]
-  (if (< (u32 (- (bit-and (.get ^BytePtr (aget (g ed p-bs) 0)) 0xff) 48)) 10)
-    (when (or (> (bit-and (.get ^BytePtr (aget (g ed p-bs) 0)) 0xff) 51) (not (== (bit-and (.at ^BytePtr (aget (g ed p-bs) 0) 1) 0xff) (e NUL))))
+  (if (< (u32 (- (.ub ^BytePtr (aget (g ed p-bs) 0)) 48)) 10)
+    (when (or (> (.ub ^BytePtr (aget (g ed p-bs) 0)) 51) (not (== (.ub ^BytePtr (aget (g ed p-bs) 0) 1) (e NUL))))
       (BytePtr. (g ed e-invalid-argument) 0))
     (when-not (check-opt-strings ed (aget (g ed p-bs) 0) (Ptr. (g ed p-bs-values) 0) true)
       (BytePtr. (g ed e-invalid-argument) 0))))
@@ -81205,21 +81188,21 @@
         ^BytePtr errmsg nil
         ^Ptr local-ptr (if opt-lcs (Ptr. ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0) (Ptr. ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt (g ed curwin))) 0))
         ^BytePtr errmsg (if opt-lcs
-                          ^BytePtr (set-listchars-option ed (g ed curwin) val_ (or (== (bit-and (.get ^BytePtr (.get local-ptr)) 0xff) (e NUL)) (zero? (bit-and opt-flags (e OPT_GLOBAL)))) errbuf errbuflen)
-                          ^BytePtr (set-fillchars-option ed (g ed curwin) val_ (or (== (bit-and (.get ^BytePtr (.get local-ptr)) 0xff) (e NUL)) (zero? (bit-and opt-flags (e OPT_GLOBAL)))) errbuf errbuflen))]
+                          ^BytePtr (set-listchars-option ed (g ed curwin) val_ (or (== (.ub ^BytePtr (.get local-ptr)) (e NUL)) (zero? (bit-and opt-flags (e OPT_GLOBAL)))) errbuf errbuflen)
+                          ^BytePtr (set-fillchars-option ed (g ed curwin) val_ (or (== (.ub ^BytePtr (.get local-ptr)) (e NUL)) (zero? (bit-and opt-flags (e OPT_GLOBAL)))) errbuf errbuflen))]
     (if (some? errmsg)
       errmsg
       (do (when (zero? (bit-and opt-flags (e OPT_GLOBAL)))
             (clear-string-option ed local-ptr))
           (let [^S_window_S wp (g ed curwin)]
             (if opt-lcs
-              (if (== (bit-and (.get ^BytePtr (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt wp)) 0)) 0xff) (e NUL))
+              (if (== (.ub ^BytePtr (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt wp)) 0)) (e NUL))
                 (do (set-listchars-option ed wp (aget ^objects (.-wo-lcs ^T_winopt_T (.-w-onebuf-opt wp)) 0) true nil 0)
                     (redraw-all-later ed (e UPD_NOT_VALID))
                     nil)
                 (do (redraw-all-later ed (e UPD_NOT_VALID))
                     nil))
-              (if (== (bit-and (.get ^BytePtr (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt wp)) 0)) 0xff) (e NUL))
+              (if (== (.ub ^BytePtr (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt wp)) 0)) (e NUL))
                 (do (set-fillchars-option ed wp (aget ^objects (.-wo-fcs ^T_winopt_T (.-w-onebuf-opt wp)) 0) true nil 0)
                     (redraw-all-later ed (e UPD_NOT_VALID))
                     nil)
@@ -81287,12 +81270,12 @@
         ret (e KEYPROTOCOL_FAIL)
         ^BytePtr p (aget (g ed p-kpc) 0)]
     (loop [^BytePtr p p]
-      (if (== (bit-and (.get p) 0xff) (e NUL))
+      (if (== (.ub p) (e NUL))
         (e KEYPROTOCOL_NONE)
         (do (.set copy-option-part__o (copy-option-part ed p buf len (BytePtr/lit ",")))
             (let [^BytePtr p (.option copy-option-part__o)
                   ^BytePtr colon (vim-strchr ed buf 58)]
-              (if (or (nil? colon) (BytePtr/eq colon buf) (== (bit-and (.at colon 1) 0xff) (e NUL)))
+              (if (or (nil? colon) (BytePtr/eq colon buf) (== (.ub colon 1) (e NUL)))
                 ret
                 (do (.put colon (unchecked-byte (e NUL)))
                     (let [j__1 (if (== (long (musl-strcmp ed (.add colon 1) (BytePtr/lit "none"))) 0)
@@ -81358,7 +81341,7 @@
                         (recur 3 term entries overwrite term-8bit p s t))
                     (recur 3 term entries overwrite term-8bit p s t)))))
         2
-          (if (zero? (bit-and (.get t) 0xff))
+          (if (zero? (.ub t))
             (do (aset (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p)) s)
                 (set-term-option-alloced ed (Ptr. (g ed term-strings) (.bt-entry ^T_tcap_entry_T (.get p))))
                 (recur 3 term entries overwrite term-8bit p s t))
@@ -81381,7 +81364,7 @@
       (loop [i i]
         (if (< i (g ed tc-len))
           (when-not (nil? (.regprog regmatch))
-            (when-not (and (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0) 0xff) 80) (or (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff) 83) (== (bit-and (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1) 0xff) 69)))
+            (when-not (and (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 0)) 0xff) 80) (or (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) 83) (== (bit-and (long (aget ^bytes (.-name_ ^S_termcode (.at (g ed termcodes) i)) 1)) 0xff) 69)))
               (let [^BytePtr s (.code ^S_termcode (.at (g ed termcodes) i))]
                 (when (and (some? s) (vim-regexec ed regmatch s 0))
                   (let [len (long (musl-strlen ed s))
@@ -81422,24 +81405,24 @@
         ^Ptr varp (.ov-str ^T_optvar_T (.-os-varp args))
         ^BytePtr p (.get varp)]
     (loop [^BytePtr p p]
-      (when-not (== (bit-and (.get p) 0xff) (e NUL))
+      (when-not (== (.ub p) (e NUL))
         (let [x2 -1
               x3 -1
               t1 (long (utfc-ptr2len ed p))
               ^BytePtr p (.add p t1)
-              j__1 (if (== (bit-and (.get p) 0xff) (e NUL))
+              j__1 (if (== (.ub p) (e NUL))
                      (do (aset to__ 0 p)
                          (aset tl__ 0 x2)
                          0)
                      (let [^BytePtr t2 p
                            ^BytePtr p (.add p 1)
-                           x2 (bit-and (.get t2) 0xff)]
+                           x2 (.ub t2)]
                        (aset to__ 0 p)
                        (aset tl__ 0 x2)
                        0))
               ^BytePtr p (aget to__ 0)
               x2 (aget tl__ 0)
-              j__2 (if (== (bit-and (.get p) 0xff) (e NUL))
+              j__2 (if (== (.ub p) (e NUL))
                      (do (aset to__ 0 p)
                          (aset tl__ 1 x3)
                          0)
@@ -81451,9 +81434,9 @@
                        0))
               ^BytePtr p (aget to__ 0)
               x3 (aget tl__ 1)]
-          (if (or (not (== x2 58)) (== x3 -1) (and (not (== (bit-and (.get p) 0xff) (e NUL))) (not (== (bit-and (.get p) 0xff) 44))))
+          (if (or (not (== x2 58)) (== x3 -1) (and (not (== (.ub p) (e NUL))) (not (== (.ub p) 44))))
             (BytePtr. (g ed e-invalid-argument) 0)
-            (when-not (== (bit-and (.get p) 0xff) (e NUL))
+            (when-not (== (.ub p) (e NUL))
               (let [^BytePtr p (.add p 1)]
                 (recur p)))))))))
 
@@ -81470,7 +81453,7 @@
 ;; C: did_set_pastetoggle
 (defn did-set-pastetoggle ^BytePtr [^Editor ed ^T_optset_T args]
   (let [^T_replace_termcodes__out_T replace-termcodes__o (new-T_replace_termcodes__out_T)]
-    (when-not (zero? (bit-and (.get ^BytePtr (aget (g ed p-pt) 0)) 0xff))
+    (when-not (zero? (.ub ^BytePtr (aget (g ed p-pt) 0)))
       (.set replace-termcodes__o (replace-termcodes ed (aget (g ed p-pt) 0) 0 3 nil))
       (let [^BytePtr p (.bufp replace-termcodes__o)]
         (when (some? p)
@@ -81480,7 +81463,7 @@
 
 ;; C: did_set_selection
 (defn did-set-selection ^BytePtr [^Editor ed ^T_optset_T args]
-  (when (or (== (bit-and (.get ^BytePtr (aget (g ed p-sel) 0)) 0xff) (e NUL)) (not (check-opt-strings ed (aget (g ed p-sel) 0) (Ptr. (g ed p-sel-values) 0) false)))
+  (when (or (== (.ub ^BytePtr (aget (g ed p-sel) 0)) (e NUL)) (not (check-opt-strings ed (aget (g ed p-sel) 0) (Ptr. (g ed p-sel-values) 0) false)))
     (BytePtr. (g ed e-invalid-argument) 0)))
 
 ;; C: did_set_selectmode
@@ -81550,7 +81533,7 @@
       (aset buf 1 (unchecked-byte (e NUL)))
       (add-termcode ed (BytePtr/lit "kb") (BytePtr. buf 0) (e FALSE))
       (let [^BytePtr p (find-termcode ed (BytePtr/lit "kD"))]
-        (when (and (some? p) (== (bit-and (.at p 0) 0xff) (bit-and (aget buf 0) 0xff)) (== (bit-and (.at p 1) 0xff) (bit-and (aget buf 1) 0xff)))
+        (when (and (some? p) (== (.ub p 0) (bit-and (long (aget buf 0)) 0xff)) (== (.ub p 1) (bit-and (long (aget buf 1)) 0xff)))
           (do-fixdel ed nil)
           nil)))))
 
@@ -81588,17 +81571,17 @@
             (if (== (long (musl-strcmp ed term (BytePtr/lit "pcterm"))) 0)
               (aset (g ed term-strings) 48 (BytePtr/lit "yes"))
               (aset (g ed term-strings) 48 (g ed empty-option)))
-            (when (and (some? (musl-strstr ed term (BytePtr/lit "kitty"))) (or (nil? (aget (g ed term-strings) 69)) (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 69)) 0xff) (e NUL))))
+            (when (and (some? (musl-strstr ed term (BytePtr/lit "kitty"))) (or (nil? (aget (g ed term-strings) 69)) (== (.ub ^BytePtr (aget (g ed term-strings) 69)) (e NUL))))
               (aset (g ed term-strings) 69 (BytePtr/lit "\033[>c")))
             (get-stty ed)
             (let [^BytePtr bs-p (find-termcode ed (BytePtr/lit "kb"))
                   ^BytePtr del-p (find-termcode ed (BytePtr/lit "kD"))
-                  ^BytePtr bs-p (if (or (nil? bs-p) (== (bit-and (.get bs-p) 0xff) (e NUL)))
+                  ^BytePtr bs-p (if (or (nil? bs-p) (== (.ub bs-p) (e NUL)))
                                   (let [^BytePtr bs-p (BytePtr/lit "\010")]
                                     (add-termcode ed (BytePtr/lit "kb") bs-p (e FALSE))
                                     bs-p)
                                   bs-p)]
-              (when (and (or (nil? del-p) (== (bit-and (.get del-p) 0xff) (e NUL))) (or (nil? bs-p) (not (== (bit-and (.get bs-p) 0xff) (e DEL)))))
+              (when (and (or (nil? del-p) (== (.ub del-p) (e NUL))) (or (nil? bs-p) (not (== (.ub bs-p) (e DEL)))))
                 (add-termcode ed (BytePtr/lit "kD") (BytePtr/lit "\177") (e FALSE)))
               (g! ed term-is-xterm (if (vim-is-xterm? ed term) 1 0))
               (aset name_ 0 (unchecked-byte (e KS_EXTRA)))
@@ -81635,7 +81618,7 @@
 
 ;; C: did_set_term
 (defn did-set-term ^BytePtr [^Editor ed ^T_optset_T args]
-  (if (== (bit-and (.at ^BytePtr (aget (g ed term-strings) 0) 0) 0xff) (e NUL))
+  (if (== (.ub ^BytePtr (aget (g ed term-strings) 0) 0) (e NUL))
     (BytePtr. (g ed e-cannot-set-term-to-empty-string) 0)
     (if (set-termname ed (aget (g ed term-strings) 0))
       (do (redraw-later-clear ed)
@@ -81658,7 +81641,7 @@
         (out-str ed (aget (g ed term-strings) 19))
         (redraw-later ed (e UPD_CLEAR)))
       (when (and (Ptr/eq varp (Ptr. (g ed term-strings) 82)) (not (zero? (g ed termcap-active))))
-        (if (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 82)) 0xff) (e NUL))
+        (if (== (.ub ^BytePtr (aget (g ed term-strings) 82)) (e NUL))
           (out-str ed (aget (g ed term-strings) 83))
           (out-str ed (aget (g ed term-strings) 82))))
       (when (or (Ptr/eq varp (Ptr. (g ed term-strings) 92)) (Ptr/eq varp (Ptr. (g ed term-strings) 93)))
@@ -81681,7 +81664,7 @@
                  0))
         ^BytePtr ve (aget to__ 0)
         ^IntPtr flags (aget to__ 1)]
-    (if (and (not (zero? (bit-and (.os-flags args) (e OPT_LOCAL)))) (== (bit-and (.get ve) 0xff) (e NUL)))
+    (if (and (not (zero? (bit-and (.os-flags args) (e OPT_LOCAL)))) (== (.ub ve) (e NUL)))
       (do (.put flags (unchecked-int 0))
           nil)
       (if (opt-strings-flags ed ve (Ptr. (g ed p-ve-values) 0) flags true)
@@ -81780,7 +81763,7 @@
         n (i32 (- (i32 (aget (g ed Columns) 0)) 6))]
     (loop [^BytePtr p p
            n n]
-      (let [t1 (and (not (== (bit-and (.get p) 0xff) (e NUL))) (not (and (== (bit-and (.get p) 0xff) (e ESC)) skip-esc (== (bit-and (.get (.add p 1)) 0xff) (e NUL)))))
+      (let [t1 (and (not (== (.ub p) (e NUL))) (not (and (== (.ub p) (e ESC)) skip-esc (== (.ub (.add p 1)) (e NUL)))))
             j__1 (if t1
                    (let [t2 (long (ptr2cells ed p))
                          n (i32 (- n t2))
@@ -81827,7 +81810,7 @@
         0
           (let [^BytePtr arg (aget ^objects (.-arg eap) 0)
                 _ (g! ed silence-w23-w24-msg (i32 (inc (g ed silence-w23-w24-msg))))
-                ^BytePtr arg (when-not (and (some? arg) (== (bit-and (.get arg) 0xff) (e NUL)))
+                ^BytePtr arg (when-not (and (some? arg) (== (.ub arg) (e NUL)))
                                arg)
                 attr (long (aget (g ed highlight-attr) 0))
                 _ (msg-puts-title ed (gettext_ ed (BytePtr/lit "\nType Name Content")))
@@ -81902,7 +81885,7 @@
           (do (ui-breakcheck ed)
               (recur 6 eap i n j p yb name_ attr arg type_ do-show))
         5
-          (let [t1 (not (== (bit-and (.get p) 0xff) (e NUL)))
+          (let [t1 (not (== (.ub p) (e NUL)))
                 j__1 (if t1
                        (let [t2 (long (ptr2cells ed p))
                              n (i32 (- n t2))
@@ -82298,7 +82281,7 @@
   (g! ed starting (e NO_BUFFERS))
   (g! ed no-wait-return (e FALSE))
   (g! ed msg-scroll (e FALSE))
-  (when (and (or (not (zero? (g ed did-emsg))) (not (zero? (g ed msg-didout)))) (not (== (bit-and (.get ^BytePtr (aget (g ed term-strings) 42)) 0xff) (e NUL))))
+  (when (and (or (not (zero? (g ed did-emsg))) (not (zero? (g ed msg-didout)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 42)) (e NUL))))
     (g! ed newline-on-exit (e TRUE)))
   (term-enter ed)
   (when (or (not (zero? (g ed need-wait-return))) (not (zero? (g ed msg-didany))))

@@ -128,3 +128,44 @@ redraw's line counting above all) and the 0.2 s of start-up. Those would
 take the backend's code for a byte pointer's walk (`BytePtr` and its
 boxing), not the JIT's thresholds -- a larger change, and the next
 measurement's to choose.
+
+## The per-character loops: bytes boxed (2026-09-30)
+
+The next measurement, at `0876ad6` after the change above: the redraw's line
+counting (`plines_win_nofold`, `win_linetabsize_cts`,
+`win_lbr_chartabsize`, `ptr2cells`) was still a quarter of the samples.
+`ptr2cells`'s bytecode showed why it was 7.3 times the C: each unsigned byte
+read, `(bit-and (.get p) 0xff)`, boxed the byte (`Byte.valueOf`, a
+checkcast, `RT.uncheckedLongCast`), since Clojure's arithmetic has no
+`byte` overload. `:warn-on-boxed` does not report it. There were 2,200 such
+reads. They are now `(.ub p)` / `(.ub p k)` (`BytePtr.ub()`, the unsigned
+read as a `long`: an `int`, `u()`, the Java's, made a `let` or `loop` local an
+Object and the build refused its reflection). Every other byte source is
+`(bit-and (long x) 0xff)`.
+
+Timed without the AOT cache, before and after, three runs each, the same
+screens:
+
+| lines | before (s) | after (s) |
+| ---: | ---: | ---: |
+| 500 | 1.57-1.64 | 1.60-1.65 |
+| 5,000 | 2.55-2.57 | 2.39-2.56 |
+| 50,000 | 10.9-11.2 | 10.2-10.6 |
+
+`ptr2cells` fell from 6.9% of the samples to 2.9%. The suite's heavy case
+reads 3.7 times the C, inside the 3.4-3.9 it read before: a few percent, and
+under the heavy case's noise at 5,000 lines.
+
+What is left, not done:
+
+- **Boxing at calls** (`Numbers.num`, 3.5% of the samples, most of it in
+  `ex_substitute`). Clojure gives a function a primitive signature only up to
+  4 parameters, so `vim_regsub_multi` (7), `search_found` and
+  `vim_regexec_multi` take their longs boxed on every line. Removing it
+  would take another calling convention for the backend, not a rule.
+- **Start-up** (about 10% of the samples, 0.2 s), which the AOT cache
+  already cuts.
+- **A `BytePtr` allocated a step**: `(.add p n)` in the walks, and
+  `(.lt p (.add line len))` each turn of `win_linetabsize_cts`. The C does
+  the same arithmetic; a mutable cursor would be a different runtime.
+

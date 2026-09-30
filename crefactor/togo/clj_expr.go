@@ -153,15 +153,88 @@ func loadK(s string, k jk) string {
 	case k.boolean:
 		return s
 	case k.size == 1 && !k.signed:
-		return "(bit-and " + s + " 0xff)"
+		// a byte passed to bit-and is boxed (Clojure's arithmetic is on
+		// longs and has no byte overload), a long is not: a BytePtr's own
+		// unsigned read as a long (ub), or the byte made a long first
+		if h, args, ok := cljForm(s); ok && (h == ".get" && len(args) == 1 || h == ".at" && len(args) == 2) {
+			return "(.ub " + strings.Join(args, " ") + ")"
+		}
+		return "(bit-and (long " + s + ") 0xff)"
 	case k.size == 2 && !k.signed:
-		return "(bit-and " + s + " 0xffff)"
+		return "(bit-and (long " + s + ") 0xffff)"
 	case k.size == 4 && !k.signed:
 		return "(bit-and " + s + " 0xffffffff)"
 	case k.size == 8:
 		return s
 	}
 	return "(long " + s + ")"
+}
+
+// cljForm splits s, one list form, into its head and its arguments' text.
+func cljForm(s string) (string, []string, bool) {
+	if len(s) < 2 || s[0] != '(' || s[len(s)-1] != ')' {
+		return "", nil, false
+	}
+	var parts []string
+	depth, start := 0, -1
+	for i := 1; i < len(s)-1; i++ {
+		c := s[i]
+		switch {
+		case c == '"':
+			if start < 0 {
+				start = i
+			}
+			for i++; i < len(s)-1 && s[i] != '"'; i++ {
+				if s[i] == '\\' {
+					i++
+				}
+			}
+		case c == '\\':
+			if start < 0 {
+				start = i
+			}
+			i++ // a character literal: the next byte is its own
+		case c == '(' || c == '[' || c == '{':
+			if start < 0 {
+				start = i
+			}
+			depth++
+		case c == ')' || c == ']' || c == '}':
+			depth--
+			if depth < 0 {
+				return "", nil, false
+			}
+		case c == ' ' || c == '\n' || c == '\t':
+			if depth == 0 && start >= 0 {
+				parts = append(parts, s[start:i])
+				start = -1
+			}
+		default:
+			if start < 0 {
+				start = i
+			}
+		}
+	}
+	if depth != 0 {
+		return "", nil, false
+	}
+	if start >= 0 {
+		parts = append(parts, s[start:len(s)-1])
+	}
+	// a hint, ^T, is one argument with the form it tags
+	var out []string
+	for i := 0; i < len(parts); i++ {
+		if strings.HasPrefix(parts[i], "^") && i+1 < len(parts) {
+			out = append(out, parts[i]+" "+parts[i+1])
+			i++
+			continue
+		}
+		out = append(out, parts[i])
+	}
+	if len(out) == 0 {
+		return "", nil, false
+	}
+	return out[0], out[1:], true
 }
 
 // storeK is the bits a Java array or runtime pointer of kind k holds for

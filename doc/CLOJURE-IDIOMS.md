@@ -556,7 +556,15 @@ reach -- vim's error paths into the redraw -- names the member.
   parameters, and **200 of the 1,965 functions have more** (the editor
   counts); 216 `Boolean/valueOf` and 79 `Long/valueOf`/`Integer/valueOf` are
   the rest. The split machines' frames (`fl__` `long[]`, `fo__`
-  `Object[]`) are the hot case.
+  `Object[]`) are the hot case. **The warnings did not see bytes** (found 2026-09-30,
+  `doc/CLOJURE-PROFILE.md`): Clojure has no primitive `byte`, and an
+  unsigned byte read, `(bit-and (.get p) 0xff)`, compiled to
+  `Byte/valueOf` and `RT/uncheckedLongCast` of the Object, which
+  `:warn-on-boxed` does not report -- 2,200 reads. **Done:** they are
+  `(.ub p)` and `(.ub p k)`, `BytePtr`'s unsigned read as a `long`, and
+  any other byte source is `(bit-and (long x) 0xff)`; 12 `Byte/valueOf`
+  are left in the compiled editor. A signed read, `(long (.get p))`, was
+  primitive already.
 - **Where:** the build: add `:warn-on-boxed` to the refused warnings (S), so
   items 1-9 cannot bring boxed math in. The 4-parameter limit is Clojure's;
   passing a struct of arguments is not idiom, so leave it.
