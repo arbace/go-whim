@@ -56,6 +56,8 @@ type jgen struct {
 	classOrder  []string          // the struct classes, in the order met
 	classType   map[string]cc.Type
 	needEq      map[string]bool      // a class some code compares whole (memcmp)
+	statics     map[string]bool      // the methods that are static (java_static.go)
+	glue        map[string]bool      // Profile.JavaGlue
 	ctorClass   map[string]bool      // a class a table's rows are made of: its constructors (java_tables.go)
 	initNamed   map[string]bool      // a field some initial value names: its table keeps its statements
 	boxedField  map[string]bool      // a member whose address is taken, by fieldKey
@@ -643,41 +645,65 @@ func (g *gen) writeJava(path string) error {
 		}
 	}
 
-	// the functions, written or refused
-	var methods, report strings.Builder
-	written, replaced, total := 0, 0, 0
-	rtWritten, rtTotal := 0, 0 // of the functions the Go's runtime replaces (Profile.Runtime)
-	whys := map[string]int{}
+	// the functions, written or refused: again while a method thought
+	// static was written naming the instance (java_static.go)
+	j.glue = map[string]bool{}
+	for _, n := range g.p.JavaGlue {
+		j.glue[n] = true
+	}
+	var all []*cc.FunctionDefinition
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationFuncDef {
-			continue
+		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef && !j.replaced(ed.FunctionDefinition.Declarator.Name()) {
+			all = append(all, ed.FunctionDefinition)
 		}
-		fd := ed.FunctionDefinition
-		total++
-		name := fd.Declarator.Name()
-		inRt := g.p.runtime[name]
-		if inRt {
-			rtTotal++
+	}
+	j.statics = j.staticFree(all)
+	var methods, report strings.Builder
+	var written, replaced, total, rtWritten, rtTotal int // rt: of the functions the Go's runtime replaces (Profile.Runtime)
+	var whys map[string]int
+	var texts map[string]string
+	for {
+		methods.Reset()
+		report.Reset()
+		written, replaced, total, rtWritten, rtTotal = 0, 0, 0, 0, 0
+		whys = map[string]int{}
+		texts = map[string]string{}
+		for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+			ed := tu.ExternalDeclaration
+			if ed.Case != cc.ExternalDeclarationFuncDef {
+				continue
+			}
+			fd := ed.FunctionDefinition
+			total++
+			name := fd.Declarator.Name()
+			inRt := g.p.runtime[name]
+			if inRt {
+				rtTotal++
+			}
+			if j.replaced(name) {
+				// the Java runtime's: every call is written as its (BytePtr.alloc,
+				// Rt.memmove, ...), and no call reaches a method
+				replaced++
+				continue
+			}
+			src, why := j.method(fd)
+			if why != "" {
+				fmt.Fprintf(&report, "%s: %s\n", fd.Declarator.Name(), why)
+				whys[reasonKey(why)]++
+				texts[name] = j.stub(fd.Declarator, why)
+				methods.WriteString(texts[name])
+				continue
+			}
+			written++
+			if inRt {
+				rtWritten++
+			}
+			texts[name] = src
+			methods.WriteString(src)
 		}
-		if j.replaced(name) {
-			// the Java runtime's: every call is written as its (BytePtr.alloc,
-			// Rt.memmove, ...), and no call reaches a method
-			replaced++
-			continue
+		if !j.staticHeld(j.statics, texts, j.instanceNames(), all) {
+			break
 		}
-		src, why := j.method(fd)
-		if why != "" {
-			fmt.Fprintf(&report, "%s: %s\n", fd.Declarator.Name(), why)
-			whys[reasonKey(why)]++
-			methods.WriteString(j.stub(fd.Declarator, why))
-			continue
-		}
-		written++
-		if inRt {
-			rtWritten++
-		}
-		methods.WriteString(src)
 	}
 
 	// the host: every function declared, used and not defined
@@ -715,7 +741,6 @@ func (g *gen) writeJava(path string) error {
 		fmt.Fprintf(&b, "package %s;\n\n", g.p.JavaPackage)
 	}
 	b.WriteString("import whim.rt.*;\n\n")
-	b.WriteString("@SuppressWarnings({\"unchecked\", \"rawtypes\"})\n")
 	abstract := ""
 	if len(hostNames) > 0 {
 		abstract = "abstract "
@@ -875,8 +900,8 @@ func paramName(j *jgen, ft *cc.FunctionType, i int) string {
 func (j *jgen) stub(d *cc.Declarator, why string) string {
 	ft, _ := d.Type().(*cc.FunctionType)
 	rt := j.sigType(ft.Result(), "ret:"+d.Name())
-	return fmt.Sprintf("\n    %s %s(%s) {\n        throw new UnsupportedOperationException(%s);\n    }\n",
-		rt, j.jName(d.Name()), j.params(d, ft), javaQuote("refused: "+why))
+	return fmt.Sprintf("\n    %s%s %s(%s) {\n        throw new UnsupportedOperationException(%s);\n    }\n",
+		j.mods(d.Name()), rt, j.jName(d.Name()), j.params(d, ft), javaQuote("refused: "+why))
 }
 
 // abstract is a host function: declared, not defined, so the host's.
@@ -923,6 +948,7 @@ func (j *jgen) fields() (string, []string, []string) {
 				fmt.Fprintf(&b, "    Object %s; // C: %s -- %s\n", name, t, why)
 				return
 			}
+			b.WriteString(suppress(false, strings.Contains(nw, "new Ptr[")))
 			fmt.Fprintf(&b, "    final %s %s = %s;\n", jt, name, nw)
 		default:
 			fmt.Fprintf(&b, "    %s %s;\n", jt, name)

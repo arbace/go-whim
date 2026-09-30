@@ -43,7 +43,8 @@ func (l *jlocal) ref() string {
 
 // jfn is one method being written.
 type jfn struct {
-	fallsThrough bool // a switch in it falls through, as C meant: the method says so to javac
+	brk          []string // what a break is, innermost last: of a loop or switch, or of a once-block's label
+	fallsThrough bool     // a switch in it falls through, as C meant: the method says so to javac
 	j            *jgen
 	name         string
 	ft           *cc.FunctionType
@@ -278,7 +279,7 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 	f.indent = 2
 	if rb := j.runtimeBody(d.Name()); rb != nil {
 		// a rule of the runtime's, not a translation (Profile.RuntimeBodies)
-		return fmt.Sprintf("\n    %s %s(%s) {\n%s    }\n", f.ret, j.jName(d.Name()), strings.Join(ps, ", "), rb(f.ret)), ""
+		return fmt.Sprintf("\n    %s%s %s(%s) {\n%s    }\n", j.mods(d.Name()), f.ret, j.jName(d.Name()), strings.Join(ps, ", "), rb(f.ret)), ""
 	}
 	f.items(fd.CompoundStatement)
 	if f.ret != "void" && jcompleteItems(fd.CompoundStatement) {
@@ -286,10 +287,8 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 	}
 	var b strings.Builder
 	b.WriteString("\n")
-	if f.fallsThrough {
-		b.WriteString("    @SuppressWarnings(\"fallthrough\")\n") // C's, meant: each marked
-	}
-	fmt.Fprintf(&b, "    %s %s(%s) {\n", f.ret, j.jName(d.Name()), strings.Join(ps, ", "))
+	b.WriteString(suppress(f.fallsThrough, strings.Contains(body.String(), "new Ptr[")))
+	fmt.Fprintf(&b, "    %s%s %s(%s) {\n", j.mods(d.Name()), f.ret, j.jName(d.Name()), strings.Join(ps, ", "))
 	for _, s := range boxes {
 		b.WriteString(s)
 	}
@@ -829,6 +828,11 @@ func (f *jfn) switchStmt(s *cc.SelectionStatement) {
 	if s.Statement.Case != cc.StatementCompound {
 		f.no(s, "a switch whose body is not a block")
 	}
+	f.brk = append(f.brk, "break")
+	defer func() { f.brk = f.brk[:len(f.brk)-1] }()
+	if f.arrowSwitch(s, f.convK(v, pk), pk) {
+		return
+	}
 	f.line("switch (%s) {", f.convK(v, pk))
 	live := false
 	fell := false // a case's statements may complete: the next label falls into it
@@ -872,9 +876,143 @@ func (f *jfn) switchStmt(s *cc.SelectionStatement) {
 	f.line("}")
 }
 
+// arrowSwitch writes s in arrow form, `case A, B -> ...`, when C's switch
+// says nothing the arrows cannot: no case falls into the next, no
+// declaration or label at the switch's own level, no default beside a case
+// constant in one group; and says whether it did.  A group's closing break
+// goes; a body of one expression statement or throw is the arrow's, any
+// other a block.  A break inside leaves the switch, as C's does.
+func (f *jfn) arrowSwitch(s *cc.SelectionStatement, subject string, pk jk) bool {
+	type group struct {
+		labels []*cc.LabeledStatement
+		stmts  []*cc.Statement
+	}
+	var gs []*group
+	for l := s.Statement.CompoundStatement.BlockItemList; l != nil; l = l.BlockItemList {
+		it := l.BlockItem
+		if it.Case != cc.BlockItemStmt {
+			return false
+		}
+		labels, st := caseChain(it)
+		if st.Case == cc.StatementLabeled {
+			return false // a goto's label
+		}
+		if len(labels) > 0 {
+			gs = append(gs, &group{labels: labels})
+		}
+		if len(gs) == 0 {
+			return false
+		}
+		g := gs[len(gs)-1]
+		g.stmts = append(g.stmts, st)
+	}
+	if len(gs) == 0 {
+		return false
+	}
+	for i, g := range gs {
+		def, cases := false, false
+		for _, ls := range g.labels {
+			switch ls.Case {
+			case cc.LabeledStatementCaseLabel:
+				cases = true
+			case cc.LabeledStatementDefault:
+				def = true
+			default:
+				return false
+			}
+		}
+		if def && cases {
+			return false
+		}
+		live := true
+		for _, st := range g.stmts {
+			if live {
+				live = jcomplete(st)
+			}
+		}
+		if live && i < len(gs)-1 {
+			return false // it falls into the next
+		}
+	}
+	f.line("switch (%s) {", subject)
+	f.indent++
+	for _, g := range gs {
+		var ls []string
+		def := false
+		for _, l := range g.labels {
+			if l.Case == cc.LabeledStatementDefault {
+				def = true
+				continue
+			}
+			ls = append(ls, f.convK(f.expr(l.ConstantExpression), pk))
+		}
+		head := "case " + strings.Join(ls, ", ")
+		if def {
+			head = "default"
+		}
+		// the statements up to the first that cannot complete, less a
+		// closing break
+		var stmts []*cc.Statement
+		for _, st := range g.stmts {
+			stmts = append(stmts, st)
+			if !jcomplete(st) {
+				break
+			}
+		}
+		if n := len(stmts); n > 0 && stmts[n-1].Case == cc.StatementJump && stmts[n-1].JumpStatement.Case == cc.JumpStatementBreak {
+			stmts = stmts[:n-1]
+		}
+		f.indent++
+		body := f.capture(func() {
+			for _, st := range stmts {
+				f.stmt(st)
+			}
+		})
+		f.indent--
+		one := strings.TrimSpace(body)
+		switch {
+		case one == "":
+			f.line("%s -> {", head)
+			f.line("}")
+		case !strings.Contains(one, "\n") && strings.HasSuffix(one, ";") && arrowStmt(one):
+			f.line("%s -> %s", head, one)
+		default:
+			f.line("%s -> {", head)
+			f.out.WriteString(body)
+			f.line("}")
+		}
+	}
+	f.indent--
+	f.line("}")
+	return true
+}
+
+// arrowStmt says the one statement may be an arrow's body: an expression
+// statement or a throw, not a return, a jump or a declaration.
+func arrowStmt(s string) bool {
+	if strings.HasPrefix(s, "throw ") {
+		return true
+	}
+	for _, kw := range []string{"return", "break", "continue", "if ", "for ", "while ", "do ", "switch ", "{", "}", "new "} {
+		if strings.HasPrefix(s, kw) {
+			return false
+		}
+	}
+	// what comes before the first = or ( is one token: a declaration's
+	// `Type name` has two
+	head := s
+	if k := strings.IndexAny(s, "=("); k >= 0 {
+		head = s[:k]
+	}
+	head = strings.TrimSpace(strings.TrimRight(strings.TrimSpace(head), "+-*/%&|^<>!"))
+	return head != "" && !strings.ContainsAny(head, " \t")
+}
+
 func (f *jfn) loopBody(s *cc.Statement, cont string) {
 	f.cont = append(f.cont, cont)
+	f.brk = append(f.brk, "break")
 	f.body(s)
+	f.brk = f.brk[:len(f.brk)-1]
 	f.cont = f.cont[:len(f.cont)-1]
 }
 
@@ -929,6 +1067,19 @@ func (f *jfn) iteration(s *cc.IterationStatement) {
 			f.indent++
 			pre = f.capture(func() { c = f.condition(s.ExpressionList) })
 			f.indent--
+		}
+		if c == "false" && pre == "" {
+			// phase 173's once-loop: a block its breaks leave, as a
+			// goto's is (a continue reaches the false condition: out too)
+			lbl := f.newLabel()
+			f.line("%s: {", lbl)
+			f.cont = append(f.cont, "break "+lbl)
+			f.brk = append(f.brk, "break "+lbl)
+			f.body(s.Statement)
+			f.brk = f.brk[:len(f.brk)-1]
+			f.cont = f.cont[:len(f.cont)-1]
+			f.line("}")
+			return
 		}
 		f.line("do {")
 		if pre == "" {
@@ -1030,7 +1181,11 @@ func (f *jfn) jump(j *cc.JumpStatement) {
 		}
 		f.stmt1("break %s", gotoLabel(j.Token2.SrcStr())) // out of the labeled block that ends at the label
 	case cc.JumpStatementBreak:
-		f.stmt1("break")
+		if len(f.brk) > 0 {
+			f.stmt1("%s", f.brk[len(f.brk)-1])
+		} else {
+			f.stmt1("break")
+		}
 	case cc.JumpStatementContinue:
 		if len(f.cont) == 0 {
 			f.no(j, "a continue outside a loop")

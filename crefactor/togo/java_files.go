@@ -85,7 +85,7 @@ func (j *jgen) writeJavaFiles(path, class string, abstract bool, written, total,
 	if abstract {
 		abs = "abstract "
 	}
-	fmt.Fprintf(&eb, "@SuppressWarnings({\"unchecked\", \"rawtypes\"})\npublic %sclass %s {\n", abs, class)
+	fmt.Fprintf(&eb, "public %sclass %s {\n", abs, class)
 	eb.WriteString(fields)
 	for _, k := range j.fnRefOrder {
 		eb.WriteString(j.fnRefText[k])

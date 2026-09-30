@@ -1605,7 +1605,7 @@ void run(void)
 func TestJavaNames(t *testing.T) {
 	prog := javaSame(t, javaNamesC)
 	for _, want := range []string{
-		"case ESC:", "case K_INS:", `case '\\':`, `case '\t':`, "case 'z' - 'a' + 1:",
+		"case ESC ->", "case K_INS ->", `case '\\' ->`, `case '\t' ->`, "case 'z' - 'a' + 1 ->",
 		"new S_opt(P_BOOL | P_VI_DEF, BIGL)", "new S_opt(P_RCLR, BIGL + 1L)",
 		`M_SHIFT, '&', '\\');`, "2147483647",
 	} {

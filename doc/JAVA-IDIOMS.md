@@ -475,9 +475,36 @@ Java: `gettext_(` 400 -> 1 (its definition), `Integer.compareUnsigned` 150
   bits for `+ - * & | ^`, the ones it applies to.
 `javac -Xlint:all` on the Java editor now reports one warning, the FFM
 API's `[restricted]` in the host. Already so: the empty `for`s (0) and the
-named package (item 11). Not done: the arrow-form switches, phase 173's
-blocks as labeled blocks (11), `private` and `static`, and the class-level
-`@SuppressWarnings` narrowed.
+named package (item 11).
+
+**And the rest** (2026-09-30):
+- **Arrow switches.** A switch whose cases never fall into the next, with
+  no declaration or label at its level and no `default` in a group beside
+  a case constant, is in arrow form: `case K_DEL, K_KDEL -> ...`, a group's
+  closing `break` gone, a body of one expression statement or `throw` on
+  the arrow's line, any other a block. 389 arrow cases; `break;` 1,104 ->
+  780. The switches C falls through in, or declares in, keep their labels
+  (514).
+- **Labeled blocks.** Phase 173's 11 `do { ... } while (false)` are
+  labeled blocks, `c4: { ... break c4; ... }`, as a goto's are; a `break`
+  or `continue` that left the once-loop leaves the block (a stack of what
+  `break` is, beside `continue`'s).
+- **`private` and `static`** (`java_static.go`). With `Profile.JavaPrivate`
+  every method is private but the host's, which the glue overrides, and
+  the nine the glue calls (`JavaGlue`): 1,714. A method that reaches no
+  field of the editor, directly or through what it calls, is static: 201.
+  Decided on the C and held to the printed text: a static method whose
+  text names an instance field or method is not, with its callers, and the
+  methods are printed again.
+- **`@SuppressWarnings` narrowed.** The class-level one is gone. javac, with
+  it gone, warns at three sites -- a field and two methods creating an
+  array of `Ptr<T>`, which Java cannot make generic -- and those three
+  carry `rawtypes` and `unchecked`, with the fall-through methods' own:
+  13 annotations.
+`Editor.java` 54,919 -> 54,673 lines. `javac -Xlint:all,-this-escape`
+reports only the host's `[restricted]`, in 3 s. `-this-escape` because that
+lint follows the constructor into every private method it reaches, and
+with the methods private it did not finish in 20 minutes and 11 GB.
 
 Each is S and none; the counts are the Java's today.
 

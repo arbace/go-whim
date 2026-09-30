@@ -58,6 +58,11 @@ type Profile struct {
 	// JavaPackage, since the unnamed package cannot be imported from.
 	JavaFiles bool
 
+	// JavaPrivate makes every method private but the host's, which the glue
+	// overrides, and JavaGlue's, which it calls (java_static.go).
+	JavaPrivate bool
+	JavaGlue    []string
+
 	// CljNamespace is the namespace -clj writes; "" is whim.editor.
 	CljNamespace string
 	// CljHost is the namespace a function declared and not defined is

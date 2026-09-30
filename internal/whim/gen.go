@@ -179,6 +179,10 @@ var Gen = togo.Profile{
 	// statically (doc/JAVA-IDIOMS.md, item 11).
 	JavaPackage: "whim.editor",
 	JavaFiles:   true,
+	// every method private but the host's and what braaam/Whim.java calls
+	JavaPrivate: true,
+	JavaGlue: []string{"vim_main", "deathtrap", "_", "emsg", "iemsg",
+		"emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells"},
 	// vim's _(), the identity once gettext went; _ is Go's blank.
 	Rename: map[string]string{"_": "gettext_"},
 	// The C functions editor/crt.go replaces: their calls are translated,
