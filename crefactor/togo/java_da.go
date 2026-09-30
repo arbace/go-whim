@@ -173,3 +173,59 @@ func (w *jda) stmt(st *cc.Statement, u bool) bool {
 	}
 	return u
 }
+
+// inlineStep says a ++ or -- of the variable e (its place lv), at n, may be
+// Java's own in the expression, `a[i++]`, where the Go had to take it out
+// before the statement (doc/JAVA-IDIOMS.md, item 9).  Java evaluates left
+// to right, and C leaves unsequenced only what a valid C program does not
+// do: read or write the variable elsewhere in the full expression.  So it
+// may be inline when the full expression names the variable only there,
+// and, for a field, calls nothing, which could read it.  A number held
+// plainly: not a pointer (immutable, so walked by a new one), not a bool,
+// not boxed.
+func (f *jfn) inlineStep(e cc.ExpressionNode, lv jlv, n cc.Node) bool {
+	if !lv.op || isJPtr(lv.t) || lv.t == "boolean" || f.fbody == nil {
+		return false
+	}
+	d := identDecl(unparenE(e))
+	if d == nil || f.j.isBoxed(d) {
+		return false
+	}
+	local := d.StorageDuration() == cc.Automatic
+	if !local && d.StorageDuration() != cc.Static {
+		return false
+	}
+	if f.par == nil {
+		f.par = map[cc.Node]cc.Node{}
+		var rec func(cc.Node)
+		rec = func(m cc.Node) {
+			walkChildrenFn(m, func(c cc.Node) {
+				f.par[c] = m
+				rec(c)
+			})
+		}
+		rec(f.fbody)
+	}
+	// the full expression: up to the first node that is none
+	root := n
+	for {
+		p := f.par[root]
+		if p == nil {
+			return false
+		}
+		if _, ok := p.(cc.ExpressionNode); !ok {
+			break
+		}
+		root = p
+	}
+	mentions, calls := 0, false
+	walkNodes(root, func(m cc.Node) {
+		if identDecl(m) == d {
+			mentions++
+		}
+		if c, ok := m.(*cc.PostfixExpression); ok && c.Case == cc.PostfixExpressionCall {
+			calls = true
+		}
+	})
+	return mentions == 1 && (local || !calls)
+}

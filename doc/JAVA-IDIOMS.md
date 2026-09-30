@@ -439,7 +439,22 @@ Java: `gettext_(` 400 -> 1 (its definition), `Integer.compareUnsigned` 150
 
 ### 9. Side effects the Go had to split and Java need not
 
-**Not done** (measured 2026-09-30): 410 temporaries assigned (`t1 = ...`).
+**Done** (2026-09-30; `inlineStep`, `crefactor/togo/java_da.go`). An integer's
+`++` or `--`, postfix or prefix, is Java's own in the expression, `buf[i++]
+= v;`, `while (--k >= 0)`, when nothing else in its full expression can see
+the variable. That means its one mention there, and, for a field, no call,
+which could read it. Java evaluates left to right, and C leaves unsequenced
+only what a valid program does not do. A statement's plain `=` writes its
+place once, so an index keeps its step there too (`p.set(i++, ' ')`). `jpure`
+takes a step for impure, so no rule writes it twice. A pointer's walk keeps
+its temporary, as above.
+
+Measured on `braaam/editor/`: temporaries 413 -> 277; an integer's step
+through one 143 -> 14 (a global beside a call, or a variable named twice);
+a condition's boolean 97 -> 87; a pointer's walk 129, kept. `Editor.java`
+54,673 -> 54,064 lines. The controls (`TestJavaControl2`: `[i++]` made
+`[++i]`, `--k` made `k--`) are seen, and `TestJavaSteps` holds the global
+beside a call to its temporary.
 
 - **The pattern:** Java, unlike Go, has `i++`, `--len` and assignment as
   expressions, and evaluates left to right. The backend splits them as the

@@ -1476,6 +1476,44 @@ func TestJavaGoto(t *testing.T) {
 // structs moved as references rather than copied, a member's address that
 // copies it, a union copied without one of its members, a function pointer
 // to another function, and a goto's break that leaves the wrong block.
+//
+// javaStepsC's steps: a local's and a global's ++ inline in an index, a --
+// inline in a loop's condition, and a global's ++ beside a call, which
+// keeps its temporary (a call could read the global).
+const javaStepsC = javaHost + `
+static int buf[16];
+static int buf2[16];
+static int n;
+static int calls;
+static int bump(void) { calls++; return n * 100; }
+static void fill(int k)
+{
+    int i = 0;
+    while (i < k)
+    {
+        int v = k * 3 + i;
+        buf[i++] = v;
+    }
+    while (--k >= 0)
+    {
+        buf2[n++] = k;
+    }
+    buf2[n++] = bump();
+}
+void run(void)
+{
+    int j;
+    fill(4);
+    for (j = 0; j < 6; j++)
+    {
+        out(buf[j]);
+        out(buf2[j]);
+    }
+    out(n);
+    out(calls);
+}
+`
+
 func TestJavaControl2(t *testing.T) {
 	requireTools(t)
 	for _, c := range []struct {
@@ -1491,6 +1529,8 @@ func TestJavaControl2(t *testing.T) {
 		{"union copy", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`\n\s+number = o\$?\.number;`), ""},
 		{"function pointer", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`this::sub\b`), "this::mul"},
 		{"goto", javaGotoC, Profile{}, javaHarnessC, regexp.MustCompile(`break L_next;`), "break L_skip;"},
+		{"inline step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\[i\+\+\]`), "[++i]"},
+		{"inline condition step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(--k >= 0\)`), "(k-- >= 0)"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			dir := t.TempDir()
@@ -1794,5 +1834,19 @@ func TestJavaFiles(t *testing.T) {
 				t.Errorf("the Java prints\n%s\nthe C\n%s", diffLines(string(o), want), want)
 			}
 		})
+	}
+}
+
+// The steps inline where nothing else in the expression can see the
+// variable, and a global's beside a call keeps its temporary.
+func TestJavaSteps(t *testing.T) {
+	prog := javaSame(t, javaStepsC)
+	for _, want := range []string{"buf[i++] = v;", "while (--k >= 0)", "buf2[n++] = k;"} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in\n%s", want, numbered(prog))
+		}
+	}
+	if strings.Contains(prog, "buf2[n++] = bump()") {
+		t.Errorf("a global's step inline beside a call:\n%s", numbered(prog))
 	}
 }

@@ -44,7 +44,9 @@ func (l *jlocal) ref() string {
 // jfn is one method being written.
 type jfn struct {
 	brk          []string // what a break is, innermost last: of a loop or switch, or of a once-block's label
-	fallsThrough bool     // a switch in it falls through, as C meant: the method says so to javac
+	fallsThrough bool
+	assignStmt   bool // the assignment being written is a statement's
+	lvOnce       bool // the lvalue being built is written once, and read not     // a switch in it falls through, as C meant: the method says so to javac
 	j            *jgen
 	name         string
 	ft           *cc.FunctionType

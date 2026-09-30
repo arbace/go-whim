@@ -387,6 +387,15 @@ var jpureCalls = map[string]bool{".get(": true, ".at(": true, ".add(": true, ".o
 // be written twice or dropped.  A growarray's accessor (GA_...) is one: what
 // it does -- make the storage C's ga_grow made -- it does once.
 func jpure(s string) bool {
+	if strings.Contains(s, "++") || strings.Contains(s, "--") {
+		return false // a step, inline (inlineStep): once
+	}
+	return jnoCalls(s)
+}
+
+// jnoCalls is jpure but for the steps: what an lvalue written once may
+// hold as it is.
+func jnoCalls(s string) bool {
 	for _, m := range jcallRe.FindAllString(s, -1) {
 		if !jpureCalls[m] && !strings.HasPrefix(m, "GA_") {
 			return false
@@ -806,6 +815,13 @@ func (f *jfn) postfix(x *cc.PostfixExpression, to string) jval {
 		return jval{s: v, t: jt, c: t}
 	case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
 		lv := f.lval(x.PostfixExpression)
+		if f.inlineStep(x.PostfixExpression, lv, x) {
+			op := "++"
+			if x.Case == cc.PostfixExpressionDec {
+				op = "--"
+			}
+			return jval{s: lv.get + op, t: lv.t, c: lv.c}
+		}
 		t := f.newTemp(lv.t, lv.c)
 		f.stmt1("%s = %s", t, lv.get)
 		f.incdec(lv, x.Case == cc.PostfixExpressionInc, x)
@@ -856,7 +872,7 @@ func (f *jfn) lval(e cc.ExpressionNode) jlv {
 		case cc.PostfixExpressionIndex:
 			base, ix := f.indexOperands(x)
 			i := f.index(ix)
-			if !jpure(i) {
+			if !jpure(i) && !(f.lvOnce && jnoCalls(i)) {
 				t := f.newTemp("int", nil)
 				f.stmt1("%s = %s", t, i)
 				i = t
@@ -941,7 +957,12 @@ func (f *jfn) incdec(lv jlv, inc bool, n cc.Node) {
 
 // assign writes an assignment and returns where it stored.
 func (f *jfn) assign(x *cc.AssignmentExpression) jlv {
+	// a statement's plain = writes its place once: an index may keep its
+	// step (inlineStep) in place
+	f.lvOnce = f.assignStmt && x.Case == cc.AssignmentExpressionAssign
+	f.assignStmt = false
 	lv := f.lval(x.UnaryExpression)
+	f.lvOnce = false
 	if x.Case == cc.AssignmentExpressionAssign {
 		r := f.exprTo(x.AssignmentExpression, lv.t)
 		if isAggr(lv.c) {
@@ -1080,6 +1101,13 @@ func (f *jfn) unary(x *cc.UnaryExpression) jval {
 		return f.expr(x.PostfixExpression)
 	case cc.UnaryExpressionInc, cc.UnaryExpressionDec:
 		lv := f.lval(x.UnaryExpression)
+		if f.inlineStep(x.UnaryExpression, lv, x) {
+			op := "++"
+			if x.Case == cc.UnaryExpressionDec {
+				op = "--"
+			}
+			return jval{s: op + lv.get, t: lv.t, c: lv.c}
+		}
 		f.incdec(lv, x.Case == cc.UnaryExpressionInc, x)
 		return jval{s: lv.get, t: lv.t, c: lv.c}
 	case cc.UnaryExpressionAddrof:
@@ -1951,6 +1979,7 @@ func (f *jfn) exprStmt(e cc.ExpressionNode) {
 		return
 	case *cc.AssignmentExpression:
 		if x.Case != cc.AssignmentExpressionCond {
+			f.assignStmt = true
 			f.assign(x)
 			return
 		}
