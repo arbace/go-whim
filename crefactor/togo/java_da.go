@@ -187,6 +187,28 @@ func (f *jfn) inlineStep(e cc.ExpressionNode, lv jlv, n cc.Node) bool {
 	if !lv.op || isJPtr(lv.t) || lv.t == "boolean" || f.fbody == nil {
 		return false
 	}
+	return f.alone(e, n)
+}
+
+// inlineAssign says a plain = to a variable, x, may be Java's own
+// assignment expression, `(p = ml_get(...)) != null`, where the Go took it
+// out before the statement: by inlineStep's rule, the assignment's own
+// right side free to name the variable, which C and Java both read before
+// the store.  A scalar or a reference held plainly, not a struct.
+func (f *jfn) inlineAssign(x *cc.AssignmentExpression, lv jlv) bool {
+	if x.Case != cc.AssignmentExpressionAssign || !lv.op || isAggr(lv.c) || f.fbody == nil {
+		return false
+	}
+	return f.alone(x.UnaryExpression, x)
+}
+
+// alone says the variable e names may be written by n in place: e is an
+// identifier of a local or a field, not boxed, and its full expression
+// names it elsewhere, or (for a field) calls anything, only where C
+// sequences it with n (an operand of && || ?: or comma apart from n's) --
+// Java evaluates left to right, and C leaves unsequenced only what a valid
+// program does not do.
+func (f *jfn) alone(e cc.ExpressionNode, n cc.Node) bool {
 	d := identDecl(unparenE(e))
 	if d == nil || f.j.isBoxed(d) {
 		return false
@@ -218,14 +240,57 @@ func (f *jfn) inlineStep(e cc.ExpressionNode, lv jlv, n cc.Node) bool {
 		}
 		root = p
 	}
-	mentions, calls := 0, false
-	walkNodes(root, func(m cc.Node) {
-		if identDecl(m) == d {
-			mentions++
+	inside := func(m cc.Node) bool {
+		for ; m != nil; m = f.par[m] {
+			if m == n {
+				return true
+			}
 		}
-		if c, ok := m.(*cc.PostfixExpression); ok && c.Case == cc.PostfixExpressionCall {
-			calls = true
+		return false
+	}
+	ok := true
+	walkNodes(root, func(m cc.Node) {
+		if !ok || inside(m) {
+			return
+		}
+		touch := identDecl(m) == d
+		if c, is := m.(*cc.PostfixExpression); is && c.Case == cc.PostfixExpressionCall && !local {
+			touch = true
+		}
+		if touch && !f.sequenced(m, n) {
+			ok = false
 		}
 	})
-	return mentions == 1 && (local || !calls)
+	return ok
+}
+
+// sequenced says a and b are in different operands of an && || ?: or comma:
+// C orders them, as Java does.
+func (f *jfn) sequenced(a, b cc.Node) bool {
+	up := map[cc.Node]cc.Node{} // an ancestor of a -> its child on a's path
+	for c, p := a, f.par[a]; p != nil; c, p = p, f.par[p] {
+		up[p] = c
+	}
+	for c, p := b, f.par[b]; p != nil; c, p = p, f.par[p] {
+		ca, shared := up[p]
+		if !shared {
+			continue
+		}
+		// p is the lowest common ancestor; ca and c its children
+		if ca == c {
+			return false
+		}
+		switch x := p.(type) {
+		case *cc.LogicalAndExpression:
+			return x.Case == cc.LogicalAndExpressionLAnd
+		case *cc.LogicalOrExpression:
+			return x.Case == cc.LogicalOrExpressionLOr
+		case *cc.ConditionalExpression:
+			return x.Case == cc.ConditionalExpressionCond
+		case *cc.ExpressionList:
+			return true
+		}
+		return false
+	}
+	return false
 }

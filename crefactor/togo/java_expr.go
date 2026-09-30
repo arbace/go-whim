@@ -387,8 +387,8 @@ var jpureCalls = map[string]bool{".get(": true, ".at(": true, ".add(": true, ".o
 // be written twice or dropped.  A growarray's accessor (GA_...) is one: what
 // it does -- make the storage C's ga_grow made -- it does once.
 func jpure(s string) bool {
-	if strings.Contains(s, "++") || strings.Contains(s, "--") {
-		return false // a step, inline (inlineStep): once
+	if strings.Contains(s, "++") || strings.Contains(s, "--") || strings.Contains(s, " = ") {
+		return false // a step or an assignment, inline (inlineStep, inlineAssign): once
 	}
 	return jnoCalls(s)
 }
@@ -516,6 +516,18 @@ func (f *jfn) exprTo1(e cc.ExpressionNode, to string) jval {
 			return f.ternary(x, to)
 		}
 	case *cc.AssignmentExpression:
+		if x.Case == cc.AssignmentExpressionAssign {
+			if d := identDecl(unparenE(x.UnaryExpression)); d != nil {
+				if lv := f.lval(x.UnaryExpression); f.inlineAssign(x, lv) {
+					r := f.exprTo(x.AssignmentExpression, lv.t)
+					v := f.conv(r, lv.t, lv.c)
+					if k, ok := scalarKind(lv.c); ok {
+						v = narrowConst(v, r, k)
+					}
+					return jval{s: "(" + lv.set(v) + ")", t: lv.t, c: lv.c}
+				}
+			}
+		}
 		if x.Case != cc.AssignmentExpressionCond {
 			lv := f.assign(x)
 			return jval{s: lv.get, t: lv.t, c: lv.c}

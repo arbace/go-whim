@@ -1500,10 +1500,30 @@ static void fill(int k)
     }
     buf2[n++] = bump();
 }
+static int sum_back(int k)
+{
+    int c = 0, v;
+    while (k > 0 && (v = buf[--k]) != 0)
+    {
+        c += v;
+    }
+    return c;
+}
+static int left(int m)
+{
+    if (m > 0 && --m == 0)
+    {
+        return 99;
+    }
+    return m;
+}
 void run(void)
 {
     int j;
     fill(4);
+    out(sum_back(4));
+    out(left(1));
+    out(left(3));
     for (j = 0; j < 6; j++)
     {
         out(buf[j]);
@@ -1531,6 +1551,8 @@ func TestJavaControl2(t *testing.T) {
 		{"goto", javaGotoC, Profile{}, javaHarnessC, regexp.MustCompile(`break L_next;`), "break L_skip;"},
 		{"inline step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\[i\+\+\]`), "[++i]"},
 		{"inline condition step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(--k >= 0\)`), "(k-- >= 0)"},
+		{"inline assignment", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(v = buf\[--k\]\)`), "(v = buf[k--])"},
+		{"sequenced step", javaStepsC, Profile{}, javaHarnessC, regexp.MustCompile(`--m == 0`), "m-- == 0"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			dir := t.TempDir()
@@ -1841,7 +1863,8 @@ func TestJavaFiles(t *testing.T) {
 // variable, and a global's beside a call keeps its temporary.
 func TestJavaSteps(t *testing.T) {
 	prog := javaSame(t, javaStepsC)
-	for _, want := range []string{"buf[i++] = v;", "while (--k >= 0)", "buf2[n++] = k;"} {
+	for _, want := range []string{"buf[i++] = v;", "while (--k >= 0)", "buf2[n++] = k;",
+		"(v = buf[--k]) != 0", "m > 0 && --m == 0"} {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in\n%s", want, numbered(prog))
 		}

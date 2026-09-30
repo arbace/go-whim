@@ -456,6 +456,18 @@ a condition's boolean 97 -> 87; a pointer's walk 129, kept. `Editor.java`
 `[++i]`, `--k` made `k--`) are seen, and `TestJavaSteps` holds the global
 beside a call to its temporary.
 
+**And the conditions' booleans** (2026-09-30). The rule, `alone`, now lets
+another mention of the variable -- or, for a field, a call -- stand where C
+sequences it with the write: in another operand of an `&&`, `||`, `?:` or
+comma, which Java evaluates in the same order. So `n_attr3 > 0 && --n_attr3
+== 0` is one line. And a plain `=` to a variable is Java's assignment
+expression under the same rule, its own right side free to read it:
+`while ((cc = replace_pop()) > 0)`, `(ptr = ml_get_curline().add(...)).get()
+!= NUL`. `jpure` takes an assignment for impure too. A condition's boolean
+temporary 87 -> 25, temporaries 277 -> 203, `Editor.java` 54,064 -> 53,674
+lines. Two more controls (`(v = buf[--k])` made `buf[k--]`, `--m == 0` made
+`m-- == 0`) are seen.
+
 - **The pattern:** Java, unlike Go, has `i++`, `--len` and assignment as
   expressions, and evaluates left to right. The backend splits them as the
   Go must: `ccline.cmdbuff[i++] = ccline.cmdbuff[j++];` is five lines with
