@@ -6,7 +6,7 @@ import whim.rt.*;
 
 final class T_get_spec_reg__out_T implements Struct<T_get_spec_reg__out_T> {
     boolean r__;
-    int allocated;
+    boolean allocated;
 
     @Override
     public T_get_spec_reg__out_T set(T_get_spec_reg__out_T o) {

@@ -495,7 +495,7 @@ do_incsearch_highlighting ed' firstc search_delim is_state skiplen patlen = do
   r'1 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdlen
   wrI32 patlen 0 r'1
   r'2 <- p_is ed'
-  r'4 <- if (not (r'2 /= 0)) then pure True else (do { r'3 <- cmd_silent ed'; pure (r'3 /= 0) })
+  r'4 <- if (not (r'2 /= 0)) then pure True else (cmd_silent ed')
   if r'4
     then pure False
     else do
@@ -525,7 +525,7 @@ finish_incsearch_highlighting ed' gotesc is_state call_update_screen = do
       j'6
     j'6 = do
       restore_viewstate ed' (pAdd is_state incsearch_state_T'old_viewstate)
-      set'highlight_match ed' FALSE
+      set'highlight_match ed' False
       set'search_first_line ed' 0
       set'search_last_line ed' LONG_MAX
       r'2 <- rdI32 is_state incsearch_state_T'magic_overruled_save
@@ -640,10 +640,10 @@ may_do_incsearch_highlighting ed' firstc count is_state = frame 12 $ \fr' -> do
     j'19 !found2 !use_last_pat4 = do
       if found2 /= 0
         then do
-          set'highlight_match ed' TRUE
+          set'highlight_match ed' True
           j'22 found2 use_last_pat4
         else do
-          set'highlight_match ed' FALSE
+          set'highlight_match ed' False
           j'22 found2 use_last_pat4
     j'22 !found3 !use_last_pat5 = do
       restore_viewstate ed' (pAdd is_state incsearch_state_T'old_viewstate)
@@ -729,7 +729,7 @@ may_do_incsearch_highlighting ed' firstc count is_state = frame 12 $ \fr' -> do
         else j'31 found6 end_pos_lnum3 end_pos_col3 end_pos_coladd3
     j'31 !found7 !end_pos_lnum4 !end_pos_col4 !end_pos_coladd4 = do
       _ <- update_screen ed' UPD_SOME_VALID
-      set'highlight_match ed' FALSE
+      set'highlight_match ed' False
       restore_last_search_pattern ed'
       r'85 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
       r'86 <- rdI32 fr' 0
@@ -919,10 +919,10 @@ may_adjust_incsearch_highlighting ed' firstc count is_state c = frame 60 $ \fr' 
       changed_cline_bef_curs ed'
       update_topline ed'
       validate_cursor ed'
-      set'highlight_match ed' TRUE
+      set'highlight_match ed' True
       save_viewstate ed' (pAdd is_state incsearch_state_T'old_viewstate)
       _ <- update_screen ed' UPD_NOT_VALID
-      set'highlight_match ed' FALSE
+      set'highlight_match ed' False
       redrawcmdline ed'
       r'40 <- curwin ed'
       copyMem (pAdd r'40 win_T'w_cursor) (pAdd is_state incsearch_state_T'match_end) 16
@@ -1055,7 +1055,7 @@ cmdline_handle_ctrl_bsl ed' gotesc = do
   set'no_mapping ed' (r'4 - 1)
   r'5 <- allow_keys ed'
   set'allow_keys ed' (r'5 - 1)
-  r'10 <- if ((r'3 /= Ctrl_N) && (r'3 /= Ctrl_G)) then (if (r'3 /= (ch 'e')) then pure True else (do { r'6 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdfirstc; if (r'6 == (ch '=')) then (do { r'7 <- c'KeyTyped ed'; pure (r'7 /= 0) }) else pure False })) else pure False
+  r'10 <- if ((r'3 /= Ctrl_N) && (r'3 /= Ctrl_G)) then (if (r'3 /= (ch 'e')) then pure True else (do { r'6 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdfirstc; if (r'6 == (ch '=')) then (c'KeyTyped ed') else pure False })) else pure False
   if r'10
     then do
       vungetc ed' r'3
@@ -1110,7 +1110,7 @@ cmdline_erase_chars ed' c indent isp = do
             then do
               dealloc_cmdbuff ed'
               r'18 <- cmd_silent ed'
-              if not (r'18 /= 0)
+              if not r'18
                 then do
                   set'msg_col ed' 0
                   msg_putchar ed' (ch ' ')
@@ -1204,7 +1204,7 @@ cmdline_insert_reg ed' _gotesc = do
         then do
           let !literally3 = i2 == Ctrl_R
           _ <- cmdline_paste ed' c2 literally3 False
-          set'c'KeyTyped ed' FALSE
+          set'c'KeyTyped ed' False
           j'6 literally3
         else j'6 literally2
     j'6 !literally4 = do
@@ -1456,7 +1456,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
               wrP (addr'ccline ed') cmdline_info_T'xpc (pAdd fr' 160)
               clear_cmdline_orig ed'
               r'5 <- cmd_silent ed'
-              if not (r'5 /= 0)
+              if not r'5
                 then do
                   r'6 <- msg_scrolled ed'
                   set'msg_scrolled ed' 0
@@ -1489,7 +1489,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
       loop'12 lookfor4 lookforlen4 hiscnt1 histype1 save_msg_scroll4 save_State4 some_key_typed4 did_save_ccline4 wild_type4 cmdline_browse_history__o_r__4 cmdline_browse_history__o_curcmdstr4 cmdline_browse_history__o_curcmdstrlen4 cmdline_browse_history__o_hiscnt_p4 may_add_char_to_search__o_r__4 may_add_char_to_search__o_c4
     loop'12 !lookfor5 !lookforlen5 !hiscnt2 !histype2 !save_msg_scroll5 !save_State5 !some_key_typed5 !did_save_ccline5 !wild_type5 !cmdline_browse_history__o_r__5 !cmdline_browse_history__o_curcmdstr5 !cmdline_browse_history__o_curcmdstrlen5 !cmdline_browse_history__o_hiscnt_p5 !may_add_char_to_search__o_r__5 !may_add_char_to_search__o_c5 = do
       r'11 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
-      set'quit_more ed' FALSE
+      set'quit_more ed' False
       set'did_emsg ed' FALSE
       r'12 <- ex_normal_busy ed'
       r'14 <- if (r'12 == 0) then (stuff_empty ed') else pure False
@@ -1528,7 +1528,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
             else j'21 r'20 lookfor7 lookforlen7 hiscnt4 histype4 save_msg_scroll7 save_State7 some_key_typed7 did_save_ccline7 wild_type7 prev_cmdbuff2 trigger_cmdlinechanged2 prev_cmdpos2 cmdline_browse_history__o_r__7 cmdline_browse_history__o_curcmdstr7 cmdline_browse_history__o_curcmdstrlen7 cmdline_browse_history__o_hiscnt_p7 may_add_char_to_search__o_r__7 may_add_char_to_search__o_c7
     j'21 !c1 !lookfor8 !lookforlen8 !hiscnt5 !histype5 !save_msg_scroll8 !save_State8 !some_key_typed8 !did_save_ccline8 !wild_type8 !prev_cmdbuff3 !trigger_cmdlinechanged3 !prev_cmdpos3 !cmdline_browse_history__o_r__8 !cmdline_browse_history__o_curcmdstr8 !cmdline_browse_history__o_curcmdstrlen8 !cmdline_browse_history__o_hiscnt_p8 !may_add_char_to_search__o_r__8 !may_add_char_to_search__o_c8 = do
       r'27 <- c'KeyTyped ed'
-      if r'27 /= 0
+      if r'27
         then j'23 c1 lookfor8 lookforlen8 hiscnt5 histype5 save_msg_scroll8 save_State8 True did_save_ccline8 wild_type8 prev_cmdbuff3 trigger_cmdlinechanged3 prev_cmdpos3 cmdline_browse_history__o_r__8 cmdline_browse_history__o_curcmdstr8 cmdline_browse_history__o_curcmdstrlen8 cmdline_browse_history__o_hiscnt_p8 may_add_char_to_search__o_r__8 may_add_char_to_search__o_c8
         else j'23 c1 lookfor8 lookforlen8 hiscnt5 histype5 save_msg_scroll8 save_State8 some_key_typed8 did_save_ccline8 wild_type8 prev_cmdbuff3 trigger_cmdlinechanged3 prev_cmdpos3 cmdline_browse_history__o_r__8 cmdline_browse_history__o_curcmdstr8 cmdline_browse_history__o_curcmdstrlen8 cmdline_browse_history__o_hiscnt_p8 may_add_char_to_search__o_r__8 may_add_char_to_search__o_c8
     j'23 !c2 !lookfor9 !lookforlen9 !hiscnt6 !histype6 !save_msg_scroll9 !save_State9 !some_key_typed9 !did_save_ccline9 !wild_type9 !prev_cmdbuff4 !trigger_cmdlinechanged4 !prev_cmdpos4 !cmdline_browse_history__o_r__9 !cmdline_browse_history__o_curcmdstr9 !cmdline_browse_history__o_curcmdstrlen9 !cmdline_browse_history__o_hiscnt_p9 !may_add_char_to_search__o_r__9 !may_add_char_to_search__o_c9 = do
@@ -1559,12 +1559,12 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
                     else j'32 (Ctrl_BSL :: Int32) lookfor11 lookforlen11 hiscnt8 histype8 save_msg_scroll11 save_State11 some_key_typed11 did_save_ccline11 wild_type11 prev_cmdbuff6 trigger_cmdlinechanged6 prev_cmdpos6 cmdline_browse_history__o_r__11 cmdline_browse_history__o_curcmdstr11 cmdline_browse_history__o_curcmdstrlen11 cmdline_browse_history__o_hiscnt_p11 may_add_char_to_search__o_r__11 may_add_char_to_search__o_c11
         else j'32 c4 lookfor11 lookforlen11 hiscnt8 histype8 save_msg_scroll11 save_State11 some_key_typed11 did_save_ccline11 wild_type11 prev_cmdbuff6 trigger_cmdlinechanged6 prev_cmdpos6 cmdline_browse_history__o_r__11 cmdline_browse_history__o_curcmdstr11 cmdline_browse_history__o_curcmdstrlen11 cmdline_browse_history__o_hiscnt_p11 may_add_char_to_search__o_r__11 may_add_char_to_search__o_c11
     j'32 !c5 !lookfor12 !lookforlen12 !hiscnt9 !histype9 !save_msg_scroll12 !save_State12 !some_key_typed12 !did_save_ccline12 !wild_type12 !prev_cmdbuff7 !trigger_cmdlinechanged7 !prev_cmdpos7 !cmdline_browse_history__o_r__12 !cmdline_browse_history__o_curcmdstr12 !cmdline_browse_history__o_curcmdstrlen12 !cmdline_browse_history__o_hiscnt_p12 !may_add_char_to_search__o_r__12 !may_add_char_to_search__o_c12 = do
-      r'40 <- if (((c5 == (ch '\n')) || (c5 == (ch '\r'))) || (c5 == K_KENTER)) then pure True else (if (c5 == ESC) then (do { r'35 <- c'KeyTyped ed'; if (not (r'35 /= 0)) then pure True else (do { r'36 <- p_cpo ed'; r'37 <- vim_strchr ed' r'36 CPO_ESC; pure (r'37 /= nullPtr) }) }) else pure False)
+      r'40 <- if (((c5 == (ch '\n')) || (c5 == (ch '\r'))) || (c5 == K_KENTER)) then pure True else (if (c5 == ESC) then (do { r'35 <- c'KeyTyped ed'; if (not r'35) then pure True else (do { r'36 <- p_cpo ed'; r'37 <- vim_strchr ed' r'36 CPO_ESC; pure (r'37 /= nullPtr) }) }) else pure False)
       if r'40
         then do
           wrI32 fr' 0 FALSE
           r'41 <- cmd_silent ed'
-          if not (r'41 /= 0)
+          if not r'41
             then do
               r'42 <- msg_row ed'
               r'43 <- cmdline_col_off ed'
@@ -1581,7 +1581,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
       if (wild_type13 == WILD_CANCEL) || (wild_type13 == WILD_APPLY)
         then do
           r'44 <- c'KeyTyped ed'
-          r'46 <- if (r'44 /= 0) then pure True else (do { r'45 <- vpeekc ed'; pure (r'45 == NUL) })
+          r'46 <- if r'44 then pure True else (do { r'45 <- vpeekc ed'; pure (r'45 == NUL) })
           if r'46
             then do
               may_do_incsearch_highlighting ed' firstc count (pAdd fr' 8)
@@ -1672,7 +1672,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
       r'56 <- get_literal ed' (r'55 .&. MOD_MASK_SHIFT)
       set'extra_char ed' NUL
       r'57 <- utf_iscomposing ed' r'56
-      r'59 <- if r'57 then (do { r'58 <- cmd_silent ed'; pure (not (r'58 /= 0)) }) else pure False
+      r'59 <- if r'57 then (do { r'58 <- cmd_silent ed'; pure (not r'58) }) else pure False
       if r'59
         then do
           r'60 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
@@ -1760,7 +1760,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
           r'102 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
           r'103 <- cmdline_charsize ed' r'102
           r'104 <- c'KeyTyped ed'
-          r'108 <- if (r'104 /= 0) then (do { r'105 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdspos; r'106 <- cmdline_width ed'; r'107 <- c'Rows ed'; pure ((fromIntegral (r'105 + r'103) :: Int64) >= ((fromIntegral r'106 :: Int64) * r'107)) }) else pure False
+          r'108 <- if r'104 then (do { r'105 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdspos; r'106 <- cmdline_width ed'; r'107 <- c'Rows ed'; pure ((fromIntegral (r'105 + r'103) :: Int64) >= ((fromIntegral r'106 :: Int64) * r'107)) }) else pure False
           if r'108
             then j'64 lookfor22 lookforlen22 hiscnt19 histype19 save_msg_scroll22 save_State22 some_key_typed22 did_save_ccline22 wild_type22 prev_cmdbuff17 trigger_cmdlinechanged17 prev_cmdpos17 cmdline_browse_history__o_r__22 cmdline_browse_history__o_curcmdstr22 cmdline_browse_history__o_curcmdstrlen22 cmdline_browse_history__o_hiscnt_p22 may_add_char_to_search__o_r__22 may_add_char_to_search__o_c22
             else do
@@ -1880,7 +1880,7 @@ getcmdline_int ed' firstc count indent clear_ccline = frame 304 $ \fr' -> do
         else j'96 lookfor30 lookforlen30 hiscnt27 histype29 save_msg_scroll34 save_State35 some_key_typed34 did_save_ccline35 wild_type29 prev_cmdbuff25 trigger_cmdlinechanged25 prev_cmdpos25 cmdline_browse_history__o_r__35 cmdline_browse_history__o_curcmdstr35 cmdline_browse_history__o_curcmdstrlen35 cmdline_browse_history__o_hiscnt_p35 may_add_char_to_search__o_r__35 may_add_char_to_search__o_c35
     j'96 !lookfor31 !lookforlen31 !hiscnt28 !histype30 !save_msg_scroll35 !save_State36 !some_key_typed35 !did_save_ccline36 !wild_type30 !prev_cmdbuff26 !trigger_cmdlinechanged26 !prev_cmdpos26 !cmdline_browse_history__o_r__36 !cmdline_browse_history__o_curcmdstr36 !cmdline_browse_history__o_curcmdstrlen36 !cmdline_browse_history__o_hiscnt_p36 !may_add_char_to_search__o_r__36 !may_add_char_to_search__o_c36 = do
       r'141 <- c'KeyTyped ed'
-      r'143 <- if (r'141 /= 0) then pure True else (do { r'142 <- vpeekc ed'; pure (r'142 == NUL) })
+      r'143 <- if r'141 then pure True else (do { r'142 <- vpeekc ed'; pure (r'142 == NUL) })
       if r'143
         then do
           may_do_incsearch_highlighting ed' firstc count (pAdd fr' 8)
@@ -1946,10 +1946,10 @@ save_cmdline ed' ccp = do
       wrP (addr'ccline ed') cmdline_info_T'cmdbuff nullPtr
       pure ()
   r'1 <- prev_ccline_used ed'
-  if not (r'1 /= 0)
+  if not r'1
     then do
       _ <- musl_memset (addr'prev_ccline ed') 0 64
-      set'prev_ccline_used ed' TRUE
+      set'prev_ccline_used ed' True
       j'2
     else j'2
 
@@ -2061,7 +2061,7 @@ cmdline_paste_str ed' s literally = do
 shorten_fnames :: Ed -> IO ()
 shorten_fnames ed' = do
   status_redraw_all ed'
-  set'redraw_tabline ed' TRUE
+  set'redraw_tabline ed' True
   pure ()
 
 home_replace :: Ptr Buf_T -> Ptr Char_u -> Ptr Char_u -> Int32 -> Bool -> IO Usize
@@ -2118,7 +2118,7 @@ start_redo ed' count old_redo = do
       if c1 == (ch '=')
         then do
           add_char_buff ed' (addr'readbuf2 ed') CAR
-          set'cmd_silent ed' TRUE
+          set'cmd_silent ed' True
           j'6
         else j'6
     j'6 = do
@@ -2129,10 +2129,10 @@ start_redo ed' count old_redo = do
         then do
           r'2 <- curwin ed'
           copyMem (addr'c'VIsual ed') (pAdd r'2 win_T'w_cursor) 16
-          set'c'VIsual_active ed' TRUE
+          set'c'VIsual_active ed' True
           set'c'VIsual_select ed' FALSE
-          set'c'VIsual_reselect ed' TRUE
-          set'redo_VIsual_busy ed' TRUE
+          set'c'VIsual_reselect ed' True
+          set'redo_VIsual_busy ed' True
           r'3 <- read_redo ed' False old_redo
           j'9 r'3
         else j'9 c2
@@ -2600,7 +2600,7 @@ list_mappings ed' keyround abbrev haskey keys keys_len mode did_local = frame 40
   if (r'24 > 0) && (keyround == 1)
     then do
       r'25 <- seenModifyOtherKeys ed'
-      if r'25 /= 0
+      if r'25
         then do
           msg_puts ed' (Ptr "Seen modifyOtherKeys: true\10\0"#)
           j'3 did_local
@@ -2778,7 +2778,7 @@ do_map ed' maptype arg mode abbrev = frame 71 $ \fr' -> do
     j'41 !maptype13 !keys12 !rhs10 !len14 !hasarg10 !haskey10 !do_print10 !keyround5 !alt_keys_buf13 !retval13 !abbr_table14 !map_table14 !unique13 !nowait13 !silent13 !unmap_lhs_only13 !noremap12 !orig_rhs6 !did_it4 !did_local4 !keyround1_simplified4 !replace_termcodes__o_r__13 !replace_termcodes__o_bufp13 = do
       if (haskey10 && hasarg10) && abbrev
         then do
-          set'no_abbr ed' FALSE
+          set'no_abbr ed' False
           j'43 maptype13 keys12 rhs10 len14 hasarg10 haskey10 do_print10 keyround5 alt_keys_buf13 retval13 abbr_table14 map_table14 unique13 nowait13 silent13 unmap_lhs_only13 noremap12 orig_rhs6 did_it4 did_local4 keyround1_simplified4 replace_termcodes__o_r__13 replace_termcodes__o_bufp13
         else j'43 maptype13 keys12 rhs10 len14 hasarg10 haskey10 do_print10 keyround5 alt_keys_buf13 retval13 abbr_table14 map_table14 unique13 nowait13 silent13 unmap_lhs_only13 noremap12 orig_rhs6 did_it4 did_local4 keyround1_simplified4 replace_termcodes__o_r__13 replace_termcodes__o_bufp13
     j'43 !maptype14 !keys13 !rhs11 !len15 !hasarg11 !haskey11 !do_print11 !keyround6 !alt_keys_buf14 !retval14 !abbr_table15 !map_table15 !unique14 !nowait14 !silent14 !unmap_lhs_only14 !noremap13 !orig_rhs7 !did_it5 !did_local5 !keyround1_simplified5 !replace_termcodes__o_r__14 !replace_termcodes__o_bufp14 = do
@@ -4256,7 +4256,7 @@ ex_messages ed' eap = do
               j'12 p3
             else j'12 p3
         else do
-          set'msg_hist_off ed' FALSE
+          set'msg_hist_off ed' False
           pure ()
     j'12 !p4 = do
       r'15 <- rdP p4 msg_hist'next
@@ -4284,7 +4284,7 @@ ex_messages ed' eap = do
           _ <- emsg ed' (addr'e_invalid_argument ed')
           pure ()
         else do
-          set'msg_hist_off ed' TRUE
+          set'msg_hist_off ed' True
           r'26 <- first_msg_hist ed'
           r'27 <- rdI32 eap exarg_T'addr_count
           if r'27 /= 0
@@ -4507,7 +4507,7 @@ adjust_cursor_col :: Ed -> IO ()
 adjust_cursor_col ed' = do
   r'1 <- curwin ed'
   r'2 <- rdI32 r'1 (win_T'w_cursor + pos_T'col)
-  r'7 <- if (r'2 > 0) then (do { r'3 <- c'VIsual_active ed'; if (not (r'3 /= 0)) then pure True else (do { r'4 <- p_sel ed'; r'5 <- rdW8 r'4 0; pure ((fromIntegral r'5 :: Int32) == (ch 'o')) }) }) else pure False
+  r'7 <- if (r'2 > 0) then (do { r'3 <- c'VIsual_active ed'; if (not r'3) then pure True else (do { r'4 <- p_sel ed'; r'5 <- rdW8 r'4 0; pure ((fromIntegral r'5 :: Int32) == (ch 'o')) }) }) else pure False
   r'9 <- if r'7 then (do { r'8 <- gchar_cursor ed'; pure (r'8 == NUL) }) else pure False
   if r'9
     then do
@@ -4739,7 +4739,7 @@ checkclearop ed' oap = do
 checkclearopq :: Ed -> Ptr Oparg_T -> IO Bool
 checkclearopq ed' oap = do
   r'1 <- rdI32 oap oparg_T'op_type
-  r'3 <- if (r'1 == OP_NOP) then (do { r'2 <- c'VIsual_active ed'; pure (not (r'2 /= 0)) }) else pure False
+  r'3 <- if (r'1 == OP_NOP) then (do { r'2 <- c'VIsual_active ed'; pure (not r'2) }) else pure False
   if r'3
     then pure False
     else do
@@ -4771,7 +4771,7 @@ nv_help ed' cap = do
 nv_addsub :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_addsub ed' cap = do
   r'1 <- c'VIsual_active ed'
-  r'4 <- if (not (r'1 /= 0)) then (do { r'2 <- rdP cap cmdarg_T'oap; r'3 <- rdI32 r'2 oparg_T'op_type; pure (r'3 == OP_NOP) }) else pure False
+  r'4 <- if (not r'1) then (do { r'2 <- rdP cap cmdarg_T'oap; r'3 <- rdI32 r'2 oparg_T'op_type; pure (r'3 == OP_NOP) }) else pure False
   if r'4
     then do
       prep_redo_cmd ed' cap
@@ -4787,7 +4787,7 @@ nv_addsub ed' cap = do
       pure ()
     else do
       r'11 <- c'VIsual_active ed'
-      if r'11 /= 0
+      if r'11
         then do
           nv_operator ed' cap
           pure ()
@@ -5141,7 +5141,7 @@ nv_colon ed' cap = do
   let
     j'6 !is_cmdkey1 = do
       r'1 <- c'KeyTyped ed'
-      if r'1 /= 0
+      if r'1
         then do
           compute_cmdrow ed'
           j'8 is_cmdkey1
@@ -5191,7 +5191,7 @@ nv_colon ed' cap = do
   r'27 <- rdI32 cap cmdarg_T'cmdchar
   r'29 <- if (r'27 == K_COMMAND) then pure True else (do { r'28 <- rdI32 cap cmdarg_T'cmdchar; pure (r'28 == K_SCRIPT_COMMAND) })
   r'30 <- c'VIsual_active ed'
-  if (r'30 /= 0) && (not r'29)
+  if r'30 && (not r'29)
     then do
       nv_operator ed' cap
       pure ()
@@ -5223,7 +5223,7 @@ nv_colon ed' cap = do
 nv_ctrlg :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_ctrlg ed' cap = do
   r'1 <- c'VIsual_active ed'
-  if r'1 /= 0
+  if r'1
     then do
       r'2 <- c'VIsual_select ed'
       set'c'VIsual_select ed' (b2i (not (r'2 /= 0)) :: Int32)
@@ -5242,7 +5242,7 @@ nv_ctrlg ed' cap = do
 nv_ctrlh :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_ctrlh ed' cap = do
   r'1 <- c'VIsual_active ed'
-  r'3 <- if (r'1 /= 0) then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
+  r'3 <- if r'1 then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
   if r'3
     then do
       wrI32 cap cmdarg_T'cmdchar (ch 'x')
@@ -5265,7 +5265,7 @@ nv_clear ed' cap = do
 nv_ctrlo :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_ctrlo ed' cap = do
   r'1 <- c'VIsual_active ed'
-  r'3 <- if (r'1 /= 0) then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
+  r'3 <- if r'1 then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
   if r'3
     then do
       set'c'VIsual_select ed' FALSE
@@ -5618,7 +5618,7 @@ nv_right ed' cap = do
       r'62 <- rdP cap cmdarg_T'oap
       wrI32 r'62 oparg_T'inclusive FALSE
       r'63 <- c'VIsual_active ed'
-      r'66 <- if (r'63 /= 0) then (do { r'64 <- p_sel ed'; r'65 <- rdW8 r'64 0; pure ((fromIntegral r'65 :: Int32) /= (ch 'o')) }) else pure False
+      r'66 <- if r'63 then (do { r'64 <- p_sel ed'; r'65 <- rdW8 r'64 0; pure ((fromIntegral r'65 :: Int32) /= (ch 'o')) }) else pure False
       let !past_line4 = b2i r'66 :: Int32
       r'67 <- virtual_active ed'
       if r'67 /= 0
@@ -5973,9 +5973,9 @@ nv_csearch ed' cap = frame 8 $ \fr' -> do
       pure ()
   r'25 <- p_sel ed'
   r'26 <- rdW8 r'25 0
-  r'28 <- if ((fromIntegral r'26 :: Int32) == (ch 'e')) then (do { r'27 <- c'VIsual_active ed'; pure (r'27 /= 0) }) else pure False
+  r'28 <- if ((fromIntegral r'26 :: Int32) == (ch 'e')) then (c'VIsual_active ed') else pure False
   r'30 <- if r'28 then (do { r'29 <- c'VIsual_mode ed'; pure (r'29 == (ch 'v')) }) else pure False
-  r'32 <- if r'30 then (do { r'31 <- c'VIsual_select_exclu_adj ed'; pure (r'31 /= 0) }) else pure False
+  r'32 <- if r'30 then (c'VIsual_select_exclu_adj ed') else pure False
   if r'32
     then do
       _ <- unadjust_for_sel ed'
@@ -6192,7 +6192,7 @@ nv_undo :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_undo ed' cap = do
   r'1 <- rdP cap cmdarg_T'oap
   r'2 <- rdI32 r'1 oparg_T'op_type
-  r'4 <- if (r'2 == OP_LOWER) then pure True else (do { r'3 <- c'VIsual_active ed'; pure (r'3 /= 0) })
+  r'4 <- if (r'2 == OP_LOWER) then pure True else (c'VIsual_active ed')
   if r'4
     then do
       wrI32 cap cmdarg_T'cmdchar (ch 'g')
@@ -6228,7 +6228,7 @@ nv_replace ed' cap = do
           pure ()
         else do
           r'3 <- c'VIsual_active ed'
-          if r'3 /= 0
+          if r'3
             then do
               r'4 <- got_int ed'
               if r'4 /= 0
@@ -6508,7 +6508,7 @@ nv_Replace ed' cap = do
       invoke_edit ed' cap False (if (r'1 /= 0) then (ch 'V' :: Int32) else (ch 'R' :: Int32)) False
       pure ()
   r'2 <- c'VIsual_active ed'
-  if r'2 /= 0
+  if r'2
     then do
       wrI32 cap cmdarg_T'cmdchar (ch 'c')
       wrI32 cap cmdarg_T'nchar NUL
@@ -6563,7 +6563,7 @@ nv_vreplace ed' cap = do
       invoke_edit ed' cap True (ch 'v') False
       pure ()
   r'6 <- c'VIsual_active ed'
-  if r'6 /= 0
+  if r'6
     then do
       wrI32 cap cmdarg_T'cmdchar (ch 'r')
       r'7 <- rdI32 cap cmdarg_T'extra_char
@@ -6778,7 +6778,7 @@ nv_subst ed' cap = do
       nv_operator ed' cap
       pure ()
   r'1 <- c'VIsual_active ed'
-  if r'1 /= 0
+  if r'1
     then do
       r'2 <- rdI32 cap cmdarg_T'cmdchar
       if r'2 == (ch 'S')
@@ -6797,7 +6797,7 @@ nv_abbrev ed' cap = do
   let
     j'2 = do
       r'1 <- c'VIsual_active ed'
-      if r'1 /= 0
+      if r'1
         then do
           v_visop ed' cap
           pure ()
@@ -6955,7 +6955,7 @@ nv_visual ed' cap = do
           r'7 <- rdI32 cap cmdarg_T'arg
           set'c'VIsual_select ed' r'7
           r'8 <- c'VIsual_active ed'
-          if r'8 /= 0
+          if r'8
             then do
               r'9 <- c'VIsual_mode ed'
               r'10 <- rdI32 cap cmdarg_T'cmdchar
@@ -6976,8 +6976,8 @@ nv_visual ed' cap = do
                 then do
                   r'16 <- curwin ed'
                   copyMem (addr'c'VIsual ed') (pAdd r'16 win_T'w_cursor) 16
-                  set'c'VIsual_active ed' TRUE
-                  set'c'VIsual_reselect ed' TRUE
+                  set'c'VIsual_active ed' True
+                  set'c'VIsual_reselect ed' True
                   r'17 <- rdI32 cap cmdarg_T'arg
                   if not (r'17 /= 0)
                     then do
@@ -7002,7 +7002,7 @@ nv_visual ed' cap = do
           wrI64 cap cmdarg_T'count1 (r'24 + 1)
           j'10
         else do
-          set'c'VIsual_select_exclu_adj ed' FALSE
+          set'c'VIsual_select_exclu_adj ed' False
           j'10
     j'10 = do
       r'25 <- rdI64 cap cmdarg_T'count0
@@ -7160,7 +7160,7 @@ nv_suspend ed' cap = do
   r'2 <- rdP cap cmdarg_T'oap
   clearop ed' r'2
   r'3 <- c'VIsual_active ed'
-  if r'3 /= 0
+  if r'3
     then do
       end_visual_mode ed'
       j'2
@@ -7170,8 +7170,8 @@ nv_gv_cmd :: Ed -> Ptr Cmdarg_T -> IO ()
 nv_gv_cmd ed' cap = do
   let
     j'4 !tpos_lnum1 !tpos_col1 !tpos_coladd1 = do
-      set'c'VIsual_active ed' TRUE
-      set'c'VIsual_reselect ed' TRUE
+      set'c'VIsual_active ed' True
+      set'c'VIsual_reselect ed' True
       check_cursor ed'
       r'1 <- curwin ed'
       copyMem (addr'c'VIsual ed') (pAdd r'1 win_T'w_cursor) 16
@@ -7206,7 +7206,7 @@ nv_gv_cmd ed' cap = do
       pure ()
     else do
       r'17 <- c'VIsual_active ed'
-      if r'17 /= 0
+      if r'17
         then do
           r'18 <- c'VIsual_mode ed'
           r'19 <- curbuf ed'
@@ -7625,7 +7625,7 @@ adjust_cursor ed' oap = do
   r'1 <- curwin ed'
   r'2 <- rdI32 r'1 (win_T'w_cursor + pos_T'col)
   r'4 <- if (r'2 > 0) then (do { r'3 <- gchar_cursor ed'; pure (r'3 == NUL) }) else pure False
-  r'9 <- if r'4 then (do { r'5 <- c'VIsual_active ed'; if (not (r'5 /= 0)) then pure True else (do { r'6 <- p_sel ed'; r'7 <- rdW8 r'6 0; pure ((fromIntegral r'7 :: Int32) == (ch 'o')) }) }) else pure False
+  r'9 <- if r'4 then (do { r'5 <- c'VIsual_active ed'; if (not r'5) then pure True else (do { r'6 <- p_sel ed'; r'7 <- rdW8 r'6 0; pure ((fromIntegral r'7 :: Int32) == (ch 'o')) }) }) else pure False
   r'11 <- if r'9 then (do { r'10 <- virtual_active ed'; pure (not (r'10 /= 0)) }) else pure False
   r'13 <- if r'11 then (do { r'12 <- get_ve_flags ed'; pure ((r'12 .&. VE_ONEMORE) == 0) }) else pure False
   if r'13
@@ -7641,7 +7641,7 @@ adjust_cursor ed' oap = do
 adjust_for_sel :: Ed -> Ptr Cmdarg_T -> IO ()
 adjust_for_sel ed' cap = do
   r'1 <- c'VIsual_active ed'
-  r'4 <- if (r'1 /= 0) then (do { r'2 <- rdP cap cmdarg_T'oap; r'3 <- rdI32 r'2 oparg_T'inclusive; pure (r'3 /= 0) }) else pure False
+  r'4 <- if r'1 then (do { r'2 <- rdP cap cmdarg_T'oap; r'3 <- rdI32 r'2 oparg_T'inclusive; pure (r'3 /= 0) }) else pure False
   r'7 <- if r'4 then (do { r'5 <- p_sel ed'; r'6 <- rdW8 r'5 0; pure ((fromIntegral r'6 :: Int32) == (ch 'e')) }) else pure False
   r'9 <- if r'7 then (do { r'8 <- gchar_cursor ed'; pure (r'8 /= NUL) }) else pure False
   r'27 <- if r'9 then (do { r'10 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'11 <- curwin ed'; r'12 <- rdI64 r'11 (win_T'w_cursor + pos_T'lnum); r'26 <- if (r'10 /= r'12) then (do { r'13 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'14 <- curwin ed'; r'15 <- rdI64 r'14 (win_T'w_cursor + pos_T'lnum); pure (b2i (r'13 < r'15) :: Int32) }) else (do { r'16 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'17 <- curwin ed'; r'18 <- rdI32 r'17 (win_T'w_cursor + pos_T'col); if (r'16 /= r'18) then (do { r'19 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'20 <- curwin ed'; r'21 <- rdI32 r'20 (win_T'w_cursor + pos_T'col); pure (b2i (r'19 < r'21) :: Int32) }) else (do { r'22 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; r'23 <- curwin ed'; r'24 <- rdI32 r'23 (win_T'w_cursor + pos_T'coladd); pure (b2i (r'22 < r'24) :: Int32) }) }); pure (r'26 /= 0) }) else pure False
@@ -7650,7 +7650,7 @@ adjust_for_sel ed' cap = do
       _ <- inc_cursor ed'
       r'29 <- rdP cap cmdarg_T'oap
       wrI32 r'29 oparg_T'inclusive FALSE
-      set'c'VIsual_select_exclu_adj ed' TRUE
+      set'c'VIsual_select_exclu_adj ed' True
       pure ()
     else pure ()
 
@@ -7718,7 +7718,7 @@ nv_edit ed' cap = do
   let
     j'2 !old_visual_lnum1 !old_visual_col1 !old_visual_coladd1 = do
       r'1 <- c'VIsual_active ed'
-      r'5 <- if (r'1 /= 0) then (do { r'2 <- rdI32 cap cmdarg_T'cmdchar; if (r'2 == (ch 'A')) then pure True else (do { r'3 <- rdI32 cap cmdarg_T'cmdchar; pure (r'3 == (ch 'I')) }) }) else pure False
+      r'5 <- if r'1 then (do { r'2 <- rdI32 cap cmdarg_T'cmdchar; if (r'2 == (ch 'A')) then pure True else (do { r'3 <- rdI32 cap cmdarg_T'cmdchar; pure (r'3 == (ch 'I')) }) }) else pure False
       if r'5
         then do
           v_visop ed' cap
@@ -7726,7 +7726,7 @@ nv_edit ed' cap = do
         else do
           r'6 <- rdI32 cap cmdarg_T'cmdchar
           r'8 <- if (r'6 == (ch 'a')) then pure True else (do { r'7 <- rdI32 cap cmdarg_T'cmdchar; pure (r'7 == (ch 'i')) })
-          r'13 <- if r'8 then (do { r'9 <- rdP cap cmdarg_T'oap; r'10 <- rdI32 r'9 oparg_T'op_type; if (r'10 /= OP_NOP) then pure True else (do { r'11 <- c'VIsual_active ed'; pure (r'11 /= 0) }) }) else pure False
+          r'13 <- if r'8 then (do { r'9 <- rdP cap cmdarg_T'oap; r'10 <- rdI32 r'9 oparg_T'op_type; if (r'10 /= OP_NOP) then pure True else (c'VIsual_active ed') }) else pure False
           if r'13
             then do
               nv_object ed' cap
@@ -7748,7 +7748,7 @@ nv_edit ed' cap = do
                     else pure ()
                 else do
                   r'22 <- rdI32 cap cmdarg_T'cmdchar
-                  r'24 <- if (r'22 == K_PASTESTART) then (do { r'23 <- c'VIsual_active ed'; pure (r'23 /= 0) }) else pure False
+                  r'24 <- if (r'22 == K_PASTESTART) then (c'VIsual_active ed') else pure False
                   if r'24
                     then do
                       r'25 <- curwin ed'
@@ -8048,7 +8048,7 @@ nv_join ed' cap = do
       _ <- do_join ed' r'17 (r'18 == NUL) True True True
       pure ()
   r'20 <- c'VIsual_active ed'
-  if r'20 /= 0
+  if r'20
     then do
       nv_operator ed' cap
       pure ()
@@ -8089,7 +8089,7 @@ nv_put_opt ed' cap fix_indent1 = do
             else j'8 regname1 reg1'1 reg2'1 empty1 was_visual1 dir1 flags1
     j'8 !regname2 !reg1'2 !reg2'2 !empty2 !was_visual2 !dir2 !flags4 = do
       r'3 <- c'VIsual_active ed'
-      if r'3 /= 0
+      if r'3
         then do
           r'4 <- rdP cap cmdarg_T'oap
           r'5 <- rdI32 r'4 oparg_T'regname
@@ -8152,7 +8152,7 @@ nv_put_opt ed' cap fix_indent1 = do
         then j'21 regname6 reg2'6 empty6 was_visual6 (FORWARD :: Int32) flags11
         else j'21 regname6 reg2'6 empty6 was_visual6 (-1 :: Int32) flags11
     j'21 !regname7 !reg2'7 !empty7 !was_visual7 !dir6 !flags12 = do
-      set'c'VIsual_active ed' TRUE
+      set'c'VIsual_active ed' True
       j'22 regname7 reg2'7 empty7 was_visual7 dir6 flags12
     j'22 !regname8 !reg2'8 !empty8 !was_visual8 !dir7 !flags13 = do
       r'33 <- rdP cap cmdarg_T'oap
@@ -8344,7 +8344,7 @@ cursor_pos_info ed' = frame 312 $ \fr' -> do
             else j'30 lnum1 byte_count6 byte_count_cursor6 char_count6 char_count_cursor6 word_count6 word_count_cursor6 eol_size6 last_check6 line_count_selected3 line_count_info__o_r__6 line_count_info__o_wc6 line_count_info__o_cc6
         else do
           r'23 <- c'VIsual_active ed'
-          if r'23 /= 0
+          if r'23
             then do
               r'24 <- c'VIsual_mode ed'
               r'27 <- if (r'24 == Ctrl_V) then (do { r'25 <- curwin ed'; r'26 <- rdI32 r'25 win_T'w_curswant; pure (r'26 < MAXCOL) }) else pure False
@@ -8414,7 +8414,7 @@ cursor_pos_info ed' = frame 312 $ \fr' -> do
       pure ()
     j'30 !lnum2 !byte_count8 !byte_count_cursor8 !char_count8 !char_count_cursor8 !word_count8 !word_count_cursor8 !eol_size7 !last_check8 !line_count_selected5 !line_count_info__o_r__9 !line_count_info__o_wc9 !line_count_info__o_cc9 = do
       r'66 <- c'VIsual_active ed'
-      r'68 <- if (r'66 /= 0) then (do { r'67 <- rdI64 fr' (pos_T'lnum + 96); pure (lnum2 >= r'67) }) else pure False
+      r'68 <- if r'66 then (do { r'67 <- rdI64 fr' (pos_T'lnum + 96); pure (lnum2 >= r'67) }) else pure False
       r'70 <- if r'68 then (do { r'69 <- rdI64 fr' (pos_T'lnum + 112); pure (lnum2 <= r'69) }) else pure False
       if r'70
         then do
@@ -8477,7 +8477,7 @@ cursor_pos_info ed' = frame 312 $ \fr' -> do
       pure ()
     else do
       r'101 <- c'VIsual_active ed'
-      if r'101 /= 0
+      if r'101
         then do
           r'102 <- rdI64 (addr'c'VIsual ed') pos_T'lnum
           r'103 <- curwin ed'
@@ -8789,7 +8789,7 @@ searchc ed' cap t_cmd = do
   if r'20 /= NUL
     then do
       r'23 <- c'KeyStuffed ed'
-      if not (r'23 /= 0)
+      if not r'23
         then do
           wrW8 (addr'lastc ed') 0 (fromIntegral r'20 :: Word8)
           set_csearch_direction ed' r'21
@@ -8899,7 +8899,7 @@ current_search :: Ed -> Int64 -> Bool -> IO Bool
 current_search ed' count forward = frame 32 $ \fr' -> do
   let
     j'2 !old_p_ws1 _ _ _ !save_VIsual_lnum1 !save_VIsual_col1 !save_VIsual_coladd1 = do
-      r'2 <- if forward then (do { r'1 <- c'VIsual_active ed'; pure (r'1 /= 0) }) else pure False
+      r'2 <- if forward then (c'VIsual_active ed') else pure False
       r'20 <- if r'2 then (do { r'3 <- curwin ed'; r'4 <- rdI64 r'3 (win_T'w_cursor + pos_T'lnum); r'5 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'19 <- if (r'4 /= r'5) then (do { r'6 <- curwin ed'; r'7 <- rdI64 r'6 (win_T'w_cursor + pos_T'lnum); r'8 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'7 < r'8) :: Int32) }) else (do { r'9 <- curwin ed'; r'10 <- rdI32 r'9 (win_T'w_cursor + pos_T'col); r'11 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'10 /= r'11) then (do { r'12 <- curwin ed'; r'13 <- rdI32 r'12 (win_T'w_cursor + pos_T'col); r'14 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'13 < r'14) :: Int32) }) else (do { r'15 <- curwin ed'; r'16 <- rdI32 r'15 (win_T'w_cursor + pos_T'coladd); r'17 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'16 < r'17) :: Int32) }) }); pure (r'19 /= 0) }) else pure False
       r'21 <- curwin ed'
       copyMem (pAdd fr' 16) (pAdd r'21 win_T'w_cursor) 16
@@ -8907,7 +8907,7 @@ current_search ed' count forward = frame 32 $ \fr' -> do
       r'23 <- rdI32 (pAdd fr' 16) pos_T'col
       r'24 <- rdI32 (pAdd fr' 16) pos_T'coladd
       r'25 <- c'VIsual_active ed'
-      if r'25 /= 0
+      if r'25
         then do
           if forward
             then do
@@ -8943,7 +8943,7 @@ current_search ed' count forward = frame 32 $ \fr' -> do
           r'35 <- rdI32 fr' (pos_T'col + 16)
           r'36 <- rdI32 fr' (pos_T'coladd + 16)
           r'37 <- c'VIsual_active ed'
-          if not (r'37 /= 0)
+          if not r'37
             then do
               wrI64 (addr'c'VIsual ed') pos_T'lnum r'34
               wrI32 (addr'c'VIsual ed') pos_T'col r'35
@@ -8968,7 +8968,7 @@ current_search ed' count forward = frame 32 $ \fr' -> do
               j'17 orig_pos_lnum4 orig_pos_col4 orig_pos_coladd4 save_VIsual_lnum4 save_VIsual_col4 save_VIsual_coladd4
         else do
           r'53 <- c'VIsual_active ed'
-          r'71 <- if (r'53 /= 0) then (do { r'54 <- curwin ed'; r'55 <- rdI64 r'54 (win_T'w_cursor + pos_T'lnum); r'56 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'70 <- if (r'55 /= r'56) then (do { r'57 <- curwin ed'; r'58 <- rdI64 r'57 (win_T'w_cursor + pos_T'lnum); r'59 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'58 < r'59) :: Int32) }) else (do { r'60 <- curwin ed'; r'61 <- rdI32 r'60 (win_T'w_cursor + pos_T'col); r'62 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'61 /= r'62) then (do { r'63 <- curwin ed'; r'64 <- rdI32 r'63 (win_T'w_cursor + pos_T'col); r'65 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'64 < r'65) :: Int32) }) else (do { r'66 <- curwin ed'; r'67 <- rdI32 r'66 (win_T'w_cursor + pos_T'coladd); r'68 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'67 < r'68) :: Int32) }) }); pure (r'70 /= 0) }) else pure False
+          r'71 <- if r'53 then (do { r'54 <- curwin ed'; r'55 <- rdI64 r'54 (win_T'w_cursor + pos_T'lnum); r'56 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'70 <- if (r'55 /= r'56) then (do { r'57 <- curwin ed'; r'58 <- rdI64 r'57 (win_T'w_cursor + pos_T'lnum); r'59 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'58 < r'59) :: Int32) }) else (do { r'60 <- curwin ed'; r'61 <- rdI32 r'60 (win_T'w_cursor + pos_T'col); r'62 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'61 /= r'62) then (do { r'63 <- curwin ed'; r'64 <- rdI32 r'63 (win_T'w_cursor + pos_T'col); r'65 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'64 < r'65) :: Int32) }) else (do { r'66 <- curwin ed'; r'67 <- rdI32 r'66 (win_T'w_cursor + pos_T'coladd); r'68 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'67 < r'68) :: Int32) }) }); pure (r'70 /= 0) }) else pure False
           if r'71 && forward
             then do
               r'72 <- curwin ed'
@@ -8976,7 +8976,7 @@ current_search ed' count forward = frame 32 $ \fr' -> do
               j'17 orig_pos_lnum4 orig_pos_col4 orig_pos_coladd4 save_VIsual_lnum4 save_VIsual_col4 save_VIsual_coladd4
             else j'17 orig_pos_lnum4 orig_pos_col4 orig_pos_coladd4 save_VIsual_lnum4 save_VIsual_col4 save_VIsual_coladd4
     j'17 !orig_pos_lnum5 !orig_pos_col5 !orig_pos_coladd5 !save_VIsual_lnum5 !save_VIsual_col5 !save_VIsual_coladd5 = do
-      set'c'VIsual_active ed' TRUE
+      set'c'VIsual_active ed' True
       set'c'VIsual_mode ed' (ch 'v')
       r'73 <- p_sel ed'
       r'74 <- rdW8 r'73 0
@@ -9027,7 +9027,7 @@ current_search ed' count forward = frame 32 $ \fr' -> do
           wrI32 r'145 (win_T'w_cursor + pos_T'col) orig_pos_col9
           wrI32 r'145 (win_T'w_cursor + pos_T'coladd) orig_pos_coladd9
           r'146 <- c'VIsual_active ed'
-          if r'146 /= 0
+          if r'146
             then do
               wrI64 (addr'c'VIsual ed') pos_T'lnum save_VIsual_lnum9
               wrI32 (addr'c'VIsual ed') pos_T'col save_VIsual_col9
@@ -9064,7 +9064,7 @@ current_search ed' count forward = frame 32 $ \fr' -> do
   r'156 <- rdI32 (addr'c'VIsual ed') pos_T'col
   r'157 <- rdI32 (addr'c'VIsual ed') pos_T'coladd
   r'158 <- c'VIsual_active ed'
-  r'161 <- if (r'158 /= 0) then (do { r'159 <- p_sel ed'; r'160 <- rdW8 r'159 0; pure ((fromIntegral r'160 :: Int32) == (ch 'e')) }) else pure False
+  r'161 <- if r'158 then (do { r'159 <- p_sel ed'; r'160 <- rdW8 r'159 0; pure ((fromIntegral r'160 :: Int32) == (ch 'e')) }) else pure False
   r'179 <- if r'161 then (do { r'162 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'163 <- curwin ed'; r'164 <- rdI64 r'163 (win_T'w_cursor + pos_T'lnum); r'178 <- if (r'162 /= r'164) then (do { r'165 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'166 <- curwin ed'; r'167 <- rdI64 r'166 (win_T'w_cursor + pos_T'lnum); pure (b2i (r'165 < r'167) :: Int32) }) else (do { r'168 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'169 <- curwin ed'; r'170 <- rdI32 r'169 (win_T'w_cursor + pos_T'col); if (r'168 /= r'170) then (do { r'171 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'172 <- curwin ed'; r'173 <- rdI32 r'172 (win_T'w_cursor + pos_T'col); pure (b2i (r'171 < r'173) :: Int32) }) else (do { r'174 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; r'175 <- curwin ed'; r'176 <- rdI32 r'175 (win_T'w_cursor + pos_T'coladd); pure (b2i (r'174 < r'176) :: Int32) }) }); pure (r'178 /= 0) }) else pure False
   if r'179
     then do
@@ -9331,7 +9331,7 @@ find_term_bykeys ed' src matchlen = do
   r'41 <- musl_strlen (castPtr src)
   let !len6 = fromIntegral r'41 :: Int32
   r'42 <- need_gather ed'
-  if r'42 /= 0
+  if r'42
     then do
       gather_termleader ed'
       j'2 matchlen len6 (-1 :: Int32) (1 :: Int32) (0 :: Int32) (0 :: Int32)
@@ -9390,9 +9390,9 @@ end_word ed' count bigword stop empty = do
   set'cls_bigword ed' bigword
   r'19 <- p_sel ed'
   r'20 <- rdW8 r'19 0
-  r'22 <- if ((fromIntegral r'20 :: Int32) == (ch 'e')) then (do { r'21 <- c'VIsual_active ed'; pure (r'21 /= 0) }) else pure False
+  r'22 <- if ((fromIntegral r'20 :: Int32) == (ch 'e')) then (c'VIsual_active ed') else pure False
   r'24 <- if r'22 then (do { r'23 <- c'VIsual_mode ed'; pure (r'23 == (ch 'v')) }) else pure False
-  r'26 <- if r'24 then (do { r'25 <- c'VIsual_select_exclu_adj ed'; pure (r'25 /= 0) }) else pure False
+  r'26 <- if r'24 then (c'VIsual_select_exclu_adj ed') else pure False
   if r'26
     then do
       _ <- unadjust_for_sel ed'
@@ -9473,7 +9473,7 @@ current_word ed' oap count include bigword = frame 16 $ \fr' -> do
   let
     j'2 !count1 !inclusive1 !include_white1 = do
       r'1 <- c'VIsual_active ed'
-      r'13 <- if (not (r'1 /= 0)) then pure True else (do { r'2 <- curwin ed'; r'3 <- rdI64 r'2 (win_T'w_cursor + pos_T'lnum); r'4 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'8 <- if (r'3 == r'4) then (do { r'5 <- curwin ed'; r'6 <- rdI32 r'5 (win_T'w_cursor + pos_T'col); r'7 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (r'6 == r'7) }) else pure False; if r'8 then (do { r'9 <- curwin ed'; r'10 <- rdI32 r'9 (win_T'w_cursor + pos_T'coladd); r'11 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (r'10 == r'11) }) else pure False })
+      r'13 <- if (not r'1) then pure True else (do { r'2 <- curwin ed'; r'3 <- rdI64 r'2 (win_T'w_cursor + pos_T'lnum); r'4 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'8 <- if (r'3 == r'4) then (do { r'5 <- curwin ed'; r'6 <- rdI32 r'5 (win_T'w_cursor + pos_T'col); r'7 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (r'6 == r'7) }) else pure False; if r'8 then (do { r'9 <- curwin ed'; r'10 <- rdI32 r'9 (win_T'w_cursor + pos_T'coladd); r'11 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (r'10 == r'11) }) else pure False })
       if r'13
         then do
           back_in_line ed'
@@ -9505,7 +9505,7 @@ current_word ed' oap count include bigword = frame 16 $ \fr' -> do
         else j'10 count2 inclusive2 include_white2
     j'10 !count3 !inclusive3 !include_white3 = do
       r'23 <- c'VIsual_active ed'
-      if r'23 /= 0
+      if r'23
         then do
           copyMem (addr'c'VIsual ed') fr' 16
           redraw_curbuf_later ed' UPD_INVERTED
@@ -9521,7 +9521,7 @@ current_word ed' oap count include bigword = frame 16 $ \fr' -> do
       if count6 > 0
         then do
           r'24 <- c'VIsual_active ed'
-          r'42 <- if (r'24 /= 0) then (do { r'25 <- curwin ed'; r'26 <- rdI64 r'25 (win_T'w_cursor + pos_T'lnum); r'27 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'41 <- if (r'26 /= r'27) then (do { r'28 <- curwin ed'; r'29 <- rdI64 r'28 (win_T'w_cursor + pos_T'lnum); r'30 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'29 < r'30) :: Int32) }) else (do { r'31 <- curwin ed'; r'32 <- rdI32 r'31 (win_T'w_cursor + pos_T'col); r'33 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'32 /= r'33) then (do { r'34 <- curwin ed'; r'35 <- rdI32 r'34 (win_T'w_cursor + pos_T'col); r'36 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'35 < r'36) :: Int32) }) else (do { r'37 <- curwin ed'; r'38 <- rdI32 r'37 (win_T'w_cursor + pos_T'coladd); r'39 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'38 < r'39) :: Int32) }) }); pure (r'41 /= 0) }) else pure False
+          r'42 <- if r'24 then (do { r'25 <- curwin ed'; r'26 <- rdI64 r'25 (win_T'w_cursor + pos_T'lnum); r'27 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'41 <- if (r'26 /= r'27) then (do { r'28 <- curwin ed'; r'29 <- rdI64 r'28 (win_T'w_cursor + pos_T'lnum); r'30 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'29 < r'30) :: Int32) }) else (do { r'31 <- curwin ed'; r'32 <- rdI32 r'31 (win_T'w_cursor + pos_T'col); r'33 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'32 /= r'33) then (do { r'34 <- curwin ed'; r'35 <- rdI32 r'34 (win_T'w_cursor + pos_T'col); r'36 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'35 < r'36) :: Int32) }) else (do { r'37 <- curwin ed'; r'38 <- rdI32 r'37 (win_T'w_cursor + pos_T'coladd); r'39 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'38 < r'39) :: Int32) }) }); pure (r'41 /= 0) }) else pure False
           if r'42
             then do
               r'43 <- curwin ed'
@@ -9587,7 +9587,7 @@ current_word ed' oap count include bigword = frame 16 $ \fr' -> do
                   if r'72
                     then do
                       r'73 <- c'VIsual_active ed'
-                      if r'73 /= 0
+                      if r'73
                         then do
                           r'74 <- curwin ed'
                           copyMem (addr'c'VIsual ed') (pAdd r'74 win_T'w_cursor) 16
@@ -9609,7 +9609,7 @@ current_word ed' oap count include bigword = frame 16 $ \fr' -> do
       j'23 inclusive6
     j'23 !inclusive7 = do
       r'79 <- c'VIsual_active ed'
-      if r'79 /= 0
+      if r'79
         then do
           r'80 <- p_sel ed'
           r'81 <- rdW8 r'80 0
@@ -9638,7 +9638,7 @@ current_word ed' oap count include bigword = frame 16 $ \fr' -> do
   wrI32 fr' pos_T'col 0
   wrI32 fr' pos_T'coladd 0
   r'114 <- c'VIsual_active ed'
-  r'117 <- if (r'114 /= 0) then (do { r'115 <- p_sel ed'; r'116 <- rdW8 r'115 0; pure ((fromIntegral r'116 :: Int32) == (ch 'e')) }) else pure False
+  r'117 <- if r'114 then (do { r'115 <- p_sel ed'; r'116 <- rdW8 r'115 0; pure ((fromIntegral r'116 :: Int32) == (ch 'e')) }) else pure False
   r'135 <- if r'117 then (do { r'118 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'119 <- curwin ed'; r'120 <- rdI64 r'119 (win_T'w_cursor + pos_T'lnum); r'134 <- if (r'118 /= r'120) then (do { r'121 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'122 <- curwin ed'; r'123 <- rdI64 r'122 (win_T'w_cursor + pos_T'lnum); pure (b2i (r'121 < r'123) :: Int32) }) else (do { r'124 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'125 <- curwin ed'; r'126 <- rdI32 r'125 (win_T'w_cursor + pos_T'col); if (r'124 /= r'126) then (do { r'127 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'128 <- curwin ed'; r'129 <- rdI32 r'128 (win_T'w_cursor + pos_T'col); pure (b2i (r'127 < r'129) :: Int32) }) else (do { r'130 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; r'131 <- curwin ed'; r'132 <- rdI32 r'131 (win_T'w_cursor + pos_T'coladd); pure (b2i (r'130 < r'132) :: Int32) }) }); pure (r'134 /= 0) }) else pure False
   if r'135
     then do
@@ -9751,7 +9751,7 @@ current_block ed' oap count include what other = frame 16 $ \fr' -> do
       r'28 <- rdI64 end_pos10 pos_T'lnum
       r'31 <- if (r'27 == r'28) then (do { r'29 <- rdI32 fr' pos_T'col; r'30 <- rdI32 end_pos10 pos_T'col; pure (r'29 == r'30) }) else pure False
       r'34 <- if r'31 then (do { r'32 <- rdI32 fr' pos_T'coladd; r'33 <- rdI32 end_pos10 pos_T'coladd; pure (r'32 == r'33) }) else pure False
-      r'36 <- if r'34 then (do { r'35 <- c'VIsual_active ed'; pure (r'35 /= 0) }) else pure False
+      r'36 <- if r'34 then (c'VIsual_active ed') else pure False
       if r'36
         then do
           r'37 <- curwin ed'
@@ -9766,7 +9766,7 @@ current_block ed' oap count include what other = frame 16 $ \fr' -> do
           r'46 <- if (r'40 /= old_start_lnum10) then (do { r'41 <- rdI64 fr' pos_T'lnum; pure (b2i (r'41 < old_start_lnum10) :: Int32) }) else (do { r'42 <- rdI32 fr' pos_T'col; if (r'42 /= old_start_col10) then (do { r'43 <- rdI32 fr' pos_T'col; pure (b2i (r'43 < old_start_col10) :: Int32) }) else (do { r'44 <- rdI32 fr' pos_T'coladd; pure (b2i (r'44 < old_start_coladd10) :: Int32) }) })
           r'59 <- if (not (r'46 /= 0)) then (do { r'47 <- curwin ed'; r'48 <- rdI64 r'47 (win_T'w_cursor + pos_T'lnum); r'58 <- if (old_end_lnum10 /= r'48) then (do { r'49 <- curwin ed'; r'50 <- rdI64 r'49 (win_T'w_cursor + pos_T'lnum); pure (b2i (old_end_lnum10 < r'50) :: Int32) }) else (do { r'51 <- curwin ed'; r'52 <- rdI32 r'51 (win_T'w_cursor + pos_T'col); if (old_end_col10 /= r'52) then (do { r'53 <- curwin ed'; r'54 <- rdI32 r'53 (win_T'w_cursor + pos_T'col); pure (b2i (old_end_col10 < r'54) :: Int32) }) else (do { r'55 <- curwin ed'; r'56 <- rdI32 r'55 (win_T'w_cursor + pos_T'coladd); pure (b2i (old_end_coladd10 < r'56) :: Int32) }) }); pure (not (r'58 /= 0)) }) else pure False
           r'71 <- if r'59 then (do { r'60 <- rdI64 fr' pos_T'lnum; r'61 <- curwin ed'; r'62 <- rdI64 r'61 (win_T'w_cursor + pos_T'lnum); r'66 <- if (r'60 == r'62) then (do { r'63 <- rdI32 fr' pos_T'col; r'64 <- curwin ed'; r'65 <- rdI32 r'64 (win_T'w_cursor + pos_T'col); pure (r'63 == r'65) }) else pure False; r'70 <- if r'66 then (do { r'67 <- rdI32 fr' pos_T'coladd; r'68 <- curwin ed'; r'69 <- rdI32 r'68 (win_T'w_cursor + pos_T'coladd); pure (r'67 == r'69) }) else pure False; pure (not r'70) }) else pure False
-          r'73 <- if r'71 then (do { r'72 <- c'VIsual_active ed'; pure (r'72 /= 0) }) else pure False
+          r'73 <- if r'71 then (c'VIsual_active ed') else pure False
           if r'73
             then do
               r'74 <- curwin ed'
@@ -9808,7 +9808,7 @@ current_block ed' oap count include what other = frame 16 $ \fr' -> do
             else j'31 sol11
     j'31 !sol12 = do
       r'89 <- c'VIsual_active ed'
-      if r'89 /= 0
+      if r'89
         then do
           r'90 <- p_sel ed'
           r'91 <- rdW8 r'90 0
@@ -9868,7 +9868,7 @@ current_block ed' oap count include what other = frame 16 $ \fr' -> do
   r'141 <- curwin ed'
   r'142 <- rdI32 r'141 (win_T'w_cursor + pos_T'coladd)
   r'143 <- c'VIsual_active ed'
-  r'155 <- if (not (r'143 /= 0)) then pure True else (do { r'144 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'145 <- curwin ed'; r'146 <- rdI64 r'145 (win_T'w_cursor + pos_T'lnum); r'150 <- if (r'144 == r'146) then (do { r'147 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'148 <- curwin ed'; r'149 <- rdI32 r'148 (win_T'w_cursor + pos_T'col); pure (r'147 == r'149) }) else pure False; if r'150 then (do { r'151 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; r'152 <- curwin ed'; r'153 <- rdI32 r'152 (win_T'w_cursor + pos_T'coladd); pure (r'151 == r'153) }) else pure False })
+  r'155 <- if (not r'143) then pure True else (do { r'144 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'145 <- curwin ed'; r'146 <- rdI64 r'145 (win_T'w_cursor + pos_T'lnum); r'150 <- if (r'144 == r'146) then (do { r'147 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'148 <- curwin ed'; r'149 <- rdI32 r'148 (win_T'w_cursor + pos_T'col); pure (r'147 == r'149) }) else pure False; if r'150 then (do { r'151 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; r'152 <- curwin ed'; r'153 <- rdI32 r'152 (win_T'w_cursor + pos_T'coladd); pure (r'151 == r'153) }) else pure False })
   if r'155
     then do
       setpcmark ed'
@@ -10136,7 +10136,7 @@ current_quote ed' oap count include quotechar = do
       r'92 <- curwin ed'
       wrI32 r'92 (win_T'w_cursor + pos_T'col) col_start14
       r'93 <- c'VIsual_active ed'
-      if r'93 /= 0
+      if r'93
         then do
           r'103 <- if vis_empty11 then pure True else (if (vis_bef_curs12 && (not selected_quote12)) then (if inside_quotes12 then pure True else (do { r'94 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'95 <- rdW8 (pAdd line12 (fromIntegral r'94)) 0; if ((fromIntegral r'95 :: Int32) /= quotechar) then (do { r'96 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'96 == 0) then pure True else (do { r'97 <- rdI32 (addr'c'VIsual ed') pos_T'col; r'98 <- rdW8 (pAdd line12 (fromIntegral (r'97 - 1))) 0; pure ((fromIntegral r'98 :: Int32) /= quotechar) }) }) else pure False })) else pure False)
           if r'103
@@ -10160,7 +10160,7 @@ current_quote ed' oap count include quotechar = do
         else j'55 line13 col_start15 inclusive13 vis_empty12 vis_bef_curs13 inside_quotes13 selected_quote13
     j'55 !line14 !col_start16 !inclusive14 !vis_empty13 !vis_bef_curs14 !inside_quotes14 !selected_quote14 = do
       r'109 <- c'VIsual_active ed'
-      if r'109 /= 0
+      if r'109
         then do
           if vis_empty13 || vis_bef_curs14
             then do
@@ -10197,7 +10197,7 @@ current_quote ed' oap count include quotechar = do
         else pure True
     j'67 !did_exclusive_adj8 !restore_vis_bef8 = do
       r'127 <- c'VIsual_active ed'
-      r'130 <- if (r'127 /= 0) then (do { r'128 <- p_sel ed'; r'129 <- rdW8 r'128 0; pure ((fromIntegral r'129 :: Int32) == (ch 'e')) }) else pure False
+      r'130 <- if r'127 then (do { r'128 <- p_sel ed'; r'129 <- rdW8 r'128 0; pure ((fromIntegral r'129 :: Int32) == (ch 'e')) }) else pure False
       if r'130
         then do
           if did_exclusive_adj8
@@ -10226,7 +10226,7 @@ current_quote ed' oap count include quotechar = do
   r'140 <- curwin ed'
   r'141 <- rdI32 r'140 (win_T'w_cursor + pos_T'col)
   r'142 <- c'VIsual_active ed'
-  if r'142 /= 0
+  if r'142
     then do
       r'143 <- rdI64 (addr'c'VIsual ed') pos_T'lnum
       r'144 <- curwin ed'

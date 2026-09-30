@@ -144,8 +144,8 @@
 
 ;; C: get_cpo_flags
 (defn get-cpo-flags [^Editor ed]
-  (g! ed reg-cpo-lit (if (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_LITERAL))) 1 0))
-  (g! ed reg-cpo-bsl (if (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BACKSL))) 1 0))
+  (g! ed reg-cpo-lit (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_LITERAL))))
+  (g! ed reg-cpo-bsl (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_BACKSL))))
   nil)
 
 ;; C: get_coll_element
@@ -229,7 +229,7 @@
                   (when (and (not (== (.ub ^BytePtr (aget p 0)) 93)) (not (== (.ub ^BytePtr (aget p 0)) (e NUL))))
                     (let [t1 (long (utfc-ptr2len ed (aget p 0)))]
                       (aset p 0 (.add ^BytePtr (aget p 0) t1)))))
-              (if (and (== (.ub ^BytePtr (aget p 0)) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (.ub ^BytePtr (aget p 0) 1))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (.ub ^BytePtr (aget p 0) 1))))))
+              (if (and (== (.ub ^BytePtr (aget p 0)) 92) (not (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (.ub ^BytePtr (aget p 0) 1))) (and (not (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (.ub ^BytePtr (aget p 0) 1))))))
                 (aset p 0 (.add ^BytePtr (aget p 0) 2))
                 (if (== (.ub ^BytePtr (aget p 0)) 91)
                   (when (and (== (long (get-char-class ed (Ptr. p 0))) (e CLASS_NONE)) (== (long (get-coll-element ed (Ptr. p 0))) 0) (not (== (.ub ^BytePtr (aget p 0)) (e NUL))))
@@ -481,7 +481,7 @@
   (g! ed regnpar 1)
   (Rt/memset (BytePtr. (g ed had-endbrace) 0) (unchecked-int 0) 10)
   (g! ed regsize 0)
-  (.set-reg-toolong re (e FALSE))
+  (.set-reg-toolong re (boolean false))
   (g! ed bt-reg-parse-depth 0)
   (g! ed regflags 0)
   nil)
@@ -685,7 +685,7 @@
                    0)
                (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-character-after-str) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                    (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-character-after-str) 0)))
-                   (g! ed rc-did-emsg (e TRUE))
+                   (g! ed rc-did-emsg true)
                    (aset to__ 0 nil)
                    -1))]
     (if (== (long j__2) -1)
@@ -742,7 +742,7 @@
             ^BytePtr p (aget to__ 0)]
         (if (== (.ub p) (e NUL))
           (do (emsg ed (BytePtr. (g ed e-illegal-back-reference) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               false)
           true))
       true)))
@@ -760,7 +760,7 @@
   (if (== (long (re-multi-type (long (peekchr ed)))) (e MULTI_MULT))
     (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-nfa-regexp-cannot-repeat-str) 0) (object-array [what]))
         (emsg ed (iobuff-or ed (BytePtr. (g ed e-nfa-regexp-cannot-repeat-str) 0)))
-        (g! ed rc-did-emsg (e TRUE))
+        (g! ed rc-did-emsg true)
         false)
     true))
 
@@ -774,7 +774,7 @@
                            (i32 (.sub scan val_))
                            (i32 (.sub val_ scan)))]
               (if (> offset 65535)
-                (do (.set-reg-toolong re (e TRUE))
+                (do (.set-reg-toolong re (boolean true))
                     nil)
                 (do (.put (.add scan 1) (unchecked-byte (bit-and (bit-shift-right (u32 offset) 8) 255)))
                     (.put (.add scan 2) (unchecked-byte (bit-and offset 255)))
@@ -1013,7 +1013,7 @@
                 ^BytePtr ret (aget fo__ 3)
                 c (aget fl__ 1)
                 len_2 (aget fl__ 14)]
-            (if (and (not (== c (e NUL))) (or (== len_2 0) (and (== (long (re-multi-type (long (peekchr ed)))) (e NOT_MULTI)) (zero? (g ed one-exactly)) (not (< c 0)))))
+            (if (and (not (== c (e NUL))) (or (== len_2 0) (and (== (long (re-multi-type (long (peekchr ed)))) (e NOT_MULTI)) (not (g ed one-exactly)) (not (< c 0)))))
               (recur 9)
               (recur 7)))
         7
@@ -1083,7 +1083,7 @@
         15
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0) (object-array [(if (> (g ed reg-magic) (e MAGIC_OFF)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-missing-rsb-after-str-lsb) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         st))))
@@ -1172,7 +1172,7 @@
             (recur 285))
         25
           (do (emsg ed (BytePtr. (g ed e-too-many-brackets) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         26
@@ -1187,7 +1187,7 @@
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
                 ^BytePtr ret (aget fo__ 3)]
-            (if (and (== (.ub ^BytePtr (aget (g ed regparse) 0)) 92) (zero? (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (.ub ^BytePtr (aget (g ed regparse) 0) 1))) (and (zero? (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (.ub ^BytePtr (aget (g ed regparse) 0) 1))))))
+            (if (and (== (.ub ^BytePtr (aget (g ed regparse) 0)) 92) (not (g ed reg-cpo-bsl)) (or (some? (vim-strchr ed (BytePtr. (g ed REGEXP-INRANGE) 0) (.ub ^BytePtr (aget (g ed regparse) 0) 1))) (and (not (g ed reg-cpo-lit)) (some? (vim-strchr ed (BytePtr. (g ed REGEXP-ABBR) 0) (.ub ^BytePtr (aget (g ed regparse) 0) 1))))))
               (recur 113)
               (recur 28)))
         28
@@ -2112,7 +2112,7 @@
             (recur 145))
         120
           (do (emsg ed (BytePtr. (g ed e-unicode-val-too-large) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         121
@@ -2199,7 +2199,7 @@
                 ^BytePtr ret (aget fo__ 3)
                 startc (aget fl__ 9)
                 endc (aget fl__ 10)]
-            (if (and (== endc 92) (zero? (g ed reg-cpo-lit)) (zero? (g ed reg-cpo-bsl)))
+            (if (and (== endc 92) (not (g ed reg-cpo-lit)) (not (g ed reg-cpo-bsl)))
               (recur 131)
               (recur 132)))
         131
@@ -2309,12 +2309,12 @@
             (recur 139))
         142
           (do (emsg ed (BytePtr. (g ed e-range-too-large-in-character-class) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         143
           (do (emsg ed (BytePtr. (g ed e-reverse-range-in-character-class) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         144
@@ -2481,7 +2481,7 @@
         157
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-character-after-str) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-character-after-str) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         158
@@ -2617,7 +2617,7 @@
           (let [c (aget fl__ 1)]
             (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-regexp-number-after-dot-pos-search-chr) 0) (object-array [(Integer/valueOf (unchecked-int (long (no-Magic c))))]))
             (emsg ed (iobuff-or ed (BytePtr. (g ed e-regexp-number-after-dot-pos-search-chr) 0)))
-            (g! ed rc-did-emsg (e TRUE))
+            (g! ed rc-did-emsg true)
             (aset fo__ 0 nil)
             -1)
         175
@@ -2801,15 +2801,15 @@
         198
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-character-after-str-2) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-character-after-str-2) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         199
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)]
-            (if (zero? (g ed one-exactly))
-              (recur 200)
-              (recur 223)))
+            (if (g ed one-exactly)
+              (recur 223)
+              (recur 200)))
         200
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -2911,9 +2911,9 @@
                 ^BytePtr lastnode (aget fo__ 8)
                 ^BytePtr br (aget fo__ 9)]
             (regtail ed re br lastbranch)
-            (if (zero? (.reg-toolong re))
-              (recur 210)
-              (recur 212)))
+            (if (.reg-toolong re)
+              (recur 212)
+              (recur 210)))
         210
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -2938,7 +2938,7 @@
         213
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-empty-str-brackets) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-empty-str-brackets) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         214
@@ -2976,9 +2976,9 @@
                 ^BytePtr lastnode (aget fo__ 8)
                 ^BytePtr br (aget fo__ 9)]
             (regtail ed re lastnode br)
-            (if (zero? (.reg-toolong re))
-              (recur 219)
-              (recur 217)))
+            (if (.reg-toolong re)
+              (recur 217)
+              (recur 219)))
         217
           (do (aset fo__ 0 nil)
               -1)
@@ -2996,9 +2996,9 @@
                 ^BytePtr ret (aget fo__ 3)
                 ^BytePtr lastnode (aget fo__ 8)]
             (ungetchr ed)
-            (g! ed one-exactly (e TRUE))
+            (g! ed one-exactly true)
             (let [^BytePtr lastnode (regatom ed re flagp)]
-              (g! ed one-exactly (e FALSE))
+              (g! ed one-exactly false)
               (if (nil? lastnode)
                 (do (aset fo__ 8 lastnode)
                     (recur 221))
@@ -3016,13 +3016,13 @@
         222
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-missing-sb-after-str) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-missing-sb-after-str) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         223
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-item-in-str-brackets) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         224
@@ -3062,9 +3062,9 @@
         231
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)]
-            (if (zero? (g ed one-exactly))
-              (recur 232)
-              (recur 235)))
+            (if (g ed one-exactly)
+              (recur 235)
+              (recur 232)))
         232
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -3092,7 +3092,7 @@
         235
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-item-in-str-brackets) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         236
@@ -3109,7 +3109,7 @@
                   (recur 237))))
         237
           (do (emsg ed (BytePtr. (g ed e-invalid-character-after-bsl-z) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         238
@@ -3159,7 +3159,7 @@
               (recur 246)))
         246
           (do (emsg ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         st))))
@@ -3220,30 +3220,30 @@
                 c (long (no-Magic c))]
             (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-str-chr-follows-nothing) 0) (object-array [(if (if (== c 42) (>= (g ed reg-magic) (e MAGIC_ON)) (== (g ed reg-magic) (e MAGIC_ALL))) (BytePtr/lit "") (BytePtr/lit "\\")) (Integer/valueOf (unchecked-int c))]))
             (emsg ed (iobuff-or ed (BytePtr. (g ed e-str-chr-follows-nothing) 0)))
-            (g! ed rc-did-emsg (e TRUE))
+            (g! ed rc-did-emsg true)
             (aset fo__ 0 nil)
             -1)
         254
-          (if (zero? (g ed one-exactly))
-            (recur 255)
-            (recur 256))
+          (if (g ed one-exactly)
+            (recur 256)
+            (recur 255))
         255
           (do (iemsg ed (BytePtr. (g ed e-internal-error-in-regexp) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         256
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-item-in-str-brackets) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         257
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)]
-            (if (zero? (g ed one-exactly))
-              (recur 258)
-              (recur 261)))
+            (if (g ed one-exactly)
+              (recur 261)
+              (recur 258)))
         258
           (let [^S_regengine_S re (aget fo__ 1)
                 ^IntPtr flagp (aget fo__ 2)
@@ -3271,7 +3271,7 @@
         261
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-item-in-str-brackets) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-item-in-str-brackets) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         262
@@ -3387,7 +3387,7 @@
             (recur 285))
         273
           (do (emsg ed (BytePtr. (g ed e-invalid-use-of-underscore) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         274
@@ -3427,7 +3427,7 @@
         278
           (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-character-after-str) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
               (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-character-after-str) 0)))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (aset fo__ 0 nil)
               -1)
         279
@@ -3630,7 +3630,7 @@
         out__)
       (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-syntax-error-in-str-curlies) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
           (emsg ed (iobuff-or ed (BytePtr. (g ed e-syntax-error-in-str-curlies) 0)))
-          (g! ed rc-did-emsg (e TRUE))
+          (g! ed rc-did-emsg true)
           (.set-r__ out__ (e FAIL))
           (.set-minval out__ minval)
           (.set-maxval out__ maxval)
@@ -3734,7 +3734,7 @@
                            (if (== lop (e END))
                              (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-character-after-str-at) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                                  (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-character-after-str-at) 0)))
-                                 (g! ed rc-did-emsg (e TRUE))
+                                 (g! ed rc-did-emsg true)
                                  (.set-r__ out__ nil)
                                  (.set-flagp out__ flagp)
                                  (aset to__ 0 out__)
@@ -3775,7 +3775,7 @@
                                               (if (>= (g ed num-complex-braces) 10)
                                                 (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-too-many-complex-str-curly) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                                                     (emsg ed (iobuff-or ed (BytePtr. (g ed e-too-many-complex-str-curly) 0)))
-                                                    (g! ed rc-did-emsg (e TRUE))
+                                                    (g! ed rc-did-emsg true)
                                                     (.set-r__ out__ nil)
                                                     (.set-flagp out__ flagp)
                                                     (aset to__ 0 out__)
@@ -3810,13 +3810,13 @@
                   (if (== (long (peekchr ed)) -214)
                     (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-nested-str) 0) (object-array [(if (>= (g ed reg-magic) (e MAGIC_ON)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                         (emsg ed (iobuff-or ed (BytePtr. (g ed e-nested-str) 0)))
-                        (g! ed rc-did-emsg (e TRUE))
+                        (g! ed rc-did-emsg true)
                         (.set-r__ out__ nil)
                         (.set-flagp out__ flagp)
                         out__)
                     (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-nested-str-chr) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\")) (Integer/valueOf (unchecked-int (long (no-Magic (long (peekchr ed))))))]))
                         (emsg ed (iobuff-or ed (BytePtr. (g ed e-nested-str-chr) 0)))
-                        (g! ed rc-did-emsg (e TRUE))
+                        (g! ed rc-did-emsg true)
                         (.set-r__ out__ nil)
                         (.set-flagp out__ flagp)
                         out__)))))))))))
@@ -3916,7 +3916,7 @@
                      (do (.set regpiece__o (regpiece ed re flags))
                          (let [flags (.flagp regpiece__o)
                                ^BytePtr latest (.r__ regpiece__o)]
-                           (if (or (nil? latest) (not (zero? (.reg-toolong re))))
+                           (if (or (nil? latest) (.reg-toolong re))
                              (do (aset tl__ 0 flagp)
                                  1)
                              (let [flagp (bit-or flagp (bit-and flags 25))
@@ -3983,13 +3983,13 @@
             (if (== (long (peekchr ed)) -218)
               (do (skipchr ed)
                   (regtail ed re latest (regnode ed (e END)))
-                  (if (zero? (.reg-toolong re))
-                    (do (reginsert ed (e MATCH) latest)
-                        (let [^BytePtr chain latest]
-                          (recur flagp chain)))
+                  (if (.reg-toolong re)
                     (do (.set-r__ out__ ret)
                         (.set-flagp out__ flagp)
-                        out__)))
+                        out__)
+                    (do (reginsert ed (e MATCH) latest)
+                        (let [^BytePtr chain latest]
+                          (recur flagp chain)))))
               (do (.set-r__ out__ ret)
                   (.set-flagp out__ flagp)
                   out__))))))))
@@ -4005,7 +4005,7 @@
                (if (>= (g ed regnpar) (e NSUBEXP))
                  (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-too-many-str-open) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                      (emsg ed (iobuff-or ed (BytePtr. (g ed e-too-many-str-open) 0)))
-                     (g! ed rc-did-emsg (e TRUE))
+                     (g! ed rc-did-emsg true)
                      (.set-r__ out__ nil)
                      (.set-flagp out__ flagp)
                      (aset to__ 1 out__)
@@ -4031,7 +4031,7 @@
             parno (aget tl__ 0)]
         (if (>= (g ed bt-reg-parse-depth) (e REG_MAX_PAREN_DEPTH))
           (do (emsg ed (BytePtr. (g ed e-command-too-complex) 0))
-              (g! ed rc-did-emsg (e TRUE))
+              (g! ed rc-did-emsg true)
               (.set-r__ out__ nil)
               (.set-flagp out__ flagp)
               out__)
@@ -4059,7 +4059,7 @@
                             (.set regbranch__o (regbranch ed re))
                             (let [flags (.flagp regbranch__o)
                                   ^BytePtr br (.r__ regbranch__o)]
-                              (if (or (nil? br) (not (zero? (.reg-toolong re))))
+                              (if (or (nil? br) (.reg-toolong re))
                                 (let [^BytePtr ret nil]
                                   (g! ed bt-reg-parse-depth (i32 (dec (g ed bt-reg-parse-depth))))
                                   (.set-r__ out__ ret)
@@ -4083,7 +4083,7 @@
                                 (if (== paren (e REG_NPAREN))
                                   (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-unmatched-str-percent-open) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                                       (emsg ed (iobuff-or ed (BytePtr. (g ed e-unmatched-str-percent-open) 0)))
-                                      (g! ed rc-did-emsg (e TRUE))
+                                      (g! ed rc-did-emsg true)
                                       (let [^BytePtr ret nil]
                                         (g! ed bt-reg-parse-depth (i32 (dec (g ed bt-reg-parse-depth))))
                                         (.set-r__ out__ ret)
@@ -4091,7 +4091,7 @@
                                         out__))
                                   (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-unmatched-str-open) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                                       (emsg ed (iobuff-or ed (BytePtr. (g ed e-unmatched-str-open) 0)))
-                                      (g! ed rc-did-emsg (e TRUE))
+                                      (g! ed rc-did-emsg true)
                                       (let [^BytePtr ret nil]
                                         (g! ed bt-reg-parse-depth (i32 (dec (g ed bt-reg-parse-depth))))
                                         (.set-r__ out__ ret)
@@ -4101,14 +4101,14 @@
                                   (if (== (g ed curchr) -215)
                                     (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-unmatched-str-close) 0) (object-array [(if (== (g ed reg-magic) (e MAGIC_ALL)) (BytePtr/lit "") (BytePtr/lit "\\"))]))
                                         (emsg ed (iobuff-or ed (BytePtr. (g ed e-unmatched-str-close) 0)))
-                                        (g! ed rc-did-emsg (e TRUE))
+                                        (g! ed rc-did-emsg true)
                                         (let [^BytePtr ret nil]
                                           (g! ed bt-reg-parse-depth (i32 (dec (g ed bt-reg-parse-depth))))
                                           (.set-r__ out__ ret)
                                           (.set-flagp out__ flagp)
                                           out__))
                                     (do (emsg ed (BytePtr. (g ed e-trailing-characters) 0))
-                                        (g! ed rc-did-emsg (e TRUE))
+                                        (g! ed rc-did-emsg true)
                                         (let [^BytePtr ret nil]
                                           (g! ed bt-reg-parse-depth (i32 (dec (g ed bt-reg-parse-depth))))
                                           (.set-r__ out__ ret)
@@ -4128,7 +4128,7 @@
         ^objects to__ (object-array 2)]
     (if (nil? expr)
       (do (iemsg ed (BytePtr. (g ed e-null-argument) 0))
-          (g! ed rc-did-emsg (e TRUE))
+          (g! ed rc-did-emsg true)
           nil)
       (do (init-class-tab ed)
           (regcomp-start ed re expr re-flags)
@@ -4144,10 +4144,10 @@
                   _ (regc ed (e REGMAGIC))
                   _ (.set reg__o (reg ed re (e REG_NOPAREN)))
                   flags (.flagp reg__o)]
-              (if (or (nil? (.r__ reg__o)) (not (zero? (.reg-toolong re))))
-                (when-not (zero? (.reg-toolong re))
+              (if (or (nil? (.r__ reg__o)) (.reg-toolong re))
+                (when (.reg-toolong re)
                   (emsg ed (BytePtr. (g ed e-pattern-too-long) 0))
-                  (g! ed rc-did-emsg (e TRUE))
+                  (g! ed rc-did-emsg true)
                   nil)
                 (do (.set-regstart r (e NUL))
                     (.set-reganch r 0)
@@ -4221,7 +4221,7 @@
         options (long options)
         ^longs tl__ (long-array 2)
         ^objects to__ (object-array 2)]
-    (g! ed rc-did-emsg (e FALSE))
+    (g! ed rc-did-emsg false)
     (let [magic (long (magic-isset ed))
           j__1 (if (or (nil? pat) (== (.ub pat) (e NUL)))
                  (let [i (if (== pat-use (e RE_LAST))
@@ -4230,11 +4230,11 @@
                    (if (nil? (.pat ^S_spat (aget (g ed spats) i)))
                      (if (== pat-use (e RE_SUBST))
                        (do (emsg ed (BytePtr. (g ed e-no-previous-substitute-regular-expression) 0))
-                           (g! ed rc-did-emsg (e TRUE))
+                           (g! ed rc-did-emsg true)
                            (aset to__ 1 (Boolean/valueOf (boolean false)))
                            -1)
                        (do (emsg ed (BytePtr. (g ed e-no-previous-regular-expression) 0))
-                           (g! ed rc-did-emsg (e TRUE))
+                           (g! ed rc-did-emsg true)
                            (aset to__ 1 (Boolean/valueOf (boolean false)))
                            -1))
                      (let [^BytePtr pat (.pat ^S_spat (aget (g ed spats) i))
@@ -4428,14 +4428,14 @@
             (do (screen-fill ed (i32 (+ (.w-winrow wp) row)) (i32 (+ (.w-winrow wp) (.w-height wp))) (.w-wincol wp) (i32 (+ (.w-wincol wp) (.w-width wp))) 32 32 0)
                 (e OK))
             (do (when (zero? (g ed no-win-do-lines-ins))
-                  (g! ed clear-cmdline (e TRUE)))
-                (if (or (not (zero? (g ed scroll-region))) (not (== (.w-width wp) (.fr-width (g ed topframe)))))
-                  (do (when (and (not (zero? (g ed scroll-region))) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))))
+                  (g! ed clear-cmdline true))
+                (if (or (g ed scroll-region) (not (== (.w-width wp) (.fr-width (g ed topframe)))))
+                  (do (when (and (g ed scroll-region) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))))
                         (scroll-region-set ed wp row))
                       (let [retval (if del
                                      (screen-del-lines ed (i32 (+ (.w-winrow wp) row)) 0 line-count (i32 (- (.w-height wp) row)) false clear-attr wp)
                                      (screen-ins-lines ed (i32 (+ (.w-winrow wp) row)) 0 line-count (i32 (- (.w-height wp) row)) clear-attr wp))]
-                        (if (and (not (zero? (g ed scroll-region))) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))))
+                        (if (and (g ed scroll-region) (or (== (.w-width wp) (.fr-width (g ed topframe))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 76)) (e NUL)))))
                           (do (scroll-region-reset ed)
                               (if retval 1 0))
                           (if retval 1 0))))
@@ -5403,10 +5403,9 @@
         col (long col)
         did-line-attr (long did-line-attr)
         lcs-eol-one (long lcs-eol-one)
-        on-last-col (long on-last-col)
         ^T_update_search_hl__out_T out__ (new-T_update_search_hl__out_T)
-        ^longs tl__ (long-array 3)
-        ^objects to__ (object-array 2)]
+        ^longs tl__ (long-array 2)
+        ^objects to__ (object-array 3)]
     (loop [st 0
            ^S_window_S wp wp
            lnum lnum
@@ -5463,16 +5462,16 @@
                   ^T_match_T shl (aget to__ 0)
                   shl-flag (aget tl__ 0)
                   j__3 (if (== (.attr-cur shl) 0)
-                         (do (aset tl__ 1 on-last-col)
-                             (aset tl__ 2 search-attr)
+                         (do (aset to__ 2 (Boolean/valueOf (boolean on-last-col)))
+                             (aset tl__ 1 search-attr)
                              0)
                          (let [search-attr (.attr-cur shl)
-                               on-last-col (if (>= (i32 (+ col 1)) (.endcol shl)) 1 0)]
-                           (aset tl__ 1 on-last-col)
-                           (aset tl__ 2 search-attr)
+                               on-last-col (>= (i32 (+ col 1)) (.endcol shl))]
+                           (aset to__ 2 (Boolean/valueOf (boolean on-last-col)))
+                           (aset tl__ 1 search-attr)
                            0))
-                  on-last-col (aget tl__ 1)
-                  search-attr (aget tl__ 2)
+                  on-last-col (boolean (aget to__ 2))
+                  search-attr (aget tl__ 1)
                   ^S_matchitem cur (if (and (not (identical? shl search-hl)) (some? cur))
                                      ^S_matchitem (.mit-next cur)
                                      cur)]
@@ -5482,7 +5481,7 @@
                                 search-attr)]
               (.set-r__ out__ search-attr)
               (.set-line out__ line)
-              (.set-on-last-col out__ on-last-col)
+              (.set-on-last-col out__ (boolean on-last-col))
               out__))
         3
           (if (or (some? (.regprog ^T_regmmatch_T (.-rm shl))) (and (some? cur) pos-inprogress))
@@ -5661,16 +5660,16 @@
       nil)))
 
 (defn- win-line__0 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         0
@@ -5706,7 +5705,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c 0
                 in-curline (and (identical? wp (g ed curwin)) (== lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                 lcs-eol-one (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))
@@ -5736,7 +5735,7 @@
                 num-attr 0
                 did-line-attr 0
                 _ (aset match-conc 0 (unchecked-int 0))
-                on-last-col (e FALSE)]
+                on-last-col false]
             (if (> startrow endrow)
               (do (aset fl__ 4 c)
                   (aset fo__ 4 (Boolean/valueOf (boolean in-curline)))
@@ -5765,7 +5764,7 @@
                   (aset fo__ 10 (Boolean/valueOf (boolean sign-present)))
                   (aset fl__ 23 num-attr)
                   (aset fl__ 24 did-line-attr)
-                  (aset fl__ 25 on-last-col)
+                  (aset fo__ 11 (Boolean/valueOf (boolean on-last-col)))
                   (recur 303))
               (do (aset fl__ 4 c)
                   (aset fo__ 4 (Boolean/valueOf (boolean in-curline)))
@@ -5794,7 +5793,7 @@
                   (aset fo__ 10 (Boolean/valueOf (boolean sign-present)))
                   (aset fl__ 23 num-attr)
                   (aset fl__ 24 did-line-attr)
-                  (aset fl__ 25 on-last-col)
+                  (aset fo__ 11 (Boolean/valueOf (boolean on-last-col)))
                   (recur 1))))
         1
           (let [^S_window_S wp (aget fo__ 1)
@@ -5824,7 +5823,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.zero wlv)
             (.set-lnum wlv lnum)
             (.set-startrow wlv startrow)
@@ -5863,8 +5862,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
-            (if (and (not (zero? (g ed VIsual-active))) (identical? (.w-buffer wp) (.w-buffer (g ed curwin))))
+                on-last-col (boolean (aget fo__ 11))]
+            (if (and (g ed VIsual-active) (identical? (.w-buffer wp) (.w-buffer (g ed curwin))))
               (recur 13)
               (recur 3)))
         3
@@ -5895,8 +5894,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
-            (if (and (not (zero? (g ed highlight-match))) (identical? wp (g ed curwin)) (>= lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (<= lnum (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (g ed search-match-lines))))
+                on-last-col (boolean (aget fo__ 11))]
+            (if (and (g ed highlight-match) (identical? wp (g ed curwin)) (>= lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (<= lnum (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (g ed search-match-lines))))
               (recur 4)
               (recur 36)))
         4
@@ -5925,7 +5924,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
               (recur 6)
               (recur 5)))
@@ -5955,7 +5954,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int 0))
             (recur 7))
         6
@@ -5984,7 +5983,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (getvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) (IntPtr. ^ints (.-fromcol wlv) 0) nil nil 0)
             (recur 7))
         7
@@ -6013,7 +6012,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== lnum (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (g ed search-match-lines)))
               (recur 9)
               (recur 8)))
@@ -6043,7 +6042,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (e MAXCOL)))
             (recur 10))
         9
@@ -6072,7 +6071,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-lnum pos lnum)
             (.set-col pos (g ed search-match-endcol))
             (getvcol ed (g ed curwin) pos (IntPtr. ^ints (.-tocol wlv) 0) nil nil 0)
@@ -6103,23 +6102,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (long (aget ^ints (.-fromcol wlv) 0)) (long (aget ^ints (.-tocol wlv) 0))) (not (zero? (g ed search-match-endcol))))
               (recur 11)
               (recur 12)))
         st))))
 
 (defn- win-line__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         11
@@ -6148,7 +6147,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (+ (long (aget ^ints (.-fromcol wlv) 0)) 1)))
             (recur 12))
         12
@@ -6179,7 +6178,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 area-highlighting (e TRUE)
                 vi-attr (long (aget (g ed highlight-attr) 6))]
             (aset fl__ 14 area-highlighting)
@@ -6213,7 +6212,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (or (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual)))))
               (recur 15)
               (recur 14)))
@@ -6245,13 +6244,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)
                 ^T_pos_T top (g ed VIsual)
                 ^T_pos_T bot (.-w-cursor (g ed curwin))]
-            (aset fo__ 11 top)
-            (aset fo__ 12 bot)
+            (aset fo__ 12 top)
+            (aset fo__ 13 bot)
             (recur 16))
         15
           (let [^S_window_S wp (aget fo__ 1)
@@ -6281,13 +6280,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)
                 ^T_pos_T top (.-w-cursor (g ed curwin))
                 ^T_pos_T bot (g ed VIsual)]
-            (aset fo__ 11 top)
-            (aset fo__ 12 bot)
+            (aset fo__ 12 top)
+            (aset fo__ 13 bot)
             (recur 16))
         16
           (let [^S_window_S wp (aget fo__ 1)
@@ -6318,9 +6317,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)
                 lnum-in-visual-area (and (>= lnum (.lnum top)) (<= lnum (.lnum bot)))]
             (if (== (g ed VIsual-mode) (e Ctrl_V))
               (do (aset fo__ 5 (Boolean/valueOf (boolean lnum-in-visual-area)))
@@ -6355,9 +6354,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)]
             (if (and (> lnum (.lnum top)) (<= lnum (.lnum bot)))
               (recur 23)
               (recur 18)))
@@ -6389,9 +6388,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)]
             (if (== lnum (.lnum top))
               (recur 19)
               (recur 24)))
@@ -6423,9 +6422,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)]
             (if (== (g ed VIsual-mode) 86)
               (recur 22)
               (recur 20)))
@@ -6457,9 +6456,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T top (aget fo__ 11)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T top (aget fo__ 12)
+                ^T_pos_T bot (aget fo__ 13)]
             (getvvcol ed wp top (IntPtr. ^ints (.-fromcol wlv) 0) nil nil 0)
             (if (== (long (gchar-pos ed top)) (e NUL))
               (recur 21)
@@ -6492,8 +6491,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (+ (long (aget ^ints (.-fromcol wlv) 0)) 1)))
             (recur 24))
         22
@@ -6524,8 +6523,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int 0))
             (recur 24))
         23
@@ -6556,23 +6555,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int 0))
             (recur 24))
         st))))
 
 (defn- win-line__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         24
@@ -6603,8 +6602,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (if (and (not (== (g ed VIsual-mode) 86)) (== lnum (.lnum bot)))
               (recur 25)
               (recur 34)))
@@ -6636,8 +6635,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (== (.col bot) 0) (== (.coladd bot) 0))
               (recur 31)
               (recur 26)))
@@ -6669,8 +6668,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (if (== (.col bot) (e MAXCOL))
               (recur 30)
               (recur 27)))
@@ -6702,8 +6701,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^T_pos_T bot (aget fo__ 12)]
+                on-last-col (boolean (aget fo__ 11))
+                ^T_pos_T bot (aget fo__ 13)]
             (.set pos bot)
             (if (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
               (recur 29)
@@ -6736,7 +6735,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (getvvcol ed wp pos nil nil (IntPtr. ^ints (.-tocol wlv) 0) 0)
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (inc (long (aget ^ints (.-tocol wlv) 0)))))
             (recur 34))
@@ -6768,7 +6767,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (getvvcol ed wp pos (IntPtr. ^ints (.-tocol wlv) 0) nil nil 0)
             (recur 34))
         30
@@ -6799,7 +6798,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (e MAXCOL)))
             (recur 34))
         31
@@ -6830,7 +6829,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int -10))
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (e MAXCOL)))
             (recur 34))
@@ -6863,7 +6862,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if lnum-in-visual-area
               (recur 33)
               (recur 34)))
@@ -6895,7 +6894,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int (.w-old-cursor-fcol wp)))
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (.w-old-cursor-lcol wp)))
             (recur 34))
@@ -6927,7 +6926,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (>= (long (aget ^ints (.-fromcol wlv) 0)) 0)
               (recur 35)
               (recur 36)))
@@ -6959,7 +6958,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 area-highlighting (e TRUE)
                 vi-attr (long (aget (g ed highlight-attr) 23))]
             (aset fl__ 14 area-highlighting)
@@ -6993,23 +6992,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.line-attr wlv) 0)
               (recur 38)
               (recur 37)))
         st))))
 
 (defn- win-line__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         37
@@ -7040,7 +7039,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 area-highlighting (e TRUE)]
             (aset fl__ 14 area-highlighting)
             (recur 38))
@@ -7074,7 +7073,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 ^BytePtr line (ml-get-buf ed (.w-buffer wp) lnum false)
                 ^BytePtr ptr line]
             (if (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
@@ -7114,7 +7113,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (or (not (zero? (long (aget ^ints (.-space ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))) (some? (.multispace ^T_lcs_chars_T (.-w-lcs-chars wp))) (some? (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars wp))) (not (zero? (long (aget ^ints (.-trail ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))) (not (zero? (long (aget ^ints (.-lead ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))) (not (zero? (long (aget ^ints (.-nbsp ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))))
               (recur 40)
               (recur 41)))
@@ -7148,7 +7147,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 extra-check true]
             (aset fo__ 7 (Boolean/valueOf (boolean extra-check)))
             (recur 41))
@@ -7182,7 +7181,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (zero? (long (aget ^ints (.-trail ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))
               (recur 45)
               (recur 42)))
@@ -7216,7 +7215,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 trailcol (long (ml-get-buf-len ed (.w-buffer wp) lnum))]
             (aset fl__ 20 trailcol)
             (recur 43))
@@ -7250,7 +7249,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (> trailcol 0) (or (== (.ub ptr (i32 (- trailcol 1))) 32) (== (.ub ptr (i32 (- trailcol 1))) 9)))
               (recur 302)
               (recur 44)))
@@ -7284,7 +7283,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 trailcol (i32 (+ trailcol (i32 (.sub ptr line))))]
             (aset fl__ 20 trailcol)
             (recur 45))
@@ -7318,7 +7317,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (or (not (zero? (long (aget ^ints (.-lead ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))) (some? (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars wp))) (not (== (.leadtab1 ^T_lcs_chars_T (.-w-lcs-chars wp)) (e NUL))))
               (recur 46)
               (recur 51)))
@@ -7352,7 +7351,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 leadcol 0]
             (aset fl__ 21 leadcol)
             (recur 47))
@@ -7386,7 +7385,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (or (== (.ub ptr leadcol) 32) (== (.ub ptr leadcol) 9))
               (recur 301)
               (recur 48)))
@@ -7420,7 +7419,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.ub ptr leadcol) (e NUL))
               (recur 50)
               (recur 49)))
@@ -7454,23 +7453,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 leadcol (i32 (+ leadcol (i32 (+ (i32 (.sub ptr line)) 1))))]
             (aset fl__ 21 leadcol)
             (recur 51))
         st))))
 
 (defn- win-line__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         50
@@ -7503,7 +7502,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 leadcol 0]
             (aset fl__ 21 leadcol)
             (recur 51))
@@ -7537,7 +7536,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (long (get-win-attr ed wp)) 0)
               (recur 53)
               (recur 52)))
@@ -7571,7 +7570,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-win-attr wlv (long (get-win-attr ed wp)))
             (let [area-highlighting (e TRUE)]
               (aset fl__ 14 area-highlighting)
@@ -7606,13 +7605,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                skipcol-in-text-prop-above (aget fl__ 26)
+                on-last-col (boolean (aget fo__ 11))
+                skipcol-in-text-prop-above (aget fl__ 25)
                 skipcol-in-text-prop-above 0]
             (if (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
-              (do (aset fl__ 26 skipcol-in-text-prop-above)
+              (do (aset fl__ 25 skipcol-in-text-prop-above)
                   (recur 54))
-              (do (aset fl__ 26 skipcol-in-text-prop-above)
+              (do (aset fl__ 25 skipcol-in-text-prop-above)
                   (recur 55))))
         54
           (let [^S_window_S wp (aget fo__ 1)
@@ -7645,7 +7644,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 v (.w-leftcol wp)]
             (aset fl__ 13 v)
             (recur 56))
@@ -7680,8 +7679,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                skipcol-in-text-prop-above (aget fl__ 26)
+                on-last-col (boolean (aget fo__ 11))
+                skipcol-in-text-prop-above (aget fl__ 25)
                 v (if (== startrow 0) (i32 (- (.w-skipcol wp) skipcol-in-text-prop-above)) 0)]
             (aset fl__ 13 v)
             (recur 56))
@@ -7716,7 +7715,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (> v 0) (== number-only 0))
               (recur 57)
               (recur 80)))
@@ -7751,16 +7750,16 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 ^BytePtr prev-ptr ptr
                 charsize 0]
             (aset head 0 (unchecked-int 0))
             (init-chartabsize-arg cts wp lnum (i32 (.vcol wlv)) line ptr)
             (.set-cts-max-head-vcol cts (i32 v))
-            (aset fo__ 13 prev-ptr)
-            (aset fl__ 27 charsize)
+            (aset fo__ 14 prev-ptr)
+            (aset fl__ 26 charsize)
             (recur 58))
         58
           (let [^S_window_S wp (aget fo__ 1)
@@ -7792,9 +7791,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (if (< (.cts-vcol cts) v)
               (recur 59)
               (recur 70)))
@@ -7828,19 +7827,19 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (aset head 0 (unchecked-int 0))
             (let [charsize (long (win-lbr-chartabsize ed cts (IntPtr. head 0) nil))
                   _ (.set-cts-vcol cts (i32 (+ (.cts-vcol cts) charsize)))
                   ^BytePtr prev-ptr (.cts-ptr cts)]
               (if (== (.ub prev-ptr) (e NUL))
-                (do (aset fo__ 13 prev-ptr)
-                    (aset fl__ 27 charsize)
+                (do (aset fo__ 14 prev-ptr)
+                    (aset fl__ 26 charsize)
                     (recur 70))
-                (do (aset fo__ 13 prev-ptr)
-                    (aset fl__ 27 charsize)
+                (do (aset fo__ 14 prev-ptr)
+                    (aset fl__ 26 charsize)
                     (recur 60)))))
         60
           (let [^S_window_S wp (aget fo__ 1)
@@ -7872,9 +7871,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 t1 (long (utfc-ptr2len ed (.cts-ptr cts)))]
             (.set-cts-ptr cts (.add ^BytePtr (.cts-ptr cts) t1))
             (if (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
@@ -7910,9 +7909,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 in-multispace (and (== (.ub prev-ptr) 32) (or (== (.ub ^BytePtr (.cts-ptr cts)) 32) (and (.gt prev-ptr line) (== (.ub prev-ptr -1) 32))))]
             (if in-multispace
               (do (aset fo__ 9 (Boolean/valueOf (boolean in-multispace)))
@@ -7922,16 +7921,16 @@
         st))))
 
 (defn- win-line__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         62
@@ -7964,9 +7963,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (if (and (.ge ^BytePtr (.cts-ptr cts) (.add line leadcol)) (some? (.multispace ^T_lcs_chars_T (.-w-lcs-chars wp))))
               (recur 66)
               (recur 63)))
@@ -8000,9 +7999,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (if (and (.lt ^BytePtr (.cts-ptr cts) (.add line leadcol)) (some? (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars wp))))
               (recur 64)
               (recur 69)))
@@ -8036,9 +8035,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 multispace-pos (i32 (inc multispace-pos))]
             (if (== (long (.at ^IntPtr (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars wp)) multispace-pos)) (e NUL))
               (do (aset fl__ 22 multispace-pos)
@@ -8075,9 +8074,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 multispace-pos 0]
             (aset fl__ 22 multispace-pos)
             (recur 69))
@@ -8111,9 +8110,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 multispace-pos (i32 (inc multispace-pos))]
             (if (== (long (.at ^IntPtr (.multispace ^T_lcs_chars_T (.-w-lcs-chars wp)) multispace-pos)) (e NUL))
               (do (aset fl__ 22 multispace-pos)
@@ -8150,9 +8149,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 multispace-pos 0]
             (aset fl__ 22 multispace-pos)
             (recur 69))
@@ -8186,9 +8185,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)
                 multispace-pos 0]
             (aset fl__ 22 multispace-pos)
             (recur 69))
@@ -8222,9 +8221,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (recur 58))
         70
           (let [^S_window_S wp (aget fo__ 1)
@@ -8257,12 +8256,12 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (.set-vcol wlv (.cts-vcol cts))
             (let [^BytePtr ptr (.cts-ptr cts)]
-              (if (and (< (.vcol wlv) v) (or (not (zero? (long (virtual-active ed)))) (and (not (zero? (g ed VIsual-active))) (identical? (.w-buffer wp) (.w-buffer (g ed curwin))))))
+              (if (and (< (.vcol wlv) v) (or (not (zero? (long (virtual-active ed)))) (and (g ed VIsual-active) (identical? (.w-buffer wp) (.w-buffer (g ed curwin))))))
                 (do (aset fo__ 3 ptr)
                     (recur 71))
                 (do (aset fo__ 3 ptr)
@@ -8298,9 +8297,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (.set-vcol wlv v)
             (recur 72))
         72
@@ -8334,9 +8333,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (if (> (.vcol wlv) v)
               (recur 73)
               (recur 74)))
@@ -8371,9 +8370,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr (aget fo__ 13)
-                charsize (aget fl__ 27)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr (aget fo__ 14)
+                charsize (aget fl__ 26)]
             (.set-vcol wlv (- (.vcol wlv) charsize))
             (let [^BytePtr ptr prev-ptr]
               (aset fo__ 3 ptr)
@@ -8409,23 +8408,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> v (.vcol wlv))
               (recur 75)
               (recur 76)))
         st))))
 
 (defn- win-line__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         75
@@ -8459,7 +8458,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 skip-cells (i32 (- (- v (.vcol wlv)) (long (aget head 0))))]
             (aset fl__ 11 skip-cells)
             (recur 76))
@@ -8493,7 +8492,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (<= (long (aget ^ints (.-tocol wlv) 0)) (.vcol wlv))
               (recur 79)
               (recur 77)))
@@ -8527,7 +8526,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (>= (long (aget ^ints (.-fromcol wlv) 0)) 0) (< (long (aget ^ints (.-fromcol wlv) 0)) (.vcol wlv)))
               (recur 78)
               (recur 80)))
@@ -8561,7 +8560,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int (.vcol wlv)))
             (recur 80))
         79
@@ -8594,7 +8593,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int 0))
             (recur 80))
         80
@@ -8627,7 +8626,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (>= (long (aget ^ints (.-fromcol wlv) 0)) (long (aget ^ints (.-tocol wlv) 0)))
               (recur 81)
               (recur 82)))
@@ -8661,7 +8660,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-fromcol wlv) 0 (unchecked-int -1))
             (recur 82))
         82
@@ -8694,7 +8693,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== number-only 0)
               (recur 83)
               (recur 84)))
@@ -8729,7 +8728,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 v (.sub ptr line)
                 _ (.set prepare-search-hl-line__o (prepare-search-hl-line ed wp lnum (i32 v) line (g ed screen-search-hl) search-attr))
                 ^BytePtr line (.line prepare-search-hl-line__o)
@@ -8772,7 +8771,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (win-line-start ed wp wlv false)
             (recur 85))
         85
@@ -8805,7 +8804,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset has-match-conc 0 (unchecked-int 0))
             (if (== (.draw-state wlv) 3)
               (recur 93)
@@ -8840,7 +8839,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (.draw-state wlv) 0) (== (.n-extra wlv) 0))
               (recur 87)
               (recur 88)))
@@ -8874,22 +8873,22 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-draw-state wlv 1)
             (recur 88))
         st))))
 
 (defn- win-line__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         88
@@ -8922,7 +8921,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (.draw-state wlv) 1) (== (.n-extra wlv) 0))
               (recur 89)
               (recur 90)))
@@ -8956,7 +8955,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-draw-state wlv 2)
             (handle-lnum-col ed wp wlv sign-present num-attr)
             (recur 90))
@@ -8990,7 +8989,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (> number-only 0) (== (.draw-state wlv) 2) (== (.n-extra wlv) 0))
               (recur 297)
               (recur 91)))
@@ -9024,7 +9023,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (.draw-state wlv) 2) (== (.n-extra wlv) 0))
               (recur 92)
               (recur 93)))
@@ -9058,7 +9057,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-draw-state wlv 3)
             (win-line-continue wlv)
             (recur 93))
@@ -9092,7 +9091,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (>= (g ed dollar-vcol) 0) in-curline (>= (.vcol wlv) (long (aget ^ints (.-w-virtcol wp) 0))))
               (recur 296)
               (recur 94)))
@@ -9126,7 +9125,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (.draw-state wlv) 3) (or (not (zero? area-highlighting)) extra-check))
               (recur 95)
               (recur 110)))
@@ -9159,13 +9158,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^IntPtr area-attr-p (aget fo__ 14)
+                on-last-col (boolean (aget fo__ 11))
+                ^IntPtr area-attr-p (aget fo__ 15)
                 ^IntPtr area-attr-p (IntPtr. area-attr 0)]
             (if (or (== (.vcol wlv) (long (aget ^ints (.-fromcol wlv) 0))) (and (== (+ (.vcol wlv) 1) (long (aget ^ints (.-fromcol wlv) 0))) (or (and (== (.n-extra wlv) 0) (> (long (utf-ptr2cells ed ptr)) 1)) (and (> (.n-extra wlv) 0) (some? (.p-extra wlv)) (> (long (utf-ptr2cells ed (.p-extra wlv))) 1)))))
-              (do (aset fo__ 14 area-attr-p)
+              (do (aset fo__ 15 area-attr-p)
                   (recur 98))
-              (do (aset fo__ 14 area-attr-p)
+              (do (aset fo__ 15 area-attr-p)
                   (recur 96))))
         96
           (let [^S_window_S wp (aget fo__ 1)
@@ -9196,8 +9195,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^IntPtr area-attr-p (aget fo__ 14)]
+                on-last-col (boolean (aget fo__ 11))
+                ^IntPtr area-attr-p (aget fo__ 15)]
             (if (and (not (== (long (.get area-attr-p)) 0)) (== (.vcol wlv) (long (aget ^ints (.-tocol wlv) 0))))
               (recur 97)
               (recur 99)))
@@ -9230,8 +9229,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^IntPtr area-attr-p (aget fo__ 14)]
+                on-last-col (boolean (aget fo__ 11))
+                ^IntPtr area-attr-p (aget fo__ 15)]
             (.put area-attr-p (unchecked-int 0))
             (recur 99))
         98
@@ -9263,8 +9262,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^IntPtr area-attr-p (aget fo__ 14)]
+                on-last-col (boolean (aget fo__ 11))
+                ^IntPtr area-attr-p (aget fo__ 15)]
             (.put area-attr-p (unchecked-int vi-attr))
             (recur 99))
         99
@@ -9296,23 +9295,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.n-extra wlv) 0)
               (recur 100)
               (recur 102)))
         st))))
 
 (defn- win-line__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         100
@@ -9345,7 +9344,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 v (.sub ptr line)
                 _ (.set update-search-hl__o (update-search-hl ed wp lnum (i32 v) line (g ed screen-search-hl) (IntPtr. has-match-conc 0) (IntPtr. match-conc 0) did-line-attr lcs-eol-one on-last-col))
                 ^BytePtr line (.line update-search-hl__o)
@@ -9391,7 +9390,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset has-match-conc 0 (unchecked-int 0))
             (recur 102))
         102
@@ -9424,7 +9423,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 attr-pri true]
             (if (== (long (aget area-attr 0)) 0)
               (do (aset fo__ 6 (Boolean/valueOf (boolean attr-pri)))
@@ -9461,7 +9460,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== search-attr 0)
               (recur 104)
               (recur 107)))
@@ -9494,7 +9493,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (== (.line-attr wlv) 0)) (or (and (== (long (aget ^ints (.-fromcol wlv) 0)) -10) (== (long (aget ^ints (.-tocol wlv) 0)) (e MAXCOL))) (< (.vcol wlv) (long (aget ^ints (.-fromcol wlv) 0))) (>= (.vcol wlv) (long (aget ^ints (.-tocol wlv) 0)))))
               (recur 106)
               (recur 105)))
@@ -9528,7 +9527,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 attr-pri false]
             (.set-char-attr wlv 0)
             (aset fo__ 6 (Boolean/valueOf (boolean attr-pri)))
@@ -9563,7 +9562,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (.line-attr wlv))
             (let [attr-pri false]
               (aset fo__ 6 (Boolean/valueOf (boolean attr-pri)))
@@ -9598,7 +9597,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (long (hl-combine-attr ed (.line-attr wlv) search-attr)))
             (recur 110))
         108
@@ -9631,11 +9630,11 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (long (hl-combine-attr ed (.line-attr wlv) (long (aget area-attr 0)))))
-            (if (zero? (g ed highlight-match))
-              (recur 109)
-              (recur 110)))
+            (if (g ed highlight-match)
+              (recur 110)
+              (recur 109)))
         109
           (let [^S_window_S wp (aget fo__ 1)
                 lnum (aget fl__ 0)
@@ -9666,7 +9665,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (long (hl-combine-attr ed search-attr (.char-attr wlv))))
             (recur 110))
         110
@@ -9699,7 +9698,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.win-attr wlv) 0)
               (recur 114)
               (recur 111)))
@@ -9733,7 +9732,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.char-attr wlv) 0)
               (recur 113)
               (recur 112)))
@@ -9767,22 +9766,22 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (.char-attr wlv))))
             (recur 114))
         st))))
 
 (defn- win-line__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         113
@@ -9815,7 +9814,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (.win-attr wlv))
             (recur 114))
         114
@@ -9848,7 +9847,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> (.n-extra wlv) 0)
               (recur 200)
               (recur 115)))
@@ -9883,16 +9882,16 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 ^BytePtr prev-ptr_2 ptr
                 c (.ub ptr)]
             (if (== c (e NUL))
               (do (aset fl__ 4 c)
-                  (aset fo__ 15 prev-ptr_2)
+                  (aset fo__ 16 prev-ptr_2)
                   (recur 116))
               (do (aset fl__ 4 c)
-                  (aset fo__ 15 prev-ptr_2)
+                  (aset fo__ 16 prev-ptr_2)
                   (recur 117))))
         116
           (let [^S_window_S wp (aget fo__ 1)
@@ -9925,8 +9924,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 skip-cells 0]
             (aset fl__ 11 skip-cells)
             (recur 117))
@@ -9964,8 +9963,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 mb-c c
                 mb-l (long (utfc-ptr2len ed ptr))
                 mb-utf8 false]
@@ -10011,8 +10010,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 mb-c (long (utfc-ptr2char ed ptr (IntPtr. u8cc 0)))]
             (if (< mb-c 128)
               (do (aset fl__ 19 mb-c)
@@ -10052,8 +10051,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 c mb-c]
             (aset fl__ 4 c)
             (recur 120))
@@ -10091,8 +10090,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 mb-utf8 true]
             (if (utf-iscomposing? ed mb-c)
               (do (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
@@ -10133,11 +10132,11 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
-                i (aget fl__ 28)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
+                i (aget fl__ 27)
                 i (i32 (- (g ed Screen-mco) 1))]
-            (aset fl__ 28 i)
+            (aset fl__ 27 i)
             (recur 122))
         122
           (let [^S_window_S wp (aget fo__ 1)
@@ -10173,9 +10172,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
-                i (aget fl__ 28)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
+                i (aget fl__ 27)]
             (if (> i 0)
               (recur 198)
               (recur 123)))
@@ -10213,8 +10212,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (aset u8cc 0 (unchecked-int mb-c))
             (let [mb-c 32]
               (aset fl__ 19 mb-c)
@@ -10253,8 +10252,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (if (or (and (== mb-l 1) (>= c 128)) (and (>= mb-l 1) (== mb-c 0)) (and (> mb-l 1) (not (vim-isprintc? ed mb-c))))
               (recur 127)
               (recur 125)))
@@ -10292,24 +10291,24 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (if (== mb-l 0)
               (recur 126)
               (recur 129)))
         st))))
 
 (defn- win-line__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         126
@@ -10346,8 +10345,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 mb-l 1]
             (aset fl__ 18 mb-l)
             (recur 129))
@@ -10385,8 +10384,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (transchar-hex (BytePtr. ^bytes (.-extra wlv) 0) mb-c)
             (.set-p-extra wlv (BytePtr. ^bytes (.-extra wlv) 0))
             (let [c (.ub ^BytePtr (.p-extra wlv))
@@ -10438,8 +10437,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 n-attr (i32 (+ (.n-extra wlv) 1))
                 _ (.set-extra-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 0)))))
                 saved-attr2 (.char-attr wlv)]
@@ -10480,8 +10479,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (if (and (>= (.col wlv) (i32 (- (.w-width wp) 1))) (== (long (utf-char2cells ed mb-c)) 2))
               (recur 132)
               (recur 130)))
@@ -10519,8 +10518,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (if (== (.ub ptr) (e NUL))
               (recur 133)
               (recur 131)))
@@ -10558,8 +10557,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 ^BytePtr ptr (.add ptr (i32 (- mb-l 1)))]
             (aset fo__ 3 ptr)
             (recur 133))
@@ -10597,8 +10596,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 c 62
                 mb-c c
                 mb-utf8 false
@@ -10646,8 +10645,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (if (and (> skip-cells 0) (> mb-l 1) (== (.n-extra wlv) 0))
               (recur 134)
               (recur 137)))
@@ -10682,8 +10681,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (.set-n-extra wlv 1)
             (.set-c-extra wlv (e MB_FILLER_CHAR))
             (.set-c-final wlv (e NUL))
@@ -10724,8 +10723,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 n-attr (i32 (+ (.n-extra wlv) 1))
                 _ (.set-extra-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 2)))))
                 saved-attr2 (.char-attr wlv)]
@@ -10766,8 +10765,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 mb-c c
                 mb-utf8 false
                 mb-l 1]
@@ -10809,8 +10808,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 ^BytePtr ptr (.add ptr 1)]
             (if extra-check
               (do (aset fo__ 3 ptr)
@@ -10820,16 +10819,16 @@
         st))))
 
 (defn- win-line__11 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         138
@@ -10866,8 +10865,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)]
             (if (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
               (recur 141)
               (recur 139)))
@@ -10905,8 +10904,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
                 in-multispace (and (== c 32) (or (== (.ub ptr) 32) (and (.gt prev-ptr_2 line) (== (.ub prev-ptr_2 -1) 32))))]
             (if in-multispace
               (do (aset fo__ 9 (Boolean/valueOf (boolean in-multispace)))
@@ -10947,7 +10946,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 multispace-pos 0]
             (aset fl__ 22 multispace-pos)
             (recur 141))
@@ -10985,7 +10984,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (or (and (or (and (== c 160) (== mb-l 1)) (and mb-utf8 (or (and (== mb-c 160) (== mb-l 2)) (and (== mb-c 8239) (== mb-l 3))))) (not (zero? (long (aget ^ints (.-nbsp ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))))) (and (== c 32) (== mb-l 1) (or (not (zero? (long (aget ^ints (.-space ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))) (and in-multispace (some? (.multispace ^T_lcs_chars_T (.-w-lcs-chars wp))))) (>= (.sub ptr line) leadcol) (<= (.sub ptr line) trailcol))))
               (recur 142)
               (recur 151)))
@@ -11020,7 +11019,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and in-multispace (some? (.multispace ^T_lcs_chars_T (.-w-lcs-chars wp))))
               (recur 144)
               (recur 143)))
@@ -11055,7 +11054,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (if (== c 32) (long (aget ^ints (.-space ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)) (long (aget ^ints (.-nbsp ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))]
             (aset fl__ 4 c)
             (recur 146))
@@ -11090,7 +11089,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 t2 multispace-pos
                 multispace-pos (i32 (inc multispace-pos))
                 c (long (.at ^IntPtr (.multispace ^T_lcs_chars_T (.-w-lcs-chars wp)) t2))]
@@ -11132,7 +11131,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 multispace-pos 0]
             (aset fl__ 22 multispace-pos)
             (recur 146))
@@ -11167,7 +11166,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (long (aget area-attr 0)) 0) (== search-attr 0))
               (recur 147)
               (recur 148)))
@@ -11202,7 +11201,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 n-attr 1
                 _ (.set-extra-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 0)))))
                 saved-attr2 (.char-attr wlv)]
@@ -11241,7 +11240,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-c c]
             (if (> (long (utf-char2len c)) 1)
               (do (aset fl__ 19 mb-c)
@@ -11281,23 +11280,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 151))
         st))))
 
 (defn- win-line__12 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         150
@@ -11333,7 +11332,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -11373,7 +11372,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== c 32) (or (and (not (== trailcol (e MAXCOL))) (.gt ptr (.add line trailcol))) (and (not (== leadcol 0)) (.lt ptr (.add line leadcol)))))
               (recur 152)
               (recur 166)))
@@ -11408,7 +11407,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (== leadcol 0)) in-multispace (.lt ptr (.add line leadcol)) (some? (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars wp))))
               (recur 159)
               (recur 153)))
@@ -11443,7 +11442,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (.gt ptr (.add line trailcol)) (not (zero? (long (aget ^ints (.-trail ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))))
               (recur 158)
               (recur 154)))
@@ -11478,7 +11477,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (.lt ptr (.add line leadcol)) (not (zero? (long (aget ^ints (.-lead ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))))
               (recur 157)
               (recur 155)))
@@ -11513,7 +11512,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (== leadcol 0)) (not (zero? (long (aget ^ints (.-space ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)))))
               (recur 156)
               (recur 161)))
@@ -11548,7 +11547,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (long (aget ^ints (.-space ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))]
             (aset fl__ 4 c)
             (recur 161))
@@ -11583,7 +11582,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (long (aget ^ints (.-lead ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))]
             (aset fl__ 4 c)
             (recur 161))
@@ -11618,7 +11617,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (long (aget ^ints (.-trail ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))]
             (aset fl__ 4 c)
             (recur 161))
@@ -11653,7 +11652,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 t3 multispace-pos
                 multispace-pos (i32 (inc multispace-pos))
                 c (long (.at ^IntPtr (.leadmultispace ^T_lcs_chars_T (.-w-lcs-chars wp)) t3))]
@@ -11695,7 +11694,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 multispace-pos 0]
             (aset fl__ 22 multispace-pos)
             (recur 161))
@@ -11730,7 +11729,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if attr-pri
               (recur 163)
               (recur 162)))
@@ -11765,7 +11764,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 n-attr 1
                 _ (.set-extra-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 0)))))
                 saved-attr2 (.char-attr wlv)]
@@ -11775,16 +11774,16 @@
         st))))
 
 (defn- win-line__13 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         163
@@ -11819,7 +11818,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-c c]
             (if (> (long (utf-char2len c)) 1)
               (do (aset fl__ 19 mb-c)
@@ -11859,7 +11858,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 166))
@@ -11896,7 +11895,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -11936,7 +11935,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (vim-isprintc? ed c)) (not (>= c 128)))
               (recur 167)
               (recur 215)))
@@ -11973,7 +11972,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== c (e TAB)) (or (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (not (zero? (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))))))
               (recur 192)
               (recur 168)))
@@ -12010,7 +12009,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== c (e NUL)) (== (.n-extra wlv) 0) (or (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (and (>= (long (aget ^ints (.-fromcol wlv) 0)) 0) (> (long (aget ^ints (.-tocol wlv) 0)) (.vcol wlv)) (not (== (g ed VIsual-mode) (e Ctrl_V))) (< (.col wlv) (.w-width wp)))) (> lcs-eol-one 0))
               (recur 180)
               (recur 169)))
@@ -12047,7 +12046,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== c (e NUL))
               (recur 170)
               (recur 175)))
@@ -12084,8 +12083,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
-            (if (and (not (zero? (g ed VIsual-active))) (or (== (g ed VIsual-mode) (e Ctrl_V)) (== (g ed VIsual-mode) 118)) (not (zero? (long (virtual-active ed)))) (not (== (long (aget ^ints (.-tocol wlv) 0)) (e MAXCOL))) (< (.vcol wlv) (long (aget ^ints (.-tocol wlv) 0))) (< (.col wlv) (.w-width wp)))
+                on-last-col (boolean (aget fo__ 11))]
+            (if (and (g ed VIsual-active) (or (== (g ed VIsual-mode) (e Ctrl_V)) (== (g ed VIsual-mode) 118)) (not (zero? (long (virtual-active ed)))) (not (== (long (aget ^ints (.-tocol wlv) 0)) (e MAXCOL))) (< (.vcol wlv) (long (aget ^ints (.-tocol wlv) 0))) (< (.col wlv) (.w-width wp)))
               (recur 174)
               (recur 171)))
         171
@@ -12121,7 +12120,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (== (.line-attr wlv) 0)) (< (.col wlv) (.w-width wp)))
               (recur 172)
               (recur 215)))
@@ -12158,7 +12157,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c 32
                 ^BytePtr ptr (.add ptr -1)
                 did-line-attr (i32 (inc did-line-attr))]
@@ -12204,22 +12203,22 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (.line-attr wlv))
             (recur 215))
         st))))
 
 (defn- win-line__14 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         174
@@ -12255,7 +12254,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c 32
                 ^BytePtr ptr (.add ptr -1)]
             (aset fl__ 4 c)
@@ -12293,7 +12292,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-p-extra wlv (transchar-buf ed (.w-buffer wp) c))
             (if (== (.n-extra wlv) 0)
               (recur 176)
@@ -12330,7 +12329,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-n-extra wlv (i32 (- (long (byte2cells ed c)) 1)))
             (recur 177))
         177
@@ -12365,7 +12364,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-c-extra wlv (e NUL))
             (.set-c-final wlv (e NUL))
             (.set-n-extra wlv (i32 (- (long (byte2cells ed c)) 1)))
@@ -12409,7 +12408,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 n-attr (i32 (+ (.n-extra wlv) 1))
                 _ (.set-extra-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 0)))))
                 saved-attr2 (.char-attr wlv)]
@@ -12449,7 +12448,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 215))
@@ -12482,7 +12481,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.line-attr wlv) 0)
               (recur 181)
               (recur 184)))
@@ -12515,7 +12514,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (zero? area-highlighting)) (not (zero? (long (virtual-active ed)))) (not (== (long (aget ^ints (.-tocol wlv) 0)) (e MAXCOL))) (< (.vcol wlv) (long (aget ^ints (.-tocol wlv) 0))))
               (recur 183)
               (recur 182)))
@@ -12548,7 +12547,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-p-extra wlv (BytePtr/lit ""))
             (recur 183))
         183
@@ -12580,7 +12579,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-n-extra wlv 0)
             (recur 184))
         184
@@ -12612,7 +12611,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (> (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)) 0))
               (recur 186)
               (recur 185)))
@@ -12646,7 +12645,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c 32]
             (aset fl__ 4 c)
             (recur 187))
@@ -12680,7 +12679,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))]
             (aset fl__ 4 c)
             (recur 187))
@@ -12715,7 +12714,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 lcs-eol-one -1
                 ^BytePtr ptr (.add ptr -1)]
             (if attr-pri
@@ -12728,16 +12727,16 @@
         st))))
 
 (defn- win-line__15 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         188
@@ -12771,7 +12770,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-extra-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 2)))))
             (let [n-attr 1]
               (aset fl__ 7 n-attr)
@@ -12808,7 +12807,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-c c]
             (if (> (long (utf-char2len c)) 1)
               (do (aset fl__ 19 mb-c)
@@ -12848,7 +12847,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 215))
@@ -12885,7 +12884,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -12923,29 +12922,29 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                tab-len (aget fl__ 29)
-                vcol-adjusted (aget fl__ 30)
-                lcs-tab1 (aget fl__ 31)
-                lcs-tab2 (aget fl__ 32)
-                lcs-tab3 (aget fl__ 33)
+                on-last-col (boolean (aget fo__ 11))
+                tab-len (aget fl__ 28)
+                vcol-adjusted (aget fl__ 29)
+                lcs-tab1 (aget fl__ 30)
+                lcs-tab2 (aget fl__ 31)
+                lcs-tab3 (aget fl__ 32)
                 tab-len 0
                 vcol-adjusted (- (.vcol wlv) (.vcol-off-tp wlv))
                 lcs-tab1 (.tab1 ^T_lcs_chars_T (.-w-lcs-chars wp))
                 lcs-tab2 (long (aget ^ints (.-tab2 ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))
                 lcs-tab3 (.tab3 ^T_lcs_chars_T (.-w-lcs-chars wp))]
             (if (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== (.leadtab1 ^T_lcs_chars_T (.-w-lcs-chars wp)) (e NUL))) (.lt ptr (.add line leadcol)))
-              (do (aset fl__ 29 tab-len)
-                  (aset fl__ 30 vcol-adjusted)
-                  (aset fl__ 31 lcs-tab1)
-                  (aset fl__ 32 lcs-tab2)
-                  (aset fl__ 33 lcs-tab3)
+              (do (aset fl__ 28 tab-len)
+                  (aset fl__ 29 vcol-adjusted)
+                  (aset fl__ 30 lcs-tab1)
+                  (aset fl__ 31 lcs-tab2)
+                  (aset fl__ 32 lcs-tab3)
                   (recur 193))
-              (do (aset fl__ 29 tab-len)
-                  (aset fl__ 30 vcol-adjusted)
-                  (aset fl__ 31 lcs-tab1)
-                  (aset fl__ 32 lcs-tab2)
-                  (aset fl__ 33 lcs-tab3)
+              (do (aset fl__ 28 tab-len)
+                  (aset fl__ 29 vcol-adjusted)
+                  (aset fl__ 30 lcs-tab1)
+                  (aset fl__ 31 lcs-tab2)
+                  (aset fl__ 32 lcs-tab3)
                   (recur 194))))
         193
           (let [^S_window_S wp (aget fo__ 1)
@@ -12978,17 +12977,17 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                vcol-adjusted (aget fl__ 30)
-                lcs-tab1 (aget fl__ 31)
-                lcs-tab2 (aget fl__ 32)
-                lcs-tab3 (aget fl__ 33)
+                on-last-col (boolean (aget fo__ 11))
+                vcol-adjusted (aget fl__ 29)
+                lcs-tab1 (aget fl__ 30)
+                lcs-tab2 (aget fl__ 31)
+                lcs-tab3 (aget fl__ 32)
                 lcs-tab1 (.leadtab1 ^T_lcs_chars_T (.-w-lcs-chars wp))
                 lcs-tab2 (long (aget ^ints (.-leadtab2 ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))
                 lcs-tab3 (.leadtab3 ^T_lcs_chars_T (.-w-lcs-chars wp))]
-            (aset fl__ 31 lcs-tab1)
-            (aset fl__ 32 lcs-tab2)
-            (aset fl__ 33 lcs-tab3)
+            (aset fl__ 30 lcs-tab1)
+            (aset fl__ 31 lcs-tab2)
+            (aset fl__ 32 lcs-tab3)
             (recur 194))
         194
           (let [^S_window_S wp (aget fo__ 1)
@@ -13022,21 +13021,21 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                tab-len (aget fl__ 29)
-                vcol-adjusted (aget fl__ 30)
-                lcs-tab1 (aget fl__ 31)
-                lcs-tab2 (aget fl__ 32)
-                lcs-tab3 (aget fl__ 33)
+                on-last-col (boolean (aget fo__ 11))
+                tab-len (aget fl__ 28)
+                vcol-adjusted (aget fl__ 29)
+                lcs-tab1 (aget fl__ 30)
+                lcs-tab2 (aget fl__ 31)
+                lcs-tab3 (aget fl__ 32)
                 tab-len (i32 (- (- (i32 (aget ^longs (.-b-p-ts ^S_file_buffer (.w-buffer wp)) 0)) (rem vcol-adjusted (i32 (aget ^longs (.-b-p-ts ^S_file_buffer (.w-buffer wp)) 0)))) 1))
                 _ (.set-n-extra wlv tab-len)
                 mb-utf8 false]
             (if (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))
               (do (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
-                  (aset fl__ 29 tab-len)
+                  (aset fl__ 28 tab-len)
                   (recur 195))
               (do (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
-                  (aset fl__ 29 tab-len)
+                  (aset fl__ 28 tab-len)
                   (recur 196))))
         195
           (let [^S_window_S wp (aget fo__ 1)
@@ -13071,7 +13070,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-c-final wlv (e NUL))
             (.set-c-extra wlv 32)
             (let [c 32]
@@ -13110,11 +13109,11 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                tab-len (aget fl__ 29)
-                lcs-tab1 (aget fl__ 31)
-                lcs-tab2 (aget fl__ 32)
-                lcs-tab3 (aget fl__ 33)
+                on-last-col (boolean (aget fo__ 11))
+                tab-len (aget fl__ 28)
+                lcs-tab1 (aget fl__ 30)
+                lcs-tab2 (aget fl__ 31)
+                lcs-tab3 (aget fl__ 32)
                 c (if (and (== (.n-extra wlv) 0) (not (zero? lcs-tab3))) lcs-tab3 lcs-tab1)
                 _ (.set-c-extra wlv lcs-tab2)
                 _ (.set-c-final wlv lcs-tab3)
@@ -13166,7 +13165,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -13207,9 +13206,9 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
-                i (aget fl__ 28)]
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
+                i (aget fl__ 27)]
             (aset u8cc i (unchecked-int (long (aget u8cc (i32 (- i 1))))))
             (recur 199))
         199
@@ -13246,11 +13245,11 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                ^BytePtr prev-ptr_2 (aget fo__ 15)
-                i (aget fl__ 28)
+                on-last-col (boolean (aget fo__ 11))
+                ^BytePtr prev-ptr_2 (aget fo__ 16)
+                i (aget fl__ 27)
                 i (i32 (dec i))]
-            (aset fl__ 28 i)
+            (aset fl__ 27 i)
             (recur 122))
         200
           (let [^S_window_S wp (aget fo__ 1)
@@ -13282,23 +13281,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (or (not (== (.c-extra wlv) (e NUL))) (and (== (.n-extra wlv) 1) (not (== (.c-final wlv) (e NUL)))))
               (recur 211)
               (recur 201)))
         st))))
 
 (defn- win-line__16 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         201
@@ -13335,7 +13334,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (.ub ^BytePtr (.p-extra wlv))
                 mb-c c
                 mb-l (long (utfc-ptr2len ed (.p-extra wlv)))
@@ -13385,7 +13384,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> mb-l 1)
               (recur 203)
               (recur 205)))
@@ -13423,7 +13422,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-c (long (utfc-ptr2char ed (.p-extra wlv) (IntPtr. u8cc 0)))
                 mb-utf8 true
                 c 192]
@@ -13465,7 +13464,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-l 1]
             (aset fl__ 18 mb-l)
             (recur 205))
@@ -13503,7 +13502,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== mb-l 0)
               (recur 206)
               (recur 207)))
@@ -13541,7 +13540,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-l 1]
             (aset fl__ 18 mb-l)
             (recur 207))
@@ -13579,7 +13578,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (>= (.col wlv) (i32 (- (.w-width wp) 1))) (== (long (utf-char2cells ed mb-c)) 2))
               (recur 209)
               (recur 208)))
@@ -13617,7 +13616,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-n-extra wlv (i32 (- (.n-extra wlv) (i32 (- mb-l 1)))))
             (.set-p-extra wlv (.add ^BytePtr (.p-extra wlv) (i32 (- mb-l 1))))
             (recur 210))
@@ -13655,7 +13654,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c 62
                 mb-c c
                 mb-l 1
@@ -13703,7 +13702,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-p-extra wlv (.add ^BytePtr (.p-extra wlv) 1))
             (recur 214))
         211
@@ -13738,7 +13737,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (if (and (== (.n-extra wlv) 1) (not (== (.c-final wlv) (e NUL)))) (.c-final wlv) (.c-extra wlv))
                 mb-c c]
             (if (> (long (utf-char2len c)) 1)
@@ -13781,7 +13780,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 214))
@@ -13818,7 +13817,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -13858,22 +13857,22 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-n-extra wlv (i32 (dec (.n-extra wlv))))
             (recur 215))
         st))))
 
 (defn- win-line__17 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         215
@@ -13909,7 +13908,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (.n-attr-skip wlv) 0) (> n-attr 0) (== (.draw-state wlv) 3) (not attr-pri))
               (recur 216)
               (recur 219)))
@@ -13946,7 +13945,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (zero? (.line-attr wlv))
               (recur 217)
               (recur 218)))
@@ -13983,7 +13982,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (.extra-attr wlv))
             (recur 219))
         218
@@ -14019,7 +14018,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv (long (hl-combine-attr ed (.line-attr wlv) (.extra-attr wlv))))
             (recur 219))
         219
@@ -14055,7 +14054,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (not (== lcs-prec-todo (e NUL))) (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (if (zero? (long (aget ^ints (.-wo-wrap ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (> (.w-leftcol wp) 0) (and (> (.w-skipcol wp) 0) (== (.row wlv) 0))) (> (.draw-state wlv) 2) (<= skip-cells 0) (not (== c (e NUL))))
               (recur 220)
               (recur 227)))
@@ -14091,7 +14090,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 c (long (aget ^ints (.-prec ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))
                 lcs-prec-todo (e NUL)]
             (if (> (long (utf-char2cells ed mb-c)) 1)
@@ -14132,7 +14131,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-c-extra wlv (e MB_FILLER_CHAR))
             (.set-c-final wlv (e NUL))
             (.set-n-extra wlv 1)
@@ -14172,7 +14171,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-c c]
             (if (> (long (utf-char2len c)) 1)
               (do (aset fl__ 19 mb-c)
@@ -14212,7 +14211,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 225))
@@ -14249,7 +14248,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -14289,7 +14288,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if attr-pri
               (recur 227)
               (recur 226)))
@@ -14326,7 +14325,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 saved-attr3 (.char-attr wlv)
                 _ (.set-char-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 2)))))
                 n-attr3 1]
@@ -14366,23 +14365,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (or (== c (e NUL)) (== did-line-attr 1)) (== (.eol-hl-off wlv) 0))
               (recur 228)
               (recur 237)))
         st))))
 
 (defn- win-line__18 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         228
@@ -14418,7 +14417,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 prevcol-hl-flag (get-prevcol-hl-flag? wp (g ed screen-search-hl) (- (.sub ptr line) (if (== c (e NUL)) 1 0)))]
             (if (and (== (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)) lcs-eol-one) (or (and (not (== (long (aget area-attr 0)) 0)) (== (.vcol wlv) (long (aget ^ints (.-fromcol wlv) 0))) (or (not (== (g ed VIsual-mode) (e Ctrl_V))) (== lnum (.lnum (g ed VIsual))) (== lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (== c (e NUL))) (and prevcol-hl-flag (<= did-line-attr 1))))
               (recur 229)
@@ -14456,13 +14455,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                n (aget fl__ 34)
+                on-last-col (boolean (aget fo__ 11))
+                n (aget fl__ 33)
                 n 0]
             (if (>= (.col wlv) (.w-width wp))
-              (do (aset fl__ 34 n)
+              (do (aset fl__ 33 n)
                   (recur 230))
-              (do (aset fl__ 34 n)
+              (do (aset fl__ 33 n)
                   (recur 231))))
         230
           (let [^S_window_S wp (aget fo__ 1)
@@ -14497,10 +14496,10 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                n (aget fl__ 34)
+                on-last-col (boolean (aget fo__ 11))
+                n (aget fl__ 33)
                 n -1]
-            (aset fl__ 34 n)
+            (aset fl__ 33 n)
             (recur 231))
         231
           (let [^S_window_S wp (aget fo__ 1)
@@ -14535,8 +14534,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                n (aget fl__ 34)]
+                on-last-col (boolean (aget fo__ 11))
+                n (aget fl__ 33)]
             (if (== n 0)
               (recur 232)
               (recur 233)))
@@ -14573,7 +14572,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenLines) (.off wlv) (unchecked-byte 32))
             (.set (g ed ScreenLinesUC) (.off wlv) (unchecked-int 0))
             (recur 234))
@@ -14610,8 +14609,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                n (aget fl__ 34)]
+                on-last-col (boolean (aget fo__ 11))
+                n (aget fl__ 33)]
             (.set-off wlv (u32 (+ (.off wlv) (u32 n))))
             (.set-col wlv (i32 (+ (.col wlv) n)))
             (recur 234))
@@ -14648,7 +14647,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (long (aget area-attr 0)) 0)
               (recur 235)
               (recur 236)))
@@ -14685,7 +14684,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (get-search-match-hl__char-attr wp (g ed screen-search-hl) (.sub ptr line) wlv)
             (recur 236))
         236
@@ -14721,7 +14720,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenAttrs) (.off wlv) (unchecked-short (.char-attr wlv)))
             (.set (g ed ScreenCols) (.off wlv) (unchecked-int (.vcol wlv)))
             (.set-col wlv (i32 (inc (.col wlv))))
@@ -14762,7 +14761,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== c (e NUL))
               (recur 294)
               (recur 238)))
@@ -14799,13 +14798,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                lcs-ext (aget fl__ 35)
+                on-last-col (boolean (aget fo__ 11))
+                lcs-ext (aget fl__ 34)
                 lcs-ext (long (get-lcs-ext wp))]
             (if (and (not (== lcs-ext (e NUL))) (== (.draw-state wlv) 3) (== (.col wlv) (i32 (- (.w-width wp) 1))) (or (not (== (.ub ptr) (e NUL))) (> lcs-eol-one 0) (and (> (.n-extra wlv) 0) (or (not (== (.c-extra wlv) (e NUL))) (not (== (.ub ^BytePtr (.p-extra wlv)) (e NUL)))))))
-              (do (aset fl__ 35 lcs-ext)
+              (do (aset fl__ 34 lcs-ext)
                   (recur 239))
-              (do (aset fl__ 35 lcs-ext)
+              (do (aset fl__ 34 lcs-ext)
                   (recur 242))))
         239
           (let [^S_window_S wp (aget fo__ 1)
@@ -14839,8 +14838,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                lcs-ext (aget fl__ 35)
+                on-last-col (boolean (aget fo__ 11))
+                lcs-ext (aget fl__ 34)
                 c lcs-ext
                 _ (.set-char-attr wlv (long (hl-combine-attr ed (.win-attr wlv) (long (aget (g ed highlight-attr) 2)))))
                 mb-c c]
@@ -14854,16 +14853,16 @@
         st))))
 
 (defn- win-line__19 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         240
@@ -14899,7 +14898,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 false]
             (aset fo__ 8 (Boolean/valueOf (boolean mb-utf8)))
             (recur 242))
@@ -14936,7 +14935,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 mb-utf8 true
                 _ (aset u8cc 0 (unchecked-int 0))
                 c 192]
@@ -14976,7 +14975,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (or (< (.draw-state wlv) 3) (<= skip-cells 0))
               (recur 244)
               (recur 243)))
@@ -15010,7 +15009,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 skip-cells (i32 (dec skip-cells))]
             (aset fl__ 11 skip-cells)
             (recur 265))
@@ -15047,7 +15046,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenLines) (.off wlv) (unchecked-byte c))
             (if mb-utf8
               (recur 246)
@@ -15083,7 +15082,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenLinesUC) (.off wlv) (unchecked-int 0))
             (recur 252))
         246
@@ -15118,7 +15117,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenLinesUC) (.off wlv) (unchecked-int mb-c))
             (if (== (bit-and c 255) 0)
               (recur 247)
@@ -15154,7 +15153,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenLines) (.off wlv) (unchecked-byte 128))
             (recur 248))
         248
@@ -15188,10 +15187,10 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                i_2 (aget fl__ 36)
+                on-last-col (boolean (aget fo__ 11))
+                i_2 (aget fl__ 35)
                 i_2 0]
-            (aset fl__ 36 i_2)
+            (aset fl__ 35 i_2)
             (recur 249))
         249
           (let [^S_window_S wp (aget fo__ 1)
@@ -15224,8 +15223,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                i_2 (aget fl__ 36)]
+                on-last-col (boolean (aget fo__ 11))
+                i_2 (aget fl__ 35)]
             (if (< i_2 (g ed Screen-mco))
               (recur 250)
               (recur 252)))
@@ -15260,8 +15259,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                i_2 (aget fl__ 36)]
+                on-last-col (boolean (aget fo__ 11))
+                i_2 (aget fl__ 35)]
             (.set ^IntPtr (aget (g ed ScreenLinesC) i_2) (.off wlv) (unchecked-int (long (aget u8cc i_2))))
             (if (== (long (aget u8cc i_2)) 0)
               (recur 252)
@@ -15297,10 +15296,10 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                i_2 (aget fl__ 36)
+                on-last-col (boolean (aget fo__ 11))
+                i_2 (aget fl__ 35)
                 i_2 (i32 (inc i_2))]
-            (aset fl__ 36 i_2)
+            (aset fl__ 35 i_2)
             (recur 249))
         252
           (let [^S_window_S wp (aget fo__ 1)
@@ -15333,7 +15332,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (zero? multi-attr)
               (recur 253)
               (recur 254)))
@@ -15368,22 +15367,22 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenAttrs) (.off wlv) (unchecked-short (.char-attr wlv)))
             (recur 255))
         st))))
 
 (defn- win-line__20 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         254
@@ -15417,7 +15416,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenAttrs) (.off wlv) (unchecked-short multi-attr))
             (let [multi-attr 0]
               (aset fl__ 17 multi-attr)
@@ -15453,7 +15452,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> (.draw-state wlv) 2)
               (recur 257)
               (recur 256)))
@@ -15488,7 +15487,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenCols) (.off wlv) (unchecked-int -1))
             (recur 258))
         257
@@ -15522,7 +15521,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenCols) (.off wlv) (unchecked-int (.vcol wlv)))
             (recur 258))
         258
@@ -15556,7 +15555,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> (long (utf-char2cells ed mb-c)) 1)
               (recur 259)
               (recur 264)))
@@ -15590,7 +15589,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-off wlv (u32 (inc (.off wlv))))
             (.set-col wlv (i32 (inc (.col wlv))))
             (.set (g ed ScreenLines) (.off wlv) (unchecked-byte 0))
@@ -15627,7 +15626,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenCols) (.off wlv) (unchecked-int -1))
             (recur 262))
         261
@@ -15660,7 +15659,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-vcol wlv (inc (.vcol wlv)))
             (.set (g ed ScreenCols) (.off wlv) (unchecked-int (.vcol wlv)))
             (recur 262))
@@ -15694,7 +15693,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (long (aget ^ints (.-tocol wlv) 0)) (.vcol wlv))
               (recur 263)
               (recur 264)))
@@ -15728,7 +15727,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (aset ^ints (.-tocol wlv) 0 (unchecked-int (inc (long (aget ^ints (.-tocol wlv) 0)))))
             (recur 264))
         264
@@ -15761,7 +15760,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-off wlv (u32 (inc (.off wlv))))
             (.set-col wlv (i32 (inc (.col wlv))))
             (recur 265))
@@ -15795,7 +15794,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (> (.draw-state wlv) 2) (> skipped-cells 0))
               (recur 266)
               (recur 267)))
@@ -15829,7 +15828,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-vcol wlv (+ (.vcol wlv) skipped-cells))
             (let [skipped-cells 0]
               (aset fl__ 12 skipped-cells)
@@ -15864,23 +15863,23 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> (.draw-state wlv) 2)
               (recur 268)
               (recur 269)))
         st))))
 
 (defn- win-line__21 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         268
@@ -15913,7 +15912,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-vcol wlv (inc (.vcol wlv)))
             (recur 269))
         269
@@ -15946,13 +15945,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                t5 (boolean (aget fo__ 16))
+                on-last-col (boolean (aget fo__ 11))
+                t5 (boolean (aget fo__ 17))
                 t5 (and (> (.draw-state wlv) 2) (> n-attr3 0))]
             (if t5
-              (do (aset fo__ 16 (Boolean/valueOf (boolean t5)))
+              (do (aset fo__ 17 (Boolean/valueOf (boolean t5)))
                   (recur 270))
-              (do (aset fo__ 16 (Boolean/valueOf (boolean t5)))
+              (do (aset fo__ 17 (Boolean/valueOf (boolean t5)))
                   (recur 271))))
         270
           (let [^S_window_S wp (aget fo__ 1)
@@ -15984,12 +15983,12 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                t5 (boolean (aget fo__ 16))
+                on-last-col (boolean (aget fo__ 11))
+                t5 (boolean (aget fo__ 17))
                 n-attr3 (i32 (dec n-attr3))
                 t5 (== n-attr3 0)]
             (aset fl__ 9 n-attr3)
-            (aset fo__ 16 (Boolean/valueOf (boolean t5)))
+            (aset fo__ 17 (Boolean/valueOf (boolean t5)))
             (recur 271))
         271
           (let [^S_window_S wp (aget fo__ 1)
@@ -16021,8 +16020,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                t5 (boolean (aget fo__ 16))]
+                on-last-col (boolean (aget fo__ 11))
+                t5 (boolean (aget fo__ 17))]
             (if t5
               (recur 272)
               (recur 273)))
@@ -16056,7 +16055,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv saved-attr3)
             (recur 273))
         273
@@ -16089,13 +16088,13 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                t6 (boolean (aget fo__ 17))
+                on-last-col (boolean (aget fo__ 11))
+                t6 (boolean (aget fo__ 18))
                 t6 (and (> n-attr 0) (== (.draw-state wlv) 3) (== (.n-attr-skip wlv) 0))]
             (if t6
-              (do (aset fo__ 17 (Boolean/valueOf (boolean t6)))
+              (do (aset fo__ 18 (Boolean/valueOf (boolean t6)))
                   (recur 274))
-              (do (aset fo__ 17 (Boolean/valueOf (boolean t6)))
+              (do (aset fo__ 18 (Boolean/valueOf (boolean t6)))
                   (recur 275))))
         274
           (let [^S_window_S wp (aget fo__ 1)
@@ -16127,12 +16126,12 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                t6 (boolean (aget fo__ 17))
+                on-last-col (boolean (aget fo__ 11))
+                t6 (boolean (aget fo__ 18))
                 n-attr (i32 (dec n-attr))
                 t6 (== n-attr 0)]
             (aset fl__ 7 n-attr)
-            (aset fo__ 17 (Boolean/valueOf (boolean t6)))
+            (aset fo__ 18 (Boolean/valueOf (boolean t6)))
             (recur 275))
         275
           (let [^S_window_S wp (aget fo__ 1)
@@ -16164,8 +16163,8 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
-                t6 (boolean (aget fo__ 17))]
+                on-last-col (boolean (aget fo__ 11))
+                t6 (boolean (aget fo__ 18))]
             (if t6
               (recur 276)
               (recur 277)))
@@ -16199,7 +16198,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-char-attr wlv saved-attr2)
             (recur 277))
         277
@@ -16232,7 +16231,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> (.n-attr-skip wlv) 0)
               (recur 278)
               (recur 279)))
@@ -16266,7 +16265,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-n-attr-skip wlv (i32 (dec (.n-attr-skip wlv))))
             (recur 279))
         279
@@ -16299,7 +16298,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (>= (.col wlv) (.w-width wp)) (or (not (== (.draw-state wlv) 3)) (not (== (.ub ptr) (e NUL))) (and (not (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0)))) (not (== (long (aget ^ints (.-eol ^T_lcs_chars_T (.-w-lcs-chars wp)) 0)) (e NUL))) (not (== lcs-eol-one -1))) (and (not (== (.n-extra wlv) 0)) (or (not (== (.c-extra wlv) (e NUL))) (not (== (.ub ^BytePtr (.p-extra wlv)) (e NUL)))))))
               (recur 280)
               (recur 85)))
@@ -16332,7 +16331,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (wlv-screen-line ed wp wlv true)
             (.set-row wlv (i32 (inc (.row wlv))))
             (.set-screen-row wlv (i32 (inc (.screen-row wlv))))
@@ -16342,16 +16341,16 @@
         st))))
 
 (defn- win-line__22 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         281
@@ -16383,7 +16382,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.draw-state wlv) 3)
               (recur 283)
               (recur 282)))
@@ -16416,7 +16415,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (win-draw-end ed wp 64 32 true (.row wlv) (.w-height wp) (e HLF_AT))
             (draw-vsep-win ed wp (.row wlv))
             (.set-row wlv endrow)
@@ -16450,7 +16449,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (.row wlv) endrow)
               (recur 293)
               (recur 284)))
@@ -16483,7 +16482,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (and (== (g ed screen-cur-row) (i32 (- (.screen-row wlv) 1))) (== (.w-width wp) (aget (g ed Columns) 0)))
               (recur 285)
               (recur 292)))
@@ -16516,7 +16515,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed LineWraps) (i32 (- (.screen-row wlv) 1)) (unchecked-byte (e TRUE)))
             (if (and (not (zero? (long (aget (g ed p-tf) 0)))) (not (or (== (long (utf-off2cells ed (bit-and (.at (g ed LineOffset) (.screen-row wlv)) 0xffffffff) (u32 (+ (bit-and (.at (g ed LineOffset) (.screen-row wlv)) 0xffffffff) (u32 (g ed screen-Columns)))))) 2) (== (long (utf-off2cells ed (u32 (- (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (.fr-width (g ed topframe))))) 2)) (u32 (+ (bit-and (.at (g ed LineOffset) (.screen-row wlv)) 0xffffffff) (u32 (g ed screen-Columns)))))) 2))))
               (recur 286)
@@ -16550,7 +16549,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (== (g ed screen-cur-col) (.w-width wp))
               (recur 288)
               (recur 287)))
@@ -16583,7 +16582,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (screen-char ed (u32 (- (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (.fr-width (g ed topframe))))) 1)) (i32 (- (.screen-row wlv) 1)) (i32 (- (.fr-width (g ed topframe)) 1)))
             (recur 288))
         288
@@ -16615,7 +16614,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (if (> (long (aget (g ed mb-bytelen-tab) (.ub (g ed ScreenLines) (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (- (.fr-width (g ed topframe)) 1))))))) 1)
               (recur 290)
               (recur 289)))
@@ -16648,7 +16647,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (out-char ed (.ub (g ed ScreenLines) (u32 (+ (bit-and (.at (g ed LineOffset) (i32 (- (.screen-row wlv) 1))) 0xffffffff) (u32 (- (.fr-width (g ed topframe)) 1))))))
             (recur 291))
         290
@@ -16680,7 +16679,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (out-char ed 32)
             (recur 291))
         291
@@ -16712,7 +16711,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set (g ed ScreenAttrs) (bit-and (.at (g ed LineOffset) (.screen-row wlv)) 0xffffffff) (unchecked-short 65535))
             (screen-start ed)
             (recur 292))
@@ -16746,7 +16745,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (win-line-start ed wp wlv true)
             (let [lcs-prec-todo (long (aget ^ints (.-prec ^T_lcs_chars_T (.-w-lcs-chars wp)) 0))]
               (aset fl__ 6 lcs-prec-todo)
@@ -16757,16 +16756,16 @@
         st))))
 
 (defn- win-line__23 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 18)
-        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 19)
-        ^T_winlinevars_T wlv (aget fo__ 20)
-        ^T_pos_T pos (aget fo__ 21)
-        ^ints area-attr (aget fo__ 22)
-        ^ints u8cc (aget fo__ 23)
-        ^ints match-conc (aget fo__ 24)
-        ^T_chartabsize_T cts (aget fo__ 25)
-        ^ints head (aget fo__ 26)
-        ^ints has-match-conc (aget fo__ 27)]
+  (let [^T_prepare_search_hl_line__out_T prepare-search-hl-line__o (aget fo__ 19)
+        ^T_update_search_hl__out_T update-search-hl__o (aget fo__ 20)
+        ^T_winlinevars_T wlv (aget fo__ 21)
+        ^T_pos_T pos (aget fo__ 22)
+        ^ints area-attr (aget fo__ 23)
+        ^ints u8cc (aget fo__ 24)
+        ^ints match-conc (aget fo__ 25)
+        ^T_chartabsize_T cts (aget fo__ 26)
+        ^ints head (aget fo__ 27)
+        ^ints has-match-conc (aget fo__ 28)]
     (loop [st st0__]
       (case st
         294
@@ -16818,7 +16817,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (wlv-screen-line ed wp wlv false)
             (if (and (< (i32 (- (i32 (+ (.row wlv) 1)) (.startrow wlv))) number-only) (or (not (== (long (aget (g ed highlight-attr) 12)) 0)) (not (== (long (aget (g ed highlight-attr) 13)) 0))))
               (recur 298)
@@ -16853,7 +16852,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (.set-row wlv (i32 (inc (.row wlv))))
             (.set-screen-row wlv (i32 (inc (.screen-row wlv))))
             (if (== (.row wlv) endrow)
@@ -16889,7 +16888,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)]
+                on-last-col (boolean (aget fo__ 11))]
             (win-line-start ed wp wlv true)
             (recur 85))
         300
@@ -16925,7 +16924,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 leadcol (i32 (inc leadcol))]
             (aset fl__ 21 leadcol)
             (recur 47))
@@ -16959,7 +16958,7 @@
                 sign-present (boolean (aget fo__ 10))
                 num-attr (aget fl__ 23)
                 did-line-attr (aget fl__ 24)
-                on-last-col (aget fl__ 25)
+                on-last-col (boolean (aget fo__ 11))
                 trailcol (i32 (dec trailcol))]
             (aset fl__ 20 trailcol)
             (recur 43))
@@ -16985,8 +16984,8 @@
         ^T_chartabsize_T cts (new-T_chartabsize_T)
         ^ints head (int-array 1)
         ^ints has-match-conc (int-array 1)
-        ^longs fl__ (long-array 37)
-        ^objects fo__ (object-array 28)]
+        ^longs fl__ (long-array 36)
+        ^objects fo__ (object-array 29)]
     (aset fo__ 1 wp)
     (aset fl__ 0 lnum)
     (aset fl__ 1 startrow)
@@ -17020,6 +17019,7 @@
     (aset fo__ 10 false)
     (aset fl__ 23 0)
     (aset fl__ 24 0)
+    (aset fo__ 11 false)
     (aset fl__ 25 0)
     (aset fl__ 26 0)
     (aset fl__ 27 0)
@@ -17031,19 +17031,18 @@
     (aset fl__ 33 0)
     (aset fl__ 34 0)
     (aset fl__ 35 0)
-    (aset fl__ 36 0)
-    (aset fo__ 16 false)
     (aset fo__ 17 false)
-    (aset fo__ 18 prepare-search-hl-line__o)
-    (aset fo__ 19 update-search-hl__o)
-    (aset fo__ 20 wlv)
-    (aset fo__ 21 pos)
-    (aset fo__ 22 area-attr)
-    (aset fo__ 23 u8cc)
-    (aset fo__ 24 match-conc)
-    (aset fo__ 25 cts)
-    (aset fo__ 26 head)
-    (aset fo__ 27 has-match-conc)
+    (aset fo__ 18 false)
+    (aset fo__ 19 prepare-search-hl-line__o)
+    (aset fo__ 20 update-search-hl__o)
+    (aset fo__ 21 wlv)
+    (aset fo__ 22 pos)
+    (aset fo__ 23 area-attr)
+    (aset fo__ 24 u8cc)
+    (aset fo__ 25 match-conc)
+    (aset fo__ 26 cts)
+    (aset fo__ 27 head)
+    (aset fo__ 28 has-match-conc)
     (loop [st 0]
       (let [r__ (if (<= st 10)
                   (win-line__0 ed fl__ fo__ st)
@@ -17138,8 +17137,8 @@
                 old-botline (.w-botline wp)
                 mod-top 0
                 mod-bot 0]
-            (when (zero? (g ed did-update-one-window))
-              (g! ed did-update-one-window (e TRUE))
+            (when-not (g ed did-update-one-window)
+              (g! ed did-update-one-window true)
               (start-search-hl ed))
             (let [type_ (.w-redr-type wp)]
               (when (== type_ (e UPD_NOT_VALID))
@@ -17818,27 +17817,8 @@
                 type_ (aget tl__ 0)
                 mid-start (aget tl__ 1)
                 mid-end (aget tl__ 2)]
-            (if (or (and (not (zero? (g ed VIsual-active))) (identical? buf (.w-buffer (g ed curwin)))) (and (not (== (.w-old-cursor-lnum wp) 0)) (not (== type_ (e UPD_NOT_VALID)))))
-              (if (zero? (g ed VIsual-active))
-                (if (< (.w-old-cursor-lnum wp) (.w-old-visual-lnum wp))
-                  (let [from (.w-old-cursor-lnum wp)
-                        to (.w-old-visual-lnum wp)]
-                    (aset fl__ 0 type_)
-                    (aset fl__ 2 mid-start)
-                    (aset fl__ 3 mid-end)
-                    (aset fl__ 18 from)
-                    (aset fl__ 19 to)
-                    (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
-                    (recur 17))
-                  (let [from (.w-old-visual-lnum wp)
-                        to (.w-old-cursor-lnum wp)]
-                    (aset fl__ 0 type_)
-                    (aset fl__ 2 mid-start)
-                    (aset fl__ 3 mid-end)
-                    (aset fl__ 18 from)
-                    (aset fl__ 19 to)
-                    (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
-                    (recur 17)))
+            (if (or (and (g ed VIsual-active) (identical? buf (.w-buffer (g ed curwin)))) (and (not (== (.w-old-cursor-lnum wp) 0)) (not (== type_ (e UPD_NOT_VALID)))))
+              (if (g ed VIsual-active)
                 (let [j__36 (if (or (not (== (g ed VIsual-mode) (.w-old-visual-mode wp))) (== type_ (e UPD_INVERTED_ALL)))
                               (let [j__34 (if (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))
                                             (let [from (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
@@ -17948,7 +17928,26 @@
                         (aset fl__ 18 from)
                         (aset fl__ 19 to)
                         (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
-                        (recur 17)))))
+                        (recur 17))))
+                (if (< (.w-old-cursor-lnum wp) (.w-old-visual-lnum wp))
+                  (let [from (.w-old-cursor-lnum wp)
+                        to (.w-old-visual-lnum wp)]
+                    (aset fl__ 0 type_)
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 3 mid-end)
+                    (aset fl__ 18 from)
+                    (aset fl__ 19 to)
+                    (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                    (recur 17))
+                  (let [from (.w-old-visual-lnum wp)
+                        to (.w-old-cursor-lnum wp)]
+                    (aset fl__ 0 type_)
+                    (aset fl__ 2 mid-start)
+                    (aset fl__ 3 mid-end)
+                    (aset fl__ 18 from)
+                    (aset fl__ 19 to)
+                    (aset fo__ 10 (Boolean/valueOf (boolean cursor-above)))
+                    (recur 17))))
               (do (aset fl__ 0 type_)
                   (aset fl__ 2 mid-start)
                   (aset fl__ 3 mid-end)
@@ -18207,7 +18206,7 @@
                 mod-bot (aget fl__ 13)
                 save-got-int (aget fl__ 14)
                 override-success (boolean (aget fo__ 8))]
-            (if (and (not (zero? (g ed VIsual-active))) (identical? buf (.w-buffer (g ed curwin))))
+            (if (and (g ed VIsual-active) (identical? buf (.w-buffer (g ed curwin))))
               (do (.set-w-old-visual-mode wp (i8 (g ed VIsual-mode)))
                   (.set-w-old-cursor-lnum wp (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
                   (.set-w-old-visual-lnum wp (.lnum (g ed VIsual)))
@@ -19168,7 +19167,7 @@
 
 ;; C: showcmd_update_clear_state
 (defn showcmd-update-clear-state [^Editor ed]
-  (g! ed showcmd-is-clear (if (== (bit-and (long (aget (g ed showcmd-buf) 0)) 0xff) (e NUL)) 1 0))
+  (g! ed showcmd-is-clear (== (bit-and (long (aget (g ed showcmd-buf) 0)) 0xff) (e NUL)))
   nil)
 
 ;; C: screen_putchar
@@ -19296,8 +19295,8 @@
 
 ;; C: skip_showmode
 (defn skip-showmode [^Editor ed]
-  (if (or (not (zero? (g ed global-busy))) (not (== (g ed msg-silent) 0)) (not (redrawing ed)) (and (or (not (stuff-empty? ed)) (> (.tb-len (g ed typebuf)) 0)) (zero? (g ed KeyTyped))))
-    (do (g! ed redraw-mode (e TRUE))
+  (if (or (not (zero? (g ed global-busy))) (not (== (g ed msg-silent) 0)) (not (redrawing ed)) (and (or (not (stuff-empty? ed)) (> (.tb-len (g ed typebuf)) 0)) (not (g ed KeyTyped))))
+    (do (g! ed redraw-mode true)
         true)
     false))
 
@@ -19352,7 +19351,7 @@
     (showcmd-update-clear-state ed)
     (cursor-off ed)
     (if (== (.ub ^BytePtr (aget (g ed p-sloc) 0)) 115)
-      (if (and (not (zero? (g ed showcmd-is-clear))) (zero? (g ed vgetc-busy)))
+      (if (and (g ed showcmd-is-clear) (zero? (g ed vgetc-busy)))
         (do (.set-w-redr-status (g ed curwin) (boolean true))
             (setcursor ed)
             nil)
@@ -19360,14 +19359,14 @@
             (setcursor ed)
             nil))
       (if (== (.ub ^BytePtr (aget (g ed p-sloc) 0)) 116)
-        (if (and (not (zero? (g ed showcmd-is-clear))) (zero? (g ed vgetc-busy)))
-          (do (g! ed redraw-tabline (e TRUE))
+        (if (and (g ed showcmd-is-clear) (zero? (g ed vgetc-busy)))
+          (do (g! ed redraw-tabline true)
               (setcursor ed)
               nil)
           (do (draw-tabline ed)
               (setcursor ed)
               nil))
-        (do (when (zero? (g ed showcmd-is-clear))
+        (do (when-not (g ed showcmd-is-clear)
               (screen-puts ed (BytePtr. (g ed showcmd-buf) 0) (i32 (- (i32 (aget (g ed Rows) 0)) 1)) (i32 (+ (g ed cmdline-col-off) (g ed sc-col))) 0))
             (screen-puts ed (.add (BytePtr/lit "          ") len) (i32 (- (i32 (aget (g ed Rows) 0)) 1)) (i32 (+ (i32 (+ (g ed cmdline-col-off) (g ed sc-col))) len)) 0)
             (setcursor ed)
@@ -19380,7 +19379,7 @@
         ^longs tl__ (long-array 4)
         ^objects to__ (object-array 2)]
     (when-not (zero? (long (aget (g ed p-sc) 0)))
-      (if (and (not (zero? (g ed VIsual-active))) (stuff-empty? ed) (== (.tb-len (g ed typebuf)) 0))
+      (if (and (g ed VIsual-active) (stuff-empty? ed) (== (.tb-len (g ed typebuf)) 0))
         (let [cursor-bot (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
               j__1 (if cursor-bot
                      (let [top (.lnum (g ed VIsual))
@@ -19440,21 +19439,21 @@
                   (whim.cljhost/vim-snprintf ed (BytePtr. (g ed showcmd-buf) 0) 41 (BytePtr/lit "%d") (object-array [(Integer/valueOf (unchecked-int chars_))]))
                   (whim.cljhost/vim-snprintf ed (BytePtr. (g ed showcmd-buf) 0) 41 (BytePtr/lit "%d-%d") (object-array [(Integer/valueOf (unchecked-int chars_)) (Integer/valueOf (unchecked-int bytes_))]))))))
           (aset (g ed showcmd-buf) (e SHOWCMD_COLS) (unchecked-byte (e NUL)))
-          (g! ed showcmd-visual (e TRUE))
+          (g! ed showcmd-visual true)
           (display-showcmd ed)
           nil)
         (do (aset (g ed showcmd-buf) 0 (unchecked-byte (e NUL)))
-            (g! ed showcmd-visual (e FALSE))
-            (when (zero? (g ed showcmd-is-clear))
+            (g! ed showcmd-visual false)
+            (when-not (g ed showcmd-is-clear)
               (display-showcmd ed)
               nil))))))
 
 (defn showmode ^long [^Editor ed]
-  (let [^longs tl__ (long-array 3)
-        ^objects to__ (object-array 1)
+  (let [^longs tl__ (long-array 2)
+        ^objects to__ (object-array 2)
         length 0
         show-ruler-with-pum false
-        do-mode (and (not (zero? (long (aget (g ed p-smd) 0)))) (== (g ed msg-silent) 0) (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (== (g ed restart-edit) (e NUL))) (not (zero? (g ed VIsual-active)))))
+        do-mode (and (not (zero? (long (aget (g ed p-smd) 0)))) (== (g ed msg-silent) 0) (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (== (g ed restart-edit) (e NUL))) (g ed VIsual-active)))
         j__2 (if (or do-mode (not (== (g ed reg-recording) 0)))
                (if (skip-showmode ed)
                  (do (aset tl__ 1 0)
@@ -19462,7 +19461,7 @@
                  (let [nwr-save (g ed need-wait-return)
                        _ (check-for-delay ed false)
                        need-clear (g ed clear-cmdline)]
-                   (when (and (not (zero? (g ed clear-cmdline))) (< (g ed cmdline-row) (- (aget (g ed Rows) 0) 1)))
+                   (when (and (g ed clear-cmdline) (< (g ed cmdline-row) (- (aget (g ed Rows) 0) 1)))
                      (msg-clr-cmdline ed))
                    (msg-pos-mode ed)
                    (cursor-off ed)
@@ -19509,7 +19508,7 @@
                                                                       (msg-puts-attr ed (BytePtr/lit " VREPLACE") attr))
                                                                     (when (and (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (zero? (long (aget (g ed p-paste) 0)))))
                                                                       (msg-puts-attr ed (BytePtr/lit " (paste)") attr))
-                                                                    (when-not (zero? (g ed VIsual-active))
+                                                                    (when (g ed VIsual-active)
                                                                       (let [^BytePtr p (case (i32 (+ (i32 (+ (if (zero? (g ed VIsual-select)) 0 4) (i32 (* (if (== (g ed VIsual-mode) (e Ctrl_V)) 1 0) 2)))) (if (== (g ed VIsual-mode) 86) 1 0)))
                                                                                          0
                                                                                            ^BytePtr (BytePtr/lit " VISUAL")
@@ -19525,21 +19524,21 @@
                                                                         (msg-puts-attr ed p attr)))
                                                                     (msg-puts-attr ed (BytePtr/lit " --") attr)
                                                                     true))
-                                          need-clear (e TRUE)]
-                                      (aset tl__ 2 need-clear)
+                                          need-clear true]
+                                      (aset to__ 1 (Boolean/valueOf (boolean need-clear)))
                                       (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
                                       0))
-                                (do (aset tl__ 2 need-clear)
+                                (do (aset to__ 1 (Boolean/valueOf (boolean need-clear)))
                                     (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
                                     0))
-                         need-clear (aget tl__ 2)
+                         need-clear (boolean (aget to__ 1))
                          show-ruler-with-pum (boolean (aget to__ 0))
                          need-clear (if (and (not (== (g ed reg-recording) 0)) (nil? (g ed edit-submode)))
                                       (do (recording-mode ed attr)
-                                          (e TRUE))
+                                          true)
                                       need-clear)]
-                     (g! ed mode-displayed (e TRUE))
-                     (when (or (not (zero? need-clear)) (not (zero? (g ed clear-cmdline))) (not (zero? (g ed redraw-mode))))
+                     (g! ed mode-displayed true)
+                     (when (or need-clear (g ed clear-cmdline) (g ed redraw-mode))
                        (msg-clr-eos ed))
                      (g! ed msg-didout (e FALSE))
                      (let [length (g ed msg-col)]
@@ -19548,31 +19547,31 @@
                        (aset tl__ 0 length)
                        (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
                        0))))
-               (if (and (not (zero? (g ed clear-cmdline))) (== (g ed msg-silent) 0))
+               (if (and (g ed clear-cmdline) (== (g ed msg-silent) 0))
                  (do (msg-clr-cmdline ed)
                      (aset tl__ 0 length)
                      (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
                      0)
-                 (if (zero? (g ed redraw-mode))
-                   (do (aset tl__ 0 length)
-                       (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
-                       0)
+                 (if (g ed redraw-mode)
                    (do (msg-pos-mode ed)
                        (msg-clr-eos ed)
                        (aset tl__ 0 length)
+                       (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
+                       0)
+                   (do (aset tl__ 0 length)
                        (aset to__ 0 (Boolean/valueOf (boolean show-ruler-with-pum)))
                        0))))]
     (if (== (long j__2) -1)
       (aget tl__ 1)
       (let [length (aget tl__ 0)
             show-ruler-with-pum (boolean (aget to__ 0))]
-        (when-not (zero? (g ed VIsual-active))
+        (when (g ed VIsual-active)
           (clear-showcmd ed))
         (when (and (redrawing ed) (== (.w-status-height (g ed curwin)) 0))
           (win-redr-ruler ed (g ed curwin) true show-ruler-with-pum))
         (g! ed redraw-cmdline (e FALSE))
-        (g! ed redraw-mode (e FALSE))
-        (g! ed clear-cmdline (e FALSE))
+        (g! ed redraw-mode false)
+        (g! ed clear-cmdline false)
         length))))
 
 ;; C: update_screen
@@ -19620,7 +19619,7 @@
                   (g! ed no-win-do-lines-ins (i32 (inc (g ed no-win-do-lines-ins)))))
                 (let [type_ (if (zero? (g ed msg-scrolled))
                               type_
-                              (do (g! ed clear-cmdline (e TRUE))
+                              (do (g! ed clear-cmdline true)
                                   (let [type_ (if (== type_ (e UPD_CLEAR))
                                                 type_
                                                 (if (> (g ed msg-scrolled) (- (aget (g ed Rows) 0) 5))
@@ -19643,13 +19642,13 @@
                                                                   (.set-w-redr-status wp (boolean true))))))
                                                         (when-not no-update
                                                           (g! ed redraw-cmdline (e TRUE)))
-                                                        (g! ed redraw-tabline (e TRUE))
+                                                        (g! ed redraw-tabline true)
                                                         type_))))]
                                     (g! ed msg-scrolled 0)
                                     (g! ed need-wait-return (e FALSE))
                                     type_)))]
                   (compute-cmdrow ed)
-                  (when-not (zero? (g ed need-highlight-changed))
+                  (when (g ed need-highlight-changed)
                     (highlight-changed ed))
                   (let [type_ (if (== type_ (e UPD_CLEAR))
                                 (do (screenclear ed)
@@ -19657,15 +19656,15 @@
                                       (g! ed must-redraw 0)
                                       type_))
                                 type_)]
-                    (when-not (zero? (g ed clear-cmdline))
+                    (when (g ed clear-cmdline)
                       (check-for-delay ed false))
                     (when (== type_ (e UPD_INVERTED))
                       (update-curswant ed))
-                    (when (and (< (.w-redr-type (g ed curwin)) type_) (not (or (and (== type_ (e UPD_VALID)) (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines (g ed curwin)) 0)))) (== (.w-topline (g ed curwin)) (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines (g ed curwin)) 0)))) (and (== type_ (e UPD_INVERTED)) (not (zero? (g ed VIsual-active))) (== (.w-old-cursor-lnum (g ed curwin)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.w-old-visual-mode (g ed curwin)) (g ed VIsual-mode)) (not (zero? (bit-and (.w-valid (g ed curwin)) (e VALID_VIRTCOL)))) (== (.w-old-curswant (g ed curwin)) (.w-curswant (g ed curwin)))))))
+                    (when (and (< (.w-redr-type (g ed curwin)) type_) (not (or (and (== type_ (e UPD_VALID)) (not (zero? (.wl-valid ^S_w_line (.at ^Ptr (.w-lines (g ed curwin)) 0)))) (== (.w-topline (g ed curwin)) (.wl-lnum ^S_w_line (.at ^Ptr (.w-lines (g ed curwin)) 0)))) (and (== type_ (e UPD_INVERTED)) (g ed VIsual-active) (== (.w-old-cursor-lnum (g ed curwin)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.w-old-visual-mode (g ed curwin)) (g ed VIsual-mode)) (not (zero? (bit-and (.w-valid (g ed curwin)) (e VALID_VIRTCOL)))) (== (.w-old-curswant (g ed curwin)) (.w-curswant (g ed curwin)))))))
                       (.set-w-redr-type (g ed curwin) type_))
-                    (when (or (not (zero? (g ed redraw-tabline))) (>= type_ (e UPD_NOT_VALID)))
+                    (when (or (g ed redraw-tabline) (>= type_ (e UPD_NOT_VALID)))
                       (draw-tabline ed))
-                    (g! ed did-update-one-window (e FALSE))
+                    (g! ed did-update-one-window false)
                     (.set-regprog ^T_regmmatch_T (.-rm (g ed screen-search-hl)) nil)
                     (let [^S_window_S wp (g ed curwin)
                           override-success (push-highlight-overrides ed (.w-hl wp) (.w-hl-len wp))]
@@ -19679,15 +19678,15 @@
                         (pop-highlight-overrides ed))
                       (end-search-hl ed)
                       (g! ed pum-will-redraw save-pum-will-redraw)
-                      (when-not (zero? (g ed redraw-vseps))
-                        (g! ed redraw-vseps (e FALSE))
+                      (when (g ed redraw-vseps)
+                        (g! ed redraw-vseps false)
                         (let [^S_window_S wp (g ed curwin)]
                           (when (> (.w-vsep-width wp) 0)
                             (draw-vsep-win ed wp 0))))
                       (let [^S_window_S wp (g ed curwin)]
                         (.set-b-mod-set ^S_file_buffer (.w-buffer wp) (boolean false))
                         (after-updating-screen ed true)
-                        (when (or (not (zero? (g ed clear-cmdline))) (not (zero? (g ed redraw-cmdline))) (not (zero? (g ed redraw-mode))))
+                        (when (or (g ed clear-cmdline) (not (zero? (g ed redraw-cmdline))) (g ed redraw-mode))
                           (showmode ed))
                         (when no-update
                           (g! ed no-win-do-lines-ins (i32 (dec (g ed no-win-do-lines-ins)))))
@@ -19724,11 +19723,11 @@
 ;; C: msg_starthere
 (defn msg-starthere [^Editor ed]
   (g! ed lines-left (g ed cmdline-row))
-  (g! ed msg-didany (e FALSE))
+  (g! ed msg-didany false)
   nil)
 
 (defn redrawcmdprompt [^Editor ed]
-  (when (zero? (g ed cmd-silent))
+  (when-not (g ed cmd-silent)
     (when-not (== (.cmdfirstc (g ed ccline)) (e NUL))
       (msg-putchar ed (.cmdfirstc (g ed ccline))))
     (if (some? (.cmdprompt (g ed ccline)))
@@ -19774,12 +19773,12 @@
 ;; C: set_cmdspos_cursor
 (defn set-cmdspos-cursor [^Editor ed]
   (set-cmdspos ed)
-  (let [m (if (zero? (g ed KeyTyped))
-            (e MAXCOL)
+  (let [m (if (g ed KeyTyped)
             (let [m (i32 (* (g ed cmdline-width) (aget (g ed Rows) 0)))]
               (if (< m 0)
                 (e MAXCOL)
-                m)))
+                m))
+            (e MAXCOL))
         i 0]
     (loop [i i]
       (when (and (< i (.cmdlen (g ed ccline))) (< i (.cmdpos (g ed ccline))))
@@ -19795,7 +19794,7 @@
               (recur i))))))))
 
 (defn cursorcmd [^Editor ed]
-  (when (zero? (g ed cmd-silent))
+  (when-not (g ed cmd-silent)
     (g! ed msg-row (i32 (+ (g ed cmdline-row) (i32 (quot (.cmdspos (g ed ccline)) (g ed cmdline-width))))))
     (g! ed msg-col (rem (.cmdspos (g ed ccline)) (g ed cmdline-width)))
     (if (>= (g ed msg-row) (aget (g ed Rows) 0))
@@ -19806,12 +19805,12 @@
           nil))))
 
 (defn putcmdline [^Editor ed ^long c ^long shift]
-  (when (zero? (g ed cmd-silent))
-    (g! ed msg-no-more (e TRUE))
+  (when-not (g ed cmd-silent)
+    (g! ed msg-no-more true)
     (msg-putchar ed c)
     (when-not (zero? shift)
       (draw-cmdline ed (.cmdpos (g ed ccline)) (i32 (- (.cmdlen (g ed ccline)) (.cmdpos (g ed ccline))))))
-    (g! ed msg-no-more (e FALSE))
+    (g! ed msg-no-more false)
     (cursorcmd ed)
     (g! ed extra-char c)
     (g! ed extra-char-shift shift)
@@ -19819,7 +19818,7 @@
 
 (defn redrawcmd [^Editor ed]
   (let [save-in-echowindow (g ed in-echowindow)]
-    (when (zero? (g ed cmd-silent))
+    (when-not (g ed cmd-silent)
       (if (nil? (.cmdbuff (g ed ccline)))
         (do (windgoto ed (g ed cmdline-row) (g ed cmdline-col-off))
             (msg-clr-eos ed)
@@ -19829,21 +19828,21 @@
             (msg-start ed)
             (msg-starthere ed)
             (redrawcmdprompt ed)
-            (g! ed msg-no-more (e TRUE))
+            (g! ed msg-no-more true)
             (draw-cmdline ed 0 (.cmdlen (g ed ccline)))
             (msg-clr-eos ed)
-            (g! ed msg-no-more (e FALSE))
+            (g! ed msg-no-more false)
             (set-cmdspos-cursor ed)
             (when-not (== (g ed extra-char) (e NUL))
               (putcmdline ed (g ed extra-char) (g ed extra-char-shift)))
             (g! ed msg-scroll (e FALSE))
-            (g! ed skip-redraw (e FALSE))
+            (g! ed skip-redraw false)
             (g! ed in-echowindow save-in-echowindow)
             nil)))))
 
 ;; C: redrawcmdline_ex
 (defn redrawcmdline-ex [^Editor ed do-compute-cmdrow]
-  (when (zero? (g ed cmd-silent))
+  (when-not (g ed cmd-silent)
     (g! ed need-wait-return (e FALSE))
     (if do-compute-cmdrow
       (do (compute-cmdrow ed)
@@ -20203,7 +20202,7 @@
           ret 0
           ^IntPtr screenlineUC nil
           _ (redraw-later ed type_)]
-      (if (or (or (not (zero? (g ed msg-scrolled))) (and (not (== (g ed State) (e MODE_NORMAL))) (not (== (g ed State) 4097)))) (not (zero? (g ed exiting))))
+      (if (or (or (not (zero? (g ed msg-scrolled))) (and (not (== (g ed State) (e MODE_NORMAL))) (not (== (g ed State) 4097)))) (g ed exiting))
         ret
         (let [rows (i32 (- (g ed screen-Rows) (g ed cmdline-row)))
               ^BytePtr screenline (BytePtr/alloc (* 1 (i32 (* rows cols))))
@@ -20391,7 +20390,7 @@
   (if (== (bit-and modifiers (e MOD_MASK_CTRL)) 0)
     key_
     (if (or (ascii-isupper? key_) (ascii-islower? key_))
-      (if (== (g ed no-reduce-keys) 0) (if (or (< key_ 97) (> key_ 122)) key_ (i32 (- key_ 32))) key_)
+      (if (g ed no-reduce-keys) key_ (if (or (< key_ 97) (> key_ 122)) key_ (i32 (- key_ 32))))
       (if (== key_ 50)
         64
         (if (== key_ 54)
@@ -20548,7 +20547,7 @@
                         (.set-tb-maplen (g ed typebuf) (i32 (+ (.tb-maplen (g ed typebuf)) addlen))))
                       (when (or (not (zero? silent)) (> (.tb-silent (g ed typebuf)) offset))
                         (.set-tb-silent (g ed typebuf) (i32 (+ (.tb-silent (g ed typebuf)) addlen)))
-                        (g! ed cmd-silent (e TRUE)))
+                        (g! ed cmd-silent true))
                       (if (and (not (zero? (.tb-no-abbr-cnt (g ed typebuf)))) (== offset 0))
                         (do (.set-tb-no-abbr-cnt (g ed typebuf) (i32 (+ (.tb-no-abbr-cnt (g ed typebuf)) addlen)))
                             true)
@@ -21270,7 +21269,7 @@
           out__)))))
 
 (defn messaging [^Editor ed]
-  (not (and (not (zero? (long (aget (g ed p-lz) 0)))) (typed-ahead ed) (zero? (g ed KeyTyped)))))
+  (not (and (not (zero? (long (aget (g ed p-lz) 0)))) (typed-ahead ed) (not (g ed KeyTyped)))))
 
 ;; C: msg_outtrans
 (defn msg-outtrans ^long [^Editor ed ^BytePtr str_]
@@ -21368,7 +21367,7 @@
       (when (and (not (zero? (long (msg-attr ed message (g ed keep-msg-attr))))) (== (g ed msg-scrolled) 0))
         (set-keep-msg ed message (g ed keep-msg-attr))))
     (g! ed msg-didout (e FALSE))
-    (g! ed msg-nowait (e TRUE))
+    (g! ed msg-nowait true)
     (g! ed msg-col 0)
     (g! ed no-wait-return (i32 (dec (g ed no-wait-return))))
     nil))
@@ -21437,7 +21436,7 @@
                                 (.sa-stop-lnum extra-arg)
                                 stop-lnum)]
                 (recur 1 win buf pos end-pos dir pat patlen count_ options pat-use extra-arg found lnum ptr matchcol endpos-lnum endpos-col matchpos-lnum matchpos-col loop_ start-pos-lnum start-pos-col at-first-line extra-col match-ok nmatched submatch first-match called-emsg-before break-loop stop-lnum timed-out search-from-match-end))
-              (if (and (not (zero? (bit-and options (e SEARCH_MSG)))) (zero? (g ed rc-did-emsg)))
+              (if (and (not (zero? (bit-and options (e SEARCH_MSG)))) (not (g ed rc-did-emsg)))
                 (do (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (emsg-iobuff-room ed)) (BytePtr. (g ed e-invalid-search-string-str) 0) (object-array [(g ed mr-pattern)]))
                     (emsg ed (iobuff-or ed (BytePtr. (g ed e-invalid-search-string-str) 0)))
                     (e FAIL))
@@ -21807,13 +21806,13 @@
         (Rt/memmove (.add (.add msgbuf msgbuflen) (- len)) (BytePtr. t 0) len)
         (when (and (== dirc 63) (== (.cur stat) (i32 (+ maxcount 1))))
           (.set-cur stat -1))
-        (g! ed msg-hist-off (e TRUE))
+        (g! ed msg-hist-off true)
         (give-warning ed msgbuf false)
-        (g! ed msg-hist-off (e FALSE))
+        (g! ed msg-hist-off false)
         nil))))
 
 (defn setpcmark [^Editor ed]
-  (when-not (or (not (zero? (g ed global-busy))) (not (zero? (g ed listcmd-busy))) (not (zero? (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_KEEPJUMPS)))))
+  (when-not (or (not (zero? (g ed global-busy))) (g ed listcmd-busy) (not (zero? (bit-and (.cmod-flags (g ed cmdmod)) (e CMOD_KEEPJUMPS)))))
     (.set ^T_pos_T (.-w-prev-pcmark (g ed curwin)) (.-w-pcmark (g ed curwin)))
     (.set ^T_pos_T (.-w-pcmark (g ed curwin)) (.-w-cursor (g ed curwin)))
     nil))
@@ -21928,10 +21927,10 @@
                 searchstrlen (aget tl__ 1)
                 ^BytePtr dircp (aget to__ 2)
                 show-search-stats false
-                j__5 (if (and (not (zero? (bit-and options (e SEARCH_ECHO)))) (messaging ed) (zero? (g ed msg-silent)) (or (zero? (g ed cmd-silent)) (not (shortmess ed (e SHM_SEARCHCOUNT)))))
+                j__5 (if (and (not (zero? (bit-and options (e SEARCH_ECHO)))) (messaging ed) (zero? (g ed msg-silent)) (or (not (g ed cmd-silent)) (not (shortmess ed (e SHM_SEARCHCOUNT)))))
                        (let [off-len 0
                              _ (msg-start ed)
-                             off-len (if (and (zero? (g ed cmd-silent)) (or (not (zero? (.line ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))))) (not (zero? (.end ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))))) (not (zero? (.off ^S_soffset (.-off ^S_spat (aget (g ed spats) 0)))))))
+                             off-len (if (and (not (g ed cmd-silent)) (or (not (zero? (.line ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))))) (not (zero? (.end ^S_soffset (.-off ^S_spat (aget (g ed spats) 0))))) (not (zero? (.off ^S_soffset (.-off ^S_spat (aget (g ed spats) 0)))))))
                                        (let [t1 off-len
                                              off-len (inc off-len)
                                              _ (aset off-buf t1 (unchecked-byte dirc))
@@ -21966,8 +21965,8 @@
                                       0))
                              ^BytePtr p (aget to__ 5)
                              plen (aget tl__ 4)
-                             msgbufsize (if (or (not (shortmess ed (e SHM_SEARCHCOUNT))) (not (zero? (g ed cmd-silent))))
-                                          (let [msgbufsize (if (and (not (== (g ed msg-scrolled) 0)) (zero? (g ed cmd-silent)))
+                             msgbufsize (if (or (not (shortmess ed (e SHM_SEARCHCOUNT))) (g ed cmd-silent))
+                                          (let [msgbufsize (if (and (not (== (g ed msg-scrolled) 0)) (not (g ed cmd-silent)))
                                                              (i32 (- (i32 (* (i32 (- (aget (g ed Rows) 0) (g ed msg-row))) (g ed cmdline-width))) 1))
                                                              (i32 (- (i32 (+ (i32 (* (i32 (- (- (aget (g ed Rows) 0) (g ed msg-row)) 1)) (g ed cmdline-width))) (g ed sc-col))) 1)))]
                                             (if (< (Long/compareUnsigned msgbufsize (+ plen off-len (e SEARCH_STAT_BUF_LEN) 3)) 0)
@@ -21978,7 +21977,10 @@
                              _ (Rt/memset msgbuf (unchecked-int 32) msgbufsize)
                              msgbuflen (- msgbufsize 1)
                              _ (.set msgbuf msgbuflen (unchecked-byte (e NUL)))
-                             j__4 (if (zero? (g ed cmd-silent))
+                             j__4 (if (g ed cmd-silent)
+                                    (do (aset to__ 4 msgbuf)
+                                        (aset tl__ 3 msgbuflen)
+                                        0)
                                     (do (.set msgbuf 0 (unchecked-byte dirc))
                                         (if (utf-iscomposing? ed (long (utf-ptr2char ed p)))
                                           (do (.set msgbuf 1 (unchecked-byte 32))
@@ -22003,13 +22005,10 @@
                                           (msg-check ed)
                                           (gotocmdline ed false)
                                           (out-flush ed)
-                                          (g! ed msg-nowait (e TRUE))
+                                          (g! ed msg-nowait true)
                                           (aset to__ 4 msgbuf)
                                           (aset tl__ 3 msgbuflen)
-                                          0))
-                                    (do (aset to__ 4 msgbuf)
-                                        (aset tl__ 3 msgbuflen)
-                                        0))
+                                          0)))
                              ^BytePtr msgbuf (aget to__ 4)
                              msgbuflen (aget tl__ 3)]
                          (if (shortmess ed (e SHM_SEARCHCOUNT))
@@ -22357,7 +22356,7 @@
     (if (== len 0)
       (.set-col ^T_pos_T (.-w-cursor win) 0)
       (if (>= (.col ^T_pos_T (.-w-cursor win)) len)
-        (if (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (zero? (g ed restart-edit))) (and (not (zero? (g ed VIsual-active))) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111))) (not (zero? (bit-and cur-ve-flags (e VE_ONEMORE)))) (not (zero? (long (virtual-active ed)))))
+        (if (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (zero? (g ed restart-edit))) (and (g ed VIsual-active) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111))) (not (zero? (bit-and cur-ve-flags (e VE_ONEMORE)))) (not (zero? (long (virtual-active ed)))))
           (.set-col ^T_pos_T (.-w-cursor win) len)
           (do (.set-col ^T_pos_T (.-w-cursor win) (i32 (- len 1)))
               (mb-adjustpos ed (.w-buffer win) (.-w-cursor win))))
@@ -22686,10 +22685,10 @@
 
 ;; C: may_clear_cmdline
 (defn may-clear-cmdline [^Editor ed]
-  (if (zero? (g ed mode-displayed))
-    (do (clear-showcmd ed)
+  (if (g ed mode-displayed)
+    (do (g! ed clear-cmdline true)
         nil)
-    (do (g! ed clear-cmdline (e TRUE))
+    (do (clear-showcmd ed)
         nil)))
 
 ;; C: gchar_cursor
@@ -22715,7 +22714,7 @@
 
 ;; C: end_visual_mode_keep_button
 (defn end-visual-mode-keep-button [^Editor ed]
-  (g! ed VIsual-active (e FALSE))
+  (g! ed VIsual-active false)
   (g! ed mouse-dragging 0)
   (.set-vi-mode ^T_visualinfo_T (.-b-visual (g ed curbuf)) (g ed VIsual-mode))
   (.set ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))) (g ed VIsual))
@@ -22732,7 +22731,7 @@
 
 ;; C: end_visual_mode
 (defn end-visual-mode [^Editor ed]
-  (g! ed VIsual-select-exclu-adj (e FALSE))
+  (g! ed VIsual-select-exclu-adj false)
   (end-visual-mode-keep-button ed)
   nil)
 
@@ -22839,7 +22838,7 @@
     (.set-b-locked-split buf (i32 (dec (.b-locked-split buf))))
     (if (and (identical? buf (g ed curbuf)) (not is-curbuf))
       false
-      (do (when (and (identical? buf (g ed curbuf)) (not (zero? (g ed VIsual-active))))
+      (do (when (and (identical? buf (g ed curbuf)) (g ed VIsual-active))
             (end-visual-mode ed))
           (ml-close buf true)
           (.set-ml-line-count ^S_memline (.-b-ml buf) 0)
@@ -22883,9 +22882,9 @@
 
 ;; C: validate_maphash
 (defn validate-maphash [^Editor ed]
-  (when (zero? (g ed maphash-valid))
+  (when-not (g ed maphash-valid)
     (Rt/zero (Ptr. (g ed maphash) 0) 256)
-    (g! ed maphash-valid (e TRUE))
+    (g! ed maphash-valid true)
     nil))
 
 ;; C: map_free
@@ -22983,7 +22982,7 @@
       nil)
     (do (aset ^ints (.-b-changed buf) 0 (unchecked-int 0))
         (check-status ed buf)
-        (g! ed redraw-tabline (e TRUE))
+        (g! ed redraw-tabline true)
         (.set-b-changedtick buf (inc (.b-changedtick buf)))
         nil)))
 
@@ -23049,17 +23048,17 @@
 (defn changed-internal [^Editor ed]
   (aset ^ints (.-b-changed (g ed curbuf)) 0 (unchecked-int (e TRUE)))
   (check-status ed (g ed curbuf))
-  (g! ed redraw-tabline (e TRUE))
+  (g! ed redraw-tabline true)
   nil)
 
 (defn changed [^Editor ed]
   (if (zero? (long (aget ^ints (.-b-changed (g ed curbuf)) 0)))
     (do (changed-internal ed)
         (.set-b-changedtick (g ed curbuf) (inc (.b-changedtick (g ed curbuf))))
-        (g! ed highlight-match (e FALSE))
+        (g! ed highlight-match false)
         nil)
     (do (.set-b-changedtick (g ed curbuf) (inc (.b-changedtick (g ed curbuf))))
-        (g! ed highlight-match (e FALSE))
+        (g! ed highlight-match false)
         nil)))
 
 ;; C: open_buffer
@@ -23221,12 +23220,12 @@
                         (.set-b-changelistlen (g ed curbuf) (i32 (inc (.b-changelistlen (g ed curbuf)))))))))
                 (.set ^T_pos_T (aget ^objects (.-b-changelist (g ed curbuf)) (i32 (- (.b-changelistlen (g ed curbuf)) 1))) (.-b-last-change (g ed curbuf)))
                 (.set-w-changelistidx (g ed curwin) (.b-changelistlen (g ed curbuf))))
-              (when-not (zero? (g ed VIsual-active))
+              (when (g ed VIsual-active)
                 (check-visual-pos ed))
               (let [^S_window_S wp (g ed curwin)]
                 (if (identical? (.w-buffer wp) (g ed curbuf))
                   (let [last_ (- (+ lnume xtra) 1)]
-                    (when (and (zero? (g ed redraw-not-allowed)) (< (.w-redr-type wp) (e UPD_VALID)))
+                    (when (and (not (g ed redraw-not-allowed)) (< (.w-redr-type wp) (e UPD_VALID)))
                       (.set-w-redr-type wp (e UPD_VALID)))
                     (when (and (not (== xtra 0)) (not (== (.w-redraw-top wp) 0)))
                       (redraw-win-later ed wp (e UPD_NOT_VALID)))
@@ -23282,13 +23281,13 @@
       (let [wcol wcol-arg
             col 0
             csize 0
-            one-more (or (or (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (== (g ed restart-edit) (e NUL)))) (and (not (zero? (g ed VIsual-active))) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)))) (and (not (zero? (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)))) (< wcol (e MAXCOL))))
+            one-more (or (or (or (not (zero? (bit-and (g ed State) (e MODE_INSERT)))) (not (== (g ed restart-edit) (e NUL)))) (and (g ed VIsual-active) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)))) (and (not (zero? (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)))) (< wcol (e MAXCOL))))
             ^BytePtr line (ml-get-buf ed (g ed curbuf) (.lnum pos) false)
             linelen (long (ml-get-buf-len ed (g ed curbuf) (.lnum pos)))]
         (let [j__4 (if (>= wcol (e MAXCOL))
                     (let [idx (i32 (+ (i32 (- linelen 1)) (if one-more 1 0)))
                           col wcol]
-                      (if (and (or addspaces (not (zero? finetune))) (zero? (g ed VIsual-active)))
+                      (if (and (or addspaces (not (zero? finetune))) (not (g ed VIsual-active)))
                         (let [_ (.set-w-curswant (g ed curwin) (i32 (+ (long (linetabsize ed (g ed curwin) (.lnum pos))) (if one-more 1 0))))]
                           (if (> (.w-curswant (g ed curwin)) 0)
                             (let [_ (.set-w-curswant (g ed curwin) (i32 (dec (.w-curswant (g ed curwin)))))]
@@ -23701,18 +23700,18 @@
 ;; C: out_str_t_TI
 (defn out-str-t-TI [^Editor ed]
   (out-str ed (aget (g ed term-strings) 43))
-  (g! ed send-t-RK (e TRUE))
+  (g! ed send-t-RK true)
   nil)
 
 ;; C: term_enter
 (defn term-enter [^Editor ed]
-  (when-not (or (zero? (g ed full-screen)) (not (zero? (g ed term-entered))))
-    (when-not (zero? (g ed termcap-active))
+  (when-not (or (zero? (g ed full-screen)) (g ed term-entered))
+    (when (g ed termcap-active)
       (out-str-t-BE ed)
       (out-str-t-TI ed))
     (out-flush ed)
     (whim.cljhost/musl-term-start ed)
-    (g! ed term-entered (e TRUE))
+    (g! ed term-entered true)
     (out-flush ed)
     nil))
 
@@ -23824,20 +23823,20 @@
                   (when (< (g ed msg-col) 0)
                     (g! ed msg-col (i32 (+ (g ed msg-col) (g ed cmdline-width))))
                     (g! ed msg-row (i32 (dec (g ed msg-row)))))))
-              (when (and redraw (zero? (g ed cmd-silent)))
-                (g! ed msg-no-more (e TRUE))
+              (when (and redraw (not (g ed cmd-silent)))
+                (g! ed msg-no-more true)
                 (let [i (g ed cmdline-row)]
                   (cursorcmd ed)
                   (draw-cmdline ed (.cmdpos (g ed ccline)) (i32 (- (.cmdlen (g ed ccline)) (.cmdpos (g ed ccline)))))
                   (when (or (not (== (g ed cmdline-row) i)) (.overstrike (g ed ccline)))
                     (msg-clr-eos ed))
-                  (g! ed msg-no-more (e FALSE))))
-              (let [m (if (zero? (g ed KeyTyped))
-                        (e MAXCOL)
+                  (g! ed msg-no-more false)))
+              (let [m (if (g ed KeyTyped)
                         (let [m (i32 (* (g ed cmdline-width) (aget (g ed Rows) 0)))]
                           (if (< m 0)
                             (e MAXCOL)
-                            m)))
+                            m))
+                        (e MAXCOL))
                     i 0]
                 (recur 5 str_ len redraw retval i m c))))
       5
@@ -24109,7 +24108,7 @@
                       (do (u-freeentry uep i)
                           (g! ed msg-silent 0)
                           (if (== (long (ask-yesno ed (BytePtr/lit "No undo possible; continue anyway") true)) 121)
-                            (do (g! ed undo-off (e TRUE))
+                            (do (g! ed undo-off true)
                                 true)
                             (do (do-outofmem-msg ed 0)
                                 false)))))
@@ -24120,7 +24119,7 @@
           (do (.set-ue-next uep (.uh-entry ^S_u_header (.b-u-newhead (g ed curbuf))))
               (.set-uh-entry ^S_u_header (.b-u-newhead (g ed curbuf)) uep)
               (.set-b-u-synced (g ed curbuf) (boolean false))
-              (g! ed undo-undoes (e FALSE))
+              (g! ed undo-undoes false)
               true)
         7
           (if (some? (.uh-alt-next uhfree))
@@ -24133,14 +24132,14 @@
 
 ;; C: u_save
 (defn u-save [^Editor ed ^long top ^long bot]
-  (if (zero? (g ed undo-off))
+  (if (g ed undo-off)
+    true
     (if (or (>= top bot) (> bot (+ (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))) 1)))
       false
       (if (== (+ top 2) bot)
         (do (u-saveline ed (+ top 1))
             (u-savecommon ed top bot 0 false))
-        (u-savecommon ed top bot 0 false)))
-    true))
+        (u-savecommon ed top bot 0 false)))))
 
 ;; C: u_save_cursor
 (defn u-save-cursor [^Editor ed]
@@ -24159,7 +24158,7 @@
             nil)))))
 
 (defn ResetRedobuff [^Editor ed]
-  (when (zero? (g ed block-redo))
+  (when-not (g ed block-redo)
     (free-buff (g ed old-redobuff))
     (.set (g ed old-redobuff) (g ed redobuff))
     (.set-b-next ^S_buffblock (.-bh-first (g ed redobuff)) nil)
@@ -24206,27 +24205,19 @@
               nil)))))))
 
 (defn AppendToRedobuff [^Editor ed ^BytePtr s]
-  (when (zero? (g ed block-redo))
+  (when-not (g ed block-redo)
     (add-buff ed (g ed redobuff) s -1)
     nil))
 
 ;; C: stop_arrow
 (defn stop-arrow [^Editor ed]
-  (if (zero? (g ed arrow-used))
-    (if (zero? (g ed ins-need-undo))
-      (not (zero? (if (or (not (zero? (g ed arrow-used))) (not (zero? (g ed ins-need-undo)))) (e FAIL) (e OK))))
-      (if (u-save-cursor ed)
-        (do (when (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed Insstart))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart))))
-              (.set (g ed Insstart) (.-w-cursor (g ed curwin))))
-            (g! ed ins-need-undo (e FALSE))
-            (not (zero? (if (or (not (zero? (g ed arrow-used))) (not (zero? (g ed ins-need-undo)))) (e FAIL) (e OK)))))
-        (not (zero? (if (or (not (zero? (g ed arrow-used))) (not (zero? (g ed ins-need-undo)))) (e FAIL) (e OK))))))
+  (if (g ed arrow-used)
     (do (.set (g ed Insstart) (.-w-cursor (g ed curwin)))
-        (when (and (> (.col (g ed Insstart)) (.col (g ed Insstart-orig))) (zero? (g ed ins-need-undo)))
-          (g! ed update-Insstart-orig (e FALSE)))
+        (when (and (> (.col (g ed Insstart)) (.col (g ed Insstart-orig))) (not (g ed ins-need-undo)))
+          (g! ed update-Insstart-orig false))
         (when (u-save-cursor ed)
-          (g! ed arrow-used (e FALSE))
-          (g! ed ins-need-undo (e FALSE)))
+          (g! ed arrow-used false)
+          (g! ed ins-need-undo false))
         (g! ed ai-col 0)
         (when-not (zero? (bit-and (g ed State) (e VREPLACE_FLAG)))
           (g! ed orig-line-count (i32 (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
@@ -24234,7 +24225,15 @@
         (ResetRedobuff ed)
         (AppendToRedobuff ed (BytePtr/lit "1i"))
         (g! ed new-insert-skip 2)
-        (not (zero? (if (or (not (zero? (g ed arrow-used))) (not (zero? (g ed ins-need-undo)))) (e FAIL) (e OK)))))))
+        (not (zero? (if (or (g ed arrow-used) (g ed ins-need-undo)) (e FAIL) (e OK)))))
+    (if (g ed ins-need-undo)
+      (if (u-save-cursor ed)
+        (do (when (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed Insstart))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed Insstart)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed Insstart))))
+              (.set (g ed Insstart) (.-w-cursor (g ed curwin))))
+            (g! ed ins-need-undo false)
+            (not (zero? (if (or (g ed arrow-used) (g ed ins-need-undo)) (e FAIL) (e OK)))))
+        (not (zero? (if (or (g ed arrow-used) (g ed ins-need-undo)) (e FAIL) (e OK)))))
+      (not (zero? (if (or (g ed arrow-used) (g ed ins-need-undo)) (e FAIL) (e OK)))))))
 
 ;; C: redraw_win_range_later
 (defn redraw-win-range-later [^Editor ed ^S_window_S wp ^long first_ ^long last_]
@@ -26500,9 +26499,9 @@
 
 ;; C: u_savesub
 (defn u-savesub [^Editor ed ^long lnum]
-  (if (zero? (g ed undo-off))
-    (u-savecommon ed (- lnum 1) (+ lnum 1) (+ lnum 1) false)
-    true))
+  (if (g ed undo-off)
+    true
+    (u-savecommon ed (- lnum 1) (+ lnum 1) (+ lnum 1) false)))
 
 ;; C: set_indent
 (defn set-indent [^Editor ed ^long size ^long flags]
@@ -26948,7 +26947,7 @@
 
 ;; C: vim_beep
 (defn vim-beep [^Editor ed ^long val_]
-  (when-not (or (not (== (g ed emsg-silent) 0)) (not (zero? (g ed in-assert-fails))))
+  (when-not (or (not (== (g ed emsg-silent) 0)) (g ed in-assert-fails))
     (when-not (or (not (zero? (bit-and (aget (g ed bo-flags) 0) 0xffffffff val_))) (not (zero? (bit-and (aget (g ed bo-flags) 0) 0xffffffff (e BO_ALL)))))
       (when (or (not (g ed vim-beep-did-init)) (> (- (long (whim.cljhost/musl-now-ms ed)) (g ed vim-beep-start-tv)) 500))
         (g! ed vim-beep-did-init true)
@@ -26962,7 +26961,7 @@
 (defn showruler [^Editor ed always]
   (when-not (and (not always) (not (redrawing ed)))
     (win-redr-ruler ed (g ed curwin) always false)
-    (when-not (zero? (g ed redraw-tabline))
+    (when (g ed redraw-tabline)
       (draw-tabline ed)
       nil)))
 
@@ -27243,9 +27242,9 @@
                 saved-char (aget tl__ 0)
                 first-char (aget tl__ 1)]
             (u-clearline ed)
-            (g! ed did-si (e FALSE))
+            (g! ed did-si false)
             (g! ed ai-col 0)
-            (let [trunc-line (if (and (== dir (e FORWARD)) (not (zero? (g ed did-ai))))
+            (let [trunc-line (if (and (== dir (e FORWARD)) (g ed did-ai))
                                true
                                trunc-line)]
               (if (and (not (zero? (bit-and flags (e OPENLINE_FORCE_INDENT)))) (>= second-line-indent 0))
@@ -27287,9 +27286,9 @@
         4
           (let [^BytePtr p (skipwhite ptr)]
             (if (== (.ub p) 125)
-              (do (g! ed did-si (e TRUE))
+              (do (g! ed did-si true)
                   (recur 10 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
-              (do (g! ed can-si-back (e TRUE))
+              (do (g! ed can-si-back true)
                   (recur 10 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))))
         5
           (if (and (== (.ub ptr 0) 35) (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) 1))
@@ -27327,7 +27326,7 @@
                                     newindent)))
                             newindent)]
             (if (== last-char 123)
-              (do (g! ed did-si (e TRUE))
+              (do (g! ed did-si true)
                   (let [no-si true]
                     (recur 10 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
               (recur 10 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
@@ -27339,7 +27338,7 @@
         11
           (do (when do-si
                 (g! ed can-si (e TRUE)))
-              (g! ed did-ai (e TRUE))
+              (g! ed did-ai true)
               (recur 12 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
         12
           (if (some? p-extra)
@@ -27392,15 +27391,15 @@
               (if (== (long j__2) -1)
                 (boolean (aget to__ 1))
                 (let [did-append (boolean (aget to__ 2))]
-                  (if (or (not (zero? newindent)) (not (zero? (g ed did-si))))
+                  (if (or (not (zero? newindent)) (g ed did-si))
                     (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (inc (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
-                        (let [newindent (if (zero? (g ed did-si))
-                                          newindent
+                        (let [newindent (if (g ed did-si)
                                           (let [sw (i32 (long (get-sw-value (g ed curbuf))))
                                                 newindent (if (zero? (long (aget (g ed p-sr) 0)))
                                                             newindent
                                                             (i32 (- newindent (rem newindent sw))))]
-                                            (i32 (+ newindent sw))))]
+                                            (i32 (+ newindent sw)))
+                                          newindent)]
                           (if (zero? (long (aget ^ints (.-b-p-ci (g ed curbuf)) 0)))
                             (set-indent ed newindent (e SIN_INSERT))
                             (do (copy-indent ed newindent saved-line)
@@ -27421,7 +27420,7 @@
         17
           (let [newcol (i32 (+ newcol (.col ^T_pos_T (.-w-cursor (g ed curwin)))))]
             (if no-si
-              (do (g! ed did-si (e FALSE))
+              (do (g! ed did-si false)
                   (recur 18 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed))
               (recur 18 dir flags second-line-indent saved-line next-line p-extra less-cols less-cols-off old-cursor-lnum old-cursor-col old-cursor-coladd newcol newindent n trunc-line retval p saved-char do-si no-si first-char did-append saved-pi ptr last-char was-backslashed)))
         18
@@ -27529,7 +27528,7 @@
   (let [^T_mb_cptr2char_adv__out_T mb-cptr2char-adv__o (new-T_mb_cptr2char_adv__out_T)
         ^objects to__ (object-array 1)
         ^BytePtr s str_]
-    (when (zero? (g ed block-redo))
+    (when-not (g ed block-redo)
       (loop [^BytePtr s s]
         (when (if (< len 0) (not (== (.ub s) (e NUL))) (< (.sub s str_) len))
           (let [^BytePtr start s
@@ -27642,7 +27641,7 @@
 (defn ask-yesno ^long [^Editor ed ^BytePtr str_ direct]
   (let [r 32
         save-State (g ed State)]
-    (when-not (zero? (g ed exiting))
+    (when (g ed exiting)
       (term-enter ed))
     (g! ed no-wait-return (i32 (inc (g ed no-wait-return))))
     (g! ed State (e MODE_CONFIRM))
@@ -28129,7 +28128,7 @@
                       nil)
                     nil)
                 (do (if (and (and (some? (aget errormsg 0)) (not (== (long (.get ^BytePtr (aget errormsg 0))) (e NUL)))) (zero? (g ed did-emsg)))
-                      (do (if (and (or (not (zero? sourcing)) (zero? (g ed KeyTyped))) (not did-append-cmd))
+                      (do (if (and (or (not (zero? sourcing)) (not (g ed KeyTyped))) (not did-append-cmd))
                             (do (if (BytePtr/eq ^BytePtr (aget errormsg 0) (g ed IObuff))
                                   nil
                                   (let [_ (musl-strcpy (g ed IObuff) (aget errormsg 0))
@@ -28179,7 +28178,7 @@
                   (do (g! ed do-cmdline-call-depth (i32 (inc (g ed do-cmdline-call-depth))))
                       (g! ed did-emsg (e FALSE))
                       (when (and (zero? (bit-and flags (e DOCMD_KEYTYPED))) (zero? (bit-and flags (e DOCMD_GETEXLINE))))
-                        (g! ed KeyTyped (e FALSE)))
+                        (g! ed KeyTyped false))
                       (let [^BytePtr next-cmdline cmdline]
                         (recur 1 cmdline fgetline flags next-cmdline used-getline msg-didout-before-start count_ did-inc-RedrawingDisabled retval))))))
         1
@@ -28201,7 +28200,7 @@
                           ^BytePtr next-cmdline (aget to__ 0)
                           t1 (boolean (aget to__ 1))]
                       (if t1
-                        (do (when (and (not (zero? (g ed KeyTyped))) (zero? (bit-and flags (e DOCMD_REPEAT))))
+                        (do (when (and (g ed KeyTyped) (zero? (bit-and flags (e DOCMD_REPEAT))))
                               (g! ed need-wait-return (e FALSE)))
                             (let [retval false]
                               (recur 3 cmdline fgetline flags next-cmdline used-getline msg-didout-before-start count_ did-inc-RedrawingDisabled retval)))
@@ -28224,7 +28223,7 @@
                     j__2 (if (== t2 0)
                            (if (and (zero? (bit-and flags (e DOCMD_NOWAIT))) (zero? (g ed do-cmdline-recursive)))
                              (let [msg-didout-before-start (g ed msg-didout)
-                                   _ (g! ed msg-didany (e FALSE))
+                                   _ (g! ed msg-didany false)
                                    _ (msg-start ed)
                                    _ (g! ed msg-scroll (e TRUE))
                                    _ (g! ed no-wait-return (i32 (inc (g ed no-wait-return))))
@@ -28266,7 +28265,7 @@
                 (g! ed msg-scroll (e FALSE))
                 (if (== (if retval 1 0) (e FAIL))
                   (do (g! ed need-wait-return (e FALSE))
-                      (g! ed msg-didany (e FALSE))
+                      (g! ed msg-didany false)
                       (g! ed do-cmdline-call-depth (i32 (dec (g ed do-cmdline-call-depth))))
                       retval)
                   (if (zero? (g ed need-wait-return))
@@ -28312,7 +28311,7 @@
 ;; C: switch_to_8bit
 (defn switch-to-8bit [^Editor ed]
   (if (term-is-8bit? ed (aget (g ed term-strings) 0))
-    (do (g! ed detected-8bit (e TRUE))
+    (do (g! ed detected-8bit true)
         nil)
     (let [i 0]
       (loop [i i]
@@ -28323,8 +28322,8 @@
               (.set ^BytePtr (.code ^S_termcode (.at (g ed termcodes) i)) 0 (unchecked-byte c)))
             (let [i (i32 (inc i))]
               (recur i)))
-          (do (g! ed need-gather (e TRUE))
-              (g! ed detected-8bit (e TRUE))
+          (do (g! ed need-gather true)
+              (g! ed detected-8bit true)
               nil))))))
 
 ;; C: set_keep_msg_from_hist
@@ -28571,7 +28570,7 @@
           (.set-sg-link hlgroup to-id)
           (.set-sg-cleared hlgroup (boolean false))
           (redraw-all-later ed (e UPD_SOME_VALID))
-          (g! ed need-highlight-changed (e TRUE))
+          (g! ed need-highlight-changed true)
           nil)))))
 
 ;; C: restore_cterm_colors
@@ -28747,7 +28746,7 @@
   (g! ed cterm-normal-fg-color (i32 (+ color 1)))
   (g! ed cterm-normal-fg-bold bold)
   (set-must-redraw ed (e UPD_CLEAR))
-  (when (and (not (zero? (g ed termcap-active))) (>= color 0))
+  (when (and (g ed termcap-active) (>= color 0))
     (term-fg-color ed color)
     nil))
 
@@ -28764,7 +28763,7 @@
   (set-must-redraw ed (e UPD_CLEAR))
   (when (>= color 0)
     (let [dark -1]
-      (when-not (zero? (g ed termcap-active))
+      (when (g ed termcap-active)
         (term-bg-color ed color))
       (let [dark (if (< (g ed t-colors) 16)
                    (if (or (== color 0) (== color 4)) 1 0)
@@ -28787,7 +28786,7 @@
 (defn hl-set-ctermul-normal-group [^Editor ed ^long color]
   (g! ed cterm-normal-ul-color (i32 (+ color 1)))
   (set-must-redraw ed (e UPD_CLEAR))
-  (when (and (not (zero? (g ed termcap-active))) (>= color 0))
+  (when (and (g ed termcap-active) (>= color 0))
     (term-ul-color ed color)
     nil))
 
@@ -29332,7 +29331,7 @@
                                                         (let [_ (redraw-all-later ed (e UPD_NOT_VALID))]
                                                           nil)
                                                         nil)
-                                                    (let [_ (g! ed need-highlight-changed (e TRUE))]
+                                                    (let [_ (g! ed need-highlight-changed true)]
                                                       nil))
                                                   nil)))))))))))))))))))))))))
 

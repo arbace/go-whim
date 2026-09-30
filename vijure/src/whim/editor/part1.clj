@@ -385,7 +385,7 @@
 
 ;; C: add_msg_hist
 (defn add-msg-hist [^Editor ed ^BytePtr s ^long len ^long attr]
-  (when-not (or (not (zero? (g ed msg-hist-off))) (not (== (g ed msg-silent) 0)))
+  (when-not (or (g ed msg-hist-off) (not (== (g ed msg-silent) 0)))
     (let [^S_msg_hist p (new-S_msg_hist)
           len (if (< len 0)
                 (i32 (long (musl-strlen s)))
@@ -910,7 +910,7 @@
                    0))
         c (aget tl__ 0)
         i (aget tl__ 1)]
-    (if (or (and (zero? (g ed chartab-initialized)) (>= c 32) (<= c 126)) (and (< c 256) (vim-isprintc-strict? ed c)))
+    (if (or (and (not (g ed chartab-initialized)) (>= c 32) (<= c 126)) (and (< c 256) (vim-isprintc-strict? ed c)))
       (do (aset (g ed transchar-charbuf) i (unchecked-byte c))
           (aset (g ed transchar-charbuf) (i32 (+ i 1)) (unchecked-byte (e NUL)))
           (BytePtr. (g ed transchar-charbuf) 0))
@@ -1154,7 +1154,7 @@
 
 ;; C: redraw_win_later
 (defn redraw-win-later [^Editor ed ^S_window_S wp ^long type_]
-  (when (and (zero? (g ed exiting)) (zero? (g ed redraw-not-allowed)) (< (.w-redr-type wp) type_))
+  (when (and (not (g ed exiting)) (not (g ed redraw-not-allowed)) (< (.w-redr-type wp) type_))
     (.set-w-redr-type wp type_)
     (when (>= type_ (e UPD_NOT_VALID))
       (.set-w-lines-valid wp 0))
@@ -1416,7 +1416,7 @@
     (if (or (== cur-ve-flags (e VE_ALL)) (and (not (zero? (bit-and cur-ve-flags (e VE_INSERT)))) (not (zero? (bit-and (g ed State) (e MODE_INSERT))))))
       (e TRUE)
       (if (== (g ed virtual-op) (e MAYBE))
-        (if (and (not (zero? (bit-and cur-ve-flags (e VE_BLOCK)))) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) (e Ctrl_V))) 1 0)
+        (if (and (not (zero? (bit-and cur-ve-flags (e VE_BLOCK)))) (g ed VIsual-active) (== (g ed VIsual-mode) (e Ctrl_V))) 1 0)
         (g ed virtual-op)))))
 
 (defn getvcol [^Editor ed ^S_window_S wp ^T_pos_T pos ^IntPtr start ^IntPtr cursor ^IntPtr end flags]
@@ -1502,7 +1502,7 @@
     (when (some? end)
       (.put end (unchecked-int (- (i32 (- (i32 (+ vcol incr)) (if (zero? (bit-and flags (e GETVCOL_END_EXCL_LBR))) 0 (long (aget tail 0))))) 1))))
     (when (some? cursor)
-      (if (and (== (.ub ptr) (e TAB)) (not (zero? (bit-and (g ed State) (e MODE_NORMAL)))) (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (zero? (long (virtual-active ed))) (not (and (not (zero? (g ed VIsual-active))) (or (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum pos) (.lnum (g ed VIsual))) (if (== (.col pos) (.col (g ed VIsual))) (< (.coladd pos) (.coladd (g ed VIsual))) (< (.col pos) (.col (g ed VIsual)))) (< (.lnum pos) (.lnum (g ed VIsual)))) (and (== (.lnum pos) (.lnum (g ed VIsual))) (== (.col pos) (.col (g ed VIsual))) (== (.coladd pos) (.coladd (g ed VIsual))))))))
+      (if (and (== (.ub ptr) (e TAB)) (not (zero? (bit-and (g ed State) (e MODE_NORMAL)))) (zero? (long (aget ^ints (.-wo-list ^T_winopt_T (.-w-onebuf-opt wp)) 0))) (zero? (long (virtual-active ed))) (not (and (g ed VIsual-active) (or (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum pos) (.lnum (g ed VIsual))) (if (== (.col pos) (.col (g ed VIsual))) (< (.coladd pos) (.coladd (g ed VIsual))) (< (.col pos) (.col (g ed VIsual)))) (< (.lnum pos) (.lnum (g ed VIsual)))) (and (== (.lnum pos) (.lnum (g ed VIsual))) (== (.col pos) (.col (g ed VIsual))) (== (.coladd pos) (.coladd (g ed VIsual))))))))
         (do (.put cursor (unchecked-int (- (i32 (+ vcol incr)) 1)))
             nil)
         (do (.put cursor (unchecked-int (+ vcol (long (aget head 0)))))
@@ -1849,7 +1849,7 @@
 
 ;; C: can_get_old_char
 (defn can-get-old-char? [^Editor ed]
-  (and (not (== (g ed old-char) -1)) (or (not (zero? (g ed old-KeyStuffed))) (stuff-empty? ed))))
+  (and (not (== (g ed old-char) -1)) (or (g ed old-KeyStuffed) (stuff-empty? ed))))
 
 ;; C: init_typebuf
 (defn init-typebuf [^Editor ed]
@@ -2522,13 +2522,13 @@
 
 ;; C: term_leave
 (defn term-leave [^Editor ed]
-  (when-not (or (zero? (g ed full-screen)) (zero? (g ed term-entered)))
-    (when-not (zero? (g ed termcap-active))
+  (when-not (or (zero? (g ed full-screen)) (not (g ed term-entered)))
+    (when (g ed termcap-active)
       (out-str ed (aget (g ed term-strings) 83))
       (out-str-t-TE ed))
     (out-flush ed)
     (whim.cljhost/musl-term-stop ed)
-    (g! ed term-entered (e FALSE))
+    (g! ed term-entered false)
     (out-flush ed)
     nil))
 
@@ -2546,13 +2546,13 @@
 ;; C: cursor_on_force
 (defn cursor-on-force [^Editor ed]
   (out-str ed (aget (g ed term-strings) 13))
-  (g! ed cursor-is-off (e FALSE))
-  (g! ed cursor-is-asleep (e FALSE))
+  (g! ed cursor-is-off false)
+  (g! ed cursor-is-asleep false)
   nil)
 
 ;; C: cursor_on
 (defn cursor-on [^Editor ed]
-  (when (and (not (zero? (g ed cursor-is-off))) (zero? (g ed cursor-is-asleep)))
+  (when (and (g ed cursor-is-off) (not (g ed cursor-is-asleep)))
     (cursor-on-force ed)
     nil))
 
@@ -2565,13 +2565,13 @@
 (defn stoptermcap [^Editor ed]
   (screen-stop-highlight ed)
   (reset-cterm-colors ed)
-  (when-not (zero? (g ed termcap-active))
+  (when (g ed termcap-active)
     (when (and (not (zero? (long (aget (g ed p-ek) 0)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 88)) (e NUL))))
       (out-str ed (aget (g ed term-strings) 88)))
     (out-str ed (aget (g ed term-strings) 83))
     (out-str ed (aget (g ed term-strings) 41))
     (out-flush ed)
-    (g! ed termcap-active (e FALSE))
+    (g! ed termcap-active false)
     (when (and (not (== (.ub ^BytePtr (aget (g ed term-strings) 45)) (e NUL))) (or (== (g ed kitty-protocol-state) (e KKPS_ENABLED)) (== (g ed kitty-protocol-state) (e KKPS_DISABLED))))
       (out-str-t-TE ed))
     (out-str ed (aget (g ed term-strings) 45))
@@ -2648,7 +2648,7 @@
 
 ;; C: set_must_redraw
 (defn set-must-redraw [^Editor ed ^long type_]
-  (when (and (zero? (g ed redraw-not-allowed)) (< (g ed must-redraw) type_))
+  (when (and (not (g ed redraw-not-allowed)) (< (g ed must-redraw) type_))
     (g! ed must-redraw type_)
     nil))
 
@@ -3645,9 +3645,9 @@
               (when (== row (- (aget (g ed Rows) 0) 1))
                 (g! ed redraw-cmdline (e TRUE))
                 (when (and (or (and (== start-col 0) (== end-col (aget (g ed Columns) 0))) (and (== start-col (g ed cmdline-col-off)) (== end-col (i32 (+ (g ed cmdline-col-off) (g ed cmdline-width)))))) (== c1 32) (== c2 32) (== attr 0))
-                  (g! ed clear-cmdline (e FALSE)))
+                  (g! ed clear-cmdline false))
                 (when (or (== start-col 0) (== start-col (g ed cmdline-col-off)))
-                  (g! ed mode-displayed (e FALSE))))
+                  (g! ed mode-displayed false)))
               (let [row (i32 (inc row))]
                 (recur 1 start-row end-row start-col end-col c1 c2 attr row col off end-off did-delete c norm-term force-next soff underlying-attr k)))))))
 
@@ -3848,13 +3848,13 @@
 (defn get-real-state ^long [^Editor ed]
   (if (zero? (bit-and (g ed State) (e MODE_NORMAL)))
     (g ed State)
-    (if (zero? (g ed VIsual-active))
-      (if (zero? (g ed finish-op))
-        (g ed State)
-        (e MODE_OP_PENDING))
+    (if (g ed VIsual-active)
       (if (zero? (g ed VIsual-select))
         (e MODE_VISUAL)
-        (e MODE_SELECT)))))
+        (e MODE_SELECT))
+      (if (zero? (g ed finish-op))
+        (g ed State)
+        (e MODE_OP_PENDING)))))
 
 ;; C: vim_is_input_buf_empty
 (defn vim-is-input-buf-empty? [^Editor ed]
@@ -3946,13 +3946,13 @@
     (when (or (== wtime -1) (> wtime 100))
       (vim-handle-signal ed -2)
       (when-not (zero? (bit-and (bit-or (g ed mapped-ctrl-c) (.b-mapped-ctrl-c (g ed curbuf))) (long (get-real-state ed))))
-        (g! ed ctrl-c-interrupts (e FALSE))))
+        (g! ed ctrl-c-interrupts false)))
     (let [retval (long (mch-inchar ed buf maxlen wtime tb-change-cnt))]
       (if (or (== wtime -1) (> wtime 100))
         (do (vim-handle-signal ed -1)
-            (g! ed ctrl-c-interrupts (e TRUE))
+            (g! ed ctrl-c-interrupts true)
             retval)
-        (do (g! ed ctrl-c-interrupts (e TRUE))
+        (do (g! ed ctrl-c-interrupts true)
             retval)))))
 
 ;; C: fix_input_buffer
@@ -4003,7 +4003,7 @@
                     len)
               i (i32 (inc i))]
           (recur i len))
-        (do (g! ed need-gather (e FALSE))
+        (do (g! ed need-gather false)
             nil)))))
 
 ;; C: ga_init2
@@ -4485,7 +4485,7 @@
 
 ;; C: term_is_8bit
 (defn term-is-8bit? [^Editor ed ^BytePtr name_]
-  (or (not (zero? (g ed detected-8bit))) (some? (musl-strstr name_ (BytePtr/lit "8bit")))))
+  (or (g ed detected-8bit) (some? (musl-strstr name_ (BytePtr/lit "8bit")))))
 
 ;; C: del_termcode_idx
 (defn del-termcode-idx [^Editor ed ^long idx]
@@ -4500,7 +4500,7 @@
 ;; C: del_termcode
 (defn del-termcode [^Editor ed ^BytePtr name_]
   (when-not (nil? (g ed termcodes))
-    (g! ed need-gather (e TRUE))
+    (g! ed need-gather true)
     (let [i 0]
       (loop [i i]
         (when (< i (g ed tc-len))
@@ -4564,7 +4564,7 @@
                 (Rt/memmove s (.add s 1) (+ (long (musl-strlen (.add s 1))) 1))
                 (.set s 0 (unchecked-byte (long (term-7to8bit string)))))
               (let [len (i32 (long (musl-strlen s)))]
-                (g! ed need-gather (e TRUE))
+                (g! ed need-gather true)
                 (if (== (g ed tc-len) (g ed tc-max-len))
                   (do (g! ed tc-max-len (i32 (+ (g ed tc-max-len) 20)))
                       (let [^Ptr new-tc (Ptr. (array-S_termcode (g ed tc-max-len)) 0)
@@ -5156,8 +5156,8 @@
   (when (== (.ub ^BytePtr (aget (g ed term-strings) 36)) (e NUL))
     (emsg ed (BytePtr. (g ed e-terminal-capability-cm-required) 0)))
   (if (== (.ub ^BytePtr (aget (g ed term-strings) 6)) (e NUL))
-    (g! ed scroll-region (e FALSE))
-    (g! ed scroll-region (e TRUE)))
+    (g! ed scroll-region false)
+    (g! ed scroll-region true))
   (when pairs
     (when (== (.ub ^BytePtr (aget (g ed term-strings) 19)) (e NUL))
       (aset (g ed term-strings) 54 (g ed empty-option))
@@ -5196,7 +5196,7 @@
       (aset (g ed term-strings) 56 (g ed empty-option))
       (aset (g ed term-strings) 55 (g ed empty-option)))
     (aset (g ed p-wiv) 0 (unchecked-int (if (not (== (.ub ^BytePtr (aget (g ed term-strings) 52)) (e NUL))) 1 0))))
-  (g! ed need-gather (e TRUE))
+  (g! ed need-gather true)
   (g! ed t-colors (long (musl-atoi (aget (g ed term-strings) 49))))
   (set-rgb-term-prop ed)
   nil)
@@ -5543,7 +5543,7 @@
               (let [i (i32 (inc i))]
                 (recur 6 buf global c i))
               false))
-          (do (g! ed chartab-initialized (e TRUE))
+          (do (g! ed chartab-initialized true)
               true)))))
 
 ;; C: init_chartab
@@ -6005,7 +6005,7 @@
     nil))
 
 (defn regnext ^BytePtr [^Editor ed ^S_regengine_S re ^BytePtr p]
-  (when-not (or (BytePtr/eq p (BytePtr. (g ed reg-calc-size-node) 0)) (not (zero? (.reg-toolong re))))
+  (when-not (or (BytePtr/eq p (BytePtr. (g ed reg-calc-size-node) 0)) (.reg-toolong re))
     (let [offset (i32 (+ (i32 (bit-shift-left (bit-and (.ub (.add p 1)) 255) 8)) (bit-and (.ub (.add p 2)) 255)))]
       (when-not (== offset 0)
         (if (== (.ub p) (e BACK))
@@ -6093,7 +6093,17 @@
         ^S_window_S wp (if (nil? (.reg-win ^T_regexec_T (.-rex re))) (g ed curwin) (.reg-win ^T_regexec_T (.-rex re)))]
     (if (or (not (identical? (.reg-buf ^T_regexec_T (.-rex re)) (g ed curbuf))) (== (.lnum (g ed VIsual)) 0) (not (nil? (.reg-match ^T_regexec_T (.-rex re)))))
       false
-      (let [j__1 (if (zero? (g ed VIsual-active))
+      (let [j__1 (if (g ed VIsual-active)
+                   (do (if (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor wp))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor wp))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor wp))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor wp)))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor wp))))
+                         (do (.set top (g ed VIsual))
+                             (.set bot (.-w-cursor wp)))
+                         (do (.set top (.-w-cursor wp))
+                             (.set bot (g ed VIsual))))
+                       (let [mode (g ed VIsual-mode)
+                             curswant (.w-curswant wp)]
+                         (aset tl__ 0 mode)
+                         (aset tl__ 1 curswant)
+                         0))
                    (do (if (if (== (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))) (if (== (.col ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) (.col ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))) (< (.coladd ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) (.coladd ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))) (< (.col ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) (.col ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf)))))) (< (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))))
                          (do (.set top (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))))
                              (.set bot (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf)))))
@@ -6103,16 +6113,6 @@
                          (.set-lnum bot (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
                        (let [mode (.vi-mode ^T_visualinfo_T (.-b-visual (g ed curbuf)))
                              curswant (.vi-curswant ^T_visualinfo_T (.-b-visual (g ed curbuf)))]
-                         (aset tl__ 0 mode)
-                         (aset tl__ 1 curswant)
-                         0))
-                   (do (if (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor wp))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor wp))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor wp))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor wp)))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor wp))))
-                         (do (.set top (g ed VIsual))
-                             (.set bot (.-w-cursor wp)))
-                         (do (.set top (.-w-cursor wp))
-                             (.set bot (g ed VIsual))))
-                       (let [mode (g ed VIsual-mode)
-                             curswant (.w-curswant wp)]
                          (aset tl__ 0 mode)
                          (aset tl__ 1 curswant)
                          0)))
@@ -8796,7 +8796,7 @@
                                0
                                  (do (.set-line ^T_regexec_T (.-rex re) line)
                                      (.set-lnum ^T_regexec_T (.-rex re) 0)
-                                     (.set-reg-toolong re (e FALSE))
+                                     (.set-reg-toolong re (boolean false))
                                      (if (zero? (.reganch prog))
                                        (loop [col col
                                               retval retval]
@@ -9207,8 +9207,8 @@
                (do (add-msg-hist ed str_ len attr)
                    (bit-and attr -4097)))]
     (when (and (== (g ed msg-silent) 0) (> len 0) (>= (g ed msg-row) (g ed cmdline-row)) (== (g ed msg-col) 0))
-      (g! ed clear-cmdline (e FALSE))
-      (g! ed mode-displayed (e FALSE)))
+      (g! ed clear-cmdline false)
+      (g! ed mode-displayed false))
     (when (utf-iscomposing? ed (long (utf-ptr2char ed msgstr)))
       (msg-puts-attr ed (BytePtr/lit " ") attr))
     (loop [len len
@@ -9285,7 +9285,7 @@
 
 ;; C: msg_end
 (defn msg-end [^Editor ed]
-  (if (and (zero? (g ed exiting)) (not (zero? (g ed need-wait-return))) (zero? (bit-and (g ed State) (e MODE_CMDLINE))))
+  (if (and (not (g ed exiting)) (not (zero? (g ed need-wait-return))) (zero? (bit-and (g ed State) (e MODE_CMDLINE))))
     (do (wait-return ed (e FALSE))
         false)
     (do (out-flush ed)
@@ -9295,18 +9295,18 @@
 (defn set-keep-msg [^Editor ed ^BytePtr s ^long attr]
   (if (and (some? s) (== (g ed msg-silent) 0))
     (do (g! ed keep-msg (vim-strsave s))
-        (g! ed keep-msg-more (e FALSE))
+        (g! ed keep-msg-more false)
         (g! ed keep-msg-attr attr)
         nil)
     (do (g! ed keep-msg nil)
-        (g! ed keep-msg-more (e FALSE))
+        (g! ed keep-msg-more false)
         (g! ed keep-msg-attr attr)
         nil)))
 
 ;; C: msg_attr_keep
 (defn msg-attr-keep [^Editor ed ^BytePtr s ^long attr keep_]
   (let [^BytePtr buf nil]
-    (if (and (zero? (g ed emsg-on-display)) (message-filtered ed s))
+    (if (and (not (g ed emsg-on-display)) (message-filtered ed s))
       true
       (if (>= (g ed msg-attr-keep-entered) 3)
         true
@@ -9323,10 +9323,10 @@
               (let [retval (msg-end ed)]
                 (if (and keep_ retval (< (long (vim-strsize ed s)) (i32 (+ (i32 (* (i32 (- (- (aget (g ed Rows) 0) (g ed cmdline-row)) 1)) (g ed cmdline-width))) (g ed sc-col)))))
                   (do (set-keep-msg ed s 0)
-                      (g! ed need-fileinfo (e FALSE))
+                      (g! ed need-fileinfo false)
                       (g! ed msg-attr-keep-entered (i32 (dec (g ed msg-attr-keep-entered))))
                       retval)
-                  (do (g! ed need-fileinfo (e FALSE))
+                  (do (g! ed need-fileinfo false)
                       (g! ed msg-attr-keep-entered (i32 (dec (g ed msg-attr-keep-entered))))
                       retval)))))))))
 
@@ -9754,7 +9754,7 @@
          id 0]
     (case st
       0
-        (do (g! ed need-highlight-changed (e FALSE))
+        (do (g! ed need-highlight-changed false)
             (let [hlf 0]
               (recur 1 hlf i p default-hl attr id)))
       1
@@ -10195,10 +10195,10 @@
 
 ;; C: check_for_delay
 (defn check-for-delay [^Editor ed check-msg-scroll]
-  (when (and (or (not (zero? (g ed emsg-on-display))) (and check-msg-scroll (not (zero? (g ed msg-scroll))))) (zero? (g ed did-wait-return)) (== (g ed emsg-silent) 0) (zero? (g ed in-assert-fails)))
+  (when (and (or (g ed emsg-on-display) (and check-msg-scroll (not (zero? (g ed msg-scroll))))) (not (g ed did-wait-return)) (== (g ed emsg-silent) 0) (not (g ed in-assert-fails)))
     (out-flush ed)
     (ui-delay ed 1006 true)
-    (g! ed emsg-on-display (e FALSE))
+    (g! ed emsg-on-display false)
     (when check-msg-scroll
       (g! ed msg-scroll (e FALSE))
       nil)))
@@ -10246,8 +10246,8 @@
             (let [did-clear (boolean (if (and doclear (can-clear? ed (aget (g ed term-strings) 7)))
                              (let [_ (out-str ed (aget (g ed term-strings) 7))
                                    did-clear true
-                                   _ (g! ed clear-cmdline (e FALSE))
-                                   _ (g! ed mode-displayed (e FALSE))]
+                                   _ (g! ed clear-cmdline false)
+                                   _ (g! ed mode-displayed false)]
                                did-clear)
                              (let [i 0]
                                (do (loop [i i]
@@ -10256,12 +10256,12 @@
                                          (let [i (i32 (inc i))]
                                            (recur i)))
                                        nil))
-                                 (let [_ (g! ed clear-cmdline (e TRUE))]
+                                 (let [_ (g! ed clear-cmdline true)]
                                    did-clear)))))]
               (let [_ (g! ed screen-cleared (e TRUE))
                     _ (win-rest-invalid ed (g ed curwin))
                     _ (g! ed redraw-cmdline (e TRUE))
-                    _ (g! ed redraw-tabline (e TRUE))]
+                    _ (g! ed redraw-tabline true)]
                 (do (if (== (g ed must-redraw) (e UPD_CLEAR))
                       (let [_ (g! ed must-redraw (e UPD_NOT_VALID))]
                         nil)
@@ -10271,7 +10271,7 @@
                         _ (g! ed msg-row (g ed cmdline-row))
                         _ (g! ed msg-col 0)
                         _ (screen-start ed)
-                        _ (g! ed msg-didany (e FALSE))
+                        _ (g! ed msg-didany false)
                         _ (g! ed msg-didout (e FALSE))]
                     did-clear))))))))))
 
@@ -10331,9 +10331,9 @@
 
 ;; C: cursor_off
 (defn cursor-off [^Editor ed]
-  (when (and (not (zero? (g ed full-screen))) (zero? (g ed cursor-is-off)))
+  (when (and (not (zero? (g ed full-screen))) (not (g ed cursor-is-off)))
     (out-str ed (aget (g ed term-strings) 12))
-    (g! ed cursor-is-off (e TRUE))
+    (g! ed cursor-is-off true)
     nil))
 
 ;; C: out_str_nf
@@ -10755,7 +10755,7 @@
 
 ;; C: draw_tabline
 (defn draw-tabline [^Editor ed]
-  (g! ed redraw-tabline (e FALSE))
+  (g! ed redraw-tabline false)
   nil)
 
 ;; C: push_highlight_overrides

@@ -41,11 +41,11 @@ lalloc ed' size _message = do
 do_outofmem_msg :: Ed -> Usize -> IO ()
 do_outofmem_msg ed' size = do
   r'1 <- did_outofmem_msg ed'
-  if r'1 /= 0
+  if r'1
     then pure ()
     else do
       set'emsg_silent ed' 0
-      set'did_outofmem_msg ed' TRUE
+      set'did_outofmem_msg ed' True
       r'2 <- c'IObuff ed'
       r'3 <- emsg_iobuff_room ed'
       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'2)) r'3 (addr'e_out_of_memory_allocating_nr_bytes ed') [VU (fromIntegral size)]
@@ -292,7 +292,7 @@ buf_freeall ed' buf flags = frame 16 $ \fr' -> do
     then pure False
     else do
       r'8 <- curbuf ed'
-      r'10 <- if (buf == r'8) then (do { r'9 <- c'VIsual_active ed'; pure (r'9 /= 0) }) else pure False
+      r'10 <- if (buf == r'8) then (c'VIsual_active ed') else pure False
       if r'10
         then do
           end_visual_mode ed'
@@ -463,7 +463,7 @@ changed_common ed' lnum col lnume xtra = do
       j'17
     j'17 = do
       r'34 <- c'VIsual_active ed'
-      if r'34 /= 0
+      if r'34
         then do
           check_visual_pos ed'
           j'19
@@ -476,7 +476,7 @@ changed_common ed' lnum col lnume xtra = do
         then do
           let !last1 = (lnume + xtra) - 1
           r'38 <- redraw_not_allowed ed'
-          r'40 <- if (not (r'38 /= 0)) then (do { r'39 <- rdI32 r'35 win_T'w_redr_type; pure (r'39 < UPD_VALID) }) else pure False
+          r'40 <- if (not r'38) then (do { r'39 <- rdI32 r'35 win_T'w_redr_type; pure (r'39 < UPD_VALID) }) else pure False
           if r'40
             then do
               wrI32 r'35 win_T'w_redr_type UPD_VALID
@@ -877,9 +877,9 @@ open_line ed' dir flags second_line_indent _did_do_comment = do
       j'12 saved_line4 next_line4 p_extra5 less_cols4 less_cols_off4 newcol4 newindent4 trunc_line4 retval4 saved_char4 do_si4 no_si4 first_char5 saved_pi4
     j'12 !saved_line5 !next_line5 !p_extra6 !less_cols5 !less_cols_off5 !newcol5 !newindent5 !trunc_line5 !retval5 !saved_char5 !do_si5 !no_si5 !first_char6 !saved_pi5 = do
       u_clearline ed'
-      set'did_si ed' FALSE
+      set'did_si ed' False
       set'ai_col ed' 0
-      r'17 <- if (dir == FORWARD) then (do { r'16 <- did_ai ed'; pure (r'16 /= 0) }) else pure False
+      r'17 <- if (dir == FORWARD) then (did_ai ed') else pure False
       if r'17
         then j'14 saved_line5 next_line5 p_extra6 less_cols5 less_cols_off5 newcol5 newindent5 True retval5 saved_char5 do_si5 no_si5 first_char6 saved_pi5
         else j'14 saved_line5 next_line5 p_extra6 less_cols5 less_cols_off5 newcol5 newindent5 trunc_line5 retval5 saved_char5 do_si5 no_si5 first_char6 saved_pi5
@@ -941,10 +941,10 @@ open_line ed' dir flags second_line_indent _did_do_comment = do
       r'45 <- rdW8 r'44 0
       if (fromIntegral r'45 :: Int32) == (ch '}')
         then do
-          set'did_si ed' TRUE
+          set'did_si ed' True
           j'49 saved_line9 next_line9 p_extra10 less_cols9 less_cols_off9 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 newcol9 newindent8 trunc_line9 retval9 saved_char9 do_si9 no_si9 saved_pi9
         else do
-          set'can_si_back ed' TRUE
+          set'can_si_back ed' True
           j'49 saved_line9 next_line9 p_extra10 less_cols9 less_cols_off9 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 newcol9 newindent8 trunc_line9 retval9 saved_char9 do_si9 no_si9 saved_pi9
     j'32 !saved_line10 !next_line10 !p_extra11 !less_cols10 !less_cols_off10 !old_cursor_lnum3 !old_cursor_col3 !old_cursor_coladd3 !newcol10 !trunc_line10 !retval10 !saved_char10 !do_si10 !no_si10 !saved_pi10 !was_backslashed2 = do
       r'46 <- curwin ed'
@@ -1015,7 +1015,7 @@ open_line ed' dir flags second_line_indent _did_do_comment = do
     j'47 !saved_line16 !next_line16 !p_extra17 !less_cols16 !less_cols_off16 !old_cursor_lnum9 !old_cursor_col9 !old_cursor_coladd9 !newcol16 !newindent13 !trunc_line16 !retval16 !saved_char16 !do_si16 !no_si16 !saved_pi16 !last_char3 = do
       if (fromIntegral last_char3 :: Int32) == (ch '{')
         then do
-          set'did_si ed' TRUE
+          set'did_si ed' True
           j'49 saved_line16 next_line16 p_extra17 less_cols16 less_cols_off16 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 newcol16 newindent13 trunc_line16 retval16 saved_char16 do_si16 True saved_pi16
         else j'49 saved_line16 next_line16 p_extra17 less_cols16 less_cols_off16 old_cursor_lnum9 old_cursor_col9 old_cursor_coladd9 newcol16 newindent13 trunc_line16 retval16 saved_char16 do_si16 no_si16 saved_pi16
     j'49 !saved_line17 !next_line17 !p_extra18 !less_cols17 !less_cols_off17 !old_cursor_lnum10 !old_cursor_col10 !old_cursor_coladd10 !newcol17 !newindent14 !trunc_line17 !retval17 !saved_char17 !do_si17 !no_si17 !saved_pi17 = do
@@ -1033,7 +1033,7 @@ open_line ed' dir flags second_line_indent _did_do_comment = do
           j'52 saved_line18 next_line18 p_extra19 less_cols18 less_cols_off18 newcol18 newindent15 trunc_line18 retval18 saved_char18 no_si18 saved_pi18
         else j'52 saved_line18 next_line18 p_extra19 less_cols18 less_cols_off18 newcol18 newindent15 trunc_line18 retval18 saved_char18 no_si18 saved_pi18
     j'52 !saved_line19 !next_line19 !p_extra20 !less_cols19 !less_cols_off19 !newcol19 !newindent16 !trunc_line19 !retval19 !saved_char19 !no_si19 !saved_pi19 = do
-      set'did_ai ed' TRUE
+      set'did_ai ed' True
       j'57 saved_line19 next_line19 p_extra20 less_cols19 less_cols_off19 newcol19 newindent16 trunc_line19 retval19 saved_char19 no_si19 saved_pi19
     j'57 !saved_line20 !next_line20 !p_extra21 !less_cols20 !less_cols_off20 !newcol20 !newindent17 !trunc_line20 !retval20 !saved_char20 !no_si20 !saved_pi20 = do
       if p_extra21 /= nullPtr
@@ -1136,14 +1136,14 @@ open_line ed' dir flags second_line_indent _did_do_comment = do
       wrI64 r'125 (win_T'w_cursor + pos_T'lnum) (r'126 - 1)
       j'74 saved_line27 next_line27 less_cols25 less_cols_off27 old_cursor_lnum12 old_cursor_col12 old_cursor_coladd12 newcol27 newindent24 trunc_line27 no_si27 False saved_pi27
     j'74 !saved_line28 !next_line28 !less_cols26 !less_cols_off28 !old_cursor_lnum13 !old_cursor_col13 !old_cursor_coladd13 !newcol28 !newindent25 !trunc_line28 !no_si28 !did_append1 !saved_pi28 = do
-      r'128 <- if (newindent25 /= 0) then pure True else (do { r'127 <- did_si ed'; pure (r'127 /= 0) })
+      r'128 <- if (newindent25 /= 0) then pure True else (did_si ed')
       if r'128
         then do
           r'129 <- curwin ed'
           r'130 <- rdI64 r'129 (win_T'w_cursor + pos_T'lnum)
           wrI64 r'129 (win_T'w_cursor + pos_T'lnum) (r'130 + 1)
           r'131 <- did_si ed'
-          if r'131 /= 0
+          if r'131
             then do
               r'132 <- curbuf ed'
               r'133 <- get_sw_value r'132
@@ -1198,7 +1198,7 @@ open_line ed' dir flags second_line_indent _did_do_comment = do
       let !newcol34 = newcol33 + r'150
       if no_si33
         then do
-          set'did_si ed' FALSE
+          set'did_si ed' False
           j'87 saved_line33 next_line33 less_cols32 less_cols_off33 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 newcol34 trunc_line33 did_append6 saved_pi33
         else j'87 saved_line33 next_line33 less_cols32 less_cols_off33 old_cursor_lnum18 old_cursor_col18 old_cursor_coladd18 newcol34 trunc_line33 did_append6 saved_pi33
     j'87 !saved_line34 !next_line34 !less_cols33 !less_cols_off34 !old_cursor_lnum19 !old_cursor_col19 !old_cursor_coladd19 !newcol35 !trunc_line34 !did_append7 !saved_pi34 = do
@@ -1469,7 +1469,7 @@ getvcol ed' wp pos start cursor end flags = frame 40 $ \fr' -> do
           r'33 <- if ((fromIntegral r'31 :: Int32) == TAB) then (do { r'32 <- c'State ed'; pure ((r'32 .&. MODE_NORMAL) /= 0) }) else pure False
           r'35 <- if r'33 then (do { r'34 <- rdI32 wp (win_T'w_onebuf_opt + winopt_T'wo_list); pure (not (r'34 /= 0)) }) else pure False
           r'37 <- if r'35 then (do { r'36 <- virtual_active ed'; pure (not (r'36 /= 0)) }) else pure False
-          r'64 <- if r'37 then (do { r'38 <- c'VIsual_active ed'; r'63 <- if (r'38 /= 0) then (do { r'39 <- p_sel ed'; r'40 <- rdW8 r'39 0; if ((fromIntegral r'40 :: Int32) == (ch 'e')) then pure True else (do { r'41 <- rdI64 pos pos_T'lnum; r'42 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'52 <- if (r'41 /= r'42) then (do { r'43 <- rdI64 pos pos_T'lnum; r'44 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'43 < r'44) :: Int32) }) else (do { r'45 <- rdI32 pos pos_T'col; r'46 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'45 /= r'46) then (do { r'47 <- rdI32 pos pos_T'col; r'48 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'47 < r'48) :: Int32) }) else (do { r'49 <- rdI32 pos pos_T'coladd; r'50 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'49 < r'50) :: Int32) }) }); if (r'52 /= 0) then pure True else (do { r'53 <- rdI64 pos pos_T'lnum; r'54 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'57 <- if (r'53 == r'54) then (do { r'55 <- rdI32 pos pos_T'col; r'56 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (r'55 == r'56) }) else pure False; if r'57 then (do { r'58 <- rdI32 pos pos_T'coladd; r'59 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (r'58 == r'59) }) else pure False }) }) }) else pure False; pure (not r'63) }) else pure False
+          r'64 <- if r'37 then (do { r'38 <- c'VIsual_active ed'; r'63 <- if r'38 then (do { r'39 <- p_sel ed'; r'40 <- rdW8 r'39 0; if ((fromIntegral r'40 :: Int32) == (ch 'e')) then pure True else (do { r'41 <- rdI64 pos pos_T'lnum; r'42 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'52 <- if (r'41 /= r'42) then (do { r'43 <- rdI64 pos pos_T'lnum; r'44 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; pure (b2i (r'43 < r'44) :: Int32) }) else (do { r'45 <- rdI32 pos pos_T'col; r'46 <- rdI32 (addr'c'VIsual ed') pos_T'col; if (r'45 /= r'46) then (do { r'47 <- rdI32 pos pos_T'col; r'48 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (b2i (r'47 < r'48) :: Int32) }) else (do { r'49 <- rdI32 pos pos_T'coladd; r'50 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (b2i (r'49 < r'50) :: Int32) }) }); if (r'52 /= 0) then pure True else (do { r'53 <- rdI64 pos pos_T'lnum; r'54 <- rdI64 (addr'c'VIsual ed') pos_T'lnum; r'57 <- if (r'53 == r'54) then (do { r'55 <- rdI32 pos pos_T'col; r'56 <- rdI32 (addr'c'VIsual ed') pos_T'col; pure (r'55 == r'56) }) else pure False; if r'57 then (do { r'58 <- rdI32 pos pos_T'coladd; r'59 <- rdI32 (addr'c'VIsual ed') pos_T'coladd; pure (r'58 == r'59) }) else pure False }) }) }) else pure False; pure (not r'63) }) else pure False
           if r'64
             then do
               wrI32 cursor 0 ((vcol9 + incr11) - 1)
@@ -2172,7 +2172,7 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
       wrI64 fr' winlinevars_T'vcol (fromIntegral r'104 :: Int64)
       r'105 <- rdP fr' (chartabsize_T'cts_ptr + 312)
       r'106 <- rdI64 fr' winlinevars_T'vcol
-      r'114 <- if (r'106 < v5) then (do { r'107 <- virtual_active ed'; if (r'107 /= 0) then pure True else (do { r'108 <- c'VIsual_active ed'; if (r'108 /= 0) then (do { r'109 <- rdP wp win_T'w_buffer; r'110 <- curwin ed'; r'111 <- rdP r'110 win_T'w_buffer; pure (r'109 == r'111) }) else pure False }) }) else pure False
+      r'114 <- if (r'106 < v5) then (do { r'107 <- virtual_active ed'; if (r'107 /= 0) then pure True else (do { r'108 <- c'VIsual_active ed'; if r'108 then (do { r'109 <- rdP wp win_T'w_buffer; r'110 <- curwin ed'; r'111 <- rdP r'110 win_T'w_buffer; pure (r'109 == r'111) }) else pure False }) }) else pure False
       if r'114
         then do
           wrI64 fr' winlinevars_T'vcol v5
@@ -2337,7 +2337,7 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
           r'189 <- hl_combine_attr ed' r'187 r'188
           wrI32 fr' winlinevars_T'char_attr r'189
           r'190 <- highlight_match ed'
-          if not (r'190 /= 0)
+          if not r'190
             then do
               r'191 <- rdI32 fr' winlinevars_T'char_attr
               r'192 <- hl_combine_attr ed' search_attr29 r'191
@@ -2673,7 +2673,7 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
                         else j'177 c18 line38 ptr41 in_curline46 lcs_eol_one46 lcs_prec_todo46 n_attr49 saved_attr2'46 n_attr3'46 saved_attr3'46 skip_cells47 skipped_cells46 attr_pri44 area_highlighting44 vi_attr43 search_attr46 extra_check46 multi_attr46 mb_c9 trailcol48 leadcol48 in_multispace46 multispace_pos50 sign_present46 num_attr46 did_line_attr46 on_last_col46 prepare_search_hl_line__o_r__46 prepare_search_hl_line__o_line46 prepare_search_hl_line__o_search_attr46 update_search_hl__o_r__46 update_search_hl__o_line46 update_search_hl__o_on_last_col46
                     else do
                       r'362 <- c'VIsual_active ed'
-                      r'366 <- if (r'362 /= 0) then (do { r'363 <- c'VIsual_mode ed'; if (r'363 == Ctrl_V) then pure True else (do { r'364 <- c'VIsual_mode ed'; pure (r'364 == (ch 'v')) }) }) else pure False
+                      r'366 <- if r'362 then (do { r'363 <- c'VIsual_mode ed'; if (r'363 == Ctrl_V) then pure True else (do { r'364 <- c'VIsual_mode ed'; pure (r'364 == (ch 'v')) }) }) else pure False
                       r'368 <- if r'366 then (do { r'367 <- virtual_active ed'; pure (r'367 /= 0) }) else pure False
                       r'370 <- if r'368 then (do { r'369 <- rdI32 fr' winlinevars_T'tocol; pure (r'369 /= MAXCOL) }) else pure False
                       r'373 <- if r'370 then (do { r'371 <- rdI64 fr' winlinevars_T'vcol; r'372 <- rdI32 fr' winlinevars_T'tocol; pure (r'371 < (fromIntegral r'372 :: Int64)) }) else pure False
@@ -3247,7 +3247,7 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
       if number_only == 0
         then do
           r'665 <- c'VIsual_active ed'
-          r'669 <- if (r'665 /= 0) then (do { r'666 <- rdP wp win_T'w_buffer; r'667 <- curwin ed'; r'668 <- rdP r'667 win_T'w_buffer; pure (r'666 == r'668) }) else pure False
+          r'669 <- if r'665 then (do { r'666 <- rdP wp win_T'w_buffer; r'667 <- curwin ed'; r'668 <- rdP r'667 win_T'w_buffer; pure (r'666 == r'668) }) else pure False
           if r'669
             then do
               r'670 <- curwin ed'
@@ -3260,15 +3260,15 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
                   r'699 <- curwin ed'
                   let !top2 = pAdd r'699 win_T'w_cursor
                   let !bot3 = addr'c'VIsual ed'
-                  j'16 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (FALSE :: Int32) top2 bot3 False nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
+                  j'16 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False top2 bot3 False nullPtr (0 :: Int32) (0 :: Int32) nullPtr False
                 else do
                   let !top3 = addr'c'VIsual ed'
                   r'700 <- curwin ed'
                   let !bot4 = pAdd r'700 win_T'w_cursor
-                  j'16 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (FALSE :: Int32) top3 bot4 False nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
+                  j'16 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False top3 bot4 False nullPtr (0 :: Int32) (0 :: Int32) nullPtr False
             else do
               r'701 <- highlight_match ed'
-              r'703 <- if (r'701 /= 0) then (do { r'702 <- curwin ed'; pure (wp == r'702) }) else pure False
+              r'703 <- if r'701 then (do { r'702 <- curwin ed'; pure (wp == r'702) }) else pure False
               r'706 <- if r'703 then (do { r'704 <- curwin ed'; r'705 <- rdI64 r'704 (win_T'w_cursor + pos_T'lnum); pure (lnum >= r'705) }) else pure False
               r'710 <- if r'706 then (do { r'707 <- curwin ed'; r'708 <- rdI64 r'707 (win_T'w_cursor + pos_T'lnum); r'709 <- search_match_lines ed'; pure (lnum <= (r'708 + r'709)) }) else pure False
               if r'710
@@ -3280,12 +3280,12 @@ win_line ed' wp lnum startrow endrow number_only = frame 352 $ \fr' -> do
                       r'713 <- curwin ed'
                       r'714 <- curwin ed'
                       getvcol ed' r'713 (pAdd r'714 win_T'w_cursor) (pAdd fr' winlinevars_T'fromcol) nullPtr nullPtr 0
-                      j'7 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
+                      j'7 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False False nullPtr (0 :: Int32) (0 :: Int32) nullPtr False
                     else do
                       wrI32 fr' winlinevars_T'fromcol 0
-                      j'7 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
-                else j'36 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
-        else j'36 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (FALSE :: Int32) False nullPtr (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
+                      j'7 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False False nullPtr (0 :: Int32) (0 :: Int32) nullPtr False
+                else j'36 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False False nullPtr (0 :: Int32) (0 :: Int32) nullPtr False
+        else j'36 r'659 r'660 r'661 (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32) False (FALSE :: Int32) (0 :: Int32) (0 :: Int32) False (0 :: Int32) (MAXCOL :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) False False nullPtr (0 :: Int32) (0 :: Int32) nullPtr False
 
 update_screen :: Ed -> Int32 -> IO Bool
 update_screen ed' type_arg = do
@@ -3344,7 +3344,7 @@ update_screen ed' type_arg = do
       r'12 <- msg_scrolled ed'
       if r'12 /= 0
         then do
-          set'clear_cmdline ed' TRUE
+          set'clear_cmdline ed' True
           if type'6 /= UPD_CLEAR
             then do
               r'13 <- msg_scrolled ed'
@@ -3403,7 +3403,7 @@ update_screen ed' type_arg = do
           j'26 type'8 no_update8 save_pum_will_redraw8 hid_cursor5
         else j'26 type'8 no_update8 save_pum_will_redraw8 hid_cursor5
     j'26 !type'9 !no_update9 !save_pum_will_redraw9 !hid_cursor6 = do
-      set'redraw_tabline ed' TRUE
+      set'redraw_tabline ed' True
       j'28 type'9 no_update9 save_pum_will_redraw9 hid_cursor6
     j'28 !type'10 !no_update10 !save_pum_will_redraw10 !hid_cursor7 = do
       set'msg_scrolled ed' 0
@@ -3412,7 +3412,7 @@ update_screen ed' type_arg = do
     j'29 !type'11 !no_update11 !save_pum_will_redraw11 !hid_cursor8 = do
       compute_cmdrow ed'
       r'38 <- need_highlight_changed ed'
-      if r'38 /= 0
+      if r'38
         then do
           _ <- highlight_changed ed'
           j'31 type'11 no_update11 save_pum_will_redraw11 hid_cursor8
@@ -3426,7 +3426,7 @@ update_screen ed' type_arg = do
         else j'33 type'12 no_update12 save_pum_will_redraw12 hid_cursor9
     j'33 !type'13 !no_update13 !save_pum_will_redraw13 !hid_cursor10 = do
       r'41 <- clear_cmdline ed'
-      if r'41 /= 0
+      if r'41
         then do
           check_for_delay ed' False
           j'35 type'13 no_update13 save_pum_will_redraw13 hid_cursor10
@@ -3440,7 +3440,7 @@ update_screen ed' type_arg = do
     j'37 !type'15 !no_update15 !save_pum_will_redraw15 !hid_cursor12 = do
       r'42 <- curwin ed'
       r'43 <- rdI32 r'42 win_T'w_redr_type
-      r'74 <- if (r'43 < type'15) then (do { r'47 <- if (type'15 == UPD_VALID) then (do { r'44 <- curwin ed'; r'45 <- rdP r'44 win_T'w_lines; r'46 <- rdI8 r'45 wline_T'wl_valid; pure (r'46 /= 0) }) else pure False; r'53 <- if r'47 then (do { r'48 <- curwin ed'; r'49 <- rdI64 r'48 win_T'w_topline; r'50 <- curwin ed'; r'51 <- rdP r'50 win_T'w_lines; r'52 <- rdI64 r'51 wline_T'wl_lnum; pure (r'49 == r'52) }) else pure False; r'73 <- if r'53 then pure True else (do { r'55 <- if (type'15 == UPD_INVERTED) then (do { r'54 <- c'VIsual_active ed'; pure (r'54 /= 0) }) else pure False; r'60 <- if r'55 then (do { r'56 <- curwin ed'; r'57 <- rdI64 r'56 win_T'w_old_cursor_lnum; r'58 <- curwin ed'; r'59 <- rdI64 r'58 (win_T'w_cursor + pos_T'lnum); pure (r'57 == r'59) }) else pure False; r'64 <- if r'60 then (do { r'61 <- curwin ed'; r'62 <- rdI8 r'61 win_T'w_old_visual_mode; r'63 <- c'VIsual_mode ed'; pure ((fromIntegral r'62 :: Int32) == r'63) }) else pure False; r'67 <- if r'64 then (do { r'65 <- curwin ed'; r'66 <- rdI32 r'65 win_T'w_valid; pure ((r'66 .&. VALID_VIRTCOL) /= 0) }) else pure False; if r'67 then (do { r'68 <- curwin ed'; r'69 <- rdI32 r'68 win_T'w_old_curswant; r'70 <- curwin ed'; r'71 <- rdI32 r'70 win_T'w_curswant; pure (r'69 == r'71) }) else pure False }); pure (not r'73) }) else pure False
+      r'74 <- if (r'43 < type'15) then (do { r'47 <- if (type'15 == UPD_VALID) then (do { r'44 <- curwin ed'; r'45 <- rdP r'44 win_T'w_lines; r'46 <- rdI8 r'45 wline_T'wl_valid; pure (r'46 /= 0) }) else pure False; r'53 <- if r'47 then (do { r'48 <- curwin ed'; r'49 <- rdI64 r'48 win_T'w_topline; r'50 <- curwin ed'; r'51 <- rdP r'50 win_T'w_lines; r'52 <- rdI64 r'51 wline_T'wl_lnum; pure (r'49 == r'52) }) else pure False; r'73 <- if r'53 then pure True else (do { r'55 <- if (type'15 == UPD_INVERTED) then (c'VIsual_active ed') else pure False; r'60 <- if r'55 then (do { r'56 <- curwin ed'; r'57 <- rdI64 r'56 win_T'w_old_cursor_lnum; r'58 <- curwin ed'; r'59 <- rdI64 r'58 (win_T'w_cursor + pos_T'lnum); pure (r'57 == r'59) }) else pure False; r'64 <- if r'60 then (do { r'61 <- curwin ed'; r'62 <- rdI8 r'61 win_T'w_old_visual_mode; r'63 <- c'VIsual_mode ed'; pure ((fromIntegral r'62 :: Int32) == r'63) }) else pure False; r'67 <- if r'64 then (do { r'65 <- curwin ed'; r'66 <- rdI32 r'65 win_T'w_valid; pure ((r'66 .&. VALID_VIRTCOL) /= 0) }) else pure False; if r'67 then (do { r'68 <- curwin ed'; r'69 <- rdI32 r'68 win_T'w_old_curswant; r'70 <- curwin ed'; r'71 <- rdI32 r'70 win_T'w_curswant; pure (r'69 == r'71) }) else pure False }); pure (not r'73) }) else pure False
       if r'74
         then do
           r'75 <- curwin ed'
@@ -3449,13 +3449,13 @@ update_screen ed' type_arg = do
         else j'39 type'15 no_update15 save_pum_will_redraw15 hid_cursor12
     j'39 !type'16 !no_update16 !save_pum_will_redraw16 !hid_cursor13 = do
       r'76 <- redraw_tabline ed'
-      if (r'76 /= 0) || (type'16 >= UPD_NOT_VALID)
+      if r'76 || (type'16 >= UPD_NOT_VALID)
         then do
           draw_tabline ed'
           j'41 no_update16 save_pum_will_redraw16 hid_cursor13
         else j'41 no_update16 save_pum_will_redraw16 hid_cursor13
     j'41 !no_update17 !save_pum_will_redraw17 !hid_cursor14 = do
-      set'did_update_one_window ed' FALSE
+      set'did_update_one_window ed' False
       wrP (addr'screen_search_hl ed') (match_T'rm + regmmatch_T'regprog) nullPtr
       r'77 <- curwin ed'
       r'78 <- rdP r'77 win_T'w_hl
@@ -3486,9 +3486,9 @@ update_screen ed' type_arg = do
       end_search_hl ed'
       set'pum_will_redraw ed' save_pum_will_redraw20
       r'83 <- redraw_vseps ed'
-      if r'83 /= 0
+      if r'83
         then do
-          set'redraw_vseps ed' FALSE
+          set'redraw_vseps ed' False
           r'84 <- curwin ed'
           r'85 <- rdI32 r'84 win_T'w_vsep_width
           if r'85 > 0
@@ -3503,8 +3503,8 @@ update_screen ed' type_arg = do
       wrB r'87 buf_T'b_mod_set False
       after_updating_screen ed' True
       r'88 <- clear_cmdline ed'
-      r'90 <- if (r'88 /= 0) then pure True else (do { r'89 <- redraw_cmdline ed'; pure (r'89 /= 0) })
-      r'92 <- if r'90 then pure True else (do { r'91 <- redraw_mode ed'; pure (r'91 /= 0) })
+      r'90 <- if r'88 then pure True else (do { r'89 <- redraw_cmdline ed'; pure (r'89 /= 0) })
+      r'92 <- if r'90 then pure True else (redraw_mode ed')
       if r'92
         then do
           _ <- showmode ed'
@@ -3692,7 +3692,7 @@ showruler ed' always = do
       r'3 <- curwin ed'
       win_redr_ruler ed' r'3 always False
       r'4 <- redraw_tabline ed'
-      if r'4 /= 0
+      if r'4
         then do
           draw_tabline ed'
           pure ()
@@ -4179,12 +4179,12 @@ win_update ed' wp = frame 40 $ \fr' -> do
         else j'93 buf28 type'25 top_end29 mid_start28 mid_end28 bot_start30 scrolled_down28 scrolled_for_mod28 top_to_mod28 eof28 didline28 old_botline28 mod_top24 mod_bot26 override_success26
     j'93 !buf29 !type'26 !top_end30 !mid_start29 !mid_end29 !bot_start31 !scrolled_down29 !scrolled_for_mod29 !top_to_mod29 !eof29 !didline29 !old_botline29 !mod_top25 !mod_bot27 !override_success27 = do
       r'121 <- c'VIsual_active ed'
-      r'124 <- if (r'121 /= 0) then (do { r'122 <- curwin ed'; r'123 <- rdP r'122 win_T'w_buffer; pure (buf29 == r'123) }) else pure False
+      r'124 <- if r'121 then (do { r'122 <- curwin ed'; r'123 <- rdP r'122 win_T'w_buffer; pure (buf29 == r'123) }) else pure False
       r'126 <- if r'124 then pure True else (do { r'125 <- rdI64 wp win_T'w_old_cursor_lnum; pure ((r'125 /= 0) && (type'26 /= UPD_NOT_VALID)) })
       if r'126
         then do
           r'127 <- c'VIsual_active ed'
-          if r'127 /= 0
+          if r'127
             then do
               r'128 <- c'VIsual_mode ed'
               r'129 <- rdI8 wp win_T'w_old_visual_mode
@@ -4451,7 +4451,7 @@ win_update ed' wp = frame 40 $ \fr' -> do
         else j'155 buf48 top_end49 mid_start49 mid_end47 bot_start50 scrolled_down48 scrolled_for_mod48 top_to_mod48 eof48 didline48 old_botline48 mod_top44 mod_bot46 override_success46
     j'155 !buf49 !top_end50 !mid_start50 !mid_end48 !bot_start51 !scrolled_down49 !scrolled_for_mod49 !top_to_mod49 !eof49 !didline49 !old_botline49 !mod_top45 !mod_bot47 !override_success47 = do
       r'236 <- c'VIsual_active ed'
-      r'239 <- if (r'236 /= 0) then (do { r'237 <- curwin ed'; r'238 <- rdP r'237 win_T'w_buffer; pure (buf49 == r'238) }) else pure False
+      r'239 <- if r'236 then (do { r'237 <- curwin ed'; r'238 <- rdP r'237 win_T'w_buffer; pure (buf49 == r'238) }) else pure False
       if r'239
         then do
           r'240 <- c'VIsual_mode ed'
@@ -4914,9 +4914,9 @@ win_update ed' wp = frame 40 $ \fr' -> do
   r'429 <- rdP wp win_T'w_buffer
   r'430 <- rdI64 wp win_T'w_botline
   r'431 <- did_update_one_window ed'
-  if not (r'431 /= 0)
+  if not r'431
     then do
-      set'did_update_one_window ed' TRUE
+      set'did_update_one_window ed' True
       start_search_hl ed'
       j'2 r'429 (0 :: Int32) (999 :: Int32) (0 :: Int32) (999 :: Int32) False False False False False r'430
     else j'2 r'429 (0 :: Int32) (999 :: Int32) (0 :: Int32) (999 :: Int32) False False False False False r'430
@@ -5025,7 +5025,7 @@ redraw_asap ed' type' = frame 48 $ \fr' -> do
   redraw_later ed' type'
   r'44 <- msg_scrolled ed'
   r'48 <- if (r'44 /= 0) then pure True else (do { r'45 <- c'State ed'; if (r'45 /= MODE_NORMAL) then (do { r'46 <- c'State ed'; pure (r'46 /= 4097) }) else pure False })
-  r'50 <- if r'48 then pure True else (do { r'49 <- exiting ed'; pure (r'49 /= 0) })
+  r'50 <- if r'48 then pure True else (exiting ed')
   if r'50
     then pure (0 :: Int32)
     else do
@@ -5051,7 +5051,7 @@ redraw_statuslines ed' = do
   let
     j'3 = do
       r'1 <- redraw_tabline ed'
-      if r'1 /= 0
+      if r'1
         then do
           draw_tabline ed'
           pure ()
@@ -5183,14 +5183,14 @@ stop_arrow :: Ed -> IO Bool
 stop_arrow ed' = do
   let
     j'5 = do
-      set'ins_need_undo ed' FALSE
+      set'ins_need_undo ed' False
       j'13
     j'8 = do
       r'1 <- u_save_cursor ed'
       if r'1
         then do
-          set'arrow_used ed' FALSE
-          set'ins_need_undo ed' FALSE
+          set'arrow_used ed' False
+          set'ins_need_undo ed' False
           j'10
         else j'10
     j'10 = do
@@ -5211,24 +5211,24 @@ stop_arrow ed' = do
       j'13
     j'13 = do
       r'5 <- arrow_used ed'
-      r'7 <- if (r'5 /= 0) then pure True else (do { r'6 <- ins_need_undo ed'; pure (r'6 /= 0) })
+      r'7 <- if r'5 then pure True else (ins_need_undo ed')
       pure ((if r'7 then (FAIL :: Int32) else (OK :: Int32)) /= 0)
   r'8 <- arrow_used ed'
-  if r'8 /= 0
+  if r'8
     then do
       r'9 <- curwin ed'
       copyMem (addr'c'Insstart ed') (pAdd r'9 win_T'w_cursor) 16
       r'10 <- rdI32 (addr'c'Insstart ed') pos_T'col
       r'11 <- rdI32 (addr'c'Insstart_orig ed') pos_T'col
-      r'13 <- if (r'10 > r'11) then (do { r'12 <- ins_need_undo ed'; pure (not (r'12 /= 0)) }) else pure False
+      r'13 <- if (r'10 > r'11) then (do { r'12 <- ins_need_undo ed'; pure (not r'12) }) else pure False
       if r'13
         then do
-          set'update_Insstart_orig ed' FALSE
+          set'update_Insstart_orig ed' False
           j'8
         else j'8
     else do
       r'14 <- ins_need_undo ed'
-      if r'14 /= 0
+      if r'14
         then do
           r'15 <- u_save_cursor ed'
           if r'15
@@ -5739,7 +5739,7 @@ do_cmdline ed' cmdline fgetline flags = frame 8 $ \fr' -> do
       if t1'3
         then do
           r'4 <- c'KeyTyped ed'
-          if (r'4 /= 0) && (not ((flags .&. DOCMD_REPEAT) /= 0))
+          if r'4 && (not ((flags .&. DOCMD_REPEAT) /= 0))
             then do
               set'need_wait_return ed' FALSE
               j'30 msg_didout_before_start5 did_inc_RedrawingDisabled5
@@ -5765,7 +5765,7 @@ do_cmdline ed' cmdline fgetline flags = frame 8 $ \fr' -> do
           if r'7
             then do
               r'8 <- msg_didout ed'
-              set'msg_didany ed' FALSE
+              set'msg_didany ed' False
               msg_start ed'
               set'msg_scroll ed' TRUE
               r'9 <- no_wait_return ed'
@@ -5837,7 +5837,7 @@ do_cmdline ed' cmdline fgetline flags = frame 8 $ \fr' -> do
       if (b2i retval11 :: Int32) == FAIL
         then do
           set'need_wait_return ed' FALSE
-          set'msg_didany ed' FALSE
+          set'msg_didany ed' False
           j'38 retval11
         else do
           r'38 <- need_wait_return ed'
@@ -5864,7 +5864,7 @@ do_cmdline ed' cmdline fgetline flags = frame 8 $ \fr' -> do
       set'did_emsg ed' FALSE
       if (not ((flags .&. DOCMD_KEYTYPED) /= 0)) && (not ((flags .&. DOCMD_GETEXLINE) /= 0))
         then do
-          set'c'KeyTyped ed' FALSE
+          set'c'KeyTyped ed' False
           j'3 False (0 :: Int32) (0 :: Int32) False True
         else j'3 False (0 :: Int32) (0 :: Int32) False True
 
@@ -6289,7 +6289,7 @@ do_one_cmd ed' cmdlinep flags fgetline = frame 336 $ \fr' -> do
       r'182 <- if r'180 then (do { r'181 <- did_emsg ed'; pure (not (r'181 /= 0)) }) else pure False
       if r'182
         then do
-          r'184 <- if (sourcing24 /= 0) then pure True else (do { r'183 <- c'KeyTyped ed'; pure (not (r'183 /= 0)) })
+          r'184 <- if (sourcing24 /= 0) then pure True else (do { r'183 <- c'KeyTyped ed'; pure (not r'183) })
           if r'184 && (not did_append_cmd23)
             then do
               r'185 <- rdP fr' 0
@@ -7500,16 +7500,16 @@ putcmdline :: Ed -> Int32 -> Int32 -> IO ()
 putcmdline ed' c shift' = do
   let
     j'3 = do
-      set'msg_no_more ed' FALSE
+      set'msg_no_more ed' False
       cursorcmd ed'
       set'extra_char ed' c
       set'extra_char_shift ed' shift'
       pure ()
   r'1 <- cmd_silent ed'
-  if r'1 /= 0
+  if r'1
     then pure ()
     else do
-      set'msg_no_more ed' TRUE
+      set'msg_no_more ed' True
       msg_putchar ed' c
       if shift' /= 0
         then do
@@ -7524,15 +7524,15 @@ unputcmdline :: Ed -> IO ()
 unputcmdline ed' = do
   let
     j'4 = do
-      set'msg_no_more ed' FALSE
+      set'msg_no_more ed' False
       cursorcmd ed'
       set'extra_char ed' NUL
       pure ()
   r'1 <- cmd_silent ed'
-  if r'1 /= 0
+  if r'1
     then pure ()
     else do
-      set'msg_no_more ed' TRUE
+      set'msg_no_more ed' True
       r'2 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdlen
       r'3 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
       if r'2 == r'3
@@ -7663,10 +7663,10 @@ put_on_cmdline ed' str len redraw = do
                 else j'24 len6 retval5
             else j'24 len6 retval5
     j'24 !len8 !retval6 = do
-      r'57 <- if redraw then (do { r'56 <- cmd_silent ed'; pure (not (r'56 /= 0)) }) else pure False
+      r'57 <- if redraw then (do { r'56 <- cmd_silent ed'; pure (not r'56) }) else pure False
       if r'57
         then do
-          set'msg_no_more ed' TRUE
+          set'msg_no_more ed' True
           r'58 <- cmdline_row ed'
           cursorcmd ed'
           r'59 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdpos
@@ -7682,11 +7682,11 @@ put_on_cmdline ed' str len redraw = do
             else j'27 len8 retval6
         else j'28 len8 retval6
     j'27 !len9 !retval7 = do
-      set'msg_no_more ed' FALSE
+      set'msg_no_more ed' False
       j'28 len9 retval7
     j'28 !len10 !retval8 = do
       r'65 <- c'KeyTyped ed'
-      if r'65 /= 0
+      if r'65
         then do
           r'66 <- cmdline_width ed'
           r'67 <- c'Rows ed'
@@ -7758,7 +7758,7 @@ redrawcmdline_ex ed' do_compute_cmdrow = do
       cursorcmd ed'
       pure ()
   r'1 <- cmd_silent ed'
-  if r'1 /= 0
+  if r'1
     then pure ()
     else do
       set'need_wait_return ed' FALSE
@@ -7801,7 +7801,7 @@ redrawcmdprompt ed' = do
           loop'5 i2
         else pure ()
   r'11 <- cmd_silent ed'
-  if r'11 /= 0
+  if r'11
     then pure ()
     else do
       r'12 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdfirstc
@@ -7817,12 +7817,12 @@ redrawcmd ed' = do
   let
     j'4 !save_in_echowindow1 = do
       set'msg_scroll ed' FALSE
-      set'skip_redraw ed' FALSE
+      set'skip_redraw ed' False
       set'in_echowindow ed' save_in_echowindow1
       pure ()
   r'1 <- in_echowindow ed'
   r'2 <- cmd_silent ed'
-  if r'2 /= 0
+  if r'2
     then pure ()
     else do
       r'3 <- rdP (addr'ccline ed') cmdline_info_T'cmdbuff
@@ -7839,11 +7839,11 @@ redrawcmd ed' = do
           msg_start ed'
           msg_starthere ed'
           redrawcmdprompt ed'
-          set'msg_no_more ed' TRUE
+          set'msg_no_more ed' True
           r'6 <- rdI32 (addr'ccline ed') cmdline_info_T'cmdlen
           draw_cmdline ed' 0 r'6
           msg_clr_eos ed'
-          set'msg_no_more ed' FALSE
+          set'msg_no_more ed' False
           set_cmdspos_cursor ed'
           r'7 <- extra_char ed'
           if r'7 /= NUL
@@ -8048,7 +8048,7 @@ flush_buffers ed' flush_typeahead = do
     j'11 = do
       wrI32 (addr'typebuf ed') typebuf_T'tb_maplen 0
       wrI32 (addr'typebuf ed') typebuf_T'tb_silent 0
-      set'cmd_silent ed' FALSE
+      set'cmd_silent ed' False
       wrI32 (addr'typebuf ed') typebuf_T'tb_no_abbr_cnt 0
       r'12 <- rdI32 (addr'typebuf ed') typebuf_T'tb_change_cnt
       wrI32 (addr'typebuf ed') typebuf_T'tb_change_cnt (r'12 + 1)
@@ -8065,7 +8065,7 @@ flush_buffers ed' flush_typeahead = do
 c'AppendToRedobuff :: Ed -> Ptr Char_u -> IO ()
 c'AppendToRedobuff ed' s = do
   r'1 <- block_redo ed'
-  if not (r'1 /= 0)
+  if not r'1
     then do
       add_buff ed' (addr'redobuff ed') s (-1)
       pure ()
@@ -8122,7 +8122,7 @@ c'AppendToRedobuffLit ed' str len = do
           add_char_buff ed' (addr'redobuff ed') c1
           loop'2 s7 mb_cptr2char_adv__o_r__5 mb_cptr2char_adv__o_pp5
   r'17 <- block_redo ed'
-  if r'17 /= 0
+  if r'17
     then pure ()
     else loop'2 str (0 :: Int32) nullPtr
 
@@ -8228,7 +8228,7 @@ ins_typebuf ed' str noremap offset nottyped silent = do
         then do
           r'43 <- rdI32 (addr'typebuf ed') typebuf_T'tb_silent
           wrI32 (addr'typebuf ed') typebuf_T'tb_silent (r'43 + addlen6)
-          set'cmd_silent ed' TRUE
+          set'cmd_silent ed' True
           j'25 addlen6
         else j'25 addlen6
     j'25 !addlen7 = do
@@ -8256,7 +8256,7 @@ ins_char_typebuf ed' c modifiers = frame 67 $ \fr' -> do
   r'2 <- c'KeyNoremap ed'
   r'3 <- c'KeyTyped ed'
   r'4 <- cmd_silent ed'
-  _ <- ins_typebuf ed' fr' r'2 0 (not (r'3 /= 0)) r'4
+  _ <- ins_typebuf ed' fr' r'2 0 (not r'3) (b2i r'4 :: Int32)
   pure r'1
 
 gotchars_add_byte :: Ed -> Ptr Gotchars_state_T -> Char_u -> IO Bool
@@ -8373,7 +8373,7 @@ gotchars_ignore ed' = frame 3 $ \fr' -> do
 may_sync_undo :: Ed -> IO ()
 may_sync_undo ed' = do
   r'1 <- c'State ed'
-  r'3 <- if (not ((r'1 .&. 24) /= 0)) then pure True else (do { r'2 <- arrow_used ed'; pure (r'2 /= 0) })
+  r'3 <- if (not ((r'1 .&. 24) /= 0)) then pure True else (arrow_used ed')
   if r'3
     then do
       u_sync ed' False
@@ -8809,8 +8809,9 @@ check_simplify_modifier ed' max_offset = frame 25 $ \fr' -> do
 key_protocol_enabled :: Ed -> IO Bool
 key_protocol_enabled ed' = do
   r'1 <- modify_otherkeys_state ed'
-  r'4 <- if (r'1 /= MOKS_INITIAL) then (do { r'2 <- modify_otherkeys_state ed'; pure (b2i (r'2 == MOKS_ENABLED) :: Int32) }) else (seenModifyOtherKeys ed')
-  if (r'4 /= 0) then pure True else (do { r'5 <- kitty_protocol_state ed'; pure (r'5 == KKPS_ENABLED) })
+  r'4 <- if (r'1 /= MOKS_INITIAL) then (do { r'2 <- modify_otherkeys_state ed'; pure (b2i (r'2 == MOKS_ENABLED) :: Int32) }) else (do { r'3 <- seenModifyOtherKeys ed'; pure (b2i r'3 :: Int32) })
+  let !using_mok1 = r'4 /= 0
+  if using_mok1 then pure True else (do { r'5 <- kitty_protocol_state ed'; pure (r'5 == KKPS_ENABLED) })
 
 handle_mapping :: Ed -> Int32 -> Int32 -> Int32 -> IO (Int32, Int32, Int32, Int32)
 handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
@@ -8821,7 +8822,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
       r'3 <- rdW8 (pAdd r'1 (fromIntegral r'2)) 0
       let !tb_c1'1 = fromIntegral r'3 :: Int32
       r'5 <- if (not in_osc1) then (do { r'4 <- no_mapping ed'; pure (r'4 == 0) }) else pure False
-      r'7 <- if r'5 then (do { r'6 <- is_maphash_valid ed'; pure (r'6 /= 0) }) else pure False
+      r'7 <- if r'5 then (is_maphash_valid ed') else pure False
       r'9 <- if r'7 then (do { r'8 <- no_zero_mapping ed'; pure ((r'8 == 0) || (tb_c1'1 /= (ch '0'))) }) else pure False
       r'17 <- if r'9 then (do { r'10 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen; if ((r'10 == 0) || is_plug_map1) then pure True else (do { r'11 <- p_remap ed'; if (r'11 /= 0) then (do { r'12 <- rdP (addr'typebuf ed') typebuf_T'tb_noremap; r'13 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off; r'14 <- rdW8 (pAdd r'12 (fromIntegral r'13)) 0; pure (((fromIntegral r'14 :: Int32) .&. 5) == 0) }) else pure False }) }) else pure False
       r'21 <- if r'17 then (do { r'18 <- p_paste ed'; r'20 <- if (r'18 /= 0) then (do { r'19 <- c'State ed'; pure ((r'19 .&. 24) /= 0) }) else pure False; pure (not r'20) }) else pure False
@@ -9002,7 +9003,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
         then j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 (-1 :: Int32) out___r__15 out___keylenp15 out___timedout15 out___mapdepth15
         else j'52 keylenp15 mapdepth15 mp16 mp_match_len14 max_mlen16 keylen12 out___r__15 out___keylenp15 out___timedout15 out___mapdepth15
     j'52 !keylenp16 !mapdepth16 !mp17 !mp_match_len15 !max_mlen17 !keylen13 !out___r__16 !out___keylenp16 !out___timedout16 !out___mapdepth16 = do
-      r'126 <- if (keylen13 == 0) then (do { r'125 <- no_reduce_keys ed'; pure (not (r'125 /= 0)) }) else pure False
+      r'126 <- if (keylen13 == 0) then (do { r'125 <- no_reduce_keys ed'; pure (not r'125) }) else pure False
       if r'126
         then do
           r'127 <- check_simplify_modifier ed' (max_mlen17 + 1)
@@ -9046,7 +9047,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
         else pure ((3 :: Int32), keylen17, timedout, mapdepth20)
     j'66 !mapdepth21 !mp22 !keylen18 !out___r__21 !out___keylenp21 !out___timedout21 !out___mapdepth21 = do
       r'138 <- rdI32 (addr'typebuf ed') typebuf_T'tb_silent
-      set'cmd_silent ed' (b2i (r'138 > 0) :: Int32)
+      set'cmd_silent ed' (r'138 > 0)
       del_typebuf ed' keylen18 0
       let !mapdepth22 = mapdepth21 + 1
       r'139 <- p_mmd ed'
@@ -9063,7 +9064,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
               j'83 keylen18 out___r__21 out___keylenp21 out___timedout21 out___mapdepth21
         else do
           r'142 <- c'VIsual_active ed'
-          r'144 <- if (r'142 /= 0) then (do { r'143 <- c'VIsual_select ed'; pure (r'143 /= 0) }) else pure False
+          r'144 <- if r'142 then (do { r'143 <- c'VIsual_select ed'; pure (r'143 /= 0) }) else pure False
           r'146 <- if r'144 then (do { r'145 <- rdI32 mp22 mapblock_T'm_mode; pure ((r'145 .&. MODE_VISUAL) /= 0) }) else pure False
           if r'146
             then do
@@ -9090,7 +9091,7 @@ handle_mapping ed' keylenp timedout mapdepth = frame 8 $ \fr' -> do
                 else j'75 mapdepth23 mp23 keylen19 r'148 (REMAP_YES :: Int32) out___r__22 out___keylenp22 out___timedout22 out___mapdepth22
     j'75 !mapdepth24 !mp24 !keylen20 !map_str1 !noremap1 !out___r__23 !out___keylenp23 !out___timedout23 !out___mapdepth23 = do
       r'161 <- cmd_silent ed'
-      r'163 <- if (r'161 /= 0) then pure True else (do { r'162 <- rdI8 mp24 mapblock_T'm_silent; pure (r'162 /= 0) })
+      r'163 <- if r'161 then pure True else (do { r'162 <- rdI8 mp24 mapblock_T'm_silent; pure (r'162 /= 0) })
       r'164 <- ins_typebuf ed' map_str1 noremap1 0 True (b2i r'163 :: Int32)
       j'77 mapdepth24 keylen20 r'164 out___r__23 out___keylenp23 out___timedout23 out___mapdepth23
     j'77 !mapdepth25 !keylen21 !i1 _ _ _ _ = do
@@ -9163,7 +9164,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
         then do
           if advance
             then do
-              set'c'KeyStuffed ed' TRUE
+              set'c'KeyStuffed ed' True
               j'108 c1 timedout3 mapdepth3 mode_deleted3 handle_mapping__o_r__3 handle_mapping__o_keylenp3 handle_mapping__o_timedout3 handle_mapping__o_mapdepth3
             else j'108 c1 timedout3 mapdepth3 mode_deleted3 handle_mapping__o_r__3 handle_mapping__o_keylenp3 handle_mapping__o_timedout3 handle_mapping__o_mapdepth3
         else loop'10 timedout3 mapdepth3 mode_deleted3 handle_mapping__o_r__3 handle_mapping__o_keylenp3 handle_mapping__o_timedout3 handle_mapping__o_mapdepth3
@@ -9209,14 +9210,14 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
                           if advance
                             then do
                               r'23 <- rdI32 (addr'typebuf ed') typebuf_T'tb_silent
-                              set'cmd_silent ed' (b2i (r'23 > 0) :: Int32)
+                              set'cmd_silent ed' (r'23 > 0)
                               r'24 <- rdI32 (addr'typebuf ed') typebuf_T'tb_maplen
                               if r'24 > 0
                                 then do
-                                  set'c'KeyTyped ed' FALSE
+                                  set'c'KeyTyped ed' False
                                   j'98 c2 r'18 mapdepth5 mode_deleted5 r'16 r'17 r'18 r'19
                                 else do
-                                  set'c'KeyTyped ed' TRUE
+                                  set'c'KeyTyped ed' True
                                   r'25 <- rdP (addr'typebuf ed') typebuf_T'tb_buf
                                   r'26 <- rdI32 (addr'typebuf ed') typebuf_T'tb_off
                                   gotchars ed' (pAdd r'25 (fromIntegral r'26)) 1
@@ -9250,7 +9251,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
       if t1'2
         then do
           r'56 <- mode_displayed ed'
-          if r'56 /= 0
+          if r'56
             then do
               unshowmode ed' True
               j'23 c3 timedout7 mapdepth7 True keylen3 (0 :: Int32) handle_mapping__o_r__7 handle_mapping__o_keylenp7 handle_mapping__o_timedout7 handle_mapping__o_mapdepth7
@@ -9271,7 +9272,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
           if r'64 > 0
             then do
               r'65 <- did_ai ed'
-              r'71 <- if (r'65 /= 0) then (do { r'66 <- ml_get_curline ed'; r'67 <- curwin ed'; r'68 <- rdI32 r'67 (win_T'w_cursor + pos_T'col); r'69 <- skipwhite (pAdd r'66 (fromIntegral r'68)); r'70 <- rdW8 r'69 0; pure ((fromIntegral r'70 :: Int32) == NUL) }) else pure False
+              r'71 <- if r'65 then (do { r'66 <- ml_get_curline ed'; r'67 <- curwin ed'; r'68 <- rdI32 r'67 (win_T'w_cursor + pos_T'col); r'69 <- skipwhite (pAdd r'66 (fromIntegral r'68)); r'70 <- rdW8 r'69 0; pure ((fromIntegral r'70 :: Int32) == NUL) }) else pure False
               if r'71
                 then do
                   r'72 <- curwin ed'
@@ -9603,7 +9604,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
           j'105 c16 timedout28 mapdepth28 mode_deleted28 handle_mapping__o_r__28 handle_mapping__o_keylenp28 handle_mapping__o_timedout28 handle_mapping__o_mapdepth28
         else j'105 c16 timedout28 mapdepth28 mode_deleted28 handle_mapping__o_r__28 handle_mapping__o_keylenp28 handle_mapping__o_timedout28 handle_mapping__o_mapdepth28
     j'105 !c17 !timedout29 !mapdepth29 !mode_deleted29 !handle_mapping__o_r__29 !handle_mapping__o_keylenp29 !handle_mapping__o_timedout29 !handle_mapping__o_mapdepth29 = do
-      set'cmd_silent ed' FALSE
+      set'cmd_silent ed' False
       j'110 c17 timedout29 mapdepth29 mode_deleted29 handle_mapping__o_r__29 handle_mapping__o_keylenp29 handle_mapping__o_timedout29 handle_mapping__o_mapdepth29
     j'108 !c18 !timedout30 !mapdepth30 !mode_deleted30 !handle_mapping__o_r__30 !handle_mapping__o_keylenp30 !handle_mapping__o_timedout30 !handle_mapping__o_mapdepth30 = do
       r'234 <- rdI32 (addr'typebuf ed') typebuf_T'tb_no_abbr_cnt
@@ -9622,11 +9623,11 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
           if r'240
             then do
               r'242 <- if ((c19 == ESC) && (not mode_deleted31)) then (do { r'241 <- no_mapping ed'; pure (not (r'241 /= 0)) }) else pure False
-              r'244 <- if r'242 then (do { r'243 <- mode_displayed ed'; pure (r'243 /= 0) }) else pure False
+              r'244 <- if r'242 then (mode_displayed ed') else pure False
               if r'244
                 then do
                   r'245 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
-                  r'247 <- if (r'245 /= 0) then (do { r'246 <- c'KeyTyped ed'; pure (not (r'246 /= 0)) }) else pure False
+                  r'247 <- if (r'245 /= 0) then (do { r'246 <- c'KeyTyped ed'; pure (not r'246) }) else pure False
                   if r'247
                     then do
                       set'redraw_cmdline ed' TRUE
@@ -9638,7 +9639,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
                   if (c19 /= ESC) && mode_deleted31
                     then do
                       r'248 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len
-                      r'250 <- if (r'248 /= 0) then (do { r'249 <- c'KeyTyped ed'; pure (not (r'249 /= 0)) }) else pure False
+                      r'250 <- if (r'248 /= 0) then (do { r'249 <- c'KeyTyped ed'; pure (not r'249) }) else pure False
                       if r'250
                         then do
                           set'redraw_cmdline ed' TRUE
@@ -9667,7 +9668,7 @@ vgetorpeek ed' advance = frame 32 $ \fr' -> do
       set'vgetc_busy ed' (r'256 + 1)
       if advance
         then do
-          set'c'KeyStuffed ed' FALSE
+          set'c'KeyStuffed ed' False
           j'3 (FALSE :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
         else j'3 (FALSE :: Int32) (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32) (0 :: Int32)
 
@@ -9678,11 +9679,11 @@ inchar ed' buf maxlen wait_time = frame 154 $ \fr' -> do
       r'1 <- c'State ed'
       if r'1 /= 8193
         then do
-          set'did_outofmem_msg ed' FALSE
+          set'did_outofmem_msg ed' False
           j'4 tb_change_cnt1
         else j'4 tb_change_cnt1
     j'4 !tb_change_cnt2 = do
-      set'undo_off ed' FALSE
+      set'undo_off ed' False
       r'2 <- got_int ed'
       if r'2 /= 0
         then loop'15
@@ -9901,7 +9902,7 @@ highlight_group_link ed' from_hg from_len to_hg to_len dodefault forceit init = 
       wrI32 hlgroup4 hl_group_T'sg_link to_id3
       wrB hlgroup4 hl_group_T'sg_cleared False
       redraw_all_later ed' UPD_SOME_VALID
-      set'need_highlight_changed ed' TRUE
+      set'need_highlight_changed ed' True
       pure ()
   r'18 <- syn_check_group ed' from_hg from_len
   r'19 <- musl_strncmp (castPtr to_hg) (Ptr "NONE\0"#) 4
@@ -10008,7 +10009,7 @@ hl_set_ctermfg_normal_group ed' color bold = do
   set'cterm_normal_fg_bold ed' bold
   set_must_redraw ed' UPD_CLEAR
   r'1 <- termcap_active ed'
-  if (r'1 /= 0) && (color >= 0)
+  if r'1 && (color >= 0)
     then do
       term_fg_color ed' color
       pure ()
@@ -10055,7 +10056,7 @@ hl_set_ctermbg_normal_group ed' color = do
   if color >= 0
     then do
       r'8 <- termcap_active ed'
-      if r'8 /= 0
+      if r'8
         then do
           term_bg_color ed' color
           j'3 (-1 :: Int32)
@@ -10077,7 +10078,7 @@ hl_set_ctermul_normal_group ed' color = do
   set'cterm_normal_ul_color ed' (color + 1)
   set_must_redraw ed' UPD_CLEAR
   r'1 <- termcap_active ed'
-  if (r'1 /= 0) && (color >= 0)
+  if r'1 && (color >= 0)
     then do
       term_ul_color ed' color
       pure ()
@@ -10653,7 +10654,7 @@ do_highlight ed' line forceit init = frame 88 $ \fr' -> do
             else j'71
         else pure ()
     j'71 = do
-      set'need_highlight_changed ed' TRUE
+      set'need_highlight_changed ed' True
       pure ()
     loop'86 !i1 = do
       r'125 <- rdI32 (addr'highlight_ga ed') garray_T'ga_len
@@ -11561,7 +11562,7 @@ highlight_changed ed' = do
     j'46 !i9 !default_hl9 = do
       let !i10 = i9 + 1
       loop'3 i10 default_hl9
-  set'need_highlight_changed ed' FALSE
+  set'need_highlight_changed ed' False
   loop'1 (0 :: Int32)
 
 push_highlight_overrides :: Ed -> Ptr Hl_override_T -> Int32 -> IO Bool
@@ -12153,7 +12154,7 @@ get_buf_maphash_list ed' state c = do
   r'1 <- curbuf ed'
   rdP (pAdd (pAdd r'1 buf_T'b_maphash) ((fromIntegral (if ((state .&. 199) /= 0) then c else (xor c 128))) * 8)) 0
 
-is_maphash_valid :: Ed -> IO Int32
+is_maphash_valid :: Ed -> IO Bool
 is_maphash_valid ed' = do
   maphash_valid ed'
 
@@ -13183,7 +13184,7 @@ prepare_search_hl_line ed' wp lnum mincol line search_hl search_attr = do
   r'24 <- rdP wp win_T'w_match_head
   loop'1 line search_attr r'24 (0 :: Int32) False False nullPtr (0 :: Int32)
 
-update_search_hl :: Ed -> Ptr Win_T -> Linenr_T -> Colnr_T -> Ptr Char_u -> Ptr Match_T -> Ptr Int32 -> Ptr Int32 -> Int32 -> Int32 -> Int32 -> IO (Int32, Ptr Char_u, Int32)
+update_search_hl :: Ed -> Ptr Win_T -> Linenr_T -> Colnr_T -> Ptr Char_u -> Ptr Match_T -> Ptr Int32 -> Ptr Int32 -> Int32 -> Int32 -> Bool -> IO (Int32, Ptr Char_u, Bool)
 update_search_hl ed' wp lnum col line search_hl _has_match_conc _match_conc did_line_attr lcs_eol_one on_last_col = do
   let
     loop'1 !line1 !on_last_col1 !cur1 !shl_flag1 !search_attr1 !out___r__1 !out___line1 !out___on_last_col1 = do
@@ -13221,7 +13222,7 @@ update_search_hl ed' wp lnum col line search_hl _has_match_conc _match_conc did_
         then do
           r'13 <- rdI32 shl3 match_T'attr_cur
           r'14 <- rdI32 shl3 match_T'endcol
-          let !on_last_col5 = b2i ((col + 1) >= r'14) :: Int32
+          let !on_last_col5 = (col + 1) >= r'14
           j'12 line4 on_last_col5 cur3 shl3 shl_flag3 r'13 out___r__4 out___line4 out___on_last_col4
         else j'12 line4 on_last_col4 cur3 shl3 shl_flag3 search_attr4 out___r__4 out___line4 out___on_last_col4
     j'12 !line5 !on_last_col6 !cur4 !shl4 !shl_flag4 !search_attr5 !out___r__5 !out___line5 !out___on_last_col5 = do
@@ -13330,7 +13331,7 @@ update_search_hl ed' wp lnum col line search_hl _has_match_conc _match_conc did_
           loop'1 line12 on_last_col13 r'46 shl_flag11 search_attr12 out___r__12 out___line12 out___on_last_col12
         else loop'1 line12 on_last_col13 cur11 shl_flag11 search_attr12 out___r__12 out___line12 out___on_last_col12
   r'47 <- rdP wp win_T'w_match_head
-  loop'1 line on_last_col r'47 (0 :: Int32) (0 :: Int32) (0 :: Int32) nullPtr (0 :: Int32)
+  loop'1 line on_last_col r'47 (0 :: Int32) (0 :: Int32) (0 :: Int32) nullPtr False
 
 mb_cptr2char_adv :: Ed -> Ptr Char_u -> IO (Int32, Ptr Char_u)
 mb_cptr2char_adv ed' pp = do
@@ -14277,12 +14278,12 @@ msg_attr_keep ed' s attr keep = do
           j'8 r'3
         else j'8 r'3
     j'8 !retval1 = do
-      set'need_fileinfo ed' FALSE
+      set'need_fileinfo ed' False
       r'10 <- msg_attr_keep'entered ed'
       set'msg_attr_keep'entered ed' (r'10 - 1)
       pure retval1
   r'11 <- emsg_on_display ed'
-  r'13 <- if (not (r'11 /= 0)) then (message_filtered ed' (castPtr s)) else pure False
+  r'13 <- if (not r'11) then (message_filtered ed' (castPtr s)) else pure False
   if r'13
     then pure True
     else do
@@ -14467,7 +14468,7 @@ emsg_core ed' s = do
       set'did_emsg ed' (r'2 + 1)
       j'8
     j'8 = do
-      set'emsg_on_display ed' TRUE
+      set'emsg_on_display ed' True
       r'3 <- rdI32 (addr'highlight_attr ed') 16
       r'4 <- msg_scrolled ed'
       if r'4 /= 0
@@ -14478,7 +14479,7 @@ emsg_core ed' s = do
     j'10 !attr1 = do
       set'msg_scroll ed' TRUE
       msg_source ed' attr1
-      set'msg_nowait ed' FALSE
+      set'msg_nowait ed' False
       msg_attr ed' s attr1
     j'14 = do
       r'6 <- get_emsg_lnum ed'
@@ -14508,7 +14509,7 @@ emsg_core ed' s = do
             else pure TRUE
         else do
           set'msg_silent ed' 0
-          set'cmd_silent ed' FALSE
+          set'cmd_silent ed' False
           r'14 <- global_busy ed'
           if r'14 /= 0
             then do
@@ -14590,7 +14591,7 @@ add_msg_hist ed' s len attr = do
       check_msg_hist ed'
       pure ()
   r'11 <- msg_hist_off ed'
-  r'13 <- if (r'11 /= 0) then pure True else (do { r'12 <- msg_silent ed'; pure (r'12 /= 0) })
+  r'13 <- if r'11 then pure True else (do { r'12 <- msg_silent ed'; pure (r'12 /= 0) })
   if r'13
     then pure ()
     else do
@@ -14625,9 +14626,9 @@ wait_return ed' redraw = do
                 else do
                   r'5 <- c'State ed'
                   r'6 <- quit_more ed'
-                  if r'6 /= 0
+                  if r'6
                     then do
-                      set'quit_more ed' FALSE
+                      set'quit_more ed' False
                       set'got_int ed' FALSE
                       j'29 (CAR :: Int32) r'5
                     else do
@@ -14670,7 +14671,7 @@ wait_return ed' redraw = do
       set'allow_keys ed' (r'19 - 1)
       set'reg_recording ed' save_reg_recording1
       r'20 <- c'KeyTyped ed'
-      r'22 <- if (r'20 /= 0) then (do { r'21 <- p_more ed'; pure (r'21 /= 0) }) else pure False
+      r'22 <- if r'20 then (do { r'21 <- p_more ed'; pure (r'21 /= 0) }) else pure False
       r'24 <- if r'22 then (do { r'23 <- p_cp ed'; pure (not (r'23 /= 0)) }) else pure False
       if r'24
         then do
@@ -14695,9 +14696,9 @@ wait_return ed' redraw = do
         else j'23 c1 oldState2 had_got_int1
     j'19 !c2 !oldState3 !had_got_int2 = do
       r'30 <- quit_more ed'
-      if r'30 /= 0
+      if r'30
         then do
-          set'quit_more ed' FALSE
+          set'quit_more ed' False
           set'got_int ed' FALSE
           j'23 (CAR :: Int32) oldState3 had_got_int2
         else do
@@ -14715,13 +14716,13 @@ wait_return ed' redraw = do
             then j'29 c3 oldState4
             else do
               r'31 <- c'KeyTyped ed'
-              r'33 <- if (not (r'31 /= 0)) then pure True else (do { r'32 <- vim_strchr ed' (Ptr "\13\10 \0"#) c3; pure (((r'32 == nullPtr) && (c3 /= Ctrl_C)) && (c3 /= (ch 'q'))) })
+              r'33 <- if (not r'31) then pure True else (do { r'32 <- vim_strchr ed' (Ptr "\13\10 \0"#) c3; pure (((r'32 == nullPtr) && (c3 /= Ctrl_C)) && (c3 /= (ch 'q'))) })
               if r'33
                 then do
                   r'34 <- vgetc_char ed'
                   r'35 <- vgetc_mod_mask ed'
                   _ <- ins_char_typebuf ed' r'34 r'35
-                  set'do_redraw ed' TRUE
+                  set'do_redraw ed' True
                   j'29 c3 oldState4
                 else j'29 c3 oldState4
     j'29 !c4 !oldState5 = do
@@ -14729,8 +14730,8 @@ wait_return ed' redraw = do
         then do
           r'37 <- msg_row ed'
           set'cmdline_row ed' r'37
-          set'skip_redraw ed' TRUE
-          set'do_redraw ed' FALSE
+          set'skip_redraw ed' True
+          set'do_redraw ed' False
           j'31 oldState5
         else j'31 oldState5
     j'31 !oldState6 = do
@@ -14738,16 +14739,16 @@ wait_return ed' redraw = do
       set'c'State ed' oldState6
       msg_check ed'
       r'39 <- swapping_screen ed'
-      r'41 <- if r'39 then (do { r'40 <- termcap_active ed'; pure (not (r'40 /= 0)) }) else pure False
+      r'41 <- if r'39 then (do { r'40 <- termcap_active ed'; pure (not r'40) }) else pure False
       if r'41
         then do
-          set'newline_on_exit ed' TRUE
+          set'newline_on_exit ed' True
           j'33 r'38
         else j'33 r'38
     j'33 !tmpState1 = do
       set'need_wait_return ed' FALSE
-      set'did_wait_return ed' TRUE
-      set'emsg_on_display ed' FALSE
+      set'did_wait_return ed' True
+      set'emsg_on_display ed' False
       set'lines_left ed' (-1)
       reset_last_sourcing ed'
       r'42 <- keep_msg ed'
@@ -14765,7 +14766,7 @@ wait_return ed' redraw = do
           pure ()
         else do
           r'50 <- skip_redraw ed'
-          r'53 <- if (not (r'50 /= 0)) then (if (redraw == TRUE) then pure True else (do { r'51 <- msg_scrolled ed'; pure ((r'51 /= 0) && (redraw /= (-1))) })) else pure False
+          r'53 <- if (not r'50) then (if (redraw == TRUE) then pure True else (do { r'51 <- msg_scrolled ed'; pure ((r'51 /= 0) && (redraw /= (-1))) })) else pure False
           if r'53
             then do
               starttermcap ed'
@@ -14813,7 +14814,7 @@ set_keep_msg :: Ed -> Ptr Char_u -> Int32 -> IO ()
 set_keep_msg ed' s attr = do
   let
     j'3 = do
-      set'keep_msg_more ed' FALSE
+      set'keep_msg_more ed' False
       set'keep_msg_attr ed' attr
       pure ()
   r'2 <- if (s /= nullPtr) then (do { r'1 <- msg_silent ed'; pure (r'1 == 0) }) else pure False
@@ -14850,7 +14851,7 @@ msg_start ed' = do
       if not (r'1 /= 0)
         then do
           set'keep_msg ed' nullPtr
-          set'need_fileinfo ed' FALSE
+          set'need_fileinfo ed' False
           j'4
         else j'4
     j'4 = do
@@ -14874,7 +14875,7 @@ msg_start ed' = do
             else j'8
     j'8 = do
       r'10 <- msg_didany ed'
-      r'12 <- if (not (r'10 /= 0)) then pure True else (do { r'11 <- lines_left ed'; pure (r'11 < 0) })
+      r'12 <- if (not r'10) then pure True else (do { r'11 <- lines_left ed'; pure (r'11 < 0) })
       if r'12
         then do
           msg_starthere ed'
@@ -14949,8 +14950,8 @@ msg_outtrans_len_attr ed' msgstr len attr = do
       r'6 <- if r'4 then (do { r'5 <- msg_col ed'; pure (r'5 == 0) }) else pure False
       if r'6
         then do
-          set'clear_cmdline ed' FALSE
-          set'mode_displayed ed' FALSE
+          set'clear_cmdline ed' False
+          set'mode_displayed ed' False
           j'6 len2 attr3 retval2 str2 plain_start2 save_got_int2
         else j'6 len2 attr3 retval2 str2 plain_start2 save_got_int2
     j'6 !len3 !attr4 !retval3 !str3 !plain_start3 !save_got_int3 = do
@@ -15090,7 +15091,7 @@ msg_puts_attr_len ed' str maxlen attr = do
         else j'5 attr1
     j'5 !attr3 = do
       r'1 <- msg_scrolled ed'
-      r'3 <- if (r'1 /= 0) then (do { r'2 <- msg_scrolled_ign ed'; pure (not (r'2 /= 0)) }) else pure False
+      r'3 <- if (r'1 /= 0) then (do { r'2 <- msg_scrolled_ign ed'; pure (not r'2) }) else pure False
       r'5 <- if r'3 then (do { r'4 <- musl_strcmp str (Ptr "\13\0"#); pure (r'4 /= 0) }) else pure False
       if r'5
         then do
@@ -15098,19 +15099,19 @@ msg_puts_attr_len ed' str maxlen attr = do
           j'7 attr3
         else j'7 attr3
     j'7 !attr4 = do
-      set'msg_didany ed' TRUE
+      set'msg_didany ed' True
       r'6 <- msg_use_printf ed'
       if r'6
         then do
           r'7 <- info_message ed'
-          Caprice.Host.host_message ed' (castPtr str) maxlen (b2i (not (r'7 /= 0)) :: Int32)
+          Caprice.Host.host_message ed' (castPtr str) maxlen (b2i (not r'7) :: Int32)
           set'msg_didout ed' TRUE
           j'10
         else do
           msg_puts_display ed' (castPtr str) maxlen attr4 False
           j'10
     j'10 = do
-      set'need_fileinfo ed' FALSE
+      set'need_fileinfo ed' False
       pure ()
   r'8 <- msg_silent ed'
   if r'8 /= 0
@@ -15144,7 +15145,7 @@ msg_puts_display ed' str maxlen attr recurse = do
         else j'54 s1 t_s1 t_col1 sb_str1 sb_col1 store_sb_text__o_sb_str1 store_sb_text__o_sb_col1
     j'5 !s2 !t_s2 !t_col2 !sb_str2 !sb_col2 !wrap_col2 !store_sb_text__o_sb_str2 !store_sb_text__o_sb_col2 = do
       r'22 <- msg_no_more ed'
-      r'24 <- if (r'22 /= 0) then (do { r'23 <- lines_left ed'; pure (r'23 == 0) }) else pure False
+      r'24 <- if r'22 then (do { r'23 <- lines_left ed'; pure (r'23 == 0) }) else pure False
       if r'24
         then j'54 s2 t_s2 t_col2 sb_str2 sb_col2 store_sb_text__o_sb_str2 store_sb_text__o_sb_col2
         else do
@@ -15204,12 +15205,12 @@ msg_puts_display ed' str maxlen attr recurse = do
       r'40 <- p_more ed'
       r'42 <- if (r'40 /= 0) then (do { r'41 <- lines_left ed'; pure (r'41 == 0) }) else pure False
       r'44 <- if r'42 then (do { r'43 <- c'State ed'; pure (r'43 /= 8193) }) else pure False
-      r'46 <- if r'44 then (do { r'45 <- msg_no_more ed'; pure (not (r'45 /= 0)) }) else pure False
+      r'46 <- if r'44 then (do { r'45 <- msg_no_more ed'; pure (not r'45) }) else pure False
       if r'46
         then do
           _ <- do_more_prompt ed' NUL
           r'48 <- quit_more ed'
-          if r'48 /= 0
+          if r'48
             then pure ()
             else j'22 s8 t_s8 t_col8 sb_str8 sb_col8 did_last_char4 wrap_col8 store_sb_text__o_sb_str8 store_sb_text__o_sb_col8
         else j'22 s8 t_s8 t_col8 sb_str8 sb_col8 did_last_char4 wrap_col8 store_sb_text__o_sb_str8 store_sb_text__o_sb_col8
@@ -15334,7 +15335,7 @@ msg_puts_display ed' str maxlen attr recurse = do
       msg_check ed'
       pure ()
   r'96 <- msg_col ed'
-  set'did_wait_return ed' FALSE
+  set'did_wait_return ed' False
   loop'1 str str (0 :: Int32) str r'96 nullPtr (0 :: Int32)
 
 message_filtered :: Ed -> Ptr Char_u -> IO Bool
@@ -15546,7 +15547,7 @@ t_puts ed' t_col t_s s attr = do
 msg_use_printf :: Ed -> IO Bool
 msg_use_printf ed' = do
   r'1 <- msg_check_screen ed'
-  if (not r'1) then pure True else (do { r'2 <- swapping_screen ed'; if r'2 then (do { r'3 <- termcap_active ed'; pure (not (r'3 /= 0)) }) else pure False })
+  if (not r'1) then pure True else (do { r'2 <- swapping_screen ed'; if r'2 then (do { r'3 <- termcap_active ed'; pure (not r'3) }) else pure False })
 
 do_more_prompt :: Ed -> Int32 -> IO Bool
 do_more_prompt ed' typed_char = do
@@ -15608,7 +15609,7 @@ do_more_prompt ed' typed_char = do
           typeahead_noflush ed' (ch ':')
           r'9 <- c'Rows ed'
           set'cmdline_row ed' (fromIntegral (r'9 - 1) :: Int32)
-          set'skip_redraw ed' TRUE
+          set'skip_redraw ed' True
           set'need_wait_return ed' FALSE
           j'13 used_typed_char4 oldState4 (0 :: Int32) mp_last4 msg_attr1'5
         113 {- 'q' -} -> j'13 used_typed_char4 oldState4 (0 :: Int32) mp_last4 msg_attr1'5
@@ -15619,7 +15620,7 @@ do_more_prompt ed' typed_char = do
           loop'7 used_typed_char4 oldState4 mp_last4 msg_attr1'5
     j'13 !used_typed_char5 !oldState5 !toscroll3 !mp_last5 !msg_attr1'6 = do
       set'got_int ed' TRUE
-      set'quit_more ed' TRUE
+      set'quit_more ed' True
       r'10 <- c'Rows ed'
       set'lines_left ed' (fromIntegral (r'10 - 1) :: Int32)
       j'22 used_typed_char5 oldState5 toscroll3 mp_last5 msg_attr1'6
@@ -15753,7 +15754,7 @@ do_more_prompt ed' typed_char = do
       screen_fill ed' ((fromIntegral r'54 :: Int32) - 1) (fromIntegral r'55 :: Int32) r'56 (r'57 + r'58) (ch ' ') (ch ' ') msg_attr1'21
       set'c'State ed' oldState20
       r'59 <- quit_more ed'
-      if r'59 /= 0
+      if r'59
         then do
           r'60 <- c'Rows ed'
           set'msg_row ed' (fromIntegral (r'60 - 1) :: Int32)
@@ -15941,7 +15942,7 @@ msg_clr_cmdline ed' = do
 msg_end :: Ed -> IO Bool
 msg_end ed' = do
   r'1 <- exiting ed'
-  r'3 <- if (not (r'1 /= 0)) then (do { r'2 <- need_wait_return ed'; pure (r'2 /= 0) }) else pure False
+  r'3 <- if (not r'1) then (do { r'2 <- need_wait_return ed'; pure (r'2 /= 0) }) else pure False
   r'5 <- if r'3 then (do { r'4 <- c'State ed'; pure (not ((r'4 .&. MODE_CMDLINE) /= 0)) }) else pure False
   if r'5
     then do
@@ -15983,7 +15984,7 @@ give_warning_with_source ed' message hl with_source = do
             else j'8
     j'8 = do
       set'msg_didout ed' FALSE
-      set'msg_nowait ed' TRUE
+      set'msg_nowait ed' True
       set'msg_col ed' 0
       r'9 <- no_wait_return ed'
       set'no_wait_return ed' (r'9 - 1)
@@ -16241,7 +16242,7 @@ ask_yesno ed' str direct = do
       loop'3 r4 save_State4
   r'15 <- c'State ed'
   r'16 <- exiting ed'
-  if r'16 /= 0
+  if r'16
     then do
       term_enter ed'
       j'2 (ch ' ' :: Int32) r'15
@@ -16385,7 +16386,7 @@ beep_flush ed' = do
 vim_beep :: Ed -> Word32 -> IO ()
 vim_beep ed' val = do
   r'1 <- emsg_silent ed'
-  r'3 <- if (r'1 /= 0) then pure True else (do { r'2 <- in_assert_fails ed'; pure (r'2 /= 0) })
+  r'3 <- if (r'1 /= 0) then pure True else (in_assert_fails ed')
   if r'3
     then pure ()
     else do
@@ -16415,7 +16416,7 @@ vim_beep ed' val = do
 preserve_exit :: Ed -> IO ()
 preserve_exit ed' = do
   prepare_to_exit ed'
-  set'really_exiting ed' TRUE
+  set'really_exiting ed' True
   r'1 <- c'IObuff ed'
   out_str ed' r'1
   screen_start ed'
@@ -16655,7 +16656,7 @@ coladvance2 ed' pos addspaces finetune wcol_arg = frame 40 $ \fr' -> do
         else pure True
   r'34 <- c'State ed'
   r'36 <- if ((r'34 .&. MODE_INSERT) /= 0) then pure True else (do { r'35 <- restart_edit ed'; pure (r'35 /= NUL) })
-  r'41 <- if r'36 then pure True else (do { r'37 <- c'VIsual_active ed'; if (r'37 /= 0) then (do { r'38 <- p_sel ed'; r'39 <- rdW8 r'38 0; pure ((fromIntegral r'39 :: Int32) /= (ch 'o')) }) else pure False })
+  r'41 <- if r'36 then pure True else (do { r'37 <- c'VIsual_active ed'; if r'37 then (do { r'38 <- p_sel ed'; r'39 <- rdW8 r'38 0; pure ((fromIntegral r'39 :: Int32) /= (ch 'o')) }) else pure False })
   r'43 <- if r'41 then pure True else (do { r'42 <- get_ve_flags ed'; pure (((r'42 .&. VE_ONEMORE) /= 0) && (wcol_arg < MAXCOL)) })
   r'44 <- curbuf ed'
   r'45 <- rdI64 pos pos_T'lnum
@@ -16666,7 +16667,7 @@ coladvance2 ed' pos addspaces finetune wcol_arg = frame 40 $ \fr' -> do
   if wcol_arg >= MAXCOL
     then do
       let !idx12 = (r'49 - 1) + (b2i r'43 :: Int32)
-      r'51 <- if (addspaces || (finetune /= 0)) then (do { r'50 <- c'VIsual_active ed'; pure (not (r'50 /= 0)) }) else pure False
+      r'51 <- if (addspaces || (finetune /= 0)) then (do { r'50 <- c'VIsual_active ed'; pure (not r'50) }) else pure False
       if r'51
         then do
           r'55 <- curwin ed'
@@ -16871,7 +16872,7 @@ check_cursor_col_win ed' win = frame 8 $ \fr' -> do
         then do
           r'17 <- c'State ed'
           r'19 <- if ((r'17 .&. MODE_INSERT) /= 0) then pure True else (do { r'18 <- restart_edit ed'; pure (r'18 /= 0) })
-          r'24 <- if r'19 then pure True else (do { r'20 <- c'VIsual_active ed'; if (r'20 /= 0) then (do { r'21 <- p_sel ed'; r'22 <- rdW8 r'21 0; pure ((fromIntegral r'22 :: Int32) /= (ch 'o')) }) else pure False })
+          r'24 <- if r'19 then pure True else (do { r'20 <- c'VIsual_active ed'; if r'20 then (do { r'21 <- p_sel ed'; r'22 <- rdW8 r'21 0; pure ((fromIntegral r'22 :: Int32) /= (ch 'o')) }) else pure False })
           r'26 <- if (r'24 || ((r'12 .&. VE_ONEMORE) /= 0)) then pure True else (do { r'25 <- virtual_active ed'; pure (r'25 /= 0) })
           if r'26
             then do
@@ -17533,7 +17534,7 @@ update_topline ed' = frame 24 $ \fr' -> do
   r'104 <- rdI64 r'103 0
   let !save_so13 = fromIntegral r'104 :: Int32
   r'105 <- skip_update_topline ed'
-  if r'105 /= 0
+  if r'105
     then pure ()
     else do
       r'106 <- screen_valid ed' True
@@ -19337,7 +19338,7 @@ scroll_cursor_halfway ed' atend prefer_above = frame 32 $ \fr' -> do
 
 end_visual_mode :: Ed -> IO ()
 end_visual_mode ed' = do
-  set'c'VIsual_select_exclu_adj ed' FALSE
+  set'c'VIsual_select_exclu_adj ed' False
   end_visual_mode_keep_button ed'
   pure ()
 
@@ -19348,7 +19349,7 @@ end_visual_mode_keep_button ed' = do
       may_clear_cmdline ed'
       adjust_cursor_eol ed'
       pure ()
-  set'c'VIsual_active ed' FALSE
+  set'c'VIsual_active ed' False
   set'mouse_dragging ed' 0
   r'2 <- curbuf ed'
   r'1 <- c'VIsual_mode ed'
@@ -19373,9 +19374,9 @@ end_visual_mode_keep_button ed' = do
 may_clear_cmdline :: Ed -> IO ()
 may_clear_cmdline ed' = do
   r'1 <- mode_displayed ed'
-  if r'1 /= 0
+  if r'1
     then do
-      set'clear_cmdline ed' TRUE
+      set'clear_cmdline ed' True
       pure ()
     else do
       clear_showcmd ed'
@@ -19440,7 +19441,7 @@ clear_showcmd ed' = frame 8 $ \fr' -> do
           j'22
     j'22 = do
       wrW8 (addr'showcmd_buf ed') 10 NUL
-      set'showcmd_visual ed' TRUE
+      set'showcmd_visual ed' True
       j'23
     j'23 = do
       display_showcmd ed'
@@ -19450,7 +19451,7 @@ clear_showcmd ed' = frame 8 $ \fr' -> do
     then pure ()
     else do
       r'23 <- c'VIsual_active ed'
-      r'25 <- if (r'23 /= 0) then (stuff_empty ed') else pure False
+      r'25 <- if r'23 then (stuff_empty ed') else pure False
       r'27 <- if r'25 then (do { r'26 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; pure (r'26 == 0) }) else pure False
       if r'27
         then do
@@ -19472,9 +19473,9 @@ clear_showcmd ed' = frame 8 $ \fr' -> do
               j'7 cursor_bot2 r'49 r'50
         else do
           wrW8 (addr'showcmd_buf ed') 0 NUL
-          set'showcmd_visual ed' FALSE
+          set'showcmd_visual ed' False
           r'51 <- showcmd_is_clear ed'
-          if r'51 /= 0
+          if r'51
             then pure ()
             else j'23
 
@@ -19536,10 +19537,10 @@ add_to_showcmd ed' c = frame 21 $ \fr' -> do
     then pure False
     else do
       r'17 <- showcmd_visual ed'
-      if r'17 /= 0
+      if r'17
         then do
           wrW8 (addr'showcmd_buf ed') 0 NUL
-          set'showcmd_visual ed' FALSE
+          set'showcmd_visual ed' False
           j'3
         else j'3
 
@@ -19582,7 +19583,7 @@ display_showcmd ed' = do
   if (fromIntegral r'6 :: Int32) == (ch 's')
     then do
       r'7 <- showcmd_is_clear ed'
-      r'9 <- if (r'7 /= 0) then (do { r'8 <- vgetc_busy ed'; pure (not (r'8 /= 0)) }) else pure False
+      r'9 <- if r'7 then (do { r'8 <- vgetc_busy ed'; pure (not (r'8 /= 0)) }) else pure False
       if r'9
         then do
           r'10 <- curwin ed'
@@ -19598,17 +19599,17 @@ display_showcmd ed' = do
       if (fromIntegral r'13 :: Int32) == (ch 't')
         then do
           r'14 <- showcmd_is_clear ed'
-          r'16 <- if (r'14 /= 0) then (do { r'15 <- vgetc_busy ed'; pure (not (r'15 /= 0)) }) else pure False
+          r'16 <- if r'14 then (do { r'15 <- vgetc_busy ed'; pure (not (r'15 /= 0)) }) else pure False
           if r'16
             then do
-              set'redraw_tabline ed' TRUE
+              set'redraw_tabline ed' True
               j'11
             else do
               draw_tabline ed'
               j'11
         else do
           r'17 <- showcmd_is_clear ed'
-          if not (r'17 /= 0)
+          if not r'17
             then do
               r'18 <- c'Rows ed'
               r'19 <- cmdline_col_off ed'
@@ -20685,14 +20686,14 @@ mch_inchar ed' buf maxlen wtime tb_change_cnt = do
 exit_scroll :: Ed -> IO ()
 exit_scroll ed' = do
   r'1 <- newline_on_exit ed'
-  r'3 <- if (r'1 /= 0) then pure True else (do { r'2 <- msg_didout ed'; pure (r'2 /= 0) })
+  r'3 <- if r'1 then pure True else (do { r'2 <- msg_didout ed'; pure (r'2 /= 0) })
   if r'3
     then do
       r'4 <- msg_use_printf ed'
       if r'4
         then do
           r'5 <- info_message ed'
-          if r'5 /= 0
+          if r'5
             then do
               Caprice.Host.host_message ed' (Ptr "\10\0"#) (-1) FALSE
               pure ()
@@ -20716,7 +20717,7 @@ mch_exit ed' r = do
     j'2 = do
       stoptermcap ed'
       r'1 <- swapping_screen ed'
-      r'3 <- if (not r'1) then pure True else (do { r'2 <- newline_on_exit ed'; pure (r'2 /= 0) })
+      r'3 <- if (not r'1) then pure True else (newline_on_exit ed')
       if r'3
         then do
           exit_scroll ed'
@@ -20734,10 +20735,10 @@ mch_exit ed' r = do
       ml_close_all ed' True
       Caprice.Host.host_exit ed' r
       pure ()
-  set'exiting ed' TRUE
+  set'exiting ed' True
   term_leave ed'
   r'5 <- swapping_screen ed'
-  r'7 <- if r'5 then (do { r'6 <- newline_on_exit ed'; pure (not (r'6 /= 0)) }) else pure False
+  r'7 <- if r'5 then (do { r'6 <- newline_on_exit ed'; pure (not r'6) }) else pure False
   if r'7
     then do
       exit_scroll ed'
@@ -20747,7 +20748,7 @@ mch_exit ed' r = do
 mch_breakcheck :: Ed -> Bool -> IO ()
 mch_breakcheck ed' force = do
   r'1 <- term_entered ed'
-  r'4 <- if ((r'1 /= 0) || force) then (do { r'2 <- read_cmd_fd ed'; r'3 <- c'RealWaitForChar ed' r'2 0 nullPtr nullPtr; pure (r'3 /= 0) }) else pure False
+  r'4 <- if (r'1 || force) then (do { r'2 <- read_cmd_fd ed'; r'3 <- c'RealWaitForChar ed' r'2 0 nullPtr nullPtr; pure (r'3 /= 0) }) else pure False
   if r'4
     then do
       fill_input_buf ed' False
@@ -20901,7 +20902,7 @@ read_limits ed' = do
           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'17)) r'18 (castPtr (addr'e_syntax_error_in_str_curlies ed')) [VP (castPtr (if (r'19 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
           r'21 <- iobuff_or ed' (addr'e_syntax_error_in_str_curlies ed')
           _ <- emsg ed' r'21
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure ((FAIL :: Int32), minval2, maxval2)
         else do
           if ((not reverse3) && (minval2 > maxval2)) || (reverse3 && (minval2 < maxval2))
@@ -21105,7 +21106,7 @@ reg_match_visual ed' re = frame 48 $ \fr' -> do
     then pure False
     else do
       r'59 <- c'VIsual_active ed'
-      if r'59 /= 0
+      if r'59
         then do
           r'60 <- rdI64 (addr'c'VIsual ed') pos_T'lnum
           r'61 <- rdI64 r'52 (win_T'w_cursor + pos_T'lnum)
@@ -21259,7 +21260,7 @@ re_mult_next ed' what = do
       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'3)) r'4 (addr'e_nfa_regexp_cannot_repeat_str ed') [VP (castPtr what)]
       r'6 <- iobuff_or ed' (addr'e_nfa_regexp_cannot_repeat_str ed')
       _ <- emsg ed' r'6
-      set'rc_did_emsg ed' TRUE
+      set'rc_did_emsg ed' True
       pure False
     else pure True
 
@@ -21284,7 +21285,7 @@ seen_endbrace ed' refnum = do
       if (fromIntegral r'9 :: Int32) == NUL
         then do
           _ <- emsg ed' (addr'e_illegal_back_reference ed')
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure False
         else pure True
   r'11 <- rdW8 (pAdd (addr'had_endbrace ed') (fromIntegral refnum)) 0
@@ -21314,7 +21315,7 @@ regatom_delim ed' c delim_nl flagp = do
           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'3)) r'4 (castPtr (addr'e_invalid_character_after_str ed')) [VP (castPtr (if (r'5 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
           r'7 <- iobuff_or ed' (addr'e_invalid_character_after_str ed')
           _ <- emsg ed' r'7
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure nullPtr
     j'10 !base3 !idx1 = do
       if delim_nl
@@ -21378,7 +21379,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                   _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'10)) r'11 (castPtr (addr'e_invalid_character_after_str ed')) [VP (castPtr (if (r'12 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                   r'14 <- iobuff_or ed' (addr'e_invalid_character_after_str ed')
                   _ <- emsg ed' r'14
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   pure nullPtr
             else do
               if r'6 == (ch '^')
@@ -21440,7 +21441,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               j'285 r'22 reg__o_r__1 reg__o_flagp1
         -216 -> do
           r'24 <- one_exactly ed'
-          if r'24 /= 0
+          if r'24
             then do
               r'25 <- c'IObuff ed'
               r'26 <- emsg_iobuff_room ed'
@@ -21448,7 +21449,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'25)) r'26 (castPtr (addr'e_invalid_item_in_str_brackets ed')) [VP (castPtr (if (r'27 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
               r'29 <- iobuff_or ed' (addr'e_invalid_item_in_str_brackets ed')
               _ <- emsg ed' r'29
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure nullPtr
             else do
               (r'31, r'32) <- reg ed' re REG_PAREN
@@ -21477,7 +21478,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               loop'248 r'35 r'36 reg__o_r__1 reg__o_flagp1
             else do
               _ <- emsg ed' (addr'e_no_previous_substitute_regular_expression ed')
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure nullPtr
         -207 -> j'242 c1 reg__o_r__1 reg__o_flagp1
         -206 -> j'242 c1 reg__o_r__1 reg__o_flagp1
@@ -21506,7 +21507,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                 else j'285 r'42 reg__o_r__1 reg__o_flagp1
             _ -> do
               _ <- emsg ed' (addr'e_invalid_character_after_bsl_z ed')
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure nullPtr
         -219 -> do
           r'45 <- getchr ed'
@@ -21514,7 +21515,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           case (r'46 :: Int32) of
             40 {- '(' -} -> do
               r'47 <- one_exactly ed'
-              if r'47 /= 0
+              if r'47
                 then do
                   r'48 <- c'IObuff ed'
                   r'49 <- emsg_iobuff_room ed'
@@ -21522,7 +21523,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                   _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'48)) r'49 (castPtr (addr'e_invalid_item_in_str_brackets ed')) [VP (castPtr (if (r'50 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                   r'52 <- iobuff_or ed' (addr'e_invalid_item_in_str_brackets ed')
                   _ <- emsg ed' r'52
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   pure nullPtr
                 else do
                   (r'54, r'55) <- reg ed' re REG_NPAREN
@@ -21564,7 +21565,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               j'285 r'76 reg__o_r__1 reg__o_flagp1
             91 {- '[' -} -> do
               r'77 <- one_exactly ed'
-              if r'77 /= 0
+              if r'77
                 then do
                   r'78 <- c'IObuff ed'
                   r'79 <- emsg_iobuff_room ed'
@@ -21572,7 +21573,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                   _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'78)) r'79 (castPtr (addr'e_invalid_item_in_str_brackets ed')) [VP (castPtr (if (r'80 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                   r'82 <- iobuff_or ed' (addr'e_invalid_item_in_str_brackets ed')
                   _ <- emsg ed' r'82
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   pure nullPtr
                 else loop'201 nullPtr nullPtr reg__o_r__1 reg__o_flagp1
             100 {- 'd' -} -> j'183 r'46 reg__o_r__1 reg__o_flagp1
@@ -21626,7 +21627,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                   _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'103)) r'104 (castPtr (addr'e_missing_rsb_after_str_lsb ed')) [VP (castPtr (if (r'105 > MAGIC_OFF) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                   r'107 <- iobuff_or ed' (addr'e_missing_rsb_after_str_lsb ed')
                   _ <- emsg ed' r'107
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   pure nullPtr
                 else j'4 c1 reg__o_r__1 reg__o_flagp1
         _ -> j'4 c1 reg__o_r__1 reg__o_flagp1
@@ -21643,7 +21644,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           r'112 <- regnode ed' EXACTLY
           loop'6 r'112 c2 (0 :: Int32) reg__o_r__2 reg__o_flagp2
     loop'6 !ret1 !c3 !len_2'1 !reg__o_r__3 !reg__o_flagp3 = do
-      r'118 <- if (c3 /= NUL) then (if (len_2'1 == 0) then pure True else (do { r'113 <- peekchr ed'; let { !r'114 = re_multi_type r'113 }; r'116 <- if (r'114 == NOT_MULTI) then (do { r'115 <- one_exactly ed'; pure (not (r'115 /= 0)) }) else pure False; pure (r'116 && (not (c3 < 0))) })) else pure False
+      r'118 <- if (c3 /= NUL) then (if (len_2'1 == 0) then pure True else (do { r'113 <- peekchr ed'; let { !r'114 = re_multi_type r'113 }; r'116 <- if (r'114 == NOT_MULTI) then (do { r'115 <- one_exactly ed'; pure (not r'115) }) else pure False; pure (r'116 && (not (c3 < 0))) })) else pure False
       if r'118
         then do
           let !r'119 = no_Magic c3
@@ -21724,8 +21725,8 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
             else do
               r'162 <- regparse ed'
               r'163 <- rdW8 r'162 0
-              r'165 <- if ((fromIntegral r'163 :: Int32) == (ch '\\')) then (do { r'164 <- reg_cpo_bsl ed'; pure (not (r'164 /= 0)) }) else pure False
-              r'175 <- if r'165 then (do { r'166 <- regparse ed'; r'167 <- rdW8 r'166 1; r'168 <- vim_strchr ed' (addr'c'REGEXP_INRANGE ed') (fromIntegral r'167 :: Int32); if (r'168 /= nullPtr) then pure True else (do { r'169 <- reg_cpo_lit ed'; if (not (r'169 /= 0)) then (do { r'170 <- regparse ed'; r'171 <- rdW8 r'170 1; r'172 <- vim_strchr ed' (addr'c'REGEXP_ABBR ed') (fromIntegral r'171 :: Int32); pure (r'172 /= nullPtr) }) else pure False }) }) else pure False
+              r'165 <- if ((fromIntegral r'163 :: Int32) == (ch '\\')) then (do { r'164 <- reg_cpo_bsl ed'; pure (not r'164) }) else pure False
+              r'175 <- if r'165 then (do { r'166 <- regparse ed'; r'167 <- rdW8 r'166 1; r'168 <- vim_strchr ed' (addr'c'REGEXP_INRANGE ed') (fromIntegral r'167 :: Int32); if (r'168 /= nullPtr) then pure True else (do { r'169 <- reg_cpo_lit ed'; if (not r'169) then (do { r'170 <- regparse ed'; r'171 <- rdW8 r'170 1; r'172 <- vim_strchr ed' (addr'c'REGEXP_ABBR ed') (fromIntegral r'171 :: Int32); pure (r'172 /= nullPtr) }) else pure False }) }) else pure False
               if r'175
                 then do
                   r'176 <- regparse ed'
@@ -21758,7 +21759,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                           if r'195 == INT_MAX
                             then do
                               _ <- emsg ed' (addr'e_unicode_val_too_large ed')
-                              set'rc_did_emsg ed' TRUE
+                              set'rc_did_emsg ed' True
                               pure nullPtr
                             else do
                               if r'195 == 0
@@ -21845,7 +21846,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           if (fromIntegral r'214 :: Int32) /= (ch ']')
             then do
               _ <- emsg ed' (addr'e_too_many_brackets ed')
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure nullPtr
             else do
               skipchr ed'
@@ -22052,8 +22053,8 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           j'130 ret34 startc33 r'234 reg__o_r__36 reg__o_flagp36
         else j'130 ret34 startc33 endc1 reg__o_r__36 reg__o_flagp36
     j'130 !ret35 !startc34 !endc2 !reg__o_r__37 !reg__o_flagp37 = do
-      r'236 <- if (endc2 == (ch '\\')) then (do { r'235 <- reg_cpo_lit ed'; pure (not (r'235 /= 0)) }) else pure False
-      r'238 <- if r'236 then (do { r'237 <- reg_cpo_bsl ed'; pure (not (r'237 /= 0)) }) else pure False
+      r'236 <- if (endc2 == (ch '\\')) then (do { r'235 <- reg_cpo_lit ed'; pure (not r'235) }) else pure False
+      r'238 <- if r'236 then (do { r'237 <- reg_cpo_bsl ed'; pure (not r'237) }) else pure False
       if r'238
         then do
           r'239 <- coll_get_char ed'
@@ -22063,7 +22064,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
       if startc35 > endc3
         then do
           _ <- emsg ed' (addr'e_reverse_range_in_character_class ed')
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure nullPtr
         else do
           let !r'241 = utf_char2len startc35
@@ -22073,7 +22074,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               if endc3 > (startc35 + 256)
                 then do
                   _ <- emsg ed' (addr'e_range_too_large_in_character_class ed')
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   pure nullPtr
                 else loop'139 ret36 startc35 endc3 reg__o_r__38 reg__o_flagp38
             else loop'135 ret36 startc35 endc3 reg__o_r__38 reg__o_flagp38
@@ -22149,7 +22150,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'259)) r'260 (addr'e_regexp_number_after_dot_pos_search_chr ed') [VI (fromIntegral r'261)]
                       r'263 <- iobuff_or ed' (addr'e_regexp_number_after_dot_pos_search_chr ed')
                       _ <- emsg ed' r'263
-                      set'rc_did_emsg ed' TRUE
+                      set'rc_did_emsg ed' True
                       pure nullPtr
                     else do
                       if c6 == (ch 'l')
@@ -22193,7 +22194,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'273)) r'274 (castPtr (addr'e_invalid_character_after_str ed')) [VP (castPtr (if (r'275 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
       r'277 <- iobuff_or ed' (addr'e_invalid_character_after_str ed')
       _ <- emsg ed' r'277
-      set'rc_did_emsg ed' TRUE
+      set'rc_did_emsg ed' True
       pure nullPtr
     j'163 !n8 !cmp3 !reg__o_r__46 !reg__o_flagp46 = do
       r'279 <- regnode ed' RE_VCOL
@@ -22255,7 +22256,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'293)) r'294 (castPtr (addr'e_invalid_character_after_str_2 ed')) [VP (castPtr (if (r'295 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
           r'297 <- iobuff_or ed' (addr'e_invalid_character_after_str_2 ed')
           _ <- emsg ed' r'297
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure nullPtr
         else do
           r'299 <- use_multibytecode ed' (fromIntegral i1 :: Int32)
@@ -22291,7 +22292,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'304)) r'305 (castPtr (addr'e_missing_sb_after_str ed')) [VP (castPtr (if (r'306 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
               r'308 <- iobuff_or ed' (addr'e_missing_sb_after_str ed')
               _ <- emsg ed' r'308
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure nullPtr
             else do
               r'310 <- regnode ed' BRANCH
@@ -22299,8 +22300,8 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
                 then j'219 r'310 reg__o_r__55 reg__o_flagp55
                 else do
                   regtail ed' re lastnode1 r'310
-                  r'311 <- rdI32 re regengine_T'reg_toolong
-                  if r'311 /= 0
+                  r'311 <- rdB re regengine_T'reg_toolong
+                  if r'311
                     then pure nullPtr
                     else j'219 ret43 reg__o_r__55 reg__o_flagp55
         else do
@@ -22312,7 +22313,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
               _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'312)) r'313 (castPtr (addr'e_empty_str_brackets ed')) [VP (castPtr (if (r'314 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
               r'316 <- iobuff_or ed' (addr'e_empty_str_brackets ed')
               _ <- emsg ed' r'316
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure nullPtr
             else do
               r'318 <- regnode ed' BRANCH
@@ -22330,8 +22331,8 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           if (fromIntegral r'320 :: Int32) == BRANCH
             then do
               regtail ed' re br1 lastbranch1
-              r'321 <- rdI32 re regengine_T'reg_toolong
-              if r'321 /= 0
+              r'321 <- rdB re regengine_T'reg_toolong
+              if r'321
                 then pure nullPtr
                 else do
                   let !br2 = pAdd br1 3
@@ -22346,9 +22347,9 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
       j'285 ret45 reg__o_r__57 reg__o_flagp57
     j'219 !ret46 !reg__o_r__58 !reg__o_flagp58 = do
       ungetchr ed'
-      set'one_exactly ed' TRUE
+      set'one_exactly ed' True
       r'324 <- regatom ed' re flagp
-      set'one_exactly ed' FALSE
+      set'one_exactly ed' False
       if r'324 == nullPtr
         then pure nullPtr
         else loop'201 ret46 r'324 reg__o_r__58 reg__o_flagp58
@@ -22392,11 +22393,11 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'335)) r'336 (castPtr (addr'e_str_chr_follows_nothing ed')) [VP (castPtr (if (r'339 /= 0) then (Ptr "\0"#) else (Ptr "\\\0"#))), VI (fromIntegral r'334)]
       r'341 <- iobuff_or ed' (addr'e_str_chr_follows_nothing ed')
       _ <- emsg ed' r'341
-      set'rc_did_emsg ed' TRUE
+      set'rc_did_emsg ed' True
       pure nullPtr
     j'254 _ _ = do
       r'343 <- one_exactly ed'
-      if r'343 /= 0
+      if r'343
         then do
           r'344 <- c'IObuff ed'
           r'345 <- emsg_iobuff_room ed'
@@ -22404,11 +22405,11 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'344)) r'345 (castPtr (addr'e_invalid_item_in_str_brackets ed')) [VP (castPtr (if (r'346 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
           r'348 <- iobuff_or ed' (addr'e_invalid_item_in_str_brackets ed')
           _ <- emsg ed' r'348
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure nullPtr
         else do
           iemsg ed' (addr'e_internal_error_in_regexp ed')
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure nullPtr
     j'269 !c11 !extra2 !reg__o_r__63 !reg__o_flagp63 = do
       r'350 <- classchars ed'
@@ -22417,7 +22418,7 @@ regatom ed' re flagp = frame 4 $ \fr' -> do
       if r'352 == nullPtr
         then do
           _ <- emsg ed' (addr'e_invalid_use_of_underscore ed')
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure nullPtr
         else do
           r'356 <- if (c11 == (-210)) then (do { r'354 <- peekchr ed'; utf_iscomposing ed' r'354 }) else pure False
@@ -22470,7 +22471,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'4)) r'5 (castPtr (addr'e_invalid_character_after_str_at ed')) [VP (castPtr (if (r'6 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
           r'8 <- iobuff_or ed' (addr'e_invalid_character_after_str_at ed')
           _ <- emsg ed' r'8
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure (nullPtr, flagp4)
         else do
           if (lop1 == BEHIND) || (lop1 == NOBEHIND)
@@ -22512,7 +22513,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
               _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'16)) r'17 (castPtr (addr'e_nested_str ed')) [VP (castPtr (if (r'18 >= MAGIC_ON) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
               r'20 <- iobuff_or ed' (addr'e_nested_str ed')
               _ <- emsg ed' r'20
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure (nullPtr, flagp9)
             else do
               r'22 <- c'IObuff ed'
@@ -22523,7 +22524,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
               _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'22)) r'23 (castPtr (addr'e_nested_str_chr ed')) [VP (castPtr (if (r'24 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#))), VI (fromIntegral r'26)]
               r'28 <- iobuff_or ed' (addr'e_nested_str_chr ed')
               _ <- emsg ed' r'28
-              set'rc_did_emsg ed' TRUE
+              set'rc_did_emsg ed' True
               pure (nullPtr, flagp9)
         else pure (ret7, flagp9)
   r'30 <- regatom ed' re fr'
@@ -22612,7 +22613,7 @@ regpiece ed' re flagp = frame 4 $ \fr' -> do
                           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'54)) r'55 (castPtr (addr'e_too_many_complex_str_curly ed')) [VP (castPtr (if (r'56 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                           r'58 <- iobuff_or ed' (addr'e_too_many_complex_str_curly ed')
                           _ <- emsg ed' r'58
-                          set'rc_did_emsg ed' TRUE
+                          set'rc_did_emsg ed' True
                           pure (nullPtr, flagp10)
                         else do
                           r'60 <- num_complex_braces ed'
@@ -22675,7 +22676,7 @@ regconcat ed' re = do
               loop'1 flagp1 first1 chain1 flags1 cont1 out___r__1 out___flagp1 regpiece__o_r__1 regpiece__o_flagp1
             _ -> do
               (r'5, r'6) <- regpiece ed' re flags1
-              r'8 <- if (r'5 == nullPtr) then pure True else (do { r'7 <- rdI32 re regengine_T'reg_toolong; pure (r'7 /= 0) })
+              r'8 <- if (r'5 == nullPtr) then pure True else (rdB re regengine_T'reg_toolong)
               if r'8
                 then pure (nullPtr, flagp1)
                 else do
@@ -22726,8 +22727,8 @@ regbranch ed' re = do
           skipchr ed'
           r'4 <- regnode ed' END
           regtail ed' re latest1 r'4
-          r'5 <- rdI32 re regengine_T'reg_toolong
-          if r'5 /= 0
+          r'5 <- rdB re regengine_T'reg_toolong
+          if r'5
             then j'7 flagp4 ret2 out___r__2 out___flagp2 regconcat__o_r__2 regconcat__o_flagp2
             else do
               reginsert ed' MATCH latest1
@@ -22745,7 +22746,7 @@ reg ed' re paren = do
       if r'1 >= REG_MAX_PAREN_DEPTH
         then do
           _ <- emsg ed' (addr'e_command_too_complex ed')
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure (nullPtr, flagp1)
         else do
           r'3 <- bt_reg_parse_depth ed'
@@ -22777,7 +22778,7 @@ reg ed' re paren = do
         then do
           skipchr ed'
           (r'8, r'9) <- regbranch ed' re
-          r'11 <- if (r'8 == nullPtr) then pure True else (do { r'10 <- rdI32 re regengine_T'reg_toolong; pure (r'10 /= 0) })
+          r'11 <- if (r'8 == nullPtr) then pure True else (rdB re regengine_T'reg_toolong)
           if r'11
             then do
               r'12 <- bt_reg_parse_depth ed'
@@ -22812,7 +22813,7 @@ reg ed' re paren = do
                   _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'17)) r'18 (addr'e_unmatched_str_percent_open ed') [VP (castPtr (if (r'19 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                   r'21 <- iobuff_or ed' (addr'e_unmatched_str_percent_open ed')
                   _ <- emsg ed' r'21
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   r'23 <- bt_reg_parse_depth ed'
                   set'bt_reg_parse_depth ed' (r'23 - 1)
                   pure (nullPtr, flagp8)
@@ -22823,7 +22824,7 @@ reg ed' re paren = do
                   _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'24)) r'25 (addr'e_unmatched_str_open ed') [VP (castPtr (if (r'26 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                   r'28 <- iobuff_or ed' (addr'e_unmatched_str_open ed')
                   _ <- emsg ed' r'28
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   r'30 <- bt_reg_parse_depth ed'
                   set'bt_reg_parse_depth ed' (r'30 - 1)
                   pure (nullPtr, flagp8)
@@ -22840,13 +22841,13 @@ reg ed' re paren = do
                       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'34)) r'35 (addr'e_unmatched_str_close ed') [VP (castPtr (if (r'36 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
                       r'38 <- iobuff_or ed' (addr'e_unmatched_str_close ed')
                       _ <- emsg ed' r'38
-                      set'rc_did_emsg ed' TRUE
+                      set'rc_did_emsg ed' True
                       r'40 <- bt_reg_parse_depth ed'
                       set'bt_reg_parse_depth ed' (r'40 - 1)
                       pure (nullPtr, flagp8)
                     else do
                       _ <- emsg ed' (addr'e_trailing_characters ed')
-                      set'rc_did_emsg ed' TRUE
+                      set'rc_did_emsg ed' True
                       r'42 <- bt_reg_parse_depth ed'
                       set'bt_reg_parse_depth ed' (r'42 - 1)
                       pure (nullPtr, flagp8)
@@ -22874,7 +22875,7 @@ reg ed' re paren = do
           _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'45)) r'46 (castPtr (addr'e_too_many_str_open ed')) [VP (castPtr (if (r'47 == MAGIC_ALL) then (Ptr "\0"#) else (Ptr "\\\0"#)))]
           r'49 <- iobuff_or ed' (addr'e_too_many_str_open ed')
           _ <- emsg ed' r'49
-          set'rc_did_emsg ed' TRUE
+          set'rc_did_emsg ed' True
           pure (nullPtr, (HASWIDTH :: Int32))
         else do
           r'51 <- regnpar ed'
@@ -22972,7 +22973,7 @@ bt_regcomp ed' re expr re_flags = do
   if expr == nullPtr
     then do
       iemsg ed' (addr'e_null_argument ed')
-      set'rc_did_emsg ed' TRUE
+      set'rc_did_emsg ed' True
       pure nullPtr
     else do
       init_class_tab ed'
@@ -22994,14 +22995,14 @@ bt_regcomp ed' re expr re_flags = do
           set'regcode ed' r'42
           regc ed' REGMAGIC
           (r'43, r'44) <- reg ed' re REG_NOPAREN
-          r'46 <- if (r'43 == nullPtr) then pure True else (do { r'45 <- rdI32 re regengine_T'reg_toolong; pure (r'45 /= 0) })
+          r'46 <- if (r'43 == nullPtr) then pure True else (rdB re regengine_T'reg_toolong)
           if r'46
             then do
-              r'47 <- rdI32 re regengine_T'reg_toolong
-              if r'47 /= 0
+              r'47 <- rdB re regengine_T'reg_toolong
+              if r'47
                 then do
                   _ <- emsg ed' (addr'e_pattern_too_long ed')
-                  set'rc_did_emsg ed' TRUE
+                  set'rc_did_emsg ed' True
                   pure nullPtr
                 else pure nullPtr
             else do
@@ -25448,7 +25449,7 @@ bt_regexec_both ed' re line startcol timed_out = do
     j'31 !line10 !prog8 !col10 !retval10 !cstrncmp__o_r__10 !cstrncmp__o_n10 = do
       wrP re (regengine_T'rex + regexec_T'line) line10
       wrI64 re (regengine_T'rex + regexec_T'lnum) 0
-      wrI32 re regengine_T'reg_toolong FALSE
+      wrB re regengine_T'reg_toolong False
       r'44 <- rdW8 prog8 regprog_T'reganch
       if r'44 /= 0
         then do
@@ -26694,7 +26695,7 @@ screen_fill ed' start_row end_row start_col end_col c1 c2 attr = do
           r'149 <- if r'144 then pure True else (do { r'145 <- cmdline_col_off ed'; if (start_col == r'145) then (do { r'146 <- cmdline_col_off ed'; r'147 <- cmdline_width ed'; pure (end_col22 == (r'146 + r'147)) }) else pure False })
           if ((r'149 && (c1 == (ch ' '))) && (c2 == (ch ' '))) && (attr == 0)
             then do
-              set'clear_cmdline ed' FALSE
+              set'clear_cmdline ed' False
               j'59 end_row22 end_col22 row20 norm_term21 force_next22
             else j'59 end_row22 end_col22 row20 norm_term21 force_next22
         else j'61 end_row22 end_col22 row20 norm_term21 force_next22
@@ -26702,7 +26703,7 @@ screen_fill ed' start_row end_row start_col end_col c1 c2 attr = do
       r'151 <- if (start_col == 0) then pure True else (do { r'150 <- cmdline_col_off ed'; pure (start_col == r'150) })
       if r'151
         then do
-          set'mode_displayed ed' FALSE
+          set'mode_displayed ed' False
           j'61 end_row23 end_col23 row21 norm_term22 force_next23
         else j'61 end_row23 end_col23 row21 norm_term22 force_next23
     j'61 !end_row24 !end_col24 !row22 !norm_term23 !force_next24 = do
@@ -27182,11 +27183,11 @@ win_do_lines ed' wp row line_count mayclear del clear_attr = do
   let
     j'6 = do
       r'1 <- scroll_region ed'
-      r'5 <- if (r'1 /= 0) then pure True else (do { r'2 <- rdI32 wp win_T'w_width; r'3 <- topframe ed'; r'4 <- rdI32 r'3 frame_T'fr_width; pure (r'2 /= r'4) })
+      r'5 <- if r'1 then pure True else (do { r'2 <- rdI32 wp win_T'w_width; r'3 <- topframe ed'; r'4 <- rdI32 r'3 frame_T'fr_width; pure (r'2 /= r'4) })
       if r'5
         then do
           r'6 <- scroll_region ed'
-          r'13 <- if (r'6 /= 0) then (do { r'7 <- rdI32 wp win_T'w_width; r'8 <- topframe ed'; r'9 <- rdI32 r'8 frame_T'fr_width; if (r'7 == r'9) then pure True else (do { r'10 <- rdP (addr'term_strings ed') 608; r'11 <- rdW8 r'10 0; pure ((fromIntegral r'11 :: Int32) /= NUL) }) }) else pure False
+          r'13 <- if r'6 then (do { r'7 <- rdI32 wp win_T'w_width; r'8 <- topframe ed'; r'9 <- rdI32 r'8 frame_T'fr_width; if (r'7 == r'9) then pure True else (do { r'10 <- rdP (addr'term_strings ed') 608; r'11 <- rdW8 r'10 0; pure ((fromIntegral r'11 :: Int32) /= NUL) }) }) else pure False
           if r'13
             then do
               scroll_region_set ed' wp row
@@ -27207,7 +27208,7 @@ win_do_lines ed' wp row line_count mayclear del clear_attr = do
           j'13 r'19
     j'13 !retval1 = do
       r'20 <- scroll_region ed'
-      r'27 <- if (r'20 /= 0) then (do { r'21 <- rdI32 wp win_T'w_width; r'22 <- topframe ed'; r'23 <- rdI32 r'22 frame_T'fr_width; if (r'21 == r'23) then pure True else (do { r'24 <- rdP (addr'term_strings ed') 608; r'25 <- rdW8 r'24 0; pure ((fromIntegral r'25 :: Int32) /= NUL) }) }) else pure False
+      r'27 <- if r'20 then (do { r'21 <- rdI32 wp win_T'w_width; r'22 <- topframe ed'; r'23 <- rdI32 r'22 frame_T'fr_width; if (r'21 == r'23) then pure True else (do { r'24 <- rdP (addr'term_strings ed') 608; r'25 <- rdW8 r'24 0; pure ((fromIntegral r'25 :: Int32) /= NUL) }) }) else pure False
       if r'27
         then do
           scroll_region_reset ed'
@@ -27249,7 +27250,7 @@ win_do_lines ed' wp row line_count mayclear del clear_attr = do
                   r'44 <- no_win_do_lines_ins ed'
                   if not (r'44 /= 0)
                     then do
-                      set'clear_cmdline ed' TRUE
+                      set'clear_cmdline ed' True
                       j'6
                     else j'6
 
@@ -27704,10 +27705,10 @@ skip_showmode ed' = do
   r'1 <- global_busy ed'
   r'3 <- if (r'1 /= 0) then pure True else (do { r'2 <- msg_silent ed'; pure (r'2 /= 0) })
   r'5 <- if r'3 then pure True else (do { r'4 <- redrawing ed'; pure (not r'4) })
-  r'11 <- if r'5 then pure True else (do { r'6 <- stuff_empty ed'; r'8 <- if (not r'6) then pure True else (do { r'7 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; pure (r'7 > 0) }); if r'8 then (do { r'9 <- c'KeyTyped ed'; pure (not (r'9 /= 0)) }) else pure False })
+  r'11 <- if r'5 then pure True else (do { r'6 <- stuff_empty ed'; r'8 <- if (not r'6) then pure True else (do { r'7 <- rdI32 (addr'typebuf ed') typebuf_T'tb_len; pure (r'7 > 0) }); if r'8 then (do { r'9 <- c'KeyTyped ed'; pure (not r'9) }) else pure False })
   if r'11
     then do
-      set'redraw_mode ed' TRUE
+      set'redraw_mode ed' True
       pure True
     else pure False
 
@@ -27788,7 +27789,7 @@ showmode ed' = do
         else j'24 attr1 nwr_save2
     j'24 !attr2 !nwr_save3 = do
       r'26 <- c'VIsual_active ed'
-      if r'26 /= 0
+      if r'26
         then do
           r'27 <- c'VIsual_select ed'
           r'28 <- c'VIsual_mode ed'
@@ -27866,19 +27867,19 @@ showmode ed' = do
       msg_puts_attr ed' (castPtr r'42) sub_attr1
       j'48 attr9 nwr_save10 show_ruler_with_pum6
     j'48 !attr10 !nwr_save11 !show_ruler_with_pum7 = do
-      j'49 (TRUE :: Int32) attr10 nwr_save11 show_ruler_with_pum7
+      j'49 True attr10 nwr_save11 show_ruler_with_pum7
     j'49 !need_clear2 !attr11 !nwr_save12 !show_ruler_with_pum8 = do
       r'43 <- reg_recording ed'
       r'45 <- if (r'43 /= 0) then (do { r'44 <- edit_submode ed'; pure (r'44 == nullPtr) }) else pure False
       if r'45
         then do
           recording_mode ed' attr11
-          j'51 (TRUE :: Int32) nwr_save12 show_ruler_with_pum8
+          j'51 True nwr_save12 show_ruler_with_pum8
         else j'51 need_clear2 nwr_save12 show_ruler_with_pum8
     j'51 !need_clear3 !nwr_save13 !show_ruler_with_pum9 = do
-      set'mode_displayed ed' TRUE
-      r'47 <- if (need_clear3 /= 0) then pure True else (do { r'46 <- clear_cmdline ed'; pure (r'46 /= 0) })
-      r'49 <- if r'47 then pure True else (do { r'48 <- redraw_mode ed'; pure (r'48 /= 0) })
+      set'mode_displayed ed' True
+      r'47 <- if need_clear3 then pure True else (clear_cmdline ed')
+      r'49 <- if r'47 then pure True else (redraw_mode ed')
       if r'49
         then do
           msg_clr_eos ed'
@@ -27892,7 +27893,7 @@ showmode ed' = do
       j'54 r'50 show_ruler_with_pum10
     j'54 !length6 !show_ruler_with_pum11 = do
       r'51 <- c'VIsual_active ed'
-      if r'51 /= 0
+      if r'51
         then do
           clear_showcmd ed'
           j'56 length6 show_ruler_with_pum11
@@ -27908,12 +27909,12 @@ showmode ed' = do
         else j'58 length7
     j'58 !length8 = do
       set'redraw_cmdline ed' FALSE
-      set'redraw_mode ed' FALSE
-      set'clear_cmdline ed' FALSE
+      set'redraw_mode ed' False
+      set'clear_cmdline ed' False
       pure length8
   r'57 <- p_smd ed'
   r'59 <- if (r'57 /= 0) then (do { r'58 <- msg_silent ed'; pure (r'58 == 0) }) else pure False
-  r'65 <- if r'59 then (do { r'60 <- c'State ed'; r'62 <- if ((r'60 .&. MODE_INSERT) /= 0) then pure True else (do { r'61 <- restart_edit ed'; pure (r'61 /= NUL) }); if r'62 then pure True else (do { r'63 <- c'VIsual_active ed'; pure (r'63 /= 0) }) }) else pure False
+  r'65 <- if r'59 then (do { r'60 <- c'State ed'; r'62 <- if ((r'60 .&. MODE_INSERT) /= 0) then pure True else (do { r'61 <- restart_edit ed'; pure (r'61 /= NUL) }); if r'62 then pure True else (c'VIsual_active ed') }) else pure False
   r'67 <- if r'65 then pure True else (do { r'66 <- reg_recording ed'; pure (r'66 /= 0) })
   if r'67
     then do
@@ -27925,7 +27926,7 @@ showmode ed' = do
           check_for_delay ed' False
           r'70 <- clear_cmdline ed'
           r'71 <- clear_cmdline ed'
-          r'74 <- if (r'71 /= 0) then (do { r'72 <- cmdline_row ed'; r'73 <- c'Rows ed'; pure ((fromIntegral r'72 :: Int64) < (r'73 - 1)) }) else pure False
+          r'74 <- if r'71 then (do { r'72 <- cmdline_row ed'; r'73 <- c'Rows ed'; pure ((fromIntegral r'72 :: Int64) < (r'73 - 1)) }) else pure False
           if r'74
             then do
               msg_clr_cmdline ed'
@@ -27933,14 +27934,14 @@ showmode ed' = do
             else j'8 r'70 r'65 r'69 False
     else do
       r'75 <- clear_cmdline ed'
-      r'77 <- if (r'75 /= 0) then (do { r'76 <- msg_silent ed'; pure (r'76 == 0) }) else pure False
+      r'77 <- if r'75 then (do { r'76 <- msg_silent ed'; pure (r'76 == 0) }) else pure False
       if r'77
         then do
           msg_clr_cmdline ed'
           j'54 (0 :: Int32) False
         else do
           r'78 <- redraw_mode ed'
-          if r'78 /= 0
+          if r'78
             then do
               msg_pos_mode ed'
               msg_clr_eos ed'
@@ -27950,7 +27951,7 @@ showmode ed' = do
 unshowmode :: Ed -> Bool -> IO ()
 unshowmode ed' force = do
   r'1 <- redrawing ed'
-  r'6 <- if (not r'1) then pure True else (do { r'3 <- if (not force) then (char_avail ed') else pure False; if r'3 then (do { r'4 <- c'KeyTyped ed'; pure (not (r'4 /= 0)) }) else pure False })
+  r'6 <- if (not r'1) then pure True else (do { r'3 <- if (not force) then (char_avail ed') else pure False; if r'3 then (do { r'4 <- c'KeyTyped ed'; pure (not r'4) }) else pure False })
   if r'6
     then do
       set'redraw_cmdline ed' TRUE
@@ -28050,13 +28051,13 @@ typed_ahead ed' = do
 redrawing :: Ed -> IO Bool
 redrawing ed' = do
   r'1 <- c'RedrawingDisabled ed'
-  if (r'1 == 0) then (do { r'2 <- p_lz ed'; r'4 <- if (r'2 /= 0) then (typed_ahead ed') else pure False; r'6 <- if r'4 then (do { r'5 <- c'KeyTyped ed'; pure (not (r'5 /= 0)) }) else pure False; r'8 <- if r'6 then (do { r'7 <- do_redraw ed'; pure (not (r'7 /= 0)) }) else pure False; pure (not r'8) }) else pure False
+  if (r'1 == 0) then (do { r'2 <- p_lz ed'; r'4 <- if (r'2 /= 0) then (typed_ahead ed') else pure False; r'6 <- if r'4 then (do { r'5 <- c'KeyTyped ed'; pure (not r'5) }) else pure False; r'8 <- if r'6 then (do { r'7 <- do_redraw ed'; pure (not r'7) }) else pure False; pure (not r'8) }) else pure False
 
 messaging :: Ed -> IO Bool
 messaging ed' = do
   r'1 <- p_lz ed'
   r'3 <- if (r'1 /= 0) then (typed_ahead ed') else pure False
-  r'5 <- if r'3 then (do { r'4 <- c'KeyTyped ed'; pure (not (r'4 /= 0)) }) else pure False
+  r'5 <- if r'3 then (do { r'4 <- c'KeyTyped ed'; pure (not r'4) }) else pure False
   pure (not r'5)
 
 estack_sfile :: Ed -> Estack_arg_T -> IO (Ptr Char_u)
@@ -28127,9 +28128,9 @@ search_regcomp ed' pat patlen used_pat pat_save pat_use options1 regmatch1 = do
         then pure False
         else pure True
     j'21 = do
-      set'rc_did_emsg ed' TRUE
+      set'rc_did_emsg ed' True
       pure False
-  set'rc_did_emsg ed' FALSE
+  set'rc_did_emsg ed' False
   r'14 <- magic_isset ed'
   r'16 <- if (pat == nullPtr) then pure True else (do { r'15 <- rdW8 pat 0; pure ((fromIntegral r'15 :: Int32) == NUL) })
   if r'16
@@ -28687,7 +28688,7 @@ searchit ed' win buf pos end_pos dir pat patlen count options1 pat_use extra_arg
   r'143 <- search_regcomp ed' pat patlen nullPtr RE_SEARCH pat_use (options1 .&. 1056) fr'
   if not r'143
     then do
-      r'145 <- if ((options1 .&. SEARCH_MSG) /= 0) then (do { r'144 <- rc_did_emsg ed'; pure (not (r'144 /= 0)) }) else pure False
+      r'145 <- if ((options1 .&. SEARCH_MSG) /= 0) then (do { r'144 <- rc_did_emsg ed'; pure (not r'144) }) else pure False
       if r'145
         then do
           r'146 <- c'IObuff ed'
@@ -28868,12 +28869,12 @@ do_search ed' oap dirc search_delim pat patlen count options1 sia = frame 64 $ \
     j'19 !dirc6 !search_delim6 !pat6 !patlen6 !searchstr3 !searchstrlen2 !old_off_dir5 !old_off_line5 !old_off_end5 !old_off_off5 !dircp2 !msgbuf6 !msgbuflen6 !has_offset6 !show_top_bot_msg2 !parse_search_pattern_offset__o_r__6 !parse_search_pattern_offset__o_pat6 !parse_search_pattern_offset__o_patlen6 !parse_search_pattern_offset__o_searchstr6 !parse_search_pattern_offset__o_searchstrlen6 !parse_search_pattern_offset__o_dircp6 !org_pos_lnum6 !org_pos_col6 !org_pos_coladd6 = do
       r'27 <- if ((options1 .&. SEARCH_ECHO) /= 0) then (messaging ed') else pure False
       r'29 <- if r'27 then (do { r'28 <- msg_silent ed'; pure (not (r'28 /= 0)) }) else pure False
-      r'33 <- if r'29 then (do { r'30 <- cmd_silent ed'; if (not (r'30 /= 0)) then pure True else (do { r'31 <- shortmess ed' SHM_SEARCHCOUNT; pure (not r'31) }) }) else pure False
+      r'33 <- if r'29 then (do { r'30 <- cmd_silent ed'; if (not r'30) then pure True else (do { r'31 <- shortmess ed' SHM_SEARCHCOUNT; pure (not r'31) }) }) else pure False
       if r'33
         then do
           msg_start ed'
           r'34 <- cmd_silent ed'
-          r'40 <- if (not (r'34 /= 0)) then (do { r'35 <- rdI32 (addr'spats ed') (spat_T'off + soffset_T'line); r'37 <- if (r'35 /= 0) then pure True else (do { r'36 <- rdI32 (addr'spats ed') (spat_T'off + soffset_T'end); pure (r'36 /= 0) }); if r'37 then pure True else (do { r'38 <- rdI64 (addr'spats ed') (spat_T'off + soffset_T'off); pure (r'38 /= 0) }) }) else pure False
+          r'40 <- if (not r'34) then (do { r'35 <- rdI32 (addr'spats ed') (spat_T'off + soffset_T'line); r'37 <- if (r'35 /= 0) then pure True else (do { r'36 <- rdI32 (addr'spats ed') (spat_T'off + soffset_T'end); pure (r'36 /= 0) }); if r'37 then pure True else (do { r'38 <- rdI64 (addr'spats ed') (spat_T'off + soffset_T'off); pure (r'38 /= 0) }) }) else pure False
           if r'40
             then do
               let !off_len1 = (0 :: Word64) + 1
@@ -28915,11 +28916,11 @@ do_search ed' oap dirc search_delim pat patlen count options1 sia = frame 64 $ \
         else j'30 dirc8 search_delim8 pat8 patlen8 searchstr5 searchstrlen4 old_off_dir7 old_off_line7 old_off_end7 old_off_off7 searchstr5 dircp4 show_search_stats2 has_offset8 show_top_bot_msg4 off_len6 searchstrlen4 parse_search_pattern_offset__o_r__8 parse_search_pattern_offset__o_pat8 parse_search_pattern_offset__o_patlen8 parse_search_pattern_offset__o_searchstr8 parse_search_pattern_offset__o_searchstrlen8 parse_search_pattern_offset__o_dircp8 org_pos_lnum8 org_pos_col8 org_pos_coladd8
     j'30 !dirc9 !search_delim9 !pat9 !patlen9 !searchstr6 !searchstrlen5 !old_off_dir8 !old_off_line8 !old_off_end8 !old_off_off8 !p1 !dircp5 !show_search_stats3 !has_offset9 !show_top_bot_msg5 !off_len7 !plen1 !parse_search_pattern_offset__o_r__9 !parse_search_pattern_offset__o_pat9 !parse_search_pattern_offset__o_patlen9 !parse_search_pattern_offset__o_searchstr9 !parse_search_pattern_offset__o_searchstrlen9 !parse_search_pattern_offset__o_dircp9 !org_pos_lnum9 !org_pos_col9 !org_pos_coladd9 = do
       r'51 <- shortmess ed' SHM_SEARCHCOUNT
-      r'53 <- if (not r'51) then pure True else (do { r'52 <- cmd_silent ed'; pure (r'52 /= 0) })
+      r'53 <- if (not r'51) then pure True else (cmd_silent ed')
       if r'53
         then do
           r'54 <- msg_scrolled ed'
-          r'56 <- if (r'54 /= 0) then (do { r'55 <- cmd_silent ed'; pure (not (r'55 /= 0)) }) else pure False
+          r'56 <- if (r'54 /= 0) then (do { r'55 <- cmd_silent ed'; pure (not r'55) }) else pure False
           if r'56
             then do
               r'57 <- c'Rows ed'
@@ -28950,7 +28951,7 @@ do_search ed' oap dirc search_delim pat patlen count options1 sia = frame 64 $ \
       let !msgbuflen7 = msgbufsize6 - 1
       wrW8 (pAdd msgbuf7 (fromIntegral msgbuflen7)) 0 NUL
       r'66 <- cmd_silent ed'
-      if not (r'66 /= 0)
+      if not r'66
         then do
           wrW8 msgbuf7 0 (fromIntegral dirc11 :: Word8)
           r'67 <- utf_ptr2char ed' p3
@@ -28983,7 +28984,7 @@ do_search ed' oap dirc search_delim pat patlen count options1 sia = frame 64 $ \
       msg_check ed'
       gotocmdline ed' False
       out_flush ed'
-      set'msg_nowait ed' TRUE
+      set'msg_nowait ed' True
       j'46 dirc14 search_delim14 pat14 patlen14 searchstr11 searchstrlen10 old_off_dir13 old_off_line13 old_off_end13 old_off_off13 dircp10 show_search_stats8 msgbuf10 msgbuflen10 has_offset14 show_top_bot_msg10 parse_search_pattern_offset__o_r__14 parse_search_pattern_offset__o_pat14 parse_search_pattern_offset__o_patlen14 parse_search_pattern_offset__o_searchstr14 parse_search_pattern_offset__o_searchstrlen14 parse_search_pattern_offset__o_dircp14 org_pos_lnum14 org_pos_col14 org_pos_coladd14
     j'46 !dirc15 !search_delim15 !pat15 !patlen15 !searchstr12 !searchstrlen11 !old_off_dir14 !old_off_line14 !old_off_end14 !old_off_off14 !dircp11 !show_search_stats9 !msgbuf11 !msgbuflen11 !has_offset15 !show_top_bot_msg11 !parse_search_pattern_offset__o_r__15 !parse_search_pattern_offset__o_pat15 !parse_search_pattern_offset__o_patlen15 !parse_search_pattern_offset__o_searchstr15 !parse_search_pattern_offset__o_searchstrlen15 !parse_search_pattern_offset__o_dircp15 !org_pos_lnum15 !org_pos_col15 !org_pos_coladd15 = do
       r'75 <- shortmess ed' SHM_SEARCHCOUNT
@@ -30108,9 +30109,9 @@ cmdline_search_stat ed' dirc pos cursor_pos show_top_bot_msg msgbuf msgbuflen re
           j'14
         else j'14
     j'14 = do
-      set'msg_hist_off ed' TRUE
+      set'msg_hist_off ed' True
       give_warning ed' msgbuf False
-      set'msg_hist_off ed' FALSE
+      set'msg_hist_off ed' False
       pure ()
   update_search_stat ed' dirc pos cursor_pos fr' recompute maxcount timeout
   r'5 <- rdI32 fr' searchstat_T'cur
@@ -30484,10 +30485,10 @@ ttest ed' pairs = do
       r'2 <- rdW8 r'1 0
       if (fromIntegral r'2 :: Int32) /= NUL
         then do
-          set'scroll_region ed' TRUE
+          set'scroll_region ed' True
           j'5
         else do
-          set'scroll_region ed' FALSE
+          set'scroll_region ed' False
           j'5
     j'5 = do
       if pairs
@@ -30633,7 +30634,7 @@ ttest ed' pairs = do
       set'p_wiv ed' (b2i ((fromIntegral r'67 :: Int32) /= NUL) :: Int32)
       j'31
     j'31 = do
-      set'need_gather ed' TRUE
+      set'need_gather ed' True
       r'68 <- rdP (addr'term_strings ed') 392
       r'69 <- musl_atoi (castPtr r'68)
       set't_colors ed' r'69
@@ -30803,11 +30804,11 @@ starttermcap ed' = do
   let
     j'3 = do
       out_flush ed'
-      set'termcap_active ed' TRUE
+      set'termcap_active ed' True
       screen_start ed'
       pure ()
   r'1 <- full_screen ed'
-  r'3 <- if (not (r'1 /= 0)) then pure True else (do { r'2 <- termcap_active ed'; pure (r'2 /= 0) })
+  r'3 <- if (not (r'1 /= 0)) then pure True else (termcap_active ed')
   if r'3
     then pure ()
     else do
@@ -30828,13 +30829,13 @@ starttermcap ed' = do
 
 cursor_sleep :: Ed -> IO ()
 cursor_sleep ed' = do
-  set'cursor_is_asleep ed' TRUE
+  set'cursor_is_asleep ed' True
   cursor_off ed'
   pure ()
 
 cursor_unsleep :: Ed -> IO ()
 cursor_unsleep ed' = do
-  set'cursor_is_asleep ed' FALSE
+  set'cursor_is_asleep ed' False
   cursor_on ed'
   pure ()
 
@@ -30844,7 +30845,7 @@ add_termcode ed' name string flags = do
     j'3 !j1 !s1 = do
       r'1 <- musl_strlen (castPtr s1)
       let !len1 = fromIntegral r'1 :: Int32
-      set'need_gather ed' TRUE
+      set'need_gather ed' True
       r'2 <- tc_len ed'
       r'3 <- tc_max_len ed'
       if r'2 == r'3
@@ -30996,10 +30997,10 @@ switch_to_8bit ed' = do
               j'7 i1
             else j'7 i1
         else do
-          set'need_gather ed' TRUE
+          set'need_gather ed' True
           j'4
     j'4 = do
-      set'detected_8bit ed' TRUE
+      set'detected_8bit ed' True
       pure ()
     j'7 !i2 = do
       let !i3 = i2 + 1
@@ -31370,7 +31371,7 @@ handle_key_with_modifier ed' arg csi_len offset buf bufsize buflen iskitty trail
   r'19 <- if r'17 then (do { r'18 <- rdI32 (addr'term_props ed') (termprop_T'tpr_status + 64); pure (r'18 /= TPR_YES) }) else pure False
   if r'19
     then do
-      set'seenModifyOtherKeys ed' TRUE
+      set'seenModifyOtherKeys ed' True
       j'2
     else j'2
 
@@ -31609,7 +31610,7 @@ handle_csi ed' tp len argp offset buf bufsize buflen key_name slen = frame 12 $ 
                                               j'44 csi_len1 out___r__7 out___slen7
                                             else do
                                               set'kitty_protocol_state ed' KKPS_ENABLED
-                                              set'seenModifyOtherKeys ed' FALSE
+                                              set'seenModifyOtherKeys ed' False
                                               j'44 csi_len1 out___r__7 out___slen7
                                         else do
                                           r'44 <- rdI32 fr' 0
@@ -32189,7 +32190,7 @@ check_termcode ed' max_offset buf bufsize buflen = frame 9 $ \fr' -> do
   r'142 <- vim_strchr ed' r'141 CPO_KOFFSET
   let !cpo_koffset16 = r'142 /= nullPtr
   r'143 <- need_gather ed'
-  if r'143 /= 0
+  if r'143
     then do
       gather_termleader ed'
       j'2 (0 :: Int32) (0 :: Int32) cpo_koffset16 (0 :: Int32) (0 :: Int32) False (0 :: Int32) False (0 :: Int32) (0 :: Int32) (0 :: Int32)
@@ -32290,7 +32291,7 @@ ui_inchar ed' buf maxlen wtime tb_change_cnt = do
           j'5 r'1
         else j'5 r'1
     j'5 !retval1 = do
-      set'ctrl_c_interrupts ed' TRUE
+      set'ctrl_c_interrupts ed' True
       pure retval1
   if (wtime == (-1)) || (wtime > 100)
     then do
@@ -32301,7 +32302,7 @@ ui_inchar ed' buf maxlen wtime tb_change_cnt = do
       r'7 <- get_real_state ed'
       if ((r'4 .|. r'6) .&. r'7) /= 0
         then do
-          set'ctrl_c_interrupts ed' FALSE
+          set'ctrl_c_interrupts ed' False
           j'3
         else j'3
     else j'3
@@ -32449,7 +32450,7 @@ fill_input_buf ed' exit_on_error = do
       if len4 > 0
         then do
           r'9 <- ctrl_c_interrupts ed'
-          r'30 <- if (r'9 /= 0) then (do { r'10 <- inbufcount ed'; r'11 <- rdW8 (pAdd (addr'inbuf ed') (fromIntegral r'10)) 0; r'13 <- if ((fromIntegral r'11 :: Int32) == Ctrl_C) then (do { r'12 <- key_protocol_enabled ed'; pure (not r'12) }) else pure False; r'17 <- if r'13 then pure True else (if (len4 >= 10) then (do { r'14 <- inbufcount ed'; r'15 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'14)) (Ptr "\27[27;5;99~\0"#) 10; pure (r'15 == 0) }) else pure False); r'21 <- if r'17 then pure True else (if (len4 >= 10) then (do { r'18 <- inbufcount ed'; r'19 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'18)) (Ptr "\27[27;5;67~\0"#) 10; pure (r'19 == 0) }) else pure False); r'25 <- if r'21 then pure True else (if (len4 >= 7) then (do { r'22 <- inbufcount ed'; r'23 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'22)) (Ptr "\27[99;5u\0"#) 7; pure (r'23 == 0) }) else pure False); if r'25 then pure True else (if (len4 >= 7) then (do { r'26 <- inbufcount ed'; r'27 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'26)) (Ptr "\27[67;5u\0"#) 7; pure (r'27 == 0) }) else pure False) }) else pure False
+          r'30 <- if r'9 then (do { r'10 <- inbufcount ed'; r'11 <- rdW8 (pAdd (addr'inbuf ed') (fromIntegral r'10)) 0; r'13 <- if ((fromIntegral r'11 :: Int32) == Ctrl_C) then (do { r'12 <- key_protocol_enabled ed'; pure (not r'12) }) else pure False; r'17 <- if r'13 then pure True else (if (len4 >= 10) then (do { r'14 <- inbufcount ed'; r'15 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'14)) (Ptr "\27[27;5;99~\0"#) 10; pure (r'15 == 0) }) else pure False); r'21 <- if r'17 then pure True else (if (len4 >= 10) then (do { r'18 <- inbufcount ed'; r'19 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'18)) (Ptr "\27[27;5;67~\0"#) 10; pure (r'19 == 0) }) else pure False); r'25 <- if r'21 then pure True else (if (len4 >= 7) then (do { r'22 <- inbufcount ed'; r'23 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'22)) (Ptr "\27[99;5u\0"#) 7; pure (r'23 == 0) }) else pure False); if r'25 then pure True else (if (len4 >= 7) then (do { r'26 <- inbufcount ed'; r'27 <- musl_strncmp (pAdd (addr'inbuf ed') (fromIntegral r'26)) (Ptr "\27[67;5u\0"#) 7; pure (r'27 == 0) }) else pure False) }) else pure False
           if r'30
             then do
               r'31 <- inbufcount ed'
@@ -32500,7 +32501,7 @@ u_save ed' top bot = do
     j'4 = do
       u_savecommon ed' top bot 0 False
   r'2 <- undo_off ed'
-  if r'2 /= 0
+  if r'2
     then pure True
     else do
       r'5 <- if (top >= bot) then pure True else (do { r'3 <- curbuf ed'; r'4 <- rdI64 r'3 (buf_T'b_ml + memline_T'ml_line_count); pure (bot > (r'4 + 1)) })
@@ -32516,7 +32517,7 @@ u_save ed' top bot = do
 u_savesub :: Ed -> Linenr_T -> IO Bool
 u_savesub ed' lnum = do
   r'1 <- undo_off ed'
-  if r'1 /= 0
+  if r'1
     then pure True
     else do
       u_savecommon ed' (lnum - 1) (lnum + 1) (lnum + 1) False
@@ -32855,7 +32856,7 @@ u_savecommon ed' top bot newbot reload = frame 8 $ \fr' -> do
                   r'125 <- ask_yesno ed' (Ptr "No undo possible; continue anyway\0"#) True
                   if r'125 == (ch 'y')
                     then do
-                      set'undo_off ed' TRUE
+                      set'undo_off ed' True
                       pure True
                     else do
                       do_outofmem_msg ed' 0
@@ -32874,7 +32875,7 @@ u_savecommon ed' top bot newbot reload = frame 8 $ \fr' -> do
       wrP r'130 u_header_T'uh_entry uep6
       r'131 <- curbuf ed'
       wrB r'131 buf_T'b_u_synced False
-      set'undo_undoes ed' FALSE
+      set'undo_undoes ed' False
       pure True
     j'65 = do
       r'132 <- curbuf ed'
@@ -33094,13 +33095,13 @@ shell_new_rows ed' = do
       r'5 <- p_ch ed'
       wrI64 r'6 tabpage_T'tp_ch_used r'5
       r'7 <- skip_win_fix_scroll ed'
-      if not (r'7 /= 0)
+      if not r'7
         then do
           win_fix_scroll ed' TRUE
           j'7
         else j'7
     j'7 = do
-      set'redraw_tabline ed' TRUE
+      set'redraw_tabline ed' True
       pure ()
   r'8 <- c'Rows ed'
   r'9 <- p_ch ed'
@@ -33131,13 +33132,13 @@ shell_new_columns ed' = do
       set'cmdline_width ed' r'4
       comp_col ed'
       r'5 <- skip_win_fix_scroll ed'
-      if not (r'5 /= 0)
+      if not r'5
         then do
           win_fix_scroll ed' TRUE
           j'5
         else j'5
     j'5 = do
-      set'redraw_tabline ed' TRUE
+      set'redraw_tabline ed' True
       pure ()
   r'6 <- curwin ed'
   if r'6 == nullPtr
@@ -33233,7 +33234,7 @@ win_fix_scroll ed' resize = do
       wrI32 wp4 win_T'w_prev_height r'4
       r'5 <- rdI32 wp4 win_T'w_winrow
       wrI32 wp4 win_T'w_prev_winrow r'5
-      set'skip_update_topline ed' FALSE
+      set'skip_update_topline ed' False
       r'6 <- get_real_state ed'
       if not ((r'6 .&. 137) /= 0)
         then do
@@ -33250,7 +33251,7 @@ win_fix_scroll ed' resize = do
   if (fromIntegral r'8 :: Int32) == (ch 'c')
     then pure ()
     else do
-      set'skip_update_topline ed' TRUE
+      set'skip_update_topline ed' True
       r'9 <- curwin ed'
       r'10 <- rdI32 r'9 win_T'w_height
       r'11 <- rdI32 r'9 win_T'w_prev_height
@@ -33312,7 +33313,7 @@ win_fix_cursor ed' normal = do
         else pure ()
   r'3 <- curwin ed'
   r'4 <- skip_win_fix_cursor ed'
-  r'6 <- if (r'4 /= 0) then pure True else (do { r'5 <- rdB r'3 win_T'w_do_win_fix_cursor; pure (not r'5) })
+  r'6 <- if r'4 then pure True else (do { r'5 <- rdB r'3 win_T'w_do_win_fix_cursor; pure (not r'5) })
   r'10 <- if r'6 then pure True else (do { r'7 <- rdP r'3 win_T'w_buffer; r'8 <- rdI64 r'7 (buf_T'b_ml + memline_T'ml_line_count); r'9 <- rdI32 r'3 win_T'w_height; pure (r'8 < (fromIntegral r'9 :: Int64)) })
   if r'10
     then pure ()
@@ -33379,7 +33380,7 @@ win_new_height ed' wp height = do
       wrB wp win_T'w_redr_status True
       win_comp_scroll wp
       r'10 <- exiting ed'
-      r'13 <- if (not (r'10 /= 0)) then (do { r'11 <- p_spk ed'; r'12 <- rdW8 r'11 0; pure ((fromIntegral r'12 :: Int32) == (ch 'c')) }) else pure False
+      r'13 <- if (not r'10) then (do { r'11 <- p_spk ed'; r'12 <- rdW8 r'11 0; pure ((fromIntegral r'12 :: Int32) == (ch 'c')) }) else pure False
       if r'13
         then do
           r'14 <- rdI32 wp (win_T'w_onebuf_opt + winopt_T'wo_sms)
@@ -33564,7 +33565,7 @@ getout ed' exitval = frame 32 $ \fr' -> do
       term_disable_dec ed'
       mch_exit ed' exitval
       pure ()
-  set'exiting ed' TRUE
+  set'exiting ed' True
   r'6 <- c'Rows ed'
   windgoto ed' ((fromIntegral r'6 :: Int32) - 1) 0
   r'7 <- v_dying ed'

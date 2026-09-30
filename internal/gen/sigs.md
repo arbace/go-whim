@@ -599,7 +599,7 @@ func fix_indent()
 func ctrl_x_mode_scroll() bool
 func get_maphash_list(state int32, c int32) *S_mapblock
 func get_buf_maphash_list(state int32, c int32) *S_mapblock
-func is_maphash_valid() int32
+func is_maphash_valid() bool
 func validate_maphash()
 func map_free(mpp **S_mapblock)
 func map_mode_to_chars(mode int32) Ptr[byte]
@@ -651,7 +651,7 @@ func next_search_hl(win *S_window_S, search_hl *match_T, shl *match_T, lnum line
 func prepare_search_hl(wp *S_window_S, search_hl *match_T, lnum linenr_T)
 func check_cur_search_hl(wp *S_window_S, shl *match_T)
 func prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol colnr_T, line Ptr[byte], search_hl *match_T, search_attr int32) prepare_search_hl_line__out_T
-func update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, line Ptr[byte], search_hl *match_T, has_match_conc *int32, match_conc *int32, did_line_attr int32, lcs_eol_one int32, on_last_col int32) update_search_hl__out_T
+func update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, line Ptr[byte], search_hl *match_T, has_match_conc *int32, match_conc *int32, did_line_attr int32, lcs_eol_one int32, on_last_col bool) update_search_hl__out_T
 func get_prevcol_hl_flag(wp *S_window_S, search_hl *match_T, curcol int64) bool
 func get_search_match_hl(wp *S_window_S, search_hl *match_T, col int64, char_attr int32) int32
 func ex_match(eap *S_exarg)
@@ -1138,7 +1138,7 @@ func do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_prefix_T, fla
 func do_set_option_numeric(opt_idx int32, opt_flags int32, argp Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) do_set_option_numeric__out_T
 func do_set_option_keycode(argp Ptr[byte], key_name []byte, nextchar int32) do_set_option_keycode__out_T
 func do_set_option_value(opt_idx int32, opt_flags int32, argp Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name []byte, nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) do_set_option_value__out_T
-func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) do_set_option__out_T
+func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show bool, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) do_set_option__out_T
 func do_set(arg_start Ptr[byte], opt_flags int32) bool
 func did_set_option(opt_idx int32, opt_flags int32, new_value bool, value_checked int32)
 func option_expand(opt_idx int32, val Ptr[byte]) Ptr[byte]
@@ -1650,7 +1650,7 @@ func u_redo(count int32)
 func u_doit(startcount int32)
 func undo_time(step int64, sec bool, file bool, absolute bool)
 func u_undoredo(undo bool)
-func u_undo_end(did_undo int32, absolute bool)
+func u_undo_end(did_undo bool, absolute bool)
 func u_sync(force bool)
 func ex_undolist(eap *S_exarg)
 func ex_undojoin(eap *S_exarg)

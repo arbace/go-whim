@@ -68,13 +68,13 @@
                   (e CMDLINE_CHANGED))))))
       (if (and (== (.cmdlen (g ed ccline)) 0) (not (== c (e Ctrl_W))) (nil? (.cmdprompt (g ed ccline))) (== indent 0))
         (do (dealloc-cmdbuff ed)
-            (if (zero? (g ed cmd-silent))
+            (if (g ed cmd-silent)
+              (do (.set ^T_pos_T (.-search-start isp) (.-save-cursor isp))
+                  (g! ed redraw-cmdline (e TRUE))
+                  (e GOTO_NORMAL_MODE))
               (do (g! ed msg-col 0)
                   (msg-putchar ed 32)
                   (.set ^T_pos_T (.-search-start isp) (.-save-cursor isp))
-                  (g! ed redraw-cmdline (e TRUE))
-                  (e GOTO_NORMAL_MODE))
-              (do (.set ^T_pos_T (.-search-start isp) (.-save-cursor isp))
                   (g! ed redraw-cmdline (e TRUE))
                   (e GOTO_NORMAL_MODE))))
         (e CMDLINE_CHANGED)))))
@@ -184,7 +184,7 @@
           (if literally (e CMDLINE_CHANGED) (e CMDLINE_NOT_CHANGED)))
       (let [literally (== i (e Ctrl_R))]
         (cmdline-paste ed c literally false)
-        (g! ed KeyTyped (e FALSE))
+        (g! ed KeyTyped false)
         (redrawcmd ed)
         (if literally (e CMDLINE_CHANGED) (e CMDLINE_NOT_CHANGED))))))
 
@@ -533,10 +533,10 @@
                 (changed-cline-bef-curs ed)
                 (update-topline ed)
                 (validate-cursor ed)
-                (g! ed highlight-match (e TRUE))
+                (g! ed highlight-match true)
                 (save-viewstate ed (.-old-viewstate is-state))
                 (update-screen ed (e UPD_NOT_VALID))
-                (g! ed highlight-match (e FALSE))
+                (g! ed highlight-match false)
                 (redrawcmdline ed)
                 (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-match-end is-state))
                 (restore-last-search-pattern ed)
@@ -625,7 +625,7 @@
                 (do (ExpandInit xpc)
                     (.set-xpc (g ed ccline) xpc)
                     (clear-cmdline-orig ed)
-                    (when (zero? (g ed cmd-silent))
+                    (when-not (g ed cmd-silent)
                       (let [i (g ed msg-scrolled)]
                         (g! ed msg-scrolled 0)
                         (gotocmdline ed true)
@@ -651,7 +651,7 @@
           (let [trigger-cmdlinechanged true
                 prev-cmdpos (.cmdpos (g ed ccline))
                 ^BytePtr prev-cmdbuff nil
-                _ (g! ed quit-more (e FALSE))
+                _ (g! ed quit-more false)
                 _ (g! ed did-emsg (e FALSE))
                 some-key-typed (if (and (== (g ed ex-normal-busy) 0) (stuff-empty? ed) (== (.tb-len (g ed typebuf)) 0))
                                  true
@@ -678,9 +678,9 @@
                             (recur 3 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
                         (recur 3 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))))))
         3
-          (let [some-key-typed (if (zero? (g ed KeyTyped))
-                                 some-key-typed
-                                 true)]
+          (let [some-key-typed (if (g ed KeyTyped)
+                                 true
+                                 some-key-typed)]
             (when (and (or (== c (e Ctrl_C)) (== c (g ed intr-char))) (zero? (g ed global-busy)))
               (g! ed got-int (e FALSE)))
             (let [j__1 (if (and (some? lookfor) (not (== c (e K_S_DOWN))) (not (== c (e K_S_UP))) (not (== c (e K_DOWN))) (not (== c (e K_UP))) (not (== c (e K_PAGEDOWN))) (not (== c (e K_PAGEUP))) (not (== c (e K_KPAGEDOWN))) (not (== c (e K_KPAGEUP))) (not (== c (e K_LEFT))) (not (== c (e K_RIGHT))) (or (> (.xp-numfiles xpc) 0) (and (not (== c (e Ctrl_P))) (not (== c (e Ctrl_N))))))
@@ -706,20 +706,20 @@
                           (recur 4 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))))))
                 (recur 4 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))))
         4
-          (if (or (== c 10) (== c 13) (== c (e K_KENTER)) (and (== c (e ESC)) (or (zero? (g ed KeyTyped)) (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_ESC))))))
+          (if (or (== c 10) (== c 13) (== c (e K_KENTER)) (and (== c (e ESC)) (or (not (g ed KeyTyped)) (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_ESC))))))
             (do (aset gotesc 0 (unchecked-int (e FALSE)))
-                (if (zero? (g ed cmd-silent))
+                (if (g ed cmd-silent)
+                  (recur 10 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
                   (do (windgoto ed (g ed msg-row) (g ed cmdline-col-off))
                       (out-flush ed)
-                      (recur 10 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))
-                  (recur 10 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
+                      (recur 10 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos))))
             (do (aset gotesc 0 (unchecked-int (e FALSE)))
                 (let [c (if (or (== c (e NUL)) (== c -22783))
                           (e NL)
                           c)
                       do-abbr true]
                   (if (or (== wild-type (e WILD_CANCEL)) (== wild-type (e WILD_APPLY)))
-                    (do (when (or (not (zero? (g ed KeyTyped))) (== (long (vpeekc ed)) (e NUL)))
+                    (do (when (or (g ed KeyTyped) (== (long (vpeekc ed)) (e NUL)))
                           (may-do-incsearch-highlighting ed firstc count_ is-state))
                         (let [wild-type 0]
                           (recur 11 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
@@ -792,7 +792,7 @@
                             (let [c (long (get-literal ed (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_SHIFT))))
                                   do-abbr false]
                               (g! ed extra-char (e NUL))
-                              (if (and (utf-iscomposing? ed c) (zero? (g ed cmd-silent)))
+                              (if (and (utf-iscomposing? ed c) (not (g ed cmd-silent)))
                                 (do (draw-cmdline ed (.cmdpos (g ed ccline)) (i32 (- (.cmdlen (g ed ccline)) (.cmdpos (g ed ccline)))))
                                     (msg-putchar ed 32)
                                     (cursorcmd ed)
@@ -832,7 +832,7 @@
           (if (>= (.cmdpos (g ed ccline)) (.cmdlen (g ed ccline)))
             (recur 8 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
             (let [i (long (cmdline-charsize ed (.cmdpos (g ed ccline))))]
-              (if (and (not (zero? (g ed KeyTyped))) (>= (i32 (+ (.cmdspos (g ed ccline)) i)) (* (g ed cmdline-width) (aget (g ed Rows) 0))))
+              (if (and (g ed KeyTyped) (>= (i32 (+ (.cmdspos (g ed ccline)) i)) (* (g ed cmdline-width) (aget (g ed Rows) 0))))
                 (recur 8 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
                 (do (.set-cmdspos (g ed ccline) (i32 (+ (.cmdspos (g ed ccline)) i)))
                     (let [t3 (long (utfc-ptr2len ed (.add ^BytePtr (.cmdbuff (g ed ccline)) (.cmdpos (g ed ccline)))))]
@@ -883,7 +883,7 @@
               (recur 12 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
               (recur 1 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)))
         12
-          (do (when (or (not (zero? (g ed KeyTyped))) (== (long (vpeekc ed)) (e NUL)))
+          (do (when (or (g ed KeyTyped) (== (long (vpeekc ed)) (e NUL)))
                 (may-do-incsearch-highlighting ed firstc count_ is-state))
               (if (and trigger-cmdlinechanged (or (not (== (.cmdpos (g ed ccline)) prev-cmdpos)) (and (some? prev-cmdbuff) (not (== (long (musl-strcmp prev-cmdbuff (.cmdbuff (g ed ccline)))) 0)))))
                 (recur 1 firstc count_ indent clear-ccline c i j do-abbr lookfor lookforlen hiscnt histype save-msg-scroll save-State some-key-typed did-save-ccline wild-type prev-cmdbuff trigger-cmdlinechanged prev-cmdpos)
@@ -1147,10 +1147,9 @@
     nil))
 
 ;; C: u_undo_end
-(defn u-undo-end [^Editor ed ^long did-undo absolute]
+(defn u-undo-end [^Editor ed did-undo absolute]
   (let [^bytes msgbuf (byte-array 80)
-        ^longs tl__ (long-array 1)
-        ^objects to__ (object-array 1)]
+        ^objects to__ (object-array 2)]
     (when-not (or (not (zero? (g ed global-busy))) (not (messaging ed)) (shortmess ed (e SHM_UNDO)))
       (when-not (zero? (bit-and (.ml-flags ^S_memline (.-b-ml (g ed curbuf))) (e ML_EMPTY)))
         (g! ed u-newcount (dec (g ed u-newcount))))
@@ -1170,31 +1169,31 @@
             j__1 (if (some? (.b-u-curhead (g ed curbuf)))
                    (if (and absolute (some? (.uh-next ^S_u_header (.b-u-curhead (g ed curbuf)))))
                      (let [^S_u_header uhp (.uh-next ^S_u_header (.b-u-curhead (g ed curbuf)))
-                           did-undo (e FALSE)]
-                       (aset tl__ 0 did-undo)
-                       (aset to__ 0 uhp)
+                           did-undo false]
+                       (aset to__ 0 (Boolean/valueOf (boolean did-undo)))
+                       (aset to__ 1 uhp)
                        0)
-                     (if (zero? did-undo)
-                       (let [^S_u_header uhp (.uh-next ^S_u_header (.b-u-curhead (g ed curbuf)))]
-                         (aset tl__ 0 did-undo)
-                         (aset to__ 0 uhp)
-                         0)
+                     (if did-undo
                        (let [^S_u_header uhp (.b-u-curhead (g ed curbuf))]
-                         (aset tl__ 0 did-undo)
-                         (aset to__ 0 uhp)
+                         (aset to__ 0 (Boolean/valueOf (boolean did-undo)))
+                         (aset to__ 1 uhp)
+                         0)
+                       (let [^S_u_header uhp (.uh-next ^S_u_header (.b-u-curhead (g ed curbuf)))]
+                         (aset to__ 0 (Boolean/valueOf (boolean did-undo)))
+                         (aset to__ 1 uhp)
                          0)))
                    (let [^S_u_header uhp (.b-u-newhead (g ed curbuf))]
-                     (aset tl__ 0 did-undo)
-                     (aset to__ 0 uhp)
+                     (aset to__ 0 (Boolean/valueOf (boolean did-undo)))
+                     (aset to__ 1 uhp)
                      0))
-            did-undo (aget tl__ 0)
-            ^S_u_header uhp (aget to__ 0)]
+            did-undo (boolean (aget to__ 0))
+            ^S_u_header uhp (aget to__ 1)]
         (if (nil? uhp)
           (aset msgbuf 0 (unchecked-byte (e NUL)))
           (add-time ed (BytePtr. msgbuf 0) 80 (.uh-time uhp)))
-        (when-not (zero? (g ed VIsual-active))
+        (when (g ed VIsual-active)
           (check-pos ed (g ed curbuf) (g ed VIsual)))
-        (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (BytePtr/lit "%ld %s; %s #%ld  %s") (object-array [(Long/valueOf (if (< (g ed u-oldcount) 0) (- (g ed u-oldcount)) (g ed u-oldcount))) msgstr (if (zero? did-undo) (BytePtr/lit "after") (BytePtr/lit "before")) (Long/valueOf (if (nil? uhp) 0 (.uh-seq uhp))) (BytePtr. msgbuf 0)]))
+        (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (BytePtr/lit "%ld %s; %s #%ld  %s") (object-array [(Long/valueOf (if (< (g ed u-oldcount) 0) (- (g ed u-oldcount)) (g ed u-oldcount))) msgstr (if did-undo (BytePtr/lit "before") (BytePtr/lit "after")) (Long/valueOf (if (nil? uhp) 0 (.uh-seq uhp))) (BytePtr. msgbuf 0)]))
         (msg-attr-keep ed (iobuff-or ed (BytePtr/lit "%ld %s; %s #%ld  %s")) 0 true)
         nil))))
 
@@ -1461,7 +1460,7 @@
                           (if (zero? (g ed got-int))
                             (let [^S_u_header uhp (.b-u-curhead (g ed curbuf))]
                               (if (nil? uhp)
-                                (do (u-undo-end ed (if did-undo 1 0) absolute)
+                                (do (u-undo-end ed did-undo absolute)
                                     nil)
                                 (let [l__7 (loop [^S_u_header uhp uhp]
                                              (if (and (some? (.uh-alt-prev uhp)) (== (.uh-walk ^S_u_header (.uh-alt-prev uhp)) mark))
@@ -1504,7 +1503,7 @@
                                   (if (== (.uh-walk uhp) mark)
                                     (if (and (== (.uh-seq uhp) target) above)
                                       (do (.set-b-u-seq-cur (g ed curbuf) (- target 1))
-                                          (u-undo-end ed (if did-undo 1 0) absolute)
+                                          (u-undo-end ed did-undo absolute)
                                           nil)
                                       (do (u-undoredo ed false)
                                           (when (nil? (.uh-prev uhp))
@@ -1512,21 +1511,21 @@
                                           (.set-b-u-curhead (g ed curbuf) (.uh-prev uhp))
                                           (let [did-undo false]
                                             (if (== (.uh-seq uhp) target)
-                                              (do (u-undo-end ed (if did-undo 1 0) absolute)
+                                              (do (u-undo-end ed did-undo absolute)
                                                   nil)
                                               (let [^S_u_header uhp (.uh-prev uhp)]
                                                 (if (or (nil? uhp) (not (== (.uh-walk uhp) mark)))
                                                   (do (internal-error ed (BytePtr/lit "undo_time()"))
-                                                      (u-undo-end ed (if did-undo 1 0) absolute)
+                                                      (u-undo-end ed did-undo absolute)
                                                       nil)
                                                   (recur (boolean did-undo))))))))
-                                    (do (u-undo-end ed (if did-undo 1 0) absolute)
+                                    (do (u-undo-end ed did-undo absolute)
                                         nil)))))
-                            (do (u-undo-end ed (if did-undo 1 0) absolute)
+                            (do (u-undo-end ed did-undo absolute)
                                 nil)))
-                        (do (u-undo-end ed (if did-undo 1 0) absolute)
+                        (do (u-undo-end ed did-undo absolute)
                             nil)))
-                  (do (u-undo-end ed (if did-undo 1 0) absolute)
+                  (do (u-undo-end ed did-undo absolute)
                       nil)))))))))
 
 ;; C: u_doit
@@ -1543,14 +1542,7 @@
           (if (zero? t1)
             (do (u-undo-end ed (g ed undo-undoes) false)
                 nil)
-            (let [j__1 (if (zero? (g ed undo-undoes))
-                         (if (or (nil? (.b-u-curhead (g ed curbuf))) (<= (long (get-undolevel ed)) 0))
-                           1
-                           (do (u-undoredo ed false)
-                               (when (nil? (.uh-prev ^S_u_header (.b-u-curhead (g ed curbuf))))
-                                 (.set-b-u-newhead (g ed curbuf) (.b-u-curhead (g ed curbuf))))
-                               (.set-b-u-curhead (g ed curbuf) (.uh-prev ^S_u_header (.b-u-curhead (g ed curbuf))))
-                               0))
+            (let [j__1 (if (g ed undo-undoes)
                          (do (if (nil? (.b-u-curhead (g ed curbuf)))
                                (.set-b-u-curhead (g ed curbuf) (.b-u-newhead (g ed curbuf)))
                                (when (> (long (get-undolevel ed)) 0)
@@ -1558,7 +1550,14 @@
                              (if (or (== (.b-u-numhead (g ed curbuf)) 0) (nil? (.b-u-curhead (g ed curbuf))))
                                2
                                (do (u-undoredo ed true)
-                                   0))))]
+                                   0)))
+                         (if (or (nil? (.b-u-curhead (g ed curbuf))) (<= (long (get-undolevel ed)) 0))
+                           1
+                           (do (u-undoredo ed false)
+                               (when (nil? (.uh-prev ^S_u_header (.b-u-curhead (g ed curbuf))))
+                                 (.set-b-u-newhead (g ed curbuf) (.b-u-curhead (g ed curbuf))))
+                               (.set-b-u-curhead (g ed curbuf) (.uh-prev ^S_u_header (.b-u-curhead (g ed curbuf))))
+                               0)))]
               (case (long j__1)
                 0
                   (recur count_)
@@ -1587,10 +1586,10 @@
                  (do (u-sync ed true)
                      1))]
     (if (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_UNDO)))
-      (do (g! ed undo-undoes (e TRUE))
+      (do (g! ed undo-undoes true)
           (u-doit ed count_)
           nil)
-      (do (g! ed undo-undoes (if (zero? (g ed undo-undoes)) 1 0))
+      (do (g! ed undo-undoes (not (g ed undo-undoes)))
           (u-doit ed count_)
           nil))))
 
@@ -1605,7 +1604,7 @@
 ;; C: u_redo
 (defn u-redo [^Editor ed ^long count_]
   (if (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_UNDO)))
-    (do (g! ed undo-undoes (e FALSE))
+    (do (g! ed undo-undoes false)
         (u-doit ed count_)
         nil)
     (do (u-doit ed count_)
@@ -1698,7 +1697,7 @@
     (aset (g ed p-lz) 0 (unchecked-int (e FALSE)))
     (validate-cursor ed)
     (update-topline ed)
-    (update-screen ed (if clear (e UPD_CLEAR) (if (zero? (g ed VIsual-active)) 0 (e UPD_INVERTED))))
+    (update-screen ed (if clear (e UPD_CLEAR) (if (g ed VIsual-active) (e UPD_INVERTED) 0)))
     (when (== (bit-and (g ed State) (e MODE_CMDLINE)) 0)
       (setcursor ed))
     (g! ed RedrawingDisabled save-RedrawingDisabled)
@@ -1724,14 +1723,14 @@
   (if (.forceit eap)
     (status-redraw-all ed)
     (status-redraw-curbuf ed))
-  (g! ed redraw-vseps (e TRUE))
+  (g! ed redraw-vseps true)
   (when-not (and (not (zero? (g ed msg-scrolled))) (not (zero? (bit-and (g ed State) (e MODE_CMDLINE)))))
     (let [save-RedrawingDisabled (g ed RedrawingDisabled)
           _ (g! ed RedrawingDisabled 0)
           save-p-lz (long (aget (g ed p-lz) 0))]
       (aset (g ed p-lz) 0 (unchecked-int (e FALSE)))
       (if (zero? (bit-and (g ed State) (e MODE_CMDLINE)))
-        (update-screen ed (if (zero? (g ed VIsual-active)) 0 (e UPD_INVERTED)))
+        (update-screen ed (if (g ed VIsual-active) (e UPD_INVERTED) 0))
         (redraw-statuslines ed))
       (g! ed RedrawingDisabled save-RedrawingDisabled)
       (aset (g ed p-lz) 0 (unchecked-int save-p-lz))
@@ -1933,7 +1932,7 @@
         l__1 (loop [c c
                     ctrl-w ctrl-w
                     need-flushbuf need-flushbuf]
-               (if (and (not (zero? (g ed VIsual-active))) (not (zero? (g ed VIsual-select))))
+               (if (and (g ed VIsual-active) (not (zero? (g ed VIsual-select))))
                  (do (aset tl__ 0 c)
                      (aset tl__ 1 ctrl-w)
                      (aset tl__ 2 need-flushbuf)
@@ -2103,7 +2102,7 @@
 
 ;; C: normal_cmd_needs_more_chars
 (defn normal-cmd-needs-more-chars? [^Editor ed ^S_cmdarg_S cap ^long cmd-flags]
-  (and (not (zero? (bit-and cmd-flags (e NV_NCH)))) (or (and (== (bit-and cmd-flags 3) 3) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (== (bit-and cmd-flags 5) 5) (and (== (.cmdchar cap) 113) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)) (== (g ed reg-recording) 0) (== (g ed reg-executing) 0)) (and (or (== (.cmdchar cap) 97) (== (.cmdchar cap) 105)) (or (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (not (zero? (g ed VIsual-active))))))))
+  (and (not (zero? (bit-and cmd-flags (e NV_NCH)))) (or (and (== (bit-and cmd-flags 3) 3) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (== (bit-and cmd-flags 5) 5) (and (== (.cmdchar cap) 113) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)) (== (g ed reg-recording) 0) (== (g ed reg-executing) 0)) (and (or (== (.cmdchar cap) 97) (== (.cmdchar cap) 105)) (or (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (g ed VIsual-active))))))
 
 ;; C: get_op_type
 (defn get-op-type ^long [^Editor ed ^long char1 ^long char2]
@@ -2323,7 +2322,7 @@
 
 (defn AppendToRedobuffSpec [^Editor ed ^BytePtr s]
   (let [^T_mb_cptr2char_adv__out_T mb-cptr2char-adv__o (new-T_mb_cptr2char_adv__out_T)]
-    (when (zero? (g ed block-redo))
+    (when-not (g ed block-redo)
       (loop [^BytePtr s s]
         (when-not (== (.ub s) (e NUL))
           (let [^BytePtr s (if (and (== (.ub s) 128) (not (== (.ub s 1) (e NUL))) (not (== (.ub s 2) (e NUL))))
@@ -2346,7 +2345,7 @@
 (defn unadjust-for-sel-inner [^Editor ed ^T_pos_T pp]
   (let [^ints cs (int-array 1)
         ^ints ce (int-array 1)]
-    (g! ed VIsual-select-exclu-adj (e FALSE))
+    (g! ed VIsual-select-exclu-adj false)
     (if (> (.coladd pp) 0)
       (do (.set-coladd pp (i32 (dec (.coladd pp))))
           false)
@@ -2384,7 +2383,7 @@
             (.set-block-mode oap (e TRUE))
             (mb-adjustpos ed (.w-buffer (g ed curwin)) (.-end oap))
             (getvvcol ed (g ed curwin) (.-start oap) (IntPtr. ^ints (.-start-vcol oap) 0) nil (IntPtr. ^ints (.-end-vcol oap) 0) 0)
-            (when (zero? (g ed redo-VIsual-busy))
+            (when-not (g ed redo-VIsual-busy)
               (getvvcol ed (g ed curwin) (.-end oap) (IntPtr. start 0) nil (IntPtr. end 0) 0)
               (when (< (long (aget start 0)) (long (aget ^ints (.-start-vcol oap) 0)))
                 (aset ^ints (.-start-vcol oap) 0 (unchecked-int (long (aget start 0)))))
@@ -2397,10 +2396,10 @@
                   (aset ^ints (.-end-vcol oap) 0 (unchecked-int 0))
                   (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.lnum ^T_pos_T (.-start oap)))
                   (recur 1 oap redo-VIsual-vcol initial))
-              (if (zero? (g ed redo-VIsual-busy))
-                (recur 2 oap redo-VIsual-vcol initial)
+              (if (g ed redo-VIsual-busy)
                 (do (aset ^ints (.-end-vcol oap) 0 (unchecked-int (- (i32 (+ (long (aget ^ints (.-start-vcol oap) 0)) redo-VIsual-vcol)) 1)))
-                    (recur 2 oap redo-VIsual-vcol initial)))))
+                    (recur 2 oap redo-VIsual-vcol initial))
+                (recur 2 oap redo-VIsual-vcol initial))))
         1
           (if (<= (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum ^T_pos_T (.-end oap)))
             (do (getvvcol ed (g ed curwin) (.-w-cursor (g ed curwin)) nil nil (IntPtr. end 0) 0)
@@ -2423,7 +2422,7 @@
   (bit-and (long (aget ^bytes (aget (g ed opchars) op) 2)) (e OPF_LINES)))
 
 (defn CancelRedo [^Editor ed]
-  (when (zero? (g ed block-redo))
+  (when-not (g ed block-redo)
     (free-buff (g ed redobuff))
     (.set (g ed redobuff) (g ed old-redobuff))
     (.set-b-next ^S_buffblock (.-bh-first (g ed old-redobuff)) nil)
@@ -3211,15 +3210,15 @@
         firstdigit (aget tl__ 14)
         negative (aget tl__ 2)
         was-positive (boolean (aget to__ 2))
-        visual (aget tl__ 15)
+        visual (boolean (aget to__ 12))
         did-change (boolean (aget to__ 3))
-        maxlen (aget tl__ 16)
+        maxlen (aget tl__ 15)
         startpos-lnum (aget tl__ 3)
         startpos-col (aget tl__ 4)
         startpos-coladd (aget tl__ 5)
-        ^bytes buf2 (aget to__ 12)
-        ^ints overflow (aget to__ 13)]
-    (let [j__5 (if (and (and (and (and (> col 0) (== (.ub ptr (i32 (- col 1))) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (zero? visual)) (not do-unsigned))
+        ^bytes buf2 (aget to__ 13)
+        ^ints overflow (aget to__ 14)]
+    (let [j__5 (if (and (and (and (and (> col 0) (== (.ub ptr (i32 (- col 1))) 45)) (zero? (long (utf-head-off ed ptr (.add (.add ptr col) (- 1)))))) (not visual)) (not do-unsigned))
                 (if (and (and do-blank (>= col 2)) (not (or (== (.ub ptr (i32 (- col 2))) 32) (== (.ub ptr (i32 (- col 2))) 9))))
                   (let [blank-unsigned true]
                     (do (aset tl__ 0 col)
@@ -3239,7 +3238,7 @@
       (let [col (aget tl__ 0)
             blank-unsigned (boolean (aget to__ 1))
             negative (aget tl__ 2)]
-        (let [maxlen (if (and (not (zero? visual)) (not (== (g ed VIsual-mode) 86)))
+        (let [maxlen (if (and visual (not (== (g ed VIsual-mode) 86)))
                       (let [maxlen (if (== (.vi-curswant ^T_visualinfo_T (.-b-visual (g ed curbuf))) (e MAXCOL)) (i32 (- linelen col)) length)]
                         maxlen)
                       maxlen)]
@@ -3303,7 +3302,7 @@
                                               (let [negative (e FALSE)]
                                                 negative))
                                             negative)]
-                              (let [j__7 (if (and (and (and (not (zero? visual)) (not was-positive)) (zero? negative)) (> col 0))
+                              (let [j__7 (if (and (and (and visual (not was-positive)) (zero? negative)) (> col 0))
                                           (let [col (i32 (dec col))
                                                 length (i32 (inc length))]
                                             (do (aset tl__ 1 length)
@@ -3361,7 +3360,7 @@
                                                       _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-pos-coladd)
                                                       ^BytePtr buf1 (BytePtr/alloc (i32 (+ length (e NUMBUFLEN))))
                                                       ^BytePtr ptr buf1]
-                                                  (let [^BytePtr ptr (if (and (not (zero? negative)) (or (zero? visual) was-positive))
+                                                  (let [^BytePtr ptr (if (and (not (zero? negative)) (or (not visual) was-positive))
                                                                       (let [^BytePtr t7 ptr
                                                                             ^BytePtr ptr (.add ptr 1)
                                                                             _ (.put t7 (unchecked-byte 45))]
@@ -3498,7 +3497,7 @@
 
 (defn- do-addsub__r1 [^Editor ed ^longs tl__ ^objects to__]
   (let [op-type (aget tl__ 11)
-        ^T_pos_T pos (aget to__ 14)
+        ^T_pos_T pos (aget to__ 15)
         length (aget tl__ 1)
         Prenum1 (aget tl__ 12)
         col (aget tl__ 0)
@@ -3509,27 +3508,28 @@
         do-hex (boolean (aget to__ 7))
         do-oct (boolean (aget to__ 8))
         do-bin (boolean (aget to__ 9))
-        do-alpha (boolean (aget to__ 15))
+        do-alpha (boolean (aget to__ 16))
         do-unsigned (boolean (aget to__ 10))
         do-blank (boolean (aget to__ 11))
         blank-unsigned (boolean (aget to__ 1))
         negative (aget tl__ 2)
         was-positive (boolean (aget to__ 2))
-        visual (aget tl__ 15)
+        visual (boolean (aget to__ 12))
         did-change (boolean (aget to__ 3))
-        save-cursor-lnum (aget tl__ 17)
-        save-cursor-col (aget tl__ 18)
-        save-cursor-coladd (aget tl__ 19)
-        maxlen (aget tl__ 16)
+        save-cursor-lnum (aget tl__ 16)
+        save-cursor-col (aget tl__ 17)
+        save-cursor-coladd (aget tl__ 18)
+        maxlen (aget tl__ 15)
         startpos-lnum (aget tl__ 3)
         startpos-col (aget tl__ 4)
         startpos-coladd (aget tl__ 5)
-        save-coladd (aget tl__ 20)
-        ^bytes buf2 (aget to__ 12)
-        ^ints overflow (aget to__ 13)]
+        save-coladd (aget tl__ 19)
+        ^bytes buf2 (aget to__ 13)
+        ^ints overflow (aget to__ 14)]
     (let [did-change (boolean (if (>= (i32 (+ col (if (not (zero? save-coladd)) 1 0))) linelen)
                       did-change
-                      (let [col (long (if (zero? (g ed VIsual-active))
+                      (let [col (long (if (g ed VIsual-active)
+                                 col
                                  (let [col (long (if do-bin
                                             (loop [col col]
                                               (if (and (> col 0) (vim-isbdigit? (.ub ptr col)))
@@ -3578,15 +3578,8 @@
                                                          t6 (long (utf-head-off ed ptr (.add ptr col)))
                                                          col (i32 (- col t6))]
                                                      (recur col))
-                                                   col)))))))))
-                                 col))]
-                        (let [j__3 (if (zero? visual)
-                                    (do (aset tl__ 1 length)
-                                        (aset tl__ 0 col)
-                                        (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
-                                        (aset tl__ 2 negative)
-                                        (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                        0)
+                                                   col)))))))))))]
+                        (let [j__3 (if visual
                                     (let [l__2 (loop [length length
                                                      col col]
                                                 (if (and (and (and (not (== (.ub ptr col) (e NUL))) (> length 0)) (not (vim-isdigit? (.ub ptr col)))) (not (and do-alpha (or (ascii-isupper? (.ub ptr col)) (ascii-islower? (.ub ptr col))))))
@@ -3623,7 +3616,13 @@
                                                 (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
                                                 (aset tl__ 2 negative)
                                                 (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                                0))))))]
+                                                0)))))
+                                    (do (aset tl__ 1 length)
+                                        (aset tl__ 0 col)
+                                        (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
+                                        (aset tl__ 2 negative)
+                                        (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
+                                        0))]
                           (case (long j__3)
                             0
                               (let [length (aget tl__ 1)
@@ -3701,14 +3700,14 @@
                                                      (aset tl__ 14 firstdigit)
                                                      (aset tl__ 2 negative)
                                                      (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-                                                     (aset tl__ 15 visual)
+                                                     (aset to__ 12 (Boolean/valueOf (boolean visual)))
                                                      (aset to__ 3 (Boolean/valueOf (boolean did-change)))
-                                                     (aset tl__ 16 maxlen)
+                                                     (aset tl__ 15 maxlen)
                                                      (aset tl__ 3 startpos-lnum)
                                                      (aset tl__ 4 startpos-col)
                                                      (aset tl__ 5 startpos-coladd)
-                                                     (aset to__ 12 buf2)
-                                                     (aset to__ 13 overflow)
+                                                     (aset to__ 13 buf2)
+                                                     (aset to__ 14 overflow)
                                                      (do-addsub__r0 ed tl__ to__)))]
                                       (let [did-change (boolean (aget to__ 3))
                                             startpos-lnum (aget tl__ 3)
@@ -3731,18 +3730,18 @@
                                           did-change))))))
                             1
                               did-change)))))]
-      (if (zero? visual)
+      (if visual
+        (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-lnum)
+              _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-col)
+              _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-coladd)]
+          did-change)
         (if did-change
           (let [_ (.set-w-set-curswant (g ed curwin) (boolean true))]
             did-change)
           (if (zero? (long (virtual-active ed)))
             did-change
             (let [_ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-coladd)]
-              did-change)))
-        (let [_ (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-lnum)
-              _ (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-col)
-              _ (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) save-cursor-coladd)]
-          did-change)))))
+              did-change)))))))
 
 ;; C: do_addsub
 (defn do-addsub [^Editor ed op-type ^T_pos_T pos length Prenum1]
@@ -3756,8 +3755,8 @@
         startpos-lnum 0
         startpos-col 0
         startpos-coladd 0
-        ^longs tl__ (long-array 21)
-        ^objects to__ (object-array 16)
+        ^longs tl__ (long-array 20)
+        ^objects to__ (object-array 17)
         blank-unsigned false
         negative (e FALSE)
         was-positive true
@@ -3784,7 +3783,7 @@
           linelen (long (ml-get-len ed (.lnum pos)))
           col (.col pos)]
       (aset tl__ 11 op-type)
-      (aset to__ 14 pos)
+      (aset to__ 15 pos)
       (aset tl__ 1 length)
       (aset tl__ 12 Prenum1)
       (aset tl__ 0 col)
@@ -3795,24 +3794,24 @@
       (aset to__ 7 (Boolean/valueOf (boolean do-hex)))
       (aset to__ 8 (Boolean/valueOf (boolean do-oct)))
       (aset to__ 9 (Boolean/valueOf (boolean do-bin)))
-      (aset to__ 15 (Boolean/valueOf (boolean do-alpha)))
+      (aset to__ 16 (Boolean/valueOf (boolean do-alpha)))
       (aset to__ 10 (Boolean/valueOf (boolean do-unsigned)))
       (aset to__ 11 (Boolean/valueOf (boolean do-blank)))
       (aset to__ 1 (Boolean/valueOf (boolean blank-unsigned)))
       (aset tl__ 2 negative)
       (aset to__ 2 (Boolean/valueOf (boolean was-positive)))
-      (aset tl__ 15 visual)
+      (aset to__ 12 (Boolean/valueOf (boolean visual)))
       (aset to__ 3 (Boolean/valueOf (boolean did-change)))
-      (aset tl__ 17 save-cursor-lnum)
-      (aset tl__ 18 save-cursor-col)
-      (aset tl__ 19 save-cursor-coladd)
-      (aset tl__ 16 maxlen)
+      (aset tl__ 16 save-cursor-lnum)
+      (aset tl__ 17 save-cursor-col)
+      (aset tl__ 18 save-cursor-coladd)
+      (aset tl__ 15 maxlen)
       (aset tl__ 3 startpos-lnum)
       (aset tl__ 4 startpos-col)
       (aset tl__ 5 startpos-coladd)
-      (aset tl__ 20 save-coladd)
-      (aset to__ 12 buf2)
-      (aset to__ 13 overflow)
+      (aset tl__ 19 save-coladd)
+      (aset to__ 13 buf2)
+      (aset to__ 14 overflow)
       (boolean (do-addsub__r1 ed tl__ to__)))))
 
 ;; C: op_addsub
@@ -3825,13 +3824,7 @@
         ^longs tl__ (long-array 4)
         change-cnt 0
         amount Prenum1]
-    (if (zero? (g ed VIsual-active))
-      (do (.set pos (.-w-cursor (g ed curwin)))
-          (when (u-save-cursor ed)
-            (let [change-cnt (if (do-addsub ed (.op-type oap) pos 0 amount) 1 0)]
-              (when-not (zero? change-cnt)
-                (changed-lines ed (.lnum pos) 0 (+ (.lnum pos) 1) 0)
-                nil))))
+    (if (g ed VIsual-active)
       (when (u-save ed (- (.lnum ^T_pos_T (.-start oap)) 1) (+ (.lnum ^T_pos_T (.-end oap)) 1))
         (.set pos (.-start oap))
         (loop [change-cnt change-cnt
@@ -3910,7 +3903,13 @@
                 (when (> change-cnt (aget (g ed p-report) 0))
                   (whim.cljhost/vim-snprintf ed (g ed IObuff) (long (iobuff-room ed)) (NGETTEXT (BytePtr/lit "%d line changed") (BytePtr/lit "%d lines changed") change-cnt) (object-array [(Integer/valueOf (unchecked-int change-cnt))]))
                   (msg ed (iobuff-or ed (NGETTEXT (BytePtr/lit "%d line changed") (BytePtr/lit "%d lines changed") change-cnt)))
-                  nil))))))))
+                  nil)))))
+      (do (.set pos (.-w-cursor (g ed curwin)))
+          (when (u-save-cursor ed)
+            (let [change-cnt (if (do-addsub ed (.op-type oap) pos 0 amount) 1 0)]
+              (when-not (zero? change-cnt)
+                (changed-lines ed (.lnum pos) 0 (+ (.lnum pos) 1) 0)
+                nil)))))))
 
 ;; C: do_pending_operator
 (defn do-pending-operator [^Editor ed ^S_cmdarg_S cap ^long old-col gui-yank]
@@ -3919,9 +3918,9 @@
         old-cursor-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
         old-cursor-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
         old-cursor-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))]
-    (when (and (or (not (zero? (g ed finish-op))) (not (zero? (g ed VIsual-active)))) (not (== (.op-type oap) (e OP_NOP))))
+    (when (and (or (not (zero? (g ed finish-op))) (g ed VIsual-active)) (not (== (.op-type oap) (e OP_NOP))))
       (let [redo-yank (and (some? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_YANK))) (not gui-yank))]
-        (.set-is-VIsual oap (g ed VIsual-active))
+        (.set-is-VIsual oap (if (g ed VIsual-active) 1 0))
         (if (== (.motion-force oap) 86)
           (.set-motion-type oap (e MLINE))
           (if (== (.motion-force oap) 118)
@@ -3931,13 +3930,13 @@
                     (.set-inclusive oap (if (zero? (.inclusive oap)) 1 0))))
                 (.set-motion-type oap (e MCHAR)))
             (when (== (.motion-force oap) (e Ctrl_V))
-              (when (zero? (g ed VIsual-active))
-                (g! ed VIsual-active (e TRUE))
+              (when-not (g ed VIsual-active)
+                (g! ed VIsual-active true)
                 (.set (g ed VIsual) (.-start oap)))
               (g! ed VIsual-mode (e Ctrl_V))
               (g! ed VIsual-select (e FALSE))
-              (g! ed VIsual-reselect (e FALSE)))))
-        (when (and (or redo-yank (not (== (.op-type oap) (e OP_YANK)))) (or (zero? (g ed VIsual-active)) (not (zero? (.motion-force oap))) (and (not (zero? (g ed VIsual-active))) (is-ex-cmdchar? cap) (not (== (.op-type oap) (e OP_COLON))))) (not (== (.cmdchar cap) 68)))
+              (g! ed VIsual-reselect false))))
+        (when (and (or redo-yank (not (== (.op-type oap) (e OP_YANK)))) (or (not (g ed VIsual-active)) (not (zero? (.motion-force oap))) (and (g ed VIsual-active) (is-ex-cmdchar? cap) (not (== (.op-type oap) (e OP_COLON))))) (not (== (.cmdchar cap) 68)))
           (prep-redo ed (.regname oap) (.count0 cap) (long (get-op-char ed (.op-type oap))) (long (get-extra-op-char ed (.op-type oap))) (.motion-force oap) (.cmdchar cap) (long (aget ^ints (.-nchar cap) 0)))
           (if (or (== (.cmdchar cap) 47) (== (.cmdchar cap) 63))
             (do (when (nil? (vim-strchr ed (aget (g ed p-cpo) 0) (e CPO_REDO)))
@@ -3951,9 +3950,27 @@
                       (AppendToRedobuffSpec ed (g ed repeat-cmdline)))
                     (AppendToRedobuff ed (BytePtr/lit "\n"))
                     (g! ed repeat-cmdline nil))))))
-        (let [include-line-break (if (zero? (g ed redo-VIsual-busy))
-                                   (if (zero? (g ed VIsual-active))
-                                     include-line-break
+        (let [include-line-break (if (g ed redo-VIsual-busy)
+                                   (do (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin)))
+                                       (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (- (.rv-line-count (g ed do-pending-operator-redo-VIsual)) 1)))
+                                       (when (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
+                                         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
+                                       (g! ed VIsual-mode (.rv-mode (g ed do-pending-operator-redo-VIsual)))
+                                       (when (or (== (.rv-vcol (g ed do-pending-operator-redo-VIsual)) (e MAXCOL)) (== (g ed VIsual-mode) 118))
+                                         (if (== (g ed VIsual-mode) 118)
+                                           (if (<= (.rv-line-count (g ed do-pending-operator-redo-VIsual)) 1)
+                                             (do (validate-virtcol ed)
+                                                 (.set-w-curswant (g ed curwin) (i32 (- (i32 (+ (long (aget ^ints (.-w-virtcol (g ed curwin)) 0)) (.rv-vcol (g ed do-pending-operator-redo-VIsual)))) 1))))
+                                             (.set-w-curswant (g ed curwin) (.rv-vcol (g ed do-pending-operator-redo-VIsual))))
+                                           (.set-w-curswant (g ed curwin) (e MAXCOL)))
+                                         (coladvance ed (.w-curswant (g ed curwin))))
+                                       (.set-count0 cap (.rv-count (g ed do-pending-operator-redo-VIsual)))
+                                       (if (== (.rv-count (g ed do-pending-operator-redo-VIsual)) 0)
+                                         (do (.set-count1 cap 1)
+                                             include-line-break)
+                                         (do (.set-count1 cap (.rv-count (g ed do-pending-operator-redo-VIsual)))
+                                             include-line-break)))
+                                   (if (g ed VIsual-active)
                                      (do (when-not gui-yank
                                            (.set ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))) (g ed VIsual))
                                            (.set ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))) (.-w-cursor (g ed curwin)))
@@ -3976,26 +3993,8 @@
                                              (do (.set-col ^T_pos_T (.-start oap) 0)
                                                  (.set-coladd ^T_pos_T (.-start oap) 0)
                                                  include-line-break)
-                                             include-line-break))))
-                                   (do (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin)))
-                                       (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (+ (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (- (.rv-line-count (g ed do-pending-operator-redo-VIsual)) 1)))
-                                       (when (> (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
-                                         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
-                                       (g! ed VIsual-mode (.rv-mode (g ed do-pending-operator-redo-VIsual)))
-                                       (when (or (== (.rv-vcol (g ed do-pending-operator-redo-VIsual)) (e MAXCOL)) (== (g ed VIsual-mode) 118))
-                                         (if (== (g ed VIsual-mode) 118)
-                                           (if (<= (.rv-line-count (g ed do-pending-operator-redo-VIsual)) 1)
-                                             (do (validate-virtcol ed)
-                                                 (.set-w-curswant (g ed curwin) (i32 (- (i32 (+ (long (aget ^ints (.-w-virtcol (g ed curwin)) 0)) (.rv-vcol (g ed do-pending-operator-redo-VIsual)))) 1))))
-                                             (.set-w-curswant (g ed curwin) (.rv-vcol (g ed do-pending-operator-redo-VIsual))))
-                                           (.set-w-curswant (g ed curwin) (e MAXCOL)))
-                                         (coladvance ed (.w-curswant (g ed curwin))))
-                                       (.set-count0 cap (.rv-count (g ed do-pending-operator-redo-VIsual)))
-                                       (if (== (.rv-count (g ed do-pending-operator-redo-VIsual)) 0)
-                                         (do (.set-count1 cap 1)
-                                             include-line-break)
-                                         (do (.set-count1 cap (.rv-count (g ed do-pending-operator-redo-VIsual)))
-                                             include-line-break))))]
+                                             include-line-break)))
+                                     include-line-break))]
           (if (if (== (.lnum ^T_pos_T (.-start oap)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col ^T_pos_T (.-start oap)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd ^T_pos_T (.-start oap)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col ^T_pos_T (.-start oap)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum ^T_pos_T (.-start oap)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
             (do (.set ^T_pos_T (.-end oap) (.-w-cursor (g ed curwin)))
                 (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-start oap))
@@ -4005,9 +4004,9 @@
           (check-pos ed (.w-buffer (g ed curwin)) (.-end oap))
           (.set-line-count oap (+ (- (.lnum ^T_pos_T (.-end oap)) (.lnum ^T_pos_T (.-start oap))) 1))
           (g! ed virtual-op (long (virtual-active ed)))
-          (when (or (not (zero? (g ed VIsual-active))) (not (zero? (g ed redo-VIsual-busy))))
+          (when (or (g ed VIsual-active) (g ed redo-VIsual-busy))
             (get-op-vcol ed oap (.rv-vcol (g ed do-pending-operator-redo-VIsual)) true)
-            (when (and (zero? (g ed redo-VIsual-busy)) (not gui-yank))
+            (when (and (not (g ed redo-VIsual-busy)) (not gui-yank))
               (g! ed resel-VIsual-mode (g ed VIsual-mode))
               (if (== (.w-curswant (g ed curwin)) (e MAXCOL))
                 (g! ed resel-VIsual-vcol (e MAXCOL))
@@ -4034,7 +4033,7 @@
                     (if (and (== opchar 103) (== extra-opchar 64))
                       (prep-redo-num2 ed (.regname oap) 0 (e NUL) 118 (.count0 cap) opchar extra-opchar nchar)
                       (prep-redo ed (.regname oap) 0 (e NUL) 118 opchar extra-opchar nchar)))))
-              (when (zero? (g ed redo-VIsual-busy))
+              (when-not (g ed redo-VIsual-busy)
                 (.set-rv-mode (g ed do-pending-operator-redo-VIsual) (g ed resel-VIsual-mode))
                 (.set-rv-vcol (g ed do-pending-operator-redo-VIsual) (g ed resel-VIsual-vcol))
                 (.set-rv-line-count (g ed do-pending-operator-redo-VIsual) (g ed resel-VIsual-line-count))
@@ -4052,9 +4051,9 @@
                       (.set-col ^T_pos_T (.-end oap) 0)
                       (.set-coladd ^T_pos_T (.-end oap) 0)
                       (.set-line-count oap (inc (.line-count oap)))))))
-            (g! ed redo-VIsual-busy (e FALSE))
+            (g! ed redo-VIsual-busy false)
             (when-not gui-yank
-              (g! ed VIsual-active (e FALSE))
+              (g! ed VIsual-active false)
               (g! ed mouse-dragging 0)
               (may-clear-cmdline ed)
               (when (and (or (== (.op-type oap) (e OP_YANK)) (== (.op-type oap) (e OP_COLON))) (== (.motion-force oap) (e NUL)))
@@ -4089,7 +4088,7 @@
                       (beep-flush ed)
                       (do-join ed (.line-count oap) (== (.op-type oap) (e OP_JOIN)) true true true)))
               2
-                (do (g! ed VIsual-reselect (e FALSE))
+                (do (g! ed VIsual-reselect false)
                     (if empty-region-error
                       (do (vim-beep ed (e BO_OPER))
                           (CancelRedo ed))
@@ -4103,11 +4102,11 @@
                           (op-yank ed oap false (not gui-yank))))
                     (check-cursor-col ed))
               4
-                (do (g! ed VIsual-reselect (e FALSE))
+                (do (g! ed VIsual-reselect false)
                     (if empty-region-error
                       (do (vim-beep ed (e BO_OPER))
                           (CancelRedo ed))
-                      (let [restart-edit-save (if (or (not (zero? (long (aget (g ed p-im) 0)))) (zero? (g ed KeyTyped)))
+                      (let [restart-edit-save (if (or (not (zero? (long (aget (g ed p-im) 0)))) (not (g ed KeyTyped)))
                                                 (g ed restart-edit)
                                                 0)]
                         (g! ed restart-edit 0)
@@ -4125,7 +4124,7 @@
                       (op-tilde ed oap))
                     (check-cursor-col ed))
               7
-                (do (g! ed VIsual-reselect (e FALSE))
+                (do (g! ed VIsual-reselect false)
                     (if empty-region-error
                       (do (vim-beep ed (e BO_OPER))
                           (CancelRedo ed))
@@ -4137,7 +4136,7 @@
                           (g! ed restart-edit restart-edit-save)
                           (.set-retval cap (bit-or (.retval cap) (e CA_COMMAND_BUSY)))))))
               8
-                (do (g! ed VIsual-reselect (e FALSE))
+                (do (g! ed VIsual-reselect false)
                     (if empty-region-error
                       (do (vim-beep ed (e BO_OPER))
                           (CancelRedo ed))
@@ -4146,9 +4145,9 @@
                 (do (if empty-region-error
                       (do (vim-beep ed (e BO_OPER))
                           (CancelRedo ed))
-                      (do (g! ed VIsual-active (e TRUE))
+                      (do (g! ed VIsual-active true)
                           (op-addsub ed oap (.count1 cap) (.rv-arg (g ed do-pending-operator-redo-VIsual)))
-                          (g! ed VIsual-active (e FALSE))))
+                          (g! ed VIsual-active false)))
                     (check-cursor-col ed))
               (clearopbeep ed oap))
             (g! ed virtual-op (e MAYBE))
@@ -4166,14 +4165,14 @@
 
 ;; C: normal_cmd_need_to_wait_for_msg
 (defn normal-cmd-need-to-wait-for-msg? [^Editor ed ^S_cmdarg_S cap ^T_pos_T old-pos]
-  (and (or (and (not (zero? (long (aget (g ed p-smd) 0)))) (== (g ed msg-silent) 0) (or (not (== (g ed restart-edit) 0)) (and (not (zero? (g ed VIsual-active))) (== (.lnum old-pos) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col old-pos) (.col ^T_pos_T (.-w-cursor (g ed curwin)))))) (or (not (zero? (g ed clear-cmdline))) (not (zero? (g ed redraw-cmdline)))) (or (not (zero? (g ed msg-didout))) (and (not (zero? (g ed msg-didany))) (not (zero? (g ed msg-scroll))))) (zero? (g ed msg-nowait)) (not (zero? (g ed KeyTyped)))) (and (not (== (g ed restart-edit) 0)) (zero? (g ed VIsual-active)) (or (not (zero? (g ed msg-scroll))) (not (zero? (g ed emsg-on-display)))))) (== (.regname ^S_oparg_S (.oap cap)) 0) (zero? (bit-and (.retval cap) (e CA_COMMAND_BUSY))) (stuff-empty? ed) (typebuf-typed? ed) (== (g ed emsg-silent) 0) (zero? (g ed in-assert-fails)) (zero? (g ed did-wait-return)) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))))
+  (and (or (and (not (zero? (long (aget (g ed p-smd) 0)))) (== (g ed msg-silent) 0) (or (not (== (g ed restart-edit) 0)) (and (g ed VIsual-active) (== (.lnum old-pos) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col old-pos) (.col ^T_pos_T (.-w-cursor (g ed curwin)))))) (or (g ed clear-cmdline) (not (zero? (g ed redraw-cmdline)))) (or (not (zero? (g ed msg-didout))) (and (g ed msg-didany) (not (zero? (g ed msg-scroll))))) (not (g ed msg-nowait)) (g ed KeyTyped)) (and (not (== (g ed restart-edit) 0)) (not (g ed VIsual-active)) (or (not (zero? (g ed msg-scroll))) (g ed emsg-on-display)))) (== (.regname ^S_oparg_S (.oap cap)) 0) (zero? (bit-and (.retval cap) (e CA_COMMAND_BUSY))) (stuff-empty? ed) (typebuf-typed? ed) (== (g ed emsg-silent) 0) (not (g ed in-assert-fails)) (not (g ed did-wait-return)) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))))
 
 ;; C: normal_cmd_wait_for_msg
 (defn normal-cmd-wait-for-msg [^Editor ed]
   (let [save-State (g ed State)]
     (when-not (== (g ed restart-edit) 0)
       (g! ed State (e MODE_INSERT)))
-    (when (and (not (zero? (g ed must-redraw))) (some? (g ed keep-msg)) (zero? (g ed emsg-on-display)))
+    (when (and (not (zero? (g ed must-redraw))) (some? (g ed keep-msg)) (not (g ed emsg-on-display)))
       (let [^BytePtr kmsg (g ed keep-msg)
             _ (g! ed keep-msg nil)
             _ (setcursor ed)
@@ -4184,12 +4183,12 @@
     (setcursor ed)
     (cursor-on ed)
     (out-flush ed)
-    (when (or (not (zero? (g ed msg-scroll))) (not (zero? (g ed emsg-on-display))))
+    (when (or (not (zero? (g ed msg-scroll))) (g ed emsg-on-display))
       (ui-delay ed 1003 true))
     (ui-delay ed 3003 false)
     (g! ed State save-State)
     (g! ed msg-scroll (e FALSE))
-    (g! ed emsg-on-display (e FALSE))
+    (g! ed emsg-on-display false)
     nil))
 
 (defn checkpcmark [^Editor ed]
@@ -4228,23 +4227,23 @@
           c (long (safe-vgetc ed))]
       (if (== (g ed restart-edit) 0)
         (g! ed normal-cmd-old-mapped-len 0)
-        (when (or (not (zero? (g ed normal-cmd-old-mapped-len))) (and (not (zero? (g ed VIsual-active))) (== mapped-len 0) (> (long (typebuf-maplen ed)) 0)))
+        (when (or (not (zero? (g ed normal-cmd-old-mapped-len))) (and (g ed VIsual-active) (== mapped-len 0) (> (long (typebuf-maplen ed)) 0)))
           (g! ed normal-cmd-old-mapped-len (long (typebuf-maplen ed)))))
       (let [c (if (== c (e NUL))
                 -22783
                 c)
-            c (if (and (not (zero? (g ed VIsual-active))) (not (zero? (g ed VIsual-select))) (or (vim-isprintc? ed c) (== c (e NL)) (== c (e CAR)) (== c (e K_KENTER))))
+            c (if (and (g ed VIsual-active) (not (zero? (g ed VIsual-select))) (or (vim-isprintc? ed c) (== c (e NL)) (== c (e CAR)) (== c (e K_KENTER))))
                 (let [len (long (ins-char-typebuf ed (g ed vgetc-char) (g ed vgetc-mod-mask)))]
-                  (when-not (zero? (g ed KeyTyped))
+                  (when (g ed KeyTyped)
                     (ungetchars ed len))
                   (let [c (if (== (g ed restart-edit) 0)
                             99
                             100)]
-                    (g! ed msg-nowait (e TRUE))
+                    (g! ed msg-nowait true)
                     (g! ed normal-cmd-old-mapped-len 0)
                     c))
                 c)]
-        (when (and (not (zero? (g ed KeyTyped))) (zero? (g ed KeyStuffed)))
+        (when (and (g ed KeyTyped) (not (g ed KeyStuffed)))
           (win-ensure-size ed))
         (let [need-flushbuf (if (add-to-showcmd ed c) 1 0)
               _ (.set normal-cmd-get-count__o (normal-cmd-get-count ed ca c toplevel set-prevcount ctrl-w need-flushbuf))
@@ -4259,15 +4258,11 @@
             (if (< idx 0)
               (clearopbeep ed oap)
               (when-not (and (not (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_NCW)))) (check-text-or-curbuf-locked ed oap))
-                (let [j__1 (if (zero? (g ed VIsual-active))
-                             (do (aset tl__ 0 idx)
-                                 0)
-                             (do (when (and (not (zero? (g ed km-stopsel))) (not (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_STS)))) (zero? (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_SHIFT))))
+                (let [j__1 (if (g ed VIsual-active)
+                             (do (when (and (g ed km-stopsel) (not (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_STS)))) (zero? (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_SHIFT))))
                                    (end-visual-mode ed)
                                    (redraw-curbuf-later ed (e UPD_INVERTED)))
-                                 (if (zero? (g ed km-startsel))
-                                   (do (aset tl__ 0 idx)
-                                       0)
+                                 (if (g ed km-startsel)
                                    (if (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_SS)))
                                      (if (and (not (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_SSS)))) (not (zero? (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_SHIFT)))))
                                        (do (aset (g ed mod-mask) 0 (unchecked-int (bit-and (long (aget (g ed mod-mask) 0)) -3)))
@@ -4281,7 +4276,11 @@
                                              (do (clearopbeep ed oap)
                                                  1)
                                              (do (aset tl__ 0 idx)
-                                                 0))))))))]
+                                                 0)))))
+                                   (do (aset tl__ 0 idx)
+                                       0)))
+                             (do (aset tl__ 0 idx)
+                                 0))]
                   (case (long j__1)
                     0
                       (let [idx (aget tl__ 0)
@@ -4312,7 +4311,7 @@
                                 (g! ed msg-didout (e FALSE))
                                 (g! ed msg-col 0))
                               (.set old-pos (.-w-cursor (g ed curwin)))
-                              (let [idx (if (and (zero? (g ed VIsual-active)) (not (zero? (g ed km-startsel))))
+                              (let [idx (if (and (not (g ed VIsual-active)) (g ed km-startsel))
                                           (if (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_SS)))
                                             (if (and (not (zero? (bit-and (.cmd-flags ^S_nv_cmd (aget (g ed nv-cmds) idx)) (e NV_SSS)))) (not (zero? (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_SHIFT)))))
                                               (do (start-selection ed)
@@ -4335,20 +4334,20 @@
                                   (normal-cmd-wait-for-msg ed))))))
                     1
                       nil))))
-            (g! ed msg-nowait (e FALSE))
+            (g! ed msg-nowait false)
             (when (== (.op-type oap) (e OP_NOP))
               (g! ed finish-op (e FALSE)))
             (when (and (== (.op-type oap) (e OP_NOP)) (== (.regname oap) 0) (not (== (.cmdchar ca) (e K_CURSORHOLD))))
               (clear-showcmd ed))
             (checkpcmark ed)
             (mb-adjust-cursor ed)
-            (when (and (== (.op-type oap) (e OP_NOP)) (or (and (not (== (g ed restart-edit) 0)) (zero? (g ed VIsual-active)) (== (g ed normal-cmd-old-mapped-len) 0)) (== (g ed restart-VIsual-select) 1)) (zero? (bit-and (.retval ca) (e CA_COMMAND_BUSY))) (stuff-empty? ed) (== (.regname oap) 0))
+            (when (and (== (.op-type oap) (e OP_NOP)) (or (and (not (== (g ed restart-edit) 0)) (not (g ed VIsual-active)) (== (g ed normal-cmd-old-mapped-len) 0)) (== (g ed restart-VIsual-select) 1)) (zero? (bit-and (.retval ca) (e CA_COMMAND_BUSY))) (stuff-empty? ed) (== (.regname oap) 0))
               (when (== (g ed restart-VIsual-select) 1)
                 (g! ed VIsual-select (e TRUE))
                 (showmode ed)
                 (g! ed restart-VIsual-select 0)
                 (g! ed VIsual-select-reg 0))
-              (when (and (not (== (g ed restart-edit) 0)) (zero? (g ed VIsual-active)) (== (g ed normal-cmd-old-mapped-len) 0))
+              (when (and (not (== (g ed restart-edit) 0)) (not (g ed VIsual-active)) (== (g ed normal-cmd-old-mapped-len) 0))
                 (edit ed (g ed restart-edit) false 1)))
             (if (== (g ed restart-VIsual-select) 2)
               (do (g! ed restart-VIsual-select 1)
@@ -4505,7 +4504,7 @@
 ;; C: shorten_fnames
 (defn shorten-fnames [^Editor ed]
   (status-redraw-all ed)
-  (g! ed redraw-tabline (e TRUE))
+  (g! ed redraw-tabline true)
   nil)
 
 ;; C: home_replace
@@ -4557,15 +4556,15 @@
                     (add-char-buff ed (g ed readbuf2) c)
                     (when (== c 61)
                       (add-char-buff ed (g ed readbuf2) (e CAR))
-                      (g! ed cmd-silent (e TRUE)))
+                      (g! ed cmd-silent true))
                     (long (read-redo ed false old-redo))))
               c)
           c (if (== c 118)
               (do (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
-                  (g! ed VIsual-active (e TRUE))
+                  (g! ed VIsual-active true)
                   (g! ed VIsual-select (e FALSE))
-                  (g! ed VIsual-reselect (e TRUE))
-                  (g! ed redo-VIsual-busy (e TRUE))
+                  (g! ed VIsual-reselect true)
+                  (g! ed redo-VIsual-busy true)
                   (long (read-redo ed false old-redo)))
               c)]
       (if (zero? count_)
@@ -4827,7 +4826,7 @@
         ^objects to__ (object-array 1)]
     (g! ed map-locked (i32 (inc (g ed map-locked))))
     (when (and (> (aget (g ed p-verbose) 0) 0) (== keyround 1))
-      (when-not (zero? (g ed seenModifyOtherKeys))
+      (when (g ed seenModifyOtherKeys)
         (msg-puts ed (BytePtr/lit "Seen modifyOtherKeys: true\n")))
       (when-not (== (g ed modify-otherkeys-state) (e MOKS_INITIAL))
         (let [^BytePtr name_ (BytePtr/lit "Unknown")
@@ -4907,7 +4906,7 @@
         len (i32 (long (musl-strlen src)))
         found -1
         foundlen 1]
-    (when-not (zero? (g ed need-gather))
+    (when (g ed need-gather)
       (gather-termleader ed))
     (if (or (== (.ub src) (e NUL)) (nil? (vim-strchr ed (BytePtr. (g ed termleader) 0) (.ub src))))
       (do (.set-r__ out__ -1)
@@ -5690,7 +5689,7 @@
                 keyround1-simplified (boolean (aget fo__ 22))
                 hash_ (aget fl__ 12)]
             (when (and haskey hasarg abbrev)
-              (g! ed no-abbr (e FALSE)))
+              (g! ed no-abbr false))
             (when do-print
               (msg-start ed))
             (if (and unique (Ptr/eq map-table (Ptr. ^objects (.-b-maphash (g ed curbuf)) 0)) haskey hasarg (not (== maptype (e MAPTYPE_UNMAP))))
@@ -7247,7 +7246,7 @@
             (delete-first-msg ed)
             (recur))))
       (if (== (.ub ^BytePtr (aget ^objects (.-arg eap) 0)) (e NUL))
-        (do (g! ed msg-hist-off (e TRUE))
+        (do (g! ed msg-hist-off true)
             (let [^S_msg_hist p (g ed first-msg-hist)
                   ^S_msg_hist p (if (== (.addr-count eap) 0)
                                   p
@@ -7275,7 +7274,7 @@
                         (msg-attr ed (.msg p) (.attr p)))
                       (let [^S_msg_hist p (.next_ p)]
                         (recur p)))
-                  (do (g! ed msg-hist-off (e FALSE))
+                  (do (g! ed msg-hist-off false)
                       nil)))))
         (do (emsg ed (BytePtr. (g ed e-invalid-argument) 0))
             nil)))))
@@ -7375,7 +7374,7 @@
 
 ;; C: adjust_cursor_col
 (defn adjust-cursor-col [^Editor ed]
-  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (zero? (g ed VIsual-active)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (== (long (gchar-cursor ed)) (e NUL)))
+  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (or (not (g ed VIsual-active)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (== (long (gchar-cursor ed)) (e NUL)))
     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
     nil))
 
@@ -7486,7 +7485,7 @@
         true)))
 
 (defn checkclearopq [^Editor ed ^S_oparg_S oap]
-  (if (and (== (.op-type oap) (e OP_NOP)) (zero? (g ed VIsual-active)))
+  (if (and (== (.op-type oap) (e OP_NOP)) (not (g ed VIsual-active)))
     false
     (do (clearopbeep ed oap)
         true)))
@@ -7536,16 +7535,16 @@
 
 ;; C: nv_addsub
 (defn nv-addsub [^Editor ed ^S_cmdarg_S cap]
-  (if (and (zero? (g ed VIsual-active)) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)))
+  (if (and (not (g ed VIsual-active)) (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)))
     (do (prep-redo-cmd ed cap)
         (.set-op-type ^S_oparg_S (.oap cap) (if (== (.cmdchar cap) (e Ctrl_A)) (e OP_NR_ADD) (e OP_NR_SUB)))
         (op-addsub ed (.oap cap) (.count1 cap) (.arg cap))
         (.set-op-type ^S_oparg_S (.oap cap) (e OP_NOP))
         nil)
-    (if (zero? (g ed VIsual-active))
-      (do (clearop ed (.oap cap))
-          nil)
+    (if (g ed VIsual-active)
       (do (nv-operator ed cap)
+          nil)
+      (do (clearop ed (.oap cap))
           nil))))
 
 ;; C: nv_page
@@ -7660,14 +7659,7 @@
                       (if (== (.cmdchar cap) 122)
                         (bit-or flags (e PUT_BLOCK_INNER))
                         flags))
-              j__2 (if (zero? (g ed VIsual-active))
-                     (do (aset tl__ 2 regname)
-                         (aset to__ 0 reg2)
-                         (aset tl__ 3 empty_)
-                         (aset to__ 1 (Boolean/valueOf (boolean was-visual)))
-                         (aset tl__ 0 dir)
-                         (aset tl__ 1 flags)
-                         0)
+              j__2 (if (g ed VIsual-active)
                      (let [was-visual true
                            regname (.regname ^S_oparg_S (.oap cap))
                            keep-registers (== (.cmdchar cap) 80)
@@ -7700,14 +7692,21 @@
                              dir (if (or (and (not (== (g ed VIsual-mode) 86)) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col ^T_pos_T (.-b-op-start (g ed curbuf))))) (and (== (g ed VIsual-mode) 86) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum ^T_pos_T (.-b-op-start (g ed curbuf))))))
                                    (e FORWARD)
                                    dir)]
-                         (g! ed VIsual-active (e TRUE))
+                         (g! ed VIsual-active true)
                          (aset tl__ 2 regname)
                          (aset to__ 0 reg2)
                          (aset tl__ 3 empty_)
                          (aset to__ 1 (Boolean/valueOf (boolean was-visual)))
                          (aset tl__ 0 dir)
                          (aset tl__ 1 flags)
-                         0)))
+                         0))
+                     (do (aset tl__ 2 regname)
+                         (aset to__ 0 reg2)
+                         (aset tl__ 3 empty_)
+                         (aset to__ 1 (Boolean/valueOf (boolean was-visual)))
+                         (aset tl__ 0 dir)
+                         (aset tl__ 1 flags)
+                         0))
               regname (aget tl__ 2)
               ^T_yankreg_T reg2 (aget to__ 0)
               empty_ (aget tl__ 3)
@@ -7862,7 +7861,7 @@
 ;; C: nv_colon
 (defn nv-colon [^Editor ed ^S_cmdarg_S cap]
   (let [is-cmdkey (or (== (.cmdchar cap) (e K_COMMAND)) (== (.cmdchar cap) (e K_SCRIPT_COMMAND)))]
-    (if (and (not (zero? (g ed VIsual-active))) (not is-cmdkey))
+    (if (and (g ed VIsual-active) (not is-cmdkey))
       (do (nv-operator ed cap)
           nil)
       (do (if (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))
@@ -7873,7 +7872,7 @@
                 (stuffnumReadbuff ed (- (.count0 cap) 1))))
             (do (.set-motion-type ^S_oparg_S (.oap cap) (e MCHAR))
                 (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))))
-          (when-not (zero? (g ed KeyTyped))
+          (when (g ed KeyTyped)
             (compute-cmdrow ed))
           (let [old-p-im (long (aget (g ed p-im) 0))
                 flags (if (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)) 0 (e DOCMD_KEEPLINE))
@@ -7893,13 +7892,13 @@
 
 ;; C: nv_ctrlg
 (defn nv-ctrlg [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
-    (when-not (checkclearop ed (.oap cap))
-      (fileinfo ed (i32 (.count0 cap)) false true)
-      nil)
+  (if (g ed VIsual-active)
     (do (g! ed VIsual-select (if (zero? (g ed VIsual-select)) 1 0))
         (showmode ed)
-        nil)))
+        nil)
+    (when-not (checkclearop ed (.oap cap))
+      (fileinfo ed (i32 (.count0 cap)) false true)
+      nil)))
 
 ;; C: v_visop
 (defn v-visop [^Editor ed ^S_cmdarg_S cap]
@@ -7971,7 +7970,7 @@
 
 ;; C: nv_ctrlh
 (defn nv-ctrlh [^Editor ed ^S_cmdarg_S cap]
-  (if (and (not (zero? (g ed VIsual-active))) (not (zero? (g ed VIsual-select))))
+  (if (and (g ed VIsual-active) (not (zero? (g ed VIsual-select))))
     (do (.set-cmdchar cap 120)
         (v-visop ed cap)
         nil)
@@ -7986,7 +7985,7 @@
 
 ;; C: nv_ctrlo
 (defn nv-ctrlo [^Editor ed ^S_cmdarg_S cap]
-  (if (and (not (zero? (g ed VIsual-active))) (not (zero? (g ed VIsual-select))))
+  (if (and (g ed VIsual-active) (not (zero? (g ed VIsual-select))))
     (do (g! ed VIsual-select (e FALSE))
         (showmode ed)
         (g! ed restart-VIsual-select 2)
@@ -8208,7 +8207,7 @@
         0
           (do (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) 0)
               (g! ed cls-bigword bigword)
-              (when (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) 118) (not (zero? (g ed VIsual-select-exclu-adj))))
+              (when (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (g ed VIsual-active) (== (g ed VIsual-mode) 118) (g ed VIsual-select-exclu-adj))
                 (unadjust-for-sel ed))
               (recur 1 count_ bigword stop empty_))
         1
@@ -8244,7 +8243,7 @@
 
 ;; C: adjust_cursor
 (defn adjust-cursor [^Editor ed ^S_oparg_S oap]
-  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (gchar-cursor ed)) (e NUL)) (or (zero? (g ed VIsual-active)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (zero? (long (virtual-active ed))) (== (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)) 0))
+  (when (and (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0) (== (long (gchar-cursor ed)) (e NUL)) (or (not (g ed VIsual-active)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111)) (zero? (long (virtual-active ed))) (== (bit-and (long (get-ve-flags ed)) (e VE_ONEMORE)) 0))
     (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) (i32 (dec (.col ^T_pos_T (.-w-cursor (g ed curwin))))))
     (mb-adjust-cursor ed)
     (.set-inclusive oap (e TRUE))
@@ -8252,10 +8251,10 @@
 
 ;; C: adjust_for_sel
 (defn adjust-for-sel [^Editor ed ^S_cmdarg_S cap]
-  (when (and (not (zero? (g ed VIsual-active))) (not (zero? (.inclusive ^S_oparg_S (.oap cap)))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (== (long (gchar-cursor ed)) (e NUL))) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+  (when (and (g ed VIsual-active) (not (zero? (.inclusive ^S_oparg_S (.oap cap)))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (== (long (gchar-cursor ed)) (e NUL))) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
     (inc-cursor ed)
     (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))
-    (g! ed VIsual-select-exclu-adj (e TRUE))
+    (g! ed VIsual-select-exclu-adj true)
     nil))
 
 ;; C: nv_wordcmd
@@ -8315,7 +8314,7 @@
   (if (zero? (bit-and (long (aget (g ed mod-mask) 0)) 6))
     (do (.set-motion-type ^S_oparg_S (.oap cap) (e MCHAR))
         (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))
-        (let [past-line (if (and (not (zero? (g ed VIsual-active))) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111))) 1 0)
+        (let [past-line (if (and (g ed VIsual-active) (not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 111))) 1 0)
               past-line (if (zero? (long (virtual-active ed)))
                           past-line
                           0)
@@ -8502,7 +8501,12 @@
                          (aset tl__ 2 dir)
                          (aset to__ 0 (Boolean/valueOf (boolean stop)))
                          0))))
-               (if (zero? (g ed KeyStuffed))
+               (if (g ed KeyStuffed)
+                 (do (aset tl__ 0 t-cmd)
+                     (aset tl__ 1 c)
+                     (aset tl__ 2 dir)
+                     (aset to__ 0 (Boolean/valueOf (boolean stop)))
+                     0)
                  (do (aset (g ed lastc) 0 (unchecked-byte c))
                      (set-csearch-direction ed dir)
                      (set-csearch-until ed t-cmd)
@@ -8527,12 +8531,7 @@
                              (aset tl__ 1 c)
                              (aset tl__ 2 dir)
                              (aset to__ 0 (Boolean/valueOf (boolean stop)))
-                             0)))))
-                 (do (aset tl__ 0 t-cmd)
-                     (aset tl__ 1 c)
-                     (aset tl__ 2 dir)
-                     (aset to__ 0 (Boolean/valueOf (boolean stop)))
-                     0)))]
+                             0)))))))]
     (if (== (long j__1) -1)
       (boolean (aget to__ 1))
       (let [t-cmd (aget tl__ 0)
@@ -8615,7 +8614,7 @@
   (let [^ints scol (int-array 1)
         ^ints ecol (int-array 1)
         cursor-dec false
-        cursor-dec (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (not (zero? (g ed VIsual-active))) (== (g ed VIsual-mode) 118) (not (zero? (g ed VIsual-select-exclu-adj))))
+        cursor-dec (if (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (g ed VIsual-active) (== (g ed VIsual-mode) 118) (g ed VIsual-select-exclu-adj))
                      (do (unadjust-for-sel ed)
                          true)
                      cursor-dec)
@@ -8785,7 +8784,7 @@
 
 ;; C: nv_undo
 (defn nv-undo [^Editor ed ^S_cmdarg_S cap]
-  (if (or (== (.op-type ^S_oparg_S (.oap cap)) (e OP_LOWER)) (not (zero? (g ed VIsual-active))))
+  (if (or (== (.op-type ^S_oparg_S (.oap cap)) (e OP_LOWER)) (g ed VIsual-active))
     (do (.set-cmdchar cap 103)
         (aset ^ints (.-nchar cap) 0 (unchecked-int 117))
         (nv-operator ed cap)
@@ -8822,7 +8821,22 @@
       (if (< (long (aget ^ints (.-nchar cap) 0)) 0)
         (do (clearopbeep ed (.oap cap))
             nil)
-        (if (zero? (g ed VIsual-active))
+        (if (g ed VIsual-active)
+          (do (when-not (zero? (g ed got-int))
+                (g! ed got-int (e FALSE)))
+              (if (zero? had-ctrl-v)
+                (do (nv-operator ed cap)
+                    nil)
+                (if (== (long (aget ^ints (.-nchar cap) 0)) (e CAR))
+                  (do (aset ^ints (.-nchar cap) 0 (unchecked-int -1))
+                      (nv-operator ed cap)
+                      nil)
+                  (if (== (long (aget ^ints (.-nchar cap) 0)) (e NL))
+                    (do (aset ^ints (.-nchar cap) 0 (unchecked-int -2))
+                        (nv-operator ed cap)
+                        nil)
+                    (do (nv-operator ed cap)
+                        nil)))))
           (let [j__1 (if (zero? (long (virtual-active ed)))
                        0
                        (if (u-save-cursor ed)
@@ -8881,22 +8895,7 @@
                                       (.set ^T_pos_T (.-b-op-end (g ed curbuf)) (.-w-cursor (g ed curwin)))
                                       (.set-w-set-curswant (g ed curwin) (boolean true))
                                       (set-last-insert ed (long (aget ^ints (.-nchar cap) 0)))
-                                      nil))))))))))))
-          (do (when-not (zero? (g ed got-int))
-                (g! ed got-int (e FALSE)))
-              (if (zero? had-ctrl-v)
-                (do (nv-operator ed cap)
-                    nil)
-                (if (== (long (aget ^ints (.-nchar cap) 0)) (e CAR))
-                  (do (aset ^ints (.-nchar cap) 0 (unchecked-int -1))
-                      (nv-operator ed cap)
-                      nil)
-                  (if (== (long (aget ^ints (.-nchar cap) 0)) (e NL))
-                    (do (aset ^ints (.-nchar cap) 0 (unchecked-int -2))
-                        (nv-operator ed cap)
-                        nil)
-                    (do (nv-operator ed cap)
-                        nil))))))))))
+                                      nil)))))))))))))))))
 
 ;; C: v_swap_corners
 (defn v-swap-corners [^Editor ed ^long cmdchar]
@@ -8932,7 +8931,13 @@
 
 ;; C: nv_Replace
 (defn nv-Replace [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
+  (if (g ed VIsual-active)
+    (do (.set-cmdchar cap 99)
+        (aset ^ints (.-nchar cap) 0 (unchecked-int (e NUL)))
+        (g! ed VIsual-mode-orig (g ed VIsual-mode))
+        (g! ed VIsual-mode 86)
+        (nv-operator ed cap)
+        nil)
     (when-not (checkclearopq ed (.oap cap))
       (if (zero? (long (aget ^ints (.-b-p-ma (g ed curbuf)) 0)))
         (do (emsg ed (BytePtr. (g ed e-cannot-make-changes-modifiable-is-off) 0))
@@ -8940,17 +8945,15 @@
         (do (when-not (zero? (long (virtual-active ed)))
               (coladvance ed (long (getviscol ed))))
             (invoke-edit ed cap false (if (zero? (.arg cap)) 82 86) false)
-            nil)))
-    (do (.set-cmdchar cap 99)
-        (aset ^ints (.-nchar cap) 0 (unchecked-int (e NUL)))
-        (g! ed VIsual-mode-orig (g ed VIsual-mode))
-        (g! ed VIsual-mode 86)
-        (nv-operator ed cap)
-        nil)))
+            nil)))))
 
 ;; C: nv_vreplace
 (defn nv-vreplace [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
+  (if (g ed VIsual-active)
+    (do (.set-cmdchar cap 114)
+        (aset ^ints (.-nchar cap) 0 (unchecked-int (long (aget ^ints (.-extra-char cap) 0))))
+        (nv-replace ed cap)
+        nil)
     (when-not (checkclearopq ed (.oap cap))
       (if (zero? (long (aget ^ints (.-b-p-ma (g ed curbuf)) 0)))
         (do (emsg ed (BytePtr. (g ed e-cannot-make-changes-modifiable-is-off) 0))
@@ -8964,11 +8967,7 @@
             (when-not (zero? (long (virtual-active ed)))
               (coladvance ed (long (getviscol ed))))
             (invoke-edit ed cap true 118 false)
-            nil)))
-    (do (.set-cmdchar cap 114)
-        (aset ^ints (.-nchar cap) 0 (unchecked-int (long (aget ^ints (.-extra-char cap) 0))))
-        (nv-replace ed cap)
-        nil)))
+            nil)))))
 
 ;; C: n_swapchar
 (defn n-swapchar [^Editor ed ^S_cmdarg_S cap]
@@ -9047,24 +9046,24 @@
 
 ;; C: nv_subst
 (defn nv-subst [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
-    (do (nv-optrans ed cap)
-        nil)
+  (if (g ed VIsual-active)
     (do (when (== (.cmdchar cap) 83)
           (g! ed VIsual-mode-orig (g ed VIsual-mode))
           (g! ed VIsual-mode 86))
         (.set-cmdchar cap 99)
         (nv-operator ed cap)
+        nil)
+    (do (nv-optrans ed cap)
         nil)))
 
 ;; C: nv_abbrev
 (defn nv-abbrev [^Editor ed ^S_cmdarg_S cap]
   (when (or (== (.cmdchar cap) (e K_DEL)) (== (.cmdchar cap) (e K_KDEL)))
     (.set-cmdchar cap 120))
-  (if (zero? (g ed VIsual-active))
-    (do (nv-optrans ed cap)
-        nil)
+  (if (g ed VIsual-active)
     (do (v-visop ed cap)
+        nil)
+    (do (nv-optrans ed cap)
         nil)))
 
 ;; C: nv_gomark
@@ -9113,12 +9112,18 @@
     (.set-cmdchar cap (e Ctrl_V)))
   (if (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))
     (do (g! ed VIsual-select (.arg cap))
-        (if (zero? (g ed VIsual-active))
+        (if (g ed VIsual-active)
+          (do (if (== (g ed VIsual-mode) (.cmdchar cap))
+                (end-visual-mode ed)
+                (do (g! ed VIsual-mode (.cmdchar cap))
+                    (showmode ed)))
+              (redraw-curbuf-later ed (e UPD_INVERTED))
+              nil)
           (do (check-visual-highlight ed)
               (if (and (> (.count0 cap) 0) (not (== (g ed resel-VIsual-mode) (e NUL))))
                 (do (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
-                    (g! ed VIsual-active (e TRUE))
-                    (g! ed VIsual-reselect (e TRUE))
+                    (g! ed VIsual-active true)
+                    (g! ed VIsual-reselect true)
                     (when (zero? (.arg cap))
                       (may-start-select ed 99))
                     (when (and (not (zero? (long (aget (g ed p-smd) 0)))) (== (g ed msg-silent) 0))
@@ -9159,7 +9164,7 @@
                     (n-start-visual-mode ed (.cmdchar cap))
                     (if (and (not (== (g ed VIsual-mode) 86)) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
                       (.set-count1 cap (inc (.count1 cap)))
-                      (g! ed VIsual-select-exclu-adj (e FALSE)))
+                      (g! ed VIsual-select-exclu-adj false))
                     (let [t1 (> (.count0 cap) 0)
                           t1 (if t1
                                (do (.set-count1 cap (dec (.count1 cap)))
@@ -9171,13 +9176,7 @@
                               nil)
                           (when (== (g ed VIsual-mode) 86)
                             (nv-down ed cap)
-                            nil)))))))
-          (do (if (== (g ed VIsual-mode) (.cmdchar cap))
-                (end-visual-mode ed)
-                (do (g! ed VIsual-mode (.cmdchar cap))
-                    (showmode ed)))
-              (redraw-curbuf-later ed (e UPD_INVERTED))
-              nil)))
+                            nil)))))))))
     (do (.set-motion-force ^S_oparg_S (.oap cap) (.cmdchar cap))
         (g! ed motion-force (.motion-force ^S_oparg_S (.oap cap)))
         (g! ed finish-op (e FALSE))
@@ -9186,7 +9185,7 @@
 ;; C: nv_suspend
 (defn nv-suspend [^Editor ed ^S_cmdarg_S cap]
   (clearop ed (.oap cap))
-  (when-not (zero? (g ed VIsual-active))
+  (when (g ed VIsual-active)
     (end-visual-mode ed))
   (do-cmdline-cmd ed (BytePtr/lit "stop"))
   nil)
@@ -9197,17 +9196,7 @@
     (if (or (== (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) 0) (> (.lnum ^T_pos_T (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf)))) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (== (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf)))) 0))
       (do (beep-flush ed)
           nil)
-      (let [j__1 (if (zero? (g ed VIsual-active))
-                   (do (g! ed VIsual-mode (.vi-mode ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                       (.set-w-curswant (g ed curwin) (.vi-curswant ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                       (let [tpos-lnum (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                             tpos-col (.col ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                             tpos-coladd (.coladd ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))]
-                         (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))))
-                         (aset tl__ 0 tpos-lnum)
-                         (aset tl__ 1 tpos-col)
-                         (aset tl__ 2 tpos-coladd)
-                         0))
+      (let [j__1 (if (g ed VIsual-active)
                    (let [i (g ed VIsual-mode)
                          _ (g! ed VIsual-mode (.vi-mode ^T_visualinfo_T (.-b-visual (g ed curbuf))))
                          _ (.set-vi-mode ^T_visualinfo_T (.-b-visual (g ed curbuf)) i)
@@ -9223,12 +9212,22 @@
                      (aset tl__ 0 tpos-lnum)
                      (aset tl__ 1 tpos-col)
                      (aset tl__ 2 tpos-coladd)
-                     0))
+                     0)
+                   (do (g! ed VIsual-mode (.vi-mode ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                       (.set-w-curswant (g ed curwin) (.vi-curswant ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                       (let [tpos-lnum (.lnum ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                             tpos-col (.col ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                             tpos-coladd (.coladd ^T_pos_T (.-vi-end ^T_visualinfo_T (.-b-visual (g ed curbuf))))]
+                         (.set ^T_pos_T (.-w-cursor (g ed curwin)) (.-vi-start ^T_visualinfo_T (.-b-visual (g ed curbuf))))
+                         (aset tl__ 0 tpos-lnum)
+                         (aset tl__ 1 tpos-col)
+                         (aset tl__ 2 tpos-coladd)
+                         0)))
             tpos-lnum (aget tl__ 0)
             tpos-col (aget tl__ 1)
             tpos-coladd (aget tl__ 2)]
-        (g! ed VIsual-active (e TRUE))
-        (g! ed VIsual-reselect (e TRUE))
+        (g! ed VIsual-active true)
+        (g! ed VIsual-reselect true)
         (check-cursor ed)
         (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
         (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) tpos-lnum)
@@ -9384,9 +9383,9 @@
     (.set-lnum start-pos 0)
     (.set-col start-pos 0)
     (.set-coladd start-pos 0)
-    (when (and (not (zero? (g ed VIsual-active))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+    (when (and (g ed VIsual-active) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
       (dec-cursor ed))
-    (let [j__2 (if (or (zero? (g ed VIsual-active)) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual)))))
+    (let [j__2 (if (or (not (g ed VIsual-active)) (and (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (== (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual)))))
                  (do (back-in-line ed)
                      (.set start-pos (.-w-cursor (g ed curwin)))
                      (let [j__1 (if (== (if (== (long (cls ed)) 0) 1 0) (if include 1 0))
@@ -9409,11 +9408,11 @@
                          (do (aset to__ 1 (Boolean/valueOf (boolean (boolean (aget to__ 1)))))
                              -1)
                          (let [include-white (boolean (aget to__ 0))]
-                           (if (zero? (g ed VIsual-active))
-                             (do (.set ^T_pos_T (.-start oap) start-pos)
-                                 (.set-motion-type oap (e MCHAR)))
+                           (if (g ed VIsual-active)
                              (do (.set (g ed VIsual) start-pos)
-                                 (redraw-curbuf-later ed (e UPD_INVERTED))))
+                                 (redraw-curbuf-later ed (e UPD_INVERTED)))
+                             (do (.set ^T_pos_T (.-start oap) start-pos)
+                                 (.set-motion-type oap (e MCHAR))))
                            (let [count_ (dec count_)]
                              (aset tl__ 0 count_)
                              (aset to__ 0 (Boolean/valueOf (boolean include-white)))
@@ -9429,7 +9428,7 @@
                  inclusive (boolean inclusive)]
             (if (> count_ 0)
               (let [inclusive true
-                    j__3 (if (and (not (zero? (g ed VIsual-active))) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))))
+                    j__3 (if (and (g ed VIsual-active) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))))
                            (if (== (long (decl ed (.-w-cursor (g ed curwin)))) -1)
                              6
                              (if (== (if include 1 0) (if (not (== (long (cls ed)) 0)) 1 0))
@@ -9482,22 +9481,22 @@
                       (when (oneleft ed)
                         (back-in-line ed)
                         (when (and (== (long (cls ed)) 0) (> (.col ^T_pos_T (.-w-cursor (g ed curwin))) 0))
-                          (if (zero? (g ed VIsual-active))
-                            (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin)))
-                            (.set (g ed VIsual) (.-w-cursor (g ed curwin))))))
+                          (if (g ed VIsual-active)
+                            (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
+                            (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin))))))
                       (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) pos-lnum)
                       (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) pos-col_)
                       (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) pos-coladd)))
-                  (if (zero? (g ed VIsual-active))
-                    (do (.set-inclusive oap (if inclusive 1 0))
-                        true)
+                  (if (g ed VIsual-active)
                     (do (when (and (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) inclusive (or (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
                           (inc-cursor ed))
                         (if (== (g ed VIsual-mode) 86)
                           (do (g! ed VIsual-mode 118)
                               (g! ed redraw-cmdline (e TRUE))
                               true)
-                          true)))))))))))
+                          true))
+                    (do (.set-inclusive oap (if inclusive 1 0))
+                        true))))))))))
 
 ;; C: current_block
 (defn current-block [^Editor ed ^S_oparg_S oap count_ include what other]
@@ -9519,7 +9518,7 @@
         old-start-lnum old-end-lnum
         old-start-col old-end-col
         old-start-coladd old-end-coladd
-        j__1 (if (or (zero? (g ed VIsual-active)) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))
+        j__1 (if (or (not (g ed VIsual-active)) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin))))))
                (do (setpcmark ed)
                    (when (== what 123)
                      (loop []
@@ -9635,9 +9634,9 @@
                                               (do (aset to__ 3 (Boolean/valueOf (boolean sol)))
                                                   0)))
                                      sol (boolean (aget to__ 3))]
-                                 (if (and (== (.lnum start-pos) (.lnum end-pos)) (== (.col start-pos) (.col end-pos)) (== (.coladd start-pos) (.coladd end-pos)) (not (zero? (g ed VIsual-active))))
+                                 (if (and (== (.lnum start-pos) (.lnum end-pos)) (== (.col start-pos) (.col end-pos)) (== (.coladd start-pos) (.coladd end-pos)) (g ed VIsual-active))
                                    3
-                                   (if (and (not (if (== (.lnum start-pos) old-start-lnum) (if (== (.col start-pos) old-start-col) (< (.coladd start-pos) old-start-coladd) (< (.col start-pos) old-start-col)) (< (.lnum start-pos) old-start-lnum))) (not (if (== old-end-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== old-end-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< old-end-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< old-end-col (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< old-end-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))) (not (and (== (.lnum start-pos) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col start-pos) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd start-pos) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))) (not (zero? (g ed VIsual-active))))
+                                   (if (and (not (if (== (.lnum start-pos) old-start-lnum) (if (== (.col start-pos) old-start-col) (< (.coladd start-pos) old-start-coladd) (< (.col start-pos) old-start-col)) (< (.lnum start-pos) old-start-lnum))) (not (if (== old-end-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== old-end-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< old-end-coladd (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< old-end-col (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< old-end-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))) (not (and (== (.lnum start-pos) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col start-pos) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd start-pos) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))) (g ed VIsual-active))
                                      (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) old-start-lnum)
                                          (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) old-start-col)
                                          (.set-coladd ^T_pos_T (.-w-cursor (g ed curwin)) old-start-coladd)
@@ -9657,7 +9656,16 @@
               (case (long l__3)
                 0
                   (let [sol (boolean (aget to__ 3))]
-                    (if (zero? (g ed VIsual-active))
+                    (if (g ed VIsual-active)
+                      (do (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
+                            (inc_ ed (.-w-cursor (g ed curwin))))
+                          (when (and sol (not (== (long (gchar-cursor ed)) (e NUL))))
+                            (inc_ ed (.-w-cursor (g ed curwin))))
+                          (.set (g ed VIsual) start-pos)
+                          (g! ed VIsual-mode 118)
+                          (redraw-curbuf-later ed (e UPD_INVERTED))
+                          (showmode ed)
+                          true)
                       (do (.set ^T_pos_T (.-start oap) start-pos)
                           (.set-motion-type oap (e MCHAR))
                           (.set-inclusive oap (e FALSE))
@@ -9668,16 +9676,7 @@
                               (do (.set-inclusive oap (e TRUE))
                                   true)
                               (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) start-pos)
-                                  true))))
-                      (do (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
-                            (inc_ ed (.-w-cursor (g ed curwin))))
-                          (when (and sol (not (== (long (gchar-cursor ed)) (e NUL))))
-                            (inc_ ed (.-w-cursor (g ed curwin))))
-                          (.set (g ed VIsual) start-pos)
-                          (g! ed VIsual-mode 118)
-                          (redraw-curbuf-later ed (e UPD_INVERTED))
-                          (showmode ed)
-                          true)))
+                                  true))))))
                 1
                   (do (.set-lnum ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-lnum)
                       (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) old-pos-col)
@@ -9795,12 +9794,7 @@
                 inside-quotes false
                 selected-quote false
                 restore-vis-bef false
-                j__1 (if (zero? (g ed VIsual-active))
-                       (do (aset to__ 0 (Boolean/valueOf (boolean vis-empty)))
-                           (aset to__ 1 (Boolean/valueOf (boolean vis-bef-curs)))
-                           (aset to__ 2 (Boolean/valueOf (boolean did-exclusive-adj)))
-                           (aset to__ 3 (Boolean/valueOf (boolean restore-vis-bef)))
-                           0)
+                j__1 (if (g ed VIsual-active)
                        (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))
                          (let [vis-bef-curs (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                                vis-empty (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))]
@@ -9839,7 +9833,12 @@
                                  (aset to__ 3 (Boolean/valueOf (boolean restore-vis-bef)))
                                  0)))
                          (do (aset to__ 4 (Boolean/valueOf (boolean false)))
-                             -1)))]
+                             -1))
+                       (do (aset to__ 0 (Boolean/valueOf (boolean vis-empty)))
+                           (aset to__ 1 (Boolean/valueOf (boolean vis-bef-curs)))
+                           (aset to__ 2 (Boolean/valueOf (boolean did-exclusive-adj)))
+                           (aset to__ 3 (Boolean/valueOf (boolean restore-vis-bef)))
+                           0))]
             (if (== (long j__1) -1)
               (boolean (aget to__ 4))
               (let [vis-empty (boolean (aget to__ 0))
@@ -9952,19 +9951,17 @@
                             (i32 (inc col-start))
                             col-start)]
             (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col-start)
-            (if (zero? (g ed VIsual-active))
-              (do (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin)))
-                  (.set-motion-type oap (e MCHAR)))
+            (if (g ed VIsual-active)
               (when (or vis-empty (and vis-bef-curs (not selected-quote) (or inside-quotes (and (not (== (.ub line (.col (g ed VIsual))) quotechar)) (or (== (.col (g ed VIsual)) 0) (not (== (.ub line (i32 (- (.col (g ed VIsual)) 1))) quotechar)))))))
                 (.set (g ed VIsual) (.-w-cursor (g ed curwin)))
-                (redraw-curbuf-later ed (e UPD_INVERTED))))
+                (redraw-curbuf-later ed (e UPD_INVERTED)))
+              (do (.set ^T_pos_T (.-start oap) (.-w-cursor (g ed curwin)))
+                  (.set-motion-type oap (e MCHAR))))
             (.set-col ^T_pos_T (.-w-cursor (g ed curwin)) col-end)
             (let [inclusive (if (and (or include (> count_ 1) (and (not vis-empty) inside-quotes)) (== (long (inc-cursor ed)) 2))
                               true
                               inclusive)]
-              (if (zero? (g ed VIsual-active))
-                (do (.set-inclusive oap (if inclusive 1 0))
-                    true)
+              (if (g ed VIsual-active)
                 (do (if (or vis-empty vis-bef-curs)
                       (when-not (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                         (dec-cursor ed))
@@ -9976,9 +9973,11 @@
                       (do (g! ed VIsual-mode 118)
                           (g! ed redraw-cmdline (e TRUE))
                           true)
-                      true)))))
+                      true))
+                (do (.set-inclusive oap (if inclusive 1 0))
+                    true))))
         9
-          (if (and (not (zero? (g ed VIsual-active))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
+          (if (and (g ed VIsual-active) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101))
             (do (when did-exclusive-adj
                   (inc-cursor ed))
                 (if restore-vis-bef
@@ -10048,10 +10047,10 @@
         0
           (do (when (or (== (.cmdchar cap) (e K_INS)) (== (.cmdchar cap) (e K_KINS)))
                 (.set-cmdchar cap 105))
-              (if (and (not (zero? (g ed VIsual-active))) (or (== (.cmdchar cap) 65) (== (.cmdchar cap) 73)))
+              (if (and (g ed VIsual-active) (or (== (.cmdchar cap) 65) (== (.cmdchar cap) 73)))
                 (do (v-visop ed cap)
                     nil)
-                (if (and (or (== (.cmdchar cap) 97) (== (.cmdchar cap) 105)) (or (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (not (zero? (g ed VIsual-active)))))
+                (if (and (or (== (.cmdchar cap) 97) (== (.cmdchar cap) 105)) (or (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP))) (g ed VIsual-active)))
                   (do (nv-object ed cap)
                       nil)
                   (if (and (zero? (long (aget ^ints (.-b-p-ma (g ed curbuf)) 0))) (zero? (long (aget (g ed p-im) 0))))
@@ -10060,7 +10059,7 @@
                         (when (== (.cmdchar cap) (e K_PASTESTART))
                           (bracketed-paste ed (e PASTE_INSERT) true nil)
                           nil))
-                    (if (and (== (.cmdchar cap) (e K_PASTESTART)) (not (zero? (g ed VIsual-active))))
+                    (if (and (== (.cmdchar cap) (e K_PASTESTART)) (g ed VIsual-active))
                       (let [old-pos-lnum (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))
                             old-pos-col (.col ^T_pos_T (.-w-cursor (g ed curwin)))
                             _ (.set old-visual (g ed VIsual))
@@ -10217,12 +10216,12 @@
           (let [old-p-ws (u8 (long (aget (g ed p-ws) 0)))
                 flags 0]
             (.set save-VIsual (g ed VIsual))
-            (when (and (not (zero? (g ed VIsual-active))) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
+            (when (and (g ed VIsual-active) (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101) (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))))
               (dec-cursor ed))
-            (let [skip-first-backward (and forward (not (zero? (g ed VIsual-active))) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))))]
+            (let [skip-first-backward (and forward (g ed VIsual-active) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))))]
               (.set pos (.-w-cursor (g ed curwin)))
               (.set orig-pos pos)
-              (when-not (zero? (g ed VIsual-active))
+              (when (g ed VIsual-active)
                 (if forward
                   (incl ed pos)
                   (decl ed pos)))
@@ -10243,7 +10242,7 @@
             (let [start-pos-lnum (.lnum pos)
                   start-pos-col (.col pos)
                   start-pos-coladd (.coladd pos)]
-              (when (zero? (g ed VIsual-active))
+              (when-not (g ed VIsual-active)
                 (.set-lnum (g ed VIsual) start-pos-lnum)
                 (.set-col (g ed VIsual) start-pos-col)
                 (.set-coladd (g ed VIsual) start-pos-coladd))
@@ -10252,9 +10251,9 @@
                 (if skip-first-backward
                   (.set ^T_pos_T (.-w-cursor (g ed curwin)) pos)
                   (dec-cursor ed))
-                (when (and (not (zero? (g ed VIsual-active))) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))) forward)
+                (when (and (g ed VIsual-active) (if (== (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual))) (if (== (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual))) (< (.coladd ^T_pos_T (.-w-cursor (g ed curwin))) (.coladd (g ed VIsual))) (< (.col ^T_pos_T (.-w-cursor (g ed curwin))) (.col (g ed VIsual)))) (< (.lnum ^T_pos_T (.-w-cursor (g ed curwin))) (.lnum (g ed VIsual)))) forward)
                   (.set ^T_pos_T (.-w-cursor (g ed curwin)) pos)))
-              (g! ed VIsual-active (e TRUE))
+              (g! ed VIsual-active true)
               (g! ed VIsual-mode 118)
               (when (== (.ub ^BytePtr (aget (g ed p-sel) 0)) 101)
                 (if (and forward (or (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin))))) (and (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (== (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))))))
@@ -10277,10 +10276,10 @@
               (aset (g ed p-ws) 0 (unchecked-int old-p-ws))
               (if (and (== i 1) (zero? result))
                 (do (.set ^T_pos_T (.-w-cursor (g ed curwin)) orig-pos)
-                    (if (zero? (g ed VIsual-active))
-                      false
+                    (if (g ed VIsual-active)
                       (do (.set (g ed VIsual) save-VIsual)
-                          false)))
+                          false)
+                      false))
                 (if (and (== i 0) (zero? result))
                   (if forward
                     (do (.set-lnum pos 0)
@@ -10297,7 +10296,9 @@
 
 ;; C: nv_join
 (defn nv-join [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
+  (if (g ed VIsual-active)
+    (do (nv-operator ed cap)
+        nil)
     (when-not (checkclearop ed (.oap cap))
       (when (<= (.count0 cap) 1)
         (.set-count0 cap 2))
@@ -10311,9 +10312,7 @@
               nil))
         (do (prep-redo ed (.regname ^S_oparg_S (.oap cap)) (.count0 cap) (e NUL) (.cmdchar cap) (e NUL) (e NUL) (long (aget ^ints (.-nchar cap) 0)))
             (do-join ed (.count0 cap) (== (long (aget ^ints (.-nchar cap) 0)) (e NUL)) true true true)
-            nil)))
-    (do (nv-operator ed cap)
-        nil)))
+            nil)))))
 
 ;; C: line_count_info
 (defn line-count-info ^T_line_count_info__out_T [^Editor ed ^BytePtr line wc cc limit eol-size]
@@ -10401,8 +10400,7 @@
         line-count-selected 0]
     (if (zero? (bit-and (.ml-flags ^S_memline (.-b-ml (g ed curbuf))) (e ML_EMPTY)))
       (let [eol-size 1
-            line-count-selected (if (zero? (g ed VIsual-active))
-                                  line-count-selected
+            line-count-selected (if (g ed VIsual-active)
                                   (do (if (if (== (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (if (== (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.coladd (g ed VIsual)) (.coladd ^T_pos_T (.-w-cursor (g ed curwin)))) (< (.col (g ed VIsual)) (.col ^T_pos_T (.-w-cursor (g ed curwin))))) (< (.lnum (g ed VIsual)) (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))))
                                         (do (.set min-pos (g ed VIsual))
                                             (.set max-pos (.-w-cursor (g ed curwin))))
@@ -10421,7 +10419,8 @@
                                           (aset ^ints (.-end-vcol oparg) 0 (unchecked-int (+ (long (aget ^ints (.-end-vcol oparg) 0)) (long (aget ^ints (.-start-vcol oparg) 0)))))
                                           (aset ^ints (.-start-vcol oparg) 0 (unchecked-int (- (long (aget ^ints (.-end-vcol oparg) 0)) (long (aget ^ints (.-start-vcol oparg) 0)))))
                                           (aset ^ints (.-end-vcol oparg) 0 (unchecked-int (- (long (aget ^ints (.-end-vcol oparg) 0)) (long (aget ^ints (.-start-vcol oparg) 0)))))))
-                                      (+ (- (.lnum max-pos) (.lnum min-pos)) 1)))
+                                      (+ (- (.lnum max-pos) (.lnum min-pos)) 1))
+                                  line-count-selected)
             lnum 1]
         (loop [lnum lnum
                byte-count byte-count
@@ -10444,7 +10443,7 @@
               (case (long j__1)
                 0
                   (let [last-check (aget tl__ 0)
-                        j__3 (if (and (not (zero? (g ed VIsual-active))) (>= lnum (.lnum min-pos)) (<= lnum (.lnum max-pos)))
+                        j__3 (if (and (g ed VIsual-active) (>= lnum (.lnum min-pos)) (<= lnum (.lnum max-pos)))
                                (let [^BytePtr s nil
                                      len 0
                                      j__2 (case (g ed VIsual-mode)
@@ -10515,15 +10514,7 @@
                       (recur lnum byte-count byte-count-cursor char-count char-count-cursor word-count word-count-cursor last-check)))
                 1
                   nil))
-            (do (if (zero? (g ed VIsual-active))
-                  (let [^BytePtr p (ml-get-curline ed)
-                        _ (validate-virtcol ed)
-                        _ (col-print ed (BytePtr. buf1 0) 50 (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) 1)) (i32 (+ (long (aget ^ints (.-w-virtcol (g ed curwin)) 0)) 1)))
-                        vcol (long (linetabsize-str ed p))]
-                    (col-print ed (BytePtr. buf2 0) 40 (long (ml-get-curline-len ed)) vcol)
-                    (if (and (== char-count-cursor byte-count-cursor) (== char-count byte-count))
-                      (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld") (object-array [(BytePtr. buf1 0) (BytePtr. buf2 0) (Long/valueOf (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)]))
-                      (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld") (object-array [(BytePtr. buf1 0) (BytePtr. buf2 0) (Long/valueOf (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf char-count-cursor) (Long/valueOf char-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)]))))
+            (do (if (g ed VIsual-active)
                   (do (if (and (== (g ed VIsual-mode) (e Ctrl_V)) (< (.w-curswant (g ed curwin)) (e MAXCOL)))
                         (do (getvcols ed (g ed curwin) min-pos max-pos (IntPtr. min-col 0) (IntPtr. max-col 0) 0)
                             (.set-col min-pos (long (aget min-col 0)))
@@ -10532,7 +10523,15 @@
                         (aset buf1 0 (unchecked-byte (e NUL))))
                       (if (and (== char-count-cursor byte-count-cursor) (== char-count byte-count))
                         (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes") (object-array [(BytePtr. buf1 0) (Long/valueOf line-count-selected) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)]))
-                        (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes") (object-array [(BytePtr. buf1 0) (Long/valueOf line-count-selected) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf char-count-cursor) (Long/valueOf char-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)])))))
+                        (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes") (object-array [(BytePtr. buf1 0) (Long/valueOf line-count-selected) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf char-count-cursor) (Long/valueOf char-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)]))))
+                  (let [^BytePtr p (ml-get-curline ed)
+                        _ (validate-virtcol ed)
+                        _ (col-print ed (BytePtr. buf1 0) 50 (i32 (+ (.col ^T_pos_T (.-w-cursor (g ed curwin))) 1)) (i32 (+ (long (aget ^ints (.-w-virtcol (g ed curwin)) 0)) 1)))
+                        vcol (long (linetabsize-str ed p))]
+                    (col-print ed (BytePtr. buf2 0) 40 (long (ml-get-curline-len ed)) vcol)
+                    (if (and (== char-count-cursor byte-count-cursor) (== char-count byte-count))
+                      (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld") (object-array [(BytePtr. buf1 0) (BytePtr. buf2 0) (Long/valueOf (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)]))
+                      (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld") (object-array [(BytePtr. buf1 0) (BytePtr. buf2 0) (Long/valueOf (.lnum ^T_pos_T (.-w-cursor (g ed curwin)))) (Long/valueOf (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))) (Long/valueOf word-count-cursor) (Long/valueOf word-count) (Long/valueOf char-count-cursor) (Long/valueOf char-count) (Long/valueOf byte-count-cursor) (Long/valueOf byte-count)])))))
                 (let [^BytePtr p (aget (g ed p-shm) 0)]
                   (aset (g ed p-shm) 0 (BytePtr/lit ""))
                   (msg ed (g ed IObuff))
@@ -10550,13 +10549,13 @@
         (let [^S_oparg_S oap (.oap cap)]
           (case (case (long (aget ^ints (.-nchar cap) 0)) (1 24) 0 82 1 114 2 38 3 118 4 86 5 -25195 6 (104 72 8) 7 (110 78) 8 (-25707 106) 9 (-30059 107) 10 74 11 (-12619 -26731 109 48 94) 12 77 13 95 14 (-13387 -14144 36) 15 (163 35 42) 16 (101 69) 17 7 18 105 19 73 20 39 21 96 22 115 23 97 24 56 25 60 26 103 27 (117 126 85) 28 (-11517 -11773 -12029 -12285 -12541 -12797 -13053 -13309 -13565 -23037 -23293 -23549 -23805 -24061 -24317 -25853) 29 -13821 30 (112 80) 31 44 32 59 33 116 34 84 35 9 36 (43 45) 37 -1)
             0
-              (if (zero? (g ed VIsual-active))
-                (do (clearopbeep ed oap)
-                    nil)
+              (if (g ed VIsual-active)
                 (do (.set-arg cap (e TRUE))
                     (.set-cmdchar cap (long (aget ^ints (.-nchar cap) 0)))
                     (aset ^ints (.-nchar cap) 0 (unchecked-int (e NUL)))
                     (nv-addsub ed cap)
+                    nil)
+                (do (clearopbeep ed oap)
                     nil))
             1
               (do (.set-arg cap (e TRUE))
@@ -10572,7 +10571,7 @@
               (do (nv-gv-cmd ed cap)
                   nil)
             5
-              (do (g! ed VIsual-reselect (e FALSE))
+              (do (g! ed VIsual-reselect false)
                   nil)
             6
               (do (aset ^ints (.-nchar cap) 0 (unchecked-int (e Ctrl_H)))
@@ -10722,13 +10721,13 @@
 ;; C: nv_dot
 (defn nv-dot [^Editor ed ^S_cmdarg_S cap]
   (when-not (checkclearopq ed (.oap cap))
-    (when-not (start-redo ed (.count0 cap) (and (not (== (g ed restart-edit) 0)) (zero? (g ed arrow-used))))
+    (when-not (start-redo ed (.count0 cap) (and (not (== (g ed restart-edit) 0)) (not (g ed arrow-used))))
       (clearopbeep ed (.oap cap))
       nil)))
 
 ;; C: nv_redo_or_register
 (defn nv-redo-or-register [^Editor ed ^S_cmdarg_S cap]
-  (if (and (not (zero? (g ed VIsual-select))) (not (zero? (g ed VIsual-active))))
+  (if (and (not (zero? (g ed VIsual-select))) (g ed VIsual-active))
     (do (g! ed no-mapping (i32 (inc (g ed no-mapping))))
         (g! ed allow-keys (i32 (inc (g ed allow-keys))))
         (let [reg (long (plain-vgetc ed))]
@@ -10748,7 +10747,7 @@
 ;; C: u_undoline
 (defn u-undoline [^Editor ed]
   (let [^T_undoline_T oldp (new-T_undoline_T)]
-    (when (zero? (g ed undo-off))
+    (when-not (g ed undo-off)
       (if (or (nil? (.ul-line ^T_undoline_T (.-b-u-line-ptr (g ed curbuf)))) (> (.b-u-line-lnum (g ed curbuf)) (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))))
         (do (beep-flush ed)
             nil)
@@ -10769,7 +10768,7 @@
 
 ;; C: nv_Undo
 (defn nv-Undo [^Editor ed ^S_cmdarg_S cap]
-  (if (or (== (.op-type ^S_oparg_S (.oap cap)) (e OP_UPPER)) (not (zero? (g ed VIsual-active))))
+  (if (or (== (.op-type ^S_oparg_S (.oap cap)) (e OP_UPPER)) (g ed VIsual-active))
     (do (.set-cmdchar cap 103)
         (aset ^ints (.-nchar cap) 0 (unchecked-int 85))
         (nv-operator ed cap)
@@ -10781,7 +10780,7 @@
 
 ;; C: nv_tilde
 (defn nv-tilde [^Editor ed ^S_cmdarg_S cap]
-  (if (and (zero? (long (aget (g ed p-to) 0))) (zero? (g ed VIsual-active)) (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_TILDE))))
+  (if (and (zero? (long (aget (g ed p-to) 0))) (not (g ed VIsual-active)) (not (== (.op-type ^S_oparg_S (.oap cap)) (e OP_TILDE))))
     (do (n-swapchar ed cap)
         nil)
     (do (nv-operator ed cap)
@@ -10809,10 +10808,10 @@
   (if (zero? (bit-and (long (aget (g ed mod-mask) 0)) (e MOD_MASK_CTRL)))
     (do (.set-count0 cap 1)
         (nv-pipe ed cap)
-        (g! ed ins-at-eol (e FALSE))
+        (g! ed ins-at-eol false)
         nil)
     (do (nv-goto ed cap)
-        (g! ed ins-at-eol (e FALSE))
+        (g! ed ins-at-eol false)
         nil)))
 
 ;; C: nv_beginline
@@ -10820,29 +10819,29 @@
   (.set-motion-type ^S_oparg_S (.oap cap) (e MCHAR))
   (.set-inclusive ^S_oparg_S (.oap cap) (e FALSE))
   (beginline ed (.arg cap))
-  (g! ed ins-at-eol (e FALSE))
+  (g! ed ins-at-eol false)
   nil)
 
 ;; C: nv_select
 (defn nv-select [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
-    (when-not (zero? (g ed VIsual-reselect))
+  (if (g ed VIsual-active)
+    (do (g! ed VIsual-select (e TRUE))
+        (g! ed VIsual-select-reg 0)
+        nil)
+    (when (g ed VIsual-reselect)
       (aset ^ints (.-nchar cap) 0 (unchecked-int 118))
       (.set-arg cap (e TRUE))
       (nv-g-cmd ed cap)
-      nil)
-    (do (g! ed VIsual-select (e TRUE))
-        (g! ed VIsual-select-reg 0)
-        nil)))
+      nil)))
 
 ;; C: nv_normal
 (defn nv-normal [^Editor ed ^S_cmdarg_S cap]
   (if (or (== (long (aget ^ints (.-nchar cap) 0)) (e Ctrl_N)) (== (long (aget ^ints (.-nchar cap) 0)) (e Ctrl_G)))
     (do (clearop ed (.oap cap))
-        (when (and (not (== (g ed restart-edit) 0)) (not (zero? (g ed mode-displayed))))
-          (g! ed clear-cmdline (e TRUE)))
+        (when (and (not (== (g ed restart-edit) 0)) (g ed mode-displayed))
+          (g! ed clear-cmdline true))
         (g! ed restart-edit 0)
-        (when-not (zero? (g ed VIsual-active))
+        (when (g ed VIsual-active)
           (end-visual-mode ed)
           (redraw-curbuf-later ed (e UPD_INVERTED)))
         (when (and (== (long (aget ^ints (.-nchar cap) 0)) (e Ctrl_G)) (not (zero? (long (aget (g ed p-im) 0)))))
@@ -10858,22 +10857,22 @@
 (defn nv-esc [^Editor ed ^S_cmdarg_S cap]
   (let [no-reason (and (== (.op-type ^S_oparg_S (.oap cap)) (e OP_NOP)) (== (.opcount cap) 0) (== (.count0 cap) 0) (== (.regname ^S_oparg_S (.oap cap)) 0) (zero? (long (aget (g ed p-im) 0))))]
     (when-not (zero? (.arg cap))
-      (when (and (== (g ed restart-edit) 0) (zero? (g ed VIsual-active)) no-reason)
+      (when (and (== (g ed restart-edit) 0) (not (g ed VIsual-active)) no-reason)
         (if (zero? (long (anyBufIsChanged ed)))
           (msg ed (BytePtr/lit "Type  :qa  and press <Enter> to exit Vim"))
           (let [^BytePtr ms (BytePtr/lit "Type  :qa!  and press <Enter> to abandon all changes and exit Vim")]
             (msg ed ms))))
       (when-not (== (g ed restart-edit) 0)
-        (g! ed redraw-mode (e TRUE)))
+        (g! ed redraw-mode true))
       (when (zero? (long (aget (g ed p-im) 0)))
         (g! ed restart-edit 0)))
-    (if (zero? (g ed VIsual-active))
-      (when no-reason
-        (vim-beep ed (e BO_ESC)))
+    (if (g ed VIsual-active)
       (do (end-visual-mode ed)
           (check-cursor-col ed)
           (.set-w-set-curswant (g ed curwin) (boolean true))
-          (redraw-curbuf-later ed (e UPD_INVERTED))))
+          (redraw-curbuf-later ed (e UPD_INVERTED)))
+      (when no-reason
+        (vim-beep ed (e BO_ESC))))
     (clearop ed (.oap cap))
     (when (and (== (g ed restart-edit) 0) (goto-im? ed) (== (g ed ex-normal-busy) 0))
       (g! ed restart-edit 97)
@@ -10887,7 +10886,7 @@
       true
       (let [plen (long (musl-strlen p))]
         (get-yank-register ed regname (e TRUE))
-        (if (and (not (zero? (g ed y-append))) (some? (.y-array (g ed y-current))))
+        (if (and (g ed y-append) (some? (.y-array (g ed y-current))))
           (let [^T_string_T pp (Ptr/ref (.add ^Ptr (.y-array (g ed y-current)) (- (.y-size (g ed y-current)) 1)))
                 tmplen (+ (.length pp) plen)
                 ^BytePtr tmp (BytePtr/alloc (+ tmplen 1))]
@@ -10955,10 +10954,10 @@
 
 ;; C: nv_open
 (defn nv-open [^Editor ed ^S_cmdarg_S cap]
-  (if (zero? (g ed VIsual-active))
-    (do (n-opencmd ed cap)
-        nil)
+  (if (g ed VIsual-active)
     (do (v-swap-corners ed (.cmdchar cap))
+        nil)
+    (do (n-opencmd ed cap)
         nil)))
 
 ;; C: nv_cursorhold
@@ -11429,8 +11428,8 @@
 ;; C: set_init_1
 (defn set-init-1 [^Editor ed]
   (aset (g ed p-cp) 0 (unchecked-int (e FALSE)))
-  (g! ed km-startsel (e TRUE))
-  (g! ed km-stopsel (e FALSE))
+  (g! ed km-startsel true)
+  (g! ed km-stopsel false)
   (set-options-default ed 0)
   (.set-b-p-initialized (g ed curbuf) (boolean true))
   (aset ^longs (.-b-p-ul (g ed curbuf)) 0 -123456)
@@ -11534,7 +11533,7 @@
 
 (defn showoneopt [^Editor ed ^Ptr p ^long opt-flags]
   (let [^T_optvar_T varp (new-T_optvar_T)]
-    (g! ed info-message (e TRUE))
+    (g! ed info-message true)
     (.set varp (get-varp-scope ed p opt-flags))
     (if (and (not (zero? (bit-and (aget ^longs (.-flags ^S_vimoption (.get p)) 0) (e P_BOOL)))) (if (IntPtr/eq ^IntPtr (.ov-int varp) (IntPtr. ^ints (.-b-changed (g ed curbuf)) 0)) (zero? (long (curbufIsChanged ed))) (zero? (long (.get ^IntPtr (.ov-int varp))))))
       (msg-puts ed (BytePtr/lit "no"))
@@ -11546,9 +11545,9 @@
       (do (msg-putchar ed 61)
           (option-value2string ed p opt-flags)
           (msg-outtrans ed (g ed NameBuff))
-          (g! ed info-message (e FALSE))
+          (g! ed info-message false)
           nil)
-      (do (g! ed info-message (e FALSE))
+      (do (g! ed info-message false)
           nil))))
 
 (defn showoptions [^Editor ed ^long all ^long opt-flags]
@@ -12665,7 +12664,6 @@
 ;; C: do_set_option
 (defn do-set-option ^T_do_set_option__out_T [^Editor ed opt-flags ^Ptr argp ^BytePtr arg-start ^Ptr startarg did-show ^IntPtr stopopteval ^BytePtr errbuf errbuflen]
   (let [opt-flags (long opt-flags)
-        did-show (long did-show)
         errbuflen (long errbuflen)
         ^T_do_set_option__out_T out__ (new-T_do_set_option__out_T)
         ^T_do_set_option_value__out_T do-set-option-value__o (new-T_do_set_option_value__out_T)
@@ -12675,8 +12673,8 @@
         ^objects errmsg (object-array 1)
         opt-idx 0
         len 0
-        ^longs tl__ (long-array 2)
-        ^objects to__ (object-array 2)]
+        ^longs tl__ (long-array 1)
+        ^objects to__ (object-array 3)]
     (loop [st 0
            opt-flags opt-flags
            ^Ptr argp argp
@@ -12707,7 +12705,7 @@
                   (let [afterchar (.ub arg len)]
                     (recur 1 opt-flags argp did-show stopopteval errbuf errbuflen opt-idx arg prefix op flags nextchar afterchar key_ len))
                   (do (.set-r__ out__ (BytePtr. (g ed e-invalid-argument) 0))
-                      (.set-did-show out__ did-show)
+                      (.set-did-show out__ (boolean did-show))
                       out__))))
         1
           (if (or (== (.ub arg len) 32) (== (.ub arg len) 9))
@@ -12722,7 +12720,7 @@
                 (do (aset errmsg 0 (BytePtr. (g ed e-unknown-option) 0))
                     (.put argp arg)
                     (.set-r__ out__ (aget errmsg 0))
-                    (.set-did-show out__ did-show)
+                    (.set-did-show out__ (boolean did-show))
                     out__)
                 (if (>= opt-idx 0)
                   (if (optvar-is-null? (.copy ^T_optvar_T (.-var_ ^S_vimoption (aget (g ed options) opt-idx))))
@@ -12730,7 +12728,7 @@
                           (aset errmsg 0 (BytePtr. (g ed e-option-not-supported) 0)))
                         (.put argp arg)
                         (.set-r__ out__ (aget errmsg 0))
-                        (.set-did-show out__ did-show)
+                        (.set-did-show out__ (boolean did-show))
                         out__)
                     (let [flags (aget ^longs (.-flags ^S_vimoption (aget (g ed options) opt-idx)) 0)]
                       (.set varp (get-varp-scope ed (Ptr. (g ed options) opt-idx) opt-flags))
@@ -12770,7 +12768,7 @@
                              (do (aset errmsg 0 (BytePtr. (g ed e-trailing-characters) 0))
                                  (.put argp arg)
                                  (.set-r__ out__ (aget errmsg 0))
-                                 (.set-did-show out__ did-show)
+                                 (.set-did-show out__ (boolean did-show))
                                  (aset to__ 1 out__)
                                  -1)
                              (do (aset to__ 0 arg)
@@ -12784,11 +12782,11 @@
                 (let [^BytePtr arg (aget to__ 0)
                       cp-val (aget tl__ 0)
                       j__4 (if (or (== nextchar 63) (and (== prefix (e PREFIX_NONE)) (nil? (vim-strchr ed (BytePtr/lit "=:&<") nextchar)) (zero? (bit-and flags (e P_BOOL)))))
-                             (let [did-show (if (zero? did-show)
-                                              (do (gotocmdline ed true)
-                                                  (e TRUE))
+                             (let [did-show (if did-show
                                               (do (msg-putchar ed 10)
-                                                  did-show))
+                                                  did-show)
+                                              (do (gotocmdline ed true)
+                                                  true))
                                    j__3 (if (>= opt-idx 0)
                                           (do (showoneopt ed (Ptr. (g ed options) opt-idx) opt-flags)
                                               0)
@@ -12797,7 +12795,7 @@
                                               (do (aset errmsg 0 (BytePtr. (g ed e-key-code-not-set) 0))
                                                   (.put argp arg)
                                                   (.set-r__ out__ (aget errmsg 0))
-                                                  (.set-did-show out__ did-show)
+                                                  (.set-did-show out__ (boolean did-show))
                                                   (aset to__ 1 out__)
                                                   -1)
                                               (do (show-one-termcode ed (BytePtr. key-name 0) p true)
@@ -12807,29 +12805,29 @@
                                      -1)
                                  (if (and (not (== nextchar 63)) (not (== nextchar (e NUL))) (not (or (== afterchar 32) (== afterchar 9))))
                                    (do (aset errmsg 0 (BytePtr. (g ed e-trailing-characters) 0))
-                                       (aset tl__ 1 did-show)
+                                       (aset to__ 2 (Boolean/valueOf (boolean did-show)))
                                        (aset to__ 0 arg)
                                        0)
-                                   (do (aset tl__ 1 did-show)
+                                   (do (aset to__ 2 (Boolean/valueOf (boolean did-show)))
                                        (aset to__ 0 arg)
                                        0))))
                              (do (.set do-set-option-value__o (do-set-option-value ed opt-idx opt-flags arg prefix op flags (.copy ^T_optvar_T varp) (BytePtr. key-name 0) nextchar afterchar cp-val stopopteval errbuf errbuflen))
                                  (let [^BytePtr arg (.argp do-set-option-value__o)]
                                    (aset errmsg 0 (.r__ do-set-option-value__o))
-                                   (aset tl__ 1 did-show)
+                                   (aset to__ 2 (Boolean/valueOf (boolean did-show)))
                                    (aset to__ 0 arg)
                                    0)))]
                   (if (== (long j__4) -1)
                     (aget to__ 1)
-                    (let [did-show (aget tl__ 1)
+                    (let [did-show (boolean (aget to__ 2))
                           ^BytePtr arg (aget to__ 0)]
                       (.put argp arg)
                       (.set-r__ out__ (aget errmsg 0))
-                      (.set-did-show out__ did-show)
+                      (.set-did-show out__ (boolean did-show))
                       out__)))))
             (do (.put argp arg)
                 (.set-r__ out__ (aget errmsg 0))
-                (.set-did-show out__ did-show)
+                (.set-did-show out__ (boolean did-show))
                 out__))))))
 
 ;; C: do_set
@@ -12839,15 +12837,14 @@
         ^ints stopopteval (int-array 1)
         ^bytes errbuf (byte-array 80)
         ^objects startarg (object-array 1)
-        ^longs tl__ (long-array 1)
-        ^objects to__ (object-array 2)]
+        ^objects to__ (object-array 3)]
     (aset arg 0 arg-start)
-    (let [did-show (e FALSE)]
+    (let [did-show false]
       (if (== (.ub ^BytePtr (aget arg 0)) (e NUL))
         (do (showoptions ed 0 opt-flags)
-            (let [did-show (e TRUE)]
+            (let [did-show true]
               true))
-        (loop [did-show did-show]
+        (loop [did-show (boolean did-show)]
           (if (== (.ub ^BytePtr (aget arg 0)) (e NUL))
             true
             (let [j__1 (if (and (== (long (musl-strncmp (aget arg 0) (BytePtr/lit "all") 3)) 0) (not (or (ascii-isupper? (.ub ^BytePtr (aget arg 0) 3)) (ascii-islower? (.ub ^BytePtr (aget arg 0) 3)))))
@@ -12858,18 +12855,18 @@
                                    (didset-options ed)
                                    (didset-options2 ed)
                                    (redraw-all-later ed (e UPD_CLEAR))
-                                   (aset tl__ 0 did-show)
+                                   (aset to__ 0 (Boolean/valueOf (boolean did-show)))
                                    0)
                                (do (showoptions ed 1 opt-flags)
-                                   (let [did-show (e TRUE)]
-                                     (aset tl__ 0 did-show)
+                                   (let [did-show true]
+                                     (aset to__ 0 (Boolean/valueOf (boolean did-show)))
                                      0))))
                          (if (== (long (musl-strncmp (aget arg 0) (BytePtr/lit "termcap") 7)) 0)
                            (do (showoptions ed 2 opt-flags)
                                (show-termcodes ed opt-flags)
-                               (let [did-show (e TRUE)]
+                               (let [did-show true]
                                  (aset arg 0 (.add ^BytePtr (aget arg 0) 7))
-                                 (aset tl__ 0 did-show)
+                                 (aset to__ 0 (Boolean/valueOf (boolean did-show)))
                                  0))
                            (do (aset stopopteval 0 (unchecked-int (e FALSE)))
                                (let [^BytePtr errmsg nil
@@ -12892,18 +12889,18 @@
                                            (let [i (i32 (inc i))]
                                              (recur i)))))
                                      (if (some? errmsg)
-                                       (do (aset to__ 0 errmsg)
+                                       (do (aset to__ 1 errmsg)
                                            1)
-                                       (do (aset tl__ 0 did-show)
+                                       (do (aset to__ 0 (Boolean/valueOf (boolean did-show)))
                                            0)))
                                    2)))))]
               (case (long j__1)
                 0
-                  (let [did-show (aget tl__ 0)]
+                  (let [did-show (boolean (aget to__ 0))]
                     (aset arg 0 (skipwhite (aget arg 0)))
-                    (recur did-show))
+                    (recur (boolean did-show)))
                 1
-                  (let [^BytePtr errmsg (aget to__ 0)
+                  (let [^BytePtr errmsg (aget to__ 1)
                         i (i32 (+ (long (whim.cljhost/vim-snprintf ed (g ed IObuff) 1025 (BytePtr/lit "%s") (object-array [errmsg]))) 2))]
                     (when (< (+ i (.sub ^BytePtr (aget arg 0) ^BytePtr (aget startarg 0))) 1025)
                       (musl-strcpy (.add (.add (g ed IObuff) i) (- 2)) (BytePtr/lit ": "))
@@ -12948,7 +12945,7 @@
 
 ;; C: redraw_titles
 (defn redraw-titles [^Editor ed]
-  (g! ed redraw-tabline (e TRUE))
+  (g! ed redraw-tabline true)
   nil)
 
 ;; C: min_rows
@@ -12966,13 +12963,13 @@
 (defn command-height [^Editor ed]
   (let [old-p-ch (i32 (.tp-ch-used (g ed curtab)))
         ^S_frame_S frp (.w-frame (g ed curwin))
-        old-p-ch (if (and (> (aget (g ed p-ch) 0) old-p-ch) (not (zero? (g ed command-frame-height))))
+        old-p-ch (if (and (> (aget (g ed p-ch) 0) old-p-ch) (g ed command-frame-height))
                    (let [h (i32 (if (< (- (aget (g ed p-ch) 0) old-p-ch) (i32 (- (.fr-height frp) (long (frame-minheight ed frp nil))))) (- (aget (g ed p-ch) 0) old-p-ch) (i32 (- (.fr-height frp) (long (frame-minheight ed frp nil))))))
                          _ (frame-add-height ed frp (i32 (- h)))
                          old-p-ch (i32 (+ old-p-ch h))]
                      old-p-ch)
                    old-p-ch)]
-    (when (and (< (aget (g ed p-ch) 0) old-p-ch) (not (zero? (g ed command-frame-height))))
+    (when (and (< (aget (g ed p-ch) 0) old-p-ch) (g ed command-frame-height))
       (frame-add-height ed frp (i32 (- old-p-ch (aget (g ed p-ch) 0)))))
     (win-comp-pos ed)
     (win-fix-scroll ed 1)
@@ -13037,15 +13034,15 @@
 (defn did-set-insertmode ^BytePtr [^Editor ed ^T_optset_T args]
   (if (zero? (long (aget (g ed p-im) 0)))
     (when-not (zero? (.boolean_ ^A_4 (.-os-oldval args)))
-      (g! ed need-start-insertmode (e FALSE))
-      (g! ed stop-insert-mode (e TRUE))
-      (when (and (not (== (g ed restart-edit) 0)) (not (zero? (g ed mode-displayed))))
-        (g! ed clear-cmdline (e TRUE)))
+      (g! ed need-start-insertmode false)
+      (g! ed stop-insert-mode true)
+      (when (and (not (== (g ed restart-edit) 0)) (g ed mode-displayed))
+        (g! ed clear-cmdline true))
       (g! ed restart-edit 0)
       nil)
     (do (when (== (bit-and (g ed State) (e MODE_INSERT)) 0)
-          (g! ed need-start-insertmode (e TRUE)))
-        (g! ed stop-insert-mode (e FALSE))
+          (g! ed need-start-insertmode true))
+        (g! ed stop-insert-mode false)
         nil)))
 
 ;; C: statusline_height
@@ -13322,7 +13319,7 @@
           (recur))
       (do (g! ed termcodes nil)
           (g! ed tc-max-len 0)
-          (g! ed need-gather (e TRUE))
+          (g! ed need-gather true)
           nil))))
 
 ;; C: free_termoptions
@@ -13512,8 +13509,8 @@
 ;; C: did_set_keymodel
 (defn did-set-keymodel ^BytePtr [^Editor ed ^T_optset_T args]
   (if (check-opt-strings (aget (g ed p-km) 0) (Ptr. (g ed p-km-values) 0) true)
-    (do (g! ed km-stopsel (if (some? (vim-strchr ed (aget (g ed p-km) 0) 111)) 1 0))
-        (g! ed km-startsel (if (some? (vim-strchr ed (aget (g ed p-km) 0) 97)) 1 0))
+    (do (g! ed km-stopsel (some? (vim-strchr ed (aget (g ed p-km) 0) 111)))
+        (g! ed km-startsel (some? (vim-strchr ed (aget (g ed p-km) 0) 97)))
         nil)
     (BytePtr. (g ed e-invalid-argument) 0)))
 
@@ -13808,7 +13805,7 @@
         width 0
         height 0
         ^BytePtr error-msg nil
-        _ (g! ed detected-8bit (e FALSE))
+        _ (g! ed detected-8bit false)
         ^BytePtr term (if (term-is-builtin? term)
                         ^BytePtr (.add term 8)
                         term)
@@ -13847,7 +13844,7 @@
               (add-termcode ed (BytePtr. name_ 0) (BytePtr/lit "\033[I") (e FALSE))
               (aset name_ 1 (unchecked-byte (e KE_FOCUSLOST)))
               (add-termcode ed (BytePtr. name_ 0) (BytePtr/lit "\033[O") (e FALSE))
-              (g! ed need-gather (e TRUE))
+              (g! ed need-gather true)
               (g! ed focus-state (e MAYBE))
               (ttest ed true)
               (g! ed full-screen (e TRUE))
@@ -13868,7 +13865,7 @@
                 (set-shellsize ed width height (e FALSE))
                 (if (== (g ed starting) (e NO_SCREEN))
                   true
-                  (do (when-not (zero? (g ed scroll-region))
+                  (do (when (g ed scroll-region)
                         (scroll-region-reset ed))
                       (check-map-keycodes ed)
                       true)))))))))
@@ -13897,7 +13894,7 @@
       (when (Ptr/eq varp (Ptr. (g ed term-strings) 19))
         (out-str ed (aget (g ed term-strings) 19))
         (redraw-later ed (e UPD_CLEAR)))
-      (when (and (Ptr/eq varp (Ptr. (g ed term-strings) 82)) (not (zero? (g ed termcap-active))))
+      (when (and (Ptr/eq varp (Ptr. (g ed term-strings) 82)) (g ed termcap-active))
         (if (== (.ub ^BytePtr (aget (g ed term-strings) 82)) (e NUL))
           (out-str ed (aget (g ed term-strings) 83))
           (out-str ed (aget (g ed term-strings) 82))))
@@ -14347,8 +14344,8 @@
 
 ;; C: may_make_initial_scroll_size_snapshot
 (defn may-make-initial-scroll-size-snapshot [^Editor ed]
-  (when (zero? (g ed did-initial-scroll-size-snapshot))
-    (g! ed did-initial-scroll-size-snapshot (e TRUE))
+  (when-not (g ed did-initial-scroll-size-snapshot)
+    (g! ed did-initial-scroll-size-snapshot true)
     (snapshot-windows-scroll-size ed)
     nil))
 
@@ -14485,49 +14482,49 @@
         (do (when (stuff-empty? ed)
               (when-not (zero? (g ed need-wait-return))
                 (wait-return ed (e FALSE)))
-              (when (and (not (zero? (g ed need-start-insertmode))) (goto-im? ed) (zero? (g ed VIsual-active)))
-                (g! ed need-start-insertmode (e FALSE))
+              (when (and (g ed need-start-insertmode) (goto-im? ed) (not (g ed VIsual-active)))
+                (g! ed need-start-insertmode false)
                 (stuffReadbuff ed (BytePtr/lit "i"))
-                (g! ed need-fileinfo (e FALSE))))
+                (g! ed need-fileinfo false)))
             (when-not (zero? (g ed got-int))
-              (when (zero? (g ed quit-more))
+              (when-not (g ed quit-more)
                 (vgetc ed))
               (g! ed got-int (e FALSE)))
             (g! ed msg-scroll (e FALSE))
-            (g! ed quit-more (e FALSE))
-            (if (zero? (g ed skip-redraw))
-              (when (or (not (zero? (g ed do-redraw))) (stuff-empty? ed))
+            (g! ed quit-more false)
+            (if (g ed skip-redraw)
+              (do (g! ed skip-redraw false)
+                  (setcursor ed)
+                  (cursor-on ed))
+              (when (or (g ed do-redraw) (stuff-empty? ed))
                 (may-trigger-deferred-events ed)
                 (may-trigger-safestate (and (not (op-pending? ed)) (== (g ed restart-edit) 0)))
                 (update-topline ed)
                 (validate-cursor ed)
-                (if (zero? (g ed VIsual-active))
+                (if (g ed VIsual-active)
+                  (update-curbuf ed (e UPD_INVERTED))
                   (if (zero? (g ed must-redraw))
-                    (when (or (not (zero? (g ed redraw-cmdline))) (not (zero? (g ed clear-cmdline))) (not (zero? (g ed redraw-mode))))
+                    (when (or (not (zero? (g ed redraw-cmdline))) (g ed clear-cmdline) (g ed redraw-mode))
                       (showmode ed))
-                    (update-screen ed 0))
-                  (update-curbuf ed (e UPD_INVERTED)))
+                    (update-screen ed 0)))
                 (redraw-statuslines ed)
                 (when (some? (g ed keep-msg))
                   (let [^BytePtr p (vim-strsave (g ed keep-msg))]
-                    (g! ed msg-hist-off (e TRUE))
+                    (g! ed msg-hist-off true)
                     (msg-attr ed p (g ed keep-msg-attr))
-                    (g! ed msg-hist-off (e FALSE))))
-                (when-not (zero? (g ed need-fileinfo))
+                    (g! ed msg-hist-off false)))
+                (when (g ed need-fileinfo)
                   (fileinfo ed (e FALSE) true false)
-                  (g! ed need-fileinfo (e FALSE)))
-                (g! ed emsg-on-display (e FALSE))
+                  (g! ed need-fileinfo false))
+                (g! ed emsg-on-display false)
                 (g! ed did-emsg (e FALSE))
-                (g! ed msg-didany (e FALSE))
+                (g! ed msg-didany false)
                 (may-clear-sb-text ed)
                 (showruler ed false)
                 (setcursor ed)
                 (cursor-on ed)
-                (g! ed do-redraw (e FALSE))
-                (may-make-initial-scroll-size-snapshot ed))
-              (do (g! ed skip-redraw (e FALSE))
-                  (setcursor ed)
-                  (cursor-on ed)))
+                (g! ed do-redraw false)
+                (may-make-initial-scroll-size-snapshot ed)))
             (may-send-t-RK ed)
             (update-curswant ed)
             (normal-cmd ed oa true)
@@ -14539,12 +14536,12 @@
   (g! ed no-wait-return (e FALSE))
   (g! ed msg-scroll (e FALSE))
   (when (and (or (not (zero? (g ed did-emsg))) (not (zero? (g ed msg-didout)))) (not (== (.ub ^BytePtr (aget (g ed term-strings) 42)) (e NUL))))
-    (g! ed newline-on-exit (e TRUE)))
+    (g! ed newline-on-exit true))
   (term-enter ed)
-  (when (or (not (zero? (g ed need-wait-return))) (not (zero? (g ed msg-didany))))
+  (when (or (not (zero? (g ed need-wait-return))) (g ed msg-didany))
     (wait-return ed (e TRUE)))
   (starttermcap ed)
-  (when-not (zero? (g ed scroll-region))
+  (when (g ed scroll-region)
     (scroll-region-reset ed))
   (scroll-start ed)
   (screenclear ed)
@@ -14559,13 +14556,13 @@
   (redraw-all-later ed (e UPD_NOT_VALID))
   (g! ed no-wait-return (e FALSE))
   (when-not (zero? (long (aget (g ed p-im) 0)))
-    (g! ed need-start-insertmode (e TRUE)))
+    (g! ed need-start-insertmode true))
   (if (== (g ed restart-edit) 0)
-    (do (g! ed do-redraw (e TRUE))
+    (do (g! ed do-redraw true)
         (main-loop ed false)
         0)
     (do (stuffcharReadbuff ed (e K_NOP))
-        (g! ed do-redraw (e TRUE))
+        (g! ed do-redraw true)
         (main-loop ed false)
         0)))
 
@@ -15610,9 +15607,9 @@
   (g! ed starting (e NO_SCREEN))
   (g! ed VIsual-mode 118)
   (g! ed State (e MODE_NORMAL))
-  (g! ed no-abbr (e TRUE))
-  (g! ed ctrl-c-interrupts (e TRUE))
-  (g! ed need-highlight-changed (e TRUE))
+  (g! ed no-abbr true)
+  (g! ed ctrl-c-interrupts true)
+  (g! ed need-highlight-changed true)
   (g! ed did-cursorhold (e TRUE))
   (g! ed empty-option (BytePtr/lit ""))
   (Rt/init (g ed no-lines-msg) "--No lines in buffer--")
@@ -15831,7 +15828,7 @@
   (aset (g ed history-names) 2 (BytePtr/lit "expr"))
   (aset (g ed history-names) 3 (BytePtr/lit "input"))
   (g! ed last-maptick -1)
-  (g! ed update-Insstart-orig (e TRUE))
+  (g! ed update-Insstart-orig true)
   (fill-S_cmdname! (g ed cmdnames) table-cmdnames)
   (aset (g ed dollar-command) 0 (unchecked-byte 36))
   (.set-b-str ^S_buffblock (.-bh-first (g ed redobuff)) (BytePtr. (let [^bytes h__ ^bytes (byte-array 1)] h__) 0))
@@ -17747,7 +17744,7 @@
   (aset (g ed nv-cmd-idx) 192 (unchecked-short 162))
   (aset (g ed nv-cmd-idx) 193 (unchecked-short 155))
   (g! ed nv-max-linear 126)
-  (g! ed showcmd-is-clear (e TRUE))
+  (g! ed showcmd-is-clear true)
   (aset ^bytes (aget (g ed opchars) 1) 0 (unchecked-byte 100))
   (aset ^bytes (aget (g ed opchars) 1) 2 (unchecked-byte (e OPF_CHANGE)))
   (aset ^bytes (aget (g ed opchars) 2) 0 (unchecked-byte 121))
@@ -19027,7 +19024,7 @@
   (.set-bitc-name ^T_builtin_tcap_T (aget (g ed builtin-terminals) 1) (BytePtr/lit "debug"))
   (.set-bitc-table ^T_builtin_tcap_T (aget (g ed builtin-terminals) 1) (Ptr. (g ed builtin-debug) 0))
   (g! ed min-set-ch 1)
-  (g! ed command-frame-height (e TRUE))
+  (g! ed command-frame-height true)
   (aset (g ed main-errors) 0 (BytePtr/lit "Unknown option argument"))
   (aset (g ed main-errors) 1 (BytePtr/lit "Too many \"+command\", \"-c command\" or \"--cmd command\" arguments"))
   (aset (g ed main-errors) 2 (BytePtr/lit "Invalid argument for"))
@@ -19172,7 +19169,7 @@
   nil)
 
 (defn new-editor "An editor on host, a whim.host.Host: the C's file-scope objects as they start." [host]
-  (let [ed (Editor. host (long-array 296) (boolean-array 22) (object-array 488))]
+  (let [ed (Editor. host (long-array 217) (boolean-array 101) (object-array 488))]
     (make-objects-0 ed)
     (make-objects-1 ed)
     (init-globals-0 ed)

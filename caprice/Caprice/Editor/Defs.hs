@@ -906,2945 +906,2945 @@ redraw_cmdline ed' = rdI32 (edSeg ed') 2164
 set'redraw_cmdline :: Ed -> Int32 -> IO ()
 set'redraw_cmdline ed' = wrI32 (edSeg ed') 2164
 {-# INLINE set'redraw_cmdline #-}
-redraw_mode :: Ed -> IO Int32
-redraw_mode ed' = rdI32 (edSeg ed') 2168
+redraw_mode :: Ed -> IO Bool
+redraw_mode ed' = rdB (edSeg ed') 2168
 {-# INLINE redraw_mode #-}
-set'redraw_mode :: Ed -> Int32 -> IO ()
-set'redraw_mode ed' = wrI32 (edSeg ed') 2168
+set'redraw_mode :: Ed -> Bool -> IO ()
+set'redraw_mode ed' = wrB (edSeg ed') 2168
 {-# INLINE set'redraw_mode #-}
-clear_cmdline :: Ed -> IO Int32
-clear_cmdline ed' = rdI32 (edSeg ed') 2172
+clear_cmdline :: Ed -> IO Bool
+clear_cmdline ed' = rdB (edSeg ed') 2169
 {-# INLINE clear_cmdline #-}
-set'clear_cmdline :: Ed -> Int32 -> IO ()
-set'clear_cmdline ed' = wrI32 (edSeg ed') 2172
+set'clear_cmdline :: Ed -> Bool -> IO ()
+set'clear_cmdline ed' = wrB (edSeg ed') 2169
 {-# INLINE set'clear_cmdline #-}
-mode_displayed :: Ed -> IO Int32
-mode_displayed ed' = rdI32 (edSeg ed') 2176
+mode_displayed :: Ed -> IO Bool
+mode_displayed ed' = rdB (edSeg ed') 2170
 {-# INLINE mode_displayed #-}
-set'mode_displayed :: Ed -> Int32 -> IO ()
-set'mode_displayed ed' = wrI32 (edSeg ed') 2176
+set'mode_displayed :: Ed -> Bool -> IO ()
+set'mode_displayed ed' = wrB (edSeg ed') 2170
 {-# INLINE set'mode_displayed #-}
 no_win_do_lines_ins :: Ed -> IO Int32
-no_win_do_lines_ins ed' = rdI32 (edSeg ed') 2180
+no_win_do_lines_ins ed' = rdI32 (edSeg ed') 2172
 {-# INLINE no_win_do_lines_ins #-}
 set'no_win_do_lines_ins :: Ed -> Int32 -> IO ()
-set'no_win_do_lines_ins ed' = wrI32 (edSeg ed') 2180
+set'no_win_do_lines_ins ed' = wrI32 (edSeg ed') 2172
 {-# INLINE set'no_win_do_lines_ins #-}
 exec_from_reg :: Ed -> IO Int32
-exec_from_reg ed' = rdI32 (edSeg ed') 2184
+exec_from_reg ed' = rdI32 (edSeg ed') 2176
 {-# INLINE exec_from_reg #-}
 set'exec_from_reg :: Ed -> Int32 -> IO ()
-set'exec_from_reg ed' = wrI32 (edSeg ed') 2184
+set'exec_from_reg ed' = wrI32 (edSeg ed') 2176
 {-# INLINE set'exec_from_reg #-}
 screen_cleared :: Ed -> IO Int32
-screen_cleared ed' = rdI32 (edSeg ed') 2188
+screen_cleared ed' = rdI32 (edSeg ed') 2180
 {-# INLINE screen_cleared #-}
 set'screen_cleared :: Ed -> Int32 -> IO ()
-set'screen_cleared ed' = wrI32 (edSeg ed') 2188
+set'screen_cleared ed' = wrI32 (edSeg ed') 2180
 {-# INLINE set'screen_cleared #-}
 dollar_vcol :: Ed -> IO Colnr_T
-dollar_vcol ed' = rdI32 (edSeg ed') 2192
+dollar_vcol ed' = rdI32 (edSeg ed') 2184
 {-# INLINE dollar_vcol #-}
 set'dollar_vcol :: Ed -> Colnr_T -> IO ()
-set'dollar_vcol ed' = wrI32 (edSeg ed') 2192
+set'dollar_vcol ed' = wrI32 (edSeg ed') 2184
 {-# INLINE set'dollar_vcol #-}
 edit_submode :: Ed -> IO (Ptr Char_u)
-edit_submode ed' = rdP (edSeg ed') 2200
+edit_submode ed' = rdP (edSeg ed') 2192
 {-# INLINE edit_submode #-}
 edit_submode_pre :: Ed -> IO (Ptr Char_u)
-edit_submode_pre ed' = rdP (edSeg ed') 2208
+edit_submode_pre ed' = rdP (edSeg ed') 2200
 {-# INLINE edit_submode_pre #-}
 edit_submode_extra :: Ed -> IO (Ptr Char_u)
-edit_submode_extra ed' = rdP (edSeg ed') 2216
+edit_submode_extra ed' = rdP (edSeg ed') 2208
 {-# INLINE edit_submode_extra #-}
 edit_submode_highl :: Ed -> IO Hlf_T
-edit_submode_highl ed' = rdI32 (edSeg ed') 2224
+edit_submode_highl ed' = rdI32 (edSeg ed') 2216
 {-# INLINE edit_submode_highl #-}
 msg_col :: Ed -> IO Int32
-msg_col ed' = rdI32 (edSeg ed') 2228
+msg_col ed' = rdI32 (edSeg ed') 2220
 {-# INLINE msg_col #-}
 set'msg_col :: Ed -> Int32 -> IO ()
-set'msg_col ed' = wrI32 (edSeg ed') 2228
+set'msg_col ed' = wrI32 (edSeg ed') 2220
 {-# INLINE set'msg_col #-}
 msg_row :: Ed -> IO Int32
-msg_row ed' = rdI32 (edSeg ed') 2232
+msg_row ed' = rdI32 (edSeg ed') 2224
 {-# INLINE msg_row #-}
 set'msg_row :: Ed -> Int32 -> IO ()
-set'msg_row ed' = wrI32 (edSeg ed') 2232
+set'msg_row ed' = wrI32 (edSeg ed') 2224
 {-# INLINE set'msg_row #-}
 msg_scrolled :: Ed -> IO Int32
-msg_scrolled ed' = rdI32 (edSeg ed') 2236
+msg_scrolled ed' = rdI32 (edSeg ed') 2228
 {-# INLINE msg_scrolled #-}
 set'msg_scrolled :: Ed -> Int32 -> IO ()
-set'msg_scrolled ed' = wrI32 (edSeg ed') 2236
+set'msg_scrolled ed' = wrI32 (edSeg ed') 2228
 {-# INLINE set'msg_scrolled #-}
-msg_scrolled_ign :: Ed -> IO Int32
-msg_scrolled_ign ed' = rdI32 (edSeg ed') 2240
+msg_scrolled_ign :: Ed -> IO Bool
+msg_scrolled_ign ed' = rdB (edSeg ed') 2232
 {-# INLINE msg_scrolled_ign #-}
 keep_msg :: Ed -> IO (Ptr Char_u)
-keep_msg ed' = rdP (edSeg ed') 2248
+keep_msg ed' = rdP (edSeg ed') 2240
 {-# INLINE keep_msg #-}
 set'keep_msg :: Ed -> (Ptr Char_u) -> IO ()
-set'keep_msg ed' = wrP (edSeg ed') 2248
+set'keep_msg ed' = wrP (edSeg ed') 2240
 {-# INLINE set'keep_msg #-}
 keep_msg_attr :: Ed -> IO Int32
-keep_msg_attr ed' = rdI32 (edSeg ed') 2256
+keep_msg_attr ed' = rdI32 (edSeg ed') 2248
 {-# INLINE keep_msg_attr #-}
 set'keep_msg_attr :: Ed -> Int32 -> IO ()
-set'keep_msg_attr ed' = wrI32 (edSeg ed') 2256
+set'keep_msg_attr ed' = wrI32 (edSeg ed') 2248
 {-# INLINE set'keep_msg_attr #-}
-keep_msg_more :: Ed -> IO Int32
-keep_msg_more ed' = rdI32 (edSeg ed') 2260
+keep_msg_more :: Ed -> IO Bool
+keep_msg_more ed' = rdB (edSeg ed') 2252
 {-# INLINE keep_msg_more #-}
-set'keep_msg_more :: Ed -> Int32 -> IO ()
-set'keep_msg_more ed' = wrI32 (edSeg ed') 2260
+set'keep_msg_more :: Ed -> Bool -> IO ()
+set'keep_msg_more ed' = wrB (edSeg ed') 2252
 {-# INLINE set'keep_msg_more #-}
-need_fileinfo :: Ed -> IO Int32
-need_fileinfo ed' = rdI32 (edSeg ed') 2264
+need_fileinfo :: Ed -> IO Bool
+need_fileinfo ed' = rdB (edSeg ed') 2253
 {-# INLINE need_fileinfo #-}
-set'need_fileinfo :: Ed -> Int32 -> IO ()
-set'need_fileinfo ed' = wrI32 (edSeg ed') 2264
+set'need_fileinfo :: Ed -> Bool -> IO ()
+set'need_fileinfo ed' = wrB (edSeg ed') 2253
 {-# INLINE set'need_fileinfo #-}
 msg_scroll :: Ed -> IO Int32
-msg_scroll ed' = rdI32 (edSeg ed') 2268
+msg_scroll ed' = rdI32 (edSeg ed') 2256
 {-# INLINE msg_scroll #-}
 set'msg_scroll :: Ed -> Int32 -> IO ()
-set'msg_scroll ed' = wrI32 (edSeg ed') 2268
+set'msg_scroll ed' = wrI32 (edSeg ed') 2256
 {-# INLINE set'msg_scroll #-}
 msg_didout :: Ed -> IO Int32
-msg_didout ed' = rdI32 (edSeg ed') 2272
+msg_didout ed' = rdI32 (edSeg ed') 2260
 {-# INLINE msg_didout #-}
 set'msg_didout :: Ed -> Int32 -> IO ()
-set'msg_didout ed' = wrI32 (edSeg ed') 2272
+set'msg_didout ed' = wrI32 (edSeg ed') 2260
 {-# INLINE set'msg_didout #-}
-msg_didany :: Ed -> IO Int32
-msg_didany ed' = rdI32 (edSeg ed') 2276
+msg_didany :: Ed -> IO Bool
+msg_didany ed' = rdB (edSeg ed') 2264
 {-# INLINE msg_didany #-}
-set'msg_didany :: Ed -> Int32 -> IO ()
-set'msg_didany ed' = wrI32 (edSeg ed') 2276
+set'msg_didany :: Ed -> Bool -> IO ()
+set'msg_didany ed' = wrB (edSeg ed') 2264
 {-# INLINE set'msg_didany #-}
-msg_nowait :: Ed -> IO Int32
-msg_nowait ed' = rdI32 (edSeg ed') 2280
+msg_nowait :: Ed -> IO Bool
+msg_nowait ed' = rdB (edSeg ed') 2265
 {-# INLINE msg_nowait #-}
-set'msg_nowait :: Ed -> Int32 -> IO ()
-set'msg_nowait ed' = wrI32 (edSeg ed') 2280
+set'msg_nowait :: Ed -> Bool -> IO ()
+set'msg_nowait ed' = wrB (edSeg ed') 2265
 {-# INLINE set'msg_nowait #-}
 emsg_off :: Ed -> IO Int32
-emsg_off ed' = rdI32 (edSeg ed') 2284
+emsg_off ed' = rdI32 (edSeg ed') 2268
 {-# INLINE emsg_off #-}
 set'emsg_off :: Ed -> Int32 -> IO ()
-set'emsg_off ed' = wrI32 (edSeg ed') 2284
+set'emsg_off ed' = wrI32 (edSeg ed') 2268
 {-# INLINE set'emsg_off #-}
-info_message :: Ed -> IO Int32
-info_message ed' = rdI32 (edSeg ed') 2288
+info_message :: Ed -> IO Bool
+info_message ed' = rdB (edSeg ed') 2272
 {-# INLINE info_message #-}
-set'info_message :: Ed -> Int32 -> IO ()
-set'info_message ed' = wrI32 (edSeg ed') 2288
+set'info_message :: Ed -> Bool -> IO ()
+set'info_message ed' = wrB (edSeg ed') 2272
 {-# INLINE set'info_message #-}
-msg_hist_off :: Ed -> IO Int32
-msg_hist_off ed' = rdI32 (edSeg ed') 2292
+msg_hist_off :: Ed -> IO Bool
+msg_hist_off ed' = rdB (edSeg ed') 2273
 {-# INLINE msg_hist_off #-}
-set'msg_hist_off :: Ed -> Int32 -> IO ()
-set'msg_hist_off ed' = wrI32 (edSeg ed') 2292
+set'msg_hist_off :: Ed -> Bool -> IO ()
+set'msg_hist_off ed' = wrB (edSeg ed') 2273
 {-# INLINE set'msg_hist_off #-}
 did_emsg :: Ed -> IO Int32
-did_emsg ed' = rdI32 (edSeg ed') 2296
+did_emsg ed' = rdI32 (edSeg ed') 2276
 {-# INLINE did_emsg #-}
 set'did_emsg :: Ed -> Int32 -> IO ()
-set'did_emsg ed' = wrI32 (edSeg ed') 2296
+set'did_emsg ed' = wrI32 (edSeg ed') 2276
 {-# INLINE set'did_emsg #-}
 called_emsg :: Ed -> IO Int32
-called_emsg ed' = rdI32 (edSeg ed') 2300
+called_emsg ed' = rdI32 (edSeg ed') 2280
 {-# INLINE called_emsg #-}
 set'called_emsg :: Ed -> Int32 -> IO ()
-set'called_emsg ed' = wrI32 (edSeg ed') 2300
+set'called_emsg ed' = wrI32 (edSeg ed') 2280
 {-# INLINE set'called_emsg #-}
 in_echowindow :: Ed -> IO Int32
-in_echowindow ed' = rdI32 (edSeg ed') 2304
+in_echowindow ed' = rdI32 (edSeg ed') 2284
 {-# INLINE in_echowindow #-}
 set'in_echowindow :: Ed -> Int32 -> IO ()
-set'in_echowindow ed' = wrI32 (edSeg ed') 2304
+set'in_echowindow ed' = wrI32 (edSeg ed') 2284
 {-# INLINE set'in_echowindow #-}
-emsg_on_display :: Ed -> IO Int32
-emsg_on_display ed' = rdI32 (edSeg ed') 2308
+emsg_on_display :: Ed -> IO Bool
+emsg_on_display ed' = rdB (edSeg ed') 2288
 {-# INLINE emsg_on_display #-}
-set'emsg_on_display :: Ed -> Int32 -> IO ()
-set'emsg_on_display ed' = wrI32 (edSeg ed') 2308
+set'emsg_on_display :: Ed -> Bool -> IO ()
+set'emsg_on_display ed' = wrB (edSeg ed') 2288
 {-# INLINE set'emsg_on_display #-}
-rc_did_emsg :: Ed -> IO Int32
-rc_did_emsg ed' = rdI32 (edSeg ed') 2312
+rc_did_emsg :: Ed -> IO Bool
+rc_did_emsg ed' = rdB (edSeg ed') 2289
 {-# INLINE rc_did_emsg #-}
-set'rc_did_emsg :: Ed -> Int32 -> IO ()
-set'rc_did_emsg ed' = wrI32 (edSeg ed') 2312
+set'rc_did_emsg :: Ed -> Bool -> IO ()
+set'rc_did_emsg ed' = wrB (edSeg ed') 2289
 {-# INLINE set'rc_did_emsg #-}
 no_wait_return :: Ed -> IO Int32
-no_wait_return ed' = rdI32 (edSeg ed') 2316
+no_wait_return ed' = rdI32 (edSeg ed') 2292
 {-# INLINE no_wait_return #-}
 set'no_wait_return :: Ed -> Int32 -> IO ()
-set'no_wait_return ed' = wrI32 (edSeg ed') 2316
+set'no_wait_return ed' = wrI32 (edSeg ed') 2292
 {-# INLINE set'no_wait_return #-}
 need_wait_return :: Ed -> IO Int32
-need_wait_return ed' = rdI32 (edSeg ed') 2320
+need_wait_return ed' = rdI32 (edSeg ed') 2296
 {-# INLINE need_wait_return #-}
 set'need_wait_return :: Ed -> Int32 -> IO ()
-set'need_wait_return ed' = wrI32 (edSeg ed') 2320
+set'need_wait_return ed' = wrI32 (edSeg ed') 2296
 {-# INLINE set'need_wait_return #-}
-did_wait_return :: Ed -> IO Int32
-did_wait_return ed' = rdI32 (edSeg ed') 2324
+did_wait_return :: Ed -> IO Bool
+did_wait_return ed' = rdB (edSeg ed') 2300
 {-# INLINE did_wait_return #-}
-set'did_wait_return :: Ed -> Int32 -> IO ()
-set'did_wait_return ed' = wrI32 (edSeg ed') 2324
+set'did_wait_return :: Ed -> Bool -> IO ()
+set'did_wait_return ed' = wrB (edSeg ed') 2300
 {-# INLINE set'did_wait_return #-}
-quit_more :: Ed -> IO Int32
-quit_more ed' = rdI32 (edSeg ed') 2328
+quit_more :: Ed -> IO Bool
+quit_more ed' = rdB (edSeg ed') 2301
 {-# INLINE quit_more #-}
-set'quit_more :: Ed -> Int32 -> IO ()
-set'quit_more ed' = wrI32 (edSeg ed') 2328
+set'quit_more :: Ed -> Bool -> IO ()
+set'quit_more ed' = wrB (edSeg ed') 2301
 {-# INLINE set'quit_more #-}
-newline_on_exit :: Ed -> IO Int32
-newline_on_exit ed' = rdI32 (edSeg ed') 2332
+newline_on_exit :: Ed -> IO Bool
+newline_on_exit ed' = rdB (edSeg ed') 2302
 {-# INLINE newline_on_exit #-}
-set'newline_on_exit :: Ed -> Int32 -> IO ()
-set'newline_on_exit ed' = wrI32 (edSeg ed') 2332
+set'newline_on_exit :: Ed -> Bool -> IO ()
+set'newline_on_exit ed' = wrB (edSeg ed') 2302
 {-# INLINE set'newline_on_exit #-}
 intr_char :: Ed -> IO Int32
-intr_char ed' = rdI32 (edSeg ed') 2336
+intr_char ed' = rdI32 (edSeg ed') 2304
 {-# INLINE intr_char #-}
 set'intr_char :: Ed -> Int32 -> IO ()
-set'intr_char ed' = wrI32 (edSeg ed') 2336
+set'intr_char ed' = wrI32 (edSeg ed') 2304
 {-# INLINE set'intr_char #-}
-ex_keep_indent :: Ed -> IO Int32
-ex_keep_indent ed' = rdI32 (edSeg ed') 2340
+ex_keep_indent :: Ed -> IO Bool
+ex_keep_indent ed' = rdB (edSeg ed') 2308
 {-# INLINE ex_keep_indent #-}
-set'ex_keep_indent :: Ed -> Int32 -> IO ()
-set'ex_keep_indent ed' = wrI32 (edSeg ed') 2340
+set'ex_keep_indent :: Ed -> Bool -> IO ()
+set'ex_keep_indent ed' = wrB (edSeg ed') 2308
 {-# INLINE set'ex_keep_indent #-}
 vgetc_busy :: Ed -> IO Int32
-vgetc_busy ed' = rdI32 (edSeg ed') 2344
+vgetc_busy ed' = rdI32 (edSeg ed') 2312
 {-# INLINE vgetc_busy #-}
 set'vgetc_busy :: Ed -> Int32 -> IO ()
-set'vgetc_busy ed' = wrI32 (edSeg ed') 2344
+set'vgetc_busy ed' = wrI32 (edSeg ed') 2312
 {-# INLINE set'vgetc_busy #-}
 lines_left :: Ed -> IO Int32
-lines_left ed' = rdI32 (edSeg ed') 2348
+lines_left ed' = rdI32 (edSeg ed') 2316
 {-# INLINE lines_left #-}
 set'lines_left :: Ed -> Int32 -> IO ()
-set'lines_left ed' = wrI32 (edSeg ed') 2348
+set'lines_left ed' = wrI32 (edSeg ed') 2316
 {-# INLINE set'lines_left #-}
-msg_no_more :: Ed -> IO Int32
-msg_no_more ed' = rdI32 (edSeg ed') 2352
+msg_no_more :: Ed -> IO Bool
+msg_no_more ed' = rdB (edSeg ed') 2320
 {-# INLINE msg_no_more #-}
-set'msg_no_more :: Ed -> Int32 -> IO ()
-set'msg_no_more ed' = wrI32 (edSeg ed') 2352
+set'msg_no_more :: Ed -> Bool -> IO ()
+set'msg_no_more ed' = wrB (edSeg ed') 2320
 {-# INLINE set'msg_no_more #-}
 addr'exestack :: Ed -> Ptr a
-addr'exestack ed' = pAdd (edSeg ed') 2360
+addr'exestack ed' = pAdd (edSeg ed') 2328
 {-# INLINE addr'exestack #-}
 addr'current_sctx :: Ed -> Ptr a
-addr'current_sctx ed' = pAdd (edSeg ed') 2384
+addr'current_sctx ed' = pAdd (edSeg ed') 2352
 {-# INLINE addr'current_sctx #-}
-scroll_region :: Ed -> IO Int32
-scroll_region ed' = rdI32 (edSeg ed') 2388
+scroll_region :: Ed -> IO Bool
+scroll_region ed' = rdB (edSeg ed') 2356
 {-# INLINE scroll_region #-}
-set'scroll_region :: Ed -> Int32 -> IO ()
-set'scroll_region ed' = wrI32 (edSeg ed') 2388
+set'scroll_region :: Ed -> Bool -> IO ()
+set'scroll_region ed' = wrB (edSeg ed') 2356
 {-# INLINE set'scroll_region #-}
 t_colors :: Ed -> IO Int32
-t_colors ed' = rdI32 (edSeg ed') 2392
+t_colors ed' = rdI32 (edSeg ed') 2360
 {-# INLINE t_colors #-}
 set't_colors :: Ed -> Int32 -> IO ()
-set't_colors ed' = wrI32 (edSeg ed') 2392
+set't_colors ed' = wrI32 (edSeg ed') 2360
 {-# INLINE set't_colors #-}
-highlight_match :: Ed -> IO Int32
-highlight_match ed' = rdI32 (edSeg ed') 2396
+highlight_match :: Ed -> IO Bool
+highlight_match ed' = rdB (edSeg ed') 2364
 {-# INLINE highlight_match #-}
-set'highlight_match :: Ed -> Int32 -> IO ()
-set'highlight_match ed' = wrI32 (edSeg ed') 2396
+set'highlight_match :: Ed -> Bool -> IO ()
+set'highlight_match ed' = wrB (edSeg ed') 2364
 {-# INLINE set'highlight_match #-}
 search_match_lines :: Ed -> IO Linenr_T
-search_match_lines ed' = rdI64 (edSeg ed') 2400
+search_match_lines ed' = rdI64 (edSeg ed') 2368
 {-# INLINE search_match_lines #-}
 set'search_match_lines :: Ed -> Linenr_T -> IO ()
-set'search_match_lines ed' = wrI64 (edSeg ed') 2400
+set'search_match_lines ed' = wrI64 (edSeg ed') 2368
 {-# INLINE set'search_match_lines #-}
 search_match_endcol :: Ed -> IO Colnr_T
-search_match_endcol ed' = rdI32 (edSeg ed') 2408
+search_match_endcol ed' = rdI32 (edSeg ed') 2376
 {-# INLINE search_match_endcol #-}
 set'search_match_endcol :: Ed -> Colnr_T -> IO ()
-set'search_match_endcol ed' = wrI32 (edSeg ed') 2408
+set'search_match_endcol ed' = wrI32 (edSeg ed') 2376
 {-# INLINE set'search_match_endcol #-}
 search_first_line :: Ed -> IO Linenr_T
-search_first_line ed' = rdI64 (edSeg ed') 2416
+search_first_line ed' = rdI64 (edSeg ed') 2384
 {-# INLINE search_first_line #-}
 set'search_first_line :: Ed -> Linenr_T -> IO ()
-set'search_first_line ed' = wrI64 (edSeg ed') 2416
+set'search_first_line ed' = wrI64 (edSeg ed') 2384
 {-# INLINE set'search_first_line #-}
 search_last_line :: Ed -> IO Linenr_T
-search_last_line ed' = rdI64 (edSeg ed') 2424
+search_last_line ed' = rdI64 (edSeg ed') 2392
 {-# INLINE search_last_line #-}
 set'search_last_line :: Ed -> Linenr_T -> IO ()
-set'search_last_line ed' = wrI64 (edSeg ed') 2424
+set'search_last_line ed' = wrI64 (edSeg ed') 2392
 {-# INLINE set'search_last_line #-}
 no_smartcase :: Ed -> IO Int32
-no_smartcase ed' = rdI32 (edSeg ed') 2432
+no_smartcase ed' = rdI32 (edSeg ed') 2400
 {-# INLINE no_smartcase #-}
 set'no_smartcase :: Ed -> Int32 -> IO ()
-set'no_smartcase ed' = wrI32 (edSeg ed') 2432
+set'no_smartcase ed' = wrI32 (edSeg ed') 2400
 {-# INLINE set'no_smartcase #-}
 addr'highlight_attr :: Ed -> Ptr a
-addr'highlight_attr ed' = pAdd (edSeg ed') 2436
+addr'highlight_attr ed' = pAdd (edSeg ed') 2404
 {-# INLINE addr'highlight_attr #-}
 cterm_normal_fg_color :: Ed -> IO Int32
-cterm_normal_fg_color ed' = rdI32 (edSeg ed') 2716
+cterm_normal_fg_color ed' = rdI32 (edSeg ed') 2684
 {-# INLINE cterm_normal_fg_color #-}
 set'cterm_normal_fg_color :: Ed -> Int32 -> IO ()
-set'cterm_normal_fg_color ed' = wrI32 (edSeg ed') 2716
+set'cterm_normal_fg_color ed' = wrI32 (edSeg ed') 2684
 {-# INLINE set'cterm_normal_fg_color #-}
 cterm_normal_fg_bold :: Ed -> IO Int32
-cterm_normal_fg_bold ed' = rdI32 (edSeg ed') 2720
+cterm_normal_fg_bold ed' = rdI32 (edSeg ed') 2688
 {-# INLINE cterm_normal_fg_bold #-}
 set'cterm_normal_fg_bold :: Ed -> Int32 -> IO ()
-set'cterm_normal_fg_bold ed' = wrI32 (edSeg ed') 2720
+set'cterm_normal_fg_bold ed' = wrI32 (edSeg ed') 2688
 {-# INLINE set'cterm_normal_fg_bold #-}
 cterm_normal_bg_color :: Ed -> IO Int32
-cterm_normal_bg_color ed' = rdI32 (edSeg ed') 2724
+cterm_normal_bg_color ed' = rdI32 (edSeg ed') 2692
 {-# INLINE cterm_normal_bg_color #-}
 set'cterm_normal_bg_color :: Ed -> Int32 -> IO ()
-set'cterm_normal_bg_color ed' = wrI32 (edSeg ed') 2724
+set'cterm_normal_bg_color ed' = wrI32 (edSeg ed') 2692
 {-# INLINE set'cterm_normal_bg_color #-}
 cterm_normal_ul_color :: Ed -> IO Int32
-cterm_normal_ul_color ed' = rdI32 (edSeg ed') 2728
+cterm_normal_ul_color ed' = rdI32 (edSeg ed') 2696
 {-# INLINE cterm_normal_ul_color #-}
 set'cterm_normal_ul_color :: Ed -> Int32 -> IO ()
-set'cterm_normal_ul_color ed' = wrI32 (edSeg ed') 2728
+set'cterm_normal_ul_color ed' = wrI32 (edSeg ed') 2696
 {-# INLINE set'cterm_normal_ul_color #-}
 fallback_fg_rgb :: Ed -> IO Int64
-fallback_fg_rgb ed' = rdI64 (edSeg ed') 2736
+fallback_fg_rgb ed' = rdI64 (edSeg ed') 2704
 {-# INLINE fallback_fg_rgb #-}
 set'fallback_fg_rgb :: Ed -> Int64 -> IO ()
-set'fallback_fg_rgb ed' = wrI64 (edSeg ed') 2736
+set'fallback_fg_rgb ed' = wrI64 (edSeg ed') 2704
 {-# INLINE set'fallback_fg_rgb #-}
 fallback_bg_rgb :: Ed -> IO Int64
-fallback_bg_rgb ed' = rdI64 (edSeg ed') 2744
+fallback_bg_rgb ed' = rdI64 (edSeg ed') 2712
 {-# INLINE fallback_bg_rgb #-}
 set'fallback_bg_rgb :: Ed -> Int64 -> IO ()
-set'fallback_bg_rgb ed' = wrI64 (edSeg ed') 2744
+set'fallback_bg_rgb ed' = wrI64 (edSeg ed') 2712
 {-# INLINE set'fallback_bg_rgb #-}
 mouse_dragging :: Ed -> IO Int32
-mouse_dragging ed' = rdI32 (edSeg ed') 2752
+mouse_dragging ed' = rdI32 (edSeg ed') 2720
 {-# INLINE mouse_dragging #-}
 set'mouse_dragging :: Ed -> Int32 -> IO ()
-set'mouse_dragging ed' = wrI32 (edSeg ed') 2752
+set'mouse_dragging ed' = wrI32 (edSeg ed') 2720
 {-# INLINE set'mouse_dragging #-}
 updating_screen :: Ed -> IO Int32
-updating_screen ed' = rdI32 (edSeg ed') 2756
+updating_screen ed' = rdI32 (edSeg ed') 2724
 {-# INLINE updating_screen #-}
 set'updating_screen :: Ed -> Int32 -> IO ()
-set'updating_screen ed' = wrI32 (edSeg ed') 2756
+set'updating_screen ed' = wrI32 (edSeg ed') 2724
 {-# INLINE set'updating_screen #-}
-redraw_not_allowed :: Ed -> IO Int32
-redraw_not_allowed ed' = rdI32 (edSeg ed') 2760
+redraw_not_allowed :: Ed -> IO Bool
+redraw_not_allowed ed' = rdB (edSeg ed') 2728
 {-# INLINE redraw_not_allowed #-}
 curwin :: Ed -> IO (Ptr Win_T)
-curwin ed' = rdP (edSeg ed') 2768
+curwin ed' = rdP (edSeg ed') 2736
 {-# INLINE curwin #-}
 set'curwin :: Ed -> (Ptr Win_T) -> IO ()
-set'curwin ed' = wrP (edSeg ed') 2768
+set'curwin ed' = wrP (edSeg ed') 2736
 {-# INLINE set'curwin #-}
 pum_will_redraw :: Ed -> IO Int32
-pum_will_redraw ed' = rdI32 (edSeg ed') 2776
+pum_will_redraw ed' = rdI32 (edSeg ed') 2744
 {-# INLINE pum_will_redraw #-}
 set'pum_will_redraw :: Ed -> Int32 -> IO ()
-set'pum_will_redraw ed' = wrI32 (edSeg ed') 2776
+set'pum_will_redraw ed' = wrI32 (edSeg ed') 2744
 {-# INLINE set'pum_will_redraw #-}
 topframe :: Ed -> IO (Ptr Frame_T)
-topframe ed' = rdP (edSeg ed') 2784
+topframe ed' = rdP (edSeg ed') 2752
 {-# INLINE topframe #-}
 set'topframe :: Ed -> (Ptr Frame_T) -> IO ()
-set'topframe ed' = wrP (edSeg ed') 2784
+set'topframe ed' = wrP (edSeg ed') 2752
 {-# INLINE set'topframe #-}
 curtab :: Ed -> IO (Ptr Tabpage_T)
-curtab ed' = rdP (edSeg ed') 2792
+curtab ed' = rdP (edSeg ed') 2760
 {-# INLINE curtab #-}
 set'curtab :: Ed -> (Ptr Tabpage_T) -> IO ()
-set'curtab ed' = wrP (edSeg ed') 2792
+set'curtab ed' = wrP (edSeg ed') 2760
 {-# INLINE set'curtab #-}
-redraw_tabline :: Ed -> IO Int32
-redraw_tabline ed' = rdI32 (edSeg ed') 2800
+redraw_tabline :: Ed -> IO Bool
+redraw_tabline ed' = rdB (edSeg ed') 2768
 {-# INLINE redraw_tabline #-}
-set'redraw_tabline :: Ed -> Int32 -> IO ()
-set'redraw_tabline ed' = wrI32 (edSeg ed') 2800
+set'redraw_tabline :: Ed -> Bool -> IO ()
+set'redraw_tabline ed' = wrB (edSeg ed') 2768
 {-# INLINE set'redraw_tabline #-}
-redraw_vseps :: Ed -> IO Int32
-redraw_vseps ed' = rdI32 (edSeg ed') 2804
+redraw_vseps :: Ed -> IO Bool
+redraw_vseps ed' = rdB (edSeg ed') 2769
 {-# INLINE redraw_vseps #-}
-set'redraw_vseps :: Ed -> Int32 -> IO ()
-set'redraw_vseps ed' = wrI32 (edSeg ed') 2804
+set'redraw_vseps :: Ed -> Bool -> IO ()
+set'redraw_vseps ed' = wrB (edSeg ed') 2769
 {-# INLINE set'redraw_vseps #-}
 curbuf :: Ed -> IO (Ptr Buf_T)
-curbuf ed' = rdP (edSeg ed') 2808
+curbuf ed' = rdP (edSeg ed') 2776
 {-# INLINE curbuf #-}
 set'curbuf :: Ed -> (Ptr Buf_T) -> IO ()
-set'curbuf ed' = wrP (edSeg ed') 2808
+set'curbuf ed' = wrP (edSeg ed') 2776
 {-# INLINE set'curbuf #-}
 ru_col :: Ed -> IO Int32
-ru_col ed' = rdI32 (edSeg ed') 2816
+ru_col ed' = rdI32 (edSeg ed') 2784
 {-# INLINE ru_col #-}
 set'ru_col :: Ed -> Int32 -> IO ()
-set'ru_col ed' = wrI32 (edSeg ed') 2816
+set'ru_col ed' = wrI32 (edSeg ed') 2784
 {-# INLINE set'ru_col #-}
 sc_col :: Ed -> IO Int32
-sc_col ed' = rdI32 (edSeg ed') 2820
+sc_col ed' = rdI32 (edSeg ed') 2788
 {-# INLINE sc_col #-}
 set'sc_col :: Ed -> Int32 -> IO ()
-set'sc_col ed' = wrI32 (edSeg ed') 2820
+set'sc_col ed' = wrI32 (edSeg ed') 2788
 {-# INLINE set'sc_col #-}
 starting :: Ed -> IO Int32
-starting ed' = rdI32 (edSeg ed') 2824
+starting ed' = rdI32 (edSeg ed') 2792
 {-# INLINE starting #-}
 set'starting :: Ed -> Int32 -> IO ()
-set'starting ed' = wrI32 (edSeg ed') 2824
+set'starting ed' = wrI32 (edSeg ed') 2792
 {-# INLINE set'starting #-}
-exiting :: Ed -> IO Int32
-exiting ed' = rdI32 (edSeg ed') 2828
+exiting :: Ed -> IO Bool
+exiting ed' = rdB (edSeg ed') 2796
 {-# INLINE exiting #-}
-set'exiting :: Ed -> Int32 -> IO ()
-set'exiting ed' = wrI32 (edSeg ed') 2828
+set'exiting :: Ed -> Bool -> IO ()
+set'exiting ed' = wrB (edSeg ed') 2796
 {-# INLINE set'exiting #-}
-set'really_exiting :: Ed -> Int32 -> IO ()
-set'really_exiting ed' = wrI32 (edSeg ed') 2832
+set'really_exiting :: Ed -> Bool -> IO ()
+set'really_exiting ed' = wrB (edSeg ed') 2797
 {-# INLINE set'really_exiting #-}
 v_dying :: Ed -> IO Int32
-v_dying ed' = rdI32 (edSeg ed') 2836
+v_dying ed' = rdI32 (edSeg ed') 2800
 {-# INLINE v_dying #-}
 set'v_dying :: Ed -> Int32 -> IO ()
-set'v_dying ed' = wrI32 (edSeg ed') 2836
+set'v_dying ed' = wrI32 (edSeg ed') 2800
 {-# INLINE set'v_dying #-}
 full_screen :: Ed -> IO Int32
-full_screen ed' = rdI32 (edSeg ed') 2840
+full_screen ed' = rdI32 (edSeg ed') 2804
 {-# INLINE full_screen #-}
 set'full_screen :: Ed -> Int32 -> IO ()
-set'full_screen ed' = wrI32 (edSeg ed') 2840
+set'full_screen ed' = wrI32 (edSeg ed') 2804
 {-# INLINE set'full_screen #-}
 secure :: Ed -> IO Int32
-secure ed' = rdI32 (edSeg ed') 2844
+secure ed' = rdI32 (edSeg ed') 2808
 {-# INLINE secure #-}
 set'secure :: Ed -> Int32 -> IO ()
-set'secure ed' = wrI32 (edSeg ed') 2844
+set'secure ed' = wrI32 (edSeg ed') 2808
 {-# INLINE set'secure #-}
 textlock :: Ed -> IO Int32
-textlock ed' = rdI32 (edSeg ed') 2848
+textlock ed' = rdI32 (edSeg ed') 2812
 {-# INLINE textlock #-}
 set'textlock :: Ed -> Int32 -> IO ()
-set'textlock ed' = wrI32 (edSeg ed') 2848
+set'textlock ed' = wrI32 (edSeg ed') 2812
 {-# INLINE set'textlock #-}
 curbuf_lock :: Ed -> IO Int32
-curbuf_lock ed' = rdI32 (edSeg ed') 2852
+curbuf_lock ed' = rdI32 (edSeg ed') 2816
 {-# INLINE curbuf_lock #-}
 allbuf_lock :: Ed -> IO Int32
-allbuf_lock ed' = rdI32 (edSeg ed') 2856
+allbuf_lock ed' = rdI32 (edSeg ed') 2820
 {-# INLINE allbuf_lock #-}
 addr'c'VIsual :: Ed -> Ptr a
-addr'c'VIsual ed' = pAdd (edSeg ed') 2864
+addr'c'VIsual ed' = pAdd (edSeg ed') 2824
 {-# INLINE addr'c'VIsual #-}
-c'VIsual_active :: Ed -> IO Int32
-c'VIsual_active ed' = rdI32 (edSeg ed') 2880
+c'VIsual_active :: Ed -> IO Bool
+c'VIsual_active ed' = rdB (edSeg ed') 2840
 {-# INLINE c'VIsual_active #-}
-set'c'VIsual_active :: Ed -> Int32 -> IO ()
-set'c'VIsual_active ed' = wrI32 (edSeg ed') 2880
+set'c'VIsual_active :: Ed -> Bool -> IO ()
+set'c'VIsual_active ed' = wrB (edSeg ed') 2840
 {-# INLINE set'c'VIsual_active #-}
 c'VIsual_select :: Ed -> IO Int32
-c'VIsual_select ed' = rdI32 (edSeg ed') 2884
+c'VIsual_select ed' = rdI32 (edSeg ed') 2844
 {-# INLINE c'VIsual_select #-}
 set'c'VIsual_select :: Ed -> Int32 -> IO ()
-set'c'VIsual_select ed' = wrI32 (edSeg ed') 2884
+set'c'VIsual_select ed' = wrI32 (edSeg ed') 2844
 {-# INLINE set'c'VIsual_select #-}
 c'VIsual_select_reg :: Ed -> IO Int32
-c'VIsual_select_reg ed' = rdI32 (edSeg ed') 2888
+c'VIsual_select_reg ed' = rdI32 (edSeg ed') 2848
 {-# INLINE c'VIsual_select_reg #-}
 set'c'VIsual_select_reg :: Ed -> Int32 -> IO ()
-set'c'VIsual_select_reg ed' = wrI32 (edSeg ed') 2888
+set'c'VIsual_select_reg ed' = wrI32 (edSeg ed') 2848
 {-# INLINE set'c'VIsual_select_reg #-}
-c'VIsual_select_exclu_adj :: Ed -> IO Int32
-c'VIsual_select_exclu_adj ed' = rdI32 (edSeg ed') 2892
+c'VIsual_select_exclu_adj :: Ed -> IO Bool
+c'VIsual_select_exclu_adj ed' = rdB (edSeg ed') 2852
 {-# INLINE c'VIsual_select_exclu_adj #-}
-set'c'VIsual_select_exclu_adj :: Ed -> Int32 -> IO ()
-set'c'VIsual_select_exclu_adj ed' = wrI32 (edSeg ed') 2892
+set'c'VIsual_select_exclu_adj :: Ed -> Bool -> IO ()
+set'c'VIsual_select_exclu_adj ed' = wrB (edSeg ed') 2852
 {-# INLINE set'c'VIsual_select_exclu_adj #-}
 restart_VIsual_select :: Ed -> IO Int32
-restart_VIsual_select ed' = rdI32 (edSeg ed') 2896
+restart_VIsual_select ed' = rdI32 (edSeg ed') 2856
 {-# INLINE restart_VIsual_select #-}
 set'restart_VIsual_select :: Ed -> Int32 -> IO ()
-set'restart_VIsual_select ed' = wrI32 (edSeg ed') 2896
+set'restart_VIsual_select ed' = wrI32 (edSeg ed') 2856
 {-# INLINE set'restart_VIsual_select #-}
-c'VIsual_reselect :: Ed -> IO Int32
-c'VIsual_reselect ed' = rdI32 (edSeg ed') 2900
+c'VIsual_reselect :: Ed -> IO Bool
+c'VIsual_reselect ed' = rdB (edSeg ed') 2860
 {-# INLINE c'VIsual_reselect #-}
-set'c'VIsual_reselect :: Ed -> Int32 -> IO ()
-set'c'VIsual_reselect ed' = wrI32 (edSeg ed') 2900
+set'c'VIsual_reselect :: Ed -> Bool -> IO ()
+set'c'VIsual_reselect ed' = wrB (edSeg ed') 2860
 {-# INLINE set'c'VIsual_reselect #-}
 c'VIsual_mode :: Ed -> IO Int32
-c'VIsual_mode ed' = rdI32 (edSeg ed') 2904
+c'VIsual_mode ed' = rdI32 (edSeg ed') 2864
 {-# INLINE c'VIsual_mode #-}
 set'c'VIsual_mode :: Ed -> Int32 -> IO ()
-set'c'VIsual_mode ed' = wrI32 (edSeg ed') 2904
+set'c'VIsual_mode ed' = wrI32 (edSeg ed') 2864
 {-# INLINE set'c'VIsual_mode #-}
-redo_VIsual_busy :: Ed -> IO Int32
-redo_VIsual_busy ed' = rdI32 (edSeg ed') 2908
+redo_VIsual_busy :: Ed -> IO Bool
+redo_VIsual_busy ed' = rdB (edSeg ed') 2868
 {-# INLINE redo_VIsual_busy #-}
-set'redo_VIsual_busy :: Ed -> Int32 -> IO ()
-set'redo_VIsual_busy ed' = wrI32 (edSeg ed') 2908
+set'redo_VIsual_busy :: Ed -> Bool -> IO ()
+set'redo_VIsual_busy ed' = wrB (edSeg ed') 2868
 {-# INLINE set'redo_VIsual_busy #-}
 resel_VIsual_mode :: Ed -> IO Int32
-resel_VIsual_mode ed' = rdI32 (edSeg ed') 2912
+resel_VIsual_mode ed' = rdI32 (edSeg ed') 2872
 {-# INLINE resel_VIsual_mode #-}
 set'resel_VIsual_mode :: Ed -> Int32 -> IO ()
-set'resel_VIsual_mode ed' = wrI32 (edSeg ed') 2912
+set'resel_VIsual_mode ed' = wrI32 (edSeg ed') 2872
 {-# INLINE set'resel_VIsual_mode #-}
 resel_VIsual_line_count :: Ed -> IO Linenr_T
-resel_VIsual_line_count ed' = rdI64 (edSeg ed') 2920
+resel_VIsual_line_count ed' = rdI64 (edSeg ed') 2880
 {-# INLINE resel_VIsual_line_count #-}
 set'resel_VIsual_line_count :: Ed -> Linenr_T -> IO ()
-set'resel_VIsual_line_count ed' = wrI64 (edSeg ed') 2920
+set'resel_VIsual_line_count ed' = wrI64 (edSeg ed') 2880
 {-# INLINE set'resel_VIsual_line_count #-}
 resel_VIsual_vcol :: Ed -> IO Colnr_T
-resel_VIsual_vcol ed' = rdI32 (edSeg ed') 2928
+resel_VIsual_vcol ed' = rdI32 (edSeg ed') 2888
 {-# INLINE resel_VIsual_vcol #-}
 set'resel_VIsual_vcol :: Ed -> Colnr_T -> IO ()
-set'resel_VIsual_vcol ed' = wrI32 (edSeg ed') 2928
+set'resel_VIsual_vcol ed' = wrI32 (edSeg ed') 2888
 {-# INLINE set'resel_VIsual_vcol #-}
 addr'where_paste_started :: Ed -> Ptr a
-addr'where_paste_started ed' = pAdd (edSeg ed') 2936
+addr'where_paste_started ed' = pAdd (edSeg ed') 2896
 {-# INLINE addr'where_paste_started #-}
-did_ai :: Ed -> IO Int32
-did_ai ed' = rdI32 (edSeg ed') 2952
+did_ai :: Ed -> IO Bool
+did_ai ed' = rdB (edSeg ed') 2912
 {-# INLINE did_ai #-}
-set'did_ai :: Ed -> Int32 -> IO ()
-set'did_ai ed' = wrI32 (edSeg ed') 2952
+set'did_ai :: Ed -> Bool -> IO ()
+set'did_ai ed' = wrB (edSeg ed') 2912
 {-# INLINE set'did_ai #-}
 ai_col :: Ed -> IO Colnr_T
-ai_col ed' = rdI32 (edSeg ed') 2956
+ai_col ed' = rdI32 (edSeg ed') 2916
 {-# INLINE ai_col #-}
 set'ai_col :: Ed -> Colnr_T -> IO ()
-set'ai_col ed' = wrI32 (edSeg ed') 2956
+set'ai_col ed' = wrI32 (edSeg ed') 2916
 {-# INLINE set'ai_col #-}
-did_si :: Ed -> IO Int32
-did_si ed' = rdI32 (edSeg ed') 2960
+did_si :: Ed -> IO Bool
+did_si ed' = rdB (edSeg ed') 2920
 {-# INLINE did_si #-}
-set'did_si :: Ed -> Int32 -> IO ()
-set'did_si ed' = wrI32 (edSeg ed') 2960
+set'did_si :: Ed -> Bool -> IO ()
+set'did_si ed' = wrB (edSeg ed') 2920
 {-# INLINE set'did_si #-}
 can_si :: Ed -> IO Int32
-can_si ed' = rdI32 (edSeg ed') 2964
+can_si ed' = rdI32 (edSeg ed') 2924
 {-# INLINE can_si #-}
 set'can_si :: Ed -> Int32 -> IO ()
-set'can_si ed' = wrI32 (edSeg ed') 2964
+set'can_si ed' = wrI32 (edSeg ed') 2924
 {-# INLINE set'can_si #-}
-can_si_back :: Ed -> IO Int32
-can_si_back ed' = rdI32 (edSeg ed') 2968
+can_si_back :: Ed -> IO Bool
+can_si_back ed' = rdB (edSeg ed') 2928
 {-# INLINE can_si_back #-}
-set'can_si_back :: Ed -> Int32 -> IO ()
-set'can_si_back ed' = wrI32 (edSeg ed') 2968
+set'can_si_back :: Ed -> Bool -> IO ()
+set'can_si_back ed' = wrB (edSeg ed') 2928
 {-# INLINE set'can_si_back #-}
 old_indent :: Ed -> IO Int32
-old_indent ed' = rdI32 (edSeg ed') 2972
+old_indent ed' = rdI32 (edSeg ed') 2932
 {-# INLINE old_indent #-}
 set'old_indent :: Ed -> Int32 -> IO ()
-set'old_indent ed' = wrI32 (edSeg ed') 2972
+set'old_indent ed' = wrI32 (edSeg ed') 2932
 {-# INLINE set'old_indent #-}
 addr'saved_cursor :: Ed -> Ptr a
-addr'saved_cursor ed' = pAdd (edSeg ed') 2976
+addr'saved_cursor ed' = pAdd (edSeg ed') 2936
 {-# INLINE addr'saved_cursor #-}
 addr'c'Insstart :: Ed -> Ptr a
-addr'c'Insstart ed' = pAdd (edSeg ed') 2992
+addr'c'Insstart ed' = pAdd (edSeg ed') 2952
 {-# INLINE addr'c'Insstart #-}
 addr'c'Insstart_orig :: Ed -> Ptr a
-addr'c'Insstart_orig ed' = pAdd (edSeg ed') 3008
+addr'c'Insstart_orig ed' = pAdd (edSeg ed') 2968
 {-# INLINE addr'c'Insstart_orig #-}
 orig_line_count :: Ed -> IO Int32
-orig_line_count ed' = rdI32 (edSeg ed') 3024
+orig_line_count ed' = rdI32 (edSeg ed') 2984
 {-# INLINE orig_line_count #-}
 set'orig_line_count :: Ed -> Int32 -> IO ()
-set'orig_line_count ed' = wrI32 (edSeg ed') 3024
+set'orig_line_count ed' = wrI32 (edSeg ed') 2984
 {-# INLINE set'orig_line_count #-}
 vr_lines_changed :: Ed -> IO Int32
-vr_lines_changed ed' = rdI32 (edSeg ed') 3028
+vr_lines_changed ed' = rdI32 (edSeg ed') 2988
 {-# INLINE vr_lines_changed #-}
 set'vr_lines_changed :: Ed -> Int32 -> IO ()
-set'vr_lines_changed ed' = wrI32 (edSeg ed') 3028
+set'vr_lines_changed ed' = wrI32 (edSeg ed') 2988
 {-# INLINE set'vr_lines_changed #-}
 addr'mb_bytelen_tab :: Ed -> Ptr a
-addr'mb_bytelen_tab ed' = pAdd (edSeg ed') 3032
+addr'mb_bytelen_tab ed' = pAdd (edSeg ed') 2992
 {-# INLINE addr'mb_bytelen_tab #-}
 c'State :: Ed -> IO Int32
-c'State ed' = rdI32 (edSeg ed') 3288
+c'State ed' = rdI32 (edSeg ed') 3248
 {-# INLINE c'State #-}
 set'c'State :: Ed -> Int32 -> IO ()
-set'c'State ed' = wrI32 (edSeg ed') 3288
+set'c'State ed' = wrI32 (edSeg ed') 3248
 {-# INLINE set'c'State #-}
 finish_op :: Ed -> IO Int32
-finish_op ed' = rdI32 (edSeg ed') 3292
+finish_op ed' = rdI32 (edSeg ed') 3252
 {-# INLINE finish_op #-}
 set'finish_op :: Ed -> Int32 -> IO ()
-set'finish_op ed' = wrI32 (edSeg ed') 3292
+set'finish_op ed' = wrI32 (edSeg ed') 3252
 {-# INLINE set'finish_op #-}
 opcount :: Ed -> IO Int64
-opcount ed' = rdI64 (edSeg ed') 3296
+opcount ed' = rdI64 (edSeg ed') 3256
 {-# INLINE opcount #-}
 set'opcount :: Ed -> Int64 -> IO ()
-set'opcount ed' = wrI64 (edSeg ed') 3296
+set'opcount ed' = wrI64 (edSeg ed') 3256
 {-# INLINE set'opcount #-}
 set'motion_force :: Ed -> Int32 -> IO ()
-set'motion_force ed' = wrI32 (edSeg ed') 3304
+set'motion_force ed' = wrI32 (edSeg ed') 3264
 {-# INLINE set'motion_force #-}
 reg_recording :: Ed -> IO Int32
-reg_recording ed' = rdI32 (edSeg ed') 3308
+reg_recording ed' = rdI32 (edSeg ed') 3268
 {-# INLINE reg_recording #-}
 set'reg_recording :: Ed -> Int32 -> IO ()
-set'reg_recording ed' = wrI32 (edSeg ed') 3308
+set'reg_recording ed' = wrI32 (edSeg ed') 3268
 {-# INLINE set'reg_recording #-}
 reg_executing :: Ed -> IO Int32
-reg_executing ed' = rdI32 (edSeg ed') 3312
+reg_executing ed' = rdI32 (edSeg ed') 3272
 {-# INLINE reg_executing #-}
 set'reg_executing :: Ed -> Int32 -> IO ()
-set'reg_executing ed' = wrI32 (edSeg ed') 3312
+set'reg_executing ed' = wrI32 (edSeg ed') 3272
 {-# INLINE set'reg_executing #-}
 pending_end_reg_executing :: Ed -> IO Int32
-pending_end_reg_executing ed' = rdI32 (edSeg ed') 3316
+pending_end_reg_executing ed' = rdI32 (edSeg ed') 3276
 {-# INLINE pending_end_reg_executing #-}
 set'pending_end_reg_executing :: Ed -> Int32 -> IO ()
-set'pending_end_reg_executing ed' = wrI32 (edSeg ed') 3316
+set'pending_end_reg_executing ed' = wrI32 (edSeg ed') 3276
 {-# INLINE set'pending_end_reg_executing #-}
-seenModifyOtherKeys :: Ed -> IO Int32
-seenModifyOtherKeys ed' = rdI32 (edSeg ed') 3320
+seenModifyOtherKeys :: Ed -> IO Bool
+seenModifyOtherKeys ed' = rdB (edSeg ed') 3280
 {-# INLINE seenModifyOtherKeys #-}
-set'seenModifyOtherKeys :: Ed -> Int32 -> IO ()
-set'seenModifyOtherKeys ed' = wrI32 (edSeg ed') 3320
+set'seenModifyOtherKeys :: Ed -> Bool -> IO ()
+set'seenModifyOtherKeys ed' = wrB (edSeg ed') 3280
 {-# INLINE set'seenModifyOtherKeys #-}
 modify_otherkeys_state :: Ed -> IO Mokstate_T
-modify_otherkeys_state ed' = rdI32 (edSeg ed') 3324
+modify_otherkeys_state ed' = rdI32 (edSeg ed') 3284
 {-# INLINE modify_otherkeys_state #-}
 set'modify_otherkeys_state :: Ed -> Mokstate_T -> IO ()
-set'modify_otherkeys_state ed' = wrI32 (edSeg ed') 3324
+set'modify_otherkeys_state ed' = wrI32 (edSeg ed') 3284
 {-# INLINE set'modify_otherkeys_state #-}
 kitty_protocol_state :: Ed -> IO Kkpstate_T
-kitty_protocol_state ed' = rdI32 (edSeg ed') 3328
+kitty_protocol_state ed' = rdI32 (edSeg ed') 3288
 {-# INLINE kitty_protocol_state #-}
 set'kitty_protocol_state :: Ed -> Kkpstate_T -> IO ()
-set'kitty_protocol_state ed' = wrI32 (edSeg ed') 3328
+set'kitty_protocol_state ed' = wrI32 (edSeg ed') 3288
 {-# INLINE set'kitty_protocol_state #-}
 no_mapping :: Ed -> IO Int32
-no_mapping ed' = rdI32 (edSeg ed') 3332
+no_mapping ed' = rdI32 (edSeg ed') 3292
 {-# INLINE no_mapping #-}
 set'no_mapping :: Ed -> Int32 -> IO ()
-set'no_mapping ed' = wrI32 (edSeg ed') 3332
+set'no_mapping ed' = wrI32 (edSeg ed') 3292
 {-# INLINE set'no_mapping #-}
 no_zero_mapping :: Ed -> IO Int32
-no_zero_mapping ed' = rdI32 (edSeg ed') 3336
+no_zero_mapping ed' = rdI32 (edSeg ed') 3296
 {-# INLINE no_zero_mapping #-}
 set'no_zero_mapping :: Ed -> Int32 -> IO ()
-set'no_zero_mapping ed' = wrI32 (edSeg ed') 3336
+set'no_zero_mapping ed' = wrI32 (edSeg ed') 3296
 {-# INLINE set'no_zero_mapping #-}
 allow_keys :: Ed -> IO Int32
-allow_keys ed' = rdI32 (edSeg ed') 3340
+allow_keys ed' = rdI32 (edSeg ed') 3300
 {-# INLINE allow_keys #-}
 set'allow_keys :: Ed -> Int32 -> IO ()
-set'allow_keys ed' = wrI32 (edSeg ed') 3340
+set'allow_keys ed' = wrI32 (edSeg ed') 3300
 {-# INLINE set'allow_keys #-}
-no_reduce_keys :: Ed -> IO Int32
-no_reduce_keys ed' = rdI32 (edSeg ed') 3344
+no_reduce_keys :: Ed -> IO Bool
+no_reduce_keys ed' = rdB (edSeg ed') 3304
 {-# INLINE no_reduce_keys #-}
 no_u_sync :: Ed -> IO Int32
-no_u_sync ed' = rdI32 (edSeg ed') 3348
+no_u_sync ed' = rdI32 (edSeg ed') 3308
 {-# INLINE no_u_sync #-}
 set'no_u_sync :: Ed -> Int32 -> IO ()
-set'no_u_sync ed' = wrI32 (edSeg ed') 3348
+set'no_u_sync ed' = wrI32 (edSeg ed') 3308
 {-# INLINE set'no_u_sync #-}
 restart_edit :: Ed -> IO Int32
-restart_edit ed' = rdI32 (edSeg ed') 3352
+restart_edit ed' = rdI32 (edSeg ed') 3312
 {-# INLINE restart_edit #-}
 set'restart_edit :: Ed -> Int32 -> IO ()
-set'restart_edit ed' = wrI32 (edSeg ed') 3352
+set'restart_edit ed' = wrI32 (edSeg ed') 3312
 {-# INLINE set'restart_edit #-}
-arrow_used :: Ed -> IO Int32
-arrow_used ed' = rdI32 (edSeg ed') 3356
+arrow_used :: Ed -> IO Bool
+arrow_used ed' = rdB (edSeg ed') 3316
 {-# INLINE arrow_used #-}
-set'arrow_used :: Ed -> Int32 -> IO ()
-set'arrow_used ed' = wrI32 (edSeg ed') 3356
+set'arrow_used :: Ed -> Bool -> IO ()
+set'arrow_used ed' = wrB (edSeg ed') 3316
 {-# INLINE set'arrow_used #-}
-ins_at_eol :: Ed -> IO Int32
-ins_at_eol ed' = rdI32 (edSeg ed') 3360
+ins_at_eol :: Ed -> IO Bool
+ins_at_eol ed' = rdB (edSeg ed') 3317
 {-# INLINE ins_at_eol #-}
-set'ins_at_eol :: Ed -> Int32 -> IO ()
-set'ins_at_eol ed' = wrI32 (edSeg ed') 3360
+set'ins_at_eol :: Ed -> Bool -> IO ()
+set'ins_at_eol ed' = wrB (edSeg ed') 3317
 {-# INLINE set'ins_at_eol #-}
-no_abbr :: Ed -> IO Int32
-no_abbr ed' = rdI32 (edSeg ed') 3364
+no_abbr :: Ed -> IO Bool
+no_abbr ed' = rdB (edSeg ed') 3318
 {-# INLINE no_abbr #-}
-set'no_abbr :: Ed -> Int32 -> IO ()
-set'no_abbr ed' = wrI32 (edSeg ed') 3364
+set'no_abbr :: Ed -> Bool -> IO ()
+set'no_abbr ed' = wrB (edSeg ed') 3318
 {-# INLINE set'no_abbr #-}
 mapped_ctrl_c :: Ed -> IO Int32
-mapped_ctrl_c ed' = rdI32 (edSeg ed') 3368
+mapped_ctrl_c ed' = rdI32 (edSeg ed') 3320
 {-# INLINE mapped_ctrl_c #-}
 set'mapped_ctrl_c :: Ed -> Int32 -> IO ()
-set'mapped_ctrl_c ed' = wrI32 (edSeg ed') 3368
+set'mapped_ctrl_c ed' = wrI32 (edSeg ed') 3320
 {-# INLINE set'mapped_ctrl_c #-}
-ctrl_c_interrupts :: Ed -> IO Int32
-ctrl_c_interrupts ed' = rdI32 (edSeg ed') 3372
+ctrl_c_interrupts :: Ed -> IO Bool
+ctrl_c_interrupts ed' = rdB (edSeg ed') 3324
 {-# INLINE ctrl_c_interrupts #-}
-set'ctrl_c_interrupts :: Ed -> Int32 -> IO ()
-set'ctrl_c_interrupts ed' = wrI32 (edSeg ed') 3372
+set'ctrl_c_interrupts :: Ed -> Bool -> IO ()
+set'ctrl_c_interrupts ed' = wrB (edSeg ed') 3324
 {-# INLINE set'ctrl_c_interrupts #-}
 addr'cmdmod :: Ed -> Ptr a
-addr'cmdmod ed' = pAdd (edSeg ed') 3376
+addr'cmdmod ed' = pAdd (edSeg ed') 3328
 {-# INLINE addr'cmdmod #-}
 sticky_cmdmod_flags :: Ed -> IO Int32
-sticky_cmdmod_flags ed' = rdI32 (edSeg ed') 3592
+sticky_cmdmod_flags ed' = rdI32 (edSeg ed') 3544
 {-# INLINE sticky_cmdmod_flags #-}
 msg_silent :: Ed -> IO Int32
-msg_silent ed' = rdI32 (edSeg ed') 3596
+msg_silent ed' = rdI32 (edSeg ed') 3548
 {-# INLINE msg_silent #-}
 set'msg_silent :: Ed -> Int32 -> IO ()
-set'msg_silent ed' = wrI32 (edSeg ed') 3596
+set'msg_silent ed' = wrI32 (edSeg ed') 3548
 {-# INLINE set'msg_silent #-}
 emsg_silent :: Ed -> IO Int32
-emsg_silent ed' = rdI32 (edSeg ed') 3600
+emsg_silent ed' = rdI32 (edSeg ed') 3552
 {-# INLINE emsg_silent #-}
 set'emsg_silent :: Ed -> Int32 -> IO ()
-set'emsg_silent ed' = wrI32 (edSeg ed') 3600
+set'emsg_silent ed' = wrI32 (edSeg ed') 3552
 {-# INLINE set'emsg_silent #-}
 emsg_noredir :: Ed -> IO Int32
-emsg_noredir ed' = rdI32 (edSeg ed') 3604
+emsg_noredir ed' = rdI32 (edSeg ed') 3556
 {-# INLINE emsg_noredir #-}
-cmd_silent :: Ed -> IO Int32
-cmd_silent ed' = rdI32 (edSeg ed') 3608
+cmd_silent :: Ed -> IO Bool
+cmd_silent ed' = rdB (edSeg ed') 3560
 {-# INLINE cmd_silent #-}
-set'cmd_silent :: Ed -> Int32 -> IO ()
-set'cmd_silent ed' = wrI32 (edSeg ed') 3608
+set'cmd_silent :: Ed -> Bool -> IO ()
+set'cmd_silent ed' = wrB (edSeg ed') 3560
 {-# INLINE set'cmd_silent #-}
-in_assert_fails :: Ed -> IO Int32
-in_assert_fails ed' = rdI32 (edSeg ed') 3612
+in_assert_fails :: Ed -> IO Bool
+in_assert_fails ed' = rdB (edSeg ed') 3561
 {-# INLINE in_assert_fails #-}
 c'IObuff :: Ed -> IO (Ptr Char_u)
-c'IObuff ed' = rdP (edSeg ed') 3616
+c'IObuff ed' = rdP (edSeg ed') 3568
 {-# INLINE c'IObuff #-}
 set'c'IObuff :: Ed -> (Ptr Char_u) -> IO ()
-set'c'IObuff ed' = wrP (edSeg ed') 3616
+set'c'IObuff ed' = wrP (edSeg ed') 3568
 {-# INLINE set'c'IObuff #-}
 addr'c'IObuff :: Ed -> Ptr a
-addr'c'IObuff ed' = pAdd (edSeg ed') 3616
+addr'c'IObuff ed' = pAdd (edSeg ed') 3568
 {-# INLINE addr'c'IObuff #-}
 c'NameBuff :: Ed -> IO (Ptr Char_u)
-c'NameBuff ed' = rdP (edSeg ed') 3624
+c'NameBuff ed' = rdP (edSeg ed') 3576
 {-# INLINE c'NameBuff #-}
 set'c'NameBuff :: Ed -> (Ptr Char_u) -> IO ()
-set'c'NameBuff ed' = wrP (edSeg ed') 3624
+set'c'NameBuff ed' = wrP (edSeg ed') 3576
 {-# INLINE set'c'NameBuff #-}
 addr'msg_buf :: Ed -> Ptr a
-addr'msg_buf ed' = pAdd (edSeg ed') 3632
+addr'msg_buf ed' = pAdd (edSeg ed') 3584
 {-# INLINE addr'msg_buf #-}
 c'RedrawingDisabled :: Ed -> IO Int32
-c'RedrawingDisabled ed' = rdI32 (edSeg ed') 4112
+c'RedrawingDisabled ed' = rdI32 (edSeg ed') 4064
 {-# INLINE c'RedrawingDisabled #-}
 set'c'RedrawingDisabled :: Ed -> Int32 -> IO ()
-set'c'RedrawingDisabled ed' = wrI32 (edSeg ed') 4112
+set'c'RedrawingDisabled ed' = wrI32 (edSeg ed') 4064
 {-# INLINE set'c'RedrawingDisabled #-}
 addr'typebuf :: Ed -> Ptr a
-addr'typebuf ed' = pAdd (edSeg ed') 4120
+addr'typebuf ed' = pAdd (edSeg ed') 4072
 {-# INLINE addr'typebuf #-}
 ex_normal_busy :: Ed -> IO Int32
-ex_normal_busy ed' = rdI32 (edSeg ed') 4168
+ex_normal_busy ed' = rdI32 (edSeg ed') 4120
 {-# INLINE ex_normal_busy #-}
 set'ex_normal_busy :: Ed -> Int32 -> IO ()
-set'ex_normal_busy ed' = wrI32 (edSeg ed') 4168
+set'ex_normal_busy ed' = wrI32 (edSeg ed') 4120
 {-# INLINE set'ex_normal_busy #-}
 ex_normal_lock :: Ed -> IO Int32
-ex_normal_lock ed' = rdI32 (edSeg ed') 4172
+ex_normal_lock ed' = rdI32 (edSeg ed') 4124
 {-# INLINE ex_normal_lock #-}
-stop_insert_mode :: Ed -> IO Int32
-stop_insert_mode ed' = rdI32 (edSeg ed') 4176
+stop_insert_mode :: Ed -> IO Bool
+stop_insert_mode ed' = rdB (edSeg ed') 4128
 {-# INLINE stop_insert_mode #-}
-set'stop_insert_mode :: Ed -> Int32 -> IO ()
-set'stop_insert_mode ed' = wrI32 (edSeg ed') 4176
+set'stop_insert_mode :: Ed -> Bool -> IO ()
+set'stop_insert_mode ed' = wrB (edSeg ed') 4128
 {-# INLINE set'stop_insert_mode #-}
-c'KeyTyped :: Ed -> IO Int32
-c'KeyTyped ed' = rdI32 (edSeg ed') 4180
+c'KeyTyped :: Ed -> IO Bool
+c'KeyTyped ed' = rdB (edSeg ed') 4129
 {-# INLINE c'KeyTyped #-}
-set'c'KeyTyped :: Ed -> Int32 -> IO ()
-set'c'KeyTyped ed' = wrI32 (edSeg ed') 4180
+set'c'KeyTyped :: Ed -> Bool -> IO ()
+set'c'KeyTyped ed' = wrB (edSeg ed') 4129
 {-# INLINE set'c'KeyTyped #-}
-c'KeyStuffed :: Ed -> IO Int32
-c'KeyStuffed ed' = rdI32 (edSeg ed') 4184
+c'KeyStuffed :: Ed -> IO Bool
+c'KeyStuffed ed' = rdB (edSeg ed') 4130
 {-# INLINE c'KeyStuffed #-}
-set'c'KeyStuffed :: Ed -> Int32 -> IO ()
-set'c'KeyStuffed ed' = wrI32 (edSeg ed') 4184
+set'c'KeyStuffed :: Ed -> Bool -> IO ()
+set'c'KeyStuffed ed' = wrB (edSeg ed') 4130
 {-# INLINE set'c'KeyStuffed #-}
 maptick :: Ed -> IO Int32
-maptick ed' = rdI32 (edSeg ed') 4188
+maptick ed' = rdI32 (edSeg ed') 4132
 {-# INLINE maptick #-}
 set'maptick :: Ed -> Int32 -> IO ()
-set'maptick ed' = wrI32 (edSeg ed') 4188
+set'maptick ed' = wrI32 (edSeg ed') 4132
 {-# INLINE set'maptick #-}
 must_redraw :: Ed -> IO Int32
-must_redraw ed' = rdI32 (edSeg ed') 4192
+must_redraw ed' = rdI32 (edSeg ed') 4136
 {-# INLINE must_redraw #-}
 set'must_redraw :: Ed -> Int32 -> IO ()
-set'must_redraw ed' = wrI32 (edSeg ed') 4192
+set'must_redraw ed' = wrI32 (edSeg ed') 4136
 {-# INLINE set'must_redraw #-}
-skip_redraw :: Ed -> IO Int32
-skip_redraw ed' = rdI32 (edSeg ed') 4196
+skip_redraw :: Ed -> IO Bool
+skip_redraw ed' = rdB (edSeg ed') 4140
 {-# INLINE skip_redraw #-}
-set'skip_redraw :: Ed -> Int32 -> IO ()
-set'skip_redraw ed' = wrI32 (edSeg ed') 4196
+set'skip_redraw :: Ed -> Bool -> IO ()
+set'skip_redraw ed' = wrB (edSeg ed') 4140
 {-# INLINE set'skip_redraw #-}
-do_redraw :: Ed -> IO Int32
-do_redraw ed' = rdI32 (edSeg ed') 4200
+do_redraw :: Ed -> IO Bool
+do_redraw ed' = rdB (edSeg ed') 4141
 {-# INLINE do_redraw #-}
-set'do_redraw :: Ed -> Int32 -> IO ()
-set'do_redraw ed' = wrI32 (edSeg ed') 4200
+set'do_redraw :: Ed -> Bool -> IO ()
+set'do_redraw ed' = wrB (edSeg ed') 4141
 {-# INLINE set'do_redraw #-}
-need_highlight_changed :: Ed -> IO Int32
-need_highlight_changed ed' = rdI32 (edSeg ed') 4204
+need_highlight_changed :: Ed -> IO Bool
+need_highlight_changed ed' = rdB (edSeg ed') 4142
 {-# INLINE need_highlight_changed #-}
-set'need_highlight_changed :: Ed -> Int32 -> IO ()
-set'need_highlight_changed ed' = wrI32 (edSeg ed') 4204
+set'need_highlight_changed :: Ed -> Bool -> IO ()
+set'need_highlight_changed ed' = wrB (edSeg ed') 4142
 {-# INLINE set'need_highlight_changed #-}
 read_cmd_fd :: Ed -> IO Int32
-read_cmd_fd ed' = rdI32 (edSeg ed') 4208
+read_cmd_fd ed' = rdI32 (edSeg ed') 4144
 {-# INLINE read_cmd_fd #-}
 got_int :: Ed -> IO Int32
-got_int ed' = rdI32 (edSeg ed') 4212
+got_int ed' = rdI32 (edSeg ed') 4148
 {-# INLINE got_int #-}
 set'got_int :: Ed -> Int32 -> IO ()
-set'got_int ed' = wrI32 (edSeg ed') 4212
+set'got_int ed' = wrI32 (edSeg ed') 4148
 {-# INLINE set'got_int #-}
-termcap_active :: Ed -> IO Int32
-termcap_active ed' = rdI32 (edSeg ed') 4216
+termcap_active :: Ed -> IO Bool
+termcap_active ed' = rdB (edSeg ed') 4152
 {-# INLINE termcap_active #-}
-set'termcap_active :: Ed -> Int32 -> IO ()
-set'termcap_active ed' = wrI32 (edSeg ed') 4216
+set'termcap_active :: Ed -> Bool -> IO ()
+set'termcap_active ed' = wrB (edSeg ed') 4152
 {-# INLINE set'termcap_active #-}
-term_entered :: Ed -> IO Int32
-term_entered ed' = rdI32 (edSeg ed') 4220
+term_entered :: Ed -> IO Bool
+term_entered ed' = rdB (edSeg ed') 4153
 {-# INLINE term_entered #-}
-set'term_entered :: Ed -> Int32 -> IO ()
-set'term_entered ed' = wrI32 (edSeg ed') 4220
+set'term_entered :: Ed -> Bool -> IO ()
+set'term_entered ed' = wrB (edSeg ed') 4153
 {-# INLINE set'term_entered #-}
 searchcmdlen :: Ed -> IO Int32
-searchcmdlen ed' = rdI32 (edSeg ed') 4224
+searchcmdlen ed' = rdI32 (edSeg ed') 4156
 {-# INLINE searchcmdlen #-}
 set'searchcmdlen :: Ed -> Int32 -> IO ()
-set'searchcmdlen ed' = wrI32 (edSeg ed') 4224
+set'searchcmdlen ed' = wrI32 (edSeg ed') 4156
 {-# INLINE set'searchcmdlen #-}
-did_outofmem_msg :: Ed -> IO Int32
-did_outofmem_msg ed' = rdI32 (edSeg ed') 4228
+did_outofmem_msg :: Ed -> IO Bool
+did_outofmem_msg ed' = rdB (edSeg ed') 4160
 {-# INLINE did_outofmem_msg #-}
-set'did_outofmem_msg :: Ed -> Int32 -> IO ()
-set'did_outofmem_msg ed' = wrI32 (edSeg ed') 4228
+set'did_outofmem_msg :: Ed -> Bool -> IO ()
+set'did_outofmem_msg ed' = wrB (edSeg ed') 4160
 {-# INLINE set'did_outofmem_msg #-}
-undo_off :: Ed -> IO Int32
-undo_off ed' = rdI32 (edSeg ed') 4232
+undo_off :: Ed -> IO Bool
+undo_off ed' = rdB (edSeg ed') 4161
 {-# INLINE undo_off #-}
-set'undo_off :: Ed -> Int32 -> IO ()
-set'undo_off ed' = wrI32 (edSeg ed') 4232
+set'undo_off :: Ed -> Bool -> IO ()
+set'undo_off ed' = wrB (edSeg ed') 4161
 {-# INLINE set'undo_off #-}
 global_busy :: Ed -> IO Int32
-global_busy ed' = rdI32 (edSeg ed') 4236
+global_busy ed' = rdI32 (edSeg ed') 4164
 {-# INLINE global_busy #-}
 set'global_busy :: Ed -> Int32 -> IO ()
-set'global_busy ed' = wrI32 (edSeg ed') 4236
+set'global_busy ed' = wrI32 (edSeg ed') 4164
 {-# INLINE set'global_busy #-}
-listcmd_busy :: Ed -> IO Int32
-listcmd_busy ed' = rdI32 (edSeg ed') 4240
+listcmd_busy :: Ed -> IO Bool
+listcmd_busy ed' = rdB (edSeg ed') 4168
 {-# INLINE listcmd_busy #-}
-need_start_insertmode :: Ed -> IO Int32
-need_start_insertmode ed' = rdI32 (edSeg ed') 4244
+need_start_insertmode :: Ed -> IO Bool
+need_start_insertmode ed' = rdB (edSeg ed') 4169
 {-# INLINE need_start_insertmode #-}
-set'need_start_insertmode :: Ed -> Int32 -> IO ()
-set'need_start_insertmode ed' = wrI32 (edSeg ed') 4244
+set'need_start_insertmode :: Ed -> Bool -> IO ()
+set'need_start_insertmode ed' = wrB (edSeg ed') 4169
 {-# INLINE set'need_start_insertmode #-}
 last_cmdline :: Ed -> IO (Ptr Char_u)
-last_cmdline ed' = rdP (edSeg ed') 4248
+last_cmdline ed' = rdP (edSeg ed') 4176
 {-# INLINE last_cmdline #-}
 set'last_cmdline :: Ed -> (Ptr Char_u) -> IO ()
-set'last_cmdline ed' = wrP (edSeg ed') 4248
+set'last_cmdline ed' = wrP (edSeg ed') 4176
 {-# INLINE set'last_cmdline #-}
 repeat_cmdline :: Ed -> IO (Ptr Char_u)
-repeat_cmdline ed' = rdP (edSeg ed') 4256
+repeat_cmdline ed' = rdP (edSeg ed') 4184
 {-# INLINE repeat_cmdline #-}
 set'repeat_cmdline :: Ed -> (Ptr Char_u) -> IO ()
-set'repeat_cmdline ed' = wrP (edSeg ed') 4256
+set'repeat_cmdline ed' = wrP (edSeg ed') 4184
 {-# INLINE set'repeat_cmdline #-}
 new_last_cmdline :: Ed -> IO (Ptr Char_u)
-new_last_cmdline ed' = rdP (edSeg ed') 4264
+new_last_cmdline ed' = rdP (edSeg ed') 4192
 {-# INLINE new_last_cmdline #-}
 set'new_last_cmdline :: Ed -> (Ptr Char_u) -> IO ()
-set'new_last_cmdline ed' = wrP (edSeg ed') 4264
+set'new_last_cmdline ed' = wrP (edSeg ed') 4192
 {-# INLINE set'new_last_cmdline #-}
 aucmd_cmdline_changed_count :: Ed -> IO Int32
-aucmd_cmdline_changed_count ed' = rdI32 (edSeg ed') 4272
+aucmd_cmdline_changed_count ed' = rdI32 (edSeg ed') 4200
 {-# INLINE aucmd_cmdline_changed_count #-}
 did_cursorhold :: Ed -> IO Int32
-did_cursorhold ed' = rdI32 (edSeg ed') 4276
+did_cursorhold ed' = rdI32 (edSeg ed') 4204
 {-# INLINE did_cursorhold #-}
 set'did_cursorhold :: Ed -> Int32 -> IO ()
-set'did_cursorhold ed' = wrI32 (edSeg ed') 4276
+set'did_cursorhold ed' = wrI32 (edSeg ed') 4204
 {-# INLINE set'did_cursorhold #-}
 addr'last_cursormoved :: Ed -> Ptr a
-addr'last_cursormoved ed' = pAdd (edSeg ed') 4280
+addr'last_cursormoved ed' = pAdd (edSeg ed') 4208
 {-# INLINE addr'last_cursormoved #-}
 replace_offset :: Ed -> IO Int32
-replace_offset ed' = rdI32 (edSeg ed') 4296
+replace_offset ed' = rdI32 (edSeg ed') 4224
 {-# INLINE replace_offset #-}
 set'replace_offset :: Ed -> Int32 -> IO ()
-set'replace_offset ed' = wrI32 (edSeg ed') 4296
+set'replace_offset ed' = wrI32 (edSeg ed') 4224
 {-# INLINE set'replace_offset #-}
 empty_option :: Ed -> IO (Ptr Char_u)
-empty_option ed' = rdP (edSeg ed') 4304
+empty_option ed' = rdP (edSeg ed') 4232
 {-# INLINE empty_option #-}
 longVersion :: Ed -> IO (Ptr Int8)
-longVersion ed' = rdP (edSeg ed') 4312
+longVersion ed' = rdP (edSeg ed') 4240
 {-# INLINE longVersion #-}
 set'longVersion :: Ed -> (Ptr Int8) -> IO ()
-set'longVersion ed' = wrP (edSeg ed') 4312
+set'longVersion ed' = wrP (edSeg ed') 4240
 {-# INLINE set'longVersion #-}
-km_stopsel :: Ed -> IO Int32
-km_stopsel ed' = rdI32 (edSeg ed') 4320
+km_stopsel :: Ed -> IO Bool
+km_stopsel ed' = rdB (edSeg ed') 4248
 {-# INLINE km_stopsel #-}
-set'km_stopsel :: Ed -> Int32 -> IO ()
-set'km_stopsel ed' = wrI32 (edSeg ed') 4320
+set'km_stopsel :: Ed -> Bool -> IO ()
+set'km_stopsel ed' = wrB (edSeg ed') 4248
 {-# INLINE set'km_stopsel #-}
-km_startsel :: Ed -> IO Int32
-km_startsel ed' = rdI32 (edSeg ed') 4324
+km_startsel :: Ed -> IO Bool
+km_startsel ed' = rdB (edSeg ed') 4249
 {-# INLINE km_startsel #-}
-set'km_startsel :: Ed -> Int32 -> IO ()
-set'km_startsel ed' = wrI32 (edSeg ed') 4324
+set'km_startsel :: Ed -> Bool -> IO ()
+set'km_startsel ed' = wrB (edSeg ed') 4249
 {-# INLINE set'km_startsel #-}
 addr'no_lines_msg :: Ed -> Ptr a
-addr'no_lines_msg ed' = pAdd (edSeg ed') 4328
+addr'no_lines_msg ed' = pAdd (edSeg ed') 4250
 {-# INLINE addr'no_lines_msg #-}
 sub_nsubs :: Ed -> IO Int64
-sub_nsubs ed' = rdI64 (edSeg ed') 4352
+sub_nsubs ed' = rdI64 (edSeg ed') 4280
 {-# INLINE sub_nsubs #-}
 set'sub_nsubs :: Ed -> Int64 -> IO ()
-set'sub_nsubs ed' = wrI64 (edSeg ed') 4352
+set'sub_nsubs ed' = wrI64 (edSeg ed') 4280
 {-# INLINE set'sub_nsubs #-}
 sub_nlines :: Ed -> IO Linenr_T
-sub_nlines ed' = rdI64 (edSeg ed') 4360
+sub_nlines ed' = rdI64 (edSeg ed') 4288
 {-# INLINE sub_nlines #-}
 set'sub_nlines :: Ed -> Linenr_T -> IO ()
-set'sub_nlines ed' = wrI64 (edSeg ed') 4360
+set'sub_nlines ed' = wrI64 (edSeg ed') 4288
 {-# INLINE set'sub_nlines #-}
 term_is_xterm :: Ed -> IO Int32
-term_is_xterm ed' = rdI32 (edSeg ed') 4368
+term_is_xterm ed' = rdI32 (edSeg ed') 4296
 {-# INLINE term_is_xterm #-}
 set'term_is_xterm :: Ed -> Int32 -> IO ()
-set'term_is_xterm ed' = wrI32 (edSeg ed') 4368
+set'term_is_xterm ed' = wrI32 (edSeg ed') 4296
 {-# INLINE set'term_is_xterm #-}
 virtual_op :: Ed -> IO Int32
-virtual_op ed' = rdI32 (edSeg ed') 4372
+virtual_op ed' = rdI32 (edSeg ed') 4300
 {-# INLINE virtual_op #-}
 set'virtual_op :: Ed -> Int32 -> IO ()
-set'virtual_op ed' = wrI32 (edSeg ed') 4372
+set'virtual_op ed' = wrI32 (edSeg ed') 4300
 {-# INLINE set'virtual_op #-}
 addr'top_bot_msg :: Ed -> Ptr a
-addr'top_bot_msg ed' = pAdd (edSeg ed') 4376
+addr'top_bot_msg ed' = pAdd (edSeg ed') 4304
 {-# INLINE addr'top_bot_msg #-}
 addr'bot_top_msg :: Ed -> Ptr a
-addr'bot_top_msg ed' = pAdd (edSeg ed') 4413
+addr'bot_top_msg ed' = pAdd (edSeg ed') 4341
 {-# INLINE addr'bot_top_msg #-}
 addr'line_msg :: Ed -> Ptr a
-addr'line_msg ed' = pAdd (edSeg ed') 4450
+addr'line_msg ed' = pAdd (edSeg ed') 4378
 {-# INLINE addr'line_msg #-}
 set'vim_ignored :: Ed -> Int32 -> IO ()
-set'vim_ignored ed' = wrI32 (edSeg ed') 4460
+set'vim_ignored ed' = wrI32 (edSeg ed') 4388
 {-# INLINE set'vim_ignored #-}
 magic_overruled :: Ed -> IO Optmagic_T
-magic_overruled ed' = rdI32 (edSeg ed') 4464
+magic_overruled ed' = rdI32 (edSeg ed') 4392
 {-# INLINE magic_overruled #-}
 set'magic_overruled :: Ed -> Optmagic_T -> IO ()
-set'magic_overruled ed' = wrI32 (edSeg ed') 4464
+set'magic_overruled ed' = wrI32 (edSeg ed') 4392
 {-# INLINE set'magic_overruled #-}
-skip_win_fix_cursor :: Ed -> IO Int32
-skip_win_fix_cursor ed' = rdI32 (edSeg ed') 4468
+skip_win_fix_cursor :: Ed -> IO Bool
+skip_win_fix_cursor ed' = rdB (edSeg ed') 4396
 {-# INLINE skip_win_fix_cursor #-}
-skip_win_fix_scroll :: Ed -> IO Int32
-skip_win_fix_scroll ed' = rdI32 (edSeg ed') 4472
+skip_win_fix_scroll :: Ed -> IO Bool
+skip_win_fix_scroll ed' = rdB (edSeg ed') 4397
 {-# INLINE skip_win_fix_scroll #-}
-skip_update_topline :: Ed -> IO Int32
-skip_update_topline ed' = rdI32 (edSeg ed') 4476
+skip_update_topline :: Ed -> IO Bool
+skip_update_topline ed' = rdB (edSeg ed') 4398
 {-# INLINE skip_update_topline #-}
-set'skip_update_topline :: Ed -> Int32 -> IO ()
-set'skip_update_topline ed' = wrI32 (edSeg ed') 4476
+set'skip_update_topline :: Ed -> Bool -> IO ()
+set'skip_update_topline ed' = wrB (edSeg ed') 4398
 {-# INLINE set'skip_update_topline #-}
 addr'showcmd_buf :: Ed -> Ptr a
-addr'showcmd_buf ed' = pAdd (edSeg ed') 4480
+addr'showcmd_buf ed' = pAdd (edSeg ed') 4399
 {-# INLINE addr'showcmd_buf #-}
 did_warn_clipboard :: Ed -> IO Bool
-did_warn_clipboard ed' = rdB (edSeg ed') 4521
+did_warn_clipboard ed' = rdB (edSeg ed') 4440
 {-# INLINE did_warn_clipboard #-}
 set'did_warn_clipboard :: Ed -> Bool -> IO ()
-set'did_warn_clipboard ed' = wrB (edSeg ed') 4521
+set'did_warn_clipboard ed' = wrB (edSeg ed') 4440
 {-# INLINE set'did_warn_clipboard #-}
 allow_osc_key :: Ed -> IO Int32
-allow_osc_key ed' = rdI32 (edSeg ed') 4524
+allow_osc_key ed' = rdI32 (edSeg ed') 4444
 {-# INLINE allow_osc_key #-}
 silence_w23_w24_msg :: Ed -> IO Int32
-silence_w23_w24_msg ed' = rdI32 (edSeg ed') 4528
+silence_w23_w24_msg ed' = rdI32 (edSeg ed') 4448
 {-# INLINE silence_w23_w24_msg #-}
 set'silence_w23_w24_msg :: Ed -> Int32 -> IO ()
-set'silence_w23_w24_msg ed' = wrI32 (edSeg ed') 4528
+set'silence_w23_w24_msg ed' = wrI32 (edSeg ed') 4448
 {-# INLINE set'silence_w23_w24_msg #-}
 addr'e_interrupted :: Ed -> Ptr a
-addr'e_interrupted ed' = pAdd (edSeg ed') 4532
+addr'e_interrupted ed' = pAdd (edSeg ed') 4452
 {-# INLINE addr'e_interrupted #-}
 addr'e_backslash_should_be_followed_by :: Ed -> Ptr a
-addr'e_backslash_should_be_followed_by ed' = pAdd (edSeg ed') 4544
+addr'e_backslash_should_be_followed_by ed' = pAdd (edSeg ed') 4464
 {-# INLINE addr'e_backslash_should_be_followed_by #-}
 addr'e_invalid_range :: Ed -> Ptr a
-addr'e_invalid_range ed' = pAdd (edSeg ed') 4583
+addr'e_invalid_range ed' = pAdd (edSeg ed') 4503
 {-# INLINE addr'e_invalid_range #-}
 addr'e_mark_has_invalid_line_number :: Ed -> Ptr a
-addr'e_mark_has_invalid_line_number ed' = pAdd (edSeg ed') 4602
+addr'e_mark_has_invalid_line_number ed' = pAdd (edSeg ed') 4522
 {-# INLINE addr'e_mark_has_invalid_line_number #-}
 addr'e_mark_not_set :: Ed -> Ptr a
-addr'e_mark_not_set ed' = pAdd (edSeg ed') 4636
+addr'e_mark_not_set ed' = pAdd (edSeg ed') 4556
 {-# INLINE addr'e_mark_not_set #-}
 addr'e_cannot_make_changes_modifiable_is_off :: Ed -> Ptr a
-addr'e_cannot_make_changes_modifiable_is_off ed' = pAdd (edSeg ed') 4654
+addr'e_cannot_make_changes_modifiable_is_off ed' = pAdd (edSeg ed') 4574
 {-# INLINE addr'e_cannot_make_changes_modifiable_is_off #-}
 addr'e_no_alternate_file :: Ed -> Ptr a
-addr'e_no_alternate_file ed' = pAdd (edSeg ed') 4700
+addr'e_no_alternate_file ed' = pAdd (edSeg ed') 4620
 {-# INLINE addr'e_no_alternate_file #-}
 addr'e_no_such_abbreviation :: Ed -> Ptr a
-addr'e_no_such_abbreviation ed' = pAdd (edSeg ed') 4723
+addr'e_no_such_abbreviation ed' = pAdd (edSeg ed') 4643
 {-# INLINE addr'e_no_such_abbreviation #-}
 addr'e_no_such_highlight_group_name_str :: Ed -> Ptr a
-addr'e_no_such_highlight_group_name_str ed' = pAdd (edSeg ed') 4749
+addr'e_no_such_highlight_group_name_str ed' = pAdd (edSeg ed') 4669
 {-# INLINE addr'e_no_such_highlight_group_name_str #-}
 addr'e_no_inserted_text_yet :: Ed -> Ptr a
-addr'e_no_inserted_text_yet ed' = pAdd (edSeg ed') 4787
+addr'e_no_inserted_text_yet ed' = pAdd (edSeg ed') 4707
 {-# INLINE addr'e_no_inserted_text_yet #-}
 addr'e_no_previous_command_line :: Ed -> Ptr a
-addr'e_no_previous_command_line ed' = pAdd (edSeg ed') 4813
+addr'e_no_previous_command_line ed' = pAdd (edSeg ed') 4733
 {-# INLINE addr'e_no_previous_command_line #-}
 addr'e_no_such_mapping :: Ed -> Ptr a
-addr'e_no_such_mapping ed' = pAdd (edSeg ed') 4843
+addr'e_no_such_mapping ed' = pAdd (edSeg ed') 4763
 {-# INLINE addr'e_no_such_mapping #-}
 addr'e_no_file_name :: Ed -> Ptr a
-addr'e_no_file_name ed' = pAdd (edSeg ed') 4864
+addr'e_no_file_name ed' = pAdd (edSeg ed') 4784
 {-# INLINE addr'e_no_file_name #-}
 addr'e_no_previous_substitute_regular_expression :: Ed -> Ptr a
-addr'e_no_previous_substitute_regular_expression ed' = pAdd (edSeg ed') 4882
+addr'e_no_previous_substitute_regular_expression ed' = pAdd (edSeg ed') 4802
 {-# INLINE addr'e_no_previous_substitute_regular_expression #-}
 addr'e_no_previous_regular_expression :: Ed -> Ptr a
-addr'e_no_previous_regular_expression ed' = pAdd (edSeg ed') 4929
+addr'e_no_previous_regular_expression ed' = pAdd (edSeg ed') 4849
 {-# INLINE addr'e_no_previous_regular_expression #-}
 addr'e_not_enough_room :: Ed -> Ptr a
-addr'e_not_enough_room ed' = pAdd (edSeg ed') 4965
+addr'e_not_enough_room ed' = pAdd (edSeg ed') 4885
 {-# INLINE addr'e_not_enough_room #-}
 addr'e_null_argument :: Ed -> Ptr a
-addr'e_null_argument ed' = pAdd (edSeg ed') 4986
+addr'e_null_argument ed' = pAdd (edSeg ed') 4906
 {-# INLINE addr'e_null_argument #-}
 addr'e_out_of_memory :: Ed -> Ptr a
-addr'e_out_of_memory ed' = pAdd (edSeg ed') 5005
+addr'e_out_of_memory ed' = pAdd (edSeg ed') 4925
 {-# INLINE addr'e_out_of_memory #-}
 addr'e_damaged_match_string :: Ed -> Ptr a
-addr'e_damaged_match_string ed' = pAdd (edSeg ed') 5025
+addr'e_damaged_match_string ed' = pAdd (edSeg ed') 4945
 {-# INLINE addr'e_damaged_match_string #-}
 addr'e_corrupted_regexp_program :: Ed -> Ptr a
-addr'e_corrupted_regexp_program ed' = pAdd (edSeg ed') 5051
+addr'e_corrupted_regexp_program ed' = pAdd (edSeg ed') 4971
 {-# INLINE addr'e_corrupted_regexp_program #-}
 addr'e_invalid_scroll_size :: Ed -> Ptr a
-addr'e_invalid_scroll_size ed' = pAdd (edSeg ed') 5081
+addr'e_invalid_scroll_size ed' = pAdd (edSeg ed') 5001
 {-# INLINE addr'e_invalid_scroll_size #-}
 addr'e_too_many_str_open :: Ed -> Ptr a
-addr'e_too_many_str_open ed' = pAdd (edSeg ed') 5106
+addr'e_too_many_str_open ed' = pAdd (edSeg ed') 5026
 {-# INLINE addr'e_too_many_str_open #-}
 addr'e_unmatched_str_percent_open :: Ed -> Ptr a
-addr'e_unmatched_str_percent_open ed' = pAdd (edSeg ed') 5124
+addr'e_unmatched_str_percent_open ed' = pAdd (edSeg ed') 5044
 {-# INLINE addr'e_unmatched_str_percent_open #-}
 addr'e_unmatched_str_open :: Ed -> Ptr a
-addr'e_unmatched_str_open ed' = pAdd (edSeg ed') 5145
+addr'e_unmatched_str_open ed' = pAdd (edSeg ed') 5065
 {-# INLINE addr'e_unmatched_str_open #-}
 addr'e_unmatched_str_close :: Ed -> Ptr a
-addr'e_unmatched_str_close ed' = pAdd (edSeg ed') 5164
+addr'e_unmatched_str_close ed' = pAdd (edSeg ed') 5084
 {-# INLINE addr'e_unmatched_str_close #-}
 addr'e_invalid_character_after_str_at :: Ed -> Ptr a
-addr'e_invalid_character_after_str_at ed' = pAdd (edSeg ed') 5183
+addr'e_invalid_character_after_str_at ed' = pAdd (edSeg ed') 5103
 {-# INLINE addr'e_invalid_character_after_str_at #-}
 addr'e_too_many_complex_str_curly :: Ed -> Ptr a
-addr'e_too_many_complex_str_curly ed' = pAdd (edSeg ed') 5216
+addr'e_too_many_complex_str_curly ed' = pAdd (edSeg ed') 5136
 {-# INLINE addr'e_too_many_complex_str_curly #-}
 addr'e_nested_str :: Ed -> Ptr a
-addr'e_nested_str ed' = pAdd (edSeg ed') 5247
+addr'e_nested_str ed' = pAdd (edSeg ed') 5167
 {-# INLINE addr'e_nested_str #-}
 addr'e_nested_str_chr :: Ed -> Ptr a
-addr'e_nested_str_chr ed' = pAdd (edSeg ed') 5263
+addr'e_nested_str_chr ed' = pAdd (edSeg ed') 5183
 {-# INLINE addr'e_nested_str_chr #-}
 addr'e_invalid_use_of_underscore :: Ed -> Ptr a
-addr'e_invalid_use_of_underscore ed' = pAdd (edSeg ed') 5280
+addr'e_invalid_use_of_underscore ed' = pAdd (edSeg ed') 5200
 {-# INLINE addr'e_invalid_use_of_underscore #-}
 addr'e_str_chr_follows_nothing :: Ed -> Ptr a
-addr'e_str_chr_follows_nothing ed' = pAdd (edSeg ed') 5303
+addr'e_str_chr_follows_nothing ed' = pAdd (edSeg ed') 5223
 {-# INLINE addr'e_str_chr_follows_nothing #-}
 addr'e_illegal_back_reference :: Ed -> Ptr a
-addr'e_illegal_back_reference ed' = pAdd (edSeg ed') 5329
+addr'e_illegal_back_reference ed' = pAdd (edSeg ed') 5249
 {-# INLINE addr'e_illegal_back_reference #-}
 addr'e_invalid_character_after_bsl_z :: Ed -> Ptr a
-addr'e_invalid_character_after_bsl_z ed' = pAdd (edSeg ed') 5357
+addr'e_invalid_character_after_bsl_z ed' = pAdd (edSeg ed') 5277
 {-# INLINE addr'e_invalid_character_after_bsl_z #-}
 addr'e_missing_sb_after_str :: Ed -> Ptr a
-addr'e_missing_sb_after_str ed' = pAdd (edSeg ed') 5389
+addr'e_missing_sb_after_str ed' = pAdd (edSeg ed') 5309
 {-# INLINE addr'e_missing_sb_after_str #-}
 addr'e_empty_str_brackets :: Ed -> Ptr a
-addr'e_empty_str_brackets ed' = pAdd (edSeg ed') 5416
+addr'e_empty_str_brackets ed' = pAdd (edSeg ed') 5336
 {-# INLINE addr'e_empty_str_brackets #-}
 addr'e_invalid_character_after_str :: Ed -> Ptr a
-addr'e_invalid_character_after_str ed' = pAdd (edSeg ed') 5434
+addr'e_invalid_character_after_str ed' = pAdd (edSeg ed') 5354
 {-# INLINE addr'e_invalid_character_after_str #-}
 addr'e_command_too_complex :: Ed -> Ptr a
-addr'e_command_too_complex ed' = pAdd (edSeg ed') 5468
+addr'e_command_too_complex ed' = pAdd (edSeg ed') 5388
 {-# INLINE addr'e_command_too_complex #-}
 addr'e_too_many_brackets :: Ed -> Ptr a
-addr'e_too_many_brackets ed' = pAdd (edSeg ed') 5493
+addr'e_too_many_brackets ed' = pAdd (edSeg ed') 5413
 {-# INLINE addr'e_too_many_brackets #-}
 addr'e_unknown_mark :: Ed -> Ptr a
-addr'e_unknown_mark ed' = pAdd (edSeg ed') 5509
+addr'e_unknown_mark ed' = pAdd (edSeg ed') 5429
 {-# INLINE addr'e_unknown_mark #-}
 addr'e_cannot_allocate_any_buffer_exiting :: Ed -> Ptr a
-addr'e_cannot_allocate_any_buffer_exiting ed' = pAdd (edSeg ed') 5527
+addr'e_cannot_allocate_any_buffer_exiting ed' = pAdd (edSeg ed') 5447
 {-# INLINE addr'e_cannot_allocate_any_buffer_exiting #-}
 addr'e_cannot_move_range_of_lines_into_itself :: Ed -> Ptr a
-addr'e_cannot_move_range_of_lines_into_itself ed' = pAdd (edSeg ed') 5571
+addr'e_cannot_move_range_of_lines_into_itself ed' = pAdd (edSeg ed') 5491
 {-# INLINE addr'e_cannot_move_range_of_lines_into_itself #-}
 addr'e_non_numeric_argument_to_z :: Ed -> Ptr a
-addr'e_non_numeric_argument_to_z ed' = pAdd (edSeg ed') 5618
+addr'e_non_numeric_argument_to_z ed' = pAdd (edSeg ed') 5538
 {-# INLINE addr'e_non_numeric_argument_to_z #-}
 addr'e_regular_expressions_cant_be_delimited_by_letters :: Ed -> Ptr a
-addr'e_regular_expressions_cant_be_delimited_by_letters ed' = pAdd (edSeg ed') 5651
+addr'e_regular_expressions_cant_be_delimited_by_letters ed' = pAdd (edSeg ed') 5571
 {-# INLINE addr'e_regular_expressions_cant_be_delimited_by_letters #-}
 addr'e_cannot_do_global_recursive_with_range :: Ed -> Ptr a
-addr'e_cannot_do_global_recursive_with_range ed' = pAdd (edSeg ed') 5707
+addr'e_cannot_do_global_recursive_with_range ed' = pAdd (edSeg ed') 5627
 {-# INLINE addr'e_cannot_do_global_recursive_with_range #-}
 addr'e_regular_expression_missing_from_global :: Ed -> Ptr a
-addr'e_regular_expression_missing_from_global ed' = pAdd (edSeg ed') 5754
+addr'e_regular_expression_missing_from_global ed' = pAdd (edSeg ed') 5674
 {-# INLINE addr'e_regular_expression_missing_from_global #-}
 addr'e_command_too_recursive :: Ed -> Ptr a
-addr'e_command_too_recursive ed' = pAdd (edSeg ed') 5800
+addr'e_command_too_recursive ed' = pAdd (edSeg ed') 5720
 {-# INLINE addr'e_command_too_recursive #-}
 addr'e_argument_must_be_letter_or_forward_backward_quote :: Ed -> Ptr a
-addr'e_argument_must_be_letter_or_forward_backward_quote ed' = pAdd (edSeg ed') 5828
+addr'e_argument_must_be_letter_or_forward_backward_quote ed' = pAdd (edSeg ed') 5748
 {-# INLINE addr'e_argument_must_be_letter_or_forward_backward_quote #-}
 addr'e_recursive_use_of_normal_too_deep :: Ed -> Ptr a
-addr'e_recursive_use_of_normal_too_deep ed' = pAdd (edSeg ed') 5886
+addr'e_recursive_use_of_normal_too_deep ed' = pAdd (edSeg ed') 5806
 {-# INLINE addr'e_recursive_use_of_normal_too_deep #-}
 addr'e_add_to_internal_buffer_that_was_already_read_from :: Ed -> Ptr a
-addr'e_add_to_internal_buffer_that_was_already_read_from ed' = pAdd (edSeg ed') 5926
+addr'e_add_to_internal_buffer_that_was_already_read_from ed' = pAdd (edSeg ed') 5846
 {-# INLINE addr'e_add_to_internal_buffer_that_was_already_read_from #-}
 addr'e_recursive_mapping :: Ed -> Ptr a
-addr'e_recursive_mapping ed' = pAdd (edSeg ed') 5982
+addr'e_recursive_mapping ed' = pAdd (edSeg ed') 5902
 {-# INLINE addr'e_recursive_mapping #-}
 addr'e_global_abbreviation_already_exists_for_str :: Ed -> Ptr a
-addr'e_global_abbreviation_already_exists_for_str ed' = pAdd (edSeg ed') 6006
+addr'e_global_abbreviation_already_exists_for_str ed' = pAdd (edSeg ed') 5926
 {-# INLINE addr'e_global_abbreviation_already_exists_for_str #-}
 addr'e_global_mapping_already_exists_for_str :: Ed -> Ptr a
-addr'e_global_mapping_already_exists_for_str ed' = pAdd (edSeg ed') 6054
+addr'e_global_mapping_already_exists_for_str ed' = pAdd (edSeg ed') 5974
 {-# INLINE addr'e_global_mapping_already_exists_for_str #-}
 addr'e_abbreviation_already_exists_for_str :: Ed -> Ptr a
-addr'e_abbreviation_already_exists_for_str ed' = pAdd (edSeg ed') 6097
+addr'e_abbreviation_already_exists_for_str ed' = pAdd (edSeg ed') 6017
 {-# INLINE addr'e_abbreviation_already_exists_for_str #-}
 addr'e_mapping_already_exists_for_str :: Ed -> Ptr a
-addr'e_mapping_already_exists_for_str ed' = pAdd (edSeg ed') 6138
+addr'e_mapping_already_exists_for_str ed' = pAdd (edSeg ed') 6058
 {-# INLINE addr'e_mapping_already_exists_for_str #-}
 addr'e_no_marks_matching_str :: Ed -> Ptr a
-addr'e_no_marks_matching_str ed' = pAdd (edSeg ed') 6174
+addr'e_no_marks_matching_str ed' = pAdd (edSeg ed') 6094
 {-# INLINE addr'e_no_marks_matching_str #-}
 addr'e_invalid_count_for_del_bytes_nr :: Ed -> Ptr a
-addr'e_invalid_count_for_del_bytes_nr ed' = pAdd (edSeg ed') 6203
+addr'e_invalid_count_for_del_bytes_nr ed' = pAdd (edSeg ed') 6123
 {-# INLINE addr'e_invalid_count_for_del_bytes_nr #-}
 addr'e_ml_get_invalid_lnum_nr :: Ed -> Ptr a
-addr'e_ml_get_invalid_lnum_nr ed' = pAdd (edSeg ed') 6244
+addr'e_ml_get_invalid_lnum_nr ed' = pAdd (edSeg ed') 6164
 {-# INLINE addr'e_ml_get_invalid_lnum_nr #-}
 addr'e_ml_get_cannot_find_line_nr_in_buffer_nr_str :: Ed -> Ptr a
-addr'e_ml_get_cannot_find_line_nr_in_buffer_nr_str ed' = pAdd (edSeg ed') 6276
+addr'e_ml_get_cannot_find_line_nr_in_buffer_nr_str ed' = pAdd (edSeg ed') 6196
 {-# INLINE addr'e_ml_get_cannot_find_line_nr_in_buffer_nr_str #-}
 addr'e_pointer_block_id_wrong :: Ed -> Ptr a
-addr'e_pointer_block_id_wrong ed' = pAdd (edSeg ed') 6327
+addr'e_pointer_block_id_wrong ed' = pAdd (edSeg ed') 6247
 {-# INLINE addr'e_pointer_block_id_wrong #-}
 addr'e_pointer_block_id_wrong_two :: Ed -> Ptr a
-addr'e_pointer_block_id_wrong_two ed' = pAdd (edSeg ed') 6356
+addr'e_pointer_block_id_wrong_two ed' = pAdd (edSeg ed') 6276
 {-# INLINE addr'e_pointer_block_id_wrong_two #-}
 addr'e_pointer_block_id_wrong_three :: Ed -> Ptr a
-addr'e_pointer_block_id_wrong_three ed' = pAdd (edSeg ed') 6387
+addr'e_pointer_block_id_wrong_three ed' = pAdd (edSeg ed') 6307
 {-# INLINE addr'e_pointer_block_id_wrong_three #-}
 addr'e_pointer_block_id_wrong_four :: Ed -> Ptr a
-addr'e_pointer_block_id_wrong_four ed' = pAdd (edSeg ed') 6418
+addr'e_pointer_block_id_wrong_four ed' = pAdd (edSeg ed') 6338
 {-# INLINE addr'e_pointer_block_id_wrong_four #-}
 addr'e_updated_too_many_blocks :: Ed -> Ptr a
-addr'e_updated_too_many_blocks ed' = pAdd (edSeg ed') 6449
+addr'e_updated_too_many_blocks ed' = pAdd (edSeg ed') 6369
 {-# INLINE addr'e_updated_too_many_blocks #-}
 addr'e_cannot_find_line_nr :: Ed -> Ptr a
-addr'e_cannot_find_line_nr ed' = pAdd (edSeg ed') 6480
+addr'e_cannot_find_line_nr ed' = pAdd (edSeg ed') 6400
 {-# INLINE addr'e_cannot_find_line_nr #-}
 addr'e_line_number_out_of_range_nr_past_the_end :: Ed -> Ptr a
-addr'e_line_number_out_of_range_nr_past_the_end ed' = pAdd (edSeg ed') 6507
+addr'e_line_number_out_of_range_nr_past_the_end ed' = pAdd (edSeg ed') 6427
 {-# INLINE addr'e_line_number_out_of_range_nr_past_the_end #-}
 addr'e_line_count_wrong_in_block :: Ed -> Ptr a
-addr'e_line_count_wrong_in_block ed' = pAdd (edSeg ed') 6556
+addr'e_line_count_wrong_in_block ed' = pAdd (edSeg ed') 6476
 {-# INLINE addr'e_line_count_wrong_in_block #-}
 addr'e_pattern_too_long :: Ed -> Ptr a
-addr'e_pattern_too_long ed' = pAdd (edSeg ed') 6588
+addr'e_pattern_too_long ed' = pAdd (edSeg ed') 6508
 {-# INLINE addr'e_pattern_too_long #-}
 addr'e_internal_error_please_report_a_bug :: Ed -> Ptr a
-addr'e_internal_error_please_report_a_bug ed' = pAdd (edSeg ed') 6611
+addr'e_internal_error_please_report_a_bug ed' = pAdd (edSeg ed') 6531
 {-# INLINE addr'e_internal_error_please_report_a_bug #-}
 addr'e_internal_error_lalloc_zero :: Ed -> Ptr a
-addr'e_internal_error_lalloc_zero ed' = pAdd (edSeg ed') 6674
+addr'e_internal_error_lalloc_zero ed' = pAdd (edSeg ed') 6594
 {-# INLINE addr'e_internal_error_lalloc_zero #-}
 addr'e_out_of_memory_allocating_nr_bytes :: Ed -> Ptr a
-addr'e_out_of_memory_allocating_nr_bytes ed' = pAdd (edSeg ed') 6708
+addr'e_out_of_memory_allocating_nr_bytes ed' = pAdd (edSeg ed') 6628
 {-# INLINE addr'e_out_of_memory_allocating_nr_bytes #-}
 addr'e_no_string_under_cursor :: Ed -> Ptr a
-addr'e_no_string_under_cursor ed' = pAdd (edSeg ed') 6753
+addr'e_no_string_under_cursor ed' = pAdd (edSeg ed') 6673
 {-# INLINE addr'e_no_string_under_cursor #-}
 addr'e_no_identifier_under_cursor :: Ed -> Ptr a
-addr'e_no_identifier_under_cursor ed' = pAdd (edSeg ed') 6782
+addr'e_no_identifier_under_cursor ed' = pAdd (edSeg ed') 6702
 {-# INLINE addr'e_no_identifier_under_cursor #-}
 addr'e_nothing_in_register_str :: Ed -> Ptr a
-addr'e_nothing_in_register_str ed' = pAdd (edSeg ed') 6815
+addr'e_nothing_in_register_str ed' = pAdd (edSeg ed') 6735
 {-# INLINE addr'e_nothing_in_register_str #-}
 addr'e_invalid_register_name_str :: Ed -> Ptr a
-addr'e_invalid_register_name_str ed' = pAdd (edSeg ed') 6844
+addr'e_invalid_register_name_str ed' = pAdd (edSeg ed') 6764
 {-# INLINE addr'e_invalid_register_name_str #-}
 addr'e_unknown_option_str_2 :: Ed -> Ptr a
-addr'e_unknown_option_str_2 ed' = pAdd (edSeg ed') 6878
+addr'e_unknown_option_str_2 ed' = pAdd (edSeg ed') 6798
 {-# INLINE addr'e_unknown_option_str_2 #-}
 addr'e_get_varp_error :: Ed -> Ptr a
-addr'e_get_varp_error ed' = pAdd (edSeg ed') 6903
+addr'e_get_varp_error ed' = pAdd (edSeg ed') 6823
 {-# INLINE addr'e_get_varp_error #-}
 addr'e_pattern_uses_more_memory_than_maxmempattern :: Ed -> Ptr a
-addr'e_pattern_uses_more_memory_than_maxmempattern ed' = pAdd (edSeg ed') 6924
+addr'e_pattern_uses_more_memory_than_maxmempattern ed' = pAdd (edSeg ed') 6844
 {-# INLINE addr'e_pattern_uses_more_memory_than_maxmempattern #-}
 addr'e_invalid_item_in_str_brackets :: Ed -> Ptr a
-addr'e_invalid_item_in_str_brackets ed' = pAdd (edSeg ed') 6976
+addr'e_invalid_item_in_str_brackets ed' = pAdd (edSeg ed') 6896
 {-# INLINE addr'e_invalid_item_in_str_brackets #-}
 addr'e_invalid_search_string_str :: Ed -> Ptr a
-addr'e_invalid_search_string_str ed' = pAdd (edSeg ed') 7005
+addr'e_invalid_search_string_str ed' = pAdd (edSeg ed') 6925
 {-# INLINE addr'e_invalid_search_string_str #-}
 addr'e_search_hit_top_without_match_for_str :: Ed -> Ptr a
-addr'e_search_hit_top_without_match_for_str ed' = pAdd (edSeg ed') 7037
+addr'e_search_hit_top_without_match_for_str ed' = pAdd (edSeg ed') 6957
 {-# INLINE addr'e_search_hit_top_without_match_for_str #-}
 addr'e_search_hit_bottom_without_match_for_str :: Ed -> Ptr a
-addr'e_search_hit_bottom_without_match_for_str ed' = pAdd (edSeg ed') 7080
+addr'e_search_hit_bottom_without_match_for_str ed' = pAdd (edSeg ed') 7000
 {-# INLINE addr'e_search_hit_bottom_without_match_for_str #-}
 addr'e_expected_question_or_slash_after_semicolon :: Ed -> Ptr a
-addr'e_expected_question_or_slash_after_semicolon ed' = pAdd (edSeg ed') 7126
+addr'e_expected_question_or_slash_after_semicolon ed' = pAdd (edSeg ed') 7046
 {-# INLINE addr'e_expected_question_or_slash_after_semicolon #-}
 addr'e_highlight_group_name_not_found_str :: Ed -> Ptr a
-addr'e_highlight_group_name_not_found_str ed' = pAdd (edSeg ed') 7163
+addr'e_highlight_group_name_not_found_str ed' = pAdd (edSeg ed') 7083
 {-# INLINE addr'e_highlight_group_name_not_found_str #-}
 addr'e_not_enough_arguments_highlight_link_str :: Ed -> Ptr a
-addr'e_not_enough_arguments_highlight_link_str ed' = pAdd (edSeg ed') 7199
+addr'e_not_enough_arguments_highlight_link_str ed' = pAdd (edSeg ed') 7119
 {-# INLINE addr'e_not_enough_arguments_highlight_link_str #-}
 addr'e_too_many_arguments_highlight_link_str :: Ed -> Ptr a
-addr'e_too_many_arguments_highlight_link_str ed' = pAdd (edSeg ed') 7248
+addr'e_too_many_arguments_highlight_link_str ed' = pAdd (edSeg ed') 7168
 {-# INLINE addr'e_too_many_arguments_highlight_link_str #-}
 addr'e_group_has_settings_highlight_link_ignored :: Ed -> Ptr a
-addr'e_group_has_settings_highlight_link_ignored ed' = pAdd (edSeg ed') 7295
+addr'e_group_has_settings_highlight_link_ignored ed' = pAdd (edSeg ed') 7215
 {-# INLINE addr'e_group_has_settings_highlight_link_ignored #-}
 addr'e_unexpected_equal_sign_str :: Ed -> Ptr a
-addr'e_unexpected_equal_sign_str ed' = pAdd (edSeg ed') 7344
+addr'e_unexpected_equal_sign_str ed' = pAdd (edSeg ed') 7264
 {-# INLINE addr'e_unexpected_equal_sign_str #-}
 addr'e_missing_equal_sign_str_2 :: Ed -> Ptr a
-addr'e_missing_equal_sign_str_2 ed' = pAdd (edSeg ed') 7376
+addr'e_missing_equal_sign_str_2 ed' = pAdd (edSeg ed') 7296
 {-# INLINE addr'e_missing_equal_sign_str_2 #-}
 addr'e_missing_argument_str :: Ed -> Ptr a
-addr'e_missing_argument_str ed' = pAdd (edSeg ed') 7405
+addr'e_missing_argument_str ed' = pAdd (edSeg ed') 7325
 {-# INLINE addr'e_missing_argument_str #-}
 addr'e_illegal_value_str :: Ed -> Ptr a
-addr'e_illegal_value_str ed' = pAdd (edSeg ed') 7432
+addr'e_illegal_value_str ed' = pAdd (edSeg ed') 7352
 {-# INLINE addr'e_illegal_value_str #-}
 addr'e_fg_color_unknown :: Ed -> Ptr a
-addr'e_fg_color_unknown ed' = pAdd (edSeg ed') 7456
+addr'e_fg_color_unknown ed' = pAdd (edSeg ed') 7376
 {-# INLINE addr'e_fg_color_unknown #-}
 addr'e_bg_color_unknown :: Ed -> Ptr a
-addr'e_bg_color_unknown ed' = pAdd (edSeg ed') 7479
+addr'e_bg_color_unknown ed' = pAdd (edSeg ed') 7399
 {-# INLINE addr'e_bg_color_unknown #-}
 addr'e_color_name_or_number_not_recognized_str :: Ed -> Ptr a
-addr'e_color_name_or_number_not_recognized_str ed' = pAdd (edSeg ed') 7502
+addr'e_color_name_or_number_not_recognized_str ed' = pAdd (edSeg ed') 7422
 {-# INLINE addr'e_color_name_or_number_not_recognized_str #-}
 addr'e_terminal_code_too_long_str :: Ed -> Ptr a
-addr'e_terminal_code_too_long_str ed' = pAdd (edSeg ed') 7548
+addr'e_terminal_code_too_long_str ed' = pAdd (edSeg ed') 7468
 {-# INLINE addr'e_terminal_code_too_long_str #-}
 addr'e_illegal_argument_str_3 :: Ed -> Ptr a
-addr'e_illegal_argument_str_3 ed' = pAdd (edSeg ed') 7581
+addr'e_illegal_argument_str_3 ed' = pAdd (edSeg ed') 7501
 {-# INLINE addr'e_illegal_argument_str_3 #-}
 addr'e_too_many_different_highlighting_attributes_in_use :: Ed -> Ptr a
-addr'e_too_many_different_highlighting_attributes_in_use ed' = pAdd (edSeg ed') 7608
+addr'e_too_many_different_highlighting_attributes_in_use ed' = pAdd (edSeg ed') 7528
 {-# INLINE addr'e_too_many_different_highlighting_attributes_in_use #-}
 addr'e_no_str_entry_in_termcap :: Ed -> Ptr a
-addr'e_no_str_entry_in_termcap ed' = pAdd (edSeg ed') 7664
+addr'e_no_str_entry_in_termcap ed' = pAdd (edSeg ed') 7584
 {-# INLINE addr'e_no_str_entry_in_termcap #-}
 addr'e_terminal_capability_cm_required :: Ed -> Ptr a
-addr'e_terminal_capability_cm_required ed' = pAdd (edSeg ed') 7695
+addr'e_terminal_capability_cm_required ed' = pAdd (edSeg ed') 7615
 {-# INLINE addr'e_terminal_capability_cm_required #-}
 addr'e_u_undo_line_numbers_wrong :: Ed -> Ptr a
-addr'e_u_undo_line_numbers_wrong ed' = pAdd (edSeg ed') 7735
+addr'e_u_undo_line_numbers_wrong ed' = pAdd (edSeg ed') 7655
 {-# INLINE addr'e_u_undo_line_numbers_wrong #-}
 addr'e_undo_list_corrupt :: Ed -> Ptr a
-addr'e_undo_list_corrupt ed' = pAdd (edSeg ed') 7768
+addr'e_undo_list_corrupt ed' = pAdd (edSeg ed') 7688
 {-# INLINE addr'e_undo_list_corrupt #-}
 addr'e_undo_line_missing :: Ed -> Ptr a
-addr'e_undo_line_missing ed' = pAdd (edSeg ed') 7792
+addr'e_undo_line_missing ed' = pAdd (edSeg ed') 7712
 {-# INLINE addr'e_undo_line_missing #-}
 addr'e_no_file_name_under_cursor :: Ed -> Ptr a
-addr'e_no_file_name_under_cursor ed' = pAdd (edSeg ed') 7816
+addr'e_no_file_name_under_cursor ed' = pAdd (edSeg ed') 7736
 {-# INLINE addr'e_no_file_name_under_cursor #-}
 addr'e_ul_color_unknown :: Ed -> Ptr a
-addr'e_ul_color_unknown ed' = pAdd (edSeg ed') 7848
+addr'e_ul_color_unknown ed' = pAdd (edSeg ed') 7768
 {-# INLINE addr'e_ul_color_unknown #-}
 addr'e_ambiguous_use_of_user_defined_command :: Ed -> Ptr a
-addr'e_ambiguous_use_of_user_defined_command ed' = pAdd (edSeg ed') 7871
+addr'e_ambiguous_use_of_user_defined_command ed' = pAdd (edSeg ed') 7791
 {-# INLINE addr'e_ambiguous_use_of_user_defined_command #-}
 addr'e_winsize_requires_two_number_arguments :: Ed -> Ptr a
-addr'e_winsize_requires_two_number_arguments ed' = pAdd (edSeg ed') 7915
+addr'e_winsize_requires_two_number_arguments ed' = pAdd (edSeg ed') 7835
 {-# INLINE addr'e_winsize_requires_two_number_arguments #-}
 addr'e_command_aborted :: Ed -> Ptr a
-addr'e_command_aborted ed' = pAdd (edSeg ed') 7960
+addr'e_command_aborted ed' = pAdd (edSeg ed') 7880
 {-# INLINE addr'e_command_aborted #-}
 addr'e_argument_required :: Ed -> Ptr a
-addr'e_argument_required ed' = pAdd (edSeg ed') 7982
+addr'e_argument_required ed' = pAdd (edSeg ed') 7902
 {-# INLINE addr'e_argument_required #-}
 addr'e_internal_error_in_regexp :: Ed -> Ptr a
-addr'e_internal_error_in_regexp ed' = pAdd (edSeg ed') 8006
+addr'e_internal_error_in_regexp ed' = pAdd (edSeg ed') 7926
 {-# INLINE addr'e_internal_error_in_regexp #-}
 addr'e_invalid_argument :: Ed -> Ptr a
-addr'e_invalid_argument ed' = pAdd (edSeg ed') 8037
+addr'e_invalid_argument ed' = pAdd (edSeg ed') 7957
 {-# INLINE addr'e_invalid_argument #-}
 addr'e_invalid_argument_str :: Ed -> Ptr a
-addr'e_invalid_argument_str ed' = pAdd (edSeg ed') 8060
+addr'e_invalid_argument_str ed' = pAdd (edSeg ed') 7980
 {-# INLINE addr'e_invalid_argument_str #-}
 addr'e_invalid_command :: Ed -> Ptr a
-addr'e_invalid_command ed' = pAdd (edSeg ed') 8087
+addr'e_invalid_command ed' = pAdd (edSeg ed') 8007
 {-# INLINE addr'e_invalid_command #-}
 addr'e_invalid_command_str :: Ed -> Ptr a
-addr'e_invalid_command_str ed' = pAdd (edSeg ed') 8109
+addr'e_invalid_command_str ed' = pAdd (edSeg ed') 8029
 {-# INLINE addr'e_invalid_command_str #-}
 addr'e_no_bang_allowed :: Ed -> Ptr a
-addr'e_no_bang_allowed ed' = pAdd (edSeg ed') 8135
+addr'e_no_bang_allowed ed' = pAdd (edSeg ed') 8055
 {-# INLINE addr'e_no_bang_allowed #-}
 addr'e_no_range_allowed :: Ed -> Ptr a
-addr'e_no_range_allowed ed' = pAdd (edSeg ed') 8154
+addr'e_no_range_allowed ed' = pAdd (edSeg ed') 8074
 {-# INLINE addr'e_no_range_allowed #-}
 addr'e_pattern_not_found_str :: Ed -> Ptr a
-addr'e_pattern_not_found_str ed' = pAdd (edSeg ed') 8177
+addr'e_pattern_not_found_str ed' = pAdd (edSeg ed') 8097
 {-# INLINE addr'e_pattern_not_found_str #-}
 addr'e_argument_must_be_positive :: Ed -> Ptr a
-addr'e_argument_must_be_positive ed' = pAdd (edSeg ed') 8205
+addr'e_argument_must_be_positive ed' = pAdd (edSeg ed') 8125
 {-# INLINE addr'e_argument_must_be_positive #-}
 addr'e_trailing_characters :: Ed -> Ptr a
-addr'e_trailing_characters ed' = pAdd (edSeg ed') 8237
+addr'e_trailing_characters ed' = pAdd (edSeg ed') 8157
 {-# INLINE addr'e_trailing_characters #-}
 addr'e_trailing_characters_str :: Ed -> Ptr a
-addr'e_trailing_characters_str ed' = pAdd (edSeg ed') 8263
+addr'e_trailing_characters_str ed' = pAdd (edSeg ed') 8183
 {-# INLINE addr'e_trailing_characters_str #-}
 addr'e_not_an_editor_command :: Ed -> Ptr a
-addr'e_not_an_editor_command ed' = pAdd (edSeg ed') 8293
+addr'e_not_an_editor_command ed' = pAdd (edSeg ed') 8213
 {-# INLINE addr'e_not_an_editor_command #-}
 addr'e_backwards_range_given :: Ed -> Ptr a
-addr'e_backwards_range_given ed' = pAdd (edSeg ed') 8321
+addr'e_backwards_range_given ed' = pAdd (edSeg ed') 8241
 {-# INLINE addr'e_backwards_range_given #-}
 addr'e_unknown_option :: Ed -> Ptr a
-addr'e_unknown_option ed' = pAdd (edSeg ed') 8349
+addr'e_unknown_option ed' = pAdd (edSeg ed') 8269
 {-# INLINE addr'e_unknown_option #-}
 addr'e_option_not_supported :: Ed -> Ptr a
-addr'e_option_not_supported ed' = pAdd (edSeg ed') 8370
+addr'e_option_not_supported ed' = pAdd (edSeg ed') 8290
 {-# INLINE addr'e_option_not_supported #-}
 addr'e_number_required_after_equal :: Ed -> Ptr a
-addr'e_number_required_after_equal ed' = pAdd (edSeg ed') 8397
+addr'e_number_required_after_equal ed' = pAdd (edSeg ed') 8317
 {-# INLINE addr'e_number_required_after_equal #-}
 addr'e_number_required_after_str_equal_str :: Ed -> Ptr a
-addr'e_number_required_after_str_equal_str ed' = pAdd (edSeg ed') 8427
+addr'e_number_required_after_str_equal_str ed' = pAdd (edSeg ed') 8347
 {-# INLINE addr'e_number_required_after_str_equal_str #-}
 addr'e_not_found_in_termcap :: Ed -> Ptr a
-addr'e_not_found_in_termcap ed' = pAdd (edSeg ed') 8461
+addr'e_not_found_in_termcap ed' = pAdd (edSeg ed') 8381
 {-# INLINE addr'e_not_found_in_termcap #-}
 addr'e_not_allowed_here :: Ed -> Ptr a
-addr'e_not_allowed_here ed' = pAdd (edSeg ed') 8488
+addr'e_not_allowed_here ed' = pAdd (edSeg ed') 8408
 {-# INLINE addr'e_not_allowed_here #-}
 addr'e_cannot_set_term_to_empty_string :: Ed -> Ptr a
-addr'e_cannot_set_term_to_empty_string ed' = pAdd (edSeg ed') 8511
+addr'e_cannot_set_term_to_empty_string ed' = pAdd (edSeg ed') 8431
 {-# INLINE addr'e_cannot_set_term_to_empty_string #-}
 addr'e_illegal_character_str :: Ed -> Ptr a
-addr'e_illegal_character_str ed' = pAdd (edSeg ed') 8551
+addr'e_illegal_character_str ed' = pAdd (edSeg ed') 8471
 {-# INLINE addr'e_illegal_character_str #-}
 addr'e_syntax_error_in_str_curlies :: Ed -> Ptr a
-addr'e_syntax_error_in_str_curlies ed' = pAdd (edSeg ed') 8580
+addr'e_syntax_error_in_str_curlies ed' = pAdd (edSeg ed') 8500
 {-# INLINE addr'e_syntax_error_in_str_curlies #-}
 addr'e_not_allowed_to_change_text_or_change_window :: Ed -> Ptr a
-addr'e_not_allowed_to_change_text_or_change_window ed' = pAdd (edSeg ed') 8610
+addr'e_not_allowed_to_change_text_or_change_window ed' = pAdd (edSeg ed') 8530
 {-# INLINE addr'e_not_allowed_to_change_text_or_change_window #-}
 addr'e_need_at_least_nr_lines :: Ed -> Ptr a
-addr'e_need_at_least_nr_lines ed' = pAdd (edSeg ed') 8660
+addr'e_need_at_least_nr_lines ed' = pAdd (edSeg ed') 8580
 {-# INLINE addr'e_need_at_least_nr_lines #-}
 addr'e_need_at_least_nr_columns :: Ed -> Ptr a
-addr'e_need_at_least_nr_columns ed' = pAdd (edSeg ed') 8689
+addr'e_need_at_least_nr_columns ed' = pAdd (edSeg ed') 8609
 {-# INLINE addr'e_need_at_least_nr_columns #-}
 addr'e_at_start_of_changelist :: Ed -> Ptr a
-addr'e_at_start_of_changelist ed' = pAdd (edSeg ed') 8720
+addr'e_at_start_of_changelist ed' = pAdd (edSeg ed') 8640
 {-# INLINE addr'e_at_start_of_changelist #-}
 addr'e_at_end_of_changelist :: Ed -> Ptr a
-addr'e_at_end_of_changelist ed' = pAdd (edSeg ed') 8749
+addr'e_at_end_of_changelist ed' = pAdd (edSeg ed') 8669
 {-# INLINE addr'e_at_end_of_changelist #-}
 addr'e_changelist_is_empty :: Ed -> Ptr a
-addr'e_changelist_is_empty ed' = pAdd (edSeg ed') 8776
+addr'e_changelist_is_empty ed' = pAdd (edSeg ed') 8696
 {-# INLINE addr'e_changelist_is_empty #-}
 addr'e_unprintable_character_in_group_name :: Ed -> Ptr a
-addr'e_unprintable_character_in_group_name ed' = pAdd (edSeg ed') 8802
+addr'e_unprintable_character_in_group_name ed' = pAdd (edSeg ed') 8722
 {-# INLINE addr'e_unprintable_character_in_group_name #-}
 addr'e_invalid_character_after_str_2 :: Ed -> Ptr a
-addr'e_invalid_character_after_str_2 ed' = pAdd (edSeg ed') 8844
+addr'e_invalid_character_after_str_2 ed' = pAdd (edSeg ed') 8764
 {-# INLINE addr'e_invalid_character_after_str_2 #-}
 addr'e_internal_error_str :: Ed -> Ptr a
-addr'e_internal_error_str ed' = pAdd (edSeg ed') 8886
+addr'e_internal_error_str ed' = pAdd (edSeg ed') 8806
 {-# INLINE addr'e_internal_error_str #-}
 addr'e_no_previously_used_register :: Ed -> Ptr a
-addr'e_no_previously_used_register ed' = pAdd (edSeg ed') 8911
+addr'e_no_previously_used_register ed' = pAdd (edSeg ed') 8831
 {-# INLINE addr'e_no_previously_used_register #-}
 addr'e_empty_buffer :: Ed -> Ptr a
-addr'e_empty_buffer ed' = pAdd (edSeg ed') 8945
+addr'e_empty_buffer ed' = pAdd (edSeg ed') 8865
 {-# INLINE addr'e_empty_buffer #-}
 addr'e_missing_rsb_after_str_lsb :: Ed -> Ptr a
-addr'e_missing_rsb_after_str_lsb ed' = pAdd (edSeg ed') 8964
+addr'e_missing_rsb_after_str_lsb ed' = pAdd (edSeg ed') 8884
 {-# INLINE addr'e_missing_rsb_after_str_lsb #-}
 addr'e_not_allowed_to_edit_another_buffer_now :: Ed -> Ptr a
-addr'e_not_allowed_to_edit_another_buffer_now ed' = pAdd (edSeg ed') 8990
+addr'e_not_allowed_to_edit_another_buffer_now ed' = pAdd (edSeg ed') 8910
 {-# INLINE addr'e_not_allowed_to_edit_another_buffer_now #-}
 addr'e_undojoin_is_not_allowed_after_undo :: Ed -> Ptr a
-addr'e_undojoin_is_not_allowed_after_undo ed' = pAdd (edSeg ed') 9035
+addr'e_undojoin_is_not_allowed_after_undo ed' = pAdd (edSeg ed') 8955
 {-# INLINE addr'e_undojoin_is_not_allowed_after_undo #-}
 addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_1 :: Ed -> Ptr a
-addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_1 ed' = pAdd (edSeg ed') 9076
+addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_1 ed' = pAdd (edSeg ed') 8996
 {-# INLINE addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_1 #-}
 addr'e_id_already_taken_nr :: Ed -> Ptr a
-addr'e_id_already_taken_nr ed' = pAdd (edSeg ed') 9134
+addr'e_id_already_taken_nr ed' = pAdd (edSeg ed') 9054
 {-# INLINE addr'e_id_already_taken_nr #-}
 addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2 :: Ed -> Ptr a
-addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2 ed' = pAdd (edSeg ed') 9161
+addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2 ed' = pAdd (edSeg ed') 9081
 {-# INLINE addr'e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2 #-}
 addr'e_id_not_found_nr :: Ed -> Ptr a
-addr'e_id_not_found_nr ed' = pAdd (edSeg ed') 9219
+addr'e_id_not_found_nr ed' = pAdd (edSeg ed') 9139
 {-# INLINE addr'e_id_not_found_nr #-}
 addr'e_not_allowed_to_change_buffer_information_now :: Ed -> Ptr a
-addr'e_not_allowed_to_change_buffer_information_now ed' = pAdd (edSeg ed') 9242
+addr'e_not_allowed_to_change_buffer_information_now ed' = pAdd (edSeg ed') 9162
 {-# INLINE addr'e_not_allowed_to_change_buffer_information_now #-}
 addr'e_undo_number_nr_not_found :: Ed -> Ptr a
-addr'e_undo_number_nr_not_found ed' = pAdd (edSeg ed') 9293
+addr'e_undo_number_nr_not_found ed' = pAdd (edSeg ed') 9213
 {-# INLINE addr'e_undo_number_nr_not_found #-}
 addr'e_conflicts_with_value_of_listchars :: Ed -> Ptr a
-addr'e_conflicts_with_value_of_listchars ed' = pAdd (edSeg ed') 9325
+addr'e_conflicts_with_value_of_listchars ed' = pAdd (edSeg ed') 9245
 {-# INLINE addr'e_conflicts_with_value_of_listchars #-}
 addr'e_conflicts_with_value_of_fillchars :: Ed -> Ptr a
-addr'e_conflicts_with_value_of_fillchars ed' = pAdd (edSeg ed') 9367
+addr'e_conflicts_with_value_of_fillchars ed' = pAdd (edSeg ed') 9287
 {-# INLINE addr'e_conflicts_with_value_of_fillchars #-}
 addr'e_key_code_not_set :: Ed -> Ptr a
-addr'e_key_code_not_set ed' = pAdd (edSeg ed') 9409
+addr'e_key_code_not_set ed' = pAdd (edSeg ed') 9329
 {-# INLINE addr'e_key_code_not_set #-}
 addr'e_too_many_highlight_and_syntax_groups :: Ed -> Ptr a
-addr'e_too_many_highlight_and_syntax_groups ed' = pAdd (edSeg ed') 9432
+addr'e_too_many_highlight_and_syntax_groups ed' = pAdd (edSeg ed') 9352
 {-# INLINE addr'e_too_many_highlight_and_syntax_groups #-}
 addr'e_invalid_register_name :: Ed -> Ptr a
-addr'e_invalid_register_name ed' = pAdd (edSeg ed') 9475
+addr'e_invalid_register_name ed' = pAdd (edSeg ed') 9395
 {-# INLINE addr'e_invalid_register_name #-}
 addr'e_autocommands_caused_command_to_abort :: Ed -> Ptr a
-addr'e_autocommands_caused_command_to_abort ed' = pAdd (edSeg ed') 9503
+addr'e_autocommands_caused_command_to_abort ed' = pAdd (edSeg ed') 9423
 {-# INLINE addr'e_autocommands_caused_command_to_abort #-}
 addr'e_line_count_changed_unexpectedly :: Ed -> Ptr a
-addr'e_line_count_changed_unexpectedly ed' = pAdd (edSeg ed') 9546
+addr'e_line_count_changed_unexpectedly ed' = pAdd (edSeg ed') 9466
 {-# INLINE addr'e_line_count_changed_unexpectedly #-}
 addr'e_nfa_regexp_cannot_repeat_str :: Ed -> Ptr a
-addr'e_nfa_regexp_cannot_repeat_str ed' = pAdd (edSeg ed') 9584
+addr'e_nfa_regexp_cannot_repeat_str ed' = pAdd (edSeg ed') 9504
 {-# INLINE addr'e_nfa_regexp_cannot_repeat_str #-}
 addr'e_attempt_to_delete_buffer_that_is_in_use_str :: Ed -> Ptr a
-addr'e_attempt_to_delete_buffer_that_is_in_use_str ed' = pAdd (edSeg ed') 9620
+addr'e_attempt_to_delete_buffer_that_is_in_use_str ed' = pAdd (edSeg ed') 9540
 {-# INLINE addr'e_attempt_to_delete_buffer_that_is_in_use_str #-}
 addr'e_positive_count_required :: Ed -> Ptr a
-addr'e_positive_count_required ed' = pAdd (edSeg ed') 9672
+addr'e_positive_count_required ed' = pAdd (edSeg ed') 9592
 {-# INLINE addr'e_positive_count_required #-}
 addr'e_reverse_range_in_character_class :: Ed -> Ptr a
-addr'e_reverse_range_in_character_class ed' = pAdd (edSeg ed') 9702
+addr'e_reverse_range_in_character_class ed' = pAdd (edSeg ed') 9622
 {-# INLINE addr'e_reverse_range_in_character_class #-}
 addr'e_range_too_large_in_character_class :: Ed -> Ptr a
-addr'e_range_too_large_in_character_class ed' = pAdd (edSeg ed') 9741
+addr'e_range_too_large_in_character_class ed' = pAdd (edSeg ed') 9661
 {-# INLINE addr'e_range_too_large_in_character_class #-}
 addr'e_cannot_use_pattern_recursively :: Ed -> Ptr a
-addr'e_cannot_use_pattern_recursively ed' = pAdd (edSeg ed') 9782
+addr'e_cannot_use_pattern_recursively ed' = pAdd (edSeg ed') 9702
 {-# INLINE addr'e_cannot_use_pattern_recursively #-}
 addr'e_yank_register_changed_while_using_it :: Ed -> Ptr a
-addr'e_yank_register_changed_while_using_it ed' = pAdd (edSeg ed') 9819
+addr'e_yank_register_changed_while_using_it ed' = pAdd (edSeg ed') 9739
 {-# INLINE addr'e_yank_register_changed_while_using_it #-}
 addr'e_cmd_mapping_must_end_with_cr_before_second_cmd :: Ed -> Ptr a
-addr'e_cmd_mapping_must_end_with_cr_before_second_cmd ed' = pAdd (edSeg ed') 9863
+addr'e_cmd_mapping_must_end_with_cr_before_second_cmd ed' = pAdd (edSeg ed') 9783
 {-# INLINE addr'e_cmd_mapping_must_end_with_cr_before_second_cmd #-}
 addr'e_regexp_number_after_dot_pos_search_chr :: Ed -> Ptr a
-addr'e_regexp_number_after_dot_pos_search_chr ed' = pAdd (edSeg ed') 9923
+addr'e_regexp_number_after_dot_pos_search_chr ed' = pAdd (edSeg ed') 9843
 {-# INLINE addr'e_regexp_number_after_dot_pos_search_chr #-}
 addr'e_cannot_use_bar_to_separate_commands_here_str :: Ed -> Ptr a
-addr'e_cannot_use_bar_to_separate_commands_here_str ed' = pAdd (edSeg ed') 9965
+addr'e_cannot_use_bar_to_separate_commands_here_str ed' = pAdd (edSeg ed') 9885
 {-# INLINE addr'e_cannot_use_bar_to_separate_commands_here_str #-}
 addr'e_resulting_text_too_long :: Ed -> Ptr a
-addr'e_resulting_text_too_long ed' = pAdd (edSeg ed') 10019
+addr'e_resulting_text_too_long ed' = pAdd (edSeg ed') 9939
 {-# INLINE addr'e_resulting_text_too_long #-}
 addr'e_line_number_out_of_range :: Ed -> Ptr a
-addr'e_line_number_out_of_range ed' = pAdd (edSeg ed') 10050
+addr'e_line_number_out_of_range ed' = pAdd (edSeg ed') 9970
 {-# INLINE addr'e_line_number_out_of_range #-}
 addr'e_highlight_group_name_too_long :: Ed -> Ptr a
-addr'e_highlight_group_name_too_long ed' = pAdd (edSeg ed') 10082
+addr'e_highlight_group_name_too_long ed' = pAdd (edSeg ed') 10002
 {-# INLINE addr'e_highlight_group_name_too_long #-}
 addr'e_cmd_mapping_must_end_with_cr :: Ed -> Ptr a
-addr'e_cmd_mapping_must_end_with_cr ed' = pAdd (edSeg ed') 10119
+addr'e_cmd_mapping_must_end_with_cr ed' = pAdd (edSeg ed') 10039
 {-# INLINE addr'e_cmd_mapping_must_end_with_cr #-}
 addr'e_atom_engine_must_be_at_start_of_pattern :: Ed -> Ptr a
-addr'e_atom_engine_must_be_at_start_of_pattern ed' = pAdd (edSeg ed') 10159
+addr'e_atom_engine_must_be_at_start_of_pattern ed' = pAdd (edSeg ed') 10079
 {-# INLINE addr'e_atom_engine_must_be_at_start_of_pattern #-}
 addr'e_cannot_change_mappings_while_listing :: Ed -> Ptr a
-addr'e_cannot_change_mappings_while_listing ed' = pAdd (edSeg ed') 10217
+addr'e_cannot_change_mappings_while_listing ed' = pAdd (edSeg ed') 10137
 {-# INLINE addr'e_cannot_change_mappings_while_listing #-}
 addr'e_val_too_large :: Ed -> Ptr a
-addr'e_val_too_large ed' = pAdd (edSeg ed') 10261
+addr'e_val_too_large ed' = pAdd (edSeg ed') 10181
 {-# INLINE addr'e_val_too_large #-}
 addr'e_wrong_number_of_characters_for_field_str :: Ed -> Ptr a
-addr'e_wrong_number_of_characters_for_field_str ed' = pAdd (edSeg ed') 10288
+addr'e_wrong_number_of_characters_for_field_str ed' = pAdd (edSeg ed') 10208
 {-# INLINE addr'e_wrong_number_of_characters_for_field_str #-}
 addr'e_wrong_character_width_for_field_str :: Ed -> Ptr a
-addr'e_wrong_character_width_for_field_str ed' = pAdd (edSeg ed') 10337
+addr'e_wrong_character_width_for_field_str ed' = pAdd (edSeg ed') 10257
 {-# INLINE addr'e_wrong_character_width_for_field_str #-}
 addr'e_unicode_val_too_large :: Ed -> Ptr a
-addr'e_unicode_val_too_large ed' = pAdd (edSeg ed') 10381
+addr'e_unicode_val_too_large ed' = pAdd (edSeg ed') 10301
 {-# INLINE addr'e_unicode_val_too_large #-}
 addr'e_osc_response_timed_out :: Ed -> Ptr a
-addr'e_osc_response_timed_out ed' = pAdd (edSeg ed') 10439
+addr'e_osc_response_timed_out ed' = pAdd (edSeg ed') 10359
 {-# INLINE addr'e_osc_response_timed_out #-}
 addr'e_leadtab_requires_tab :: Ed -> Ptr a
-addr'e_leadtab_requires_tab ed' = pAdd (edSeg ed') 10483
+addr'e_leadtab_requires_tab ed' = pAdd (edSeg ed') 10403
 {-# INLINE addr'e_leadtab_requires_tab #-}
 buf_free_count :: Ed -> IO Int32
-buf_free_count ed' = rdI32 (edSeg ed') 10552
+buf_free_count ed' = rdI32 (edSeg ed') 10472
 {-# INLINE buf_free_count #-}
 top_file_num :: Ed -> IO Int32
-top_file_num ed' = rdI32 (edSeg ed') 10556
+top_file_num ed' = rdI32 (edSeg ed') 10476
 {-# INLINE top_file_num #-}
 set'top_file_num :: Ed -> Int32 -> IO ()
-set'top_file_num ed' = wrI32 (edSeg ed') 10556
+set'top_file_num ed' = wrI32 (edSeg ed') 10476
 {-# INLINE set'top_file_num #-}
 addr'c'VIM_VERSION_DATE_ONLY :: Ed -> Ptr a
-addr'c'VIM_VERSION_DATE_ONLY ed' = pAdd (edSeg ed') 10560
+addr'c'VIM_VERSION_DATE_ONLY ed' = pAdd (edSeg ed') 10480
 {-# INLINE addr'c'VIM_VERSION_DATE_ONLY #-}
 addr'c'VIM_VERSION_LONG_ONLY :: Ed -> Ptr a
-addr'c'VIM_VERSION_LONG_ONLY ed' = pAdd (edSeg ed') 10572
+addr'c'VIM_VERSION_LONG_ONLY ed' = pAdd (edSeg ed') 10492
 {-# INLINE addr'c'VIM_VERSION_LONG_ONLY #-}
-chartab_initialized :: Ed -> IO Int32
-chartab_initialized ed' = rdI32 (edSeg ed') 10596
+chartab_initialized :: Ed -> IO Bool
+chartab_initialized ed' = rdB (edSeg ed') 10514
 {-# INLINE chartab_initialized #-}
-set'chartab_initialized :: Ed -> Int32 -> IO ()
-set'chartab_initialized ed' = wrI32 (edSeg ed') 10596
+set'chartab_initialized :: Ed -> Bool -> IO ()
+set'chartab_initialized ed' = wrB (edSeg ed') 10514
 {-# INLINE set'chartab_initialized #-}
 addr'g_chartab :: Ed -> Ptr a
-addr'g_chartab ed' = pAdd (edSeg ed') 10600
+addr'g_chartab ed' = pAdd (edSeg ed') 10515
 {-# INLINE addr'g_chartab #-}
 addr'transchar_charbuf :: Ed -> Ptr a
-addr'transchar_charbuf ed' = pAdd (edSeg ed') 10856
+addr'transchar_charbuf ed' = pAdd (edSeg ed') 10771
 {-# INLINE addr'transchar_charbuf #-}
 addr'cmdline_orig :: Ed -> Ptr a
-addr'cmdline_orig ed' = pAdd (edSeg ed') 10864
+addr'cmdline_orig ed' = pAdd (edSeg ed') 10784
 {-# INLINE addr'cmdline_orig #-}
 addr'history :: Ed -> Ptr a
-addr'history ed' = pAdd (edSeg ed') 10880
+addr'history ed' = pAdd (edSeg ed') 10800
 {-# INLINE addr'history #-}
 addr'hisidx :: Ed -> Ptr a
-addr'hisidx ed' = pAdd (edSeg ed') 10920
+addr'hisidx ed' = pAdd (edSeg ed') 10840
 {-# INLINE addr'hisidx #-}
 addr'hisnum :: Ed -> Ptr a
-addr'hisnum ed' = pAdd (edSeg ed') 10940
+addr'hisnum ed' = pAdd (edSeg ed') 10860
 {-# INLINE addr'hisnum #-}
 hislen :: Ed -> IO Int32
-hislen ed' = rdI32 (edSeg ed') 10960
+hislen ed' = rdI32 (edSeg ed') 10880
 {-# INLINE hislen #-}
 set'hislen :: Ed -> Int32 -> IO ()
-set'hislen ed' = wrI32 (edSeg ed') 10960
+set'hislen ed' = wrI32 (edSeg ed') 10880
 {-# INLINE set'hislen #-}
 addr'history_names :: Ed -> Ptr a
-addr'history_names ed' = pAdd (edSeg ed') 10968
+addr'history_names ed' = pAdd (edSeg ed') 10888
 {-# INLINE addr'history_names #-}
 last_maptick :: Ed -> IO Int32
-last_maptick ed' = rdI32 (edSeg ed') 11008
+last_maptick ed' = rdI32 (edSeg ed') 10928
 {-# INLINE last_maptick #-}
 set'last_maptick :: Ed -> Int32 -> IO ()
-set'last_maptick ed' = wrI32 (edSeg ed') 11008
+set'last_maptick ed' = wrI32 (edSeg ed') 10928
 {-# INLINE set'last_maptick #-}
-did_update_one_window :: Ed -> IO Int32
-did_update_one_window ed' = rdI32 (edSeg ed') 11012
+did_update_one_window :: Ed -> IO Bool
+did_update_one_window ed' = rdB (edSeg ed') 10932
 {-# INLINE did_update_one_window #-}
-set'did_update_one_window :: Ed -> Int32 -> IO ()
-set'did_update_one_window ed' = wrI32 (edSeg ed') 11012
+set'did_update_one_window :: Ed -> Bool -> IO ()
+set'did_update_one_window ed' = wrB (edSeg ed') 10932
 {-# INLINE set'did_update_one_window #-}
-update_Insstart_orig :: Ed -> IO Int32
-update_Insstart_orig ed' = rdI32 (edSeg ed') 11016
+update_Insstart_orig :: Ed -> IO Bool
+update_Insstart_orig ed' = rdB (edSeg ed') 10933
 {-# INLINE update_Insstart_orig #-}
-set'update_Insstart_orig :: Ed -> Int32 -> IO ()
-set'update_Insstart_orig ed' = wrI32 (edSeg ed') 11016
+set'update_Insstart_orig :: Ed -> Bool -> IO ()
+set'update_Insstart_orig ed' = wrB (edSeg ed') 10933
 {-# INLINE set'update_Insstart_orig #-}
 addr'last_insert :: Ed -> Ptr a
-addr'last_insert ed' = pAdd (edSeg ed') 11024
+addr'last_insert ed' = pAdd (edSeg ed') 10936
 {-# INLINE addr'last_insert #-}
 last_insert_skip :: Ed -> IO Int32
-last_insert_skip ed' = rdI32 (edSeg ed') 11040
+last_insert_skip ed' = rdI32 (edSeg ed') 10952
 {-# INLINE last_insert_skip #-}
 set'last_insert_skip :: Ed -> Int32 -> IO ()
-set'last_insert_skip ed' = wrI32 (edSeg ed') 11040
+set'last_insert_skip ed' = wrI32 (edSeg ed') 10952
 {-# INLINE set'last_insert_skip #-}
 new_insert_skip :: Ed -> IO Int32
-new_insert_skip ed' = rdI32 (edSeg ed') 11044
+new_insert_skip ed' = rdI32 (edSeg ed') 10956
 {-# INLINE new_insert_skip #-}
 set'new_insert_skip :: Ed -> Int32 -> IO ()
-set'new_insert_skip ed' = wrI32 (edSeg ed') 11044
+set'new_insert_skip ed' = wrI32 (edSeg ed') 10956
 {-# INLINE set'new_insert_skip #-}
 did_restart_edit :: Ed -> IO Int32
-did_restart_edit ed' = rdI32 (edSeg ed') 11048
+did_restart_edit ed' = rdI32 (edSeg ed') 10960
 {-# INLINE did_restart_edit #-}
 set'did_restart_edit :: Ed -> Int32 -> IO ()
-set'did_restart_edit ed' = wrI32 (edSeg ed') 11048
+set'did_restart_edit ed' = wrI32 (edSeg ed') 10960
 {-# INLINE set'did_restart_edit #-}
-ins_need_undo :: Ed -> IO Int32
-ins_need_undo ed' = rdI32 (edSeg ed') 11052
+ins_need_undo :: Ed -> IO Bool
+ins_need_undo ed' = rdB (edSeg ed') 10964
 {-# INLINE ins_need_undo #-}
-set'ins_need_undo :: Ed -> Int32 -> IO ()
-set'ins_need_undo ed' = wrI32 (edSeg ed') 11052
+set'ins_need_undo :: Ed -> Bool -> IO ()
+set'ins_need_undo ed' = wrB (edSeg ed') 10964
 {-# INLINE set'ins_need_undo #-}
 dont_sync_undo :: Ed -> IO Int32
-dont_sync_undo ed' = rdI32 (edSeg ed') 11056
+dont_sync_undo ed' = rdI32 (edSeg ed') 10968
 {-# INLINE dont_sync_undo #-}
 set'dont_sync_undo :: Ed -> Int32 -> IO ()
-set'dont_sync_undo ed' = wrI32 (edSeg ed') 11056
+set'dont_sync_undo ed' = wrI32 (edSeg ed') 10968
 {-# INLINE set'dont_sync_undo #-}
 pc_status :: Ed -> IO Int32
-pc_status ed' = rdI32 (edSeg ed') 11060
+pc_status ed' = rdI32 (edSeg ed') 10972
 {-# INLINE pc_status #-}
 set'pc_status :: Ed -> Int32 -> IO ()
-set'pc_status ed' = wrI32 (edSeg ed') 11060
+set'pc_status ed' = wrI32 (edSeg ed') 10972
 {-# INLINE set'pc_status #-}
 addr'pc_bytes :: Ed -> Ptr a
-addr'pc_bytes ed' = pAdd (edSeg ed') 11064
+addr'pc_bytes ed' = pAdd (edSeg ed') 10976
 {-# INLINE addr'pc_bytes #-}
 pc_attr :: Ed -> IO Int32
-pc_attr ed' = rdI32 (edSeg ed') 11088
+pc_attr ed' = rdI32 (edSeg ed') 11000
 {-# INLINE pc_attr #-}
 addr'pc_attr :: Ed -> Ptr a
-addr'pc_attr ed' = pAdd (edSeg ed') 11088
+addr'pc_attr ed' = pAdd (edSeg ed') 11000
 {-# INLINE addr'pc_attr #-}
 pc_row :: Ed -> IO Int32
-pc_row ed' = rdI32 (edSeg ed') 11092
+pc_row ed' = rdI32 (edSeg ed') 11004
 {-# INLINE pc_row #-}
 set'pc_row :: Ed -> Int32 -> IO ()
-set'pc_row ed' = wrI32 (edSeg ed') 11092
+set'pc_row ed' = wrI32 (edSeg ed') 11004
 {-# INLINE set'pc_row #-}
 pc_col :: Ed -> IO Int32
-pc_col ed' = rdI32 (edSeg ed') 11096
+pc_col ed' = rdI32 (edSeg ed') 11008
 {-# INLINE pc_col #-}
 set'pc_col :: Ed -> Int32 -> IO ()
-set'pc_col ed' = wrI32 (edSeg ed') 11096
+set'pc_col ed' = wrI32 (edSeg ed') 11008
 {-# INLINE set'pc_col #-}
 replace_stack :: Ed -> IO (Ptr Char_u)
-replace_stack ed' = rdP (edSeg ed') 11104
+replace_stack ed' = rdP (edSeg ed') 11016
 {-# INLINE replace_stack #-}
 set'replace_stack :: Ed -> (Ptr Char_u) -> IO ()
-set'replace_stack ed' = wrP (edSeg ed') 11104
+set'replace_stack ed' = wrP (edSeg ed') 11016
 {-# INLINE set'replace_stack #-}
 replace_stack_nr :: Ed -> IO Int64
-replace_stack_nr ed' = rdI64 (edSeg ed') 11112
+replace_stack_nr ed' = rdI64 (edSeg ed') 11024
 {-# INLINE replace_stack_nr #-}
 set'replace_stack_nr :: Ed -> Int64 -> IO ()
-set'replace_stack_nr ed' = wrI64 (edSeg ed') 11112
+set'replace_stack_nr ed' = wrI64 (edSeg ed') 11024
 {-# INLINE set'replace_stack_nr #-}
 replace_stack_len :: Ed -> IO Int64
-replace_stack_len ed' = rdI64 (edSeg ed') 11120
+replace_stack_len ed' = rdI64 (edSeg ed') 11032
 {-# INLINE replace_stack_len #-}
 set'replace_stack_len :: Ed -> Int64 -> IO ()
-set'replace_stack_len ed' = wrI64 (edSeg ed') 11120
+set'replace_stack_len ed' = wrI64 (edSeg ed') 11032
 {-# INLINE set'replace_stack_len #-}
 append_indent :: Ed -> IO Int32
-append_indent ed' = rdI32 (edSeg ed') 11128
+append_indent ed' = rdI32 (edSeg ed') 11040
 {-# INLINE append_indent #-}
 set'append_indent :: Ed -> Int32 -> IO ()
-set'append_indent ed' = wrI32 (edSeg ed') 11128
+set'append_indent ed' = wrI32 (edSeg ed') 11040
 {-# INLINE set'append_indent #-}
 old_sub :: Ed -> IO (Ptr Char_u)
-old_sub ed' = rdP (edSeg ed') 11136
+old_sub ed' = rdP (edSeg ed') 11048
 {-# INLINE old_sub #-}
 set'old_sub :: Ed -> (Ptr Char_u) -> IO ()
-set'old_sub ed' = wrP (edSeg ed') 11136
+set'old_sub ed' = wrP (edSeg ed') 11048
 {-# INLINE set'old_sub #-}
-global_need_beginline :: Ed -> IO Int32
-global_need_beginline ed' = rdI32 (edSeg ed') 11144
+global_need_beginline :: Ed -> IO Bool
+global_need_beginline ed' = rdB (edSeg ed') 11056
 {-# INLINE global_need_beginline #-}
-set'global_need_beginline :: Ed -> Int32 -> IO ()
-set'global_need_beginline ed' = wrI32 (edSeg ed') 11144
+set'global_need_beginline :: Ed -> Bool -> IO ()
+set'global_need_beginline ed' = wrB (edSeg ed') 11056
 {-# INLINE set'global_need_beginline #-}
 quitmore :: Ed -> IO Int32
-quitmore ed' = rdI32 (edSeg ed') 11148
+quitmore ed' = rdI32 (edSeg ed') 11060
 {-# INLINE quitmore #-}
 set'quitmore :: Ed -> Int32 -> IO ()
-set'quitmore ed' = wrI32 (edSeg ed') 11148
+set'quitmore ed' = wrI32 (edSeg ed') 11060
 {-# INLINE set'quitmore #-}
 addr'cmdnames :: Ed -> Ptr a
-addr'cmdnames ed' = pAdd (edSeg ed') 11152
+addr'cmdnames ed' = pAdd (edSeg ed') 11064
 {-# INLINE addr'cmdnames #-}
 addr'dollar_command :: Ed -> Ptr a
-addr'dollar_command ed' = pAdd (edSeg ed') 15072
+addr'dollar_command ed' = pAdd (edSeg ed') 14984
 {-# INLINE addr'dollar_command #-}
 addr'ex_error_buf :: Ed -> Ptr a
-addr'ex_error_buf ed' = pAdd (edSeg ed') 15074
+addr'ex_error_buf ed' = pAdd (edSeg ed') 14986
 {-# INLINE addr'ex_error_buf #-}
 addr'ccline :: Ed -> Ptr a
-addr'ccline ed' = pAdd (edSeg ed') 15560
+addr'ccline ed' = pAdd (edSeg ed') 15472
 {-# INLINE addr'ccline #-}
 extra_char :: Ed -> IO Int32
-extra_char ed' = rdI32 (edSeg ed') 15624
+extra_char ed' = rdI32 (edSeg ed') 15536
 {-# INLINE extra_char #-}
 set'extra_char :: Ed -> Int32 -> IO ()
-set'extra_char ed' = wrI32 (edSeg ed') 15624
+set'extra_char ed' = wrI32 (edSeg ed') 15536
 {-# INLINE set'extra_char #-}
 extra_char_shift :: Ed -> IO Int32
-extra_char_shift ed' = rdI32 (edSeg ed') 15628
+extra_char_shift ed' = rdI32 (edSeg ed') 15540
 {-# INLINE extra_char_shift #-}
 set'extra_char_shift :: Ed -> Int32 -> IO ()
-set'extra_char_shift ed' = wrI32 (edSeg ed') 15628
+set'extra_char_shift ed' = wrI32 (edSeg ed') 15540
 {-# INLINE set'extra_char_shift #-}
 addr'prev_ccline :: Ed -> Ptr a
-addr'prev_ccline ed' = pAdd (edSeg ed') 15632
+addr'prev_ccline ed' = pAdd (edSeg ed') 15544
 {-# INLINE addr'prev_ccline #-}
-prev_ccline_used :: Ed -> IO Int32
-prev_ccline_used ed' = rdI32 (edSeg ed') 15696
+prev_ccline_used :: Ed -> IO Bool
+prev_ccline_used ed' = rdB (edSeg ed') 15608
 {-# INLINE prev_ccline_used #-}
-set'prev_ccline_used :: Ed -> Int32 -> IO ()
-set'prev_ccline_used ed' = wrI32 (edSeg ed') 15696
+set'prev_ccline_used :: Ed -> Bool -> IO ()
+set'prev_ccline_used ed' = wrB (edSeg ed') 15608
 {-# INLINE set'prev_ccline_used #-}
 addr'redobuff :: Ed -> Ptr a
-addr'redobuff ed' = pAdd (edSeg ed') 15704
+addr'redobuff ed' = pAdd (edSeg ed') 15616
 {-# INLINE addr'redobuff #-}
 addr'old_redobuff :: Ed -> Ptr a
-addr'old_redobuff ed' = pAdd (edSeg ed') 15752
+addr'old_redobuff ed' = pAdd (edSeg ed') 15664
 {-# INLINE addr'old_redobuff #-}
 addr'recordbuff :: Ed -> Ptr a
-addr'recordbuff ed' = pAdd (edSeg ed') 15800
+addr'recordbuff ed' = pAdd (edSeg ed') 15712
 {-# INLINE addr'recordbuff #-}
 typeahead_char :: Ed -> IO Int32
-typeahead_char ed' = rdI32 (edSeg ed') 15848
+typeahead_char ed' = rdI32 (edSeg ed') 15760
 {-# INLINE typeahead_char #-}
 set'typeahead_char :: Ed -> Int32 -> IO ()
-set'typeahead_char ed' = wrI32 (edSeg ed') 15848
+set'typeahead_char ed' = wrI32 (edSeg ed') 15760
 {-# INLINE set'typeahead_char #-}
-block_redo :: Ed -> IO Int32
-block_redo ed' = rdI32 (edSeg ed') 15852
+block_redo :: Ed -> IO Bool
+block_redo ed' = rdB (edSeg ed') 15764
 {-# INLINE block_redo #-}
-set'block_redo :: Ed -> Int32 -> IO ()
-set'block_redo ed' = wrI32 (edSeg ed') 15852
+set'block_redo :: Ed -> Bool -> IO ()
+set'block_redo ed' = wrB (edSeg ed') 15764
 {-# INLINE set'block_redo #-}
 c'KeyNoremap :: Ed -> IO Int32
-c'KeyNoremap ed' = rdI32 (edSeg ed') 15856
+c'KeyNoremap ed' = rdI32 (edSeg ed') 15768
 {-# INLINE c'KeyNoremap #-}
 set'c'KeyNoremap :: Ed -> Int32 -> IO ()
-set'c'KeyNoremap ed' = wrI32 (edSeg ed') 15856
+set'c'KeyNoremap ed' = wrI32 (edSeg ed') 15768
 {-# INLINE set'c'KeyNoremap #-}
 addr'typebuf_init :: Ed -> Ptr a
-addr'typebuf_init ed' = pAdd (edSeg ed') 15860
+addr'typebuf_init ed' = pAdd (edSeg ed') 15772
 {-# INLINE addr'typebuf_init #-}
 addr'noremapbuf_init :: Ed -> Ptr a
-addr'noremapbuf_init ed' = pAdd (edSeg ed') 16125
+addr'noremapbuf_init ed' = pAdd (edSeg ed') 16037
 {-# INLINE addr'noremapbuf_init #-}
 last_recorded_len :: Ed -> IO Usize
-last_recorded_len ed' = rdW64 (edSeg ed') 16392
+last_recorded_len ed' = rdW64 (edSeg ed') 16304
 {-# INLINE last_recorded_len #-}
 set'last_recorded_len :: Ed -> Usize -> IO ()
-set'last_recorded_len ed' = wrW64 (edSeg ed') 16392
+set'last_recorded_len ed' = wrW64 (edSeg ed') 16304
 {-# INLINE set'last_recorded_len #-}
 addr'readbuf1 :: Ed -> Ptr a
-addr'readbuf1 ed' = pAdd (edSeg ed') 16400
+addr'readbuf1 ed' = pAdd (edSeg ed') 16312
 {-# INLINE addr'readbuf1 #-}
 addr'readbuf2 :: Ed -> Ptr a
-addr'readbuf2 ed' = pAdd (edSeg ed') 16448
+addr'readbuf2 ed' = pAdd (edSeg ed') 16360
 {-# INLINE addr'readbuf2 #-}
 old_char :: Ed -> IO Int32
-old_char ed' = rdI32 (edSeg ed') 16496
+old_char ed' = rdI32 (edSeg ed') 16408
 {-# INLINE old_char #-}
 set'old_char :: Ed -> Int32 -> IO ()
-set'old_char ed' = wrI32 (edSeg ed') 16496
+set'old_char ed' = wrI32 (edSeg ed') 16408
 {-# INLINE set'old_char #-}
 old_mod_mask :: Ed -> IO Int32
-old_mod_mask ed' = rdI32 (edSeg ed') 16500
+old_mod_mask ed' = rdI32 (edSeg ed') 16412
 {-# INLINE old_mod_mask #-}
 set'old_mod_mask :: Ed -> Int32 -> IO ()
-set'old_mod_mask ed' = wrI32 (edSeg ed') 16500
+set'old_mod_mask ed' = wrI32 (edSeg ed') 16412
 {-# INLINE set'old_mod_mask #-}
-old_KeyStuffed :: Ed -> IO Int32
-old_KeyStuffed ed' = rdI32 (edSeg ed') 16504
+old_KeyStuffed :: Ed -> IO Bool
+old_KeyStuffed ed' = rdB (edSeg ed') 16416
 {-# INLINE old_KeyStuffed #-}
-set'old_KeyStuffed :: Ed -> Int32 -> IO ()
-set'old_KeyStuffed ed' = wrI32 (edSeg ed') 16504
+set'old_KeyStuffed :: Ed -> Bool -> IO ()
+set'old_KeyStuffed ed' = wrB (edSeg ed') 16416
 {-# INLINE set'old_KeyStuffed #-}
 addr'highlight_tab :: Ed -> Ptr a
-addr'highlight_tab ed' = pAdd (edSeg ed') 16512
+addr'highlight_tab ed' = pAdd (edSeg ed') 16424
 {-# INLINE addr'highlight_tab #-}
 addr'highlight_index_tab :: Ed -> Ptr a
-addr'highlight_index_tab ed' = pAdd (edSeg ed') 16824
+addr'highlight_index_tab ed' = pAdd (edSeg ed') 16736
 {-# INLINE addr'highlight_index_tab #-}
 addr'color_name_tab :: Ed -> Ptr a
-addr'color_name_tab ed' = pAdd (edSeg ed') 16928
+addr'color_name_tab ed' = pAdd (edSeg ed') 16840
 {-# INLINE addr'color_name_tab #-}
 overrides :: Ed -> IO (Ptr Hl_overrides_T)
-overrides ed' = rdP (edSeg ed') 17600
+overrides ed' = rdP (edSeg ed') 17512
 {-# INLINE overrides #-}
 set'overrides :: Ed -> (Ptr Hl_overrides_T) -> IO ()
-set'overrides ed' = wrP (edSeg ed') 17600
+set'overrides ed' = wrP (edSeg ed') 17512
 {-# INLINE set'overrides #-}
 addr'highlight_ids :: Ed -> Ptr a
-addr'highlight_ids ed' = pAdd (edSeg ed') 17608
+addr'highlight_ids ed' = pAdd (edSeg ed') 17520
 {-# INLINE addr'highlight_ids #-}
 addr'highlight_attr_raw :: Ed -> Ptr a
-addr'highlight_attr_raw ed' = pAdd (edSeg ed') 17888
+addr'highlight_attr_raw ed' = pAdd (edSeg ed') 17800
 {-# INLINE addr'highlight_attr_raw #-}
 addr'hl_flags :: Ed -> Ptr a
-addr'hl_flags ed' = pAdd (edSeg ed') 18168
+addr'hl_flags ed' = pAdd (edSeg ed') 18080
 {-# INLINE addr'hl_flags #-}
 addr'highlight_ga :: Ed -> Ptr a
-addr'highlight_ga ed' = pAdd (edSeg ed') 18448
+addr'highlight_ga ed' = pAdd (edSeg ed') 18360
 {-# INLINE addr'highlight_ga #-}
 addr'highlight_init_both :: Ed -> Ptr a
-addr'highlight_init_both ed' = pAdd (edSeg ed') 18472
+addr'highlight_init_both ed' = pAdd (edSeg ed') 18384
 {-# INLINE addr'highlight_init_both #-}
 addr'highlight_init_light :: Ed -> Ptr a
-addr'highlight_init_light ed' = pAdd (edSeg ed') 18752
+addr'highlight_init_light ed' = pAdd (edSeg ed') 18664
 {-# INLINE addr'highlight_init_light #-}
 addr'highlight_init_dark :: Ed -> Ptr a
-addr'highlight_init_dark ed' = pAdd (edSeg ed') 18896
+addr'highlight_init_dark ed' = pAdd (edSeg ed') 18808
 {-# INLINE addr'highlight_init_dark #-}
 addr'color_numbers_16 :: Ed -> Ptr a
-addr'color_numbers_16 ed' = pAdd (edSeg ed') 19040
+addr'color_numbers_16 ed' = pAdd (edSeg ed') 18952
 {-# INLINE addr'color_numbers_16 #-}
 addr'color_numbers_88 :: Ed -> Ptr a
-addr'color_numbers_88 ed' = pAdd (edSeg ed') 19152
+addr'color_numbers_88 ed' = pAdd (edSeg ed') 19064
 {-# INLINE addr'color_numbers_88 #-}
 addr'color_numbers_256 :: Ed -> Ptr a
-addr'color_numbers_256 ed' = pAdd (edSeg ed') 19264
+addr'color_numbers_256 ed' = pAdd (edSeg ed') 19176
 {-# INLINE addr'color_numbers_256 #-}
 addr'color_numbers_8 :: Ed -> Ptr a
-addr'color_numbers_8 ed' = pAdd (edSeg ed') 19376
+addr'color_numbers_8 ed' = pAdd (edSeg ed') 19288
 {-# INLINE addr'color_numbers_8 #-}
 addr'term_attr_table :: Ed -> Ptr a
-addr'term_attr_table ed' = pAdd (edSeg ed') 19488
+addr'term_attr_table ed' = pAdd (edSeg ed') 19400
 {-# INLINE addr'term_attr_table #-}
 addr'cterm_attr_table :: Ed -> Ptr a
-addr'cterm_attr_table ed' = pAdd (edSeg ed') 19512
+addr'cterm_attr_table ed' = pAdd (edSeg ed') 19424
 {-# INLINE addr'cterm_attr_table #-}
 addr'cterm_color_16 :: Ed -> Ptr a
-addr'cterm_color_16 ed' = pAdd (edSeg ed') 19536
+addr'cterm_color_16 ed' = pAdd (edSeg ed') 19448
 {-# INLINE addr'cterm_color_16 #-}
 first_abbr :: Ed -> IO (Ptr Mapblock_T)
-first_abbr ed' = rdP (edSeg ed') 19664
+first_abbr ed' = rdP (edSeg ed') 19576
 {-# INLINE first_abbr #-}
 addr'first_abbr :: Ed -> Ptr a
-addr'first_abbr ed' = pAdd (edSeg ed') 19664
+addr'first_abbr ed' = pAdd (edSeg ed') 19576
 {-# INLINE addr'first_abbr #-}
 addr'maphash :: Ed -> Ptr a
-addr'maphash ed' = pAdd (edSeg ed') 19672
+addr'maphash ed' = pAdd (edSeg ed') 19584
 {-# INLINE addr'maphash #-}
-maphash_valid :: Ed -> IO Int32
-maphash_valid ed' = rdI32 (edSeg ed') 21720
+maphash_valid :: Ed -> IO Bool
+maphash_valid ed' = rdB (edSeg ed') 21632
 {-# INLINE maphash_valid #-}
-set'maphash_valid :: Ed -> Int32 -> IO ()
-set'maphash_valid ed' = wrI32 (edSeg ed') 21720
+set'maphash_valid :: Ed -> Bool -> IO ()
+set'maphash_valid ed' = wrB (edSeg ed') 21632
 {-# INLINE set'maphash_valid #-}
 map_locked :: Ed -> IO Int32
-map_locked ed' = rdI32 (edSeg ed') 21724
+map_locked ed' = rdI32 (edSeg ed') 21636
 {-# INLINE map_locked #-}
 set'map_locked :: Ed -> Int32 -> IO ()
-set'map_locked ed' = wrI32 (edSeg ed') 21724
+set'map_locked ed' = wrI32 (edSeg ed') 21636
 {-# INLINE set'map_locked #-}
 addr'vimrc_mappings :: Ed -> Ptr a
-addr'vimrc_mappings ed' = pAdd (edSeg ed') 21728
+addr'vimrc_mappings ed' = pAdd (edSeg ed') 21640
 {-# INLINE addr'vimrc_mappings #-}
 addr'utf8len_tab :: Ed -> Ptr a
-addr'utf8len_tab ed' = pAdd (edSeg ed') 21792
+addr'utf8len_tab ed' = pAdd (edSeg ed') 21704
 {-# INLINE addr'utf8len_tab #-}
 addr'utf8len_tab_zero :: Ed -> Ptr a
-addr'utf8len_tab_zero ed' = pAdd (edSeg ed') 22048
+addr'utf8len_tab_zero ed' = pAdd (edSeg ed') 21960
 {-# INLINE addr'utf8len_tab_zero #-}
 addr'ambiguous :: Ed -> Ptr a
-addr'ambiguous ed' = pAdd (edSeg ed') 22304
+addr'ambiguous ed' = pAdd (edSeg ed') 22216
 {-# INLINE addr'ambiguous #-}
 addr'emoji_all :: Ed -> Ptr a
-addr'emoji_all ed' = pAdd (edSeg ed') 25168
+addr'emoji_all ed' = pAdd (edSeg ed') 25080
 {-# INLINE addr'emoji_all #-}
 addr'foldCase :: Ed -> Ptr a
-addr'foldCase ed' = pAdd (edSeg ed') 27504
+addr'foldCase ed' = pAdd (edSeg ed') 27416
 {-# INLINE addr'foldCase #-}
 addr'toLower :: Ed -> Ptr a
-addr'toLower ed' = pAdd (edSeg ed') 30800
+addr'toLower ed' = pAdd (edSeg ed') 30712
 {-# INLINE addr'toLower #-}
 addr'toUpper :: Ed -> Ptr a
-addr'toUpper ed' = pAdd (edSeg ed') 33728
+addr'toUpper ed' = pAdd (edSeg ed') 33640
 {-# INLINE addr'toUpper #-}
 lowest_marked :: Ed -> IO Linenr_T
-lowest_marked ed' = rdI64 (edSeg ed') 36912
+lowest_marked ed' = rdI64 (edSeg ed') 36824
 {-# INLINE lowest_marked #-}
 set'lowest_marked :: Ed -> Linenr_T -> IO ()
-set'lowest_marked ed' = wrI64 (edSeg ed') 36912
+set'lowest_marked ed' = wrI64 (edSeg ed') 36824
 {-# INLINE set'lowest_marked #-}
 first_msg_hist :: Ed -> IO (Ptr Msg_hist)
-first_msg_hist ed' = rdP (edSeg ed') 36920
+first_msg_hist ed' = rdP (edSeg ed') 36832
 {-# INLINE first_msg_hist #-}
 set'first_msg_hist :: Ed -> (Ptr Msg_hist) -> IO ()
-set'first_msg_hist ed' = wrP (edSeg ed') 36920
+set'first_msg_hist ed' = wrP (edSeg ed') 36832
 {-# INLINE set'first_msg_hist #-}
 last_msg_hist :: Ed -> IO (Ptr Msg_hist)
-last_msg_hist ed' = rdP (edSeg ed') 36928
+last_msg_hist ed' = rdP (edSeg ed') 36840
 {-# INLINE last_msg_hist #-}
 set'last_msg_hist :: Ed -> (Ptr Msg_hist) -> IO ()
-set'last_msg_hist ed' = wrP (edSeg ed') 36928
+set'last_msg_hist ed' = wrP (edSeg ed') 36840
 {-# INLINE set'last_msg_hist #-}
 msg_hist_len :: Ed -> IO Int32
-msg_hist_len ed' = rdI32 (edSeg ed') 36936
+msg_hist_len ed' = rdI32 (edSeg ed') 36848
 {-# INLINE msg_hist_len #-}
 set'msg_hist_len :: Ed -> Int32 -> IO ()
-set'msg_hist_len ed' = wrI32 (edSeg ed') 36936
+set'msg_hist_len ed' = wrI32 (edSeg ed') 36848
 {-# INLINE set'msg_hist_len #-}
 msg_hist_max :: Ed -> IO Int32
-msg_hist_max ed' = rdI32 (edSeg ed') 36940
+msg_hist_max ed' = rdI32 (edSeg ed') 36852
 {-# INLINE msg_hist_max #-}
 set'msg_hist_max :: Ed -> Int32 -> IO ()
-set'msg_hist_max ed' = wrI32 (edSeg ed') 36940
+set'msg_hist_max ed' = wrI32 (edSeg ed') 36852
 {-# INLINE set'msg_hist_max #-}
 msg_flags :: Ed -> IO Int32
-msg_flags ed' = rdI32 (edSeg ed') 36944
+msg_flags ed' = rdI32 (edSeg ed') 36856
 {-# INLINE msg_flags #-}
 set'msg_flags :: Ed -> Int32 -> IO ()
-set'msg_flags ed' = wrI32 (edSeg ed') 36944
+set'msg_flags ed' = wrI32 (edSeg ed') 36856
 {-# INLINE set'msg_flags #-}
 msg_wait :: Ed -> IO Int32
-msg_wait ed' = rdI32 (edSeg ed') 36948
+msg_wait ed' = rdI32 (edSeg ed') 36860
 {-# INLINE msg_wait #-}
 set'msg_wait :: Ed -> Int32 -> IO ()
-set'msg_wait ed' = wrI32 (edSeg ed') 36948
+set'msg_wait ed' = wrI32 (edSeg ed') 36860
 {-# INLINE set'msg_wait #-}
 last_sourcing_lnum :: Ed -> IO Int32
-last_sourcing_lnum ed' = rdI32 (edSeg ed') 36952
+last_sourcing_lnum ed' = rdI32 (edSeg ed') 36864
 {-# INLINE last_sourcing_lnum #-}
 set'last_sourcing_lnum :: Ed -> Int32 -> IO ()
-set'last_sourcing_lnum ed' = wrI32 (edSeg ed') 36952
+set'last_sourcing_lnum ed' = wrI32 (edSeg ed') 36864
 {-# INLINE set'last_sourcing_lnum #-}
 last_sourcing_name :: Ed -> IO (Ptr Char_u)
-last_sourcing_name ed' = rdP (edSeg ed') 36960
+last_sourcing_name ed' = rdP (edSeg ed') 36872
 {-# INLINE last_sourcing_name #-}
 set'last_sourcing_name :: Ed -> (Ptr Char_u) -> IO ()
-set'last_sourcing_name ed' = wrP (edSeg ed') 36960
+set'last_sourcing_name ed' = wrP (edSeg ed') 36872
 {-# INLINE set'last_sourcing_name #-}
 last_msgchunk :: Ed -> IO (Ptr Msgchunk_T)
-last_msgchunk ed' = rdP (edSeg ed') 36968
+last_msgchunk ed' = rdP (edSeg ed') 36880
 {-# INLINE last_msgchunk #-}
 set'last_msgchunk :: Ed -> (Ptr Msgchunk_T) -> IO ()
-set'last_msgchunk ed' = wrP (edSeg ed') 36968
+set'last_msgchunk ed' = wrP (edSeg ed') 36880
 {-# INLINE set'last_msgchunk #-}
 addr'last_msgchunk :: Ed -> Ptr a
-addr'last_msgchunk ed' = pAdd (edSeg ed') 36968
+addr'last_msgchunk ed' = pAdd (edSeg ed') 36880
 {-# INLINE addr'last_msgchunk #-}
 do_clear_sb_text :: Ed -> IO Sb_clear_T
-do_clear_sb_text ed' = rdI32 (edSeg ed') 36976
+do_clear_sb_text ed' = rdI32 (edSeg ed') 36888
 {-# INLINE do_clear_sb_text #-}
 set'do_clear_sb_text :: Ed -> Sb_clear_T -> IO ()
-set'do_clear_sb_text ed' = wrI32 (edSeg ed') 36976
+set'do_clear_sb_text ed' = wrI32 (edSeg ed') 36888
 {-# INLINE set'do_clear_sb_text #-}
 breakcheck_count :: Ed -> IO Int32
-breakcheck_count ed' = rdI32 (edSeg ed') 36980
+breakcheck_count ed' = rdI32 (edSeg ed') 36892
 {-# INLINE breakcheck_count #-}
 set'breakcheck_count :: Ed -> Int32 -> IO ()
-set'breakcheck_count ed' = wrI32 (edSeg ed') 36980
+set'breakcheck_count ed' = wrI32 (edSeg ed') 36892
 {-# INLINE set'breakcheck_count #-}
 addr'mod_mask_table :: Ed -> Ptr a
-addr'mod_mask_table ed' = pAdd (edSeg ed') 36984
+addr'mod_mask_table ed' = pAdd (edSeg ed') 36896
 {-# INLINE addr'mod_mask_table #-}
 addr'modifier_keys_table :: Ed -> Ptr a
-addr'modifier_keys_table ed' = pAdd (edSeg ed') 37038
+addr'modifier_keys_table ed' = pAdd (edSeg ed') 36950
 {-# INLINE addr'modifier_keys_table #-}
 addr'key_names_table :: Ed -> Ptr a
-addr'key_names_table ed' = pAdd (edSeg ed') 37416
+addr'key_names_table ed' = pAdd (edSeg ed') 37328
 {-# INLINE addr'key_names_table #-}
 c'VIsual_mode_orig :: Ed -> IO Int32
-c'VIsual_mode_orig ed' = rdI32 (edSeg ed') 41160
+c'VIsual_mode_orig ed' = rdI32 (edSeg ed') 41072
 {-# INLINE c'VIsual_mode_orig #-}
 set'c'VIsual_mode_orig :: Ed -> Int32 -> IO ()
-set'c'VIsual_mode_orig ed' = wrI32 (edSeg ed') 41160
+set'c'VIsual_mode_orig ed' = wrI32 (edSeg ed') 41072
 {-# INLINE set'c'VIsual_mode_orig #-}
 addr'nv_cmds :: Ed -> Ptr a
-addr'nv_cmds ed' = pAdd (edSeg ed') 41168
+addr'nv_cmds ed' = pAdd (edSeg ed') 41080
 {-# INLINE addr'nv_cmds #-}
 addr'nv_cmd_idx :: Ed -> Ptr a
-addr'nv_cmd_idx ed' = pAdd (edSeg ed') 45824
+addr'nv_cmd_idx ed' = pAdd (edSeg ed') 45736
 {-# INLINE addr'nv_cmd_idx #-}
 nv_max_linear :: Ed -> IO Int32
-nv_max_linear ed' = rdI32 (edSeg ed') 46212
+nv_max_linear ed' = rdI32 (edSeg ed') 46124
 {-# INLINE nv_max_linear #-}
 addr'old_showcmd_buf :: Ed -> Ptr a
-addr'old_showcmd_buf ed' = pAdd (edSeg ed') 46216
+addr'old_showcmd_buf ed' = pAdd (edSeg ed') 46128
 {-# INLINE addr'old_showcmd_buf #-}
-showcmd_is_clear :: Ed -> IO Int32
-showcmd_is_clear ed' = rdI32 (edSeg ed') 46260
+showcmd_is_clear :: Ed -> IO Bool
+showcmd_is_clear ed' = rdB (edSeg ed') 46169
 {-# INLINE showcmd_is_clear #-}
-set'showcmd_is_clear :: Ed -> Int32 -> IO ()
-set'showcmd_is_clear ed' = wrI32 (edSeg ed') 46260
+set'showcmd_is_clear :: Ed -> Bool -> IO ()
+set'showcmd_is_clear ed' = wrB (edSeg ed') 46169
 {-# INLINE set'showcmd_is_clear #-}
-showcmd_visual :: Ed -> IO Int32
-showcmd_visual ed' = rdI32 (edSeg ed') 46264
+showcmd_visual :: Ed -> IO Bool
+showcmd_visual ed' = rdB (edSeg ed') 46170
 {-# INLINE showcmd_visual #-}
-set'showcmd_visual :: Ed -> Int32 -> IO ()
-set'showcmd_visual ed' = wrI32 (edSeg ed') 46264
+set'showcmd_visual :: Ed -> Bool -> IO ()
+set'showcmd_visual ed' = wrB (edSeg ed') 46170
 {-# INLINE set'showcmd_visual #-}
 addr'opchars :: Ed -> Ptr a
-addr'opchars ed' = pAdd (edSeg ed') 46268
+addr'opchars ed' = pAdd (edSeg ed') 46171
 {-# INLINE addr'opchars #-}
 p_ai_nopaste :: Ed -> IO Int32
-p_ai_nopaste ed' = rdI32 (edSeg ed') 46360
+p_ai_nopaste ed' = rdI32 (edSeg ed') 46264
 {-# INLINE p_ai_nopaste #-}
 set'p_ai_nopaste :: Ed -> Int32 -> IO ()
-set'p_ai_nopaste ed' = wrI32 (edSeg ed') 46360
+set'p_ai_nopaste ed' = wrI32 (edSeg ed') 46264
 {-# INLINE set'p_ai_nopaste #-}
 p_et_nopaste :: Ed -> IO Int32
-p_et_nopaste ed' = rdI32 (edSeg ed') 46364
+p_et_nopaste ed' = rdI32 (edSeg ed') 46268
 {-# INLINE p_et_nopaste #-}
 set'p_et_nopaste :: Ed -> Int32 -> IO ()
-set'p_et_nopaste ed' = wrI32 (edSeg ed') 46364
+set'p_et_nopaste ed' = wrI32 (edSeg ed') 46268
 {-# INLINE set'p_et_nopaste #-}
 p_sts_nopaste :: Ed -> IO Int64
-p_sts_nopaste ed' = rdI64 (edSeg ed') 46368
+p_sts_nopaste ed' = rdI64 (edSeg ed') 46272
 {-# INLINE p_sts_nopaste #-}
 set'p_sts_nopaste :: Ed -> Int64 -> IO ()
-set'p_sts_nopaste ed' = wrI64 (edSeg ed') 46368
+set'p_sts_nopaste ed' = wrI64 (edSeg ed') 46272
 {-# INLINE set'p_sts_nopaste #-}
 p_tw_nopaste :: Ed -> IO Int64
-p_tw_nopaste ed' = rdI64 (edSeg ed') 46376
+p_tw_nopaste ed' = rdI64 (edSeg ed') 46280
 {-# INLINE p_tw_nopaste #-}
 set'p_tw_nopaste :: Ed -> Int64 -> IO ()
-set'p_tw_nopaste ed' = wrI64 (edSeg ed') 46376
+set'p_tw_nopaste ed' = wrI64 (edSeg ed') 46280
 {-# INLINE set'p_tw_nopaste #-}
 p_wm_nopaste :: Ed -> IO Int64
-p_wm_nopaste ed' = rdI64 (edSeg ed') 46384
+p_wm_nopaste ed' = rdI64 (edSeg ed') 46288
 {-# INLINE p_wm_nopaste #-}
 set'p_wm_nopaste :: Ed -> Int64 -> IO ()
-set'p_wm_nopaste ed' = wrI64 (edSeg ed') 46384
+set'p_wm_nopaste ed' = wrI64 (edSeg ed') 46288
 {-# INLINE set'p_wm_nopaste #-}
 addr'options :: Ed -> Ptr a
-addr'options ed' = pAdd (edSeg ed') 46392
+addr'options ed' = pAdd (edSeg ed') 46296
 {-# INLINE addr'options #-}
 addr'p_ambw_values :: Ed -> Ptr a
-addr'p_ambw_values ed' = pAdd (edSeg ed') 67112
+addr'p_ambw_values ed' = pAdd (edSeg ed') 67016
 {-# INLINE addr'p_ambw_values #-}
 addr'p_bg_values :: Ed -> Ptr a
-addr'p_bg_values ed' = pAdd (edSeg ed') 67136
+addr'p_bg_values ed' = pAdd (edSeg ed') 67040
 {-# INLINE addr'p_bg_values #-}
 addr'p_bo_values :: Ed -> Ptr a
-addr'p_bo_values ed' = pAdd (edSeg ed') 67160
+addr'p_bo_values ed' = pAdd (edSeg ed') 67064
 {-# INLINE addr'p_bo_values #-}
 addr'p_nf_values :: Ed -> Ptr a
-addr'p_nf_values ed' = pAdd (edSeg ed') 67296
+addr'p_nf_values ed' = pAdd (edSeg ed') 67200
 {-# INLINE addr'p_nf_values #-}
 addr'p_cmp_values :: Ed -> Ptr a
-addr'p_cmp_values ed' = pAdd (edSeg ed') 67352
+addr'p_cmp_values ed' = pAdd (edSeg ed') 67256
 {-# INLINE addr'p_cmp_values #-}
 addr'p_dy_values :: Ed -> Ptr a
-addr'p_dy_values ed' = pAdd (edSeg ed') 67376
+addr'p_dy_values ed' = pAdd (edSeg ed') 67280
 {-# INLINE addr'p_dy_values #-}
 addr'p_ve_values :: Ed -> Ptr a
-addr'p_ve_values ed' = pAdd (edSeg ed') 67408
+addr'p_ve_values ed' = pAdd (edSeg ed') 67312
 {-# INLINE addr'p_ve_values #-}
 addr'p_sel_values :: Ed -> Ptr a
-addr'p_sel_values ed' = pAdd (edSeg ed') 67464
+addr'p_sel_values ed' = pAdd (edSeg ed') 67368
 {-# INLINE addr'p_sel_values #-}
 addr'p_slm_values :: Ed -> Ptr a
-addr'p_slm_values ed' = pAdd (edSeg ed') 67496
+addr'p_slm_values ed' = pAdd (edSeg ed') 67400
 {-# INLINE addr'p_slm_values #-}
 addr'p_km_values :: Ed -> Ptr a
-addr'p_km_values ed' = pAdd (edSeg ed') 67512
+addr'p_km_values ed' = pAdd (edSeg ed') 67416
 {-# INLINE addr'p_km_values #-}
 addr'p_bs_values :: Ed -> Ptr a
-addr'p_bs_values ed' = pAdd (edSeg ed') 67536
+addr'p_bs_values ed' = pAdd (edSeg ed') 67440
 {-# INLINE addr'p_bs_values #-}
 addr'p_sloc_values :: Ed -> Ptr a
-addr'p_sloc_values ed' = pAdd (edSeg ed') 67576
+addr'p_sloc_values ed' = pAdd (edSeg ed') 67480
 {-# INLINE addr'p_sloc_values #-}
 addr'signal_info :: Ed -> Ptr a
-addr'signal_info ed' = pAdd (edSeg ed') 67592
+addr'signal_info ed' = pAdd (edSeg ed') 67496
 {-# INLINE addr'signal_info #-}
 reg_prev_sub :: Ed -> IO (Ptr Char_u)
-reg_prev_sub ed' = rdP (edSeg ed') 67640
+reg_prev_sub ed' = rdP (edSeg ed') 67544
 {-# INLINE reg_prev_sub #-}
 set'reg_prev_sub :: Ed -> (Ptr Char_u) -> IO ()
-set'reg_prev_sub ed' = wrP (edSeg ed') 67640
+set'reg_prev_sub ed' = wrP (edSeg ed') 67544
 {-# INLINE set'reg_prev_sub #-}
 reg_prev_sublen :: Ed -> IO Usize
-reg_prev_sublen ed' = rdW64 (edSeg ed') 67648
+reg_prev_sublen ed' = rdW64 (edSeg ed') 67552
 {-# INLINE reg_prev_sublen #-}
 set'reg_prev_sublen :: Ed -> Usize -> IO ()
-set'reg_prev_sublen ed' = wrW64 (edSeg ed') 67648
+set'reg_prev_sublen ed' = wrW64 (edSeg ed') 67552
 {-# INLINE set'reg_prev_sublen #-}
 addr'c'REGEXP_INRANGE :: Ed -> Ptr a
-addr'c'REGEXP_INRANGE ed' = pAdd (edSeg ed') 67656
+addr'c'REGEXP_INRANGE ed' = pAdd (edSeg ed') 67560
 {-# INLINE addr'c'REGEXP_INRANGE #-}
 addr'c'REGEXP_ABBR :: Ed -> Ptr a
-addr'c'REGEXP_ABBR ed' = pAdd (edSeg ed') 67662
+addr'c'REGEXP_ABBR ed' = pAdd (edSeg ed') 67566
 {-# INLINE addr'c'REGEXP_ABBR #-}
 addr'class_tab :: Ed -> Ptr a
-addr'class_tab ed' = pAdd (edSeg ed') 67674
+addr'class_tab ed' = pAdd (edSeg ed') 67578
 {-# INLINE addr'class_tab #-}
 regparse :: Ed -> IO (Ptr Char_u)
-regparse ed' = rdP (edSeg ed') 68192
+regparse ed' = rdP (edSeg ed') 68096
 {-# INLINE regparse #-}
 set'regparse :: Ed -> (Ptr Char_u) -> IO ()
-set'regparse ed' = wrP (edSeg ed') 68192
+set'regparse ed' = wrP (edSeg ed') 68096
 {-# INLINE set'regparse #-}
 addr'regparse :: Ed -> Ptr a
-addr'regparse ed' = pAdd (edSeg ed') 68192
+addr'regparse ed' = pAdd (edSeg ed') 68096
 {-# INLINE addr'regparse #-}
 regnpar :: Ed -> IO Int32
-regnpar ed' = rdI32 (edSeg ed') 68200
+regnpar ed' = rdI32 (edSeg ed') 68104
 {-# INLINE regnpar #-}
 set'regnpar :: Ed -> Int32 -> IO ()
-set'regnpar ed' = wrI32 (edSeg ed') 68200
+set'regnpar ed' = wrI32 (edSeg ed') 68104
 {-# INLINE set'regnpar #-}
 regflags :: Ed -> IO Word32
-regflags ed' = rdW32 (edSeg ed') 68204
+regflags ed' = rdW32 (edSeg ed') 68108
 {-# INLINE regflags #-}
 set'regflags :: Ed -> Word32 -> IO ()
-set'regflags ed' = wrW32 (edSeg ed') 68204
+set'regflags ed' = wrW32 (edSeg ed') 68108
 {-# INLINE set'regflags #-}
 reg_magic :: Ed -> IO Magic_T
-reg_magic ed' = rdI32 (edSeg ed') 68208
+reg_magic ed' = rdI32 (edSeg ed') 68112
 {-# INLINE reg_magic #-}
 set'reg_magic :: Ed -> Magic_T -> IO ()
-set'reg_magic ed' = wrI32 (edSeg ed') 68208
+set'reg_magic ed' = wrI32 (edSeg ed') 68112
 {-# INLINE set'reg_magic #-}
 reg_string :: Ed -> IO Int32
-reg_string ed' = rdI32 (edSeg ed') 68212
+reg_string ed' = rdI32 (edSeg ed') 68116
 {-# INLINE reg_string #-}
 set'reg_string :: Ed -> Int32 -> IO ()
-set'reg_string ed' = wrI32 (edSeg ed') 68212
+set'reg_string ed' = wrI32 (edSeg ed') 68116
 {-# INLINE set'reg_string #-}
 reg_strict :: Ed -> IO Int32
-reg_strict ed' = rdI32 (edSeg ed') 68216
+reg_strict ed' = rdI32 (edSeg ed') 68120
 {-# INLINE reg_strict #-}
 set'reg_strict :: Ed -> Int32 -> IO ()
-set'reg_strict ed' = wrI32 (edSeg ed') 68216
+set'reg_strict ed' = wrI32 (edSeg ed') 68120
 {-# INLINE set'reg_strict #-}
 addr'c'META_flags :: Ed -> Ptr a
-addr'c'META_flags ed' = pAdd (edSeg ed') 68220
+addr'c'META_flags ed' = pAdd (edSeg ed') 68124
 {-# INLINE addr'c'META_flags #-}
 curchr :: Ed -> IO Int32
-curchr ed' = rdI32 (edSeg ed') 68348
+curchr ed' = rdI32 (edSeg ed') 68252
 {-# INLINE curchr #-}
 set'curchr :: Ed -> Int32 -> IO ()
-set'curchr ed' = wrI32 (edSeg ed') 68348
+set'curchr ed' = wrI32 (edSeg ed') 68252
 {-# INLINE set'curchr #-}
 prevchr :: Ed -> IO Int32
-prevchr ed' = rdI32 (edSeg ed') 68352
+prevchr ed' = rdI32 (edSeg ed') 68256
 {-# INLINE prevchr #-}
 set'prevchr :: Ed -> Int32 -> IO ()
-set'prevchr ed' = wrI32 (edSeg ed') 68352
+set'prevchr ed' = wrI32 (edSeg ed') 68256
 {-# INLINE set'prevchr #-}
 prevprevchr :: Ed -> IO Int32
-prevprevchr ed' = rdI32 (edSeg ed') 68356
+prevprevchr ed' = rdI32 (edSeg ed') 68260
 {-# INLINE prevprevchr #-}
 set'prevprevchr :: Ed -> Int32 -> IO ()
-set'prevprevchr ed' = wrI32 (edSeg ed') 68356
+set'prevprevchr ed' = wrI32 (edSeg ed') 68260
 {-# INLINE set'prevprevchr #-}
 nextchr :: Ed -> IO Int32
-nextchr ed' = rdI32 (edSeg ed') 68360
+nextchr ed' = rdI32 (edSeg ed') 68264
 {-# INLINE nextchr #-}
 set'nextchr :: Ed -> Int32 -> IO ()
-set'nextchr ed' = wrI32 (edSeg ed') 68360
+set'nextchr ed' = wrI32 (edSeg ed') 68264
 {-# INLINE set'nextchr #-}
-reg_cpo_lit :: Ed -> IO Int32
-reg_cpo_lit ed' = rdI32 (edSeg ed') 68364
+reg_cpo_lit :: Ed -> IO Bool
+reg_cpo_lit ed' = rdB (edSeg ed') 68268
 {-# INLINE reg_cpo_lit #-}
-set'reg_cpo_lit :: Ed -> Int32 -> IO ()
-set'reg_cpo_lit ed' = wrI32 (edSeg ed') 68364
+set'reg_cpo_lit :: Ed -> Bool -> IO ()
+set'reg_cpo_lit ed' = wrB (edSeg ed') 68268
 {-# INLINE set'reg_cpo_lit #-}
-reg_cpo_bsl :: Ed -> IO Int32
-reg_cpo_bsl ed' = rdI32 (edSeg ed') 68368
+reg_cpo_bsl :: Ed -> IO Bool
+reg_cpo_bsl ed' = rdB (edSeg ed') 68269
 {-# INLINE reg_cpo_bsl #-}
-set'reg_cpo_bsl :: Ed -> Int32 -> IO ()
-set'reg_cpo_bsl ed' = wrI32 (edSeg ed') 68368
+set'reg_cpo_bsl :: Ed -> Bool -> IO ()
+set'reg_cpo_bsl ed' = wrB (edSeg ed') 68269
 {-# INLINE set'reg_cpo_bsl #-}
 prevchr_len :: Ed -> IO Int32
-prevchr_len ed' = rdI32 (edSeg ed') 68372
+prevchr_len ed' = rdI32 (edSeg ed') 68272
 {-# INLINE prevchr_len #-}
 set'prevchr_len :: Ed -> Int32 -> IO ()
-set'prevchr_len ed' = wrI32 (edSeg ed') 68372
+set'prevchr_len ed' = wrI32 (edSeg ed') 68272
 {-# INLINE set'prevchr_len #-}
 at_start :: Ed -> IO Int32
-at_start ed' = rdI32 (edSeg ed') 68376
+at_start ed' = rdI32 (edSeg ed') 68276
 {-# INLINE at_start #-}
 set'at_start :: Ed -> Int32 -> IO ()
-set'at_start ed' = wrI32 (edSeg ed') 68376
+set'at_start ed' = wrI32 (edSeg ed') 68276
 {-# INLINE set'at_start #-}
 prev_at_start :: Ed -> IO Int32
-prev_at_start ed' = rdI32 (edSeg ed') 68380
+prev_at_start ed' = rdI32 (edSeg ed') 68280
 {-# INLINE prev_at_start #-}
 set'prev_at_start :: Ed -> Int32 -> IO ()
-set'prev_at_start ed' = wrI32 (edSeg ed') 68380
+set'prev_at_start ed' = wrI32 (edSeg ed') 68280
 {-# INLINE set'prev_at_start #-}
 addr'reg_engine :: Ed -> Ptr a
-addr'reg_engine ed' = pAdd (edSeg ed') 68384
+addr'reg_engine ed' = pAdd (edSeg ed') 68288
 {-# INLINE addr'reg_engine #-}
 addr'decomp_table :: Ed -> Ptr a
-addr'decomp_table ed' = pAdd (edSeg ed') 68904
+addr'decomp_table ed' = pAdd (edSeg ed') 68808
 {-# INLINE addr'decomp_table #-}
 num_complex_braces :: Ed -> IO Int32
-num_complex_braces ed' = rdI32 (edSeg ed') 69480
+num_complex_braces ed' = rdI32 (edSeg ed') 69384
 {-# INLINE num_complex_braces #-}
 set'num_complex_braces :: Ed -> Int32 -> IO ()
-set'num_complex_braces ed' = wrI32 (edSeg ed') 69480
+set'num_complex_braces ed' = wrI32 (edSeg ed') 69384
 {-# INLINE set'num_complex_braces #-}
 regcode :: Ed -> IO (Ptr Char_u)
-regcode ed' = rdP (edSeg ed') 69488
+regcode ed' = rdP (edSeg ed') 69392
 {-# INLINE regcode #-}
 set'regcode :: Ed -> (Ptr Char_u) -> IO ()
-set'regcode ed' = wrP (edSeg ed') 69488
+set'regcode ed' = wrP (edSeg ed') 69392
 {-# INLINE set'regcode #-}
 addr'reg_calc_size_node :: Ed -> Ptr a
-addr'reg_calc_size_node ed' = pAdd (edSeg ed') 69496
+addr'reg_calc_size_node ed' = pAdd (edSeg ed') 69400
 {-# INLINE addr'reg_calc_size_node #-}
 regsize :: Ed -> IO Int64
-regsize ed' = rdI64 (edSeg ed') 69504
+regsize ed' = rdI64 (edSeg ed') 69408
 {-# INLINE regsize #-}
 set'regsize :: Ed -> Int64 -> IO ()
-set'regsize ed' = wrI64 (edSeg ed') 69504
+set'regsize ed' = wrI64 (edSeg ed') 69408
 {-# INLINE set'regsize #-}
 bt_reg_parse_depth :: Ed -> IO Int32
-bt_reg_parse_depth ed' = rdI32 (edSeg ed') 69512
+bt_reg_parse_depth ed' = rdI32 (edSeg ed') 69416
 {-# INLINE bt_reg_parse_depth #-}
 set'bt_reg_parse_depth :: Ed -> Int32 -> IO ()
-set'bt_reg_parse_depth ed' = wrI32 (edSeg ed') 69512
+set'bt_reg_parse_depth ed' = wrI32 (edSeg ed') 69416
 {-# INLINE set'bt_reg_parse_depth #-}
 addr'had_endbrace :: Ed -> Ptr a
-addr'had_endbrace ed' = pAdd (edSeg ed') 69516
+addr'had_endbrace ed' = pAdd (edSeg ed') 69420
 {-# INLINE addr'had_endbrace #-}
-one_exactly :: Ed -> IO Int32
-one_exactly ed' = rdI32 (edSeg ed') 69528
+one_exactly :: Ed -> IO Bool
+one_exactly ed' = rdB (edSeg ed') 69430
 {-# INLINE one_exactly #-}
-set'one_exactly :: Ed -> Int32 -> IO ()
-set'one_exactly ed' = wrI32 (edSeg ed') 69528
+set'one_exactly :: Ed -> Bool -> IO ()
+set'one_exactly ed' = wrB (edSeg ed') 69430
 {-# INLINE set'one_exactly #-}
 classchars :: Ed -> IO (Ptr Char_u)
-classchars ed' = rdP (edSeg ed') 69536
+classchars ed' = rdP (edSeg ed') 69432
 {-# INLINE classchars #-}
 addr'classcodes :: Ed -> Ptr a
-addr'classcodes ed' = pAdd (edSeg ed') 69544
+addr'classcodes ed' = pAdd (edSeg ed') 69440
 {-# INLINE addr'classcodes #-}
 addr'y_regs :: Ed -> Ptr a
-addr'y_regs ed' = pAdd (edSeg ed') 69656
+addr'y_regs ed' = pAdd (edSeg ed') 69552
 {-# INLINE addr'y_regs #-}
 y_current :: Ed -> IO (Ptr Yankreg_T)
-y_current ed' = rdP (edSeg ed') 70544
+y_current ed' = rdP (edSeg ed') 70440
 {-# INLINE y_current #-}
 set'y_current :: Ed -> (Ptr Yankreg_T) -> IO ()
-set'y_current ed' = wrP (edSeg ed') 70544
+set'y_current ed' = wrP (edSeg ed') 70440
 {-# INLINE set'y_current #-}
-y_append :: Ed -> IO Int32
-y_append ed' = rdI32 (edSeg ed') 70552
+y_append :: Ed -> IO Bool
+y_append ed' = rdB (edSeg ed') 70448
 {-# INLINE y_append #-}
-set'y_append :: Ed -> Int32 -> IO ()
-set'y_append ed' = wrI32 (edSeg ed') 70552
+set'y_append :: Ed -> Bool -> IO ()
+set'y_append ed' = wrB (edSeg ed') 70448
 {-# INLINE set'y_append #-}
 y_previous :: Ed -> IO (Ptr Yankreg_T)
-y_previous ed' = rdP (edSeg ed') 70560
+y_previous ed' = rdP (edSeg ed') 70456
 {-# INLINE y_previous #-}
 set'y_previous :: Ed -> (Ptr Yankreg_T) -> IO ()
-set'y_previous ed' = wrP (edSeg ed') 70560
+set'y_previous ed' = wrP (edSeg ed') 70456
 {-# INLINE set'y_previous #-}
 execreg_lastc :: Ed -> IO Int32
-execreg_lastc ed' = rdI32 (edSeg ed') 70568
+execreg_lastc ed' = rdI32 (edSeg ed') 70464
 {-# INLINE execreg_lastc #-}
 set'execreg_lastc :: Ed -> Int32 -> IO ()
-set'execreg_lastc ed' = wrI32 (edSeg ed') 70568
+set'execreg_lastc ed' = wrI32 (edSeg ed') 70464
 {-# INLINE set'execreg_lastc #-}
 screen_attr :: Ed -> IO Int32
-screen_attr ed' = rdI32 (edSeg ed') 70572
+screen_attr ed' = rdI32 (edSeg ed') 70468
 {-# INLINE screen_attr #-}
 set'screen_attr :: Ed -> Int32 -> IO ()
-set'screen_attr ed' = wrI32 (edSeg ed') 70572
+set'screen_attr ed' = wrI32 (edSeg ed') 70468
 {-# INLINE set'screen_attr #-}
 screen_char_attr :: Ed -> IO Int32
-screen_char_attr ed' = rdI32 (edSeg ed') 70576
+screen_char_attr ed' = rdI32 (edSeg ed') 70472
 {-# INLINE screen_char_attr #-}
 set'screen_char_attr :: Ed -> Int32 -> IO ()
-set'screen_char_attr ed' = wrI32 (edSeg ed') 70576
+set'screen_char_attr ed' = wrI32 (edSeg ed') 70472
 {-# INLINE set'screen_char_attr #-}
 addr'fill_chars :: Ed -> Ptr a
-addr'fill_chars ed' = pAdd (edSeg ed') 70580
+addr'fill_chars ed' = pAdd (edSeg ed') 70476
 {-# INLINE addr'fill_chars #-}
 addr'filltab :: Ed -> Ptr a
-addr'filltab ed' = pAdd (edSeg ed') 70632
+addr'filltab ed' = pAdd (edSeg ed') 70528
 {-# INLINE addr'filltab #-}
 addr'lcs_chars :: Ed -> Ptr a
-addr'lcs_chars ed' = pAdd (edSeg ed') 70944
+addr'lcs_chars ed' = pAdd (edSeg ed') 70840
 {-# INLINE addr'lcs_chars #-}
 addr'lcstab :: Ed -> Ptr a
-addr'lcstab ed' = pAdd (edSeg ed') 71016
+addr'lcstab ed' = pAdd (edSeg ed') 70912
 {-# INLINE addr'lcstab #-}
 addr'spats :: Ed -> Ptr a
-addr'spats ed' = pAdd (edSeg ed') 71304
+addr'spats ed' = pAdd (edSeg ed') 71200
 {-# INLINE addr'spats #-}
 last_idx :: Ed -> IO Int32
-last_idx ed' = rdI32 (edSeg ed') 71400
+last_idx ed' = rdI32 (edSeg ed') 71296
 {-# INLINE last_idx #-}
 set'last_idx :: Ed -> Int32 -> IO ()
-set'last_idx ed' = wrI32 (edSeg ed') 71400
+set'last_idx ed' = wrI32 (edSeg ed') 71296
 {-# INLINE set'last_idx #-}
 addr'lastc :: Ed -> Ptr a
-addr'lastc ed' = pAdd (edSeg ed') 71404
+addr'lastc ed' = pAdd (edSeg ed') 71300
 {-# INLINE addr'lastc #-}
 lastcdir :: Ed -> IO Int32
-lastcdir ed' = rdI32 (edSeg ed') 71408
+lastcdir ed' = rdI32 (edSeg ed') 71304
 {-# INLINE lastcdir #-}
 set'lastcdir :: Ed -> Int32 -> IO ()
-set'lastcdir ed' = wrI32 (edSeg ed') 71408
+set'lastcdir ed' = wrI32 (edSeg ed') 71304
 {-# INLINE set'lastcdir #-}
 last_t_cmd :: Ed -> IO Int32
-last_t_cmd ed' = rdI32 (edSeg ed') 71412
+last_t_cmd ed' = rdI32 (edSeg ed') 71308
 {-# INLINE last_t_cmd #-}
 set'last_t_cmd :: Ed -> Int32 -> IO ()
-set'last_t_cmd ed' = wrI32 (edSeg ed') 71412
+set'last_t_cmd ed' = wrI32 (edSeg ed') 71308
 {-# INLINE set'last_t_cmd #-}
 addr'lastc_bytes :: Ed -> Ptr a
-addr'lastc_bytes ed' = pAdd (edSeg ed') 71416
+addr'lastc_bytes ed' = pAdd (edSeg ed') 71312
 {-# INLINE addr'lastc_bytes #-}
 lastc_bytelen :: Ed -> IO Int32
-lastc_bytelen ed' = rdI32 (edSeg ed') 71440
+lastc_bytelen ed' = rdI32 (edSeg ed') 71336
 {-# INLINE lastc_bytelen #-}
 set'lastc_bytelen :: Ed -> Int32 -> IO ()
-set'lastc_bytelen ed' = wrI32 (edSeg ed') 71440
+set'lastc_bytelen ed' = wrI32 (edSeg ed') 71336
 {-# INLINE set'lastc_bytelen #-}
 mr_pattern :: Ed -> IO (Ptr Char_u)
-mr_pattern ed' = rdP (edSeg ed') 71448
+mr_pattern ed' = rdP (edSeg ed') 71344
 {-# INLINE mr_pattern #-}
 set'mr_pattern :: Ed -> (Ptr Char_u) -> IO ()
-set'mr_pattern ed' = wrP (edSeg ed') 71448
+set'mr_pattern ed' = wrP (edSeg ed') 71344
 {-# INLINE set'mr_pattern #-}
 addr'saved_last_search_spat :: Ed -> Ptr a
-addr'saved_last_search_spat ed' = pAdd (edSeg ed') 71456
+addr'saved_last_search_spat ed' = pAdd (edSeg ed') 71352
 {-# INLINE addr'saved_last_search_spat #-}
 did_save_last_search_spat :: Ed -> IO Int32
-did_save_last_search_spat ed' = rdI32 (edSeg ed') 71504
+did_save_last_search_spat ed' = rdI32 (edSeg ed') 71400
 {-# INLINE did_save_last_search_spat #-}
 set'did_save_last_search_spat :: Ed -> Int32 -> IO ()
-set'did_save_last_search_spat ed' = wrI32 (edSeg ed') 71504
+set'did_save_last_search_spat ed' = wrI32 (edSeg ed') 71400
 {-# INLINE set'did_save_last_search_spat #-}
 saved_last_idx :: Ed -> IO Int32
-saved_last_idx ed' = rdI32 (edSeg ed') 71508
+saved_last_idx ed' = rdI32 (edSeg ed') 71404
 {-# INLINE saved_last_idx #-}
 set'saved_last_idx :: Ed -> Int32 -> IO ()
-set'saved_last_idx ed' = wrI32 (edSeg ed') 71508
+set'saved_last_idx ed' = wrI32 (edSeg ed') 71404
 {-# INLINE set'saved_last_idx #-}
 saved_no_hlsearch :: Ed -> IO Int32
-saved_no_hlsearch ed' = rdI32 (edSeg ed') 71512
+saved_no_hlsearch ed' = rdI32 (edSeg ed') 71408
 {-# INLINE saved_no_hlsearch #-}
 set'saved_no_hlsearch :: Ed -> Int32 -> IO ()
-set'saved_no_hlsearch ed' = wrI32 (edSeg ed') 71512
+set'saved_no_hlsearch ed' = wrI32 (edSeg ed') 71408
 {-# INLINE set'saved_no_hlsearch #-}
 addr'crv_status :: Ed -> Ptr a
-addr'crv_status ed' = pAdd (edSeg ed') 71520
+addr'crv_status ed' = pAdd (edSeg ed') 71416
 {-# INLINE addr'crv_status #-}
 addr'u7_status :: Ed -> Ptr a
-addr'u7_status ed' = pAdd (edSeg ed') 71536
+addr'u7_status ed' = pAdd (edSeg ed') 71432
 {-# INLINE addr'u7_status #-}
 addr'xcc_status :: Ed -> Ptr a
-addr'xcc_status ed' = pAdd (edSeg ed') 71552
+addr'xcc_status ed' = pAdd (edSeg ed') 71448
 {-# INLINE addr'xcc_status #-}
-detected_8bit :: Ed -> IO Int32
-detected_8bit ed' = rdI32 (edSeg ed') 71568
+detected_8bit :: Ed -> IO Bool
+detected_8bit ed' = rdB (edSeg ed') 71464
 {-# INLINE detected_8bit #-}
-set'detected_8bit :: Ed -> Int32 -> IO ()
-set'detected_8bit ed' = wrI32 (edSeg ed') 71568
+set'detected_8bit :: Ed -> Bool -> IO ()
+set'detected_8bit ed' = wrB (edSeg ed') 71464
 {-# INLINE set'detected_8bit #-}
 focus_state :: Ed -> IO Int32
-focus_state ed' = rdI32 (edSeg ed') 71572
+focus_state ed' = rdI32 (edSeg ed') 71468
 {-# INLINE focus_state #-}
 set'focus_state :: Ed -> Int32 -> IO ()
-set'focus_state ed' = wrI32 (edSeg ed') 71572
+set'focus_state ed' = wrI32 (edSeg ed') 71468
 {-# INLINE set'focus_state #-}
 sync_output_setting :: Ed -> IO Int32
-sync_output_setting ed' = rdI32 (edSeg ed') 71576
+sync_output_setting ed' = rdI32 (edSeg ed') 71472
 {-# INLINE sync_output_setting #-}
 set'sync_output_setting :: Ed -> Int32 -> IO ()
-set'sync_output_setting ed' = wrI32 (edSeg ed') 71576
+set'sync_output_setting ed' = wrI32 (edSeg ed') 71472
 {-# INLINE set'sync_output_setting #-}
 sync_output_state :: Ed -> IO Int32
-sync_output_state ed' = rdI32 (edSeg ed') 71580
+sync_output_state ed' = rdI32 (edSeg ed') 71476
 {-# INLINE sync_output_state #-}
 set'sync_output_state :: Ed -> Int32 -> IO ()
-set'sync_output_state ed' = wrI32 (edSeg ed') 71580
+set'sync_output_state ed' = wrI32 (edSeg ed') 71476
 {-# INLINE set'sync_output_state #-}
 addr'builtin_xterm :: Ed -> Ptr a
-addr'builtin_xterm ed' = pAdd (edSeg ed') 71584
+addr'builtin_xterm ed' = pAdd (edSeg ed') 71480
 {-# INLINE addr'builtin_xterm #-}
 addr'builtin_mok2 :: Ed -> Ptr a
-addr'builtin_mok2 ed' = pAdd (edSeg ed') 73808
+addr'builtin_mok2 ed' = pAdd (edSeg ed') 73704
 {-# INLINE addr'builtin_mok2 #-}
 addr'builtin_kitty :: Ed -> Ptr a
-addr'builtin_kitty ed' = pAdd (edSeg ed') 73872
+addr'builtin_kitty ed' = pAdd (edSeg ed') 73768
 {-# INLINE addr'builtin_kitty #-}
 addr'builtin_debug :: Ed -> Ptr a
-addr'builtin_debug ed' = pAdd (edSeg ed') 73968
+addr'builtin_debug ed' = pAdd (edSeg ed') 73864
 {-# INLINE addr'builtin_debug #-}
 addr'builtin_256colors :: Ed -> Ptr a
-addr'builtin_256colors ed' = pAdd (edSeg ed') 76320
+addr'builtin_256colors ed' = pAdd (edSeg ed') 76216
 {-# INLINE addr'builtin_256colors #-}
 addr'builtin_terminals :: Ed -> Ptr a
-addr'builtin_terminals ed' = pAdd (edSeg ed') 76384
+addr'builtin_terminals ed' = pAdd (edSeg ed') 76280
 {-# INLINE addr'builtin_terminals #-}
-need_gather :: Ed -> IO Int32
-need_gather ed' = rdI32 (edSeg ed') 76432
+need_gather :: Ed -> IO Bool
+need_gather ed' = rdB (edSeg ed') 76328
 {-# INLINE need_gather #-}
-set'need_gather :: Ed -> Int32 -> IO ()
-set'need_gather ed' = wrI32 (edSeg ed') 76432
+set'need_gather :: Ed -> Bool -> IO ()
+set'need_gather ed' = wrB (edSeg ed') 76328
 {-# INLINE set'need_gather #-}
 addr'termleader :: Ed -> Ptr a
-addr'termleader ed' = pAdd (edSeg ed') 76436
+addr'termleader ed' = pAdd (edSeg ed') 76329
 {-# INLINE addr'termleader #-}
 addr'term_props :: Ed -> Ptr a
-addr'term_props ed' = pAdd (edSeg ed') 76696
+addr'term_props ed' = pAdd (edSeg ed') 76592
 {-# INLINE addr'term_props #-}
 addr'out_buf :: Ed -> Ptr a
-addr'out_buf ed' = pAdd (edSeg ed') 76808
+addr'out_buf ed' = pAdd (edSeg ed') 76704
 {-# INLINE addr'out_buf #-}
 out_pos :: Ed -> IO Int32
-out_pos ed' = rdI32 (edSeg ed') 85000
+out_pos ed' = rdI32 (edSeg ed') 84896
 {-# INLINE out_pos #-}
 set'out_pos :: Ed -> Int32 -> IO ()
-set'out_pos ed' = wrI32 (edSeg ed') 85000
+set'out_pos ed' = wrI32 (edSeg ed') 84896
 {-# INLINE set'out_pos #-}
-send_t_RK :: Ed -> IO Int32
-send_t_RK ed' = rdI32 (edSeg ed') 85004
+send_t_RK :: Ed -> IO Bool
+send_t_RK ed' = rdB (edSeg ed') 84900
 {-# INLINE send_t_RK #-}
-set'send_t_RK :: Ed -> Int32 -> IO ()
-set'send_t_RK ed' = wrI32 (edSeg ed') 85004
+set'send_t_RK :: Ed -> Bool -> IO ()
+set'send_t_RK ed' = wrB (edSeg ed') 84900
 {-# INLINE set'send_t_RK #-}
-cursor_is_off :: Ed -> IO Int32
-cursor_is_off ed' = rdI32 (edSeg ed') 85008
+cursor_is_off :: Ed -> IO Bool
+cursor_is_off ed' = rdB (edSeg ed') 84901
 {-# INLINE cursor_is_off #-}
-set'cursor_is_off :: Ed -> Int32 -> IO ()
-set'cursor_is_off ed' = wrI32 (edSeg ed') 85008
+set'cursor_is_off :: Ed -> Bool -> IO ()
+set'cursor_is_off ed' = wrB (edSeg ed') 84901
 {-# INLINE set'cursor_is_off #-}
-cursor_is_asleep :: Ed -> IO Int32
-cursor_is_asleep ed' = rdI32 (edSeg ed') 85012
+cursor_is_asleep :: Ed -> IO Bool
+cursor_is_asleep ed' = rdB (edSeg ed') 84902
 {-# INLINE cursor_is_asleep #-}
-set'cursor_is_asleep :: Ed -> Int32 -> IO ()
-set'cursor_is_asleep ed' = wrI32 (edSeg ed') 85012
+set'cursor_is_asleep :: Ed -> Bool -> IO ()
+set'cursor_is_asleep ed' = wrB (edSeg ed') 84902
 {-# INLINE set'cursor_is_asleep #-}
 termcodes :: Ed -> IO (Ptr Termcode)
-termcodes ed' = rdP (edSeg ed') 85016
+termcodes ed' = rdP (edSeg ed') 84904
 {-# INLINE termcodes #-}
 set'termcodes :: Ed -> (Ptr Termcode) -> IO ()
-set'termcodes ed' = wrP (edSeg ed') 85016
+set'termcodes ed' = wrP (edSeg ed') 84904
 {-# INLINE set'termcodes #-}
 tc_max_len :: Ed -> IO Int32
-tc_max_len ed' = rdI32 (edSeg ed') 85024
+tc_max_len ed' = rdI32 (edSeg ed') 84912
 {-# INLINE tc_max_len #-}
 set'tc_max_len :: Ed -> Int32 -> IO ()
-set'tc_max_len ed' = wrI32 (edSeg ed') 85024
+set'tc_max_len ed' = wrI32 (edSeg ed') 84912
 {-# INLINE set'tc_max_len #-}
 tc_len :: Ed -> IO Int32
-tc_len ed' = rdI32 (edSeg ed') 85028
+tc_len ed' = rdI32 (edSeg ed') 84916
 {-# INLINE tc_len #-}
 set'tc_len :: Ed -> Int32 -> IO ()
-set'tc_len ed' = wrI32 (edSeg ed') 85028
+set'tc_len ed' = wrI32 (edSeg ed') 84916
 {-# INLINE set'tc_len #-}
 addr'osc_state :: Ed -> Ptr a
-addr'osc_state ed' = pAdd (edSeg ed') 85032
+addr'osc_state ed' = pAdd (edSeg ed') 84920
 {-# INLINE addr'osc_state #-}
 cls_bigword :: Ed -> IO Int32
-cls_bigword ed' = rdI32 (edSeg ed') 85072
+cls_bigword ed' = rdI32 (edSeg ed') 84960
 {-# INLINE cls_bigword #-}
 set'cls_bigword :: Ed -> Int32 -> IO ()
-set'cls_bigword ed' = wrI32 (edSeg ed') 85072
+set'cls_bigword ed' = wrI32 (edSeg ed') 84960
 {-# INLINE set'cls_bigword #-}
 addr'inbuf :: Ed -> Ptr a
-addr'inbuf ed' = pAdd (edSeg ed') 85076
+addr'inbuf ed' = pAdd (edSeg ed') 84964
 {-# INLINE addr'inbuf #-}
 inbufcount :: Ed -> IO Int32
-inbufcount ed' = rdI32 (edSeg ed') 85332
+inbufcount ed' = rdI32 (edSeg ed') 85220
 {-# INLINE inbufcount #-}
 set'inbufcount :: Ed -> Int32 -> IO ()
-set'inbufcount ed' = wrI32 (edSeg ed') 85332
+set'inbufcount ed' = wrI32 (edSeg ed') 85220
 {-# INLINE set'inbufcount #-}
 u_newcount :: Ed -> IO Int64
-u_newcount ed' = rdI64 (edSeg ed') 85336
+u_newcount ed' = rdI64 (edSeg ed') 85224
 {-# INLINE u_newcount #-}
 set'u_newcount :: Ed -> Int64 -> IO ()
-set'u_newcount ed' = wrI64 (edSeg ed') 85336
+set'u_newcount ed' = wrI64 (edSeg ed') 85224
 {-# INLINE set'u_newcount #-}
 u_oldcount :: Ed -> IO Int64
-u_oldcount ed' = rdI64 (edSeg ed') 85344
+u_oldcount ed' = rdI64 (edSeg ed') 85232
 {-# INLINE u_oldcount #-}
 set'u_oldcount :: Ed -> Int64 -> IO ()
-set'u_oldcount ed' = wrI64 (edSeg ed') 85344
+set'u_oldcount ed' = wrI64 (edSeg ed') 85232
 {-# INLINE set'u_oldcount #-}
-undo_undoes :: Ed -> IO Int32
-undo_undoes ed' = rdI32 (edSeg ed') 85352
+undo_undoes :: Ed -> IO Bool
+undo_undoes ed' = rdB (edSeg ed') 85240
 {-# INLINE undo_undoes #-}
-set'undo_undoes :: Ed -> Int32 -> IO ()
-set'undo_undoes ed' = wrI32 (edSeg ed') 85352
+set'undo_undoes :: Ed -> Bool -> IO ()
+set'undo_undoes ed' = wrB (edSeg ed') 85240
 {-# INLINE set'undo_undoes #-}
 lastmark :: Ed -> IO Int32
-lastmark ed' = rdI32 (edSeg ed') 85356
+lastmark ed' = rdI32 (edSeg ed') 85244
 {-# INLINE lastmark #-}
 set'lastmark :: Ed -> Int32 -> IO ()
-set'lastmark ed' = wrI32 (edSeg ed') 85356
+set'lastmark ed' = wrI32 (edSeg ed') 85244
 {-# INLINE set'lastmark #-}
-did_initial_scroll_size_snapshot :: Ed -> IO Int32
-did_initial_scroll_size_snapshot ed' = rdI32 (edSeg ed') 85360
+did_initial_scroll_size_snapshot :: Ed -> IO Bool
+did_initial_scroll_size_snapshot ed' = rdB (edSeg ed') 85248
 {-# INLINE did_initial_scroll_size_snapshot #-}
-set'did_initial_scroll_size_snapshot :: Ed -> Int32 -> IO ()
-set'did_initial_scroll_size_snapshot ed' = wrI32 (edSeg ed') 85360
+set'did_initial_scroll_size_snapshot :: Ed -> Bool -> IO ()
+set'did_initial_scroll_size_snapshot ed' = wrB (edSeg ed') 85248
 {-# INLINE set'did_initial_scroll_size_snapshot #-}
 min_set_ch :: Ed -> IO Int32
-min_set_ch ed' = rdI32 (edSeg ed') 85364
+min_set_ch ed' = rdI32 (edSeg ed') 85252
 {-# INLINE min_set_ch #-}
 set'min_set_ch :: Ed -> Int32 -> IO ()
-set'min_set_ch ed' = wrI32 (edSeg ed') 85364
+set'min_set_ch ed' = wrI32 (edSeg ed') 85252
 {-# INLINE set'min_set_ch #-}
-command_frame_height :: Ed -> IO Int32
-command_frame_height ed' = rdI32 (edSeg ed') 85368
+command_frame_height :: Ed -> IO Bool
+command_frame_height ed' = rdB (edSeg ed') 85256
 {-# INLINE command_frame_height #-}
 addr'main_errors :: Ed -> Ptr a
-addr'main_errors ed' = pAdd (edSeg ed') 85376
+addr'main_errors ed' = pAdd (edSeg ed') 85264
 {-# INLINE addr'main_errors #-}
 addr'params :: Ed -> Ptr a
-addr'params ed' = pAdd (edSeg ed') 85400
+addr'params ed' = pAdd (edSeg ed') 85288
 {-# INLINE addr'params #-}
 current_oap :: Ed -> IO (Ptr Oparg_T)
-current_oap ed' = rdP (edSeg ed') 85512
+current_oap ed' = rdP (edSeg ed') 85400
 {-# INLINE current_oap #-}
 set'current_oap :: Ed -> (Ptr Oparg_T) -> IO ()
-set'current_oap ed' = wrP (edSeg ed') 85512
+set'current_oap ed' = wrP (edSeg ed') 85400
 {-# INLINE set'current_oap #-}
 win_redr_status'busy :: Ed -> IO Bool
-win_redr_status'busy ed' = rdB (edSeg ed') 85520
+win_redr_status'busy ed' = rdB (edSeg ed') 85408
 {-# INLINE win_redr_status'busy #-}
 set'win_redr_status'busy :: Ed -> Bool -> IO ()
-set'win_redr_status'busy ed' = wrB (edSeg ed') 85520
+set'win_redr_status'busy ed' = wrB (edSeg ed') 85408
 {-# INLINE set'win_redr_status'busy #-}
 win_update'recursive :: Ed -> IO Bool
-win_update'recursive ed' = rdB (edSeg ed') 85521
+win_update'recursive ed' = rdB (edSeg ed') 85409
 {-# INLINE win_update'recursive #-}
 set'win_update'recursive :: Ed -> Bool -> IO ()
-set'win_update'recursive ed' = wrB (edSeg ed') 85521
+set'win_update'recursive ed' = wrB (edSeg ed') 85409
 {-# INLINE set'win_update'recursive #-}
 edit'o_lnum :: Ed -> IO Linenr_T
-edit'o_lnum ed' = rdI64 (edSeg ed') 85528
+edit'o_lnum ed' = rdI64 (edSeg ed') 85416
 {-# INLINE edit'o_lnum #-}
 addr'edit'o_lnum :: Ed -> Ptr a
-addr'edit'o_lnum ed' = pAdd (edSeg ed') 85528
+addr'edit'o_lnum ed' = pAdd (edSeg ed') 85416
 {-# INLINE addr'edit'o_lnum #-}
 ins_esc'disabled_redraw :: Ed -> IO Bool
-ins_esc'disabled_redraw ed' = rdB (edSeg ed') 85536
+ins_esc'disabled_redraw ed' = rdB (edSeg ed') 85424
 {-# INLINE ins_esc'disabled_redraw #-}
 set'ins_esc'disabled_redraw :: Ed -> Bool -> IO ()
-set'ins_esc'disabled_redraw ed' = wrB (edSeg ed') 85536
+set'ins_esc'disabled_redraw ed' = wrB (edSeg ed') 85424
 {-# INLINE set'ins_esc'disabled_redraw #-}
 addr'ex_substitute'subflags :: Ed -> Ptr a
-addr'ex_substitute'subflags ed' = pAdd (edSeg ed') 85540
+addr'ex_substitute'subflags ed' = pAdd (edSeg ed') 85428
 {-# INLINE addr'ex_substitute'subflags #-}
 do_cmdline'recursive :: Ed -> IO Int32
-do_cmdline'recursive ed' = rdI32 (edSeg ed') 85572
+do_cmdline'recursive ed' = rdI32 (edSeg ed') 85460
 {-# INLINE do_cmdline'recursive #-}
 set'do_cmdline'recursive :: Ed -> Int32 -> IO ()
-set'do_cmdline'recursive ed' = wrI32 (edSeg ed') 85572
+set'do_cmdline'recursive ed' = wrI32 (edSeg ed') 85460
 {-# INLINE set'do_cmdline'recursive #-}
 do_cmdline'call_depth :: Ed -> IO Int32
-do_cmdline'call_depth ed' = rdI32 (edSeg ed') 85576
+do_cmdline'call_depth ed' = rdI32 (edSeg ed') 85464
 {-# INLINE do_cmdline'call_depth #-}
 set'do_cmdline'call_depth :: Ed -> Int32 -> IO ()
-set'do_cmdline'call_depth ed' = wrI32 (edSeg ed') 85576
+set'do_cmdline'call_depth ed' = wrI32 (edSeg ed') 85464
 {-# INLINE set'do_cmdline'call_depth #-}
 getcmdline_int'depth :: Ed -> IO Int32
-getcmdline_int'depth ed' = rdI32 (edSeg ed') 85580
+getcmdline_int'depth ed' = rdI32 (edSeg ed') 85468
 {-# INLINE getcmdline_int'depth #-}
 set'getcmdline_int'depth :: Ed -> Int32 -> IO ()
-set'getcmdline_int'depth ed' = wrI32 (edSeg ed') 85580
+set'getcmdline_int'depth ed' = wrI32 (edSeg ed') 85468
 {-# INLINE set'getcmdline_int'depth #-}
 read_redo'bp :: Ed -> IO (Ptr Buffblock_T)
-read_redo'bp ed' = rdP (edSeg ed') 85584
+read_redo'bp ed' = rdP (edSeg ed') 85472
 {-# INLINE read_redo'bp #-}
 set'read_redo'bp :: Ed -> (Ptr Buffblock_T) -> IO ()
-set'read_redo'bp ed' = wrP (edSeg ed') 85584
+set'read_redo'bp ed' = wrP (edSeg ed') 85472
 {-# INLINE set'read_redo'bp #-}
 read_redo'p :: Ed -> IO (Ptr Char_u)
-read_redo'p ed' = rdP (edSeg ed') 85592
+read_redo'p ed' = rdP (edSeg ed') 85480
 {-# INLINE read_redo'p #-}
 set'read_redo'p :: Ed -> (Ptr Char_u) -> IO ()
-set'read_redo'p ed' = wrP (edSeg ed') 85592
+set'read_redo'p ed' = wrP (edSeg ed') 85480
 {-# INLINE set'read_redo'p #-}
 addr'gotchars'state :: Ed -> Ptr a
-addr'gotchars'state ed' = pAdd (edSeg ed') 85600
+addr'gotchars'state ed' = pAdd (edSeg ed') 85488
 {-# INLINE addr'gotchars'state #-}
 addr'add_byte_to_showcmd'state :: Ed -> Ptr a
-addr'add_byte_to_showcmd'state ed' = pAdd (edSeg ed') 85688
+addr'add_byte_to_showcmd'state ed' = pAdd (edSeg ed') 85576
 {-# INLINE addr'add_byte_to_showcmd'state #-}
 vgetc'last_vgetc_recorded_len :: Ed -> IO Usize
-vgetc'last_vgetc_recorded_len ed' = rdW64 (edSeg ed') 85776
+vgetc'last_vgetc_recorded_len ed' = rdW64 (edSeg ed') 85664
 {-# INLINE vgetc'last_vgetc_recorded_len #-}
 set'vgetc'last_vgetc_recorded_len :: Ed -> Usize -> IO ()
-set'vgetc'last_vgetc_recorded_len ed' = wrW64 (edSeg ed') 85776
+set'vgetc'last_vgetc_recorded_len ed' = wrW64 (edSeg ed') 85664
 {-# INLINE set'vgetc'last_vgetc_recorded_len #-}
 init_highlight'had_both :: Ed -> IO Bool
-init_highlight'had_both ed' = rdB (edSeg ed') 85784
+init_highlight'had_both ed' = rdB (edSeg ed') 85672
 {-# INLINE init_highlight'had_both #-}
 set'init_highlight'had_both :: Ed -> Bool -> IO ()
-set'init_highlight'had_both ed' = wrB (edSeg ed') 85784
+set'init_highlight'had_both ed' = wrB (edSeg ed') 85672
 {-# INLINE set'init_highlight'had_both #-}
 get_attr_entry'recursive :: Ed -> IO Bool
-get_attr_entry'recursive ed' = rdB (edSeg ed') 85785
+get_attr_entry'recursive ed' = rdB (edSeg ed') 85673
 {-# INLINE get_attr_entry'recursive #-}
 set'get_attr_entry'recursive :: Ed -> Bool -> IO ()
-set'get_attr_entry'recursive ed' = wrB (edSeg ed') 85785
+set'get_attr_entry'recursive ed' = wrB (edSeg ed') 85673
 {-# INLINE set'get_attr_entry'recursive #-}
 addr'cterm_idx_to_rgb'cube :: Ed -> Ptr a
-addr'cterm_idx_to_rgb'cube ed' = pAdd (edSeg ed') 85788
+addr'cterm_idx_to_rgb'cube ed' = pAdd (edSeg ed') 85676
 {-# INLINE addr'cterm_idx_to_rgb'cube #-}
 addr'rgb_to_cterm_idx'cube :: Ed -> Ptr a
-addr'rgb_to_cterm_idx'cube ed' = pAdd (edSeg ed') 85812
+addr'rgb_to_cterm_idx'cube ed' = pAdd (edSeg ed') 85700
 {-# INLINE addr'rgb_to_cterm_idx'cube #-}
 addr'hlf_get_id'prev :: Ed -> Ptr a
-addr'hlf_get_id'prev ed' = pAdd (edSeg ed') 85836
+addr'hlf_get_id'prev ed' = pAdd (edSeg ed') 85724
 {-# INLINE addr'hlf_get_id'prev #-}
 addr'getmark_buf_fnum'pos_copy :: Ed -> Ptr a
-addr'getmark_buf_fnum'pos_copy ed' = pAdd (edSeg ed') 86120
+addr'getmark_buf_fnum'pos_copy ed' = pAdd (edSeg ed') 86008
 {-# INLINE addr'getmark_buf_fnum'pos_copy #-}
 show_one_mark'did_title :: Ed -> IO Bool
-show_one_mark'did_title ed' = rdB (edSeg ed') 86136
+show_one_mark'did_title ed' = rdB (edSeg ed') 86024
 {-# INLINE show_one_mark'did_title #-}
 set'show_one_mark'did_title :: Ed -> Bool -> IO ()
-set'show_one_mark'did_title ed' = wrB (edSeg ed') 86136
+set'show_one_mark'did_title ed' = wrB (edSeg ed') 86024
 {-# INLINE set'show_one_mark'did_title #-}
 addr'mark_adjust_internal'initpos :: Ed -> Ptr a
-addr'mark_adjust_internal'initpos ed' = pAdd (edSeg ed') 86144
+addr'mark_adjust_internal'initpos ed' = pAdd (edSeg ed') 86032
 {-# INLINE addr'mark_adjust_internal'initpos #-}
 addr'utf_char2cells'doublewidth :: Ed -> Ptr a
-addr'utf_char2cells'doublewidth ed' = pAdd (edSeg ed') 86160
+addr'utf_char2cells'doublewidth ed' = pAdd (edSeg ed') 86048
 {-# INLINE addr'utf_char2cells'doublewidth #-}
 addr'utf_char2cells'emoji_wide :: Ed -> Ptr a
-addr'utf_char2cells'emoji_wide ed' = pAdd (edSeg ed') 88112
+addr'utf_char2cells'emoji_wide ed' = pAdd (edSeg ed') 88000
 {-# INLINE addr'utf_char2cells'emoji_wide #-}
 addr'utf_iscomposing'combining :: Ed -> Ptr a
-addr'utf_iscomposing'combining ed' = pAdd (edSeg ed') 88976
+addr'utf_iscomposing'combining ed' = pAdd (edSeg ed') 88864
 {-# INLINE addr'utf_iscomposing'combining #-}
 addr'utf_printable'nonprint :: Ed -> Ptr a
-addr'utf_printable'nonprint ed' = pAdd (edSeg ed') 94640
+addr'utf_printable'nonprint ed' = pAdd (edSeg ed') 94528
 {-# INLINE addr'utf_printable'nonprint #-}
 addr'utf_class_buf'classes :: Ed -> Ptr a
-addr'utf_class_buf'classes ed' = pAdd (edSeg ed') 94784
+addr'utf_class_buf'classes ed' = pAdd (edSeg ed') 94672
 {-# INLINE addr'utf_class_buf'classes #-}
 addr'mb_unescape'buf :: Ed -> Ptr a
-addr'mb_unescape'buf ed' = pAdd (edSeg ed') 95636
+addr'mb_unescape'buf ed' = pAdd (edSeg ed') 95524
 {-# INLINE addr'mb_unescape'buf #-}
 addr'ml_get_invalid'questions :: Ed -> Ptr a
-addr'ml_get_invalid'questions ed' = pAdd (edSeg ed') 95642
+addr'ml_get_invalid'questions ed' = pAdd (edSeg ed') 95530
 {-# INLINE addr'ml_get_invalid'questions #-}
 ml_get_buf'recursive :: Ed -> IO Int32
-ml_get_buf'recursive ed' = rdI32 (edSeg ed') 95648
+ml_get_buf'recursive ed' = rdI32 (edSeg ed') 95536
 {-# INLINE ml_get_buf'recursive #-}
 set'ml_get_buf'recursive :: Ed -> Int32 -> IO ()
-set'ml_get_buf'recursive ed' = wrI32 (edSeg ed') 95648
+set'ml_get_buf'recursive ed' = wrI32 (edSeg ed') 95536
 {-# INLINE set'ml_get_buf'recursive #-}
 ml_flush_line'entered :: Ed -> IO Bool
-ml_flush_line'entered ed' = rdB (edSeg ed') 95652
+ml_flush_line'entered ed' = rdB (edSeg ed') 95540
 {-# INLINE ml_flush_line'entered #-}
 set'ml_flush_line'entered :: Ed -> Bool -> IO ()
-set'ml_flush_line'entered ed' = wrB (edSeg ed') 95652
+set'ml_flush_line'entered ed' = wrB (edSeg ed') 95540
 {-# INLINE set'ml_flush_line'entered #-}
 msg_attr_keep'entered :: Ed -> IO Int32
-msg_attr_keep'entered ed' = rdI32 (edSeg ed') 95656
+msg_attr_keep'entered ed' = rdI32 (edSeg ed') 95544
 {-# INLINE msg_attr_keep'entered #-}
 set'msg_attr_keep'entered :: Ed -> Int32 -> IO ()
-set'msg_attr_keep'entered ed' = wrI32 (edSeg ed') 95656
+set'msg_attr_keep'entered ed' = wrI32 (edSeg ed') 95544
 {-# INLINE set'msg_attr_keep'entered #-}
 msg_source'recursive :: Ed -> IO Bool
-msg_source'recursive ed' = rdB (edSeg ed') 95660
+msg_source'recursive ed' = rdB (edSeg ed') 95548
 {-# INLINE msg_source'recursive #-}
 set'msg_source'recursive :: Ed -> Bool -> IO ()
-set'msg_source'recursive ed' = wrB (edSeg ed') 95660
+set'msg_source'recursive ed' = wrB (edSeg ed') 95548
 {-# INLINE set'msg_source'recursive #-}
 addr'str2special'buf :: Ed -> Ptr a
-addr'str2special'buf ed' = pAdd (edSeg ed') 95661
+addr'str2special'buf ed' = pAdd (edSeg ed') 95549
 {-# INLINE addr'str2special'buf #-}
 do_more_prompt'entered :: Ed -> IO Bool
-do_more_prompt'entered ed' = rdB (edSeg ed') 95668
+do_more_prompt'entered ed' = rdB (edSeg ed') 95556
 {-# INLINE do_more_prompt'entered #-}
 set'do_more_prompt'entered :: Ed -> Bool -> IO ()
-set'do_more_prompt'entered ed' = wrB (edSeg ed') 95668
+set'do_more_prompt'entered ed' = wrB (edSeg ed') 95556
 {-# INLINE set'do_more_prompt'entered #-}
 vim_beep'did_init :: Ed -> IO Bool
-vim_beep'did_init ed' = rdB (edSeg ed') 95669
+vim_beep'did_init ed' = rdB (edSeg ed') 95557
 {-# INLINE vim_beep'did_init #-}
 set'vim_beep'did_init :: Ed -> Bool -> IO ()
-set'vim_beep'did_init ed' = wrB (edSeg ed') 95669
+set'vim_beep'did_init ed' = wrB (edSeg ed') 95557
 {-# INLINE set'vim_beep'did_init #-}
 vim_beep'start_tv :: Ed -> IO Int64
-vim_beep'start_tv ed' = rdI64 (edSeg ed') 95672
+vim_beep'start_tv ed' = rdI64 (edSeg ed') 95560
 {-# INLINE vim_beep'start_tv #-}
 set'vim_beep'start_tv :: Ed -> Int64 -> IO ()
-set'vim_beep'start_tv ed' = wrI64 (edSeg ed') 95672
+set'vim_beep'start_tv ed' = wrI64 (edSeg ed') 95560
 {-# INLINE set'vim_beep'start_tv #-}
 addr'get_special_key_name'string :: Ed -> Ptr a
-addr'get_special_key_name'string ed' = pAdd (edSeg ed') 95680
+addr'get_special_key_name'string ed' = pAdd (edSeg ed') 95568
 {-# INLINE addr'get_special_key_name'string #-}
 normal_cmd'old_mapped_len :: Ed -> IO Int32
-normal_cmd'old_mapped_len ed' = rdI32 (edSeg ed') 95716
+normal_cmd'old_mapped_len ed' = rdI32 (edSeg ed') 95604
 {-# INLINE normal_cmd'old_mapped_len #-}
 set'normal_cmd'old_mapped_len :: Ed -> Int32 -> IO ()
-set'normal_cmd'old_mapped_len ed' = wrI32 (edSeg ed') 95716
+set'normal_cmd'old_mapped_len ed' = wrI32 (edSeg ed') 95604
 {-# INLINE set'normal_cmd'old_mapped_len #-}
 check_visual_highlight'did_check :: Ed -> IO Bool
-check_visual_highlight'did_check ed' = rdB (edSeg ed') 95720
+check_visual_highlight'did_check ed' = rdB (edSeg ed') 95608
 {-# INLINE check_visual_highlight'did_check #-}
 set'check_visual_highlight'did_check :: Ed -> Bool -> IO ()
-set'check_visual_highlight'did_check ed' = wrB (edSeg ed') 95720
+set'check_visual_highlight'did_check ed' = wrB (edSeg ed') 95608
 {-# INLINE set'check_visual_highlight'did_check #-}
 addr'add_to_showcmd'ignore :: Ed -> Ptr a
-addr'add_to_showcmd'ignore ed' = pAdd (edSeg ed') 95724
+addr'add_to_showcmd'ignore ed' = pAdd (edSeg ed') 95612
 {-# INLINE addr'add_to_showcmd'ignore #-}
 addr'v_visop'trans :: Ed -> Ptr a
-addr'v_visop'trans ed' = pAdd (edSeg ed') 95828
+addr'v_visop'trans ed' = pAdd (edSeg ed') 95716
 {-# INLINE addr'v_visop'trans #-}
 addr'nv_optrans'ar :: Ed -> Ptr a
-addr'nv_optrans'ar ed' = pAdd (edSeg ed') 95848
+addr'nv_optrans'ar ed' = pAdd (edSeg ed') 95736
 {-# INLINE addr'nv_optrans'ar #-}
 nv_optrans'str :: Ed -> IO (Ptr Char_u)
-nv_optrans'str ed' = rdP (edSeg ed') 95912
+nv_optrans'str ed' = rdP (edSeg ed') 95800
 {-# INLINE nv_optrans'str #-}
 do_addsub'hexupper :: Ed -> IO Bool
-do_addsub'hexupper ed' = rdB (edSeg ed') 95920
+do_addsub'hexupper ed' = rdB (edSeg ed') 95808
 {-# INLINE do_addsub'hexupper #-}
 set'do_addsub'hexupper :: Ed -> Bool -> IO ()
-set'do_addsub'hexupper ed' = wrB (edSeg ed') 95920
+set'do_addsub'hexupper ed' = wrB (edSeg ed') 95808
 {-# INLINE set'do_addsub'hexupper #-}
 addr'do_pending_operator'redo_VIsual :: Ed -> Ptr a
-addr'do_pending_operator'redo_VIsual ed' = pAdd (edSeg ed') 95928
+addr'do_pending_operator'redo_VIsual ed' = pAdd (edSeg ed') 95816
 {-# INLINE addr'do_pending_operator'redo_VIsual #-}
 did_set_paste'old_p_paste :: Ed -> IO Int32
-did_set_paste'old_p_paste ed' = rdI32 (edSeg ed') 95968
+did_set_paste'old_p_paste ed' = rdI32 (edSeg ed') 95856
 {-# INLINE did_set_paste'old_p_paste #-}
 set'did_set_paste'old_p_paste :: Ed -> Int32 -> IO ()
-set'did_set_paste'old_p_paste ed' = wrI32 (edSeg ed') 95968
+set'did_set_paste'old_p_paste ed' = wrI32 (edSeg ed') 95856
 {-# INLINE set'did_set_paste'old_p_paste #-}
 did_set_paste'save_sm :: Ed -> IO Int32
-did_set_paste'save_sm ed' = rdI32 (edSeg ed') 95972
+did_set_paste'save_sm ed' = rdI32 (edSeg ed') 95860
 {-# INLINE did_set_paste'save_sm #-}
 set'did_set_paste'save_sm :: Ed -> Int32 -> IO ()
-set'did_set_paste'save_sm ed' = wrI32 (edSeg ed') 95972
+set'did_set_paste'save_sm ed' = wrI32 (edSeg ed') 95860
 {-# INLINE set'did_set_paste'save_sm #-}
 did_set_paste'save_sta :: Ed -> IO Int32
-did_set_paste'save_sta ed' = rdI32 (edSeg ed') 95976
+did_set_paste'save_sta ed' = rdI32 (edSeg ed') 95864
 {-# INLINE did_set_paste'save_sta #-}
 set'did_set_paste'save_sta :: Ed -> Int32 -> IO ()
-set'did_set_paste'save_sta ed' = wrI32 (edSeg ed') 95976
+set'did_set_paste'save_sta ed' = wrI32 (edSeg ed') 95864
 {-# INLINE set'did_set_paste'save_sta #-}
 did_set_paste'save_ru :: Ed -> IO Int32
-did_set_paste'save_ru ed' = rdI32 (edSeg ed') 95980
+did_set_paste'save_ru ed' = rdI32 (edSeg ed') 95868
 {-# INLINE did_set_paste'save_ru #-}
 set'did_set_paste'save_ru :: Ed -> Int32 -> IO ()
-set'did_set_paste'save_ru ed' = wrI32 (edSeg ed') 95980
+set'did_set_paste'save_ru ed' = wrI32 (edSeg ed') 95868
 {-# INLINE set'did_set_paste'save_ru #-}
 addr'findoption'quick_tab :: Ed -> Ptr a
-addr'findoption'quick_tab ed' = pAdd (edSeg ed') 95984
+addr'findoption'quick_tab ed' = pAdd (edSeg ed') 95872
 {-# INLINE addr'findoption'quick_tab #-}
 addr'set_option_value'errbuf :: Ed -> Ptr a
-addr'set_option_value'errbuf ed' = pAdd (edSeg ed') 96038
+addr'set_option_value'errbuf ed' = pAdd (edSeg ed') 95926
 {-# INLINE addr'set_option_value'errbuf #-}
 deathtrap'entered :: Ed -> IO Int32
-deathtrap'entered ed' = rdI32 (edSeg ed') 96120
+deathtrap'entered ed' = rdI32 (edSeg ed') 96008
 {-# INLINE deathtrap'entered #-}
 set'deathtrap'entered :: Ed -> Int32 -> IO ()
-set'deathtrap'entered ed' = wrI32 (edSeg ed') 96120
+set'deathtrap'entered ed' = wrI32 (edSeg ed') 96008
 {-# INLINE set'deathtrap'entered #-}
 vim_handle_signal'got_signal :: Ed -> IO Int32
-vim_handle_signal'got_signal ed' = rdI32 (edSeg ed') 96124
+vim_handle_signal'got_signal ed' = rdI32 (edSeg ed') 96012
 {-# INLINE vim_handle_signal'got_signal #-}
 set'vim_handle_signal'got_signal :: Ed -> Int32 -> IO ()
-set'vim_handle_signal'got_signal ed' = wrI32 (edSeg ed') 96124
+set'vim_handle_signal'got_signal ed' = wrI32 (edSeg ed') 96012
 {-# INLINE set'vim_handle_signal'got_signal #-}
 vim_handle_signal'blocked :: Ed -> IO Bool
-vim_handle_signal'blocked ed' = rdB (edSeg ed') 96128
+vim_handle_signal'blocked ed' = rdB (edSeg ed') 96016
 {-# INLINE vim_handle_signal'blocked #-}
 set'vim_handle_signal'blocked :: Ed -> Bool -> IO ()
-set'vim_handle_signal'blocked ed' = wrB (edSeg ed') 96128
+set'vim_handle_signal'blocked ed' = wrB (edSeg ed') 96016
 {-# INLINE set'vim_handle_signal'blocked #-}
 addr'get_char_class'char_class_tab :: Ed -> Ptr a
-addr'get_char_class'char_class_tab ed' = pAdd (edSeg ed') 96136
+addr'get_char_class'char_class_tab ed' = pAdd (edSeg ed') 96024
 {-# INLINE addr'get_char_class'char_class_tab #-}
 get_char_class'last_entry :: Ed -> IO (Ptr Keyvalue_T)
-get_char_class'last_entry ed' = rdP (edSeg ed') 96592
+get_char_class'last_entry ed' = rdP (edSeg ed') 96480
 {-# INLINE get_char_class'last_entry #-}
 set'get_char_class'last_entry :: Ed -> (Ptr Keyvalue_T) -> IO ()
-set'get_char_class'last_entry ed' = wrP (edSeg ed') 96592
+set'get_char_class'last_entry ed' = wrP (edSeg ed') 96480
 {-# INLINE set'get_char_class'last_entry #-}
 init_class_tab'done :: Ed -> IO Bool
-init_class_tab'done ed' = rdB (edSeg ed') 96600
+init_class_tab'done ed' = rdB (edSeg ed') 96488
 {-# INLINE init_class_tab'done #-}
 set'init_class_tab'done :: Ed -> Bool -> IO ()
-set'init_class_tab'done ed' = wrB (edSeg ed') 96600
+set'init_class_tab'done ed' = wrB (edSeg ed') 96488
 {-# INLINE set'init_class_tab'done #-}
 peekchr'after_slash :: Ed -> IO Int32
-peekchr'after_slash ed' = rdI32 (edSeg ed') 96604
+peekchr'after_slash ed' = rdI32 (edSeg ed') 96492
 {-# INLINE peekchr'after_slash #-}
 set'peekchr'after_slash :: Ed -> Int32 -> IO ()
-set'peekchr'after_slash ed' = wrI32 (edSeg ed') 96604
+set'peekchr'after_slash ed' = wrI32 (edSeg ed') 96492
 {-# INLINE set'peekchr'after_slash #-}
 do_record'regname :: Ed -> IO Int32
-do_record'regname ed' = rdI32 (edSeg ed') 96608
+do_record'regname ed' = rdI32 (edSeg ed') 96496
 {-# INLINE do_record'regname #-}
 set'do_record'regname :: Ed -> Int32 -> IO ()
-set'do_record'regname ed' = wrI32 (edSeg ed') 96608
+set'do_record'regname ed' = wrI32 (edSeg ed') 96496
 {-# INLINE set'do_record'regname #-}
 screenalloc'entered :: Ed -> IO Bool
-screenalloc'entered ed' = rdB (edSeg ed') 96612
+screenalloc'entered ed' = rdB (edSeg ed') 96500
 {-# INLINE screenalloc'entered #-}
 set'screenalloc'entered :: Ed -> Bool -> IO ()
-set'screenalloc'entered ed' = wrB (edSeg ed') 96612
+set'screenalloc'entered ed' = wrB (edSeg ed') 96500
 {-# INLINE set'screenalloc'entered #-}
 screenalloc'done_outofmem_msg :: Ed -> IO Bool
-screenalloc'done_outofmem_msg ed' = rdB (edSeg ed') 96613
+screenalloc'done_outofmem_msg ed' = rdB (edSeg ed') 96501
 {-# INLINE screenalloc'done_outofmem_msg #-}
 set'screenalloc'done_outofmem_msg :: Ed -> Bool -> IO ()
-set'screenalloc'done_outofmem_msg ed' = wrB (edSeg ed') 96613
+set'screenalloc'done_outofmem_msg ed' = wrB (edSeg ed') 96501
 {-# INLINE set'screenalloc'done_outofmem_msg #-}
 addr'findmatchlimit'pos :: Ed -> Ptr a
-addr'findmatchlimit'pos ed' = pAdd (edSeg ed') 96616
+addr'findmatchlimit'pos ed' = pAdd (edSeg ed') 96504
 {-# INLINE addr'findmatchlimit'pos #-}
 addr'update_search_stat'lastpos :: Ed -> Ptr a
-addr'update_search_stat'lastpos ed' = pAdd (edSeg ed') 96632
+addr'update_search_stat'lastpos ed' = pAdd (edSeg ed') 96520
 {-# INLINE addr'update_search_stat'lastpos #-}
 update_search_stat'cur :: Ed -> IO Int32
-update_search_stat'cur ed' = rdI32 (edSeg ed') 96648
+update_search_stat'cur ed' = rdI32 (edSeg ed') 96536
 {-# INLINE update_search_stat'cur #-}
 set'update_search_stat'cur :: Ed -> Int32 -> IO ()
-set'update_search_stat'cur ed' = wrI32 (edSeg ed') 96648
+set'update_search_stat'cur ed' = wrI32 (edSeg ed') 96536
 {-# INLINE set'update_search_stat'cur #-}
 update_search_stat'cnt :: Ed -> IO Int32
-update_search_stat'cnt ed' = rdI32 (edSeg ed') 96652
+update_search_stat'cnt ed' = rdI32 (edSeg ed') 96540
 {-# INLINE update_search_stat'cnt #-}
 set'update_search_stat'cnt :: Ed -> Int32 -> IO ()
-set'update_search_stat'cnt ed' = wrI32 (edSeg ed') 96652
+set'update_search_stat'cnt ed' = wrI32 (edSeg ed') 96540
 {-# INLINE set'update_search_stat'cnt #-}
 update_search_stat'exact_match :: Ed -> IO Bool
-update_search_stat'exact_match ed' = rdB (edSeg ed') 96656
+update_search_stat'exact_match ed' = rdB (edSeg ed') 96544
 {-# INLINE update_search_stat'exact_match #-}
 set'update_search_stat'exact_match :: Ed -> Bool -> IO ()
-set'update_search_stat'exact_match ed' = wrB (edSeg ed') 96656
+set'update_search_stat'exact_match ed' = wrB (edSeg ed') 96544
 {-# INLINE set'update_search_stat'exact_match #-}
 update_search_stat'incomplete :: Ed -> IO Int32
-update_search_stat'incomplete ed' = rdI32 (edSeg ed') 96660
+update_search_stat'incomplete ed' = rdI32 (edSeg ed') 96548
 {-# INLINE update_search_stat'incomplete #-}
 set'update_search_stat'incomplete :: Ed -> Int32 -> IO ()
-set'update_search_stat'incomplete ed' = wrI32 (edSeg ed') 96660
+set'update_search_stat'incomplete ed' = wrI32 (edSeg ed') 96548
 {-# INLINE set'update_search_stat'incomplete #-}
 update_search_stat'last_maxcount :: Ed -> IO Int32
-update_search_stat'last_maxcount ed' = rdI32 (edSeg ed') 96664
+update_search_stat'last_maxcount ed' = rdI32 (edSeg ed') 96552
 {-# INLINE update_search_stat'last_maxcount #-}
 set'update_search_stat'last_maxcount :: Ed -> Int32 -> IO ()
-set'update_search_stat'last_maxcount ed' = wrI32 (edSeg ed') 96664
+set'update_search_stat'last_maxcount ed' = wrI32 (edSeg ed') 96552
 {-# INLINE set'update_search_stat'last_maxcount #-}
 update_search_stat'chgtick :: Ed -> IO Int32
-update_search_stat'chgtick ed' = rdI32 (edSeg ed') 96668
+update_search_stat'chgtick ed' = rdI32 (edSeg ed') 96556
 {-# INLINE update_search_stat'chgtick #-}
 set'update_search_stat'chgtick :: Ed -> Int32 -> IO ()
-set'update_search_stat'chgtick ed' = wrI32 (edSeg ed') 96668
+set'update_search_stat'chgtick ed' = wrI32 (edSeg ed') 96556
 {-# INLINE set'update_search_stat'chgtick #-}
 update_search_stat'lastpat :: Ed -> IO (Ptr Char_u)
-update_search_stat'lastpat ed' = rdP (edSeg ed') 96672
+update_search_stat'lastpat ed' = rdP (edSeg ed') 96560
 {-# INLINE update_search_stat'lastpat #-}
 set'update_search_stat'lastpat :: Ed -> (Ptr Char_u) -> IO ()
-set'update_search_stat'lastpat ed' = wrP (edSeg ed') 96672
+set'update_search_stat'lastpat ed' = wrP (edSeg ed') 96560
 {-# INLINE set'update_search_stat'lastpat #-}
 update_search_stat'lastpatlen :: Ed -> IO Usize
-update_search_stat'lastpatlen ed' = rdW64 (edSeg ed') 96680
+update_search_stat'lastpatlen ed' = rdW64 (edSeg ed') 96568
 {-# INLINE update_search_stat'lastpatlen #-}
 set'update_search_stat'lastpatlen :: Ed -> Usize -> IO ()
-set'update_search_stat'lastpatlen ed' = wrW64 (edSeg ed') 96680
+set'update_search_stat'lastpatlen ed' = wrW64 (edSeg ed') 96568
 {-# INLINE set'update_search_stat'lastpatlen #-}
 update_search_stat'lbuf :: Ed -> IO (Ptr Buf_T)
-update_search_stat'lbuf ed' = rdP (edSeg ed') 96688
+update_search_stat'lbuf ed' = rdP (edSeg ed') 96576
 {-# INLINE update_search_stat'lbuf #-}
 set'update_search_stat'lbuf :: Ed -> (Ptr Buf_T) -> IO ()
-set'update_search_stat'lbuf ed' = wrP (edSeg ed') 96688
+set'update_search_stat'lbuf ed' = wrP (edSeg ed') 96576
 {-# INLINE set'update_search_stat'lbuf #-}
 addr'tltoa'buf :: Ed -> Ptr a
-addr'tltoa'buf ed' = pAdd (edSeg ed') 96696
+addr'tltoa'buf ed' = pAdd (edSeg ed') 96584
 {-# INLINE addr'tltoa'buf #-}
 addr'tgoto'buf :: Ed -> Ptr a
-addr'tgoto'buf ed' = pAdd (edSeg ed') 96712
+addr'tgoto'buf ed' = pAdd (edSeg ed') 96600
 {-# INLINE addr'tgoto'buf #-}
 win_new_shellsize'old_Rows :: Ed -> IO Int32
-win_new_shellsize'old_Rows ed' = rdI32 (edSeg ed') 96744
+win_new_shellsize'old_Rows ed' = rdI32 (edSeg ed') 96632
 {-# INLINE win_new_shellsize'old_Rows #-}
 set'win_new_shellsize'old_Rows :: Ed -> Int32 -> IO ()
-set'win_new_shellsize'old_Rows ed' = wrI32 (edSeg ed') 96744
+set'win_new_shellsize'old_Rows ed' = wrI32 (edSeg ed') 96632
 {-# INLINE set'win_new_shellsize'old_Rows #-}
 win_new_shellsize'old_Columns :: Ed -> IO Int32
-win_new_shellsize'old_Columns ed' = rdI32 (edSeg ed') 96748
+win_new_shellsize'old_Columns ed' = rdI32 (edSeg ed') 96636
 {-# INLINE win_new_shellsize'old_Columns #-}
 set'win_new_shellsize'old_Columns :: Ed -> Int32 -> IO ()
-set'win_new_shellsize'old_Columns ed' = wrI32 (edSeg ed') 96748
+set'win_new_shellsize'old_Columns ed' = wrI32 (edSeg ed') 96636
 {-# INLINE set'win_new_shellsize'old_Columns #-}
 win_new_shellsize'old_coloff :: Ed -> IO Int32
-win_new_shellsize'old_coloff ed' = rdI32 (edSeg ed') 96752
+win_new_shellsize'old_coloff ed' = rdI32 (edSeg ed') 96640
 {-# INLINE win_new_shellsize'old_coloff #-}
 set'win_new_shellsize'old_coloff :: Ed -> Int32 -> IO ()
-set'win_new_shellsize'old_coloff ed' = wrI32 (edSeg ed') 96752
+set'win_new_shellsize'old_coloff ed' = wrI32 (edSeg ed') 96640
 {-# INLINE set'win_new_shellsize'old_coloff #-}
 set_shellsize'busy :: Ed -> IO Bool
-set_shellsize'busy ed' = rdB (edSeg ed') 96756
+set_shellsize'busy ed' = rdB (edSeg ed') 96644
 {-# INLINE set_shellsize'busy #-}
 set'set_shellsize'busy :: Ed -> Bool -> IO ()
-set'set_shellsize'busy ed' = wrB (edSeg ed') 96756
+set'set_shellsize'busy ed' = wrB (edSeg ed') 96644
 {-# INLINE set'set_shellsize'busy #-}
 set_shellsize'do_run :: Ed -> IO Bool
-set_shellsize'do_run ed' = rdB (edSeg ed') 96757
+set_shellsize'do_run ed' = rdB (edSeg ed') 96645
 {-# INLINE set_shellsize'do_run #-}
 set'set_shellsize'do_run :: Ed -> Bool -> IO ()
-set'set_shellsize'do_run ed' = wrB (edSeg ed') 96757
+set'set_shellsize'do_run ed' = wrB (edSeg ed') 96645
 {-# INLINE set'set_shellsize'do_run #-}
 ui_breakcheck_force'recursive :: Ed -> IO Bool
-ui_breakcheck_force'recursive ed' = rdB (edSeg ed') 96758
+ui_breakcheck_force'recursive ed' = rdB (edSeg ed') 96646
 {-# INLINE ui_breakcheck_force'recursive #-}
 set'ui_breakcheck_force'recursive :: Ed -> Bool -> IO ()
-set'ui_breakcheck_force'recursive ed' = wrB (edSeg ed') 96758
+set'ui_breakcheck_force'recursive ed' = wrB (edSeg ed') 96646
 {-# INLINE set'ui_breakcheck_force'recursive #-}
 ui_focus_change'last_time :: Ed -> IO Time_T
-ui_focus_change'last_time ed' = rdI64 (edSeg ed') 96760
+ui_focus_change'last_time ed' = rdI64 (edSeg ed') 96648
 {-# INLINE ui_focus_change'last_time #-}
 set'ui_focus_change'last_time :: Ed -> Time_T -> IO ()
-set'ui_focus_change'last_time ed' = wrI64 (edSeg ed') 96760
+set'ui_focus_change'last_time ed' = wrI64 (edSeg ed') 96648
 {-# INLINE set'ui_focus_change'last_time #-}
 addr'uc_fun_cmd'fcmd :: Ed -> Ptr a
-addr'uc_fun_cmd'fcmd ed' = pAdd (edSeg ed') 96768
+addr'uc_fun_cmd'fcmd ed' = pAdd (edSeg ed') 96656
 {-# INLINE addr'uc_fun_cmd'fcmd #-}
 may_trigger_deferred_events'recursive :: Ed -> IO Bool
-may_trigger_deferred_events'recursive ed' = rdB (edSeg ed') 96795
+may_trigger_deferred_events'recursive ed' = rdB (edSeg ed') 96683
 {-# INLINE may_trigger_deferred_events'recursive #-}
 set'may_trigger_deferred_events'recursive :: Ed -> Bool -> IO ()
-set'may_trigger_deferred_events'recursive ed' = wrB (edSeg ed') 96795
+set'may_trigger_deferred_events'recursive ed' = wrB (edSeg ed') 96683
 {-# INLINE set'may_trigger_deferred_events'recursive #-}
 
 -- * The members' offsets, as the C lays them out

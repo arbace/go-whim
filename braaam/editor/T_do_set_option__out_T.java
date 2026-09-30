@@ -6,7 +6,7 @@ import whim.rt.*;
 
 final class T_do_set_option__out_T implements Struct<T_do_set_option__out_T> {
     BytePtr r__;
-    int did_show;
+    boolean did_show;
 
     @Override
     public T_do_set_option__out_T set(T_do_set_option__out_T o) {

@@ -20,7 +20,7 @@ final class S_regengine_S implements Struct<S_regengine_S> {
     final int[] brace_count = new int[10];
     BytePtr reg_tofree;
     int reg_tofreelen;
-    int reg_toolong;
+    boolean reg_toolong;
     final T_string_T alone = new T_string_T();
     boolean failed;
 

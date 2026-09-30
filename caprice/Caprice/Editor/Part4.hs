@@ -609,7 +609,7 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
                   j'84 save_do_all8 save_do_ask8
             else j'84 save_do_all8 save_do_ask8
         else do
-          set'global_need_beginline ed' TRUE
+          set'global_need_beginline ed' True
           j'86 save_do_all8 save_do_ask8
     j'84 !save_do_all9 !save_do_ask9 = do
       r'219 <- rdI32 (addr'ex_substitute'subflags ed') subflags_T'do_count
@@ -745,11 +745,11 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
           j'112 lnum7 save_do_all16 save_do_ask16 sub16 got_quit20 got_match22 save_State2 first_line20 last_line20 old_line_count20 line2'8 nmatch6 sub_firstline_string7 sub_firstline_length8 endcolumn24 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21 start_nsubs22 found6 found_count6 copycol5 matchcol7 prev_matchcol5 new_start_string5 new_start_length5 new_start_size5 did_sub5 nmatch_tl5 do_again2 skip_match5 sub_firstlnum6 did_split5 orig_line_string1 save_p_lz1 save_RedrawingDisabled1
         else j'112 lnum7 save_do_all16 save_do_ask16 sub16 got_quit20 got_match22 save_State2 first_line20 last_line20 old_line_count20 line2'8 nmatch6 sub_firstline_string7 sub_firstline_length8 endcolumn24 old_cursor_lnum21 old_cursor_col21 old_cursor_coladd21 start_nsubs22 found6 found_count6 copycol5 matchcol7 prev_matchcol5 new_start_string5 new_start_length5 new_start_size5 did_sub5 nmatch_tl5 do_again2 skip_match5 sub_firstlnum6 did_split5 orig_line_string1 save_p_lz1 save_RedrawingDisabled1
     j'112 !lnum8 !save_do_all17 !save_do_ask17 !sub17 !got_quit21 !got_match23 !save_State3 !first_line21 !last_line21 !old_line_count21 !line2'9 !nmatch7 !sub_firstline_string8 !sub_firstline_length9 !endcolumn25 !old_cursor_lnum22 !old_cursor_col22 !old_cursor_coladd22 !start_nsubs23 !found7 !found_count7 !copycol6 !matchcol8 !prev_matchcol6 !new_start_string6 !new_start_length6 !new_start_size6 !did_sub6 !nmatch_tl6 !do_again3 !skip_match6 !sub_firstlnum7 !did_split6 !orig_line_string2 !save_p_lz2 !save_RedrawingDisabled2 = do
-      set'highlight_match ed' TRUE
+      set'highlight_match ed' True
       update_topline ed'
       validate_cursor ed'
       _ <- update_screen ed' UPD_SOME_VALID
-      set'highlight_match ed' FALSE
+      set'highlight_match ed' False
       redraw_later ed' UPD_SOME_VALID
       r'272 <- msg_row ed'
       r'273 <- c'Rows ed'
@@ -763,14 +763,14 @@ ex_substitute ed' eap = frame 372 $ \fr' -> do
       r'274 <- msg_scroll ed'
       let !i2 = fromIntegral r'274 :: Int64
       set'msg_scroll ed' 0
-      set'msg_no_more ed' TRUE
+      set'msg_no_more ed' True
       r'275 <- c'IObuff ed'
       r'276 <- iobuff_room ed'
       _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'275)) r'276 (Ptr "replace with %s (y/n/a/q/l/^E/^Y)?\0"#) [VP (castPtr sub18)]
       r'278 <- iobuff_or ed' (Ptr "replace with %s (y/n/a/q/l/^E/^Y)?\0"#)
       r'279 <- rdI32 (addr'highlight_attr ed') 68
       _ <- msg_attr ed' r'278 r'279
-      set'msg_no_more ed' FALSE
+      set'msg_no_more ed' False
       set'msg_scroll ed' (fromIntegral i2 :: Int32)
       showruler ed' True
       r'281 <- msg_row ed'
@@ -1197,7 +1197,7 @@ do_sub_msg ed' count_only = do
         else pure True
   r'19 <- sub_nsubs ed'
   r'20 <- p_report ed'
-  r'26 <- if (r'19 > r'20) then (do { r'21 <- c'KeyTyped ed'; r'23 <- if (r'21 /= 0) then pure True else (do { r'22 <- sub_nlines ed'; pure (r'22 > 1) }); if r'23 then pure True else (do { r'24 <- p_report ed'; pure (r'24 < 1) }) }) else pure False
+  r'26 <- if (r'19 > r'20) then (do { r'21 <- c'KeyTyped ed'; r'23 <- if r'21 then pure True else (do { r'22 <- sub_nlines ed'; pure (r'22 > 1) }); if r'23 then pure True else (do { r'24 <- p_report ed'; pure (r'24 < 1) }) }) else pure False
   r'28 <- if (r'26 || (count_only /= 0)) then (messaging ed') else pure False
   if r'28
     then do
@@ -1408,7 +1408,7 @@ global_exe ed' cmd = do
         else do
           set'global_busy ed' 0
           r'5 <- global_need_beginline ed'
-          if r'5 /= 0
+          if r'5
             then do
               beginline ed' 5
               j'7 old_lcount2 old_buf2
@@ -1439,7 +1439,7 @@ global_exe ed' cmd = do
   set'msg_didout ed' TRUE
   set'sub_nsubs ed' 0
   set'sub_nlines ed' 0
-  set'global_need_beginline ed' FALSE
+  set'global_need_beginline ed' False
   set'global_busy ed' 1
   r'15 <- curbuf ed'
   r'16 <- rdI64 r'15 (buf_T'b_ml + memline_T'ml_line_count)
@@ -1635,7 +1635,7 @@ ex_operators ed' eap = frame 120 $ \fr' -> do
   let
     j'2 = do
       r'1 <- c'VIsual_active ed'
-      if r'1 /= 0
+      if r'1
         then do
           end_visual_mode ed'
           j'4
@@ -1973,7 +1973,7 @@ redraw_cmd ed' clear = do
   set'p_lz ed' FALSE
   validate_cursor ed'
   update_topline ed'
-  r'5 <- if clear then pure (UPD_CLEAR :: Int32) else (do { r'4 <- c'VIsual_active ed'; pure (if (r'4 /= 0) then (UPD_INVERTED :: Int32) else (0 :: Int32)) })
+  r'5 <- if clear then pure (UPD_CLEAR :: Int32) else (do { r'4 <- c'VIsual_active ed'; pure (if r'4 then (UPD_INVERTED :: Int32) else (0 :: Int32)) })
   _ <- update_screen ed' r'5
   r'7 <- c'State ed'
   if (r'7 .&. MODE_CMDLINE) == 0
@@ -1986,7 +1986,7 @@ ex_redrawstatus :: Ed -> Ptr Exarg_T -> IO ()
 ex_redrawstatus ed' eap = do
   let
     j'3 = do
-      set'redraw_vseps ed' TRUE
+      set'redraw_vseps ed' True
       r'1 <- msg_scrolled ed'
       r'3 <- if (r'1 /= 0) then (do { r'2 <- c'State ed'; pure ((r'2 .&. MODE_CMDLINE) /= 0) }) else pure False
       if r'3
@@ -2003,7 +2003,7 @@ ex_redrawstatus ed' eap = do
               j'7 r'4 r'5
             else do
               r'7 <- c'VIsual_active ed'
-              _ <- update_screen ed' (if (r'7 /= 0) then (UPD_INVERTED :: Int32) else (0 :: Int32))
+              _ <- update_screen ed' (if r'7 then (UPD_INVERTED :: Int32) else (0 :: Int32))
               j'7 r'4 r'5
     j'7 !save_RedrawingDisabled1 !save_p_lz1 = do
       set'c'RedrawingDisabled ed' save_RedrawingDisabled1
@@ -2177,7 +2177,7 @@ c'CancelRedo ed' = do
         then loop'2
         else pure ()
   r'2 <- block_redo ed'
-  if r'2 /= 0
+  if r'2
     then pure ()
     else do
       free_buff (addr'redobuff ed')
@@ -2207,7 +2207,7 @@ c'AppendToRedobuffSpec ed' s = do
               loop'2 r'8 r'7 r'8
         else pure ()
   r'9 <- block_redo ed'
-  if r'9 /= 0
+  if r'9
     then pure ()
     else loop'2 s (0 :: Int32) nullPtr
 
@@ -2668,7 +2668,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
   let
     loop'0 !c1 !ctrl_w1 !need_flushbuf1 !out___r__1 !out___ctrl_w1 !out___need_flushbuf1 = do
       r'1 <- c'VIsual_active ed'
-      r'3 <- if (r'1 /= 0) then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
+      r'3 <- if r'1 then (do { r'2 <- c'VIsual_select ed'; pure (r'2 /= 0) }) else pure False
       if not r'3
         then loop'2 c1 ctrl_w1 need_flushbuf1 out___r__1 out___ctrl_w1 out___need_flushbuf1
         else j'4 c1 ctrl_w1 need_flushbuf1 out___r__1 out___ctrl_w1 out___need_flushbuf1
@@ -2783,7 +2783,7 @@ normal_cmd_get_count ed' cap c _toplevel _set_prevcount ctrl_w need_flushbuf = d
 
 normal_cmd_needs_more_chars :: Ed -> Ptr Cmdarg_T -> Short_u -> IO Bool
 normal_cmd_needs_more_chars ed' cap cmd_flags = do
-  if (((fromIntegral cmd_flags :: Int32) .&. NV_NCH) /= 0) then (do { r'3 <- if (((fromIntegral cmd_flags :: Int32) .&. 3) == 3) then (do { r'1 <- rdP cap cmdarg_T'oap; r'2 <- rdI32 r'1 oparg_T'op_type; pure (r'2 == OP_NOP) }) else pure False; r'12 <- if (r'3 || (((fromIntegral cmd_flags :: Int32) .&. 5) == 5)) then pure True else (do { r'4 <- rdI32 cap cmdarg_T'cmdchar; r'7 <- if (r'4 == (ch 'q')) then (do { r'5 <- rdP cap cmdarg_T'oap; r'6 <- rdI32 r'5 oparg_T'op_type; pure (r'6 == OP_NOP) }) else pure False; r'9 <- if r'7 then (do { r'8 <- reg_recording ed'; pure (r'8 == 0) }) else pure False; if r'9 then (do { r'10 <- reg_executing ed'; pure (r'10 == 0) }) else pure False }); if r'12 then pure True else (do { r'13 <- rdI32 cap cmdarg_T'cmdchar; r'15 <- if (r'13 == (ch 'a')) then pure True else (do { r'14 <- rdI32 cap cmdarg_T'cmdchar; pure (r'14 == (ch 'i')) }); if r'15 then (do { r'16 <- rdP cap cmdarg_T'oap; r'17 <- rdI32 r'16 oparg_T'op_type; if (r'17 /= OP_NOP) then pure True else (do { r'18 <- c'VIsual_active ed'; pure (r'18 /= 0) }) }) else pure False }) }) else pure False
+  if (((fromIntegral cmd_flags :: Int32) .&. NV_NCH) /= 0) then (do { r'3 <- if (((fromIntegral cmd_flags :: Int32) .&. 3) == 3) then (do { r'1 <- rdP cap cmdarg_T'oap; r'2 <- rdI32 r'1 oparg_T'op_type; pure (r'2 == OP_NOP) }) else pure False; r'12 <- if (r'3 || (((fromIntegral cmd_flags :: Int32) .&. 5) == 5)) then pure True else (do { r'4 <- rdI32 cap cmdarg_T'cmdchar; r'7 <- if (r'4 == (ch 'q')) then (do { r'5 <- rdP cap cmdarg_T'oap; r'6 <- rdI32 r'5 oparg_T'op_type; pure (r'6 == OP_NOP) }) else pure False; r'9 <- if r'7 then (do { r'8 <- reg_recording ed'; pure (r'8 == 0) }) else pure False; if r'9 then (do { r'10 <- reg_executing ed'; pure (r'10 == 0) }) else pure False }); if r'12 then pure True else (do { r'13 <- rdI32 cap cmdarg_T'cmdchar; r'15 <- if (r'13 == (ch 'a')) then pure True else (do { r'14 <- rdI32 cap cmdarg_T'cmdchar; pure (r'14 == (ch 'i')) }); if r'15 then (do { r'16 <- rdP cap cmdarg_T'oap; r'17 <- rdI32 r'16 oparg_T'op_type; if (r'17 /= OP_NOP) then pure True else (c'VIsual_active ed') }) else pure False }) }) else pure False
 
 normal_cmd_get_more_chars :: Ed -> Int32 -> Ptr Cmdarg_T -> Int32 -> IO (Int32, Int32)
 normal_cmd_get_more_chars ed' idx_arg cap need_flushbuf = do
@@ -2960,19 +2960,19 @@ normal_cmd_need_to_wait_for_msg :: Ed -> Ptr Cmdarg_T -> Ptr Pos_T -> IO Bool
 normal_cmd_need_to_wait_for_msg ed' cap old_pos = do
   r'1 <- p_smd ed'
   r'3 <- if (r'1 /= 0) then (do { r'2 <- msg_silent ed'; pure (r'2 == 0) }) else pure False
-  r'15 <- if r'3 then (do { r'4 <- restart_edit ed'; if (r'4 /= 0) then pure True else (do { r'5 <- c'VIsual_active ed'; r'9 <- if (r'5 /= 0) then (do { r'6 <- rdI64 old_pos pos_T'lnum; r'7 <- curwin ed'; r'8 <- rdI64 r'7 (win_T'w_cursor + pos_T'lnum); pure (r'6 == r'8) }) else pure False; if r'9 then (do { r'10 <- rdI32 old_pos pos_T'col; r'11 <- curwin ed'; r'12 <- rdI32 r'11 (win_T'w_cursor + pos_T'col); pure (r'10 == r'12) }) else pure False }) }) else pure False
-  r'19 <- if r'15 then (do { r'16 <- clear_cmdline ed'; if (r'16 /= 0) then pure True else (do { r'17 <- redraw_cmdline ed'; pure (r'17 /= 0) }) }) else pure False
-  r'25 <- if r'19 then (do { r'20 <- msg_didout ed'; if (r'20 /= 0) then pure True else (do { r'21 <- msg_didany ed'; if (r'21 /= 0) then (do { r'22 <- msg_scroll ed'; pure (r'22 /= 0) }) else pure False }) }) else pure False
-  r'27 <- if r'25 then (do { r'26 <- msg_nowait ed'; pure (not (r'26 /= 0)) }) else pure False
-  r'29 <- if r'27 then (do { r'28 <- c'KeyTyped ed'; pure (r'28 /= 0) }) else pure False
-  r'37 <- if r'29 then pure True else (do { r'30 <- restart_edit ed'; r'32 <- if (r'30 /= 0) then (do { r'31 <- c'VIsual_active ed'; pure (not (r'31 /= 0)) }) else pure False; if r'32 then (do { r'33 <- msg_scroll ed'; if (r'33 /= 0) then pure True else (do { r'34 <- emsg_on_display ed'; pure (r'34 /= 0) }) }) else pure False })
+  r'15 <- if r'3 then (do { r'4 <- restart_edit ed'; if (r'4 /= 0) then pure True else (do { r'5 <- c'VIsual_active ed'; r'9 <- if r'5 then (do { r'6 <- rdI64 old_pos pos_T'lnum; r'7 <- curwin ed'; r'8 <- rdI64 r'7 (win_T'w_cursor + pos_T'lnum); pure (r'6 == r'8) }) else pure False; if r'9 then (do { r'10 <- rdI32 old_pos pos_T'col; r'11 <- curwin ed'; r'12 <- rdI32 r'11 (win_T'w_cursor + pos_T'col); pure (r'10 == r'12) }) else pure False }) }) else pure False
+  r'19 <- if r'15 then (do { r'16 <- clear_cmdline ed'; if r'16 then pure True else (do { r'17 <- redraw_cmdline ed'; pure (r'17 /= 0) }) }) else pure False
+  r'25 <- if r'19 then (do { r'20 <- msg_didout ed'; if (r'20 /= 0) then pure True else (do { r'21 <- msg_didany ed'; if r'21 then (do { r'22 <- msg_scroll ed'; pure (r'22 /= 0) }) else pure False }) }) else pure False
+  r'27 <- if r'25 then (do { r'26 <- msg_nowait ed'; pure (not r'26) }) else pure False
+  r'29 <- if r'27 then (c'KeyTyped ed') else pure False
+  r'37 <- if r'29 then pure True else (do { r'30 <- restart_edit ed'; r'32 <- if (r'30 /= 0) then (do { r'31 <- c'VIsual_active ed'; pure (not r'31) }) else pure False; if r'32 then (do { r'33 <- msg_scroll ed'; if (r'33 /= 0) then pure True else (emsg_on_display ed') }) else pure False })
   r'40 <- if r'37 then (do { r'38 <- rdP cap cmdarg_T'oap; r'39 <- rdI32 r'38 oparg_T'regname; pure (r'39 == 0) }) else pure False
   r'42 <- if r'40 then (do { r'41 <- rdI32 cap cmdarg_T'retval; pure (not ((r'41 .&. CA_COMMAND_BUSY) /= 0)) }) else pure False
   r'44 <- if r'42 then (stuff_empty ed') else pure False
   r'46 <- if r'44 then (typebuf_typed ed') else pure False
   r'48 <- if r'46 then (do { r'47 <- emsg_silent ed'; pure (r'47 == 0) }) else pure False
-  r'50 <- if r'48 then (do { r'49 <- in_assert_fails ed'; pure (not (r'49 /= 0)) }) else pure False
-  r'52 <- if r'50 then (do { r'51 <- did_wait_return ed'; pure (not (r'51 /= 0)) }) else pure False
+  r'50 <- if r'48 then (do { r'49 <- in_assert_fails ed'; pure (not r'49) }) else pure False
+  r'52 <- if r'50 then (do { r'51 <- did_wait_return ed'; pure (not r'51) }) else pure False
   if r'52 then (do { r'53 <- rdP cap cmdarg_T'oap; r'54 <- rdI32 r'53 oparg_T'op_type; pure (r'54 == OP_NOP) }) else pure False
 
 normal_cmd_wait_for_msg :: Ed -> IO ()
@@ -2981,7 +2981,7 @@ normal_cmd_wait_for_msg ed' = do
     j'2 !save_State1 = do
       r'1 <- must_redraw ed'
       r'3 <- if (r'1 /= 0) then (do { r'2 <- keep_msg ed'; pure (r'2 /= nullPtr) }) else pure False
-      r'5 <- if r'3 then (do { r'4 <- emsg_on_display ed'; pure (not (r'4 /= 0)) }) else pure False
+      r'5 <- if r'3 then (do { r'4 <- emsg_on_display ed'; pure (not r'4) }) else pure False
       if r'5
         then do
           r'6 <- keep_msg ed'
@@ -3000,7 +3000,7 @@ normal_cmd_wait_for_msg ed' = do
       cursor_on ed'
       out_flush ed'
       r'12 <- msg_scroll ed'
-      r'14 <- if (r'12 /= 0) then pure True else (do { r'13 <- emsg_on_display ed'; pure (r'13 /= 0) })
+      r'14 <- if (r'12 /= 0) then pure True else (emsg_on_display ed')
       if r'14
         then do
           ui_delay ed' 1003 True
@@ -3010,7 +3010,7 @@ normal_cmd_wait_for_msg ed' = do
       ui_delay ed' 3003 False
       set'c'State ed' save_State3
       set'msg_scroll ed' FALSE
-      set'emsg_on_display ed' FALSE
+      set'emsg_on_display ed' False
       pure ()
   r'15 <- c'State ed'
   r'16 <- restart_edit ed'
@@ -3047,7 +3047,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           j'8 r'7 ctrl_w2 old_col2 set_prevcount2 save_did_cursorhold2 normal_cmd_get_count__o_r__2 normal_cmd_get_count__o_ctrl_w2 normal_cmd_get_count__o_need_flushbuf2 normal_cmd_get_more_chars__o_r__2 normal_cmd_get_more_chars__o_need_flushbuf2
         else do
           r'9 <- normal_cmd'old_mapped_len ed'
-          r'13 <- if (r'9 /= 0) then pure True else (do { r'10 <- c'VIsual_active ed'; if ((r'10 /= 0) && (r'6 == 0)) then (do { r'11 <- typebuf_maplen ed'; pure (r'11 > 0) }) else pure False })
+          r'13 <- if (r'9 /= 0) then pure True else (do { r'10 <- c'VIsual_active ed'; if (r'10 && (r'6 == 0)) then (do { r'11 <- typebuf_maplen ed'; pure (r'11 > 0) }) else pure False })
           if r'13
             then do
               r'14 <- typebuf_maplen ed'
@@ -3060,7 +3060,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
         else j'10 c1 ctrl_w3 old_col3 set_prevcount3 save_did_cursorhold3 normal_cmd_get_count__o_r__3 normal_cmd_get_count__o_ctrl_w3 normal_cmd_get_count__o_need_flushbuf3 normal_cmd_get_more_chars__o_r__3 normal_cmd_get_more_chars__o_need_flushbuf3
     j'10 !c2 !ctrl_w4 !old_col4 !set_prevcount4 !save_did_cursorhold4 !normal_cmd_get_count__o_r__4 !normal_cmd_get_count__o_ctrl_w4 !normal_cmd_get_count__o_need_flushbuf4 !normal_cmd_get_more_chars__o_r__4 !normal_cmd_get_more_chars__o_need_flushbuf4 = do
       r'15 <- c'VIsual_active ed'
-      r'17 <- if (r'15 /= 0) then (do { r'16 <- c'VIsual_select ed'; pure (r'16 /= 0) }) else pure False
+      r'17 <- if r'15 then (do { r'16 <- c'VIsual_select ed'; pure (r'16 /= 0) }) else pure False
       r'19 <- if r'17 then (do { r'18 <- vim_isprintc ed' c2; pure (((r'18 || (c2 == NL)) || (c2 == CAR)) || (c2 == K_KENTER)) }) else pure False
       if r'19
         then do
@@ -3068,7 +3068,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           r'21 <- vgetc_mod_mask ed'
           r'22 <- ins_char_typebuf ed' r'20 r'21
           r'23 <- c'KeyTyped ed'
-          if r'23 /= 0
+          if r'23
             then do
               ungetchars ed' r'22
               j'13 ctrl_w4 old_col4 set_prevcount4 save_did_cursorhold4 normal_cmd_get_count__o_r__4 normal_cmd_get_count__o_ctrl_w4 normal_cmd_get_count__o_need_flushbuf4 normal_cmd_get_more_chars__o_r__4 normal_cmd_get_more_chars__o_need_flushbuf4
@@ -3080,12 +3080,12 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
         then j'16 (ch 'd' :: Int32) ctrl_w5 old_col5 set_prevcount5 save_did_cursorhold5 normal_cmd_get_count__o_r__5 normal_cmd_get_count__o_ctrl_w5 normal_cmd_get_count__o_need_flushbuf5 normal_cmd_get_more_chars__o_r__5 normal_cmd_get_more_chars__o_need_flushbuf5
         else j'16 (ch 'c' :: Int32) ctrl_w5 old_col5 set_prevcount5 save_did_cursorhold5 normal_cmd_get_count__o_r__5 normal_cmd_get_count__o_ctrl_w5 normal_cmd_get_count__o_need_flushbuf5 normal_cmd_get_more_chars__o_r__5 normal_cmd_get_more_chars__o_need_flushbuf5
     j'16 !c3 !ctrl_w6 !old_col6 !set_prevcount6 !save_did_cursorhold6 !normal_cmd_get_count__o_r__6 !normal_cmd_get_count__o_ctrl_w6 !normal_cmd_get_count__o_need_flushbuf6 !normal_cmd_get_more_chars__o_r__6 !normal_cmd_get_more_chars__o_need_flushbuf6 = do
-      set'msg_nowait ed' TRUE
+      set'msg_nowait ed' True
       set'normal_cmd'old_mapped_len ed' 0
       j'17 c3 ctrl_w6 old_col6 set_prevcount6 save_did_cursorhold6 normal_cmd_get_count__o_r__6 normal_cmd_get_count__o_ctrl_w6 normal_cmd_get_count__o_need_flushbuf6 normal_cmd_get_more_chars__o_r__6 normal_cmd_get_more_chars__o_need_flushbuf6
     j'17 !c4 !ctrl_w7 !old_col7 !set_prevcount7 !save_did_cursorhold7 !normal_cmd_get_count__o_r__7 !normal_cmd_get_count__o_ctrl_w7 !normal_cmd_get_count__o_need_flushbuf7 !normal_cmd_get_more_chars__o_r__7 !normal_cmd_get_more_chars__o_need_flushbuf7 = do
       r'25 <- c'KeyTyped ed'
-      r'27 <- if (r'25 /= 0) then (do { r'26 <- c'KeyStuffed ed'; pure (not (r'26 /= 0)) }) else pure False
+      r'27 <- if r'25 then (do { r'26 <- c'KeyStuffed ed'; pure (not r'26) }) else pure False
       if r'27
         then do
           win_ensure_size ed'
@@ -3117,10 +3117,10 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
             then j'61 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
             else do
               r'37 <- c'VIsual_active ed'
-              if r'37 /= 0
+              if r'37
                 then do
                   r'38 <- km_stopsel ed'
-                  r'40 <- if (r'38 /= 0) then (do { r'39 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral r'33) * 24)) nv_cmd'cmd_flags; pure (((fromIntegral r'39 :: Int32) .&. NV_STS) /= 0) }) else pure False
+                  r'40 <- if r'38 then (do { r'39 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral r'33) * 24)) nv_cmd'cmd_flags; pure (((fromIntegral r'39 :: Int32) .&. NV_STS) /= 0) }) else pure False
                   r'42 <- if r'40 then (do { r'41 <- mod_mask ed'; pure (not ((r'41 .&. MOD_MASK_SHIFT) /= 0)) }) else pure False
                   if r'42
                     then do
@@ -3131,7 +3131,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
                 else j'33 old_col9 need_flushbuf2 r'33 save_did_cursorhold9 normal_cmd_get_count__o_r__9 normal_cmd_get_count__o_ctrl_w9 normal_cmd_get_count__o_need_flushbuf9 normal_cmd_get_more_chars__o_r__9 normal_cmd_get_more_chars__o_need_flushbuf9
     j'28 !old_col10 !need_flushbuf3 !idx1 !save_did_cursorhold10 !normal_cmd_get_count__o_r__10 !normal_cmd_get_count__o_ctrl_w10 !normal_cmd_get_count__o_need_flushbuf10 !normal_cmd_get_more_chars__o_r__10 !normal_cmd_get_more_chars__o_need_flushbuf10 = do
       r'43 <- km_startsel ed'
-      if r'43 /= 0
+      if r'43
         then do
           r'44 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx1) * 24)) nv_cmd'cmd_flags
           if ((fromIntegral r'44 :: Int32) .&. NV_SS) /= 0
@@ -3207,7 +3207,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       r'64 <- curwin ed'
       copyMem (pAdd fr' 72) (pAdd r'64 win_T'w_cursor) 16
       r'65 <- c'VIsual_active ed'
-      r'67 <- if (not (r'65 /= 0)) then (do { r'66 <- km_startsel ed'; pure (r'66 /= 0) }) else pure False
+      r'67 <- if (not r'65) then (km_startsel ed') else pure False
       if r'67
         then do
           r'68 <- rdW16 (pAdd (addr'nv_cmds ed') ((fromIntegral idx6) * 24)) nv_cmd'cmd_flags
@@ -3266,7 +3266,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
           j'61 normal_cmd_get_count__o_r__19 normal_cmd_get_count__o_ctrl_w19 normal_cmd_get_count__o_need_flushbuf19 normal_cmd_get_more_chars__o_r__19 normal_cmd_get_more_chars__o_need_flushbuf19
         else j'61 normal_cmd_get_count__o_r__19 normal_cmd_get_count__o_ctrl_w19 normal_cmd_get_count__o_need_flushbuf19 normal_cmd_get_more_chars__o_r__19 normal_cmd_get_more_chars__o_need_flushbuf19
     j'61 !normal_cmd_get_count__o_r__20 !normal_cmd_get_count__o_ctrl_w20 !normal_cmd_get_count__o_need_flushbuf20 !normal_cmd_get_more_chars__o_r__20 !normal_cmd_get_more_chars__o_need_flushbuf20 = do
-      set'msg_nowait ed' FALSE
+      set'msg_nowait ed' False
       r'89 <- rdI32 oap oparg_T'op_type
       if r'89 == OP_NOP
         then do
@@ -3286,7 +3286,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
       checkpcmark ed'
       mb_adjust_cursor ed'
       r'95 <- rdI32 oap oparg_T'op_type
-      r'103 <- if (r'95 == OP_NOP) then (do { r'96 <- restart_edit ed'; r'98 <- if (r'96 /= 0) then (do { r'97 <- c'VIsual_active ed'; pure (not (r'97 /= 0)) }) else pure False; r'100 <- if r'98 then (do { r'99 <- normal_cmd'old_mapped_len ed'; pure (r'99 == 0) }) else pure False; if r'100 then pure True else (do { r'101 <- restart_VIsual_select ed'; pure (r'101 == 1) }) }) else pure False
+      r'103 <- if (r'95 == OP_NOP) then (do { r'96 <- restart_edit ed'; r'98 <- if (r'96 /= 0) then (do { r'97 <- c'VIsual_active ed'; pure (not r'97) }) else pure False; r'100 <- if r'98 then (do { r'99 <- normal_cmd'old_mapped_len ed'; pure (r'99 == 0) }) else pure False; if r'100 then pure True else (do { r'101 <- restart_VIsual_select ed'; pure (r'101 == 1) }) }) else pure False
       r'105 <- if r'103 then (do { r'104 <- rdI32 fr' cmdarg_T'retval; pure (not ((r'104 .&. CA_COMMAND_BUSY) /= 0)) }) else pure False
       r'107 <- if r'105 then (stuff_empty ed') else pure False
       r'109 <- if r'107 then (do { r'108 <- rdI32 oap oparg_T'regname; pure (r'108 == 0) }) else pure False
@@ -3304,7 +3304,7 @@ normal_cmd ed' oap toplevel = frame 88 $ \fr' -> do
         else j'70 normal_cmd_get_count__o_r__22 normal_cmd_get_count__o_ctrl_w22 normal_cmd_get_count__o_need_flushbuf22 normal_cmd_get_more_chars__o_r__22 normal_cmd_get_more_chars__o_need_flushbuf22
     j'68 !normal_cmd_get_count__o_r__23 !normal_cmd_get_count__o_ctrl_w23 !normal_cmd_get_count__o_need_flushbuf23 !normal_cmd_get_more_chars__o_r__23 !normal_cmd_get_more_chars__o_need_flushbuf23 = do
       r'112 <- restart_edit ed'
-      r'114 <- if (r'112 /= 0) then (do { r'113 <- c'VIsual_active ed'; pure (not (r'113 /= 0)) }) else pure False
+      r'114 <- if (r'112 /= 0) then (do { r'113 <- c'VIsual_active ed'; pure (not r'113) }) else pure False
       r'116 <- if r'114 then (do { r'115 <- normal_cmd'old_mapped_len ed'; pure (r'115 == 0) }) else pure False
       if r'116
         then do
@@ -3493,7 +3493,7 @@ unadjust_for_sel ed' = do
 
 unadjust_for_sel_inner :: Ed -> Ptr Pos_T -> IO Bool
 unadjust_for_sel_inner ed' pp = frame 8 $ \fr' -> do
-  set'c'VIsual_select_exclu_adj ed' FALSE
+  set'c'VIsual_select_exclu_adj ed' False
   r'1 <- rdI32 pp pos_T'coladd
   if r'1 > 0
     then do
@@ -4386,7 +4386,7 @@ op_delete ed' oap = frame 56 $ \fr' -> do
           if r'175 /= 0
             then do
               beginline ed' BL_WHITE
-              set'did_ai ed' TRUE
+              set'did_ai ed' True
               r'176 <- curwin ed'
               r'177 <- rdI32 r'176 (win_T'w_cursor + pos_T'col)
               set'ai_col ed' r'177
@@ -6009,7 +6009,7 @@ op_addsub ed' oap c'Prenum1 g_cmd = frame 72 $ \fr' -> do
       wrI64 fr' pos_T'lnum (r'55 + 1)
       loop'3 change_cnt12 amount9 startpos_lnum10 startpos_col10 startpos_coladd10
   r'56 <- c'VIsual_active ed'
-  if not (r'56 /= 0)
+  if not r'56
     then do
       r'57 <- curwin ed'
       copyMem fr' (pAdd r'57 win_T'w_cursor) 16
@@ -6052,7 +6052,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
         then j'133 visual1 did_change1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 save_coladd1
         else do
           r'7 <- c'VIsual_active ed'
-          if not (r'7 /= 0)
+          if not r'7
             then do
               if do_bin1
                 then loop'7 length1 r'6 r'3 r'5 do_hex1 do_oct1 do_bin1 do_alpha1 do_unsigned1 do_blank1 blank_unsigned1 negative1 was_positive1 visual1 did_change1 save_cursor_lnum1 save_cursor_col1 save_cursor_coladd1 maxlen1 startpos_lnum1 startpos_col1 startpos_coladd1 save_coladd1
@@ -6132,7 +6132,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
           loop'18 length9 col19 ptr8 linelen8 do_hex9 do_oct9 do_bin9 do_alpha9 do_unsigned9 do_blank9 blank_unsigned9 negative9 was_positive9 visual9 did_change9 save_cursor_lnum9 save_cursor_col9 save_cursor_coladd9 maxlen9 startpos_lnum9 startpos_col9 startpos_coladd9 save_coladd9
         else j'22 length9 col17 ptr8 linelen8 do_hex9 do_oct9 do_bin9 do_alpha9 do_unsigned9 do_blank9 blank_unsigned9 negative9 was_positive9 visual9 did_change9 save_cursor_lnum9 save_cursor_col9 save_cursor_coladd9 maxlen9 startpos_lnum9 startpos_col9 startpos_coladd9 save_coladd9
     j'22 !length10 !col20 !ptr9 !linelen9 !do_hex10 !do_oct10 !do_bin10 !do_alpha10 !do_unsigned10 !do_blank10 !blank_unsigned10 !negative10 !was_positive10 !visual10 !did_change10 !save_cursor_lnum10 !save_cursor_col10 !save_cursor_coladd10 !maxlen10 !startpos_lnum10 !startpos_col10 !startpos_coladd10 !save_coladd10 = do
-      if visual10 /= 0
+      if visual10
         then loop'24 length10 col20 ptr9 linelen9 do_hex10 do_oct10 do_bin10 do_alpha10 do_unsigned10 do_blank10 blank_unsigned10 negative10 was_positive10 visual10 did_change10 save_cursor_lnum10 save_cursor_col10 save_cursor_coladd10 maxlen10 startpos_lnum10 startpos_col10 startpos_coladd10 save_coladd10
         else j'30 length10 col20 ptr9 linelen9 do_hex10 do_oct10 do_bin10 do_alpha10 do_unsigned10 do_blank10 blank_unsigned10 negative10 was_positive10 visual10 did_change10 save_cursor_lnum10 save_cursor_col10 save_cursor_coladd10 maxlen10 startpos_lnum10 startpos_col10 startpos_coladd10 save_coladd10
     loop'24 !length11 !col21 !ptr10 !linelen10 !do_hex11 !do_oct11 !do_bin11 !do_alpha11 !do_unsigned11 !do_blank11 !blank_unsigned11 !negative11 !was_positive11 !visual11 !did_change11 !save_cursor_lnum11 !save_cursor_col11 !save_cursor_coladd11 !maxlen11 !startpos_lnum11 !startpos_col11 !startpos_coladd11 !save_coladd11 = do
@@ -6196,7 +6196,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
             else do
               r'116 <- if (col23 > 0) then (do { r'115 <- rdW8 (pAdd ptr11 (fromIntegral (col23 - 1))) 0; pure ((fromIntegral r'115 :: Int32) == (ch '-')) }) else pure False
               r'118 <- if r'116 then (do { r'117 <- utf_head_off ed' ptr11 (pAdd (pAdd ptr11 (fromIntegral col23)) (-1)); pure (not (r'117 /= 0)) }) else pure False
-              if (r'118 && (not (visual12 /= 0))) && (not do_unsigned12)
+              if (r'118 && (not visual12)) && (not do_unsigned12)
                 then do
                   r'122 <- if (do_blank12 && (col23 >= 2)) then (do { r'119 <- rdW8 (pAdd ptr11 (fromIntegral (col23 - 2))) 0; r'121 <- if ((fromIntegral r'119 :: Int32) == (ch ' ')) then pure True else (do { r'120 <- rdW8 (pAdd ptr11 (fromIntegral (col23 - 2))) 0; pure ((fromIntegral r'120 :: Int32) == (ch '\t')) }); pure (not r'121) }) else pure False
                   if r'122
@@ -6206,7 +6206,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
                       j'36 length13 col24 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 blank_unsigned12 firstdigit1 (TRUE :: Int32) was_positive12 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 maxlen12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
                 else j'36 length13 col23 ptr11 linelen11 do_hex12 do_oct12 do_bin12 do_unsigned12 blank_unsigned12 firstdigit1 negative12 was_positive12 visual12 did_change12 save_cursor_lnum12 save_cursor_col12 save_cursor_coladd12 maxlen12 startpos_lnum12 startpos_col12 startpos_coladd12 save_coladd12
     j'36 !length14 !col25 !ptr12 !linelen12 !do_hex13 !do_oct13 !do_bin13 !do_unsigned13 !blank_unsigned13 !firstdigit4 !negative13 !was_positive13 !visual13 !did_change13 !save_cursor_lnum13 !save_cursor_col13 !save_cursor_coladd13 !maxlen13 !startpos_lnum13 !startpos_col13 !startpos_coladd13 !save_coladd13 = do
-      r'124 <- if (visual13 /= 0) then (do { r'123 <- c'VIsual_mode ed'; pure (r'123 /= (ch 'V')) }) else pure False
+      r'124 <- if visual13 then (do { r'123 <- c'VIsual_mode ed'; pure (r'123 /= (ch 'V')) }) else pure False
       if r'124
         then do
           r'125 <- curbuf ed'
@@ -6294,7 +6294,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
     j'60 !length23 !col34 !do_oct21 !firstdigit12 !was_positive21 !visual21 !did_change21 !save_cursor_lnum21 !save_cursor_col21 !save_cursor_coladd21 !startpos_lnum21 !startpos_col21 !startpos_coladd21 !save_coladd21 = do
       j'61 length23 col34 do_oct21 firstdigit12 (FALSE :: Int32) was_positive21 visual21 did_change21 save_cursor_lnum21 save_cursor_col21 save_cursor_coladd21 startpos_lnum21 startpos_col21 startpos_coladd21 save_coladd21
     j'61 !length24 !col35 !do_oct22 !firstdigit13 !negative23 !was_positive22 !visual22 !did_change22 !save_cursor_lnum22 !save_cursor_col22 !save_cursor_coladd22 !startpos_lnum22 !startpos_col22 !startpos_coladd22 !save_coladd22 = do
-      if (((visual22 /= 0) && (not was_positive22)) && (not (negative23 /= 0))) && (col35 > 0)
+      if ((visual22 && (not was_positive22)) && (not (negative23 /= 0))) && (col35 > 0)
         then do
           let !col36 = col35 - 1
           let !length25 = length24 + 1
@@ -6352,7 +6352,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
           wrI32 r'158 (win_T'w_cursor + pos_T'coladd) save_pos_coladd1
           r'159 <- alloc ed' (fromIntegral (length30 + NUMBUFLEN) :: Word64)
           let !buf1'1 = castPtr r'159
-          if (negative27 /= 0) && ((not (visual26 /= 0)) || was_positive26)
+          if (negative27 /= 0) && ((not visual26) || was_positive26)
             then do
               let !ptr14 = pAdd buf1'1 1
               wrW8 buf1'1 0 (ch '-')
@@ -6563,7 +6563,7 @@ do_addsub ed' op_type pos length c'Prenum1 = frame 88 $ \fr' -> do
             else j'133 visual41 did_change39 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 save_coladd41
         else j'133 visual41 did_change39 save_cursor_lnum41 save_cursor_col41 save_cursor_coladd41 save_coladd41
     j'133 !visual42 !did_change40 !save_cursor_lnum42 !save_cursor_col42 !save_cursor_coladd42 !save_coladd42 = do
-      if visual42 /= 0
+      if visual42
         then do
           r'248 <- curwin ed'
           wrI64 r'248 (win_T'w_cursor + pos_T'lnum) save_cursor_lnum42
@@ -6725,7 +6725,7 @@ get_op_vcol ed' oap redo_VIsual_vcol initial = frame 8 $ \fr' -> do
           loop'12
         else do
           r'18 <- redo_VIsual_busy ed'
-          if r'18 /= 0
+          if r'18
             then do
               r'19 <- rdI32 oap oparg_T'start_vcol
               wrI32 oap oparg_T'end_vcol ((r'19 + redo_VIsual_vcol) - 1)
@@ -6781,7 +6781,7 @@ get_op_vcol ed' oap redo_VIsual_vcol initial = frame 8 $ \fr' -> do
       r'47 <- curwin ed'
       getvvcol ed' r'47 (pAdd oap oparg_T'start) (pAdd oap oparg_T'start_vcol) nullPtr (pAdd oap oparg_T'end_vcol) 0
       r'48 <- redo_VIsual_busy ed'
-      if not (r'48 /= 0)
+      if not r'48
         then do
           r'49 <- curwin ed'
           getvvcol ed' r'49 (pAdd oap oparg_T'end) fr' nullPtr (pAdd fr' 4) 0
@@ -6807,14 +6807,14 @@ do_pending_operator ed' cap old_col gui_yank = do
     j'6 !oap1 !old_cursor_lnum1 !old_cursor_col1 !old_cursor_coladd1 !include_line_break1 !redo_yank1 = do
       set'c'VIsual_mode ed' Ctrl_V
       set'c'VIsual_select ed' FALSE
-      set'c'VIsual_reselect ed' FALSE
+      set'c'VIsual_reselect ed' False
       j'13 oap1 old_cursor_lnum1 old_cursor_col1 old_cursor_coladd1 include_line_break1 redo_yank1
     j'11 !oap2 !old_cursor_lnum2 !old_cursor_col2 !old_cursor_coladd2 !include_line_break2 !redo_yank2 = do
       wrI32 oap2 oparg_T'motion_type MCHAR
       j'13 oap2 old_cursor_lnum2 old_cursor_col2 old_cursor_coladd2 include_line_break2 redo_yank2
     j'13 !oap3 !old_cursor_lnum3 !old_cursor_col3 !old_cursor_coladd3 !include_line_break3 !redo_yank3 = do
       r'2 <- if redo_yank3 then pure True else (do { r'1 <- rdI32 oap3 oparg_T'op_type; pure (r'1 /= OP_YANK) })
-      r'12 <- if r'2 then (do { r'3 <- c'VIsual_active ed'; r'5 <- if (not (r'3 /= 0)) then pure True else (do { r'4 <- rdI32 oap3 oparg_T'motion_force; pure (r'4 /= 0) }); if r'5 then pure True else (do { r'6 <- c'VIsual_active ed'; r'8 <- if (r'6 /= 0) then (is_ex_cmdchar cap) else pure False; if r'8 then (do { r'9 <- rdI32 oap3 oparg_T'op_type; pure (r'9 /= OP_COLON) }) else pure False }) }) else pure False
+      r'12 <- if r'2 then (do { r'3 <- c'VIsual_active ed'; r'5 <- if (not r'3) then pure True else (do { r'4 <- rdI32 oap3 oparg_T'motion_force; pure (r'4 /= 0) }); if r'5 then pure True else (do { r'6 <- c'VIsual_active ed'; r'8 <- if r'6 then (is_ex_cmdchar cap) else pure False; if r'8 then (do { r'9 <- rdI32 oap3 oparg_T'op_type; pure (r'9 /= OP_COLON) }) else pure False }) }) else pure False
       r'14 <- if r'12 then (do { r'13 <- rdI32 cap cmdarg_T'cmdchar; pure (r'13 /= (ch 'D')) }) else pure False
       if r'14
         then do
@@ -6871,7 +6871,7 @@ do_pending_operator ed' cap old_col gui_yank = do
       j'25 oap5 old_cursor_lnum5 old_cursor_col5 old_cursor_coladd5 include_line_break5 redo_yank5
     j'25 !oap6 !old_cursor_lnum6 !old_cursor_col6 !old_cursor_coladd6 !include_line_break6 !redo_yank6 = do
       r'35 <- redo_VIsual_busy ed'
-      if r'35 /= 0
+      if r'35
         then do
           r'36 <- curwin ed'
           copyMem (pAdd oap6 oparg_T'start) (pAdd r'36 win_T'w_cursor) 16
@@ -6893,7 +6893,7 @@ do_pending_operator ed' cap old_col gui_yank = do
             else j'40 oap6 old_cursor_lnum6 old_cursor_col6 old_cursor_coladd6 include_line_break6 redo_yank6
         else do
           r'47 <- c'VIsual_active ed'
-          if r'47 /= 0
+          if r'47
             then do
               if not gui_yank
                 then do
@@ -7035,13 +7035,13 @@ do_pending_operator ed' cap old_col gui_yank = do
       r'134 <- virtual_active ed'
       set'virtual_op ed' r'134
       r'135 <- c'VIsual_active ed'
-      r'137 <- if (r'135 /= 0) then pure True else (do { r'136 <- redo_VIsual_busy ed'; pure (r'136 /= 0) })
+      r'137 <- if r'135 then pure True else (redo_VIsual_busy ed')
       if r'137
         then do
           r'138 <- rdI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_vcol
           get_op_vcol ed' oap14 r'138 True
           r'139 <- redo_VIsual_busy ed'
-          if (not (r'139 /= 0)) && (not gui_yank)
+          if (not r'139) && (not gui_yank)
             then do
               r'140 <- c'VIsual_mode ed'
               set'resel_VIsual_mode ed' r'140
@@ -7138,7 +7138,7 @@ do_pending_operator ed' cap old_col gui_yank = do
           j'76 oap19 old_cursor_lnum19 old_cursor_col19 old_cursor_coladd19 include_line_break19
     j'76 !oap20 !old_cursor_lnum20 !old_cursor_col20 !old_cursor_coladd20 !include_line_break20 = do
       r'185 <- redo_VIsual_busy ed'
-      if not (r'185 /= 0)
+      if not r'185
         then do
           r'186 <- resel_VIsual_mode ed'
           wrI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_mode r'186
@@ -7190,10 +7190,10 @@ do_pending_operator ed' cap old_col gui_yank = do
                 else j'85 oap22 old_cursor_lnum22 old_cursor_col22 old_cursor_coladd22
             else j'85 oap22 old_cursor_lnum22 old_cursor_col22 old_cursor_coladd22
     j'85 !oap23 !old_cursor_lnum23 !old_cursor_col23 !old_cursor_coladd23 = do
-      set'redo_VIsual_busy ed' FALSE
+      set'redo_VIsual_busy ed' False
       if not gui_yank
         then do
-          set'c'VIsual_active ed' FALSE
+          set'c'VIsual_active ed' False
           set'mouse_dragging ed' 0
           may_clear_cmdline ed'
           r'213 <- rdI32 oap23 oparg_T'op_type
@@ -7278,7 +7278,7 @@ do_pending_operator ed' cap old_col gui_yank = do
         OP_JOIN_NS -> j'135 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
         OP_JOIN -> j'135 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
         OP_DELETE -> do
-          set'c'VIsual_reselect ed' FALSE
+          set'c'VIsual_reselect ed' False
           if empty_region_error2
             then do
               vim_beep ed' BO_OPER
@@ -7302,7 +7302,7 @@ do_pending_operator ed' cap old_col gui_yank = do
               _ <- op_yank ed' oap27 False (not gui_yank)
               j'131 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
         OP_CHANGE -> do
-          set'c'VIsual_reselect ed' FALSE
+          set'c'VIsual_reselect ed' False
           if empty_region_error2
             then do
               vim_beep ed' BO_OPER
@@ -7310,7 +7310,7 @@ do_pending_operator ed' cap old_col gui_yank = do
               j'141 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27
             else do
               r'281 <- p_im ed'
-              r'283 <- if (r'281 /= 0) then pure True else (do { r'282 <- c'KeyTyped ed'; pure (not (r'282 /= 0)) })
+              r'283 <- if (r'281 /= 0) then pure True else (do { r'282 <- c'KeyTyped ed'; pure (not r'282) })
               if r'283
                 then do
                   r'284 <- restart_edit ed'
@@ -7325,7 +7325,7 @@ do_pending_operator ed' cap old_col gui_yank = do
         OP_INSERT -> j'108 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
         OP_APPEND -> j'108 oap27 old_cursor_lnum27 old_cursor_col27 old_cursor_coladd27 empty_region_error2
         OP_REPLACE -> do
-          set'c'VIsual_reselect ed' FALSE
+          set'c'VIsual_reselect ed' False
           if empty_region_error2
             then do
               vim_beep ed' BO_OPER
@@ -7347,17 +7347,17 @@ do_pending_operator ed' cap old_col gui_yank = do
           c'CancelRedo ed'
           j'104 oap28 old_cursor_lnum28 old_cursor_col28 old_cursor_coladd28
         else do
-          set'c'VIsual_active ed' TRUE
+          set'c'VIsual_active ed' True
           r'287 <- rdI64 cap cmdarg_T'count1
           r'288 <- rdI32 (addr'do_pending_operator'redo_VIsual ed') redo_VIsual_T'rv_arg
           op_addsub ed' oap28 r'287 r'288
-          set'c'VIsual_active ed' FALSE
+          set'c'VIsual_active ed' False
           j'104 oap28 old_cursor_lnum28 old_cursor_col28 old_cursor_coladd28
     j'104 !oap29 !old_cursor_lnum29 !old_cursor_col29 !old_cursor_coladd29 = do
       check_cursor_col ed'
       j'141 oap29 old_cursor_lnum29 old_cursor_col29 old_cursor_coladd29
     j'108 !oap30 !old_cursor_lnum30 !old_cursor_col30 !old_cursor_coladd30 !empty_region_error4 = do
-      set'c'VIsual_reselect ed' FALSE
+      set'c'VIsual_reselect ed' False
       if empty_region_error4
         then do
           vim_beep ed' BO_OPER
@@ -7481,7 +7481,7 @@ do_pending_operator ed' cap old_col gui_yank = do
   r'337 <- curwin ed'
   r'338 <- rdI32 r'337 (win_T'w_cursor + pos_T'coladd)
   r'339 <- finish_op ed'
-  r'341 <- if (r'339 /= 0) then pure True else (do { r'340 <- c'VIsual_active ed'; pure (r'340 /= 0) })
+  r'341 <- if (r'339 /= 0) then pure True else (c'VIsual_active ed')
   r'343 <- if r'341 then (do { r'342 <- rdI32 r'332 oparg_T'op_type; pure (r'342 /= OP_NOP) }) else pure False
   if r'343
     then do
@@ -7489,7 +7489,7 @@ do_pending_operator ed' cap old_col gui_yank = do
       r'345 <- vim_strchr ed' r'344 CPO_YANK
       let !redo_yank19 = (r'345 /= nullPtr) && (not gui_yank)
       r'346 <- c'VIsual_active ed'
-      wrI32 r'332 oparg_T'is_VIsual r'346
+      wrI32 r'332 oparg_T'is_VIsual (b2i r'346 :: Int32)
       r'347 <- rdI32 r'332 oparg_T'motion_force
       if r'347 == (ch 'V')
         then do
@@ -7517,9 +7517,9 @@ do_pending_operator ed' cap old_col gui_yank = do
               if r'352 == Ctrl_V
                 then do
                   r'353 <- c'VIsual_active ed'
-                  if not (r'353 /= 0)
+                  if not r'353
                     then do
-                      set'c'VIsual_active ed' TRUE
+                      set'c'VIsual_active ed' True
                       copyMem (addr'c'VIsual ed') (pAdd r'332 oparg_T'start) 16
                       j'6 r'332 r'334 r'336 r'338 False redo_yank19
                     else j'6 r'332 r'334 r'336 r'338 False redo_yank19
@@ -8206,7 +8206,7 @@ match_lines ed' rmp do_all buf lines line1 n found = do
 
 reset_y_append :: Ed -> IO ()
 reset_y_append ed' = do
-  set'y_append ed' FALSE
+  set'y_append ed' False
   pure ()
 
 execreg_line_continuation :: Ed -> Ptr String_T -> Int64 -> IO (Ptr Char_u, Int64)
@@ -8299,7 +8299,7 @@ do_execreg ed' regname colon addcr silent = do
                       r'5 <- last_cmdline ed'
                       r'6 <- vim_strsave_escaped_ext ed' r'5 (Ptr "\1\2\3\4\5\6\7\8\9\10\11\12\13\14\15\16\17\18\19\20\21\22\23\24\25\26\27\28\29\30\31\0"#) Ctrl_V False
                       r'7 <- c'VIsual_active ed'
-                      r'9 <- if (r'7 /= 0) then (do { r'8 <- musl_strncmp (castPtr r'6) (Ptr "'<,'>\0"#) 5; pure (r'8 == 0) }) else pure False
+                      r'9 <- if r'7 then (do { r'8 <- musl_strncmp (castPtr r'6) (Ptr "'<,'>\0"#) 5; pure (r'8 == 0) }) else pure False
                       if r'9
                         then do
                           r'10 <- put_in_typebuf ed' (pAdd r'6 5) True True silent
@@ -8478,7 +8478,7 @@ shift_delete_registers ed' = do
         else do
           set'y_current ed' (pAdd (addr'y_regs ed') 24)
           r'1 <- y_append ed'
-          if not (r'1 /= 0)
+          if not r'1
             then do
               r'2 <- y_current ed'
               set'y_previous ed' r'2
@@ -8528,7 +8528,7 @@ op_yank ed' oap deleting mess = frame 180 $ \fr' -> do
     j'4 !yanktype1 !yanklines1 !yankendlnum1 = do
       r'1 <- y_current ed'
       r'2 <- y_append ed'
-      r'5 <- if (r'2 /= 0) then (do { r'3 <- y_current ed'; r'4 <- rdP r'3 yankreg_T'y_array; pure (r'4 /= nullPtr) }) else pure False
+      r'5 <- if r'2 then (do { r'3 <- y_current ed'; r'4 <- rdP r'3 yankreg_T'y_array; pure (r'4 /= nullPtr) }) else pure False
       if r'5
         then do
           set'y_current ed' fr'
@@ -9041,7 +9041,7 @@ trash_input_buf ed' = do
 u_inssub :: Ed -> Linenr_T -> IO Bool
 u_inssub ed' lnum = do
   r'1 <- undo_off ed'
-  if r'1 /= 0
+  if r'1
     then pure True
     else do
       u_savecommon ed' (lnum - 1) lnum (lnum + 1) False
@@ -9054,11 +9054,11 @@ u_undo ed' count = do
       r'2 <- vim_strchr ed' r'1 CPO_UNDO
       if r'2 == nullPtr
         then do
-          set'undo_undoes ed' TRUE
+          set'undo_undoes ed' True
           j'5 count1
         else do
           r'3 <- undo_undoes ed'
-          set'undo_undoes ed' (b2i (not (r'3 /= 0)) :: Int32)
+          set'undo_undoes ed' (not r'3)
           j'5 count1
     j'5 !count2 = do
       u_doit ed' count2
@@ -9081,7 +9081,7 @@ u_redo ed' count = do
   r'2 <- vim_strchr ed' r'1 CPO_UNDO
   if r'2 == nullPtr
     then do
-      set'undo_undoes ed' FALSE
+      set'undo_undoes ed' False
       j'2
     else j'2
 
@@ -9093,7 +9093,7 @@ u_doit ed' startcount = do
       if count1 /= 0
         then do
           r'1 <- undo_undoes ed'
-          if r'1 /= 0
+          if r'1
             then do
               r'2 <- curbuf ed'
               r'3 <- rdP r'2 buf_T'b_u_curhead
@@ -9578,7 +9578,7 @@ undo_time ed' step sec file absolute = do
               j'116 False
             else loop'89 target31 mark27 above27 False
     j'116 !did_undo27 = do
-      u_undo_end ed' (b2i did_undo27 :: Int32) absolute
+      u_undo_end ed' did_undo27 absolute
       pure ()
   r'147 <- text_locked ed'
   if r'147
@@ -9989,7 +9989,7 @@ u_undoredo ed' undo = frame 456 $ \fr' -> do
   r'156 <- rdP r'141 u_header_T'uh_entry
   loop'1 (LONG_MAX :: Int64) r'135 r'137 r'139 r'156 nullPtr r'142 new_flags20 r'141
 
-u_undo_end :: Ed -> Int32 -> Bool -> IO ()
+u_undo_end :: Ed -> Bool -> Bool -> IO ()
 u_undo_end ed' did_undo absolute = frame 80 $ \fr' -> do
   let
     j'3 !did_undo1 = do
@@ -10041,9 +10041,9 @@ u_undo_end ed' did_undo absolute = frame 80 $ \fr' -> do
               r'15 <- curbuf ed'
               r'16 <- rdP r'15 buf_T'b_u_curhead
               r'17 <- rdP r'16 u_header_T'uh_next
-              j'21 (FALSE :: Int32) msgstr7 r'17
+              j'21 False msgstr7 r'17
             else do
-              if did_undo2 /= 0
+              if did_undo2
                 then do
                   r'18 <- curbuf ed'
                   r'19 <- rdP r'18 buf_T'b_u_curhead
@@ -10068,7 +10068,7 @@ u_undo_end ed' did_undo absolute = frame 80 $ \fr' -> do
           j'24 did_undo3 msgstr8 uhp1
     j'24 !did_undo4 !msgstr9 !uhp2 = do
       r'26 <- c'VIsual_active ed'
-      if r'26 /= 0
+      if r'26
         then do
           r'27 <- curbuf ed'
           check_pos ed' r'27 (addr'c'VIsual ed')
@@ -10080,7 +10080,7 @@ u_undo_end ed' did_undo absolute = frame 80 $ \fr' -> do
       r'30 <- u_oldcount ed'
       r'33 <- if (r'30 < 0) then (do { r'31 <- u_oldcount ed'; pure (negate r'31) }) else (u_oldcount ed')
       r'35 <- if (uhp3 == nullPtr) then pure (0 :: Int64) else (rdI64 uhp3 u_header_T'uh_seq)
-      _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'28)) r'29 (Ptr "%ld %s; %s #%ld  %s\0"#) [VI (fromIntegral r'33), VP (castPtr msgstr10), VP (castPtr (if (did_undo5 /= 0) then (Ptr "before\0"#) else (Ptr "after\0"#))), VI (fromIntegral r'35), VP fr']
+      _ <- Caprice.Host.vim_snprintf ed' (castPtr (castPtr r'28)) r'29 (Ptr "%ld %s; %s #%ld  %s\0"#) [VI (fromIntegral r'33), VP (castPtr msgstr10), VP (castPtr (if did_undo5 then (Ptr "before\0"#) else (Ptr "after\0"#))), VI (fromIntegral r'35), VP fr']
       r'37 <- iobuff_or ed' (Ptr "%ld %s; %s #%ld  %s\0"#)
       _ <- msg_attr_keep ed' r'37 0 True
       pure ()

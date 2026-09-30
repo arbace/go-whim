@@ -825,4 +825,8 @@ var Plan = []Phase{
 			{Op: "asciiclass"},
 			{Op: "constbranch"},
 		}},
+	{N: 183, Name: "a file-scope flag is bool",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim183"}},
+		}},
 }

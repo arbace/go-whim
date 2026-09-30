@@ -25,6 +25,9 @@ type BoolRetKnobs struct {
 	// Layout is what the sweep is told about struct layouts: a member a
 	// positional initialiser fills stays int (sweep.PositionalMembers).
 	Layout sweep.Options
+	// Globals takes the core's file-scope objects too: an `int` object that
+	// only ever holds an answer is bool (globalCandidates).
+	Globals bool
 }
 
 // boolRet is one run's knobs, as sets.
@@ -171,6 +174,10 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 	params := b.paramCandidates(ast, path, cut, plain)
 	// the members that may hold an answer, and every value assigned to each
 	fields := b.memberCandidates(ast, path, text, cut, host)
+	var globals map[string]*memberFacts
+	if b.k.Globals {
+		globals = b.globalCandidates(ast, path, cut, host)
+	}
 	// the fixpoint: a function is a question when all its returns are, and a
 	// member holds one when every value it is given is
 	yes := map[string]bool{}
@@ -208,6 +215,22 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 				grew = true
 			}
 		}
+		for g, gc := range globals {
+			if yes["g:"+g] || gc.bad || len(gc.assigns) == 0 {
+				continue
+			}
+			all := true
+			for _, as := range gc.assigns {
+				if !b.boolish(as.e, yes, as.lf, 0) {
+					all = false
+					break
+				}
+			}
+			if all {
+				yes["g:"+g] = true
+				grew = true
+			}
+		}
 		for name, f := range fns {
 			if yes[name] || len(f.returns) == 0 {
 				continue
@@ -240,9 +263,16 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 			nFields++
 		}
 	}
+	nGlobals := 0
+	for g, gc := range globals {
+		if yes["g:"+g] {
+			toks = append(toks, gc.toks...)
+			nGlobals++
+		}
+	}
 	names := make([]string, 0, len(yes))
 	for name := range yes {
-		if strings.HasPrefix(name, ".") || strings.HasPrefix(name, "p:") {
+		if strings.HasPrefix(name, ".") || strings.HasPrefix(name, "p:") || strings.HasPrefix(name, "g:") {
 			continue // a member or a parameter, retyped above
 		}
 		names = append(names, name)
@@ -302,6 +332,9 @@ func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 	p.Say(fmt.Sprintf("%d locals that only ever hold an answer are bool too", nLocals))
 	p.Say(fmt.Sprintf("%d struct members that only ever hold an answer are bool too", nFields))
 	p.Say(fmt.Sprintf("%d parameters that are only ever given an answer are bool too", nParams))
+	if b.k.Globals {
+		p.Say(fmt.Sprintf("%d file-scope objects that only ever hold an answer are bool too", nGlobals))
+	}
 	return text, nil
 }
 
@@ -338,6 +371,9 @@ func (b *boolRet) boolish(e cc.ExpressionNode, yes map[string]bool, lf *localFac
 			s := x.Token.SrcStr()
 			if b.answer(s) {
 				return true // a success is true, a failure false
+			}
+			if yes["g:"+s] && (lf == nil || lf.decls[s] == 0 && !lf.isParam(s)) {
+				return true // a file-scope object retyped bool
 			}
 			return lf.boolish(s, yes, depth)
 		case cc.PrimaryExpressionExpr:
@@ -453,6 +489,12 @@ func (b *boolRet) factsOf(fd *cc.FunctionDefinition) *localFacts {
 	})
 	b.comparedWithCode(fd.CompoundStatement, ident, func(s string) { lf.bad[s] = true })
 	return lf
+}
+
+// isParam says nm is one of the function's parameters.
+func (lf *localFacts) isParam(nm string) bool {
+	_, ok := lf.params[nm]
+	return ok
 }
 
 // boolish says the local nm holds only 0 or 1: it is declared once in the
@@ -893,4 +935,172 @@ func (b *boolRet) comparedWithCode(n cc.Node, name func(cc.ExpressionNode) strin
 		}
 		return true
 	})
+}
+
+// globalCandidates collects the core's file-scope objects that may hold an
+// answer, by name, with every value given one: its initializer and each
+// assignment in a function that has no local or parameter of that name.
+// A name is ruled out when a declaration of it is not `int` alone, one
+// declarator, no pointer, no array, or is braced; when anything takes its
+// address (in a function or an initializer), increments it or updates it in
+// place; when it is compared with a code; when a function declares a local
+// or a parameter of that name (the facts go by name); or when the host
+// mentions it.  An initializer of a literal 0 or 1 is no value either way:
+// the object needs an answer assigned somewhere to be one.
+func (b *boolRet) globalCandidates(ast *cc.AST, path string, cut int, host []byte) map[string]*memberFacts {
+	out := map[string]*memberFacts{}
+	get := func(m string) *memberFacts {
+		if out[m] == nil {
+			out[m] = &memberFacts{}
+		}
+		return out[m]
+	}
+	inCore := func(n cc.Node) bool {
+		pos := n.Position()
+		return pos.Filename == path && pos.Offset < cut
+	}
+	ident := func(e cc.ExpressionNode) string {
+		for {
+			switch x := e.(type) {
+			case *cc.PrimaryExpression:
+				switch x.Case {
+				case cc.PrimaryExpressionIdent:
+					return x.Token.SrcStr()
+				case cc.PrimaryExpressionExpr:
+					e = x.ExpressionList
+					continue
+				}
+			case *cc.ExpressionList:
+				if x.ExpressionList == nil {
+					e = x.AssignmentExpression
+					continue
+				}
+			}
+			return ""
+		}
+	}
+	literal01 := func(e cc.ExpressionNode) bool {
+		if pe, ok := e.(*cc.PrimaryExpression); ok && pe.Case == cc.PrimaryExpressionInt {
+			return pe.Token.SrcStr() == "0" || pe.Token.SrcStr() == "1"
+		}
+		return false
+	}
+	// the declarations
+	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+		ed := tu.ExternalDeclaration
+		if ed == nil || ed.Declaration == nil || ed.Declaration.Case != cc.DeclarationDecl || ed.Declaration.InitDeclaratorList == nil {
+			continue
+		}
+		dl := ed.Declaration.InitDeclaratorList
+		tok, isInt := onlyInt(ed.Declaration.DeclarationSpecifiers)
+		for l := dl; l != nil; l = l.InitDeclaratorList {
+			id := l.InitDeclarator
+			if id == nil || id.Declarator == nil || id.Declarator.Type() != nil && id.Declarator.Type().Kind() == cc.Function {
+				continue
+			}
+			f := get(id.Declarator.Name())
+			if !isInt || dl.InitDeclaratorList != nil || id.Declarator.Pointer != nil ||
+				id.Declarator.DirectDeclarator.Case != cc.DirectDeclaratorIdent || !inCore(ed) {
+				f.bad = true
+				continue
+			}
+			f.toks = append(f.toks, tok)
+			if in := id.Initializer; in != nil {
+				switch {
+				case in.Case != cc.InitializerExpr:
+					f.bad = true
+				case !literal01(in.AssignmentExpression):
+					f.assigns = append(f.assigns, assign{in.AssignmentExpression, nil})
+				}
+			}
+		}
+	}
+	// an address taken outside a function: a table of pointers to them
+	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+		ed := tu.ExternalDeclaration
+		if ed == nil || ed.Declaration == nil {
+			continue
+		}
+		sweep.Walk(ed.Declaration, func(n cc.Node) bool {
+			if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+				if m := ident(u.CastExpression); m != "" {
+					get(m).bad = true
+				}
+			}
+			return true
+		})
+	}
+	// what the functions do to them
+	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+		ed := tu.ExternalDeclaration
+		if ed == nil || ed.FunctionDefinition == nil || ed.Position().Filename != path {
+			continue
+		}
+		lf := b.factsOf(ed.FunctionDefinition)
+		for nm := range lf.decls {
+			get(nm).bad = true // a local of the name: the facts go by name
+		}
+		for nm := range lf.params {
+			get(nm).bad = true
+		}
+		sweep.Walk(ed.FunctionDefinition.CompoundStatement, func(n cc.Node) bool {
+			switch x := n.(type) {
+			case *cc.AssignmentExpression:
+				if m := ident(x.UnaryExpression); m != "" {
+					if x.Case == cc.AssignmentExpressionAssign {
+						get(m).assigns = append(get(m).assigns, assign{x.AssignmentExpression, lf})
+					} else if x.Case != cc.AssignmentExpressionCond {
+						get(m).bad = true
+					}
+				}
+			case *cc.UnaryExpression:
+				switch x.Case {
+				case cc.UnaryExpressionAddrof, cc.UnaryExpressionInc, cc.UnaryExpressionDec:
+					if m := ident(x.CastExpression); m != "" {
+						get(m).bad = true
+					}
+					if m := ident(x.UnaryExpression); m != "" {
+						get(m).bad = true
+					}
+				}
+			case *cc.PostfixExpression:
+				if x.Case == cc.PostfixExpressionInc || x.Case == cc.PostfixExpressionDec {
+					if m := ident(x.PostfixExpression); m != "" {
+						get(m).bad = true
+					}
+				}
+			}
+			return true
+		})
+		b.comparedWithCode(ed.FunctionDefinition.CompoundStatement, ident, func(s string) { get(s).bad = true })
+	}
+	// a size or a type taken of one: bool would change it
+	sweep.Walk(ast.TranslationUnit, func(n cc.Node) bool {
+		var e cc.Node
+		switch x := n.(type) {
+		case *cc.UnaryExpression:
+			if x.Case == cc.UnaryExpressionSizeofExpr {
+				e = x.UnaryExpression
+			}
+		case *cc.TypeSpecifier:
+			if x.Case == cc.TypeSpecifierTypeofExpr {
+				e = x.ExpressionList
+			}
+		}
+		if e != nil {
+			sweep.Walk(e, func(m cc.Node) bool {
+				if pe, ok := m.(*cc.PrimaryExpression); ok && pe.Case == cc.PrimaryExpressionIdent {
+					get(pe.Token.SrcStr()).bad = true
+				}
+				return true
+			})
+		}
+		return true
+	})
+	for m, f := range out {
+		if len(f.toks) == 0 || edit.MentionCount(host, m) > 0 {
+			f.bad = true
+		}
+	}
+	return out
 }

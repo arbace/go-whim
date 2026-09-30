@@ -390,8 +390,14 @@ seen. The records the survey mentions are not done.
 
 ### 7. `int` truth values the C still has
 
-**Not done** (measured 2026-09-30): `TRUE`/`FALSE` named 1,195 times in
-`braaam/editor/`, `b ? 1 : 0` 183.
+**Done: phase 183** (2026-09-30): phase 166's rule on the file-scope objects,
+`BoolRet` with `Globals`. 79 flags are `bool`, with 1 function, 7 locals, 4
+members and 3 parameters that became answers with them; one a table takes
+the address of (the options' `&p_wiv`), compared with a code, sized, or
+shadowed by a local stays `int`. In the Java: `VIsual_active != 0` and
+`== 0` 115 -> 0, `TRUE`/`FALSE` 1,195 -> 875, `x != 0)` 618 -> 448, `b ? 1
+: 0` 183 -> 173. What is left of them is ints that hold more than an
+answer, or flags one of those rules keeps.
 
 - **The pattern:** phase 166 made the core's yes-or-no functions, locals,
   members and parameters `bool`, and not the file-scope objects: **92** are

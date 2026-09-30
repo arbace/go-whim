@@ -350,3 +350,80 @@ main(void)
 		t.Errorf("with no truth constants, check is not left int and even not made bool:\n%s", got)
 	}
 }
+
+// With Globals, a file-scope int that only ever holds an answer is bool; a
+// counter, one whose address is taken, one compared with a code, one sized,
+// and one a local shadows stay int; and the program prints what it did.
+func TestBoolRetGlobals(t *testing.T) {
+	k := BoolRetKnobs{Core: core, True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}, Globals: true}
+	src := `int printf(const char *, ...);
+enum
+{
+    NO = 0,
+    YES = 1
+};
+static int active = NO;
+static int seen;
+static int ready = 0;
+static int count = NO;
+static int *where;
+static int held = NO;
+static int mode = NO;
+static int sized = NO;
+static int shadow = NO;
+static int tabled = NO;
+static int *table[] = {&tabled};
+
+static void
+turn(int n)
+{
+    active = n > 2;
+    seen = YES;
+    ready = active && seen;
+    count++;
+    held = YES;
+    where = &held;
+    mode = YES;
+    sized = NO;
+    tabled = YES;
+}
+
+static int
+look(void)
+{
+    int shadow = 5;
+    return shadow;
+}
+
+int
+main(void)
+{
+    turn(3);
+    if (active == NO || mode == 2)
+    {
+        return 1;
+    }
+    shadow = YES;
+    printf("%d %d %d %d %d %d %d %zu %d\n", active, seen, ready, count, *where, mode, look(), sizeof sized, shadow != NO);
+    return 0;
+}
+
+#include <stdio.h>
+`
+	want := gccRun(t, src)
+	got := run(t, BoolRet(k), src)
+	for _, w := range []string{"static bool active", "static bool seen", "static bool ready", "if (!(active) ||",
+		"static int count", "static int held", "static int mode", "static int sized", "static int shadow", "static int tabled"} {
+		if !strings.Contains(got, w) {
+			t.Errorf("no %q in\n%s", w, got)
+		}
+	}
+	if o := gccRun(t, got); o != want {
+		t.Errorf("the program prints %q, the original %q\n%s", o, want, got)
+	}
+	// without Globals, nothing file-scope moves
+	k.Globals = false
+	if got := run(t, BoolRet(k), src); strings.Contains(got, "static bool") {
+		t.Errorf("without Globals a file-scope object was retyped:\n%s", got)
+	}
+}

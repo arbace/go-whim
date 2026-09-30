@@ -3296,7 +3296,7 @@ static mapblock_T *get_maphash_list(int state, int c);
 
 static mapblock_T *get_buf_maphash_list(int state, int c);
 
-static int is_maphash_valid(void);
+static bool is_maphash_valid(void);
 
 static void map_clear_mode(buf_T *buf, int mode, bool local, bool abbr);
 
@@ -3347,10 +3347,10 @@ typedef struct
 {
     int r__;
     char_u *line;
-    int on_last_col;
+    bool on_last_col;
 } update_search_hl__out_T;
 
-static update_search_hl__out_T update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, int *has_match_conc, int *match_conc, int did_line_attr, int lcs_eol_one, int on_last_col);
+static update_search_hl__out_T update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, int *has_match_conc, int *match_conc, int did_line_attr, int lcs_eol_one, bool on_last_col);
 
 static bool get_prevcol_hl_flag(win_T *wp, match_T *search_hl, long curcol);
 
@@ -4060,7 +4060,7 @@ static bool insert_reg(int regname, int literally_arg);
 typedef struct
 {
     bool r__;
-    int allocated;
+    bool allocated;
 } get_spec_reg__out_T;
 
 static get_spec_reg__out_T get_spec_reg(int regname, char_u **argp, bool errmsg);
@@ -4625,11 +4625,11 @@ static int cmdline_width;
 
 static int redraw_cmdline = FALSE;
 
-static int redraw_mode = FALSE;
+static bool redraw_mode = FALSE;
 
-static int clear_cmdline = FALSE;
+static bool clear_cmdline = FALSE;
 
-static int mode_displayed = FALSE;
+static bool mode_displayed = FALSE;
 
 static int no_win_do_lines_ins = FALSE;
 
@@ -4653,29 +4653,29 @@ static int msg_row;
 
 static int msg_scrolled;
 
-static int msg_scrolled_ign = FALSE;
+static bool msg_scrolled_ign = FALSE;
 
 static char_u *keep_msg = nullptr;
 
 static int keep_msg_attr = 0;
 
-static int keep_msg_more = FALSE;
+static bool keep_msg_more = FALSE;
 
-static int need_fileinfo = FALSE;
+static bool need_fileinfo = FALSE;
 
 static int msg_scroll = FALSE;
 
 static int msg_didout = FALSE;
 
-static int msg_didany = FALSE;
+static bool msg_didany = FALSE;
 
-static int msg_nowait = FALSE;
+static bool msg_nowait = FALSE;
 
 static int emsg_off = 0;
 
-static int info_message = FALSE;
+static bool info_message = FALSE;
 
-static int msg_hist_off = FALSE;
+static bool msg_hist_off = FALSE;
 
 static int did_emsg;
 
@@ -4683,29 +4683,29 @@ static int called_emsg;
 
 static int in_echowindow;
 
-static int emsg_on_display = FALSE;
+static bool emsg_on_display = FALSE;
 
-static int rc_did_emsg = FALSE;
+static bool rc_did_emsg = FALSE;
 
 static int no_wait_return = 0;
 
 static int need_wait_return = 0;
 
-static int did_wait_return = FALSE;
+static bool did_wait_return = FALSE;
 
-static int quit_more = FALSE;
+static bool quit_more = FALSE;
 
-static int newline_on_exit = FALSE;
+static bool newline_on_exit = FALSE;
 
 static int intr_char = 0;
 
-static int ex_keep_indent = FALSE;
+static bool ex_keep_indent = FALSE;
 
 static int vgetc_busy = 0;
 
 static int lines_left = -1;
 
-static int msg_no_more = FALSE;
+static bool msg_no_more = FALSE;
 
 static garray_T exestack =
 {
@@ -4721,11 +4721,11 @@ static sctx_T current_sctx =
     0,
 };
 
-static int scroll_region = FALSE;
+static bool scroll_region = FALSE;
 
 static int t_colors = 0;
 
-static int highlight_match = FALSE;
+static bool highlight_match = FALSE;
 
 static linenr_T search_match_lines;
 
@@ -4755,7 +4755,7 @@ static int mouse_dragging = 0;
 
 static int updating_screen = FALSE;
 
-static int redraw_not_allowed = FALSE;
+static bool redraw_not_allowed = FALSE;
 
 static win_T *curwin;
 
@@ -4765,9 +4765,9 @@ static frame_T *topframe;
 
 static tabpage_T *curtab;
 
-static int redraw_tabline = FALSE;
+static bool redraw_tabline = FALSE;
 
-static int redraw_vseps = FALSE;
+static bool redraw_vseps = FALSE;
 
 static buf_T *curbuf = nullptr;
 
@@ -4777,9 +4777,9 @@ static int sc_col;
 
 static int starting = NO_SCREEN;
 
-static int exiting = FALSE;
+static bool exiting = FALSE;
 
-static int really_exiting = FALSE;
+static bool really_exiting = FALSE;
 
 static int v_dying = 0;
 
@@ -4795,21 +4795,21 @@ static int allbuf_lock = 0;
 
 static pos_T VIsual;
 
-static int VIsual_active = FALSE;
+static bool VIsual_active = FALSE;
 
 static int VIsual_select = FALSE;
 
 static int VIsual_select_reg = 0;
 
-static int VIsual_select_exclu_adj = FALSE;
+static bool VIsual_select_exclu_adj = FALSE;
 
 static int restart_VIsual_select = 0;
 
-static int VIsual_reselect;
+static bool VIsual_reselect;
 
 static int VIsual_mode = 'v';
 
-static int redo_VIsual_busy = FALSE;
+static bool redo_VIsual_busy = FALSE;
 
 static int resel_VIsual_mode = NUL;
 
@@ -4819,15 +4819,15 @@ static colnr_T resel_VIsual_vcol;
 
 static pos_T where_paste_started;
 
-static int did_ai = FALSE;
+static bool did_ai = FALSE;
 
 static colnr_T ai_col = 0;
 
-static int did_si = FALSE;
+static bool did_si = FALSE;
 
 static int can_si = FALSE;
 
-static int can_si_back = FALSE;
+static bool can_si_back = FALSE;
 
 static int old_indent = 0;
 
@@ -4862,7 +4862,7 @@ static int reg_executing = 0;
 
 static int pending_end_reg_executing = FALSE;
 
-static int seenModifyOtherKeys = FALSE;
+static bool seenModifyOtherKeys = FALSE;
 
 typedef enum
 {
@@ -4892,21 +4892,21 @@ static int no_zero_mapping = 0;
 
 static int allow_keys = FALSE;
 
-static int no_reduce_keys = FALSE;
+static bool no_reduce_keys = FALSE;
 
 static int no_u_sync = 0;
 
 static int restart_edit = 0;
 
-static int arrow_used;
+static bool arrow_used;
 
-static int ins_at_eol = FALSE;
+static bool ins_at_eol = FALSE;
 
-static int no_abbr = TRUE;
+static bool no_abbr = TRUE;
 
 static int mapped_ctrl_c = FALSE;
 
-static int ctrl_c_interrupts = TRUE;
+static bool ctrl_c_interrupts = TRUE;
 
 static cmdmod_T cmdmod;
 
@@ -4918,9 +4918,9 @@ static int emsg_silent = 0;
 
 static int emsg_noredir = 0;
 
-static int cmd_silent = FALSE;
+static bool cmd_silent = FALSE;
 
-static int in_assert_fails = FALSE;
+static bool in_assert_fails = FALSE;
 
 static char_u *IObuff;
 
@@ -4947,41 +4947,41 @@ static int ex_normal_busy = 0;
 
 static int ex_normal_lock = 0;
 
-static int stop_insert_mode;
+static bool stop_insert_mode;
 
-static int KeyTyped;
+static bool KeyTyped;
 
-static int KeyStuffed;
+static bool KeyStuffed;
 
 static int maptick = 0;
 
 static int must_redraw = 0;
 
-static int skip_redraw = FALSE;
+static bool skip_redraw = FALSE;
 
-static int do_redraw = FALSE;
+static bool do_redraw = FALSE;
 
-static int need_highlight_changed = TRUE;
+static bool need_highlight_changed = TRUE;
 
 static int read_cmd_fd = 0;
 
 static volatile int got_int = FALSE;
 
-static int termcap_active = FALSE;
+static bool termcap_active = FALSE;
 
-static int term_entered = FALSE;
+static bool term_entered = FALSE;
 
 static int searchcmdlen;
 
-static int did_outofmem_msg = FALSE;
+static bool did_outofmem_msg = FALSE;
 
-static int undo_off = FALSE;
+static bool undo_off = FALSE;
 
 static int global_busy = 0;
 
-static int listcmd_busy = FALSE;
+static bool listcmd_busy = FALSE;
 
-static int need_start_insertmode = FALSE;
+static bool need_start_insertmode = FALSE;
 
 static char_u *last_cmdline = nullptr;
 
@@ -5006,9 +5006,9 @@ static char_u *empty_option = (char_u *)"";
 
 static char *longVersion;
 
-static int km_stopsel = FALSE;
+static bool km_stopsel = FALSE;
 
-static int km_startsel = FALSE;
+static bool km_startsel = FALSE;
 
 static char_u no_lines_msg[] = "--No lines in buffer--";
 
@@ -5030,11 +5030,11 @@ static int vim_ignored;
 
 static optmagic_T magic_overruled = OPTION_MAGIC_NOT_SET;
 
-static int skip_win_fix_cursor = FALSE;
+static bool skip_win_fix_cursor = FALSE;
 
-static int skip_win_fix_scroll = FALSE;
+static bool skip_win_fix_scroll = FALSE;
 
-static int skip_update_topline = FALSE;
+static bool skip_update_topline = FALSE;
 
 static char_u showcmd_buf[(SHOWCMD_COLS + 1 + 30)];
 
@@ -7104,7 +7104,7 @@ static int win_nolbr_chartabsize(chartabsize_T *cts, int *headp);
 
 static unsigned nr2hex(unsigned c);
 
-static int chartab_initialized = FALSE;
+static bool chartab_initialized = FALSE;
 
 static char_u g_chartab[256];
 
@@ -9272,7 +9272,7 @@ win_line(win_T *wp, linenr_T lnum, int startrow, int endrow, int number_only)
     int num_attr = 0;
     int did_line_attr = 0;
     int match_conc = 0;
-    int on_last_col = FALSE;
+    bool on_last_col = FALSE;
     if (startrow > endrow)
     {
         return startrow;
@@ -10207,7 +10207,7 @@ win_line(win_T *wp, linenr_T lnum, int startrow, int endrow, int number_only)
 
 static void win_update(win_T *wp);
 
-static int did_update_one_window;
+static bool did_update_one_window;
 
     static bool
 update_screen(int type_arg)
@@ -11698,7 +11698,7 @@ static bool ins_tab(void);
 
 static int ins_ctrl_ey(int tc);
 
-static int update_Insstart_orig = TRUE;
+static bool update_Insstart_orig = TRUE;
 
 static string_T last_insert =
 {
@@ -11712,7 +11712,7 @@ static int new_insert_skip;
 
 static int did_restart_edit;
 
-static int ins_need_undo;
+static bool ins_need_undo;
 
 static int dont_sync_undo = FALSE;
 
@@ -13823,7 +13823,7 @@ ins_reg(void)
     bool need_redraw = FALSE;
     int regname;
     int literally = 0;
-    int vis_active = VIsual_active;
+    bool vis_active = VIsual_active;
     pc_status = PC_STATUS_UNSET;
     if (redrawing() && !char_avail())
     {
@@ -15611,7 +15611,7 @@ ex_z(exarg_T *eap)
 
 static char_u *old_sub = nullptr;
 
-static int global_need_beginline;
+static bool global_need_beginline;
 
 typedef struct
 {
@@ -20931,7 +20931,7 @@ put_on_cmdline(char_u *str, int len, bool redraw)
 
 static cmdline_info_T prev_ccline;
 
-static int prev_ccline_used = FALSE;
+static bool prev_ccline_used = FALSE;
 
     static void
 save_cmdline(cmdline_info_T *ccp)
@@ -21523,7 +21523,7 @@ static buffheader_T recordbuff =
 
 static int typeahead_char = 0;
 
-static int block_redo = FALSE;
+static bool block_redo = FALSE;
 
 static int KeyNoremap = 0;
 
@@ -22600,7 +22600,7 @@ static int old_char = -1;
 
 static int old_mod_mask;
 
-static int old_KeyStuffed;
+static bool old_KeyStuffed;
 
     static bool
 can_get_old_char(void)
@@ -23053,7 +23053,7 @@ check_simplify_modifier(int max_offset)
     static bool
 key_protocol_enabled(void)
 {
-    int using_mok = modify_otherkeys_state != MOKS_INITIAL ? modify_otherkeys_state == MOKS_ENABLED : seenModifyOtherKeys;
+    bool using_mok = modify_otherkeys_state != MOKS_INITIAL ? modify_otherkeys_state == MOKS_ENABLED : seenModifyOtherKeys;
     return using_mok || kitty_protocol_state == KKPS_ENABLED;
 }
 
@@ -27293,7 +27293,7 @@ static mapblock_T *first_abbr = nullptr;
 
 static mapblock_T *(maphash[256]);
 
-static int maphash_valid = FALSE;
+static bool maphash_valid = FALSE;
 
 static int map_locked = 0;
 
@@ -27309,7 +27309,7 @@ get_buf_maphash_list(int state, int c)
     return curbuf->b_maphash[(((state) & (MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING | MODE_TERMINAL)) ? (c) : ((c) ^ 0x80))];
 }
 
-    static int
+    static bool
 is_maphash_valid(void)
 {
     return maphash_valid;
@@ -29836,7 +29836,7 @@ prepare_search_hl_line(win_T *wp, linenr_T lnum, colnr_T mincol, char_u *line, m
 }
 
     static update_search_hl__out_T
-update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, int *has_match_conc, int *match_conc, int did_line_attr, int lcs_eol_one, int on_last_col)
+update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, int *has_match_conc, int *match_conc, int did_line_attr, int lcs_eol_one, bool on_last_col)
 {
     update_search_hl__out_T out__;
     matchitem_T *cur;
@@ -38770,7 +38770,7 @@ may_adjust_key_for_ctrl(int modifiers, int key)
     }
     if (((ascii_isupper((key))) || (ascii_islower((key)))))
     {
-        return no_reduce_keys == 0 ? (((key) < 'a' || (key) > 'z') ? (key) : (key) - ('a' - 'A')) : key;
+        return !(no_reduce_keys) ? (((key) < 'a' || (key) > 'z') ? (key) : (key) - ('a' - 'A')) : key;
     }
     if (key == '2')
     {
@@ -42609,9 +42609,9 @@ may_clear_cmdline(void)
 
 static char_u old_showcmd_buf[(SHOWCMD_COLS + 1 + 30)];
 
-static int showcmd_is_clear = TRUE;
+static bool showcmd_is_clear = TRUE;
 
-static int showcmd_visual = FALSE;
+static bool showcmd_visual = FALSE;
 
 static void display_showcmd(void);
 
@@ -48038,7 +48038,7 @@ do_addsub(int op_type, pos_T *pos, int length, linenr_T Prenum1)
     int subtract;
     int negative = FALSE;
     bool was_positive = TRUE;
-    int visual = VIsual_active;
+    bool visual = VIsual_active;
     bool did_change = FALSE;
     typeof(((pos_T *)0)->lnum) save_cursor_lnum = (curwin->w_cursor).lnum;
     typeof(((pos_T *)0)->col) save_cursor_col = (curwin->w_cursor).col;
@@ -50866,11 +50866,11 @@ do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefi
 typedef struct
 {
     char *r__;
-    int did_show;
+    bool did_show;
 } do_set_option__out_T;
 
     static do_set_option__out_T
-do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg, int did_show, int *stopopteval, char *errbuf, usize errbuflen)
+do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg, bool did_show, int *stopopteval, char *errbuf, usize errbuflen)
 {
     do_set_option__out_T out__;
     do_set_option_value__out_T do_set_option_value__o;
@@ -51046,7 +51046,7 @@ do_set(char_u *arg_start, int opt_flags)
     do_set_option__out_T do_set_option__o;
     char_u *arg = arg_start;
     int i;
-    int did_show = FALSE;
+    bool did_show = FALSE;
     if (*arg == NUL)
     {
         showoptions(0, opt_flags);
@@ -54336,9 +54336,9 @@ get_coll_element(char_u **pp)
     return 0;
 }
 
-static int reg_cpo_lit;
+static bool reg_cpo_lit;
 
-static int reg_cpo_bsl;
+static bool reg_cpo_bsl;
 
     static void
 get_cpo_flags(void)
@@ -54882,7 +54882,7 @@ struct regengine_S
     int brace_count[10];
     char_u *reg_tofree;
     unsigned reg_tofreelen;
-    int reg_toolong;
+    bool reg_toolong;
     string_T alone;
     bool failed;
 };
@@ -56156,7 +56156,7 @@ static int bt_reg_parse_depth;
 
 static char_u had_endbrace[NSUBEXP];
 
-static int one_exactly = FALSE;
+static bool one_exactly = FALSE;
 
 static char_u *classchars = (char_u *)".iIkKfFpPsSdDxXoOwWhHaAlLuU";
 
@@ -60709,7 +60709,7 @@ static yankreg_T y_regs[NUM_REGISTERS];
 
 static yankreg_T *y_current;
 
-static int y_append;
+static bool y_append;
 
 static yankreg_T *y_previous = nullptr;
 
@@ -61241,7 +61241,7 @@ insert_reg(int regname, int literally_arg)
     static get_spec_reg__out_T
 get_spec_reg(int regname, char_u **argp, bool errmsg)
 {
-    int allocated;
+    bool allocated;
     get_spec_reg__out_T out__;
     int cnt;
     *argp = nullptr;
@@ -64658,7 +64658,7 @@ skip_showmode(void)
     static int
 showmode(void)
 {
-    int need_clear;
+    bool need_clear;
     int length = 0;
     bool do_mode;
     int attr;
@@ -68104,7 +68104,7 @@ static termrequest_T xcc_status =
     -1,
 };
 
-static int detected_8bit = FALSE;
+static bool detected_8bit = FALSE;
 
 static int focus_state = MAYBE;
 
@@ -68453,7 +68453,7 @@ static builtin_tcap_T builtin_terminals[] =
 
 static char_u *(term_strings[(int)KS_ESU + 1]);
 
-static int need_gather = FALSE;
+static bool need_gather = FALSE;
 
 static char_u termleader[256 + 1];
 
@@ -69451,7 +69451,7 @@ out_str_t_TE(void)
     }
 }
 
-static int send_t_RK = FALSE;
+static bool send_t_RK = FALSE;
 
     static void
 out_str_t_TI(void)
@@ -69587,9 +69587,9 @@ scroll_start(void)
     screen_start();
 }
 
-static int cursor_is_off = FALSE;
+static bool cursor_is_off = FALSE;
 
-static int cursor_is_asleep = FALSE;
+static bool cursor_is_asleep = FALSE;
 
     static void
 cursor_on_force(void)
@@ -72853,7 +72853,7 @@ static void u_doit(int count);
 
 static void u_undoredo(bool undo);
 
-static void u_undo_end(int did_undo, bool absolute);
+static void u_undo_end(bool did_undo, bool absolute);
 
 static void u_freeheader(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
 
@@ -72869,7 +72869,7 @@ static long u_newcount;
 
 static long u_oldcount;
 
-static int undo_undoes = FALSE;
+static bool undo_undoes = FALSE;
 
 static int lastmark = 0;
 
@@ -73881,7 +73881,7 @@ u_undoredo(bool undo)
 }
 
     static void
-u_undo_end(int did_undo, bool absolute)
+u_undo_end(bool did_undo, bool absolute)
 {
     char *msgstr;
     u_header_T *uhp;
@@ -74595,7 +74595,7 @@ snapshot_windows_scroll_size(void)
     wp->w_last_height = wp->w_height;
 }
 
-static int did_initial_scroll_size_snapshot = FALSE;
+static bool did_initial_scroll_size_snapshot = FALSE;
 
     static void
 may_make_initial_scroll_size_snapshot(void)
@@ -74667,7 +74667,7 @@ unuse_tabpage(tabpage_T *tp)
     tp->tp_curwin = curwin;
 }
 
-static int command_frame_height = TRUE;
+static bool command_frame_height = TRUE;
 
     static bool
 win_alloc_first(void)

@@ -7,7 +7,7 @@ import whim.rt.*;
 final class T_update_search_hl__out_T implements Struct<T_update_search_hl__out_T> {
     int r__;
     BytePtr line;
-    int on_last_col;
+    boolean on_last_col;
 
     @Override
     public T_update_search_hl__out_T set(T_update_search_hl__out_T o) {
