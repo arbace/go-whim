@@ -89,8 +89,10 @@ func jbreak(l string, cont int) []string {
 		}
 		at := -1
 		switch {
-		case t.s == "," && depth > 0:
-			at = t.end // after the comma
+		case t.s == "," && (depth > 0 || cont > 0):
+			// after the comma: in a call, or on the rest of a broken
+			// line, where depth 0 and below are the call it is in
+			at = t.end
 		case t.s == "&&" || t.s == "||":
 			at = t.start // before the operator
 		}

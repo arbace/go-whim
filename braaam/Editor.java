@@ -8174,7 +8174,8 @@ public abstract class Editor {
             new S_cmdname(BytePtr.lit("ascii"), 2, fp_do_ascii, EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK,
                     ADDR_NONE),
             new S_cmdname(BytePtr.lit("change"), 1, fp_ex_change,
-                    EX_BANG | EX_WHOLEFOLD | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+                    EX_BANG | EX_WHOLEFOLD | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("changes"), 7, fp_ex_changes, EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
             new S_cmdname(BytePtr.lit("cmap"), 2, fp_ex_map,
                     EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
@@ -8189,7 +8190,8 @@ public abstract class Editor {
             new S_cmdname(BytePtr.lit("cunmap"), 2, fp_ex_unmap,
                     EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
             new S_cmdname(BytePtr.lit("delete"), 1, fp_ex_operators,
-                    EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("delmarks"), 4, fp_ex_delmarks,
                     EX_BANG | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
             new S_cmdname(BytePtr.lit("display"), 2, fp_ex_display,
@@ -8220,7 +8222,8 @@ public abstract class Editor {
             new S_cmdname(BytePtr.lit("join"), 1, fp_ex_join,
                     EX_BANG | EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
             new S_cmdname(BytePtr.lit("k"), 1, fp_ex_mark,
-                    EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+                    EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("keepmarks"), 2, fp_ex_wrongmodifier, EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
                     ADDR_NONE),
             new S_cmdname(BytePtr.lit("keepjumps"), 5, fp_ex_wrongmodifier, EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM,
@@ -8272,7 +8275,8 @@ public abstract class Editor {
             new S_cmdname(BytePtr.lit("ounmap"), 2, fp_ex_unmap,
                     EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
             new S_cmdname(BytePtr.lit("print"), 1, fp_ex_print,
-                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("put"), 2, fp_ex_put,
                     EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
             new S_cmdname(BytePtr.lit("quit"), 1, fp_ex_quit,
@@ -8316,7 +8320,8 @@ public abstract class Editor {
             new S_cmdname(BytePtr.lit("unsilent"), 3, fp_ex_wrongmodifier,
                     EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_NONE),
             new S_cmdname(BytePtr.lit("vglobal"), 1, fp_ex_global,
-                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_DFLALL | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_DFLALL | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("verbose"), 4, fp_ex_wrongmodifier,
                     EX_NEEDARG | EX_RANGE | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK, ADDR_OTHER),
             new S_cmdname(BytePtr.lit("vmap"), 2, fp_ex_map,
@@ -8339,25 +8344,33 @@ public abstract class Editor {
             new S_cmdname(BytePtr.lit("yank"), 1, fp_ex_operators,
                     EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
             new S_cmdname(BytePtr.lit("z"), 1, fp_ex_z,
-                    EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("#"), 1, fp_ex_print,
                     EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
             new S_cmdname(BytePtr.lit("&"), 1, fp_ex_substitute,
-                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("*"), 1, fp_ex_at,
-                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("<"), 1, fp_ex_operators,
-                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("="), 1, fp_ex_equal,
                     EX_RANGE | EX_TRLBAR | EX_DFLALL | EX_FLAGS | EX_CMDWIN | EX_LOCK_OK, ADDR_LINES),
             new S_cmdname(BytePtr.lit(">"), 1, fp_ex_operators,
-                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("@"), 1, fp_ex_at,
-                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("~"), 1, fp_ex_substitute,
-                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK, ADDR_LINES),
+                    EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK,
+                    ADDR_LINES),
             new S_cmdname(BytePtr.lit("Print"), 1, fp_ex_print,
-                    ((((((EX_RANGE | EX_WHOLEFOLD) | EX_COUNT) | EX_FLAGS) | EX_TRLBAR) | EX_CMDWIN) | EX_LOCK_OK), ADDR_LINES));
+                    ((((((EX_RANGE | EX_WHOLEFOLD) | EX_COUNT) | EX_FLAGS) | EX_TRLBAR) | EX_CMDWIN) | EX_LOCK_OK),
+                    ADDR_LINES));
         Rt.rows(dollar_command,
             '$', 0);
         t1 = new byte[1];
@@ -12965,7 +12978,8 @@ public abstract class Editor {
         BytePtr r = rs;
         for (; l.get() != 0 && r.get() != 0
                 && (Integer.compareUnsigned(l.u() - 'A',
-                26) < 0 ? l.u() | 32 : l.u()) == (Integer.compareUnsigned(r.u() - 'A', 26) < 0 ? r.u() | 32 : r.u()); l = l.add(1), r = r.add(1)) {
+                26) < 0 ? l.u() | 32 : l.u()) == (Integer.compareUnsigned(r.u() - 'A',
+                26) < 0 ? r.u() | 32 : r.u()); l = l.add(1), r = r.add(1)) {
         }
         return (Integer.compareUnsigned(l.u() - 'A',
                 26) < 0 ? l.u() | 32 : l.u()) - (Integer.compareUnsigned(r.u() - 'A', 26) < 0 ? r.u() | 32 : r.u());
@@ -12982,7 +12996,8 @@ public abstract class Editor {
         }
         for (; l.get() != 0 && r.get() != 0 && n != 0
                 && (Integer.compareUnsigned(l.u() - 'A',
-                26) < 0 ? l.u() | 32 : l.u()) == (Integer.compareUnsigned(r.u() - 'A', 26) < 0 ? r.u() | 32 : r.u()); l = l.add(1), r = r.add(1), n--) {
+                26) < 0 ? l.u() | 32 : l.u()) == (Integer.compareUnsigned(r.u() - 'A',
+                26) < 0 ? r.u() | 32 : r.u()); l = l.add(1), r = r.add(1), n--) {
         }
         return (Integer.compareUnsigned(l.u() - 'A',
                 26) < 0 ? l.u() | 32 : l.u()) - (Integer.compareUnsigned(r.u() - 'A', 26) < 0 ? r.u() | 32 : r.u());
@@ -13636,11 +13651,13 @@ public abstract class Editor {
             bufferlen += safelen_result(buffer.add((int) bufferlen), 1025L - bufferlen,
                     vim_snprintf(buffer.add((int) bufferlen), 1025L - bufferlen,
                     NGETTEXT(BytePtr.lit("%ld line --%d%%--"), BytePtr.lit("%ld lines --%d%%--"),
-                    curbuf.b_ml.ml_line_count), curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)));
+                    curbuf.b_ml.ml_line_count), curbuf.b_ml.ml_line_count,
+                    calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)));
         } else {
             bufferlen += safelen_result(buffer.add((int) bufferlen), 1025L - bufferlen,
                     vim_snprintf(buffer.add((int) bufferlen), 1025L - bufferlen,
-                    gettext_(BytePtr.lit("line %ld of %ld --%d%%-- col ")), curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)));
+                    gettext_(BytePtr.lit("line %ld of %ld --%d%%-- col ")), curwin.w_cursor.lnum,
+                    curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)));
             validate_virtcol();
             bufferlen += (long) col_print(buffer.add((int) bufferlen), 1025L - bufferlen, curwin.w_cursor.col + 1,
                     curwin.w_virtcol[0] + 1);
@@ -16249,8 +16266,8 @@ public abstract class Editor {
                 if (wlv.n_extra == 0) {
                     v = ptr.sub(line);
                     update_search_hl__o = update_search_hl(wp, lnum, (int) v, line, screen_search_hl,
-                            new IntPtr(has_match_conc, 0), new IntPtr(match_conc,
-                            0), did_line_attr, lcs_eol_one, on_last_col);
+                            new IntPtr(has_match_conc, 0), new IntPtr(match_conc, 0), did_line_attr, lcs_eol_one,
+                            on_last_col);
                     line = update_search_hl__o.line;
                     search_attr = update_search_hl__o.r__;
                     ptr = line.add((int) v);
@@ -17678,7 +17695,8 @@ public abstract class Editor {
                 int start_col = wp.w_wincol + wp.w_width - 3;
                 int symbol_2 = wp.w_fill_chars.lastline[0];
                 screen_fill(wp.w_winrow + wp.w_height - 1, wp.w_winrow + wp.w_height,
-                        start_col < wp.w_wincol ? wp.w_wincol : start_col, wp.w_wincol + wp.w_width, symbol_2, symbol_2, highlight_attr[HLF_AT]);
+                        start_col < wp.w_wincol ? wp.w_wincol : start_col, wp.w_wincol + wp.w_width, symbol_2, symbol_2,
+                        highlight_attr[HLF_AT]);
                 set_empty_rows(wp, srow);
                 wp.w_botline = lnum;
             } else {
@@ -21441,12 +21459,16 @@ public abstract class Editor {
                 msg_buf[0] = NUL;
             }
             msg_single = count_only != 0 ? NGETTEXT(BytePtr.lit("%ld match on %ld line"),
-                    BytePtr.lit("%ld matches on %ld line"), sub_nsubs) : NGETTEXT(BytePtr.lit("%ld substitution on %ld line"), BytePtr.lit("%ld substitutions on %ld line"), sub_nsubs);
+                    BytePtr.lit("%ld matches on %ld line"),
+                    sub_nsubs) : NGETTEXT(BytePtr.lit("%ld substitution on %ld line"),
+                    BytePtr.lit("%ld substitutions on %ld line"), sub_nsubs);
             msg_plural = count_only != 0 ? NGETTEXT(BytePtr.lit("%ld match on %ld lines"),
-                    BytePtr.lit("%ld matches on %ld lines"), sub_nsubs) : NGETTEXT(BytePtr.lit("%ld substitution on %ld lines"), BytePtr.lit("%ld substitutions on %ld lines"), sub_nsubs);
+                    BytePtr.lit("%ld matches on %ld lines"),
+                    sub_nsubs) : NGETTEXT(BytePtr.lit("%ld substitution on %ld lines"),
+                    BytePtr.lit("%ld substitutions on %ld lines"), sub_nsubs);
             vim_snprintf(new BytePtr(msg_buf, 0).add((int) musl_strlen(new BytePtr(msg_buf, 0))),
-                    append_room(new BytePtr(msg_buf, 0), 480L), NGETTEXT(msg_single, msg_plural,
-                    sub_nlines), sub_nsubs, sub_nlines);
+                    append_room(new BytePtr(msg_buf, 0), 480L), NGETTEXT(msg_single, msg_plural, sub_nlines), sub_nsubs,
+                    sub_nlines);
             if (msg(new BytePtr(msg_buf, 0)) != 0) {
                 set_keep_msg(new BytePtr(msg_buf, 0), 0);
             }
@@ -29591,7 +29613,8 @@ public abstract class Editor {
     }
 
     S_mapblock map_add(Ptr<S_mapblock> map_table, Ptr<S_mapblock> abbr_table, BytePtr keys, BytePtr rhs,
-            BytePtr orig_rhs, int noremap, boolean nowait, boolean silent, int mode, boolean is_abbr, boolean simplified) {
+            BytePtr orig_rhs, int noremap, boolean nowait, boolean silent, int mode, boolean is_abbr,
+            boolean simplified) {
         S_mapblock mp = new S_mapblock();
         if (keys.get() == Ctrl_C) {
             if (Ptr.eq(map_table, new Ptr<S_mapblock>(curbuf.b_maphash, 0))) {
@@ -29893,8 +29916,8 @@ public abstract class Editor {
                                 && musl_strncmp(mp.m_keys, keys, (long) len) == 0) {
                             if (abbrev) {
                                 vim_snprintf(IObuff, emsg_iobuff_room(),
-                                        gettext_(new BytePtr(e_global_abbreviation_already_exists_for_str,
-                                        0)), mp.m_keys);
+                                        gettext_(new BytePtr(e_global_abbreviation_already_exists_for_str, 0)),
+                                        mp.m_keys);
                                 emsg(iobuff_or(gettext_(new BytePtr(e_global_abbreviation_already_exists_for_str, 0))));
                             } else {
                                 vim_snprintf(IObuff, emsg_iobuff_room(),
@@ -30711,7 +30734,8 @@ public abstract class Editor {
                     break;
                 }
                 vim_snprintf(IObuff, 1025L, BytePtr.lit("%c %3d %5ld %4d "), i == curwin.w_changelistidx ? '>' : ' ',
-                        i > curwin.w_changelistidx ? i - curwin.w_changelistidx : curwin.w_changelistidx - i, curbuf.b_changelist[i].lnum, curbuf.b_changelist[i].col);
+                        i > curwin.w_changelistidx ? i - curwin.w_changelistidx : curwin.w_changelistidx - i,
+                        curbuf.b_changelist[i].lnum, curbuf.b_changelist[i].col);
                 msg_outtrans(IObuff);
                 name = mark_line(curbuf.b_changelist[i], 17);
                 msg_outtrans_attr(name, highlight_attr[HLF_D]);
@@ -32828,8 +32852,8 @@ public abstract class Editor {
                 if ((pp.pb_count & 0xffff) < PB_COUNT_MAX) {
                     if (pb_idx + 1 < (pp.pb_count & 0xffff)) {
                         Rt.moveStructs(new Ptr<S_pointer_entry>(pp.pb_pointer, pb_idx + 2),
-                                new Ptr<S_pointer_entry>(pp.pb_pointer,
-                                pb_idx + 1), (int) (long) ((pp.pb_count & 0xffff) - pb_idx - 1));
+                                new Ptr<S_pointer_entry>(pp.pb_pointer, pb_idx + 1),
+                                (int) (long) ((pp.pb_count & 0xffff) - pb_idx - 1));
                     }
                     pp.pb_count++;
                     pp.pb_pointer[pb_idx].pe_line_count = line_count_left;
@@ -42086,8 +42110,8 @@ public abstract class Editor {
         }
         if (oap.line_count > p_report[0]) {
             vim_snprintf(IObuff, iobuff_room(),
-                    NGETTEXT(BytePtr.lit("%ld line changed"), BytePtr.lit("%ld lines changed"),
-                    oap.line_count), oap.line_count);
+                    NGETTEXT(BytePtr.lit("%ld line changed"), BytePtr.lit("%ld lines changed"), oap.line_count),
+                    oap.line_count);
             msg(iobuff_or(NGETTEXT(BytePtr.lit("%ld line changed"), BytePtr.lit("%ld lines changed"), oap.line_count)));
         }
     }
@@ -42751,8 +42775,8 @@ public abstract class Editor {
             }
             if ((long) change_cnt > p_report[0]) {
                 vim_snprintf(IObuff, iobuff_room(),
-                        NGETTEXT(BytePtr.lit("%d line changed"), BytePtr.lit("%d lines changed"),
-                        (long) change_cnt), change_cnt);
+                        NGETTEXT(BytePtr.lit("%d line changed"), BytePtr.lit("%d lines changed"), (long) change_cnt),
+                        change_cnt);
                 msg(iobuff_or(NGETTEXT(BytePtr.lit("%d line changed"), BytePtr.lit("%d lines changed"),
                         (long) change_cnt)));
             }
@@ -42947,7 +42971,8 @@ public abstract class Editor {
                 int[] overflow = new int[1];
                 overflow[0] = FALSE;
                 length = vim_str2nr(ptr.add(col), new IntPtr(pre, 0), length,
-                        0 + (do_bin ? STR2NR_BIN : 0) + (do_oct ? STR2NR_OCT : 0) + (do_hex ? STR2NR_HEX : 0), null, new LongPtr(n, 0), maxlen, false, new IntPtr(overflow, 0));
+                        0 + (do_bin ? STR2NR_BIN : 0) + (do_oct ? STR2NR_OCT : 0) + (do_hex ? STR2NR_HEX : 0), null,
+                        new LongPtr(n, 0), maxlen, false, new IntPtr(overflow, 0));
                 if (pre[0] != 0 && negative != 0) {
                     col++;
                     length--;
@@ -44383,7 +44408,8 @@ public abstract class Editor {
     }
 
     T_stropt_get_newval__out_T stropt_get_newval(int nextchar, int opt_idx, BytePtr argp, T_optvar_T varp,
-            BytePtr origval_arg, BytePtr origval_l_arg, BytePtr origval_g_arg, BytePtr oldval_arg, int op_arg, int flags, int cp_val) {
+            BytePtr origval_arg, BytePtr origval_l_arg, BytePtr origval_g_arg, BytePtr oldval_arg, int op_arg,
+            int flags, int cp_val) {
         T_stropt_get_newval__out_T out__ = new T_stropt_get_newval__out_T();
         T_opt_backspace_nr2str__out_T opt_backspace_nr2str__o = new T_opt_backspace_nr2str__out_T();
         BytePtr[] arg = new BytePtr[1];
@@ -44468,7 +44494,8 @@ public abstract class Editor {
     }
 
     T_do_set_option_string__out_T do_set_option_string(int opt_idx, int opt_flags, BytePtr argp, int nextchar,
-            int op_arg, long flags, int cp_val, T_optvar_T varp_arg, BytePtr errbuf, long errbuflen, IntPtr value_checked) {
+            int op_arg, long flags, int cp_val, T_optvar_T varp_arg, BytePtr errbuf, long errbuflen,
+            IntPtr value_checked) {
         BytePtr errmsg;
         T_do_set_option_string__out_T out__ = new T_do_set_option_string__out_T();
         T_stropt_get_newval__out_T stropt_get_newval__o = new T_stropt_get_newval__out_T();
@@ -44635,7 +44662,8 @@ public abstract class Editor {
     }
 
     T_do_set_option_value__out_T do_set_option_value(int opt_idx, int opt_flags, BytePtr argp, int prefix, int op,
-            long flags, T_optvar_T varp, BytePtr key_name, int nextchar, int afterchar, int cp_val, IntPtr stopopteval, BytePtr errbuf, long errbuflen) {
+            long flags, T_optvar_T varp, BytePtr key_name, int nextchar, int afterchar, int cp_val, IntPtr stopopteval,
+            BytePtr errbuf, long errbuflen) {
         T_do_set_option_value__out_T out__ = new T_do_set_option_value__out_T();
         T_do_set_option_keycode__out_T do_set_option_keycode__o = new T_do_set_option_keycode__out_T();
         T_do_set_option_numeric__out_T do_set_option_numeric__o = new T_do_set_option_numeric__out_T();
@@ -44882,8 +44910,8 @@ public abstract class Editor {
                 BytePtr[] startarg = new BytePtr[1];
                 startarg[0] = arg[0];
                 do_set_option__o = do_set_option(opt_flags, new Ptr<BytePtr>(arg, 0), arg_start,
-                        new Ptr<BytePtr>(startarg, 0), did_show, new IntPtr(stopopteval, 0), new BytePtr(errbuf,
-                        0), ERR_BUFLEN);
+                        new Ptr<BytePtr>(startarg, 0), did_show, new IntPtr(stopopteval, 0), new BytePtr(errbuf, 0),
+                        ERR_BUFLEN);
                 errmsg = do_set_option__o.r__;
                 if (stopopteval[0] != 0) {
                     break;
@@ -46442,7 +46470,8 @@ public abstract class Editor {
     BytePtr did_set_cpoptions(T_optset_T args) {
         Ptr<BytePtr> varp = args.os_varp.ov_str;
         return did_set_option_listflag(varp.get(),
-                BytePtr.lit("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~"), args.os_errbuf, args.os_errbuflen);
+                BytePtr.lit("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~"), args.os_errbuf,
+                args.os_errbuflen);
     }
 
     BytePtr did_set_display(T_optset_T args) {
@@ -48597,8 +48626,8 @@ public abstract class Editor {
                             break;
                         }
                         vim_snprintf(IObuff, emsg_iobuff_room(),
-                                gettext_(new BytePtr(e_invalid_character_after_str,
-                                0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                gettext_(new BytePtr(e_invalid_character_after_str, 0)),
+                                reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                         emsg(iobuff_or(gettext_(new BytePtr(e_invalid_character_after_str, 0))));
                         rc_did_emsg = TRUE;
                         return null;
@@ -48674,8 +48703,8 @@ public abstract class Editor {
                 case '(' - 256:
                     if (one_exactly != 0) {
                         vim_snprintf(IObuff, emsg_iobuff_room(),
-                                gettext_(new BytePtr(e_invalid_item_in_str_brackets,
-                                0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0)),
+                                reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                         emsg(iobuff_or(gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0))));
                         rc_did_emsg = TRUE;
                         return null;
@@ -48694,8 +48723,8 @@ public abstract class Editor {
                 case ')' - 256:
                     if (one_exactly != 0) {
                         vim_snprintf(IObuff, emsg_iobuff_room(),
-                                gettext_(new BytePtr(e_invalid_item_in_str_brackets,
-                                0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0)),
+                                reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                         emsg(iobuff_or(gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0))));
                         rc_did_emsg = TRUE;
                         return null;
@@ -48779,8 +48808,8 @@ public abstract class Editor {
                         case '(':
                             if (one_exactly != 0) {
                                 vim_snprintf(IObuff, emsg_iobuff_room(),
-                                        gettext_(new BytePtr(e_invalid_item_in_str_brackets,
-                                        0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                        gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0)),
+                                        reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                                 emsg(iobuff_or(gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0))));
                                 rc_did_emsg = TRUE;
                                 return null;
@@ -48802,8 +48831,8 @@ public abstract class Editor {
                         case '#':
                             if (regparse[0].at(0) == '=' && regparse[0].u(1) >= 48 && regparse[0].u(1) <= 50) {
                                 vim_snprintf(IObuff, emsg_iobuff_room(),
-                                        gettext_(new BytePtr(e_atom_engine_must_be_at_start_of_pattern,
-                                        0)), regparse[0].u(1));
+                                        gettext_(new BytePtr(e_atom_engine_must_be_at_start_of_pattern, 0)),
+                                        regparse[0].u(1));
                                 emsg(iobuff_or(gettext_(new BytePtr(e_atom_engine_must_be_at_start_of_pattern, 0))));
                                 return null;
                             }
@@ -48818,8 +48847,8 @@ public abstract class Editor {
                         case '[':
                             if (one_exactly != 0) {
                                 vim_snprintf(IObuff, emsg_iobuff_room(),
-                                        gettext_(new BytePtr(e_invalid_item_in_str_brackets,
-                                        0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                        gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0)),
+                                        reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                                 emsg(iobuff_or(gettext_(new BytePtr(e_invalid_item_in_str_brackets, 0))));
                                 rc_did_emsg = TRUE;
                                 return null;
@@ -48833,8 +48862,8 @@ public abstract class Editor {
                                 }
                                 if (c == NUL) {
                                     vim_snprintf(IObuff, emsg_iobuff_room(),
-                                            gettext_(new BytePtr(e_missing_sb_after_str,
-                                            0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                            gettext_(new BytePtr(e_missing_sb_after_str, 0)),
+                                            reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                                     emsg(iobuff_or(gettext_(new BytePtr(e_missing_sb_after_str, 0))));
                                     rc_did_emsg = TRUE;
                                     return null;
@@ -48909,8 +48938,8 @@ public abstract class Editor {
                             }
                             if (i < 0L || i > INT_MAX) {
                                 vim_snprintf(IObuff, emsg_iobuff_room(),
-                                        gettext_(new BytePtr(e_invalid_character_after_str_2,
-                                        0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                        gettext_(new BytePtr(e_invalid_character_after_str_2, 0)),
+                                        reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                                 emsg(iobuff_or(gettext_(new BytePtr(e_invalid_character_after_str_2, 0))));
                                 rc_did_emsg = TRUE;
                                 return null;
@@ -48983,8 +49012,8 @@ public abstract class Editor {
                                 } else if ((c == 'l' || c == 'c' || c == 'v') && (cur || got_digit)) {
                                     if (cur && n != 0) {
                                         vim_snprintf(IObuff, emsg_iobuff_room(),
-                                                gettext_(new BytePtr(e_regexp_number_after_dot_pos_search_chr,
-                                                0)), no_Magic(c));
+                                                gettext_(new BytePtr(e_regexp_number_after_dot_pos_search_chr, 0)),
+                                                no_Magic(c));
                                         emsg(iobuff_or(gettext_(new BytePtr(e_regexp_number_after_dot_pos_search_chr,
                                                 0))));
                                         rc_did_emsg = TRUE;
@@ -49026,8 +49055,8 @@ public abstract class Editor {
                                 }
                             }
                             vim_snprintf(IObuff, emsg_iobuff_room(),
-                                    gettext_(new BytePtr(e_invalid_character_after_str,
-                                    0)), reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
+                                    gettext_(new BytePtr(e_invalid_character_after_str, 0)),
+                                    reg_magic == MAGIC_ALL ? BytePtr.lit("") : BytePtr.lit("\\"));
                             emsg(iobuff_or(gettext_(new BytePtr(e_invalid_character_after_str, 0))));
                             rc_did_emsg = TRUE;
                             return null;
@@ -50941,7 +50970,8 @@ public abstract class Editor {
                                         }
                                     } else {
                                         match_with_backref__o = match_with_backref(re, re.rex.reg_startpos.at(no).lnum,
-                                                re.rex.reg_startpos.at(no).col, re.rex.reg_endpos.at(no).lnum, re.rex.reg_endpos.at(no).col, len_4);
+                                                re.rex.reg_startpos.at(no).col, re.rex.reg_endpos.at(no).lnum,
+                                                re.rex.reg_endpos.at(no).col, len_4);
                                         len_4 = match_with_backref__o.bytelen;
                                         int r = match_with_backref__o.r__;
                                         if (r != RA_MATCH) {
@@ -52638,8 +52668,8 @@ public abstract class Editor {
                             BytePtr.lit("block of %ld lines yanked%s"), yanklines)));
                 } else {
                     vim_snprintf(IObuff, iobuff_room(),
-                            NGETTEXT(BytePtr.lit("%ld line yanked%s"), BytePtr.lit("%ld lines yanked%s"),
-                            yanklines), yanklines, new BytePtr(namebuf, 0));
+                            NGETTEXT(BytePtr.lit("%ld line yanked%s"), BytePtr.lit("%ld lines yanked%s"), yanklines),
+                            yanklines, new BytePtr(namebuf, 0));
                     msg(iobuff_or(NGETTEXT(BytePtr.lit("%ld line yanked%s"), BytePtr.lit("%ld lines yanked%s"),
                             yanklines)));
                 }
@@ -55508,15 +55538,15 @@ public abstract class Editor {
                                 c1 = get_encoded_char_adv(new Ptr<BytePtr>(s, 0));
                                 if (char2cells(c1) > 1) {
                                     return field_value_err(errbuf, errbuflen,
-                                            new BytePtr(e_wrong_character_width_for_field_str,
-                                            0), tab.at(i).name.string[0]);
+                                            new BytePtr(e_wrong_character_width_for_field_str, 0),
+                                            tab.at(i).name.string[0]);
                                 }
                                 multispace_len++;
                             }
                             if (multispace_len == 0) {
                                 return field_value_err(errbuf, errbuflen,
-                                        new BytePtr(e_wrong_number_of_characters_for_field_str,
-                                        0), tab.at(i).name.string[0]);
+                                        new BytePtr(e_wrong_number_of_characters_for_field_str, 0),
+                                        tab.at(i).name.string[0]);
                             }
                         } else {
                             int multispace_pos = 0;
@@ -55540,15 +55570,15 @@ public abstract class Editor {
                                 c1 = get_encoded_char_adv(new Ptr<BytePtr>(s, 0));
                                 if (char2cells(c1) > 1) {
                                     return field_value_err(errbuf, errbuflen,
-                                            new BytePtr(e_wrong_character_width_for_field_str,
-                                            0), tab.at(i).name.string[0]);
+                                            new BytePtr(e_wrong_character_width_for_field_str, 0),
+                                            tab.at(i).name.string[0]);
                                 }
                                 lead_multispace_len++;
                             }
                             if (lead_multispace_len == 0) {
                                 return field_value_err(errbuf, errbuflen,
-                                        new BytePtr(e_wrong_number_of_characters_for_field_str,
-                                        0), tab.at(i).name.string[0]);
+                                        new BytePtr(e_wrong_number_of_characters_for_field_str, 0),
+                                        tab.at(i).name.string[0]);
                             }
                         } else {
                             int multispace_pos_2 = 0;
@@ -55579,8 +55609,8 @@ public abstract class Editor {
                             || IntPtr.eq(tab.at(i).cp, new IntPtr(lcs_chars.leadtab2, 0))) {
                         if (s[0].get() == NUL) {
                             return field_value_err(errbuf, errbuflen,
-                                    new BytePtr(e_wrong_number_of_characters_for_field_str,
-                                    0), tab.at(i).name.string[0]);
+                                    new BytePtr(e_wrong_number_of_characters_for_field_str, 0),
+                                    tab.at(i).name.string[0]);
                         }
                         c2 = get_encoded_char_adv(new Ptr<BytePtr>(s, 0));
                         if (char2cells(c2) > 1) {
@@ -55591,8 +55621,8 @@ public abstract class Editor {
                             c3 = get_encoded_char_adv(new Ptr<BytePtr>(s, 0));
                             if (char2cells(c3) > 1) {
                                 return field_value_err(errbuf, errbuflen,
-                                        new BytePtr(e_wrong_character_width_for_field_str,
-                                        0), tab.at(i).name.string[0]);
+                                        new BytePtr(e_wrong_character_width_for_field_str, 0),
+                                        tab.at(i).name.string[0]);
                             }
                         }
                         if (IntPtr.eq(tab.at(i).cp, new IntPtr(lcs_chars.tab2, 0))) {
@@ -56455,7 +56485,8 @@ public abstract class Editor {
                     }
                 }
                 c = (long) searchit(curwin, curbuf, pos, null, dirc == '/' ? FORWARD : -1, searchstr, searchstrlen,
-                        count, spats[0].off.end + (options & (SEARCH_KEEP + SEARCH_PEEK + SEARCH_HIS + SEARCH_MSG + SEARCH_START + (pat != null && pat.get() == ';' ? 0 : SEARCH_NOOF))), RE_LAST, sia);
+                        count,
+                        spats[0].off.end + (options & (SEARCH_KEEP + SEARCH_PEEK + SEARCH_HIS + SEARCH_MSG + SEARCH_START + (pat != null && pat.get() == ';' ? 0 : SEARCH_NOOF))), RE_LAST, sia);
                 if (dircp != null) {
                     dircp.put((byte) search_delim);
                 }
@@ -62010,7 +62041,9 @@ public abstract class Editor {
             check_pos(curbuf, VIsual);
         }
         vim_snprintf(IObuff, iobuff_room(), gettext_(BytePtr.lit("%ld %s; %s #%ld  %s")),
-                u_oldcount < 0L ? -u_oldcount : u_oldcount, gettext_(msgstr), did_undo != 0 ? gettext_(BytePtr.lit("before")) : gettext_(BytePtr.lit("after")), uhp == null ? 0L : uhp.uh_seq, new BytePtr(msgbuf, 0));
+                u_oldcount < 0L ? -u_oldcount : u_oldcount, gettext_(msgstr),
+                did_undo != 0 ? gettext_(BytePtr.lit("before")) : gettext_(BytePtr.lit("after")),
+                uhp == null ? 0L : uhp.uh_seq, new BytePtr(msgbuf, 0));
         msg_attr_keep(iobuff_or(gettext_(BytePtr.lit("%ld %s; %s #%ld  %s"))), 0, true);
     }
 
