@@ -24,17 +24,10 @@ var nofencEdits = []struct {
 	{"buf_write taking the buffer's 'fileencoding' as its target",
 		`(?m)([ \t]*else\n[ \t]*\{\n)[ \t]*fenc = buf->b_p_fenc;\n`,
 		"${1}        fenc = (char_u *)\"\";\n", 1},
-	{"readfile taking the buffer's 'fileencoding' when there is no list",
-		`(?m)[ \t]*fenc = curbuf->b_p_fenc;\n`, "        fenc = (char_u *)\"\";\n", 1},
-	{"readfile setting 'bomb' after stripping one",
-		`(?m)[ \t]*if \(set_options\)\n[ \t]*\{\n` +
-			`[ \t]*curbuf->b_p_bomb = TRUE;\n` +
-			`[ \t]*curbuf->b_start_bomb = TRUE;\n[ \t]*\}\n`, "", 1},
-	{"readfile clearing it, twice", `(?m)[ \t]*curbuf->b_p_bomb = FALSE;\n`, "", 2},
-	// The test is longer than it looks: the 'bomb' term is one of four in a
-	// nested disjunction, and only that term goes.
-	{"the BOM this build never has, in readfile's first-block test",
-		`(?m)!curbuf->b_p_bomb && tmpname == NULL`, "tmpname == NULL", 1},
+	// readfile's 'fileencoding', its 'bomb' set and cleared and its BOM test went
+	// with readfile, which dies at phase 13 since ml_recover went at phase 1
+	// (norecover, the reform's D5); so did the swap file's block-zero
+	// encoding and its restore.
 	{"save_file_ff remembering the BOM and the encoding",
 		`(?m)[ \t]*buf->b_start_bomb = buf->b_p_bomb;\n` +
 			`[ \t]*if \(buf->b_start_fenc == NULL \|\| strcmp[^\n]*\n` +
@@ -60,35 +53,21 @@ var nofencEdits = []struct {
 	{"freeing the remembered encoding",
 		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = NULL;\n`,
 		"", 1},
+	// one of three: the other two went with readfile and the recovery
 	{"clearing the remembered BOM",
-		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 3},
-	// THREE LOOKUPS BY NAME, and the reason this phase needed two attempts.
+		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 1},
+	// LOOKUPS BY NAME, and the reason this phase needed two attempts (three,
+	// before readfile's and the recovered swap file's went with them).
 	// set_string_option_direct((char_u *)"fenc", ...) resolves the option
 	// through findoption(), which answers -1 for a row that is not there; the
 	// caller does not check, so silent Ex mode exits 1 without printing
 	// anything, and every recorded exit status in the harness moves at once.
-	{"readfile recording the encoding it read a file in",
-		`(?m)\n[ \t]*if \(set_options\)\n[ \t]*\{\n` +
-			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n[ \t]*\}\n`, "\n", 1},
 	{"`:e ++enc=` forcing one",
 		`(?m)[ \t]*char_u \*fenc = enc_canonize\(eap->cmd \+ eap->force_enc\);\n` +
 			`[ \t]*if \(fenc != NULL\)\n` +
 			`[ \t]*\{\n` +
 			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n` +
 			`[ \t]*\}\n[ \t]*vim_free\(fenc\);\n`, "", 1},
-	{"reading one out of a recovered swap file's block zero",
-		`(?m)[ \t]*if \(b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] & B0_HAS_FENC\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*int fnsize = B0_FNAME_SIZE_NOCRYPT;\n` +
-			`[ \t]*for \(p = b0p->b0_fname \+ fnsize; p > b0p->b0_fname && p\[-1\] != NUL; --p\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*;\n` +
-			`[ \t]*\}\n[ \t]*b0_fenc = vim_strnsave\(p, b0p->b0_fname \+ fnsize - p\);\n[ \t]*\}\n?`,
-		"", 1},
-	{"a recovered swap file restoring one",
-		`(?m)[ \t]*if \(b0_fenc != NULL\)\n[ \t]*\{\n` +
-			`[ \t]*set_option_value_give_err\(\(char_u \*\)"fenc",[^\n]*\n` +
-			`[ \t]*vim_free\(b0_fenc\);\n[ \t]*\}\n`, "", 1},
 }
 
 // dropIfBlock removes an `if` and the block it guards, found by BRACE

@@ -1,5 +1,10 @@
 # Phase 11 — nothing is written that was not asked for
 
+**A record now.** Phase 1 runs this phase's cut, `noswap`, at the front
+(the pipeline reform's D5, `doc/PIPELINE-REFORM.md` §7), so what it did is
+done before it runs: it has no plan entry. What follows is the account of the
+cut as it was made here.
+
 A swap file is not a recovery add-on bolted to the side of the editor. It is
 **memline's backing store**: created beside every file you open, written to as
 you type, deleted on a clean exit. For an embedded editor it is the last thing

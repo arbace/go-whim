@@ -94,6 +94,13 @@ that makes constant falls out** (D3b): 135 objects nothing writes after the
 cut, 113 of them folded. The 22 held are left to the phases that fold them by
 hand with a shape of their own, or with the option's real default.
 
+**Then there is no swap file and nothing to recover** (`noswap`, `norecover`
+and `nomemfile`, the reform's D5): phase 11's and phase 21's cuts, run on the
+seed after the options are dropped. The memfile is memory, nothing is written
+that was not asked for, and `ml_recover()` goes. With it go `readfile()`'s
+last callers but phase 13's, so `readfile()` dies at phase 13, and
+`edit_type`, `mf_dont_release` and the swap file's timestamps fall out here.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

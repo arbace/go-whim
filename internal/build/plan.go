@@ -83,10 +83,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "notags"},
 		}},
-	{N: 11, Name: "nothing is written that was not asked for",
-		Steps: []Step{
-			{Op: "noswap"},
-		}},
+	// 11, nothing is written that was not asked for: a record (internal/phase/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
 	{N: 12, Name: "UTF-8, and no other encoding, ever",
 		Steps: []Step{
 			{Op: "noenc"},
@@ -128,11 +125,7 @@ var Plan = []Phase{
 			{Op: "nohome"},
 			{Op: "nogetenv"},
 		}},
-	{N: 21, Name: "there is nothing to recover, and the memfile is memory",
-		Steps: []Step{
-			{Op: "norecover"},
-			{Op: "nomemfile"},
-		}},
+	// 21, there is nothing to recover, and the memfile is memory: a record (internal/phase/021/GOAL.md); its cuts went to phase 1 (norecover and nomemfile, the reform's D5).
 	{N: 22, Name: "the working directory is where it started",
 		Steps: []Step{
 			{Op: "nochdir"},

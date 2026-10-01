@@ -10,13 +10,9 @@ var nofencsEdits = []struct{ what, pat, repl string }{
 	{"the reset that restored a unicode 'fileencodings'",
 		`(?m)[ \t]*else if \(\(char_u \*\*\)varp == &p_fencs && enc_utf8\)\n` +
 			`[ \t]*\{\n[ \t]*newval = fencs_utf8_default;\n[ \t]*\}\n`, ""},
-	{"readfile choosing between an empty list and a list",
-		`(?m)[ \t]*else if \(\*p_fencs == NUL\)\n[ \t]*\{\n` +
-			`([ \t]*fenc = curbuf->b_p_fenc;\n[ \t]*fenc_alloced = FALSE;\n)` +
-			`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n` +
-			`[ \t]*fenc_next = p_fencs;\n` +
-			`[ \t]*fenc = next_fenc\(&fenc_next, &fenc_alloced\);\n[ \t]*\}\n`,
-		"    else\n    {\n${1}    }\n"},
+	// readfile's choice between an empty list and a list went with readfile,
+	// which dies at phase 13 since ml_recover went at phase 1 (norecover, the
+	// reform's D5)
 }
 
 // NoFencs leaves p_fencs and p_tenc as a declaration and a row, so the rows

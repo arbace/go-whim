@@ -831,6 +831,33 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        - **Result.** The chain gives the committed `whim-vim.c` byte for
          byte. In order: 148 phases, 928 s. The parallel check: 147
          links, 77 s; phase 1 37 s.
+   - **D5, done (branch `reform-d5`): swap and recovery.** Phase 1 runs
+     `noswap`, `norecover` and `nomemfile` (phases 11 and 21) after
+     `optfront`, under the same closure. 11 and 21 are records now.
+     - **What moved earlier with them.** `ml_recover()` was `readfile()`'s
+       last caller but phase 13's two, so `readfile()` dies at phase 13
+       rather than 49. Three things fall out at phase 1:
+       - `mparm_T.edit_type`;
+       - `mf_dont_release`, assigned only in `mf_close_file()`;
+       - the swap file's timestamps (`get_ctime()`, `add_time()`,
+         `vim_localtime()`).
+     - **What it replaced.**
+       - `nofencs`' and `nofenc`'s readfile and block-zero entries;
+       - `nogetenv`'s `vim_localtime` cache;
+       - phase 125's `mf_dont_release` section.
+
+       `nocmdopts`' tagname anchor is scoped by its new neighbour.
+       `nomemfile`'s two directory-list edits now refuse rather than
+       silently doing nothing: on the seed `p_path`'s term follows
+       `p_dir`'s, and the term alone is removed.
+     - **What stays.** Phase 125's residue: its proofs rest on text that
+       only exists late, such as `newfile` FALSE at all eleven
+       `ml_append()` calls. The swap halves of 48, 70 and 119 also stay;
+       each still finds its anchors where it is.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for
+       byte. In order: 146 phases, 923 s. The parallel check: 145 links,
+       79 s; phase 1 40 s.
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

@@ -288,9 +288,13 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	for _, r := range []struct{ old, new string }{
 		{"else if (*arg == '>' && (varp == (char_u *)&p_dir || varp == (char_u *)&p_bdir))",
 			"else if (*arg == '>' && varp == (char_u *)&p_bdir)"},
-		{"if (p == (char_u *)&p_bdir || p == (char_u *)&p_dir || p == (char_u *)&p_pp",
-			"if (p == (char_u *)&p_bdir || p == (char_u *)&p_pp"},
+		// on the seed p_path's term follows (phase 1, the reform's D5)
+		{"if (p == (char_u *)&p_bdir || p == (char_u *)&p_dir || ",
+			"if (p == (char_u *)&p_bdir || "},
 	} {
+		if k := bytes.Count(text, []byte(r.old)); k != 1 {
+			return nil, fmt.Errorf("nomemfile: %q occurs %d times, expected 1", r.old, k)
+		}
 		text = bytes.Replace(text, []byte(r.old), []byte(r.new), 1)
 	}
 	fmt.Fprintln(w, "  nomemfile    the two `is this option a directory list?` tests")

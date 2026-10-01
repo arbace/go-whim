@@ -1,5 +1,10 @@
 # Phase 21 — there is nothing to recover, and the memfile is memory
 
+**A record now.** Phase 1 runs this phase's cuts, `norecover` and
+`nomemfile`, at the front (the pipeline reform's D5,
+`doc/PIPELINE-REFORM.md` §7), so what they did is done before it runs: it has
+no plan entry. What follows is the account of the cuts as they were made here.
+
 ## there is nothing to recover
 
 Phase 11 made the swap file memory-only: the block structure is still built,

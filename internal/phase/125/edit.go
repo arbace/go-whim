@@ -65,8 +65,9 @@ package p125
 // true of ml_find_line()'s `dirty`, which was mf_put()'s third argument.  All three
 // are therefore the edit's.
 //
-// AND mf_dont_release, WHICH IS A CONSTANT.  `static int mf_dont_release = FALSE;`,
-// read twice and ASSIGNED NOWHERE IN THE FILE.  No warning gcc emits covers a
+// AND mf_dont_release, WHICH WAS A CONSTANT (since the reform's D5 it falls
+// out at phase 1, and this phase no longer names it).  `static int
+// mf_dont_release = FALSE;`, read twice and ASSIGNED NOWHERE IN THE FILE.  No warning gcc emits covers a
 // file-scope object in either direction, so nothing here has ever been able to see
 // it.
 //
@@ -136,7 +137,6 @@ var w125Left = map[string]string{
 	"mf_blocknr_min":           "a member nothing names",
 	"mf_neg_count":             "a member nothing names",
 	"pe_old_lnum":              "a member nothing names",
-	"mf_dont_release":          "a static object nothing reads",
 }
 
 // Whim125 takes the swap file's residue: four groups of bookkeeping that is
@@ -837,41 +837,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 
-	declRe := regexp.MustCompile(`^static int mf_dont_release = FALSE;$`)
-	cls, err = partition("mf_dont_release", []w125Class{
-		{"its declaration, with its only value", declRe},
-		{"a read", regexp.MustCompile(`(\|\| mf_dont_release\)| && !mf_dont_release\))`)},
-	}, "`mf_dont_release`")
-	if err != nil {
-		return nil, err
-	}
-	L = lines()
-	assignRe := regexp.MustCompile(`\bmf_dont_release\b\s*=`)
-	var assigns []string
-	for i, l := range L {
-		if assignRe.MatchString(l) && !edit.Contains(cls["its declaration, with its only value"], i) {
-			assigns = append(assigns, fmt.Sprintf("%d", i+1))
-		}
-	}
-	if len(assigns) > 0 {
-		return nil, p.Die("`mf_dont_release` is assigned at %s, so it is not the constant this phase takes",
-			strings.Join(assigns, " "))
-	}
-	total = 0
-	for _, v := range cls {
-		total += len(v)
-	}
-	p.Sayf("`mf_dont_release` IS A CONSTANT: %d mentions, its own declaration with `FALSE` and "+
-		"%d reads, and NOT ONE assignment anywhere in the file -- and no warning gcc emits "+
-		"covers a file-scope object in either direction", total, len(cls["a read"]))
-	if err := swap(" || mf_dont_release)", ")", "ml_get_buf()'s test of mf_dont_release",
-		"it is FALSE for ever, so the disjunct is the other operand", 1); err != nil {
-		return nil, err
-	}
-	if err := swap(" && !mf_dont_release)", ")", "ml_find_line()'s test of mf_dont_release",
-		"it is FALSE for ever, so the conjunct is the other operands", 1); err != nil {
-		return nil, err
-	}
+	// mf_dont_release, read twice and assigned only in mf_close_file(), fell
+	// out at phase 1 with the memfile's disk half (nomemfile and noswap, the
+	// reform's D5).
 
 	// ---- WHAT IS LEFT FOR THE SWEEP -------------------------------------------
 	var leftNames []string
@@ -901,7 +869,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// sweep takes too.
 	for name, k := range map[string]int{"bnum2": 1, "dirty": 1, "lnum_left": 1, "lnum_right": 1,
 		"mf_trans": 1, "mf_blocknr_min": 1, "mf_neg_count": 1, "pe_old_lnum": 1,
-		"mf_dont_release": 1, "b0p": 3} {
+		"b0p": 3} {
 		if n := mentions(name); n != k {
 			return nil, p.Die("`%s` has %d mentions, and the edit leaves %d", name, n, k)
 		}

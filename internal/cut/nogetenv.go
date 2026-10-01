@@ -153,13 +153,9 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nogetenv     $COLORFGBG; 'background' is what the table says")
 
-	// The cache existed to avoid calling tzset() on every timestamp.  musl's
-	// localtime_r does the zone setup itself, so the call was the cache's only
-	// purpose and both go.  libc still reads $TZ in there; this source does not.
-	if text, _, err = envBody(text, "vim_localtime", "    return localtime_r(timep, result);"); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nogetenv     $TZ, and the tzset cache that existed to avoid it")
+	// vim_localtime(), whose tzset cache read $TZ, went with get_ctime() and
+	// add_time() once the swap file's messages went at phase 1 (noswap and
+	// norecover, the reform's D5).
 
 	fmt.Fprintf(w, "  nogetenv     %d environment mentions left for the sweep\n",
 		len(envLeft.FindAll(text, -1)))
