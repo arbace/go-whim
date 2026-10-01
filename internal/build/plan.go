@@ -45,11 +45,7 @@ var Plan = []Phase{
 	{N: 0, Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true},
 	{N: 1, Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
-			{Op: "argvfront"},
-			{Op: "exfront", Declared: true},
-			{Op: "extable"},
-			{Op: "filefront"},
-			{Op: "optfront"},
+			{Op: "front", Declared: true},
 			{Op: "noruntime"},
 		}},
 	{N: 2, Name: "the options for features that are not here",

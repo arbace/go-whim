@@ -745,6 +745,25 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
          89-93 keep real edits.
        - The parallel check: 148 links, 116 s, bound by phase 1, which now
          runs four closures.
+   - **The closure's speed, done (branch `reform-speed`).** Phase 1 took
+     71 s with four closures, one per front cut, each with two full-file
+     analyses and 0-6 rounds of about 2.3 s.
+     - **One closure.** It now runs once, after all five front cuts
+       (`front`).
+     - **A fixed point over the seeds as well.** After the rounds settle,
+       what is unwritten is asked again. What a fold took the last write of
+       becomes a seed too: `if (params.no_swap_file) p_uc = 0;` goes with
+       argv's flag, and `p_uc` falls out. One closure over everything
+       missed that until this was added.
+     - **The seed check reuses the last round's parse.** The values stay
+       as their enumerators until the very end.
+     - **The objects' values are computed once a pass**, not once a round.
+
+     The result: phase 1 takes 43 s, with two passes of 6 and 3 rounds.
+     The product is byte for byte the same. The whole build in order takes
+     952 s (986); the parallel check, no longer bound by phase 1, 81 s
+     (116).
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

@@ -44,16 +44,17 @@ var ops = map[string]Step{
 	"noarglist": plain(cut.NoArgList),
 	// the command line cut at the front, and what that leaves unwritten
 	// folded; read_cmd_fd is held: the product keeps it
-	"argvfront": Step(xform.FallOutOf(xform.Step(plain(cut.ArgvFront)), "read_cmd_fd")),
-	// the Ex commands the product has not, retired at the front, and what
-	// only their handlers wrote folded (the reform's D2)
-	"exfront": Step(xform.FallOutOf(xform.Step(exFront))),
-	// and the table cut to the rows that are left (the reform's D2b)
-	"extable": plain(cut.ExTable),
-	// and the commands that name a file (the reform's D4)
-	"filefront": Step(xform.FallOutOf(xform.Step(plain(cut.FileFront)))),
-	// and every option the product has not (the reform's D3)
-	"optfront":    Step(xform.FallOutOf(xform.Step(plain(cut.OptFront)), optfrontHold...)),
+	// The reform's drop packages, each a plain cut (doc/PIPELINE-REFORM.md
+	// §7): the command line (D1), the Ex commands retired and their rows
+	// deleted (D2), the commands that name a file (D4), the options (D3).
+	"argvfront": plain(cut.ArgvFront),
+	"exfront":   Step(exFront),
+	"extable":   plain(cut.ExTable),
+	"filefront": plain(cut.FileFront),
+	"optfront":  plain(cut.OptFront),
+	// and phase 1's one step: the five in order, and ONE fall-out closure
+	// over what they leave unwritten together
+	"front":       Step(xform.FallOutOf(xform.Step(front), frontHold...)),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -175,6 +176,23 @@ func dropLocal(t []byte, args []string, w io.Writer) ([]byte, error) {
 	}
 	return t, nil
 }
+
+// front runs the five front cuts in order.
+func front(t []byte, args []string, w io.Writer) ([]byte, error) {
+	var err error
+	for _, op := range []Step{plain(cut.ArgvFront), exFront, plain(cut.ExTable),
+		plain(cut.FileFront), plain(cut.OptFront)} {
+		if t, err = op(t, args, w); err != nil {
+			return nil, err
+		}
+	}
+	return t, nil
+}
+
+// frontHold is what the closure after the front cuts leaves to the phases
+// that fold it by hand: read_cmd_fd, which the product keeps, and the dropped
+// options' globals of optfrontHold.
+var frontHold = append([]string{"read_cmd_fd"}, optfrontHold...)
 
 // optfrontHold are the dropped options' globals the fall-out closure leaves
 // to the phase that folds them by hand: where the closure's shape and the

@@ -77,20 +77,33 @@ func FallOutOf(cut Step, hold ...string) Step {
 		for _, h := range hold {
 			held[h] = true
 		}
+		// A FIXED POINT OVER THE SEEDS TOO: what the closure folds can take an
+		// object's last write -- `if (params.no_swap_file) p_uc = 0;` goes with
+		// the flag -- so what is unwritten is asked again after every closure,
+		// against the text before the cut, until nothing new is.
 		seeds := map[string]bool{}
-		var names []string
-		for k := range after {
-			if !before[k] && !held[k] {
-				seeds[k] = true
-				names = append(names, k)
+		for pass := 0; ; pass++ {
+			var names []string
+			for k := range after {
+				if !before[k] && !held[k] && !seeds[k] {
+					seeds[k] = true
+					names = append(names, k)
+				}
 			}
+			sort.Strings(names)
+			if len(names) == 0 {
+				return foUndeclare(out), nil
+			}
+			if pass == 0 {
+				p.Sayf("%d left unwritten by the cut: %s", len(names), strings.Join(names, " "))
+			} else {
+				p.Sayf("%d more left unwritten by what fell out: %s", len(names), strings.Join(names, " "))
+			}
+			if out, ast, err = fallOutMarked(p, out, seeds, ast); err != nil {
+				return nil, err
+			}
+			after = unwrittenOf(out, ast)
 		}
-		sort.Strings(names)
-		p.Sayf("%d left unwritten by the cut: %s", len(names), strings.Join(names, " "))
-		if len(seeds) == 0 {
-			return out, nil
-		}
-		return fallOut(p, out, seeds, ast)
 	}
 }
 
@@ -101,6 +114,11 @@ func unwrittenNames(text []byte) (map[string]bool, *cc.AST, error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	return unwrittenOf(text, ast), ast, nil
+}
+
+// unwrittenOf is unwrittenNames on a text already parsed.
+func unwrittenOf(text []byte, ast *cc.AST) map[string]bool {
 	f := newFO(text, ast)
 	f.noIndex = true
 	f.index()
@@ -111,7 +129,7 @@ func unwrittenNames(text []byte) (map[string]bool, *cc.AST, error) {
 	for k := range f.unwrittenMembers() {
 		out[k] = true
 	}
-	return out, ast, nil
+	return out
 }
 
 const (
@@ -188,22 +206,41 @@ func foUndeclare(text []byte) []byte {
 // fallOut runs the closure to its fixed point; seeds, when not nil, are
 // the only objects and members it starts from.
 func fallOut(p edit.Ph, text []byte, seeds map[string]bool, ast0 *cc.AST) ([]byte, error) {
+	text, _, err := fallOutMarked(p, text, seeds, ast0)
+	if err != nil {
+		return nil, err
+	}
+	return foUndeclare(text), nil
+}
+
+// fallOutMarked is fallOut leaving its values as the enumerators it declared,
+// with the parse of its last round: what is unwritten afterwards can be asked
+// of that parse, without another.
+func fallOutMarked(p edit.Ph, text []byte, seeds map[string]bool, ast0 *cc.AST) ([]byte, *cc.AST, error) {
 	counts := map[string]int{}
+	var ast *cc.AST
+	var vals map[string]int64
 	rounds := 0
 	for round := 0; ; round++ {
 		rounds = round
-		text = foDeclare(text)
-		ast := ast0 // round 0's text is the one already parsed, when given
+		declared := foDeclare(text)
+		ast = ast0 // round 0's text is the one already parsed, when given
+		if ast0 != nil && !bytes.Equal(declared, text) {
+			ast = nil // the declaration moved: parse again
+		}
 		ast0 = nil
+		text = declared
 		if ast == nil {
 			var err error
 			if ast, err = translate(append([]byte(nil), text...)); err != nil {
-				return nil, p.Die("round %d: the text does not type-check: %v", round, err)
+				return nil, nil, p.Die("round %d: the text does not type-check: %v", round, err)
 			}
 		}
 		f := newFO(text, ast)
 		f.only = seeds
+		f.vals = vals
 		f.collect()
+		vals = f.vals
 		if len(f.rws) == 0 {
 			break
 		}
@@ -216,14 +253,13 @@ func fallOut(p edit.Ph, text []byte, seeds map[string]bool, ast0 *cc.AST) ([]byt
 		}
 		out, err := applyNested(text, rws)
 		if err != nil {
-			return nil, p.Die("round %d: %v", round, err)
+			return nil, nil, p.Die("round %d: %v", round, err)
 		}
 		text = out
 		if round > 200 {
-			return nil, p.Die("no fixed point after %d rounds", round)
+			return nil, nil, p.Die("no fixed point after %d rounds", round)
 		}
 	}
-	text = foUndeclare(text)
 	var rules []string
 	for r := range counts {
 		rules = append(rules, r)
@@ -237,7 +273,7 @@ func fallOut(p edit.Ph, text []byte, seeds map[string]bool, ast0 *cc.AST) ([]byt
 		parts = append(parts, "nothing falls out")
 	}
 	p.Sayf("%s; %d rounds", strings.Join(parts, ", "), rounds)
-	return text, nil
+	return text, ast, nil
 }
 
 // --- one round -----------------------------------------------------------------
@@ -259,6 +295,7 @@ type fo struct {
 	caller   map[*cc.PostfixExpression]string // the function a call is in
 	markedFn map[string]bool                  // a body holding a value or a branch this step wrote
 	only     map[string]bool                  // the seeds, when not every unwritten object
+	vals     map[string]int64                 // the unwritten objects' values, once a pass
 	keys     map[cc.Type]string
 	all      []cc.Node       // every node, in order
 	end      []int           // where the subtree of all[i] ends
@@ -685,7 +722,32 @@ func (f *fo) underSizeof(n cc.Node) bool {
 
 // seeds writes each read of an object or a member nothing writes as its value.
 func (f *fo) seeds() {
-	objs := f.unwrittenObjects()
+	// The values are the pass's first round's: the rounds only take code out,
+	// so what was unwritten stays so, at the same value.
+	var objs map[*cc.Declarator]int64
+	if f.vals == nil {
+		objs = f.unwrittenObjects()
+		f.vals = map[string]int64{}
+		for d, v := range objs {
+			f.vals[d.Name()] = v
+		}
+	} else {
+		objs = map[*cc.Declarator]int64{}
+		for tu := f.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+			ed := tu.ExternalDeclaration
+			if ed == nil || ed.Case != cc.ExternalDeclarationDecl || ed.Position().Filename != file ||
+				ed.Declaration == nil || ed.Declaration.InitDeclaratorList == nil {
+				continue
+			}
+			for l := ed.Declaration.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
+				if d := l.InitDeclarator.Declarator; d != nil {
+					if v, ok := f.vals[d.Name()]; ok {
+						objs[d] = v
+					}
+				}
+			}
+		}
+	}
 	var members map[string]bool
 	if f.only != nil {
 		// a seeded member stays unwritten: the rounds only take code out
