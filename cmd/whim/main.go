@@ -40,7 +40,7 @@ type tool struct {
 var order = []string{
 	"sweep",
 	"funcreach",
-	"score", "cmdnames", "dropoptions", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
+	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
 	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "pre", "gocat",
 }
@@ -50,7 +50,6 @@ var tools = map[string]tool{
 	"sweep":       {runSweep, "sweep [--root NAME]... [--freeze NAME]... <file.c>"},
 	"score":       {runScore, "score"},
 	"cmdnames":    {runCmdnames, "cmdnames <file>"},
-	"dropoptions": {fileStep("dropoptions"), "dropoptions <file> <option-name>..."},
 	"droplocal":   {fileStep("droplocal"), "droplocal <file> <field>..."},
 	"nointro":     {fileStep("nointro"), "nointro <file>"},
 	"noglob":      {fileStep("noglob"), "noglob <file>"},

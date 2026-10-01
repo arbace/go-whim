@@ -83,10 +83,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(edit.Line("set_title_defaults();"), 1, "startup choosing 'title' and 'icon' defaults")
 	})
 
-	// Six: buf_write(), changed_internal(), unchanged(), redraw_titles(), and
-	// two that the sweep takes anyway -- maketitle()'s own early return and
-	// did_set_titlelen().
-	e.Cut(edit.Line("need_maketitle = TRUE;"), 6, "changes asking for a title update")
+	// Five: buf_write(), changed_internal(), unchanged(), redraw_titles(), and
+	// maketitle()'s own early return, which the sweep takes anyway.
+	// did_set_titlelen() had a sixth and went with 'titlelen''s row, dropped
+	// at phase 1 (optfront, the reform's D3).
+	e.Cut(edit.Line("need_maketitle = TRUE;"), 5, "changes asking for a title update")
 	return e.Done()
 }
 

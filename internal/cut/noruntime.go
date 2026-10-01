@@ -11,9 +11,11 @@ import (
 // runtimePaths are the path strings the runtime layer assembles or defaults
 // to.  Each becomes empty; NONE is deleted, so the options still exist and
 // still report.
+//
+// 'helpfile', 'runtimepath' and 'packpath' are dropped at phase 1 with every
+// option the product has not (optfront, the reform's D3), and with them the
+// two defaults only their rows held.
 var runtimePaths = []string{
-	`"$VIMRUNTIME/doc/help.txt"`,
-	`"~/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,~/.vim/after"`,
 	`"$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after"`,
 	`"$XDG_CONFIG_HOME/vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,` +
 		`$XDG_CONFIG_HOME/vim/after"`,

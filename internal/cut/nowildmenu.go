@@ -269,15 +269,8 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 			return c.keepElse(`^[ \t]*if \(cmdline_pum_active\(\) && \(c == `,
 				"the popup page-up/page-down arm")
 		},
-		// 'wildoptions' keeps its other three values and loses the one that
-		// selected a menu that is no longer there.  An option value that is
-		// still accepted and now does nothing is the thing Phase 3 exists to
-		// prevent.
-		func() error {
-			return c.sub(`\{\n    "fuzzy",\n    "tagfile",\n    "pum",\n    "exacttext",\n    NULL,\n\}`,
-				"{\n    \"fuzzy\",\n    \"tagfile\",\n    \"exacttext\",\n    NULL,\n}", 1,
-				"the `pum` value of 'wildoptions'")
-		},
+		// 'wildoptions', whose `pum` value selected the menu, is dropped at
+		// phase 1 with every option the product has not (optfront, D3).
 	}
 	for _, step := range steps {
 		if err := step(); err != nil {

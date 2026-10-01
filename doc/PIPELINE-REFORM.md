@@ -650,6 +650,41 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        (D4, files).
 4. **D3 options.** Default-as-initialiser, then remove 54, 55 and 95 and the
    row halves.
+   - **D3a, done (branch `reform-d3`): the rows dropped at the front, no
+     closure.**
+     - **Why no closure, and no default-as-initialiser.** A row's default
+       reaches its global through `set_init_1()`, under `'compatible'`, and
+       through what startup does after. Modelling that to give each global
+       its "right" initialiser, and then folding with it, would put
+       shapes at risk that the hand folds decided with that knowledge.
+       Instead each global stays at its static zero until the phase that
+       removes its readers. Every drop without `--strict` already did that,
+       and nothing reads the intermediate texts' behaviour.
+     - **The cut.** `internal/cut/optfront.go`, phase 1's fourth step. It
+       drops the 375 rows listed in `optfront.md`.
+       - A row is found inside `options[]` only. Over the whole file,
+         `'arabic'` first matched the encoding table, and the row
+         survived to phase 54.
+       - Each name's line goes from every list, as `dropoptions` always
+         did. The product keeps that: `"key"` is out of `'selectmode'`'s
+         values and `"debug"` out of the history names. A whitelist-only
+         version differed from the product in exactly four tables.
+     - **What it replaced.**
+       - all 53 `dropoptions` steps, the op, `query-dropoptions` and the
+         subcommand; `DropRow` keeps no guard;
+       - all of phase 54, a record now. Phase 95's computed set is now an
+         assertion that its six rows are gone; its code edits stay;
+       - the edits of rows and of handlers that died with them:
+         - `noruntime`, `nowildmenu`, `nolocale`, `noenc`, `nofencs`, `nofenc`;
+         - `nogetenv`, `nobackup`, `nomouse`;
+         - phases 93 (`did_set_readonly`) and 103 (`'termresize'`);
+       - counts restated in 24, 35, 61, 91, 93, 94 and 95.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       - In order: 149 phases, 948 s (982 after D2b).
+       - The parallel check: 148 links, 86 s.
+     - **D3b, not done:** the closure over what the drop left unwritten.
+       It needs each global's real default, or a hold list.
+
 5. **D4 files, and D5.**
    - Delete the superseded surgery.
    - This is the largest simplification, and the largest risk (§6, item 2).

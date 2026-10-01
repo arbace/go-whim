@@ -29,8 +29,6 @@ var w103Ops = []w103Op{
 	{"sub", []string{"        if (height != Rows || width != Columns)\n        {\n            set_shellsize(width, height, true);\n        }\n", "        set_shellsize(width, height, true);\n", "1", "R2"}, 82},
 	{"cut", []string{"            case 2048:\n                win_resize_setting = setting;\n                term_set_win_resize(true);\n                break;\n", "1", "R3"}, 88},
 	{"sub", []string{"    else if (first == '?' && trail == 'y' && argc == 2 && (arg[0] == 2026 || arg[0] == 2048))\n", "    else if (first == '?' && trail == 'y' && argc == 2 && arg[0] == 2026)\n", "1", "R4"}, 94},
-	{"delfunc", []string{"did_set_termresize(optset_T *args __attribute__((unused)))", "R5"}, 100},
-	{"cut", []string{"    {\"termresize\", \"trz\", P_STRING | P_VI_DEF, (char_u *)&p_trz, PV_NONE, did_set_termresize, NULL, {(char_u *)\"\", (char_u *)0}},\n", "1", "R5c"}, 102},
 	{"cut", []string{"    term_set_win_resize(false);\n", "1", "R6"}, 108},
 	{"say", []string{"the 'termresize' option, term_set_win_resize(), win_resize_setting and win_resize_enabled lose every use, for the sweep to take, and the CSI 48 arm is unconditional and always a full redraw"}, 113},
 	{"delfunc", []string{"sig_winch(int sigarg __attribute__((unused)))", "W1"}, 118},

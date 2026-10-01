@@ -115,7 +115,7 @@ var w94Before = map[string]int{
 	"bufIsChanged": 10, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
 	"exiting": 17, "buf_spname": 5, "open_buffer": 5,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
-	"p_ro": 2, "p_ur": 2, "read_cmd_fd": 12,
+	"p_ro": 0, "p_ur": 0, "read_cmd_fd": 12,
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
@@ -124,7 +124,7 @@ var w94After = map[string]int{
 	"w_topline_was_set": 3, "wi_changelistidx": 1,
 	"bufIsChanged": 10, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
-	"p_ro": 2, "p_ur": 2, "read_cmd_fd": 12,
+	"p_ro": 0, "p_ur": 0, "read_cmd_fd": 12,
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 

@@ -54,14 +54,14 @@ var nofencEdits = []struct {
 			`[ \t]*\{\n[ \t]*convert_setup\(&vimconv, p_enc, curbuf->b_p_fenc\);\n[ \t]*\}\n`,
 		"", 1},
 	{"buf_write writing a BOM it no longer makes", "", "", 0},
+	// did_set_encoding's arm for 'fileencoding', the empty test phase 15 left
+	// there and gvarp went with the encoding rows, dropped at phase 1
+	// (optfront, the reform's D3).
 	{"freeing the remembered encoding",
 		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = NULL;\n`,
 		"", 1},
 	{"clearing the remembered BOM",
 		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 3},
-	{"did_set_encoding's arm for 'fileencoding'", "", "", 0},
-	{"the empty test Phase 15 left in did_set_encoding",
-		`(?m)\n[ \t]*if \(errmsg == NULL\)\n[ \t]*\{\n[ \t]*\}\n`, "", 1},
 	// THREE LOOKUPS BY NAME, and the reason this phase needed two attempts.
 	// set_string_option_direct((char_u *)"fenc", ...) resolves the option
 	// through findoption(), which answers -1 for a row that is not there; the
@@ -89,11 +89,6 @@ var nofencEdits = []struct {
 		`(?m)[ \t]*if \(b0_fenc != NULL\)\n[ \t]*\{\n` +
 			`[ \t]*set_option_value_give_err\(\(char_u \*\)"fenc",[^\n]*\n` +
 			`[ \t]*vim_free\(b0_fenc\);\n[ \t]*\}\n`, "", 1},
-	// gvarp existed to ask which of the three encoding options was being set.
-	// There is one, so its assignment goes; the declaration left is the sweep's.
-	{"gvarp's one assignment",
-		edit.Line("gvarp = (char_u **)get_option_varp_scope(args->os_idx, OPT_GLOBAL);"),
-		"", 1},
 }
 
 // dropIfBlock removes an `if` and the block it guards, found by BRACE
@@ -128,18 +123,12 @@ func NoFenc(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 	for _, e := range nofencEdits {
 		if e.pat == "" {
-			if e.what == "buf_write writing a BOM it no longer makes" {
-				text, err = dropIfBlock(text,
-					`(?m)^[ \t]*if \(buf->b_p_bomb && !write_bin`,
-					"buf_write no longer writes a BOM")
-				if err != nil {
-					return nil, fmt.Errorf("nofenc: buf_write no longer writes a BOM")
-				}
-			} else {
-				if text, err = dropIfBlock(text,
-					edit.Head("if (gvarp == &p_fenc)"), e.what); err != nil {
-					return nil, err
-				}
+			// the one block found by brace matching
+			text, err = dropIfBlock(text,
+				`(?m)^[ \t]*if \(buf->b_p_bomb && !write_bin`,
+				"buf_write no longer writes a BOM")
+			if err != nil {
+				return nil, fmt.Errorf("nofenc: buf_write no longer writes a BOM")
 			}
 		} else {
 			re := regexp.MustCompile(e.pat)

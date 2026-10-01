@@ -134,7 +134,9 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 			`checkforcmd_noparen\([^,]+, "(legacy|noautocmd|sandbox|vim9cmd)"`, 0},
 		{"cmod_save_ei outside its declaration", `\bcmod_save_ei\b`, 1},
 		{"scriptout opened by the parser", `\bscripterror\b`, 0},
-		{"p_lpl outside its declaration and row", `\bp_lpl\b`, 2},
+		// 'loadplugins''s row is dropped at phase 1 (optfront, D3): p_lpl
+		// is named by nothing now
+		{"p_lpl", `\bp_lpl\b`, 0},
 	} {
 		n := len(regexp.MustCompile(l.pattern).FindAll(text, -1))
 		if n != l.want {

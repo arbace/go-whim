@@ -170,8 +170,10 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	text = append(buf, text[end:]...)
 	fmt.Fprintln(w, "  nomouse      the escape sequences that carried a click")
 
-	if n = len(setmouseCall.FindAll(text, -1)); n != 31 {
-		return nil, fmt.Errorf("nomouse: expected 31 setmouse() calls, matched %d", n)
+	// 30: the 31st was in 'mouse''s handler, dropped with its row at phase 1
+	// (optfront, the reform's D3)
+	if n = len(setmouseCall.FindAll(text, -1)); n != 30 {
+		return nil, fmt.Errorf("nomouse: expected 30 setmouse() calls, matched %d", n)
 	}
 	text = setmouseCall.ReplaceAll(text, nil)
 	// Every mch_setmouse() call is a bare statement too.  The count is NOT
@@ -182,7 +184,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nomouse: mch_setmouse has %d mentions left, expected the "+
 			"definition and its declaration", left)
 	}
-	fmt.Fprintf(w, "  nomouse      %d setmouse() calls, every one a bare statement\n", 31)
+	fmt.Fprintf(w, "  nomouse      %d setmouse() calls, every one a bare statement\n", 30)
 
 	if text, err = cutCounted(text,
 		`(?m)[ \t]*if \(tabcount > 1 && mouse_has_any\(\)\)\n[ \t]*\{\n`+
@@ -205,11 +207,9 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = edit.DropIf(text, edit.Head("if (varp == &p_mouse)"), 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, edit.Line("check_mouse_termcode();"),
-		"nomouse", "did_set_ttymouse's call to check_mouse_termcode", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nomouse      the two p_mouse readers an option row kept reachable")
+	// did_set_ttymouse's call to check_mouse_termcode went with its row,
+	// dropped at phase 1 (optfront, the reform's D3)
+	fmt.Fprintln(w, "  nomouse      the p_mouse reader an option row kept reachable")
 
 	if text, err = edit.DropIf(text,
 		`(?m)^[ \t]*if \(!option_was_set\(\(char_u \*\)"ttym"\) && \(term_props\[TPR_MOUSE\]`,
@@ -226,15 +226,8 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nomouse      didset_string_options stops reading 'ttymouse'")
 
-	for _, name := range []string{"mouse", "mousemodel", "ttymouse"} {
-		re := regexp.MustCompile(fmt.Sprintf(
-			`(\(char_u \*\)&p_\w+, PV_NONE, )did_set_%s, expand_set_%s,`, name, name))
-		var hit bool
-		if text, hit = replaceFirst(re, text, "${1}NULL, NULL,"); !hit {
-			return nil, fmt.Errorf("nomouse: '%s' does not name its two handlers", name)
-		}
-	}
-	fmt.Fprintln(w, "  nomouse      the six option handlers their own rows kept reachable")
+	// The rows of 'mouse', 'mousemodel' and 'ttymouse', which kept their six
+	// handlers reachable, are dropped at phase 1 (optfront, the reform's D3).
 
 	// WaitForCharOrMouse() has no mouse in it: the name is left over from the
 	// GUI build, where it also polled for motion events.  CHECKED rather than

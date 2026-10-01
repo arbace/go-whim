@@ -47,6 +47,18 @@ still names some of them: `window_layout_locked(CMD_close)`, the comparisons
 later phases fold. No parsed command can reach them. Phase 80 deletes what is
 left of them.
 
+**Then every option the product has not is dropped** (`optfront`, the
+reform's D3). There are 375 rows, listed in `internal/cut/optfront.md`, where
+53 `dropoptions` steps and phases 54 and 95 dropped them a few at a time:
+- each row is found inside `options[]`;
+- its name's line goes from every list that held it. That is how
+  `dropoptions` always worked, and the product keeps what it did to other
+  options' value lists.
+
+No guard is asked. A global its row initialised stays at its static zero
+until the phase that removes its readers; the `--strict` waits existed only to
+avoid exactly that, and nothing reads the intermediate texts' behaviour.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

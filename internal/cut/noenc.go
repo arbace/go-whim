@@ -90,9 +90,6 @@ var noencIconvBlocks = []struct{ pat, what string }{
 		`[ \t]*iconv_close\(iconv_fd\);\n[ \t]*\}`, "readfile's exit path"},
 }
 
-var fencsRow = regexp.MustCompile(
-	`(\{"fileencodings", "fencs",[^\n]*\{\(char_u \*\))"[^"]*"`)
-
 // noencDropIfBlock deletes an `if (...)` and the block it guards, by matching
 // braces.
 func noencDropIfBlock(text []byte, pat, what string) ([]byte, error) {
@@ -211,17 +208,8 @@ func NoEnc(text []byte, w io.Writer) ([]byte, error) {
 	text = bytes.Replace(text, []byte(dropFencs), nil, 1)
 	fmt.Fprintln(w, "  noenc        mb_init stops installing a default 'fileencodings'")
 
-	// The row stays -- readfile() dereferences p_fencs, so removing the row
-	// would leave a NULL global -- and its content goes instead.  The compiled
-	// default is "ucs-bom"; the longer unicode list was the one mb_init()
-	// installed at run time, and that has just gone.
-	before := text
-	text = fencsRow.ReplaceAll(text, []byte(`${1}""`))
-	if bytes.Equal(text, before) {
-		return nil, fmt.Errorf("noenc: 'fileencodings' does not default to the unicode list, " +
-			"so this has run already or the row has moved")
-	}
-	fmt.Fprintln(w, "  noenc        'fileencodings' defaults to empty; nothing to try")
+	// 'fileencodings''s row, whose default this emptied, is dropped at phase 1
+	// with every option the product has not (optfront, the reform's D3).
 
 	if !bytes.Contains(text, []byte(dropFencsDefaultOld)) {
 		return nil, fmt.Errorf("noenc: set_option_default no longer special-cases " +

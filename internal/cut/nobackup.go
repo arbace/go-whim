@@ -53,45 +53,6 @@ func nobackupSub(text []byte, old, new, what string, count int) ([]byte, error) 
 	return edit.ReplaceAnchorB(text, old, []byte(new), -1), nil
 }
 
-// pointRowsAtNull replaces a handler name with NULL wherever it appears
-// BETWEEN a space-or-comma and a comma -- which is exactly a table row.
-//
-// The Python writes this as `(?<=[ ,])name(?=,)`, and RE2 HAS NO LOOKAROUND OF
-// EITHER KIND.  A capturing form would work here but is not equivalent in
-// general: it consumes the delimiters, so two matches sharing one comma would
-// lose the second.  Testing the bytes either side is exact and cannot.
-//
-// A forward declaration has `(` after the name, not `,`, so it is left alone
-// for deadprotos to take.
-func pointRowsAtNull(text []byte, handler string) ([]byte, int) {
-	name := []byte(handler)
-	var out []byte
-	n, prev := 0, 0
-	for i := 0; ; {
-		j := bytes.Index(text[i:], name)
-		if j < 0 {
-			break
-		}
-		at := i + j
-		i = at + len(name)
-		if at == 0 || i >= len(text) {
-			continue
-		}
-		before, after := text[at-1], text[i]
-		if (before != ' ' && before != ',') || after != ',' {
-			continue
-		}
-		out = append(out, text[prev:at]...)
-		out = append(out, "NULL"...)
-		prev = i
-		n++
-	}
-	if n == 0 {
-		return text, 0
-	}
-	return append(out, text[prev:]...), n
-}
-
 // NoBackup takes the backup file away.
 func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	total := 0
@@ -192,29 +153,8 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nobackup     the 'backupskip' default, built at startup by name")
 
-	// An option row is a ROOT for reachability, so did_set_backupcopy()
-	// survives the sweep and reads p_bkc, and --strict then refuses to drop
-	// the row that is the only thing keeping the reader alive.  The answer is
-	// to point the row at NULL first.
-	for _, h := range []struct {
-		handler string
-		rows    int
-	}{
-		{"did_set_backupcopy", 1},
-		{"expand_set_backupcopy", 1},
-		{"did_set_backupext_or_patchmode", 2},
-	} {
-		var got int
-		text, got = pointRowsAtNull(text, h.handler)
-		if got != h.rows {
-			return nil, fmt.Errorf("nobackup: %s is named in %d rows, expected %d",
-				h.handler, got, h.rows)
-		}
-		if text, ok = edit.DeleteDefinition(text, h.handler); !ok {
-			return nil, fmt.Errorf("nobackup: %s is not defined at file scope", h.handler)
-		}
-	}
-	fmt.Fprintln(w, "  nobackup     the three handlers the rows kept reachable")
+	// The three handlers 'backupcopy', 'backupext' and 'patchmode' kept
+	// reachable went with their rows, dropped at phase 1 (optfront, D3).
 
 	if text, err = cutCounted(text,
 		edit.Line("(void)opt_strings_flags(p_bkc, p_bkc_values, &bkc_flags, TRUE);"),

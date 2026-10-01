@@ -1,12 +1,9 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
-
-	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var nofencsEdits = []struct{ what, pat, repl string }{
@@ -22,41 +19,6 @@ var nofencsEdits = []struct{ what, pat, repl string }{
 		"    else\n    {\n${1}    }\n"},
 }
 
-// tencCond is the head of the block did_set_encoding used to convert between
-// 'termencoding' and 'encoding'.
-var tencCond = edit.Head("if (((varp == &p_enc && *p_tenc != NUL) || varp == &p_tenc))")
-
-// dropTencBlock needs BRACE MATCHING and not a regex, for the reason this tree
-// has now recorded three times: a lazy `(?:[^\n]*\n)*?\}` stops at the first
-// line that is only a brace, which here is the inner `if (convert_setup(...))`'s
-// -- leaving the outer `}` and the function's own `}` with nothing to close,
-// and gcc reporting it as "expected identifier or '(' before 'return'".
-func dropTencBlock(text []byte) ([]byte, error) {
-	blanked := edit.Blank(text)
-	m := regexp.MustCompile(tencCond).FindIndex(text)
-	if m == nil {
-		return nil, fmt.Errorf("nofencs: did_set_encoding no longer converts between " +
-			"'termencoding' and 'encoding'")
-	}
-	lp := m[0] + bytes.IndexByte(text[m[0]:], '(')
-	rp := edit.Match(blanked, lp)
-	i := rp + 1
-	for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n') {
-		i++
-	}
-	if i >= len(text) || text[i] != '{' {
-		return nil, fmt.Errorf("nofencs: that condition does not open a block")
-	}
-	closing := edit.Match(blanked, i)
-	end := closing + 1
-	for end < len(text) && (text[end] == ' ' || text[end] == '\t') {
-		end++
-	}
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:m[0]]...)
-	return append(out, text[end:]...), nil
-}
-
 // NoFencs leaves p_fencs and p_tenc as a declaration and a row, so the rows
 // can go next.
 func NoFencs(text []byte, w io.Writer) ([]byte, error) {
@@ -70,11 +32,8 @@ func NoFencs(text []byte, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  nofencs      %s\n", e.what)
 	}
 
-	text, err := dropTencBlock(text)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nofencs      converting between 'termencoding' and 'encoding'")
+	// did_set_encoding's conversion between 'termencoding' and 'encoding'
+	// went with the two rows, dropped at phase 1 (optfront, the reform's D3).
 
 	for _, v := range []string{"p_fencs", "p_tenc"} {
 		// The declaration and the options[] row are not reads.

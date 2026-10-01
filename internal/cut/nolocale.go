@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 )
@@ -25,8 +24,8 @@ var nolocaleEdits = []struct {
 	// than either, and which five multibyte behaviour cases caught.
 	{"deriving 'encoding' from the locale, keeping the mbyte init it also did",
 		`(?m)^([ \t]*)set_init_default_encoding\(\);$`, "${1}(void)mb_init();", 1},
-	{"'encoding' defaults to utf-8 instead of latin1",
-		`(?m)(\{"encoding",[^\n]* \{\(char_u \*\))"latin1"`, `${1}"utf-8"`, 1},
+	// 'encoding''s row, whose default was latin1, is dropped at phase 1 with
+	// every option the product has not (optfront, the reform's D3)
 	// :sort's locale-aware collation died with :sort, retired at phase 1
 	// (exfront, the reform's D2)
 	{"the $LANG-gated maintainer line in :messages",
@@ -95,18 +94,6 @@ func NoLocale(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nolocale     the DBCS locale conversion in mb_init, and its local")
-
-	parts := strings.SplitN(string(text), `{"encoding"`, 2)
-	if len(parts) > 1 {
-		head := parts[1]
-		if len(head) > 400 {
-			head = head[:400]
-		}
-		if strings.Contains(head, `"latin1"`) {
-			return nil, fmt.Errorf("nolocale: 'encoding' still defaults to latin1, which " +
-				"would make this a latin1 editor the moment the locale stops being asked")
-		}
-	}
 
 	fmt.Fprintf(w, "  nolocale     %d setlocale calls left for the sweep\n",
 		bytes.Count(text, []byte("setlocale(")))

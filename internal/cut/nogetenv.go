@@ -146,10 +146,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nogetenv     $VIM, $VIMRUNTIME and $MYVIMDIR stop being published")
 
-	if text, _, err = envBody(text, "did_set_helpfile", "    return NULL;"); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nogetenv     'helpfile' stops unsetting what it can no longer set")
+	// did_set_helpfile went with 'helpfile''s row, dropped at phase 1
+	// (optfront, the reform's D3)
 
 	if text, err = cutCounted(text, `(?m)[ \t]*\{EXPAND_ENV_VARS, get_env_name, TRUE, TRUE\},\n`,
 		"nogetenv", "the EXPAND_ENV_VARS completion row", 1); err != nil {

@@ -107,16 +107,16 @@ var w93Before = map[string]int{
 	"b_ffname": 32, "b_sfname": 26, "b_fname": 29,
 	"CMD_file": 4, "EX_XFILE": 4, "buflist_new": 3, "buflist_name_nr": 3,
 	"buf_spname": 7, "buf_get_fname": 3, "fileinfo": 4, "check_fname": 3,
-	"readonlymode": 3, "mch_dirname": 5, "shorten_buf_fname": 2,
+	"readonlymode": 2, "mch_dirname": 5, "shorten_buf_fname": 2,
 	"check_changed": 4, "no_write_message": 3,
-	"p_ur": 2, "p_ro": 2, "read_cmd_fd": 12, "vim_fsync": 3,
+	"p_ur": 0, "p_ro": 0, "read_cmd_fd": 12, "vim_fsync": 3, // their rows went at phase 1 (D3)
 	"scriptin": 8, "redir_fd": 0, // folded at phase 1: only :redir wrote it (D2)
 }
 
 var w93After = map[string]int{
 	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 1,
 	"shorten_buf_fname": 1, "check_fname": 3, "buf_get_fname": 3,
-	"check_changed": 4, "no_write_message": 3, "p_ur": 2, "p_ro": 2,
+	"check_changed": 4, "no_write_message": 3, "p_ur": 0, "p_ro": 0,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
@@ -515,13 +515,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- E. the two write-only leftovers --------------------------------------
-	if text, err = fold(text, "did_set_readonly", "drop",
-		`(?m)^    if \(!curbuf->b_p_ro && \(args->os_flags & OPT_LOCAL\) == 0\)$`,
-		"did_set_readonly's readonlymode write, with the `if` around it: C1 took "+
-			"the only reader, and an `if` with an empty body is not something any tool "+
-			"here removes", 1); err != nil {
-		return nil, err
-	}
+	// did_set_readonly's readonlymode write went with 'readonly''s row,
+	// dropped at phase 1 (optfront, the reform's D3).
 	if text, err = within(text, "buflist_new", w93lit21, "",
 		"b_dev_valid's one surviving assignment, which part B left: every reader "+
 			"is inside a function the sweep takes, and deadfields.py cannot remove a "+

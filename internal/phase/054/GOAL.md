@@ -1,5 +1,11 @@
 # Phase 54 — no option without a variable
 
+**A record now.** Phase 1 drops every options[] row the product has not, at
+the front (`optfront`, the pipeline reform's D3, `doc/PIPELINE-REFORM.md`
+§7), so what this phase cut is gone before it runs: it has no plan entry and no
+program. What follows is the account of the cut as
+it was made here.
+
 A row of `options[]` whose variable is `(char_u *)NULL` is an option `:set` accepts,
 reports and ignores: its feature was never compiled in — folding, syntax, the GUI,
 printing, cscope, the interpreter DLLs — or went in an earlier phase. **174 of

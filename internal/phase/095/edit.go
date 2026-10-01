@@ -105,10 +105,8 @@ package p095
 // ---- C5. 'readonly': the row, then the field -------------------------------------------
 
 import (
-	"fmt"
 	"io"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
@@ -127,36 +125,24 @@ func init() {
 
 var (
 	w95OptRow = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	w95Var    = regexp.MustCompile(`\(char_u \*\)&(\w+)`)
-	w95PV     = regexp.MustCompile(`PV_\w+`)
 	w95Call   = regexp.MustCompile(`(?m)^[ \t]*change_warning\([^;]*\);\n`)
-	w95Glob   = regexp.MustCompile(`&(p_[a-z0-9_]+)\b`)
 )
 
 var w95Before = map[string]int{
-	"change_warning": 7, "did_set_readonly": 3,
-	"b_p_ro": 10, "b_p_fs": 7, "b_did_warn": 4,
-	"p_ro": 2, "p_fs": 2, "p_ur": 2, "p_write": 2, "p_wa": 2, "p_prompt": 2,
+	"change_warning": 7, "did_set_readonly": 0,
+	"b_p_ro": 9, "b_p_fs": 7, "b_did_warn": 3,
+	"p_ro": 0, "p_fs": 0, "p_ur": 0, "p_write": 0, "p_wa": 0, "p_prompt": 0,
 	"p_mod": 2, "did_set_modified": 3,
-	"SHM_RO": 2, "BV_RO": 3, "BV_FS": 4, "w_readonly": 2,
+	"SHM_RO": 2, "BV_RO": 2, "BV_FS": 3, "w_readonly": 2,
 	"p_paste": 12, "read_cmd_fd": 12,
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 var w95After = map[string]int{
-	"b_p_ro": 0, "b_p_fs": 0, "change_warning": 0, "did_set_readonly": 1,
-	"p_ro": 1, "p_fs": 1, "p_ur": 1, "p_write": 1, "p_wa": 1, "p_prompt": 1,
+	"b_p_ro": 0, "b_p_fs": 0, "change_warning": 0, "did_set_readonly": 0,
+	"p_ro": 0, "p_fs": 0, "p_ur": 0, "p_write": 0, "p_wa": 0, "p_prompt": 0,
 	"b_did_warn": 1, "p_mod": 2, "did_set_modified": 3, "p_paste": 12,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
-}
-
-// w95Want is the set of rows with no reader of their own global, and the six
-// this phase drops are a CHOSEN SUBSET of it: 'modified' stays, because the
-// state it reports lives in b_changed and not in p_mod.
-var w95Want = map[string]string{
-	"fsync": "PV_BOTH", "modified": "PV_BUF", "prompt": "PV_NONE",
-	"readonly": "PV_BUF", "undoreload": "PV_NONE", "write": "PV_NONE",
-	"writeany": "PV_NONE",
 }
 
 var w95Nopaste = []string{"p_ai_nopaste", "p_et_nopaste", "p_sts_nopaste",
@@ -196,92 +182,32 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"did_set_readonly 3, b_p_ro 10, b_p_fs 7 -- the file the five edits of part C " +
 		"were counted against")
 
-	// ---- 1. WHICH ROWS HAVE NO READER, COMPUTED -------------------------------
-	// dropoptions --strict's own test, run here over EVERY row, so that the six
-	// this phase drops are a chosen subset of a computed set and not a list.
+	// ---- 1. the six rows nothing read, gone ----------------------------------
+	// fsync, prompt, readonly, undoreload, write and writeany had no reader of
+	// their own global: a computed set, 'modified' the one of it that stays.
+	// Their rows, with every option the product has not, are dropped at phase
+	// 1 (optfront, the reform's D3); what is left here is their readers'
+	// code.  'modified' and 'paste' keep their rows, and paste is exempt for
+	// ever (GOALS.md II.2d).
 	t := string(text)
 	i := strings.Index(t, "static struct vimoption options[]")
 	if i < 0 {
 		return nil, p.Die("options[] is not in this file")
 	}
 	j := strings.Index(t[i:], "\n};") + i
-	b := edit.Blank(text)
-	type row struct {
-		Name       string
-		start, end int
+	var rows []string
+	for _, m := range w95OptRow.FindAllStringSubmatch(t[i:j], -1) {
+		rows = append(rows, m[1])
 	}
-	var rows []row
-	for _, m := range w95OptRow.FindAllStringSubmatchIndex(t[i:j], -1) {
-		start := i + m[0]
-		end := edit.Match(b, strings.Index(t[start:], "{")+start)
-		if end < 0 {
-			return nil, p.Die("the options[] row for %s is not balanced", edit.PyRepr(t[i+m[2]:i+m[3]]))
-		}
-		rows = append(rows, row{t[i+m[2] : i+m[3]], start, end})
-	}
-	if len(rows) != 114 {
-		return nil, p.Die("options[] has %d rows, expected 114 -- the table has moved under this "+
-			"phase", len(rows))
-	}
-	got := map[string]string{}
-	for _, r := range rows {
-		vm := w95Var.FindStringSubmatch(t[r.start:r.end])
-		if vm == nil {
-			continue // a row with no global of its own
-		}
-		v := vm[1]
-		selfDecl := regexp.MustCompile(`^static\b[^=]*\b` + regexp.QuoteMeta(v) + `;$`)
-		amp := regexp.MustCompile(`&\s*` + regexp.QuoteMeta(v) + `\b`)
-		word := regexp.MustCompile(`\b` + regexp.QuoteMeta(v) + `\b`)
-		read := false
-		for _, h := range word.FindAllStringIndex(t, -1) {
-			o := h[0]
-			if r.start <= o && o <= r.end {
-				continue
-			}
-			line := t[strings.LastIndex(t[:o], "\n")+1 : strings.Index(t[o:], "\n")+o]
-			if w95IsRow(line) || w95IsAmp(line) || selfDecl.MatchString(line) {
-				continue
-			}
-			if !word.MatchString(amp.ReplaceAllString(line, "")) {
-				continue
-			}
-			read = true
-			break
-		}
-		if !read {
-			pv := "PV_NONE"
-			if m := w95PV.FindString(t[r.start:r.end]); m != "" {
-				pv = m
-			}
-			got[r.Name] = pv
+	for _, gone := range []string{"fsync", "prompt", "readonly", "undoreload", "write", "writeany"} {
+		if edit.Contains(rows, gone) {
+			return nil, p.Die("the row for '%s' is still there, and phase 1 drops it", gone)
 		}
 	}
-	if !w95SameMap(got, w95Want) {
-		return nil, p.Die("the rows with no reader are %s, expected exactly %s -- the six this phase "+
-			"drops are a chosen subset of that computed set, so a different set means "+
-			"the choice was made against a different file", w95Fmt(got), w95Fmt(w95Want))
+	if !edit.Contains(rows, "modified") || !edit.Contains(rows, "paste") {
+		return nil, p.Die("'modified' or 'paste' lost its row, and neither may")
 	}
-	p.Say("seven of the 114 rows have no reader of their own global, computed with " +
-		"dropoptions --strict's own test: fsync modified prompt readonly undoreload " +
-		"write writeany")
-	p.Say("and 'modified' is the one that STAYS -- GOALS.md II decision 5: the state it " +
-		"reports lives in b_changed and not in p_mod, so the row is not a lie.  A " +
-		"computation that took \"no reader\" as the criterion would delete it")
-
-	// THE EXEMPTION, ASSERTED RATHER THAN ONLY WRITTEN DOWN.
-	if _, a := got["paste"]; a {
-		return nil, p.Die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
-			"EVER (GOALS.md II.2d): nothing in this pipeline may drop it")
-	}
-	if _, a := w95Want["paste"]; a {
-		return nil, p.Die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
-			"EVER (GOALS.md II.2d): nothing in this pipeline may drop it")
-	}
-	p.Say("'paste' is exempt for ever and is not in the set: p_paste 12 mentions, and its " +
-		"five save slots p_ai_nopaste p_et_nopaste p_sts_nopaste p_tw_nopaste " +
-		"p_wm_nopaste are the non-pointer orphans orphanopts.py reports and tolerates, " +
-		"here and afterwards, identically")
+	p.Say("the six rows nothing read are gone since phase 1; 'modified' and 'paste' keep theirs")
 
 	// ---- C1. the W10 warning --------------------------------------------------
 	if k := len(w95Call.FindAllString(t, -1)); k != 6 {
@@ -320,18 +246,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 	}
-	// ---- C4. did_set_readonly, by name and with the reason: its definition.
-	// Its prototype, named by nothing once the row goes, is the sweep's.
-	if text, removed = edit.DeleteDefinition(text, "did_set_readonly"); !removed {
-		return nil, p.Die("did_set_readonly has no definition to remove")
-	}
-	if k := mentions(text, "did_set_readonly"); k != 2 {
-		return nil, p.Die("did_set_readonly has %d mentions, expected 2 -- its prototype, for the "+
-			"sweep, and the row that names it as its callback, which part C5 removes", k)
-	}
-	p.Say("did_set_readonly, BY NAME: it is 'readonly''s callback and the sweep would take " +
-		"it, but droplocal.py runs in this same edit and would find it still reading " +
-		"b_p_ro -- measured, that refusal is the tool working")
+	// ---- C4. did_set_readonly went with 'readonly''s row at phase 1 (D3).
 	if k := mentions(text, "b_p_ro"); k != 3 {
 		return nil, p.Die("b_p_ro has %d mentions, expected 3 -- the field, buf_copy_options' write, "+
 			"and get_varp's case", k)
@@ -358,13 +273,8 @@ func Whim95Rows(text []byte, w io.Writer) ([]byte, error) {
 	for _, m := range w95OptRow.FindAllStringSubmatch(t[i:j], -1) {
 		rows = append(rows, m[1])
 	}
-	globals := map[string]bool{}
-	for _, m := range w95Glob.FindAllStringSubmatch(t[i:j], -1) {
-		globals[m[1]] = true
-	}
-	if len(rows) != 108 || len(globals) != 96 {
-		return nil, p.Die("options[] has %d rows and %d distinct globals, expected 108 and 96",
-			len(rows), len(globals))
+	if len(rows) != 107 {
+		return nil, p.Die("options[] has %d rows, expected 107", len(rows))
 	}
 	for _, gone := range []string{"fsync", "prompt", "readonly", "undoreload", "write", "writeany"} {
 		if edit.Contains(rows, gone) {
@@ -374,43 +284,7 @@ func Whim95Rows(text []byte, w io.Writer) ([]byte, error) {
 	if !edit.Contains(rows, "modified") || !edit.Contains(rows, "paste") {
 		return nil, p.Die("'modified' or 'paste' lost its row, and neither may")
 	}
-	p.Say("the cut is done: options[] 114 -> 108 rows and 102 -> 96 distinct " +
-		"globals; 'modified' and 'paste' keep theirs, b_did_warn is a field nothing " +
-		"names and the six globals are declared and unread -- all of it the sweep's " +
-		"now")
+	p.Say("the cut is done: options[] has its 107 rows, 'modified' and 'paste' " +
+		"among them; b_did_warn is a field nothing names, the sweep's now")
 	return text, nil
-}
-
-var (
-	w95RowHead = regexp.MustCompile(`^[ \t]*\{"`)
-	w95AmpHead = regexp.MustCompile(`^[ \t]*\(char_u \*\)&`)
-)
-
-func w95IsRow(line string) bool { return w95RowHead.MatchString(line) }
-func w95IsAmp(line string) bool { return w95AmpHead.MatchString(line) }
-
-func w95SameMap(a, b map[string]string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for k, v := range a {
-		if b[k] != v {
-			return false
-		}
-	}
-	return true
-}
-
-// w95Fmt is Python's `' '.join('%s(%s)' % kv for kv in sorted(d.items()))`.
-func w95Fmt(m map[string]string) string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	Out := make([]string, len(keys))
-	for i, k := range keys {
-		Out[i] = fmt.Sprintf("%s(%s)", k, m[k])
-	}
-	return strings.Join(Out, " ")
 }

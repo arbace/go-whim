@@ -19,7 +19,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/dead"
@@ -50,7 +49,9 @@ var ops = map[string]Step{
 	// only their handlers wrote folded (the reform's D2)
 	"exfront": Step(xform.FallOutOf(xform.Step(exFront))),
 	// and the table cut to the rows that are left (the reform's D2b)
-	"extable":     plain(cut.ExTable),
+	"extable": plain(cut.ExTable),
+	// and every option the product has not (the reform's D3)
+	"optfront":    plain(cut.OptFront),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -100,27 +101,25 @@ var ops = map[string]Step{
 	"utf8only":    plain(cut.Utf8Only),
 
 	// The five that take arguments, and the three that only ask a question.
-	"dropoptions": dropOptions,
-	"droplocal":   dropLocal,
-	"funcreach":   funcReach,
-	"edit":        runEdit,
-	"query":       runQuery,
+	"droplocal": dropLocal,
+	"funcreach": funcReach,
+	"edit":      runEdit,
+	"query":     runQuery,
 
-	"cemit":             Step(pipeline.Canonical),
-	"includes":          Step(xform.Includes(whim.Includes)),
-	"gototail":          Step(xform.GotoTail(whim.GotoTail)),
-	"gotobreak":         Step(xform.GotoBreak()),
-	"gotoloop":          Step(xform.GotoLoop()),
-	"gotoblock":         Step(xform.GotoBlock()),
-	"memberout":         Step(xform.MemberOut(whim.Core)),
-	"stateparam":        Step(xform.StateParam(whim.RegEngine)),
-	"localout":          Step(xform.LocalOut(whim.Core)),
-	"structscalar":      Step(xform.StructScalar(whim.Core)),
-	"identity":          Step(xform.Identity(whim.Core)),
-	"asciiclass":        Step(xform.AsciiClass(whim.Core)),
-	"constbranch":       Step(xform.ConstBranch(whim.Core)),
-	"query-empty":       queryEmpty,
-	"query-dropoptions": queryDropOptions,
+	"cemit":        Step(pipeline.Canonical),
+	"includes":     Step(xform.Includes(whim.Includes)),
+	"gototail":     Step(xform.GotoTail(whim.GotoTail)),
+	"gotobreak":    Step(xform.GotoBreak()),
+	"gotoloop":     Step(xform.GotoLoop()),
+	"gotoblock":    Step(xform.GotoBlock()),
+	"memberout":    Step(xform.MemberOut(whim.Core)),
+	"stateparam":   Step(xform.StateParam(whim.RegEngine)),
+	"localout":     Step(xform.LocalOut(whim.Core)),
+	"structscalar": Step(xform.StructScalar(whim.Core)),
+	"identity":     Step(xform.Identity(whim.Core)),
+	"asciiclass":   Step(xform.AsciiClass(whim.Core)),
+	"constbranch":  Step(xform.ConstBranch(whim.Core)),
+	"query-empty":  queryEmpty,
 }
 
 // Lookup2 returns the step of that name and panics when there is none: for a
@@ -156,33 +155,6 @@ func sortStrings(s []string) {
 			s[j], s[j-1] = s[j-1], s[j]
 		}
 	}
-}
-
-// dropOptions is `dropoptions <name>... [--strict] [--local]`.
-func dropOptions(t []byte, args []string, w io.Writer) ([]byte, error) {
-	strict, local := false, false
-	var names []string
-	for _, a := range args {
-		switch {
-		case a == "--strict":
-			strict = true
-		case a == "--local":
-			local = true
-		case strings.HasPrefix(a, "--"):
-		default:
-			names = append(names, a)
-		}
-	}
-	if len(names) == 0 {
-		return nil, fmt.Errorf("dropoptions: no option named")
-	}
-	out, whitelisted, err := cut.DropOptions(t, names, strict, local)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintf(w, "  options      %d rows dropped (%s), %d modeline entries with them\n",
-		len(names), strings.Join(names, ", "), whitelisted)
-	return out, nil
 }
 
 // dropLocal is `droplocal <field>...`, one field at a time, reporting each.
@@ -301,30 +273,6 @@ func queryEmpty(t []byte, args []string, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintf(w, "  commands     all 24 menu and spell commands are already ex_ni\n")
 	return t, nil
-}
-
-// queryDropOptions asks which option rows have no variable and drops exactly
-// those.  The floor is the phase program's: a pattern that stops matching
-// returns few names rather than none, and dropping them would be silent.
-func queryDropOptions(t []byte, args []string, w io.Writer) ([]byte, error) {
-	if len(args) < 2 {
-		return nil, fmt.Errorf("query-dropoptions: usage <query> <floor>")
-	}
-	floor, err := strconv.Atoi(args[1])
-	if err != nil {
-		return nil, err
-	}
-	out, err := ask(t, args[:1])
-	if err != nil {
-		return nil, err
-	}
-	names := strings.Fields(out)
-	if len(names) <= floor {
-		return nil, fmt.Errorf("  novar        found only %d rows without a variable -- "+
-			"the pattern stopped matching", len(names))
-	}
-	fmt.Fprintf(w, "  novar        %d options have no variable\n", len(names))
-	return dropOptions(t, names, w)
 }
 
 // ask runs a query and returns what it printed.

@@ -48,12 +48,12 @@ var Plan = []Phase{
 			{Op: "argvfront"},
 			{Op: "exfront", Declared: true},
 			{Op: "extable"},
+			{Op: "optfront"},
 			{Op: "noruntime"},
 		}},
 	{N: 2, Name: "the options for features that are not here",
 		Steps: []Step{
 			{Op: "query-empty", Args: []string{"whim2"}},
-			{Op: "dropoptions", Args: []string{"spell", "spellcapcheck", "spellfile", "spelllang", "spelloptions", "spellsuggest", "menuitems"}},
 		}},
 	{N: 3, Name: "no introduction, and the command line says only what the editor still decides",
 		Steps: []Step{
@@ -64,13 +64,11 @@ var Plan = []Phase{
 	{N: 5, Name: "one regexp engine, not two",
 		Steps: []Step{
 			{Op: "nonfa"},
-			{Op: "dropoptions", Args: []string{"regexpengine"}},
 		}},
 	{N: 6, Name: "the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
 			{Op: "nowild"},
 			{Op: "nowildmenu"},
-			{Op: "dropoptions", Args: []string{"wildmenu"}},
 		}},
 	{N: 7, Name: "the editor stops looking for files it was not given",
 		Steps: []Step{
@@ -83,22 +81,18 @@ var Plan = []Phase{
 	{N: 9, Name: "the editor stops asking the environment what language it is in",
 		Steps: []Step{
 			{Op: "nolocale"},
-			{Op: "dropoptions", Args: []string{"langmap", "langmenu", "langnoremap", "langremap"}},
 		}},
 	{N: 10, Name: "no tag stack",
 		Steps: []Step{
 			{Op: "notags"},
-			{Op: "dropoptions", Args: []string{"tagbsearch", "taglength", "tagrelative", "tagstack", "tagsecure", "showfulltag"}},
 		}},
 	{N: 11, Name: "nothing is written that was not asked for",
 		Steps: []Step{
 			{Op: "noswap"},
-			{Op: "dropoptions", Args: []string{"updatecount", "swapsync"}},
 		}},
 	{N: 12, Name: "UTF-8, and no other encoding, ever",
 		Steps: []Step{
 			{Op: "noenc"},
-			{Op: "dropoptions", Args: []string{"--strict", "charconvert"}},
 		}},
 	{N: 13, Name: "the editor stops re-reading a file it has already read",
 		Steps: []Step{
@@ -111,27 +105,22 @@ var Plan = []Phase{
 	{N: 15, Name: "the last two encoding options",
 		Steps: []Step{
 			{Op: "nofencs"},
-			{Op: "dropoptions", Args: []string{"--strict", "fileencodings", "termencoding"}},
 		}},
 	{N: 16, Name: "six options that no longer decide anything",
 		Steps: []Step{
 			{Op: "noinertopts"},
-			{Op: "dropoptions", Args: []string{"--local", "path", "suffixesadd", "tags", "tagcase", "autoread", "swapfile"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_path", "b_p_sua", "b_p_tags", "b_p_tc", "b_p_ar", "b_p_swf"}},
 		}},
 	{N: 17, Name: "the last two per-buffer encoding options",
 		Steps: []Step{
 			{Op: "nofenc"},
-			{Op: "dropoptions", Args: []string{"--local", "fileencoding", "bomb"}},
 			{Op: "droplocal", Args: []string{"b_p_fenc", "b_p_bomb"}},
 		}},
 	{N: 18, Name: "nothing is read at startup, and nothing on the command line decides anything",
 		Steps: []Step{
 			{Op: "nostartup"},
-			{Op: "dropoptions", Args: []string{"--strict", "exrc"}},
 			{Op: "nocmdopts"},
-			{Op: "dropoptions", Args: []string{"--strict", "viminfo", "viminfofile"}},
 		}},
 	{N: 19, Name: "the terminal is what the build says",
 		Steps: []Step{
@@ -146,7 +135,6 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "norecover"},
 			{Op: "nomemfile"},
-			{Op: "dropoptions", Args: []string{"--strict", "directory", "maxmem", "maxmemtot"}},
 		}},
 	{N: 22, Name: "the working directory is where it started",
 		Steps: []Step{
@@ -160,12 +148,10 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nomouse"},
 			{Op: "sweep"},
-			{Op: "dropoptions", Args: []string{"--strict", "mouse", "mousefocus", "mousehide", "mousemodel", "mousemoveevent", "mouseshape", "mousetime", "ttymouse"}},
 		}},
 	{N: 25, Name: "a write is a write, and nobody owns it",
 		Steps: []Step{
 			{Op: "nobackup"},
-			{Op: "dropoptions", Args: []string{"--local", "--strict", "backup", "backupcopy", "backupdir", "backupext", "backupskip", "patchmode", "writebackup"}},
 			{Op: "noowner"},
 			{Op: "droplocal", Args: []string{"b_p_bkc"}},
 		}},
@@ -180,7 +166,6 @@ var Plan = []Phase{
 	{N: 28, Name: "C indenting",
 		Steps: []Step{
 			{Op: "nocindent"},
-			{Op: "dropoptions", Args: []string{"--local", "cindent", "cinkeys", "cinoptions", "cinscopedecls", "cinwords"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cin", "b_p_cink", "b_p_cino", "b_p_cinsd", "b_p_cinw"}},
 		}},
@@ -199,7 +184,6 @@ var Plan = []Phase{
 	{N: 32, Name: "insert completion, the popup menu, and the keys that reached them",
 		Steps: []Step{
 			{Op: "nocompl"},
-			{Op: "dropoptions", Args: []string{"--local", "autocomplete", "complete", "completefunc", "completeopt", "dictionary", "infercase", "pumborder", "pummaxwidth", "pumopt", "pumheight", "pumwidth", "thesaurus"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cpt", "b_p_cot", "b_p_dict", "b_p_tsr", "b_p_inf", "b_p_ac"}},
 			{Op: "nocomplkeys"},
@@ -212,15 +196,10 @@ var Plan = []Phase{
 	{N: 35, Name: "no scripts, no session, no autocommands",
 		Steps: []Step{
 			{Op: "nosession"},
-			{Op: "dropoptions", Args: []string{"eventignore"}},
-			{Op: "dropoptions", Args: []string{"--local", "eventignorewin"}},
-			{Op: "dropoptions", Args: []string{"--strict", "sessionoptions", "viewoptions", "viewdir", "loadplugins"}},
 		}},
 	{N: 36, Name: "one tab page, always",
 		Steps: []Step{
 			{Op: "notabs"},
-			{Op: "dropoptions", Args: []string{"tabclose"}},
-			{Op: "dropoptions", Args: []string{"--strict", "showtabline", "tabline", "tabpagemax"}},
 		}},
 	{N: 37, Name: "no command that does nothing",
 		Steps: []Step{
@@ -234,13 +213,7 @@ var Plan = []Phase{
 	{N: 40, Name: "one window, and no window sizes",
 		Steps: []Step{
 			{Op: "nowindows"},
-			{Op: "dropoptions", Args: []string{"switchbuf", "scrollopt", "cmdwinheight", "cedit"}},
-			{Op: "dropoptions", Args: []string{"--local", "scrollbind", "cursorbind", "winfixbuf"}},
-			{Op: "dropoptions", Args: []string{"--strict", "previewheight"}},
-			{Op: "dropoptions", Args: []string{"--strict", "--local", "previewwindow"}},
 			{Op: "nowinsizes"},
-			{Op: "dropoptions", Args: []string{"splitbelow", "splitright", "splitkeep", "equalalways", "eadirection", "winheight", "winminheight", "winwidth", "winminwidth", "helpheight"}},
-			{Op: "dropoptions", Args: []string{"--local", "winfixheight", "winfixwidth"}},
 		}},
 	{N: 41, Name: "the buffer list is walked by `:bnext` and `:bprevious` alone",
 		Steps: []Step{
@@ -249,8 +222,6 @@ var Plan = []Phase{
 	{N: 42, Name: "one buffer, always",
 		Steps: []Step{
 			{Op: "onebuffer"},
-			{Op: "dropoptions", Args: []string{"hidden"}},
-			{Op: "dropoptions", Args: []string{"--local", "bufhidden"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bh"}},
 		}},
@@ -264,16 +235,12 @@ var Plan = []Phase{
 	{N: 49, Name: "one set of options",
 		Steps: []Step{
 			{Op: "oneoptset"},
-			{Op: "dropoptions", Args: []string{"--local", "modeline"}},
-			{Op: "dropoptions", Args: []string{"modelines", "modelineexpr", "modelinestrict"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_ml"}},
 		}},
 	{N: 50, Name: "only LF text files",
 		Steps: []Step{
 			{Op: "lfonly"},
-			{Op: "dropoptions", Args: []string{"--local", "binary", "fileformat", "endofline", "fixendofline", "endoffile", "textmode"}},
-			{Op: "dropoptions", Args: []string{"fileformats", "textauto"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bin", "b_p_ff", "b_p_fixeol", "b_p_tx"}},
 		}},
@@ -283,53 +250,39 @@ var Plan = []Phase{
 			{Op: "keepbytes"},
 			{Op: "utf8only"},
 			{Op: "noconv"},
-			{Op: "dropoptions", Args: []string{"encoding"}},
-			{Op: "dropoptions", Args: []string{"--local", "makeencoding"}},
 			{Op: "droplocal", Args: []string{"b_p_menc"}},
 		}},
-	{N: 54, Name: "no option without a variable",
-		Steps: []Step{
-			{Op: "query-dropoptions", Args: []string{"whim54", "100"}},
-		}},
+	// 54, no option without a variable: a record (internal/phase/054/GOAL.md); every row it dropped is dropped at phase 1 with every option the product has not (optfront, the reform's D3).
 	{N: 55, Name: "no option nothing reads",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim55"}},
-			{Op: "dropoptions", Args: []string{"autocompletetimeout", "cdhome", "cdpath", "completetimeout", "imcmdline", "secure", "shellcmdflag", "shelltemp", "shellxescape", "shellxquote", "ttybuiltin", "warn", "xtermcodes", "completefuzzycollect", "completeitemalign", "helpfile", "operatorfunc", "t_8b", "t_8f", "t_EC", "t_EI", "t_GP", "t_RB", "t_RC", "t_RF", "t_RS", "t_SC", "t_SH", "t_SI", "t_SR", "t_WP", "t_XM", "t_u7"}},
-			{Op: "dropoptions", Args: []string{"--local", "shortname", "commentstring", "lispoptions"}},
 			{Op: "droplocal", Args: []string{"b_p_sn", "b_p_cms", "b_p_lop"}},
 		}},
 	{N: 56, Name: "no shell, runtime or keyword-program options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim56"}},
-			{Op: "dropoptions", Args: []string{"shell", "shellquote", "shellredir", "runtimepath", "packpath"}},
-			{Op: "dropoptions", Args: []string{"--local", "keywordprg"}},
 			{Op: "edit", Args: []string{"whim56kp"}},
 			{Op: "droplocal", Args: []string{"b_p_kp"}},
 		}},
 	{N: 57, Name: "no lisp",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim57"}},
-			{Op: "dropoptions", Args: []string{"--local", "lisp", "lispwords"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_lisp", "b_p_lw"}},
 		}},
 	{N: 58, Name: "no language mappings",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim58"}},
-			{Op: "dropoptions", Args: []string{"--local", "iminsert", "imsearch"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_iminsert", "b_p_imsearch"}},
 		}},
 	{N: 59, Name: "no command-line completion",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim59"}},
-			{Op: "dropoptions", Args: []string{"wildchar", "wildcharm", "wildmode", "wildoptions", "wildignore", "wildignorecase"}},
 		}},
 	{N: 60, Name: "no suffix, case, delay, verbose-file, debug or filter-program options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim60"}},
-			{Op: "dropoptions", Args: []string{"suffixes", "fileignorecase", "autocompletedelay", "verbosefile", "debug"}},
-			{Op: "dropoptions", Args: []string{"--local", "formatprg", "equalprg"}},
 			{Op: "sweep"},
 			{Op: "edit", Args: []string{"whim60ep"}},
 			{Op: "droplocal", Args: []string{"b_p_fp", "b_p_ep"}},
@@ -337,13 +290,10 @@ var Plan = []Phase{
 	{N: 61, Name: "no window title",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim61"}},
-			{Op: "dropoptions", Args: []string{"title", "titlelen", "titleold", "titlestring", "icon", "iconstring"}},
 		}},
 	{N: 62, Name: "no buffer-type, file-type, listing, jump, update-time or autowrite options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim62"}},
-			{Op: "dropoptions", Args: []string{"jumpoptions", "updatetime", "autowrite", "autowriteall"}},
-			{Op: "dropoptions", Args: []string{"--local", "buflisted", "buftype", "filetype"}},
 			{Op: "sweep"},
 			{Op: "edit", Args: []string{"whim62bl"}},
 			{Op: "droplocal", Args: []string{"b_p_bt", "b_p_ft"}},
@@ -355,8 +305,6 @@ var Plan = []Phase{
 	{N: 64, Name: "no formatting, comment or nroff-macro options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim64"}},
-			{Op: "dropoptions", Args: []string{"paragraphs", "sections"}},
-			{Op: "dropoptions", Args: []string{"--local", "formatoptions", "formatlistpat", "comments"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
 		}},
@@ -466,10 +414,7 @@ var Plan = []Phase{
 	{N: 95, Name: "the options nothing reads",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim95"}},
-			{Op: "dropoptions", Args: []string{"--strict", "prompt", "undoreload", "write", "writeany"}},
 			{Op: "droplocal", Args: []string{"b_p_fs"}},
-			{Op: "dropoptions", Args: []string{"--strict", "--local", "fsync"}},
-			{Op: "dropoptions", Args: []string{"--strict", "--local", "readonly"}},
 			{Op: "droplocal", Args: []string{"b_p_ro"}},
 			{Op: "edit", Args: []string{"whim95rows"}},
 		}},
