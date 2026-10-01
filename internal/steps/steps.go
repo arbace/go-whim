@@ -25,7 +25,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
@@ -49,7 +48,9 @@ var ops = map[string]Step{
 	"argvfront": Step(xform.FallOutOf(xform.Step(plain(cut.ArgvFront)), "read_cmd_fd")),
 	// the Ex commands the product has not, retired at the front, and what
 	// only their handlers wrote folded (the reform's D2)
-	"exfront":     Step(xform.FallOutOf(xform.Step(exFront))),
+	"exfront": Step(xform.FallOutOf(xform.Step(exFront))),
+	// and the table cut to the rows that are left (the reform's D2b)
+	"extable":     plain(cut.ExTable),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -102,7 +103,6 @@ var ops = map[string]Step{
 	"dropoptions": dropOptions,
 	"droplocal":   dropLocal,
 	"funcreach":   funcReach,
-	"cmdidxs":     cmdIdxs,
 	"edit":        runEdit,
 	"query":       runQuery,
 
@@ -250,38 +250,6 @@ func funcReach(t []byte, args []string, w io.Writer) ([]byte, error) {
 		t = dead.DeleteFuncs(t, defs, deadNames)
 		fmt.Fprintf(w, "  funcreach    %d deleted\n", len(deadNames))
 	}
-	return t, nil
-}
-
-// cmdIdxs is `cmdidxs --check`: the derived first-two-letters index still
-// reproduces byte for byte.  It changes nothing.  The tool reads a path, so the
-// text is handed to it as one.
-func cmdIdxs(t []byte, args []string, w io.Writer) ([]byte, error) {
-	check := false
-	for _, a := range args {
-		if a == "--check" {
-			check = true
-		}
-	}
-	if !check {
-		return nil, fmt.Errorf("cmdidxs: only --check is a step")
-	}
-	f, err := os.CreateTemp("", "cmdidxs.*.c")
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(f.Name())
-	if _, err := f.Write(t); err != nil {
-		f.Close()
-		return nil, err
-	}
-	if err := f.Close(); err != nil {
-		return nil, err
-	}
-	if err := cmdtab.CheckCmdIdxs(f.Name()); err != nil {
-		return nil, err
-	}
-	fmt.Fprintf(w, "  cmdidxs      ex_cmdidxs block reproduces byte for byte\n")
 	return t, nil
 }
 

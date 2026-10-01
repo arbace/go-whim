@@ -245,7 +245,7 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
-                   table: its names and the ex_cmdidxs block), score (bytes and
+                   table: its names), score (bytes and
                    symbols, the input beside the product)
 crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    (github.com/arbace/go-whim/crefactor, its own go.mod; this
@@ -446,7 +446,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 150 phases, **989 s**, 77,634 lines. A
+  before the reason. Measured: 150 phases, **982 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -464,7 +464,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **82 s**, 149 links 64 at a time, bound by
+  committed `whim-vim.c`. Measured: **84 s**, 149 links 64 at a time, bound by
   the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is

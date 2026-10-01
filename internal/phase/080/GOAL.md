@@ -1,8 +1,11 @@
 # Phase 80 — the Ex command table, cut to the commands that exist
 
-**Since the reform's D2** the rows it deletes are retired at phase 1, all 489
-at once, and their list lives in `internal/phase/001/delta.md`. This phase
-asserts that it finds 489 stubs, not that they match a list of its own.
+**Since the reform's D2** its first half is phase 1's. The 489 rows are
+retired there (D2a), then deleted (D2b): the shortest abbreviations, the proof,
+the index and the lookup are all done on the seed, and their list lives in
+`internal/phase/001/delta.md`. What is left here is the code half: the
+enumerators phase 1 kept after `CMD_SIZE`, the comparisons with them,
+`:if`, `ea.skip`, the stub flag and the seven address types.
 
 600 rows in `enum CMD_index` and `cmdnames[]`, and **489 were `ex_ni` or
 `ex_script_ni`**. Every phase that removed a command had pointed its row at the stub

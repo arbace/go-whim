@@ -32,10 +32,8 @@ var nocmdoptsElsewhere = []struct {
 		"    if (curwin->w_cursor.lnum <= 1)\n${1}", 1},
 	{"mparm_T's tagname field",
 		`(?m)(^[ \t]*int[ \t]*edit_type;\n)[ \t]*char_u[ \t]*\*tagname;\n`, "${1}", 1},
-	// And the flag itself, out of the twenty-four rows that carry it.  With
-	// the gate gone it is a bit nothing reads; leaving it is leaving a concept
-	// in the table that the code no longer has.
-	{"EX_RESTRICT out of the command table", `(?m) \| EX_RESTRICT\)`, ")", 24},
+	// The flag itself was on twenty-four rows, every one deleted at phase 1
+	// (extable, the reform's D2b): with the gate gone it is named by nothing.
 	// The other way in, and a small find of its own: set_init_restricted_mode()
 	// reads $SHELL at startup and turns the mode on when it is nologin or
 	// false.  An environment read, deciding a mode that now restricts nothing.

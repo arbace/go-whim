@@ -1,6 +1,6 @@
-// Package cmdtab reads the Ex command table out of the source: its names
-// (cmdnames[]), and the first-two-letters index derived from them
-// (the ex_cmdidxs.h block), which a step regenerates and checks.
+// Package cmdtab reads the Ex command table's names out of the source
+// (cmdnames[]).  The first-two-letters index once derived from them went at
+// phase 1 (extable, the reform's D2b).
 package cmdtab
 
 import (

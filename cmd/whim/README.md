@@ -20,7 +20,7 @@ commit that has them.
 | `go tool whim measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`internal/phase/boundaries.md`) |
 | `go tool whim cdiff [-n N] A.c B.c` | the first difference between two C files, entity by entity: each top-level function, object, type, tag and assertion keyed by what it declares; the ones that differ (their first differing lines), the ones only in either, and whether the order is the same. Exit 0 only when they are the same (`doc/PIPELINE-REFORM.md` §7) |
 | `go tool whim score` | bytes to store and symbols to provide, slim-vim beside whim-vim, both built with the one line (`internal/score`) |
-| `go tool whim cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
+| `go tool whim cmdnames` | the Ex command table's names (`internal/cmdtab`); the ex_cmdidxs block they derived went at phase 1 (the reform's D2b) |
 | `go tool whim cut` | the core of src/whim-vim.c (or FILE) on stdout: everything before the first `#include` (internal/whim's `Cut`), what every translation is written from |
 | `go tool whim gen` | editor/editor.go (and internal/gen/sigs.md) from whim-vim.c's core, which it cuts itself, written only when it differs; `--check` refuses a stale one (`internal/gen`) |
 | `go tool whim caprice` | the editor in Haskell (`caprice/`, doc/HASKELL.md): the core cut from `src/whim-vim.c` (or FILE), written as the module `Caprice.Editor` (and its hs-boot) by the Haskell backend, compiled by GHC with caprice's runtime, host and launcher in `lib/caprice` (`--out DIR`), and the program `bin/caprice` (`DIR/caprice` with `--out`); a build whose core has not moved skips its three minutes |

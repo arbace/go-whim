@@ -36,7 +36,6 @@ package p077
 // gain here is code, not behaviour.  Declared empty, left for the delta check.
 
 import (
-	"fmt"
 	"io"
 	"strings"
 
@@ -46,27 +45,20 @@ import (
 
 const (
 	bufnameRows = `\[CMD_[a-zA-Z]+\] = \{\(char_u \*\)"([a-zA-Z]+)", [^,]+, *([a-z_]+)[^}]*EX_BUFNAME`
-	niComputed  = `(?m)^[ \t]*ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni`
 )
 
 // Whim77 stops a command naming a buffer by pattern, having first proved that
-// every command that could is already ex_ni.
+// no command left can.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nobufpat", text, w)
 
-	names, handlers := e.Query(bufnameRows, 1), e.Query(bufnameRows, 2)
-	e.Expect(len(names) > 0, "no command carries EX_BUFNAME -- the block this phase removes is already gone")
-	var live []string
-	for i, fn := range handlers {
-		if fn != "ex_ni" && fn != "ex_script_ni" {
-			live = append(live, names[i])
-		}
-	}
-	e.Expect(len(live) == 0, "these EX_BUFNAME commands have a LIVE handler and still need the pattern matching: %s",
-		strings.Join(live, " "))
-	e.Say(fmt.Sprintf("confirmed: all %d EX_BUFNAME commands are ex_ni", len(names)))
+	// Every command that carried EX_BUFNAME was a stub, and phase 1 deleted
+	// the stub rows (extable, the reform's D2b): no row carries it, so the
+	// block below is never entered.
+	names := e.Query(bufnameRows, 1)
+	e.Expect(len(names) == 0, "these rows still carry EX_BUFNAME: %s", strings.Join(names, " "))
+	e.Say("confirmed: no command carries EX_BUFNAME")
 
-	e.Expect(len(e.Query(niComputed, 0)) > 0, "`ni` is no longer computed as \"the handler is ex_ni\"")
 	e.InFunction("do_one_cmd", func(e *edit.E) {
 		e.FoldNever(edit.Head("if ((ea.argt & EX_BUFNAME) && *ea.arg != NUL && ea.addr_count == 0 && !((int)(ea.cmdidx) < 0))"), 1, "naming a buffer by pattern for commands that cannot run")
 	})

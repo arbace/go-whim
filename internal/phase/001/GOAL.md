@@ -32,7 +32,20 @@ are retired here. The handlers then have no row, and the sweep takes them. That
 also takes every edit phases 9 to 96 made inside them, the reverse constraint of
 `doc/PIPELINE-REFORM.md` §3. What only those handlers wrote falls out the same
 way as for the command line: 21 objects, among them the `:sort` state,
-`redir_fd` and the `filetype_*` flags. Phase 80 still deletes the rows.
+`redir_fd` and the `filetype_*` flags.
+
+**Then the rows go** (`extable`, D2b). This was phase 80's first half, done
+on the seed:
+- the 489 stub rows are deleted from `cmdnames[]`;
+- each of the 111 left carries its shortest abbreviation, computed from the
+  600-row table and proved over all 2,538 prefixes of the 600 names;
+- the prefix index, `command_count` and its check go, and the lookup is a scan;
+- the one-character commands are cut to those that exist.
+
+The stub rows' enumerators stay, moved after `CMD_SIZE`, because live code
+still names some of them: `window_layout_locked(CMD_close)`, the comparisons
+later phases fold. No parsed command can reach them. Phase 80 deletes what is
+left of them.
 
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,

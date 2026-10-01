@@ -67,18 +67,13 @@ package p080
 import (
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
 )
-
-// w80OldChars is the set of one-character command names q79 still recognises.
-const w80OldChars = "@*!=><&~#}"
 
 // w80DeadAddr are the seven address types that only stub rows used.
 var w80DeadAddr = map[string]bool{
@@ -89,272 +84,30 @@ var w80DeadAddr = map[string]bool{
 
 // Whim80 cuts the Ex command table to the commands that exist, and gives every
 // surviving row the shortest abbreviation the 600-row table implied for it.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, fmt.Errorf("  cmdtable     usage: edit whim80 <file> <words-out>")
-	}
-	wordsOut := args[0]
+func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("cmdtable", text, w)
-	t := string(text)
 
-	// ---- 1: the table, the index, and the proof --------------------------------
+	// ---- 1-2: the table, the index, the lookup ---------------------------------
+	// Cut at phase 1 (extable, the reform's D2b): the stub rows are gone, each
+	// row carries its shortest abbreviation, the lookup scans them.  What is
+	// left of the stubs here is their enumerators, after CMD_SIZE, which the
+	// edits below take the last uses of; the enumerators go now.
+	t := string(e.Text())
+	me := deadEnumRe.FindStringSubmatchIndex(t)
+	if me == nil {
+		return nil, e.Refused("enum CMD_index has no enumerators after CMD_SIZE")
+	}
+	e.Set([]byte(t[:me[2]] + t[me[3]:]))
+	e.Say(fmt.Sprintf("%d enumerators past CMD_SIZE, of rows deleted at phase 1",
+		len(deadIDRe.FindAllString(t[me[2]:me[3]], -1))))
 	mt := tableRe.FindStringSubmatchIndex(t)
 	if mt == nil {
 		return nil, e.Refused("cmdnames[] definition not found")
 	}
-	tabStart, tabEnd := mt[2], mt[3]
-	rowName := map[string]string{}
-	rowHandler := map[string]string{}
-	var rowOrder []string
-	for _, line := range strings.Split(t[tabStart:tabEnd], "\n") {
-		if line == "" {
-			continue
-		}
-		r := rowRe.FindStringSubmatch(line)
-		if r == nil || r[2] != r[3] {
-			z := line
-			if len(z) > 90 {
-				z = z[:90]
-			}
-			return nil, e.Refused("a cmdnames[] row does not have the expected shape: %s", edit.PyRepr(z))
-		}
-		rowName[r[1]] = r[2]
-		rowHandler[r[1]] = r[4]
-		rowOrder = append(rowOrder, r[1])
+	var live []string
+	for _, m := range liveRowRe.FindAllStringSubmatch(t[mt[2]:mt[3]], -1) {
+		live = append(live, m[1])
 	}
-
-	me := enumRe.FindStringSubmatchIndex(t)
-	if me == nil {
-		return nil, e.Refused("enum CMD_index not found")
-	}
-	enumStart, enumEnd := me[2], me[3]
-	var ids []string
-	for _, m := range idRe.FindAllStringSubmatch(t[enumStart:enumEnd], -1) {
-		ids = append(ids, m[1])
-	}
-	if len(ids) != 600 || !sameSet(ids, rowOrder) {
-		return nil, e.Refused("enum CMD_index has %d names, and they are not the %d rows", len(ids), len(rowName))
-	}
-	if strings.Join(ids, ",") != strings.Join(rowOrder, ",") {
-		return nil, e.Refused("the rows are not written in enumerator order")
-	}
-
-	// THE LOOKUP SCANS BY INDEX, so the model uses enumerator order.
-	names := make([]string, len(ids))
-	handler := map[string]string{}
-	for i, id := range ids {
-		names[i] = rowName[id]
-		handler[rowName[id]] = rowHandler[id]
-	}
-	var dead, live []string
-	for _, n := range names {
-		if handler[n] == "ex_ni" || handler[n] == "ex_script_ni" {
-			dead = append(dead, n)
-		} else {
-			live = append(live, n)
-		}
-	}
-	// the stubs are the rows phase 1 retired, every one it declares in
-	// internal/phase/001/delta.md (the reform's D2): 489 of 600
-	if len(dead) != 489 {
-		return nil, e.Refused("%d stub rows, expected the 489 phase 1 retired", len(dead))
-	}
-	e.Say(fmt.Sprintf("confirmed: %d rows, %d of them stubs -- what phase 1 retired -- and %d live",
-		len(names), len(dead), len(live)))
-
-	// The old index, read Out of the file rather than regenerated.
-	m1 := idx1Re.FindStringSubmatch(t)
-	m2 := idx2Re.FindStringSubmatch(t)
-	mc := countRe.FindStringSubmatch(t)
-	if m1 == nil || m2 == nil || mc == nil {
-		return nil, e.Refused("the ex_cmdidxs block is not where it was")
-	}
-	idx1, idx2 := w80Ints(m1[1]), w80Ints(m2[1])
-	if len(idx1) != 26 || len(idx2) != 676 || mc[1] != "600" {
-		return nil, e.Refused("the ex_cmdidxs block has an unexpected shape")
-	}
-
-	mch := charsRe.FindStringSubmatch(t)
-	if mch == nil || mch[1] != w80OldChars {
-		return nil, e.Refused("the one-character command set is not %s", edit.PyRepr(w80OldChars))
-	}
-	liveSet := map[string]bool{}
-	for _, n := range live {
-		liveSet[n] = true
-	}
-	newChars := ""
-	for _, c := range w80OldChars {
-		if liveSet[string(c)] {
-			newChars += string(c)
-		}
-	}
-
-	startNext, startBang := edit.IndexOf(ids, "Next"), edit.IndexOf(ids, "bang")
-	oldLookup := func(wd string) string {
-		var start int
-		c0 := wd[0]
-		switch {
-		case isAlpha(c0):
-			for i := 0; i < len(wd); i++ {
-				if !isAlpha(wd[i]) && !isDigit(wd[i]) {
-					return ""
-				}
-			}
-			if isLower(c0) {
-				start = idx1[int(c0)-97]
-				if len(wd) > 1 && isLower(wd[1]) {
-					start += idx2[(int(c0)-97)*26+int(wd[1])-97]
-				}
-			} else {
-				start = startNext
-			}
-		case strings.IndexByte(w80OldChars, c0) >= 0:
-			if len(wd) != 1 {
-				return ""
-			}
-			start = startBang
-		default:
-			return ""
-		}
-		for _, n := range names[start:] {
-			if strings.HasPrefix(n, wd) {
-				return n
-			}
-		}
-		return ""
-	}
-
-	minlen := map[string]int{}
-	for _, n := range live {
-		if oldLookup(n) != n {
-			return nil, e.Refused("%s does not resolve to itself in the old table", edit.PyRepr(n))
-		}
-		for i := 1; i <= len(n); i++ {
-			if oldLookup(n[:i]) == n {
-				minlen[n] = i
-				break
-			}
-		}
-	}
-
-	newLookup := func(wd string) string {
-		if !isAlpha(wd[0]) {
-			if strings.IndexByte(newChars, wd[0]) < 0 || len(wd) != 1 {
-				return ""
-			}
-		} else {
-			wd = wordRe.FindString(wd)
-		}
-		for _, n := range live {
-			if len(wd) >= minlen[n] && strings.HasPrefix(n, wd) {
-				return n
-			}
-		}
-		return ""
-	}
-
-	wordset := map[string]bool{}
-	for _, n := range names {
-		for i := 1; i <= len(n); i++ {
-			wordset[n[:i]] = true
-		}
-	}
-	for _, c := range w80OldChars + "{+-" {
-		wordset[string(c)] = true
-	}
-	words := make([]string, 0, len(wordset))
-	for k := range wordset {
-		words = append(words, k)
-	}
-	sort.Strings(words)
-
-	var moved []string
-	for _, wd := range words {
-		o := oldLookup(wd)
-		want := ""
-		if _, ok := minlen[o]; ok {
-			want = o
-		}
-		if got := newLookup(wd); got != want {
-			moved = append(moved, fmt.Sprintf("(%s, %s, %s)", edit.PyRepr(wd), pyOrNone(o), pyOrNone(got)))
-		}
-	}
-	if len(moved) > 0 {
-		return nil, e.Refused("the new lookup disagrees with the old one on %d words: [%s]",
-			len(moved), strings.Join(edit.First(moved, 8), ", "))
-	}
-	var unique []string
-	for _, wd := range words {
-		k := 0
-		for _, n := range live {
-			if len(wd) >= minlen[n] && strings.HasPrefix(n, wd) {
-				k++
-			}
-		}
-		if k > 1 {
-			unique = append(unique, edit.PyRepr(wd))
-		}
-	}
-	if len(unique) > 0 {
-		return nil, e.Refused("a word matches more than one row: [%s]", strings.Join(edit.First(unique, 8), ", "))
-	}
-	e.Say(fmt.Sprintf("proved: all %d prefixes of the 600 names resolve as before, each to at most one row", len(words)))
-
-	// What step 9 dispatches, with what the old table made of each word.
-	var fh strings.Builder
-	for _, wd := range words {
-		o := oldLookup(wd)
-		if o == "" {
-			o = "-"
-		}
-		fmt.Fprintf(&fh, w80lit10, wd, o)
-	}
-	if err := os.WriteFile(wordsOut, []byte(fh.String()), 0o644); err != nil {
-		return nil, e.Refused("%v", err)
-	}
-
-	// ---- 2: rewrite the two lists ----------------------------------------------
-	var Body []string
-	for _, line := range strings.Split(t[tabStart:tabEnd], "\n") {
-		if line == "" {
-			Body = append(Body, "")
-			continue
-		}
-		r := rowRe.FindStringSubmatch(line)
-		name := r[2]
-		if n, ok := minlen[name]; ok {
-			Body = append(Body, strings.Replace(line,
-				fmt.Sprintf("sizeof(%q) - 1", name), strconv.Itoa(n), 1))
-		}
-	}
-	tabBody := strings.Join(Body, "\n")
-	var enumBody []string
-	for _, line := range strings.Split(t[enumStart:enumEnd], "\n") {
-		r := idRe.FindStringSubmatch(line)
-		if r != nil {
-			if _, ok := minlen[rowName[r[1]]]; !ok {
-				continue
-			}
-		}
-		enumBody = append(enumBody, line)
-	}
-	enumText := strings.Join(enumBody, "\n")
-	if !(enumEnd < tabStart) {
-		return nil, e.Refused("the enum is not above the table")
-	}
-	e.Set([]byte(t[:enumStart] + enumText + t[enumEnd:tabStart] + tabBody + t[tabEnd:]))
-	e.Say(fmt.Sprintf("%d rows and %d enumerators kept, each row with its shortest abbreviation",
-		len(minlen), len(minlen)))
-
-	e.Literal(w80lit3, w80lit4, 1, "the row field that held the name length holds the shortest abbreviation")
-	if loc := bannerRe.FindIndex(e.Text()); loc == nil {
-		return nil, e.Refused("the ex_cmdidxs block is gone")
-	} else {
-		e.Set(append(append([]byte{}, e.Text()[:loc[0]]...), e.Text()[loc[1]:]...))
-	}
-	e.Say("the prefix index and its count")
-	// Three notes this used to reword (on the two lists, in mch_dirname and in
-	// add_time) were comments, and the canonical form has none.
 
 	// ---- 3: find_ex_command ----------------------------------------------------
 	e.Cut(edit.Line("int vim9 = FALSE;"), 1, "the Vim9 flag nothing sets")
@@ -386,41 +139,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if fx >= 0 && vim9Re.MatchString(t[fx:min80(fx+6000, len(t))]) {
 		return nil, e.Refused("vim9 survives in find_ex_command")
 	}
-
-	if k := strings.Count(t, w80Head); k != 1 {
-		return nil, e.Refused("the index lookup head occurs %d times", k)
-	}
-	a := strings.Index(t, w80Head)
-	loop := strings.Index(t[a:], "        for (; (int)eap->cmdidx < (int)CMD_SIZE;")
-	if loop < 0 {
-		return nil, e.Refused("the lookup span does not contain its for loop")
-	}
-	loop += a
-	b := edit.Blank([]byte(t))
-	lb := strings.Index(string(b[loop:]), "{")
-	if lb < 0 {
-		return nil, e.Refused("the lookup span has no body")
-	}
-	lb += loop
-	z := strings.Index(t[edit.Match(b, lb):], "\n") + edit.Match(b, lb) + 1
-	oldSpan := t[a:z]
-	for _, need := range []string{"cmdidxs1", "cmdidxs2", "command_count", "CMD_Next", "CMD_bang", "strncmp"} {
-		if !strings.Contains(oldSpan, need) {
-			return nil, e.Refused("the lookup span does not contain %s -- it is not the block it was", need)
-		}
-	}
-	// Thirty lines, re-measured on the canonical text: the span's ends are the
-	// head and its for loop's matching brace, and the six words above say it is
-	// the block it was.  The count is the tree's, and the canonical form writes
-	// the same block without the three blank lines the residue had.
-	if k := strings.Count(oldSpan, "\n"); k != 30 {
-		return nil, e.Refused("the lookup span is %d lines, expected 30", k)
-	}
-	e.Set([]byte(t[:a] + w80lit9 + t[z:]))
-	e.Say(fmt.Sprintf("the lookup: a prefix at least as long as the row says, over %d rows", len(minlen)))
-	e.Literal(fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, w80OldChars),
-		fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, newChars), 1,
-		fmt.Sprintf("the one-character commands that exist: %s", newChars))
 
 	// ---- 4: do_one_cmd ---------------------------------------------------------
 	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_wincmd && p != NULL)"), 1, ":wincmd has no address type to find")
@@ -622,19 +340,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	return e.Done()
 }
 
-func w80Ints(s string) []int {
-	var Out []int
-	for _, x := range numRe.FindAllString(s, -1) {
-		n, _ := strconv.Atoi(x)
-		Out = append(Out, n)
-	}
-	return Out
-}
-
-func isAlpha(c byte) bool { return isLower(c) || (c >= 'A' && c <= 'Z') }
-func isLower(c byte) bool { return c >= 'a' && c <= 'z' }
-func isDigit(c byte) bool { return c >= '0' && c <= '9' }
-
 func min80(a, b int) int {
 	if a < b {
 		return a
@@ -642,19 +347,4 @@ func min80(a, b int) int {
 	return b
 }
 
-func sameSet(a, b []string) bool {
-	x := append([]string{}, a...)
-	y := append([]string{}, b...)
-	sort.Strings(x)
-	sort.Strings(y)
-	return strings.Join(x, "\x00") == strings.Join(y, "\x00")
-}
-
-func pyOrNone(s string) string {
-	if s == "" {
-		return "None"
-	}
-	return edit.PyRepr(s)
-}
-
-func init() { phase.RegisterArgs("whim80", Edit) }
+func init() { phase.Register("whim80", Edit) }

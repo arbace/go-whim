@@ -47,6 +47,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "argvfront"},
 			{Op: "exfront", Declared: true},
+			{Op: "extable"},
 			{Op: "noruntime"},
 		}},
 	{N: 2, Name: "the options for features that are not here",
@@ -315,7 +316,6 @@ var Plan = []Phase{
 	{N: 58, Name: "no language mappings",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim58"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 			{Op: "dropoptions", Args: []string{"--local", "iminsert", "imsearch"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_iminsert", "b_p_imsearch"}},
@@ -351,7 +351,6 @@ var Plan = []Phase{
 	{N: 63, Name: "no jump list",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim63"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 64, Name: "no formatting, comment or nroff-macro options",
 		Steps: []Step{
@@ -368,7 +367,6 @@ var Plan = []Phase{
 	{N: 66, Name: "no sentences, paragraphs, sections, methods, #if blocks or comment blocks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim66"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 67, Name: "no mouse, no spell plumbing, no write-only flags",
 		Steps: []Step{
@@ -377,64 +375,52 @@ var Plan = []Phase{
 	{N: 68, Name: "one window, structurally",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim68"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 69, Name: "one file argument, and no argument list",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim69"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 70, Name: ":e reloads in place, and there is no swap file",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim70"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 71, Name: "one buffer, structurally",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim71"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	// Phases 72-73, merged: one window/tab page structurally, then one frame.
 	{N: 73, Name: "one window and tab page structurally, and one frame",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim72"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 			{Op: "edit", Args: []string{"whim73"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 74, Name: "no file marks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim74"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 75, Name: "no autocommands",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim75"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 76, Name: "one regexp engine, so no retry",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim76"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 77, Name: "no buffer-name argument matching",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim77"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 78, Name: "empty functions, write-only counters, and the window id",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim78"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 79, Name: "the constant-return predicates",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim79"}},
-			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 80, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim80", "@state/words"}},
+			{Op: "edit", Args: []string{"whim80"}},
 		}},
 	{N: 81, Name: "one line, one command",
 		Steps: []Step{

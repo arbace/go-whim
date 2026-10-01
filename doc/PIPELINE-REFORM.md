@@ -617,18 +617,37 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        No shape edit was needed.
        - In order: 150 phases, 989 s (1,004 after D1b).
        - The parallel check: 149 links, 82 s.
-   - **D2b, not done: deleting the rows at the front.**
-     - **What it needs.** The seed still has the user-command enumerators
-       (`CMD_USER = -1`). Live code compares `cmdidx` with hundreds of
-       commands that would no longer exist, so deleting a row's enumerator
-       makes each comparison a compile error.
-     - **The machinery.** A generic rule is needed: a comparison with a
-       deleted enumerator is a constant. With it, the closure takes the
-       branches.
-     - **The migration.** Phases 2-79 fold such comparisons by hand, so
-       those folds become redundant in turn. Phase 80's ~40 acts must be
-       re-anchored on the seed's text, along with 81's syntax and the
-       command halves of 89-91 and 93.
+   - **D2b, done (branch `reform-d2b`): the rows deleted at the front.**
+     - **The design.** A generic rule ("a comparison with a deleted
+       enumerator is false") is unsound on the seed:
+       `window_layout_locked(CMD_close)` and `ea.cmdidx = CMD_tabnew` pass
+       those values through live code until phases 36 and 40 remove them.
+       So the rows go, and their enumerators stay, moved after `CMD_SIZE`.
+       Every comparison still compiles and means what it meant; no parsed
+       command can reach them.
+     - **The cut.** `internal/cut/extable.go`, phase 1's third step, is
+       phase 80's table half on the seed:
+       - the stub rows go;
+       - each of the 111 left carries its shortest abbreviation, from the
+         600-row table, proved over all 2,538 prefixes;
+       - the prefix index goes, and the lookup is a scan;
+       - the one-character set shrinks to what exists.
+     - **What it replaced.**
+       - phase 80's first half: phase 80 now deletes the enumerators past
+         `CMD_SIZE` and keeps its code half;
+       - all 15 `cmdidxs --check` steps, the `cmdidxs` op, subcommand and
+         generator;
+       - `nocmdopts`' `EX_RESTRICT` row edit: all 24 such rows were stubs;
+       - phase 77 now asserts no row carries `EX_BUFNAME`, instead of every
+         one being a stub, and keeps its fold.
+
+       Phase 77 was first made a record by mistake. Its fold still removes
+       buffer-name matching, and phase 93's counts caught the divergence.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte:
+       150 phases in order, 982 s; the parallel check, 149 links, 84 s.
+       Phase 81's syntax and the deletions of 89-91 and 93 stay where they
+       are: they delete live commands, and belong with their packages
+       (D4, files).
 4. **D3 options.** Default-as-initialiser, then remove 54, 55 and 95 and the
    row halves.
 5. **D4 files, and D5.**
