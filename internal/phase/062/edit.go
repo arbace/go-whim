@@ -80,9 +80,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("changed", func(e *edit.E) {
 		e.Literal("if (curbuf->b_may_swap && !bt_dontwrite(curbuf))", "if (curbuf->b_may_swap)", 1, "the swap file opened only for a writable 'buftype'")
 	})
-	e.InFunction("readfile", func(e *edit.E) {
-		e.FoldAlways(edit.Head("if (!bt_dontwrite(curbuf))"), 2, "reading checking for a swap file only for a writable 'buftype'")
-	})
+	// readfile went at phase 1 (readfront, phase 92's move)
 	e.InFunction("open_buffer", func(e *edit.E) {
 		e.DropIf(edit.Head("if (bt_nofileread(curbuf))"), 1, "a no-file 'buftype' skipping the read")
 	})
@@ -172,15 +170,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Cut(edit.Line("curbuf->b_did_filetype = false;"), 1, ":edit forgetting FileType")
 	})
-	e.InFunction("readfile", func(e *edit.E) {
-		e.Cut(edit.Line("curbuf->b_au_did_filetype = false;"), 1, "reading forgetting FileType")
-		e.DropIf(edit.Head("if (!curbuf->b_au_did_filetype && *curbuf->b_p_ft != NUL)"), 1, "reading firing FileType")
-	})
+	// readfile and fix_help_buffer went at phase 1 (readfront, phase 92's move)
 	e.InFunction("did_set_string_option", func(e *edit.E) {
 		e.FoldNever(edit.Head("else if (varp == &(curbuf->b_p_ft))"), 1, ":set ft= firing FileType")
-	})
-	e.InFunction("fix_help_buffer", func(e *edit.E) {
-		e.DropIf(edit.Head(`if (strcmp((char *)(curbuf->b_p_ft), (char *)("help")) != 0)`), 1, "a help buffer setting 'filetype' to help")
 	})
 	return e.Done()
 }

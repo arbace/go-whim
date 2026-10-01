@@ -72,9 +72,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w70lit5, w70lit6, 1, ":edit arming the swap-file dialog")
 		e.Literal(w70lit7, "", 1, ":edit answering it")
 	})
-	e.InFunction("readfile", func(e *edit.E) {
-		e.Literal(w70lit8, "", 1, "reading a file abandoning it for a swap file")
-	})
+	// readfile went at phase 1 (readfront, phase 92's move)
 	e.InFunction("create_windows", func(e *edit.E) {
 		e.Literal(w70lit9, w70lit10, 1, "the startup open arming and answering the dialog")
 	})
@@ -86,7 +84,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("changed", func(e *edit.E) {
 		e.FoldNever(edit.Head("if (curbuf->b_may_swap)"), 1, "the first change to a buffer opening a swap file")
 	})
-	e.Cut(edit.Line("check_need_swap(newfile);"), 2, "the two calls that asked for a swap file")
+	// the two calls of check_need_swap() went with readfile at phase 1
+	// (readfront, phase 92's move)
 	// handle_swap_exists(), check_swap_exists_action(), check_need_swap(),
 	// ml_open_file(), swap_exists_action, the SEA_* actions and the
 	// b_may_swap field are named by nothing live now; the sweep takes them.

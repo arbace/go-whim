@@ -15,7 +15,6 @@ const (
 	w70lit5      = "            swap_exists_action = SEA_DIALOG;\n            curbuf->b_flags |= BF_CHECK_RO;\n"
 	w70lit6      = "            curbuf->b_flags |= BF_CHECK_RO;\n"
 	w70lit7      = "\n            if (swap_exists_action == SEA_QUIT)\n            {\n                retval = FAIL;\n            }\n            handle_swap_exists(&old_curbuf);\n"
-	w70lit8      = "    if (swap_exists_action == SEA_QUIT)\n    {\n        if (!read_buffer && !read_stdin)\n        {\n            close(fd);\n        }\n        goto theend;\n    }\n"
 	w70lit9      = "            swap_exists_action = SEA_DIALOG;\n            (void)open_buffer(FALSE, NULL, 0);\n            if (swap_exists_action == SEA_QUIT)\n            {\n                if (TRUE)\n                {\n                    did_emsg = FALSE;\n                    getout(1);\n                }\n                setfname(curbuf, NULL, NULL, FALSE);\n                swap_exists_action = SEA_NONE;\n            }\n            else\n            {\n                handle_swap_exists(NULL);\n            }\n"
 	w70lit10     = "            (void)open_buffer(FALSE, NULL, 0);\n"
 )

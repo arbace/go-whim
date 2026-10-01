@@ -21,6 +21,12 @@ package p092
 // because it IS that, no behavioural probe can see it.  internal/phase/092/check.go says
 // what stands in for one: the input source built twice, instrumented.
 //
+// ANCHOR 1 IS PHASE 1'S NOW: the two arms fold never at the front (readfront,
+// internal/cut/extable.go, the pipeline reform's move of this phase), so
+// readfile(), read_buffer() and everything only they reached are gone before
+// this phase runs, and every edit phases 20-91 made inside them with them.
+// What is left here is anchors 2-4, on the counts restated on q091.
+//
 // FOUR ANCHORS, ALL INSIDE open_buffer(), and everything else is the sweep's
 // (GOALS.md core rule 1: removal is computed, not listed).  Sixteen functions go
 // without one of them being named here.
@@ -78,14 +84,17 @@ import (
 
 func init() { phase.Register("whim92", Edit) }
 
-// w92Before is the file the four anchors were counted against.
+// w92Before is the file the three anchors were counted against.  The two
+// read arms went at phase 1 (readfront, this phase's move), and readfile(),
+// read_buffer() and what only they reached with them: what is left here is
+// what that leaves constant.
 var w92Before = map[string]int{
-	"readfile": 5, "read_buffer": 17, "read_stdin": 23, "read_fifo": 9,
-	"check_readonly": 4, "msg_scrolled_ign": 6, "filemess": 11, "read_cmd_fd": 12,
+	"readfile": 0, "read_buffer": 0, "read_stdin": 2, "read_fifo": 2,
+	"check_readonly": 0, "msg_scrolled_ign": 2, "filemess": 0, "read_cmd_fd": 12,
 }
 
 // w92After is what the sweep is handed, as a count rather than as trust.
-var w92After = map[string]int{"readfile": 3, "read_buffer": 15, "read_stdin": 20, "read_fifo": 5}
+var w92After = map[string]int{"readfile": 0, "read_buffer": 0, "read_stdin": 0, "read_fifo": 1}
 
 var w92Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
 
@@ -133,16 +142,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w92Before[name])
 		}
 	}
-	p.Say("open_buffer 4, readfile 5, read_buffer 17, read_stdin 23 -- the file the four " +
-		"anchors were counted against")
+	p.Say("open_buffer 4, read_stdin 2, read_fifo 2, and readfile and read_buffer gone " +
+		"at phase 1 -- the file the three anchors were counted against")
 
-	// ---- 1. the two arms, which hold every call into the read path ------------
-	if text, err = within(text, "open_buffer", w92Arms, "",
-		"open_buffer's two read arms, 36 lines: both calls to readfile(), both "+
-			"to read_buffer(), and the fifo test between them", 1); err != nil {
-		return nil, err
-	}
-	// ---- 2. read_fifo, written nowhere now: its local goes to the sweep -------
 	// ---- 3. the unchanged() test, where its second reader was -----------------
 	if text, err = within(text, "open_buffer", w92lit2, w92lit3,
 		"the unchanged() arm: !read_stdin and !read_fifo were both constantly true", 1); err != nil {
@@ -192,10 +194,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w92After[name])
 		}
 	}
-	p.Say("readfile 5 -> 3 and read_buffer 17 -> 15, and the survivors are not calls: a " +
-		"prototype, two definitions and fourteen mentions of readfile's own local of " +
-		"the same name.  read_buffer and fix_help_buffer are the two entry points the " +
-		"sweep starts from, and they are exactly the two -Wunused-function warnings " +
-		"this text produces")
+	p.Say("read_stdin 2 -> 0, and read_fifo 2 -> 1: its declaration, which the sweep takes")
 	return text, nil
 }

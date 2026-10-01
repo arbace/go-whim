@@ -68,109 +68,9 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"lfonly", w}
 	var err error
 
-	text, err = e.inFunction(text, "readfile", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.literal(s, "    set_file_options(set_options, eap);\n", "",
-			"readfile setting the format from ++ff and ++bin", 1); err != nil {
-			return nil, err
-		}
-		// The two guarded calls first: the bare-call pattern matches their
-		// lines too.
-		if s, err = e.subCount(s,
-			`^[ \t]*if \(set_options\)\n[ \t]*\{\n[ \t]*save_file_ff\(curbuf\);\n[ \t]*\}\n`,
-			"readfile saving the format it read", 2); err != nil {
-			return nil, err
-		}
-		if s, err = e.subOnce(s, `^[ \t]*save_file_ff\(curbuf\);\n`,
-			"readfile saving the format of a new file"); err != nil {
-			return nil, err
-		}
-		if s, err = e.subOnce(s,
-			`^[ \t]*if \(set_options\)\n[ \t]*\{\n[ \t]*if \(!read_buffer\)\n[ \t]*\{\n`+
-				`[ \t]*curbuf->b_p_eof = FALSE;\n[ \t]*curbuf->b_start_eof = FALSE;\n`+
-				`[ \t]*curbuf->b_p_eol = TRUE;\n[ \t]*curbuf->b_start_eol = TRUE;\n[ \t]*\}\n[ \t]*\}\n`,
-			"readfile resetting 'endofline' and 'endoffile'"); err != nil {
-			return nil, err
-		}
-		if s, err = e.subCount(s,
-			`^[ \t]*try_(?:mac|dos|unix) = \(vim_strchr\(p_ffs, '[mdx]'\) != NULL\);\n`,
-			"readfile reading 'fileformats'", 6); err != nil {
-			return nil, err
-		}
-		// The format chain first: its 'binary' link is an
-		// `else if (curbuf->b_p_bin)` too, until the ++ff link before it folds
-		// and makes it an `if`.
-		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(eap != NULL && eap->force_ff != 0\)$`, "readfile honouring ++ff"},
-			{`^[ \t]*if \(curbuf->b_p_bin\)$`, "readfile honouring 'binary'"},
-			{`^[ \t]*else if \(curbuf->b_p_bin\)$`, "readfile reading 'binary' as no encoding"},
-		} {
-			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
-				return nil, err
-			}
-		}
-		if s, err = e.subOnce(s,
-			`^[ \t]*if \(\*p_ffs == NUL\)\n[ \t]*\{\n[ \t]*fileformat = get_fileformat\(curbuf\);\n[ \t]*\}\n`+
-				`[ \t]*else\n[ \t]*\{\n[ \t]*fileformat = \(-1\);\n[ \t]*\}\n`,
-			"readfile choosing between 'fileformat' and detection"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, `^[ \t]*if \(!curbuf->b_p_eol\)$`,
-			"readfile dropping a filter's last LF"); err != nil {
-			return nil, err
-		}
-		for _, l := range []struct{ old, new, what string }{
-			{"if (size < 2 || curbuf->b_p_bin)", "if (size < 2)",
-				"readfile's BOM check under 'binary'"},
-			{"else if (enc_utf8 && !curbuf->b_p_bin)", "else if (enc_utf8)",
-				"readfile's UTF-8 check under 'binary'"},
-		} {
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		// The detection block tests fileformat == -1 again INSIDE itself, so
-		// the outer test is the one followed by the try_dos || try_unix test.
-		// The Python spells that as a LOOKAHEAD; RE2 has none, and inlining it
-		// is exact here because Guarded uses only the match's START.
-		if s, err = e.foldNever(s,
-			`^[ \t]*if \(fileformat == \(-1\)\)\n[ \t]*\{\n[ \t]*if \(try_dos \|\| try_unix\)$`,
-			"readfile detecting DOS and Mac line ends"); err != nil {
-			return nil, err
-		}
-		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(linerest != 0 && !curbuf->b_p_bin && fileformat == EOL_DOS && ptr\[-1\] == Ctrl_Z\)$`,
-				"readfile's CTRL-Z at the end of a DOS file"},
-			{`^[ \t]*if \(fileformat == EOL_MAC\)$`, "readfile splitting lines at CR"},
-			{`^[ \t]*if \(fileformat == EOL_DOS\)$`, "readfile stripping CR, and retrying as Unix"},
-		} {
-			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
-				return nil, err
-			}
-		}
-		if s, err = e.subOnce(s,
-			`^[ \t]*if \(set_options\)\n[ \t]*\{\n[ \t]*curbuf->b_p_eol = FALSE;\n[ \t]*\}\n`,
-			"readfile clearing 'endofline' for a missing last LF"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, `^[ \t]*if \(ff_error == EOL_DOS\)$`,
-			`the "[CR missing]" message`); err != nil {
-			return nil, err
-		}
-		if s, err = e.dropIf(s, `^[ \t]*if \(msg_add_fileformat\(fileformat\)\)$`,
-			`the "[dos]" and "[mac]" read messages`); err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, "    curbuf->b_no_eol_lnum = read_no_eol_lnum;\n", "",
-			"readfile remembering the no-LF line for 'binary'", 1); err != nil {
-			return nil, err
-		}
-		return e.foldNever(s, `^[ \t]*if \(keep_fileformat\)$`,
-			"readfile keeping a format across a retry")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// readfile went with open_buffer's read arms, and its other callers, by
+	// phase 1 (readfront, phase 92's move): every format it chose on reading
+	// went with it.
 
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
 		var err error
@@ -210,21 +110,9 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
+	// open_buffer's fifo and stdin arms, and their 'binary', went at phase 1
+	// (readfront).
 	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.subOnce(s,
-			`^[ \t]*if \(read_fifo\)\n[ \t]*\{\n[ \t]*curbuf->b_p_bin = TRUE;\n[ \t]*\}\n`,
-			"a fifo read as binary"); err != nil {
-			return nil, err
-		}
-		if s, err = e.subCount(s, `^[ \t]*curbuf->b_p_bin = save_bin;\n`,
-			"open_buffer restoring 'binary'", 2); err != nil {
-			return nil, err
-		}
-		if s, err = e.subOnce(s, `^[ \t]*curbuf->b_p_bin = TRUE;\n`,
-			"stdin read as binary"); err != nil {
-			return nil, err
-		}
 		return e.literal(s, "    save_file_ff(curbuf);\n", "",
 			"open_buffer saving the format", 1)
 	})
@@ -251,8 +139,9 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}); err != nil {
 		return nil, err
 	}
+	// one (readfile's) went at phase 1 (readfront)
 	if text, err = e.subCount(text, `^[ \t]*curbuf->b_no_eol_lnum = 0;\n`,
-		"resetting the no-LF line for 'binary'", 2); err != nil {
+		"resetting the no-LF line for 'binary'", 1); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "set_init_1", func(s []byte) ([]byte, error) {

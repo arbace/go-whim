@@ -386,3 +386,23 @@ func QuitFront(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  quitfront    :q quits: ex_quit's refusal for a changed buffer folds never")
 	return append(append(append([]byte(nil), text[:a]...), body...), text[z:]...), nil
 }
+
+// ReadFront takes every read of a file (the reform's front cut for phase 92's
+// change): open_buffer's two arms -- the named file, and stdin -- fold never,
+// and readfile(), read_buffer() and everything only they reached go with
+// them.  A buffer opens empty.
+func ReadFront(text []byte, w io.Writer) ([]byte, error) {
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "open_buffer")
+	if !ok {
+		return nil, fmt.Errorf("readfront: open_buffer is not defined")
+	}
+	body := text[a:z]
+	for _, head := range []string{"if (curbuf->b_ffname != NULL)", "if (read_stdin)"} {
+		var err error
+		if body, err = edit.FoldNever(body, edit.Head(head), 1); err != nil {
+			return nil, fmt.Errorf("readfront: open_buffer's %s -- %v", head, err)
+		}
+	}
+	fmt.Fprintln(w, "  readfront    nothing reads a byte: open_buffer's file and stdin arms fold never")
+	return append(append(append([]byte(nil), text[:a]...), body...), text[z:]...), nil
+}

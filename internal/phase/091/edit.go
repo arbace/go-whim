@@ -132,7 +132,8 @@ var w91Before = map[string]int{
 	"CMD_edit": 2, "CMD_enew": 0, "CMD_ex": 0, "CMD_view": 0, "CMD_visual": 0,
 	"ex_edit": 0, "do_exedit": 0, "nv_gotofile": 3,
 	"EX_ARGOPT": 2, "getargopt": 3, "read_edit": 2,
-	"readfile": 5, "open_buffer": 5, "p_ur": 0, // its row went at phase 1, and its reads fell out (D3)
+	// readfile went at phase 1 (readfront, phase 92's move)
+	"readfile": 0, "open_buffer": 5, "p_ur": 0, // its row went at phase 1, and its reads fell out (D3)
 }
 
 // Whim91 takes every way to name another file to edit.

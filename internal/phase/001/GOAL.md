@@ -64,6 +64,14 @@ and the switch-buffer/switch-window island its tail was the last caller of
 (`set_curbuf()`, `enter_buffer()`, `win_enter_ext()`, `get_winopts()` and
 seven more), and every edit phases 62 to 93 made inside them.
 
+**Then nothing reads a byte** (`readfront`, phase 92's move):
+`open_buffer()`'s two read arms, the named file and stdin, fold never, so a
+buffer opens empty. `readfile()` (787 lines), `read_buffer()`,
+`fix_help_buffer()` and the swap-file check go with them once their other
+callers have, and so does every edit phases 20 to 91 made inside them:
+`lfonly`'s formats, `keepbytes`' `++bad`, `noconv`'s conversions, and
+phases 62, 70, 75 and 87's folds.
+
 **Then every option the product has not is dropped** (`optfront`, the
 reform's D3). There are 375 rows, listed in `internal/cut/optfront.md`, where
 53 `dropoptions` steps and phases 54 and 95 dropped them a few at a time:

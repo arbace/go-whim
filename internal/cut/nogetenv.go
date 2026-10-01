@@ -43,9 +43,6 @@ const envCopy = `    char_u      *src;
 
     return (size_t)(dst - dst_start);`
 
-const localAdditions = "    fname = gettail(curbuf->b_fname);\n" +
-	`    if (vim_fnamecmp((char_u *)(fname), (char_u *)("help.txt")) == 0)`
-
 var envLeft = regexp.MustCompile(`\bgetenv\b|\bsetenv\b|\benviron\b`)
 
 // envBody replaces a file-scope definition's body and reports its line count.
@@ -80,25 +77,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nogetenv     $PATH, which was where a command name was looked for")
 
-	// Phase 1 folded `vimruntime` to FALSE inside vim_getenv, so `rt` here has
-	// been NULL since then and the block has added nothing.  It goes rather
-	// than staying to look like it might.
-	blanked := edit.Blank(text)
-	k := bytes.Index(text, []byte(localAdditions))
-	if k < 0 {
-		return nil, fmt.Errorf("nogetenv: the local-additions scan is not where this expects")
-	}
-	o := k + 40 + bytes.IndexByte(blanked[k+40:], '{')
-	c := edit.Match(blanked, o)
-	if c < 0 {
-		return nil, fmt.Errorf("nogetenv: the local-additions scan is unbalanced")
-	}
-	end := c + bytes.IndexByte(text[c:], '\n') + 1
-	fmt.Fprintf(w, "  nogetenv     the local-additions scan, %d lines that $VIMRUNTIME "+
-		"being unset had already made a no-op\n", bytes.Count(text[k:end], []byte{'\n'}))
-	var buf []byte
-	buf = append(buf, text[:k]...)
-	text = append(buf, text[end:]...)
+	// The local-additions scan went with fix_help_buffer, open_buffer's read
+	// arm its one caller, at phase 1 (readfront, phase 92's move).
 
 	for _, d := range []struct{ name, call string }{
 		{"set_init_default_shell", "$SHELL for 'shell'"},

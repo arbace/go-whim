@@ -1,5 +1,13 @@
 # Phase 92 — nothing reads a byte
 
+**The cut is phase 1's now.** `open_buffer()`'s two read arms fold never at
+the front (`readfront`, the pipeline reform's move of this phase,
+`doc/PIPELINE-REFORM.md` §7), so `readfile()`, `read_buffer()` and what only
+they reached are gone before this phase runs. What it keeps is anchors 2-4,
+what the arms' going leaves constant: `read_fifo`'s last test, and
+`open_buffer()`'s parameters, which every caller passed as `FALSE, NULL, 0`.
+What follows is the account of the cut as it was made here.
+
 `internal/phase/092/edit.go` and `internal/phase/092/check.go`, `stage 92`, `package files`. Phases
 89, 90 and 91 took every way to *ask* for a file. This one takes the machinery those
 commands used: `readfile()`, 787 lines, `read_buffer()`, the four functions of the

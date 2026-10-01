@@ -790,6 +790,27 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        - **Result.** The chain gives the committed `whim-vim.c` byte for
          byte. In order: 149 phases, 948 s. The parallel check: 148 links,
          77 s; phase 1 37 s.
+     - **92, done (same branch): nothing reads a byte.** `readfront`, phase
+       1's sixth cut, folds `open_buffer()`'s two read arms (the named file
+       and stdin) never. `fix_help_buffer()` and `read_buffer()` go at once.
+       `readfile()` (787 lines) goes once its other callers have, by phase
+       49, and the swap-file check, the format and encoding detection, and
+       the read autocommands go with it.
+       - **What it replaced.** Every edit inside them:
+         - `lfonly`'s 15 readfile edits and its fifo and stdin `'binary'`;
+         - `keepbytes`' `++bad`;
+         - `noconv`'s conversions;
+         - `nogetenv`'s local-additions scan;
+         - folds in 62, 70, 75 and 87.
+
+         The counts in 75 (bare dispatches 36 -> 25), 87, 90 and 91 are
+         restated.
+       - **Phase 92 keeps anchors 2-4**: `read_fifo`'s last test, and
+         `open_buffer()`'s parameters, which every caller passed as
+         `FALSE, NULL, 0`.
+       - **Result.** The chain gives the committed `whim-vim.c` byte for
+         byte. In order: 149 phases, 934 s. The parallel check: 148 links,
+         85 s (the machine's load; phase 1 is still 37 s).
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

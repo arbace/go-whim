@@ -13,7 +13,6 @@ import (
 var (
 	badCharWord = regexp.MustCompile(`\bbad_char\b`)
 	badCharLine = regexp.MustCompile(`(?m)^[^\n]*\bbad_char\b[^\n]*$`)
-	badBehavior = regexp.MustCompile(`\bbad_char_behavior\b`)
 	elseHere    = regexp.MustCompile(`^[ \t]*else\b`)
 )
 
@@ -79,56 +78,7 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"keepbytes", w}
 	var err error
 
-	text, err = e.inFunction(text, "readfile", func(s []byte) ([]byte, error) {
-		s, err := e.subOnce(s,
-			`^[ \t]*if \(eap != NULL && eap->bad_char != 0\)\n`+
-				`[ \t]*\{\n`+
-				`[ \t]*bad_char_behavior = eap->bad_char;\n`+
-				`[ \t]*if \(set_options\)\n`+
-				`[ \t]*\{\n`+
-				`[ \t]*curbuf->b_bad_char = eap->bad_char;\n`+
-				`[ \t]*\}\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*curbuf->b_bad_char = 0;\n[ \t]*\}\n`,
-			"readfile taking the behaviour from ++bad")
-		if err != nil {
-			return nil, err
-		}
-		// -1 means keep.  Drop (-2) never happens and neither does a replacement.
-		s, err = e.foldAll(s, `^[ \t]*if \(bad_char_behavior == \(-2\)\)$`,
-			"an invalid byte dropped")
-		if err != nil {
-			return nil, err
-		}
-		// The spacing is the expander's: `(-1) )` alone, `(-1)  && (...)` with two.
-		s, err = e.foldAll(s, `^[ \t]*if \(bad_char_behavior != \(-1\)(?:\)| && \(fio_flags != 0 \|\| iconv_fd != \(iconv_t\)-1\)\))$`,
-			"an invalid byte replaced")
-		if err != nil {
-			return nil, err
-		}
-		// After the drop test folds, the conversion loop's chain starts with
-		// the keep test.
-		s, err = e.keepThenChain(s, `^[ \t]*if \(bad_char_behavior == \(-1\)\)$`,
-			"a converted invalid byte kept as it is")
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.literal(s, " || (illegal_byte > 0 && bad_char_behavior != (-1))", "",
-			"an illegal byte making the buffer read-only", 1)
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.subOnce(s, `^[ \t]*int[ \t]+bad_char_behavior = BAD_REPLACE;\n`,
-			"readfile declaring the behaviour")
-		if err != nil {
-			return nil, err
-		}
-		if badBehavior.Match(s) {
-			return nil, fmt.Errorf("keepbytes: readfile still names bad_char_behavior")
-		}
-		return s, nil
-	})
-	if err != nil {
-		return nil, err
-	}
+	// readfile went at phase 1 (readfront, phase 92's move)
 
 	text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
 		s, err := e.foldAll(s,

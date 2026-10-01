@@ -99,11 +99,12 @@ func init() { phase.Register("whim87", Edit) }
 
 var w87Before = map[string]int{
 	// do_exedit's exmode handling went with :edit, :ex and :visual at phase 1
-	// (filefront, the reform's D4): exmode_was was its local
-	"exmode_active": 40, "silent_mode": 21, "pending_exmode_active": 2,
+	// (filefront, the reform's D4): exmode_was was its local; readfile's
+	// test and its write of ex_no_reprint at phase 1 (readfront, 92's move)
+	"exmode_active": 39, "silent_mode": 21, "pending_exmode_active": 2,
 	"exmode_plus": 3, "exmode_was": 0, "do_exmode": 4, "getexmodeline": 6,
 	"nv_exmode": 3, "EXMODE_NORMAL": 5, "EXMODE_VIM": 3, "BO_EX": 2,
-	"ex_pressedreturn": 6, "ex_no_reprint": 9, "ex_exitval": 3,
+	"ex_pressedreturn": 6, "ex_no_reprint": 8, "ex_exitval": 3,
 	"previous_got_int": 4, "use_plus_cmd": 5, "s_vbuf": 4,
 	"e_at_end_of_file": 2, "noexmode": 4, "check_tty": 2,
 	"mch_input_isatty": 2,
@@ -290,8 +291,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{fn: "compute_cmdrow", Old: "if (exmode_active || (msg_scrolled != 0 && !updating_screen))",
 			New: "if (msg_scrolled != 0 && !updating_screen)", n: 1,
 			What: "compute_cmdrow asks only about the scroll"},
-		{kind: "never", fn: "readfile", Pat: line("if (exmode_active)"), n: 1,
-			What: "readfile leaves the cursor on the first line read"},
+		// readfile went at phase 1 (readfront, phase 92's move)
 		{kind: "never", fn: "vgetorpeek", Pat: line("if (pending_exmode_active)"), n: 1,
 			What: "an interrupted nested main_loop has no Ex mode to return to"},
 		{fn: "vgetorpeek", Old: "if (typebuf.tb_len > 0 && advance && !exmode_active)",
@@ -410,8 +410,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = within(text, "parse_command_modifiers", w87lit18, "\n", "and its one remaining write", 1); err != nil {
 		return nil, err
 	}
-	// four of six: two were in :write and :read, gone at phase 1 (D4)
-	if text, err = literal(text, w87lit20, "\n", "and its five writes", 4); err != nil {
+	// three of six: two were in :write and :read, gone at phase 1 (D4), and
+	// one in readfile (readfront, phase 92's move)
+	if text, err = literal(text, w87lit20, "\n", "and its five writes", 3); err != nil {
 		return nil, err
 	}
 	if text, err = literal(text, w87lit21, "\n", "and the fifth", 1); err != nil {
