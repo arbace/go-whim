@@ -100,10 +100,13 @@ func init() { phase.Register("whim87", Edit) }
 var w87Before = map[string]int{
 	// do_exedit's exmode handling went with :edit, :ex and :visual at phase 1
 	// (filefront, the reform's D4): exmode_was was its local; readfile's
-	// test and its write of ex_no_reprint at phase 1 (readfront, 92's move)
-	"exmode_active": 39, "silent_mode": 21, "pending_exmode_active": 2,
+	// test and its write of ex_no_reprint at phase 1 (readfront, 92's move);
+	// one exmode_active and one EXMODE_NORMAL with the windows at phase 1
+	// (nowindows, the reform's D9), and pending_exmode_active, whose only
+	// writes were do_exedit's, falls out there since D9
+	"exmode_active": 38, "silent_mode": 21, "pending_exmode_active": 0,
 	"exmode_plus": 3, "exmode_was": 0, "do_exmode": 4, "getexmodeline": 6,
-	"nv_exmode": 3, "EXMODE_NORMAL": 5, "EXMODE_VIM": 3, "BO_EX": 2,
+	"nv_exmode": 3, "EXMODE_NORMAL": 4, "EXMODE_VIM": 3, "BO_EX": 2,
 	"ex_pressedreturn": 6, "ex_no_reprint": 8, "ex_exitval": 3,
 	"previous_got_int": 4, "use_plus_cmd": 5, "s_vbuf": 4,
 	"e_at_end_of_file": 2, "noexmode": 4, "check_tty": 2,
@@ -116,7 +119,7 @@ var w87Before = map[string]int{
 // survived shows up HERE and not after the sweep.
 // (exmode_active 6 and exmode_was 0: do_exedit went with :edit at phase 1, D4)
 var w87After = map[string]int{
-	"exmode_active": 6, "silent_mode": 2, "pending_exmode_active": 1,
+	"exmode_active": 6, "silent_mode": 2, "pending_exmode_active": 0,
 	"exmode_plus": 1, "exmode_was": 0, "do_exmode": 2, "getexmodeline": 3,
 	"nv_exmode": 2, "EXMODE_NORMAL": 2, "EXMODE_VIM": 2, "BO_EX": 2,
 	"ex_pressedreturn": 4, "ex_no_reprint": 4, "ex_exitval": 1,
@@ -292,8 +295,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			New: "if (msg_scrolled != 0 && !updating_screen)", n: 1,
 			What: "compute_cmdrow asks only about the scroll"},
 		// readfile went at phase 1 (readfront, phase 92's move)
-		{kind: "never", fn: "vgetorpeek", Pat: line("if (pending_exmode_active)"), n: 1,
-			What: "an interrupted nested main_loop has no Ex mode to return to"},
+		// vgetorpeek's pending_exmode_active falls out at phase 1 since the
+		// reform's D9 (its only writes were do_exedit's)
 		{fn: "vgetorpeek", Old: "if (typebuf.tb_len > 0 && advance && !exmode_active)",
 			New: "if (typebuf.tb_len > 0 && advance)", n: 1,
 			What: "and the partial command is shown whenever there is one"},

@@ -14,8 +14,8 @@ var optreadersLiteral = []struct{ what, old, new string }{
 	// -nb's early scan and --clean's pre-scan of argv went with the command
 	// line, and what --clean, --not-a-term and -n set is never written after
 	// it: the fall-out closure folds its readers (argvfront, the reform's D1)
-	{"-p: equalising the windows it did not make",
-		" && parmp->window_layout != WIN_TABS)", ")"},
+	// -p's test of the window layout went with the window layouts at phase 1
+	// (nowindows, the reform's D9)
 	{"-h: the pointer to it at the end of every usage error",
 		`    fprintf(stderr, "%s", (_("\nMore info with: \"vim -h\"\n")));` + "\n", ""},
 }
@@ -24,12 +24,8 @@ var optreadersFolds = []struct {
 	what, kind, pattern string
 	count               int
 }{
-	{"-p: tab pages instead of windows",
-		"never", `^[ \t]*if \(parmp->window_layout == WIN_TABS\)$`, 5},
-	{"-p: moving to the next tab page",
-		"never", `^[ \t]*else if \(parmp->window_layout == WIN_TABS\)$`, 1},
-	{"-p: restoring 'shortmess' after filling the tab pages",
-		"never", `^[ \t]*if \(p_shm_save != NULL\)$`, 1},
+	// -p's tab pages, and 'shortmess' restored after filling them, went with
+	// the window layouts at phase 1 (nowindows, the reform's D9)
 }
 
 // optreadersAfter is what must be LEFT, counted after every edit.
@@ -37,7 +33,6 @@ var optreadersAfter = []struct {
 	what, pattern string
 	want          int
 }{
-	{"WIN_TABS outside its enumerator", `\bWIN_TABS\b`, 1},
 	{"early_arg_scan outside its definition and prototype", `\bearly_arg_scan\(paramp\)`, 0},
 }
 

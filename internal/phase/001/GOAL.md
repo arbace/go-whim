@@ -128,6 +128,18 @@ and 61. On the seed, `setmouse()` is called 33 times and `need_maketitle` set
 7 times, since what phases 2-60 took is still in the text. `maketitle()` goes
 here, and `mb_tail_off()`, its one caller's helper, with it.
 
+**Then one window, one tab page, and no argument or buffer list to walk**
+(`noinert`, `notabs`, `noarglist`, `nowindows`, `nowinsizes` and `nobuflist`,
+the reform's D9): the cuts of phases 36-38, 40 and 41. `noinert` (37) comes
+first, so that `:browse` is gone before `nowindows` takes `case 'b'`.
+`notabs` folds `window_layout_locked()`'s test as the seed spells it,
+before the closure. The cuts' closing assertions, written for swept text
+(`cmod_tab`, `CMD_windo`, `DOBUF_SPLIT`, the `ECMD_` flags and the
+argument-list names), are gone: at the front the retired commands' handlers
+still name them. `skip_win_fix_cursor` loses its writers here, and the product
+keeps it, so the closure holds it. `onebuffer` (42) stays where it is: on the
+seed, `buf_hide()` has 24 mentions, which phases 2-41 take.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

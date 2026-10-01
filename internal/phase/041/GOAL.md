@@ -1,5 +1,10 @@
 # Phase 41 — the buffer list is walked by `:bnext` and `:bprevious` alone
 
+**A record now.** Phase 1 runs this phase's cut (`nobuflist`) at the front (the
+pipeline reform's D9, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 **The list stays.** Every file edited is a buffer on it, `:bnext` and
 `:bprevious` move through it, `:e #` reaches the alternate one, and
 quitting still refuses while a hidden buffer is changed. Every other command on

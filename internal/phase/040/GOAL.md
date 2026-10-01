@@ -1,5 +1,10 @@
 # Phase 40 — no window sizes to set
 
+**A record now.** Phase 1 runs this phase's cut (`nowindows` and `nowinsizes`) at the front (the
+pipeline reform's D9, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 With one window, `'winheight'`, `'winminheight'`, `'winwidth'`, `'winminwidth'`,
 `'helpheight'`, `'splitbelow'`, `'splitright'`, `'splitkeep'`, `'equalalways'`,
 `'eadirection'`, `'winfixheight'` and `'winfixwidth'` have nothing to decide. The

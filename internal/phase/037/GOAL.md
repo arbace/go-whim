@@ -1,5 +1,10 @@
 # Phase 37 — no command that does nothing
 
+**A record now.** Phase 1 runs this phase's cut (`noinert`) at the front (the
+pipeline reform's D9, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 What was left in the table after Phase 36, read handler by handler, had ten
 rows that either did nothing or did something this editor does not want:
 

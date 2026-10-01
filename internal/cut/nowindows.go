@@ -15,11 +15,8 @@ const nwBreak = `[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n`
 const cmdwinPlain = `^[ \t]*if \(cmdwin_type != 0\)$`
 
 var (
-	nwSplitMod  = regexp.MustCompile(`cmod->cmod_split \|=`)
-	nwNvWindow  = regexp.MustCompile(`\{Ctrl_W, nv_window`)
-	nwDobufSpl  = regexp.MustCompile(`\bDOBUF_SPLIT\b`)
-	nwWindoName = regexp.MustCompile(`\bCMD_windo\b`)
-	nwTableRow  = regexp.MustCompile(`^[ \t]*\[?CMD_`)
+	nwSplitMod = regexp.MustCompile(`cmod->cmod_split \|=`)
+	nwNvWindow = regexp.MustCompile(`\{Ctrl_W, nv_window`)
 )
 
 // dropIfPlain is DropIf with no count assertion, matching the Python's own
@@ -256,8 +253,9 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.subCount(text,
 		`^[ \t]*\((?:curwin|wp)\)->w_onebuf_opt\.wo_(?:scb|crb) = FALSE;\n`,
-		// 14: four more died with the commands retired at phase 1 (D2)
-		"every assignment of 'scrollbind' and 'cursorbind'", 14); err != nil {
+		// 18 at phase 1 (the reform's D9): four are in the handlers of the
+		// commands retired there (D2), which the sweep has not taken yet
+		"every assignment of 'scrollbind' and 'cursorbind'", 18); err != nil {
 		return nil, err
 	}
 	for _, v := range []struct{ wv, fld string }{
@@ -348,11 +346,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}{
 		{"a split modifier in the parser", len(nwSplitMod.FindAll(text, -1)), 0},
 		{"nv_window in the key table", len(nwNvWindow.FindAll(text, -1)), 0},
-		// its enumerator went too: do_buffer_ext died with :buffer (D2)
-		{"DOBUF_SPLIT", len(nwDobufSpl.FindAll(text, -1)), 0},
-		// The Python writes this one with a NEGATIVE LOOKAHEAD; RE2 has none,
-		// so it is two tests over the lines.
-		{"CMD_windo outside the table", len(linesMatchingUnless(text, nwWindoName, nwTableRow)), 0},
+		// DOBUF_SPLIT and CMD_windo are not counted: this runs at phase 1 (the
+		// reform's D9), where the retired commands' handlers still name them
 	} {
 		if c.n != c.want {
 			left = append(left, fmt.Sprintf("(%s, %d)", edit.PyRepr(c.what), c.n))

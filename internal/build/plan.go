@@ -165,28 +165,12 @@ var Plan = []Phase{
 			{Op: "noabbr"},
 		}},
 	// 35, no scripts, no session, no autocommands: a record (internal/phase/035/GOAL.md); its cut went to phase 1 (nosession, the reform's D6).
-	{N: 36, Name: "one tab page, always",
-		Steps: []Step{
-			{Op: "notabs"},
-		}},
-	{N: 37, Name: "no command that does nothing",
-		Steps: []Step{
-			{Op: "noinert"},
-		}},
-	{N: 38, Name: "the argument list is walked by `:next` and `:previous` alone",
-		Steps: []Step{
-			{Op: "noarglist"},
-		}},
+	// 36, one tab page, always: a record (internal/phase/036/GOAL.md); its cut went to phase 1 (notabs, the reform's D9).
+	// 37, no command that does nothing: a record (internal/phase/037/GOAL.md); its cut went to phase 1 (noinert, the reform's D9).
+	// 38, the argument list is walked by `:next` and `:previous` alone: a record (internal/phase/038/GOAL.md); its cut went to phase 1 (noarglist, the reform's D9).
 	// Phases 39-40, merged: one window, then no window sizes.
-	{N: 40, Name: "one window, and no window sizes",
-		Steps: []Step{
-			{Op: "nowindows"},
-			{Op: "nowinsizes"},
-		}},
-	{N: 41, Name: "the buffer list is walked by `:bnext` and `:bprevious` alone",
-		Steps: []Step{
-			{Op: "nobuflist"},
-		}},
+	// 40, one window, and no window sizes: a record (internal/phase/040/GOAL.md); its cut went to phase 1 (nowindows and nowinsizes, the reform's D9).
+	// 41, the buffer list is walked by `:bnext` and `:bprevious` alone: a record (internal/phase/041/GOAL.md); its cut went to phase 1 (nobuflist, the reform's D9).
 	{N: 42, Name: "one buffer, always",
 		Steps: []Step{
 			{Op: "onebuffer"},

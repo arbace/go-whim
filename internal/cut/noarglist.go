@@ -1,19 +1,7 @@
 package cut
 
 import (
-	"fmt"
 	"io"
-	"regexp"
-	"strings"
-)
-
-var (
-	// The Python writes this as one pattern with a NEGATIVE LOOKAHEAD,
-	// `^(?![ \t]*\[?CMD_)...`, which RE2 cannot spell.  What it means is "a
-	// line naming one of these and not itself a table row", which is two
-	// tests over the lines.
-	arglistNamed = regexp.MustCompile(`\bCMD_(argdo|snext|argdelete)\b`)
-	arglistRow   = regexp.MustCompile(`^[ \t]*\[?CMD_`)
 )
 
 // NoArgList takes the argument-list commands out of completion: the commands
@@ -48,13 +36,9 @@ func NoArgList(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	if left := linesMatchingUnless(text, arglistNamed, arglistRow); len(left) > 0 {
-		for i, l := range left {
-			left[i] = strings.TrimSpace(l)
-		}
-		return nil, fmt.Errorf("noarglist: still named outside the table: %s",
-			strings.Join(left, "; "))
-	}
+	// Not asserted that nothing outside the table names an argument-list
+	// command: this runs at phase 1 (the reform's D9), where the retired
+	// commands' handlers and what phases 2-37 took still do.
 
 	e.say("no argument-list command is completed")
 	return text, nil

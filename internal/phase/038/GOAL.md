@@ -1,5 +1,10 @@
 # Phase 38 — the argument list is walked by `:next` and `:previous` alone
 
+**A record now.** Phase 1 runs this phase's cut (`noarglist`) at the front (the
+pipeline reform's D9, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 **The list stays.** `vim a b c` fills it, `:next` and `:previous` move through
 it, `:next x y` replaces it, `:drop` sets it, and quitting with files not yet
 edited is still refused. Every other command on it goes — twenty-five rows:

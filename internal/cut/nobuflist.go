@@ -1,13 +1,7 @@
 package cut
 
 import (
-	"fmt"
 	"io"
-	"regexp"
-)
-
-var (
-	ecmdAddAlt = regexp.MustCompile(`\bECMD_(ADDBUF|ALTBUF)\b`)
 )
 
 // NoBufList leaves only :bnext and :bprevious walking the buffer list.
@@ -78,13 +72,9 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// Only the flags can be counted here.  ex_listdo() and ex_bunload() still
-	// name CMD_bufdo and CMD_bdelete, and have no row now: the sweep takes
-	// them, and whim41 counts the command names after it.
-	if n := len(ecmdAddAlt.FindAll(text, -1)); n != 2 {
-		return nil, fmt.Errorf("nobuflist: ECMD_ADDBUF or ECMD_ALTBUF outside their "+
-			"enumerators -- %d mentions, expected 2", n)
-	}
+	// Nothing is counted here: this runs at phase 1 (the reform's D9),
+	// where ex_listdo() and ex_bunload() and the code that set ECMD_ADDBUF and
+	// ECMD_ALTBUF are still in the text, for the sweep.
 
 	e.say("only :bnext and :bprevious walk the buffer list")
 	return text, nil

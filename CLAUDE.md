@@ -417,7 +417,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
                      # bin/caprice
-make whim-build      # the 138 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 133 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj or Editor.hs that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
@@ -446,7 +446,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 138 phases, **864 s**, 77,634 lines. A
+  before the reason. Measured: 133 phases, **821 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -464,8 +464,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **106 s**, 137 links 64 at a time, bound by
-  its longest link again: phase 1, its front cuts and its one fall-out closure, 64 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
+  committed `whim-vim.c`. Measured: **101 s**, 132 links 64 at a time, bound by
+  its longest link again: phase 1, its front cuts and its one fall-out closure, 69 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -513,7 +513,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 138 of them, in order, numbered 0-184: 24 phases that
+`p_N = f_N(p_{N-1})` -- 133 of them, in order, numbered 0-184: 29 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry; 4, 43 and
 88 since phase 1 cuts the whole command line and lets what it set fall out,
 33 since it retires every Ex command the product has not, 54 since it drops
@@ -521,7 +521,8 @@ every option the product has not, 81 since it makes a command line one
 command, 11 and 21 since it runs their swap and recovery cuts, 9, 18 and
 35 since it runs their startup, locale and session cuts, 12 and 15 since
 it runs their encoding cuts, 19, 24 and 61 since it runs their terminal,
-mouse and title cuts,
+mouse and title cuts, 36-38, 40 and 41 since it runs their window, tab
+page, argument-list and buffer-list cuts,
 `doc/PIPELINE-REFORM.md` §7), and the
 14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,

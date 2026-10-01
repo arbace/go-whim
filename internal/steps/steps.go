@@ -193,7 +193,9 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 		plain(cut.NoMemfile), plain(cut.NoLocale), plain(cut.NoStartup),
 		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim56"),
 		plain(cut.NoEnc), plain(cut.NoFencs), plain(cut.NoFenc),
-		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim61")} {
+		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim61"),
+		plain(cut.NoInert), plain(cut.NoTabs), plain(cut.NoArgList), plain(cut.NoWindows), plain(cut.NoWinSizes),
+		plain(cut.NoBufList)} {
 		if t, err = op(t, args, w); err != nil {
 			return nil, err
 		}
@@ -202,12 +204,12 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 }
 
 // frontHold is what the closure after the front cuts leaves to the phases
-// that fold it by hand: read_cmd_fd, sticky_cmdmod_flags and
-// aucmd_cmdline_changed_count, which the product keeps unwritten (the last
-// two since D6 took their writers), and the dropped options' globals of
-// optfrontHold.
+// that fold it by hand: read_cmd_fd, sticky_cmdmod_flags,
+// aucmd_cmdline_changed_count and skip_win_fix_cursor, which the product
+// keeps unwritten (the second and third since D6 took their writers, the last
+// since D9), and the dropped options' globals of optfrontHold.
 var frontHold = append([]string{"read_cmd_fd", "sticky_cmdmod_flags",
-	"aucmd_cmdline_changed_count"}, optfrontHold...)
+	"aucmd_cmdline_changed_count", "skip_win_fix_cursor"}, optfrontHold...)
 
 // optfrontHold are the dropped options' globals the fall-out closure leaves
 // to the phase that folds them by hand: where the closure's shape and the

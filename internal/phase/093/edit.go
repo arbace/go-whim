@@ -106,10 +106,10 @@ var w93Fields = []string{"b_ffname", "b_sfname", "b_fname"}
 var w93Before = map[string]int{
 	// :file's row, ex_file and rename_buffer, and :write's and :edit's uses
 	// of the names, went at phase 1 (filefront, the reform's D4)
-	"b_ffname": 23, "b_sfname": 15, "b_fname": 27,
+	"b_ffname": 22, "b_sfname": 15, "b_fname": 27, // open_buffer's went at phase 1 (D9)
 	"CMD_file": 3, "EX_XFILE": 3, "buflist_new": 3, "buflist_name_nr": 3,
 	"buf_spname": 5, "buf_get_fname": 3, "fileinfo": 3, "check_fname": 3,
-	"readonlymode": 2, "mch_dirname": 5, "shorten_buf_fname": 2,
+	"readonlymode": 0, "mch_dirname": 5, // readonlymode falls out at phase 1 since D9 "shorten_buf_fname": 2,
 	// check_changed went with :q's refusal at phase 1 (quitfront)
 	"check_changed": 0, "no_write_message": 0,
 	"p_ur": 0, "p_ro": 0, "read_cmd_fd": 12, "vim_fsync": 3, // their rows went at phase 1 (D3)
@@ -117,7 +117,7 @@ var w93Before = map[string]int{
 }
 
 var w93After = map[string]int{
-	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 1,
+	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 0,
 	"shorten_buf_fname": 1, "check_fname": 3, "buf_get_fname": 3,
 	"check_changed": 0, "no_write_message": 0, "p_ur": 0, "p_ro": 0,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
@@ -303,7 +303,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w93Before[name])
 		}
 	}
-	p.Say("b_ffname 23, b_sfname 15, b_fname 27, CMD_file 3, EX_XFILE 3 -- the file the " +
+	p.Say("b_ffname 22, b_sfname 15, b_fname 27, CMD_file 3, EX_XFILE 3 -- the file the " +
 		"seven parts were counted against")
 
 	var offs []int
@@ -391,14 +391,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Say("buflist_new names nothing: ffname, sfname and st are left as unused locals")
 
-	// ---- C. the sixteen folds, with the constant each takes -------------------
-	if text, err = fold(text, "open_buffer", "never",
-		`(?m)^    if \(readonlymode && curbuf->b_ffname != NULL && \(curbuf->b_flags & BF_NEVERLOADED\)\)$`,
-		"open_buffer: `b_ffname != NULL` is FALSE, so a buffer can never be made "+
-			"read-only for being a never-loaded file -- and this was readonlymode's "+
-			"only reader", 1); err != nil {
-		return nil, err
-	}
+	// ---- C. the folds (fifteen now, sixteen before the reform's D9) --------
+	// open_buffer's `readonlymode && b_ffname != NULL` test falls out at
+	// phase 1 with readonlymode since the reform's D9
 	if text, err = textEdit(text, w93lit24, w93lit25,
 		"can_unload_buffer: `fname` is NULL either way, so E937 names the "+
 			"buffer \"[No Name]\" -- which is what it printed before", 1); err != nil {

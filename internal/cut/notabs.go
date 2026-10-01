@@ -9,8 +9,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-var cmodTab = regexp.MustCompile(`\bcmod_tab\b`)
-
 // notabsBody replaces a definition's body, scoped to its own span.
 func notabsBody(text []byte, name, newBody string) ([]byte, error) {
 	a, z, ok := edit.FindDefinition(text, edit.Blank(text), name)
@@ -95,11 +93,10 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		":tabnew and :tabedit with no file in do_exedit", 1); err != nil {
 		return nil, err
 	}
-	// close_disallowed falls out at phase 1 (window_layout_lock()'s callers,
-	// autocommand triggers, went with the front's cuts by D6), and its term
-	// with it
+	// at phase 1 (the reform's D9) this runs before the closure, which would
+	// otherwise take close_disallowed's term
 	if text, err = e.foldNever(text,
-		`^[ \t]*if \(cmd == CMD_tabnew\)$`,
+		`^[ \t]*if \(close_disallowed == 0 && cmd == CMD_tabnew\)$`,
 		"window_layout_locked naming :tabnew"); err != nil {
 		return nil, err
 	}
@@ -261,24 +258,9 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// Only cmod_tab can be counted here.  goto_tabpage() is still called from
-	// ex_tabnext() and ex_tabonly(), whose rows retire pointed away, so the
-	// sweep takes those callers; whim36 counts what is left after it.
-	// may_open_tabpage() still names it, and has no caller now.
-	ga, gz, gone := edit.FindDefinition(text, edit.Blank(text), "may_open_tabpage")
-	n := 0
-	for _, m := range cmodTab.FindAllIndex(text, -1) {
-		if gone && ga <= m[0] && m[0] < gz {
-			continue
-		}
-		n++
-	}
-	// One: its declaration (ex_buffer_all, whose had_tab read it, died with
-	// :ball at phase 1).
-	if n != 1 {
-		return nil, fmt.Errorf("notabs: cmod_tab outside its declaration -- "+
-			"%d mentions, expected 1", n)
-	}
+	// cmod_tab is not counted here: this runs at phase 1 (the reform's D9),
+	// where the retired commands' handlers and what phases 2-35 took still
+	// name it.
 
 	e.say("nothing makes or reaches a second tab page")
 	return text, nil

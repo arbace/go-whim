@@ -919,6 +919,33 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        byte. In order: 138 phases, 864 s. The parallel check: 137 links,
        106 s; phase 1 64 s.
 
+   - **D9, done (branch `reform-d9`): one of each.** Phase 1 runs
+     `noinert` (37), `notabs` (36), `noarglist` (38), `nowindows` and
+     `nowinsizes` (40), and `nobuflist` (41) after D8's cuts. 36-38, 40 and
+     41 are records. `onebuffer` (42) stays where it is: on the seed,
+     `buf_hide()` has 24 mentions, which phases 2-41 take. So do 68, 71 and
+     72-73, the structural folds, which count late text.
+     - **Written for the front.**
+       - `noinert` comes first, so that `:browse` is gone from
+         `case 'b'`.
+       - `notabs` folds `window_layout_locked()`'s test as the seed spells
+         it, before the closure.
+       - `nowindows` counts 18 `'scrollbind'` writes, not 14.
+       - The closing assertions written for swept text are gone: `cmod_tab`,
+         `CMD_windo`, `DOBUF_SPLIT`, the `ECMD_` flags, and the
+         argument-list names.
+     - **What it replaced.** In phase 3, `optreaders`' three `-p` edits;
+       in phase 22, `nochdir`'s `edit_buffers()` edits, keeping
+       `start_dir`'s free; in phase 30, `noident`'s two CTRL-W cuts in
+       `do_window()`. 87's vgetorpeek fold and 93's open_buffer fold go,
+       because `pending_exmode_active` and `readonlymode` now fall out at
+       phase 1. Their counts are restated.
+     - **Held.** `skip_win_fix_cursor` loses its writers, and the product
+       keeps it.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for
+       byte. In order: 133 phases, 821 s. The parallel check: 132 links,
+       101 s; phase 1 69 s.
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

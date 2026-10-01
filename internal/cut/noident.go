@@ -166,23 +166,8 @@ func NoIdent(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  noident      K and CTRL-] answer nv_error, and g] leaves nv_g_cmd")
 
-	var err error
-	if text, err = cutCounted(text,
-		`(?m)^    case '\]':\n[ \t]*case Ctrl_RSB:\n(?:[^\n]*\n)*?`+
-			`[ \t]*do_nv_ident\(Ctrl_RSB, NUL\);\n`+
-			`[ \t]*postponed_split = 0;\n[ \t]*break;\n`,
-		"noident", "do_window's CTRL-W ]", 1); err != nil {
-		return nil, err
-	}
-	if text, err = cutCounted(text,
-		`(?m)^[ \t]*case '\]':\n[ \t]*case Ctrl_RSB:\n(?:[^\n]*\n)*?`+
-			`[ \t]*do_nv_ident\('g', xchar\);\n`+
-			`[ \t]*postponed_split = 0;\n[ \t]*break;\n`,
-		"noident", "do_window's CTRL-W g]", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  noident      CTRL-W ] and CTRL-W g], which split and then jump")
-
+	// do_window's CTRL-W ] and CTRL-W g] went with do_window at phase 1
+	// (nowindows, the reform's D9)
 	fmt.Fprintf(w, "  noident      %d nv_K_getcmd/do_nv_ident mentions left for the sweep\n",
 		len(identLeft.FindAll(text, -1)))
 	return text, nil

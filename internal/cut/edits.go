@@ -1,7 +1,6 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
@@ -112,20 +111,4 @@ func (e ed) inFunction(t []byte, name string, fn func([]byte) ([]byte, error)) (
 		return nil, fmt.Errorf("%s: %s is not defined at file scope", e.tool, name)
 	}
 	return out, err
-}
-
-// linesMatchingUnless is RE2's answer to a negative lookahead at line start.
-//
-// Go's regexp has no lookahead of either sign, by design, so a Python pattern
-// like `^(?![ \t]*\[?CMD_)[^\n]*\bCMD_x\b` cannot be transcribed.  What it
-// means is "a line that names CMD_x and is not itself a table row", and that
-// is two tests over the lines rather than one pattern.
-func linesMatchingUnless(text []byte, want, unless *regexp.Regexp) []string {
-	var out []string
-	for _, line := range bytes.Split(text, []byte{'\n'}) {
-		if want.Match(line) && !unless.Match(line) {
-			out = append(out, string(line))
-		}
-	}
-	return out
 }

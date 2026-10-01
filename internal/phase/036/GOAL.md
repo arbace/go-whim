@@ -1,5 +1,10 @@
 # Phase 36 — one tab page, always
 
+**A record now.** Phase 1 runs this phase's cut (`notabs`) at the front (the
+pipeline reform's D9, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 A tab page is a set of windows the editor can switch between whole. The
 tab-page list is also the container every window lives in — `curtab` and
 `first_tabpage` are read in hundreds of places — so **it stays, with exactly one
