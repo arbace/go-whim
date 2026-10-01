@@ -11,7 +11,8 @@ import (
 
 // identBody is nv_ident rewritten to the half that is search.  Generated from
 // the Python module's own constant by importing it, because it is a non-raw
-// triple-quoted string full of backslashes.
+// triple-quoted string full of backslashes.  It is in UTF-8's spelling, with
+// no has_mbyte, since utf8only runs before it at phase 1 (the reform's D7).
 const identBody = "    char_u      *ptr = NULL;\n" +
 	"    char_u      *buf;\n" +
 	"    size_t bufsize;\n" +
@@ -80,22 +81,19 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"            *p++ = '\\\\';\n" +
 	"        }\n" +
 	"\n" +
-	"        if (has_mbyte)\n" +
-	"        {\n" +
-	"            int i;\n" +
-	"            int len = (*mb_ptr2len)(ptr) - 1;\n" +
+	"        int i;\n" +
+	"        int len = utfc_ptr2len(ptr) - 1;\n" +
 	"\n" +
-	"            for (i = 0; i < len && n >= 1; ++i, --n)\n" +
-	"            {\n" +
-	"                *p++ = *ptr++;\n" +
-	"            }\n" +
+	"        for (i = 0; i < len && n >= 1; ++i, --n)\n" +
+	"        {\n" +
+	"            *p++ = *ptr++;\n" +
 	"        }\n" +
 	"        *p++ = *ptr++;\n" +
 	"    }\n" +
 	"    *p = NUL;\n" +
 	"    buflen = p - buf;\n" +
 	"\n" +
-	"    if (!g_cmd && (has_mbyte ? vim_iswordp(mb_prevptr(ml_get_curline(), ptr)) : vim_iswordc(ptr[-1])))\n" +
+	"    if (!g_cmd && (vim_iswordp(mb_prevptr(ml_get_curline(), ptr))))\n" +
 	"    {\n" +
 	"            strcpy((char *)(buf + buflen), (char *)(\"\\\\>\"));\n" +
 	"        buflen +=  (sizeof(\"\\\\>\" \"\") - 1) ;\n" +

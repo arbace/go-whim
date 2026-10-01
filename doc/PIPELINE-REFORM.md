@@ -882,6 +882,25 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        byte. In order: 143 phases, 899 s. The parallel check: 142 links,
        85 s; phase 1 47 s.
 
+   - **D7, done (branch `reform-d7`): encoding.** Phase 1 runs `noenc` (12),
+     `nofencs` (15), `nofenc` (17) and `utf8only` (53) after D6's cuts. 12
+     and 15 are records; 17 keeps its `droplocal`. `keepbytes` and
+     `noconv` stay at 53: their `getargopt` chain starts after the `++ff`
+     arm that phase 50's `lfonly` takes. `lfonly` cannot move, because at
+     the front `readfile()` is live until phase 13 and it would need every
+     readfile edit back.
+     - **Written for the front.**
+       - `nofenc` counts the BOM clears in readfile and the recovery too
+         (3).
+       - `nofencs` no longer asserts that `p_fencs` is unread, since
+         readfile still names it.
+       - `noabbr`'s literals and `noident`'s body are in UTF-8's spelling,
+         because `utf8only` now folds `has_mbyte` before them.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for
+       byte. In order: 141 phases, 912 s. The parallel check: 140 links,
+       111 s. It is bound by phase 1 again, now 61 s, so the front's cost
+       is the next thing to measure.
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

@@ -1,5 +1,10 @@
 # Phase 15 — the last two encoding options
 
+**A record now.** Phase 1 runs this phase's cut (`nofencs`) at the front (the
+pipeline reform's D7, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 **Phase 12 emptied `'fileencodings'` and said so, and it was true at startup and
 not afterwards.** `set_option_default()` special-cases the option, so `:set
 fencs&` restored `ucs-bom,utf-8,default,latin1` from `fencs_utf8_default` — a

@@ -53,9 +53,10 @@ var nofencEdits = []struct {
 	{"freeing the remembered encoding",
 		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = NULL;\n`,
 		"", 1},
-	// one of three: the other two went with readfile and the recovery
+	// three: at phase 1 (the reform's D7) readfile and the recovery are
+	// still in the text, and two of them are theirs
 	{"clearing the remembered BOM",
-		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 1},
+		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 3},
 	// LOOKUPS BY NAME, and the reason this phase needed two attempts (three,
 	// before readfile's and the recovered swap file's went with them).
 	// set_string_option_direct((char_u *)"fenc", ...) resolves the option

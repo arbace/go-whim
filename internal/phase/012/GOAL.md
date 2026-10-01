@@ -1,5 +1,10 @@
 # Phase 12 — UTF-8, and no other encoding, ever
 
+**A record now.** Phase 1 runs this phase's cut (`noenc`) at the front (the
+pipeline reform's D7, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 Phase 9 made `'encoding'` a property of the build rather than of the machine.
 This makes it **not a setting at all**: `mb_init()` accepts `utf-8` and returns
 "invalid argument" for anything else, so `:set enc=latin1` fails the way a

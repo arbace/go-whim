@@ -191,7 +191,9 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 		plain(cut.FileFront), plain(cut.QuitFront), plain(cut.ReadFront), plain(cut.OneCmdFront),
 		plain(cut.OptFront), plain(cut.NoSwap), plain(cut.NoRecover),
 		plain(cut.NoMemfile), plain(cut.NoLocale), plain(cut.NoStartup),
-		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim56")} {
+		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim56"),
+		plain(cut.NoEnc), plain(cut.NoFencs), plain(cut.NoFenc),
+		plain(cut.Utf8Only)} {
 		if t, err = op(t, args, w); err != nil {
 			return nil, err
 		}

@@ -81,10 +81,7 @@ var Plan = []Phase{
 			{Op: "notags"},
 		}},
 	// 11, nothing is written that was not asked for: a record (internal/phase/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
-	{N: 12, Name: "UTF-8, and no other encoding, ever",
-		Steps: []Step{
-			{Op: "noenc"},
-		}},
+	// 12, UTF-8, and no other encoding, ever: a record (internal/phase/012/GOAL.md); its cut went to phase 1 (noenc, the reform's D7).
 	{N: 13, Name: "the editor stops re-reading a file it has already read",
 		Steps: []Step{
 			{Op: "nostat"},
@@ -93,10 +90,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nofind"},
 		}},
-	{N: 15, Name: "the last two encoding options",
-		Steps: []Step{
-			{Op: "nofencs"},
-		}},
+	// 15, the last two encoding options: a record (internal/phase/015/GOAL.md); its cut went to phase 1 (nofencs, the reform's D7).
 	{N: 16, Name: "six options that no longer decide anything",
 		Steps: []Step{
 			{Op: "noinertopts"},
@@ -105,7 +99,8 @@ var Plan = []Phase{
 		}},
 	{N: 17, Name: "the last two per-buffer encoding options",
 		Steps: []Step{
-			{Op: "nofenc"},
+			// nofenc runs at phase 1 (the reform's D7); the fields still have
+			// readers there
 			{Op: "droplocal", Args: []string{"b_p_fenc", "b_p_bomb"}},
 		}},
 	// 18, nothing is read at startup, and nothing on the command line decides anything: a record (internal/phase/018/GOAL.md); its cut went to phase 1 (nostartup and nocmdopts, the reform's D6).
@@ -227,8 +222,10 @@ var Plan = []Phase{
 	// Phases 51-53, merged: the encoding, reduced to UTF-8 in three steps.
 	{N: 53, Name: "UTF-8: the bytes kept, UTF-8 only, no conversion",
 		Steps: []Step{
+			// utf8only runs at phase 1 (the reform's D7); keepbytes and noconv
+			// stay, after phase 50's lfonly, which takes the ++ff arm their
+			// getargopt chain starts after
 			{Op: "keepbytes"},
-			{Op: "utf8only"},
 			{Op: "noconv"},
 			{Op: "droplocal", Args: []string{"b_p_menc"}},
 		}},

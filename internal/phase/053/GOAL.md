@@ -1,5 +1,9 @@
 # Phase 53 — no conversion layer, no 'encoding'
 
+**Part of it is phase 1's now.** `utf8only` runs at the front (the pipeline
+reform's D7, `doc/PIPELINE-REFORM.md` §7); the rest of this phase's steps stay
+here. What follows is the account of the phase as it was made.
+
 Phase 12 cut the conversion layer at its entry points and left its body. Two ways
 in were still open: **`++enc`** on `:e`, `:r` and `:w`, and a buffer whose
 `'buftype'` is `help`, which `readfile()` read as latin1-or-utf-8. `tools/noconv.py`

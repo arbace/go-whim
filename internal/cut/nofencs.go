@@ -31,15 +31,8 @@ func NoFencs(text []byte, w io.Writer) ([]byte, error) {
 	// did_set_encoding's conversion between 'termencoding' and 'encoding'
 	// went with the two rows, dropped at phase 1 (optfront, the reform's D3).
 
-	for _, v := range []string{"p_fencs", "p_tenc"} {
-		// The declaration and the options[] row are not reads.
-		n := len(regexp.MustCompile(`\b`+v+`\b`).FindAll(text, -1))
-		if n > 2 {
-			return nil, fmt.Errorf("nofencs: %s still has %d mentions; the row cannot go "+
-				"while anything reads it", v, n)
-		}
-	}
-
-	fmt.Fprintln(w, "  nofencs      p_fencs and p_tenc are now declaration and row only")
+	// Not asserted that p_fencs and p_tenc are read by nothing: this runs at
+	// phase 1 (the reform's D7), where their rows are dropped already
+	// (optfront) and readfile, still unswept, names p_fencs.
 	return text, nil
 }

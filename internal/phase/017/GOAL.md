@@ -1,5 +1,9 @@
 # Phase 17 — the last two per-buffer encoding options
 
+**Part of it is phase 1's now.** `nofenc` runs at the front (the pipeline
+reform's D7, `doc/PIPELINE-REFORM.md` §7); the rest of this phase's steps stay
+here. What follows is the account of the phase as it was made.
+
 `'fileencoding'` names the encoding a buffer was read in and will be written
 back in, and `'bomb'` whether it had a byte-order mark. With one encoding and no
 BOM, both have had one possible value since Phase 12 — but **unlike the six

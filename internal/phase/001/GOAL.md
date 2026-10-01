@@ -112,6 +112,16 @@ The directory-list test folds whole, since every option it names is dropped.
 `sticky_cmdmod_flags` and `aucmd_cmdline_changed_count` lose their writers
 too, but the product keeps them, so the closure holds them.
 
+**Then UTF-8, and no other encoding, ever** (`noenc`, `nofencs`, `nofenc` and
+`utf8only`, the reform's D7): the cuts of phases 12, 15, 17 and part of 53.
+They run on text that is not swept, where `readfile()` is still alive (it dies
+at phase 13), so `nofenc` counts readfile's copies too, and `nofencs` no
+longer asserts that `p_fencs` is read by nothing. `utf8only` folds
+`has_mbyte` and `enc_utf8` before the phases that used to spell them, so
+`noabbr`'s literals and `noident`'s body are written in UTF-8's spelling.
+`keepbytes` and `noconv` stay at phase 53, after phase 50's `lfonly`, which
+takes the `++ff` arm their `getargopt` chain starts after.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more
