@@ -83,4 +83,3 @@ func runFold(args []string) int {
 // runDroplocal is tools/droplocal.py.
 
 // runDropoptions is tools/dropoptions.py.
-

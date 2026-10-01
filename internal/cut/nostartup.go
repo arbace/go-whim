@@ -9,8 +9,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-const vimrcNoneTest = `^[ \t]*if \(params\.use_vimrc != NULL && \(strcmp\(\(char \*\)\(params\.use_vimrc\), \(char \*\)\("NONE"\)\) == 0`
-
 var (
 	startupCall = regexp.MustCompile(edit.Line("source_startup_scripts(&params);"))
 	xdgRtpCall  = regexp.MustCompile(edit.Line("set_init_xdg_rtp();"))
@@ -31,7 +29,6 @@ func NoStartup(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nostartup: source_startup_scripts is unbalanced")
 	}
 	was := bytes.Count(text[o:c], []byte{'\n'})
-	var err error
 	var buf []byte
 	buf = append(buf, text[:o]...)
 	buf = append(buf, "{\n}"...)
@@ -46,13 +43,8 @@ func NoStartup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nostartup    startup reads nothing, so it does not call the "+
 		"function that read")
 
-	if n := len(regexp.MustCompile("(?m)"+vimrcNoneTest).FindAll(text, -1)); n != 1 {
-		return nil, fmt.Errorf("nostartup: the -u NONE test in main() is not where this expects")
-	}
-	if text, err = edit.DropIf(text, "(?m)"+vimrcNoneTest, 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nostartup    -u NONE no longer switches 'loadplugins' off")
+	// -u NONE's test in main() reads what nothing writes once the command
+	// line is cut: the fall-out closure took it (argvfront, the reform's D1)
 
 	if n := len(xdgRtpCall.FindAll(text, -1)); n != 1 {
 		return nil, fmt.Errorf("nostartup: expected one set_init_xdg_rtp call, matched %d", n)

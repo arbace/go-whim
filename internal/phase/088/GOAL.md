@@ -1,5 +1,11 @@
 # Phase 88 — argv is `+{command}` and `-T {term}`
 
+**A record now.** Phase 1's first step (`argvfront`, the pipeline reform's
+first drop package, `doc/PIPELINE-REFORM.md` §7) cuts the whole command line on
+the seed. The fall-out closure then folds what the options set, since nothing
+writes it after the cut. So this phase has no plan entry and no program. What
+follows is the account of the cut as it was made here.
+
 `internal/phase/088/edit.go` and `internal/phase/088/check.go`, `stage 88`, `package streams`. A
 core is handed its buffer by a host, not by a shell. What phases 85 and 87 left of
 `command_line_scan()` is five things — `+cmd`, `-T`, a bare `-`, `--` and a file

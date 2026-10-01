@@ -5,8 +5,24 @@ first drop package, `doc/PIPELINE-REFORM.md` §7): `command_line_scan()` is cut
 on the seed to what the product accepts, `+{command}` and nothing else. So are
 the calls of `parse_command_name()` and `early_arg_scan()`, main's `--clean`
 prescan, and the error enumerators with `main_errors[]`'s rows. Thirteen phases
-had cut it an option or two at a time. What the options set is still folded
-where it was.
+had cut it an option or two at a time.
+
+**What the cut leaves unwritten falls out** (`crefactor/xform`'s `FallOutOf`).
+These are the 12 objects and members that main reached writes of before the
+cut and none after: `has_dash_c_arg` and 11 members of `mparm_T`
+(`clean`, `evim_mode`, `use_vimrc`, `not_a_term`, `tty_fail`, `edit_type`,
+`pre_commands`, …). Each read of them is its value. The closure follows
+only what that makes constant:
+- the `if`s it decides;
+- `is_not_a_term()`, which returns a constant, so its calls go;
+- `set_init_1()`'s parameter, which every call passes as one constant;
+- `exe_pre_commands()`, left with nothing to do, so its call goes;
+- what then follows: `read_stdin()`, `set_init_clean_rtp()` and the evim
+  script.
+
+`read_cmd_fd` is held: the product keeps it. These folds were made by hand
+in phases 3, 18, 21, 43, 85 and 88, and the shapes come out the same: the
+product is byte for byte what it was.
 
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,

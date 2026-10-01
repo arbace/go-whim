@@ -439,23 +439,41 @@ from reaching it:
      - the includes moved below the core (110).
      Where they land depends on anchors that the reorder moves.
    - **What contains it.** The final bytes check.
-**Measured on the product, 2026-09-30.** The fall-out closure cannot fold
-past what the product keeps, for a kind of object that the product has
-none of left:
-- **Globals.** Of the core's 339 scalar file-scope objects, none is read
-  but never written. Writes only disappear along the pipeline (the
-  behaviour changes add none to an existing object). So an object the
-  closure finds never written at any stage is one the product no longer
-  has. What remains open for globals is the *shape* of each fold, which is
-  item 1.
+**Measured on the product, 2026-09-30, and corrected 2026-10-01.** The
+first measurement said the product had no object that is read but never
+written. That was wrong. The closure's own analysis (`crefactor/xform`'s
+`FallOut`, which reads the type-checker's write counts) finds 32 in the
+product:
+- `pum_bg_*`, the popup-blend state;
+- `edit_submode*`;
+- `curbuf_lock`, `allbuf_lock` and `ex_normal_lock`;
+- `in_assert_fails`, `read_cmd_fd` and `redraw_not_allowed`;
+- `p_wh`, `p_wmh` and `p_wmw`;
+- and others.
+
+Run on the product, the closure would still:
+- write 68 reads as their values;
+- take out 13 parameters that every call passes as one constant;
+- take 14 constant ifs and 16 constant operands of `&&` and `||`.
+
+So **the product is not a fixed point of the closure**: the hand pipeline
+left that dead weight in it. A closure seeded with *every* never-written
+object therefore cannot give today's bytes, whatever order it runs in.
+
+The seed has 15 such objects of its own: `in_assert_fails`,
+`redraw_not_allowed`, `mouse_vert_step`, `nv_max_linear`, … D1a's cut adds
+`read_cmd_fd` and `has_dash_c_arg`, and 11 members of `mparm_T`. Of those
+the product still keeps `read_cmd_fd`: phase 88 left it to "the stdin
+phase", which never folded it.
+
 - **Empty functions.** The product has none.
 - **Functions returning a constant.** The product has 2 of its 1,668:
   - `did_set_number_relativenumber` is used as a value, which the rule
     leaves alone.
   - `ctrl_x_mode_scroll()` is still called in `if (ctrl_x_mode_scroll())`.
-  A closure that inlines constant-return functions would fold that call
-  and miss the bar. So that component takes an exception list, or stays
-  79's named step.
+  A closure that inlines every constant-return function would fold that
+  call and miss the bar. The closure as written only follows values it
+  wrote itself, so it does not see this one.
 
 4. **Enumerators pinned by the sweep.** A deleted enumerator pins its
    successor's value. The values are the originals, whatever the order, so
@@ -509,6 +527,66 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        still folded by the phases that folded them. Each is now never
        written from phase 1 on. D1b replaces those folds with the closure,
        and that is where §6 item 1 gets tested.
+   - **D1b, done (branch `reform-d1`).** The closure replaces D1's folds,
+     and the product is still byte for byte the same.
+     - **The closure.** `crefactor/xform/fallout.go`, which knows no code
+       base. `FallOutOf(cut, hold...)` runs a cut, then seeds the closure
+       with what the cut left unwritten:
+       - an object or struct member that code reachable from `main`
+         wrote before the cut and nothing writes after it;
+       - minus the names held.
+
+       Each read of a seed becomes its value, as an enumerator
+       `fallout_V` declared while the step runs. The rules after the seeds
+       fire only on text that holds such a value, or on a branch they took,
+       which is marked by a comment. So code the cut didn't touch stays
+       exactly as it is.
+
+       The rules:
+       - constant expressions;
+       - a constant operand of `&&` and `||`;
+       - `if`, `while` and `?:` of a constant condition;
+       - the statements after a jump that a taken branch revealed;
+       - calls of a function whose body became `return K;`;
+       - a parameter that every call passes as one constant;
+       - calls of a function left empty.
+
+       They run in rounds to a fixed point. A member is seeded only when
+       its struct's instances are all static with no initializer, and are
+       reached only through pointers to themselves or `memset` to zero.
+     - **The bar held only by seeding per package** (§6, corrected): the
+       product keeps 32 objects that nothing writes. So the seeds are the
+       cut's own, and `read_cmd_fd`, which the product keeps, is held.
+     - **What D1 left.** 12 seeds: `has_dash_c_arg` and 11 members of
+       `mparm_T`. Five rounds give:
+       - 14 ifs taken;
+       - 7 calls of constant functions;
+       - 3 parameters;
+       - 1 empty function's call.
+
+       Then `read_stdin()`, `is_not_a_term()`, `exe_pre_commands()` and
+       `set_init_clean_rtp()` are the sweep's.
+     - **What it replaced.**
+       - `optreaders`' `--clean`, `--not-a-term` and `-n` folds (phase 3);
+       - `nostartup`'s `-u NONE` test (18);
+       - `norecover`'s stdin arm (21);
+       - all of phase 43 and all of phase 88, which are records now;
+       - restated counts in 62, 70, 85 and 132.
+
+       **The shapes came out the same**: no fold needed a named shape edit
+       to meet the bar.
+     - **Cost.** Phase 1 takes 28 s instead of 9 s:
+       - two analyses of about 4 s each, before and after the cut;
+       - five rounds of about 2 s, mostly type-checking.
+
+       Making it that fast took:
+       - a type's name computed once;
+       - only the functions a rule can fire in indexed;
+       - the first round's parse reused.
+
+       The whole build: 151 phases in order, byte for byte, 1,004 s (999
+       after D1a). The parallel check: 150 links, 76 s. Two phases fewer
+       paid for the closure's 19 s.
 3. **D2 Ex table.** Delete rows at once, remove every `retire` step, and
    restate the named edits that survive.
 4. **D3 options.** Default-as-initialiser, then remove 54, 55 and 95 and the

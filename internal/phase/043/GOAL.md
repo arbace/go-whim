@@ -1,5 +1,11 @@
 # Phase 43 — no -c, --cmd, -R, -m, -M or -w
 
+**A record now.** Phase 1's first step (`argvfront`, the pipeline reform's
+first drop package, `doc/PIPELINE-REFORM.md` §7) cuts the whole command line on
+the seed. The fall-out closure then folds what the options set, since nothing
+writes it after the cut. So this phase has no plan entry and no program. What
+follows is the account of the cut as it was made here.
+
 Six command-line options become what any unknown option is: exit 1, naming
 itself. `+{command}` stays, and fills the same list `-c` did.
 

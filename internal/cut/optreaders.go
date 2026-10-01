@@ -11,18 +11,9 @@ import (
 
 // optreadersLiteral: each must occur exactly once.
 var optreadersLiteral = []struct{ what, old, new string }{
-	// -nb's early scan and --clean's pre-scan of argv: the command line's
-	// own, gone with it (argvfront, the reform's D1)
-	{"--clean: main passing set_init_1 what only --clean could set",
-		"set_init_1(paramp->clean);", "set_init_1();"},
-	{"--clean: set_init_1 taking it",
-		"set_init_1(int clean_arg)", "set_init_1(void)"},
-	{"--not-a-term: whether a filter's output counts as redirected",
-		"!stdout_isatty && !is_not_a_term_or_gui();", "!stdout_isatty;"},
-	{"--not-a-term: clearing the command line on exit",
-		"else if (!is_not_a_term())", "else"},
-	{"--not-a-term: check_tty's warning", " && !parmp->not_a_term)", ")"},
-	{"--not-a-term: \"N files to edit\"", " && !is_not_a_term())", ")"},
+	// -nb's early scan and --clean's pre-scan of argv went with the command
+	// line, and what --clean, --not-a-term and -n set is never written after
+	// it: the fall-out closure folds its readers (argvfront, the reform's D1)
 	{"-p: equalising the windows it did not make",
 		" && parmp->window_layout != WIN_TABS)", ")"},
 	{"-h: the pointer to it at the end of every usage error",
@@ -33,14 +24,6 @@ var optreadersFolds = []struct {
 	what, kind, pattern string
 	count               int
 }{
-	{"--not-a-term: \"Reading from stdin\" and restoring the title",
-		"always", `^[ \t]*if \(!is_not_a_term\(\)\)$`, 2},
-	{"--not-a-term: the cursor to the last line on exit",
-		"always", `^[ \t]*if \(!is_not_a_term_or_gui\(\)\)$`, 2},
-	{"--clean: emptying 'runtimepath' and 'packpath'",
-		"never", `^[ \t]*if \(clean_arg\)$`, 1},
-	{"-n: 'updatecount' set to 0",
-		"never", `^[ \t]*if \(params\.no_swap_file\)$`, 1},
 	{"-p: tab pages instead of windows",
 		"never", `^[ \t]*if \(parmp->window_layout == WIN_TABS\)$`, 5},
 	{"-p: moving to the next tab page",
@@ -54,10 +37,6 @@ var optreadersAfter = []struct {
 	what, pattern string
 	want          int
 }{
-	{"the clean field outside its declaration", `(?:\.|->)clean\b`, 0},
-	{"clean_arg", `\bclean_arg\b`, 0},
-	{"not_a_term: its declaration, and the two readers the sweep takes", `\bnot_a_term\b`, 3},
-	{"no_swap_file outside its declaration", `\bno_swap_file\b`, 1},
 	{"WIN_TABS outside its enumerator", `\bWIN_TABS\b`, 1},
 	{"early_arg_scan outside its definition and prototype", `\bearly_arg_scan\(paramp\)`, 0},
 }

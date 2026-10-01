@@ -40,7 +40,7 @@ type tool struct {
 var order = []string{
 	"sweep",
 	"funcreach",
-	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
+	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
 	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "pre", "gocat",
 }
@@ -70,7 +70,6 @@ var tools = map[string]tool{
 	"noabbr":      {fileStep("noabbr"), "noabbr <file>"},
 	"nostartup":   {fileStep("nostartup"), "nostartup <file>"},
 	"nohome":      {fileStep("nohome"), "nohome <file>"},
-	"nocmdargs":   {fileStep("nocmdargs"), "nocmdargs <file>"},
 	"noinert":     {fileStep("noinert"), "noinert <file>"},
 	"noarglist":   {fileStep("noarglist"), "noarglist <file>"},
 	"noinertopts": {fileStep("noinertopts"), "noinertopts <file>"},

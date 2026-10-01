@@ -259,7 +259,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    partitioned. dead/: funcreach and gcc's unused warnings.
                    pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
                    Check, the snapshots, Seed -- told everything through a
-                   Config. xform/: the generic transforms. edit/: the C-text
+                   Config. xform/: the generic transforms (fallout.go: the
+                   fall-out closure, what a drop's cut leaves unwritten
+                   folded, and what that makes constant). edit/: the C-text
                    substrate that was cutil, and the one verb set -- E, every act
                    counted (driver.go, blocks.go); Ph, the driver of the phases
                    whose cut is a computation; the counted acts both and
@@ -415,7 +417,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
                      # bin/caprice
-make whim-build      # the 153 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 151 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj or Editor.hs that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
@@ -444,7 +446,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 153 phases, **999 s**, 77,634 lines. A
+  before the reason. Measured: 151 phases, **1,004 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -462,7 +464,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **70 s**, 152 links 64 at a time, bound by
+  committed `whim-vim.c`. Measured: **76 s**, 150 links 64 at a time, bound by
   the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
@@ -511,9 +513,10 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 153 of them, in order, numbered 0-184: 9 phases that
-edit nothing any more are records only (a `GOAL.md`, no plan entry; phase 4
-since phase 1 cuts the whole command line, `doc/PIPELINE-REFORM.md` §7), and the
+`p_N = f_N(p_{N-1})` -- 151 of them, in order, numbered 0-184: 11 phases that
+edit nothing any more are records only (a `GOAL.md`, no plan entry; 4, 43 and
+88 since phase 1 cuts the whole command line and lets what it set fall out,
+`doc/PIPELINE-REFORM.md` §7), and the
 14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
 153-154, 164-165, 166-168 -- each run as one phase under the group's last

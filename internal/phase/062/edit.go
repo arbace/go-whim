@@ -165,7 +165,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Cut(edit.Line("else", "{", "if (!curbuf->b_help)", "{", "set_buflisted(TRUE);", "}", "}"), 1, "an edited buffer becoming listed")
 	})
-	e.Cut(`(?m)^[ \t]*set_buflisted\((?:TRUE|FALSE)\);\n`, 3, "stdin, startup and help buffers setting whether they are listed")
+	// read_stdin()'s went with it at phase 1: nothing wrote the edit type
+	// that called it once the command line was cut (argvfront, D1)
+	e.Cut(`(?m)^[ \t]*set_buflisted\((?:TRUE|FALSE)\);\n`, 2, "startup and help buffers setting whether they are listed")
 
 	// 'filetype'
 	e.InFunction("enter_buffer", func(e *edit.E) {

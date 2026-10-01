@@ -78,10 +78,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("create_windows", func(e *edit.E) {
 		e.Literal(w70lit9, w70lit10, 1, "the startup open arming and answering the dialog")
 	})
-	e.InFunction("read_stdin", func(e *edit.E) {
-		e.Literal(w70lit11, "", 1, "reading stdin arming the dialog")
-		e.Literal(w70lit12, "", 1, "reading stdin answering it")
-	})
+	// read_stdin() armed and answered it too; it went at phase 1, nothing
+	// writing the edit type that called it (argvfront, the reform's D1)
 	e.InFunction("ml_open", func(e *edit.E) {
 		e.Cut(edit.Line("buf->b_may_swap = false;"), 1, "ml_open clearing b_may_swap")
 	})

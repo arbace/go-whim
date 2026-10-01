@@ -66,7 +66,8 @@ const (
 // ArgvFront cuts the command line to `+{command}`: command_line_scan()'s
 // body, the calls of parse_command_name() and early_arg_scan() (argv[0]'s
 // mode and the options read before the rest), main()'s prescan for
-// --clean, and the errors it can no longer give.  Each is asserted to be
+// --clean, and the errors it can no longer give, mainerr_arg_missing()
+// with them.  Each is asserted to be
 // where the seed has it, once.
 func ArgvFront(text []byte, w io.Writer) ([]byte, error) {
 	// command_line_scan's body, found by brace matching from its head
@@ -107,6 +108,16 @@ func ArgvFront(text []byte, w io.Writer) ([]byte, error) {
 		}
 		text = bytes.Replace(text, []byte(c.old), []byte(c.new), 1)
 	}
+	// the one helper that named an error gone: nothing calls it now
+	t2, ok := edit.DeleteDefinition(text, "mainerr_arg_missing")
+	if !ok {
+		return nil, fmt.Errorf("argvfront: mainerr_arg_missing is not defined")
+	}
+	proto := []byte("static void mainerr_arg_missing(char_u *str);\n")
+	if bytes.Count(t2, proto) != 1 {
+		return nil, fmt.Errorf("argvfront: mainerr_arg_missing's prototype is there %d times, not once", bytes.Count(t2, proto))
+	}
+	text = bytes.Replace(t2, proto, nil, 1)
 	fmt.Fprintf(w, "  argvfront    the command line is +{command} alone: command_line_scan %d lines -> %d, argv[0], the early scan and the --clean prescan gone\n",
 		was, bytes.Count([]byte(argvScanBody), []byte("\n")))
 	return text, nil

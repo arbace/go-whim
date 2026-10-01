@@ -103,10 +103,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// tty_fail a second reader, or moves the pause Out of the branch, this
 	// fails loudly instead of taking a decision that is no longer the one
 	// written down.
-	e.CountIs(`tty_fail`, 2, "tty_fail")
+	e.CountIs(`tty_fail`, 0, "tty_fail")
 	e.CountIs(`ui_delay\(2005L`, 1, "ui_delay(2005L")
 	e.CountIs(`\bisatty\(`, 5, "isatty")
-	e.Say("tty_fail has its field and its one read (--ttyfail went with the command line); the 2005 ms pause is the only one")
+	e.Say("tty_fail is gone: nothing wrote it once the command line was cut, and the fall-out closure took its read; the 2005 ms pause is the only one")
 
 	// ---- 1. the warnings, the pause and the exit -------------------------
 	// One `else if` in a chain, so FoldNever takes the whole branch and

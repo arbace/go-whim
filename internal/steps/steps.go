@@ -39,16 +39,17 @@ func plain(f func([]byte, io.Writer) ([]byte, error)) Step {
 }
 
 var ops = map[string]Step{
-	"keepbytes":   plain(cut.KeepBytes),
-	"lfonly":      plain(cut.LfOnly),
-	"noabbr":      plain(cut.NoAbbr),
-	"noarglist":   plain(cut.NoArgList),
-	"argvfront":   plain(cut.ArgvFront),
+	"keepbytes": plain(cut.KeepBytes),
+	"lfonly":    plain(cut.LfOnly),
+	"noabbr":    plain(cut.NoAbbr),
+	"noarglist": plain(cut.NoArgList),
+	// the command line cut at the front, and what that leaves unwritten
+	// folded; read_cmd_fd is held: the product keeps it
+	"argvfront":   Step(xform.FallOutOf(xform.Step(plain(cut.ArgvFront)), "read_cmd_fd")),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
 	"nocindent":   plain(cut.NoCindent),
-	"nocmdargs":   plain(cut.NoCmdArgs),
 	"nocmdopts":   plain(cut.NoCmdOpts),
 	"nocompl":     plain(cut.NoCompl),
 	"nocomplkeys": plain(cut.NoComplKeys),

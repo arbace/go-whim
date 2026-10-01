@@ -116,14 +116,9 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  norecover    the two `-r with no file` arms of main and vim_main2")
 
+	// vim_main2's stdin arm read edit_type, which nothing writes once the
+	// command line is cut: the fall-out closure took it (argvfront, D1)
 	var hit bool
-	if text, hit = replaceFirst(
-		regexp.MustCompile(`(?m)if \(params\.edit_type == EDIT_STDIN && !recoverymode\)`),
-		text, "if (params.edit_type == EDIT_STDIN)"); !hit {
-		return nil, fmt.Errorf("norecover: the stdin arm of vim_main2 is not where this expects")
-	}
-	fmt.Fprintln(w, "  norecover    reading stdin stops asking whether this is a recovery")
-
 	if text, err = keepElse(text, edit.Head("if (recoverymode)"),
 		"the recovery arm of create_windows", w); err != nil {
 		return nil, err

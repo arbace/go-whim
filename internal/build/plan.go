@@ -58,6 +58,7 @@ var Plan = []Phase{
 			{Op: "nointro"},
 			{Op: "optreaders"},
 		}},
+	// 4, the binary's name stops choosing what it does: a record (internal/phase/004/GOAL.md); its cut went to argvfront, phase 1.
 	{N: 5, Name: "one regexp engine, not two",
 		Steps: []Step{
 			{Op: "nonfa"},
@@ -269,10 +270,7 @@ var Plan = []Phase{
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bh"}},
 		}},
-	{N: 43, Name: "no -c, --cmd, -R, -m, -M or -w",
-		Steps: []Step{
-			{Op: "nocmdargs"},
-		}},
+	// 43, no -c, --cmd, -R, -m, -M or -w: a record (internal/phase/043/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
 	// Phases 44-48, merged: Ex commands retired one by one, one idea split for history's sake.
 	{N: 48, Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
 		Steps: []Step{
@@ -477,10 +475,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim87"}},
 		}},
-	{N: 88, Name: "argv is `+{command}` and `-T {term}`",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim88"}},
-		}},
+	// 88, argv is `+{command}` and `-T {term}`: a record (internal/phase/088/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
 	{N: 89, Name: "no write",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim89"}},
@@ -635,7 +630,9 @@ var Plan = []Phase{
 		}},
 	{N: 132, Name: "nothing frees",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim132", "--calls", "273", "--redirected", "3"}},
+			// 272: exe_commands' free of what cmds_tofree marked went at phase 1,
+			// nothing writing it once the command line was cut (argvfront, D1)
+			{Op: "edit", Args: []string{"whim132", "--calls", "272", "--redirected", "3"}},
 		}},
 	{N: 133, Name: "one buffer needs no hash table",
 		Steps: []Step{
