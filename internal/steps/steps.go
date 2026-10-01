@@ -51,7 +51,7 @@ var ops = map[string]Step{
 	// and the table cut to the rows that are left (the reform's D2b)
 	"extable": plain(cut.ExTable),
 	// and every option the product has not (the reform's D3)
-	"optfront":    plain(cut.OptFront),
+	"optfront":    Step(xform.FallOutOf(xform.Step(plain(cut.OptFront)), optfrontHold...)),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -172,6 +172,25 @@ func dropLocal(t []byte, args []string, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  droplocal    %-10s %d plumbing sites\n", bvar, n)
 	}
 	return t, nil
+}
+
+// optfrontHold are the dropped options' globals the fall-out closure leaves
+// to the phase that folds them by hand: where the closure's shape and the
+// hand fold's differ, and the product has the hand fold's.
+var optfrontHold = []string{
+	"p_wmnu", // nowildmenu (phase 6) writes `a && b && c` flat
+	// nobackup (phase 25) cuts the backup machinery around dobackup, whose
+	// assignment also dereferences p_pm
+	"p_bk", "p_wb", "p_pm", "p_bsk", "p_bex", "p_bkc", "p_bdir",
+	// nowinsizes (phase 40) gives these their defaults -- p_ea is TRUE -- and
+	// later phases fold their readers with them; the product keeps three
+	"p_sb", "p_spr", "p_spk", "p_ea", "p_ead", "p_wh", "p_wmh", "p_wiw", "p_wmw",
+	// phase 60 writes `regmatch.rm_ic = FALSE;` where the closure writes 0,
+	// and drops a test on `acl_elapsed >= p_acl` whole
+	"p_fic", "p_acl",
+	// phase 62 cuts :!'s and :stop's whole `autowrite_all()` blocks, where
+	// the closure would empty autowrite_all() and leave the blocks
+	"p_aw", "p_awa", "p_write",
 }
 
 // exFront points every row phase 1 declares (internal/phase/001/delta.md,

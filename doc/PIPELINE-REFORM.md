@@ -682,8 +682,36 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
        - In order: 149 phases, 948 s (982 after D2b).
        - The parallel check: 148 links, 86 s.
-     - **D3b, not done:** the closure over what the drop left unwritten.
-       It needs each global's real default, or a hold list.
+   - **D3b, done (branch `reform-d3b`): the closure over the dropped
+     options.** `optfront` now runs behind `FallOutOf`, with a hold list.
+     - **The seeds.** 135 objects are left unwritten by the drop: the
+       options' globals, and `pum_border`'s members. Their real value is
+       zero now, since no row initializes them.
+     - **The fold.** 113 are folded, in 6 rounds: about 200 reads, 44
+       ifs, 20 `?:`, a few emptied functions.
+     - **Held: 22**, where the closure's shape and the hand fold's
+       differ, and the product has the hand fold's:
+       - `p_wmnu`: `nowildmenu` writes `a && b && c` flat, where the
+         closure keeps the parentheses around the operand it keeps;
+       - the backup family: `dobackup`'s assignment dereferences `p_pm`;
+       - the window sizes: `nowinsizes` gives them their real defaults
+         (`p_ea` TRUE), and later phases fold with those values; the
+         product keeps three;
+       - `p_fic` (`= FALSE`, where the closure writes 0) and `p_acl`;
+       - the autowrite family: phase 62 cuts whole blocks around
+         `autowrite_all()`.
+     - **A bug the probe found.** A node of a macro's expansion carries
+       the invocation's token positions (`MAX(...)`). A rewrite's span
+       must now be balanced, or it is refused.
+     - **What it replaced.** Hand folds in 16 (`ml_open`'s swap test), 59
+       (`p_wic`) and 91 (`p_ur`'s count). Every other hand fold either
+       still finds its anchor or folds a held variable.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       - In order: 149 phases, 962 s, against 948 for D3a: the closure costs
+         about 14 s.
+       - The parallel check: 148 links, 107 s against 86. It is bound now
+         by its longest link, phase 1, whose three closures take most of its
+         ~75 s. That is the case for making the closure faster (agenda).
 
 5. **D4 files, and D5.**
    - Delete the superseded surgery.

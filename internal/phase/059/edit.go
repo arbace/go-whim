@@ -116,9 +116,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("didset_options2", func(e *edit.E) {
 		e.Cut(edit.Line("check_opt_wim();"), 1, "startup parsing 'wildmode' into flags nothing reads")
 	})
-	e.InFunction("expand_filename", func(e *edit.E) {
-		e.DropIf(edit.Head("if (p_wic)"), 1, "'wildignorecase' in filename globbing")
-	})
+	// 'wildignorecase''s test in expand_filename: p_wic is never written once
+	// its row is dropped, and the fall-out closure took it at phase 1 (D3)
 	e.InFunction("expand_wildcards", func(e *edit.E) {
 		e.DropIf(edit.Head("if (*p_wig)"), 1, "'wildignore' in filename globbing")
 	})

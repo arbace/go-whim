@@ -55,9 +55,10 @@ reform's D3). There are 375 rows, listed in `internal/cut/optfront.md`, where
   `dropoptions` always worked, and the product keeps what it did to other
   options' value lists.
 
-No guard is asked. A global its row initialised stays at its static zero
-until the phase that removes its readers; the `--strict` waits existed only to
-avoid exactly that, and nothing reads the intermediate texts' behaviour.
+No guard is asked: a global its row initialised is zero from here on. **What
+that makes constant falls out** (D3b): 135 objects nothing writes after the
+cut, 113 of them folded. The 22 held are left to the phases that fold them by
+hand with a shape of their own, or with the option's real default.
 
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,

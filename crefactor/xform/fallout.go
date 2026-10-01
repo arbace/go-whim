@@ -295,9 +295,34 @@ func newFO(src []byte, ast *cc.AST) *fo {
 		live: map[string]bool{}}
 }
 
-// add records a rewrite unless it overlaps one already taken this round.
+// balanced says a span opens every bracket it closes and closes every one
+// it opens: a node a macro's expansion made carries the positions of the
+// invocation's tokens, and its span can stop inside the invocation.
+func balanced(b []byte) bool {
+	depth := 0
+	for i := 0; i < len(b); i++ {
+		switch c := b[i]; c {
+		case '"', '\'':
+			for i++; i < len(b) && b[i] != c; i++ {
+				if b[i] == '\\' {
+					i++
+				}
+			}
+		case '(', '[', '{':
+			depth++
+		case ')', ']', '}':
+			if depth--; depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
+}
+
+// add records a rewrite unless it overlaps one already taken this round, or
+// its span is not a whole piece of the text.
 func (f *fo) add(rule string, a, z int, text func(render func(a, z int) string) string) bool {
-	if z < a {
+	if z < a || !balanced(f.src[a:z]) {
 		return false
 	}
 	for _, r := range f.rws {

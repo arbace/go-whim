@@ -50,11 +50,9 @@ var noinertoptsEdits = []struct{ what, pat, repl string }{
 		"            xp->xp_backslash = XP_BS_ONE;\n"},
 	{"didset_string_options reading 'tagcase' at startup",
 		`(?m)[ \t]*\(void\)opt_strings_flags\(p_tc, p_tc_values, &tc_flags, FALSE\);\n`, ""},
-	{"ml_open asking whether this buffer may have a swap file",
-		`(?m)[ \t]*if \(p_uc && buf->b_p_swf\)\n[ \t]*\{\n` +
-			`[ \t]*buf->b_may_swap = true;\n[ \t]*\}\n` +
-			`[ \t]*else\n[ \t]*\{\n[ \t]*buf->b_may_swap = false;\n[ \t]*\}\n`,
-		"    buf->b_may_swap = false;\n"},
+	// ml_open's swap-file test read p_uc, which nothing writes once
+	// 'updatecount''s row is dropped: the fall-out closure took it at phase
+	// 1 (optfront, the reform's D3)
 }
 
 // NoInertOpts removes the last readers of six globals whose option rows go

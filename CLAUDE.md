@@ -446,7 +446,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 149 phases, **948 s**, 77,634 lines. A
+  before the reason. Measured: 149 phases, **962 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -464,8 +464,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **86 s**, 148 links 64 at a time, bound by
-  the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,005 s in
+  committed `whim-vim.c`. Measured: **107 s**, 148 links 64 at a time, bound by
+  its longest link, phase 1 (its three fall-out closures; phase 54 was 44 s alone before it), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
