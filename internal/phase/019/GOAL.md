@@ -1,5 +1,10 @@
 # Phase 19 — the terminal is what the build says
 
+**A record now.** Phase 1 runs this phase's cut (`noterm`) at the front (the
+pipeline reform's D8, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 Five environment variables describe the terminal and the editor believed all of
 them: `$TERM` picks a capability table, `$LINES` and `$COLUMNS` override the size
 the kernel reports, `$COLORS` overrides the colour count, `$COLORFGBG` the

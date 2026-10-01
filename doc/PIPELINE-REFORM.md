@@ -901,6 +901,24 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        111 s. It is bound by phase 1 again, now 61 s, so the front's cost
        is the next thing to measure.
 
+   - **D8, done (branch `reform-d8`): the terminal.** Phase 1 runs `noterm`
+     (19), `nomouse` (24) and `whim61` (61, the window title) after D7's
+     cuts. 19, 24 and 61 are records, and 61's program stays for the front
+     to call.
+     - **What stays.** 67 (mouse and spell plumbing, write-only flags) and
+       85 (tty diagnosis) count what phases 2-66 and 2-84 took, so they
+       stay. So do 103's drop half and 121, which are Part II rewires.
+     - **Counted on the seed.** `nomouse`'s `setmouse()` calls 30 -> 33,
+       and 61's `need_maketitle` writes 5 -> 7.
+     - **What it replaced.** `noconv`'s `mb_tail_off()` edit:
+       `mb_tail_off()` goes with `maketitle()` at phase 1.
+     - **Tried and not kept.** A sweep inside the front before these cuts
+       took only one of the three extra calls, because the rest are in live
+       code that phases 2-23 take. It was removed.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for
+       byte. In order: 138 phases, 864 s. The parallel check: 137 links,
+       106 s; phase 1 64 s.
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

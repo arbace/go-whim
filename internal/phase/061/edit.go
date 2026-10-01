@@ -74,8 +74,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// Five: buf_write(), changed_internal(), unchanged(), redraw_titles(), and
 	// maketitle()'s own early return, which the sweep takes anyway.
 	// did_set_titlelen() had a sixth and went with 'titlelen''s row, dropped
-	// at phase 1 (optfront, the reform's D3).
-	e.Cut(edit.Line("need_maketitle = TRUE;"), 5, "changes asking for a title update")
+	// at phase 1 (optfront, the reform's D3).  Seven, since this runs at
+	// phase 1 (the reform's D8), where what phases 2-60 took is still there.
+	e.Cut(edit.Line("need_maketitle = TRUE;"), 7, "changes asking for a title update")
 	return e.Done()
 }
 

@@ -104,10 +104,7 @@ var Plan = []Phase{
 			{Op: "droplocal", Args: []string{"b_p_fenc", "b_p_bomb"}},
 		}},
 	// 18, nothing is read at startup, and nothing on the command line decides anything: a record (internal/phase/018/GOAL.md); its cut went to phase 1 (nostartup and nocmdopts, the reform's D6).
-	{N: 19, Name: "the terminal is what the build says",
-		Steps: []Step{
-			{Op: "noterm"},
-		}},
+	// 19, the terminal is what the build says: a record (internal/phase/019/GOAL.md); its cut went to phase 1 (noterm, the reform's D8).
 	{N: 20, Name: "nothing outside the process is consulted",
 		Steps: []Step{
 			{Op: "nohome"},
@@ -122,11 +119,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nofloat"},
 		}},
-	{N: 24, Name: "there is no mouse",
-		Steps: []Step{
-			{Op: "nomouse"},
-			{Op: "sweep"},
-		}},
+	// 24, there is no mouse: a record (internal/phase/024/GOAL.md); its cut went to phase 1 (nomouse, the reform's D8).
 	{N: 25, Name: "a write is a write, and nobody owns it",
 		Steps: []Step{
 			{Op: "nobackup"},
@@ -266,10 +259,7 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim60ep"}},
 			{Op: "droplocal", Args: []string{"b_p_fp", "b_p_ep"}},
 		}},
-	{N: 61, Name: "no window title",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim61"}},
-		}},
+	// 61, no window title: a record (internal/phase/061/GOAL.md); its program runs at phase 1 (whim61, the reform's D8).
 	{N: 62, Name: "no buffer-type, file-type, listing, jump, update-time or autowrite options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim62"}},

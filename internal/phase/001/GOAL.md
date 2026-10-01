@@ -122,6 +122,12 @@ longer asserts that `p_fencs` is read by nothing. `utf8only` folds
 `keepbytes` and `noconv` stay at phase 53, after phase 50's `lfonly`, which
 takes the `++ff` arm their `getargopt` chain starts after.
 
+**Then the terminal is what the build says, with no mouse and no title**
+(`noterm`, `nomouse` and `whim61`, the reform's D8): the cuts of phases 19, 24
+and 61. On the seed, `setmouse()` is called 33 times and `need_maketitle` set
+7 times, since what phases 2-60 took is still in the text. `maketitle()` goes
+here, and `mb_tail_off()`, its one caller's helper, with it.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

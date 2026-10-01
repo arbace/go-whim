@@ -1,5 +1,12 @@
 # Phase 61 — no window title
 
+**Its program runs at phase 1 now.** Phase 1's front calls `whim61` by name
+(the pipeline reform's D8, `doc/PIPELINE-REFORM.md` §7), on the seed, after
+the options are dropped: the program is here, and the phase has no plan
+entry. There `need_maketitle = TRUE;` is written seven times, since what phases
+2-60 took is still in the text. What follows is the account of the cut as it
+was made here.
+
 `'title'`, `'titlelen'`, `'titleold'`, `'titlestring'`, `'icon'` and `'iconstring'`
 go, and with them everything that set or restored the terminal's title:
 `maketitle()` and its thirteen callers, `need_maketitle` and the six places that

@@ -1,5 +1,10 @@
 # Phase 24 — there is no mouse
 
+**A record now.** Phase 1 runs this phase's cut (`nomouse`) at the front (the
+pipeline reform's D8, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 A terminal mouse is a protocol, not a device: the terminal is asked to report
 clicks, it sends escape sequences, the editor decodes them into key codes, and
 the normal, insert and command-line loops dispatch those like any other key.

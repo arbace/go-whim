@@ -332,13 +332,8 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintf(w, "  noconv       %d calls through an mb_* pointer are direct calls\n", calls)
 
-	if text, err = e.inFunction(text, "mb_tail_off", func(s []byte) ([]byte, error) {
-		return e.literal(s,
-			"    return i;\n    return 0;\n    return 1 - dbcs_head_off(base, p);\n",
-			"    return i;\n", "mb_tail_off's dead DBCS returns", 1)
-	}); err != nil {
-		return nil, err
-	}
+	// mb_tail_off went with maketitle(), its one caller, at phase 1
+	// (whim61, the reform's D8)
 
 	if text, err = e.inFunction(text, "expand_argopt", func(s []byte) ([]byte, error) {
 		var err error
