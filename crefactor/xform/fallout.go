@@ -296,6 +296,9 @@ type fo struct {
 	markedFn map[string]bool                  // a body holding a value or a branch this step wrote
 	only     map[string]bool                  // the seeds, when not every unwritten object
 	vals     map[string]int64                 // the unwritten objects' values, once a pass
+	seedFn   map[string]bool                  // a body reading a seed
+	seedObj  map[*cc.Declarator]int64         // the seeded objects, this round's declarators
+	seedMem  map[string]bool                  // the seeded members, struct.member
 	keys     map[cc.Type]string
 	all      []cc.Node       // every node, in order
 	end      []int           // where the subtree of all[i] ends
@@ -327,7 +330,7 @@ func newFO(src []byte, ast *cc.AST) *fo {
 	return &fo{src: src, ast: ast, parent: map[cc.Node]cc.Node{},
 		fns: map[string]*cc.FunctionDefinition{}, mentions: map[string]int{},
 		calls: map[string][]*cc.PostfixExpression{}, caller: map[*cc.PostfixExpression]string{},
-		markedFn: map[string]bool{}, keys: map[cc.Type]string{}, idx: map[cc.Node]int{},
+		markedFn: map[string]bool{}, seedFn: map[string]bool{}, keys: map[cc.Type]string{}, idx: map[cc.Node]int{},
 		done: map[*cc.FunctionDefinition]bool{}, refs: map[string]map[string]bool{},
 		live: map[string]bool{}}
 }
@@ -415,14 +418,146 @@ func (f *fo) isMarker(e cc.Node) bool {
 
 // constOf is a marked expression's value.
 func (f *fo) constOf(e cc.ExpressionNode) (int64, bool) {
-	if e == nil || !f.marked(e) {
+	if e == nil {
 		return 0, false
 	}
-	return intValue(e)
+	if f.marked(e) {
+		return intValue(e)
+	}
+	// not written yet, but a seed's read counts as its value
+	if v, ok, seedy := f.eval(e); ok && seedy {
+		return v, true
+	}
+	return 0, false
+}
+
+// eval is an expression's value with each seed's read counted as the seed's
+// value, and whether a seed was read: only where C's own answer cannot
+// differ -- no arithmetic, comparisons of values that fit an int, and the
+// logical operators short-circuited only over a pure operand.
+func (f *fo) eval(n cc.Node) (int64, bool, bool) {
+	small := func(v int64) bool { return v >= -1<<31 && v < 1<<31 }
+	b := func(t bool) int64 {
+		if t {
+			return 1
+		}
+		return 0
+	}
+	switch x := n.(type) {
+	case *cc.ExpressionList:
+		if x.ExpressionList != nil {
+			return 0, false, false
+		}
+		return f.eval(x.AssignmentExpression)
+	case *cc.PrimaryExpression:
+		switch x.Case {
+		case cc.PrimaryExpressionExpr:
+			return f.eval(x.ExpressionList)
+		case cc.PrimaryExpressionIdent:
+			if d, ok := x.ResolvedTo().(*cc.Declarator); ok {
+				if v, ok := f.seedObj[d]; ok && !f.underSizeof(x) && !f.lvalue(x) {
+					return v, true, true
+				}
+			}
+		}
+	case *cc.PostfixExpression:
+		if x.Case == cc.PostfixExpressionSelect || x.Case == cc.PostfixExpressionPSelect {
+			if fl := x.Field(); fl != nil && cc.IsScalarType(fl.Type()) && f.seedMem[f.memberKey(x)] &&
+				!f.underSizeof(x) && !f.lvalue(x) {
+				return 0, true, true
+			}
+		}
+	case *cc.CastExpression:
+		if x.Case == cc.CastExpressionCast && x.TypeName != nil && cc.IsIntegerType(x.TypeName.Type()) {
+			if v, ok, sy := f.eval(x.CastExpression); ok && sy && small(v) && v >= 0 {
+				return v, true, true
+			}
+		}
+	case *cc.UnaryExpression:
+		switch x.Case {
+		case cc.UnaryExpressionNot:
+			if v, ok, sy := f.eval(x.CastExpression); ok && sy {
+				return b(v == 0), true, true
+			}
+		}
+	case *cc.EqualityExpression:
+		l, lok, ls := f.eval(x.EqualityExpression)
+		r, rok, rs := f.eval(x.RelationalExpression)
+		if lok && rok && (ls || rs) && small(l) && small(r) {
+			if x.Case == cc.EqualityExpressionEq {
+				return b(l == r), true, true
+			}
+			return b(l != r), true, true
+		}
+	case *cc.RelationalExpression:
+		l, lok, ls := f.eval(x.RelationalExpression)
+		r, rok, rs := f.eval(x.ShiftExpression)
+		if lok && rok && (ls || rs) && small(l) && small(r) && l >= 0 && r >= 0 {
+			switch x.Case {
+			case cc.RelationalExpressionLt:
+				return b(l < r), true, true
+			case cc.RelationalExpressionGt:
+				return b(l > r), true, true
+			case cc.RelationalExpressionLeq:
+				return b(l <= r), true, true
+			case cc.RelationalExpressionGeq:
+				return b(l >= r), true, true
+			}
+		}
+	case *cc.LogicalAndExpression:
+		if x.Case != cc.LogicalAndExpressionLAnd {
+			break
+		}
+		l, lok, ls := f.eval(x.LogicalAndExpression)
+		r, rok, rs := f.eval(x.InclusiveOrExpression)
+		switch {
+		case lok && ls && l == 0:
+			return 0, true, true
+		case lok && rok && (ls || rs):
+			return b(l != 0 && r != 0), true, true
+		case rok && rs && r == 0 && x.LogicalAndExpression.Pure():
+			return 0, true, true
+		}
+	case *cc.LogicalOrExpression:
+		if x.Case != cc.LogicalOrExpressionLOr {
+			break
+		}
+		l, lok, ls := f.eval(x.LogicalOrExpression)
+		r, rok, rs := f.eval(x.LogicalAndExpression)
+		switch {
+		case lok && ls && l != 0:
+			return 1, true, true
+		case lok && rok && (ls || rs):
+			return b(l != 0 || r != 0), true, true
+		case rok && rs && r != 0 && x.LogicalOrExpression.Pure():
+			return 1, true, true
+		}
+	case *cc.ConditionalExpression:
+		if x.Case != cc.ConditionalExpressionCond || x.ExpressionList == nil {
+			break
+		}
+		if c, ok, sy := f.eval(x.LogicalOrExpression); ok && sy {
+			if c != 0 {
+				if v, ok, _ := f.eval(x.ExpressionList); ok {
+					return v, true, true
+				}
+			} else if v, ok, _ := f.eval(x.ConditionalExpression); ok {
+				return v, true, true
+			}
+		}
+	}
+	// a leaf the type-checker knows
+	if e, ok := n.(cc.ExpressionNode); ok {
+		if v, ok := intValue(e); ok {
+			return v, true, false
+		}
+	}
+	return 0, false, false
 }
 
 func (f *fo) collect() {
 	f.index()
+	f.prepSeeds()
 	// the rules, outermost first so that a rewrite of a statement wins over
 	// one of an expression inside it
 	f.branches()
@@ -494,6 +629,7 @@ func (f *fo) index() {
 				}
 				if f.only[nm] && in != "" {
 					need[in] = true
+					f.seedFn[in] = true
 				}
 			case *cc.PostfixExpression:
 				switch x.Case {
@@ -505,6 +641,7 @@ func (f *fo) index() {
 				case cc.PostfixExpressionSelect, cc.PostfixExpressionPSelect:
 					if fields[x.Token2.SrcStr()] && in != "" {
 						need[in] = true
+						f.seedFn[in] = true
 					}
 				}
 			}
@@ -694,7 +831,7 @@ func (f *fo) lvalue(n cc.Node) bool {
 // ones a rule after the seeds can fire in.
 func (f *fo) inMarked(fn func(cc.Node) bool) {
 	for nm, fd := range f.fns {
-		if f.markedFn[nm] {
+		if f.markedFn[nm] || f.seedFn[nm] {
 			f.walk(fd.CompoundStatement, fn)
 		}
 	}
@@ -721,7 +858,8 @@ func (f *fo) underSizeof(n cc.Node) bool {
 // --- seeds ----------------------------------------------------------------------
 
 // seeds writes each read of an object or a member nothing writes as its value.
-func (f *fo) seeds() {
+// prepSeeds finds the seeded objects and members of this round.
+func (f *fo) prepSeeds() {
 	// The values are the pass's first round's: the rounds only take code out,
 	// so what was unwritten stays so, at the same value.
 	var objs map[*cc.Declarator]int64
@@ -748,13 +886,24 @@ func (f *fo) seeds() {
 			}
 		}
 	}
-	var members map[string]bool
+	f.seedObj = map[*cc.Declarator]int64{}
+	for d, v := range objs {
+		if f.only == nil || f.only[d.Name()] {
+			f.seedObj[d] = v
+		}
+	}
 	if f.only != nil {
 		// a seeded member stays unwritten: the rounds only take code out
-		members = f.only
+		f.seedMem = f.only
 	} else {
-		members = f.unwrittenMembers()
+		f.seedMem = f.unwrittenMembers()
 	}
+}
+
+// seeds writes each read of an object or a member nothing writes as its value.
+func (f *fo) seeds() {
+	objs := f.seedObj
+	members := f.seedMem
 	f.inLive(func(n cc.Node) bool {
 		if f.lvalue(n) {
 			return true

@@ -758,11 +758,16 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      - **The seed check reuses the last round's parse.** The values stay
        as their enumerators until the very end.
      - **The objects' values are computed once a pass**, not once a round.
+     - **A seed's read counts as its value** in the rules' own evaluator,
+       before any marker is written: comparisons, `!`, `&&`, `||`, `?:`,
+       bit operators on non-negative values. It answers only where C's own
+       answer cannot differ. So one round can take the `if` that reads a
+       seed, where it took two. The rules now also visit every function
+       that reads a seed.
 
-     The result: phase 1 takes 43 s, with two passes of 6 and 3 rounds.
-     The product is byte for byte the same. The whole build in order takes
-     952 s (986); the parallel check, no longer bound by phase 1, 81 s
-     (116).
+     The result: phase 1 takes 38 s, with two passes of 5 and 1 rounds,
+     and the same q001. The whole build in order takes 949 s (986); the
+     parallel check, no longer bound by phase 1, 79 s (116).
 
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
