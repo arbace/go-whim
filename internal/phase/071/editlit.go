@@ -27,8 +27,6 @@ const (
 	w71lit12         = "    buf_T *b_next;\n    buf_T *b_prev;\n"
 	w71lit13         = "        buf->b_fnum = top_file_num++;\n"
 	w71lit15         = "\n        emsg(_(e_cannot_allocate_buffer_using_other_one));\n        enter_buffer(curbuf);\n        return FAIL;\n"
-	w71lit16         = "    if (autocmd_busy)\n    {\n        buf->b_next = au_pending_free_buf;\n        au_pending_free_buf = buf;\n    }\n    else\n    {\n        vim_free(buf);\n        if (curbuf == buf)\n        {\n            curbuf = NULL;\n        }\n    }\n"
-	w71lit17         = "    vim_free(buf);\n    if (curbuf == buf)\n    {\n        curbuf = NULL;\n    }\n"
 	w71lit18         = "    valid = buf_valid(buf);\n    if ((valid && buf != curbuf) || curwin->w_buffer == NULL)\n    {\n        if (!valid)\n        {\n            enter_buffer(lastbuf);\n        }\n        else\n        {\n            enter_buffer(buf);\n        }\n    }\n"
 	w71lit19         = "    if (curwin->w_buffer == NULL)\n    {\n        enter_buffer(buf);\n    }\n"
 	w71lit20         = "        buf->b_next = NULL;\n        if (firstbuf == NULL)\n        {\n            buf->b_prev = NULL;\n            firstbuf = buf;\n        }\n        else\n        {\n            lastbuf->b_next = buf;\n            buf->b_prev = lastbuf;\n        }\n        lastbuf = buf;\n"

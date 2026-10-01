@@ -17,9 +17,9 @@ import (
 // SCOPED BY THEIR NEIGHBOUR: `char_u *tagname;` is also a field of taggy_T,
 // seventeen hundred lines earlier, and an unanchored pattern takes the first -- which
 // removed the tag stack's field and broke five lines in two functions this
-// phase never meant to touch.  `char_u *commands[MAX_ARG_CMDS];` sits
-// immediately above mparm_T's and nowhere else (`int edit_type;` did, until
-// it fell out at phase 1 with the swap and recovery cuts, the reform's D5).
+// phase never meant to touch.  So the field is the one whose struct closes,
+// with no brace between, as `} mparm_T;` -- whatever its neighbours are, which
+// moved as the reform brought this cut to the seed (phase 1, D6).
 var nocmdoptsElsewhere = []struct {
 	what, pat, repl string
 	want            int
@@ -32,7 +32,7 @@ var nocmdoptsElsewhere = []struct {
 			`([ \t]*\{\n[ \t]*curwin->w_cursor\.lnum = 0;\n[ \t]*\}\n)`,
 		"    if (curwin->w_cursor.lnum <= 1)\n${1}", 1},
 	{"mparm_T's tagname field",
-		`(?m)(^[ \t]*char_u \*commands\[MAX_ARG_CMDS\];\n)[ \t]*char_u[ \t]*\*tagname;\n`, "${1}", 1},
+		`(?m)^[ \t]*char_u[ \t]*\*tagname;\n((?:[ \t]+[^\n}]*\n)*\} mparm_T;)`, "${1}", 1},
 	// The flag itself was on twenty-four rows, every one deleted at phase 1
 	// (extable, the reform's D2b): with the gate gone it is named by nothing.
 	// The other way in, and a small find of its own: set_init_restricted_mode()

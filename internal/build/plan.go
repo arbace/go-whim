@@ -75,10 +75,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "noshellout"},
 		}},
-	{N: 9, Name: "the editor stops asking the environment what language it is in",
-		Steps: []Step{
-			{Op: "nolocale"},
-		}},
+	// 9, the editor stops asking the environment what language it is in: a record (internal/phase/009/GOAL.md); its cut went to phase 1 (nolocale, the reform's D6).
 	{N: 10, Name: "no tag stack",
 		Steps: []Step{
 			{Op: "notags"},
@@ -111,11 +108,7 @@ var Plan = []Phase{
 			{Op: "nofenc"},
 			{Op: "droplocal", Args: []string{"b_p_fenc", "b_p_bomb"}},
 		}},
-	{N: 18, Name: "nothing is read at startup, and nothing on the command line decides anything",
-		Steps: []Step{
-			{Op: "nostartup"},
-			{Op: "nocmdopts"},
-		}},
+	// 18, nothing is read at startup, and nothing on the command line decides anything: a record (internal/phase/018/GOAL.md); its cut went to phase 1 (nostartup and nocmdopts, the reform's D6).
 	{N: 19, Name: "the terminal is what the build says",
 		Steps: []Step{
 			{Op: "noterm"},
@@ -183,10 +176,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "noabbr"},
 		}},
-	{N: 35, Name: "no scripts, no session, no autocommands",
-		Steps: []Step{
-			{Op: "nosession"},
-		}},
+	// 35, no scripts, no session, no autocommands: a record (internal/phase/035/GOAL.md); its cut went to phase 1 (nosession, the reform's D6).
 	{N: 36, Name: "one tab page, always",
 		Steps: []Step{
 			{Op: "notabs"},
@@ -245,12 +235,14 @@ var Plan = []Phase{
 	// 54, no option without a variable: a record (internal/phase/054/GOAL.md); every row it dropped is dropped at phase 1 with every option the product has not (optfront, the reform's D3).
 	{N: 55, Name: "no option nothing reads",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim55"}},
+			// its edit, 'cdpath''s completion term, went with the whole test at
+			// phase 1 (whim56, the reform's D6)
 			{Op: "droplocal", Args: []string{"b_p_sn", "b_p_cms", "b_p_lop"}},
 		}},
 	{N: 56, Name: "no shell, runtime or keyword-program options",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim56"}},
+			// whim56 runs at phase 1 (the reform's D6); 'keywordprg''s field
+			// still has readers there, so its cut stays here
 			{Op: "edit", Args: []string{"whim56kp"}},
 			{Op: "droplocal", Args: []string{"b_p_kp"}},
 		}},

@@ -1,5 +1,10 @@
 # Phase 9 — the editor stops asking the environment what language it is in
 
+**A record now.** Phase 1 runs this phase's cut (`nolocale`) at the front (the pipeline
+reform's D6, `doc/PIPELINE-REFORM.md` §7), so what it did is done before it
+runs: it has no plan entry. What follows is the account of the cut as it was
+made here.
+
 `setlocale(LC_ALL, "")` reads `$LANG`, `$LC_ALL` and `$LC_CTYPE` at startup and
 changes how this process compares strings, classifies characters and formats a
 time. `:language` lets the user change it again. `enc_locale()` derives

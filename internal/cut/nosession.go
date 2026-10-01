@@ -119,10 +119,13 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 	// :file to a new name re-runs filetype detection when the
 	// `filetypedetect` group exists -- a group only :augroup or :autocmd made.
 	// The test is known now, and with it goes the last caller of do_doautocmd().
-	// one: :write's went with it at phase 1 (filefront, the reform's D4)
-	if text, err = edit.FoldNever(text,
-		edit.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 1); err != nil {
-		return nil, fmt.Errorf("nosession: filetype detection after a rename -- %v", err)
+	// set_rw_fname's: do_write's went with :write at phase 1 (filefront, the
+	// reform's D4), and is still in the unswept text this runs on there (D6)
+	var found bool
+	if text, found, err = edit.InDefinition(text, "set_rw_fname", func(b []byte) ([]byte, error) {
+		return edit.FoldNever(b, edit.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 1)
+	}); err != nil || !found {
+		return nil, fmt.Errorf("nosession: filetype detection after a rename -- %v (set_rw_fname found: %v)", err, found)
 	}
 	fmt.Fprintln(w, "  nosession    :write and :file no longer re-detect a filetype no "+
 		"group can detect")
@@ -135,9 +138,8 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 			`checkforcmd_noparen\([^,]+, "(legacy|noautocmd|sandbox|vim9cmd)"`, 0},
 		{"cmod_save_ei outside its declaration", `\bcmod_save_ei\b`, 1},
 		{"scriptout opened by the parser", `\bscripterror\b`, 0},
-		// 'loadplugins''s row is dropped at phase 1 (optfront, D3): p_lpl
-		// is named by nothing now
-		{"p_lpl", `\bp_lpl\b`, 0},
+		// p_lpl is not asserted: this runs at phase 1 (D6), before the sweep
+		// takes its declaration and its last writes
 	} {
 		n := len(regexp.MustCompile(l.pattern).FindAll(text, -1))
 		if n != l.want {

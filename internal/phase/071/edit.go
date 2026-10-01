@@ -100,9 +100,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w71AddrPair4, w71NewPair4, 1, "validating a buffer range")
 	})
 
-	e.InFunction("free_buffer", func(e *edit.E) {
-		e.Literal(w71lit16, w71lit17, 1, "free_buffer deferring onto a chain nothing ever drained")
-	})
+	// free_buffer's deferral onto au_pending_free_buf folds at phase 1:
+	// autocmd_busy falls out with the autocommands' last writers (the reform's
+	// D6)
 	e.Literal(w71lit10, w71lit11, 1, "the mapping scan walking the list, still twice: curbuf then the globals")
 	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 94's move)
 	e.InFunction("close_buffer", func(e *edit.E) {

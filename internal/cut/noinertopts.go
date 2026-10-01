@@ -29,20 +29,11 @@ var noinertoptsEdits = []struct{ what, pat, repl string }{
 	{"option_expand escaping for 'path' and 'tags'",
 		`(?m)[ \t]*int esc = var == &p_tags \|\| var == &p_path;\n`,
 		"    int esc = FALSE;\n"},
-	// Two sibling blocks, one for directories and one for files, each asking
-	// whether the option being completed is one of these three.  Both collapse
-	// to the else arm -- and the replacement carries the INDENTATION, because
-	// ${1} would keep the inner line's, which is one level too deep once the
-	// block around it is gone.
-	{"the directory-completion backslash rule for 'path'",
-		`(?m)[ \t]*if \(p == \(char_u \*\)&p_path \|\| p == \(char_u \*\)&p_cdpath\)\n` +
-			`[ \t]*\{\n[ \t]*xp->xp_backslash = XP_BS_THREE;\n[ \t]*\}\n` +
-			`[ \t]*else\n[ \t]*\{\n[ \t]*xp->xp_backslash = XP_BS_ONE;\n[ \t]*\}\n`,
-		"            xp->xp_backslash = XP_BS_ONE;\n"},
-	// And one term of a longer disjunction, where the other options named are
-	// all still real.  Only the term goes.
-	{"'path' as a directory-completion context",
-		`(?m) \|\| p == \(char_u \*\)&p_path`, ""},
+	// The directory-completion block, with its backslash rule for 'path',
+	// folds at phase 1 (whim56, the reform's D6).  The file-completion block's
+	// rule for 'tags' collapses to the else arm -- and the replacement carries
+	// the INDENTATION, because ${1} would keep the inner line's, which is one
+	// level too deep once the block around it is gone.
 	{"the file-completion backslash rule for 'tags'",
 		`(?m)[ \t]*if \(p == \(char_u \*\)&p_tags\)\n` +
 			`[ \t]*\{\n[ \t]*xp->xp_backslash = XP_BS_THREE;\n[ \t]*\}\n` +

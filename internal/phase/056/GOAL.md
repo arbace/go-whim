@@ -1,5 +1,13 @@
 # Phase 56 — no shell, runtime or keyword-program options
 
+**Its main program runs at phase 1 now.** Phase 1's front calls `whim56` by
+name (the pipeline reform's D6, `doc/PIPELINE-REFORM.md` §7), on the seed,
+after the options are dropped. At the front every option the directory-list
+test names is gone, so the test folds whole. What stays here is
+`'keywordprg'`'s field: `whim56kp` and `droplocal b_p_kp`, since at the front
+the field still has readers (K's `nv_ident`, `get_varp_scope`) that earlier
+phases take. What follows is the account of the cut as it was made here.
+
 Six options whose readers survived only in machinery with nothing left to serve.
 **`'shell'`, `'shellquote'` and `'shellredir'`**: no shell is ever run — `call_shell()`
 and `mch_call_shell()` went long before — so `'shell'` only chose the default of

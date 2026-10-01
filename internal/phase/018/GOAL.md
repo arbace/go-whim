@@ -1,5 +1,10 @@
 # Phase 18 — nothing is read at startup, and nothing on the command line decides anything
 
+**A record now.** Phase 1 runs this phase's cut (`nostartup` and `nocmdopts`) at the front (the pipeline
+reform's D6, `doc/PIPELINE-REFORM.md` §7), so what it did is done before it
+runs: it has no plan entry. What follows is the account of the cut as it was
+made here.
+
 ## nothing is read at startup that was not named on the command line
 
 An editor that goes looking for its own configuration has a filesystem layout in

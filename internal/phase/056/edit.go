@@ -81,8 +81,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("set_context_in_set_cmd", func(e *edit.E) {
 		e.DropIf(edit.Head("if (options[opt_idx].var == (char_u *)&p_ft)"), 1,
 			":set ft= completing runtime file types")
-		e.FoldNever(edit.Head("if (p == (char_u *)&p_pp || p == (char_u *)&p_rtp)"), 1,
-			"'packpath' and 'runtimepath' completing as directories")
+		// at phase 1 (the reform's D6) every option the test names is dropped,
+		// and only nomemfile has taken its term yet: the whole test folds
+		e.FoldNever(edit.Head("if (p == (char_u *)&p_bdir || p == (char_u *)&p_path || p == (char_u *)&p_pp || p == (char_u *)&p_rtp || p == (char_u *)&p_cdpath)"), 1,
+			"'backupdir', 'path', 'packpath', 'runtimepath' and 'cdpath' completing as directories")
 	})
 	e.InFunction("stropt_get_newval", func(e *edit.E) {
 		e.FoldNever(edit.Head("if (varp == (char_u *)&p_kp && (*arg == NUL || *arg == ' '))"), 1,

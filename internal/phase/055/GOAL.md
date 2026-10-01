@@ -1,5 +1,9 @@
 # Phase 55 — no option nothing reads
 
+**Its edit is phase 1's now.** The `'cdpath'` term it took is folded with the
+whole directory-list test at the front (`whim56`, the pipeline reform's D6,
+`doc/PIPELINE-REFORM.md` §7); what is left here is the `droplocal` step.
+
 Phase 54 took the options with no variable. These have one, and nothing but the
 option machinery reads it — the declaration and the row, `get_varp()` and the
 buffer copy for a local one, `set_context_in_set_cmd()`'s completion, and a

@@ -858,6 +858,30 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        byte. In order: 146 phases, 923 s. The parallel check: 145 links,
        79 s; phase 1 40 s.
 
+   - **D6, done (branch `reform-d6`): startup and runtime.** Phase 1 runs
+     `nolocale` (9), `nostartup` and `nocmdopts` (18), `nosession` (35) and
+     `whim56` after D5's cuts. 9, 18 and 35 are records now. 56 keeps
+     `'keywordprg'`'s cut and `droplocal b_p_kp`, because on the seed that
+     field still has readers (K's `nv_ident`, `get_varp_scope`) that earlier
+     phases take.
+     - **Written for the seed.**
+       - `nocmdopts` finds `mparm_T`'s `tagname` by the struct it closes.
+       - `nosession`'s filetype fold is scoped to `set_rw_fname()`, since
+         `do_write()`'s copy is still in the unswept text inside phase 1.
+         Its `p_lpl` postcondition, which only holds after the sweep, is
+         gone.
+       - `whim56` folds the whole directory-list test, since every option
+         it names is dropped. That supersedes `nobackup`'s and
+         `noinertopts`' term edits and 55's `'cdpath'` literal, whose
+         program is gone; 55 keeps its `droplocal`.
+     - **What falls out earlier.** `close_disallowed` and `autocmd_busy`,
+       so `notabs`' anchor and 71's `free_buffer` edit change.
+       `sticky_cmdmod_flags` and `aucmd_cmdline_changed_count` lose their
+       writers too, but the product keeps them, so the closure holds them.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for
+       byte. In order: 143 phases, 899 s. The parallel check: 142 links,
+       85 s; phase 1 47 s.
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

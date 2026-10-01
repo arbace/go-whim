@@ -32,6 +32,13 @@ import (
 // A Step is one transformation: the tree in, the tree out, its report on w.
 type Step func(text []byte, args []string, w io.Writer) ([]byte, error)
 
+// editStep runs a registered phase edit by name, as the "edit" op does.
+func editStep(name string) Step {
+	return func(t []byte, _ []string, w io.Writer) ([]byte, error) {
+		return runEdit(t, []string{name}, w)
+	}
+}
+
 // plain wraps a cutter that takes no arguments of its own.
 func plain(f func([]byte, io.Writer) ([]byte, error)) Step {
 	return func(t []byte, _ []string, w io.Writer) ([]byte, error) { return f(t, w) }
@@ -183,7 +190,8 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 	for _, op := range []Step{plain(cut.ArgvFront), exFront, plain(cut.ExTable),
 		plain(cut.FileFront), plain(cut.QuitFront), plain(cut.ReadFront), plain(cut.OneCmdFront),
 		plain(cut.OptFront), plain(cut.NoSwap), plain(cut.NoRecover),
-		plain(cut.NoMemfile)} {
+		plain(cut.NoMemfile), plain(cut.NoLocale), plain(cut.NoStartup),
+		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim56")} {
 		if t, err = op(t, args, w); err != nil {
 			return nil, err
 		}
@@ -192,9 +200,12 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 }
 
 // frontHold is what the closure after the front cuts leaves to the phases
-// that fold it by hand: read_cmd_fd, which the product keeps, and the dropped
-// options' globals of optfrontHold.
-var frontHold = append([]string{"read_cmd_fd"}, optfrontHold...)
+// that fold it by hand: read_cmd_fd, sticky_cmdmod_flags and
+// aucmd_cmdline_changed_count, which the product keeps unwritten (the last
+// two since D6 took their writers), and the dropped options' globals of
+// optfrontHold.
+var frontHold = append([]string{"read_cmd_fd", "sticky_cmdmod_flags",
+	"aucmd_cmdline_changed_count"}, optfrontHold...)
 
 // optfrontHold are the dropped options' globals the fall-out closure leaves
 // to the phase that folds them by hand: where the closure's shape and the

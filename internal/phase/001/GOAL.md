@@ -101,6 +101,17 @@ that was not asked for, and `ml_recover()` goes. With it go `readfile()`'s
 last callers but phase 13's, so `readfile()` dies at phase 13, and
 `edit_type`, `mf_dont_release` and the swap file's timestamps fall out here.
 
+**Then nothing is read at startup, and there is no locale, script, session
+or runtime option** (`nolocale`, `nostartup`, `nocmdopts`, `nosession` and
+`whim56`, the reform's D6): the cuts of phases 9, 18, 35 and 56, run on the
+seed. They are written for that text now. `mparm_T`'s `tagname` is found by
+its struct rather than a neighbour. `set_rw_fname()`'s filetype test is
+scoped to its function, since `:write`'s copy is still in the unswept text.
+The directory-list test folds whole, since every option it names is dropped.
+`close_disallowed` and `autocmd_busy` fall out with the autocommand triggers.
+`sticky_cmdmod_flags` and `aucmd_cmdline_changed_count` lose their writers
+too, but the product keeps them, so the closure holds them.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

@@ -1,5 +1,10 @@
 # Phase 35 — no scripts, no session, no autocommands
 
+**A record now.** Phase 1 runs this phase's cut (`nosession`) at the front (the pipeline
+reform's D6, `doc/PIPELINE-REFORM.md` §7), so what it did is done before it
+runs: it has no plan entry. What follows is the account of the cut as it was
+made here.
+
 Three things that are one question: can the editor be told to do something
 later, or somewhere else, by a file? A script is commands read from a file, a
 session is a script the editor wrote about itself, and an autocommand is a
