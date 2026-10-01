@@ -177,11 +177,12 @@ func dropLocal(t []byte, args []string, w io.Writer) ([]byte, error) {
 	return t, nil
 }
 
-// front runs the seven front cuts in order.
+// front runs the eight front cuts in order.
 func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 	var err error
 	for _, op := range []Step{plain(cut.ArgvFront), exFront, plain(cut.ExTable),
-		plain(cut.FileFront), plain(cut.QuitFront), plain(cut.ReadFront), plain(cut.OptFront)} {
+		plain(cut.FileFront), plain(cut.QuitFront), plain(cut.ReadFront), plain(cut.OneCmdFront),
+		plain(cut.OptFront)} {
 		if t, err = op(t, args, w); err != nil {
 			return nil, err
 		}

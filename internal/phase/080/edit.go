@@ -225,8 +225,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		")", 1, "expanded filenames are escaped for every command left")
 	e.Literal("(eap->usefilter || eap->cmdidx == CMD_bang || eap->cmdidx == CMD_terminal) &&",
 		"eap->usefilter &&", 1, "and '!' only for a filter")
-	e.Literal(" && (eap->cmdidx != CMD_redir || p != eap->arg + 1 || p[-1] != '@'))", ")", 1,
-		"a double quote after :redir @ is a comment like any other")
+	// separate_nextcmd's :redir @" exception went with its comment test at
+	// phase 1 (onecmdfront, phase 81's move)
 	if e.Failed() {
 		return e.Done()
 	}

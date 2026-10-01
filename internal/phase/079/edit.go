@@ -143,13 +143,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(edit.Head("if (vim9script && (flags & DOCMD_RANGEOK) == 0)"), 1,
 		"scanning backwards for a colon to decide whether a range is allowed")
 	e.FoldNever(edit.Head("if (vim9script && !may_have_range)"), 1, "the Vim9 path through find_ex_command")
-	e.FoldNever(edit.Head("if (vim9script)"), 2, "two Vim9 checks in parse_command_modifiers")
+	// one of two: the other was in the comment skip, gone at phase 1
+	// (onecmdfront, phase 81's move)
+	e.FoldNever(edit.Head("if (vim9script)"), 1, "a Vim9 check in parse_command_modifiers")
 	e.FoldNever(edit.Head("if (vim9script && has_cmdmod(cmod, FALSE))"), 1, "a command modifier without a command")
-	e.Literal("(*p == '\"' && !vim9script && !(eap->argt & EX_NOTRLCOM)",
-		"(*p == '\"' && !(eap->argt & EX_NOTRLCOM)", 1,
-		"a double quote always starts a comment outside Vim9 script")
-	e.Literal("(*p == '#' && vim9script && !(eap->argt & EX_NOTRLCOM) && p > eap->cmd && ((p[-1]) == ' ' || (p[-1]) == '\\t')) || (*p == '|' && eap->cmdidx != CMD_append",
-		"(*p == '|' && eap->cmdidx != CMD_append", 1, "and a hash never does")
+	// separate_nextcmd's comment and hash tests went at phase 1 (onecmdfront,
+	// phase 81's move)
 	// The three vim9script locals, in do_one_cmd, parse_command_modifiers and
 	// separate_nextcmd, are named by nothing now; the sweep takes them.
 	e.FoldAlways(edit.Head("if (may_have_range)"), 1, "skipping a range that is always allowed")
@@ -160,7 +159,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(edit.Head("if (in_vim9script() && *p == '#')"), 1, "a hash comment ending a Vim9 command")
 	e.FoldNever(edit.Head(`if (in_vim9script() && arg > arg_start && vim_strchr((char_u *)"!&<", *arg) != NULL)`), 1,
 		"the Vim9 spacing rule for an unknown option")
-	e.FoldNever(edit.Head("if (in_vim9script())"), 8, "eight more Vim9 script branches")
+	// five: three more were in ends_excmd, ends_excmd2 and comment_start,
+	// gone at phase 1 (onecmdfront, phase 81's move)
+	e.FoldNever(edit.Head("if (in_vim9script())"), 5, "five more Vim9 script branches")
 	e.Literal("in_vim9script() ? GETLINE_CONCAT_CONTBAR : GETLINE_CONCAT_CONT", "GETLINE_CONCAT_CONT", 1,
 		"how a continuation line is joined")
 	e.FoldNever(edit.Head("if (pum_under_menu(row, col, TRUE))"), 1, "skipping a cell the popup menu covers")

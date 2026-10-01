@@ -72,6 +72,15 @@ callers have, and so does every edit phases 20 to 91 made inside them:
 `lfonly`'s formats, `keepbytes`' `++bad`, `noconv`'s conversions, and
 phases 62, 70, 75 and 87's folds.
 
+**Then a command line is one command** (`onecmdfront`, phase 81's move):
+`|` and `"` stop being syntax, so neither separates a command nor starts a
+comment, and a newline still ends one. These are phase 81's edits on the
+seed's spelling: `separate_nextcmd()` splits at a newline only,
+`ends_excmd()` and `ends_excmd2()` answer the end of the line (their Vim9
+`#` goes with the rest), and `find_nextcmd()`, `check_nextcmd()`,
+`do_one_cmd()`, `ex_range_without_command()`'s `:|`, `:substitute`'s tail
+and `:append`'s `:a|text` stop knowing either character.
+
 **Then every option the product has not is dropped** (`optfront`, the
 reform's D3). There are 375 rows, listed in `internal/cut/optfront.md`, where
 53 `dropoptions` steps and phases 54 and 95 dropped them a few at a time:

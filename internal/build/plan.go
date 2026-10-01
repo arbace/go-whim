@@ -367,10 +367,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim80"}},
 		}},
-	{N: 81, Name: "one line, one command",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim81"}},
-		}},
+	// 81, one line, one command: a record (internal/phase/081/GOAL.md); its edits went to onecmdfront, phase 1.
 	// 82, every comment: a record (internal/phase/082/GOAL.md); it edits nothing now.
 	// 83, the core's compile line, and the baselines it is measured against: a record (internal/phase/083/GOAL.md); it edits nothing now.
 	// 84, the stack protector goes: a record (internal/phase/084/GOAL.md); it edits nothing now.

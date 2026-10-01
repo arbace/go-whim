@@ -811,6 +811,26 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        - **Result.** The chain gives the committed `whim-vim.c` byte for
          byte. In order: 149 phases, 934 s. The parallel check: 148 links,
          85 s (the machine's load; phase 1 is still 37 s).
+     - **81, done (same branch): one line, one command.** `onecmdfront`,
+       phase 1's seventh cut, makes phase 81's edits on the seed's
+       spelling:
+       - `separate_nextcmd()` splits at a newline only;
+       - `ends_excmd()` and `ends_excmd2()` answer the end of the line,
+         their Vim9 `#` going with the rest;
+       - `find_nextcmd()`, `check_nextcmd()`, `do_one_cmd()`'s trailing
+         check and comment line, `:|`, `:substitute`'s tail and
+         `:append`'s bar stop knowing `|` and `"`.
+
+       Nothing falls out (no object loses its last write), so the order
+       among the front cuts does not matter.
+       - **What it replaced.** Phase 81 entirely: it is a record now. Also
+         phase 79's two literals on `separate_nextcmd()`'s condition and
+         phase 80's `:redir @` exception. Phase 79's Vim9 counts are
+         restated (`if (vim9script)` 2 -> 1, `if (in_vim9script())` 8 ->
+         5).
+       - **Result.** The chain gives the committed `whim-vim.c` byte for
+         byte. In order: 148 phases, 928 s. The parallel check: 147
+         links, 77 s; phase 1 37 s.
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

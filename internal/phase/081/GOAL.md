@@ -1,5 +1,11 @@
 # Phase 81 — one line, one command
 
+**A record now.** Phase 1 makes a command line one command at the front
+(`onecmdfront`, the pipeline reform's move of this phase, `doc/PIPELINE-REFORM.md`
+§7), so what this phase did is done before it runs: it has no plan entry and no
+program. What follows is the account of the cut as
+it was made here.
+
 An Ex line could hold several commands separated by `|` and end in a `"` comment.
 Both exist for scripts — a vimrc, a sourced file, a function body — and this editor
 reads none. Every command it runs was typed, came from `+cmd`, or came from a
