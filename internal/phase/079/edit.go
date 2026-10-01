@@ -191,8 +191,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// one: :exit's went with it at phase 1 (filefront, the reform's D4)
 	e.FoldAlways(edit.Head("if (check_more(FALSE, eap->forceit) == OK && only_one_window())"), 1,
 		"deciding to exit in :quit")
-	e.Literal(" || check_more(TRUE, eap->forceit) == FAIL", "", 1, "refusing to quit with more files to edit")
-	e.Literal("only_one_window() && check_changed_any", "check_changed_any", 1, "and asking whether this is the last window")
+	// :quit's refusal, with its check_more and only_one_window terms, folded
+	// at phase 1 (quitfront, phase 94's move)
 	e.FoldNever(edit.Head("if (stl_connected(wp))"), 2, "a status line joined to the one beside it")
 	e.FoldNever(edit.Head("if (get_cellwidth(ScreenLinesUC[off]) > 1)"), 1, "a character widened by 'setcellwidths'")
 	e.FoldNever(edit.Head("if (wc_use_keyname(varp, &wc))"), 1, "showing a numeric option as a key name")

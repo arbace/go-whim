@@ -1,5 +1,12 @@
 # Phase 94 — `:q` quits, and `ZZ` is `ZQ`
 
+**The fold is phase 1's now.** `ex_quit()`'s refusal is folded never at the
+front (`quitfront`, the pipeline reform's move of this phase,
+`doc/PIPELINE-REFORM.md` §7), so `check_changed()` and the island below are
+gone before this phase runs. What it keeps is the two extras, whose text is
+still there: the tail that cannot run, and the two fields nothing reads. What
+follows is the account of the cut as it was made here.
+
 `internal/phase/094/edit.go` and `internal/phase/094/check.go`, `stage 94`, `package buffers`.
 Phases 89 to 93 took every way to reach a file. What was left of the filesystem in
 this editor was a **refusal**: `:q` on a modified buffer answered `E37: No write

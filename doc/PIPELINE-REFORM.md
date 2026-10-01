@@ -769,6 +769,27 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      and the same q001. The whole build in order takes 949 s (986); the
      parallel check, no longer bound by phase 1, 79 s (116).
 
+   - **The moves of 94, 92 and 81 (item 4).** Three phases whose one cut
+     is a drop the product makes, moved to the front one at a time.
+     - **94, done (branch `reform-quit`): `:q` quits.** `quitfront`, phase
+       1's fifth cut, folds `ex_quit()`'s refusal never on the seed (its
+       test there also asks `buf_hide()`, `check_more()` and
+       `only_one_window()`). `check_changed()`, `check_changed_any()` and
+       the switch-buffer/switch-window island its tail was the last caller
+       of (`set_curbuf()`, `enter_buffer()`, `win_enter_ext()`,
+       `get_winopts()` and seven more) go with it.
+       - **What it replaced.** Every edit inside them: `onebuffer`'s
+         `set_curbuf` folds, and edits in 62, 68, 71, 75, 78, 79 and 93
+         (the refusal's E162 and E37 literals, `check_changed_any`'s walk,
+         `win_enter_ext`'s block). The counts of `open_buffer` in 90-92 fall
+         by one, `enter_buffer()`'s call.
+       - **Phase 94 keeps its two extras**, whose text is still there: the
+         tail that cannot run (`getout(0);` alone), and the two fields
+         whose readers went with the island. Its counts are restated on
+         q093, and its island check goes.
+       - **Result.** The chain gives the committed `whim-vim.c` byte for
+         byte. In order: 149 phases, 948 s. The parallel check: 148 links,
+         77 s; phase 1 37 s.
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

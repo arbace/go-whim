@@ -47,21 +47,8 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// the argument-list and buffer commands, retired at phase 1 (exfront, the
 	// reform's D2)
 
-	// THE ORDER IS THE PYTHON'S.  These four one-line edits invite a loop --
-	// they are the same shape in four different functions -- but the Python
-	// interleaves them with getfile's pair and ex_quit's pair, and each edit
-	// prints as it succeeds.  Looping them emitted the same lines in a
-	// different order and 7 inputs differed.
-	for _, f := range []struct{ fn, old, new, what string }{
-		{"set_curbuf", "!buf_hide(prevbuf) && ", "", "set_curbuf hiding the buffer"},
-	} {
-		f := f
-		if text, err = e.inFunction(text, f.fn, func(s []byte) ([]byte, error) {
-			return e.literal(s, f.old, f.new, f.what, 1)
-		}); err != nil {
-			return nil, err
-		}
-	}
+	// set_curbuf, which hid the buffer it left, went with ex_quit's refusal
+	// at phase 1 (quitfront, the reform's move of phase 94)
 
 	text, err = e.inFunction(text, "getfile", func(s []byte) ([]byte, error) {
 		s, err := e.literal(s, " && !buf_hide(curbuf) && ", " && ",
@@ -76,12 +63,9 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
+	// :quit's refusal, and with it its buf_hide test, folded at phase 1
+	// (quitfront, phase 94's move)
 	text, err = e.inFunction(text, "ex_quit", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "(!buf_hide(wp->w_buffer) && check_changed(", "(check_changed(",
-			":quit sparing a hidden buffer", 1)
-		if err != nil {
-			return nil, err
-		}
 		return e.literal(s, "win_close(wp, !buf_hide(wp->w_buffer) || eap->forceit)",
 			"win_close(wp, TRUE)", ":quit freeing the buffer", 1)
 	})
@@ -150,18 +134,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "set_curbuf", func(s []byte) ([]byte, error) {
-		s, err := e.dropIf(s, `^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_KEEPALT\) == 0\)$`,
-			"set_curbuf making the old buffer the alternate")
-		if err != nil {
-			return nil, err
-		}
-		return e.subOnce(s, `^[ \t]*buflist_altfpos\(curwin\);\n`,
-			"set_curbuf saving the window position")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront)
 
 	text, err = e.inFunction(text, "win_init", func(s []byte) ([]byte, error) {
 		return e.literal(s, "    newp->w_alt_fnum = oldp->w_alt_fnum;\n", "",

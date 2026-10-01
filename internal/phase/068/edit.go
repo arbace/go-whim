@@ -101,9 +101,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	// do_exedit and ex_exit went with :edit and :exit at phase 1 (filefront, the
 	// reform's D4)
-	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.DropIf(edit.Head("if (unload)"), 1, "unloading a buffer closing the windows that show it")
-	})
+	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 94's move)
 	// only_one_window() is TRUE, so these terms go rather than the tests.
 	e.InFunction("check_more", func(e *edit.E) {
 		e.Literal("only_one_window() && ", "", 1, "check_more asking how many windows there are")

@@ -9,24 +9,14 @@ package p094
 // could have come from -- so it is a door that opens onto nothing, and this phase
 // takes it.  `:q`, `:q!`, `ZZ` and `ZQ` become one thing.
 //
-// ONE ANCHOR, AND THE PHASE IS THAT FOLD.  `ex_quit()` is
-//
-// if ((check_changed(...)) || (check_changed_any(...))) { not_exiting(...); }
-// else                                                  { getout(0); ... }
-//
-// and the test is the refusal.  Folding it NEVER keeps the `else` -- "quit" -- and
-// is the last reference `check_changed()` has.  FIFTEEN FUNCTIONS THEN GO AND THIS
-// FILE NAMES NOT ONE OF THEM (GOALS.md core rule 1), which is the largest surprise
-// the phase has: eleven of the fifteen are not the refusal at all.
-// `check_changed_any()`'s tail is "go to the buffer that refused" -- it calls
-// `set_curbuf()`, which calls `enter_buffer()` and `win_enter_ext()` -- and after
-// whim removed the buffer list and the window commands, THAT TAIL WAS THE LAST
-// CALLER OF THE WHOLE SWITCH-BUFFER/SWITCH-WINDOW ISLAND.  THE ISLAND IS A GRAPH AND
-// NOT A FAN: only `add_bufnum`, `set_curbuf` and `goto_tabpage_win` are called by
-// `check_changed_any` itself and the other eight hang off those, so what the edit
-// computes before it folds anything is that every call to any of the eleven is inside
-// `check_changed_any` or inside another of the eleven.  After this phase the editor
-// has no code for entering a different buffer or a different window at all.
+// THE FOLD IS PHASE 1'S.  `ex_quit()`'s test -- `check_changed(...)` or
+// `check_changed_any(...)`, the refusal -- is folded NEVER at the front since
+// the reform (quitfront, `internal/cut/extable.go`), so `:q` takes the else arm
+// and quits, and the fall-out closure and the sweep take check_changed() and
+// the switch-buffer/switch-window island its tail was the last caller of
+// (`add_bufnum`, `set_curbuf`, `enter_buffer`, `win_enter_ext` and seven more)
+// before this phase runs.  What is left here is what the fold made dead and no
+// tool sees: the two extras below.
 //
 // `:q` CAN STILL DECLINE, and that is not this phase's: `text_locked()`,
 // `curbuf_locked()` and `before_quit_autocmds()` all return early ABOVE the anchor
@@ -41,17 +31,14 @@ package p094
 // input is 0, whim having removed the dialog layer.  Say it, so that the next reader
 // does not go looking for one.
 //
-// TWO EXTRAS GO WITH THE FOLD, each measured byte-identical in the recording.
+// TWO EXTRAS ARE THE PHASE NOW, each measured byte-identical in the recording.
 //
 // A  TWO STRUCT FIELDS THAT BECOME WRITE-ONLY, WHICH NO TOOL CAN SEE.  This is
 // phase 90's `usefilter` judgement in a smaller shape: tools/deadfields.py
 // removes a field nothing NAMES, and gcc has no warning for a member that is
 // only written.  `win_T.w_topline_was_set`'s only reader was in
 // `enter_buffer()` and `wininfo_S.wi_changelistidx`'s only reader was in
-// `get_winopts()`, and the sweep takes both functions.  THE TEXT THIS LEAVES
-// DOES NOT COMPILE -- two mentions survive inside functions the sweep is about
-// to take -- exactly as internal/phase/090/edit.go says of its own, and that is stated
-// here rather than discovered by whoever runs the edit alone.
+// `get_winopts()`, and phase 1's sweep took both functions.
 // B  THE TAIL THAT CANNOT RUN.  After the fold `ex_quit()` ends `int save_exiting
 // = exiting; exiting = TRUE; getout(0); not_exiting(save_exiting);`.
 // `getout()` sets `exiting = TRUE` ITSELF and ends in `mch_exit()`, which never
@@ -83,8 +70,6 @@ package p094
 import (
 	"io"
 	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
@@ -92,51 +77,31 @@ import (
 
 func init() { phase.Register("whim94", Edit) }
 
-// w94Swept are the twelve the sweep reads Out of check_changed_any's tail, and
-// they are mostly three mentions each -- a prototype, a definition and one call.
-// THREE OF THEM ARE NOT, which is what a counted anchor is for, and those three
-// are named in w94Before instead.
-var w94Swept = []string{"no_write_message", "add_bufnum", "set_curbuf", "enter_buffer",
-	"win_enter", "win_enter_ext", "goto_tabpage_win", "goto_tabpage_tp", "get_winopts",
-	"find_wininfo", "buflist_findfpos", "buflist_getfpos"}
-
-// w94Island is the switch-buffer/switch-window island that hangs off that tail.
-// IT IS A GRAPH AND NOT A FAN: only add_bufnum, set_curbuf and goto_tabpage_win
-// are called by check_changed_any itself and the other eight hang off those, so
-// a check requiring all eleven to be its callees would fail on a correct phase.
-var w94Island = []string{"add_bufnum", "set_curbuf", "enter_buffer", "win_enter",
-	"win_enter_ext", "goto_tabpage_win", "goto_tabpage_tp", "get_winopts",
-	"find_wininfo", "buflist_findfpos", "buflist_getfpos"}
-
+// w94Before is the file the two extras were counted against.  The fold, the
+// refusal folded NEVER, is phase 1's since the reform (quitfront, the phase's
+// move): check_changed and the whole switch-buffer island are gone before this
+// phase runs, and what is left here is what the fold made dead.
 var w94Before = map[string]int{
-	"check_changed": 4, "not_exiting": 4,
-	"check_changed_any": 2, "no_write_message_nobang": 2,
-	"w_topline_was_set": 4, "wi_changelistidx": 3, "SHM_FILEINFO": 2,
-	"bufIsChanged": 10, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
-	"exiting": 17, "buf_spname": 5, "open_buffer": 5,
+	"check_changed": 0, "not_exiting": 3, "check_changed_any": 0,
+	"w_topline_was_set": 2, "wi_changelistidx": 2, "SHM_FILEINFO": 0,
+	"set_curbuf": 0, "enter_buffer": 0, "get_winopts": 0, "find_wininfo": 0,
+	"bufIsChanged": 7, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
+	"exiting": 16, "buf_spname": 4, "open_buffer": 4,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
 	"p_ro": 0, "p_ur": 0, "read_cmd_fd": 12,
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 var w94After = map[string]int{
-	"check_changed": 3, "not_exiting": 2,
-	"w_topline_was_set": 3, "wi_changelistidx": 1,
-	"bufIsChanged": 10, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
+	"not_exiting": 2, "w_topline_was_set": 1, "wi_changelistidx": 0,
+	"bufIsChanged": 7, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
 	"p_ro": 0, "p_ur": 0, "read_cmd_fd": 12,
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
-func init() {
-	for _, n := range w94Swept {
-		w94Before[n] = 3
-	}
-}
-
-// Whim94 takes the last thing the filesystem left behind: the refusal,
-// `E37: No write since last change`, which has had no remedy to offer since
-// phase 89 took every `:write`.
+// Whim94 takes what `:q`'s refusal leaves behind once it folds: the tail
+// that cannot run and two fields nothing reads.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "noquit", W: w}
 	var err error
@@ -145,8 +110,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
 	}
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		// exact first, then modulo whitespace: a fold earlier in this phase keeps a
-		// body at its old indentation, and the canonical print re-indents it
 		k := edit.CountAnchorB(t, old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
@@ -163,77 +126,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w94Before[name])
 		}
 	}
-	p.Say("check_changed 4, not_exiting 4, check_changed_any 2 and the twelve the " +
-		"sweep reads from it -- the file the one fold was counted against")
-
-	// THE INVARIANT, COMPUTED BEFORE ANYTHING IS FOLDED: every call to any of the
-	// eleven is inside check_changed_any or inside another of the eleven, so the
-	// whole island is reachable from that one tail and from nowhere else.
-	blanked := edit.Blank(text)
-	spans := map[string][2]int{}
-	for _, name := range append(append([]string{}, w94Island...), "check_changed_any") {
-		a, z, ok := edit.FindDefinition(text, blanked, name)
-		if !ok {
-			return nil, p.Die("%s is not defined", name)
-		}
-		spans[name] = [2]int{a, z}
-	}
-	for _, name := range w94Island {
-		own := spans[name]
-		proto := regexp.MustCompile(`^static\b.*\b` + name + `\(.*\);$`)
-		calls, stray := 0, []int{}
-		for _, m := range regexp.MustCompile(`\b`+name+`\b`).FindAllIndex(text, -1) {
-			if own[0] <= m[0] && m[0] < own[1] {
-				continue // inside its own definition
-			}
-			s := strings.LastIndex(string(text[:m[0]]), "\n") + 1
-			e := strings.Index(string(text[m[0]:]), "\n") + m[0]
-			if proto.MatchString(strings.TrimSpace(string(text[s:e]))) {
-				continue // its prototype
-			}
-			calls++
-			in := false
-			for _, sp := range spans {
-				if sp[0] <= m[0] && m[0] < sp[1] {
-					in = true
-					break
-				}
-			}
-			if !in {
-				stray = append(stray, strings.Count(string(text[:m[0]]), "\n")+1)
-			}
-		}
-		if calls == 0 || len(stray) > 0 {
-			first := "-"
-			if len(stray) > 0 {
-				first = strconv.Itoa(stray[0])
-			}
-			return nil, p.Die("%s has %d call site(s) and %d of them are outside check_changed_any "+
-				"and the island (first at line %s); the switch-buffer island does not "+
-				"hang off that one tail after all", name, calls, len(stray), first)
-		}
-	}
-	p.Say("every call to add_bufnum, set_curbuf, enter_buffer, win_enter, win_enter_ext, " +
-		"goto_tabpage_win, goto_tabpage_tp, get_winopts, find_wininfo, buflist_findfpos " +
-		"and buflist_getfpos is inside check_changed_any or inside another of the " +
-		"eleven -- its tail, \"go to the buffer that refused\", is the last caller of the " +
-		"whole switch-buffer/switch-window island, and that, and nothing weaker, is why " +
-		"the one fold below takes eleven functions nobody would predict")
-
-	// ---- 1. the anchor: the refusal folds never -------------------------------
-	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "ex_quit")
-	if !ok {
-		return nil, p.Die("ex_quit is not defined")
-	}
-	what := "ex_quit: the refusal folds NEVER, so `:q` takes the else arm and quits -- " +
-		"this one fold is the phase, and it is check_changed()'s last reference"
-	Body, err := edit.FoldNever(text[a:z],
-		`(?m)^    if \(\(check_changed\(wp->w_buffer, \(eap->forceit \? CCGD_FORCEIT : 0\) \| CCGD_EXCMD\)\) \|\| \(check_changed_any\(eap->forceit, TRUE\)\)\)$`, 1)
-	if err != nil {
-		return nil, p.Die("%s -- %v", what, err)
-	}
-	text = []byte(string(text[:a]) + string(Body) + string(text[z:]))
-	p.Say(what)
+	p.Say("check_changed 0 and the switch-buffer island gone at phase 1 (quitfront), " +
+		"not_exiting 3 -- the file the two extras were counted against")
 
 	// ---- 2. extra B: the tail that cannot run ---------------------------------
 	if text, err = textEdit(text, w94lit1, w94lit2,
@@ -251,24 +145,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 3. extra A: two fields that become write-only ------------------------
 	// NOTHING SEES EITHER OF THESE.  deadfields.py removes a field nothing NAMES,
 	// and a field that is only written is still named; gcc has no warning for one.
-	for _, fr := range []struct{ fld, reader string }{
-		{"w_topline_was_set", "enter_buffer"}, {"wi_changelistidx", "get_winopts"},
-	} {
-		a, z, ok := edit.FindDefinition(text, edit.Blank(text), fr.reader)
-		if !ok || !strings.Contains(string(text[a:z]), fr.fld) {
-			return nil, p.Die("%s is not named inside %s, and the sweep taking that function is the "+
-				"whole reason this field becomes write-only", fr.fld, fr.reader)
-		}
-	}
+	// Their readers, in enter_buffer() and get_winopts(), went with the island
+	// at phase 1 (w94Before counts both functions 0), so each field is only
+	// written now.
 	for _, e := range []struct{ Old, What string }{
 		{w94lit4, "win_T.w_topline_was_set's one surviving write, in set_topline(): its " +
-			"only reader is inside enter_buffer(), which the sweep takes, and the " +
-			"field, named by nothing after that, with it"},
-		{w94lit5, "wininfo_S.wi_changelistidx: its only reader is inside get_winopts(), " +
-			"swept with the rest of the island"},
-		{w94lit6, "and its one surviving write, in find_wininfo() -- which the sweep " +
-			"takes too, so this line is removed for what it says and not for what " +
-			"it costs"},
+			"only reader was inside enter_buffer(), and the field, named by nothing " +
+			"after this, goes in the sweep"},
+		{w94lit5, "wininfo_S.wi_changelistidx: its only reader was inside get_winopts()"},
+		{w94lit6, "and its one surviving write"},
 	} {
 		if text, err = textEdit(text, e.Old, "", e.What, 1); err != nil {
 			return nil, err
@@ -281,9 +166,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w94After[name])
 		}
 	}
-	p.Say("the cut is done: check_changed 3 -- its prototype, its definition and the " +
-		"one call inside check_changed_any, which is where the sweep starts -- " +
-		"not_exiting 2, and read_cmd_fd 12, vim_fsync 3 and scriptin 8 " +
-		"untouched, each of them a later phase's")
+	p.Say("the cut is done: not_exiting 2 -- its prototype and its definition, for " +
+		"the sweep -- and read_cmd_fd 12, vim_fsync 3 and scriptin 8 untouched, " +
+		"each of them a later phase's")
 	return text, nil
 }

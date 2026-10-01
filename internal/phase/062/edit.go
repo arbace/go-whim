@@ -57,7 +57,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("ex_stop", func(e *edit.E) {
 		e.Cut(edit.Line("if (!eap->forceit)", "{", "autowrite_all();", "}"), 1, ":stop writing all buffers first")
 	})
-	e.Literal("(p_awa ? CCGD_AW : 0) | ", "", 3, "'autowriteall' asking check_changed to write")
+	// one: ex_quit's and check_changed_any's went with :q's refusal at phase 1
+	// (quitfront, phase 94's move)
+	e.Literal("(p_awa ? CCGD_AW : 0) | ", "", 1, "'autowriteall' asking check_changed to write")
 	// :next and the argument list asked check_changed to autowrite; they
 	// died with the commands, retired at phase 1 (exfront, the reform's D2)
 

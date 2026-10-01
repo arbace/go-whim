@@ -56,6 +56,14 @@ phases take the last uses. Their handlers die with the rows, and with them the
 write path (`buf_write()`), `:read`'s and `:edit`'s, and `do_bang()`'s filters.
 So does every edit phases 8 to 93 made inside them.
 
+**Then `:q` stops refusing** (`quitfront`, phase 94's move): `ex_quit()`'s
+test — `check_changed()` on the buffer, `check_more()`, `check_changed_any()` —
+folds never, so `:q` takes its else arm and quits whatever was changed. That
+was phase 94's one fold. With it go `check_changed()`, `check_changed_any()`
+and the switch-buffer/switch-window island its tail was the last caller of
+(`set_curbuf()`, `enter_buffer()`, `win_enter_ext()`, `get_winopts()` and
+seven more), and every edit phases 62 to 93 made inside them.
+
 **Then every option the product has not is dropped** (`optfront`, the
 reform's D3). There are 375 rows, listed in `internal/cut/optfront.md`, where
 53 `dropoptions` steps and phases 54 and 95 dropped them a few at a time:

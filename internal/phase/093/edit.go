@@ -106,11 +106,12 @@ var w93Fields = []string{"b_ffname", "b_sfname", "b_fname"}
 var w93Before = map[string]int{
 	// :file's row, ex_file and rename_buffer, and :write's and :edit's uses
 	// of the names, went at phase 1 (filefront, the reform's D4)
-	"b_ffname": 23, "b_sfname": 15, "b_fname": 28,
+	"b_ffname": 23, "b_sfname": 15, "b_fname": 27,
 	"CMD_file": 3, "EX_XFILE": 3, "buflist_new": 3, "buflist_name_nr": 3,
-	"buf_spname": 7, "buf_get_fname": 3, "fileinfo": 3, "check_fname": 3,
+	"buf_spname": 5, "buf_get_fname": 3, "fileinfo": 3, "check_fname": 3,
 	"readonlymode": 2, "mch_dirname": 5, "shorten_buf_fname": 2,
-	"check_changed": 4, "no_write_message": 3,
+	// check_changed went with :q's refusal at phase 1 (quitfront)
+	"check_changed": 0, "no_write_message": 0,
 	"p_ur": 0, "p_ro": 0, "read_cmd_fd": 12, "vim_fsync": 3, // their rows went at phase 1 (D3)
 	"scriptin": 8, "redir_fd": 0, // folded at phase 1: only :redir wrote it (D2)
 }
@@ -118,7 +119,7 @@ var w93Before = map[string]int{
 var w93After = map[string]int{
 	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 1,
 	"shorten_buf_fname": 1, "check_fname": 3, "buf_get_fname": 3,
-	"check_changed": 4, "no_write_message": 3, "p_ur": 0, "p_ro": 0,
+	"check_changed": 0, "no_write_message": 0, "p_ur": 0, "p_ro": 0,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
@@ -302,7 +303,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w93Before[name])
 		}
 	}
-	p.Say("b_ffname 23, b_sfname 15, b_fname 28, CMD_file 3, EX_XFILE 3 -- the file the " +
+	p.Say("b_ffname 23, b_sfname 15, b_fname 27, CMD_file 3, EX_XFILE 3 -- the file the " +
 		"seven parts were counted against")
 
 	var offs []int
@@ -430,8 +431,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"buffer and can no longer return NULL"},
 		{w93lit31, w93lit32, "buf_get_fname: the same, and \"[No Name]\" is now the only name the " +
 			"editor has for a buffer"},
-		{w93lit33, w93lit34, "check_changed_any: buf_spname() is non-NULL, so E162 names the " +
-			"buffer through it and never through b_fname"},
+		// check_changed_any's E162 went with :q's refusal at phase 1 (quitfront)
 		{w93lit35, w93lit36, "check_fname: E32 for every buffer, and it stays because the `%` " +
 			"register still asks it"},
 	} {

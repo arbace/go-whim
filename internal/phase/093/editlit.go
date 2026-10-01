@@ -34,8 +34,6 @@ const (
 	w93lit30 = "buf_spname(buf_T *buf)\n{\n    return buf_get_fname(buf);\n}\n"
 	w93lit31 = "buf_get_fname(buf_T *buf)\n{\n    if (buf->b_fname == NULL)\n    {\n        return (char_u *)_(\"[No Name]\");\n    }\n    return buf->b_fname;\n}\n"
 	w93lit32 = "buf_get_fname(buf_T *buf)\n{\n    return (char_u *)_(\"[No Name]\");\n}\n"
-	w93lit33 = "        if (semsg(_(e_no_write_since_last_change_for_buffer_str), buf_spname(buf) != NULL ? buf_spname(buf) : buf->b_fname))\n"
-	w93lit34 = "        if (semsg(_(e_no_write_since_last_change_for_buffer_str), buf_spname(buf)))\n"
 	w93lit35 = "check_fname(void)\n{\n    if (curbuf->b_ffname == NULL)\n    {\n        emsg(_(e_no_file_name));\n        return FAIL;\n    }\n    return OK;\n}\n"
 	w93lit36 = "check_fname(void)\n{\n    emsg(_(e_no_file_name));\n    return FAIL;\n}\n"
 	w93lit37 = "    return file_name_in_line(ml_get_curline(), curwin->w_cursor.col, options, count, curbuf->b_ffname, file_lnum);\n"

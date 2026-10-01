@@ -144,9 +144,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
 		e.Cut(edit.Line("--redrawing_for_callback;"), 1, "and unmarking it")
 	})
-	e.InFunction("win_enter_ext", func(e *edit.E) {
-		e.Cut(edit.Line("prevwin = curwin;"), 1, "remembering the previous window")
-	})
+	// win_enter_ext, prevwin's one write, went with :q's refusal at phase 1 (quitfront, phase 94's move)
 	// The fields and statics those writes were the last mention of --
 	// incsearch_state_T.winid, w_id, last_win_id, LOWEST_WIN_ID,
 	// autocmd_blocked, autocmd_no_enter, autocmd_no_leave,

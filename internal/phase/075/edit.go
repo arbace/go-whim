@@ -129,9 +129,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds_exarg\(EVENT_BUFREADCMD,`, 1, "a read being handled by an autocommand instead")
 		e.FoldNever(`(?m)^[ \t]*else if \(apply_autocmds_exarg\(EVENT_FILEREADCMD,`, 1, "and the file-read variant of the same")
 	})
-	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(!apply_autocmds\(EVENT_BUFLEAVE,`, 1, "leaving a buffer asking permission")
-	})
+	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 94's move)
 	e.InFunction("ins_redraw", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, 1, "insert mode reporting a change")
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
@@ -169,8 +167,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("getcmdline_int", func(e *edit.E) {
 		e.Cut(edit.Line("cmdline_type = firstc == NUL ? '-' : firstc;"), 1, "the line that set the command-line type")
 	})
-	// 43: six more were in the write and read paths, gone at phase 1 (D4)
-	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 43, "every remaining bare dispatch (43)")
+	// 36: six more were in the write and read paths, gone at phase 1 (D4),
+	// and seven in the buffer and window switching :q's refusal reached
+	// (quitfront, phase 94's move)
+	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 36, "every remaining bare dispatch (36)")
 	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")
 	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")
 	return e.Done()

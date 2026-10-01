@@ -118,9 +118,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the shape the anchors below were counted on -----------------------
-	// open_buffer AT EXACTLY 5 IS WHY THIS PHASE NEEDS SWEPT TEXT.
-	if k := mentions(text, "open_buffer"); k != 5 {
-		return nil, p.Die("open_buffer has %d mentions, expected 5 -- the definition and four callers, "+
+	// open_buffer AT EXACTLY 4 IS WHY THIS PHASE NEEDS SWEPT TEXT.  (Four: the
+	// fifth, enter_buffer, went with :q's refusal at phase 1 -- quitfront.)
+	if k := mentions(text, "open_buffer"); k != 4 {
+		return nil, p.Die("open_buffer has %d mentions, expected 4 -- the definition and three callers, "+
 			"every one of them `open_buffer(FALSE, NULL, 0)`.  On the text phase 91's "+
 			"EDIT leaves there are six: do_ecmd is still there to make "+
 			"`(void)open_buffer(FALSE, eap, readfile_flags);`, which anchor 4 would not "+
@@ -132,7 +133,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w92Before[name])
 		}
 	}
-	p.Say("open_buffer 5, readfile 5, read_buffer 17, read_stdin 23 -- the file the four " +
+	p.Say("open_buffer 4, readfile 5, read_buffer 17, read_stdin 23 -- the file the four " +
 		"anchors were counted against")
 
 	// ---- 1. the two arms, which hold every call into the read path ------------
@@ -147,20 +148,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the unchanged() arm: !read_stdin and !read_fifo were both constantly true", 1); err != nil {
 		return nil, err
 	}
-	// ---- 4. the signature, and the four callers -------------------------------
+	// ---- 4. the signature, and the three callers ------------------------------
 	if text, err = within(text, "open_buffer", w92lit4, w92lit5,
 		"open_buffer(void): read_stdin, eap and flags_arg are read by nothing "+
 			"now, and there is no prototype to follow", 1); err != nil {
 		return nil, err
 	}
-	if k := strings.Count(string(text), "open_buffer(FALSE, NULL, 0)"); k != 4 {
+	if k := strings.Count(string(text), "open_buffer(FALSE, NULL, 0)"); k != 3 {
 		return nil, p.Die("open_buffer is called %d times as `open_buffer(FALSE, NULL, 0)`, expected "+
 			"%d -- every caller already passes FALSE, NULL and 0, and a caller that "+
-			"does not is one this fold would change", k, 4)
+			"does not is one this fold would change", k, 3)
 	}
 	text = []byte(strings.ReplaceAll(string(text), "open_buffer(FALSE, NULL, 0)", "open_buffer()"))
-	p.Say("the four call sites -- enter_buffer, ml_append_flags, ml_replace_len and " +
-		"create_windows -- every one of which passed FALSE, NULL, 0")
+	p.Say("the three call sites -- ml_append_flags, ml_replace_len and create_windows " +
+		"-- every one of which passed FALSE, NULL, 0")
 
 	// ---- 5. what is left, and what is deliberately left -----------------------
 	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "open_buffer")

@@ -77,8 +77,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldWalk("set_termname", "buf", "curbuf", vimtext.FwdWalk, 1, "a new terminal notifying every buffer")
 	e.DropWalk("getout", vimtext.FwdWalk, w71lit6, 1, "quitting unloading every buffer, whose break bound to the walk")
 	e.Body("buflist_findpat", w71lit7, "buflist_findpat matching against every buffer")
-	e.DropWalk("check_changed_any", vimtext.FwdWalk, w71lit8,
-		2, "counting the buffers to check, and re-adding the one already seeded")
+	// check_changed_any's walks went with :q's refusal at phase 1 (quitfront,
+	// phase 94's move)
 	e.DropWalk("open_buffer", strings.ReplaceAll(vimtext.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
 
 	e.InFunction("open_buffer", func(e *edit.E) {
@@ -104,9 +104,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w71lit16, w71lit17, 1, "free_buffer deferring onto a chain nothing ever drained")
 	})
 	e.Literal(w71lit10, w71lit11, 1, "the mapping scan walking the list, still twice: curbuf then the globals")
-	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.Literal(w71lit18, w71lit19, 1, "set_curbuf entering a different buffer")
-	})
+	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 94's move)
 	e.InFunction("close_buffer", func(e *edit.E) {
 		e.FoldNever(edit.Head("if (wipe_buf && buf->b_nwindows <= 0 && (buf->b_prev != NULL || buf->b_next != NULL))"), 1,
 			"close_buffer unlinking a buffer that was never linked to another")

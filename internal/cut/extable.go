@@ -364,3 +364,25 @@ func FileFront(text []byte, w io.Writer) ([]byte, error) {
 		len(fileFrontCmds), strings.Join(fileFrontCmds, " "))
 	return []byte(t), nil
 }
+
+// quitHead is ex_quit's refusal on the seed: a changed buffer, more files to
+// edit, or another changed buffer kept `:q` from quitting.
+const quitHead = "if ((!buf_hide(wp->w_buffer) && check_changed(wp->w_buffer, (p_awa ? CCGD_AW : 0) | (eap->forceit ? CCGD_FORCEIT : 0) | CCGD_EXCMD)) || check_more(TRUE, eap->forceit) == FAIL || (only_one_window() && check_changed_any(eap->forceit, TRUE)))"
+
+// QuitFront makes `:q` quit (the reform's front cut for phase 94's change):
+// with nothing that can be written, the refusal to quit a changed buffer is a
+// door onto nothing.  It folds never, the else arm -- quit -- stays, and
+// check_changed_any's tail, the last caller of the editor's buffer- and
+// window-switching code, goes with it.
+func QuitFront(text []byte, w io.Writer) ([]byte, error) {
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "ex_quit")
+	if !ok {
+		return nil, fmt.Errorf("quitfront: ex_quit is not defined")
+	}
+	body, err := edit.FoldNever(text[a:z], edit.Head(quitHead), 1)
+	if err != nil {
+		return nil, fmt.Errorf("quitfront: ex_quit's refusal -- %v", err)
+	}
+	fmt.Fprintln(w, "  quitfront    :q quits: ex_quit's refusal for a changed buffer folds never")
+	return append(append(append([]byte(nil), text[:a]...), body...), text[z:]...), nil
+}

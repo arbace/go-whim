@@ -146,7 +146,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, b := range []struct {
 		Name string
 		want int
-	}{{"CMD_read", 2}, {"ex_read", 0}, {"open_buffer", 6}, {"read_buffer", 17},
+	}{{"CMD_read", 2}, {"ex_read", 0}, {"open_buffer", 5}, {"read_buffer", 17}, // enter_buffer's went at phase 1 (quitfront)
 		{"readfile", 5}, {"usefilter", 9}} {
 		if k := mentions(text, b.Name); k != b.want {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
