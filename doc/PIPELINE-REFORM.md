@@ -589,6 +589,46 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        paid for the closure's 19 s.
 3. **D2 Ex table.** Delete rows at once, remove every `retire` step, and
    restate the named edits that survive.
+   - **D2a, done (branch `reform-d2`).** The rows are retired at the front;
+     phase 80 still deletes them.
+     - **The cut.** `exfront`, phase 1's second step, behind `FallOutOf`.
+       It points every row declared in `internal/phase/001/delta.md` at
+       `ex_ni`. The list moved there from 080; phase 80 now asserts it
+       finds 489 stubs. Of the 489, 271 are stubs in the seed already
+       (ten as `ex_script_ni`, left so), and 218 are retired here.
+     - **What falls out.** 21 objects only the retired handlers wrote: the
+       `:sort` state, `redir_fd`, `filetype_*`, `last_event`,
+       `ucmd_locked`, … They fold in two rounds: 5 ifs and 6 reads.
+     - **What it replaced.**
+       - all 21 `retire` steps, the `retire` op and its subcommand;
+       - the row rewrites in `noruntime`, `nointro` and phases 58, 63
+         and 69;
+       - every edit inside a handler that now dies at phase 1: in 9, 13,
+         16, 20, 24, 35, 36, 38, 40, 41, 42 and 62. That is the reverse
+         constraint of §3, gone as predicted;
+       - all of phase 33, which is a record now;
+       - counts restated in 40, 60, 69, 93, 94, 95 and 96, where
+         `redir_fd`, folded at phase 1, had been counted.
+
+       Phase 60 now writes `redirecting()` as `return FALSE;`, since
+       `redir_fd`'s half was already gone. Phase 96 asserts that, instead
+       of `redir_fd`'s single write.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       No shape edit was needed.
+       - In order: 150 phases, 989 s (1,004 after D1b).
+       - The parallel check: 149 links, 82 s.
+   - **D2b, not done: deleting the rows at the front.**
+     - **What it needs.** The seed still has the user-command enumerators
+       (`CMD_USER = -1`). Live code compares `cmdidx` with hundreds of
+       commands that would no longer exist, so deleting a row's enumerator
+       makes each comparison a compile error.
+     - **The machinery.** A generic rule is needed: a comparison with a
+       deleted enumerator is a constant. With it, the closure takes the
+       branches.
+     - **The migration.** Phases 2-79 fold such comparisons by hand, so
+       those folds become redundant in turn. Phase 80's ~40 acts must be
+       re-anchored on the seed's text, along with 81's syntax and the
+       command halves of 89-91 and 93.
 4. **D3 options.** Default-as-initialiser, then remove 54, 55 and 95 and the
    row halves.
 5. **D4 files, and D5.**

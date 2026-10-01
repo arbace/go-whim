@@ -70,8 +70,6 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	for _, l := range []struct{ old, new, what string }{
-		{"is_split_cmd || cmdmod.cmod_tab != 0", "is_split_cmd",
-			":argedit and friends testing for :tab"},
 		{" || cmod->cmod_tab != 0 ", "", "has_cmdmod counting :tab"},
 		{" && cmdmod.cmod_tab == 0)", ")", "CTRL-W's 'switchbuf' test for :tab"},
 		{"    cmdmod.cmod_tab = 0;\n    cmdmod.cmod_flags |= CMOD_NOSWAPFILE;\n",
@@ -82,72 +80,9 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 	}
-	if text, err = e.foldNever(text, `^[ \t]*if \(cmdmod\.cmod_tab\)$`, ":drop under :tab"); err != nil {
-		return nil, err
-	}
-	for _, l := range []struct{ old, what string }{
-		{"        postponed_split_tab = cmdmod.cmod_tab;\n", ":wincmd passing :tab on"},
-		{"        postponed_split_tab = 0;\n", ":wincmd clearing it"},
-	} {
-		if text, err = e.literal(text, l.old, "", l.what, 1); err != nil {
-			return nil, err
-		}
-	}
-
-	if text, err = e.inFunction(text, "ex_buffer_all", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.foldNever(s, `^[ \t]*if \(had_tab > 0\)$`,
-			":ball starting at the first tab page"); err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, " || (had_tab > 0 && wp != firstwin))", ")",
-			":ball closing windows for tab pages", 1); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldAlways(s, `^[ \t]*if \(had_tab == 0 \|\| tpnext == NULL\)$`,
-			":ball stopping after one tab page"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, `^[ \t]*if \(had_tab != 0\)$`,
-			":ball opening tab pages"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s,
-			`^[ \t]*if \(had_tab > 0 && tabpage_index\(NULL\) <= p_tpm\)$`,
-			":ball's 'tabpagemax'"); err != nil {
-			return nil, err
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "arg_all_close_unused_windows", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.foldNever(s, `^[ \t]*if \(aall->had_tab > 0\)$`,
-			":all starting at the first tab page"); err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, "(first_tabpage->tp_next == NULL || !aall->had_tab)", "TRUE",
-			":all deciding whether a last window may go", 1); err != nil {
-			return nil, err
-		}
-		return e.foldAlways(s, `^[ \t]*if \(aall->had_tab == 0 \|\| tpnext == NULL\)$`,
-			":all stopping after one tab page")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "arg_all_open_windows", func(s []byte) ([]byte, error) {
-		return e.foldNever(s,
-			`^[ \t]*if \(aall->had_tab > 0 && tabpage_index\(NULL\) <= p_tpm\)$`,
-			":all's 'tabpagemax'")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.literal(text, "    aall.had_tab = cmdmod.cmod_tab;\n", "",
-		":all remembering :tab", 1); err != nil {
-		return nil, err
-	}
+	// :argedit's, :drop's and :wincmd's tests for :tab, and :ball's, :all's
+	// and :tabdo's tab-page loops, died with those commands, retired at
+	// phase 1 (exfront, the reform's D2)
 
 	if text, err = e.inFunction(text, "ex_splitview", func(s []byte) ([]byte, error) {
 		return e.foldNever(s, `^[ \t]*if \(use_tab\)$`, "ex_splitview opening a tab page")
@@ -163,45 +98,6 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.foldNever(text,
 		`^[ \t]*if \(close_disallowed == 0 && cmd == CMD_tabnew\)$`,
 		"window_layout_locked naming :tabnew"); err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "ex_listdo", func(s []byte) ([]byte, error) {
-		var err error
-		for _, l := range []struct{ old, new, what string }{
-			{"eap->cmdidx != CMD_windo && eap->cmdidx != CMD_tabdo)",
-				"eap->cmdidx != CMD_windo)", ":tabdo in 'winfixbuf'"},
-			{"eap->cmdidx == CMD_windo || eap->cmdidx == CMD_tabdo || buf_hide",
-				"eap->cmdidx == CMD_windo || buf_hide", ":tabdo needing no write"},
-			{`        case CMD_tabdo:
-            for (; tp != NULL && i + 1 < eap->line1; tp = tp->tp_next)
-            {
-                i++;
-            }
-            break;
-`, "", ":tabdo finding its first tab page"},
-		} {
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		if s, err = e.foldNever(s, `^[ \t]*else if \(eap->cmdidx == CMD_tabdo\)$`,
-			":tabdo moving to the next tab page"); err != nil {
-			return nil, err
-		}
-		for _, l := range []struct{ old, new, what string }{
-			{"if (eap->cmdidx == CMD_windo || eap->cmdidx == CMD_tabdo)",
-				"if (eap->cmdidx == CMD_windo)", ":tabdo counting its range"},
-			// The tab-page cursor only :tabdo read.  The sweep takes a local
-			// nothing names but not a store to one, so the store goes here.
-			{"        tp = first_tabpage;\n", "", ":tabdo starting at the first tab page"},
-		} {
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		return s, nil
-	}); err != nil {
 		return nil, err
 	}
 
@@ -374,11 +270,11 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		}
 		n++
 	}
-	// Two: its declaration, and ex_buffer_all's had_tab, a local nothing reads
-	// now that the sweep takes.
-	if n != 2 {
-		return nil, fmt.Errorf("notabs: cmod_tab outside its declaration and had_tab -- "+
-			"%d mentions, expected 2", n)
+	// One: its declaration (ex_buffer_all, whose had_tab read it, died with
+	// :ball at phase 1).
+	if n != 1 {
+		return nil, fmt.Errorf("notabs: cmod_tab outside its declaration -- "+
+			"%d mentions, expected 1", n)
 	}
 
 	e.say("nothing makes or reaches a second tab page")

@@ -9,29 +9,13 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-// NoIntro points :intro and :version at ex_ni and cuts the splash screen.
+// NoIntro cuts the splash screen.
 //
-// Both counts are asserted, not hoped for: one row each, and exactly TWO
-// maybe_intro_message() call sites.  A different number means the redraw path
+// The count is asserted, not hoped for: exactly TWO maybe_intro_message()
+// call sites.  A different number means the redraw path
 // has moved under the phase, and a partial cut would leave one splash behind.
 func NoIntro(text []byte, w io.Writer) ([]byte, error) {
-	for _, name := range []string{"intro", "version"} {
-		pat := regexp.MustCompile(fmt.Sprintf(
-			`(\[CMD_%s\] = \{\(char_u \*\)"%s", sizeof\("%s"\) - 1, )(\w+)`,
-			name, name, name))
-		locs := pat.FindAllSubmatchIndex(text, -1)
-		if len(locs) != 1 {
-			return nil, fmt.Errorf("nointro: expected one row for :%s, matched %d",
-				name, len(locs))
-		}
-		l := locs[0]
-		var buf []byte
-		buf = append(buf, text[:l[3]]...)
-		buf = append(buf, "ex_ni"...)
-		buf = append(buf, text[l[1]:]...)
-		text = buf
-	}
-
+	// :intro and :version point at ex_ni from phase 1 (exfront, D2)
 	splash := regexp.MustCompile(edit.Line("maybe_intro_message();"))
 	n := len(splash.FindAll(text, -1))
 	if n != 2 {
@@ -39,7 +23,7 @@ func NoIntro(text []byte, w io.Writer) ([]byte, error) {
 			"the redraw path has moved under this phase", n)
 	}
 	text = splash.ReplaceAll(text, nil)
-	fmt.Fprintf(w, "  nointro      :intro and :version to ex_ni, %d splash call sites cut\n", n)
+	fmt.Fprintf(w, "  nointro      %d splash call sites cut\n", n)
 	return text, nil
 }
 

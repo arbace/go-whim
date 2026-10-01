@@ -43,7 +43,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	// 'fileignorecase'
-	e.Literal("regmatch.rm_ic = p_fic;", "regmatch.rm_ic = FALSE;", 2,
+	// one; the other died with the command retired at phase 1 that reached
+	// it (exfront, the reform's D2)
+	e.Literal("regmatch.rm_ic = p_fic;", "regmatch.rm_ic = FALSE;", 1,
 		"file patterns ignoring case by 'fileignorecase'")
 	e.InFunction("fname_match", func(e *edit.E) {
 		e.Literal("rmp->rm_ic = p_fic || ignore_case;", "rmp->rm_ic = ignore_case;", 1,
@@ -71,7 +73,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(edit.Head("if (verbose_fd != NULL)"), 2, "writing to 'verbosefile'")
 	})
 	e.InFunction("redirecting", func(e *edit.E) {
-		e.Sub(`return redir_fd != NULL \|\| \*p_vfile != NUL\s*;`, "return redir_fd != NULL;", 1,
+		// redir_fd's test is gone already: only :redir wrote it, and the
+		// fall-out closure folded it at phase 1 (exfront, the reform's D2)
+		e.Sub(`return \*p_vfile != NUL\s*;`, "return FALSE;", 1,
 			"redirecting to 'verbosefile'")
 	})
 	e.InFunction("verbose_enter", func(e *edit.E) {

@@ -1,5 +1,11 @@
 # Phase 33 — commands whose machinery has already gone
 
+**A record now.** Phase 1 retires every Ex command the product has not, at
+the front (`exfront`, the pipeline reform's second drop package,
+`doc/PIPELINE-REFORM.md` §7). The handlers this phase edited die there, so it
+has no plan entry and no program. What follows is the account of the cut as
+it was made here.
+
 Every one of these still had a handler, and every one refused or did nothing
 when run with a sensible argument. That was measured one at a time, in Ex mode,
 reading the message each left behind:

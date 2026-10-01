@@ -18,6 +18,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -45,7 +46,10 @@ var ops = map[string]Step{
 	"noarglist": plain(cut.NoArgList),
 	// the command line cut at the front, and what that leaves unwritten
 	// folded; read_cmd_fd is held: the product keeps it
-	"argvfront":   Step(xform.FallOutOf(xform.Step(plain(cut.ArgvFront)), "read_cmd_fd")),
+	"argvfront": Step(xform.FallOutOf(xform.Step(plain(cut.ArgvFront)), "read_cmd_fd")),
+	// the Ex commands the product has not, retired at the front, and what
+	// only their handlers wrote folded (the reform's D2)
+	"exfront":     Step(xform.FallOutOf(xform.Step(exFront))),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -97,7 +101,6 @@ var ops = map[string]Step{
 	// The five that take arguments, and the three that only ask a question.
 	"dropoptions": dropOptions,
 	"droplocal":   dropLocal,
-	"retire":      retire,
 	"funcreach":   funcReach,
 	"cmdidxs":     cmdIdxs,
 	"edit":        runEdit,
@@ -199,21 +202,30 @@ func dropLocal(t []byte, args []string, w io.Writer) ([]byte, error) {
 	return t, nil
 }
 
-// retire is `retire <command>...`.
-func retire(t []byte, args []string, w io.Writer) ([]byte, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("retire: no command named")
+// exFront points every row phase 1 declares (internal/phase/001/delta.md,
+// handed as REMOVED) at ex_ni: the 489 commands the product has not, 271 of
+// them stubs in the seed already.
+func exFront(t []byte, _ []string, w io.Writer) ([]byte, error) {
+	names := strings.Fields(os.Getenv("REMOVED"))
+	if len(names) == 0 {
+		return nil, fmt.Errorf("exfront: no rows declared")
 	}
-	out, done, already, err := cut.Retire(t, args)
+	// a row ex_script_ni already is a stub as it stands
+	var want []string
+	script := 0
+	for _, n := range names {
+		q := regexp.QuoteMeta(n)
+		if regexp.MustCompile(`\[CMD_\w+\] = \{\(char_u \*\)"` + q + `", sizeof\("` + q + `"\) - 1,\s*ex_script_ni\b`).Match(t) {
+			script++
+			continue
+		}
+		want = append(want, n)
+	}
+	out, done, already, err := cut.Retire(t, want)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(w, "  retire       %d commands now answer \"not implemented\": %s\n",
-		len(done), strings.Join(done, " "))
-	if len(already) > 0 {
-		fmt.Fprintf(w, "  retire       %d were already stubs: %s\n",
-			len(already), strings.Join(already, " "))
-	}
+	fmt.Fprintf(w, "  exfront      %d commands retired, %d were stubs already\n", len(done), len(already)+script)
 	return out, nil
 }
 

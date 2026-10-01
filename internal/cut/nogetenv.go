@@ -138,18 +138,9 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nogetenv     $TMPDIR, $TEMP and $TMP; 'backupskip' keeps /tmp")
 
-	// vimrc_found() is reached only from do_source_ext(), and every do_source()
-	// call in the file passes DOSO_NONE -- so these two arms have been dead
-	// since Phase 18 stopped sourcing a vimrc.  They are what keep vim_setenv,
-	// export_myvimdir and $MYVIMDIR alive.
-	if text, err = cutCounted(text,
-		`(?m)[ \t]*if \(is_vimrc == DOSO_VIMRC\)\n[ \t]*\{\n`+
-			`[ \t]*vimrc_found\(fname_exp, \(char_u \*\)"MYVIMRC"\);\n[ \t]*\}\n`+
-			`[ \t]*else if \(is_vimrc == DOSO_GVIMRC\)\n[ \t]*\{\n`+
-			`[ \t]*vimrc_found\(fname_exp, \(char_u \*\)"MYGVIMRC"\);\n[ \t]*\}\n`,
-		"nogetenv", "the two DOSO_VIMRC arms of do_source_ext", 1); err != nil {
-		return nil, err
-	}
+	// vimrc_found() and do_source_ext()'s two DOSO_VIMRC arms, which kept
+	// vim_setenv, export_myvimdir and $MYVIMDIR alive, died with :source,
+	// retired at phase 1, and the startup scripts (exfront, the reform's D2)
 	if text, err = edit.DropIf(text, edit.Head("if (varp == &p_rtp)"), 1); err != nil {
 		return nil, err
 	}

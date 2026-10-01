@@ -7,7 +7,6 @@ import (
 )
 
 var (
-	unloadWord = regexp.MustCompile(`\bunload\b`)
 	ecmdAddAlt = regexp.MustCompile(`\bECMD_(ADDBUF|ALTBUF)\b`)
 )
 
@@ -77,48 +76,8 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "do_buffer_ext", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "    int unload = (action == DOBUF_UNLOAD || "+
-			"action == DOBUF_DEL || action == DOBUF_WIPE || action == DOBUF_WIPE_REUSE);\n",
-			"", "do_buffer_ext deciding whether it unloads", 1)
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.literal(s, " && !unload && ", " && ",
-			"do_buffer_ext counting unlisted buffers for an unload", 1)
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.literal(s, "(unload || (help_only ? ", "((help_only ? ",
-			"do_buffer_ext counting every buffer for an unload", 1)
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.foldAlways(s, `^[ \t]*if \(!unload\)$`,
-			"do_buffer_ext reporting a missing buffer")
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.foldNever(s, `^[ \t]*if \(unload\)$`,
-			"do_buffer_ext unloading, deleting and wiping")
-		if err != nil {
-			return nil, err
-		}
-		if unloadWord.Match(s) {
-			return nil, fmt.Errorf("nobuflist: do_buffer_ext still names unload")
-		}
-		return s, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "goto_buffer", func(s []byte) ([]byte, error) {
-		return e.subOnce(s, `^[ \t]*case CMD_bNext:\n`, "goto_buffer naming :bNext")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// do_buffer_ext's unloading and goto_buffer's :bNext died with the buffer
+	// commands, retired at phase 1 (exfront, the reform's D2)
 
 	text, err = e.inFunction(text, "set_context_by_cmdname", func(s []byte) ([]byte, error) {
 		s, err := e.subOnce(s, `^[ \t]*case CMD_bufdo:\n`, "completion for :bufdo")

@@ -22,16 +22,6 @@ var (
 	nwTableRow  = regexp.MustCompile(`^[ \t]*\[?CMD_`)
 )
 
-// foldCount folds a condition that is now always false, `count` times.
-func (e ed) foldCount(seg []byte, pattern, what string, count int) ([]byte, error) {
-	out, err := edit.FoldNever(seg, "(?m)"+pattern, count)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
-	}
-	e.say(what)
-	return out, nil
-}
-
 // dropIfPlain is DropIf with no count assertion, matching the Python's own
 // helper here.
 func (e ed) dropIfPlain(seg []byte, pattern, what string) ([]byte, error) {
@@ -108,7 +98,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}); err != nil {
 		return nil, err
 	}
-	for _, name := range []string{"ex_quit", "before_quit_all", "ex_exit", "text_locked",
+	for _, name := range []string{"ex_quit", "ex_exit", "text_locked",
 		"get_text_locked_msg", "nv_normal"} {
 		name := name
 		if text, err = e.inFunction(text, name, func(s []byte) ([]byte, error) {
@@ -266,7 +256,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.subCount(text,
 		`^[ \t]*\((?:curwin|wp)\)->w_onebuf_opt\.wo_(?:scb|crb) = FALSE;\n`,
-		"every assignment of 'scrollbind' and 'cursorbind'", 18); err != nil {
+		// 14: four more died with the commands retired at phase 1 (D2)
+		"every assignment of 'scrollbind' and 'cursorbind'", 14); err != nil {
 		return nil, err
 	}
 	for _, v := range []struct{ wv, fld string }{
@@ -328,63 +319,10 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 
-	if text, err = e.inFunction(text, "ex_drop", func(s []byte) ([]byte, error) {
-		s, err := e.dropIfPlain(s, `^[ \t]*if \(!buf_hide\(curbuf\)\)$`,
-			":drop asking whether to split")
-		if err != nil {
-			return nil, err
-		}
-		return e.foldNever(s, `^[ \t]*if \(split\)$`, ":drop splitting")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "do_argfile", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "!is_split_cmd && ", "",
-			"do_argfile checking the buffer can go", 1)
-		if err != nil {
-			return nil, err
-		}
-		return e.foldNever(s, `^[ \t]*if \(is_split_cmd\)$`, "do_argfile splitting")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "goto_buffer", func(s []byte) ([]byte, error) {
-		s, err := e.subCount(s, `^[ \t]*case CMD_(?:sbnext|sbNext|sbprevious):\n`,
-			"goto_buffer naming :sb commands", 3)
-		if err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, `*eap->cmd == 's' ? DOBUF_SPLIT : DOBUF_GOTO`, "DOBUF_GOTO",
-			"goto_buffer choosing a split", 1); err != nil {
-			return nil, err
-		}
-		return e.foldNever(s,
-			`^[ \t]*if \(swap_exists_action == SEA_QUIT && \*eap->cmd == 's'\)$`,
-			"goto_buffer closing the split")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "do_buffer_ext", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "(action == DOBUF_GOTO || action == DOBUF_SPLIT)",
-			"action == DOBUF_GOTO", "do_buffer_ext refusing a dummy buffer", 1)
-		if err != nil {
-			return nil, err
-		}
-		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(action == DOBUF_SPLIT && swbuf_goto_win_with_buf\(buf\) != NULL\)$`,
-				"do_buffer_ext's 'switchbuf'"},
-			{`^[ \t]*if \(action == DOBUF_SPLIT && win_split\(0, 0\) == FAIL\)$`,
-				"do_buffer_ext splitting"},
-			{`^[ \t]*if \(action == DOBUF_SPLIT\)$`, "do_buffer_ext unbinding the split"},
-		} {
-			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
-				return nil, err
-			}
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
+	// :drop, do_argfile, goto_buffer and do_buffer_ext splitting a window,
+	// before_quit_all asking about the command-line window, and :windo's walk
+	// in ex_listdo died with the commands that reached them, retired at phase
+	// 1 (exfront, the reform's D2)
 	if text, err = e.inFunction(text, "buflist_getfile", func(s []byte) ([]byte, error) {
 		return e.dropIfPlain(s, `^[ \t]*if \(options & GETF_SWITCH\)$`,
 			"buflist_getfile's 'switchbuf'")
@@ -394,41 +332,6 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.literal(text,
 		"    (void)opt_strings_flags(p_swb, p_swb_values, &swb_flags, TRUE);\n", "",
 		"didset_string_options reading 'switchbuf'", 1); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "ex_listdo", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.foldNever(s,
-			`^[ \t]*if \(curwin->w_onebuf_opt\.wo_wfb && eap->cmdidx != CMD_windo\)$`,
-			"ex_listdo's 'winfixbuf'"); err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, "eap->cmdidx == CMD_windo || ", "",
-			":windo skipping the changed-buffer check", 1); err != nil {
-			return nil, err
-		}
-		if s, err = e.subOnce(s,
-			`^[ \t]*wp = firstwin;\n[ \t]*switch \(eap->cmdidx\)\n[ \t]*\{\n[ \t]*case CMD_windo:\n`+
-				`[ \t]*for \(; wp != NULL && i \+ 1 < eap->line1; wp = wp->w_next\)\n[ \t]*\{\n[ \t]*i\+\+;\n`+
-				`[ \t]*\}\n[ \t]*break;\n[ \t]*default:\n[ \t]*break;\n[ \t]*\}\n`,
-			":windo's starting window"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldCount(s, `^[ \t]*if \(eap->cmdidx == CMD_windo\)$`,
-			":windo stepping, binding and stopping", 3); err != nil {
-			return nil, err
-		}
-		for _, l := range []struct{ old, what string }{
-			// The stores go here; i's and wp's declarations are the sweep's.
-			{"        i = 0;\n", "ex_listdo starting the count"},
-			{"            ++i;\n", "ex_listdo counting"},
-		} {
-			if s, err = e.literal(s, l.old, "", l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		return s, nil
-	}); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "set_context_by_cmdname", func(s []byte) ([]byte, error) {
@@ -445,7 +348,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}{
 		{"a split modifier in the parser", len(nwSplitMod.FindAll(text, -1)), 0},
 		{"nv_window in the key table", len(nwNvWindow.FindAll(text, -1)), 0},
-		{"DOBUF_SPLIT outside its enumerator", len(nwDobufSpl.FindAll(text, -1)), 1},
+		// its enumerator went too: do_buffer_ext died with :buffer (D2)
+		{"DOBUF_SPLIT", len(nwDobufSpl.FindAll(text, -1)), 0},
 		// The Python writes this one with a NEGATIVE LOOKAHEAD; RE2 has none,
 		// so it is two tests over the lines.
 		{"CMD_windo outside the table", len(linesMatchingUnless(text, nwWindoName, nwTableRow)), 0},

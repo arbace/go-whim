@@ -5,7 +5,6 @@ package main
 // holds Go.  A new phase with an edit.go adds its line here.
 import (
 	_ "github.com/arbace/go-whim/internal/phase/002"
-	_ "github.com/arbace/go-whim/internal/phase/033"
 	_ "github.com/arbace/go-whim/internal/phase/044"
 	_ "github.com/arbace/go-whim/internal/phase/048"
 	_ "github.com/arbace/go-whim/internal/phase/054"

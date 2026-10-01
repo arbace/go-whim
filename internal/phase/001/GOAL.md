@@ -24,6 +24,16 @@ only what that makes constant:
 in phases 3, 18, 21, 43, 85 and 88, and the shapes come out the same: the
 product is byte for byte what it was.
 
+**Then every Ex command the product has not is retired** (`exfront`, the
+reform's second drop package, D2). Its rows point at `ex_ni`, as 21 `retire`
+steps and four programs in phases 1-79 did a few at a time. The 489 names are
+declared in this phase's `delta.md`; 271 are stubs in the seed already, and 218
+are retired here. The handlers then have no row, and the sweep takes them. That
+also takes every edit phases 9 to 96 made inside them, the reverse constraint of
+`doc/PIPELINE-REFORM.md` §3. What only those handlers wrote falls out the same
+way as for the command line: 21 objects, among them the `:sort` state,
+`redir_fd` and the `filetype_*` flags. Phase 80 still deletes the rows.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

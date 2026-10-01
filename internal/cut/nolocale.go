@@ -27,8 +27,8 @@ var nolocaleEdits = []struct {
 		`(?m)^([ \t]*)set_init_default_encoding\(\);$`, "${1}(void)mb_init();", 1},
 	{"'encoding' defaults to utf-8 instead of latin1",
 		`(?m)(\{"encoding",[^\n]* \{\(char_u \*\))"latin1"`, `${1}"utf-8"`, 1},
-	{"locale-aware collation in :sort",
-		`(?m)[ \t]*if \(sort_lc\)\n[ \t]*\{\n[ \t]*return strcoll\([^\n]*\n[ \t]*\}\n`, "", 1},
+	// :sort's locale-aware collation died with :sort, retired at phase 1
+	// (exfront, the reform's D2)
 	{"the $LANG-gated maintainer line in :messages",
 		`(?m)[ \t]*s = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"LANG"\)\);\n` +
 			`[ \t]*if \(s != NULL && \*s != NUL\)\n[ \t]*\{\n[ \t]*msg_attr\([^\n]*\n[ \t]*\}\n`, "", 1},

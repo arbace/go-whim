@@ -110,14 +110,14 @@ var w93Before = map[string]int{
 	"readonlymode": 3, "mch_dirname": 5, "shorten_buf_fname": 2,
 	"check_changed": 4, "no_write_message": 3,
 	"p_ur": 2, "p_ro": 2, "read_cmd_fd": 12, "vim_fsync": 3,
-	"scriptin": 8, "redir_fd": 6,
+	"scriptin": 8, "redir_fd": 0, // folded at phase 1: only :redir wrote it (D2)
 }
 
 var w93After = map[string]int{
 	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 1,
 	"shorten_buf_fname": 1, "check_fname": 3, "buf_get_fname": 3,
 	"check_changed": 4, "no_write_message": 3, "p_ur": 2, "p_ro": 2,
-	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
+	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 // w93Writers are the four functions every write to the three fields lives in,
@@ -582,7 +582,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	p.Say("the cut is done: CMD_file 0, EX_XFILE 1 (its own definition), buflist_name_nr " +
-		"1, readonlymode 0 -- and read_cmd_fd 12, vim_fsync 3, scriptin 8 and redir_fd " +
-		"6 untouched, each of them a later phase's")
+		"1, readonlymode 0 -- and read_cmd_fd 12, vim_fsync 3 and scriptin 8 " +
+		"untouched, each of them a later phase's")
 	return text, nil
 }

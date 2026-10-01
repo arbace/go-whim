@@ -43,7 +43,6 @@ package p069
 // lines, because that is the check the earlier attempt did not have and needed.
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/edit"
@@ -59,11 +58,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 1. a second file argument: the command line's own, gone with it
 	// (argvfront, the reform's D1)
 
-	// 2. :next and :previous
-	for _, c := range []struct{ Name, handler string }{{"next", "ex_next"}, {"previous", "ex_previous"}} {
-		e.Sub(fmt.Sprintf(`(?m)^([ \t]*\[CMD_%s\] = \{\(char_u \*\)"%s", sizeof\("%s"\) - 1, )%s,`,
-			c.Name, c.Name, c.Name, c.handler), "${1}ex_ni,", 1, fmt.Sprintf(":%s points at ex_ni", c.Name))
-	}
+	// 2. :next and :previous point at ex_ni from phase 1 (exfront, the
+	// reform's D2)
 
 	// 3. the readers that can only ever see one
 	e.Body("check_more", w69lit1, "check_more refusing to quit with files left to edit")
@@ -103,7 +99,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// live functions, so its BODY folds and the calls go; editing_arg_idx() is
 	// reached only from it.  arg_all() builds the ## expansion from every entry,
 	// and now has none to build from.
-	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 6, "the six calls that revalidated the argument index")
+	// five: the sixth died with a command retired at phase 1 (D2)
+	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 5, "the five calls that revalidated the argument index")
 	e.InFunction("eval_vars", func(e *edit.E) {
 		e.Literal(w69lit16, w69lit17, 1, "## expanding to every file in the argument list")
 	})

@@ -59,7 +59,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(edit.Line("if (!eap->forceit)", "{", "autowrite_all();", "}"), 1, ":stop writing all buffers first")
 	})
 	e.Literal("(p_awa ? CCGD_AW : 0) | ", "", 3, "'autowriteall' asking check_changed to write")
-	e.Literal("CCGD_AW | ", "", 2, ":next and the argument list asking check_changed to autowrite")
+	// :next and the argument list asked check_changed to autowrite; they
+	// died with the commands, retired at phase 1 (exfront, the reform's D2)
 
 	// 'buftype'
 	e.InFunction("fileinfo", func(e *edit.E) {

@@ -18,7 +18,6 @@ package p063
 // jumps back, '' still does, and :jumps is refused.
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/edit"
@@ -30,11 +29,7 @@ import (
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nojumplist", text, w)
 
-	for _, c := range []struct{ Name, handler string }{{"jumps", "ex_jumps"}, {"clearjumps", "ex_clearjumps"}} {
-		e.Sub(fmt.Sprintf(`(?m)^([ \t]*\[CMD_%s\] = \{\(char_u \*\)"%s", sizeof\("%s"\) - 1, )%s,`,
-			c.Name, c.Name, c.Name, c.handler), "${1}ex_ni,", 1,
-			fmt.Sprintf(":%s points at ex_ni", c.Name))
-	}
+	// :jumps and :clearjumps point at ex_ni from phase 1 (exfront, D2)
 	e.Sub(`(?m)^([ \t]*\{Ctrl_I, )nv_pcmark(, 0, 0\},)`, "${1}nv_error${2}", 1,
 		"CTRL-I in Normal mode points at nv_error")
 

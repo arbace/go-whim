@@ -46,6 +46,7 @@ var Plan = []Phase{
 	{N: 1, Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
 			{Op: "argvfront"},
+			{Op: "exfront", Declared: true},
 			{Op: "noruntime"},
 		}},
 	{N: 2, Name: "the options for features that are not here",
@@ -73,7 +74,6 @@ var Plan = []Phase{
 	{N: 7, Name: "the editor stops looking for files it was not given",
 		Steps: []Step{
 			{Op: "noglob"},
-			{Op: "retire", Args: []string{"cd", "chdir", "lcd", "lchdir", "tcd", "tchdir", "pwd"}},
 		}},
 	{N: 8, Name: "`:!` keeps its name and loses its process",
 		Steps: []Step{
@@ -82,19 +82,16 @@ var Plan = []Phase{
 	{N: 9, Name: "the editor stops asking the environment what language it is in",
 		Steps: []Step{
 			{Op: "nolocale"},
-			{Op: "retire", Args: []string{"language"}},
 			{Op: "dropoptions", Args: []string{"langmap", "langmenu", "langnoremap", "langremap"}},
 		}},
 	{N: 10, Name: "no tag stack",
 		Steps: []Step{
 			{Op: "notags"},
-			{Op: "retire", Args: []string{"tag", "tags", "tNext", "tfirst", "tjump", "tlast", "tnext", "tprevious", "trewind", "tselect", "stag", "stjump", "stselect", "ltag", "pop"}},
 			{Op: "dropoptions", Args: []string{"tagbsearch", "taglength", "tagrelative", "tagstack", "tagsecure", "showfulltag"}},
 		}},
 	{N: 11, Name: "nothing is written that was not asked for",
 		Steps: []Step{
 			{Op: "noswap"},
-			{Op: "retire", Args: []string{"recover", "preserve", "swapname", "mkvimrc", "mkexrc", "mksession", "mkview", "checktime"}},
 			{Op: "dropoptions", Args: []string{"updatecount", "swapsync"}},
 		}},
 	{N: 12, Name: "UTF-8, and no other encoding, ever",
@@ -109,7 +106,6 @@ var Plan = []Phase{
 	{N: 14, Name: "a file name means the file of that name",
 		Steps: []Step{
 			{Op: "nofind"},
-			{Op: "retire", Args: []string{"find", "sfind", "tabfind"}},
 		}},
 	{N: 15, Name: "the last two encoding options",
 		Steps: []Step{
@@ -190,7 +186,6 @@ var Plan = []Phase{
 	{N: 29, Name: "`:command`, user-defined commands",
 		Steps: []Step{
 			{Op: "noucmd"},
-			{Op: "retire", Args: []string{"command", "comclear", "delcommand"}},
 		}},
 	{N: 30, Name: "`K` and the tag jumps, keeping `*` and `#`",
 		Steps: []Step{
@@ -208,19 +203,13 @@ var Plan = []Phase{
 			{Op: "droplocal", Args: []string{"b_p_cpt", "b_p_cot", "b_p_dict", "b_p_tsr", "b_p_inf", "b_p_ac"}},
 			{Op: "nocomplkeys"},
 		}},
-	{N: 33, Name: "commands whose machinery has already gone",
-		Steps: []Step{
-			{Op: "retire", Args: []string{"shell", "gui", "gvim", "cdo", "cfdo", "ldo", "lfdo", "vim9cmd", "endclass", "endinterface", "endenum", "public", "static", "this", "digraphs", "redrawtabpanel", "colorscheme"}},
-			{Op: "edit", Args: []string{"whim33"}},
-		}},
+	// 33, commands whose machinery has already gone: a record (internal/phase/033/GOAL.md); what it cut went with the Ex commands retired at phase 1 (exfront, the reform's D2).
 	{N: 34, Name: "no abbreviations",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"abbreviate", "noreabbrev", "unabbreviate", "abclear", "iabbrev", "inoreabbrev", "iunabbrev", "iabclear", "cabbrev", "cnoreabbrev", "cunabbrev", "cabclear"}},
 			{Op: "noabbr"},
 		}},
 	{N: 35, Name: "no scripts, no session, no autocommands",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"source", "redir", "sleep", "smile", "scriptencoding", "scriptversion", "vim9script", "legacy", "autocmd", "augroup", "doautocmd", "doautoall", "noautocmd", "sandbox", "filetype", "setfiletype"}},
 			{Op: "nosession"},
 			{Op: "dropoptions", Args: []string{"eventignore"}},
 			{Op: "dropoptions", Args: []string{"--local", "eventignorewin"}},
@@ -228,25 +217,21 @@ var Plan = []Phase{
 		}},
 	{N: 36, Name: "one tab page, always",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"tab", "tabclose", "tabdo", "tabedit", "tabfirst", "tabmove", "tablast", "tabnext", "tabnew", "tabonly", "tabprevious", "tabNext", "tabrewind", "tabs", "redrawtabline"}},
 			{Op: "notabs"},
 			{Op: "dropoptions", Args: []string{"tabclose"}},
 			{Op: "dropoptions", Args: []string{"--strict", "showtabline", "tabline", "tabpagemax"}},
 		}},
 	{N: 37, Name: "no command that does nothing",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"browse", "confirm", "tmap", "tnoremap", "tunmap", "tmapclear", "winpos", "behave", "mode", "open"}},
 			{Op: "noinert"},
 		}},
 	{N: 38, Name: "the argument list is walked by `:next` and `:previous` alone",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"args", "argglobal", "arglocal", "argadd", "argdelete", "argdedupe", "argedit", "argument", "sargument", "first", "sfirst", "rewind", "srewind", "last", "slast", "snext", "wnext", "Next", "sNext", "sprevious", "wNext", "wprevious", "all", "sall", "argdo"}},
 			{Op: "noarglist"},
 		}},
 	// Phases 39-40, merged: one window, then no window sizes.
 	{N: 40, Name: "one window, and no window sizes",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"split", "vsplit", "new", "vnew", "sview", "close", "only", "resize", "wincmd", "windo", "syncbind", "hide", "sbuffer", "sbNext", "sball", "sbfirst", "sblast", "sbmodified", "sbnext", "sbprevious", "sbrewind", "ball", "unhide", "sunhide", "aboveleft", "leftabove", "belowright", "rightbelow", "topleft", "botright", "vertical", "horizontal"}},
 			{Op: "nowindows"},
 			{Op: "dropoptions", Args: []string{"switchbuf", "scrollopt", "cmdwinheight", "cedit"}},
 			{Op: "dropoptions", Args: []string{"--local", "scrollbind", "cursorbind", "winfixbuf"}},
@@ -258,12 +243,10 @@ var Plan = []Phase{
 		}},
 	{N: 41, Name: "the buffer list is walked by `:bnext` and `:bprevious` alone",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"buffer", "buffers", "files", "ls", "badd", "balt", "bdelete", "bunload", "bwipeout", "bfirst", "brewind", "blast", "bmodified", "bNext", "bufdo"}},
 			{Op: "nobuflist"},
 		}},
 	{N: 42, Name: "one buffer, always",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"bnext", "bprevious", "keepalt"}},
 			{Op: "onebuffer"},
 			{Op: "dropoptions", Args: []string{"hidden"}},
 			{Op: "dropoptions", Args: []string{"--local", "bufhidden"}},
@@ -274,17 +257,11 @@ var Plan = []Phase{
 	// Phases 44-48, merged: Ex commands retired one by one, one idea split for history's sake.
 	{N: 48, Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"!", "sort", "uniq", "retab", "left", "center", "right"}},
 			{Op: "edit", Args: []string{"whim44"}},
-			{Op: "retire", Args: []string{"drop"}},
-			{Op: "retire", Args: []string{"wall", "qall", "quitall", "wqall", "xall"}},
-			{Op: "retire", Args: []string{"startinsert", "startreplace", "startgreplace", "stopinsert"}},
-			{Op: "retire", Args: []string{"noswapfile"}},
 			{Op: "edit", Args: []string{"whim48"}},
 		}},
 	{N: 49, Name: "one set of options",
 		Steps: []Step{
-			{Op: "retire", Args: []string{"setlocal", "setglobal"}},
 			{Op: "oneoptset"},
 			{Op: "dropoptions", Args: []string{"--local", "modeline"}},
 			{Op: "dropoptions", Args: []string{"modelines", "modelineexpr", "modelinestrict"}},
@@ -457,7 +434,7 @@ var Plan = []Phase{
 		}},
 	{N: 80, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim80", "@state/words"}, Declared: true},
+			{Op: "edit", Args: []string{"whim80", "@state/words"}},
 		}},
 	{N: 81, Name: "one line, one command",
 		Steps: []Step{

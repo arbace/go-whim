@@ -20,11 +20,8 @@ import (
 // variable nobody can name is simply false -- but they keep the globals alive,
 // and a global that is alive is one the phase's own check cannot prove unread.
 var noinertoptsEdits = []struct{ what, pat, repl string }{
-	{"ex_drop saving and restoring 'autoread' across nothing",
-		`(?m)[ \t]*if \(!bufIsChanged\(curbuf\)\)\n[ \t]*\{\n` +
-			`[ \t]*int save_ar = curbuf->b_p_ar;\n` +
-			`[ \t]*curbuf->b_p_ar = TRUE;\n` +
-			`[ \t]*curbuf->b_p_ar = save_ar;\n[ \t]*\}\n`, ""},
+	// ex_drop's save and restore of 'autoread' died with :drop, retired at
+	// phase 1 (exfront, the reform's D2)
 	{`` + "`:setlocal autoread` meaning \"follow the global\"",
 		`(?m)[ \t]*if \(\(int \*\)varp == &curbuf->b_p_ar && opt_flags == OPT_LOCAL\)\n` +
 			`[ \t]*\{\n[ \t]*value = -1;\n[ \t]*\}\n[ \t]*else if`,

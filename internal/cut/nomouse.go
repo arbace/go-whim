@@ -193,17 +193,8 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nomouse      the tabline stops drawing a button to click")
 
-	// :behave is about selection, not the mouse, so it keeps working; it just
-	// stops setting an option that no longer exists.  Reached BY NAME, which
-	// is the lookup that returns -1 for a row that is not there and then is
-	// not checked -- E685 and a segfault before the first keystroke.
-	if text, err = cutCounted(text,
-		`(?m)^[ \t]*set_option_value_give_err\(\(char_u \*\)"mousemodel", 0L, `+
-			`\(char_u \*\)"\w+", 0\);\n`,
-		"nomouse", "ex_behave's two mousemodel lines", 2); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nomouse      :behave stops setting 'mousemodel'")
+	// ex_behave's two 'mousemodel' lines died with :behave, retired at
+	// phase 1 (exfront, the reform's D2)
 
 	// An option row is a ROOT for reachability, so did_set_ttymouse -- and
 	// through it check_mouse_termcode() -- survives the sweep, and

@@ -9,19 +9,19 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-// nostatCalls are the three direct buf_check_timestamp() sites, each with the
+// nostatCalls are the two direct buf_check_timestamp() sites, each with the
 // function it sits in, so a refusal names WHERE the shape moved.
 var nostatCalls = []struct{ pat, where string }{
 	{edit.Line("(void)buf_check_timestamp(curbuf, FALSE);"), "do_ecmd"},
 	{edit.Line("(void)buf_check_timestamp(buf, FALSE);"), "enter_buffer"},
-	{edit.Line("buf_check_timestamp(curbuf, FALSE);"), "ex_drop"},
+	// ex_drop's went with :drop, retired at phase 1 (exfront, the reform's D2)
 }
 
 // NoStat stops the editor re-reading a file it has already read.
 //
 // check_timestamps() becomes `return 0` -- its four callers each already handle
 // that answer, so stubbing is deliberate where unpicking four different control
-// structures is not.  The three direct buf_check_timestamp() calls then go,
+// structures is not.  The two direct buf_check_timestamp() calls then go,
 // because with the poll gone they are the only thing keeping 339 lines alive.
 //
 // check_mtime() is NOT touched: it runs only when the user asks to write, and

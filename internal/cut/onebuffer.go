@@ -55,30 +55,9 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "do_argfile", func(s []byte) ([]byte, error) {
-		s, err := e.foldNever(s, `^[ \t]*if \(buf_hide\(curbuf\)\)$`,
-			"do_argfile asking whether the file is another")
-		if err != nil {
-			return nil, err
-		}
-		for _, l := range []struct{ old, new, what string }{
-			{"(!buf_hide(curbuf) || !other) && ", "", "do_argfile checking a hidden buffer"},
-			{"(other ? 0 : CCGD_MULTWIN) | ", "", "do_argfile checking the same file in two windows"},
-		} {
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		if s, err = e.subOnce(s, `^[ \t]*other = TRUE;\n`,
-			"do_argfile assuming another file"); err != nil {
-			return nil, err
-		}
-		return e.literal(s, "(buf_hide(curwin->w_buffer) ? ECMD_HIDE : 0) + ", "",
-			"do_argfile hiding the buffer", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
+	// do_argfile, :next, can_abandon, alist_add and alist_add_list died with
+	// the argument-list and buffer commands, retired at phase 1 (exfront, the
+	// reform's D2)
 
 	// THE ORDER IS THE PYTHON'S.  These four one-line edits invite a loop --
 	// they are the same shape in four different functions -- but the Python
@@ -86,7 +65,6 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// prints as it succeeds.  Looping them emitted the same lines in a
 	// different order and 7 inputs differed.
 	for _, f := range []struct{ fn, old, new, what string }{
-		{"ex_next", "(buf_hide(curbuf) || ", "(", ":next hiding the buffer"},
 		{"set_curbuf", "!buf_hide(prevbuf) && ", "", "set_curbuf hiding the buffer"},
 	} {
 		f := f
@@ -105,13 +83,6 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return e.literal(s, "(buf_hide(curbuf) ? ECMD_HIDE : 0) + ", "",
 			"getfile hiding the buffer", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "can_abandon", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(buf_hide(buf) || ", "(", "can_abandon a hidden buffer", 1)
 	})
 	if err != nil {
 		return nil, err
@@ -291,25 +262,6 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 				`            fname = curbuf->b_sfname;\n        \}\n`,
 			saveasNew,
 			":saveas renaming the one buffer instead of swapping names with another", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "alist_add", func(s []byte) ([]byte, error) {
-		return e.subCountRepl(s,
-			`(?m)^([ \t]*)if \(set_fnum > 0\)\n[ \t]*\{\n([ \t]*\(\(aentry_T \*\)\(\(al\)->al_ga\.ga_data\)\)\[al->al_ga\.ga_len\]\.ae_fnum =)`+
-				` buflist_add\(fname, BLN_LISTED \| \(set_fnum == 2 \? BLN_CURBUF : 0\)\);\n[ \t]*\}\n`,
-			"${2} 0;\n${1}if (set_fnum == 2 && curbuf_reusable())\n${1}{\n${2}\n${1}        buflist_add(fname, BLN_LISTED | BLN_CURBUF);\n${1}}\n",
-			"an argument naming a buffer only when it is the empty startup one", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "alist_add_list", func(s []byte) ([]byte, error) {
-		return e.literal(s, ".ae_fnum = buflist_add(files[i], flags);", ".ae_fnum = 0;",
-			"alist_add_list making a buffer per argument", 1)
 	})
 	if err != nil {
 		return nil, err

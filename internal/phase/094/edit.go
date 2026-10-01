@@ -116,7 +116,7 @@ var w94Before = map[string]int{
 	"exiting": 17, "buf_spname": 5, "open_buffer": 5,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
 	"p_ro": 2, "p_ur": 2, "read_cmd_fd": 12,
-	"vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
+	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 var w94After = map[string]int{
@@ -125,7 +125,7 @@ var w94After = map[string]int{
 	"bufIsChanged": 10, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
 	"p_ro": 2, "p_ur": 2, "read_cmd_fd": 12,
-	"vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
+	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 func init() {
@@ -283,7 +283,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Say("the cut is done: check_changed 3 -- its prototype, its definition and the " +
 		"one call inside check_changed_any, which is where the sweep starts -- " +
-		"not_exiting 2, and read_cmd_fd 12, vim_fsync 3, scriptin 8 and redir_fd 6 " +
+		"not_exiting 2, and read_cmd_fd 12, vim_fsync 3 and scriptin 8 " +
 		"untouched, each of them a later phase's")
 	return text, nil
 }

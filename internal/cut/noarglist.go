@@ -16,45 +16,15 @@ var (
 	arglistRow   = regexp.MustCompile(`^[ \t]*\[?CMD_`)
 )
 
-// NoArgList leaves only :next and :previous walking the argument list.
+// NoArgList takes the argument-list commands out of completion: the commands
+// themselves are retired at phase 1 (exfront, the reform's D2).
 func NoArgList(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"noarglist", w}
 	var err error
 
-	text, err = e.inFunction(text, "ex_next", func(seg []byte) ([]byte, error) {
-		return e.literal(seg, " || eap->cmdidx == CMD_snext", "",
-			":next asking whether it was :snext", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_argfile", func(seg []byte) ([]byte, error) {
-		return e.literal(seg, "    else if (eap->cmdidx != CMD_argdo)\n", "    else\n",
-			"do_argfile sparing :argdo the mark", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "ex_listdo", func(seg []byte) ([]byte, error) {
-		seg, err := e.subOnce(seg,
-			`^[ \t]*case CMD_argdo:\n[ \t]*i = eap->line1 - 1;\n[ \t]*break;\n`,
-			":argdo's starting index")
-		if err != nil {
-			return nil, err
-		}
-		seg, err = e.foldNever(seg, `^[ \t]*if \(eap->cmdidx == CMD_argdo\)$`,
-			":argdo stepping through the list")
-		if err != nil {
-			return nil, err
-		}
-		return e.foldNever(seg, `^[ \t]*if \(eap->cmdidx == CMD_argdo && i >= eap->line2\)$`,
-			":argdo stopping at its range")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// :next asking whether it was :snext, do_argfile sparing :argdo, and
+	// :argdo's walk in ex_listdo died with those commands, retired at phase 1
+	// (exfront, the reform's D2): what is left is completion.
 
 	text, err = e.inFunction(text, "set_context_by_cmdname", func(seg []byte) ([]byte, error) {
 		seg, err := e.subOnce(seg, `^[ \t]*case CMD_argdo:\n`, "completion for :argdo")
@@ -86,6 +56,6 @@ func NoArgList(text []byte, w io.Writer) ([]byte, error) {
 			strings.Join(left, "; "))
 	}
 
-	e.say("only :next and :previous walk the argument list")
+	e.say("no argument-list command is completed")
 	return text, nil
 }

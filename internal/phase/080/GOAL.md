@@ -1,5 +1,9 @@
 # Phase 80 — the Ex command table, cut to the commands that exist
 
+**Since the reform's D2** the rows it deletes are retired at phase 1, all 489
+at once, and their list lives in `internal/phase/001/delta.md`. This phase
+asserts that it finds 489 stubs, not that they match a list of its own.
+
 600 rows in `enum CMD_index` and `cmdnames[]`, and **489 were `ex_ni` or
 `ex_script_ni`**. Every phase that removed a command had pointed its row at the stub
 and left it, under rule 3 as it then read, because a row still did one job: its

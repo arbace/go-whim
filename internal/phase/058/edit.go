@@ -40,11 +40,7 @@ var langmapCmds = []struct{ Name, handler string }{
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nolangmap", text, w)
 
-	for _, c := range langmapCmds {
-		e.Sub(fmt.Sprintf(`(?m)^([ \t]*\[CMD_%s\] = \{\(char_u \*\)"%s", sizeof\("%s"\) - 1, )%s,`,
-			c.Name, c.Name, c.Name, c.handler), "${1}ex_ni,", 1,
-			fmt.Sprintf(":%s points at ex_ni", c.Name))
-	}
+	// the four rows point at ex_ni from phase 1 (exfront, the reform's D2)
 	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
 		for _, c := range langmapCmds {
 			e.Cut(fmt.Sprintf(edit.Line("case CMD_%s:"), c.Name), 1,

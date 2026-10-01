@@ -149,7 +149,7 @@ slim-vim.c  --whim-->  whim-vim.c
   **The test suite is minimal.** Each phase was verified, while it was written, by a
   check program of its own and a delta declared in advance against recorded
   baselines; that whole suite (`internal/check`, `internal/verify`,
-  `internal/harness`, every `check.go`, every `delta.md` but phase 80's, the
+  `internal/harness`, every `check.go`, every `delta.md` but the one phase 1 now holds, the
   baselines and `make whim-verify`) was removed after `448e9a8`, the last commit
   that has it. What proves a change now is two things: `make whim-build-check`,
   the committed product back byte for byte, which sees the text; and `make
@@ -204,8 +204,8 @@ slim-vim.c  --whim-->  whim-vim.c
 mix freely in one directory: `internal/phase/099/` holds `edit.go` and `GOAL.md`. A
 data file in Markdown puts its data in a FENCED BLOCK and its notes around it,
 and the reader takes the fence and ignores the rest -- `internal/build`'s
-`declared()` reads `internal/phase/080/delta.md` that way (the command rows phase 80's
-edit cuts), and phase 98's edit embeds `internal/phase/098/musl-ctype.md` and
+`declared()` reads `internal/phase/001/delta.md` that way (the command rows phase 1
+retires at the front, which phase 80 then deletes), and phase 98's edit embeds `internal/phase/098/musl-ctype.md` and
 `musl-case.md` and splices their fenced C in byte for byte. What is left outside
 the rule is what Markdown would only obscure: `src/slim.sha` and `src/upstream.sha`, one
 digest each, read by `make`.
@@ -244,7 +244,7 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    one table), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
-                   @state, @minmax and phase 80's delta.md), cmdtab (the Ex command
+                   @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
                    table: its names and the ex_cmdidxs block), score (bytes and
                    symbols, the input beside the product)
 crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
@@ -417,7 +417,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
                      # bin/caprice
-make whim-build      # the 151 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 150 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj or Editor.hs that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
@@ -446,7 +446,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 151 phases, **1,004 s**, 77,634 lines. A
+  before the reason. Measured: 150 phases, **989 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -464,7 +464,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **76 s**, 150 links 64 at a time, bound by
+  committed `whim-vim.c`. Measured: **82 s**, 149 links 64 at a time, bound by
   the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
@@ -513,9 +513,10 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 151 of them, in order, numbered 0-184: 11 phases that
+`p_N = f_N(p_{N-1})` -- 150 of them, in order, numbered 0-184: 12 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry; 4, 43 and
 88 since phase 1 cuts the whole command line and lets what it set fall out,
+33 since it retires every Ex command the product has not,
 `doc/PIPELINE-REFORM.md` §7), and the
 14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
@@ -530,7 +531,7 @@ was the input boundary's digest and the implementation's together, so a moved
   and knows no code base; `internal/build` hands it a `pipeline.Config` -- the
   plan, the op table (`internal/steps`), the work file `whim-vim.c`, `SnapDir`
   `.cache/boundaries`, the sweep's options (`internal/whim`'s `Profile`), the
-  `@state`/`@minmax` arguments and phase 80's `delta.md` -- and keeps its old
+  `@state`/`@minmax` arguments and phase 1's `delta.md` -- and keeps its old
   names (`build.Run`, `Check`, `Advance`, `Options`) as wrappers.
 - **There are no stages.** Every phase is its steps, the sweep, and the
   canonical print; a `sweep` step inside a phase's steps is for an edit that

@@ -58,8 +58,8 @@ package p080
 // no longer runs.  Probed below in both directions.
 // And every removed name leaves the command sweep, which dispatches the names in
 // the table: 489 rows, listed in REMOVED and required to be exactly the stub rows.
-// The rows to cut are the commands this phase declares in internal/phase/080/delta.md: the
-// declared delta and the cut are one list, kept in one place.
+// The rows to cut are the stubs: phase 1 retires every command it declares in
+// internal/phase/001/delta.md (the reform's D2), the one place the list is kept.
 // The binary this phase is compared against, built from its input before a byte
 // of it moves.  In the background: the edits below do not wait for it, but this
 // part does before it exits, so the check finds $state/old whole.
@@ -154,12 +154,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			live = append(live, n)
 		}
 	}
-	removed := strings.Fields(os.Getenv("REMOVED"))
-	if !sameSet(dead, removed) {
-		return nil, e.Refused("the stub rows are not REMOVED: extra %v, missing %v",
-			minus(dead, removed), minus(removed, dead))
+	// the stubs are the rows phase 1 retired, every one it declares in
+	// internal/phase/001/delta.md (the reform's D2): 489 of 600
+	if len(dead) != 489 {
+		return nil, e.Refused("%d stub rows, expected the 489 phase 1 retired", len(dead))
 	}
-	e.Say(fmt.Sprintf("confirmed: %d rows, %d of them stubs -- exactly REMOVED -- and %d live",
+	e.Say(fmt.Sprintf("confirmed: %d rows, %d of them stubs -- what phase 1 retired -- and %d live",
 		len(names), len(dead), len(live)))
 
 	// The old index, read Out of the file rather than regenerated.
@@ -648,21 +648,6 @@ func sameSet(a, b []string) bool {
 	sort.Strings(x)
 	sort.Strings(y)
 	return strings.Join(x, "\x00") == strings.Join(y, "\x00")
-}
-
-func minus(a, b []string) []string {
-	in := map[string]bool{}
-	for _, v := range b {
-		in[v] = true
-	}
-	var Out []string
-	for _, v := range a {
-		if !in[v] && !edit.Contains(Out, v) {
-			Out = append(Out, v)
-		}
-	}
-	sort.Strings(Out)
-	return Out
 }
 
 func pyOrNone(s string) string {

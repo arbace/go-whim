@@ -80,13 +80,21 @@ func nosessionBody(text []byte, name, newBody string) ([]byte, error) {
 // NoSession removes sessions, autocommands and the Vim9 modifiers.
 func NoSession(text []byte, w io.Writer) ([]byte, error) {
 	var err error
+	stubbed, gone := 0, 0
 	for _, s := range nosessionStubs {
+		// one only retired commands called is gone with them (exfront, the
+		// reform's D2): absent, and named by nothing
+		if _, _, ok := edit.FindDefinition(text, edit.Blank(text), s.name); !ok && edit.MentionCount(text, s.name) == 0 {
+			gone++
+			continue
+		}
 		if text, err = nosessionBody(text, s.name, s.body); err != nil {
 			return nil, err
 		}
+		stubbed++
 	}
 	fmt.Fprintf(w, "  nosession    %d doors of the autocommand engine and Vim9 answer "+
-		"without it\n", len(nosessionStubs))
+		"without it, %d gone with the commands that called them\n", stubbed, gone)
 
 	for _, d := range nosessionDrops {
 		n := len(regexp.MustCompile(d.pat).FindAll(text, -1))

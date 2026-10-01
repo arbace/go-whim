@@ -140,14 +140,14 @@ var w95Before = map[string]int{
 	"p_mod": 2, "did_set_modified": 3,
 	"SHM_RO": 2, "BV_RO": 3, "BV_FS": 4, "w_readonly": 2,
 	"p_paste": 12, "read_cmd_fd": 12,
-	"vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
+	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 var w95After = map[string]int{
 	"b_p_ro": 0, "b_p_fs": 0, "change_warning": 0, "did_set_readonly": 1,
 	"p_ro": 1, "p_fs": 1, "p_ur": 1, "p_write": 1, "p_wa": 1, "p_prompt": 1,
 	"b_did_warn": 1, "p_mod": 2, "did_set_modified": 3, "p_paste": 12,
-	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
+	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
 // w95Want is the set of rows with no reader of their own global, and the six

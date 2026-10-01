@@ -92,9 +92,9 @@ func init() { phase.Register("whim96", Edit) }
 var w96Before = map[string]int{
 	"scriptin": 8, "curscript": 11, "NSCRIPT": 3, "saved_typebuf": 2,
 	"closescript": 3, "using_script": 3, "script_char": 6, "retesc": 3,
-	"redir_fd": 6, "redir_off": 7, "redir_write": 7, "redirecting": 4,
+	"redir_fd": 0, "redir_off": 7, "redir_write": 7, "redirecting": 4,
 	"did_return": 3,
-	"vim_fsync":  3, "ui_write": 3, "mch_write": 2, "FILE": 2,
+	"vim_fsync":  3, "ui_write": 3, "mch_write": 2, "FILE": 1,
 	"may_sync_undo": 3, "is_safe_now": 3, "free_typebuf": 5,
 	"read_cmd_fd": 12,
 }
@@ -109,7 +109,6 @@ var w96After = map[string]int{
 
 var (
 	w96ScriptWrite = regexp.MustCompile(`\bscriptin\s*\[[^\]]*\]\s*=[^=][^;\n]*;`)
-	w96RedirWrite  = regexp.MustCompile(`(?m)^[ \t]*(?:static\s+FILE\s*\*\s*)?redir_fd\s*=[^=][^;]*;$`)
 	w96UiCall      = regexp.MustCompile(`(?m)^[ \t]*ui_write\([^;\n]*\);$`)
 	w96RedirOff    = regexp.MustCompile(`(?m)^[ \t]*redir_off = (?:TRUE|FALSE);\n`)
 )
@@ -172,7 +171,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w96Before[name])
 		}
 	}
-	p.Say("scriptin 8, redir_fd 6, redirecting 4, ui_write 3, FILE 2 -- the file the six " +
+	p.Say("scriptin 8, redirecting 4, ui_write 3, FILE 1 -- the file the six " +
 		"anchors were counted against")
 
 	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS FOLDED --------------------
@@ -185,10 +184,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("scriptin[] is assigned %d times and not once to NULL alone: %s",
 			len(sw), strings.Join(Out, " | "))
 	}
-	rw := w96RedirWrite.FindAllString(string(text), -1)
-	if len(rw) != 1 || rw[0] != "static FILE *redir_fd = NULL;" {
-		return nil, p.Die("redir_fd is assigned %d times and not once by its declaration alone: %s",
-			len(rw), joined(rw, 60))
+	// redir_fd is gone, declaration and all: only :redir wrote it, and the
+	// fall-out closure folded its reads at phase 1, redirecting()'s to FALSE
+	// at phase 60 (exfront, the reform's D2)
+	if strings.Contains(string(text), "redir_fd") {
+		return nil, p.Die("redir_fd survives, and part B's folds assume it went at phase 1")
+	}
+	if !regexp.MustCompile(`(?m)^redirecting\(void\)\n\{\n    return FALSE;\n\}`).Match(text) {
+		return nil, p.Die("redirecting() does not answer FALSE, and part B folds it so")
 	}
 	calls := w96UiCall.FindAllString(string(text), -1)
 	if len(calls) != 1 || calls[0] != "    ui_write(out_buf, len, FALSE);" {
@@ -196,7 +199,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			len(calls), joined(calls, 60))
 	}
 	p.Say("scriptin[] is assigned ONCE in the whole file, to NULL, inside closescript(); " +
-		"redir_fd only by its own declaration; ui_write() has ONE call and it passes " +
+		"redirecting() answers FALSE; ui_write() has ONE call and it passes " +
 		"FALSE.  That, and nothing weaker, is why every fold below may take a constant -- " +
 		"and it is also the whole claim of the phase: neither FILE* has ever been opened " +
 		"in any build of whim-vim")
