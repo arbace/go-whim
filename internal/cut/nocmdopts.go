@@ -39,8 +39,8 @@ var nocmdoptsElsewhere = []struct {
 	// false.  An environment read, deciding a mode that now restricts nothing.
 	{"$SHELL deciding restricted mode at startup",
 		edit.Line("set_init_restricted_mode();"), "", 1},
-	{"restricted mode in do_bang and ex_stop",
-		`(?m)check_restricted\(\) \|\| check_secure\(\)`, "check_secure()", 1},
+	// do_bang's restricted check went with :! and the commands that named a
+	// file, at phase 1 (exfront and filefront, the reform's D2 and D4)
 	{"ex_stop's restricted check",
 		`(?m)[ \t]*if \(check_restricted\(\)\)\n[ \t]*\{\n[ \t]*return;\n[ \t]*\}\n`, "", 1},
 	{"the EX_RESTRICT gate, which no live command reaches",

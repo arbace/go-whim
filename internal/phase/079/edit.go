@@ -99,8 +99,8 @@ import (
 var w79Constants = map[string]string{
 	"append_arg_number": "0", "at_ins_compl_key": "FALSE", "bomb_size": "0",
 	"bt_quickfix": "FALSE", "bt_terminal": "FALSE",
-	"check_can_set_curbuf_disabled": "TRUE", "check_can_set_curbuf_forceit": "TRUE",
-	"check_more": "OK", "check_timestamps": "0", "current_tab_nr": "1",
+	"check_can_set_curbuf_disabled": "TRUE",
+	"check_more":                    "OK", "check_timestamps": "0", "current_tab_nr": "1",
 	"current_win_nr": "1", "did_set_number_relativenumber": "NULL",
 	"get_cellwidth": "0", "has_cursormoved": "FALSE", "has_insertcharpre": "FALSE",
 	"has_textchanged": "FALSE", "in_vim9script": "FALSE", "ins_compl_active": "FALSE",
@@ -188,16 +188,18 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Literal(" && !skip_for_popup(row, col))", ")", 3, "three more cells that are never covered")
 	e.FoldAlways(edit.Head("if (!skip_for_popup(r, c))"), 1, "and filling a screen region")
 	e.FoldAlways(edit.Head("if (quit_all || (check_more(FALSE, forceit) == OK))"), 1, "the autocommand check before quitting")
-	e.FoldAlways(edit.Head("if (check_more(FALSE, eap->forceit) == OK && only_one_window())"), 2,
-		"deciding to exit in :quit and :exit")
-	e.Literal(" || check_more(TRUE, eap->forceit) == FAIL", "", 2, "refusing to quit with more files to edit")
-	e.Literal("only_one_window() && check_changed_any", "check_changed_any", 2, "and asking whether this is the last window")
+	// one: :exit's went with it at phase 1 (filefront, the reform's D4)
+	e.FoldAlways(edit.Head("if (check_more(FALSE, eap->forceit) == OK && only_one_window())"), 1,
+		"deciding to exit in :quit")
+	e.Literal(" || check_more(TRUE, eap->forceit) == FAIL", "", 1, "refusing to quit with more files to edit")
+	e.Literal("only_one_window() && check_changed_any", "check_changed_any", 1, "and asking whether this is the last window")
 	e.FoldNever(edit.Head("if (stl_connected(wp))"), 2, "a status line joined to the one beside it")
 	e.FoldNever(edit.Head("if (get_cellwidth(ScreenLinesUC[off]) > 1)"), 1, "a character widened by 'setcellwidths'")
 	e.FoldNever(edit.Head("if (wc_use_keyname(varp, &wc))"), 1, "showing a numeric option as a key name")
 	e.FoldNever(edit.Head("if (wc != 0)"), 1, "and showing it as a character")
 	e.FoldNever(edit.Head("if (!check_can_set_curbuf_disabled())"), 1, "refusing to change buffer in gf")
-	e.FoldNever(edit.Head("if ((is_other_file(0, ffname) && !check_can_set_curbuf_forceit(eap->forceit)))"), 1, "and refusing in :edit")
+	// check_can_set_curbuf_forceit and :edit's refusal went with :edit at
+	// phase 1 (filefront, the reform's D4)
 	e.Literal(" && !bt_terminal(wp->w_buffer)", "", 1, "the [+] flag suppressed for a terminal buffer")
 	e.Literal(" && !bt_quickfix(curbuf)", "", 1, "a quickfix buffer never being reusable")
 	e.Literal(" && !has_insertcharpre()", "", 1, "the InsertCharPre fast path")

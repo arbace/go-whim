@@ -98,10 +98,12 @@ import (
 func init() { phase.Register("whim87", Edit) }
 
 var w87Before = map[string]int{
-	"exmode_active": 44, "silent_mode": 21, "pending_exmode_active": 4,
-	"exmode_plus": 3, "exmode_was": 2, "do_exmode": 4, "getexmodeline": 6,
-	"nv_exmode": 3, "EXMODE_NORMAL": 5, "EXMODE_VIM": 4, "BO_EX": 2,
-	"ex_pressedreturn": 7, "ex_no_reprint": 11, "ex_exitval": 3,
+	// do_exedit's exmode handling went with :edit, :ex and :visual at phase 1
+	// (filefront, the reform's D4): exmode_was was its local
+	"exmode_active": 40, "silent_mode": 21, "pending_exmode_active": 2,
+	"exmode_plus": 3, "exmode_was": 0, "do_exmode": 4, "getexmodeline": 6,
+	"nv_exmode": 3, "EXMODE_NORMAL": 5, "EXMODE_VIM": 3, "BO_EX": 2,
+	"ex_pressedreturn": 6, "ex_no_reprint": 9, "ex_exitval": 3,
 	"previous_got_int": 4, "use_plus_cmd": 5, "s_vbuf": 4,
 	"e_at_end_of_file": 2, "noexmode": 4, "check_tty": 2,
 	"mch_input_isatty": 2,
@@ -111,9 +113,10 @@ var w87Before = map[string]int{
 // functions (nv_exmode, do_exmode, getexmodeline, check_tty) still say, each of
 // them a kind the sweep deletes.  Stated as a number per name, so a use that
 // survived shows up HERE and not after the sweep.
+// (exmode_active 6 and exmode_was 0: do_exedit went with :edit at phase 1, D4)
 var w87After = map[string]int{
-	"exmode_active": 7, "silent_mode": 2, "pending_exmode_active": 1,
-	"exmode_plus": 1, "exmode_was": 1, "do_exmode": 2, "getexmodeline": 3,
+	"exmode_active": 6, "silent_mode": 2, "pending_exmode_active": 1,
+	"exmode_plus": 1, "exmode_was": 0, "do_exmode": 2, "getexmodeline": 3,
 	"nv_exmode": 2, "EXMODE_NORMAL": 2, "EXMODE_VIM": 2, "BO_EX": 2,
 	"ex_pressedreturn": 4, "ex_no_reprint": 4, "ex_exitval": 1,
 	"previous_got_int": 1, "use_plus_cmd": 1, "s_vbuf": 1,
@@ -275,11 +278,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{kind: "never", fn: "parse_command_modifiers",
 			Pat: head("if (*eap->cmd == NUL && exmode_active && "), n: 1,
 			What: "an empty Ex-mode line is no longer the + command"},
-		{kind: "never", fn: "do_exedit",
-			Pat: line("if (exmode_active && (eap->cmdidx == CMD_visual || eap->cmdidx == CMD_view))"), n: 1,
-			What: ":visual, :vi and :view lose the branch that left Ex mode"},
-		{kind: "never", fn: "ex_read", Pat: line("if (empty && exmode_active)"), n: 1,
-			What: ":read stops deleting the empty line it read into"},
+		// do_exedit's and ex_read's went with :edit, :visual and :read at
+		// phase 1 (filefront, the reform's D4)
 		{kind: "never", fn: "cmdline_erase_chars", Pat: line("if (exmode_active)"), n: 1,
 			What: "backspacing off the start of a command line leaves Normal mode again"},
 		{kind: "never", fn: "getcmdline_int", Pat: head("if (exmode_active && c != ESC && "), n: 1,
@@ -410,10 +410,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = within(text, "parse_command_modifiers", w87lit18, "\n", "and its one remaining write", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, w87lit20, "\n", "and its seven writes", 6); err != nil {
+	// four of six: two were in :write and :read, gone at phase 1 (D4)
+	if text, err = literal(text, w87lit20, "\n", "and its five writes", 4); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, w87lit21, "\n", "and the seventh", 1); err != nil {
+	if text, err = literal(text, w87lit21, "\n", "and the fifth", 1); err != nil {
 		return nil, err
 	}
 	if text, err = within(text, "emsg_core", w87lit23, "\n", "and its one write", 1); err != nil {

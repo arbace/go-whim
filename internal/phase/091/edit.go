@@ -116,18 +116,11 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 func init() { phase.Register("whim91", Edit) }
-
-const (
-	w91RowsBefore = 104
-	w91RowsAfter  = 99
-	w91Floor      = 80
-)
 
 // w91Going are the five Ex commands that name another file to edit.  They are
 // ONE handler; `gf gF [f ]f` are arms inside two surviving handlers and not
@@ -135,9 +128,10 @@ const (
 var w91Going = []string{"CMD_edit", "CMD_enew", "CMD_ex", "CMD_visual", "CMD_view"}
 
 var w91Before = map[string]int{
-	"CMD_edit": 3, "CMD_enew": 4, "CMD_ex": 2, "CMD_view": 3, "CMD_visual": 2,
-	"ex_edit": 6, "do_exedit": 3, "nv_gotofile": 3,
-	"EX_ARGOPT": 6, "getargopt": 3, "read_edit": 2,
+	// the five rows, ex_edit and do_exedit went at phase 1 (filefront, D4)
+	"CMD_edit": 2, "CMD_enew": 0, "CMD_ex": 0, "CMD_view": 0, "CMD_visual": 0,
+	"ex_edit": 0, "do_exedit": 0, "nv_gotofile": 3,
+	"EX_ARGOPT": 2, "getargopt": 3, "read_edit": 2,
 	"readfile": 5, "open_buffer": 6, "p_ur": 0, // its row went at phase 1, and its reads fell out (D3)
 }
 
@@ -175,60 +169,35 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the shape the anchors below were counted on -----------------------
-	if n := len(vimtext.CoreRows(text)); n != w91RowsBefore {
-		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
-			"against a different table", n, w91RowsBefore)
-	}
-	names, err := cmdtab.CommandNamesIn(text, "whim-vim.c")
-	if err != nil || len(names) != w91RowsBefore {
-		return nil, p.Die("create_cmdidxs names() does not read %d rows out of this table", w91RowsBefore)
-	}
+	// The five commands' rows went at phase 1 (filefront, the reform's D4).
 	for _, name := range edit.SortedKeys(w91Before) {
 		if k := mentions(text, name); k != w91Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w91Before[name])
 		}
 	}
-	// EX_ARGOPT's five rows are what anchor 6 rests on: four here and `:read`'s,
-	// which phase 90 took.  Counted, so that a row arriving would refuse rather
-	// than leave a reachable block with no way in.
-	argopt := 0
+	// EX_ARGOPT is what anchor 6 rests on: no row carries it, so the ++opt
+	// parse has no way in.
 	for _, r := range vimtext.CoreRows(text) {
 		if strings.Contains(string(r), "EX_ARGOPT") {
-			argopt++
+			return nil, p.Die("a cmdnames[] row still carries EX_ARGOPT")
 		}
 	}
-	if argopt != 4 {
-		return nil, p.Die("EX_ARGOPT is on %d cmdnames[] rows, expected the 4 this phase removes", argopt)
-	}
-	p.Sayf("cmdnames[] %d rows, ex_edit on 5 of them, EX_ARGOPT on 4, readfile 5 and "+
-		"open_buffer 6 -- the line against the byte-reader phase", w91RowsBefore)
+	p.Say("no cmdnames[] row carries EX_ARGOPT; readfile 5 and open_buffer 6 -- the " +
+		"line against the byte-reader phase")
 
-	// ---- 1. the five enumerators ----------------------------------------------
+	// ---- 1. the enumerators still named, after CMD_SIZE since phase 1 --------
 	for _, e := range w91Going {
-		line := "    " + e + ",\n"
-		if strings.Count(string(text), line) != 1 {
-			return nil, p.Die("the %s enumerator is not one line of its own", e)
+		if mentions(text, e) == 0 {
+			continue
 		}
-		text = []byte(strings.ReplaceAll(string(text), line, ""))
-	}
-	p.Sayf("five enumerators of enum CMD_index: %s", strings.Join(w91Going, " "))
-
-	// ---- 2. the five cmdnames[] rows ------------------------------------------
-	for _, e := range w91Going {
-		m := regexp.MustCompile(`(?m)^    \[` + e + `\] = \{.*\n`).FindIndex(text)
-		if m == nil {
-			return nil, p.Die("cmdnames[] has no [%s] row", e)
+		re := regexp.MustCompile(`(?m)^    ` + e + `(?: = \d+)?,\n`)
+		if k := len(re.FindAllIndex(text, -1)); k != 1 {
+			return nil, p.Die("the %s enumerator occurs %d times, expected 1", e, k)
 		}
-		text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
+		text = re.ReplaceAll(text, nil)
 	}
-	if n := len(vimtext.CoreRows(text)); n != w91RowsAfter {
-		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w91RowsAfter)
-	}
-	p.Sayf("the five cmdnames[] rows; %d -> %d, which is under the floor create_cmdidxs "+
-		"names() had -- lowered to %d in this phase's own commit (GOALS.md II.5 "+
-		"decision 8), so the margin is %d rows",
-		w91RowsBefore, w91RowsAfter, w91Floor, w91RowsAfter-w91Floor)
+	p.Sayf("the enumerators of %s that are still named", strings.Join(w91Going, " "))
 
 	// ---- 3. do_one_cmd's curbuf_locked() exemption ----------------------------
 	if text, err = within(text, "do_one_cmd", "ea.cmdidx != CMD_edit && ", "",

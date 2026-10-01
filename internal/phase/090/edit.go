@@ -83,18 +83,11 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 func init() { phase.Register("whim90", Edit) }
-
-const (
-	w90RowsBefore = 105
-	w90RowsAfter  = 104
-	w90Floor      = 100
-)
 
 // w90Dying are the names whose survivors are the reason the text does not
 // compile yet.  `usefilter` is not among them: its member declaration is still
@@ -146,20 +139,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return Out, nil
 	}
 
-	// ---- 0. the table and the field, at the shape the anchors were counted on
-	if n := len(vimtext.CoreRows(text)); n != w90RowsBefore {
-		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
-			"against a different table", n, w90RowsBefore)
-	}
-	names, err := cmdtab.CommandNamesIn(text, "whim-vim.c")
-	if err != nil || len(names) != w90RowsBefore {
-		return nil, p.Die("create_cmdidxs names() does not read %d rows out of this table", w90RowsBefore)
-	}
+	// ---- 0. the field, at the shape the anchors were counted on -------------
+	// :read's row went at phase 1 (filefront, the reform's D4), and ex_read
+	// with it; its enumerator stays after CMD_SIZE until this phase takes the
+	// last use.
 	for _, b := range []struct {
 		Name string
 		want int
-	}{{"CMD_read", 3}, {"ex_read", 2}, {"open_buffer", 6}, {"read_buffer", 17},
-		{"readfile", 7}, {"usefilter", 10}} {
+	}{{"CMD_read", 2}, {"ex_read", 0}, {"open_buffer", 6}, {"read_buffer", 17},
+		{"readfile", 5}, {"usefilter", 9}} {
 		if k := mentions(text, b.Name); k != b.want {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", b.Name, k, b.want)
@@ -169,28 +157,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("usefilter is assigned %d times, expected the 2 that anchor 3 removes -- "+
 			"phase 89 took the other two with `:w >>` and `:w !cmd`", writes)
 	}
-	p.Say("cmdnames[] 105 rows, CMD_read 3 mentions, usefilter 10 -- the field, the two " +
-		"writes anchor 3 removes and seven reads")
+	p.Say("CMD_read 2 mentions, usefilter 9 -- the field, the two writes anchor 3 " +
+		"removes and six reads")
 
-	// ---- 1. the CMD_read enumerator -------------------------------------------
-	if strings.Count(string(text), "    CMD_read,\n") != 1 {
-		return nil, p.Die("the CMD_read enumerator is not one line of its own")
+	// ---- 1. the CMD_read enumerator, after CMD_SIZE since phase 1 ------------
+	enumLine := regexp.MustCompile(`(?m)^    CMD_read(?: = \d+)?,\n`)
+	if k := len(enumLine.FindAllIndex(text, -1)); k != 1 {
+		return nil, p.Die("the CMD_read enumerator occurs %d times, expected 1", k)
 	}
-	text = []byte(strings.ReplaceAll(string(text), "    CMD_read,\n", ""))
+	text = enumLine.ReplaceAll(text, nil)
 	p.Say("the CMD_read enumerator of enum CMD_index")
-
-	// ---- 2. the cmdnames[] row -------------------------------------------------
-	m := regexp.MustCompile(`(?m)^    \[CMD_read\] = \{.*\n`).FindIndex(text)
-	if m == nil {
-		return nil, p.Die("cmdnames[] has no [CMD_read] row")
-	}
-	text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
-	if n := len(vimtext.CoreRows(text)); n != w90RowsAfter {
-		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w90RowsAfter)
-	}
-	p.Sayf("the cmdnames[] row; %d -> %d, and create_cmdidxs names() refuses under %d, so "+
-		"the margin is %d rows -- the :edit phase spends it (GOALS.md II.3a)",
-		w90RowsBefore, w90RowsAfter, w90Floor, w90RowsAfter-w90Floor)
 
 	// ---- 3. do_one_cmd's `:r!` and `:r !cmd` parse -----------------------------
 	if text, err = within(text, "do_one_cmd", w90lit2, "",

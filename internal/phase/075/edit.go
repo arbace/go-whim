@@ -132,19 +132,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("set_curbuf", func(e *edit.E) {
 		e.FoldAlways(`(?m)^[ \t]*if \(!apply_autocmds\(EVENT_BUFLEAVE,`, 1, "leaving a buffer asking permission")
 	})
-	e.InFunction("buf_write", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEAPPENDCMD,`, 1, "an autocommand taking over an append")
-		e.FoldAlways(`(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEWRITECMD,`, 1, "an autocommand taking over a write")
-	})
 	e.InFunction("ins_redraw", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, 1, "insert mode reporting a change")
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
 	})
 	e.InFunction("do_one_cmd", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(p != NULL && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`, 1, "an unknown command being defined by an autocommand")
-	})
-	e.InFunction("buf_write", func(e *edit.E) {
-		e.Literal(w75lit4, "", 1, "an autocommand taking over the whole write")
 	})
 	e.Body("ins_apply_autocmds", w75lit2, "ins_apply_autocmds, which dispatched and watched the tick")
 	e.InFunction("ui_focus_change", func(e *edit.E) {
@@ -153,7 +146,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("open_buffer", func(e *edit.E) {
 		e.Literal(w75lit6, w75lit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
 	})
-	e.DropBlocks("buf_write", edit.Head("if (!got_int)"), 1, "the post-write announcements")
+	// buf_write, with its autocommands, went with :write at phase 1
+	// (filefront, the reform's D4)
 	e.DropBlocks("set_termname", edit.Head("if (curbuf->b_ml.ml_mfp != NULL)"), 1, "a new terminal telling every buffer")
 	e.Lines(`ins_apply_autocmds\(EVENT_[A-Z]+\);`, 6, "the insert-mode dispatches")
 	e.InFunction("ins_redraw", func(e *edit.E) {
@@ -175,15 +169,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("getcmdline_int", func(e *edit.E) {
 		e.Cut(edit.Line("cmdline_type = firstc == NUL ? '-' : firstc;"), 1, "the line that set the command-line type")
 	})
-	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 49, "every remaining bare dispatch (49)")
+	// 43: six more were in the write and read paths, gone at phase 1 (D4)
+	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 43, "every remaining bare dispatch (43)")
 	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")
-	e.InFunction("buf_write", func(e *edit.E) {
-		e.Literal(w75lit10, "", 1, "buf_write bracketing the write with an autocommand buffer swap")
-		e.Literal(w75lit11, w75lit12, 1, "the write asking whether an autocommand had taken over")
-		e.FoldNever(edit.Head("if (did_cmd)"), 1, "and the arm only an autocommand-driven write could reach")
-	})
-	// buf_write's aco, bufref and did_cmd are named by nothing now; the sweep
-	// takes them.
 	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")
 	return e.Done()
 }

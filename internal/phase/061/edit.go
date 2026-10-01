@@ -45,19 +45,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		})
 	}
 
-	e.InFunction("do_exedit", func(e *edit.E) {
-		e.DropIf(edit.Head("if (n != curwin->w_arg_idx_invalid)"), 1,
-			":edit updating the title when the argument index moved")
-		e.Cut(edit.Line("n = curwin->w_arg_idx_invalid;"), 1,
-			":edit remembering the argument index for the title")
-		// n has one other use in do_exedit(): saving and restoring readonlymode
-		// around :view.  So after the title's assignment and test go, exactly
-		// three mentions are left -- the declaration, the save and the restore.
-		// Any other count is a use of n nobody accounted for.
-		if k := e.Mentions("n"); !e.Failed() && k != 3 {
-			e.Refuse("do_exedit mentions n %d times after the title went, expected 3 (declaration, readonlymode save and restore)", k)
-		}
-	})
+	// do_exedit went with :edit at phase 1 (filefront, the reform's D4)
 
 	e.InFunction("ex_stop", func(e *edit.E) {
 		e.Cut(restoreTitle, 1, ":stop restoring the title")

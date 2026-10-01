@@ -52,9 +52,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("nv_gotofile", func(e *edit.E) {
 		e.DropIf(edit.Head("if (curbufIsChanged() && curbuf->b_nwindows <= 1)"), 1, "gf writing the buffer first")
 	})
-	e.InFunction("do_bang", func(e *edit.E) {
-		e.Cut(edit.Line("if (addr_count == 0)", "{", "msg_scroll = FALSE;", "autowrite_all();", "msg_scroll = scroll_save;", "}"), 1, ":! writing all buffers first")
-	})
+	// check_overwrite, do_bang and do_write went with :write and :! at phase 1
+	// (D2, D4)
 	e.InFunction("ex_stop", func(e *edit.E) {
 		e.Cut(edit.Line("if (!eap->forceit)", "{", "autowrite_all();", "}"), 1, ":stop writing all buffers first")
 	})
@@ -84,12 +83,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("open_buffer", func(e *edit.E) {
 		e.DropIf(edit.Head("if (bt_nofileread(curbuf))"), 1, "a no-file 'buftype' skipping the read")
-	})
-	e.InFunction("do_write", func(e *edit.E) {
-		e.Literal("(bt_dontwrite_msg(curbuf) || check_fname() == FAIL", "(check_fname() == FAIL", 1, ":w refused for 'buftype'")
-	})
-	e.InFunction("check_overwrite", func(e *edit.E) {
-		e.Literal("!bt_nofilename(buf) && ", "", 1, "the overwrite check skipping a no-file buffer")
 	})
 	e.InFunction("shorten_buf_fname", func(e *edit.E) {
 		e.Literal(" && !bt_nofilename(buf)", "", 1, "a no-file buffer's name not shortened")

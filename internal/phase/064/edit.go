@@ -282,15 +282,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("op_colon", func(e *edit.E) {
 		e.DropIf(edit.Head("if (oap->op_type != OP_COLON)"), 1, "the ! typed after an operator range")
 	})
-	e.InFunction("do_bang", func(e *edit.E) {
-		e.DropIf(edit.Head("if (bangredo)"), 1, "the ! operator putting its command in the redo buffer")
-	})
-	// That block held the only `goto theend`, and a label with nothing jumping
-	// to it is a warning.  The free below it runs either way, so only the marker
-	// goes.
-	e.InFunction("do_bang", func(e *edit.E) {
-		e.Cut(edit.Line("theend:"), 1, "do_bang's label, which only the redo block jumped to")
-	})
+	// do_bang, its bangredo block and its label went with :! and the filters
+	// at phase 1 (D2, D4)
 
 	// what C-indenting left behind.  Three of the ten writes are the whole Body
 	// of an `if`, so the test goes with them rather than leaving an empty block.

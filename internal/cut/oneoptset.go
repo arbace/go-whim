@@ -79,12 +79,7 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "do_write", func(s []byte) ([]byte, error) {
-		return e.dropIf(s, ftIsEmptyIf, ":saveas applying modelines")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// do_write went with :write at phase 1 (filefront, the reform's D4)
 
 	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
 		return e.literal(s, "            do_modelines(OPT_WINONLY);\n", "",

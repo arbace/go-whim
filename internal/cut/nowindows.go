@@ -98,7 +98,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}); err != nil {
 		return nil, err
 	}
-	for _, name := range []string{"ex_quit", "ex_exit", "text_locked",
+	for _, name := range []string{"ex_quit", "text_locked",
 		"get_text_locked_msg", "nv_normal"} {
 		name := name
 		if text, err = e.inFunction(text, name, func(s []byte) ([]byte, error) {

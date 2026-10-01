@@ -11,18 +11,6 @@ import (
 
 var (
 	bufHideCall = regexp.MustCompile(`\bbuf_hide\(`)
-	saveasNew   = "        if (eap->cmdidx == CMD_saveas)\n" +
-		"        {\n" +
-		"            if (setfname(curbuf, ffname, fname, TRUE) == FAIL)\n" +
-		"            {\n" +
-		"                goto theend;\n" +
-		"            }\n" +
-		"            if (*curbuf->b_p_ft == NUL)\n" +
-		"            {\n" +
-		"                do_modelines(0);\n" +
-		"            }\n" +
-		"            fname = curbuf->b_sfname;\n" +
-		"        }\n"
 )
 
 // OneBuffer leaves one buffer: the old one is wiped, nothing is hidden,
@@ -101,34 +89,8 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "ex_exit", func(s []byte) ([]byte, error) {
-		return e.literal(s, "win_close(curwin, !buf_hide(curwin->w_buffer))",
-			"win_close(curwin, TRUE)", ":exit freeing the buffer", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_exedit", func(s []byte) ([]byte, error) {
-		for _, l := range []struct{ old, new, what string }{
-			{"(buf_hide(curbuf) ? ECMD_HIDE : 0) + ", "", ":edit hiding the buffer"},
-			{"if (!need_hide || buf_hide(curbuf))", "if (!need_hide)",
-				":edit closing a failed window"},
-			{"!need_hide && !buf_hide(curbuf)", "!need_hide", ":edit freeing a failed window"},
-		} {
-			var err error
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		return e.dropIf(s,
-			`^[ \t]*if \(old_curwin != NULL && \*eap->arg != NUL && curwin != old_curwin && win_valid\(old_curwin\) && `+
-				`old_curwin->w_buffer != curbuf && \(cmdmod\.cmod_flags & CMOD_KEEPALT\) == 0\)$`,
-			":edit leaving an alternate in the old window")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// ex_exit, do_exedit, rename_buffer, ex_read and do_write went with :exit,
+	// :edit, :file, :read and :write at phase 1 (filefront, the reform's D4)
 
 	text, err = e.inFunction(text, "nv_gotofile", func(s []byte) ([]byte, error) {
 		s, err := e.literal(s, " && !buf_hide(curbuf))", ")", "gf refusing a changed buffer", 1)
@@ -201,31 +163,9 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "rename_buffer", func(s []byte) ([]byte, error) {
-		s, err := e.dropIf(s, `^[ \t]*if \(xfname != NULL && \*xfname != NUL\)$`,
-			":file keeping the old name as the alternate")
-		if err != nil {
-			return nil, err
-		}
-		// xfname held the old short name for that alternate alone; the
-		// sweep takes its declaration once this, its last write, is gone.
-		return e.literal(s, "    xfname = curbuf->b_fname;\n", "",
-			":file saving the old short name", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	text, err = e.inFunction(text, "win_init", func(s []byte) ([]byte, error) {
 		return e.literal(s, "    newp->w_alt_fnum = oldp->w_alt_fnum;\n", "",
 			"win_init copying the alternate", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-	text, err = e.inFunction(text, "ex_read", func(s []byte) ([]byte, error) {
-		return e.dropIf(s, `^[ \t]*if \(vim_strchr\(p_cpo, CPO_ALTREAD\) != NULL\)$`,
-			":read naming the alternate")
 	})
 	if err != nil {
 		return nil, err
@@ -248,22 +188,6 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.subCountRepl(text,
 		`(?m)^([ \t]*\{Ctrl_HAT, )nv_hat(, NV_NCW, 0\},)$`, "${1}nv_error${2}",
 		"CTRL-^'s row points at nv_error", 1); err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_write", func(s []byte) ([]byte, error) {
-		s, err := e.dropIf(s, `^    if \(other\)$`,
-			":write making the written name the alternate")
-		if err != nil {
-			return nil, err
-		}
-		return e.subCountRepl(s,
-			`(?ms)^        if \(eap->cmdidx == CMD_saveas && alt_buf != NULL\)\n        \{\n.*?\n`+
-				`            fname = curbuf->b_sfname;\n        \}\n`,
-			saveasNew,
-			":saveas renaming the one buffer instead of swapping names with another", 1)
-	})
-	if err != nil {
 		return nil, err
 	}
 

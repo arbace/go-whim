@@ -26,6 +26,12 @@ var delTempDir = regexp.MustCompile(`(?m)^[ \t]*vim_deltempdir\(\);[ \t]*\n`)
 func NoShellOut(text []byte, w io.Writer) ([]byte, error) {
 	total := 0
 	for _, s := range shelloutStubs {
+		// one only the commands deleted at phase 1 reached is gone with them
+		// (filefront, the reform's D4): absent, and named by nothing
+		if _, _, ok := edit.FindDefinition(text, edit.Blank(text), s.name); !ok && edit.MentionCount(text, s.name) == 0 {
+			fmt.Fprintf(w, "  noshellout   %-16s gone already, with the commands that reached it\n", s.name)
+			continue
+		}
 		var was int
 		var err error
 		text, was, err = edit.ReplaceBody(text, s.name, s.body)

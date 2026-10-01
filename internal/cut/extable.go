@@ -313,3 +313,54 @@ func ExTable(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  extable      the lookup: a prefix at least as long as the row says, over %d rows; the prefix index gone\n", len(minlen))
 	return []byte(t), nil
 }
+
+// fileFrontCmds are the commands that read, write, edit or name a file:
+// what the product has not of the 111 rows extable keeps (the reform's D4).
+var fileFrontCmds = []string{"edit", "enew", "ex", "exit", "file", "read", "saveas",
+	"update", "visual", "view", "write", "wq", "xit"}
+
+// FileFront deletes the rows of the commands that name a file, as extable
+// deleted the stubs': each enumerator moves after CMD_SIZE, where no parsed
+// command reaches it, until the phases that remove its last uses.
+func FileFront(text []byte, w io.Writer) ([]byte, error) {
+	t := string(text)
+	mt := extTable.FindStringSubmatchIndex(t)
+	if mt == nil {
+		return nil, fmt.Errorf("filefront: cmdnames[] is not where it was")
+	}
+	table := t[mt[2]:mt[3]]
+	for _, n := range fileFrontCmds {
+		re := regexp.MustCompile(`(?m)^    \[CMD_` + regexp.QuoteMeta(n) + `\] = \{\(char_u \*\)"` + regexp.QuoteMeta(n) + `", \d+, .*\n`)
+		if k := len(re.FindAllString(table, -1)); k != 1 {
+			return nil, fmt.Errorf("filefront: %d rows for :%s, expected 1", k, n)
+		}
+		table = re.ReplaceAllString(table, "")
+	}
+	t = t[:mt[2]] + table + t[mt[3]:]
+	// the enumerators: out of the live run, onto the end of the dead one
+	es := strings.Index(t, "enum CMD_index\n{\n")
+	if es < 0 {
+		return nil, fmt.Errorf("filefront: enum CMD_index is not where it was")
+	}
+	ee := strings.Index(t[es:], "\n};\n") + es + 1
+	enum := t[es:ee]
+	var moved []string
+	for _, n := range fileFrontCmds {
+		line := "    CMD_" + n + ",\n"
+		if strings.Count(enum, line) != 1 {
+			return nil, fmt.Errorf("filefront: CMD_%s is not an enumerator once", n)
+		}
+		enum = strings.Replace(enum, line, "", 1)
+		moved = append(moved, line)
+	}
+	// right after CMD_SIZE: after the user-command enumerators they would
+	// count up from -2 into CMD_USER's value
+	if strings.Count(enum, "    CMD_SIZE,\n") != 1 {
+		return nil, fmt.Errorf("filefront: CMD_SIZE is not in the enum once")
+	}
+	enum = strings.Replace(enum, "    CMD_SIZE,\n", "    CMD_SIZE,\n"+strings.Join(moved, ""), 1)
+	t = t[:es] + enum + t[ee:]
+	fmt.Fprintf(w, "  filefront    %d rows gone, their enumerators after CMD_SIZE: %s\n",
+		len(fileFrontCmds), strings.Join(fileFrontCmds, " "))
+	return []byte(t), nil
+}

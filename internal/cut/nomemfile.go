@@ -244,11 +244,8 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nomemfile    the machine name in block zero; uname goes with it")
 
-	if text, err = edit.DropIf(text, edit.Head("if (other && !emsg_silent)"), 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nomemfile    check_overwrite's `is another vim editing this` "+
-		"warning, the last reader of p_dir")
+	// check_overwrite's `is another vim editing this` warning, the last
+	// reader of p_dir, went with :write at phase 1 (filefront, D4)
 
 	// Stubbed rather than deleted, so ml_upd_block0()'s UB_SAME_DIR arm keeps
 	// its shape.

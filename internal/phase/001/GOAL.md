@@ -47,6 +47,15 @@ still names some of them: `window_layout_locked(CMD_close)`, the comparisons
 later phases fold. No parsed command can reach them. Phase 80 deletes what is
 left of them.
 
+**Then the commands that name a file go** (`filefront`, the reform's D4): `:edit`,
+`:enew`, `:ex`, `:exit`, `:file`, `:read`, `:saveas`, `:update`, `:visual`, `:view`,
+`:write`, `:wq` and `:xit`. These are the 13 of the 111 rows left that the product
+has not, which phases 89, 90, 91 and 93 deleted. Their enumerators go after
+`CMD_SIZE` like the stubs', and live code still names some of them until those
+phases take the last uses. Their handlers die with the rows, and with them the
+write path (`buf_write()`), `:read`'s and `:edit`'s, and `do_bang()`'s filters.
+So does every edit phases 8 to 93 made inside them.
+
 **Then every option the product has not is dropped** (`optfront`, the
 reform's D3). There are 375 rows, listed in `internal/cut/optfront.md`, where
 53 `dropoptions` steps and phases 54 and 95 dropped them a few at a time:

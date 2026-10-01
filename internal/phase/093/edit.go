@@ -104,9 +104,11 @@ func init() { phase.Register("whim93", Edit) }
 var w93Fields = []string{"b_ffname", "b_sfname", "b_fname"}
 
 var w93Before = map[string]int{
-	"b_ffname": 32, "b_sfname": 26, "b_fname": 29,
-	"CMD_file": 4, "EX_XFILE": 4, "buflist_new": 3, "buflist_name_nr": 3,
-	"buf_spname": 7, "buf_get_fname": 3, "fileinfo": 4, "check_fname": 3,
+	// :file's row, ex_file and rename_buffer, and :write's and :edit's uses
+	// of the names, went at phase 1 (filefront, the reform's D4)
+	"b_ffname": 23, "b_sfname": 15, "b_fname": 28,
+	"CMD_file": 3, "EX_XFILE": 3, "buflist_new": 3, "buflist_name_nr": 3,
+	"buf_spname": 7, "buf_get_fname": 3, "fileinfo": 3, "check_fname": 3,
 	"readonlymode": 2, "mch_dirname": 5, "shorten_buf_fname": 2,
 	"check_changed": 4, "no_write_message": 3,
 	"p_ur": 0, "p_ro": 0, "read_cmd_fd": 12, "vim_fsync": 3, // their rows went at phase 1 (D3)
@@ -123,12 +125,11 @@ var w93After = map[string]int{
 // w93Writers are the four functions every write to the three fields lives in,
 // and w93Readers the five every surviving mention lives in.  Both are computed
 // against, not asserted about: a write anywhere else means every fold is a guess.
-var w93Writers = []string{"buflist_new", "setfname", "rename_buffer", "shorten_buf_fname"}
-var w93Readers = []string{"setfname", "rename_buffer", "otherfile_buf", "buf_setino",
-	"eval_vars", "buflist_name_nr"}
+// (setfname and rename_buffer went with :file at phase 1, filefront, D4.)
+var w93Writers = []string{"buflist_new", "shorten_buf_fname"}
+var w93Readers = []string{"otherfile_buf", "buf_setino", "eval_vars", "buflist_name_nr"}
 
 var (
-	w93CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_file\] = \{.*\n`)
 	w93AnyRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 	w93ElseTop = regexp.MustCompile(`^[ \t]*else[ \t]*\n[ \t]*\{`)
 )
@@ -301,7 +302,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", name, k, w93Before[name])
 		}
 	}
-	p.Say("b_ffname 32, b_sfname 26, b_fname 29, CMD_file 4, EX_XFILE 4 -- the file the " +
+	p.Say("b_ffname 23, b_sfname 15, b_fname 28, CMD_file 3, EX_XFILE 3 -- the file the " +
 		"seven parts were counted against")
 
 	var offs []int
@@ -318,21 +319,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the writes to %s live in %s, expected exactly %s",
 			strings.Join(w93Fields, "/"), strings.Join(got, " "), strings.Join(want, " "))
 	}
-	p.Sayf("%d writes to b_ffname, b_sfname and b_fname, and every one is in buflist_new, "+
-		"setfname, rename_buffer or shorten_buf_fname -- the four this phase accounts "+
-		"for.  That, and nothing weaker, is why every fold below may take a constant", len(offs))
+	p.Sayf("%d writes to b_ffname, b_sfname and b_fname, and every one is in buflist_new "+
+		"or shorten_buf_fname -- the two this phase accounts for.  That, and nothing "+
+		"weaker, is why every fold below may take a constant", len(offs))
 
 	// ---- A. :file goes --------------------------------------------------------
-	if text, err = textEdit(text, w93lit3, "", "the CMD_file enumerator of enum CMD_index", 1); err != nil {
-		return nil, err
+	// the row went at phase 1 (filefront, D4); the enumerator stayed after
+	// CMD_SIZE, where the sweep may have pinned it
+	enumLine := regexp.MustCompile(`(?m)^    CMD_file(?: = \d+)?,\n`)
+	if k := len(enumLine.FindAllIndex(text, -1)); k != 1 {
+		return nil, p.Die("the CMD_file enumerator occurs %d times, expected 1", k)
 	}
-	rows := w93CmdRow.FindAllString(string(text), -1)
-	if len(rows) != 1 {
-		return nil, p.Die("the cmdnames[] row for :file matches %d lines, expected 1", len(rows))
-	}
-	text = []byte(strings.ReplaceAll(string(text), rows[0], ""))
-	p.Say("the cmdnames[] row [CMD_file] = {...}, one physical line: ex_file has no other " +
-		"reference, and rename_buffer and setfname no other caller")
+	text = enumLine.ReplaceAll(text, nil)
+	p.Say("the CMD_file enumerator of enum CMD_index")
 	if text, err = textEdit(text, w93lit4, w93lit5,
 		"do_one_cmd's curbuf_locked() exemption: `ea.cmdidx != CMD_file` is "+
 			"TRUE for ever, and phase 91 kept it saying this phase would take it", 1); err != nil {

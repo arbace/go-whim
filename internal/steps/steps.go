@@ -50,6 +50,8 @@ var ops = map[string]Step{
 	"exfront": Step(xform.FallOutOf(xform.Step(exFront))),
 	// and the table cut to the rows that are left (the reform's D2b)
 	"extable": plain(cut.ExTable),
+	// and the commands that name a file (the reform's D4)
+	"filefront": Step(xform.FallOutOf(xform.Step(plain(cut.FileFront)))),
 	// and every option the product has not (the reform's D3)
 	"optfront":    Step(xform.FallOutOf(xform.Step(plain(cut.OptFront)), optfrontHold...)),
 	"nobackup":    plain(cut.NoBackup),

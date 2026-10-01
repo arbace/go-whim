@@ -97,9 +97,25 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if me == nil {
 		return nil, e.Refused("enum CMD_index has no enumerators after CMD_SIZE")
 	}
-	e.Set([]byte(t[:me[2]] + t[me[3]:]))
-	e.Say(fmt.Sprintf("%d enumerators past CMD_SIZE, of rows deleted at phase 1",
-		len(deadIDRe.FindAllString(t[me[2]:me[3]], -1))))
+	// Those nothing else names go now; the commands that name a file are
+	// still named until phases 89-93 take their last uses, and the sweep
+	// takes them then.
+	var keep []string
+	gone := 0
+	for _, line := range strings.SplitAfter(t[me[2]:me[3]], "\n") {
+		id := deadIDRe.FindString(line)
+		if id == "" {
+			continue
+		}
+		if edit.MentionCount([]byte(t), strings.TrimSpace(id)) > 1 {
+			keep = append(keep, line)
+			continue
+		}
+		gone++
+	}
+	e.Set([]byte(t[:me[2]] + strings.Join(keep, "") + t[me[3]:]))
+	e.Say(fmt.Sprintf("%d enumerators past CMD_SIZE, of rows deleted at phase 1; %d still named stay",
+		gone, len(keep)))
 	mt := tableRe.FindStringSubmatchIndex(t)
 	if mt == nil {
 		return nil, e.Refused("cmdnames[] definition not found")
@@ -215,20 +231,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return e.Done()
 	}
 
-	// ---- 7: do_exedit ----------------------------------------------------------
-	for _, c := range []string{"ERROR_IF_POPUP_WINDOW", "ERROR_IF_TERM_POPUP_WINDOW"} {
-		if !regexp.MustCompile(`(?m)^enum \{ ` + c + ` = 0 \};$`).Match(e.Text()) {
-			return nil, e.Refused("%s is not the constant 0", c)
-		}
-	}
-	e.FoldNever(edit.Head("if ((eap->cmdidx != CMD_pedit && ERROR_IF_POPUP_WINDOW) || ERROR_IF_TERM_POPUP_WINDOW)"), 1,
-		"no popup window refuses an edit")
-	e.FoldNever(edit.Head("if ((eap->cmdidx == CMD_new || eap->cmdidx == CMD_vnew) && *eap->arg == NUL)"), 1,
-		":new and :vnew are not commands")
-	e.FoldAlwaysElse(edit.Head("if ((eap->cmdidx != CMD_split && eap->cmdidx != CMD_vsplit) || *eap->arg != NUL)"), 1,
-		"and neither are :split and :vsplit, so every edit edits")
-	e.Literal("if (eap->cmdidx == CMD_view || eap->cmdidx == CMD_sview)", "if (eap->cmdidx == CMD_view)", 1,
-		":view is read-only and :sview is gone")
+	// ---- 7: do_exedit went with :edit at phase 1 (filefront, the reform's D4)
 
 	// ---- 8: the address types only stub rows had -------------------------------
 	e.FoldNever(edit.Head("if (addr_type == ADDR_TABS_RELATIVE)"), 1, "no relative tab page offset")

@@ -48,6 +48,7 @@ var Plan = []Phase{
 			{Op: "argvfront"},
 			{Op: "exfront", Declared: true},
 			{Op: "extable"},
+			{Op: "filefront"},
 			{Op: "optfront"},
 			{Op: "noruntime"},
 		}},

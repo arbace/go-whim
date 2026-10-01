@@ -15,28 +15,7 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"nobuflist", w}
 	var err error
 
-	text, err = e.inFunction(text, "ex_edit", func(s []byte) ([]byte, error) {
-		return e.literal(s, "eap->cmdidx != CMD_badd && eap->cmdidx != CMD_balt && ", "",
-			":edit asking whether it was :badd or :balt", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_exedit", func(s []byte) ([]byte, error) {
-		s, err := e.foldAlways(s,
-			`^[ \t]*if \(eap->cmdidx != CMD_balt && eap->cmdidx != CMD_badd\)$`,
-			"do_exedit setting the pcmark for :badd and :balt")
-		if err != nil {
-			return nil, err
-		}
-		return e.literal(s, " + (eap->cmdidx == CMD_badd ? ECMD_ADDBUF : 0) + "+
-			"(eap->cmdidx == CMD_balt ? ECMD_ALTBUF : 0)", "",
-			"do_exedit passing ECMD_ADDBUF and ECMD_ALTBUF", 1)
-	})
-	if err != nil {
-		return nil, err
-	}
+	// ex_edit and do_exedit went with :edit at phase 1 (filefront, D4)
 
 	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
 		s, err := e.foldNever(s, `^[ \t]*if \(\(flags & \(ECMD_ADDBUF \| ECMD_ALTBUF\)\) `+

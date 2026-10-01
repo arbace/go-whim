@@ -716,6 +716,35 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
 5. **D4 files, and D5.**
    - Delete the superseded surgery.
    - This is the largest simplification, and the largest risk (§6, item 2).
+   - **D4, done (branch `reform-d4`): the commands that name a file,
+     deleted at the front.**
+     - **The cut.** `filefront`, phase 1's fourth step, deletes the rows of
+       the 13 commands of the 111 left that the product has not. Their
+       enumerators move after `CMD_SIZE`, as `extable` did for the stubs'.
+       Phase 80 now deletes only the enumerators past `CMD_SIZE` that
+       nothing names; the others go with their last uses in 89-93, or with
+       the sweep.
+     - **What dies with them.** The handlers, and with them the write path
+       (`buf_write()`, `check_overwrite()`), `:read`'s, `:edit`'s
+       (`do_exedit()`), `:file`'s (`rename_buffer()`, `setfname()`) and
+       `do_bang()`'s filters.
+     - **What it replaced.** Every edit inside them:
+       - in `noshellout`, `nocmdopts`, `nomemfile`, `nosession`,
+         `nowindows`, `nobuflist`, `onebuffer` and `oneoptset`;
+       - in phases 56, 61, 62, 64, 68, 75, 78, 79, 80 and 87.
+
+       Phases 89, 90, 91 and 93 lose their row deletions and row counts:
+       their enumerators are taken where still named, pinned or not. Their
+       code edits stay. Phase 93's writers of the name fields are two now
+       (`buflist_new()`, `shorten_buf_fname()`), its readers four.
+     - **What was not superseded.** The surgery the survey called
+       superseded (50, 51, 53, 61, 62, 69, 70, 74) mostly still found its
+       anchors: that code is live until 89-93 or 92.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       - In order: 149 phases, 986 s (962 after D3b). No phase goes, since
+         89-93 keep real edits.
+       - The parallel check: 148 links, 116 s, bound by phase 1, which now
+         runs four closures.
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.

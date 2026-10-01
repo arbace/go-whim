@@ -57,10 +57,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(edit.Head("if (p != NULL)"), 1,
 			"set_init_3 choosing 'shellredir' by shell")
 	})
-	e.InFunction("do_bang", func(e *edit.E) {
-		e.DropIf(edit.Head("if (*p_shq != NUL)"), 1,
-			"do_bang wrapping the command in 'shellquote'")
-	})
+	// do_bang's 'shellquote' went with :! and :read and :write's filters (D2, D4)
 	e.InFunction("vim_strsave_fnameescape", func(e *edit.E) {
 		e.DropIf(edit.Head("if (what == VSE_SHELL && csh_like_shell() && p != NULL)"), 1,
 			"filename escaping doubling ! for csh")

@@ -99,8 +99,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// live functions, so its BODY folds and the calls go; editing_arg_idx() is
 	// reached only from it.  arg_all() builds the ## expansion from every entry,
 	// and now has none to build from.
-	// five: the sixth died with a command retired at phase 1 (D2)
-	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 5, "the five calls that revalidated the argument index")
+	// four: the others died with commands retired or deleted at phase 1 (D2, D4)
+	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 4, "the four calls that revalidated the argument index")
 	e.InFunction("eval_vars", func(e *edit.E) {
 		e.Literal(w69lit16, w69lit17, 1, "## expanding to every file in the argument list")
 	})

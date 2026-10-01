@@ -85,12 +85,14 @@ import (
 var emptyFns = []string{
 	"clear_chartabsize_arg", "may_trigger_modechanged",
 	"may_trigger_win_scrolled_resized", "out_flush_check", "add_b0_fenc",
-	"set_b0_dir_flag", "pum_may_redraw", "ml_setname", "ml_preserve",
+	"set_b0_dir_flag", "pum_may_redraw", "ml_setname",
 	"trigger_undo_ftplugin", "set_init_lang_env", "set_init_default_printencoding",
 	"set_init_3", "mch_new_shellsize", "mch_early_init",
 }
 
-// Whim78 removes every call to fifteen functions that do nothing, and the
+// ml_preserve, the fifteenth, went with :write at phase 1 (filefront, D4).
+
+// Whim78 removes every call to fourteen functions that do nothing, and the
 // write-only state five more kept.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nostubs", text, w)

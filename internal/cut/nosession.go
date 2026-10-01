@@ -116,11 +116,12 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  nosession    %s\n", l.what)
 	}
 
-	// :write and :file to a new name re-run filetype detection when the
+	// :file to a new name re-runs filetype detection when the
 	// `filetypedetect` group exists -- a group only :augroup or :autocmd made.
 	// The test is known now, and with it goes the last caller of do_doautocmd().
+	// one: :write's went with it at phase 1 (filefront, the reform's D4)
 	if text, err = edit.FoldNever(text,
-		edit.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 2); err != nil {
+		edit.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 1); err != nil {
 		return nil, fmt.Errorf("nosession: filetype detection after a rename -- %v", err)
 	}
 	fmt.Fprintln(w, "  nosession    :write and :file no longer re-detect a filetype no "+
