@@ -366,8 +366,8 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical braaam.jar vijure.jar editor.lgo
-	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug braaam.jar vijure.jar editor.lgo
+	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical lib/whimsical-debug .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite .cache/whimsical-suite-debug
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

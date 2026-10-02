@@ -21,21 +21,28 @@ import (
 //
 // The two builds are kept in .cache/whimsical-suite/, where a library whose
 // source has not moved is not compiled again: a run on an unchanged core
-// pays for neither.
+// pays for neither.  `--scheme-debug` runs the debugging build instead
+// (whimsical.Debug: optimize-level 2, safe, the inspector's information
+// kept), its two builds kept in .cache/whimsical-suite-debug/.
 
 // scmControl is the control string as the library writes it: the bytes of
 // the literal in the memory's image, a NUL before and after it.
 var scmControl = regexp.MustCompile(`(\\x0;|")( INSERT)(\\x0;)`)
 
-// scmCache is where the suite's two Scheme builds are kept between runs.
-var scmCache = filepath.Join(".cache", "whimsical-suite")
+// scmCache is where the suite's two Scheme builds are kept between runs,
+// and scmDebugCache the debugging build's two.
+var scmCache, scmDebugCache = filepath.Join(".cache", "whimsical-suite"), filepath.Join(".cache", "whimsical-suite-debug")
 
 // buildScheme builds the Scheme editor from candSrc, and its control: the
-// library generated once, the two compiled side by side.
-func buildScheme(gen whimsical.Gen, candSrc string) (*jvmEditor, error) {
+// library generated once, the two compiled side by side in mode m.
+func buildScheme(gen whimsical.Gen, candSrc string, m whimsical.Mode) (*jvmEditor, error) {
 	e := &jvmEditor{name: "Scheme", where: "whimsical/", file: "editor.ss", launcher: "whimsical",
 		frame: regexp.MustCompile(`$^`)}
-	cdir, ctlDir := filepath.Join(scmCache, "cand"), filepath.Join(scmCache, "control")
+	cache := scmCache
+	if m == whimsical.Debug {
+		e.name, e.launcher, cache = "Scheme (debug)", "whimsical-debug", scmDebugCache
+	}
+	cdir, ctlDir := filepath.Join(cache, "cand"), filepath.Join(cache, "control")
 	scmOut, err := whimsical.Generate(gen, candSrc, cdir)
 	if err != nil {
 		return nil, err
@@ -62,11 +69,11 @@ func buildScheme(gen whimsical.Gen, candSrc string) (*jvmEditor, error) {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		e.bin, _, errBin = whimsical.Compile(cdir, filepath.Join(cdir, "whimsical"))
+		e.bin, _, errBin = whimsical.Compile(cdir, filepath.Join(cdir, "whimsical"), m)
 	}()
 	go func() {
 		defer wg.Done()
-		e.ctl, _, errCtl = whimsical.Compile(ctlDir, filepath.Join(ctlDir, "whimsical-control"))
+		e.ctl, _, errCtl = whimsical.Compile(ctlDir, filepath.Join(ctlDir, "whimsical-control"), m)
 	}()
 	wg.Wait()
 	if errBin != nil {

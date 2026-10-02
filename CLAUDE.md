@@ -213,7 +213,9 @@ slim-vim.c  --whim-->  whim-vim.c
   (`whimsical/`, `doc/SCHEME.md`), the same way, its control `" INSERT"`
   changed in the generated `editor.ss` (the literal's bytes in its image);
   it answers all 80 and all 240 as the C does, its two builds kept in
-  `.cache/whimsical-suite/`. Both suites are exact under load (`internal/suite/stress_test.go`:
+  `.cache/whimsical-suite/`; `--scheme-debug` runs its debugging build
+  (`whim whimsical --debug`: optimize-level 2, safe) instead, which answers
+  them all too. Both suites are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite). **Both end with the heavy
   case** (`internal/suite/heavy.go`), the one that times: 5,000 lines, three
   substitutions and a `:g`, run on every editor of the run one at a time,
@@ -447,7 +449,8 @@ whimsical/         the editor in Scheme (doc/SCHEME.md), R6RS for Chez Scheme
                    the boot files' assembly; whimsical.go the Go that builds
                    it (`go tool whim whimsical`, make bin/whimsical: Chez at
                    optimize-level 3 into one vfasl boot file, linked with
-                   Chez's kernel into bin/whimsical); whimsical_test.go the
+                   Chez's kernel into bin/whimsical; --debug, the debugging
+                   build at level 2, into bin/whimsical-debug); whimsical_test.go the
                    layout test and testdata/instances/main.ss, four editors
                    at once, run on lib/whimsical
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
@@ -516,6 +519,7 @@ go tool whim whimsy --lint  # the same, then rustc's warnings on the generated m
 make whim-test-rs     # the quick suite with the Rust editor too (whim test --rust; --wide --rust)
 make bin/whimsical    # the editor in Scheme: the library (whimsical editor) generated, compiled by Chez (half a minute when the core moved; its time and peak printed)
 make whim-test-scm    # the quick suite with the Scheme editor too (whim test --scheme; --wide --scheme)
+go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (46 s, 1.3 GB)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary

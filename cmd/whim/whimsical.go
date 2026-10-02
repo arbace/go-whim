@@ -30,32 +30,46 @@ func scmGen(editorC, dir, scmOut string) error {
 // compiled by Chez Scheme with the runtime, the host and the launcher into
 // a boot file, and linked with Chez's kernel into a program.
 //
-//	whim whimsical [--out DIR] [FILE]
+//	whim whimsical [--debug] [--out DIR] [FILE]
 //
 // FILE is src/whim-vim.c by default and DIR lib/whimsical, where the
 // libraries and the boot files go; the program is bin/whimsical -- or
 // DIR/whimsical when DIR is given. Chez's time and peak memory on the core
-// are printed beside it.
+// are printed beside it.  --debug makes the debugging build instead
+// (whimsical.Debug: optimize-level 2, safe, the inspector's information
+// kept) in lib/whimsical-debug, the program bin/whimsical-debug (or
+// DIR/whimsical-debug), and leaves the release build as it is.
 func runWhimsical(args []string) int {
-	file, out, prog := "src/whim-vim.c", filepath.Join("lib", "whimsical"), filepath.Join("bin", "whimsical")
+	file, out, name, mode := "src/whim-vim.c", "", "whimsical", whimsical.Release
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--out" && i+1 < len(args):
 			i++
 			out = args[i]
-			prog = filepath.Join(out, "whimsical")
+		case args[i] == "--debug":
+			mode, name = whimsical.Debug, "whimsical-debug"
 		case len(args[i]) > 0 && args[i][0] != '-':
 			file = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim whimsical [--out DIR] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim whimsical [--debug] [--out DIR] [FILE]")
 			return 2
 		}
 	}
-	_, st, err := whimsical.Build(scmGen, file, out, prog)
+	prog := filepath.Join("bin", name)
+	if out == "" {
+		out = filepath.Join("lib", name)
+	} else {
+		prog = filepath.Join(out, name)
+	}
+	_, st, err := whimsical.Build(scmGen, file, out, prog, mode)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whim whimsical: %v\n", err)
 		return 1
 	}
-	fmt.Printf("  %-12s the core in Scheme (whimsical/), built in %s; %s\n", prog, out, st)
+	build := "the core in Scheme (whimsical/)"
+	if mode == whimsical.Debug {
+		build += ", the debugging build,"
+	}
+	fmt.Printf("  %-12s %s built in %s; %s\n", prog, build, out, st)
 	return 0
 }

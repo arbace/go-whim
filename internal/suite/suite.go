@@ -309,8 +309,10 @@ type JVM struct {
 	Haskell caprice.Gen
 	// Rust, nor is Rust: --rust
 	Rust whimsy.Gen
-	// Scheme, nor is Scheme: --scheme
-	Scheme whimsical.Gen
+	// Scheme, nor is Scheme: --scheme; SchemeDebug runs its debugging
+	// build (whimsical.Debug) instead: --scheme-debug
+	Scheme      whimsical.Gen
+	SchemeDebug bool
 }
 
 // builds is what a run compares: the C of rev (the reference), the
@@ -372,7 +374,11 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 		jobs = append(jobs, func() (err error) { rs, err = buildRust(jvm.Rust, candSrc); return })
 	}
 	if jvm.Scheme != nil {
-		jobs = append(jobs, func() (err error) { scm, err = buildScheme(jvm.Scheme, candSrc); return })
+		mode := whimsical.Release
+		if jvm.SchemeDebug {
+			mode = whimsical.Debug
+		}
+		jobs = append(jobs, func() (err error) { scm, err = buildScheme(jvm.Scheme, candSrc, mode); return })
 	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })

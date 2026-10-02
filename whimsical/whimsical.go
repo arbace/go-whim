@@ -63,15 +63,41 @@ func command(name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
+// Mode is how Chez compiles the libraries.
+type Mode int
+
+const (
+	// Release is the editor as bin/whimsical is: optimize-level 3, unsafe
+	// as C is, and no inspector information, which halves the start-up
+	// and changes nothing the program does (doc/SCHEME.md, §8.2).
+	Release Mode = iota
+	// Debug is the debugging build, bin/whimsical-debug: optimize-level 2,
+	// so that every primitive checks its arguments -- a bytevector access
+	// out of the memory's bounds, a fixnum operation on what is not one,
+	// is an error that names its procedure instead of corrupted memory --
+	// and the inspector's information kept: procedures' names and source,
+	// and the frames of a continuation.
+	Debug
+)
+
+// settings are the compiler's parameters in mode m.
+func (m Mode) settings() string {
+	common := "(compile-imported-libraries #t) (library-directories '((\".\" . \".\")))\n"
+	if m == Debug {
+		return "(optimize-level 2) (debug-level 2) (generate-inspector-information #t) (generate-procedure-source-information #t)\n" + common
+	}
+	return "(optimize-level 3) (generate-inspector-information #f) (generate-procedure-source-information #f)\n" + common
+}
+
 // Build is the editor in Scheme from the C file src, in dir: dir/editor.c
 // the core, dir/src/ the sources and what Chez makes of them -- the
 // generated whimsical/editor.ss among them -- and the program at the path
-// out, which it returns.
-func Build(gen Gen, src, dir, out string) (string, Stats, error) {
+// out, compiled in mode m, which it returns.
+func Build(gen Gen, src, dir, out string, m Mode) (string, Stats, error) {
 	if _, err := Generate(gen, src, dir); err != nil {
 		return "", Stats{}, err
 	}
-	return Compile(dir, out)
+	return Compile(dir, out, m)
 }
 
 // Generate cuts the core from src into dir/editor.c and writes its library
@@ -119,21 +145,15 @@ func Generate(gen Gen, src, dir string) (string, error) {
 	return scmOut, nil
 }
 
-// The compiler's settings: optimize-level 3 (unsafe, as C is), and no
-// inspector information, which halves the start-up and changes nothing
-// the program does (doc/SCHEME.md, §8.2).
-const settings = `(optimize-level 3) (generate-inspector-information #f) (generate-procedure-source-information #f)
-(compile-imported-libraries #t) (library-directories '(("." . ".")))
-`
-
-// coreScript compiles the runtime and the core's library.
-const coreScript = settings + `(compile-library "whimsical/editor.ss" "whimsical/editor.so")
+// coreScript compiles the runtime and the core's library, after the
+// settings.
+const coreScript = `(compile-library "whimsical/editor.ss" "whimsical/editor.so")
 `
 
 // restScript compiles the host's libraries and the launcher, as main.ss
 // imports them, makes the boot file, and converts it and Chez's petite.boot
-// to vfasl.
-const restScript = settings + `(compile-file "main.ss" "main.so")
+// to vfasl; after the settings.
+const restScript = `(compile-file "main.ss" "main.so")
 (make-boot-file "whimsical.boot" '("petite")
   "whimsical/rt.so" "whimsical/editor.so" "whimsical/printf.so" "whimsical/host.so" "whimsical/term.so" "main.so")
 (vfasl-convert-file "whimsical.boot" "whimsical-v.boot" '("petite"))
@@ -141,10 +161,10 @@ const restScript = settings + `(compile-file "main.ss" "main.so")
 `
 
 // Compile writes the embedded sources into dir/src and compiles them, with
-// the generated library, into the program at out: the core's library when
-// it or the runtime moved (its time and peak are the Stats), the rest and
-// the boot file, and the link.
-func Compile(dir, out string) (string, Stats, error) {
+// the generated library, into the program at out, in mode m: the core's
+// library when it, the runtime or the mode moved (its time and peak are
+// the Stats), the rest and the boot file, and the link.
+func Compile(dir, out string, m Mode) (string, Stats, error) {
 	var st Stats
 	dir, err := filepath.Abs(filepath.Join(dir, "src"))
 	if err != nil {
@@ -161,13 +181,16 @@ func Compile(dir, out string) (string, Stats, error) {
 	if err != nil {
 		return "", st, err
 	}
-	if err := os.WriteFile(filepath.Join(dir, "core.ss"), []byte(coreScript), 0o644); err != nil {
+	// written only when they differ: the core's script carries the mode,
+	// so a library compiled in the other is stale
+	core := filepath.Join(dir, "core.ss")
+	if err := writeIfDiffers(core, []byte(m.settings()+coreScript)); err != nil {
 		return "", st, err
 	}
-	if err := os.WriteFile(filepath.Join(dir, "rest.ss"), []byte(restScript), 0o644); err != nil {
+	if err := writeIfDiffers(filepath.Join(dir, "rest.ss"), []byte(m.settings()+restScript)); err != nil {
 		return "", st, err
 	}
-	if stale(filepath.Join(dir, "whimsical", "editor.so"), editor, filepath.Join(dir, "whimsical", "rt.ss")) {
+	if stale(filepath.Join(dir, "whimsical", "editor.so"), editor, filepath.Join(dir, "whimsical", "rt.ss"), core) {
 		cmd := command("chez", "-q", "--script", "core.ss")
 		cmd.Dir = dir
 		start := time.Now()

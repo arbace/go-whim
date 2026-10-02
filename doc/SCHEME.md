@@ -8,14 +8,16 @@ as the C does, with a control of its own, and the heavy case runs at 0.9-1.0
 times the C. It was surveyed and measured here the same day, before it was
 scheduled (§1-§8, kept as they were written: Chez Scheme chosen by
 measurement); the design held as §4 and §8 settled it, and what was built
-is recorded milestone by milestone after them (§9-§14), with what
+is recorded milestone by milestone after them (§9-§15), with what
 `doc/SCHEME-IDIOMS.md` then made of the output.
 
 ```
 go tool whim whimsical       # bin/whimsical, built in lib/whimsical
 make bin/whimsical           # the same
+go tool whim whimsical --debug    # bin/whimsical-debug, in lib/whimsical-debug: safe (§14)
 make whim-test-scm           # the quick suite with whimsical too
 go tool whim test --wide --scheme
+go tool whim test --scheme-debug  # the suite on the debugging build (--wide too)
 go tool whim skel editor.c DIR -scm editor.ss   # the backend on a core, by hand
 ```
 
@@ -1012,12 +1014,37 @@ its returns were printed did not give the frame back there (fixed with item
 1); `SIZE_MAX`, an `unsigned long` enumerator, first named as -1 (fixed with
 item 6, before it was committed: both suites refused every case).
 
-## 14. Not done
+## 14. The debugging build
+
+`go tool whim whimsical --debug` builds the editor with every check Chez
+has, beside the release build and without touching it: the libraries
+compiled at `optimize-level 2` -- safe, so that a bytevector access out of
+the memory's bounds or a fixnum operation on what is not one is an error
+naming its procedure, where level 3 corrupts memory as the C would -- with
+`debug-level 2` and the inspector's information kept (procedures' names
+and source, a continuation's frames), into `lib/whimsical-debug` and the
+program `bin/whimsical-debug`. The suite runs it with `--scheme-debug` in
+place of `--scheme` (its two builds kept in
+`.cache/whimsical-suite-debug/`), on either suite.
+
+Measured 2026-10-02 (the load average 3-8, other agents building):
+
+| | release (`bin/whimsical`) | debug (`bin/whimsical-debug`) |
+|---|---:|---:|
+| chez on the core | 27.6 s, 0.63 GB | **45.9 s** (47.5 45.9 44.3), **1.29 GB** (1.37 1.29 1.29) |
+| the vfasl boot file of the libraries | 2.2 MB | 14.2 MB |
+| the program | 5.7 MB | 17.8 MB |
+| start-up, `:q!` (median of 20, three times) | 45.5 ms (44.0 45.5 49.8) | 93.1 ms (93.1 103.7 90.5) |
+| the heavy case | 0.9-1.0 times the C | **2.9-3.1 times the C** (1,285-1,356 ms against 436-453, four runs) |
+
+`whim test --scheme-debug` and `--wide --scheme-debug` pass: all 80 and all
+240 cases answered as the C does, the control seen by 76, and by 94 keys
+and 6 pty cases -- so no case of either suite reaches a check the release
+build skips.
+
+## 15. Not done
 
 - **Records for the C's structs, Scheme strings for its strings**: declined
   in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects.
 - **Joins nested by dominance** (each local procedure where the block that
   dominates its uses is): declined there too.
-- **A debugging build**: the library compiles at `optimize-level 2` (38.6 s)
-  and the foreign C tests run there, but `whim whimsical` has no switch for
-  it.

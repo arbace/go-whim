@@ -117,10 +117,10 @@ var tools = map[string]tool{
 	"clj":         {runClj, "clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]"},
 	"caprice":     {runCaprice, "caprice [--out DIR] [FILE]"},
 	"whimsy":      {runWhimsy, "whimsy [--out DIR] [FILE]"},
-	"whimsical":   {runWhimsical, "whimsical [--out DIR] [FILE]"},
+	"whimsical":   {runWhimsical, "whimsical [--debug] [--out DIR] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
-	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--scheme] [--ref REV] [FILE]"},
+	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--scheme] [--scheme-debug] [--ref REV] [FILE]"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},
 	"reach":       {runReach, "reach <file.c> [--no-control]"},
 }
