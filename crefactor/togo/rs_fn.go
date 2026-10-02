@@ -161,6 +161,7 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	}
 	b.WriteString(r.signature(d, f, &usesEd) + " {\n")
 	body = f.sinkDecls(body)
+	body = rsTailReturn(body)
 	for _, l := range f.order {
 		if l.param || l.unused || l.sunk {
 			continue
@@ -263,7 +264,11 @@ func (r *rgen) signature(d *cc.Declarator, f *rfn, usesEd *bool) string {
 	if usesEd != nil && !*usesEd {
 		ed = "_ed"
 	}
-	ps := []string{ed + ": *mut Editor"}
+	name := d.Name()
+	var ps []string
+	if r.takesEd(name) {
+		ps = append(ps, ed+": *mut Editor")
+	}
 	i := 0
 	for _, p := range ft.Parameters() {
 		if p.Type() == nil || p.Type().Kind() == cc.Void {
@@ -295,7 +300,11 @@ func (r *rgen) signature(d *cc.Declarator, f *rfn, usesEd *bool) string {
 	if rt := ft.Result(); rt != nil && rt.Kind() != cc.Void {
 		res = " -> " + r.declType(rt)
 	}
-	return fmt.Sprintf("pub unsafe fn %s(%s)%s", r.fnName[d.Name()], strings.Join(ps, ", "), res)
+	kw := "pub unsafe fn"
+	if r.isSafe(name) {
+		kw = "pub fn" // it does nothing Rust calls unsafe (rs_fx.go)
+	}
+	return fmt.Sprintf("%s %s(%s)%s", kw, r.fnName[name], strings.Join(ps, ", "), res)
 }
 
 // declareAll names the parameters and every local, each a name of its own
@@ -1272,4 +1281,22 @@ func (f *rfn) ladderRun(v, ty string, run []*rcase, lastItems []*cc.BlockItem) b
 // rsIsBreak says an item is a break.
 func rsIsBreak(it *cc.BlockItem) bool {
 	return it.Case == cc.BlockItemStmt && it.Statement.Case == cc.StatementJump && it.Statement.JumpStatement.Case == cc.JumpStatementBreak
+}
+
+// rsTailReturn is a body whose last statement, at the function's own
+// level, is `return x;` with x its tail (clippy's needless_return), and a
+// void function's last `return;` dropped.
+func rsTailReturn(body string) string {
+	lines := strings.Split(strings.TrimRight(body, "\n"), "\n")
+	n := len(lines) - 1
+	switch last := lines[n]; {
+	case last == "    return;":
+		lines = lines[:n]
+	case strings.HasPrefix(last, "    return ") && strings.HasSuffix(last, ";"):
+		lines[n] = "    " + strings.TrimSuffix(strings.TrimPrefix(last, "    return "), ";")
+	}
+	if len(lines) == 0 {
+		return ""
+	}
+	return strings.Join(lines, "\n") + "\n"
 }

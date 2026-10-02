@@ -132,6 +132,9 @@ func requireRs(t *testing.T) {
 
 // rsProgram translates src and returns the module and the refusals.
 func rsProgram(t *testing.T, dir, src string, prof Profile) (string, string) {
+	if prof.RsExports == nil {
+		prof.RsExports = []string{"run"} // what the harness's main calls, the editor first
+	}
 	c := filepath.Join(dir, "prog.c")
 	if err := os.WriteFile(c, []byte(src), 0o644); err != nil {
 		t.Fatal(err)
@@ -316,4 +319,14 @@ void run(void)
 }
 `
 
-func TestRsArith(t *testing.T) { rsSame(t, rsArithC, Profile{}, javaHarnessC) }
+func TestRsArith(t *testing.T) {
+	prog := rsSame(t, rsArithC, Profile{}, javaHarnessC)
+	// the effects (rs_fx.go): a function of its arguments is a safe fn of
+	// no editor, one that dereferences an unsafe fn of no editor, one that
+	// names the editor's objects an unsafe fn of the editor
+	for _, sig := range []string{"pub fn neg(x: i32) -> i32 {", "pub unsafe fn digit(s: *mut i8) -> i32 {", "pub unsafe fn run(ed: *mut Editor) {"} {
+		if !strings.Contains(prog, sig) {
+			t.Errorf("no %q in the Rust:\n%s", sig, numbered(prog))
+		}
+	}
+}

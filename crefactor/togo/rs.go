@@ -13,8 +13,10 @@ package togo
 //     pointer, `(*p).m`, and an address is `&raw mut`;
 //   - the file-scope objects and the block-scope statics are the fields of
 //     one #[repr(C)] Editor, made zeroed and never moved, its initial
-//     values written into it when it is made (init_globals); every function
-//     is an `unsafe fn` of `ed: *mut Editor` and the C's parameters;
+//     values written into it when it is made (init_globals); a function is
+//     an `unsafe fn` of `ed: *mut Editor` and the C's parameters -- the
+//     editor only where it reaches the editor, `unsafe` only where it does
+//     what Rust calls unsafe (rs_fx.go);
 //   - C's control flow is Rust's: return, break and continue as they are, a
 //     goto a labeled block it breaks (as the Java's), a switch a match -- or,
 //     where a case falls into the next, a ladder of labeled blocks;
@@ -60,6 +62,9 @@ type rgen struct {
 	field      map[string]string // an object's key -> its Editor field
 	objects    []*robj
 	valueTaken map[string]bool // names a local may not take: functions, constants, the runtime's
+
+	// what each function does, as its signature says it (rs_fx.go)
+	fx map[string]*rsFx
 
 	// what the functions were written with, for the coverage line
 	nMatch, nLadder, nGoto, nLowered int
@@ -145,6 +150,7 @@ func (g *gen) writeRs(path string) error {
 	r.enumerators()
 	r.objectFields()
 	r.typedefAliases()
+	r.effects()
 
 	var report strings.Builder
 	var funcs []string
@@ -178,8 +184,17 @@ func (g *gen) writeRs(path string) error {
 	}
 	b.WriteString(r.prelude(body.String()))
 	b.WriteString(body.String())
-	fmt.Fprintf(logw, "rs: %d of %d functions written, %d refused, %d from the lowered form; %d switches matches, %d ladders; %d gotos' labeled blocks; %d structs and unions, %d fields of the editor\n",
-		written, len(fds), len(fds)-written, r.nLowered, r.nMatch, r.nLadder, r.nGoto, len(r.structOrder), len(r.objects))
+	nSafe, nNoEd := 0, 0
+	for _, fx := range r.fx {
+		if !fx.unsafe {
+			nSafe++
+		}
+		if !fx.editor {
+			nNoEd++
+		}
+	}
+	fmt.Fprintf(logw, "rs: %d of %d functions written, %d refused, %d from the lowered form; %d safe, %d without the editor; %d switches matches, %d ladders; %d gotos' labeled blocks; %d structs and unions, %d fields of the editor\n",
+		written, len(fds), len(fds)-written, r.nLowered, nSafe, nNoEd, r.nMatch, r.nLadder, r.nGoto, len(r.structOrder), len(r.objects))
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}

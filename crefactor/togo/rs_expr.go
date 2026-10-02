@@ -1180,7 +1180,10 @@ func (f *rfn) call(x *cc.PostfixExpression) rv {
 	if len(params) == 1 && (params[0].Type() == nil || params[0].Type().Kind() == cc.Void) {
 		params = nil
 	}
-	vals := []string{"ed"}
+	var vals []string
+	if d == nil || f.r.takesEd(d.Name()) {
+		vals = append(vals, "ed") // the editor, where the callee takes it (rs_fx.go)
+	}
 	var rest []string
 	for i, a := range args {
 		if i < len(params) {

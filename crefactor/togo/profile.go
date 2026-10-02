@@ -102,6 +102,10 @@ type Profile struct {
 	// called in, the editor first ("" is crate::host); RsRuntime the
 	// module of the runtime the Rust is written against ("" is crate::rt).
 	RsHost, RsRuntime string
+	// RsExports are the functions the hand-written Rust calls by name, the
+	// editor first: they keep the whole signature, an unsafe fn of the
+	// editor, whatever they do (rs_fx.go).
+	RsExports []string
 
 	// HsParts is how many modules the Haskell functions are split into, by
 	// the call graph (hssplit.go): 0 or 1, one module.
