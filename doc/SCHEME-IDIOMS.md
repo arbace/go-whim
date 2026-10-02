@@ -519,3 +519,19 @@ C's own) is itself or its negation. An `int` the C tests stays `(not
 | lines | 53,884 | 53,676 |
 | Chez on the core | 28.2 s, 0.74 GB | 28.8 s, 0.73 GB |
 | the heavy case | 0.9-1.0 times the C | 0.9-1.0 (C 434-457 ms, whimsical 390-447) |
+
+### 9. Arms that end alike (found while doing 3 and 8)
+
+`tails.py` counted 1,298 of the 5,564 two-way branches whose two arms end
+in the same form -- most often the same jump to a join, `(cond [c ...
+(join16 ...)] [else (join16 ...)])`. A branch's arms are now printed once
+up to where they meet, and what both end with follows the branch, once:
+`(when c ...) (join16 ...)`.
+
+| | before | after |
+| --- | ---: | ---: |
+| two-way branches whose arms end alike | 1,298 | 0 |
+| lines | 53,676 | 50,838 |
+| `if` / `cond` / `when`+`unless` | 3,190 / 3,553 / 489 | 3,328 / 2,328 / 1,860 |
+| Chez on the core | 28.8 s, 0.73 GB | 26.6 s, 0.63 GB |
+| the heavy case | 0.9-1.0 times the C | 0.9 (C 446-450 ms, whimsical 395-403) |

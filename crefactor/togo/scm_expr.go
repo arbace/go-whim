@@ -861,7 +861,7 @@ func (f *sfn) compare(op string, le, re cc.ExpressionNode) sx {
 
 // scmExpr is a value and the bindings before it as one expression.
 func scmExpr(binds []sbind, val string) string {
-	return scmBegin(scmRender(binds, val))
+	return scmBegin(scmRender(binds, []string{val}))
 }
 
 // logical is && (and) or ||: the right operand, its bindings with it,

@@ -690,8 +690,8 @@ func (f *sfn) body(b *lblock, depth int) []string {
 }
 
 // run prints b's steps into the current lines and returns its
-// terminator's expression.
-func (f *sfn) run(b *lblock, depth int) string {
+// terminator's forms.
+func (f *sfn) run(b *lblock, depth int) []string {
 	if depth > 10000 {
 		f.no(nil, "blocks written in place without end")
 	}
@@ -727,10 +727,34 @@ type sclause struct {
 	forms []string
 }
 
-// ifForm is the branch on c to then or els, each body forms: a when or an
-// unless where the other does nothing, an if of two forms, else a cond --
-// into which an els that is a cond or an if goes on.
-func (f *sfn) ifForm(c string, then, els []string) string {
+// ifForm is the branch on c to then or els, each body forms: what both
+// end with after it, once; a when or an unless where the other does
+// nothing, an if of two forms, else a cond -- into which an els that is a
+// cond or an if goes on.
+func (f *sfn) ifForm(c string, then, els []string) []string {
+	k := 0
+	for k < len(then) && k < len(els) && then[len(then)-1-k] == els[len(els)-1-k] {
+		k++
+	}
+	if k > 0 {
+		tail := then[len(then)-k:]
+		ht, he := then[:len(then)-k], els[:len(els)-k]
+		if len(ht) == 0 && len(he) == 0 {
+			return append([]string{c}, tail...) // the test, for what it does
+		}
+		if len(ht) == 0 {
+			ht = []string{"(void)"}
+		}
+		if len(he) == 0 {
+			he = []string{"(void)"}
+		}
+		return append(f.ifForm(c, ht, he), tail...)
+	}
+	return []string{f.branch(c, then, els)}
+}
+
+// branch is ifForm's branch, of arms that end apart.
+func (f *sfn) branch(c string, then, els []string) string {
 	isVoid := func(fs []string) bool { return len(fs) == 1 && fs[0] == "(void)" }
 	x, negated := scmNot(c)
 	switch {
@@ -747,7 +771,7 @@ func (f *sfn) ifForm(c string, then, els []string) string {
 	if negated && !(len(els) == 1 && elsCond) {
 		// (if (not x) a b) is (if x b a); and (if (not x) (if ...) e) is
 		// (cond [x e] ...)
-		return f.ifForm(x, els, then)
+		return f.branch(x, els, then)
 	}
 	clauses := []sclause{{c, then}}
 	if len(els) == 1 {
@@ -796,7 +820,7 @@ func scmBegin(forms []string) string {
 // scmRender is a block's lines and its tail as body forms: the effects as
 // they are, a run of bindings a let* (let-values for several values) whose
 // body is the rest.
-func scmRender(items []sbind, tail string) []string {
+func scmRender(items []sbind, tail []string) []string {
 	var forms []string
 	for i := 0; i < len(items); i++ {
 		it := items[i]
@@ -812,10 +836,7 @@ func scmRender(items []sbind, tail string) []string {
 		inner := scmRender(items[j:], tail)
 		return append(forms, scmLet(items[i:j], multi, inner))
 	}
-	if tail != "" {
-		forms = append(forms, tail)
-	}
-	return forms
+	return append(forms, tail...)
 }
 
 // scmLet is a run of bindings around body.
@@ -1231,7 +1252,7 @@ func (f *sfn) initInto(base string, t cc.Type, in *cc.Initializer) {
 }
 
 // term is a block's terminator as an expression.
-func (f *sfn) term(b *lblock, depth int) string {
+func (f *sfn) term(b *lblock, depth int) []string {
 	t := b.term
 	switch t.kind {
 	case tGoto:
@@ -1239,7 +1260,7 @@ func (f *sfn) term(b *lblock, depth int) string {
 		if f.inline[to] {
 			return f.run(to, depth+1)
 		}
-		return f.jumpOn(to)
+		return []string{f.jumpOn(to)}
 	case tIf:
 		c := f.truth(f.lexpr(t.cond))
 		cv := f.flush(c)
@@ -1264,11 +1285,11 @@ func (f *sfn) term(b *lblock, depth int) string {
 		}
 		arms = append(arms, scmArm("else", f.arm(f.resolve(t.to[len(t.to)-1]), depth, cur)))
 		f.s.st.cases++
-		return "(case " + v + "\n" + indent(strings.Join(arms, "\n"), 2) + ")"
+		return []string{"(case " + v + "\n" + indent(strings.Join(arms, "\n"), 2) + ")"}
 	case tRet:
 		switch {
 		case t.ret.isZero():
-			return f.result(scmZero(f.ret))
+			return []string{f.result(scmZero(f.ret))}
 		case f.tuple:
 			x := f.lexpr(t.ret)
 			var vals []string
@@ -1280,7 +1301,7 @@ func (f *sfn) term(b *lblock, depth int) string {
 					vals = append(vals, f.flush(v))
 				}
 			}
-			return f.result("(values " + strings.Join(vals, " ") + ")")
+			return []string{f.result("(values " + strings.Join(vals, " ") + ")")}
 		case f.sret:
 			x := f.lexpr(t.ret)
 			if x.rec != nil {
@@ -1289,23 +1310,23 @@ func (f *sfn) term(b *lblock, depth int) string {
 				x = f.materialize(x, f.lf.ft.Result())
 				f.emit("(mem-copy! sret %s %d)", f.flush(x), f.lf.ft.Result().Size())
 			}
-			return f.result("(void)")
+			return []string{f.result("(void)")}
 		default:
 			v := f.conv(f.lexpr(t.ret), f.ret)
 			if f.framed {
 				// computed before the frame is given back
-				return f.result(f.once(v))
+				return []string{f.result(f.once(v))}
 			}
-			return f.result(f.flush(v))
+			return []string{f.result(f.flush(v))}
 		}
 	case tFall:
 		if f.sret || f.tuple {
-			return f.result("(void)")
+			return []string{f.result("(void)")}
 		}
-		return f.result(scmZero(f.ret))
+		return []string{f.result(scmZero(f.ret))}
 	}
 	f.no(nil, "a terminator %d", t.kind)
-	return ""
+	return nil
 }
 
 // scmIf is (if c a b), on one line when it fits.
