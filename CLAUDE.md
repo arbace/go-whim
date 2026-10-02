@@ -408,7 +408,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    the heavy case, beside the C's, and the change it chose), HASKELL.md (caprice, the Haskell editor:
                    its design and what was measured), RUST.md (a preliminary
                    plan for a Rust editor, not scheduled), WASM.md (the same, for the Go editor in a
-                   browser: what compiles already, the host it would need), IR.md (where a feature goes in the chain,
+                   browser: what compiles already, the host it would need),
+                   SCHEME.md (a survey for a Scheme editor, not scheduled), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
                    what is shared and duplicated, a schema, a migration path),
