@@ -117,7 +117,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	// the spell plumbing
-	e.Literal(", spellvars_T *spv __attribute__((unused)))", ")", 1, "win_line's unused spell parameter")
+	e.Literal(", spellvars_T *spv)", ")", 1, "win_line's unused spell parameter")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", 1, "the first win_line call")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
 		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", 1, "the second win_line call")

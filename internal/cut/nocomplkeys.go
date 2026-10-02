@@ -194,7 +194,7 @@ const complkeysDoCompleteOld = `            if (!ctrl_x_mode_whole_line())
                 }
                 goto normalchar;
             }
-            __attribute__((fallthrough));
+            ;
         case Ctrl_P:
         case Ctrl_N:
         docomplete:

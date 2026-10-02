@@ -61,7 +61,7 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 			`[ \t]*case CMD_bunload:\n`+
 			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != nullptr\)\n`+
 			`[ \t]*\{\n[ \t]*arg = xp->xp_pattern \+ 1;\n[ \t]*\}\n`+
-			`[ \t]*__attribute__\(\(fallthrough\)\);\n`,
+			`[ \t]*;\n`,
 			"completion for :bdelete, :bwipeout and :bunload")
 		if err != nil {
 			return nil, err

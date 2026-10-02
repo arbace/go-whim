@@ -18,7 +18,7 @@ const (
 	w96lit14 = "        did_return = TRUE;\n"
 	w96lit16 = "static void ui_write(char_u *s, int len, int console);\n"
 	w96lit17 = "static void ui_write(char_u *s, int len);\n"
-	w96lit18 = "ui_write(char_u *s, int len, int console __attribute__((unused)))\n{\n    mch_write(s, len);\n    if (console && s[len - 1] == '\\n')\n    {\n        vim_fsync(1);\n    }\n}\n"
+	w96lit18 = "ui_write(char_u *s, int len, int console)\n{\n    mch_write(s, len);\n    if (console && s[len - 1] == '\\n')\n    {\n        vim_fsync(1);\n    }\n}\n"
 	w96lit19 = "ui_write(char_u *s, int len)\n{\n    mch_write(s, len);\n}\n"
 	w96lit20 = "    ui_write(out_buf, len, FALSE);\n"
 	w96lit21 = "    ui_write(out_buf, len);\n"

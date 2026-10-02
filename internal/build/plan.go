@@ -43,11 +43,14 @@ type (
 // Plan is the pipeline, phase by phase.
 var Plan = []Phase{
 	// Phase 0 seeds the input canonically and spells it in C23 there:
-	// whim106's `nullptr` and `usize` (internal/phase/106), so that every
-	// phase after it is written in the spelling the product has.
+	// whim106's `nullptr` and `usize` (internal/phase/106) and whim107's
+	// attributes (internal/phase/107: `unused` gone, `fallthrough` an empty
+	// statement once printed), so that every phase after it is written in the
+	// spelling the product has.
 	{N: 0, Block: "s00-seed", Name: "seed, in the one spelling every later phase reads", Seed: true,
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim106", "--casts", "1"}},
+			{Op: "edit", Args: []string{"whim107"}},
 		}},
 	{N: 1, Block: "d01-front", Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
@@ -376,12 +379,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim104"}},
 		}},
-	// Phases 105 and 107, merged: the variadic collapse, and the attributes
-	// in C23's spelling.  106's `nullptr` and `usize` run in phase 0.
-	{N: 107, Block: "g01-variadics-and-attributes", Name: "the variadic collapse, and the attributes",
+	// Phase 105, the variadic collapse.  106's `nullptr` and `usize` and
+	// 107's attributes run in phase 0.
+	{N: 105, Block: "g01-variadics", Name: "the variadic collapse",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim105"}},
-			{Op: "edit", Args: []string{"whim107"}},
 		}},
 	{N: 108, Block: "r03-boundary", Name: "the plain host calls",
 		Steps: []Step{

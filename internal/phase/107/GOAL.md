@@ -1,5 +1,21 @@
 # Phase 107 — the attributes
 
+> **Where it runs now (2026-10-02).** This step runs in the seed, after
+> phase 106's rename: phase 0 runs `whim107` on the canonical input, so
+> every later phase is written without GNU attributes but `format`,
+> `format_arg` and `cold`. At the seed it finds 358 attributes -- 306
+> `unused` (303 on the parameters of 265 definitions, 3 on locals of
+> `buf_write`), 37 `fallthrough`, 9 `format`, 3 `format_arg`, 3 `cold` --
+> deletes the 306, respells the 37, and keeps 15; `[[` occurs twice, both
+> inside one shell-command literal. The canonical print writes
+> `[[fallthrough]];` as `;`, as it did after this phase before. To run
+> there the step learned three things: `[[` is counted outside the
+> literals, `unused` on a local's own declaration goes too, and `cold`,
+> on three of 105's prototypes, is kept with `format`. Phases 64, 67, 96,
+> 100 and 103 and three of `internal/cut`'s cutters were respelled to
+> match (`doc/PIPELINE-REFORM.md` §7, G), and the build gives the product
+> byte for byte. What follows is the phase as it stood after 106.
+
 `internal/phase/107/edit.go` and `internal/phase/107/check.go`, `stage 107`, `package dialect`.
 `__attribute__` is a GNU extension, and a core on its way to another runtime was
 carrying 139 of them. This phase looks at all 139, in three groups, and takes a

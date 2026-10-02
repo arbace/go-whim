@@ -17,22 +17,29 @@ var (
 	atFall    = regexp.MustCompile(`(?m)^[ ]*__attribute__\(\(fallthrough\)\);$`)
 	atC23     = regexp.MustCompile(`(?m)^[ ]*\[\[fallthrough\]\];$`)
 	atHead    = regexp.MustCompile(`^(?:static\s+[\w \*]+?\s*\**)?(\w+)\s*$`)
-	atFmt     = regexp.MustCompile(`format(_arg)?\(`)
+	atKeep    = regexp.MustCompile(`__attribute__\(\((?:format|format_arg|cold)\b`)
 	atPad     = regexp.MustCompile(`  [,)]`)
 	atUnused  = regexp.MustCompile(`__attribute__\(\(unused\)\)`)
 	atNeedleS = " __attribute__((unused))"
+	atLocal   = regexp.MustCompile(`^[ ]+[\w ]+?[ ]\**\w+ __attribute__\(\(unused\)\);$`)
 )
 
-var atKinds = []string{"unused", "fallthrough", "format", "format_arg"}
+var atKinds = []string{"unused", "fallthrough", "format", "format_arg", "cold"}
+
+// atKept are the kinds the step keeps: `format` and `format_arg` do work,
+// and `cold` (on a prototype, beside a `format`) is a hint about code
+// placement this step has no decision for.
+var atKept = []string{"format", "format_arg", "cold"}
 
 // Attrs is the step that normalises a file's GNU attributes, taking a
-// different decision on each of the four kinds it knows and refusing any
+// different decision on each of the five kinds it knows and refusing any
 // other: `__attribute__((unused))` on a function definition's parameter is
 // deleted with the space before it (an unused parameter is not diagnosed
 // under -Wno-unused-parameter, which is how the sweep compiles);
 // `__attribute__((fallthrough));`, a statement on a line of its own, is
 // respelled `[[fallthrough]];`, the C23 form; and `format` and `format_arg`
-// stay, being the only ones that do work (format checking).  Both edits are
+// stay, being the only ones that do work (format checking), and `cold`
+// stays beside them, a hint it has no decision for.  Both edits are
 // within lines, and the file's directives, every one an `#include <...>` on
 // its first lines, stay where they are.  It takes no knobs and no arguments.
 func Attrs() Step {
@@ -80,23 +87,19 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 				"add one")
 		}
 	}
-	if strings.Contains(string(text), "[[") {
-		return nil, p.Die("`[[` already occurs %d times -- this step introduces C23 attribute syntax, "+
-			"so an existing occurrence means the step has already run or the spelling is "+
-			"taken", strings.Count(string(text), "[["))
-	}
-	p.Sayf("%d directives, every one an `#include <...>` on the first %d lines, and "+
-		"`[[` at zero occurrences", nInc, nInc)
-
 	// ---- 1. the literals ------------------------------------------------------
 	spans, err := edit.LiteralSpans(p, text)
 	if err != nil {
 		return nil, err
 	}
+	// `[[` outside the literals: a shell command vim spells as a string may
+	// hold one, and no substitution below reaches inside a literal.
+	inLit := 0
 	var bad, words []string
 	for _, s := range spans {
 		lit := string(text[s[0]:s[1]])
-		if strings.Contains(lit, "__attribute__") || strings.Contains(lit, "[[") {
+		inLit += strings.Count(lit, "[[")
+		if strings.Contains(lit, "__attribute__") {
 			bad = append(bad, lit)
 		}
 		if atWords.MatchString(lit) {
@@ -104,12 +107,19 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(bad) > 0 {
-		return nil, p.Die("a literal holds `__attribute__` or `[[`, and no substitution below may reach "+
+		return nil, p.Die("a literal holds `__attribute__`, and no substitution below may reach "+
 			"inside a string: %s", strings.Join(bad, " / "))
 	}
-	p.Sayf("%d string and character literals, NONE holding `__attribute__` or `[[`.  Two hold "+
-		"the English words and neither is reachable by either substitution: %s",
-		len(spans), strings.Join(words, " / "))
+	if k := strings.Count(string(text), "[[") - inLit; k != 0 {
+		return nil, p.Die("`[[` already occurs %d times outside the literals -- this step introduces "+
+			"C23 attribute syntax, so an existing occurrence means the step has already run "+
+			"or the spelling is taken", k)
+	}
+	p.Sayf("%d directives, every one an `#include <...>` on the first %d lines, and "+
+		"`[[` at zero occurrences outside the literals (%d inside)", nInc, nInc, inLit)
+	p.Sayf("%d string and character literals, NONE holding `__attribute__`.  %d hold "+
+		"the English words and none is reachable by either substitution: %s",
+		len(spans), len(words), strings.Join(words, " / "))
 
 	// ---- 2. the partition -----------------------------------------------------
 	allAttrs := atAttr.FindAllStringSubmatch(string(text), -1)
@@ -133,13 +143,14 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 	for i, k := range atKinds {
 		parts[i] = k + " " + strconv.Itoa(kinds[k])
 	}
-	p.Sayf("%d `__attribute__` in the file, and every one is one of four kinds: %s",
+	p.Sayf("%d `__attribute__` in the file, and every one is one of five kinds: %s",
 		len(allAttrs), strings.Join(parts, ", "))
 
 	// ---- 3. unused: on a parameter, every one, computed ----------------------
 	// THE SHAPE IS EXACT AND IT IS THE TRAP.  Each is written `<declarator>
 	// __attribute__((unused))` -- ONE space before and none after -- and is
-	// followed by the `,` or `)` of the parameter list.  Deleting the attribute
+	// followed by the `,` or `)` of the parameter list, or by the `;` of a
+	// local's declaration, a statement of its own.  Deleting the attribute
 	// without its space would leave a space before a `,` or a `)`, and the canonical
 	// print takes neither.  RE2 has no lookaround, so `(?<=\S)` and
 	// `(?=[,)])` are the byte either side, tested.
@@ -152,7 +163,7 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 		}
 		j += i
 		e := j + len(atNeedleS)
-		if j > 0 && !atIsSpace(s[j-1]) && e < len(s) && (s[e] == ',' || s[e] == ')') {
+		if j > 0 && !atIsSpace(s[j-1]) && e < len(s) && (s[e] == ',' || s[e] == ')' || s[e] == ';') {
 			unusedSpans = append(unusedSpans, [2]int{j, e})
 		}
 		i = e
@@ -179,8 +190,16 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	sort.Ints(unusedLines)
+	nLocal := 0
 	for _, i := range unusedLines {
 		l := lines[i]
+		if atLocal.MatchString(l) {
+			// A local's declaration, indented, so inside a function: the
+			// attribute only silences -Wunused-variable, and a local nothing
+			// reads is the sweep's to delete.
+			nLocal++
+			continue
+		}
 		k := strings.Index(l, "__attribute__((unused))")
 		d, j := 0, -1
 		for j = k - 1; j >= 0; j-- {
@@ -204,11 +223,12 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 				"line below it is %s and not `{`", i+1, edit.PyRepr(lines[i+1]))
 		}
 	}
-	p.Sayf("%d `__attribute__((unused))`, ALL of them in the parameter list of a function "+
-		"DEFINITION -- %d header lines, every one followed by `{` -- so not one is on a "+
-		"variable, an object, a type or a field.  The sweep's own flags are "+
-		"`-Wall -Wextra -Wno-unused-parameter`, which is why they say nothing",
-		nUnused, len(unusedLines))
+	p.Sayf("%d `__attribute__((unused))`: %d in the parameter list of a function DEFINITION -- "+
+		"%d header lines, every one followed by `{` -- and %d on a local's declaration, a "+
+		"statement of its own; not one on an object, a type or a field.  An unused "+
+		"parameter is not diagnosed under -Wno-unused-parameter, and a local nothing reads "+
+		"is the sweep's to delete, which is why they say nothing",
+		nUnused, nUnused-nLocal, len(unusedLines)-nLocal, nLocal)
 
 	// ---- 4. the 20: a standalone statement, every one -------------------------
 	nFall := len(atFall.FindAllString(s, -1))
@@ -226,23 +246,27 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 	var keep []int
 	var keepText []string
 	for i, l := range lines {
-		if atFmt.MatchString(l) && strings.Contains(l, "__attribute__") {
+		if atKeep.MatchString(l) {
 			keep = append(keep, i)
 			keepText = append(keepText, l)
 		}
 	}
-	nKeep := 0
+	nKeep, wantKeep := 0, 0
 	for _, l := range keepText {
 		nKeep += strings.Count(l, "__attribute__")
 	}
-	if nKeep != kinds["format"]+kinds["format_arg"] {
-		return nil, p.Die("the `format` and `format_arg` attributes are on %d lines carrying %d of them, "+
-			"and there are %d in the file -- the step must be able to name every one it "+
-			"keeps", len(keep), nKeep, kinds["format"]+kinds["format_arg"])
+	for _, k := range atKept {
+		wantKeep += kinds[k]
+	}
+	if nKeep != wantKeep {
+		return nil, p.Die("the `format`, `format_arg` and `cold` attributes are on %d lines carrying %d "+
+			"attributes, and there are %d of them in the file -- the step must be able to name "+
+			"every one it keeps", len(keep), nKeep, wantKeep)
 	}
 	p.Sayf("%d `format`/`format_arg` on %d lines KEPT, and they are the only attributes doing "+
 		"work nothing else does: without them the compiler checks no format string "+
-		"they name", nKeep, len(keep))
+		"they name; %d `cold` beside them kept too", kinds["format"]+kinds["format_arg"], len(keep),
+		kinds["cold"])
 
 	// ---- 6. the two substitutions ---------------------------------------------
 	padBefore := len(atPad.FindAllString(s, -1))
@@ -277,12 +301,11 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 	for _, m := range atAttr.FindAllStringSubmatch(s, -1) {
 		leftK = append(leftK, m[1])
 	}
-	wantK := make([]string, 0, kinds["format"]+kinds["format_arg"])
-	for i := 0; i < kinds["format"]; i++ {
-		wantK = append(wantK, "format")
-	}
-	for i := 0; i < kinds["format_arg"]; i++ {
-		wantK = append(wantK, "format_arg")
+	wantK := make([]string, 0, wantKeep)
+	for _, k := range atKept {
+		for i := 0; i < kinds[k]; i++ {
+			wantK = append(wantK, k)
+		}
 	}
 	gotK := append([]string{}, leftK...)
 	sort.Strings(gotK)
@@ -292,8 +315,8 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 		if shown == "" {
 			shown = "none"
 		}
-		return nil, p.Die("the attributes left are %s, and they must be exactly the %d format and %d "+
-			"format_arg", shown, kinds["format"], kinds["format_arg"])
+		return nil, p.Die("the attributes left are %s, and they must be exactly the %d format, %d "+
+			"format_arg and %d cold", shown, kinds["format"], kinds["format_arg"], kinds["cold"])
 	}
 	for i, k := range keep {
 		if L[k] != keepText[i] {
@@ -318,10 +341,10 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if changed != len(unusedLines)+nFall {
-		return nil, p.Die("%d lines changed, expected %d -- the %d headers and the %d fallthrough "+
+		return nil, p.Die("%d lines changed, expected %d -- the %d lines holding an `unused` and the %d fallthrough "+
 			"statements, and nothing else", changed, len(unusedLines)+nFall, len(unusedLines), nFall)
 	}
-	p.Sayf("%d attributes -> %d, the same %d lines, %d changed -- the %d function headers and "+
+	p.Sayf("%d attributes -> %d, the same %d lines, %d changed -- the %d lines that held an `unused` and "+
 		"the %d fallthrough statements -- and the doubled-space count unmoved at %d",
 		len(allAttrs), len(leftK), len(L)-1, changed, len(unusedLines), nFall, padBefore)
 	return text, nil

@@ -34,10 +34,11 @@ Nothing known.
   - 134's empty blocks: phase 145 takes the block 134 leaves.
   - 149's never-null folds: the product is 34 lines longer.
   - `BoolRet` once: 120 lines differ.
-  - The attributes (107), not tried: they must precede 120, 134 and 149,
-    which cannot move. `NullptrUsize` (106) moved the other way, to the seed
-    (§7, G): 282 lines of phases 1-105's programs, cutters and vendored C
-    respelled, the chain byte for byte.
+  - The attributes (107), not tried at the end: they must precede 120, 134
+    and 149, which cannot move. They moved the other way, to the seed, after
+    `NullptrUsize` (106) (§7, G): 282 lines of phases 1-105's programs,
+    cutters and vendored C respelled for 106, 14 for 107, the chain byte
+    for byte.
 
   Declined: the rewires are written for these steps' text.
 

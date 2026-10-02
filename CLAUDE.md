@@ -492,12 +492,13 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- C23's,
-  `nullptr` and `usize` included, since phase 0 runs phase 106's rename on the
-  canonical input and every later phase is written for it -- applied
+  `nullptr` and `usize` and the attributes included, since phase 0 runs phase
+  106's rename and 107's attributes on the canonical input and every later
+  phase is written for them -- applied
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 124 phases, **815 s**, 77,634 lines. A
+  before the reason. Measured: 124 phases, **820 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -515,8 +516,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **83 s**, 123 links 64 at a time, bound by
-  the machine's load and no longer by one link (the front's three parts, phases 1-3, take 40, 43 and 45 s, and the seed 10 s; phase 1 alone was 89 s), against 1,005 s in
+  committed `whim-vim.c`. Measured: **84 s**, 123 links 64 at a time, bound by
+  the machine's load and no longer by one link (the front's three parts, phases 1-3, take 40, 43 and 45 s, and the seed 11 s; phase 1 alone was 89 s), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -570,10 +571,10 @@ edit nothing any more are records only, a `GOAL.md` each in
 `internal/phase/archive/` (`doc/GOALS.md` lists them): most because phase 1's
 front runs their cut now, 168 because `GotoTail` takes its gotos
 (`doc/PIPELINE-REFORM.md` §7). 61's program is called by the front too, so it
-has no plan entry but keeps its directory; 106's is phase 0's one step, the
-same. And the
-13 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d still running -- 44-48,
-51-53, 72-73, 100-102, 105 and 107, 117-119, 121-122, 143-145, 148-149, 151-152,
+has no plan entry but keeps its directory; 106's and 107's are phase 0's two
+steps, the same. And the
+12 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d still running -- 44-48,
+51-53, 72-73, 100-102, 117-119, 121-122, 143-145, 148-149, 151-152,
 153-154, 164-165, 166-167 -- each run as one phase under the group's last
 number. A gap in the numbers is nothing to the driver,
 which pairs plan entries by position. **There is no memoize**: its key

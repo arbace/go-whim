@@ -993,7 +993,8 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        `int` that the three runs make `bool`. The lines are the same, but
        120 of them differ: 166's text is the one 167-182 were measured on.
      - **The attributes (107) at the end.** Not tried: the steps they
-       would have to follow (120, 134, 149) cannot move.
+       would have to follow (120, 134, 149) cannot move. They went to the
+       seed instead (below).
    - **`NullptrUsize` (106) to the seed instead, done.** Phase 0 runs
      `whim106 --casts 1` on the canonical input, so every phase is written
      in C23's spelling, the product's. At the seed it renames 7,617 `NULL`
@@ -1008,6 +1009,25 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      fall-out closure names neither spelling, and no count moved. The chain
      gives the product byte for byte. In order: 124 phases, 815 s (the seed
      10 s, phases 1-3 40, 43 and 45 s); the parallel check: 123 links, 83 s.
+   - **The attributes (107) to the seed too, done.** Phase 0 runs
+     `whim107` after `whim106`. At the seed `Attrs` finds 358 attributes
+     (q106 held 139): 306 `unused`, 37 `fallthrough`, 9 `format`, 3
+     `format_arg` and 3 `cold`. It refused there twice, and learned: `[[`
+     occurs twice inside one shell-command literal, so it is counted
+     outside the literals; 3 `unused` are on locals of `buf_write`, each
+     declaration a statement of its own, and go too; and the 3 `cold`, on
+     105's wrappers' prototypes beside a `format`, are kept with it. It
+     deletes 306 `unused` (303 on 265 definitions' parameters), respells 37
+     `fallthrough`, keeps 15, and changes 305 lines within themselves. The
+     canonical print writes `[[fallthrough]];` as `;`, so the phases read an
+     empty statement where they read the GNU spelling. The respelling: 14
+     lines -- 3 cutters of `internal/cut` (`nomouse`, `nobuflist`,
+     `nocomplkeys`: the fallthrough as `;`) and the programs of 64, 67, 96,
+     100 and 103 (2 fallthroughs, and 11 `unused` in anchors and in the
+     host functions 103 inserts). No count moved. 105 is a block of its own,
+     `g01-variadics`, under its own number. The chain gives the product byte
+     for byte. In order: 124 phases, 820 s (the seed 11 s, phases 1-3 40,
+     43 and 45 s); the parallel check: 123 links, 84 s.
    - **168 into `GotoTail`, done.** With 168's program removed, 170 takes
      its 19 gotos as tails of no statements, and the chain gives the product
      byte for byte. `GotoTail` now takes 98 gotos and drops 21 labels. 168
