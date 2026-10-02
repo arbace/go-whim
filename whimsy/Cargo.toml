@@ -18,3 +18,8 @@ path = "src/main.rs"
 [profile.release]
 opt-level = 2
 debug = false
+# The core's signed arithmetic is Rust's plain + - *, where C leaves an
+# overflow undefined and gcc's -O0 wraps (doc/RUST-IDIOMS.md, item 4): the
+# release build wraps as gcc's does, whatever the defaults; a build with
+# overflow checks (CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true) panics there.
+overflow-checks = false

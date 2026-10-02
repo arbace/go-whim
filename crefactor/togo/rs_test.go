@@ -237,9 +237,9 @@ func TestRsControl(t *testing.T) {
 		from      *regexp.Regexp
 		repl      string
 	}{
-		{"unsigned division", javaIntsC, regexp.MustCompile(`(fn udiv\(.*\n\s*return )a\.wrapping_div\(b\);`), "${1}(a as i32).wrapping_div(b as i32) as u32;"},
-		{"unsigned widening", javaIntsC, regexp.MustCompile(`(fn widen_uchar\(.*\n\s*return )\(c as i32\)\.wrapping_add\(1\);`), "${1}(c as i8 as i32).wrapping_add(1);"},
-		{"unsigned shift", javaIntsC, regexp.MustCompile(`(fn ushr\(.*\n\s*return )a\.wrapping_shr\(n as u32\);`), "${1}(a as i32).wrapping_shr(n as u32) as u32;"},
+		{"unsigned division", javaIntsC, regexp.MustCompile(`(fn udiv\(.*\n\s*(?:return )?)a / b(;?)\n`), "${1}((a as i32) / (b as i32)) as u32${2}\n"},
+		{"unsigned widening", javaIntsC, regexp.MustCompile(`(fn widen_uchar\(.*\n\s*(?:return )?)c as i32 \+ 1(;?)\n`), "${1}c as i8 as i32 + 1${2}\n"},
+		{"unsigned shift", javaIntsC, regexp.MustCompile(`(fn ushr\(.*\n\s*(?:return )?)a\.wrapping_shr\(n as u32\)(;?)\n`), "${1}(a as i32).wrapping_shr(n as u32) as u32${2}\n"},
 		{"struct copy", javaStructsC, regexp.MustCompile(`\(\*ed\)\.g2 = \(\*ed\)\.g1;`), "let _ = (*ed).g1;"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -262,3 +262,58 @@ func TestRsControl(t *testing.T) {
 
 // numberedRs is unused when the tests pass; strings keeps the import.
 var _ = strings.TrimSpace
+
+// rsArithC is C's arithmetic where it is defined to wrap -- unsigned
+// operands, a narrow type's increment or compound assignment, a compound
+// assignment computed in a wider type -- beside the arithmetic the backend
+// writes as Rust's plain operators: a byte less a character, a mask, a
+// remainder, signed arithmetic in int and long.  The tests compile at
+// opt-level 0, where Rust's plain operators panic on an overflow: a plain
+// operator where C wraps is a panic here (doc/RUST-IDIOMS.md, items 3-4).
+const rsArithC = javaHost + `
+static unsigned int u = 0;
+static unsigned char uc = 255;
+static signed char sc = 127;
+static short sh = 32767;
+static unsigned long long ull = 0;
+
+int digit(const char *s) { return *s - '0'; }
+int low7(int c) { return (c & 0x7f) + 1; }
+int rem10(unsigned int x) { return x % 10 + 1; }
+int sdiv(int a, int b) { return a / b; }
+int srem(int a, int b) { return a % b; }
+long long ldiv_(long long a, long long b) { return a / b + a % b; }
+unsigned int udiv(unsigned int a, unsigned int b) { return a / b + a % b; }
+int neg(int x) { return -x; }
+int negc(signed char c) { return -c; }
+int sum(int n) { int s = 0; for (int i = 0; i < n; i++) s += i * i; return s; }
+long long lsum(long long a, int b) { a -= b; a *= 3; return a; }
+
+void run(void)
+{
+    u -= 1; out(u);
+    u += 2; out(u);
+    uc++; out(uc);
+    uc--; out(uc);
+    sc++; out(sc);
+    sc += 1; out(sc);
+    sh += 1; out(sh);
+    ull -= 1; out((long long)(ull >> 1));
+    int x = 2147483647;
+    x += 1LL; out(x);
+    unsigned char b = 200;
+    b += 100; out(b);
+    b *= 3; out(b);
+    out(digit("7"));
+    out(low7(255));
+    out(rem10(4294967295u));
+    out(sdiv(-7, 2)); out(srem(-7, 2));
+    out(ldiv_(-9000000000LL, 7));
+    out(udiv(4294967295u, 7));
+    out(neg(5)); out(negc(-128));
+    out(sum(100));
+    out(lsum(10, 4));
+}
+`
+
+func TestRsArith(t *testing.T) { rsSame(t, rsArithC, Profile{}, javaHarnessC) }

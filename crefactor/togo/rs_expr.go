@@ -11,6 +11,8 @@ package togo
 
 import (
 	"fmt"
+	"math"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -29,6 +31,10 @@ type rv struct {
 	null  bool   // a null pointer constant
 	str   []byte // a string literal's bytes, its NUL included: s is their address
 	base  *rv    // a pointer cast's operand: a cast of the cast casts it instead
+
+	// its range, where more is known than its type says (rs_range.go)
+	ranged bool
+	lo, hi int64
 }
 
 // the precedences of Rust's expressions, tightest first
@@ -233,7 +239,7 @@ func (f *rfn) convFit(v rv, to string, fit bool) rv {
 	case to == "bool":
 		return rv{s: f.truth(v), ty: "bool", prec: pCmp}
 	case v.ty == "bool" && isIntTy(to):
-		return rv{s: wrap(v, pUnary) + " as " + to, ty: to, prec: pAs}
+		return withRange(rv{s: wrap(v, pUnary) + " as " + to, ty: to, prec: pAs}, 0, 1)
 	case isPtrTy(v.ty) && isPtrTy(to):
 		// a pointer's cast of a cast is one cast: `p as *mut c_void`, not
 		// `p as *mut i8 as *mut c_void`
@@ -245,7 +251,14 @@ func (f *rfn) convFit(v rv, to string, fit bool) rv {
 		}
 		b := v
 		return rv{s: wrap(v, pAs) + " as " + to, ty: to, prec: pAs, base: &b}
-	case isIntTy(v.ty) && isIntTy(to), isPtrTy(v.ty) && isIntTy(to), isIntTy(v.ty) && isPtrTy(to):
+	case isIntTy(v.ty) && isIntTy(to):
+		// a conversion that keeps every value keeps the range
+		c := rv{s: wrap(v, pAs) + " as " + to, ty: to, prec: pAs}
+		if lo, hi, ok := rangeOf(v); ok && rangeFits(lo, hi, to) {
+			c = withRange(c, lo, hi)
+		}
+		return c
+	case isPtrTy(v.ty) && isIntTy(to), isIntTy(v.ty) && isPtrTy(to):
 		return rv{s: wrap(v, pAs) + " as " + to, ty: to, prec: pAs}
 	case isFnTy(v.ty) && isFnTy(to):
 		return rv{s: "core::mem::transmute::<" + v.ty + ", " + to + ">(" + v.s + ")", ty: to}
@@ -775,6 +788,12 @@ func (f *rfn) unary(x *cc.UnaryExpression) rv {
 	case cc.UnaryExpressionMinus:
 		ty := f.vty(x.Type())
 		v := f.convT(f.expr(x.CastExpression), ty)
+		if lo, hi, ok := rangeOf(v); ok && isSigned(ty) && !v.konst && rangeFits(-hi, -lo, ty) && lo > math.MinInt64 {
+			return withRange(rv{s: "-" + wrap(v, pUnary), ty: ty, prec: pUnary}, -hi, -lo)
+		}
+		if rsSignedUB(ty) && !v.konst {
+			return rv{s: "-" + wrap(v, pUnary), ty: ty, prec: pUnary} // C's undefined overflow (binopIn)
+		}
 		return rv{s: wrap(v, pPrim) + ".wrapping_neg()", ty: ty}
 	case cc.UnaryExpressionCpl:
 		ty := f.vty(x.Type())
@@ -875,18 +894,58 @@ func (f *rfn) arith(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) rv
 	return f.binop(op, f.expr(le), f.expr(re), ty)
 }
 
-// binop is a op b in ty, both operands converted to it.
-func (f *rfn) binop(op string, a, b rv, ty string) rv {
+// binop is a op b in ty, the type C computes it in, both operands
+// converted to it.
+func (f *rfn) binop(op string, a, b rv, ty string) rv { return f.binopIn(op, a, b, ty, true) }
+
+// binopIn is a op b in ty: Rust's plain operator where no operand's value
+// can make it overflow (rs_range.go), or where C computes it in ty and ty
+// is a signed type of int's rank or more -- an overflow there is undefined
+// in C, and Rust's plain operator says it is a bug: a build with overflow
+// checks panics, the release build wraps as gcc's -O0 does
+// (doc/RUST-IDIOMS.md, item 4); a quotient or remainder of MIN by -1, which
+// gcc's idiv traps on, panics either way, as division by zero does --
+// else the wrapping method.  cTy is false
+// where the backend computes in ty only for the low bits of C's wider
+// result (a compound assignment to a narrower or a mixed type), where C
+// defines what an overflow does.
+func (f *rfn) binopIn(op string, a, b rv, ty string, cTy bool) rv {
 	if m, ok := rsMethod[op]; ok {
 		av := f.convT(a, ty)
 		bv := f.conv(b, ty)
+		plain, lo, hi, ranged := plainArith(op, av, bv, ty)
+		if !plain && cTy && rsSignedUB(ty) {
+			plain = true
+		}
+		if plain {
+			if !(a.konst && b.konst) {
+				av = f.conv(a, ty) // the other operand fixes a constant's type
+			}
+			prec := pAdd
+			if op == "*" || op == "/" || op == "%" {
+				prec = pMul
+			}
+			v := rv{s: wrap(av, prec) + " " + op + " " + wrap(bv, prec-1), ty: ty, prec: prec}
+			if ranged {
+				v = withRange(v, lo, hi)
+			}
+			return v
+		}
 		return rv{s: wrap(av, pPrim) + "." + m + "(" + unparenRs(bv.s) + ")", ty: ty}
 	}
 	prec := map[string]int{"&": pBitAnd, "^": pXor, "|": pBitOr}[op]
 	av := f.convT(a, ty)
 	bv := f.conv(b, ty)
-	return rv{s: wrap(av, prec) + " " + op + " " + wrap(bv, prec-1), ty: ty, prec: prec}
+	v := rv{s: wrap(av, prec) + " " + op + " " + wrap(bv, prec-1), ty: ty, prec: prec}
+	if lo, hi, ok := bitRange(op, av, bv); ok {
+		v = withRange(v, lo, hi)
+	}
+	return v
 }
+
+// rsSignedUB says an overflow of ty's arithmetic is undefined in C: a
+// signed type of int's rank or more (a narrower one is promoted first).
+func rsSignedUB(ty string) bool { return ty == "i32" || ty == "i64" || ty == "isize" }
 
 func (f *rfn) shift(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) rv {
 	lk, ok := scalarKind(le.Type())
@@ -909,7 +968,7 @@ func (f *rfn) shift(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) rv
 // shiftOperand is a shift's left operand: a cast in parentheses, which
 // Rust would read as a type's generic arguments before <<.
 func shiftOperand(v rv) string {
-	if v.prec == pAs {
+	if v.prec == pAs || v.prec <= pAdd && rsEndsAs(v.s) {
 		return "(" + v.s + ")"
 	}
 	return wrap(v, pAdd)
@@ -987,7 +1046,7 @@ func (f *rfn) compare(op string, le, re cc.ExpressionNode) rv {
 // cmpOperand is an operand of a comparison: a cast on the left in
 // parentheses, which Rust would read as a type's generic arguments.
 func (f *rfn) cmpOperand(v rv, left bool) string {
-	if left && v.prec == pAs {
+	if left && (v.prec == pAs || v.prec <= pCmp-1 && rsEndsAs(v.s)) {
 		return "(" + v.s + ")"
 	}
 	return wrap(v, pCmp-1)
@@ -1231,7 +1290,7 @@ func (f *rfn) assigned(x *cc.AssignmentExpression) ([]string, lval) {
 	nv := f.compound(lv, op, r, x.AssignmentExpression.Type(), x)
 	v := f.conv(nv, lv.ty)
 	f.markWrite(x.UnaryExpression)
-	return append(stmts, lv.place+" = "+unparenRs(v.s)+";"), lv
+	return append(stmts, rsOpAssign(lv.place, v)), lv
 }
 
 // ownLocal says an lvalue is a local, or a member or element of one, whose
@@ -1254,7 +1313,8 @@ func (f *rfn) compound(lv lval, op string, r rv, rt cc.Type, x cc.Node) rv {
 	if !ok1 || !ok2 {
 		f.no(x, "a compound assignment of %v and %v", lv.t, rt)
 	}
-	ty := rsKind(usualK(lk, rk))
+	usual := rsKind(usualK(lk, rk))
+	ty := usual
 	switch op {
 	case "+", "-", "*", "&", "|", "^":
 		if lv.ty != "bool" {
@@ -1263,11 +1323,11 @@ func (f *rfn) compound(lv lval, op string, r rv, rt cc.Type, x cc.Node) rv {
 	case "<<", ">>":
 		ty = rsKind(promote(lk))
 	}
-	return f.opIn(op, cur, r, ty, x)
+	return f.opIn(op, cur, r, ty, ty == usual, x)
 }
 
 // opIn is a op b computed in ty.
-func (f *rfn) opIn(op string, a, b rv, ty string, x cc.Node) rv {
+func (f *rfn) opIn(op string, a, b rv, ty string, cTy bool, x cc.Node) rv {
 	if op == "<<" || op == ">>" {
 		av := f.convT(a, ty)
 		if b.konst && b.kv >= 0 && b.kv < int64(tyKind(ty).size*8) {
@@ -1279,7 +1339,7 @@ func (f *rfn) opIn(op string, a, b rv, ty string, x cc.Node) rv {
 		}
 		return rv{s: wrap(av, pPrim) + "." + m + "(" + unparenRs(f.conv(b, "u32").s) + ")", ty: ty}
 	}
-	return f.binop(op, a, b, ty)
+	return f.binopIn(op, a, b, ty, cTy)
 }
 
 // markWrite notes that a local is written: `mut`.
@@ -1311,6 +1371,14 @@ func (f *rfn) incDec(cur rv, t cc.Type, inc bool) rv {
 		}
 		return rv{s: "!" + wrap(cur, pUnary), ty: "bool", prec: pUnary}
 	}
+	if rsSignedUB(ty) {
+		// C's undefined overflow: Rust's plain operator (binopIn)
+		op := " + 1"
+		if !inc {
+			op = " - 1"
+		}
+		return rv{s: wrap(cur, pAdd) + op, ty: ty, prec: pAdd}
+	}
 	m := "wrapping_add"
 	if !inc {
 		m = "wrapping_sub"
@@ -1327,11 +1395,11 @@ func (f *rfn) incDecValue(e cc.ExpressionNode, inc, post bool) rv {
 		t := f.temp(lv.t)
 		stmts = append(stmts, t+" = "+lv.place+";")
 		nv := f.incDec(rv{s: t, ty: lv.ty}, lv.t, inc)
-		stmts = append(stmts, lv.place+" = "+unparenRs(nv.s)+";")
+		stmts = append(stmts, rsOpAssign(lv.place, nv))
 		return f.block(stmts, rv{s: t, ty: lv.ty})
 	}
 	nv := f.incDec(lv.read(), lv.t, inc)
-	stmts = append(stmts, lv.place+" = "+unparenRs(nv.s)+";")
+	stmts = append(stmts, rsOpAssign(lv.place, nv))
 	return f.block(stmts, lv.read())
 }
 
@@ -1425,5 +1493,24 @@ func (f *rfn) incDecStmt(e cc.ExpressionNode, inc bool) {
 		f.line("%s", s)
 	}
 	nv := f.incDec(lv.read(), lv.t, inc)
-	f.line("%s = %s;", lv.place, unparenRs(nv.s))
+	f.line("%s", rsOpAssign(lv.place, nv))
+}
+
+var rsEndsAsRe = regexp.MustCompile(`\bas (\*mut )?[A-Za-z_][A-Za-z0-9_:]*$`)
+
+// rsEndsAs says s ends in a cast, `... as i32`, which Rust would read as a
+// type's generic arguments before < or <<.
+func rsEndsAs(s string) bool { return rsEndsAsRe.MatchString(s) }
+
+// rsOpAssign is `place op= rhs;` where the value stored is place's own value
+// and op and an operand, plainly -- `x = x + n` is `x += n` (clippy's
+// assign_op_pattern) -- or the assignment as it is.
+func rsOpAssign(place string, v rv) string {
+	s := unparenRs(v.s)
+	for _, op := range []string{"+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>"} {
+		if rhs, ok := strings.CutPrefix(s, place+" "+op+" "); ok && rsBalanced(rhs) {
+			return place + " " + op + "= " + unparenRs(rhs) + ";"
+		}
+	}
+	return place + " = " + s + ";"
 }

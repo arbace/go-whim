@@ -213,7 +213,7 @@ func (f *rfn) sinkDecls(body string) string {
 		if word.MatchString(rhs) || !rsBalanced(rhs) {
 			continue
 		}
-		write := regexp.MustCompile(`(^|[^.\w*])` + regexp.QuoteMeta(l.name) + `(\.\w+|\[[^\]]*\])*\s=[^=]|&raw mut ` + regexp.QuoteMeta(l.name) + `\b`)
+		write := regexp.MustCompile(`(^|[^.\w*])` + regexp.QuoteMeta(l.name) + `(\.\w+|\[[^\]]*\])*\s(\+|-|\*|/|%|&|\||\^|<<|>>)?=[^=]|&raw mut ` + regexp.QuoteMeta(l.name) + `\b`)
 		mut := ""
 		for _, c := range code[first+1:] {
 			if write.MatchString(c) {
