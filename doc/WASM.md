@@ -2,7 +2,8 @@
 
 **A preliminary plan, not scheduled** (2026-09-29): there is no intention to
 run the editor in a browser. It is kept as what was measured and how it would
-be done, should that change -- as `doc/HASKELL.md` and `doc/RUST.md` are.
+be done, should that change -- as `doc/HASKELL.md` and `doc/RUST.md` were before
+the Haskell and the Rust editors were built.
 
 ## What already works
 

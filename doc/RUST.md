@@ -1,13 +1,18 @@
 # whimsy: the editor in Rust
 
-**Being built** (2026-10-02): whimsy is the fifth translation of the core,
-beside the Go (`editor/`), the Java (`braaam/`), the Clojure (`vijure/`) and
-the Haskell (`caprice/`), and held to the same test: `whim test --rust`. It
-was planned here on 2026-09-26 and not scheduled; the plan held, with two
-changes (a hand-written host, and the parallel `:%s` from the start), and
-what was built is recorded below, milestone by milestone.
+**Built** (2026-10-02): whimsy is the fifth translation of the core, beside
+the Go (`editor/`), the Java (`braaam/`), the Clojure (`vijure/`) and the
+Haskell (`caprice/`), and held to the same test: `whim test --rust` and
+`--wide --rust` answer all 80 and all 240 cases as the C does, with a control
+of its own. It was planned here on 2026-09-26 and not scheduled; the plan
+held, with two changes (a hand-written host, and the parallel `:%s` from the
+start), and what was built is recorded below, milestone by milestone.
 
 ```
+go tool whim whimsy          # bin/whimsy, built in lib/whimsy
+make bin/whimsy              # the same
+make whim-test-rs            # the quick suite with whimsy too
+go tool whim test --wide --rust
 go tool whim skel editor.c DIR -rs editor.rs   # the backend on a core, by hand
 ```
 
