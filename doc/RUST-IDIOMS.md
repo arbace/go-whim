@@ -1,7 +1,7 @@
 # How whimsy could be more idiomatic Rust: a survey
 
-2026-10-02. **Status: items 0-11 done; see *Done* after the ranking, and
-*The second pass* for item 10 and the residue.** It covers
+2026-10-02. **Status: items 0-16 done, 17 declined; see *Done* after the
+ranking, and *The second pass* for items 10 and 12-17.** It covers
 `whimsy/src/editor.rs` as tracked at `cb3f2db` (62,836 lines, 1,713
 functions, written by `crefactor/togo`'s Rust backend from the core `go
 tool whim cut src/whim-vim.c` prints, 75,721 lines of C) and the
@@ -571,21 +571,32 @@ throwaway counter's over `editor.rs` (`.tmp/rsc/count.sh`): `*const` and
 `wrapping_` occurrences, zeros a line `let x: T = <zero>;` at a
 function's own level, block expressions `({ ` and `= { `, labels.
 
+| Rank | Item | Who | Cost | Risk | Gained |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 13: zeros only where rustc needs them; C's dead stores not written -- **done**, `be76bd7` | `rs_defer.go` | M | low: rustc checks all but a dropped store | the module's `unused_assignments` gone; 1,063 -> 932 zeros |
+| 2 | 10: `*const` -- **done**, `6555180` | `rs_const.go` | M-L | low: rustc checks | 869 of 2,770 slots |
+| 3 | 14: stores out of conditions -- **done**, `c4e1435` | `rs_hoist.go`, `rs_fn.go` | M | low | blocks 154 -> 72 |
+| 4 | 12: temporaries where they are given their value -- **done**, `27dd04e` | `rs_fn.go` | S | none | 50 zeros |
+| 5 | 15: a switch's fallthrough without labels -- **done**, `76ba7e8` | `rs_fn.go` | S | none | labels 91 -> 75 |
+| 6 | 16: `else { if }` as `else if` -- **done**, `6fa6dd8` | `rs_fn.go` | S | none | 38 elses, 5 blocks |
+| -- | 17: `let ed = &mut *ed;` for `(*ed).x` -- **declined** | -- | -- | undefined behaviour | -- |
+
 | | `8a186a4` | after |
 | --- | ---: | ---: |
 | `editor.rs` | 61,820 lines | 61,834 lines |
 | pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
 | `*const` in the text | 0 | 1,492 |
 | `pub unsafe fn` | 1,648 | 1,648 |
-| `wrapping_*` | 4,822 | 4,822 |
+| `wrapping_*` | 4,822 | 4,819 |
+| `(*ed).` | 21,736 | 21,742 (item 17, declined) |
 | zeros at the top | 1,113 | 932, each one rustc needs (446 `0`, 242 `zeroed()`, 138 `false`, 104 null) |
-| locals declared with no value, `let x: T;` | 396 | 499 |
+| locals declared with no value, `let x: T;` | 396 | 447 (499 after item 13; items 14-16 let more be declared at their value in a block) |
 | the module's `#![allow]` | the C's names, `unused_assignments` | the C's names alone; 4 functions `#[expect(unused_assignments)]` |
 | block expressions | 154 | 67 |
 | labels | 91 | 75: 32 a ladder's, 13 a switch a break leaves, 11 phase 173's regions, 10 gotos', 7 loops a break names, 2 a for's continue |
 | rustc's warnings (`--lint`, every allow and expect out) | 702: 220 `unused_assignments` | 487: 5 `unused_assignments`, 482 the C's names |
-| rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB |
-| the heavy case | 0.25-0.3x | 0.25-0.3x (112-139 ms against 435-473; twice 154-168 ms, 0.35-0.4x, under load) |
+| rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB (39.0-39.5 s quiet) |
+| the heavy case | 0.25-0.3x | 0.25-0.3x (112-147 ms against 435-473; now and then 154-200 ms, 0.35-0.5x, under the machine's load, the other agents' builds beside) |
 
 - **Item 10** (`rs_const.go`, `TestRsConst`): above, under the item.
 - **Item 12, temporaries where they are given their value** (`rs_fn.go`'s
@@ -671,6 +682,28 @@ function's own level, block expressions `({ ` and `= { `, labels.
   condition stores is the else's block, the stores before the if (`} else
   { n = twice(a); if n > 4 { ... } }`), 5 blocks. editor.rs 61,897 ->
   61,834 lines; blocks 72 -> 67.
+- **Item 17, `(*ed).x` as `ed.x` through `let ed = &mut *ed;` -- declined:
+  it is undefined behaviour in this program, not a spelling.** 21,742
+  `(*ed).` in 1,490 functions. A `&mut Editor`, even a local reborrow,
+  promises that while it lives nothing reaches the editor but through
+  it, and rustc tells LLVM so (`noalias`); this program breaks the
+  promise three ways, each measured. 1,820 addresses of the editor's
+  places are taken (`&raw mut (*ed).screen_search_hl`), and some are
+  kept -- the option table's `var` pointers into the editor's option
+  variables (`&p_wiv`), written through when an option is set
+  (`*varp = s;` in `set_string_option_direct`) while the functions that
+  set it hold the editor: under Stacked Borrows and Tree Borrows alike,
+  a write through a pointer the reborrow did not make
+  ends it, and its next use is undefined. `match_lines` hands the
+  editor to every core's thread at once (`Shared(ed)`, the parallel
+  `:%s`): two threads each with a `&mut Editor` alive is undefined
+  whatever they touch. And the host calls the core back from inside a
+  call of it (a SIGHUP's `deathtrap`, run where the host waits for
+  keys), so a function holding the reborrow would have it outlived by an
+  inner one. A proof that none of these happens while a given
+  function's reborrow lives is a whole-program aliasing analysis; Miri,
+  which could look, is not on the machine. The raw pointer stays: `(*ed).x`
+  is a place reached through a pointer, which is what it is.
 
 ## What is not worth doing, and why
 

@@ -351,7 +351,9 @@ control seen, `whim gen --check`:
 The module went from 62,836 lines to 61,820; rustc 38.0-38.3 s and 0.53 GB
 at the peak; the heavy case 0.25-0.3 times the C's, as before.
 
-A second pass (`RUST-IDIOMS.md`, *The second pass*):
+A second pass (`RUST-IDIOMS.md`, *The second pass*, items 10 and 12-16;
+17 declined), each held to the same recipe and to both suites on a build
+with overflow checks:
 
 - read-only pointers as `*const` (`rs_const.go`): an inference over every
   pointer slot's writes and flows, which rustc checks -- 869 of 2,770
@@ -370,11 +372,15 @@ A second pass (`RUST-IDIOMS.md`, *The second pass*):
 - `else { if }` as `else if` (item 16), an else if that stores an else
   block; blocks 72 -> 67.
 
+The module went from 61,820 lines to 61,834; rustc 39.0-39.5 s and 0.53 GB
+at the peak; the heavy case 0.25-0.3 times the C's, as before.
+
 ## Not done
 
 - **What the memory model forbids**, declined in `RUST-IDIOMS.md`: `ed: &mut
-  Editor` (1,797 addresses of the editor's objects are taken, some kept in
-  tables, and the parallel `:%s` hands the editor to every core), owned data,
+  Editor`, or a local reborrow of it (item 17: 1,820 addresses of the
+  editor's places are taken, some kept in tables, the parallel `:%s` hands
+  the editor to every core, and the host calls the core back), owned data,
   slices for C strings, Rust enums, `p.add(n)`, the 2024 edition. 1,648
   functions stay `unsafe fn`.
 - **Miri** could check the module for undefined behaviour of Rust's own; it
