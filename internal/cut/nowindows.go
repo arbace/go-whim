@@ -173,7 +173,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
 		s, err := e.literal(s, "            int save_cmdwin_type = cmdwin_type;\n"+
 			"            win_T *save_cmdwin_win = cmdwin_win;\n"+
-			"            cmdwin_type = 0;\n            cmdwin_win = NULL;\n", "",
+			"            cmdwin_type = 0;\n            cmdwin_win = nullptr;\n", "",
 			"do_ecmd hiding it", 1)
 		if err != nil {
 			return nil, err
@@ -210,7 +210,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "didset_options", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    (void)did_set_cedit(NULL);\n", "",
+		return e.literal(s, "    (void)did_set_cedit(nullptr);\n", "",
 			"startup reading 'cedit'", 1)
 	}); err != nil {
 		return nil, err

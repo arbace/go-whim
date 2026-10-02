@@ -45,7 +45,9 @@ the plan (`internal/build`), named by kind and number:
 - `d` is a drop;
 - `r` a vim-specific rewire that keeps capability;
 - `g` a generic C step;
-- `s00` the seed.
+- `s00` the seed: the input printed canonically, and spelled in C23 there --
+  `nullptr` and `usize`, phase 106's rename -- so every later phase reads the
+  product's spelling.
 
 A block is a label on the phase that opens it, which the build's log prints as
 a heading; the phases keep their numbers, which the snapshots (`qNNN.c`),
@@ -74,7 +76,7 @@ of the reform: 120, 134 and 149).
 | `d13-files` | 89-96 (8 phases) |
 | `r01-libc` | 97, 98 |
 | `r02-host-chain` | 102, 103, 104 |
-| `g01-c23-spelling` | 107 |
+| `g01-variadics-and-attributes` | 107 |
 | `r03-boundary` | 108-119 (9 phases) |
 | `g02-unions` | 120 |
 | `r04-terminal` | 122 |

@@ -131,7 +131,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// fifth, enter_buffer, went with :q's refusal at phase 1 -- quitfront.)
 	if k := mentions(text, "open_buffer"); k != 4 {
 		return nil, p.Die("open_buffer has %d mentions, expected 4 -- the definition and three callers, "+
-			"every one of them `open_buffer(FALSE, NULL, 0)`.  On the text phase 91's "+
+			"every one of them `open_buffer(FALSE, nullptr, 0)`.  On the text phase 91's "+
 			"EDIT leaves there are six: do_ecmd is still there to make "+
 			"`(void)open_buffer(FALSE, eap, readfile_flags);`, which anchor 4 would not "+
 			"rewrite.  This phase needs swept text", k)
@@ -156,14 +156,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"now, and there is no prototype to follow", 1); err != nil {
 		return nil, err
 	}
-	if k := strings.Count(string(text), "open_buffer(FALSE, NULL, 0)"); k != 3 {
-		return nil, p.Die("open_buffer is called %d times as `open_buffer(FALSE, NULL, 0)`, expected "+
-			"%d -- every caller already passes FALSE, NULL and 0, and a caller that "+
+	if k := strings.Count(string(text), "open_buffer(FALSE, nullptr, 0)"); k != 3 {
+		return nil, p.Die("open_buffer is called %d times as `open_buffer(FALSE, nullptr, 0)`, expected "+
+			"%d -- every caller already passes FALSE, nullptr and 0, and a caller that "+
 			"does not is one this fold would change", k, 3)
 	}
-	text = []byte(strings.ReplaceAll(string(text), "open_buffer(FALSE, NULL, 0)", "open_buffer()"))
+	text = []byte(strings.ReplaceAll(string(text), "open_buffer(FALSE, nullptr, 0)", "open_buffer()"))
 	p.Say("the three call sites -- ml_append_flags, ml_replace_len and create_windows " +
-		"-- every one of which passed FALSE, NULL, 0")
+		"-- every one of which passed FALSE, nullptr, 0")
 
 	// ---- 5. what is left, and what is deliberately left -----------------------
 	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "open_buffer")

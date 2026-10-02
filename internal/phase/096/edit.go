@@ -176,12 +176,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS FOLDED --------------------
 	sw := w96ScriptWrite.FindAllString(string(text), -1)
-	if len(sw) != 1 || sw[0] != "scriptin[curscript] = NULL;" {
+	if len(sw) != 1 || sw[0] != "scriptin[curscript] = nullptr;" {
 		Out := make([]string, len(sw))
 		for i, m := range sw {
 			Out[i] = edit.CoreHead(m, 60)
 		}
-		return nil, p.Die("scriptin[] is assigned %d times and not once to NULL alone: %s",
+		return nil, p.Die("scriptin[] is assigned %d times and not once to nullptr alone: %s",
 			len(sw), strings.Join(Out, " | "))
 	}
 	// redir_fd is gone, declaration and all: only :redir wrote it, and the
@@ -198,7 +198,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("ui_write has %d call sites and not the one that passes FALSE: %s",
 			len(calls), joined(calls, 60))
 	}
-	p.Say("scriptin[] is assigned ONCE in the whole file, to NULL, inside closescript(); " +
+	p.Say("scriptin[] is assigned ONCE in the whole file, to nullptr, inside closescript(); " +
 		"redirecting() answers FALSE; ui_write() has ONE call and it passes " +
 		"FALSE.  That, and nothing weaker, is why every fold below may take a constant -- " +
 		"and it is also the whole claim of the phase: neither FILE* has ever been opened " +
@@ -209,14 +209,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, New, What string
 		n              int
 	}{
-		{w96lit1, w96lit2, "may_sync_undo: `scriptin[curscript] == NULL` is TRUE, so the conjunct " +
+		{w96lit1, w96lit2, "may_sync_undo: `scriptin[curscript] == nullptr` is TRUE, so the conjunct " +
 			"goes -- the function SURVIVES and u_sync() still runs on the rest", 1},
 		{w96lit3, "", "is_safe_now: the same conjunct, and the same survival -- " +
 			"stuff_empty() && typebuf.tb_len == 0 && !global_busy is what is left", 1},
 		{" && !using_script()", "", "nv_visual: `!using_script()` is TRUE, so the conjunct goes", 1},
 		{" || using_script()", "", "skip_showmode: `using_script()` is FALSE, so the disjunct goes -- and " +
 			"that was its last caller", 1},
-		{w96lit4, "", "inchar()'s script reader: the loop needs `scriptin[curscript] != NULL`, " +
+		{w96lit4, "", "inchar()'s script reader: the loop needs `scriptin[curscript] != nullptr`, " +
 			"which is FALSE, so it never ran -- and it was closescript()'s only " +
 			"caller and getc()'s", 1},
 	} {

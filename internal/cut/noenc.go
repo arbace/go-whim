@@ -48,10 +48,10 @@ var noencStubs = []struct{ name, stub string }{
 		"    vcp->vc_factor = 1;\n" +
 		"    vcp->vc_fail = FALSE;\n" +
 		"    return OK;"},
-	{"string_convert", "    return NULL;"},
-	{"check_for_bom", "    *lenp = 0;\n    return NULL;"},
+	{"string_convert", "    return nullptr;"},
+	{"check_for_bom", "    *lenp = 0;\n    return nullptr;"},
 	{"make_bom", "    return 0;"},
-	{"convert_input_safe", "    if (restp != NULL)\n    {\n        *restp = NULL;\n" +
+	{"convert_input_safe", "    if (restp != nullptr)\n    {\n        *restp = nullptr;\n" +
 		"    }\n    return len;"},
 }
 

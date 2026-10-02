@@ -74,7 +74,7 @@ var internalFormatDecls = []struct{ pattern, What string }{
 }
 
 const oldDispatch = `        case OP_FILTER:
-            if (vim_strchr(p_cpo, CPO_FILTER) != NULL)
+            if (vim_strchr(p_cpo, CPO_FILTER) != nullptr)
             {
                 AppendToRedobuff((char_u *)"!\r");
             }
@@ -107,13 +107,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// open_line: no leader to find, copy or align
 	e.InFunction("open_line", func(e *edit.E) {
-		e.Cut(edit.Line("if (flags & OPENLINE_DO_COM)", "{", "lead_len = get_leader_len(ptr, NULL, FALSE, TRUE);", "}", "else", "{", "lead_len = 0;", "}"),
+		e.Cut(edit.Line("if (flags & OPENLINE_DO_COM)", "{", "lead_len = get_leader_len(ptr, nullptr, FALSE, TRUE);", "}", "else", "{", "lead_len = 0;", "}"),
 			2, "smartindent looking for a comment leader")
 		e.Sub(`\( ?lead_len == 0 && ptr\[0\] == '#'\)`, "(ptr[0] == '#')", 2,
 			"smartindent after a # line not asking about a leader")
 		// The leader block first: it holds lead_len = 0 statements and an
 		// if (lead_len > 0) of its own, which would throw every count after it.
-		e.DropIf(`(?m)^[ \t]*if \(lead_len > 0\)\n[ \t]*\{\n[ \t]*char_u[ \t]+\*lead_repl = NULL;$`, 1,
+		e.DropIf(`(?m)^[ \t]*if \(lead_len > 0\)\n[ \t]*\{\n[ \t]*char_u[ \t]+\*lead_repl = nullptr;$`, 1,
 			"copying, replacing and aligning a comment leader")
 		e.FoldNever(edit.Head("if (flags & OPENLINE_DO_COM)"), 1, "a new line finding the leader to repeat")
 		e.Cut(edit.Line("lead_len = 0;"), 1, "a new line with no leader")
@@ -196,7 +196,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(" && (!fo_white_par || curwin->w_cursor.col < startcol)", "", 1, "keeping a trailing blank ('w')")
 		e.FoldAlways(edit.Head("if (!fo_white_par)"), 2, "removing the blanks at the break ('w')")
 		e.Literal("open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX + (fo_white_par ? OPENLINE_KEEPTRAIL : 0) + (do_comments ? OPENLINE_DO_COM : 0) + OPENLINE_FORMAT + ((flags & INSCHAR_COM_LIST) ? OPENLINE_COM_LIST : 0), ((flags & INSCHAR_COM_LIST) ? second_indent : old_indent), &did_do_comment);",
-			"open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX, old_indent, NULL);", 1, "the break opening a line with no leader")
+			"open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX, old_indent, nullptr);", 1, "the break opening a line with no leader")
 		e.DropIf(edit.Head("if (did_do_comment)"), 1, "a leader found by the new line")
 		// second_indent is -1: ins_char() is the only caller left once the operator goes
 		e.DropIf(edit.Head("if (first_line)"), 1, "the first broken line's second-line indent ('2', 'n')")
@@ -209,10 +209,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// the rest of 'comments'
 	e.InFunction("find_decl", func(e *edit.E) {
-		e.DropIf(edit.Head("if (get_leader_len(ml_get_curline(), NULL, FALSE, TRUE) > 0)"), 1, "gd skipping comment lines")
+		e.DropIf(edit.Head("if (get_leader_len(ml_get_curline(), nullptr, FALSE, TRUE) > 0)"), 1, "gd skipping comment lines")
 	})
 	e.InFunction("nv_percent", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (vim_strchr(p_cpo, CPO_MATCH) == NULL && buf_has_cstyle_comments())"), 1, "% skipping a // comment")
+		e.FoldNever(edit.Head("if (vim_strchr(p_cpo, CPO_MATCH) == nullptr && buf_has_cstyle_comments())"), 1, "% skipping a // comment")
 	})
 
 	// 'paragraphs' and 'sections'

@@ -108,6 +108,6 @@ var (
 
 // From phase 071.
 const (
-	FwdWalk = `for ((buf) = firstbuf; (buf) != NULL; (buf) = (buf)->b_next)`
-	BwdWalk = `for ((buf) = lastbuf; (buf) != NULL; (buf) = (buf)->b_prev)`
+	FwdWalk = `for ((buf) = firstbuf; (buf) != nullptr; (buf) = (buf)->b_next)`
+	BwdWalk = `for ((buf) = lastbuf; (buf) != nullptr; (buf) = (buf)->b_prev)`
 )

@@ -245,7 +245,7 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				"the two popup removals in getcmdline_int")
 		},
 		func() error {
-			return c.sub(`^[ \t]*if \(cmdline_match_array != NULL\)\n[ \t]*\{\n`+
+			return c.sub(`^[ \t]*if \(cmdline_match_array != nullptr\)\n[ \t]*\{\n`+
 				`[ \t]*cmdline_pum_remove\(get_cmdline_info\(\), FALSE\);\n[ \t]*\}\n`, "", 1,
 				"the popup removal in ExpandOne")
 		},

@@ -101,12 +101,12 @@ var w79Constants = map[string]string{
 	"bt_quickfix": "FALSE", "bt_terminal": "FALSE",
 	"check_can_set_curbuf_disabled": "TRUE",
 	"check_more":                    "OK", "check_timestamps": "0", "current_tab_nr": "1",
-	"current_win_nr": "1", "did_set_number_relativenumber": "NULL",
+	"current_win_nr": "1", "did_set_number_relativenumber": "nullptr",
 	"get_cellwidth": "0", "has_cursormoved": "FALSE", "has_insertcharpre": "FALSE",
 	"has_textchanged": "FALSE", "in_vim9script": "FALSE", "ins_compl_active": "FALSE",
 	"ins_compl_lnum_in_range": "FALSE", "ins_compl_win_active": "FALSE",
 	"only_one_window": "TRUE", "pum_redraw_in_same_position": "FALSE",
-	"pum_under_menu": "FALSE", "pum_visible": "FALSE", "script_get": "NULL",
+	"pum_under_menu": "FALSE", "pum_visible": "FALSE", "script_get": "nullptr",
 	"stl_connected": "FALSE", "tabline_height": "0", "wc_use_keyname": "FALSE",
 }
 
@@ -157,7 +157,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(edit.Head(`if (in_vim9script() && *p == '\'' && ((unsigned)(p[1]) - '0' < 10))`), 1,
 		"a digit separator in a Vim9 number literal")
 	e.FoldNever(edit.Head("if (in_vim9script() && *p == '#')"), 1, "a hash comment ending a Vim9 command")
-	e.FoldNever(edit.Head(`if (in_vim9script() && arg > arg_start && vim_strchr((char_u *)"!&<", *arg) != NULL)`), 1,
+	e.FoldNever(edit.Head(`if (in_vim9script() && arg > arg_start && vim_strchr((char_u *)"!&<", *arg) != nullptr)`), 1,
 		"the Vim9 spacing rule for an unknown option")
 	// five: three more were in ends_excmd, ends_excmd2 and comment_start,
 	// gone at phase 1 (onecmdfront, phase 81's move)
@@ -214,14 +214,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"appending the argument-list position to the file message")
 	e.Literal(w79lit1, w79lit2, 1, "reading a here-document for a command that cannot run")
 	e.Cut(edit.Line("bom_count = bomb_size();"), 1, "counting the byte order mark")
-	e.FoldNever(edit.Head("if (dict == NULL && bom_count > 0)"), 1, "and reporting it")
+	e.FoldNever(edit.Head("if (dict == nullptr && bom_count > 0)"), 1, "and reporting it")
 	e.Literal(w79lit3, w79lit4, 1, "the window-or-tab count for a bare range")
 	for _, f := range []struct {
 		fn, arg string
 		n       int
 	}{
-		{"current_win_nr", "curwin", 3}, {"current_win_nr", "NULL", 3},
-		{"current_tab_nr", "curtab", 3}, {"current_tab_nr", "NULL", 3},
+		{"current_win_nr", "curwin", 3}, {"current_win_nr", "nullptr", 3},
+		{"current_tab_nr", "curtab", 3}, {"current_tab_nr", "nullptr", 3},
 	} {
 		e.Literal(fmt.Sprintf("%s(%s)", f.fn, f.arg), "1", f.n,
 			fmt.Sprintf("there is one window and one tabpage (%s(%s))", f.fn, f.arg))

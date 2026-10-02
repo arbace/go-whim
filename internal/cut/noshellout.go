@@ -13,7 +13,7 @@ const notHere = "    emsg(_(e_sorry_command_is_not_available_in_this_version));"
 var shelloutStubs = []struct{ name, body string }{
 	{"do_filter", notHere},
 	{"do_shell", notHere},
-	{"get_cmd_output", "    return NULL;"},
+	{"get_cmd_output", "    return nullptr;"},
 }
 
 var delTempDir = regexp.MustCompile(`(?m)^[ \t]*vim_deltempdir\(\);[ \t]*\n`)

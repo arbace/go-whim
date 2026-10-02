@@ -60,8 +60,8 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 		{"    if (!(append && *p_pm == NUL) && !filtering && perm >= 0 && dobackup)",
 			"the backup itself"},
 		{"    if (*p_pm && dobackup)", "'patchmode'"},
-		{"        if (backup != NULL)", "the backup kept or removed after the write"},
-		{"    if (!p_bk && backup != NULL && !write_info.bw_conv_error && ",
+		{"        if (backup != nullptr)", "the backup kept or removed after the write"},
+		{"    if (!p_bk && backup != nullptr && !write_info.bw_conv_error && ",
 			"the backup deleted when 'backup' is off"},
 	} {
 		var n int
@@ -78,7 +78,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	// Its `else if` is the branch that now always runs, so the pair collapses
 	// to that rather than going -- buf_setino() still has to happen.
 	text, err := cutCounted(text,
-		edit.Line("if (backup != NULL && !backup_copy)", "{")+
+		edit.Line("if (backup != nullptr && !backup_copy)", "{")+
 			`(?:[^\n]*\n)*?[ \t]*buf_setino\(buf\);\n[ \t]*\}\n`+
 			`[ \t]*else (if \(!buf->b_dev_valid\))`,
 		"nobackup", "the owner carried to the backup", 1)
@@ -89,7 +89,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 
 	var n int
 	text, n, err = nobackupBlock(text,
-		"                    if (backup != NULL && wfname == fname)",
+		"                    if (backup != nullptr && wfname == fname)",
 		"the roll-back to a backup", false)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  nobackup     %-46s %4d lines\n", "the roll-back to a backup", n)
 
 	for _, s := range []struct{ old, new, what string }{
-		{"if (reset_changed && !newfile && overwriting && !(exiting && backup != NULL))",
+		{"if (reset_changed && !newfile && overwriting && !(exiting && backup != nullptr))",
 			"if (reset_changed && !newfile && overwriting)",
 			"the `written a backup while exiting` test"},
 		{"if (!converted || dobackup)", "if (!converted)", "the conversion test"},

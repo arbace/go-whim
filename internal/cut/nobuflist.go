@@ -13,7 +13,7 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
 		s, err := e.foldNever(s, `^[ \t]*if \(\(flags & \(ECMD_ADDBUF \| ECMD_ALTBUF\)\) `+
-			`&& \(ffname == NULL \|\| \*ffname == NUL\)\)$`,
+			`&& \(ffname == nullptr \|\| \*ffname == NUL\)\)$`,
 			"do_ecmd adding a buffer with no name")
 		if err != nil {
 			return nil, err
@@ -59,7 +59,7 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 		}
 		s, err = e.subOnce(s, `^[ \t]*case CMD_bdelete:\n[ \t]*case CMD_bwipeout:\n`+
 			`[ \t]*case CMD_bunload:\n`+
-			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != NULL\)\n`+
+			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != nullptr\)\n`+
 			`[ \t]*\{\n[ \t]*arg = xp->xp_pattern \+ 1;\n[ \t]*\}\n`+
 			`[ \t]*__attribute__\(\(fallthrough\)\);\n`,
 			"completion for :bdelete, :bwipeout and :bunload")

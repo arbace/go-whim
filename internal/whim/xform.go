@@ -43,7 +43,7 @@ var BoolRet = xform.BoolRetKnobs{
 	Layout: Profile.Sweep,
 }
 
-// Nullptr is phase 106's: the three string literals that hold `NULL` and
+// Nullptr is phase 106's, run by the seed: the three string literals that hold `NULL` and
 // stay as they are -- a message, the printf layer's stand-in for a null %s,
 // and what an empty growarray prints.  A fourth would be a message the phase
 // has never seen, and refuses.

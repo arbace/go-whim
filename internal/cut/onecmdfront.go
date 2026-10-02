@@ -31,8 +31,8 @@ func OneCmdFront(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("do_one_cmd", func(e *edit.E) {
 		e.Literal(` && *ea.arg != NUL && *ea.arg != '"' && (*ea.arg != '|' || (ea.argt & EX_TRLBAR) == 0))`,
 			` && *ea.arg != NUL)`, 1, "a bar or a quote after a command is trailing characters")
-		e.Literal("if (*ea.cmd == NUL || comment_start(ea.cmd, starts_with_colon) || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)",
-			"if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)", 1, "a line that is a comment is not empty")
+		e.Literal("if (*ea.cmd == NUL || comment_start(ea.cmd, starts_with_colon) || (ea.nextcmd = check_nextcmd(ea.cmd)) != nullptr)",
+			"if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != nullptr)", 1, "a line that is a comment is not empty")
 	})
 	e.InFunction("parse_command_modifiers", func(e *edit.E) {
 		e.DropIf(edit.Head("if (comment_start(eap->cmd, starts_with_colon))"), 1, "the modifier parser skips no comment")

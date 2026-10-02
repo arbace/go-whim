@@ -49,8 +49,8 @@ const (
 	extChars   = "@*!=><&~#}"
 	extStubs   = 489
 	extHead    = "        if (((unsigned)(eap->cmd[0]) - 'a' < 26))\n"
-	extLookup  = "        for (eap->cmdidx = (cmdidx_T)0; (int)eap->cmdidx < (int)CMD_SIZE; eap->cmdidx = (cmdidx_T)((int)eap->cmdidx + 1))\n        {\n            if (len >= cmdnames[(int)eap->cmdidx].cmd_minlen &&  strncmp((char *)(cmdnames[(int)eap->cmdidx].cmd_name), (char *)((char *)eap->cmd), ((size_t)len))  == 0)\n            {\n                break;\n            }\n        }\n"
-	extField   = "    size_t cmd_namelen;\n"
+	extLookup  = "        for (eap->cmdidx = (cmdidx_T)0; (int)eap->cmdidx < (int)CMD_SIZE; eap->cmdidx = (cmdidx_T)((int)eap->cmdidx + 1))\n        {\n            if (len >= cmdnames[(int)eap->cmdidx].cmd_minlen &&  strncmp((char *)(cmdnames[(int)eap->cmdidx].cmd_name), (char *)((char *)eap->cmd), ((usize)len))  == 0)\n            {\n                break;\n            }\n        }\n"
+	extField   = "    usize cmd_namelen;\n"
 	extMinlen  = "    int cmd_minlen;\n"
 	extNameLen = "(int)cmdnames[eap->cmdidx].cmd_namelen"
 )
@@ -397,7 +397,7 @@ func ReadFront(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("readfront: open_buffer is not defined")
 	}
 	body := text[a:z]
-	for _, head := range []string{"if (curbuf->b_ffname != NULL)", "if (read_stdin)"} {
+	for _, head := range []string{"if (curbuf->b_ffname != nullptr)", "if (read_stdin)"} {
 		var err error
 		if body, err = edit.FoldNever(body, edit.Head(head), 1); err != nil {
 			return nil, fmt.Errorf("readfront: open_buffer's %s -- %v", head, err)

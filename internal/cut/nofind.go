@@ -13,19 +13,19 @@ const nofindBody = `    char_u      *name;
 
     if (!first)
     {
-        return NULL;
+        return nullptr;
     }
 
     name = vim_strnsave(ptr, len);
-    if (name == NULL)
+    if (name == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     if (mch_getperm(name) < 0)
     {
         vim_free(name);
-        return NULL;
+        return nullptr;
     }
 
     return name;`

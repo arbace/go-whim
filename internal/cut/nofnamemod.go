@@ -12,10 +12,10 @@ import (
 const fnameModArm = `        else if (!skip_mod)
         {
             valid |= modify_fname(src, tilde_file, usedlen, &result, &resultbuf, &resultlen);
-            if (result == NULL)
+            if (result == nullptr)
             {
                 *errormsg = "";
-                return NULL;
+                return nullptr;
             }
         }
 `

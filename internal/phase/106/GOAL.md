@@ -1,5 +1,15 @@
 # Phase 106 — `nullptr` and `usize`
 
+> **Where it runs now (2026-10-02).** This rename is the seed's one step:
+> phase 0 prints the input canonically and runs `whim106 --casts 1` on it,
+> so every later phase is written in C23's spelling, the product's. At the
+> seed it renames 7,617 `NULL` and 778 `size_t` (346 casts, 432
+> declarations), drops 32 `(void *)` casts, and puts the typedef below the
+> input's 41 `#include`s. The three literals holding `NULL` are the same.
+> Phases 1-105 were respelled to match (`doc/PIPELINE-REFORM.md` §7, G),
+> and the build gives the product byte for byte. What follows is the
+> phase as it stood between 105 and 107.
+
 `internal/phase/106/edit.go` and `internal/phase/106/check.go`, `stage 106`, `package boundary`.
 `GOALS.md` §II.4c settled the design: **there is no split into two files, there is one
 file with two parts, and the first `#include` is the boundary.** The core is the prefix
@@ -230,4 +240,4 @@ phase was made the smallest of the four rather than the first convenient one.
 
 The transformation now lives in `crefactor/xform` (`NullptrUsize`).
 
-**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 107, in the group 105-107, whose phases share one purpose. There is no boundary q106 of its own any more; everything above still says what the steps do and why.
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps ran in phase 107, in the group 105-107, whose phases share one purpose; since 2026-10-02 they run in phase 0 (the note at the top). There is no boundary q106 of its own any more; everything above still says what the steps do and why.

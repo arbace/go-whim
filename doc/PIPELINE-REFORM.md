@@ -992,9 +992,22 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      - **`BoolRet` once.** 166 run beside 183 and 184 leaves functions
        `int` that the three runs make `bool`. The lines are the same, but
        120 of them differ: 166's text is the one 167-182 were measured on.
-     - **`NullptrUsize` and the attributes (106, 107) at the end.** Not
-       tried. They would need about 280 anchors in 34 phases respelled, and
-       the steps they would have to follow (120, 134, 149) cannot move.
+     - **The attributes (107) at the end.** Not tried: the steps they
+       would have to follow (120, 134, 149) cannot move.
+   - **`NullptrUsize` (106) to the seed instead, done.** Phase 0 runs
+     `whim106 --casts 1` on the canonical input, so every phase is written
+     in C23's spelling, the product's. At the seed it renames 7,617 `NULL`
+     and 778 `size_t` (346 casts, 432 declarations) and drops 32
+     `(void *)` casts, where q107 held 2,211 `nullptr` and 416 `usize`
+     after 106; the three literals holding `NULL` are the same, and phase
+     0's sweep and print take 219 lines. The respelling: 282 lines -- 109 in `internal/cut` (33 files), 165 in the
+     programs of 26 phases (56-105), 6 of phase 98's `musl-ctype.md` and
+     vimtext's two buffer walks; every one a literal, an anchor or text
+     inserted. One anchor moved rather than respelled: phase 97's
+     definitions follow the `usize` typedef, not the last `#include`. The
+     fall-out closure names neither spelling, and no count moved. The chain
+     gives the product byte for byte. In order: 124 phases, 815 s (the seed
+     10 s, phases 1-3 40, 43 and 45 s); the parallel check: 123 links, 83 s.
    - **168 into `GotoTail`, done.** With 168's program removed, 170 takes
      its 19 gotos as tails of no statements, and the chain gives the product
      byte for byte. `GotoTail` now takes 98 gotos and drops 21 labels. 168

@@ -18,7 +18,7 @@ const nfaNewCompile = "    rex.reg_buf = curbuf;\n" +
 	"\n" +
 	"    prog = bt_regengine.regcomp(expr, re_flags);\n" +
 	"\n" +
-	"    if (prog != NULL)\n" +
+	"    if (prog != nullptr)\n" +
 	"    {\n" +
 	"        prog->re_engine = BACKTRACKING_ENGINE;\n" +
 	"        prog->re_flags = re_flags;\n" +

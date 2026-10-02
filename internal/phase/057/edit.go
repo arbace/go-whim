@@ -27,7 +27,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nolisp", text, w)
 
 	e.InFunction("open_line", func(e *edit.E) {
-		e.DropIf(edit.Head("if (leader == NULL && !use_indentexpr_for_lisp() && curbuf->b_p_lisp && curbuf->b_p_ai)"), 1,
+		e.DropIf(edit.Head("if (leader == nullptr && !use_indentexpr_for_lisp() && curbuf->b_p_lisp && curbuf->b_p_ai)"), 1,
 			"a new line taking its indent from get_lisp_indent()")
 		e.Cut(edit.Line("if (!p_paste)", "{", "}"), 1,
 			"open_line's now-empty 'paste' test")
@@ -73,7 +73,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal("if (pos.lnum == curbuf->b_ml.ml_line_count || lispcomm)",
 			"if (pos.lnum == curbuf->b_ml.ml_line_count)", 1, "% stopping at a lisp comment forwards")
 		e.Literal("if (lisp || skip_comments)", "if (skip_comments)", 1, "% scanning the next line for lisp")
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && vim_strchr\(\(char_u \*\)"\{\}\(\)\[\]", c\) != NULL`, 1,
+		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && vim_strchr\(\(char_u \*\)"\{\}\(\)\[\]", c\) != nullptr`, 1,
 			`% skipping #\( character literals`)
 	})
 	return e.Done()

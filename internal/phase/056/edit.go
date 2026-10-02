@@ -54,12 +54,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"set_init_3 asking whether 'shellredir' was set")
 		e.Cut(edit.Line("p = get_isolated_shell_name();"), 1,
 			"set_init_3 naming the shell")
-		e.DropIf(edit.Head("if (p != NULL)"), 1,
+		e.DropIf(edit.Head("if (p != nullptr)"), 1,
 			"set_init_3 choosing 'shellredir' by shell")
 	})
 	// do_bang's 'shellquote' went with :! and :read and :write's filters (D2, D4)
 	e.InFunction("vim_strsave_fnameescape", func(e *edit.E) {
-		e.DropIf(edit.Head("if (what == VSE_SHELL && csh_like_shell() && p != NULL)"), 1,
+		e.DropIf(edit.Head("if (what == VSE_SHELL && csh_like_shell() && p != nullptr)"), 1,
 			"filename escaping doubling ! for csh")
 	})
 

@@ -283,7 +283,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err := sub(`report_term_error(char *error_msg, char_u *term)
 {
     fprintf(stderr, "%s", ("\r\n"));
-    if (error_msg != NULL)
+    if (error_msg != nullptr)
     {
         fprintf(stderr, "%s", (error_msg));
         fprintf(stderr, "%s", ("\r\n"));
@@ -297,7 +297,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 {
     char        buf[1024];
 
-    if (error_msg != NULL)
+    if (error_msg != nullptr)
     {
         vim_snprintf(buf, sizeof(buf), "\r\n%s\r\n'%s%s\r\n", error_msg, (char *)term, _("' not known, defaulting to 'xterm'"));
     }
@@ -336,7 +336,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
     fprintf(stderr, "%s", (longVersion));
     fprintf(stderr, "%s", ("\n"));
     fprintf(stderr, "%s", (_(main_errors[n])));
-    if (str != NULL)
+    if (str != nullptr)
     {
         fprintf(stderr, "%s", (": \""));
         fprintf(stderr, "%s", ((char *)str));
@@ -349,7 +349,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
     char        buf[1024];
 
     init_longVersion();
-    if (str != NULL)
+    if (str != nullptr)
     {
         vim_snprintf(buf, sizeof(buf), "%s\n%s: \"%s\"", longVersion, _(main_errors[n]), (char *)str);
     }
@@ -431,7 +431,7 @@ host_message(const char *msg, int len, int err)
     }
     while (off < n)
     {
-        int w = (int)write(err ? 2 : 1, msg + off, (size_t)(n - off));
+        int w = (int)write(err ? 2 : 1, msg + off, (usize)(n - off));
 
         if (w <= 0)
         {

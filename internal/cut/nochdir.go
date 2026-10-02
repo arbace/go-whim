@@ -82,7 +82,7 @@ const nochdirDirname = "    static char_u   cwd[ PATH_MAX ];\n" +
 	"\n" +
 	"    if (cwd_len < 0)\n" +
 	"    {\n" +
-	"        if (getcwd((char *)cwd, sizeof(cwd)) == NULL)\n" +
+	"        if (getcwd((char *)cwd, sizeof(cwd)) == nullptr)\n" +
 	"        {\n" +
 	"             strcpy((char *)(buf), (char *)(strerror(errno))) ;\n" +
 	"            return FAIL;\n" +
@@ -129,7 +129,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// The window- and tab-local directory restore.  Its guard can never be
 	// true: w_localdir and tp_localdir come only from :lcd and :tcd, and
 	// globaldir is assigned only inside this function.
-	if text, err = edit.DropIf(text, edit.Head("if (awp->w_localdir != NULL)"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (awp->w_localdir != nullptr)"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = cutCounted(text, edit.Line("win_fix_current_dir();"),
@@ -144,14 +144,14 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// restoring a pointer that is always NULL.  The save and the restore go
 	// here; the field, the global and the function are the sweep's.
 	for _, g := range []struct{ pat, what string }{
-		{edit.Line("aco->globaldir = globaldir;", "globaldir = NULL;"), "the save"},
+		{edit.Line("aco->globaldir = globaldir;", "globaldir = nullptr;"), "the save"},
 		{edit.Line("vim_free(globaldir);", "globaldir = aco->globaldir;"), "the restore"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "globaldir -- "+g.what, 1); err != nil {
 			return nil, err
 		}
 	}
-	fmt.Fprintln(w, "  nochdir      globaldir, saved and restored and always NULL")
+	fmt.Fprintln(w, "  nochdir      globaldir, saved and restored and always nullptr")
 
 	// edit_buffers(), the -o window walk that returned to `cwd`, went with
 	// the windows at phase 1 (nowindows, the reform's D9).  start_dir, which

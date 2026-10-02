@@ -20,7 +20,7 @@ func NoArgList(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		return e.subOnce(seg, `^[ \t]*case CMD_argdelete:\n`+
-			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != NULL\)\n`+
+			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != nullptr\)\n`+
 			`[ \t]*\{\n`+
 			`[ \t]*arg = xp->xp_pattern \+ 1;\n`+
 			`[ \t]*\}\n`+

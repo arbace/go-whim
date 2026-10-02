@@ -108,12 +108,12 @@ func writesTo(text []byte, name string) []int {
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("noautocmd", text, w)
 
-	e.CountIs(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] =\n\{\n[ \t]*NULL,\n\};$`, 1,
+	e.CountIs(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] =\n\{\n[ \t]*nullptr,\n\};$`, 1,
 		"the first_autopat declaration is where this phase expects it")
 	ws := writesTo(e.Text(), "first_autopat")
-	e.Expect(len(ws) == 1, "first_autopat is assigned in %d place(s), not just its all-NULL initialiser (lines %s) -- an autocommand CAN be registered and this whole phase is wrong",
+	e.Expect(len(ws) == 1, "first_autopat is assigned in %d place(s), not just its all-nullptr initialiser (lines %s) -- an autocommand CAN be registered and this whole phase is wrong",
 		len(ws), edit.JoinInts(ws))
-	e.Say("confirmed: first_autopat is only ever the all-NULL initialiser")
+	e.Say("confirmed: first_autopat is only ever the all-nullptr initialiser")
 
 	e.InFunction("close_buffer", func(e *edit.E) {
 		e.Literal(w75OldCb, w75NewCb, 1, "close_buffer, whose abort label three gotos still target")
@@ -132,7 +132,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
 	})
 	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(p != NULL && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`, 1, "an unknown command being defined by an autocommand")
+		e.FoldNever(`(?m)^[ \t]*if \(p != nullptr && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`, 1, "an unknown command being defined by an autocommand")
 	})
 	e.Body("ins_apply_autocmds", w75lit2, "ins_apply_autocmds, which dispatched and watched the tick")
 	e.InFunction("ui_focus_change", func(e *edit.E) {
@@ -143,7 +143,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	// buf_write, with its autocommands, went with :write at phase 1
 	// (filefront, the reform's D4)
-	e.DropBlocks("set_termname", edit.Head("if (curbuf->b_ml.ml_mfp != NULL)"), 1, "a new terminal telling every buffer")
+	e.DropBlocks("set_termname", edit.Head("if (curbuf->b_ml.ml_mfp != nullptr)"), 1, "a new terminal telling every buffer")
 	e.Lines(`ins_apply_autocmds\(EVENT_[A-Z]+\);`, 6, "the insert-mode dispatches")
 	e.InFunction("ins_redraw", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, 1, "insert mode reporting the cursor moved")

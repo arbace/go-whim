@@ -83,9 +83,9 @@ import (
 // no match.  A synthetic header with mismatched variables is what shows it
 // discriminates -- backref finds 0, raw RE2 finds 1, capture-and-compare finds 0.
 const (
-	nestedWalk = `for \(\((\w+)\) = \(\((\w+)\) == (?:NULL \|\| \((\w+)\) == )?curtab\) *\? firstwin : \((\w+)\)->tp_firstwin; \((\w+)\); \((\w+)\) = \((\w+)\)->w_next\)`
-	tabsWalk   = `for \(\((\w+)\) = first_tabpage; \((\w+)\) != NULL; \((\w+)\) = \((\w+)\)->tp_next\)`
-	winsWalk   = `for \(\((\w+)\) = firstwin; \((\w+)\) != NULL; \((\w+)\) = \((\w+)\)->w_next\)`
+	nestedWalk = `for \(\((\w+)\) = \(\((\w+)\) == (?:nullptr \|\| \((\w+)\) == )?curtab\) *\? firstwin : \((\w+)\)->tp_firstwin; \((\w+)\); \((\w+)\) = \((\w+)\)->w_next\)`
+	tabsWalk   = `for \(\((\w+)\) = first_tabpage; \((\w+)\) != nullptr; \((\w+)\) = \((\w+)\)->tp_next\)`
+	winsWalk   = `for \(\((\w+)\) = firstwin; \((\w+)\) != nullptr; \((\w+)\) = \((\w+)\)->w_next\)`
 )
 
 // allEqual says whether every named index holds the same non-empty text.  An
@@ -118,15 +118,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Literal("wp == firstwin", "TRUE", 2, "win_update asking whether this is the top window")
 	e.Literal("wp == lastwin", "wp == curwin", 1, "win_redr_ruler asking for the bottom window")
 
-	e.DropWalk("aucmd_prepbuf", "for ((win) = firstwin; (win) != NULL; (win) = (win)->w_next)",
+	e.DropWalk("aucmd_prepbuf", "for ((win) = firstwin; (win) != nullptr; (win) = (win)->w_next)",
 		w72lit3, 1, "aucmd_prepbuf searching for the window showing a buffer")
-	e.DropWalk("can_unload_buffer", "for ((wp) = firstwin; (wp) != NULL; (wp) = (wp)->w_next)",
+	e.DropWalk("can_unload_buffer", "for ((wp) = firstwin; (wp) != nullptr; (wp) = (wp)->w_next)",
 		w72lit4, 1, "can_unload_buffer asking whether the buffer is on screen")
 	e.Cut(edit.Line("borrow_stl_vsep_hl();"), 2, "the two calls to the separator-highlight pass")
 	e.DeleteDefinition("borrow_stl_vsep_hl", "borrow_stl_vsep_hl, which had no window to borrow from")
 	e.Body("current_win_nr", w72lit5, "current_win_nr, which counted to the window")
 	e.Body("current_tab_nr", w72lit5, "current_tab_nr, which counted to the tabpage")
-	e.ReplaceBlock("getout", edit.Head("for (tp = first_tabpage; tp != NULL; tp = next_tp)"),
+	e.ReplaceBlock("getout", edit.Head("for (tp = first_tabpage; tp != nullptr; tp = next_tp)"),
 		w72lit6, "quitting walking every window of every tabpage")
 	e.Body("create_windows", w72lit7, "the startup scan rewinding over the window list")
 	e.Body("win_valid", w72lit8, "win_valid, which walked the list for the window it was given")

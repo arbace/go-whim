@@ -31,7 +31,7 @@ const argvScanBody = `{
         {
             if (parmp->n_commands >= MAX_ARG_CMDS)
             {
-                mainerr(ME_EXTRA_CMD, NULL);
+                mainerr(ME_EXTRA_CMD, nullptr);
             }
             argv_idx = -1;
             if (argv[0][1] == NUL)

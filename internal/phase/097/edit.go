@@ -243,9 +243,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Say(fmt.Sprintf("%d identifiers renamed to musl_*, none of them inside a literal -- %d of the "+
 		"input and the four strlen the size arguments added", renamed, sixteen))
 
-	// ---- D. the definitions, after the eighteen #includes ---------------------
+	// ---- D. the definitions, after the includes and the seed's usize ----------
+	// Below the typedef the seed writes under the includes (whim106, run in
+	// phase 0): the definitions name usize, so they follow it.
 	if err := textEdit(w97Anchor, w97Anchor+strings.TrimLeft(w97Defs, "\n")+"\n",
-		"the eighteen definitions go after the eighteenth and last #include, "+
+		"the eighteen definitions go after the #includes and the usize typedef, "+
 			"before the first enum -- defined ahead of every use, so no prototype "+
 			"is added and the prototype block is not touched", 1); err != nil {
 		return nil, err

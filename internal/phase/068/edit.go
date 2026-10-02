@@ -54,10 +54,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 1. the autocommand window, the last thing that could add a window
 	e.InFunction("aucmd_prepbuf", func(e *edit.E) {
-		e.Splice("    win_T *auc_win = NULL;\n", "        if (auc_win == NULL)\n        {\n            return;\n        }\n    }\n",
-			"    if (win == NULL)\n    {\n        return;\n    }\n",
+		e.Splice("    win_T *auc_win = nullptr;\n", "        if (auc_win == nullptr)\n        {\n            return;\n        }\n    }\n",
+			"    if (win == nullptr)\n    {\n        return;\n    }\n",
 			"aucmd_prepbuf building a window to run autocommands in")
-		e.Splice("    if (win != NULL)\n", "        curwin = auc_win;\n    }\n", "    curwin = win;\n",
+		e.Splice("    if (win != nullptr)\n", "        curwin = auc_win;\n    }\n", "    curwin = win;\n",
 			"aucmd_prepbuf choosing between that window and the real one")
 	})
 	// fold_never, not drop_if: this `if` HAS an else -- the same-window restore
@@ -77,9 +77,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// nothing can make true now.  With them gone the sweep takes the table and
 	// autocmd_init(), whose body was the memset that zeroed it.
 	e.Cut(edit.Line("autocmd_init();"), 1, "the call that zeroed the table at startup")
-	e.Cut(edit.Line("for (int i = 0; i < AUCMD_WIN_COUNT; ++i)", "{", "if (aucmd_win[i].auc_win != NULL)", "{", "win_free_lsize(aucmd_win[i].auc_win);", "}", "}"), 1,
+	e.Cut(edit.Line("for (int i = 0; i < AUCMD_WIN_COUNT; ++i)", "{", "if (aucmd_win[i].auc_win != nullptr)", "{", "win_free_lsize(aucmd_win[i].auc_win);", "}", "}"), 1,
 		"screenalloc freeing the line sizes of windows that do not exist")
-	e.Cut(edit.Line("for (int i = 0; i < AUCMD_WIN_COUNT; ++i)", "{", "if (aucmd_win[i].auc_win != NULL && aucmd_win[i].auc_win->w_lines == NULL && win_alloc_lines(aucmd_win[i].auc_win) == FAIL)", "{", "outofmem = TRUE;", "break;", "}", "}"), 1,
+	e.Cut(edit.Line("for (int i = 0; i < AUCMD_WIN_COUNT; ++i)", "{", "if (aucmd_win[i].auc_win != nullptr && aucmd_win[i].auc_win->w_lines == nullptr && win_alloc_lines(aucmd_win[i].auc_win) == FAIL)", "{", "outofmem = TRUE;", "break;", "}", "}"), 1,
 		"screenalloc allocating lines for them")
 
 	// 2. the invariant: one window, one tabpage

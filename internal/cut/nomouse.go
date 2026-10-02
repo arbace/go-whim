@@ -125,7 +125,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomouse      ]<LeftMouse> and g<LeftMouse>")
 
 	if text, err = cutCounted(text,
-		`(?m)[ \t]*\(void\)jump_to_mouse\(MOUSE_SETPOS, NULL, 0\);\n`,
+		`(?m)[ \t]*\(void\)jump_to_mouse\(MOUSE_SETPOS, nullptr, 0\);\n`,
 		"nomouse", "wait_return()'s jump_to_mouse", 1); err != nil {
 		return nil, err
 	}

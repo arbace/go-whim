@@ -17,7 +17,7 @@ var notagsEdits = []struct {
 }{
 	{"the <Help> key, which reached do_tag through ex_help",
 		`(?m)[ \t]*if \(!checkclearopq\(cap->oap\)\)\n[ \t]*\{\n` +
-			`[ \t]*ex_help\(NULL\);\n[ \t]*\}\n`,
+			`[ \t]*ex_help\(nullptr\);\n[ \t]*\}\n`,
 		"    (void)checkclearopq(cap->oap);\n", 1},
 	{"CTRL-T, the tag stack pop",
 		`(?m)[ \t]*if \(!checkclearopq\(cap->oap\)\)\n[ \t]*\{\n` +
@@ -32,7 +32,7 @@ var notagsEdits = []struct {
 			`[ \t]*return FAIL;\n[ \t]*\}\n`, "", 1},
 	{"the ten command cases that asked for a tag context",
 		`(?m)(?:[ \t]*case CMD_(?:tag|stag|ptag|ltag|tselect|stselect|ptselect|tjump|stjump|ptjump):\n)+` +
-			`[ \t]*if \(vim_strchr\(p_wop, WOP_TAGFILE\) != NULL\)\n` +
+			`[ \t]*if \(vim_strchr\(p_wop, WOP_TAGFILE\) != nullptr\)\n` +
 			`[ \t]*\{\n[^\n]*\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[^\n]*\n[ \t]*\}\n` +
 			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, "", 1},
 	{"CTRL-X CTRL-] tag completion in insert mode",

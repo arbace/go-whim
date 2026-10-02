@@ -3,6 +3,17 @@ package p106
 // Whim phase 106 -- `nullptr` and `usize`: the two the language supplies.
 // See GOALS.md II.4c and GOALS.md.
 //
+// IT RUNS IN PHASE 0 NOW, the seed's one step (internal/build's plan): the
+// whole pipeline after it is written in C23's spelling, which is the
+// product's, rather than phases 1-105 in the header's and the rest in this
+// one.  What follows is the account of the phase where it stood, between
+// 105 and 107.  Its assertions hold at the seed as they did there: the
+// directives it counts are the input's 41 `#include`s on the first 41 lines
+// (counted, not the eleven of its old position), `usize` and `nullptr` are
+// at zero, the literals holding `NULL` are the same three, and every
+// `size_t` -- 778 at the seed, 346 casts and 432 declarations -- is a type
+// name.  `(void *)NULL` is 32 there.
+//
 // GOALS.md II.4c settled the design on 2026-09-18: THERE IS NO SPLIT INTO TWO FILES,
 // there is one file with two parts, and THE FIRST `#include` IS THE BOUNDARY.  The core
 // is the prefix above it and must name nothing a header supplies.  Four phases get

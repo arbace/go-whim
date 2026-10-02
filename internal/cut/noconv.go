@@ -128,7 +128,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		return e.subCountRepl(s,
-			`(?ms)^    if \(pp == NULL \|\| \*arg != '='\)\n.*?^    return OK;\n`,
+			`(?ms)^    if \(pp == nullptr \|\| \*arg != '='\)\n.*?^    return OK;\n`,
 			"    return FAIL;\n",
 			"getargopt: every ++ argument but ++edit is unknown", 1)
 	})
@@ -140,7 +140,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
 		var err error
-		if s, err = e.ncFold(s, `^[ \t]*if \(eap != NULL && eap->force_enc != 0\)$`,
+		if s, err = e.ncFold(s, `^[ \t]*if \(eap != nullptr && eap->force_enc != 0\)$`,
 			"buf_write honouring ++enc", "never", -1); err != nil {
 			return nil, err
 		}
@@ -188,7 +188,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		for _, c := range []struct{ pat, what string }{
-			{`^[ \t]*write_info\.bw_conv_buf = NULL;\n`, "buf_write clearing the conversion buffer"},
+			{`^[ \t]*write_info\.bw_conv_buf = nullptr;\n`, "buf_write clearing the conversion buffer"},
 			{`^[ \t]*vim_free\(write_info\.bw_conv_buf\);\n`, "buf_write freeing the conversion buffer"},
 		} {
 			if s, err = e.subOnce(s, c.pat, c.what); err != nil {
@@ -209,7 +209,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
-			`^[ \t]*if \(!oldbuf && eap != NULL\)\n[ \t]*\{\n[ \t]*set_forced_fenc\(eap\);\n[ \t]*\}\n`,
+			`^[ \t]*if \(!oldbuf && eap != nullptr\)\n[ \t]*\{\n[ \t]*set_forced_fenc\(eap\);\n[ \t]*\}\n`,
 			"editing a file taking ++enc")
 	}); err != nil {
 		return nil, err
@@ -218,7 +218,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.inFunction(text, "mb_init", func(s []byte) ([]byte, error) {
 		var err error
 		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(p_enc == NULL\)$`, "mb_init without an encoding"},
+			{`^[ \t]*if \(p_enc == nullptr\)$`, "mb_init without an encoding"},
 			{`^[ \t]*if \(strcmp\(\(char \*\)\(p_enc\), \(char \*\)\("utf-8"\)\) != 0\)$`,
 				"mb_init refusing another encoding"},
 		} {
@@ -232,7 +232,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		}
 		for _, c := range []struct{ pat, what string }{
 			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n`, "mb_init clearing a conversion"},
-			{`^[ \t]*convert_setup\(&vimconv, NULL, NULL\);\n`, "mb_init setting up no conversion"},
+			{`^[ \t]*convert_setup\(&vimconv, nullptr, nullptr\);\n`, "mb_init setting up no conversion"},
 		} {
 			if s, err = e.subOnce(s, c.pat, c.what); err != nil {
 				return nil, err
@@ -278,7 +278,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		for _, c := range []struct{ pat, what string }{
 			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n`, "utf_find_illegal clearing a conversion"},
 			{`^[ \t]*vim_free\(tofree\);\n`, "utf_find_illegal freeing a converted copy"},
-			{`^[ \t]*convert_setup\(&vimconv, NULL, NULL\);\n`, "utf_find_illegal ending no conversion"},
+			{`^[ \t]*convert_setup\(&vimconv, nullptr, nullptr\);\n`, "utf_find_illegal ending no conversion"},
 		} {
 			if s, err = e.subOnce(s, c.pat, c.what); err != nil {
 				return nil, err
@@ -304,7 +304,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		for _, f := range []struct{ pat, what string }{
 			{`^[ \t]*if \(input_conv\.vc_type != CONV_NONE\)$`,
 				"input converted from the terminal"},
-			{`^[ \t]*if \(rest != NULL\)$`, "input left over from a conversion"},
+			{`^[ \t]*if \(rest != nullptr\)$`, "input left over from a conversion"},
 		} {
 			if s, err = e.ncFold(s, f.pat, f.what, "never", -1); err != nil {
 				return nil, err
@@ -344,7 +344,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 				return nil, err
 			}
 		}
-		if s, err = e.ncFold(s, `^[ \t]*if \(cb != NULL\)$`,
+		if s, err = e.ncFold(s, `^[ \t]*if \(cb != nullptr\)$`,
 			"completing an ++ argument value", "never", -1); err != nil {
 			return nil, err
 		}

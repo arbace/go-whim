@@ -183,7 +183,7 @@ musl_strtol(const char *s, char **end, int base)
 }
 
     static void *
-musl_bsearch(const void *key, const void *base, size_t nel, size_t width, int (*cmp)(const void *, const void *))
+musl_bsearch(const void *key, const void *base, usize nel, usize width, int (*cmp)(const void *, const void *))
 {
     void *tryp;
     int sign;
@@ -206,16 +206,16 @@ musl_bsearch(const void *key, const void *base, size_t nel, size_t width, int (*
             return tryp;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
     static void
-musl_qsort(void *base, size_t nel, size_t width, int (*cmp)(const void *, const void *))
+musl_qsort(void *base, usize nel, usize width, int (*cmp)(const void *, const void *))
 {
     char *a = (char *)base;
-    size_t i;
-    size_t j;
-    size_t k;
+    usize i;
+    usize j;
+    usize k;
 
     for (i = 1; i < nel; ++i)
     {

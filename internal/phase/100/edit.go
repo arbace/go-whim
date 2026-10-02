@@ -113,7 +113,7 @@ const whim100Install = "        if (signal_info[i].deadly)\n" +
 	"            sa.sa_handler = func_deadly;\n" +
 	"            sigemptyset(&sa.sa_mask);\n" +
 	"            sa.sa_flags = 0;\n" +
-	"            sigaction(signal_info[i].sig, &sa, NULL);\n" +
+	"            sigaction(signal_info[i].sig, &sa, nullptr);\n" +
 	"        }\n"
 
 const whim100Head = "deathtrap(int sigarg __attribute__((unused)))\n" +

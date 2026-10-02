@@ -167,7 +167,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	for _, fn := range []string{"ins_pageup", "ins_pagedown"} {
 		fn := fn
 		if text, err = e.inFunction(text, fn, func(s []byte) ([]byte, error) {
-			return e.foldNever(s, `^[ \t]*if \(first_tabpage->tp_next != NULL\)$`,
+			return e.foldNever(s, `^[ \t]*if \(first_tabpage->tp_next != nullptr\)$`,
 				fn+": no second tab page to reach")
 		}); err != nil {
 			return nil, err
@@ -246,8 +246,8 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		return e.literal(s,
-			"    forward = curtab->tp_next != NULL && ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);\n",
-			"    forward = curtab->tp_next != NULL;\n",
+			"    forward = curtab->tp_next != nullptr && ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);\n",
+			"    forward = curtab->tp_next != nullptr;\n",
 			"alt_tabpage: 'tabclose' asking to go left", 1)
 	}); err != nil {
 		return nil, err

@@ -130,7 +130,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(edit.Line("for (i = 0; i < state.buflen; ++i)", "{", "updatescript(state.buf[i]);", "}"), 1, "typed characters passed to a script file and a swap sync that are both gone")
 	})
 	e.InFunction("wait_return", func(e *edit.E) {
-		for _, line := range []string{"save_scriptout = scriptout;", "scriptout = NULL;", "scriptout = save_scriptout;"} {
+		for _, line := range []string{"save_scriptout = scriptout;", "scriptout = nullptr;", "scriptout = save_scriptout;"} {
 			e.Cut(`(?m)^[ \t]*`+regexp.QuoteMeta(line)+`\n`, 1, "wait_return saving and restoring a script file that is never open")
 		}
 	})

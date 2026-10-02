@@ -134,7 +134,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Cut(edit.Line("oldtitle_outdated = TRUE;"), 1, "its one write")
 	e.Cut(edit.Line("deadly_signal = sigarg;"), 1, "the signal number it recorded")
 	// mr_patternlen's two writes are a whole if/else, so the test goes with them.
-	e.Cut(edit.Line("if (mr_pattern == NULL)", "{", "mr_patternlen = 0;", "}", "else", "{", "mr_patternlen = patlen;", "}"), 1,
+	e.Cut(edit.Line("if (mr_pattern == nullptr)", "{", "mr_patternlen = 0;", "}", "else", "{", "mr_patternlen = patlen;", "}"), 1,
 		"mr_patternlen's if/else")
 	// was_safe is a whole function Body, and that function has two callers.
 	e.Lines(`state_no_longer_safe\("(?:ins_typebuf\(\)|key typed)"\);`, 2, "the two calls that declared the state unsafe")

@@ -19,17 +19,17 @@ const homeReplaceNote = `// A name is shown as what it is.  This was the shorten
 // file name to the user; they keep working, and see the name unchanged.
 `
 
-const homeReplaceCopy = `    size_t len;
+const homeReplaceCopy = `    usize len;
 
-    if (src == NULL)
+    if (src == nullptr)
     {
         *dst = NUL;
         return 0;
     }
     len =  strlen((char *)(src)) ;
-    if (len >= (size_t)dstlen)
+    if (len >= (usize)dstlen)
     {
-        len = (size_t)dstlen - 1;
+        len = (usize)dstlen - 1;
     }
      memmove((char *)(dst), (char *)(src), len) ;
     dst[len] = NUL;

@@ -75,7 +75,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.subOnce(s,
-			`^[ \t]*if \(eap != NULL && eap->force_bin != 0\)\n`+
+			`^[ \t]*if \(eap != nullptr && eap->force_bin != 0\)\n`+
 				`[ \t]*\{\n`+
 				`[ \t]*write_bin = \(eap->force_bin == FORCE_BIN\);\n`+
 				`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*write_bin = buf->b_p_bin;\n[ \t]*\}\n`,
@@ -200,7 +200,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "transchar_nonprint", func(s []byte) ([]byte, error) {
 		return e.foldNever(s,
-			`^[ \t]*else if \(buf != NULL && c == CAR && get_fileformat\(buf\) == EOL_MAC\)$`,
+			`^[ \t]*else if \(buf != nullptr && c == CAR && get_fileformat\(buf\) == EOL_MAC\)$`,
 			"CR shown as a line end")
 	}); err != nil {
 		return nil, err
@@ -278,7 +278,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		s = append(out, s[c+bytes.IndexByte(s[c:], '\n')+1:]...)
 		e.say("a new buffer's 'fileformat' from 'fileformats'")
 		var err error
-		if s, err = e.dropIf(s, `^[ \t]*if \(buf->b_p_ff != NULL\)$`,
+		if s, err = e.dropIf(s, `^[ \t]*if \(buf->b_p_ff != nullptr\)$`,
 			"a new buffer's remembered format"); err != nil {
 			return nil, err
 		}

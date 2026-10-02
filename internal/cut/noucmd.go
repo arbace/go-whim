@@ -21,8 +21,8 @@ var (
 	ucmdComplRows = regexp.MustCompile(
 		`(?m)^[ \t]*\{EXPAND_USER_(?:COMMANDS|ADDR_TYPE|CMD_FLAGS|NARGS|COMPLETE|COMPLETEOPT), ` +
 			`get_user_(?:commands|cmd[a-z_]*), FALSE, TRUE\},\n`)
-	ucmdFindA = regexp.MustCompile(edit.Line("p = find_ucmd(eap, p, NULL, xp, complp);"))
-	ucmdFindB = regexp.MustCompile(edit.Line("p = find_ucmd(eap, p, full, NULL, NULL);"))
+	ucmdFindA = regexp.MustCompile(edit.Line("p = find_ucmd(eap, p, nullptr, xp, complp);"))
+	ucmdFindB = regexp.MustCompile(edit.Line("p = find_ucmd(eap, p, full, nullptr, nullptr);"))
 	ucmdCtx   = regexp.MustCompile(
 		edit.Line("case CMD_command:", "return set_context_in_user_cmd(xp, arg);") +
 			`[ \t]*case CMD_delcommand:\n[ \t]*xp->xp_context = EXPAND_USER_COMMANDS;\n` +
@@ -62,8 +62,8 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 	}
 	text = ucmdComplRows.ReplaceAll(text, nil)
 	text = bytes.Replace(text,
-		[]byte("    return get_user_commands(NULL, idx - (int)CMD_SIZE);"),
-		[]byte("    return NULL;"), 1)
+		[]byte("    return get_user_commands(nullptr, idx - (int)CMD_SIZE);"),
+		[]byte("    return nullptr;"), 1)
 
 	// find_ucmd() looks a name up in the user table; two callers, one in the
 	// completion path and one in do_one_cmd's name scan.

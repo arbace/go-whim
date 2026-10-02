@@ -30,7 +30,7 @@ var nofencEdits = []struct {
 	// encoding and its restore.
 	{"save_file_ff remembering the BOM and the encoding",
 		`(?m)[ \t]*buf->b_start_bomb = buf->b_p_bomb;\n` +
-			`[ \t]*if \(buf->b_start_fenc == NULL \|\| strcmp[^\n]*\n` +
+			`[ \t]*if \(buf->b_start_fenc == nullptr \|\| strcmp[^\n]*\n` +
 			`[ \t]*\{\n` +
 			`[ \t]*vim_free\(buf->b_start_fenc\);\n` +
 			`[ \t]*buf->b_start_fenc = vim_strsave\(buf->b_p_fenc\);\n[ \t]*\}\n`, "", 1},
@@ -39,7 +39,7 @@ var nofencEdits = []struct {
 			`[ \t]*\{\n` +
 			`[ \t]*return TRUE;\n` +
 			`[ \t]*\}\n` +
-			`[ \t]*if \(buf->b_start_fenc == NULL\)\n` +
+			`[ \t]*if \(buf->b_start_fenc == nullptr\)\n` +
 			`[ \t]*\{\n` +
 			`[ \t]*return \(\*buf->b_p_fenc != NUL\);\n[ \t]*\}\n[ \t]*return \(strcmp[^\n]*\n`, "    return FALSE;\n", 1},
 	{"g8 converting to the buffer's 'fileencoding' to find an illegal byte",
@@ -51,7 +51,7 @@ var nofencEdits = []struct {
 	// there and gvarp went with the encoding rows, dropped at phase 1
 	// (optfront, the reform's D3).
 	{"freeing the remembered encoding",
-		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = NULL;\n`,
+		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = nullptr;\n`,
 		"", 1},
 	// three: at phase 1 (the reform's D7) readfile and the recovery are
 	// still in the text, and two of them are theirs
@@ -65,7 +65,7 @@ var nofencEdits = []struct {
 	// anything, and every recorded exit status in the harness moves at once.
 	{"`:e ++enc=` forcing one",
 		`(?m)[ \t]*char_u \*fenc = enc_canonize\(eap->cmd \+ eap->force_enc\);\n` +
-			`[ \t]*if \(fenc != NULL\)\n` +
+			`[ \t]*if \(fenc != nullptr\)\n` +
 			`[ \t]*\{\n` +
 			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n` +
 			`[ \t]*\}\n[ \t]*vim_free\(fenc\);\n`, "", 1},

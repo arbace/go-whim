@@ -111,7 +111,7 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = edit.DropIf(text,
-		edit.Head("if (recoverymode && params.fname == NULL)"), 2); err != nil {
+		edit.Head("if (recoverymode && params.fname == nullptr)"), 2); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  norecover    the two `-r with no file` arms of main and vim_main2")

@@ -25,14 +25,14 @@ const mfOpenNote = "// No caller can name a file: ml_open() passes nothing, and 
 
 const mfOpenBody = "    memfile_T           *mfp;\n" +
 	"\n" +
-	"    if ((mfp = (memfile_T *)alloc(sizeof(memfile_T))) == NULL)\n" +
+	"    if ((mfp = (memfile_T *)alloc(sizeof(memfile_T))) == nullptr)\n" +
 	"    {\n" +
-	"        return NULL;\n" +
+	"        return nullptr;\n" +
 	"    }\n" +
 	"\n" +
-	"    mfp->mf_free_first = NULL;\n" +
-	"    mfp->mf_used_first = NULL;\n" +
-	"    mfp->mf_used_last = NULL;\n" +
+	"    mfp->mf_free_first = nullptr;\n" +
+	"    mfp->mf_used_first = nullptr;\n" +
+	"    mfp->mf_used_last = nullptr;\n" +
 	"    mfp->mf_dirty = MF_DIRTY_NO;\n" +
 	"    mf_hash_init(&mfp->mf_hash);\n" +
 	"    mf_hash_init(&mfp->mf_trans);\n" +
@@ -60,7 +60,7 @@ const mfSyncBody = "    mfp->mf_dirty = MF_DIRTY_NO;\n" +
 const mfGetMissNote = "// A block that is not in the hash is not anywhere: it could only\n" +
 	"// ever have come back from the file, and there is no file.\n"
 
-const mfGetMissBody = "            return NULL;"
+const mfGetMissBody = "            return nullptr;"
 
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
@@ -72,7 +72,7 @@ const lallocNote = "// The scrollback is the only memory left to reclaim.  This 
 	"// retry with.  `releasing` stays, because clear_sb_text() allocates.\n"
 
 const lallocBody = "    p = malloc(size);\n" +
-	"    if (p == NULL && !releasing)\n" +
+	"    if (p == nullptr && !releasing)\n" +
 	"    {\n" +
 	"        releasing = TRUE;\n" +
 	"        clear_sb_text(TRUE);\n" +
@@ -104,7 +104,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	for _, r := range []struct{ old, new string }{
 		{"static memfile_T *mf_open(char_u *fname, int flags);", "static memfile_T *mf_open(void);"},
 		{"mf_open(char_u *fname, int flags)", "mf_open(void)"},
-		{"mfp = mf_open(NULL, 0);", "mfp = mf_open();"},
+		{"mfp = mf_open(nullptr, 0);", "mfp = mf_open();"},
 	} {
 		text = bytes.Replace(text, []byte(r.old), []byte(r.new), 1)
 	}
@@ -132,7 +132,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 			`[ \t]*emsg\(_\(e_close_error_on_swap_file\)\);\n` +
 			`[ \t]*\}\n` +
 			`[ \t]*\}\n` +
-			`[ \t]*if \(del_file && mfp->mf_fname != NULL\)\n` +
+			`[ \t]*if \(del_file && mfp->mf_fname != nullptr\)\n` +
 			`[ \t]*\{\n[ \t]* unlink\(\(char \*\)\(mfp->mf_fname\)\);\n[ \t]*\}\n`,
 			"mf_close's descriptor and unlink"},
 		{edit.Line("vim_free(mfp->mf_fname);", "vim_free(mfp->mf_ffname);"),
@@ -147,8 +147,8 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	// mf_fname is NULL for ever, so the block never ran; it is the last
 	// mention of mf_fd, and swap_mode exists only for it.
 	if text, err = edit.DropIf(text,
-		`(?m)^[ \t]*if \(swap_mode > 0 && curbuf->b_ml\.ml_mfp != NULL `+
-			`&& curbuf->b_ml\.ml_mfp->mf_fname != NULL\)$`, 1); err != nil {
+		`(?m)^[ \t]*if \(swap_mode > 0 && curbuf->b_ml\.ml_mfp != nullptr `+
+			`&& curbuf->b_ml\.ml_mfp->mf_fname != nullptr\)$`, 1); err != nil {
 		return nil, err
 	}
 	for _, c := range []struct{ pat, what string }{
@@ -160,7 +160,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nomemfile    buf_write stops matching a swap file's permissions")
 	text = bytes.Replace(text, []byte("    hp = mf_release(mfp, page_count);\n"),
-		[]byte("    hp = NULL;\n"), 1)
+		[]byte("    hp = nullptr;\n"), 1)
 
 	// mf_get's cache miss: the block could only have come back from the file.
 	blanked := edit.Blank(text)
@@ -168,7 +168,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	if k < 0 {
 		return nil, fmt.Errorf("nomemfile: mf_get's cache miss is not where this expects")
 	}
-	at := k - 400 + bytes.Index(text[k-400:], []byte("if (hp == NULL)"))
+	at := k - 400 + bytes.Index(text[k-400:], []byte("if (hp == nullptr)"))
 	o := at + bytes.IndexByte(blanked[at:], '{')
 	c := edit.Match(blanked, o)
 	if c < 0 {
@@ -183,7 +183,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomemfile    mf_get stops trying to read a block back")
 
 	blanked = edit.Blank(text)
-	k = bytes.Index(text, []byte("    for (;;)\n    {\n        if ((p = malloc(size)) != NULL)"))
+	k = bytes.Index(text, []byte("    for (;;)\n    {\n        if ((p = malloc(size)) != nullptr)"))
 	if k < 0 {
 		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is not where this expects")
 	}

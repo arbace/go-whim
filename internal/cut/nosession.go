@@ -39,8 +39,8 @@ var nosessionDrops = []struct{ what, pat string }{
 	{"the noautocmd modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "noautocmd", 3))`)},
 	{"the sandbox modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "sandbox", 3))`)},
 	{"the vim9cmd modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "vim9cmd", 4))`)},
-	{"noautocmd saving 'eventignore'", edit.Head("if ((cmod->cmod_flags & CMOD_NOAUTOCMD) && cmod->cmod_save_ei == NULL)")},
-	{"noautocmd restoring 'eventignore'", edit.Head("if (cmod->cmod_save_ei != NULL)")},
+	{"noautocmd saving 'eventignore'", edit.Head("if ((cmod->cmod_flags & CMOD_NOAUTOCMD) && cmod->cmod_save_ei == nullptr)")},
+	{"noautocmd restoring 'eventignore'", edit.Head("if (cmod->cmod_save_ei != nullptr)")},
 }
 
 var nosessionLiteral = []struct{ what, old, new string }{

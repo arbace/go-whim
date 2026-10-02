@@ -299,8 +299,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"smsg(const char *s, ...)", "smsg_attr(int attr, const char *s, ...)",
 		"smsg_attr_keep(int attr, const char *s, ...)", "semsg(const char *s, ...)",
 		"siemsg(const char *s, ...)",
-		"vim_snprintf_add(char *str, size_t str_m, const char *fmt, ...)",
-		"vim_snprintf_safelen(char *str, size_t str_m, const char *fmt, ...)",
+		"vim_snprintf_add(char *str, usize str_m, const char *fmt, ...)",
+		"vim_snprintf_safelen(char *str, usize str_m, const char *fmt, ...)",
 	} {
 		if err := delfunc("\n"+sig+"\n", "D"); err != nil {
 			return nil, err
@@ -535,7 +535,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Sayf("129 call sites expanded: %s", strings.Join(commaTally, ", "))
 	p.Sayf("%d statements, %d in value "+
-		"position -- the 18 `return (semsg(...), rc_did_emsg = TRUE, NULL)` comma "+
+		"position -- the 18 `return (semsg(...), rc_did_emsg = TRUE, nullptr)` comma "+
 		"expressions, the 11 safelens whose value is consumed, and the one append",
 		shapes["statement"], shapes["value"])
 	p.Sayf("`va_start` 8 -> 1, `va_list` 15 -> 8, `va_end` 10 -> 3; `vim_snprintf` %d -> %d; "+

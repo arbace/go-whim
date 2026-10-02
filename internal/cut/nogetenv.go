@@ -41,7 +41,7 @@ const envCopy = `    char_u      *src;
     }
     *dst = NUL;
 
-    return (size_t)(dst - dst_start);`
+    return (usize)(dst - dst_start);`
 
 var envLeft = regexp.MustCompile(`\bgetenv\b|\bsetenv\b|\benviron\b`)
 
@@ -92,7 +92,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = edit.DropIf(text,
-		edit.Head(`if ((char_u *)getenv((char *)((char_u *)"VIM_POSIX")) != NULL)`),
+		edit.Head(`if ((char_u *)getenv((char *)((char_u *)"VIM_POSIX")) != nullptr)`),
 		1); err != nil {
 		return nil, err
 	}
@@ -142,8 +142,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 
 	// No (?m) here: the Python passes flags=0 for this one.
 	if text, err = cutCounted(text,
-		` \|\| \(\(p = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"COLORFGBG"\)\)\) != NULL`+
-			` && \(p = vim_strrchr\(p, ';'\)\) != NULL`+
+		` \|\| \(\(p = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"COLORFGBG"\)\)\) != nullptr`+
+			` && \(p = vim_strrchr\(p, ';'\)\) != nullptr`+
 			` && \(\(p\[1\] >= '0' && p\[1\] <= '6'\) \|\| p\[1\] == '8'\) && p\[2\] == NUL\)`,
 		"nogetenv", "$COLORFGBG in term_bg_default", 1); err != nil {
 		return nil, err

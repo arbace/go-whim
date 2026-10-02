@@ -30,7 +30,7 @@ var nolocaleEdits = []struct {
 	// (exfront, the reform's D2)
 	{"the $LANG-gated maintainer line in :messages",
 		`(?m)[ \t]*s = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"LANG"\)\);\n` +
-			`[ \t]*if \(s != NULL && \*s != NUL\)\n[ \t]*\{\n[ \t]*msg_attr\([^\n]*\n[ \t]*\}\n`, "", 1},
+			`[ \t]*if \(s != nullptr && \*s != NUL\)\n[ \t]*\{\n[ \t]*msg_attr\([^\n]*\n[ \t]*\}\n`, "", 1},
 	{"the :language completion case",
 		`(?m)[ \t]*case CMD_language:\n[ \t]*return set_context_in_lang_cmd\(xp, arg\);\n`, "", 1},
 	{"the two locale rows of the completion dispatch table",

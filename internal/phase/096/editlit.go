@@ -6,10 +6,10 @@ package p096
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	w96lit1  = "    if ((!(State & (MODE_INSERT | MODE_CMDLINE)) || arrow_used) && scriptin[curscript] == NULL)\n"
+	w96lit1  = "    if ((!(State & (MODE_INSERT | MODE_CMDLINE)) || arrow_used) && scriptin[curscript] == nullptr)\n"
 	w96lit2  = "    if (!(State & (MODE_INSERT | MODE_CMDLINE)) || arrow_used)\n"
-	w96lit3  = " && scriptin[curscript] == NULL"
-	w96lit4  = "    script_char = -1;\n    while (scriptin[curscript] != NULL && script_char < 0)\n    {\n        if (got_int || (script_char = getc(scriptin[curscript])) < 0)\n        {\n            closescript();\n            if (got_int)\n            {\n                retesc = TRUE;\n            }\n            else\n            {\n                return -1;\n            }\n        }\n        else\n        {\n            buf[0] = script_char;\n            len = 1;\n        }\n    }\n"
+	w96lit3  = " && scriptin[curscript] == nullptr"
+	w96lit4  = "    script_char = -1;\n    while (scriptin[curscript] != nullptr && script_char < 0)\n    {\n        if (got_int || (script_char = getc(scriptin[curscript])) < 0)\n        {\n            closescript();\n            if (got_int)\n            {\n                retesc = TRUE;\n            }\n            else\n            {\n                return -1;\n            }\n        }\n        else\n        {\n            buf[0] = script_char;\n            len = 1;\n        }\n    }\n"
 	w96lit5  = "            return retesc;\n"
 	w96lit6  = "            return FALSE;\n"
 	w96lit9  = "                    redir_write(p, -1);\n"

@@ -68,9 +68,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'verbosefile'
 	e.InFunction("redir_write", func(e *edit.E) {
-		e.DropIf(edit.Head("if (*p_vfile != NUL && verbose_fd == NULL)"), 1,
+		e.DropIf(edit.Head("if (*p_vfile != NUL && verbose_fd == nullptr)"), 1,
 			"opening 'verbosefile' on first write")
-		e.FoldNever(edit.Head("if (verbose_fd != NULL)"), 2, "writing to 'verbosefile'")
+		e.FoldNever(edit.Head("if (verbose_fd != nullptr)"), 2, "writing to 'verbosefile'")
 	})
 	e.InFunction("redirecting", func(e *edit.E) {
 		// redir_fd's test is gone already: only :redir wrote it, and the
@@ -95,15 +95,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'debug'
 	e.InFunction("emsg_not_now", func(e *edit.E) {
-		e.Literal("(emsg_off > 0 && vim_strchr(p_debug, 'm') == NULL && vim_strchr(p_debug, 't') == NULL)",
+		e.Literal("(emsg_off > 0 && vim_strchr(p_debug, 'm') == nullptr && vim_strchr(p_debug, 't') == nullptr)",
 			"(emsg_off > 0)", 1, "'debug' m and t showing suppressed errors")
 	})
 	e.InFunction("emsg_core", func(e *edit.E) {
-		e.Literal("if (!emsg_off || vim_strchr(p_debug, 't') != NULL)", "if (!emsg_off)", 1,
+		e.Literal("if (!emsg_off || vim_strchr(p_debug, 't') != nullptr)", "if (!emsg_off)", 1,
 			"'debug' t handling errors under emsg_off")
 	})
 	e.InFunction("vim_beep", func(e *edit.E) {
-		e.DropIf(edit.Head("if (vim_strchr(p_debug, 'e') != NULL)"), 1, "'debug' e showing Beep!")
+		e.DropIf(edit.Head("if (vim_strchr(p_debug, 'e') != nullptr)"), 1, "'debug' e showing Beep!")
 	})
 
 	// 'formatprg' and 'equalprg'

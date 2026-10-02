@@ -11,15 +11,15 @@ import (
 
 const (
 	ownTest = "if (forceit && perm >= 0 && !(perm & 0200) && st_old.st_uid == getuid() " +
-		"&& vim_strchr(p_cpo, CPO_FWRITE) == NULL)"
+		"&& vim_strchr(p_cpo, CPO_FWRITE) == nullptr)"
 	ownTestNew = "if (forceit && perm >= 0 && !(perm & 0200) " +
-		"&& vim_strchr(p_cpo, CPO_FWRITE) == NULL)"
+		"&& vim_strchr(p_cpo, CPO_FWRITE) == nullptr)"
 	uidGidTest = "                            if (st_old.st_uid != getuid() || " +
 		"st_old.st_gid != getgid())"
 	unameTest = "            if (get_user_name(uname, B0_UNAME_SIZE) == FAIL"
-	flenOld   = "flen = home_replace(NULL, buf->b_ffname, b0p->b0_fname, " +
+	flenOld   = "flen = home_replace(nullptr, buf->b_ffname, b0p->b0_fname, " +
 		"B0_FNAME_SIZE_CRYPT, TRUE);"
-	flenNew = "(void)home_replace(NULL, buf->b_ffname, b0p->b0_fname, " +
+	flenNew = "(void)home_replace(nullptr, buf->b_ffname, b0p->b0_fname, " +
 		"B0_FNAME_SIZE_CRYPT, TRUE);"
 )
 

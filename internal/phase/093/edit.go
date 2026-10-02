@@ -358,15 +358,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	for _, e := range []struct{ Old, New, What string }{
 		{w93lit13, "", "the prologue and the lookup: fname_expand() on two NULLs, a stat() the " +
-			"`sfname == NULL` disjunct already short-circuited, and the search for " +
-			"an existing buffer of the same name, whose guard `ffname != NULL` is " +
+			"`sfname == nullptr` disjunct already short-circuited, and the search for " +
+			"an existing buffer of the same name, whose guard `ffname != nullptr` is " +
 			"FALSE -- no buffer can be found by a name that is not given"},
 		{w93lit14, w93lit15, "the alloc failure arm's vim_free(ffname): there is no ffname to free"},
-		{w93lit16, "", "the assignment that named the buffer -- `ffname != NULL` is FALSE, and " +
+		{w93lit16, "", "the assignment that named the buffer -- `ffname != nullptr` is FALSE, and " +
 			"this is the statement the whole phase is about"},
 		{w93lit17, w93lit18, "the failure arm: its first disjunct is FALSE, so only the wininfo " +
 			"allocation can fail, and the two names it freed are not there to free"},
-		{w93lit19, "", "b_fname = b_sfname, which is NULL = NULL"},
+		{w93lit19, "", "b_fname = b_sfname, which is nullptr = nullptr"},
 		{w93lit20, w93lit21, "the device block: `st.st_dev` was set to -1 by the prologue that has " +
 			"gone, so the TRUE arm is the one that ran and b_dev_valid is false"},
 	} {
@@ -375,7 +375,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if text, err = textEdit(text, w93lit22, w93lit23,
-		"the one call site, create_windows', which already passed NULL, NULL", 1); err != nil {
+		"the one call site, create_windows', which already passed nullptr, nullptr", 1); err != nil {
 		return nil, err
 	}
 	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "buflist_new")
@@ -395,35 +395,35 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// open_buffer's `readonlymode && b_ffname != NULL` test falls out at
 	// phase 1 with readonlymode since the reform's D9
 	if text, err = textEdit(text, w93lit24, w93lit25,
-		"can_unload_buffer: `fname` is NULL either way, so E937 names the "+
+		"can_unload_buffer: `fname` is nullptr either way, so E937 names the "+
 			"buffer \"[No Name]\" -- which is what it printed before", 1); err != nil {
 		return nil, err
 	}
-	if text, err = fold(text, "close_buffer", "always", `(?m)^    if \(buf->b_ffname == NULL\)$`,
-		"close_buffer: `b_ffname == NULL` is TRUE, so an unloaded buffer is always "+
+	if text, err = fold(text, "close_buffer", "always", `(?m)^    if \(buf->b_ffname == nullptr\)$`,
+		"close_buffer: `b_ffname == nullptr` is TRUE, so an unloaded buffer is always "+
 			"deleted rather than kept for its name", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, "curbuf != NULL && curbuf->b_ffname == NULL && curbuf->b_nwindows <= 1",
-		"curbuf != NULL && curbuf->b_nwindows <= 1",
-		"curbuf_reusable: `b_ffname == NULL` is TRUE, so the conjunct goes "+
+	if text, err = textEdit(text, "curbuf != nullptr && curbuf->b_ffname == nullptr && curbuf->b_nwindows <= 1",
+		"curbuf != nullptr && curbuf->b_nwindows <= 1",
+		"curbuf_reusable: `b_ffname == nullptr` is TRUE, so the conjunct goes "+
 			"rather than being kept with a fixed answer", 1); err != nil {
 		return nil, err
 	}
 	if text, err = textEdit(text, w93lit26, w93lit27,
 		"getaltfname: buflist_name_nr() is FAIL ALWAYS, so the alternate file "+
-			"is E23 and NULL -- which is what the `#` register already answered", 1); err != nil {
+			"is E23 and nullptr -- which is what the `#` register already answered", 1); err != nil {
 		return nil, err
 	}
 	if text, err = foldAlwaysElse(text, "fileinfo", w93lit28,
-		"fileinfo: buf_spname() never returns NULL now, so CTRL-G "+
+		"fileinfo: buf_spname() never returns nullptr now, so CTRL-G "+
 			"prints the special name and never a path -- the else arm, "+
 			"which read b_fname and b_ffname, cannot be entered"); err != nil {
 		return nil, err
 	}
 	for _, e := range []struct{ Old, New, What string }{
-		{w93lit29, w93lit30, "buf_spname: `b_fname == NULL` is TRUE, so it answers for every " +
-			"buffer and can no longer return NULL"},
+		{w93lit29, w93lit30, "buf_spname: `b_fname == nullptr` is TRUE, so it answers for every " +
+			"buffer and can no longer return nullptr"},
 		{w93lit31, w93lit32, "buf_get_fname: the same, and \"[No Name]\" is now the only name the " +
 			"editor has for a buffer"},
 		// check_changed_any's E162 went with :q's refusal at phase 1 (quitfront)
@@ -435,42 +435,42 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if text, err = fold(text, "shorten_buf_fname", "never",
-		`(?m)^    if \(buf->b_fname != NULL && !path_with_url\(buf->b_fname\) && \(force \|\| buf->b_sfname == NULL \|\| mch_isFullName\(buf->b_sfname\)\)\)$`,
-		"shorten_buf_fname: `b_fname != NULL` is FALSE, so there is no path to "+
+		`(?m)^    if \(buf->b_fname != nullptr && !path_with_url\(buf->b_fname\) && \(force \|\| buf->b_sfname == nullptr \|\| mch_isFullName\(buf->b_sfname\)\)\)$`,
+		"shorten_buf_fname: `b_fname != nullptr` is FALSE, so there is no path to "+
 			"shorten and the function has nothing left to do", 1); err != nil {
 		return nil, err
 	}
 	if text, err = textEdit(text, w93lit37, w93lit38,
-		"file_name_at_cursor: `curbuf->b_ffname` is the NULL it passes now", 1); err != nil {
+		"file_name_at_cursor: `curbuf->b_ffname` is the nullptr it passes now", 1); err != nil {
 		return nil, err
 	}
 	if text, err = foldAlwaysElse(text, "set_b0_fname", w93lit39,
-		"set_b0_fname: `b_ffname == NULL` is TRUE, so block zero's "+
+		"set_b0_fname: `b_ffname == nullptr` is TRUE, so block zero's "+
 			"file name is empty -- and the stat() in the arm that goes is "+
 			"one of the two this phase takes"); err != nil {
 		return nil, err
 	}
 	if text, err = textEdit(text, w93lit40, w93lit41,
-		"get_spec_reg: the `%` register is `b_fname`, which is NULL -- the "+
+		"get_spec_reg: the `%` register is `b_fname`, which is nullptr -- the "+
 			"register already yielded nothing, and check_fname() above it still "+
 			"says E32", 1); err != nil {
 		return nil, err
 	}
 	if text, err = fold(text, "ex_display", "never",
-		`(?m)^    if \(curbuf->b_fname != NULL && \(arg == NULL \|\| vim_strchr\(arg, '%'\) != NULL\) && !got_int && !message_filtered\(curbuf->b_fname\)\)$`,
+		`(?m)^    if \(curbuf->b_fname != nullptr && \(arg == nullptr \|\| vim_strchr\(arg, '%'\) != nullptr\) && !got_int && !message_filtered\(curbuf->b_fname\)\)$`,
 		"ex_display: the `\"%` line of :registers needs a buffer name and there is "+
 			"none -- it was already never printed", 1); err != nil {
 		return nil, err
 	}
 	if text, err = fold(text, "ex_display", "drop",
-		`(?m)^    if \(\(arg == NULL \|\| vim_strchr\(arg, '#'\) != NULL\) && !got_int\)$`,
+		`(?m)^    if \(\(arg == nullptr \|\| vim_strchr\(arg, '#'\) != nullptr\) && !got_int\)$`,
 		"ex_display: and the `\"#` block goes whole, because buflist_name_nr() "+
 			"inside it is FAIL ALWAYS and the block holds nothing else -- which is "+
 			"what makes that function uncalled and the sweep's", 1); err != nil {
 		return nil, err
 	}
 	if text, err = foldAlwaysElse(text, "get_trans_bufname", w93lit42,
-		"get_trans_bufname: buf_spname() is non-NULL, so every window "+
+		"get_trans_bufname: buf_spname() is non-nullptr, so every window "+
 			"and every :ls row reads \"[No Name]\" -- as they already did"); err != nil {
 		return nil, err
 	}

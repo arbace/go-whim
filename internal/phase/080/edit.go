@@ -157,7 +157,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 4: do_one_cmd ---------------------------------------------------------
-	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_wincmd && p != NULL)"), 1, ":wincmd has no address type to find")
+	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_wincmd && p != nullptr)"), 1, ":wincmd has no address type to find")
 	e.FoldAlways(edit.Head("if (!((int)(ea.cmdidx) < 0))"), 3, "a command index is never a user command")
 	e.Literal("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
 	e.Literal("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",

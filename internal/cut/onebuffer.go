@@ -113,7 +113,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if s, err = e.dropIf(s, `^[ \t]*if \(fnum == 0 && other_file && ffname != NULL\)$`,
+		if s, err = e.dropIf(s, `^[ \t]*if \(fnum == 0 && other_file && ffname != nullptr\)$`,
 			"do_ecmd naming a refused file the alternate"); err != nil {
 			return nil, err
 		}
@@ -122,7 +122,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		if s, err = e.subOnce(s,
-			`^[ \t]*if \(oldwin != NULL\)\n[ \t]*\{\n[ \t]*buflist_altfpos\(oldwin\);\n[ \t]*\}\n`,
+			`^[ \t]*if \(oldwin != nullptr\)\n[ \t]*\{\n[ \t]*buflist_altfpos\(oldwin\);\n[ \t]*\}\n`,
 			"do_ecmd saving the old window position"); err != nil {
 			return nil, err
 		}

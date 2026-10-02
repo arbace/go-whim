@@ -87,7 +87,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InTable("static struct vimoption options[] =\n", func(e *edit.E) {
 		k := len(e.Query(valueCompletion, 0))
 		e.Expect(k >= 20, "options[] names %d value-completion callbacks, expected many", k)
-		e.Sub(valueCompletion, "NULL$1", k,
+		e.Sub(valueCompletion, "nullptr$1", k,
 			fmt.Sprintf("options[] no longer names a value-completion callback (%d rows)", k))
 	})
 

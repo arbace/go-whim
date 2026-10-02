@@ -25,10 +25,10 @@ var nocmdoptsElsewhere = []struct {
 	want            int
 }{
 	{"the startup tag jump, which nothing can now ask for",
-		`(?m)[ \t]*if \(params\.tagname != NULL\)\n[ \t]*\{\n(?:[^\n]*\n)*?` +
+		`(?m)[ \t]*if \(params\.tagname != nullptr\)\n[ \t]*\{\n(?:[^\n]*\n)*?` +
 			`[ \t]*do_cmdline_cmd\(IObuff\);\n(?:[^\n]*\n)*?^[ \t]{4}\}\n`, "", 1},
 	{"exe_pre_commands testing for one",
-		`(?m)[ \t]*if \(parmp->tagname == NULL && curwin->w_cursor\.lnum <= 1\)\n` +
+		`(?m)[ \t]*if \(parmp->tagname == nullptr && curwin->w_cursor\.lnum <= 1\)\n` +
 			`([ \t]*\{\n[ \t]*curwin->w_cursor\.lnum = 0;\n[ \t]*\}\n)`,
 		"    if (curwin->w_cursor.lnum <= 1)\n${1}", 1},
 	{"mparm_T's tagname field",

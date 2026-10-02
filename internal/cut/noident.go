@@ -13,10 +13,10 @@ import (
 // the Python module's own constant by importing it, because it is a non-raw
 // triple-quoted string full of backslashes.  It is in UTF-8's spelling, with
 // no has_mbyte, since utf8only runs before it at phase 1 (the reform's D7).
-const identBody = "    char_u      *ptr = NULL;\n" +
+const identBody = "    char_u      *ptr = nullptr;\n" +
 	"    char_u      *buf;\n" +
-	"    size_t bufsize;\n" +
-	"    size_t      buflen;\n" +
+	"    usize bufsize;\n" +
+	"    usize      buflen;\n" +
 	"    char_u      *p;\n" +
 	"    int         n = 0;\n" +
 	"    int cmdchar;\n" +
@@ -39,15 +39,15 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"        cmdchar = '#';\n" +
 	"    }\n" +
 	"\n" +
-	"    if (ptr == NULL && (n = find_ident_under_cursor(&ptr, (cmdchar == '*' || cmdchar == '#') ? FIND_IDENT | FIND_STRING : FIND_IDENT)) == 0)\n" +
+	"    if (ptr == nullptr && (n = find_ident_under_cursor(&ptr, (cmdchar == '*' || cmdchar == '#') ? FIND_IDENT | FIND_STRING : FIND_IDENT)) == 0)\n" +
 	"    {\n" +
 	"        clearop(cap->oap);\n" +
 	"        return;\n" +
 	"    }\n" +
 	"\n" +
-	"    bufsize = (size_t)(n * 2 + 30);\n" +
+	"    bufsize = (usize)(n * 2 + 30);\n" +
 	"    buf = alloc(bufsize);\n" +
-	"    if (buf == NULL)\n" +
+	"    if (buf == nullptr)\n" +
 	"    {\n" +
 	"        return;\n" +
 	"    }\n" +
@@ -76,7 +76,7 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"    p = buf + buflen;\n" +
 	"    while (n-- > 0)\n" +
 	"    {\n" +
-	"        if (vim_strchr(aux_ptr, *ptr) != NULL)\n" +
+	"        if (vim_strchr(aux_ptr, *ptr) != nullptr)\n" +
 	"        {\n" +
 	"            *p++ = '\\\\';\n" +
 	"        }\n" +
@@ -102,7 +102,7 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"    init_history();\n" +
 	"    add_to_history(HIST_SEARCH, buf, buflen, TRUE, NUL);\n" +
 	"\n" +
-	"    (void)normal_search(cap, cmdchar == '*' ? '/' : '?', buf, buflen, 0, NULL);\n" +
+	"    (void)normal_search(cap, cmdchar == '*' ? '/' : '?', buf, buflen, 0, nullptr);\n" +
 	"\n" +
 	"    vim_free(buf);"
 

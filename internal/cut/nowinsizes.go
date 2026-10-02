@@ -62,13 +62,13 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "winframe_remove", func(s []byte) ([]byte, error) {
 		s, err := e.foldNever(s,
-			`^[ \t]*if \(frp2->fr_win != NULL && frp2->fr_win`+wfOpt("h")+`\)$`,
+			`^[ \t]*if \(frp2->fr_win != nullptr && frp2->fr_win`+wfOpt("h")+`\)$`,
 			"winframe_remove passing over a fixed height")
 		if err != nil {
 			return nil, err
 		}
 		return e.foldNever(s,
-			`^[ \t]*if \(frp2->fr_win != NULL && frp2->fr_win`+wfOpt("w")+`\)$`,
+			`^[ \t]*if \(frp2->fr_win != nullptr && frp2->fr_win`+wfOpt("w")+`\)$`,
 			"winframe_remove passing over a fixed width")
 	})
 	if err != nil {
@@ -95,13 +95,13 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 		f := f
 		text, err = e.inFunction(text, f.name, func(s []byte) ([]byte, error) {
 			s, err := e.foldNever(s,
-				`^[ \t]*if \(frp != curfrp && frp->fr_win != NULL && frp->fr_win`+wfOpt(f.h)+`\)$`,
+				`^[ \t]*if \(frp != curfrp && frp->fr_win != nullptr && frp->fr_win`+wfOpt(f.h)+`\)$`,
 				fmt.Sprintf("frame_set%s reserving a fixed %s", f.dim, f.dim))
 			if err != nil {
 				return nil, err
 			}
 			return e.foldNever(s,
-				`^[ \t]*if \(room_reserved > 0 && frp->fr_win != NULL && frp->fr_win`+wfOpt(f.h)+`\)$`,
+				`^[ \t]*if \(room_reserved > 0 && frp->fr_win != nullptr && frp->fr_win`+wfOpt(f.h)+`\)$`,
 				fmt.Sprintf("frame_set%s sparing a fixed %s", f.dim, f.dim))
 		})
 		if err != nil {
@@ -111,7 +111,7 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "command_height", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
-			`^[ \t]*while \(frp->fr_prev != NULL && frp->fr_layout == FR_LEAF && frp->fr_win`+
+			`^[ \t]*while \(frp->fr_prev != nullptr && frp->fr_layout == FR_LEAF && frp->fr_win`+
 				wfOpt("h")+`\)\n[ \t]*\{\n[ \t]*frp = frp->fr_prev;\n[ \t]*\}\n`,
 			"command_height stepping over fixed heights")
 	})
