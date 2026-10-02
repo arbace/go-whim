@@ -74,6 +74,12 @@ type rgen struct {
 	refs      map[string]map[int]*rsRef
 	refParams map[*cc.Declarator]*rsRef
 	refArgs   map[cc.ExpressionNode]*rsRef
+	// the read-only pointer slots (rs_const.go), and the functions printed
+	// from the lowered form, whose slots stay *mut
+	constSlots  map[string]bool
+	loweredFns  map[string]bool
+	lastLowered bool   // the function just printed was printed from the lowered form
+	constCount  string // what rs_const.go found, for the log
 
 	// what the functions were written with, for the coverage line
 	nMatch, nLadder, nGoto, nLowered int
@@ -105,7 +111,7 @@ func init() {
 	abstract become box do final macro override priv typeof unsized virtual yield try gen union
 	i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize f32 f64 bool char str
 	Some None Ok Err Option Result Box Vec String drop
-	ed Editor VArg c_void null_mut zeroed at decay pdiff vtruth host_ new_editor init_globals size_of`) {
+	ed Editor VArg c_void null null_mut zeroed at decay decay_const pdiff vtruth host_ new_editor init_globals size_of`) {
 		rsReserved[w] = true
 	}
 }
@@ -162,19 +168,36 @@ func (g *gen) writeRs(path string) error {
 	r.effects()
 	r.references()
 	r.effects() // again: a reference's dereference is safe
+	r.loweredFns = map[string]bool{}
+	r.constness()
 
 	var report strings.Builder
 	var funcs []string
 	written := 0
-	for _, fd := range fds {
-		src, why := r.function(fd)
-		if why != "" {
-			fmt.Fprintf(&report, "%s: %s\n", fd.Declarator.Name(), why)
-			funcs = append(funcs, r.stub(fd, why))
-			continue
+	for {
+		report.Reset()
+		funcs, written = nil, 0
+		r.nMatch, r.nLadder, r.nGoto, r.nLowered = 0, 0, 0, 0
+		again := false
+		for _, fd := range fds {
+			src, why := r.function(fd)
+			if r.lastLowered && !r.loweredFns[fd.Declarator.Name()] {
+				// its temporaries hold its pointers as *mut: so do its slots
+				r.loweredFns[fd.Declarator.Name()] = true
+				again = true
+			}
+			if why != "" {
+				fmt.Fprintf(&report, "%s: %s\n", fd.Declarator.Name(), why)
+				funcs = append(funcs, r.stub(fd, why))
+				continue
+			}
+			written++
+			funcs = append(funcs, src)
 		}
-		written++
-		funcs = append(funcs, src)
+		if !again {
+			break
+		}
+		r.constness()
 	}
 	inits, failed := r.initializers()
 	for _, f := range failed {
@@ -206,6 +229,7 @@ func (g *gen) writeRs(path string) error {
 	}
 	fmt.Fprintf(logw, "rs: %d of %d functions written, %d refused, %d from the lowered form; %d safe, %d without the editor; %d switches matches, %d ladders; %d gotos' labeled blocks; %d structs and unions, %d fields of the editor\n",
 		written, len(fds), len(fds)-written, r.nLowered, nSafe, nNoEd, r.nMatch, r.nLadder, r.nGoto, len(r.structOrder), len(r.objects))
+	fmt.Fprintf(logw, "rs: %s\n", r.constCount)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
@@ -222,7 +246,10 @@ func (g *gen) writeRs(path string) error {
 }
 
 // rsRuntimeNames are the runtime's names the generated code may use.
-var rsRuntimeNames = regexp.MustCompile(`\b(decay|pdiff|fn_addr|str_u8|str_i8|VArg|chunks|Shared)\b`)
+var rsRuntimeNames = regexp.MustCompile(`\b(decay|decay_const|pdiff|fn_addr|str_u8|str_i8|VArg|chunks|Shared)\b`)
+
+// rsNullRe finds a use of core::ptr::null.
+var rsNullRe = regexp.MustCompile(`\bnull(\(|::<)`)
 
 // prelude is what the module's body uses of the runtime and of std.
 func (r *rgen) prelude(body string) string {
@@ -236,8 +263,13 @@ func (r *rgen) prelude(body string) string {
 		s += "use " + rt + "::*;\n"
 	}
 	s += "use core::ffi::c_void;\n"
-	if strings.Contains(code, "null_mut") {
+	switch nm, n := strings.Contains(code, "null_mut"), rsNullRe.MatchString(code); {
+	case nm && n:
+		s += "use core::ptr::{null, null_mut};\n"
+	case nm:
 		s += "use core::ptr::null_mut;\n"
+	case n:
+		s += "use core::ptr::null;\n"
 	}
 	return s + "\n"
 }
@@ -361,7 +393,7 @@ func (r *rgen) editorStruct() string {
 	var b strings.Builder
 	b.WriteString("/// The core's file-scope objects and block-scope statics: one editor's state.\n#[repr(C)]\npub struct Editor {\n")
 	for _, o := range r.objects {
-		fmt.Fprintf(&b, "    pub %s: %s,\n", o.field, r.declType(o.t))
+		fmt.Fprintf(&b, "    pub %s: %s,\n", o.field, r.constTy("o:"+o.key, r.declType(o.t)))
 	}
 	b.WriteString("    /// the host the editor runs on: the hand-written glue's, not the C's\n    pub host: *mut c_void,\n}\n\n")
 	b.WriteString("/// A new editor, zeroed and boxed, never to move: its initial values written.\npub fn new_editor() -> *mut Editor {\n" +

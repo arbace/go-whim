@@ -298,7 +298,7 @@ func (r *rgen) structDef(n string, t cc.Type) string {
 		if f.Name() == "" {
 			panic(unsupported{"a member with no name in " + n})
 		}
-		fmt.Fprintf(&b, "    pub %s: %s,\n", rsName(f.Name()), r.rtype(f.Type(), true, n+"_"+f.Name()))
+		fmt.Fprintf(&b, "    pub %s: %s,\n", rsName(f.Name()), r.constTy(memberSlot(f), r.rtype(f.Type(), true, n+"_"+f.Name())))
 	}
 	b.WriteString("}\n\n")
 	return b.String()

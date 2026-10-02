@@ -1,9 +1,10 @@
 # How whimsy could be more idiomatic Rust: a survey
 
-2026-10-02. **Status: items 0-9 and 11 done, 10 not; see *Done* after the
-ranking.** It covers `whimsy/src/editor.rs` as tracked at `cb3f2db` (62,836
-lines, 1,713 functions, written by `crefactor/togo`'s Rust backend from the
-core `go tool whim cut src/whim-vim.c` prints, 75,721 lines of C) and the
+2026-10-02. **Status: items 0-11 done; see *Done* after the ranking, and
+*The second pass* for item 10 and the residue.** It covers
+`whimsy/src/editor.rs` as tracked at `cb3f2db` (62,836 lines, 1,713
+functions, written by `crefactor/togo`'s Rust backend from the core `go
+tool whim cut src/whim-vim.c` prints, 75,721 lines of C) and the
 hand-written crate around it: `rt.rs` (135 lines), `host.rs` (262),
 `printf.rs` (1,008), `term.rs` (516), `main.rs` (30). `HASKELL-IDIOMS.md` is
 its model, and `GO-IDIOMS.md`, `JAVA-IDIOMS.md` and `CLOJURE-IDIOMS.md`
@@ -245,9 +246,9 @@ pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
   fn`. Rust checks the second claim: a safe function that dereferences a raw
   pointer, or calls an unsafe function, does not compile. HASKELL-IDIOMS.md's
   item 5 made the same 56 functions pure and the same 221 editor-free.
-- **Where:** an effects analysis over the C (`rs_fx.go`, the Haskell's
-  `hseffects.go` on Rust's terms: unsafe where Rust says so, not where the
-  Haskell touches memory) and the printer (signatures, calls).
+- **Where:** an effects analysis over the C (`rs_fx.go`, the shared effects
+  analysis, `effects.go`, on Rust's terms: unsafe where Rust says so, not
+  where the Haskell touches memory) and the printer (signatures, calls).
   `Profile.RsExports` names what the hand-written crate calls. **Cost:** S.
   **Risk:** none.
 
@@ -395,7 +396,38 @@ pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
   variable, parameter and member -- where each one's value flows -- or a cast
   at every flow into a `*mut`, which adds noise to remove it.
 - **Cost:** M-L. **Risk:** low (rustc checks a write through `*const`).
-  **Value:** low-medium. Not done here.
+  **Value:** low-medium.
+- **Done** (`rs_const.go`): the inference, not the casts. A pointer *slot*
+  -- a parameter, a local, an object of the editor, a struct's member, a
+  function's result -- is `*const` unless a place reached through its value
+  is written, incremented or has its address taken, its own address is
+  taken, or its value flows (assigned, initializing, passed, returned)
+  into a slot that is `*mut` or into a place that is no slot (an element of
+  an array of pointers, a pointer's pointee, a host function's or a
+  function pointer's parameter, an integer): the least set of `*mut` slots,
+  closed backwards over the flows. A value's slots are its *heads*, through
+  casts, pointer arithmetic, increments, an assignment's value, the comma
+  and both arms of `?:`; a `*mut` value goes into a `*const` slot as Rust
+  coerces it, and nothing casts a `*const` to a `*mut` -- so rustc checks
+  every claim: a write through a `*const`, or a `*const` where a `*mut` is
+  wanted, does not compile. Measured: **869 of 2,770 pointer slots are
+  `*const`** -- 448 of 1,317 parameters, 303 of 960 locals, 45 of 222
+  results, 58 of 193 members, 15 of 78 objects (`fn
+  ga_concat(ed: *mut Editor, gap: *mut garray_T, s: *const char_u)`, `pub xp_pattern: *const
+  char_u`). Of the 1,901 left `*mut`, by the first reason found: 600 written
+  through, 902 flowing into a slot that is, 244 fixed from outside (what
+  the crate calls by name, a function pointer's signature, a typedef's
+  alias, a reference), 81 flowing into a place that is no slot, 79 whose
+  address is taken. Two rules beside the inference, each measured: a
+  variadic argument is read -- the one variadic callee is vim's printf,
+  which has no `%n` -- so `VArg::P` holds a `*const c_void` (+110 slots);
+  an array reached through a `*const` is `decay_const(&raw const (*p).a)`,
+  where it decayed through `&raw mut` before (+11). Declined: the host's
+  read-only parameters (`host_write`'s, `host_message`'s, printf's
+  format), +9 slots for a profile list and three hand-written signatures. A
+  `*mut` compared with a `*const` is written `*const` first, the
+  comparison turned round (Rust coerces only the right operand); `null()`
+  for a `*const`'s zero. rustc 38.7-39.9 s; the heavy case 0.25-0.3x.
 
 ### 11. Compound assignment
 
@@ -421,7 +453,7 @@ pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
 | 8 | 9: C-string literals -- **done**, `4b0035d` | printer + suite | S | none | 1,812 literals |
 | 9 | 8: a `for`'s `continue` -- **done**, `4b0035d` | printer | S | none | 30 labeled blocks |
 | 10 | 7: references -- **done**, `9619d4c` | analysis + printer | M | low | 9 functions |
-| 11 | 10: `*const` -- not done | inference | M-L | low | -- |
+| 11 | 10: `*const` -- **done**, see *The second pass* | inference | M-L | low (rustc checks) | 869 of 2,770 pointer slots |
 | -- | `&mut Editor`, owned data, slices, Rust enums, `.add()`, the 2024 edition | -- | -- | -- | declined (below) |
 
 ### Done: items 0-9 and 11 (2026-10-02)
@@ -524,7 +556,36 @@ model makes them -- every one dereferences a raw pointer or calls one that
 does; 21,577 `(*ed).x`; 4,798 `wrapping_*`, pointers' and unsigned; 1,098
 zeros at the top, of which rustc sees 175 never read; 153 blocks inside
 expressions (increments of the editor's objects and of members, a local
-named twice, a lazy operand); item 10.
+named twice, a lazy operand); item 10 (done in *The second pass*, below).
+
+## The second pass: item 10 and the residue (2026-10-02)
+
+From `8a186a4`, each item a commit of its own, held to the whole recipe
+above and more: the crate with `#![deny(warnings)]` (`go tool whim
+whimsy`), `--lint`, `go test ./togo` with a foreign C program for each new
+rule, `go test ./whimsy`, all 80 and all 240 cases with the control seen
+-- on the release build and on one with overflow checks
+(`CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true`) -- the heavy case, `make
+whim-editor-check`, gofmt, go vet and staticcheck. The counts are a
+throwaway counter's over `editor.rs` (`.tmp/rsc/count.sh`): `*const` and
+`wrapping_` occurrences, zeros a line `let x: T = <zero>;` at a
+function's own level, block expressions `({ ` and `= { `, labels.
+
+| | `8a186a4` | after |
+| --- | ---: | ---: |
+| `editor.rs` | 61,820 lines | 61,820 lines |
+| pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
+| `*const` in the text | 0 | 1,492 |
+| `pub unsafe fn` | 1,648 | 1,648 |
+| `wrapping_*` | 4,822 | 4,822 |
+| zeros at the top | 1,113 | 1,113 |
+| block expressions | 154 | 154 |
+| labels | 91 | 91 |
+| rustc's warnings (`--lint`) | 702: 220 `unused_assignments` | 702: 220 |
+| rustc, release | 38.0-38.3 s | 38.7-39.9 s, 0.53 GB |
+| the heavy case | 0.25-0.3x | 0.25-0.3x (112-130 ms against 435-473; once 168 ms, 0.4x, on the overflow-checked build) |
+
+- **Item 10** (`rs_const.go`, `TestRsConst`): above, under the item.
 
 ## What is not worth doing, and why
 

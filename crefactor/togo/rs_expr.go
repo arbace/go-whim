@@ -111,7 +111,9 @@ func isIntTy(ty string) bool {
 	return false
 }
 
-func isPtrTy(ty string) bool  { return strings.HasPrefix(ty, "*mut ") }
+func isPtrTy(ty string) bool {
+	return strings.HasPrefix(ty, "*mut ") || strings.HasPrefix(ty, "*const ")
+}
 func isFnTy(ty string) bool   { return strings.HasPrefix(ty, "Option<") }
 func isSigned(ty string) bool { return ty[0] == 'i' }
 
@@ -228,10 +230,14 @@ func (f *rfn) convFit(v rv, to string, fit bool) rv {
 		}
 		return fitK(v, to, fit)
 	case v.null && isPtrTy(to):
-		if fit {
-			return rv{s: "null_mut()", ty: to}
+		n := "null_mut"
+		if isConstPtr(to) {
+			n = "null"
 		}
-		return rv{s: "null_mut::<" + strings.TrimPrefix(to, "*mut ") + ">()", ty: to}
+		if fit {
+			return rv{s: n + "()", ty: to}
+		}
+		return rv{s: n + "::<" + ptrElem(to) + ">()", ty: to}
 	case (v.null || v.konst && v.kv == 0) && isFnTy(to):
 		return rv{s: "None", ty: to}
 	case v.str != nil && isPtrTy(to):
@@ -240,7 +246,18 @@ func (f *rfn) convFit(v rv, to string, fit bool) rv {
 		return rv{s: f.truth(v), ty: "bool", prec: pCmp}
 	case v.ty == "bool" && isIntTy(to):
 		return withRange(rv{s: wrap(v, pUnary) + " as " + to, ty: to, prec: pAs}, 0, 1)
+	case isPtrTy(v.ty) && isPtrTy(to) && ptrElem(v.ty) == ptrElem(to):
+		// *mut T where a *const T goes: Rust coerces it; a *const T stays
+		// one, and rustc refuses it where a *mut T is wanted (rs_const.go)
+		if isConstPtr(to) {
+			v.ty = to
+		}
+		return v
 	case isPtrTy(v.ty) && isPtrTy(to):
+		// a cast keeps a *const one (rs_const.go)
+		if isConstPtr(v.ty) && !isConstPtr(to) {
+			to = asConst(to)
+		}
 		// a pointer's cast of a cast is one cast: `p as *mut c_void`, not
 		// `p as *mut i8 as *mut c_void`
 		if v.base != nil {
@@ -485,7 +502,7 @@ func (f *rfn) primary(x *cc.PrimaryExpression) rv {
 			if t != nil && t.Kind() == cc.Array {
 				return f.decay(f.place(x), t)
 			}
-			return rv{s: f.place(x), ty: f.r.ty(x.Type())}
+			return rv{s: f.place(x), ty: f.slotTy(x, f.r.ty(x.Type()))}
 		case *cc.Enumerator:
 			v, _ := intValue(d.Value())
 			k, _ := scalarKind(x.Type())
@@ -641,7 +658,7 @@ func (f *rfn) elemAddr(x *cc.PostfixExpression) rv {
 	var base rv
 	if bt.Kind() == cc.Array {
 		// an array: in place, its first element's address
-		base = rv{s: "decay(&raw mut " + f.place(be) + ")", ty: "*mut " + f.r.rtype(elemOf(bt), false, "")}
+		base = f.decayAt(be, f.place(be), bt)
 	} else {
 		base = f.expr(be)
 	}
@@ -708,16 +725,16 @@ func (f *rfn) postfix(x *cc.PostfixExpression) rv {
 			if x.Case == cc.PostfixExpressionIndex {
 				return f.conv(f.elemAddr(x), f.vty(t))
 			}
-			return f.decay(f.placeOf(x), t)
+			return f.decayAt(x, f.placeOf(x), t)
 		}
 		if x.Case == cc.PostfixExpressionIndex {
 			a := f.elemAddr(x)
 			return rv{s: "*" + wrap(a, pPrim), ty: f.r.ty(t), prec: pUnary}
 		}
 		if x.Case == cc.PostfixExpressionSelect {
-			return rv{s: f.placeOf(x.PostfixExpression) + "." + rsName(x.Token2.SrcStr()), ty: f.r.ty(t)}
+			return rv{s: f.placeOf(x.PostfixExpression) + "." + rsName(x.Token2.SrcStr()), ty: f.slotTy(x, f.r.ty(t))}
 		}
-		return rv{s: f.place(x), ty: f.r.ty(t)}
+		return rv{s: f.place(x), ty: f.slotTy(x, f.r.ty(t))}
 	case cc.PostfixExpressionCall:
 		return f.call(x)
 	case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
@@ -1026,6 +1043,17 @@ func (f *rfn) compare(op string, le, re cc.ExpressionNode) rv {
 			a = f.conv(a, b.ty)
 		} else {
 			b = f.conv(b, a.ty)
+			if isPtrTy(a.ty) && !isConstPtr(a.ty) && isConstPtr(b.ty) {
+				// a *mut compared with a *const: Rust coerces the right
+				// operand only, so the *const goes first, the comparison
+				// turned round -- where the order of the operands cannot
+				// be seen; else the *mut is said *const
+				if !f.effect(le) || !f.effect(re) {
+					a, b, op = b, a, rsMirror[op]
+				} else {
+					a = rv{s: wrap(a, pPrim) + ".cast_const()", ty: b.ty}
+				}
+			}
 		}
 		return rv{s: f.cmpOperand(a, true) + " " + op + " " + f.cmpOperand(b, false), ty: "bool", prec: pCmp}
 	}
@@ -1131,8 +1159,12 @@ func (f *rfn) ternary(x *cc.ConditionalExpression) rv {
 		b := f.voidValue(x.ConditionalExpression)
 		return rv{s: "if " + c + " " + rsBraced(a.s) + " else " + rsBraced(b.s), ty: "()", prec: pLow}
 	}
-	a := f.conv(f.expr(x.ExpressionList), ty)
-	b := f.conv(f.expr(x.ConditionalExpression), ty)
+	ea, eb := f.expr(x.ExpressionList), f.expr(x.ConditionalExpression)
+	if isPtrTy(ty) && (isConstPtr(ea.ty) || isConstPtr(eb.ty)) {
+		ty = asConst(ty) // either arm *const: the value is (rs_const.go)
+	}
+	a := f.conv(ea, ty)
+	b := f.conv(eb, ty)
 	if a.konst && b.konst {
 		a = f.convT(a, ty)
 	}
@@ -1201,7 +1233,7 @@ func (f *rfn) call(x *cc.PostfixExpression) rv {
 				vals = append(vals, f.refArg(a, ref))
 				continue
 			}
-			v := f.conv(f.expr(a), f.r.ty(pt))
+			v := f.conv(f.expr(a), f.r.constTy(f.paramSlot(d, i), f.r.ty(pt)))
 			vals = append(vals, unparenRs(v.s))
 			continue
 		}
@@ -1210,7 +1242,7 @@ func (f *rfn) call(x *cc.PostfixExpression) rv {
 		case v.ty == "bool":
 			rest = append(rest, "VArg::I("+wrap(v, pUnary)+" as i64)")
 		case isPtrTy(v.ty):
-			rest = append(rest, "VArg::P("+unparenRs(f.conv(v, "*mut c_void").s)+")")
+			rest = append(rest, "VArg::P("+unparenRs(f.conv(v, "*const c_void").s)+")")
 		case isIntTy(v.ty) && isSigned(promoteTy(v.ty)):
 			rest = append(rest, "VArg::I("+unparenRs(f.conv(v, "i64").s)+")")
 		case isIntTy(v.ty):
@@ -1224,7 +1256,7 @@ func (f *rfn) call(x *cc.PostfixExpression) rv {
 	}
 	ty := "()"
 	if rt := ft.Result(); rt != nil && rt.Kind() != cc.Void {
-		ty = f.r.ty(rt)
+		ty = f.slotTy(x, f.r.ty(rt))
 	}
 	return rv{s: head + "(" + strings.Join(vals, ", ") + ")", ty: ty}
 }
@@ -1253,7 +1285,7 @@ type lval struct {
 
 func (f *rfn) lval(e cc.ExpressionNode) lval {
 	t := e.Type()
-	ty := f.r.ty(t)
+	ty := f.slotTy(e, f.r.ty(t))
 	if !f.effect(e) || f.lowered_ {
 		return lval{place: f.place(e), ty: ty, t: t}
 	}
@@ -1406,6 +1438,9 @@ func (f *rfn) incDecValue(e cc.ExpressionNode, inc, post bool) rv {
 	stmts := append([]string{}, lv.pre...)
 	if post {
 		t := f.temp(lv.t)
+		if isConstPtr(lv.ty) {
+			f.retype(t, lv.ty)
+		}
 		stmts = append(stmts, t+" = "+lv.place+";")
 		nv := f.incDec(rv{s: t, ty: lv.ty}, lv.t, inc)
 		stmts = append(stmts, rsOpAssign(lv.place, nv))
@@ -1509,7 +1544,7 @@ func (f *rfn) incDecStmt(e cc.ExpressionNode, inc bool) {
 	f.line("%s", rsOpAssign(lv.place, nv))
 }
 
-var rsEndsAsRe = regexp.MustCompile(`\bas (\*mut )?[A-Za-z_][A-Za-z0-9_:]*$`)
+var rsEndsAsRe = regexp.MustCompile(`\bas (\*(mut|const) )?[A-Za-z_][A-Za-z0-9_:]*$`)
 
 // rsEndsAs says s ends in a cast, `... as i32`, which Rust would read as a
 // type's generic arguments before < or <<.

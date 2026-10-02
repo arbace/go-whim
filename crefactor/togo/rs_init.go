@@ -21,7 +21,7 @@ func (f *rfn) initLocal(l *rlocal, in *cc.Initializer) {
 		for _, p := range pre {
 			f.line("%s", p)
 		}
-		v := f.conv(f.expr(in.AssignmentExpression), f.r.ty(t))
+		v := f.conv(f.expr(in.AssignmentExpression), l.ty(f.r, f.r.ty(t)))
 		f.done()
 		f.line("%s = %s;", l.name, unparenRs(v.s))
 		for _, p := range post {
@@ -218,7 +218,15 @@ func (l *rlocal) declTy(r *rgen) string {
 	if l.rty != "" {
 		return l.rty
 	}
-	return r.declType(l.t)
+	return l.ty(r, r.declType(l.t))
+}
+
+// ty is ty, the local's type, as *const where it is read-only (rs_const.go).
+func (l *rlocal) ty(r *rgen, ty string) string {
+	if l.d == nil {
+		return ty
+	}
+	return r.constTy(declSlot(l.d), ty)
 }
 
 // zeroOf is a local's zero.
@@ -226,6 +234,9 @@ func (l *rlocal) zeroOf(r *rgen) string {
 	if l.rty != "" {
 		switch {
 		case isPtrTy(l.rty):
+			if isConstPtr(l.rty) {
+				return "null()"
+			}
 			return "null_mut()"
 		case isFnTy(l.rty):
 			return "None"
@@ -236,5 +247,14 @@ func (l *rlocal) zeroOf(r *rgen) string {
 		}
 		return "core::mem::zeroed()"
 	}
-	return r.zero(l.t)
+	return l.zeroIn(r)
+}
+
+// zeroIn is a local's zero by its C type: null() for a *const.
+func (l *rlocal) zeroIn(r *rgen) string {
+	z := r.zero(l.t)
+	if z == "null_mut()" && isConstPtr(l.declTy(r)) {
+		return "null()"
+	}
+	return z
 }

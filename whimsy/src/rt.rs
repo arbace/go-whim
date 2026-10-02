@@ -14,7 +14,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 pub enum VArg {
     I(i64),
     U(u64),
-    P(*mut c_void),
+    P(*const c_void),
 }
 
 impl VArg {
@@ -27,10 +27,10 @@ impl VArg {
         }
     }
     /// The argument read as a pointer (va_arg's `char *`).
-    pub fn ptr(self) -> *mut u8 {
+    pub fn ptr(self) -> *const u8 {
         match self {
-            VArg::P(p) => p as *mut u8,
-            v => v.bits() as *mut u8,
+            VArg::P(p) => p as *const u8,
+            v => v.bits() as *const u8,
         }
     }
 }
@@ -41,10 +41,16 @@ pub fn decay<T, const N: usize>(a: *mut [T; N]) -> *mut T {
     a as *mut T
 }
 
+/// The same of an array reached through a *const pointer: a *const one.
+#[inline(always)]
+pub fn decay_const<T, const N: usize>(a: *const [T; N]) -> *const T {
+    a as *const T
+}
+
 /// p - q, in elements of T: C's difference of two pointers into one array
 /// (void's elements are bytes, as gcc has them).
 #[inline(always)]
-pub fn pdiff<T>(p: *mut T, q: *mut T) -> i64 {
+pub fn pdiff<T>(p: *const T, q: *const T) -> i64 {
     let size = core::mem::size_of::<T>().max(1) as isize;
     ((p as isize).wrapping_sub(q as isize) / size) as i64
 }

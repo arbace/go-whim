@@ -324,7 +324,7 @@ func TestRsArith(t *testing.T) {
 	// the effects (rs_fx.go): a function of its arguments is a safe fn of
 	// no editor, one that dereferences an unsafe fn of no editor, one that
 	// names the editor's objects an unsafe fn of the editor
-	for _, sig := range []string{"pub fn neg(x: i32) -> i32 {", "pub unsafe fn digit(s: *mut i8) -> i32 {", "pub unsafe fn run(ed: *mut Editor) {"} {
+	for _, sig := range []string{"pub fn neg(x: i32) -> i32 {", "pub unsafe fn digit(s: *const i8) -> i32 {", "pub unsafe fn run(ed: *mut Editor) {"} {
 		if !strings.Contains(prog, sig) {
 			t.Errorf("no %q in the Rust:\n%s", sig, numbered(prog))
 		}
@@ -439,7 +439,7 @@ func TestRsRefs(t *testing.T) {
 			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
 		}
 	}
-	for _, s := range []string{"fn same(a: *mut pt", "fn touch(ed: *mut Editor, p: *mut pt)", "fn swapxy(a: *mut pt, b: *mut pt)"} {
+	for _, s := range []string{"fn same(a: *const pt", "fn touch(ed: *mut Editor, p: *mut pt)", "fn swapxy(a: *mut pt, b: *mut pt)"} {
 		if !strings.Contains(prog, s) {
 			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
 		}
@@ -470,6 +470,79 @@ void run(void)
 func TestRsDefer(t *testing.T) {
 	prog := rsSame(t, rsDeferC, Profile{}, javaHarnessC)
 	for _, s := range []string{"let x: i32;", "let y: i32;", "let w: i32;", "let mut z: i32 = 0;"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+}
+
+// rsConstC is pointers never written through (doc/RUST-IDIOMS.md, item 10):
+// a string walked and compared, a member and a result that only carry a
+// pointer to be read, an object read through, a ?: of both kinds, a
+// variadic argument (read by the printf) -- each *const -- beside what
+// must stay *mut: a pointer written through, one whose value goes where a
+// write is made (a member that is, a parameter that is, a host's), one
+// whose own address is taken, one an array of a struct is written
+// through, and the pointers of a function printed from the lowered form;
+// an array read through a *const one is decay_const's.
+const rsConstC = javaHost + `void outf(const char *fmt, ...);
+struct item { const char *name; char *buf; char tag[4]; int n; };
+static char store[16];
+static char *cursor;
+static const char *greeting = "hello";
+
+static int length(const char *s) { const char *p = s; while (*p) p++; return p - s; }
+static const char *find(const char *s, int c) { for (; *s; s++) if (*s == c) return s; return 0; }
+static int before(char *mut_end, const char *p) { return p < mut_end; }
+static void fill(char *d, const char *s) { if (d == s) return; while ((*d++ = *s++) != 0) ; }
+static const char *pick(int c, const char *a, char *b) { return c ? a : b; }
+static int tag0(struct item *it) { return it->tag[0]; }
+static void settag(struct item *it, char c) { it->tag[1] = c; }
+static void put(char **slot, char *v) { *slot = v; }
+static int back(const char *s) { int n = 0; const char *p = s; again: if (*p) { p++; n++; goto again; } return n; }
+
+void run(void)
+{
+    struct item it;
+    char *w;
+    it.name = "name";
+    it.buf = store;
+    it.tag[0] = 't';
+    fill(it.buf, it.name);
+    outs(it.buf);
+    out(length(it.name));
+    out(find(greeting, 'l') - greeting);
+    out(find(greeting, 'z') == 0);
+    out(before(store + 4, store));
+    out(before(store, store + 4));
+    out(length(pick(1, greeting, store)));
+    out(length(pick(0, greeting, store)));
+    settag(&it, 0);
+    out(tag0(&it));
+    put(&cursor, store + 1);
+    *cursor = 'X';
+    outs(store);
+    w = store;
+    put(&w, store + 2);
+    outs(w);
+    out(back("abc"));
+    outf("%s %d", greeting, length(greeting));
+}
+`
+
+func TestRsConst(t *testing.T) {
+	prog := rsSame(t, rsConstC, Profile{}, javaHarnessC)
+	for _, s := range []string{"fn length(s: *const i8)", "let mut p: *const i8 = s;", "fn find(mut s: *const i8, c: i32) -> *const i8",
+		"pub name: *const i8,", "fn pick(c: i32, a: *const i8, b: *const i8) -> *const i8", "pub greeting: *const i8,",
+		"fn before(mut_end: *const i8, p: *const i8)", "if s == d {", "fn tag0(it: *const item)", "decay_const(&raw const (*it).tag)", "VArg::P((*ed).greeting as *const c_void)"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+	// written through, passed where it is, its address taken, an array
+	// reached through it, the lowered form's
+	for _, s := range []string{"fn fill(mut d: *mut i8, mut s: *const i8)", "pub buf: *mut i8,", "fn settag(it: *mut item, c: i8)",
+		"fn put(slot: &mut *mut i8, v: *mut i8)", "pub cursor: *mut i8,", "fn back(s: *mut i8)"} {
 		if !strings.Contains(prog, s) {
 			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
 		}

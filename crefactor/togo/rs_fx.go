@@ -2,7 +2,7 @@ package togo
 
 // rs_fx.go is what each function of the unit does beyond computing its
 // result, as the Rust signature needs it (doc/RUST-IDIOMS.md, item 2) --
-// the Haskell's hseffects.go, on Rust's terms:
+// the shared effects analysis (effects.go), on Rust's terms:
 //
 //   - editor: it names an object of the editor, calls the host or a
 //     function pointer, or calls a function that takes the editor: only

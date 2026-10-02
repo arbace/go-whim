@@ -192,7 +192,7 @@ func (f *rfn) hoistInc(n cc.ExpressionNode, e cc.ExpressionNode, inc, postfix bo
 		return false
 	}
 	stmt := rsLines(f.capture(func() { f.incDecStmt(e, inc) }))
-	ty := f.r.ty(l.t)
+	ty := f.r.constTy(declSlot(d), f.r.ty(l.t))
 	switch {
 	case !postfix:
 		*pre = append(*pre, stmt...)
@@ -202,6 +202,9 @@ func (f *rfn) hoistInc(n cc.ExpressionNode, e cc.ExpressionNode, inc, postfix bo
 		f.rsub[n] = rv{s: l.name, ty: ty}
 	default:
 		t := f.temp(l.t)
+		if isConstPtr(ty) {
+			f.retype(t, ty)
+		}
 		*pre = append(*pre, t+" = "+l.name+";")
 		*pre = append(*pre, stmt...)
 		f.rsub[n] = rv{s: t, ty: ty}

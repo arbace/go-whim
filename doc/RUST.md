@@ -60,7 +60,9 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   gcc's `sizeof`/`offsetof` and Rust's `size_of`/`offset_of!` to the listing,
   as compile-time assertions on both sides.
 - **A pointer is a raw pointer**, `*mut T` whatever the C's `const` (a cast
-  away of it is free), `*mut c_void` for `void *`; walked with
+  away of it is free) -- `*const T` where it is never written through
+  (`RUST-IDIOMS.md` item 10: 869 of 2,770 pointer slots) -- `*mut c_void`
+  for `void *`; walked with
   `wrapping_add`/`wrapping_offset`, subtracted by `pdiff` (the runtime's, in
   elements), compared with `<` and `==`, null-tested with `is_null()`.
   **No Rust reference to a C object is made but where the promise is
@@ -346,11 +348,15 @@ control seen, `whim gen --check`:
 The module went from 62,836 lines to 61,820; rustc 38.0-38.3 s and 0.53 GB
 at the peak; the heavy case 0.25-0.3 times the C's, as before.
 
+A second pass (`RUST-IDIOMS.md`, *The second pass*):
+
+- read-only pointers as `*const` (`rs_const.go`): an inference over every
+  pointer slot's writes and flows, which rustc checks -- 869 of 2,770
+  slots; `VArg::P` a `*const c_void`, as vim's printf only reads its
+  arguments; `decay_const` for an array reached through a `*const`.
+
 ## Not done
 
-- **Read-only pointers as `*const`** (`RUST-IDIOMS.md` item 10): the core
-  has almost no C `const` to follow, so it is an inference over every
-  pointer's flow.
 - **What the memory model forbids**, declined in `RUST-IDIOMS.md`: `ed: &mut
   Editor` (1,797 addresses of the editor's objects are taken, some kept in
   tables, and the parallel `:%s` hands the editor to every core), owned data,

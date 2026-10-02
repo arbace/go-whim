@@ -104,6 +104,7 @@ const (
 // function prints one function definition, or says why it cannot.
 func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	d := fd.Declarator
+	r.lastLowered = false
 	defer func() {
 		if e := recover(); e != nil {
 			u, ok := e.(unsupported)
@@ -156,6 +157,7 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		f.ntmp, f.nlbl, f.ctl = 0, 0, nil
 		f.lowered()
 		r.nLowered++
+		r.lastLowered = true
 	}
 	body := f.out.String()
 	var b strings.Builder
@@ -339,6 +341,9 @@ func (r *rgen) signature(d *cc.Declarator, f *rfn, usesEd *bool) string {
 			}
 		}
 		ty := r.declType(t)
+		if p.Declarator != nil {
+			ty = r.constTy(declSlot(p.Declarator), ty) // read-only (rs_const.go)
+		}
 		if ref := r.refParams[p.Declarator]; ref != nil && p.Declarator != nil {
 			ty = ref.rsType(ty) // a reference (rs_refs.go)
 		}
@@ -347,7 +352,7 @@ func (r *rgen) signature(d *cc.Declarator, f *rfn, usesEd *bool) string {
 	}
 	res := ""
 	if rt := ft.Result(); rt != nil && rt.Kind() != cc.Void {
-		res = " -> " + r.declType(rt)
+		res = " -> " + r.constTy("r:"+name, r.declType(rt))
 	}
 	kw := "pub unsafe fn"
 	if r.isSafe(name) {
@@ -1037,7 +1042,7 @@ func (f *rfn) jump(j *cc.JumpStatement) bool {
 		for _, p := range pre {
 			f.line("%s", p)
 		}
-		v := f.conv(f.expr(j.ExpressionList), f.r.ty(f.ret))
+		v := f.conv(f.expr(j.ExpressionList), f.r.constTy("r:"+f.name, f.r.ty(f.ret)))
 		f.done()
 		f.line("return %s;", unparenRs(v.s))
 		return true

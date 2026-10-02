@@ -331,7 +331,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    those without the editor, rs_range.go the arithmetic
                    that provably fits, rs_hoist.go side effects out of
                    expressions, rs_refs.go references where provable,
-                   rs_defer.go locals declared with no value), and its Scheme
+                   rs_defer.go locals declared with no value,
+                   rs_const.go read-only pointers as *const), and its Scheme
                    backend (scm*.go: `whim skel ... -scm F.ss`, C's memory
                    as one bytevector, the lowered form in caprice's shape,
                    doc/SCHEME.md: scm.go the library, its image and its
@@ -472,7 +473,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md, RUST-IDIOMS.md and SCHEME-IDIOMS.md (how the
                    Java, Clojure, Haskell, Rust and Scheme editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, 6, 7, 8's headroom (9 declined), and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-9 and 11 (10 not), SCHEME-IDIOMS.md's items 1-9),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-11, SCHEME-IDIOMS.md's items 1-9),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in

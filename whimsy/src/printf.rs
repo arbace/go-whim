@@ -328,7 +328,7 @@ type ApTypes = Vec<*const u8>;
 
 unsafe fn adjust_types(ed: *mut Editor, ap_types: &mut ApTypes, arg: i32, ty: *const u8) -> bool {
     if arg <= 0 {
-        format_error(ed, E_INVALID_FORMAT_SPECIFIER_STR, &[VArg::P(ty as *mut c_void)], false);
+        format_error(ed, E_INVALID_FORMAT_SPECIFIER_STR, &[VArg::P(ty as *const c_void)], false);
         return false;
     }
     let arg = arg as usize;
@@ -351,8 +351,8 @@ unsafe fn adjust_types(ed: *mut Editor, ap_types: &mut ApTypes, arg: i32, ty: *c
                             E_POSITIONAL_NUM_FIELD_SPEC_REUSED_STR_STR,
                             &[
                                 VArg::I(arg as i64),
-                                VArg::P(format_typename(prev) as *mut c_void),
-                                VArg::P(format_typename(ty) as *mut c_void),
+                                VArg::P(format_typename(prev) as *const c_void),
+                                VArg::P(format_typename(ty) as *const c_void),
                             ],
                             false,
                         );
@@ -366,8 +366,8 @@ unsafe fn adjust_types(ed: *mut Editor, ap_types: &mut ApTypes, arg: i32, ty: *c
                 E_POSITIONAL_ARG_NUM_TYPE_INCONSISTENT_STR_STR,
                 &[
                     VArg::I(arg as i64),
-                    VArg::P(format_typename(ty) as *mut c_void),
-                    VArg::P(format_typename(prev) as *mut c_void),
+                    VArg::P(format_typename(ty) as *const c_void),
+                    VArg::P(format_typename(prev) as *const c_void),
                 ],
                 false,
             );
@@ -397,7 +397,7 @@ unsafe fn get_unsigned_int(p: &mut *const u8) -> u32 {
 /// arguments were both seen.
 unsafe fn mixed(ed: *mut Editor, any_pos: bool, any_arg: bool, fmt: *const u8) -> bool {
     if any_pos && any_arg {
-        format_error(ed, E_CANNOT_MIX_POSITIONAL_AND_NON_POSITIONAL_STR, &[VArg::P(fmt as *mut c_void)], false);
+        format_error(ed, E_CANNOT_MIX_POSITIONAL_AND_NON_POSITIONAL_STR, &[VArg::P(fmt as *const c_void)], false);
         return true;
     }
     false
@@ -414,7 +414,7 @@ unsafe fn parse_fmt_types(ed: *mut Editor, fmt: *const u8) -> Option<ApTypes> {
         return Some(ap_types);
     }
     let invalid = |ed: *mut Editor| {
-        format_error(ed, E_INVALID_FORMAT_SPECIFIER_STR, &[VArg::P(fmt as *mut c_void)], false);
+        format_error(ed, E_INVALID_FORMAT_SPECIFIER_STR, &[VArg::P(fmt as *const c_void)], false);
     };
     while at(p) != 0 {
         if at(p) != b'%' {
@@ -541,7 +541,7 @@ unsafe fn parse_fmt_types(ed: *mut Editor, fmt: *const u8) -> Option<ApTypes> {
                         format_error(
                             ed,
                             E_CANNOT_MIX_POSITIONAL_AND_NON_POSITIONAL_STR,
-                            &[VArg::P(fmt as *mut c_void)],
+                            &[VArg::P(fmt as *const c_void)],
                             false,
                         );
                         return None;
@@ -558,7 +558,7 @@ unsafe fn parse_fmt_types(ed: *mut Editor, fmt: *const u8) -> Option<ApTypes> {
             format_error(
                 ed,
                 E_FMT_ARG_NR_UNUSED_STR,
-                &[VArg::I(arg_idx as i64 + 1), VArg::P(fmt as *mut c_void)],
+                &[VArg::I(arg_idx as i64 + 1), VArg::P(fmt as *const c_void)],
                 false,
             );
             return None;
@@ -595,7 +595,7 @@ unsafe fn skip_to_arg(
             format_error(
                 ed,
                 E_APTYPES_IS_NULL_NR_STR,
-                &[VArg::I(*arg_cur as i64), VArg::P(fmt as *mut c_void)],
+                &[VArg::I(*arg_cur as i64), VArg::P(fmt as *const c_void)],
                 true,
             );
             return;
