@@ -1,5 +1,10 @@
 # Phase 68 — one window, structurally
 
+**A record now.** Phase 6 calls `whim68` by name, after `whim67`, on the text phase 3
+swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
+program is here, and the phase has no plan entry. It applied there as
+written. The autocommand window's switch goes there, and with it what phase 22's `nochdir` cut from `aucmd_prepbuf()` and `aucmd_restbuf()` (the `w_localdir` restore and `globaldir`'s save and restore). What follows is the account of the cut as it was made here.
+
 **This phase establishes an invariant and then spends it**, which is why it is the
 largest cut here since the early ones.
 

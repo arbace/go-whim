@@ -65,15 +65,14 @@ of the reform: 120, 134 and 149).
 | `d01-front` | 1, 2, 3 |
 | `d02-outside` | 6-25 (10 phases) |
 | `d03-editing` | 28, 32 |
-| `d04-one-buffer` | 42 |
 | `d05-commands-and-options` | 48, 49 |
 | `d06-encoding` | 50, 53 |
-| `d07-options` | 55-62 (5 phases) |
+| `d07-options` | 55-62 (4 phases) |
 | `d08-editing` | 64 |
-| `d09-one-of-each` | 67-73 (6 phases) |
+| `d09-one-of-each` | 69, 70, 73 |
 | `d10-editing` | 75 |
 | `d11-commands` | 77-80 (4 phases) |
-| `d12-terminal-and-ex` | 85, 87 |
+| `d12-terminal-and-ex` | 87 |
 | `d13-files` | 89-96 (8 phases) |
 | `r01-libc` | 97, 98 |
 | `r02-host-chain` | 102, 103, 104 |
@@ -102,9 +101,10 @@ of the reform: 120, 134 and 149).
 
 **The archive.** A phase that edits nothing any more is a record: its
 `GOAL.md` alone, in `internal/phase/archive/NNN/`, with its old number. There
-are 39: 4, 5, 8, 9, 10, 11, 12, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program the front calls (56 and 61; 57, 58, 63, 65,
-66 and 74 at phase 3; 76 at phase 6) keeps its directory and program where
-they were; the eight of them with no plan entry left are records too.
+are 40: 4, 5, 8, 9, 10, 11, 12, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program the front calls (56 and 61; 57, 58, 63, 65,
+66 and 74 at phase 3; 59, 67, 68, 71, 76 and 85 at phase 6) keeps its
+directory and program where they were; the thirteen of them with no plan
+entry left are records too.
 
 # Part I — phases 0 to 82: an editor with no runtime
 
@@ -804,7 +804,7 @@ make it a worse record and no truer.
 - [Phase 39 — one window, always](../internal/phase/archive/039/GOAL.md)
 - [Phase 40 — no window sizes to set](../internal/phase/archive/040/GOAL.md)
 - [Phase 41 — the buffer list is walked by `:bnext` and `:bprevious` alone](../internal/phase/archive/041/GOAL.md)
-- [Phase 42 — one buffer, always](../internal/phase/042/GOAL.md)
+- [Phase 42 — one buffer, always](../internal/phase/archive/042/GOAL.md)
 - [Phase 43 — no -c, --cmd, -R, -m, -M or -w](../internal/phase/archive/043/GOAL.md)
 - [Phase 44 — no filters, sorting or alignment](../internal/phase/044/GOAL.md)
 - [Phase 45 — no `:drop`](../internal/phase/045/GOAL.md)

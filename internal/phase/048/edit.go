@@ -25,9 +25,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(edit.Line("case 'n':", `if (!checkforcmd_noparen(&eap->cmd, "noswapfile", 3))`, "{", "break;", "}", "cmod->cmod_flags |= CMOD_NOSWAPFILE;", "continue;"), 1,
 			"the :noswapfile modifier")
 	})
-	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
-		e.Cut(edit.Line("case CMD_noswapfile:"), 1, "completion for :noswapfile")
-	})
+	// :noswapfile's completion went with set_context_by_cmdname() at phase 6
+	// (whim59, phase 59's program, which runs before this phase now)
 	e.InFunction("ml_open", func(e *edit.E) {
 		e.DropIf(noswapTest, 1, "ml_open asking for it")
 	})

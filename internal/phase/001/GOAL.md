@@ -144,8 +144,9 @@ before the closure. The cuts' closing assertions, written for swept text
 (`cmod_tab`, `CMD_windo`, `DOBUF_SPLIT`, the `ECMD_` flags and the
 argument-list names), are gone: at the front the retired commands' handlers
 still name them. `skip_win_fix_cursor` loses its writers here, and the product
-keeps it, so the closure holds it. `onebuffer` (42) stays where it is: on the
-seed, `buf_hide()` has 24 mentions, which phases 2-41 take.
+keeps it, so the closure holds it. `onebuffer` (42) did not join them: on the
+seed, `buf_hide()` has 24 mentions, which phases 2-41 take. After the reform it
+runs first in phase 6, on swept text, where it applies as written.
 
 **Then the editing features, one regexp engine, and no process** (the
 reform's D10-D12):
@@ -166,7 +167,9 @@ paragraphs) and 74 (file marks), called by name at the end of phase 3's part.
 They applied to its text as written. `whim66` takes the last writers of
 `listcmd_busy`, which the product keeps, so the closure holds it. Phase 76's
 program and the `droplocal` of 57's and 58's fields run first in phase 6, on
-the text phase 3 swept.
+the text phase 3 swept, and so do phase 42's `onebuffer` and the programs of
+67, 68, 71 and 85, which count and anchor on swept text; 59's runs there
+after `nowildmenu`.
 
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,

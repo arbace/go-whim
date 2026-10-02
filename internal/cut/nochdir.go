@@ -126,12 +126,9 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// The window- and tab-local directory restore.  Its guard can never be
-	// true: w_localdir and tp_localdir come only from :lcd and :tcd, and
-	// globaldir is assigned only inside this function.
-	if text, err = edit.DropIf(text, edit.Head("if (awp->w_localdir != nullptr)"), 1); err != nil {
-		return nil, err
-	}
+	// The window- and tab-local directory restore in aucmd_restbuf() went
+	// with the autocommand window's switch at phase 6 (whim68, phase 68's
+	// program, which runs before this phase now).
 	if text, err = cutCounted(text, edit.Line("win_fix_current_dir();"),
 		"nochdir", "its unconditional call", 1); err != nil {
 		return nil, err
@@ -139,19 +136,9 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nochdir      win_fix_current_dir, whose guard cannot be true")
 
 	// `globaldir` remembers the directory to come back to when a window-local
-	// one is in force.  win_fix_current_dir() was the only thing that ever set
-	// it, so what is left is aucmd_prepbuf()/aucmd_restbuf() saving and
-	// restoring a pointer that is always NULL.  The save and the restore go
-	// here; the field, the global and the function are the sweep's.
-	for _, g := range []struct{ pat, what string }{
-		{edit.Line("aco->globaldir = globaldir;", "globaldir = nullptr;"), "the save"},
-		{edit.Line("vim_free(globaldir);", "globaldir = aco->globaldir;"), "the restore"},
-	} {
-		if text, err = cutCounted(text, g.pat, "nochdir", "globaldir -- "+g.what, 1); err != nil {
-			return nil, err
-		}
-	}
-	fmt.Fprintln(w, "  nochdir      globaldir, saved and restored and always nullptr")
+	// one is in force.  aucmd_prepbuf()/aucmd_restbuf() saved and restored it
+	// around the autocommand window's switch, and both went with that switch
+	// at phase 6 (whim68); the global and the function are the sweep's.
 
 	// edit_buffers(), the -o window walk that returned to `cwd`, went with
 	// the windows at phase 1 (nowindows, the reform's D9).  start_dir, which

@@ -11,8 +11,8 @@ times every editor, is judged with the suites.
 
 - **The drops that stayed, brought to the front** (the pipeline reform,
   `PIPELINE-REFORM.md` §7).
-  - `onebuffer` (42), `lfonly` (50), `keepbytes` and `noconv` (53), the
-    programs of 59, 64, 67, 68, 71-73, 75 and 85.
+  - `lfonly` (50), `keepbytes` and `noconv` (53), the programs of 64,
+    72-73 and 75.
   - Each counts text that only the phases before it leave. So each needs
     the edits it depends on brought to the front with it: for `lfonly`,
     every readfile edit, since readfile is live at the front until phase 13.

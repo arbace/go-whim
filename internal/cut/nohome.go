@@ -35,11 +35,7 @@ const homeReplaceCopy = `    usize len;
     dst[len] = NUL;
     return len;`
 
-var (
-	initHomedir  = regexp.MustCompile(edit.Line("init_homedir();"))
-	expandUser   = regexp.MustCompile(`[ \t]*\{EXPAND_USER, get_users, TRUE, FALSE\},\n`)
-	userNameHead = `^[ \t]*if \(\*xp->xp_pattern == '~'\)$`
-)
+var initHomedir = regexp.MustCompile(edit.Line("init_homedir();"))
 
 // NoHome takes $HOME out of the editor: the value, the shortening, the
 // expansion and the user database.
@@ -61,25 +57,16 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	hbuf = append(hbuf, homeReplaceCopy...)
 	hbuf = append(hbuf, "\n}"...)
 	text = append(hbuf, text[hc+1:]...)
-	var err error
 	fmt.Fprintf(w, "  nohome       home_replace was %d lines, and now shows a name as "+
 		"it is\n", was)
 	// expand_env_esc keeps its ~ arms here: nogetenv, the next step of this
 	// phase, replaces its whole body with a copy that expands nothing.
 
-	if n := len(expandUser.FindAll(text, -1)); n != 1 {
-		return nil, fmt.Errorf("nohome: expected one EXPAND_USER completion row, got %d", n)
-	}
-	text = expandUser.ReplaceAll(text, nil)
-
-	// And the context that reaches it.  Removing the completion row alone
-	// leaves match_user() called from set_context_for_wildcard_arg(), and
-	// match_user() is what walks the password database -- so the five pw
-	// symbols stayed until this went too.
-	if text, err = edit.DropIf(text, "(?m)"+userNameHead, 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nohome       ~user completion, and the context that reaches it")
+	// ~user completion -- the EXPAND_USER row and the context in
+	// set_context_for_wildcard_arg() that reached match_user(), the walk of
+	// the password database -- went with every completion context but files
+	// at phase 6 (whim59, phase 59's program, which runs before this phase
+	// now).
 
 	// get_user_name() answers who this is, for a swap file's block zero.
 	// There are no swap files; the block is still built in memory, and it can

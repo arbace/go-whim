@@ -335,31 +335,9 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 	// mb_tail_off went with maketitle(), its one caller, at phase 1
 	// (whim61, the reform's D8)
 
-	if text, err = e.inFunction(text, "expand_argopt", func(s []byte) ([]byte, error) {
-		var err error
-		link := `^[ \t]*if \(name_end - xp->xp_line >= \d+ && strncmp\(\(char \*\)\(name_end - \d+\), \(char \*\)\("\w+"\), \(\d+\)\) == 0\)$`
-		for i := 0; i < 5; i++ {
-			if s, err = e.ncFold(s, link, "completion for an ++ argument value",
-				"never", 1); err != nil {
-				return nil, err
-			}
-		}
-		if s, err = e.ncFold(s, `^[ \t]*if \(cb != nullptr\)$`,
-			"completing an ++ argument value", "never", -1); err != nil {
-			return nil, err
-		}
-		return e.dropIf(s,
-			`^[ \t]*if \(xp->xp_pattern_len == 2 && strncmp\(\(char \*\)\(xp->xp_pattern\), \(char \*\)\("ff"\), \(xp->xp_pattern_len\)\) == 0\)$`,
-			"completing ++ff to ++fileformat=")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "get_argopt_name", func(s []byte) ([]byte, error) {
-		return e.subCount(s, `^[ \t]*"(?:fileformat=|encoding=|nobinary|bad=)",\n`,
-			"the ++ff, ++enc, ++nobin and ++bad names", 4)
-	}); err != nil {
-		return nil, err
-	}
+	// expand_argopt() and get_argopt_name(), the completion of ++ arguments
+	// and their values, went with every completion context but files at
+	// phase 6 (whim59, phase 59's program, which runs before this phase now)
 
 	e.say("a file is read and written as the UTF-8 bytes it holds")
 	return text, nil

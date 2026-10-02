@@ -1,5 +1,15 @@
 # Phase 59 — no command-line completion
 
+**A record now.** Phase 6 calls `whim59` by name after `nowildmenu`, whose cut
+of `getcmdline_int()` it is written against (`doc/PIPELINE-REFORM.md` §7, the
+drops brought to the front): the program is here, and the phase has no plan
+entry. It applied there as written. What it takes, every completion context
+but files, took with it what phases 16, 20, 23, 44, 48, 49 and 53 used to cut
+there: `'tags''` backslash rule, `~user` and `$VAR` completion,
+`expand_shellcmd()`'s `$PATH`, the fuzzy matcher's `ceil` and `floor`, the
+completion of `:retab`, `:noswapfile`, `:setglobal` and `:setlocal`, and of the
+`++` arguments. What follows is the account of the cut as it was made here.
+
 The command line no longer completes anything. In `getcmdline_int()` the
 `'wildchar'` and `'wildcharm'` keys, S-Tab, CTRL-D (list), CTRL-A (insert all),
 CTRL-L (longest match) and CTRL-N/CTRL-P over matches go; each of those keys is now

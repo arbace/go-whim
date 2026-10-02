@@ -1,5 +1,13 @@
 # Phase 42 — one buffer, always
 
+**A record now.** Phase 6 runs this phase's cut (`onebuffer`), its sweep and
+the `droplocal` of `b_p_bh` first, on the text phase 3 swept
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front), so what it did
+is done before it runs: it has no plan entry. Inside the front it refused,
+counting `buf_hide()`, `w_alt_fnum` and the `CMOD_` flags in `do_exedit()`
+and the rest the front's cuts leave for its sweep; on swept text it applies as
+written. What follows is the account of the cut as it was made here.
+
 The buffer list is the container the editor edits in — `firstbuf`, `curbuf` and
 the buffer hash table are read everywhere — so **it stays, with exactly one
 buffer on it between commands**. Two decisions were the user's, not the

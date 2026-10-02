@@ -1,5 +1,10 @@
 # Phase 85 — the core stops diagnosing its own terminal
 
+**A record now.** Phase 6 calls `whim85` by name, after `whim71`, on the text phase 3
+swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
+program is here, and the phase has no plan entry. It applied there as
+written. What follows is the account of the cut as it was made here.
+
 `internal/phase/085/edit.go` and `internal/phase/085/check.go`, `stage 85`, `package terminal`. The
 first phase that cuts source, and the first piece of *a component, not a program*: a
 host hands the core its input and output, and whether either is a terminal is the

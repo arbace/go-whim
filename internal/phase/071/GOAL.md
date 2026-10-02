@@ -1,5 +1,10 @@
 # Phase 71 — one buffer, structurally
 
+**A record now.** Phase 6 calls `whim71` by name, after `whim68`, on the text phase 3
+swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
+program is here, and the phase has no plan entry. It applied there as
+written. Its body for `buflist_findpat()` supersedes phase 62's edit of the `'buflisted'` test there. What follows is the account of the cut as it was made here.
+
 **The invariant was already true; this phase removes the machinery that pretended
 otherwise.** Phase 69 allowed at most one file argument, phase 70 made `:e` reuse the
 one buffer, and every buffer Ex command had been retired long before that — all 24

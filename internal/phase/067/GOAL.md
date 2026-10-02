@@ -1,5 +1,10 @@
 # Phase 67 — no mouse, no spell plumbing, no write-only flags
 
+**A record now.** Phase 6 calls `whim67` by name, after `onebuffer`, on the text phase 3
+swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
+program is here, and the phase has no plan entry. It applied there as
+written. What follows is the account of the cut as it was made here.
+
 Three cuts, none of which changes what the editor can do, because none of it
 could happen in the first place. This is the first phase driven by
 `tools/coverage.sh` and by a scan for **write-only statics**, rather than by a

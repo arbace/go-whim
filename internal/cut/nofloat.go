@@ -10,11 +10,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-const nofloatRound = `                score = (fzy_score ==  INFINITY ) ? INT_MAX
-                    : (int)(fzy_score * SCORE_SCALE + ((fzy_score < 0) ? -0.5 : 0.5));`
-
-const nofloatOldRound = `                score = (fzy_score == INFINITY) ? INT_MAX : (fzy_score < 0) ? (int)ceil(fzy_score * SCORE_SCALE - 0.5) : (int)floor(fzy_score * SCORE_SCALE + 0.5);`
-
 const floatLabels = "            case 'f':\n            case 'F':\n" +
 	"            case 'e':\n            case 'E':\n" +
 	"            case 'g':\n            case 'G':\n"
@@ -96,12 +91,9 @@ func NoFloat(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	if !bytes.Contains(text, []byte(nofloatOldRound)) {
-		return nil, fmt.Errorf("nofloat: the fuzzy matcher's rounding is not where this expects")
-	}
-	text = bytes.Replace(text, []byte(nofloatOldRound), []byte(nofloatRound), 1)
-	fmt.Fprintln(w, "  nofloat      ceil and floor: a conversion truncates toward zero, "+
-		"which is both of them")
+	// The fuzzy matcher, whose score rounding called ceil and floor, went
+	// with every completion context but files at phase 6 (whim59, phase 59's
+	// program, which runs before this phase now).
 
 	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte(floatLabels+"                {\n"))

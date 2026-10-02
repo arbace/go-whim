@@ -1222,6 +1222,36 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
        In order: 116 phases, 490 s (634 s of CPU); phases 1-3 33, 34 and 37
        s, phase 6 7 s. The parallel check: 115 links, 74 s.
+   - **One buffer, one window, completion, and the terminal's diagnosis,
+     done (same branch).** Phase 6 runs first, on the text phase 3 swept:
+     42's `onebuffer`, a sweep and the `droplocal` of `b_p_bh`, then the
+     programs of 67 (mouse and spell plumbing), 68 (one window,
+     structurally), 71 (one buffer, structurally) and 85 (the tty
+     diagnosis); after its own two cuts, 59's (command-line completion),
+     written against `nowildmenu`'s `getcmdline_int()`. 42 is a record in
+     the archive; 59, 67, 68, 71 and 85 keep their programs.
+     - **Why phase 6 and not the front.** Inside phase 3's part
+       `onebuffer` refused: `do_exedit()` and the rest of what the front's
+       cuts leave for its sweep still name `buf_hide()` (5 mentions, not 2),
+       `w_alt_fnum` (8, not 2) and the two `CMOD_` flags (7, not 2). On swept
+       text it and the four programs apply as written, so nothing is
+       restated.
+     - **What it replaced.** Every edit inside what they now take first:
+       - 68 takes the autocommand window's switch, and with it `nochdir`'s
+         (22) `w_localdir` restore and `globaldir`'s save and restore in
+         `aucmd_prepbuf()` and `aucmd_restbuf()`;
+       - 71's body for `buflist_findpat()` supersedes 62's `'buflisted'`
+         literal there;
+       - 59 takes every completion context but files, and with them
+         `noinertopts`' (16) `'tags'` backslash rule, `nohome`'s (20)
+         `~user` row and context, `nogetenv`'s (20) `$PATH` in
+         `expand_shellcmd()` and `$VAR` row and context, `nofloat`'s (23)
+         fuzzy-matcher rounding, the completion of `:retab` (44),
+         `:noswapfile` (48), `:setglobal` and `:setlocal` (`oneoptset`, 49),
+         and `noconv`'s (53) `++` argument completion.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       In order: 110 phases, 473 s (614 s of CPU); phases 1-3 31, 33 and 39
+       s, phase 6 15 s. The parallel check: 109 links, 78 s.
 
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with

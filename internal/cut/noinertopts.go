@@ -30,15 +30,10 @@ var noinertoptsEdits = []struct{ what, pat, repl string }{
 		`(?m)[ \t]*int esc = var == &p_tags \|\| var == &p_path;\n`,
 		"    int esc = FALSE;\n"},
 	// The directory-completion block, with its backslash rule for 'path',
-	// folds at phase 1 (whim56, the reform's D6).  The file-completion block's
-	// rule for 'tags' collapses to the else arm -- and the replacement carries
-	// the INDENTATION, because ${1} would keep the inner line's, which is one
-	// level too deep once the block around it is gone.
-	{"the file-completion backslash rule for 'tags'",
-		`(?m)[ \t]*if \(p == \(char_u \*\)&p_tags\)\n` +
-			`[ \t]*\{\n[ \t]*xp->xp_backslash = XP_BS_THREE;\n[ \t]*\}\n` +
-			`[ \t]*else\n[ \t]*\{\n[ \t]*xp->xp_backslash = XP_BS_ONE;\n[ \t]*\}\n`,
-		"            xp->xp_backslash = XP_BS_ONE;\n"},
+	// folds at phase 1 (whim56, the reform's D6).  The file-completion
+	// block's rule for 'tags' went with set_context_in_set_cmd(), :set's
+	// completion, at phase 6 (whim59, phase 59's program, which runs before
+	// this phase now).
 	{"didset_string_options reading 'tagcase' at startup",
 		`(?m)[ \t]*\(void\)opt_strings_flags\(p_tc, p_tc_values, &tc_flags, FALSE\);\n`, ""},
 	// ml_open's swap-file test read p_uc, which nothing writes once

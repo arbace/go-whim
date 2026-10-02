@@ -1,10 +1,13 @@
 # Phase 6 — the editor stops writing shell scripts, and stops drawing a menu
 
-**It runs two steps of the front's first**, on the text phase 3 swept:
-phase 76's program (`whim76`), whose proof needs the NFA engine swept, and
-the `droplocal` of the fields phases 57 and 58 took the readers of at phase 3
-(`b_p_lisp`, `b_p_lw`, `b_p_iminsert`, `b_p_imsearch`;
-`doc/PIPELINE-REFORM.md` §7, the drops brought to the front).
+**It runs the drops that stayed first**, on the text phase 3 swept
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): phase 76's
+program (`whim76`), whose proof needs the NFA engine swept; the `droplocal`
+of the fields phases 57 and 58 took the readers of at phase 3 (`b_p_lisp`,
+`b_p_lw`, `b_p_iminsert`, `b_p_imsearch`); phase 42's `onebuffer`, a sweep
+and the `droplocal` of `b_p_bh`; and the programs of 67, 68, 71 and 85, which
+count and anchor on swept text. After its own two cuts it runs phase 59's
+program, written against `nowildmenu`'s `getcmdline_int()`.
 
 Two cuts, both at the boundary between the editor and everything outside it.
 

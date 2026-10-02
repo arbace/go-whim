@@ -34,16 +34,9 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "set_context_by_cmdname", func(s []byte) ([]byte, error) {
-		return e.subOnce(s,
-			`^[ \t]*case CMD_setglobal:\n[ \t]*set_context_in_set_cmd\(xp, arg, OPT_GLOBAL\);\n`+
-				`[ \t]*break;\n[ \t]*case CMD_setlocal:\n`+
-				`[ \t]*set_context_in_set_cmd\(xp, arg, OPT_LOCAL\);\n[ \t]*break;\n`,
-			"completion for :setglobal and :setlocal")
-	})
-	if err != nil {
-		return nil, err
-	}
+	// completion for :setglobal and :setlocal went with
+	// set_context_by_cmdname() at phase 6 (whim59, phase 59's program, which
+	// runs before this phase now)
 
 	text, err = e.inFunction(text, "do_set_option", func(s []byte) ([]byte, error) {
 		return e.literal(s, `(char_u *)"?=:!&<"`, `(char_u *)"?=:!&"`,

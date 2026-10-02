@@ -80,8 +80,20 @@ var Plan = []Phase{
 			// phases 57's and 58's fields, whose readers phase 3 took (whim57
 			// and whim58, on the front)
 			{Op: "droplocal", Args: []string{"b_p_lisp", "b_p_lw", "b_p_iminsert", "b_p_imsearch"}},
+			// phase 42's cut, its sweep and droplocal, then the programs of
+			// 67, 68, 71 and 85: they count and anchor on swept text
+			{Op: "onebuffer"},
+			{Op: "sweep"},
+			{Op: "droplocal", Args: []string{"b_p_bh"}},
+			{Op: "edit", Args: []string{"whim67"}},
+			{Op: "edit", Args: []string{"whim68"}},
+			{Op: "edit", Args: []string{"whim71"}},
+			{Op: "edit", Args: []string{"whim85"}},
 			{Op: "nowild"},
 			{Op: "nowildmenu"},
+			// phase 59's program, after nowildmenu: it takes what of
+			// getcmdline_int()'s completion the menu's cut leaves
+			{Op: "edit", Args: []string{"whim59"}},
 		}},
 	{N: 7, Name: "the editor stops looking for files it was not given",
 		Steps: []Step{
@@ -162,12 +174,7 @@ var Plan = []Phase{
 	// Phases 39-40, merged: one window, then no window sizes.
 	// 40, one window, and no window sizes: a record (internal/phase/archive/040/GOAL.md); its cut went to phase 1 (nowindows and nowinsizes, the reform's D9).
 	// 41, the buffer list is walked by `:bnext` and `:bprevious` alone: a record (internal/phase/archive/041/GOAL.md); its cut went to phase 1 (nobuflist, the reform's D9).
-	{N: 42, Block: "d04-one-buffer", Name: "one buffer, always",
-		Steps: []Step{
-			{Op: "onebuffer"},
-			{Op: "sweep"},
-			{Op: "droplocal", Args: []string{"b_p_bh"}},
-		}},
+	// 42, one buffer, always: a record (internal/phase/archive/042/GOAL.md); its cut and droplocal went to phase 6 (onebuffer, on the text the front swept).
 	// 43, no -c, --cmd, -R, -m, -M or -w: a record (internal/phase/archive/043/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
 	// Phases 44-48, merged: Ex commands retired one by one, one idea split for history's sake.
 	{N: 48, Block: "d05-commands-and-options", Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
@@ -213,10 +220,7 @@ var Plan = []Phase{
 		}},
 	// 57, no lisp: a record (internal/phase/057/GOAL.md); its program runs at phase 3 (whim57, the front), its droplocal at phase 6.
 	// 58, no language mappings: a record (internal/phase/058/GOAL.md); its program runs at phase 3 (whim58, the front), its droplocal at phase 6.
-	{N: 59, Name: "no command-line completion",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim59"}},
-		}},
+	// 59, no command-line completion: a record (internal/phase/059/GOAL.md); its program runs at phase 6 (whim59, after nowildmenu).
 	{N: 60, Name: "no suffix, case, delay, verbose-file, debug or filter-program options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim60"}},
@@ -241,15 +245,9 @@ var Plan = []Phase{
 		}},
 	// 65, no rot13, no operator function, no empty key handler: a record (internal/phase/065/GOAL.md); its program runs at phase 3 (whim65, the front).
 	// 66, no sentences, paragraphs, sections, methods, #if blocks or comment blocks: a record (internal/phase/066/GOAL.md); its program runs at phase 3 (whim66, the front).
-	{N: 67, Block: "d09-one-of-each", Name: "no mouse, no spell plumbing, no write-only flags",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim67"}},
-		}},
-	{N: 68, Name: "one window, structurally",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim68"}},
-		}},
-	{N: 69, Name: "one file argument, and no argument list",
+	// 67, no mouse, no spell plumbing, no write-only flags: a record (internal/phase/067/GOAL.md); its program runs at phase 6 (whim67, on the text the front swept).
+	// 68, one window, structurally: a record (internal/phase/068/GOAL.md); its program runs at phase 6 (whim68, on the text the front swept).
+	{N: 69, Block: "d09-one-of-each", Name: "one file argument, and no argument list",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim69"}},
 		}},
@@ -257,10 +255,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim70"}},
 		}},
-	{N: 71, Name: "one buffer, structurally",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim71"}},
-		}},
+	// 71, one buffer, structurally: a record (internal/phase/071/GOAL.md); its program runs at phase 6 (whim71, on the text the front swept).
 	// Phases 72-73, merged: one window/tab page structurally, then one frame.
 	{N: 73, Name: "one window and tab page structurally, and one frame",
 		Steps: []Step{
@@ -293,12 +288,9 @@ var Plan = []Phase{
 	// 82, every comment: a record (internal/phase/archive/082/GOAL.md); it edits nothing now.
 	// 83, the core's compile line, and the baselines it is measured against: a record (internal/phase/archive/083/GOAL.md); it edits nothing now.
 	// 84, the stack protector goes: a record (internal/phase/archive/084/GOAL.md); it edits nothing now.
-	{N: 85, Block: "d12-terminal-and-ex", Name: "the core stops diagnosing its own terminal",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim85"}},
-		}},
+	// 85, the core stops diagnosing its own terminal: a record (internal/phase/085/GOAL.md); its program runs at phase 6 (whim85, on the text the front swept).
 	// 86, the instrument becomes the screen: a record (internal/phase/archive/086/GOAL.md); it edits nothing now.
-	{N: 87, Name: "no streaming Ex",
+	{N: 87, Block: "d12-terminal-and-ex", Name: "no streaming Ex",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim87"}},
 		}},

@@ -69,13 +69,9 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintf(w, "  nogetenv     expand_env_esc was %d lines, and now copies a name\n", was)
 
-	if text, err = cutCounted(text,
-		edit.Line("if (!mch_isFullName(pat))", "{")+
-			`[ \t]*path = vim_getenv\(\(char_u \*\)"PATH", &mustfree\);\n[ \t]*\}\n`,
-		"nogetenv", "$PATH in expand_shellcmd", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nogetenv     $PATH, which was where a command name was looked for")
+	// expand_shellcmd(), which looked a command name up in $PATH, went with
+	// every completion context but files at phase 6 (whim59, phase 59's
+	// program, which runs before this phase now).
 
 	// The local-additions scan went with fix_help_buffer, open_buffer's read
 	// arm its one caller, at phase 1 (readfront, phase 92's move).
@@ -129,16 +125,10 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	// did_set_helpfile went with 'helpfile''s row, dropped at phase 1
 	// (optfront, the reform's D3)
 
-	if text, err = cutCounted(text, `(?m)[ \t]*\{EXPAND_ENV_VARS, get_env_name, TRUE, TRUE\},\n`,
-		"nogetenv", "the EXPAND_ENV_VARS completion row", 1); err != nil {
-		return nil, err
-	}
-	if text, err = edit.DropIf(text, edit.Head("if (*xp->xp_pattern == '$')"), 1); err != nil {
-		return nil, err
-	}
-	// `:command -complete=environment`'s table row went with `:command` at
-	// phase 1 (noucmd, the reform's D10)
-	fmt.Fprintln(w, "  nogetenv     $VAR completion, and the one mention of environ")
+	// $VAR completion -- the EXPAND_ENV_VARS row and its context, the one
+	// mention of environ -- went with every completion context but files at
+	// phase 6 (whim59); `:command -complete=environment`'s table row went
+	// with `:command` at phase 1 (noucmd, the reform's D10).
 
 	// No (?m) here: the Python passes flags=0 for this one.
 	if text, err = cutCounted(text,

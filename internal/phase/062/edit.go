@@ -140,9 +140,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("buf_freeall", func(e *edit.E) {
 		e.DropIf(edit.Head("if ((flags & BFA_DEL) && buf->b_p_bl)"), 1, "BufDelete for a listed buffer")
 	})
-	e.InFunction("buflist_findpat", func(e *edit.E) {
-		e.Literal("buf->b_p_bl == find_listed && ", "find_listed && ", 1, "a buffer search telling listed from unlisted")
-	})
+	// buflist_findpat's body is phase 71's one-buffer search from phase 6
+	// (whim71, which runs before this phase now)
 	e.InFunction("buflist_new", func(e *edit.E) {
 		e.DropIf(edit.Head("if ((flags & BLN_LISTED) && !buf->b_p_bl)"), 1, "an existing buffer becoming listed")
 		e.Cut(edit.Line("buf->b_p_bl = (flags & BLN_LISTED) ? TRUE : FALSE;"), 1, "a new buffer recording whether it is listed")

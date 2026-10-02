@@ -31,10 +31,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("filters", text, w)
 	e.Sub(`(?m)^([ \t]*\{'!', )nv_operator(, 0, 0\},)$`, "${1}nv_error${2}", 1,
 		"the ! operator's row points at nv_error")
-	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
-		e.Cut(edit.Line("case CMD_retab:", "xp->xp_context = EXPAND_RETAB;", "xp->xp_pattern = arg;", "break;"), 1,
-			"completion for :retab")
-	})
+	// :retab's completion went with set_context_by_cmdname() at phase 6
+	// (whim59, phase 59's program, which runs before this phase now)
 	return e.Done()
 }
 
