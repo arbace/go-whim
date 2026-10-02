@@ -26,25 +26,6 @@ func rsKind(k jk) string {
 	return fmt.Sprintf("u%d", k.size*8)
 }
 
-// tagTypedefs is, for each struct or union tag, the typedef that names it.
-func (r *rgen) tagTypedefs() {
-	for tu := r.g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil {
-			continue
-		}
-		for l := ed.Declaration.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-			d := l.InitDeclarator.Declarator
-			if d == nil || !d.IsTypename() || d.Type() == nil {
-				continue
-			}
-			if tag := aggTag(d.Type()); tag != "" && r.tagTypedef[tag] == "" {
-				r.tagTypedef[tag] = d.Name()
-			}
-		}
-	}
-}
-
 // aggTag is a struct's or a union's tag, "" when it has none.
 func aggTag(t cc.Type) string {
 	switch x := t.(type) {

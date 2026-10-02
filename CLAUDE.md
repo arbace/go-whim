@@ -320,9 +320,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    hsout.go out-parameters printed as results, hsstruct.go
                    struct locals printed as values, hssplit.go the
                    modules), and what it decides about the C with the
-                   Scheme backend, named for what it computes (cfacts.go:
-                   the cfacts both make with newCFacts -- the segment's
-                   layout, the tags' typedefs, the callers written by hand
+                   Scheme and Rust backends, named for what it computes
+                   (cfacts.go: the cfacts each makes with newCFacts -- the
+                   segment's layout, the tags' typedefs, the callers
+                   written by hand
                    -- outparams.go the out-parameters, structvalues.go the
                    struct locals that are values, effects.go the pure
                    functions and those without the editor; and cquery.go
@@ -334,8 +335,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    labeled blocks -- rs_expr.go the expressions, rs_init.go
                    the initializers, rs_lower.go the lowered form where
                    labeled blocks cannot say a function; and the idioms,
-                   doc/RUST-IDIOMS.md: rs_fx.go the safe functions and
-                   those without the editor, rs_range.go the arithmetic
+                   doc/RUST-IDIOMS.md: rs_fx.go the safe functions, closed
+                   over the calls of the cfacts it makes, whose effects.go
+                   says which take the editor, rs_range.go the arithmetic
                    that provably fits, rs_hoist.go side effects out of
                    expressions, rs_refs.go references where provable,
                    rs_defer.go locals declared with no value,

@@ -87,10 +87,12 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   that points at it. One more field is the host's pointer, which the C does
   not have. A process holds as many editors as it makes.
 - **A function is `pub unsafe fn name(ed: *mut Editor, ...)`** where it
-  needs both (`rs_fx.go`, closed over the calls): it takes the editor only
+  needs both (closed over the calls): it takes the editor only
   where it reaches an object of it, the host or a function pointer, or calls
-  a function that does (1,497 of the 1,713), and is `unsafe` only where it
-  does what Rust calls unsafe (1,647; 66 are safe `pub fn`s, `pub fn
+  a function that does (1,497 of the 1,713; the analysis the Haskell and
+  the Scheme share, `cfacts.go` and `effects.go`), and is `unsafe` only
+  where it does what Rust calls unsafe (`rs_fx.go`, on the same call graph:
+  1,647; 66 are safe `pub fn`s, `pub fn
   musl_isdigit(c: i32) -> bool`). What the hand-written crate calls by name
   (`Profile.RsExports`), what is a function pointer and what a runtime body
   names keep the whole signature, the editor `_ed` where unused; a parameter

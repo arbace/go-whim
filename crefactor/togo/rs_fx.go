@@ -1,120 +1,83 @@
 package togo
 
 // rs_fx.go is what each function of the unit does beyond computing its
-// result, as the Rust signature needs it (doc/RUST-IDIOMS.md, item 2) --
-// the shared effects analysis (effects.go), on Rust's terms:
+// result, as the Rust signature needs it (doc/RUST-IDIOMS.md, items 2 and
+// 7).  What the Rust shares with the Haskell and the Scheme is theirs
+// (cfacts.go, effects.go): the functions whose callers are written by hand
+// (cfacts.keep), the call graph, and which functions reach the editor --
+// an object of the editor, the host, a function pointer, or a function
+// that does: only those take `ed: *mut Editor` first.  What is the Rust's
+// own is which are unsafe:
 //
-//   - editor: it names an object of the editor, calls the host or a
-//     function pointer, or calls a function that takes the editor: only
-//     then is `ed: *mut Editor` its first parameter;
-//   - unsafe: it does what Rust calls unsafe -- dereferences a raw pointer
-//     (a member through a pointer, an element, `*p`, the editor's object),
-//     makes an aggregate of zeroes, converts a function pointer, calls the
-//     host, a function pointer or an unsafe function: only then is it an
-//     `unsafe fn`.  Rust's own checker holds this to the body: a function
-//     written safe that does one of these does not compile.
+//   - a function does what Rust calls unsafe when it dereferences a raw
+//     pointer (a member through a pointer, an element, `*p`), makes an
+//     aggregate of zeroes or converts a function pointer -- a reference
+//     parameter's dereference is safe (rs_refs.go) -- or reaches the
+//     editor, or calls an unsafe function: only then is it an `unsafe fn`.
+//     Rust's own checker holds this to the body: a function written safe
+//     that does one of these does not compile.
 //
-// Each is closed over the calls.  What is called by hand-written code
-// (Profile.RsExports), what a runtime body names, and what is used as a
-// value -- its type is a function pointer's, the editor first -- keep the
-// whole signature.
+// The Rust keeps one more signature whole than the others: a function used
+// as a value, whose type is a function pointer's, the editor first.
 
 import (
-	"regexp"
-
 	"github.com/arbace/go-whim/crefactor/cc"
 )
 
-// rsFx is one function's effects.
-type rsFx struct {
-	editor bool // needs the editor
-	unsafe bool // does what Rust calls unsafe
-	calls  []string
-}
-
-// effects computes every defined function's effects: r.fx.
-func (r *rgen) effects() {
-	r.fx = map[string]*rsFx{}
-	for name, fd := range r.defined {
-		r.fx[name] = r.directFx(fd)
-	}
-	for n := range r.keepSigs() {
-		if fx := r.fx[n]; fx != nil {
-			fx.editor, fx.unsafe = true, true
-		}
-	}
-	for changed := true; changed; {
-		changed = false
-		for _, fx := range r.fx {
-			for _, c := range fx.calls {
-				cf := r.fx[c]
-				if cf == nil {
-					continue
-				}
-				if cf.editor && !fx.editor {
-					fx.editor, changed = true, true
-				}
-				if cf.unsafe && !fx.unsafe {
-					fx.unsafe, changed = true, true
-				}
-			}
-		}
-	}
-}
-
-var rsWordRe = regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*`)
-
-// keepSigs are the functions whose signature is fixed from outside: called
-// by hand, named by a runtime body, or used as a value.
-func (r *rgen) keepSigs() map[string]bool {
-	keep := map[string]bool{}
-	for _, n := range r.g.p.RsExports {
-		keep[n] = true
-	}
+// analyses are what the Rust decides about the C as the Haskell and the
+// Scheme do (cfacts.go): what the host calls back, what a function pointer
+// holds and what a runtime body names keep their signatures.  The Rust
+// keeps C's memory as C does, so it leaves the out-parameters and the
+// struct locals out.
+func (r *rgen) analyses() *cfacts {
+	exports := append([]string(nil), r.g.p.RsExports...)
 	for n := range r.g.a.addr {
-		keep[n] = true
+		exports = append(exports, n)
 	}
+	var bodies []handBody
 	for _, rb := range r.g.p.RuntimeBodies {
-		if rb.Rs == nil {
-			continue
-		}
-		keep[rb.Name] = true
-		for _, w := range rsWordRe.FindAllString(rb.Rs("()"), -1) {
-			if r.defined[w] != nil {
-				keep[w] = true
-			}
+		if rb.Rs != nil {
+			bodies = append(bodies, handBody{rb.Name, rb.Rs("()")})
 		}
 	}
-	return keep
+	return newCFacts(r.g, cfactsOptions{exports: exports, bodies: bodies, noOuts: true, noStructValues: true})
 }
+
+// effects decides r.unsafe, once the reference parameters are known.
+func (r *rgen) effects() {
+	seed := map[string]bool{}
+	for name, fd := range r.defined {
+		if r.facts.keep[name] || r.facts.takesEd(name) || r.directUnsafe(fd) {
+			seed[name] = true
+		}
+	}
+	r.unsafe = r.facts.callersOf(seed)
+}
+
+// keepSigs are the functions whose signature is fixed from outside.
+func (r *rgen) keepSigs() map[string]bool { return r.facts.keep }
 
 // takesEd says the function name takes the editor: a host function, an
 // unknown one, or a defined one that needs it.
-func (r *rgen) takesEd(name string) bool {
-	fx := r.fx[name]
-	return fx == nil || fx.editor
-}
+func (r *rgen) takesEd(name string) bool { return r.facts.takesEd(name) }
 
 // isSafe says the function name is a safe fn.
-func (r *rgen) isSafe(name string) bool {
-	fx := r.fx[name]
-	return fx != nil && !fx.unsafe
-}
+func (r *rgen) isSafe(name string) bool { return r.defined[name] != nil && !r.unsafe[name] }
 
-// directFx is what fd does itself, and whom it calls.
-func (r *rgen) directFx(fd *cc.FunctionDefinition) *rsFx {
-	fx := &rsFx{}
+// directUnsafe says fd itself does what Rust calls unsafe, beyond reaching
+// the editor (which the shared analysis answers).
+func (r *rgen) directUnsafe(fd *cc.FunctionDefinition) bool {
 	ft, _ := fd.Declarator.Type().(*cc.FunctionType)
 	if ft == nil {
-		fx.editor, fx.unsafe = true, true
-		return fx
+		return true
 	}
 	if rt := ft.Result(); rt != nil && (isAggr(rt) || rt.Kind() == cc.Array) {
-		fx.unsafe = true // its zero, where the end is reached, is core::mem::zeroed()
+		return true // its zero, where the end is reached, is core::mem::zeroed()
 	}
+	unsafe := false
 	var rec func(cc.Node)
 	rec = func(n cc.Node) {
-		if n == nil {
+		if n == nil || unsafe {
 			return
 		}
 		switch x := n.(type) {
@@ -122,56 +85,29 @@ func (r *rgen) directFx(fd *cc.FunctionDefinition) *rsFx {
 			if x.Name() == "__func__" || x.IsTypename() {
 				break
 			}
-			t := x.Type()
-			if t == nil {
-				break
-			}
-			if x.StorageDuration() == cc.Static && !x.IsParam() && t.Kind() != cc.Function {
-				fx.editor, fx.unsafe = true, true // a block-scope static is the editor's
-				break
-			}
-			if isAggr(t) || t.Kind() == cc.Array {
-				fx.unsafe = true // a local aggregate starts as core::mem::zeroed()
-			}
-		case *cc.PrimaryExpression:
-			if x.Case == cc.PrimaryExpressionIdent {
-				if d, ok := x.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() != cc.Function {
-					if _, obj := r.field[r.g.a.declKey(d)]; obj && (d.StorageDuration() == cc.Static || d.Linkage() != cc.None) {
-						fx.editor, fx.unsafe = true, true
-					}
-				}
+			if t := x.Type(); t != nil && (isAggr(t) || t.Kind() == cc.Array) {
+				unsafe = true // a local aggregate starts as core::mem::zeroed()
 			}
 		case *cc.UnaryExpression:
 			if x.Case == cc.UnaryExpressionDeref && !r.isRefParam(x.CastExpression) {
-				fx.unsafe = true
+				unsafe = true
 			}
 		case *cc.CastExpression:
 			if x.Case == cc.CastExpressionCast && (isFnPtr(x.Type()) || isFnPtr(x.CastExpression.Type())) {
-				fx.unsafe = true // a transmute
+				unsafe = true // a transmute
 			}
 		case *cc.PostfixExpression:
 			switch x.Case {
 			case cc.PostfixExpressionPSelect:
 				if !r.isRefParam(x.PostfixExpression) {
-					fx.unsafe = true // a reference's member is safe (rs_refs.go)
+					unsafe = true // a reference's member is safe (rs_refs.go)
 				}
 			case cc.PostfixExpressionIndex, cc.PostfixExpressionComplit:
-				fx.unsafe = true
-			case cc.PostfixExpressionCall:
-				d := fnDesignator(x.PostfixExpression)
-				switch {
-				case d == nil:
-					fx.editor, fx.unsafe = true, true // through a pointer
-				case d.Name() == "__builtin_expect":
-				case r.defined[d.Name()] != nil:
-					fx.calls = append(fx.calls, d.Name())
-				default:
-					fx.editor, fx.unsafe = true, true // the host's
-				}
+				unsafe = true
 			}
 		}
 		walkChildrenFn(n, rec)
 	}
 	rec(fd.CompoundStatement)
-	return fx
+	return unsafe
 }

@@ -104,7 +104,7 @@ type Profile struct {
 	RsHost, RsRuntime string
 	// RsExports are the functions the hand-written Rust calls by name, the
 	// editor first: they keep the whole signature, an unsafe fn of the
-	// editor, whatever they do (rs_fx.go).
+	// editor, whatever they do (cfacts.keep).
 	RsExports []string
 
 	// HsParts is how many modules the Haskell functions are split into, by

@@ -246,9 +246,11 @@ pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
   fn`. Rust checks the second claim: a safe function that dereferences a raw
   pointer, or calls an unsafe function, does not compile. HASKELL-IDIOMS.md's
   item 5 made the same 56 functions pure and the same 221 editor-free.
-- **Where:** an effects analysis over the C (`rs_fx.go`, the shared effects
-  analysis, `effects.go`, on Rust's terms: unsafe where Rust says so, not
-  where the Haskell touches memory) and the printer (signatures, calls).
+- **Where:** the effects analysis the Haskell and the Scheme share
+  (`cfacts.go`, `effects.go`: the functions kept whole, the call graph, and
+  which take the editor), with the Rust's own judgement in `rs_fx.go` --
+  unsafe where Rust says so, not where the Haskell touches memory -- closed
+  over the same calls (`callersOf`); and the printer (signatures, calls).
   `Profile.RsExports` names what the hand-written crate calls. **Cost:** S.
   **Risk:** none.
 
@@ -459,7 +461,7 @@ pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
 ### Done: items 0-9 and 11 (2026-10-02)
 
 All but item 10, in the Rust printer (`crefactor/togo`: `rs_fx.go` the
-effects, `rs_range.go` the ranges, `rs_hoist.go` the side effects,
+effects, on the shared `effects.go`, `rs_range.go` the ranges, `rs_hoist.go` the side effects,
 `rs_refs.go` the references, `rs_defer.go` the declarations with no value,
 and `rs_expr.go`, `rs_fn.go`, `rs_init.go`), `whimsy/Cargo.toml` and
 `whimsy.go`; each with a C program of its own among the foreign tests

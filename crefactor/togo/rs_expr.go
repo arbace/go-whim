@@ -1228,7 +1228,7 @@ func (f *rfn) call(x *cc.PostfixExpression) rv {
 	}
 	var vals []string
 	if d == nil || f.r.takesEd(d.Name()) {
-		vals = append(vals, "ed") // the editor, where the callee takes it (rs_fx.go)
+		vals = append(vals, "ed") // the editor, where the callee takes it (effects.go)
 	}
 	var rest []string
 	for i, a := range args {

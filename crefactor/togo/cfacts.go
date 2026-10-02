@@ -1,10 +1,10 @@
 package togo
 
 // cfacts.go is what the backends that keep C's memory raw -- the Haskell
-// (hs*.go, doc/HASKELL.md) and the Scheme (scm*.go, doc/SCHEME.md) --
-// decide about the C before either prints a line, and decide alike, so
-// that the two read the C the same way and neither's printing moves the
-// other's output:
+// (hs*.go, doc/HASKELL.md), the Scheme (scm*.go, doc/SCHEME.md) and the
+// Rust (rs*.go, doc/RUST.md) -- decide about the C before any prints a
+// line, and decide alike, so that they read the C the same way and none's
+// printing moves another's output:
 //
 //   - the segment: each file-scope object's and block-scope static's
 //     offset in the one block of memory the editor's objects are in, as C
@@ -15,6 +15,9 @@ package togo
 //     (structvalues.go);
 //   - what each function touches: the pure ones, and those that need the
 //     editor (effects.go).
+//
+// The Rust asks only the functions kept, the tags' typedefs and the
+// editor's reach; it leaves the out-parameters and the struct values out.
 //
 // A backend makes them with newCFacts, telling it what is its own: the
 // functions and objects its host calls back or addresses, and its runtime

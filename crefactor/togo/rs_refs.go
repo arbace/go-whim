@@ -7,7 +7,7 @@ package togo
 // reads or writes what a `&mut` points at, and nothing writes what a `&`
 // points at.  The proof is that the function is memory-local:
 //
-//   - it takes no editor (rs_fx.go), so it reaches no object of the
+//   - it takes no editor (effects.go), so it reaches no object of the
 //     editor's, no host and no function pointer;
 //   - every pointer it dereferences is one of its reference parameters --
 //     `p->m`, `*p`, `p->m.n` -- or an array of its own;

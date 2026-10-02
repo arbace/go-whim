@@ -16,8 +16,9 @@ package togo
 //     one #[repr(C)] Editor, made zeroed and never moved, its initial
 //     values written into it when it is made (init_globals); a function is
 //     an `unsafe fn` of `ed: *mut Editor` and the C's parameters -- the
-//     editor only where it reaches the editor, `unsafe` only where it does
-//     what Rust calls unsafe (rs_fx.go);
+//     editor only where it reaches the editor (effects.go, shared with the
+//     Haskell and the Scheme), `unsafe` only where it does what Rust calls
+//     unsafe (rs_fx.go);
 //   - C's control flow is Rust's: return, break and continue as they are, a
 //     goto a labeled block it breaks (as the Java's), a switch a match -- or,
 //     where a case falls into the next, a ladder of labeled blocks;
@@ -67,8 +68,12 @@ type rgen struct {
 	objects    []*robj
 	valueTaken map[string]bool // names a local may not take: functions, constants, the runtime's
 
-	// what each function does, as its signature says it (rs_fx.go)
-	fx map[string]*rsFx
+	// what the Rust decides about the C as the Haskell and the Scheme do
+	// (cfacts.go): the functions whose callers are written by hand, the
+	// typedef naming each tag, what reaches the editor
+	facts *cfacts
+	// the functions that do what Rust calls unsafe (rs_fx.go)
+	unsafe map[string]bool
 	// the reference parameters (rs_refs.go): by function and index, by
 	// declarator, and what each call passes to one
 	refs      map[string]map[int]*rsRef
@@ -138,7 +143,7 @@ func rsName(s string) string {
 // test).
 func (g *gen) writeRs(path string) error {
 	r := &rgen{g: g, host: g.p.RsHost, defined: map[string]*cc.FunctionDefinition{}, hostFns: map[string]*cc.Declarator{},
-		fnName: map[string]string{}, structNames: map[string]string{}, structTaken: map[string]bool{}, tagTypedef: map[string]string{},
+		fnName: map[string]string{}, structNames: map[string]string{}, structTaken: map[string]bool{},
 		structType: map[string]cc.Type{}, aliases: map[string]string{}, aliasOf: map[*cc.Declarator]string{},
 		consts: map[string]*rconst{}, field: map[string]string{}, valueTaken: map[string]bool{}}
 	if r.host == "" {
@@ -161,13 +166,13 @@ func (g *gen) writeRs(path string) error {
 		r.fnName[name] = rsName(name)
 		r.valueTaken[r.fnName[name]] = true
 	}
-	r.tagTypedefs()
+	r.facts = r.analyses()
+	r.tagTypedef = r.facts.tagTypedef
 	r.enumerators()
 	r.objectFields()
 	r.typedefAliases()
-	r.effects()
 	r.references()
-	r.effects() // again: a reference's dereference is safe
+	r.effects() // after the references: a reference's dereference is safe
 	r.loweredFns = map[string]bool{}
 	r.constness()
 
@@ -219,11 +224,11 @@ func (g *gen) writeRs(path string) error {
 	b.WriteString(r.prelude(body.String()))
 	b.WriteString(body.String())
 	nSafe, nNoEd := 0, 0
-	for _, fx := range r.fx {
-		if !fx.unsafe {
+	for name := range r.defined {
+		if r.isSafe(name) {
 			nSafe++
 		}
-		if !fx.editor {
+		if !r.takesEd(name) {
 			nNoEd++
 		}
 	}

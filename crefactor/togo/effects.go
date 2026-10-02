@@ -15,6 +15,9 @@ package togo
 // is impure, one that calls a function taking the editor takes it.  What the
 // host calls back and what a runtime body names (cfacts.keep) keep the
 // whole signature, since their callers are written by hand.
+//
+// The Rust (rs_fx.go) asks the editor of it, and closes its own judgement
+// -- what Rust calls unsafe -- over the same calls (callersOf).
 
 import (
 	"github.com/arbace/go-whim/crefactor/cc"
@@ -68,6 +71,33 @@ func (c *cfacts) pure(name string) bool {
 func (c *cfacts) takesEd(name string) bool {
 	fx := c.fx[name]
 	return fx == nil || fx.editor
+}
+
+// callersOf is seed closed over the calls: the defined functions that are
+// in it, or call one that is.  A backend's own judgement of what a body
+// does is closed over the same call graph as the shared ones (rs_fx.go).
+func (c *cfacts) callersOf(seed map[string]bool) map[string]bool {
+	in := map[string]bool{}
+	for n := range seed {
+		if c.fx[n] != nil {
+			in[n] = true
+		}
+	}
+	for changed := true; changed; {
+		changed = false
+		for n, fx := range c.fx {
+			if in[n] {
+				continue
+			}
+			for _, callee := range fx.calls {
+				if in[callee] {
+					in[n], changed = true, true
+					break
+				}
+			}
+		}
+	}
+	return in
 }
 
 // directFx is what fd does itself, and whom it calls.
