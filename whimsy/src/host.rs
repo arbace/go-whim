@@ -73,7 +73,7 @@ pub struct Glue {
 pub struct HostExit(pub i32);
 
 fn arena_layout() -> std::alloc::Layout {
-    std::alloc::Layout::from_size_align(HOST_ARENA_BYTES, 4096).unwrap()
+    std::alloc::Layout::from_size_align(HOST_ARENA_BYTES, 16).unwrap()
 }
 
 impl Glue {

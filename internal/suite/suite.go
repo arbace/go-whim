@@ -32,6 +32,7 @@ import (
 	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/vijure"
+	"github.com/arbace/go-whim/whimsy"
 )
 
 //go:embed cases.md
@@ -305,6 +306,8 @@ type JVM struct {
 	Clojure vijure.Gen
 	// Haskell, not on the JVM, is held to the same: --haskell
 	Haskell caprice.Gen
+	// Rust, nor is Rust: --rust
+	Rust whimsy.Gen
 }
 
 // builds is what a run compares: the C of rev (the reference), the
@@ -358,9 +361,12 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return nil
 		},
 	}
-	var java, clj, hs *jvmEditor
+	var java, clj, hs, rs *jvmEditor
 	if jvm.Haskell != nil {
 		jobs = append(jobs, func() (err error) { hs, err = buildHaskell(jvm.Haskell, candSrc); return })
+	}
+	if jvm.Rust != nil {
+		jobs = append(jobs, func() (err error) { rs, err = buildRust(jvm.Rust, candSrc); return })
 	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
@@ -383,7 +389,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return fail(err)
 		}
 	}
-	for _, e := range []*jvmEditor{java, clj, hs} {
+	for _, e := range []*jvmEditor{java, clj, hs, rs} {
 		if e != nil {
 			b.jvm = append(b.jvm, e)
 		}

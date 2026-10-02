@@ -221,3 +221,34 @@ func firstLines(b []byte, n int) string {
 	}
 	return strings.Join(ls, "\n")
 }
+
+// TestEditorsAreInstances runs testdata/instances/main.rs: four editors at
+// once in one process, each on a thread and a host of its own, each
+// required to exit 0 with its own text on its screen and no other's --
+// editor/host_test.go's TestEditorsAreInstances, caprice's. It compiles
+// against the library the build `make bin/whimsy` leaves in lib/whimsy;
+// without one it skips.
+func TestEditorsAreInstances(t *testing.T) {
+	rel, err := filepath.Abs(filepath.Join("..", "lib", "whimsy", "target", "release"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	lib := filepath.Join(rel, "libwhimsy.rlib")
+	if _, err := os.Stat(lib); err != nil {
+		t.Skip("no whimsy build in lib/whimsy (make bin/whimsy)")
+	}
+	if _, err := exec.LookPath("rustc"); err != nil {
+		t.Skip("no rustc")
+	}
+	bin := filepath.Join(t.TempDir(), "instances")
+	o, err := exec.Command("rustc", "--edition", "2021", "-D", "warnings", "-C", "opt-level=2", "--extern", "whimsy="+lib,
+		"-L", filepath.Join(rel, "deps"), "-o", bin, filepath.Join("testdata", "instances", "main.rs")).CombinedOutput()
+	if err != nil {
+		t.Fatalf("rustc: %v\n%s", err, o)
+	}
+	out, err := command(bin).CombinedOutput()
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	t.Logf("%s", out)
+}

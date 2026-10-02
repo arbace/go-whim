@@ -16,9 +16,10 @@ import (
 // its own.  --clojure adds the Clojure editor (vijure/, doc/CLOJURE.md)
 // the same way; --clojure-editor F adds it with the namespace in F rather
 // than one generated from FILE.  --haskell adds the Haskell editor
-// (caprice/, doc/HASKELL.md) the same way.
+// (caprice/, doc/HASKELL.md) the same way, and --rust the Rust editor
+// (whimsy/, doc/RUST.md).
 //
-//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--ref REV] [FILE]
+//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--ref REV] [FILE]
 func runTest(args []string) int {
 	rev, file, wide := "HEAD", "src/whim-vim.c", false
 	var jvm suite.JVM
@@ -35,13 +36,15 @@ func runTest(args []string) int {
 			jvm.Clojure = cljGen
 		case args[i] == "--haskell":
 			jvm.Haskell = hsGen
+		case args[i] == "--rust":
+			jvm.Rust = rsGen
 		case args[i] == "--clojure-editor" && i+1 < len(args):
 			i++
 			jvm.Clojure = copyGen(args[i])
 		case len(args[i]) > 0 && args[i][0] != '-':
 			file = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--ref REV] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--ref REV] [FILE]")
 			return 2
 		}
 	}

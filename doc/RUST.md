@@ -196,6 +196,60 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   release build (opt-level 2), 2.5 s at opt-level 0: a quarter of GHC's time
   on the same core at a sixth of its memory.
 
+## Milestone 3: the host, the launcher and the suite (2026-10-02)
+
+- **The host, by hand** -- the plan had it translated; it follows the other
+  four editors instead. `src/host.rs` is the `Host` trait, `editor/host.go`'s
+  Host on Rust's types (the window's size, raw mode, the keys, the clocks,
+  the wait for input and its reading, the signals, output), every method of
+  `&self`, since the core may call the host again from inside a call of it
+  (a SIGHUP's deathtrap, run where the host waits); and the C host's 17
+  functions as glue to the Host the editor carries in its `host` field, with
+  the arena that is the editor's and not the Host's: 1 GiB allocated zeroed
+  (calloc's pages, touched as used) and bumped atomically, as the C host's,
+  16 bytes aligned -- a larger alignment made `alloc_zeroed` write the whole
+  gigabyte, 1.1 s at every start. `host_exit` unwinds to `run(host, args)`,
+  which makes an editor, runs `vim_main` to its end and returns the status:
+  the C's longjmp to `main`. So a process runs any number of editors, each
+  on its own host and thread (`whimsy`'s `TestEditorsAreInstances`: four at
+  once, each on a host of the test's own, each its own text on its screen and
+  no other's).
+- **The terminal host** (`src/term.rs`) is the C host's operating-system half
+  function by function over `extern "C"` libc, its structs checked against
+  musl's x86_64 layout by gcc: raw mode with `tcgetattr`/`tcsetattr`, the
+  size with `ioctl(TIOCGWINSZ)`, the wait a `select` on the keys and a
+  wake-up pipe. **The signals are real**: `sigaction` handlers that store to
+  static atomics and write a byte down the pipe (`pipe2(O_NONBLOCK |
+  O_CLOEXEC)`), as the C's do; a SIGHUP's or SIGTERM's deathtrap is run on
+  the editor's thread where the C's `host_deliver_death` runs it. Its
+  deviations -- `atol` and the size report spelled by hand, a second
+  `init`'s pipe closing the first, SIGPIPE set back to its default before
+  `main` (Rust's runtime ignores it) -- are marked `DEVIATION`.
+- **vim's printf** (`src/printf.rs`) is the C host's `vim_snprintf` ported by
+  hand, as `editor/format.go`, braaam's `Printf.java` and caprice's
+  `Printf.hs` are: its `va_list` the call's `[VArg]` and an index, an
+  argument read at the type the C's `va_arg` names. Held while it was
+  written to the C's own, compiled from `src/whim-vim.c`, on a table of
+  77,925 formats and arguments (every conversion and flag, widths and
+  precisions, `*` and positional arguments, truncation) and 37 of the error
+  paths: byte for byte, return values and buffers.
+- **The launcher** (`src/main.rs`): `bin/whimsy [args]`, the editor on the
+  terminal.
+- **The suite**: `go tool whim test --rust` (`make whim-test-rs`) and `--wide
+  --rust` build the candidate's core into `.cache/whimsy-suite/` -- the
+  candidate and its control, `" INSERT"` changed in the generated
+  `editor.rs`, compiled side by side -- and require every case answered as
+  the C candidate answers it. **whimsy answers all 80 quick cases and all
+  240 wide ones as the C does**, its control seen by 76 of the 80 and by 94
+  keys, 0 Ex, 0 argv and 6 pty cases of the wide suite's, as the Go's is.
+- **One bug, found by the suite**: `!(a && b != 0)` was printed `a && b ==
+  0` -- the printer turned a negated `x != 0` round without asking whether
+  `x` was the whole operand -- and 34 of the 80 cases moved (every count,
+  every `par_*` case). Fixed in the printer; none other was found.
+- **Speed**: the heavy case 0.25-0.3 times the C's time (C 445-467 ms,
+  whimsy 111-131 ms over four runs of the suite; the Go 0.5-0.6) -- the
+  release build at opt-level 2, and `match_lines` on every core.
+
 ## Risks, named in advance
 
 - **Undefined behaviour of Rust's own.** Raw pointers only, never a reference

@@ -173,6 +173,10 @@ func (f *rfn) konst(e cc.ExpressionNode, v int64, ty string) rv {
 		case cc.PrimaryExpressionChar:
 			if v >= 32 && v < 127 && v != '\'' && v != '\\' {
 				x.chr = true
+				x.s, x.prec = "b'"+string(rune(v))+"' as "+ty, pAs
+				if ty == "u8" {
+					x.s, x.prec = "b'"+string(rune(v))+"'", pPrim
+				}
 			}
 		}
 	}
@@ -775,8 +779,9 @@ func (f *rfn) unary(x *cc.UnaryExpression) rv {
 
 // rsNot is !c: a comparison turned round where it is one.
 func rsNot(c string, v rv) string {
-	if strings.HasSuffix(c, " != 0") && rsBalanced(strings.TrimSuffix(c, " != 0")) && !strings.Contains(strings.TrimSuffix(c, " != 0"), " != ") {
-		return strings.TrimSuffix(c, " != 0") + " == 0"
+	if x := strings.TrimSuffix(c, " != 0"); x != c && rsBalanced(x) && rsPrec(x) < pCmp {
+		// x != 0 turned round, when x is one operand of it
+		return x + " == 0"
 	}
 	if strings.HasPrefix(c, "!") && strings.HasSuffix(c, ".is_null()") && !strings.ContainsAny(c[1:], " ") {
 		return c[1:]
@@ -952,6 +957,13 @@ func (f *rfn) compare(op string, le, re cc.ExpressionNode) rv {
 	a, b := f.expr(le), f.expr(re)
 	if a.ty == "bool" && b.ty == "bool" && (op == "==" || op == "!=") {
 		return rv{s: wrap(a, pCmp-1) + " " + op + " " + wrap(b, pCmp-1), ty: "bool", prec: pCmp}
+	}
+	// a narrow value and a constant it can hold: compared in its own type,
+	// which says the same (`*p == b'-'`, not `*p as i32 == 45`)
+	if !a.konst && b.konst && isIntTy(a.ty) && a.ty != ty && truncK(b.kv, tyKind(a.ty)) == b.kv {
+		ty = a.ty
+	} else if a.konst && !b.konst && isIntTy(b.ty) && b.ty != ty && truncK(a.kv, tyKind(b.ty)) == a.kv {
+		ty = b.ty
 	}
 	av, bv := f.conv(a, ty), f.conv(b, ty)
 	if av.konst && bv.konst {
