@@ -67,6 +67,7 @@ public final class Term implements Host {
     private static final MethodHandle KILL = fn("kill", FunctionDescriptor.of(I, I, I));
     private static final MethodHandle GETPID = fn("getpid", FunctionDescriptor.of(I));
     private static final MethodHandle SIGPENDING = fn("sigpending", FunctionDescriptor.of(I, A));
+    private static final MethodHandle PTHREAD_SIGMASK = fn("pthread_sigmask", FunctionDescriptor.of(I, I, A, A));
 
     // Linux x86-64 and arm64
     private static final long TCGETS = 0x5401, TCSETS = 0x5402, TIOCGWINSZ = 0x5413;
@@ -81,6 +82,7 @@ public final class Term implements Host {
     // signal numbers, Linux
     private static final int SIGHUP = 1, SIGINT = 2, SIGPIPE = 13, SIGALRM = 14, SIGTERM = 15,
             SIGCONT = 18, SIGTSTP = 20, SIGWINCH = 28;
+    private static final int SIG_BLOCK = 0, SIG_SETMASK = 2;
     private static final int FD_SET_BYTES = 128;
 
     /** The memory the calls are made through: the host's own, for the process. */
@@ -174,7 +176,9 @@ public final class Term implements Host {
     private final MemorySegment fdset = arena.allocate(FD_SET_BYTES);
     private final MemorySegment tv = arena.allocate(16);
     private final MemorySegment tnew = arena.allocate(TERMIOS);
-    private final MemorySegment scratch = arena.allocate(128); // a termios, a winsize or a sigset_t
+    private final MemorySegment scratch = arena.allocate(128); // a termios or a winsize
+    // two sigset_t, glibc's 128 bytes: a set asked about or blocked, and the mask before
+    private final MemorySegment sigSet = arena.allocate(128), sigOld = arena.allocate(128);
     private final ArrayDeque<Integer> dying = new ArrayDeque<>();
     private IntConsumer deathtrap = sig -> {};
     private Signals signals;
@@ -581,24 +585,55 @@ public final class Term implements Host {
             kill(0, 19);
             return;
         }
-        kill(0, SIGTSTP);
         // DEVIATION: the C is one thread, which takes the signal and stops as
-        // kill returns.  The JVM is many, and the kernel may hand the signal
-        // to another -- the process's first thread -- a moment later: were
+        // kill returns.  The JVM is many, and the kernel hands the signal to
+        // the process's first thread, which takes it when it next runs: were
         // the handler put back at once, that thread would find it and not
-        // stop.  So the handler waits until the signal is no longer pending:
-        // taken, and the process stopped and continued (or, in an orphaned
-        // process group, discarded by the kernel).  At most a second.
+        // stop -- under load, now and then.  So the handler waits until the
+        // signal is no longer pending: taken, and the process stopped and
+        // continued (or, in an orphaned process group, discarded by the
+        // kernel).  sigpending(2) reports only what the asking thread
+        // blocks, so this thread blocks SIGTSTP for the kill and the wait:
+        // another thread takes it, and until one has, it is pending here.
+        // At most a second, a bound no run has reached.
+        MemorySegment old = sigOld;
+        sigmask(SIG_BLOCK, sigTstp(), old);
+        kill(0, SIGTSTP);
         long end = System.nanoTime() + 1_000_000_000L;
         while (pending(SIGTSTP) && System.nanoTime() < end) {
             Thread.onSpinWait();
         }
         signals.catchTstp();
+        sigmask(SIG_SETMASK, old, MemorySegment.NULL);
     }
 
-    /** Whether sig is pending for this thread or the process: sigpending(2). */
+    /** The set of SIGTSTP alone, in the scratch sigset_t. */
+    private MemorySegment sigTstp() {
+        MemorySegment set = clear(sigSet);
+        set.set(ValueLayout.JAVA_LONG_UNALIGNED, 0, 1L << (SIGTSTP - 1));
+        return set;
+    }
+
+    /** pthread_sigmask(how, set, old): this thread's mask. */
+    private static void sigmask(int how, MemorySegment set, MemorySegment old) {
+        try {
+            if ((int) PTHREAD_SIGMASK.invokeExact(how, set, old) != 0) {
+                throw new Error("pthread_sigmask");
+            }
+        } catch (Error e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new Error(t);
+        }
+    }
+
+    /**
+     * Whether sig is pending for this thread or the process and blocked by
+     * this thread: sigpending(2), which leaves out what this thread does not
+     * block -- an unblocked signal is not pending for it, but on its way.
+     */
     private boolean pending(int sig) {
-        MemorySegment set = scratch; // a sigset_t: 64 bits are the kernel's
+        MemorySegment set = clear(sigSet); // a sigset_t: 64 bits are the kernel's
         try {
             if ((int) SIGPENDING.invokeExact(set) != 0) {
                 return false;

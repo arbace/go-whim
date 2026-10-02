@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -440,6 +441,18 @@ func (h *Host) Raise(sig int32) {
 // signal.Reset would leave the runtime's handler installed, which swallows
 // SIGTSTP, so the kernel action is set to SIG_DFL with rt_sigaction directly
 // and the runtime's own restored after.
+//
+// DEVIATION: the C is one thread, which takes the signal and stops as kill
+// returns.  A Go process is many, and the kernel hands the signal to its first
+// thread, which takes it when it next runs: with the runtime's handler put
+// back at once, that thread found it and did not stop -- the Go editor's
+// :suspend never stopped (0 of 100 runs, the C 100).  So the handler waits
+// until the signal is no longer pending: taken, and the process stopped and
+// continued (or, in an orphaned process group, discarded by the kernel).
+// rt_sigpending reports only what the asking thread blocks, so this goroutine
+// holds its thread and blocks SIGTSTP on it for the kill and the wait: another
+// thread takes it, and until one has, it is pending here.  At most a second,
+// a bound no run has reached.  Braaam's host (Term.suspend) does the same.
 func (h *Host) Suspend() {
 	var old, dfl [4]uint64 // struct kernel_sigaction: handler, flags, restorer, mask
 
@@ -449,11 +462,23 @@ func (h *Host) Suspend() {
 		syscall.Kill(0, syscall.SIGSTOP)
 		return
 	}
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	const tstp = uint64(1) << (syscall.SIGTSTP - 1)
+	set, mask := tstp, uint64(0)
+	syscall.RawSyscall6(syscall.SYS_RT_SIGPROCMASK, 0 /* SIG_BLOCK */, uintptr(unsafe.Pointer(&set)), uintptr(unsafe.Pointer(&mask)), 8, 0, 0)
 	dfl = old
 	dfl[0] = 0 // SIG_DFL
 	syscall.RawSyscall6(syscall.SYS_RT_SIGACTION, uintptr(syscall.SIGTSTP), uintptr(unsafe.Pointer(&dfl)), 0, 8, 0, 0)
 	syscall.Kill(0, syscall.SIGTSTP)
+	for end := time.Now().Add(time.Second); time.Now().Before(end); {
+		var pending uint64
+		if _, _, e := syscall.RawSyscall(syscall.SYS_RT_SIGPENDING, uintptr(unsafe.Pointer(&pending)), 8, 0); e != 0 || pending&tstp == 0 {
+			break
+		}
+	}
 	syscall.RawSyscall6(syscall.SYS_RT_SIGACTION, uintptr(syscall.SIGTSTP), uintptr(unsafe.Pointer(&old)), 0, 8, 0, 0)
+	syscall.RawSyscall6(syscall.SYS_RT_SIGPROCMASK, 2 /* SIG_SETMASK */, uintptr(unsafe.Pointer(&mask)), 0, 8, 0, 0)
 }
 
 // Exit is the C longjmp back to main, which returns the code: here the

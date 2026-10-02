@@ -396,11 +396,17 @@ What differs from the C, each marked DEVIATION in the source:
 - **`raise` of a signal the host catches** runs its handler's effect directly.
 - **`suspend`** sets SIGTSTP to SIG_DFL, sends it to the process group, and
   puts the handler back only once the signal is no longer pending
-  (`sigpending`, at most a second): the JVM is many threads, and the kernel may
-  hand a process-directed signal to another of them a moment after `kill`
-  returns -- measured: with the handler put back at once, the process was not
-  stopped and read the signal as a key. The C is one thread and stops before
-  `kill` returns.
+  (`sigpending`, at most a second): the JVM is many threads, and the kernel
+  hands a process-directed signal to the process's first thread, which takes
+  it when it next runs -- measured: with the handler put back at once, the
+  process was not stopped and read the signal as a key. The C is one thread
+  and stops before `kill` returns. `sigpending` reports only the signals the
+  asking thread BLOCKS, so the thread blocks SIGTSTP for the `kill` and the
+  wait (`pthread_sigmask`); until 2026-10-02 it did not, the wait ended at
+  once, and under load the first thread now and then found the handler back:
+  `TestJavaTermHost` failed 10 of 100 runs under 48 busy loops, every time
+  at the suspend, which read `^[[?1z` (5 on the file, never stopped; 5 on
+  the terminal, the signal not discarded).
 - **The JVM keeps some signals** (SIGSEGV, SIGBUS, SIGFPE, SIGILL, SIGQUIT and
   its own); the editor catches none of them. SIGINT, SIGTERM and SIGHUP are
   taken from the JVM's shutdown hooks, which the editor does not use; `-Xrs`
@@ -467,7 +473,9 @@ file: the size, the modes, input with and without a timeout, SIGWINCH raised
 and SIGWINCH, SIGINT, SIGTSTP and SIGTERM delivered by kill(1), a delay, a
 suspend (stopped and continued on the file; discarded by the kernel on the
 pseudo-terminal, whose probe leads an orphaned process group), stderr and the
-exit status -- 4 runs of 4 alike. `braaam/braaam_test.go` requires `Cut` to
+exit status -- 200 runs of 200 alike under 48 busy loops (the load
+average 77-95), where 10 of 100 had failed before the suspend blocked
+SIGTSTP (above). `braaam/braaam_test.go` requires `Cut` to
 give the Makefile's bytes, and `whim java` to build a launcher that runs.
 
 ### How far Editor.java runs
