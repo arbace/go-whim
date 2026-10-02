@@ -153,12 +153,35 @@ const coreScript = `(compile-library "whimsical/editor.ss" "whimsical/editor.so"
 // restScript compiles the host's libraries and the launcher, as main.ss
 // imports them, makes the boot file, and converts it and Chez's petite.boot
 // to vfasl; after the settings.
-const restScript = `(compile-file "main.ss" "main.so")
-(make-boot-file "whimsical.boot" '("petite")
+//
+// In the release build the boot file is made for start-up (doc/SCHEME.md,
+// §15): its libraries are copies stripped of their compile-time
+// information -- the macros and the import's metadata, which a program
+// compiled already never asks for; the .so files beside the sources keep
+// it, for a program compiled against them -- and the two vfasl files are
+// not compressed, so that loading them is copying them, not LZ4's
+// decompression.  The debugging build keeps everything, compressed.
+func (m Mode) restScript() string {
+	const compile = `(compile-file "main.ss" "main.so")
+`
+	if m == Debug {
+		return compile + `(make-boot-file "whimsical.boot" '("petite")
   "whimsical/rt.so" "whimsical/editor.so" "whimsical/printf.so" "whimsical/host.so" "whimsical/term.so" "main.so")
 (vfasl-convert-file "whimsical.boot" "whimsical-v.boot" '("petite"))
 (vfasl-convert-file (string-append (car (command-line-arguments)) "/petite.boot") "petite-v.boot" '())
 `
+	}
+	return compile + `(define libs '("whimsical/rt" "whimsical/editor" "whimsical/printf" "whimsical/host" "whimsical/term" "main"))
+(for-each (lambda (f)
+            (strip-fasl-file (string-append f ".so") (string-append f ".boot.so")
+              (fasl-strip-options compile-time-information inspector-source source-annotations)))
+  libs)
+(apply make-boot-file "whimsical.boot" '("petite") (map (lambda (f) (string-append f ".boot.so")) libs))
+(fasl-compressed #f)
+(vfasl-convert-file "whimsical.boot" "whimsical-v.boot" '("petite"))
+(vfasl-convert-file (string-append (car (command-line-arguments)) "/petite.boot") "petite-v.boot" '())
+`
+}
 
 // Compile writes the embedded sources into dir/src and compiles them, with
 // the generated library, into the program at out, in mode m: the core's
@@ -187,7 +210,7 @@ func Compile(dir, out string, m Mode) (string, Stats, error) {
 	if err := writeIfDiffers(core, []byte(m.settings()+coreScript)); err != nil {
 		return "", st, err
 	}
-	if err := writeIfDiffers(filepath.Join(dir, "rest.ss"), []byte(m.settings()+restScript)); err != nil {
+	if err := writeIfDiffers(filepath.Join(dir, "rest.ss"), []byte(m.settings()+m.restScript())); err != nil {
 		return "", st, err
 	}
 	if stale(filepath.Join(dir, "whimsical", "editor.so"), editor, filepath.Join(dir, "whimsical", "rt.ss"), core) {

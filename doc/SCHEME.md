@@ -8,7 +8,7 @@ as the C does, with a control of its own, and the heavy case runs at 0.9-1.0
 times the C. It was surveyed and measured here the same day, before it was
 scheduled (§1-§8, kept as they were written: Chez Scheme chosen by
 measurement); the design held as §4 and §8 settled it, and what was built
-is recorded milestone by milestone after them (§9-§15), with what
+is recorded milestone by milestone after them (§9-§16), with what
 `doc/SCHEME-IDIOMS.md` then made of the output.
 
 ```
@@ -1029,7 +1029,7 @@ place of `--scheme` (its two builds kept in
 
 Measured 2026-10-02 (the load average 3-8, other agents building):
 
-| | release (`bin/whimsical`) | debug (`bin/whimsical-debug`) |
+| | release (`bin/whimsical`, before §15) | debug (`bin/whimsical-debug`) |
 |---|---:|---:|
 | chez on the core | 27.6 s, 0.63 GB | **45.9 s** (47.5 45.9 44.3), **1.29 GB** (1.37 1.29 1.29) |
 | the vfasl boot file of the libraries | 2.2 MB | 14.2 MB |
@@ -1042,7 +1042,84 @@ Measured 2026-10-02 (the load average 3-8, other agents building):
 and 6 pty cases -- so no case of either suite reaches a check the release
 build skips.
 
-## 15. Not done
+## 15. Start-up
+
+§11 measured 46.0 ms to start and quit, against §8.2's 37.5 for a synthetic
+core of the editor's size. Profiled (2026-10-02, the load average 3-6):
+`perf record` over a hundred runs of `:q!`, Chez's `statistics` and
+timestamps in a launcher of our own, and programs that stop earlier -- the
+kernel and `petite.boot` with an empty application, the editor's boot file
+loaded and `(exit 0)` at once, the editor run -- each the median of 20
+runs, three times (`hyperfine --input`, `:q!` from a file, `WHIM_TIME` set),
+in two rounds:
+
+| | before (ms) | after (ms) |
+|---|---:|---:|
+| Chez's kernel and petite.boot, an empty application | 26.9-29.2 | 23.4-26.0 |
+| and the editor's libraries loaded, `(exit 0)` at once | 38.5-42.0 | 26.4-28.2 |
+| and the editor run to its `:q!` | 43.5-55.0 | 30.6-33.9 |
+
+Where the time went, before:
+
+- **Loading the boot files** (`Sbuild_heap`, 30-50 ms by timestamps in
+  `main`, the editor's run 6-10 after it): the profile's first entry was LZ4's decompression
+  (15 % of the samples) -- `vfasl-convert-file` writes a compressed file
+  when `fasl-compressed` is on, as it is by default -- then `S_vfasl`
+  itself (11 %), the kernel clearing the pages the heap is copied into (10
+  %, and 10 % more in page faults), the symbols interned (3 %). The
+  editor's own boot file was 9-13 ms of it: 2.2 MB compressed, 8.4 MB of
+  vfasl, 3.3 MB of which is what stripping the compile-time information
+  takes -- the libraries' macros and the metadata `import` reads, which a
+  program compiled already never asks for.
+- **The libraries' initialization**: nothing measurable. The top level of
+  `(whimsical editor)` defines procedures and constants; the image is
+  written by `new-editor`.
+- **`new-editor`**: about 4 ms -- the editor's 1.16 GiB bytevector made
+  (2.3-2.6 ms: Chez sets up each segment of it, though its pages stay
+  untouched) and the collection its size requests (1.4-1.7 ms, the one
+  collection of the run); the image's 177 KB and the frames zeroed are
+  nothing beside them.
+- **The host and `vim_main` to its exit**: the terminal host under 0.01 ms,
+  `vim_main` 1.5 ms.
+
+What changed: `whim whimsical` builds the release boot file from copies of
+the libraries stripped of their compile-time information (`strip-fasl-file`
+with `compile-time-information`, `inspector-source` and
+`source-annotations`; the `.so` files beside the sources keep it, for a
+program compiled against them, as `TestEditorsAreInstances` is), and writes
+both vfasl files uncompressed: loading them is a copy, not a
+decompression. The debugging build (§14) keeps everything, compressed.
+
+- start-up **45 -> 35 ms**: the medians of six rounds of three, 43.4-55.0
+  before and 30.6-36.4 after (the load average 3-6; 30.3-32.5 in quieter
+  rounds); of the 10-15 ms, about 4 are petite.boot's decompression and the
+  rest the editor's;
+- the program 5.7 MB -> 16.7 MB (petite's vfasl 2.9 -> 11.0 MB, the
+  editor's 2.2 -> 5.1 MB); the peak resident set 47 -> 52 MB (`/usr/bin/time`);
+- every byte the editor writes the same (`:q!` compared), `whim test
+  --scheme` and `--wide --scheme` as before -- all 80 and all 240 as the C,
+  the controls seen by 76, and by 94 keys and 6 pty cases -- and the heavy
+  case 0.9 times the C.
+
+Measured and declined:
+
+- **petite.boot alone uncompressed**, the editor's stripped boot file
+  compressed (a 13.3 MB program): 34.8-35.8 ms against 30.6-32.5 for both
+  uncompressed in the same rounds; **stripping alone**, both compressed:
+  38.9-44.3 against 46.9-48.6;
+- **skipping the collection the bytevector's size requests** (a
+  `collect-request-handler` that passes the first request): 31.3-34.7 ms
+  against 29.6-30.3 without, nothing measurable -- and it only defers the
+  collection to the next request;
+- **a smaller memory**: the arena is the C host's 1 GiB, and the
+  bytevector cannot grow under the procedures that hold it.
+
+So the editor starts in about 35 ms under load and 31 quietly, against
+§8.2's 37.5 for the synthetic core; what is left is Chez's own floor --
+the kernel and petite.boot, 22-26 ms with an empty application -- 2-3 ms
+for the editor's libraries, and 4-6 ms for the editor.
+
+## 16. Not done
 
 - **Records for the C's structs, Scheme strings for its strings**: declined
   in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects.
