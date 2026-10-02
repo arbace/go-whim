@@ -1,4 +1,4 @@
-package sweep
+package ccwalk
 
 import (
 	"os"
@@ -46,7 +46,7 @@ func TestWalkGen(t *testing.T) {
 			seen[reflect.TypeOf(n)] = true
 			return true
 		})
-		walk(ast.TranslationUnit, func(n cc.Node) bool { got = append(got, n); return true })
+		Walk(ast.TranslationUnit, func(n cc.Node) bool { got = append(got, n); return true })
 		if len(got) != len(want) {
 			t.Fatalf("%s: walk visits %d nodes, reflection %d", file, len(got), len(want))
 		}
@@ -60,7 +60,7 @@ func TestWalkGen(t *testing.T) {
 		k := 0
 		walkReflectOnly(ast.TranslationUnit, func(n cc.Node) bool { wp = append(wp, n); k++; return k%3 != 0 })
 		k = 0
-		walk(ast.TranslationUnit, func(n cc.Node) bool { gp = append(gp, n); k++; return k%3 != 0 })
+		Walk(ast.TranslationUnit, func(n cc.Node) bool { gp = append(gp, n); k++; return k%3 != 0 })
 		if len(wp) != len(gp) {
 			t.Fatalf("%s: pruned walk visits %d nodes, reflection %d", file, len(gp), len(wp))
 		}
@@ -71,7 +71,7 @@ func TestWalkGen(t *testing.T) {
 		}
 		var wt, gt []cc.Token
 		walkTokReflectOnly(ast.TranslationUnit, func(tk cc.Token) { wt = append(wt, tk) })
-		walkTok(ast.TranslationUnit, func(tk cc.Token) { gt = append(gt, tk) })
+		WalkTok(ast.TranslationUnit, func(tk cc.Token) { gt = append(gt, tk) })
 		if len(wt) != len(gt) {
 			t.Fatalf("%s: walkTok visits %d tokens, reflection %d", file, len(gt), len(wt))
 		}
@@ -99,7 +99,7 @@ func TestWalkGen(t *testing.T) {
 		}
 		g, ok := genFields[e.Name()]
 		if !ok {
-			t.Errorf("%s: not generated (go generate ./sweep)", e.Name())
+			t.Errorf("%s: not generated (go generate ./ccwalk)", e.Name())
 			continue
 		}
 		if !reflect.DeepEqual(append([]string{}, g...), append([]string{}, fs...)) {

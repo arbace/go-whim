@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/ccwalk"
 )
 
 // MACRO-INVOCATION RECOVERY.
@@ -50,6 +51,31 @@ type expansions struct {
 // values and spends its time in the collector.  Measured on the core: 37
 // seconds that way, under three this way.
 var tokenType = reflect.TypeOf(cc.Token{})
+
+// tokens records every token's offset: walk's first pass, by
+// crefactor/ccwalk's generated walk rather than reflection -- the same
+// tokens in the same order (TestTokensWalk), at a fraction of the cost: the
+// reflective pass was 88 s of CPU in an in-order build, most of it
+// reflect.(*rtype).Field.
+func (x *expansions) tokens(n cc.Node) {
+	ccwalk.WalkTok(n, x.token)
+}
+
+// token records one token, as walk does.
+func (x *expansions) token(tk cc.Token) {
+	if tk.SrcStr() == "" {
+		return
+	}
+	p := tk.Position()
+	off := x.offset(p.Line, p.Column)
+	if off < 0 {
+		return
+	}
+	x.count[off]++
+	if x.count[off] == 1 {
+		x.says[off] = tk.SrcStr()
+	}
+}
 
 // walk records every token's offset, and -- when spans is not nil -- the first
 // and last token offset of every node.
@@ -116,7 +142,7 @@ func (e *emitter) scan(n cc.Node) *expansions {
 		src:   e.src,
 		line:  e.lineAt,
 	}
-	x.walk(reflect.ValueOf(n), nil)
+	x.tokens(n)
 	offs := make([]int, 0, len(x.count))
 	for off := range x.count {
 		offs = append(offs, off)

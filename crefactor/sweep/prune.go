@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/ccwalk"
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
@@ -1228,90 +1228,6 @@ func Span(n cc.Node, path string, src []byte) (int, int) {
 	return lo, hi
 }
 
-// fields is, per node type, which fields a walk visits: the exported ones
-// holding a node or a token.  Asking reflect for them at every node was most of
-// a sweep's time; they are a fact about the type.
-var fields sync.Map // reflect.Type -> []fieldAt
-
-type fieldAt struct {
-	i     int
-	token bool
-}
-
-var (
-	nodeType  = reflect.TypeOf((*cc.Node)(nil)).Elem()
-	tokenType = reflect.TypeOf(cc.Token{})
-)
-
-func fieldsOf(t reflect.Type) []fieldAt {
-	if f, ok := fields.Load(t); ok {
-		return f.([]fieldAt)
-	}
-	var out []fieldAt
-	for i := 0; i < t.NumField(); i++ {
-		sf := t.Field(i)
-		if !sf.IsExported() {
-			continue
-		}
-		switch {
-		case sf.Type == tokenType:
-			out = append(out, fieldAt{i, true})
-		case sf.Type.Implements(nodeType), sf.Type.Kind() == reflect.Interface:
-			// a node, or an interface one is stored in (ExpressionNode)
-			out = append(out, fieldAt{i, false})
-		}
-	}
-	fields.Store(t, out)
-	return out
-}
-
-// walkTokReflect is walkTok by reflection: what the generated walkTok
-// (walk_gen.go) does for a node type it was not generated for.
-func walkTokReflect(n cc.Node, f func(cc.Token)) {
-	v := reflect.ValueOf(n)
-	if n == nil || v.Kind() != reflect.Ptr || v.IsNil() || v.Elem().Kind() != reflect.Struct {
-		return
-	}
-	e := v.Elem()
-	for _, fa := range fieldsOf(e.Type()) {
-		fv := e.Field(fa.i)
-		if fa.token {
-			f(fv.Interface().(cc.Token))
-			continue
-		}
-		if x, ok := fv.Interface().(cc.Node); ok {
-			walkTok(x, f)
-		}
-	}
-}
-
-// walkReflect is walk by reflection: what the generated walk (walk_gen.go)
-// does for a node type it was not generated for.  It was every walk, and
-// most of a sweep's time.
-//
-//go:generate go run ./walkgen
-func walkReflect(n cc.Node, f func(cc.Node) bool) {
-	v := reflect.ValueOf(n)
-	if n == nil || (v.Kind() == reflect.Ptr && v.IsNil()) {
-		return
-	}
-	if !f(n) {
-		return
-	}
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-		return
-	}
-	e := v.Elem()
-	for _, fa := range fieldsOf(e.Type()) {
-		if fa.token {
-			continue
-		}
-		if x, ok := e.Field(fa.i).Interface().(cc.Node); ok {
-			walk(x, f)
-		}
-	}
-}
-
 // locals_ records every identifier that names something below file scope: a
 // use the parser's scopes resolve to a local or a parameter, and the name
 // written in a declarator that is not at file scope.  A reference is by name,
@@ -1401,3 +1317,7 @@ func PositionalMembers(ast *cc.AST, path string, src []byte, opt Options) map[st
 	}
 	return out
 }
+
+// walk and walkTok are crefactor/ccwalk's.
+func walk(n cc.Node, f func(cc.Node) bool) { ccwalk.Walk(n, f) }
+func walkTok(n cc.Node, f func(cc.Token))  { ccwalk.WalkTok(n, f) }
