@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -22,6 +23,7 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 	if o.W == nil {
 		o.W = io.Discard
 	}
+	defer inOrderGC()()
 	src, err := os.ReadFile(o.Src)
 	if err != nil {
 		return nil, err
@@ -274,4 +276,23 @@ func took(n int) string {
 		return fmt.Sprintf("-%d", n)
 	}
 	return fmt.Sprintf("+%d", -n)
+}
+
+// inOrderGC sets the collector for a run in order, and returns what puts it
+// back.  A run holds one text and its parses at a time, so it can trade
+// memory for the collector's time: GOGC 400 and a soft limit of 3 GiB, where
+// the default is 100 and none.  Measured on phases 1-3 from q000, A/B/A/B:
+// CPU 201 and 209 s at 100, 131 and 131 s at 400; peak resident 0.9 GB and
+// 2.0-2.2 GB.  The parallel check (Check) runs a phase per core and is left
+// as it is.  GOGC or GOMEMLIMIT set in the environment is left as set.
+func inOrderGC() (restore func()) {
+	if os.Getenv("GOGC") != "" || os.Getenv("GOMEMLIMIT") != "" {
+		return func() {}
+	}
+	pct := debug.SetGCPercent(400)
+	lim := debug.SetMemoryLimit(3 << 30)
+	return func() {
+		debug.SetGCPercent(pct)
+		debug.SetMemoryLimit(lim)
+	}
 }
