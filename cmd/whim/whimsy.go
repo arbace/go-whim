@@ -29,23 +29,28 @@ func rsGen(editorC, dir, rsOut string) error {
 // cut from it and written as the module `editor`, compiled by cargo with the
 // runtime, the host and the launcher into a program.
 //
-//	whim whimsy [--out DIR] [FILE]
+//	whim whimsy [--out DIR] [--lint] [FILE]
 //
 // FILE is src/whim-vim.c by default and DIR lib/whimsy, where the crate and
 // cargo's target go; the program is bin/whimsy -- or DIR/whimsy when DIR is
-// given. rustc's time and peak memory are printed beside it.
+// given. rustc's time and peak memory are printed beside it; --lint then
+// counts rustc's warnings on the generated module, its #![allow] taken out
+// (whimsy.Lint).
 func runWhimsy(args []string) int {
 	file, out, prog := "src/whim-vim.c", filepath.Join("lib", "whimsy"), filepath.Join("bin", "whimsy")
+	lint := false
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--out" && i+1 < len(args):
 			i++
 			out = args[i]
 			prog = filepath.Join(out, "whimsy")
+		case args[i] == "--lint":
+			lint = true
 		case len(args[i]) > 0 && args[i][0] != '-':
 			file = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim whimsy [--out DIR] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim whimsy [--out DIR] [--lint] [FILE]")
 			return 2
 		}
 	}
@@ -55,5 +60,13 @@ func runWhimsy(args []string) int {
 		return 1
 	}
 	fmt.Printf("  %-12s the core in Rust (whimsy/), built in %s; %s\n", prog, out, st)
+	if lint {
+		counts, err := whimsy.Lint(out)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "whim whimsy --lint: %v\n", err)
+			return 1
+		}
+		fmt.Print(whimsy.LintReport(counts))
+	}
 	return 0
 }

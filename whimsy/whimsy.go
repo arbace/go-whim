@@ -15,12 +15,16 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
 	"syscall"
 	"time"
 
@@ -178,4 +182,94 @@ func writeIfDiffers(path string, b []byte) error {
 		return nil
 	}
 	return os.WriteFile(path, b, 0o644)
+}
+
+// Lint is rustc's own warnings on the generated module of the crate in dir:
+// a copy of the crate, the module's #![allow] taken out and the crate's
+// #![deny(warnings)] with it, checked (`cargo check`), and its warnings in
+// src/editor.rs counted by lint -- the printer's lint measure, as GHC's
+// -Wall is caprice's (doc/RUST-IDIOMS.md, item 0).  Clippy is not used: it
+// is not on the machine.
+func Lint(dir string) (map[string]int, error) {
+	scratch, err := os.MkdirTemp("", "rslint.")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(scratch)
+	if err := WriteSources(scratch); err != nil {
+		return nil, err
+	}
+	b, err := os.ReadFile(filepath.Join(dir, "src", "editor.rs"))
+	if err != nil {
+		return nil, err
+	}
+	b = allowRe.ReplaceAll(b, nil)
+	if err := os.WriteFile(filepath.Join(scratch, "src", "editor.rs"), b, 0o644); err != nil {
+		return nil, err
+	}
+	lib := filepath.Join(scratch, "src", "lib.rs")
+	l, err := os.ReadFile(lib)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.WriteFile(lib, bytes.Replace(l, []byte("#![deny(warnings)]\n"), nil, 1), 0o644); err != nil {
+		return nil, err
+	}
+	o, err := command("cargo", "check", "--offline", "--quiet", "--message-format=json",
+		"--manifest-path", filepath.Join(scratch, "Cargo.toml"), "--target-dir", filepath.Join(scratch, "target")).Output()
+	if err != nil {
+		return nil, fmt.Errorf("cargo check: %v\n%s", err, o)
+	}
+	counts := map[string]int{}
+	for _, line := range bytes.Split(o, []byte("\n")) {
+		var m struct {
+			Reason  string `json:"reason"`
+			Message struct {
+				Level string `json:"level"`
+				Code  *struct {
+					Code string `json:"code"`
+				} `json:"code"`
+				Spans []struct {
+					File string `json:"file_name"`
+				} `json:"spans"`
+			} `json:"message"`
+		}
+		if json.Unmarshal(line, &m) != nil || m.Reason != "compiler-message" || m.Message.Level != "warning" {
+			continue
+		}
+		if len(m.Message.Spans) == 0 || filepath.Base(m.Message.Spans[0].File) != "editor.rs" {
+			continue
+		}
+		code := "(no lint)"
+		if m.Message.Code != nil {
+			code = m.Message.Code.Code
+		}
+		counts[code]++
+	}
+	return counts, nil
+}
+
+// allowRe is the generated module's one #![allow(...)].
+var allowRe = regexp.MustCompile(`(?m)^#!\[allow\([^)]*\)\]\n`)
+
+// LintReport is Lint's counts, most first, and their total.
+func LintReport(counts map[string]int) string {
+	var lints []string
+	total := 0
+	for f, n := range counts {
+		lints = append(lints, f)
+		total += n
+	}
+	sort.Slice(lints, func(i, j int) bool {
+		if counts[lints[i]] != counts[lints[j]] {
+			return counts[lints[i]] > counts[lints[j]]
+		}
+		return lints[i] < lints[j]
+	})
+	var b strings.Builder
+	fmt.Fprintf(&b, "  rustc        %d warnings in editor.rs, its #![allow] taken out\n", total)
+	for _, f := range lints {
+		fmt.Fprintf(&b, "  %7d %s\n", counts[f], f)
+	}
+	return b.String()
 }
