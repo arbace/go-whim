@@ -264,11 +264,15 @@
   (define-mem-in mem (mem-zero! p n) (zero-range! mem p (fx+ p n)))
   (define-mem-in mem (mem-fill! p c n) (fill-range! mem p c n))
 
+  ;; n bytes at p set to c: zeros copied, as zero-range! does, else a byte
+  ;; at a time
   (define (fill-range! mem p c n)
-    (let loop ([i 0])
-      (when (fx< i n)
-        (bytevector-u8-set! mem (fx+ p i) c)
-        (loop (fx+ i 1)))))
+    (if (fx= c 0)
+        (zero-range! mem p (fx+ p n))
+        (let loop ([i 0])
+          (when (fx< i n)
+            (bytevector-u8-set! mem (fx+ p i) c)
+            (loop (fx+ i 1))))))
 
   ;; The bytes of s, a string of characters below 256, written at p: the
   ;; image of the core's initial data.

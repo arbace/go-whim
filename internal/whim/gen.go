@@ -166,6 +166,11 @@ func cljStr(call string) func(string) string {
 	return func(string) string { return "(Str/" + call + ")" }
 }
 
+// scmBody is a Scheme runtime body: text, whatever the result's kind.
+func scmBody(text string) func(string) string {
+	return func(string) string { return text }
+}
+
 func matchLinesClj(string) string {
 	return `(Rt/chunks n (reify whim.rt.Rt$Chunk
               (run [_ from to]
@@ -226,6 +231,12 @@ var Gen = togo.Profile{
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
 		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs, Rs: matchLinesRs, Scm: matchLinesScm},
+		// the memory functions in Scheme: the bytevector's own copy (which
+		// R6RS defines for regions that overlap) and the runtime's fill, not
+		// the musl's loop a byte at a time (doc/SCHEME-IDIOMS.md, item 16)
+		{Name: "musl_memmove", Scm: scmBody("(mem-copy! dest src n)\ndest")},
+		{Name: "musl_memcpy", Scm: scmBody("(mem-copy! dest src n)\ndest")},
+		{Name: "musl_memset", Scm: scmBody("(mem-fill! dest (->u8 c) n)\ndest")},
 		// the C string functions in Java and Clojure: braaam/rt's Str, as the
 		// Go's are editor/libc.go (Runtime above), not the musl translated a
 		// byte and a BytePtr at a time (doc/CLOJURE-IDIOMS.md, item 6)

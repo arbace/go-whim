@@ -2713,36 +2713,18 @@
 
 (define (musl_memcpy ed dest src n)
   (let ([mem (ed-mem ed)])
-    (let loop1 ([n n] [d dest] [s src])
-      (cond
-        [(eqv? n 0) dest]
-        [else (st-u8! d (ld-u8 s)) (loop1 (u64- n 1) (fx+ d 1) (fx+ s 1))]))))
+    (mem-copy! dest src n)
+    dest))
 
 (define (musl_memmove ed dest src n)
   (let ([mem (ed-mem ed)])
-    (define (join7)
-      dest)
-    (cond
-      [(fx=? dest src) dest]
-      [(fx<? dest src)
-       (let loop6 ([n n] [d dest] [s src])
-         (cond
-           [(eqv? n 0) (join7)]
-           [else (st-u8! d (ld-u8 s)) (loop6 (u64- n 1) (fx+ d 1) (fx+ s 1))]))]
-      [else
-       (let loop3 ([n n])
-         (if (eqv? n 0)
-             (join7)
-             (let ([n (u64- n 1)])
-               (st-u8! (fx+ dest (->i64 n)) (ld-u8 (fx+ src (->i64 n))))
-               (loop3 n))))])))
+    (mem-copy! dest src n)
+    dest))
 
 (define (musl_memset ed dest c n)
   (let ([mem (ed-mem ed)])
-    (let loop1 ([n n] [s dest])
-      (cond
-        [(eqv? n 0) dest]
-        [else (st-u8! s (->u8 c)) (loop1 (u64- n 1) (fx+ s 1))]))))
+    (mem-fill! dest (->u8 c) n)
+    dest))
 
 (define (musl_memcmp ed vl vr n)
   (let ([mem (ed-mem ed)])

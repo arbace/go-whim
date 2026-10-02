@@ -258,3 +258,41 @@ func TestScmSigned(t *testing.T) {
 		t.Errorf("signed arithmetic through a wrapping helper:\n%s", numbered(prog))
 	}
 }
+
+// scmMemC moves, copies and fills bytes, overlapping both ways, through
+// functions of its own that whim.Gen's Scheme writes as the runtime's
+// (internal/whim/gen.go, doc/SCHEME-IDIOMS.md item 16): the bodies below
+// are those, required to answer as the C's loops do.
+const scmMemC = javaHost + `
+void *musl_memmove(void *dest, const void *src, unsigned long n) {
+    char *d = dest; const char *s = src;
+    if (d == s) return d;
+    if (d < s) { for (; n; n--) *d++ = *s++; } else { while (n) { n--; d[n] = s[n]; } }
+    return dest;
+}
+void *musl_memcpy(void *dest, const void *src, unsigned long n) { char *d = dest; const char *s = src; for (; n; n--) *d++ = *s++; return dest; }
+void *musl_memset(void *dest, int c, unsigned long n) { unsigned char *s = dest; for (; n; n--) *s++ = c; return dest; }
+void run(void) {
+    char b[32];
+    musl_memset(b, 0, sizeof b);
+    musl_memcpy(b, "abcdefghij", 10); outs(b);
+    musl_memmove(b + 2, b, 6); outs(b);
+    musl_memmove(b, b + 3, 5); outs(b);
+    outs((char *)musl_memset(b + 4, 'z' + 256, 3) - 4);
+    musl_memset(b + 1, 0, 2); outs(b); outs(b + 3);
+    musl_memmove(b, b, 4); musl_memcpy(b, b + 3, 0); outs(b + 3);
+}
+`
+
+func TestScmMemBodies(t *testing.T) {
+	body := func(text string) func(string) string { return func(string) string { return text } }
+	prof := Profile{RuntimeBodies: []RuntimeBody{
+		{Name: "musl_memmove", Scm: body("(mem-copy! dest src n)\ndest")},
+		{Name: "musl_memcpy", Scm: body("(mem-copy! dest src n)\ndest")},
+		{Name: "musl_memset", Scm: body("(mem-fill! dest (->u8 c) n)\ndest")},
+	}}
+	prog := scmSame(t, scmMemC, prof, javaHarnessC)
+	if !strings.Contains(prog, "(mem-copy! dest src n)") {
+		t.Errorf("the runtime's bodies not written:\n%s", numbered(prog))
+	}
+}

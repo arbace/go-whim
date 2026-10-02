@@ -603,7 +603,7 @@ were (sha256, before and after every item).
 | 4 | 13: copies, constants and increments in place -- **done** | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
 | 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` -- **done** | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
 | 6 | 15: signed arithmetic as C means it, `fx+` and `+` -- **done** | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
-| 7 | 16: the memory functions as the bytevector's own | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
+| 7 | 16: the memory functions as the bytevector's own -- **done** | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
 | 8 | 17: case labels by name | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
 | -- | an array's element by index, `(ld-ptr@ a i)` | -- | S | low | 464: declined, below |
 | -- | raw byte loads named | -- | -- | -- | declined, below |
@@ -798,3 +798,27 @@ An unsigned long's `(eqv? n 0)` stays: rewritten as `(zero? n)` it cost
 `long` past Chez's 61-bit fixnums and back) and requires no wrapping
 helper of a signed type; `TestScmControl`'s mutation of `widen_uchar` is
 `(fx+ c 1)`'s now.
+
+### 16. The memory functions as the bytevector's own
+
+`musl_memmove`, `musl_memcpy` and `musl_memset` -- the core's own, a loop a
+byte at a time, called from 228 places -- are runtime bodies now
+(`internal/whim/gen.go`, as `match_lines` is): `(mem-copy! dest src n)`,
+which is R6RS's `bytevector-copy!` of the editor's memory onto itself --
+defined for regions that overlap, as `memmove` is -- and `(mem-fill! dest
+(->u8 c) n)`, whose loop in `rt.ss` now copies zeros where the byte is 0,
+as `mem-zero!` does. The C string functions (`musl_strlen`, `musl_strcmp`
+...) stay the core's: R6RS has no procedure that finds a byte in a
+bytevector, and Chez none that compares two ranges, so the runtime would
+hold the same loops.
+
+| | before | after |
+| --- | ---: | ---: |
+| the three functions | 31 lines, three loops | 12 lines |
+| lines | 58,503 | 58,485 |
+| Chez on the core | 30.5 s, 0.65 GB | 30.1 s, 0.66 GB |
+| the heavy case: instructions / least cycles | 6,927M / 1,903M | **4,826M / 1,557M** (-30 % / -18 %) |
+| ... nine runs interleaved, wall | 451-551 ms (min-median) | 412-513 (the C 466-482); in the suite 0.9-1.2x the C |
+
+`TestScmMemBodies` holds the bodies to gcc's loops on regions overlapping
+both ways, a fill of a byte past 255 and of zeros, and counts of 0.
