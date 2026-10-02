@@ -346,7 +346,7 @@ After items 1, 3 and 4:
 | --- | --- | ---: | --- | --- | --- |
 | 1 | reads and calls in place -- **done** | 29,299 temporaries | M | medium | high |
 | 2 | objects and members by name -- **done** | 10,697 + 8,942 | M | low | high |
-| 3 | `cond`, `when`, no `begin`/`(void)` | 509 + 2,814 + 1,608 | S | none | medium |
+| 3 | `cond`, `when`, no `begin`/`(void)` -- **done** | 509 + 2,814 + 1,608 | S | none | medium |
 | 4 | copies and values passed on | 4,624 | S-M | low-medium | medium |
 | 5 | loops as named `let` | 464 of 906 | M | low | medium |
 | 6 | named constants and characters | 8,690 + 2,327 | S-M | low | medium |
@@ -416,3 +416,21 @@ lives in the frame comes in as `name.in` and is copied into `name`.
 
 (`measure.py`'s copy bindings went 1,599 -> 2,241: a binding of a named
 object's value, `[r1 vcol]`, now reads as one.)
+
+### 3. `cond`, `when` and `unless`; no `begin`, no `(void)`
+
+A branch's arms are body forms (`scm_fn.go`'s `ifForm`): an arm that does
+nothing makes it a `when` or an `unless`; an else that is itself a branch
+goes on into a `cond`, and an `(if (not x) (if ...) e)` is `(cond [x e]
+...)`; an arm of several forms is a `cond` clause, which needs no `begin`;
+a `case` clause takes its forms as they are; a void function's `(void)`
+after another form goes.
+
+| | before | after |
+| --- | ---: | ---: |
+| lines | 60,104 | 55,973 |
+| `if` / `cond` / `when`+`unless` | 8,854 / 0 / 0 | 3,227 / 3,512 / 489 |
+| `begin` | 2,814 | 35 (an expression's effects before its value) |
+| `(void)` | 1,608 | 114 (an arm with nothing else to do) |
+| Chez on the core | 27.4 s, 0.77 GB | 27.3 s, 0.73 GB |
+| the heavy case | 0.9-1.0 times the C | 0.9-1.0 (C 436-442 ms, whimsical 412-428) |

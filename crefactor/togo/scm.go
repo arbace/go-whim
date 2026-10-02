@@ -101,6 +101,7 @@ const scmRuntimeNames = `ed ed? ed-mem ed-sp ed-sp-set! ed-glue make-editor ed-f
 arena-alloc ld-s8 ld-u8 ld-s16 ld-u16 ld-s32 ld-u32 ld-s64 ld-u64 ld-ptr ld-bool
 st-s8! st-u8! st-s16! st-u16! st-s32! st-u32! st-s64! st-u64! st-ptr! st-bool!
 mem-copy! mem-zero! mem-fill! mem-image! mem-bytes mem-string frame-push! frame-pop! c-str
+mem-ref mem-set! define-c-object define-c-local define-c-member
 ->i8 ->u8 ->i16 ->u16 ->i32 ->u32 ->i64 ->u64 b->i
 i32+ i32- i32* i32/ i32% i32<< i32>> u32+ u32- u32* u32/ u32% u32<< u32>>
 i64+ i64- i64* i64/ i64% i64<< i64>> u64+ u64- u64* u64/ u64% u64<< u64>> u32~ u64~

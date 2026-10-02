@@ -60,10 +60,11 @@ type sfn struct {
 	svOf   map[*lvar]*lvar
 	extra  []*lvar
 	isOut  map[*lvar]bool
-	takes  bool // the function takes the editor
-	framed bool // the call has a frame, which a return gives back
+	takes  bool           // the function takes the editor
+	framed bool           // the call has a frame, which a return gives back
 	locals map[*lvar]bool // the variables in the frame named in the body
 	memory bool           // the body reads or writes memory by a name
+	conds  map[string][]sclause
 }
 
 // function prints one function definition, or says why it cannot.
@@ -80,7 +81,8 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		}
 	}()
 	lf := lowerFunction(fd, s.g.a, s.g.p, scmName)
-	f := &sfn{s: s, lf: lf, name: d.Name(), mem: map[*lvar]int{}, takes: s.takesEd(d.Name()), locals: map[*lvar]bool{}}
+	f := &sfn{s: s, lf: lf, name: d.Name(), mem: map[*lvar]int{}, takes: s.takesEd(d.Name()), locals: map[*lvar]bool{},
+		conds: map[string][]sclause{}}
 	ft := lf.ft
 	f.tuple = s.h.tupleRet(d.Name())
 	f.sret = isAggr(ft.Result()) && !f.tuple
@@ -180,7 +182,7 @@ func (f *sfn) print() string {
 		forms = append(forms, p.expr)
 	}
 	if f.inline[f.start] {
-		forms = append(forms, f.body(f.start, 0)...)
+		forms = append(forms, scmDropVoid(f.body(f.start, 0))...)
 	} else {
 		forms = append(forms, f.jump(f.start))
 	}
@@ -409,7 +411,7 @@ func (f *sfn) block(b *lblock) string {
 		f.cur[v] = f.base[v]
 		head = append(head, f.base[v])
 	}
-	return "(define (" + strings.Join(head, " ") + ")\n" + indent(strings.Join(f.body(b, 0), "\n"), 2) + ")"
+	return "(define (" + strings.Join(head, " ") + ")\n" + indent(strings.Join(scmDropVoid(f.body(b, 0)), "\n"), 2) + ")"
 }
 
 // body is block b's forms where the printing is (f.cur): its steps, and
@@ -435,15 +437,83 @@ func (f *sfn) run(b *lblock, depth int) string {
 	return f.term(b, depth)
 }
 
-// arm is the code that goes to s: a jump, or s written in place, one
-// expression.
-func (f *sfn) arm(s *lblock, depth int, cur map[*lvar]string) string {
+// arm is the code that goes to s: a jump, or s written in place, as body
+// forms.
+func (f *sfn) arm(s *lblock, depth int, cur map[*lvar]string) []string {
 	if !f.inline[s] {
 		f.cur = cur
-		return f.jump(s)
+		return []string{f.jump(s)}
 	}
 	f.cur = maps.Clone(cur)
-	return scmBegin(f.body(s, depth+1))
+	return scmDropVoid(f.body(s, depth+1))
+}
+
+// scmDropVoid is forms without a void function's (void) after another
+// form: what it returns is not looked at.
+func scmDropVoid(forms []string) []string {
+	if n := len(forms); n > 1 && forms[n-1] == "(void)" {
+		return forms[:n-1]
+	}
+	return forms
+}
+
+// sclause is a cond's clause: a test and its forms.
+type sclause struct {
+	test  string
+	forms []string
+}
+
+// ifForm is the branch on c to then or els, each body forms: a when or an
+// unless where the other does nothing, an if of two forms, else a cond --
+// into which an els that is a cond or an if goes on.
+func (f *sfn) ifForm(c string, then, els []string) string {
+	isVoid := func(fs []string) bool { return len(fs) == 1 && fs[0] == "(void)" }
+	switch {
+	case isVoid(els) && !isVoid(then):
+		return scmKeyword("when", c, then)
+	case isVoid(then) && !isVoid(els):
+		return scmKeyword("unless", c, els)
+	}
+	_, thenCond := f.conds[then[0]]
+	_, elsCond := f.conds[els[0]]
+	if len(then) == 1 && thenCond && !(len(els) == 1 && elsCond) && strings.HasPrefix(c, "(not ") && strings.HasSuffix(c, ")") {
+		// (if (not x) (if ...) e) is (cond [x e] ...)
+		return f.ifForm(c[len("(not "):len(c)-1], els, then)
+	}
+	clauses := []sclause{{c, then}}
+	if len(els) == 1 {
+		if more, ok := f.conds[els[0]]; ok {
+			clauses = append(clauses, more...)
+			return f.cond(clauses)
+		}
+	}
+	if len(then) == 1 && len(els) == 1 {
+		s := scmIf(c, then[0], els[0])
+		f.conds[s] = []sclause{{c, then}, {"else", els}}
+		return s
+	}
+	return f.cond(append(clauses, sclause{"else", els}))
+}
+
+// cond is a cond of clauses, remembered: an if whose else it is goes on
+// into it.
+func (f *sfn) cond(clauses []sclause) string {
+	var cs []string
+	for _, cl := range clauses {
+		cs = append(cs, scmArm(cl.test, cl.forms))
+	}
+	s := "(cond\n" + indent(strings.Join(cs, "\n"), 2) + ")"
+	f.conds[s] = clauses
+	return s
+}
+
+// scmKeyword is (kw c forms...): a when or an unless.
+func scmKeyword(kw, c string, forms []string) string {
+	one := "(" + kw + " " + c + " " + strings.Join(forms, " ") + ")"
+	if !strings.Contains(one, "\n") && len(one) <= 100 {
+		return one
+	}
+	return "(" + kw + " " + scmHang(c, len(kw)+2) + "\n" + indent(strings.Join(forms, "\n"), 2) + ")"
 }
 
 // scmBegin is forms as one expression.
@@ -903,7 +973,7 @@ func (f *sfn) term(b *lblock, depth int) string {
 		cur := f.cur
 		then := f.arm(f.resolve(t.to[0]), depth, cur)
 		els := f.arm(f.resolve(t.to[1]), depth, cur)
-		return scmIf(cv, then, els)
+		return f.ifForm(cv, then, els)
 	case tSwitch:
 		x := f.lexpr(t.cond)
 		if x.st == "bool" {
@@ -974,13 +1044,13 @@ func scmIf(c, a, b string) string {
 	return "(if " + scmHang(c, 4) + "\n" + indent(a, 4) + "\n" + indent(b, 4) + ")"
 }
 
-// scmArm is a case's clause.
-func scmArm(labels, body string) string {
-	one := "[" + labels + " " + body + "]"
+// scmArm is a case's or a cond's clause.
+func scmArm(labels string, forms []string) string {
+	one := "[" + labels + " " + strings.Join(forms, " ") + "]"
 	if !strings.Contains(one, "\n") && len(one) <= 100 {
 		return one
 	}
-	return "[" + labels + "\n" + indent(body, 1) + "]"
+	return "[" + scmHang(labels, 1) + "\n" + indent(strings.Join(forms, "\n"), 1) + "]"
 }
 
 // result is the function's result v, its frame given back first.
