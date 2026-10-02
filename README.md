@@ -143,7 +143,7 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  HASKELL.md, RUST.md, the *-IDIOMS.md surveys, GO-LISP.md,
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation),
-                 WASM.md (a preliminary plan, not scheduled)
+                 SCHEME.md (a Scheme editor surveyed and measured, not scheduled)
 CLAUDE.md        the working guide: the build, the pipeline, what to know
                  before changing anything shared
 ```

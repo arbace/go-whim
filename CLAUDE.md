@@ -434,9 +434,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in
                    the heavy case, beside the C's, and the change it chose), HASKELL.md (caprice, the Haskell editor:
                    its design and what was measured), RUST.md (whimsy, the Rust
-                   editor: its design and its milestones), WASM.md (a preliminary
-                   plan, not scheduled, for the Go editor in a
-                   browser: what compiles already, the host it would need),
+                   editor: its design and its milestones),
                    SCHEME.md (a Scheme editor surveyed and measured: Chez Scheme, not scheduled), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
