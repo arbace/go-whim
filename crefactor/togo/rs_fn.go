@@ -177,42 +177,67 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	return b.String(), ""
 }
 
-// sinkDecls declares a local where the body first gives it a value, when
-// that is a statement of the function's own block -- `let x: T = v;` for
-// the top's `let mut x: T = 0;` and the body's `x = v;` -- `mut` only when
-// the rest of the body writes it again.  A statement at the function's own
-// level is inside no loop and no labeled block, so every path to a later
-// use passes it, and the zero it replaces was never read.
+// sinkDecls declares a local where the body first gives it a value
+// (doc/RUST-IDIOMS.md, item 5): when its first mention is a statement `x =
+// v;` of some block, and every mention is inside that block, the statement
+// is its declaration, `let x: T = v;`, for the top's `let mut x: T = 0;` --
+// `mut` only when the rest of the body writes it again.  The statement is
+// at the block's own level, so every path to a later mention in the block
+// passes it; inside a loop the variable is a new one each time round, which
+// is right because the assignment comes first, so no iteration reads the
+// one before's; and the zero it replaces was never read.  Names are unique
+// in a function, so nothing is shadowed, and rustc refuses a read it cannot
+// see initialized.
 func (f *rfn) sinkDecls(body string) string {
 	lines := strings.Split(body, "\n")
 	code := make([]string, len(lines))
 	for i, l := range lines {
 		code[i] = rsStrRe.ReplaceAllString(l, `b""`)
 	}
+	indent := func(s string) int { return len(s) - len(strings.TrimLeft(s, " ")) }
 	for _, l := range f.order {
 		if l.param || l.unused {
 			continue
 		}
 		// the local, not a member of the same name: `(*p).lnum` is no use of lnum
 		word := regexp.MustCompile(`(^|[^.\w])` + regexp.QuoteMeta(l.name) + `\b`)
-		first := -1
+		var ms []int
 		for i, c := range code {
 			if word.MatchString(c) {
-				first = i
-				break
+				ms = append(ms, i)
 			}
 		}
-		if first < 0 {
+		if len(ms) == 0 {
 			continue
 		}
+		first := ms[0]
 		line := lines[first]
-		prefix := "    " + l.name + " = "
-		if !strings.HasPrefix(line, prefix) || strings.HasPrefix(line, "     ") || !strings.HasSuffix(line, ";") {
+		ind := indent(line)
+		prefix := strings.Repeat(" ", ind) + l.name + " = "
+		if !strings.HasPrefix(line, prefix) || !strings.HasSuffix(line, ";") {
 			continue
 		}
 		rhs := strings.TrimSuffix(strings.TrimPrefix(code[first], prefix), ";")
 		if word.MatchString(rhs) || !rsBalanced(rhs) {
 			continue
+		}
+		if ind > 4 {
+			// the block holding it: opened by the nearest line above at a
+			// lesser indentation, closed by the nearest below
+			open := first - 1
+			for open >= 0 && (indent(lines[open]) >= ind || strings.TrimSpace(lines[open]) == "") {
+				open--
+			}
+			if open < 0 || !strings.HasSuffix(lines[open], "{") || indent(lines[open]) != ind-4 {
+				continue
+			}
+			end := first + 1
+			for end < len(lines) && (indent(lines[end]) >= ind || strings.TrimSpace(lines[end]) == "") {
+				end++
+			}
+			if end == len(lines) || ms[len(ms)-1] >= end || !strings.HasPrefix(strings.TrimSpace(lines[end]), "}") {
+				continue
+			}
 		}
 		write := regexp.MustCompile(`(^|[^.\w*])` + regexp.QuoteMeta(l.name) + `(\.\w+|\[[^\]]*\])*\s(\+|-|\*|/|%|&|\||\^|<<|>>)?=[^=]|&raw mut ` + regexp.QuoteMeta(l.name) + `\b`)
 		mut := ""
@@ -222,7 +247,7 @@ func (f *rfn) sinkDecls(body string) string {
 				break
 			}
 		}
-		lines[first] = "    let " + mut + l.name + ": " + l.declTy(f.r) + " = " + strings.TrimPrefix(line, prefix)
+		lines[first] = strings.Repeat(" ", ind) + "let " + mut + l.name + ": " + l.declTy(f.r) + " = " + strings.TrimPrefix(line, prefix)
 		l.sunk = true
 	}
 	return strings.Join(lines, "\n")
