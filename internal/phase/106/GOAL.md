@@ -1,6 +1,7 @@
 # Phase 106 — `nullptr` and `usize`
 
-> **Where it runs now (2026-10-02).** This rename is the seed's one step:
+> **Where it runs now (2026-10-02).** This rename is the seed's first step
+> (105's collapse and 107's attributes follow it there):
 > phase 0 prints the input canonically and runs `whim106 --casts 1` on it,
 > so every later phase is written in C23's spelling, the product's. At the
 > seed it renames 7,617 `NULL` and 778 `size_t` (346 casts, 432

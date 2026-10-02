@@ -234,7 +234,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"it in the same step -- nothing in the build checks the count"},
 		{`curbuf->b_p_ro ? (shortmess(SHM_RO) ? _("[RO]") : _("[readonly]")) : "", `, "",
 			"the [RO]/[readonly] argument itself, which is SHM_RO's only reader"},
-		{` || curbuf->b_p_ro) ? " " : "");`, `) ? " " : "");`,
+		{` || curbuf->b_p_ro) ? " " : ""));`, `) ? " " : ""));`,
 			"and the trailing-space test's `|| curbuf->b_p_ro` disjunct"},
 		// ---- C3. the [RO] on the status line
 		{` || wp->w_buffer->b_p_ro) && plen < PATH_MAX - 1)`, `) && plen < PATH_MAX - 1)`,

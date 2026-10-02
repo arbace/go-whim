@@ -36,9 +36,10 @@ Nothing known.
   - `BoolRet` once: 120 lines differ.
   - The attributes (107), not tried at the end: they must precede 120, 134
     and 149, which cannot move. They moved the other way, to the seed, after
-    `NullptrUsize` (106) (§7, G): 282 lines of phases 1-105's programs,
-    cutters and vendored C respelled for 106, 14 for 107, the chain byte
-    for byte.
+    `NullptrUsize` (106) (§7, G), and the variadic collapse (105) with
+    them: 282 lines of phases 1-105's programs, cutters and vendored C
+    respelled for 106, 14 for 107, 6 lines and 4 counts for 105, the chain
+    byte for byte.
 
   Declined: the rewires are written for these steps' text.
 

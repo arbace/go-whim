@@ -1028,6 +1028,28 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      `g01-variadics`, under its own number. The chain gives the product byte
      for byte. In order: 124 phases, 820 s (the seed 11 s, phases 1-3 40,
      43 and 45 s); the parallel check: 123 links, 84 s.
+   - **The variadic collapse (105) to the seed, done.** Phase 0 runs
+     `whim105` between `whim106` and `whim107`, and 105 has no plan entry:
+     the 105-107 group is gone, and with it the block `g01` (38 blocks).
+     At the seed the seven wrappers have 297 call sites where q104 had 129
+     (smsg 40, smsg_attr 2, smsg_attr_keep 1, semsg 212, siemsg 13,
+     vim_snprintf_add 2, vim_snprintf_safelen 27): 244 statements, 53 in
+     value position; `va_start` goes 8 -> 1 there too, and phase 0 is 3 s
+     longer. Two changes to the program: 7 sites pass no variadic argument,
+     each a literal format without `%`, which `vim_snprintf` copies as it
+     is, and the rule now takes them (it refused any); and the append's
+     length is `strlen`, which phase 97 renames with every other. Not only
+     spelling: the expansion writes each message format twice, and the
+     phases before 105 were written for one call. Yet what moved is small,
+     measured on the chain: 6 lines respelled -- phase 74's inserted body
+     (two `semsg` calls, as 105 expands them), 93's two literals and 95's
+     anchor on `fileinfo`'s safelen, now closed by one more `)` -- and 4 of
+     phase 104's counts re-measured: `printf` 13 -> 7 before and 10 -> 4
+     after (the six wrapper prototypes' `format(printf, ...)` are gone),
+     `vim_snprintf` 73 -> 201 and `musl_strlen` 134 -> 135 after it. The
+     chain gives the product byte for byte. In order: 123 phases, 815 s
+     (the seed 14 s, phases 1-3 40, 43 and 44 s); the parallel check: 122
+     links, 88 s.
    - **168 into `GotoTail`, done.** With 168's program removed, 170 takes
      its 19 gotos as tails of no statements, and the chain gives the product
      byte for byte. `GotoTail` now takes 98 gotos and drops 21 labels. 168

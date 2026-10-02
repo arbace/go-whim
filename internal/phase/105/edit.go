@@ -210,16 +210,20 @@ import (
 func init() { phase.Register("whim105", Edit) }
 
 // w105Wrap is the seven wrappers that walk a va_list, and their whole-file
-// mention totals in q104.  `vim_snprintf`'s OWN count is deliberately NOT
+// mention totals at the seed (in q104 they were 12 4 2 96 12 3 13).  `vim_snprintf`'s OWN count is deliberately NOT
 // asserted up front: phase 104 formats its host message with it, so the number
 // before the edit is the message layer's business and not this phase's.
 var w105Wrap = []struct {
 	Name string
 	want int
 }{
-	{"smsg", 12}, {"smsg_attr", 4}, {"smsg_attr_keep", 2}, {"semsg", 96},
-	{"siemsg", 12}, {"vim_snprintf_add", 3}, {"vim_snprintf_safelen", 13},
+	{"smsg", 42}, {"smsg_attr", 4}, {"smsg_attr_keep", 2}, {"semsg", 214},
+	{"siemsg", 15}, {"vim_snprintf_add", 4}, {"vim_snprintf_safelen", 29},
 }
+
+// w105Sites is the call sites the seven wrappers have at the seed (phase 0),
+// where this phase runs now: 129 when it ran after phase 104.
+const w105Sites = 297
 
 var w105Room = map[string]string{
 	"smsg": "iobuff_room()", "smsg_attr": "iobuff_room()",
@@ -291,8 +295,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	vsBefore := mentions(t, "vim_snprintf")
-	p.Say("the input is r21: eight functions call `va_start`, seven of them wrappers over the " +
-		"eighth, and their mention totals are 12 4 2 96 12 3 13")
+	p.Say("the input is the seed's: eight functions call `va_start`, seven of them wrappers over " +
+		"the eighth, and their mention totals are 42 4 2 214 15 4 29")
 
 	// ---- 1. the seven definitions ---------------------------------------------
 	for _, sig := range []string{
@@ -403,6 +407,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	shapes := map[string]int{"statement": 0, "value": 0}
+	// plain is a format a site may pass with no variadic argument: a string
+	// literal without `%`, which vim_snprintf copies as it is.
+	nPlain := 0
+	plain := func(f string) bool {
+		if strings.HasPrefix(f, "\"") && strings.HasSuffix(f, "\"") && !strings.Contains(f, "%") {
+			nPlain++
+			return true
+		}
+		return false
+	}
 	counts := map[string]int{}
 	for _, n := range names {
 		counts[n] = 0
@@ -444,24 +458,24 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		case "vim_snprintf_safelen":
 			// ALWAYS AN EXPRESSION: the value is consumed at every one of the
 			// eleven sites, five of them `+=`, so two statements cannot say this.
-			if len(args) < 4 {
+			if len(args) < 3 || len(args) == 3 && !plain(args[2]) {
 				return nil, p.Die("vim_snprintf_safelen with %d arguments", len(args))
 			}
 			rep = fmt.Sprintf("safelen_result(%s, %s, vim_snprintf(%s))",
 				args[0], args[1], strings.Join(args, ", "))
 			shapes["value"]++
 		case "vim_snprintf_add":
-			if len(args) < 4 {
+			if len(args) < 3 || len(args) == 3 && !plain(args[2]) {
 				return nil, p.Die("vim_snprintf_add with %d arguments", len(args))
 			}
-			rep = fmt.Sprintf("vim_snprintf(%s +  musl_strlen((char *)(%s)) , append_room(%s, %s), %s)",
+			rep = fmt.Sprintf("vim_snprintf(%s +  strlen((char *)(%s)) , append_room(%s, %s), %s)",
 				args[0], args[0], args[0], args[1], strings.Join(args[2:], ", "))
 			shapes["value"]++
 		default:
 			nl := w105Lead[name]
-			if len(args) < nl+2 {
-				return nil, p.Die("`%s` with %d arguments -- no site passes zero variadic arguments",
-					name, len(args))
+			if len(args) < nl+1 || len(args) == nl+1 && !plain(args[nl]) {
+				return nil, p.Die("`%s` with %d arguments -- a site that passes no variadic argument "+
+					"must pass a literal without `%%`, which vim_snprintf copies as it is", name, len(args))
 			}
 			f := args[nl]
 			a := fmt.Sprintf("vim_snprintf((char *)IObuff, %s, %s)",
@@ -507,8 +521,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return strings.Join(Out, " ")
 	}
-	if total != 129 {
-		return nil, p.Die("%d call sites, expected 129 -- %s", total, tally())
+	if total != w105Sites {
+		return nil, p.Die("%d call sites, expected %d -- %s", total, w105Sites, tally())
 	}
 	for _, wr := range w105Wrap {
 		if k := mentions(t, wr.Name); k != 0 {
@@ -533,11 +547,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for i, n := range names {
 		commaTally[i] = fmt.Sprintf("%s %d", n, counts[n])
 	}
-	p.Sayf("129 call sites expanded: %s", strings.Join(commaTally, ", "))
+	p.Sayf("%d call sites expanded: %s", total, strings.Join(commaTally, ", "))
 	p.Sayf("%d statements, %d in value "+
-		"position -- the 18 `return (semsg(...), rc_did_emsg = TRUE, nullptr)` comma "+
-		"expressions, the 11 safelens whose value is consumed, and the one append",
-		shapes["statement"], shapes["value"])
+		"position -- `return (semsg(...), rc_did_emsg = TRUE, nullptr)` comma "+
+		"expressions, the safelens whose value is consumed, and the appends; %d pass no "+
+		"variadic argument, a literal without `%%`",
+		shapes["statement"], shapes["value"], nPlain)
 	p.Sayf("`va_start` 8 -> 1, `va_list` 15 -> 8, `va_end` 10 -> 3; `vim_snprintf` %d -> %d; "+
 		"seven definitions and six prototypes gone, five helpers and six declarations in; "+
 		"lines %d -> %d",

@@ -3,7 +3,7 @@ package p106
 // Whim phase 106 -- `nullptr` and `usize`: the two the language supplies.
 // See GOALS.md II.4c and GOALS.md.
 //
-// IT RUNS IN PHASE 0 NOW, the seed's one step (internal/build's plan): the
+// IT RUNS IN PHASE 0 NOW, the seed's first step (internal/build's plan): the
 // whole pipeline after it is written in C23's spelling, which is the
 // product's, rather than phases 1-105 in the header's and the rest in this
 // one.  What follows is the account of the phase where it stood, between

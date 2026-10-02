@@ -1,5 +1,20 @@
 # Phase 105 — the variadic collapse
 
+> **Where it runs now (2026-10-02).** This collapse runs in the seed,
+> between phase 106's rename and 107's attributes: phase 0 runs `whim105`
+> on the canonical input, so every later phase is written for one function
+> that walks a `va_list`. At the seed the seven wrappers have 297 call
+> sites, not 129 (smsg 40, smsg_attr 2, smsg_attr_keep 1, semsg 212, siemsg
+> 13, vim_snprintf_add 2, vim_snprintf_safelen 27): 244 statements, 53 in
+> value position; `va_start` goes 8 -> 1 there as it did here. Two things
+> changed in the program: 7 sites pass no variadic argument, each a literal
+> format without `%`, which `vim_snprintf` copies as it is, so the rule
+> takes them; and the append's length is `strlen`, which phase 97 makes
+> `musl_strlen` with every other. Phases 74, 93 and 95 were respelled for
+> the expanded calls, and three of phase 104's counts re-measured
+> (`doc/PIPELINE-REFORM.md` §7, G); the build gives the product byte for
+> byte. What follows is the phase as it stood after 104.
+
 `internal/phase/105/edit.go` and `internal/phase/105/check.go`, `stage 105`, `package format`.
 C cannot forward `...` — which is why `vsnprintf` exists beside `snprintf` — so a
 function that takes `...`, opens a `va_list` and hands it to `vim_vsnprintf` cannot

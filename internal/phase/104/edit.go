@@ -107,7 +107,8 @@ package p104
 // input and only THREE are calls: nine are `__attribute__((format(printf, ...)))` on
 // `smsg`/`smsg_attr`/`semsg`/`siemsg`/`vim_snprintf` and two `format(printf,3,0)`
 // prototypes, and one is inside the string `"E767: Too many arguments for printf()"`.
-// 13 -> 10 is the true figure.  `assert 'printf(' at 0` fails on `vim_snprintf(`,
+// 13 -> 10 is the true figure (7 -> 4 since phase 105 runs at the seed and its six
+// wrapper prototypes are gone before this phase).  `assert 'printf(' at 0` fails on `vim_snprintf(`,
 // `msg_use_printf(`, `msg_puts_printf(` and `vim_vsnprintf_typval(`.  The assertions
 // that work are `fprintf` 16 -> 0, `stderr` 17 -> 0, `fflush` 1 -> 0, `printf`
 // 13 -> 10, and `nm -u`.
@@ -167,7 +168,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Name string
 		want int
 	}{
-		{"fprintf", 16}, {"stderr", 17}, {"fflush", 1}, {"printf", 13},
+		{"fprintf", 16}, {"stderr", 17}, {"fflush", 1}, {"printf", 7},
 		{"errno", 3}, {"msg_use_printf", 6}, {"msg_puts_printf", 3},
 		{"info_message", 9}, {"vim_host_exit", 3}, {"host_exit", 2},
 		{"FILE", 0}, {"stdout", 0},
@@ -193,7 +194,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"stops needing is not the one it was written against")
 	}
 	p.Say("the input is r20: 20 statements put bytes on a stream -- `fprintf` 16, " +
-		"`printf` 13 words of which THREE are calls, `fflush` 1 -- and `FILE` and " +
+		"`printf` 7 words of which THREE are calls, `fflush` 1 -- and `FILE` and " +
 		"`stdout` are both at 0, which phase 96 is what left")
 
 	// ---- 1. the pointer, at the top, because its readers are scattered ---
@@ -475,7 +476,7 @@ main(int argc, char **argv)
 		want int
 		why  string
 	}{
-		{"printf", 10, "the counting trap: nine `format(printf, ...)` attributes and " +
+		{"printf", 4, "the counting trap: three `format(printf, ...)` attributes and " +
 			"the string \"E767: Too many arguments for printf()\".  NONE is a " +
 			"call, and `assert printf at 0` fails on a correct phase"},
 		{"vim_host_message", 10, "the declaration, the installation in vim_main and the " +
@@ -496,10 +497,10 @@ main(int argc, char **argv)
 			"`if (info_message)` shape"},
 		{"errno", 3, "phase 104 is not the errno phase: the #include and two uses, both " +
 			"inside phase 103's host block"},
-		{"vim_snprintf", 73, "FOUR more than the input -- the two multi-part speakers " +
+		{"vim_snprintf", 201, "FOUR more than the input -- the two multi-part speakers " +
 			"each assemble in two arms, with the only formatter the " +
 			"file has had since phase 97"},
-		{"musl_strlen", 134, "one more than the input: host_message's, in the len < 0 " +
+		{"musl_strlen", 135, "one more than the input: host_message's, in the len < 0 " +
 			"arm"},
 	} {
 		if k := mentions(t, x.Name); k != x.want {
