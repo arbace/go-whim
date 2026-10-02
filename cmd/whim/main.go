@@ -42,7 +42,7 @@ var order = []string{
 	"funcreach",
 	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
-	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "pre", "gocat",
+	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat",
 }
 
 var tools = map[string]tool{
@@ -117,6 +117,7 @@ var tools = map[string]tool{
 	"clj":         {runClj, "clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]"},
 	"caprice":     {runCaprice, "caprice [--out DIR] [FILE]"},
 	"whimsy":      {runWhimsy, "whimsy [--out DIR] [FILE]"},
+	"whimsical":   {runWhimsical, "whimsical [--out DIR] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
 	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--ref REV] [FILE]"},
