@@ -106,16 +106,44 @@ func includes(s Silent, t []byte, args []string, w io.Writer) ([]byte, error) {
 	} else if ok {
 		fmt.Fprintf(w, "  includes     and all of them together\n")
 	} else {
+		// One by one from the bottom, each tried with those before it that
+		// went: a fold, but a speculative one.  The next 16 are tried at once,
+		// each with the ones above it in the batch assumed gone; the answers
+		// are taken in order up to the first that stays, which is exact, and
+		// the batch after it starts again from there.  Every answer taken is
+		// the one the sequential fold asked for, of the same set.
 		keep = nil
-		for i := len(alone) - 1; i >= 0; i-- { // from the bottom
-			try := append(append([]int{}, keep...), alone[i])
-			ok, err := silent("t.c", without(lines, try))
-			if err != nil {
-				return nil, err
+		for i := len(alone) - 1; i >= 0; { // from the bottom
+			batch := min(16, i+1)
+			oks := make([]bool, batch)
+			errs := make([]error, batch)
+			var bw sync.WaitGroup
+			for k := 0; k < batch; k++ {
+				try := append([]int{}, keep...)
+				for j := 0; j <= k; j++ {
+					try = append(try, alone[i-j])
+				}
+				bw.Add(1)
+				go func() {
+					defer bw.Done()
+					oks[k], errs[k] = silent(fmt.Sprintf("s%d.c", k), without(lines, try))
+				}()
 			}
-			if ok {
-				keep = try
+			bw.Wait()
+			k := 0
+			for ; k < batch; k++ {
+				if errs[k] != nil {
+					return nil, errs[k]
+				}
+				if !oks[k] {
+					break
+				}
+				keep = append(keep, alone[i-k])
 			}
+			if k < batch {
+				k++ // alone[i-k] stays
+			}
+			i -= k
 		}
 		sort.Ints(keep)
 		fmt.Fprintf(w, "  includes     together they do not build; %d removed one by one, from the bottom\n", len(keep))
