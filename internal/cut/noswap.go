@@ -84,7 +84,7 @@ func NoSwap(text []byte, w io.Writer) ([]byte, error) {
 	//                It is also the only caller of sync().
 	//   'directory'  p_dir, read in check_overwrite() -- and in recover_names(),
 	//                which scans every directory in it for swap files and lives
-	//                until Phase 21.  So 'directory' CANNOT be dropped here at
+	//                until record 21.  So 'directory' CANNOT be dropped here at
 	//                all, and used to be: it left p_dir NULL, and for twelve
 	//                phases `:w!` over an existing other file segfaulted.
 	//

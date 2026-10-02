@@ -149,7 +149,7 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	//
 	// And it uses settmode() rather than mch_settmode(), because mch_settmode()
 	// is defined 89,000 lines further down with no forward declaration left to
-	// reach it -- Phase 8 removed the ones nothing needed.
+	// reach it -- record 8 removed the ones nothing needed.
 	blanked := edit.Blank(text)
 	span, ok := dead.FuncDefinitions(text, blanked)["prepare_to_exit"]
 	if !ok {

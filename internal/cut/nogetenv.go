@@ -70,11 +70,11 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  nogetenv     expand_env_esc was %d lines, and now copies a name\n", was)
 
 	// expand_shellcmd(), which looked a command name up in $PATH, went with
-	// every completion context but files at phase 6 (whim59, phase 59's
+	// every completion context but files at phase 4 (whim4f, phase 4f's
 	// program, which runs before this phase now).
 
 	// The local-additions scan went with fix_help_buffer, open_buffer's read
-	// arm its one caller, at phase 1 (readfront, phase 92's move).
+	// arm its one caller, at phase 1 (readfront, phase 31's move).
 
 	for _, d := range []struct{ name, call string }{
 		{"set_init_default_shell", "$SHELL for 'shell'"},
@@ -95,8 +95,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nogetenv     $VIM_POSIX, which chose a stricter 'cpoptions'")
 
 	// 'backupskip' was $TMPDIR, $TEMP, $TMP and always /tmp: its default,
-	// set_init_default_backupskip(), went with the backup at phase 7
-	// (nobackup, phase 25's cut, which runs before this phase now).
+	// set_init_default_backupskip(), went with the backup at phase 5
+	// (nobackup, phase 12's cut, which runs before this phase now).
 
 	// vimrc_found() and do_source_ext()'s two DOSO_VIMRC arms, which kept
 	// vim_setenv, export_myvimdir and $MYVIMDIR alive, died with :source,
@@ -111,8 +111,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 
 	// $VAR completion -- the EXPAND_ENV_VARS row and its context, the one
 	// mention of environ -- went with every completion context but files at
-	// phase 6 (whim59); `:command -complete=environment`'s table row went
-	// with `:command` at phase 1 (noucmd, the reform's D10).
+	// phase 4 (whim4f); `:command -complete=environment`'s table row went
+	// with `:command` at phase 3 (noucmd, the reform's D10).
 
 	// No (?m) here: the Python passes flags=0 for this one.
 	if text, err = cutCounted(text,

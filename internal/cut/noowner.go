@@ -15,7 +15,7 @@ const (
 	ownTestNew = "if (forceit && perm >= 0 && !(perm & 0200) " +
 		"&& vim_strchr(p_cpo, CPO_FWRITE) == nullptr)"
 	// no indentation: nobackup, which cut the block around it, runs at phase
-	// 7 now, so this phase reads it canonically printed, one level shallower
+	// 5 now, so this phase reads it canonically printed, one level shallower
 	uidGidTest = "if (st_old.st_uid != getuid() || st_old.st_gid != getgid())"
 	unameTest  = "            if (get_user_name(uname, B0_UNAME_SIZE) == FAIL"
 	flenOld    = "flen = home_replace(nullptr, buf->b_ffname, b0p->b0_fname, " +
@@ -88,7 +88,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// The other caller's `if` was already always true -- get_user_name() has
-	// returned FAIL since Phase 20 -- so its `else` has been dead that long.
+	// returned FAIL since Phase 9 -- so its `else` has been dead that long.
 	blanked = edit.Blank(text)
 	k = bytes.Index(text, []byte(unameTest))
 	if k < 0 {
@@ -126,7 +126,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 
 	// The b0_uname field it wrote into, B0_UNAME_SIZE and get_user_name are the
 	// sweep's: nothing names them now.
-	fmt.Fprintln(w, "  noowner      who wrote the swap file, a stub since Phase 20")
+	fmt.Fprintln(w, "  noowner      who wrote the swap file, a stub since Phase 9")
 
 	fmt.Fprintf(w, "  noowner      %d identity mentions left for the sweep\n",
 		len(identityLeft.FindAll(text, -1)))

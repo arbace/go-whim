@@ -1,0 +1,15 @@
+package p025
+
+// The multi-line literals /root/.claude/jobs/107d6bd5/tmp/w79.sh matches on, EXTRACTED from the phase's
+// heredoc by tools/gocmp/genlits.py rather than retyped.  They carry BLANK
+// LINES, which a filtered read of a phase program does not show, and a
+// literal that is 90%% right matches nothing.  See that tool for the
+// measurement.
+const (
+	w25lit1 = "    if (!eap->skip)\n    {\n        ex_ni(eap);\n    }\n    else\n    {\n        vim_free(script_get(eap, eap->arg));\n    }\n"
+	w25lit2 = "    if (!eap->skip)\n    {\n        ex_ni(eap);\n    }\n"
+	w25lit3 = "                        eap->line2 = eap->addr_type == ADDR_WINDOWS ? current_win_nr(nullptr) : current_tab_nr(nullptr);\n"
+	w25lit4 = "                        eap->line2 = 1;\n"
+	w25lit5 = "    return frame_minheight(curtab->tp_topframe, nullptr) + tabline_height() + MIN_CMDHEIGHT;\n"
+	w25lit6 = "    return frame_minheight(curtab->tp_topframe, nullptr) + MIN_CMDHEIGHT;\n"
+)

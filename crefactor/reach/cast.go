@@ -13,7 +13,7 @@ import (
 // what it reads is the common initial sequence -- `(regprog_T *)bt_prog` reads
 // re_engine, re_flags and re_in_use of a bt_regprog_T by their offsets in
 // regprog_T.  A member nothing names through its own type is still read
-// there, and deleting it moves every member after it: measured on q82, the
+// there, and deleting it moves every member after it: measured on q82 of the old numbering, the
 // closure deleted bt_regprog_T's re_engine and re_flags, re_in_use moved, and
 // every pattern said E956.
 //

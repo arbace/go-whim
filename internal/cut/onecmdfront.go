@@ -7,9 +7,9 @@ import (
 )
 
 // OneCmdFront makes a command line one command (the reform's front cut for
-// phase 81's change): no `|` separator and no `"` comment, so both are
+// record 81's change): no `|` separator and no `"` comment, so both are
 // ordinary characters in a command's argument.  A newline still ends a
-// command.  The edits are phase 81's, on the seed's spelling: there the
+// command.  The edits are record 81's, on the seed's spelling: there the
 // parsers also know vim9script's `#`, which goes with the rest.
 func OneCmdFront(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("onecmdfront", text, w)

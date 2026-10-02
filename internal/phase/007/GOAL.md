@@ -1,63 +1,49 @@
-# Phase 7 — the editor stops looking for files it was not given
+# Phase 7 — six options that no longer decide anything
 
-**It runs the drops that count on phase 6's swept text first**
-(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): phase 25's `nobackup`, 50's `lfonly`, 51-53's `keepbytes` and `noconv`,
-the programs of 64, 72 and 73, a sweep, the `droplocal` of the fields of 50,
-53 and 64, and 75's program. Then its own cut.
+*Formerly phase 16. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-Two removals that are the same thing seen from two sides: the editor asking the
-filesystem what is around the file it was handed.
+`'path'` and `'suffixesadd'` have been inert since the file finder went,
+`'tags'` and `'tagcase'` since the tag stack, `'autoread'` since the timestamp
+poll, and `'swapfile'` since the swap file. All six were still here, because a
+row is what initialises its global and `tools/dropoptions.py` refuses to leave
+one dangling — **Phase 10's trap, which this phase clears rather than works
+around.**
 
-## Wildcards, the rest of the way
+## The order is the phase, and it is forced rather than chosen
 
-Phase 6 removed the expander that wrote shell scripts. This removes the
-editor's own. `gen_expand_wildcards()` walked directories with `opendir` and
-`readdir` to match `*`, `?`, `[...]`, `~` and `$VAR`, and now hands every
-pattern back unchanged — which is not a stub written for the occasion but the
-path vim already took for a pattern with no wildcard in it, `save_patterns()`,
-`backslash_halve()` included.
+1. the three readers that are not plumbing
+2. the rows, with `--local`
+3. **the sweep** — which is what removes `did_set_tagcase()` and
+   `did_set_swapfile()`, the option callbacks, reachable only from the rows
+4. the buffer fields and their plumbing
+5. the sweep again
 
-**This costs something real and the cost was measured before it was chosen.**
-`:e *.c` opens one buffer named `*.c`, and **file-name completion stops
-working**: `:e ali<Tab>` used to produce `alias.c` by globbing `ali*` and now
-produces `ali\*`. A shell expands `*.c` before vim ever sees it, which is the
-argument for this living outside; inside the editor it is 1,025 lines.
+**Steps 3 and 4 cannot swap**, and the reason is a property of how this pipeline
+sweeps rather than of the code. The callbacks read the buffer field, so removing
+the field first stops the file compiling; the sweep works by reading gcc's
+*warnings*, so a file that does not compile is a file the sweep cannot act on,
+and the callbacks would stay for ever. Every other phase has been free to order
+its cut however it liked; this one is not.
 
-## The current directory
+## The three that are not plumbing
 
-`:cd`, `:chdir`, `:lcd`, `:lchdir`, `:tcd`, `:tchdir` and `:pwd` are retired to
-`ex_ni`. A process with a notion of "where I am" that the user can move is a
-process with a filesystem; an embedded editor handed a buffer has neither.
+`ex_drop()` set `'autoread'` on, checked the timestamp, and set it back —
+and Phase 13 took the check out from between, so what was left was a variable
+saved and restored across nothing at all. `do_set_option_bool()` special-cased
+`:setlocal autoread` to mean "follow the global", the `-1` sentinel, and there
+is no global to follow. `ml_open()` asked whether this buffer may have a swap
+file; since Phase 11 the answer has been no whatever `'swapfile'` said, so it
+now says no directly.
 
-## Two things this does not do, both of which look as though it should
-
-**`opendir` and `readdir` do not go with the globbing.** They are held by the
-**temp directory** — `vim_opentempdir()`, and `delete_recursive()` via
-`readdir_core()` — which exists so `:%!sort` has somewhere to put a file.
-`vim_tempname()` has exactly two callers, `do_filter()` and `get_cmd_output()`,
-both of them shell users, so the directory layer dies with shell-out in Phase
-8 and not with globbing here. That was measured rather than reasoned about,
-after reasoning about it gave the wrong answer twice.
-
-**`getcwd` does not go either.** It is `mch_dirname()`, and `:cd`/`:pwd` are two
-of its eleven callers; the rest are `buf_modname`, `mch_FullName`,
-`shorten_fnames`, `modify_fname` and the file finder, all of them resolving a
-path the user named. Retiring the commands does not touch it.
+Everything else is the five fixed idioms every buffer-local option has — the
+field in `buf_T`, the initialiser in `buf_copy_options()`, `check_buf_options()`,
+`free_buf_options()`, and one or two `get_varp()` cases — which is what makes
+`tools/droplocal.py` possible at all. It takes the *field* name rather than the
+option's, because by the time it runs the row is already gone and there is
+nothing left to look the field up from.
 
 ## The delta
 
-`:e *.c` names a file literally, file-name completion stops completing, and
-seven command names report "not implemented" instead of changing or printing a
-working directory.
-
-**And `:recover` moves, which this phase did not predict.** The check caught it,
-not the author: `recover_names()` finds swap files by building the patterns
-`*.sw?`, `.*.sw?` and `.sw?` and expanding them, so an editor that does not
-expand patterns cannot find a swap file whose name it was not given. That is a
-consequence of removing globbing rather than a bug in it, so it is declared —
-the alternative, widening the list until it fits, is how a delta list stops
-being a check. It also says something about Phase 10: the swap file is already
-half unreachable.
-
-Cumulatively: `helpclose intro version cd chdir lcd lchdir tcd tchdir pwd
-recover`.
+**None.** All six report `E518: Unknown option` instead of a value that decided
+nothing.

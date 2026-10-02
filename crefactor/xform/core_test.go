@@ -496,7 +496,7 @@ main(void)
 	if o := gccRun(t, got); o != want {
 		t.Errorf("the program prints %q, the original %q\n%s", o, want, got)
 	}
-	// without Relax, phase 183's rule: the saved flag and the others stay int
+	// without Relax, phase 102's rule: the saved flag and the others stay int
 	k.Relax = false
 	if got := run(t, BoolRet(k), src); !strings.Contains(got, "static int scroll") || !strings.Contains(got, "static int seen") {
 		t.Errorf("without Relax a flag the old rule keeps int was retyped:\n%s", got)

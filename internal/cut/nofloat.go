@@ -92,7 +92,7 @@ func NoFloat(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// The fuzzy matcher, whose score rounding called ceil and floor, went
-	// with every completion context but files at phase 6 (whim59, phase 59's
+	// with every completion context but files at phase 4 (whim4f, phase 4f's
 	// program, which runs before this phase now).
 
 	blanked := edit.Blank(text)

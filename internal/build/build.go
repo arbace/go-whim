@@ -98,8 +98,8 @@ func resolve(p Phase, args []string, scratch string) ([]string, error) {
 }
 
 // declared is the tokens inside internal/phase/NNN/delta.md's FENCED BLOCK, with the prose
-// around it left out.  Only phase 80 has one now: its edit cuts exactly the
-// command rows it lists, so the file is that edit's input and not a test's.
+// around it left out.  Only phase 1 has one now: its front retires exactly the
+// command rows it lists, so the file is that cut's input and not a test's.
 func declared(n int) (string, error) {
 	b, err := os.ReadFile(fmt.Sprintf("internal/phase/%03d/delta.md", n))
 	if err != nil {

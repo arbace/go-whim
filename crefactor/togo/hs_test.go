@@ -306,7 +306,7 @@ func TestHsSplit(t *testing.T) {
 	}
 }
 
-// hsTupleC is C as phase 181 writes it (crefactor/xform's LocalOut): a
+// hsTupleC is C as phase 100 writes it (crefactor/xform's LocalOut): a
 // function returning a struct of its result and its out-parameters' values,
 // its callers reading the struct's members back.
 const hsTupleC = javaHost + `

@@ -210,7 +210,7 @@
       (unless (term-now-base t) (term-now-base-set! t sec))
       (+ (* (- sec (term-now-base t)) 1000) (quotient (time-nanosecond now) 1000000))))
 
-  ;; host_time: WHIM_TIME, when the environment holds it (phase 180), as atol
+  ;; host_time: WHIM_TIME, when the environment holds it (phase 99), as atol
   ;; reads it; the clock's otherwise.
   (define (unix-time)
     (let ([pinned (getenv "WHIM_TIME")])

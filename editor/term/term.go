@@ -237,7 +237,7 @@ func (h *Host) NowMs() int64 {
 
 // Time is the Unix time -- or WHIM_TIME, when the environment holds it:
 // a clock held still, which the suite sets so that undo's "N seconds ago"
-// does not depend on when a run crossed a second (phase 180; the C host's
+// does not depend on when a run crossed a second (phase 99; the C host's
 // host_time() reads it the same way, as atol does).
 func (h *Host) Time() int64 {
 	if t, ok := pinnedTime(); ok {

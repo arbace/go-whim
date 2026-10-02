@@ -34,7 +34,7 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// completion for :setglobal and :setlocal went with
-	// set_context_by_cmdname() at phase 6 (whim59, phase 59's program, which
+	// set_context_by_cmdname() at phase 4 (whim4f, phase 4f's program, which
 	// runs before this phase now)
 
 	text, err = e.inFunction(text, "do_set_option", func(s []byte) ([]byte, error) {
@@ -63,7 +63,7 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	// line as it succeeds, so grouping these into loops by shape -- which they
 	// invite -- would emit the same lines in a different order and the
 	// comparison would differ on every input that cuts.
-	// at the depth phase 75's fold leaves it: whim75 runs at phase 7, before
+	// at the depth phase 5d's fold leaves it: whim5d runs at phase 5, before
 	// this phase now
 	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
 		return e.literal(s, "        do_modelines(0);\n", "",
@@ -132,7 +132,7 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// set_options_bin(), where 'binary' saved and restored 'modeline', went
-	// with 'binary' at phase 7 (lfonly, phase 50's cut, which runs before
+	// with 'binary' at phase 5 (lfonly, record 50's cut, which runs before
 	// this phase now)
 
 	// b_p_ml_nobin is where 'binary' kept 'modeline' while it was off.  It is

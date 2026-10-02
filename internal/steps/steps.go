@@ -199,9 +199,9 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 // front is three phases so that the parallel check runs them side by side.
 func front2(t []byte, args []string, w io.Writer) ([]byte, error) {
 	return runCuts(t, args, w, []Step{plain(cut.NoLocale), plain(cut.NoStartup),
-		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim56"),
+		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim18"),
 		plain(cut.NoEnc), plain(cut.NoFencs), plain(cut.NoFenc),
-		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim61")})
+		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim2a")})
 }
 
 // front3 runs phase 3's, D9-D12: one of each, the editing features, one
@@ -212,8 +212,8 @@ func front3(t []byte, args []string, w io.Writer) ([]byte, error) {
 		plain(cut.NoBufList), plain(cut.NoNfa), plain(cut.NoShellOut), plain(cut.NoTags),
 		plain(cut.NoSignals), plain(cut.NoEquiClass), plain(cut.NoCindent), plain(cut.NoUcmd),
 		plain(cut.NoIdent), plain(cut.NoFnameMod), plain(cut.NoCompl), plain(cut.NoComplKeys),
-		plain(cut.NoAbbr), editStep("whim57"), editStep("whim58"), editStep("whim63"),
-		editStep("whim65"), editStep("whim66"), editStep("whim74")})
+		plain(cut.NoAbbr), editStep("whim3a"), editStep("whim3b"), editStep("whim3c"),
+		editStep("whim3d"), editStep("whim3e"), editStep("whim3f")})
 }
 
 func runCuts(t []byte, args []string, w io.Writer, cuts []Step) ([]byte, error) {
@@ -232,7 +232,7 @@ func runCuts(t []byte, args []string, w io.Writer, cuts []Step) ([]byte, error) 
 // keeps unwritten (the second and third since D6 took their writers, the last
 // since D9), the popup menu's blend state and the completion submode's
 // message (since D10's nocompl took their writers), listcmd_busy (since
-// whim66 took the '{ and '( addresses that saved and set it), and the dropped
+// whim3e took the '{ and '( addresses that saved and set it), and the dropped
 // options' globals of optfrontHold.
 var frontHold = append([]string{"read_cmd_fd", "sticky_cmdmod_flags",
 	"aucmd_cmdline_changed_count", "skip_win_fix_cursor",
@@ -245,17 +245,17 @@ var frontHold = append([]string{"read_cmd_fd", "sticky_cmdmod_flags",
 // to the phase that folds them by hand: where the closure's shape and the
 // hand fold's differ, and the product has the hand fold's.
 var optfrontHold = []string{
-	"p_wmnu", // nowildmenu (phase 6) writes `a && b && c` flat
-	// nobackup (phase 25) cuts the backup machinery around dobackup, whose
-	// assignment also dereferences p_pm
+	"p_wmnu", // nowildmenu (phase 4) writes `a && b && c` flat
+	// nobackup (phase 12's cut, run at phase 5) cuts the backup machinery
+	// around dobackup, whose assignment also dereferences p_pm
 	"p_bk", "p_wb", "p_pm", "p_bsk", "p_bex", "p_bkc", "p_bdir",
-	// nowinsizes (phase 40) gives these their defaults -- p_ea is TRUE -- and
+	// nowinsizes (record 40) gives these their defaults -- p_ea is TRUE -- and
 	// later phases fold their readers with them; the product keeps three
 	"p_sb", "p_spr", "p_spk", "p_ea", "p_ead", "p_wh", "p_wmh", "p_wiw", "p_wmw",
-	// phase 60 writes `regmatch.rm_ic = FALSE;` where the closure writes 0,
+	// phase 19 writes `regmatch.rm_ic = FALSE;` where the closure writes 0,
 	// and drops a test on `acl_elapsed >= p_acl` whole
 	"p_fic", "p_acl",
-	// phase 62 cuts :!'s and :stop's whole `autowrite_all()` blocks, where
+	// phase 20 cuts :!'s and :stop's whole `autowrite_all()` blocks, where
 	// the closure would empty autowrite_all() and leave the blocks
 	"p_aw", "p_awa", "p_write",
 }
@@ -370,7 +370,7 @@ func ask(t []byte, args []string) (string, error) {
 	return b.String(), nil
 }
 
-// MinMaxProbe is the two lines phase 109 needs from the host's <sys/param.h>:
+// MinMaxProbe is the two lines phase 42 needs from the host's <sys/param.h>:
 // what MIN and MAX expand to, asked of the preprocessor rather than assumed.
 // The phase program wrote this file, ran the preprocessor over it and passed
 // the result; a build does the same and keeps it in memory.

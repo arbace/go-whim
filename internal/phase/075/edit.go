@@ -1,181 +1,118 @@
 package p075
 
-// Whim phase 75 -- no autocommands.  See GOAL.md.
+// Whim phase 75 (formerly 150) -- the regexp stack is three typed stacks.  See GOAL.md.
 //
-// PROVED BY ABSENCE, not inferred from the command table.  `first_autopat[NUM_EVENTS]
-// = { NULL }` is the ONLY write to that array in the whole file -- every other mention
-// reads it.  No autocommand pattern can ever be registered, so:
+// regmatch()'s stack held regitem_T records and, below a star's or a
+// look-behind's record, its regstar_T or regbehind_T, in one byte array
+// (internal/gen/FINDINGS.md, 5 and 8).  They are three stacks of their own types, kept in
+// step, and regstack_bytes keeps the byte count 'maxmempattern' is measured by.
 //
-// * apply_autocmds_group() is already `return FALSE;`
-// * apply_autocmds(), apply_autocmds_exarg() and apply_autocmds_retval() are
-// one-line wrappers onto it, so ALL ~74 dispatch sites are no-ops;
-// * has_cursormovedI/has_textchangedI/has_textchangedP each return
-// `first_autopat[...] != NULL`, i.e. always FALSE;
-// * au_cleanup, au_remove_pat, au_del_cmd and aubuflocal_remove walk a permanently
-// empty list.
-//
-// :autocmd, :augroup, :doautocmd, :doautoall and :noautocmd were already ex_ni, but
-// that is the weaker argument; the array being write-once-to-NULL is the strong one.
-//
-// TWO SITES ARE REWRITTEN, NOT FOLDED, and both would have been silent damage:
-//
-// * close_buffer() -- the label `aucmd_abort:` sits INSIDE the block guarded by
-// apply_autocmds(EVENT_BUFWINLEAVE, ...), and THREE gotos target it, two of them
-// from outside that block under `if (abort_if_last)`.  fold_never would delete
-// the label and orphan them.  This is the phase-71 break-rebinding hazard wearing
-// a label instead of a loop.  The abort arm is hoisted out and kept reachable.
-// * open_buffer() -- the aco block mixes the autocommand call with REAL work:
-// `curbuf->b_flags &= ~(BF_CHECK_RO | BF_NEVERLOADED)`.  Deleting it wholesale
-// would change behaviour.
-//
-// THE CLASSIFICATION WAS DONE BY HAND because a scan got two sites BACKWARDS.
-// 7712 and 7741 read `if (!(did_cmd = apply_autocmds_exarg(...)))` -- negated with an
-// embedded assignment -- so they are ALWAYS TRUE (fold_always), not always false.
-// A `startswith("if (!apply_autocmds")` test misses the `!(var = ...)` shape, and
-// folding them the other way would have deleted the branch that actually runs.
-//
-// fold_never (condition always FALSE)   6327 6344 6416 6423 6768 27758 27768
-// fold_always (condition always TRUE)   6531 7712 7741
-// dies with its guard                   15497 15512 (has_textchanged*), 21638
-// (has_cmdundefined)
-// value consumed                        7725 (did_cmd), 18098 (ins_apply_autocmds
-// -> return FALSE), 86559 (drop the |= term)
-// bare statements                       60 lines, deleted
-//
-// WHAT GOES BY CASCADE: the EVENT_ enum (123 enumerators, 127 lines), event_tab
-// (127 rows), event_nr2name, auto_next_pat, AutoPat, AutoCmd, AutoPatCmd_T,
-// active_apc_list, first_autopat, last_autopat, au_need_clean, autocmd_blocked,
-// aucmd_prepbuf, aucmd_restbuf and aco_save_T.  Nothing here deletes those by name.
-//
-// SCOPE NOTE: trigger_cmd_autocmd() comes out HERE rather than with the other empty
-// functions, because its call sites pass EVENT_* constants that this phase removes.
-// may_trigger_modechanged() takes no argument and waits for the combined phase.
-//
-// THE DELTA: none expected.  Nothing could fire an autocommand, so removing the
-// dispatch cannot change what the editor does.  Declared empty, left for the delta check.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// writesTo returns the 1-based line of every assignment TO name, or to an
-// element of it.
-//
-// It steps over a BALANCED SUBSCRIPT and only then looks at the operator.  A
-// first version matched `name[^\n;]*=` and reported three writes that were the
-// `!=` of the has_* predicates -- it spanned the subscript and landed on the
-// comparison.  AN ASSERTION THAT CRIES WOLF IS WORSE THAN NONE, because the
-// temptation is to loosen it until it passes.
-func writesTo(text []byte, name string) []int {
-	var Out []int
-	re := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
-	for _, m := range re.FindAllIndex(text, -1) {
-		end := m[1] + 80
-		if end > len(text) {
-			end = len(text)
-		}
-		s := strings.TrimLeft(string(text[m[1]:end]), " \t\n")
-		if strings.HasPrefix(s, "[") {
-			depth := 0
-			for i, ch := range s {
-				if ch == '[' {
-					depth++
-				} else if ch == ']' {
-					depth--
-					if depth == 0 {
-						s = s[i+1:]
-						break
-					}
-				}
-			}
-			s = strings.TrimLeft(s, " \t\n")
-		}
-		if strings.HasPrefix(s, "=") && !strings.HasPrefix(s, "==") {
-			Out = append(Out, 1+edit.CountNewlines(text[:m[0]]))
-		}
-	}
-	return Out
+func init() { phase.Register("whim75", Edit) }
+
+// W75Tops are the two accessors for the top of the extra-data stacks,
+// exported so the check requires the identical text.
+const W75Tops = `    static regstar_T *
+regstack_star_top(void)
+{
+    return &((regstar_T *)regstack_star.ga_data)[regstack_star.ga_len - 1];
 }
 
-// Whim75 removes the autocommand dispatch, having first PROVED that nothing can
-// register one.
+    static regbehind_T *
+regstack_behind_top(void)
+{
+    return &((regbehind_T *)regstack_behind.ga_data)[regstack_behind.ga_len - 1];
+}
+
+`
+
+func w75Grow(ga string) string {
+	return "__builtin_expect(((((&" + ga + ")->ga_maxlen - (&" + ga + ")->ga_len < ((int)sizeof("
+}
+
+// Whim75 splits the backtracking engine's stack into three typed stacks.
+//
+// regmatch()'s stack was one byte array holding regitem_T records and, below
+// the record of a star or a look-behind state, the regstar_T or regbehind_T it
+// carries: pushed first, found again as `((regstar_T *)rp) - 1`, popped with a
+// `ga_len -= sizeof(...)`.  Go cannot overlay structs on bytes, and the
+// transpilation kept the objects in a side table and the accounting in x86-64
+// sizes (internal/gen/FINDINGS.md, 5 and 8).  Now the records, the stars and the
+// look-behinds are three stacks of their own types.  The extra data is still
+// pushed just before its record and popped just after it, so the three stay
+// in step; regstack_bytes adds and subtracts exactly the sizes the byte array
+// did, so 'maxmempattern' (E363) is reached at the same moment.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("noautocmd", text, w)
+	e := edit.New("regstack", text, w)
+	// The canonical text writes an aggregate initialiser one element per line,
+	// with the brace under the `=` and a comma after the last element, so each
+	// of these declarations is eight lines and a blank line stands between two
+	// of them.
+	e.Literal("static garray_T regstack =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n",
+		"static garray_T regstack =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic garray_T regstack_star =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic garray_T regstack_behind =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic int regstack_bytes = 0;\n",
+		1, "the records, the stars and the look-behinds are three stacks, and the bytes they hold a count")
+	e.Literal("(long)((unsigned)regstack.ga_len >> 10) >= p_mmp", "(long)((unsigned)regstack_bytes >> 10) >= p_mmp",
+		3, "'maxmempattern' is measured against the count")
+	// regstack_push and regstack_pop
+	e.Literal("    if ("+w75Grow("regstack")+"regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0))\n    {\n        return nullptr;\n    }\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n    regstack.ga_len += sizeof(regitem_T);\n",
+		"    if (ga_grow(&regstack, 1) == FAIL)\n    {\n        return nullptr;\n    }\n\n    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len];\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    ++regstack.ga_len;\n    regstack_bytes += sizeof(regitem_T);\n",
+		1, "regstack_push() pushes a record on the record stack")
+	e.Literal("    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n    *scan = rp->rs_scan;\n    regstack.ga_len -= sizeof(regitem_T);\n",
+		"    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];\n    *scan = rp->rs_scan;\n\n    --regstack.ga_len;\n    regstack_bytes -= sizeof(regitem_T);\n",
+		1, "regstack_pop() pops one")
+	// the star and look-behind pushes
+	for _, k := range []struct{ t, ga, ind string }{{"regstar_T", "regstack_star", "                    "}, {"regbehind_T", "regstack_behind", "            "}} {
+		old := k.ind + "else if (" + w75Grow("regstack") + k.t + "))) ? ga_grow_inner((&regstack), ((int)sizeof(" + k.t + "))) : OK) == FAIL), 0))\n"
+		e.Literal(old, k.ind+"else if (ga_grow(&"+k.ga+", 1) == FAIL)\n", 1, "a "+k.t+" is pushed on its own stack")
+		e.Literal(k.ind+"    regstack.ga_len += sizeof("+k.t+");\n", k.ind+"    ++"+k.ga+".ga_len;\n"+k.ind+"    regstack_bytes += sizeof("+k.t+");\n", 1, "counting the bytes it held")
+	}
+	e.Literal("*(((regstar_T *)rp) - 1) = rst;", "*regstack_star_top() = rst;", 1, "the star's data is the top of the star stack")
+	e.Literal("regstar_T *rst = ((regstar_T *)rp) - 1;", "regstar_T           *rst = regstack_star_top();", 1, "and is found there")
+	e.Literal("(((regbehind_T *)rp) - 1)->", "regstack_behind_top()->", 6, "a look-behind's data is the top of its stack")
+	e.Literal("save_subexpr(((regbehind_T *)rp) - 1);", "save_subexpr(regstack_behind_top());", 1, "saved into")
+	e.Literal("restore_subexpr(((regbehind_T *)rp) - 1);", "restore_subexpr(regstack_behind_top());", 3, "and restored from")
+	for _, k := range []struct {
+		t, ga string
+		n     int
+	}{{"regbehind_T", "regstack_behind", 3}, {"regstar_T", "regstack_star", 2}} {
+		e.Sub(`(?m)^([ \t]*)regstack\.ga_len -= sizeof\(`+k.t+`\);\n`,
+			"${1}--"+k.ga+".ga_len;\n${1}regstack_bytes -= sizeof("+k.t+");\n", k.n,
+			fmt.Sprintf("popping a %s pops its stack (%d)", k.t, k.n))
+	}
+	e.Literal("        rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n", "        rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];\n", 1, "the loop reads the top record")
+	e.Literal("rp == (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1)", "rp == &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1])", 1, "and asks whether it is still the top")
+	e.Literal("    regstack.ga_len = 0;\n    backpos.ga_len = 0;\n", "  regstack.ga_len = 0;\n  regstack_star.ga_len = 0;\n  regstack_behind.ga_len = 0;\n  regstack_bytes = 0;\n  backpos.ga_len = 0;\n", 1, "a match starts with the three stacks and the count empty")
+	e.Literal("        ga_init2(&regstack, 1, REGSTACK_INITIAL);\n        (void)ga_grow(&regstack, REGSTACK_INITIAL);\n        regstack.ga_growsize = REGSTACK_INITIAL * 8;\n",
+		"        ga_init2(&regstack, sizeof(regitem_T), REGSTACK_INITIAL / sizeof(regitem_T));\n        (void)ga_grow(&regstack, REGSTACK_INITIAL / sizeof(regitem_T));\n        regstack.ga_growsize = REGSTACK_INITIAL * 8 / sizeof(regitem_T);\n        ga_init2(&regstack_star, sizeof(regstar_T), 16);\n        ga_init2(&regstack_behind, sizeof(regbehind_T), 4);\n",
+		1, "the record stack starts at the same bytes, the other two small")
+	e.Literal("    if (regstack.ga_maxlen > REGSTACK_INITIAL)\n", "    if (regstack.ga_maxlen > (int)(REGSTACK_INITIAL / sizeof(regitem_T)))\n", 1, "and is let go when it grew past them")
+	// EVERY TYPED POP AND PUSH IS GONE, and that is asserted as well as counted.
+	// A pop left taking the size of a regstar_T off the BYTE stack is invisible to
+	// the sweep and to the compiler.  Three were, once: the pops used to be
+	// rewritten at a list of indentations, and the canonical text reindented them
+	// past it.  The Sub above takes every indentation, and this is its control.
+	for _, t := range []string{"regbehind_T", "regstar_T"} {
+		k := len(e.Query(regexp.QuoteMeta("regstack.ga_len -= sizeof("+t+")"), 0))
+		e.Expect(k == 0, "%d pops of a %s still take it off the record stack", k, t)
+		k = len(e.Query(regexp.QuoteMeta("regstack.ga_len += sizeof("+t+")"), 0))
+		e.Expect(k == 0, "%d pushes of a %s still put it on the record stack", k, t)
+	}
 
-	e.CountIs(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] =\n\{\n[ \t]*nullptr,\n\};$`, 1,
-		"the first_autopat declaration is where this phase expects it")
-	ws := writesTo(e.Text(), "first_autopat")
-	e.Expect(len(ws) == 1, "first_autopat is assigned in %d place(s), not just its all-nullptr initialiser (lines %s) -- an autocommand CAN be registered and this whole phase is wrong",
-		len(ws), edit.JoinInts(ws))
-	e.Say("confirmed: first_autopat is only ever the all-nullptr initialiser")
-
-	e.InFunction("close_buffer", func(e *edit.E) {
-		e.Literal(w75OldCb, w75NewCb, 1, "close_buffer, whose abort label three gotos still target")
-	})
-	e.InFunction("buf_freeall", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFUNLOAD,`, 1, "unloading a buffer asking the autocommands first")
-		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFWIPEOUT,`, 1, "wiping a buffer asking them")
-	})
-	e.InFunction("buflist_new", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFNEW,`, 1, "a new buffer announcing itself")
-	})
-	// readfile went at phase 1 (readfront, phase 92's move)
-	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 94's move)
-	e.InFunction("ins_redraw", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, 1, "insert mode reporting a change")
-		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
-	})
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(p != nullptr && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`, 1, "an unknown command being defined by an autocommand")
-	})
-	e.Body("ins_apply_autocmds", w75lit2, "ins_apply_autocmds, which dispatched and watched the tick")
-	e.InFunction("ui_focus_change", func(e *edit.E) {
-		e.Literal(w75lit5, "", 1, "a focus change telling the autocommands")
-	})
-	// the modelines are still applied there: phase 49 (oneoptset), which
-	// takes them, runs after this program now (whim75 runs at phase 7)
-	e.InFunction("open_buffer", func(e *edit.E) {
-		e.Literal(w75lit6, w75lit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
-	})
-	// buf_write, with its autocommands, went with :write at phase 1
-	// (filefront, the reform's D4)
-	e.DropBlocks("set_termname", edit.Head("if (curbuf->b_ml.ml_mfp != nullptr)"), 1, "a new terminal telling every buffer")
-	e.Lines(`ins_apply_autocmds\(EVENT_[A-Z]+\);`, 6, "the insert-mode dispatches")
-	e.InFunction("ins_redraw", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, 1, "insert mode reporting the cursor moved")
-	})
-	e.InFunction("free_buffer", func(e *edit.E) {
-		e.Cut(edit.Line("aubuflocal_remove(buf);"), 1, "a freed buffer detaching its buffer-local patterns")
-	})
-	e.InFunction("getout", func(e *edit.E) {
-		for _, ev := range []string{"VIMLEAVEPRE", "VIMLEAVE"} {
-			e.Literal(fmt.Sprintf(w75lit14, ev), "", 1, fmt.Sprintf("quitting unblocking autocommands to announce EVENT_%s", ev))
-		}
-	})
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.Literal(w75lit8, w75lit9, 1, "asking whether the command came from an autocommand")
-	})
-	// the command-line type: its one write goes, and the sweep takes the
-	// declaration
-	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.Cut(edit.Line("cmdline_type = firstc == NUL ? '-' : firstc;"), 1, "the line that set the command-line type")
-	})
-	// 43: six more were in the write and read paths, gone at phase 1 (D4),
-	// and seven in the buffer and window switching :q's refusal reached
-	// (quitfront, phase 94's move), and eleven in the read path (readfront, phase
-	// 92's move).  Run at phase 7, it finds 18 that phases 8-74 took first
-	// when it ran at 75: buf_write()'s 8, set_rw_fname()'s 4, set_buflisted()'s
-	// and enter_buffer()'s 2 each, do_ecmd()'s third and do_filetype_autocmd()'s
-	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 43, "every remaining bare dispatch (43)")
-	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")
-	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")
+	head := "    static regitem_T *\nregstack_push("
+	e.Literal(head, W75Tops+head, 1, "the accessors for the top of the two stacks go before regstack_push()")
+	e.CountIs(`\(\(regstar_T \*\)rp\) - 1|\(\(regbehind_T \*\)rp\) - 1|\(char \*\)regstack\.ga_data`, 0,
+		"the stack is still read as bytes somewhere")
 	return e.Done()
 }
-
-func init() { phase.Register("whim75", Edit) }

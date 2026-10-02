@@ -13,7 +13,7 @@ import (
 // and kept as the account of this cut, for whoever reads the program.
 //
 //lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
-const relativeTimeNote = `// How long ago, not when.  Phase 20 took away every way this editor could
+const relativeTimeNote = `// How long ago, not when.  Phase 9 took away every way this editor could
 // be told what zone the clock is in, and undo history does not outlive the
 // process -- :wundo and :rundo are ex_ni -- so every time this formats is
 // within one session, which is exactly what "ago" measures.

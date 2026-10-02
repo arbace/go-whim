@@ -24,7 +24,7 @@ type GotoTailKnobs struct {
 // does what the jump leads to, in the same state, and returns; so it does not
 // matter which loops or switches lie between the goto and the label.  A tail
 // of no statements is the label's `return x;` alone: GotoReturn's rule, which
-// this subsumed (phase 168, a record now).  Empty statements are not counted
+// this subsumed (record 168).  Empty statements are not counted
 // and not copied.
 //
 // A goto is held, and so is its label, when the copy could mean something

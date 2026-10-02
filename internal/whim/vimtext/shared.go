@@ -14,7 +14,7 @@ import (
 // two phases share stopped being either one's.  The phase it was written for is
 // named above each.
 
-// From phase 59.
+// From phase 4f.
 // key and kex spell the two ways this file writes a special key as an integer.
 // They are built rather than written Out because the C is a nest of escaped
 // parentheses and the same shape recurs: KEY('k','B') is S-Tab, KEX(KE_WILD) is
@@ -23,10 +23,10 @@ func Key(a, b string) string {
 	return fmt.Sprintf(`\(-\(\('%s'\) \+ \(\(int\)\('%s'\) << 8\)\)\)`, a, b)
 }
 
-// From phase 71.
+// From phase 4d.
 var _ = BwdWalk
 
-// From phase 119.
+// From phase 49.
 // IsPrototypeLine is the phase's `DECL`, whose Python spells the exclusion as a
 // NEGATIVE LOOKAHEAD -- `^(?!static |typedef |static_assert)...`.  RE2 has none,
 // and the three prefixes are tested instead, which is exact here for the reason
@@ -40,7 +40,7 @@ func IsPrototypeLine(l string) bool {
 	return declRe.MatchString(l)
 }
 
-// From phase 119.
+// From phase 49.
 // JoinOrNone is Python's `' / '.join(xs) or 'none'`.
 func JoinOrNone(xs []string) string {
 	if len(xs) == 0 {
@@ -49,7 +49,7 @@ func JoinOrNone(xs []string) string {
 	return strings.Join(xs, " / ")
 }
 
-// From phase 119.
+// From phase 49.
 var (
 	DirectiveRe     = regexp.MustCompile(`^ *# *`)
 	SystemIncludeRe = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
@@ -57,7 +57,7 @@ var (
 	DeclNameRe      = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
 )
 
-// From phase 126.
+// From phase 54.
 // PyList is Python's str() of a list of strings, which the refusals quote.
 func PyList(s []string) string {
 	Out := make([]string, len(s))
@@ -67,13 +67,13 @@ func PyList(s []string) string {
 	return "[" + strings.Join(Out, ", ") + "]"
 }
 
-// From phase 126.
+// From phase 54.
 // PyReprMultiline is Python's %r of a string that may hold a newline.
 func PyReprMultiline(s string) string {
 	return "'" + strings.ReplaceAll(strings.ReplaceAll(s, "\\", "\\\\"), "\n", "\\n") + "'"
 }
 
-// From phase 127.
+// From phase 55.
 // SpliceLines is Python's `lines[a:b] = rows`.
 func SpliceLines(lines []string, a, b int, rows []string) []string {
 	Out := make([]string, 0, len(lines)-(b-a)+len(rows))
@@ -82,7 +82,7 @@ func SpliceLines(lines []string, a, b int, rows []string) []string {
 	return append(Out, lines[b:]...)
 }
 
-// From phase 127.
+// From phase 55.
 func LineIndex(lines []string, s string) int {
 	for i, l := range lines {
 		if l == s {
@@ -101,12 +101,12 @@ func LineIndex(lines []string, s string) int {
 	return -1
 }
 
-// From phase 127.
+// From phase 55.
 var (
 	FnHeadRe = regexp.MustCompile(`^([a-zA-Z_][a-zA-Z0-9_]*)\(`)
 )
 
-// From phase 071.
+// From phase 4d.
 const (
 	FwdWalk = `for ((buf) = firstbuf; (buf) != nullptr; (buf) = (buf)->b_next)`
 	BwdWalk = `for ((buf) = lastbuf; (buf) != nullptr; (buf) = (buf)->b_prev)`

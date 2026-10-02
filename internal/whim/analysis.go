@@ -17,7 +17,7 @@ import (
 // core's host_alloc is one more where the analysis reads the whole core.
 var allocators = []string{"alloc", "alloc_clear", "lalloc", "lalloc_clear"}
 
-// byteFuncs are the functions of bytes the core calls: musl's, since phase 98.
+// byteFuncs are the functions of bytes the core calls: musl's, since phase 37.
 var byteFuncs = []string{"musl_memmove", "musl_memcpy", "musl_memset", "musl_memcmp"}
 
 // Dead is what crefactor/dead's funcreach is told: vim's one entry point,

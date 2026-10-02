@@ -1,132 +1,251 @@
-# Phase 32 — insert completion, the popup menu, and the keys that reached them
+# Phase 32 — the buffer has no name
 
-**Its cut is phase 1's now.** `nocompl` and `nocomplkeys` runs at the front (the pipeline reform's
-D10, `doc/PIPELINE-REFORM.md` §7); what stays here is the sweep and the
-`droplocal` of the fields. What follows is the account of the phase as it was
-made.
+*Formerly phase 93. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-CTRL-N, CTRL-P and the whole CTRL-X family — `CTRL-X CTRL-F` for file names,
-`CTRL-X CTRL-K` for a dictionary, `CTRL-X CTRL-L` for whole lines — plus the
-popup menu that displays the matches. This is the largest single subsystem left
-after the regexp engine, and it is the one whose sources are all gone already:
-the tag stack went in Phase 10 and the `CTRL-]` key in Phase 30, the shell in
-Phases 6 and 8, `'dictionary'` and `'thesaurus'` name files this editor has no
-business reading, and `'completefunc'` needs the eval layer.
+`internal/phase/093/edit.go` and `internal/phase/093/check.go`, `stage 93`, `package files`.
+Phases 89, 90 and 91 took every way to *ask* for a file and phase 92 took the machinery
+that read one. What was left of the filesystem in this editor is a **name**: three
+`char_u *` fields on every buffer — `b_ffname`, `b_sfname`, `b_fname` — and the one
+command that could still set them, `:file`. This phase takes the command, stops
+`buflist_new()` naming the buffer it makes, folds the sixteen places that ask what
+the name is, and hands the sweep **sixty functions**, the largest number any zero
+phase has. It is also where the core stops asking the filesystem questions of its
+own initiative: `stat`, `getcwd` and `strerror` go, and with `access`, `fcntl` and
+`open` already gone at phase 92 **the process has no way left to acquire a fourth
+file descriptor**.
 
-**Two cuts, with a sweep between them.** The first answers the questions
-completion is entered through, so it produces nothing; the second removes the
-code that kept asking. This was two phases, and the second existed only because
-the first had stopped short.
+## Seven parts, and every removal that is not one of them is the sweep's
 
-## The predicates
+**A — `:file` goes.** The enumerator, the `cmdnames[]` row, and **both** of
+`do_one_cmd`'s `CMD_file` tests: the `curbuf_locked()` conjunct phase 91 deliberately
+kept, saying this phase would take it, and the second test below it. All in the same
+edit as the enumerator or the text does not compile. The row is the only reference a
+handler has, so taking it is what makes `ex_file` unreachable, and `rename_buffer`
+and `setfname` follow — `set_rw_fname` having been `setfname`'s second caller until
+phase 92 took it. **`fileinfo()` survives**, with three callers: CTRL-G, `g CTRL-G`
+and the startup message.
 
-**Nine predicates become constants**, and the sweep follows them:
+**B — `buflist_new()` never names.** Its one call site is `create_windows`', and it
+has passed `NULL, NULL` since phase 88 took the file argument. So both parameters go
+with the `fname_expand`/`stat`/`buflist_findname_stat` prologue, the
+`if (ffname != NULL)` assignment that *was* the naming, the failure arm's frees and
+the `st.st_dev` block — nine counted replacements inside one definition, plus the
+prototype and the call.
+
+**C — sixteen folds, one per site, each with its constant written out in the
+program.** The three fields are NULL for ever, so `== NULL` is TRUE and folds always
+and `!= NULL` is FALSE and folds never. **The invariant is computed before anything
+is folded**: every write to the three fields is enumerated and required to be inside
+`buflist_new`, `setfname`, `rename_buffer` or `shorten_buf_fname` — the four this
+phase accounts for — and a write anywhere else would make every fold a guess.
+
+**D — `EX_XFILE` reaches zero rows, which is the largest part of the phase and is
+computed.** `:read` was one of its six rows and phase 90 took it; four more went with
+the `:edit` family at phase 91; `:file` was the last. So `do_one_cmd`'s
+`if ((ea.argt & EX_XFILE) && expand_filename(…) == FAIL)` can never be entered, and
+folding it never hands the sweep **32 of the sixty functions** — `expand_filename`,
+`eval_vars`, `find_cmdline_var`, the whole `ExpandOne`/`ExpandFromContext`/
+`gen_expand_wildcards` layer, `vim_FullName`, `mch_FullName`, `FullName_save`,
+`shorten_fname`, `home_replace_save`, `backslash_halve` and the `ff_*` remnants. It
+is phase 91's `EX_ARGOPT` in exactly the same shape. One more edit goes with it:
+`separate_nextcmd`'s `eap->argt & (EX_CTRLV | EX_XFILE)` loses the second disjunct,
+which is 0 for every row, and that is what takes the enumerator itself to zero.
+
+**E — two write-only leftovers nothing can see.** `readonlymode` had one reader,
+inside `open_buffer`, and part C folds it; a file-scope static that is assigned and
+never read draws no warning and `deadsweep.py` acts on warnings, so it goes by hand
+with the `if` around its write — an `if` with an empty body being something no tool
+here removes either. `b_dev_valid`'s one surviving assignment is part B's fold of
+the device block, and `deadfields.py` removes a field nothing *names*, not one that
+is only written, so it goes by hand too and the three fields it guards sweep.
+
+**F — `shorten_fnames()` stops asking where it is.** `shorten_buf_fname()` is empty
+after part C, so the `mch_dirname()` cwd fetched for it is fetched for nothing. The
+signature folds to `void` in the same edit, for phase 92's measured reason:
+`tools/sweep.sh` compiles with `-Wno-unused-parameter`, so an unused parameter is
+invisible where an unused local is not.
+
+**G — nothing looks a name up on a disk.** `find_file_name_in_path()`'s
+`if (options & FNAME_EXP)` arm searched `'path'` and `mch_getperm()`ed each
+candidate; the other arm returns the word itself. Folding the arm never is the
+charter reading of *no filesystem access*: the editor extracts text and asks
+nothing. `find_file_in_path()` and `mch_getperm()` are then the sweep's, and `stat`
+goes with them. **The cost is that CTRL-F and CTRL-P become indistinguishable**, and
+that is the one piece of behaviour this phase gives up beyond `:file`.
+
+## Three things about the folds that a tool would have got wrong
+
+**`buflist_name_nr` is folded at its callers and never in place, and the agent that
+surveyed this phase made the mistake first.** Its body is `buf =
+buflist_findnr(fnum); if (buf == NULL || buf->b_fname == NULL) return FAIL; *fname =
+buf->b_fname; … return OK;`. Folding the whole `if` away gives a function that
+returns OK with `*fname` never written — a silent behaviour change in the direction
+that crashes. What is true is that it returns **FAIL always**, so the fold belongs
+at `getaltfname()`, which becomes `emsg(E23); return NULL;`, and at `ex_display()`,
+whose `"#` block then does nothing and goes whole. Only then is it uncalled.
+
+**Three sites have an `else` and `cutil.fold_always` refuses them, by design.**
+Keeping a body and dropping an else is not what it does, so `fileinfo()`,
+`set_b0_fname()` and `get_trans_bufname()` use a local `fold_always_else()` that
+keeps the if body dedented four columns — right only because each of the three was
+**read** first, phase 91's anchor 5 being what a wrong dedent costs. The helper
+refuses a body that is not written one level in.
+
+**Four more are a function whose whole body is the `if`.** `buf_spname()`,
+`buf_get_fname()`, `check_fname()` and `getaltfname()` each end in a second
+`return`, and `fold_always` there leaves it behind **unreachable and alive** —
+measured: `return buf->b_fname;` would have kept `b_fname` referenced for ever and
+no sweep tool removes it. Those four are exact-text rewrites of the body.
+
+**And two folds the brief asked for are not made.** Both of `eval_vars()`'s
+`if (b_fname == NULL)` arms are inside a function part D makes unreachable —
+`expand_filename()` and `expand_wildcards_eval()` are its only callers and both go —
+so folding inside text the sweep deletes changes no output and states nothing. Rule
+1 applies, and the check requires `eval_vars` at 0 mentions instead.
+
+## What the screen shows afterwards
+
+`[No Name]` survives and is now **the only thing `buf_spname()` can return**, not
+one of two answers. CTRL-G prints `"[No Name]" [Modified] 1 line --100%--`
+byte-identically either side, and so do `g CTRL-G`, the status line and `:ls`.
+`:registers` does not move either: its `"%` and `"#` lines were never printed,
+`b_fname` having been NULL since phase 88.
+
+**Three flags are left read-only and named rather than folded.** `BF_NOTEDITED` can
+never be set — `setfname()` was its only writer — and `BF_NEW` never could; both are
+still read by `fileinfo()`, so CTRL-G asks two questions whose answer is fixed.
+`b_shortname` has the same shape and was **already** write-only before this phase.
+Folding any of the three changes the string set for no gain, so all three are
+asserted where they are. `msg_scrolled_ign` is phase 92's leftover and does not move.
+
+**`"file"` reaches zero and `E32: No file name` does not.** `check_fname()` survives
+folded to an unconditional `emsg`, because `get_spec_reg()`'s `%` still calls it.
+**`E447: Can't find file "%s" in path` does reach zero here**, and phase 91's check
+asserts it *survives* — part G takes its last speaker. The two checks disagree on
+purpose, and `apart 91 93` is unnecessary only because `apart 91 92` and `apart 92 93`
+already forbid the stage.
+
+## The declared delta: one case and one row
 
 ```
-ins_complete              FAIL        pum_visible                    FALSE
-ins_compl_prep            FALSE       pum_redraw_in_same_position    FALSE
-ins_compl_active          FALSE       pum_may_redraw   pum_undisplay   pum_display
-ins_compl_has_autocomplete FALSE
+10    case:cmd_file
+      file
 ```
 
-Twelve option rows go with them — `autocomplete complete completefunc
-completeopt dictionary infercase pumborder pummaxwidth pumopt pumheight pumwidth
-thesaurus` — and six buffer-local fields, `b_p_cpt b_p_cot b_p_dict b_p_tsr
-b_p_inf b_p_ac`.
+`cmd_file` types `:file` with no argument, so what the baselines hold is the CTRL-G
+line for `[No Name]` — an editor that answered with the buffer's name. It is
+`E492: Not an editor command: file` now, with the **same exit, the same bells and
+the same snapshot count**, the stream going 2,310 → 2,327 bytes. The `ref-excmds.txt`
+row `file` does not change message: it **ceases to exist**, `tools/zexcmds.py`
+enumerating 98 names where it enumerated 99.
 
-## `didset_string_options()`, for the fourth time
+**Nothing else can move, and the reason is stronger than a measurement**: every fold
+takes the branch the code already took at run time. Measured with
+`tools/zcompare.py`: the other 101 screen cases, the other 97 command rows, all 30
+command lines, the four pty scenarios and the terminal table are identical —
+`:filter` and `:fixdel` among them, and `:q` on a modified buffer (still E37).
 
-This is the fourth phase to be caught by it, and this time it was a **segfault
-before the first keystroke**. The function dereferences every string option's
-global at startup, so dropping `'completeopt'`'s row while leaving
+## The probes, which are the only evidence a buffer could be named
 
-```c
-opt_strings_flags(p_cot, p_cot_values, &cot_flags, TRUE);
-```
+**21, on both binaries** — the one the phase was handed, built by the edit part from
+the boundary's own makefile flags, and the one it made — eight required to move and
+thirteen not.
 
-hands a NULL to something that reads it. The editor did not mis-complete; it
-did not start.
+- **`file_rename` is the probe.** `ihello<Esc>:file NEWNAME<CR>` and then CTRL-G:
+  the old binary answers `"NEWNAME" [Modified][Not edited] 1 line --100%--` and this
+  one `"[No Name]" [Modified] 1 line --100%--`. That line, on the *old* binary, is
+  the whole evidence that a buffer could be named, and **the corpus cannot see it**:
+  every case types its own text and names nothing. `[Not edited]` is `BF_NOTEDITED`,
+  which `rename_buffer()` set and which nothing can set now. `file_bang` is the same
+  with `:file!`.
+- **`cp_missing` is the only probe that shows the old binary asking the disk.** With
+  `nosuchfile` under the cursor, `: CTRL-R CTRL-P <CR>` was **silent** before —
+  `find_file_in_path()` stat()ed the name, found nothing and yielded NULL, so nothing
+  reached the command line — and answers `E492: Not an editor command: nosuchfile`
+  now. Its pair **`cp_existing` must not move and does not**, which is what says part
+  G removed the lookup and not the extraction: with `keys` under the cursor — the
+  keystroke file `tools/zstream.py` always leaves in the run directory — both
+  binaries answer `E488: Trailing characters: eys`, `:k` being a command of its own.
+  `cf_existing` is the same session with CTRL-F, which never expanded.
+- **Five spellings** — `:f :fi :fil :file :file!` — each E492 now and none before,
+  `:file`'s row having given its shortest abbreviation as one character. `:filter`
+  and `:fixdel` are the neighbours required not to move, which is the inheritance
+  check `CLAUDE.md`'s `:help` → `:helpclose` trap asks for.
+- **Thirteen that must not move and do not**: CTRL-G, `g CTRL-G`, `:registers` with
+  its table **and without a `"%` or `"#` line**, the `%` and `#` registers,
+  `cp_existing`, `cf_existing`, `:filter`, `:fixdel`, `:ls`, `:q` on a modified
+  buffer (still E37), `:q!` and an ordinary editing session. Each is required to be
+  *doing* something.
+- **Two pty sessions**, because every probe above went through a pipe: `:file
+  NEWNAME` then CTRL-G, which renames on the old binary and answers E492 and
+  `[No Name]` here, and an editing session identical either side.
 
-`orphanopts.py` existed precisely to catch this and did not, because it looked
-for an explicit `*p_x` dereference and this is a bare argument. **It now counts
-any mention at all.** A pointer nothing mentions is harmless — the sweep takes
-it — and one that is mentioned while having no row to initialise it is a NULL
-going somewhere, which is enough to fail on without judging the shape of the
-somewhere. Re-run over every earlier boundary: no new complaints, so the
-stricter rule costs nothing and closes the trap that had cost four phases.
+**Proven able to fail in both directions**: with the new binary on both sides all
+eight report *was to move and did not* and add *the input binary did not name the
+buffer NEWNAME, so this proves nothing*; with the old binary on both sides they add
+*the new binary named the buffer anyway* and *a removed name has been inherited*.
 
-## Checking that a key does nothing
+## Measured
 
-Bare CTRL-N in insert mode is **already inert** in a build with nothing to
-complete from, so a before/after comparison of it proves nothing either way.
-`tools/complcheck.py` uses `CTRL-X CTRL-N` instead, which is unambiguous, and
-checks the half that must survive in the same run: **insert mode still
-inserts**. A completion check that only proves completion is gone also passes on
-a binary that cannot type.
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `internal/phase/boundaries.md`.*
 
-## The callers
+| | input | after |
+| --- | --- | --- |
+| lines | 82,572 | **80,387** (−2,185) |
+| functions | 1,803 | **1,743** (−60) |
+| type definitions | 981 | 922 |
+| enumerators (DWARF) | 1,269 | **1,197** |
+| `buf_T` fields | | **−12** |
+| `cmdnames[]` rows | 99 | **98** |
+| `nm -u`, as `phasecheck.sh` counts it | 69 | **66** |
+| binary | 830,440 | **812,744** |
 
-**Seventy functions named `ins_compl_*`, `pum_*` or `compl_*` survive the
-stubs.** They are *reachable*, so no sweep can touch them, and never *entered*,
-because `ins_complete()` returns FAIL before any of them runs. `edit()` does not
-reach completion through one door: it calls `ins_compl_addleader()`,
-`ins_compl_bs()`, `ins_compl_accept_char()` and twenty-five more directly, and
-`update_screen()`, `win_line()`, `showruler()` and `screen_puts_len()` each ask
-`pum_visible()` on their own account. That is the shape worth naming: **a stub
-answers a question; it does not remove the caller that asks it.** So the second
-cut removes the callers, and the second sweep takes the callees.
+**Three symbols go and the check names the set, not the count**: `stat` was
+`mch_getperm()`'s and nothing else's, `getcwd` and `strerror` were `mch_dirname()`'s.
+`read`, `close` and `dup` **stay** and are the terminal's alone, and `fsync` is
+`ui_write`'s and the `FILE *` phase's; all four are required to be still undefined,
+and `open access fcntl chmod fchmod fstat lstat unlink` to be still **absent**, which
+is the file-descriptor invariant stated as a check.
 
-What goes, all of it inside `edit()`:
+**Seventy-two enumerators go and eighty-five renumber, every one of the 85 a
+`CMD_`** — the `EXPAND_*`, `WILD_*`, `EW_*`, `XP_BS_*`, `SPEC_*`, `BLOCK0_*`, `BLN_*`,
+`ESTACK_*`, `VSE_*` and `VALID_*` families leave as whole anonymous definitions, which
+takes no survivor's value with them, and `CMD_file`'s row is what moves the rest.
+`cmdnames[]` is designated, so a row lands at its own enumerator whatever the
+numbering is — but 85 movers from one family is exactly the case `CLAUDE.md` says a
+build is happy to get wrong, so the check dumps DWARF either side and requires it.
 
-| | |
-| --- | --- |
-| the CTRL-X submode | `ins_ctrl_x()` is empty, so `ctrl_x_mode` never leaves `CTRL_X_NORMAL` and every `ctrl_x_mode_*()` test is decided |
-| the per-key completion arm | forty lines feeding each keystroke to the match list |
-| `'autocomplete'` | six arming sites, three of them one-line blobs macro expansion left behind |
-| the arrow keys | four `if (pum_visible()) goto docomplete;` arms on Up, Down, PageUp and PageDown |
-| `docomplete:` | the label itself |
+The sweep is **4 rounds** and the phase **67 s**. Its boundary is `2829849cb53a`, and
+`make whim-verify` recomputes all eleven in 80 s of wall time over 523 s of phases.
 
-**What stays is the answer the stubs gave**: CTRL-N and CTRL-P are still
-insert-mode keys, and they now do nothing, which is what an unbound key does.
+## Its placement
 
-**The sweep between the two cuts is kept, and it is not a formality.**
-`tools/nocomplkeys.py` counts and matches text in `edit()` as the first sweep
-leaves it, and a count taken over code about to be swept is a different count.
+`stage 93`, `package files`, and two `uses` lines: `files:93 seed:83 mechanical`,
+because the declared records are compared with the baselines phase 83 records, and
+`files:93 harness:86 mechanical`, because `:file` went from the CTRL-G line to E492
+with the **same exit status** — the old file-based sweep recorded an exit status, so
+phase 86's message-level record is what can see this phase at all. **There is no
+`files:93 files:90`, `files:93 files:91` or `files:93 files:92` line**, for phase 90's
+reason — `tools/packages.sh --check` refuses a `uses` inside one package — and all
+three dependencies are real and are stated in the program's head instead: `:read` was
+one of the six `EX_XFILE` rows and phase 90 took it, four more went with the `:edit`
+family at phase 91, which is what makes `:file` the last and part D possible, and
+`set_rw_fname` was `setfname`'s second caller and went with `readfile` at phase 92.
 
-## A cut that is not unique is a guess
+**`need 93 swept`, measured.** The edit's anchor is `b_ffname` at exactly 32
+mentions, with `b_sfname` at 26 and `b_fname` at 29. On the text phase 92's *edit*
+leaves there are **forty**, `readfile()` still being there to make eight of them, and
+the counted anchor refuses: `tools/phaserun.sh 92-93` says `b_ffname has 40
+mentions, expected 32`. Unlike 90, 91 and 92, the text before it **compiles** — phase
+92's edit left valid C — so the refusal is the counted anchor alone.
 
-The first version dropped the autocomplete disarm by matching its condition,
-`if (c != KE_CURSORHOLD && c != KE_COMPLETE_DELAY)`. That condition occurs
-**three times inside `edit()`**, and the one the search took was
-
-```c
-        {
-            lastc = c;
-        }
-```
-
-— the last-character save, which has nothing to do with completion. It
-compiled, it swept clean, the island still shrank by 2,400 lines, and **nothing
-downstream objected.** `drop_unique()` now refuses any condition that is not
-unique in the file; anything genuinely ambiguous is spelled out in full or
-anchored to one function with `drop_if_in()`. The phase also asserts the `lastc`
-line is still there, because that is the failure that got through.
-
-## Two halves, and only the pair is a check
-
-Completion must be absent — `tools/complcheck.py` — and the arrow keys, whose
-`pum_visible()` arms this phase cuts, must still move the cursor. Cutting a
-guard and the key's real body together is exactly what no completion check would
-notice, so `tools/arrowcheck.py` (since retired) asked in a pty: from `one/two/three`, `A` then
-Down then `X` must give `twoX`. **It was proved able to fail first** — with
-`ins_down()` removed it reports `oneX`.
-
-## The delta
-
-Measured: **135,315 → 127,131 lines** and symbols 88 → 88, the subsystem being
-pure computation over things already removed. The thirteen functions that remain
-of the island are constant-answer stubs the redraw layer asks on its own account.
-**Merged, the phase reproduces the boundary the two phases recorded byte for
-byte**, in 173 seconds against the 203 they took in sequence. **The delta is
-none** — no behaviour case types CTRL-N, these are insert-mode keys, and no Ex
-command moves.
+**`apart 92 93`, measured.** Phase 92's check draws its line against this phase as
+counts — `b_ffname` 32, `b_sfname` 26, `b_fname` 29, `setfname` 2, `readonlymode` 3,
+`eval_vars` 4, `mch_dirname` 5 and the four write-only fields at 3 each — and names
+the four as things phase 93 takes. This phase takes every one to 0. Run on the tree
+it leaves, phase 92's check gives eighteen count complaints, `b_ffname has 0 mentions,
+expected 32` among them, plus `b_mtime_read is no longer a field of buf_T`, and exits
+1. **There is deliberately no `apart 91 93`**, although phase 91's check does fail here
+— it requires E447 to survive — because a stage holding 91 and 93 holds 92, and `apart
+91 92` forbids that already. It is the shape of the missing `apart 85 89` and `apart 89 91`.

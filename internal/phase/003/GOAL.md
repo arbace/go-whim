@@ -1,5 +1,8 @@
 # Phase 3 — no introduction, and the command line says only what the editor still decides
 
+*Formerly phase 3. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
+
 **It runs the front's third part first** (`front3`: D9-D12, `noinert` to
 `noabbr`, then the programs of phases 57, 58, 63, 65, 66 and 74, and its
 closure; `internal/phase/001/GOAL.md` describes them), then the cuts this

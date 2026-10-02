@@ -1,25 +1,27 @@
-# Phase 57 — no lisp
+# Phase 57 — `p_emoji` is an `int`
 
-**A record now.** Phase 3's front calls `whim57` by name, after D12's cuts
-(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front), and phase 6
-drops the two fields with phase 58's, on the text phase 3 swept: the program
-is here, and the phase has no plan entry. It applied to the front's text as
-written. What follows is the account of the cut as it was made here.
+*Formerly phase 129. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-`'lisp'` and `'lispwords'` go, and with them everything they switched on:
-`get_lisp_indent()` for autoindent, `=`, `gq` and new lines; `lisp_match()` over
-`'lispwords'`; `-` as a keyword character; `;` line comments in
-`check_linecomment()`; and `findmatchlimit()`'s lisp mode, which stopped `%` at a
-`;` comment and skipped `#\(` character literals. `'lispoptions'` went in Phase 55.
+The first phase that comes of transpiling `editor.c` to Go (`internal/gen/FINDINGS.md`,
+finding 1). `'emoji'` is a boolean option, and the options table writes and
+reads every boolean option through an `int *` — `set_option_default()` stores
+`*(int *)varp`, as `do_set_option_bool()` and `set_bool_option()` do — but its
+variable was declared `char_u *`. The C got away with it: the static starts
+zeroed and the `int` lands in the pointer's low bytes, so
+`utf_char2cells()`'s `if (p_emoji && ...)` tests the right thing. The Go
+transpilation cannot say that, and its first run panicked in
+`set_option_default()`. The phase declares the variable what every writer and
+the one reader already take it to be; one line, no line added or removed.
 
-`b_p_lisp` is folded as false at every reader rather than stubbed — nine places
-in `findmatchlimit()` alone — so each branch it guarded is gone or taken
-unconditionally. One test inverts: `op_reindent()` skipped the last line of a
-range only when re-indenting with `get_lisp_indent()`, so its `how !=
-get_lisp_indent` is always true and the branch is kept. The phase checks the two
-options are unknown and that `%` on `(a ; b)` now matches across the `;`.
+**Declared delta: nothing.** No recorded case types an emoji. The check's
+evidence is a partition and a probe:
 
-## The delta
-
-**None the harnesses record** — no case sets `'lisp'`. Measured: 109,039 →
-**108,651 lines**.
+- **every `P_BOOL` row of `options[]` with a global variable names an `int`**
+  on the output; on the input exactly one did not, `'emoji'`. The check fails
+  if another appears or this one comes back.
+- `p_emoji` is its declaration, its row and its reader, and nothing else.
+- the libc surface is the set the stage was handed.
+- **the probe**: `iab<U+1F600>cd<Esc>:q!` is written in the same bytes by the
+  binary the phase was handed and the one it made; and **the control**,
+  `+set noemoji`, writes different bytes, so the probe sees the option at all.

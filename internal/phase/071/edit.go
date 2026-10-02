@@ -1,124 +1,101 @@
 package p071
 
-// Whim phase 71 -- one buffer, structurally.  See GOAL.md.
+// Whim phase 71 (formerly 145) -- check_termcode() has no goto.  See GOAL.md.
 //
-// THE INVARIANT IS ALREADY TRUE; this phase removes the machinery that pretended
-// otherwise.  Phase 69 allowed at most one file argument, phase 70 made :e reuse the
-// one buffer, and every buffer Ex command was retired long before that: all 24 rows
-// -- :buffer :buffers :ls :files :bnext :bprevious :bNext :bfirst :blast :brewind
-// :bmodified :bdelete :bunload :bwipeout :bufdo :ball :badd :balt -- already read
-// ex_ni, and do_buffer, do_bufdel, ex_buffer, ex_bufdo and ex_listdo do not exist.
-// So NOTHING can create a second buffer:
+// While an OSC response arrived over several reads, the loop jumped into the
+// OSC branch of a later if-chain (internal/gen/FINDINGS.md, 11).  The jump's if handles
+// the response itself and everything the jump skipped becomes its else.
 //
-// * win_alloc_first() at startup makes the one buffer, BEFORE command_line_scan;
-// * buflist_add() then names it through BLN_CURBUF, reusing that same buffer;
-// * do_ecmd() no longer calls buflist_new() at all (phase 70).
-//
-// THREE THINGS NAMED b_next ARE NOT THE BUFFER LIST, and a regex over the name would
-// gut the editor:
-//
-// * buffblock_T.b_next       -- the typeahead/redo chain: bh_first, redobuff,
-// old_redobuff, readbuf1, readbuf2.  ~30 sites.
-// * free_buffer()            -- buf->b_next = au_pending_free_buf, a free list.
-// * buf_T.b_next / b_prev    -- THIS is the buffer list, and only this.
-//
-// Every edit below is scoped with in_function() for exactly that reason.
-//
-// TWO SITES ARE NOT SIMPLE FOLDS:
-//
-// * check_map_keycodes()'s walk is `for (bp = firstbuf; ; bp = bp->b_next)` with NO
-// termination test -- it runs once per buffer and then ONCE MORE with bp == NULL,
-// which is how the global (non buffer-local) maps get scanned, and breaks on that
-// pass.  It becomes `for (bp = curbuf; ; bp = NULL)`: still exactly two
-// iterations.  Folding it to a single pass would stop scanning half the maps.
-//
-// This walk feeds add_termcap_entry(), NOT mapping lookup: a mapping is found
-// through curbuf->b_maphash[] directly, which never touches the buffer list and
-// was never at risk here.  Worth stating because the first version of this file
-// claimed otherwise.
-// * close_buffer()'s wipe branch is guarded by (b_prev != NULL || b_next != NULL),
-// which with a single buffer is ALREADY false.  The splice it guards is dead
-// today, not merely dead afterwards, so the guard folds to its else.
-//
-// WHAT IS LOST: nothing reachable.  buf_valid() becomes `buf == curbuf`, which makes
-// set_curbuf()'s `enter_buffer(lastbuf)` fallback unreachable and takes the rest of
-// set_curbuf's other-buffer handling with it.
-//
-// WHAT STAYS: buf_hashtab and buflist_findnr(), because five live callers still look
-// a buffer up by number -- eval_vars, setmark_pos, check_changed_any, buflist_nr2name
-// and buflist_getfile.  Collapsing that to a curbuf test is a separate step.
-//
-// THE DELTA: none expected.  The buffer commands are already ex_ni, so no exsweep row
-// can move; declared empty and left for the delta check to correct.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
-	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-// Whim71 makes the buffer list one buffer: buf_valid() is `buf == curbuf`,
-// every walk over firstbuf folds to curbuf, and the list pointers go.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("onebuf", text, w)
-
-	// 1. the keystone: a buffer is valid exactly when it is THE buffer
-	e.Body("buf_valid", w71lit3, "buf_valid, which walked the list to find the buffer it was given")
-	e.Body("anyBufIsChanged", w71lit4, "anyBufIsChanged, which asked every buffer")
-	e.Body("buflist_findname_stat", w71lit5, "buflist_findname_stat, which searched the list by name")
-
-	e.FoldWalk("ml_close_all", "buf", "curbuf", vimtext.FwdWalk, 1, "ml_close_all closing every buffer")
-	e.FoldWalk("ml_close_notmod", "buf", "curbuf", vimtext.FwdWalk, 1, "ml_close_notmod closing every buffer")
-	e.FoldWalk("shorten_fnames", "buf", "curbuf", vimtext.FwdWalk, 1, "shorten_fnames shortening every name")
-	e.FoldWalk("did_set_paste", "buf", "curbuf", vimtext.FwdWalk, 3, "'paste' saving and restoring every buffer")
-	e.FoldWalk("set_termname", "buf", "curbuf", vimtext.FwdWalk, 1, "a new terminal notifying every buffer")
-	e.DropWalk("getout", vimtext.FwdWalk, w71lit6, 1, "quitting unloading every buffer, whose break bound to the walk")
-	e.Body("buflist_findpat", w71lit7, "buflist_findpat matching against every buffer")
-	// check_changed_any's walks went with :q's refusal at phase 1 (quitfront,
-	// phase 94's move)
-	e.DropWalk("open_buffer", strings.ReplaceAll(vimtext.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
-
-	e.InFunction("open_buffer", func(e *edit.E) {
-		e.FoldAlways(edit.Head("if (curbuf == nullptr)"), 1, "open_buffer testing whether it found one")
-		e.Literal(w71lit15, "", 1, "open_buffer carrying on in another buffer instead")
-	})
-	e.Body("compute_buffer_local_count", w71lit9, "computing a buffer address by walking to an offset")
-
-	e.InFunction("parse_cmd_address", func(e *edit.E) {
-		e.Literal(w71AddrPair1, w71NewPair1, 1, "the default buffer range")
-	})
-	e.InFunction("address_default_all", func(e *edit.E) {
-		e.Literal(w71AddrPair2, w71NewPair2, 1, "the :% buffer range")
-	})
-	e.InFunction("get_address", func(e *edit.E) {
-		e.Literal(w71AddrPair3, w71NewPair3, 1, "the $ of a buffer range")
-	})
-	e.InFunction("invalid_range", func(e *edit.E) {
-		e.Literal(w71AddrPair4, w71NewPair4, 1, "validating a buffer range")
-	})
-
-	// free_buffer's deferral onto au_pending_free_buf folds at phase 1:
-	// autocmd_busy falls out with the autocommands' last writers (the reform's
-	// D6)
-	e.Literal(w71lit10, w71lit11, 1, "the mapping scan walking the list, still twice: curbuf then the globals")
-	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 94's move)
-	e.InFunction("close_buffer", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (wipe_buf && buf->b_nwindows <= 0 && (buf->b_prev != nullptr || buf->b_next != nullptr))"), 1,
-			"close_buffer unlinking a buffer that was never linked to another")
-	})
-	e.InFunction("buflist_new", func(e *edit.E) {
-		e.Literal(w71lit20, "", 1, "buflist_new appending to the list")
-	})
-
-	// The wiped-fnum branch is cut from its head to the plain else after it.
-	e.Splice(w71OldReuseStart, w71OldReuseEnd, w71lit13, "buflist_new reusing a wiped fnum and re-sorting the list for it")
-	// au_pending_free_buf, set_curbuf's valid flag, firstbuf, lastbuf and the
-	// buf_reuse pool are named by nothing now; the sweep takes them.
-	e.Literal(w71lit12, "", 1, "the buffer list pointers in buf_T")
-	return e.Done()
-}
+// w71LabelLine is the label with the whole of its line: the indentation before
+// it and the newline after it.
+var w71LabelLine = regexp.MustCompile(edit.Line("handle_osc:"))
 
 func init() { phase.Register("whim71", Edit) }
+
+const (
+	w71Jump = `        if (osc_state.processing)
+        {
+            tp[len] = NUL;
+            key_name[0] = NUL;
+            key_name[1] = NUL;
+            modifiers = 0;
+            goto handle_osc;
+        }
+`
+	w71Label = "handle_osc:\n"
+	w71Block = "        if (key_name[0] == NUL)\n        {\n"
+)
+
+// Whim71 takes the jump into an if Body Out of check_termcode().
+//
+// While an OSC response was arriving over several reads, check_termcode()
+// jumped from the top of its loop to handle_osc, a label inside the OSC branch
+// of the if-chain in `if (key_name[0] == NUL)`, skipping everything between
+// (internal/gen/FINDINGS.md, 11).  Nothing follows that chain inside its block, so the
+// jump did exactly this: the OSC handling, then the code after the block.  So
+// the jump's if gets the handling as its Body, and everything it skipped --
+// from the key's first byte through the end of the block -- becomes its else.
+// A continue or break in that code binds to the loop it bound to: an if does
+// not catch either.
+func Edit(text []byte, w io.Writer) ([]byte, error) {
+	p := edit.Ph{Tag: "oscgoto", W: w}
+	return p.InFunction(text, "check_termcode", func(seg []byte) ([]byte, error) {
+		s := string(seg)
+		j := strings.Index(s, w71Jump)
+		l := strings.Index(s, w71Label)
+		if j < 0 || strings.Count(s, w71Jump) != 1 || l < 0 || strings.Count(s, "handle_osc:") != 1 {
+			return nil, p.Die("the jump to handle_osc or its label is not where this phase expects it")
+		}
+		// the block holding the label: the last `if (key_name[0] == NUL)` before it
+		bi := strings.LastIndex(s[:l], w71Block)
+		if bi < 0 {
+			return nil, p.Die("the label is not inside `if (key_name[0] == NUL)`")
+		}
+		b := edit.Blank([]byte(s))
+		open := bi + len(w71Block) - 2
+		cl := edit.Match(b, open)
+		if cl < 0 || l > cl {
+			return nil, p.Die("the label is not inside that block")
+		}
+		// the chain ends where the block does: nothing but the closing brace after
+		// the last branch
+		end := cl + 1 + strings.Index(s[cl:], "\n")
+		mid := s[j+len(w71Jump) : end]
+		// THE LABEL'S WHOLE LINE, indentation included: the canonical text
+		// writes `            handle_osc:` twelve spaces in.  Measured on
+		// q144 of the old numbering: one line, and it is the label's.  The skipped code keeps its
+		// indentation as the else's body; the canonical print re-lays it.
+		if n := len(w71LabelLine.FindAllString(mid, -1)); n != 1 {
+			return nil, p.Die("the label's line is in the skipped code %d times, expected 1", n)
+		}
+		mid = w71LabelLine.ReplaceAllString(mid, "")
+		Body := strings.Replace(w71Jump, "            goto handle_osc;\n",
+			"            if (handle_osc(tp, len, key_name, &slen) == FAIL)\n            {\n                return -1;\n            }\n", 1)
+		// w71Jump ends at the if's own closing brace and its newline, so the
+		// else follows it directly.  It used to end at the BLANK LINE the
+		// residue wrote after that brace, and the TrimSuffix here was what took
+		// it back off; the canonical text writes no blank line there, and with
+		// the literal ending in a newline a TrimSuffix would run the brace and
+		// the `else` together.
+		Body = Body + "        else\n        {\n" + mid + "        }\n"
+		s = s[:j] + Body + s[end:]
+		if strings.Contains(s, "handle_osc:") || strings.Contains(s, "goto ") {
+			return nil, p.Die("check_termcode() still jumps")
+		}
+		p.Say("while an OSC response is arriving, the loop handles it in the jump's own if, and everything the jump skipped is its else: no goto left")
+		return []byte(s), nil
+	})
+}

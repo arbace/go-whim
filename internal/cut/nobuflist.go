@@ -72,7 +72,7 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// Nothing is counted here: this runs at phase 1 (the reform's D9),
+	// Nothing is counted here: this runs at phase 3 (the reform's D9),
 	// where ex_listdo() and ex_bunload() and the code that set ECMD_ADDBUF and
 	// ECMD_ALTBUF are still in the text, for the sweep.
 

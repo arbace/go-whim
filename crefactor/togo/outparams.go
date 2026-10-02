@@ -10,7 +10,7 @@ package togo
 // slot in the frame.  An in-out parameter is the same thing, since the value
 // goes in.  It is exact because x is reachable only through the parameter:
 // the callee cannot see it by another way, so when the value comes back is
-// when C's stores through p would be seen -- which is the proof phase 175
+// when C's stores through p would be seen -- which is the proof phase 94
 // (MemberOut) makes for members, simpler for locals.
 //
 // A caller whose call is where C evaluates lazily -- the right of && or ||,

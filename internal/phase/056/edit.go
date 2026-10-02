@@ -1,114 +1,881 @@
 package p056
 
-// Whim phase 56 -- no shell, runtime or keyword-program options.  See GOAL.md.
+// Whim phase 56 (formerly 128) -- fold the node types.  See GOAL.md.
 //
-// Six options whose readers survive only in machinery with nothing to serve:
+// THE MEMFILE GOES, AND WITH IT THE LAST THING BETWEEN THE TREE AND ITS NODES.
+// Until this phase a memline node is TWO allocations: a `bhdr_T` of four members --
+// two list pointers, a `char_u *bh_data` and a lock flag -- and, hanging off it, a
+// 4,096-byte PAGE that is cast to `PTR_BL *` or `DATA_BL *` depending on the two-byte
+// id at its front.  A `memfile_T` of two members owns the list head and the page size.
+// After this phase
 //
-// 'shell', 'shellquote', 'shellredir'  no shell is ever run -- call_shell() and
-// mch_call_shell() went long ago.  'shell' only chose the default of
-// 'shellredir' in set_init_3() and whether filename escaping doubled a `!`
-// for csh; 'shellquote' only wrapped do_bang()'s command line.
-// 'runtimepath', 'packpath'  there is no runtime to find.  Their readers are the
-// completion of :colorscheme, :compiler, :ownsyntax, :setfiletype, :packadd
-// and :runtime -- every one of them ex_ni -- and of :set ft=, which listed
-// runtime syntax/indent/ftplugin names.
-// 'keywordprg'  K is gone; only :set kp= defaulting to :help read it.
+// struct block_hdr    { short_u bh_id; };
+// struct pointer_block{ bhdr_T pb_hdr; short_u pb_count; PTR_EN pb_pointer[PB_COUNT_MAX]; };
+// struct data_block   { bhdr_T db_hdr; linenr_T db_line_count; DATA_LN db_line[DB_LINE_MAX]; };
 //
-// THE DELTA: none the harnesses record.  The probes check the six are unknown.
-// No sweep here.  One stood here, and the lines after it were written for swept text,
-// but this phase and every stage it has run in reproduce their boundaries without
-// it (GOALS.md, *The inner sweeps*; internal/phase/STAGES.md) -- the stage's one sweep does its work.
-// get_varp()'s "local if set" case for 'keywordprg' is written &curbuf->b_p_kp,
-// without the parentheses droplocal.py's pattern expects, so its two mentions
-// would read as readers.  It is plumbing, and goes by hand first.
+// and a node is ONE allocation AT ITS OWN SIZE: 1,040 bytes for a leaf and 4,088 for a
+// branch, against 4,128 for either of them before.  `bhdr_T` is the node's tag and the
+// first member of both, so `(PTR_BL *)hp` and `(bhdr_T *)pp` are the same address and
+// the file needs no union; `memfile_T` has nothing left to hold and is gone; and the
+// question "does this buffer have a memline" is `ml_root` where it was `ml_mfp`.
+//
+// THIS IS THE THING PHASE 55 NAMED AND DECLINED, in its own words: "Allocating a
+// block at its own size means giving memfile a byte size where it has a page count ...
+// It is named here so it is not lost: it would take the leaf from 112 bytes a line to
+// 64, and it would MAKE AN OFF-BY-ONE IN THE CAPACITY BOUND VISIBLE, which today it is
+// not."  Both halves are measured by the check rather than repeated: the leaf's node
+// cost falls from 64.5 bytes a line to 16.25, and phase 55's own `cap` control -- the
+// leaf capacity test widened by one -- moves 0 of 118 records on the input and 4 of 118
+// here, in one run, with the input's binary built from the source beside it.
+//
+// WHAT THE FANOUT DOES, WHICH IS THE ONE THING THIS PHASE COULD HAVE DESTROYED.
+// `pb_count_max` was computed per block as
+// `(mf_page_size - offsetof(PTR_BL, pb_pointer)) / sizeof(PTR_EN)`, which is
+// (4096 - 8) / 16 = 255, and it is the tree's fanout.  Record 123's corpus reaches a
+// ROOT SPLIT in exactly one of its sixteen cases, `mem_deep_jumps`, because that case
+// builds 391 data blocks and 391 > 255; the other fifteen and all 102 screen cases
+// reach none of it.  A phase that took `sizeof(PTR_EN)` to 8 would put the fanout at
+// 511, and 391 < 511 would take root-split coverage to ZERO -- silently, because the
+// instrument would still run and still pass.  So:
+//
+// * PTR_EN IS NOT TOUCHED.  It is `{bhdr_T *pe_block; linenr_T pe_line_count;}` here
+// exactly as it was there, 16 bytes either side -- and a `static_assert` says so
+// rather than leaving it to be rediscovered.
+// * THE NEW STRUCT HAS THE SAME OFFSET.  `bhdr_T` is two bytes and `pb_count` two,
+// so `pb_pointer` starts at 8 as it did when `pb_id`, `pb_count` and
+// `pb_count_max` were three shorts.  PB_COUNT_MAX = 255 is therefore the number the
+// input computes and not a number chosen, and the second `static_assert` states it
+// that way: `PB_COUNT_MAX == (4096 - 8) / sizeof(PTR_EN)`, which FAILS TO COMPILE
+// if a later phase narrows the entry.
+//
+// The check measures the consequence and not just the arithmetic: the five markers of
+// record 123's instrument, on this phase's output and on its input in the same run,
+// case by case.  And a control builds this phase's output with PB_COUNT_MAX = 511 and
+// reports what it costs -- 0 of 118 records move and MLSPLITPTR, MLSPLITROOT and MLDEEP
+// go 1 -> 0, which is the hazard demonstrated rather than described.
+//
+// WHAT GOES, MEASURED ON THE INPUT AND ASSERTED AS A PARTITION AND NOT AS A COUNT
+// (below, `classify`).  Every mention of every one of these is in file scope, in one of
+// the ten `mf_*` functions, in one of the eleven memline functions, or -- for `ml_mfp`
+// alone -- in one of the seven places outside the memline that ask whether a buffer has
+// one.  A mention anywhere else is a rule this edit does not have, and it refuses.
+//
+// bh_next bh_prev       15 mentions   the used list, whose one consumer was mf_close
+// bh_data               24            the page hanging off the header
+// bh_flags               5            the lock: nothing can evict a block
+// mf_used_first          6            the list head
+// mf_page_size           6            the page size, read in four places
+// memfile memfile_T     27            the type and its tag
+// ml_mfp                25            the handle, and the "is it open" question
+// pb_id db_id            9            two tags where the node has one
+// pb_count_max           3            a field written once and read once
+// MEMFILE_PAGE_SIZE      3
+// the ten mf_* names    47            mf_open mf_close mf_new mf_get mf_put mf_free
+// mf_ins_used mf_rem_used mf_alloc_bhdr mf_free_bhdr
+// mfp                   55            no function holds a handle on a memfile
+// page_count page_size   8
+//
+// AND WHAT THE SWEEP TAKES, STATED HERE AS THE OTHER HALF OF THE SAME PARTITION, which
+// is phase 54's form: `BH_LOCKED`, whose only three readers were mf_new, mf_get and
+// mf_put, and `e_block_was_not_locked`, the E293 mf_put raised.  The edit leaves each at
+// exactly ONE mention -- its own definition -- and the check requires the sweep to take
+// both to zero and to take NOTHING ELSE.
+//
+// NOTHING IS FREED THAT WAS NOT FREED BEFORE, and the lifetime rule is unchanged.
+// `mf_close()` walked the used list at ml_close() and freed every block on it, and the
+// used list was exactly the set of live nodes -- so `ml_free_tree()` walks the TREE
+// instead and frees the same set.  It is recursive and the depth is the tree's height,
+// which is 3 on the heaviest case the corpus has.  `mf_free()`'s two call sites in
+// ml_delete_int() become `vim_free(hp)`, one allocation where there were two.  A control
+// measures that removing both is invisible, for the reason GOALS.md's charter gives:
+// host_free() returns without doing anything.
+//
+// THE ZEROING IS KEPT AND IT IS LOAD-BEARING ONCE.  mf_new() memset the page to 0 and
+// the two constructors call alloc_clear() instead, which is the same act.  It matters in
+// exactly one place: ml_open()'s error path runs ml_free_tree() over a root whose single
+// pointer entry has not been filled in yet, and a zeroed `pe_block` is the nullptr that
+// walk stops on.  A control measures that the host's arena happens to hand out zeroed
+// memory anyway -- which is a fact about the host and not a promise to the core.
+//
+// HOW THE EDIT IS WRITTEN.  Every region is found by the function it is in and by its
+// own first and last line; every local the fold stops using is removed by COMPUTING that
+// its name is left mentioned once in its own function, never by listing it; and the two
+// id constants are carried as they are found rather than spelled, because `(('p' << 8) +
+// 't')` is phase 31's macro expansion and not this phase's text.  No line number is
+// pinned and no line this phase does not itself replace is quoted.
+// The flags are read out of the boundary's makefile rather than written here a second
+// time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
 import (
 	"fmt"
 	"io"
+	"os"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-// exNiCompletions are commands whose handler is ex_ni -- present in the table,
-// answering "not implemented" -- so completing their arguments is work for an
-// answer nobody gets.
-var exNiCompletions = []string{"colorscheme", "compiler", "ownsyntax", "setfiletype", "packadd"}
+func init() { phase.RegisterArgs("whim56", Edit) }
 
-// runtimeContexts are the EXPAND_ contexts that named a file under
-// 'runtimepath'.  There is no runtime directory in this build.
-var runtimeContexts = []string{"COLORS", "COMPILER", "OWNSYNTAX", "FILETYPE", "PACKADD", "RUNTIME"}
+// w56Fanout is the fanout, and it is a LITERAL rather than a computation: the
+// corpus's root-split coverage is measured against the number the input gives,
+// and a later phase that narrowed PTR_EN would take the root split Out of the
+// corpus without moving one record.  The input computes it and the output
+// asserts it -- and the file gains a static_assert that fails to COMPILE.
+const w56Fanout = 255
 
-// Whim56 takes 'shellredir' choosing itself by the shell's name, the shell
-// quoting, and every completion that read the runtime directory.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("noshellrtp", text, w)
+// w56Gone are the names the fold removes; w56ForSweep the two the EDIT leaves at
+// exactly one mention -- their own definition -- for the SWEEP to take, stated
+// here so that a sweep which took something else, or nothing, fails in the check.
+var w56Gone = []string{"bh_next", "bh_prev", "bh_data", "bh_flags",
+	"mf_used_first", "mf_page_size", "memfile", "memfile_T", "ml_mfp",
+	"pb_id", "db_id", "pb_count_max", "MEMFILE_PAGE_SIZE",
+	"mf_open", "mf_close", "mf_new", "mf_get", "mf_put", "mf_free",
+	"mf_ins_used", "mf_rem_used", "mf_alloc_bhdr", "mf_free_bhdr",
+	"mfp", "page_count", "page_size"}
 
-	// 'shellredir''s default was chosen by the name of 'shell'.
-	e.InFunction("set_init_3", func(e *edit.E) {
-		e.Cut(edit.Line(`idx_srr = findoption((char_u *)"srr");`), 1,
-			"set_init_3 looking up 'shellredir'")
-		e.FoldNever(edit.Head("if (idx_srr < 0)"), 1,
-			"set_init_3 without a 'shellredir' row")
-		e.Cut(edit.Line("do_srr = !(options[idx_srr].flags & P_WAS_SET);"), 1,
-			"set_init_3 asking whether 'shellredir' was set")
-		e.Cut(edit.Line("p = get_isolated_shell_name();"), 1,
-			"set_init_3 naming the shell")
-		e.DropIf(edit.Head("if (p != nullptr)"), 1,
-			"set_init_3 choosing 'shellredir' by shell")
-	})
-	// do_bang's 'shellquote' went with :! and :read and :write's filters (D2, D4)
-	e.InFunction("vim_strsave_fnameescape", func(e *edit.E) {
-		e.DropIf(edit.Head("if (what == VSE_SHELL && csh_like_shell() && p != nullptr)"), 1,
-			"filename escaping doubling ! for csh")
-	})
+var w56ForSweep = []string{"BH_LOCKED", "e_block_was_not_locked"}
 
-	// Completion for commands that are ex_ni, and for :set ft=.
-	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
-		for _, c := range exNiCompletions {
-			e.Cut(fmt.Sprintf(`(?m)^[ \t]*case CMD_%s:\n[ \t]*xp->xp_context = EXPAND_\w+;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, c),
-				1, fmt.Sprintf("completing :%s, which is ex_ni", c))
+// w56Homes: the ten mf_* functions and the eleven memline ones are this phase's
+// whole subject; the seven others are the places that ask whether a buffer has a
+// memline at all, which is the one question ml_mfp answered for anybody else.
+var w56Homes = []string{"<file scope>",
+	"mf_open", "mf_close", "mf_new", "mf_get", "mf_put", "mf_free",
+	"mf_ins_used", "mf_rem_used", "mf_alloc_bhdr", "mf_free_bhdr",
+	"ml_open", "ml_close", "ml_get_buf", "ml_append_int", "ml_delete_int",
+	"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line",
+	"ml_new_data", "ml_new_ptr", "ml_find_line", "ml_lineadd",
+	"ml_append_flags", "ml_replace_len",
+	"buf_clear_file", "buf_freeall", "create_windows", "curbuf_reusable",
+	"get_nolist_virtcol", "getout", "open_buffer"}
+
+var (
+	w56PageSize = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
+	w56MfGet    = regexp.MustCompile(`^(\s*)if \(\(hp = mf_get\(mfp, ([a-z>_.\[\]-]+)\)\) == nullptr\)$`)
+	w56BhData   = regexp.MustCompile(`\(([A-Za-z_][A-Za-z0-9_]*) \*\)\(([A-Za-z_][A-Za-z0-9_]*)->bh_data\)`)
+	w56Ids      = regexp.MustCompile(`\b(pb_id|db_id)\b`)
+	w56IdRef    = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*->(?:pb_id|db_id)\b`)
+	w56MlMfp    = regexp.MustCompile(`\bml_mfp\b`)
+	w56BlankRun = regexp.MustCompile(`\n\n\n`)
+)
+
+// Whim56 folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
+// bh_id; }`, `memfile_T` goes entirely, and a node is ONE allocation at its own
+// size.
+func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+	p := edit.Ph{Tag: "node", W: w}
+	if len(args) != 1 {
+		return nil, p.Die("usage: edit whim56 <file> <state-dir>")
+	}
+	state := args[0]
+	t0 := string(text)
+	lines := strings.Split(t0, "\n")
+	nIn := len(lines)
+
+	die := func(format string, a ...interface{}) error {
+		fmt.Fprintf(w, "  node         %s\n", fmt.Sprintf(format, a...))
+		return fmt.Errorf("")
+	}
+	say := func(format string, a ...interface{}) {
+		fmt.Fprintf(w, "  node         %s\n", fmt.Sprintf(format, a...))
+	}
+	mentions := func(s, name string) int {
+		return edit.WordCount(s, name)
+	}
+
+	// --- finding things ------------------------------------------------------
+	fn := func(name string) (int, int, error) {
+		var hits []int
+		for i, l := range lines {
+			if strings.HasPrefix(l, name+"(") {
+				hits = append(hits, i)
+			}
 		}
-		e.Cut(edit.Line("case CMD_runtime:", "set_context_in_runtime_cmd(xp, arg);", "break;"),
-			1, "completing :runtime, which is ex_ni")
-	})
-	e.InFunction("ExpandFromContext", func(e *edit.E) {
-		for _, c := range runtimeContexts {
-			e.FoldNever(fmt.Sprintf(edit.Head("if (xp->xp_context == EXPAND_%s)"), c), 1,
-				fmt.Sprintf("expanding runtime names for EXPAND_%s", c))
+		if len(hits) != 1 {
+			return 0, 0, die("%s is not a definition head exactly once (%d), so this edit cannot find "+
+				"the function it is about", name, len(hits))
 		}
-	})
-	e.InFunction("set_context_in_set_cmd", func(e *edit.E) {
-		e.DropIf(edit.Head("if (options[opt_idx].var == (char_u *)&p_ft)"), 1,
-			":set ft= completing runtime file types")
-		// at phase 1 (the reform's D6) every option the test names is dropped,
-		// and only nomemfile has taken its term yet: the whole test folds
-		e.FoldNever(edit.Head("if (p == (char_u *)&p_bdir || p == (char_u *)&p_path || p == (char_u *)&p_pp || p == (char_u *)&p_rtp || p == (char_u *)&p_cdpath)"), 1,
-			"'backupdir', 'path', 'packpath', 'runtimepath' and 'cdpath' completing as directories")
-	})
-	e.InFunction("stropt_get_newval", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (varp == (char_u *)&p_kp && (*arg == NUL || *arg == ' '))"), 1,
-			":set kp= defaulting to :help")
-	})
+		head := hits[0] - 1
+		if !strings.HasPrefix(strings.TrimLeft(lines[head], " \t"), "static") {
+			return 0, 0, die("%s has no `static` line above its name", name)
+		}
+		i := hits[0]
+		for lines[i] != "{" {
+			i++
+		}
+		depth := 0
+		for {
+			depth += strings.Count(lines[i], "{") - strings.Count(lines[i], "}")
+			if depth == 0 {
+				return head, i, nil
+			}
+			i++
+		}
+	}
+	one := func(lo, hi int, pat string) (int, error) {
+		re := regexp.MustCompile(pat)
+		var hits []int
+		for i := lo; i <= hi; i++ {
+			if re.MatchString(lines[i]) {
+				hits = append(hits, i)
+			}
+		}
+		if len(hits) != 1 {
+			return 0, die("%s matches %d lines where this edit needs exactly one",
+				vimtext.PyReprMultiline(pat), len(hits))
+		}
+		return hits[0], nil
+	}
+	allOf := func(lo, hi int, pat string) []int {
+		re := regexp.MustCompile(pat)
+		var Out []int
+		for i := lo; i <= hi; i++ {
+			if re.MatchString(lines[i]) {
+				Out = append(Out, i)
+			}
+		}
+		return Out
+	}
+	stmtEnd := func(a int) int {
+		i := a
+		for {
+			depth, seen, j := 0, false, i
+			for {
+				depth += strings.Count(lines[j], "{") - strings.Count(lines[j], "}")
+				seen = seen || strings.Contains(lines[j], "{")
+				if (seen && depth == 0) || (!seen && strings.HasSuffix(strings.TrimRight(lines[j], " \t"), ";")) {
+					break
+				}
+				j++
+			}
+			k := j + 1
+			for k < len(lines) && strings.TrimSpace(lines[k]) == "" {
+				k++
+			}
+			if k < len(lines) && strings.HasPrefix(strings.TrimSpace(lines[k]), "else") {
+				i = k
+				continue
+			}
+			return j
+		}
+	}
+	enclosingIn := func(ls []string, i int) string {
+		for j := i; j >= 0; j-- {
+			if ls[j] == "}" {
+				return "<file scope>"
+			}
+			m := vimtext.FnHeadRe.FindStringSubmatch(ls[j])
+			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(ls[j-1], " \t"), "static") {
+				return m[1]
+			}
+		}
+		return "<file scope>"
+	}
+	enclosing := func(i int) string { return enclosingIn(lines, i) }
+	defn := func(headPat string) (int, int, error) {
+		a, err := one(0, len(lines)-1, headPat)
+		if err != nil {
+			return 0, 0, err
+		}
+		i := a
+		for lines[i] != "{" {
+			i++
+		}
+		depth := 0
+		for {
+			depth += strings.Count(lines[i], "{") - strings.Count(lines[i], "}")
+			if depth == 0 {
+				return a - 1, i, nil
+			}
+			i++
+		}
+	}
+	structOf := func(name string) (int, int, []string) {
+		a := vimtext.LineIndex(lines, "struct "+name)
+		b := a
+		for lines[b] != "};" {
+			b++
+		}
+		var members []string
+		for _, l := range lines[a+2 : b] {
+			if strings.TrimSpace(l) != "" {
+				members = append(members, strings.TrimSpace(l))
+			}
+		}
+		return a, b, members
+	}
+	// cut deletes [a,b].  The blank lines around it are the canonical print's.
+	cut := func(a, b int) {
+		lines = vimtext.SpliceLines(lines, a, b+1, nil)
+	}
 
-	return e.Done()
-}
+	// --- the partition, before anything is changed ---------------------------
+	before := map[string]int{}
+	var strays []string
+	for _, name := range append(append([]string{}, w56Gone...), w56ForSweep...) {
+		re := regexp.MustCompile(`\b` + name + `\b`)
+		var hits []int
+		for i, l := range lines {
+			if strings.Contains(l, name) && re.MatchString(l) {
+				hits = append(hits, i)
+			}
+		}
+		if len(hits) == 0 {
+			return nil, die("%s is not in the input at all, so this phase has already run or the "+
+				"memfile is not the one it was written against", name)
+		}
+		// The COUNT is mentions and the classification is lines: mf_rem_used has
+		// two mentions on one line, and the check re-reads the count the same way.
+		before[name] = mentions(t0, name)
+		for _, i := range hits {
+			if !edit.Contains(w56Homes, enclosing(i)) {
+				strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, enclosing(i), i+1))
+			}
+		}
+	}
+	if len(strays) > 0 {
+		return nil, die("a name this phase removes is mentioned where it has no rule: %s",
+			strings.Join(edit.First(strays, 5), "; "))
+	}
+	sum := 0
+	for _, n := range w56Gone {
+		sum += before[n]
+	}
+	say("the input mentions %s -- %d times between them -- and every mention is in file "+
+		"scope, in one of the ten mf_* functions, in one of the eleven memline functions, "+
+		"or in one of the seven that ask whether a buffer has a memline",
+		strings.Join(w56Gone, ", "), sum)
 
-// Whim56KP takes get_varp()'s per-buffer resolution of 'keywordprg'.
-//
-// IT IS A SECOND ENTRY AND NOT PART OF Whim56, because in the phase program it
-// stands AFTER two dropoptions calls rather than before them.  Folding the two
-// heredocs into one call would have moved this cut earlier, which is a change
-// to the phase and not to its spelling -- the kind a port must not make and the
-// boundary would have caught.
-func Whim56KP(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("noshellrtp", text, w)
-	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_KP\b[^\n]*\n[ \t]*return \*curbuf->b_p_kp != NUL \? \(char_u \*\)&curbuf->b_p_kp : p->var;\n`,
-		1, "get_varp no longer resolves 'keywordprg' per buffer")
-	return e.Done()
-}
+	// The fanout, read off the INPUT rather than written here.
+	pm := w56PageSize.FindStringSubmatch(t0)
+	if pm == nil {
+		return nil, die("the input has no MEMFILE_PAGE_SIZE enumerator")
+	}
+	page, _ := strconv.Atoi(pm[1])
+	_, _, pbm := structOf("pointer_block")
+	var tails []string
+	for _, m := range pbm {
+		f := strings.Fields(m)
+		tails = append(tails, f[len(f)-1])
+	}
+	if strings.Join(tails, " ") != "pb_id; pb_count; pb_count_max; pb_pointer[1];" {
+		return nil, die("struct pointer_block is not the page of entries this phase counts: %s",
+			strings.Join(pbm, " "))
+	}
+	if (page-8)/16 != w56Fanout {
+		return nil, die("the input computes a fanout of %d and this phase fixes it at %d; the corpus's "+
+			"root-split coverage is measured against the first number", (page-8)/16, w56Fanout)
+	}
+	say("the input's fanout is (%d - 8) / 16 = %d, and that is the number this phase "+
+		"fixes: record 123 reaches a ROOT SPLIT in one of sixteen cases because that "+
+		"case builds more data blocks than this", page, w56Fanout)
 
-func init() {
-	phase.Register("whim56", Edit)
-	phase.Register("whim56kp", Whim56KP)
+	// --- 1. struct block_hdr becomes the node's tag, and nothing else --------
+	a, b, members := structOf("block_hdr")
+	if strings.Join(members, " ") != "bhdr_T *bh_next; bhdr_T *bh_prev; "+
+		"char_u *bh_data; char bh_flags;" {
+		return nil, die("struct block_hdr is not the four-member page header this phase folds: %s",
+			strings.Join(members, " "))
+	}
+	lines = vimtext.SpliceLines(lines, a, b+1, w56b0)
+
+	// --- 2. struct memfile has nothing left to hold --------------------------
+	a, b, members = structOf("memfile")
+	if strings.Join(members, " ") != "bhdr_T *mf_used_first; unsigned mf_page_size;" {
+		return nil, die("struct memfile is not the two-member one this phase folds away: %s",
+			strings.Join(members, " "))
+	}
+	cut(a, b)
+	// Its typedef, `typedef struct memfile memfile_T;`, is left for the sweep:
+	// nothing names memfile_T once the fold is done.
+
+	// --- 3. memline_T loses its handle on one --------------------------------
+	i := vimtext.LineIndex(lines, "    memfile_T   *ml_mfp;")
+	if lines[i+1] != "    bhdr_T *ml_root;" {
+		return nil, die("ml_mfp is not the line above ml_root, so the memline is not the one this " +
+			"edit reads")
+	}
+	lines = vimtext.SpliceLines(lines, i, i+1, nil)
+
+	// --- 4. the memfile layer itself -----------------------------------------
+	i = vimtext.LineIndex(lines, fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };", page))
+	if lines[i+2] != "static void mf_ins_used(memfile_T *, bhdr_T *);" {
+		return nil, die("the memfile block does not start where this edit expects")
+	}
+	// The run of prototypes has a blank line between each pair -- the canonical
+	// text writes one between two file-scope declarations -- so the walk steps
+	// over a blank as well as over a prototype, and stops on the first line that
+	// is neither.  That leaves the blank under the last prototype inside the
+	// cut, which is where it has to be: the enum above has one over it.
+	j := i + 2
+	for j < len(lines) && (lines[j] == "" ||
+		(strings.HasPrefix(lines[j], "static ") && strings.Contains(lines[j], "mf_"))) {
+		j++
+	}
+	cut(i, j-1)
+
+	for _, headPat := range []string{
+		`^mf_open\(void\)$`,
+		`^mf_close\(memfile_T \*mfp, int del_file\)$`,
+		`^mf_new\(memfile_T \*mfp, int page_count\)$`,
+		`^mf_get\(memfile_T \*mfp, bhdr_T \*hp\)$`,
+		`^mf_put\(bhdr_T \*hp\)$`,
+		`^mf_free\(memfile_T \*mfp, bhdr_T \*hp\)$`,
+		`^mf_ins_used\(memfile_T \*mfp, bhdr_T \*hp\)$`,
+		`^mf_rem_used\(memfile_T \*mfp, bhdr_T \*hp\)$`,
+		`^mf_alloc_bhdr\(memfile_T \*mfp, int page_count\)$`,
+		`^mf_free_bhdr\(bhdr_T \*hp\)$`,
+	} {
+		aa, bb, err := defn(headPat)
+		if err != nil {
+			return nil, err
+		}
+		cut(aa, bb)
+	}
+
+	// --- 5. a branch is a counted array of entries and not a page ------------
+	a, b, _ = structOf("pointer_block")
+	lines = vimtext.SpliceLines(lines, a, b+1, w56b1)
+
+	a, _, members = structOf("data_block")
+	tails = nil
+	for _, m := range members {
+		f := strings.Fields(m)
+		tails = append(tails, f[len(f)-1])
+	}
+	if strings.Join(tails, " ") != "db_id; db_line_count; db_line[DB_LINE_MAX];" {
+		return nil, die("struct data_block is not the leaf phase 55 left: %s",
+			strings.Join(members, " "))
+	}
+	lines[a+2] = w56s0
+
+	i, err := one(0, len(lines)-1, `^static_assert\(sizeof\(DATA_BL\) <= MEMFILE_PAGE_SIZE,`)
+	if err != nil {
+		return nil, err
+	}
+	asserts := append([]string{}, w56b2...)
+	asserts[1] = fmt.Sprintf(asserts[1], page)
+	lines = vimtext.SpliceLines(lines, i, i+1, asserts)
+
+	// --- 6. the two constructors allocate a node at its own size -------------
+	// The id constants are CARRIED Out of the definitions being replaced and
+	// never spelled.
+	carriedID := func(headPat, field string) (string, error) {
+		lo, hi, err := defn(headPat)
+		if err != nil {
+			return "", err
+		}
+		k, err := one(lo, hi, `->`+field+` =`)
+		if err != nil {
+			return "", err
+		}
+		v := strings.SplitN(lines[k], "=", 2)[1]
+		return strings.TrimSpace(strings.TrimSuffix(strings.TrimRight(v, " \t"), ";")), nil
+	}
+	da, err := carriedID(`^ml_new_data\(memfile_T \*mfp\)$`, "db_id")
+	if err != nil {
+		return nil, err
+	}
+	pt, err := carriedID(`^ml_new_ptr\(memfile_T \*mfp\)$`, "pb_id")
+	if err != nil {
+		return nil, err
+	}
+	if !strings.Contains(da, "<< 8") || !strings.Contains(pt, "<< 8") || da == pt {
+		return nil, die("the two block ids are not the two distinct constants this edit carries: "+
+			"%s and %s", vimtext.PyReprMultiline(da), vimtext.PyReprMultiline(pt))
+	}
+	fill := func(rows []string) []string {
+		Out := make([]string, len(rows))
+		for i, r := range rows {
+			if strings.Contains(r, "%[1]s") || strings.Contains(r, "%[2]s") {
+				Out[i] = fmt.Sprintf(r, da, pt)
+			} else {
+				Out[i] = r
+			}
+		}
+		return Out
+	}
+
+	i = vimtext.LineIndex(lines, "static bhdr_T *ml_new_data(memfile_T *);")
+	lines[i] = w56s1
+	i = vimtext.LineIndex(lines, "static bhdr_T *ml_new_ptr(memfile_T *);")
+	lines[i] = w56s2
+
+	aa, bb, err := defn(`^ml_new_data\(memfile_T \*mfp\)$`)
+	if err != nil {
+		return nil, err
+	}
+	lines = vimtext.SpliceLines(lines, aa, bb+1, fill(w56b3))
+	if aa, bb, err = defn(`^ml_new_ptr\(memfile_T \*mfp\)$`); err != nil {
+		return nil, err
+	}
+	lines = vimtext.SpliceLines(lines, aa, bb+1, fill(w56b4))
+
+	// --- 7. a closed buffer gives its nodes back by walking the tree ---------
+	lo, _, err := fn("ml_alloc_line")
+	if err != nil {
+		return nil, err
+	}
+	lines = vimtext.SpliceLines(lines, lo, lo, fill(w56b5))
+
+	// --- 8. ml_open opens nothing --------------------------------------------
+	lo, hi, err := fn("ml_open")
+	if err != nil {
+		return nil, err
+	}
+	if a, err = one(lo, hi, `^    mfp = mf_open\(\);$`); err != nil {
+		return nil, err
+	}
+	b = stmtEnd(a + 1)
+	c := b + 1
+	for strings.TrimSpace(lines[c]) == "" {
+		c++
+	}
+	if lines[c] != "    buf->b_ml.ml_mfp = mfp;" {
+		return nil, die("mf_open is not followed by its failure arm and the assignment to ml_mfp")
+	}
+	lines = vimtext.SpliceLines(lines, a, c+1, nil)
+
+	if lo, hi, err = fn("ml_open"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^    if \(\(hp = ml_new_ptr\(mfp\)\) == nullptr\)$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s3
+	if i, err = one(lo, hi, `^    pp = \(PTR_BL \*\)\(hp->bh_data\);$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s4
+	if i, err = one(lo, hi, `^    mf_put\(hp\);$`); err != nil {
+		return nil, err
+	}
+	lines = vimtext.SpliceLines(lines, i, i+1, nil)
+
+	if lo, hi, err = fn("ml_open"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^    if \(\(hp = ml_new_data\(mfp\)\) == nullptr\)$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s5
+	if i, err = one(lo, hi, `->pb_pointer\[0\]\.pe_block = hp;$`); err != nil {
+		return nil, err
+	}
+	lines[i] = strings.ReplaceAll(lines[i], "ml_root->bh_data", "ml_root")
+	if i, err = one(lo, hi, `^    dp = \(DATA_BL \*\)\(hp->bh_data\);$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s6
+
+	if lo, hi, err = fn("ml_open"); err != nil {
+		return nil, err
+	}
+	if a, err = one(lo, hi, `^error:$`); err != nil {
+		return nil, err
+	}
+	if b, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
+		return nil, err
+	}
+	lines = vimtext.SpliceLines(lines, a, b+1, w56b6)
+
+	// --- 9. ml_close frees the tree it has ------------------------------------
+	if lo, hi, err = fn("ml_close"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^    if \(buf->b_ml\.ml_mfp == nullptr\)$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s7
+	if i, err = one(lo, hi, `^    mf_close\(buf->b_ml\.ml_mfp, del_file\);$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s8
+	if i, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s9
+
+	// --- 10. the three functions that took a handle on the memfile -----------
+	if lo, hi, err = fn("ml_append_int"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
+		return nil, err
+	}
+	if !regexp.MustCompile(`^    page_size = mfp->mf_page_size;$`).MatchString(lines[i+1]) {
+		return nil, die("the page size is not read where this edit expects")
+	}
+	lines = vimtext.SpliceLines(lines, i, i+2, nil)
+
+	if lo, hi, err = fn("ml_delete_int"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
+		return nil, err
+	}
+	b = stmtEnd(i + 1)
+	if !strings.Contains(strings.Join(lines[i:b+1], "\n"), "return FAIL") {
+		return nil, die("the memfile null test in ml_delete_int is not the arm this edit rewrites")
+	}
+	lines = vimtext.SpliceLines(lines, i, b+1, w56b7)
+
+	if lo, hi, err = fn("ml_find_line"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
+		return nil, err
+	}
+	// The statement alone: the canonical text writes no blank line inside a
+	// function, so there is none under it to take.
+	lines = vimtext.SpliceLines(lines, i, i+1, nil)
+
+	// --- 11. everywhere else, ml_mfp was the question "is this buffer loaded"
+	for i, l := range lines {
+		if w56MlMfp.MatchString(l) {
+			lines[i] = w56MlMfp.ReplaceAllString(l, "ml_root")
+		}
+	}
+
+	// --- 12. a node is reached without its header ----------------------------
+	for i, l := range lines {
+		if strings.Contains(l, "->bh_data") {
+			lines[i] = w56BhData.ReplaceAllString(l, "($1 *)($2)")
+		}
+	}
+
+	// --- 13. one tag, in the node --------------------------------------------
+	for i, l := range lines {
+		if w56Ids.MatchString(l) {
+			lines[i] = w56IdRef.ReplaceAllString(l, "hp->bh_id")
+		}
+	}
+
+	// --- 14. nothing can evict a block, so nothing locks one -----------------
+	for _, name := range []string{"ml_append_int", "ml_delete_int", "ml_find_line", "ml_lineadd"} {
+		for {
+			lo, hi, err = fn(name)
+			if err != nil {
+				return nil, err
+			}
+			hits := allOf(lo, hi, `^\s*mf_put\([^)]*\);$`)
+			if len(hits) == 0 {
+				break
+			}
+			i = hits[0]
+			lines = vimtext.SpliceLines(lines, i, i+1, nil)
+		}
+	}
+
+	// --- 15. a block is its own pointer --------------------------------------
+	for {
+		var hits []int
+		mfGet := regexp.MustCompile(`\bmf_get\(`)
+		for i, l := range lines {
+			if mfGet.MatchString(l) {
+				hits = append(hits, i)
+			}
+		}
+		if len(hits) == 0 {
+			break
+		}
+		i = hits[0]
+		m := w56MfGet.FindStringSubmatch(lines[i])
+		if m == nil {
+			return nil, die("an mf_get is not the guarded assignment this edit rewrites: %s", lines[i])
+		}
+		lines = vimtext.SpliceLines(lines, i, stmtEnd(i)+1, []string{m[1] + "hp = " + m[2] + ";"})
+	}
+
+	// --- 16. ml_append_int ----------------------------------------------------
+	if lo, hi, err = fn("ml_append_int"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^        if \(\(hp_new = ml_new_data\(mfp\)\) == nullptr\)$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s10
+	if i, err = one(lo, hi, `if \(pp->pb_count < pp->pb_count_max\)$`); err != nil {
+		return nil, err
+	}
+	lines[i] = strings.ReplaceAll(lines[i], "pp->pb_count_max", "PB_COUNT_MAX")
+	if i, err = one(lo, hi, `^                hp_new = ml_new_ptr\(mfp\);$`); err != nil {
+		return nil, err
+	}
+	lines[i] = w56s11
+	// The root split copied the whole PAGE, which is how a node's contents moved
+	// while its header sat somewhere else.  The header is IN the node now.
+	if i, err = one(lo, hi, `^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\);$`); err != nil {
+		return nil, err
+	}
+	lines = vimtext.SpliceLines(lines, i, i+1, w56b8)
+
+	// --- 17. ml_delete_int releases a node by freeing it ---------------------
+	if lo, hi, err = fn("ml_delete_int"); err != nil {
+		return nil, err
+	}
+	freed := allOf(lo, hi, `\bmf_free\(mfp, hp\);$`)
+	if len(freed) != 2 {
+		return nil, die("ml_delete_int releases a block in %d places and this edit knows two", len(freed))
+	}
+	for _, i := range freed {
+		lines[i] = strings.ReplaceAll(lines[i], "mf_free(mfp, hp);", "vim_free(hp);")
+	}
+
+	// --- 18. ml_find_line reads the tag off the node -------------------------
+	if lo, hi, err = fn("ml_find_line"); err != nil {
+		return nil, err
+	}
+	if a, err = one(lo, hi, `^\s+dp = \(DATA_BL \*\)\(hp\);$`); err != nil {
+		return nil, err
+	}
+	if !regexp.MustCompile(`if \(hp->bh_id ==\s`).MatchString(lines[a+1]) {
+		return nil, die("the leaf test does not follow the cast it replaces: %s", lines[a+1])
+	}
+	lines = vimtext.SpliceLines(lines, a, a+1, nil)
+	if lo, hi, err = fn("ml_find_line"); err != nil {
+		return nil, err
+	}
+	if i, err = one(lo, hi, `^\s+pp = \(PTR_BL \*\)\(dp\);$`); err != nil {
+		return nil, err
+	}
+	lines[i] = strings.ReplaceAll(lines[i], "(dp)", "(hp)")
+	if lo, hi, err = fn("ml_find_line"); err != nil {
+		return nil, err
+	}
+	if a, err = one(lo, hi, `^error_block:$`); err != nil {
+		return nil, err
+	}
+	if lines[a+1] != "error_noblock:" {
+		return nil, die("error_block and error_noblock are not adjacent once the lock has gone")
+	}
+	lines = vimtext.SpliceLines(lines, a+1, a+2, nil)
+
+	// --- 19. the locals the fold stopped using -------------------------------
+	var dropped []string
+	for _, name := range []string{"ml_open", "ml_close", "ml_get_buf", "ml_append_int", "ml_delete_int",
+		"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line",
+		"ml_new_data", "ml_new_ptr", "ml_find_line", "ml_lineadd"} {
+		for {
+			lo, hi, err = fn(name)
+			if err != nil {
+				return nil, err
+			}
+			Body := strings.Join(lines[lo:hi+1], "\n")
+			found := false
+			for i := lo; i <= hi; i++ {
+				m := localDeclRe.FindStringSubmatch(lines[i])
+				if m == nil {
+					continue
+				}
+				if edit.Contains(notDeclWords, strings.Fields(lines[i])[0]) {
+					continue
+				}
+				if mentions(Body, m[1]) == 1 {
+					dropped = append(dropped, name+":"+m[1])
+					lines = vimtext.SpliceLines(lines, i, i+1, nil)
+					found = true
+					break
+				}
+			}
+			if !found {
+				break
+			}
+		}
+	}
+	say("%d locals the fold stopped using, found by counting their own name: %s",
+		len(dropped), strings.Join(dropped, " "))
+
+	// --- the partition again, on the output ----------------------------------
+	t := strings.Join(lines, "\n")
+	for _, name := range w56Gone {
+		want := 0
+		if name == "memfile" || name == "memfile_T" {
+			want = 1 // the typedef, the sweep's
+		}
+		if k := mentions(t, name); k != want {
+			return nil, die("%s survives the edit with %d mentions", name, k)
+		}
+	}
+	for _, name := range w56ForSweep {
+		if k := mentions(t, name); k != 1 {
+			return nil, die("%s is left at %d mentions and the edit leaves exactly one -- its own "+
+				"definition -- for the sweep to take", name, k)
+		}
+	}
+	for _, name := range []string{"PB_COUNT_MAX", "bh_id", "pb_hdr", "db_hdr", "ml_free_tree"} {
+		if mentions(t, name) == 0 {
+			return nil, die("%s is not in the output, so the replacement did not land", name)
+		}
+	}
+	// THE OPEN-BUFFER PREDICATE MOVED 1:1, stated as a partition over the
+	// FUNCTIONS that ask it rather than as a count of mentions.
+	askers := func(text, field string) []string {
+		ls := strings.Split(text, "\n")
+		re := regexp.MustCompile(`\b` + field + `\b *(==|!=) *nullptr`)
+		seen := map[string]bool{}
+		for i, l := range ls {
+			if re.MatchString(l) {
+				seen[enclosingIn(ls, i)] = true
+			}
+		}
+		var Out []string
+		for k := range seen {
+			Out = append(Out, k)
+		}
+		sort.Strings(Out)
+		return Out
+	}
+	was, now := askers(t0, "ml_mfp"), askers(t, "ml_root")
+	if len(askers(t0, "ml_root")) > 0 {
+		return nil, die("ml_root is already compared with nullptr in the input, so this edit cannot " +
+			"say that the open-buffer question moved onto it")
+	}
+	wantSet := map[string]bool{"ml_delete_int": true}
+	for _, v := range was {
+		wantSet[v] = true
+	}
+	var want []string
+	for k := range wantSet {
+		want = append(want, k)
+	}
+	sort.Strings(want)
+	if strings.Join(want, "\x00") != strings.Join(now, "\x00") {
+		return nil, die("the \"is this buffer's memline open\" question is asked in %s and it was asked "+
+			"in %s; the only one this edit adds is ml_delete_int, which asked it through a "+
+			"local copy of the handle", vimtext.PyList(now), vimtext.PyList(was))
+	}
+	say("the question \"does this buffer have a memline\" moved from ml_mfp to ml_root in "+
+		"all %d functions that asked it, plus ml_delete_int, which asked it through its own "+
+		"copy of the handle -- and ml_root was compared with nullptr in none of them before",
+		len(was))
+	// THE INPUT IS ASKED FIRST, and that is what `need 128 swept` is.
+	if w56BlankRun.MatchString(t0) {
+		return nil, die("the input already has a run of two blank lines, so this edit cannot say it " +
+			"left none: it needs swept text (internal/phase/STAGES.md, `need 128 swept`)")
+	}
+	// What the edit leaves between declarations is layout; the canonical print
+	// at the end of the phase collapses any run of blank lines it made.
+
+	var gone strings.Builder
+	for _, n := range w56Gone {
+		fmt.Fprintf(&gone, "%s\t%d\n", n, before[n])
+	}
+	if err := os.WriteFile(state+"/gone", []byte(gone.String()), 0o644); err != nil {
+		return nil, die("%v", err)
+	}
+	if err := os.WriteFile(state+"/forsweep", []byte(strings.Join(w56ForSweep, "\n")+"\n"), 0o644); err != nil {
+		return nil, die("%v", err)
+	}
+	if err := os.WriteFile(state+"/fanout", []byte(fmt.Sprintf("%d\n", w56Fanout)), 0o644); err != nil {
+		return nil, die("%v", err)
+	}
+	say("%d -> %d lines: a node is ONE allocation at its own size, `bhdr_T` is its tag and "+
+		"the first member of both kinds, and there is no memfile", nIn, len(lines))
+	return []byte(t), nil
 }

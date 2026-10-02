@@ -12,12 +12,12 @@ import (
 
 // sameTexts are the texts the regexps the cutters gave up are held to: the
 // input and the product, and the boundaries the cutters actually read when
-// a build has left them (phase 6 reads q003, phase 7 q006).
+// a build has left them (phase 4 reads q003, phase 5 q004).
 func sameTexts(t *testing.T) map[string][]byte {
 	t.Helper()
 	out := map[string][]byte{}
 	for _, f := range []string{"../../src/slim-vim.c", "../../src/whim-vim.c",
-		"../../.cache/boundaries/q003.c", "../../.cache/boundaries/q006.c"} {
+		"../../.cache/boundaries/q003.c", "../../.cache/boundaries/q004.c"} {
 		src, err := os.ReadFile(f)
 		if err != nil {
 			t.Logf("%s: %v -- skipped", f, err)

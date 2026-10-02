@@ -1,55 +1,30 @@
-# Phase 77 — no buffer-name argument matching
+# Phase 77 — the NULL write in `free_one_termoption()` is gone
 
-`do_one_cmd()` computes
+*Formerly phase 154. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-```c
-ni = (!(cmdidx < 0) && (cmd_func == ex_ni || cmd_func == ex_script_ni))
-```
+`ttest()` called `free_one_termoption(t_Co)` when the terminal had neither
+`t_Sb` nor `t_AB`, meaning to clear `'t_Co'`. But it passed `t_Co`'s string
+value, and the function looks for the option whose variable **address** is its
+argument. Phase 153 showed the two are equal only when both are NULL, and then
+the function wrote `empty_option` through the NULL variable of the first option
+that has none. So the call never cleared `'t_Co'`; the one thing it ever did
+was that write, a crash waiting for a NULL `t_Co`.
 
-— "this command is not implemented" — and **seven** later checks consult it before
-doing work. One does not: the `EX_BUFNAME` pre-dispatch block, guarded only by
-`!(cmdidx < 0)`, which compiles a regexp and matches it against the buffer to turn
-`:buffer foo` into a line number.
+The call goes, with the `if` around it, whose condition only reads the two
+strings the lines above it already read. The sweep takes
+`free_one_termoption()`, which nothing else calls. What the editor does is
+unchanged, apart from the crash that can no longer happen.
 
-**Every command carrying `EX_BUFNAME` is `ex_ni`** — `:buffer`, `:bdelete`,
-`:bunload`, `:bwipeout`, `:checktime`, `:sbuffer` and `:pbuffer`. That last one is
-worth noting: an earlier hand grep found only six because `:pbuffer`'s row spells the
-handler with surrounding spaces (` ex_ni `). The phase counts the rows **dynamically**
-and asserts every handler is `ex_ni`, so it is right regardless of how many there are.
+Doing what vim meant, passing `t_Co`'s address so it really is cleared on a
+terminal with no colour-setting codes, would change behaviour, and would need
+a declared delta. It is not this phase.
 
-**The edit is a fold, not a guard.** Adding `&& !ni` would leave a block that can
-still never run — dead weight wearing a condition. The condition is false for every
-command that reaches it, so `fold_never` removes it outright and `buflist_findpat`
-loses its only caller.
+**Declared delta: nothing.** The check proves from the input that the call's
+one effect was the NULL write (the function matches only both-NULL, then
+writes through the match). It also proves the `if` reads nothing new, and
+requires the call and the function gone. Its probes are the paths into
+`ttest()`: clearing the colour options, setting `t_Co`, and setting the
+terminal. Each control moves.
 
-## A goto statement, not a label
-
-The block contains `goto doend;`, and that is safe: `doend` is `do_one_cmd`'s shared
-exit label with 27 gotos targeting it, so this removes a goto **statement**. The
-distinction is the one that mattered for `readfile`'s `theend` in phase 75, and for
-`close_buffer`'s `aucmd_abort`, where the label itself sat inside the fold and three
-gotos would have been orphaned.
-
-## What went by cascade
-
-`buflist_findpat` (71 lines), `file_pat_to_reg_pat` (167), `buflist_match` (13) and
-`fname_match` — the last reachable only through the pattern matcher and not
-predicted. 306 lines against an estimate of 251. Nothing is deleted by name here;
-removing the one call site orphans them all and the sweep takes them.
-
-## The delta
-
-**None**, and `whimdelta.sh` confirmed it. `:buffer foo` already exited 1 with nothing
-on stderr — `ex_ni` sets `eap->errmsg` rather than printing, and an `exsweep` row is
-`exit= left= err=`. Measured on q76: exit 1, empty stderr, file written either way.
-So the gain is code, not behaviour, and the phase says so rather than claiming a
-user-visible fix.
-
-`:buffer nosuchname` is therefore **not used as a discriminator** — only as a
-does-not-crash check. The probes that can actually fail exercise what survives: the
-load, a write, `:e` naming a file (the argument path *next to* the one removed), and
-`:g` taking a pattern. All were calibrated against q76 first.
-
-It passed its first dry run.
-
-Measured: 89,713 → **89,407 lines**.
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 153-154 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

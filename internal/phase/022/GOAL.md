@@ -1,64 +1,77 @@
-# Phase 22 — the working directory is where it started
+# Phase 22 — :e reloads in place, and there is no swap file
 
-`:cd`, `:lcd` and `:tcd` are `ex_ni`, `:!` no longer forks, and nothing else in
-this editor moves the process. So **the directory it starts in is the one it
-dies in**, and three pieces of machinery that exist because that was not true
-stop being needed.
+*Formerly phase 70. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-  * `mch_FullName()` chdir'd into the leading directory of a relative name,
-    asked `getcwd()` where that had landed, and chdir'd back — via `fchdir()`
-    on a descriptor it held open, falling back to `chdir()`. That dance is what
-    resolved `..` and a symlinked directory on the way to a full name.
-  * `win_fix_current_dir()` restores a window's or tab's local directory, and
-    runs only when `w_localdir`, `tp_localdir` or `globaldir` is set. The first
-    two come only from `:lcd` and `:tcd`; `globaldir` is assigned only inside
-    this function. Unreachable.
-  * `edit_buffers()` takes a `cwd` to return to between `-o` windows, and is
-    passed `start_dir` — `static char_u *start_dir = NULL;`, which nothing
-    assigns. The `-o` local-directory handling that set it is already gone.
+**This invariant is imposed, not proved**, and that is the difference between it and
+phase 68. One window fell out of the two places a window could be created. A second
+*buffer* is genuinely reachable: `curbuf_reusable()` wants an unnamed, empty buffer,
+so once the first file is named, `:e other` allocates a new `buf_T` and switches to
+it. Measured on q69: `:e h2.txt` then `+wq h1.txt` writes **h2**.
 
-## What it costs
+So `do_ecmd()` is made to reuse the one buffer:
 
-A full name is now the working directory with the name appended, so `../x/y`
-becomes `/cwd/../x/y` instead of `/real/x/y`. It opens the same file. What it
-loses is that **two spellings of one path no longer compare equal**, so
-`:e ../x/y` and `:e /real/x/y` are two buffers rather than one.
+- the `other_file` branch renames `curbuf` with `setfname()` instead of calling
+  `buflist_new()`, sets `oldbuf = FALSE`, and falls through;
+- the reload path below it — `u_sync()`, `u_savecommon()`,
+  `buf_freeall(curbuf, BFA_KEEP_UNDO)`, then `open_buffer(… READ_KEEP_UNDO)` —
+  **already is** "wipe and re-read in place". Its gate widens from
+  `!other_file && !oldbuf` to `!oldbuf`;
+- the whole `if (buf != curbuf)` block goes: BufLeave, `buf_copy_options`, `u_sync`,
+  `close_buffer(DOBUF_WIPE)`, the `auto_buf` dance, the `curwin->w_buffer` swap and
+  `get_winopts`. It is removed by **brace matching**, not by matching its body —
+  the body is long and macro-expanded, and three runs of an abandoned phase died on
+  patterns transcribed from truncated views of exactly such lines.
 
-## The trap, and the harness that caught it
+**Order: `fname2fnum()` first.** It called `buflist_new(name, p, 1, 0)` to give a
+file mark's file a buffer, and once reuse is unconditional that call would wipe the
+buffer being edited. It is **folded to an empty body, not removed** —
+`getmark_buf_fnum()` still calls it, and the file marks are a separate cut. An empty
+shell with a live caller is the fold, not a leftover, so the check asserts that its
+body can no longer reach `buflist_new()` rather than that the symbol is gone. A
+first version demanded zero mentions and failed on its own terms.
 
-The first version of this dropped the dance and kept the rest of the function,
-which reads `if ((force || !mch_isFullName(fname)) && ...)`. That condition is
-true for an *absolute* name when `force` is set — harmless while the dance
-existed, because the dance chdir'd to the name's own directory and `getcwd()`
-came back with it. Without the dance, the working directory was prepended to a
-name that already had one: `/tmp/x` became `/cwd//tmp/x`.
+**What is lost:** the state of the file you leave — its undo history and its marks.
+`:e`, `:e!` and `:wq` keep working, on one buffer.
 
-The delta check named it in one line — `:read`, `:write` and `:wq` moved, and
-nothing else — which is the whole argument for declaring a delta in advance
-rather than reading a diff afterwards. The fix is that `force` has nothing left
-to re-resolve, so an absolute name is its own answer.
+## No swap file, ever — not even one left from another age
 
-## `getcwd` stays, and is asked once
+Swap files are already never *written* here: `findswapname`, `p_swf`,
+`swapfile_info`, `swapfile_unchanged`, `ml_recover` and `ml_sync_all` went with the
+recovery phase, `mf_open()` is the in-memory memfile, and `ml_open_file()` had been
+reduced to a single `b_may_swap = FALSE`.
 
-It has five callers through `mch_dirname()`: `shorten_fname1()` and
-`shorten_fnames()` shorten every displayed name against it, `buf_modname()`
-builds names from it, `modify_fname()` implements `%:p`, `fname2fnum()` resolves
-a mark's file, and `mch_FullName()` is how a relative name becomes absolute at
-all. Dropping it would mean `b_ffname` could not be a full path — a capability
-cut rather than plumbing, and a different decision.
+What survived was the **detection** half — the prompt for a swap file somebody else
+left behind — and it was already unreachable. Measured on q69 with a `.swp` sitting
+beside the file: **no prompt at all**, no stderr, the edit and the write going
+through in silence. This is the `can_cindent` shape again, a flag written in three
+places and never once true, and the compiler cannot say so because assigning to a
+static counts as using it.
 
-Since nothing can move the process, though, the answer cannot change. It is read
-into a static on the first call and every later call is a copy: one syscall for
-the life of the editor, where there used to be one per path operation.
+So the whole surface goes together: `swap_exists_action`, the three `SEA_*` actions,
+`handle_swap_exists()`, `check_swap_exists_action()`, `check_need_swap()`,
+`ml_open_file()` and the `b_may_swap` field, with the `SEA_DIALOG` setters in
+`do_ecmd`, `read_stdin` and `create_windows` and the three `SEA_QUIT` tests that
+could never fire.
 
-## Where the symbol count moves
+One of those tests is worth naming because it is not where it looks like it should
+be: the *first change to a buffer* used to open its swap file, and that test lives in
+`changed()`, not in `buf_write()`. Writing the host function from memory got it
+wrong, and reading line 8756 got it right.
 
-**103 → 101**: `chdir`, `fchdir`.
+The three enums the sweep reports as "every constant is dead and the type is in use,
+which cannot be expressed" are **inherited, not made here** — pristine q69 reports
+the same three.
 
 ## The delta
 
-**None the harness records** — and the phase adds a check of its own, because
-none of them walks the path this changes: every harness edits a file in the
-directory it is standing in. So it writes `sub/f.txt` from above and then
-`../sub/f.txt` from inside `sub`, and requires the file to come back correct
-both times.
+**None.** `:e` prints nothing to stderr, and an `exsweep` row is `exit= left= err=`
+— the same reason `:next` did not move in phase 69. Removing the swap surface moves
+nothing either, for the same reason and one more: the prompt it removes was already
+never reached. The probes are load-first and **quote-free**: `+$` then `+s/^/LAST /`
+proves the buffer holds the file; then `:e h2.txt` leaving h1 untouched and writing
+h2; plain editing; and `:e!` discarding an unwritten change. No probe key contains
+`'`, which is what made an abandoned phase's mark probes measure nothing three times
+over.
+
+Measured: 93,393 → **93,127 lines**.

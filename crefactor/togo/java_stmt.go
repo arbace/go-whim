@@ -1071,7 +1071,7 @@ func (f *jfn) iteration(s *cc.IterationStatement) {
 			f.indent--
 		}
 		if c == "false" && pre == "" {
-			// phase 173's once-loop: a block its breaks leave, as a
+			// phase 92's once-loop: a block its breaks leave, as a
 			// goto's is (a continue reaches the false condition: out too)
 			lbl := f.newLabel()
 			f.line("%s: {", lbl)

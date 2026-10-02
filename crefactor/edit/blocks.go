@@ -10,11 +10,11 @@ import (
 // whole.  Each was one phase's and is here because it is a verb and not that
 // phase's argument; the phase it was written for is named above it.
 
-// From phase 071.
+// From phase 4d.
 // FoldWalk turns a walk -- the loop whose header is head, `for ((v) = first;
 // (v) != NULL; (v) = (v)->next)` -- and its block into `v = to;` followed by
 // the block's Body, n times: the list it walked has one element, and to is
-// the expression that names it.  Phase 71 folds vim's buffer list, `v =
+// the expression that names it.  Phase 4d folds vim's buffer list, `v =
 // curbuf;`; the variable, the element and the header are all the caller's.
 //
 // IT REFUSES A BODY WITH A `break` OR `continue` THAT BINDS TO THE WALK.
@@ -60,7 +60,7 @@ func (e *E) FoldWalk(fn, v, to, head string, n int, what string) {
 	})
 }
 
-// From phase 071.
+// From phase 4d.
 // DropWalk replaces `for (<head>)` and the block it runs with repl, n times.
 //
 // The head is matched as a REGEX built from the literal, never compared as one:
@@ -91,7 +91,7 @@ func (e *E) DropWalk(fn, head, repl string, n int, what string) {
 	})
 }
 
-// From phase 072.
+// From phase 5b.
 // FoldWalks folds every walk of one shape, back to front so the offsets still to
 // be processed stay valid, refusing if any Body's break or continue would rebind
 // to the loop being removed.  It is the one act whose count is computed -- ok
@@ -154,7 +154,7 @@ func (e *E) FoldWalks(headRe string, ok func([]string) bool, subst func([]string
 	e.Say(fmt.Sprintf("%s (%d)", what, total))
 }
 
-// From phase 072.
+// From phase 5b.
 // ReplaceBlock replaces a brace-matched block, anchored on the line that opens it.
 func (e *E) ReplaceBlock(fn, anchorRe, repl, what string) {
 	e.InFunction(fn, func(e *E) {
@@ -184,7 +184,7 @@ func (e *E) ReplaceBlock(fn, anchorRe, repl, what string) {
 	}
 }
 
-// From phase 075.
+// From phase 5d.
 // DropBareBlock deletes the innermost block enclosing a statement, REFUSING if
 // that block still does real work -- anything but the statement itself and bare
 // declarations.  It is for the husk a removed call leaves behind.
@@ -238,7 +238,7 @@ func (e *E) DropBareBlock(fn, stmt, what string) {
 	})
 }
 
-// From phase 079.
+// From phase 25.
 // InnerBody is a definition's Body between the brace on its own line and the
 // closing brace -- NOT the definition, which carries the parameter list.
 func (e *E) InnerBody(name string) (string, bool) {
@@ -255,7 +255,7 @@ func (e *E) InnerBody(name string) (string, bool) {
 	return s[i+2 : j], true
 }
 
-// From phase 079.
+// From phase 25.
 // ConstOf requires name's whole Body to be `return <expect>;` and nothing else.
 func (e *E) ConstOf(name, expect string) {
 	if e.Failed() {

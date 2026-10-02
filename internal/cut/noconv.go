@@ -136,7 +136,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// readfile went at phase 1 (readfront, phase 92's move)
+	// readfile went at phase 1 (readfront, phase 31's move)
 
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
 		var err error
@@ -333,11 +333,11 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  noconv       %d calls through an mb_* pointer are direct calls\n", calls)
 
 	// mb_tail_off went with maketitle(), its one caller, at phase 1
-	// (whim61, the reform's D8)
+	// (whim2a, the reform's D8)
 
 	// expand_argopt() and get_argopt_name(), the completion of ++ arguments
 	// and their values, went with every completion context but files at
-	// phase 6 (whim59, phase 59's program, which runs before this phase now)
+	// phase 4 (whim4f, phase 4f's program, which runs before this phase now)
 
 	e.say("a file is read and written as the UTF-8 bytes it holds")
 	return text, nil

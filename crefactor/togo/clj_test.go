@@ -607,7 +607,7 @@ func TestCljTables(t *testing.T) {
 // A state machine split small, so that its groups hold what a whole
 // function holds: a return out of a region that can return is the group's
 // -1, not the region's value -- a void function's nil there was taken for a
-// state (phase 181's ex_substitute, split at 50,000).
+// state (phase 100's ex_substitute, split at 50,000).
 const cljSplitReturnC = javaHost + `
 // a void function that is a state machine (a loop entered in its middle),
 // its entry a region (the if-else choosing s) that returns from one arm, as

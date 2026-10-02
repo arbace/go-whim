@@ -259,9 +259,9 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// cmod_tab is not counted here: this runs at phase 1 (the reform's D9),
-	// where the retired commands' handlers and what phases 2-35 took still
-	// name it.
+	// cmod_tab is not counted here: this runs at phase 3 (the reform's D9),
+	// where the retired commands' handlers and what the phases after it take
+	// still name it.
 
 	e.say("nothing makes or reaches a second tab page")
 	return text, nil

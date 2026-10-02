@@ -12,7 +12,7 @@ import (
 // identBody is nv_ident rewritten to the half that is search.  Generated from
 // the Python module's own constant by importing it, because it is a non-raw
 // triple-quoted string full of backslashes.  It is in UTF-8's spelling, with
-// no has_mbyte, since utf8only runs before it at phase 1 (the reform's D7).
+// no has_mbyte, since utf8only runs before it at phase 2 (the reform's D7).
 const identBody = "    char_u      *ptr = nullptr;\n" +
 	"    char_u      *buf;\n" +
 	"    usize bufsize;\n" +

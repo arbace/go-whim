@@ -1,46 +1,50 @@
-# Phase 16 — six options that no longer decide anything
+# Phase 16 — one set of options
 
-`'path'` and `'suffixesadd'` have been inert since the file finder went,
-`'tags'` and `'tagcase'` since the tag stack, `'autoread'` since the timestamp
-poll, and `'swapfile'` since the swap file. All six were still here, because a
-row is what initialises its global and `tools/dropoptions.py` refuses to leave
-one dangling — **Phase 10's trap, which this phase clears rather than works
-around.**
+*Formerly phase 49. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-## The order is the phase, and it is forced rather than chosen
+Every buffer and window option has two copies inside the editor, a global and a
+local one. **The storage stays**: collapsing it would touch every option's reader
+for nothing a user can see. What goes is every way to make the two copies differ,
+so that `:set` — which writes both — is the only way an option is given a value,
+and there is one set of options as far as anything outside can tell.
+`tools/oneoptset.py` removes the four things that made them differ:
 
-1. the three readers that are not plumbing
-2. the rows, with `--local`
-3. **the sweep** — which is what removes `did_set_tagcase()` and
-   `did_set_swapfile()`, the option callbacks, reachable only from the rows
-4. the buffer fields and their plumbing
-5. the sweep again
+- **`:setlocal` and `:setglobal`** wrote one copy each. Their rows go to `ex_ni`,
+  `ex_set()` stops choosing a flag for them, and their completion arms go.
+- **`:set opt<`** copied the global copy into the local one. `<` is no longer an
+  accepted suffix, and its three branches — boolean, number, string — fold, so
+  `:set ts<` is an error like any other malformed `:set`.
+- **Modelines** set a file's local copy from a `vim: set ...:` line, and the user
+  was asked and chose to drop them. The four calls of `do_modelines()` go and the
+  sweep takes it and `chk_modeline()`; every test of `OPT_MODELINE`, a flag
+  nothing passes after that, folds; and `'modeline'`'s save and restore around
+  `'binary'` in `set_options_bin()` goes. Then the rows of `'modeline'`,
+  `'modelines'`, `'modelineexpr'` and `'modelinestrict'` go, `droplocal.py` takes
+  `b_p_ml`, and `b_p_ml_nobin` — not an option, so with no `get_varp()` case that
+  tool knows — goes by hand. A first run found that.
 
-**Steps 3 and 4 cannot swap**, and the reason is a property of how this pipeline
-sweeps rather than of the code. The callbacks read the buffer field, so removing
-the field first stops the file compiling; the sweep works by reading gcc's
-*warnings*, so a file that does not compile is a file the sweep cannot act on,
-and the callbacks would stay for ever. Every other phase has been free to order
-its cut however it liked; this one is not.
+**Left alone:** a value detected from the file being read. `'fileformat'`, and
+`'binary'` from `-b`, are the current file's state, and with one buffer only ever
+one file's.
 
-## The three that are not plumbing
+The phase checks that `:set ts<` is refused against a `:set ts=3` control, and
+that `>>` on a file whose modeline says `sw=2` indents by the compiled-in four.
+**The first version of that check proved nothing.** It used `ff=dos`, and
+`'modelinestrict'` let a modeline set only whitelisted options, which
+`'fileformat'` is not, so it passed against binaries that still read modelines.
+`'shiftwidth'` is on the whitelist: measured, the Phase 48 binary indents by two
+and this one by four.
 
-`ex_drop()` set `'autoread'` on, checked the timestamp, and set it back —
-and Phase 13 took the check out from between, so what was left was a variable
-saved and restored across nothing at all. `do_set_option_bool()` special-cased
-`:setlocal autoread` to mean "follow the global", the `-1` sentinel, and there
-is no global to follow. `ml_open()` asked whether this buffer may have a swap
-file; since Phase 11 the answer has been no whatever `'swapfile'` said, so it
-now says no directly.
-
-Everything else is the five fixed idioms every buffer-local option has — the
-field in `buf_T`, the initialiser in `buf_copy_options()`, `check_buf_options()`,
-`free_buf_options()`, and one or two `get_varp()` cases — which is what makes
-`tools/droplocal.py` possible at all. It takes the *field* name rather than the
-option's, because by the time it runs the row is already gone and there is
-nothing left to look the field up from.
+**Measuring it showed something else.** `slim-vim` indents by four too, and so do
+whim Phases 0 to 24, with `:set modeline?` answering `nomodeline`; Phases 25 to 48
+answer `modeline`. The harnesses run as root, and upstream forces `'modeline'` off
+for root — the check Phase 25 removed, as its section says. So a modeline was
+read, as root, from Phase 25 until this phase, and no harness case has a modeline
+to notice. Diffing `:set all` between Phases 24 and 25 shows that it is the only
+value that moved besides the backup options that phase removed on purpose.
 
 ## The delta
 
-**None.** All six report `E518: Unknown option` instead of a value that decided
-nothing.
+**`:setlocal` and `:setglobal`**, which succeeded run bare. Measured: 115,568 →
+**115,246 lines**.

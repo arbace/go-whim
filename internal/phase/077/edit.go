@@ -1,68 +1,42 @@
 package p077
 
-// Whim phase 77 -- no buffer-name argument matching.  See GOAL.md.
+// Whim phase 77 (formerly 154) -- the NULL write in free_one_termoption() is gone.  See GOAL.md.
 //
-// do_one_cmd() computes, at 20635,
+// ttest() called free_one_termoption() with t_Co's value where its address was
+// meant; the call never cleared t_Co, and its one effect was a write through
+// NULL when both were NULL (phase 77a).  The call goes; the sweep takes the
+// function.
 //
-// ni = (!(cmdidx < 0) && (cmd_func == ex_ni || cmd_func == ex_script_ni))
-//
-// -- "this command is not implemented" -- and SEVEN later checks consult it before
-// doing work.  One does not: the EX_BUFNAME pre-dispatch block, guarded only by
-// `!(cmdidx < 0)`, which compiles a regexp and matches it against the buffer to turn
-// `:buffer foo` into a line number.
-//
-// Every command carrying EX_BUFNAME is ex_ni: :buffer, :bdelete, :bunload, :bwipeout,
-// :checktime, :sbuffer.  So that block does real pattern-matching work for commands
-// that cannot succeed, and its result is discarded when the handler errors.
-//
-// THE EDIT IS A FOLD, NOT A GUARD.  Adding `&& !ni` would leave a block that can
-// still never run -- dead weight wearing a condition.  The condition is false for
-// every command that reaches it, so fold_never removes it outright, and
-// buflist_findpat loses its only caller.
-//
-// WHAT GOES BY CASCADE: buflist_findpat (71 lines), file_pat_to_reg_pat (167) and
-// buflist_match (13) -- 251 lines whose whole purpose was naming a buffer by pattern.
-// Nothing here deletes them by name; removing the one call site orphans them and the
-// sweep takes them.
-//
-// THE BLOCK CONTAINS `goto doend;` AND THAT IS SAFE.  doend is do_one_cmd's shared
-// exit label, targeted from many other places, so this removes a goto STATEMENT, not
-// a label -- the distinction that mattered for readfile's `theend` in phase 75 and
-// for close_buffer's `aucmd_abort`, where the label itself was inside the fold.
-//
-// THE DELTA: none expected.  `:buffer foo` already exits 1 with nothing on stderr --
-// ex_ni sets eap->errmsg rather than printing, and an exsweep row is
-// `exit= left= err=`.  Measured on q76: exit=1, stderr empty, file written.  So the
-// gain here is code, not behaviour.  Declared empty, left for the delta check.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"io"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-const (
-	bufnameRows = `\[CMD_[a-zA-Z]+\] = \{\(char_u \*\)"([a-zA-Z]+)", [^,]+, *([a-z_]+)[^}]*EX_BUFNAME`
-)
-
-// Whim77 stops a command naming a buffer by pattern, having first proved that
-// no command left can.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nobufpat", text, w)
-
-	// Every command that carried EX_BUFNAME was a stub, and phase 1 deleted
-	// the stub rows (extable, the reform's D2b): no row carries it, so the
-	// block below is never entered.
-	names := e.Query(bufnameRows, 1)
-	e.Expect(len(names) == 0, "these rows still carry EX_BUFNAME: %s", strings.Join(names, " "))
-	e.Say("confirmed: no command carries EX_BUFNAME")
-
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.FoldNever(edit.Head("if ((ea.argt & EX_BUFNAME) && *ea.arg != NUL && ea.addr_count == 0 && !((int)(ea.cmdidx) < 0))"), 1, "naming a buffer by pattern for commands that cannot run")
-	})
-	return e.Done()
-}
+// W77Call is the call this phase takes Out, with the if around it.
+const W77Call = "\n        if (*(term_strings[(int)(KS_CSB)]) == NUL && *(term_strings[(int)(KS_CAB)]) == NUL)\n        {\n            free_one_termoption((term_strings[(int)(KS_CCO)]));\n        }\n"
 
 func init() { phase.Register("whim77", Edit) }
+
+// Whim77 fixes vim's NULL write in free_one_termoption().
+//
+// ttest() called free_one_termoption(t_Co) when the terminal had neither
+// t_Sb nor t_AB, meaning to clear 't_Co'.  But it passed the string value,
+// and the function looks for the option whose variable ADDRESS is its
+// argument: phase 77a showed the two are equal only when both are NULL, and
+// then the function wrote empty_option through the NULL variable of the first
+// option that has none.  So the call never cleared 't_Co' -- the one thing it
+// ever did was that write.  It goes, with the if around it, whose condition
+// only reads the two strings the lines above it already read; the sweep takes
+// free_one_termoption(), which nothing else calls.  What the editor does is
+// unchanged, but for the crash (internal/gen/FINDINGS.md).
+func Edit(text []byte, w io.Writer) ([]byte, error) {
+	e := edit.New("nullwrite", text, w)
+	e.Literal(W77Call, "\n", 1, "ttest() no longer calls free_one_termoption(), whose one effect was a write through NULL")
+	return e.Done()
+}

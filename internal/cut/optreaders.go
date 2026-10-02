@@ -25,7 +25,7 @@ var optreadersFolds = []struct {
 	count               int
 }{
 	// -p's tab pages, and 'shortmess' restored after filling them, went with
-	// the window layouts at phase 1 (nowindows, the reform's D9)
+	// the window layouts at phase 3 (nowindows, the reform's D9)
 }
 
 // optreadersAfter is what must be LEFT, counted after every edit.

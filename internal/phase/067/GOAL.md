@@ -1,64 +1,26 @@
-# Phase 67 — no mouse, no spell plumbing, no write-only flags
+# Phase 67 — the core sorts and searches typed arrays
 
-**A record now.** Phase 6 calls `whim67` by name, after `onebuffer`, on the text phase 3
-swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
-program is here, and the phase has no plan entry. It applied there as
-written. What follows is the account of the cut as it was made here.
+*Formerly phase 139. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-Three cuts, none of which changes what the editor can do, because none of it
-could happen in the first place. This is the first phase driven by
-`tools/coverage.sh` and by a scan for **write-only statics**, rather than by a
-capability to remove.
+The core sorted one array and searched four through the vendored
+`musl_qsort()` and `musl_bsearch()`. These see an array as a `void *` stepped
+by a byte width, and hand each element to the comparator as a
+`const void *`. The Go transpilation could not follow a pointer through
+`void *`: `sort_strings()`'s first Go signature was wrong, and each search
+was typed by hand (finding 7).
 
-- **The mouse, which cannot arrive.** There is no `'mouse'` option row, and
-  `setmouse()`, `mch_setmouse()`, `mouse_has()` and `p_mouse` are all gone, so
-  nothing ever asks a terminal to report mouse events. What served them goes:
-  `is_mouse_key()` and the term in the input loop that called it,
-  `reset_dragwin()`/`reset_held_button()` with `dragwin` and `held_button`,
-  `mouse_row`/`mouse_col` and `old_mouse_row`/`old_mouse_col` — a save-and-restore
-  pair nothing else reads — the 18 mouse rows of `key_names_table`, the `[MOUSE]`
-  entry of the terminal string table, and `check_termcode()`'s mouse matching.
-  **The 26 `nv_cmds` rows stay at `nv_error`**: that table's index is a permutation
-  of its rows, so a removed row renumbers the keys after it.
-- **The spell plumbing.** `spellvars_T` was one field, `win_line()`'s `spv`
-  parameter was already `__attribute__((unused))`, and `win_update()` declared one
-  on the stack only to pass its address twice.
-- **Fourteen write-only statics.** `did_check_timestamps`, `was_safe`,
-  `did_emsg_syntax`, `typebuf_was_empty`, `in_mch_delay`, `mr_patternlen`,
-  `frame_locked`, `swap_exists_did_quit`, `did_swapwrite_msg`, `autocmd_nested`,
-  `dragwin`, `held_button`, `oldtitle_outdated`, `deadly_signal`. Two were a whole
-  function body, so `state_no_longer_safe()` and its two calls go with `was_safe`.
+The four searches — highlight attributes, colour names, key names and
+character classes — now call `keyvalue_bsearch()` or `key_name_bsearch()`.
+Each is `musl_bsearch()` line for line on a typed pointer, so it probes the
+same entries in the same order, and a comparator that matches a prefix finds
+the entry it found before. The comparators take the type they always cast
+to. `:undolist`'s one sort is an insertion sort by `strcmp()`: two strings
+that compare equal are equal byte for byte, so any order of them prints the
+same. The sweep takes `musl_qsort()`, `musl_bsearch()` and `sort_compare()`.
 
-**`vim_ignored` is not one of them, though it looks identical to the detector.**
-Its five sites are `vim_ignored = ftruncate(...)`, `= dup(2)` and
-`= write(1, ...)`: it exists to swallow `warn_unused_result`, and removing it
-*adds* warnings — a `(void)` cast does not silence that attribute in gcc. The
-phase greps that it survives.
-
-**One real change of behaviour is buried in the mouse cut.**
-`looks_like_mouse_start` is not mouse-specific despite its name: it is set for any
-two-byte `ESC [` termcode whose third byte is not a digit, and it *defers* the
-match so a longer code — a mouse one — can win instead. With no mouse code able to
-arrive, deferring can only lose, so the fold makes such a code match at once.
-`tools/arrowcheck.py`, which drove a real pty, was what would have caught that
-going wrong, until it was retired after Phase 82.
-
-**Two failures, both in the phase's own counting, and both caught by a guard
-rather than by the build.**
-
-1. **A probe that could not fail.** It asserted `:map <LeftMouse> x` is refused
-   once the name is gone. Measured on both binaries: **an unrecognised `<...>` is
-   taken as a literal string, not refused** — `<Foo>` and `<ZZnotakey>` are
-   accepted too. The evidence that the names are gone is the grep; what the probe
-   checks now is that a name which *does* exist still maps.
-2. **Thirteen of eighteen rows.** Five mouse rows — `DecMouse`, `JsbMouse`,
-   `NetMouse`, `PtermMouse`, `UrxvtMouse` — are written across **three** lines
-   (`{`, `FALSE,`, then code and name), so a single-line pattern could not see
-   them. This is phase 54's wrapped-option-row trap again. Both patterns are
-   anchored on the *name*, which is what keeps them off the sixth three-line row,
-   `SNR`.
-
-## The delta
-
-**None.** No key, command or option changes — every cut is code nothing could
-reach. Measured: 96,848 → **96,636 lines**.
+**Declared delta: nothing.** The check proves each typed search's body is
+the input's `musl_bsearch()` with its two byte steps made element steps. It
+requires each search to use the table and comparator it had. Its probes are
+`:hi` attributes, a colour name, a key name in a mapping, a character class
+in a pattern, and `:undolist` over two branches; each control moves.

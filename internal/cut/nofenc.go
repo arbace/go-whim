@@ -25,7 +25,7 @@ var nofencEdits = []struct {
 		`(?m)([ \t]*else\n[ \t]*\{\n)[ \t]*fenc = buf->b_p_fenc;\n`,
 		"${1}        fenc = (char_u *)\"\";\n", 1},
 	// readfile's 'fileencoding', its 'bomb' set and cleared and its BOM test went
-	// with readfile, which dies at phase 13 since ml_recover went at phase 1
+	// with readfile, which dies at record 13 since ml_recover went at phase 1
 	// (norecover, the reform's D5); so did the swap file's block-zero
 	// encoding and its restore.
 	{"save_file_ff remembering the BOM and the encoding",
@@ -47,13 +47,13 @@ var nofencEdits = []struct {
 			`[ \t]*\{\n[ \t]*convert_setup\(&vimconv, p_enc, curbuf->b_p_fenc\);\n[ \t]*\}\n`,
 		"", 1},
 	{"buf_write writing a BOM it no longer makes", "", "", 0},
-	// did_set_encoding's arm for 'fileencoding', the empty test phase 15 left
+	// did_set_encoding's arm for 'fileencoding', the empty test record 15 left
 	// there and gvarp went with the encoding rows, dropped at phase 1
 	// (optfront, the reform's D3).
 	{"freeing the remembered encoding",
 		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = nullptr;\n`,
 		"", 1},
-	// three: at phase 1 (the reform's D7) readfile and the recovery are
+	// three: at phase 2 (the reform's D7) readfile and the recovery are
 	// still in the text, and two of them are theirs
 	{"clearing the remembered BOM",
 		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 3},

@@ -11,7 +11,7 @@ var nofencsEdits = []struct{ what, pat, repl string }{
 		`(?m)[ \t]*else if \(\(char_u \*\*\)varp == &p_fencs && enc_utf8\)\n` +
 			`[ \t]*\{\n[ \t]*newval = fencs_utf8_default;\n[ \t]*\}\n`, ""},
 	// readfile's choice between an empty list and a list went with readfile,
-	// which dies at phase 13 since ml_recover went at phase 1 (norecover, the
+	// which dies at record 13 since ml_recover went at phase 1 (norecover, the
 	// reform's D5)
 }
 
@@ -32,7 +32,7 @@ func NoFencs(text []byte, w io.Writer) ([]byte, error) {
 	// went with the two rows, dropped at phase 1 (optfront, the reform's D3).
 
 	// Not asserted that p_fencs and p_tenc are read by nothing: this runs at
-	// phase 1 (the reform's D7), where their rows are dropped already
+	// phase 2 (the reform's D7), where their rows are dropped already
 	// (optfront) and readfile, still unswept, names p_fencs.
 	return text, nil
 }

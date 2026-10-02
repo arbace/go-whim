@@ -1,101 +1,92 @@
 package p066
 
-// Whim phase 66 -- no sentences, paragraphs, sections, methods, #if blocks or
-// comment blocks.  See GOAL.md.
+// Whim phase 66 (formerly 138) -- no parameter carries an eval value.  See GOAL.md.
 //
-// One idea, cut at all three places it is reachable from:
+// vim_regsub_both's expr, match_add's pos_list, cursor_pos_info's dict, the
+// formatter's tvs and find_ex_command's Vim9 lookup and context are passed
+// nullptr by every call.  They go, each test of them folds, and the sweep takes
+// typval_T, lists, dicts, type_T, class_T and the rest of the eval values.
 //
-// THE MOTIONS  ( and ) by sentence, { and } by paragraph, [[ ]] [] ][ by
-// section, [m ]m [M ]M to a method's braces, [# ]# to the enclosing
-// #if/#endif, and [/ ]/ [* ]* to the enclosing C comment.  The first four
-// rows point at nv_error; the bracket ones go from nv_brackets() and
-// nv_bracket_block().
-// THE TEXT OBJECTS  is, as, ip and ap -- current_sent() and current_par().
-// A sentence you cannot move over is not one you can select either.
-// THE EX ADDRESSES  '{ '} '( ') as line addresses, which get_address() answered
-// with findpar() and findsent().
-//
-// After which findsent(), findpar() and startPS() have no callers at all, and the
-// concept is gone from the editor rather than merely unbound.
-//
-// WHAT STAYS, and is checked: % and the enclosing-bracket motions [{ ]} [( ]),
-// which are findmatchlimit() rather than paragraphs; the ( ) { } [ ] TEXT OBJECTS
-// i( a{ i[ and so on, which are current_block(); iw/aw; and the '[ '] '< '> marks,
-// which get_address() answers from stored positions.
-//
-// THE DELTA: none the harnesses record -- no behaviour case moves over a sentence
-// or a paragraph, and no Ex command changes.  The probes check each cut key does
-// nothing, that [{ and % still move, and that i{ still selects.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// methodTest is `if (cap->nchar == 'm' || cap->nchar == 'M')`, which appears
-// TWICE in nv_bracket_block: the head that picks the character to match, and
-// the half that walks Out to the method.
-var methodTest = edit.Head("if (cap->nchar == 'm' || cap->nchar == 'M')")
+func init() { phase.Register("whim66", Edit) }
 
-// rows are the four keys of nv_cmds[] that go to nv_error.
-var rows = []struct{ key, handler, What string }{
-	{`\(`, "nv_brace", "( by sentence"},
-	{`\)`, "nv_brace", ") by sentence"},
-	{`\{`, "nv_findpar", "{ by paragraph"},
-	{`\}`, "nv_findpar", "} by paragraph"},
-}
-
-// rowPattern is a key's row of nv_cmds[], its handler in the second group
-// and its flags and argument, written args, in the third.  The args are
-// `[^}\n]*`: a row is one line, and a pattern that cannot leave its line
-// is run on the lines around its literal (crefactor/edit/lines.go) where
-// `[^}]*` was run on the whole text -- the same matches, held to it by
-// TestRowsSame.
-func rowPattern(key, handler, args string) string {
-	return fmt.Sprintf(`(?m)^([ \t]*\{'%s', )%s(, 0, %s\},)$`, key, handler, args)
-}
-
-// Whim66 takes the sentence, paragraph and section motions, the bracket
-// commands that found a comment or a method, and the text objects for them.
+// Whim66 takes Out the parameters that carry an eval value.
+//
+// Four functions still take one, and every call passes nullptr: the
+// substitute string's expression (vim_regsub_both's typval_T *expr, for
+// substitute() with a funcref), matchaddpos()'s list of positions
+// (match_add's list_T *pos_list), wordcount()'s dictionary
+// (cursor_pos_info's dict_T *dict), and printf()'s argument list (the
+// formatter's typval_T *tvs, in the host).  Each parameter goes with its
+// nullptr, and each test of it becomes what it always was.  So do
+// find_ex_command()'s Vim9 lookup and compile context, which it never read,
+// and with them the builtin function types cfunc_T and cfunc_free_T, which
+// the sweep takes.  They are the last
+// things naming typval_T, list_T and dict_T outside their own definitions, so
+// the sweep takes the eval layer's value types with them.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nopara", text, w)
-
-	for _, m := range rows {
-		e.Sub(rowPattern(m.key, m.handler, `[^}\n]*`),
-			"${1}nv_error${2}", 1, fmt.Sprintf("%s points at nv_error", m.What))
-	}
-	e.InFunction("nv_brackets", func(e *edit.E) {
-		e.FoldNever(edit.Head("else if (cap->nchar == '[' || cap->nchar == ']')"), 1, "[[ ]] [] ][ by section")
+	e := edit.New("evalparm", text, w)
+	// vim_regsub_both
+	e.Literal("static int vim_regsub_both(char_u *source, typval_T *expr, char_u *dest,", "static int vim_regsub_both(char_u *source, char_u *dest,", 1,
+		"vim_regsub_both() takes no expression: its prototype")
+	e.Literal("vim_regsub_both(char_u *source, typval_T *expr, char_u *dest,", "vim_regsub_both(char_u *source, char_u *dest,", 1,
+		"its definition")
+	e.Literal("vim_regsub_both(source, nullptr, dest, destlen, flags)", "vim_regsub_both(source, dest, destlen, flags)", 1,
+		"its one call")
+	e.Literal("if ((source == nullptr && expr == nullptr) || dest == nullptr)", "if (source == nullptr || dest == nullptr)", 1,
+		"a NULL source is refused whatever the expression was")
+	e.Literal("if (expr != nullptr || (source[0] == '\\\\' && source[1] == '='))", "if (source[0] == '\\\\' && source[1] == '=')", 1,
+		"and only a \\= source is an expression")
+	// match_add
+	e.Literal("int id, list_T *pos_list, char_u *conceal_char)", "int id, char_u *conceal_char)", 1,
+		"match_add() takes no list of positions, which it never read")
+	e.Literal("match_add(curwin, g, p + 1, 10, id, nullptr, nullptr);", "match_add(curwin, g, p + 1, 10, id, nullptr);", 1,
+		"its one call")
+	// cursor_pos_info
+	e.Literal("static void cursor_pos_info(dict_T *dict);", "static void cursor_pos_info(void);", 1,
+		"cursor_pos_info() fills no dictionary: its prototype")
+	e.Literal("\ncursor_pos_info(dict_T *dict)\n", "\ncursor_pos_info(void)\n", 1,
+		"its definition")
+	e.Literal("cursor_pos_info(nullptr);", "cursor_pos_info();", 1,
+		"its one call")
+	// the host's formatter
+	e.Literal("static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap, typval_T *tvs)", "static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap)", 1,
+		"the formatter takes no argument list: its prototype")
+	e.Literal("va_list ap_start, typval_T *tvs)", "va_list ap_start)", 1,
+		"its definition")
+	e.Literal("vim_vsnprintf_typval(str, str_m, fmt, ap, nullptr)", "vim_vsnprintf_typval(str, str_m, fmt, ap)", 1,
+		"its one call")
+	e.Literal("const char *fmt, typval_T *tvs)", "const char *fmt)", 1,
+		"parse_fmt_types() takes none either")
+	e.Literal("parse_fmt_types(&ap_types, &num_posarg, fmt, tvs)", "parse_fmt_types(&ap_types, &num_posarg, fmt)", 1,
+		"its one call")
+	e.Literal(", tvs != nullptr) == FAIL)", ", FALSE) == FAIL)", 10,
+		"and no number in a format is read from a list")
+	// find_ex_command, whose lookup and compile context were Vim9 script's
+	e.Literal("static char_u *find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx);", "static char_u *find_ex_command(exarg_T *eap, int *full);", 1,
+		"find_ex_command() takes no Vim9 lookup or context, which it never read: its prototype")
+	e.Literal("find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx)", "find_ex_command(exarg_T *eap, int *full)", 1,
+		"its definition")
+	e.Literal("find_ex_command(&ea, nullptr, nullptr, nullptr)", "find_ex_command(&ea, nullptr)", 1,
+		"its one call")
+	e.InFunction("cursor_pos_info", func(e *edit.E) {
+		e.FoldAlways(`if \(dict == nullptr\)`, 3, "cursor_pos_info() always gives its message")
 	})
-	e.Literal(`vim_strchr((char_u *)"{(*/#mM", cap->nchar)`, `vim_strchr((char_u *)"{(", cap->nchar)`, 1,
-		"[ no longer taking a comment, #if or method")
-	e.Literal(`vim_strchr((char_u *)"})*/#mM", cap->nchar)`, `vim_strchr((char_u *)"})", cap->nchar)`, 1,
-		"] no longer taking a comment, #if or method")
-
-	e.InFunction("nv_bracket_block", func(e *edit.E) {
-		e.DropIf(edit.Head("if (cap->nchar == '*')"), 1, "[* and ]* spelled as [/ and ]/")
-		e.FoldAlways(edit.Head("if (cap->nchar != 'm' && cap->nchar != 'M')"), 1,
-			"a miss beeping, which only a method did not")
-		// Both tests are never true now, and the second has no else: one
-		// counted fold takes the pair, keeping the first's else arm.
-		e.FoldNever(methodTest, 2, "a method's braces choosing the character to match, and walking out to a method start or end")
-		e.Cut(edit.Line("prev_pos.lnum = 0;"), 1, "the previous match, which only a method walk-out read")
-		e.Cut(edit.Line("prev_pos = new_pos;"), 1, "remembering the previous match")
+	e.InFunction("vim_vsnprintf_typval", func(e *edit.E) {
+		e.FoldNever(`if \(tvs != nullptr\)`, 2, "and the formatter always clamps an overlong width or precision")
+		e.FoldNever(`if \(tvs != nullptr && tvs\[num_posarg != 0 \? num_posarg : arg_idx - 1\]\.v_type != VAR_UNKNOWN\)`, 1, "and never counts arguments left over in a list")
 	})
-
-	e.InFunction("nv_object", func(e *edit.E) {
-		e.Cut(edit.Line("case 'p':", "flag = current_par(cap->oap, cap->count1, include, 'p');", "break;"), 1,
-			"ip and ap, the paragraph objects")
-		e.Cut(edit.Line("case 's':", "flag = current_sent(cap->oap, cap->count1, include);", "break;"), 1,
-			"is and as, the sentence objects")
-	})
-
-	e.FoldNever(edit.Head("else if (c == '{' || c == '}')"), 1, "'{ and '} as line addresses")
-	e.FoldNever(edit.Head("else if (c == '(' || c == ')')"), 1, "'( and ') as line addresses")
+	n := e.Mentions("tvs")
+	e.Expect(n == 0, "tvs has %d mentions left", n)
 	return e.Done()
 }
-
-func init() { phase.Register("whim66", Edit) }

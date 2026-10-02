@@ -195,7 +195,7 @@ func writeSources(dir string, want func(string) bool) ([]string, error) {
 //   - -XX:TieredStopAtLevel=1: a short-lived program starts faster with
 //     it (measured in doc/JAVA.md).
 //   - -XX:+UseParallelGC: the regex engine runs on every core in a :%s
-//     (match_lines, phase 177), each thread allocating; the serial collector
+//     (match_lines, phase 96), each thread allocating; the serial collector
 //     stopped them all while one thread collected -- 3.1 s of a 100,000-line
 //     :%s/\v(a|b)+c/X/g, against 0.98 s with this -- and it starts as fast
 //     (0.28 s against 0.27 on a short session).

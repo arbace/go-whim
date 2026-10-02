@@ -138,7 +138,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 			`checkforcmd_noparen\([^,]+, "(legacy|noautocmd|sandbox|vim9cmd)"`, 0},
 		{"cmod_save_ei outside its declaration", `\bcmod_save_ei\b`, 1},
 		{"scriptout opened by the parser", `\bscripterror\b`, 0},
-		// p_lpl is not asserted: this runs at phase 1 (D6), before the sweep
+		// p_lpl is not asserted: this runs at phase 2 (D6), before the sweep
 		// takes its declaration and its last writes
 	} {
 		n := edit.CountMatches(regexp.MustCompile(l.pattern), text)

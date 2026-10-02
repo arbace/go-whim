@@ -18,7 +18,7 @@ import (
 // walks, the command table's shapes, the swap file's fields -- is in
 // internal/whim/vimtext.
 
-// From phase 71.
+// From phase 4d.
 // bindsToWalk names a `break` or `continue` in the Body that is not inside a
 // loop or switch of the Body's own, or "" if there is none.
 func BindsToWalk(raw []byte) string {
@@ -51,7 +51,7 @@ func BindsToWalk(raw []byte) string {
 	return ""
 }
 
-// From phase 72.
+// From phase 5b.
 func CountNewlines(b []byte) int {
 	n := 0
 	for _, c := range b {
@@ -62,7 +62,7 @@ func CountNewlines(b []byte) int {
 	return n
 }
 
-// From phase 72.
+// From phase 5b.
 func JoinInts(v []int) string {
 	// sorted ascending, as the Python prints them
 	for i := 0; i < len(v); i++ {
@@ -82,9 +82,9 @@ func JoinInts(v []int) string {
 	return Out
 }
 
-// From phase 79.
+// From phase 25.
 // sortedKeys is GENERIC in the map's value, because three of us wrote one each:
-// whim79 over map[string]string, whim88 over map[string]int and whim110 over
+// whim25 over map[string]string, record 88's whim88 over map[string]int and whim43 over
 // map[string]bool.  Ranging a Go map yields a different order every run, and
 // every one of those three was written because a REPORT line is built from the
 // keys -- which is the difference a boundary cannot see and editcmp can.
@@ -97,9 +97,9 @@ func SortedKeys[V any](m map[string]V) []string {
 	return Out
 }
 
-// From phase 80.
+// From phase 26.
 // contains is GENERIC because two sessions wrote one each and they collided:
-// whim80's over []string and whim108's over []int.  One generic definition is
+// whim26's over []string and whim41's over []int.  One generic definition is
 // the merge, and neither call site changed.
 func Contains[T comparable](s []T, v T) bool {
 	for _, x := range s {
@@ -110,9 +110,9 @@ func Contains[T comparable](s []T, v T) bool {
 	return false
 }
 
-// From phase 80.
-// first is GENERIC for the same reason contains is: whim80 slices []string and
-// whim125 slices []int, and one definition is cheaper than two names.
+// From phase 26.
+// first is GENERIC for the same reason contains is: whim26 slices []string and
+// whim53 slices []int, and one definition is cheaper than two names.
 func First[T any](s []T, n int) []T {
 	if len(s) > n {
 		return s[:n]
@@ -120,7 +120,7 @@ func First[T any](s []T, n int) []T {
 	return s
 }
 
-// From phase 80.
+// From phase 26.
 func IndexOf(s []string, v string) int {
 	for i, x := range s {
 		if x == v {
@@ -130,7 +130,7 @@ func IndexOf(s []string, v string) int {
 	return -1
 }
 
-// From phase 90.
+// From phase 29.
 // zHead is the heredocs' `old[:n]` in a refusal.
 func CoreHead(s string, n int) string {
 	if len(s) > n {
@@ -139,7 +139,7 @@ func CoreHead(s string, n int) string {
 	return s
 }
 
-// From phase 98.
+// From phase 37.
 // zCalls counts occurrences of `name` as a CALL, which is what a header
 // provides.  NOT `\bname\b`: "isprint" is also the name of an option and lives
 // in a string literal, so a word count says 1 on a file that calls it nowhere.
@@ -158,12 +158,12 @@ func CoreCalls(t []byte, name string) int {
 	return n
 }
 
-// From phase 98.
+// From phase 37.
 func CoreCallRe(name string) *regexp.Regexp {
 	return regexp.MustCompile(regexp.QuoteMeta(name) + `\s*\(`)
 }
 
-// From phase 99.
+// From record 99.
 func Uniq(in []string) []string {
 	seen := map[string]bool{}
 	var Out []string
@@ -176,7 +176,7 @@ func Uniq(in []string) []string {
 	return Out
 }
 
-// From phase 121.
+// From phase 51a.
 func ContainsStr(xs []string, x string) bool {
 	for _, v := range xs {
 		if v == x {
@@ -188,7 +188,7 @@ func ContainsStr(xs []string, x string) bool {
 
 // PureCond reports whether a condition only reads -- no call, no assignment,
 // no ++ or --.  Casts and sizeof read nothing a call could change; they are
-// allowed.  (From phase 134.)
+// allowed.  (From phase 62.)
 func PureCond(cond string) bool {
 	c := dropCasts(cond)
 	c = regexp.MustCompile(`\bsizeof\s*\(`).ReplaceAllString(c, "(")
@@ -221,10 +221,10 @@ func dropCasts(cond string) string {
 	return b.String()
 }
 
-// From phase 071.
+// From phase 4d.
 var EnclosingLoop = regexp.MustCompile(`\b(for|while|switch|do)\b`)
 
-// From phase 134: EmptyGuardedBlock is an `if`, `else if` or `else` whose
+// From phase 62: EmptyGuardedBlock is an `if`, `else if` or `else` whose
 // block is empty (its indentation, head and the block's indentation as
 // groups); ElseLine is a line that begins with `else`; callToken and
 // writeToken are what makes a condition not PureCond.
@@ -235,21 +235,21 @@ var (
 	ElseLine          = regexp.MustCompile(`^[ \t]*else\b`)
 )
 
-// From phase 075.
+// From phase 5d.
 var (
 	BareDeclOnly = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*[ \t]+\*?[A-Za-z_][A-Za-z0-9_]*;$`)
 )
 
-// From phase 079.
+// From phase 25.
 var returnStub = regexp.MustCompile(`(?s)\Areturn\s+(.+);\z`)
 
-// From phase 079.
+// From phase 25.
 func pyRepr(s string) string { return "'" + s + "'" }
 
 // IncludeCount is how many `#include` lines text has: the system headers a
-// phase is handed.  Phases 97-126 once asserted a number -- eighteen, twelve,
-// eleven -- because phases 82, 99 and 104 dropped the unused ones as they
-// went; one last phase (169) drops them all now, so a phase asserts the count
+// phase is handed.  Phases 36-54 once asserted a number -- eighteen, twelve,
+// eleven -- because records 82 and 99 and phase 40 dropped the unused ones as
+// they went; one last phase (88) drops them all now, so a phase asserts the count
 // it was HANDED, and that it adds and removes none.
 func IncludeCount(text []byte) int {
 	n := 0
@@ -264,7 +264,7 @@ func IncludeCount(text []byte) int {
 // MentionCount counts whole-word occurrences of name in text, outside
 // `#include` lines: a directive names a HEADER, not an identifier.  Every
 // phase's mention counter goes through it, so a count means the same thing
-// whichever headers phase 169 has yet to drop.  (Until the headers were
+// whichever headers phase 88 has yet to drop.  (Until the headers were
 // dropped last, a count before 166 included the lines of the headers still
 // there -- `ioctl` was "the #include and the host's one call" -- and changed
 // with every header a phase took.)

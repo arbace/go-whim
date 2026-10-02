@@ -1,144 +1,92 @@
 package p069
 
-// Whim phase 69 -- one file argument, and no argument list.  See GOAL.md.
+// Whim phase 69 (formerly 141) -- regrepeat() does not jump into a case.  See GOAL.md.
 //
-// THE ORDER MATTERS, and it is the opposite of the obvious one.  An earlier
-// attempt at "one buffer" imposed reuse inside buflist_new() and deleted the
-// argument-list call that reaches it -- and that call is THE ONLY THING THAT NAMES
-// THE FIRST BUFFER.  open_buffer() reads through `readfile(curbuf->b_ffname, ...)`,
-// so with no name it read nothing: the buffer came up empty, every edit was a
-// silent no-op, and :wq wrote the original bytes back.  It built and it passed two
-// of three probes.
+// Seventeen character classes set their mask and jumped to do_class, a label
+// inside the \s case (internal/gen/FINDINGS.md, 11).  All eighteen now share one case
+// that sets mask and testval in a switch on the same opcode, then runs the
+// unchanged loop.
 //
-// So this phase limits the command line FIRST and keeps the naming path exactly as
-// it is:
-//
-// ONE FILE ARGUMENT.  A second non-option argument is mainerr(ME_TOO_MANY_ARGS),
-// which is what vim already answers for a second `-`.  One file means one
-// entry, which is what makes the list pointless rather than merely unused.
-// THE NAME STILL GOES THROUGH buflist_add().  curbuf exists and is unnamed and
-// empty when command_line_scan() runs -- main() calls common_init_2(), which
-// calls win_alloc_first(), before the scan -- so buflist_new() reuses it and
-// sets b_ffname, exactly as today.  Only the LIST around that call goes.
-// THE ARGUMENT LIST.  :next and :previous point at ex_ni; the other 21 argument
-// commands already do.  ex_next(), ex_previous(), do_argfile(), do_arglist(),
-// arglist_del_files(), alist_set(), alist_clear(), alist_add(), alist_name(),
-// editing_arg_idx(), check_arglist_locked(), arg_had_last, global_alist,
-// alist_T, aentry_T, w_alist, w_arg_idx, w_arg_idx_invalid and mparm_T.fname
-// go with them, by fold or by sweep.
-//
-// WHAT FOLDS BECAUSE THE COUNT IS ALWAYS ONE: check_more(), whose "N more files to
-// edit" refusal can never fire; append_arg_number(), the "(N of M)" suffix in
-// :file; and the four ADDR_ARGUMENTS arms of Ex range parsing.
-//
-// THE DELTA: NONE, which was measured rather than assumed.  :next and :previous
-// were declared as moving and did not: an exsweep row is `exit= left= err=`, and
-// with one file argument do_argfile() already answered "there is only one file to
-// edit" -- so pointing the rows at ex_ni changes the message text, which the sweep
-// does not record, while the exit status, the files touched and stderr all stay the
-// same.  The declaration is narrowed to match the measurement; widening one to fit
-// is what the delta check exists to refuse.
-//
-// The probes are LOAD-FIRST -- the first one proves the buffer holds the file's
-// lines, because that is the check the earlier attempt did not have and needed.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
+	"fmt"
 	"io"
+	"regexp"
+	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// Whim69 makes the argument list one file: the second file argument goes, :next
-// and :previous become ex_ni, every ADDR_ARGUMENTS arm becomes a constant, and
-// the list type itself follows.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("onearg", text, w)
-
-	// 1. a second file argument: the command line's own, gone with it
-	// (argvfront, the reform's D1)
-
-	// 2. :next and :previous point at ex_ni from phase 1 (exfront, the
-	// reform's D2)
-
-	// 3. the readers that can only ever see one
-	e.Body("check_more", w69lit1, "check_more refusing to quit with files left to edit")
-	e.Body("append_arg_number", w69lit2, "the (N of M) suffix on the file message")
-
-	// EVERY command that uses ADDR_ARGUMENTS -- argadd, argdelete, argdo,
-	// argedit, argument, sargument -- is already ex_ni, so no live command
-	// reaches these arms.  But THE LABELS MUST STAY: these switches enumerate
-	// ADDR_* exhaustively, and deleting one only earns "enumeration value
-	// 'ADDR_ARGUMENTS' not handled in switch" -- seven of them, which is what
-	// the sweep kept reporting as "left alone" and could never converge on.  So
-	// each arm gets a constant Body instead.
-	e.InFunction("parse_cmd_address", func(e *edit.E) {
-		e.Literal(w69lit3, w69lit4, 1, "an argument range in a command line")
-	})
-	e.InFunction("address_default_all", func(e *edit.E) {
-		e.Literal(w69lit5, w69lit6, 1, "an argument range with no range given")
-	})
-	e.InFunction("default_address", func(e *edit.E) {
-		e.Literal(w69lit7, w69lit8, 1, "the default line for an argument range")
-	})
-	// THE TWO ARMS IN get_address ARE AT TWO DEPTHS.  The macro expander used
-	// to leave both at the same column, so one literal matched them; on a text
-	// that indents by structure they differ, and the arm is written with its
-	// own indentation carried through.  Both counts are what they were.
-	e.InFunction("get_address", func(e *edit.E) {
-		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
-			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 2, "an argument range parsed from an address")
-		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
-			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 1, "the last line of an argument range")
-	})
-	e.InFunction("invalid_range", func(e *edit.E) {
-		e.Literal(w69lit12, w69lit13, 1, "an argument range checked for validity")
-	})
-
-	// 3b. the readers with live callers.  check_arg_idx() is called from six
-	// live functions, so its BODY folds and the calls go; editing_arg_idx() is
-	// reached only from it.  arg_all() builds the ## expansion from every entry,
-	// and now has none to build from.
-	// three: the others died with commands retired or deleted at phase 1
-	// (D2, D4), and buf_name_changed()'s with setfname()'s last caller once
-	// phase 72's body for create_windows() runs at phase 7, before this
-	// phase now
-	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 3, "the three calls that revalidated the argument index")
-	e.InFunction("eval_vars", func(e *edit.E) {
-		e.Literal(w69lit16, w69lit17, 1, "## expanding to every file in the argument list")
-	})
-	// win_init_some(), where a new window inherited the argument list, went
-	// with the window split at phase 7 (whim72 and whim73, which run before
-	// this phase now)
-	// create_windows() invalidated the index when a swap-file prompt quit;
-	// its body is phase 72's from phase 7 (whim72, which runs before this
-	// phase now)
-	// The window's argument-list fields are named by nothing after this, and
-	// the sweep takes them.
-
-	// main() takes the first entry's name into params.fname and never reads it:
-	// the WHOLE guarded assignment goes, not just the line, or alist_name
-	// outlives the list.
-	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 0)", "{", "params.fname = alist_name(&((aentry_T *)global_alist.al_ga.ga_data)[0]);", "}"), 1,
-		"main taking the first argument as the file name")
-	// mparm_T's field, and no other `char_u *fname;`: the blank line that used
-	// to tell them apart is not in a canonical text, so the field above it is.
-	e.Sub(`(?m)^([ \t]*char \*\*argv;\n)[ \t]*char_u[ \t]+\*fname;\n`, "${1}", 1,
-		"mparm_T's unread fname")
-
-	// The list itself: initialised at startup and pointed at by the one window.
-	// These are the last two mentions, and without them alist_init,
-	// global_alist, alist_T and aentry_T all lose their readers.
-	e.InFunction("common_init_2", func(e *edit.E) {
-		e.Cut(edit.Line("alist_init(&global_alist);", "global_alist.id = 0;"), 1, "the argument list set up at startup")
-	})
-	// the one window pointed at it in win_alloc_firstwin(), whose body is
-	// phase 72's from phase 7 (whim72, which runs before this phase now)
-
-	// and the count message, which one file argument can never satisfy
-	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 1 && !silent_mode)", "{", `printf(_("%d files to edit\n"), (global_alist.al_ga.ga_len));`, "}"), 1,
-		"the \"N files to edit\" message at startup")
-	return e.Done()
-}
-
 func init() { phase.Register("whim69", Edit) }
+
+var (
+	w69Head  = "    case RE_WHITE:\n    case RE_WHITE + ADD_NL:\n        testval = mask = RI_WHITE;\n    do_class:\n"
+	w69Class = regexp.MustCompile(`    case ([A-Z_]+):\n    case ([A-Z_]+) \+ ADD_NL:\n        ((?:testval = )?mask = RI_[A-Z]+;)\n        goto do_class;\n`)
+)
+
+// Whim69 takes the jumps into a case Out of regrepeat().
+//
+// The character classes \s \S \d \D ... \u \U were eighteen pairs of case
+// labels: \s set its mask and testval and ran into the class loop, labelled
+// do_class, and each of the other seventeen set its own and jumped to the
+// label from further down the switch.  Go cannot jump into a case, and the
+// transpilation restructured it by hand (internal/gen/FINDINGS.md, 11).  Here all
+// thirty-six labels lead to one case that sets the two variables in a switch
+// on the same opcode, then runs the loop: the same assignments for each
+// opcode, the loop unchanged, and no goto.
+func Edit(text []byte, w io.Writer) ([]byte, error) {
+	p := edit.Ph{Tag: "doclass", W: w}
+	return p.InFunction(text, "regrepeat", func(seg []byte) ([]byte, error) {
+		s := string(seg)
+		h := strings.Index(s, w69Head)
+		if h < 0 || strings.Count(s, w69Head) != 1 {
+			return nil, p.Die("regrepeat(): the \\s case and its do_class label are not where this phase expects them")
+		}
+		loopStart := h + len(w69Head)
+		loopEnd := strings.Index(s[loopStart:], "\n        }\n        break;\n")
+		if loopEnd < 0 {
+			return nil, p.Die("regrepeat(): the class loop has no end")
+		}
+		loopEnd += loopStart + len("\n        }\n        break;\n")
+		loop := s[loopStart:loopEnd]
+		rest := s[loopEnd:]
+		ms := w69Class.FindAllStringSubmatchIndex(rest, -1)
+		if len(ms) != 17 || ms[0][0] != 0 {
+			return nil, p.Die("regrepeat(): %d classes jump to do_class right after it, and this phase was written against 17", len(ms))
+		}
+		for k := 1; k < len(ms); k++ {
+			if ms[k][0] != ms[k-1][1] {
+				return nil, p.Die("regrepeat(): the classes that jump to do_class are not one run")
+			}
+		}
+		type cls struct{ op, assign string }
+		all := []cls{{"RE_WHITE", "testval = mask = RI_WHITE;"}}
+		for _, m := range ms {
+			op, op2, as := rest[m[2]:m[3]], rest[m[4]:m[5]], rest[m[6]:m[7]]
+			if op != op2 {
+				return nil, p.Die("regrepeat(): %s is paired with %s + ADD_NL", op, op2)
+			}
+			all = append(all, cls{op, as})
+		}
+		after := rest[ms[len(ms)-1][1]:]
+		if strings.Contains(after, "do_class") || strings.Contains(s[:h], "do_class") {
+			return nil, p.Die("regrepeat(): do_class is reached from elsewhere")
+		}
+		var b strings.Builder
+		for _, c := range all {
+			fmt.Fprintf(&b, "      case %s:\n      case %s + ADD_NL:\n", c.op, c.op)
+		}
+		b.WriteString("        switch ( ((int)*(p)) )\n        {\n")
+		for _, c := range all {
+			fmt.Fprintf(&b, "          case %s:\n          case %s + ADD_NL:\n            %s\n            break;\n", c.op, c.op, c.assign)
+		}
+		b.WriteString("        }\n")
+		b.WriteString(loop)
+		p.Say(fmt.Sprintf("the %d class opcodes share one case, which sets mask and testval by opcode and then runs the class loop: no goto do_class", len(all)))
+		return []byte(s[:h] + b.String() + after), nil
+	})
+}

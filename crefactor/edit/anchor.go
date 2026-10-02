@@ -10,7 +10,7 @@ package edit
 // it moved the canonical build's refusals from 148 of 163 phases to 147, and it
 // changed the committed product in at least two places, because a widened match
 // picks a DIFFERENT site where two differ only in spacing.  `&p_rtp )` was one;
-// phase 71's wiped-fnum branch was another.
+// phase 4d's wiped-fnum branch was another.
 //
 // So the match is EXACT FIRST.  Only when the exact literal occurs nowhere --
 // an anchor copied from text an earlier phase wrote with aligned columns, now

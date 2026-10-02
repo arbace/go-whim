@@ -1,59 +1,58 @@
-# Phase 23 — no floating-point library
+# Phase 23 — no buffer-name argument matching
 
-Three calls are the whole of libm in this editor, and they turn out to be two
-different questions.
+*Formerly phase 77. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-**`ceil()` and `floor()`** appear once, in the fuzzy matcher, as the two halves
-of rounding half away from zero:
+`do_one_cmd()` computes
 
 ```c
-(fzy_score < 0) ? (int)ceil(fzy_score * SCORE_SCALE - 0.5)
-                : (int)floor(fzy_score * SCORE_SCALE + 0.5)
+ni = (!(cmdidx < 0) && (cmd_func == ex_ni || cmd_func == ex_script_ni))
 ```
 
-C's double-to-int conversion truncates **toward zero**, which is `ceil` for a
-negative value and `floor` for a positive one — so biasing by half in the sign's
-own direction and then converting gives the same answer for every input, and the
-two arms collapse into one expression.
+— "this command is not implemented" — and **seven** later checks consult it before
+doing work. One does not: the `EX_BUFNAME` pre-dispatch block, guarded only by
+`!(cmdidx < 0)`, which compiles a regexp and matches it against the buffer to turn
+`:buffer foo` into a line number.
 
-**`log10()` is not translated, because it cannot be**, and finding that out is
-the useful part of this phase. It appears once, as
-`max_prec -= (size_t)log10(abs_f)`, and the obvious integer equivalent —
-dividing by ten until the value drops below ten — **is a different function**.
-Just below a power of ten, `log10()` returns a double that rounds up to the
-integer:
+**Every command carrying `EX_BUFNAME` is `ex_ni`** — `:buffer`, `:bdelete`,
+`:bunload`, `:bwipeout`, `:checktime`, `:sbuffer` and `:pbuffer`. That last one is
+worth noting: an earlier hand grep found only six because `:pbuffer`'s row spells the
+handler with surrounding spaces (` ex_ni `). The phase counts the rows **dynamically**
+and asserts every handler is `ex_ni`, so it is right regardless of how many there are.
 
-```
-(size_t)log10(99.999999999999986)  ==  2        counting digits gives 1
-```
+**The edit is a fold, not a guard.** Adding `&& !ni` would leave a block that can
+still never run — dead weight wearing a condition. The condition is false for every
+command that reaches it, so `fold_never` removes it outright and `buflist_findpat`
+loses its only caller.
 
-`tools/nolibm_check.c` swept a million values through both forms and found 79
-disagreements, all of that shape. A rounding rewrite that is merely believed is
-how an off-by-one reaches a release — and here the check turned a translation
-into a removal, which is the better phase.
+## A goto statement, not a label
 
-## Nothing can reach the `%f` branch
+The block contains `goto doend;`, and that is safe: `doend` is `do_one_cmd`'s shared
+exit label with 27 gotos targeting it, so this removes a goto **statement**. The
+distinction is the one that mattered for `readfile`'s `theend` in phase 75, and for
+`close_buffer`'s `aucmd_abort`, where the label itself sat inside the fold and three
+gotos would have been orphaned.
 
-So the whole floating-point branch of `vim_vsnprintf()` goes instead. The
-premise is checkable and the phase checks it: **there is not one `%f`, `%F`,
-`%e`, `%E`, `%g` or `%G` conversion in any format string in the file**, and the
-single `vim_snprintf()` call whose format is not a literal takes a local
-`char *fmt` that is one of two constants, `"%*ld "` and `"%-*ld "`. Without
-`+eval` there is no `printf()` to supply one at run time either.
+## What went by cascade
 
-That takes the conversion case (139 lines), `TYPE_FLOAT` and its three arms,
-`infinity_str()` and `typename_float` — and with them `log10`, `isinf` and
-`isnan`. `TYPE_FLOAT` is the **last** enumerator, checked before removing it,
-because several enums here index a parallel table.
-
-`<math.h>` stays: `INFINITY` is the fuzzy matcher's score sentinel, in thirteen
-places. Under musl libm is part of libc, so the link line does not change
-either — what changes is that `nm -u` stops naming a floating-point function.
-
-## Where the symbol count moves
-
-**101 → 98**: `ceil`, `floor`, `log10`.
+`buflist_findpat` (71 lines), `file_pat_to_reg_pat` (167), `buflist_match` (13) and
+`fname_match` — the last reachable only through the pattern matcher and not
+predicted. 306 lines against an estimate of 251. Nothing is deleted by name here;
+removing the one call site orphans them all and the sweep takes them.
 
 ## The delta
 
-**None.**
+**None**, and `whimdelta.sh` confirmed it. `:buffer foo` already exited 1 with nothing
+on stderr — `ex_ni` sets `eap->errmsg` rather than printing, and an `exsweep` row is
+`exit= left= err=`. Measured on q76: exit 1, empty stderr, file written either way.
+So the gain is code, not behaviour, and the phase says so rather than claiming a
+user-visible fix.
+
+`:buffer nosuchname` is therefore **not used as a discriminator** — only as a
+does-not-crash check. The probes that can actually fail exercise what survives: the
+load, a write, `:e` naming a file (the argument path *next to* the one removed), and
+`:g` taking a pattern. All were calibrated against q76 first.
+
+It passed its first dry run.
+
+Measured: 89,713 → **89,407 lines**.

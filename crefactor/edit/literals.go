@@ -14,7 +14,7 @@ import "bytes"
 // the line it began on.
 //
 // WHY THE PHASES DO THIS AT ALL: a name inside a string is data, and data is
-// the one thing a mechanical edit must not change.  whim106 turns `NULL` into
+// the one thing a mechanical edit must not change.  whim0a turns `NULL` into
 // `nullptr` and three literals in that file contain the word -- an E1507
 // message, "[NULL]" and "NULL" -- and a line-wise sed rewrites all three and
 // moves 1,598 bytes of the binary, 1,354 of them in .rodata, with `[nullptr]`
@@ -59,7 +59,7 @@ func LiteralSpans(p Ph, t []byte) ([][2]int, error) {
 	return Out, nil
 }
 
-// literalSpansShort is the same scanner with the shorter refusal whim117's
+// literalSpansShort is the same scanner with the shorter refusal whim49a's
 // heredoc writes -- `the scanner has lost its place`, with no tail.
 //
 // THE TWO MESSAGES DIFFER AND THAT IS WHY THERE ARE TWO FUNCTIONS.  A port is

@@ -1,77 +1,39 @@
-# Phase 73 — one frame
+# Phase 73 — `deathtrap()` runs at the host's next wait
 
-**A record now.** Phase 7 calls `whim73` by name after `whim72`, on the text
-phase 6 swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is here, and the phase-72-73 group has no plan
-entry. It applied there as written. What follows is the account of the cut as
-it was made here.
+*Formerly phase 147. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-**The strongest invariant of this run, and it is proved by absence.** Grepping the
-whole file for a write to `fr_child`, `fr_next`, `fr_prev` or `fr_parent` returns
-**nothing at all**. The frame tree is never linked:
+SIGHUP and SIGTERM ran `deathtrap()` as their handler. So the core's whole
+way out (preserving, restoring the terminal, writing its message, exiting)
+ran inside a signal handler, at whatever point the signal found the core.
+That is undefined behaviour in C, since none of it is async-signal-safe, and
+Go can't express it: Go's runtime takes the signal and hands it to a
+goroutine. The Go host queued the signal and ran `deathtrap()` at its next
+wait (finding 12).
 
-- `alloc_clear(sizeof(frame_T))` appears exactly once, in `new_frame()`, whose only
-  caller is `win_alloc_firstwin()` — itself called once, from `win_alloc_first()`;
-- `new_frame()` writes `fr_layout = FR_LEAF` and `fr_win = wp`, and nothing else ever
-  writes `fr_layout`;
-- `win_alloc_firstwin()` sets `topframe = curwin->w_frame`;
-- there is no `frame_insert`, `frame_append`, `frame_remove`, `win_split` or
-  `win_split_ins` anywhere — they went with the window layout in phases 68 and 72.
+The C host now does the same, with a self-pipe:
+- **the handler** records the signal and writes a byte to a non-blocking
+  pipe;
+- **the wait** runs a pending `deathtrap()` first, then selects on the pipe
+  beside the input. The read runs a pending one first too;
+- **no race:** a signal that lands after the flag is tested and before
+  `select()` leaves a byte, which ends the `select()` at once.
 
-So `topframe == curwin->w_frame`, `fr_layout` is `FR_LEAF` forever, and the four tree
-pointers are permanently NULL. Every `FR_ROW`/`FR_COL` branch is dead, every
-`fr_child` walk iterates zero times, and every `fr_parent` walk stops on its first
-test.
+Timing doesn't change either. The core already blocks deadly signals
+everywhere except the wait in `ui_inchar()`. `vim_handle_signal()` turns a
+signal that arrives while the core is busy into an interrupt, and raises it
+again when that wait unblocks. So `deathtrap()` only ever ran in that window,
+and it still does, at the wait or the read inside it.
 
-That makes this phase a set of **body replacements** rather than a fold campaign —
-fifteen of them. Each function keeps the arm that runs and loses the arms that
-cannot: `frame_fixed_height`/`frame_fixed_width` → `FALSE`; the minima keep their
-leaf arm; `frame_check_height`/`frame_check_width` compare one frame;
-`frame_comp_pos` keeps the `fr_win != NULL` arm; `frame_new_height` keeps the
-cmdheight adjustment and `win_new_height`; `frame_new_width` clears `w_vsep_width`
-and calls `win_new_width`; `frame_setheight` keeps the root arm and `frame_setwidth`
-returns; `frame_add_height` loses the parent walk; `last_status_rec` keeps `FR_LEAF`;
-`command_height` loses the walk to the widest ancestor; `stl_connected` → `FALSE`.
+It maps line for line onto `editor/host.go`, and from there onto a Go
+`select` over an input channel and a `signal.Notify` channel.
 
-**The invariant is asserted in the phase, not just in this document.** The script
-greps for a write to any tree pointer and dies if it finds one, so if an upstream
-ever links a frame again this fails loudly instead of producing an editor that
-silently mis-sizes its one window.
-
-**The break hazard was handled by construction.** The audit named four loops whose
-`break` binds to the loop being removed — `stl_connected`, `frame_new_height`,
-`frame_new_width` (twice) and `command_height` — and all four were already in the
-replace-whole-body set, so nothing was folded out from under a `break`. This is the
-phase 71 lesson applied ahead of time, and it is why **this phase passed its first
-dry run**, the only one in this run that did.
-
-## What is not a constant
-
-`frame_minheight()` reads `p_wh`, `p_wmh` and `w_status_height`, and `min_rows()` and
-`did_set_cmdheight()`'s clamp both depend on the number it returns — so the leaf arm
-keeps its arithmetic exactly and only the recursion goes. Replacing it with a literal
-would silently change what `:set cmdheight=` accepts, which no probe here would have
-caught. A post-condition asserts `p_wh` and `p_wmh` still appear in its body.
-
-`fr_width` and `fr_height` stay: they are live layout state, read by `win_do_lines`,
-`screen_ins_lines`, `screen_del_lines`, `redraw_block`, `screen_line`, `win_line` and
-`did_set_cmdheight`. The **fields** stay; only the tree goes.
-
-`frame_fixed_height`, `frame_fixed_width`, `frame_minwidth` and `frame_fix_height`
-fall out by cascade once their callers' `wfh`/`wfw` loops vanish, and `FR_ROW` and
-`FR_COL` lose every reader. Nothing deletes those by name.
-
-## The delta
-
-**None**, and `whimdelta.sh` confirmed it. Every splitting and resizing Ex command is
-already `ex_ni`, and `:set cmdheight=` keeps its accepted range because
-`frame_minheight` kept its arithmetic.
-
-Two new probes drive the rewritten bodies — `:set cmdheight=2` through
-`did_set_cmdheight` → `command_height` → `frame_add_height`, and `:set laststatus=2`
-through `last_status` → `last_status_rec` — and **both were calibrated against q72
-before being trusted**, which is the rule three earlier probes in this run were
-written in violation of.
-
-Measured: 92,110 → **91,329 lines**.
-
-**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 72-73 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+**Declared delta: nothing**, and the libc surface grows by `pipe2`, which the
+check requires exactly. The host now has twelve `#include`s, `<fcntl.h>` for
+the pipe's flags. The check's probes run on a real pty with stderr on its own
+pipe: SIGTERM and SIGHUP while the editor waits for a key, and SIGTERM during
+a substitution that backtracks for longer than the probe runs. Each gives the
+same output, stderr and exit status on both binaries. The controls:
+- SIGTERM and SIGHUP differ, because the message names the signal;
+- the busy run is interrupted and never finishes its substitution, so the
+  signal did land mid-computation. It says `Interrupted`, as it did before.

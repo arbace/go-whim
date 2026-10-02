@@ -2,14 +2,14 @@ package cut
 
 // extable.go is the table half of the reform's D2b (doc/PIPELINE-REFORM.md
 // §7): the Ex command table cut, on the seed, to the commands the product
-// has, where phase 80 cut it after 79 phases had retired the rest.
+// has, where phase 26 cut it after 79 phases had retired the rest.
 //
 // exfront has just pointed every command the product has not at ex_ni, so
 // the stubs are exactly the rows to go.  Their ROWS go here; their
 // ENUMERATORS stay, moved after CMD_SIZE, because live code still names a
 // few of them -- window_layout_locked(CMD_close), ea.cmdidx = CMD_tabnew,
-// the comparisons phases 2-79 fold -- and no parsed command can reach a
-// value past CMD_SIZE.  Phase 80 deletes what is left of them.
+// the comparisons phases 2-25 fold -- and no parsed command can reach a
+// value past CMD_SIZE.  Phase 26 deletes what is left of them.
 //
 // A row's name decided what every abbreviation of every other name meant: the
 // lookup took the first row, in table order, that the typed word began.  So
@@ -272,7 +272,7 @@ func ExTable(text []byte, w io.Writer) ([]byte, error) {
 	// ---- the field, the index, the lookup, the one-character commands ----------
 	for _, r := range []struct{ old, new, what string }{
 		{extField, extMinlen, "the row field that held the name length holds the shortest abbreviation"},
-		{extNameLen, "cmdnames[eap->cmdidx].cmd_minlen", "and its one reader, in the Vim9 check phase 80 folds"},
+		{extNameLen, "cmdnames[eap->cmdidx].cmd_minlen", "and its one reader, in the Vim9 check phase 26 folds"},
 		{fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, extChars), fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, newChars),
 			"the one-character commands that exist: " + newChars},
 	} {
@@ -369,7 +369,7 @@ func FileFront(text []byte, w io.Writer) ([]byte, error) {
 // edit, or another changed buffer kept `:q` from quitting.
 const quitHead = "if ((!buf_hide(wp->w_buffer) && check_changed(wp->w_buffer, (p_awa ? CCGD_AW : 0) | (eap->forceit ? CCGD_FORCEIT : 0) | CCGD_EXCMD)) || check_more(TRUE, eap->forceit) == FAIL || (only_one_window() && check_changed_any(eap->forceit, TRUE)))"
 
-// QuitFront makes `:q` quit (the reform's front cut for phase 94's change):
+// QuitFront makes `:q` quit (the reform's front cut for phase 33's change):
 // with nothing that can be written, the refusal to quit a changed buffer is a
 // door onto nothing.  It folds never, the else arm -- quit -- stays, and
 // check_changed_any's tail, the last caller of the editor's buffer- and
@@ -387,7 +387,7 @@ func QuitFront(text []byte, w io.Writer) ([]byte, error) {
 	return append(append(append([]byte(nil), text[:a]...), body...), text[z:]...), nil
 }
 
-// ReadFront takes every read of a file (the reform's front cut for phase 92's
+// ReadFront takes every read of a file (the reform's front cut for phase 31's
 // change): open_buffer's two arms -- the named file, and stdin -- fold never,
 // and readfile(), read_buffer() and everything only they reached go with
 // them.  A buffer opens empty.

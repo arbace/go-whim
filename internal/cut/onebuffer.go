@@ -44,7 +44,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// reform's D2)
 
 	// set_curbuf, which hid the buffer it left, went with ex_quit's refusal
-	// at phase 1 (quitfront, the reform's move of phase 94)
+	// at phase 1 (quitfront, the reform's move of phase 33)
 
 	text, err = e.inFunction(text, "getfile", func(s []byte) ([]byte, error) {
 		s, err := e.literal(s, " && !buf_hide(curbuf) && ", " && ",
@@ -60,7 +60,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// :quit's refusal, and with it its buf_hide test, folded at phase 1
-	// (quitfront, phase 94's move)
+	// (quitfront, phase 33's move)
 	text, err = e.inFunction(text, "ex_quit", func(s []byte) ([]byte, error) {
 		return e.literal(s, "win_close(wp, !buf_hide(wp->w_buffer) || eap->forceit)",
 			"win_close(wp, TRUE)", ":quit freeing the buffer", 1)
@@ -161,8 +161,8 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// setaltfname() and buf_hide() have no caller now and still name the
-	// alternate and the two modifier flags; the sweep takes them, and whim42
-	// counts again after it.  Everything else is counted here.
+	// alternate and the two modifier flags; the sweep takes them, and record 42's
+	// program counted again after it.  Everything else is counted here.
 	blanked := edit.Blank(text)
 	var dying [][2]int
 	for _, n := range []string{"setaltfname", "buf_hide"} {

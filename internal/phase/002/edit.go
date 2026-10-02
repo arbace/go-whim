@@ -1,6 +1,6 @@
 package p002
 
-// Whim phase 2 -- the options for features that are not here.  See GOAL.md.
+// Whim phase 2 (formerly 2) -- the options for features that are not here.  See GOAL.md.
 //
 // Unlike phase 1, there are no commands to cut.  All fourteen `:menu` commands
 // and all eight `:spell` ones are ALREADY `ex_ni` -- upstream's tiny

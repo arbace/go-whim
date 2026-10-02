@@ -1,113 +1,102 @@
-# Phase 25 — a write is a write, and nobody owns it
+# Phase 25 — the constant-return predicates
 
-**Its first cut runs at phase 7 now.** `nobackup` runs there, on the text
-phase 6 swept and before `noconv`, whose `buf_write()` edits are written for
-it (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front); `noowner` and the `droplocal` stay here, `noowner`'s mode-mask anchor
-written for the text `nobackup` leaves printed.
+*Formerly phase 79. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-## a write is a write
+Twenty-eight functions whose whole body is `return <constant>;`. Each was emptied by
+an earlier phase and left with its callers in place, so the editor still asks "is the
+popup menu visible", "are we in a Vim9 script", "is there more than one window" — and
+still branches on an answer that cannot change. No sweep can see this: at `-O0` each
+is a real call and a real branch, and the code is *reachable*. Unuseful, not unused.
 
-Writing a file in vim is not one operation. Before the new contents go anywhere
-the old file may be renamed or copied aside, its permissions, owner, group, ACL
-and timestamps carried over, the write attempted, and the whole thing rolled
-back if it fails — and afterwards the copy is kept, or deleted, or renamed again
-for `'patchmode'`. That is **437 lines of `buf_write()`**, and what `'backup'`,
-`'writebackup'`, `'backupcopy'`, `'backupdir'`, `'backupext'`, `'backupskip'`
-and `'patchmode'` are between them.
+**The invariant is asserted, not trusted.** Step 1 reads all 28 definitions and
+requires each body to be exactly `return <expected>;`, with the expected token written
+out per name. If an upstream ever gives one a real body the phase fails instead of
+folding a live predicate. That is phase 77's pattern, and it is the only thing between
+a fold and a wrong answer.
 
-An embedded editor writes the file it was asked to write.
+## Four that look identical and are not
 
-**`dobackup` is the hinge.** It is `(p_wb || p_bk || *p_pm != NUL)`, so with the
-options gone it is FALSE, `backup` stays NULL and `backup_copy` stays FALSE —
-and the tests spread through the rest of the function each collapse to the
-branch they were already taking under `:set nobackup nowritebackup`, a
-configuration vim has always supported. One of them is an `if`/`else if` whose
-*else* is the live arm, so the pair collapses to that rather than going;
-`buf_setino()` still has to happen.
+A scan for `return <single token>;` reports 32. Four of those tokens are **variables**:
+`get_hislen`→`hislen`, `is_maphash_valid`→`maphash_valid`, `get_search_pat`→`mr_pattern`,
+`get_text_locked_msg`→ a static message. My first classifier said *thirteen* of the 32
+returned a variable — it had matched the bare tokens `0`, `1` and `NULL` against
+unrelated declarations elsewhere in the file. Reading the **definitions** gives four.
+Supplying the expected constant per name is what makes that error impossible to repeat
+silently, and an assertion requires all four to survive.
 
-Three things fall out that are worth naming separately:
+**`did_set_number_relativenumber` is a constant and still is not touched.** Its only
+two mentions are option-table rows where it appears as a *function pointer* with no
+call parentheses. Folding is meaningless and deleting it would leave two rows pointing
+at nothing. An assertion requires both rows intact.
 
-  * **`vim_rename()` has five callers and all five are in here** — make the
-    backup, put it back when the write fails, put it back when it is abandoned,
-    and move it aside for `'patchmode'`. So `vim_copyfile()` goes with it, and
-    that is `readlink`, `symlink` and `rename`.
-  * `set_file_time()` carried the old file's timestamps onto the backup. One
-    caller, and that is `utime`.
-  * `mch_get_acl()`, `mch_set_acl()` and `mch_free_acl()` are **already stubs** —
-    this build has no ACL support, so one returns NULL and the others do nothing
-    with it. They went unnoticed for thirty phases because a stub compiles. The
-    `vim_acl_T` that threaded through `buf_write()` to reach them goes too, and
-    its three forward declarations go *here* rather than in the sweep: the sweep
-    has to compile the file first, and a prototype naming a type this removes is
-    an error, not a warning.
+## `binds_out` vetoes fold_always, not fold_never
 
-`fchown` and `umask` were not on the list and went anyway — every call to both
-was inside the backup block.
+`parse_command_modifiers`' `if (vim9script)` block contains a `break` that binds to the
+enclosing `for (;;)` — the shape that made `buflist_findpat` change behaviour silently
+in phase 71. But that phase **folded a walk**, keeping the body while removing the loop
+around it, so the `break` rebound. `fold_never` **deletes** the body, `break` and all,
+and the condition was false, so it never fired. Every `fold_always` site here was
+audited separately and none contains an escaping `break`.
 
-### The same circle, twice more
+## Three second-order cuts, each proved in the phase
 
-`'backupcopy'` names `did_set_backupcopy` and `expand_set_backupcopy` in its own
-row, and `'backupext'` and `'patchmode'` share
-`did_set_backupext_or_patchmode`; a row is a root, so the handlers survive the
-sweep, read `p_bkc` and `p_bex`, and `--strict` then refuses to drop the row
-that is the only thing keeping them alive. Phase 24 met this three times. The
-rows are pointed at NULL first.
+**`skip_for_popup`** is not a stub on entry — it has three returns. Once `pum_under_menu`
+and `pum_visible` fold, both its guards go and it becomes `return FALSE;`. The phase
+re-runs the same `const_of()` check to *prove* the collapse before using it, then takes
+nine more sites.
 
-`didset_string_options()` reads `p_bkc` at startup — the trap Phase 18 records,
-met again — and `set_init_default_backupskip()` looks its row up **by name**,
-the lookup that returns −1 and is not checked.
+**`may_have_range`** is a local of `do_one_cmd` with two writes. One is inside the
+`if (vim9script && …)` block this phase folds; the other is that block's `else` arm,
+`may_have_range = TRUE;`. After the fold it has one write, is constantly true, and both
+readers fold.
 
-### Where the symbol count moves
+**`wc`** in `option_value2string` is `long wc = 0;` whose only "write" is `&wc` passed to
+`wc_use_keyname` — which never dereferences `wcp`. So **both** arms of that chain are
+dead, not just the first, and it collapses to the `sprintf`. Read from the body, not
+assumed; the phase asserts `wcp` is absent from it.
 
-**98 → 92**: `fchown`, `readlink`, `rename`, `symlink`, `umask`, `utime`.
+`need_check_timestamps`, `need_redraw` and `bom_count` each become write-only once the
+stub feeding them is gone, so their tests fold and the variables sweep.
 
-### The delta
+## Ordering, and the ternary that spans a line break
 
-**None the harness records.** `:w` writes; it just stops leaving a `~` file
-beside what it wrote, which no harness asked for. The phase checks that
-directly — overwrite a file and the directory must hold exactly what it held
-before, with the new contents in it.
+Specific literals run before blanket regexes **except where a blanket edit creates the
+specific one's target**. Three places turn on it, and the third is the sharp one: the
+address ternary in `do_one_cmd` is the rare construct in this tree that spans a line
+break, so it must be replaced *before* the blanket `current_win_nr` pass — which would
+otherwise rewrite one half and leave `eap->line2 = eap->addr_type == ADDR_WINDOWS`
+dangling. All 74 anchors were counted against the q78 tree before the program was
+written, and that pre-flight caught the one edit I had never transcribed:
+`&& !at_ins_compl_key()`, which I knew about only from a truncated survey line.
 
-## nobody owns a file
+**No term edit ends in whitespace.** `only_one_window() && check_changed_any` becomes
+`check_changed_any` rather than stripping `only_one_window() && `, because a literal
+with a trailing space lost it passing through an editor in phase 71.
 
-An embedded editor runs where there are no users to tell apart, so asking who
-you are is asking a question with no answer. Four places were still asking.
+## Two bugs, both in the checks rather than the edits
 
-  * `:w!` on a read-only file makes it writable first, but only **if you own
-    it**: `st_old.st_uid == getuid()`. The ownership test goes and the `chmod`
-    stays. Nothing widens in practice — where the test used to say no, the
-    `chmod` now says no instead, and the same error comes back by a different
-    route.
-  * When a write fails and `!` makes it retry, the mode carried onto the new
-    file is masked to `0777`, dropping setuid, setgid and sticky — but only if
-    you are not the owner. The test goes and **the masking stays**, which is the
-    safe direction: a file this editor writes never carries a setuid bit.
-  * `'modeline'` is forced off when `getuid() == ROOT_UID`, a protection against
-    a modeline running as root. There is no root here and no `+eval` for a
-    modeline to reach.
-  * `get_user_name()` was stubbed to `return FAIL;` in Phase 20, when the
-    password database went, and its two callers were left writing the answer
-    into the swap file's block zero. The second one's `else` — the arm that
-    spliced a user name into the recorded file name — has therefore been dead
-    since Phase 20 and goes now, along with the `b0_uname` field itself. **A
-    struct field is not a variable**: no warning names one that nothing reads,
-    and the sweep cannot see it, so it has to be named here.
+**An assertion that a correct edit could not satisfy.** `vim9script` was in the
+zero-mention loop, but four mentions survive and none is the identifier: three
+former-file banner comments and the `[CMD_vim9script]` row, where it is the command
+*name* — a string literal. A bare word count cannot tell an identifier from a comment
+or a string. Phase 78 made this same mistake twice in one script.
 
-### Permissions are not ownership
+**`set -e` killed the phase on the behaviour it was checking.** The quit probes were
+written `( … ); rc=$?`, and a subshell whose status is not *tested* aborts under
+`set -e`. The second probe runs `:q` on a **modified** file, which exits 1 by design —
+so the script died after the build with every probe unrun, and the truncated log made
+it look like a clean finish. The form is `rc=0; ( … ) || rc=$?`, which is a tested
+context. Phases 77 and 78 avoided this with `|| true` and never needed the status.
 
-`chmod` and `fchmod` stay, through `mch_setperm()` and `mch_fsetperm()`. A file
-still has a mode, `:w!` still has to clear the read-only bit to write, and the
-mode of the file that was there is still put back on the file that replaces it.
-Removing those would take `:w!` on a read-only file with them, which is a
-capability and not a concept — so the phase asserts both halves: `getuid` and
-`getgid` gone from `nm -u`, `mch_setperm`/`mch_fsetperm`/`mch_getperm` still
-called, and `:w!` over a `chmod 444` file still writes it. No harness writes to
-a read-only file, which is why that check lives here.
+## The delta
 
-### Where the symbol count moves
+**None**, and `whimdelta.sh` confirmed it. Every fold removes a branch whose condition
+cannot hold and every term edit removes a constantly-true conjunct or a constantly-false
+disjunct. The quit path is the one place where an error would be silent rather than
+fatal — `check_more()` feeds the four `ex_quit`/`ex_exit` conditions that decide whether
+`getout(0)` runs, so wrong folding makes the editor refuse to quit or quit without
+saving. Five quit probes calibrated on q78 guard it: `:q` refuses a modified file,
+`:q!` discards, `:wq` and `:x` write and exit.
 
-**92 → 90**: `getuid`, `getgid`.
-
-### The delta
-
-**None.**
+Measured: 89,233 → **88,636 lines**.

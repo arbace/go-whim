@@ -25,7 +25,7 @@ var abbrFolds = []struct{ what, pattern string }{
 		edit.Head("if (ccheck_abbr(c + ABBR_OFF))")},
 }
 
-// has_mbyte is folded already: utf8only runs at phase 1 (the reform's D7).
+// has_mbyte is folded already: utf8only runs at phase 2 (the reform's D7).
 var abbrLiteral = []struct{ what, old, new string }{
 	{"insert mode: a non-word character inserting unless an abbreviation took it",
 		"if (vim_iswordc(c) || (!echeck_abbr((c >= 0x100) ? (c + ABBR_OFF) : c) && c != Ctrl_RSB))",

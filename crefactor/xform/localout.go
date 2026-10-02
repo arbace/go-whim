@@ -28,7 +28,7 @@ import (
 //
 // It is exact because x is reachable only through the parameter: the
 // callee cannot see it by another way, so when the value comes back is when
-// C's stores through p would be seen -- phase 175's proof (MemberOut), for
+// C's stores through p would be seen -- phase 94's proof (MemberOut), for
 // locals: a site is taken only when
 //
 //   - the callee is a function the core defines, not variadic, its

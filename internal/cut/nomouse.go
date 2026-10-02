@@ -170,7 +170,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	text = append(buf, text[end:]...)
 	fmt.Fprintln(w, "  nomouse      the escape sequences that carried a click")
 
-	// 32 at phase 2's front (the reform's D8), where what phases 3-23 took is
+	// 32 at phase 2's front (the reform's D8), where what phases 3-11 took is
 	// still there; 'mouse''s handler's went with its row (optfront, the
 	// reform's D3)
 	if n = len(setmouseCall.FindAll(text, -1)); n != 32 {

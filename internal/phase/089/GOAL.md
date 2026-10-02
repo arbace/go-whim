@@ -1,195 +1,93 @@
-# Phase 89 — no write
+# Phase 89 — a goto whose label marks a short tail is that tail
 
-`internal/phase/089/edit.go` and `internal/phase/089/check.go`, `stage 89`, `package files`. A
-core does not own a disk: reading and writing files is the host's business, and
-this is the first half of taking the filesystem away. The six Ex commands that
-put bytes on one go — `:write :wq :xit :exit :update :saveas` — and with them
-everything only they reached.
+*Formerly phase 170. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-## Four anchors, and not one fold
+vim leaves a function early with `goto theend;`, and `theend:` marks a few
+statements of clean-up and then the return: `*ptr = cmd; return lnum;`,
+`--bt_reg_parse_depth; return ret;`, or in a void function the closing brace.
+Where the tail is that short and that plain, the jump is the tail: at the
+`goto`, running the tail's statements and returning does what the jump leads to,
+in the same state, because the tail is straight-line code that returns. This
+phase copies the tail over every such `goto`, and drops a label no `goto`
+reaches any more. It is phase 168's rule widened from no statement before the
+return to a few, and the first of the steps `doc/AGENDA.md` item 1 lists toward
+no `goto` in the C: a Java backend has none, and the Go loses these too --
+a function left with no `goto` has its locals declared where C declares them,
+since `internal/gen` hoists them only in a function that jumps.
 
-The phase is four edits, and every removal after them is the sweep's
-(core rule 1). The `cmdnames[]` row is the only reference a command handler has, so
-taking the row is what makes the handler unreachable:
+**The rule is general, and the tree only locates.** It is `crefactor/xform`'s
+`GotoTail`, the `gototail` step, and names nothing in vim; whim tells it one
+knob, the bound (`internal/whim/xform.go`: at most **3** statements before the
+return, the longest straight tail a `goto` of the core reaches --
+`cmdline_browse_history`'s three stores -- and each copy costs its length).
+`cc.Parse` finds each label that is a block item, followed in its block by at
+most three expression statements (an empty one neither counted nor copied) and
+then `return x;` -- or, in a function whose type is `void`, by the end of its
+body, which is `return;`. The loops and switches between a `goto` and its label
+do not matter: the copy ends in a return. The copy is written in braces where
+the `goto` was an if's or a case's statement, and as block items where it was
+one.
 
-1. the six enumerators of `enum CMD_index`, one line each;
-2. the six `cmdnames[]` rows, one physical line each, designated `[CMD_x] = {`;
-3. `nv_Zet`'s `ZZ`, which runs the command *string* `"x"` → `"q!"`;
-4. `do_one_cmd`'s `:w>>` / `:w!` parse — an `if (ea.cmdidx == CMD_write ||
-   ea.cmdidx == CMD_update) {…}` with no else — deleted as **text** rather than
-   folded, because its condition names two of the enumerators that are going. It
-   has to go in the same edit as anchor 1 or nothing declares what it reads.
+**What it holds.** A `goto` is left, and with it its label, when the copy could
+mean something else or could not be written twice:
 
-**The alternative was measured.** An edit that also deletes `ex_write`,
-`ex_update`, `ex_exit`, `do_write`, `check_writable`, `check_overwrite`,
-`not_writing` and `check_readonly` by name produces a **byte-identical swept
-file**, in 3 sweep rounds against 4 and 17 seconds against 22. Four seconds is
-not a reason to write eight names into a phase program, so the minimal edit is
-what runs.
+- a name the tail reads -- a typedef name too -- is declared in any inner
+  block of the function, where it might shadow, or at the function's top after
+  the `goto` or after the label (phase 168's rule);
+- the tail holds another label, a `case` or a `default` (another way in, and a
+  copy of it would be a second one), a declaration, or a statement expression
+  (a block inside an expression, which could declare, be labeled or break).
 
-**The text the edit leaves does not compile, and the program says so.** Six
-mentions of the six enumerators survive it — `CMD_saveas` five times and
-`CMD_wq` once — every one inside `ex_write`, `do_write` or `ex_exit`. The edit
-asserts exactly that, as a computation rather than a list: each survivor is
-inside a function definition, and no surviving `cmdnames[]` row names that
-function, which is the whole argument that `funcreach.py` takes them in the
-sweep's first round. `tools/phasecheck.sh` in the check is where *it compiles*
-is asserted.
+A tail with any other statement -- an `if`, a loop, a jump that is not the
+return -- or with more than three is no tail, and its gotos stay: they are for
+the phases after this one. A label no `goto` reaches any more goes, unless its
+address is taken (`&&L`). When the statement before it always jumps, nothing
+reaches its tail either, and the tail goes with the label (phase 164's rule); a
+label on an empty statement goes with the statement.
 
-## `ZZ` is `ZQ`, and that is a decision
+**It changes no behaviour, and the binary differs**: gcc at `-O0` compiles the
+tail at each place where there was one jump to a shared one.
 
-`nv_Zet` runs a command **string**, so nothing here breaks at compile time:
-left alone, `ZZ` would type `:x` at a command that no longer exists and answer
-`E492`. `case:zz_key` therefore moves whatever is done — `E32` today, `E492` if
-the string is left, nothing at all with `"q!"` — so this phase owns it rather
-than leaving a dead command named in the source. It is the user's settled
-decision that ZZ is ZQ. `GOALS.md` II.3b gives it to the `:q` phase; that row is
-annotated as built.
+**Measured**, the phase run alone on q169 (`go tool whim build --from 170 --to
+170`, 3 s): **79 `goto`s take their tail, 0 are held**, and 106 to a label that
+marks no such tail stay. In the core, 52 in 12 functions -- `get_address` 12,
+`parse_winhighlight` 8, `do_set_option_value` 6, `reg` 6, `do_set_option` 5,
+`cmdline_browse_history` 3, `gotchars_add_byte` 3, `do_set_option_numeric` 3,
+`open_line` 2, `op_yank` 2, `showmap` 1 (a void end: `--map_locked;
+return;`), `utf_find_illegal` 1 (`theend: ;` at a void end: `return;`) -- which
+is exactly class A of the goto survey, every function of it freed; in the host,
+27 in 2 more (`parse_fmt_types` 22, `vim_vsnprintf_typval` 5), the host's
+every `goto`. 14 labels go; 3 of them -- `parse_winhighlight`'s `fail`,
+`op_yank`'s `fail`, `parse_fmt_types`' `error` -- with their tail, which only the
+gotos reached.
 
-## No DWARF dump, and phase 88's reason for one does not apply
+| | before | after |
+|---|---:|---:|
+| `goto` in `whim-vim.c` (core + host) | 185 (158 + 27) | 106 (106 + 0) |
+| labels in `whim-vim.c` (core + host) | 32 (30 + 2) | 18 (18 + 0) |
+| functions with a `goto` (core + host) | 34 (32 + 2) | 20 (20 + 0) |
+| lines of `whim-vim.c` | 75,396 | 75,507 |
+| `goto` in `editor/editor.go` | 163 | 111 |
+| labels in `editor/editor.go` | 30 | 18 |
+| functions with a `goto` in `editor/editor.go` | 34 | 22 |
+| lines of `editor/editor.go` | 58,141 | 58,113 |
 
-Deleting the six renumbers **89** survivors, and every one is a `CMD_*`.
-Measured with `tools/enumvals.sh`: **1,323 enumerator values in, 1,303 out** —
-the six, plus fourteen single-constant explicit-value enums the sweep takes with
-their types (`CPO_FNAMEAPP CPO_FNAMEW CPO_FWRITE CPO_KEEPRO CPO_OVERNEW
-CPO_PLUS NODE_NORMAL NODE_OTHER NODE_WRITABLE SHM_WRI SHM_WRITE SMALLBUFSIZE
-TRUNC_ON_OPEN WRITEBUFSIZE`) — 89 moved and nothing else touched, nothing
-arriving.
+The Go's numbers are `internal/gen` run out of tree on the core of the phase's
+output; its 5 gotos more than the C's are the generator's own (a `continue` in
+a `do`-while or a `for` with a complex increment). The C grows 111 lines by
+its copies, and the Go shrinks 28 though it carries the same copies: the twelve
+freed functions no longer declare their locals at the top.
 
-Phase 88 compared DWARF either side because `main_errors[]` was a table written
-in its enumerators' order, where a wrong index was invisible to the build.
-`cmdnames[]` is **designated**: a row lands at its own enumerator whatever the
-numbering is, the `static_assert` on the row count catches a dropped pair, and
-all 105 surviving names are dispatched by `tools/zexcmds.py` inside the declared
-delta. Three checks the build cannot dodge, and none of them needs the values.
+`gcc -fsyntax-only -Wall -Wextra -Wno-unused-parameter` prints nothing on the
+output, as on the input. `whim test` on the output: 45/45 cases as HEAD does,
+and the Go editor answers all 45 as the C does; `whim test --wide`: 240 cases
+as HEAD does. Both again with the `editor.go` generated from the output in
+place of the committed one: the same.
 
-**The row floor now has five rows of margin.** `cmdnames[]` goes 111 → 105 and
-`tools/create_cmdidxs.py`'s `names()` refuses a table of fewer than 100 — a
-regex that stops matching otherwise yields a plausible all-zero index, so the
-floor is deliberate. `tools/zexcmds.py` enumerates the table through it, so
-crossing it would stop Part II's command sweep rather than give a wrong answer.
-`GOALS.md` II.3a: the `:edit` phase spends the margin, and it is the phase that
-must lower the floor.
-
-## Two traps, and both make the obvious check the wrong one
-
-- **`check_readonly` is also a local**, in `readfile()`: `int check_readonly;`
-  and three uses. After the phase `grep -cw` is **4, not 0**, so a phase-4-style
-  "every name at zero mentions" loop fails on a correct phase. What must be gone
-  is the definition, `^check_readonly(`, and the four survivors are required to
-  be inside `readfile()`.
-- **`"write"` survives**, as the `'write'` option's name, and `E32: No file
-  name` with it — still reachable through `check_fname()` from `do_ecmd()` and
-  `ex_bang()`. A "no mention of write anywhere" check fails on a correct phase
-  just as surely.
-
-## The declared delta, and what the corpus cannot see
-
-`6   case:cmd_write case:zz_key` and the six rows `write wq xit exit update
-saveas`. The two kinds of movement are different: `cmd_write` goes from `E32: No
-file name` to `E492: Not an editor command: write`, `zz_key` loses its bell,
-its `E32` and two snapshots — and the six command rows **cease to exist**,
-because `tools/zexcmds.py` enumerates 105 names where it enumerated 111.
-Measured with `tools/zcompare.py`: the other 100 screen cases, the other 105
-command rows, all 30 command lines, the four pty scenarios and the terminal
-table are identical.
-
-**And that is the whole of what any recording here can see.** Every one of the
-102 screen cases types its own text and names no file, so `cmd_write` types
-`:write` with no file name and what the baselines hold is an editor that
-**failed** to write. "cmd_write and zz_key moved" is equally consistent with a
-phase that changed one error message and left `buf_write()` reachable.
-
-## The probes, which are the only evidence writing went
-
-**26, on both binaries** — the one the phase was handed, built by the edit part
-from the boundary's own makefile flags, and the one it made — **in a directory
-they keep**. `tools/zstream.py`'s `session()` throws its run directory away,
-which is the one thing a phase about files cannot do, so the runner is in the
-check and adds one section to the record: what the run left on the disk.
-
-- **`write_roundtrip`** types `WROTEME`, writes it to `out.txt`, empties the
-  buffer and reads the file back. The old binary answers `"out.txt" 1L, 8B`; the
-  new one `E484: Can't open file out.txt` and an empty buffer. It leans on
-  `:read`, which the next phase removes — harmless, because `make whim-verify`
-  runs every check on its own boundary.
-- **`:w :sav :update :wq :x` with a file name**: `{'out.txt': 6}` on the old
-  binary and `{}` on the new, for all five, with `:wq` and `:x` going exit 0 → 1.
-- **Eight spellings** — `:w :x :wq :up :sav a :w! :w >>f :w !cat` — each E492
-  now and none before, which is the inheritance check `CLAUDE.md`'s `:help` →
-  `:helpclose` trap asks for.
-- **Ten that must not move and do not**: `:q` on a modified buffer (still E37 —
-  `check_changed` stays and is the `:q` phase's), `:q!`, `:read` (still E32, the
-  read phase's), `:edit`, `:file`, `:%!sort`, `:s/x/y/`, `u`, CTRL-G and an
-  ordinary edit.
-- **A pty session**, because every probe above went through a pipe: `:wq
-  out.txt` writes the file and quits on the old binary and answers E492 here,
-  and an editing session is identical either side.
-
-**Proven able to fail in both directions**: with the old binary on both sides
-all sixteen report *was to move and did not*; with the new binary on both sides
-they add *the input binary left {}, not a 6-byte out.txt, so this proves nothing
-about writing*.
-
-## Measured
-
-*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `internal/phase/boundaries.md`.*
-
-| | input | after |
-| --- | --- | --- |
-| lines | 85,734 | **84,675** (−1,059) |
-| functions | 1,860 | 1,841 (−19) |
-| enumerators (DWARF) | 1,323 | 1,303 |
-| `cmdnames[]` rows | 111 | **105** |
-| `nm -u`, the core's flags | 77 | **71** |
-| `nm -u`, as `phasecheck.sh` counts it | 78 | **72** |
-| `.text` / `.rodata` of the plain object | 648,496 / 17,609 | 640,449 / 17,289 |
-| binary | 861,288 | **847,656** |
-
-**The six that go are `chmod fchmod fstat ftruncate lstat unlink`**, and they
-are the first any Part II phase has freed. The check states the set rather than a
-count, and requires `stat`, `open`, `access`, `fsync` and `getcwd` to be
-**still** undefined, so a cut reaching into a later phase fails here rather than
-widening quietly: `stat` is down from 14 calls to 8 and belongs to the phase
-that gives up the buffer's name, `open` and `access` to the one that stops
-reading a byte, `fsync` to the options.
-
-Nineteen functions go, none of them named by the edit — `ex_write ex_update
-ex_exit do_write check_writable check_overwrite not_writing check_readonly
-check_file_readonly buf_write buf_write_bytes check_mtime time_differs
-write_eintr vim_fexists mch_setperm mch_fsetperm mch_nodetype u_update_save_nr`
-— with one struct field, `exarg_T.append`, and 39 string literals. The sweep is
-**4 rounds, 22 s**, and the phase **46–49 s**. Its boundary is `8ce685cf2592`,
-and `make whim-verify` recomputes all seven in 80 s of wall time over 299 s of
-phases.
-
-**What no instrument here sees, said out loud.** `p_fs`, `p_write` and `p_wa`
-lose their last readers and keep their rows and their `:set` answers — removing
-a row is the options phase's, and `tools/orphanopts.py` refuses a global whose
-row has gone, so they are asserted at exactly two mentions each. Six
-`'cpoptions'` and two `'shortmess'` letters lose their readers with no
-observable change, the validity lists being string literals. `'readonly'` keeps
-its `W10` warning and its `[RO]` indicator. And the row floor now has five rows
-of margin rather than eleven.
-
-## Its placement
-
-`stage 89`, `package files`, and two `uses` lines: `files:89 seed:83 mechanical`,
-because the declared records are compared with the baselines phase 83 records,
-and `files:89 harness:86 mechanical`, because the old file-based sweep recorded an
-exit status and `:write` went from E32 to E492 without changing it — phase 86's
-message-level record is what can see this phase at all.
-
-**`apart 88 89` is measured rather than predicted.** Phase 88's check states that
-*it* frees no libc symbol, as a `cmp` against the stage's starting undefined
-set, and inside a stage every check compares with the **stage's** start. Run as
-one stage — `tools/phaserun.sh 88-89` — phase 88's check fails with *the libc
-surface moved, and this phase frees nothing* and names all six.
-
-**There is deliberately no `apart 85 89`.** Phase 85's check drives a pty with
-`:wq` and reads the file back, which this phase would break — but measured, it
-already fails identically on a phase **5** tree (status 256, the file
-unchanged), because the session opens `f.txt` as a file *argument* and never
-reaches the `:wq`. So the failure at 89 is phase 88's, a stage holding 85 and 89
-holds 87, and `apart 85 87` forbids it already. Phase 87's check fails on a phase 89
-tree for the reasons `apart 87 88` records.
+`crefactor/xform`'s tests hold the rule on a foreign program (`gototail_test.go`):
+every hold as a case, the tails that are none, a kept `&&` label; gcc compiles
+the input and the output silently and they print the same; and, as the control,
+the two rewrites the name rule forbids (an inner `r` and an inner typedef
+`T` shadowing at the `goto`), made anyway, compile as silently and print
+something else.

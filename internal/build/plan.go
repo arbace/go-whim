@@ -25,9 +25,9 @@
 //	           for their check to read; a build gives them one and throws it
 //	           away.  No edit reads anything from it -- measured.
 //	@minmax    the host's MIN and MAX, asked of the preprocessor
-//	           (steps.MinMax) exactly as phase 109's program asked.
-//	Declared   phase 80 alone: its edit wants the rows it must find as stubs,
-//	           which is what the phase declares in internal/phase/080/delta.md.
+//	           (steps.MinMax) exactly as phase 42's program asked.
+//	Declared   phase 1 alone: its front retires the command rows the phase
+//	           declares in internal/phase/001/delta.md.
 package build
 
 import "github.com/arbace/go-whim/crefactor/pipeline"
@@ -40,19 +40,26 @@ type (
 	Phase = pipeline.Phase
 )
 
-// Plan is the pipeline, phase by phase.
+// Plan is the pipeline, phase by phase.  A phase's N is its place in the
+// plan, 0 to 103 without a gap (TestPlanNumbers), and names its snapshot
+// (qNNN.c), its directory (internal/phase/NNN/) and its program (whimN).  A
+// program a phase runs among its steps that is not its own is a PART,
+// internal/phase/NNN/x/ and whimNx, lettered in the order the phase runs them:
+// a member of a group that runs as one phase, or a program the front calls.
+// doc/PHASES.md maps every number to the old numbering, under which the
+// phases that edit nothing now are records in internal/phase/archive/.
 var Plan = []Phase{
 	// Phase 0 seeds the input canonically and spells it in C23 there:
-	// whim106's `nullptr` and `usize` (internal/phase/106), whim105's
-	// variadic collapse (internal/phase/105: one function walks a va_list)
-	// and whim107's attributes (internal/phase/107: `unused` gone,
+	// whim0a's `nullptr` and `usize` (internal/phase/000/a), whim0b's
+	// variadic collapse (internal/phase/000/b: one function walks a va_list)
+	// and whim0c's attributes (internal/phase/000/c: `unused` gone,
 	// `fallthrough` an empty statement once printed), so that every phase
 	// after it is written in the spelling the product has.
 	{N: 0, Block: "s00-seed", Name: "seed, in the one spelling every later phase reads", Seed: true,
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim106", "--casts", "1"}},
-			{Op: "edit", Args: []string{"whim105"}},
-			{Op: "edit", Args: []string{"whim107"}},
+			{Op: "edit", Args: []string{"whim0a", "--casts", "1"}},
+			{Op: "edit", Args: []string{"whim0b"}},
+			{Op: "edit", Args: []string{"whim0c"}},
 		}},
 	{N: 1, Block: "d01-front", Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
@@ -70,562 +77,487 @@ var Plan = []Phase{
 			{Op: "nointro"},
 			{Op: "optreaders"},
 		}},
-	// 4, the binary's name stops choosing what it does: a record (internal/phase/archive/004/GOAL.md); its cut went to argvfront, phase 1.
-	// 5, one regexp engine, not two: a record (internal/phase/archive/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
-	{N: 6, Name: "the front, on swept text; and the editor stops writing shell scripts, and stops drawing a menu",
+	{N: 4, Name: "the front, on swept text; and the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
-			// phase 76's program, which asserts the NFA engine is gone: on the
+			// part 4a's program, which asserts the NFA engine is gone: on the
 			// text the front swept (nonfa, phase 3)
 			{Op: "nostat"},
-			{Op: "edit", Args: []string{"whim76"}},
-			// phases 57's and 58's fields, whose readers phase 3 took (whim57
-			// and whim58, on the front)
+			{Op: "edit", Args: []string{"whim4a"}},
+			// parts 3a's and 3b's fields, whose readers phase 3 took (whim3a
+			// and whim3b, on the front)
 			{Op: "droplocal", Args: []string{"b_p_lisp", "b_p_lw", "b_p_iminsert", "b_p_imsearch"}},
-			// phase 42's cut, its sweep and droplocal, then the programs of
-			// 67, 68, 71 and 85: they count and anchor on swept text
+			// onebuffer (record 42's cut), its sweep and droplocal, then the
+			// programs of parts 4b-4e: they count and anchor on swept text
 			{Op: "onebuffer"},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bh"}},
-			{Op: "edit", Args: []string{"whim67"}},
-			{Op: "edit", Args: []string{"whim68"}},
-			{Op: "edit", Args: []string{"whim71"}},
-			{Op: "edit", Args: []string{"whim85"}},
+			{Op: "edit", Args: []string{"whim4b"}},
+			{Op: "edit", Args: []string{"whim4c"}},
+			{Op: "edit", Args: []string{"whim4d"}},
+			{Op: "edit", Args: []string{"whim4e"}},
 			{Op: "nowild"},
 			{Op: "nowildmenu"},
-			// phase 59's program, after nowildmenu: it takes what of
+			// part 4f's program, after nowildmenu: it takes what of
 			// getcmdline_int()'s completion the menu's cut leaves
-			{Op: "edit", Args: []string{"whim59"}},
+			{Op: "edit", Args: []string{"whim4f"}},
 		}},
-	{N: 7, Name: "the front, ended; and the editor stops looking for files it was not given",
+	{N: 5, Name: "the front, ended; and the editor stops looking for files it was not given",
 		Steps: []Step{
-			// the cuts of phases 25 (nobackup), 50 (lfonly) and 51-53
-			// (keepbytes, noconv), on the text phase 6 swept, with readfile()
-			// and mch_call_shell_fork() gone (nostat and nowild, phase 6);
-			// phase 64's program, in noconv's spelling; then phases 72's and
-			// 73's programs, which count ONE_WINDOW and the frame tree's
-			// writers; then the fields of 50, 53 and 64
+			// nobackup (phase 12's cut), lfonly (record 50's) and keepbytes
+			// and noconv (records 51-53's), on the text phase 4 swept, with
+			// readfile() and mch_call_shell_fork() gone (nostat and nowild,
+			// phase 4); part 5a's program, in noconv's spelling; then parts
+			// 5b's and 5c's, which count ONE_WINDOW and the frame tree's
+			// writers; then the fields of records 50 and 53 and of part 5a
 			{Op: "nobackup"},
 			{Op: "lfonly"},
 			{Op: "keepbytes"},
 			{Op: "noconv"},
-			{Op: "edit", Args: []string{"whim64"}},
-			{Op: "edit", Args: []string{"whim72"}},
-			{Op: "edit", Args: []string{"whim73"}},
+			{Op: "edit", Args: []string{"whim5a"}},
+			{Op: "edit", Args: []string{"whim5b"}},
+			{Op: "edit", Args: []string{"whim5c"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bin", "b_p_ff", "b_p_fixeol", "b_p_tx", "b_p_menc"}},
 			{Op: "droplocal", Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
-			// phase 75's program, which counts the dispatches on swept text
-			{Op: "edit", Args: []string{"whim75"}},
+			// part 5d's program, which counts the dispatches on swept text
+			{Op: "edit", Args: []string{"whim5d"}},
 			{Op: "noglob"},
 		}},
-	// 8, `:!` keeps its name and loses its process: a record (internal/phase/archive/008/GOAL.md); its cut went to phase 1 (noshellout, the reform's D12).
-	// 9, the editor stops asking the environment what language it is in: a record (internal/phase/archive/009/GOAL.md); its cut went to phase 1 (nolocale, the reform's D6).
-	// 10, no tag stack: a record (internal/phase/archive/010/GOAL.md); its cut went to phase 1 (notags, the reform's D10).
-	// 11, nothing is written that was not asked for: a record (internal/phase/archive/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
-	// 12, UTF-8, and no other encoding, ever: a record (internal/phase/archive/012/GOAL.md); its cut went to phase 1 (noenc, the reform's D7).
-	// 13, the editor stops re-reading a file it has already read: a record (internal/phase/archive/013/GOAL.md); its cut went to phase 6 (nostat, on the text the front swept).
-	{N: 14, Block: "d02-outside", Name: "a file name means the file of that name",
+	{N: 6, Block: "d02-outside", Name: "a file name means the file of that name",
 		Steps: []Step{
 			{Op: "nofind"},
 		}},
-	// 15, the last two encoding options: a record (internal/phase/archive/015/GOAL.md); its cut went to phase 1 (nofencs, the reform's D7).
-	{N: 16, Name: "six options that no longer decide anything",
+	{N: 7, Name: "six options that no longer decide anything",
 		Steps: []Step{
 			{Op: "noinertopts"},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_path", "b_p_sua", "b_p_tags", "b_p_tc", "b_p_ar", "b_p_swf"}},
 		}},
-	{N: 17, Name: "the last two per-buffer encoding options",
+	{N: 8, Name: "the last two per-buffer encoding options",
 		Steps: []Step{
-			// nofenc runs at phase 1 (the reform's D7); the fields still have
+			// nofenc runs at phase 2 (the reform's D7); the fields still have
 			// readers there
 			{Op: "droplocal", Args: []string{"b_p_fenc", "b_p_bomb"}},
 		}},
-	// 18, nothing is read at startup, and nothing on the command line decides anything: a record (internal/phase/archive/018/GOAL.md); its cut went to phase 1 (nostartup and nocmdopts, the reform's D6).
-	// 19, the terminal is what the build says: a record (internal/phase/archive/019/GOAL.md); its cut went to phase 1 (noterm, the reform's D8).
-	{N: 20, Name: "nothing outside the process is consulted",
+	{N: 9, Name: "nothing outside the process is consulted",
 		Steps: []Step{
 			{Op: "nohome"},
 			{Op: "nogetenv"},
 		}},
-	// 21, there is nothing to recover, and the memfile is memory: a record (internal/phase/archive/021/GOAL.md); its cuts went to phase 1 (norecover and nomemfile, the reform's D5).
-	{N: 22, Name: "the working directory is where it started",
+	{N: 10, Name: "the working directory is where it started",
 		Steps: []Step{
 			{Op: "nochdir"},
 		}},
-	{N: 23, Name: "no floating-point library",
+	{N: 11, Name: "no floating-point library",
 		Steps: []Step{
 			{Op: "nofloat"},
 		}},
-	// 24, there is no mouse: a record (internal/phase/archive/024/GOAL.md); its cut went to phase 1 (nomouse, the reform's D8).
-	{N: 25, Name: "a write is a write, and nobody owns it",
+	{N: 12, Name: "a write is a write, and nobody owns it",
 		Steps: []Step{
-			// nobackup runs at phase 7, before noconv, which is written for
+			// nobackup runs at phase 5, before noconv, which is written for
 			// buf_write() without the backup
 			{Op: "noowner"},
 			{Op: "droplocal", Args: []string{"b_p_bkc"}},
 		}},
-	// 26, five signals, not twenty-one: a record (internal/phase/archive/026/GOAL.md); its cut went to phase 1 (nosignals, the reform's D12).
-	// 27, `[[=a=]]` stops meaning \"a with any accent\": a record (internal/phase/archive/027/GOAL.md); its cut went to phase 1 (noequiclass, the reform's D11).
-	{N: 28, Block: "d03-editing", Name: "C indenting",
+	{N: 13, Block: "d03-editing", Name: "C indenting",
 		Steps: []Step{
-			// nocindent runs at phase 1 (the reform's D10)
+			// nocindent runs at phase 3 (the reform's D10)
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cin", "b_p_cink", "b_p_cino", "b_p_cinsd", "b_p_cinw"}},
 		}},
-	// 29, `:command`, user-defined commands: a record (internal/phase/archive/029/GOAL.md); its cut went to phase 1 (noucmd, the reform's D10).
-	// 30, `K` and the tag jumps, keeping `*` and `#`: a record (internal/phase/archive/030/GOAL.md); its cut went to phase 1 (noident, the reform's D10).
-	// 31, file-name modifiers: a record (internal/phase/archive/031/GOAL.md); its cut went to phase 1 (nofnamemod, the reform's D10).
-	{N: 32, Name: "insert completion, the popup menu, and the keys that reached them",
+	{N: 14, Name: "insert completion, the popup menu, and the keys that reached them",
 		Steps: []Step{
-			// nocompl and nocomplkeys run at phase 1 (the reform's D10)
+			// nocompl and nocomplkeys run at phase 3 (the reform's D10)
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cpt", "b_p_cot", "b_p_dict", "b_p_tsr", "b_p_inf", "b_p_ac"}},
 		}},
-	// 33, commands whose machinery has already gone: a record (internal/phase/archive/033/GOAL.md); what it cut went with the Ex commands retired at phase 1 (exfront, the reform's D2).
-	// 34, no abbreviations: a record (internal/phase/archive/034/GOAL.md); its cut went to phase 1 (noabbr, the reform's D10).
-	// 35, no scripts, no session, no autocommands: a record (internal/phase/archive/035/GOAL.md); its cut went to phase 1 (nosession, the reform's D6).
-	// 36, one tab page, always: a record (internal/phase/archive/036/GOAL.md); its cut went to phase 1 (notabs, the reform's D9).
-	// 37, no command that does nothing: a record (internal/phase/archive/037/GOAL.md); its cut went to phase 1 (noinert, the reform's D9).
-	// 38, the argument list is walked by `:next` and `:previous` alone: a record (internal/phase/archive/038/GOAL.md); its cut went to phase 1 (noarglist, the reform's D9).
-	// Phases 39-40, merged: one window, then no window sizes.
-	// 40, one window, and no window sizes: a record (internal/phase/archive/040/GOAL.md); its cut went to phase 1 (nowindows and nowinsizes, the reform's D9).
-	// 41, the buffer list is walked by `:bnext` and `:bprevious` alone: a record (internal/phase/archive/041/GOAL.md); its cut went to phase 1 (nobuflist, the reform's D9).
-	// 42, one buffer, always: a record (internal/phase/archive/042/GOAL.md); its cut and droplocal went to phase 6 (onebuffer, on the text the front swept).
-	// 43, no -c, --cmd, -R, -m, -M or -w: a record (internal/phase/archive/043/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
-	// Phases 44-48, merged: Ex commands retired one by one, one idea split for history's sake.
-	{N: 48, Block: "d05-commands-and-options", Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
+	{N: 15, Block: "d05-commands-and-options", Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim44"}},
-			{Op: "edit", Args: []string{"whim48"}},
+			{Op: "edit", Args: []string{"whim15a"}},
+			{Op: "edit", Args: []string{"whim15"}},
 		}},
-	{N: 49, Name: "one set of options",
+	{N: 16, Name: "one set of options",
 		Steps: []Step{
 			{Op: "oneoptset"},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_ml"}},
 		}},
-	// 50, only LF text files: a record (internal/phase/archive/050/GOAL.md); its cut and droplocal went to phase 7 (lfonly, on the text phase 6 swept).
-	// Phases 51-53, merged: the encoding, reduced to UTF-8 in three steps.
-	// 51-53, UTF-8: the bytes kept, UTF-8 only, no conversion: records (internal/phase/archive/051/GOAL.md, 052, 053); utf8only runs at phase 2 (the reform's D7), keepbytes, noconv and the droplocal at phase 7.
-	// 54, no option without a variable: a record (internal/phase/archive/054/GOAL.md); every row it dropped is dropped at phase 1 with every option the product has not (optfront, the reform's D3).
-	{N: 55, Block: "d07-options", Name: "no option nothing reads",
+	{N: 17, Block: "d07-options", Name: "no option nothing reads",
 		Steps: []Step{
 			// its edit, 'cdpath''s completion term, went with the whole test at
-			// phase 1 (whim56, the reform's D6)
+			// phase 2 (whim18, the reform's D6)
 			{Op: "droplocal", Args: []string{"b_p_sn", "b_p_cms", "b_p_lop"}},
 		}},
-	{N: 56, Name: "no shell, runtime or keyword-program options",
+	{N: 18, Name: "no shell, runtime or keyword-program options",
 		Steps: []Step{
-			// whim56 runs at phase 1 (the reform's D6); 'keywordprg''s field
+			// whim18 runs at phase 2 (the reform's D6); 'keywordprg''s field
 			// still has readers there, so its cut stays here
-			{Op: "edit", Args: []string{"whim56kp"}},
+			{Op: "edit", Args: []string{"whim18kp"}},
 			{Op: "droplocal", Args: []string{"b_p_kp"}},
 		}},
-	// 57, no lisp: a record (internal/phase/057/GOAL.md); its program runs at phase 3 (whim57, the front), its droplocal at phase 6.
-	// 58, no language mappings: a record (internal/phase/058/GOAL.md); its program runs at phase 3 (whim58, the front), its droplocal at phase 6.
-	// 59, no command-line completion: a record (internal/phase/059/GOAL.md); its program runs at phase 6 (whim59, after nowildmenu).
-	{N: 60, Name: "no suffix, case, delay, verbose-file, debug or filter-program options",
+	{N: 19, Name: "no suffix, case, delay, verbose-file, debug or filter-program options",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim60"}},
+			{Op: "edit", Args: []string{"whim19"}},
 			{Op: "sweep"},
-			{Op: "edit", Args: []string{"whim60ep"}},
+			{Op: "edit", Args: []string{"whim19ep"}},
 			{Op: "droplocal", Args: []string{"b_p_fp", "b_p_ep"}},
 		}},
-	// 61, no window title: a record (internal/phase/061/GOAL.md); its program runs at phase 1 (whim61, the reform's D8).
-	{N: 62, Name: "no buffer-type, file-type, listing, jump, update-time or autowrite options",
+	{N: 20, Name: "no buffer-type, file-type, listing, jump, update-time or autowrite options",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim62"}},
+			{Op: "edit", Args: []string{"whim20"}},
 			{Op: "sweep"},
-			{Op: "edit", Args: []string{"whim62bl"}},
+			{Op: "edit", Args: []string{"whim20bl"}},
 			{Op: "droplocal", Args: []string{"b_p_bt", "b_p_ft"}},
 		}},
-	// 63, no jump list: a record (internal/phase/063/GOAL.md); its program runs at phase 3 (whim63, the front).
-	// 64, no formatting, comment or nroff-macro options: a record (internal/phase/064/GOAL.md); its program and droplocal run at phase 7 (whim64, after noconv, whose UTF-8 spelling it is written in).
-	// 65, no rot13, no operator function, no empty key handler: a record (internal/phase/065/GOAL.md); its program runs at phase 3 (whim65, the front).
-	// 66, no sentences, paragraphs, sections, methods, #if blocks or comment blocks: a record (internal/phase/066/GOAL.md); its program runs at phase 3 (whim66, the front).
-	// 67, no mouse, no spell plumbing, no write-only flags: a record (internal/phase/067/GOAL.md); its program runs at phase 6 (whim67, on the text the front swept).
-	// 68, one window, structurally: a record (internal/phase/068/GOAL.md); its program runs at phase 6 (whim68, on the text the front swept).
-	{N: 69, Block: "d09-one-of-each", Name: "one file argument, and no argument list",
+	{N: 21, Block: "d09-one-of-each", Name: "one file argument, and no argument list",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim69"}},
+			{Op: "edit", Args: []string{"whim21"}},
 		}},
-	{N: 70, Name: ":e reloads in place, and there is no swap file",
+	{N: 22, Name: ":e reloads in place, and there is no swap file",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim70"}},
+			{Op: "edit", Args: []string{"whim22"}},
 		}},
-	// 71, one buffer, structurally: a record (internal/phase/071/GOAL.md); its program runs at phase 6 (whim71, on the text the front swept).
-	// Phases 72-73, merged: one window/tab page structurally, then one frame.
-	// 73, one window and tab page structurally, and one frame: a record (internal/phase/073/GOAL.md); its programs run at phase 7 (whim72 and whim73, on the text phase 6 swept).
-	// 74, no file marks: a record (internal/phase/074/GOAL.md); its program runs at phase 3 (whim74, the front).
-	// 75, no autocommands: a record (internal/phase/075/GOAL.md); its program runs at phase 7 (whim75, on the text phase 7's sweep leaves).
-	// 76, one regexp engine, so no retry: a record (internal/phase/076/GOAL.md); its program runs at phase 6 (whim76, on the text the front swept).
-	{N: 77, Block: "d11-commands", Name: "no buffer-name argument matching",
+	{N: 23, Block: "d11-commands", Name: "no buffer-name argument matching",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim77"}},
+			{Op: "edit", Args: []string{"whim23"}},
 		}},
-	{N: 78, Name: "empty functions, write-only counters, and the window id",
+	{N: 24, Name: "empty functions, write-only counters, and the window id",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim78"}},
+			{Op: "edit", Args: []string{"whim24"}},
 		}},
-	{N: 79, Name: "the constant-return predicates",
+	{N: 25, Name: "the constant-return predicates",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim79"}},
+			{Op: "edit", Args: []string{"whim25"}},
 		}},
-	{N: 80, Name: "the Ex command table, cut to the commands that exist",
+	{N: 26, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim80"}},
+			{Op: "edit", Args: []string{"whim26"}},
 		}},
-	// 81, one line, one command: a record (internal/phase/archive/081/GOAL.md); its edits went to onecmdfront, phase 1.
-	// 82, every comment: a record (internal/phase/archive/082/GOAL.md); it edits nothing now.
-	// 83, the core's compile line, and the baselines it is measured against: a record (internal/phase/archive/083/GOAL.md); it edits nothing now.
-	// 84, the stack protector goes: a record (internal/phase/archive/084/GOAL.md); it edits nothing now.
-	// 85, the core stops diagnosing its own terminal: a record (internal/phase/085/GOAL.md); its program runs at phase 6 (whim85, on the text the front swept).
-	// 86, the instrument becomes the screen: a record (internal/phase/archive/086/GOAL.md); it edits nothing now.
-	{N: 87, Block: "d12-terminal-and-ex", Name: "no streaming Ex",
+	{N: 27, Block: "d12-terminal-and-ex", Name: "no streaming Ex",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim87"}},
+			{Op: "edit", Args: []string{"whim27"}},
 		}},
-	// 88, argv is `+{command}` and `-T {term}`: a record (internal/phase/archive/088/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
-	{N: 89, Block: "d13-files", Name: "no write",
+	{N: 28, Block: "d13-files", Name: "no write",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim89"}},
+			{Op: "edit", Args: []string{"whim28"}},
 		}},
-	{N: 90, Name: "no read",
+	{N: 29, Name: "no read",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim90"}},
+			{Op: "edit", Args: []string{"whim29"}},
 		}},
-	{N: 91, Name: "no `:edit`, and no `gf`",
+	{N: 30, Name: "no `:edit`, and no `gf`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim91"}},
+			{Op: "edit", Args: []string{"whim30"}},
 		}},
-	{N: 92, Name: "nothing reads a byte",
+	{N: 31, Name: "nothing reads a byte",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim92"}},
+			{Op: "edit", Args: []string{"whim31"}},
 		}},
-	{N: 93, Name: "the buffer has no name",
+	{N: 32, Name: "the buffer has no name",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim93"}},
+			{Op: "edit", Args: []string{"whim32"}},
 		}},
-	{N: 94, Name: "`:q` quits, and `ZZ` is `ZQ`",
+	{N: 33, Name: "`:q` quits, and `ZZ` is `ZQ`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim94"}},
+			{Op: "edit", Args: []string{"whim33"}},
 		}},
-	{N: 95, Name: "the options nothing reads",
+	{N: 34, Name: "the options nothing reads",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim95"}},
+			{Op: "edit", Args: []string{"whim34"}},
 			{Op: "droplocal", Args: []string{"b_p_fs"}},
 			{Op: "droplocal", Args: []string{"b_p_ro"}},
-			{Op: "edit", Args: []string{"whim95rows"}},
+			{Op: "edit", Args: []string{"whim34rows"}},
 		}},
-	{N: 96, Name: "no `FILE *` that is never opened",
+	{N: 35, Name: "no `FILE *` that is never opened",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim96"}},
+			{Op: "edit", Args: []string{"whim35"}},
 		}},
-	{N: 97, Block: "r01-libc", Name: "the strings are the editor's own",
+	{N: 36, Block: "r01-libc", Name: "the strings are the editor's own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim97"}},
+			{Op: "edit", Args: []string{"whim36"}},
 		}},
-	{N: 98, Name: "the character classes, the numbers and the sort",
+	{N: 37, Name: "the character classes, the numbers and the sort",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim98"}},
+			{Op: "edit", Args: []string{"whim37"}},
 		}},
-	// 99, the includes nothing names: a record (internal/phase/archive/099/GOAL.md); it edits nothing now.
-	// Phases 100-102, merged: the core's way out: the deadly ladder, vim_main, no stopping the process.
-	{N: 102, Block: "r02-host-chain", Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
+	{N: 38, Block: "r02-host-chain", Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim100"}},
-			{Op: "edit", Args: []string{"whim101"}},
-			{Op: "edit", Args: []string{"whim102"}},
+			{Op: "edit", Args: []string{"whim38a"}},
+			{Op: "edit", Args: []string{"whim38b"}},
+			{Op: "edit", Args: []string{"whim38"}},
 		}},
-	{N: 103, Name: "the signals and the terminal are the host's",
+	{N: 39, Name: "the signals and the terminal are the host's",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim103"}},
+			{Op: "edit", Args: []string{"whim39"}},
 		}},
-	{N: 104, Name: "the messages are the editor's, the writing is the host's",
+	{N: 40, Name: "the messages are the editor's, the writing is the host's",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim104"}},
+			{Op: "edit", Args: []string{"whim40"}},
 		}},
-	// Phases 105-107 run in phase 0: the variadic collapse, `nullptr` and
-	// `usize`, and the attributes.
-	{N: 108, Block: "r03-boundary", Name: "the plain host calls",
+	{N: 41, Block: "r03-boundary", Name: "the plain host calls",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim108"}},
+			{Op: "edit", Args: []string{"whim41"}},
 		}},
-	{N: 109, Name: "the header types and macros the core can own",
+	{N: 42, Name: "the header types and macros the core can own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim109", "@minmax"}},
+			{Op: "edit", Args: []string{"whim42", "@minmax"}},
 		}},
-	{N: 110, Name: "the move: the first `#include` becomes the boundary",
+	{N: 43, Name: "the move: the first `#include` becomes the boundary",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim110", "@state"}},
+			{Op: "edit", Args: []string{"whim43", "@state"}},
 		}},
-	{N: 111, Name: "the scalar clock",
+	{N: 44, Name: "the scalar clock",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim111"}},
+			{Op: "edit", Args: []string{"whim44"}},
 		}},
-	{N: 112, Name: "the case tables become one, and it is the union",
+	{N: 45, Name: "the case tables become one, and it is the union",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim112"}},
+			{Op: "edit", Args: []string{"whim45"}},
 		}},
-	{N: 113, Name: "the message fold: `msg_puts_printf()` and the branch that reaches it",
+	{N: 46, Name: "the message fold: `msg_puts_printf()` and the branch that reaches it",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim113"}},
+			{Op: "edit", Args: []string{"whim46"}},
 		}},
-	{N: 114, Name: "`abs` and `labs`, the two the core took on trust",
+	{N: 47, Name: "`abs` and `labs`, the two the core took on trust",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim114", "abs=1", "labs=2"}},
+			{Op: "edit", Args: []string{"whim47", "abs=1", "labs=2"}},
 		}},
-	{N: 115, Name: "the clock crosses the boundary",
+	{N: 48, Name: "the clock crosses the boundary",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim115"}},
+			{Op: "edit", Args: []string{"whim48"}},
 		}},
-	// 116, the terminal table is asked with `+set term=`, not `$TERM`: a record (internal/phase/archive/116/GOAL.md); it edits nothing now.
-	// Phases 117-119, merged: the core calls nothing but the host.
-	{N: 119, Name: "the core calls nothing but the host",
+	{N: 49, Name: "the core calls nothing but the host",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim117"}},
-			{Op: "edit", Args: []string{"whim118", "@state"}},
-			{Op: "edit", Args: []string{"whim119", "@state"}},
+			{Op: "edit", Args: []string{"whim49a"}},
+			{Op: "edit", Args: []string{"whim49b", "@state"}},
+			{Op: "edit", Args: []string{"whim49", "@state"}},
 		}},
-	{N: 120, Block: "g02-unions", Name: "the degenerate unions go",
+	{N: 50, Block: "g02-unions", Name: "the degenerate unions go",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim120", "--degenerate", "1", "--genuine", "1"}},
+			{Op: "edit", Args: []string{"whim50", "--degenerate", "1", "--genuine", "1"}},
 		}},
-	// Phases 121-122, merged: the terminal names, then -T.
-	{N: 122, Block: "r04-terminal", Name: "the terminal names, and `-T`",
+	{N: 51, Block: "r04-terminal", Name: "the terminal names, and `-T`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim121"}},
-			{Op: "edit", Args: []string{"whim122"}},
+			{Op: "edit", Args: []string{"whim51a"}},
+			{Op: "edit", Args: []string{"whim51"}},
 		}},
-	// 123, the instrument could not see the text layer: a record (internal/phase/archive/123/GOAL.md); it edits nothing now.
-	{N: 124, Block: "r05-memory", Name: "freeing is free, and the arena is measured",
+	{N: 52, Block: "r05-memory", Name: "freeing is free, and the arena is measured",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim124", "@state"}},
+			{Op: "edit", Args: []string{"whim52", "@state"}},
 		}},
-	{N: 125, Block: "r06-memline", Name: "the swap file's residue, and what no sweep could find",
+	{N: 53, Block: "r06-memline", Name: "the swap file's residue, and what no sweep could find",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim125", "@state"}},
+			{Op: "edit", Args: []string{"whim53", "@state"}},
 		}},
-	{N: 126, Name: "a block number becomes a reference",
+	{N: 54, Name: "a block number becomes a reference",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim126", "@state"}},
+			{Op: "edit", Args: []string{"whim54", "@state"}},
 		}},
-	{N: 127, Name: "de-page the leaf",
+	{N: 55, Name: "de-page the leaf",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim127", "@state"}},
+			{Op: "edit", Args: []string{"whim55", "@state"}},
 		}},
-	{N: 128, Name: "fold the node types",
+	{N: 56, Name: "fold the node types",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim128", "@state"}},
+			{Op: "edit", Args: []string{"whim56", "@state"}},
 		}},
-	{N: 129, Block: "r07-types", Name: "`p_emoji` is an `int`",
+	{N: 57, Block: "r07-types", Name: "`p_emoji` is an `int`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim129"}},
+			{Op: "edit", Args: []string{"whim57"}},
 		}},
-	{N: 130, Name: "the `(pos_T *)-1` tests go",
+	{N: 58, Name: "the `(pos_T *)-1` tests go",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim130"}},
+			{Op: "edit", Args: []string{"whim58"}},
 		}},
-	{N: 131, Name: "the saved input buffer is a `garray_T *`",
+	{N: 59, Name: "the saved input buffer is a `garray_T *`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim131"}},
+			{Op: "edit", Args: []string{"whim59"}},
 		}},
-	{N: 132, Block: "r08-memory", Name: "nothing frees",
+	{N: 60, Block: "r08-memory", Name: "nothing frees",
 		Steps: []Step{
 			// 272: exe_commands' free of what cmds_tofree marked went at phase 1,
 			// nothing writing it once the command line was cut (argvfront, D1)
-			{Op: "edit", Args: []string{"whim132", "--calls", "272", "--redirected", "3"}},
+			{Op: "edit", Args: []string{"whim60", "--calls", "272", "--redirected", "3"}},
 		}},
-	{N: 133, Name: "one buffer needs no hash table",
+	{N: 61, Name: "one buffer needs no hash table",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim133"}},
+			{Op: "edit", Args: []string{"whim61"}},
 		}},
-	{N: 134, Block: "g03-empty-blocks", Name: "the empty blocks fold",
+	{N: 62, Block: "g03-empty-blocks", Name: "the empty blocks fold",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim134", "--at-least", "20"}},
+			{Op: "edit", Args: []string{"whim62", "--at-least", "20"}},
 		}},
-	{N: 135, Block: "r09-regex", Name: "one regexp program type",
+	{N: 63, Block: "r09-regex", Name: "one regexp program type",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim135"}},
+			{Op: "edit", Args: []string{"whim63"}},
 		}},
-	{N: 136, Name: "the engine is called directly",
+	{N: 64, Name: "the engine is called directly",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim136"}},
+			{Op: "edit", Args: []string{"whim64"}},
 		}},
-	{N: 137, Block: "r10-types", Name: "the changedtick is a number",
+	{N: 65, Block: "r10-types", Name: "the changedtick is a number",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim137"}},
+			{Op: "edit", Args: []string{"whim65"}},
 		}},
-	{N: 138, Name: "no parameter carries an eval value",
+	{N: 66, Name: "no parameter carries an eval value",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim138"}},
+			{Op: "edit", Args: []string{"whim66"}},
 		}},
-	{N: 139, Name: "the core sorts and searches typed arrays",
+	{N: 67, Name: "the core sorts and searches typed arrays",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim139"}},
+			{Op: "edit", Args: []string{"whim67"}},
 		}},
-	{N: 140, Name: "highlight groups are found in their array",
+	{N: 68, Name: "highlight groups are found in their array",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim140"}},
+			{Op: "edit", Args: []string{"whim68"}},
 		}},
-	{N: 141, Block: "r11-gotos", Name: "`regrepeat()` does not jump into a case",
+	{N: 69, Block: "r11-gotos", Name: "`regrepeat()` does not jump into a case",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim141"}},
+			{Op: "edit", Args: []string{"whim69"}},
 		}},
-	{N: 142, Name: "the version names no build date or time",
+	{N: 70, Name: "the version names no build date or time",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim142"}},
+			{Op: "edit", Args: []string{"whim70"}},
 		}},
-	// Phases 143-145, merged: three functions lose their goto.
-	{N: 145, Name: "`regatom()`, `edit()` and `check_termcode()` have no goto",
+	{N: 71, Name: "`regatom()`, `edit()` and `check_termcode()` have no goto",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim143"}},
-			{Op: "edit", Args: []string{"whim144"}},
-			{Op: "edit", Args: []string{"whim145"}},
+			{Op: "edit", Args: []string{"whim71a"}},
+			{Op: "edit", Args: []string{"whim71b"}},
+			{Op: "edit", Args: []string{"whim71"}},
 		}},
-	{N: 146, Block: "r12-memline-and-host", Name: "a memline node names its block",
+	{N: 72, Block: "r12-memline-and-host", Name: "a memline node names its block",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim146"}},
+			{Op: "edit", Args: []string{"whim72"}},
 		}},
-	{N: 147, Name: "`deathtrap()` runs at the host's next wait",
+	{N: 73, Name: "`deathtrap()` runs at the host's next wait",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim147"}},
+			{Op: "edit", Args: []string{"whim73"}},
 		}},
-	// Phases 148-149, merged: allocation cannot fail, then its branches fold.
-	{N: 149, Block: "g04-never-null", Name: "allocation cannot fail, and its branches fold",
+	{N: 74, Block: "g04-never-null", Name: "allocation cannot fail, and its branches fold",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim148"}},
-			{Op: "edit", Args: []string{"whim149", "--at-least", "80"}},
+			{Op: "edit", Args: []string{"whim74a"}},
+			{Op: "edit", Args: []string{"whim74", "--at-least", "80"}},
 		}},
-	{N: 150, Block: "r13-translation", Name: "the regexp stack is three typed stacks",
+	{N: 75, Block: "r13-translation", Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim150"}},
+			{Op: "edit", Args: []string{"whim75"}},
 		}},
-	// Phases 151-152, merged: the option table typed: its defaults, then its variables.
-	{N: 152, Name: "the option table's defaults and its variables, typed",
+	{N: 76, Name: "the option table's defaults and its variables, typed",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim151"}},
-			{Op: "edit", Args: []string{"whim152"}},
+			{Op: "edit", Args: []string{"whim76a"}},
+			{Op: "edit", Args: []string{"whim76"}},
 		}},
-	// Phases 153-154, merged: one function, its cast and then its NULL write.
-	{N: 154, Name: "`free_one_termoption()` compares without a cast, and its NULL write is gone",
+	{N: 77, Name: "`free_one_termoption()` compares without a cast, and its NULL write is gone",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim153"}},
-			{Op: "edit", Args: []string{"whim154"}},
+			{Op: "edit", Args: []string{"whim77a"}},
+			{Op: "edit", Args: []string{"whim77"}},
 		}},
-	{N: 155, Name: "call arguments with effects are evaluated in gcc's order",
+	{N: 78, Name: "call arguments with effects are evaluated in gcc's order",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim155"}},
+			{Op: "edit", Args: []string{"whim78"}},
 		}},
-	{N: 156, Name: "the regex size pass's node is a static byte, not (char_u *) -1",
+	{N: 79, Name: "the regex size pass's node is a static byte, not (char_u *) -1",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim156"}},
+			{Op: "edit", Args: []string{"whim79"}},
 		}},
-	{N: 157, Name: "get_register() and put_register() carry a yankreg_T *, not a void *",
+	{N: 80, Name: "get_register() and put_register() carry a yankreg_T *, not a void *",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim157"}},
+			{Op: "edit", Args: []string{"whim80"}},
 		}},
-	{N: 158, Name: "a highlight's terminal font is read only from a colour entry",
+	{N: 81, Name: "a highlight's terminal font is read only from a colour entry",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim158"}},
+			{Op: "edit", Args: []string{"whim81"}},
 		}},
-	{N: 159, Name: "a struct's text is a pointer to an allocation of its own",
+	{N: 82, Name: "a struct's text is a pointer to an allocation of its own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim159"}},
+			{Op: "edit", Args: []string{"whim82"}},
 		}},
-	{N: 160, Name: "no line getter takes a cookie",
+	{N: 83, Name: "no line getter takes a cookie",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim160"}},
+			{Op: "edit", Args: []string{"whim83"}},
 		}},
-	{N: 161, Name: "no goto jumps into a block",
+	{N: 84, Name: "no goto jumps into a block",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim161"}},
+			{Op: "edit", Args: []string{"whim84"}},
 		}},
-	{N: 162, Name: "no two function pointers are compared",
+	{N: 85, Name: "no two function pointers are compared",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim162"}},
+			{Op: "edit", Args: []string{"whim85"}},
 		}},
-	// 163, the product is in the one canonical spelling: a record (internal/phase/archive/163/GOAL.md); it edits nothing now.
-	// Phases 164-165, merged: what the Go's linters found dead, in two steps.
-	{N: 165, Block: "g05-dead", Name: "what the Go's linters found dead",
+	{N: 86, Block: "g05-dead", Name: "what the Go's linters found dead",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim164"}},
-			{Op: "edit", Args: []string{"whim165"}},
+			{Op: "edit", Args: []string{"whim86a"}},
+			{Op: "edit", Args: []string{"whim86"}},
 		}},
-	// Phases 166-168, merged: for the Go: bool, key names, goto as return.
-	// 168, `goto` as `return`: a record (internal/phase/archive/168/GOAL.md); GotoTail
-	// (170) takes every goto it took, a `return x;` being a tail of none (the
-	// reform's G, measured byte for byte).
-	{N: 167, Block: "g06-bool-and-keys", Name: "`bool` and key names",
+	{N: 87, Block: "g06-bool-and-keys", Name: "`bool` and key names",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim166"}},
-			{Op: "edit", Args: []string{"whim167"}},
+			{Op: "edit", Args: []string{"whim87a"}},
+			{Op: "edit", Args: []string{"whim87"}},
 		}},
-	{N: 169, Block: "g07-includes", Name: "the system headers nothing needs",
+	{N: 88, Block: "g07-includes", Name: "the system headers nothing needs",
 		Steps: []Step{
 			{Op: "includes"},
 		}},
-	{N: 170, Block: "g08-gotos", Name: "a goto whose label marks a short tail is that tail",
+	{N: 89, Block: "g08-gotos", Name: "a goto whose label marks a short tail is that tail",
 		Steps: []Step{
 			{Op: "gototail", Args: []string{"--at-least", "52"}},
 		}},
-	{N: 171, Name: "a goto that is a break is break",
+	{N: 90, Name: "a goto that is a break is break",
 		Steps: []Step{
 			{Op: "gotobreak", Args: []string{"--at-least", "5"}},
 		}},
-	{N: 172, Name: "a goto back is a loop",
+	{N: 91, Name: "a goto back is a loop",
 		Steps: []Step{
 			{Op: "gotoloop", Args: []string{"--at-least", "2"}},
 		}},
-	{N: 173, Name: "a goto out of its block is a break",
+	{N: 92, Name: "a goto out of its block is a break",
 		Steps: []Step{
 			{Op: "gotoblock", Args: []string{"--at-least", "50"}},
 		}},
-	{N: 174, Block: "r14-parallel-substitute", Name: "no address of a position's line or column",
+	{N: 93, Block: "r14-parallel-substitute", Name: "no address of a position's line or column",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim174"}},
+			{Op: "edit", Args: []string{"whim93"}},
 		}},
-	{N: 175, Name: "a member's address a call hands back is a local's",
+	{N: 94, Name: "a member's address a call hands back is a local's",
 		Steps: []Step{
 			{Op: "memberout"},
 		}},
-	{N: 176, Name: "the regex engine's state is a parameter",
+	{N: 95, Name: "the regex engine's state is a parameter",
 		Steps: []Step{
 			{Op: "stateparam", Args: []string{"--at-least", "43"}},
 		}},
-	{N: 177, Name: "a line's match on its own",
+	{N: 96, Name: "a line's match on its own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim177"}},
+			{Op: "edit", Args: []string{"whim96"}},
 		}},
-	{N: 178, Name: ":g marks the lines match_lines finds",
+	{N: 97, Name: ":g marks the lines match_lines finds",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim178"}},
+			{Op: "edit", Args: []string{"whim97"}},
 		}},
-	{N: 179, Name: "no mark is cleared when none was set",
+	{N: 98, Name: "no mark is cleared when none was set",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim179"}},
+			{Op: "edit", Args: []string{"whim98"}},
 		}},
-	{N: 180, Name: "the host's clock can be held still",
+	{N: 99, Name: "the host's clock can be held still",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim180"}},
+			{Op: "edit", Args: []string{"whim99"}},
 		}},
-	{N: 181, Block: "g09-values", Name: "an out-parameter a value, a struct local its members",
+	{N: 100, Block: "g09-values", Name: "an out-parameter a value, a struct local its members",
 		Steps: []Step{
 			{Op: "localout"},
 			{Op: "structscalar"},
 		}},
-	{N: 182, Block: "g10-plain-c", Name: "gettext's identity not called, the ASCII tests named, constant ifs their branch",
+	{N: 101, Block: "g10-plain-c", Name: "gettext's identity not called, the ASCII tests named, constant ifs their branch",
 		Steps: []Step{
 			{Op: "identity"},
 			{Op: "asciiclass"},
 			{Op: "constbranch"},
 		}},
-	{N: 183, Block: "g11-bool", Name: "a file-scope flag is bool",
+	{N: 102, Block: "g11-bool", Name: "a file-scope flag is bool",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim183"}},
-		}}, {N: 184, Name: "more flags are bool",
+			{Op: "edit", Args: []string{"whim102"}},
+		}}, {N: 103, Name: "more flags are bool",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim184"}},
+			{Op: "edit", Args: []string{"whim103"}},
 		}},
 }

@@ -28,7 +28,7 @@ type BoolRetKnobs struct {
 	// Globals takes the core's file-scope objects too: an `int` object that
 	// only ever holds an answer is bool (globalCandidates).
 	Globals bool
-	// Relax takes what the rule of phases 166 and 183 left int: the fixed
+	// Relax takes what the rule of phases 87a and 102 left int: the fixed
 	// point is the greatest (a flag saved in a local and restored from it
 	// is an answer), a literal 0 or 1 assigned to a file-scope object is
 	// one, and so is `x |= E` or `x &= E` of an answer E into one, which is

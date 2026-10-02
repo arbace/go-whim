@@ -77,7 +77,7 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"keepbytes", w}
 	var err error
 
-	// readfile went at phase 1 (readfront, phase 92's move)
+	// readfile went at phase 1 (readfront, phase 31's move)
 
 	text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
 		s, err := e.foldAll(s,

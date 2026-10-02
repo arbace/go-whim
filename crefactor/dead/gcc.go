@@ -52,7 +52,7 @@ func GccWarnings(path, keep string) ([]Warning, error) {
 	_ = cmd.Run()
 	// GCC'S STATUS IS NOT CONSULTED, and the reason written here was wrong: it
 	// said a file that fails to compile yields no warning lines and the tool is
-	// then a no-op.  Measured on the text phase 35 leaves -- `winopt_T has no
+	// then a no-op.  Measured on the text record 35 leaves -- `winopt_T has no
 	// member named wo_eiw`, two uses surviving in a dead function -- gcc exits
 	// 1 AND still names 71 unused functions and 12 unused variables, and this
 	// tool removes 1,041 lines, after which the text parses again.  So the

@@ -52,7 +52,7 @@ func (e ed) keepThen(seg []byte, pattern, what string) ([]byte, error) {
 }
 
 // lfonlyDying are the format functions and the option callbacks whose rows
-// whim50 drops.  Every call left must sit inside one of them.
+// lfonly drops (record 50's cut).  Every call left must sit inside one of them.
 var lfonlyDying = []string{
 	"get_fileformat", "get_fileformat_force", "set_fileformat", "default_fileformat",
 	"file_ff_differs", "save_file_ff", "set_file_options", "set_options_bin",
@@ -69,7 +69,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 
 	// readfile went with open_buffer's read arms, and its other callers, by
-	// phase 1 (readfront, phase 92's move): every format it chose on reading
+	// phase 1 (readfront, phase 31's move): every format it chose on reading
 	// went with it.
 
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {

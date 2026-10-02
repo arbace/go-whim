@@ -1,5 +1,8 @@
 # Phase 2 — the options for features that are not here
 
+*Formerly phase 2. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
+
 **It runs the front's second part first** (`front2`: D6-D8, `nolocale` to
 `whim61`, and its closure; `internal/phase/001/GOAL.md` describes them), then
 the query this phase was.

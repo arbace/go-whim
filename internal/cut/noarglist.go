@@ -37,8 +37,8 @@ func NoArgList(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// Not asserted that nothing outside the table names an argument-list
-	// command: this runs at phase 1 (the reform's D9), where the retired
-	// commands' handlers and what phases 2-37 took still do.
+	// command: this runs at phase 3 (the reform's D9), where the retired
+	// commands' handlers and what the phases after it take still do.
 
 	e.say("no argument-list command is completed")
 	return text, nil

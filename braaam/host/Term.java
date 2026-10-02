@@ -374,7 +374,7 @@ public final class Term implements Host {
     /**
      * The Unix time -- or WHIM_TIME, when the environment holds it: a clock
      * held still, which the suite sets so that undo's "N seconds ago" does not
-     * depend on when a run crossed a second (phase 180; the C host reads it
+     * depend on when a run crossed a second (phase 99; the C host reads it
      * the same way, as atol does).
      */
     @Override

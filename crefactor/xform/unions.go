@@ -56,7 +56,7 @@ type unEdit struct {
 	rep  string
 }
 
-// Whim120 removes the degenerate unions -- the ones that unite nothing with
+// Whim50 removes the degenerate unions -- the ones that unite nothing with
 // anything, five single-member and one EMPTY, which ISO C forbids.
 //
 // NOTHING HERE IS A NAME THIS PROGRAM KNOWS IN ADVANCE: the braces are matched

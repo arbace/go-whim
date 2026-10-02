@@ -36,7 +36,7 @@ const gaGrowInner = `func ga_grow_inner(gap *S_growarray, n int32) int32 {
 `
 
 // gaGrowInnerFor is gaGrowInner with the result type the C gives it: `int`,
-// OK and FAIL, until phase 166 made a success bool, and then `bool`, true and
+// OK and FAIL, until phase 87a made a success bool, and then `bool`, true and
 // false.
 func gaGrowInnerFor(result string) string {
 	if result != "bool" {
@@ -90,9 +90,9 @@ func gaGrowInnerClj(result string) string {
 }
 
 // matchLines is match_lines()'s body, the one parallel body: the C's is one
-// loop over the range's lines, each matched alone (phase 177); these run it
+// loop over the range's lines, each matched alone (phase 96); these run it
 // in chunks at once, each chunk on a regex engine of its own -- which the
-// engine's state being a parameter (phase 176) allows -- and are held to the
+// engine's state being a parameter (phase 95) allows -- and are held to the
 // C's answers by the suite's par_* cases.  The chunks are the runtime's:
 // Chunks in Go (editor/chunks.go), Rt.chunks in Java and Clojure
 // (braaam/rt).

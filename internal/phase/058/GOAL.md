@@ -1,29 +1,20 @@
-# Phase 58 — no language mappings
+# Phase 58 — the `(pos_T *)-1` tests go
 
-**A record now.** Phase 3's front calls `whim58` by name, after `whim57`
-(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front), and phase 6
-drops the two fields with phase 57's, on the text phase 3 swept: the program
-is here, and the phase has no plan entry. It applied to the front's text as
-written. What follows is the account of the cut as it was made here.
+*Formerly phase 130. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-`'iminsert'` and `'imsearch'` are 0 from here on, so language mappings are never
-active and nothing can make them so. `:lmap`, `:lnoremap`, `:lunmap` and
-`:lmapclear` point at `ex_ni` and lose their completion. CTRL-^ in Insert mode and
-on the command line is still consumed — its `case` stays, so it does not start
-inserting itself — and toggles nothing. `MODE_LANGMAP` is never set, so every test
-of it folds: in `edit()`, `ex_append()`, `ins_insert()`,
-`normal_cmd_get_more_chars()`'s lookup for `r`, `f` and `t`, `getcmdline_int()`
-for `/`, `?` and `@`, `handle_mapping()`, `vgetorpeek()`, `get_map_mode()` and
-`map_mode_to_chars()`. The status line's `<lang>` goes with `get_keymap_str()`,
-which only ever printed it.
+`get_address()`, `nv_gomark()` and `nv_pcmark()` each compared a mark lookup
+with `(pos_T *)-1`, the value vim once returned for "a mark in another file".
+Nothing in this tree returns it: `getmark()` is `getmark_buf_fnum()`, which
+returns a pointer into the buffer or NULL, and `movechangelist()` returns NULL
+or an element of `b_changelist`. So each test was an `if` never taken, and
+`cutil.FoldNever` folds the three away, keeping the branch that runs. The Go
+transpilation had written each as `if false` (`internal/gen/FINDINGS.md`, finding 10).
 
-**The declared delta was wrong once, and the harness said so.** It named all four
-commands; `:lunmap`'s row did not move, because bare `:lunmap` already failed for
-want of an argument and `ex_ni` fails too. The declaration was corrected rather
-than the check widened. The phase checks the two options are unknown, `:lmap` is
-refused, and CTRL-^ in Insert mode inserts nothing.
-
-## The delta
-
-`:lmap`, `:lnoremap` and `:lmapclear`, now `ex_ni`. Measured: 108,651 →
-**108,374 lines**.
+**Declared delta: nothing.** The check proves the tests were dead from the
+input — every mention of `(pos_T *)-1` is one of the three tests, and no
+`return` of the four functions can produce it — and that the file lost
+exactly the tests, their bodies and their `else` lines, counted from the input.
+Its probe drives every way the three sites are reached, `'a`, `` `a ``, `:'a`
+and `g;`, on both binaries; each control (an unset mark, an empty change list)
+must write different bytes.

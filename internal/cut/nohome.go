@@ -65,7 +65,7 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	// ~user completion -- the EXPAND_USER row and the context in
 	// set_context_for_wildcard_arg() that reached match_user(), the walk of
 	// the password database -- went with every completion context but files
-	// at phase 6 (whim59, phase 59's program, which runs before this phase
+	// at phase 4 (whim4f, phase 4f's program, which runs before this phase
 	// now).
 
 	// get_user_name() answers who this is, for a swap file's block zero.

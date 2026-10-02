@@ -99,7 +99,7 @@ func structUse(n, parent, grand cc.Node) bool {
 
 // tupleRet says function name returns a struct of scalars as a tuple of its
 // members, not through an address its caller gives: a C struct result is
-// how C returns several values (phase 181's out-parameters among them).
+// how C returns several values (phase 100's out-parameters among them).
 func (c *cfacts) tupleRet(name string) bool {
 	fd := c.defined[name]
 	if fd == nil || c.keep[name] {

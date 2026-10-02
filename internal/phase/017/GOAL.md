@@ -1,37 +1,46 @@
-# Phase 17 — the last two per-buffer encoding options
+# Phase 17 — no option nothing reads
 
-**Part of it is phase 1's now.** `nofenc` runs at the front (the pipeline
-reform's D7, `doc/PIPELINE-REFORM.md` §7); the rest of this phase's steps stay
-here. What follows is the account of the phase as it was made.
+*Formerly phase 55. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-`'fileencoding'` names the encoding a buffer was read in and will be written
-back in, and `'bomb'` whether it had a byte-order mark. With one encoding and no
-BOM, both have had one possible value since Phase 12 — but **unlike the six
-Phase 16 took, these are not plumbing.** Eight functions read them, and each had
-to be looked at:
+**Its edit is phase 1's now.** The `'cdpath'` term it took is folded with the
+whole directory-list test at the front (`whim56`, the pipeline reform's D6,
+`doc/PIPELINE-REFORM.md` §7); what is left here is the `droplocal` step.
 
-| | what it wanted them for |
-| --- | --- |
-| `buf_write()`, `readfile()` | the conversion target, and whether to write a BOM |
-| `bomb_size()` | how many bytes of the file are a BOM, for `g CTRL-G` |
-| `save_file_ff()`, `file_ff_differs()` | remembering the pair, so `:w` can warn they changed |
-| `utf_find_illegal()` (`g8`) | converting to the buffer's encoding to find a byte illegal in it |
-| `add_b0_fenc()` | writing the name into a swap file's block zero |
+Phase 54 took the options with no variable. These have one, and nothing but the
+option machinery reads it — the declaration and the row, `get_varp()` and the
+buffer copy for a local one, `set_context_in_set_cmd()`'s completion, and a
+`did_set_*` callback that only validates the value or fills a flag set nothing
+reads. Setting any of them changed nothing:
 
-None of those questions has more than one answer now, and the last has no swap
-file to write into.
+    autocompletetimeout  cdhome  cdpath  completetimeout  imcmdline  secure
+    shellcmdflag  shelltemp  shellxescape  shellxquote  shortname  ttybuiltin
+    warn  xtermcodes  commentstring  completefuzzycollect  completeitemalign
+    helpfile  lispoptions  operatorfunc
 
-**What the options leave behind is a pair of remembered copies in `buf_T`** —
-`b_start_fenc` and `b_start_bomb`, written on every read and looked at by
-nobody. A struct field is not a variable, so no warning reports it and the
-sweep cannot see it, which is why those are listed in the tool rather than left
-to fall out. The same is true of `gvarp`, the local that asked *which* encoding
-option was being set: there is one.
+and sixteen terminal codes the built-in tables and `:set` store and the editor
+never sends — `t_8b t_8f t_EC t_EI t_GP t_RB t_RC t_RF t_RS t_SC t_SH t_SI t_SR
+t_WP t_XM t_u7`. Their `KS_` enumerators stay, since the built-in terminal tables
+still name them.
 
-`'fileformat'`, `'endofline'` and `'endoffile'` can still change under a buffer,
-so `file_ff_differs()` keeps those and loses only the two that cannot.
+**Found by reachability, not by name.** Each option's variable was mapped from its
+row — `p_xx`, `b_p_xx` from `BV_XX`, `wo_xx` from `WV_XX` (not `w_p_xx`, which a first
+count used and so found `'list'` and `'number'` unread), `KS_XX` for a terminal
+code — and every mention attributed to its function. Mentions in the plumbing did
+not count. **A callback counted only through what it touched:**
+`'belloff'`, `'casemap'`, `'display'`, `'jumpoptions'` and `'keymodel'` looked
+unused until their callbacks' flag sets were followed to `vim_beep()`, the case
+mappers, screen drawing, the jump list and selection; `'modified'`, `'terse'` and
+`'wincolor'` act in the callback itself. Those stay. `cfc_flags`, `cia_flags` and
+`opfunc_cb` were set and never read, so their options go. No option of the 36 is
+named by string anywhere outside the table.
+
+One real reader had to go first: `'cdpath'` was completed as a directory list,
+the only use of `p_cdpath`. The phase greps afterwards for every variable, flag set
+and callback of the 36, so a reader that appears later fails it. It checks `:set
+sw` still works and that `'shelltemp'`, `'commentstring'` and `t_EI` are unknown.
 
 ## The delta
 
-**None.** Both report `E518` instead of a value with one possible setting. What
-is left is `'encoding'`, alone, reporting `utf-8`.
+**None the harnesses record** — no case sets one. Measured: 110,025 →
+**109,655 lines**.

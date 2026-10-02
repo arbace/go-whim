@@ -127,7 +127,7 @@ func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
 	return runLimit(bin, args, keys, 10*time.Second)
 }
 
-// pinnedTime holds every editor's clock still (phase 180: WHIM_TIME, which
+// pinnedTime holds every editor's clock still (phase 99: WHIM_TIME, which
 // host_time() returns when it is set).  undo's message says how long ago a
 // change was, in whole seconds of the wall clock, and a run that crossed a
 // second between the change and the undo said "1 second ago" -- now and then,

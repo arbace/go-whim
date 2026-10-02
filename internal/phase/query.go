@@ -11,7 +11,7 @@ import (
 // Some phase heredocs are not edits at all: `names=$(python3 - "$f" <<'PY' ...
 // PY)` computes a list, prints it, and the SHELL uses the output as arguments
 // to the next command.  whim2 proves every menu and spell command is already
-// ex_ni; whim54 finds every options[] row with no variable and hands the names
+// ex_ni; record 54's whim54 found every options[] row with no variable and hands the names
 // to dropoptions.  Running those through the edit path would rewrite the file
 // with identical bytes, which is harmless and dishonest -- a query that writes
 // is a query a reader has to check.

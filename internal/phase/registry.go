@@ -1,12 +1,14 @@
 // Package phase is the registry of the pipeline's phase programs, and its
-// directory holds the phases, one package each (NNN/).
+// directory holds the phases, one package each (NNN/, N the phase's place in
+// the plan), and their parts (NNN/x/: a program the phase runs that had a
+// number of its own; doc/PHASES.md).
 //
 // A phase is a directory: GOAL.md says what it removes and why, and edit.go,
 // where the phase has one, is its program, written in crefactor/edit's verb
 // set and internal/whim/vimtext's shared shapes.  The program registers itself
 // here in an init(), so SOMETHING HAS TO IMPORT IT: cmd/whim/phases.go names
-// every phase directory that holds Go.  internal/build looks a phase up here
-// by its number.
+// every phase directory that holds Go.  internal/build looks a program up here
+// by its name: whimN for phase N's, whimNx for its part x.
 //
 // The programs were `python3 - "$f" <<'PY'` blocks inside the phase programs:
 // 225 of them across whim and zero, 34,284 lines, the larger half of the port,
@@ -32,7 +34,7 @@ import (
 type Func func(text []byte, w io.Writer) ([]byte, error)
 
 // An ArgFunc is a Func that is handed the phase program's remaining arguments.
-// ONE phase needs it -- whim80 writes the prefix table its check dispatches to
+// ONE phase needs it -- whim26 writes the prefix table its check dispatches to
 // a second path -- and it is a separate registration rather than a wider Func
 // so that the other 33 ports keep a signature with nothing in it to ignore.
 type ArgFunc func(text []byte, w io.Writer, args []string) ([]byte, error)

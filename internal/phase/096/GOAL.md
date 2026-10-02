@@ -1,185 +1,113 @@
-# Phase 96 — no `FILE *` that is never opened
+# Phase 96 — a line's match on its own
 
-`internal/phase/096/edit.go` and `internal/phase/096/check.go`, `stage 96`, `package tidy`. Two
-`static FILE *` survive in this editor and **nothing has ever opened either of them in
-any build of `whim-vim`**: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled and for
-which whim removed the option, and `redir_fd`, which `:redir > file` filled and for
-which whim removed the command. So this phase removes the **possibility** rather than
-a behaviour — phase 92's situation and phase 92's answer.
+*Formerly phase 177. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-## The counts are the argument, and each is computed before anything is folded
+The second C phase of the parallel `:%s` (`doc/PARALLEL-SUBSTITUTE.md`): the
+regex engine can match one line handed to it and nothing else, and
+`ex_substitute`, before its loop, makes each line's searches that way -- a
+question whose lines are independent, so that a target may answer it on many
+cores at once. The C answers it one line after another; that is its meaning,
+and the Go, Java and Clojure editors' parallel answers are held to it.
 
-* **`scriptin[]` is assigned in exactly one place in the whole file**, and that place
-  is `scriptin[curscript] = NULL;` inside `closescript()`. So it is NULL for ever.
-* **`redir_fd`'s only assignment is its own declaration**, `= NULL`.
-* **`ui_write()` has three mentions** — a prototype, a definition and one call — and
-  that call passes `FALSE` for `console`.
+**The engine alone.** Phase 176 made the engine's state a parameter; two
+members join it, `string_T alone` -- the line a match reads, when set -- and
+`bool failed`. With a line set, the engine reads that line and no other,
+polls no host, gives no message and writes nothing into the compiled
+pattern, and whatever would have needed more **fails the match alone**
+instead of doing it:
 
-The edit asserts all three as exact text before it folds anything, because every fold
-rests on them; a fourth assignment anywhere would make every one a guess.
-
-## Six anchors, in three groups
-
-**A — `scriptin[]` is NULL for ever.** `may_sync_undo()` and `is_safe_now()` each lose
-one conjunct and **survive**: `u_sync()` still runs on the same condition, and
-`is_safe_now()` is still `stuff_empty() && typebuf.tb_len == 0 && !global_busy`.
-`using_script()` is FALSE at both call sites — a `&& !using_script()` conjunct and a
-`|| using_script()` disjunct — and the sweep then takes it. And `inchar()`'s script
-reader goes as text with its local, after which `if (script_char < 0)` is always true
-and folds; **that fold is what takes `closescript()`'s only caller**, and `fclose` and
-`getc` with it.
-
-**B — `redir_fd` is NULL for ever**, so `redirecting()` is FALSE always and folds at
-both call sites, in `undo_cmdmod` and inside `redir_write()`. **Their indentation
-differs**, which is what makes two separate one-count patterns honest rather than a
-count of two over one pattern. The second fold takes the whole `fputs`/`putc` block.
-
-**C — `ui_write()`'s `console`** is FALSE at its one call site, so the `vim_fsync(1)`
-it guards can never be entered. **The parameter goes too**, and that is what makes the
-cut honest: leaving it would leave `__attribute__((unused))` on something that will
-never be read again — phase 85's argument for `check_tty(void)` — and `tools/sweep.sh`
-compiles with `-Wno-unused-parameter`, so an unused parameter is invisible where an
-unused local is not. `vim_fsync()` is then uncalled and `fsync` goes.
-
-## Two locals are folded by hand and no tool covers either
-
-**`retesc`** is written only inside the loop anchor A4 deletes and read once.
-Afterwards it is a local that is **read and never written**: gcc has no warning for
-that, `deadsweep.py` acts on warnings, and leaving it would mean `inchar()` returns an
-uninitialised value on a path the compiler thinks exists. `return retesc;` becomes
-`return FALSE;` and the declaration goes. It is folded **after** the two declarations
-and **before** `fold_always`, because the fold dedents the body it keeps and a rewrite
-counted against the original indentation refuses afterwards — which it did, the first
-time this was run.
-
-**`did_return`** is the same shape one level down: the `if (!did_return)` block the
-`redir_write` extra removes is its only reader, and an `if` with an empty body is not
-something any tool here removes either, so the block goes whole with `cutil.drop_if`
-and the variable's two lines with it.
-
-## The recommended extra is taken, and a second is declined
-
-After B, `redir_write()` is `{ char_u *s = str; static int cur_col = 0; if (redir_off)
-return; }` — the sweep takes the two variables and leaves a function with five callers
-that cannot do anything. Leaving it is the "concept the table has and the code does
-not" that phase 18 argued against, so it goes with its five call sites, and
-`redir_off` — then written **five** times, not four, and read never, a file-scope
-static that no warning covers — goes with them. `msg_puts_attr_len()`'s call was every
-message the editor prints, and that is the one to notice: nothing is printed
-differently, because `redir_write()` returned without doing anything at every one of
-them.
-
-**A second extra is declined and is a question for the user, not an oversight.** After
-this phase `typedef struct stat stat_T;` has no user and `#include <sys/stat.h>` and
-`#include <fcntl.h>` are needed by nothing. Removing all three is free and was
-measured — same binary, byte-identical recording, four fewer lines — but it would be
-**the first time any Part II phase changes the directive count**, and the charter above
-says `whim-vim.c` "inherits 18 directives from `whim-vim.c`". That sentence is a
-statement about the pipeline, so the change belongs to whoever decides it, either here
-or as an includes phase of its own. The count stays **18**.
-
-**The user took it, as phase 99, and that phase found the paragraph above short by a
-header and by a line.** There is a third that supplies nothing — `<iconv.h>`, whose
-only occurrence in `whim-vim.c` is its own `#include` line, whim having removed the
-conversion layer and left it — and the cut is five lines and not four, because the
-typedef sits between two blank lines and one of them has to go with it. So the answer
-here was **15 directives**, not 16, and phase 99 takes six because phases 97 and 98
-emptied three more. The decision to decline was right for its reason: the charter now
-says in as many words that a phase may remove a directive and may not add one.
-
-## The honest problem, and the probe that answers it
-
-Nothing this phase removes is reachable, so there is **no behavioural must-differ
-probe** and no dishonest one is offered instead. The check builds the source the phase
-was handed, twice:
-
-- **probe** — `(void)write(2, "FILESTAR-ENTERED\n", 17);` at **five** places: the top
-  of `closescript()`, inside `inchar()`'s `getc(scriptin[curscript])` loop, inside
-  `redir_write()`'s `redirecting()` block, inside `undo_cmdmod`'s, and the top of
-  `vim_fsync()`. **0 of the 106 records** carry the marker.
-- **ctl** — the *identical* instrument at the top of `ui_write()`, which every byte
-  the editor draws goes through. **105 of the same 106** carry it.
-
-The zero is the claim; the 105 is what makes it a probe that can fail. **Proven able
-to fail, by measurement**: with the instrument moved to `ui_write()` in the probe
-build, the recording carries the marker in 105 of 106 records and the check reports
-*105 of 106 records ENTERED one of the five sites on the binary this phase was handed*
-and exits 1.
-
-**Eighteen adversarial sessions** run on both instrumented binaries, and every one of
-them is a way of making the editor **print**, which is where `redir_write()` sat —
-`msg_puts_attr_len()` called it for every message. `:messages`, `:verbose set ai?`,
-`:silent echo`, `:history`, `:registers`, `:display`, `ga`, an unknown command, `:set
-all`, `:marks`, `:undolist`, `:changes`, `:map`, `:highlight`, `:normal ihi`,
-`:g/a/p`, a recorded-and-replayed register and `:set verbose=9`. **Each reached
-`ui_write()` and not one reached any of the five** — and the first half is checked
-too, because a session that draws nothing is not an adversary.
-
-## The declared delta is nothing at all, measured twice over
-
-`diff -rq` over two full recordings — the binary the phase was handed against the one
-it made — is **empty**: all 102 screen cases, all 111 Ex-command rows, all 30 command
-lines, the four pty scenarios and the nineteen terminal rows. `tools/coredelta.sh
---phase 96` then finds the same against whim-vim's frozen baselines, with the nine
-lines phases 85 to 94 declared and nothing new. `internal/phase/096/delta.md` gets a comment and
-no line. Nine ordinary sessions run directly between the two binaries and each is
-required to be identical **and** to be doing something.
-
-## Measured
-
-*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `internal/phase/boundaries.md`.*
-
-| | input | after |
+| what a match would do | where | alone |
 | --- | --- | --- |
-| lines | 79,757 | **79,603** (−154) |
-| functions | 1,724 | 1,719 (−5) |
-| type definitions | 909 | 908 |
-| enumerators (DWARF) | 1,182 | 1,181 (`NSCRIPT`, nothing renumbers) |
-| `FILE` mentions | 2 | **0** |
-| `#include` | 18 | 18 — untouched |
-| `nm -u`, as `phasecheck.sh` counts it | 66 | **62** |
-| `nm -u` with the core's flags | 65 | **61** |
-| binary | 803,912 | **799,816** |
+| read another line: a multi-line pattern (`\n`, `\_x`), look-behind at a line's start | `reg_getline_common`, `reg_nextline` | fails |
+| read the cursor, a mark, the Visual area, the line's number, the file's first or last line, a virtual column (`\%#`, `\%'m`, `\%V`, `\%23l`, `\%^`, `\%$`, `\%23v`) | seven atoms of `regmatch` | fails |
+| a message: `'maxmempattern'` exceeded, a corrupt program, a null argument | five functions | fails |
+| look for the must-have string where case is ignored (its length may shrink, and later searches read it) | `bt_regexec_both` | fails |
+| poll the host for an interrupt | `reg_nextline`, `regmatch` | not done |
+| write the must-have string's length back into the program | `bt_regexec_both` | not done: it is unchanged where case matters |
 
-**Four symbols go and the check names the set, not the count**: `fclose` and `getc`
-were `closescript()`'s and `inchar()`'s script loop's, `putc` was `redir_write()`'s,
-and `fsync` was `vim_fsync()`'s — whose only caller was `ui_write()`'s `console`
-branch, which is why **`fsync` is this phase's and not the buffer-name phase's**.
+**What is found.** `match_chunk(re, rmp, do_all, buf, lines, line1, from,
+to, found)` runs one engine over lines `[from, to)` of a snapshot and makes
+each line's searches where `ex_substitute`'s loop will make them -- from
+column 0, then, with `g`, from where each match ended, one character on
+after an empty match where the last one ended, until the line's end -- and
+records each: the column it started at, what it returned, `rmm_matchcol`,
+and the positions it left, up to the last one set (the engine leaves every
+later one at -1). `match_lines` runs a new engine over all the lines and says
+whether none failed. That is the function whose body a target writes in
+parallel (`internal/whim/gen.go`: chunks on goroutines in Go, on the common
+fork-join pool in Java and Clojure, each chunk on an engine of its own).
 
-**`fputs` does not go, and `GOALS.md` II.3b row 12 says it does.** After this phase the
-source names it nowhere and `nm -u` still lists it: gcc lowers `fprintf(stderr, "…")`
-to it, exactly as it lowers `printf` to `fputc`, `fwrite` and `putchar`. The check
-asserts the freed set as exactly `fclose fsync getc putc`, with `fputs fputc fwrite
-putchar __errno_location` named as gcc's own and required to be **still** undefined.
+**ex_substitute.** Unless it asks for confirmation (`c`) or its range is one
+line, it snapshots the range's lines -- a pointer and a length each,
+`ml_get`'s, before anything changes -- and calls `match_lines`. If that
+succeeded, each of the loop's two searches of a line's original text -- the
+first, from column 0, and the next one, before the line is replaced --
+goes through `search_found`: when the line's next recorded search started at
+the column asked for, its answer is the search's -- the return value, and on
+a match the positions and `rmm_matchcol` put back into `regmatch` -- and
+otherwise the search is made, and the line's records are done with.
+Everything else stays in the loop, in order: the replacement, undo, marks,
+line splits and joins, the counts and the messages are what they were. A
+line's index in the snapshot is its number less the range's first, less the
+lines the loop has added or removed so far, since it adds and removes them
+only at or before the line it is on.
 
-**`GOALS.md` §II.4b's invariant is assertable in its strongest form now**, and the
-check states it: `open creat openat stat access fcntl getcwd strerror fopen fdopen
-opendir` are absent from **both** the source and the undefined set. The core has no
-`open`, no `stat`, no stdio stream and no fourth descriptor — it can read, write,
-close and dup fds 0, 1 and 2 and nothing else.
+It is exact whatever the pattern: a search is answered from the records
+only when the engine made that very search -- the same line's text, from the
+same column, with the same program and flags -- and needed nothing but the
+line to do it; and a pattern that needed more fails the snapshot, and the
+loop searches as before. When the loop's next search is not the recorded
+one (a search that went beyond the line, taken anew), the line's records
+are not read again. After a search that found nothing the loop reads no
+position, so none is put back.
 
-The sweep is **3 rounds** and the phase **37 s**. Its boundary is `f995296f2536`.
+**Not done while matching alone:** an interrupt (`CTRL-C`) is not polled, so
+a long `:%s` cannot be interrupted before the snapshot's matching ends; and
+the snapshot and the records are allocated in the C's arena, which never
+frees -- as every line copy `:s` makes already is.
 
-## Its placement
+**Measured.** 75,522 -> 75,642 lines (phase 176's product). Every search of
+every eligible `:%s` in the suite's cases comes from the records, none is
+made anew (an instrumented build counted them: `par_literal` 5,000 of 5,000,
+`par_empty` 156,786 empty matches); the six cases whose pattern needs more
+(`par_join`, `par_cursor`, `par_visual`, `par_mark`, `par_lnum`,
+`par_behind`) fail the snapshot and search as before, and `par_confirm` and
+`par_global` (one line at a time) never take it. The quick and the wide
+suites answer as the commit before on the C, and the Go, Java and Clojure
+editors as the C -- the Go's also built with `-race`, which reports nothing.
 
-`stage 96`, `package tidy`, and two `uses` lines: `tidy:96 seed:83 mechanical`, because
-the "none" is checked against phase 83's baselines, and `tidy:96 terminal:85 rationale`,
-because `ui_write()`'s `console` argument is FALSE at its one call site either way and
-phase 85 is where the terminal stopped being asked anything — so dropping the parameter
-rather than leaving `__attribute__((unused))` on it is that phase's argument for
-`check_tty(void)`.
+A `:%s` on the survey's buffer (`doc/PARALLEL-SUBSTITUTE.md`: eight varied
+lines built into 500,000 by keys, the substitution's time the median of
+three runs less the buffer's), 64 cores, every output the same bytes:
 
-**`need 96 swept` is not required, and it was measured**: phase 96's edit applies
-unchanged to the *unswept* text phase 95's edit leaves, every counted anchor at the
-same number. The run fails only on the edit's build of its input binary, which is true
-of every Part II edit that builds one.
+| seconds | lit | dense | bt | cls | sel |
+| --- | --- | --- | --- | --- | --- |
+| C, phase 176 | 1.17 | 2.52 | 24.6 | 3.68 | .243 |
+| C, phase 177 | 1.62 | 4.18 | 24.8 | 4.08 | .395 |
+| Go, phase 176 | .640 | 1.16 | 10.2 | 2.90 | .210 |
+| Go, phase 177 | **.372** | **.587** | **.376** | **.176** | **.006** |
+| Go, phase 177, `GOMAXPROCS=1` | .796 | 1.33 | 9.89 | 2.74 | .250 |
+| Java, phase 176 | 2.24 | 3.45 | 18.3 | 5.93 | .445 |
+| Java, phase 177 | **1.42** | **2.59** | **1.58** | **.952** | **.208** |
+| Clojure, phase 176 | 7.57 | 11.7 | 123 | 40.2 | 2.41 |
+| Clojure, phase 177 | **3.31** | **6.73** | **4.52** | **2.20** | **.208** |
 
-**`apart 95 96`, measured.** Phase 95's check pins `scriptin` at 8 mentions, `redir_fd`
-at 6 and `vim_fsync` at 3 and names all three as the `FILE *` phase's; it also requires
-`fclose`, `getc`, `putc` and `fsync` to be **still** undefined. Run on the tree this
-phase leaves it gives three complaints — `redir_fd has 0 mentions, expected 6`,
-`scriptin has 0 mentions, expected 8`, `vim_fsync has 0 mentions, expected 3` — and
-exits 1. Its symbol check would fail too, being a `cmp` of the whole undefined set
-against a phase that frees four, but the source assertions come first. Phase 94's check
-pins the same three and would fail as well, but a stage holding 94 and 96 holds 95 and
-`apart 94 95` forbids that already.
+`lit` is `:%s/the/THE/g`, `dense` `:%s/e/E/g`, `bt` `:%s/\v(a|b)+c/X/g`, `cls`
+`:%s/[ab]\+c/X/g`, `sel` `:%s/needle/pin/g`. The Go is 1.7 to 35 times as
+fast, the Java 1.3 to 11.5, the Clojure 1.7 to 27; run on one CPU the Go
+is about as fast as before, so the gain is the cores. The C, which runs the
+matching and then the loop on one thread and records every search in
+between, is slower on the patterns that match most: it is the meaning, not
+the product.
+
+Two things the targets needed besides the bodies. The JVM launchers ran the
+serial collector, which stopped every thread while one collected: the Java's
+`bt` took 3.1 s at 100,000 lines with it and 0.98 s with `-XX:+UseParallelGC`,
+which starts as fast, and is the launchers' now (`braaam.JVMFlags`). And
+the snapshot's lines were first written inside `ex_substitute`, which grew
+its Clojure method to 26,715 bytes, past what C1 compiles ("out of virtual
+registers"): interpreted, the Clojure's `dense` took 6.0 s at 100,000 lines
+against 1.75 once `match_range` and `search_found` took the code out. The
+heavy case moved with it: the Java 2.4 -> 1.9 times the C, the Clojure 8-10
+-> 4.5.

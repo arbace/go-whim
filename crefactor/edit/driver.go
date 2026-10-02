@@ -212,7 +212,7 @@ func (e *E) Literal(old, new string, n int, what string) {
 // count).  The drivers used to keep a second shape, folding the LAST match each
 // time, because the two differed by blank lines before the canonical print;
 // every boundary is printed canonically now, and the two give the same phase
-// output at every site that used either (measured on phases 60, 62, 64 and 65).
+// output at every site that used either (measured on phases 19, 20, 5a and 3d).
 func (e *E) FoldNever(pattern string, n int, what string) {
 	e.fold(pattern, n, what, FoldNever)
 }
@@ -379,7 +379,7 @@ func (e *E) InTable(head string, acts func(*E)) {
 // indentation included.
 //
 // TWO NARROW SPLICES ARE OFTEN RIGHT WHERE ONE WIDE ONE IS WRONG, which is
-// whim68's lesson: a single cut from aucmd_win[]'s search through `curbuf =
+// whim4c's lesson: a single cut from aucmd_win[]'s search through `curbuf =
 // buf;` also swallows aco->save_curwin_id and aco->save_prevwin_id, which the
 // surviving else branch reads back through win_find_by_id() -- and it would
 // have COMPILED, restoring from uninitialised stack.
@@ -450,7 +450,7 @@ func (e *E) DeleteDefinition(name, what string) {
 //
 // Brace matching rather than a line pattern, because these bodies are
 // macro-expanded one-liners hundreds of characters wide -- transcribing them is
-// exactly what killed whim74's first attempt, and what genlits.py exists to
+// exactly what killed whim3f's first attempt, and what genlits.py exists to
 // stop.
 func (e *E) DropBlocks(fn, anchorRe string, n int, what string) {
 	e.InFunction(fn, func(e *E) {

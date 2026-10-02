@@ -1,48 +1,16 @@
 package p073
 
-// Whim phase 73 -- one frame.  See GOAL.md.
+// Whim phase 73 (formerly 147) -- deathtrap() runs at the host's next wait.  See GOAL.md.
 //
-// THE STRONGEST INVARIANT OF THIS RUN, and it is proved by absence rather than by
-// argument: GREPPING THE WHOLE FILE FOR A WRITE TO fr_child, fr_next, fr_prev OR
-// fr_parent RETURNS NOTHING AT ALL.  The frame tree is never linked.
+// SIGHUP and SIGTERM ran deathtrap() as their handler (internal/gen/FINDINGS.md, 12).
+// The handler records the signal and writes a byte to a pipe; the host's wait
+// selects on the pipe beside the input, and the wait and the read run
+// deathtrap() first, inside the wait where the core unblocks deadly signals.
+// The libc surface grows by pipe2.
 //
-// * alloc_clear(sizeof(frame_T)) appears exactly once, in new_frame(), whose only
-// caller is win_alloc_firstwin() -- itself called once, from win_alloc_first();
-// * new_frame() writes fr_layout = FR_LEAF and fr_win = wp, and nothing else ever
-// writes fr_layout;
-// * win_alloc_firstwin() sets topframe = curwin->w_frame;
-// * there is no frame_insert, frame_append, frame_remove, win_split or
-// win_split_ins anywhere -- they went with the window layout in phase 68/72.
-//
-// So topframe == curwin->w_frame, fr_layout is FR_LEAF forever, and fr_child,
-// fr_next, fr_prev and fr_parent are permanently NULL.  Every FR_ROW and FR_COL
-// branch is dead, every fr_child walk iterates zero times, and every fr_parent walk
-// terminates on its first test.  This phase is therefore a set of BODY REPLACEMENTS,
-// not a fold campaign: each function keeps the arm that runs and loses the arms that
-// cannot.
-//
-// THE BREAK HAZARD IS HANDLED BY CONSTRUCTION.  The audit named four loops whose
-// break binds to the loop being removed -- stl_connected, frame_new_height,
-// frame_new_width (twice) and command_height -- and all four are in the
-// replace-whole-body set, so nothing is folded out from under a break.  That is the
-// phase 71 lesson applied ahead of time rather than after three dry runs.
-//
-// WHAT IS NOT A CONSTANT, and must keep its arithmetic:
-// * frame_minheight() reads p_wh, p_wmh and w_status_height.  min_rows() and
-// did_set_cmdheight()'s clamp depend on the number it returns, so the leaf arm
-// stays exactly as it is; only the recursion goes.  Replacing it with a literal
-// would silently change what :set cmdheight= accepts.
-// * fr_width and fr_height on the one frame are live layout state, read by
-// win_do_lines, screen_ins_lines, screen_del_lines, redraw_block, screen_line,
-// win_line and did_set_cmdheight.  The FIELDS stay; only the tree goes.
-//
-// WHAT GOES BY CASCADE: frame_fixed_height and frame_fixed_width reach `return FALSE`
-// and their callers' `wfh`/`wfw` loops vanish, so the sweep removes them.  The FR_ROW
-// and FR_COL enumerators lose every reader.  Nothing here deletes those by name.
-//
-// THE DELTA: none expected.  Every window-splitting and resizing Ex command is
-// already ex_ni, and :set cmdheight= keeps the same accepted range because
-// frame_minheight keeps its arithmetic.  Declared empty, left for the delta check.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"io"
@@ -51,43 +19,81 @@ import (
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// frameLinkWrite is any write to the frame tree's four pointers.  THE PHASE
-// OPENS BY PROVING THERE ARE NONE, because every replacement below assumes a
-// frame is a leaf -- if the tree really were linked somewhere, all fifteen
-// bodies would be wrong and the boundary would be the first thing to say so.
-const frameLinkWrite = `fr_(?:child|next|prev|parent)[ \t]*(?:=[^=]|\+\+|--)`
+func init() { phase.Register("whim73", Edit) }
 
-// Whim73 makes a frame a leaf: fifteen functions that recursed into children or
-// climbed to parents become constants, and the four tree pointers go.
+// W73Handler and W73Deliver are the host's new functions, exported so the
+// check requires the identical text.
+const (
+	W73Handler = `    static void
+host_on_death(int sigarg)
+{
+    int         e = errno;
+
+    host_death_pending = sigarg;
+    if (host_death_pipe[1] >= 0)
+    {
+        (void)write(host_death_pipe[1], "", 1);
+    }
+    errno = e;
+}
+`
+	W73Deliver = `    static void
+host_deliver_death(void)
+{
+    char        b[16];
+    int         sig;
+
+    if (host_death_pipe[0] >= 0)
+    {
+        while (read(host_death_pipe[0], b, sizeof(b)) > 0)
+        {
+            ;
+        }
+    }
+    sig = host_death_pending;
+    if (sig != 0)
+    {
+        host_death_pending = 0;
+        deathtrap(sig);
+    }
+}
+`
+)
+
+// Whim73 runs deathtrap() at the host's next wait, woken by a self-pipe.
+//
+// SIGHUP and SIGTERM ran deathtrap() as their handler: the core's whole way
+// Out -- preserving, restoring the terminal, writing its message -- inside a
+// signal handler, at whatever point the signal found the core, which is
+// undefined behaviour in C and not expressible in Go, whose runtime takes the
+// signal and hands it to a goroutine (internal/gen/FINDINGS.md, 12).  The handler now
+// records the signal and writes a byte to a pipe; the host's wait selects on
+// the pipe beside the input, and the wait and the read run deathtrap() first.
+// The pipe is what makes it race-free: a signal that lands after the flag was
+// tested and before select() leaves a byte that ends the select at once.  The
+// Go host already does exactly this; it now transpiles line for line.
+//
+// The core already blocks deadly signals everywhere but the wait in
+// ui_inchar(): vim_handle_signal() turns one that arrives while it is busy into
+// an interrupt and raises it again when that wait unblocks.  So deathtrap() only
+// ever ran in that window, and now runs at the wait or read inside it -- the
+// same moment but for the few statements between the unblock and the wait.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("oneframe", text, w)
-
-	k := len(e.Query(frameLinkWrite, 0))
-	e.Expect(k == 0, "the frame tree IS linked somewhere (%d writes) -- the invariant this phase rests on is false, and every replacement below would be wrong", k)
-	e.Say("confirmed: nothing writes fr_child, fr_next, fr_prev or fr_parent")
-
-	for _, f := range []struct{ Name, Body, What string }{
-		{"frame_fixed_height", w73lit1, "frame_fixed_height, asked of a leaf"},
-		{"frame_fixed_width", w73lit1, "frame_fixed_width, asked of a leaf"},
-		{"frame_minheight", w73lit2, "frame_minheight recursing into a row or column"},
-		{"frame_minwidth", w73lit3, "frame_minwidth recursing into a row or column"},
-		{"frame_check_height", w73lit4, "frame_check_height comparing against children"},
-		{"frame_check_width", w73lit5, "frame_check_width comparing against children"},
-		{"frame_comp_pos", w73lit6, "frame_comp_pos descending into children"},
-		{"frame_new_height", w73lit7, "frame_new_height distributing height over children"},
-		{"frame_new_width", w73lit8, "frame_new_width distributing width over children"},
-		{"frame_setheight", w73lit9, "frame_setheight taking room from siblings"},
-		{"frame_setwidth", w73lit10, "frame_setwidth taking room from siblings"},
-		{"frame_add_height", w73lit11, "frame_add_height propagating to parents"},
-		{"last_status_rec", w73lit12, "last_status_rec descending a row or column of frames"},
-		{"command_height", w73lit13, "command_height walking to the widest ancestor"},
-		{"stl_connected", w73lit1, "stl_connected, which climbed the tree for a neighbour"},
-	} {
-		e.Body(f.Name, f.Body, f.What)
-	}
-	// fr_parent, fr_next, fr_prev and fr_child are named by nothing now; the
-	// sweep takes them.
+	e := edit.New("selfpipe", text, w)
+	// <fcntl.h> is still there, since phase 88 drops the unused headers last: it
+	// moves to where this phase has always put it.
+	e.Literal("#include <fcntl.h>\n", "", 1, "<fcntl.h>, never dropped, moves to beside <termios.h>")
+	e.Literal("#include <termios.h>\n", "#include <termios.h>\n#include <fcntl.h>\n", 1,
+		"the host includes <fcntl.h> for the pipe's flags")
+	e.Literal("static volatile sig_atomic_t host_int_pending = FALSE;\n", "static volatile sig_atomic_t host_int_pending = FALSE;\nstatic volatile sig_atomic_t host_death_pending = 0;\nstatic int host_death_pipe[2] = {-1, -1};\n", 1,
+		"a deadly signal is recorded, beside a pipe that wakes the wait")
+	e.Literal("    static void\nhost_on_int(int sigarg)\n{\n    host_int_pending = TRUE;\n}\n", "    static void\nhost_on_int(int sigarg)\n{\n    host_int_pending = TRUE;\n}\n\n"+W73Handler+"\n"+W73Deliver, 1,
+		"host_on_death() records it and writes to the pipe; host_deliver_death() drains the pipe and runs deathtrap()")
+	e.Literal("    host_catch(SIGHUP, deathtrap);\n    host_catch(SIGTERM, deathtrap);\n", "    if (pipe2(host_death_pipe, O_NONBLOCK | O_CLOEXEC) != 0)\n    {\n        host_death_pipe[0] = -1;\n        host_death_pipe[1] = -1;\n    }\n    host_catch(SIGHUP, host_on_death);\n    host_catch(SIGTERM, host_on_death);\n", 1,
+		"SIGHUP and SIGTERM are caught by host_on_death(), not deathtrap()")
+	e.Literal("    for (;;)\n    {\n        if (host_winch_pending || host_tstp_pending || host_int_pending)\n        {\n            return 1;\n        }\n        FD_ZERO(&rfds);\n        FD_SET(0, &rfds);\n        ret = select(1, &rfds, nullptr, nullptr, tvp);\n        if (ret == -1 && errno == EINTR)\n        {\n            continue;\n        }\n        return ret > 0 && FD_ISSET(0, &rfds);\n    }\n", "    for (;;)\n    {\n        host_deliver_death();\n        if (host_winch_pending || host_tstp_pending || host_int_pending)\n        {\n            return 1;\n        }\n        FD_ZERO(&rfds);\n        FD_SET(0, &rfds);\n        if (host_death_pipe[0] >= 0)\n        {\n            FD_SET(host_death_pipe[0], &rfds);\n        }\n        ret = select(host_death_pipe[0] >= 0 ? host_death_pipe[0] + 1 : 1, &rfds, nullptr, nullptr, tvp);\n        if (ret == -1 && errno == EINTR)\n        {\n            continue;\n        }\n        if (ret > 0 && host_death_pipe[0] >= 0 && FD_ISSET(host_death_pipe[0], &rfds))\n        {\n            continue;\n        }\n        return ret > 0 && FD_ISSET(0, &rfds);\n    }\n", 1,
+		"the wait delivers a deadly signal first, and selects on the pipe beside the input")
+	e.Literal("musl_read_input(char *buf, int len)\n{\n", "musl_read_input(char *buf, int len)\n{\n    host_deliver_death();\n", 1,
+		"and so does the read")
 	return e.Done()
 }
-
-func init() { phase.Register("whim73", Edit) }

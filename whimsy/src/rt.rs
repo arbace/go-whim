@@ -85,7 +85,7 @@ pub fn str_i8<const N: usize>(s: &[u8]) -> [i8; N] {
 
 /// A value shared with the chunks' threads: a raw pointer, which Rust will
 /// not send, sent all the same -- the C's own memory, which each chunk
-/// reads and writes apart from the others (phase 177).
+/// reads and writes apart from the others (phase 96).
 #[derive(Clone, Copy)]
 pub struct Shared<T>(pub T);
 

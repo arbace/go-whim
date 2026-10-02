@@ -167,7 +167,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 		edit.Head("else if (*arg == '>' && varp == (char_u *)&p_bdir)"), 1); err != nil {
 		return nil, err
 	}
-	// the directory-list test folds at phase 1 (whim56, the reform's D6)
+	// the directory-list test folds at phase 2 (whim18, the reform's D6)
 	fmt.Fprintln(w, "  nobackup     the `is this option a directory?` test")
 
 	for _, c := range []struct{ pat, what string }{

@@ -12,10 +12,10 @@ import (
 
 // Core is where whim-vim.c's core ends: the line break before the first
 // `#include`, which is the line between the editor core and its host
-// (phases 110 on).  Phases 132, 134, 149 and 166 hard-coded it.
+// (phases 43 on).  Phases 60, 62, 74 and 87a hard-coded it.
 var Core xform.Core = func(text []byte) int { return bytes.Index(text, []byte("\n#include ")) }
 
-// DropCalls is phase 132's: since phase 124 host_free() has an empty body, so
+// DropCalls is phase 60's: since phase 52 host_free() has an empty body, so
 // vim_free(), a NULL test around it, does nothing either; the host's
 // formatter called the core's vim_free(), and calls its own host_free().
 var DropCalls = xform.DropCallsKnobs{
@@ -24,14 +24,14 @@ var DropCalls = xform.DropCallsKnobs{
 	Redirect: [][2]string{{"vim_free", "host_free"}},
 }
 
-// NeverNull is phase 149's: host_alloc() returns a pointer into the arena or
-// ends the process (phase 148).
+// NeverNull is phase 74's: host_alloc() returns a pointer into the arena or
+// ends the process (phase 74a).
 var NeverNull = xform.NeverNullKnobs{
 	Core:  Core,
 	Roots: []string{"host_alloc"},
 }
 
-// BoolRet is phase 166's: vim's truth constants, TRUE and OK beside true,
+// BoolRet is phase 87a's: vim's truth constants, TRUE and OK beside true,
 // FALSE and FAIL beside false; main, whose int is the process's; and the
 // sweep's layout guard, which says which members a positional initialiser
 // fills.
@@ -43,7 +43,7 @@ var BoolRet = xform.BoolRetKnobs{
 	Layout: Profile.Sweep,
 }
 
-// Nullptr is phase 106's, run by the seed: the three string literals that hold `NULL` and
+// Nullptr is phase 0a's, run by the seed: the three string literals that hold `NULL` and
 // stay as they are -- a message, the printf layer's stand-in for a null %s,
 // and what an empty growarray prints.  A fourth would be a message the phase
 // has never seen, and refuses.
@@ -55,7 +55,7 @@ var Nullptr = xform.NullptrKnobs{
 	},
 }
 
-// Includes is phase 169's compiler question, phase 82's before it: a header
+// Includes is phase 88's compiler question, record 82's before it: a header
 // is unnecessary when the file still compiles with NOTHING printed, under the
 // sweep's warnings.
 var Includes = xform.Silent{
@@ -63,16 +63,16 @@ var Includes = xform.Silent{
 	Flags: []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"},
 }
 
-// GotoTail is phase 170's bound: a label's tail is copied over a goto when
+// GotoTail is phase 89's bound: a label's tail is copied over a goto when
 // it is at most three statements before its return.  Three is the longest
 // straight tail a goto of the core reaches (a history browser's three
 // stores), and each copy costs its length.
 var GotoTail = xform.GotoTailKnobs{Tail: 3}
 
-// Own114 is phase 114's: abs and labs, the two libc functions the core called
+// Own47 is phase 47's: abs and labs, the two libc functions the core called
 // without a body of its own, become musl's, written above musl_bsearch with
 // the other <stdlib.h> functions the core owns.
-var Own114 = xform.OwnKnobs{
+var Own47 = xform.OwnKnobs{
 	Prefix: "musl_",
 	Funcs: []xform.OwnFunc{
 		{Name: "abs", Proto: "int abs(int n);", Def: "    static int\nmusl_abs(int a)\n{\n    return a > 0 ? a : -a;\n}\n\n"},
@@ -81,7 +81,7 @@ var Own114 = xform.OwnKnobs{
 	Before: "    static void *\nmusl_bsearch(",
 }
 
-// RegEngine is phase 176's: the regex engine's state at match time -- the
+// RegEngine is phase 95's: the regex engine's state at match time -- the
 // match in progress (rex, and its re-entry guard), the backtracking stacks
 // and their byte count, the look-behind's and the counted repeats' state,
 // the back-reference's copy -- and reg_toolong, which the compiler sets and

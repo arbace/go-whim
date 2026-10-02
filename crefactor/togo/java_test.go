@@ -1796,7 +1796,7 @@ func TestJavaLocals(t *testing.T) {
 	}
 }
 
-// Structs returned and assigned, as phase 181 writes out-parameters: a held
+// Structs returned and assigned, as phase 100 writes out-parameters: a held
 // local takes a call's result and is returned uncopied (heldStructs); the
 // output is gcc's.
 func TestJavaHeldStructs(t *testing.T) {

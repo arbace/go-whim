@@ -1,5 +1,8 @@
 # Phase 1 — no `$VIMRUNTIME`
 
+*Formerly phase 1. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
+
 **The front is three phases.** This phase runs D1-D5 (the command line to the
 swap file) and its fall-out closure. Phase 2 runs D6-D8 (startup, the encoding,
 the terminal) and phase 3 D9-D12 (one of each, the editing features, the

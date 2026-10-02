@@ -1,5 +1,8 @@
 # Phase 0 — seed, in the one spelling every later phase reads
 
+*Formerly phase 0. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
+
 `whim-vim.c` starts as `slim-vim.c` printed canonically: `crefactor/cemit` parses
 the input and prints it back in one C23 form per construct — one statement per
 line, one declarator per declaration, braces always, a table one element per

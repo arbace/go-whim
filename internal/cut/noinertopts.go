@@ -32,9 +32,9 @@ var noinertoptsEdits = []struct{ what, pat, repl string }{
 		`(?m)[ \t]*int esc = var == &p_tags \|\| var == &p_path;\n`,
 		"    int esc = FALSE;\n"},
 	// The directory-completion block, with its backslash rule for 'path',
-	// folds at phase 1 (whim56, the reform's D6).  The file-completion
+	// folds at phase 2 (whim18, the reform's D6).  The file-completion
 	// block's rule for 'tags' went with set_context_in_set_cmd(), :set's
-	// completion, at phase 6 (whim59, phase 59's program, which runs before
+	// completion, at phase 4 (whim4f, phase 4f's program, which runs before
 	// this phase now).
 	{"didset_string_options reading 'tagcase' at startup",
 		`(?m)[ \t]*\(void\)opt_strings_flags\(p_tc, p_tc_values, &tc_flags, FALSE\);\n`, ""},

@@ -1,21 +1,14 @@
 package p063
 
-// Whim phase 63 -- no jump list.  See GOAL.md.
+// Whim phase 63 (formerly 135) -- one regexp program type.  See GOAL.md.
 //
-// The per-window jump list goes: w_jumplist, w_jumplistlen and w_jumplistidx,
-// setpcmark() appending to it, CTRL-O and CTRL-I walking it through movemark(),
-// :jumps and :clearjumps, cleanup_jumplist(), copying it to a new window and
-// freeing it with one, and the loops that kept its marks right when lines moved
-// or a file was forgotten.
+// With one engine every regprog_T is a bt_regprog_T, and the casts between the
+// two are casts to itself (internal/gen/FINDINGS.md, 4).  regprog_T takes the
+// backtracking fields, the casts go, and bt_regprog_T is not a name any more.
 //
-// What stays, because it is not the jump list: the previous-context mark behind
-// '' and `` (w_pcmark, still set by setpcmark()), the change list and g; g,
-// (nv_pcmark() keeps that half), :keepjumps (it guards the pcmark and the change
-// list too), and JUMPLISTSIZE, which sizes the change list.  CTRL-O in Select mode
-// still runs one Visual command; anywhere else CTRL-O and CTRL-I beep.
-//
-// THE DELTA: :jumps and :clearjumps, now ex_ni.  The probes check CTRL-O no longer
-// jumps back, '' still does, and :jumps is refused.
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"io"
@@ -24,60 +17,70 @@ import (
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// Whim63 takes the jump list: :jumps and :clearjumps, CTRL-I and CTRL-O, and
-// every place a line or column change moved its marks.
+func init() { phase.Register("whim63", Edit) }
+
+const w63Two = `typedef struct regprog
+{
+    regengine_T *engine;
+    unsigned regflags;
+    unsigned re_engine;
+    unsigned re_flags;
+    int re_in_use;
+} regprog_T;
+
+typedef struct
+{
+    regengine_T *engine;
+    unsigned regflags;
+    unsigned re_engine;
+    unsigned re_flags;
+    int re_in_use;
+    int regstart;
+    char_u reganch;
+    char_u *regmust;
+    int regmlen;
+    char_u program[1];
+} bt_regprog_T;
+`
+
+// W63One is the one program type this phase leaves, exported for the check.
+const W63One = `typedef struct regprog
+{
+    regengine_T *engine;
+    unsigned regflags;
+    unsigned re_engine;
+    unsigned re_flags;
+    int re_in_use;
+    int regstart;
+    char_u reganch;
+    char_u *regmust;
+    int regmlen;
+    char_u program[1];
+} regprog_T;
+`
+
+// Whim63 makes regprog_T and bt_regprog_T one type.
+//
+// vim had two regexp engines, and regprog_T was the header both programs
+// began with: the backtracking engine's bt_regprog_T repeated its five fields
+// and added its own, and the code cast between the two.  Whim kept one engine,
+// so every regprog_T is a bt_regprog_T and the casts are casts to itself.  The
+// Go transpilation could not cast a struct to the larger one it heads and kept
+// a registry to find one from the other (internal/gen/FINDINGS.md, 4).  regprog_T takes
+// the backtracking fields, the five casts go, and bt_regprog_T is not a name
+// any more.  The layout of every field is what it was, so the code is too.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nojumplist", text, w)
-
-	// :jumps and :clearjumps point at ex_ni from phase 1 (exfront, D2)
-	e.Sub(`(?m)^([ \t]*\{Ctrl_I, )nv_pcmark(, 0, 0\},)`, "${1}nv_error${2}", 1,
-		"CTRL-I in Normal mode points at nv_error")
-
-	// The append is cut from its test to the last line of its Body.  It is
-	// matched by its two ends because the Body is the whole of building a
-	// jump-list entry, which shares no shape with the test above it.
-	e.InFunction("setpcmark", func(e *edit.E) {
-		e.Splice("    if (++curwin->w_jumplistlen > JUMPLISTSIZE)\n", "fm->fname = nullptr;\n", "",
-			"setpcmark appending to the jump list")
-	})
-
-	e.InFunction("nv_ctrlo", func(e *edit.E) {
-		e.Sub(`(?m)^([ \t]*)cap->count1 = -cap->count1;\n[ \t]*nv_pcmark\(cap\);\n`,
-			"${1}clearopbeep(cap->oap);\n", 1, "CTRL-O walking back through the jump list")
-	})
-	e.InFunction("nv_pcmark", func(e *edit.E) {
-		e.DropIf(edit.Head("if (cap->cmdchar == TAB && mod_mask == MOD_MASK_CTRL)"), 1,
-			"CTRL-Tab refused by the jump-list command")
-		e.Sub(`(?m)^([ \t]*)if \(cap->cmdchar == 'g'\)\n[ \t]*\{\n[ \t]*pos = movechangelist\(\(int\)cap->count1\);\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*pos = movemark\(\(int\)cap->count1\);\n[ \t]*\}\n`,
-			"${1}pos = movechangelist((int)cap->count1);\n", 1,
-			"the jump list as the other half of nv_pcmark")
-		e.Sub(`(?m)^([ \t]*)else if \(cap->cmdchar == 'g'\)$`, "${1}else", 1,
-			"the change-list messages no longer choosing by key")
-		e.Cut(edit.Line("else", "{", "clearopbeep(cap->oap);", "}"), 1,
-			"a jump-list miss beeping")
-	})
-	e.InFunction("mark_adjust_internal", func(e *edit.E) {
-		e.DropIf(edit.Head("for (i = 0; i < win->w_jumplistlen; ++i)"), 1, "line changes moving jump-list marks")
-		e.Cut(edit.Line("if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0)", "{", "}"), 1,
-			"the now-empty 'lockmarks' test around them")
-	})
-	e.InFunction("mark_col_adjust", func(e *edit.E) {
-		e.DropIf(edit.Head("for (i = 0; i < win->w_jumplistlen; ++i)"), 1, "column changes moving jump-list marks")
-	})
-	e.InFunction("mark_forget_file", func(e *edit.E) {
-		e.DropIf(edit.Head("for (i = wp->w_jumplistlen - 1; i >= 0; --i)"), 1, "a forgotten file leaving the jump list")
-	})
-	e.InFunction("fmarks_check_names", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*for \(\(wp\) = firstwin; \(wp\) != nullptr; \(wp\) = \(wp\)->w_next\)\s*\n[ \t]*\{\n[ \t]*for \(i = 0; i < wp->w_jumplistlen; \+\+i\)\n[ \t]*\{\n[ \t]*fmarks_check_one\(&wp->w_jumplist\[i\], name, buf\);\n[ \t]*\}\n[ \t]*\}\n`,
-			1, "a named buffer resolving jump-list file names")
-	})
-	e.InFunction("win_init", func(e *edit.E) {
-		e.Cut(edit.Line("copy_jumplist(oldp, newp);"), 1, "a new window copying the jump list")
-	})
-	e.InFunction("win_free", func(e *edit.E) {
-		e.Cut(edit.Line("free_jumplist(wp);"), 1, "a closed window freeing the jump list")
-	})
+	e := edit.New("regprog", text, w)
+	e.Literal(w63Two, W63One, 1,
+		"regprog_T is the backtracking program: its five fields, then the engine's own")
+	e.Literal("(((bt_regprog_T *)prog)->program)", "((prog)->program)", 1,
+		"prog_magic_wrong() reads the program without a cast")
+	e.Literal("    return (regprog_T *)r;\n", "    return r;\n", 1,
+		"bt_regcomp() returns its program without one")
+	e.Literal("prog = (bt_regprog_T *)rex.reg_mmatch->regprog;", "prog = rex.reg_mmatch->regprog;", 1,
+		"bt_regexec_both() takes the multi-line match's program as it is")
+	e.Literal("prog = (bt_regprog_T *)rex.reg_match->regprog;", "prog = rex.reg_match->regprog;", 1,
+		"and the single-line match's")
+	e.Literal("bt_regprog_T", "regprog_T", 4, "the 4 declarations that still said bt_regprog_T say regprog_T")
 	return e.Done()
 }
-
-func init() { phase.Register("whim63", Edit) }

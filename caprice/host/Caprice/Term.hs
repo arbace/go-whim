@@ -198,7 +198,7 @@ nowMs t = do
     Nothing -> writeIORef (tNowBase t) (Just sec) >> pure sec
   pure (fromIntegral ((sec - b) * 1000 + (us `mod` 1000000) `div` 1000))
 
--- | The time: WHIM_TIME, when the environment holds it (phase 180), as
+-- | The time: WHIM_TIME, when the environment holds it (phase 99), as
 -- atol reads it; the clock's otherwise.
 unixTime :: IO Int64
 unixTime = do

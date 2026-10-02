@@ -54,7 +54,7 @@ import (
 // And one thing that is not at file scope: a local variable its function never
 // mentions again, which gcc's -Wunused-variable was the sweep's way of
 // finding.  It goes with its initialiser, as it did then, even one that calls
-// something -- `int fuzzy = cmdline_fuzzy_complete(pat) && ...;` at phase 60 is
+// something -- `int fuzzy = cmdline_fuzzy_complete(pat) && ...;` at phase 19 is
 // one, and deleting it is what makes those functions dead -- and Stats counts
 // how many such initialisers went, so that one that mattered would be seen.
 //

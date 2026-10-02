@@ -19,7 +19,7 @@ import (
 // removed the tag stack's field and broke five lines in two functions this
 // phase never meant to touch.  So the field is the one whose struct closes,
 // with no brace between, as `} mparm_T;` -- whatever its neighbours are, which
-// moved as the reform brought this cut to the seed (phase 1, D6).
+// moved as the reform brought this cut to the seed (phase 2, D6).
 var nocmdoptsElsewhere = []struct {
 	what, pat, repl string
 	want            int

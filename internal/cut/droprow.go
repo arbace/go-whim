@@ -46,7 +46,7 @@ func DropRow(text []byte, name string) ([]byte, bool) {
 // from the line's start to the literal's end, in order.  It searches for the
 // literal and looks back to the line's start, where the regular expression,
 // with no literal to start from, ran its machine over the whole file for each
-// option: 38 s of phase 54's 44, measured.  Only the first occurrence on a
+// option: 38 s of record 54's 44, measured.  Only the first occurrence on a
 // line can have nothing but blanks before it, so the spans are the regular
 // expression's matches, leftmost first and not overlapping.
 func indentedLit(text []byte, lit string) [][2]int {

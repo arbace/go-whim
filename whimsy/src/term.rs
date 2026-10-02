@@ -376,7 +376,7 @@ impl Host for Term {
     }
 
     /// host_time: WHIM_TIME when set and not empty (a clock held still,
-    /// phase 180), read as atol reads it; time(2) otherwise.
+    /// phase 99), read as atol reads it; time(2) otherwise.
     fn time(&self) -> i64 {
         if let Some(pinned) = std::env::var_os("WHIM_TIME") {
             use std::os::unix::ffi::OsStrExt;

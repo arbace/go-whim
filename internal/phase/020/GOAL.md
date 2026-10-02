@@ -1,106 +1,51 @@
-# Phase 20 — nothing outside the process is consulted
+# Phase 20 — no buffer-type, file-type, listing, jump, update-time or autowrite options
 
-## there is no home directory
+*Formerly phase 62. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-`$HOME` is where an editor keeps the things it was told not to keep. This fork
-stopped writing them in Phase 11 and stopped looking for them in Phase 18, and
-what was left is the *notion* of a home directory — `~/x` meaning a path, `~bob`
-meaning someone else's, and `/home/you/x` displayed back as `~/x`.
+Seven options, each checked by what its readers still did:
 
-All three go, and the last is why this is not only a `getenv` removal:
-`home_replace()` has **thirteen callers**, every one a place that shows the user
-a file name. It becomes a bounded copy, so the thirteen keep working and a name
-is shown as what it is.
+- **`'buflisted'`** — every reader chose which autocommand event to fire, and
+  `apply_autocmds_group()` has been `return FALSE` since autocommands went, or
+  searched a buffer list of one. The `set_buflisted()` calls go with it.
+- **`'filetype'`** — every reader fed the FileType event, which cannot fire, or
+  `fix_help_buffer()`, and `:help` is `ex_ni`.
+- **`'buftype'`** — the one that was live, but only through `:set bt=`: `nofile`,
+  `nowrite`, `acwrite` and `prompt` refused `:w` and skipped reading, and `help` set
+  `b_help`. Nothing inside the editor ever set it. `bt_dontwrite()`,
+  `bt_nofilename()`, `bt_nofileread()` and `bt_prompt()` fold as false at every
+  caller — including two inside one `snprintf` line in `fileinfo()`, the
+  `[Not edited]` and `[New]` notes, and `buf_write()`'s `nofile_err`, set in three
+  branches and read in two tests and one condition.
+- **`'jumpoptions'`** — empty, so the "stack" behaviour of the jump list folds.
+- **`'updatetime'`** — **dead, though it looked live.** After that long idle,
+  `inchar_loop()` asked `trigger_cursorhold()`, which is `return FALSE`, and called
+  `before_blocking()`. Its swap sync, `updatescript(0)`, reaches an `ml_sync_all()`
+  whose body is empty; its terminal flush only writes while `sync_output_state` is
+  above zero, which is inside `update_screen()` or `redraw_after_callback()` — both
+  close it before returning, with no `return` or `goto` in between — so never at
+  idle. The idle wait therefore goes: a wait with no timeout blocks at once, and
+  `before_blocking()`, `updatescript()`, `ml_sync_all()` and the `scriptout`
+  save and restore in `wait_return()` go with it. A first version of this phase
+  kept the timeout at its 4000 ms default, on the strength of the call alone; it
+  was corrected in place when the chain was read to the end.
+- **`'autowrite'`** and **`'autowriteall'`** — off, so `autowrite()` always failed and
+  `autowrite_all()` returned at once. Their callers fold, and so does the `CCGD_AW`
+  flag — including the two places, `:next` and `do_argfile()`, that passed it
+  unconditionally.
 
-The user database goes with them — `init_users()`, `add_user()`, `match_user()`
-and `get_users()` exist so that `~bob` can complete, and `mch_get_uname()` so
-that a swap file could say who wrote it. Two smaller things fall out and had to
-be taken by hand, because `-Wunused-but-set-variable` is not a shape the sweep
-deletes: `at_start`, which existed only to know whether a `~` began a path, and
-`startstr_len`, measured for the one test that used it.
+**The phase took six runs to get right, and every failure was the post-condition
+grep or a tool refusing, never the build.** `droplocal.py` refused `b_p_bl` with
+two plumbing sites where it requires three — the folds had already taken its
+initialiser, so its field and `get_varp()` case go by hand — and then refused
+`b_p_bt` because `fileinfo()` still called `bt_dontwrite()` a second time. The
+grep then found `CCGD_AW` and `nofile_err` alive, and — once the idle wait was
+removed — `did_start_blocking`, still read by the loop's exit test. That one needed
+thought rather than deletion: blocking now starts on the first wait with no
+timeout, so the flag was always TRUE where it was tested, and the term goes so that
+an interrupted wait still returns instead of blocking again. Each was a reader the
+first reading had missed, not a reader the check invented.
 
-### Where the symbol count moves
+## The delta
 
-`getpwnam`, `getpwent`, `setpwent`, `endpwent` — 119 → 115. CLAUDE.md notes that
-`getpwnam()` working under static musl is one of the two things that make this
-binary honestly standalone. It no longer needs it.
-
-### Two corrections to what this phase was planned to do
-
-**`getuid` and `getgid` do not go.** `buf_write()` uses them to check ownership
-before overwriting a read-only file and to preserve owner and group. That is
-file writing, which whim-vim keeps, and the plan was wrong to list them here.
-
-**`getpwuid` does not go either.** `mch_get_uname()` is still reached from
-`swapfile_info()`, under `-r`, which lists swap files that cannot exist — Phase
-13 removed the swap file and left the option that reads them. That wants a phase
-of its own rather than a corner of this one: `ml_recover()` alone is 559 lines,
-`recover_names()` 216 and `swapfile_info()` 103.
-
-### The delta
-
-**None the harness records.** `:e ~/notes` opens a file called `~/notes` in the
-current directory, which no harness asks for.
-
-`--term-moved` is **cumulative**, like the command list — the comparison is
-always against the slim baseline, and Phase 19 collapsed that table for good, so
-every phase after it declares the same thing. Discovered by this phase failing
-when it did not.
-
-## nothing is read from the environment
-
-The third and last of the standalone phases. Phase 18 stopped reading
-configuration files, Phase 20 stopped believing in a home directory, and this
-one removes the environment itself — after it, no answer this editor gives
-depends on how it was invoked.
-
-**`vim_getenv()` had already been half dead, and that is what makes this
-phase small.** Phase 1 folded its `vimruntime` flag to FALSE, so
-`vim_getenv("VIMRUNTIME")` had been returning NULL unconditionally ever since,
-and `"VIM"` was the only name left that could reach the `$VIM`/`'helpfile'`
-fallback chain — which nothing asks for any more. So the function **can only
-ever answer "not set"**, and every caller collapses to the branch it was
-already taking:
-
-| what it read | what took its place |
-| --- | --- |
-| `$VAR` in a file name (`expand_env_esc`) | the name, as written |
-| `$PATH` (`expand_shellcmd`) | the pattern's own directory |
-| `$VIMRUNTIME` (`fix_help_buffer`) | the `*local-additions*` scan, 111 lines, already a no-op |
-| `$SHELL`, `$CDPATH`, `$VIM_POSIX` | the compiled-in defaults |
-| `$TMPDIR`, `$TEMP`, `$TMP` | `/tmp`, which was always in the list |
-| `$COLORFGBG` | what Phase 19 decided the terminal is |
-| `$TZ` | `localtime_r`, which does the zone setup itself |
-| `$VIM`, `$VIMRUNTIME`, `$MYVIMDIR`, written | nothing writes them |
-| `environ`, walked for `$VAR` completion | the row and its `$`-prefix context go, as `~user`'s did |
-
-`expand_env_esc` is the same answer Phase 20 gave `home_replace`: with the `$`
-arm gone what remains is `skipwhite`, the backslash escape and the bound on
-`dstlen`, and a name reaches its caller intact.
-
-**`vimrc_found()` was already unreachable**, and finding that out is what kept
-this phase from being an argument about whether `$VIM` should still be
-published. Every `do_source()` call in the file passes `DOSO_NONE`, so the two
-arms that called it have been dead since Phase 18. Deleting them takes
-`vim_setenv`, `export_myvimdir` and `$MYVIMDIR` with them.
-
-### The check is the object, not the source
-
-`getenv`, `setenv`, `unsetenv` and `environ` leave `nm -u`: **115 → 110**, the
-fifth being `tzset`. Grepping the source is not sufficient and the phase does
-both — the sweep is what removes `vim_getenv`, so asking before it runs gets
-the wrong answer, which this pipeline has now learned four times.
-
-### What stays
-
-`vim_localtime()` still calls `localtime_r()`, and musl reads `$TZ` inside it.
-The rule this phase enforces is that *this source* asks the environment
-nothing; making a file's timestamp display in UTC would be a different
-decision, and not this one.
-
-### The delta
-
-**None the harness records.** `:w $FOO.txt` writes a file called `$FOO.txt`,
-`:e $HOME/notes.txt` needs a directory literally named `$HOME`, and
-`:set shell?` says `sh` whatever `$SHELL` was — verified by hand, none of it
-something a harness asks for.
+**None the harnesses record.** Measured: 101,188 → **100,643 lines**.

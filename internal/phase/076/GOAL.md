@@ -1,61 +1,43 @@
-# Phase 76 — one regexp engine, so no retry
+# Phase 76 — the option variables are typed
 
-**A record now.** Phase 6 calls `whim76` by name, first, on the text phase 3
-swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): its proof
-asks that `nfa_regengine` is named by nothing, which holds only once the
-front's `nonfa` has been swept. The program is here, and the phase has no
-plan entry. What follows is the account of the cut as it was made here.
+*Formerly phase 152. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-**Proved by a single assignment.** `prog->re_engine = BACKTRACKING_ENGINE` is the only
-place `re_engine` is ever written, so the field can hold no other value — and both
+`vimoption_T.var`, `optset_T.os_varp`, `get_varp()`, `get_varp_scope()` and
+every `varp` held the address of an option's variable (an `int`, a `long` or a
+`char_u *`) as a `char_u *`, cast back at every read: `*(int *)varp`. Two more
+tricks rode on that pointer:
+- a window-local option with no global variable held `(char_u *)-1`;
+- its global value was reached as `(char *)get_varp(p) + sizeof(winopt_T)`,
+  the same field one `winopt_T` further on, in `w_allbuf_opt`.
 
-```c
-if (rmp->regprog->re_engine == AUTOMATIC_ENGINE && result == -1)
-```
+The Go transpilation held all of these as `any` (finding 2, its second half).
 
-blocks, one in `vim_regexec_string` and one in `vim_regexec_multi`, are unreachable.
-They exist to recompile a pattern with the backtracking engine when the automatic
-choice failed; with one engine there is nothing to fall back to. `nfa_regengine` and
-`regexp_engine` were already at zero — the NFA engine went in an earlier phase, and
-these two blocks were what remained pointing at its corpse.
+Now they are an `optvar_T`: a pointer of each kind, one of them set, and a
+flag for the window-local sentinel.
+- **reads** name their kind: `*varp.ov_int`, `*varp.ov_long`, `*varp.ov_str`;
+- **table rows** name their variable in the slot the row's `P_BOOL`, `P_NUM`
+  or `P_STRING` gives;
+- **`get_varp()`'s returns** are built by constructors typed by the field they
+  name, so the compiler checks every one;
+- **the window-local global value** is `get_varp_allbuf()`, the
+  `w_allbuf_opt` field by name. That covers both `get_varp_scope()` and
+  `set_string_option_global()`, whose two callers hand it curwin's
+  `w_onebuf_opt` field, the one the byte offset stepped from.
 
-**What went with them.** `p_re` entirely: it is an **orphan option** — no row in the
-table sets it, so it reads as 0 for ever — and its only uses were a `< 0 || > 2`
-validation that could never fire and the save/restore inside the two dead blocks.
-`AUTOMATIC_ENGINE`, which had no other reader. And `nfa_regprog_T` with `nfa_state_T`
-by cascade: their only non-type mentions were the two
-`((nfa_regprog_T *)rmp->regprog)->pattern` casts **inside** the dead blocks — a husk
-kept alive purely by unreachable code. The sweep deleted three type definitions.
+`free_one_termoption()` compares a terminal option's variable address with the
+string passed to it. The address of a `term_strings` slot is never equal to a
+string, so the comparison is never true, as it was before. It is kept, cast
+for cast: a latent bug of vim's, not this phase's to fix.
 
-`orphanopts` independently confirms the claim: its count fell from six orphans to
-five, with `p_re` gone from the list.
+**Declared delta: nothing.** The check computes every row's typed variable
+from the input's row, and requires no option variable punned through
+`char_u *`. Its probes cover:
+- a boolean, a number and a string option, set and read back;
+- window-local, buffer-local and global-local options through `:set`,
+  `:setlocal` and `:setglobal`;
+- a terminal option, and `:set all`.
 
-## The guard was proved against both failure modes
+Each control moves.
 
-The phase asserts in-flight that `re_engine` has exactly one assignment and that it
-is to `BACKTRACKING_ENGINE`. Before relying on it, it was checked three ways: it
-reports one on the real file, it **fires** when a second write is injected, and it
-does **not** miscount a `!=` comparison as a write — which is exactly the cry-wolf
-bug that cost an iteration in phase 75, where a guard matched `name[^\n;]*=`, spanned
-the subscript and landed on the comparison.
-
-## Audited before writing, not after
-
-Both blocks are 25 lines, carry no `break` or `continue` that would rebind, contain
-no label, and are followed by no `else` — so `fold_never` takes them without any of
-the hazards phases 71, 72 and 75 each ran into. No edit's target is created by an
-earlier edit either, so the specific-then-blanket ordering problem does not arise.
-**It passed its first dry run.**
-
-## The delta
-
-**None**, and `whimdelta.sh` confirmed it. The blocks never ran, so removing them
-cannot change a match.
-
-The probes exercise **matching**, not editing, because a load-and-edit probe would
-pass whatever happened to the regexp layer: a quantified `%s/a\+/X/g`, `:g` over a
-pattern driving `vim_regexec_multi`, capture groups with back-references, a counted
-non-capturing group `\%(a\|b\)\{2}` — the shape the NFA engine used to be chosen for
-— and a plain search. All five were calibrated against q75 first.
-
-Measured: 89,804 → **89,713 lines**.
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 151-152 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

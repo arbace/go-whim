@@ -1,79 +1,25 @@
-# Phase 71 — one buffer, structurally
+# Phase 71 — `check_termcode()` has no goto
 
-**A record now.** Phase 6 calls `whim71` by name, after `whim68`, on the text phase 3
-swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
-program is here, and the phase has no plan entry. It applied there as
-written. Its body for `buflist_findpat()` supersedes phase 62's edit of the `'buflisted'` test there. What follows is the account of the cut as it was made here.
+*Formerly phase 145. The other phase numbers in this file are the old numbering,
+as it was written: `doc/PHASES.md` maps them.*
 
-**The invariant was already true; this phase removes the machinery that pretended
-otherwise.** Phase 69 allowed at most one file argument, phase 70 made `:e` reuse the
-one buffer, and every buffer Ex command had been retired long before that — all 24
-rows (`:buffer`, `:buffers`/`:ls`/`:files`, `:bnext`, `:bprevious`, `:bNext`,
-`:bfirst`, `:blast`, `:brewind`, `:bmodified`, `:bdelete`, `:bunload`, `:bwipeout`,
-`:bufdo`, `:ball`, `:badd`, `:balt`) already read `ex_ni`, and `do_buffer`,
-`do_bufdel`, `ex_buffer`, `ex_bufdo` and `ex_listdo` do not exist. So nothing can
-make a second buffer: `win_alloc_first()` makes the one buffer at startup, *before*
-`command_line_scan()`, and `buflist_add()` then names that same buffer through
-`BLN_CURBUF`.
+While an OSC response was arriving over several reads, `check_termcode()`
+jumped from the top of its loop to `handle_osc`, a label inside the OSC branch
+of the if-chain in `if (key_name[0] == NUL)`, skipping everything in between.
+That was the last `goto` of finding 11 that the transpilation had to
+restructure. Nothing follows that chain inside its block, so the jump ran
+exactly the OSC handling and then the code after the block. Now the jump's
+`if` does the handling itself, and everything the jump skipped, from the key's
+first byte through the end of the block, becomes its `else`. A `continue` or
+`break` in that code binds to the same loop as before, because an `if` catches
+neither.
 
-`buf_valid()` becoming `return buf == curbuf;` is the keystone — it makes
-`set_curbuf()`'s `enter_buffer(lastbuf)` fallback unreachable, and the rest of that
-function's other-buffer handling with it.
+**Declared delta: nothing.** The check proves from the input that the label's
+chain is the last thing in its block. It requires the `else` to be the
+skipped code byte for byte, indented four spaces further. Its probe sends an
+OSC response in two writes and then types, and requires the same output
+from both binaries. Two controls move: typing other text, and sending no
+response. Whether the pty delivers the two writes as two reads is up to the
+kernel, so for that path the byte-for-byte `else` is the evidence.
 
-## Three things named b_next are not the buffer list
-
-A regex over the name would gut the editor, so every edit is scoped by function:
-
-- `buffblock_T.b_next` — the typeahead and redo chain: `bh_first`, `redobuff`,
-  `old_redobuff`, `readbuf1`, `readbuf2`. About thirty sites.
-- `free_buffer()` — `buf->b_next = au_pending_free_buf`, a free list.
-- `buf_T.b_next`/`b_prev` — **this** is the buffer list, and only this.
-
-`au_pending_free_buf` turned out to be written in two places and **read in none**:
-nothing ever drained that chain, so the `autocmd_busy` branch leaked the buffer and
-always had. It goes with the field it linked through, and `free_buffer()` now always
-frees immediately.
-
-## break binds to the loop, not to the braces
-
-Folding `for ((buf) = firstbuf; …)` into `buf = curbuf;` rebinds any `break` or
-`continue` in the body to whatever loop encloses it next — and brace depth has
-nothing to do with which statements those are. `getout()`'s `break` sits two `if`s
-deep and still bound to the walk; `buflist_findpat()`'s body has a `break` **and** a
-`continue` that bind to the walk while a third `break` correctly belongs to an inner
-window loop.
-
-The first version folded both anyway. `getout()` failed to compile, which is the
-cheap outcome. `buflist_findpat()` **compiled fine and changed behaviour** — its two
-statements silently rebound to the enclosing `for (;;)` retry loop — and sat
-undetected through three dry runs. So `fold_walk()` now refuses a body whose
-`break`/`continue` is not inside a nested loop or switch of its own, and the two
-functions are rewritten rather than folded. An earlier version of that guard tested
-brace depth and would have passed `getout()`; depth is the wrong question.
-
-With one buffer `buflist_findpat()` has nothing to retry — one candidate, so the
-"more than one match" (`-2`) arm is unreachable by construction.
-
-## What stays
-
-`buf_hashtab` and `buflist_findnr()`, because five live callers still look a buffer
-up by number: `eval_vars`, `setmark_pos`, `check_changed_any`, `buflist_nr2name` and
-`buflist_getfile`. Collapsing that to a `curbuf` test is a separate step.
-`DOBUF_WIPE_REUSE` keeps its enum and the two tests that name it — no caller ever
-passes it, which is what made `close_buffer()`'s wipe splice unreachable; that splice
-was guarded by `(b_prev != NULL || b_next != NULL)`, already false with one buffer.
-
-## The delta
-
-**None**, and `whimdelta.sh` confirmed it. The buffer commands were already `ex_ni`,
-so no `exsweep` row can move.
-
-**A probe that cannot fail proves nothing, again.** The buffer-local mapping probe
-was written `+normal! Q` — and `normal!` suppresses mappings *by definition*, so it
-could never fire on any build. Calibrated against q70: `x` with the bang, `x!`
-without it, and the phase-71 build gives `x!` too. The bang is gone and the comment
-says not to put it back. It also corrected a belief: that walk is
-`check_map_keycodes()`, which feeds `add_termcap_entry()`, **not** mapping lookup —
-a mapping is found through `curbuf->b_maphash[]`, which never touches the list.
-
-Measured: 93,127 → **92,749 lines**.
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 143-145 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

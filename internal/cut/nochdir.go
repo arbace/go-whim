@@ -127,18 +127,18 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// The window- and tab-local directory restore in aucmd_restbuf() went
-	// with the autocommand window's switch at phase 6 (whim68, phase 68's
+	// with the autocommand window's switch at phase 4 (whim4c, phase 4c's
 	// program), and win_fix_current_dir()'s unconditional call with
-	// win_enter_ext(), whose callers phases 72 and 73 take at phase 7: both
+	// win_enter_ext(), whose callers phases 5b and 5c take at phase 5: both
 	// run before this phase now.
 
 	// `globaldir` remembers the directory to come back to when a window-local
 	// one is in force.  aucmd_prepbuf()/aucmd_restbuf() saved and restored it
 	// around the autocommand window's switch, and both went with that switch
-	// at phase 6 (whim68); the global and the function are the sweep's.
+	// at phase 4 (whim4c); the global and the function are the sweep's.
 
 	// edit_buffers(), the -o window walk that returned to `cwd`, went with
-	// the windows at phase 1 (nowindows, the reform's D9).  start_dir, which
+	// the windows at phase 3 (nowindows, the reform's D9).  start_dir, which
 	// nothing assigns, is left with its free, which goes here, and the global
 	// is the sweep's.
 	if text, err = cutCounted(text, edit.Line("vim_free(start_dir);"), "nochdir",

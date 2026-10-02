@@ -161,7 +161,7 @@ func (e *emitter) structDecl(n *cc.StructDeclaration) []string {
 
 func (e *emitter) enum(n *cc.EnumSpecifier) string {
 	// C23'S FIXED UNDERLYING TYPE IS PART OF THE TYPE.  `enum : long { ... }` is
-	// what phase 109 wrote the header limits as, and dropping the `: long`
+	// what phase 42 wrote the header limits as, and dropping the `: long`
 	// leaves the constants `int`: measured, four comparisons in the core then
 	// warn -Wsign-compare that did not.
 	under := ""
