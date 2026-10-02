@@ -99,8 +99,10 @@ make help              # every target
   C's own memory, raw. Its runtime is `Caprice.Rt`, its host a record of
   functions, its terminal host termios and poll; several editors run at once.
 - **Rust**, **whimsy** (`whimsy/`): the crate `whimsy`, its module `editor`
-  C's memory natively -- `#[repr(C)]` types, raw pointers, never a reference
-  to a C object -- and C's control flow, a goto a labeled block. A `Host`
+  C's memory natively -- `#[repr(C)]` types, raw pointers, a reference only
+  where its promise is proved -- and C's control flow, a goto a labeled
+  block; safe functions where the C allows, signed arithmetic as Rust's plain
+  operators (`doc/RUST-IDIOMS.md`). A `Host`
   trait, a terminal host over libc with real signal handlers, a hand port of
   vim's printf; several editors run at once.
 

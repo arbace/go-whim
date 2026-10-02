@@ -9,8 +9,9 @@ package togo
 //     it out (a layout test holds it to gcc's offsetof);
 //   - a pointer is a raw pointer, *mut T, walked, compared, subtracted and
 //     cast as C does; a function pointer an Option<unsafe fn(...)>; no Rust
-//     reference to a C object is ever made: a member is reached through its
-//     pointer, `(*p).m`, and an address is `&raw mut`;
+//     reference to a C object is made but where the promise is proved
+//     (rs_refs.go): a member is reached through its pointer, `(*p).m`, and
+//     an address is `&raw mut`;
 //   - the file-scope objects and the block-scope statics are the fields of
 //     one #[repr(C)] Editor, made zeroed and never moved, its initial
 //     values written into it when it is made (init_globals); a function is
@@ -20,10 +21,13 @@ package togo
 //   - C's control flow is Rust's: return, break and continue as they are, a
 //     goto a labeled block it breaks (as the Java's), a switch a match -- or,
 //     where a case falls into the next, a ladder of labeled blocks;
-//   - an expression's side effects are Rust's blocks, `{ x = v; x }`, which
-//     are expressions: what C does inside an expression, in C's order;
-//   - C's arithmetic is exact: the widths of C's types, wrapping_* for what
-//     can overflow, `as` for C's conversions;
+//   - an expression's side effects are statements where C's order lets them
+//     (rs_hoist.go), else Rust's blocks, `{ x = v; x }`, which are
+//     expressions: what C does inside an expression, in C's order;
+//   - C's arithmetic is exact: the widths of C's types, Rust's plain
+//     operators where C's overflow is undefined or cannot happen
+//     (rs_range.go), wrapping_* where C defines it modular, `as` for C's
+//     conversions;
 //   - a function declared and not defined is the host's, called in the host
 //     module with the editor first; a variadic one takes a slice of VArg.
 

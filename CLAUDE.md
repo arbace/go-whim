@@ -313,7 +313,12 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    a goto a labeled block, a switch a match or a ladder of
                    labeled blocks -- rs_expr.go the expressions, rs_init.go
                    the initializers, rs_lower.go the lowered form where
-                   labeled blocks cannot say a function). Its tests
+                   labeled blocks cannot say a function; and the idioms,
+                   doc/RUST-IDIOMS.md: rs_fx.go the safe functions and
+                   those without the editor, rs_range.go the arithmetic
+                   that provably fits, rs_hoist.go side effects out of
+                   expressions, rs_refs.go references where provable,
+                   rs_defer.go locals declared with no value). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
@@ -425,16 +430,16 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
                    declined), JAVA.md (the Java backend: its design and milestones),
-                   JAVA-IDIOMS.md, CLOJURE-IDIOMS.md and HASKELL-IDIOMS.md (how the
-                   Java, Clojure and Haskell editors could be idiomatic,
+                   JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md and RUST-IDIOMS.md (how the
+                   Java, Clojure, Haskell and Rust editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, 6, 7, 8's headroom (9 declined), and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-9 and 11 (10 not)),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in
                    the heavy case, beside the C's, and the change it chose), HASKELL.md (caprice, the Haskell editor:
                    its design and what was measured), RUST.md (whimsy, the Rust
-                   editor: its design and its milestones),
+                   editor: its design, its milestones and its idioms),
                    SCHEME.md (a Scheme editor surveyed and measured: Chez Scheme, not scheduled), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
@@ -478,6 +483,7 @@ make bin/caprice      # the editor in Haskell: Caprice.Editor generated, compile
 go tool whim caprice --lint  # the same, then ghc -Wall's warnings on the generated module, by flag (0 now)
 make whim-test-hs     # the quick suite with the Haskell editor too (whim test --haskell; --wide --haskell)
 make bin/whimsy       # the editor in Rust: the module editor generated, compiled by cargo, offline (forty seconds when the core moved; its time and peak printed)
+go tool whim whimsy --lint  # the same, then rustc's warnings on the generated module, its #[allow] taken out, by lint (702 now: 482 the C's names)
 make whim-test-rs     # the quick suite with the Rust editor too (whim test --rust; --wide --rust)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)

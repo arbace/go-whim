@@ -1,6 +1,7 @@
 # How whimsy could be more idiomatic Rust: a survey
 
-2026-10-02. It covers `whimsy/src/editor.rs` as tracked at `cb3f2db` (62,836
+2026-10-02. **Status: items 0-9 and 11 done, 10 not; see *Done* after the
+ranking.** It covers `whimsy/src/editor.rs` as tracked at `cb3f2db` (62,836
 lines, 1,713 functions, written by `crefactor/togo`'s Rust backend from the
 core `go tool whim cut src/whim-vim.c` prints, 75,721 lines of C) and the
 hand-written crate around it: `rt.rs` (135 lines), `host.rs` (262),
@@ -410,18 +411,120 @@ pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
 
 | Rank | Item | Who | Cost | Risk | Idiom gained |
 | --- | --- | --- | --- | --- | --- |
-| 1 | 0: rustc's lint counted | `whimsy.go` | S | none | the measure: 2,335 of the printer's warnings hidden |
-| 2 | 1: no `return` at the end | printer | S | none | 875 functions |
-| 3 | 2: safe functions; the editor where used | analysis + printer | S | none | 57 safe, 217 without the editor |
-| 4 | 5: declarations at their first value | printer | S-M | none (rustc checks) | 3,213 zeros at the top; 2,131 `unused_assignments` |
-| 5 | 3 + 4: arithmetic as C means it | printer + `Cargo.toml` | S | debug builds panic on C's UB | 4,258 signed `wrapping_*`, 151 provable |
-| 6 | 11: compound assignment | printer | S | none | after 4 |
-| 7 | 6: side effects out of expressions | printer | M | low | 682 blocks, 528 temporaries |
-| 8 | 9: C-string literals | printer + suite | S | none | 1,812 literals |
-| 9 | 8: a `for`'s `continue` | printer | S | none | 30 labeled blocks |
-| 10 | 7: references | analysis + printer | M | low | 9 functions |
-| 11 | 10: `*const` | inference | M-L | low | not done |
+| 1 | 0: rustc's lint counted -- **done**, `82b6f5d` | `whimsy.go` | S | none | the measure: 2,335 of the printer's warnings hidden |
+| 2 | 1: no `return` at the end -- **done**, `7899b3c` | printer | S | none | 875 functions |
+| 3 | 2: safe functions; the editor where used -- **done**, `7899b3c` | analysis + printer | S | none | 57 safe, 217 without the editor |
+| 4 | 5: declarations at their first value -- **done**, `eb69bc1`, `8e8cf7a` | printer | S-M | none (rustc checks) | 3,213 zeros at the top; 2,131 `unused_assignments` |
+| 5 | 3 + 4: arithmetic as C means it -- **done**, `5614549` | printer + `Cargo.toml` | S | debug builds panic on C's UB | 4,258 signed `wrapping_*`, 151 provable |
+| 6 | 11: compound assignment -- **done**, `5614549` | printer | S | none | after 4 |
+| 7 | 6: side effects out of expressions -- **done**, `2946815` | printer | M | low | 682 blocks, 528 temporaries |
+| 8 | 9: C-string literals -- **done**, `4b0035d` | printer + suite | S | none | 1,812 literals |
+| 9 | 8: a `for`'s `continue` -- **done**, `4b0035d` | printer | S | none | 30 labeled blocks |
+| 10 | 7: references -- **done**, `9619d4c` | analysis + printer | M | low | 9 functions |
+| 11 | 10: `*const` -- not done | inference | M-L | low | -- |
 | -- | `&mut Editor`, owned data, slices, Rust enums, `.add()`, the 2024 edition | -- | -- | -- | declined (below) |
+
+### Done: items 0-9 and 11 (2026-10-02)
+
+All but item 10, in the Rust printer (`crefactor/togo`: `rs_fx.go` the
+effects, `rs_range.go` the ranges, `rs_hoist.go` the side effects,
+`rs_refs.go` the references, `rs_defer.go` the declarations with no value,
+and `rs_expr.go`, `rs_fn.go`, `rs_init.go`), `whimsy/Cargo.toml` and
+`whimsy.go`; each with a C program of its own among the foreign tests
+(`TestRsArith`, `TestRsHoist`, `TestRsRefs`, `TestRsDefer`), compiled at
+opt-level 0 -- where an overflow panics -- and held to gcc's output. Every
+commit was held to the whole recipe above: the crate with
+`#![deny(warnings)]`, `go test ./togo`, all 80 and all 240 cases as the C
+does with the control seen, `go test ./whimsy`, `whim gen --check`.
+
+| | `cb3f2db` | after |
+| --- | ---: | ---: |
+| `editor.rs` | 62,836 lines | 61,820 lines |
+| `pub unsafe fn` / `pub fn` | 1,714 / 1 | 1,648 / 67 (66 safe functions of the core and `new_editor`) |
+| functions taking the editor | 1,714 (142 `_ed`) | 1,497 (7 `_ed`, all kept whole: function pointers, the hand-written crate's) |
+| reference parameters | 0 | 9 functions, `&mut` each |
+| `wrapping_*` | 9,337 | **4,798**: 2,304 `offset` and most of 2,136 `add` on pointers, the rest unsigned |
+| `x op= v` | 0 | 2,006 |
+| a body's last `return` | 875 | 0 |
+| block expressions (`({ `, `= { `) | 665 | 153, of which 5 init_globals' compound literals |
+| temporaries `tN` | 528 | 50 |
+| locals zeroed at the top | 3,213 | 1,098; 1,336 declared in a nested block, 396 with no value |
+| labels | 132 | 91 (`'cN` 30 -> 2, loops named 31 -> 18) |
+| string literals | 1,812 `b"...\0"` | 1,833 `c"..."`, 214 `b"..."` (a NUL inside, a byte past ASCII, a char array's) |
+| rustc's warnings (`whim whimsy --lint`) | 2,817: 2,335 `unused_assignments` | 702: **220** `unused_assignments`, 482 the C's names |
+| rustc, release | 39.4 s, 0.55 GB | 38.0-38.3 s, 0.53 GB |
+| the heavy case | 0.3x the C (115-119 ms) | 0.25-0.3x (112-140 ms against 430-478) |
+
+- **Items 3, 4, 11** (`5614549`). Measured on the result, as on the survey's
+  experiment: both suites on a build with overflow checks
+  (`CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true`) answer every case as the C
+  does, the heavy case included. Signed division and remainder are `/`
+  and `%` too: `MIN / -1`, which gcc's `idiv` traps on, panics either way.
+  What C defines stays `wrapping_*`: unsigned arithmetic, a narrow type's
+  increment (`signed char` is promoted, then converted back), a compound
+  assignment computed in a wider type (`int x; x += 1LL`).
+- **Items 1, 2** (`7899b3c`). `Profile.RsExports` names what `host.rs` and
+  `printf.rs` call by name (`vim_main`, `deathtrap`, `emsg` and five more).
+- **Item 5** (`eb69bc1`, `8e8cf7a`) is two rules: a local declared in the
+  block where it is first given a value, and -- for one first given a value
+  in both arms of an `if`, every case of a switch, or before a loop -- a
+  declaration with no value, `let x: i32;`, where a walk of C's statements
+  in Rust's order sees every read after a store (`rs_defer.go`: rustc's
+  definite-initialization analysis, path-insensitive, a loop's body walked
+  twice for `mut`). rustc checks both: its first version said `mut` for a
+  store whose path always returned, and rustc said so. The 220 warnings
+  left are the temporaries' zeros, the C's own initializers never read, and
+  loops the walk is too conservative for: the module keeps its `#[allow]`.
+- **Item 6** (`2946815`): also an assignment or a comma first evaluated by a
+  condition, a return, an initializer or a plain assignment's value -- which
+  takes phase 181's results out of their blocks, `let mut o: pr = two(3);
+  let mut a2: i32 = o.a; let r2: i32 = o.r;`. Found by the suite: the first
+  version hoisted the comma of a statement's own `(void)(o = f(), p =
+  o.x)` and then wrote it again -- every case moved; bisected to
+  `match_keyprotocol` by building the module with one function at a time
+  from either side, and held by `TestRsHoist` since.
+- **Item 7** (`9619d4c`): found on the way, in `TestRsPointers`, `return
+  &wp->o.so` through what would have been a `&` -- a raw pointer into a
+  reference, outliving it -- refused, and held by the test.
+- **Items 8, 9** (`4b0035d`): c"" cannot say a byte past ASCII as `\x80`
+  (rustc refuses it), so such a string stays a byte string.
+
+The survey's excerpts, as printed now:
+
+```rust
+pub fn musl_isdigit(c: i32) -> bool {
+    ascii_isdigit(c)
+}
+
+pub unsafe fn musl_strncpy(dest: *mut i8, mut src: *mut i8, mut n: usize_) -> *mut i8 {
+    let mut d: *mut i8 = dest;
+    while n != 0 && *src != 0 {
+        *d = *src;
+        d = d.wrapping_add(1);
+        src = src.wrapping_add(1);
+        n = n.wrapping_sub(1);
+    }
+    ...
+
+    while musl_isdigit(*s as i32) {
+        n = 10 * n - (*s as i32 - b'0' as i32);
+        s = s.wrapping_add(1);
+    }
+    if neg != 0 { n } else { -n }
+
+pub fn ga_init(gap: &mut garray_T) {
+    gap.ga_data = null_mut();
+    gap.ga_maxlen = 0;
+    gap.ga_len = 0;
+}
+```
+
+**What remains**, measured: 1,648 functions are `unsafe fn`, as the memory
+model makes them -- every one dereferences a raw pointer or calls one that
+does; 21,577 `(*ed).x`; 4,798 `wrapping_*`, pointers' and unsigned; 1,098
+zeros at the top, of which rustc sees 175 never read; 153 blocks inside
+expressions (increments of the editor's objects and of members, a local
+named twice, a lazy operand); item 10.
 
 ## What is not worth doing, and why
 

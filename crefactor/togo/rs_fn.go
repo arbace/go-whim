@@ -3,13 +3,17 @@ package togo
 // rs_fn.go is a C function printed as Rust (rs.go says the frame): an
 // `unsafe fn` of the editor and the C's parameters, its statements C's own.
 //
-//   - every local is declared at the function's top, zeroed -- as C at -O0
-//     keeps a local's value from one iteration of a loop to the next, and as
-//     a goto's labeled block must not end a local's scope -- and given its
-//     initializer where C declares it;
+//   - every local is declared where the body first gives it a value, when
+//     a block holds every mention of it (sinkDecls); else at the function's
+//     top, with no value where every read comes after a store
+//     (rs_defer.go), else zeroed -- as C at -O0 keeps a local's value from
+//     one iteration of a loop to the next, and as a goto's labeled block
+//     must not end a local's scope -- and given its initializer where C
+//     declares it;
 //   - if, while, do and for are Rust's if, while and loop; a for's step and a
-//     do's condition run after the body, which a continue reaches by leaving
-//     a labeled block around the body, `'cN: { ... break 'cN; ... }`;
+//     do's condition run after the body: a short step is written before each
+//     continue, else a continue reaches it by leaving a labeled block around
+//     the body, `'cN: { ... break 'cN; ... }`;
 //   - a break or a continue says its loop's label where a labeled block
 //     stands between it and its loop, as Rust requires;
 //   - a goto leaves a labeled block that ends at its label (the Java's rule,

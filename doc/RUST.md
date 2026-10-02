@@ -63,7 +63,9 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   away of it is free), `*mut c_void` for `void *`; walked with
   `wrapping_add`/`wrapping_offset`, subtracted by `pdiff` (the runtime's, in
   elements), compared with `<` and `==`, null-tested with `is_null()`.
-  **No Rust reference to a C object is ever made**: a member is
+  **No Rust reference to a C object is made but where the promise is
+  proved** (9 functions' parameters, `RUST-IDIOMS.md` item 7: `pub fn
+  ga_init(gap: &mut garray_T)`): a member is
   `(*p).m`, a place, read and written through the pointer, and an address is
   `&raw mut` of a place; an array's value where C converts it is
   `decay(&raw mut a)` (the runtime's: its first element's address), and an
@@ -82,38 +84,59 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   initializer is a field of its own (`lit_N`), as long-lived as the object
   that points at it. One more field is the host's pointer, which the C does
   not have. A process holds as many editors as it makes.
-- **Every function is `pub unsafe fn name(ed: *mut Editor, ...)`**, the
-  editor named `_ed` where the body does not use it; a parameter the body
-  never names is `_name`, one it assigns `mut`.
-- **Every local is declared at the function's top, zeroed** -- C at -O0 keeps
-  a local's value from one iteration of a loop to the next, which a Rust
-  declaration in the body would not, and a goto's labeled block must not end
-  a local's scope -- and given its initializer where C declares it; **unless
-  the body first gives it a value in a statement of the function's own
-  block**, which is then its declaration, `let col: colnr_T = ...;`, `mut`
-  only where the rest of the body writes it again (`sinkDecls`): such a
-  statement is inside no loop and no labeled block, so every path to a later
-  use passes it, and the zero it replaces was never read. C's nested scopes
-  are one Rust scope: a local takes a name of its own (`i_2`), and never a
+- **A function is `pub unsafe fn name(ed: *mut Editor, ...)`** where it
+  needs both (`rs_fx.go`, closed over the calls): it takes the editor only
+  where it reaches an object of it, the host or a function pointer, or calls
+  a function that does (1,497 of the 1,713), and is `unsafe` only where it
+  does what Rust calls unsafe (1,647; 66 are safe `pub fn`s, `pub fn
+  musl_isdigit(c: i32) -> bool`). What the hand-written crate calls by name
+  (`Profile.RsExports`), what is a function pointer and what a runtime body
+  names keep the whole signature, the editor `_ed` where unused; a parameter
+  the body never names is `_name`, one it assigns `mut`. A body's last
+  `return x;` is its tail, `x`.
+- **A local is declared where the body first gives it a value**, when that
+  is a statement of a block holding every mention of it -- `let col: colnr_T
+  = ...;`, `mut` only where the rest of the body writes it again
+  (`sinkDecls`): every path to a later mention passes the statement, and
+  inside a loop each time round gets a new variable whose first act is the
+  store. **Else at the function's top**: with no value, `let x: i32;`, where
+  a walk of C's statements in Rust's order sees every read after a store
+  (`rs_defer.go`, rustc's own analysis, which checks it), else zeroed -- C at
+  -O0 keeps a local's value from one iteration of a loop to the next, and a
+  goto's labeled block must not end a local's scope. C's nested scopes are
+  one Rust scope: a local takes a name of its own (`i_2`), and never a
   constant's or a function's, which a `let` would read as a pattern.
 
 ## Expressions
 
 - **C's arithmetic is exact** (`rs_expr.go`): the integer types are Rust's of
-  C's widths (`char` `i8`, `long` `i64`), a C `bool` a `bool`; every
-  operation that can overflow is `wrapping_*` (so no overflow panic, and no
-  difference between debug and release: signed overflow wraps, as gcc's -O0
-  does), division `wrapping_div`/`wrapping_rem`, a shift by a constant `<<`,
-  by a variable `wrapping_shl`; C's usual arithmetic conversions are decided
+  C's widths (`char` `i8`, `long` `i64`), a C `bool` a `bool`. **Signed
+  arithmetic in `int` or `long`, whose overflow C leaves undefined, is Rust's
+  plain `+ - * / %` and negation**: an overflow is a bug, which a build with
+  overflow checks reports by panicking and the release build -- its profile
+  pins `overflow-checks = false` -- wraps as gcc's -O0 does; the suites
+  answer every case as the C does on a build with the checks on, so no path
+  they reach overflows. An operation whose result provably fits its type
+  (`rs_range.go`: `*s as i32 - b'0' as i32`, a mask, a remainder) and an
+  unsigned division are plain too; what C defines modular -- unsigned
+  arithmetic, a narrow type's increment, a compound assignment computed in a
+  wider type -- is `wrapping_*`, as is a pointer's step; a shift by a
+  constant `<<`, by a variable `wrapping_shl`; a compound assignment whose
+  operation is plain is `x += n`. C's usual arithmetic conversions are decided
   as the other backends decide them (`usualK`) and said with `as`. `+= -= *=
   &= |= ^=` are computed in the left side's own type, whose low bits they
   are; the rest in the usual type and converted back. A compound assignment
   whose right side calls computes it first, then reads the left: gcc's order.
-- **What C does inside an expression is a Rust block**, which is an
-  expression: `x++` as a value is `{ t1 = x; x = t1.wrapping_add(1); t1 }`,
-  an assignment's value `{ x = v; x }`, the comma `{ a; b }` -- in C's
-  order, left to right, as the Java's and the lowered form's. As a
-  statement each is a statement: `x = x.wrapping_add(1);`. An lvalue whose
+- **What C does inside an expression is a statement where C's order lets
+  it** (`rs_hoist.go`): an increment of a local nothing else can see, named
+  once in the expression and not in an operand C may not evaluate, is done
+  before or after the statement (`*d = *src; d = d.wrapping_add(1);`); an
+  assignment or a comma a condition, a return or an initializer evaluates
+  first is done before it; a `while` whose condition does something is a
+  `loop` that does it, then breaks. **Else it is a Rust block**, which is an
+  expression: `x++` as a value is `{ t1 = x; x = t1 + 1; t1 }`, an
+  assignment's value `{ x = v; x }`, the comma `{ a; b }` -- in C's order,
+  left to right, as the Java's and the lowered form's. An lvalue whose
   evaluation does something is read and written through its address, taken
   once.
 - **A condition is a Rust `bool`**: `x != 0`, `!p.is_null()`, `f.is_some()`;
@@ -121,7 +144,9 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   only where C uses one as a number.
 - **A constant is spelled as C spells it** where it can be: an enumerator
   its constant (`pub const K_DEL: i32 = ...`, each of its own type), a
-  character `b'a'`, else its value, a literal of the place's type.
+  character `b'a'`, else its value, a literal of the place's type; a string
+  `c"append".as_ptr() as *mut u8`, a byte string `b"...\0"` where it holds a
+  NUL or a byte past ASCII.
 - **A call of a function declared and not defined is the host's**:
   `crate::host::host_write(ed, ...)`; a variadic one (`vim_snprintf`) takes
   its variadic arguments as a slice, `&[VArg::I(n as i64), VArg::P(s as *mut
@@ -132,8 +157,9 @@ natively, without offsets of its own -- and C's control flow almost as it is.
 
 - **C's own** (`rs_fn.go`): `if`, `while` (`loop` for a constant condition),
   `return`, `break` and `continue` as they are; a `for`'s step and a
-  `do`'s condition run after the body, which a `continue` reaches by leaving
-  a labeled block around it (`'c3: { ... break 'c3; ... }`); a `do { ... }
+  `do`'s condition run after the body -- a short step written before each
+  `continue`, else reached by leaving a labeled block around the body
+  (`'c3: { ... break 'c3; ... }`, 2 of them); a `do { ... }
   while (0)` -- phase 173's goto regions -- is a labeled block its breaks
   leave. A `break` or `continue` says its loop's label where a labeled block
   stands between it and its loop, as Rust requires.
@@ -294,23 +320,56 @@ the heavy case 0.3 times the C's):
 The module went from 65,299 lines to 62,836; rustc 37.9 s and 0.55 GB at
 the peak.
 
+## The idioms (2026-10-02)
+
+`RUST-IDIOMS.md` surveyed what reads as C in the module, ranked it, and
+items 0-9 and 11 are done, each a change to the printer held to the whole
+recipe -- the crate with `#![deny(warnings)]`, the foreign C tests at
+opt-level 0 (where an overflow panics), all 80 and all 240 cases with the
+control seen, `whim gen --check`:
+
+- `whim whimsy --lint` counts rustc's warnings on the module with its
+  `#[allow]` taken out: 2,817 -> 702, the 482 C names kept;
+- safe functions and the editor where it is used (`rs_fx.go`): 66 `pub fn`,
+  217 functions of no editor; no `return` at a body's end;
+- signed arithmetic as C means it, plain where C's overflow is undefined or
+  provably cannot happen (`rs_range.go`), and `x += n`: `wrapping_*` 9,337 ->
+  4,798, left for pointers and unsigned arithmetic;
+- locals declared in their block, or with no value (`rs_defer.go`): 3,213
+  zeros at the top -> 1,098, `unused_assignments` 2,335 -> 220;
+- side effects out of expressions (`rs_hoist.go`): blocks 665 -> 153,
+  temporaries 528 -> 50;
+- c"" literals; a `for`'s step before its `continue` (labels 132 -> 91);
+- references for the 9 functions where the promise is provable
+  (`rs_refs.go`).
+
+The module went from 62,836 lines to 61,820; rustc 38.0-38.3 s and 0.53 GB
+at the peak; the heavy case 0.25-0.3 times the C's, as before.
+
 ## Not done
 
-- **Idiomatic Rust**, as `GO-IDIOMS.md` was for the Go and the `*-IDIOMS.md`
-  surveys for the others: the core is still C's memory and C's shape --
-  `unsafe` throughout, raw pointers, `wrapping_*`, the editor a struct of
-  the C's objects. Ownership, slices and `String` would be a survey of its
-  own.
+- **Read-only pointers as `*const`** (`RUST-IDIOMS.md` item 10): the core
+  has almost no C `const` to follow, so it is an inference over every
+  pointer's flow.
+- **What the memory model forbids**, declined in `RUST-IDIOMS.md`: `ed: &mut
+  Editor` (1,797 addresses of the editor's objects are taken, some kept in
+  tables, and the parallel `:%s` hands the editor to every core), owned data,
+  slices for C strings, Rust enums, `p.add(n)`, the 2024 edition. 1,648
+  functions stay `unsafe fn`.
 - **Miri** could check the module for undefined behaviour of Rust's own; it
   is not on the machine and was not installed.
 
 ## Risks, named in advance
 
-- **Undefined behaviour of Rust's own.** Raw pointers only, never a reference
-  to a C object, and `wrapping_*` pointer arithmetic, which is defined
-  wherever it points; Miri, which could check the rest, is not on the
-  machine.
+- **Undefined behaviour of Rust's own.** Raw pointers, references only where
+  a function touches memory through nothing else, and `wrapping_*` pointer
+  arithmetic, which is defined wherever it points; Miri, which could check
+  the rest, is not on the machine.
 - **Signed overflow** is undefined in C and wraps under gcc `-O0`, which is
-  what the suite measures: `wrapping_*` everywhere keeps that, deliberately.
-- **Readability**: `unsafe` Rust in C's shape. The price of a faithful
-  translation, as for the others.
+  what the suite measures. The release build wraps the same (its profile
+  pins `overflow-checks = false`); a debug build, or the foreign tests at
+  opt-level 0, panics there instead -- the Rust idiom's reading of C's
+  undefined behaviour, measured on the suites (none of their paths
+  overflows).
+- **Readability**: `unsafe` Rust in C's shape where the memory model needs
+  it. The price of a faithful translation, as for the others.
