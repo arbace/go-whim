@@ -10,9 +10,10 @@
 # So a slim-vim commit that does not change slim-vim.c costs a fetch and nothing
 # else.
 #
-# The pipeline is 164 phases that remove capability on purpose: phases 0-82
-# (GOALS.md Part I) leave an editor with no runtime to install; phases 83 on
-# (Part II) turn it into an embeddable core -- no filesystem, the host behind a
+# The pipeline is 104 phases, numbered 0-103 in the order they run
+# (doc/PHASES.md maps the numbers they were written under), that remove
+# capability on purpose: phases 0-26 (GOALS.md Part I) leave an editor with no
+# runtime to install; phases 27 on (Part II) turn it into an embeddable core -- no filesystem, the host behind a
 # line in the file, no libc the core names, the text a tree -- and then remove
 # from it what translating it to Go had to work around.  ONE PATH: whim-build
 # applies them in one process, in memory (internal/build).  There is no test
@@ -24,8 +25,8 @@
 #                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
 #                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure),
 #                        bin/caprice (Haskell), bin/whimsy (Rust), bin/whimsical (Scheme)
-#   make whim-build      the 145 phases in one process: slim-vim.c -> whim-vim.c,
-#                        about fifteen minutes, no cache and no checks
+#   make whim-build      the 104 phases in one process: slim-vim.c -> whim-vim.c,
+#                        about eight minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make bin/whim-vim    the C product's binary
 #   make bin/slim-vim    the input's binary
@@ -152,15 +153,15 @@ src/whim-vim.c: src/slim-vim.c force
 	$(MAKE) --no-print-directory whim-build $(if $(editor-follows),WHIM_BUILD_EDITOR=no); \
 	echo "$$live" > src/slim.sha
 
-# The pipeline in one process: 145 phases, in order, in memory -- internal/build's
+# The pipeline in one process: 104 phases, in order, in memory -- internal/build's
 # plan and internal/steps' transformations, every boundary printed canonically.  It
 # writes whim-vim.c (and editor.go after it), and keeps every boundary in
 # .cache/boundaries/.  It proves the text, not the behaviour.  Measured:
-# 145 phases, 958 s, 75,381 lines.
+# 104 phases, 451 s, 77,634 lines.
 # whim-build-check, given those snapshots, proves every phase from its own
-# snapshot at once: 65 s at --jobs 32.
+# snapshot at once: 105 s at --jobs 64.
 .PHONY: whim-build whim-build-check
-whim-build:  ## the 145 phases in one process: slim-vim.c -> whim-vim.c
+whim-build:  ## the 104 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@go tool whim build --out src/whim-vim.c
 	@$(call drop-stale,bin/whim-vim,src/whim-vim.c)

@@ -188,7 +188,7 @@ Four decisions carry the design.
   `predicates`. Go and Java ignore `:out` and `:carry`.
 - **Two levels.** The lift gives **IR-S**, with `leave`, `next` and `return`
   anywhere: Go and Java print it directly -- every one of the 49 C gotos is a
-  forward leave of an enclosing block (`CLAUDE.md`, phase 173), which is how
+  forward leave of an enclosing block (`CLAUDE.md`, phase 92), which is how
   the Java already writes them. A pass, **values**, gives **IR-V** for
   targets with no jump: every region yields its `:out` as a value, and where
   nesting fails, a `machine`. Measured today (`whim skel -clj`, run for this

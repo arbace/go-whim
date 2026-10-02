@@ -473,7 +473,7 @@ Three patterns of one kind: the C has a name, the Haskell a number.
   Haskell), so `Maybe` would be a conversion at every boundary of the 94
   functions, for a type the C does not keep. Declined but at the 94 results
   of a leaf function, if at all.
-- **`Bool`** is done: phase 166 made the 278 yes-or-no functions `bool`, and
+- **`Bool`** is done: phase 87a made the 278 yes-or-no functions `bool`, and
   the Haskell has 288 `IO Bool` functions and 283 `Bool` parameters.
 - **Where:** the printer (`hsType`, `hsParamType`, the casts in `conv`), the
   runtime (`Rt.hs`: typed readers), the host and its `hs-boot` (the host's
@@ -530,7 +530,7 @@ Three patterns of one kind: the C has a name, the Haskell a number.
   local goes to such a parameter keeps the local a binding, and its frame
   goes when nothing else is in it. An in-out parameter could be a value in
   and a value out as well, but the callee must then not reach the local by
-  another way: that is phase 175's proof (`crefactor/xform`'s `MemberOut`,
+  another way: that is phase 94's proof (`crefactor/xform`'s `MemberOut`,
   for members), which for locals is simpler -- a local's address that is
   only passed is reachable only through the parameter.
 - **Where:** either a pipeline phase in the manner of 174-175 (the C returns
@@ -902,7 +902,7 @@ Items 4-6 and 8-11, in the printer (`crefactor/togo`: `hstypes.go`,
 - **Tuning GHC's collector**: `-A256m`, `-H4g` no gain; `-F4` 7% faster for
   46% more memory.
 - **Exceptions for FAIL**: as the Clojure found, FAIL carries nothing and the
-  C has no `setjmp`; phase 166 made the yes-or-no functions `Bool`.
+  C has no `setjmp`; phase 87a made the yes-or-no functions `Bool`.
 
 ## The throwaway files
 

@@ -9,16 +9,16 @@ classes) -- and its last part, the one class of every `char *`, is declined
 `crefactor/togo`'s instance pass makes the globals an `Editor`'s fields and
 the functions reaching them its methods -- an embeddable component, and the
 shape a Java class needs (`doc/AGENDA.md`). And the gotos item 10 began on are
-49 of 185 since phases 170-173.
+49 of 185 since phases 89-92.
 
 **Since written:** its first recommendation is done -- `make whim-test` now runs
 the 44 cases on the Go editor against the C product, with the control, on every
 run (the finding below that it never did is the state it was written in). Its
 second is done too: items 1 and 2 (lint) are 0 on vet, staticcheck and `gofmt
--s`, by generator rules and phases 164-165. Chasing them found a generator bug the
-survey did not: a comma expression whose value is a constant lost its effects,
+-s`, by generator rules and phase 86 (and its part 86a). Chasing them found a
+generator bug the survey did not: a comma expression whose value is a constant lost its effects,
 which silenced 28 of the regexp compiler's error exits in the Go. The third
-(truth values typed `bool`) is phase 166, and item 4 (locals where C declares them)
+(truth values typed `bool`) is phase 87a, and item 4 (locals where C declares them)
 is the generator's now. Item 7 is done in the part that is a
 rule: a pointer into an array that never walks is a plain `*T` (`&a[i]`,
 `p.Ref(k)`), unless it is also handed on as a `void *`, which may walk it
@@ -26,10 +26,10 @@ unseen. That took the `Ptr` of another element type than `byte` from 320 to
 149, `Ptr[Ptr[byte]]` from 107 to 12, `Addr(` from 108 to 9 and `.P()` from
 462 to 86. The rest of it -- a forward-walking pointer as a resliced `[]T` --
 is declined (*Declined: the C strings as Go slices*, below): `Ptr[byte]` is
-C's string, compared and subtracted across the file, and one class. Item 10 is phase 168: a `goto` whose label marks
+C's string, compared and subtracted across the file, and one class. Item 10 is record 168: a `goto` whose label marks
 `return x` is that return, 19 of them, and seven functions with no `goto` left
 have their locals where C declares them. Items 11 and 12 are declined,
-measured on `editor/` as it stands after phase 168 (a throwaway `go/types`
+measured on `editor/` as it stands after record 168 (a throwaway `go/types`
 counter):
 
 - **11, the globals as an `Editor` struct.** It is mechanical, but it is not
@@ -129,7 +129,7 @@ change to `crt.go`/`host.go`, or to the Go after generation.
   is `del_char()` at `editor.go:7064`. `vim_islower`/`vim_isupper`/`vim_toupper`
   (`editor.go:8331–8388`) return before a Latin-1 branch that has no way in any
   more.
-- **Related:** staticcheck finds 2 allocation-failure checks that phases 148/149
+- **Related:** staticcheck finds 2 allocation-failure checks that phases 74a and 74
   missed (SA4031: `mp = new(S_mapblock); if mp == nil`, `editor.go:23692`;
   `frp`, `editor.go:58567`), 6 values never used (SA4006), 1 overwritten
   argument (SA4009) and 1 discarded call result (SA4017).

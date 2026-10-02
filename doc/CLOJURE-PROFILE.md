@@ -17,10 +17,10 @@ change to the Clojure editor is chosen from it.
 - **The C**: `whim-vim.c` built as `bin/whim-vim` is (`-O0`) but with `-g`,
   under `perf record -F 4000`, eight runs.
 - **A stale build misleads.** The first profile, of a `bin/vijure` built
-  before phase 181, showed `utfc_ptr2len` building a lazy sequence and an
+  before phase 100, showed `utfc_ptr2len` building a lazy sequence and an
   `int-array` on every call (an out-parameter boxed in a one-element array,
   which `Numbers.int_array` fills through `RT.seq`): 8.7% of the samples.
-  Phase 181 had already removed it; `make bin/vijure` first, always.
+  Phase 100 had already removed it; `make bin/vijure` first, always.
 
 ## What was found
 

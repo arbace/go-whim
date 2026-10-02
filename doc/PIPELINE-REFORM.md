@@ -1,5 +1,9 @@
 # Reforming the pipeline: drops first, the C last
 
+> **The numbers.** The phase numbers here are the old numbering, 0 to 184
+> with gaps, as this was written; the pipeline runs under 0 to 103 now.
+> `doc/PHASES.md` maps the one to the other.
+
 2026-09-30. A survey for review. It changes nothing but adds this file. It
 was measured at `b63f0df`: 154 plan entries numbered 0-184, 77,634 lines, and
 a full build of 1,005 s. The snapshots it used are the sealed boundaries in
@@ -1465,6 +1469,25 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      514 s of CPU under a load of 85-90 (433 and 530 for the same check
      just before, at 52-85), and again on its snapshots in parallel, 118 s
      at 107-139; both end `whim-vim.c byte for byte`.
+
+13. **The fresh numbering (after the reform).** Step 8 kept the old numbers
+   and labelled blocks; the AGENDA's last queued item asked for the numbers
+   themselves. The 104 phases are numbered 0-103 by their place in the plan,
+   the blocks label ranges of the new numbers, and `doc/PHASES.md` maps old
+   to new. The 33 programs that run inside another phase (the seed's three,
+   the ones the front calls, the earlier members of the compaction groups)
+   are that phase's parts, `internal/phase/NNN/x/` and `whimNx`; the archive
+   keeps its old numbers, and 45-47, which edited nothing, joined it. It was
+   driven by one table (`internal/phase/numbers.md`) through one program
+   (`internal/phase/renumber`), the moves by `git mv`, and what the program
+   could not decide -- ranges with a record or a part at an end, snapshots of
+   no running phase, uppercase and bare citations -- by hand.
+   - **The proof.** `rm -rf .cache/boundaries`, then `whim build --check` in
+     order, 451 s wall and 563 s of CPU under a load of 54-62, and again on
+     its snapshots in parallel, 105 s at 54-69; both end `whim-vim.c byte for
+     byte`. `whim gen` changes nothing and `make whim-editor-check` passes;
+     `whim build --from 5 --to 5` on q004 gives q005; `whim measure` rewrote
+     `internal/phase/boundaries.md` under the new numbers.
 
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with

@@ -164,7 +164,7 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   `do`'s condition run after the body -- a short step written before each
   `continue`, else reached by leaving a labeled block around the body
   (`'c3: { ... break 'c3; ... }`, 2 of them); a `do { ... }
-  while (0)` -- phase 173's goto regions -- is a labeled block its breaks
+  while (0)` -- phase 92's goto regions -- is a labeled block its breaks
   leave. A `break` or `continue` says its loop's label where a labeled block
   stands between it and its loop, as Rust requires.
 - **A goto is a labeled block** that ends at its label, the goto `break

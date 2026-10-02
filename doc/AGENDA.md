@@ -9,9 +9,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-- **A fresh numbering of the phases**, beyond the block labels: some 4,200
-  citations, the snapshots and `--from`/`--to` name the numbers (§7, step
-  8).
+Nothing queued.
 
 ## Known stale, not yet scoped
 
@@ -23,16 +21,16 @@ Nothing known.
 - **The generic steps moved to the end, and `BoolRet` run once** (2026-10-02;
   the pipeline reform's G, `PIPELINE-REFORM.md` §7). Each move was run from
   the step's position to the product.
-  - 120's unions: phase 137 names the field as 120 leaves it.
-  - 134's empty blocks: phase 145 takes the block 134 leaves.
-  - 149's never-null folds: the product is 34 lines longer.
+  - Phase 50's unions: phase 65 names the field as 50 leaves it.
+  - Phase 62's empty blocks: phase 71 takes the block 62 leaves.
+  - Phase 74's never-null folds: the product is 34 lines longer.
   - `BoolRet` once: 120 lines differ.
-  - The attributes (107), not tried at the end: they must precede 120, 134
-    and 149, which cannot move. They moved the other way, to the seed, after
-    `NullptrUsize` (106) (§7, G), and the variadic collapse (105) with
-    them: 282 lines of phases 1-105's programs, cutters and vendored C
-    respelled for 106, 14 for 107, 6 lines and 4 counts for 105, the chain
-    byte for byte.
+  - The attributes (part 0c), not tried at the end: they must precede 50, 62
+    and 74, which cannot move. They moved the other way, to the seed, after
+    `NullptrUsize` (part 0a) (§7, G), and the variadic collapse (part 0b)
+    with them: 282 lines of the programs, cutters and vendored C that ran
+    before them respelled for 0a, 14 for 0c, 6 lines and 4 counts for 0b,
+    the chain byte for byte.
 
   Declined: the rewires are written for these steps' text.
 
@@ -45,7 +43,7 @@ Nothing known.
   type-precise heap model, which no suite could check, to share byte arrays.
   Declined.
 - **core.async for the Clojure editor's parallel `:%s`** (2026-09-28). The
-  parallel body of `match_lines` (phase 177) was written five ways and
+  parallel body of `match_lines` (phase 96) was written five ways and
   measured, each built in place with its start-up cache, all answering the
   quick suite's 73 cases as the C: braaam's `Rt/chunks` (the Java's
   fork-join pool, through a `reify`: what is committed), Clojure `future`s,

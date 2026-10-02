@@ -157,7 +157,7 @@ No standalone executable: compiled `.go` files run under `guile`.
 C with Cheney on the M.T.A. The 6.0 manual still says "Native threads that
 map directly to the threads provided by the operating system are not
 supported ... execution of Scheme code on multiple processor cores is not
-available" (https://wiki.call-cc.org/eggref/6/srfi-18). That is phase 177's
+available" (https://wiki.call-cc.org/eggref/6/srfi-18). That is phase 96's
 parallel `:%s` lost, and every function of the core goes through gcc as one
 C file of CPS fragments -- the Java's huge-method trouble in another form.
 
@@ -319,7 +319,7 @@ Scheme's proper tail calls make every jump a jump.
   assembly); a 64-arm `case` costs 700 ms per 50 M dispatches against 610 for
   a `vector` of the arms' procedures, so the vector is for the few hot wide
   switches only, if the profile asks.
-- **Out-parameters and struct results** (phase 181): multiple values,
+- **Out-parameters and struct results** (phase 100): multiple values,
   `(values r x1)` and `let-values`, which Chez returns without allocating;
   `hsout.go` and `hsstruct.go`'s decisions reused.
 - **`host_exit`**: a condition raised and caught by `run`, as caprice's

@@ -32,7 +32,7 @@ form -- a function as basic blocks, 1,800 lines, printable back as C -- sits
 under the Clojure printer alone. There is already one per-target escape
 hatch: `Profile.RuntimeBodies`, a function whose body each target writes
 natively (used for `ga_grow_inner`, and for `match_lines`, the parallel
-`:%s`'s primitive: phases 176-177).
+`:%s`'s primitive: phases 95-96).
 
 ## Should editor.go be the centre?
 
@@ -83,13 +83,13 @@ It is a range that gives a substitution work to share: `:%s` (every line),
 gains nothing.
 
 It was built as a refactor of the C first, then one primitive (2026-09-28;
-`internal/phase/176` and `177` have the account and the measurements):
+`internal/phase/095` and `096` have the account and the measurements):
 
-1. **Phase 176: the regex engine's state is a parameter.** `rex`, its
+1. **Phase 95: the regex engine's state is a parameter.** `rex`, its
    stacks and the look-behind and brace variables are one struct,
    `regengine_T`, handed down from the four functions the editor calls the
    engine by -- a generic transform, `crefactor/xform`'s `StateParam`.
-2. **Phase 177: a line's match on its own.** Not the split into snapshot,
+2. **Phase 96: a line's match on its own.** Not the split into snapshot,
    match and apply sketched here first: the engine can match one line
    handed to it and nothing else, and fails where a match would need more
    (another line, the cursor, a mark, a message); `match_lines` makes every
@@ -151,7 +151,7 @@ shared decisions one piece at a time, the suites green throughout.
 - **The C stays the centre** for behaviour.
 - **The parallel `:%s` now,** as two C phases and a primitive with per-target
   bodies: the cheapest route to the 64 cores, and fully verifiable. Done:
-  phases 176-177.
+  phases 95-96.
 - **The IR is the long-term architecture:** start it when there are several
   speed features to share, not for one.
   The fourth target came (2026-09-29: caprice, the Haskell editor,

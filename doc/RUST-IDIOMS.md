@@ -107,7 +107,7 @@ At `cb3f2db`: all 80 and all 240 as the C does, the control seen by 76 and by
 | by operand (the backend's count) | pointers about 4,000 (`p.wrapping_add(1)`, `.wrapping_offset(i as isize)`); signed integers 4,258 (1,167 `x++`/`x--`, 3,091 binary); unsigned 445 |
 | casts `as` | 12,021; 569 a cast of a cast |
 | locals | 3,213 declared at the top with a zero (`let mut c: i32 = 0;`), 1,356 at their first value (`sinkDecls`), 2 nested |
-| block expressions | 682: 280 `x++` as a value, 105 `++x`, 174 an assignment's value, 123 a comma's (phase 181's results unpacked) |
+| block expressions | 682: 280 `x++` as a value, 105 `++x`, 174 an assignment's value, 123 a comma's (phase 100's results unpacked) |
 | temporaries `t1`, `t2` ... | 528 declared |
 | labels | 132: 30 `'cN` (a `for`'s continue reaching its step), 10 `'g_` (gotos), 31 `'lN` (a loop a `break` names), 13 `'sN` and 48 `'vN` (switches and their ladders) |
 | `return` | 2,304; 875 the function's last statement |
@@ -511,7 +511,7 @@ does with the control seen, `go test ./whimsy`, `whim gen --check`.
   loops the walk is too conservative for: the module keeps its `#[allow]`.
 - **Item 6** (`2946815`): also an assignment or a comma first evaluated by a
   condition, a return, an initializer or a plain assignment's value -- which
-  takes phase 181's results out of their blocks, `let mut o: pr = two(3);
+  takes phase 100's results out of their blocks, `let mut o: pr = two(3);
   let mut a2: i32 = o.a; let r2: i32 = o.r;`. Found by the suite: the first
   version hoisted the comma of a statement's own `(void)(o = f(), p =
   o.x)` and then wrote it again -- every case moved; bisected to
@@ -595,7 +595,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 | locals declared with no value, `let x: T;` | 396 | 447 (499 after item 13; items 14-16 let more be declared at their value in a block) |
 | the module's `#![allow]` | the C's names, `unused_assignments` | the C's names alone; 4 functions `#[expect(unused_assignments)]` |
 | block expressions | 154 | 67 |
-| labels | 91 | 75: 32 a ladder's, 13 a switch a break leaves, 11 phase 173's regions, 10 gotos', 7 loops a break names, 2 a for's continue |
+| labels | 91 | 75: 32 a ladder's, 13 a switch a break leaves, 11 phase 92's regions, 10 gotos', 7 loops a break names, 2 a for's continue |
 | rustc's warnings (`--lint`, every allow and expect out) | 702: 220 `unused_assignments` | 487: 5 `unused_assignments`, 482 the C's names |
 | rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB (39.0-39.5 s quiet) |
 | the heavy case | 0.25-0.3x | 0.25-0.3x (112-147 ms against 435-473; now and then 154-200 ms, 0.35-0.5x, under the machine's load, the other agents' builds beside) |
@@ -674,7 +674,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
   Labels 91 -> 75, editor.rs 61,965 -> 61,897 lines. The 75 left are
   what Rust has no other word for: 32 rungs of ladders that fall into
   more, 13 a switch a `break` inside a loop or an `if` leaves (Rust's
-  `break` would leave the loop), 11 phase 173's regions and 10 gotos (C's
+  `break` would leave the loop), 11 phase 92's regions and 10 gotos (C's
   own), 7 loops a break names past a labeled block, 2 a for's step after
   a long `continue`.
 - **Item 16, `else { if ... }` as `else if`** (`rs_fn.go`'s `elseIf`,
@@ -742,7 +742,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
   around nearly every statement. The narrower `unsafe` that idiom asks for
   needs the safe functions first (item 2), and there are few.
 - **`Option<&T>` for a nullable pointer, `Result` for FAIL.** The pointers
-  that are tested for null are also walked; FAIL carries nothing (phase 166
+  that are tested for null are also walked; FAIL carries nothing (phase 87a
   made the yes-or-no functions `bool`).
 
 ## The throwaway files

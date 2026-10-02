@@ -5,7 +5,7 @@ leaves, seven times over: in C, in Go, in Java, in Clojure, in Haskell, in
 Rust and in Scheme, each required to answer every test case as the C does.
 
 ```
-slim-vim.c ──── whim: 124 phases, in order ────▶ whim-vim.c   an embeddable editor core
+slim-vim.c ──── whim: 104 phases, in order ────▶ whim-vim.c   an embeddable editor core
                                                       │
                   crefactor/togo ─────────────────────┼──▶ editor/   the core in Go
                                                       ├──▶ braaam/   the core in Java
@@ -20,23 +20,25 @@ preprocessor or comments, from [arbace/slim-vim](https://github.com/arbace/slim-
 `make` fetches it, and vim's `LICENSE`, at that repository's head.
 
 **The pipeline** removes capability on purpose.
-- **The front, phases 1-3, cuts first.** It cuts every interface and feature
-  the product has not, as twelve packages: the command line, the Ex commands,
-  the files, the options, the swap file, startup, the encoding, the terminal,
-  one window and buffer, the editing features, one regexp engine, the process.
-  Then a generic fall-out closure folds what each cut left unwritten.
+- **The front, phases 1-5, cuts first.** Phases 1-3 cut every interface and
+  feature the product has not, as twelve packages: the command line, the Ex
+  commands, the files, the options, the swap file, startup, the encoding, the
+  terminal, one window and buffer, the editing features, one regexp engine,
+  the process. Then a generic fall-out closure folds what each cut left
+  unwritten, and phases 4 and 5 cut what counts on the text it leaves.
 - **The phases after it, in order,**
   - drop what can only be cut late;
   - rewire the core for a host: no filesystem, no libc it names, and the host
     across a line in the file;
   - make generic C rewrites for the translations.
 
-Each phase is its steps, then a reachability sweep, then one canonical print,
-and the phases are named in 39 blocks of three kinds: `d` drops, `r` rewires,
-`g` generic steps. `make whim-build` runs them all in one process in about
-fourteen minutes. The product, `src/whim-vim.c`, is tracked, and
+Each phase is its steps, then a reachability sweep, then one canonical print.
+The phases are numbered 0 to 103 in the order they run (`doc/PHASES.md` maps
+the numbers they were written under), and named in 34 blocks of three kinds:
+`d` drops, `r` rewires, `g` generic steps. `make whim-build` runs them all
+in one process in about eight minutes. The product, `src/whim-vim.c`, is tracked, and
 `make whim-build-check` requires it back byte for byte: every phase checked
-from its own snapshot, side by side, in about 75 seconds.
+from its own snapshot, side by side, in under two minutes.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
 from each other. `editor/editor.go`, `braaam/editor/`,

@@ -360,7 +360,7 @@ seen. The records the survey mentions are not done.
   times). Of 105 `Ptr<>` parameters, 96 never walk (`char_u **arg`, which
   the callee advances).
 - **What it becomes, in three parts:**
-  1. **Done: phase 174** -- `pos_T.lnum` and `.col` unboxed, the `[0]`
+  1. **Done: phase 93** -- `pos_T.lnum` and `.col` unboxed, the `[0]`
      reads 7,032 -> 4,874. **A C phase for `mark_adjust_internal` and `cursor_pos_info`** (15
      address sites): the macro as a function of the value, `x =
      one_adjust(x, line1, line2, amount, amount_after)`, and the two columns
@@ -390,7 +390,7 @@ seen. The records the survey mentions are not done.
 
 ### 7. `int` truth values the C still has
 
-**Done: phase 183** (2026-09-30): phase 166's rule on the file-scope objects,
+**Done: phase 102** (2026-09-30): phase 87a's rule on the file-scope objects,
 `BoolRet` with `Globals`. 79 flags are `bool`, with 1 function, 7 locals, 4
 members and 3 parameters that became answers with them; one a table takes
 the address of (the options' `&p_wiv`), compared with a code, sized, or
@@ -407,28 +407,28 @@ The printer now compares answers as themselves (`empty_line !=
 wp.w_ru_empty`, `else if (retval)`): 173 -> 138, a control seen.
 `TRUE`/`FALSE`, 873: 378 arguments -- 155 of them rows of `key_name_entry`
 and `nv_cmds`, whose members a positional initialiser fills and so stay
-int -- and 379 assignments, to flags phase 183's rule keeps int for three
+int -- and 379 assignments, to flags phase 102's rule keeps int for three
 reasons it could drop:
 - the save-and-restore idiom, `int save = msg_scroll; ... msg_scroll =
   save;`, a cycle a least fixed point never proves (a greatest would);
 - a literal 0 or 1 assigned (`got_int = 0`, `need_wait_return = 0`),
   which the rule takes for no answer;
 - `|=` of an answer (`got_int |= ...`, `msg_didout |= ...`).
-**Done: phase 184** (2026-09-30), those three: 64 declarations, 11 flags
+**Done: phase 103** (2026-09-30), those three: 64 declarations, 11 flags
 among them; `TRUE`/`FALSE` 871 -> 779. What stays int now is flags saved
 in a local its function also uses for other values (`msg_scroll`,
 `redraw_cmdline`, `msg_didout`: the facts go by name, and a flow-sensitive
 analysis of the locals would be the next step), and `got_int`, which the
 host's signal handler sets.
 
-- **The pattern:** phase 166 made the core's yes-or-no functions, locals,
+- **The pattern:** phase 87a made the core's yes-or-no functions, locals,
   members and parameters `bool`, and not the file-scope objects: **92** are
   still `static int x = TRUE;` or `= FALSE;` in `whim-vim.c` (`VIsual_active`,
   `msg_scroll`, `redraw_cmdline`, `exiting`). In the Java: `TRUE`/`FALSE`
   named 951 times, `x != 0` 1,952 times and `x == 0` 1,293 (620 of the 3,245
   are flag tests, `(x & F) != 0`, which stay), `VIsual_active != 0` 113, and
   `b ? 1 : 0` 183 (`bufref_valid`, `:16072`, `del_bytes`, `:16772`).
-- **What it becomes:** phase 166's rule on file-scope objects (a global that
+- **What it becomes:** phase 87a's rule on file-scope objects (a global that
   only ever holds an answer, never `++`, `|=` or its address taken); the
   printer then writes `if (VIsual_active)`.
 - **Who:** a C phase (`crefactor/xform`'s `BoolRet` extended), for both
@@ -436,7 +436,7 @@ host's signal handler sets.
 
 ### 8. What else the C spells that no one would write
 
-**Done: phase 182** (2026-09-30; `crefactor/xform`'s `plainc.go`). Its three
+**Done: phase 101** (2026-09-30; `crefactor/xform`'s `plainc.go`). Its three
 steps know no code base: a call of an identity function is its argument,
 cast by the body's cast where the types differ (`_()`, 399 calls); C's
 one-comparison ASCII class tests are `ascii_isupper`, `_islower` and
@@ -456,7 +456,7 @@ Java: `gettext_(` 400 -> 1 (its definition), `Integer.compareUnsigned` 150
   them again (`ascii_isupper(c)`, static and small, as vim's `ASCII_ISUPPER`
   was). S, none.
 - **Two constant conditions:** `if (0)` in `win_update` (`:20446`) and
-  `else if (!TRUE)` in `ex_z` (`:23430`), dead in both editors; phase 164's
+  `else if (!TRUE)` in `ex_z` (`:23430`), dead in both editors; phase 86a's
   kind. S, none.
 
 ### 9. Side effects the Go had to split and Java need not
@@ -534,7 +534,7 @@ named package (item 11).
   the arrow's line, any other a block. 389 arrow cases; `break;` 1,104 ->
   780. The switches C falls through in, or declares in, keep their labels
   (514).
-- **Labeled blocks.** Phase 173's 11 `do { ... } while (false)` are
+- **Labeled blocks.** Phase 92's 11 `do { ... } while (false)` are
   labeled blocks, `c4: { ... break c4; ... }`, as a goto's are; a `break`
   or `continue` that left the once-loop leaves the block (a stack of what
   `break` is, beside `continue`'s).
@@ -566,7 +566,7 @@ Each is S and none; the counts are the Java's today.
 | a narrowing compound assignment made explicit (`n = (int) (n + count)`) | 40 | javac `lossy-conversions` |
 | a C fall-through marked `// fall through`, and `@SuppressWarnings("fallthrough")` on its method | 23 in 10 switches | javac `fallthrough` |
 | the 60 switches with no fall-through in arrow form (`case K_DEL, K_KDEL -> ...`): 364 grouped labels and 470 closing `break`s go; the 6 that only return (`handle_x_keys`, `get_varp_allbuf`, `can_bs`) as switch expressions | 60 | the counter |
-| phase 173's `do { ... } while (false)` as a labeled block, as the other gotos are | 11 | the counter |
+| phase 92's `do { ... } while (false)` as a labeled block, as the other gotos are | 11 | the counter |
 | an empty-bodied `for` as a `while` (`for (; s.get() != 0; s = s.add(1)) {}`, `musl_strlen`) | 40 | PMD `EmptyControlStatement` |
 | every method `private` but the 17 host methods and the 10 the glue and `Printf.Core` call (`vim_main`, `deathtrap`, `emsg`, `iemsg`, `gettext_`, `utfc_ptr2len`, ...) | 1,710 package-private today | PMD `CommentDefaultAccessModifier` |
 | a method that reaches no field of the editor, directly or through its callees, `static` | 249 | the graph |
@@ -752,11 +752,11 @@ not done.
   `mokstate_T`); an `enum` would add `.ordinal()` everywhere they are used
   as what they are. Grouping their constants by enum would help reading,
   and is naming (item 12).
-- **Exceptions for FAIL.** Phase 166 made OK and FAIL `true` and `false`
+- **Exceptions for FAIL.** Phase 87a made OK and FAIL `true` and `false`
   (59 of the names are left, and 285 methods return `boolean`); a failure
   has already said why through `emsg`, and carries nothing for an exception
   to hold. `Exit` is the one exception the editor needs, and it has it.
-- **`try`/`finally` for the C's cleanups.** Phases 170-173 turned the
+- **`try`/`finally` for the C's cleanups.** Phases 89-92 turned the
   cleanup gotos into tails and blocks; 10 labeled blocks and 49 `break`s are
   left, and a labeled `break` is Java's own forward jump. A `finally` would
   run on `Exit` too, which the C's cleanup never does.

@@ -228,7 +228,7 @@ no initial value refused. The 8 are the allocators (`alloc`, `alloc_clear`,
 and none is written -- as the Go's runtime replaces them. Of the 18 the Go's
 runtime replaces, the Java writes the other 10: the 9 C string functions,
 translated, and `ga_grow_inner`, a rule of the profile's
-(`RuntimeBody.Java`, in `internal/whim/gen.go`) -- as, since phase 177, is
+(`RuntimeBody.Java`, in `internal/whim/gen.go`) -- as, since phase 96, is
 `match_lines`, whose loop over lines runs in chunks on the common fork-join
 pool (`Rt.chunks`).
 
@@ -429,7 +429,7 @@ its signals), with `--enable-native-access=ALL-UNNAMED` (without it the JVM
 prints a warning on the editor's screen), `-XX:-UsePerfData` (no hsperfdata
 file in /tmp for every run), `-XX:TieredStopAtLevel=1` (measured, a run to
 the stub: 215 ms without it and `-XX:+UseSerialGC`, 188 ms with them), the
-parallel collector, `-XX:+UseParallelGC`, since phase 177 runs the regex
+parallel collector, `-XX:+UseParallelGC`, since phase 96 runs the regex
 engine on every core in a `:%s` and the serial one stopped every thread while
 it collected alone (a 100,000-line `:%s/\v(a|b)+c/X/g` 3.1 s with it, 0.98 s
 with the parallel one; a short session starts in 0.28 s against 0.27), and

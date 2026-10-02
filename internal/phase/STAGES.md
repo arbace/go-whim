@@ -1,5 +1,9 @@
 # The stages: a record
 
+> **The numbers.** The phase numbers here are the old numbering, 0 to 184
+> with gaps, as this was written; the pipeline runs under 0 to 103 now.
+> `doc/PHASES.md` maps the one to the other.
+
 **There are no stages any more.**  Every phase is its steps, the sweep, and the
 canonical print (internal/build's `finish`); a step may be a sweep too, where an
 edit needs its text swept before its next step reads it.  Stages were the price

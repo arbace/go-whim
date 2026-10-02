@@ -309,7 +309,7 @@ After items 1, 3 and 4:
 
 - **The pattern.** 1,714 `(not (fxzero? x))`, an `int` tested as a truth
   value; 361 `(b->i b)`, a bool made a number; 1,853 `(not (fx=? a b))`.
-- **What it would become.** Phases 166, 183 and 184 made the C's answers
+- **What it would become.** Phases 87a, 102 and 103 made the C's answers
   `bool` already; what is left is the C's own ints (`got_int`, counts
   tested for zero) and comparisons. `(fxzero? x)` with the arms swapped is
   shorter; the rest is the C's.
@@ -319,7 +319,7 @@ After items 1, 3 and 4:
 
 - **Multiple values** (milestone 1): a struct of scalars a function returns
   is `values` (64 functions), an out-parameter a value in and out (2 left
-  by phase 181), a struct local of scalars bindings (148) -- the decisions
+  by phase 100), a struct local of scalars bindings (148) -- the decisions
   of `outparams.go` and `structvalues.go`, shared with the Haskell.
 - **The host as a record** (milestone 3): `host.ss`'s `host` record of
   procedures, R6RS's buffer convention.

@@ -4,7 +4,7 @@
 `cases.md`. They are the 102 screen cases of the suite the phases were verified
 with (`448e9a8`, `internal/harness/zcaselist.go`), converted by a program: each
 case types its OWN text under `paste`, and none opens a file, since the core has
-had no way to name one since phase 91.
+had no way to name one since phase 30.
 
 One line per case: the name, the startup arguments separated by `|`, and the
 keys, all tab-separated. The escapes are `cases.md`'s: `\e \r \n \t \\ \xHH`

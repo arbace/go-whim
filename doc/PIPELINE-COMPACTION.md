@@ -1,5 +1,9 @@
 # Compacting the pipeline: a survey of its 170 phases
 
+> **The numbers.** The phase numbers here are the old numbering, 0 to 184
+> with gaps, as this was written; the pipeline runs under 0 to 103 now.
+> `doc/PHASES.md` maps the one to the other.
+
 2026-09-25. This survey measures and changes nothing: the only file it adds is
 this one. It was measured on commit `fd1eff2` ("edit: PureCond no longer takes a
 one-argument call for a cast"), against that commit's sealed boundaries

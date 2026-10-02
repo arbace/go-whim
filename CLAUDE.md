@@ -21,69 +21,70 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, phases 0-184 from 180,870
-  lines to 77,634. It is two arcs, a coda, an empty phase, five for the Go's
-  sake, the headers, the gotos, the parallel `:%s`, the out-parameters
-  and struct locals as values, the C spelled plainly, and its flags bool:
-  - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
-    install, 80,926 lines at q80, the last of them that edits (81 and 82 are
-    records);
-  - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
-    no filesystem, the host behind a line in the file, no libc the core names, the
-    text a tree. `GOALS.md` Part II, *Phases 83 to 128 as they
-    stand*, is the account read across and belongs there, not here;
-  - **phases 129-162** (Part II too) remove from the core what transpiling it to
-    Go (`editor/editor.go`, `internal/gen/FINDINGS.md`) had to work around. All but 142
-    were meant to change nothing the editor does; 142 drops the build date from
-    the version line.
-    `internal/gen/FINDINGS.md` maps each finding to its phase.
-  - **phase 163** printed the product in the one canonical spelling phase 0
-    seeds with; it is empty now that every boundary is printed that way.
-  - **phases 164-165** take what the Go's linters found dead in the C: the
-    statements after a jump (164, a general rule) and six stores nothing reads
-    (165, named). With the generator's own fixes, `go vet`, staticcheck and
-    `gofmt -s` are clean on `editor/`.
-  - **phase 166** declares `bool` the 278 core functions whose every return
-    answers yes or no -- OK and FAIL included, OK being `true` -- and the
-    locals, struct members and parameters that only ever hold an answer; `f() == FAIL` is `!f()`. So the Go says
-    `if f()` where it said `if f() != 0`.
-  - **phase 167** names the 153 constant key codes (`K_DEL`, `K_IGNORE`) the
-    preprocessor's removal left as arithmetic; the binary is byte-identical.
-  - **phase 168** is a record: it wrote `return x;` for each `goto` whose
-    label marks `return x;`, which is phase 170's rule with a tail of no
-    statements, and 170 takes them all (the reform's G, measured byte for
-    byte).
-  - **phase 169** drops every system header nothing needs, in one step:
+- **whim** (the `Makefile`) removes capability on purpose, phases 0-103 from
+  180,870 lines to 77,634, numbered in the order they run (`doc/PHASES.md`
+  maps them to the numbers they were written under, 0-184 with gaps, which
+  `GOALS.md`, every `GOAL.md` and the records still use). It is two arcs, a
+  coda, five for the Go's sake, the headers, the gotos, the parallel `:%s`,
+  the out-parameters and struct locals as values, the C spelled plainly, and
+  its flags bool:
+  - **phases 0-26** (`GOALS.md` Part I, where they are 0-82) leave an editor
+    with no runtime to install, 80,772 lines at q026;
+  - **phases 27-56** (`GOALS.md` Part II, 83-128 there) turn it into an
+    embeddable core: no filesystem, the host behind a line in the file, no
+    libc the core names, the text a tree. `GOALS.md` Part II, *Phases 83 to
+    128 as they stand*, is the account read across and belongs there, not
+    here;
+  - **phases 57-85** (Part II too, 129-162 there) remove from the core what
+    transpiling it to Go (`editor/editor.go`, `internal/gen/FINDINGS.md`) had
+    to work around. All but 70 were meant to change nothing the editor does;
+    70 drops the build date from the version line. `internal/gen/FINDINGS.md`
+    maps each finding to its phase, in the old numbers.
+  - **phase 86** takes what the Go's linters found dead in the C: the
+    statements after a jump (its part 86a, a general rule) and six stores
+    nothing reads (86, named). With the generator's own fixes, `go vet`,
+    staticcheck and `gofmt -s` are clean on `editor/`.
+  - **phase 87**'s part 87a declares `bool` the 278 core functions whose
+    every return answers yes or no -- OK and FAIL included, OK being `true` --
+    and the locals, struct members and parameters that only ever hold an
+    answer; `f() == FAIL` is `!f()`. So the Go says `if f()` where it said
+    `if f() != 0`. Then 87 names the 153 constant key codes (`K_DEL`,
+    `K_IGNORE`) the preprocessor's removal left as arithmetic; the binary is
+    byte-identical.
+  - **phase 88** drops every system header nothing needs, in one step:
     each `#include` is tried and kept out while the file compiles silently.
-    Phases 82, 99 and 104 once did it piecemeal, and the phases between them
-    asserted the counts it left; now they assert only that every directive is a
-    contiguous `#include` and that they add and remove none.
-  - **phase 170** copies a label's tail -- at most three statements and the
+    Records 82 and 99 and phase 40 once did it piecemeal, and the phases
+    between them asserted the counts it left; now they assert only that every
+    directive is a contiguous `#include` and that they add and remove none.
+  - **phase 89** copies a label's tail -- at most three statements and the
     return, or a void function's end -- over each of the 98 `goto`s that reach
     one (`crefactor/xform`'s `GotoTail`), and drops the 21 labels left
-    unreached: 21 of the 41 functions with a `goto` have none left.
-  - **phases 171-172** take the gotos a loop says: one to the statement after
+    unreached: 21 of the 41 functions with a `goto` have none left. Record
+    168 wrote `return x;` for each `goto` whose label marks `return x;`, which
+    is this rule with a tail of no statements, and 89 takes them all (the
+    reform's G, measured byte for byte).
+  - **phases 90-91** take the gotos a loop says: one to the statement after
     its own loop or switch is `break;`, one to where control goes next anyway
-    is deleted (171, `GotoBreak`); a goto back to a label is a loop and
-    `continue;` (172, `GotoLoop`): 4 breaks, 1 deleted, 2 loops.
-  - **phase 173** (after the headers: it touches none) wraps the region a
+    is deleted (90, `GotoBreak`); a goto back to a label is a loop and
+    `continue;` (91, `GotoLoop`): 4 breaks, 1 deleted, 2 loops.
+  - **phase 92** (after the headers: it touches none) wraps the region a
     forward `goto` leaves -- to a label of a block that holds it, no loop or
     switch between -- in `do { ... } while (0);` and writes the goto `break;`
     (`crefactor/xform`'s `GotoBlock`); togo writes that do-while as Go's
     `switch { default: ... }`, a break leaving it as the C's does (`for { ...;
-    break }` before, which staticcheck reads as a loop unconditionally ended). After 170-172: 50 gotos, 11 labels. The C keeps 49
-    gotos, all in the core (185 before 170): each leaves a loop or switch and
+    break }` before, which staticcheck reads as a loop unconditionally ended). After 89-91: 50 gotos, 11 labels. The C keeps 49
+    gotos, all in the core (185 before 89): each leaves a loop or switch and
     needs a flag or a state variable, which a Java backend need not have (a
     labeled break says them). The Go keeps the same 49, in 8 functions, from 163 in 34:
     togo writes no goto of its own (a continue that must reach a loop's end
     is `break contN` out of a once-loop around the body).
-  - **phase 174** takes the address of a position's line and column out of
+  - **phase 93** takes the address of a position's line and column out of
     the two functions that took it -- `mark_adjust_internal()`'s 13
     expansions of vim's `one_adjust()` macros become calls of two functions
     of the value, and `cursor_pos_info()`'s columns come back through locals
     -- so the Java and Clojure editors no longer box `pos_T.lnum` and `.col`
     (the Java's `[0]` reads 7,032 -> 4,874).
-  - **phase 175** is that rule in general (`crefactor/xform`'s `MemberOut`):
+  - **phase 94** is that rule in general (`crefactor/xform`'s `MemberOut`):
     a call passing `&s->m` for its callee to read and write calls a function
     written once per callee and member that does it through a local --
     where the copy is provably the call's (nothing the callee can reach names
@@ -91,11 +92,11 @@ slim-vim.c  --whim-->  whim-vim.c
     such a site): 4 members, `[0]` reads 4,874 -> 4,774; the rest held and
     reported (the option table's pointers; vim's error paths reach code that
     names the others).
-  - **phases 176-177** are the parallel `:%s` (`doc/PARALLEL-SUBSTITUTE.md`).
-    176 makes the regex engine's state -- `rex`, its stacks, the look-behind
+  - **phases 95-96** are the parallel `:%s` (`doc/PARALLEL-SUBSTITUTE.md`).
+    95 makes the regex engine's state -- `rex`, its stacks, the look-behind
     and brace variables -- one struct, `regengine_T`, handed down as a
     parameter from the four functions the editor calls the engine by
-    (`crefactor/xform`'s `StateParam`: 16 objects, 43 functions). 177 lets
+    (`crefactor/xform`'s `StateParam`: 16 objects, 43 functions). 96 lets
     the engine match one line handed to it and nothing else, failing where a
     match would need more (another line, the cursor, a mark, a message), and
     adds `match_lines`, which says for each line of a range whether it holds
@@ -104,16 +105,16 @@ slim-vim.c  --whim-->  whim-vim.c
     chunks on every core, each on an engine of its own (a runtime body,
     `internal/whim/gen.go`). Exact whatever the pattern: nothing the editor
     does moves.
-  - **phase 178** has `:g`'s marking pass ask `match_range` too, one search
+  - **phase 97** has `:g`'s marking pass ask `match_range` too, one search
     a line (`:g/\v(a|b)+c/d` at 500,000 lines: Go 9.1 -> 0.8 s, Clojure 106
-    -> 5.6); **phase 179** returns from `ml_clearmarked` when nothing is
+    -> 5.6); **phase 98** returns from `ml_clearmarked` when nothing is
     marked -- its loop read line 0's slot, index -1, which the Go, Java and
     Clojure editors failed on for any `:g` that matched nothing.
-  - **phase 180** has the C host's `host_time()` return `WHIM_TIME` when it
+  - **phase 99** has the C host's `host_time()` return `WHIM_TIME` when it
     is set (the Go and Java hosts do the same), and the suite sets it on
     every editor it runs: undo's "N seconds ago" counted wall-clock seconds
     crossed, and the JVM editors failed its cases now and then under load.
-  - **phase 181** makes an out-parameter a value in and a value out
+  - **phase 100** makes an out-parameter a value in and a value out
     (`crefactor/xform`'s `LocalOut`: a parameter `T *p` its callee only
     reads, writes and null-tests, every caller passing `&x` of a local
     nothing else reaches, x not read unsequenced beside the call; the value
@@ -122,7 +123,7 @@ slim-vim.c  --whim-->  whim-vim.c
     functions (14 taking no value in), 66 structs. The Java's `[0]` reads
     4,802 -> 4,009, the Clojure's one-element arrays 637 -> 515; the Java
     takes a struct a call returns as it is, the Haskell as a tuple.
-  - **phase 182** spells plainly what the preprocessor left
+  - **phase 101** spells plainly what the preprocessor left
     (`crefactor/xform`'s `plainc.go`): gettext's identity `_()` is not
     called, each call its argument (399); `(unsigned)c - 'A' < 26` and its
     kin are `ascii_isupper(c)`, `_islower`, `_isdigit` again (136); an `if`
@@ -131,14 +132,14 @@ slim-vim.c  --whim-->  whim-vim.c
     the constant `if (1) { len = 0; }` showed three parameters whose value
     the function never reads; the Go writes them `_` with a local of the
     name (`deadInParams`), which keeps `editor/` staticcheck-clean.
-  - **phase 183** is phase 166's rule on the file-scope objects
+  - **phase 102** is part 87a's rule on the file-scope objects
     (`BoolRet` with `Globals`): 79 flags that only ever hold an answer --
     `VIsual_active`, `msg_scroll`, `exiting` -- are `bool`, and with them 1
     function, 7 locals, 4 members and 3 parameters; one whose address a
     table takes (`&p_wiv`), one compared with a code, sized, or shadowed by
     a local stays `int`. The Java's `VIsual_active != 0` 115 -> 0, its
     `TRUE`/`FALSE` 1,195 -> 875.
-  - **phase 184** takes what 183's rule left int (`BoolRet` with `Relax`):
+  - **phase 103** takes what 102's rule left int (`BoolRet` with `Relax`):
     the greatest fixed point, so a flag saved in a local and restored is
     an answer; a literal 0 or 1 assigned; `x |= E` of an answer, written
     `x = (E) || x`. 64 declarations, 11 of them flags (`need_wait_return`,
@@ -146,30 +147,31 @@ slim-vim.c  --whim-->  whim-vim.c
     saved in a local its function reuses (`msg_scroll`), and `got_int`,
     which the host sets.
 
-  Phase 83 is the line between the two arcs.
+  The line between the two arcs falls between phases 26 and 27, where record
+  83 stands in the old numbers.
 
   **The pipeline reform** (`doc/PIPELINE-REFORM.md`) reordered what the bytes
   allow.
-  - **Phases 1-7 are the front.** They cut every interface and feature the
+  - **Phases 1-5 are the front.** They cut every interface and feature the
     product has not, as twelve packages (D1-D12; phase 1 runs D1-D5, phase 2
     D6-D8, phase 3 D9-D12, each part followed by its own closure, so that the
     parallel check runs the three side by side): the command line, the Ex commands,
     the files, `:q`'s refusal, reading, the command syntax, the options, the
     swap file, startup, the encoding, the terminal, one window and buffer,
     the editing features, one regexp engine, the process; and, after the
-    reform, every drop that stayed: the editing-feature programs of 57, 58,
-    63, 65, 66 and 74 at the end of phase 3's part, and first in phases 6
-    and 7, on the text the phase before swept, what counts or anchors on
-    swept text -- 13's `nostat`, 76's program, 42's `onebuffer` and the
-    programs of 67, 68, 71 and 85 (59's after `nowildmenu`) at phase 6;
-    25's `nobackup`, 50's `lfonly`, 51-53's `keepbytes` and `noconv`, and
-    the programs of 64, 72, 73 and 75 at phase 7. The fall-out closure
-    (`crefactor/xform`'s `FallOut`) folds what each of phases 1-3 left
-    unwritten.
+    reform, every drop that stayed: the editing-feature programs, phase 3's
+    parts 3a-3f, at the end of its part, and first in phases 4 and 5, on the
+    text the phase before swept, what counts or anchors on swept text --
+    `nostat` (record 13's), part 4a, `onebuffer` (record 42's) and parts
+    4b-4e (4f after `nowildmenu`) at phase 4; `nobackup` (phase 12's),
+    `lfonly`, `keepbytes` and `noconv` (records 50, 51 and 53's) and parts
+    5a-5d at phase 5. The fall-out closure (`crefactor/xform`'s `FallOut`)
+    folds what each of phases 1-3 left unwritten.
   - **The rest are named in blocks.** `d02`-`d13` are the drops that count
     text only their predecessors leave, `r01`-`r14` the rewires, and
     `g01`-`g11` the generic steps (`doc/GOALS.md`, *The pipeline as it runs*).
-  - **The phases that edit nothing are records** in `internal/phase/archive/`.
+  - **The phases that edit nothing are records** in `internal/phase/archive/`,
+    under their old numbers.
 
   **The test suite is minimal.** Each phase was verified, while it was written, by a
   check program of its own and a delta declared in advance against recorded
@@ -191,7 +193,7 @@ slim-vim.c  --whim-->  whim-vim.c
   counts, back-references, look-behind, classes -- since the Go editor
   was found matching no `\|` in `doc/PARALLEL-SUBSTITUTE.md`; and 29 `par_*`
   cases, each a `:%s` or a `:g` over 3,000 numbered lines built by keys with every
-  line printed after it, one for each thing that sends phase 177's
+  line printed after it, one for each thing that sends phase 96's
   matching back to the loop, across the parallel editors' chunks). About
   11 s, the four builds side by side. **`make
   whim-test-wide`** is optional and wider: 240 cases in four groups -- the 102
@@ -248,26 +250,33 @@ slim-vim.c  --whim-->  whim-vim.c
 ## What a file is called
 
 **Code is `.go`, data is `lowercase.md`, prose is `UPPERCASE.md`**, and the three
-mix freely in one directory: `internal/phase/097/` holds `edit.go` and `GOAL.md`. A
+mix freely in one directory: `internal/phase/036/` holds `edit.go` and `GOAL.md`. A
 data file in Markdown puts its data in a FENCED BLOCK and its notes around it,
 and the reader takes the fence and ignores the rest -- `internal/build`'s
 `declared()` reads `internal/phase/001/delta.md` that way (the command rows phase 1
-retires at the front, which phase 80 then deletes), and phase 98's edit embeds `internal/phase/098/musl-ctype.md` and
+retires at the front, which phase 26 then deletes), and phase 37's edit embeds `internal/phase/037/musl-ctype.md` and
 `musl-case.md` and splices their fenced C in byte for byte. What is left outside
 the rule is what Markdown would only obscure: `src/slim.sha` and `src/upstream.sha`, one
 digest each, read by `make`.
 
-**A phase is a directory, `internal/phase/NNN/`**, its number in three digits so that they
-sort: `GOAL.md`, which opens `# Phase N — …` and says what the phase removes,
-why and what was measured, and -- for the 112 phases whose cut is a program of
-its own -- `edit.go`, which makes that directory **a Go package**, `pNNN`
-(`editlit.go` beside it where the literals are long). The other phases are plan
-steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
+**A phase is a directory, `internal/phase/NNN/`**, its number -- its place in
+the plan, 0 to 103 -- in three digits so that they sort: `GOAL.md`, which opens
+`# Phase N — …` and says what the phase removes, why and what was measured (in
+the numbers it was written under, which the line under its title gives), and
+-- for the 79 phases whose cut is a program of their own -- `edit.go`, which
+makes that directory **a Go package**, `pNNN`, registered as `whimN`
+(`editlit.go` beside it where the literals are long). **A part** is a program a
+phase runs among its steps that had a number of its own -- a compaction
+group's earlier member, or a program the front calls -- in a directory inside
+the phase's, `internal/phase/NNN/x/`: package `pNNNx`, registered as `whimNx`,
+lettered in the order the phase runs them; there are 33. The other phases are
+plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()`, and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
 
-**`doc/GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
+**`doc/GOALS.md`** is what holds for every phase, in the old numbers but for its
+section on the pipeline as it runs: Part I (phases 0-82: the charter,
 what was measured and the declared delta -- a record now, see its opening -- the rules, the sweep, the concept index,
 an index of the phases) and Part II (phases 83 on: the core's charter, what is
 measured from 83 on, the core's rules -- cited as *core rule N*, and holding beside
@@ -369,14 +378,16 @@ internal/whim/     what the generic side is told about vim: profile.go (the
                    names), gen.go (togo's profile, whim.Gen),
                    and vimtext/ (what more than one phase uses that knows vim: the
                    buffer walks, Key, the command table's residue check, the
-                   prototype and #include shapes phases 118-119 share, and the
-                   Python-port helpers of 126-128; a shape one phase alone uses
+                   prototype and #include shapes part 49b and phase 49 share, and the
+                   Python-port helpers of phases 54-56; a shape one phase alone uses
                    is in that phase's shapes.go)
 internal/phase/    the registry the phases' programs join (registry.go, query.go),
                    and the phases: NNN/ (GOAL.md, and edit.go where its cut is a
-                   program; cmd/whim/phases.go imports each blank), archive/NNN/
-                   (the records: a GOAL.md each, for a phase that edits nothing
-                   now), STAGES.md (the record of
+                   program; NNN/x/ its parts; cmd/whim/phases.go imports each
+                   blank), archive/NNN/ (the records, under their old numbers:
+                   a GOAL.md each, for a phase that edits nothing now),
+                   numbers.md (every live directory's old number and new) and
+                   renumber/ (the program that moved them, spent), STAGES.md (the record of
                    the stages there were, and of the measurement that retired them --
                    prose, not a manifest a program reads) and boundaries.md
                    (every boundary's lines, entity counts, binary and nm -u, as
@@ -489,14 +500,15 @@ Makefile           the whole build: fetches the input, runs the pipeline, builds
 src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), upstream.sha and slim.sha;
                    their binaries are bin/slim-vim and bin/whim-vim
-doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
+doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
+                   numbers, new and old), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
                    declined), JAVA.md (the Java backend: its design and milestones),
                    JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md, RUST-IDIOMS.md and SCHEME-IDIOMS.md (how the
                    Java, Clojure, Haskell, Rust and Scheme editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, 6, 7, 8's headroom (9 declined), and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 93) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in
@@ -564,15 +576,15 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- C23's,
-  `nullptr` and `usize` and the attributes included, since phase 0 runs phase
-  106's rename, 105's variadic collapse and 107's attributes on the canonical
+  `nullptr` and `usize` and the attributes included, since phase 0 runs its
+  parts 0a's rename, 0b's variadic collapse and 0c's attributes on the canonical
   input and every later phase is written for them -- applied
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **423 s**, 514 s of CPU, 77,634 lines, under a
-  load of 85-90 (815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
-  9, and the regexps and phase 110 made cheaper in step 11, and phase 110 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
+  before the reason. Measured: 104 phases, **451 s**, 563 s of CPU, 77,634 lines, under a
+  load of 54-62 (815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
+  9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -590,11 +602,11 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **118 s** under a load of 107-139 (95 s at about 60, 76-77 s at a
+  committed `whim-vim.c`. Measured: **105 s** under a load of 54-69 (118 s at 107-139, 76-77 s at a
   lighter one), 103 links 64 at a time, bound by
-  the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 34, 25 and 32 s, phases 6 and 7 10 and 7 s, the seed 12 s and phase 110 14 s; phase 1 alone was 89 s), against 423 s in
+  the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 37, 25 and 33 s, phases 4 and 5 12 and 7 s, the seed 12 s and phase 43 15 s; phase 1 alone was 89 s), against 451 s in
   order; and a phase whose program was changed -- on purpose (a control),
-  or phase 177's while it was being written -- is named and fails the check. That is
+  or phase 96's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
   program changed breaks its own link and is named. With no snapshots of this
   input it runs the pipeline in order, which writes them. It proves the text,
@@ -621,9 +633,9 @@ make help            # every target, with a line each
   -s`, for the input, the product and every boundary: an ordinary static
   executable, no stack protector. `internal/build/compile.go` states it for the
   tools (`FlagsFor`, `score`, `measure`), and the `Makefile` as `CFLAGS`/`LDFLAGS`
-  for its two binary rules. It moved at phases 83 (`-no-pie`) and 84
-  (`-fno-stack-protector`) until those became the line for all; the two phases
-  change nothing now.
+  for its two binary rules. It moved at the old phases 83 (`-no-pie`) and 84
+  (`-fno-stack-protector`) until those became the line for all; the two are
+  records now.
 - **No `-g`**, so a formatting change leaves the binary byte-identical -- the
   cheapest comparison there is. `SOURCE_DATE_EPOCH=0` pins `__DATE__`/`__TIME__`
   when two builds are compared.
@@ -642,20 +654,22 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 104 of them, in order, numbered 0-184. 45 phases that
-edit nothing any more are records only, a `GOAL.md` each in
-`internal/phase/archive/` (`doc/GOALS.md` lists them): most because phase 1's
-front runs their cut now, 168 because `GotoTail` takes its gotos
-(`doc/PIPELINE-REFORM.md` §7). 61's program is called by the front too, so it
-has no plan entry but keeps its directory, and so do 57, 58, 63, 65, 66 and
-74's (phase 3 calls them), 59, 67, 68, 71, 76 and 85's (phase 6) and 64,
-72, 73 and 75's (phase 7, each on the text the phase before swept); 106's, 105's and 107's are phase
-0's three steps, the same. And the
-12 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d still running -- 44-48,
-51-53, 72-73, 100-102, 117-119, 121-122, 143-145, 148-149, 151-152,
-153-154, 164-165, 166-167 -- each run as one phase under the group's last
-number. A gap in the numbers is nothing to the driver,
-which pairs plan entries by position. **There is no memoize**: its key
+`p_N = f_N(p_{N-1})` -- 104 of them, in order, numbered 0-103 by their place
+in the plan (`TestPlanNumbers` holds the plan to it; `doc/PHASES.md` maps the
+numbers they were written under, 0-184 with gaps). 48 phases of the old
+numbering that edit nothing any more are records only, a `GOAL.md` each in
+`internal/phase/archive/` under the old number (`doc/PHASES.md` lists them and
+says where each one's work went): most because the front runs their cut now,
+168 because `GotoTail` takes its gotos (`doc/PIPELINE-REFORM.md` §7). 33
+programs that had numbers of their own run inside another phase, as its parts:
+the seed's three (0a-0c), the programs the front calls (2a; 3a-3f; 4a-4f and
+5a-5d, each on the text the phase before swept), and the earlier members of the
+same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d that run as one phase,
+the group's last: 15, 38, 49, 51, 71, 74, 76, 77, 86 and 87 (of the two other
+groups still running before, 72-73 are phase 5's parts 5b and 5c, and 51-53
+are records). One program runs before its own
+phase: phase 2's front calls `whim18`, whose package's second entry,
+`whim18kp`, runs in phase 18. **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
@@ -704,13 +718,13 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 185.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 104.
 The pipeline's goal is met; a phase now is for the Go editor, where the C is
 the cause of what the generator cannot make idiomatic. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
-itself if its cut is a program (a line in `cmd/whim/phases.go`); and an entry at
-the end of `internal/build`'s `Plan` naming its steps (the sweep follows
-every phase). Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
+itself as `whimN` if its cut is a program (a line in `cmd/whim/phases.go`); and
+an entry at the end of `internal/build`'s `Plan`, numbered N, naming its steps
+(the sweep follows every phase), and its row in `doc/PHASES.md`. Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
 and `editor/editor.go` are rewritten), `make whim-test` against the commit
 before it (a phase that removes capability moves cases on purpose: name them),
 and whatever further evidence the phase needs, stated in its `GOAL.md`.

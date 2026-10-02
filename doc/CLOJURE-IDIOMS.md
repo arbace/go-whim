@@ -384,7 +384,7 @@ after (a changed row is seen); start-up 15-20 ms longer (the rows parsed).
 **Declined: the messages** as data the editors share (2026-09-29, at
 `6540f9f`). Byte arrays that nothing may write, and the proof must say
 nothing writes them through a pointer either: no suite could see it fail,
-since an editor writing its own copy behaves the same. After phase 181 there
+since an editor writing its own copy behaves the same. After phase 100 there
 are 185 such arrays (a file-scope byte array initialized by a string). A
 flow analysis over the core was written to prove it (not kept). It followed
 each pointer from an array or a parameter, through locals, casts, `p + n`,
@@ -445,9 +445,9 @@ integer-to-pointer casts is the constant 0. Measured:
 
 ### 5. Struct members whose address is taken
 
-**Done in part: phase 174** takes `pos_T.lnum` and `.col` out of it (the
+**Done in part: phase 93** takes `pos_T.lnum` and `.col` out of it (the
 C's 11 `&pos.lnum`s and its two columns): `(aget ... 0)` 10,786 -> 8,997.
-The other members stay boxed. **Phase 175** is the rule in general,
+The other members stay boxed. **Phase 94** is the rule in general,
 provably safe sites only: 4 more members (`regmlen`, `char_attr`, `p_extra`,
 `cmdidx`); the rest are the option table's pointers (kept by design), members
 whose address a local pointer keeps (`cp = &cap->nchar`), and callees whose
@@ -691,7 +691,7 @@ read-only loops the survey counted, are the runtime's now (item 6).
   cannot be written. The 677 `BytePtr/lit` literals flow into that class.
   Only the constant messages (item 4) could be strings, where the analysis
   proves them read-only.
-- **FAIL/OK as exceptions (`ex-info`).** Phase 166 made the 278 yes-or-no
+- **FAIL/OK as exceptions (`ex-info`).** Phase 87a made the 278 yes-or-no
   functions `bool`; what is left is 86 uses of `OK`/`FAIL` (functions whose
   status has a third value) and 893 of `TRUE`/`FALSE` in `int` flags that
   hold other values too. FAIL carries nothing -- the message went through

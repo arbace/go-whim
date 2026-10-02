@@ -1,5 +1,10 @@
 # GOALS.md — reduce slim-vim to an embedded editor, and that to an embeddable core
 
+> **The numbers.** The phase numbers in this document are the old numbering,
+> 0 to 184 with gaps, as each part was written -- except in *The pipeline as it
+> runs*, which uses the numbers the pipeline runs under, 0 to 103.
+> `doc/PHASES.md` maps the one to the other.
+
 `slim-vim.c` is vim as one translation unit, with every feature upstream's
 `tiny` configuration has. **`whim-vim.c` is what is left when the editor stops
 expecting a filesystem to have been installed for it** (Part I, phases 0 to 82),
@@ -39,6 +44,11 @@ an editor with no file to write can still be measured by. `CoreFrom` in
 
 ## The pipeline as it runs: blocks, and the archive
 
+**This section uses the pipeline's numbers as it runs: 0 to 103, in the plan's
+order.** Everything else in this document is the record of how the phases were
+written, in the numbers they had then (0 to 184, with gaps); `doc/PHASES.md`
+maps the one to the other.
+
 The pipeline reform (`doc/PIPELINE-REFORM.md`) left the phases where the bytes
 allow and named them in **blocks**. A block is a run of consecutive phases in
 the plan (`internal/build`), named by kind and number:
@@ -46,64 +56,71 @@ the plan (`internal/build`), named by kind and number:
 - `r` a vim-specific rewire that keeps capability;
 - `g` a generic C step;
 - `s00` the seed: the input printed canonically, and spelled in C23 there --
-  `nullptr` and `usize`, phase 106's rename, the variadic collapse, phase
-  105's, and the attributes, phase 107's -- so every later phase reads the
-  product's spelling.
+  `nullptr` and `usize` (part 0a), the variadic collapse (0b) and the
+  attributes (0c) -- so every later phase reads the product's spelling.
 
 A block is a label on the phase that opens it, which the build's log prints as
-a heading; the phases keep their numbers, which the snapshots (`qNNN.c`),
-`--from` and `--to` use. The kinds interleave where the measurements put them.
-D1-D12 are the front of phases 1-3 (D1-D5, D6-D8, D9-D12), each part followed by
-its own fall-out closure, so that the parallel check runs the three side by
-side; the drops that stayed after the reform joined phase 3's part, or run
-first in phases 6 and 7 on the text the front swept, so the block `d01-front`
-runs to phase 7 (§7 of the reform, step 10). A generic step
-stays in the middle where the rewires after it were written for its text (§7
-of the reform: 120, 134 and 149).
+a heading; a phase's number is its place in the plan, which the snapshots
+(`qNNN.c`), `--from` and `--to` use. The kinds interleave where the
+measurements put them. D1-D12 are the front of phases 1-3 (D1-D5, D6-D8,
+D9-D12), each part followed by its own fall-out closure, so that the parallel
+check runs the three side by side; the drops that stayed after the reform
+joined phase 3's part, or run first in phases 4 and 5 on the text the front
+swept, so the block `d01-front` runs to phase 5 (§7 of the reform, step 10). A
+generic step stays in the middle where the rewires after it were written for
+its text (§7 of the reform: phases 50, 62 and 74).
 
 | block | phases |
 |---|---|
 | `s00-seed` | 0 |
-| `d01-front` | 1-7 (5 phases) |
-| `d02-outside` | 14-25 (7 phases) |
-| `d03-editing` | 28, 32 |
-| `d05-commands-and-options` | 48, 49 |
-| `d07-options` | 55-62 (4 phases) |
-| `d09-one-of-each` | 69, 70 |
-| `d11-commands` | 77-80 (4 phases) |
-| `d12-terminal-and-ex` | 87 |
-| `d13-files` | 89-96 (8 phases) |
-| `r01-libc` | 97, 98 |
-| `r02-host-chain` | 102, 103, 104 |
-| `r03-boundary` | 108-119 (9 phases) |
-| `g02-unions` | 120 |
-| `r04-terminal` | 122 |
-| `r05-memory` | 124 |
-| `r06-memline` | 125-128 (4 phases) |
-| `r07-types` | 129, 130, 131 |
-| `r08-memory` | 132, 133 |
-| `g03-empty-blocks` | 134 |
-| `r09-regex` | 135, 136 |
-| `r10-types` | 137-140 (4 phases) |
-| `r11-gotos` | 141, 142, 145 |
-| `r12-memline-and-host` | 146, 147 |
-| `g04-never-null` | 149 |
-| `r13-translation` | 150-162 (11 phases) |
-| `g05-dead` | 165 |
-| `g06-bool-and-keys` | 167 |
-| `g07-includes` | 169 |
-| `g08-gotos` | 170-173 (4 phases) |
-| `r14-parallel-substitute` | 174-180 (7 phases) |
-| `g09-values` | 181 |
-| `g10-plain-c` | 182 |
-| `g11-bool` | 183, 184 |
+| `d01-front` | 1-5 |
+| `d02-outside` | 6-12 |
+| `d03-editing` | 13, 14 |
+| `d05-commands-and-options` | 15, 16 |
+| `d07-options` | 17-20 |
+| `d09-one-of-each` | 21, 22 |
+| `d11-commands` | 23-26 |
+| `d12-terminal-and-ex` | 27 |
+| `d13-files` | 28-35 |
+| `r01-libc` | 36, 37 |
+| `r02-host-chain` | 38-40 |
+| `r03-boundary` | 41-49 |
+| `g02-unions` | 50 |
+| `r04-terminal` | 51 |
+| `r05-memory` | 52 |
+| `r06-memline` | 53-56 |
+| `r07-types` | 57-59 |
+| `r08-memory` | 60, 61 |
+| `g03-empty-blocks` | 62 |
+| `r09-regex` | 63, 64 |
+| `r10-types` | 65-68 |
+| `r11-gotos` | 69-71 |
+| `r12-memline-and-host` | 72, 73 |
+| `g04-never-null` | 74 |
+| `r13-translation` | 75-85 |
+| `g05-dead` | 86 |
+| `g06-bool-and-keys` | 87 |
+| `g07-includes` | 88 |
+| `g08-gotos` | 89-92 |
+| `r14-parallel-substitute` | 93-99 |
+| `g09-values` | 100 |
+| `g10-plain-c` | 101 |
+| `g11-bool` | 102, 103 |
+
+**Parts.** A program a phase runs among its steps that had a number of its own
+is a part of that phase, `internal/phase/NNN/x/`, registered `whimNx`: the
+seed's three (0a-0c); the programs the front calls (2a at phase 2; 3a-3f at
+the end of phase 3's part; 4a-4f and 5a-5d first in phases 4 and 5, on the
+text the phase before swept); and the earlier members of the compaction groups
+that run as one phase (15a, 38a-38b, 49a-49b, 51a, 71a-71b, 74a, 76a, 77a, 86a,
+87a).
 
 **The archive.** A phase that edits nothing any more is a record: its
 `GOAL.md` alone, in `internal/phase/archive/NNN/`, with its old number. There
-are 45: 4, 5, 8, 9, 10, 11, 12, 13, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 50, 51, 52, 53, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program the front calls (56 and 61; 57, 58, 63, 65,
-66 and 74 at phase 3; 59, 67, 68, 71, 76 and 85 at phase 6; 64, 72, 73 and
-75 at phase 7) keeps its directory and program where they were; the
-seventeen of them with no plan entry left are records too.
+are 48: 4, 5, 8, 9, 10, 11, 12, 13, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31,
+33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 50, 51, 52, 53, 54,
+81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. `doc/PHASES.md` says where
+each one's work went.
 
 # Part I — phases 0 to 82: an editor with no runtime
 

@@ -26,13 +26,13 @@ told them, one value, `whim.Gen` (`internal/whim/gen.go`, of type
 are translated and whose bodies are not (`alloc*`, `musl_mem*`, `musl_str*`,
 `ga_grow_inner`, `match_lines`), the bodies of those two, which are rules
 of the runtime's (`match_lines`'s runs its loop over lines in chunks on
-goroutines, `Chunks` in `editor/chunks.go`: phase 177);
+goroutines, `Chunks` in `editor/chunks.go`: phase 96);
 the allocators and `vim_free`; `musl_memmove`/`memcpy`/`memset`/`memcmp` as
 the functions of bytes; `garray_T` and its `ga_data`; `usize` as sizeof's
 type; the `varp` parameters that pun; `_` as `gettext_`; and `editor.go`'s
 header. Nothing in `togo` names any of them; its test translates a small C
 file told nothing at all. Three of them move
-nothing in today's core, measured by dropping each: `vim_free` (phase 132
+nothing in today's core, measured by dropping each: `vim_free` (phase 60
 dropped its calls), the `varp` puns (no `char *` parameter is so named any
 more) and `usize` (an alias of `uint64`, which the emitter writes the same).
 
@@ -198,14 +198,14 @@ NULL` is `gap.ga_data = nil`.
 ## `container_of`
 
 The phase-128 C recovered a struct from a hash key that pointed into it, and
-the first pass kept an owner registry for it. Since phases 133 and 140 the C
+the first pass kept an owner registry for it. Since phases 61 and 68 the C
 has no `container_of` and no hash table, and the registry is gone. If one
 reappears, it is a finding for a pipeline phase, not something to work around
 here.
 
 ## Option variables: `varp`
 
-Since phases 151 and 152 the C types them, and so does the Go:
+Since phases 76a and 76 the C types them, and so does the Go:
 - `vimoption_T.var`, `optset_T.os_varp` and every `varp` are an `optvar_T`
   (`ov_int *int32`, `ov_long *int64`, `ov_str Ptr[Ptr[byte]]`, `ov_win`);
 - the defaults are `def_str [2]Ptr[byte]` and `def_num [2]int64`.

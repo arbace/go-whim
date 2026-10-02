@@ -51,7 +51,7 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
   `allocaBytes`), zeroed; every other local is a Haskell binding -- a struct
   of scalars used by member and copied whole one binding per member, and a
   local whose address only goes to an out-parameter a binding too;
-- **an out-parameter is a value in and a value out**: phase 181 makes it
+- **an out-parameter is a value in and a value out**: phase 100 makes it
   so in the C (`LocalOut`), a struct of the result and the values returned,
   which the Haskell returns as a tuple -- a function whose C result is a
   struct of scalars returns its members, `IO (Bool, Ptr Char_u, Int32)` --
@@ -146,7 +146,7 @@ as the C does, gives the C's answer.
 
 ## The parallel :%s
 
-`match_lines` (phases 176-177) has a Haskell body of its own
+`match_lines` (phases 95-96) has a Haskell body of its own
 (`RuntimeBody.Hs`, `internal/whim/gen.go`): the chunks on `forkIO`'s
 threads (`chunks`, `Caprice.Rt`), each on a regex engine the core's
 `alloc_clear` makes -- its size and its `failed` member's offset asked of the
