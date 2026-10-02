@@ -2702,13 +2702,13 @@
 (define-c-member yankreg_T.y_type u8 16)
 (define-c-member yankreg_T.y_width s32 20)
 
-(define (ascii_isupper ed c)
+(define (ascii_isupper c)
   (fx<? (u32- (->u32 c) (ch #\A)) 26))
 
-(define (ascii_islower ed c)
+(define (ascii_islower c)
   (fx<? (u32- (->u32 c) (ch #\a)) 26))
 
-(define (ascii_isdigit ed c)
+(define (ascii_isdigit c)
   (fx<? (u32- (->u32 c) (ch #\0)) 10))
 
 (define (musl_memcpy ed dest src n)
@@ -2833,11 +2833,11 @@
     (let loop1 ([l ls]
                 [r rs])
       (if (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r))))
-               (let ([r1 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-                 (fx=? r1 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
+               (let ([r1 (if (ascii_isupper (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
+                 (fx=? r1 (if (ascii_isupper (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
           (loop1 (fx+ l 1) (fx+ r 1))
-          (let ([r2 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-            (i32- r2 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))))
+          (let ([r2 (if (ascii_isupper (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
+            (i32- r2 (if (ascii_isupper (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))))
 
 (define (musl_strncasecmp ed ls rs n)
   (let ([mem (ed-mem ed)])
@@ -2847,11 +2847,11 @@
                                                 [l ls]
                                                 [r rs])
                                       (if (and (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r)))) (not (eqv? n 0)))
-                                               (let ([r1 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-                                                 (fx=? r1 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
+                                               (let ([r1 (if (ascii_isupper (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
+                                                 (fx=? r1 (if (ascii_isupper (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
                                           (loop2 (u64- n 1) (fx+ l 1) (fx+ r 1))
-                                          (let ([r2 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-                                            (i32- r2 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))))))
+                                          (let ([r2 (if (ascii_isupper (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
+                                            (i32- r2 (if (ascii_isupper (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))))))
 
 (define (musl_strchr ed s c)
   (let ([mem (ed-mem ed)])
@@ -2883,50 +2883,50 @@
                                         [(fx=? (ld-s8 s) (ld-s8 c)) s]
                                         [else (loop4 s (fx+ c 1))])) 0))))
 
-(define (musl_isdigit ed c)
-  (ascii_isdigit ed c))
+(define (musl_isdigit c)
+  (ascii_isdigit c))
 
-(define (musl_isalpha ed c)
+(define (musl_isalpha c)
   (fx<? (u32- (fxior (->u32 c) 32) (ch #\a)) 26))
 
-(define (musl_isupper ed c)
-  (ascii_isupper ed c))
+(define (musl_isupper c)
+  (ascii_isupper c))
 
-(define (musl_islower ed c)
-  (ascii_islower ed c))
+(define (musl_islower c)
+  (ascii_islower c))
 
-(define (musl_isgraph ed c)
+(define (musl_isgraph c)
   (fx<? (u32- (->u32 c) 33) 94))
 
-(define (musl_isspace ed c)
+(define (musl_isspace c)
   (or (fx<? (u32- (->u32 c) (ch #\tab)) 5) (fx=? c (ch #\space))))
 
-(define (musl_isalnum ed c)
-  (or (musl_isalpha ed c) (musl_isdigit ed c)))
+(define (musl_isalnum c)
+  (or (musl_isalpha c) (musl_isdigit c)))
 
-(define (musl_iscntrl ed c)
+(define (musl_iscntrl c)
   (or (fx<? (->u32 c) 32) (fx=? c 127)))
 
-(define (musl_ispunct ed c)
-  (and (musl_isgraph ed c) (not (musl_isalnum ed c))))
+(define (musl_ispunct c)
+  (and (musl_isgraph c) (not (musl_isalnum c))))
 
-(define (musl_tolower ed c)
-  (if (musl_isupper ed c) (fxior c 32) c))
+(define (musl_tolower c)
+  (if (musl_isupper c) (fxior c 32) c))
 
-(define (musl_toupper ed c)
-  (if (musl_islower ed c) (fxand c 95) c))
+(define (musl_toupper c)
+  (if (musl_islower c) (fxand c 95) c))
 
 (define (musl_atoi ed s)
   (let ([mem (ed-mem ed)])
     (define (loop7 s n neg)
-      (if (musl_isdigit ed (ld-s8 s))
+      (if (musl_isdigit (ld-s8 s))
           (loop7 (fx+ s 1) (i32- (i32* 10 n) (i32- (ld-s8 s) (ch #\0))) neg)
           (if (not (fxzero? neg)) n (i32- 0 n))))
     (let loop1 ([s s]
                 [n 0]
                 [neg 0])
       (cond
-        [(musl_isspace ed (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
+        [(musl_isspace (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
         [(fx=? (ld-s8 s) (ch #\-)) (loop7 (fx+ s 1) n 1)]
         [(fx=? (ld-s8 s) (ch #\+)) (loop7 (fx+ s 1) n neg)]
         [else (loop7 s n neg)]))))
@@ -2934,14 +2934,14 @@
 (define (musl_atol ed s)
   (let ([mem (ed-mem ed)])
     (define (loop7 s n neg)
-      (if (musl_isdigit ed (ld-s8 s))
+      (if (musl_isdigit (ld-s8 s))
           (loop7 (fx+ s 1) (i64- (i64* 10 n) (i32- (ld-s8 s) (ch #\0))) neg)
           (if (not (fxzero? neg)) n (i64- 0 n))))
     (let loop1 ([s s]
                 [n 0]
                 [neg 0])
       (cond
-        [(musl_isspace ed (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
+        [(musl_isspace (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
         [(fx=? (ld-s8 s) (ch #\-)) (loop7 (fx+ s 1) n 1)]
         [(fx=? (ld-s8 s) (ch #\+)) (loop7 (fx+ s 1) n neg)]
         [else (loop7 s n neg)]))))
@@ -2956,7 +2956,7 @@
                   [any any]
                   [over over])
         (cond
-          [(and (fx=? base 10) (musl_isdigit ed (ld-s8 p)))
+          [(and (fx=? base 10) (musl_isdigit (ld-s8 p)))
            (let* ([t1 p]
                   [p (fx+ p 1)]
                   [d (->u64 (i32- (ld-s8 t1) (ch #\0)))])
@@ -2975,33 +2975,33 @@
                 [any 0]
                 [over 0])
       (cond
-        [(musl_isspace ed (ld-s8 p)) (loop1 (fx+ p 1) n neg any over)]
+        [(musl_isspace (ld-s8 p)) (loop1 (fx+ p 1) n neg any over)]
         [(fx=? (ld-s8 p) (ch #\-)) (join6 (fx+ p 1) n 1 any over)]
         [(fx=? (ld-s8 p) (ch #\+)) (join6 (fx+ p 1) n neg any over)]
         [else (join6 p n neg any over)]))))
 
-(define (musl_abs ed a)
+(define (musl_abs a)
   (if (fx>? a 0) a (i32- 0 a)))
 
-(define (musl_labs ed a)
+(define (musl_labs a)
   (if (> a 0) a (i64- 0 a)))
 
-(define (__ ed x)
+(define (__ x)
   x)
 
-(define (NGETTEXT ed x xs n)
+(define (NGETTEXT x xs n)
   (if (= n 1) x xs))
 
-(define (optvar_int ed p)
+(define (optvar_int p)
   (values p 0 0 0))
 
-(define (optvar_long ed p)
+(define (optvar_long p)
   (values 0 p 0 0))
 
-(define (optvar_str ed p)
+(define (optvar_str p)
   (values 0 0 p 0))
 
-(define (optvar_none ed)
+(define (optvar_none)
   (values 0 0 0 0))
 
 (define (optvar_is_null ed v.in)
@@ -3120,13 +3120,13 @@
        (garray_T.ga_len-set! gap (i32+ (garray_T.ga_len gap) 1))
        #t])))
 
-(define (block_autocmds ed)
+(define (block_autocmds)
   (void))
 
-(define (unblock_autocmds ed)
+(define (unblock_autocmds)
   (void))
 
-(define (calc_percentage ed part whole)
+(define (calc_percentage part whole)
   (if (> part 1000000) (->i32 (i64/ part (i64/ whole 100))) (->i32 (i64/ (i64* part 100) whole))))
 
 (define (open_buffer ed)
@@ -3468,7 +3468,7 @@
       (let* ([t1 bufferlen]
              [bufferlen (u64+ bufferlen 1)])
         (st-s8! (fx+ buffer (->i64 t1)) (ch #\x22))
-        (let* ([name (buf_spname ed curbuf)]
+        (let* ([name (buf_spname curbuf)]
                [t2 (safelen_result ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (vim_snprintf ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (c-str 162260 "%s") (list name)))]
                [bufferlen (u64+ bufferlen t2)]
                [new_msg (if (not (fxzero? (fxand (buf_T.b_flags curbuf) BF_NEW))) (new_file_message ed) (c-str 162263 ""))]
@@ -3491,15 +3491,15 @@
                     [bufferlen (u64+ bufferlen t4)])
                (join7 buffer))]
             [(not (fxzero? p_ru))
-             (let* ([r4 (NGETTEXT ed (c-str 162322 "%ld line --%d%%--") (c-str 162340 "%ld lines --%d%%--") (->u64 (buf_T.b_ml.ml_line_count curbuf)))]
+             (let* ([r4 (NGETTEXT (c-str 162322 "%ld line --%d%%--") (c-str 162340 "%ld lines --%d%%--") (->u64 (buf_T.b_ml.ml_line_count curbuf)))]
                     [r5 (buf_T.b_ml.ml_line_count curbuf)]
-                    [t5 (safelen_result ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (vim_snprintf ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) r4 (list r5 (calc_percentage ed (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf)))))]
+                    [t5 (safelen_result ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (vim_snprintf ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) r4 (list r5 (calc_percentage (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf)))))]
                     [bufferlen (u64+ bufferlen t5)])
                (join7 buffer))]
             [else
              (let* ([r6 (win_T.w_cursor.lnum curwin)]
                     [r7 (buf_T.b_ml.ml_line_count curbuf)]
-                    [t6 (safelen_result ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (vim_snprintf ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (c-str 162359 "line %ld of %ld --%d%%-- col ") (list r6 r7 (calc_percentage ed (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf)))))]
+                    [t6 (safelen_result ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (vim_snprintf ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (c-str 162359 "line %ld of %ld --%d%%-- col ") (list r6 r7 (calc_percentage (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf)))))]
                     [bufferlen (u64+ bufferlen t6)])
                (validate_virtcol ed)
                (let* ([t7 (col_print ed (fx+ buffer (->i64 bufferlen)) (u64- 1025 bufferlen) (i32+ (win_T.w_cursor.col curwin) 1) (i32+ (win_T.w_virtcol curwin) 1))]
@@ -3546,7 +3546,7 @@
               (frame-pop! ed fr)
               r2)]
            [else
-            (let ([perc (calc_percentage ed above (i64+ above below))])
+            (let ([perc (calc_percentage above (i64+ above below))])
               (vim_snprintf ed tmp 8 (c-str 162419 "%d%%") (list perc))
               (let ([r3 (->i32 (safelen_result ed buf (->u64 buflen) (vim_snprintf ed buf (->u64 buflen) (c-str 162424 "%3s") (list tmp))))])
                 (frame-pop! ed fr)
@@ -3556,10 +3556,10 @@
   (let ([mem (ed-mem ed)])
     (and (not (fx=? buf 0)) (buf_T.b_help buf))))
 
-(define (buf_spname ed buf)
-  (buf_get_fname ed buf))
+(define (buf_spname buf)
+  (buf_get_fname buf))
 
-(define (buf_get_fname ed buf)
+(define (buf_get_fname buf)
   (c-str 162208 "[No Name]"))
 
 (define (new_file_message ed)
@@ -4508,14 +4508,14 @@
          (join5 #t #f)]
         [else (join5 #f #f)]))
     (define (join5 tilde do_isalpha)
-      (if (ascii_isdigit ed (ld-u8 p))
+      (if (ascii_isdigit (ld-u8 p))
           (join8 (->i32 (getdigits ed &p)) tilde do_isalpha)
           (join8 (mb_ptr2char_adv ed &p) tilde do_isalpha)))
     (define (join8 c tilde do_isalpha)
       (cond
         [(and (fx=? (ld-u8 p) (ch #\-)) (not (fx=? (ld-u8 (fx+ p 1)) NUL)))
          (set! p (fx+ p 1))
-         (if (ascii_isdigit ed (ld-u8 p))
+         (if (ascii_isdigit (ld-u8 p))
              (join12 c (->i32 (getdigits ed &p)) tilde do_isalpha)
              (join12 c (mb_ptr2char_adv ed &p) tilde do_isalpha))]
         [else (join12 c -1 tilde do_isalpha)]))
@@ -4647,10 +4647,10 @@
   (let ([mem (ed-mem ed)])
     (define (join2 i)
       (let ([i (i32+ i 1)])
-        (st-u8! (fx+ buf i) (->u8 (nr2hex ed (u32>> (->u32 c) 4))))
+        (st-u8! (fx+ buf i) (->u8 (nr2hex (u32>> (->u32 c) 4))))
         (let* ([t3 i]
                [i (i32+ i 1)])
-          (st-u8! (fx+ buf i) (->u8 (nr2hex ed (->u32 c))))
+          (st-u8! (fx+ buf i) (->u8 (nr2hex (->u32 c))))
           (let* ([t4 i]
                  [i (i32+ i 1)])
             (st-u8! (fx+ buf i) (ch #\>))
@@ -4661,14 +4661,14 @@
     (st-u8! buf (ch #\<))
     (if (fx>? c 255)
         (let ([i (i32+ 0 1)])
-          (st-u8! (fx+ buf i) (->u8 (nr2hex ed (u32>> (->u32 c) 12))))
+          (st-u8! (fx+ buf i) (->u8 (nr2hex (u32>> (->u32 c) 12))))
           (let* ([t1 i]
                  [i (i32+ i 1)])
-            (st-u8! (fx+ buf i) (->u8 (nr2hex ed (u32>> (->u32 c) 8))))
+            (st-u8! (fx+ buf i) (->u8 (nr2hex (u32>> (->u32 c) 8))))
             (join2 i)))
         (join2 0))))
 
-(define (nr2hex ed c)
+(define (nr2hex c)
   (if (fx<=? (fxand c 15) 9) (u32+ (fxand c 15) (ch #\0)) (u32+ (u32- (fxand c 15) 10) (ch #\a))))
 
 (define (byte2cells ed b)
@@ -4775,8 +4775,8 @@
   (let ([mem (ed-mem ed)])
     (and (and (fx>? c 0) (fx<? c 256)) (not (fxzero? (fxand (ld-u8 (fx+ g_chartab c)) CT_ID_CHAR))))))
 
-(define (vim_isNormalIDc ed c)
-  (or (or (or (ascii_isupper ed c) (ascii_islower ed c)) (ascii_isdigit ed c)) (fx=? c (ch #\_))))
+(define (vim_isNormalIDc c)
+  (or (or (or (ascii_isupper c) (ascii_islower c)) (ascii_isdigit c)) (fx=? c (ch #\_))))
 
 (define (vim_iswordc ed c)
   (let ([mem (ed-mem ed)])
@@ -5052,31 +5052,31 @@
 (define (skipdigits ed q)
   (let ([mem (ed-mem ed)])
     (let loop1 ([p q])
-      (if (ascii_isdigit ed (ld-u8 p)) (loop1 (fx+ p 1)) p))))
+      (if (ascii_isdigit (ld-u8 p)) (loop1 (fx+ p 1)) p))))
 
-(define (vim_isdigit ed c)
+(define (vim_isdigit c)
   (and (fx>=? c (ch #\0)) (fx<=? c (ch #\9))))
 
-(define (vim_isxdigit ed c)
+(define (vim_isxdigit c)
   (or (or (and (fx>=? c (ch #\0)) (fx<=? c (ch #\9))) (and (fx>=? c (ch #\a)) (fx<=? c (ch #\f)))) (and (fx>=? c (ch #\A)) (fx<=? c (ch #\F)))))
 
-(define (vim_isbdigit ed c)
+(define (vim_isbdigit c)
   (or (fx=? c (ch #\0)) (fx=? c (ch #\1))))
 
-(define (vim_isodigit ed c)
+(define (vim_isodigit c)
   (and (fx>=? c (ch #\0)) (fx<=? c (ch #\7))))
 
 (define (vim_islower ed c)
   (cond
     [(fx<=? c (ch #\@)) #f]
     [(fx>=? c 128) (utf_islower ed c)]
-    [else (musl_islower ed (->u8 c))]))
+    [else (musl_islower (->u8 c))]))
 
 (define (vim_isupper ed c)
   (cond
     [(fx<=? c (ch #\@)) #f]
     [(fx>=? c 128) (utf_isupper ed c)]
-    [else (musl_isupper ed (->u8 c))]))
+    [else (musl_isupper (->u8 c))]))
 
 (define (vim_toupper ed c)
   (let ([mem (ed-mem ed)])
@@ -5085,7 +5085,7 @@
       [(or (fx>=? c 128) (not (not (fxzero? (fxand cmp_flags CMP_KEEPASCII))))) (utf_toupper ed c)]
       [(and (fx<? c 128) (not (fxzero? (fxand cmp_flags CMP_KEEPASCII))))
        (if (or (fx<? c (ch #\a)) (fx>? c (ch #\z))) c (i32- c 32))]
-      [else (musl_toupper ed (->u8 c))])))
+      [else (musl_toupper (->u8 c))])))
 
 (define (vim_tolower ed c)
   (let ([mem (ed-mem ed)])
@@ -5094,7 +5094,7 @@
       [(or (fx>=? c 128) (not (not (fxzero? (fxand cmp_flags CMP_KEEPASCII))))) (utf_tolower ed c)]
       [(and (fx<? c 128) (not (fxzero? (fxand cmp_flags CMP_KEEPASCII))))
        (if (or (fx<? c (ch #\A)) (fx>? c (ch #\Z))) c (i32+ c 32))]
-      [else (musl_tolower ed (->u8 c))])))
+      [else (musl_tolower (->u8 c))])))
 
 (define (skiptowhite ed p)
   (let ([mem (ed-mem ed)])
@@ -5117,7 +5117,7 @@
   (let ([mem (ed-mem ed)])
     (define (loop3 p retval)
       (cond
-        [(ascii_isdigit ed (ld-u8 p))
+        [(ascii_isdigit (ld-u8 p))
          (if (>= retval 922337203685477570)
              (join12 p LONG_MAX)
              (join12 p (i64+ (i64- (i64* retval 10) (ch #\0)) (ld-u8 p))))]
@@ -5138,11 +5138,11 @@
       (if (and (and (and (fx=? (ld-u8 ptr) (ch #\0)) (not (fx=? (ld-u8 (fx+ ptr 1)) (ch #\8)))) (not (fx=? (ld-u8 (fx+ ptr 1)) (ch #\9)))) (or (fx=? maxlen 0) (fx>? maxlen 1)))
           (let ([pre (ld-u8 (fx+ ptr 1))])
             (cond
-              [(and (and (and (not (fxzero? (fxand what STR2NR_HEX))) (or (fx=? pre (ch #\X)) (fx=? pre (ch #\x)))) (vim_isxdigit ed (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
+              [(and (and (and (not (fxzero? (fxand what STR2NR_HEX))) (or (fx=? pre (ch #\X)) (fx=? pre (ch #\x)))) (vim_isxdigit (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
                (join16 len (fx+ ptr 2) pre negative un)]
-              [(and (and (and (not (fxzero? (fxand what STR2NR_BIN))) (or (fx=? pre (ch #\B)) (fx=? pre (ch #\b)))) (vim_isbdigit ed (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
+              [(and (and (and (not (fxzero? (fxand what STR2NR_BIN))) (or (fx=? pre (ch #\B)) (fx=? pre (ch #\b)))) (vim_isbdigit (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
                (join16 len (fx+ ptr 2) pre negative un)]
-              [(and (and (and (not (fxzero? (fxand what STR2NR_OOCT))) (or (fx=? pre (ch #\O)) (fx=? pre (ch #\o)))) (vim_isodigit ed (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
+              [(and (and (and (not (fxzero? (fxand what STR2NR_OOCT))) (or (fx=? pre (ch #\O)) (fx=? pre (ch #\o)))) (vim_isodigit (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
                (join16 len (fx+ ptr 2) pre negative un)]
               [(not (fxzero? (fxand what STR2NR_OCT))) (let loop8 ([len len]
                                                                    [ptr ptr]
@@ -5150,7 +5150,7 @@
                                                                    [negative negative]
                                                                    [un un]
                                                                    [n 1])
-                                                         (if (and (not (fx=? n maxlen)) (ascii_isdigit ed (ld-u8 (fx+ ptr n))))
+                                                         (if (and (not (fx=? n maxlen)) (ascii_isdigit (ld-u8 (fx+ ptr n))))
                                                              (if (fx>? (ld-u8 (fx+ ptr n)) (ch #\7))
                                                                  (join16 len ptr 0 negative un)
                                                                  (loop8 len ptr (ch #\0) negative un (i32+ n 1)))
@@ -5173,7 +5173,7 @@
              (loop32 len ptr pre negative un 1))]
         [else (loop20 len ptr pre negative un 1)]))
     (define (loop20 len ptr pre negative un n)
-      (if (ascii_isdigit ed (ld-u8 ptr))
+      (if (ascii_isdigit (ld-u8 ptr))
           (let ([digit (->u64 (i32- (ld-u8 ptr) (ch #\0)))])
             (cond
               [(or (< un 1844674407370955161) (and (= un 1844674407370955161) (<= digit 5)))
@@ -5187,17 +5187,17 @@
              [n (i32+ n 1)])
         (cond
           [(fx=? t7 maxlen) (join65 len ptr pre negative un n)]
-          [(and (and (not (fxzero? (fxand what STR2NR_QUOTE))) (fx=? (ld-u8 ptr) (ch #\x27))) (ascii_isdigit ed (ld-u8 (fx+ ptr 1))))
+          [(and (and (not (fxzero? (fxand what STR2NR_QUOTE))) (fx=? (ld-u8 ptr) (ch #\x27))) (ascii_isdigit (ld-u8 (fx+ ptr 1))))
            (let* ([ptr (fx+ ptr 1)]
                   [t8 n]
                   [n (i32+ n 1)])
              (if (fx=? t8 maxlen) (join65 len ptr pre negative un n) (loop20 len ptr pre negative un n)))]
           [else (loop20 len ptr pre negative un n)])))
     (define (loop32 len ptr pre negative un n)
-      (if (vim_isxdigit ed (ld-u8 ptr))
+      (if (vim_isxdigit (ld-u8 ptr))
           (cond
             [(<= un 1152921504606846975)
-             (join37 len ptr pre negative (u64+ (u64* 16 un) (->u64 (hex2nr ed (ld-u8 ptr)))) n)]
+             (join37 len ptr pre negative (u64+ (u64* 16 un) (->u64 (hex2nr (ld-u8 ptr)))) n)]
             [(not (fx=? overflow 0)) (st-s32! overflow TRUE) (join37 len ptr pre negative ULLONG_MAX n)]
             [else (join37 len ptr pre negative ULLONG_MAX n)])
           (join65 len ptr pre negative un n)))
@@ -5207,7 +5207,7 @@
              [n (i32+ n 1)])
         (cond
           [(fx=? t5 maxlen) (join65 len ptr pre negative un n)]
-          [(and (and (not (fxzero? (fxand what STR2NR_QUOTE))) (fx=? (ld-u8 ptr) (ch #\x27))) (vim_isxdigit ed (ld-u8 (fx+ ptr 1))))
+          [(and (and (not (fxzero? (fxand what STR2NR_QUOTE))) (fx=? (ld-u8 ptr) (ch #\x27))) (vim_isxdigit (ld-u8 (fx+ ptr 1))))
            (let* ([ptr (fx+ ptr 1)]
                   [t6 n]
                   [n (i32+ n 1)])
@@ -5255,7 +5255,7 @@
           [else (loop56 len ptr pre negative un n)])))
     (define (join65 len ptr pre negative un n)
       (cond
-        [(and (and strict (not (fx=? (i32- n 1) maxlen))) (or (or (ascii_isupper ed (ld-u8 ptr)) (ascii_islower ed (ld-u8 ptr))) (ascii_isdigit ed (ld-u8 ptr))))
+        [(and (and strict (not (fx=? (i32- n 1) maxlen))) (or (or (ascii_isupper (ld-u8 ptr)) (ascii_islower (ld-u8 ptr))) (ascii_isdigit (ld-u8 ptr))))
          len]
         [(not (fx=? prep 0)) (st-s32! prep pre) (join68 ptr negative un)]
         [else (join68 ptr negative un)]))
@@ -5287,7 +5287,7 @@
       len)
     (if (fx=? (ld-u8 start) (ch #\-)) (join2 0 (fx+ start 1) 0 #t 0) (join2 0 start 0 #f 0))))
 
-(define (hex2nr ed c)
+(define (hex2nr c)
   (cond
     [(and (fx>=? c (ch #\a)) (fx<=? c (ch #\f))) (i32+ (i32- c (ch #\a)) 10)]
     [(and (fx>=? c (ch #\A)) (fx<=? c (ch #\F))) (i32+ (i32- c (ch #\A)) 10)]
@@ -5295,10 +5295,10 @@
 
 (define (hexhex2nr ed p)
   (let ([mem (ed-mem ed)])
-    (if (or (not (vim_isxdigit ed (ld-u8 p))) (not (vim_isxdigit ed (ld-u8 (fx+ p 1)))))
+    (if (or (not (vim_isxdigit (ld-u8 p))) (not (vim_isxdigit (ld-u8 (fx+ p 1)))))
         -1
-        (let ([r1 (i32<< (hex2nr ed (ld-u8 p)) 4)])
-          (i32+ r1 (hex2nr ed (ld-u8 (fx+ p 1))))))))
+        (let ([r1 (i32<< (hex2nr (ld-u8 p)) 4)])
+          (i32+ r1 (hex2nr (ld-u8 (fx+ p 1))))))))
 
 (define (rem_backslash ed str)
   (let ([mem (ed-mem ed)])
@@ -5313,7 +5313,7 @@
            [(fx=? (ld-u8 (fx+ p 1)) NUL) (join25 p)]
            [(and (fx=? (ld-u8 (fx+ p 1)) (ch #\x5c)) (not (fx=? (ld-u8 (fx+ p 2)) NUL))) (let loop20 ([p p]
                                                                                                       [i (i32+ 2 1)])
-                                                                                           (if (vim_isdigit ed (ld-u8 (fx+ p (i32- i 1)))) (loop20 p (i32+ i 1)) (join21 p i)))]
+                                                                                           (if (vim_isdigit (ld-u8 (fx+ p (i32- i 1)))) (loop20 p (i32+ i 1)) (join21 p i)))]
            [else (join21 p 2)])]
         [(fx=? (ld-u8 p) (ch #\x22)) (loop11 (fx+ p 1))]
         [(and (fx=? (ld-u8 p) (ch #\R)) (fx=? (ld-u8 (fx+ p 1)) (ch #\x22)))
@@ -5373,24 +5373,24 @@
     (define (join2)
       (cond
         [(not (fx=? (expand_T.xp_files_kind xp) 0))
-         (FreeWild ed numfiles (expand_T.xp_files_kind xp))
+         (FreeWild numfiles (expand_T.xp_files_kind xp))
          (expand_T.xp_files_kind-set! xp 0)
          (join4)]
         [else (join4)]))
     (define (join4)
       (cond
         [(not (fx=? (expand_T.xp_files_menu xp) 0))
-         (FreeWild ed numfiles (expand_T.xp_files_menu xp))
+         (FreeWild numfiles (expand_T.xp_files_menu xp))
          (expand_T.xp_files_menu-set! xp 0)
          (join6)]
         [else (join6)]))
     (define (join6)
       (when (not (fx=? (expand_T.xp_files_info xp) 0))
-        (FreeWild ed numfiles (expand_T.xp_files_info xp))
+        (FreeWild numfiles (expand_T.xp_files_info xp))
         (expand_T.xp_files_info-set! xp 0)))
     (cond
       [(not (fx=? (expand_T.xp_files_abbr xp) 0))
-       (FreeWild ed numfiles (expand_T.xp_files_abbr xp))
+       (FreeWild numfiles (expand_T.xp_files_abbr xp))
        (expand_T.xp_files_abbr-set! xp 0)
        (join2)]
       [else (join2)])))
@@ -5409,7 +5409,7 @@
     (cond
       [(fx>=? (expand_T.xp_numfiles xp) 0)
        (free_xp_files_extra ed xp (expand_T.xp_numfiles xp))
-       (FreeWild ed (expand_T.xp_numfiles xp) (expand_T.xp_files xp))
+       (FreeWild (expand_T.xp_numfiles xp) (expand_T.xp_files xp))
        (expand_T.xp_numfiles-set! xp -1)
        (join2)]
       [else (join2)])))
@@ -5430,7 +5430,7 @@
 (define (get_hisidx ed hist_type)
   (fx+ hisidx (fx* hist_type 4)))
 
-(define (hist_char2type ed c)
+(define (hist_char2type c)
   (cond
     [(fx=? c (ch #\:)) HIST_CMD]
     [(fx=? c (ch #\=)) HIST_EXPR]
@@ -5553,16 +5553,16 @@
 (define (get_histtype ed name)
   (let ([mem (ed-mem ed)])
     (let ([len (->i32 (musl_strlen ed name))])
-      (if (fx=? len 0) (hist_char2type ed (get_cmdline_firstc ed)) (let loop2 ([i 0]
-                                                                               [len len])
-                                                                     (cond
-                                                                       [(not (fx=? (ld-ptr (fx+ history_names (fx* i 8))) 0))
-                                                                        (if (fx=? (musl_strncasecmp ed name (ld-ptr (fx+ history_names (fx* i 8))) (->u64 len)) 0)
-                                                                            i
-                                                                            (loop2 (i32+ i 1) len))]
-                                                                       [(and (not (fx=? (vim_strchr ed (c-str 162445 ":=@>?/") (ld-u8 name)) 0)) (fx=? (ld-u8 (fx+ name 1)) NUL))
-                                                                        (hist_char2type ed (ld-u8 name))]
-                                                                       [else -1]))))))
+      (if (fx=? len 0) (hist_char2type (get_cmdline_firstc ed)) (let loop2 ([i 0]
+                                                                            [len len])
+                                                                  (cond
+                                                                    [(not (fx=? (ld-ptr (fx+ history_names (fx* i 8))) 0))
+                                                                     (if (fx=? (musl_strncasecmp ed name (ld-ptr (fx+ history_names (fx* i 8))) (->u64 len)) 0)
+                                                                         i
+                                                                         (loop2 (i32+ i 1) len))]
+                                                                    [(and (not (fx=? (vim_strchr ed (c-str 162445 ":=@>?/") (ld-u8 name)) 0)) (fx=? (ld-u8 (fx+ name 1)) NUL))
+                                                                     (hist_char2type (ld-u8 name))]
+                                                                    [else -1]))))))
 
 (define (add_to_history ed histype new_entry new_entrylen in_map sep)
   (let ([mem (ed-mem ed)])
@@ -5676,7 +5676,7 @@
     (let ([arg (exarg_T.arg eap)])
       (cond
         [(fx=? hislen 0) (msg ed (c-str 162492 "'history' option is zero"))]
-        [(not (or (or (ascii_isdigit ed (ld-u8 arg)) (fx=? (ld-u8 arg) (ch #\-))) (fx=? (ld-u8 arg) (ch #\x2c))))
+        [(not (or (or (ascii_isdigit (ld-u8 arg)) (fx=? (ld-u8 arg) (ch #\-))) (fx=? (ld-u8 arg) (ch #\x2c))))
          (let loop4 ([hisidx1 1]
                      [hisidx2 -1]
                      [end arg]
@@ -5685,7 +5685,7 @@
                      [get_list_range__o_str 0]
                      [get_list_range__o_num1 0]
                      [get_list_range__o_num2 0])
-           (if (or (or (ascii_isupper ed (ld-u8 end)) (ascii_islower ed (ld-u8 end))) (not (fx=? (vim_strchr ed (c-str 162452 ":=@>/?") (ld-u8 end)) 0)))
+           (if (or (or (ascii_isupper (ld-u8 end)) (ascii_islower (ld-u8 end))) (not (fx=? (vim_strchr ed (c-str 162452 ":=@>/?") (ld-u8 end)) 0)))
                (loop4 hisidx1 hisidx2 (fx+ end 1) arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)
                (let ([i (ld-u8 end)])
                  (st-u8! end NUL)
@@ -5752,7 +5752,7 @@
            (let ([fmt (c-str 162517 "%*ld ")])
              (if (and (not (fxzero? (win_T.w_onebuf_opt.wo_nu wp))) (not (not (fxzero? (win_T.w_onebuf_opt.wo_rnu wp)))))
                  (join7 (winlinevars_T.lnum wlv) fmt)
-                 (let ([num (musl_labs ed (get_cursor_rel_lnum ed wp (winlinevars_T.lnum wlv)))])
+                 (let ([num (musl_labs (get_cursor_rel_lnum ed wp (winlinevars_T.lnum wlv)))])
                    (if (and (and (= num 0) (not (fxzero? (win_T.w_onebuf_opt.wo_nu wp)))) (not (fxzero? (win_T.w_onebuf_opt.wo_rnu wp))))
                        (join7 (winlinevars_T.lnum wlv) (c-str 162523 "%-*ld "))
                        (join7 num fmt)))))]
@@ -5784,7 +5784,7 @@
               (let loop3 ([off off]
                           [max_off max_off]
                           [skip 0])
-                (if (and (fx<? skip (win_T.w_width wp)) (ascii_isdigit ed (ld-u8 (fx+ ScreenLines off))))
+                (if (and (fx<? skip (win_T.w_width wp)) (ascii_isdigit (ld-u8 (fx+ ScreenLines off))))
                     (loop3 (i32+ off 1) max_off (i32+ skip 1))
                     (join4 off max_off skip)))
               (join4 off max_off 0)))
@@ -6258,7 +6258,7 @@
                            (winlinevars_T.c_final wlv)
                            (winlinevars_T.c_extra wlv))])
                 (cond
-                  [(fx>? (utf_char2len ed c) 1)
+                  [(fx>? (utf_char2len c) 1)
                    (st-s32! u8cc 0)
                    (join214 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
                   [else
@@ -6406,7 +6406,7 @@
          (join148 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
     (define (join148 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
-        [(fx>? (utf_char2len ed c) 1)
+        [(fx>? (utf_char2len c) 1)
          (st-s32! u8cc 0)
          (join151 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
         [else
@@ -6439,7 +6439,7 @@
          (join163 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
     (define (join163 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
-        [(fx>? (utf_char2len ed c) 1)
+        [(fx>? (utf_char2len c) 1)
          (st-s32! u8cc 0)
          (join166 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
         [else
@@ -6520,7 +6520,7 @@
            (join189 c line ptr in_curline -1 lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)])))
     (define (join189 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
-        [(fx>? (utf_char2len ed c) 1)
+        [(fx>? (utf_char2len c) 1)
          (st-s32! u8cc 0)
          (join215 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
         [else
@@ -6537,7 +6537,7 @@
                (winlinevars_T.extra_attr-set! wlv (hl_combine_attr ed (winlinevars_T.win_attr wlv) (ld-s32 highlight_attr)))
                (let ([saved_attr2 (winlinevars_T.char_attr wlv)])
                  (cond
-                   [(fx>? (utf_char2len ed c) 1)
+                   [(fx>? (utf_char2len c) 1)
                     (st-s32! u8cc 0)
                     (join215 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
                    [else
@@ -6596,7 +6596,7 @@
           (join227 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))
     (define (join222 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
-        [(fx>? (utf_char2len ed c) 1)
+        [(fx>? (utf_char2len c) 1)
          (st-s32! u8cc 0)
          (join225 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
         [else
@@ -6660,7 +6660,7 @@
              [(and (and (and (not (fx=? lcs_ext NUL)) (fx=? (winlinevars_T.draw_state wlv) 3)) (fx=? (winlinevars_T.col wlv) (i32- (win_T.w_width wp) 1))) (or (or (not (fx=? (ld-u8 ptr) NUL)) (fx>? lcs_eol_one 0)) (and (fx>? (winlinevars_T.n_extra wlv) 0) (or (not (fx=? (winlinevars_T.c_extra wlv) NUL)) (not (fx=? (ld-u8 (winlinevars_T.p_extra wlv)) NUL))))))
               (winlinevars_T.char_attr-set! wlv (hl_combine_attr ed (winlinevars_T.win_attr wlv) (ld-s32 (fx+ highlight_attr 8))))
               (cond
-                [(fx>? (utf_char2len ed lcs_ext) 1)
+                [(fx>? (utf_char2len lcs_ext) 1)
                  (st-s32! u8cc 0)
                  (join242 192 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr lcs_ext #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
                 [else
@@ -9033,7 +9033,7 @@
       (setcursor ed)
       (set! emsg_on_display #f))
     (unless (char_avail ed)
-      (may_trigger_safestate ed ready)
+      (may_trigger_safestate ready)
       (cond
         [(not (fxzero? must_redraw)) (update_screen ed 0) (join5)]
         [(or clear_cmdline (not (fxzero? redraw_cmdline))) (showmode ed) (join5)]
@@ -9063,7 +9063,7 @@
       (if (and (fx<? idx (typebuf_T.tb_len typebuf)) (fx<? argidx 2))
           (cond
             [(fx=? (ld-u8 (fx+ p idx)) (ch #\x3b)) (join12 c p idx form (i32+ argidx 1))]
-            [(ascii_isdigit ed (ld-u8 (fx+ p idx)))
+            [(ascii_isdigit (ld-u8 (fx+ p idx)))
              (st-s32! (fx+ arg (fx* argidx 4)) (i32+ (i32* (ld-s32 (fx+ arg (fx* argidx 4))) 10) (i32- (ld-u8 (fx+ p idx)) (ch #\0))))
              (join12 c p idx form argidx)]
             [else (join7 c p idx form argidx)])
@@ -9074,9 +9074,7 @@
           [(and (and (fx<? idx (typebuf_T.tb_len typebuf)) (fx=? (ld-u8 (fx+ p idx)) (if (fx=? form 1) (ch #\~) (ch #\u)))) (or (fx=? argidx 1) kitty_no_mods))
            (typebuf_T.tb_off-set! typebuf (i32+ (typebuf_T.tb_off typebuf) (i32+ idx 1)))
            (typebuf_T.tb_len-set! typebuf (i32- (typebuf_T.tb_len typebuf) (i32+ idx 1)))
-           (set! mod_mask (if kitty_no_mods
-               0
-               (decode_modifiers ed (ld-s32 (fx+ arg (fx* (b->i (not (not (fxzero? form)))) 4))))))
+           (set! mod_mask (if kitty_no_mods 0 (decode_modifiers (ld-s32 (fx+ arg (fx* (b->i (not (not (fxzero? form)))) 4))))))
            (join9 (merge_modifyOtherKeys ed (ld-s32 (fx+ arg (fx* form 4))) &mod_mask))]
           [else (join9 c)])))
     (define (join9 c)
@@ -9220,14 +9218,14 @@
         [(or (fx=? nc (ch #\o)) (fx=? nc (ch #\O))) (join22 cc i hex #t unicode)]
         [(or (fx=? nc (ch #\u)) (fx=? nc (ch #\U))) (join22 cc i hex octal nc)]
         [(or hex (not (fx=? unicode 0)))
-         (if (not (vim_isxdigit ed nc))
+         (if (not (vim_isxdigit nc))
              (join29 cc nc i)
-             (join18 (i32+ (i32* cc 16) (hex2nr ed nc)) i hex octal unicode))]
+             (join18 (i32+ (i32* cc 16) (hex2nr nc)) i hex octal unicode))]
         [octal
          (if (or (fx<? nc (ch #\0)) (fx>? nc (ch #\7)))
              (join29 cc nc i)
              (join18 (i32- (i32+ (i32* cc 8) nc) (ch #\0)) i hex octal unicode))]
-        [(not (ascii_isdigit ed nc)) (join29 cc nc i)]
+        [(not (ascii_isdigit nc)) (join29 cc nc i)]
         [else (join18 (i32- (i32+ (i32* cc 10) nc) (ch #\0)) i hex octal unicode)]))
     (define (join18 cc i hex octal unicode)
       (join22 cc (i32+ i 1) hex octal unicode))
@@ -9287,11 +9285,11 @@
       (set! can_si FALSE)
       (set! can_si_back #f)
       (cond
-        [(and (and (and (not (or (or (or (fx<? c (ch #\space)) (fx>=? c DEL)) (fx=? c (ch #\0))) (fx=? c (ch #\^)))) (fx=? (utf_char2len ed c) 1)) (not (fx=? (vpeekc ed) NUL))) (not (not (fxzero? (fxand State REPLACE_FLAG)))))
+        [(and (and (and (not (or (or (or (fx<? c (ch #\space)) (fx>=? c DEL)) (fx=? c (ch #\0))) (fx=? c (ch #\^)))) (fx=? (utf_char2len c) 1)) (not (fx=? (vpeekc ed) NUL))) (not (not (fxzero? (fxand State REPLACE_FLAG)))))
          (st-u8! buf (->u8 c))
          (if (fx>? textwidth 0) (loop11 textwidth 1 (get_nolist_virtcol ed)) (loop11 textwidth 1 0))]
         [else
-         (let ([cc (utf_char2len ed c)])
+         (let ([cc (utf_char2len c)])
            (cond
              [(fx>? cc 1)
               (utf_char2bytes ed c buf_2)
@@ -9349,7 +9347,7 @@
     (define (join3)
       (frame-pop! ed fr))
     (cond
-      [(ascii_isdigit ed c)
+      [(ascii_isdigit c)
        (vim_snprintf ed buf 10 (c-str 162555 "%03d") (list c))
        (AppendToRedobuff ed buf)
        (join3)]
@@ -10211,9 +10209,9 @@
              [prev_cclass cclass]
              [cclass (mb_get_class ed (ml_get_cursor ed))])
         (cond
-          [(and (fx=? mode BACKSPACE_WORD) (not (vim_isspace ed cc)))
+          [(and (fx=? mode BACKSPACE_WORD) (not (vim_isspace cc)))
            (join17 BACKSPACE_WORD_NOT_SPACE inserted_space_p (b->i (vim_iswordc ed cc)) mincol call_fix_indent cclass out___r__ out___inserted_space_p)]
-          [(and (fx=? mode BACKSPACE_WORD_NOT_SPACE) (or (or (vim_isspace ed cc) (not (fx=? (b->i (vim_iswordc ed cc)) temp))) (not (fx=? prev_cclass cclass))))
+          [(and (fx=? mode BACKSPACE_WORD_NOT_SPACE) (or (or (vim_isspace cc) (not (fx=? (b->i (vim_iswordc ed cc)) temp))) (not (fx=? prev_cclass cclass))))
            (inc_cursor ed)
            (join37 inserted_space_p call_fix_indent out___r__ out___inserted_space_p)]
           [else
@@ -10901,14 +10899,14 @@
       (join9 c))
     (define (join9 c)
       c)
-    (if (ctrl_x_mode_scroll ed)
+    (if (ctrl_x_mode_scroll)
         (cond
           [(fx=? tc Ctrl_Y) (scrolldown_clamp ed) (join8 tc)]
           [else (scrollup_clamp ed) (join8 tc)])
         (let ([c (ins_copychar ed (i64+ (win_T.w_cursor.lnum curwin) (if (fx=? tc Ctrl_Y) -1 1)))])
           (cond
             [(fx=? c NUL) (join9 c)]
-            [(and (fx<? c 256) (not (musl_isalnum ed (->u8 c))))
+            [(and (fx<? c 256) (not (musl_isalnum (->u8 c))))
              (AppendToRedobuff ed (c-str 162553 "\x16;"))
              (join4 c)]
             [else (join4 c)])))))
@@ -11029,8 +11027,8 @@
               [(and (not (not (fxzero? global_busy))) (> num_lines p_report))
                (let* ([r1 IObuff]
                       [r2 (iobuff_room ed)])
-                 (vim_snprintf ed r1 r2 (NGETTEXT ed (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines)) (list num_lines))
-                 (msg ed (iobuff_or ed (NGETTEXT ed (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines))))
+                 (vim_snprintf ed r1 r2 (NGETTEXT (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines)) (list num_lines))
+                 (msg ed (iobuff_or ed (NGETTEXT (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines))))
                  (join17 dest num_lines))]
               [else (join17 dest num_lines)]))))
     (define (join17 dest num_lines)
@@ -11289,7 +11287,7 @@
       (cond
         [(or (fx=? (ld-u8 x) (ch #\-)) (fx=? (ld-u8 x) (ch #\+))) (loop8 (fx+ x 1) bigness kind minus lnum)]
         [(fx=? (ld-u8 x) 0) (join15 x bigness kind minus lnum)]
-        [(not (ascii_isdigit ed (ld-u8 x))) (emsg ed e_non_numeric_argument_to_z)]
+        [(not (ascii_isdigit (ld-u8 x))) (emsg ed e_non_numeric_argument_to_z)]
         [else
          (let ([bigness (musl_atol ed x)])
            (if (or (> bigness (i64* 2 (buf_T.b_ml.ml_line_count curbuf))) (< bigness 0))
@@ -11407,7 +11405,7 @@
 
 (define (check_regexp_delim ed c)
   (cond
-    [(musl_isalpha ed (->u8 c)) (emsg ed e_regular_expressions_cant_be_delimited_by_letters) #f]
+    [(musl_isalpha (->u8 c)) (emsg ed e_regular_expressions_cant_be_delimited_by_letters) #f]
     [else #t]))
 
 (define (match_range ed rmp do_all line1 line2)
@@ -11606,7 +11604,7 @@
       (let* ([save_do_all (subflags_T.do_all ex_substitute:subflags)]
              [save_do_ask (subflags_T.do_ask ex_substitute:subflags)])
         (set! cmd (skipwhite ed cmd))
-        (if (ascii_isdigit ed (ld-u8 cmd))
+        (if (ascii_isdigit (ld-u8 cmd))
             (let ([i (getdigits ed &cmd)])
               (cond
                 [(and (<= i 0) (not (fxzero? (subflags_T.do_error ex_substitute:subflags))))
@@ -11741,7 +11739,7 @@
          (join88 save_do_all save_do_ask)]
         [else (join88 save_do_all save_do_ask)]))
     (define (join88 save_do_all save_do_ask)
-      (vim_regfree ed (regmmatch_T.regprog regmatch))
+      (vim_regfree (regmmatch_T.regprog regmatch))
       (subflags_T.do_all-set! ex_substitute:subflags save_do_all)
       (subflags_T.do_ask-set! ex_substitute:subflags save_do_ask)
       (frame-pop! ed fr))
@@ -12163,14 +12161,14 @@
   (let ([mem (ed-mem ed)])
     (define (join7)
       (let* ([msg_single (if (not (fxzero? count_only))
-                             (NGETTEXT ed (c-str 162804 "%ld match on %ld line") (c-str 162826 "%ld matches on %ld line") (->u64 sub_nsubs))
-                             (NGETTEXT ed (c-str 162850 "%ld substitution on %ld line") (c-str 162879 "%ld substitutions on %ld line") (->u64 sub_nsubs)))]
+                             (NGETTEXT (c-str 162804 "%ld match on %ld line") (c-str 162826 "%ld matches on %ld line") (->u64 sub_nsubs))
+                             (NGETTEXT (c-str 162850 "%ld substitution on %ld line") (c-str 162879 "%ld substitutions on %ld line") (->u64 sub_nsubs)))]
              [msg_plural (if (not (fxzero? count_only))
-                             (NGETTEXT ed (c-str 162909 "%ld match on %ld lines") (c-str 162932 "%ld matches on %ld lines") (->u64 sub_nsubs))
-                             (NGETTEXT ed (c-str 162957 "%ld substitution on %ld lines") (c-str 162987 "%ld substitutions on %ld lines") (->u64 sub_nsubs)))]
+                             (NGETTEXT (c-str 162909 "%ld match on %ld lines") (c-str 162932 "%ld matches on %ld lines") (->u64 sub_nsubs))
+                             (NGETTEXT (c-str 162957 "%ld substitution on %ld lines") (c-str 162987 "%ld substitutions on %ld lines") (->u64 sub_nsubs)))]
              [r1 (fx+ msg_buf (->i64 (musl_strlen ed msg_buf)))]
              [r2 (append_room ed msg_buf 480)]
-             [r3 (NGETTEXT ed msg_single msg_plural (->u64 sub_nlines))])
+             [r3 (NGETTEXT msg_single msg_plural (->u64 sub_nlines))])
         (vim_snprintf ed r1 r2 r3 (list sub_nsubs sub_nlines))
         (cond
           [(not (fxzero? (msg ed msg_buf))) (set_keep_msg ed msg_buf 0) #t]
@@ -12275,7 +12273,7 @@
       (ml_clearmarked ed)
       (join36))
     (define (join36)
-      (vim_regfree ed (regmmatch_T.regprog regmatch))
+      (vim_regfree (regmmatch_T.regprog regmatch))
       (frame-pop! ed fr))
     (cond
       [(and (not (fxzero? global_busy)) (or (not (= (exarg_T.line1 eap) 1)) (not (= (exarg_T.line2 eap) (buf_T.b_ml.ml_line_count curbuf)))))
@@ -12707,7 +12705,7 @@
          (join52 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
         [else (join52 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]))
     (define (join52 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-      (if (and (and (not (eqv? (bitwise-and (exarg_T.argt ea) EX_REGSTR) 0)) (not (fx=? (ld-u8 (exarg_T.arg ea)) NUL))) (not (and (not (eqv? (bitwise-and (exarg_T.argt ea) EX_COUNT) 0)) (ascii_isdigit ed (ld-u8 (exarg_T.arg ea))))))
+      (if (and (and (not (eqv? (bitwise-and (exarg_T.argt ea) EX_REGSTR) 0)) (not (fx=? (ld-u8 (exarg_T.arg ea)) NUL))) (not (and (not (eqv? (bitwise-and (exarg_T.argt ea) EX_COUNT) 0)) (ascii_isdigit (ld-u8 (exarg_T.arg ea))))))
           (cond
             [(or (fx=? (ld-u8 (exarg_T.arg ea)) (ch #\*)) (fx=? (ld-u8 (exarg_T.arg ea)) (ch #\+)))
              (set! errormsg e_invalid_register_name)
@@ -12721,7 +12719,7 @@
             [else (join56 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)])
           (join56 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)))
     (define (join56 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-      (if (and (not (eqv? (bitwise-and (exarg_T.argt ea) EX_COUNT) 0)) (ascii_isdigit ed (ld-u8 (exarg_T.arg ea))))
+      (if (and (not (eqv? (bitwise-and (exarg_T.argt ea) EX_COUNT) 0)) (ascii_isdigit (ld-u8 (exarg_T.arg ea))))
           (let ([n (getdigits_quoted ed (exarg_T.arg& ea))])
             (exarg_T.arg-set! ea (skipwhite ed (exarg_T.arg ea)))
             (cond
@@ -12857,7 +12855,7 @@
   (let ([mem (ed-mem ed)])
     (define (join4 i)
       (cond
-        [(and (and (and (fx>=? i len) (not (or (ascii_isupper ed (ld-u8 (fx+ (ld-ptr pp) i))) (ascii_islower ed (ld-u8 (fx+ (ld-ptr pp) i)))))) (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) (ch #\_)))) (or (not noparen) (and (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) (ch #\x28))) (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) (ch #\.))))))
+        [(and (and (and (fx>=? i len) (not (or (ascii_isupper (ld-u8 (fx+ (ld-ptr pp) i))) (ascii_islower (ld-u8 (fx+ (ld-ptr pp) i)))))) (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) (ch #\_)))) (or (not noparen) (and (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) (ch #\x28))) (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) (ch #\.))))))
          (st-ptr! pp (skipwhite ed (fx+ (ld-ptr pp) i)))
          #t]
         [else #f]))
@@ -12906,12 +12904,12 @@
             (set! nulp 0)
             (set! c 0)
             (cond
-              [(or (or (not (checkforcmd_noparen ed &p (c-str 163183 "filter") 4)) (fx=? (ld-u8 p) NUL)) (ends_excmd ed (ld-u8 p)))
+              [(or (or (not (checkforcmd_noparen ed &p (c-str 163183 "filter") 4)) (fx=? (ld-u8 p) NUL)) (ends_excmd (ld-u8 p)))
                (join36 orig_cmd cmd_start has_visual_range)]
               [(fx=? (ld-u8 p) (ch #\!))
                (cmdmod_T.cmod_filter_force-set! cmod #t)
                (set! p (skipwhite ed (fx+ p 1)))
-               (if (or (fx=? (ld-u8 p) NUL) (ends_excmd ed (ld-u8 p)))
+               (if (or (fx=? (ld-u8 p) NUL) (ends_excmd (ld-u8 p)))
                    (join36 orig_cmd cmd_start has_visual_range)
                    (join23 orig_cmd cmd_start has_visual_range))]
               [else (join23 orig_cmd cmd_start has_visual_range)])]
@@ -12944,7 +12942,7 @@
             (cond
               [(not (checkforcmd_noparen ed &p (c-str 163216 "verbose") 4))
                (join36 orig_cmd cmd_start has_visual_range)]
-              [(vim_isdigit ed (ld-u8 (exarg_T.cmd eap)))
+              [(vim_isdigit (ld-u8 (exarg_T.cmd eap)))
                (cmdmod_T.cmod_verbose-set! cmod (i32+ (musl_atoi ed (exarg_T.cmd eap)) 1))
                (join12 orig_cmd cmd_start has_visual_range)]
               [else (cmdmod_T.cmod_verbose-set! cmod 2) (join12 orig_cmd cmd_start has_visual_range)])]
@@ -13030,7 +13028,7 @@
 (define (undo_cmdmod ed cmod)
   (let ([mem (ed-mem ed)])
     (define (join2)
-      (vim_regfree ed (cmdmod_T.cmod_filter_regmatch.regprog cmod))
+      (vim_regfree (cmdmod_T.cmod_filter_regmatch.regprog cmod))
       (when (fx>? (cmdmod_T.cmod_save_msg_silent cmod) 0)
         (cond
           [(or (not (not (fxzero? did_emsg))) (fx>? msg_silent (i32- (cmdmod_T.cmod_save_msg_silent cmod) 1)))
@@ -13220,7 +13218,7 @@
     (define (join20 p)
       (if (and (and (or (fx=? (exarg_T.cmdidx eap) CMD_SIZE) (fx=? (exarg_T.cmdidx eap) CMD_Print)) (fx>=? (ld-u8 (exarg_T.cmd eap)) (ch #\A))) (fx<=? (ld-u8 (exarg_T.cmd eap)) (ch #\Z)))
           (let loop22 ([p p])
-            (if (or (or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (ascii_isdigit ed (ld-u8 p)))
+            (if (or (or (ascii_isupper (ld-u8 p)) (ascii_islower (ld-u8 p))) (ascii_isdigit (ld-u8 p)))
                 (loop22 (fx+ p 1))
                 (join23 p)))
           (join23 p)))
@@ -13238,7 +13236,7 @@
               [else (join29 p)]))
           (let loop2 ([p p])
             (cond
-              [(or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (loop2 (fx+ p 1))]
+              [(or (ascii_isupper (ld-u8 p)) (ascii_islower (ld-u8 p))) (loop2 (fx+ p 1))]
               [(and (fx=? p (exarg_T.cmd eap)) (not (fx=? (vim_strchr ed (c-str 163249 "@*=><&~#") (ld-u8 p)) 0)))
                (join5 (fx+ p 1))]
               [else (join5 p)]))))))
@@ -13370,7 +13368,7 @@
             (st-ptr! ptr cmd)
             (frame-pop! ed fr)
             lnum])]
-        [else (if (ascii_isdigit ed (ld-u8 cmd)) (loop52 (getdigits ed &cmd)) (loop52 lnum))]))
+        [else (if (ascii_isdigit (ld-u8 cmd)) (loop52 (getdigits ed &cmd)) (loop52 lnum))]))
     (define (join10 i lnum)
       (cond
         [skip (join20 lnum)]
@@ -13454,7 +13452,7 @@
     (define (loop52 lnum)
       (set! cmd (skipwhite ed cmd))
       (cond
-        [(and (and (not (fx=? (ld-u8 cmd) (ch #\-))) (not (fx=? (ld-u8 cmd) (ch #\+)))) (not (ascii_isdigit ed (ld-u8 cmd))))
+        [(and (and (not (fx=? (ld-u8 cmd) (ch #\-))) (not (fx=? (ld-u8 cmd) (ch #\+)))) (not (ascii_isdigit (ld-u8 cmd))))
          (cond
            [(or (fx=? (ld-u8 cmd) (ch #\/)) (fx=? (ld-u8 cmd) (ch #\?))) (loop1 lnum)]
            [else (st-ptr! ptr cmd) (frame-pop! ed fr) lnum])]
@@ -13472,13 +13470,13 @@
     (define (join57)
       (join58 (win_T.w_cursor.lnum curwin)))
     (define (join58 lnum)
-      (if (ascii_isdigit ed (ld-u8 cmd))
+      (if (ascii_isdigit (ld-u8 cmd))
           (join61 (ch #\+) lnum)
           (let ([t2 cmd])
             (set! cmd (fx+ cmd 1))
             (join61 (ld-u8 t2) lnum))))
     (define (join61 i lnum)
-      (if (not (ascii_isdigit ed (ld-u8 cmd)))
+      (if (not (ascii_isdigit (ld-u8 cmd)))
           (join65 i 1 lnum)
           (let ([n (getdigits ed &cmd)])
             (cond
@@ -13594,7 +13592,7 @@
     (let ([arg (ld-ptr argp)])
       (if (fx=? (ld-u8 arg) (ch #\+))
           (let ([arg (fx+ arg 1)])
-            (if (or (vim_isspace ed (ld-u8 arg)) (fx=? (ld-u8 arg) NUL))
+            (if (or (vim_isspace (ld-u8 arg)) (fx=? (ld-u8 arg) NUL))
                 (join5 arg dollar_command)
                 (let* ([command arg]
                        [arg (skip_cmd_arg ed arg #t)])
@@ -13609,7 +13607,7 @@
 (define (skip_cmd_arg ed p rembs)
   (let ([mem (ed-mem ed)])
     (define (loop1 p)
-      (if (and (not (fxzero? (ld-u8 p))) (not (vim_isspace ed (ld-u8 p))))
+      (if (and (not (fxzero? (ld-u8 p))) (not (vim_isspace (ld-u8 p))))
           (if (and (fx=? (ld-u8 p) (ch #\x5c)) (not (fx=? (ld-u8 (fx+ p 1)) NUL)))
               (cond
                 [rembs (musl_memmove ed p (fx+ p 1) (u64+ (musl_strlen ed (fx+ p 1)) 1)) (join7 p)]
@@ -13620,7 +13618,7 @@
       (loop1 (fx+ p (utfc_ptr2len ed p))))
     (loop1 p)))
 
-(define (ends_excmd ed c)
+(define (ends_excmd c)
   (or (fx=? c NUL) (fx=? c (ch #\newline))))
 
 (define (ends_excmd2 ed cmd_start cmd)
@@ -13753,7 +13751,7 @@
     (define (join4)
       (frame-pop! ed fr))
     (set! arg (exarg_T.arg eap))
-    (if (not (musl_isdigit ed (ld-u8 arg)))
+    (if (not (musl_isdigit (ld-u8 arg)))
         (let* ([r1 IObuff]
                [r2 (emsg_iobuff_room ed)])
           (vim_snprintf ed r1 r2 e_invalid_argument_str (list arg))
@@ -13917,7 +13915,7 @@
     (set! p (exarg_T.arg eap))
     (cond
       [(fx=? (ld-u8 p) NUL) (join9 1 #f #f)]
-      [(musl_isdigit ed (ld-u8 p))
+      [(musl_isdigit (ld-u8 p))
        (let ([count (getdigits ed &p)])
          (case (ld-u8 p)
            [(115) (set! p (fx+ p 1)) (join9 count #t #f)]
@@ -14230,11 +14228,11 @@
       (if (not (fx=? (ld-u8 cmd) (ch #\g))) (join26 cmd p #t) (join26 cmd p delim_optional)))
     (define (loop16 cmd p delim_optional)
       (let* ([p (skipwhite ed p)]
-             [t1 (ascii_isupper ed (ld-u8 p))])
+             [t1 (ascii_isupper (ld-u8 p))])
         (if t1
             (join18 cmd p delim_optional t1)
             (let ([p (skipwhite ed p)])
-              (join18 cmd p delim_optional (ascii_islower ed (ld-u8 p)))))))
+              (join18 cmd p delim_optional (ascii_islower (ld-u8 p)))))))
     (define (join18 cmd p delim_optional t1)
       (cond
         [t1 (loop16 cmd (fx+ p 1) delim_optional)]
@@ -14303,8 +14301,7 @@
                           [p cmd]
                           [delim_optional #f])
                 (cond
-                  [(or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p)))
-                   (loop2 cmd (fx+ p 1) delim_optional)]
+                  [(or (ascii_isupper (ld-u8 p)) (ascii_islower (ld-u8 p))) (loop2 cmd (fx+ p 1) delim_optional)]
                   [(fx=? (ld-u8 (skipwhite ed p)) NUL) (frame-pop! ed fr) #f]
                   [(or (or (or (fx=? (musl_strncmp ed cmd (c-str 163375 "substitute") (->u64 (fx- p cmd))) 0) (fx=? (musl_strncmp ed cmd (c-str 163386 "smagic") (->u64 (fx- p cmd))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163393 "snomagic") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163402 "vglobal") (->u64 (fx- p cmd))) 0))
                    (cond
@@ -14672,15 +14669,15 @@
          (join8 (ch #\x5c) out___r__ out___c)]
         [else (join8 c out___r__ out___c)]))
     (define (join8 c out___r__ out___c)
-      (let ([r1 (utf_char2len ed c)])
+      (let ([r1 (utf_char2len c)])
         (if (not (fx=? r1 (utfc_ptr2len ed (ml_get_cursor ed))))
             (let loop10 ([c c]
                          [save_c c]
                          [out___r__ out___r__]
                          [out___c out___c])
-              (let ([r2 (utf_char2len ed c)])
+              (let ([r2 (utf_char2len c)])
                 (if (not (fx=? r2 (utfc_ptr2len ed (ml_get_cursor ed))))
-                    (let* ([t1 (utf_char2len ed c)]
+                    (let* ([t1 (utf_char2len c)]
                            [r3 curwin])
                       (win_T.w_cursor.col-set! r3 (i32+ (win_T.w_cursor.col r3) t1))
                       (let ([c (gchar_cursor ed)])
@@ -14754,7 +14751,7 @@
                 [p (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p)])
            (if (fx=? c Ctrl_W) (let loop13 ([j j]
                                             [p p])
-                                 (if (and (fx>? p (cmdline_info_T.cmdbuff ccline)) (vim_isspace ed (ld-u8 p)))
+                                 (if (and (fx>? p (cmdline_info_T.cmdbuff ccline)) (vim_isspace (ld-u8 p)))
                                      (loop13 j (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p))
                                      (let loop15 ([i (mb_get_class ed p)]
                                                   [j j]
@@ -15014,7 +15011,7 @@
       (term_enter ed)
       (init_history ed)
       (let* ([hiscnt (get_hislen ed)]
-             [histype (hist_char2type ed firstc)])
+             [histype (hist_char2type firstc)])
         (cond
           [(not (fxzero? did_emsg))
            (redrawcmd ed)
@@ -15033,7 +15030,7 @@
             (join14 lookfor lookforlen hiscnt histype save_msg_scroll save_State #t did_save_ccline wild_type 0 #t prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
             (join14 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type 0 #t prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c))))
     (define (join14 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
-      (may_trigger_safestate ed #t)
+      (may_trigger_safestate #t)
       (if (not (fx=? (cmdline_info_T.cmdbuff ccline) 0))
           (loop17 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type (vim_strsave ed (cmdline_info_T.cmdbuff ccline)) trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
           (loop17 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)))
@@ -15899,7 +15896,7 @@
       (frame-pop! ed fr)
       (values #t str num1 num2))
     (let ([str (skipwhite ed str)])
-      (if (or (fx=? (ld-u8 str) (ch #\-)) (vim_isdigit ed (ld-u8 str)))
+      (if (or (fx=? (ld-u8 str) (ch #\-)) (vim_isdigit (ld-u8 str)))
           (let* ([len (vim_str2nr ed str 0 0 0 &num 0 0 #f 0)]
                  [str (fx+ str len)])
             (cond
@@ -15921,7 +15918,7 @@
                 [d (fx+ d 1)])
            (st-u8! t1 (ld-u8 s))
            (unless (fx=? (ld-u8 s) NUL) (join12 tail s d skip dirchunk_len)))]
-        [(vim_ispathsep ed (ld-u8 s))
+        [(vim_ispathsep (ld-u8 s))
          (let* ([t2 d]
                 [d (fx+ d 1)])
            (st-u8! t2 (ld-u8 s))
@@ -15976,7 +15973,7 @@
     (define (loop2 p1 p2)
       (cond
         [(fxzero? (ld-u8 p2)) p1]
-        [(vim_ispathsep_nocolon ed (ld-u8 p2)) (join6 (fx+ p2 1) p2)]
+        [(vim_ispathsep_nocolon (ld-u8 p2)) (join6 (fx+ p2 1) p2)]
         [else (join6 p1 p2)]))
     (define (join6 p1 p2)
       (loop2 p1 (fx+ p2 (utfc_ptr2len ed p2))))
@@ -15988,15 +15985,15 @@
 (define (get_past_head ed path)
   (let ([mem (ed-mem ed)])
     (let loop1 ([retval path])
-      (if (vim_ispathsep ed (ld-u8 retval)) (loop1 (fx+ retval 1)) retval))))
+      (if (vim_ispathsep (ld-u8 retval)) (loop1 (fx+ retval 1)) retval))))
 
-(define (vim_ispathsep ed c)
+(define (vim_ispathsep c)
   (fx=? c (ch #\/)))
 
-(define (vim_ispathsep_nocolon ed c)
-  (vim_ispathsep ed c))
+(define (vim_ispathsep_nocolon c)
+  (vim_ispathsep c))
 
-(define (FreeWild ed count files)
+(define (FreeWild count files)
   (unless (or (fx<=? count 0) (fx=? files 0)) (let loop2 ([count count])
                                                 (let* ([t1 count]
                                                        [count (i32- count 1)])
@@ -16040,12 +16037,12 @@
     (define (join17 ptr len)
       (cond
         [(fx=? (ld-u8 p) NUL) (join22 ptr len)]
-        [(not (musl_isdigit ed (ld-u8 p))) (set! p (fx+ p 1)) (join20 ptr len)]
+        [(not (musl_isdigit (ld-u8 p))) (set! p (fx+ p 1)) (join20 ptr len)]
         [else (join20 ptr len)]))
     (define (join20 ptr len)
       (set! p (skipwhite ed p))
       (cond
-        [(musl_isdigit ed (ld-u8 p)) (st-s64! file_lnum (->i32 (getdigits ed &p))) (join22 ptr len)]
+        [(musl_isdigit (ld-u8 p)) (st-s64! file_lnum (->i32 (getdigits ed &p))) (join22 ptr len)]
         [else (join22 ptr len)]))
     (define (join22 ptr len)
       (let ([r1 (find_file_name_in_path ed ptr len options count rel_fname)])
@@ -16520,7 +16517,7 @@
     (define (join9 c)
       (if (not (eqv? count 0)) (let loop11 ([c c])
                                  (cond
-                                   [(ascii_isdigit ed c) (loop11 (read_redo ed #f old_redo))]
+                                   [(ascii_isdigit c) (loop11 (read_redo ed #f old_redo))]
                                    [else (add_num_buff ed readbuf2 count) (join13 c)])) (join13 c)))
     (define (join13 c)
       (add_char_buff ed readbuf2 c)
@@ -17251,7 +17248,7 @@
           [else
            (join19 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)])))
     (define (join19 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
-      (if (ascii_isupper ed (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)))
+      (if (ascii_isupper (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)))
           (join92 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen 1 tb_c1 keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
           (join92 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
     (define (join26 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc n out___r__ out___keylenp out___timedout out___mapdepth)
@@ -18131,7 +18128,7 @@
   (let ([mem (ed-mem ed)])
     (define (join3)
       (cond
-        [(ascii_isdigit ed (ld-u8 arg)) (join8 (musl_atoi ed arg))]
+        [(ascii_isdigit (ld-u8 arg)) (join8 (musl_atoi ed arg))]
         [(fx=? (musl_strcasecmp ed arg (c-str 163639 "NONE")) 0) (join8 -1)]
         [else #f]))
     (define (join8 font)
@@ -18158,8 +18155,7 @@
           (join5 lookup_color__o_r__ lookup_color__o_boldp)))
     (define (join5 lookup_color__o_r__ lookup_color__o_boldp)
       (cond
-        [(ascii_isdigit ed (ld-u8 arg))
-         (join25 (musl_atoi ed arg) lookup_color__o_r__ lookup_color__o_boldp)]
+        [(ascii_isdigit (ld-u8 arg)) (join25 (musl_atoi ed arg) lookup_color__o_r__ lookup_color__o_boldp)]
         [(fx=? (musl_strcasecmp ed arg (c-str 163658 "fg")) 0)
          (cond
            [(not (fxzero? cterm_normal_fg_color))
@@ -19104,7 +19100,7 @@
       (cond
         [(fx=? (ld-u8 p) NUL) (join6)]
         [(not (vim_isprintc ed (ld-u8 p))) (emsg ed e_unprintable_character_in_group_name) 0]
-        [(and (and (and (not (or (or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (ascii_isdigit ed (ld-u8 p)))) (not (fx=? (ld-u8 p) (ch #\_)))) (not (fx=? (ld-u8 p) (ch #\.)))) (not (fx=? (ld-u8 p) (ch #\-))))
+        [(and (and (and (not (or (or (ascii_isupper (ld-u8 p)) (ascii_islower (ld-u8 p))) (ascii_isdigit (ld-u8 p)))) (not (fx=? (ld-u8 p) (ch #\_)))) (not (fx=? (ld-u8 p) (ch #\.)))) (not (fx=? (ld-u8 p) (ch #\-))))
          (msg_source ed (ld-s32 (fx+ highlight_attr 100)))
          (msg ed (c-str 163852 "W18: Invalid character in group name"))
          (join6)]
@@ -20053,7 +20049,7 @@
   (let ([mem (ed-mem ed)])
     (if (not (fxzero? p_paste)) (void) (void))))
 
-(define (ctrl_x_mode_scroll ed)
+(define (ctrl_x_mode_scroll)
   #f)
 
 (define (get_maphash_list ed state c)
@@ -20879,7 +20875,7 @@
             (cond
               [(fx=? c (ch #\<)) (mem-copy! (buf_T.b_visual.vi_start& buf) pos 16) (join13 buf)]
               [else (mem-copy! (buf_T.b_visual.vi_end& buf) pos 16) (join13 buf)])]
-           [(ascii_islower ed c)
+           [(ascii_islower c)
             (let ([i (i32- c (ch #\a))])
               (mem-copy! (fx+ (buf_T.b_namedm& buf) (fx* i 16)) pos 16)
               #t)]
@@ -20960,7 +20956,7 @@
                      (b->i (fx<? (pos_T.coladd startp) (pos_T.coladd endp)))))) (= (pos_T.lnum endp) 0)) (not (= (pos_T.lnum startp) 0)))
              (join14 startp)
              (join14 endp)))]
-      [(ascii_islower ed c) (join25 (fx+ (buf_T.b_namedm& buf) (fx* (i32- c (ch #\a)) 16)))]
+      [(ascii_islower c) (join25 (fx+ (buf_T.b_namedm& buf) (fx* (i32- c (ch #\a)) 16)))]
       [else (join25 0)])))
 
 (define (getnextmark ed startpos dir begin_line)
@@ -21122,11 +21118,11 @@
   (let ([mem (ed-mem ed)])
     (define (loop4 p)
       (when (not (fx=? (ld-u8 p) NUL))
-        (if (ascii_islower ed (ld-u8 p))
+        (if (ascii_islower (ld-u8 p))
             (if (fx=? (ld-u8 (fx+ p 1)) (ch #\-))
                 (let* ([from (ld-u8 p)]
                        [to (ld-u8 (fx+ p 2))])
-                  (if (or (not (ascii_islower ed (ld-u8 (fx+ p 2)))) (fx<? to from))
+                  (if (or (not (ascii_islower (ld-u8 (fx+ p 2)))) (fx<? to from))
                       (let ([r1 IObuff])
                         (vim_snprintf ed r1 (emsg_iobuff_room ed) e_invalid_argument_str (list p))
                         (emsg ed (iobuff_or ed e_invalid_argument_str))
@@ -21200,13 +21196,13 @@
 (define (mark_adjust_nofold ed line1 line2 amount amount_after)
   (mark_adjust_internal ed line1 line2 amount amount_after #f))
 
-(define (one_adjust ed lnum line1 line2 amount amount_after)
+(define (one_adjust lnum line1 line2 amount amount_after)
   (cond
     [(and (>= lnum line1) (<= lnum line2)) (if (= amount LONG_MAX) 0 (i64+ lnum amount))]
     [(and (not (eqv? amount_after 0)) (> lnum line2)) (i64+ lnum amount_after)]
     [else lnum]))
 
-(define (one_adjust_nodel ed lnum line1 line2 amount amount_after)
+(define (one_adjust_nodel lnum line1 line2 amount amount_after)
   (cond
     [(and (>= lnum line1) (<= lnum line2)) (if (= amount LONG_MAX) line1 (i64+ lnum amount))]
     [(and (not (eqv? amount_after 0)) (> lnum line2)) (i64+ lnum amount_after)]
@@ -21219,21 +21215,21 @@
                   [fnum fnum])
         (if (fx<? i (buf_T.b_changelistlen curbuf))
             (let ([r5 (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))])
-              (pos_T.lnum-set! r5 (one_adjust_nodel ed (pos_T.lnum (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))) line1 line2 amount amount_after))
+              (pos_T.lnum-set! r5 (one_adjust_nodel (pos_T.lnum (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))) line1 line2 amount amount_after))
               (loop7 (i32+ i 1) fnum))
             (let ([r6 curbuf])
-              (buf_T.b_visual.vi_start.lnum-set! r6 (one_adjust_nodel ed (buf_T.b_visual.vi_start.lnum curbuf) line1 line2 amount amount_after))
+              (buf_T.b_visual.vi_start.lnum-set! r6 (one_adjust_nodel (buf_T.b_visual.vi_start.lnum curbuf) line1 line2 amount amount_after))
               (let ([r7 curbuf])
-                (buf_T.b_visual.vi_end.lnum-set! r7 (one_adjust_nodel ed (buf_T.b_visual.vi_end.lnum curbuf) line1 line2 amount amount_after))
+                (buf_T.b_visual.vi_end.lnum-set! r7 (one_adjust_nodel (buf_T.b_visual.vi_end.lnum curbuf) line1 line2 amount amount_after))
                 (join9 fnum))))))
     (define (join9 fnum)
       (let ([r8 curwin])
-        (win_T.w_pcmark.lnum-set! r8 (one_adjust ed (win_T.w_pcmark.lnum curwin) line1 line2 amount amount_after))
+        (win_T.w_pcmark.lnum-set! r8 (one_adjust (win_T.w_pcmark.lnum curwin) line1 line2 amount amount_after))
         (let ([r9 curwin])
-          (win_T.w_prev_pcmark.lnum-set! r9 (one_adjust ed (win_T.w_prev_pcmark.lnum curwin) line1 line2 amount amount_after))
+          (win_T.w_prev_pcmark.lnum-set! r9 (one_adjust (win_T.w_prev_pcmark.lnum curwin) line1 line2 amount amount_after))
           (cond
             [(not (= (pos_T.lnum saved_cursor) 0))
-             (pos_T.lnum-set! saved_cursor (one_adjust_nodel ed (pos_T.lnum saved_cursor) line1 line2 amount amount_after))
+             (pos_T.lnum-set! saved_cursor (one_adjust_nodel (pos_T.lnum saved_cursor) line1 line2 amount amount_after))
              (join11 fnum)]
             [else (join11 fnum)]))))
     (define (join11 fnum)
@@ -21245,15 +21241,15 @@
       (if (fx<? i (win_T.w_tagstacklen win))
           (cond
             [(fx=? (taggy_T.fmark.fnum (fx+ (win_T.w_tagstack& win) (fx* i 24))) fnum)
-             (taggy_T.fmark.mark.lnum-set! (fx+ (win_T.w_tagstack& win) (fx* i 24)) (one_adjust_nodel ed (taggy_T.fmark.mark.lnum (fx+ (win_T.w_tagstack& win) (fx* i 24))) line1 line2 amount amount_after))
+             (taggy_T.fmark.mark.lnum-set! (fx+ (win_T.w_tagstack& win) (fx* i 24)) (one_adjust_nodel (taggy_T.fmark.mark.lnum (fx+ (win_T.w_tagstack& win) (fx* i 24))) line1 line2 amount amount_after))
              (join45 i fnum win)]
             [else (join45 i fnum win)])
           (join15 win)))
     (define (join15 win)
       (cond
         [(not (= (win_T.w_old_cursor_lnum win) 0))
-         (win_T.w_old_cursor_lnum-set! win (one_adjust_nodel ed (win_T.w_old_cursor_lnum win) line1 line2 amount amount_after))
-         (win_T.w_old_visual_lnum-set! win (one_adjust_nodel ed (win_T.w_old_visual_lnum win) line1 line2 amount amount_after))
+         (win_T.w_old_cursor_lnum-set! win (one_adjust_nodel (win_T.w_old_cursor_lnum win) line1 line2 amount amount_after))
+         (win_T.w_old_visual_lnum-set! win (one_adjust_nodel (win_T.w_old_visual_lnum win) line1 line2 amount amount_after))
          (join17 win)]
         [else (join17 win)]))
     (define (join17 win)
@@ -21314,15 +21310,15 @@
                                                                                      [fnum fnum])
                                                                            (if (fx<? i 26)
                                                                                (let ([r1 (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))])
-                                                                                 (pos_T.lnum-set! r1 (one_adjust ed (pos_T.lnum (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))) line1 line2 amount amount_after))
+                                                                                 (pos_T.lnum-set! r1 (one_adjust (pos_T.lnum (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))) line1 line2 amount amount_after))
                                                                                  (loop3 (i32+ i 1) fnum))
                                                                                (let ([r2 curbuf])
-                                                                                 (buf_T.b_last_insert.lnum-set! r2 (one_adjust ed (buf_T.b_last_insert.lnum curbuf) line1 line2 amount amount_after))
+                                                                                 (buf_T.b_last_insert.lnum-set! r2 (one_adjust (buf_T.b_last_insert.lnum curbuf) line1 line2 amount amount_after))
                                                                                  (let ([r3 curbuf])
-                                                                                   (buf_T.b_last_change.lnum-set! r3 (one_adjust ed (buf_T.b_last_change.lnum curbuf) line1 line2 amount amount_after))
+                                                                                   (buf_T.b_last_change.lnum-set! r3 (one_adjust (buf_T.b_last_change.lnum curbuf) line1 line2 amount amount_after))
                                                                                    (if (not (and (and (= (buf_T.b_last_cursor.lnum curbuf) (pos_T.lnum mark_adjust_internal:initpos)) (fx=? (buf_T.b_last_cursor.col curbuf) (pos_T.col mark_adjust_internal:initpos))) (fx=? (buf_T.b_last_cursor.coladd curbuf) (pos_T.coladd mark_adjust_internal:initpos))))
                                                                                        (let ([r4 curbuf])
-                                                                                         (buf_T.b_last_cursor.lnum-set! r4 (one_adjust ed (buf_T.b_last_cursor.lnum curbuf) line1 line2 amount amount_after))
+                                                                                         (buf_T.b_last_cursor.lnum-set! r4 (one_adjust (buf_T.b_last_cursor.lnum curbuf) line1 line2 amount amount_after))
                                                                                          (join6 fnum))
                                                                                        (join6 fnum)))))) (join9 fnum))))))
 
@@ -21576,7 +21572,7 @@
 (define (match_delete ed wp id perr)
   (let ([mem (ed-mem ed)])
     (define (join7 cur rtype)
-      (vim_regfree ed (matchitem_T.mit_match.regprog cur))
+      (vim_regfree (matchitem_T.mit_match.regprog cur))
       (cond
         [(not (= (matchitem_T.mit_toplnum cur) 0))
          (redraw_win_range_later ed wp (matchitem_T.mit_toplnum cur) (matchitem_T.mit_botlnum cur))
@@ -21705,7 +21701,7 @@
     (define (join20 nmatched called_emsg_before)
       (if (or (or (fx>? called_emsg called_emsg_before) (not (fxzero? got_int))) (not (fxzero? timed_out)))
           (cond
-            [(fx=? shl search_hl) (vim_regfree ed (match_T.rm.regprog shl)) (set_no_hlsearch ed #t) (join27)]
+            [(fx=? shl search_hl) (vim_regfree (match_T.rm.regprog shl)) (set_no_hlsearch ed #t) (join27)]
             [else (join27)])
           (join21 nmatched called_emsg_before)))
     (define (join21 nmatched called_emsg_before)
@@ -22380,7 +22376,7 @@
                                                                                                              [else (loop6 len r2 r1 r2)]))))
                                                                                                    (join11 len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)))))]))])))
 
-(define (utf_char2len ed c)
+(define (utf_char2len c)
   (cond
     [(fx<? c 128) 1]
     [(fx<? c 2048) 2]
@@ -22491,7 +22487,7 @@
       [(and (fx<? a 128) (not (fxzero? (fxand cmp_flags CMP_KEEPASCII))))
        (if (or (fx<? a (ch #\a)) (fx>? a (ch #\z))) a (i32- a 32))]
       [(not (not (fxzero? (fxand cmp_flags CMP_INTERNAL)))) (musl_towupper ed a)]
-      [(fx<? a 128) (musl_toupper ed (->u8 a))]
+      [(fx<? a 128) (musl_toupper (->u8 a))]
       [else (utf_convert ed a toUpper 3184)])))
 
 (define (utf_islower ed a)
@@ -22503,7 +22499,7 @@
       [(and (fx<? a 128) (not (fxzero? (fxand cmp_flags CMP_KEEPASCII))))
        (if (or (fx<? a (ch #\A)) (fx>? a (ch #\Z))) a (i32+ a 32))]
       [(not (not (fxzero? (fxand cmp_flags CMP_INTERNAL)))) (musl_towlower ed a)]
-      [(fx<? a 128) (musl_tolower ed (->u8 a))]
+      [(fx<? a 128) (musl_tolower (->u8 a))]
       [else (utf_convert ed a toLower 2928)])))
 
 (define (utf_isupper ed a)
@@ -22637,7 +22633,7 @@
           (cond
             [(not (fx=? (ld-u8 p) NUL))
              (let ([len (utf_ptr2len ed p)])
-               (if (and (fx>=? (ld-u8 p) 128) (or (fx=? len 1) (not (fx=? (utf_char2len ed (utf_ptr2char ed p)) len))))
+               (if (and (fx>=? (ld-u8 p) 128) (or (fx=? len 1) (not (fx=? (utf_char2len (utf_ptr2char ed p)) len))))
                    (let* ([t1 (->i32 (fx- p (ml_get_cursor ed)))]
                           [r1 curwin])
                      (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) t1))
@@ -23841,10 +23837,10 @@
            [(fx=? (musl_strncmp ed p (c-str 164308 "hit-enter") 9) 0)
             (set! p (fx+ p 9))
             (join17 (fxior messages_flags_new MESSAGES_HIT_ENTER) messages_wait_new messages_history_new)]
-           [(and (fx=? (musl_strncmp ed p (c-str 164318 "wait:") 5) 0) (ascii_isdigit ed (ld-u8 (fx+ p 5))))
+           [(and (fx=? (musl_strncmp ed p (c-str 164318 "wait:") 5) 0) (ascii_isdigit (ld-u8 (fx+ p 5))))
             (set! p (fx+ p 5))
             (join17 (fxior messages_flags_new MESSAGES_WAIT) (->i32 (getdigits ed &p)) messages_history_new)]
-           [(and (fx=? (musl_strncmp ed p (c-str 164324 "history:") 8) 0) (ascii_isdigit ed (ld-u8 (fx+ p 8))))
+           [(and (fx=? (musl_strncmp ed p (c-str 164324 "history:") 8) 0) (ascii_isdigit (ld-u8 (fx+ p 8))))
             (set! p (fx+ p 8))
             (join17 (fxior messages_flags_new MESSAGES_HISTORY) messages_wait_new (->i32 (getdigits ed &p)))]
            [else (join17 messages_flags_new messages_wait_new messages_history_new)])]
@@ -25311,10 +25307,10 @@
       (when (> pn p_report)
         (cond
           [(> n 0)
-           (vim_snprintf ed msg_buf MSG_BUF_LEN (NGETTEXT ed (c-str 164527 "%ld more line") (c-str 164541 "%ld more lines") (->u64 pn)) (list pn))
+           (vim_snprintf ed msg_buf MSG_BUF_LEN (NGETTEXT (c-str 164527 "%ld more line") (c-str 164541 "%ld more lines") (->u64 pn)) (list pn))
            (join9)]
           [else
-           (vim_snprintf ed msg_buf MSG_BUF_LEN (NGETTEXT ed (c-str 164556 "%ld line less") (c-str 164570 "%ld fewer lines") (->u64 pn)) (list pn))
+           (vim_snprintf ed msg_buf MSG_BUF_LEN (NGETTEXT (c-str 164556 "%ld line less") (c-str 164570 "%ld fewer lines") (->u64 pn)) (list pn))
            (join9)])))
     (define (join9)
       (cond
@@ -25410,14 +25406,14 @@
     [(fx=? (musl_strncmp ed p (c-str 164622 ":\\\\") 3) 0) URL_BACKSLASH]
     [else 0]))
 
-(define (vim_append_digit_long ed value digit)
+(define (vim_append_digit_long value digit)
   (if (> value (i64/ (i64- LONG_MAX digit) 10))
       (values #f value)
       (let* ([x value]
              [value (i64+ (i64* value 10) digit)])
         (values #t value))))
 
-(define (trim_to_int ed x)
+(define (trim_to_int x)
   (->i32 (if (> x INT_MAX) INT_MAX (if (< x INT_MIN) INT_MIN x))))
 
 (define (virtual_active ed)
@@ -25864,7 +25860,7 @@
           (loop3 len p 0 0))
         (loop3 0 option 0 0))))
 
-(define (vim_isspace ed x)
+(define (vim_isspace x)
   (or (and (fx>=? x 9) (fx<=? x 13)) (fx=? x (ch #\space))))
 
 (define (name_to_mod_mask ed c)
@@ -25894,7 +25890,7 @@
                  (i32- 0 (i32+ (ld-u8 (fx+ modifier_keys_table (i32+ i 1))) (i32<< (ld-u8 (fx+ modifier_keys_table (i32+ i 2))) 8)))]
                 [else (loop3 (i32+ i MOD_KEYS_ENTRY_SIZE) key0 key1)]))])))
 
-(define (handle_x_keys ed key)
+(define (handle_x_keys key)
   (case key
     [(-16893) K_UP]
     [(-17149) K_DOWN]
@@ -25929,7 +25925,7 @@
                          [else (loop4 c modifiers (i32+ i MOD_KEYS_ENTRY_SIZE) idx)])) (join8 c modifiers idx)))
     (define (join8 c modifiers idx)
       (let ([table_idx (find_special_key_in_table ed c)])
-        (if (and (fx>? c 0) (fx=? (utf_char2len ed c) 1))
+        (if (and (fx>? c 0) (fx=? (utf_char2len c) 1))
             (if (and (and (fx<? table_idx 0) (or (not (vim_isprintc ed c)) (fx=? (fxand c 127) (ch #\space)))) (not (fxzero? (fxand c 128))))
                 (let ([c (fxand c 127)])
                   (join11 c (fxior modifiers MOD_MASK_ALT) idx (find_special_key_in_table ed c)))
@@ -25968,7 +25964,7 @@
                           [idx (i32+ idx 1)])
                      (st-u8! (fx+ get_special_key_name:string t6) (->u8 (fxand (u32>> (->u32 (i32- 0 c)) 8) 255)))
                      (join27 idx)))))
-             (let ([len (utf_char2len ed c)])
+             (let ([len (utf_char2len c)])
                (cond
                  [(and (fx=? len 1) (vim_isprintc ed c))
                   (let* ([t7 idx]
@@ -26048,7 +26044,7 @@
     (define (join3 modp src in_string l out___r__ out___modp)
       (loop4 modp src src (fx+ src 1) in_string l out___r__ out___modp))
     (define (loop4 modp last_dash src bp in_string l out___r__ out___modp)
-      (if (or (fx=? (ld-u8 bp) (ch #\-)) (vim_isNormalIDc ed (ld-u8 bp)))
+      (if (or (fx=? (ld-u8 bp) (ch #\-)) (vim_isNormalIDc (ld-u8 bp)))
           (if (fx=? (ld-u8 bp) (ch #\-))
               (if (not (fx=? (ld-u8 (fx+ bp 1)) NUL))
                   (let ([l (utfc_ptr2len ed (fx+ bp 1))])
@@ -26093,7 +26089,7 @@
     (define (join22 modp last_dash end_of_name bp in_string l out___r__ out___modp)
       (if (fx>=? bp last_dash)
           (cond
-            [(and (fx=? (musl_strncasecmp ed (fx+ last_dash 1) (c-str 164626 "char-") 5) 0) (ascii_isdigit ed (ld-u8 (fx+ last_dash 6))))
+            [(and (fx=? (musl_strncasecmp ed (fx+ last_dash 1) (c-str 164626 "char-") 5) 0) (ascii_isdigit (ld-u8 (fx+ last_dash 6))))
              (let ([l (vim_str2nr ed (fx+ last_dash 6) 0 l 15 0 &n 0 #t 0)])
                (cond
                  [(fx=? l 0) (emsg ed e_invalid_argument) (frame-pop! ed fr) (values 0 modp)]
@@ -26108,7 +26104,7 @@
             (join32 modp end_of_name (utf_ptr2char ed (fx+ last_dash off)) out___r__ out___modp)
             (let ([key (get_special_key_code ed (fx+ last_dash off))])
               (if (not (not (fxzero? (fxand flags FSK_KEEP_X_KEY))))
-                  (join32 modp end_of_name (handle_x_keys ed key) out___r__ out___modp)
+                  (join32 modp end_of_name (handle_x_keys key) out___r__ out___modp)
                   (join32 modp end_of_name key out___r__ out___modp))))))
     (define (join32 modp end_of_name key out___r__ out___modp)
       (if (not (fx=? key NUL))
@@ -26153,7 +26149,7 @@
   (let ([mem (ed-mem ed)])
     (cond
       [(fx=? (fxand modifiers MOD_MASK_CTRL) 0) key]
-      [(or (ascii_isupper ed key) (ascii_islower ed key))
+      [(or (ascii_isupper key) (ascii_islower key))
        (if (not no_reduce_keys) (if (or (fx<? key (ch #\a)) (fx>? key (ch #\z))) key (i32- key 32)) key)]
       [(fx=? key (ch #\2)) (ch #\@)]
       [(fx=? key (ch #\6)) (ch #\^)]
@@ -26161,9 +26157,9 @@
       [(and (fx=? key (ch #\$)) (fx=? (fxand modifiers MOD_MASK_SHIFT) 0)) (ch #\x5d)]
       [else key])))
 
-(define (may_remove_shift_modifier ed modifiers key)
+(define (may_remove_shift_modifier modifiers key)
   (cond
-    [(and (or (or (fx=? modifiers MOD_MASK_SHIFT) (fx=? modifiers 10)) (fx=? modifiers 18)) (or (or (or (or (and (fx>=? key (ch #\!)) (fx<=? key (ch #\/))) (and (fx>=? key (ch #\:)) (fx<=? key (ch #\Z)))) (vim_isdigit ed key)) (and (fx>=? key (ch #\x5b)) (fx<=? key (ch #\x60)))) (and (fx>=? key (ch #\x7b)) (fx<=? key (ch #\~)))))
+    [(and (or (or (fx=? modifiers MOD_MASK_SHIFT) (fx=? modifiers 10)) (fx=? modifiers 18)) (or (or (or (or (and (fx>=? key (ch #\!)) (fx<=? key (ch #\/))) (and (fx>=? key (ch #\:)) (fx<=? key (ch #\Z)))) (vim_isdigit key)) (and (fx>=? key (ch #\x5b)) (fx<=? key (ch #\x60)))) (and (fx>=? key (ch #\x7b)) (fx<=? key (ch #\~)))))
      (fxand modifiers -3)]
     [(and (fx=? modifiers 6) (or (or (fx=? key (ch #\x7b)) (fx=? key (ch #\x7d))) (fx=? key (ch #\x7c))))
      (fxand modifiers -3)]
@@ -26172,11 +26168,11 @@
 (define (extract_modifiers ed key modp simplify did_simplify)
   (let ([mem (ed-mem ed)])
     (define (join3 key modifiers)
-      (if (and (not (fxzero? (fxand modifiers MOD_MASK_CTRL))) (or (ascii_isupper ed key) (ascii_islower ed key)))
+      (if (and (not (fxzero? (fxand modifiers MOD_MASK_CTRL))) (or (ascii_isupper key) (ascii_islower key)))
           (join5 (if (or (fx<? key (ch #\a)) (fx>? key (ch #\z))) key (i32- key 32)) modifiers)
           (join5 key modifiers)))
     (define (join5 key modifiers)
-      (if (and (and (not (fxzero? simplify)) (not (fxzero? (fxand modifiers MOD_MASK_CTRL)))) (or (and (fx>=? key (ch #\?)) (fx<=? key (ch #\_))) (or (ascii_isupper ed key) (ascii_islower ed key))))
+      (if (and (and (not (fxzero? simplify)) (not (fxzero? (fxand modifiers MOD_MASK_CTRL)))) (or (and (fx>=? key (ch #\?)) (fx<=? key (ch #\_))) (or (ascii_isupper key) (ascii_islower key))))
           (let* ([key (fxxor (if (or (fx<? key (ch #\a)) (fx>? key (ch #\z))) key (i32- key 32)) 64)]
                  [modifiers (fxand modifiers -5)])
             (if (fx=? key NUL) (join8 -22783 modifiers) (join8 key modifiers)))
@@ -26197,7 +26193,7 @@
       (st-s32! modp modifiers)
       key)
     (let ([modifiers (ld-s32 modp)])
-      (if (and (not (fxzero? (fxand modifiers MOD_MASK_SHIFT))) (or (ascii_isupper ed key) (ascii_islower ed key)))
+      (if (and (not (fxzero? (fxand modifiers MOD_MASK_SHIFT))) (or (ascii_isupper key) (ascii_islower key)))
           (let ([key (if (or (fx<? key (ch #\a)) (fx>? key (ch #\z))) key (i32- key 32))])
             (if (or (or (or (not (fxzero? simplify)) (fx=? modifiers MOD_MASK_SHIFT)) (fx=? modifiers 10)) (fx=? modifiers 18))
                 (join3 key (fxand modifiers -3))
@@ -26217,9 +26213,7 @@
   (let ([mem (ed-mem ed)])
     (define (join5 p1 p2 result)
       (if (fx=? result 0)
-          (if (fx=? (ld-u8 p2) NUL)
-              (if (vim_isNormalIDc ed (ld-u8 p1)) (join10 1) (join10 result))
-              (join10 -1))
+          (if (fx=? (ld-u8 p2) NUL) (if (vim_isNormalIDc (ld-u8 p1)) (join10 1) (join10 result)) (join10 -1))
           (join10 result)))
     (define (join10 result)
       result)
@@ -26228,7 +26222,7 @@
       (if (fx=? p1 p2) 0 (let loop2 ([p1 p1]
                                      [p2 p2]
                                      [result 0])
-                           (if (and (vim_isNormalIDc ed (ld-u8 p1)) (not (fx=? (ld-u8 p2) NUL)))
+                           (if (and (vim_isNormalIDc (ld-u8 p1)) (not (fx=? (ld-u8 p2) NUL)))
                                (let ([result (i32- (if (or (fx<? (ld-u8 p1) (ch #\A)) (fx>? (ld-u8 p1) (ch #\Z))) (ld-u8 p1) (i32+ (ld-u8 p1) 32)) (if (or (fx<? (ld-u8 p2) (ch #\A)) (fx>? (ld-u8 p2) (ch #\Z))) (ld-u8 p2) (i32+ (ld-u8 p2) 32)))])
                                  (if (not (fx=? result 0)) (join5 p1 p2 result) (loop2 (fx+ p1 1) (fx+ p2 1) result)))
                                (join5 p1 p2 result)))))))
@@ -27902,7 +27896,7 @@
       (win_T.w_onebuf_opt.wo_sms-set! curwin TRUE)
       (scroll_redraw ed (b->i (fx=? dir FORWARD)) count)
       (if (and (not (not (fxzero? prev_sms))) (fx>? (win_T.w_skipcol curwin) 0))
-          (if (> (musl_labs ed (i64- (win_T.w_topline curwin) prev_topline)) (b->i (fx=? dir -1)))
+          (if (> (musl_labs (i64- (win_T.w_topline curwin) prev_topline)) (b->i (fx=? dir -1)))
               (join3 curscount prev_sms prev_skipcol prev_topline (i32* dir -1))
               (join3 curscount prev_sms prev_skipcol prev_topline dir))
           (join6 curscount prev_sms prev_skipcol prev_topline)))))
@@ -28898,7 +28892,7 @@
   (let ([mem (ed-mem ed)])
     (cmdarg_T.retval-set! cap (fxior (cmdarg_T.retval cap) CA_COMMAND_BUSY))))
 
-(define (nv_nop ed cap)
+(define (nv_nop cap)
   (void))
 
 (define (nv_error ed cap)
@@ -29061,8 +29055,8 @@
             (cond
               [(or (fx=? nchar K_DEL) (fx=? nchar K_KDEL))
                (loop2 nchar_arg (i64/ n 10) vim_append_digit_long__o_r__ vim_append_digit_long__o_value)]
-              [(ascii_isdigit ed nchar)
-               (let-values ([(r1 r2) (vim_append_digit_long ed n (i32- nchar (ch #\0)))])
+              [(ascii_isdigit nchar)
+               (let-values ([(r1 r2) (vim_append_digit_long n (i32- nchar (ch #\0)))])
                  (cond
                    [(not r1) (clearopbeep ed (cmdarg_T.oap cap)) (join11 nchar_arg r1 r2)]
                    [else (loop2 nchar_arg r2 r1 r2)]))]
@@ -29201,7 +29195,7 @@
     (set! nchar (cmdarg_T.nchar cap))
     (let ([siso (get_sidescrolloff_value ed)])
       (cond
-        [(and (ascii_isdigit ed nchar)
+        [(and (ascii_isdigit nchar)
               (let-values ([(r2 r3) (nv_z_get_count ed cap nchar)])
                 (st-s32! (fx+ fr 4) r3)
                 (not r2)))
@@ -30079,7 +30073,7 @@
     (define (join5)
       (cmdarg_T.cmdchar-set! cap (ld-u8 (fx+ (vim_strchr ed v_visop:trans (cmdarg_T.cmdchar cap)) 1)))
       (nv_operator ed cap))
-    (if (musl_isupper ed (->u8 (cmdarg_T.cmdchar cap)))
+    (if (musl_isupper (->u8 (cmdarg_T.cmdchar cap)))
         (cond
           [(not (fx=? VIsual_mode Ctrl_V))
            (set! VIsual_mode_orig VIsual_mode)
@@ -31175,7 +31169,7 @@
       (if VIsual_active
           (let* ([regname (oparg_T.regname (cmdarg_T.oap cap))]
                  [keep_registers (fx=? (cmdarg_T.cmdchar cap) (ch #\P))])
-            (if (or (or (or (fx=? regname 0) (fx=? regname (ch #\x22))) (ascii_isdigit ed regname)) (fx=? regname (ch #\-)))
+            (if (or (or (or (fx=? regname 0) (fx=? regname (ch #\x22))) (ascii_isdigit regname)) (fx=? regname (ch #\-)))
                 (join11 regname (get_register ed regname #t) reg2 #t dir flags keep_registers)
                 (join11 regname reg1 reg2 #t dir flags keep_registers)))
           (join22 regname reg2 empty was_visual dir flags)))
@@ -31312,10 +31306,10 @@
           (if (fx=? (oparg_T.op_type oap) OP_RSHIFT) (join14 (c-str 164897 ">")) (join14 (c-str 162541 "<")))
           (join15)))
     (define (join14 op)
-      (let* ([msg_line_single (NGETTEXT ed (c-str 164899 "%ld line %sed %d time") (c-str 164921 "%ld line %sed %d times") (->u64 amount))]
-             [msg_line_plural (NGETTEXT ed (c-str 164944 "%ld lines %sed %d time") (c-str 164967 "%ld lines %sed %d times") (->u64 amount))]
+      (let* ([msg_line_single (NGETTEXT (c-str 164899 "%ld line %sed %d time") (c-str 164921 "%ld line %sed %d times") (->u64 amount))]
+             [msg_line_plural (NGETTEXT (c-str 164944 "%ld lines %sed %d time") (c-str 164967 "%ld lines %sed %d times") (->u64 amount))]
              [r2 IObuff]
-             [r3 (NGETTEXT ed msg_line_single msg_line_plural (->u64 (oparg_T.line_count oap)))])
+             [r3 (NGETTEXT msg_line_single msg_line_plural (->u64 (oparg_T.line_count oap)))])
         (vim_snprintf ed r2 1025 r3 (list (oparg_T.line_count oap) op amount))
         (msg_attr_keep ed IObuff 0 #t)
         (join15)))
@@ -31349,8 +31343,8 @@
   (let ([count (get_indent ed)])
     (cond
       [(not (fxzero? round_))
-       (let* ([i (i64/ (trim_to_int ed count) sw_val)]
-              [j (i64% (trim_to_int ed count) sw_val)])
+       (let* ([i (i64/ (trim_to_int count) sw_val)]
+              [j (i64% (trim_to_int count) sw_val)])
          (if (and (not (eqv? j 0)) left) (join7 (i64- amount 1) i) (join7 amount i)))]
       [left
        (let ([count (i64- count (i64* sw_val amount))])
@@ -31361,8 +31355,8 @@
   (let ([mem (ed-mem ed)])
     (define (join3 count)
       (if (not (fxzero? (fxand State VREPLACE_FLAG)))
-          (change_indent ed INDENT_SET (trim_to_int ed count) #f NUL call_changed_bytes)
-          (set_indent ed (trim_to_int ed count) (if call_changed_bytes SIN_CHANGED 0))))
+          (change_indent ed INDENT_SET (trim_to_int count) #f NUL call_changed_bytes)
+          (set_indent ed (trim_to_int count) (if call_changed_bytes SIN_CHANGED 0))))
     (let* ([sw_val (buf_T.b_p_sw curbuf)]
            [ts_val (buf_T.b_p_ts curbuf)])
       (if (not (= sw_val 0))
@@ -31883,7 +31877,7 @@
                   (b->i (fx<? (win_T.w_cursor.coladd curwin) (oparg_T.end.coladd oap))))))) (and (and (= (win_T.w_cursor.lnum curwin) (oparg_T.end.lnum oap)) (fx=? (win_T.w_cursor.col curwin) (oparg_T.end.col oap))) (fx=? (win_T.w_cursor.coladd curwin) (oparg_T.end.coladd oap))))
           (let ([n (gchar_cursor ed)])
             (if (not (fx=? n NUL))
-                (let* ([new_byte_len (utf_char2len ed c)]
+                (let* ([new_byte_len (utf_char2len c)]
                        [old_byte_len (utfc_ptr2len ed (ml_get_cursor ed))])
                   (cond
                     [(or (fx>? new_byte_len 1) (fx>? old_byte_len 1))
@@ -31928,7 +31922,7 @@
     (define (loop30 c virtcols)
       (if (fx>=? virtcols 0)
           (cond
-            [(fx>? (utf_char2len ed c) 1) (replace_character ed c) (join34 c virtcols)]
+            [(fx>? (utf_char2len c) 1) (replace_character ed c) (join34 c virtcols)]
             [else (pbyte ed (win_T.w_cursor& curwin) c) (join34 c virtcols)])
           (join36 c)))
     (define (join34 c virtcols)
@@ -31983,7 +31977,7 @@
     (define (join52 c n numc after_p had_ctrl_v_cr)
       (join53 c n (i32/ numc 2) after_p had_ctrl_v_cr))
     (define (join53 c n numc after_p had_ctrl_v_cr)
-      (let* ([t1 (utf_char2len ed c)]
+      (let* ([t1 (utf_char2len c)]
              [num_chars numc]
              [numc (i32* numc t1)]
              [n (i32+ n (i32- numc (block_def.textlen bd)))]
@@ -32081,9 +32075,9 @@
       (if (> (oparg_T.line_count oap) p_report)
           (let* ([r2 IObuff]
                  [r3 (iobuff_room ed)]
-                 [r4 (NGETTEXT ed (c-str 165018 "%ld line changed") (c-str 165035 "%ld lines changed") (->u64 (oparg_T.line_count oap)))])
+                 [r4 (NGETTEXT (c-str 165018 "%ld line changed") (c-str 165035 "%ld lines changed") (->u64 (oparg_T.line_count oap)))])
             (vim_snprintf ed r2 r3 r4 (list (oparg_T.line_count oap)))
-            (msg ed (iobuff_or ed (NGETTEXT ed (c-str 165018 "%ld line changed") (c-str 165035 "%ld lines changed") (->u64 (oparg_T.line_count oap)))))
+            (msg ed (iobuff_or ed (NGETTEXT (c-str 165018 "%ld line changed") (c-str 165035 "%ld lines changed") (->u64 (oparg_T.line_count oap)))))
             (join24))
           (join24)))
     (define (join24)
@@ -32814,8 +32808,8 @@
       (if (> change_cnt p_report)
           (let* ([r1 IObuff]
                  [r2 (iobuff_room ed)])
-            (vim_snprintf ed r1 r2 (NGETTEXT ed (c-str 165053 "%d line changed") (c-str 165069 "%d lines changed") (->u64 change_cnt)) (list change_cnt))
-            (msg ed (iobuff_or ed (NGETTEXT ed (c-str 165053 "%d line changed") (c-str 165069 "%d lines changed") (->u64 change_cnt))))
+            (vim_snprintf ed r1 r2 (NGETTEXT (c-str 165053 "%d line changed") (c-str 165069 "%d lines changed") (->u64 change_cnt)) (list change_cnt))
+            (msg ed (iobuff_or ed (NGETTEXT (c-str 165053 "%d line changed") (c-str 165069 "%d lines changed") (->u64 change_cnt))))
             (join35))
           (join35)))
     (define (join16 change_cnt amount startpos_lnum startpos_col startpos_coladd)
@@ -32912,7 +32906,7 @@
                        [startpos_col startpos_col]
                        [startpos_coladd startpos_coladd]
                        [save_coladd save_coladd])
-             (if (and (fx>? col 0) (vim_isbdigit ed (ld-u8 (fx+ ptr col))))
+             (if (and (fx>? col 0) (vim_isbdigit (ld-u8 (fx+ ptr col))))
                  (let ([col (i32- col 1)])
                    (loop7 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
                  (join8 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))]
@@ -32943,13 +32937,13 @@
                        [startpos_col startpos_col]
                        [startpos_coladd startpos_coladd]
                        [save_coladd save_coladd])
-            (if (and (fx>? col 0) (vim_isxdigit ed (ld-u8 (fx+ ptr col))))
+            (if (and (fx>? col 0) (vim_isxdigit (ld-u8 (fx+ ptr col))))
                 (let ([col (i32- col 1)])
                   (loop10 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
                 (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
           (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
     (define (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (and (and do_bin do_hex) (not (and (and (and (and (fx>? col 0) (or (fx=? (ld-u8 (fx+ ptr col)) (ch #\X)) (fx=? (ld-u8 (fx+ ptr col)) (ch #\x)))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) (ch #\0))) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isxdigit ed (ld-u8 (fx+ ptr (i32+ col 1)))))))
+      (if (and (and do_bin do_hex) (not (and (and (and (and (fx>? col 0) (or (fx=? (ld-u8 (fx+ ptr col)) (ch #\X)) (fx=? (ld-u8 (fx+ ptr col)) (ch #\x)))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) (ch #\0))) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isxdigit (ld-u8 (fx+ ptr (i32+ col 1)))))))
           (let loop13 ([length_ length_]
                        [col (pos_T.col pos)]
                        [ptr ptr]
@@ -32973,13 +32967,13 @@
                        [startpos_col startpos_col]
                        [startpos_coladd startpos_coladd]
                        [save_coladd save_coladd])
-            (if (and (fx>? col 0) (vim_isdigit ed (ld-u8 (fx+ ptr col))))
+            (if (and (fx>? col 0) (vim_isdigit (ld-u8 (fx+ ptr col))))
                 (let ([col (i32- col 1)])
                   (loop13 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
                 (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
           (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
     (define (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (or (and (and (and (and (and do_hex (fx>? col 0)) (or (fx=? (ld-u8 (fx+ ptr col)) (ch #\X)) (fx=? (ld-u8 (fx+ ptr col)) (ch #\x)))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) (ch #\0))) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isxdigit ed (ld-u8 (fx+ ptr (i32+ col 1))))) (and (and (and (and (and do_bin (fx>? col 0)) (or (fx=? (ld-u8 (fx+ ptr col)) (ch #\B)) (fx=? (ld-u8 (fx+ ptr col)) (ch #\b)))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) (ch #\0))) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isbdigit ed (ld-u8 (fx+ ptr (i32+ col 1))))))
+      (if (or (and (and (and (and (and do_hex (fx>? col 0)) (or (fx=? (ld-u8 (fx+ ptr col)) (ch #\X)) (fx=? (ld-u8 (fx+ ptr col)) (ch #\x)))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) (ch #\0))) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isxdigit (ld-u8 (fx+ ptr (i32+ col 1))))) (and (and (and (and (and do_bin (fx>? col 0)) (or (fx=? (ld-u8 (fx+ ptr col)) (ch #\B)) (fx=? (ld-u8 (fx+ ptr col)) (ch #\b)))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) (ch #\0))) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isbdigit (ld-u8 (fx+ ptr (i32+ col 1))))))
           (let ([col (i32- col 1)])
             (join22 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
           (let loop16 ([length_ length_]
@@ -33005,7 +32999,7 @@
                        [startpos_col startpos_col]
                        [startpos_coladd startpos_coladd]
                        [save_coladd save_coladd])
-            (if (and (and (not (fx=? (ld-u8 (fx+ ptr col)) NUL)) (not (vim_isdigit ed (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
+            (if (and (and (not (fx=? (ld-u8 (fx+ ptr col)) NUL)) (not (vim_isdigit (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper (ld-u8 (fx+ ptr col))) (ascii_islower (ld-u8 (fx+ ptr col)))))))
                 (loop16 length_ (i32+ col (utfc_ptr2len ed (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
                 (let loop18 ([length_ length_]
                              [col col]
@@ -33030,7 +33024,7 @@
                              [startpos_col startpos_col]
                              [startpos_coladd startpos_coladd]
                              [save_coladd save_coladd])
-                  (if (and (and (fx>? col 0) (vim_isdigit ed (ld-u8 (fx+ ptr (i32- col 1))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
+                  (if (and (and (fx>? col 0) (vim_isdigit (ld-u8 (fx+ ptr (i32- col 1))))) (not (and do_alpha (or (ascii_isupper (ld-u8 (fx+ ptr col))) (ascii_islower (ld-u8 (fx+ ptr col)))))))
                       (let ([col (i32- col 1)])
                         (loop18 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
                       (join22 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))))))
@@ -33060,7 +33054,7 @@
                        [startpos_coladd startpos_coladd]
                        [save_coladd save_coladd])
             (cond
-              [(and (and (and (not (fx=? (ld-u8 (fx+ ptr col)) NUL)) (fx>? length_ 0)) (not (vim_isdigit ed (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
+              [(and (and (and (not (fx=? (ld-u8 (fx+ ptr col)) NUL)) (fx>? length_ 0)) (not (vim_isdigit (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper (ld-u8 (fx+ ptr col))) (ascii_islower (ld-u8 (fx+ ptr col)))))))
                (let ([mb_len (utfc_ptr2len ed (fx+ ptr col))])
                  (loop24 (i32- length_ mb_len) (i32+ col mb_len) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))]
               [(fx=? length_ 0)
@@ -33075,19 +33069,19 @@
     (define (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
       (let ([firstdigit (ld-u8 (fx+ ptr col))])
         (cond
-          [(and (not (ascii_isdigit ed firstdigit)) (not (and do_alpha (or (ascii_isupper ed firstdigit) (ascii_islower ed firstdigit)))))
+          [(and (not (ascii_isdigit firstdigit)) (not (and do_alpha (or (ascii_isupper firstdigit) (ascii_islower firstdigit)))))
            (beep_flush ed)
            (join133 visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd save_coladd)]
-          [(and do_alpha (or (ascii_isupper ed firstdigit) (ascii_islower ed firstdigit)))
+          [(and do_alpha (or (ascii_isupper firstdigit) (ascii_islower firstdigit)))
            (cond
              [(fx=? op_type OP_NR_SUB)
               (if (< (if (fx<? firstdigit (ch #\a)) (i32- firstdigit (ch #\A)) (i32- firstdigit (ch #\a))) Prenum1)
-                  (if (musl_isupper ed (->u8 firstdigit))
+                  (if (musl_isupper (->u8 firstdigit))
                       (join122 col (ch #\A) visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd)
                       (join122 col (ch #\a) visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd))
                   (join122 col (->i32 (i64- firstdigit Prenum1)) visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd))]
              [(< (i32- (i32- 26 (if (fx<? firstdigit (ch #\a)) (i32- firstdigit (ch #\A)) (i32- firstdigit (ch #\a)))) 1) Prenum1)
-              (if (musl_isupper ed (->u8 firstdigit))
+              (if (musl_isupper (->u8 firstdigit))
                   (join122 col (ch #\Z) visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd)
                   (join122 col (ch #\z) visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd))]
              [else
@@ -33182,9 +33176,9 @@
     (define (loop68 length_ c todel do_oct firstdigit negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd save_pos_lnum save_pos_col save_pos_coladd i)
       (cond
         [(fx<? i todel)
-         (if (and (fx<? c 256) (musl_isalpha ed (->u8 c)))
+         (if (and (fx<? c 256) (musl_isalpha (->u8 c)))
              (cond
-               [(musl_isupper ed (->u8 c))
+               [(musl_isupper (->u8 c))
                 (set! do_addsub:hexupper #t)
                 (join109 length_ todel do_oct firstdigit negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd save_pos_lnum save_pos_col save_pos_coladd i)]
                [else
@@ -33417,10 +33411,10 @@
         [(and (< i limit) (not (fx=? (ld-u8 (fx+ line i)) NUL)))
          (cond
            [(not (fxzero? is_word))
-            (if (vim_isspace ed (ld-u8 (fx+ line i)))
+            (if (vim_isspace (ld-u8 (fx+ line i)))
                 (join12 wc cc i (i64+ words 1) chars 0 out___r__ out___wc out___cc)
                 (join12 wc cc i words chars is_word out___r__ out___wc out___cc))]
-           [(not (vim_isspace ed (ld-u8 (fx+ line i))))
+           [(not (vim_isspace (ld-u8 (fx+ line i))))
             (join12 wc cc i words chars 1 out___r__ out___wc out___cc)]
            [else (join12 wc cc i words chars is_word out___r__ out___wc out___cc)])]
         [(not (fxzero? is_word)) (join4 wc cc i (i64+ words 1) chars out___r__ out___wc out___cc)]
@@ -34242,7 +34236,7 @@
                       (set_string_option_direct ed 0 opt_idx (ld-ptr (fx+ (vimoption.def_str& (fx+ options (fx* opt_idx 112))) (fx* dvi 8))) opt_flags 0)
                       (join17 both)]
                      [(and (not (fxzero? (fxand opt_flags OPT_FREE))) (not (eqv? (bitwise-and flags P_ALLOCED) 0)))
-                      (free_string_option ed (ld-ptr (optvar_T.ov_str varp)))
+                      (free_string_option (ld-ptr (optvar_T.ov_str varp)))
                       (join15 dvi both)]
                      [else (join15 dvi both)])]
                   [(eqv? (bitwise-and flags P_NUM) 0)
@@ -34409,7 +34403,7 @@
                         [out___opt_idxp 0]
                         [out___lenp 0]
                         [out___keyp 0])
-              (if (or (or (or (ascii_isupper ed (ld-u8 (fx+ arg len))) (ascii_islower ed (ld-u8 (fx+ arg len)))) (ascii_isdigit ed (ld-u8 (fx+ arg len)))) (fx=? (ld-u8 (fx+ arg len)) (ch #\_)))
+              (if (or (or (or (ascii_isupper (ld-u8 (fx+ arg len))) (ascii_islower (ld-u8 (fx+ arg len)))) (ascii_isdigit (ld-u8 (fx+ arg len)))) (fx=? (ld-u8 (fx+ arg len)) (ch #\_)))
                   (loop3 key (i32+ len 1) out___r__ out___opt_idxp out___lenp out___keyp)
                   (join6 key len out___r__ out___opt_idxp out___lenp out___keyp)))])))
 
@@ -34809,10 +34803,10 @@
       [else
        (set! arg (fx+ arg 1))
        (cond
-         [(and (fx=? (optvar_T.ov_str varp) &p_bs) (ascii_isdigit ed (ld-u8 (ld-ptr (optvar_T.ov_str varp)))))
+         [(and (fx=? (optvar_T.ov_str varp) &p_bs) (ascii_isdigit (ld-u8 (ld-ptr (optvar_T.ov_str varp)))))
           (let-values ([(r1 r2 r3 r4) (opt_backspace_nr2str ed varp origval_arg origval_l_arg origval_g_arg oldval_arg)])
             (join6 r1 r2 r3 r4 op_arg 0 0 0 0 0 0 0 0 0 r1 r2 r3 r4))]
-         [(and (fx=? (optvar_T.ov_str varp) &p_ww) (ascii_isdigit ed (ld-u8 arg)))
+         [(and (fx=? (optvar_T.ov_str varp) &p_ww) (ascii_isdigit (ld-u8 arg)))
           (let* ([t (opt_whichwrap_nr2str ed &arg whichwrap)]
                  [save_arg arg])
             (set! arg t)
@@ -34936,7 +34930,7 @@
            [(fx=? nextchar (ch #\&))
             (set! value (ld-s64 (fx+ (vimoption.def_num& (fx+ options (fx* opt_idx 112))) (fx* (if (or (not (eqv? (bitwise-and flags P_VI_DEF) 0)) (not (fxzero? cp_val))) VI_DEFAULT VIM_DEFAULT) 8))))
             (join7 arg 0 0)]
-           [(or (fx=? (ld-u8 arg) (ch #\-)) (ascii_isdigit ed (ld-u8 arg)))
+           [(or (fx=? (ld-u8 arg) (ch #\-)) (ascii_isdigit (ld-u8 arg)))
             (let ([i (vim_str2nr ed arg 0 0 15 &value 0 0 #t 0)])
               (cond
                 [(or (fx=? i 0) (and (not (fx=? (ld-u8 (fx+ arg i)) NUL)) (not (or (fx=? (ld-u8 (fx+ arg i)) (ch #\space)) (fx=? (ld-u8 (fx+ arg i)) (ch #\tab))))))
@@ -35043,7 +35037,7 @@
                    (optvar_T.ov_win-set! varp r4)
                    (join12 did_show opt_idx arg prefix op flags nextchar afterchar len out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp))))]
           [else
-           (let-values ([(r5 r6 r7 r8) (optvar_none ed)])
+           (let-values ([(r5 r6 r7 r8) (optvar_none)])
              (optvar_T.ov_int-set! varp r5)
              (optvar_T.ov_long-set! varp r6)
              (optvar_T.ov_str-set! varp r7)
@@ -35167,7 +35161,7 @@
     (define (loop2 did_show do_set_option__o_r__ do_set_option__o_did_show)
       (cond
         [(fx=? (ld-u8 arg) NUL) (join19 do_set_option__o_r__ do_set_option__o_did_show)]
-        [(and (fx=? (musl_strncmp ed arg (c-str 162459 "all") 3) 0) (not (or (ascii_isupper ed (ld-u8 (fx+ arg 3))) (ascii_islower ed (ld-u8 (fx+ arg 3))))))
+        [(and (fx=? (musl_strncmp ed arg (c-str 162459 "all") 3) 0) (not (or (ascii_isupper (ld-u8 (fx+ arg 3))) (ascii_islower (ld-u8 (fx+ arg 3))))))
          (set! arg (fx+ arg 3))
          (cond
            [(fx=? (ld-u8 arg) (ch #\&))
@@ -35407,7 +35401,7 @@
     (buf_T.b_modified_was_set-set! curbuf (not (not (not (fxzero? (optset_T.os_newval.boolean args))))))
     0))
 
-(define (did_set_number_relativenumber ed args)
+(define (did_set_number_relativenumber args)
   0)
 
 (define (did_set_osctimeoutlen ed args)
@@ -36053,7 +36047,7 @@
         [(not (fx=? (vimoption.fullname p) 0))
          (if (message_filtered ed (vimoption.fullname p))
              (join40 p items item_count run)
-             (let-values ([(r1 r2 r3 r4) (optvar_none ed)])
+             (let-values ([(r1 r2 r3 r4) (optvar_none)])
                (optvar_T.ov_int-set! varp r1)
                (optvar_T.ov_long-set! varp r2)
                (optvar_T.ov_str-set! varp r3)
@@ -36198,14 +36192,14 @@
         [(istermoption ed p)
          (cond
            [(not (eqv? (bitwise-and (vimoption.flags p) P_ALLOCED) 0))
-            (free_string_option ed (ld-ptr (vimoption.var.ov_str p)))
+            (free_string_option (ld-ptr (vimoption.var.ov_str p)))
             (join6 p)]
            [else (join6 p)])]
         [else (join9 p)]))
     (define (join6 p)
       (cond
         [(not (eqv? (bitwise-and (vimoption.flags p) P_DEF_ALLOCED) 0))
-         (free_string_option ed (ld-ptr (vimoption.def_str& p)))
+         (free_string_option (ld-ptr (vimoption.def_str& p)))
          (join8 p)]
         [else (join8 p)]))
     (define (join8 p)
@@ -36224,7 +36218,7 @@
         (if (and (istermoption ed p) (not (fx=? (ld-ptr (vimoption.def_str& p)) (ld-ptr (vimoption.var.ov_str p)))))
             (cond
               [(not (eqv? (bitwise-and (vimoption.flags p) P_DEF_ALLOCED) 0))
-               (free_string_option ed (ld-ptr (vimoption.def_str& p)))
+               (free_string_option (ld-ptr (vimoption.def_str& p)))
                (vimoption.flags-set! p (bitwise-and (vimoption.flags p) 18446744073709551487))
                (join6 p)]
               [else (join6 p)])
@@ -36252,31 +36246,31 @@
   (let ([mem (ed-mem ed)])
     (case (vimoption.indir p)
       [(8192)
-       (let-values ([(r1 r2 r3 r4) (optvar_int ed (win_T.w_allbuf_opt.wo_list& curwin))])
+       (let-values ([(r1 r2 r3 r4) (optvar_int (win_T.w_allbuf_opt.wo_list& curwin))])
          (values r1 r2 r3 r4))]
       [(8198)
-       (let-values ([(r5 r6 r7 r8) (optvar_int ed (win_T.w_allbuf_opt.wo_nu& curwin))])
+       (let-values ([(r5 r6 r7 r8) (optvar_int (win_T.w_allbuf_opt.wo_nu& curwin))])
          (values r5 r6 r7 r8))]
       [(8199)
-       (let-values ([(r9 r10 r11 r12) (optvar_int ed (win_T.w_allbuf_opt.wo_rnu& curwin))])
+       (let-values ([(r9 r10 r11 r12) (optvar_int (win_T.w_allbuf_opt.wo_rnu& curwin))])
          (values r9 r10 r11 r12))]
       [(8202)
-       (let-values ([(r13 r14 r15 r16) (optvar_long ed (win_T.w_allbuf_opt.wo_scr& curwin))])
+       (let-values ([(r13 r14 r15 r16) (optvar_long (win_T.w_allbuf_opt.wo_scr& curwin))])
          (values r13 r14 r15 r16))]
       [(8203)
-       (let-values ([(r17 r18 r19 r20) (optvar_int ed (win_T.w_allbuf_opt.wo_sms& curwin))])
+       (let-values ([(r17 r18 r19 r20) (optvar_int (win_T.w_allbuf_opt.wo_sms& curwin))])
          (values r17 r18 r19 r20))]
       [(8211)
-       (let-values ([(r21 r22 r23 r24) (optvar_int ed (win_T.w_allbuf_opt.wo_wrap& curwin))])
+       (let-values ([(r21 r22 r23 r24) (optvar_int (win_T.w_allbuf_opt.wo_wrap& curwin))])
          (values r21 r22 r23 r24))]
       [(8196)
-       (let-values ([(r25 r26 r27 r28) (optvar_str ed (win_T.w_allbuf_opt.wo_wcr& curwin))])
+       (let-values ([(r25 r26 r27 r28) (optvar_str (win_T.w_allbuf_opt.wo_wcr& curwin))])
          (values r25 r26 r27 r28))]
       [(8210)
-       (let-values ([(r29 r30 r31 r32) (optvar_str ed (win_T.w_allbuf_opt.wo_whl& curwin))])
+       (let-values ([(r29 r30 r31 r32) (optvar_str (win_T.w_allbuf_opt.wo_whl& curwin))])
          (values r29 r30 r31 r32))]
       [else
-       (let-values ([(r33 r34 r35 r36) (optvar_none ed)])
+       (let-values ([(r33 r34 r35 r36) (optvar_none)])
          (values r33 r34 r35 r36))])))
 
 (define (get_varp_scope ed p scope)
@@ -36290,28 +36284,28 @@
       [(and (not (fxzero? (fxand scope OPT_LOCAL))) (not (fxzero? (fxand (vimoption.indir p) PV_BOTH))))
        (case (vimoption.indir p)
          [(12300)
-          (let-values ([(r5 r6 r7 r8) (optvar_long ed (win_T.w_onebuf_opt.wo_siso& curwin))])
+          (let-values ([(r5 r6 r7 r8) (optvar_long (win_T.w_onebuf_opt.wo_siso& curwin))])
             (values r5 r6 r7 r8))]
          [(12301)
-          (let-values ([(r9 r10 r11 r12) (optvar_long ed (win_T.w_onebuf_opt.wo_so& curwin))])
+          (let-values ([(r9 r10 r11 r12) (optvar_long (win_T.w_onebuf_opt.wo_so& curwin))])
             (values r9 r10 r11 r12))]
          [(12302)
-          (let-values ([(r13 r14 r15 r16) (optvar_long ed (win_T.w_onebuf_opt.wo_sop& curwin))])
+          (let-values ([(r13 r14 r15 r16) (optvar_long (win_T.w_onebuf_opt.wo_sop& curwin))])
             (values r13 r14 r15 r16))]
          [(20545)
-          (let-values ([(r17 r18 r19 r20) (optvar_long ed (buf_T.b_p_ul& curbuf))])
+          (let-values ([(r17 r18 r19 r20) (optvar_long (buf_T.b_p_ul& curbuf))])
             (values r17 r18 r19 r20))]
          [(12289)
-          (let-values ([(r21 r22 r23 r24) (optvar_str ed (win_T.w_onebuf_opt.wo_lcs& curwin))])
+          (let-values ([(r21 r22 r23 r24) (optvar_str (win_T.w_onebuf_opt.wo_lcs& curwin))])
             (values r21 r22 r23 r24))]
          [(12290)
-          (let-values ([(r25 r26 r27 r28) (optvar_str ed (win_T.w_onebuf_opt.wo_fcs& curwin))])
+          (let-values ([(r25 r26 r27 r28) (optvar_str (win_T.w_onebuf_opt.wo_fcs& curwin))])
             (values r25 r26 r27 r28))]
          [(12296)
-          (let-values ([(r29 r30 r31 r32) (optvar_str ed (win_T.w_onebuf_opt.wo_ve& curwin))])
+          (let-values ([(r29 r30 r31 r32) (optvar_str (win_T.w_onebuf_opt.wo_ve& curwin))])
             (values r29 r30 r31 r32))]
          [else
-          (let-values ([(r33 r34 r35 r36) (optvar_none ed)])
+          (let-values ([(r33 r34 r35 r36) (optvar_none)])
             (values r33 r34 r35 r36))])]
       [else
        (let-values ([(r37 r38 r39 r40) (get_varp ed p)])
@@ -36324,7 +36318,7 @@
 (define (get_varp ed p)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 224)])
     (if (optvar_is_null ed (vimoption.var& p))
-        (let-values ([(r1 r2 r3 r4) (optvar_none ed)])
+        (let-values ([(r1 r2 r3 r4) (optvar_none)])
           (frame-pop! ed fr)
           (values r1 r2 r3 r4))
         (case (vimoption.indir p)
@@ -36337,7 +36331,7 @@
              (values r5 r6 r7 r8))]
           [(12300)
            (let* ([r13 (if (>= (win_T.w_onebuf_opt.wo_siso curwin) 0)
-                           (let-values ([(r9 r10 r11 r12) (optvar_long ed (win_T.w_onebuf_opt.wo_siso& curwin))])
+                           (let-values ([(r9 r10 r11 r12) (optvar_long (win_T.w_onebuf_opt.wo_siso& curwin))])
                              (st-ptr! (fx+ fr 0) r9)
                              (st-ptr! (fx+ fr 8) r10)
                              (st-ptr! (fx+ fr 16) r11)
@@ -36352,7 +36346,7 @@
              (values r14 r15 r16 r17))]
           [(12301)
            (let* ([r22 (if (>= (win_T.w_onebuf_opt.wo_so curwin) 0)
-                           (let-values ([(r18 r19 r20 r21) (optvar_long ed (win_T.w_onebuf_opt.wo_so& curwin))])
+                           (let-values ([(r18 r19 r20 r21) (optvar_long (win_T.w_onebuf_opt.wo_so& curwin))])
                              (st-ptr! (fx+ fr 32) r18)
                              (st-ptr! (fx+ fr 40) r19)
                              (st-ptr! (fx+ fr 48) r20)
@@ -36367,7 +36361,7 @@
              (values r23 r24 r25 r26))]
           [(12302)
            (let* ([r31 (if (not (= (win_T.w_onebuf_opt.wo_sop curwin) -1))
-                           (let-values ([(r27 r28 r29 r30) (optvar_long ed (win_T.w_onebuf_opt.wo_sop& curwin))])
+                           (let-values ([(r27 r28 r29 r30) (optvar_long (win_T.w_onebuf_opt.wo_sop& curwin))])
                              (st-ptr! (fx+ fr 64) r27)
                              (st-ptr! (fx+ fr 72) r28)
                              (st-ptr! (fx+ fr 80) r29)
@@ -36382,7 +36376,7 @@
              (values r32 r33 r34 r35))]
           [(20545)
            (let* ([r40 (if (not (= (buf_T.b_p_ul curbuf) -123456))
-                           (let-values ([(r36 r37 r38 r39) (optvar_long ed (buf_T.b_p_ul& curbuf))])
+                           (let-values ([(r36 r37 r38 r39) (optvar_long (buf_T.b_p_ul& curbuf))])
                              (st-ptr! (fx+ fr 96) r36)
                              (st-ptr! (fx+ fr 104) r37)
                              (st-ptr! (fx+ fr 112) r38)
@@ -36396,12 +36390,12 @@
              (frame-pop! ed fr)
              (values r41 r42 r43 r44))]
           [(8192)
-           (let-values ([(r45 r46 r47 r48) (optvar_int ed (win_T.w_onebuf_opt.wo_list& curwin))])
+           (let-values ([(r45 r46 r47 r48) (optvar_int (win_T.w_onebuf_opt.wo_list& curwin))])
              (frame-pop! ed fr)
              (values r45 r46 r47 r48))]
           [(12289)
            (let* ([r53 (if (not (fx=? (ld-u8 (win_T.w_onebuf_opt.wo_lcs curwin)) NUL))
-                           (let-values ([(r49 r50 r51 r52) (optvar_str ed (win_T.w_onebuf_opt.wo_lcs& curwin))])
+                           (let-values ([(r49 r50 r51 r52) (optvar_str (win_T.w_onebuf_opt.wo_lcs& curwin))])
                              (st-ptr! (fx+ fr 128) r49)
                              (st-ptr! (fx+ fr 136) r50)
                              (st-ptr! (fx+ fr 144) r51)
@@ -36416,7 +36410,7 @@
              (values r54 r55 r56 r57))]
           [(12290)
            (let* ([r62 (if (not (fx=? (ld-u8 (win_T.w_onebuf_opt.wo_fcs curwin)) NUL))
-                           (let-values ([(r58 r59 r60 r61) (optvar_str ed (win_T.w_onebuf_opt.wo_fcs& curwin))])
+                           (let-values ([(r58 r59 r60 r61) (optvar_str (win_T.w_onebuf_opt.wo_fcs& curwin))])
                              (st-ptr! (fx+ fr 160) r58)
                              (st-ptr! (fx+ fr 168) r59)
                              (st-ptr! (fx+ fr 176) r60)
@@ -36431,7 +36425,7 @@
              (values r63 r64 r65 r66))]
           [(12296)
            (let* ([r71 (if (not (fx=? (ld-u8 (win_T.w_onebuf_opt.wo_ve curwin)) NUL))
-                           (let-values ([(r67 r68 r69 r70) (optvar_str ed (win_T.w_onebuf_opt.wo_ve& curwin))])
+                           (let-values ([(r67 r68 r69 r70) (optvar_str (win_T.w_onebuf_opt.wo_ve& curwin))])
                              (st-ptr! (fx+ fr 192) r67)
                              (st-ptr! (fx+ fr 200) r68)
                              (st-ptr! (fx+ fr 208) r69)
@@ -36445,100 +36439,100 @@
              (frame-pop! ed fr)
              (values r72 r73 r74 r75))]
           [(8198)
-           (let-values ([(r76 r77 r78 r79) (optvar_int ed (win_T.w_onebuf_opt.wo_nu& curwin))])
+           (let-values ([(r76 r77 r78 r79) (optvar_int (win_T.w_onebuf_opt.wo_nu& curwin))])
              (frame-pop! ed fr)
              (values r76 r77 r78 r79))]
           [(8199)
-           (let-values ([(r80 r81 r82 r83) (optvar_int ed (win_T.w_onebuf_opt.wo_rnu& curwin))])
+           (let-values ([(r80 r81 r82 r83) (optvar_int (win_T.w_onebuf_opt.wo_rnu& curwin))])
              (frame-pop! ed fr)
              (values r80 r81 r82 r83))]
           [(8202)
-           (let-values ([(r84 r85 r86 r87) (optvar_long ed (win_T.w_onebuf_opt.wo_scr& curwin))])
+           (let-values ([(r84 r85 r86 r87) (optvar_long (win_T.w_onebuf_opt.wo_scr& curwin))])
              (frame-pop! ed fr)
              (values r84 r85 r86 r87))]
           [(8203)
-           (let-values ([(r88 r89 r90 r91) (optvar_int ed (win_T.w_onebuf_opt.wo_sms& curwin))])
+           (let-values ([(r88 r89 r90 r91) (optvar_int (win_T.w_onebuf_opt.wo_sms& curwin))])
              (frame-pop! ed fr)
              (values r88 r89 r90 r91))]
           [(8211)
-           (let-values ([(r92 r93 r94 r95) (optvar_int ed (win_T.w_onebuf_opt.wo_wrap& curwin))])
+           (let-values ([(r92 r93 r94 r95) (optvar_int (win_T.w_onebuf_opt.wo_wrap& curwin))])
              (frame-pop! ed fr)
              (values r92 r93 r94 r95))]
           [(8196)
-           (let-values ([(r96 r97 r98 r99) (optvar_str ed (win_T.w_onebuf_opt.wo_wcr& curwin))])
+           (let-values ([(r96 r97 r98 r99) (optvar_str (win_T.w_onebuf_opt.wo_wcr& curwin))])
              (frame-pop! ed fr)
              (values r96 r97 r98 r99))]
           [(8210)
-           (let-values ([(r100 r101 r102 r103) (optvar_str ed (win_T.w_onebuf_opt.wo_whl& curwin))])
+           (let-values ([(r100 r101 r102 r103) (optvar_str (win_T.w_onebuf_opt.wo_whl& curwin))])
              (frame-pop! ed fr)
              (values r100 r101 r102 r103))]
           [(16384)
-           (let-values ([(r104 r105 r106 r107) (optvar_int ed (buf_T.b_p_ai& curbuf))])
+           (let-values ([(r104 r105 r106 r107) (optvar_int (buf_T.b_p_ai& curbuf))])
              (frame-pop! ed fr)
              (values r104 r105 r106 r107))]
           [(16393)
-           (let-values ([(r108 r109 r110 r111) (optvar_int ed (buf_T.b_p_ci& curbuf))])
+           (let-values ([(r108 r109 r110 r111) (optvar_int (buf_T.b_p_ci& curbuf))])
              (frame-pop! ed fr)
              (values r108 r109 r110 r111))]
           [(16410)
-           (let-values ([(r112 r113 r114 r115) (optvar_int ed (buf_T.b_p_et& curbuf))])
+           (let-values ([(r112 r113 r114 r115) (optvar_int (buf_T.b_p_et& curbuf))])
              (frame-pop! ed fr)
              (values r112 r113 r114 r115))]
           [(16422)
-           (let-values ([(r116 r117 r118 r119) (optvar_str ed (buf_T.b_p_isk& curbuf))])
+           (let-values ([(r116 r117 r118 r119) (optvar_str (buf_T.b_p_isk& curbuf))])
              (frame-pop! ed fr)
              (values r116 r117 r118 r119))]
           [(16431)
-           (let-values ([(r120 r121 r122 r123) (optvar_str ed (buf_T.b_p_mps& curbuf))])
+           (let-values ([(r120 r121 r122 r123) (optvar_str (buf_T.b_p_mps& curbuf))])
              (frame-pop! ed fr)
              (values r120 r121 r122 r123))]
           [(16428)
-           (let-values ([(r124 r125 r126 r127) (optvar_int ed (buf_T.b_p_ma& curbuf))])
+           (let-values ([(r124 r125 r126 r127) (optvar_int (buf_T.b_p_ma& curbuf))])
              (frame-pop! ed fr)
              (values r124 r125 r126 r127))]
           [(16430)
-           (let-values ([(r128 r129 r130 r131) (optvar_int ed (buf_T.b_changed& curbuf))])
+           (let-values ([(r128 r129 r130 r131) (optvar_int (buf_T.b_changed& curbuf))])
              (frame-pop! ed fr)
              (values r128 r129 r130 r131))]
           [(16432)
-           (let-values ([(r132 r133 r134 r135) (optvar_str ed (buf_T.b_p_nf& curbuf))])
+           (let-values ([(r132 r133 r134 r135) (optvar_str (buf_T.b_p_nf& curbuf))])
              (frame-pop! ed fr)
              (values r132 r133 r134 r135))]
           [(16434)
-           (let-values ([(r136 r137 r138 r139) (optvar_int ed (buf_T.b_p_pi& curbuf))])
+           (let-values ([(r136 r137 r138 r139) (optvar_int (buf_T.b_p_pi& curbuf))])
              (frame-pop! ed fr)
              (values r136 r137 r138 r139))]
           [(16435)
-           (let-values ([(r140 r141 r142 r143) (optvar_str ed (buf_T.b_p_qe& curbuf))])
+           (let-values ([(r140 r141 r142 r143) (optvar_str (buf_T.b_p_qe& curbuf))])
              (frame-pop! ed fr)
              (values r140 r141 r142 r143))]
           [(16437)
-           (let-values ([(r144 r145 r146 r147) (optvar_int ed (buf_T.b_p_si& curbuf))])
+           (let-values ([(r144 r145 r146 r147) (optvar_int (buf_T.b_p_si& curbuf))])
              (frame-pop! ed fr)
              (values r144 r145 r146 r147))]
           [(16439)
-           (let-values ([(r148 r149 r150 r151) (optvar_long ed (buf_T.b_p_sts& curbuf))])
+           (let-values ([(r148 r149 r150 r151) (optvar_long (buf_T.b_p_sts& curbuf))])
              (frame-pop! ed fr)
              (values r148 r149 r150 r151))]
           [(16441)
-           (let-values ([(r152 r153 r154 r155) (optvar_long ed (buf_T.b_p_sw& curbuf))])
+           (let-values ([(r152 r153 r154 r155) (optvar_long (buf_T.b_p_sw& curbuf))])
              (frame-pop! ed fr)
              (values r152 r153 r154 r155))]
           [(16445)
-           (let-values ([(r156 r157 r158 r159) (optvar_long ed (buf_T.b_p_ts& curbuf))])
+           (let-values ([(r156 r157 r158 r159) (optvar_long (buf_T.b_p_ts& curbuf))])
              (frame-pop! ed fr)
              (values r156 r157 r158 r159))]
           [(16446)
-           (let-values ([(r160 r161 r162 r163) (optvar_long ed (buf_T.b_p_tw& curbuf))])
+           (let-values ([(r160 r161 r162 r163) (optvar_long (buf_T.b_p_tw& curbuf))])
              (frame-pop! ed fr)
              (values r160 r161 r162 r163))]
           [(16450)
-           (let-values ([(r164 r165 r166 r167) (optvar_long ed (buf_T.b_p_wm& curbuf))])
+           (let-values ([(r164 r165 r166 r167) (optvar_long (buf_T.b_p_wm& curbuf))])
              (frame-pop! ed fr)
              (values r164 r165 r166 r167))]
           [else
            (iemsg ed e_get_varp_error)
-           (let-values ([(r168 r169 r170 r171) (optvar_long ed (buf_T.b_p_wm& curbuf))])
+           (let-values ([(r168 r169 r170 r171) (optvar_long (buf_T.b_p_wm& curbuf))])
              (frame-pop! ed fr)
              (values r168 r169 r170 r171))]))))
 
@@ -36767,7 +36761,7 @@
   (check_string_option ed (buf_T.b_p_nf& buf))
   (check_string_option ed (buf_T.b_p_qe& buf)))
 
-(define (free_string_option ed p)
+(define (free_string_option p)
   (void))
 
 (define (clear_string_option ed pp)
@@ -36788,7 +36782,7 @@
             (join5 p s t1))))
     (define (join5 p s t1)
       (cond
-        [t1 (free_string_option ed (ld-ptr p)) (st-ptr! p s) (join7)]
+        [t1 (free_string_option (ld-ptr p)) (st-ptr! p s) (join7)]
         [else (join7)]))
     (define (join7)
       (frame-pop! ed fr))
@@ -36815,7 +36809,7 @@
               (let ([varp (optvar_T.ov_str (fx+ fr 0))])
                 (cond
                   [(and (not (fxzero? (fxand opt_flags OPT_FREE))) (not (eqv? (bitwise-and (get_option_flags ed idx) P_ALLOCED) 0)))
-                   (free_string_option ed (ld-ptr varp))
+                   (free_string_option (ld-ptr varp))
                    (join5 s varp both idx)]
                   [else (join5 s varp both idx)]))))))
     (define (join5 s varp both idx)
@@ -36827,7 +36821,7 @@
       (set_option_flag ed idx P_ALLOCED)
       (cond
         [(and (not (fxzero? (is_global_local_option ed idx))) both)
-         (free_string_option ed (ld-ptr varp))
+         (free_string_option (ld-ptr varp))
          (st-ptr! varp empty_option)
          (join9)]
         [else (join9)]))
@@ -36851,13 +36845,13 @@
 (define (set_string_option_direct_in_win ed wp name opt_idx val opt_flags set_sid)
   (let ([mem (ed-mem ed)])
     (let ([save_curwin curwin])
-      (block_autocmds ed)
+      (block_autocmds)
       (set! curwin wp)
       (set! curbuf (win_T.w_buffer curwin))
       (set_string_option_direct ed name opt_idx val opt_flags set_sid)
       (set! curwin save_curwin)
       (set! curbuf (win_T.w_buffer curwin))
-      (unblock_autocmds ed)
+      (unblock_autocmds)
       (void))))
 
 (define (set_string_option ed opt_idx value opt_flags errbuf errbuflen)
@@ -36921,7 +36915,7 @@
 (define (did_set_backspace ed args)
   (let ([mem (ed-mem ed)])
     (cond
-      [(ascii_isdigit ed (ld-u8 p_bs))
+      [(ascii_isdigit (ld-u8 p_bs))
        (if (or (fx>? (ld-u8 p_bs) (ch #\3)) (not (fx=? (ld-u8 (fx+ p_bs 1)) NUL))) e_invalid_argument 0)]
       [(not (check_opt_strings ed p_bs p_bs_values #t)) e_invalid_argument]
       [else 0])))
@@ -37055,7 +37049,7 @@
     (if (not (fxzero? (ld-u8 p_pt)))
         (let-values ([(r1 r2) (replace_termcodes ed p_pt 0 3 0)])
           (cond
-            [(not (fx=? r2 0)) (free_string_option ed p_pt) (set! p_pt r2) 0]
+            [(not (fx=? r2 0)) (free_string_option p_pt) (set! p_pt r2) 0]
             [else 0]))
         0)))
 
@@ -37174,7 +37168,7 @@
          (join9 opt_idx e_not_allowed_here free_oldval)]
         [(check_illegal_path_names ed opt_idx varp) (join9 opt_idx e_invalid_argument free_oldval)]
         [(not (fx=? did_set_cb 0))
-         (let-values ([(r1 r2 r3 r4) (optvar_str ed varp)])
+         (let-values ([(r1 r2 r3 r4) (optvar_str varp)])
            (optset_T.os_varp.ov_int-set! args r1)
            (optset_T.os_varp.ov_long-set! args r2)
            (optset_T.os_varp.ov_str-set! args r3)
@@ -37193,12 +37187,12 @@
     (define (join9 opt_idx errmsg free_oldval)
       (cond
         [(not (fx=? errmsg 0))
-         (free_string_option ed (ld-ptr varp))
+         (free_string_option (ld-ptr varp))
          (st-ptr! varp oldval)
          (cond
            [(optset_T.os_restore_chartab args) (init_chartab ed) (join18 opt_idx errmsg)]
            [else (join18 opt_idx errmsg)])]
-        [(not (eqv? free_oldval 0)) (free_string_option ed oldval) (join12 opt_idx errmsg)]
+        [(not (eqv? free_oldval 0)) (free_string_option oldval) (join12 opt_idx errmsg)]
         [else (join12 opt_idx errmsg)]))
     (define (join12 opt_idx errmsg)
       (set_option_flag ed opt_idx P_ALLOCED)
@@ -37210,7 +37204,7 @@
            (st-ptr! (fx+ fr 104) r7)
            (st-s32! (fx+ fr 112) r8)
            (let ([p (optvar_T.ov_str (fx+ fr 88))])
-             (free_string_option ed (ld-ptr p))
+             (free_string_option (ld-ptr p))
              (st-ptr! p empty_option)
              (join20 opt_idx errmsg)))]
         [(and (not (not (fxzero? (fxand opt_flags OPT_LOCAL)))) (not (fx=? opt_flags OPT_GLOBAL)))
@@ -37295,7 +37289,7 @@
       (preserve_exit ed))
     (unless (and (and (fx=? deathtrap:entered 0) (or (fx=? sigarg SIGHUP) (fx=? sigarg SIGTERM))) (not (vim_handle_signal ed sigarg)))
       (set! deathtrap:entered (i32+ deathtrap:entered 1))
-      (block_autocmds ed)
+      (block_autocmds)
       (set! v_dying deathtrap:entered)
       (let loop2 ([i 0])
         (cond
@@ -37435,19 +37429,19 @@
 (define (RealWaitForChar ed fd msec check_for_gpm interrupted)
   (musl_wait_for_input ed msec))
 
-(define (no_Magic ed x)
+(define (no_Magic x)
   (if (fx<? x 0) (i32+ x 256) x))
 
-(define (toggle_Magic ed x)
+(define (toggle_Magic x)
   (if (fx<? x 0) (i32+ x 256) (i32- x 256)))
 
-(define (re_multi_type ed c)
+(define (re_multi_type c)
   (cond
     [(or (or (fx=? c -192) (fx=? c -195)) (fx=? c -193)) MULTI_ONE]
     [(or (or (fx=? c -214) (fx=? c -213)) (fx=? c -133)) MULTI_MULT]
     [else NOT_MULTI]))
 
-(define (backslash_trans ed c)
+(define (backslash_trans c)
   (case c
     [(114) CAR]
     [(116) TAB]
@@ -37471,7 +37465,7 @@
       (frame-pop! ed fr)
       CLASS_NONE)
     (cond
-      [(and (and (and (fx=? (ld-u8 (fx+ (ld-ptr pp) 1)) (ch #\:)) (ascii_islower ed (ld-u8 (fx+ (ld-ptr pp) 2)))) (ascii_islower ed (ld-u8 (fx+ (ld-ptr pp) 3)))) (ascii_islower ed (ld-u8 (fx+ (ld-ptr pp) 4))))
+      [(and (and (and (fx=? (ld-u8 (fx+ (ld-ptr pp) 1)) (ch #\:)) (ascii_islower (ld-u8 (fx+ (ld-ptr pp) 2)))) (ascii_islower (ld-u8 (fx+ (ld-ptr pp) 3)))) (ascii_islower (ld-u8 (fx+ (ld-ptr pp) 4))))
        (keyvalue_T.key-set! target 0)
        (keyvalue_T.value.string-set! target (fx+ (ld-ptr pp) 2))
        (keyvalue_T.value.length-set! target 0)
@@ -37693,7 +37687,7 @@
             [else (join33)])]
          [(94)
           (cond
-            [(and (fx>=? reg_magic MAGIC_OFF) (or (or (or (or (or (or (not (fxzero? at_start)) (fx=? reg_magic MAGIC_ALL)) (fx=? prevchr -216)) (fx=? prevchr -132)) (fx=? prevchr -218)) (fx=? prevchr -146)) (and (fx=? (no_Magic ed prevchr) (ch #\x28)) (fx=? prevprevchr -219))))
+            [(and (fx>=? reg_magic MAGIC_OFF) (or (or (or (or (or (or (not (fxzero? at_start)) (fx=? reg_magic MAGIC_ALL)) (fx=? prevchr -216)) (fx=? prevchr -132)) (fx=? prevchr -218)) (fx=? prevchr -146)) (and (fx=? (no_Magic prevchr) (ch #\x28)) (fx=? prevprevchr -219))))
              (set! curchr -162)
              (set! at_start TRUE)
              (set! prev_at_start FALSE)
@@ -37717,11 +37711,11 @@
                (peekchr ed)
                (set! regparse (fx+ regparse -1))
                (set! peekchr:after_slash (i32- peekchr:after_slash 1))
-               (set! curchr (toggle_Magic ed curchr))
+               (set! curchr (toggle_Magic curchr))
                (join33)]
-              [(not (fxzero? (vim_strchr ed REGEXP_ABBR c))) (set! curchr (backslash_trans ed c)) (join33)]
+              [(not (fxzero? (vim_strchr ed REGEXP_ABBR c))) (set! curchr (backslash_trans c)) (join33)]
               [(and (fx=? reg_magic MAGIC_NONE) (or (fx=? c (ch #\$)) (fx=? c (ch #\^))))
-               (set! curchr (toggle_Magic ed c))
+               (set! curchr (toggle_Magic c))
                (join33)]
               [(fx>=? c 128) (set! curchr (utf_ptr2char ed (fx+ regparse 1))) (join33)]
               [else (set! curchr c) (join33)]))]
@@ -37785,10 +37779,10 @@
                 [i 0])
       (if (fx<? i maxinputlen)
           (let ([c (ld-u8 regparse)])
-            (if (not (vim_isxdigit ed c))
+            (if (not (vim_isxdigit c))
                 (join5 nr i)
                 (let* ([nr (u64<< nr 4)]
-                       [t1 (hex2nr ed c)]
+                       [t1 (hex2nr c)]
                        [nr (bitwise-ior nr (->u64 t1))])
                   (set! regparse (fx+ regparse 1))
                   (loop1 nr (i32+ i 1)))))
@@ -37818,7 +37812,7 @@
             (if (or (fx<? c (ch #\0)) (fx>? c (ch #\7)))
                 (join5 nr i)
                 (let* ([nr (u64<< nr 3)]
-                       [t1 (hex2nr ed c)]
+                       [t1 (hex2nr c)]
                        [nr (bitwise-ior nr (->u64 t1))])
                   (set! regparse (fx+ regparse 1))
                   (loop1 nr (i32+ i 1)))))
@@ -37832,10 +37826,10 @@
         (cond
           [(fx=? (ld-u8 regparse) (ch #\x2c))
            (set! regparse (fx+ regparse 1))
-           (if (vim_isdigit ed (ld-u8 regparse))
+           (if (vim_isdigit (ld-u8 regparse))
                (join9 minval (getdigits ed &regparse) reverse_ out___r__ out___minval out___maxval)
                (join9 minval 2147418112 reverse_ out___r__ out___minval out___maxval))]
-          [(ascii_isdigit ed (ld-u8 first_char))
+          [(ascii_isdigit (ld-u8 first_char))
            (join9 minval minval reverse_ out___r__ out___minval out___maxval)]
           [else (join9 minval 2147418112 reverse_ out___r__ out___minval out___maxval)])))
     (define (join9 minval maxval reverse_ out___r__ out___minval out___maxval)
@@ -38101,7 +38095,7 @@
 
 (define (re_mult_next ed what)
   (let ([mem (ed-mem ed)])
-    (if (fx=? (re_multi_type ed (peekchr ed)) MULTI_MULT)
+    (if (fx=? (re_multi_type (peekchr ed)) MULTI_MULT)
         (let ([r1 IObuff])
           (vim_snprintf ed r1 (emsg_iobuff_room ed) e_nfa_regexp_cannot_repeat_str (list what))
           (emsg ed (iobuff_or ed e_nfa_regexp_cannot_repeat_str))
@@ -38481,7 +38475,7 @@
       (let* ([l (i32- (utf_ptr2len ed s) 1)]
              [s (fx+ s l)]
              [len (i32- len l)]
-             [charlen_2 (utf_char2len ed cc)])
+             [charlen_2 (utf_char2len cc)])
         (cond
           [(fxzero? copy) (join42 src dst s no func_all func_one clnum len copy charlen_2)]
           [(fx>? (fx+ dst charlen_2) (fx+ dest destlen))
@@ -38520,7 +38514,7 @@
         [else (set! cc c) (join83 src dst no func_all func_one clnum len copy)]))
     (define (join83 src dst no func_all func_one clnum len copy)
       (let* ([totlen (utfc_ptr2len ed (fx+ src -1))]
-             [charlen (utf_char2len ed cc)])
+             [charlen (utf_char2len cc)])
         (cond
           [(fxzero? copy) (join86 src dst no func_all func_one clnum len copy totlen charlen)]
           [(fx>? (fx+ dst charlen) (fx+ dest destlen))
@@ -38594,7 +38588,7 @@
       [else (set! reg_magic MAGIC_OFF) (join3)])))
 
 (define (use_multibytecode ed c)
-  (and (fx>? (utf_char2len ed c) 1) (or (not (fx=? (re_multi_type ed (peekchr ed)) NOT_MULTI)) (utf_iscomposing ed c))))
+  (and (fx>? (utf_char2len c) 1) (or (not (fx=? (re_multi_type (peekchr ed)) NOT_MULTI)) (utf_iscomposing ed c))))
 
 (define (regc ed b)
   (let ([mem (ed-mem ed)])
@@ -38608,7 +38602,7 @@
 (define (regmbc ed c)
   (let ([mem (ed-mem ed)])
     (if (fx=? regcode reg_calc_size_node)
-        (let ([t1 (utf_char2len ed c)])
+        (let ([t1 (utf_char2len c)])
           (set! regsize (i64+ regsize t1))
           (void))
         (let ([t2 (utf_char2bytes ed c regcode)])
@@ -38768,7 +38762,7 @@
 (define (regatom_delim ed c delim_nl flagp)
   (let ([mem (ed-mem ed)])
     (define (join3 base)
-      (join4 (no_Magic ed (getchr ed)) base))
+      (join4 (no_Magic (getchr ed)) base))
     (define (join4 c base)
       (case c
         [(41) (join10 base 0)]
@@ -38814,8 +38808,8 @@
                       [reg__o_r__ reg__o_r__]
                       [reg__o_flagp reg__o_flagp])
             (cond
-              [(and (not (fx=? c NUL)) (or (fx=? len_2 0) (and (and (fx=? (re_multi_type ed (peekchr ed)) NOT_MULTI) (not one_exactly)) (not (fx<? c 0)))))
-               (let ([c (no_Magic ed c)])
+              [(and (not (fx=? c NUL)) (or (fx=? len_2 0) (and (and (fx=? (re_multi_type (peekchr ed)) NOT_MULTI) (not one_exactly)) (not (fx<? c 0)))))
+               (let ([c (no_Magic c)])
                  (regmbc ed c)
                  (let loop10 ([ret ret]
                               [len_2 len_2]
@@ -38877,7 +38871,7 @@
               [else
                (let ([t6 regparse])
                  (set! regparse (fx+ regparse 1))
-                 (let ([startc (backslash_trans ed (ld-u8 t6))])
+                 (let ([startc (backslash_trans (ld-u8 t6))])
                    (regc ed startc)
                    (loop22 ret startc reg__o_r__ reg__o_flagp)))])]
            [(fx=? (ld-u8 regparse) (ch #\x5b))
@@ -38923,7 +38917,7 @@
            [else
             (let* ([startc (utf_ptr2char ed regparse)]
                    [len (utfc_ptr2len ed regparse)])
-              (if (not (fx=? (utf_char2len ed startc) len))
+              (if (not (fx=? (utf_char2len startc) len))
                   (loop32 ret -1 len reg__o_r__ reg__o_flagp)
                   (loop32 ret startc len reg__o_r__ reg__o_flagp)))])]
         [else
@@ -38971,7 +38965,7 @@
     (define (loop55 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<=? cu 255)
           (cond
-            [(vim_isxdigit ed cu) (regmbc ed cu) (join58 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(vim_isxdigit cu) (regmbc ed cu) (join58 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join58 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join58 ret startc cu reg__o_r__ reg__o_flagp)
@@ -38987,7 +38981,7 @@
     (define (loop70 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<? cu 128)
           (cond
-            [(musl_ispunct ed cu) (regmbc ed cu) (join73 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(musl_ispunct cu) (regmbc ed cu) (join73 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join73 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join73 ret startc cu reg__o_r__ reg__o_flagp)
@@ -39013,7 +39007,7 @@
     (define (loop85 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<=? cu 127)
           (cond
-            [(musl_isgraph ed cu) (regmbc ed cu) (join88 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(musl_isgraph cu) (regmbc ed cu) (join88 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join88 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join88 ret startc cu reg__o_r__ reg__o_flagp)
@@ -39021,7 +39015,7 @@
     (define (loop90 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<=? cu 127)
           (cond
-            [(ascii_isdigit ed cu) (regmbc ed cu) (join93 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(ascii_isdigit cu) (regmbc ed cu) (join93 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join93 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join93 ret startc cu reg__o_r__ reg__o_flagp)
@@ -39029,7 +39023,7 @@
     (define (loop95 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<=? cu 127)
           (cond
-            [(musl_iscntrl ed cu) (regmbc ed cu) (join98 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(musl_iscntrl cu) (regmbc ed cu) (join98 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join98 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join98 ret startc cu reg__o_r__ reg__o_flagp)
@@ -39037,7 +39031,7 @@
     (define (loop101 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<? cu 128)
           (cond
-            [(musl_isalpha ed cu) (regmbc ed cu) (join104 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(musl_isalpha cu) (regmbc ed cu) (join104 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join104 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join104 ret startc cu reg__o_r__ reg__o_flagp)
@@ -39045,7 +39039,7 @@
     (define (loop106 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<? cu 128)
           (cond
-            [(musl_isalnum ed cu) (regmbc ed cu) (join109 ret startc cu reg__o_r__ reg__o_flagp)]
+            [(musl_isalnum cu) (regmbc ed cu) (join109 ret startc cu reg__o_r__ reg__o_flagp)]
             [else (join109 ret startc cu reg__o_r__ reg__o_flagp)])
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join109 ret startc cu reg__o_r__ reg__o_flagp)
@@ -39068,7 +39062,7 @@
          (set! rc_did_emsg #t)
          (frame-pop! ed fr)
          0]
-        [(or (fx>? (utf_char2len ed startc) 1) (fx>? (utf_char2len ed endc) 1))
+        [(or (fx>? (utf_char2len startc) 1) (fx>? (utf_char2len endc) 1))
          (cond
            [(fx>? endc (i32+ startc 256))
             (emsg ed e_range_too_large_in_character_class)
@@ -39096,20 +39090,20 @@
     (define (join140 ret reg__o_r__ reg__o_flagp)
       (loop22 ret -1 reg__o_r__ reg__o_flagp))
     (define (join148 c save_prev_at_start reg__o_r__ reg__o_flagp)
-      (if (or (or (or (or (ascii_isdigit ed c) (fx=? c (ch #\<))) (fx=? c (ch #\>))) (fx=? c (ch #\x27))) (fx=? c (ch #\.)))
+      (if (or (or (or (or (ascii_isdigit c) (fx=? c (ch #\<))) (fx=? c (ch #\>))) (fx=? c (ch #\x27))) (fx=? c (ch #\.)))
           (if (or (fx=? c (ch #\<)) (fx=? c (ch #\>)))
               (join151 (getchr ed) save_prev_at_start 0 c #f #f reg__o_r__ reg__o_flagp)
               (join151 c save_prev_at_start 0 c #f #f reg__o_r__ reg__o_flagp))
           (join157 reg__o_r__ reg__o_flagp)))
     (define (join151 c save_prev_at_start n cmp cur got_digit reg__o_r__ reg__o_flagp)
-      (if (fx=? (no_Magic ed c) (ch #\.))
+      (if (fx=? (no_Magic c) (ch #\.))
           (loop154 (getchr ed) save_prev_at_start n cmp #t got_digit reg__o_r__ reg__o_flagp)
           (loop154 c save_prev_at_start n cmp cur got_digit reg__o_r__ reg__o_flagp)))
     (define (loop154 c save_prev_at_start n cmp cur got_digit reg__o_r__ reg__o_flagp)
       (cond
-        [(ascii_isdigit ed c)
+        [(ascii_isdigit c)
          (loop154 (getchr ed) save_prev_at_start (u64+ (u64* n 10) (->u64 (i32- c (ch #\0)))) cmp cur #t reg__o_r__ reg__o_flagp)]
-        [(and (fx=? (no_Magic ed c) (ch #\x27)) (= n 0))
+        [(and (fx=? (no_Magic c) (ch #\x27)) (= n 0))
          (let* ([c (getchr ed)]
                 [ret (regnode ed RE_MARK)])
            (cond
@@ -39129,7 +39123,7 @@
            [(and cur (not (eqv? n 0)))
             (let* ([r17 IObuff]
                    [r18 (emsg_iobuff_room ed)])
-              (vim_snprintf ed r17 r18 e_regexp_number_after_dot_pos_search_chr (list (no_Magic ed c)))
+              (vim_snprintf ed r17 r18 e_regexp_number_after_dot_pos_search_chr (list (no_Magic c)))
               (emsg ed (iobuff_or ed e_regexp_number_after_dot_pos_search_chr))
               (set! rc_did_emsg #t)
               (frame-pop! ed fr)
@@ -39279,7 +39273,7 @@
           [(not (seen_endbrace ed refnum)) (frame-pop! ed fr) 0]
           [else (join285 (regnode ed (i32+ BACKREF refnum)) reg__o_r__ reg__o_flagp)])))
     (define (join253 c reg__o_r__ reg__o_flagp)
-      (let* ([c (no_Magic ed c)]
+      (let* ([c (no_Magic c)]
              [r27 IObuff]
              [r28 (emsg_iobuff_room ed)])
         (vim_snprintf ed r27 r28 e_str_chr_follows_nothing (list (if (not (fxzero? (if (fx=? c (ch #\*)) (b->i (fx>=? reg_magic MAGIC_ON)) (b->i (fx=? reg_magic MAGIC_ALL)))))
@@ -39302,7 +39296,7 @@
         [else (iemsg ed e_internal_error_in_regexp) (set! rc_did_emsg #t) (frame-pop! ed fr) 0]))
     (define (join269 c extra reg__o_r__ reg__o_flagp)
       (let* ([r31 classchars]
-             [p (vim_strchr ed r31 (no_Magic ed c))])
+             [p (vim_strchr ed r31 (no_Magic c))])
         (cond
           [(fx=? p 0) (emsg ed e_invalid_use_of_underscore) (set! rc_did_emsg #t) (frame-pop! ed fr) 0]
           [(and (fx=? c -210) (utf_iscomposing ed (peekchr ed)))
@@ -39334,10 +39328,10 @@
             [(-196) (join285 (regnode ed BOW) reg__o_r__ reg__o_flagp)]
             [(-194) (join285 (regnode ed EOW) reg__o_r__ reg__o_flagp)]
             [(-161)
-             (let ([c (no_Magic ed (getchr ed))])
+             (let ([c (no_Magic (getchr ed))])
                (cond
                  [(fx=? c (ch #\%))
-                  (let ([c (no_Magic ed (getchr ed))])
+                  (let ([c (no_Magic (getchr ed))])
                     (if (or (or (or (or (or (fx=? c (ch #\x29)) (fx=? c (ch #\x5d))) (fx=? c (ch #\x7d))) (fx=? c (ch #\>))) (fx=? c (ch #\f))) (fx=? c (ch #\t)))
                         (let ([ret (regatom_delim ed c #t flagp)])
                           (cond
@@ -39457,7 +39451,7 @@
             [(-200) (join242 c reg__o_r__ reg__o_flagp)]
             [(-199) (join242 c reg__o_r__ reg__o_flagp)]
             [(-134)
-             (let ([c (no_Magic ed (getchr ed))])
+             (let ([c (no_Magic (getchr ed))])
                (case c
                  [(115)
                   (let ([ret (regnode ed 80)])
@@ -39471,7 +39465,7 @@
                       [else (join285 ret reg__o_r__ reg__o_flagp)]))]
                  [else (emsg ed e_invalid_character_after_bsl_z) (set! rc_did_emsg #t) (frame-pop! ed fr) 0]))]
             [(-219)
-             (let ([c (no_Magic ed (getchr ed))])
+             (let ([c (no_Magic (getchr ed))])
                (case c
                  [(40)
                   (if one_exactly
@@ -39520,7 +39514,7 @@
                  [(102) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
                  [(116) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
                  [(62)
-                  (if (and (and (not (ascii_isdigit ed (ld-u8 regparse))) (not (fx=? (ld-u8 regparse) (ch #\x27)))) (not (fx=? (ld-u8 regparse) (ch #\.))))
+                  (if (and (and (not (ascii_isdigit (ld-u8 regparse))) (not (fx=? (ld-u8 regparse) (ch #\x27)))) (not (fx=? (ld-u8 regparse) (ch #\.))))
                       (let ([ret (regatom_delim ed c delim_nl flagp)])
                         (cond
                           [(fx=? ret 0) (frame-pop! ed fr) 0]
@@ -39593,7 +39587,7 @@
       (join36 (fxior 1 (fxand flags 24)) ret out___r__ out___flagp read_limits__o_r__ read_limits__o_minval read_limits__o_maxval))
     (define (join36 flagp ret out___r__ out___flagp read_limits__o_r__ read_limits__o_minval read_limits__o_maxval)
       (cond
-        [(fx=? (re_multi_type ed (peekchr ed)) NOT_MULTI) (frame-pop! ed fr) (values ret flagp)]
+        [(fx=? (re_multi_type (peekchr ed)) NOT_MULTI) (frame-pop! ed fr) (values ret flagp)]
         [(fx=? (peekchr ed) -214)
          (let* ([r3 IObuff]
                 [r4 (emsg_iobuff_room ed)])
@@ -39606,7 +39600,7 @@
          (let* ([r5 IObuff]
                 [r6 (emsg_iobuff_room ed)]
                 [r7 (if (fx=? reg_magic MAGIC_ALL) (c-str 162263 "") (c-str 165990 "\\"))])
-           (vim_snprintf ed r5 r6 e_nested_str_chr (list r7 (no_Magic ed (peekchr ed))))
+           (vim_snprintf ed r5 r6 e_nested_str_chr (list r7 (no_Magic (peekchr ed))))
            (emsg ed (iobuff_or ed e_nested_str_chr))
            (set! rc_did_emsg #t)
            (frame-pop! ed fr)
@@ -39616,7 +39610,7 @@
         [(fx=? ret 0) (frame-pop! ed fr) (values 0 flagp)]
         [else
          (let ([op (peekchr ed)])
-           (if (fx=? (re_multi_type ed op) NOT_MULTI)
+           (if (fx=? (re_multi_type op) NOT_MULTI)
                (let ([flagp flags])
                  (frame-pop! ed fr)
                  (values ret flagp))
@@ -39645,12 +39639,12 @@
                          (join32 ret 0 0 0 0 0))])]
                    [(-192)
                     (let ([nr (getdecchrs ed)])
-                      (case (no_Magic ed (getchr ed))
+                      (case (no_Magic (getchr ed))
                         [(61) (join20 flagp ret MATCH nr 0 0 0 0 0)]
                         [(33) (join20 flagp ret NOMATCH nr 0 0 0 0 0)]
                         [(62) (join20 flagp ret SUBPAT nr 0 0 0 0 0)]
                         [(60)
-                         (case (no_Magic ed (getchr ed))
+                         (case (no_Magic (getchr ed))
                            [(61) (join20 flagp ret BEHIND nr 0 0 0 0 0)]
                            [(33) (join20 flagp ret NOBEHIND nr 0 0 0 0 0)]
                            [else (join20 flagp ret END nr 0 0 0 0 0)])]
@@ -39981,7 +39975,7 @@
         [(85) (join6 (gethexchrs ed 8))]
         [else (join6 -1)]))))
 
-(define (bt_regfree ed prog)
+(define (bt_regfree prog)
   (void))
 
 (define (reg_save ed re save gap)
@@ -40199,7 +40193,7 @@
                 (reg_nextline ed re)
                 (let ([scan (regengine_T.rex.input re)])
                   (if (not (fxzero? got_int)) (join126 count scan) (join85 count scan testval)))])]
-            [(and (fx=? (b->i (vim_isprintc ed (utf_ptr2char ed scan))) 1) (or (not (fxzero? testval)) (not (ascii_isdigit ed (ld-u8 scan)))))
+            [(and (fx=? (b->i (vim_isprintc ed (utf_ptr2char ed scan))) 1) (or (not (fxzero? testval)) (not (ascii_isdigit (ld-u8 scan)))))
              (join85 count (fx+ scan (utfc_ptr2len ed scan)) testval)]
             [(and (and (regengine_T.rex.reg_line_lbr re) (fx=? (ld-u8 scan) (ch #\newline))) (and (fx>=? (ld-u8 p) 50) (fx<=? (ld-u8 p) 78)))
              (join85 count (fx+ scan 1) testval)]
@@ -40212,7 +40206,7 @@
     (define (loop88 count scan testval)
       (if (< count maxcount)
           (cond
-            [(and (vim_isfilec ed (utf_ptr2char ed scan)) (or (not (fxzero? testval)) (not (ascii_isdigit ed (ld-u8 scan)))))
+            [(and (vim_isfilec ed (utf_ptr2char ed scan)) (or (not (fxzero? testval)) (not (ascii_isdigit (ld-u8 scan)))))
              (join96 count (fx+ scan (utfc_ptr2len ed scan)) testval)]
             [(fx=? (ld-u8 scan) NUL)
              (cond
@@ -40233,7 +40227,7 @@
     (define (loop99 count scan testval)
       (if (< count maxcount)
           (cond
-            [(and (vim_iswordp_buf ed scan (regengine_T.rex.reg_buf re)) (or (not (fxzero? testval)) (not (ascii_isdigit ed (ld-u8 scan)))))
+            [(and (vim_iswordp_buf ed scan (regengine_T.rex.reg_buf re)) (or (not (fxzero? testval)) (not (ascii_isdigit (ld-u8 scan)))))
              (join107 count (fx+ scan (utfc_ptr2len ed scan)) testval)]
             [(fx=? (ld-u8 scan) NUL)
              (cond
@@ -40254,7 +40248,7 @@
     (define (loop110 count scan testval)
       (if (< count maxcount)
           (cond
-            [(and (vim_isIDc ed (utf_ptr2char ed scan)) (or (not (fxzero? testval)) (not (ascii_isdigit ed (ld-u8 scan)))))
+            [(and (vim_isIDc ed (utf_ptr2char ed scan)) (or (not (fxzero? testval)) (not (ascii_isdigit (ld-u8 scan)))))
              (join118 count (fx+ scan (utfc_ptr2len ed scan)) testval)]
             [(fx=? (ld-u8 scan) NUL)
              (cond
@@ -40594,7 +40588,7 @@
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t3))
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))]
           [(24)
-           (if (or (ascii_isdigit ed (ld-u8 (regengine_T.rex.input re))) (not (vim_isIDc ed c)))
+           (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re))) (not (vim_isIDc ed c)))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
                (let ([t4 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t4))
@@ -40606,7 +40600,7 @@
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t5))
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))]
           [(26)
-           (if (or (ascii_isdigit ed (ld-u8 (regengine_T.rex.input re))) (not (vim_iswordp_buf ed (regengine_T.rex.input re) (regengine_T.rex.reg_buf re))))
+           (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re))) (not (vim_iswordp_buf ed (regengine_T.rex.input re) (regengine_T.rex.reg_buf re))))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
                (let ([t6 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t6))
@@ -40618,7 +40612,7 @@
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t7))
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))]
           [(28)
-           (if (or (ascii_isdigit ed (ld-u8 (regengine_T.rex.input re))) (not (vim_isfilec ed c)))
+           (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re))) (not (vim_isfilec ed c)))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
                (let ([t8 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t8))
@@ -40630,7 +40624,7 @@
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t9))
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))]
           [(30)
-           (if (or (ascii_isdigit ed (ld-u8 (regengine_T.rex.input re))) (not (vim_isprintc ed (utf_ptr2char ed (regengine_T.rex.input re)))))
+           (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re))) (not (vim_isprintc ed (utf_ptr2char ed (regengine_T.rex.input re)))))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
                (let ([t10 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t10))
@@ -41921,8 +41915,8 @@
          (join2 prog)]
         [else (join2 prog)]))))
 
-(define (vim_regfree ed prog)
-  (when (not (fx=? prog 0)) (bt_regfree ed prog)))
+(define (vim_regfree prog)
+  (when (not (fx=? prog 0)) (bt_regfree prog)))
 
 (define (vim_regexec_string ed rmp line col nl)
   (let ([mem (ed-mem ed)])
@@ -42139,7 +42133,7 @@
 
 (define (valid_yank_reg ed regname writing)
   (cond
-    [(or (or (or (or (and (fx>? regname 0) (or (or (ascii_isupper ed regname) (ascii_islower ed regname)) (ascii_isdigit ed regname))) (and (not writing) (not (fx=? (vim_strchr ed (c-str 166066 "/#.%:") regname) 0)))) (fx=? regname (ch #\x22))) (fx=? regname (ch #\-))) (fx=? regname (ch #\_)))
+    [(or (or (or (or (and (fx>? regname 0) (or (or (ascii_isupper regname) (ascii_islower regname)) (ascii_isdigit regname))) (and (not writing) (not (fx=? (vim_strchr ed (c-str 166066 "/#.%:") regname) 0)))) (fx=? regname (ch #\x22))) (fx=? regname (ch #\-))) (fx=? regname (ch #\_)))
      #t]
     [(or (fx=? regname (ch #\*)) (fx=? regname (ch #\+))) (msg_warn_missing_clipboard ed) #f]
     [else #f]))
@@ -42158,9 +42152,9 @@
       [(and (and (or (fx=? regname 0) (fx=? regname (ch #\x22))) (not (not (fxzero? writing)))) (not (fx=? y_previous 0)))
        (set! y_current y_previous)
        #f]
-      [(ascii_isdigit ed regname) (join10 (i32- regname (ch #\0)) #f)]
-      [(ascii_islower ed regname) (join10 (i32+ (i32- regname (ch #\a)) 10) #f)]
-      [(ascii_isupper ed regname)
+      [(ascii_isdigit regname) (join10 (i32- regname (ch #\0)) #f)]
+      [(ascii_islower regname) (join10 (i32+ (i32- regname (ch #\a)) 10) #f)]
+      [(ascii_isupper regname)
        (let ([i (i32+ (i32- regname (ch #\A)) 10)])
          (set! y_append #t)
          (join10 i #f))]
@@ -42205,7 +42199,7 @@
     (cond
       [(fx=? reg_recording 0)
        (cond
-         [(or (fx<? c 0) (and (not (or (or (ascii_isupper ed c) (ascii_islower ed c)) (ascii_isdigit ed c))) (not (fx=? c (ch #\x22)))))
+         [(or (fx<? c 0) (and (not (or (or (ascii_isupper c) (ascii_islower c)) (ascii_isdigit c))) (not (fx=? c (ch #\x22)))))
           (join7 #f)]
          [else (set! reg_recording c) (showmode ed) (set! do_record:regname c) (join7 #t)])]
       [else
@@ -42710,13 +42704,13 @@
       (if (not (fxzero? (oparg_T.block_mode oap)))
           (let* ([r6 IObuff]
                  [r7 (iobuff_room ed)])
-            (vim_snprintf ed r6 r7 (NGETTEXT ed (c-str 166116 "block of %ld line yanked%s") (c-str 166143 "block of %ld lines yanked%s") (->u64 yanklines)) (list yanklines namebuf))
-            (msg ed (iobuff_or ed (NGETTEXT ed (c-str 166116 "block of %ld line yanked%s") (c-str 166143 "block of %ld lines yanked%s") (->u64 yanklines))))
+            (vim_snprintf ed r6 r7 (NGETTEXT (c-str 166116 "block of %ld line yanked%s") (c-str 166143 "block of %ld lines yanked%s") (->u64 yanklines)) (list yanklines namebuf))
+            (msg ed (iobuff_or ed (NGETTEXT (c-str 166116 "block of %ld line yanked%s") (c-str 166143 "block of %ld lines yanked%s") (->u64 yanklines))))
             (join35 yanktype))
           (let* ([r8 IObuff]
                  [r9 (iobuff_room ed)])
-            (vim_snprintf ed r8 r9 (NGETTEXT ed (c-str 166171 "%ld line yanked%s") (c-str 166189 "%ld lines yanked%s") (->u64 yanklines)) (list yanklines namebuf))
-            (msg ed (iobuff_or ed (NGETTEXT ed (c-str 166171 "%ld line yanked%s") (c-str 166189 "%ld lines yanked%s") (->u64 yanklines))))
+            (vim_snprintf ed r8 r9 (NGETTEXT (c-str 166171 "%ld line yanked%s") (c-str 166189 "%ld lines yanked%s") (->u64 yanklines)) (list yanklines namebuf))
+            (msg ed (iobuff_or ed (NGETTEXT (c-str 166171 "%ld line yanked%s") (c-str 166189 "%ld lines yanked%s") (->u64 yanklines))))
             (join35 yanktype))))
     (define (join35 yanktype)
       (cond
@@ -43499,7 +43493,7 @@
                   (frame-pop! ed fr)
                   (join6 dir 0 0 0 0 orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags r21 r22)))])]))))
 
-(define (get_register_name ed num)
+(define (get_register_name num)
   (cond
     [(fx=? num -1) (ch #\x22)]
     [(fx<? num 10) (i32+ num (ch #\0))]
@@ -43514,7 +43508,7 @@
         (loop3 -1 attr arg insert_string insert_length)))
     (define (loop3 i attr arg insert_string insert_length)
       (if (and (fx<? i NUM_REGISTERS) (not (not (fxzero? got_int))))
-          (let ([name (get_register_name ed i)])
+          (let ([name (get_register_name i)])
             (case (get_reg_type ed name 0)
               [(1) (join15 i name attr arg (ch #\l) insert_string insert_length)]
               [(0) (join15 i name attr arg (ch #\c) insert_string insert_length)]
@@ -44115,7 +44109,7 @@
 (define (end_search_hl ed)
   (let ([mem (ed-mem ed)])
     (unless (fx=? (match_T.rm.regprog screen_search_hl) 0)
-      (vim_regfree ed (match_T.rm.regprog screen_search_hl))
+      (vim_regfree (match_T.rm.regprog screen_search_hl))
       (match_T.rm.regprog-set! screen_search_hl 0))))
 
 (define (screen_start_highlight ed attr)
@@ -45676,7 +45670,7 @@
 (define (get_trans_bufname ed buf)
   (let ([mem (ed-mem ed)])
     (let ([r1 NameBuff])
-      (vim_strncpy ed r1 (buf_spname ed buf) 4095)
+      (vim_strncpy ed r1 (buf_spname buf) 4095)
       (trans_characters ed NameBuff PATH_MAX)
       (void))))
 
@@ -46531,7 +46525,7 @@
                 (loop4 count submatch first_match called_emsg_before break_loop stop_lnum timed_out search_from_match_end)
                 (join102 found lnum submatch)))))
     (define (join102 found lnum submatch)
-      (vim_regfree ed (regmmatch_T.regprog regmatch))
+      (vim_regfree (regmmatch_T.regprog regmatch))
       (cond
         [(not (not (fxzero? found)))
          (cond
@@ -46605,7 +46599,7 @@
       (soffset_T.end-set! offset FALSE)
       (soffset_T.off-set! offset 0)
       (cond
-        [(or (or (fx=? (ld-u8 p) (ch #\+)) (fx=? (ld-u8 p) (ch #\-))) (ascii_isdigit ed (ld-u8 p)))
+        [(or (or (fx=? (ld-u8 p) (ch #\+)) (fx=? (ld-u8 p) (ch #\-))) (ascii_isdigit (ld-u8 p)))
          (soffset_T.line-set! offset TRUE)
          (join11 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)]
         [(and (not (fxzero? (fxand options SEARCH_OPT))) (or (or (fx=? (ld-u8 p) (ch #\e)) (fx=? (ld-u8 p) (ch #\s))) (fx=? (ld-u8 p) (ch #\b))))
@@ -46620,9 +46614,9 @@
     (define (join9 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
       (join11 pat patlen searchstr searchstrlen dircp cmdlen (fx+ p 1) out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp))
     (define (join11 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
-      (if (or (or (ascii_isdigit ed (ld-u8 p)) (fx=? (ld-u8 p) (ch #\+))) (fx=? (ld-u8 p) (ch #\-)))
+      (if (or (or (ascii_isdigit (ld-u8 p)) (fx=? (ld-u8 p) (ch #\+))) (fx=? (ld-u8 p) (ch #\-)))
           (cond
-            [(or (ascii_isdigit ed (ld-u8 p)) (ascii_isdigit ed (ld-u8 (fx+ p 1))))
+            [(or (ascii_isdigit (ld-u8 p)) (ascii_isdigit (ld-u8 (fx+ p 1))))
              (soffset_T.off-set! offset (musl_atol ed p))
              (join17 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)]
             [(fx=? (ld-u8 p) (ch #\-))
@@ -46646,7 +46640,7 @@
                    [out___searchstr out___searchstr]
                    [out___searchstrlen out___searchstrlen]
                    [out___dircp out___dircp])
-        (if (ascii_isdigit ed (ld-u8 p))
+        (if (ascii_isdigit (ld-u8 p))
             (loop18 pat patlen searchstr searchstrlen dircp cmdlen (fx+ p 1) out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
             (join19 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp))))
     (define (join19 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
@@ -47844,7 +47838,7 @@
           (join12 (b->i (and (and (not (fx=? nmatched 0)) (= (lpos_T.lnum (regmmatch_T.startpos& regmatch)) (lpos_T.lnum (regmmatch_T.endpos& regmatch)))) (fx=? (lpos_T.col (regmmatch_T.startpos& regmatch)) (lpos_T.col (regmmatch_T.endpos& regmatch))))))
           (join12 result)))
     (define (join12 result)
-      (vim_regfree ed (regmmatch_T.regprog regmatch))
+      (vim_regfree (regmmatch_T.regprog regmatch))
       (frame-pop! ed fr)
       result)
     (let ([called_emsg_before called_emsg])
@@ -48471,7 +48465,7 @@
         [(fx=? (regmatch_T.regprog regmatch) 0) (frame-pop! ed fr) ret]
         [else
          (let ([match (and (not (fx=? term 0)) (vim_regexec ed regmatch term 0))])
-           (vim_regfree ed (regmatch_T.regprog regmatch))
+           (vim_regfree (regmatch_T.regprog regmatch))
            (cond
              [match (frame-pop! ed fr) prot]
              [else (loop1 len buf ret p copy_option_part__o_r__ copy_option_part__o_option)]))]))
@@ -48978,7 +48972,7 @@
       (shell_new_rows ed))
     (cond
       [(or (or (not (= win_new_shellsize:old_Rows Rows)) (not (= win_new_shellsize:old_Columns Columns))) (not (fx=? win_new_shellsize:old_coloff 0)))
-       (ui_new_shellsize ed)
+       (ui_new_shellsize)
        (join2)]
       [else (join2)])))
 
@@ -49328,7 +49322,7 @@
                       (adjust_modlen ed i)
                       (join7 i)))
                   (join7 i)))])]
-        [else (vim_regfree ed (regmatch_T.regprog regmatch)) (frame-pop! ed fr)]))
+        [else (vim_regfree (regmatch_T.regprog regmatch)) (frame-pop! ed fr)]))
     (define (join7 i)
       (loop1 (i32+ i 1)))
     (musl_memset ed regmatch 0 176)
@@ -49416,7 +49410,7 @@
             (join7 extra)])]
         [else (join7 extra)]))))
 
-(define (decode_modifiers ed n)
+(define (decode_modifiers n)
   (define (join2 code modifiers)
     (if (not (fxzero? (fxand code 2)))
         (join4 code (fxior modifiers MOD_MASK_ALT))
@@ -49607,7 +49601,7 @@
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local string_ &string_ agg 0)
     (let* ([key (may_adjust_key_for_ctrl ed modifiers_arg key_arg)]
-           [modifiers (may_remove_shift_modifier ed modifiers_arg key)])
+           [modifiers (may_remove_shift_modifier modifiers_arg key)])
       (let-values ([(r1 r2) (modifiers2keycode ed modifiers key string_)])
         (cond
           [(fx>? r2 1114111) (frame-pop! ed fr) -1]
@@ -49651,7 +49645,7 @@
   (let ([mem (ed-mem ed)])
     (define (join2)
       (let* ([key (if iskitty (ld-s32 arg) (ld-s32 (fx+ arg 8)))]
-             [modifiers (decode_modifiers ed (ld-s32 (fx+ arg 4)))])
+             [modifiers (decode_modifiers (ld-s32 (fx+ arg 4)))])
         (if (and (and (not (fxzero? (fxand modifiers MOD_MASK_SHIFT))) (fx>=? key (ch #\a))) (fx<=? key (ch #\z)))
             (join4 (i32+ key -32) modifiers)
             (join4 key modifiers))))
@@ -49696,7 +49690,7 @@
   (let ([mem (ed-mem ed)])
     (define (join12)
       (let* ([key (i32- 0 (i32+ (ld-u8 key_name) (i32<< (ld-u8 (fx+ key_name 1)) 8)))]
-             [modifiers (if (fx=? argc 2) (decode_modifiers ed (ld-s32 (fx+ arg 4))) 0)])
+             [modifiers (if (fx=? argc 2) (decode_modifiers (ld-s32 (fx+ arg 4))) 0)])
         (put_key_modifiers_in_typebuf ed key modifiers csi_len offset buf bufsize buflen)
         csi_len))
     (st-u8! key_name (ch #\k))
@@ -49729,7 +49723,7 @@
                     [argc (i32+ argc 1)])
                (st-s32! (fx+ arg (fx* t2 4)) -1)
                (join17 slen first argc ap out___r__ out___slen))]
-            [(ascii_isdigit ed (ld-u8 ap))
+            [(ascii_isdigit (ld-u8 ap))
              (st-s32! (fx+ arg (fx* argc 4)) 0)
              (loop9 slen first argc ap out___r__ out___slen)]
             [else (join17 slen first argc ap out___r__ out___slen)])
@@ -49737,7 +49731,7 @@
     (define (loop9 slen first argc ap out___r__ out___slen)
       (cond
         [(fx>=? ap (fx+ tp len)) (frame-pop! ed fr) (values -1 slen)]
-        [(not (ascii_isdigit ed (ld-u8 ap))) (join17 slen first (i32+ argc 1) ap out___r__ out___slen)]
+        [(not (ascii_isdigit (ld-u8 ap))) (join17 slen first (i32+ argc 1) ap out___r__ out___slen)]
         [(fx<=? (ld-s32 (fx+ arg (fx* argc 4))) 214748363)
          (st-s32! (fx+ arg (fx* argc 4)) (i32+ (i32* (ld-s32 (fx+ arg (fx* argc 4))) 10) (i32- (ld-u8 ap) (ch #\0))))
          (join13 slen first argc ap out___r__ out___slen)]
@@ -49750,7 +49744,7 @@
           (loop19 slen first argc ap out___r__ out___slen)))
     (define (loop19 slen first argc ap out___r__ out___slen)
       (cond
-        [(and (and (fx<? ap (fx+ tp len)) (not (and (fx>=? (ld-u8 ap) (ch #\x7b)) (fx<=? (ld-u8 ap) (ch #\~))))) (not (or (ascii_isupper ed (ld-u8 ap)) (ascii_islower ed (ld-u8 ap)))))
+        [(and (and (fx<? ap (fx+ tp len)) (not (and (fx>=? (ld-u8 ap) (ch #\x7b)) (fx<=? (ld-u8 ap) (ch #\~))))) (not (or (ascii_isupper (ld-u8 ap)) (ascii_islower (ld-u8 ap)))))
          (loop19 slen first argc (fx+ ap 1) out___r__ out___slen)]
         [(fx>=? ap (fx+ tp len)) (frame-pop! ed fr) (values -1 slen)]
         [else (join28 slen first (ld-u8 ap) argc ap out___r__ out___slen)]))
@@ -49763,7 +49757,7 @@
               (set! modify_otherkeys_state (if (fx=? (ld-s32 (fx+ arg 4)) 2) MOKS_ENABLED MOKS_OFF))
               (join56 csi_len out___r__ out___slen)]
              [else (join56 csi_len out___r__ out___slen)])]
-          [(and (and (fx=? first -1) (ascii_isupper ed trail)) (or (fx=? argc 0) (and (fx=? argc 2) (fx=? (ld-s32 arg) 1))))
+          [(and (and (fx=? first -1) (ascii_isupper trail)) (or (fx=? argc 0) (and (fx=? argc 2) (fx=? (ld-s32 arg) 1))))
            (let* ([res (handle_csi_function_key ed argc arg trail csi_len key_name offset buf bufsize buflen)]
                   [out___r__ (if (fx<=? res 0) res (i32+ len res))])
              (frame-pop! ed fr)
@@ -49840,7 +49834,7 @@
     (st-s32! arg -1)
     (st-s32! (fx+ arg 4) -1)
     (st-s32! (fx+ arg 8) -1)
-    (if (not (ascii_isdigit ed (ld-u8 argp)))
+    (if (not (ascii_isdigit (ld-u8 argp)))
         (join2 slen (ld-u8 argp) 0 (fx+ argp 1) 0 0)
         (join2 slen -1 0 argp 0 0))))
 
@@ -49957,7 +49951,7 @@
                           [out___slen 0])
                 (if (fx<? i len)
                     (cond
-                      [(and (fx=? (i32- i j) 3) (not (musl_isdigit ed (ld-u8 (fx+ tp i)))))
+                      [(and (fx=? (i32- i j) 3) (not (musl_isdigit (ld-u8 (fx+ tp i)))))
                        (join19 slen i out___r__ out___slen)]
                       [(and (fx=? (i32- i j) 4) (not (fx=? (ld-u8 (fx+ tp i)) (ch #\space))))
                        (join19 slen i out___r__ out___slen)]
@@ -50042,7 +50036,7 @@
               [(fx=? (musl_strncmp ed (termcode.code (fx+ termcodes (fx* idx 24))) tp (->u64 (if (fx>? slen len) len slen))) 0)
                (cond
                  [(fx<? len slen) (frame-pop! ed fr) -1]
-                 [(and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* idx 24)))) (ch #\K)) (or (ascii_isdigit ed (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1))) (ascii_isupper ed (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1)))))
+                 [(and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* idx 24)))) (ch #\K)) (or (ascii_isdigit (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1))) (ascii_isupper (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1)))))
                   (if (fx<? keypad_index_found 0)
                       (join23 tp slen len retval offset modifiers idx cpo_koffset idx slen #t handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
                       (join23 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found #t handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))]
@@ -50095,7 +50089,7 @@
                                [handle_osc__o_slen handle_osc__o_slen]
                                [modifiers2keycode__o_r__ modifiers2keycode__o_r__]
                                [modifiers2keycode__o_key modifiers2keycode__o_key])
-                    (if (and (fx<? j len) (or (or (musl_isdigit ed (ld-u8 (fx+ tp j))) (fx=? (ld-u8 (fx+ tp j)) (ch #\-))) (fx=? (ld-u8 (fx+ tp j)) (ch #\x3b))))
+                    (if (and (fx<? j len) (or (or (musl_isdigit (ld-u8 (fx+ tp j))) (fx=? (ld-u8 (fx+ tp j)) (ch #\-))) (fx=? (ld-u8 (fx+ tp j)) (ch #\x3b))))
                         (loop32 tp slen len retval offset modifiers (i32+ j 1) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
                         (let ([j (i32+ j 1)])
                           (cond
@@ -50105,12 +50099,12 @@
                             [else
                              (let* ([modifiers_start (fx+ (fx+ tp slen) -2)]
                                     [n (musl_atoi ed modifiers_start)])
-                               (join39 tp j len retval offset (fxior modifiers (decode_modifiers ed n)) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))]))))])]
+                               (join39 tp j len retval offset (fxior modifiers (decode_modifiers n)) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))]))))])]
               [else
                (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]))
           (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)))
     (define (join39 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
-      (if (and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* idx 24)))) (ch #\K)) (or (ascii_isdigit ed (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1))) (ascii_isupper ed (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1)))))
+      (if (and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* idx 24)))) (ch #\K)) (or (ascii_isdigit (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1))) (ascii_isupper (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1)))))
           (if (fx<? keypad_index_found 0)
               (join42 tp slen len retval offset modifiers idx cpo_koffset idx slen #t handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
               (join42 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found #t handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))
@@ -50193,7 +50187,7 @@
       (st-u8! (fx+ key_name 1) 53)
       (join72 slen len retval offset modifiers handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))
     (define (join72 slen len retval offset modifiers handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
-      (let ([key (handle_x_keys ed (i32- 0 (i32+ (ld-u8 key_name) (i32<< (ld-u8 (fx+ key_name 1)) 8))))])
+      (let ([key (handle_x_keys (i32- 0 (i32+ (ld-u8 key_name) (i32<< (ld-u8 (fx+ key_name 1)) 8))))])
         (let-values ([(r9 r10) (modifiers2keycode ed modifiers key string_)])
           (st-u8! key_name (->u8 (fxand (i32- 0 r10) 255)))
           (st-u8! (fx+ key_name 1) (->u8 (fxand (u32>> (->u32 (i32- 0 r10)) 8) 255)))
@@ -50322,7 +50316,7 @@
          (values from 0)]
         [else
          (let ([result (garray_T.ga_data ga)])
-           (if (and (and (not (fxzero? (fxand flags REPTERM_FROM_PART))) (fx=? (ld-u8 src) (ch #\x23))) (ascii_isdigit ed (ld-u8 (fx+ src 1))))
+           (if (and (and (not (fxzero? (fxand flags REPTERM_FROM_PART))) (fx=? (ld-u8 src) (ch #\x23))) (ascii_isdigit (ld-u8 (fx+ src 1))))
                (let ([dlen (u64+ 0 1)])
                  (st-u8! result 128)
                  (let* ([t2 dlen]
@@ -50369,7 +50363,7 @@
                                        [slen slen]
                                        [out___r__ out___r__]
                                        [out___matchlen out___matchlen])
-                            (if (and (fx<? j len) (or (or (musl_isdigit ed (ld-u8 (fx+ src j))) (fx=? (ld-u8 (fx+ src j)) (ch #\-))) (fx=? (ld-u8 (fx+ src j)) (ch #\x3b))))
+                            (if (and (fx<? j len) (or (or (musl_isdigit (ld-u8 (fx+ src j))) (fx=? (ld-u8 (fx+ src j)) (ch #\-))) (fx=? (ld-u8 (fx+ src j)) (ch #\x3b))))
                                 (loop16 matchlen i (i32+ j 1) len found foundlen slen out___r__ out___matchlen)
                                 (let ([j (i32+ j 1)])
                                   (cond
@@ -50678,7 +50672,7 @@
         [else (join42 haveto_redraw)]))
     (define (join42 haveto_redraw)
       (when haveto_redraw (update_topline ed) (redraw_curbuf_later ed UPD_VALID)))
-    (let ([safe_tw (trim_to_int ed (i64* 8 textwidth))])
+    (let ([safe_tw (trim_to_int (i64* 8 textwidth))])
       (if (and (not (not (fxzero? (buf_T.b_p_ai curbuf)))) (not (not (fxzero? (fxand State VREPLACE_FLAG)))))
           (let ([cc (gchar_cursor ed)])
             (cond
@@ -51438,7 +51432,7 @@
 
 (define (add_time ed buf buflen tt)
   (let ([seconds (i64- (host_time ed) tt)])
-    (vim_snprintf ed buf buflen (NGETTEXT ed (c-str 166993 "%ld second ago") (c-str 167008 "%ld seconds ago") (->u64 seconds)) (list seconds))
+    (vim_snprintf ed buf buflen (NGETTEXT (c-str 166993 "%ld second ago") (c-str 167008 "%ld seconds ago") (->u64 seconds)) (list seconds))
     (void)))
 
 (define (ui_write ed s len)
@@ -51532,7 +51526,7 @@
 (define (ui_set_shellsize ed mustset)
   (mch_set_shellsize ed))
 
-(define (ui_new_shellsize ed)
+(define (ui_new_shellsize)
   (void))
 
 (define (ui_breakcheck ed)
@@ -51872,13 +51866,13 @@
              [(< i size)
               (fast_breakcheck ed)
               (cond
-                [(not (fxzero? got_int)) (u_freeentry ed uep i) (frame-pop! ed fr) #f]
+                [(not (fxzero? got_int)) (u_freeentry uep i) (frame-pop! ed fr) #f]
                 [else
                  (let* ([t1 lnum]
                         [lnum (i64+ lnum 1)])
                    (cond
                      [(not (u_save_line ed (fx+ (u_entry_T.ue_array uep) (fx* i 24)) t1))
-                      (u_freeentry ed uep i)
+                      (u_freeentry uep i)
                       (set! msg_silent 0)
                       (cond
                         [(fx=? (ask_yesno ed (c-str 167114 "No undo possible; continue anyway") #t) (ch #\y))
@@ -52310,7 +52304,7 @@
         [else (buf_T.b_u_save_nr_cur-set! curbuf (u_header_T.uh_save_nr curhead)) (join32 curhead)]))
     (define (join32 curhead)
       (buf_T.b_u_time_cur-set! curbuf (u_header_T.uh_time curhead))
-      (unblock_autocmds ed)
+      (unblock_autocmds)
       (frame-pop! ed fr))
     (define (join35 i curhead)
       (cond
@@ -52323,7 +52317,7 @@
     (define (join41 top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd uep newlist old_flags new_flags curhead)
       (cond
         [(or (or (> top (buf_T.b_ml.ml_line_count curbuf)) (>= top bot)) (> bot (i64+ (buf_T.b_ml.ml_line_count curbuf) 1)))
-         (unblock_autocmds ed)
+         (unblock_autocmds)
          (iemsg ed e_u_undo_line_numbers_wrong)
          (changed ed)
          (frame-pop! ed fr)]
@@ -52460,7 +52454,7 @@
            [new_curpos_col (win_T.w_cursor.col curwin)]
            [new_curpos_coladd (win_T.w_cursor.coladd curwin)]
            [curhead (buf_T.b_u_curhead curbuf)])
-      (block_autocmds ed)
+      (block_autocmds)
       (let* ([old_flags (u_header_T.uh_flags curhead)]
              [new_flags (i32+ (if (not (fxzero? (buf_T.b_changed curbuf))) UH_CHANGED 0) (if (not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) ML_EMPTY))) UH_EMPTYBUF 0))])
         (setpcmark ed)
@@ -52695,14 +52689,14 @@
       (let loop7 ([uep (u_header_T.uh_entry uhp)])
         (if (not (fx=? uep 0))
             (let ([nuep (u_entry_T.ue_next uep)])
-              (u_freeentry ed uep (u_entry_T.ue_size uep))
+              (u_freeentry uep (u_entry_T.ue_size uep))
               (loop7 nuep))
             (buf_T.b_u_numhead-set! buf (i32- (buf_T.b_u_numhead buf) 1)))))
     (cond
       [(fx=? (buf_T.b_u_curhead buf) uhp) (buf_T.b_u_curhead-set! buf 0) (join2)]
       [else (join2)])))
 
-(define (u_freeentry ed uep n)
+(define (u_freeentry uep n)
   (let loop1 ([n n])
     (when (> n 0) (loop1 (i64- n 1)))))
 
@@ -52956,7 +52950,7 @@
       (cond
         [(not (win_alloc_lines ed new_wp)) 0]
         [else
-         (block_autocmds ed)
+         (block_autocmds)
          (win_T.w_wincol-set! new_wp 0)
          (win_T.w_width-set! new_wp (->i32 Columns))
          (win_T.w_topline-set! new_wp 1)
@@ -52971,7 +52965,7 @@
          (win_T.w_allbuf_opt.wo_siso-set! new_wp (win_T.w_onebuf_opt.wo_siso new_wp))
          (win_T.w_fraction-set! new_wp 0)
          (win_T.w_prev_fraction_row-set! new_wp -1)
-         (unblock_autocmds ed)
+         (unblock_autocmds)
          (win_T.w_next_match_id-set! new_wp 1000)
          new_wp]))))
 
@@ -53357,7 +53351,7 @@
 (define (last_status_rec ed fr_ statusline)
   (let ([mem (ed-mem ed)])
     (define (join6 wp)
-      (when (fx=? (musl_abs ed (i32- (win_T.w_height wp) (win_T.w_prev_height wp))) 1)
+      (when (fx=? (musl_abs (i32- (win_T.w_height wp) (win_T.w_prev_height wp))) 1)
         (win_T.w_prev_height-set! wp (win_T.w_height wp))))
     (let ([wp (frame_T.fr_win fr_)])
       (cond
@@ -53371,14 +53365,14 @@
            (cond
              [(fx<=? r1 (frame_minheight ed fr_ 0)) (emsg ed e_not_enough_room)]
              [else
-              (win_T.w_status_height-set! wp (statusline_height ed wp))
+              (win_T.w_status_height-set! wp (statusline_height wp))
               (win_new_height ed wp (i32- (win_T.w_height wp) (win_T.w_status_height wp)))
               (comp_col ed)
               (redraw_all_later ed UPD_SOME_VALID)
               (join6 wp)]))]
         [else (join6 wp)]))))
 
-(define (statusline_height ed wp)
+(define (statusline_height wp)
   1)
 
 (define (last_stl_height ed morewin)
@@ -53488,7 +53482,7 @@
   (let ([mem (ed-mem ed)])
     (and (and (stuff_empty ed) (fx=? (typebuf_T.tb_len typebuf) 0)) (not (not (fxzero? global_busy))))))
 
-(define (may_trigger_safestate ed safe)
+(define (may_trigger_safestate safe)
   (void))
 
 (define (work_pending ed)
@@ -53536,7 +53530,7 @@
         [skip_redraw (set! skip_redraw #f) (setcursor ed) (cursor_on ed) (join26 prev_oap)]
         [(or do_redraw (stuff_empty ed))
          (may_trigger_deferred_events ed)
-         (may_trigger_safestate ed (and (not (op_pending ed)) (fx=? restart_edit 0)))
+         (may_trigger_safestate (and (not (op_pending ed)) (fx=? restart_edit 0)))
          (update_topline ed)
          (validate_cursor ed)
          (cond
@@ -53779,7 +53773,7 @@
     nv_zet
     nv_pipe
     nv_tilde
-    nv_nop
+    (lambda (ed a0) (nv_nop a0))
     nv_end
     nv_home
     nv_kundo
@@ -53812,7 +53806,7 @@
     did_set_modifiable
     did_set_modified
     did_set_nrformats
-    did_set_number_relativenumber
+    (lambda (ed a0) (did_set_number_relativenumber a0))
     did_set_osctimeoutlen
     did_set_paste
     did_set_pastetoggle

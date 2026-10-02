@@ -254,6 +254,9 @@ var Gen = togo.Profile{
 	// or a SIGTERM -- and runs (whimsical/whimsical/host.ss)
 	ScmLibrary: "(whimsical editor)",
 	ScmExports: []string{"vim_main", "deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
+	// a function that touches no memory takes no editor
+	// (doc/SCHEME-IDIOMS.md, item 7)
+	ScmPure: true,
 	// a Clojure state machine split into groups past 50,000 (the backend's
 	// default is the JVM's method limit, 110,000): a group is called on
 	// every jump between groups, so C1 compiles it early and cheaply, where

@@ -350,7 +350,7 @@ After items 1, 3 and 4:
 | 4 | copies and values passed on -- **done** | 4,624 | S-M | low-medium | medium |
 | 5 | loops as named `let` -- **done** | 464 of 906 | M | low | medium |
 | 6 | named constants and characters -- **done** | 8,690 + 2,327 | S-M | low | medium |
-| 7 | pure functions without the editor | 63 | S | low | low |
+| 7 | pure functions without the editor -- **done** | 63 | S | low | low |
 | 8 | truth values | 1,714 | S | low | low |
 
 ## Done
@@ -487,3 +487,18 @@ B`).
 | lines | 52,947 | 53,890 (the definitions) |
 | Chez on the core | 27.5 s, 0.74 GB | 29.0 s, 0.73 GB (the load average 7-8) |
 | the heavy case | 0.9-1.0 times the C | 0.9-1.1 (C 427-429 ms, whimsical 398-460) |
+
+### 7. Pure functions without the editor
+
+`whim.Gen` turns on the backend's `ScmPure`: the 63 functions that touch no
+memory, even through what they call (`hseffects.go`), take only their C
+parameters -- `(define (musl_isalnum c) (or (musl_isalpha c) (musl_isdigit
+c)))` -- and their callers pass no editor; one taken as a function pointer
+is wrapped in the table to take the editor a call through a pointer passes.
+What the host calls back and what a runtime body names keep it.
+
+| | before | after |
+| --- | ---: | ---: |
+| functions without `ed` | 0 | 63 |
+| Chez on the core | 29.0 s, 0.73 GB | 28.2 s, 0.74 GB |
+| the heavy case | 0.9-1.1 times the C | 0.9-1.0 (C 428-435 ms, whimsical 400-412) |
