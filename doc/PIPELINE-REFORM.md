@@ -1133,6 +1133,70 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
    - `GOALS.md` indexes both.
    - CLAUDE.md is rewritten to the new shape.
 
+9. **The in-order build, profiled and made faster (after the reform).**
+   `make whim-build-check`'s first run -- `whim build --check` from an empty
+   `.cache/boundaries` -- runs the 123 phases in order, and it is what a
+   moved upstream costs. `whim build --cpuprofile F` profiles a run.
+   - **The profile, at 000dbf0.** 815 s wall; 1,335 s of CPU (1,210 user,
+     125 system), 1,274 s sampled. The categories overlap (a parse inside the
+     sweep is both):
+     - the collector's mark workers 430 s, a third of all CPU;
+     - the steps 307 s: the edits (`runEdit`) 124, the front's closures
+       (`FallOutOf`) 91 (`fallOutMarked` 35, `cc.Translate` 30), the plain
+       cutters 50, `droplocal` 44;
+     - the sweep 217 s: its parse 103, `collect` 78, `unusedLocals` 30;
+     - the canonical print 133 s: its parse 67, the expansions walk 65;
+     - `cc.Parse` 178 s across the sweep and the print, and the parser 204
+       counting `Translate`'s;
+     - the tree walks by reflection 169 s (`sweep.walk` 115, `walkTok` 54),
+       the print's own reflective walk inside its 65;
+     - regexp 194 s, the largest users `DropLocal` 44 and `MentionCount` 31;
+     - gcc: phase 110's eight compiles of the cut (about 3.4 s each, wall,
+       outside the profile) and phase 169's 33 one-by-one header trials (11
+       of its 13 s); process and temp files under 2 s.
+   - **Done**, each a commit, each measured A/B/A/B on a run of phases from
+     its snapshot, by CPU, with the boundary byte for byte:
+     - the sweep's walks by a generated type switch (`crefactor/ccwalk`,
+       `go generate`), reflection kept for a type it was not generated for:
+       phases 120-140, CPU -9.4%;
+     - the sweep in memory, and its last parse handed to the canonical print
+       when that round cut nothing (`sweep.PruneParsed`,
+       `cemit.CanonicalParsed`): -9.5%;
+     - a run in order at GOGC 400 with a 3 GiB soft limit (`Run`; the
+       parallel check is untouched, and GOGC or GOMEMLIMIT in the
+       environment wins): phases 1-3, CPU 201-209 -> 131 s, peak resident
+       0.9 -> 2.0-2.2 GB; phases 120-140, -35%;
+     - `DropLocal`'s regexps on the lines that hold the field and not the
+       whole text: phases 16-32, CPU 61-63 -> 41-42 s;
+     - `MentionCount` by `bytes.Index` for a name of word characters, and
+       `FindDefinition` counting depth from candidate to candidate instead of
+       an int for every byte: phases 80-104, CPU 81 -> 61 s;
+     - the canonical print's token pass by the generated walk: phases
+       120-140, -7.5%;
+     - phase 169's one-by-one fold 16 trials at a time, speculatively, the
+       answers taken in order to the first header that stays: 13.5 -> 4.4-5.3
+       s wall, for 5-11 s more CPU.
+   - **The result.** In order: 123 phases, 506 and 516 s wall (load 5-6), 651
+     and 670 s of CPU, peak resident 2.0-2.3 GB (0.8 before); the seed 8-9 s,
+     phases 1-3 31-32, 34 and 36-38 s, 110 28 s, 169 4 s. The parallel check
+     on the same snapshots, A/B/A/B under a load of 17-22: 97 and 101 s wall
+     before, 77 and 71 s after; CPU 2,059 and 1,961 s before, 1,523 and 1,492
+     after. Both give `whim-vim.c` byte for byte.
+   - **Declined.**
+     - A sweep inside the front before its closures: the cuts assert counts
+       on the unswept text, and it moved them before (step 8); the closures
+       are now 75 s of CPU across the run, and their parses 25 s.
+     - Reusing a parse across steps: an edit's text moves between any two
+       parses but the sweep's last round and the print's, which is the pair
+       now shared.
+     - Phase 110's `gcc -c` as `-fsyntax-only` (3.4 -> 0.3 s a compile):
+       measured, the diagnostics differ (`-Wimplicit-fallthrough` and the
+       other flow warnings need the middle end), and the phase reads them.
+     - `cc`'s own allocation (`tokens2CppTokens`, `fset.Position`, 18 s):
+       the front end is a fork kept diffable against upstream.
+     - The rest of regexp (123 s): spread across dozens of edits and cutters,
+       the largest 15 s (`ReplacePattern`).
+
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with
   little change; the rest have their counts restated on the seed.

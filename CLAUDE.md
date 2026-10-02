@@ -535,7 +535,8 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 123 phases, **815 s**, 77,634 lines. A
+  before the reason. Measured: 123 phases, **516 s**, 670 s of CPU, 77,634 lines (815 s and
+  1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step 9; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -545,7 +546,7 @@ make help            # every target, with a line each
   the locals nothing reads (resolved by the parser's scopes). Its guards: no
   member goes while `ml_recover` is defined; a struct filled by position keeps
   every member; nothing is emptied; an enumerator's deletion pins the survivor
-  after it to its value. About 3 s a phase. It replaced six deleters looped around
+  after it to its value. About 1.2 s of CPU a phase (145 s over a run in order). It replaced six deleters looped around
   gcc, and keeps nothing they cut (measured on the product: 5,657 entities
   against 5,662, the five it adds all unused).
   It needs every text it is handed to PARSE, and every one does.
@@ -553,8 +554,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **88 s**, 122 links 64 at a time, bound by
-  the machine's load and no longer by one link (the front's three parts, phases 1-3, take 40, 43 and 44 s, and the seed 14 s; phase 1 alone was 89 s), against 1,005 s in
+  committed `whim-vim.c`. Measured: **71-77 s**, 122 links 64 at a time, bound by
+  the machine's load and no longer by one link (the front's three parts, phases 1-3, take 32, 34 and 38 s, and the seed 8 s; phase 1 alone was 89 s), against 516 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
