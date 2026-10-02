@@ -235,7 +235,7 @@ slim-vim.c  --whim-->  whim-vim.c
   substitutions and a `:g`, run on every editor of the run one at a time,
   required to answer as the reference does, each time reported beside the
   C's, and an editor over 25 times the C's time failing the run -- measured,
-  Rust 0.25-0.3, Go 0.5-0.6, Scheme 0.9-1.0, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  Rust 0.25-0.3, Go 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -354,6 +354,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    doc/SCHEME.md: scm.go the library, its image and its
                    names, scm_fn.go the blocks as local procedures and named
                    lets, scm_expr.go the expressions in C's order,
+                   scm_tidy.go each function read back as forms, rewritten
+                   by rules that see its scopes and laid out again,
                    scm_layout.go the layout listing; its cfacts are the
                    Haskell's analyses, shared). Its tests
                    run in it: `cd crefactor && go test ./...`
@@ -489,7 +491,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md, RUST-IDIOMS.md and SCHEME-IDIOMS.md (how the
                    Java, Clojure, Haskell, Rust and Scheme editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, 6, 7, 8's headroom (9 declined), and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-9),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 174) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in
@@ -543,7 +545,7 @@ go tool whim whimsy --lint  # the same, then rustc's warnings on the generated m
 make whim-test-rs     # the quick suite with the Rust editor too (whim test --rust; --wide --rust)
 make bin/whimsical    # the editor in Scheme: the library (whimsical editor) generated, compiled by Chez (half a minute when the core moved; its time and peak printed)
 make whim-test-scm    # the quick suite with the Scheme editor too (whim test --scheme; --wide --scheme)
-go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (46 s, 1.3 GB)
+go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (39 s, 1.1 GB)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary

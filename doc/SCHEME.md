@@ -4,8 +4,8 @@
 the Go (`editor/`), the Java (`braaam/`), the Clojure (`vijure/`), the
 Haskell (`caprice/`) and the Rust (`whimsy/`), and held to the same test:
 `whim test --scheme` and `--wide --scheme` answer all 80 and all 240 cases
-as the C does, with a control of its own, and the heavy case runs at 0.9-1.0
-times the C. It was surveyed and measured here the same day, before it was
+as the C does, with a control of its own, and the heavy case runs at 0.8-0.9
+times the C (0.9-1.0 before the second idiom pass, §13). It was surveyed and measured here the same day, before it was
 scheduled (§1-§8, kept as they were written: Chez Scheme chosen by
 measurement); the design held as §4 and §8 settled it, and what was built
 is recorded milestone by milestone after them (§9-§18), with what
@@ -1015,6 +1015,33 @@ its returns were printed did not give the frame back there (fixed with item
 1); `SIZE_MAX`, an `unsigned long` enumerator, first named as -1 (fixed with
 item 6, before it was committed: both suites refused every case).
 
+A second pass (SCHEME-IDIOMS.md, *The second pass*, items 10-18) surveyed
+the library again and found most of what was left of one kind: the
+printer composes its forms as text a block at a time, and what is wrong
+shows only once a function is whole. So `crefactor/togo/scm_tidy.go` reads
+each function back as forms and rewrites it by rules that see its scopes
+-- a layout of its own within 100 columns, a join one place calls written
+there and a join several call nested in the body that holds its calls
+(its parameters 20,879 -> 4,195), a named let's bindings that never change
+taken out (2,797 -> 640), copies, constants and increments where they are
+read, shorter spellings -- and printed again; and the C's signed
+arithmetic is Scheme's own (`fx+`, `+`: no signed overflow in any path
+the suites reach, measured on a build that refused one), the memory
+functions the bytevector's copy, case labels by name through the
+runtime's `c-case`. Measured on 2026-10-02 at a load average of 1-2:
+
+| | before | after |
+| --- | ---: | ---: |
+| `editor.ss` | 50,838 lines | 52,645 lines (6,674 of them over 100 columns before, 246 after) |
+| Chez on the core, release | 26.6 s, 0.63 GB | 24.0-24.1 s, 0.66-0.67 GB |
+| Chez on the core, debug | 45.9 s, 1.29 GB | 39.1 s, 1.13 GB |
+| the heavy case on one worker, `perf stat` | 6,782M instructions, at least 1,786M cycles | 4,945M, 1,514M (the C 2,829M, 1,308M) |
+| the heavy case, nine runs | 377-485 ms (the C 430-463) | 357-443 ms: 0.8-0.9 times the C |
+
+The memory functions took 30 % of the instructions; the joins nested
+inside loops' and joins' bodies, where Chez makes their closures on each
+entry, gave 2.5 % of it back, a price SCHEME-IDIOMS.md item 18 states.
+
 ## 14. The debugging build
 
 `go tool whim whimsical --debug` builds the editor with every check Chez
@@ -1190,6 +1217,9 @@ the C's 23 and 19.
 ## 18. Not done
 
 - **Records for the C's structs, Scheme strings for its strings**: declined
-  in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects.
-- **Joins nested by dominance** (each local procedure where the block that
-  dominates its uses is): declined there too.
+  in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects; the
+  second pass re-examined both (none of the 230 aggregates in a frame is
+  reached only through its members; R6RS has no bytevector search for the
+  string functions).
+- **Joins nested by dominance**: declined in the first pass, done in the
+  second (item 18).

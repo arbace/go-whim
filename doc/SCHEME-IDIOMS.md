@@ -1,6 +1,10 @@
 # How whimsical could be more idiomatic Scheme: a survey
 
-2026-10-02. It covers `whimsical/whimsical/editor.ss` as tracked at
+2026-10-02. *The second pass*, at the end, surveys the library again from
+`2593f8f` and takes items 10-18 (a layout of the forms' own, the joins in
+place and nested, the loops' invariants out, values in place, spellings,
+signed arithmetic, the memory functions, case labels by name). What
+follows first covers `whimsical/whimsical/editor.ss` as tracked at
 `598b500` (88,474 lines, 1,713 functions of the core and 17 of the host's
 glue, written by `crefactor/togo`'s Scheme backend from the core `go tool
 whim cut src/whim-vim.c` prints, 75,721 lines of C), and the hand-written
@@ -910,7 +914,65 @@ per call of the function. Kept out of loops' and joins' bodies, the rule
 (4,826M instructions); everywhere, 4,195, at 2.5 % -- still under the C's
 time, and item 16 had taken 30 %.
 
-Found after item 18, and fixed (`f9fc1f1`'s parent's fault, item 17): a
-`c-case`'s clause was not taken for a body, so a join written into one
-was wrapped in a `begin` -- 29 of them. `begin`s 29 -> 0, 52,677 -> 52,645
-lines; the same instructions.
+Found after item 18, and fixed (`7d3c1b8`; item 17's): a `c-case`'s
+clause was not taken for a body, so a join written into one was wrapped
+in a `begin` -- 29 of them. `begin`s 29 -> 0, 52,677 -> 52,645 lines; the
+same instructions.
+
+### Declined, with why
+
+- **An array's element by index**, `(ld-ptr@ a i)` for `(ld-ptr (fx+ a
+  (fx* i 8)))`: 464 sites. The stride is the element's size, which the
+  printer knows; a name would need an accessor per kind beside the twenty
+  the runtime has, for C's own pointer arithmetic, where `a[i]` and `*(a +
+  i)` are one thing -- and the 1,940 `(ld-u8 p)` of the same arithmetic
+  would stay as they are.
+- **The raw byte loads named** (`(byte-at p)` for `(ld-u8 p)`): 2,296 of
+  the 3,321 raw loads and 561 of the 1,071 stores are a byte at a pointer,
+  C's `*p` of a string; `ld-u8` already says what it reads, and a second
+  name for it is not a record's field.
+- **Records for struct locals that never escape**, re-examined: of the 230
+  aggregates left in a call's frame, none is reached only through its
+  members (`m4.py`): every one is passed by its address to a call, or
+  walked by arithmetic. `structvalues.go` had already made bindings of the
+  148 that could be.
+- **Scheme strings for C strings**, re-examined with item 16: the C string
+  functions stay the core's (`musl_strlen` 129 calls, `musl_strcmp` 58,
+  `musl_strncmp` 83...): R6RS has no procedure that finds a byte in a
+  bytevector and Chez none that compares two ranges, so the runtime would
+  hold the same loops; the literals carry their text already, `(c-str
+  162548 "stop")`.
+- **The host's glue a record**: 17 procedures of `(vector-ref (ed-glue ed)
+  3)`, in the order the library's `host-names` gives, which `host.ss`'s
+  `make-glue` builds from the `host` record; a record type for the glue
+  would put the host's interface into the runtime or the generated library
+  for 17 one-line definitions.
+- **`(not (fxzero? x))`**, 1,213: an `int` the C tests, as a value (item 8
+  turned every one that is a test); Chez has no `fxnonzero?`.
+- **The printer's `rN` copies of a named object** (336, `(let ([r1 curwin])
+  (win_T.w_cursor.col-set! r1 ...))`): C reads `curwin` once for `+=`, and
+  the copy says so; written twice, it would be two reads that only the
+  absence of a store between makes the same.
+
+### The second pass, before and after
+
+| | `2593f8f` | after |
+| --- | ---: | ---: |
+| lines | 50,838 | 52,645 |
+| lines of the functions over 100 columns / the longest | 6,674 / 1,017 | 246 / 195 |
+| joins as local procedures / their parameters | 3,538 / 20,879 | 2,193 / 4,195 |
+| named lets' bindings | 2,797 | 640 |
+| the lowering's temporaries `tN` / the printer's `rN` | 470 / 660 | 325 / 660 |
+| `(and (and ...))` + `(or (or ...))` / comparisons with zero by `fx=?`, `=` | 1,203 / 2,039 | 1 / 0 |
+| `begin` / `(void)` | 0 / 109 | 0 / 12 |
+| case labels by name or character / a number | 0 / 961 | 720 / 233 |
+| signed arithmetic through a wrapping helper | 4,340 | 0 |
+| the memory functions' bodies | three byte loops | the bytevector's copy, the runtime's fill |
+| Chez on the core, release | 26.6 s, 0.63 GB (36.8 s under load) | 24.0-24.1 s, 0.66-0.67 GB |
+| Chez on the core, debug (`--debug`) | 45.9 s, 1.29 GB | 39.1 s, 1.13 GB |
+| the heavy case on one worker: instructions / least cycles | 6,782M / 1,786M | 4,945M / 1,514M (the C 2,829M / 1,308M) |
+| the heavy case, nine runs interleaved at a load average of 1-2 | 377-485 ms (C 430-463) | 357-443 ms: 0.8-0.9x the C |
+
+(The joins' parameters by the same reader: 20,879 at `2593f8f`, 16,021
+after items 11-17, 4,195 after item 18.)
+
