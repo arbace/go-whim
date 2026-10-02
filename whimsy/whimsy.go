@@ -185,8 +185,9 @@ func writeIfDiffers(path string, b []byte) error {
 }
 
 // Lint is rustc's own warnings on the generated module of the crate in dir:
-// a copy of the crate, the module's #![allow] taken out and the crate's
-// #![deny(warnings)] with it, checked (`cargo check`), and its warnings in
+// a copy of the crate, the module's #![allow] and the functions' #[allow]
+// and #[expect] taken out and the crate's #![deny(warnings)] with them,
+// checked (`cargo check`), and its warnings in
 // src/editor.rs counted by lint -- the printer's lint measure, as GHC's
 // -Wall is caprice's (doc/RUST-IDIOMS.md, item 0).  Clippy is not used: it
 // is not on the machine.
@@ -249,8 +250,9 @@ func Lint(dir string) (map[string]int, error) {
 	return counts, nil
 }
 
-// allowRe is the generated module's one #![allow(...)].
-var allowRe = regexp.MustCompile(`(?m)^#!\[allow\([^)]*\)\]\n`)
+// allowRe is the generated module's #![allow(...)], and a function's own
+// #[allow(...)] or #[expect(...)] (the lowered form's, a dead store's).
+var allowRe = regexp.MustCompile(`(?m)^#!?\[(allow|expect)\([^)]*\)\]\n`)
 
 // LintReport is Lint's counts, most first, and their total.
 func LintReport(counts map[string]int) string {

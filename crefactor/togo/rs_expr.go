@@ -766,6 +766,11 @@ func (f *rfn) complit(x *cc.PostfixExpression) rv {
 		return f.block(rsLines(b), rv{s: "&raw mut (*ed)." + n, ty: "*mut " + f.r.ty(t), prec: pUnary})
 	}
 	n := f.temp(t)
+	for _, l := range f.order {
+		if l.name == n {
+			l.noZero = true
+		}
+	}
 	b := f.capture(func() {
 		f.line("%s = %s;", n, f.zero(t))
 		f.initInto(n, t, in)
@@ -1433,6 +1438,9 @@ func (f *rfn) incDec(cur rv, t cc.Type, inc bool) rv {
 
 // incDecValue is x++ (post) or ++x as a value.
 func (f *rfn) incDecValue(e cc.ExpressionNode, inc, post bool) rv {
+	if post && f.deadInc[e] {
+		return f.expr(e) // the function returns: the store is dead (rs_defer.go)
+	}
 	lv := f.lval(e)
 	f.markWrite(e)
 	stmts := append([]string{}, lv.pre...)

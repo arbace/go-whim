@@ -66,21 +66,32 @@ type rfn struct {
 	// what hoist took out of the expression being written: the values that
 	// stand for it (rs_hoist.go)
 	rsub map[cc.ExpressionNode]rv
+
+	// the stores whose value nothing reads, not written (rs_defer.go)
+	deadStore map[*cc.AssignmentExpression]bool
+	// a store to a local whose address is taken is dead as rustc sees it
+	expectDead bool
+	// the operands of x++ and x-- in a return whose store nothing reads
+	deadInc map[cc.ExpressionNode]bool
 }
 
 // rlocal is a C local or parameter as a Rust variable.
 type rlocal struct {
-	name    string
-	t       cc.Type
-	d       *cc.Declarator
-	param   bool
-	mutated bool // assigned, or its address taken: `mut`
-	read    bool
-	temp    bool
-	rty     string // a temporary's Rust type, when no C type says it
-	unused  bool   // the body never names it
-	sunk    bool   // declared where it is first given a value (sinkDecls)
-	addr    bool   // its address is taken
+	name      string
+	t         cc.Type
+	d         *cc.Declarator
+	param     bool
+	mutated   bool // assigned, or its address taken: `mut`
+	read      bool
+	temp      bool
+	rty       string // a temporary's Rust type, when no C type says it
+	unused    bool   // the body never names it
+	sunk      bool   // declared where it is first given a value (sinkDecls)
+	addr      bool   // its address is taken
+	deadInit  bool   // its initializer's value is never read: not written (rs_defer.go)
+	deadParam bool   // a parameter whose value passed is never read: `_p`, and a local p (rs_defer.go)
+	deadMut   bool   // that local is `mut`
+	noZero    bool   // declared with no value: a compound literal's, stored where it is made
 }
 
 // rctl is a construct a break or a continue may leave: a loop, a switch, or
@@ -144,6 +155,8 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 			return sig + " {\n" + indent(strings.TrimRight(body, "\n"), 4) + "\n}\n", ""
 		}
 	}
+	f.deadStores()
+	f.deadInits()
 	f.ind = 1
 	if why := f.structured(); why != "" {
 		if !lowerable(why) {
@@ -170,10 +183,27 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 			l.read, l.mutated, l.unused = false, false, true
 		}
 	}
+	switch {
+	case f.lowered_:
+		// the lowered form's variables, zeroed at the top as C's blocks see them
+		b.WriteString("#[allow(unused_assignments)]\n")
+	case f.expectDead:
+		// a store to a local whose address is taken, which nothing reads by
+		// name: rustc does not follow the pointer, nor does deadStores
+		b.WriteString("#[expect(unused_assignments)]\n")
+	}
 	b.WriteString(r.signature(d, f, &usesEd) + " {\n")
 	body = f.sinkDecls(body)
 	body = rsTailReturn(body)
 	for _, l := range f.order {
+		if l.deadParam && !l.unused {
+			m := ""
+			if l.deadMut {
+				m = "mut "
+			}
+			fmt.Fprintf(&b, "    let %s%s: %s;\n", m, l.name, l.declTy(r))
+			continue
+		}
 		if l.param || l.unused || l.sunk {
 			continue
 		}
@@ -191,6 +221,10 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		mut := ""
 		if l.mutated {
 			mut = "mut "
+		}
+		if l.noZero && !f.lowered_ {
+			fmt.Fprintf(&b, "    let mut %s: %s;\n", l.name, l.declTy(r))
+			continue
 		}
 		fmt.Fprintf(&b, "    let %s%s: %s = %s;\n", mut, l.name, l.declTy(r), l.zeroOf(r))
 	}
@@ -332,10 +366,10 @@ func (r *rgen) signature(d *cc.Declarator, f *rfn, usesEd *bool) string {
 		if f != nil && p.Declarator != nil {
 			if l := f.local[p.Declarator]; l != nil {
 				name = l.name
-				if l.unused {
-					name = "_" + name
+				if l.unused || l.deadParam {
+					name = "_" + name // never read: the value passed (rs_defer.go)
 				}
-				if l.mutated {
+				if l.mutated && !l.deadParam {
 					name = "mut " + name
 				}
 			}
@@ -399,10 +433,19 @@ func (f *rfn) declareAll() {
 		walkChildrenFn(n, rec)
 	}
 	rec(f.fd.CompoundStatement)
-	// what is read and what is written, as the C says it
+	f.uses()
+}
+
+// uses finds what is read and what is written of each local, as the C
+// says it -- but for a store that is not written (deadStores).
+func (f *rfn) uses() {
 	var use func(n cc.Node)
 	use = func(n cc.Node) {
 		if n == nil {
+			return
+		}
+		if a, ok := n.(*cc.AssignmentExpression); ok && f.deadStore[a] {
+			use(a.AssignmentExpression)
 			return
 		}
 		switch x := n.(type) {
@@ -441,7 +484,7 @@ func (f *rfn) declareAll() {
 		case *cc.PostfixExpression:
 			switch x.Case {
 			case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
-				if l := f.identLocal(x.PostfixExpression); l != nil {
+				if l := f.identLocal(x.PostfixExpression); l != nil && !f.deadInc[x.PostfixExpression] {
 					l.mutated = true
 				}
 			}
@@ -727,6 +770,9 @@ func (f *rfn) declaration(d *cc.Declaration) {
 		loc := f.local[dd]
 		if loc == nil {
 			continue // a static: the editor's, initialized with the file's objects
+		}
+		if loc.deadInit {
+			continue // a value nothing reads (rs_defer.go)
 		}
 		f.initLocal(loc, id.Initializer)
 	}

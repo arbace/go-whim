@@ -354,6 +354,11 @@ A second pass (`RUST-IDIOMS.md`, *The second pass*):
   pointer slot's writes and flows, which rustc checks -- 869 of 2,770
   slots; `VArg::P` a `*const c_void`, as vim's printf only reads its
   arguments; `decay_const` for an array reached through a `*const`.
+- temporaries declared where they are given their value (`let t1: T =
+  v;`, item 12);
+- every zero rustc does not need, and C's dead stores not written (item
+  13): zeros 1,113 -> 932, the module allows no `unused_assignments`, 4
+  functions expect it for a store through a pointer rustc does not follow.
 
 ## Not done
 

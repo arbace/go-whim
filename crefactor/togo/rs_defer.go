@@ -7,14 +7,26 @@ package togo
 // both arms of an `if`, or before a loop -- keeps its declaration at the
 // top, and loses only the zero.
 //
-// The analysis is rustc's own on C's statements: a path-insensitive walk in
-// evaluation order of whether the local is definitely stored (every read
-// must come after) and maybe stored (a store then needs `mut`), joining the
-// arms of an if, and a loop's body taken twice, as its second time round
-// sees the first's stores.  A function with a goto, a switch naming the
-// local, or a local whose address is taken keeps its zero.  Either way the
+// The analysis is rustc's own on C's statements: a walk in evaluation order
+// of whether the local is definitely stored (every read must come after)
+// and maybe stored (a store then needs `mut`), joining the arms of an if,
+// a condition's true and false ways apart (the right of && only where the
+// left is true), a loop's body taken twice, as its second time round sees
+// the first's stores, a loop with no condition left only by its breaks,
+// and a goto's state joined at its label (item 13).  An address taken, a
+// member or an element written, or an array reached are reads that need
+// `mut`.  A switch naming the local, a label inside a statement and a
+// goto back are not followed: the local keeps its zero.  Either way the
 // claim is rustc's to check: a read it cannot see initialized, or a `mut`
 // it finds missing or unneeded, does not compile.
+//
+// The same walk, following one store's value (live), finds C's dead
+// stores (deadStores, deadInits, the parameters' values, deadIncs): rustc
+// counts each as a value assigned and never read; each is not written --
+// but one to a local whose address is taken, which a pointer may read:
+// that one is kept, and its function says `#[expect(unused_assignments)]`,
+// which rustc holds to its own count.  So the module allows no
+// unused_assignments.
 
 import "github.com/arbace/go-whim/crefactor/cc"
 
@@ -30,39 +42,63 @@ type defer_ struct {
 	bad     bool // read before a store, or a use the walk does not follow
 	needMut bool
 	loops   []*dloop // the loops the walk is in
+	// what the gotos to each label left (a goto is a forward jump to a
+	// label of a block holding it: a labeled block it breaks)
+	gotos  map[string]dstate
+	joined map[*cc.LabeledStatement]bool // the labels of a block's items, whose gotos it joins
+	backTo map[string]bool               // the labels a goto after them reaches: not followed
+	// sharedRef says an argument is passed to a & reference: `&x`, no mut
+	sharedRef func(cc.ExpressionNode) bool
+	skipInit  bool // the local's initializer is not written: no store
+	// the stores not written (deadStores), and the liveness walk's: the
+	// store under test, and whether its value is read
+	dead     map[*cc.AssignmentExpression]bool
+	deadInc  map[cc.ExpressionNode]bool
+	live     cc.Node
+	liveRead bool
 }
 
 // deferred says the local l can be declared with no value, and whether it
 // needs `mut`.
 func (f *rfn) deferred(l *rlocal) (ok, mut bool) {
-	if l.d == nil || l.param || l.temp || l.addr || isAggr(l.t) || l.t.Kind() == cc.Array || l.t.Kind() == cc.Union {
+	if l.d == nil || l.param || l.temp {
 		return false, false
 	}
-	if rsHasGoto(f.fd.CompoundStatement) {
-		return false, false
-	}
-	w := &defer_{d: l.d}
+	return f.deferredFrom(l)
+}
+
+// deferredFrom is deferred's walk, of a local or of a parameter.
+func (f *rfn) deferredFrom(l *rlocal) (ok, mut bool) {
+	w := &defer_{d: l.d, skipInit: l.deadInit, gotos: map[string]dstate{}, joined: map[*cc.LabeledStatement]bool{}, backTo: rsBackGotos(f.fd), dead: f.deadStore, deadInc: f.deadInc,
+		sharedRef: func(e cc.ExpressionNode) bool { ref := f.r.refArgs[e]; return ref != nil && !ref.mut }}
 	_, div := w.items(f.fd.CompoundStatement, dstate{})
 	_ = div
 	return !w.bad, w.needMut
 }
 
-// rsHasGoto says n holds a goto.
-func rsHasGoto(n cc.Node) bool {
-	found := false
+// rsBackGotos are the labels of fd a goto after them reaches.
+func rsBackGotos(fd *cc.FunctionDefinition) map[string]bool {
+	at := map[string]int{}
+	back := map[string]bool{}
 	var rec func(cc.Node)
 	rec = func(n cc.Node) {
-		if n == nil || found {
+		if n == nil {
 			return
 		}
-		if j, ok := n.(*cc.JumpStatement); ok && j.Case == cc.JumpStatementGoto {
-			found = true
-			return
+		switch x := n.(type) {
+		case *cc.LabeledStatement:
+			if x.Case == cc.LabeledStatementLabel {
+				at[x.Token.SrcStr()] = len(at) + 1
+			}
+		case *cc.JumpStatement:
+			if x.Case == cc.JumpStatementGoto && at[x.Token2.SrcStr()] > 0 {
+				back[x.Token2.SrcStr()] = true
+			}
 		}
 		walkChildrenFn(n, rec)
 	}
-	rec(n)
-	return found
+	rec(fd.CompoundStatement)
+	return back
 }
 
 // names says n names the local.
@@ -89,11 +125,51 @@ func (w *defer_) isMe(e cc.ExpressionNode) bool {
 	return ok && p.Case == cc.PrimaryExpressionIdent && p.ResolvedTo() == w.d
 }
 
-func (w *defer_) store(s dstate) dstate {
+// storeAt is a store of the local at node n.  In the liveness walk (live)
+// may is whether the value the store under test stored is the local's.
+func (w *defer_) storeAt(s dstate, n cc.Node) dstate {
+	if w.live != nil {
+		return dstate{true, n == w.live}
+	}
 	if s.may {
 		w.needMut = true
 	}
 	return dstate{true, true}
+}
+
+// reStore is the local stored again from its own value (x++, x += v).
+func (w *defer_) reStore(s dstate, n cc.Node) dstate {
+	if w.live != nil {
+		s.may = n == w.live
+	}
+	return s
+}
+
+// read is a read of the local: before any store a walk the deferral
+// cannot follow; in the liveness walk, a read of the store under test's
+// value where it may be the local's.
+func (w *defer_) read(s dstate) {
+	if w.live != nil {
+		if s.may {
+			w.liveRead = true
+		}
+		return
+	}
+	if !s.def {
+		w.bad = true
+	}
+}
+
+// memberOfMe says e is a member of the local, through members only.
+func (w *defer_) memberOfMe(e cc.ExpressionNode) bool {
+	p, ok := unparenE(e).(*cc.PostfixExpression)
+	for ok && p.Case == cc.PostfixExpressionSelect {
+		if w.isMe(p.PostfixExpression) {
+			return true
+		}
+		p, ok = unparenE(p.PostfixExpression).(*cc.PostfixExpression)
+	}
+	return false
 }
 
 // expr walks an expression in Rust's order of evaluation.
@@ -101,66 +177,73 @@ func (w *defer_) expr(n cc.Node, s dstate) dstate {
 	if n == nil || w.bad {
 		return s
 	}
+	w.mutUse(n)
 	switch x := n.(type) {
 	case *cc.PrimaryExpression:
 		if x.Case == cc.PrimaryExpressionIdent && x.ResolvedTo() == w.d {
-			if !s.def {
-				w.bad = true
-			}
+			w.read(s)
 			return s
 		}
 	case *cc.AssignmentExpression:
 		if x.Case == cc.AssignmentExpressionCond {
 			return w.expr(x.ConditionalExpression, s)
 		}
+		if w.dead[x] {
+			return w.expr(x.AssignmentExpression, s) // not written: its value's effects alone
+		}
 		if w.isMe(x.UnaryExpression) {
 			s = w.expr(x.AssignmentExpression, s)
 			if x.Case == cc.AssignmentExpressionAssign {
-				return w.store(s)
+				return w.storeAt(s, x)
 			}
-			if !s.def {
-				w.bad = true
-			}
+			w.read(s)
 			w.needMut = true
+			return w.reStore(s, x)
+		}
+		if w.live != nil && x.Case == cc.AssignmentExpressionAssign && w.memberOfMe(x.UnaryExpression) {
+			// a member stored: the local's value is not read
+			s = w.expr(x.AssignmentExpression, s)
+			if cc.Node(x) == w.live {
+				s.may = true
+			}
 			return s
 		}
 		s = w.expr(x.AssignmentExpression, s) // the value first, then the place
 		return w.expr(x.UnaryExpression, s)
 	case *cc.PostfixExpression:
 		if (x.Case == cc.PostfixExpressionInc || x.Case == cc.PostfixExpressionDec) && w.isMe(x.PostfixExpression) {
-			if !s.def {
-				w.bad = true
+			w.read(s)
+			if w.deadInc[x.PostfixExpression] {
+				return s // not written: a read
 			}
 			w.needMut = true
-			return s
+			return w.reStore(s, x)
 		}
 	case *cc.UnaryExpression:
 		switch x.Case {
 		case cc.UnaryExpressionInc, cc.UnaryExpressionDec:
 			if w.isMe(x.UnaryExpression) {
-				if !s.def {
-					w.bad = true
-				}
+				w.read(s)
 				w.needMut = true
-				return s
+				return w.reStore(s, x)
 			}
 		case cc.UnaryExpressionSizeofExpr, cc.UnaryExpressionSizeofType:
 			return s
 		}
 	case *cc.LogicalAndExpression:
 		if x.Case == cc.LogicalAndExpressionLAnd {
-			s = w.expr(x.LogicalAndExpression, s)
-			return s.join(w.expr(x.InclusiveOrExpression, s))
+			t, f := w.cond(x, s)
+			return t.join(f)
 		}
 	case *cc.LogicalOrExpression:
 		if x.Case == cc.LogicalOrExpressionLOr {
-			s = w.expr(x.LogicalOrExpression, s)
-			return s.join(w.expr(x.LogicalAndExpression, s))
+			t, f := w.cond(x, s)
+			return t.join(f)
 		}
 	case *cc.ConditionalExpression:
 		if x.Case == cc.ConditionalExpressionCond {
-			s = w.expr(x.LogicalOrExpression, s)
-			return w.expr(x.ExpressionList, s).join(w.expr(x.ConditionalExpression, s))
+			t, f := w.cond(x.LogicalOrExpression, s)
+			return w.expr(x.ExpressionList, t).join(w.expr(x.ConditionalExpression, f))
 		}
 	}
 	walkChildrenFn(n, func(c cc.Node) { s = w.expr(c, s) })
@@ -169,8 +252,27 @@ func (w *defer_) expr(n cc.Node, s dstate) dstate {
 
 // items walks a block's items; div says it cannot complete.
 func (w *defer_) items(cs *cc.CompoundStatement, s dstate) (dstate, bool) {
+	live := true
 	for l := cs.BlockItemList; l != nil; l = l.BlockItemList {
 		it := l.BlockItem
+		if it.Case == cc.BlockItemStmt {
+			// a label the gotos before it reach: what they left joins
+			for st := it.Statement; st != nil && st.Case == cc.StatementLabeled && st.LabeledStatement.Case == cc.LabeledStatementLabel; st = st.LabeledStatement.Statement {
+				name := st.LabeledStatement.Token.SrcStr()
+				w.joined[st.LabeledStatement] = true
+				if g, ok := w.gotos[name]; ok {
+					delete(w.gotos, name) // the next time round collects them anew
+					if live {
+						s = s.join(g)
+					} else {
+						s, live = g, true
+					}
+				}
+			}
+		}
+		if !live {
+			continue // dead: not written
+		}
 		switch it.Case {
 		case cc.BlockItemDecl:
 			d := it.Declaration
@@ -183,19 +285,19 @@ func (w *defer_) items(cs *cc.CompoundStatement, s dstate) (dstate, bool) {
 					continue
 				}
 				s = w.expr(id.Initializer, s)
-				if id.Declarator == w.d {
-					s = w.store(s)
+				if id.Declarator == w.d && !w.skipInit {
+					s = w.storeAt(s, nil)
 				}
 			}
 		case cc.BlockItemStmt:
 			var div bool
 			s, div = w.stmt(it.Statement, s)
 			if div {
-				return s, true
+				live = false
 			}
 		}
 	}
-	return s, false
+	return s, !live
 }
 
 // stmt walks a statement; div says it cannot complete.
@@ -212,6 +314,12 @@ func (w *defer_) stmt(st *cc.Statement, s dstate) (dstate, bool) {
 		}
 		return s, false
 	case cc.StatementLabeled:
+		if ls := st.LabeledStatement; ls.Case == cc.LabeledStatementLabel {
+			if !w.joined[ls] {
+				w.bad = true // a label inside a statement: not followed
+			}
+			return w.stmt(ls.Statement, s)
+		}
 		if w.names(st) {
 			w.bad = true // a case of a switch: not followed
 		}
@@ -219,6 +327,16 @@ func (w *defer_) stmt(st *cc.Statement, s dstate) (dstate, bool) {
 	case cc.StatementJump:
 		j := st.JumpStatement
 		switch {
+		case j.Case == cc.JumpStatementGoto:
+			name := j.Token2.SrcStr()
+			if w.backTo[name] {
+				w.bad = true // a goto back: not followed
+			}
+			if g, ok := w.gotos[name]; ok {
+				w.gotos[name] = g.join(s)
+			} else {
+				w.gotos[name] = s
+			}
 		case j.Case == cc.JumpStatementReturn && j.ExpressionList != nil:
 			w.expr(j.ExpressionList, s)
 		case j.Case == cc.JumpStatementBreak && len(w.loops) > 0:
@@ -250,11 +368,12 @@ func (w *defer_) stmt(st *cc.Statement, s dstate) (dstate, bool) {
 		if x.Case == cc.SelectionStatementSwitch {
 			return w.switchStmt(x, s)
 		}
-		s = w.expr(x.ExpressionList, s)
-		a, adiv := w.stmt(x.Statement, s)
-		b, bdiv := s, false
+		t, f := w.cond(x.ExpressionList, s)
+		s = t.join(f)
+		a, adiv := w.stmt(x.Statement, t)
+		b, bdiv := f, false
 		if x.Case == cc.SelectionStatementIfElse {
-			b, bdiv = w.stmt(x.Statement2, s)
+			b, bdiv = w.stmt(x.Statement2, f)
 		}
 		switch {
 		case adiv && bdiv:
@@ -285,11 +404,17 @@ func (w *defer_) stmt(st *cc.Statement, s dstate) (dstate, bool) {
 				return end, div
 			}
 			// the body at least once, then as a loop
-			body := w.loopBody(x.Statement, nil, s)
-			if rsLoopLeaves(x.Statement) {
-				return dstate{s.def, body.may}, false
+			body, brk, brkSet := w.loopBody(x.Statement, nil, s)
+			if isConstTrue(x.ExpressionList) {
+				return forever(s, brk, brkSet)
 			}
-			return w.expr(x.ExpressionList, body), false
+			// out where the condition is false, or at a break: the body ran
+			// once at least
+			_, out := w.cond(x.ExpressionList, body)
+			if brkSet {
+				out = out.join(brk)
+			}
+			return out, false
 		case cc.IterationStatementWhile:
 			cond = x.ExpressionList
 		case cc.IterationStatementFor:
@@ -299,12 +424,20 @@ func (w *defer_) stmt(st *cc.Statement, s dstate) (dstate, bool) {
 			s, _ = w.items(&cc.CompoundStatement{BlockItemList: &cc.BlockItemList{BlockItem: &cc.BlockItem{Case: cc.BlockItemDecl, Declaration: x.Declaration}}}, s)
 			cond, step = x.ExpressionList, x.ExpressionList2
 		}
-		s = w.expr(cond, s)
-		body := w.loopBody(x.Statement, step, s)
-		if cond != nil {
-			body = w.expr(cond, body)
+		t, f := w.cond(cond, s)
+		s = t.join(f)
+		body, brk, brkSet := w.loopBody(x.Statement, step, t)
+		if cond == nil || isConstTrue(cond) && !isConstFalse(cond) {
+			return forever(s, brk, brkSet)
 		}
-		return dstate{s.def, body.may}, false
+		// out where the condition is false, first or after a time round, or
+		// at a break
+		_, again := w.cond(cond, body)
+		out := f.join(again)
+		if brkSet {
+			out = out.join(brk)
+		}
+		return out, false
 	}
 	w.bad = true
 	return s, false
@@ -314,7 +447,7 @@ func (w *defer_) stmt(st *cc.Statement, s dstate) (dstate, bool) {
 // first left it, as rustc sees a store the second time round -- and
 // returns what the first time left: its end and its continues joined, and
 // with may, what its breaks stored too.
-func (w *defer_) loopBody(body *cc.Statement, step cc.ExpressionNode, s dstate) dstate {
+func (w *defer_) loopBody(body *cc.Statement, step cc.ExpressionNode, s dstate) (dstate, dstate, bool) {
 	acc := &dloop{}
 	w.loops = append(w.loops, acc)
 	one, div := w.stmt(body, s)
@@ -328,14 +461,23 @@ func (w *defer_) loopBody(body *cc.Statement, step cc.ExpressionNode, s dstate) 
 		one = s // no way round but by the start
 	}
 	one = w.expr(step, one)
-	w.loops = append(w.loops, &dloop{})
+	acc2 := &dloop{}
+	w.loops = append(w.loops, acc2)
 	again, _ := w.stmt(body, s.join(one))
 	w.loops = w.loops[:len(w.loops)-1]
 	w.expr(step, again)
-	if acc.brkSet {
-		one.may = one.may || acc.brk.may
+	brk, brkSet := acc.brk, acc.brkSet
+	if acc2.brkSet {
+		if brkSet {
+			brk = brk.join(acc2.brk)
+		} else {
+			brk, brkSet = acc2.brk, true
+		}
 	}
-	return one
+	if brkSet {
+		one.may = one.may || brk.may
+	}
+	return one, brk, brkSet
 }
 
 // dloop is what a loop's breaks and continues left.
@@ -344,37 +486,6 @@ type dloop struct {
 	brkSet, contSet bool
 	sw              bool // a switch's: a break's, not a continue's
 	once            bool // do { } while (0)'s: a continue leaves it
-}
-
-// rsLoopLeaves says a loop's body has a break or a continue of its own.
-func rsLoopLeaves(s cc.Node) bool {
-	found := false
-	var rec func(cc.Node)
-	rec = func(n cc.Node) {
-		if n == nil || found {
-			return
-		}
-		switch x := n.(type) {
-		case *cc.IterationStatement:
-			return
-		case *cc.SelectionStatement:
-			if x.Case == cc.SelectionStatementSwitch {
-				// its breaks are its own; a continue is the loop's
-				if rsHasContinue(x) {
-					found = true
-				}
-				return
-			}
-		case *cc.JumpStatement:
-			if x.Case == cc.JumpStatementBreak || x.Case == cc.JumpStatementContinue {
-				found = true
-			}
-			return
-		}
-		walkChildrenFn(n, rec)
-	}
-	walkChildrenFn(s, rec)
-	return found
 }
 
 // switchStmt walks a switch: each case entered from the switch's head, or
@@ -450,4 +561,289 @@ func (w *defer_) loop() *dloop {
 		}
 	}
 	return nil
+}
+
+// forever is what a loop with no condition leaves: what its breaks left,
+// the only way out -- Rust's `loop`, which completes only by a break.
+func forever(s, brk dstate, brkSet bool) (dstate, bool) {
+	if !brkSet {
+		return s, true
+	}
+	return brk, false
+}
+
+// rootOf says e is the local or a place in it -- a member, an element of
+// an array of it -- and whether an array is on the way, which Rust
+// reaches through `&raw mut` (decay).
+func (w *defer_) rootOf(e cc.ExpressionNode) (me, viaArray bool) {
+	for {
+		e = unparenE(e)
+		switch x := e.(type) {
+		case *cc.PrimaryExpression:
+			if x.Case == cc.PrimaryExpressionIdent && x.ResolvedTo() == w.d {
+				t := w.d.Type()
+				return true, viaArray || t != nil && t.Kind() == cc.Array
+			}
+			return false, false
+		case *cc.PostfixExpression:
+			switch x.Case {
+			case cc.PostfixExpressionSelect:
+				if t := rsPlaceType(x); t != nil && t.Kind() == cc.Array {
+					viaArray = true
+				}
+				e = x.PostfixExpression
+				continue
+			case cc.PostfixExpressionIndex:
+				be := cc.ExpressionNode(x.PostfixExpression)
+				if !isPtrish(be.Type()) {
+					be = x.ExpressionList
+				}
+				if t := unparenE(be).Type(); t != nil && t.Kind() == cc.Array {
+					viaArray = true
+					e = be
+					continue
+				}
+			}
+		}
+		return false, false
+	}
+}
+
+// mutUse notes what makes the local's binding `mut` beside a second store:
+// a member or an element written, an address taken (but a & reference's),
+// an array of it reached (`&raw mut`).
+func (w *defer_) mutUse(n cc.Node) {
+	switch x := n.(type) {
+	case *cc.PrimaryExpression:
+		if me, arr := w.rootOf(x); me && arr {
+			w.needMut = true
+		}
+	case *cc.PostfixExpression:
+		switch x.Case {
+		case cc.PostfixExpressionSelect, cc.PostfixExpressionIndex:
+			if me, arr := w.rootOf(x); me && arr {
+				w.needMut = true
+			}
+		case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
+			if me, _ := w.rootOf(x.PostfixExpression); me {
+				w.needMut = true
+			}
+		}
+	case *cc.UnaryExpression:
+		switch x.Case {
+		case cc.UnaryExpressionInc, cc.UnaryExpressionDec:
+			if me, _ := w.rootOf(x.UnaryExpression); me {
+				w.needMut = true
+			}
+		case cc.UnaryExpressionAddrof:
+			if me, _ := w.rootOf(x.CastExpression); me && !(w.sharedRef != nil && w.sharedRef(x)) {
+				w.needMut = true
+			}
+		}
+	case *cc.AssignmentExpression:
+		if x.Case != cc.AssignmentExpressionCond && !w.isMe(x.UnaryExpression) {
+			if me, _ := w.rootOf(x.UnaryExpression); me {
+				w.needMut = true
+			}
+		}
+	}
+}
+
+// deadInits finds the locals whose initializer's value nothing reads --
+// every read comes after a store, as the walk above sees it with the
+// initializer not a store -- and whose initializer does nothing: it is
+// not written, and the local is declared with no value.  rustc counted
+// each as a value assigned and never read.
+func (f *rfn) deadInits() {
+	inits := map[*cc.Declarator]*cc.Initializer{}
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if id, ok := n.(*cc.InitDeclarator); ok && id.Initializer != nil {
+			inits[id.Declarator] = id.Initializer
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(f.fd.CompoundStatement)
+	for _, l := range f.order {
+		in := inits[l.d]
+		if l.param || l.d == nil || in == nil || in.Case != cc.InitializerExpr || hasEffect(in.AssignmentExpression) {
+			continue
+		}
+		l.deadInit = true
+		if ok, _ := f.deferred(l); !ok {
+			l.deadInit = false
+		}
+	}
+	// a parameter whose value is never read: every read comes after a store
+	for _, l := range f.order {
+		if !l.param || l.d == nil || f.r.refParams[l.d] != nil {
+			continue
+		}
+		if ok, mut := f.deferredFrom(l); ok && l.mutated {
+			l.deadParam, l.deadMut = true, mut
+		}
+	}
+}
+
+// cond walks a condition, and returns what it leaves where it is true and
+// where it is false: the right of && is walked only where the left is
+// true, the right of || where it is false -- as rustc's branches see it.
+func (w *defer_) cond(n cc.ExpressionNode, s dstate) (t, f dstate) {
+	if n == nil {
+		return s, s
+	}
+	switch x := unparenE(n).(type) {
+	case *cc.LogicalAndExpression:
+		if x.Case == cc.LogicalAndExpressionLAnd {
+			lt, lf := w.cond(x.LogicalAndExpression, s)
+			rt, rf := w.cond(x.InclusiveOrExpression, lt)
+			return rt, lf.join(rf)
+		}
+	case *cc.LogicalOrExpression:
+		if x.Case == cc.LogicalOrExpressionLOr {
+			lt, lf := w.cond(x.LogicalOrExpression, s)
+			rt, rf := w.cond(x.LogicalAndExpression, lf)
+			return lt.join(rt), rf
+		}
+	case *cc.UnaryExpression:
+		if x.Case == cc.UnaryExpressionNot {
+			f, t := w.cond(x.CastExpression, s)
+			return t, f
+		}
+	}
+	s = w.expr(n, s)
+	return s, s
+}
+
+// deadStores finds the stores to a local whose value nothing reads -- an
+// expression statement `x = v;`, `x op= v;` or `s.m = v;` of a local
+// whose address is never taken, after which every path stores again, or
+// ends, before a read -- the liveness walk above, from the function's
+// start, with the store under test the only one whose value is followed.
+// Such a store is C's own dead code, which rustc counts as a value
+// assigned and never read: it is not written, its value's effects alone
+// are (exprStatement).
+func (f *rfn) deadStores() {
+	f.deadIncs()
+	var cands []*cc.AssignmentExpression
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if st, ok := n.(*cc.ExpressionStatement); ok && st.ExpressionList != nil {
+			if a, ok := unparenE(st.ExpressionList).(*cc.AssignmentExpression); ok && a.Case != cc.AssignmentExpressionCond {
+				cands = append(cands, a)
+			}
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(f.fd.CompoundStatement)
+	for _, a := range cands {
+		l := f.storeTarget(a.UnaryExpression)
+		if l == nil || isAggr(l.t) && a.Case != cc.AssignmentExpressionAssign {
+			continue
+		}
+		w := &defer_{d: l.d, gotos: map[string]dstate{}, joined: map[*cc.LabeledStatement]bool{}, backTo: rsBackGotos(f.fd),
+			dead: f.deadStore, deadInc: f.deadInc, live: a}
+		w.items(f.fd.CompoundStatement, dstate{})
+		if !w.bad && !w.liveRead && l.addr {
+			f.expectDead = true // written: a pointer may read it
+			continue
+		}
+		if !w.bad && !w.liveRead {
+			if f.deadStore == nil {
+				f.deadStore = map[*cc.AssignmentExpression]bool{}
+			}
+			f.deadStore[a] = true
+		}
+	}
+	if len(f.deadStore) > 0 || len(f.deadInc) > 0 {
+		for _, l := range f.order {
+			l.read, l.mutated, l.addr = false, false, false
+		}
+		f.uses()
+	}
+}
+
+// storeTarget is the local a store's place is: the local itself, of a
+// scalar or a pointer, or a member of a struct local.
+func (f *rfn) storeTarget(e cc.ExpressionNode) *rlocal {
+	e = unparenE(e)
+	if p, ok := e.(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+		d, _ := p.ResolvedTo().(*cc.Declarator)
+		l := f.local[d]
+		if l == nil || l.d == nil || isAggr(l.t) || l.t.Kind() == cc.Array {
+			return nil
+		}
+		return l
+	}
+	for {
+		x, ok := e.(*cc.PostfixExpression)
+		if !ok || x.Case != cc.PostfixExpressionSelect {
+			return nil
+		}
+		e = unparenE(x.PostfixExpression)
+		if p, ok := e.(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+			d, _ := p.ResolvedTo().(*cc.Declarator)
+			l := f.local[d]
+			if l == nil || l.d == nil || !isAggr(l.t) {
+				return nil
+			}
+			return l
+		}
+	}
+}
+
+// deadIncs finds x++ and x-- in a return's value, of a local whose address
+// is never taken, named once there: the function returns, so the store is
+// dead -- C's `return n++;` -- and the value read is the local's.
+func (f *rfn) deadIncs() {
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if j, ok := n.(*cc.JumpStatement); ok && j.Case == cc.JumpStatementReturn && j.ExpressionList != nil {
+			count := map[*cc.Declarator]int{}
+			var names func(cc.Node)
+			names = func(n cc.Node) {
+				if n == nil {
+					return
+				}
+				if p, ok := n.(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+					if d, ok := p.ResolvedTo().(*cc.Declarator); ok {
+						count[d]++
+					}
+				}
+				walkChildrenFn(n, names)
+			}
+			names(j.ExpressionList)
+			var incs func(cc.Node)
+			incs = func(n cc.Node) {
+				if n == nil {
+					return
+				}
+				if x, ok := n.(*cc.PostfixExpression); ok && (x.Case == cc.PostfixExpressionInc || x.Case == cc.PostfixExpressionDec) {
+					if p, ok := unparenE(x.PostfixExpression).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+						d, _ := p.ResolvedTo().(*cc.Declarator)
+						if l := f.local[d]; l != nil && !l.addr && count[d] == 1 && !isAggr(l.t) && l.t.Kind() != cc.Array {
+							if f.deadInc == nil {
+								f.deadInc = map[cc.ExpressionNode]bool{}
+							}
+							f.deadInc[x.PostfixExpression] = true
+						}
+					}
+				}
+				walkChildrenFn(n, incs)
+			}
+			incs(j.ExpressionList)
+			return
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(f.fd.CompoundStatement)
 }

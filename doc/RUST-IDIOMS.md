@@ -573,17 +573,19 @@ function's own level, block expressions `({ ` and `= { `, labels.
 
 | | `8a186a4` | after |
 | --- | ---: | ---: |
-| `editor.rs` | 61,820 lines | 61,770 lines |
+| `editor.rs` | 61,820 lines | 61,719 lines |
 | pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
 | `*const` in the text | 0 | 1,492 |
 | `pub unsafe fn` | 1,648 | 1,648 |
 | `wrapping_*` | 4,822 | 4,822 |
-| zeros at the top | 1,113 | 1,063 |
+| zeros at the top | 1,113 | 932, each one rustc needs (446 `0`, 242 `zeroed()`, 138 `false`, 104 null) |
+| locals declared with no value, `let x: T;` | 396 | 499 |
+| the module's `#![allow]` | the C's names, `unused_assignments` | the C's names alone; 4 functions `#[expect(unused_assignments)]` |
 | block expressions | 154 | 154 |
 | labels | 91 | 91 |
-| rustc's warnings (`--lint`) | 702: 220 `unused_assignments` | 652: 170 |
+| rustc's warnings (`--lint`, every allow and expect out) | 702: 220 `unused_assignments` | 487: 5 `unused_assignments`, 482 the C's names |
 | rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB |
-| the heavy case | 0.25-0.3x | 0.25-0.3x (112-130 ms against 435-473; once 168 ms, 0.4x, on the overflow-checked build) |
+| the heavy case | 0.25-0.3x | 0.25-0.3x (112-139 ms against 435-473; twice 154-168 ms, 0.35-0.4x, under load) |
 
 - **Item 10** (`rs_const.go`, `TestRsConst`): above, under the item.
 - **Item 12, temporaries where they are given their value** (`rs_fn.go`'s
@@ -596,6 +598,33 @@ function's own level, block expressions `({ ` and `= { `, labels.
   (*ed).top_file_num = t1 + 1; t1 };`. A compound literal's variable keeps
   the function's scope (its address outlives the block). Zeros at the top
   1,113 -> 1,063, `unused_assignments` 220 -> 170, 50 lines.
+- **Item 13, every zero rustc does not need, and the module's
+  `unused_assignments` gone** (`rs_defer.go`, `TestRsLive`). The question
+  was whether all 1,063 zeros could go; measured, 932 cannot -- rustc's own
+  definite-initialization analysis refuses `let x: T;` for each, since
+  some path (feasible or not) reads before a store, or the struct or array
+  is filled member by member -- and the 170 `unused_assignments` that
+  could, did. The walk of item 5 became as precise as rustc's where it
+  was not: a condition's true and false ways (the right of `&&` only
+  where the left is true), a loop with no condition left only by its
+  breaks, a do's body run once at least, a goto's state joined at its
+  label, and structs, arrays and locals whose address is taken followed
+  too (an address, a member written, an array reached are reads that need
+  `mut`). Then C's own dead stores, which rustc counted: the same walk
+  following one store's value finds 70 initializers nothing reads (`int i
+  = 0;` then `i = ...`), 15 statements whose value nothing reads, and 3
+  parameters assigned before any read (`fn vim_str2nr(..., _len: i32,
+  ...)`, `let mut len: i32;`); each is not written, a store's value's
+  effects alone are. Five stores to locals whose address is taken (`stat`,
+  `vcol`) are dead as rustc sees them, which does not follow a pointer:
+  they are kept, and their 4 functions say `#[expect(unused_assignments)]`,
+  which rustc holds to its count both ways. The module's `#![allow]` is
+  the C's names alone; rustc checks every claim -- a read it cannot see
+  initialized, a `mut` missing or not needed, an expectation unmet does
+  not compile -- but for a dropped store, whose proof is the walk's and
+  the suites'. Zeros 1,063 -> 932, `let x: T;` 396 -> 499,
+  `unused_assignments` 170 -> 5 (expected), 51 lines. Found on the way: a
+  do-while whose body breaks never had its condition's reads checked.
 
 ## What is not worth doing, and why
 

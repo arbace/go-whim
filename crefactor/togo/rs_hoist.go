@@ -191,6 +191,10 @@ func (f *rfn) hoistInc(n cc.ExpressionNode, e cc.ExpressionNode, inc, postfix bo
 	if l == nil || l.addr || l.t.Kind() == cc.Array || isAggr(l.t) {
 		return false
 	}
+	if postfix && f.deadInc[e] {
+		f.rsub[n] = rv{s: l.name, ty: f.r.constTy(declSlot(d), f.r.ty(l.t))} // the store is dead (rs_defer.go)
+		return true
+	}
 	stmt := rsLines(f.capture(func() { f.incDecStmt(e, inc) }))
 	ty := f.r.constTy(declSlot(d), f.r.ty(l.t))
 	switch {
@@ -260,6 +264,13 @@ func hasEffectHere(n cc.Node) bool {
 // exprStatement is an expression statement: its increments of the
 // function's own locals before or after it.
 func (f *rfn) exprStatement(e cc.ExpressionNode) {
+	if a, ok := unparenE(e).(*cc.AssignmentExpression); ok && f.deadStore[a] {
+		// a store nothing reads (rs_defer.go): its value's effects alone
+		if f.effect(a.AssignmentExpression) {
+			f.exprStatement(a.AssignmentExpression)
+		}
+		return
+	}
 	pre, post := f.hoist(e, true, false)
 	for _, s := range pre {
 		f.line("%s", s)

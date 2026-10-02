@@ -29,8 +29,31 @@ func (f *rfn) initLocal(l *rlocal, in *cc.Initializer) {
 		}
 		return
 	}
+	if in.Case == cc.InitializerExpr && t.Kind() == cc.Array && rsStringInit(in, t) {
+		f.initInto(l.name, t, in) // the whole array, from the string: no zero first
+		return
+	}
 	f.line("%s = %s;", l.name, f.zero(t))
 	f.initInto(l.name, t, in)
+}
+
+// rsStringInit says a char array's initializer is a string initInto
+// stores whole, str_u8::<N>(...): one with a byte not NUL.
+func rsStringInit(in *cc.Initializer, t cc.Type) bool {
+	sv, ok := unparenE(in.AssignmentExpression).Value().(cc.StringValue)
+	if !ok {
+		return false
+	}
+	b := []byte(string(sv))
+	if int64(len(b)) > t.Size() {
+		b = b[:t.Size()]
+	}
+	for _, c := range b {
+		if c != 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // initInto stores the initializer in's values into the object of type t at

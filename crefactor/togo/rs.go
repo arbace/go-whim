@@ -258,7 +258,7 @@ func (r *rgen) prelude(body string) string {
 		rt = "crate::rt"
 	}
 	code := rsStrRe.ReplaceAllString(body, `b""`)
-	s := "#![allow(non_snake_case, non_camel_case_types, non_upper_case_globals, unused_assignments)]\n\n"
+	s := "#![allow(non_snake_case, non_camel_case_types, non_upper_case_globals)]\n\n"
 	if rsRuntimeNames.MatchString(code) {
 		s += "use " + rt + "::*;\n"
 	}

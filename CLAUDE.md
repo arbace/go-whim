@@ -523,7 +523,7 @@ make bin/caprice      # the editor in Haskell: Caprice.Editor generated, compile
 go tool whim caprice --lint  # the same, then ghc -Wall's warnings on the generated module, by flag (0 now)
 make whim-test-hs     # the quick suite with the Haskell editor too (whim test --haskell; --wide --haskell)
 make bin/whimsy       # the editor in Rust: the module editor generated, compiled by cargo, offline (forty seconds when the core moved; its time and peak printed)
-go tool whim whimsy --lint  # the same, then rustc's warnings on the generated module, its #[allow] taken out, by lint (702 now: 482 the C's names)
+go tool whim whimsy --lint  # the same, then rustc's warnings on the generated module, its #[allow]s and #[expect]s taken out, by lint (487 now: 482 the C's names, 5 dead stores the module expects)
 make whim-test-rs     # the quick suite with the Rust editor too (whim test --rust; --wide --rust)
 make bin/whimsical    # the editor in Scheme: the library (whimsical editor) generated, compiled by Chez (half a minute when the core moved; its time and peak printed)
 make whim-test-scm    # the quick suite with the Scheme editor too (whim test --scheme; --wide --scheme)

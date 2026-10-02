@@ -586,3 +586,53 @@ func TestRsTemps(t *testing.T) {
 		t.Errorf("a temporary declared at a function's top:\n%s", numbered(prog))
 	}
 }
+
+// rsLiveC is what rustc's own analyses see that the printer now sees too
+// (doc/RUST-IDIOMS.md, item 13): a local first stored before a loop with
+// no condition breaks, before a goto, in the left of an &&, in a do's
+// body; a struct stored whole; a local whose address is taken after its
+// store -- each declared with no value -- and C's dead stores: an
+// initializer nothing reads, a parameter's value nothing reads, a store
+// nothing reads, an increment a return makes -- not written -- and one to
+// a local whose address is taken, which rustc does not follow: kept, the
+// function's `#[expect(unused_assignments)]`.  The module allows no
+// unused_assignments: rustc holds every claim.
+const rsLiveC = javaHost + `
+struct pt { int a; int b; };
+static struct pt mk(int c) { struct pt p; p.a = c; p.b = c + 1; return p; }
+static void bump(int *p) { *p += 1; }
+static int last;
+static void set(int *p, int v) { *p = v; last = v; }
+static int forever(int n) { int x; for (;;) { if (n > 3) { x = n; break; } n++; } return x; }
+static int jump(int c) { int y; if (c) { y = 1; goto out; } y = 2; out: return y; }
+static int lazy(int c) { int z; if (c > 0 && (z = c * 2) > 2) return z; return 0; }
+static int whole(int c) { struct pt p; if (c) p = mk(c); else p = mk(-c); return p.a + p.b; }
+static int addr(int c) { int w; if (c) w = 1; else w = 2; bump(&w); return w; }
+static int deadinit(int c) { int k = 0; k = c + 1; return k; }
+static int param(int n, int m) { n = m * 2; return n; }
+static int deadstore(int c) { int q = c; q = q + 1; out(q); q = 5; return c; }
+static int retinc(int n) { return n++; }
+static int addrdead(int c) { int v; set(&v, c); int r = v; v = 0; return r; }
+static int dowhile(int n) { int s; do { s = n; n--; if (n < 0) break; } while (n > 5); return s; }
+
+void run(void)
+{
+    out(forever(1)); out(jump(0)); out(jump(1)); out(lazy(3)); out(lazy(1));
+    out(whole(4)); out(addr(6)); out(deadinit(7)); out(param(1, 4));
+    out(deadstore(9)); out(retinc(11)); out(addrdead(12)); out(dowhile(9)); out(dowhile(2));
+}
+`
+
+func TestRsLive(t *testing.T) {
+	prog := rsSame(t, rsLiveC, Profile{}, javaHarnessC)
+	for _, s := range []string{"let x: i32;", "let y: i32;", "let z: i32;", "let p: pt;", "let mut w: i32;", "let k: i32 = c + 1;",
+		"fn param(_n: i32, m: i32)", "let n: i32;", "#[expect(unused_assignments)]\npub unsafe fn addrdead(ed: *mut Editor", "let mut s: i32;",
+		"pub fn retinc(n: i32) -> i32 {\n    n\n}", "#![allow(non_snake_case, non_camel_case_types, non_upper_case_globals)]"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+	if strings.Contains(prog, "q = 5") {
+		t.Errorf("a dead store written:\n%s", numbered(prog))
+	}
+}
