@@ -1296,6 +1296,115 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        phases, 439 s (572 s of CPU); phases 1-3 30, 33 and 37 s, phase 6 14
        s, phase 7 10 s. The parallel check: 103 links, 76-77 s.
 
+11. **The in-order build, profiled again: regexp and phase 110.** Step 9
+   left two named targets, the regexps spread across the edits and phase
+   110's gcc.
+   - **The profile, at db4f488.** `whim build --check` from an empty
+     `.cache/boundaries`: 518 s wall, 667 s of CPU (613 user, 54 system),
+     602 s sampled. Regexp 128 s, attributed by the outermost regexp frame's
+     caller and by the phase program or cutter above it:
+     - by caller: `ReplacePattern` 14.8 (every `E.Sub`, `E.Cut` and the
+       cutters' `subCount`), the sweep's identifier scan 14.6 (`identRe` on
+       every definition, every round), the folds 5.7, `EmptyBlocksFold` 4.6,
+       `CountIs` 3.3, `cutCounted` 2.7, the fall-out's index 2.6 and its
+       declaration 2.0, `Query` 2.5, `replaceFirst` 2.1, `CallsNotAfterWord`
+       2.1, `DeadStores` 1.7, and the phases' own mention counters (128 2.8,
+       125 2.2, 94, 96 and 126 2.0 each, 104 1.3) and the cutters' (NoTags,
+       NoFenc 2.4 each, NoLocale, Utf8Only 1.9 each);
+     - by program: 79 5.7, 78 4.7, 128 4.7, 125 3.5, 126 3.3, 80 3.2, 67
+       3.1, Utf8Only 2.7, NoMouse, NoFenc, NoTags 2.5 each; 32 s in no
+       program at all (the sweep and the generic steps);
+     - by pattern, three shapes: a line or two anchored at a line's start,
+       `(?m)^[ \t]*if \(p_xyz\)\n`, which Go's regexp cannot skip ahead
+       through -- it skips only by a literal PREFIX -- so it ran its machine
+       over the whole 2-7 MB text; `\bname\b` compiled for one name and run
+       over the whole text to count it (the `\b` hides the prefix too); and
+       FindAll to count followed by ReplaceAll to rewrite, two passes.
+   - **Done**, each a commit, each measured A/B/A/B on a run of phases from
+     its snapshot, by CPU, with the boundary byte for byte:
+     - the sweep's identifier scan by hand (`identSpans`): phases 120-140
+       and 1-3, a percent or two, inside the noise;
+     - `crefactor/edit/lines.go`: a pattern's syntax tree gives a literal
+       every match holds and the most newlines a match spans, k, and the
+       counted acts run the pattern only on WINDOWS -- each occurrence's line
+       and k+1 lines either side, merged, the extra line being the context
+       its `^`, `$` and `\b` see -- with `ReplacePattern` finding its matches
+       once; no literal of two bytes, a newline under a star, `\A`, `\z`:
+       the whole text, as before. Phases 77-104, CPU 81.6 and 82.9 -> 70.9
+       and 68.7 s;
+     - phase 110's eight compiles of the cut -- see below: 30.0 and 29.8 ->
+       12.7 and 12.4 s of CPU, 29.8 -> 11 s wall;
+     - the generic steps: `EmptyBlocksFold` on the lines around empty
+       blocks (`AllSubmatchIndexAround`), the fall-out's enumerators asked
+       `bytes.Contains` first, `DeadStores` counting a name by
+       `strings.Index` (`WordCount`), `NeverNullRule` and `unions` windowed:
+       phase 134 9.6 and 9.0 -> 3.6 and 3.2 s, phases 1-3 -3%;
+     - the cutters and the phase programs: the mention counters as
+       `edit.WordPatternCount`, the FindAll-then-ReplaceAll pairs as
+       `ReplaceAllCounted`/`ReplaceAllLiteralCounted`: phases 1-3 114.6 and
+       112.4 -> 99.9 and 101.3 s (-11%), phases 93-128 100.9 and 103.5 ->
+       89.2 and 88.0 s (-13%);
+     - `Blank` copies the text and jumps between quotes and slashes by
+       `bytes.IndexByte` (9.1 -> 1.75 ms on slim-vim.c): a percent or two;
+     - `CallsNotAfterWord` by `bytes.Index`, and a pattern with no window
+       and no empty match replaced in one pass: inside the noise (the
+       profile's 4 s).
+   - **How each was proved the same.** A test holds each new path to the
+     regexp it replaced on slim-vim.c and whim-vim.c (`TestIdentSpans`,
+     `TestScoped`, `TestScopeOf`, `TestEmptyBraces`, `TestWordCount`,
+     `TestDeadStoresSame` -- the old `DeadStores` kept in the test, on both
+     files and on them with every line that returns or calls taken out, 57
+     and 512 locals taken --, `TestBlankSame`, `TestCallsNotAfterWord`), and
+     `internal/build`'s `TestScopedPatterns` runs the 837 distinct patterns
+     the edits handed the windowed matchers in a whole check
+     (`testdata/edit-patterns.md`) on both files both ways. And twice a
+     temporary hook, not kept, ran every call of a parallel check both ways
+     on the real boundaries -- 933,424 calls the first time -- and found no
+     difference.
+   - **Phase 110.** Its eight compiles: the move alone (`cut0.c`: the
+     twelve names the cut asks for), six rounds of the fixpoint (each moves
+     what the last called unused) and the finished cut, which is the last
+     round's text. What it reads of gcc is the errors, `undeclared`,
+     `unknown type name`, `defined but not used` and `used but never
+     defined`; the last two are the call graph's, which `-fsyntax-only`
+     never builds (it gives none of them, measured again). `-flto
+     -fno-fat-lto-objects` stops right after the call graph and writes no
+     code: on the eight cuts of a run gcc's whole stderr is byte for byte a
+     plain `-c`'s, flow warnings and all, 1.4 s a compile against 3.5. The
+     finished cut's compile is the last round's answer, kept by its text;
+     the first round's is started beside the move's, which it does not
+     need. The phase's report is line for line what it was. 28-29 s -> 10-11
+     s, in order.
+   - **The result.** Regexp 128 -> 41 s at 3086efd's parent, the largest
+     left 2.3 s. In order, A/B/A/B under a load of 52-57 (other agents'):
+     676 and 685 s wall before, 503 and 525 after; CPU 787 and 799 before,
+     617 and 642 after; peak resident 2.0-2.3 GB either way. Phases 1-3 39-41,
+     51-54 and 43-47 s before, 32-33, 22-29 and 30-34 after; 110 34-35 -> 13-14.
+     Profiled at a lighter load, before the last commit: 405 s wall, 553 s
+     of CPU, against the 518 and 667 the step began from. The proof: `rm -rf
+     .cache/boundaries`, then `whim build --check` in order, 525 s wall and
+     642 s of CPU (load 55), and again on its snapshots in parallel, 106 s;
+     both end `whim-vim.c byte for byte`. The parallel check A/B/A/B under a
+     load of 72-75: 115 and 124 s wall before, 109 and 108 after; CPU 1,264
+     and 1,327 before, 1,064 and 1,025 after.
+   - **Declined.**
+     - A literal for a pattern with a newline under a star (`\s*`,
+       `[^;]*`, `(?:[^\n]*\n)*?`): 26 of the 382 patterns run on a whole
+       text, each about once. Their matches can start anywhere above the
+       literal; a window would have to run to the text's end.
+     - The rarest of several literals, or a set of them for an alternation
+       (`\b(MIN|MAX)\(`): phase 109's 0.6 s, and every other a few tenths.
+     - Rewriting a pattern to make it windowable (`\s` as `[ \t]`): it
+       would change what the pattern says, and so what it could match.
+     - Phase 110's rounds side by side: each is the previous one's answer.
+     - The rest, about 37 s of regexp, nothing over 2 s: and in the files
+       the front's own move was rewriting at the time (`lfonly`'s `\bname\(`
+       per name, 1.0 s; `noconv`'s `\bptr\b`, 0.6; phase 66's rows written
+       `[^}]*`, which no window can take, 0.5).
+     - The parser (`cc.Parse`, 145 s across the sweep and the print) and the
+       collector are most of what is left; the parser is the fork kept
+       diffable against upstream (step 9).
+
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with
   little change; the rest have their counts restated on the seed.

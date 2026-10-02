@@ -567,7 +567,7 @@ make help            # every target, with a line each
   the locals nothing reads (resolved by the parser's scopes). Its guards: no
   member goes while `ml_recover` is defined; a struct filled by position keeps
   every member; nothing is emptied; an enumerator's deletion pins the survivor
-  after it to its value. About 1.2 s of CPU a phase (145 s over a run in order). It replaced six deleters looped around
+  after it to its value. About 1.1 s of CPU a phase (135 s over a run in order, profiled). It replaced six deleters looped around
   gcc, and keeps nothing they cut (measured on the product: 5,657 entities
   against 5,662, the five it adds all unused).
   It needs every text it is handed to PARSE, and every one does.
