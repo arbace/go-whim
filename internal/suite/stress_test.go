@@ -2,79 +2,181 @@ package suite
 
 import (
 	"bytes"
-	"context"
+	"fmt"
 	"os"
-	"os/exec"
+	"sort"
 	"strconv"
+	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
 
 // runPipe is how Run fed the keys before: through a pipe.  The stress test runs
-// it beside Run as its control -- under load it is the way that flakes.
-func runPipe(bin string, keys []byte) []byte {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, bin)
-	cmd.Stdin = bytes.NewReader(keys)
-	var out bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &out, &out
-	cmd.Run()
-	return out.Bytes()
+// it beside Run as its control -- under load it is the way that flakes.  It is
+// Run in all else: the clock held (pinnedTime), the child in a group of its own
+// and reaped by reap, the output a file; so the one thing that differs between
+// the modes is how the keys arrive.  With pieces > 1 the keys go in that many
+// pieces, pause apart: the "trickle" control, for an editor that starts more
+// slowly than one write of the keys takes to land (whimsical: about 35 ms).
+func runPipe(bin string, args []string, keys []byte, pieces int, pause time.Duration) ([]byte, int, error) {
+	r, w, err := os.Pipe()
+	if err != nil {
+		return nil, -1, err
+	}
+	out, err := os.CreateTemp("", "out.")
+	if err != nil {
+		r.Close()
+		w.Close()
+		return nil, -1, err
+	}
+	defer os.Remove(out.Name())
+	defer out.Close()
+	attr := &os.ProcAttr{
+		Env:   append(os.Environ(), pinnedTime),
+		Files: []*os.File{r, out, out},
+		Sys:   &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL},
+	}
+	p, err := os.StartProcess(bin, append([]string{bin}, args...), attr)
+	r.Close()
+	if err != nil {
+		w.Close()
+		return nil, -1, err
+	}
+	// The keys go in as the feeding goroutine of exec.Cmd wrote them: one
+	// write, which an editor that reads first sees in part or not at all.
+	go func() {
+		defer w.Close()
+		for i := 0; i < pieces; i++ {
+			if i > 0 {
+				time.Sleep(pause)
+			}
+			if _, err := w.Write(keys[len(keys)*i/pieces : len(keys)*(i+1)/pieces]); err != nil {
+				return
+			}
+		}
+	}()
+	code, err := reap(p.Pid, 10*time.Second)
+	b, rerr := os.ReadFile(out.Name())
+	if err != nil {
+		return b, -1, err
+	}
+	return b, code, rerr
 }
 
-// TestStress runs every case REPS times on each of BINS (space-separated, each
-// staged as `vim`), fed from a file (Run) and through a pipe (the control), and
-// counts the runs whose output is not the case's first.  Run it under load:
-//
-//	BINS="$PWD/c/vim $PWD/go/vim" REPS=40 go test -run TestStress ./internal/suite
-//
-// Measured on 2026-09-25 with 48 busy loops: from a file 0 of 1,755 differ for
-// both editors; through a pipe the Go editor differed 18 times, the C 0.
-func TestStress(t *testing.T) {
-	bins := os.Getenv("BINS")
-	if bins == "" {
-		t.Skip()
+// once runs c on bin in mode: "file" as the suite runs it, "pipe" in one
+// write, or "trickle" in 16 pieces 10 ms apart.
+func once(bin, mode string, c WideCase) ([]byte, int, error) {
+	switch mode {
+	case "file":
+		return runWide(bin, c)
+	case "pipe":
+		return runPipe(bin, c.Args, c.Keys, 1, 0)
+	case "trickle":
+		return runPipe(bin, c.Args, c.Keys, 16, 10*time.Millisecond)
 	}
-	reps, _ := strconv.Atoi(os.Getenv("REPS"))
-	cases, err := Cases()
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, bin := range bytes.Fields([]byte(bins)) {
-		b := string(bin)
-		for _, mode := range []string{"file", "pipe"} {
-			diff := 0
+	return nil, -1, fmt.Errorf("stress: no mode %q", mode)
+}
+
+// stress runs every case reps times on each of bins, in each of modes, and
+// logs, by group, how many runs answered other than the case's first -- its
+// output or its exit status -- and which cases they were.  A terminal case is
+// run only from the file: through a pipe it would not be one.
+func stress(t *testing.T, bins []string, reps int, cases []WideCase, modes []string) {
+	for _, b := range bins {
+		for _, mode := range modes {
+			diff, runs := map[string]int{}, map[string]int{}
+			var which []string
 			for _, c := range cases {
-				var first []byte
-				for i := 0; i < reps; i++ {
-					var out []byte
-					if mode == "file" {
-						out, _, _ = Run(b, c.Keys)
-					} else {
-						out = runPipe(b, c.Keys)
-					}
-					if i == 0 {
-						first = out
-					} else if !bytes.Equal(out, first) {
-						diff++
+				if mode != "file" && c.pty != nil {
+					continue
+				}
+				first, fs, _ := once(b, mode, c)
+				n := 0
+				for i := 1; i < reps; i++ {
+					out, s, _ := once(b, mode, c)
+					runs[c.Group]++
+					if s != fs || !bytes.Equal(out, first) {
+						diff[c.Group]++
+						n++
 					}
 				}
+				if n > 0 {
+					which = append(which, fmt.Sprintf("%s/%s x%d", c.Group, c.Name, n))
+				}
 			}
-			t.Logf("%s %s: %d of %d runs differ from the case's first run", b, mode, diff, len(cases)*(reps-1))
+			var groups []string
+			total, totalRuns := 0, 0
+			for g := range runs {
+				groups = append(groups, g)
+			}
+			sort.Strings(groups)
+			var by []string
+			for _, g := range groups {
+				by = append(by, fmt.Sprintf("%s %d of %d", g, diff[g], runs[g]))
+				total += diff[g]
+				totalRuns += runs[g]
+			}
+			t.Logf("%s %s: %d of %d runs differ from the case's first (%s)", b, mode, total, totalRuns, strings.Join(by, ", "))
+			if len(which) > 0 {
+				t.Logf("%s %s: differing: %s", b, mode, strings.Join(which, ", "))
+			}
 		}
 	}
 }
 
-// TestWideStress is TestStress for the wide suite: every wide case REPS times
-// on each of BINS, counting runs whose output or status is not the case's
-// first.  The ex group is made from src/whim-vim.c.
-func TestWideStress(t *testing.T) {
-	bins := os.Getenv("BINS")
-	if bins == "" {
-		t.Skip()
+// stressArgs reads BINS (space-separated absolute paths of editors: the C
+// binary, the Go one, bin/braaam, bin/vijure, bin/caprice, bin/whimsy,
+// bin/whimsical or bin/whimsical-debug -- anything run as the suite runs an
+// editor), REPS (the runs of each case, default 40) and MODES (default "file
+// pipe"; "trickle" too), or skips.
+func stressArgs(t *testing.T) ([]string, int, []string) {
+	bins := strings.Fields(os.Getenv("BINS"))
+	if len(bins) == 0 {
+		t.Skip("BINS is not set")
 	}
 	reps, _ := strconv.Atoi(os.Getenv("REPS"))
+	if reps < 2 {
+		reps = 40
+	}
+	modes := strings.Fields(os.Getenv("MODES"))
+	if len(modes) == 0 {
+		modes = []string{"file", "pipe"}
+	}
+	return bins, reps, modes
+}
+
+// TestStress runs every quick case REPS times on each of BINS, fed from a
+// file (Run) and through a pipe (the control), and counts the runs whose
+// output or status is not the case's first.  Run it under load, from the
+// package's directory (the test binary's), the editors named absolutely:
+//
+//	BINS="$PWD/bin/whimsy $PWD/bin/whimsical" REPS=40 go test -run 'TestStress$' -timeout 0 -v ./internal/suite
+//
+// Measured on 2026-09-25 (45 cases then) under 48 busy loops: from a file 0
+// of 1,755 runs differ for the C and the Go editors; through a pipe the Go
+// editor 18, the C 0.  On 2026-10-02, 80 cases, 40 runs each, 48 busy loops
+// on 64 cores: doc/RUST.md and doc/SCHEME.md, *Under load*.
+func TestStress(t *testing.T) {
+	bins, reps, modes := stressArgs(t)
+	cases, err := Cases()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cs []WideCase
+	for _, c := range cases {
+		cs = append(cs, WideCase{Group: "quick", Name: c.Name, Keys: c.Keys})
+	}
+	stress(t, bins, reps, cs, modes)
+}
+
+// TestWideStress is TestStress for the wide suite: every wide case REPS times
+// on each of BINS, counting runs whose output or status is not the case's
+// first; the terminal cases from the file alone.  The ex group is made from
+// src/whim-vim.c.  Measured on 2026-09-25 under 48 busy loops, 15 runs a case
+// from a file: 0 of 6,720 runs differ (the C and the Go editors).
+func TestWideStress(t *testing.T) {
+	bins, reps, modes := stressArgs(t)
 	cases, err := WideCases()
 	if err != nil {
 		t.Fatal(err)
@@ -87,19 +189,5 @@ func TestWideStress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cases = append(cases, ex...)
-	for _, bin := range bytes.Fields([]byte(bins)) {
-		b := string(bin)
-		diff := map[string]int{}
-		for _, c := range cases {
-			first, fs, _ := runWide(b, c)
-			for i := 1; i < reps; i++ {
-				out, s, _ := runWide(b, c)
-				if s != fs || !bytes.Equal(out, first) {
-					diff[c.Group]++
-				}
-			}
-		}
-		t.Logf("%s: runs differing from the case's first, by group: %v (of %d cases x %d)", b, diff, len(cases), reps-1)
-	}
+	stress(t, bins, reps, append(cases, ex...), modes)
 }

@@ -8,7 +8,7 @@ as the C does, with a control of its own, and the heavy case runs at 0.9-1.0
 times the C. It was surveyed and measured here the same day, before it was
 scheduled (§1-§8, kept as they were written: Chez Scheme chosen by
 measurement); the design held as §4 and §8 settled it, and what was built
-is recorded milestone by milestone after them (§9-§17), with what
+is recorded milestone by milestone after them (§9-§18), with what
 `doc/SCHEME-IDIOMS.md` then made of the output.
 
 ```
@@ -1154,7 +1154,40 @@ Held to: `whim gen` writes every generated file byte for byte as before --
 unchanged, `Editor.hs`, its parts and `editor.ss` among them; `cd crefactor
 && go test ./togo`; `whim test --haskell --scheme`, quick and `--wide`.
 
-## 17. Not done
+## 17. Under load (2026-10-02)
+
+`internal/suite/stress_test.go` runs every case many times on each editor
+it is given (`BINS`, `REPS`, `MODES`) and counts the runs that answer other
+than the case's first, output or exit status: fed from a file, as the suite
+feeds them, and through a pipe in one write, the control. Measured under 48
+busy loops on the 64 cores (the 1-minute load average 49-84, other agents
+building beside them), `bin/whimsical` and `bin/whimsical-debug` beside the
+C and the Go editors:
+
+| runs differing | quick, file | quick, pipe | wide, file | wide, pipe |
+|---|---|---|---|---|
+| C | 0 of 3,120 | 66 of 3,120 | 0 of 3,360 | 106 of 3,220 |
+| Go | 0 of 3,120 | 1 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+| Scheme | 0 of 3,120 | 0 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+| Scheme (debug) | 0 of 3,120 | 0 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+
+The quick suite 40 runs a case (80 cases), the wide 15 (240 cases; the 10
+terminal ones from the file alone). Fed from a file, whimsical answers every
+run as it answered the first, the parallel `:%s`'s chunks on `fork-thread`
+included.
+
+The pipe did not move it, and that is its start-up, not its input: one
+write of the keys has landed long before the editor's first read, 35 ms or
+so after the exec (§15), so through a pipe too it finds them all waiting.
+The editor does see timing: the keys in pieces 20 ms apart, unloaded,
+changed 67 of the 80 quick cases' screens against the file's (a probe, not
+kept). So the stress test has a control that reaches it, `MODES=trickle`
+-- the keys in 16 pieces 10 ms apart -- and under 48 busy loops again (the
+load average 50-66) it moves whimsical 326 of 720 quick runs and 307 of 920
+wide ones (10 and 5 runs a case), the debugging build 554 and 573, against
+the C's 23 and 19.
+
+## 18. Not done
 
 - **Records for the C's structs, Scheme strings for its strings**: declined
   in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects.

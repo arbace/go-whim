@@ -377,6 +377,31 @@ with overflow checks:
 The module went from 61,820 lines to 61,834; rustc 39.0-39.5 s and 0.53 GB
 at the peak; the heavy case 0.25-0.3 times the C's, as before.
 
+## Under load (2026-10-02)
+
+`internal/suite/stress_test.go` runs every case many times on each editor
+it is given (`BINS`, `REPS`, `MODES`) and counts the runs that answer other
+than the case's first, output or exit status: fed from a file, as the suite
+feeds them, and through a pipe in one write, the control. Measured under 48
+busy loops on the 64 cores (the 1-minute load average 49-84, other agents
+building beside them), `bin/whimsy` beside the C and the Go editors:
+
+| runs differing | quick, file | quick, pipe | wide, file | wide, pipe |
+|---|---|---|---|---|
+| C | 0 of 3,120 | 66 of 3,120 | 0 of 3,360 | 106 of 3,220 |
+| Go | 0 of 3,120 | 1 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+| Rust | 0 of 3,120 | 33 of 3,120 | 0 of 3,360 | 61 of 3,220 |
+
+The quick suite 40 runs a case (80 cases), the wide 15 (240 cases; the 10
+terminal ones from the file alone, since through a pipe they would not be
+on a terminal). Fed from a file, whimsy answers every run as it answered the
+first; through a pipe it differs as the C does, the keys a redraw saw
+depending on how many had landed. So the control sees whimsy, and nothing
+the cases reach answers by timing once the keys are all there -- the
+parallel `:%s`'s chunks among them. The keys in 16 pieces 10 ms apart
+(`MODES=trickle`, under 48 busy loops again, the load average 50-66, 10
+runs a quick case and 5 a wide one) move it 161 of 720 and 9 of 920 times.
+
 ## Not done
 
 - **What the memory model forbids**, declined in `RUST-IDIOMS.md`: `ed: &mut
