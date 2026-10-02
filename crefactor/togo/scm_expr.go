@@ -146,11 +146,87 @@ func bindsLvl(bs []sbind) int {
 	return l
 }
 
-// saddr is an lvalue's address: a base address and a constant offset.
+// saddr is an lvalue's address: a base address and a constant offset;
+// and how the C names it, where it does: a whole scalar object or local
+// (whole: read by its name, written by set!), or a member of the struct at
+// base (root, the struct's name, and path, the members' from it to off: a
+// record's accessor, root.path).
 type saddr struct {
 	base  sx
 	off   int
 	field *cc.Field
+	whole string
+	root  string
+	path  []string
+}
+
+// member is a with member fl of the struct or union ct added.
+func (f *sfn) member(a saddr, ct cc.Type, fl *cc.Field) saddr {
+	if ct != nil && (ct.Kind() == cc.Ptr || ct.Kind() == cc.Array) {
+		ct = elemOf(ct)
+	}
+	switch {
+	case fl.Name() == "":
+	case a.root != "":
+		return saddr{base: a.base, off: a.off + int(fl.Offset()), field: fl, root: a.root, path: append(append([]string{}, a.path...), fl.Name())}
+	default:
+		if root := f.s.structName(ct); root != "" {
+			return saddr{base: f.addrVal(a), off: int(fl.Offset()), field: fl, root: root, path: []string{fl.Name()}}
+		}
+	}
+	a.off += int(fl.Offset())
+	a.field, a.whole, a.root, a.path = fl, "", "", nil
+	return a
+}
+
+// accessor is a's member's accessor, defined for kind st (agg: its
+// address alone), or "" when it has none.
+func (f *sfn) accessor(a saddr, st string) string {
+	if a.root == "" {
+		return ""
+	}
+	return f.s.useMember(a.root+"."+strings.Join(a.path, "."), st, a.off)
+}
+
+// addrString is a's address as an expression.
+func (f *sfn) addrString(a saddr) string {
+	if n := f.accessor(a, "agg"); n != "" {
+		return "(" + n + "& " + a.base.val + ")"
+	}
+	return scmAddr(a.base.val, a.off)
+}
+
+// loadString is the read of a scalar of kind st at a.
+func (f *sfn) loadString(a saddr, st string) string {
+	f.memory = true
+	if a.whole != "" && a.off == 0 {
+		return a.whole
+	}
+	if n := f.accessor(a, st); n != "" {
+		return "(" + n + " " + a.base.val + ")"
+	}
+	return "(" + scmLoad(st) + " " + scmAddr(a.base.val, a.off) + ")"
+}
+
+// storeString is the write of val, of kind st, at a.
+func (f *sfn) storeString(a saddr, st, val string) string {
+	f.memory = true
+	if a.whole != "" && a.off == 0 {
+		return "(set! " + a.whole + " " + val + ")"
+	}
+	if n := f.accessor(a, st); n != "" {
+		return "(" + n + "-set! " + a.base.val + " " + val + ")"
+	}
+	return "(" + scmStore(st) + " " + scmAddr(a.base.val, a.off) + " " + val + ")"
+}
+
+// localAddr is the address of v, a variable in the frame: by its name.
+func (f *sfn) localAddr(v *lvar) saddr {
+	f.locals[v] = true
+	if isAggr(v.c) || v.c.Kind() == cc.Array {
+		return saddr{base: sx{val: f.base[v], st: "ptr"}}
+	}
+	return saddr{base: sx{val: "&" + f.base[v], st: "ptr"}, whole: f.base[v]}
 }
 
 // scmAddr is base plus off, folded where both are numbers.
@@ -411,13 +487,19 @@ func (f *sfn) ident(x *cc.PrimaryExpression) sx {
 	return sx{}
 }
 
-// objAddr is the address of the file-scope object of key: a constant.
+// objAddr is the address of the file-scope object of key, by its name: a
+// constant.
 func (f *sfn) objAddr(key string) (saddr, bool) {
-	off, ok := f.s.h.segOff[key]
+	o, ok := f.s.useObject(key)
 	if !ok {
 		return saddr{}, false
 	}
-	return saddr{base: sx{val: strconv.Itoa(scmBase + off), st: "ptr", konst: true, kv: int64(scmBase + off)}}, true
+	base := sx{val: "&" + o.name, st: "ptr", konst: true, kv: int64(o.addr)}
+	if o.kind == "agg" {
+		base.val = o.name
+		return saddr{base: base}, true
+	}
+	return saddr{base: base, whole: o.name}, true
 }
 
 // varRead is a variable's value: its binding, or its memory in the frame.
@@ -425,8 +507,8 @@ func (f *sfn) varRead(v *lvar) sx {
 	if f.sv[v] != nil {
 		return sx{st: "agg", rec: v}
 	}
-	if off, ok := f.mem[v]; ok {
-		return f.readAt(saddr{base: sx{val: "fr", st: "ptr"}, off: off}, v.c)
+	if _, ok := f.mem[v]; ok {
+		return f.readAt(f.localAddr(v), v.c)
 	}
 	val := f.valueOf(v)
 	st := f.vtype(v)
@@ -444,8 +526,11 @@ func (f *sfn) varRead(v *lvar) sx {
 
 // addrVal is an address as a value.
 func (f *sfn) addrVal(a saddr) sx {
-	val := scmAddr(a.base.val, a.off)
+	val := f.addrString(a)
 	x := sx{binds: a.base.binds, val: val, st: "ptr", lvl: a.base.lvl}
+	if a.base.konst && a.root == "" {
+		x.konst, x.kv = true, a.base.kv+int64(a.off)
+	}
 	if scmConst(val) {
 		x.konst = true
 		x.kv, _ = strconv.ParseInt(val, 10, 64)
@@ -468,7 +553,7 @@ func (f *sfn) readAt(a saddr, t cc.Type) sx {
 		f.no(nil, "a bit field")
 	}
 	st := scmTypeOf(t)
-	return sx{binds: a.base.binds, val: "(" + scmLoad(st) + " " + scmAddr(a.base.val, a.off) + ")", st: st, lvl: max(scmReads, a.base.lvl)}
+	return sx{binds: a.base.binds, val: f.loadString(a, st), st: st, lvl: max(scmReads, a.base.lvl)}
 }
 
 // addrOf is an lvalue's address.
@@ -476,11 +561,10 @@ func (f *sfn) addrOf(e cc.ExpressionNode) saddr {
 	if f.lf != nil {
 		if r, ok := f.lf.sub[e]; ok {
 			if r.v != nil {
-				off, ok := f.mem[r.v]
-				if !ok {
+				if _, ok := f.mem[r.v]; !ok {
 					f.no(e, "the address of a variable not in memory")
 				}
-				return saddr{base: sx{val: "fr", st: "ptr"}, off: off}
+				return f.localAddr(r.v)
 			}
 			if !r.raw {
 				return f.addrOf(r.n)
@@ -510,11 +594,10 @@ func (f *sfn) addrNode(e cc.ExpressionNode) saddr {
 			}
 			if f.lf != nil {
 				if v, ok := f.lf.byDecl[d]; ok {
-					off, inMem := f.mem[v]
-					if !inMem {
+					if _, inMem := f.mem[v]; !inMem {
 						f.no(x, "the address of %s, which is not in memory", d.Name())
 					}
-					return saddr{base: sx{val: "fr", st: "ptr"}, off: off}
+					return f.localAddr(v)
 				}
 			}
 			a, ok := f.objAddr(f.s.g.a.declKey(d))
@@ -526,13 +609,9 @@ func (f *sfn) addrNode(e cc.ExpressionNode) saddr {
 	case *cc.PostfixExpression:
 		switch x.Case {
 		case cc.PostfixExpressionSelect:
-			a := f.addrOf(x.PostfixExpression)
-			a.off += int(x.Field().Offset())
-			a.field = x.Field()
-			return a
+			return f.member(f.addrOf(x.PostfixExpression), x.PostfixExpression.Type(), x.Field())
 		case cc.PostfixExpressionPSelect:
-			p := f.expr(x.PostfixExpression)
-			return saddr{base: p, off: int(x.Field().Offset()), field: x.Field()}
+			return f.member(saddr{base: f.expr(x.PostfixExpression)}, x.PostfixExpression.Type(), x.Field())
 		case cc.PostfixExpressionIndex:
 			be, ie := x.PostfixExpression, x.ExpressionList
 			if !isPtrish(be.Type()) {

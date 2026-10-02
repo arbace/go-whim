@@ -215,7 +215,7 @@ func TestScmControl(t *testing.T) {
 		{"unsigned division", javaIntsC, regexp.MustCompile(`\(u32/ (\w+) (\w+)\)`), "(->u32 (i32/ (->i32 $1) (->i32 $2)))"},
 		{"unsigned widening", javaIntsC, regexp.MustCompile(`(\(define \(widen_uchar ed c\)\n\s*)\(i32\+ c 1\)`), "${1}(i32+ (->i8 c) 1)"},
 		{"unsigned shift", javaIntsC, regexp.MustCompile(`\(u32>> (\w+) (\w+)\)`), "(->u32 (i32>> (->i32 $1) $2))"},
-		{"struct copy", javaStructsC, regexp.MustCompile(`\(mem-copy! (\w+) (\d+) 56\)`), "(void)"},
+		{"struct copy", javaStructsC, regexp.MustCompile(`\(mem-copy! (\S+) (\S+) 56\)`), "(void)"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			t.Parallel()

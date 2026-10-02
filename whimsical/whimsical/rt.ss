@@ -22,6 +22,7 @@
     ld-s8 ld-u8 ld-s16 ld-u16 ld-s32 ld-u32 ld-s64 ld-u64 ld-ptr ld-bool
     st-s8! st-u8! st-s16! st-u16! st-s32! st-u32! st-s64! st-u64! st-ptr! st-bool!
     mem-copy! mem-zero! mem-fill! mem-image! mem-bytes mem-string
+    mem-ref mem-set! define-c-object define-c-local define-c-member
     frame-push! frame-pop! c-str
     ;; C's integers
     ->i8 ->u8 ->i16 ->u16 ->i32 ->u32 ->i64 ->u64 b->i
@@ -155,6 +156,109 @@
   (define-mem-in mem (st-u64! p v) (bytevector-u64-set! mem p v 'little))
   (define-mem-in mem (st-ptr! p v) (bytevector-s64-set! mem p v 'little))
   (define-mem-in mem (st-bool! p v) (bytevector-u8-set! mem p (if v 1 0)))
+;; (mem-ref kind m p), (mem-set! kind m p v): a load and a store of a
+  ;; kind -- s8 to u64, ptr, bool -- at p of the bytevector m.
+  (define-syntax mem-ref
+    (lambda (x)
+      (syntax-case x ()
+        [(_ kind m p)
+         (case (syntax->datum #'kind)
+           [(s8) #'(bytevector-s8-ref m p)]
+           [(u8) #'(bytevector-u8-ref m p)]
+           [(s16) #'(bytevector-s16-ref m p 'little)]
+           [(u16) #'(bytevector-u16-ref m p 'little)]
+           [(s32) #'(bytevector-s32-ref m p 'little)]
+           [(u32) #'(bytevector-u32-ref m p 'little)]
+           [(s64 ptr) #'(bytevector-s64-ref m p 'little)]
+           [(u64) #'(bytevector-u64-ref m p 'little)]
+           [(bool) #'(not (fx= 0 (bytevector-u8-ref m p)))])])))
+  (define-syntax mem-set!
+    (lambda (x)
+      (syntax-case x ()
+        [(_ kind m p v)
+         (case (syntax->datum #'kind)
+           [(s8) #'(bytevector-s8-set! m p v)]
+           [(u8) #'(bytevector-u8-set! m p v)]
+           [(s16) #'(bytevector-s16-set! m p v 'little)]
+           [(u16) #'(bytevector-u16-set! m p v 'little)]
+           [(s32) #'(bytevector-s32-set! m p v 'little)]
+           [(u32) #'(bytevector-u32-set! m p v 'little)]
+           [(s64 ptr) #'(bytevector-s64-set! m p v 'little)]
+           [(u64) #'(bytevector-u64-set! m p v 'little)]
+           [(bool) #'(bytevector-u8-set! m p (if v 1 0))])])))
+
+  ;; The C's objects by name, as the generated library defines them; each
+  ;; reads and writes the bytevector mem of the place it is used at.
+  ;;
+  ;; (define-c-object name &name kind addr): a file-scope object at addr.
+  ;; Of a scalar kind, name reads it, (set! name v) writes it, &name is its
+  ;; address; an array or a struct (kind agg) is its address, as C has it,
+  ;; under both names.
+  (define-syntax define-c-object
+    (lambda (x)
+      (syntax-case x ()
+        [(_ name addr-name kind addr)
+         (eq? (syntax->datum #'kind) 'agg)
+         #'(begin
+             (define-syntax name (identifier-syntax addr))
+             (define-syntax addr-name (identifier-syntax addr)))]
+        [(_ name addr-name kind addr)
+         #'(begin
+             (define-syntax name
+               (make-variable-transformer
+                 (lambda (y)
+                   (syntax-case y (set!)
+                     [(set! k e) (with-syntax ([m (datum->syntax #'k 'mem)]) #'(mem-set! kind m addr e))]
+                     [k (identifier? #'k) (with-syntax ([m (datum->syntax #'k 'mem)]) #'(mem-ref kind m addr))]))))
+             (define-syntax addr-name (identifier-syntax addr)))])))
+
+  ;; (define-c-local name &name kind off): a local of the C's in the call's
+  ;; frame, at fr + off; as define-c-object's, the frame and the memory
+  ;; those of the function it is in.
+  (define-syntax define-c-local
+    (lambda (x)
+      (syntax-case x ()
+        [(_ name addr-name kind off)
+         (with-syntax ([fr (datum->syntax #'name 'fr)] [m (datum->syntax #'name 'mem)])
+           (if (eq? (syntax->datum #'kind) 'agg)
+               #'(begin
+                   (define-syntax name (identifier-syntax (fx+ fr off)))
+                   (define-syntax addr-name (identifier-syntax (fx+ fr off))))
+               #'(begin
+                   (define-syntax name
+                     (make-variable-transformer
+                       (lambda (y)
+                         (syntax-case y (set!)
+                           [(set! k e) #'(mem-set! kind m (fx+ fr off) e)]
+                           [k (identifier? #'k) #'(mem-ref kind m (fx+ fr off))]))))
+                   (define-syntax addr-name (identifier-syntax (fx+ fr off))))))])))
+
+  ;; (define-c-member name kind off): a member of a struct, at off from the
+  ;; struct's address -- read as a record's field is: (name p) reads it,
+  ;; (name-set! p v) writes it, (name& p) is its address; a member that is
+  ;; an array or a struct (kind agg) has the address alone.
+  (define-syntax define-c-member
+    (lambda (x)
+      (define (suffix id s)
+        (datum->syntax id (string->symbol (string-append (symbol->string (syntax->datum id)) s))))
+      (syntax-case x ()
+        [(_ name kind off)
+         (eq? (syntax->datum #'kind) 'agg)
+         (with-syntax ([addr (suffix #'name "&")])
+           #'(define-syntax addr (syntax-rules () [(_ p) (fx+ p off)])))]
+        [(_ name kind off)
+         (with-syntax ([set (suffix #'name "-set!")] [addr (suffix #'name "&")])
+           #'(begin
+               (define-syntax name
+                 (lambda (y)
+                   (syntax-case y ()
+                     [(k p) (with-syntax ([m (datum->syntax #'k 'mem)]) #'(mem-ref kind m (fx+ p off)))])))
+               (define-syntax set
+                 (lambda (y)
+                   (syntax-case y ()
+                     [(k p v) (with-syntax ([m (datum->syntax #'k 'mem)]) #'(mem-set! kind m (fx+ p off) v))])))
+               (define-syntax addr (syntax-rules () [(_ p) (fx+ p off)]))))])))
+
   ;; n bytes from src to dst, overlapping or not: a struct's copy
   (define-mem-in mem (mem-copy! dst src n) (bytevector-copy! mem src mem dst n))
   (define-mem-in mem (mem-zero! p n) (zero-range! mem p (fx+ p n)))

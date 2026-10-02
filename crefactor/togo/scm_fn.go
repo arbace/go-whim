@@ -62,6 +62,8 @@ type sfn struct {
 	isOut  map[*lvar]bool
 	takes  bool // the function takes the editor
 	framed bool // the call has a frame, which a return gives back
+	locals map[*lvar]bool // the variables in the frame named in the body
+	memory bool           // the body reads or writes memory by a name
 }
 
 // function prints one function definition, or says why it cannot.
@@ -78,7 +80,7 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		}
 	}()
 	lf := lowerFunction(fd, s.g.a, s.g.p, scmName)
-	f := &sfn{s: s, lf: lf, name: d.Name(), mem: map[*lvar]int{}, takes: s.takesEd(d.Name())}
+	f := &sfn{s: s, lf: lf, name: d.Name(), mem: map[*lvar]int{}, takes: s.takesEd(d.Name()), locals: map[*lvar]bool{}}
 	ft := lf.ft
 	f.tuple = s.h.tupleRet(d.Name())
 	f.sret = isAggr(ft.Result()) && !f.tuple
@@ -111,7 +113,7 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		text = f.print()
 	}
 	var binds []string
-	if scmUsesMem(text) {
+	if f.memory || scmUsesMem(text) {
 		binds = append(binds, "[mem (ed-mem ed)]")
 	}
 	if f.frameSize > 0 {
@@ -163,14 +165,14 @@ func (f *sfn) print() string {
 	f.cur = maps.Clone(f.entryCur)
 	f.lines = nil
 	for _, v := range lf.params {
-		off, ok := f.mem[v]
-		if !ok {
+		if _, ok := f.mem[v]; !ok {
 			continue
 		}
+		a := f.localAddr(v)
 		if isAggr(v.c) {
-			f.emit("(mem-copy! (fx+ fr %d) %s %d)", off, f.base[v], v.c.Size())
+			f.emit("(mem-copy! %s %s %d)", a.base.val, f.argName(v), v.c.Size())
 		} else {
-			f.emit("(%s (fx+ fr %d) %s)", scmStore(f.vtype(v)), off, f.base[v])
+			f.emit("%s", f.storeString(a, f.vtype(v), f.argName(v)))
 		}
 	}
 	var forms []string
@@ -182,7 +184,19 @@ func (f *sfn) print() string {
 	} else {
 		forms = append(forms, f.jump(f.start))
 	}
-	return strings.Join(append(locals, forms...), "\n")
+	// the variables in the frame the body names, by their names
+	var defs []string
+	for _, v := range lf.vars {
+		if !f.locals[v] {
+			continue
+		}
+		kind := scmAccess(scmTypeOf(v.c))
+		if isAggr(v.c) || v.c.Kind() == cc.Array {
+			kind = "agg"
+		}
+		defs = append(defs, fmt.Sprintf("(define-c-local %s &%s %s %d)", f.base[v], f.base[v], kind, f.mem[v]))
+	}
+	return strings.Join(append(append(defs, locals...), forms...), "\n")
 }
 
 // scmUsesMem says a function's text reads or writes memory: it binds mem.
@@ -201,9 +215,18 @@ func (f *sfn) paramNames() []string {
 		ps = append(ps, "sret")
 	}
 	for _, v := range f.lf.params {
-		ps = append(ps, f.base[v])
+		ps = append(ps, f.argName(v))
 	}
 	return ps
+}
+
+// argName is the name a parameter comes in by: its own, or, a parameter
+// that lives in the frame, which its name reads, name.in.
+func (f *sfn) argName(v *lvar) string {
+	if _, ok := f.mem[v]; ok {
+		return f.base[v] + ".in"
+	}
+	return f.base[v]
 }
 
 // placeVars decides which variables live in the frame: an array, a struct
@@ -556,20 +579,21 @@ func (f *sfn) setVar(v *lvar, x sx) {
 		f.copyStruct(v, x)
 		return
 	}
-	if off, ok := f.mem[v]; ok {
+	if _, ok := f.mem[v]; ok {
+		a := f.localAddr(v)
 		if isAggr(v.c) && x.rec != nil {
-			f.storeStruct(saddr{base: sx{val: "fr", st: "ptr"}, off: off}, x.rec)
+			f.storeStruct(a, x.rec)
 			return
 		}
 		if isAggr(v.c) {
 			x = f.materialize(x, v.c)
 			src := f.flush(x)
-			f.emit("(mem-copy! (fx+ fr %d) %s %d)", off, src, v.c.Size())
+			f.emit("(mem-copy! %s %s %d)", a.base.val, src, v.c.Size())
 			return
 		}
 		x = f.conv(x, f.vtype(v))
 		val := f.flush(x)
-		f.emit("(%s (fx+ fr %d) %s)", scmStore(f.vtype(v)), off, val)
+		f.emit("%s", f.storeString(a, f.vtype(v), val))
 		return
 	}
 	x = f.conv(x, f.vtype(v))
@@ -608,11 +632,11 @@ func (f *sfn) store(lhs cc.ExpressionNode, x sx) {
 	}
 	if isAggr(t) && x.tup != nil {
 		f.lines = append(f.lines, x.binds...)
-		base := f.once(a.base)
+		a.base = sx{val: f.once(a.base), st: "ptr"}
 		st := t.(*cc.StructType)
 		for i, v := range x.tup {
 			fl := st.FieldByIndex(i)
-			f.emit("(%s %s %s)", scmStore(scmTypeOf(fl.Type())), scmAddr(base, a.off+int(fl.Offset())), v)
+			f.emit("%s", f.storeString(f.member(a, t, fl), scmTypeOf(fl.Type()), v))
 		}
 		return
 	}
@@ -622,13 +646,12 @@ func (f *sfn) store(lhs cc.ExpressionNode, x sx) {
 	if !isAggr(t) {
 		x = f.conv(x, scmTypeOf(t))
 	}
-	base := a.base
-	f.lines = append(f.lines, f.seq(&base, &x)...)
+	f.lines = append(f.lines, f.seq(&a.base, &x)...)
 	if isAggr(t) {
-		f.emit("(mem-copy! %s %s %d)", scmAddr(base.val, a.off), x.val, t.Size())
+		f.emit("(mem-copy! %s %s %d)", f.addrString(a), x.val, t.Size())
 		return
 	}
-	f.emit("(%s %s %s)", scmStore(scmTypeOf(t)), scmAddr(base.val, a.off), x.val)
+	f.emit("%s", f.storeString(a, scmTypeOf(t), x.val))
 }
 
 // once is x's value as an expression that can be evaluated again: x itself
@@ -745,10 +768,10 @@ func mustKind(t cc.Type) jk {
 // slv is an lvalue read, and how it is written back: a binding, or memory
 // at an address the read has already computed.
 type slv struct {
-	v    sx
-	reg  *lvar
-	addr string
-	t    cc.Type
+	v   sx
+	reg *lvar
+	a   saddr
+	t   cc.Type
 }
 
 func (f *sfn) readLval(e cc.ExpressionNode) slv {
@@ -767,9 +790,9 @@ func (f *sfn) readLval(e cc.ExpressionNode) slv {
 		f.no(e, "a bit field")
 	}
 	// the address once: read and written at the same place
-	addr := scmAddr(f.once(a.base), a.off)
+	a.base = sx{val: f.once(a.base), st: "ptr"}
 	st := scmTypeOf(t)
-	return slv{v: sx{val: "(" + scmLoad(st) + " " + addr + ")", st: st, lvl: scmReads}, addr: addr, t: t}
+	return slv{v: sx{val: f.loadString(a, st), st: st, lvl: scmReads}, a: a, t: t}
 }
 
 func (l slv) write(f *sfn, x sx) {
@@ -779,7 +802,7 @@ func (l slv) write(f *sfn, x sx) {
 	}
 	st := scmTypeOf(l.t)
 	val := f.flush(f.conv(x, st))
-	f.emit("(%s %s %s)", scmStore(st), l.addr, val)
+	f.emit("%s", f.storeString(l.a, st, val))
 }
 
 // scmIdent says s is a name.
@@ -808,29 +831,31 @@ func (f *sfn) initVar(s lstep) {
 		f.setVar(v, f.expr(in.AssignmentExpression))
 		return
 	}
-	f.emit("(mem-zero! (fx+ fr %d) %d)", off, v.c.Size())
-	f.initInto(fmt.Sprintf("(fx+ fr %d)", off), off, v.c, s.in)
+	_ = off
+	a := f.localAddr(v)
+	f.emit("(mem-zero! %s %d)", a.base.val, v.c.Size())
+	f.initInto(a.base.val, v.c, s.in)
 }
 
 // initInto writes initializer in, of an object of type t at base, into
-// the frame.
-func (f *sfn) initInto(base string, baseOff int, t cc.Type, in *cc.Initializer) {
+// the frame: each value at its offset from the object's address.
+func (f *sfn) initInto(base string, t cc.Type, in *cc.Initializer) {
 	if in == nil {
 		return
 	}
 	if in.Case == cc.InitializerExpr {
 		e := in.AssignmentExpression
-		at := baseOff + int(in.Offset())
+		at := int(in.Offset())
 		it := in.Type()
 		if it == nil {
 			it = t
 		}
-		addr := fmt.Sprintf("(fx+ fr %d)", at)
+		addr := scmAddr(base, at)
 		if sv, ok := unparenE(e).Value().(cc.StringValue); ok && it.Kind() == cc.Array {
 			n := min(int(it.Size()), len(sv))
 			for i := 0; i < n; i++ {
 				if sv[i] != 0 {
-					f.emit("(st-u8! (fx+ fr %d) %d)", at+i, sv[i])
+					f.emit("(st-u8! %s %d)", scmAddr(base, at+i), sv[i])
 				}
 			}
 			return
@@ -841,7 +866,7 @@ func (f *sfn) initInto(base string, baseOff int, t cc.Type, in *cc.Initializer) 
 		if isAggr(it) {
 			x := f.expr(e)
 			if x.rec != nil {
-				f.storeStruct(saddr{base: sx{val: "fr", st: "ptr"}, off: at}, x.rec)
+				f.storeStruct(saddr{base: sx{val: base, st: "ptr"}, off: at}, x.rec)
 				return
 			}
 			x = f.materialize(x, it)
@@ -858,7 +883,7 @@ func (f *sfn) initInto(base string, baseOff int, t cc.Type, in *cc.Initializer) 
 		return
 	}
 	for l := in.InitializerList; l != nil; l = l.InitializerList {
-		f.initInto(base, baseOff, t, l.Initializer)
+		f.initInto(base, t, l.Initializer)
 	}
 }
 
@@ -1282,21 +1307,21 @@ func (f *sfn) copyStruct(s *lvar, x sx) {
 		}
 		return
 	}
-	src := f.once(x)
+	src := saddr{base: sx{val: f.once(x), st: "ptr"}}
 	for i, m := range f.sv[s] {
 		fl := f.fieldOf(s, i)
-		f.setVar(m, f.readAt(saddr{base: sx{val: src, st: "ptr"}, off: int(fl.Offset()), field: fl}, fl.Type()))
+		f.setVar(m, f.readAt(f.member(src, s.c, fl), fl.Type()))
 	}
 }
 
 // storeStruct writes struct s, a value, member by member at a.
 func (f *sfn) storeStruct(a saddr, s *lvar) {
-	base := f.once(a.base)
+	a.base = sx{val: f.once(a.base), st: "ptr"}
 	for i, m := range f.sv[s] {
 		fl := f.fieldOf(s, i)
 		st := scmTypeOf(fl.Type())
 		val := f.flush(f.conv(f.varRead(m), st))
-		f.emit("(%s %s %s)", scmStore(st), scmAddr(base, a.off+int(fl.Offset())), val)
+		f.emit("%s", f.storeString(f.member(a, s.c, fl), st, val))
 	}
 }
 
@@ -1351,10 +1376,10 @@ func (f *sfn) structVals(x sx, t cc.Type) []sx {
 		}
 		return out
 	}
-	src := f.once(x)
+	src := saddr{base: sx{val: f.once(x), st: "ptr"}}
 	for i := 0; i < st.NumFields(); i++ {
 		fl := st.FieldByIndex(i)
-		out = append(out, f.readAt(saddr{base: sx{val: src, st: "ptr"}, off: int(fl.Offset()), field: fl}, fl.Type()))
+		out = append(out, f.readAt(f.member(src, t, fl), fl.Type()))
 	}
 	return out
 }

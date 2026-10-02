@@ -345,7 +345,7 @@ After items 1, 3 and 4:
 | # | item | sites | cost | risk | value |
 | --- | --- | ---: | --- | --- | --- |
 | 1 | reads and calls in place -- **done** | 29,299 temporaries | M | medium | high |
-| 2 | objects and members by name | 10,697 + 8,942 | M | low | high |
+| 2 | objects and members by name -- **done** | 10,697 + 8,942 | M | low | high |
 | 3 | `cond`, `when`, no `begin`/`(void)` | 509 + 2,814 + 1,608 | S | none | medium |
 | 4 | copies and values passed on | 4,624 | S-M | low-medium | medium |
 | 5 | loops as named `let` | 464 of 906 | M | low | medium |
@@ -386,3 +386,33 @@ a result read before the frame is given back.
 
 The loads and stores are the same 20,681 and 6,212: nothing read or written
 moved, only where it is written.
+
+### 2. The file-scope objects and the members by name
+
+The runtime has four forms the library defines its names with
+(`rt.ss`): `define-c-object` -- a file-scope scalar read by its name and
+written by `set!` (a variable transformer, `identifier-syntax`'s kin),
+`&name` its address; an array or a struct its address, as C has it --
+`define-c-member`, a member's accessor of its struct's name and the
+members' path, `(win_T.w_cursor.lnum wp)`, `(win_T.w_cursor.lnum-set! wp
+v)`, `(win_T.w_cursor.lnum& wp)`; and `define-c-local`, a local of the C's
+that lives in the call's frame, by its name in the function. Each expands
+to the load or store it replaces. The printer's address keeps the object or
+the local it is, or the struct and the path it was made of
+(`scm_expr.go`'s `member`); a struct the C has no name for, a name two
+types share, or two kinds at one name keep their numbers. A parameter that
+lives in the frame comes in as `name.in` and is copied into `name`.
+
+| | before | after |
+| --- | ---: | ---: |
+| lines | 57,892 | 60,104 (1,716 lines of definitions) |
+| raw loads / stores (`ld-`, `st-`) | 20,681 / 6,212 | 3,324 / 1,076 |
+| ... of a file-scope object by address | 10,697 | 0 |
+| ... of a member by offset | 7,376 | 870 (a struct with no name, or through an array member's element) |
+| ... in the frame by offset | 2,488 | 77 (a struct a call returns) |
+| names defined | -- | 803 objects, 913 members, 389 locals |
+| Chez on the core | 26.4 s, 0.70 GB | 27.4 s, 0.77 GB |
+| the heavy case | 0.9-1.0 times the C | 0.9-1.0 (C 431-436 ms, whimsical 403-429) |
+
+(`measure.py`'s copy bindings went 1,599 -> 2,241: a binding of a named
+object's value, `[r1 vcol]`, now reads as one.)

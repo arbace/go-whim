@@ -60,6 +60,29 @@ type sgen struct {
 	pool    []byte
 	litBase int // where the pool starts
 	st      scmStats
+
+	// the names the library defines for what its functions use
+	objects     map[string]*sobj // an object's key -> its name
+	objNames    map[string]bool
+	members     map[string]*smember // an accessor's name -> what it reads
+	structNames map[string]string   // a struct type (its first member) -> its name
+	structTaken map[string]string   // a name -> the struct type it names
+}
+
+// sobj is a file-scope object by name: at addr, of the kind its accessors
+// read (s32, ptr...; agg for an array or a struct, whose name is its
+// address).
+type sobj struct {
+	name, kind string
+	addr       int
+	used       bool
+}
+
+// smember is a member's accessor: the kind it reads (agg: its address
+// alone) at off from the struct's address.
+type smember struct {
+	kind string
+	off  int
 }
 
 // scmReserved are the names a C name may not take: the Scheme the library
@@ -103,7 +126,8 @@ func scmName(s string) string {
 func (g *gen) writeScm(path string) error {
 	s := &sgen{g: g, library: g.p.ScmLibrary, defined: map[string]*cc.FunctionDefinition{},
 		hostFns: map[string]*cc.Declarator{}, names: map[string]string{}, fnIdx: map[string]int{},
-		fixups: map[int]string{}, lits: map[string]int{}}
+		fixups: map[int]string{}, lits: map[string]int{}, objects: map[string]*sobj{}, objNames: map[string]bool{},
+		members: map[string]*smember{}, structNames: map[string]string{}, structTaken: map[string]string{}}
 	if s.library == "" {
 		s.library = "(editor)"
 	}
@@ -156,6 +180,7 @@ func (g *gen) writeScm(path string) error {
 	b.WriteString(s.header())
 	b.WriteString(s.dataDefs())
 	b.WriteString(s.hostDefs())
+	b.WriteString(s.nameDefs())
 	for _, f := range funcs {
 		b.WriteString("\n" + f)
 	}
@@ -215,6 +240,7 @@ func (s *sgen) analyses() *hgen {
 		h.names[name] = hsName(name)
 	}
 	h.layout()
+	h.tagTypedefs()
 	if !s.g.p.ScmNoOuts {
 		h.outParams()
 	} else {
@@ -785,4 +811,127 @@ func (s *sgen) constAddr(e cc.ExpressionNode) int {
 		}
 	}
 	panic(unsupported{fmt.Sprintf("an address that is not a constant: %T", e)})
+}
+
+// --- the names ---------------------------------------------------------------
+
+// useObject is the file-scope object of key, by name, marked used.
+func (s *sgen) useObject(key string) (*sobj, bool) {
+	if o, ok := s.objects[key]; ok {
+		o.used = true
+		return o, true
+	}
+	off, ok := s.h.segOff[key]
+	if !ok {
+		return nil, false
+	}
+	var n string
+	switch {
+	case strings.HasPrefix(key, "global:"):
+		n = scmName(strings.TrimPrefix(key, "global:"))
+	case strings.HasPrefix(key, "static:"):
+		fn, v, _ := strings.Cut(strings.TrimPrefix(key, "static:"), ".")
+		n = scmName(fn) + ":" + v
+	default:
+		n = "object:" + strings.ReplaceAll(key, ":", ".")
+	}
+	for s.objNames[n] {
+		n += "*"
+	}
+	s.objNames[n] = true
+	t := s.h.segType[key]
+	kind := "agg"
+	if t != nil && !isAggr(t) && t.Kind() != cc.Array && t.Kind() != cc.Function {
+		kind = scmAccess(scmTypeOf(t))
+	}
+	o := &sobj{name: n, kind: kind, addr: scmBase + off, used: true}
+	s.objects[key] = o
+	return o, true
+}
+
+// structName is the name a struct's or a union's members are named after:
+// its typedef's, else its tag's; "" for a type with neither, or a name
+// another type has.
+func (s *sgen) structName(t cc.Type) string {
+	fs := scmFields(t)
+	if len(fs) == 0 {
+		return ""
+	}
+	key := fmt.Sprintf("%p", fs[0]) // a typedef's clone of the type shares its members
+	if n, ok := s.structNames[key]; ok {
+		return n
+	}
+	var tag string
+	switch x := t.(type) {
+	case *cc.StructType:
+		tk := x.Tag()
+		tag = tk.SrcStr()
+	case *cc.UnionType:
+		tk := x.Tag()
+		tag = tk.SrcStr()
+	}
+	n := s.h.tagTypedef[tag]
+	if n == "" && t.Typedef() != nil {
+		n = t.Typedef().Name()
+	}
+	if n == "" {
+		n = tag
+	}
+	if have, ok := s.structTaken[n]; n == "" || ok && have != key {
+		n = ""
+	} else {
+		s.structTaken[n] = key
+	}
+	s.structNames[key] = n
+	return n
+}
+
+// useMember is the accessor name, defined to read kind st at off, or ""
+// when the name reads something else already.
+func (s *sgen) useMember(name, st string, off int) string {
+	kind := "agg"
+	if st != "agg" {
+		kind = scmAccess(st)
+	}
+	m, ok := s.members[name]
+	switch {
+	case !ok:
+		s.members[name] = &smember{kind: kind, off: off}
+	case m.off != off:
+		return ""
+	case kind == "agg":
+	case m.kind == "agg":
+		m.kind = kind
+	case m.kind != kind:
+		return ""
+	}
+	return name
+}
+
+// nameDefs are the definitions of the names the functions use: the
+// file-scope objects and the members' accessors.
+func (s *sgen) nameDefs() string {
+	var b strings.Builder
+	var objs []*sobj
+	for _, o := range s.objects {
+		if o.used {
+			objs = append(objs, o)
+		}
+	}
+	sort.Slice(objs, func(i, j int) bool { return objs[i].addr < objs[j].addr })
+	b.WriteString("\n;; The file-scope objects the functions name: a scalar read by its name and\n;; written by set!, an array or a struct its address; &name the address.\n")
+	for _, o := range objs {
+		fmt.Fprintf(&b, "(define-c-object %s &%s %s %d)\n", o.name, o.name, o.kind, o.addr)
+	}
+	var ms []string
+	for n := range s.members {
+		ms = append(ms, n)
+	}
+	sort.Strings(ms)
+	b.WriteString("\n;; The members the functions name, at their offsets from their struct's\n;; address: (name p) reads one, (name-set! p v) writes it, (name& p) is its\n;; address.\n")
+	for _, n := range ms {
+		m := s.members[n]
+		fmt.Fprintf(&b, "(define-c-member %s %s %d)\n", n, m.kind, m.off)
+	}
+	return b.String()
 }
