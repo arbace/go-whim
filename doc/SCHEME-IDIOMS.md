@@ -602,7 +602,7 @@ were (sha256, before and after every item).
 | 3 | 12: a named let's bindings that never change taken out -- **done** | `scm_tidy.go` | S | low: scopes checked | 2,001 bindings |
 | 4 | 13: copies, constants and increments in place -- **done** | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
 | 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` -- **done** | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
-| 6 | 15: signed arithmetic as C means it, `fx+` and `+` | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
+| 6 | 15: signed arithmetic as C means it, `fx+` and `+` -- **done** | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
 | 7 | 16: the memory functions as the bytevector's own | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
 | 8 | 17: case labels by name | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
 | -- | an array's element by index, `(ld-ptr@ a i)` | -- | S | low | 464: declined, below |
@@ -761,3 +761,40 @@ An unsigned long's `(eqv? n 0)` stays: rewritten as `(zero? n)` it cost
 | lines | 59,249 | 58,642 |
 | Chez on the core | 31.8 s, 0.70 GB | 33.1 s, 0.64 GB |
 | the heavy case: instructions / least cycles | 6,904M / 1,931M | 6,976M / 1,933M; in the suite 0.9-1.0x the C |
+
+### 15. Signed arithmetic as C means it
+
+- **The pattern.** Every `+ - *` of an `int` was `(i32+ a b)`, a macro of
+  `(fx+ a b)` and two shifts that wrap the sum to 32 bits as gcc's -O0
+  does; every one of a `long` `(i64+ a b)`, Scheme's `+` and a test that
+  wraps it to 64. 4,340 of them. C leaves a signed overflow undefined: a
+  correct program makes none, and whimsy's item 4 found that the suites
+  reach none.
+- **Measured first, here too.** The runtime's `i32+ i32- i32* i64+ i64-
+  i64*` made to raise an error on a result outside their type's range (a
+  copy of `rt.ss`, not committed), and the suites run on that build: all 80
+  and all 240 as the C, and the heavy case -- no signed overflow in any
+  path the suites reach.
+- **What it is now.** An `int`'s `+ - *` and negation are `fx+ fx- fx*`
+  and `(fx- x)` -- its operands' range keeps the result a fixnum -- and a
+  `long`'s Scheme's own `+ - *` and `(- x)` (`scm_expr.go`'s `scmSignedOp`,
+  `scmNeg`; an increment and a compound assignment come through the same
+  `arith`). Unsigned arithmetic still wraps through `u32+`, `u64-`..., as
+  C defines it; division and shifts keep their helpers (`MIN / -1`, a
+  shift's count). What C leaves undefined no longer wraps: an overflow of
+  an `int` is a number outside its range, which a store's conversion then
+  wraps -- the honest risk, as whimsy's.
+
+| | before | after |
+| --- | ---: | ---: |
+| `i32+ i32- i32* i64+ i64- i64*` | 4,340 | 0 |
+| `fx+ fx- fx*` / `+ - *` | 4,348 + 185 + 1,248 / 0 | 6,102 + 1,535 + 1,317 / 625 + 476 + 65 |
+| the runtime's wrapping helpers left | 5,088 | 745 (unsigned, division, shifts) |
+| lines | 58,642 | 58,503 |
+| Chez on the core | 33.1 s, 0.64 GB | 30.5 s, 0.65 GB |
+| the heavy case: instructions / least cycles | 6,976M / 2,026M | 6,927M / 1,979M; in the suite 1.0-1.1x the C |
+
+`TestScmSigned` holds the arithmetic to gcc's near the types' ends (a
+`long` past Chez's 61-bit fixnums and back) and requires no wrapping
+helper of a signed type; `TestScmControl`'s mutation of `widen_uchar` is
+`(fx+ c 1)`'s now.

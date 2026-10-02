@@ -379,7 +379,7 @@ func (f *sfn) node(e cc.ExpressionNode) sx {
 		case cc.UnaryExpressionMinus:
 			st := scmTypeOf(x.Type())
 			a := f.conv(f.expr(x.CastExpression), st)
-			return sx{binds: a.binds, val: "(" + st + "- 0 " + a.val + ")", st: st, lvl: a.lvl}
+			return sx{binds: a.binds, val: scmNeg(st, a.val), st: st, lvl: a.lvl}
 		case cc.UnaryExpressionCpl:
 			st := scmTypeOf(x.Type())
 			a := f.conv(f.expr(x.CastExpression), st)
@@ -757,7 +757,9 @@ func (f *sfn) arith(op string, a, b sx, st string) sx {
 	}
 	var s string
 	switch op {
-	case "+", "-", "*", "/", "%", "<<", ">>":
+	case "+", "-", "*":
+		s = "(" + scmSignedOp(st, op) + " " + a.val + " " + bv + ")"
+	case "/", "%", "<<", ">>":
 		s = "(" + st + op + " " + a.val + " " + bv + ")"
 	case "&", "|", "^":
 		fn := map[string]string{"&": "fxand", "|": "fxior", "^": "fxxor"}[op]
@@ -769,6 +771,32 @@ func (f *sfn) arith(op string, a, b sx, st string) sx {
 		f.no(nil, "an operator %s", op)
 	}
 	return sx{binds: binds, val: s, st: st, lvl: max(a.lvl, b.lvl)}
+}
+
+// scmSignedOp is the operator of + - or * in kind st. Signed arithmetic
+// is C's as C means it (doc/SCHEME-IDIOMS.md, item 15): an overflow is
+// undefined, so an int's is fixnum arithmetic, whose operands' range
+// keeps it a fixnum, and a long's Scheme's own; unsigned arithmetic wraps,
+// as C defines it, through the runtime's u32+ and u64+.
+func scmSignedOp(st, op string) string {
+	switch st {
+	case "i32":
+		return "fx" + op
+	case "i64":
+		return op
+	}
+	return st + op
+}
+
+// scmNeg is -v in kind st.
+func scmNeg(st, v string) string {
+	switch st {
+	case "i32":
+		return "(fx- " + v + ")"
+	case "i64":
+		return "(- " + v + ")"
+	}
+	return "(" + st + "- 0 " + v + ")"
 }
 
 // additive is + or -: of a pointer and an integer, of two pointers, or of

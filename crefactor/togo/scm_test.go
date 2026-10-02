@@ -213,7 +213,7 @@ func TestScmControl(t *testing.T) {
 		repl      string
 	}{
 		{"unsigned division", javaIntsC, regexp.MustCompile(`\(u32/ (\w+) (\w+)\)`), "(->u32 (i32/ (->i32 $1) (->i32 $2)))"},
-		{"unsigned widening", javaIntsC, regexp.MustCompile(`(\(define \(widen_uchar ed c\)\n\s*)\(i32\+ c 1\)`), "${1}(i32+ (->i8 c) 1)"},
+		{"unsigned widening", javaIntsC, regexp.MustCompile(`(\(define \(widen_uchar ed c\)\n\s*)\(fx\+ c 1\)`), "${1}(fx+ (->i8 c) 1)"},
 		{"unsigned shift", javaIntsC, regexp.MustCompile(`\(u32>> (\w+) (\w+)\)`), "(->u32 (i32>> (->i32 $1) $2))"},
 		{"struct copy", javaStructsC, regexp.MustCompile(`\(mem-copy! (\S+) (\S+) 56\)`), "(void)"},
 	} {
@@ -235,3 +235,26 @@ func TestScmControl(t *testing.T) {
 }
 
 var _ = strings.TrimSpace
+
+// scmSignedC is signed arithmetic near its type's ends that does not
+// overflow, which is all C defines: an int's on fixnums, a long's past
+// Chez's 61-bit fixnums into bignums and back.
+const scmSignedC = javaHost + `
+static long big(long a, long b) { return a + b - b * 2 + b; }
+static int edge(int a, int b) { return a - b + b * 1 - -b + -b; }
+static long neg(long a) { return -a; }
+void run(void) {
+    out(big(0x7000000000000000L, 0x0fffffffffffffffL));
+    out(big(-0x7fffffffffffffffL, -1));
+    out(edge(2147483647, 1)); out(edge(-2147483647, -1));
+    out(neg(-0x7fffffffffffffffL)); out(neg(0x1000000000000000L));
+    out(-2147483647 * 1 - 1);
+}
+`
+
+func TestScmSigned(t *testing.T) {
+	prog := scmSame(t, scmSignedC, Profile{}, javaHarnessC)
+	if regexp.MustCompile(`\((i32|i64)[-+*] `).MatchString(prog) {
+		t.Errorf("signed arithmetic through a wrapping helper:\n%s", numbered(prog))
+	}
+}
