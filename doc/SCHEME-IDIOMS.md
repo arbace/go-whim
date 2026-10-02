@@ -600,7 +600,7 @@ were (sha256, before and after every item).
 | 1 | 10: a layout of the forms' own: lines within 100 columns, a named let under its line -- **done** | `scm_tidy.go` (reader, printer) | M | none: the same forms | 6,674 lines, 124 lets |
 | 2 | 11: a join one place calls written where it is called -- **done** | `scm_tidy.go` | M | low: scopes checked | 1,228 joins |
 | 3 | 12: a named let's bindings that never change taken out -- **done** | `scm_tidy.go` | S | low: scopes checked | 2,001 bindings |
-| 4 | 13: copies, constants and increments in place | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
+| 4 | 13: copies, constants and increments in place -- **done** | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
 | 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
 | 6 | 15: signed arithmetic as C means it, `fx+` and `+` | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
 | 7 | 16: the memory functions as the bytevector's own | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
@@ -692,3 +692,43 @@ A loop's invariants read from outside it are free variables of the loop's
 procedure where they were its arguments; Chez compiles the two alike here
 (the instructions above), though the wall time of nine runs under the
 load suggested otherwise until it was measured so.
+
+### 13. Copies, constants and increments in place
+
+The lets are taken apart into lets of one binding each (`scmSplitLets`: a
+`let*`'s always, a `let`'s where no value names what the let binds), and
+a binding goes where its value can be written where its name is read
+(`scmPropagate`): a constant or another binding's name, wherever it is
+read; a pure value -- C's arithmetic but division, conversions,
+comparisons, a member's address, of names that read no memory -- where it
+is read once, and not inside a loop's or a procedure's body. A use where
+one of the value's names means another binding refuses it. What is left is
+joined again (`scmMergeLets`: a let whose body is one let, one `let*`), and
+a let left with no bindings is its body (`scmUnlet`; several forms as an
+`if`'s arm make it a `cond`). Item 12's rule then also binds around the
+loop a pure value the loop never changes, where no other binding of the
+loop names it (`(let ([a s]) (let loop1 ([s s]) ...))` in `musl_strlen`).
+So `*d++ = *s++` (`musl_memcpy`) is
+
+```scheme
+      (cond
+        [(eqv? n 0) dest]
+        [else (st-u8! d (ld-u8 s)) (loop1 (u64- n 1) (fx+ d 1) (fx+ s 1))])
+```
+
+where it was `(let* ([t1 d] [d (fx+ d 1)] [t2 s] [s (fx+ s 1)]) (st-u8! t1
+(ld-u8 t2)) (loop1 (u64- n 1) d s))`.
+
+| | before | after |
+| --- | ---: | ---: |
+| lines | 59,265 | 59,249 |
+| bindings written where they are read | -- | 776 |
+| the lowering's temporaries `tN` | 470 | 325 (an old value read after the name is bound anew: `n++ == maxlen`) |
+| bindings of a name to a name | 832 | 616 (336 the printer's `rN` of a named object: `(let ([r1 curwin]) (win_T.w_cursor.col-set! r1 ...))`) |
+| named lets' bindings | 771 | 649 (122 more bound around their loop) |
+| Chez on the core | 31.5 s, 0.69 GB | 31.8 s, 0.70 GB |
+| the heavy case: instructions / least cycles | 6,777M / 2,044M | 6,904M (+1.9 %) / 1,957M; in the suite 0.7-1.4x the C under the load |
+
+The instructions grew by 1.9 %: a value bound around a loop is read from
+the loop's closure where it was an argument in a register. Kept: the
+cycles did not move beyond the load's noise.

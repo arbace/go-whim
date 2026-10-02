@@ -118,6 +118,32 @@ func TestScmTidyInvariants(t *testing.T) {
 	}
 }
 
+func TestScmTidyPropagate(t *testing.T) {
+	for _, c := range []struct{ src, want string }{
+		// *d++ = *s++: the copies and the increments in place
+		{`(define (f ed d s n) (let ([mem (ed-mem ed)]) (let loop1 ([n n] [d d] [s s]) (if (zero? n) d (let* ([t1 d] [d (fx+ d 1)] [t2 s] [s (fx+ s 1)]) (st-u8! t1 (ld-u8 t2)) (loop1 (u64- n 1) d s))))))`,
+			`(define (f ed d s n) (let ([mem (ed-mem ed)]) (let loop1 ([n n] [d d] [s s]) (cond [(zero? n) d] [else (st-u8! d (ld-u8 s)) (loop1 (u64- n 1) (fx+ d 1) (fx+ s 1))]))))`},
+		// a read is not moved, nor a value used twice, nor one into a
+		// loop's body
+		{`(define (f ed p) (let ([x (ld-u8 p)]) (g ed) x))`, `(define (f ed p) (let ([x (ld-u8 p)]) (g ed) x))`},
+		{`(define (f ed p) (let ([x (fx+ p 1)]) (g ed x) x))`, `(define (f ed p) (let ([x (fx+ p 1)]) (g ed x) x))`},
+		{`(define (f ed p) (let ([x (fx+ p 1)]) (let loop1 ([i 0]) (if (fx<? i x) (loop1 (fx+ i 1)) i))))`,
+			`(define (f ed p) (let ([x (fx+ p 1)]) (let loop1 ([i 0]) (if (fx<? i x) (loop1 (fx+ i 1)) i))))`},
+		// a loop's binding of a pure value it never changes: around the
+		// loop; of a value with effects: kept
+		{`(define (f ed a) (let loop1 ([k (fx* a 3)] [i 0]) (if (fx<? i k) (loop1 k (fx+ i 1)) i)))`,
+			`(define (f ed a) (let ([k (fx* a 3)]) (let loop1 ([i 0]) (if (fx<? i k) (loop1 (fx+ i 1)) i))))`},
+		{`(define (f ed a) (let loop1 ([k (g ed)] [i 0]) (if (fx<? i k) (loop1 k (fx+ i 1)) i)))`,
+			`(define (f ed a) (let loop1 ([k (g ed)] [i 0]) (if (fx<? i k) (loop1 k (fx+ i 1)) i)))`},
+		// a copy whose name is bound again where it is used: kept
+		{`(define (f ed p) (let ([q p]) (let ([p (g ed)]) (h ed q p))))`, `(define (f ed p) (let* ([q p] [p (g ed)]) (h ed q p)))`},
+	} {
+		if got := squash(tidyOne(t, c.src, false)); got != c.want {
+			t.Errorf("%s\ngot  %s\nwant %s", c.src, got, c.want)
+		}
+	}
+}
+
 // scmTidyC is C whose Scheme every rule of scm_tidy.go rewrites: a tail
 // two branches share, written once and then in place; loops whose
 // parameters do not change; *d++ = *s++; a switch whose cases share their

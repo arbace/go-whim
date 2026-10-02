@@ -196,8 +196,8 @@ func (g *gen) writeScm(path string) error {
 	}
 	text := b.String()
 	td := s.st.tidy
-	fmt.Fprintf(logw, "scm: %d of %d functions written, %d refused, %d lines; %d with a frame, %d joins (%d of them written where one place calls them) and %d loops as local procedures, %d named lets' bindings that never change taken out, %d switches a case; %d out-parameters in %d functions and %d struct results as values, %d struct locals as bindings; %d bytes of objects, %d of literals, %d functions in the table\n",
-		written, len(fds), len(fds)-written, strings.Count(text, "\n"), s.st.framed, s.st.joins, td.joinsInPlace, s.st.loops, td.invariants, s.st.cases, outs, s.st.values, s.st.tuples, len(s.facts.sval), s.facts.segSize, len(s.pool), len(s.fnOrder))
+	fmt.Fprintf(logw, "scm: %d of %d functions written, %d refused, %d lines; %d with a frame, %d joins (%d of them written where one place calls them) and %d loops as local procedures, %d named lets' bindings that never change taken out, %d values bound only to be read written where they are read, %d switches a case; %d out-parameters in %d functions and %d struct results as values, %d struct locals as bindings; %d bytes of objects, %d of literals, %d functions in the table\n",
+		written, len(fds), len(fds)-written, strings.Count(text, "\n"), s.st.framed, s.st.joins, td.joinsInPlace, s.st.loops, td.invariants, td.propagated, s.st.cases, outs, s.st.values, s.st.tuples, len(s.facts.sval), s.facts.segSize, len(s.pool), len(s.fnOrder))
 	if err := os.WriteFile(path+".layout", []byte(s.layout()), 0o644); err != nil {
 		return err
 	}
