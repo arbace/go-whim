@@ -4,6 +4,8 @@
 //! the host it calls (`host`: the C host's 17 functions as glue to a
 //! `Host`), vim's printf (`printf`) and the terminal host (`term`).
 
+#![deny(warnings)]
+
 pub mod editor;
 pub mod host;
 pub mod printf;

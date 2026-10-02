@@ -176,6 +176,26 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   matches and 11 ladders; the 49 gotos in 10 labeled blocks; 164 structs and
   unions; an Editor of 811 fields. 65,299 lines of Rust.
 
+## Milestone 2: every function of the core compiles (2026-10-02)
+
+- **The crate** (`whimsy/`): `Cargo.toml` (package `whimsy`, no dependency,
+  a library and the program), `src/lib.rs` (`#![deny(warnings)]`: a warning
+  is an error), the generated `src/editor.rs`, and by hand the runtime
+  (`src/rt.rs`: `VArg`, `decay`, `pdiff`, `fn_addr`, `str_u8`/`str_i8`,
+  `Shared` and `chunks`) and the host's glue (`src/host.rs`).
+- **The build**: `go tool whim whimsy` cuts the core from `src/whim-vim.c`,
+  writes its module into `lib/whimsy/src/editor.rs` (only when it differs),
+  writes the embedded hand-written sources beside it the same way, and runs
+  `cargo build --release --offline` there (`whimsy.Build`), which must say
+  nothing; the program is `bin/whimsy`.
+- **Measured**: the 1,713 functions -- 65,299 lines -- compile with no
+  warning, the only lints allowed the C's own naming (`non_snake_case`,
+  `non_camel_case_types`, `non_upper_case_globals`) and
+  `unused_assignments`, which every local's zero at the function's top
+  would otherwise raise; **rustc 38.9 s and 0.56 GB at the peak** for the
+  release build (opt-level 2), 2.5 s at opt-level 0: a quarter of GHC's time
+  on the same core at a sixth of its memory.
+
 ## Risks, named in advance
 
 - **Undefined behaviour of Rust's own.** Raw pointers only, never a reference
