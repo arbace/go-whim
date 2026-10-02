@@ -9,13 +9,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-- **The drops that stayed, brought to the front** (the pipeline reform,
-  `PIPELINE-REFORM.md` §7).
-  - `lfonly` (50), `keepbytes` and `noconv` (53), the programs of 64,
-    72-73 and 75.
-  - Each counts text that only the phases before it leave. So each needs
-    the edits it depends on brought to the front with it: for `lfonly`,
-    every readfile edit, since readfile is live at the front until phase 13.
 - **A fresh numbering of the phases**, beyond the block labels: some 4,200
   citations, the snapshots and `--from`/`--to` name the numbers (§7, step
   8).

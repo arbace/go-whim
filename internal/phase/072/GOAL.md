@@ -1,5 +1,17 @@
 # Phase 72 — one window, one tabpage, structurally
 
+**A record now.** Phase 7 calls `whim72` by name, on the text phase 6 swept
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): inside phase 6 it refused, counting `ONE_WINDOW` in what `onebuffer` and
+68's program leave for the sweep (8, not 3). The program is here, and the
+phase-72-73 group has no plan entry. With 73 it takes `win_enter_ext()`, and
+with it phase 22's `win_fix_current_dir()` call; its bodies for
+`create_windows()` and `win_alloc_firstwin()` take what phases 62, 69 and 70
+used to cut there (`set_buflisted()`, the argument index and list, the
+swap-file dialog); and with `create_windows()`'s `setfname()` call gone,
+phase 69 counts three `check_arg_idx()` calls and phase 78 twelve empty
+functions. What
+follows is the account of the cut as it was made here.
+
 **The invariant is provable, not imposed** — the phase 68 shape rather than the phase
 70 one. Windows are created in exactly one place: `win_alloc(NULL, FALSE)` from
 `win_alloc_firstwin()`, whose only caller is `win_alloc_first()` at startup.

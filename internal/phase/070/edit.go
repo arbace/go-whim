@@ -73,9 +73,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w70lit7, "", 1, ":edit answering it")
 	})
 	// readfile went at phase 1 (readfront, phase 92's move)
-	e.InFunction("create_windows", func(e *edit.E) {
-		e.Literal(w70lit9, w70lit10, 1, "the startup open arming and answering the dialog")
-	})
+	// create_windows() armed and answered it at startup; its body is phase
+	// 72's from phase 7 (whim72, which runs before this phase now)
 	// read_stdin() armed and answered it too; it went at phase 1, nothing
 	// writing the edit type that called it (argvfront, the reform's D1)
 	e.InFunction("ml_open", func(e *edit.E) {

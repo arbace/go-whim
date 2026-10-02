@@ -9,11 +9,10 @@ import (
 )
 
 var (
-	optModeline   = regexp.MustCompile(`\bOPT_MODELINE\b`)
-	doModelines   = regexp.MustCompile(`\bdo_modelines\(`)
-	optLessThan   = `^[ \t]*else if \(nextchar == '<'\)$`
-	ftIsEmptyIf   = `^[ \t]*if \(\*curbuf->b_p_ft == NUL\)$`
-	mlSaveRestore = `^[ \t]*(?:curbuf->b_p_ml(?:_nobin)?|p_ml(?:_nobin)?) = [^;\n]*;\n`
+	optModeline = regexp.MustCompile(`\bOPT_MODELINE\b`)
+	doModelines = regexp.MustCompile(`\bdo_modelines\(`)
+	optLessThan = `^[ \t]*else if \(nextchar == '<'\)$`
+	ftIsEmptyIf = `^[ \t]*if \(\*curbuf->b_p_ft == NUL\)$`
 )
 
 // OneOptSet leaves :set as the only way to give an option a value.
@@ -64,8 +63,10 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	// line as it succeeds, so grouping these into loops by shape -- which they
 	// invite -- would emit the same lines in a different order and the
 	// comparison would differ on every input that cuts.
+	// at the depth phase 75's fold leaves it: whim75 runs at phase 7, before
+	// this phase now
 	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
-		return e.literal(s, "            do_modelines(0);\n", "",
+		return e.literal(s, "        do_modelines(0);\n", "",
 			"reading a buffer applying its modelines", 1)
 	})
 	if err != nil {
@@ -130,12 +131,9 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	text, err = e.inFunction(text, "set_options_bin", func(s []byte) ([]byte, error) {
-		return e.subCount(s, mlSaveRestore, "'binary' saving and restoring 'modeline'", 6)
-	})
-	if err != nil {
-		return nil, err
-	}
+	// set_options_bin(), where 'binary' saved and restored 'modeline', went
+	// with 'binary' at phase 7 (lfonly, phase 50's cut, which runs before
+	// this phase now)
 
 	// b_p_ml_nobin is where 'binary' kept 'modeline' while it was off.  It is
 	// not an option, so it has no get_varp() case and droplocal does not know

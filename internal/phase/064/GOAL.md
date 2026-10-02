@@ -1,5 +1,13 @@
 # Phase 64 — no formatting, comment or nroff-macro options
 
+**A record now.** Phase 7 calls `whim64` by name after `noconv`, whose UTF-8
+spelling of `do_join()` it is written in, and drops its three fields after
+the sweep there (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is here, and the phase has no plan entry.
+Phase 60, which folded `'formatprg'`'s and `'equalprg'`'s tests in
+`do_pending_operator()`, runs after it now, so the two cases it cuts are
+matched with those tests still in them, and 60 no longer folds them. What
+follows is the account of the cut as it was made here.
+
 Five options, each dropped with the machinery that only it gave a meaning to.
 
 - **`'comments'`** — no comment leader is recognised. `get_leader_len()` and

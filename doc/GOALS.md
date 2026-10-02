@@ -55,22 +55,21 @@ a heading; the phases keep their numbers, which the snapshots (`qNNN.c`),
 `--from` and `--to` use. The kinds interleave where the measurements put them.
 D1-D12 are the front of phases 1-3 (D1-D5, D6-D8, D9-D12), each part followed by
 its own fall-out closure, so that the parallel check runs the three side by
-side. A generic step
+side; the drops that stayed after the reform joined phase 3's part, or run
+first in phases 6 and 7 on the text the front swept, so the block `d01-front`
+runs to phase 7 (§7 of the reform, step 10). A generic step
 stays in the middle where the rewires after it were written for its text (§7
 of the reform: 120, 134 and 149).
 
 | block | phases |
 |---|---|
 | `s00-seed` | 0 |
-| `d01-front` | 1, 2, 3 |
-| `d02-outside` | 6-25 (10 phases) |
+| `d01-front` | 1-7 (5 phases) |
+| `d02-outside` | 14-25 (7 phases) |
 | `d03-editing` | 28, 32 |
 | `d05-commands-and-options` | 48, 49 |
-| `d06-encoding` | 50, 53 |
 | `d07-options` | 55-62 (4 phases) |
-| `d08-editing` | 64 |
-| `d09-one-of-each` | 69, 70, 73 |
-| `d10-editing` | 75 |
+| `d09-one-of-each` | 69, 70 |
 | `d11-commands` | 77-80 (4 phases) |
 | `d12-terminal-and-ex` | 87 |
 | `d13-files` | 89-96 (8 phases) |
@@ -101,10 +100,10 @@ of the reform: 120, 134 and 149).
 
 **The archive.** A phase that edits nothing any more is a record: its
 `GOAL.md` alone, in `internal/phase/archive/NNN/`, with its old number. There
-are 40: 4, 5, 8, 9, 10, 11, 12, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program the front calls (56 and 61; 57, 58, 63, 65,
-66 and 74 at phase 3; 59, 67, 68, 71, 76 and 85 at phase 6) keeps its
-directory and program where they were; the thirteen of them with no plan
-entry left are records too.
+are 45: 4, 5, 8, 9, 10, 11, 12, 13, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 50, 51, 52, 53, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program the front calls (56 and 61; 57, 58, 63, 65,
+66 and 74 at phase 3; 59, 67, 68, 71, 76 and 85 at phase 6; 64, 72, 73 and
+75 at phase 7) keeps its directory and program where they were; the
+seventeen of them with no plan entry left are records too.
 
 # Part I — phases 0 to 82: an editor with no runtime
 
@@ -775,7 +774,7 @@ make it a worse record and no truer.
 - [Phase 10 — no tag stack](../internal/phase/archive/010/GOAL.md)
 - [Phase 11 — nothing is written that was not asked for](../internal/phase/archive/011/GOAL.md)
 - [Phase 12 — UTF-8, and no other encoding, ever](../internal/phase/archive/012/GOAL.md)
-- [Phase 13 — the editor stops re-reading a file it has already read](../internal/phase/013/GOAL.md)
+- [Phase 13 — the editor stops re-reading a file it has already read](../internal/phase/archive/013/GOAL.md)
 - [Phase 14 — a file name means the file of that name](../internal/phase/014/GOAL.md)
 - [Phase 15 — the last two encoding options](../internal/phase/archive/015/GOAL.md)
 - [Phase 16 — six options that no longer decide anything](../internal/phase/016/GOAL.md)
@@ -812,10 +811,10 @@ make it a worse record and no truer.
 - [Phase 47 — no `:startinsert`, `:startreplace`, `:startgreplace` or `:stopinsert`](../internal/phase/047/GOAL.md)
 - [Phase 48 — no `:noswapfile`](../internal/phase/048/GOAL.md)
 - [Phase 49 — one set of options](../internal/phase/049/GOAL.md)
-- [Phase 50 — only LF text files](../internal/phase/050/GOAL.md)
-- [Phase 51 — a byte that is not UTF-8 is kept as it is](../internal/phase/051/GOAL.md)
-- [Phase 52 — UTF-8 is not a question](../internal/phase/052/GOAL.md)
-- [Phase 53 — no conversion layer, no 'encoding'](../internal/phase/053/GOAL.md)
+- [Phase 50 — only LF text files](../internal/phase/archive/050/GOAL.md)
+- [Phase 51 — a byte that is not UTF-8 is kept as it is](../internal/phase/archive/051/GOAL.md)
+- [Phase 52 — UTF-8 is not a question](../internal/phase/archive/052/GOAL.md)
+- [Phase 53 — no conversion layer, no 'encoding'](../internal/phase/archive/053/GOAL.md)
 - [Phase 54 — no option without a variable](../internal/phase/archive/054/GOAL.md)
 - [Phase 55 — no option nothing reads](../internal/phase/055/GOAL.md)
 - [Phase 56 — no shell, runtime or keyword-program options](../internal/phase/056/GOAL.md)

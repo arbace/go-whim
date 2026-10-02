@@ -138,6 +138,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("ui_focus_change", func(e *edit.E) {
 		e.Literal(w75lit5, "", 1, "a focus change telling the autocommands")
 	})
+	// the modelines are still applied there: phase 49 (oneoptset), which
+	// takes them, runs after this program now (whim75 runs at phase 7)
 	e.InFunction("open_buffer", func(e *edit.E) {
 		e.Literal(w75lit6, w75lit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
 	})
@@ -164,11 +166,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("getcmdline_int", func(e *edit.E) {
 		e.Cut(edit.Line("cmdline_type = firstc == NUL ? '-' : firstc;"), 1, "the line that set the command-line type")
 	})
-	// 25: six more were in the write and read paths, gone at phase 1 (D4),
+	// 43: six more were in the write and read paths, gone at phase 1 (D4),
 	// and seven in the buffer and window switching :q's refusal reached
 	// (quitfront, phase 94's move), and eleven in the read path (readfront, phase
-	// 92's move)
-	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 25, "every remaining bare dispatch (25)")
+	// 92's move).  Run at phase 7, it finds 18 that phases 8-74 took first
+	// when it ran at 75: buf_write()'s 8, set_rw_fname()'s 4, set_buflisted()'s
+	// and enter_buffer()'s 2 each, do_ecmd()'s third and do_filetype_autocmd()'s
+	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 43, "every remaining bare dispatch (43)")
 	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")
 	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")
 	return e.Done()

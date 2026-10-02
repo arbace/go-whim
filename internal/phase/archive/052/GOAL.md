@@ -1,5 +1,10 @@
 # Phase 52 — UTF-8 is not a question
 
+**A record now.** Phase 2 runs this phase's cut (`utf8only`, the pipeline
+reform's D7), and the 51-53 group it belonged to has no plan entry left (the
+rest runs at phase 7, `doc/PIPELINE-REFORM.md` §7). What follows is the
+account of the cut as it was made here.
+
 Since Phase 12, `mb_init()` sets the same five globals to the same values every
 time: `enc_utf8`, `has_mbyte` and `enc_latin1like` TRUE, `enc_dbcs` and
 `enc_unicode` 0. **456 places still asked them**, in every shape C allows — a bare

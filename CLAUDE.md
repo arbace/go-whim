@@ -150,18 +150,21 @@ slim-vim.c  --whim-->  whim-vim.c
 
   **The pipeline reform** (`doc/PIPELINE-REFORM.md`) reordered what the bytes
   allow.
-  - **Phases 1-3 are the front.** They cut every interface and feature the
+  - **Phases 1-7 are the front.** They cut every interface and feature the
     product has not, as twelve packages (D1-D12; phase 1 runs D1-D5, phase 2
     D6-D8, phase 3 D9-D12, each part followed by its own closure, so that the
     parallel check runs the three side by side): the command line, the Ex commands,
     the files, `:q`'s refusal, reading, the command syntax, the options, the
     swap file, startup, the encoding, the terminal, one window and buffer,
     the editing features, one regexp engine, the process; and, after the
-    reform, the editing-feature programs of 57, 58, 63, 65, 66 and 74 at the
-    end of phase 3's part, and first in phase 6, on the text phase 3 swept,
-    what counts or anchors on swept text: 76's program, 42's `onebuffer`,
-    and the programs of 67, 68, 71 and 85 (59's after `nowildmenu`). The fall-out
-    closure (`crefactor/xform`'s `FallOut`) folds what each part left
+    reform, every drop that stayed: the editing-feature programs of 57, 58,
+    63, 65, 66 and 74 at the end of phase 3's part, and first in phases 6
+    and 7, on the text the phase before swept, what counts or anchors on
+    swept text -- 13's `nostat`, 76's program, 42's `onebuffer` and the
+    programs of 67, 68, 71 and 85 (59's after `nowildmenu`) at phase 6;
+    25's `nobackup`, 50's `lfonly`, 51-53's `keepbytes` and `noconv`, and
+    the programs of 64, 72, 73 and 75 at phase 7. The fall-out closure
+    (`crefactor/xform`'s `FallOut`) folds what each of phases 1-3 left
     unwritten.
   - **The rest are named in blocks.** `d02`-`d13` are the drops that count
     text only their predecessors leave, `r01`-`r14` the rewires, and
@@ -513,7 +516,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
                      # bin/caprice, bin/whimsy, bin/whimsical
-make whim-build      # the 110 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 104 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs or editor.ss that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
@@ -551,7 +554,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 110 phases, **473 s**, 614 s of CPU, 77,634 lines (815 s and
+  before the reason. Measured: 104 phases, **439 s**, 572 s of CPU, 77,634 lines (815 s and
   1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step 9; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
@@ -570,8 +573,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **78 s**, 109 links 64 at a time, bound by
-  the machine's load and no longer by one link (the front's three parts, phases 1-3, take 31, 33 and 39 s, and the seed 9 s; phase 1 alone was 89 s), against 473 s in
+  committed `whim-vim.c`. Measured: **76-77 s**, 103 links 64 at a time, bound by
+  the machine's load and no longer by one link (the front's three closures, phases 1-3, take 30, 33 and 37 s, phases 6 and 7 14 and 10 s, and the seed 9 s; phase 1 alone was 89 s), against 439 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -621,14 +624,14 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 110 of them, in order, numbered 0-184. 40 phases that
+`p_N = f_N(p_{N-1})` -- 104 of them, in order, numbered 0-184. 45 phases that
 edit nothing any more are records only, a `GOAL.md` each in
 `internal/phase/archive/` (`doc/GOALS.md` lists them): most because phase 1's
 front runs their cut now, 168 because `GotoTail` takes its gotos
 (`doc/PIPELINE-REFORM.md` §7). 61's program is called by the front too, so it
 has no plan entry but keeps its directory, and so do 57, 58, 63, 65, 66 and
-74's (phase 3 calls them) and 59, 67, 68, 71, 76 and 85's (phase 6, on the
-text the front swept); 106's, 105's and 107's are phase
+74's (phase 3 calls them), 59, 67, 68, 71, 76 and 85's (phase 6) and 64,
+72, 73 and 75's (phase 7, each on the text the phase before swept); 106's, 105's and 107's are phase
 0's three steps, the same. And the
 12 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d still running -- 44-48,
 51-53, 72-73, 100-102, 117-119, 121-122, 143-145, 148-149, 151-152,

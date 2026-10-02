@@ -85,14 +85,18 @@ import (
 var emptyFns = []string{
 	"clear_chartabsize_arg", "may_trigger_modechanged",
 	"may_trigger_win_scrolled_resized", "out_flush_check", "add_b0_fenc",
-	"set_b0_dir_flag", "pum_may_redraw", "ml_setname",
+	"pum_may_redraw",
 	"trigger_undo_ftplugin", "set_init_lang_env", "set_init_default_printencoding",
 	"set_init_3", "mch_new_shellsize", "mch_early_init",
 }
 
 // ml_preserve, the fifteenth, went with :write at phase 1 (filefront, D4).
+// ml_setname and set_b0_dir_flag, the thirteenth and fourteenth, went with
+// buf_name_changed(), their last caller, once setfname() lost its last
+// callers: 62's set_rw_fname() fold and, from phase 7, phase 72's body for
+// create_windows() (whim72, which runs before this phase now).
 
-// Whim78 removes every call to fourteen functions that do nothing, and the
+// Whim78 removes every call to twelve functions that do nothing, and the
 // write-only state five more kept.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nostubs", text, w)

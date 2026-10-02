@@ -64,7 +64,7 @@ var Plan = []Phase{
 			{Op: "front2"},
 			{Op: "query-empty", Args: []string{"whim2"}},
 		}},
-	{N: 3, Name: "the front, ended; and no introduction, and the command line says only what the editor still decides",
+	{N: 3, Name: "the front, continued; and no introduction, and the command line says only what the editor still decides",
 		Steps: []Step{
 			{Op: "front3"},
 			{Op: "nointro"},
@@ -72,10 +72,11 @@ var Plan = []Phase{
 		}},
 	// 4, the binary's name stops choosing what it does: a record (internal/phase/archive/004/GOAL.md); its cut went to argvfront, phase 1.
 	// 5, one regexp engine, not two: a record (internal/phase/archive/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
-	{N: 6, Block: "d02-outside", Name: "the editor stops writing shell scripts, and stops drawing a menu",
+	{N: 6, Name: "the front, on swept text; and the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
 			// phase 76's program, which asserts the NFA engine is gone: on the
 			// text the front swept (nonfa, phase 3)
+			{Op: "nostat"},
 			{Op: "edit", Args: []string{"whim76"}},
 			// phases 57's and 58's fields, whose readers phase 3 took (whim57
 			// and whim58, on the front)
@@ -95,8 +96,26 @@ var Plan = []Phase{
 			// getcmdline_int()'s completion the menu's cut leaves
 			{Op: "edit", Args: []string{"whim59"}},
 		}},
-	{N: 7, Name: "the editor stops looking for files it was not given",
+	{N: 7, Name: "the front, ended; and the editor stops looking for files it was not given",
 		Steps: []Step{
+			// the cuts of phases 25 (nobackup), 50 (lfonly) and 51-53
+			// (keepbytes, noconv), on the text phase 6 swept, with readfile()
+			// and mch_call_shell_fork() gone (nostat and nowild, phase 6);
+			// phase 64's program, in noconv's spelling; then phases 72's and
+			// 73's programs, which count ONE_WINDOW and the frame tree's
+			// writers; then the fields of 50, 53 and 64
+			{Op: "nobackup"},
+			{Op: "lfonly"},
+			{Op: "keepbytes"},
+			{Op: "noconv"},
+			{Op: "edit", Args: []string{"whim64"}},
+			{Op: "edit", Args: []string{"whim72"}},
+			{Op: "edit", Args: []string{"whim73"}},
+			{Op: "sweep"},
+			{Op: "droplocal", Args: []string{"b_p_bin", "b_p_ff", "b_p_fixeol", "b_p_tx", "b_p_menc"}},
+			{Op: "droplocal", Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
+			// phase 75's program, which counts the dispatches on swept text
+			{Op: "edit", Args: []string{"whim75"}},
 			{Op: "noglob"},
 		}},
 	// 8, `:!` keeps its name and loses its process: a record (internal/phase/archive/008/GOAL.md); its cut went to phase 1 (noshellout, the reform's D12).
@@ -104,11 +123,8 @@ var Plan = []Phase{
 	// 10, no tag stack: a record (internal/phase/archive/010/GOAL.md); its cut went to phase 1 (notags, the reform's D10).
 	// 11, nothing is written that was not asked for: a record (internal/phase/archive/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
 	// 12, UTF-8, and no other encoding, ever: a record (internal/phase/archive/012/GOAL.md); its cut went to phase 1 (noenc, the reform's D7).
-	{N: 13, Name: "the editor stops re-reading a file it has already read",
-		Steps: []Step{
-			{Op: "nostat"},
-		}},
-	{N: 14, Name: "a file name means the file of that name",
+	// 13, the editor stops re-reading a file it has already read: a record (internal/phase/archive/013/GOAL.md); its cut went to phase 6 (nostat, on the text the front swept).
+	{N: 14, Block: "d02-outside", Name: "a file name means the file of that name",
 		Steps: []Step{
 			{Op: "nofind"},
 		}},
@@ -144,7 +160,8 @@ var Plan = []Phase{
 	// 24, there is no mouse: a record (internal/phase/archive/024/GOAL.md); its cut went to phase 1 (nomouse, the reform's D8).
 	{N: 25, Name: "a write is a write, and nobody owns it",
 		Steps: []Step{
-			{Op: "nobackup"},
+			// nobackup runs at phase 7, before noconv, which is written for
+			// buf_write() without the backup
 			{Op: "noowner"},
 			{Op: "droplocal", Args: []string{"b_p_bkc"}},
 		}},
@@ -188,22 +205,9 @@ var Plan = []Phase{
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_ml"}},
 		}},
-	{N: 50, Block: "d06-encoding", Name: "only LF text files",
-		Steps: []Step{
-			{Op: "lfonly"},
-			{Op: "sweep"},
-			{Op: "droplocal", Args: []string{"b_p_bin", "b_p_ff", "b_p_fixeol", "b_p_tx"}},
-		}},
+	// 50, only LF text files: a record (internal/phase/archive/050/GOAL.md); its cut and droplocal went to phase 7 (lfonly, on the text phase 6 swept).
 	// Phases 51-53, merged: the encoding, reduced to UTF-8 in three steps.
-	{N: 53, Name: "UTF-8: the bytes kept, UTF-8 only, no conversion",
-		Steps: []Step{
-			// utf8only runs at phase 1 (the reform's D7); keepbytes and noconv
-			// stay, after phase 50's lfonly, which takes the ++ff arm their
-			// getargopt chain starts after
-			{Op: "keepbytes"},
-			{Op: "noconv"},
-			{Op: "droplocal", Args: []string{"b_p_menc"}},
-		}},
+	// 51-53, UTF-8: the bytes kept, UTF-8 only, no conversion: records (internal/phase/archive/051/GOAL.md, 052, 053); utf8only runs at phase 2 (the reform's D7), keepbytes, noconv and the droplocal at phase 7.
 	// 54, no option without a variable: a record (internal/phase/archive/054/GOAL.md); every row it dropped is dropped at phase 1 with every option the product has not (optfront, the reform's D3).
 	{N: 55, Block: "d07-options", Name: "no option nothing reads",
 		Steps: []Step{
@@ -237,12 +241,7 @@ var Plan = []Phase{
 			{Op: "droplocal", Args: []string{"b_p_bt", "b_p_ft"}},
 		}},
 	// 63, no jump list: a record (internal/phase/063/GOAL.md); its program runs at phase 3 (whim63, the front).
-	{N: 64, Block: "d08-editing", Name: "no formatting, comment or nroff-macro options",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim64"}},
-			{Op: "sweep"},
-			{Op: "droplocal", Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
-		}},
+	// 64, no formatting, comment or nroff-macro options: a record (internal/phase/064/GOAL.md); its program and droplocal run at phase 7 (whim64, after noconv, whose UTF-8 spelling it is written in).
 	// 65, no rot13, no operator function, no empty key handler: a record (internal/phase/065/GOAL.md); its program runs at phase 3 (whim65, the front).
 	// 66, no sentences, paragraphs, sections, methods, #if blocks or comment blocks: a record (internal/phase/066/GOAL.md); its program runs at phase 3 (whim66, the front).
 	// 67, no mouse, no spell plumbing, no write-only flags: a record (internal/phase/067/GOAL.md); its program runs at phase 6 (whim67, on the text the front swept).
@@ -257,16 +256,9 @@ var Plan = []Phase{
 		}},
 	// 71, one buffer, structurally: a record (internal/phase/071/GOAL.md); its program runs at phase 6 (whim71, on the text the front swept).
 	// Phases 72-73, merged: one window/tab page structurally, then one frame.
-	{N: 73, Name: "one window and tab page structurally, and one frame",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim72"}},
-			{Op: "edit", Args: []string{"whim73"}},
-		}},
+	// 73, one window and tab page structurally, and one frame: a record (internal/phase/073/GOAL.md); its programs run at phase 7 (whim72 and whim73, on the text phase 6 swept).
 	// 74, no file marks: a record (internal/phase/074/GOAL.md); its program runs at phase 3 (whim74, the front).
-	{N: 75, Block: "d10-editing", Name: "no autocommands",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim75"}},
-		}},
+	// 75, no autocommands: a record (internal/phase/075/GOAL.md); its program runs at phase 7 (whim75, on the text phase 7's sweep leaves).
 	// 76, one regexp engine, so no retry: a record (internal/phase/076/GOAL.md); its program runs at phase 6 (whim76, on the text the front swept).
 	{N: 77, Block: "d11-commands", Name: "no buffer-name argument matching",
 		Steps: []Step{

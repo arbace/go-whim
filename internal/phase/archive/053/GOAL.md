@@ -1,8 +1,11 @@
 # Phase 53 — no conversion layer, no 'encoding'
 
-**Part of it is phase 1's now.** `utf8only` runs at the front (the pipeline
-reform's D7, `doc/PIPELINE-REFORM.md` §7); the rest of this phase's steps stay
-here. What follows is the account of the phase as it was made.
+**A record now.** `utf8only` runs at the front (phase 2, the pipeline
+reform's D7), and `noconv` and the `droplocal` of `b_p_menc` at phase 7, after
+`nobackup` and `lfonly`, on the text phase 6 swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front). `noconv`'s `++`
+argument completion went first, with every completion context but files
+(phase 59's program, phase 6). It has no plan entry. What follows is the
+account of the phase as it was made.
 
 Phase 12 cut the conversion layer at its entry points and left its body. Two ways
 in were still open: **`++enc`** on `:e`, `:r` and `:w`, and a buffer whose

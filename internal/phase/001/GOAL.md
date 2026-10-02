@@ -4,8 +4,10 @@
 swap file) and its fall-out closure. Phase 2 runs D6-D8 (startup, the encoding,
 the terminal) and phase 3 D9-D12 (one of each, the editing features, the
 regexp engine, the process), each with its own closure. Each part is under 50 s,
-so the parallel check runs them side by side. The paragraphs below describe all
-twelve where they were first written.
+so the parallel check runs them side by side. Phases 6 and 7 continue it,
+first, on the text the phase before swept, with the drops that count or
+anchor on swept text. The paragraphs below describe them all where they were
+first written.
 
 **Its first step is the command line** (`argvfront`, the pipeline reform's
 first drop package, `doc/PIPELINE-REFORM.md` §7): `command_line_scan()` is cut
@@ -126,8 +128,9 @@ at phase 13), so `nofenc` counts readfile's copies too, and `nofencs` no
 longer asserts that `p_fencs` is read by nothing. `utf8only` folds
 `has_mbyte` and `enc_utf8` before the phases that used to spell them, so
 `noabbr`'s literals and `noident`'s body are written in UTF-8's spelling.
-`keepbytes` and `noconv` stay at phase 53, after phase 50's `lfonly`, which
-takes the `++ff` arm their `getargopt` chain starts after.
+`keepbytes` and `noconv` stayed at phase 53, after phase 50's `lfonly`, which
+takes the `++ff` arm their `getargopt` chain starts after; all three run at
+phase 7 now.
 
 **Then the terminal is what the build says, with no mouse and no title**
 (`noterm`, `nomouse` and `whim61`, the reform's D8): the cuts of phases 19, 24
@@ -168,8 +171,11 @@ They applied to its text as written. `whim66` takes the last writers of
 `listcmd_busy`, which the product keeps, so the closure holds it. Phase 76's
 program and the `droplocal` of 57's and 58's fields run first in phase 6, on
 the text phase 3 swept, and so do phase 42's `onebuffer` and the programs of
-67, 68, 71 and 85, which count and anchor on swept text; 59's runs there
-after `nowildmenu`.
+67, 68, 71 and 85, which count and anchor on swept text, after phase 13's
+`nostat`; 59's runs there after `nowildmenu`. Phase 7 runs, on phase 6's
+swept text, `nobackup` (25), `lfonly` (50), `keepbytes` and `noconv` (51-53)
+and the programs of 64, 72, 73 and 75: with `readfile()` and the shell fork
+swept, `lfonly` applies as written.
 
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,

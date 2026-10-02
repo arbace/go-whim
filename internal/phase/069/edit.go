@@ -99,16 +99,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// live functions, so its BODY folds and the calls go; editing_arg_idx() is
 	// reached only from it.  arg_all() builds the ## expansion from every entry,
 	// and now has none to build from.
-	// four: the others died with commands retired or deleted at phase 1 (D2, D4)
-	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 4, "the four calls that revalidated the argument index")
+	// three: the others died with commands retired or deleted at phase 1
+	// (D2, D4), and buf_name_changed()'s with setfname()'s last caller once
+	// phase 72's body for create_windows() runs at phase 7, before this
+	// phase now
+	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 3, "the three calls that revalidated the argument index")
 	e.InFunction("eval_vars", func(e *edit.E) {
 		e.Literal(w69lit16, w69lit17, 1, "## expanding to every file in the argument list")
 	})
-	e.InFunction("win_init_some", func(e *edit.E) {
-		e.Cut(edit.Line("newp->w_alist = oldp->w_alist;", "++newp->w_alist->al_refcount;", "newp->w_arg_idx = oldp->w_arg_idx;"), 1,
-			"a new window inheriting the argument list")
-	})
-	e.Cut(edit.Line("curwin->w_arg_idx = -1;"), 1, "the index a swap-file quit invalidated")
+	// win_init_some(), where a new window inherited the argument list, went
+	// with the window split at phase 7 (whim72 and whim73, which run before
+	// this phase now)
+	// create_windows() invalidated the index when a swap-file prompt quit;
+	// its body is phase 72's from phase 7 (whim72, which runs before this
+	// phase now)
 	// The window's argument-list fields are named by nothing after this, and
 	// the sweep takes them.
 
@@ -128,9 +132,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("common_init_2", func(e *edit.E) {
 		e.Cut(edit.Line("alist_init(&global_alist);", "global_alist.id = 0;"), 1, "the argument list set up at startup")
 	})
-	e.InFunction("win_alloc_firstwin", func(e *edit.E) {
-		e.Cut(edit.Line("curwin->w_alist = &global_alist;"), 1, "the one window pointing at it")
-	})
+	// the one window pointed at it in win_alloc_firstwin(), whose body is
+	// phase 72's from phase 7 (whim72, which runs before this phase now)
 
 	// and the count message, which one file argument can never satisfy
 	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 1 && !silent_mode)", "{", `printf(_("%d files to edit\n"), (global_alist.al_ga.ga_len));`, "}"), 1,

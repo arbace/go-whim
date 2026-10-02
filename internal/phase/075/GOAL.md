@@ -1,5 +1,16 @@
 # Phase 75 — no autocommands
 
+**A record now.** Phase 7 calls `whim75` by name after its sweep (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the
+program is here, and the phase has no plan entry. Two of its counts were
+restated for the earlier text: `open_buffer()`'s block still applies the
+modelines (`do_modelines(0)`, which phase 49 takes after it now, at the
+block's new depth), and 43 bare dispatches go, not 25 -- the 18 more are in
+`buf_write()`, `set_rw_fname()`, `set_buflisted()`, `enter_buffer()`,
+`do_ecmd()` and `do_filetype_autocmd()`, which phases 8-74 took first when it
+ran at 75. `match_file_pat()` and `verbose_enter()`/`verbose_leave()` go with
+the autocommands there, so phase 60 no longer edits them. What follows is the
+account of the cut as it was made here.
+
 **Proved by absence, not inferred from the command table.**
 `first_autopat[NUM_EVENTS] = { NULL }` is the **only** write to that array in the
 whole file; every other mention reads it. No autocommand pattern can ever be

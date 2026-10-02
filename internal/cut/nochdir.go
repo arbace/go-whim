@@ -128,12 +128,9 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 
 	// The window- and tab-local directory restore in aucmd_restbuf() went
 	// with the autocommand window's switch at phase 6 (whim68, phase 68's
-	// program, which runs before this phase now).
-	if text, err = cutCounted(text, edit.Line("win_fix_current_dir();"),
-		"nochdir", "its unconditional call", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nochdir      win_fix_current_dir, whose guard cannot be true")
+	// program), and win_fix_current_dir()'s unconditional call with
+	// win_enter_ext(), whose callers phases 72 and 73 take at phase 7: both
+	// run before this phase now.
 
 	// `globaldir` remembers the directory to come back to when a window-local
 	// one is in force.  aucmd_prepbuf()/aucmd_restbuf() saved and restored it

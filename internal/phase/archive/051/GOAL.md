@@ -1,5 +1,9 @@
 # Phase 51 — a byte that is not UTF-8 is kept as it is
 
+**A record now.** Phase 7 runs this phase's cut (`keepbytes`), after `lfonly`,
+which takes the `++ff` arm its `getargopt()` chain starts after (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front). It has no
+plan entry. What follows is the account of the cut as it was made here.
+
 **Phase 12 changed this without declaring it.** It made UTF-8 the only encoding by
 cutting the conversion layer at its entry points, and its table lists what each
 cut function now answers — but not what that does to a file that is not valid

@@ -42,11 +42,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(edit.Head("if (*num_files > 1 && !got_int)"), 1, "matches reordered by 'suffixes'")
 	})
 
-	// 'fileignorecase'
-	// one; the other died with the command retired at phase 1 that reached
-	// it (exfront, the reform's D2)
-	e.Literal("regmatch.rm_ic = p_fic;", "regmatch.rm_ic = FALSE;", 1,
-		"file patterns ignoring case by 'fileignorecase'")
+	// 'fileignorecase': match_file_pat()'s went with the autocommands at
+	// phase 7 (whim75, phase 75's program, which runs before this phase now);
+	// the other died with the command retired at phase 1 that reached it
+	// (exfront, the reform's D2)
 	e.InFunction("fname_match", func(e *edit.E) {
 		e.Literal("rmp->rm_ic = p_fic || ignore_case;", "rmp->rm_ic = ignore_case;", 1,
 			"buffer names ignoring case by 'fileignorecase'")
@@ -78,14 +77,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Sub(`return \*p_vfile != NUL\s*;`, "return FALSE;", 1,
 			"redirecting to 'verbosefile'")
 	})
-	e.InFunction("verbose_enter", func(e *edit.E) {
-		e.DropIf(edit.Head("if (*p_vfile != NUL)"), 1, "verbose_enter silencing for 'verbosefile'")
-	})
-	e.InFunction("verbose_leave", func(e *edit.E) {
-		e.DropIf(edit.Head("if (*p_vfile != NUL)"), 1, "verbose_leave silencing for 'verbosefile'")
-	})
-	e.Sub(`(?m)^[ \t]*verbose_(?:enter|leave)\(\);\n`, "", 4,
-		"calls to the emptied verbose_enter and verbose_leave")
+	// verbose_enter() and verbose_leave(), and their four calls, went with
+	// the autocommands' verbose messages at phase 7 (whim75, phase 75's
+	// program, which runs before this phase now)
 	e.InFunction("verbose_enter_scroll", func(e *edit.E) {
 		e.FoldNever(edit.Head("if (*p_vfile != NUL)"), 1, "verbose_enter_scroll silencing for 'verbosefile'")
 	})
@@ -106,12 +100,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(edit.Head("if (vim_strchr(p_debug, 'e') != nullptr)"), 1, "'debug' e showing Beep!")
 	})
 
-	// 'formatprg' and 'equalprg'
-	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Literal("if (oap->op_type == OP_INDENT && *get_equalprg() == NUL)", "if (oap->op_type == OP_INDENT)", 1,
-			"= through 'equalprg'")
-		e.FoldNever(edit.Head("if (*p_fp != NUL || *curbuf->b_p_fp != NUL)"), 1, "gq through 'formatprg'")
-	})
+	// 'formatprg' and 'equalprg': gq through 'formatprg' and = through
+	// 'equalprg' went with the format operator's case and the filter and
+	// indent dispatch at phase 7 (whim64, phase 64's program, which runs
+	// before this phase now)
 	e.InFunction("op_colon", func(e *edit.E) {
 		e.FoldNever(edit.Head("if (oap->op_type == OP_INDENT)"), 1, "op_colon building an 'equalprg' filter")
 		e.FoldNever(edit.Head("if (oap->op_type == OP_FORMAT)"), 1, "op_colon building a 'formatprg' filter")

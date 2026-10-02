@@ -73,6 +73,8 @@ var internalFormatDecls = []struct{ pattern, What string }{
 	{`wcc = 0;`, "internal_format: wcc = 0;"},
 }
 
+// oldDispatch still asks 'equalprg': phase 60, which folded that test, runs
+// after this program now (whim64 runs at phase 7).
 const oldDispatch = `        case OP_FILTER:
             if (vim_strchr(p_cpo, CPO_FILTER) != nullptr)
             {
@@ -85,7 +87,7 @@ const oldDispatch = `        case OP_FILTER:
             ;
         case OP_INDENT:
         case OP_COLON:
-            if (oap->op_type == OP_INDENT)
+            if (oap->op_type == OP_INDENT && *get_equalprg() == NUL)
             {
                 op_reindent(oap, get_indent);
                 break;
@@ -230,7 +232,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(edit.Head("if (cap->oap->op_type == OP_FORMAT)"), 1, "gqq and gqgq doubling the operator")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Cut(edit.Line("case OP_FORMAT:", "{", "op_format(oap, FALSE);", "}", "break;", "case OP_FORMAT2:", "op_format(oap, TRUE);", "break;"), 1,
+		// with 'formatprg''s test still in it: phase 60, which folded it, runs
+		// after this program now (whim64 runs at phase 7)
+		e.Cut(edit.Line("case OP_FORMAT:", "{", "if (*p_fp != NUL || *curbuf->b_p_fp != NUL)", "{", "op_colon(oap);", "}", "else", "{",
+			"op_format(oap, FALSE);", "}", "}", "break;", "case OP_FORMAT2:", "op_format(oap, TRUE);", "break;"), 1,
 			"the operator reaching the formatter")
 	})
 

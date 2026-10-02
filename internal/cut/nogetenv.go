@@ -94,25 +94,9 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nogetenv     $VIM_POSIX, which chose a stricter 'cpoptions'")
 
-	// 'backupskip' was $TMPDIR, $TEMP, $TMP and always /tmp.  Three of the four
-	// cannot contribute now, so the loop runs its one pass; the table and `i`
-	// are left for the sweep.
-	// The loop's one surviving pass keeps its braces and its `mustfree`, which
-	// the tail of the body still frees: the substitution keeps those two
-	// groups rather than deleting the whole match.
-	loop := regexp.MustCompile(
-		`(?m)[ \t]*for \(i = 0; i < \(int\)\(sizeof\(names\) / sizeof\(\(names\)\[0\]\)\); \+\+i\)\n` +
-			`([ \t]*\{\n[ \t]*int[ \t]+mustfree = FALSE;\n)` +
-			`[ \t]*if \(\*names\[i\] == NUL\)\n[ \t]*\{\n` +
-			`([ \t]*p = \(char_u \*\)"/tmp";\n[ \t]*plen = \(int\)\(sizeof\("/tmp"\) - 1\);\n)` +
-			`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n` +
-			`[ \t]*p = vim_getenv\(\(char_u \*\)names\[i\], &mustfree\);\n` +
-			`[ \t]*plen = 0;\n[ \t]*\}\n`)
-	var hit bool
-	if text, hit = replaceFirst(loop, text, "${1}${2}"); !hit {
-		return nil, fmt.Errorf("nogetenv: backupskip's loop over them is not where this expects")
-	}
-	fmt.Fprintln(w, "  nogetenv     $TMPDIR, $TEMP and $TMP; 'backupskip' keeps /tmp")
+	// 'backupskip' was $TMPDIR, $TEMP, $TMP and always /tmp: its default,
+	// set_init_default_backupskip(), went with the backup at phase 7
+	// (nobackup, phase 25's cut, which runs before this phase now).
 
 	// vimrc_found() and do_source_ext()'s two DOSO_VIMRC arms, which kept
 	// vim_setenv, export_myvimdir and $MYVIMDIR alive, died with :source,

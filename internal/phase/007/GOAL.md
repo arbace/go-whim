@@ -1,5 +1,10 @@
 # Phase 7 — the editor stops looking for files it was not given
 
+**It runs the drops that count on phase 6's swept text first**
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): phase 25's `nobackup`, 50's `lfonly`, 51-53's `keepbytes` and `noconv`,
+the programs of 64, 72 and 73, a sweep, the `droplocal` of the fields of 50,
+53 and 64, and 75's program. Then its own cut.
+
 Two removals that are the same thing seen from two sides: the editor asking the
 filesystem what is around the file it was handed.
 

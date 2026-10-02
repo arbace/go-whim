@@ -1,5 +1,10 @@
 # Phase 25 — a write is a write, and nobody owns it
 
+**Its first cut runs at phase 7 now.** `nobackup` runs there, on the text
+phase 6 swept and before `noconv`, whose `buf_write()` edits are written for
+it (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front); `noowner` and the `droplocal` stay here, `noowner`'s mode-mask anchor
+written for the text `nobackup` leaves printed.
+
 ## a write is a write
 
 Writing a file in vim is not one operation. Before the new contents go anywhere

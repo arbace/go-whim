@@ -1,8 +1,9 @@
 # Phase 6 — the editor stops writing shell scripts, and stops drawing a menu
 
 **It runs the drops that stayed first**, on the text phase 3 swept
-(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): phase 76's
-program (`whim76`), whose proof needs the NFA engine swept; the `droplocal`
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): phase 13's
+`nostat`, so that `readfile()` is gone by phase 7; phase 76's program
+(`whim76`), whose proof needs the NFA engine swept; the `droplocal`
 of the fields phases 57 and 58 took the readers of at phase 3 (`b_p_lisp`,
 `b_p_lw`, `b_p_iminsert`, `b_p_imsearch`); phase 42's `onebuffer`, a sweep
 and the `droplocal` of `b_p_bh`; and the programs of 67, 68, 71 and 85, which

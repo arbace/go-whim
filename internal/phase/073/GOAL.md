@@ -1,5 +1,10 @@
 # Phase 73 — one frame
 
+**A record now.** Phase 7 calls `whim73` by name after `whim72`, on the text
+phase 6 swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is here, and the phase-72-73 group has no plan
+entry. It applied there as written. What follows is the account of the cut as
+it was made here.
+
 **The strongest invariant of this run, and it is proved by absence.** Grepping the
 whole file for a write to `fr_child`, `fr_next`, `fr_prev` or `fr_parent` returns
 **nothing at all**. The frame tree is never linked:

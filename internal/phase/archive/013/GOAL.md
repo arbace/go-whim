@@ -1,5 +1,10 @@
 # Phase 13 — the editor stops re-reading a file it has already read
 
+**A record now.** Phase 6 runs this phase's cut (`nostat`) first, on the text
+phase 3 swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front), so that `readfile()`, whose last two callers it takes, is
+gone by phase 7, where `lfonly` needs it gone. It has no plan entry. What
+follows is the account of the cut as it was made here.
+
 vim watches the files it holds. `check_timestamps()` walks every buffer and
 stats its file — from the main loop, from insert mode, from the `Press ENTER`
 prompt, and whenever the terminal regains focus — and `buf_check_timestamp()`

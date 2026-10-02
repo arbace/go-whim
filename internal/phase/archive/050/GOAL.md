@@ -1,5 +1,12 @@
 # Phase 50 — only LF text files
 
+**A record now.** Phase 7 runs this phase's cut (`lfonly`) and, after its
+sweep, the `droplocal` of the four fields (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front). There the text is the one phase
+6 swept: `readfile()` (phase 6's `nostat`) and `mch_call_shell_fork()` (its
+`nowild`) are gone, so `lfonly` applies as written; inside the front readfile
+was still alive, which is why it stayed. It has no plan entry. What follows is
+the account of the cut as it was made here.
+
 Every line ends with LF when it is read and when it is written, and a CR is a
 character like any other. `-b` goes, and with it `'binary'`, `'fileformat'`,
 `'fileformats'`, `'endofline'`, `'fixendofline'`, `'endoffile'`, and the old

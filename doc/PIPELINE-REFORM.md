@@ -1252,6 +1252,49 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
        In order: 110 phases, 473 s (614 s of CPU); phases 1-3 31, 33 and 39
        s, phase 6 15 s. The parallel check: 109 links, 78 s.
+   - **The encoding, the formatting, one window and one frame, and the
+     autocommands, done (same branch).** Phase 7 runs first, on the text
+     phase 6 swept: 25's `nobackup`, 50's `lfonly`, 51-53's `keepbytes` and
+     `noconv`, 64's program, 72's and 73's, a sweep, the `droplocal` of the
+     fields of 50, 53 and 64, and 75's program. Phase 6 runs 13's `nostat`
+     first. 13 and 50-53 are records in the archive; 64, 72, 73 and 75 keep
+     their programs; 25 keeps `noowner` and its `droplocal`. The blocks
+     label it: `d01-front` runs to phase 7, `d02-outside` opens at 14.
+     - **Why `lfonly` could move after all.** It counts and anchors on text
+       where `readfile()` is gone; at the front that was phase 13's
+       `nostat`, so it seemed every readfile edit would have to come back.
+       Bringing `nostat` to phase 6 instead, and `lfonly` to phase 7, gives it
+       that text: `readfile()` and `mch_call_shell_fork()` (phase 6's
+       `nowild`) are swept by then, and it applies as written. `keepbytes`
+       and `noconv` follow it; `noconv` needs `nobackup` first (its
+       `if (!converted || dobackup)`), so that comes too.
+     - **Restated, with a comment each.**
+       - 64 cuts the format operator's case and the filter and indent
+         dispatch with phase 60's `'formatprg'` and `'equalprg'` tests still
+         in them; 60's two folds there go.
+       - 75's `open_buffer()` literal keeps `do_modelines(0)`, which
+         `oneoptset` (49) takes after it, at the new depth; its bare
+         dispatches are 43, not 25: buf_write()'s 8, set_rw_fname()'s 4,
+         set_buflisted()'s and enter_buffer()'s 2 each, do_ecmd()'s third
+         and do_filetype_autocmd()'s, which phases 8-74 took first.
+       - `noowner` (25) finds its mode mask by its condition alone, since
+         `nobackup`'s block around it is printed one level shallower.
+       - 62 counts one `set_buflisted()` (the help buffer's), 69 three
+         `check_arg_idx()` calls, and 78 twelve empty functions:
+         `create_windows()`'s body is 72's from phase 7, and with its
+         `setfname()` gone, `buf_name_changed()`, `ml_setname()` and
+         `set_b0_dir_flag()` go before 62.
+     - **What it replaced.** `nogetenv`'s `'backupskip'` loop (20, with
+       `nobackup`), `nochdir`'s `win_fix_current_dir()` call (22, with
+       `win_enter_ext()`), `oneoptset`'s `set_options_bin()` edit (49, with
+       `lfonly`), 69's `win_init_some()`, `create_windows()` and
+       `win_alloc_firstwin()` edits and 70's `create_windows()` literal (with
+       72's bodies), and 60's `match_file_pat()` and `verbose_enter()` and
+       `verbose_leave()` edits (with 75).
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       Every drop the reform left is at the front now. In order: 104
+       phases, 439 s (572 s of CPU); phases 1-3 30, 33 and 37 s, phase 6 14
+       s, phase 7 10 s. The parallel check: 103 links, 76-77 s.
 
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with

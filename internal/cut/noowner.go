@@ -14,10 +14,11 @@ const (
 		"&& vim_strchr(p_cpo, CPO_FWRITE) == nullptr)"
 	ownTestNew = "if (forceit && perm >= 0 && !(perm & 0200) " +
 		"&& vim_strchr(p_cpo, CPO_FWRITE) == nullptr)"
-	uidGidTest = "                            if (st_old.st_uid != getuid() || " +
-		"st_old.st_gid != getgid())"
-	unameTest = "            if (get_user_name(uname, B0_UNAME_SIZE) == FAIL"
-	flenOld   = "flen = home_replace(nullptr, buf->b_ffname, b0p->b0_fname, " +
+	// no indentation: nobackup, which cut the block around it, runs at phase
+	// 7 now, so this phase reads it canonically printed, one level shallower
+	uidGidTest = "if (st_old.st_uid != getuid() || st_old.st_gid != getgid())"
+	unameTest  = "            if (get_user_name(uname, B0_UNAME_SIZE) == FAIL"
+	flenOld    = "flen = home_replace(nullptr, buf->b_ffname, b0p->b0_fname, " +
 		"B0_FNAME_SIZE_CRYPT, TRUE);"
 	flenNew = "(void)home_replace(nullptr, buf->b_ffname, b0p->b0_fname, " +
 		"B0_FNAME_SIZE_CRYPT, TRUE);"
