@@ -87,7 +87,7 @@ func TestScmTidyJoins(t *testing.T) {
 	// body names: it stays
 	for _, src := range []string{
 		`(define (f ed q) (define (join2 p) (g ed p)) (if (fx>? q 0) (join2 q) (join2 0)))`,
-		`(define (f ed q) (define (join2 p) (g ed p q)) (let ([q 5]) (join2 q)))`,
+		`(define (f ed q) (define (join2 p) (g ed p q)) (let ([q (m ed)]) (join2 q)))`,
 	} {
 		if got := tidyOne(t, src, false); !strings.Contains(got, "(define (join2 p)") {
 			t.Errorf("inlined:\n%s", got)
@@ -225,5 +225,29 @@ func TestScmTidy(t *testing.T) {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in the Scheme", want)
 		}
+	}
+}
+
+func TestScmTidyNest(t *testing.T) {
+	// join3 is called from both arms of the let that binds p: it moves
+	// into that let's body, and p, which both calls pass by its name, is
+	// the let's
+	src := `(define (f ed q)
+  (define (join3 p n)
+    (g ed p n))
+  (let ([p (h ed q)])
+    (if (fx>? p 0) (join3 p 1) (join3 p (k ed)))))`
+	want := `(define (f ed q) (let ([p (h ed q)]) (define (join3 n) (g ed p n)) (if (fx>? p 0) (join3 1) (join3 (k ed)))))`
+	if got := squash(tidyOne(t, src, false)); got != want {
+		t.Errorf("got  %s\nwant %s", got, want)
+	}
+	// q, which the body reads, is bound again on the way: it stays
+	src = `(define (f ed q)
+  (define (join3 p n)
+    (g ed p n q))
+  (let ([p (h ed q)] [q 5])
+    (if (fx>? p 0) (join3 p 1) (join3 p (k ed)))))`
+	if got := squash(tidyOne(t, src, false)); !strings.Contains(got, "(define (join3 p n)") {
+		t.Errorf("moved: %s", got)
 	}
 }

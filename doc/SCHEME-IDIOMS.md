@@ -338,7 +338,8 @@ After items 1, 3 and 4:
 - **The joins nested where they are used** (each local procedure defined in
   the body of the block that dominates its uses, closing over what is in
   scope there): fewer parameters and a deeper, more Scheme-like nesting, but
-  a different shape from the one caprice measured; not taken here.
+  a different shape from the one caprice measured; not taken here. (Taken
+  in the second pass, item 18.)
 
 ## Ranked
 
@@ -605,9 +606,10 @@ were (sha256, before and after every item).
 | 6 | 15: signed arithmetic as C means it, `fx+` and `+` -- **done** | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
 | 7 | 16: the memory functions as the bytevector's own -- **done** | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
 | 8 | 17: case labels by name -- **done** | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
+| 9 | 18: the joins nested where their calls are (declined in the first pass, re-examined) -- **done** | `scm_tidy.go` | M | low: scopes checked; the speed measured | 13,240 of 16,021 parameters passed unchanged |
 | -- | an array's element by index, `(ld-ptr@ a i)` | -- | S | low | 464: declined, below |
 | -- | raw byte loads named | -- | -- | -- | declined, below |
-| -- | records for struct locals, Scheme strings, joins by dominance, the host's glue a record | -- | -- | -- | declined, below |
+| -- | records for struct locals, Scheme strings, the host's glue a record | -- | -- | -- | declined, below |
 
 ### 10. A layout of the forms' own
 
@@ -854,3 +856,56 @@ where it was `[(27) (join173 ...)] [(3) (join173 ...)]`.
 `TestScmCaseLabels` switches on enumerators (one negative), characters
 (`#\x28` for `(`), a number and a folded label, and on an `unsigned
 char`, against gcc.
+
+### 18. The joins nested where their calls are
+
+Declined in the first pass for want of a measure; measured after item 17,
+of the 2,309 joins left 13,240 of their 16,021 parameters were passed by
+their own name at every call: a value the join is handed only because it
+is defined at the function's top, outside the scope that binds it. So a
+join several places call moves into the body that holds all its calls --
+the innermost `let`, named `let`, `define` or `lambda` whose body every
+call is in -- where that drops a parameter: one that every call passes by
+its own name, bound to the same binding at each call as where the join
+lands (`scmNestJoins`). Its body then reads the name of the scope it is
+in. A join whose body names what a binding on the way would capture stays
+where it was. Item 11's rule runs again first, after items 13 and 14 left
+116 more joins called from one place (a case's clauses made one, a
+constant written into a jump).
+
+`del_bytes`'s four joins after it -- each where its calls are, `join19`
+inside `join16`, of no parameters where it had three:
+
+```scheme
+        (define (join9 count col fixpos)
+          (let ([movelen (+ (- (- oldlen col) count) 1)])
+            (define (join12)
+              (join13 (fx- oldlen col) 1))
+            (define (join13 count movelen)
+              (let ([alloc_newp (fxzero? (ml_line_alloced ed))])
+                (define (join16 newp)
+                  (define (join19)
+                    (inserted_bytes ed lnum col (->i32 (- count)))
+                    (frame-pop! ed fr)
+                    #t)
+                  ...
+```
+
+Found on the way: item 13's `scmSplitLets` had taken the function's own
+`(let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])` apart into two lets in
+the 225 functions with a frame, and `scmMergeLets` kept them apart; it
+joins them again now.
+
+| | before | after |
+| --- | ---: | ---: |
+| joins / their parameters | 2,309 / 16,021 | 2,193 / 4,195 (1,492 moved, 11,144 parameters fewer; 116 more in place) |
+| lines | 58,617 | 52,677 |
+| Chez on the core | 26.2 s, 0.65 GB | 25.1 s, 0.66 GB |
+| the heavy case: instructions / least cycles | 4,826M / 1,446M | 4,945M (+2.5 %) / 1,512M (+4.6 %); in the suite 0.8-0.9x the C |
+
+The price is measured and kept: a join defined inside a loop's or another
+join's body is a closure Chez makes on each entry, where it was made once
+per call of the function. Kept out of loops' and joins' bodies, the rule
+(with item 11's second run) left the joins 15,029 parameters, at no cost
+(4,826M instructions); everywhere, 4,195, at 2.5 % -- still under the C's
+time, and item 16 had taken 30 %.

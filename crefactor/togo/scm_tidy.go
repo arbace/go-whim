@@ -370,6 +370,7 @@ func scmBindings(bs *sform, col int) string {
 // scmTidyStats counts what the rules did, over the library.
 type scmTidyStats struct {
 	joinsInPlace, invariants, propagated, flattened, zeros, nots, conds, caseMerged, voids int
+	nested, droppedParams                                                                  int
 }
 
 // scmTidy is the function text, one define, read back, rewritten and
@@ -397,6 +398,8 @@ func scmTidy(text string, memNames map[string]bool, void bool, st *scmTidyStats)
 	scmUnlet(fn, nil)
 	scmMergeLets(fn)
 	scmInvariants(fn, names, st)
+	scmJoinsInPlace(fn, names, st)
+	scmNestJoins(fn, names, st)
 	if void {
 		scmDropVoids(fn, nil, st)
 	}
@@ -1065,11 +1068,21 @@ func scmMergeLets(x *sform) {
 	if h == "let" && len(x.kids[1].kids) != 1 {
 		return
 	}
-	if b := x.kids[1].kids; len(b) > 0 && b[0].isList() && len(b[0].kids) == 2 && (b[0].kids[0].is("mem") || b[0].kids[0].is("fr")) {
-		return // the function's own memory and frame, apart
-	}
 	in := x.kids[2]
 	ih := in.head()
+	// the function's own memory and frame, which the printer binds first,
+	// together and apart from what the C binds
+	prelude := func(bs *sform) bool {
+		for _, b := range bs.kids {
+			if !b.isList() || len(b.kids) != 2 || !b.kids[0].is("mem") && !b.kids[0].is("fr") {
+				return false
+			}
+		}
+		return len(bs.kids) > 0
+	}
+	if prelude(x.kids[1]) && (len(in.kids) < 2 || !in.kids[1].isList() || !prelude(in.kids[1])) {
+		return
+	}
 	if (ih != "let" && ih != "let*") || len(in.kids) < 3 || !in.kids[1].isList() {
 		return
 	}
@@ -1337,4 +1350,165 @@ func scmDropVoids(x, parent *sform, st *scmTidyStats) {
 		x.kids = x.kids[:n-1]
 		st.voids++
 	}
+}
+
+// --- joins where their calls are ---------------------------------------------
+
+// scmNestJoins moves each join several places call into the body that
+// holds all its calls -- the innermost let, named let, define or lambda
+// whose body every call is in -- where that drops a parameter: one that
+// every call passes by its own name, bound to the same binding at each
+// call as where the join lands, which the join's body then reads as a
+// name of the scope it is in. A join whose body names what a binding on
+// the way would capture stays where it was.
+func scmNestJoins(fn *sform, memNames map[string]bool, st *scmTidyStats) {
+	procs, from := scmProcs(fn)
+	for i := from; i < len(procs.kids); i++ {
+		d := procs.kids[i]
+		if d.head() != "define" || len(d.kids) < 3 || !d.kids[1].isList() || len(d.kids[1].kids) < 2 {
+			continue
+		}
+		name := d.kids[1].kids[0].atom
+		if !strings.HasPrefix(name, "join") || len(scmRefs(d, 2, name)) != 0 {
+			continue
+		}
+		procs.kids = append(procs.kids[:i:i], procs.kids[i+1:]...)
+		if scmNestJoin(d, procs, from, memNames, st) {
+			i--
+			continue
+		}
+		procs.kids = append(procs.kids[:i:i], append([]*sform{d}, procs.kids[i:]...)...)
+	}
+}
+
+// scmNestJoin moves the join d, taken out of procs, into the body that
+// holds its calls, or says why not.
+func scmNestJoin(d, procs *sform, from int, memNames map[string]bool, st *scmTidyStats) bool {
+	name := d.kids[1].kids[0].atom
+	refs := scmRefs(procs, from, name)
+	if len(refs) < 2 {
+		return false
+	}
+	for _, r := range refs {
+		if r.at != 0 {
+			return false
+		}
+	}
+	// the lists every call is under
+	common := len(refs[0].path) - 1
+	for _, r := range refs[1:] {
+		n := 0
+		for n < common && n < len(r.path)-1 && r.path[n] == refs[0].path[n] {
+			n++
+		}
+		common = n
+	}
+	// the innermost of them that binds, every call in its body
+	b, bi, bfrom := (*sform)(nil), -1, 0
+	for k := common - 1; k >= 1; k-- {
+		x := refs[0].path[k]
+		h := x.head()
+		if h != "let" && h != "let*" && h != "let-values" && h != "let*-values" && h != "define" && h != "lambda" {
+			continue
+		}
+		_, f, ok := scmBinds(x)
+		if !ok {
+			continue
+		}
+		inBody := true
+		for _, r := range refs {
+			at := -1
+			for j, c := range x.kids {
+				if c == r.path[k+1] {
+					at = j
+				}
+			}
+			if at < f {
+				inBody = false
+			}
+		}
+		if inBody {
+			b, bi, bfrom = x, k, f
+			break
+		}
+	}
+	if b == nil {
+		return false
+	}
+	path := refs[0].path[:bi+1]
+	// the names bound from procs down into b's body
+	bound := map[string]bool{}
+	for k := 1; k < len(path); k++ {
+		if ns, _, ok := scmBinds(path[k]); ok {
+			for _, n := range ns {
+				bound[n] = true
+			}
+		}
+	}
+	// the parameters every call passes by name, the binding the same from
+	// b's body to the call
+	inner := scmRefs(b, bfrom, name)
+	params := d.kids[1].kids[1:]
+	var drop []int
+	for k, p := range params {
+		if p.isList() || memNames[p.atom] {
+			continue
+		}
+		same := true
+		for _, r := range inner {
+			args := r.in.kids[1:]
+			if len(args) != len(params) || args[k].isList() || args[k].atom != p.atom || r.bound[p.atom] {
+				same = false
+			}
+		}
+		if same {
+			drop = append(drop, k)
+		}
+	}
+	if len(drop) == 0 {
+		return false
+	}
+	dropped := map[string]bool{}
+	for _, k := range drop {
+		dropped[params[k].atom] = true
+	}
+	// what the body reads besides: the same binding in b's body as at the
+	// function's top
+	free := map[string]bool{}
+	pb := map[string]int{}
+	for _, p := range params {
+		if !dropped[p.atom] {
+			pb[p.atom]++
+		}
+	}
+	for _, k := range d.kids[2:] {
+		scmFree(k, pb, free)
+	}
+	for n := range free {
+		if !dropped[n] && bound[n] {
+			return false
+		}
+	}
+	keep := func(xs []*sform) []*sform {
+		var out []*sform
+		for k, x := range xs {
+			if k >= len(params) || !dropped[params[k].atom] {
+				out = append(out, x)
+			}
+		}
+		return out
+	}
+	for _, r := range inner {
+		r.in.kids = append([]*sform{r.in.kids[0]}, keep(r.in.kids[1:])...)
+	}
+	d.kids[1].kids = append([]*sform{d.kids[1].kids[0]}, keep(params)...)
+	// at the start of b's body, after the definitions there
+	at := bfrom
+	for at < len(b.kids) && b.kids[at].head() == "define" {
+		at++
+	}
+	b.kids = append(b.kids[:at:at], append([]*sform{d}, b.kids[at:]...)...)
+	st.nested++
+	st.droppedParams += len(drop)
+	return true
 }
