@@ -390,6 +390,103 @@ func (f *sfn) jump(b *lblock) string {
 	return "(" + strings.Join(parts, " ") + ")"
 }
 
+// jumpOn is the jump that ends a block: a value its last lines bind only to
+// pass it on is passed in place, (loop (fx+ p 1)) for (let ([p (fx+ p 1)])
+// (loop p)) -- from the last line back, while the name is used once in the
+// jump, and of what moves into it one value at most reads or calls.
+func (f *sfn) jumpOn(b *lblock) string {
+	args := []string{}
+	for _, v := range f.params(b) {
+		args = append(args, f.valueOf(v))
+	}
+	impure := false
+	for len(f.lines) > 0 {
+		last := f.lines[len(f.lines)-1]
+		if len(last.names) != 1 || impure && last.lvl > scmPure {
+			break
+		}
+		n := last.names[0]
+		at, uses := -1, 0
+		for i, a := range args {
+			if k := scmUses(a, n); k > 0 {
+				at, uses = i, uses+k
+			}
+		}
+		if uses != 1 {
+			break
+		}
+		args[at] = scmSubst(args[at], n, last.expr)
+		impure = impure || last.lvl > scmPure
+		f.lines = f.lines[:len(f.lines)-1]
+	}
+	return "(" + strings.Join(append([]string{f.bname(b)}, args...), " ") + ")"
+}
+
+// scmTokens calls fn with each name of the expression e, outside its
+// strings, and where it starts.
+func scmTokens(e string, fn func(name string, at int)) {
+	for i := 0; i < len(e); {
+		c := e[i]
+		switch {
+		case c == '"':
+			for i++; i < len(e) && e[i] != '"'; i++ {
+				if e[i] == '\\' {
+					i++
+				}
+			}
+			i++
+		case c == '(' || c == ')' || c == '[' || c == ']' || c == ' ' || c == '\n' || c == '\'':
+			i++
+		default:
+			j := i
+			for j < len(e) && !strings.ContainsRune("()[] \n\"", rune(e[j])) {
+				j++
+			}
+			fn(e[i:j], i)
+			i = j
+		}
+	}
+}
+
+// scmUses is how many times e names n.
+func scmUses(e, n string) int {
+	k := 0
+	scmTokens(e, func(t string, _ int) {
+		if t == n {
+			k++
+		}
+	})
+	return k
+}
+
+// scmSubst is e with its one use of the name n replaced by x.
+func scmSubst(e, n, x string) string {
+	at := -1
+	scmTokens(e, func(t string, i int) {
+		if t == n && at < 0 {
+			at = i
+		}
+	})
+	if at < 0 {
+		return e
+	}
+	return e[:at] + x + e[at+len(n):]
+}
+
+// aliases are the bindings that keep the variables whose value is the
+// name n -- a copy of it -- before n is bound anew: each its own name.
+func (f *sfn) aliases(n string) []sbind {
+	var out []sbind
+	for _, u := range append(append([]*lvar{}, f.lf.vars...), f.extra...) {
+		if c, ok := f.cur[u]; ok && c == n && f.base[u] != n {
+			out = append(out, f.aliases(f.base[u])...)
+			out = append(out, sbind{names: []string{f.base[u]}, expr: n})
+			f.cur[u] = f.base[u]
+		}
+	}
+	return out
+}
+
 // valueOf is what v is where the printing is.
 func (f *sfn) valueOf(v *lvar) string {
 	s, ok := f.cur[v]
@@ -603,9 +700,11 @@ func (f *sfn) emit(format string, args ...any) {
 	f.lines = append(f.lines, sbind{expr: fmt.Sprintf(format, args...), lvl: scmCalls})
 }
 
-// bind adds a binding of name to x's value, its lines first.
+// bind adds a binding of name to x's value, its lines first, and the
+// variables that are a copy of name kept.
 func (f *sfn) bind(name string, x sx) {
 	f.lines = append(f.lines, x.binds...)
+	f.lines = append(f.lines, f.aliases(name)...)
 	f.lines = append(f.lines, sbind{names: []string{name}, expr: x.val, lvl: x.lvl})
 }
 
@@ -668,7 +767,9 @@ func (f *sfn) setVar(v *lvar, x sx) {
 	}
 	x = f.conv(x, f.vtype(v))
 	n := f.base[v]
-	if len(x.binds) == 0 && x.lvl == scmPure && (scmConst(x.val) || x.val == n) {
+	if len(x.binds) == 0 && x.lvl == scmPure && (scmConst(x.val) || scmIdent(x.val)) {
+		// a constant, or another's value: v is it, until that is bound
+		// anew (aliases)
 		f.cur[v] = x.val
 		return
 	}
@@ -966,7 +1067,7 @@ func (f *sfn) term(b *lblock, depth int) string {
 		if f.inline[to] {
 			return f.run(to, depth+1)
 		}
-		return f.jump(to)
+		return f.jumpOn(to)
 	case tIf:
 		c := f.truth(f.lexpr(t.cond))
 		cv := f.flush(c)
@@ -1071,6 +1172,13 @@ func (f *sfn) result(v string) string {
 	}
 	if f.framed {
 		f.emit("(frame-pop! ed fr)")
+		return v
+	}
+	// a value bound only to be the result is the result
+	if n := len(f.lines); n > 0 && len(f.lines[n-1].names) == 1 && f.lines[n-1].names[0] == v {
+		x := f.lines[n-1].expr
+		f.lines = f.lines[:n-1]
+		return x
 	}
 	return v
 }

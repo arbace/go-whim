@@ -1019,6 +1019,7 @@ func (f *sfn) outResult(binds []sbind, line, st string, g string, outs map[int]*
 		n := f.tmp()
 		if f.reg(o) {
 			n = f.base[o]
+			binds = append(binds, f.aliases(n)...)
 		}
 		names = append(names, n)
 		ups = append(ups, upd{o, n})

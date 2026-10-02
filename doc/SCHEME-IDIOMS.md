@@ -347,7 +347,7 @@ After items 1, 3 and 4:
 | 1 | reads and calls in place -- **done** | 29,299 temporaries | M | medium | high |
 | 2 | objects and members by name -- **done** | 10,697 + 8,942 | M | low | high |
 | 3 | `cond`, `when`, no `begin`/`(void)` -- **done** | 509 + 2,814 + 1,608 | S | none | medium |
-| 4 | copies and values passed on | 4,624 | S-M | low-medium | medium |
+| 4 | copies and values passed on -- **done** | 4,624 | S-M | low-medium | medium |
 | 5 | loops as named `let` | 464 of 906 | M | low | medium |
 | 6 | named constants and characters | 8,690 + 2,327 | S-M | low | medium |
 | 7 | pure functions without the editor | 63 | S | low | low |
@@ -434,3 +434,20 @@ after another form goes.
 | `(void)` | 1,608 | 114 (an arm with nothing else to do) |
 | Chez on the core | 27.4 s, 0.77 GB | 27.3 s, 0.73 GB |
 | the heavy case | 0.9-1.0 times the C | 0.9-1.0 (C 436-442 ms, whimsical 412-428) |
+
+### 4. Copies and values passed on
+
+A variable given another's value, or a constant, is that value, bound to
+nothing, until the other is bound anew: then each variable that was a copy
+of it gets a binding of its own first (`aliases`). A block that ends in a
+jump passes in place what its last lines bind only to pass on -- from the
+last line back, while the name is used once in the jump and at most one of
+the values moved reads or calls (`jumpOn`) -- and a value bound only to be
+the result is the result.
+
+| | before | after |
+| --- | ---: | ---: |
+| lines | 55,973 | 51,126 |
+| bindings of a name to a name (`[x y]`, a named object's read among them) | 2,241 | 776 |
+| Chez on the core | 27.3 s, 0.73 GB | 29.5 s, 0.74 GB (the load average 9-17 meanwhile) |
+| the heavy case | 0.9-1.0 times the C | 1.0 (C 432-436 ms, whimsical 413-427) |
