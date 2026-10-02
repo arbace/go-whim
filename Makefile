@@ -189,16 +189,16 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # prints the core, to read.
 #
 # editor/editor.go is GENERATED, and so are braaam/editor/ (package whim.editor),
-# vijure/src/whim/editor.clj, caprice/Caprice/Editor.hs and its parts, and
-# whimsy/src/editor.rs: `go tool whim gen` writes them whole from
-# whim-vim.c's core, and they are tracked, so they must be what the program
-# writes from the tracked whim-vim.c.  Each is written only when that differs, so
+# vijure/src/whim/editor.clj, caprice/Caprice/Editor.hs and its parts,
+# whimsy/src/editor.rs and whimsical/whimsical/editor.ss: `go tool whim gen`
+# writes them whole from whim-vim.c's core, and they are tracked, so they
+# must be what the program writes from the tracked whim-vim.c.  Each is written only when that differs, so
 # a current file keeps its mtime.  whim-build writes them after producing
 # whim-vim.c; whim-editor-check refuses a stale one.  whim-editor and
 # whim-editor-check run on whim-vim.c as it stands: through whim-vim.c's own rule
 # they would start a build.
 .PHONY: editor/editor.go
-editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs
+editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -206,7 +206,7 @@ whim-editor:
 	@go tool whim gen
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs or editor.rs is not what the generator writes
+whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs or editor.ss is not what the generator writes
 	@go tool whim gen --check
 
 # ==== the editor in Go

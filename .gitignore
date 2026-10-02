@@ -46,3 +46,10 @@
 /whimsy/target/
 /whimsy/Cargo.lock
 /whimsy/src/editor.rs.*
+
+# The Scheme editor's notes beside a library written in whimsical/whimsical/
+# by `whim skel -scm` by hand (.host, .layout, .refused), and what Chez
+# compiles there (go tool whim whimsical builds in lib/whimsical).
+/whimsical/whimsical/editor.ss.*
+/whimsical/whimsical/*.so
+/whimsical/*.so
