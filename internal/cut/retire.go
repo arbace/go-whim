@@ -3,6 +3,8 @@ package cut
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // rowPattern points a cmdnames[] row's handler at ex_ni.
@@ -22,17 +24,17 @@ func Retire(text []byte, names []string) (out []byte, done, already []string, er
 	for _, name := range names {
 		q := regexp.QuoteMeta(name)
 		pat := regexp.MustCompile(fmt.Sprintf(rowPattern, q, q))
-		m := pat.FindSubmatch(text)
+		m := edit.FirstSubmatchIndex(pat, text)
 		if m == nil {
 			return nil, nil, nil, fmt.Errorf(
 				"retire: no row for :%s -- the table has moved, and a phase that "+
 					"retires nothing still reports success", name)
 		}
-		if string(m[2]) == "ex_ni" {
+		if string(text[m[4]:m[5]]) == "ex_ni" {
 			already = append(already, name)
 			continue
 		}
-		locs := pat.FindAllSubmatchIndex(text, -1)
+		locs := edit.AllSubmatchIndex(pat, text)
 		if len(locs) != 1 {
 			return nil, nil, nil, fmt.Errorf("retire: %d rows for :%s, expected one",
 				len(locs), name)

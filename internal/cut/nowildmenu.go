@@ -32,11 +32,11 @@ func (c *wmCut) note(what string, n int) {
 
 func (c *wmCut) sub(pat, repl string, count int, what string) error {
 	re := regexp.MustCompile("(?m)" + pat)
-	n := len(re.FindAll(c.text, -1))
+	out, n := edit.ReplaceAllCounted(re, c.text, []byte(repl))
 	if n != count {
 		return fmt.Errorf("nowildmenu: %s -- expected %d, matched %d", what, count, n)
 	}
-	c.text = re.ReplaceAll(c.text, []byte(repl))
+	c.text = out
 	c.note(what, n)
 	return nil
 }

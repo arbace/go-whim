@@ -132,7 +132,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	lines := func() []string { return strings.Split(t, "\n") }
 	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b(?:`+name+`)\b`).FindAllString(s, -1))
+		return edit.WordPatternCount(s, name)
 	}
 	swap := func(old, new, what, why string) error {
 		c := edit.CountAnchor(t, old)

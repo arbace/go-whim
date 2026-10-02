@@ -208,7 +208,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Say("the input's calls: " + strings.Join(shape, ", "))
 
 	for _, name := range w98Free {
-		if regexp.MustCompile(`\b` + name + `\b`).Match(text) {
+		if edit.WordPatternCount(text, name) > 0 {
 			return nil, p.Die("%s already exists in the file", name)
 		}
 	}

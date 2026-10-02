@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // noinertoptsEdits are the readers of six globals that are about to lose their
@@ -46,11 +48,11 @@ var noinertoptsEdits = []struct{ what, pat, repl string }{
 func NoInertOpts(text []byte, w io.Writer) ([]byte, error) {
 	for _, e := range noinertoptsEdits {
 		re := regexp.MustCompile(e.pat)
-		n := len(re.FindAll(text, -1))
+		out, n := edit.ReplaceAllLiteralCounted(re, text, []byte(e.repl))
 		if n != 1 {
 			return nil, fmt.Errorf("noinertopts: %s -- expected 1, matched %d", e.what, n)
 		}
-		text = re.ReplaceAllLiteral(text, []byte(e.repl))
+		text = out
 		fmt.Fprintf(w, "  noinertopts  %s\n", e.what)
 	}
 	return text, nil

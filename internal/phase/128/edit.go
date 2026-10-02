@@ -185,7 +185,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		fmt.Fprintf(w, "  node         %s\n", fmt.Sprintf(format, a...))
 	}
 	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(s, -1))
+		return edit.WordCount(s, name)
 	}
 
 	// --- finding things ------------------------------------------------------
@@ -321,7 +321,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		re := regexp.MustCompile(`\b` + name + `\b`)
 		var hits []int
 		for i, l := range lines {
-			if re.MatchString(l) {
+			if strings.Contains(l, name) && re.MatchString(l) {
 				hits = append(hits, i)
 			}
 		}

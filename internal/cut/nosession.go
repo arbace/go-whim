@@ -97,7 +97,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 		"without it, %d gone with the commands that called them\n", stubbed, gone)
 
 	for _, d := range nosessionDrops {
-		n := len(regexp.MustCompile(d.pat).FindAll(text, -1))
+		n := edit.CountMatches(regexp.MustCompile(d.pat), text)
 		if n != 1 {
 			return nil, fmt.Errorf("nosession: %s -- matches %d times, not once", d.what, n)
 		}
@@ -141,7 +141,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 		// p_lpl is not asserted: this runs at phase 1 (D6), before the sweep
 		// takes its declaration and its last writes
 	} {
-		n := len(regexp.MustCompile(l.pattern).FindAll(text, -1))
+		n := edit.CountMatches(regexp.MustCompile(l.pattern), text)
 		if n != l.want {
 			return nil, fmt.Errorf("nosession: %s -- %d left, expected %d",
 				l.what, n, l.want)

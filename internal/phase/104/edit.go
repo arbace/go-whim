@@ -139,7 +139,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	t := text
 
 	mentions := func(text []byte, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(text, -1))
+		return edit.WordPatternCount(text, name)
 	}
 	// sub is the heredoc's own, and its refusal quotes the needle's FIRST
 	// line stripped and truncated at 70 -- which is what makes a refusal

@@ -482,8 +482,9 @@ func Utf8Only(text []byte, w io.Writer) ([]byte, error) {
 	marks := 0
 	for _, f := range utf8Flags {
 		re := regexp.MustCompile(`\b` + f.name + `\b`)
-		marks += len(re.FindAll(text, -1))
-		text = re.ReplaceAll(text, []byte(f.tok))
+		var n int
+		text, n = edit.ReplaceAllCounted(re, text, []byte(f.tok))
+		marks += n
 	}
 	fmt.Fprintf(w, "  utf8only     %d mentions become constant markers\n", marks)
 
@@ -546,7 +547,7 @@ func Utf8Only(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  utf8only     %d constants left where they are an operand or a value, "+
 		"written as TRUE, FALSE or 0\n", left)
 	for _, f := range utf8Flags {
-		if regexp.MustCompile(`\b` + f.name + `\b`).Match(text) {
+		if edit.FirstIndex(regexp.MustCompile(`\b`+f.name+`\b`), text) != nil {
 			return nil, fmt.Errorf("utf8only: %s is still named", f.name)
 		}
 	}

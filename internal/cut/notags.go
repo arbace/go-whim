@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // notagsEdits are the seven places a tag could still be asked for, each with
@@ -46,11 +48,11 @@ var notagsEdits = []struct {
 func NoTags(text []byte, w io.Writer) ([]byte, error) {
 	for _, e := range notagsEdits {
 		re := regexp.MustCompile(e.pat)
-		n := len(re.FindAll(text, -1))
+		out, n := edit.ReplaceAllLiteralCounted(re, text, []byte(e.repl))
 		if n != e.want {
 			return nil, fmt.Errorf("notags: %s -- expected %d, matched %d", e.what, e.want, n)
 		}
-		text = re.ReplaceAllLiteral(text, []byte(e.repl))
+		text = out
 		fmt.Fprintf(w, "  notags       %s\n", e.what)
 	}
 	fmt.Fprintf(w, "  notags       %d do_tag mentions and %d find_tags mentions left "+

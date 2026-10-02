@@ -270,7 +270,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// anything: `_` is a word character, so `\b` has already refused a match
 	// inside `musl_name`.  RE2 has no lookbehind and needs none here.
 	for _, name := range append(append([]string{}, w97Names...), "sprintf") {
-		if regexp.MustCompile(`\b` + name + `\b`).MatchString(t) {
+		if edit.WordPatternCount(t, name) > 0 {
 			return nil, p.Die("%s survives as a bare name somewhere", name)
 		}
 	}

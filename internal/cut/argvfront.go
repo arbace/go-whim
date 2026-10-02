@@ -91,10 +91,11 @@ func ArgvFront(text []byte, w io.Writer) ([]byte, error) {
 		{`(?m)^    for \(i = 1; i < argc; \+\+i\)\n    \{\n        if \(strcasecmp\(\(char \*\)\(argv\[i\]\), \(char \*\)\("--clean"\)\) == 0\)\n        \{\n            params\.clean = TRUE;\n            break;\n        \}\n    \}\n`, "main's --clean prescan"},
 	} {
 		re := regexp.MustCompile(c.pat)
-		if n := len(re.FindAllIndex(text, -1)); n != 1 {
+		out, n := edit.ReplaceAllCounted(re, text, nil)
+		if n != 1 {
 			return nil, fmt.Errorf("argvfront: %s is there %d times, not once", c.what, n)
 		}
-		text = re.ReplaceAll(text, nil)
+		text = out
 	}
 	// the errors it can still give: the enumerators are main_errors[]'s
 	// indices, so the two are rewritten together, to the two the parser

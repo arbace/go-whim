@@ -126,7 +126,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 
 	mentions := func(t []byte, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
+		return edit.WordPatternCount(t, name)
 	}
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		k := strings.Count(string(t), old)

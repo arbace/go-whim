@@ -112,12 +112,12 @@ func NoFenc(text []byte, w io.Writer) ([]byte, error) {
 			}
 		} else {
 			re := regexp.MustCompile(e.pat)
-			n := len(re.FindAll(text, -1))
+			out, n := edit.ReplaceAllCounted(re, text, []byte(e.repl))
 			if n != e.want {
 				return nil, fmt.Errorf("nofenc: %s -- expected %d, matched %d",
 					e.what, e.want, n)
 			}
-			text = re.ReplaceAll(text, []byte(e.repl))
+			text = out
 		}
 		fmt.Fprintf(w, "  nofenc       %s\n", e.what)
 	}
