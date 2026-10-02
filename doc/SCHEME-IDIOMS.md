@@ -352,6 +352,7 @@ After items 1, 3 and 4:
 | 6 | named constants and characters -- **done** | 8,690 + 2,327 | S-M | low | medium |
 | 7 | pure functions without the editor -- **done** | 63 | S | low | low |
 | 8 | truth values -- **done** | 1,714 | S | low | low |
+| 9 | arms that end alike (found doing 3 and 8) -- **done** | 1,298 | S | none | medium |
 
 ## Done
 

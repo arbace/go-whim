@@ -1,8 +1,8 @@
 # go-whim
 
 A pipeline, written in Go, that takes vim apart on purpose -- and the editor it
-leaves, six times over: in C, in Go, in Java, in Clojure, in Haskell and in
-Rust, each required to answer every test case as the C does.
+leaves, seven times over: in C, in Go, in Java, in Clojure, in Haskell, in
+Rust and in Scheme, each required to answer every test case as the C does.
 
 ```
 slim-vim.c ──── whim: 124 phases, in order ────▶ whim-vim.c   an embeddable editor core
@@ -11,7 +11,8 @@ slim-vim.c ──── whim: 124 phases, in order ────▶ whim-vim.c   
                                                       ├──▶ braaam/   the core in Java
                                                       ├──▶ vijure/   the core in Clojure
                                                       ├──▶ caprice/  the core in Haskell
-                                                      └──▶ whimsy/   the core in Rust
+                                                      ├──▶ whimsy/   the core in Rust
+                                                      └──▶ whimsical/ the core in Scheme
 ```
 
 **The input** is `slim-vim.c`: vim 9.2 as one C translation unit, without
@@ -40,7 +41,7 @@ from its own snapshot, side by side, in about 75 seconds.
 **The translations** are written by `crefactor/togo` from the core's C, not
 from each other. `editor/editor.go`, `braaam/editor/`,
 `vijure/src/whim/editor.clj`, `caprice/Caprice/Editor.hs` and
-`whimsy/src/editor.rs` are generated, tracked, and refused by
+`whimsy/src/editor.rs` and `whimsical/whimsical/editor.ss` are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
 **The tests.**
@@ -49,9 +50,9 @@ from each other. `editor/editor.go`, `braaam/editor/`,
   with a control that must move them.
 - `make whim-test-wide` does the same with 240 cases: keys, every Ex command,
   command lines, and a real terminal.
-- `make whim-test-java`, `make whim-test-clj`, `make whim-test-hs` and
-  `make whim-test-rs` hold the Java, Clojure, Haskell and Rust editors to them
-  too.
+- `make whim-test-java`, `make whim-test-clj`, `make whim-test-hs`,
+  `make whim-test-rs` and `make whim-test-scm` hold the Java, Clojure,
+  Haskell, Rust and Scheme editors to them too.
 - `make go-test` runs the Go packages' tests.
 
 ## Use
@@ -59,10 +60,11 @@ from each other. `editor/editor.go`, `braaam/editor/`,
 ```sh
 make                   # fetch the input if it moved, then every editor: bin/whim,
                        # bin/whim-vim, bin/slim-vim, bin/braaam and braaam.jar,
-                       # bin/vijure and vijure.jar, bin/caprice, bin/whimsy
+                       # bin/vijure and vijure.jar, bin/caprice, bin/whimsy,
+                       # bin/whimsical
 make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the translations
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs or editor.rs
+make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs or editor.ss
 make whim-test         # the quick suite; whim-test-wide for the wide one
 make go-test           # the Go packages' tests
 make bin/whim-vim      # the C editor's binary
@@ -72,10 +74,12 @@ make bin/vijure        # the Clojure editor (doc/CLOJURE.md), and a launcher: bi
 make vijure.jar        # the same as one jar: java -jar vijure.jar [args]
 make bin/caprice       # the Haskell editor (doc/HASKELL.md), compiled by GHC
 make bin/whimsy        # the Rust editor (doc/RUST.md), compiled by cargo, offline
+make bin/whimsical     # the Scheme editor (doc/SCHEME.md), compiled by Chez Scheme
 make whim-test-java    # the quick suite with the Java editor too
 make whim-test-clj     # ... with the Clojure editor
 make whim-test-hs      # ... with the Haskell editor
 make whim-test-rs      # ... with the Rust editor
+make whim-test-scm     # ... with the Scheme editor
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make help              # every target
 ```
@@ -105,6 +109,14 @@ make help              # every target
   operators (`doc/RUST-IDIOMS.md`). A `Host`
   trait, a terminal host over libc with real signal handlers, a hand port of
   vim's printf; several editors run at once.
+- **Scheme**, **whimsical** (`whimsical/`): the R6RS library `(whimsical
+  editor)` for Chez Scheme, C's memory as one bytevector per editor, a
+  pointer an offset into it, read and written by the C's names (`curwin`,
+  `(win_T.w_cursor.lnum wp)`); its functions joins and loops as local
+  procedures and named lets, every jump a tail call, no `set!`. A host
+  record, a terminal host through Chez's foreign procedures (signals by
+  `signalfd`), a hand port of vim's printf; one executable with its boot
+  files linked in; several editors run at once.
 
 ## Requirements
 
@@ -116,7 +128,10 @@ so it also needs:
 - the **`clojure`** command (Clojure 1.12, whose jars it copies);
 - **GHC 9.14** with its boot packages, and no cabal;
 - **rustc and cargo 1.98**, std only: no crate is fetched, the build is
-  offline.
+  offline;
+- **Chez Scheme 10.3** (`chez`, with its kernel, `libkernel.a` and
+  `scheme.h`, as Alpine's `chez-scheme` installs them), and the shared lz4,
+  zlib and ncursesw it links against.
 
 The C front end is a fork of `modernc.org/cc/v4` carried as source, so after
 fetching the input nothing needs the network.
@@ -132,17 +147,17 @@ internal/        the plan (internal/build), the cuts and steps, the phases
 crefactor/       the generic C refactoring library, a Go module of its own:
                  the C front end, the canonical printer, the sweep, the driver,
                  the transforms (the fall-out closure among them), the
-                 analyses, and togo, the C-to-Go, Java, Clojure, Haskell and
-                 Rust translator
+                 analyses, and togo, the C-to-Go, Java, Clojure, Haskell,
+                 Rust and Scheme translator
 editor/          the editor in Go          braaam/   the editor in Java
 vijure/          the editor in Clojure     caprice/  the editor in Haskell
-whimsy/          the editor in Rust
+whimsy/          the editor in Rust        whimsical/ the editor in Scheme
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase, and the blocks),
                  AGENDA.md (what is not done), PIPELINE-REFORM.md (the
                  pipeline reordered: the front, the blocks, what was measured),
                  PIPELINE-COMPACTION.md, JAVA.md, CLOJURE.md, CLOJURE-PROFILE.md,
-                 HASKELL.md, RUST.md, the *-IDIOMS.md surveys, GO-LISP.md,
+                 HASKELL.md, RUST.md, SCHEME.md, the *-IDIOMS.md surveys, GO-LISP.md,
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation),
                  SCHEME.md (a Scheme editor surveyed and measured, not scheduled)

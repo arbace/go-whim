@@ -1,11 +1,25 @@
-# The editor in Scheme: a survey
+# whimsical: the editor in Scheme
 
-**Measured; the choice is Chez Scheme -- not scheduled** (2026-10-02): there
-is no intention yet to translate the editor to Scheme. It is kept as what was
-found and how it would be done, should that change. The measurements §7 asked
-for were made on Alpine's Chez Scheme 10.3.0 the same day (§8), and none of
-them blocks: should a Scheme editor be written, it is written for Chez, and
-Guile was not installed or measured.
+**Built** (2026-10-02): whimsical is the sixth translation of the core, beside
+the Go (`editor/`), the Java (`braaam/`), the Clojure (`vijure/`), the
+Haskell (`caprice/`) and the Rust (`whimsy/`), and held to the same test:
+`whim test --scheme` and `--wide --scheme` answer all 80 and all 240 cases
+as the C does, with a control of its own, and the heavy case runs at 0.9-1.0
+times the C. It was surveyed and measured here the same day, before it was
+scheduled (§1-§8, kept as they were written: Chez Scheme chosen by
+measurement); the design held as §4 and §8 settled it, and what was built
+is recorded milestone by milestone after them (§9-§14), with what
+`doc/SCHEME-IDIOMS.md` then made of the output.
+
+```
+go tool whim whimsical       # bin/whimsical, built in lib/whimsical
+make bin/whimsical           # the same
+make whim-test-scm           # the quick suite with whimsical too
+go tool whim test --wide --scheme
+go tool whim skel editor.c DIR -scm editor.ss   # the backend on a core, by hand
+```
+
+The survey as it was written, the same morning:
 
 Written 2026-10-02, when the core's C was translated to Go (`editor/`), Java
 (`braaam/`), Clojure (`vijure/`) and Haskell (`caprice/`), each answering all
@@ -867,3 +881,143 @@ executable of our own `main` with vfasl boot files and no inspector
 information, starting in under 40 ms. Guile was not measured: the fallback's
 measurement would have been §7's item 2, `guild compile` of the same
 synthetic library at `-O1` and `-O2`, and nothing here called for it.
+
+## 9. Milestone 1: the printer on foreign C (2026-10-02, `6dfeccb`)
+
+The backend is `crefactor/togo`'s `scm*.go` (`whim skel <editor.c> <dir>
+-scm F.ss`); the runtime it writes against is `whimsical/whimsical/rt.ss`.
+The design is §4's, with §8's settlements:
+
+- **Memory a1**: one bytevector per editor, made immobile and unfilled
+  (`make-immobile-bytevector` of about 1.2 GiB: 8 ms, its pages the kernel's
+  zeros until touched; the data, a frame and the arena are zeroed as they are
+  handed out). Below 64 KiB the null page and the function pointers (an index
+  into the library's table, `(fn-ptr i)`); then the file-scope objects at
+  constant addresses, the string literals (one place per distinct literal,
+  `(c-str ADDR "text")`), the main thread's 8 MiB stack of frames, the 1 GiB
+  arena, and 128 MiB of stacks for the parallel loop's workers. Every
+  initial value is a constant, so `new-editor` copies one image. The
+  accessors are `bytevector-u32-ref` and kin with `'little`, which allow an
+  unaligned access and cost nothing at `optimize-level 3` (measured: the same
+  97-168 ms as the native ones).
+- **Integers**: an exact integer in its C type's range; the 32-bit types on
+  fixnums, wrapped by `fxsll/wraparound` and `fxsra` (`i32+`, `u32*`...);
+  `long` and `unsigned long` generic with a `fixnum?` test (`i64+`...),
+  §8.7's; a C `bool` `#t`/`#f`, a byte in memory.
+- **Control flow**: the lowered form in caprice's shape -- a join or a loop's
+  head a local procedure of what is live at its start, every jump (gotos and
+  fall-throughs included) a tail call; a `switch` a `case`. No `set!`: each
+  assignment a new binding of the variable's name. No `call/cc`, no state
+  machine.
+- **Out-parameters and struct results** multiple values, and struct locals
+  of scalars bindings: the Haskell backend's `hsout.go`, `hsstruct.go` and
+  `hseffects.go` asked, so the two read the C alike.
+- **The host** called through the vector of procedures the editor carries,
+  so the core library imports nothing of the host's.
+
+Measured: the 23 foreign C programs the Rust and Haskell tests translate
+(`TestScm*`) run under Chez at `optimize-level 2` -- the safe build: a
+fixnum operation on what is not one is an error -- and print what gcc's
+builds print, and the same four again with every out-parameter and struct
+local in the frame and with the pure functions bare (`TestScmFrames`);
+`TestScmControl` undoes unsigned division, an unsigned char's widening, an
+unsigned shift and a struct's copy, and each moves the output. The layout
+(`whimsical`'s `TestLayout`): the 155 structs and unions the core names at
+file scope and their 911 members, as the front end lays them out, held to
+gcc's `sizeof`/`offsetof`, a moved offset refused. Coverage: all 1,713
+functions of the core written, none refused, 88,474 lines.
+
+## 10. Milestone 2: every function of the core compiles (`c302cc8`)
+
+The core is ONE R6RS library, `(whimsical editor)`, compiled at
+`optimize-level 3` with inspector information off: **chez 29.7 s (29.0 29.7
+30.8) and 0.72 GB at the peak** for the 88,474 lines -- half of §8.3's
+synthetic 93,000 lines (57 s, 1.5 GB), a fifth of GHC's time on caprice's
+nine modules. At `optimize-level 2`, 38.6 s and 1.07 GB. No warning; a
+build prints nothing but the libraries it compiles, and Chez's time and
+peak beside it. Top-level forms (§8.3's lever) were not needed.
+
+## 11. Milestone 3: the host, the launcher and the suite (`65075b4`)
+
+- **The host** (`host.ss`): a record of procedures, `editor/host.go`'s Host,
+  its buffers a bytevector, a start and a count; the C host's 17 functions
+  as glue; `host_exit` a condition `run` catches; `run` puts argv on the
+  editor's stack and runs `vim_main`. Four editors run at once, each on a
+  thread and a host of its own (`TestEditorsAreInstances`).
+- **The terminal host** (`term.ss`): termios, `ioctl(TIOCGWINSZ)` through
+  `(__varargs_after 2)`, `poll` -- all `foreign-procedure`s into musl, no C
+  of our own. The signals blocked with `pthread_sigmask` at init and read
+  from a `signalfd` polled beside the keys, each read where the C's handler
+  would have set its flag, as §8.6 measured it must be.
+- **vim's printf** (`printf.ss`, 637 lines), the C host's ported, held while
+  it was written to the C's own on 200,000 random formats, 59 hand cases and
+  whimsy's 78,219-line table: buffers, results and every E1500-E1505 message
+  byte for byte.
+- **The packaging** (§8.2): the libraries and the launcher (`main.ss`) one
+  boot file, it and `petite.boot` converted to vfasl, linked into the
+  executable (`c/boot.s`) with Chez's kernel and a `main` of ours
+  (`c/main.c`), dynamically (no static lz4): bin/whimsical, 5.7 MB.
+- **The parallel `:%s`**: `match_lines` a runtime body, its chunks on
+  `fork-thread` workers -- as many as the machine has processors, each with a
+  stack of its own -- joined with `thread-join`; `WHIMSICAL_WORKERS=1` runs
+  the C's loop.
+
+**The suite**: `whim test --scheme` -- all 80 cases answered exactly as the C
+does, the control (`" INSERT"`'s bytes changed in the library's image) seen
+by 76 -- and `--wide --scheme` all 240, the control seen by 94 keys and 6
+pty cases, as the Go's is. Both passed the first time the editor ran.
+
+**Measured at the end of the work** (`a506ea0`; the load average 3-11, other
+agents building):
+
+- the heavy case **0.9-1.0 times the C** (C 428-457 ms, whimsical 390-447
+  over the last six runs; the Go 0.5-0.6);
+- start-up (`:q!` from a file, the median of 20, three times): **46.0 ms**
+  (45.9 46.0 50.0), the C 2.6 -- above §8.2's 37.5 for a synthetic core:
+  this one initializes an editor;
+- the parallel `:%s` at 500,001 lines (`doc/PARALLEL-SUBSTITUTE.md`'s
+  workloads on eight lines of our own; seconds, the median of three less
+  that of the build alone; every output the C's, byte for byte):
+
+  | | lit | dense | bt | cls | sel | :g bt |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | C | 1.31 | 3.82 | 19.15 | 2.97 | .32 | 16.98 |
+  | whimsical, one worker | 1.66 | 5.29 | 24.02 | 4.76 | .55 | 21.18 |
+  | whimsical | .76 | 1.75 | .92 | .39 | .02 | 1.14 |
+
+## 12. Milestone 4: kept current (`598b500`)
+
+`whimsical/whimsical/editor.ss` is tracked, written by `whim gen` beside
+the other five translations from the same core, refused outright when the
+backend refuses any part of it, never edited by hand; `make
+whim-editor-check` refuses it stale (a line appended to it is named, `whim
+gen` puts it back), `make` builds `bin/whimsical`, `make clean` removes it,
+`lib/whimsical` and the suite's cache.
+
+## 13. After the milestones: idiomatic Scheme
+
+`doc/SCHEME-IDIOMS.md` surveyed the output and its nine items were done, one
+commit each, each held to the foreign C tests, both suites, the heavy case
+and `whim-editor-check`: reads and calls where they are used (29,299
+temporaries -> 660), the C's objects, members and locals by name (raw loads
+and stores 20,681 / 6,212 -> 3,324 / 1,076), `cond`, `when` and `unless`,
+copies passed on, loops entered once as named `let`s (477 of 906), named
+constants and characters, pure functions without the editor (63), negated
+tests turned round, and arms that end alike written once. The library went
+from 88,474 lines to 50,838; Chez on it 29.7 s and 0.72 GB -> 26.6 s and
+0.63 GB; the heavy case did not move (0.9-1.2 -> 0.9-1.0 times the C).
+
+Found on the way: a function whose printing gave it a frame after some of
+its returns were printed did not give the frame back there (fixed with item
+1); `SIZE_MAX`, an `unsigned long` enumerator, first named as -1 (fixed with
+item 6, before it was committed: both suites refused every case).
+
+## 14. Not done
+
+- **Records for the C's structs, Scheme strings for its strings**: declined
+  in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects.
+- **Joins nested by dominance** (each local procedure where the block that
+  dominates its uses is): declined there too.
+- **A debugging build**: the library compiles at `optimize-level 2` (38.6 s)
+  and the foreign C tests run there, but `whim whimsical` has no switch for
+  it.
