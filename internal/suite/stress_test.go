@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -65,7 +66,9 @@ func runPipe(bin string, args []string, keys []byte, pieces int, pause time.Dura
 }
 
 // once runs c on bin in mode: "file" as the suite runs it, "pipe" in one
-// write, or "trickle" in 16 pieces 10 ms apart.
+// write, "trickle" in 16 pieces 10 ms apart, or "slow" in 16 pieces 100 ms
+// apart -- the control for the editors on the JVM, which start after the
+// trickle's 150 ms have passed and so find all its keys waiting.
 func once(bin, mode string, c WideCase) ([]byte, int, error) {
 	switch mode {
 	case "file":
@@ -74,6 +77,8 @@ func once(bin, mode string, c WideCase) ([]byte, int, error) {
 		return runPipe(bin, c.Args, c.Keys, 1, 0)
 	case "trickle":
 		return runPipe(bin, c.Args, c.Keys, 16, 10*time.Millisecond)
+	case "slow":
+		return runPipe(bin, c.Args, c.Keys, 16, 100*time.Millisecond)
 	}
 	return nil, -1, fmt.Errorf("stress: no mode %q", mode)
 }
@@ -91,14 +96,18 @@ func stress(t *testing.T, bins []string, reps int, cases []WideCase, modes []str
 				if mode != "file" && c.pty != nil {
 					continue
 				}
-				first, fs, _ := once(b, mode, c)
+				first, fs, ferr := once(b, mode, c)
 				n := 0
 				for i := 1; i < reps; i++ {
-					out, s, _ := once(b, mode, c)
+					out, s, err := once(b, mode, c)
 					runs[c.Group]++
 					if s != fs || !bytes.Equal(out, first) {
 						diff[c.Group]++
 						n++
+						if n <= 3 {
+							keep(t, b, mode, c, "first", first, fs, ferr)
+							keep(t, b, mode, c, fmt.Sprint("run", i), out, s, err)
+						}
 					}
 				}
 				if n > 0 {
@@ -125,11 +134,27 @@ func stress(t *testing.T, bins []string, reps int, cases []WideCase, modes []str
 	}
 }
 
+// keep writes a run's output, status and error into $DIFFS, when it is set,
+// as <editor>-<mode>-<group>-<case>-<which>: the first run of a case and its
+// first three that differ, to be compared by hand.
+func keep(t *testing.T, bin, mode string, c WideCase, which string, out []byte, status int, err error) {
+	dir := os.Getenv("DIFFS")
+	if dir == "" {
+		return
+	}
+	name := strings.Join([]string{filepath.Base(bin), mode, c.Group, c.Name, which}, "-")
+	note := fmt.Sprintf("status %d, error %v\n", status, err)
+	if werr := os.WriteFile(filepath.Join(dir, strings.ReplaceAll(name, "/", "_")), append([]byte(note), out...), 0o644); werr != nil {
+		t.Log(werr)
+	}
+}
+
 // stressArgs reads BINS (space-separated absolute paths of editors: the C
 // binary, the Go one, bin/braaam, bin/vijure, bin/caprice, bin/whimsy,
 // bin/whimsical or bin/whimsical-debug -- anything run as the suite runs an
 // editor), REPS (the runs of each case, default 40) and MODES (default "file
-// pipe"; "trickle" too), or skips.
+// pipe"; "trickle" and "slow" too), or skips.  DIFFS, a directory, keeps
+// what differed (keep).
 func stressArgs(t *testing.T) ([]string, int, []string) {
 	bins := strings.Fields(os.Getenv("BINS"))
 	if len(bins) == 0 {
@@ -156,7 +181,8 @@ func stressArgs(t *testing.T) ([]string, int, []string) {
 // Measured on 2026-09-25 (45 cases then) under 48 busy loops: from a file 0
 // of 1,755 runs differ for the C and the Go editors; through a pipe the Go
 // editor 18, the C 0.  On 2026-10-02, 80 cases, 40 runs each, 48 busy loops
-// on 64 cores: doc/RUST.md and doc/SCHEME.md, *Under load*.
+// on 64 cores: doc/RUST.md, doc/SCHEME.md, doc/JAVA.md, doc/CLOJURE.md and
+// doc/HASKELL.md, *Under load* -- 0 runs from a file differ on any of them.
 func TestStress(t *testing.T) {
 	bins, reps, modes := stressArgs(t)
 	cases, err := Cases()

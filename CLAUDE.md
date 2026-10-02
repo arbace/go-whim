@@ -225,12 +225,17 @@ slim-vim.c  --whim-->  whim-vim.c
   them all too. Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
-  Go editors, and on whimsy, whimsical and whimsical's debugging build 0 of
-  3,120 quick and 0 of 3,360 wide each; through a pipe, the control, whimsy
-  differs 33 and 61 times, the C 66 and 106, and whimsical never, since it
-  starts after one write of the keys has landed -- the keys in 16 pieces 10
-  ms apart (`MODES=trickle`) move it 326 of 720 quick runs and 307 of 920
-  wide (`doc/RUST.md`, `doc/SCHEME.md`, *Under load*). **Both end with the heavy
+  Go editors, and on whimsy, whimsical and whimsical's debugging build, the
+  Java, the Clojure and the Haskell editors 0 of 3,120 quick and 0 of 3,360
+  wide each; through a pipe, the control, whimsy differs 33 and 61 times,
+  the C 66 and 106, and whimsical, the Java, the Clojure and the Haskell
+  never, since they start after one write of the keys has landed -- the keys
+  in 16 pieces 10 ms apart (`MODES=trickle`) move whimsical 326 of 720 quick
+  runs and 307 of 920 wide, the Haskell 547 and 464, and the JVM editors,
+  which start after all 16 have landed, in 16 pieces 100 ms apart
+  (`MODES=slow`) the Java 105 of 320 and 125 of 460, the Clojure 190 and 134
+  (`doc/RUST.md`, `doc/SCHEME.md`, `doc/JAVA.md`, `doc/CLOJURE.md`,
+  `doc/HASKELL.md`, *Under load*). **Both end with the heavy
   case** (`internal/suite/heavy.go`), the one that times: 5,000 lines, three
   substitutions and a `:g`, run on every editor of the run one at a time,
   required to answer as the reference does, each time reported beside the

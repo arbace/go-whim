@@ -564,6 +564,28 @@ the editor; host functions called with longs, the runtime's pointers and one
 requires `whim.cljhost`; `" INSERT"` once (a block holding a string literal
 is never copied).
 
+## Under load (2026-10-02)
+
+`internal/suite/stress_test.go` runs every case many times on each editor
+it is given (`BINS`, `REPS`, `MODES`) and counts the runs that answer other
+than the case's first, output or exit status: fed from a file, as the suite
+feeds them, and through a pipe in one write, the control. Measured on
+`bin/vijure` under 48 busy loops on the 64 cores (the 1-minute load average
+56-145, median 79, the Java, Clojure and Haskell runs side by side and other
+agents building beside them):
+
+| runs differing | quick, file | quick, pipe | wide, file | wide, pipe |
+|---|---|---|---|---|
+| Clojure | 0 of 3,120 | 0 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+
+The quick suite 40 runs a case (80 cases), the wide 15 (240 cases; the 10
+terminal ones from the file alone). It runs on braaam's host, and with its
+AOT cache a session of `:q!` takes 0.44 s, so through a pipe, and in 16
+pieces 10 ms apart (`MODES=trickle`: 0 of 720 and 0 of 920), every key has
+landed before its first read. The keys in 16 pieces 100 ms apart
+(`MODES=slow`, 5 runs a quick case and 3 a wide one) move it 190 of 320 and
+134 of 460 times: the control reaches it.
+
 ## Risks, named in advance
 
 - **Compile time and size.** One namespace of about 80,000 lines, compiled by

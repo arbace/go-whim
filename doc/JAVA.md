@@ -495,3 +495,25 @@ and the refused initial values (`cmdnames`, `nv_cmds`, `options`,
 every function written, the one thing left was `Ptr.is` (*Milestone 2, as
 built*); `whim test --java` and `--wide --java` then answer every case
 exactly as the C does.
+
+## Under load (2026-10-02)
+
+`internal/suite/stress_test.go` runs every case many times on each editor
+it is given (`BINS`, `REPS`, `MODES`) and counts the runs that answer other
+than the case's first, output or exit status: fed from a file, as the suite
+feeds them, and through a pipe in one write, the control. Measured on
+`bin/braaam` under 48 busy loops on the 64 cores (the 1-minute load average
+56-145, median 79, the Java, Clojure and Haskell runs side by side and other
+agents building beside them):
+
+| runs differing | quick, file | quick, pipe | wide, file | wide, pipe |
+|---|---|---|---|---|
+| Java | 0 of 3,120 | 0 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+
+The quick suite 40 runs a case (80 cases), the wide 15 (240 cases; the 10
+terminal ones from the file alone). A session of `:q!` takes about a third
+of a second (0.34 s at a load of 57), so through a pipe, and in 16 pieces 10
+ms apart (`MODES=trickle`: 0 of 720 and 0 of 920), every key has landed
+before its first read. The keys in 16 pieces 100 ms apart (`MODES=slow`, 5
+runs a quick case and 3 a wide one) move it 105 of 320 and 125 of 460 times:
+the control reaches it.

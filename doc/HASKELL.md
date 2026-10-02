@@ -188,6 +188,27 @@ sequential work slower.
   time in the Haskell -- unsigned division, an unsigned char's widening, an
   unsigned shift, a struct's copy -- and each moves the output.
 
+## Under load (2026-10-02)
+
+`internal/suite/stress_test.go` runs every case many times on each editor
+it is given (`BINS`, `REPS`, `MODES`) and counts the runs that answer other
+than the case's first, output or exit status: fed from a file, as the suite
+feeds them, and through a pipe in one write, the control. Measured on
+`bin/caprice` under 48 busy loops on the 64 cores (the 1-minute load average
+56-145, median 79, the Java, Clojure and Haskell runs side by side and other
+agents building beside them):
+
+| runs differing | quick, file | quick, pipe | wide, file | wide, pipe |
+|---|---|---|---|---|
+| Haskell | 0 of 3,120 | 0 of 3,120 | 0 of 3,360 | 0 of 3,220 |
+
+The quick suite 40 runs a case (80 cases), the wide 15 (240 cases; the 10
+terminal ones from the file alone). Through a pipe it did not move: one
+write of the keys lands before its first read, as whimsical's does
+(`doc/SCHEME.md` §17). The keys in 16 pieces 10 ms apart (`MODES=trickle`,
+10 runs a quick case and 5 a wide one) move it 547 of 720 and 464 of 920
+times: the control reaches it.
+
 ## Not done
 
 - **Idiomatic Haskell, beyond the survey**: the core is still C's memory --
