@@ -124,37 +124,6 @@ func (h *hgen) structName(t cc.Type) string {
 	return n
 }
 
-// tagTypedefs is, for each struct or union tag, the typedef that names it.
-func (h *hgen) tagTypedefs() {
-	h.tagTypedef = map[string]string{}
-	h.structNames = map[string]string{}
-	h.structTaken = map[string]bool{}
-	for tu := h.g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil {
-			continue
-		}
-		for l := ed.Declaration.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-			d := l.InitDeclarator.Declarator
-			if d == nil || !d.IsTypename() || d.Type() == nil {
-				continue
-			}
-			var tag string
-			switch x := d.Type().(type) {
-			case *cc.StructType:
-				tk := x.Tag()
-				tag = tk.SrcStr()
-			case *cc.UnionType:
-				tk := x.Tag()
-				tag = tk.SrcStr()
-			}
-			if tag != "" && h.tagTypedef[tag] == "" {
-				h.tagTypedef[tag] = d.Name()
-			}
-		}
-	}
-}
-
 // memberName is the constant of member fl's offset in container t, or ""
 // when the member has no name to give it.
 func (h *hgen) memberName(t cc.Type, fl *cc.Field) string {

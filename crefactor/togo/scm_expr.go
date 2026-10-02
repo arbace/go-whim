@@ -1000,7 +1000,7 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 		}
 		return sx{binds: binds, val: call, st: st, lvl: lvl}
 	}
-	if isAggr(rt) && f.s.h.tupleRet(d.Name()) {
+	if isAggr(rt) && f.s.facts.tupleRet(d.Name()) {
 		var names []string
 		stt := rt.(*cc.StructType)
 		for i := 0; i < stt.NumFields(); i++ {
@@ -1037,7 +1037,7 @@ func (f *sfn) outResult(binds []sbind, line, st string, g string, outs map[int]*
 		name string
 	}
 	var ups []upd
-	for _, i := range f.s.h.outs[g] {
+	for _, i := range f.s.facts.outs[g] {
 		o := outs[i]
 		n := f.tmp()
 		if f.reg(o) {

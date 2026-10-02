@@ -8,7 +8,7 @@ as the C does, with a control of its own, and the heavy case runs at 0.9-1.0
 times the C. It was surveyed and measured here the same day, before it was
 scheduled (§1-§8, kept as they were written: Chez Scheme chosen by
 measurement); the design held as §4 and §8 settled it, and what was built
-is recorded milestone by milestone after them (§9-§16), with what
+is recorded milestone by milestone after them (§9-§17), with what
 `doc/SCHEME-IDIOMS.md` then made of the output.
 
 ```
@@ -913,7 +913,8 @@ The design is §4's, with §8's settlements:
   machine.
 - **Out-parameters and struct results** multiple values, and struct locals
   of scalars bindings: the Haskell backend's `hsout.go`, `hsstruct.go` and
-  `hseffects.go` asked, so the two read the C alike.
+  `hseffects.go` asked, so the two read the C alike (shared, not asked, since
+  §16).
 - **The host** called through the vector of procedures the editor carries,
   so the core library imports nothing of the host's.
 
@@ -1119,7 +1120,41 @@ So the editor starts in about 35 ms under load and 31 quietly, against
 the kernel and petite.boot, 22-26 ms with an empty application -- 2-3 ms
 for the editor's libraries, and 4-6 ms for the editor.
 
-## 16. Not done
+## 16. The analyses shared with the Haskell
+
+The Scheme backend decided what it shares with the Haskell's -- the
+segment's layout, the typedef naming each tag, the out-parameters, the
+struct locals that are values, the effects -- by building the Haskell
+backend's own state (`hgen`) from a copy of the profile with the Scheme's
+exports and runtime bodies in the Haskell's places, and calling its
+methods; so a change to `hsout.go`, `hsstruct.go`, `hseffects.go`,
+`hsnamed.go` or `hs.go` could move `editor.ss` unseen.
+
+Those analyses are `crefactor/togo`'s own now, named for what they
+compute: `cfacts.go` (the `cfacts` both backends make with `newCFacts`,
+telling it the functions their host calls back, their runtime bodies'
+text and the analyses they leave out; the segment, `anon`, the tags'
+typedefs, the functions whose callers are written by hand), `outparams.go`,
+`structvalues.go` and `effects.go`; and `cquery.go` the small questions
+more backends ask (`fnDesignator`, `elemSize`, `answerLayout`...), which
+lived in `hs_expr.go` and `hs_fn.go`. `hgen` embeds a `cfacts`; `sgen`
+holds one. What is Haskell's printing stays in `hs*.go`: `hsout.go` and
+`hsstruct.go` keep only how the Haskell writes the values and tuples,
+`hsnamed.go` its names; `hseffects.go` is gone. The one Haskell spelling
+the analyses used, `hsScalarType` to compare an out-parameter's type with
+its argument's, is `scalarClass`, the same classes by other names. The
+Rust backend asked nothing of `hgen`: the helpers it shared with the
+Haskell's files (`walkCalls`, `fnDesignator`, `b2i64`, `answerLayout` and
+its `layoutMarks`) are in the shared files now, its own files untouched,
+and its effects (`rs_fx.go`, safe and editor-free functions on Rust's
+terms) are an analysis of its own.
+
+Held to: `whim gen` writes every generated file byte for byte as before --
+`make whim-editor-check` passes and the 192 tracked files' digests are
+unchanged, `Editor.hs`, its parts and `editor.ss` among them; `cd crefactor
+&& go test ./togo`; `whim test --haskell --scheme`, quick and `--wide`.
+
+## 17. Not done
 
 - **Records for the C's structs, Scheme strings for its strings**: declined
   in SCHEME-IDIOMS.md, with why -- the C's pointers into its objects.

@@ -55,8 +55,8 @@ keeps C's memory as C keeps it (`caprice/rt/Caprice/Rt.hs`):
   so in the C (`LocalOut`), a struct of the result and the values returned,
   which the Haskell returns as a tuple -- a function whose C result is a
   struct of scalars returns its members, `IO (Bool, Ptr Char_u, Int32)` --
-  and the printer's own analysis (`hsout.go`) takes the few the C cannot
-  (`(r, x1) <- f ... x`);
+  and togo's own analysis (`outparams.go`, shared with the Scheme backend;
+  `hsout.go` prints it) takes the few the C cannot (`(r, x1) <- f ... x`);
 - **a function that touches no memory is a Haskell function** of its
   arguments, no `IO` (`musl_isdigit :: Int32 -> Int32`), its loops pure
   recursion; one that reaches no file-scope object, no host and no function

@@ -13,7 +13,6 @@ package togo
 import (
 	"fmt"
 	"maps"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/cc"
@@ -46,8 +45,8 @@ type hfn struct {
 	inline map[*lblock]bool    // reached by one jump: written there
 	loop   map[*lblock]bool    // a loop's head: a jump back reaches it
 	fixed  map[*lvar]bool      // parameters never assigned: read from the scope
-	pure   bool                // a function of its arguments (hseffects.go)
-	tuple  bool                // its struct result is a tuple (hsstruct.go)
+	pure   bool                // a function of its arguments (effects.go)
+	tuple  bool                // its struct result is a tuple (structvalues.go)
 	outs   []*lvar             // the out-parameters, as values (hsout.go)
 	sv     map[*lvar][]*lvar   // a struct that is a value -> its members' variables (hsstruct.go)
 	svOf   map[*lvar]*lvar
@@ -253,14 +252,6 @@ func (f *hfn) vtype(v *lvar) string {
 		t = t.Decay()
 	}
 	return f.h.hsType(t)
-}
-
-func sliceSet(vs []*lvar) map[*lvar]bool {
-	m := map[*lvar]bool{}
-	for _, v := range vs {
-		m[v] = true
-	}
-	return m
 }
 
 // hsZero is a type's zero.
@@ -830,16 +821,6 @@ func hsMask(ht string) uint64 {
 	return ^uint64(0)
 }
 
-// elemSize is the size of what a pointer or array points at: 1 for void,
-// as gcc has it.
-func elemSize(t cc.Type) int64 {
-	e := elemOf(t)
-	if e == nil || e.Kind() == cc.Void || e.Kind() == cc.Function {
-		return 1
-	}
-	return e.Size()
-}
-
 func (f *hfn) no(n cc.Node, format string, args ...any) {
 	where := ""
 	if n != nil {
@@ -866,46 +847,6 @@ func hsOff(n int) string {
 	return fmt.Sprint(n)
 }
 
-// hsMarkRe is a runtime body's question about the C's layout: {{sizeof T}}
-// or {{offsetof T m}}, T a typedef's name.
-var hsMarkRe = regexp.MustCompile(`\{\{(sizeof|offsetof) ([A-Za-z_][A-Za-z_0-9]*)(?: ([A-Za-z_][A-Za-z_0-9]*))?\}\}`)
-
 // layoutMarks answers a runtime body's questions about the C's layout from
 // the front end's: a body is written once, and the sizes are the unit's.
 func (h *hgen) layoutMarks(body string) string { return answerLayout(h.g.ast, body) }
-
-// layoutMarks answers a runtime body's questions about the C's layout.
-func (r *rgen) layoutMarks(body string) string { return answerLayout(r.g.ast, body) }
-
-// answerLayout answers a body's {{sizeof T}} and {{offsetof T m}} from the
-// front end's layout of ast.
-func answerLayout(ast *cc.AST, body string) string {
-	return hsMarkRe.ReplaceAllStringFunc(body, func(m string) string {
-		g := hsMarkRe.FindStringSubmatch(m)
-		var t cc.Type
-		for _, n := range ast.Scope.Nodes[g[2]] {
-			if d, ok := n.(*cc.Declarator); ok && d.IsTypename() {
-				t = d.Type()
-			}
-		}
-		if t == nil {
-			panic(unsupported{"a runtime body's " + m + ": no type " + g[2]})
-		}
-		if g[1] == "sizeof" {
-			return fmt.Sprint(t.Size())
-		}
-		var st *cc.StructType
-		switch x := t.(type) {
-		case *cc.StructType:
-			st = x
-		}
-		if st == nil {
-			panic(unsupported{"a runtime body's " + m + ": " + g[2] + " is not a struct"})
-		}
-		fl := st.FieldByName(g[3])
-		if fl == nil {
-			panic(unsupported{"a runtime body's " + m + ": no member " + g[3]})
-		}
-		return fmt.Sprint(fl.Offset())
-	})
-}

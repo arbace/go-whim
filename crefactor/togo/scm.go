@@ -22,10 +22,11 @@ package togo
 //   - a function declared and not defined is the host's, called through
 //     the vector of the host's procedures the editor carries.
 //
-// What the Haskell backend decides about the C and not about Haskell -- the
-// segment's layout, the out-parameters (hsout.go), the struct locals that
-// are values (hsstruct.go), what each function touches (hseffects.go) -- is
-// asked of it, so that the two read the C alike.
+// What it decides about the C and not about Scheme -- the segment's layout,
+// the out-parameters (outparams.go), the struct locals that are values
+// (structvalues.go), what each function touches (effects.go) -- it decides
+// with the Haskell backend, through cfacts.go, so that the two read the C
+// alike.
 
 import (
 	"fmt"
@@ -45,7 +46,7 @@ const scmBase = 65536
 // sgen is the Scheme backend's state for one translation unit.
 type sgen struct {
 	g        *gen
-	h        *hgen // the Haskell backend's analyses of the same C
+	facts    *cfacts // what it decides about the C as the Haskell does (cfacts.go)
 	library  string
 	defined  map[string]*cc.FunctionDefinition
 	hostFns  map[string]*cc.Declarator
@@ -134,7 +135,7 @@ func (g *gen) writeScm(path string) error {
 	if s.library == "" {
 		s.library = "(editor)"
 	}
-	s.h = s.analyses()
+	s.facts = s.analyses()
 	var fds []*cc.FunctionDefinition
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef {
@@ -164,7 +165,7 @@ func (g *gen) writeScm(path string) error {
 	for _, f := range failed {
 		fmt.Fprintf(&report, "initial value of %s\n", f)
 	}
-	s.litBase = scmAlign(scmBase+s.h.segSize, 16)
+	s.litBase = scmAlign(scmBase+s.facts.segSize, 16)
 	var funcs []string
 	written := 0
 	for _, fd := range fds {
@@ -190,12 +191,12 @@ func (g *gen) writeScm(path string) error {
 	b.WriteString("\n" + s.table())
 	b.WriteString(")\n")
 	outs := 0
-	for _, is := range s.h.outs {
+	for _, is := range s.facts.outs {
 		outs += len(is)
 	}
 	text := b.String()
 	fmt.Fprintf(logw, "scm: %d of %d functions written, %d refused, %d lines; %d with a frame, %d joins and %d loops as local procedures, %d switches a case; %d out-parameters in %d functions and %d struct results as values, %d struct locals as bindings; %d bytes of objects, %d of literals, %d functions in the table\n",
-		written, len(fds), len(fds)-written, strings.Count(text, "\n"), s.st.framed, s.st.joins, s.st.loops, s.st.cases, outs, s.st.values, s.st.tuples, len(s.h.sval), s.h.segSize, len(s.pool), len(s.fnOrder))
+		written, len(fds), len(fds)-written, strings.Count(text, "\n"), s.st.framed, s.st.joins, s.st.loops, s.st.cases, outs, s.st.values, s.st.tuples, len(s.facts.sval), s.facts.segSize, len(s.pool), len(s.fnOrder))
 	if err := os.WriteFile(path+".layout", []byte(s.layout()), 0o644); err != nil {
 		return err
 	}
@@ -211,51 +212,18 @@ func (g *gen) writeScm(path string) error {
 	return os.WriteFile(path, []byte(text), 0o644)
 }
 
-// analyses are the Haskell backend's decisions about the same C, asked with
-// the Scheme's exports and runtime bodies in the Haskell's places: the
-// layout, the out-parameters, the struct values, the effects.
-func (s *sgen) analyses() *hgen {
-	p := *s.g.p
-	p.HsExports = s.g.p.ScmExports
-	p.RuntimeBodies = nil
+// analyses are what the Scheme decides about the C as the Haskell does
+// (cfacts.go): the layout, the out-parameters, the struct values, the
+// effects -- its runtime bodies' callers and the host's written by hand.
+func (s *sgen) analyses() *cfacts {
+	var bodies []handBody
 	for _, rb := range s.g.p.RuntimeBodies {
 		if rb.Scm != nil {
-			p.RuntimeBodies = append(p.RuntimeBodies, RuntimeBody{Name: rb.Name, Hs: rb.Scm})
+			bodies = append(bodies, handBody{rb.Name, rb.Scm("()")})
 		}
 	}
-	g := *s.g
-	g.p = &p
-	h := &hgen{g: &g, defined: map[string]*cc.FunctionDefinition{}, hostFns: map[string]*cc.Declarator{},
-		segOff: map[string]int{}, fnIdx: map[string]int{}, names: map[string]string{}, variadic: map[string]bool{},
-		segType: map[string]cc.Type{}, exported: map[string]bool{}, memberOff: map[string]int64{}, enumVal: map[string]int64{},
-		tyDef: map[string]string{}, tyOf: map[string]string{}, tySyn: map[string]string{}, bootSigs: map[string]string{}}
-	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef {
-			h.defined[ed.FunctionDefinition.Declarator.Name()] = ed.FunctionDefinition
-		}
-	}
-	for name, d := range g.a.fnDecls {
-		if h.defined[name] == nil && !strings.HasPrefix(name, "__") {
-			h.hostFns[name] = d
-		}
-	}
-	for name := range h.defined {
-		h.names[name] = hsName(name)
-	}
-	h.layout()
-	h.tagTypedefs()
-	if !s.g.p.ScmNoOuts {
-		h.outParams()
-	} else {
-		h.outs, h.outArg, h.outLazy = map[string][]int{}, map[*cc.UnaryExpression]bool{}, map[*cc.Declarator]bool{}
-	}
-	if !s.g.p.ScmNoStructValues {
-		h.structLocals()
-	} else {
-		h.sval = map[*cc.Declarator]bool{}
-	}
-	h.effects()
-	return h
+	return newCFacts(s.g, cfactsOptions{exports: s.g.p.ScmExports, bodies: bodies,
+		noOuts: s.g.p.ScmNoOuts, noStructValues: s.g.p.ScmNoStructValues})
 }
 
 func scmAlign(n, a int) int { return (n + a - 1) / a * a }
@@ -267,7 +235,7 @@ func (s *sgen) header() string {
 	for _, n := range s.g.p.ScmExports {
 		if s.defined[n] != nil {
 			ex = append(ex, s.names[n])
-		} else if off, ok := s.h.segOff["global:"+n]; ok {
+		} else if off, ok := s.facts.segOff["global:"+n]; ok {
 			ex = append(ex, "addr:"+n)
 			_ = off
 		}
@@ -305,7 +273,7 @@ func (s *sgen) dataDefs() string {
 	}
 	b.WriteString("    ed))\n\n")
 	for _, n := range s.g.p.ScmExports {
-		if off, ok := s.h.segOff["global:"+n]; ok && s.defined[n] == nil {
+		if off, ok := s.facts.segOff["global:"+n]; ok && s.defined[n] == nil {
 			fmt.Fprintf(&b, ";; The address of %s, for the host.\n(define addr:%s %d)\n\n", n, n, scmBase+off)
 		}
 	}
@@ -445,7 +413,7 @@ func (s *sgen) tableEntry(name string, ft *cc.FunctionType) string {
 		}
 		as = append(as, a)
 	}
-	if ft.IsVariadic() || s.outs(name) != nil || s.h.tupleRet(name) {
+	if ft.IsVariadic() || s.outs(name) != nil || s.facts.tupleRet(name) {
 		wrap = true // never so in a table, but said
 	}
 	if !wrap && s.defined[name] != nil && s.takesEd(name) || !wrap && s.defined[name] == nil {
@@ -462,7 +430,7 @@ func (s *sgen) tableEntry(name string, ft *cc.FunctionType) string {
 }
 
 // outs are the out-parameters of the function name.
-func (s *sgen) outs(name string) []int { return s.h.outs[name] }
+func (s *sgen) outs(name string) []int { return s.facts.outs[name] }
 
 // takesEd says the function name takes the editor: every function does,
 // unless the profile asks for the pure ones without it.
@@ -470,7 +438,7 @@ func (s *sgen) takesEd(name string) bool {
 	if !s.g.p.ScmPure {
 		return true
 	}
-	return !s.h.pure(name)
+	return !s.facts.pure(name)
 }
 
 // stub is a refused function: a procedure that fails.
@@ -612,7 +580,7 @@ func (s *sgen) initializers() []string {
 		if in == nil {
 			return
 		}
-		off, ok := s.h.segOff[key]
+		off, ok := s.facts.segOff[key]
 		if !ok {
 			failed = append(failed, name)
 			return
@@ -753,7 +721,7 @@ func (s *sgen) constOf(e cc.ExpressionNode) (int64, *string) {
 	case *cc.PostfixExpression:
 		if x.Case == cc.PostfixExpressionComplit {
 			t := x.TypeName.Type()
-			off := s.h.anon(t)
+			off := s.facts.anon(t)
 			in := &cc.Initializer{Case: cc.InitializerInitList, InitializerList: x.InitializerList, Token: x.Token}
 			s.initInto(off, t, in)
 			return int64(scmBase + off), nil
@@ -769,7 +737,7 @@ func (s *sgen) constAddr(e cc.ExpressionNode) int {
 	case *cc.PrimaryExpression:
 		if x.Case == cc.PrimaryExpressionIdent {
 			if d, ok := x.ResolvedTo().(*cc.Declarator); ok {
-				if off, ok := s.h.segOff[s.g.a.declKey(d)]; ok {
+				if off, ok := s.facts.segOff[s.g.a.declKey(d)]; ok {
 					return scmBase + off
 				}
 			}
@@ -824,7 +792,7 @@ func (s *sgen) useObject(key string) (*sobj, bool) {
 		o.used = true
 		return o, true
 	}
-	off, ok := s.h.segOff[key]
+	off, ok := s.facts.segOff[key]
 	if !ok {
 		return nil, false
 	}
@@ -842,7 +810,7 @@ func (s *sgen) useObject(key string) (*sobj, bool) {
 		n += "*"
 	}
 	s.objNames[n] = true
-	t := s.h.segType[key]
+	t := s.facts.segType[key]
 	kind := "agg"
 	if t != nil && !isAggr(t) && t.Kind() != cc.Array && t.Kind() != cc.Function {
 		kind = scmAccess(scmTypeOf(t))
@@ -873,7 +841,7 @@ func (s *sgen) structName(t cc.Type) string {
 		tk := x.Tag()
 		tag = tk.SrcStr()
 	}
-	n := s.h.tagTypedef[tag]
+	n := s.facts.tagTypedef[tag]
 	if n == "" && t.Typedef() != nil {
 		n = t.Typedef().Name()
 	}

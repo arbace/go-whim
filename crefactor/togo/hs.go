@@ -35,33 +35,25 @@ import (
 
 // hgen is the Haskell backend's state for one translation unit.
 type hgen struct {
+	*cfacts  // the layout, the out-parameters, the struct values, the effects (cfacts.go)
 	g        *gen
 	module   string
 	host     string
 	defined  map[string]*cc.FunctionDefinition
 	hostFns  map[string]*cc.Declarator
-	segOff   map[string]int // an object's key -> its offset in the segment
-	segSize  int
 	fnIdx    map[string]int // a function whose address is taken -> its index
 	fnOrder  []string
 	names    map[string]string // a C function -> its Haskell name
 	variadic map[string]bool   // the host's variadic functions
 	taken    map[string]bool   // the names no local may take (topNames)
-	fx       map[string]*hsFx  // each function's effects (hseffects.go)
 	tyDef    map[string]string // a Haskell type name -> its declaration (hstypes.go)
 	tyOf     map[string]string // a C name and a declaration -> the type's name
 	tySyn    map[string]string // a synonym -> what it stands for
-	outs     map[string][]int  // a function's out-parameters (hsout.go)
-	outArg   map[*cc.UnaryExpression]bool
-	outLazy  map[*cc.Declarator]bool
-	sval     map[*cc.Declarator]bool // struct locals that are values (hsstruct.go)
-	bootSigs map[string]string       // an exported function -> its hs-boot signature
+	bootSigs map[string]string // an exported function -> its hs-boot signature
 
 	// the names (hsnamed.go)
-	segType     map[string]cc.Type // an object's key -> its type
 	objs        map[string]*hobj
 	exported    map[string]bool // an object whose addr' the exports print
-	tagTypedef  map[string]string
 	structNames map[string]string
 	structTaken map[string]bool
 	memberOff   map[string]int64
@@ -105,8 +97,8 @@ func hsName(s string) string {
 // it path.refused: the functions it could not write, with the reason.
 func (g *gen) writeHs(path string) error {
 	h := &hgen{g: g, module: g.p.HsModule, host: g.p.HsHost, defined: map[string]*cc.FunctionDefinition{},
-		hostFns: map[string]*cc.Declarator{}, segOff: map[string]int{}, fnIdx: map[string]int{},
-		names: map[string]string{}, variadic: map[string]bool{}, segType: map[string]cc.Type{},
+		hostFns: map[string]*cc.Declarator{}, fnIdx: map[string]int{},
+		names: map[string]string{}, variadic: map[string]bool{},
 		exported: map[string]bool{}, memberOff: map[string]int64{}, enumVal: map[string]int64{},
 		tyDef: map[string]string{}, tyOf: map[string]string{}, tySyn: map[string]string{}, bootSigs: map[string]string{}}
 	if h.module == "" {
@@ -134,12 +126,18 @@ func (g *gen) writeHs(path string) error {
 	for name := range h.defined {
 		h.names[name] = hsName(name)
 	}
-	h.layout()
+	// what the Haskell decides about the C as the Scheme does (cfacts.go),
+	// its runtime bodies' callers and the host's written by hand
+	var bodies []handBody
+	for _, rb := range g.p.RuntimeBodies {
+		if rb.Hs != nil {
+			bodies = append(bodies, handBody{rb.Name, rb.Hs("()")})
+		}
+	}
+	h.cfacts = newCFacts(g, cfactsOptions{exports: g.p.HsExports, bodies: bodies})
 	h.nameObjects()
-	h.tagTypedefs()
-	h.outParams()
-	h.structLocals()
-	h.effects()
+	h.structNames = map[string]string{}
+	h.structTaken = map[string]bool{}
 	if hsCountHook != nil {
 		hsCountHook(h)
 	}
@@ -226,58 +224,6 @@ func (g *gen) writeHs(path string) error {
 }
 
 var hsCountHook func(*hgen) // a test's look at the analyses
-
-// layout gives each file-scope object and each block-scope static its
-// offset in the segment, aligned as C aligns it.
-func (h *hgen) layout() {
-	type obj struct {
-		key string
-		t   cc.Type
-	}
-	var objs []obj
-	seen := map[string]bool{}
-	add := func(key string, t cc.Type) {
-		if seen[key] || t == nil {
-			return
-		}
-		seen[key] = true
-		objs = append(objs, obj{key, t})
-	}
-	for tu := h.g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil {
-			continue
-		}
-		for l := ed.Declaration.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-			d := l.InitDeclarator.Declarator
-			if d == nil || d.IsTypename() || d.Type() == nil || d.Type().Kind() == cc.Function {
-				continue
-			}
-			add(h.g.a.declKey(d), d.Type())
-		}
-	}
-	for _, s := range h.g.a.statics {
-		add(h.g.a.declKey(s.d), s.d.Type())
-	}
-	off := 0
-	for _, o := range objs {
-		al := max(o.t.Align(), 1)
-		off = (off + al - 1) / al * al
-		h.segOff[o.key] = off
-		h.segType[o.key] = o.t
-		off += int(max(o.t.Size(), 0))
-	}
-	h.segSize = off
-}
-
-// anon is room in the segment for an object of type t that has no name: a
-// compound literal in a file-scope object's initializer.
-func (h *hgen) anon(t cc.Type) int {
-	al := max(t.Align(), 1)
-	off := (h.segSize + al - 1) / al * al
-	h.segSize = off + int(max(t.Size(), 1))
-	return off
-}
 
 // exports is the hs-boot interface of what the host calls back
 // (Profile.HsExports), and the accessors of the objects among them.

@@ -277,16 +277,6 @@ func (f *hfn) node(e cc.ExpressionNode) hv {
 	return hv{}
 }
 
-// fnDesignator is the function e names, or nil.
-func fnDesignator(e cc.ExpressionNode) *cc.Declarator {
-	if p, ok := unparenE(e).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
-		if d, ok := p.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() == cc.Function {
-			return d
-		}
-	}
-	return nil
-}
-
 // fnValue is a function's address: its index in the table.
 func (f *hfn) fnValue(d *cc.Declarator) hv {
 	return hv{val: fmt.Sprintf("(fnPtr %d)", f.h.fnPtrOf(d.Name())), ht: "P"}
@@ -465,13 +455,6 @@ func hsLit(v int64, ht string) string {
 		return fmt.Sprintf("(%d :: %s)", uint64(v)&hsMask(ht), ht)
 	}
 	return fmt.Sprintf("(%d :: %s)", v, ht)
-}
-
-func b2i64(b bool) int64 {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 // hsParen is a type as an argument: parenthesized when it is applied.

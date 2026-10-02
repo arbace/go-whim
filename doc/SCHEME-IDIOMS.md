@@ -8,8 +8,8 @@ runtime `whimsical/whimsical/rt.ss`, host `host.ss`, terminal `term.ss` and
 `printf.ss`. `doc/HASKELL-IDIOMS.md` and `doc/CLOJURE-IDIOMS.md` are its
 model: every item says what the pattern is, how many sites it has, what it
 would become, who would do it -- the Scheme printer (`crefactor/togo/scm.go`,
-`scm_fn.go`, `scm_expr.go`), togo's shared analyses (`hsout.go`,
-`hsstruct.go`, `hseffects.go`), the runtime -- its cost (S/M/L), its risk,
+`scm_fn.go`, `scm_expr.go`), togo's analyses shared with the Haskell
+backend (`cfacts.go`: `outparams.go`, `structvalues.go`, `effects.go`), the runtime -- its cost (S/M/L), its risk,
 and how it is verified. `editor.ss` is generated and stays so: every item
 done is a change to the backend, the library regenerated.
 
@@ -61,7 +61,7 @@ throwaway, in `.tmp/scm/idioms/` (not tracked):
 | `measure.py` (reads `editor.ss`) | the library split into its top-level procedures; the loads and stores by address shape (a constant, a pointer plus a constant, the frame), the printer's temporaries and how often each is used, copy bindings, truth-value conversions, the forms by head (`let`, `if`, `case`, `cond`, `when`, `begin`), the nesting depth |
 | `shape.py` (the same) | each local loop and the places outside its body that enter it; the `if`s whose else is an `if` |
 | a throwaway `togo` test (`zz_scm_survey_test.go`, removed) | the core parsed: the enumerators and character constants the functions use |
-| `hseffects.go` (the Haskell backend's analysis, which the Scheme backend asks) | the functions that touch no memory |
+| `hseffects.go` (the Haskell backend's analysis, which the Scheme backend asked; `effects.go`, shared, now) | the functions that touch no memory |
 | `whim test --scheme`, `--wide --scheme` | the verification recipe, run at `598b500`: all 80 and all 240 cases as the C, the control seen by 76 and by 94 + 6; the heavy case 0.9-1.2 times the C |
 
 **Verification recipe for every item done** (the suites compare output byte
@@ -296,7 +296,7 @@ After items 1, 3 and 4:
 ### 7. Pure functions without the editor
 
 - **The pattern.** Every function takes the editor; 63 touch no memory,
-  even through what they call (`hseffects.go`), e.g. `musl_isdigit`.
+  even through what they call (`effects.go`), e.g. `musl_isdigit`.
 - **What it would become.** Those take only their C parameters (the
   backend's `ScmPure`, already held to the foreign C tests).
 - **Where:** the profile. **Cost:** S. **Risk:** low.
@@ -315,8 +315,8 @@ After items 1, 3 and 4:
 
 - **Multiple values** (milestone 1): a struct of scalars a function returns
   is `values` (64 functions), an out-parameter a value in and out (2 left
-  by phase 181), a struct local of scalars bindings (148) -- `hsout.go`'s
-  and `hsstruct.go`'s decisions.
+  by phase 181), a struct local of scalars bindings (148) -- the decisions
+  of `outparams.go` and `structvalues.go`, shared with the Haskell.
 - **The host as a record** (milestone 3): `host.ss`'s `host` record of
   procedures, R6RS's buffer convention.
 - **Every value a binding, no `set!`**: each assignment is a new binding of
@@ -492,7 +492,7 @@ B`).
 ### 7. Pure functions without the editor
 
 `whim.Gen` turns on the backend's `ScmPure`: the 63 functions that touch no
-memory, even through what they call (`hseffects.go`), take only their C
+memory, even through what they call (`effects.go`), take only their C
 parameters -- `(define (musl_isalnum c) (or (musl_isalpha c) (musl_isdigit
 c)))` -- and their callers pass no editor; one taken as a function pointer
 is wrapped in the table to take the editor a call through a pointer passes.

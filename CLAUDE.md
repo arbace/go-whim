@@ -310,9 +310,16 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    hsshape.go the blocks in place, hsnames.go a name for
                    each binding, hsnamed.go the C's names for objects,
                    members and constants, hstypes.go typed pointers,
-                   hseffects.go the pure functions and those without the
-                   editor, hsout.go out-parameters as results, hsstruct.go
-                   struct locals as values, hssplit.go the modules), and
+                   hsout.go out-parameters printed as results, hsstruct.go
+                   struct locals printed as values, hssplit.go the
+                   modules), and what it decides about the C with the
+                   Scheme backend, named for what it computes (cfacts.go:
+                   the cfacts both make with newCFacts -- the segment's
+                   layout, the tags' typedefs, the callers written by hand
+                   -- outparams.go the out-parameters, structvalues.go the
+                   struct locals that are values, effects.go the pure
+                   functions and those without the editor; and cquery.go
+                   the small questions more backends ask), and
                    its Rust backend (rs*.go: `whim skel ... -rs F.rs`, C's
                    memory natively, doc/RUST.md: rs_types.go the #[repr(C)]
                    types and the layout listing, rs_fn.go C's statements --
@@ -330,8 +337,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    doc/SCHEME.md: scm.go the library, its image and its
                    names, scm_fn.go the blocks as local procedures and named
                    lets, scm_expr.go the expressions in C's order,
-                   scm_layout.go the layout listing; it asks the Haskell
-                   backend's hsout, hsstruct and hseffects). Its tests
+                   scm_layout.go the layout listing; its cfacts are the
+                   Haskell's analyses, shared). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's

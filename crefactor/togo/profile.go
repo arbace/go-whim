@@ -118,9 +118,9 @@ type Profile struct {
 	ScmLibrary string
 	ScmExports []string
 	// ScmNoOuts and ScmNoStructValues leave every out-parameter and every
-	// struct local in the frame, as C has them (hsout.go, hsstruct.go);
+	// struct local in the frame, as C has them (outparams.go, structvalues.go);
 	// ScmPure writes a function that touches no memory without the editor
-	// (hseffects.go).
+	// (effects.go).
 	ScmNoOuts, ScmNoStructValues, ScmPure bool
 }
 

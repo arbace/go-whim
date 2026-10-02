@@ -84,7 +84,7 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	f := &sfn{s: s, lf: lf, name: d.Name(), mem: map[*lvar]int{}, takes: s.takesEd(d.Name()), locals: map[*lvar]bool{},
 		conds: map[string][]sclause{}}
 	ft := lf.ft
-	f.tuple = s.h.tupleRet(d.Name())
+	f.tuple = s.facts.tupleRet(d.Name())
 	f.sret = isAggr(ft.Result()) && !f.tuple
 	f.ret = scmTypeOf(ft.Result())
 	f.outVars()
@@ -406,7 +406,7 @@ func (f *sfn) placeVars(fd *cc.FunctionDefinition) {
 		if n == nil {
 			return
 		}
-		if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof && !f.s.h.outArg[u] {
+		if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof && !f.s.facts.outArg[u] {
 			if p, ok := unparenE(u.CastExpression).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
 				if d, ok := p.ResolvedTo().(*cc.Declarator); ok {
 					taken[d] = true
@@ -420,7 +420,7 @@ func (f *sfn) placeVars(fd *cc.FunctionDefinition) {
 		if f.sv[v] != nil {
 			continue
 		}
-		if isAggr(v.c) || v.c.Kind() == cc.Array || v.decl != nil && (taken[v.decl] || f.s.h.outLazy[v.decl]) {
+		if isAggr(v.c) || v.c.Kind() == cc.Array || v.decl != nil && (taken[v.decl] || f.s.facts.outLazy[v.decl]) {
 			f.alloc(v, v.c)
 		}
 	}
@@ -1511,7 +1511,7 @@ func (f *sfn) unassigned() map[*lvar]bool {
 		}
 	}
 	walkAddrs(f.lf.fd.CompoundStatement, func(u *cc.UnaryExpression, d *cc.Declarator) {
-		if v, ok := f.lf.byDecl[d]; ok && f.s.h.outArg[u] {
+		if v, ok := f.lf.byDecl[d]; ok && f.s.facts.outArg[u] {
 			set[v] = true
 		}
 	})
@@ -1524,11 +1524,11 @@ func (f *sfn) unassigned() map[*lvar]bool {
 	return fixed
 }
 
-// --- out-parameters and struct values: hsout.go's and hsstruct.go's ------------
+// --- out-parameters and struct values: outparams.go and structvalues.go decide -
 
 func (f *sfn) outVars() {
 	f.isOut = map[*lvar]bool{}
-	for _, i := range f.s.h.outs[f.name] {
+	for _, i := range f.s.facts.outs[f.name] {
 		if i < len(f.lf.params) {
 			v := f.lf.params[i]
 			f.outs = append(f.outs, v)
@@ -1580,18 +1580,18 @@ func (f *sfn) liveOuts() {
 
 func (f *sfn) outCall(call *cc.PostfixExpression) (map[int]*lvar, bool) {
 	d := fnDesignator(call.PostfixExpression)
-	if d == nil || len(f.s.h.outs[d.Name()]) == 0 {
+	if d == nil || len(f.s.facts.outs[d.Name()]) == 0 {
 		return nil, false
 	}
 	m := map[int]*lvar{}
 	i := 0
 	for l := call.ArgumentExpressionList; l != nil; l, i = l.ArgumentExpressionList, i+1 {
-		if !f.s.h.isOut(d.Name(), i) {
+		if !f.s.facts.isOut(d.Name(), i) {
 			continue
 		}
 		u, x := addrOfLocal(l.AssignmentExpression)
 		v := f.lf.byDecl[x]
-		if u == nil || !f.s.h.outArg[u] || v == nil {
+		if u == nil || !f.s.facts.outArg[u] || v == nil {
 			f.no(call, "an out-argument that is not a local's address")
 		}
 		m[i] = v
@@ -1603,7 +1603,7 @@ func (f *sfn) structVars() {
 	f.sv = map[*lvar][]*lvar{}
 	f.svOf = map[*lvar]*lvar{}
 	for _, v := range f.lf.vars {
-		if v.decl == nil || !f.s.h.sval[v.decl] {
+		if v.decl == nil || !f.s.facts.sval[v.decl] {
 			continue
 		}
 		st := v.c.(*cc.StructType)
