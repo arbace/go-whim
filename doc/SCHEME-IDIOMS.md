@@ -351,7 +351,7 @@ After items 1, 3 and 4:
 | 5 | loops as named `let` -- **done** | 464 of 906 | M | low | medium |
 | 6 | named constants and characters -- **done** | 8,690 + 2,327 | S-M | low | medium |
 | 7 | pure functions without the editor -- **done** | 63 | S | low | low |
-| 8 | truth values | 1,714 | S | low | low |
+| 8 | truth values -- **done** | 1,714 | S | low | low |
 
 ## Done
 
@@ -502,3 +502,20 @@ What the host calls back and what a runtime body names keep it.
 | functions without `ed` | 0 | 63 |
 | Chez on the core | 29.0 s, 0.73 GB | 28.2 s, 0.74 GB |
 | the heavy case | 0.9-1.1 times the C | 0.9-1.0 (C 428-435 ms, whimsical 400-412) |
+
+### 8. Truth values
+
+A test that is `(not x)` swaps its arms: `(if (not x) a b)` is `(if x b
+a)`, `(when (not x) ...)` an `unless`, and the reverse; `(not (not x))` is
+`x`; a truth value compared with 0 or 1 (`FALSE`, `TRUE`, `OK`, `FAIL` the
+C's own) is itself or its negation. An `int` the C tests stays `(not
+(fxzero? x))` where it is a value, not a test.
+
+| | before | after |
+| --- | ---: | ---: |
+| `(not ...)` | 4,936 | 2,763 |
+| `(not (fxzero? x))` / `(not (fx=? a b))` | 1,714 / 1,853 | 850 / 1,206 |
+| `(b->i b)` | 361 | 344 |
+| lines | 53,884 | 53,676 |
+| Chez on the core | 28.2 s, 0.74 GB | 28.8 s, 0.73 GB |
+| the heavy case | 0.9-1.0 times the C | 0.9-1.0 (C 434-457 ms, whimsical 390-447) |

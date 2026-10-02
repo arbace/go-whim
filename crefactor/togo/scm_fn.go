@@ -732,17 +732,22 @@ type sclause struct {
 // into which an els that is a cond or an if goes on.
 func (f *sfn) ifForm(c string, then, els []string) string {
 	isVoid := func(fs []string) bool { return len(fs) == 1 && fs[0] == "(void)" }
+	x, negated := scmNot(c)
 	switch {
+	case isVoid(els) && !isVoid(then) && negated:
+		return scmKeyword("unless", x, then)
 	case isVoid(els) && !isVoid(then):
 		return scmKeyword("when", c, then)
+	case isVoid(then) && !isVoid(els) && negated:
+		return scmKeyword("when", x, els)
 	case isVoid(then) && !isVoid(els):
 		return scmKeyword("unless", c, els)
 	}
-	_, thenCond := f.conds[then[0]]
 	_, elsCond := f.conds[els[0]]
-	if len(then) == 1 && thenCond && !(len(els) == 1 && elsCond) && strings.HasPrefix(c, "(not ") && strings.HasSuffix(c, ")") {
-		// (if (not x) (if ...) e) is (cond [x e] ...)
-		return f.ifForm(c[len("(not "):len(c)-1], els, then)
+	if negated && !(len(els) == 1 && elsCond) {
+		// (if (not x) a b) is (if x b a); and (if (not x) (if ...) e) is
+		// (cond [x e] ...)
+		return f.ifForm(x, els, then)
 	}
 	clauses := []sclause{{c, then}}
 	if len(els) == 1 {

@@ -397,7 +397,7 @@ func (f *sfn) node(e cc.ExpressionNode) sx {
 			return sx{binds: a.binds, val: s, st: st, lvl: a.lvl}
 		case cc.UnaryExpressionNot:
 			a := f.truth(f.expr(x.CastExpression))
-			return sx{binds: a.binds, val: "(not " + a.val + ")", st: "bool", lvl: a.lvl}
+			return sx{binds: a.binds, val: scmNegate(a.val), st: "bool", lvl: a.lvl}
 		case cc.UnaryExpressionPlus:
 			return f.conv(f.expr(x.CastExpression), scmTypeOf(x.Type()))
 		}
@@ -806,6 +806,21 @@ func (f *sfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 // compare is a comparison: of addresses, or of numbers in their usual type.
 func (f *sfn) compare(op string, le, re cc.ExpressionNode) sx {
 	a, b := f.expr(le), f.expr(re)
+	if op == "==" || op == "!=" {
+		// a truth value against 0 or 1 (FALSE, TRUE, OK, FAIL): itself
+		// or its negation
+		x, k := a, b
+		if b.st == "bool" && !a.lit && a.konst {
+			x, k = b, a
+		}
+		if x.st == "bool" && k.konst && !k.lit && k.st != "ptr" && (k.kv == 0 || k.kv == 1) && len(k.binds) == 0 {
+			v := x.val
+			if (op == "==") != (k.kv == 1) {
+				v = scmNegate(v)
+			}
+			return sx{binds: x.binds, val: v, st: "bool", lvl: x.lvl}
+		}
+	}
 	var st string
 	if isPtrish(le.Type()) || isPtrish(re.Type()) || le.Type().Kind() == cc.Function || re.Type().Kind() == cc.Function {
 		st = "ptr"
@@ -1120,4 +1135,20 @@ func scmChar(v int64) string {
 		return fmt.Sprintf(`#\x%x`, v)
 	}
 	return ""
+}
+
+// scmNot is X when c is (not X), the whole of it.
+func scmNot(c string) (string, bool) {
+	if !strings.HasPrefix(c, "(not ") || scmFormEnd(c, 0) != len(c) {
+		return "", false
+	}
+	return c[len("(not ") : len(c)-1], true
+}
+
+// scmNegate is (not c), or X when c is (not X).
+func scmNegate(c string) string {
+	if x, ok := scmNot(c); ok {
+		return x
+	}
+	return "(not " + c + ")"
 }
