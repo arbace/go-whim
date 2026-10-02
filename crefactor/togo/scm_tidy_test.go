@@ -251,3 +251,11 @@ func TestScmTidyNest(t *testing.T) {
 		t.Errorf("moved: %s", got)
 	}
 }
+
+func TestScmTidyCaseBody(t *testing.T) {
+	// a c-case's clause is a body: a join's forms go in as they are
+	src := `(define (f ed c) (define (join2) (g ed) (h ed)) (c-case c [(ESC) (k ed) (join2)] [else 0]))`
+	if got := squash(tidyOne(t, src, false)); got != `(define (f ed c) (c-case c [(ESC) (k ed) (g ed) (h ed)] [else 0]))` {
+		t.Errorf("got %s", got)
+	}
+}

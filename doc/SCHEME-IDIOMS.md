@@ -909,3 +909,8 @@ per call of the function. Kept out of loops' and joins' bodies, the rule
 (with item 11's second run) left the joins 15,029 parameters, at no cost
 (4,826M instructions); everywhere, 4,195, at 2.5 % -- still under the C's
 time, and item 16 had taken 30 %.
+
+Found after item 18, and fixed (`f9fc1f1`'s parent's fault, item 17): a
+`c-case`'s clause was not taken for a body, so a join written into one
+was wrapped in a `begin` -- 29 of them. `begin`s 29 -> 0, 52,677 -> 52,645
+lines; the same instructions.

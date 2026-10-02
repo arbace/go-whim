@@ -744,7 +744,7 @@ func scmBodyAt(x *sform, at int, parent *sform) bool {
 		if parent != nil {
 			h = parent.head()
 		}
-		return at >= 1 && (h == "cond" || h == "case")
+		return at >= 1 && (h == "cond" || h == "case" || h == "c-case")
 	}
 	switch h := x.head(); h {
 	case "when", "unless", "define", "lambda":
