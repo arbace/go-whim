@@ -840,9 +840,8 @@ func (f *rfn) selection(s *cc.SelectionStatement) bool {
 		div := tdiv
 		els := s.Statement2
 		for {
-			if els.Case == cc.StatementSelection && (els.SelectionStatement.Case == cc.SelectionStatementIf || els.SelectionStatement.Case == cc.SelectionStatementIfElse) {
+			if in := f.elseIf(els); in != nil {
 				// else if: written on, and its own pieces
-				in := els.SelectionStatement
 				c := f.cond(in.ExpressionList)
 				b, d := f.body(in.Statement)
 				f.line("} else if %s {", c)
@@ -1562,4 +1561,32 @@ func rsAllSingle(runs [][]*rcase) bool {
 		}
 	}
 	return true
+}
+
+// elseIf is the if an else is, to be written `} else if`: the else's
+// statement, or a block of it alone (clippy's collapsible_else_if) -- but
+// not one whose condition stores, which its own if takes out first
+// (hoist, nestedIf), inside the else's block.
+func (f *rfn) elseIf(els *cc.Statement) *cc.SelectionStatement {
+	for els.Case == cc.StatementCompound {
+		l := els.CompoundStatement.BlockItemList
+		if l == nil || l.BlockItemList != nil || l.BlockItem.Case != cc.BlockItemStmt {
+			return nil
+		}
+		els = l.BlockItem.Statement
+	}
+	if els.Case != cc.StatementSelection {
+		return nil
+	}
+	in := els.SelectionStatement
+	if in.Case != cc.SelectionStatementIf && in.Case != cc.SelectionStatementIfElse {
+		return nil
+	}
+	if f.hoists(in.ExpressionList) {
+		return nil
+	}
+	if ops := andOperands(in.ExpressionList); in.Case == cc.SelectionStatementIf && len(ops) > 1 && f.effectAfterFirst(ops) {
+		return nil
+	}
+	return in
 }

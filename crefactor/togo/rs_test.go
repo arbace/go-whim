@@ -724,3 +724,48 @@ func TestRsFall(t *testing.T) {
 		}
 	}
 }
+
+// rsElseIfC is an else whose block is an if alone, written `} else if`
+// (clippy's collapsible_else_if), and an else if whose condition stores,
+// an else's block that stores, then tests (doc/RUST-IDIOMS.md, item 16).
+const rsElseIfC = javaHost + `
+static int twice(int v) { return v * 2; }
+static int pick(int a, int b)
+{
+    int n;
+    if (a > 5) {
+        return 1;
+    } else {
+        if (b > 5) {
+            return 2;
+        } else {
+            return 3;
+        }
+    }
+    return 0;
+}
+static int store(int a)
+{
+    int n = 0;
+    if (a > 5)
+        n = 1;
+    else if ((n = twice(a)) > 4)
+        n += 100;
+    return n;
+}
+
+void run(void)
+{
+    out(pick(9, 0)); out(pick(0, 9)); out(pick(0, 0));
+    out(store(9)); out(store(3)); out(store(1));
+}
+`
+
+func TestRsElseIf(t *testing.T) {
+	prog := rsSame(t, rsElseIfC, Profile{}, javaHarnessC)
+	for _, s := range []string{"} else if b > 5 {", "} else {\n        n = twice(a);\n        if n > 4 {"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+}

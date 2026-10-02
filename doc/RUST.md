@@ -367,6 +367,8 @@ A second pass (`RUST-IDIOMS.md`, *The second pass*):
   round; blocks 154 -> 72.
 - a switch's fallthrough (item 15): an empty case the next's pattern, a
   few simple statements fallen into written again; labels 91 -> 75.
+- `else { if }` as `else if` (item 16), an else if that stores an else
+  block; blocks 72 -> 67.
 
 ## Not done
 

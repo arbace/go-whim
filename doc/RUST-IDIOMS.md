@@ -573,7 +573,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 
 | | `8a186a4` | after |
 | --- | ---: | ---: |
-| `editor.rs` | 61,820 lines | 61,897 lines |
+| `editor.rs` | 61,820 lines | 61,834 lines |
 | pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
 | `*const` in the text | 0 | 1,492 |
 | `pub unsafe fn` | 1,648 | 1,648 |
@@ -581,7 +581,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 | zeros at the top | 1,113 | 932, each one rustc needs (446 `0`, 242 `zeroed()`, 138 `false`, 104 null) |
 | locals declared with no value, `let x: T;` | 396 | 499 |
 | the module's `#![allow]` | the C's names, `unused_assignments` | the C's names alone; 4 functions `#[expect(unused_assignments)]` |
-| block expressions | 154 | 72 |
+| block expressions | 154 | 67 |
 | labels | 91 | 75: 32 a ladder's, 13 a switch a break leaves, 11 phase 173's regions, 10 gotos', 7 loops a break names, 2 a for's continue |
 | rustc's warnings (`--lint`, every allow and expect out) | 702: 220 `unused_assignments` | 487: 5 `unused_assignments`, 482 the C's names |
 | rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB |
@@ -664,6 +664,13 @@ function's own level, block expressions `({ ` and `= { `, labels.
   `break` would leave the loop), 11 phase 173's regions and 10 gotos (C's
   own), 7 loops a break names past a labeled block, 2 a for's step after
   a long `continue`.
+- **Item 16, `else { if ... }` as `else if`** (`rs_fn.go`'s `elseIf`,
+  `TestRsElseIf`): an else whose block is an if alone is written `} else
+  if` (clippy's `collapsible_else_if`) -- 38 of the 148 `} else { if`;
+  the 110 left have more in the block after the if -- and an else if whose
+  condition stores is the else's block, the stores before the if (`} else
+  { n = twice(a); if n > 4 { ... } }`), 5 blocks. editor.rs 61,897 ->
+  61,834 lines; blocks 72 -> 67.
 
 ## What is not worth doing, and why
 
