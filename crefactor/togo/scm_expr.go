@@ -18,16 +18,132 @@ import (
 )
 
 // sx is a value: the lines before it, and the Scheme expression, of kind
-// st (i8 to u64, bool, ptr, agg for a struct or union's address, void).
+// st (i8 to u64, bool, ptr, agg for a struct or union's address, void),
+// and what evaluating the expression does (lvl): nothing, reads memory,
+// or calls.
 type sx struct {
 	binds []sbind
 	val   string
 	st    string
+	lvl   int
 	konst bool     // an integer constant, kv
 	kv    int64    // its value
 	lit   bool     // a string literal's address
 	rec   *lvar    // a struct that is a value: its members are its value
 	tup   []string // a struct result returned as values: its members' names
+}
+
+// What evaluating an expression does: nothing, reads of memory -- which
+// may be evaluated in any order among themselves -- or a call, which may
+// do anything.
+const (
+	scmPure = iota
+	scmReads
+	scmCalls
+)
+
+// seq readies the operands of one combination, in C's order: their lines
+// come first, in order, and an operand that reads or calls stays where it
+// is used only where Scheme, which evaluates a combination's operands in
+// an order of its own, cannot reorder it against another's -- reads
+// commute with reads, nothing else does; the rest are bound to
+// temporaries first, in C's order.  It returns the lines, and leaves each
+// operand its expression.
+func (f *sfn) seq(ops ...*sx) []sbind {
+	var out []sbind
+	var inline []int // operands left where they are that read or call
+	bindOp := func(i int) {
+		r := f.tmp()
+		out = append(out, sbind{names: []string{r}, expr: ops[i].val, lvl: ops[i].lvl})
+		ops[i].val, ops[i].lvl = r, scmPure
+	}
+	for i, op := range ops {
+		if len(op.binds) > 0 {
+			// its lines run before the combination: what is left in place
+			// before it, and what names a variable its lines bind anew, is
+			// bound before them
+			rebound := scmRebinds(op.binds)
+			var keep []int
+			for _, j := range inline {
+				bindOp(j)
+			}
+			for j := 0; j < i; j++ {
+				if ops[j].lvl == scmPure && len(rebound) > 0 && scmMentions(ops[j].val, rebound) {
+					bindOp(j)
+				}
+			}
+			inline = keep
+		}
+		out = append(out, op.binds...)
+		op.binds = nil
+		if op.lvl > scmPure {
+			inline = append(inline, i)
+		}
+	}
+	// a call in place: no other operand in place before it, and none that
+	// reads after it
+	last := -1
+	for k, i := range inline {
+		if ops[i].lvl == scmCalls {
+			last = k
+		}
+	}
+	if last >= 0 && len(inline) > 1 {
+		upto := last
+		if last == len(inline)-1 {
+			upto = last - 1
+		}
+		for k := 0; k <= upto; k++ {
+			bindOp(inline[k])
+		}
+	}
+	return out
+}
+
+// scmRebinds are the names lines bind that are not the printer's
+// temporaries: variables of the C, given a new value.
+func scmRebinds(bs []sbind) map[string]bool {
+	m := map[string]bool{}
+	for _, b := range bs {
+		for _, n := range b.names {
+			if !scmTemp(n) {
+				m[n] = true
+			}
+		}
+	}
+	return m
+}
+
+// scmTemp says n is a temporary of the printer's: r and a number.
+func scmTemp(n string) bool {
+	if len(n) < 2 || n[0] != 'r' {
+		return false
+	}
+	for _, c := range n[1:] {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// scmMentions says the expression e names one of names.
+func scmMentions(e string, names map[string]bool) bool {
+	for _, t := range strings.FieldsFunc(e, func(r rune) bool { return r == ' ' || r == '(' || r == ')' || r == '\n' || r == '[' || r == ']' }) {
+		if names[t] {
+			return true
+		}
+	}
+	return false
+}
+
+// bindsLvl is what lines do, the most of them.
+func bindsLvl(bs []sbind) int {
+	l := scmPure
+	for _, b := range bs {
+		l = max(l, b.lvl)
+	}
+	return l
 }
 
 // saddr is an lvalue's address: a base address and a constant offset.
@@ -183,7 +299,7 @@ func (f *sfn) node(e cc.ExpressionNode) sx {
 		case cc.UnaryExpressionMinus:
 			st := scmTypeOf(x.Type())
 			a := f.conv(f.expr(x.CastExpression), st)
-			return sx{binds: a.binds, val: "(" + st + "- 0 " + a.val + ")", st: st}
+			return sx{binds: a.binds, val: "(" + st + "- 0 " + a.val + ")", st: st, lvl: a.lvl}
 		case cc.UnaryExpressionCpl:
 			st := scmTypeOf(x.Type())
 			a := f.conv(f.expr(x.CastExpression), st)
@@ -198,10 +314,10 @@ func (f *sfn) node(e cc.ExpressionNode) sx {
 			default:
 				s = "(u64~ " + a.val + ")"
 			}
-			return sx{binds: a.binds, val: s, st: st}
+			return sx{binds: a.binds, val: s, st: st, lvl: a.lvl}
 		case cc.UnaryExpressionNot:
 			a := f.truth(f.expr(x.CastExpression))
-			return sx{binds: a.binds, val: "(not " + a.val + ")", st: "bool"}
+			return sx{binds: a.binds, val: "(not " + a.val + ")", st: "bool", lvl: a.lvl}
 		case cc.UnaryExpressionPlus:
 			return f.conv(f.expr(x.CastExpression), scmTypeOf(x.Type()))
 		}
@@ -211,7 +327,7 @@ func (f *sfn) node(e cc.ExpressionNode) sx {
 			t := x.Type()
 			switch {
 			case t.Kind() == cc.Void:
-				return sx{binds: v.binds, val: "(void)", st: "void"}
+				return sx{binds: v.binds, val: v.val, st: "void", lvl: v.lvl}
 			case isAggr(t):
 				return v
 			}
@@ -329,7 +445,7 @@ func (f *sfn) varRead(v *lvar) sx {
 // addrVal is an address as a value.
 func (f *sfn) addrVal(a saddr) sx {
 	val := scmAddr(a.base.val, a.off)
-	x := sx{binds: a.base.binds, val: val, st: "ptr"}
+	x := sx{binds: a.base.binds, val: val, st: "ptr", lvl: a.base.lvl}
 	if scmConst(val) {
 		x.konst = true
 		x.kv, _ = strconv.ParseInt(val, 10, 64)
@@ -352,9 +468,7 @@ func (f *sfn) readAt(a saddr, t cc.Type) sx {
 		f.no(nil, "a bit field")
 	}
 	st := scmTypeOf(t)
-	r := f.tmp()
-	binds := append(append([]sbind{}, a.base.binds...), sbind{names: []string{r}, expr: "(" + scmLoad(st) + " " + scmAddr(a.base.val, a.off) + ")"})
-	return sx{binds: binds, val: r, st: st}
+	return sx{binds: a.base.binds, val: "(" + scmLoad(st) + " " + scmAddr(a.base.val, a.off) + ")", st: st, lvl: max(scmReads, a.base.lvl)}
 }
 
 // addrOf is an lvalue's address.
@@ -430,8 +544,13 @@ func (f *sfn) addrNode(e cc.ExpressionNode) saddr {
 			if i.konst {
 				return saddr{base: base, off: int(i.kv * size)}
 			}
-			binds := append(append([]sbind{}, base.binds...), i.binds...)
-			return saddr{base: sx{binds: binds, val: scmAdd(base.val, f.byteOff(i, size, false)), st: "ptr"}}
+			var binds []sbind
+			if be == x.PostfixExpression {
+				binds = f.seq(&base, &i)
+			} else {
+				binds = f.seq(&i, &base)
+			}
+			return saddr{base: sx{binds: binds, val: scmAdd(base.val, f.byteOff(i, size, false)), st: "ptr", lvl: max(base.lvl, i.lvl)}}
 		}
 	case *cc.UnaryExpression:
 		if x.Case == cc.UnaryExpressionDeref {
@@ -462,7 +581,7 @@ func (f *sfn) conv(v sx, to string) sx {
 		}
 		return sx{binds: v.binds, val: scmLit(k, to), st: to, konst: true, kv: k}
 	}
-	out := sx{binds: v.binds, st: to}
+	out := sx{binds: v.binds, st: to, lvl: v.lvl}
 	switch {
 	case from == "bool":
 		out.val = "(b->i " + v.val + ")"
@@ -541,14 +660,14 @@ func (f *sfn) truth(v sx) sx { return f.conv(v, "bool") }
 func (f *sfn) arith(op string, a, b sx, st string) sx {
 	a = f.conv(a, st)
 	shift := op == "<<" || op == ">>"
-	bv := ""
+	if !shift {
+		b = f.conv(b, st)
+	}
+	binds := f.seq(&a, &b)
+	bv := b.val
 	if shift {
 		bv = f.toInt(b)
-	} else {
-		b = f.conv(b, st)
-		bv = b.val
 	}
-	binds := append(append([]sbind{}, a.binds...), b.binds...)
 	var s string
 	switch op {
 	case "+", "-", "*", "/", "%", "<<", ">>":
@@ -562,7 +681,7 @@ func (f *sfn) arith(op string, a, b sx, st string) sx {
 	default:
 		f.no(nil, "an operator %s", op)
 	}
-	return sx{binds: binds, val: s, st: st}
+	return sx{binds: binds, val: s, st: st, lvl: max(a.lvl, b.lvl)}
 }
 
 // additive is + or -: of a pointer and an integer, of two pointers, or of
@@ -572,12 +691,12 @@ func (f *sfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 	switch {
 	case isPtrish(lt) && isPtrish(rt):
 		a, b := f.expr(le), f.expr(re)
-		binds := append(append([]sbind{}, a.binds...), b.binds...)
+		binds := f.seq(&a, &b)
 		d := "(fx- " + a.val + " " + b.val + ")"
 		if sz := elemSize(lt); sz != 1 {
 			d = fmt.Sprintf("(fxquotient %s %d)", d, sz)
 		}
-		return f.conv(sx{binds: binds, val: d, st: "i64"}, scmTypeOf(x.Type()))
+		return f.conv(sx{binds: binds, val: d, st: "i64", lvl: max(a.lvl, b.lvl)}, scmTypeOf(x.Type()))
 	case isPtrish(lt) || isPtrish(rt):
 		pe, ie := le, re
 		if isPtrish(rt) {
@@ -588,11 +707,11 @@ func (f *sfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 		size := elemSize(pe.Type())
 		var binds []sbind
 		if pe == le {
-			binds = append(append([]sbind{}, p.binds...), n.binds...)
+			binds = f.seq(&p, &n)
 		} else {
-			binds = append(append([]sbind{}, n.binds...), p.binds...)
+			binds = f.seq(&n, &p)
 		}
-		return sx{binds: binds, val: scmAdd(p.val, f.byteOff(n, size, op == "-")), st: "ptr"}
+		return sx{binds: binds, val: scmAdd(p.val, f.byteOff(n, size, op == "-")), st: "ptr", lvl: max(p.lvl, n.lvl)}
 	}
 	return f.arith(op, f.expr(le), f.expr(re), scmTypeOf(x.Type()))
 }
@@ -612,7 +731,7 @@ func (f *sfn) compare(op string, le, re cc.ExpressionNode) sx {
 		st = scmKindType(usualK(lk, rk))
 	}
 	a, b = f.conv(a, st), f.conv(b, st)
-	binds := append(append([]sbind{}, a.binds...), b.binds...)
+	binds := f.seq(&a, &b)
 	if st == "ptr" && a.konst && b.konst && !a.lit && !b.lit && (op == "==" || op == "!=") {
 		eq := a.kv == b.kv
 		if op == "!=" {
@@ -635,7 +754,7 @@ func (f *sfn) compare(op string, le, re cc.ExpressionNode) sx {
 	default:
 		s = "(fx" + op + "? " + a.val + " " + b.val + ")"
 	}
-	return sx{binds: binds, val: s, st: "bool"}
+	return sx{binds: binds, val: s, st: "bool", lvl: max(a.lvl, b.lvl)}
 }
 
 // scmExpr is a value and the bindings before it as one expression.
@@ -643,8 +762,8 @@ func scmExpr(binds []sbind, val string) string {
 	return scmBegin(scmRender(binds, val))
 }
 
-// logical is && (and) or ||: the right operand's bindings only where C
-// evaluates it.
+// logical is && (and) or ||: the right operand, its bindings with it,
+// evaluated only where C evaluates it.
 func (f *sfn) logical(and bool, le, re cc.ExpressionNode) sx {
 	a := f.truth(f.expr(le))
 	b := f.truth(f.expr(re))
@@ -652,15 +771,15 @@ func (f *sfn) logical(and bool, le, re cc.ExpressionNode) sx {
 	if and {
 		kw = "and"
 	}
+	lvl := max(a.lvl, b.lvl, bindsLvl(b.binds))
 	if len(b.binds) == 0 {
-		return sx{binds: a.binds, val: "(" + kw + " " + a.val + " " + b.val + ")", st: "bool"}
+		return sx{binds: a.binds, val: "(" + kw + " " + a.val + " " + b.val + ")", st: "bool", lvl: lvl}
 	}
-	r := f.tmp()
-	line := sbind{names: []string{r}, expr: "(" + kw + " " + a.val + "\n" + indent(scmExpr(b.binds, b.val), 2+len(kw)) + ")"}
-	return sx{binds: append(append([]sbind{}, a.binds...), line), val: r, st: "bool"}
+	return sx{binds: a.binds, val: "(" + kw + " " + a.val + "\n" + indent(scmExpr(b.binds, b.val), 2+len(kw)) + ")", st: "bool", lvl: lvl}
 }
 
-// ternary is ?:, each arm's bindings only when it is chosen.
+// ternary is ?:, each arm's bindings with it, evaluated only when it is
+// chosen.
 func (f *sfn) ternary(x *cc.ConditionalExpression) sx {
 	c := f.truth(f.expr(x.LogicalOrExpression))
 	st := scmTypeOf(x.Type())
@@ -669,12 +788,8 @@ func (f *sfn) ternary(x *cc.ConditionalExpression) sx {
 	if st == "agg" {
 		a, b = f.materialize(a, x.Type()), f.materialize(b, x.Type())
 	}
-	if len(a.binds) == 0 && len(b.binds) == 0 {
-		return sx{binds: c.binds, val: scmIf(c.val, a.val, b.val), st: st}
-	}
-	r := f.tmp()
-	line := sbind{names: []string{r}, expr: scmIf(c.val, scmExpr(a.binds, a.val), scmExpr(b.binds, b.val))}
-	return sx{binds: append(append([]sbind{}, c.binds...), line), val: r, st: st}
+	lvl := max(c.lvl, a.lvl, b.lvl, bindsLvl(a.binds), bindsLvl(b.binds))
+	return sx{binds: c.binds, val: scmIf(c.val, scmExpr(a.binds, a.val), scmExpr(b.binds, b.val)), st: st, lvl: lvl}
 }
 
 // call is a call: of a function the unit defines, of the host's, or through
@@ -687,12 +802,15 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 	}
 	var ft *cc.FunctionType
 	var head []string
-	var binds []sbind
 	d := fnDesignator(x.PostfixExpression)
 	if d != nil && d.Name() == "__builtin_expect" && len(args) == 2 {
 		return f.conv(f.expr(args[0]), scmTypeOf(x.Type()))
 	}
 	viaPtr := d == nil
+	// the operands, in C's order: the pointer called through, the
+	// arguments, the variadic ones
+	var ops []*sx
+	var p sx
 	if d != nil {
 		ft, _ = d.Type().(*cc.FunctionType)
 		head = []string{f.s.names[d.Name()]}
@@ -700,14 +818,13 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 			head = append(head, "ed")
 		}
 	} else {
-		p := f.expr(x.PostfixExpression)
-		binds = append(binds, p.binds...)
+		p = f.expr(x.PostfixExpression)
+		ops = append(ops, &p)
 		t := x.PostfixExpression.Type()
 		if pt, ok := t.(*cc.PointerType); ok {
 			t = pt.Elem()
 		}
 		ft, _ = t.(*cc.FunctionType)
-		head = []string{"call-ptr", p.val, "ed"}
 	}
 	if ft == nil {
 		f.no(x, "a call of no function type")
@@ -716,13 +833,13 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 	if len(params) == 1 && (params[0].Type() == nil || params[0].Type().Kind() == cc.Void) {
 		params = nil
 	}
-	var vals, rest []string
+	var vals, rest []*sx
 	outs, hasOuts := f.outCall(x)
 	for i, a := range args {
 		if o := outs[i]; o != nil {
 			v := f.conv(f.varRead(o), f.vtype(o))
-			binds = append(binds, v.binds...)
-			vals = append(vals, v.val)
+			vals = append(vals, &v)
+			ops = append(ops, &v)
 			continue
 		}
 		if i < len(params) {
@@ -732,30 +849,42 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 			if v.tup != nil {
 				v = f.materialize(v, pt)
 			}
-			binds = append(binds, v.binds...)
 			if viaPtr && want == "bool" {
-				vals = append(vals, "(b->i "+v.val+")")
-			} else {
-				vals = append(vals, v.val)
+				v.val = "(b->i " + v.val + ")"
 			}
+			vals = append(vals, &v)
+			ops = append(ops, &v)
 			continue
 		}
 		v := f.expr(a)
 		if v.tup != nil {
 			f.no(a, "a struct passed to a variadic function")
 		}
-		binds = append(binds, v.binds...)
 		if v.st == "bool" {
-			rest = append(rest, "(b->i "+v.val+")")
-		} else {
-			rest = append(rest, v.val)
+			v.val = "(b->i " + v.val + ")"
 		}
+		rest = append(rest, &v)
+		ops = append(ops, &v)
+	}
+	binds := f.seq(ops...)
+	lvl := scmCalls
+	var as []string
+	for _, v := range vals {
+		as = append(as, v.val)
 	}
 	if ft.IsVariadic() {
-		vals = append(vals, "(list "+strings.Join(rest, " ")+")")
-		if len(rest) == 0 {
-			vals[len(vals)-1] = "'()"
+		var rs []string
+		for _, v := range rest {
+			rs = append(rs, v.val)
 		}
+		if len(rs) == 0 {
+			as = append(as, "'()")
+		} else {
+			as = append(as, "(list "+strings.Join(rs, " ")+")")
+		}
+	}
+	if viaPtr {
+		head = []string{"call-ptr", p.val, "ed"}
 	}
 	rt := ft.Result()
 	st := scmTypeOf(rt)
@@ -763,15 +892,11 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 		if isAggr(rt) {
 			f.no(x, "a struct result through a pointer")
 		}
-		call := "(" + strings.Join(append(head, vals...), " ") + ")"
-		if st == "void" {
-			return sx{binds: append(binds, sbind{expr: call}), val: "(void)", st: "void"}
-		}
-		r := f.tmp()
+		call := "(" + strings.Join(append(head, as...), " ") + ")"
 		if st == "bool" {
 			call = "(not (eqv? " + call + " 0))"
 		}
-		return sx{binds: append(binds, sbind{names: []string{r}, expr: call}), val: r, st: st}
+		return sx{binds: binds, val: call, st: st, lvl: lvl}
 	}
 	if isAggr(rt) && f.s.h.tupleRet(d.Name()) {
 		var names []string
@@ -779,24 +904,20 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 		for i := 0; i < stt.NumFields(); i++ {
 			names = append(names, f.tmp())
 		}
-		line := "(" + strings.Join(append(head, vals...), " ") + ")"
-		return sx{binds: append(binds, sbind{names: names, expr: line}), st: "agg", tup: names}
+		line := "(" + strings.Join(append(head, as...), " ") + ")"
+		return sx{binds: append(binds, sbind{names: names, expr: line, lvl: lvl}), st: "agg", tup: names}
 	}
 	if isAggr(rt) {
 		off := f.alloc(nil, rt)
 		dst := fmt.Sprintf("(fx+ fr %d)", off)
-		line := "(" + strings.Join(append(append(append([]string{}, head...), dst), vals...), " ") + ")"
-		return sx{binds: append(binds, sbind{expr: line}), val: dst, st: "agg"}
+		line := "(" + strings.Join(append(append(append([]string{}, head...), dst), as...), " ") + ")"
+		return sx{binds: append(binds, sbind{expr: line, lvl: lvl}), val: dst, st: "agg"}
 	}
-	line := "(" + strings.Join(append(head, vals...), " ") + ")"
+	line := "(" + strings.Join(append(head, as...), " ") + ")"
 	if hasOuts {
 		return f.outResult(binds, line, st, d.Name(), outs)
 	}
-	if st == "void" {
-		return sx{binds: append(binds, sbind{expr: line}), val: "(void)", st: "void"}
-	}
-	r := f.tmp()
-	return sx{binds: append(binds, sbind{names: []string{r}, expr: line}), val: r, st: st}
+	return sx{binds: binds, val: line, st: st, lvl: lvl}
 }
 
 // outResult is a call with out-arguments: its result and the locals' new
@@ -823,14 +944,14 @@ func (f *sfn) outResult(binds []sbind, line, st string, g string, outs map[int]*
 		names = append(names, n)
 		ups = append(ups, upd{o, n})
 	}
-	binds = append(binds, sbind{names: names, expr: line})
+	binds = append(binds, sbind{names: names, expr: line, lvl: scmCalls})
 	for _, u := range ups {
 		if f.reg(u.v) {
 			f.cur[u.v] = u.name
 			continue
 		}
 		off := f.mem[u.v]
-		binds = append(binds, sbind{expr: fmt.Sprintf("(%s (fx+ fr %d) %s)", scmStore(f.vtype(u.v)), off, u.name)})
+		binds = append(binds, sbind{expr: fmt.Sprintf("(%s (fx+ fr %d) %s)", scmStore(f.vtype(u.v)), off, u.name), lvl: scmCalls})
 	}
 	if r == "" {
 		return sx{binds: binds, val: "(void)", st: "void"}

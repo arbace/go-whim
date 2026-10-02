@@ -22,10 +22,12 @@ import (
 )
 
 // sbind is a line of a block: a binding of names to an expression's
-// values, or, with no names, an expression evaluated for what it does.
+// values, or, with no names, an expression evaluated for what it does; lvl
+// is what evaluating it does (scmPure, scmReads, scmCalls).
 type sbind struct {
 	names []string
 	expr  string
+	lvl   int
 }
 
 // sfn is one function being printed.
@@ -59,6 +61,7 @@ type sfn struct {
 	extra  []*lvar
 	isOut  map[*lvar]bool
 	takes  bool // the function takes the editor
+	framed bool // the call has a frame, which a return gives back
 }
 
 // function prints one function definition, or says why it cannot.
@@ -96,41 +99,17 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 
 	f.live = lf.live()
 	f.liveOuts()
-	f.shape()
-	var forms []string
-	var locals []string
-	for _, bl := range lf.blocks {
-		if f.local(bl) {
-			locals = append(locals, f.block(bl))
-		}
+	// printed once, and again when the printing gave the call a frame its
+	// locals had not (a struct a call returns, a struct value's address):
+	// a return gives the frame back, and its value is read before
+	placed, cases := f.frameSize, s.st.cases
+	f.framed = placed > 0
+	text := f.print()
+	if f.frameSize > 0 && !f.framed {
+		f.framed = true
+		f.frameSize, f.ntmp, s.st.cases = placed, 0, cases
+		text = f.print()
 	}
-	// the parameters that live in the frame: copied in
-	f.cur = maps.Clone(f.entryCur)
-	f.lines = nil
-	for _, v := range lf.params {
-		off, ok := f.mem[v]
-		if !ok {
-			continue
-		}
-		if isAggr(v.c) {
-			f.emit("(mem-copy! (fx+ fr %d) %s %d)", off, f.base[v], v.c.Size())
-		} else {
-			f.emit("(%s (fx+ fr %d) %s)", scmStore(f.vtype(v)), off, f.base[v])
-		}
-	}
-	pre := f.lines
-	var entry []string
-	if f.inline[f.start] {
-		entry = f.body(f.start, 0)
-	} else {
-		entry = []string{f.jump(f.start)}
-	}
-	for _, p := range pre {
-		forms = append(forms, p.expr)
-	}
-	forms = append(forms, entry...)
-	body := append(append([]string{}, locals...), forms...)
-	text := strings.Join(body, "\n")
 	var binds []string
 	if scmUsesMem(text) {
 		binds = append(binds, "[mem (ed-mem ed)]")
@@ -168,6 +147,42 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	}
 	b.WriteString(")\n")
 	return b.String(), ""
+}
+
+// print is the function's body: its local procedures, the parameters that
+// live in the frame copied in, and its entry.
+func (f *sfn) print() string {
+	lf := f.lf
+	f.shape()
+	var locals []string
+	for _, bl := range lf.blocks {
+		if f.local(bl) {
+			locals = append(locals, f.block(bl))
+		}
+	}
+	f.cur = maps.Clone(f.entryCur)
+	f.lines = nil
+	for _, v := range lf.params {
+		off, ok := f.mem[v]
+		if !ok {
+			continue
+		}
+		if isAggr(v.c) {
+			f.emit("(mem-copy! (fx+ fr %d) %s %d)", off, f.base[v], v.c.Size())
+		} else {
+			f.emit("(%s (fx+ fr %d) %s)", scmStore(f.vtype(v)), off, f.base[v])
+		}
+	}
+	var forms []string
+	for _, p := range f.lines {
+		forms = append(forms, p.expr)
+	}
+	if f.inline[f.start] {
+		forms = append(forms, f.body(f.start, 0)...)
+	} else {
+		forms = append(forms, f.jump(f.start))
+	}
+	return strings.Join(append(locals, forms...), "\n")
 }
 
 // scmUsesMem says a function's text reads or writes memory: it binds mem.
@@ -492,12 +507,13 @@ func scmHang(s string, n int) string {
 
 // emit adds an effect to the current block.
 func (f *sfn) emit(format string, args ...any) {
-	f.lines = append(f.lines, sbind{expr: fmt.Sprintf(format, args...)})
+	f.lines = append(f.lines, sbind{expr: fmt.Sprintf(format, args...), lvl: scmCalls})
 }
 
-// bind adds a binding of name to expr.
-func (f *sfn) bind(name, expr string) {
-	f.lines = append(f.lines, sbind{names: []string{name}, expr: expr})
+// bind adds a binding of name to x's value, its lines first.
+func (f *sfn) bind(name string, x sx) {
+	f.lines = append(f.lines, x.binds...)
+	f.lines = append(f.lines, sbind{names: []string{name}, expr: x.val, lvl: x.lvl})
 }
 
 // flush adds a value's lines, and is its expression.
@@ -520,12 +536,12 @@ func (f *sfn) step(s lstep) {
 	case opIncDec:
 		f.incDec(s)
 	case opEval:
+		// a call for what it does: its value, if any, not bound
 		v := f.lexpr(s.e)
-		// a call for what it does: its value, if any, unbound
-		if n := len(v.binds); n > 0 && len(v.binds[n-1].names) == 1 && v.binds[n-1].names[0] == v.val && strings.HasPrefix(v.val, "r") {
-			v.binds[n-1].names = nil
-		}
 		f.lines = append(f.lines, v.binds...)
+		if v.lvl > scmPure {
+			f.lines = append(f.lines, sbind{expr: v.val, lvl: v.lvl})
+		}
 	case opInit:
 		f.initVar(s)
 	default:
@@ -557,17 +573,12 @@ func (f *sfn) setVar(v *lvar, x sx) {
 		return
 	}
 	x = f.conv(x, f.vtype(v))
-	val := f.flush(x)
 	n := f.base[v]
-	if scmConst(val) {
-		f.cur[v] = val
+	if len(x.binds) == 0 && x.lvl == scmPure && (scmConst(x.val) || x.val == n) {
+		f.cur[v] = x.val
 		return
 	}
-	if val == n {
-		f.cur[v] = n
-		return
-	}
-	f.bind(n, val)
+	f.bind(n, x)
 	f.cur[v] = n
 }
 
@@ -597,7 +608,7 @@ func (f *sfn) store(lhs cc.ExpressionNode, x sx) {
 	}
 	if isAggr(t) && x.tup != nil {
 		f.lines = append(f.lines, x.binds...)
-		base := f.flush(a.base)
+		base := f.once(a.base)
 		st := t.(*cc.StructType)
 		for i, v := range x.tup {
 			fl := st.FieldByIndex(i)
@@ -605,18 +616,34 @@ func (f *sfn) store(lhs cc.ExpressionNode, x sx) {
 		}
 		return
 	}
-	base := f.flush(a.base)
-	if isAggr(t) {
-		src := f.flush(x)
-		f.emit("(mem-copy! %s %s %d)", scmAddr(base, a.off), src, t.Size())
-		return
-	}
 	if a.field != nil && a.field.IsBitfield() {
 		f.no(lhs, "a bit field")
 	}
-	st := scmTypeOf(t)
-	val := f.flush(f.conv(x, st))
-	f.emit("(%s %s %s)", scmStore(st), scmAddr(base, a.off), val)
+	if !isAggr(t) {
+		x = f.conv(x, scmTypeOf(t))
+	}
+	base := a.base
+	f.lines = append(f.lines, f.seq(&base, &x)...)
+	if isAggr(t) {
+		f.emit("(mem-copy! %s %s %d)", scmAddr(base.val, a.off), x.val, t.Size())
+		return
+	}
+	f.emit("(%s %s %s)", scmStore(scmTypeOf(t)), scmAddr(base.val, a.off), x.val)
+}
+
+// once is x's value as an expression that can be evaluated again: x itself
+// when it reads and calls nothing, else a temporary bound to it.
+func (f *sfn) once(x sx) string {
+	if x.lvl == scmPure && len(x.binds) == 0 {
+		return x.val
+	}
+	f.lines = append(f.lines, x.binds...)
+	if x.lvl == scmPure {
+		return x.val
+	}
+	r := f.tmp()
+	f.bind(r, sx{val: x.val, lvl: x.lvl})
+	return r
 }
 
 // scmStore is the runtime's writer of a kind.
@@ -657,8 +684,10 @@ func (f *sfn) assignOp(s lstep) {
 	r := f.lexpr(s.e)
 	var nv sx
 	if isPtrish(lt) {
+		v := cur.v
+		binds := f.seq(&v, &r)
 		off := f.byteOff(r, elemSize(lt), s.aop == "-")
-		nv = sx{binds: append(cur.v.binds, r.binds...), val: scmAdd(cur.v.val, off), st: "ptr"}
+		nv = sx{binds: binds, val: scmAdd(v.val, off), st: "ptr", lvl: max(v.lvl, r.lvl)}
 	} else {
 		lk, _ := scalarKind(lt)
 		rk, ok := scalarKind(s.e.typeOf())
@@ -685,12 +714,12 @@ func (f *sfn) incDec(s lstep) {
 		if !s.inc {
 			d = -d
 		}
-		nv = sx{binds: cur.v.binds, val: scmAdd(cur.v.val, strconv.FormatInt(d, 10)), st: "ptr"}
+		nv = sx{binds: cur.v.binds, val: scmAdd(cur.v.val, strconv.FormatInt(d, 10)), st: "ptr", lvl: cur.v.lvl}
 	case st == "bool":
 		if s.inc {
 			nv = sx{binds: cur.v.binds, val: "#t", st: "bool", konst: true, kv: 1}
 		} else {
-			nv = sx{binds: cur.v.binds, val: "(not " + cur.v.val + ")", st: "bool"}
+			nv = sx{binds: cur.v.binds, val: "(not " + cur.v.val + ")", st: "bool", lvl: cur.v.lvl}
 		}
 	default:
 		// in the promoted type, converted back
@@ -734,21 +763,13 @@ func (f *sfn) readLval(e cc.ExpressionNode) slv {
 		return slv{v: f.varRead(v), reg: v, t: t}
 	}
 	a := f.addrOf(e)
-	base := f.flush(a.base)
 	if a.field != nil && a.field.IsBitfield() {
 		f.no(e, "a bit field")
 	}
-	addr := scmAddr(base, a.off)
-	if !scmConst(addr) && !scmIdent(addr) {
-		// the address once
-		r := f.tmp()
-		f.bind(r, addr)
-		addr = r
-	}
+	// the address once: read and written at the same place
+	addr := scmAddr(f.once(a.base), a.off)
 	st := scmTypeOf(t)
-	r := f.tmp()
-	f.bind(r, "("+scmLoad(st)+" "+addr+")")
-	return slv{v: sx{val: r, st: st}, addr: addr, t: t}
+	return slv{v: sx{val: "(" + scmLoad(st) + " " + addr + ")", st: st, lvl: scmReads}, addr: addr, t: t}
 }
 
 func (l slv) write(f *sfn, x sx) {
@@ -882,7 +903,16 @@ func (f *sfn) term(b *lblock, depth int) string {
 			return f.result(scmZero(f.ret))
 		case f.tuple:
 			x := f.lexpr(t.ret)
-			return f.result("(values " + strings.Join(f.structVals(x, f.lf.ft.Result()), " ") + ")")
+			var vals []string
+			for _, v := range f.structVals(x, f.lf.ft.Result()) {
+				if f.framed {
+					// read before the frame is given back
+					vals = append(vals, f.once(v))
+				} else {
+					vals = append(vals, f.flush(v))
+				}
+			}
+			return f.result("(values " + strings.Join(vals, " ") + ")")
 		case f.sret:
 			x := f.lexpr(t.ret)
 			if x.rec != nil {
@@ -893,8 +923,12 @@ func (f *sfn) term(b *lblock, depth int) string {
 			}
 			return f.result("(void)")
 		default:
-			v := f.flush(f.conv(f.lexpr(t.ret), f.ret))
-			return f.result(v)
+			v := f.conv(f.lexpr(t.ret), f.ret)
+			if f.framed {
+				// computed before the frame is given back
+				return f.result(f.once(v))
+			}
+			return f.result(f.flush(v))
 		}
 	case tFall:
 		if f.sret || f.tuple {
@@ -940,7 +974,7 @@ func (f *sfn) result(v string) string {
 			v = "(values " + strings.Join(parts, " ") + ")"
 		}
 	}
-	if f.frameSize > 0 {
+	if f.framed {
 		f.emit("(frame-pop! ed fr)")
 	}
 	return v
@@ -998,6 +1032,9 @@ func (f *sfn) shape() {
 			f.inline[b] = true
 		}
 	}
+	if f.bnames != nil {
+		return // named in the first printing
+	}
 	f.bnames = map[*lblock]string{}
 	for _, b := range lf.blocks {
 		base := "join"
@@ -1016,7 +1053,7 @@ func (f *sfn) shape() {
 // onlyResult says b does nothing but return a constant or a binding: it is
 // written where each jump to it is.
 func (f *sfn) onlyResult(b *lblock) bool {
-	if len(b.steps) > 0 || f.sret || f.frameSize > 0 {
+	if len(b.steps) > 0 || f.sret || f.framed {
 		return false
 	}
 	switch t := b.term; t.kind {
@@ -1245,12 +1282,7 @@ func (f *sfn) copyStruct(s *lvar, x sx) {
 		}
 		return
 	}
-	src := f.flush(x)
-	if !scmConst(src) && !scmIdent(src) {
-		r := f.tmp()
-		f.bind(r, src)
-		src = r
-	}
+	src := f.once(x)
 	for i, m := range f.sv[s] {
 		fl := f.fieldOf(s, i)
 		f.setVar(m, f.readAt(saddr{base: sx{val: src, st: "ptr"}, off: int(fl.Offset()), field: fl}, fl.Type()))
@@ -1259,12 +1291,7 @@ func (f *sfn) copyStruct(s *lvar, x sx) {
 
 // storeStruct writes struct s, a value, member by member at a.
 func (f *sfn) storeStruct(a saddr, s *lvar) {
-	base := f.flush(a.base)
-	if !scmConst(base) && !scmIdent(base) {
-		r := f.tmp()
-		f.bind(r, base)
-		base = r
-	}
+	base := f.once(a.base)
 	for i, m := range f.sv[s] {
 		fl := f.fieldOf(s, i)
 		st := scmTypeOf(fl.Type())
@@ -1304,30 +1331,30 @@ func (f *sfn) initStruct(s *lvar, in *cc.Initializer) {
 	}
 }
 
-// structVals are the members' values of x, a struct value of type t.
-func (f *sfn) structVals(x sx, t cc.Type) []string {
+// structVals are the members' values of x, a struct value of type t: a
+// call's values, a struct that is a value's members, or the members read
+// from the address x is -- reads only, which may be evaluated in any order.
+func (f *sfn) structVals(x sx, t cc.Type) []sx {
 	st := t.(*cc.StructType)
-	var out []string
+	var out []sx
 	switch {
 	case x.tup != nil:
 		f.lines = append(f.lines, x.binds...)
-		return x.tup
+		for i, n := range x.tup {
+			out = append(out, sx{val: n, st: scmTypeOf(st.FieldByIndex(i).Type())})
+		}
+		return out
 	case x.rec != nil:
 		for i, m := range f.sv[x.rec] {
 			fl := st.FieldByIndex(i)
-			out = append(out, f.flush(f.conv(f.varRead(m), scmTypeOf(fl.Type()))))
+			out = append(out, f.conv(f.varRead(m), scmTypeOf(fl.Type())))
 		}
 		return out
 	}
-	src := f.flush(x)
-	if !scmConst(src) && !scmIdent(src) {
-		r := f.tmp()
-		f.bind(r, src)
-		src = r
-	}
+	src := f.once(x)
 	for i := 0; i < st.NumFields(); i++ {
 		fl := st.FieldByIndex(i)
-		out = append(out, f.flush(f.readAt(saddr{base: sx{val: src, st: "ptr"}, off: int(fl.Offset()), field: fl}, fl.Type())))
+		out = append(out, f.readAt(saddr{base: sx{val: src, st: "ptr"}, off: int(fl.Offset()), field: fl}, fl.Type()))
 	}
 	return out
 }
@@ -1344,7 +1371,7 @@ func (f *sfn) materialize(x sx, t cc.Type) sx {
 	st := t.(*cc.StructType)
 	for i, v := range x.tup {
 		fl := st.FieldByIndex(i)
-		binds = append(binds, sbind{expr: fmt.Sprintf("(%s (fx+ fr %d) %s)", scmStore(scmTypeOf(fl.Type())), off+int(fl.Offset()), v)})
+		binds = append(binds, sbind{expr: fmt.Sprintf("(%s (fx+ fr %d) %s)", scmStore(scmTypeOf(fl.Type())), off+int(fl.Offset()), v), lvl: scmCalls})
 	}
 	return sx{binds: binds, val: base, st: "agg"}
 }

@@ -344,7 +344,7 @@ After items 1, 3 and 4:
 
 | # | item | sites | cost | risk | value |
 | --- | --- | ---: | --- | --- | --- |
-| 1 | reads and calls in place | 29,299 temporaries | M | medium | high |
+| 1 | reads and calls in place -- **done** | 29,299 temporaries | M | medium | high |
 | 2 | objects and members by name | 10,697 + 8,942 | M | low | high |
 | 3 | `cond`, `when`, no `begin`/`(void)` | 509 + 2,814 + 1,608 | S | none | medium |
 | 4 | copies and values passed on | 4,624 | S-M | low-medium | medium |
@@ -352,3 +352,37 @@ After items 1, 3 and 4:
 | 6 | named constants and characters | 8,690 + 2,327 | S-M | low | medium |
 | 7 | pure functions without the editor | 63 | S | low | low |
 | 8 | truth values | 1,714 | S | low | low |
+
+## Done
+
+Each item below was built in the backend, the library regenerated and
+committed, and held to the recipe above: the foreign C tests, both suites
+with `--scheme` (all 80 and all 240 as the C, the control seen as before),
+`whim-editor-check`, and the heavy case and Chez's time on the core beside
+the C's and the previous build's. The counts are `measure.py`'s.
+
+### 1. Reads and calls in place
+
+A value carries what evaluating it does (`scm_expr.go`'s `lvl`: nothing,
+reads, a call), and a combination's operands are readied by one rule
+(`seq`): their lines first, in C's order; an operand that reads or calls
+stays in place unless another operand's lines run before the combination,
+or it would be reordered against a call -- reads commute with reads, so a
+call stays in place only when no operand in place comes before it and none
+that reads after it, and the rest are bound, in C's order, to a temporary.
+A variable another operand's lines bind anew (an out-parameter's value) is
+read before them. The left of `and`/`or` and an `if`'s test stay strict;
+the right and the arms take their own lines with them. An address read and
+written by `+=` or `++` is computed once, a struct's members read in place,
+a result read before the frame is given back.
+
+| | before | after |
+| --- | ---: | ---: |
+| lines | 88,474 | 57,892 |
+| the printer's temporaries | 29,299 (28,715 used once) | 660 (433) |
+| copy bindings `[x y]` | 4,624 | 1,599 |
+| Chez on the core | 29.2 s, 0.72 GB | 26.4 s, 0.70 GB |
+| the heavy case | 0.9-1.2 times the C | 0.9-1.0 (C 425-438 ms, whimsical 390-427) |
+
+The loads and stores are the same 20,681 and 6,212: nothing read or written
+moved, only where it is written.
