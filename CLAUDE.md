@@ -437,7 +437,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    editor: its design and its milestones), WASM.md (a preliminary
                    plan, not scheduled, for the Go editor in a
                    browser: what compiles already, the host it would need),
-                   SCHEME.md (a survey for a Scheme editor, not scheduled), IR.md (where a feature goes in the chain,
+                   SCHEME.md (a Scheme editor surveyed and measured: Chez Scheme, not scheduled), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
                    what is shared and duplicated, a schema, a migration path),
