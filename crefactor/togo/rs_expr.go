@@ -235,7 +235,7 @@ func (f *rfn) convFit(v rv, to string, fit bool) rv {
 	case (v.null || v.konst && v.kv == 0) && isFnTy(to):
 		return rv{s: "None", ty: to}
 	case v.str != nil && isPtrTy(to):
-		return rv{s: rsBytes(v.str) + ".as_ptr() as " + to, ty: to, prec: pAs}
+		return rv{s: rsCStr(v.str) + ".as_ptr() as " + to, ty: to, prec: pAs}
 	case to == "bool":
 		return rv{s: f.truth(v), ty: "bool", prec: pCmp}
 	case v.ty == "bool" && isIntTy(to):
@@ -505,7 +505,7 @@ func (f *rfn) primary(x *cc.PrimaryExpression) rv {
 			b = append(b, 0)
 		}
 		ty := f.vty(x.Type())
-		return rv{s: rsBytes(b) + ".as_ptr() as " + ty, ty: ty, prec: pAs, str: b}
+		return rv{s: rsCStr(b) + ".as_ptr() as " + ty, ty: ty, prec: pAs, str: b}
 	}
 	f.no(x, "a primary expression %v", x.Case)
 	return rv{}
@@ -1519,4 +1519,20 @@ func rsOpAssign(place string, v rv) string {
 		}
 	}
 	return place + " = " + s + ";"
+}
+
+// rsCStr is a C string's bytes, its NUL last, as Rust's C-string literal
+// (doc/RUST-IDIOMS.md, item 9) -- `c"append"`, the NUL implied -- when it
+// has no other NUL and no byte past ASCII, which c"" can say only as UTF-8;
+// else the byte string, its NUL written in.
+func rsCStr(b []byte) string {
+	if len(b) == 0 || b[len(b)-1] != 0 {
+		return rsBytes(b)
+	}
+	for _, c := range b[:len(b)-1] {
+		if c == 0 || c >= 0x80 {
+			return rsBytes(b)
+		}
+	}
+	return "c" + strings.TrimPrefix(rsBytes(b[:len(b)-1]), "b")
 }

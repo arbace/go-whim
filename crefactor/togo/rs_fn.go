@@ -82,12 +82,13 @@ type rlocal struct {
 // rctl is a construct a break or a continue may leave: a loop, a switch, or
 // a labeled block.
 type rctl struct {
-	kind   int    // ctlLoop, ctlSwitch, ctlBlock
-	label  string // its label, without the quote
-	used   bool   // something said its label
-	broken bool   // a break leaves it: it can complete
-	cont   string // a loop's continue: the label of the block around its body ("" when it has none)
-	match  bool   // a switch that is a match: its break at an arm's end is the arm's end
+	kind   int               // ctlLoop, ctlSwitch, ctlBlock
+	label  string            // its label, without the quote
+	used   bool              // something said its label
+	broken bool              // a break leaves it: it can complete
+	cont   string            // a loop's continue: the label of the block around its body ("" when it has none)
+	step   cc.ExpressionNode // a for's step, which a continue does first where no block is around the body
+	match  bool              // a switch that is a match: its break at an arm's end is the arm's end
 }
 
 const (
@@ -277,7 +278,7 @@ func (f *rfn) structured() (why string) {
 }
 
 var rsEdRe = regexp.MustCompile(`\bed\b`)
-var rsStrRe = regexp.MustCompile(`b"(?:[^"\\]|\\.)*"`)
+var rsStrRe = regexp.MustCompile(`[bc]"(?:[^"\\]|\\.)*"`)
 
 // rsUsesEd says a body names the editor (outside its strings).
 func rsUsesEd(body string) bool {
@@ -800,9 +801,14 @@ func (f *rfn) cond(e cc.ExpressionNode) string {
 
 // loop pushes a loop's construct and writes its body, returning the body,
 // whether it cannot complete, and the construct.
-func (f *rfn) loopBody(s *cc.Statement, contBlock bool) (string, bool, *rctl) {
+func (f *rfn) loopBody(s *cc.Statement, contBlock bool, step cc.ExpressionNode) (string, bool, *rctl) {
 	f.nlbl++
 	c := &rctl{kind: ctlLoop, label: fmt.Sprintf("l%d", f.nlbl)}
+	if step != nil && len(f.dryLines(func() { f.exprStatement(step) })) <= 2 {
+		// a short step: written before each continue, as Rust is written
+		// (doc/RUST-IDIOMS.md, item 8), and no block around the body
+		c.step, contBlock = step, false
+	}
 	f.ctl = append(f.ctl, c)
 	var body string
 	var div bool
@@ -871,7 +877,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 	switch s.Case {
 	case cc.IterationStatementWhile:
 		if isConstTrue(s.ExpressionList) && !isConstFalse(s.ExpressionList) {
-			body, _, c := f.loopBody(s.Statement, false)
+			body, _, c := f.loopBody(s.Statement, false, nil)
 			f.loopHead(c, "loop")
 			f.out.WriteString(body)
 			f.line("}")
@@ -882,7 +888,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 			// leaves when the condition is false
 			var pre []string
 			var cond string
-			body, _, c := f.loopBody(s.Statement, false)
+			body, _, c := f.loopBody(s.Statement, false, nil)
 			head := f.capture(func() {
 				pre, _ = f.hoist(s.ExpressionList, false, true)
 				for _, p := range pre {
@@ -902,7 +908,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 			return false
 		}
 		cond := f.cond(s.ExpressionList)
-		body, _, c := f.loopBody(s.Statement, false)
+		body, _, c := f.loopBody(s.Statement, false, nil)
 		f.loopHead(c, "while "+cond)
 		f.out.WriteString(body)
 		f.line("}")
@@ -924,7 +930,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 			}
 			return div && !c.broken
 		}
-		body, bdiv, c := f.loopBody(s.Statement, true)
+		body, bdiv, c := f.loopBody(s.Statement, true, nil)
 		f.loopHead(c, "loop")
 		f.out.WriteString(body)
 		if !bdiv {
@@ -955,7 +961,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 		if !forever {
 			head = "while " + f.cond(cond)
 		}
-		body, bdiv, c := f.loopBody(s.Statement, step != nil)
+		body, bdiv, c := f.loopBody(s.Statement, step != nil, step)
 		f.loopHead(c, head)
 		f.out.WriteString(body)
 		if step != nil && !bdiv {
@@ -1040,6 +1046,14 @@ func (f *rfn) jump(j *cc.JumpStatement) bool {
 			c.broken = true
 			c.used = true
 			f.line("break '%s;", c.label)
+		case c.step != nil:
+			f.exprStatement(c.step)
+			if between {
+				c.used = true
+				f.line("continue '%s;", c.label)
+			} else {
+				f.line("continue;")
+			}
 		case c.cont != "":
 			for _, x := range f.ctl {
 				if x.label == c.cont {

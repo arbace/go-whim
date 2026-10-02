@@ -3931,7 +3931,7 @@ pub unsafe fn init_globals(ed: *mut Editor) {
 }
 
 unsafe fn init_globals_0(ed: *mut Editor) {
-    (*ed).p_spk = b"cursor\0".as_ptr() as *mut u8;
+    (*ed).p_spk = c"cursor".as_ptr() as *mut u8;
     (*ed).p_wh = 1;
     (*ed).p_wmh = 1;
     (*ed).p_wmw = 1;
@@ -4017,7 +4017,7 @@ unsafe fn init_globals_0(ed: *mut Editor) {
     (*ed).listcmd_busy = false;
     (*ed).need_start_insertmode = false;
     (*ed).did_cursorhold = true;
-    (*ed).empty_option = b"\0".as_ptr() as *mut u8;
+    (*ed).empty_option = c"".as_ptr() as *mut u8;
     (*ed).km_stopsel = false;
     (*ed).km_startsel = false;
     (*ed).no_lines_msg = str_u8::<23>(b"--No lines in buffer--");
@@ -4239,94 +4239,94 @@ unsafe fn init_globals_0(ed: *mut Editor) {
     (*ed).hisidx[2] = -1;
     (*ed).hisidx[3] = -1;
     (*ed).hisidx[4] = -1;
-    (*ed).history_names[0] = b"cmd\0".as_ptr() as *mut i8;
-    (*ed).history_names[1] = b"search\0".as_ptr() as *mut i8;
-    (*ed).history_names[2] = b"expr\0".as_ptr() as *mut i8;
-    (*ed).history_names[3] = b"input\0".as_ptr() as *mut i8;
+    (*ed).history_names[0] = c"cmd".as_ptr() as *mut i8;
+    (*ed).history_names[1] = c"search".as_ptr() as *mut i8;
+    (*ed).history_names[2] = c"expr".as_ptr() as *mut i8;
+    (*ed).history_names[3] = c"input".as_ptr() as *mut i8;
     (*ed).last_maptick = -1;
     (*ed).update_Insstart_orig = true;
     (*ed).dont_sync_undo = FALSE;
-    (*ed).cmdnames[0].cmd_name = b"append\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[0].cmd_name = c"append".as_ptr() as *mut u8;
     (*ed).cmdnames[0].cmd_minlen = 1;
     (*ed).cmdnames[0].cmd_func = Some(ex_append as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[0].cmd_argt = 18354435;
     (*ed).cmdnames[0].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[1].cmd_name = b"ascii\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[1].cmd_name = c"ascii".as_ptr() as *mut u8;
     (*ed).cmdnames[1].cmd_minlen = 2;
     (*ed).cmdnames[1].cmd_func = Some(do_ascii as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[1].cmd_argt = 17563904;
     (*ed).cmdnames[1].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[2].cmd_name = b"change\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[2].cmd_name = c"change".as_ptr() as *mut u8;
     (*ed).cmdnames[2].cmd_minlen = 1;
     (*ed).cmdnames[2].cmd_func = Some(ex_change as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[2].cmd_argt = 18351427;
     (*ed).cmdnames[2].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[3].cmd_name = b"changes\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[3].cmd_name = c"changes".as_ptr() as *mut u8;
     (*ed).cmdnames[3].cmd_minlen = 7;
     (*ed).cmdnames[3].cmd_func = Some(ex_changes as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[3].cmd_argt = 17301760;
     (*ed).cmdnames[3].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[4].cmd_name = b"cmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[4].cmd_name = c"cmap".as_ptr() as *mut u8;
     (*ed).cmdnames[4].cmd_minlen = 2;
     (*ed).cmdnames[4].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[4].cmd_argt = 17312004;
     (*ed).cmdnames[4].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[5].cmd_name = b"cmapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[5].cmd_name = c"cmapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[5].cmd_minlen = 5;
     (*ed).cmdnames[5].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[5].cmd_argt = 17301764;
     (*ed).cmdnames[5].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[6].cmd_name = b"cnoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[6].cmd_name = c"cnoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[6].cmd_minlen = 3;
     (*ed).cmdnames[6].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[6].cmd_argt = 17312004;
     (*ed).cmdnames[6].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[7].cmd_name = b"copy\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[7].cmd_name = c"copy".as_ptr() as *mut u8;
     (*ed).cmdnames[7].cmd_minlen = 2;
     (*ed).cmdnames[7].cmd_func = Some(ex_copymove as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[7].cmd_argt = 18350405;
     (*ed).cmdnames[7].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[8].cmd_name = b"cquit\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[8].cmd_name = c"cquit".as_ptr() as *mut u8;
     (*ed).cmdnames[8].cmd_minlen = 2;
     (*ed).cmdnames[8].cmd_func = Some(ex_cquit as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[8].cmd_argt = 5379;
     (*ed).cmdnames[8].cmd_addr_type = ADDR_UNSIGNED;
-    (*ed).cmdnames[9].cmd_name = b"cunmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[9].cmd_name = c"cunmap".as_ptr() as *mut u8;
     (*ed).cmdnames[9].cmd_minlen = 2;
     (*ed).cmdnames[9].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[9].cmd_argt = 17312004;
     (*ed).cmdnames[9].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[10].cmd_name = b"delete\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[10].cmd_name = c"delete".as_ptr() as *mut u8;
     (*ed).cmdnames[10].cmd_minlen = 1;
     (*ed).cmdnames[10].cmd_func = Some(ex_operators as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[10].cmd_argt = 18351937;
     (*ed).cmdnames[10].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[11].cmd_name = b"delmarks\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[11].cmd_name = c"delmarks".as_ptr() as *mut u8;
     (*ed).cmdnames[11].cmd_minlen = 4;
     (*ed).cmdnames[11].cmd_func = Some(ex_delmarks as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[11].cmd_argt = 17301766;
     (*ed).cmdnames[11].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[12].cmd_name = b"display\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[12].cmd_name = c"display".as_ptr() as *mut u8;
     (*ed).cmdnames[12].cmd_minlen = 2;
     (*ed).cmdnames[12].cmd_func = Some(ex_display as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[12].cmd_argt = 17565956;
     (*ed).cmdnames[12].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[13].cmd_name = b"earlier\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[13].cmd_name = c"earlier".as_ptr() as *mut u8;
     (*ed).cmdnames[13].cmd_minlen = 2;
     (*ed).cmdnames[13].cmd_func = Some(ex_later as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[13].cmd_argt = 17301780;
     (*ed).cmdnames[13].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[14].cmd_name = b"filter\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[14].cmd_name = c"filter".as_ptr() as *mut u8;
     (*ed).cmdnames[14].cmd_minlen = 4;
     (*ed).cmdnames[14].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[14].cmd_argt = 2182;
     (*ed).cmdnames[14].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[15].cmd_name = b"fixdel\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[15].cmd_name = c"fixdel".as_ptr() as *mut u8;
     (*ed).cmdnames[15].cmd_minlen = 3;
     (*ed).cmdnames[15].cmd_func = Some(do_fixdel as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[15].cmd_argt = 17301760;
     (*ed).cmdnames[15].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[16].cmd_name = b"global\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[16].cmd_name = c"global".as_ptr() as *mut u8;
     (*ed).cmdnames[16].cmd_minlen = 1;
     (*ed).cmdnames[16].cmd_func = Some(ex_global as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[16].cmd_argt = 51118183;
@@ -4334,402 +4334,402 @@ unsafe fn init_globals_0(ed: *mut Editor) {
 }
 
 unsafe fn init_globals_1(ed: *mut Editor) {
-    (*ed).cmdnames[17].cmd_name = b"highlight\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[17].cmd_name = c"highlight".as_ptr() as *mut u8;
     (*ed).cmdnames[17].cmd_minlen = 2;
     (*ed).cmdnames[17].cmd_func = Some(ex_highlight as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[17].cmd_argt = 17563910;
     (*ed).cmdnames[17].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[18].cmd_name = b"history\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[18].cmd_name = c"history".as_ptr() as *mut u8;
     (*ed).cmdnames[18].cmd_minlen = 3;
     (*ed).cmdnames[18].cmd_func = Some(ex_history as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[18].cmd_argt = 17301764;
     (*ed).cmdnames[18].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[19].cmd_name = b"insert\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[19].cmd_name = c"insert".as_ptr() as *mut u8;
     (*ed).cmdnames[19].cmd_minlen = 1;
     (*ed).cmdnames[19].cmd_func = Some(ex_append as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[19].cmd_argt = 18350339;
     (*ed).cmdnames[19].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[20].cmd_name = b"imap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[20].cmd_name = c"imap".as_ptr() as *mut u8;
     (*ed).cmdnames[20].cmd_minlen = 2;
     (*ed).cmdnames[20].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[20].cmd_argt = 17312004;
     (*ed).cmdnames[20].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[21].cmd_name = b"imapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[21].cmd_name = c"imapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[21].cmd_minlen = 5;
     (*ed).cmdnames[21].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[21].cmd_argt = 17301764;
     (*ed).cmdnames[21].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[22].cmd_name = b"inoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[22].cmd_name = c"inoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[22].cmd_minlen = 3;
     (*ed).cmdnames[22].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[22].cmd_argt = 17312004;
     (*ed).cmdnames[22].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[23].cmd_name = b"iput\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[23].cmd_name = c"iput".as_ptr() as *mut u8;
     (*ed).cmdnames[23].cmd_minlen = 2;
     (*ed).cmdnames[23].cmd_func = Some(ex_iput as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[23].cmd_argt = 18355011;
     (*ed).cmdnames[23].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[24].cmd_name = b"iunmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[24].cmd_name = c"iunmap".as_ptr() as *mut u8;
     (*ed).cmdnames[24].cmd_minlen = 2;
     (*ed).cmdnames[24].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[24].cmd_argt = 17312004;
     (*ed).cmdnames[24].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[25].cmd_name = b"join\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[25].cmd_name = c"join".as_ptr() as *mut u8;
     (*ed).cmdnames[25].cmd_minlen = 1;
     (*ed).cmdnames[25].cmd_func = Some(ex_join as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[25].cmd_argt = 20448579;
     (*ed).cmdnames[25].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[26].cmd_name = b"k\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[26].cmd_name = c"k".as_ptr() as *mut u8;
     (*ed).cmdnames[26].cmd_minlen = 1;
     (*ed).cmdnames[26].cmd_func = Some(ex_mark as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[26].cmd_argt = 51118357;
     (*ed).cmdnames[26].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[27].cmd_name = b"keepmarks\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[27].cmd_name = c"keepmarks".as_ptr() as *mut u8;
     (*ed).cmdnames[27].cmd_minlen = 2;
     (*ed).cmdnames[27].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[27].cmd_argt = 2180;
     (*ed).cmdnames[27].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[28].cmd_name = b"keepjumps\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[28].cmd_name = c"keepjumps".as_ptr() as *mut u8;
     (*ed).cmdnames[28].cmd_minlen = 5;
     (*ed).cmdnames[28].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[28].cmd_argt = 2180;
     (*ed).cmdnames[28].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[29].cmd_name = b"keeppatterns\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[29].cmd_name = c"keeppatterns".as_ptr() as *mut u8;
     (*ed).cmdnames[29].cmd_minlen = 5;
     (*ed).cmdnames[29].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[29].cmd_argt = 2180;
     (*ed).cmdnames[29].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[30].cmd_name = b"list\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[30].cmd_name = c"list".as_ptr() as *mut u8;
     (*ed).cmdnames[30].cmd_minlen = 1;
     (*ed).cmdnames[30].cmd_func = Some(ex_print as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[30].cmd_argt = 19400001;
     (*ed).cmdnames[30].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[31].cmd_name = b"later\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[31].cmd_name = c"later".as_ptr() as *mut u8;
     (*ed).cmdnames[31].cmd_minlen = 3;
     (*ed).cmdnames[31].cmd_func = Some(ex_later as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[31].cmd_argt = 17301780;
     (*ed).cmdnames[31].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[32].cmd_name = b"lockmarks\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[32].cmd_name = c"lockmarks".as_ptr() as *mut u8;
     (*ed).cmdnames[32].cmd_minlen = 3;
     (*ed).cmdnames[32].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[32].cmd_argt = 2180;
     (*ed).cmdnames[32].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[33].cmd_name = b"move\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[33].cmd_name = c"move".as_ptr() as *mut u8;
     (*ed).cmdnames[33].cmd_minlen = 1;
     (*ed).cmdnames[33].cmd_func = Some(ex_copymove as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[33].cmd_argt = 18350405;
     (*ed).cmdnames[33].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[34].cmd_name = b"mark\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[34].cmd_name = c"mark".as_ptr() as *mut u8;
     (*ed).cmdnames[34].cmd_minlen = 2;
     (*ed).cmdnames[34].cmd_func = Some(ex_mark as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[34].cmd_argt = 17563925;
     (*ed).cmdnames[34].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[35].cmd_name = b"map\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[35].cmd_name = c"map".as_ptr() as *mut u8;
     (*ed).cmdnames[35].cmd_minlen = 3;
     (*ed).cmdnames[35].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[35].cmd_argt = 17312006;
     (*ed).cmdnames[35].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[36].cmd_name = b"mapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[36].cmd_name = c"mapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[36].cmd_minlen = 4;
     (*ed).cmdnames[36].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[36].cmd_argt = 17301766;
     (*ed).cmdnames[36].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[37].cmd_name = b"marks\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[37].cmd_name = c"marks".as_ptr() as *mut u8;
     (*ed).cmdnames[37].cmd_minlen = 5;
     (*ed).cmdnames[37].cmd_func = Some(ex_marks as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[37].cmd_argt = 17301764;
     (*ed).cmdnames[37].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[38].cmd_name = b"match\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[38].cmd_name = c"match".as_ptr() as *mut u8;
     (*ed).cmdnames[38].cmd_minlen = 3;
     (*ed).cmdnames[38].cmd_func = Some(ex_match as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[38].cmd_argt = 17301509;
     (*ed).cmdnames[38].cmd_addr_type = ADDR_OTHER;
-    (*ed).cmdnames[39].cmd_name = b"messages\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[39].cmd_name = c"messages".as_ptr() as *mut u8;
     (*ed).cmdnames[39].cmd_minlen = 3;
     (*ed).cmdnames[39].cmd_func = Some(ex_messages as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[39].cmd_argt = 17301765;
     (*ed).cmdnames[39].cmd_addr_type = ADDR_OTHER;
-    (*ed).cmdnames[40].cmd_name = b"nmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[40].cmd_name = c"nmap".as_ptr() as *mut u8;
     (*ed).cmdnames[40].cmd_minlen = 2;
     (*ed).cmdnames[40].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[40].cmd_argt = 17312004;
     (*ed).cmdnames[40].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[41].cmd_name = b"nmapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[41].cmd_name = c"nmapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[41].cmd_minlen = 5;
     (*ed).cmdnames[41].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[41].cmd_argt = 17301764;
     (*ed).cmdnames[41].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[42].cmd_name = b"nnoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[42].cmd_name = c"nnoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[42].cmd_minlen = 2;
     (*ed).cmdnames[42].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[42].cmd_argt = 17312004;
     (*ed).cmdnames[42].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[43].cmd_name = b"noremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[43].cmd_name = c"noremap".as_ptr() as *mut u8;
     (*ed).cmdnames[43].cmd_minlen = 2;
     (*ed).cmdnames[43].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[43].cmd_argt = 17312006;
     (*ed).cmdnames[43].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[44].cmd_name = b"nohlsearch\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[44].cmd_name = c"nohlsearch".as_ptr() as *mut u8;
     (*ed).cmdnames[44].cmd_minlen = 3;
     (*ed).cmdnames[44].cmd_func = Some(ex_nohlsearch as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[44].cmd_argt = 17563904;
     (*ed).cmdnames[44].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[45].cmd_name = b"normal\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[45].cmd_name = c"normal".as_ptr() as *mut u8;
     (*ed).cmdnames[45].cmd_minlen = 4;
     (*ed).cmdnames[45].cmd_func = Some(ex_normal as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[45].cmd_argt = 17574023;
     (*ed).cmdnames[45].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[46].cmd_name = b"number\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[46].cmd_name = c"number".as_ptr() as *mut u8;
     (*ed).cmdnames[46].cmd_minlen = 2;
     (*ed).cmdnames[46].cmd_func = Some(ex_print as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[46].cmd_argt = 19400001;
     (*ed).cmdnames[46].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[47].cmd_name = b"nunmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[47].cmd_name = c"nunmap".as_ptr() as *mut u8;
     (*ed).cmdnames[47].cmd_minlen = 3;
     (*ed).cmdnames[47].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[47].cmd_argt = 17312004;
     (*ed).cmdnames[47].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[48].cmd_name = b"omap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[48].cmd_name = c"omap".as_ptr() as *mut u8;
     (*ed).cmdnames[48].cmd_minlen = 2;
     (*ed).cmdnames[48].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[48].cmd_argt = 17312004;
     (*ed).cmdnames[48].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[49].cmd_name = b"omapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[49].cmd_name = c"omapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[49].cmd_minlen = 5;
     (*ed).cmdnames[49].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[49].cmd_argt = 17301764;
     (*ed).cmdnames[49].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[50].cmd_name = b"onoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[50].cmd_name = c"onoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[50].cmd_minlen = 3;
     (*ed).cmdnames[50].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[50].cmd_argt = 17312004;
     (*ed).cmdnames[50].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[51].cmd_name = b"ounmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[51].cmd_name = c"ounmap".as_ptr() as *mut u8;
     (*ed).cmdnames[51].cmd_minlen = 2;
     (*ed).cmdnames[51].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[51].cmd_argt = 17312004;
     (*ed).cmdnames[51].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[52].cmd_name = b"print\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[52].cmd_name = c"print".as_ptr() as *mut u8;
     (*ed).cmdnames[52].cmd_minlen = 1;
     (*ed).cmdnames[52].cmd_func = Some(ex_print as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[52].cmd_argt = 19662145;
     (*ed).cmdnames[52].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[53].cmd_name = b"put\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[53].cmd_name = c"put".as_ptr() as *mut u8;
     (*ed).cmdnames[53].cmd_minlen = 2;
     (*ed).cmdnames[53].cmd_func = Some(ex_put as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[53].cmd_argt = 18355011;
     (*ed).cmdnames[53].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[54].cmd_name = b"quit\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[54].cmd_name = c"quit".as_ptr() as *mut u8;
     (*ed).cmdnames[54].cmd_minlen = 1;
     (*ed).cmdnames[54].cmd_func = Some(ex_quit as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[54].cmd_argt = 17302787;
     (*ed).cmdnames[54].cmd_addr_type = ADDR_WINDOWS;
-    (*ed).cmdnames[55].cmd_name = b"redo\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[55].cmd_name = c"redo".as_ptr() as *mut u8;
     (*ed).cmdnames[55].cmd_minlen = 3;
     (*ed).cmdnames[55].cmd_func = Some(ex_redo as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[55].cmd_argt = 17301760;
     (*ed).cmdnames[55].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[56].cmd_name = b"redraw\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[56].cmd_name = c"redraw".as_ptr() as *mut u8;
     (*ed).cmdnames[56].cmd_minlen = 4;
     (*ed).cmdnames[56].cmd_func = Some(ex_redraw as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[56].cmd_argt = 17301762;
     (*ed).cmdnames[56].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[57].cmd_name = b"redrawstatus\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[57].cmd_name = c"redrawstatus".as_ptr() as *mut u8;
     (*ed).cmdnames[57].cmd_minlen = 7;
     (*ed).cmdnames[57].cmd_func = Some(ex_redrawstatus as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[57].cmd_argt = 17301762;
     (*ed).cmdnames[57].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[58].cmd_name = b"registers\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[58].cmd_name = c"registers".as_ptr() as *mut u8;
     (*ed).cmdnames[58].cmd_minlen = 3;
     (*ed).cmdnames[58].cmd_func = Some(ex_display as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[58].cmd_argt = 17565956;
     (*ed).cmdnames[58].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[59].cmd_name = b"substitute\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[59].cmd_name = c"substitute".as_ptr() as *mut u8;
     (*ed).cmdnames[59].cmd_minlen = 1;
     (*ed).cmdnames[59].cmd_func = Some(ex_substitute as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[59].cmd_argt = 50856005;
     (*ed).cmdnames[59].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[60].cmd_name = b"set\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[60].cmd_name = c"set".as_ptr() as *mut u8;
     (*ed).cmdnames[60].cmd_minlen = 2;
     (*ed).cmdnames[60].cmd_func = Some(ex_set as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[60].cmd_argt = 17563910;
     (*ed).cmdnames[60].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[61].cmd_name = b"silent\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[61].cmd_name = c"silent".as_ptr() as *mut u8;
     (*ed).cmdnames[61].cmd_minlen = 3;
     (*ed).cmdnames[61].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[61].cmd_argt = 17565830;
     (*ed).cmdnames[61].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[62].cmd_name = b"smagic\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[62].cmd_name = c"smagic".as_ptr() as *mut u8;
     (*ed).cmdnames[62].cmd_minlen = 2;
     (*ed).cmdnames[62].cmd_func = Some(ex_submagic as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[62].cmd_argt = 50856005;
     (*ed).cmdnames[62].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[63].cmd_name = b"smap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[63].cmd_name = c"smap".as_ptr() as *mut u8;
     (*ed).cmdnames[63].cmd_minlen = 4;
     (*ed).cmdnames[63].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[63].cmd_argt = 17312004;
     (*ed).cmdnames[63].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[64].cmd_name = b"smapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[64].cmd_name = c"smapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[64].cmd_minlen = 5;
     (*ed).cmdnames[64].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[64].cmd_argt = 17301764;
     (*ed).cmdnames[64].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[65].cmd_name = b"snomagic\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[65].cmd_name = c"snomagic".as_ptr() as *mut u8;
     (*ed).cmdnames[65].cmd_minlen = 3;
     (*ed).cmdnames[65].cmd_func = Some(ex_submagic as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[65].cmd_argt = 50856005;
     (*ed).cmdnames[65].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[66].cmd_name = b"snoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[66].cmd_name = c"snoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[66].cmd_minlen = 4;
     (*ed).cmdnames[66].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[66].cmd_argt = 17312004;
     (*ed).cmdnames[66].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[67].cmd_name = b"stop\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[67].cmd_name = c"stop".as_ptr() as *mut u8;
     (*ed).cmdnames[67].cmd_minlen = 2;
     (*ed).cmdnames[67].cmd_func = Some(ex_stop as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[67].cmd_argt = 17301762;
     (*ed).cmdnames[67].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[68].cmd_name = b"sunmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[68].cmd_name = c"sunmap".as_ptr() as *mut u8;
     (*ed).cmdnames[68].cmd_minlen = 4;
     (*ed).cmdnames[68].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[68].cmd_argt = 17312004;
     (*ed).cmdnames[68].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[69].cmd_name = b"suspend\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[69].cmd_name = c"suspend".as_ptr() as *mut u8;
     (*ed).cmdnames[69].cmd_minlen = 3;
     (*ed).cmdnames[69].cmd_func = Some(ex_stop as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[69].cmd_argt = 17301762;
     (*ed).cmdnames[69].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[70].cmd_name = b"t\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[70].cmd_name = c"t".as_ptr() as *mut u8;
     (*ed).cmdnames[70].cmd_minlen = 1;
     (*ed).cmdnames[70].cmd_func = Some(ex_copymove as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[70].cmd_argt = 18350405;
     (*ed).cmdnames[70].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[71].cmd_name = b"undo\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[71].cmd_name = c"undo".as_ptr() as *mut u8;
     (*ed).cmdnames[71].cmd_minlen = 1;
     (*ed).cmdnames[71].cmd_func = Some(ex_undo as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[71].cmd_argt = 17306881;
     (*ed).cmdnames[71].cmd_addr_type = ADDR_OTHER;
-    (*ed).cmdnames[72].cmd_name = b"undojoin\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[72].cmd_name = c"undojoin".as_ptr() as *mut u8;
     (*ed).cmdnames[72].cmd_minlen = 5;
     (*ed).cmdnames[72].cmd_func = Some(ex_undojoin as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[72].cmd_argt = 17301760;
     (*ed).cmdnames[72].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[73].cmd_name = b"undolist\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[73].cmd_name = c"undolist".as_ptr() as *mut u8;
     (*ed).cmdnames[73].cmd_minlen = 5;
     (*ed).cmdnames[73].cmd_func = Some(ex_undolist as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[73].cmd_argt = 17301760;
     (*ed).cmdnames[73].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[74].cmd_name = b"unmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[74].cmd_name = c"unmap".as_ptr() as *mut u8;
     (*ed).cmdnames[74].cmd_minlen = 3;
     (*ed).cmdnames[74].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[74].cmd_argt = 17312006;
     (*ed).cmdnames[74].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[75].cmd_name = b"unsilent\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[75].cmd_name = c"unsilent".as_ptr() as *mut u8;
     (*ed).cmdnames[75].cmd_minlen = 3;
     (*ed).cmdnames[75].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[75].cmd_argt = 17565828;
     (*ed).cmdnames[75].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[76].cmd_name = b"vglobal\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[76].cmd_name = c"vglobal".as_ptr() as *mut u8;
     (*ed).cmdnames[76].cmd_minlen = 1;
     (*ed).cmdnames[76].cmd_func = Some(ex_global as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[76].cmd_argt = 50856037;
     (*ed).cmdnames[76].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[77].cmd_name = b"verbose\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[77].cmd_name = c"verbose".as_ptr() as *mut u8;
     (*ed).cmdnames[77].cmd_minlen = 4;
     (*ed).cmdnames[77].cmd_func = Some(ex_wrongmodifier as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[77].cmd_argt = 17565829;
     (*ed).cmdnames[77].cmd_addr_type = ADDR_OTHER;
-    (*ed).cmdnames[78].cmd_name = b"vmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[78].cmd_name = c"vmap".as_ptr() as *mut u8;
     (*ed).cmdnames[78].cmd_minlen = 2;
     (*ed).cmdnames[78].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[78].cmd_argt = 17312004;
     (*ed).cmdnames[78].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[79].cmd_name = b"vmapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[79].cmd_name = c"vmapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[79].cmd_minlen = 5;
     (*ed).cmdnames[79].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[79].cmd_argt = 17301764;
     (*ed).cmdnames[79].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[80].cmd_name = b"vnoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[80].cmd_name = c"vnoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[80].cmd_minlen = 2;
     (*ed).cmdnames[80].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[80].cmd_argt = 17312004;
     (*ed).cmdnames[80].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[81].cmd_name = b"vunmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[81].cmd_name = c"vunmap".as_ptr() as *mut u8;
     (*ed).cmdnames[81].cmd_minlen = 2;
     (*ed).cmdnames[81].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[81].cmd_argt = 17312004;
     (*ed).cmdnames[81].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[82].cmd_name = b"winsize\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[82].cmd_name = c"winsize".as_ptr() as *mut u8;
     (*ed).cmdnames[82].cmd_minlen = 2;
     (*ed).cmdnames[82].cmd_func = Some(ex_winsize as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[82].cmd_argt = 388;
     (*ed).cmdnames[82].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[83].cmd_name = b"xmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[83].cmd_name = c"xmap".as_ptr() as *mut u8;
     (*ed).cmdnames[83].cmd_minlen = 2;
     (*ed).cmdnames[83].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[83].cmd_argt = 17312004;
     (*ed).cmdnames[83].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[84].cmd_name = b"xmapclear\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[84].cmd_name = c"xmapclear".as_ptr() as *mut u8;
     (*ed).cmdnames[84].cmd_minlen = 5;
     (*ed).cmdnames[84].cmd_func = Some(ex_mapclear as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[84].cmd_argt = 17301764;
     (*ed).cmdnames[84].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[85].cmd_name = b"xnoremap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[85].cmd_name = c"xnoremap".as_ptr() as *mut u8;
     (*ed).cmdnames[85].cmd_minlen = 2;
     (*ed).cmdnames[85].cmd_func = Some(ex_map as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[85].cmd_argt = 17312004;
     (*ed).cmdnames[85].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[86].cmd_name = b"xunmap\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[86].cmd_name = c"xunmap".as_ptr() as *mut u8;
     (*ed).cmdnames[86].cmd_minlen = 2;
     (*ed).cmdnames[86].cmd_func = Some(ex_unmap as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[86].cmd_argt = 17312004;
     (*ed).cmdnames[86].cmd_addr_type = ADDR_NONE;
-    (*ed).cmdnames[87].cmd_name = b"yank\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[87].cmd_name = c"yank".as_ptr() as *mut u8;
     (*ed).cmdnames[87].cmd_minlen = 1;
     (*ed).cmdnames[87].cmd_func = Some(ex_operators as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[87].cmd_argt = 17303361;
     (*ed).cmdnames[87].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[88].cmd_name = b"z\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[88].cmd_name = c"z".as_ptr() as *mut u8;
     (*ed).cmdnames[88].cmd_minlen = 1;
     (*ed).cmdnames[88].cmd_func = Some(ex_z as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[88].cmd_argt = 19398983;
     (*ed).cmdnames[88].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[89].cmd_name = b"#\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[89].cmd_name = c"#".as_ptr() as *mut u8;
     (*ed).cmdnames[89].cmd_minlen = 1;
     (*ed).cmdnames[89].cmd_func = Some(ex_print as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[89].cmd_argt = 19400001;
     (*ed).cmdnames[89].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[90].cmd_name = b"&\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[90].cmd_name = c"&".as_ptr() as *mut u8;
     (*ed).cmdnames[90].cmd_minlen = 1;
     (*ed).cmdnames[90].cmd_func = Some(ex_substitute as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[90].cmd_argt = 51904581;
     (*ed).cmdnames[90].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[91].cmd_name = b"*\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[91].cmd_name = c"*".as_ptr() as *mut u8;
     (*ed).cmdnames[91].cmd_minlen = 1;
     (*ed).cmdnames[91].cmd_func = Some(ex_at as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[91].cmd_argt = 50856261;
     (*ed).cmdnames[91].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[92].cmd_name = b"<\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[92].cmd_name = c"<".as_ptr() as *mut u8;
     (*ed).cmdnames[92].cmd_minlen = 1;
     (*ed).cmdnames[92].cmd_func = Some(ex_operators as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[92].cmd_argt = 20448577;
     (*ed).cmdnames[92].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[93].cmd_name = b"=\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[93].cmd_name = c"=".as_ptr() as *mut u8;
     (*ed).cmdnames[93].cmd_minlen = 1;
     (*ed).cmdnames[93].cmd_func = Some(ex_equal as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[93].cmd_argt = 19398945;
     (*ed).cmdnames[93].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[94].cmd_name = b">\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[94].cmd_name = c">".as_ptr() as *mut u8;
     (*ed).cmdnames[94].cmd_minlen = 1;
     (*ed).cmdnames[94].cmd_func = Some(ex_operators as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[94].cmd_argt = 20448577;
     (*ed).cmdnames[94].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[95].cmd_name = b"@\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[95].cmd_name = c"@".as_ptr() as *mut u8;
     (*ed).cmdnames[95].cmd_minlen = 1;
     (*ed).cmdnames[95].cmd_func = Some(ex_at as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[95].cmd_argt = 50856261;
     (*ed).cmdnames[95].cmd_addr_type = ADDR_LINES;
-    (*ed).cmdnames[96].cmd_name = b"~\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[96].cmd_name = c"~".as_ptr() as *mut u8;
     (*ed).cmdnames[96].cmd_minlen = 1;
     (*ed).cmdnames[96].cmd_func = Some(ex_substitute as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[96].cmd_argt = 51904581;
@@ -4737,7 +4737,7 @@ unsafe fn init_globals_1(ed: *mut Editor) {
 }
 
 unsafe fn init_globals_2(ed: *mut Editor) {
-    (*ed).cmdnames[97].cmd_name = b"Print\0".as_ptr() as *mut u8;
+    (*ed).cmdnames[97].cmd_name = c"Print".as_ptr() as *mut u8;
     (*ed).cmdnames[97].cmd_minlen = 1;
     (*ed).cmdnames[97].cmd_func = Some(ex_print as unsafe fn(*mut Editor, *mut exarg_T));
     (*ed).cmdnames[97].cmd_argt = 19400001;
@@ -4758,43 +4758,43 @@ unsafe fn init_globals_2(ed: *mut Editor) {
     (*ed).readbuf2.bh_create_newblock = FALSE;
     (*ed).old_char = -1;
     (*ed).highlight_tab[0].key = HL_BOLD;
-    (*ed).highlight_tab[0].value.string = b"bold\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[0].value.string = c"bold".as_ptr() as *mut u8;
     (*ed).highlight_tab[0].value.length = 4;
     (*ed).highlight_tab[1].key = HL_INVERSE;
-    (*ed).highlight_tab[1].value.string = b"inverse\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[1].value.string = c"inverse".as_ptr() as *mut u8;
     (*ed).highlight_tab[1].value.length = 7;
     (*ed).highlight_tab[2].key = HL_ITALIC;
-    (*ed).highlight_tab[2].value.string = b"italic\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[2].value.string = c"italic".as_ptr() as *mut u8;
     (*ed).highlight_tab[2].value.length = 6;
     (*ed).highlight_tab[3].key = HL_NOCOMBINE;
-    (*ed).highlight_tab[3].value.string = b"nocombine\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[3].value.string = c"nocombine".as_ptr() as *mut u8;
     (*ed).highlight_tab[3].value.length = 9;
     (*ed).highlight_tab[4].key = HL_NORMAL;
-    (*ed).highlight_tab[4].value.string = b"NONE\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[4].value.string = c"NONE".as_ptr() as *mut u8;
     (*ed).highlight_tab[4].value.length = 4;
     (*ed).highlight_tab[5].key = HL_INVERSE;
-    (*ed).highlight_tab[5].value.string = b"reverse\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[5].value.string = c"reverse".as_ptr() as *mut u8;
     (*ed).highlight_tab[5].value.length = 7;
     (*ed).highlight_tab[6].key = HL_STANDOUT;
-    (*ed).highlight_tab[6].value.string = b"standout\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[6].value.string = c"standout".as_ptr() as *mut u8;
     (*ed).highlight_tab[6].value.length = 8;
     (*ed).highlight_tab[7].key = HL_STRIKETHROUGH;
-    (*ed).highlight_tab[7].value.string = b"strikethrough\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[7].value.string = c"strikethrough".as_ptr() as *mut u8;
     (*ed).highlight_tab[7].value.length = 13;
     (*ed).highlight_tab[8].key = HL_UNDERCURL;
-    (*ed).highlight_tab[8].value.string = b"undercurl\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[8].value.string = c"undercurl".as_ptr() as *mut u8;
     (*ed).highlight_tab[8].value.length = 9;
     (*ed).highlight_tab[9].key = HL_UNDERDASHED;
-    (*ed).highlight_tab[9].value.string = b"underdashed\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[9].value.string = c"underdashed".as_ptr() as *mut u8;
     (*ed).highlight_tab[9].value.length = 11;
     (*ed).highlight_tab[10].key = HL_UNDERDOTTED;
-    (*ed).highlight_tab[10].value.string = b"underdotted\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[10].value.string = c"underdotted".as_ptr() as *mut u8;
     (*ed).highlight_tab[10].value.length = 11;
     (*ed).highlight_tab[11].key = HL_UNDERDOUBLE;
-    (*ed).highlight_tab[11].value.string = b"underdouble\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[11].value.string = c"underdouble".as_ptr() as *mut u8;
     (*ed).highlight_tab[11].value.length = 11;
     (*ed).highlight_tab[12].key = HL_UNDERLINE;
-    (*ed).highlight_tab[12].value.string = b"underline\0".as_ptr() as *mut u8;
+    (*ed).highlight_tab[12].value.string = c"underline".as_ptr() as *mut u8;
     (*ed).highlight_tab[12].value.length = 9;
     (*ed).highlight_index_tab[0] = decay(&raw mut (*ed).highlight_tab);
     (*ed).highlight_index_tab[1] = decay(&raw mut (*ed).highlight_tab).wrapping_add(6);
@@ -4810,88 +4810,88 @@ unsafe fn init_globals_2(ed: *mut Editor) {
     (*ed).highlight_index_tab[11] = decay(&raw mut (*ed).highlight_tab).wrapping_add(7);
     (*ed).highlight_index_tab[12] = decay(&raw mut (*ed).highlight_tab).wrapping_add(4);
     (*ed).color_name_tab[0].key = BLACK;
-    (*ed).color_name_tab[0].value.string = b"Black\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[0].value.string = c"Black".as_ptr() as *mut u8;
     (*ed).color_name_tab[0].value.length = 5;
     (*ed).color_name_tab[1].key = BLUE;
-    (*ed).color_name_tab[1].value.string = b"Blue\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[1].value.string = c"Blue".as_ptr() as *mut u8;
     (*ed).color_name_tab[1].value.length = 4;
     (*ed).color_name_tab[2].key = BROWN;
-    (*ed).color_name_tab[2].value.string = b"Brown\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[2].value.string = c"Brown".as_ptr() as *mut u8;
     (*ed).color_name_tab[2].value.length = 5;
     (*ed).color_name_tab[3].key = CYAN;
-    (*ed).color_name_tab[3].value.string = b"Cyan\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[3].value.string = c"Cyan".as_ptr() as *mut u8;
     (*ed).color_name_tab[3].value.length = 4;
     (*ed).color_name_tab[4].key = DARKBLUE;
-    (*ed).color_name_tab[4].value.string = b"DarkBlue\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[4].value.string = c"DarkBlue".as_ptr() as *mut u8;
     (*ed).color_name_tab[4].value.length = 8;
     (*ed).color_name_tab[5].key = DARKCYAN;
-    (*ed).color_name_tab[5].value.string = b"DarkCyan\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[5].value.string = c"DarkCyan".as_ptr() as *mut u8;
     (*ed).color_name_tab[5].value.length = 8;
     (*ed).color_name_tab[6].key = DARKGRAY;
-    (*ed).color_name_tab[6].value.string = b"DarkGray\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[6].value.string = c"DarkGray".as_ptr() as *mut u8;
     (*ed).color_name_tab[6].value.length = 8;
     (*ed).color_name_tab[7].key = DARKGREEN;
-    (*ed).color_name_tab[7].value.string = b"DarkGreen\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[7].value.string = c"DarkGreen".as_ptr() as *mut u8;
     (*ed).color_name_tab[7].value.length = 9;
     (*ed).color_name_tab[8].key = DARKGREY;
-    (*ed).color_name_tab[8].value.string = b"DarkGrey\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[8].value.string = c"DarkGrey".as_ptr() as *mut u8;
     (*ed).color_name_tab[8].value.length = 8;
     (*ed).color_name_tab[9].key = DARKMAGENTA;
-    (*ed).color_name_tab[9].value.string = b"DarkMagenta\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[9].value.string = c"DarkMagenta".as_ptr() as *mut u8;
     (*ed).color_name_tab[9].value.length = 11;
     (*ed).color_name_tab[10].key = DARKRED;
-    (*ed).color_name_tab[10].value.string = b"DarkRed\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[10].value.string = c"DarkRed".as_ptr() as *mut u8;
     (*ed).color_name_tab[10].value.length = 7;
     (*ed).color_name_tab[11].key = DARKYELLOW;
-    (*ed).color_name_tab[11].value.string = b"DarkYellow\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[11].value.string = c"DarkYellow".as_ptr() as *mut u8;
     (*ed).color_name_tab[11].value.length = 10;
     (*ed).color_name_tab[12].key = GRAY;
-    (*ed).color_name_tab[12].value.string = b"Gray\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[12].value.string = c"Gray".as_ptr() as *mut u8;
     (*ed).color_name_tab[12].value.length = 4;
     (*ed).color_name_tab[13].key = GREEN;
-    (*ed).color_name_tab[13].value.string = b"Green\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[13].value.string = c"Green".as_ptr() as *mut u8;
     (*ed).color_name_tab[13].value.length = 5;
     (*ed).color_name_tab[14].key = GREY;
-    (*ed).color_name_tab[14].value.string = b"Grey\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[14].value.string = c"Grey".as_ptr() as *mut u8;
     (*ed).color_name_tab[14].value.length = 4;
     (*ed).color_name_tab[15].key = LIGHTBLUE;
-    (*ed).color_name_tab[15].value.string = b"LightBlue\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[15].value.string = c"LightBlue".as_ptr() as *mut u8;
     (*ed).color_name_tab[15].value.length = 9;
     (*ed).color_name_tab[16].key = LIGHTCYAN;
-    (*ed).color_name_tab[16].value.string = b"LightCyan\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[16].value.string = c"LightCyan".as_ptr() as *mut u8;
     (*ed).color_name_tab[16].value.length = 9;
     (*ed).color_name_tab[17].key = LIGHTGRAY;
-    (*ed).color_name_tab[17].value.string = b"LightGray\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[17].value.string = c"LightGray".as_ptr() as *mut u8;
     (*ed).color_name_tab[17].value.length = 9;
     (*ed).color_name_tab[18].key = LIGHTGREEN;
-    (*ed).color_name_tab[18].value.string = b"LightGreen\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[18].value.string = c"LightGreen".as_ptr() as *mut u8;
     (*ed).color_name_tab[18].value.length = 10;
     (*ed).color_name_tab[19].key = LIGHTGREY;
-    (*ed).color_name_tab[19].value.string = b"LightGrey\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[19].value.string = c"LightGrey".as_ptr() as *mut u8;
     (*ed).color_name_tab[19].value.length = 9;
     (*ed).color_name_tab[20].key = LIGHTMAGENTA;
-    (*ed).color_name_tab[20].value.string = b"LightMagenta\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[20].value.string = c"LightMagenta".as_ptr() as *mut u8;
     (*ed).color_name_tab[20].value.length = 12;
     (*ed).color_name_tab[21].key = LIGHTRED;
-    (*ed).color_name_tab[21].value.string = b"LightRed\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[21].value.string = c"LightRed".as_ptr() as *mut u8;
     (*ed).color_name_tab[21].value.length = 8;
     (*ed).color_name_tab[22].key = LIGHTYELLOW;
-    (*ed).color_name_tab[22].value.string = b"LightYellow\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[22].value.string = c"LightYellow".as_ptr() as *mut u8;
     (*ed).color_name_tab[22].value.length = 11;
     (*ed).color_name_tab[23].key = MAGENTA;
-    (*ed).color_name_tab[23].value.string = b"Magenta\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[23].value.string = c"Magenta".as_ptr() as *mut u8;
     (*ed).color_name_tab[23].value.length = 7;
     (*ed).color_name_tab[24].key = NONE;
-    (*ed).color_name_tab[24].value.string = b"NONE\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[24].value.string = c"NONE".as_ptr() as *mut u8;
     (*ed).color_name_tab[24].value.length = 4;
     (*ed).color_name_tab[25].key = RED;
-    (*ed).color_name_tab[25].value.string = b"Red\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[25].value.string = c"Red".as_ptr() as *mut u8;
     (*ed).color_name_tab[25].value.length = 3;
     (*ed).color_name_tab[26].key = WHITE;
-    (*ed).color_name_tab[26].value.string = b"White\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[26].value.string = c"White".as_ptr() as *mut u8;
     (*ed).color_name_tab[26].value.length = 5;
     (*ed).color_name_tab[27].key = YELLOW;
-    (*ed).color_name_tab[27].value.string = b"Yellow\0".as_ptr() as *mut u8;
+    (*ed).color_name_tab[27].value.string = c"Yellow".as_ptr() as *mut u8;
     (*ed).color_name_tab[27].value.length = 6;
     (*ed).hl_flags[0] = b'8' as i32;
     (*ed).hl_flags[1] = b'~' as i32;
@@ -4963,74 +4963,74 @@ unsafe fn init_globals_2(ed: *mut Editor) {
     (*ed).hl_flags[67] = b'&' as i32;
     (*ed).hl_flags[68] = b'I' as i32;
     (*ed).hl_flags[69] = b'(' as i32;
-    (*ed).highlight_init_both[0] = b"ErrorMsg term=standout ctermbg=DarkRed ctermfg=White\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[1] = b"IncSearch term=reverse,bold,underline cterm=reverse\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[2] = b"ModeMsg term=bold cterm=bold\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[3] = b"NonText term=bold ctermfg=Blue\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[4] = b"StatusLine term=reverse,bold cterm=reverse,bold\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[5] = b"StatusLineNC term=reverse cterm=reverse\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[6] = b"default link EndOfBuffer NonText\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[7] = b"VertSplit term=reverse cterm=reverse\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[8] = b"default link VertSplitNC VertSplit\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[9] = b"PmenuSbar term=NONE ctermbg=Grey\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[10] = b"TabLineSel term=bold cterm=bold\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[11] = b"TabLineFill term=reverse cterm=reverse\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[12] = b"default link TabPanel TabLine\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[13] = b"default link TabPanelSel TabLineSel\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[14] = b"default link TabPanelFill TabLineFill\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[15] = b"default link QuickFixLine Search\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[16] = b"default link CursorLineSign SignColumn\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[17] = b"default link CursorLineFold FoldColumn\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[18] = b"default link CurSearch Search\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[19] = b"default link PmenuKind Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[20] = b"default link PmenuKindSel PmenuSel\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[21] = b"default link PmenuMatch Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[22] = b"default link PmenuMatchSel PmenuSel\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[23] = b"default link PmenuExtra Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[24] = b"default link PmenuExtraSel PmenuSel\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[25] = b"default link PmenuBorder Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[26] = b"default link PopupSelected PmenuSel\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[27] = b"default link Popup Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[28] = b"default link PopupBorder Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[29] = b"default link PopupTitle Pmenu\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[30] = b"default link MessageWindow WarningMsg\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[31] = b"default link PopupNotification WarningMsg\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[32] = b"default link PreInsert Added\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_both[33] = b"Normal cterm=NONE\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[0] = b"Directory term=bold ctermfg=DarkBlue\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[1] = b"LineNr term=NONE ctermfg=Brown\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[2] = b"CursorLineNr term=bold cterm=underline ctermfg=Brown\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[3] = b"MoreMsg term=bold ctermfg=DarkGreen\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[4] = b"Question term=standout ctermfg=DarkGreen\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[5] = b"Search term=reverse ctermbg=Yellow ctermfg=NONE\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[6] = b"PmenuThumb term=reverse ctermbg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[7] = b"PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[8] = b"Pmenu term=reverse ctermbg=LightMagenta ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[9] = b"PmenuSel term=underline ctermbg=LightGrey ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[10] = b"SpecialKey term=NONE ctermfg=DarkBlue\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[11] = b"Title term=bold ctermfg=DarkMagenta\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[12] = b"WarningMsg term=standout ctermfg=DarkRed\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[13] = b"WildMenu term=underline ctermbg=Yellow ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[14] = b"Visual ctermbg=Grey ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[15] = b"TabLine term=underline cterm=underline ctermfg=black ctermbg=LightGrey\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_light[16] = b"MatchParen term=reverse ctermbg=Cyan\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[0] = b"Directory term=bold ctermfg=LightCyan\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[1] = b"LineNr term=NONE ctermfg=Yellow\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[2] = b"CursorLineNr term=bold cterm=underline ctermfg=Yellow\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[3] = b"MoreMsg term=bold ctermfg=LightGreen\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[4] = b"Question term=standout ctermfg=LightGreen\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[5] = b"Search term=reverse ctermbg=Yellow ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[6] = b"SpecialKey term=NONE ctermfg=LightBlue\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[7] = b"PmenuThumb term=reverse ctermbg=White\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[8] = b"PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[9] = b"Pmenu term=reverse ctermbg=Magenta ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[10] = b"PmenuSel term=underline ctermbg=Black ctermfg=DarkGrey\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[11] = b"Title term=bold ctermfg=LightMagenta\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[12] = b"WarningMsg term=standout ctermfg=LightRed\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[13] = b"WildMenu term=underline ctermbg=Yellow ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[14] = b"Visual ctermbg=Grey ctermfg=Black\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[15] = b"TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey\0".as_ptr() as *mut i8;
-    (*ed).highlight_init_dark[16] = b"MatchParen term=reverse ctermbg=DarkCyan\0".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[0] = c"ErrorMsg term=standout ctermbg=DarkRed ctermfg=White".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[1] = c"IncSearch term=reverse,bold,underline cterm=reverse".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[2] = c"ModeMsg term=bold cterm=bold".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[3] = c"NonText term=bold ctermfg=Blue".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[4] = c"StatusLine term=reverse,bold cterm=reverse,bold".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[5] = c"StatusLineNC term=reverse cterm=reverse".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[6] = c"default link EndOfBuffer NonText".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[7] = c"VertSplit term=reverse cterm=reverse".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[8] = c"default link VertSplitNC VertSplit".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[9] = c"PmenuSbar term=NONE ctermbg=Grey".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[10] = c"TabLineSel term=bold cterm=bold".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[11] = c"TabLineFill term=reverse cterm=reverse".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[12] = c"default link TabPanel TabLine".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[13] = c"default link TabPanelSel TabLineSel".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[14] = c"default link TabPanelFill TabLineFill".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[15] = c"default link QuickFixLine Search".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[16] = c"default link CursorLineSign SignColumn".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[17] = c"default link CursorLineFold FoldColumn".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[18] = c"default link CurSearch Search".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[19] = c"default link PmenuKind Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[20] = c"default link PmenuKindSel PmenuSel".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[21] = c"default link PmenuMatch Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[22] = c"default link PmenuMatchSel PmenuSel".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[23] = c"default link PmenuExtra Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[24] = c"default link PmenuExtraSel PmenuSel".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[25] = c"default link PmenuBorder Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[26] = c"default link PopupSelected PmenuSel".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[27] = c"default link Popup Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[28] = c"default link PopupBorder Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[29] = c"default link PopupTitle Pmenu".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[30] = c"default link MessageWindow WarningMsg".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[31] = c"default link PopupNotification WarningMsg".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[32] = c"default link PreInsert Added".as_ptr() as *mut i8;
+    (*ed).highlight_init_both[33] = c"Normal cterm=NONE".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[0] = c"Directory term=bold ctermfg=DarkBlue".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[1] = c"LineNr term=NONE ctermfg=Brown".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[2] = c"CursorLineNr term=bold cterm=underline ctermfg=Brown".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[3] = c"MoreMsg term=bold ctermfg=DarkGreen".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[4] = c"Question term=standout ctermfg=DarkGreen".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[5] = c"Search term=reverse ctermbg=Yellow ctermfg=NONE".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[6] = c"PmenuThumb term=reverse ctermbg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[7] = c"PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[8] = c"Pmenu term=reverse ctermbg=LightMagenta ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[9] = c"PmenuSel term=underline ctermbg=LightGrey ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[10] = c"SpecialKey term=NONE ctermfg=DarkBlue".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[11] = c"Title term=bold ctermfg=DarkMagenta".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[12] = c"WarningMsg term=standout ctermfg=DarkRed".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[13] = c"WildMenu term=underline ctermbg=Yellow ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[14] = c"Visual ctermbg=Grey ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[15] = c"TabLine term=underline cterm=underline ctermfg=black ctermbg=LightGrey".as_ptr() as *mut i8;
+    (*ed).highlight_init_light[16] = c"MatchParen term=reverse ctermbg=Cyan".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[0] = c"Directory term=bold ctermfg=LightCyan".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[1] = c"LineNr term=NONE ctermfg=Yellow".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[2] = c"CursorLineNr term=bold cterm=underline ctermfg=Yellow".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[3] = c"MoreMsg term=bold ctermfg=LightGreen".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[4] = c"Question term=standout ctermfg=LightGreen".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[5] = c"Search term=reverse ctermbg=Yellow ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[6] = c"SpecialKey term=NONE ctermfg=LightBlue".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[7] = c"PmenuThumb term=reverse ctermbg=White".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[8] = c"PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[9] = c"Pmenu term=reverse ctermbg=Magenta ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[10] = c"PmenuSel term=underline ctermbg=Black ctermfg=DarkGrey".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[11] = c"Title term=bold ctermfg=LightMagenta".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[12] = c"WarningMsg term=standout ctermfg=LightRed".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[13] = c"WildMenu term=underline ctermbg=Yellow ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[14] = c"Visual ctermbg=Grey ctermfg=Black".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[15] = c"TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey".as_ptr() as *mut i8;
+    (*ed).highlight_init_dark[16] = c"MatchParen term=reverse ctermbg=DarkCyan".as_ptr() as *mut i8;
     (*ed).color_numbers_16[1] = 1;
     (*ed).color_numbers_16[2] = 2;
     (*ed).color_numbers_16[3] = 3;
@@ -5158,7 +5158,7 @@ unsafe fn init_globals_3(ed: *mut Editor) {
     (*ed).cterm_color_16[14] = 65535;
     (*ed).cterm_color_16[15] = 16777215;
     (*ed).maphash_valid = false;
-    (*ed).vimrc_mappings[0].arg = b"<Tab> %\0".as_ptr() as *mut u8;
+    (*ed).vimrc_mappings[0].arg = c"<Tab> %".as_ptr() as *mut u8;
     (*ed).vimrc_mappings[0].mode = 71;
     (*ed).vimrc_mappings[1].arg = b"\xc2\xa7 <C-_>\0".as_ptr() as *mut u8;
     (*ed).vimrc_mappings[1].mode = 24;
@@ -9047,122 +9047,122 @@ unsafe fn init_globals_12(ed: *mut Editor) {
     (*ed).modifier_keys_table[375] = NUL as u8;
     (*ed).key_names_table[0].enabled = TRUE;
     (*ed).key_names_table[0].key = K_BS;
-    (*ed).key_names_table[0].name.string = b"BackSpace\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[0].name.string = c"BackSpace".as_ptr() as *mut u8;
     (*ed).key_names_table[0].name.length = 9;
     (*ed).key_names_table[0].is_alt = TRUE;
     (*ed).key_names_table[1].enabled = TRUE;
     (*ed).key_names_table[1].key = b'|' as i32;
-    (*ed).key_names_table[1].name.string = b"Bar\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[1].name.string = c"Bar".as_ptr() as *mut u8;
     (*ed).key_names_table[1].name.length = 3;
     (*ed).key_names_table[1].is_alt = FALSE;
     (*ed).key_names_table[2].enabled = TRUE;
     (*ed).key_names_table[2].key = K_BS;
-    (*ed).key_names_table[2].name.string = b"BS\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[2].name.string = c"BS".as_ptr() as *mut u8;
     (*ed).key_names_table[2].name.length = 2;
     (*ed).key_names_table[2].is_alt = FALSE;
     (*ed).key_names_table[3].enabled = TRUE;
     (*ed).key_names_table[3].key = 92;
-    (*ed).key_names_table[3].name.string = b"Bslash\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[3].name.string = c"Bslash".as_ptr() as *mut u8;
     (*ed).key_names_table[3].name.length = 6;
     (*ed).key_names_table[3].is_alt = FALSE;
     (*ed).key_names_table[4].enabled = TRUE;
     (*ed).key_names_table[4].key = K_COMMAND;
-    (*ed).key_names_table[4].name.string = b"Cmd\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[4].name.string = c"Cmd".as_ptr() as *mut u8;
     (*ed).key_names_table[4].name.length = 3;
     (*ed).key_names_table[4].is_alt = FALSE;
     (*ed).key_names_table[5].enabled = TRUE;
     (*ed).key_names_table[5].key = CAR;
-    (*ed).key_names_table[5].name.string = b"CR\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[5].name.string = c"CR".as_ptr() as *mut u8;
     (*ed).key_names_table[5].name.length = 2;
     (*ed).key_names_table[5].is_alt = FALSE;
     (*ed).key_names_table[6].enabled = TRUE;
     (*ed).key_names_table[6].key = CSI;
-    (*ed).key_names_table[6].name.string = b"CSI\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[6].name.string = c"CSI".as_ptr() as *mut u8;
     (*ed).key_names_table[6].name.length = 3;
     (*ed).key_names_table[6].is_alt = FALSE;
     (*ed).key_names_table[7].enabled = TRUE;
     (*ed).key_names_table[7].key = K_CURSORHOLD;
-    (*ed).key_names_table[7].name.string = b"CursorHold\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[7].name.string = c"CursorHold".as_ptr() as *mut u8;
     (*ed).key_names_table[7].name.length = 10;
     (*ed).key_names_table[7].is_alt = FALSE;
     (*ed).key_names_table[8].enabled = TRUE;
     (*ed).key_names_table[8].key = K_DEL;
-    (*ed).key_names_table[8].name.string = b"Del\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[8].name.string = c"Del".as_ptr() as *mut u8;
     (*ed).key_names_table[8].name.length = 3;
     (*ed).key_names_table[8].is_alt = FALSE;
     (*ed).key_names_table[9].enabled = TRUE;
     (*ed).key_names_table[9].key = K_DEL;
-    (*ed).key_names_table[9].name.string = b"Delete\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[9].name.string = c"Delete".as_ptr() as *mut u8;
     (*ed).key_names_table[9].name.length = 6;
     (*ed).key_names_table[9].is_alt = TRUE;
     (*ed).key_names_table[10].enabled = TRUE;
     (*ed).key_names_table[10].key = K_DOWN;
-    (*ed).key_names_table[10].name.string = b"Down\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[10].name.string = c"Down".as_ptr() as *mut u8;
     (*ed).key_names_table[10].name.length = 4;
     (*ed).key_names_table[10].is_alt = FALSE;
     (*ed).key_names_table[11].enabled = TRUE;
     (*ed).key_names_table[11].key = K_DROP;
-    (*ed).key_names_table[11].name.string = b"Drop\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[11].name.string = c"Drop".as_ptr() as *mut u8;
     (*ed).key_names_table[11].name.length = 4;
     (*ed).key_names_table[11].is_alt = FALSE;
     (*ed).key_names_table[12].enabled = TRUE;
     (*ed).key_names_table[12].key = K_END;
-    (*ed).key_names_table[12].name.string = b"End\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[12].name.string = c"End".as_ptr() as *mut u8;
     (*ed).key_names_table[12].name.length = 3;
     (*ed).key_names_table[12].is_alt = FALSE;
     (*ed).key_names_table[13].enabled = TRUE;
     (*ed).key_names_table[13].key = CAR;
-    (*ed).key_names_table[13].name.string = b"Enter\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[13].name.string = c"Enter".as_ptr() as *mut u8;
     (*ed).key_names_table[13].name.length = 5;
     (*ed).key_names_table[13].is_alt = TRUE;
     (*ed).key_names_table[14].enabled = TRUE;
     (*ed).key_names_table[14].key = ESC;
-    (*ed).key_names_table[14].name.string = b"Esc\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[14].name.string = c"Esc".as_ptr() as *mut u8;
     (*ed).key_names_table[14].name.length = 3;
     (*ed).key_names_table[14].is_alt = FALSE;
     (*ed).key_names_table[15].enabled = TRUE;
     (*ed).key_names_table[15].key = K_F1;
-    (*ed).key_names_table[15].name.string = b"F1\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[15].name.string = c"F1".as_ptr() as *mut u8;
     (*ed).key_names_table[15].name.length = 2;
     (*ed).key_names_table[15].is_alt = FALSE;
     (*ed).key_names_table[16].enabled = TRUE;
     (*ed).key_names_table[16].key = K_F10;
-    (*ed).key_names_table[16].name.string = b"F10\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[16].name.string = c"F10".as_ptr() as *mut u8;
     (*ed).key_names_table[16].name.length = 3;
     (*ed).key_names_table[16].is_alt = FALSE;
     (*ed).key_names_table[17].enabled = TRUE;
     (*ed).key_names_table[17].key = K_F11;
-    (*ed).key_names_table[17].name.string = b"F11\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[17].name.string = c"F11".as_ptr() as *mut u8;
     (*ed).key_names_table[17].name.length = 3;
     (*ed).key_names_table[17].is_alt = FALSE;
     (*ed).key_names_table[18].enabled = TRUE;
     (*ed).key_names_table[18].key = K_F12;
-    (*ed).key_names_table[18].name.string = b"F12\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[18].name.string = c"F12".as_ptr() as *mut u8;
     (*ed).key_names_table[18].name.length = 3;
     (*ed).key_names_table[18].is_alt = FALSE;
     (*ed).key_names_table[19].enabled = TRUE;
     (*ed).key_names_table[19].key = K_F13;
-    (*ed).key_names_table[19].name.string = b"F13\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[19].name.string = c"F13".as_ptr() as *mut u8;
     (*ed).key_names_table[19].name.length = 3;
     (*ed).key_names_table[19].is_alt = FALSE;
     (*ed).key_names_table[20].enabled = TRUE;
     (*ed).key_names_table[20].key = K_F14;
-    (*ed).key_names_table[20].name.string = b"F14\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[20].name.string = c"F14".as_ptr() as *mut u8;
     (*ed).key_names_table[20].name.length = 3;
     (*ed).key_names_table[20].is_alt = FALSE;
     (*ed).key_names_table[21].enabled = TRUE;
     (*ed).key_names_table[21].key = K_F15;
-    (*ed).key_names_table[21].name.string = b"F15\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[21].name.string = c"F15".as_ptr() as *mut u8;
     (*ed).key_names_table[21].name.length = 3;
     (*ed).key_names_table[21].is_alt = FALSE;
     (*ed).key_names_table[22].enabled = TRUE;
     (*ed).key_names_table[22].key = K_F16;
-    (*ed).key_names_table[22].name.string = b"F16\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[22].name.string = c"F16".as_ptr() as *mut u8;
     (*ed).key_names_table[22].name.length = 3;
     (*ed).key_names_table[22].is_alt = FALSE;
     (*ed).key_names_table[23].enabled = TRUE;
     (*ed).key_names_table[23].key = K_F17;
-    (*ed).key_names_table[23].name.string = b"F17\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[23].name.string = c"F17".as_ptr() as *mut u8;
     (*ed).key_names_table[23].name.length = 3;
     (*ed).key_names_table[23].is_alt = FALSE;
     (*ed).key_names_table[24].enabled = TRUE;
@@ -9170,402 +9170,402 @@ unsafe fn init_globals_12(ed: *mut Editor) {
 }
 
 unsafe fn init_globals_13(ed: *mut Editor) {
-    (*ed).key_names_table[24].name.string = b"F18\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[24].name.string = c"F18".as_ptr() as *mut u8;
     (*ed).key_names_table[24].name.length = 3;
     (*ed).key_names_table[24].is_alt = FALSE;
     (*ed).key_names_table[25].enabled = TRUE;
     (*ed).key_names_table[25].key = K_F19;
-    (*ed).key_names_table[25].name.string = b"F19\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[25].name.string = c"F19".as_ptr() as *mut u8;
     (*ed).key_names_table[25].name.length = 3;
     (*ed).key_names_table[25].is_alt = FALSE;
     (*ed).key_names_table[26].enabled = TRUE;
     (*ed).key_names_table[26].key = K_F2;
-    (*ed).key_names_table[26].name.string = b"F2\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[26].name.string = c"F2".as_ptr() as *mut u8;
     (*ed).key_names_table[26].name.length = 2;
     (*ed).key_names_table[26].is_alt = FALSE;
     (*ed).key_names_table[27].enabled = TRUE;
     (*ed).key_names_table[27].key = K_F20;
-    (*ed).key_names_table[27].name.string = b"F20\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[27].name.string = c"F20".as_ptr() as *mut u8;
     (*ed).key_names_table[27].name.length = 3;
     (*ed).key_names_table[27].is_alt = FALSE;
     (*ed).key_names_table[28].enabled = TRUE;
     (*ed).key_names_table[28].key = K_F21;
-    (*ed).key_names_table[28].name.string = b"F21\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[28].name.string = c"F21".as_ptr() as *mut u8;
     (*ed).key_names_table[28].name.length = 3;
     (*ed).key_names_table[28].is_alt = FALSE;
     (*ed).key_names_table[29].enabled = TRUE;
     (*ed).key_names_table[29].key = K_F22;
-    (*ed).key_names_table[29].name.string = b"F22\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[29].name.string = c"F22".as_ptr() as *mut u8;
     (*ed).key_names_table[29].name.length = 3;
     (*ed).key_names_table[29].is_alt = FALSE;
     (*ed).key_names_table[30].enabled = TRUE;
     (*ed).key_names_table[30].key = K_F23;
-    (*ed).key_names_table[30].name.string = b"F23\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[30].name.string = c"F23".as_ptr() as *mut u8;
     (*ed).key_names_table[30].name.length = 3;
     (*ed).key_names_table[30].is_alt = FALSE;
     (*ed).key_names_table[31].enabled = TRUE;
     (*ed).key_names_table[31].key = K_F24;
-    (*ed).key_names_table[31].name.string = b"F24\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[31].name.string = c"F24".as_ptr() as *mut u8;
     (*ed).key_names_table[31].name.length = 3;
     (*ed).key_names_table[31].is_alt = FALSE;
     (*ed).key_names_table[32].enabled = TRUE;
     (*ed).key_names_table[32].key = K_F25;
-    (*ed).key_names_table[32].name.string = b"F25\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[32].name.string = c"F25".as_ptr() as *mut u8;
     (*ed).key_names_table[32].name.length = 3;
     (*ed).key_names_table[32].is_alt = FALSE;
     (*ed).key_names_table[33].enabled = TRUE;
     (*ed).key_names_table[33].key = K_F26;
-    (*ed).key_names_table[33].name.string = b"F26\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[33].name.string = c"F26".as_ptr() as *mut u8;
     (*ed).key_names_table[33].name.length = 3;
     (*ed).key_names_table[33].is_alt = FALSE;
     (*ed).key_names_table[34].enabled = TRUE;
     (*ed).key_names_table[34].key = K_F27;
-    (*ed).key_names_table[34].name.string = b"F27\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[34].name.string = c"F27".as_ptr() as *mut u8;
     (*ed).key_names_table[34].name.length = 3;
     (*ed).key_names_table[34].is_alt = FALSE;
     (*ed).key_names_table[35].enabled = TRUE;
     (*ed).key_names_table[35].key = K_F28;
-    (*ed).key_names_table[35].name.string = b"F28\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[35].name.string = c"F28".as_ptr() as *mut u8;
     (*ed).key_names_table[35].name.length = 3;
     (*ed).key_names_table[35].is_alt = FALSE;
     (*ed).key_names_table[36].enabled = TRUE;
     (*ed).key_names_table[36].key = K_F29;
-    (*ed).key_names_table[36].name.string = b"F29\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[36].name.string = c"F29".as_ptr() as *mut u8;
     (*ed).key_names_table[36].name.length = 3;
     (*ed).key_names_table[36].is_alt = FALSE;
     (*ed).key_names_table[37].enabled = TRUE;
     (*ed).key_names_table[37].key = K_F3;
-    (*ed).key_names_table[37].name.string = b"F3\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[37].name.string = c"F3".as_ptr() as *mut u8;
     (*ed).key_names_table[37].name.length = 2;
     (*ed).key_names_table[37].is_alt = FALSE;
     (*ed).key_names_table[38].enabled = TRUE;
     (*ed).key_names_table[38].key = K_F30;
-    (*ed).key_names_table[38].name.string = b"F30\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[38].name.string = c"F30".as_ptr() as *mut u8;
     (*ed).key_names_table[38].name.length = 3;
     (*ed).key_names_table[38].is_alt = FALSE;
     (*ed).key_names_table[39].enabled = TRUE;
     (*ed).key_names_table[39].key = K_F31;
-    (*ed).key_names_table[39].name.string = b"F31\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[39].name.string = c"F31".as_ptr() as *mut u8;
     (*ed).key_names_table[39].name.length = 3;
     (*ed).key_names_table[39].is_alt = FALSE;
     (*ed).key_names_table[40].enabled = TRUE;
     (*ed).key_names_table[40].key = K_F32;
-    (*ed).key_names_table[40].name.string = b"F32\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[40].name.string = c"F32".as_ptr() as *mut u8;
     (*ed).key_names_table[40].name.length = 3;
     (*ed).key_names_table[40].is_alt = FALSE;
     (*ed).key_names_table[41].enabled = TRUE;
     (*ed).key_names_table[41].key = K_F33;
-    (*ed).key_names_table[41].name.string = b"F33\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[41].name.string = c"F33".as_ptr() as *mut u8;
     (*ed).key_names_table[41].name.length = 3;
     (*ed).key_names_table[41].is_alt = FALSE;
     (*ed).key_names_table[42].enabled = TRUE;
     (*ed).key_names_table[42].key = K_F34;
-    (*ed).key_names_table[42].name.string = b"F34\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[42].name.string = c"F34".as_ptr() as *mut u8;
     (*ed).key_names_table[42].name.length = 3;
     (*ed).key_names_table[42].is_alt = FALSE;
     (*ed).key_names_table[43].enabled = TRUE;
     (*ed).key_names_table[43].key = K_F35;
-    (*ed).key_names_table[43].name.string = b"F35\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[43].name.string = c"F35".as_ptr() as *mut u8;
     (*ed).key_names_table[43].name.length = 3;
     (*ed).key_names_table[43].is_alt = FALSE;
     (*ed).key_names_table[44].enabled = TRUE;
     (*ed).key_names_table[44].key = K_F36;
-    (*ed).key_names_table[44].name.string = b"F36\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[44].name.string = c"F36".as_ptr() as *mut u8;
     (*ed).key_names_table[44].name.length = 3;
     (*ed).key_names_table[44].is_alt = FALSE;
     (*ed).key_names_table[45].enabled = TRUE;
     (*ed).key_names_table[45].key = K_F37;
-    (*ed).key_names_table[45].name.string = b"F37\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[45].name.string = c"F37".as_ptr() as *mut u8;
     (*ed).key_names_table[45].name.length = 3;
     (*ed).key_names_table[45].is_alt = FALSE;
     (*ed).key_names_table[46].enabled = TRUE;
     (*ed).key_names_table[46].key = K_F4;
-    (*ed).key_names_table[46].name.string = b"F4\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[46].name.string = c"F4".as_ptr() as *mut u8;
     (*ed).key_names_table[46].name.length = 2;
     (*ed).key_names_table[46].is_alt = FALSE;
     (*ed).key_names_table[47].enabled = TRUE;
     (*ed).key_names_table[47].key = K_F5;
-    (*ed).key_names_table[47].name.string = b"F5\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[47].name.string = c"F5".as_ptr() as *mut u8;
     (*ed).key_names_table[47].name.length = 2;
     (*ed).key_names_table[47].is_alt = FALSE;
     (*ed).key_names_table[48].enabled = TRUE;
     (*ed).key_names_table[48].key = K_F6;
-    (*ed).key_names_table[48].name.string = b"F6\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[48].name.string = c"F6".as_ptr() as *mut u8;
     (*ed).key_names_table[48].name.length = 2;
     (*ed).key_names_table[48].is_alt = FALSE;
     (*ed).key_names_table[49].enabled = TRUE;
     (*ed).key_names_table[49].key = K_F7;
-    (*ed).key_names_table[49].name.string = b"F7\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[49].name.string = c"F7".as_ptr() as *mut u8;
     (*ed).key_names_table[49].name.length = 2;
     (*ed).key_names_table[49].is_alt = FALSE;
     (*ed).key_names_table[50].enabled = TRUE;
     (*ed).key_names_table[50].key = K_F8;
-    (*ed).key_names_table[50].name.string = b"F8\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[50].name.string = c"F8".as_ptr() as *mut u8;
     (*ed).key_names_table[50].name.length = 2;
     (*ed).key_names_table[50].is_alt = FALSE;
     (*ed).key_names_table[51].enabled = TRUE;
     (*ed).key_names_table[51].key = K_F9;
-    (*ed).key_names_table[51].name.string = b"F9\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[51].name.string = c"F9".as_ptr() as *mut u8;
     (*ed).key_names_table[51].name.length = 2;
     (*ed).key_names_table[51].is_alt = FALSE;
     (*ed).key_names_table[52].enabled = TRUE;
     (*ed).key_names_table[52].key = K_FOCUSGAINED;
-    (*ed).key_names_table[52].name.string = b"FocusGained\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[52].name.string = c"FocusGained".as_ptr() as *mut u8;
     (*ed).key_names_table[52].name.length = 11;
     (*ed).key_names_table[52].is_alt = FALSE;
     (*ed).key_names_table[53].enabled = TRUE;
     (*ed).key_names_table[53].key = K_FOCUSLOST;
-    (*ed).key_names_table[53].name.string = b"FocusLost\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[53].name.string = c"FocusLost".as_ptr() as *mut u8;
     (*ed).key_names_table[53].name.length = 9;
     (*ed).key_names_table[53].is_alt = FALSE;
     (*ed).key_names_table[54].enabled = TRUE;
     (*ed).key_names_table[54].key = K_HELP;
-    (*ed).key_names_table[54].name.string = b"Help\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[54].name.string = c"Help".as_ptr() as *mut u8;
     (*ed).key_names_table[54].name.length = 4;
     (*ed).key_names_table[54].is_alt = FALSE;
     (*ed).key_names_table[55].enabled = TRUE;
     (*ed).key_names_table[55].key = K_HOME;
-    (*ed).key_names_table[55].name.string = b"Home\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[55].name.string = c"Home".as_ptr() as *mut u8;
     (*ed).key_names_table[55].name.length = 4;
     (*ed).key_names_table[55].is_alt = FALSE;
     (*ed).key_names_table[56].enabled = TRUE;
     (*ed).key_names_table[56].key = K_IGNORE;
-    (*ed).key_names_table[56].name.string = b"Ignore\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[56].name.string = c"Ignore".as_ptr() as *mut u8;
     (*ed).key_names_table[56].name.length = 6;
     (*ed).key_names_table[56].is_alt = FALSE;
     (*ed).key_names_table[57].enabled = TRUE;
     (*ed).key_names_table[57].key = K_INS;
-    (*ed).key_names_table[57].name.string = b"Ins\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[57].name.string = c"Ins".as_ptr() as *mut u8;
     (*ed).key_names_table[57].name.length = 3;
     (*ed).key_names_table[57].is_alt = TRUE;
     (*ed).key_names_table[58].enabled = TRUE;
     (*ed).key_names_table[58].key = K_INS;
-    (*ed).key_names_table[58].name.string = b"Insert\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[58].name.string = c"Insert".as_ptr() as *mut u8;
     (*ed).key_names_table[58].name.length = 6;
     (*ed).key_names_table[58].is_alt = FALSE;
     (*ed).key_names_table[59].enabled = TRUE;
     (*ed).key_names_table[59].key = K_K0;
-    (*ed).key_names_table[59].name.string = b"k0\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[59].name.string = c"k0".as_ptr() as *mut u8;
     (*ed).key_names_table[59].name.length = 2;
     (*ed).key_names_table[59].is_alt = FALSE;
     (*ed).key_names_table[60].enabled = TRUE;
     (*ed).key_names_table[60].key = K_K1;
-    (*ed).key_names_table[60].name.string = b"k1\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[60].name.string = c"k1".as_ptr() as *mut u8;
     (*ed).key_names_table[60].name.length = 2;
     (*ed).key_names_table[60].is_alt = FALSE;
     (*ed).key_names_table[61].enabled = TRUE;
     (*ed).key_names_table[61].key = K_K2;
-    (*ed).key_names_table[61].name.string = b"k2\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[61].name.string = c"k2".as_ptr() as *mut u8;
     (*ed).key_names_table[61].name.length = 2;
     (*ed).key_names_table[61].is_alt = FALSE;
     (*ed).key_names_table[62].enabled = TRUE;
     (*ed).key_names_table[62].key = K_K3;
-    (*ed).key_names_table[62].name.string = b"k3\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[62].name.string = c"k3".as_ptr() as *mut u8;
     (*ed).key_names_table[62].name.length = 2;
     (*ed).key_names_table[62].is_alt = FALSE;
     (*ed).key_names_table[63].enabled = TRUE;
     (*ed).key_names_table[63].key = K_K4;
-    (*ed).key_names_table[63].name.string = b"k4\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[63].name.string = c"k4".as_ptr() as *mut u8;
     (*ed).key_names_table[63].name.length = 2;
     (*ed).key_names_table[63].is_alt = FALSE;
     (*ed).key_names_table[64].enabled = TRUE;
     (*ed).key_names_table[64].key = K_K5;
-    (*ed).key_names_table[64].name.string = b"k5\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[64].name.string = c"k5".as_ptr() as *mut u8;
     (*ed).key_names_table[64].name.length = 2;
     (*ed).key_names_table[64].is_alt = FALSE;
     (*ed).key_names_table[65].enabled = TRUE;
     (*ed).key_names_table[65].key = K_K6;
-    (*ed).key_names_table[65].name.string = b"k6\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[65].name.string = c"k6".as_ptr() as *mut u8;
     (*ed).key_names_table[65].name.length = 2;
     (*ed).key_names_table[65].is_alt = FALSE;
     (*ed).key_names_table[66].enabled = TRUE;
     (*ed).key_names_table[66].key = K_K7;
-    (*ed).key_names_table[66].name.string = b"k7\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[66].name.string = c"k7".as_ptr() as *mut u8;
     (*ed).key_names_table[66].name.length = 2;
     (*ed).key_names_table[66].is_alt = FALSE;
     (*ed).key_names_table[67].enabled = TRUE;
     (*ed).key_names_table[67].key = K_K8;
-    (*ed).key_names_table[67].name.string = b"k8\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[67].name.string = c"k8".as_ptr() as *mut u8;
     (*ed).key_names_table[67].name.length = 2;
     (*ed).key_names_table[67].is_alt = FALSE;
     (*ed).key_names_table[68].enabled = TRUE;
     (*ed).key_names_table[68].key = K_K9;
-    (*ed).key_names_table[68].name.string = b"k9\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[68].name.string = c"k9".as_ptr() as *mut u8;
     (*ed).key_names_table[68].name.length = 2;
     (*ed).key_names_table[68].is_alt = FALSE;
     (*ed).key_names_table[69].enabled = TRUE;
     (*ed).key_names_table[69].key = K_KDEL;
-    (*ed).key_names_table[69].name.string = b"kDel\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[69].name.string = c"kDel".as_ptr() as *mut u8;
     (*ed).key_names_table[69].name.length = 4;
     (*ed).key_names_table[69].is_alt = FALSE;
     (*ed).key_names_table[70].enabled = TRUE;
     (*ed).key_names_table[70].key = K_KDIVIDE;
-    (*ed).key_names_table[70].name.string = b"kDivide\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[70].name.string = c"kDivide".as_ptr() as *mut u8;
     (*ed).key_names_table[70].name.length = 7;
     (*ed).key_names_table[70].is_alt = FALSE;
     (*ed).key_names_table[71].enabled = TRUE;
     (*ed).key_names_table[71].key = K_KEND;
-    (*ed).key_names_table[71].name.string = b"kEnd\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[71].name.string = c"kEnd".as_ptr() as *mut u8;
     (*ed).key_names_table[71].name.length = 4;
     (*ed).key_names_table[71].is_alt = FALSE;
     (*ed).key_names_table[72].enabled = TRUE;
     (*ed).key_names_table[72].key = K_KENTER;
-    (*ed).key_names_table[72].name.string = b"kEnter\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[72].name.string = c"kEnter".as_ptr() as *mut u8;
     (*ed).key_names_table[72].name.length = 6;
     (*ed).key_names_table[72].is_alt = FALSE;
     (*ed).key_names_table[73].enabled = TRUE;
     (*ed).key_names_table[73].key = K_KHOME;
-    (*ed).key_names_table[73].name.string = b"kHome\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[73].name.string = c"kHome".as_ptr() as *mut u8;
     (*ed).key_names_table[73].name.length = 5;
     (*ed).key_names_table[73].is_alt = FALSE;
     (*ed).key_names_table[74].enabled = TRUE;
     (*ed).key_names_table[74].key = K_KINS;
-    (*ed).key_names_table[74].name.string = b"kInsert\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[74].name.string = c"kInsert".as_ptr() as *mut u8;
     (*ed).key_names_table[74].name.length = 7;
     (*ed).key_names_table[74].is_alt = FALSE;
     (*ed).key_names_table[75].enabled = TRUE;
     (*ed).key_names_table[75].key = K_KMINUS;
-    (*ed).key_names_table[75].name.string = b"kMinus\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[75].name.string = c"kMinus".as_ptr() as *mut u8;
     (*ed).key_names_table[75].name.length = 6;
     (*ed).key_names_table[75].is_alt = FALSE;
     (*ed).key_names_table[76].enabled = TRUE;
     (*ed).key_names_table[76].key = K_KMULTIPLY;
-    (*ed).key_names_table[76].name.string = b"kMultiply\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[76].name.string = c"kMultiply".as_ptr() as *mut u8;
     (*ed).key_names_table[76].name.length = 9;
     (*ed).key_names_table[76].is_alt = FALSE;
     (*ed).key_names_table[77].enabled = TRUE;
     (*ed).key_names_table[77].key = K_KPAGEDOWN;
-    (*ed).key_names_table[77].name.string = b"kPageDown\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[77].name.string = c"kPageDown".as_ptr() as *mut u8;
     (*ed).key_names_table[77].name.length = 9;
     (*ed).key_names_table[77].is_alt = FALSE;
     (*ed).key_names_table[78].enabled = TRUE;
     (*ed).key_names_table[78].key = K_KPAGEUP;
-    (*ed).key_names_table[78].name.string = b"kPageUp\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[78].name.string = c"kPageUp".as_ptr() as *mut u8;
     (*ed).key_names_table[78].name.length = 7;
     (*ed).key_names_table[78].is_alt = FALSE;
     (*ed).key_names_table[79].enabled = TRUE;
     (*ed).key_names_table[79].key = K_KPLUS;
-    (*ed).key_names_table[79].name.string = b"kPlus\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[79].name.string = c"kPlus".as_ptr() as *mut u8;
     (*ed).key_names_table[79].name.length = 5;
     (*ed).key_names_table[79].is_alt = FALSE;
     (*ed).key_names_table[80].enabled = TRUE;
     (*ed).key_names_table[80].key = K_KPOINT;
-    (*ed).key_names_table[80].name.string = b"kPoint\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[80].name.string = c"kPoint".as_ptr() as *mut u8;
     (*ed).key_names_table[80].name.length = 6;
     (*ed).key_names_table[80].is_alt = FALSE;
     (*ed).key_names_table[81].enabled = TRUE;
     (*ed).key_names_table[81].key = K_LEFT;
-    (*ed).key_names_table[81].name.string = b"Left\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[81].name.string = c"Left".as_ptr() as *mut u8;
     (*ed).key_names_table[81].name.length = 4;
     (*ed).key_names_table[81].is_alt = FALSE;
     (*ed).key_names_table[82].enabled = TRUE;
     (*ed).key_names_table[82].key = NL;
-    (*ed).key_names_table[82].name.string = b"LF\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[82].name.string = c"LF".as_ptr() as *mut u8;
     (*ed).key_names_table[82].name.length = 2;
     (*ed).key_names_table[82].is_alt = TRUE;
     (*ed).key_names_table[83].enabled = TRUE;
     (*ed).key_names_table[83].key = NL;
-    (*ed).key_names_table[83].name.string = b"LineFeed\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[83].name.string = c"LineFeed".as_ptr() as *mut u8;
     (*ed).key_names_table[83].name.length = 8;
     (*ed).key_names_table[83].is_alt = TRUE;
     (*ed).key_names_table[84].enabled = TRUE;
     (*ed).key_names_table[84].key = b'<' as i32;
-    (*ed).key_names_table[84].name.string = b"lt\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[84].name.string = c"lt".as_ptr() as *mut u8;
     (*ed).key_names_table[84].name.length = 2;
     (*ed).key_names_table[84].is_alt = FALSE;
     (*ed).key_names_table[85].enabled = TRUE;
     (*ed).key_names_table[85].key = NL;
-    (*ed).key_names_table[85].name.string = b"NewLine\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[85].name.string = c"NewLine".as_ptr() as *mut u8;
     (*ed).key_names_table[85].name.length = 7;
     (*ed).key_names_table[85].is_alt = TRUE;
     (*ed).key_names_table[86].enabled = TRUE;
     (*ed).key_names_table[86].key = NL;
-    (*ed).key_names_table[86].name.string = b"NL\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[86].name.string = c"NL".as_ptr() as *mut u8;
     (*ed).key_names_table[86].name.length = 2;
     (*ed).key_names_table[86].is_alt = FALSE;
     (*ed).key_names_table[87].enabled = TRUE;
     (*ed).key_names_table[87].key = -22783;
-    (*ed).key_names_table[87].name.string = b"Nul\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[87].name.string = c"Nul".as_ptr() as *mut u8;
     (*ed).key_names_table[87].name.length = 3;
     (*ed).key_names_table[87].is_alt = FALSE;
     (*ed).key_names_table[88].enabled = TRUE;
     (*ed).key_names_table[88].key = OSC;
-    (*ed).key_names_table[88].name.string = b"OSC\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[88].name.string = c"OSC".as_ptr() as *mut u8;
     (*ed).key_names_table[88].name.length = 3;
     (*ed).key_names_table[88].is_alt = FALSE;
     (*ed).key_names_table[89].enabled = TRUE;
     (*ed).key_names_table[89].key = K_PAGEDOWN;
-    (*ed).key_names_table[89].name.string = b"PageDown\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[89].name.string = c"PageDown".as_ptr() as *mut u8;
     (*ed).key_names_table[89].name.length = 8;
     (*ed).key_names_table[89].is_alt = FALSE;
     (*ed).key_names_table[90].enabled = TRUE;
     (*ed).key_names_table[90].key = K_PAGEUP;
-    (*ed).key_names_table[90].name.string = b"PageUp\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[90].name.string = c"PageUp".as_ptr() as *mut u8;
     (*ed).key_names_table[90].name.length = 6;
     (*ed).key_names_table[90].is_alt = FALSE;
     (*ed).key_names_table[91].enabled = TRUE;
     (*ed).key_names_table[91].key = K_PASTEEND;
-    (*ed).key_names_table[91].name.string = b"PasteEnd\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[91].name.string = c"PasteEnd".as_ptr() as *mut u8;
     (*ed).key_names_table[91].name.length = 8;
     (*ed).key_names_table[91].is_alt = FALSE;
     (*ed).key_names_table[92].enabled = TRUE;
     (*ed).key_names_table[92].key = K_PASTESTART;
-    (*ed).key_names_table[92].name.string = b"PasteStart\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[92].name.string = c"PasteStart".as_ptr() as *mut u8;
     (*ed).key_names_table[92].name.length = 10;
     (*ed).key_names_table[92].is_alt = FALSE;
     (*ed).key_names_table[93].enabled = TRUE;
     (*ed).key_names_table[93].key = K_PLUG;
-    (*ed).key_names_table[93].name.string = b"Plug\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[93].name.string = c"Plug".as_ptr() as *mut u8;
     (*ed).key_names_table[93].name.length = 4;
     (*ed).key_names_table[93].is_alt = FALSE;
     (*ed).key_names_table[94].enabled = TRUE;
     (*ed).key_names_table[94].key = CAR;
-    (*ed).key_names_table[94].name.string = b"Return\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[94].name.string = c"Return".as_ptr() as *mut u8;
     (*ed).key_names_table[94].name.length = 6;
     (*ed).key_names_table[94].is_alt = TRUE;
     (*ed).key_names_table[95].enabled = TRUE;
     (*ed).key_names_table[95].key = K_RIGHT;
-    (*ed).key_names_table[95].name.string = b"Right\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[95].name.string = c"Right".as_ptr() as *mut u8;
     (*ed).key_names_table[95].name.length = 5;
     (*ed).key_names_table[95].is_alt = FALSE;
     (*ed).key_names_table[96].enabled = TRUE;
     (*ed).key_names_table[96].key = K_SCRIPT_COMMAND;
-    (*ed).key_names_table[96].name.string = b"ScriptCmd\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[96].name.string = c"ScriptCmd".as_ptr() as *mut u8;
     (*ed).key_names_table[96].name.length = 9;
     (*ed).key_names_table[96].is_alt = FALSE;
     (*ed).key_names_table[97].enabled = FALSE;
     (*ed).key_names_table[97].key = K_SNR;
-    (*ed).key_names_table[97].name.string = b"SNR\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[97].name.string = c"SNR".as_ptr() as *mut u8;
     (*ed).key_names_table[97].name.length = 3;
     (*ed).key_names_table[97].is_alt = FALSE;
     (*ed).key_names_table[98].enabled = TRUE;
     (*ed).key_names_table[98].key = b' ' as i32;
-    (*ed).key_names_table[98].name.string = b"Space\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[98].name.string = c"Space".as_ptr() as *mut u8;
     (*ed).key_names_table[98].name.length = 5;
     (*ed).key_names_table[98].is_alt = FALSE;
     (*ed).key_names_table[99].enabled = TRUE;
     (*ed).key_names_table[99].key = TAB;
-    (*ed).key_names_table[99].name.string = b"Tab\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[99].name.string = c"Tab".as_ptr() as *mut u8;
     (*ed).key_names_table[99].name.length = 3;
     (*ed).key_names_table[99].is_alt = FALSE;
     (*ed).key_names_table[100].enabled = TRUE;
     (*ed).key_names_table[100].key = K_TAB;
-    (*ed).key_names_table[100].name.string = b"Tab\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[100].name.string = c"Tab".as_ptr() as *mut u8;
     (*ed).key_names_table[100].name.length = 3;
     (*ed).key_names_table[100].is_alt = FALSE;
     (*ed).key_names_table[101].enabled = TRUE;
     (*ed).key_names_table[101].key = K_UNDO;
-    (*ed).key_names_table[101].name.string = b"Undo\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[101].name.string = c"Undo".as_ptr() as *mut u8;
     (*ed).key_names_table[101].name.length = 4;
     (*ed).key_names_table[101].is_alt = FALSE;
     (*ed).key_names_table[102].enabled = TRUE;
     (*ed).key_names_table[102].key = K_UP;
-    (*ed).key_names_table[102].name.string = b"Up\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[102].name.string = c"Up".as_ptr() as *mut u8;
     (*ed).key_names_table[102].name.length = 2;
     (*ed).key_names_table[102].is_alt = FALSE;
     (*ed).key_names_table[103].enabled = TRUE;
     (*ed).key_names_table[103].key = K_CSI;
-    (*ed).key_names_table[103].name.string = b"xCSI\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[103].name.string = c"xCSI".as_ptr() as *mut u8;
     (*ed).key_names_table[103].name.length = 4;
     (*ed).key_names_table[103].is_alt = FALSE;
     (*ed).key_names_table[104].enabled = TRUE;
@@ -9573,67 +9573,67 @@ unsafe fn init_globals_13(ed: *mut Editor) {
 }
 
 unsafe fn init_globals_14(ed: *mut Editor) {
-    (*ed).key_names_table[104].name.string = b"xDown\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[104].name.string = c"xDown".as_ptr() as *mut u8;
     (*ed).key_names_table[104].name.length = 5;
     (*ed).key_names_table[104].is_alt = FALSE;
     (*ed).key_names_table[105].enabled = TRUE;
     (*ed).key_names_table[105].key = K_XEND;
-    (*ed).key_names_table[105].name.string = b"xEnd\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[105].name.string = c"xEnd".as_ptr() as *mut u8;
     (*ed).key_names_table[105].name.length = 4;
     (*ed).key_names_table[105].is_alt = FALSE;
     (*ed).key_names_table[106].enabled = TRUE;
     (*ed).key_names_table[106].key = K_XF1;
-    (*ed).key_names_table[106].name.string = b"xF1\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[106].name.string = c"xF1".as_ptr() as *mut u8;
     (*ed).key_names_table[106].name.length = 3;
     (*ed).key_names_table[106].is_alt = FALSE;
     (*ed).key_names_table[107].enabled = TRUE;
     (*ed).key_names_table[107].key = K_XF2;
-    (*ed).key_names_table[107].name.string = b"xF2\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[107].name.string = c"xF2".as_ptr() as *mut u8;
     (*ed).key_names_table[107].name.length = 3;
     (*ed).key_names_table[107].is_alt = FALSE;
     (*ed).key_names_table[108].enabled = TRUE;
     (*ed).key_names_table[108].key = K_XF3;
-    (*ed).key_names_table[108].name.string = b"xF3\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[108].name.string = c"xF3".as_ptr() as *mut u8;
     (*ed).key_names_table[108].name.length = 3;
     (*ed).key_names_table[108].is_alt = FALSE;
     (*ed).key_names_table[109].enabled = TRUE;
     (*ed).key_names_table[109].key = K_XF4;
-    (*ed).key_names_table[109].name.string = b"xF4\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[109].name.string = c"xF4".as_ptr() as *mut u8;
     (*ed).key_names_table[109].name.length = 3;
     (*ed).key_names_table[109].is_alt = FALSE;
     (*ed).key_names_table[110].enabled = TRUE;
     (*ed).key_names_table[110].key = K_XHOME;
-    (*ed).key_names_table[110].name.string = b"xHome\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[110].name.string = c"xHome".as_ptr() as *mut u8;
     (*ed).key_names_table[110].name.length = 5;
     (*ed).key_names_table[110].is_alt = FALSE;
     (*ed).key_names_table[111].enabled = TRUE;
     (*ed).key_names_table[111].key = K_XLEFT;
-    (*ed).key_names_table[111].name.string = b"xLeft\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[111].name.string = c"xLeft".as_ptr() as *mut u8;
     (*ed).key_names_table[111].name.length = 5;
     (*ed).key_names_table[111].is_alt = FALSE;
     (*ed).key_names_table[112].enabled = TRUE;
     (*ed).key_names_table[112].key = K_OSC;
-    (*ed).key_names_table[112].name.string = b"xOSC\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[112].name.string = c"xOSC".as_ptr() as *mut u8;
     (*ed).key_names_table[112].name.length = 4;
     (*ed).key_names_table[112].is_alt = FALSE;
     (*ed).key_names_table[113].enabled = TRUE;
     (*ed).key_names_table[113].key = K_XRIGHT;
-    (*ed).key_names_table[113].name.string = b"xRight\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[113].name.string = c"xRight".as_ptr() as *mut u8;
     (*ed).key_names_table[113].name.length = 6;
     (*ed).key_names_table[113].is_alt = FALSE;
     (*ed).key_names_table[114].enabled = TRUE;
     (*ed).key_names_table[114].key = K_XUP;
-    (*ed).key_names_table[114].name.string = b"xUp\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[114].name.string = c"xUp".as_ptr() as *mut u8;
     (*ed).key_names_table[114].name.length = 3;
     (*ed).key_names_table[114].is_alt = FALSE;
     (*ed).key_names_table[115].enabled = TRUE;
     (*ed).key_names_table[115].key = K_ZEND;
-    (*ed).key_names_table[115].name.string = b"zEnd\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[115].name.string = c"zEnd".as_ptr() as *mut u8;
     (*ed).key_names_table[115].name.length = 4;
     (*ed).key_names_table[115].is_alt = FALSE;
     (*ed).key_names_table[116].enabled = TRUE;
     (*ed).key_names_table[116].key = K_ZHOME;
-    (*ed).key_names_table[116].name.string = b"zHome\0".as_ptr() as *mut u8;
+    (*ed).key_names_table[116].name.string = c"zHome".as_ptr() as *mut u8;
     (*ed).key_names_table[116].name.length = 5;
     (*ed).key_names_table[116].is_alt = FALSE;
     (*ed).VIsual_mode_orig = NUL;
@@ -10448,334 +10448,334 @@ unsafe fn init_globals_16(ed: *mut Editor) {
     (*ed).opchars[29][0] = Ctrl_X as i8;
     (*ed).opchars[29][1] = NUL as i8;
     (*ed).opchars[29][2] = OPF_CHANGE as i8;
-    (*ed).options[0].fullname = b"ambiwidth\0".as_ptr() as *mut i8;
-    (*ed).options[0].shortname = b"ambw\0".as_ptr() as *mut i8;
+    (*ed).options[0].fullname = c"ambiwidth".as_ptr() as *mut i8;
+    (*ed).options[0].shortname = c"ambw".as_ptr() as *mut i8;
     (*ed).options[0].flags = 29700;
     (*ed).options[0].var.ov_str = &raw mut (*ed).p_ambw;
     (*ed).options[0].indir = PV_NONE;
     (*ed).options[0].opt_did_set_cb = Some(did_set_ambiwidth as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[0].def_str[0] = b"single\0".as_ptr() as *mut u8;
-    (*ed).options[1].fullname = b"autoindent\0".as_ptr() as *mut i8;
-    (*ed).options[1].shortname = b"ai\0".as_ptr() as *mut i8;
+    (*ed).options[0].def_str[0] = c"single".as_ptr() as *mut u8;
+    (*ed).options[1].fullname = c"autoindent".as_ptr() as *mut i8;
+    (*ed).options[1].shortname = c"ai".as_ptr() as *mut i8;
     (*ed).options[1].flags = 1025;
     (*ed).options[1].var.ov_int = &raw mut (*ed).p_ai;
     (*ed).options[1].indir = 16384;
     (*ed).options[1].def_num[0] = TRUE as i64;
-    (*ed).options[2].fullname = b"background\0".as_ptr() as *mut i8;
-    (*ed).options[2].shortname = b"bg\0".as_ptr() as *mut i8;
+    (*ed).options[2].fullname = c"background".as_ptr() as *mut i8;
+    (*ed).options[2].shortname = c"bg".as_ptr() as *mut i8;
     (*ed).options[2].flags = 268465156;
     (*ed).options[2].var.ov_str = &raw mut (*ed).p_bg;
     (*ed).options[2].indir = PV_NONE;
     (*ed).options[2].opt_did_set_cb = Some(did_set_background as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[2].def_str[0] = b"light\0".as_ptr() as *mut u8;
-    (*ed).options[3].fullname = b"backspace\0".as_ptr() as *mut i8;
-    (*ed).options[3].shortname = b"bs\0".as_ptr() as *mut i8;
+    (*ed).options[2].def_str[0] = c"light".as_ptr() as *mut u8;
+    (*ed).options[3].fullname = c"backspace".as_ptr() as *mut i8;
+    (*ed).options[3].shortname = c"bs".as_ptr() as *mut i8;
     (*ed).options[3].flags = 231428;
     (*ed).options[3].var.ov_str = &raw mut (*ed).p_bs;
     (*ed).options[3].indir = PV_NONE;
     (*ed).options[3].opt_did_set_cb = Some(did_set_backspace as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[3].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[3].def_str[1] = b"indent,eol,start\0".as_ptr() as *mut u8;
-    (*ed).options[4].fullname = b"belloff\0".as_ptr() as *mut i8;
-    (*ed).options[4].shortname = b"bo\0".as_ptr() as *mut i8;
+    (*ed).options[3].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[3].def_str[1] = c"indent,eol,start".as_ptr() as *mut u8;
+    (*ed).options[4].fullname = c"belloff".as_ptr() as *mut i8;
+    (*ed).options[4].shortname = c"bo".as_ptr() as *mut i8;
     (*ed).options[4].flags = 164868;
     (*ed).options[4].var.ov_str = &raw mut (*ed).p_bo;
     (*ed).options[4].indir = PV_NONE;
     (*ed).options[4].opt_did_set_cb = Some(did_set_belloff as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[4].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[5].fullname = b"casemap\0".as_ptr() as *mut i8;
-    (*ed).options[5].shortname = b"cmp\0".as_ptr() as *mut i8;
+    (*ed).options[4].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[5].fullname = c"casemap".as_ptr() as *mut i8;
+    (*ed).options[5].shortname = c"cmp".as_ptr() as *mut i8;
     (*ed).options[5].flags = 230404;
     (*ed).options[5].var.ov_str = &raw mut (*ed).p_cmp;
     (*ed).options[5].indir = PV_NONE;
     (*ed).options[5].opt_did_set_cb = Some(did_set_casemap as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[5].def_str[0] = b"internal,keepascii\0".as_ptr() as *mut u8;
-    (*ed).options[6].fullname = b"cmdheight\0".as_ptr() as *mut i8;
-    (*ed).options[6].shortname = b"ch\0".as_ptr() as *mut i8;
+    (*ed).options[5].def_str[0] = c"internal,keepascii".as_ptr() as *mut u8;
+    (*ed).options[6].fullname = c"cmdheight".as_ptr() as *mut i8;
+    (*ed).options[6].shortname = c"ch".as_ptr() as *mut i8;
     (*ed).options[6].flags = 25602;
     (*ed).options[6].var.ov_long = &raw mut (*ed).p_ch;
     (*ed).options[6].indir = PV_NONE;
     (*ed).options[6].opt_did_set_cb = Some(did_set_cmdheight as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[6].def_num[0] = 1;
-    (*ed).options[7].fullname = b"columns\0".as_ptr() as *mut i8;
-    (*ed).options[7].shortname = b"co\0".as_ptr() as *mut i8;
+    (*ed).options[7].fullname = c"columns".as_ptr() as *mut i8;
+    (*ed).options[7].shortname = c"co".as_ptr() as *mut i8;
     (*ed).options[7].flags = 30274;
     (*ed).options[7].var.ov_long = &raw mut (*ed).Columns;
     (*ed).options[7].indir = PV_NONE;
     (*ed).options[7].def_num[0] = 80;
-    (*ed).options[8].fullname = b"compatible\0".as_ptr() as *mut i8;
-    (*ed).options[8].shortname = b"cp\0".as_ptr() as *mut i8;
+    (*ed).options[8].fullname = c"compatible".as_ptr() as *mut i8;
+    (*ed).options[8].shortname = c"cp".as_ptr() as *mut i8;
     (*ed).options[8].flags = 24577;
     (*ed).options[8].var.ov_int = &raw mut (*ed).p_cp;
     (*ed).options[8].indir = PV_NONE;
     (*ed).options[8].opt_did_set_cb = Some(did_set_compatible as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[8].def_num[0] = FALSE as i64;
     (*ed).options[8].def_num[1] = FALSE as i64;
-    (*ed).options[9].fullname = b"copyindent\0".as_ptr() as *mut i8;
-    (*ed).options[9].shortname = b"ci\0".as_ptr() as *mut i8;
+    (*ed).options[9].fullname = c"copyindent".as_ptr() as *mut i8;
+    (*ed).options[9].shortname = c"ci".as_ptr() as *mut i8;
     (*ed).options[9].flags = 3073;
     (*ed).options[9].var.ov_int = &raw mut (*ed).p_ci;
     (*ed).options[9].indir = 16393;
     (*ed).options[9].def_num[0] = FALSE as i64;
-    (*ed).options[10].fullname = b"cpoptions\0".as_ptr() as *mut i8;
-    (*ed).options[10].shortname = b"cpo\0".as_ptr() as *mut i8;
+    (*ed).options[10].fullname = c"cpoptions".as_ptr() as *mut i8;
+    (*ed).options[10].shortname = c"cpo".as_ptr() as *mut i8;
     (*ed).options[10].flags = 288772;
     (*ed).options[10].var.ov_str = &raw mut (*ed).p_cpo;
     (*ed).options[10].indir = PV_NONE;
     (*ed).options[10].opt_did_set_cb = Some(did_set_cpoptions as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[10].def_str[0] = b"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;\0".as_ptr() as *mut u8;
-    (*ed).options[10].def_str[1] = b"aABceFsz\0".as_ptr() as *mut u8;
-    (*ed).options[11].fullname = b"delcombine\0".as_ptr() as *mut i8;
-    (*ed).options[11].shortname = b"deco\0".as_ptr() as *mut i8;
+    (*ed).options[10].def_str[0] = c"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;".as_ptr() as *mut u8;
+    (*ed).options[10].def_str[1] = c"aABceFsz".as_ptr() as *mut u8;
+    (*ed).options[11].fullname = c"delcombine".as_ptr() as *mut i8;
+    (*ed).options[11].shortname = c"deco".as_ptr() as *mut i8;
     (*ed).options[11].flags = 3073;
     (*ed).options[11].var.ov_int = &raw mut (*ed).p_deco;
     (*ed).options[11].indir = PV_NONE;
     (*ed).options[11].def_num[0] = FALSE as i64;
-    (*ed).options[12].fullname = b"display\0".as_ptr() as *mut i8;
-    (*ed).options[12].shortname = b"dy\0".as_ptr() as *mut i8;
+    (*ed).options[12].fullname = c"display".as_ptr() as *mut i8;
+    (*ed).options[12].shortname = c"dy".as_ptr() as *mut i8;
     (*ed).options[12].flags = 254980;
     (*ed).options[12].var.ov_str = &raw mut (*ed).p_dy;
     (*ed).options[12].indir = PV_NONE;
     (*ed).options[12].opt_did_set_cb = Some(did_set_display as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[12].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[13].fullname = b"edcompatible\0".as_ptr() as *mut i8;
-    (*ed).options[13].shortname = b"ed\0".as_ptr() as *mut i8;
+    (*ed).options[12].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[13].fullname = c"edcompatible".as_ptr() as *mut i8;
+    (*ed).options[13].shortname = c"ed".as_ptr() as *mut i8;
     (*ed).options[13].flags = 1025;
     (*ed).options[13].var.ov_int = &raw mut (*ed).p_ed;
     (*ed).options[13].indir = PV_NONE;
     (*ed).options[13].def_num[0] = FALSE as i64;
-    (*ed).options[14].fullname = b"emoji\0".as_ptr() as *mut i8;
-    (*ed).options[14].shortname = b"emo\0".as_ptr() as *mut i8;
+    (*ed).options[14].fullname = c"emoji".as_ptr() as *mut i8;
+    (*ed).options[14].shortname = c"emo".as_ptr() as *mut i8;
     (*ed).options[14].flags = 29697;
     (*ed).options[14].var.ov_int = &raw mut (*ed).p_emoji;
     (*ed).options[14].indir = PV_NONE;
     (*ed).options[14].opt_did_set_cb = Some(did_set_ambiwidth as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[14].def_num[0] = TRUE as i64;
-    (*ed).options[15].fullname = b"errorbells\0".as_ptr() as *mut i8;
-    (*ed).options[15].shortname = b"eb\0".as_ptr() as *mut i8;
+    (*ed).options[15].fullname = c"errorbells".as_ptr() as *mut i8;
+    (*ed).options[15].shortname = c"eb".as_ptr() as *mut i8;
     (*ed).options[15].flags = 1025;
     (*ed).options[15].var.ov_int = &raw mut (*ed).p_eb;
     (*ed).options[15].indir = PV_NONE;
     (*ed).options[15].def_num[0] = FALSE as i64;
-    (*ed).options[16].fullname = b"esckeys\0".as_ptr() as *mut i8;
-    (*ed).options[16].shortname = b"ek\0".as_ptr() as *mut i8;
+    (*ed).options[16].fullname = c"esckeys".as_ptr() as *mut i8;
+    (*ed).options[16].shortname = c"ek".as_ptr() as *mut i8;
     (*ed).options[16].flags = 2049;
     (*ed).options[16].var.ov_int = &raw mut (*ed).p_ek;
     (*ed).options[16].indir = PV_NONE;
     (*ed).options[16].def_num[0] = FALSE as i64;
     (*ed).options[16].def_num[1] = TRUE as i64;
-    (*ed).options[17].fullname = b"expandtab\0".as_ptr() as *mut i8;
-    (*ed).options[17].shortname = b"et\0".as_ptr() as *mut i8;
+    (*ed).options[17].fullname = c"expandtab".as_ptr() as *mut i8;
+    (*ed).options[17].shortname = c"et".as_ptr() as *mut i8;
     (*ed).options[17].flags = 3073;
     (*ed).options[17].var.ov_int = &raw mut (*ed).p_et;
     (*ed).options[17].indir = 16410;
     (*ed).options[17].def_num[0] = TRUE as i64;
-    (*ed).options[18].fullname = b"fillchars\0".as_ptr() as *mut i8;
-    (*ed).options[18].shortname = b"fcs\0".as_ptr() as *mut i8;
+    (*ed).options[18].fullname = c"fillchars".as_ptr() as *mut i8;
+    (*ed).options[18].shortname = c"fcs".as_ptr() as *mut i8;
     (*ed).options[18].flags = 2147738628;
     (*ed).options[18].var.ov_str = &raw mut (*ed).p_fcs;
     (*ed).options[18].indir = 12290;
     (*ed).options[18].opt_did_set_cb = Some(did_set_chars_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[18].def_str[0] = b"vert:|,fold:-,eob:~,lastline:@\0".as_ptr() as *mut u8;
-    (*ed).options[19].fullname = b"gdefault\0".as_ptr() as *mut i8;
-    (*ed).options[19].shortname = b"gd\0".as_ptr() as *mut i8;
+    (*ed).options[18].def_str[0] = c"vert:|,fold:-,eob:~,lastline:@".as_ptr() as *mut u8;
+    (*ed).options[19].fullname = c"gdefault".as_ptr() as *mut i8;
+    (*ed).options[19].shortname = c"gd".as_ptr() as *mut i8;
     (*ed).options[19].flags = 3073;
     (*ed).options[19].var.ov_int = &raw mut (*ed).p_gd;
     (*ed).options[19].indir = PV_NONE;
     (*ed).options[19].def_num[0] = FALSE as i64;
-    (*ed).options[20].fullname = b"highlight\0".as_ptr() as *mut i8;
-    (*ed).options[20].shortname = b"hl\0".as_ptr() as *mut i8;
+    (*ed).options[20].fullname = c"highlight".as_ptr() as *mut i8;
+    (*ed).options[20].shortname = c"hl".as_ptr() as *mut i8;
     (*ed).options[20].flags = 2147742724;
     (*ed).options[20].var.ov_str = &raw mut (*ed).p_hl;
     (*ed).options[20].indir = PV_NONE;
     (*ed).options[20].opt_did_set_cb = Some(did_set_highlight as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[20].def_str[0] = b"8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert\0".as_ptr() as *mut u8;
-    (*ed).options[21].fullname = b"history\0".as_ptr() as *mut i8;
-    (*ed).options[21].shortname = b"hi\0".as_ptr() as *mut i8;
+    (*ed).options[20].def_str[0] = c"8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert".as_ptr() as *mut u8;
+    (*ed).options[21].fullname = c"history".as_ptr() as *mut i8;
+    (*ed).options[21].shortname = c"hi".as_ptr() as *mut i8;
     (*ed).options[21].flags = 2050;
     (*ed).options[21].var.ov_long = &raw mut (*ed).p_hi;
     (*ed).options[21].indir = PV_NONE;
     (*ed).options[21].def_num[0] = 9999;
     (*ed).options[21].def_num[1] = 9999;
-    (*ed).options[22].fullname = b"hlsearch\0".as_ptr() as *mut i8;
-    (*ed).options[22].shortname = b"hls\0".as_ptr() as *mut i8;
+    (*ed).options[22].fullname = c"hlsearch".as_ptr() as *mut i8;
+    (*ed).options[22].shortname = c"hls".as_ptr() as *mut i8;
     (*ed).options[22].flags = 268463105;
     (*ed).options[22].var.ov_int = &raw mut (*ed).p_hls;
     (*ed).options[22].indir = PV_NONE;
     (*ed).options[22].opt_did_set_cb = Some(did_set_hlsearch as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[22].def_num[0] = TRUE as i64;
-    (*ed).options[23].fullname = b"ignorecase\0".as_ptr() as *mut i8;
-    (*ed).options[23].shortname = b"ic\0".as_ptr() as *mut i8;
+    (*ed).options[23].fullname = c"ignorecase".as_ptr() as *mut i8;
+    (*ed).options[23].shortname = c"ic".as_ptr() as *mut i8;
     (*ed).options[23].flags = 1025;
     (*ed).options[23].var.ov_int = &raw mut (*ed).p_ic;
     (*ed).options[23].indir = PV_NONE;
     (*ed).options[23].opt_did_set_cb = Some(did_set_ignorecase as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[23].def_num[0] = FALSE as i64;
-    (*ed).options[24].fullname = b"incsearch\0".as_ptr() as *mut i8;
-    (*ed).options[24].shortname = b"is\0".as_ptr() as *mut i8;
+    (*ed).options[24].fullname = c"incsearch".as_ptr() as *mut i8;
+    (*ed).options[24].shortname = c"is".as_ptr() as *mut i8;
     (*ed).options[24].flags = 3073;
     (*ed).options[24].var.ov_int = &raw mut (*ed).p_is;
     (*ed).options[24].indir = PV_NONE;
     (*ed).options[24].def_num[0] = FALSE as i64;
-    (*ed).options[25].fullname = b"insertmode\0".as_ptr() as *mut i8;
-    (*ed).options[25].shortname = b"im\0".as_ptr() as *mut i8;
+    (*ed).options[25].fullname = c"insertmode".as_ptr() as *mut i8;
+    (*ed).options[25].shortname = c"im".as_ptr() as *mut i8;
     (*ed).options[25].flags = 3073;
     (*ed).options[25].var.ov_int = &raw mut (*ed).p_im;
     (*ed).options[25].indir = PV_NONE;
     (*ed).options[25].opt_did_set_cb = Some(did_set_insertmode as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[25].def_num[0] = FALSE as i64;
-    (*ed).options[26].fullname = b"isfname\0".as_ptr() as *mut i8;
-    (*ed).options[26].shortname = b"isf\0".as_ptr() as *mut i8;
+    (*ed).options[26].fullname = c"isfname".as_ptr() as *mut i8;
+    (*ed).options[26].shortname = c"isf".as_ptr() as *mut i8;
     (*ed).options[26].flags = 164868;
     (*ed).options[26].var.ov_str = &raw mut (*ed).p_isf;
     (*ed).options[26].indir = PV_NONE;
     (*ed).options[26].opt_did_set_cb = Some(did_set_isopt as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[26].def_str[0] = b"@,48-57,/,.,-,_,+,,,#,$,%,~,=\0".as_ptr() as *mut u8;
-    (*ed).options[27].fullname = b"isident\0".as_ptr() as *mut i8;
-    (*ed).options[27].shortname = b"isi\0".as_ptr() as *mut i8;
+    (*ed).options[26].def_str[0] = c"@,48-57,/,.,-,_,+,,,#,$,%,~,=".as_ptr() as *mut u8;
+    (*ed).options[27].fullname = c"isident".as_ptr() as *mut i8;
+    (*ed).options[27].shortname = c"isi".as_ptr() as *mut i8;
     (*ed).options[27].flags = 164868;
     (*ed).options[27].var.ov_str = &raw mut (*ed).p_isi;
     (*ed).options[27].indir = PV_NONE;
     (*ed).options[27].opt_did_set_cb = Some(did_set_isopt as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[27].def_str[0] = b"@,48-57,_,192-255\0".as_ptr() as *mut u8;
-    (*ed).options[28].fullname = b"iskeyword\0".as_ptr() as *mut i8;
-    (*ed).options[28].shortname = b"isk\0".as_ptr() as *mut i8;
+    (*ed).options[27].def_str[0] = c"@,48-57,_,192-255".as_ptr() as *mut u8;
+    (*ed).options[28].fullname = c"iskeyword".as_ptr() as *mut i8;
+    (*ed).options[28].shortname = c"isk".as_ptr() as *mut i8;
     (*ed).options[28].flags = 165900;
     (*ed).options[28].var.ov_str = &raw mut (*ed).p_isk;
     (*ed).options[28].indir = 16422;
     (*ed).options[28].opt_did_set_cb = Some(did_set_iskeyword as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[28].def_str[0] = b"@,48-57,_\0".as_ptr() as *mut u8;
-    (*ed).options[28].def_str[1] = b"@,48-57,_,192-255\0".as_ptr() as *mut u8;
-    (*ed).options[29].fullname = b"isprint\0".as_ptr() as *mut i8;
-    (*ed).options[29].shortname = b"isp\0".as_ptr() as *mut i8;
+    (*ed).options[28].def_str[0] = c"@,48-57,_".as_ptr() as *mut u8;
+    (*ed).options[28].def_str[1] = c"@,48-57,_,192-255".as_ptr() as *mut u8;
+    (*ed).options[29].fullname = c"isprint".as_ptr() as *mut i8;
+    (*ed).options[29].shortname = c"isp".as_ptr() as *mut i8;
     (*ed).options[29].flags = 189444;
     (*ed).options[29].var.ov_str = &raw mut (*ed).p_isp;
     (*ed).options[29].indir = PV_NONE;
     (*ed).options[29].opt_did_set_cb = Some(did_set_isopt as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[29].def_str[0] = b"@,161-255\0".as_ptr() as *mut u8;
-    (*ed).options[30].fullname = b"joinspaces\0".as_ptr() as *mut i8;
-    (*ed).options[30].shortname = b"js\0".as_ptr() as *mut i8;
+    (*ed).options[29].def_str[0] = c"@,161-255".as_ptr() as *mut u8;
+    (*ed).options[30].fullname = c"joinspaces".as_ptr() as *mut i8;
+    (*ed).options[30].shortname = c"js".as_ptr() as *mut i8;
     (*ed).options[30].flags = 3073;
     (*ed).options[30].var.ov_int = &raw mut (*ed).p_js;
     (*ed).options[30].indir = PV_NONE;
     (*ed).options[30].def_num[0] = FALSE as i64;
-    (*ed).options[31].fullname = b"keymodel\0".as_ptr() as *mut i8;
-    (*ed).options[31].shortname = b"km\0".as_ptr() as *mut i8;
+    (*ed).options[31].fullname = c"keymodel".as_ptr() as *mut i8;
+    (*ed).options[31].shortname = c"km".as_ptr() as *mut i8;
     (*ed).options[31].flags = 230404;
     (*ed).options[31].var.ov_str = &raw mut (*ed).p_km;
     (*ed).options[31].indir = PV_NONE;
     (*ed).options[31].opt_did_set_cb = Some(did_set_keymodel as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[31].def_str[0] = b"startsel\0".as_ptr() as *mut u8;
-    (*ed).options[32].fullname = b"keyprotocol\0".as_ptr() as *mut i8;
-    (*ed).options[32].shortname = b"kpc\0".as_ptr() as *mut i8;
+    (*ed).options[31].def_str[0] = c"startsel".as_ptr() as *mut u8;
+    (*ed).options[32].fullname = c"keyprotocol".as_ptr() as *mut i8;
+    (*ed).options[32].shortname = c"kpc".as_ptr() as *mut i8;
     (*ed).options[32].flags = 2147714052;
     (*ed).options[32].var.ov_str = &raw mut (*ed).p_kpc;
     (*ed).options[32].indir = PV_NONE;
     (*ed).options[32].opt_did_set_cb = Some(did_set_keyprotocol as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[32].def_str[0] = b"kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2\0".as_ptr() as *mut u8;
-    (*ed).options[33].fullname = b"laststatus\0".as_ptr() as *mut i8;
-    (*ed).options[33].shortname = b"ls\0".as_ptr() as *mut i8;
+    (*ed).options[32].def_str[0] = c"kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2".as_ptr() as *mut u8;
+    (*ed).options[33].fullname = c"laststatus".as_ptr() as *mut i8;
+    (*ed).options[33].shortname = c"ls".as_ptr() as *mut i8;
     (*ed).options[33].flags = 25602;
     (*ed).options[33].var.ov_long = &raw mut (*ed).p_ls;
     (*ed).options[33].indir = PV_NONE;
     (*ed).options[33].opt_did_set_cb = Some(did_set_laststatus as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[33].def_num[0] = 1;
-    (*ed).options[34].fullname = b"lazyredraw\0".as_ptr() as *mut i8;
-    (*ed).options[34].shortname = b"lz\0".as_ptr() as *mut i8;
+    (*ed).options[34].fullname = c"lazyredraw".as_ptr() as *mut i8;
+    (*ed).options[34].shortname = c"lz".as_ptr() as *mut i8;
     (*ed).options[34].flags = 1025;
     (*ed).options[34].var.ov_int = &raw mut (*ed).p_lz;
     (*ed).options[34].indir = PV_NONE;
     (*ed).options[34].def_num[0] = TRUE as i64;
-    (*ed).options[35].fullname = b"lines\0".as_ptr() as *mut i8;
+    (*ed).options[35].fullname = c"lines".as_ptr() as *mut i8;
     (*ed).options[35].flags = 30274;
     (*ed).options[35].var.ov_long = &raw mut (*ed).Rows;
     (*ed).options[35].indir = PV_NONE;
     (*ed).options[35].def_num[0] = 24;
-    (*ed).options[36].fullname = b"list\0".as_ptr() as *mut i8;
+    (*ed).options[36].fullname = c"list".as_ptr() as *mut i8;
     (*ed).options[36].flags = 9217;
     (*ed).options[36].var.ov_win = 1;
     (*ed).options[36].indir = 8192;
     (*ed).options[36].def_num[0] = FALSE as i64;
-    (*ed).options[37].fullname = b"listchars\0".as_ptr() as *mut i8;
-    (*ed).options[37].shortname = b"lcs\0".as_ptr() as *mut i8;
+    (*ed).options[37].fullname = c"listchars".as_ptr() as *mut i8;
+    (*ed).options[37].shortname = c"lcs".as_ptr() as *mut i8;
     (*ed).options[37].flags = 2147738628;
     (*ed).options[37].var.ov_str = &raw mut (*ed).p_lcs;
     (*ed).options[37].indir = 12289;
     (*ed).options[37].opt_did_set_cb = Some(did_set_chars_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[37].def_str[0] = b"eol:$\0".as_ptr() as *mut u8;
-    (*ed).options[38].fullname = b"magic\0".as_ptr() as *mut i8;
+    (*ed).options[37].def_str[0] = c"eol:$".as_ptr() as *mut u8;
+    (*ed).options[38].fullname = c"magic".as_ptr() as *mut i8;
     (*ed).options[38].flags = 1025;
     (*ed).options[38].var.ov_int = &raw mut (*ed).p_magic;
     (*ed).options[38].indir = PV_NONE;
     (*ed).options[38].def_num[0] = TRUE as i64;
-    (*ed).options[39].fullname = b"matchpairs\0".as_ptr() as *mut i8;
-    (*ed).options[39].shortname = b"mps\0".as_ptr() as *mut i8;
+    (*ed).options[39].fullname = c"matchpairs".as_ptr() as *mut i8;
+    (*ed).options[39].shortname = c"mps".as_ptr() as *mut i8;
     (*ed).options[39].flags = 230412;
     (*ed).options[39].var.ov_str = &raw mut (*ed).p_mps;
     (*ed).options[39].indir = 16431;
     (*ed).options[39].opt_did_set_cb = Some(did_set_matchpairs as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[39].def_str[0] = b"(:),{:},[:]\0".as_ptr() as *mut u8;
-    (*ed).options[40].fullname = b"matchtime\0".as_ptr() as *mut i8;
-    (*ed).options[40].shortname = b"mat\0".as_ptr() as *mut i8;
+    (*ed).options[39].def_str[0] = c"(:),{:},[:]".as_ptr() as *mut u8;
+    (*ed).options[40].fullname = c"matchtime".as_ptr() as *mut i8;
+    (*ed).options[40].shortname = c"mat".as_ptr() as *mut i8;
     (*ed).options[40].flags = 1026;
     (*ed).options[40].var.ov_long = &raw mut (*ed).p_mat;
     (*ed).options[40].indir = PV_NONE;
     (*ed).options[40].def_num[0] = 5;
-    (*ed).options[41].fullname = b"maxcombine\0".as_ptr() as *mut i8;
-    (*ed).options[41].shortname = b"mco\0".as_ptr() as *mut i8;
+    (*ed).options[41].fullname = c"maxcombine".as_ptr() as *mut i8;
+    (*ed).options[41].shortname = c"mco".as_ptr() as *mut i8;
     (*ed).options[41].flags = 67109890;
     (*ed).options[41].var.ov_long = &raw mut (*ed).p_mco;
     (*ed).options[41].indir = PV_NONE;
     (*ed).options[41].opt_did_set_cb = Some(did_set_maxcombine as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[41].def_num[0] = 2;
-    (*ed).options[42].fullname = b"maxmapdepth\0".as_ptr() as *mut i8;
-    (*ed).options[42].shortname = b"mmd\0".as_ptr() as *mut i8;
+    (*ed).options[42].fullname = c"maxmapdepth".as_ptr() as *mut i8;
+    (*ed).options[42].shortname = c"mmd".as_ptr() as *mut i8;
     (*ed).options[42].flags = 1026;
     (*ed).options[42].var.ov_long = &raw mut (*ed).p_mmd;
     (*ed).options[42].indir = PV_NONE;
     (*ed).options[42].def_num[0] = 1000;
-    (*ed).options[43].fullname = b"maxmempattern\0".as_ptr() as *mut i8;
-    (*ed).options[43].shortname = b"mmp\0".as_ptr() as *mut i8;
+    (*ed).options[43].fullname = c"maxmempattern".as_ptr() as *mut i8;
+    (*ed).options[43].shortname = c"mmp".as_ptr() as *mut i8;
     (*ed).options[43].flags = 1026;
     (*ed).options[43].var.ov_long = &raw mut (*ed).p_mmp;
     (*ed).options[43].indir = PV_NONE;
     (*ed).options[43].def_num[0] = 1000;
-    (*ed).options[44].fullname = b"maxsearchcount\0".as_ptr() as *mut i8;
-    (*ed).options[44].shortname = b"msc\0".as_ptr() as *mut i8;
+    (*ed).options[44].fullname = c"maxsearchcount".as_ptr() as *mut i8;
+    (*ed).options[44].shortname = c"msc".as_ptr() as *mut i8;
     (*ed).options[44].flags = 1026;
     (*ed).options[44].var.ov_long = &raw mut (*ed).p_msc;
     (*ed).options[44].indir = PV_NONE;
     (*ed).options[44].opt_did_set_cb = Some(did_set_maxsearchcount as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[44].def_num[0] = 99;
-    (*ed).options[45].fullname = b"messagesopt\0".as_ptr() as *mut i8;
-    (*ed).options[45].shortname = b"mopt\0".as_ptr() as *mut i8;
+    (*ed).options[45].fullname = c"messagesopt".as_ptr() as *mut i8;
+    (*ed).options[45].shortname = c"mopt".as_ptr() as *mut i8;
     (*ed).options[45].flags = 2147714060;
     (*ed).options[45].var.ov_str = &raw mut (*ed).p_mopt;
     (*ed).options[45].indir = PV_NONE;
     (*ed).options[45].opt_did_set_cb = Some(did_set_messagesopt as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[45].def_str[0] = b"hit-enter,history:500\0".as_ptr() as *mut u8;
-    (*ed).options[46].fullname = b"modifiable\0".as_ptr() as *mut i8;
-    (*ed).options[46].shortname = b"ma\0".as_ptr() as *mut i8;
+    (*ed).options[45].def_str[0] = c"hit-enter,history:500".as_ptr() as *mut u8;
+    (*ed).options[46].fullname = c"modifiable".as_ptr() as *mut i8;
+    (*ed).options[46].shortname = c"ma".as_ptr() as *mut i8;
     (*ed).options[46].flags = 2098177;
     (*ed).options[46].var.ov_int = &raw mut (*ed).p_ma;
     (*ed).options[46].indir = 16428;
     (*ed).options[46].opt_did_set_cb = Some(did_set_modifiable as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[46].def_num[0] = TRUE as i64;
-    (*ed).options[47].fullname = b"modified\0".as_ptr() as *mut i8;
-    (*ed).options[47].shortname = b"mod\0".as_ptr() as *mut i8;
+    (*ed).options[47].fullname = c"modified".as_ptr() as *mut i8;
+    (*ed).options[47].shortname = c"mod".as_ptr() as *mut i8;
     (*ed).options[47].flags = 5633;
     (*ed).options[47].var.ov_int = &raw mut (*ed).p_mod;
     (*ed).options[47].indir = 16430;
     (*ed).options[47].opt_did_set_cb = Some(did_set_modified as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[47].def_num[0] = FALSE as i64;
-    (*ed).options[48].fullname = b"more\0".as_ptr() as *mut i8;
+    (*ed).options[48].fullname = c"more".as_ptr() as *mut i8;
     (*ed).options[48].flags = 2049;
     (*ed).options[48].var.ov_int = &raw mut (*ed).p_more;
     (*ed).options[48].indir = PV_NONE;
     (*ed).options[48].def_num[0] = FALSE as i64;
     (*ed).options[48].def_num[1] = TRUE as i64;
-    (*ed).options[49].fullname = b"nrformats\0".as_ptr() as *mut i8;
-    (*ed).options[49].shortname = b"nf\0".as_ptr() as *mut i8;
+    (*ed).options[49].fullname = c"nrformats".as_ptr() as *mut i8;
+    (*ed).options[49].shortname = c"nf".as_ptr() as *mut i8;
     (*ed).options[49].flags = 230412;
     (*ed).options[49].var.ov_str = &raw mut (*ed).p_nf;
     (*ed).options[49].indir = 16432;
@@ -10783,402 +10783,402 @@ unsafe fn init_globals_16(ed: *mut Editor) {
 
 unsafe fn init_globals_17(ed: *mut Editor) {
     (*ed).options[49].opt_did_set_cb = Some(did_set_nrformats as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[49].def_str[0] = b"bin,octal,hex\0".as_ptr() as *mut u8;
-    (*ed).options[50].fullname = b"number\0".as_ptr() as *mut i8;
-    (*ed).options[50].shortname = b"nu\0".as_ptr() as *mut i8;
+    (*ed).options[49].def_str[0] = c"bin,octal,hex".as_ptr() as *mut u8;
+    (*ed).options[50].fullname = c"number".as_ptr() as *mut i8;
+    (*ed).options[50].shortname = c"nu".as_ptr() as *mut i8;
     (*ed).options[50].flags = 9217;
     (*ed).options[50].var.ov_win = 1;
     (*ed).options[50].indir = 8198;
     (*ed).options[50].opt_did_set_cb = Some(did_set_number_relativenumber as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[50].def_num[0] = FALSE as i64;
-    (*ed).options[51].fullname = b"osctimeoutlen\0".as_ptr() as *mut i8;
-    (*ed).options[51].shortname = b"ost\0".as_ptr() as *mut i8;
+    (*ed).options[51].fullname = c"osctimeoutlen".as_ptr() as *mut i8;
+    (*ed).options[51].shortname = c"ost".as_ptr() as *mut i8;
     (*ed).options[51].flags = 1026;
     (*ed).options[51].var.ov_long = &raw mut (*ed).p_ost;
     (*ed).options[51].indir = PV_NONE;
     (*ed).options[51].opt_did_set_cb = Some(did_set_osctimeoutlen as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[51].def_num[0] = 1000;
-    (*ed).options[52].fullname = b"paste\0".as_ptr() as *mut i8;
+    (*ed).options[52].fullname = c"paste".as_ptr() as *mut i8;
     (*ed).options[52].flags = 16778241;
     (*ed).options[52].var.ov_int = &raw mut (*ed).p_paste;
     (*ed).options[52].indir = PV_NONE;
     (*ed).options[52].opt_did_set_cb = Some(did_set_paste as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[52].def_num[0] = FALSE as i64;
-    (*ed).options[53].fullname = b"pastetoggle\0".as_ptr() as *mut i8;
-    (*ed).options[53].shortname = b"pt\0".as_ptr() as *mut i8;
+    (*ed).options[53].fullname = c"pastetoggle".as_ptr() as *mut i8;
+    (*ed).options[53].shortname = c"pt".as_ptr() as *mut i8;
     (*ed).options[53].flags = 1028;
     (*ed).options[53].var.ov_str = &raw mut (*ed).p_pt;
     (*ed).options[53].indir = PV_NONE;
     (*ed).options[53].opt_did_set_cb = Some(did_set_pastetoggle as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[53].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[54].fullname = b"preserveindent\0".as_ptr() as *mut i8;
-    (*ed).options[54].shortname = b"pi\0".as_ptr() as *mut i8;
+    (*ed).options[53].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[54].fullname = c"preserveindent".as_ptr() as *mut i8;
+    (*ed).options[54].shortname = c"pi".as_ptr() as *mut i8;
     (*ed).options[54].flags = 3073;
     (*ed).options[54].var.ov_int = &raw mut (*ed).p_pi;
     (*ed).options[54].indir = 16434;
     (*ed).options[54].def_num[0] = FALSE as i64;
-    (*ed).options[55].fullname = b"quoteescape\0".as_ptr() as *mut i8;
-    (*ed).options[55].shortname = b"qe\0".as_ptr() as *mut i8;
+    (*ed).options[55].fullname = c"quoteescape".as_ptr() as *mut i8;
+    (*ed).options[55].shortname = c"qe".as_ptr() as *mut i8;
     (*ed).options[55].flags = 1036;
     (*ed).options[55].var.ov_str = &raw mut (*ed).p_qe;
     (*ed).options[55].indir = 16435;
-    (*ed).options[55].def_str[0] = b"\\\0".as_ptr() as *mut u8;
-    (*ed).options[56].fullname = b"relativenumber\0".as_ptr() as *mut i8;
-    (*ed).options[56].shortname = b"rnu\0".as_ptr() as *mut i8;
+    (*ed).options[55].def_str[0] = c"\\".as_ptr() as *mut u8;
+    (*ed).options[56].fullname = c"relativenumber".as_ptr() as *mut i8;
+    (*ed).options[56].shortname = c"rnu".as_ptr() as *mut i8;
     (*ed).options[56].flags = 9217;
     (*ed).options[56].var.ov_win = 1;
     (*ed).options[56].indir = 8199;
     (*ed).options[56].opt_did_set_cb = Some(did_set_number_relativenumber as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[56].def_num[0] = FALSE as i64;
-    (*ed).options[57].fullname = b"remap\0".as_ptr() as *mut i8;
+    (*ed).options[57].fullname = c"remap".as_ptr() as *mut i8;
     (*ed).options[57].flags = 1025;
     (*ed).options[57].var.ov_int = &raw mut (*ed).p_remap;
     (*ed).options[57].indir = PV_NONE;
     (*ed).options[57].def_num[0] = TRUE as i64;
-    (*ed).options[58].fullname = b"report\0".as_ptr() as *mut i8;
+    (*ed).options[58].fullname = c"report".as_ptr() as *mut i8;
     (*ed).options[58].flags = 1026;
     (*ed).options[58].var.ov_long = &raw mut (*ed).p_report;
     (*ed).options[58].indir = PV_NONE;
     (*ed).options[58].def_num[0] = 2;
-    (*ed).options[59].fullname = b"ruler\0".as_ptr() as *mut i8;
-    (*ed).options[59].shortname = b"ru\0".as_ptr() as *mut i8;
+    (*ed).options[59].fullname = c"ruler".as_ptr() as *mut i8;
+    (*ed).options[59].shortname = c"ru".as_ptr() as *mut i8;
     (*ed).options[59].flags = 6145;
     (*ed).options[59].var.ov_int = &raw mut (*ed).p_ru;
     (*ed).options[59].indir = PV_NONE;
     (*ed).options[59].def_num[0] = TRUE as i64;
     (*ed).options[59].def_num[1] = TRUE as i64;
-    (*ed).options[60].fullname = b"scroll\0".as_ptr() as *mut i8;
-    (*ed).options[60].shortname = b"scr\0".as_ptr() as *mut i8;
+    (*ed).options[60].fullname = c"scroll".as_ptr() as *mut i8;
+    (*ed).options[60].shortname = c"scr".as_ptr() as *mut i8;
     (*ed).options[60].flags = 1538;
     (*ed).options[60].var.ov_win = 1;
     (*ed).options[60].indir = 8202;
-    (*ed).options[61].fullname = b"scrolljump\0".as_ptr() as *mut i8;
-    (*ed).options[61].shortname = b"sj\0".as_ptr() as *mut i8;
+    (*ed).options[61].fullname = c"scrolljump".as_ptr() as *mut i8;
+    (*ed).options[61].shortname = c"sj".as_ptr() as *mut i8;
     (*ed).options[61].flags = 3074;
     (*ed).options[61].var.ov_long = &raw mut (*ed).p_sj;
     (*ed).options[61].indir = PV_NONE;
     (*ed).options[61].def_num[0] = 1;
-    (*ed).options[62].fullname = b"scrolloff\0".as_ptr() as *mut i8;
-    (*ed).options[62].shortname = b"so\0".as_ptr() as *mut i8;
+    (*ed).options[62].fullname = c"scrolloff".as_ptr() as *mut i8;
+    (*ed).options[62].shortname = c"so".as_ptr() as *mut i8;
     (*ed).options[62].flags = 27650;
     (*ed).options[62].var.ov_long = &raw mut (*ed).p_so;
     (*ed).options[62].indir = 12301;
     (*ed).options[62].def_num[0] = 1;
-    (*ed).options[63].fullname = b"scrolloffpad\0".as_ptr() as *mut i8;
-    (*ed).options[63].shortname = b"sop\0".as_ptr() as *mut i8;
+    (*ed).options[63].fullname = c"scrolloffpad".as_ptr() as *mut i8;
+    (*ed).options[63].shortname = c"sop".as_ptr() as *mut i8;
     (*ed).options[63].flags = 27650;
     (*ed).options[63].var.ov_long = &raw mut (*ed).p_sop;
     (*ed).options[63].indir = 12302;
-    (*ed).options[64].fullname = b"selection\0".as_ptr() as *mut i8;
-    (*ed).options[64].shortname = b"sel\0".as_ptr() as *mut i8;
+    (*ed).options[64].fullname = c"selection".as_ptr() as *mut i8;
+    (*ed).options[64].shortname = c"sel".as_ptr() as *mut i8;
     (*ed).options[64].flags = 1028;
     (*ed).options[64].var.ov_str = &raw mut (*ed).p_sel;
     (*ed).options[64].indir = PV_NONE;
     (*ed).options[64].opt_did_set_cb = Some(did_set_selection as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[64].def_str[0] = b"inclusive\0".as_ptr() as *mut u8;
-    (*ed).options[65].fullname = b"selectmode\0".as_ptr() as *mut i8;
-    (*ed).options[65].shortname = b"slm\0".as_ptr() as *mut i8;
+    (*ed).options[64].def_str[0] = c"inclusive".as_ptr() as *mut u8;
+    (*ed).options[65].fullname = c"selectmode".as_ptr() as *mut i8;
+    (*ed).options[65].shortname = c"slm".as_ptr() as *mut i8;
     (*ed).options[65].flags = 230404;
     (*ed).options[65].var.ov_str = &raw mut (*ed).p_slm;
     (*ed).options[65].indir = PV_NONE;
     (*ed).options[65].opt_did_set_cb = Some(did_set_selectmode as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[65].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[66].fullname = b"shiftround\0".as_ptr() as *mut i8;
-    (*ed).options[66].shortname = b"sr\0".as_ptr() as *mut i8;
+    (*ed).options[65].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[66].fullname = c"shiftround".as_ptr() as *mut i8;
+    (*ed).options[66].shortname = c"sr".as_ptr() as *mut i8;
     (*ed).options[66].flags = 3073;
     (*ed).options[66].var.ov_int = &raw mut (*ed).p_sr;
     (*ed).options[66].indir = PV_NONE;
     (*ed).options[66].def_num[0] = TRUE as i64;
-    (*ed).options[67].fullname = b"shiftwidth\0".as_ptr() as *mut i8;
-    (*ed).options[67].shortname = b"sw\0".as_ptr() as *mut i8;
+    (*ed).options[67].fullname = c"shiftwidth".as_ptr() as *mut i8;
+    (*ed).options[67].shortname = c"sw".as_ptr() as *mut i8;
     (*ed).options[67].flags = 1026;
     (*ed).options[67].var.ov_long = &raw mut (*ed).p_sw;
     (*ed).options[67].indir = 16441;
     (*ed).options[67].opt_did_set_cb = Some(did_set_shiftwidth_tabstop as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[67].def_num[0] = 4;
-    (*ed).options[68].fullname = b"shortmess\0".as_ptr() as *mut i8;
-    (*ed).options[68].shortname = b"shm\0".as_ptr() as *mut i8;
+    (*ed).options[68].fullname = c"shortmess".as_ptr() as *mut i8;
+    (*ed).options[68].shortname = c"shm".as_ptr() as *mut i8;
     (*ed).options[68].flags = 264196;
     (*ed).options[68].var.ov_str = &raw mut (*ed).p_shm;
     (*ed).options[68].indir = PV_NONE;
     (*ed).options[68].opt_did_set_cb = Some(did_set_shortmess as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[68].def_str[0] = b"S\0".as_ptr() as *mut u8;
-    (*ed).options[68].def_str[1] = b"filnxtToOS\0".as_ptr() as *mut u8;
-    (*ed).options[69].fullname = b"showcmd\0".as_ptr() as *mut i8;
-    (*ed).options[69].shortname = b"sc\0".as_ptr() as *mut i8;
+    (*ed).options[68].def_str[0] = c"S".as_ptr() as *mut u8;
+    (*ed).options[68].def_str[1] = c"filnxtToOS".as_ptr() as *mut u8;
+    (*ed).options[69].fullname = c"showcmd".as_ptr() as *mut i8;
+    (*ed).options[69].shortname = c"sc".as_ptr() as *mut i8;
     (*ed).options[69].flags = 2049;
     (*ed).options[69].var.ov_int = &raw mut (*ed).p_sc;
     (*ed).options[69].indir = PV_NONE;
     (*ed).options[69].def_num[0] = FALSE as i64;
     (*ed).options[69].def_num[1] = TRUE as i64;
-    (*ed).options[70].fullname = b"showcmdloc\0".as_ptr() as *mut i8;
-    (*ed).options[70].shortname = b"sloc\0".as_ptr() as *mut i8;
+    (*ed).options[70].fullname = c"showcmdloc".as_ptr() as *mut i8;
+    (*ed).options[70].shortname = c"sloc".as_ptr() as *mut i8;
     (*ed).options[70].flags = 4100;
     (*ed).options[70].var.ov_str = &raw mut (*ed).p_sloc;
     (*ed).options[70].indir = PV_NONE;
     (*ed).options[70].opt_did_set_cb = Some(did_set_showcmdloc as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[70].def_str[0] = b"last\0".as_ptr() as *mut u8;
-    (*ed).options[70].def_str[1] = b"last\0".as_ptr() as *mut u8;
-    (*ed).options[71].fullname = b"showmatch\0".as_ptr() as *mut i8;
-    (*ed).options[71].shortname = b"sm\0".as_ptr() as *mut i8;
+    (*ed).options[70].def_str[0] = c"last".as_ptr() as *mut u8;
+    (*ed).options[70].def_str[1] = c"last".as_ptr() as *mut u8;
+    (*ed).options[71].fullname = c"showmatch".as_ptr() as *mut i8;
+    (*ed).options[71].shortname = c"sm".as_ptr() as *mut i8;
     (*ed).options[71].flags = 1025;
     (*ed).options[71].var.ov_int = &raw mut (*ed).p_sm;
     (*ed).options[71].indir = PV_NONE;
     (*ed).options[71].def_num[0] = FALSE as i64;
-    (*ed).options[72].fullname = b"showmode\0".as_ptr() as *mut i8;
-    (*ed).options[72].shortname = b"smd\0".as_ptr() as *mut i8;
+    (*ed).options[72].fullname = c"showmode".as_ptr() as *mut i8;
+    (*ed).options[72].shortname = c"smd".as_ptr() as *mut i8;
     (*ed).options[72].flags = 2049;
     (*ed).options[72].var.ov_int = &raw mut (*ed).p_smd;
     (*ed).options[72].indir = PV_NONE;
     (*ed).options[72].def_num[0] = FALSE as i64;
     (*ed).options[72].def_num[1] = TRUE as i64;
-    (*ed).options[73].fullname = b"sidescroll\0".as_ptr() as *mut i8;
-    (*ed).options[73].shortname = b"ss\0".as_ptr() as *mut i8;
+    (*ed).options[73].fullname = c"sidescroll".as_ptr() as *mut i8;
+    (*ed).options[73].shortname = c"ss".as_ptr() as *mut i8;
     (*ed).options[73].flags = 1026;
     (*ed).options[73].var.ov_long = &raw mut (*ed).p_ss;
     (*ed).options[73].indir = PV_NONE;
-    (*ed).options[74].fullname = b"sidescrolloff\0".as_ptr() as *mut i8;
-    (*ed).options[74].shortname = b"siso\0".as_ptr() as *mut i8;
+    (*ed).options[74].fullname = c"sidescrolloff".as_ptr() as *mut i8;
+    (*ed).options[74].shortname = c"siso".as_ptr() as *mut i8;
     (*ed).options[74].flags = 19458;
     (*ed).options[74].var.ov_long = &raw mut (*ed).p_siso;
     (*ed).options[74].indir = 12300;
-    (*ed).options[75].fullname = b"smartcase\0".as_ptr() as *mut i8;
-    (*ed).options[75].shortname = b"scs\0".as_ptr() as *mut i8;
+    (*ed).options[75].fullname = c"smartcase".as_ptr() as *mut i8;
+    (*ed).options[75].shortname = c"scs".as_ptr() as *mut i8;
     (*ed).options[75].flags = 3073;
     (*ed).options[75].var.ov_int = &raw mut (*ed).p_scs;
     (*ed).options[75].indir = PV_NONE;
     (*ed).options[75].def_num[0] = FALSE as i64;
-    (*ed).options[76].fullname = b"smartindent\0".as_ptr() as *mut i8;
-    (*ed).options[76].shortname = b"si\0".as_ptr() as *mut i8;
+    (*ed).options[76].fullname = c"smartindent".as_ptr() as *mut i8;
+    (*ed).options[76].shortname = c"si".as_ptr() as *mut i8;
     (*ed).options[76].flags = 3073;
     (*ed).options[76].var.ov_int = &raw mut (*ed).p_si;
     (*ed).options[76].indir = 16437;
     (*ed).options[76].def_num[0] = TRUE as i64;
-    (*ed).options[77].fullname = b"smarttab\0".as_ptr() as *mut i8;
-    (*ed).options[77].shortname = b"sta\0".as_ptr() as *mut i8;
+    (*ed).options[77].fullname = c"smarttab".as_ptr() as *mut i8;
+    (*ed).options[77].shortname = c"sta".as_ptr() as *mut i8;
     (*ed).options[77].flags = 3073;
     (*ed).options[77].var.ov_int = &raw mut (*ed).p_sta;
     (*ed).options[77].indir = PV_NONE;
     (*ed).options[77].def_num[0] = TRUE as i64;
-    (*ed).options[78].fullname = b"smoothscroll\0".as_ptr() as *mut i8;
-    (*ed).options[78].shortname = b"sms\0".as_ptr() as *mut i8;
+    (*ed).options[78].fullname = c"smoothscroll".as_ptr() as *mut i8;
+    (*ed).options[78].shortname = c"sms".as_ptr() as *mut i8;
     (*ed).options[78].flags = 9217;
     (*ed).options[78].var.ov_win = 1;
     (*ed).options[78].indir = 8203;
     (*ed).options[78].opt_did_set_cb = Some(did_set_smoothscroll as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[78].def_num[0] = FALSE as i64;
-    (*ed).options[79].fullname = b"softtabstop\0".as_ptr() as *mut i8;
-    (*ed).options[79].shortname = b"sts\0".as_ptr() as *mut i8;
+    (*ed).options[79].fullname = c"softtabstop".as_ptr() as *mut i8;
+    (*ed).options[79].shortname = c"sts".as_ptr() as *mut i8;
     (*ed).options[79].flags = 3074;
     (*ed).options[79].var.ov_long = &raw mut (*ed).p_sts;
     (*ed).options[79].indir = 16439;
     (*ed).options[79].def_num[0] = 4;
-    (*ed).options[80].fullname = b"startofline\0".as_ptr() as *mut i8;
-    (*ed).options[80].shortname = b"sol\0".as_ptr() as *mut i8;
+    (*ed).options[80].fullname = c"startofline".as_ptr() as *mut i8;
+    (*ed).options[80].shortname = c"sol".as_ptr() as *mut i8;
     (*ed).options[80].flags = 3073;
     (*ed).options[80].var.ov_int = &raw mut (*ed).p_sol;
     (*ed).options[80].indir = PV_NONE;
     (*ed).options[80].def_num[0] = TRUE as i64;
-    (*ed).options[81].fullname = b"tabstop\0".as_ptr() as *mut i8;
-    (*ed).options[81].shortname = b"ts\0".as_ptr() as *mut i8;
+    (*ed).options[81].fullname = c"tabstop".as_ptr() as *mut i8;
+    (*ed).options[81].shortname = c"ts".as_ptr() as *mut i8;
     (*ed).options[81].flags = 17410;
     (*ed).options[81].var.ov_long = &raw mut (*ed).p_ts;
     (*ed).options[81].indir = 16445;
     (*ed).options[81].opt_did_set_cb = Some(did_set_shiftwidth_tabstop as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[81].def_num[0] = 4;
-    (*ed).options[82].fullname = b"term\0".as_ptr() as *mut i8;
+    (*ed).options[82].fullname = c"term".as_ptr() as *mut i8;
     (*ed).options[82].flags = 26196;
     (*ed).options[82].var.ov_str = decay(&raw mut (*ed).term_strings);
     (*ed).options[82].indir = PV_NONE;
     (*ed).options[82].opt_did_set_cb = Some(did_set_term as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[82].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[83].fullname = b"termsync\0".as_ptr() as *mut i8;
-    (*ed).options[83].shortname = b"tsy\0".as_ptr() as *mut i8;
+    (*ed).options[82].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[83].fullname = c"termsync".as_ptr() as *mut i8;
+    (*ed).options[83].shortname = c"tsy".as_ptr() as *mut i8;
     (*ed).options[83].flags = 1025;
     (*ed).options[83].var.ov_int = &raw mut (*ed).p_tsy;
     (*ed).options[83].indir = PV_NONE;
     (*ed).options[83].opt_did_set_cb = Some(did_set_termsync as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[83].def_num[0] = FALSE as i64;
-    (*ed).options[84].fullname = b"terse\0".as_ptr() as *mut i8;
+    (*ed).options[84].fullname = c"terse".as_ptr() as *mut i8;
     (*ed).options[84].flags = 1025;
     (*ed).options[84].var.ov_int = &raw mut (*ed).p_terse;
     (*ed).options[84].indir = PV_NONE;
     (*ed).options[84].opt_did_set_cb = Some(did_set_terse as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[84].def_num[0] = FALSE as i64;
-    (*ed).options[85].fullname = b"textwidth\0".as_ptr() as *mut i8;
-    (*ed).options[85].shortname = b"tw\0".as_ptr() as *mut i8;
+    (*ed).options[85].fullname = c"textwidth".as_ptr() as *mut i8;
+    (*ed).options[85].shortname = c"tw".as_ptr() as *mut i8;
     (*ed).options[85].flags = 268454914;
     (*ed).options[85].var.ov_long = &raw mut (*ed).p_tw;
     (*ed).options[85].indir = 16446;
     (*ed).options[85].opt_did_set_cb = Some(did_set_textwidth as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[86].fullname = b"tildeop\0".as_ptr() as *mut i8;
-    (*ed).options[86].shortname = b"top\0".as_ptr() as *mut i8;
+    (*ed).options[86].fullname = c"tildeop".as_ptr() as *mut i8;
+    (*ed).options[86].shortname = c"top".as_ptr() as *mut i8;
     (*ed).options[86].flags = 3073;
     (*ed).options[86].var.ov_int = &raw mut (*ed).p_to;
     (*ed).options[86].indir = PV_NONE;
     (*ed).options[86].def_num[0] = FALSE as i64;
-    (*ed).options[87].fullname = b"timeout\0".as_ptr() as *mut i8;
-    (*ed).options[87].shortname = b"to\0".as_ptr() as *mut i8;
+    (*ed).options[87].fullname = c"timeout".as_ptr() as *mut i8;
+    (*ed).options[87].shortname = c"to".as_ptr() as *mut i8;
     (*ed).options[87].flags = 1025;
     (*ed).options[87].var.ov_int = &raw mut (*ed).p_timeout;
     (*ed).options[87].indir = PV_NONE;
     (*ed).options[87].def_num[0] = TRUE as i64;
-    (*ed).options[88].fullname = b"timeoutlen\0".as_ptr() as *mut i8;
-    (*ed).options[88].shortname = b"tm\0".as_ptr() as *mut i8;
+    (*ed).options[88].fullname = c"timeoutlen".as_ptr() as *mut i8;
+    (*ed).options[88].shortname = c"tm".as_ptr() as *mut i8;
     (*ed).options[88].flags = 1026;
     (*ed).options[88].var.ov_long = &raw mut (*ed).p_tm;
     (*ed).options[88].indir = PV_NONE;
     (*ed).options[88].def_num[0] = 1000;
-    (*ed).options[89].fullname = b"ttimeout\0".as_ptr() as *mut i8;
+    (*ed).options[89].fullname = c"ttimeout".as_ptr() as *mut i8;
     (*ed).options[89].flags = 3073;
     (*ed).options[89].var.ov_int = &raw mut (*ed).p_ttimeout;
     (*ed).options[89].indir = PV_NONE;
     (*ed).options[89].def_num[0] = FALSE as i64;
-    (*ed).options[90].fullname = b"ttimeoutlen\0".as_ptr() as *mut i8;
-    (*ed).options[90].shortname = b"ttm\0".as_ptr() as *mut i8;
+    (*ed).options[90].fullname = c"ttimeoutlen".as_ptr() as *mut i8;
+    (*ed).options[90].shortname = c"ttm".as_ptr() as *mut i8;
     (*ed).options[90].flags = 1026;
     (*ed).options[90].var.ov_long = &raw mut (*ed).p_ttm;
     (*ed).options[90].indir = PV_NONE;
     (*ed).options[90].def_num[0] = -1;
-    (*ed).options[91].fullname = b"ttyfast\0".as_ptr() as *mut i8;
-    (*ed).options[91].shortname = b"tf\0".as_ptr() as *mut i8;
+    (*ed).options[91].fullname = c"ttyfast".as_ptr() as *mut i8;
+    (*ed).options[91].shortname = c"tf".as_ptr() as *mut i8;
     (*ed).options[91].flags = 1537;
     (*ed).options[91].var.ov_int = &raw mut (*ed).p_tf;
     (*ed).options[91].indir = PV_NONE;
     (*ed).options[91].def_num[0] = TRUE as i64;
-    (*ed).options[92].fullname = b"ttyscroll\0".as_ptr() as *mut i8;
-    (*ed).options[92].shortname = b"tsl\0".as_ptr() as *mut i8;
+    (*ed).options[92].fullname = c"ttyscroll".as_ptr() as *mut i8;
+    (*ed).options[92].shortname = c"tsl".as_ptr() as *mut i8;
     (*ed).options[92].flags = 1026;
     (*ed).options[92].var.ov_long = &raw mut (*ed).p_ttyscroll;
     (*ed).options[92].indir = PV_NONE;
     (*ed).options[92].def_num[0] = 999;
-    (*ed).options[93].fullname = b"ttytype\0".as_ptr() as *mut i8;
-    (*ed).options[93].shortname = b"tty\0".as_ptr() as *mut i8;
+    (*ed).options[93].fullname = c"ttytype".as_ptr() as *mut i8;
+    (*ed).options[93].shortname = c"tty".as_ptr() as *mut i8;
     (*ed).options[93].flags = 26196;
     (*ed).options[93].var.ov_str = decay(&raw mut (*ed).term_strings);
     (*ed).options[93].indir = PV_NONE;
     (*ed).options[93].opt_did_set_cb = Some(did_set_term as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[93].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[94].fullname = b"undolevels\0".as_ptr() as *mut i8;
-    (*ed).options[94].shortname = b"ul\0".as_ptr() as *mut i8;
+    (*ed).options[93].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[94].fullname = c"undolevels".as_ptr() as *mut i8;
+    (*ed).options[94].shortname = c"ul".as_ptr() as *mut i8;
     (*ed).options[94].flags = 1026;
     (*ed).options[94].var.ov_long = &raw mut (*ed).p_ul;
     (*ed).options[94].indir = 20545;
     (*ed).options[94].opt_did_set_cb = Some(did_set_undolevels as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[94].def_num[0] = 9999;
-    (*ed).options[95].fullname = b"verbose\0".as_ptr() as *mut i8;
-    (*ed).options[95].shortname = b"vbs\0".as_ptr() as *mut i8;
+    (*ed).options[95].fullname = c"verbose".as_ptr() as *mut i8;
+    (*ed).options[95].shortname = c"vbs".as_ptr() as *mut i8;
     (*ed).options[95].flags = 1026;
     (*ed).options[95].var.ov_long = &raw mut (*ed).p_verbose;
     (*ed).options[95].indir = PV_NONE;
-    (*ed).options[96].fullname = b"virtualedit\0".as_ptr() as *mut i8;
-    (*ed).options[96].shortname = b"ve\0".as_ptr() as *mut i8;
+    (*ed).options[96].fullname = c"virtualedit".as_ptr() as *mut i8;
+    (*ed).options[96].shortname = c"ve".as_ptr() as *mut i8;
     (*ed).options[96].flags = 67341316;
     (*ed).options[96].var.ov_str = &raw mut (*ed).p_ve;
     (*ed).options[96].indir = 12296;
     (*ed).options[96].opt_did_set_cb = Some(did_set_virtualedit as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[96].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[96].def_str[1] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[97].fullname = b"visualbell\0".as_ptr() as *mut i8;
-    (*ed).options[97].shortname = b"vb\0".as_ptr() as *mut i8;
+    (*ed).options[96].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[96].def_str[1] = c"".as_ptr() as *mut u8;
+    (*ed).options[97].fullname = c"visualbell".as_ptr() as *mut i8;
+    (*ed).options[97].shortname = c"vb".as_ptr() as *mut i8;
     (*ed).options[97].flags = 1025;
     (*ed).options[97].var.ov_int = &raw mut (*ed).p_vb;
     (*ed).options[97].indir = PV_NONE;
     (*ed).options[97].def_num[0] = FALSE as i64;
-    (*ed).options[98].fullname = b"weirdinvert\0".as_ptr() as *mut i8;
-    (*ed).options[98].shortname = b"wiv\0".as_ptr() as *mut i8;
+    (*ed).options[98].fullname = c"weirdinvert".as_ptr() as *mut i8;
+    (*ed).options[98].shortname = c"wiv".as_ptr() as *mut i8;
     (*ed).options[98].flags = 29697;
     (*ed).options[98].var.ov_int = &raw mut (*ed).p_wiv;
     (*ed).options[98].indir = PV_NONE;
     (*ed).options[98].opt_did_set_cb = Some(did_set_weirdinvert as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[98].def_num[0] = FALSE as i64;
-    (*ed).options[99].fullname = b"whichwrap\0".as_ptr() as *mut i8;
-    (*ed).options[99].shortname = b"ww\0".as_ptr() as *mut i8;
+    (*ed).options[99].fullname = c"whichwrap".as_ptr() as *mut i8;
+    (*ed).options[99].shortname = c"ww".as_ptr() as *mut i8;
     (*ed).options[99].flags = 362500;
     (*ed).options[99].var.ov_str = &raw mut (*ed).p_ww;
     (*ed).options[99].indir = PV_NONE;
     (*ed).options[99].opt_did_set_cb = Some(did_set_whichwrap as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[99].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[99].def_str[1] = b"b,s\0".as_ptr() as *mut u8;
-    (*ed).options[100].fullname = b"wincolor\0".as_ptr() as *mut i8;
-    (*ed).options[100].shortname = b"wcr\0".as_ptr() as *mut i8;
+    (*ed).options[99].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[99].def_str[1] = c"b,s".as_ptr() as *mut u8;
+    (*ed).options[100].fullname = c"wincolor".as_ptr() as *mut i8;
+    (*ed).options[100].shortname = c"wcr".as_ptr() as *mut i8;
     (*ed).options[100].flags = 9228;
     (*ed).options[100].var.ov_win = 1;
     (*ed).options[100].indir = 8196;
     (*ed).options[100].opt_did_set_cb = Some(did_set_wincolor as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[100].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[101].fullname = b"window\0".as_ptr() as *mut i8;
-    (*ed).options[101].shortname = b"wi\0".as_ptr() as *mut i8;
+    (*ed).options[100].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[101].fullname = c"window".as_ptr() as *mut i8;
+    (*ed).options[101].shortname = c"wi".as_ptr() as *mut i8;
     (*ed).options[101].flags = 1026;
     (*ed).options[101].var.ov_long = &raw mut (*ed).p_window;
     (*ed).options[101].indir = PV_NONE;
     (*ed).options[101].opt_did_set_cb = Some(did_set_window as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[102].fullname = b"winhighlight\0".as_ptr() as *mut i8;
-    (*ed).options[102].shortname = b"whl\0".as_ptr() as *mut i8;
+    (*ed).options[102].fullname = c"winhighlight".as_ptr() as *mut i8;
+    (*ed).options[102].shortname = c"whl".as_ptr() as *mut i8;
     (*ed).options[102].flags = 2147738628;
     (*ed).options[102].var.ov_win = 1;
     (*ed).options[102].indir = 8210;
     (*ed).options[102].opt_did_set_cb = Some(did_set_winhighlight as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[102].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[103].fullname = b"wrap\0".as_ptr() as *mut i8;
+    (*ed).options[102].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[103].fullname = c"wrap".as_ptr() as *mut i8;
     (*ed).options[103].flags = 9217;
     (*ed).options[103].var.ov_win = 1;
     (*ed).options[103].indir = 8211;
     (*ed).options[103].opt_did_set_cb = Some(did_set_wrap as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
     (*ed).options[103].def_num[0] = TRUE as i64;
-    (*ed).options[104].fullname = b"wrapmargin\0".as_ptr() as *mut i8;
-    (*ed).options[104].shortname = b"wm\0".as_ptr() as *mut i8;
+    (*ed).options[104].fullname = c"wrapmargin".as_ptr() as *mut i8;
+    (*ed).options[104].shortname = c"wm".as_ptr() as *mut i8;
     (*ed).options[104].flags = 1026;
     (*ed).options[104].var.ov_long = &raw mut (*ed).p_wm;
     (*ed).options[104].indir = 16450;
-    (*ed).options[105].fullname = b"wrapscan\0".as_ptr() as *mut i8;
-    (*ed).options[105].shortname = b"ws\0".as_ptr() as *mut i8;
+    (*ed).options[105].fullname = c"wrapscan".as_ptr() as *mut i8;
+    (*ed).options[105].shortname = c"ws".as_ptr() as *mut i8;
     (*ed).options[105].flags = 1025;
     (*ed).options[105].var.ov_int = &raw mut (*ed).p_ws;
     (*ed).options[105].indir = PV_NONE;
     (*ed).options[105].def_num[0] = TRUE as i64;
-    (*ed).options[106].fullname = b"writedelay\0".as_ptr() as *mut i8;
-    (*ed).options[106].shortname = b"wd\0".as_ptr() as *mut i8;
+    (*ed).options[106].fullname = c"writedelay".as_ptr() as *mut i8;
+    (*ed).options[106].shortname = c"wd".as_ptr() as *mut i8;
     (*ed).options[106].flags = 1026;
     (*ed).options[106].var.ov_long = &raw mut (*ed).p_wd;
     (*ed).options[106].indir = PV_NONE;
-    (*ed).options[107].fullname = b"t_AB\0".as_ptr() as *mut i8;
+    (*ed).options[107].fullname = c"t_AB".as_ptr() as *mut i8;
     (*ed).options[107].flags = 549892;
     (*ed).options[107].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(56);
     (*ed).options[107].indir = PV_NONE;
     (*ed).options[107].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[107].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[108].fullname = b"t_AF\0".as_ptr() as *mut i8;
+    (*ed).options[107].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[108].fullname = c"t_AF".as_ptr() as *mut i8;
     (*ed).options[108].flags = 549892;
     (*ed).options[108].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(55);
     (*ed).options[108].indir = PV_NONE;
     (*ed).options[108].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[108].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[109].fullname = b"t_AU\0".as_ptr() as *mut i8;
+    (*ed).options[108].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[109].fullname = c"t_AU".as_ptr() as *mut i8;
     (*ed).options[109].flags = 549892;
     (*ed).options[109].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(57);
     (*ed).options[109].indir = PV_NONE;
     (*ed).options[109].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[109].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[110].fullname = b"t_AL\0".as_ptr() as *mut i8;
+    (*ed).options[109].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[110].fullname = c"t_AL".as_ptr() as *mut i8;
     (*ed).options[110].flags = 549892;
     (*ed).options[110].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(3);
     (*ed).options[110].indir = PV_NONE;
     (*ed).options[110].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[110].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[111].fullname = b"t_al\0".as_ptr() as *mut i8;
+    (*ed).options[110].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[111].fullname = c"t_al".as_ptr() as *mut i8;
     (*ed).options[111].flags = 549892;
     (*ed).options[111].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(2);
     (*ed).options[111].indir = PV_NONE;
     (*ed).options[111].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[111].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[112].fullname = b"t_bc\0".as_ptr() as *mut i8;
+    (*ed).options[111].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[112].fullname = c"t_bc".as_ptr() as *mut i8;
     (*ed).options[112].flags = 549892;
     (*ed).options[112].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(47);
     (*ed).options[112].indir = PV_NONE;
     (*ed).options[112].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[112].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[113].fullname = b"t_BE\0".as_ptr() as *mut i8;
+    (*ed).options[112].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[113].fullname = c"t_BE".as_ptr() as *mut i8;
     (*ed).options[113].flags = 549892;
     (*ed).options[113].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(82);
     (*ed).options[113].indir = PV_NONE;
@@ -11186,404 +11186,404 @@ unsafe fn init_globals_17(ed: *mut Editor) {
 
 unsafe fn init_globals_18(ed: *mut Editor) {
     (*ed).options[113].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[113].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[114].fullname = b"t_BD\0".as_ptr() as *mut i8;
+    (*ed).options[113].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[114].fullname = c"t_BD".as_ptr() as *mut i8;
     (*ed).options[114].flags = 549892;
     (*ed).options[114].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(83);
     (*ed).options[114].indir = PV_NONE;
     (*ed).options[114].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[114].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[115].fullname = b"t_cd\0".as_ptr() as *mut i8;
+    (*ed).options[114].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[115].fullname = c"t_cd".as_ptr() as *mut i8;
     (*ed).options[115].flags = 549892;
     (*ed).options[115].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(8);
     (*ed).options[115].indir = PV_NONE;
     (*ed).options[115].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[115].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[116].fullname = b"t_ce\0".as_ptr() as *mut i8;
+    (*ed).options[115].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[116].fullname = c"t_ce".as_ptr() as *mut i8;
     (*ed).options[116].flags = 549892;
     (*ed).options[116].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(1);
     (*ed).options[116].indir = PV_NONE;
     (*ed).options[116].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[116].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[117].fullname = b"t_Ce\0".as_ptr() as *mut i8;
+    (*ed).options[116].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[117].fullname = c"t_Ce".as_ptr() as *mut i8;
     (*ed).options[117].flags = 549892;
     (*ed).options[117].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(28);
     (*ed).options[117].indir = PV_NONE;
     (*ed).options[117].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[117].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[118].fullname = b"t_CF\0".as_ptr() as *mut i8;
+    (*ed).options[117].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[118].fullname = c"t_CF".as_ptr() as *mut i8;
     (*ed).options[118].flags = 549892;
     (*ed).options[118].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(90);
     (*ed).options[118].indir = PV_NONE;
     (*ed).options[118].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[118].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[119].fullname = b"t_cl\0".as_ptr() as *mut i8;
+    (*ed).options[118].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[119].fullname = c"t_cl".as_ptr() as *mut i8;
     (*ed).options[119].flags = 549892;
     (*ed).options[119].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(7);
     (*ed).options[119].indir = PV_NONE;
     (*ed).options[119].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[119].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[120].fullname = b"t_cm\0".as_ptr() as *mut i8;
+    (*ed).options[119].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[120].fullname = c"t_cm".as_ptr() as *mut i8;
     (*ed).options[120].flags = 549892;
     (*ed).options[120].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(36);
     (*ed).options[120].indir = PV_NONE;
     (*ed).options[120].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[120].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[121].fullname = b"t_Co\0".as_ptr() as *mut i8;
+    (*ed).options[120].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[121].fullname = c"t_Co".as_ptr() as *mut i8;
     (*ed).options[121].flags = 549892;
     (*ed).options[121].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(49);
     (*ed).options[121].indir = PV_NONE;
     (*ed).options[121].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[121].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[122].fullname = b"t_CS\0".as_ptr() as *mut i8;
+    (*ed).options[121].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[122].fullname = c"t_CS".as_ptr() as *mut i8;
     (*ed).options[122].flags = 549892;
     (*ed).options[122].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(48);
     (*ed).options[122].indir = PV_NONE;
     (*ed).options[122].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[122].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[123].fullname = b"t_Cs\0".as_ptr() as *mut i8;
+    (*ed).options[122].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[123].fullname = c"t_Cs".as_ptr() as *mut i8;
     (*ed).options[123].flags = 549892;
     (*ed).options[123].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(29);
     (*ed).options[123].indir = PV_NONE;
     (*ed).options[123].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[123].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[124].fullname = b"t_cs\0".as_ptr() as *mut i8;
+    (*ed).options[123].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[124].fullname = c"t_cs".as_ptr() as *mut i8;
     (*ed).options[124].flags = 549892;
     (*ed).options[124].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(6);
     (*ed).options[124].indir = PV_NONE;
     (*ed).options[124].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[124].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[125].fullname = b"t_CV\0".as_ptr() as *mut i8;
+    (*ed).options[124].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[125].fullname = c"t_CV".as_ptr() as *mut i8;
     (*ed).options[125].flags = 549892;
     (*ed).options[125].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(76);
     (*ed).options[125].indir = PV_NONE;
     (*ed).options[125].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[125].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[126].fullname = b"t_da\0".as_ptr() as *mut i8;
+    (*ed).options[125].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[126].fullname = c"t_da".as_ptr() as *mut i8;
     (*ed).options[126].flags = 549892;
     (*ed).options[126].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(10);
     (*ed).options[126].indir = PV_NONE;
     (*ed).options[126].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[126].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[127].fullname = b"t_db\0".as_ptr() as *mut i8;
+    (*ed).options[126].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[127].fullname = c"t_db".as_ptr() as *mut i8;
     (*ed).options[127].flags = 549892;
     (*ed).options[127].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(11);
     (*ed).options[127].indir = PV_NONE;
     (*ed).options[127].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[127].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[128].fullname = b"t_DL\0".as_ptr() as *mut i8;
+    (*ed).options[127].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[128].fullname = c"t_DL".as_ptr() as *mut i8;
     (*ed).options[128].flags = 549892;
     (*ed).options[128].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(5);
     (*ed).options[128].indir = PV_NONE;
     (*ed).options[128].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[128].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[129].fullname = b"t_dl\0".as_ptr() as *mut i8;
+    (*ed).options[128].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[129].fullname = c"t_dl".as_ptr() as *mut i8;
     (*ed).options[129].flags = 549892;
     (*ed).options[129].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(4);
     (*ed).options[129].indir = PV_NONE;
     (*ed).options[129].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[129].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[130].fullname = b"t_ds\0".as_ptr() as *mut i8;
+    (*ed).options[129].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[130].fullname = c"t_ds".as_ptr() as *mut i8;
     (*ed).options[130].flags = 549892;
     (*ed).options[130].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(31);
     (*ed).options[130].indir = PV_NONE;
     (*ed).options[130].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[130].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[131].fullname = b"t_Ds\0".as_ptr() as *mut i8;
+    (*ed).options[130].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[131].fullname = c"t_Ds".as_ptr() as *mut i8;
     (*ed).options[131].flags = 549892;
     (*ed).options[131].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(32);
     (*ed).options[131].indir = PV_NONE;
     (*ed).options[131].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[131].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[132].fullname = b"t_fs\0".as_ptr() as *mut i8;
+    (*ed).options[131].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[132].fullname = c"t_fs".as_ptr() as *mut i8;
     (*ed).options[132].flags = 549892;
     (*ed).options[132].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(65);
     (*ed).options[132].indir = PV_NONE;
     (*ed).options[132].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[132].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[133].fullname = b"t_fd\0".as_ptr() as *mut i8;
+    (*ed).options[132].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[133].fullname = c"t_fd".as_ptr() as *mut i8;
     (*ed).options[133].flags = 549892;
     (*ed).options[133].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(88);
     (*ed).options[133].indir = PV_NONE;
     (*ed).options[133].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[133].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[134].fullname = b"t_fe\0".as_ptr() as *mut i8;
+    (*ed).options[133].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[134].fullname = c"t_fe".as_ptr() as *mut i8;
     (*ed).options[134].flags = 549892;
     (*ed).options[134].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(89);
     (*ed).options[134].indir = PV_NONE;
     (*ed).options[134].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[134].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[135].fullname = b"t_IE\0".as_ptr() as *mut i8;
+    (*ed).options[134].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[135].fullname = c"t_IE".as_ptr() as *mut i8;
     (*ed).options[135].flags = 549892;
     (*ed).options[135].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(61);
     (*ed).options[135].indir = PV_NONE;
     (*ed).options[135].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[135].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[136].fullname = b"t_IS\0".as_ptr() as *mut i8;
+    (*ed).options[135].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[136].fullname = c"t_IS".as_ptr() as *mut i8;
     (*ed).options[136].flags = 549892;
     (*ed).options[136].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(60);
     (*ed).options[136].indir = PV_NONE;
     (*ed).options[136].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[136].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[137].fullname = b"t_ke\0".as_ptr() as *mut i8;
+    (*ed).options[136].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[137].fullname = c"t_ke".as_ptr() as *mut i8;
     (*ed).options[137].flags = 549892;
     (*ed).options[137].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(41);
     (*ed).options[137].indir = PV_NONE;
     (*ed).options[137].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[137].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[138].fullname = b"t_ks\0".as_ptr() as *mut i8;
+    (*ed).options[137].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[138].fullname = c"t_ks".as_ptr() as *mut i8;
     (*ed).options[138].flags = 549892;
     (*ed).options[138].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(40);
     (*ed).options[138].indir = PV_NONE;
     (*ed).options[138].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[138].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[139].fullname = b"t_le\0".as_ptr() as *mut i8;
+    (*ed).options[138].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[139].fullname = c"t_le".as_ptr() as *mut i8;
     (*ed).options[139].flags = 549892;
     (*ed).options[139].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(58);
     (*ed).options[139].indir = PV_NONE;
     (*ed).options[139].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[139].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[140].fullname = b"t_mb\0".as_ptr() as *mut i8;
+    (*ed).options[139].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[140].fullname = c"t_mb".as_ptr() as *mut i8;
     (*ed).options[140].flags = 549892;
     (*ed).options[140].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(54);
     (*ed).options[140].indir = PV_NONE;
     (*ed).options[140].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[140].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[141].fullname = b"t_md\0".as_ptr() as *mut i8;
+    (*ed).options[140].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[141].fullname = c"t_md".as_ptr() as *mut i8;
     (*ed).options[141].flags = 549892;
     (*ed).options[141].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(21);
     (*ed).options[141].indir = PV_NONE;
     (*ed).options[141].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[141].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[142].fullname = b"t_me\0".as_ptr() as *mut i8;
+    (*ed).options[141].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[142].fullname = c"t_me".as_ptr() as *mut i8;
     (*ed).options[142].flags = 549892;
     (*ed).options[142].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(19);
     (*ed).options[142].indir = PV_NONE;
     (*ed).options[142].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[142].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[143].fullname = b"t_mr\0".as_ptr() as *mut i8;
+    (*ed).options[142].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[143].fullname = c"t_mr".as_ptr() as *mut i8;
     (*ed).options[143].flags = 549892;
     (*ed).options[143].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(20);
     (*ed).options[143].indir = PV_NONE;
     (*ed).options[143].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[143].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[144].fullname = b"t_ms\0".as_ptr() as *mut i8;
+    (*ed).options[143].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[144].fullname = c"t_ms".as_ptr() as *mut i8;
     (*ed).options[144].flags = 549892;
     (*ed).options[144].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(35);
     (*ed).options[144].indir = PV_NONE;
     (*ed).options[144].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[144].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[145].fullname = b"t_nd\0".as_ptr() as *mut i8;
+    (*ed).options[144].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[145].fullname = c"t_nd".as_ptr() as *mut i8;
     (*ed).options[145].flags = 549892;
     (*ed).options[145].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(59);
     (*ed).options[145].indir = PV_NONE;
     (*ed).options[145].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[145].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[146].fullname = b"t_op\0".as_ptr() as *mut i8;
+    (*ed).options[145].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[146].fullname = c"t_op".as_ptr() as *mut i8;
     (*ed).options[146].flags = 549892;
     (*ed).options[146].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(77);
     (*ed).options[146].indir = PV_NONE;
     (*ed).options[146].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[146].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[147].fullname = b"t_RI\0".as_ptr() as *mut i8;
+    (*ed).options[146].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[147].fullname = c"t_RI".as_ptr() as *mut i8;
     (*ed).options[147].flags = 549892;
     (*ed).options[147].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(38);
     (*ed).options[147].indir = PV_NONE;
     (*ed).options[147].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[147].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[148].fullname = b"t_Ri\0".as_ptr() as *mut i8;
+    (*ed).options[147].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[148].fullname = c"t_Ri".as_ptr() as *mut i8;
     (*ed).options[148].flags = 549892;
     (*ed).options[148].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(87);
     (*ed).options[148].indir = PV_NONE;
     (*ed).options[148].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[148].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[149].fullname = b"t_RK\0".as_ptr() as *mut i8;
+    (*ed).options[148].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[149].fullname = c"t_RK".as_ptr() as *mut i8;
     (*ed).options[149].flags = 549892;
     (*ed).options[149].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(44);
     (*ed).options[149].indir = PV_NONE;
     (*ed).options[149].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[149].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[150].fullname = b"t_RT\0".as_ptr() as *mut i8;
+    (*ed).options[149].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[150].fullname = c"t_RT".as_ptr() as *mut i8;
     (*ed).options[150].flags = 549892;
     (*ed).options[150].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(85);
     (*ed).options[150].indir = PV_NONE;
     (*ed).options[150].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[150].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[151].fullname = b"t_RV\0".as_ptr() as *mut i8;
+    (*ed).options[150].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[151].fullname = c"t_RV".as_ptr() as *mut i8;
     (*ed).options[151].flags = 549892;
     (*ed).options[151].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(69);
     (*ed).options[151].indir = PV_NONE;
     (*ed).options[151].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[151].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[152].fullname = b"t_Sb\0".as_ptr() as *mut i8;
+    (*ed).options[151].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[152].fullname = c"t_Sb".as_ptr() as *mut i8;
     (*ed).options[152].flags = 549892;
     (*ed).options[152].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(51);
     (*ed).options[152].indir = PV_NONE;
     (*ed).options[152].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[152].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[153].fullname = b"t_se\0".as_ptr() as *mut i8;
+    (*ed).options[152].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[153].fullname = c"t_se".as_ptr() as *mut i8;
     (*ed).options[153].flags = 549892;
     (*ed).options[153].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(22);
     (*ed).options[153].indir = PV_NONE;
     (*ed).options[153].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[153].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[154].fullname = b"t_Sf\0".as_ptr() as *mut i8;
+    (*ed).options[153].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[154].fullname = c"t_Sf".as_ptr() as *mut i8;
     (*ed).options[154].flags = 549892;
     (*ed).options[154].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(50);
     (*ed).options[154].indir = PV_NONE;
     (*ed).options[154].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[154].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[155].fullname = b"t_Si\0".as_ptr() as *mut i8;
+    (*ed).options[154].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[155].fullname = c"t_Si".as_ptr() as *mut i8;
     (*ed).options[155].flags = 549892;
     (*ed).options[155].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(86);
     (*ed).options[155].indir = PV_NONE;
     (*ed).options[155].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[155].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[156].fullname = b"t_so\0".as_ptr() as *mut i8;
+    (*ed).options[155].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[156].fullname = c"t_so".as_ptr() as *mut i8;
     (*ed).options[156].flags = 549892;
     (*ed).options[156].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(23);
     (*ed).options[156].indir = PV_NONE;
     (*ed).options[156].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[156].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[157].fullname = b"t_sr\0".as_ptr() as *mut i8;
+    (*ed).options[156].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[157].fullname = c"t_sr".as_ptr() as *mut i8;
     (*ed).options[157].flags = 549892;
     (*ed).options[157].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(37);
     (*ed).options[157].indir = PV_NONE;
     (*ed).options[157].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[157].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[158].fullname = b"t_ST\0".as_ptr() as *mut i8;
+    (*ed).options[157].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[158].fullname = c"t_ST".as_ptr() as *mut i8;
     (*ed).options[158].flags = 549892;
     (*ed).options[158].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(84);
     (*ed).options[158].indir = PV_NONE;
     (*ed).options[158].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[158].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[159].fullname = b"t_Te\0".as_ptr() as *mut i8;
+    (*ed).options[158].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[159].fullname = c"t_Te".as_ptr() as *mut i8;
     (*ed).options[159].flags = 549892;
     (*ed).options[159].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(33);
     (*ed).options[159].indir = PV_NONE;
     (*ed).options[159].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[159].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[160].fullname = b"t_te\0".as_ptr() as *mut i8;
+    (*ed).options[159].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[160].fullname = c"t_te".as_ptr() as *mut i8;
     (*ed).options[160].flags = 549892;
     (*ed).options[160].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(45);
     (*ed).options[160].indir = PV_NONE;
     (*ed).options[160].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[160].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[161].fullname = b"t_TE\0".as_ptr() as *mut i8;
+    (*ed).options[160].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[161].fullname = c"t_TE".as_ptr() as *mut i8;
     (*ed).options[161].flags = 549892;
     (*ed).options[161].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(46);
     (*ed).options[161].indir = PV_NONE;
     (*ed).options[161].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[161].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[162].fullname = b"t_ti\0".as_ptr() as *mut i8;
+    (*ed).options[161].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[162].fullname = c"t_ti".as_ptr() as *mut i8;
     (*ed).options[162].flags = 549892;
     (*ed).options[162].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(42);
     (*ed).options[162].indir = PV_NONE;
     (*ed).options[162].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[162].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[163].fullname = b"t_TI\0".as_ptr() as *mut i8;
+    (*ed).options[162].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[163].fullname = c"t_TI".as_ptr() as *mut i8;
     (*ed).options[163].flags = 549892;
     (*ed).options[163].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(43);
     (*ed).options[163].indir = PV_NONE;
     (*ed).options[163].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[163].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[164].fullname = b"t_Ts\0".as_ptr() as *mut i8;
+    (*ed).options[163].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[164].fullname = c"t_Ts".as_ptr() as *mut i8;
     (*ed).options[164].flags = 549892;
     (*ed).options[164].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(34);
     (*ed).options[164].indir = PV_NONE;
     (*ed).options[164].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[164].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[165].fullname = b"t_ts\0".as_ptr() as *mut i8;
+    (*ed).options[164].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[165].fullname = c"t_ts".as_ptr() as *mut i8;
     (*ed).options[165].flags = 549892;
     (*ed).options[165].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(64);
     (*ed).options[165].indir = PV_NONE;
     (*ed).options[165].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[165].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[166].fullname = b"t_ue\0".as_ptr() as *mut i8;
+    (*ed).options[165].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[166].fullname = c"t_ue".as_ptr() as *mut i8;
     (*ed).options[166].flags = 549892;
     (*ed).options[166].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(26);
     (*ed).options[166].indir = PV_NONE;
     (*ed).options[166].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[166].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[167].fullname = b"t_us\0".as_ptr() as *mut i8;
+    (*ed).options[166].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[167].fullname = c"t_us".as_ptr() as *mut i8;
     (*ed).options[167].flags = 549892;
     (*ed).options[167].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(27);
     (*ed).options[167].indir = PV_NONE;
     (*ed).options[167].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[167].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[168].fullname = b"t_Us\0".as_ptr() as *mut i8;
+    (*ed).options[167].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[168].fullname = c"t_Us".as_ptr() as *mut i8;
     (*ed).options[168].flags = 549892;
     (*ed).options[168].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(30);
     (*ed).options[168].indir = PV_NONE;
     (*ed).options[168].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[168].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[169].fullname = b"t_ut\0".as_ptr() as *mut i8;
+    (*ed).options[168].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[169].fullname = c"t_ut".as_ptr() as *mut i8;
     (*ed).options[169].flags = 549892;
     (*ed).options[169].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(9);
     (*ed).options[169].indir = PV_NONE;
     (*ed).options[169].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[169].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[170].fullname = b"t_vb\0".as_ptr() as *mut i8;
+    (*ed).options[169].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[170].fullname = c"t_vb".as_ptr() as *mut i8;
     (*ed).options[170].flags = 549892;
     (*ed).options[170].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(39);
     (*ed).options[170].indir = PV_NONE;
     (*ed).options[170].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[170].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[171].fullname = b"t_ve\0".as_ptr() as *mut i8;
+    (*ed).options[170].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[171].fullname = c"t_ve".as_ptr() as *mut i8;
     (*ed).options[171].flags = 549892;
     (*ed).options[171].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(13);
     (*ed).options[171].indir = PV_NONE;
     (*ed).options[171].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[171].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[172].fullname = b"t_vi\0".as_ptr() as *mut i8;
+    (*ed).options[171].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[172].fullname = c"t_vi".as_ptr() as *mut i8;
     (*ed).options[172].flags = 549892;
     (*ed).options[172].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(12);
     (*ed).options[172].indir = PV_NONE;
     (*ed).options[172].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[172].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[173].fullname = b"t_VS\0".as_ptr() as *mut i8;
+    (*ed).options[172].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[173].fullname = c"t_VS".as_ptr() as *mut i8;
     (*ed).options[173].flags = 549892;
     (*ed).options[173].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(15);
     (*ed).options[173].indir = PV_NONE;
     (*ed).options[173].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[173].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[174].fullname = b"t_vs\0".as_ptr() as *mut i8;
+    (*ed).options[173].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[174].fullname = c"t_vs".as_ptr() as *mut i8;
     (*ed).options[174].flags = 549892;
     (*ed).options[174].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(14);
     (*ed).options[174].indir = PV_NONE;
     (*ed).options[174].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[174].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[175].fullname = b"t_WS\0".as_ptr() as *mut i8;
+    (*ed).options[174].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[175].fullname = c"t_WS".as_ptr() as *mut i8;
     (*ed).options[175].flags = 549892;
     (*ed).options[175].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(68);
     (*ed).options[175].indir = PV_NONE;
     (*ed).options[175].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[175].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[176].fullname = b"t_xn\0".as_ptr() as *mut i8;
+    (*ed).options[175].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[176].fullname = c"t_xn".as_ptr() as *mut i8;
     (*ed).options[176].flags = 549892;
     (*ed).options[176].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(53);
     (*ed).options[176].indir = PV_NONE;
     (*ed).options[176].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[176].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[177].fullname = b"t_xs\0".as_ptr() as *mut i8;
+    (*ed).options[176].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[177].fullname = c"t_xs".as_ptr() as *mut i8;
     (*ed).options[177].flags = 549892;
     (*ed).options[177].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(52);
     (*ed).options[177].indir = PV_NONE;
     (*ed).options[177].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[177].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[178].fullname = b"t_ZH\0".as_ptr() as *mut i8;
+    (*ed).options[177].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[178].fullname = c"t_ZH".as_ptr() as *mut i8;
     (*ed).options[178].flags = 549892;
     (*ed).options[178].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(24);
     (*ed).options[178].indir = PV_NONE;
     (*ed).options[178].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[178].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[179].fullname = b"t_ZR\0".as_ptr() as *mut i8;
+    (*ed).options[178].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[179].fullname = c"t_ZR".as_ptr() as *mut i8;
     (*ed).options[179].flags = 549892;
     (*ed).options[179].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(25);
     (*ed).options[179].indir = PV_NONE;
     (*ed).options[179].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[179].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[180].fullname = b"t_8u\0".as_ptr() as *mut i8;
+    (*ed).options[179].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[180].fullname = c"t_8u".as_ptr() as *mut i8;
     (*ed).options[180].flags = 549892;
 }
 
@@ -11591,80 +11591,80 @@ unsafe fn init_globals_19(ed: *mut Editor) {
     (*ed).options[180].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(81);
     (*ed).options[180].indir = PV_NONE;
     (*ed).options[180].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[180].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[181].fullname = b"t_xo\0".as_ptr() as *mut i8;
+    (*ed).options[180].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[181].fullname = c"t_xo".as_ptr() as *mut i8;
     (*ed).options[181].flags = 549892;
     (*ed).options[181].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(91);
     (*ed).options[181].indir = PV_NONE;
     (*ed).options[181].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[181].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[182].fullname = b"t_BS\0".as_ptr() as *mut i8;
+    (*ed).options[181].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[182].fullname = c"t_BS".as_ptr() as *mut i8;
     (*ed).options[182].flags = 549892;
     (*ed).options[182].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(92);
     (*ed).options[182].indir = PV_NONE;
     (*ed).options[182].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[182].def_str[0] = b"\0".as_ptr() as *mut u8;
-    (*ed).options[183].fullname = b"t_ES\0".as_ptr() as *mut i8;
+    (*ed).options[182].def_str[0] = c"".as_ptr() as *mut u8;
+    (*ed).options[183].fullname = c"t_ES".as_ptr() as *mut i8;
     (*ed).options[183].flags = 549892;
     (*ed).options[183].var.ov_str = decay(&raw mut (*ed).term_strings).wrapping_add(93);
     (*ed).options[183].indir = PV_NONE;
     (*ed).options[183].opt_did_set_cb = Some(did_set_term_option as unsafe fn(*mut Editor, *mut optset_T) -> *mut i8);
-    (*ed).options[183].def_str[0] = b"\0".as_ptr() as *mut u8;
+    (*ed).options[183].def_str[0] = c"".as_ptr() as *mut u8;
     (*ed).options[184].indir = PV_NONE;
-    (*ed).p_ambw_values[0] = b"single\0".as_ptr() as *mut i8;
-    (*ed).p_ambw_values[1] = b"double\0".as_ptr() as *mut i8;
-    (*ed).p_bg_values[0] = b"light\0".as_ptr() as *mut i8;
-    (*ed).p_bg_values[1] = b"dark\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[0] = b"all\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[1] = b"backspace\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[2] = b"cursor\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[3] = b"copy\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[4] = b"ctrlg\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[5] = b"error\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[6] = b"esc\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[7] = b"ex\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[8] = b"hangul\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[9] = b"insertmode\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[10] = b"lang\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[11] = b"mess\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[12] = b"showmatch\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[13] = b"operator\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[14] = b"register\0".as_ptr() as *mut i8;
-    (*ed).p_bo_values[15] = b"term\0".as_ptr() as *mut i8;
-    (*ed).p_nf_values[0] = b"bin\0".as_ptr() as *mut i8;
-    (*ed).p_nf_values[1] = b"octal\0".as_ptr() as *mut i8;
-    (*ed).p_nf_values[2] = b"hex\0".as_ptr() as *mut i8;
-    (*ed).p_nf_values[3] = b"alpha\0".as_ptr() as *mut i8;
-    (*ed).p_nf_values[4] = b"unsigned\0".as_ptr() as *mut i8;
-    (*ed).p_nf_values[5] = b"blank\0".as_ptr() as *mut i8;
-    (*ed).p_cmp_values[0] = b"internal\0".as_ptr() as *mut i8;
-    (*ed).p_cmp_values[1] = b"keepascii\0".as_ptr() as *mut i8;
-    (*ed).p_dy_values[0] = b"lastline\0".as_ptr() as *mut i8;
-    (*ed).p_dy_values[1] = b"truncate\0".as_ptr() as *mut i8;
-    (*ed).p_dy_values[2] = b"uhex\0".as_ptr() as *mut i8;
-    (*ed).p_ve_values[0] = b"block\0".as_ptr() as *mut i8;
-    (*ed).p_ve_values[1] = b"insert\0".as_ptr() as *mut i8;
-    (*ed).p_ve_values[2] = b"all\0".as_ptr() as *mut i8;
-    (*ed).p_ve_values[3] = b"onemore\0".as_ptr() as *mut i8;
-    (*ed).p_ve_values[4] = b"none\0".as_ptr() as *mut i8;
-    (*ed).p_ve_values[5] = b"NONE\0".as_ptr() as *mut i8;
-    (*ed).p_sel_values[0] = b"inclusive\0".as_ptr() as *mut i8;
-    (*ed).p_sel_values[1] = b"exclusive\0".as_ptr() as *mut i8;
-    (*ed).p_sel_values[2] = b"old\0".as_ptr() as *mut i8;
-    (*ed).p_slm_values[0] = b"cmd\0".as_ptr() as *mut i8;
-    (*ed).p_km_values[0] = b"startsel\0".as_ptr() as *mut i8;
-    (*ed).p_km_values[1] = b"stopsel\0".as_ptr() as *mut i8;
-    (*ed).p_bs_values[0] = b"indent\0".as_ptr() as *mut i8;
-    (*ed).p_bs_values[1] = b"eol\0".as_ptr() as *mut i8;
-    (*ed).p_bs_values[2] = b"start\0".as_ptr() as *mut i8;
-    (*ed).p_bs_values[3] = b"nostop\0".as_ptr() as *mut i8;
-    (*ed).p_sloc_values[0] = b"last\0".as_ptr() as *mut i8;
+    (*ed).p_ambw_values[0] = c"single".as_ptr() as *mut i8;
+    (*ed).p_ambw_values[1] = c"double".as_ptr() as *mut i8;
+    (*ed).p_bg_values[0] = c"light".as_ptr() as *mut i8;
+    (*ed).p_bg_values[1] = c"dark".as_ptr() as *mut i8;
+    (*ed).p_bo_values[0] = c"all".as_ptr() as *mut i8;
+    (*ed).p_bo_values[1] = c"backspace".as_ptr() as *mut i8;
+    (*ed).p_bo_values[2] = c"cursor".as_ptr() as *mut i8;
+    (*ed).p_bo_values[3] = c"copy".as_ptr() as *mut i8;
+    (*ed).p_bo_values[4] = c"ctrlg".as_ptr() as *mut i8;
+    (*ed).p_bo_values[5] = c"error".as_ptr() as *mut i8;
+    (*ed).p_bo_values[6] = c"esc".as_ptr() as *mut i8;
+    (*ed).p_bo_values[7] = c"ex".as_ptr() as *mut i8;
+    (*ed).p_bo_values[8] = c"hangul".as_ptr() as *mut i8;
+    (*ed).p_bo_values[9] = c"insertmode".as_ptr() as *mut i8;
+    (*ed).p_bo_values[10] = c"lang".as_ptr() as *mut i8;
+    (*ed).p_bo_values[11] = c"mess".as_ptr() as *mut i8;
+    (*ed).p_bo_values[12] = c"showmatch".as_ptr() as *mut i8;
+    (*ed).p_bo_values[13] = c"operator".as_ptr() as *mut i8;
+    (*ed).p_bo_values[14] = c"register".as_ptr() as *mut i8;
+    (*ed).p_bo_values[15] = c"term".as_ptr() as *mut i8;
+    (*ed).p_nf_values[0] = c"bin".as_ptr() as *mut i8;
+    (*ed).p_nf_values[1] = c"octal".as_ptr() as *mut i8;
+    (*ed).p_nf_values[2] = c"hex".as_ptr() as *mut i8;
+    (*ed).p_nf_values[3] = c"alpha".as_ptr() as *mut i8;
+    (*ed).p_nf_values[4] = c"unsigned".as_ptr() as *mut i8;
+    (*ed).p_nf_values[5] = c"blank".as_ptr() as *mut i8;
+    (*ed).p_cmp_values[0] = c"internal".as_ptr() as *mut i8;
+    (*ed).p_cmp_values[1] = c"keepascii".as_ptr() as *mut i8;
+    (*ed).p_dy_values[0] = c"lastline".as_ptr() as *mut i8;
+    (*ed).p_dy_values[1] = c"truncate".as_ptr() as *mut i8;
+    (*ed).p_dy_values[2] = c"uhex".as_ptr() as *mut i8;
+    (*ed).p_ve_values[0] = c"block".as_ptr() as *mut i8;
+    (*ed).p_ve_values[1] = c"insert".as_ptr() as *mut i8;
+    (*ed).p_ve_values[2] = c"all".as_ptr() as *mut i8;
+    (*ed).p_ve_values[3] = c"onemore".as_ptr() as *mut i8;
+    (*ed).p_ve_values[4] = c"none".as_ptr() as *mut i8;
+    (*ed).p_ve_values[5] = c"NONE".as_ptr() as *mut i8;
+    (*ed).p_sel_values[0] = c"inclusive".as_ptr() as *mut i8;
+    (*ed).p_sel_values[1] = c"exclusive".as_ptr() as *mut i8;
+    (*ed).p_sel_values[2] = c"old".as_ptr() as *mut i8;
+    (*ed).p_slm_values[0] = c"cmd".as_ptr() as *mut i8;
+    (*ed).p_km_values[0] = c"startsel".as_ptr() as *mut i8;
+    (*ed).p_km_values[1] = c"stopsel".as_ptr() as *mut i8;
+    (*ed).p_bs_values[0] = c"indent".as_ptr() as *mut i8;
+    (*ed).p_bs_values[1] = c"eol".as_ptr() as *mut i8;
+    (*ed).p_bs_values[2] = c"start".as_ptr() as *mut i8;
+    (*ed).p_bs_values[3] = c"nostop".as_ptr() as *mut i8;
+    (*ed).p_sloc_values[0] = c"last".as_ptr() as *mut i8;
     (*ed).signal_info[0].sig = SIGHUP;
-    (*ed).signal_info[0].name = b"HUP\0".as_ptr() as *mut i8;
+    (*ed).signal_info[0].name = c"HUP".as_ptr() as *mut i8;
     (*ed).signal_info[1].sig = SIGTERM;
-    (*ed).signal_info[1].name = b"TERM\0".as_ptr() as *mut i8;
+    (*ed).signal_info[1].name = c"TERM".as_ptr() as *mut i8;
     (*ed).signal_info[2].sig = -1;
-    (*ed).signal_info[2].name = b"Unknown!\0".as_ptr() as *mut i8;
+    (*ed).signal_info[2].name = c"Unknown!".as_ptr() as *mut i8;
     (*ed).REGEXP_INRANGE = str_u8::<6>(b"]^-n\\");
     (*ed).REGEXP_ABBR = str_u8::<11>(b"nrtebdoxuU");
     (*ed).META_flags[37] = 1;
@@ -11812,7 +11812,7 @@ unsafe fn init_globals_19(ed: *mut Editor) {
     (*ed).decomp_table[47].a = 1488;
     (*ed).decomp_table[47].b = 1500;
     (*ed).one_exactly = false;
-    (*ed).classchars = b".iIkKfFpPsSdDxXoOwWhHaAlLuU\0".as_ptr() as *mut u8;
+    (*ed).classchars = c".iIkKfFpPsSdDxXoOwWhHaAlLuU".as_ptr() as *mut u8;
     (*ed).classcodes[0] = ANY;
     (*ed).classcodes[1] = IDENT;
     (*ed).classcodes[2] = SIDENT;
@@ -11842,76 +11842,76 @@ unsafe fn init_globals_19(ed: *mut Editor) {
     (*ed).classcodes[26] = NUPPER;
     (*ed).execreg_lastc = NUL;
     (*ed).filltab[0].cp = &raw mut (*ed).fill_chars.stl;
-    (*ed).filltab[0].name.string = b"stl\0".as_ptr() as *mut u8;
+    (*ed).filltab[0].name.string = c"stl".as_ptr() as *mut u8;
     (*ed).filltab[0].name.length = 3;
     (*ed).filltab[1].cp = &raw mut (*ed).fill_chars.stlnc;
-    (*ed).filltab[1].name.string = b"stlnc\0".as_ptr() as *mut u8;
+    (*ed).filltab[1].name.string = c"stlnc".as_ptr() as *mut u8;
     (*ed).filltab[1].name.length = 5;
     (*ed).filltab[2].cp = &raw mut (*ed).fill_chars.vert;
-    (*ed).filltab[2].name.string = b"vert\0".as_ptr() as *mut u8;
+    (*ed).filltab[2].name.string = c"vert".as_ptr() as *mut u8;
     (*ed).filltab[2].name.length = 4;
     (*ed).filltab[3].cp = &raw mut (*ed).fill_chars.fold;
-    (*ed).filltab[3].name.string = b"fold\0".as_ptr() as *mut u8;
+    (*ed).filltab[3].name.string = c"fold".as_ptr() as *mut u8;
     (*ed).filltab[3].name.length = 4;
     (*ed).filltab[4].cp = &raw mut (*ed).fill_chars.foldopen;
-    (*ed).filltab[4].name.string = b"foldopen\0".as_ptr() as *mut u8;
+    (*ed).filltab[4].name.string = c"foldopen".as_ptr() as *mut u8;
     (*ed).filltab[4].name.length = 8;
     (*ed).filltab[5].cp = &raw mut (*ed).fill_chars.foldclosed;
-    (*ed).filltab[5].name.string = b"foldclose\0".as_ptr() as *mut u8;
+    (*ed).filltab[5].name.string = c"foldclose".as_ptr() as *mut u8;
     (*ed).filltab[5].name.length = 9;
     (*ed).filltab[6].cp = &raw mut (*ed).fill_chars.foldsep;
-    (*ed).filltab[6].name.string = b"foldsep\0".as_ptr() as *mut u8;
+    (*ed).filltab[6].name.string = c"foldsep".as_ptr() as *mut u8;
     (*ed).filltab[6].name.length = 7;
     (*ed).filltab[7].cp = &raw mut (*ed).fill_chars.foldinner;
-    (*ed).filltab[7].name.string = b"foldinner\0".as_ptr() as *mut u8;
+    (*ed).filltab[7].name.string = c"foldinner".as_ptr() as *mut u8;
     (*ed).filltab[7].name.length = 9;
     (*ed).filltab[8].cp = &raw mut (*ed).fill_chars.diff;
-    (*ed).filltab[8].name.string = b"diff\0".as_ptr() as *mut u8;
+    (*ed).filltab[8].name.string = c"diff".as_ptr() as *mut u8;
     (*ed).filltab[8].name.length = 4;
     (*ed).filltab[9].cp = &raw mut (*ed).fill_chars.eob;
-    (*ed).filltab[9].name.string = b"eob\0".as_ptr() as *mut u8;
+    (*ed).filltab[9].name.string = c"eob".as_ptr() as *mut u8;
     (*ed).filltab[9].name.length = 3;
     (*ed).filltab[10].cp = &raw mut (*ed).fill_chars.lastline;
-    (*ed).filltab[10].name.string = b"lastline\0".as_ptr() as *mut u8;
+    (*ed).filltab[10].name.string = c"lastline".as_ptr() as *mut u8;
     (*ed).filltab[10].name.length = 8;
     (*ed).filltab[11].cp = &raw mut (*ed).fill_chars.trunc;
-    (*ed).filltab[11].name.string = b"trunc\0".as_ptr() as *mut u8;
+    (*ed).filltab[11].name.string = c"trunc".as_ptr() as *mut u8;
     (*ed).filltab[11].name.length = 5;
     (*ed).filltab[12].cp = &raw mut (*ed).fill_chars.truncrl;
-    (*ed).filltab[12].name.string = b"truncrl\0".as_ptr() as *mut u8;
+    (*ed).filltab[12].name.string = c"truncrl".as_ptr() as *mut u8;
     (*ed).filltab[12].name.length = 7;
     (*ed).lcstab[0].cp = &raw mut (*ed).lcs_chars.eol;
-    (*ed).lcstab[0].name.string = b"eol\0".as_ptr() as *mut u8;
+    (*ed).lcstab[0].name.string = c"eol".as_ptr() as *mut u8;
     (*ed).lcstab[0].name.length = 3;
     (*ed).lcstab[1].cp = &raw mut (*ed).lcs_chars.ext;
-    (*ed).lcstab[1].name.string = b"extends\0".as_ptr() as *mut u8;
+    (*ed).lcstab[1].name.string = c"extends".as_ptr() as *mut u8;
     (*ed).lcstab[1].name.length = 7;
     (*ed).lcstab[2].cp = &raw mut (*ed).lcs_chars.nbsp;
-    (*ed).lcstab[2].name.string = b"nbsp\0".as_ptr() as *mut u8;
+    (*ed).lcstab[2].name.string = c"nbsp".as_ptr() as *mut u8;
     (*ed).lcstab[2].name.length = 4;
     (*ed).lcstab[3].cp = &raw mut (*ed).lcs_chars.prec;
-    (*ed).lcstab[3].name.string = b"precedes\0".as_ptr() as *mut u8;
+    (*ed).lcstab[3].name.string = c"precedes".as_ptr() as *mut u8;
     (*ed).lcstab[3].name.length = 8;
     (*ed).lcstab[4].cp = &raw mut (*ed).lcs_chars.space;
-    (*ed).lcstab[4].name.string = b"space\0".as_ptr() as *mut u8;
+    (*ed).lcstab[4].name.string = c"space".as_ptr() as *mut u8;
     (*ed).lcstab[4].name.length = 5;
     (*ed).lcstab[5].cp = &raw mut (*ed).lcs_chars.tab2;
-    (*ed).lcstab[5].name.string = b"tab\0".as_ptr() as *mut u8;
+    (*ed).lcstab[5].name.string = c"tab".as_ptr() as *mut u8;
     (*ed).lcstab[5].name.length = 3;
     (*ed).lcstab[6].cp = &raw mut (*ed).lcs_chars.leadtab2;
-    (*ed).lcstab[6].name.string = b"leadtab\0".as_ptr() as *mut u8;
+    (*ed).lcstab[6].name.string = c"leadtab".as_ptr() as *mut u8;
     (*ed).lcstab[6].name.length = 7;
     (*ed).lcstab[7].cp = &raw mut (*ed).lcs_chars.trail;
-    (*ed).lcstab[7].name.string = b"trail\0".as_ptr() as *mut u8;
+    (*ed).lcstab[7].name.string = c"trail".as_ptr() as *mut u8;
     (*ed).lcstab[7].name.length = 5;
     (*ed).lcstab[8].cp = &raw mut (*ed).lcs_chars.lead;
-    (*ed).lcstab[8].name.string = b"lead\0".as_ptr() as *mut u8;
+    (*ed).lcstab[8].name.string = c"lead".as_ptr() as *mut u8;
     (*ed).lcstab[8].name.length = 4;
-    (*ed).lcstab[9].name.string = b"conceal\0".as_ptr() as *mut u8;
+    (*ed).lcstab[9].name.string = c"conceal".as_ptr() as *mut u8;
     (*ed).lcstab[9].name.length = 7;
-    (*ed).lcstab[10].name.string = b"multispace\0".as_ptr() as *mut u8;
+    (*ed).lcstab[10].name.string = c"multispace".as_ptr() as *mut u8;
     (*ed).lcstab[10].name.length = 10;
-    (*ed).lcstab[11].name.string = b"leadmultispace\0".as_ptr() as *mut u8;
+    (*ed).lcstab[11].name.string = c"leadmultispace".as_ptr() as *mut u8;
     (*ed).lcstab[11].name.length = 14;
     (*ed).spats[0].magic = TRUE;
     (*ed).spats[0].no_scs = FALSE;
@@ -11933,604 +11933,604 @@ unsafe fn init_globals_19(ed: *mut Editor) {
     (*ed).detected_8bit = false;
     (*ed).focus_state = MAYBE;
     (*ed).builtin_xterm[0].bt_entry = 1;
-    (*ed).builtin_xterm[0].bt_string = b"\x1b[K\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[0].bt_string = c"\x1b[K".as_ptr() as *mut i8;
     (*ed).builtin_xterm[1].bt_entry = 2;
-    (*ed).builtin_xterm[1].bt_string = b"\x1b[L\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[1].bt_string = c"\x1b[L".as_ptr() as *mut i8;
     (*ed).builtin_xterm[2].bt_entry = 3;
-    (*ed).builtin_xterm[2].bt_string = b"\x1b[%dL\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[2].bt_string = c"\x1b[%dL".as_ptr() as *mut i8;
     (*ed).builtin_xterm[3].bt_entry = 4;
-    (*ed).builtin_xterm[3].bt_string = b"\x1b[M\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[3].bt_string = c"\x1b[M".as_ptr() as *mut i8;
     (*ed).builtin_xterm[4].bt_entry = 5;
-    (*ed).builtin_xterm[4].bt_string = b"\x1b[%dM\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[4].bt_string = c"\x1b[%dM".as_ptr() as *mut i8;
     (*ed).builtin_xterm[5].bt_entry = 6;
-    (*ed).builtin_xterm[5].bt_string = b"\x1b[%i%d;%dr\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[5].bt_string = c"\x1b[%i%d;%dr".as_ptr() as *mut i8;
     (*ed).builtin_xterm[6].bt_entry = 7;
-    (*ed).builtin_xterm[6].bt_string = b"\x1b[H\x1b[2J\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[6].bt_string = c"\x1b[H\x1b[2J".as_ptr() as *mut i8;
     (*ed).builtin_xterm[7].bt_entry = 8;
-    (*ed).builtin_xterm[7].bt_string = b"\x1b[J\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[7].bt_string = c"\x1b[J".as_ptr() as *mut i8;
     (*ed).builtin_xterm[8].bt_entry = 19;
-    (*ed).builtin_xterm[8].bt_string = b"\x1b[m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[8].bt_string = c"\x1b[m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[9].bt_entry = 20;
-    (*ed).builtin_xterm[9].bt_string = b"\x1b[7m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[9].bt_string = c"\x1b[7m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[10].bt_entry = 21;
-    (*ed).builtin_xterm[10].bt_string = b"\x1b[1m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[10].bt_string = c"\x1b[1m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[11].bt_entry = 26;
-    (*ed).builtin_xterm[11].bt_string = b"\x1b[m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[11].bt_string = c"\x1b[m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[12].bt_entry = 27;
-    (*ed).builtin_xterm[12].bt_string = b"\x1b[4m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[12].bt_string = c"\x1b[4m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[13].bt_entry = 33;
-    (*ed).builtin_xterm[13].bt_string = b"\x1b[29m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[13].bt_string = c"\x1b[29m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[14].bt_entry = 34;
-    (*ed).builtin_xterm[14].bt_string = b"\x1b[9m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[14].bt_string = c"\x1b[9m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[15].bt_entry = 35;
-    (*ed).builtin_xterm[15].bt_string = b"y\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[15].bt_string = c"y".as_ptr() as *mut i8;
     (*ed).builtin_xterm[16].bt_entry = 9;
-    (*ed).builtin_xterm[16].bt_string = b"y\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[16].bt_string = c"y".as_ptr() as *mut i8;
     (*ed).builtin_xterm[17].bt_entry = 58;
-    (*ed).builtin_xterm[17].bt_string = b"\x08\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[17].bt_string = c"\x08".as_ptr() as *mut i8;
     (*ed).builtin_xterm[18].bt_entry = 12;
-    (*ed).builtin_xterm[18].bt_string = b"\x1b[?25l\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[18].bt_string = c"\x1b[?25l".as_ptr() as *mut i8;
     (*ed).builtin_xterm[19].bt_entry = 13;
-    (*ed).builtin_xterm[19].bt_string = b"\x1b[?25h\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[19].bt_string = c"\x1b[?25h".as_ptr() as *mut i8;
     (*ed).builtin_xterm[20].bt_entry = 14;
-    (*ed).builtin_xterm[20].bt_string = b"\x1b[?12h\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[20].bt_string = c"\x1b[?12h".as_ptr() as *mut i8;
     (*ed).builtin_xterm[21].bt_entry = 15;
-    (*ed).builtin_xterm[21].bt_string = b"\x1b[?12l\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[21].bt_string = c"\x1b[?12l".as_ptr() as *mut i8;
     (*ed).builtin_xterm[22].bt_entry = 16;
-    (*ed).builtin_xterm[22].bt_string = b"\x1b[%d q\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[22].bt_string = c"\x1b[%d q".as_ptr() as *mut i8;
     (*ed).builtin_xterm[23].bt_entry = 17;
-    (*ed).builtin_xterm[23].bt_string = b"\x1b[?12$p\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[23].bt_string = c"\x1b[?12$p".as_ptr() as *mut i8;
     (*ed).builtin_xterm[24].bt_entry = 18;
-    (*ed).builtin_xterm[24].bt_string = b"\x1bP$q q\x1b\\\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[24].bt_string = c"\x1bP$q q\x1b\\".as_ptr() as *mut i8;
     (*ed).builtin_xterm[25].bt_entry = 36;
-    (*ed).builtin_xterm[25].bt_string = b"\x1b[%i%d;%dH\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[25].bt_string = c"\x1b[%i%d;%dH".as_ptr() as *mut i8;
     (*ed).builtin_xterm[26].bt_entry = 37;
-    (*ed).builtin_xterm[26].bt_string = b"\x1bM\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[26].bt_string = c"\x1bM".as_ptr() as *mut i8;
     (*ed).builtin_xterm[27].bt_entry = 38;
-    (*ed).builtin_xterm[27].bt_string = b"\x1b[%dC\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[27].bt_string = c"\x1b[%dC".as_ptr() as *mut i8;
 }
 
 unsafe fn init_globals_20(ed: *mut Editor) {
     (*ed).builtin_xterm[28].bt_entry = 40;
-    (*ed).builtin_xterm[28].bt_string = b"\x1b[?1h\x1b=\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[28].bt_string = c"\x1b[?1h\x1b=".as_ptr() as *mut i8;
     (*ed).builtin_xterm[29].bt_entry = 41;
-    (*ed).builtin_xterm[29].bt_string = b"\x1b[?1l\x1b>\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[29].bt_string = c"\x1b[?1l\x1b>".as_ptr() as *mut i8;
     (*ed).builtin_xterm[30].bt_entry = 60;
-    (*ed).builtin_xterm[30].bt_string = b"\x1b]1;\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[30].bt_string = c"\x1b]1;".as_ptr() as *mut i8;
     (*ed).builtin_xterm[31].bt_entry = 61;
-    (*ed).builtin_xterm[31].bt_string = b"\x07\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[31].bt_string = c"\x07".as_ptr() as *mut i8;
     (*ed).builtin_xterm[32].bt_entry = 64;
-    (*ed).builtin_xterm[32].bt_string = b"\x1b]2;\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[32].bt_string = c"\x1b]2;".as_ptr() as *mut i8;
     (*ed).builtin_xterm[33].bt_entry = 65;
-    (*ed).builtin_xterm[33].bt_string = b"\x07\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[33].bt_string = c"\x07".as_ptr() as *mut i8;
     (*ed).builtin_xterm[34].bt_entry = 62;
-    (*ed).builtin_xterm[34].bt_string = b"\x1b]12;\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[34].bt_string = c"\x1b]12;".as_ptr() as *mut i8;
     (*ed).builtin_xterm[35].bt_entry = 63;
-    (*ed).builtin_xterm[35].bt_string = b"\x07\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[35].bt_string = c"\x07".as_ptr() as *mut i8;
     (*ed).builtin_xterm[36].bt_entry = 68;
-    (*ed).builtin_xterm[36].bt_string = b"\x1b[8;%d;%dt\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[36].bt_string = c"\x1b[8;%d;%dt".as_ptr() as *mut i8;
     (*ed).builtin_xterm[37].bt_entry = 66;
-    (*ed).builtin_xterm[37].bt_string = b"\x1b[3;%d;%dt\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[37].bt_string = c"\x1b[3;%d;%dt".as_ptr() as *mut i8;
     (*ed).builtin_xterm[38].bt_entry = 67;
-    (*ed).builtin_xterm[38].bt_string = b"\x1b[13t\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[38].bt_string = c"\x1b[13t".as_ptr() as *mut i8;
     (*ed).builtin_xterm[39].bt_entry = 69;
-    (*ed).builtin_xterm[39].bt_string = b"\x1b[>c\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[39].bt_string = c"\x1b[>c".as_ptr() as *mut i8;
     (*ed).builtin_xterm[40].bt_entry = 70;
-    (*ed).builtin_xterm[40].bt_string = b"\x1b[?1006;1000%?%p1%{1}%=%th%el%;\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[40].bt_string = c"\x1b[?1006;1000%?%p1%{1}%=%th%el%;".as_ptr() as *mut i8;
     (*ed).builtin_xterm[41].bt_entry = 71;
-    (*ed).builtin_xterm[41].bt_string = b"\x1b]10;?\x07\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[41].bt_string = c"\x1b]10;?\x07".as_ptr() as *mut i8;
     (*ed).builtin_xterm[42].bt_entry = 72;
-    (*ed).builtin_xterm[42].bt_string = b"\x1b]11;?\x07\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[42].bt_string = c"\x1b]11;?\x07".as_ptr() as *mut i8;
     (*ed).builtin_xterm[43].bt_entry = 78;
-    (*ed).builtin_xterm[43].bt_string = b"\x1b[6n\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[43].bt_string = c"\x1b[6n".as_ptr() as *mut i8;
     (*ed).builtin_xterm[44].bt_entry = 57;
-    (*ed).builtin_xterm[44].bt_string = b"\x1b[58;5;%dm\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[44].bt_string = c"\x1b[58;5;%dm".as_ptr() as *mut i8;
     (*ed).builtin_xterm[45].bt_entry = 83;
-    (*ed).builtin_xterm[45].bt_string = b"\x1b[?2004l\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[45].bt_string = c"\x1b[?2004l".as_ptr() as *mut i8;
     (*ed).builtin_xterm[46].bt_entry = 84;
-    (*ed).builtin_xterm[46].bt_string = b"\x1b[22;2t\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[46].bt_string = c"\x1b[22;2t".as_ptr() as *mut i8;
     (*ed).builtin_xterm[47].bt_entry = 85;
-    (*ed).builtin_xterm[47].bt_string = b"\x1b[23;2t\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[47].bt_string = c"\x1b[23;2t".as_ptr() as *mut i8;
     (*ed).builtin_xterm[48].bt_entry = 86;
-    (*ed).builtin_xterm[48].bt_string = b"\x1b[22;1t\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[48].bt_string = c"\x1b[22;1t".as_ptr() as *mut i8;
     (*ed).builtin_xterm[49].bt_entry = 87;
-    (*ed).builtin_xterm[49].bt_string = b"\x1b[23;1t\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[49].bt_string = c"\x1b[23;1t".as_ptr() as *mut i8;
     (*ed).builtin_xterm[50].bt_entry = 88;
-    (*ed).builtin_xterm[50].bt_string = b"\x1b[?1004l\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[50].bt_string = c"\x1b[?1004l".as_ptr() as *mut i8;
     (*ed).builtin_xterm[51].bt_entry = 89;
-    (*ed).builtin_xterm[51].bt_string = b"\x1b[?1004h\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[51].bt_string = c"\x1b[?1004h".as_ptr() as *mut i8;
     (*ed).builtin_xterm[52].bt_entry = K_UP;
-    (*ed).builtin_xterm[52].bt_string = b"\x1bO*A\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[52].bt_string = c"\x1bO*A".as_ptr() as *mut i8;
     (*ed).builtin_xterm[53].bt_entry = K_DOWN;
-    (*ed).builtin_xterm[53].bt_string = b"\x1bO*B\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[53].bt_string = c"\x1bO*B".as_ptr() as *mut i8;
     (*ed).builtin_xterm[54].bt_entry = K_RIGHT;
-    (*ed).builtin_xterm[54].bt_string = b"\x1bO*C\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[54].bt_string = c"\x1bO*C".as_ptr() as *mut i8;
     (*ed).builtin_xterm[55].bt_entry = K_LEFT;
-    (*ed).builtin_xterm[55].bt_string = b"\x1bO*D\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[55].bt_string = c"\x1bO*D".as_ptr() as *mut i8;
     (*ed).builtin_xterm[56].bt_entry = K_XUP;
-    (*ed).builtin_xterm[56].bt_string = b"\x1b[@;*A\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[56].bt_string = c"\x1b[@;*A".as_ptr() as *mut i8;
     (*ed).builtin_xterm[57].bt_entry = K_XDOWN;
-    (*ed).builtin_xterm[57].bt_string = b"\x1b[@;*B\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[57].bt_string = c"\x1b[@;*B".as_ptr() as *mut i8;
     (*ed).builtin_xterm[58].bt_entry = K_XRIGHT;
-    (*ed).builtin_xterm[58].bt_string = b"\x1b[@;*C\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[58].bt_string = c"\x1b[@;*C".as_ptr() as *mut i8;
     (*ed).builtin_xterm[59].bt_entry = K_XLEFT;
-    (*ed).builtin_xterm[59].bt_string = b"\x1b[@;*D\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[59].bt_string = c"\x1b[@;*D".as_ptr() as *mut i8;
     (*ed).builtin_xterm[60].bt_entry = K_XF1;
-    (*ed).builtin_xterm[60].bt_string = b"\x1bO*P\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[60].bt_string = c"\x1bO*P".as_ptr() as *mut i8;
     (*ed).builtin_xterm[61].bt_entry = K_XF2;
-    (*ed).builtin_xterm[61].bt_string = b"\x1bO*Q\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[61].bt_string = c"\x1bO*Q".as_ptr() as *mut i8;
     (*ed).builtin_xterm[62].bt_entry = K_XF3;
-    (*ed).builtin_xterm[62].bt_string = b"\x1bO*R\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[62].bt_string = c"\x1bO*R".as_ptr() as *mut i8;
     (*ed).builtin_xterm[63].bt_entry = K_XF4;
-    (*ed).builtin_xterm[63].bt_string = b"\x1bO*S\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[63].bt_string = c"\x1bO*S".as_ptr() as *mut i8;
     (*ed).builtin_xterm[64].bt_entry = K_F1;
-    (*ed).builtin_xterm[64].bt_string = b"\x1b[11;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[64].bt_string = c"\x1b[11;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[65].bt_entry = K_F2;
-    (*ed).builtin_xterm[65].bt_string = b"\x1b[12;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[65].bt_string = c"\x1b[12;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[66].bt_entry = K_F3;
-    (*ed).builtin_xterm[66].bt_string = b"\x1b[13;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[66].bt_string = c"\x1b[13;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[67].bt_entry = K_F4;
-    (*ed).builtin_xterm[67].bt_string = b"\x1b[14;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[67].bt_string = c"\x1b[14;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[68].bt_entry = K_F5;
-    (*ed).builtin_xterm[68].bt_string = b"\x1b[15;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[68].bt_string = c"\x1b[15;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[69].bt_entry = K_F6;
-    (*ed).builtin_xterm[69].bt_string = b"\x1b[17;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[69].bt_string = c"\x1b[17;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[70].bt_entry = K_F7;
-    (*ed).builtin_xterm[70].bt_string = b"\x1b[18;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[70].bt_string = c"\x1b[18;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[71].bt_entry = K_F8;
-    (*ed).builtin_xterm[71].bt_string = b"\x1b[19;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[71].bt_string = c"\x1b[19;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[72].bt_entry = K_F9;
-    (*ed).builtin_xterm[72].bt_string = b"\x1b[20;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[72].bt_string = c"\x1b[20;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[73].bt_entry = K_F10;
-    (*ed).builtin_xterm[73].bt_string = b"\x1b[21;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[73].bt_string = c"\x1b[21;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[74].bt_entry = K_F11;
-    (*ed).builtin_xterm[74].bt_string = b"\x1b[23;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[74].bt_string = c"\x1b[23;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[75].bt_entry = K_F12;
-    (*ed).builtin_xterm[75].bt_string = b"\x1b[24;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[75].bt_string = c"\x1b[24;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[76].bt_entry = K_TC_k_B;
-    (*ed).builtin_xterm[76].bt_string = b"\x1b[Z\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[76].bt_string = c"\x1b[Z".as_ptr() as *mut i8;
     (*ed).builtin_xterm[77].bt_entry = K_HELP;
-    (*ed).builtin_xterm[77].bt_string = b"\x1b[28;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[77].bt_string = c"\x1b[28;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[78].bt_entry = K_UNDO;
-    (*ed).builtin_xterm[78].bt_string = b"\x1b[26;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[78].bt_string = c"\x1b[26;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[79].bt_entry = K_INS;
-    (*ed).builtin_xterm[79].bt_string = b"\x1b[2;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[79].bt_string = c"\x1b[2;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[80].bt_entry = K_HOME;
-    (*ed).builtin_xterm[80].bt_string = b"\x1b[@;*H\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[80].bt_string = c"\x1b[@;*H".as_ptr() as *mut i8;
     (*ed).builtin_xterm[81].bt_entry = K_KHOME;
-    (*ed).builtin_xterm[81].bt_string = b"\x1b[1;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[81].bt_string = c"\x1b[1;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[82].bt_entry = K_XHOME;
-    (*ed).builtin_xterm[82].bt_string = b"\x1bO*H\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[82].bt_string = c"\x1bO*H".as_ptr() as *mut i8;
     (*ed).builtin_xterm[83].bt_entry = K_ZHOME;
-    (*ed).builtin_xterm[83].bt_string = b"\x1b[7;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[83].bt_string = c"\x1b[7;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[84].bt_entry = K_END;
-    (*ed).builtin_xterm[84].bt_string = b"\x1b[@;*F\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[84].bt_string = c"\x1b[@;*F".as_ptr() as *mut i8;
     (*ed).builtin_xterm[85].bt_entry = K_KEND;
-    (*ed).builtin_xterm[85].bt_string = b"\x1b[4;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[85].bt_string = c"\x1b[4;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[86].bt_entry = K_XEND;
-    (*ed).builtin_xterm[86].bt_string = b"\x1bO*F\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[86].bt_string = c"\x1bO*F".as_ptr() as *mut i8;
     (*ed).builtin_xterm[87].bt_entry = K_ZEND;
-    (*ed).builtin_xterm[87].bt_string = b"\x1b[8;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[87].bt_string = c"\x1b[8;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[88].bt_entry = K_PAGEUP;
-    (*ed).builtin_xterm[88].bt_string = b"\x1b[5;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[88].bt_string = c"\x1b[5;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[89].bt_entry = K_PAGEDOWN;
-    (*ed).builtin_xterm[89].bt_string = b"\x1b[6;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[89].bt_string = c"\x1b[6;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[90].bt_entry = K_KPLUS;
-    (*ed).builtin_xterm[90].bt_string = b"\x1bO*k\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[90].bt_string = c"\x1bO*k".as_ptr() as *mut i8;
     (*ed).builtin_xterm[91].bt_entry = K_KMINUS;
-    (*ed).builtin_xterm[91].bt_string = b"\x1bO*m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[91].bt_string = c"\x1bO*m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[92].bt_entry = K_KDIVIDE;
-    (*ed).builtin_xterm[92].bt_string = b"\x1bO*o\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[92].bt_string = c"\x1bO*o".as_ptr() as *mut i8;
     (*ed).builtin_xterm[93].bt_entry = K_KMULTIPLY;
-    (*ed).builtin_xterm[93].bt_string = b"\x1bO*j\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[93].bt_string = c"\x1bO*j".as_ptr() as *mut i8;
     (*ed).builtin_xterm[94].bt_entry = K_KENTER;
-    (*ed).builtin_xterm[94].bt_string = b"\x1bO*M\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[94].bt_string = c"\x1bO*M".as_ptr() as *mut i8;
     (*ed).builtin_xterm[95].bt_entry = K_KPOINT;
-    (*ed).builtin_xterm[95].bt_string = b"\x1bO*n\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[95].bt_string = c"\x1bO*n".as_ptr() as *mut i8;
     (*ed).builtin_xterm[96].bt_entry = K_K0;
-    (*ed).builtin_xterm[96].bt_string = b"\x1bO*p\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[96].bt_string = c"\x1bO*p".as_ptr() as *mut i8;
     (*ed).builtin_xterm[97].bt_entry = K_K1;
-    (*ed).builtin_xterm[97].bt_string = b"\x1bO*q\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[97].bt_string = c"\x1bO*q".as_ptr() as *mut i8;
     (*ed).builtin_xterm[98].bt_entry = K_K2;
-    (*ed).builtin_xterm[98].bt_string = b"\x1bO*r\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[98].bt_string = c"\x1bO*r".as_ptr() as *mut i8;
     (*ed).builtin_xterm[99].bt_entry = K_K3;
-    (*ed).builtin_xterm[99].bt_string = b"\x1bO*s\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[99].bt_string = c"\x1bO*s".as_ptr() as *mut i8;
     (*ed).builtin_xterm[100].bt_entry = K_K4;
-    (*ed).builtin_xterm[100].bt_string = b"\x1bO*t\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[100].bt_string = c"\x1bO*t".as_ptr() as *mut i8;
     (*ed).builtin_xterm[101].bt_entry = K_K5;
-    (*ed).builtin_xterm[101].bt_string = b"\x1bO*u\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[101].bt_string = c"\x1bO*u".as_ptr() as *mut i8;
     (*ed).builtin_xterm[102].bt_entry = K_K6;
-    (*ed).builtin_xterm[102].bt_string = b"\x1bO*v\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[102].bt_string = c"\x1bO*v".as_ptr() as *mut i8;
     (*ed).builtin_xterm[103].bt_entry = K_K7;
-    (*ed).builtin_xterm[103].bt_string = b"\x1bO*w\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[103].bt_string = c"\x1bO*w".as_ptr() as *mut i8;
     (*ed).builtin_xterm[104].bt_entry = K_K8;
-    (*ed).builtin_xterm[104].bt_string = b"\x1bO*x\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[104].bt_string = c"\x1bO*x".as_ptr() as *mut i8;
     (*ed).builtin_xterm[105].bt_entry = K_K9;
-    (*ed).builtin_xterm[105].bt_string = b"\x1bO*y\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[105].bt_string = c"\x1bO*y".as_ptr() as *mut i8;
     (*ed).builtin_xterm[106].bt_entry = K_KDEL;
-    (*ed).builtin_xterm[106].bt_string = b"\x1b[3;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[106].bt_string = c"\x1b[3;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[107].bt_entry = K_PASTESTART;
-    (*ed).builtin_xterm[107].bt_string = b"\x1b[200~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[107].bt_string = c"\x1b[200~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[108].bt_entry = K_PASTEEND;
-    (*ed).builtin_xterm[108].bt_string = b"\x1b[201~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[108].bt_string = c"\x1b[201~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[109].bt_entry = 49;
-    (*ed).builtin_xterm[109].bt_string = b"8\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[109].bt_string = c"8".as_ptr() as *mut i8;
     (*ed).builtin_xterm[110].bt_entry = 56;
-    (*ed).builtin_xterm[110].bt_string = b"\x1b[4%dm\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[110].bt_string = c"\x1b[4%dm".as_ptr() as *mut i8;
     (*ed).builtin_xterm[111].bt_entry = 55;
-    (*ed).builtin_xterm[111].bt_string = b"\x1b[3%dm\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[111].bt_string = c"\x1b[3%dm".as_ptr() as *mut i8;
     (*ed).builtin_xterm[112].bt_entry = 77;
-    (*ed).builtin_xterm[112].bt_string = b"\x1b[0m\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[112].bt_string = c"\x1b[0m".as_ptr() as *mut i8;
     (*ed).builtin_xterm[113].bt_entry = BT_EXTRA_KEYS;
-    (*ed).builtin_xterm[113].bt_string = b"\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[113].bt_string = c"".as_ptr() as *mut i8;
     (*ed).builtin_xterm[114].bt_entry = K_TC_k_0;
-    (*ed).builtin_xterm[114].bt_string = b"\x1b[10;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[114].bt_string = c"\x1b[10;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[115].bt_entry = K_F13;
-    (*ed).builtin_xterm[115].bt_string = b"\x1b[25;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[115].bt_string = c"\x1b[25;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[116].bt_entry = K_F16;
-    (*ed).builtin_xterm[116].bt_string = b"\x1b[29;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[116].bt_string = c"\x1b[29;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[117].bt_entry = K_F17;
-    (*ed).builtin_xterm[117].bt_string = b"\x1b[31;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[117].bt_string = c"\x1b[31;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[118].bt_entry = K_F18;
-    (*ed).builtin_xterm[118].bt_string = b"\x1b[32;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[118].bt_string = c"\x1b[32;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[119].bt_entry = K_F19;
-    (*ed).builtin_xterm[119].bt_string = b"\x1b[33;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[119].bt_string = c"\x1b[33;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[120].bt_entry = K_F20;
-    (*ed).builtin_xterm[120].bt_string = b"\x1b[34;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[120].bt_string = c"\x1b[34;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[121].bt_entry = K_F21;
-    (*ed).builtin_xterm[121].bt_string = b"\x1b[42;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[121].bt_string = c"\x1b[42;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[122].bt_entry = K_F22;
-    (*ed).builtin_xterm[122].bt_string = b"\x1b[43;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[122].bt_string = c"\x1b[43;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[123].bt_entry = K_F23;
-    (*ed).builtin_xterm[123].bt_string = b"\x1b[44;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[123].bt_string = c"\x1b[44;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[124].bt_entry = K_F24;
-    (*ed).builtin_xterm[124].bt_string = b"\x1b[45;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[124].bt_string = c"\x1b[45;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[125].bt_entry = K_F25;
-    (*ed).builtin_xterm[125].bt_string = b"\x1b[46;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[125].bt_string = c"\x1b[46;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[126].bt_entry = K_F26;
-    (*ed).builtin_xterm[126].bt_string = b"\x1b[47;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[126].bt_string = c"\x1b[47;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[127].bt_entry = K_F27;
-    (*ed).builtin_xterm[127].bt_string = b"\x1b[48;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[127].bt_string = c"\x1b[48;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[128].bt_entry = K_F28;
-    (*ed).builtin_xterm[128].bt_string = b"\x1b[49;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[128].bt_string = c"\x1b[49;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[129].bt_entry = K_F29;
-    (*ed).builtin_xterm[129].bt_string = b"\x1b[50;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[129].bt_string = c"\x1b[50;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[130].bt_entry = K_F30;
-    (*ed).builtin_xterm[130].bt_string = b"\x1b[51;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[130].bt_string = c"\x1b[51;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[131].bt_entry = K_F31;
-    (*ed).builtin_xterm[131].bt_string = b"\x1b[52;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[131].bt_string = c"\x1b[52;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[132].bt_entry = K_F32;
-    (*ed).builtin_xterm[132].bt_string = b"\x1b[53;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[132].bt_string = c"\x1b[53;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[133].bt_entry = K_F33;
-    (*ed).builtin_xterm[133].bt_string = b"\x1b[54;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[133].bt_string = c"\x1b[54;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[134].bt_entry = K_F34;
-    (*ed).builtin_xterm[134].bt_string = b"\x1b[55;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[134].bt_string = c"\x1b[55;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[135].bt_entry = K_F35;
-    (*ed).builtin_xterm[135].bt_string = b"\x1b[56;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[135].bt_string = c"\x1b[56;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[136].bt_entry = K_F36;
-    (*ed).builtin_xterm[136].bt_string = b"\x1b[57;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[136].bt_string = c"\x1b[57;*~".as_ptr() as *mut i8;
     (*ed).builtin_xterm[137].bt_entry = K_F37;
-    (*ed).builtin_xterm[137].bt_string = b"\x1b[58;*~\0".as_ptr() as *mut i8;
+    (*ed).builtin_xterm[137].bt_string = c"\x1b[58;*~".as_ptr() as *mut i8;
     (*ed).builtin_mok2[0].bt_entry = 43;
-    (*ed).builtin_mok2[0].bt_string = b"\x1b[>4;2m\0".as_ptr() as *mut i8;
+    (*ed).builtin_mok2[0].bt_string = c"\x1b[>4;2m".as_ptr() as *mut i8;
     (*ed).builtin_mok2[1].bt_entry = 44;
-    (*ed).builtin_mok2[1].bt_string = b"\x1b[?4m\0".as_ptr() as *mut i8;
+    (*ed).builtin_mok2[1].bt_string = c"\x1b[?4m".as_ptr() as *mut i8;
     (*ed).builtin_mok2[2].bt_entry = 46;
-    (*ed).builtin_mok2[2].bt_string = b"\x1b[>4;m\0".as_ptr() as *mut i8;
+    (*ed).builtin_mok2[2].bt_string = c"\x1b[>4;m".as_ptr() as *mut i8;
     (*ed).builtin_kitty[0].bt_entry = 43;
-    (*ed).builtin_kitty[0].bt_string = b"\x1b[=1;1u\0".as_ptr() as *mut i8;
+    (*ed).builtin_kitty[0].bt_string = c"\x1b[=1;1u".as_ptr() as *mut i8;
     (*ed).builtin_kitty[1].bt_entry = 44;
-    (*ed).builtin_kitty[1].bt_string = b"\x1b[?u\0".as_ptr() as *mut i8;
+    (*ed).builtin_kitty[1].bt_string = c"\x1b[?u".as_ptr() as *mut i8;
     (*ed).builtin_kitty[2].bt_entry = 46;
-    (*ed).builtin_kitty[2].bt_string = b"\x1b[>4;m\x1b[=0;1u\0".as_ptr() as *mut i8;
+    (*ed).builtin_kitty[2].bt_string = c"\x1b[>4;m\x1b[=0;1u".as_ptr() as *mut i8;
     (*ed).builtin_kitty[3].bt_entry = 71;
-    (*ed).builtin_kitty[3].bt_string = b"\x1b]10;?\x1b\\\0".as_ptr() as *mut i8;
+    (*ed).builtin_kitty[3].bt_string = c"\x1b]10;?\x1b\\".as_ptr() as *mut i8;
     (*ed).builtin_kitty[4].bt_entry = 72;
-    (*ed).builtin_kitty[4].bt_string = b"\x1b]11;?\x1b\\\0".as_ptr() as *mut i8;
+    (*ed).builtin_kitty[4].bt_string = c"\x1b]11;?\x1b\\".as_ptr() as *mut i8;
     (*ed).builtin_debug[0].bt_entry = 1;
-    (*ed).builtin_debug[0].bt_string = b"[CE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[0].bt_string = c"[CE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[1].bt_entry = 8;
-    (*ed).builtin_debug[1].bt_string = b"[CD]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[1].bt_string = c"[CD]".as_ptr() as *mut i8;
     (*ed).builtin_debug[2].bt_entry = 2;
-    (*ed).builtin_debug[2].bt_string = b"[AL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[2].bt_string = c"[AL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[3].bt_entry = 3;
-    (*ed).builtin_debug[3].bt_string = b"[CAL%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[3].bt_string = c"[CAL%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[4].bt_entry = 4;
-    (*ed).builtin_debug[4].bt_string = b"[DL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[4].bt_string = c"[DL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[5].bt_entry = 5;
-    (*ed).builtin_debug[5].bt_string = b"[CDL%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[5].bt_string = c"[CDL%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[6].bt_entry = 6;
-    (*ed).builtin_debug[6].bt_string = b"[%dCS%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[6].bt_string = c"[%dCS%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[7].bt_entry = 76;
-    (*ed).builtin_debug[7].bt_string = b"[%dCSV%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[7].bt_string = c"[%dCSV%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[8].bt_entry = 56;
-    (*ed).builtin_debug[8].bt_string = b"[CAB%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[8].bt_string = c"[CAB%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[9].bt_entry = 55;
-    (*ed).builtin_debug[9].bt_string = b"[CAF%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[9].bt_string = c"[CAF%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[10].bt_entry = 51;
-    (*ed).builtin_debug[10].bt_string = b"[CSB%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[10].bt_string = c"[CSB%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[11].bt_entry = 50;
-    (*ed).builtin_debug[11].bt_string = b"[CSF%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[11].bt_string = c"[CSF%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[12].bt_entry = 57;
-    (*ed).builtin_debug[12].bt_string = b"[CAU%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[12].bt_string = c"[CAU%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[13].bt_entry = 77;
-    (*ed).builtin_debug[13].bt_string = b"[OP]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[13].bt_string = c"[OP]".as_ptr() as *mut i8;
     (*ed).builtin_debug[14].bt_entry = 58;
-    (*ed).builtin_debug[14].bt_string = b"[LE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[14].bt_string = c"[LE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[15].bt_entry = 7;
-    (*ed).builtin_debug[15].bt_string = b"[CL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[15].bt_string = c"[CL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[16].bt_entry = 12;
-    (*ed).builtin_debug[16].bt_string = b"[VI]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[16].bt_string = c"[VI]".as_ptr() as *mut i8;
     (*ed).builtin_debug[17].bt_entry = 13;
-    (*ed).builtin_debug[17].bt_string = b"[VE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[17].bt_string = c"[VE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[18].bt_entry = 14;
-    (*ed).builtin_debug[18].bt_string = b"[VS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[18].bt_string = c"[VS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[19].bt_entry = 19;
-    (*ed).builtin_debug[19].bt_string = b"[ME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[19].bt_string = c"[ME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[20].bt_entry = 20;
-    (*ed).builtin_debug[20].bt_string = b"[MR]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[20].bt_string = c"[MR]".as_ptr() as *mut i8;
     (*ed).builtin_debug[21].bt_entry = 54;
-    (*ed).builtin_debug[21].bt_string = b"[MB]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[21].bt_string = c"[MB]".as_ptr() as *mut i8;
     (*ed).builtin_debug[22].bt_entry = 21;
-    (*ed).builtin_debug[22].bt_string = b"[MD]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[22].bt_string = c"[MD]".as_ptr() as *mut i8;
     (*ed).builtin_debug[23].bt_entry = 22;
-    (*ed).builtin_debug[23].bt_string = b"[SE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[23].bt_string = c"[SE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[24].bt_entry = 23;
-    (*ed).builtin_debug[24].bt_string = b"[SO]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[24].bt_string = c"[SO]".as_ptr() as *mut i8;
     (*ed).builtin_debug[25].bt_entry = 26;
-    (*ed).builtin_debug[25].bt_string = b"[UE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[25].bt_string = c"[UE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[26].bt_entry = 27;
-    (*ed).builtin_debug[26].bt_string = b"[US]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[26].bt_string = c"[US]".as_ptr() as *mut i8;
     (*ed).builtin_debug[27].bt_entry = 28;
-    (*ed).builtin_debug[27].bt_string = b"[UCE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[27].bt_string = c"[UCE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[28].bt_entry = 29;
-    (*ed).builtin_debug[28].bt_string = b"[UCS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[28].bt_string = c"[UCS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[29].bt_entry = 30;
-    (*ed).builtin_debug[29].bt_string = b"[USS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[29].bt_string = c"[USS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[30].bt_entry = 31;
-    (*ed).builtin_debug[30].bt_string = b"[DS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[30].bt_string = c"[DS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[31].bt_entry = 32;
-    (*ed).builtin_debug[31].bt_string = b"[CDS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[31].bt_string = c"[CDS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[32].bt_entry = 33;
-    (*ed).builtin_debug[32].bt_string = b"[STE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[32].bt_string = c"[STE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[33].bt_entry = 34;
-    (*ed).builtin_debug[33].bt_string = b"[STS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[33].bt_string = c"[STS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[34].bt_entry = 35;
-    (*ed).builtin_debug[34].bt_string = b"[MS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[34].bt_string = c"[MS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[35].bt_entry = 9;
-    (*ed).builtin_debug[35].bt_string = b"[UT]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[35].bt_string = c"[UT]".as_ptr() as *mut i8;
     (*ed).builtin_debug[36].bt_entry = 53;
-    (*ed).builtin_debug[36].bt_string = b"[XN]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[36].bt_string = c"[XN]".as_ptr() as *mut i8;
     (*ed).builtin_debug[37].bt_entry = 36;
-    (*ed).builtin_debug[37].bt_string = b"[%dCM%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[37].bt_string = c"[%dCM%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[38].bt_entry = 37;
-    (*ed).builtin_debug[38].bt_string = b"[SR]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[38].bt_string = c"[SR]".as_ptr() as *mut i8;
     (*ed).builtin_debug[39].bt_entry = 38;
-    (*ed).builtin_debug[39].bt_string = b"[CRI%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[39].bt_string = c"[CRI%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[40].bt_entry = 39;
-    (*ed).builtin_debug[40].bt_string = b"[VB]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[40].bt_string = c"[VB]".as_ptr() as *mut i8;
     (*ed).builtin_debug[41].bt_entry = 40;
-    (*ed).builtin_debug[41].bt_string = b"[KS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[41].bt_string = c"[KS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[42].bt_entry = 41;
-    (*ed).builtin_debug[42].bt_string = b"[KE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[42].bt_string = c"[KE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[43].bt_entry = 42;
-    (*ed).builtin_debug[43].bt_string = b"[TI]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[43].bt_string = c"[TI]".as_ptr() as *mut i8;
     (*ed).builtin_debug[44].bt_entry = 45;
-    (*ed).builtin_debug[44].bt_string = b"[TE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[44].bt_string = c"[TE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[45].bt_entry = 60;
-    (*ed).builtin_debug[45].bt_string = b"[CIS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[45].bt_string = c"[CIS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[46].bt_entry = 61;
-    (*ed).builtin_debug[46].bt_string = b"[CIE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[46].bt_string = c"[CIE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[47].bt_entry = 62;
-    (*ed).builtin_debug[47].bt_string = b"[CSC]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[47].bt_string = c"[CSC]".as_ptr() as *mut i8;
     (*ed).builtin_debug[48].bt_entry = 63;
-    (*ed).builtin_debug[48].bt_string = b"[CEC]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[48].bt_string = c"[CEC]".as_ptr() as *mut i8;
     (*ed).builtin_debug[49].bt_entry = 64;
-    (*ed).builtin_debug[49].bt_string = b"[TS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[49].bt_string = c"[TS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[50].bt_entry = 65;
-    (*ed).builtin_debug[50].bt_string = b"[FS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[50].bt_string = c"[FS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[51].bt_entry = 68;
-    (*ed).builtin_debug[51].bt_string = b"[%dCWS%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[51].bt_string = c"[%dCWS%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[52].bt_entry = 66;
-    (*ed).builtin_debug[52].bt_string = b"[%dCWP%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[52].bt_string = c"[%dCWP%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[53].bt_entry = 69;
-    (*ed).builtin_debug[53].bt_string = b"[CRV]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[53].bt_string = c"[CRV]".as_ptr() as *mut i8;
     (*ed).builtin_debug[54].bt_entry = 70;
-    (*ed).builtin_debug[54].bt_string = b"[CXM]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[54].bt_string = c"[CXM]".as_ptr() as *mut i8;
     (*ed).builtin_debug[55].bt_entry = 78;
-    (*ed).builtin_debug[55].bt_string = b"[U7]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[55].bt_string = c"[U7]".as_ptr() as *mut i8;
     (*ed).builtin_debug[56].bt_entry = 71;
-    (*ed).builtin_debug[56].bt_string = b"[RFG]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[56].bt_string = c"[RFG]".as_ptr() as *mut i8;
     (*ed).builtin_debug[57].bt_entry = 72;
-    (*ed).builtin_debug[57].bt_string = b"[RBG]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[57].bt_string = c"[RBG]".as_ptr() as *mut i8;
     (*ed).builtin_debug[58].bt_entry = 90;
-    (*ed).builtin_debug[58].bt_string = b"[CF%d]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[58].bt_string = c"[CF%d]".as_ptr() as *mut i8;
     (*ed).builtin_debug[59].bt_entry = K_UP;
-    (*ed).builtin_debug[59].bt_string = b"[KU]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[59].bt_string = c"[KU]".as_ptr() as *mut i8;
     (*ed).builtin_debug[60].bt_entry = K_DOWN;
-    (*ed).builtin_debug[60].bt_string = b"[KD]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[60].bt_string = c"[KD]".as_ptr() as *mut i8;
     (*ed).builtin_debug[61].bt_entry = K_LEFT;
-    (*ed).builtin_debug[61].bt_string = b"[KL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[61].bt_string = c"[KL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[62].bt_entry = K_RIGHT;
-    (*ed).builtin_debug[62].bt_string = b"[KR]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[62].bt_string = c"[KR]".as_ptr() as *mut i8;
     (*ed).builtin_debug[63].bt_entry = K_XUP;
-    (*ed).builtin_debug[63].bt_string = b"[xKU]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[63].bt_string = c"[xKU]".as_ptr() as *mut i8;
     (*ed).builtin_debug[64].bt_entry = K_XDOWN;
-    (*ed).builtin_debug[64].bt_string = b"[xKD]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[64].bt_string = c"[xKD]".as_ptr() as *mut i8;
     (*ed).builtin_debug[65].bt_entry = K_XLEFT;
-    (*ed).builtin_debug[65].bt_string = b"[xKL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[65].bt_string = c"[xKL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[66].bt_entry = K_XRIGHT;
-    (*ed).builtin_debug[66].bt_string = b"[xKR]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[66].bt_string = c"[xKR]".as_ptr() as *mut i8;
     (*ed).builtin_debug[67].bt_entry = K_S_UP;
-    (*ed).builtin_debug[67].bt_string = b"[S-KU]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[67].bt_string = c"[S-KU]".as_ptr() as *mut i8;
     (*ed).builtin_debug[68].bt_entry = K_S_DOWN;
-    (*ed).builtin_debug[68].bt_string = b"[S-KD]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[68].bt_string = c"[S-KD]".as_ptr() as *mut i8;
     (*ed).builtin_debug[69].bt_entry = K_TC_HASH_4;
-    (*ed).builtin_debug[69].bt_string = b"[S-KL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[69].bt_string = c"[S-KL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[70].bt_entry = K_C_LEFT;
-    (*ed).builtin_debug[70].bt_string = b"[C-KL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[70].bt_string = c"[C-KL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[71].bt_entry = K_TC_PCT_i;
-    (*ed).builtin_debug[71].bt_string = b"[S-KR]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[71].bt_string = c"[S-KR]".as_ptr() as *mut i8;
     (*ed).builtin_debug[72].bt_entry = K_C_RIGHT;
-    (*ed).builtin_debug[72].bt_string = b"[C-KR]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[72].bt_string = c"[C-KR]".as_ptr() as *mut i8;
     (*ed).builtin_debug[73].bt_entry = K_F1;
-    (*ed).builtin_debug[73].bt_string = b"[F1]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[73].bt_string = c"[F1]".as_ptr() as *mut i8;
     (*ed).builtin_debug[74].bt_entry = K_XF1;
-    (*ed).builtin_debug[74].bt_string = b"[xF1]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[74].bt_string = c"[xF1]".as_ptr() as *mut i8;
     (*ed).builtin_debug[75].bt_entry = K_F2;
-    (*ed).builtin_debug[75].bt_string = b"[F2]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[75].bt_string = c"[F2]".as_ptr() as *mut i8;
     (*ed).builtin_debug[76].bt_entry = K_XF2;
-    (*ed).builtin_debug[76].bt_string = b"[xF2]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[76].bt_string = c"[xF2]".as_ptr() as *mut i8;
     (*ed).builtin_debug[77].bt_entry = K_F3;
-    (*ed).builtin_debug[77].bt_string = b"[F3]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[77].bt_string = c"[F3]".as_ptr() as *mut i8;
     (*ed).builtin_debug[78].bt_entry = K_XF3;
-    (*ed).builtin_debug[78].bt_string = b"[xF3]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[78].bt_string = c"[xF3]".as_ptr() as *mut i8;
     (*ed).builtin_debug[79].bt_entry = K_F4;
-    (*ed).builtin_debug[79].bt_string = b"[F4]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[79].bt_string = c"[F4]".as_ptr() as *mut i8;
     (*ed).builtin_debug[80].bt_entry = K_XF4;
-    (*ed).builtin_debug[80].bt_string = b"[xF4]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[80].bt_string = c"[xF4]".as_ptr() as *mut i8;
     (*ed).builtin_debug[81].bt_entry = K_F5;
-    (*ed).builtin_debug[81].bt_string = b"[F5]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[81].bt_string = c"[F5]".as_ptr() as *mut i8;
 }
 
 unsafe fn init_globals_21(ed: *mut Editor) {
     (*ed).builtin_debug[82].bt_entry = K_F6;
-    (*ed).builtin_debug[82].bt_string = b"[F6]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[82].bt_string = c"[F6]".as_ptr() as *mut i8;
     (*ed).builtin_debug[83].bt_entry = K_F7;
-    (*ed).builtin_debug[83].bt_string = b"[F7]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[83].bt_string = c"[F7]".as_ptr() as *mut i8;
     (*ed).builtin_debug[84].bt_entry = K_F8;
-    (*ed).builtin_debug[84].bt_string = b"[F8]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[84].bt_string = c"[F8]".as_ptr() as *mut i8;
     (*ed).builtin_debug[85].bt_entry = K_F9;
-    (*ed).builtin_debug[85].bt_string = b"[F9]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[85].bt_string = c"[F9]".as_ptr() as *mut i8;
     (*ed).builtin_debug[86].bt_entry = K_F10;
-    (*ed).builtin_debug[86].bt_string = b"[F10]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[86].bt_string = c"[F10]".as_ptr() as *mut i8;
     (*ed).builtin_debug[87].bt_entry = K_F11;
-    (*ed).builtin_debug[87].bt_string = b"[F11]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[87].bt_string = c"[F11]".as_ptr() as *mut i8;
     (*ed).builtin_debug[88].bt_entry = K_F12;
-    (*ed).builtin_debug[88].bt_string = b"[F12]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[88].bt_string = c"[F12]".as_ptr() as *mut i8;
     (*ed).builtin_debug[89].bt_entry = K_S_F1;
-    (*ed).builtin_debug[89].bt_string = b"[S-F1]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[89].bt_string = c"[S-F1]".as_ptr() as *mut i8;
     (*ed).builtin_debug[90].bt_entry = K_S_XF1;
-    (*ed).builtin_debug[90].bt_string = b"[S-xF1]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[90].bt_string = c"[S-xF1]".as_ptr() as *mut i8;
     (*ed).builtin_debug[91].bt_entry = K_S_F2;
-    (*ed).builtin_debug[91].bt_string = b"[S-F2]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[91].bt_string = c"[S-F2]".as_ptr() as *mut i8;
     (*ed).builtin_debug[92].bt_entry = K_S_XF2;
-    (*ed).builtin_debug[92].bt_string = b"[S-xF2]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[92].bt_string = c"[S-xF2]".as_ptr() as *mut i8;
     (*ed).builtin_debug[93].bt_entry = K_S_F3;
-    (*ed).builtin_debug[93].bt_string = b"[S-F3]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[93].bt_string = c"[S-F3]".as_ptr() as *mut i8;
     (*ed).builtin_debug[94].bt_entry = K_S_XF3;
-    (*ed).builtin_debug[94].bt_string = b"[S-xF3]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[94].bt_string = c"[S-xF3]".as_ptr() as *mut i8;
     (*ed).builtin_debug[95].bt_entry = K_S_F4;
-    (*ed).builtin_debug[95].bt_string = b"[S-F4]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[95].bt_string = c"[S-F4]".as_ptr() as *mut i8;
     (*ed).builtin_debug[96].bt_entry = K_S_XF4;
-    (*ed).builtin_debug[96].bt_string = b"[S-xF4]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[96].bt_string = c"[S-xF4]".as_ptr() as *mut i8;
     (*ed).builtin_debug[97].bt_entry = K_S_F5;
-    (*ed).builtin_debug[97].bt_string = b"[S-F5]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[97].bt_string = c"[S-F5]".as_ptr() as *mut i8;
     (*ed).builtin_debug[98].bt_entry = K_S_F6;
-    (*ed).builtin_debug[98].bt_string = b"[S-F6]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[98].bt_string = c"[S-F6]".as_ptr() as *mut i8;
     (*ed).builtin_debug[99].bt_entry = K_S_F7;
-    (*ed).builtin_debug[99].bt_string = b"[S-F7]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[99].bt_string = c"[S-F7]".as_ptr() as *mut i8;
     (*ed).builtin_debug[100].bt_entry = K_S_F8;
-    (*ed).builtin_debug[100].bt_string = b"[S-F8]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[100].bt_string = c"[S-F8]".as_ptr() as *mut i8;
     (*ed).builtin_debug[101].bt_entry = K_S_F9;
-    (*ed).builtin_debug[101].bt_string = b"[S-F9]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[101].bt_string = c"[S-F9]".as_ptr() as *mut i8;
     (*ed).builtin_debug[102].bt_entry = K_S_F10;
-    (*ed).builtin_debug[102].bt_string = b"[S-F10]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[102].bt_string = c"[S-F10]".as_ptr() as *mut i8;
     (*ed).builtin_debug[103].bt_entry = K_S_F11;
-    (*ed).builtin_debug[103].bt_string = b"[S-F11]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[103].bt_string = c"[S-F11]".as_ptr() as *mut i8;
     (*ed).builtin_debug[104].bt_entry = K_S_F12;
-    (*ed).builtin_debug[104].bt_string = b"[S-F12]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[104].bt_string = c"[S-F12]".as_ptr() as *mut i8;
     (*ed).builtin_debug[105].bt_entry = K_HELP;
-    (*ed).builtin_debug[105].bt_string = b"[HELP]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[105].bt_string = c"[HELP]".as_ptr() as *mut i8;
     (*ed).builtin_debug[106].bt_entry = K_UNDO;
-    (*ed).builtin_debug[106].bt_string = b"[UNDO]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[106].bt_string = c"[UNDO]".as_ptr() as *mut i8;
     (*ed).builtin_debug[107].bt_entry = K_BS;
-    (*ed).builtin_debug[107].bt_string = b"[BS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[107].bt_string = c"[BS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[108].bt_entry = K_INS;
-    (*ed).builtin_debug[108].bt_string = b"[INS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[108].bt_string = c"[INS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[109].bt_entry = K_KINS;
-    (*ed).builtin_debug[109].bt_string = b"[KINS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[109].bt_string = c"[KINS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[110].bt_entry = K_DEL;
-    (*ed).builtin_debug[110].bt_string = b"[DEL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[110].bt_string = c"[DEL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[111].bt_entry = K_KDEL;
-    (*ed).builtin_debug[111].bt_string = b"[KDEL]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[111].bt_string = c"[KDEL]".as_ptr() as *mut i8;
     (*ed).builtin_debug[112].bt_entry = K_HOME;
-    (*ed).builtin_debug[112].bt_string = b"[HOME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[112].bt_string = c"[HOME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[113].bt_entry = K_TC_HASH_2;
-    (*ed).builtin_debug[113].bt_string = b"[C-HOME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[113].bt_string = c"[C-HOME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[114].bt_entry = K_C_HOME;
-    (*ed).builtin_debug[114].bt_string = b"[C-HOME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[114].bt_string = c"[C-HOME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[115].bt_entry = K_KHOME;
-    (*ed).builtin_debug[115].bt_string = b"[KHOME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[115].bt_string = c"[KHOME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[116].bt_entry = K_XHOME;
-    (*ed).builtin_debug[116].bt_string = b"[XHOME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[116].bt_string = c"[XHOME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[117].bt_entry = K_ZHOME;
-    (*ed).builtin_debug[117].bt_string = b"[ZHOME]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[117].bt_string = c"[ZHOME]".as_ptr() as *mut i8;
     (*ed).builtin_debug[118].bt_entry = K_END;
-    (*ed).builtin_debug[118].bt_string = b"[END]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[118].bt_string = c"[END]".as_ptr() as *mut i8;
     (*ed).builtin_debug[119].bt_entry = K_TC_STAR_7;
-    (*ed).builtin_debug[119].bt_string = b"[C-END]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[119].bt_string = c"[C-END]".as_ptr() as *mut i8;
     (*ed).builtin_debug[120].bt_entry = K_C_END;
-    (*ed).builtin_debug[120].bt_string = b"[C-END]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[120].bt_string = c"[C-END]".as_ptr() as *mut i8;
     (*ed).builtin_debug[121].bt_entry = K_KEND;
-    (*ed).builtin_debug[121].bt_string = b"[KEND]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[121].bt_string = c"[KEND]".as_ptr() as *mut i8;
     (*ed).builtin_debug[122].bt_entry = K_XEND;
-    (*ed).builtin_debug[122].bt_string = b"[XEND]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[122].bt_string = c"[XEND]".as_ptr() as *mut i8;
     (*ed).builtin_debug[123].bt_entry = K_ZEND;
-    (*ed).builtin_debug[123].bt_string = b"[ZEND]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[123].bt_string = c"[ZEND]".as_ptr() as *mut i8;
     (*ed).builtin_debug[124].bt_entry = K_PAGEUP;
-    (*ed).builtin_debug[124].bt_string = b"[PAGEUP]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[124].bt_string = c"[PAGEUP]".as_ptr() as *mut i8;
     (*ed).builtin_debug[125].bt_entry = K_PAGEDOWN;
-    (*ed).builtin_debug[125].bt_string = b"[PAGEDOWN]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[125].bt_string = c"[PAGEDOWN]".as_ptr() as *mut i8;
     (*ed).builtin_debug[126].bt_entry = K_KPAGEUP;
-    (*ed).builtin_debug[126].bt_string = b"[KPAGEUP]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[126].bt_string = c"[KPAGEUP]".as_ptr() as *mut i8;
     (*ed).builtin_debug[127].bt_entry = K_KPAGEDOWN;
-    (*ed).builtin_debug[127].bt_string = b"[KPAGEDOWN]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[127].bt_string = c"[KPAGEDOWN]".as_ptr() as *mut i8;
     (*ed).builtin_debug[128].bt_entry = K_KPLUS;
-    (*ed).builtin_debug[128].bt_string = b"[KPLUS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[128].bt_string = c"[KPLUS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[129].bt_entry = K_KMINUS;
-    (*ed).builtin_debug[129].bt_string = b"[KMINUS]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[129].bt_string = c"[KMINUS]".as_ptr() as *mut i8;
     (*ed).builtin_debug[130].bt_entry = K_KDIVIDE;
-    (*ed).builtin_debug[130].bt_string = b"[KDIVIDE]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[130].bt_string = c"[KDIVIDE]".as_ptr() as *mut i8;
     (*ed).builtin_debug[131].bt_entry = K_KMULTIPLY;
-    (*ed).builtin_debug[131].bt_string = b"[KMULTIPLY]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[131].bt_string = c"[KMULTIPLY]".as_ptr() as *mut i8;
     (*ed).builtin_debug[132].bt_entry = K_KENTER;
-    (*ed).builtin_debug[132].bt_string = b"[KENTER]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[132].bt_string = c"[KENTER]".as_ptr() as *mut i8;
     (*ed).builtin_debug[133].bt_entry = K_KPOINT;
-    (*ed).builtin_debug[133].bt_string = b"[KPOINT]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[133].bt_string = c"[KPOINT]".as_ptr() as *mut i8;
     (*ed).builtin_debug[134].bt_entry = K_PASTESTART;
-    (*ed).builtin_debug[134].bt_string = b"[PASTE-START]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[134].bt_string = c"[PASTE-START]".as_ptr() as *mut i8;
     (*ed).builtin_debug[135].bt_entry = K_PASTEEND;
-    (*ed).builtin_debug[135].bt_string = b"[PASTE-END]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[135].bt_string = c"[PASTE-END]".as_ptr() as *mut i8;
     (*ed).builtin_debug[136].bt_entry = K_K0;
-    (*ed).builtin_debug[136].bt_string = b"[K0]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[136].bt_string = c"[K0]".as_ptr() as *mut i8;
     (*ed).builtin_debug[137].bt_entry = K_K1;
-    (*ed).builtin_debug[137].bt_string = b"[K1]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[137].bt_string = c"[K1]".as_ptr() as *mut i8;
     (*ed).builtin_debug[138].bt_entry = K_K2;
-    (*ed).builtin_debug[138].bt_string = b"[K2]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[138].bt_string = c"[K2]".as_ptr() as *mut i8;
     (*ed).builtin_debug[139].bt_entry = K_K3;
-    (*ed).builtin_debug[139].bt_string = b"[K3]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[139].bt_string = c"[K3]".as_ptr() as *mut i8;
     (*ed).builtin_debug[140].bt_entry = K_K4;
-    (*ed).builtin_debug[140].bt_string = b"[K4]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[140].bt_string = c"[K4]".as_ptr() as *mut i8;
     (*ed).builtin_debug[141].bt_entry = K_K5;
-    (*ed).builtin_debug[141].bt_string = b"[K5]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[141].bt_string = c"[K5]".as_ptr() as *mut i8;
     (*ed).builtin_debug[142].bt_entry = K_K6;
-    (*ed).builtin_debug[142].bt_string = b"[K6]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[142].bt_string = c"[K6]".as_ptr() as *mut i8;
     (*ed).builtin_debug[143].bt_entry = K_K7;
-    (*ed).builtin_debug[143].bt_string = b"[K7]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[143].bt_string = c"[K7]".as_ptr() as *mut i8;
     (*ed).builtin_debug[144].bt_entry = K_K8;
-    (*ed).builtin_debug[144].bt_string = b"[K8]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[144].bt_string = c"[K8]".as_ptr() as *mut i8;
     (*ed).builtin_debug[145].bt_entry = K_K9;
-    (*ed).builtin_debug[145].bt_string = b"[K9]\0".as_ptr() as *mut i8;
+    (*ed).builtin_debug[145].bt_string = c"[K9]".as_ptr() as *mut i8;
     (*ed).builtin_256colors[0].bt_entry = 49;
-    (*ed).builtin_256colors[0].bt_string = b"256\0".as_ptr() as *mut i8;
+    (*ed).builtin_256colors[0].bt_string = c"256".as_ptr() as *mut i8;
     (*ed).builtin_256colors[1].bt_entry = 56;
-    (*ed).builtin_256colors[1].bt_string = b"\x1b[48;5;%dm\0".as_ptr() as *mut i8;
+    (*ed).builtin_256colors[1].bt_string = c"\x1b[48;5;%dm".as_ptr() as *mut i8;
     (*ed).builtin_256colors[2].bt_entry = 55;
-    (*ed).builtin_256colors[2].bt_string = b"\x1b[38;5;%dm\0".as_ptr() as *mut i8;
-    (*ed).builtin_terminals[0].bitc_name = b"xterm-256color\0".as_ptr() as *mut i8;
+    (*ed).builtin_256colors[2].bt_string = c"\x1b[38;5;%dm".as_ptr() as *mut i8;
+    (*ed).builtin_terminals[0].bitc_name = c"xterm-256color".as_ptr() as *mut i8;
     (*ed).builtin_terminals[0].bitc_table = decay(&raw mut (*ed).builtin_xterm);
-    (*ed).builtin_terminals[1].bitc_name = b"debug\0".as_ptr() as *mut i8;
+    (*ed).builtin_terminals[1].bitc_name = c"debug".as_ptr() as *mut i8;
     (*ed).builtin_terminals[1].bitc_table = decay(&raw mut (*ed).builtin_debug);
     (*ed).need_gather = false;
     (*ed).send_t_RK = false;
@@ -12540,9 +12540,9 @@ unsafe fn init_globals_21(ed: *mut Editor) {
     (*ed).did_initial_scroll_size_snapshot = false;
     (*ed).min_set_ch = 1;
     (*ed).command_frame_height = true;
-    (*ed).main_errors[0] = b"Unknown option argument\0".as_ptr() as *mut i8;
-    (*ed).main_errors[1] = b"Too many \"+command\", \"-c command\" or \"--cmd command\" arguments\0".as_ptr() as *mut i8;
-    (*ed).main_errors[2] = b"Invalid argument for\0".as_ptr() as *mut i8;
+    (*ed).main_errors[0] = c"Unknown option argument".as_ptr() as *mut i8;
+    (*ed).main_errors[1] = c"Too many \"+command\", \"-c command\" or \"--cmd command\" arguments".as_ptr() as *mut i8;
+    (*ed).main_errors[2] = c"Invalid argument for".as_ptr() as *mut i8;
     (*ed).win_redr_status__busy = false;
     (*ed).win_update__recursive = false;
     (*ed).ins_esc__disabled_redraw = false;
@@ -13892,75 +13892,75 @@ unsafe fn init_globals_24(ed: *mut Editor) {
     (*ed).add_to_showcmd__ignore[23] = K_COMMAND;
     (*ed).add_to_showcmd__ignore[24] = K_SCRIPT_COMMAND;
     (*ed).v_visop__trans = str_u8::<17>(b"YyDdCcxdXdAAIIrr");
-    (*ed).nv_optrans__ar[0] = b"dl\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[1] = b"dh\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[2] = b"d$\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[3] = b"c$\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[4] = b"cl\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[5] = b"cc\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[6] = b"yy\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__ar[7] = b":s\r\0".as_ptr() as *mut u8;
-    (*ed).nv_optrans__str = b"xXDCsSY&\0".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[0] = c"dl".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[1] = c"dh".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[2] = c"d$".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[3] = c"c$".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[4] = c"cl".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[5] = c"cc".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[6] = c"yy".as_ptr() as *mut u8;
+    (*ed).nv_optrans__ar[7] = c":s\r".as_ptr() as *mut u8;
+    (*ed).nv_optrans__str = c"xXDCsSY&".as_ptr() as *mut u8;
     (*ed).do_addsub__hexupper = false;
     (*ed).do_pending_operator__redo_VIsual.rv_mode = NUL;
     (*ed).did_set_paste__old_p_paste = FALSE;
     (*ed).vim_handle_signal__blocked = true;
     (*ed).get_char_class__char_class_tab[0].key = CLASS_ALNUM;
-    (*ed).get_char_class__char_class_tab[0].value.string = b"alnum:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[0].value.string = c"alnum:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[0].value.length = 7;
     (*ed).get_char_class__char_class_tab[1].key = CLASS_ALPHA;
-    (*ed).get_char_class__char_class_tab[1].value.string = b"alpha:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[1].value.string = c"alpha:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[1].value.length = 7;
     (*ed).get_char_class__char_class_tab[2].key = CLASS_BACKSPACE;
-    (*ed).get_char_class__char_class_tab[2].value.string = b"backspace:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[2].value.string = c"backspace:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[2].value.length = 11;
     (*ed).get_char_class__char_class_tab[3].key = CLASS_BLANK;
-    (*ed).get_char_class__char_class_tab[3].value.string = b"blank:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[3].value.string = c"blank:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[3].value.length = 7;
     (*ed).get_char_class__char_class_tab[4].key = CLASS_CNTRL;
-    (*ed).get_char_class__char_class_tab[4].value.string = b"cntrl:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[4].value.string = c"cntrl:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[4].value.length = 7;
     (*ed).get_char_class__char_class_tab[5].key = CLASS_DIGIT;
-    (*ed).get_char_class__char_class_tab[5].value.string = b"digit:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[5].value.string = c"digit:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[5].value.length = 7;
     (*ed).get_char_class__char_class_tab[6].key = CLASS_ESCAPE;
-    (*ed).get_char_class__char_class_tab[6].value.string = b"escape:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[6].value.string = c"escape:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[6].value.length = 8;
     (*ed).get_char_class__char_class_tab[7].key = CLASS_FNAME;
-    (*ed).get_char_class__char_class_tab[7].value.string = b"fname:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[7].value.string = c"fname:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[7].value.length = 7;
     (*ed).get_char_class__char_class_tab[8].key = CLASS_GRAPH;
-    (*ed).get_char_class__char_class_tab[8].value.string = b"graph:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[8].value.string = c"graph:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[8].value.length = 7;
     (*ed).get_char_class__char_class_tab[9].key = CLASS_IDENT;
-    (*ed).get_char_class__char_class_tab[9].value.string = b"ident:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[9].value.string = c"ident:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[9].value.length = 7;
     (*ed).get_char_class__char_class_tab[10].key = CLASS_KEYWORD;
-    (*ed).get_char_class__char_class_tab[10].value.string = b"keyword:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[10].value.string = c"keyword:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[10].value.length = 9;
     (*ed).get_char_class__char_class_tab[11].key = CLASS_LOWER;
-    (*ed).get_char_class__char_class_tab[11].value.string = b"lower:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[11].value.string = c"lower:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[11].value.length = 7;
     (*ed).get_char_class__char_class_tab[12].key = CLASS_PRINT;
-    (*ed).get_char_class__char_class_tab[12].value.string = b"print:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[12].value.string = c"print:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[12].value.length = 7;
     (*ed).get_char_class__char_class_tab[13].key = CLASS_PUNCT;
-    (*ed).get_char_class__char_class_tab[13].value.string = b"punct:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[13].value.string = c"punct:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[13].value.length = 7;
     (*ed).get_char_class__char_class_tab[14].key = CLASS_RETURN;
-    (*ed).get_char_class__char_class_tab[14].value.string = b"return:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[14].value.string = c"return:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[14].value.length = 8;
     (*ed).get_char_class__char_class_tab[15].key = CLASS_SPACE;
-    (*ed).get_char_class__char_class_tab[15].value.string = b"space:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[15].value.string = c"space:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[15].value.length = 7;
     (*ed).get_char_class__char_class_tab[16].key = CLASS_TAB;
-    (*ed).get_char_class__char_class_tab[16].value.string = b"tab:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[16].value.string = c"tab:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[16].value.length = 5;
     (*ed).get_char_class__char_class_tab[17].key = CLASS_UPPER;
-    (*ed).get_char_class__char_class_tab[17].value.string = b"upper:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[17].value.string = c"upper:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[17].value.length = 7;
     (*ed).get_char_class__char_class_tab[18].key = CLASS_XDIGIT;
-    (*ed).get_char_class__char_class_tab[18].value.string = b"xdigit:]\0".as_ptr() as *mut u8;
+    (*ed).get_char_class__char_class_tab[18].value.string = c"xdigit:]".as_ptr() as *mut u8;
     (*ed).get_char_class__char_class_tab[18].value.length = 8;
     (*ed).init_class_tab__done = false;
     (*ed).peekchr__after_slash = FALSE;
@@ -14569,7 +14569,7 @@ pub unsafe fn can_unload_buffer(ed: *mut Editor, buf: *mut buf_T) -> bool {
         can_unload = false;
     }
     if !can_unload {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_attempt_to_delete_buffer_that_is_in_use_str), &[VArg::P(b"[No Name]\0".as_ptr() as *mut u8 as *mut c_void)]);
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_attempt_to_delete_buffer_that_is_in_use_str), &[VArg::P(c"[No Name]".as_ptr() as *mut u8 as *mut c_void)]);
         emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_attempt_to_delete_buffer_that_is_in_use_str)));
     }
     can_unload
@@ -14709,7 +14709,7 @@ pub unsafe fn buflist_new(ed: *mut Editor, lnum: linenr_T, flags: i32) -> *mut b
     } else {
         (*buf).b_fnum = { t1 = (*ed).top_file_num; (*ed).top_file_num = t1 + 1; t1 };
         if (*ed).top_file_num < 0 {
-            emsg(ed, b"W14: Warning: List of file names overflow\0".as_ptr() as *mut i8);
+            emsg(ed, c"W14: Warning: List of file names overflow".as_ptr() as *mut i8);
             if (*ed).emsg_silent == 0 && !(*ed).in_assert_fails {
                 out_flush(ed);
                 ui_delay(ed, 3001, true);
@@ -14802,20 +14802,20 @@ pub unsafe fn fileinfo(ed: *mut Editor, fullname: i32, _shorthelp: bool, dont_tr
     let mut bufferlen: usize_ = 0;
     let buffer: *mut i8 = alloc(ed, 1025) as *mut i8;
     if fullname > 1 {
-        bufferlen = safelen_result(buffer, 1025, crate::host::vim_snprintf(ed, buffer, 1025, b"buf %d: \0".as_ptr() as *mut i8, &[VArg::I((*(*ed).curbuf).b_fnum as i64)]));
+        bufferlen = safelen_result(buffer, 1025, crate::host::vim_snprintf(ed, buffer, 1025, c"buf %d: ".as_ptr() as *mut i8, &[VArg::I((*(*ed).curbuf).b_fnum as i64)]));
     }
     *buffer.wrapping_add(bufferlen as usize) = b'"' as i8;
     bufferlen = bufferlen.wrapping_add(1);
     let name: *mut char_u = buf_spname((*ed).curbuf);
-    bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), b"%s\0".as_ptr() as *mut i8, &[VArg::P(name as *mut c_void)])));
-    let new_msg: *mut i8 = if (*(*ed).curbuf).b_flags & BF_NEW != 0 { new_file_message(ed) } else { b"\0".as_ptr() as *mut i8 };
-    bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), b"\"%s%s%s%s%s\0".as_ptr() as *mut i8, &[VArg::P((if curbufIsChanged(ed) != 0 { if shortmess(ed, SHM_MOD) { b" [+]\0".as_ptr() as *mut i8 } else { b" [Modified]\0".as_ptr() as *mut i8 } } else { b" \0".as_ptr() as *mut i8 }) as *mut c_void), VArg::P((if (*(*ed).curbuf).b_flags & BF_NOTEDITED != 0 { b"[Not edited]\0".as_ptr() as *mut i8 } else { b"\0".as_ptr() as *mut i8 }) as *mut c_void), VArg::P(new_msg as *mut c_void), VArg::P((if (*(*ed).curbuf).b_flags & BF_READERR != 0 { b"[Read errors]\0".as_ptr() as *mut i8 } else { b"\0".as_ptr() as *mut i8 }) as *mut c_void), VArg::P((if curbufIsChanged(ed) != 0 || (*(*ed).curbuf).b_flags & 88 != 0 { b" \0".as_ptr() as *mut i8 } else { b"\0".as_ptr() as *mut i8 }) as *mut c_void)])));
+    bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), c"%s".as_ptr() as *mut i8, &[VArg::P(name as *mut c_void)])));
+    let new_msg: *mut i8 = if (*(*ed).curbuf).b_flags & BF_NEW != 0 { new_file_message(ed) } else { c"".as_ptr() as *mut i8 };
+    bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), c"\"%s%s%s%s%s".as_ptr() as *mut i8, &[VArg::P((if curbufIsChanged(ed) != 0 { if shortmess(ed, SHM_MOD) { c" [+]".as_ptr() as *mut i8 } else { c" [Modified]".as_ptr() as *mut i8 } } else { c" ".as_ptr() as *mut i8 }) as *mut c_void), VArg::P((if (*(*ed).curbuf).b_flags & BF_NOTEDITED != 0 { c"[Not edited]".as_ptr() as *mut i8 } else { c"".as_ptr() as *mut i8 }) as *mut c_void), VArg::P(new_msg as *mut c_void), VArg::P((if (*(*ed).curbuf).b_flags & BF_READERR != 0 { c"[Read errors]".as_ptr() as *mut i8 } else { c"".as_ptr() as *mut i8 }) as *mut c_void), VArg::P((if curbufIsChanged(ed) != 0 || (*(*ed).curbuf).b_flags & 88 != 0 { c" ".as_ptr() as *mut i8 } else { c"".as_ptr() as *mut i8 }) as *mut c_void)])));
     if (*(*ed).curbuf).b_ml.ml_flags & ML_EMPTY != 0 {
-        bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), b"%s\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut (*ed).no_lines_msg) as *mut c_void)])));
+        bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), c"%s".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut (*ed).no_lines_msg) as *mut c_void)])));
     } else if (*ed).p_ru != 0 {
-        bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), NGETTEXT(b"%ld line --%d%%--\0".as_ptr() as *mut i8, b"%ld lines --%d%%--\0".as_ptr() as *mut i8, (*(*ed).curbuf).b_ml.ml_line_count as u64), &[VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(calc_percentage((*(*ed).curwin).w_cursor.lnum, (*(*ed).curbuf).b_ml.ml_line_count) as i64)])));
+        bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), NGETTEXT(c"%ld line --%d%%--".as_ptr() as *mut i8, c"%ld lines --%d%%--".as_ptr() as *mut i8, (*(*ed).curbuf).b_ml.ml_line_count as u64), &[VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(calc_percentage((*(*ed).curwin).w_cursor.lnum, (*(*ed).curbuf).b_ml.ml_line_count) as i64)])));
     } else {
-        bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), b"line %ld of %ld --%d%%-- col \0".as_ptr() as *mut i8, &[VArg::I((*(*ed).curwin).w_cursor.lnum), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(calc_percentage((*(*ed).curwin).w_cursor.lnum, (*(*ed).curbuf).b_ml.ml_line_count) as i64)])));
+        bufferlen = bufferlen.wrapping_add(safelen_result(buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), crate::host::vim_snprintf(ed, buffer.wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), c"line %ld of %ld --%d%%-- col ".as_ptr() as *mut i8, &[VArg::I((*(*ed).curwin).w_cursor.lnum), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(calc_percentage((*(*ed).curwin).w_cursor.lnum, (*(*ed).curbuf).b_ml.ml_line_count) as i64)])));
         validate_virtcol(ed);
         bufferlen = bufferlen.wrapping_add(col_print(ed, (buffer as *mut u8).wrapping_add(bufferlen as usize), 1025u64.wrapping_sub(bufferlen), (*(*ed).curwin).w_cursor.col + 1, (*(*ed).curwin).w_virtcol + 1) as u64);
     }
@@ -14835,9 +14835,9 @@ pub unsafe fn fileinfo(ed: *mut Editor, fullname: i32, _shorthelp: bool, dont_tr
 
 pub unsafe fn col_print(ed: *mut Editor, buf: *mut char_u, buflen: usize_, col: i32, vcol: i32) -> i32 {
     if col == vcol {
-        return safelen_result(buf as *mut i8, buflen, crate::host::vim_snprintf(ed, buf as *mut i8, buflen, b"%d\0".as_ptr() as *mut i8, &[VArg::I(col as i64)])) as i32;
+        return safelen_result(buf as *mut i8, buflen, crate::host::vim_snprintf(ed, buf as *mut i8, buflen, c"%d".as_ptr() as *mut i8, &[VArg::I(col as i64)])) as i32;
     }
-    safelen_result(buf as *mut i8, buflen, crate::host::vim_snprintf(ed, buf as *mut i8, buflen, b"%d-%d\0".as_ptr() as *mut i8, &[VArg::I(col as i64), VArg::I(vcol as i64)])) as i32
+    safelen_result(buf as *mut i8, buflen, crate::host::vim_snprintf(ed, buf as *mut i8, buflen, c"%d-%d".as_ptr() as *mut i8, &[VArg::I(col as i64), VArg::I(vcol as i64)])) as i32
 }
 
 pub unsafe fn get_rel_pos(ed: *mut Editor, wp: *mut win_T, buf: *mut char_u, buflen: i32) -> i32 {
@@ -14848,14 +14848,14 @@ pub unsafe fn get_rel_pos(ed: *mut Editor, wp: *mut win_T, buf: *mut char_u, buf
     let above: i64 = (*wp).w_topline - 1;
     let below: i64 = (*(*wp).w_buffer).b_ml.ml_line_count - (*wp).w_botline + 1;
     if below <= 0 {
-        return safelen_result(buf as *mut i8, buflen as u64, crate::host::vim_snprintf(ed, buf as *mut i8, buflen as u64, b"%s\0".as_ptr() as *mut i8, &[VArg::P((if above == 0 { b"All\0".as_ptr() as *mut i8 } else { b"Bot\0".as_ptr() as *mut i8 }) as *mut c_void)])) as i32;
+        return safelen_result(buf as *mut i8, buflen as u64, crate::host::vim_snprintf(ed, buf as *mut i8, buflen as u64, c"%s".as_ptr() as *mut i8, &[VArg::P((if above == 0 { c"All".as_ptr() as *mut i8 } else { c"Bot".as_ptr() as *mut i8 }) as *mut c_void)])) as i32;
     }
     if above <= 0 {
-        return safelen_result(buf as *mut i8, buflen as u64, crate::host::vim_snprintf(ed, buf as *mut i8, buflen as u64, b"%s\0".as_ptr() as *mut i8, &[VArg::P(b"Top\0".as_ptr() as *mut c_void)])) as i32;
+        return safelen_result(buf as *mut i8, buflen as u64, crate::host::vim_snprintf(ed, buf as *mut i8, buflen as u64, c"%s".as_ptr() as *mut i8, &[VArg::P(c"Top".as_ptr() as *mut c_void)])) as i32;
     }
     let perc: i32 = calc_percentage(above, above + below);
-    crate::host::vim_snprintf(ed, decay(&raw mut tmp), 8, b"%d%%\0".as_ptr() as *mut i8, &[VArg::I(perc as i64)]);
-    safelen_result(buf as *mut i8, buflen as u64, crate::host::vim_snprintf(ed, buf as *mut i8, buflen as u64, b"%3s\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut tmp) as *mut c_void)])) as i32
+    crate::host::vim_snprintf(ed, decay(&raw mut tmp), 8, c"%d%%".as_ptr() as *mut i8, &[VArg::I(perc as i64)]);
+    safelen_result(buf as *mut i8, buflen as u64, crate::host::vim_snprintf(ed, buf as *mut i8, buflen as u64, c"%3s".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut tmp) as *mut c_void)])) as i32
 }
 
 pub unsafe fn bt_help(buf: *mut buf_T) -> bool {
@@ -14867,11 +14867,11 @@ pub fn buf_spname(buf: *mut buf_T) -> *mut char_u {
 }
 
 pub fn buf_get_fname(_buf: *mut buf_T) -> *mut char_u {
-    b"[No Name]\0".as_ptr() as *mut u8
+    c"[No Name]".as_ptr() as *mut u8
 }
 
 pub unsafe fn new_file_message(ed: *mut Editor) -> *mut i8 {
-    if shortmess(ed, SHM_NEW) { b"[New]\0".as_ptr() as *mut i8 } else { b"[New File]\0".as_ptr() as *mut i8 }
+    if shortmess(ed, SHM_NEW) { c"[New]".as_ptr() as *mut i8 } else { c"[New File]".as_ptr() as *mut i8 }
 }
 
 pub unsafe fn changed(ed: *mut Editor) {
@@ -15282,7 +15282,7 @@ pub unsafe fn open_line(ed: *mut Editor, dir: i32, flags: i32, second_line_inden
             let len_2: colnr_T = ml_get_len(ed, (*(*ed).curwin).w_cursor.lnum + 1);
             next_line = vim_strnsave(ed, ml_get(ed, (*(*ed).curwin).w_cursor.lnum + 1), len_2 as u64);
         } else {
-            next_line = vim_strsave(ed, b"\0".as_ptr() as *mut u8);
+            next_line = vim_strsave(ed, c"".as_ptr() as *mut u8);
         }
         if next_line.is_null() {
             (*(*ed).curbuf).b_p_pi = saved_pi;
@@ -15405,7 +15405,7 @@ pub unsafe fn open_line(ed: *mut Editor, dir: i32, flags: i32, second_line_inden
         less_cols = pdiff(p_extra, saved_line) as i32;
     }
     if p_extra.is_null() {
-        p_extra = b"\0".as_ptr() as *mut u8;
+        p_extra = c"".as_ptr() as *mut u8;
     }
     old_cursor_lnum = (*(*ed).curwin).w_cursor.lnum;
     old_cursor_col = (*(*ed).curwin).w_cursor.col;
@@ -15517,7 +15517,7 @@ pub unsafe fn truncate_line(ed: *mut Editor, fixpos: bool) -> bool {
     let col: colnr_T = (*(*ed).curwin).w_cursor.col;
     let old_line: *mut char_u = ml_get(ed, lnum);
     if col == 0 {
-        newp = vim_strsave(ed, b"\0".as_ptr() as *mut u8);
+        newp = vim_strsave(ed, c"".as_ptr() as *mut u8);
     } else {
         newp = vim_strnsave(ed, old_line, col as u64);
     }
@@ -16506,11 +16506,10 @@ pub unsafe fn rem_backslash(str_: *mut char_u) -> bool {
 }
 
 pub unsafe fn skip_string(ed: *mut Editor, mut p: *mut char_u) -> *mut char_u {
-    'l1: loop {
-    'c1: {
+    loop {
         if *p == 39 {
             if *p.wrapping_add(1) == NUL as u8 {
-                break 'l1;
+                break;
             }
             let mut i: i32 = 2;
             if *p.wrapping_add(1) == 92 && *p.wrapping_add(2) != NUL as u8 {
@@ -16521,7 +16520,8 @@ pub unsafe fn skip_string(ed: *mut Editor, mut p: *mut char_u) -> *mut char_u {
             }
             if *p.wrapping_offset((i - 1) as isize) != NUL as u8 && *p.wrapping_offset(i as isize) == 39 {
                 p = p.wrapping_offset(i as isize);
-                break 'c1;
+                p = p.wrapping_add(1);
+                continue;
             }
         } else if *p == b'"' {
             p = p.wrapping_add(1);
@@ -16534,7 +16534,8 @@ pub unsafe fn skip_string(ed: *mut Editor, mut p: *mut char_u) -> *mut char_u {
                 p = p.wrapping_add(1);
             }
             if *p == b'"' {
-                break 'c1;
+                p = p.wrapping_add(1);
+                continue;
             }
         } else if *p == b'R' && *p.wrapping_add(1) == b'"' {
             let delim: *mut char_u = p.wrapping_add(2);
@@ -16550,12 +16551,12 @@ pub unsafe fn skip_string(ed: *mut Editor, mut p: *mut char_u) -> *mut char_u {
                     p = p.wrapping_add(1);
                 }
                 if *p == b'"' {
-                    break 'c1;
+                    p = p.wrapping_add(1);
+                    continue;
                 }
             }
         }
-        break 'l1;        }
-        p = p.wrapping_add(1);
+        break;
     }
     if *p == 0 {
         p = p.wrapping_sub(1);
@@ -16780,7 +16781,7 @@ pub unsafe fn get_histtype(ed: *mut Editor, name: *mut char_u) -> i32 {
         }
         i += 1;
     }
-    if !vim_strchr(ed, b":=@>?/\0".as_ptr() as *mut u8, *name as i32).is_null() && *name.wrapping_add(1) == NUL as u8 {
+    if !vim_strchr(ed, c":=@>?/".as_ptr() as *mut u8, *name as i32).is_null() && *name.wrapping_add(1) == NUL as u8 {
         return hist_char2type(*name as i32);
     }
     -1
@@ -16832,19 +16833,19 @@ pub unsafe fn ex_history(ed: *mut Editor, eap: *mut exarg_T) {
     let mut hisidx2: i32 = -1;
     let arg: *mut char_u = (*eap).arg;
     if (*ed).hislen == 0 {
-        msg(ed, b"'history' option is zero\0".as_ptr() as *mut i8);
+        msg(ed, c"'history' option is zero".as_ptr() as *mut i8);
         return;
     }
     if !(ascii_isdigit(*arg as i32) || *arg == b'-' || *arg == b',') {
         end = arg;
-        while ascii_isupper(*end as i32) || ascii_islower(*end as i32) || !vim_strchr(ed, b":=@>/?\0".as_ptr() as *mut u8, *end as i32).is_null() {
+        while ascii_isupper(*end as i32) || ascii_islower(*end as i32) || !vim_strchr(ed, c":=@>/?".as_ptr() as *mut u8, *end as i32).is_null() {
             end = end.wrapping_add(1);
         }
         i = *end as i32;
         *end = NUL as u8;
         histype1 = get_histtype(ed, arg);
         if histype1 == -1 {
-            if musl_strncasecmp(arg as *mut i8, b"all\0".as_ptr() as *mut i8, musl_strlen(arg as *mut i8)) == 0 {
+            if musl_strncasecmp(arg as *mut i8, c"all".as_ptr() as *mut i8, musl_strlen(arg as *mut i8)) == 0 {
                 histype1 = 0;
                 histype2 = 4;
             } else {
@@ -16875,7 +16876,7 @@ pub unsafe fn ex_history(ed: *mut Editor, eap: *mut exarg_T) {
         return;
     }
     while (*ed).got_int == 0 && histype1 <= histype2 {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"\n      #  %s history\0".as_ptr() as *mut i8, &[VArg::P(*decay(&raw mut (*ed).history_names).wrapping_offset(histype1 as isize) as *mut c_void)]);
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"\n      #  %s history".as_ptr() as *mut i8, &[VArg::P(*decay(&raw mut (*ed).history_names).wrapping_offset(histype1 as isize) as *mut c_void)]);
         msg_puts_title(ed, (*ed).IObuff as *mut i8);
         let idx: i32 = *decay(&raw mut (*ed).hisidx).wrapping_offset(histype1 as isize);
         let hist: *mut histentry_T = *decay(&raw mut (*ed).history).wrapping_offset(histype1 as isize);
@@ -16895,7 +16896,7 @@ pub unsafe fn ex_history(ed: *mut Editor, eap: *mut exarg_T) {
                 }
                 if !(*hist.wrapping_offset(i as isize)).hisstr.is_null() && (*hist.wrapping_offset(i as isize)).hisnum >= j && (*hist.wrapping_offset(i as isize)).hisnum <= k && !message_filtered(ed, (*hist.wrapping_offset(i as isize)).hisstr) {
                     msg_putchar(ed, 10);
-                    let len: i32 = crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"%c%6d  \0".as_ptr() as *mut i8, &[VArg::I((if i == idx { b'>' as i32 } else { b' ' as i32 }) as i64), VArg::I((*hist.wrapping_offset(i as isize)).hisnum as i64)]);
+                    let len: i32 = crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"%c%6d  ".as_ptr() as *mut i8, &[VArg::I((if i == idx { b'>' as i32 } else { b' ' as i32 }) as i64), VArg::I((*hist.wrapping_offset(i as isize)).hisnum as i64)]);
                     if vim_strsize(ed, (*hist.wrapping_offset(i as isize)).hisstr) > (*ed).Columns as i32 - 10 {
                         trunc_string(ed, (*hist.wrapping_offset(i as isize)).hisstr, (*ed).IObuff.wrapping_offset(len as isize), (*ed).Columns as i32 - 10, 1025 - len);
                     } else {
@@ -16930,14 +16931,14 @@ pub unsafe fn handle_lnum_col(ed: *mut Editor, wp: *mut win_T, wlv: *mut winline
     let lnum_row: i32 = (*wlv).startrow + (*wlv).filler_lines;
     if ((*wp).w_onebuf_opt.wo_nu != 0 || (*wp).w_onebuf_opt.wo_rnu != 0) && ((*wlv).row <= lnum_row || !has_cpo_n) && !(has_cpo_n && (*wp).w_skipcol > 0 && (*wlv).lnum == (*wp).w_topline) {
         if (*wlv).row == lnum_row && ((*wp).w_skipcol == 0 || (*wlv).row > 0 || (*wp).w_onebuf_opt.wo_nu != 0 && (*wp).w_onebuf_opt.wo_rnu != 0) {
-            let mut fmt: *mut i8 = b"%*ld \0".as_ptr() as *mut i8;
+            let mut fmt: *mut i8 = c"%*ld ".as_ptr() as *mut i8;
             if (*wp).w_onebuf_opt.wo_nu != 0 && (*wp).w_onebuf_opt.wo_rnu == 0 {
                 num = (*wlv).lnum;
             } else {
                 num = musl_labs(get_cursor_rel_lnum(wp, (*wlv).lnum));
                 if num == 0 && (*wp).w_onebuf_opt.wo_nu != 0 && (*wp).w_onebuf_opt.wo_rnu != 0 {
                     num = (*wlv).lnum;
-                    fmt = b"%-*ld \0".as_ptr() as *mut i8;
+                    fmt = c"%-*ld ".as_ptr() as *mut i8;
                 }
             }
             crate::host::vim_snprintf(ed, decay(&raw mut (*wlv).extra) as *mut i8, 86, fmt, &[VArg::I(7), VArg::I(num)]);
@@ -17547,7 +17548,7 @@ pub unsafe fn win_line(ed: *mut Editor, wp: *mut win_T, lnum: linenr_T, startrow
                 } else if c == NUL && wlv.n_extra == 0 && ((*wp).w_onebuf_opt.wo_list != 0 || wlv.fromcol >= 0 && (wlv.tocol as i64) > wlv.vcol && (*ed).VIsual_mode != Ctrl_V && wlv.col < (*wp).w_width) && lcs_eol_one > 0 {
                     if wlv.line_attr == 0 {
                         if !(area_highlighting != 0 && virtual_active(ed) != 0 && wlv.tocol != MAXCOL && wlv.vcol < wlv.tocol as i64) {
-                            wlv.p_extra = b"\0".as_ptr() as *mut u8;
+                            wlv.p_extra = c"".as_ptr() as *mut u8;
                         }
                         wlv.n_extra = 0;
                     }
@@ -17940,10 +17941,10 @@ pub unsafe fn win_redr_status(ed: *mut Editor, wp: *mut win_T, ignore_pum: bool)
             *p.wrapping_offset(plen as isize) = NUL as u8;
         }
         if bt_help((*wp).w_buffer) {
-            plen += crate::host::vim_snprintf(ed, (p as *mut i8).wrapping_offset(plen as isize), (PATH_MAX - plen) as u64, b"%s\0".as_ptr() as *mut i8, &[VArg::P(b"[Help]\0".as_ptr() as *mut c_void)]);
+            plen += crate::host::vim_snprintf(ed, (p as *mut i8).wrapping_offset(plen as isize), (PATH_MAX - plen) as u64, c"%s".as_ptr() as *mut i8, &[VArg::P(c"[Help]".as_ptr() as *mut c_void)]);
         }
         if bufIsChanged((*wp).w_buffer) != 0 {
-            plen += crate::host::vim_snprintf(ed, (p as *mut i8).wrapping_offset(plen as isize), (PATH_MAX - plen) as u64, b"%s\0".as_ptr() as *mut i8, &[VArg::P(b"[+]\0".as_ptr() as *mut c_void)]);
+            plen += crate::host::vim_snprintf(ed, (p as *mut i8).wrapping_offset(plen as isize), (PATH_MAX - plen) as u64, c"%s".as_ptr() as *mut i8, &[VArg::P(c"[+]".as_ptr() as *mut c_void)]);
         }
         let mut this_ru_col: i32 = (*ed).ru_col - ((*ed).cmdline_width - (*wp).w_width);
         let mut n: i32 = ((*wp).w_width + 1) / 2;
@@ -17951,7 +17952,7 @@ pub unsafe fn win_redr_status(ed: *mut Editor, wp: *mut win_T, ignore_pum: bool)
             this_ru_col = n;
         }
         if this_ru_col <= 1 {
-            p = b"<\0".as_ptr() as *mut u8;
+            p = c"<".as_ptr() as *mut u8;
             plen = 1;
         } else {
             plen = mb_string2cells(ed, p, -1);
@@ -18054,7 +18055,7 @@ pub unsafe fn win_redr_ruler(ed: *mut Editor, wp: *mut win_T, always: bool, _ign
             getvvcol(ed, wp, &raw mut (*wp).w_cursor, null_mut(), &raw mut virtcol, null_mut(), 0);
             (*wp).w_onebuf_opt.wo_list = TRUE;
         }
-        let mut bufferlen: i32 = crate::host::vim_snprintf(ed, decay(&raw mut buffer) as *mut i8, RULER_BUF_LEN as u64, b"%ld,\0".as_ptr() as *mut i8, &[VArg::I(if (*(*wp).w_buffer).b_ml.ml_flags & ML_EMPTY != 0 { 0 } else { (*wp).w_cursor.lnum })]);
+        let mut bufferlen: i32 = crate::host::vim_snprintf(ed, decay(&raw mut buffer) as *mut i8, RULER_BUF_LEN as u64, c"%ld,".as_ptr() as *mut i8, &[VArg::I(if (*(*wp).w_buffer).b_ml.ml_flags & ML_EMPTY != 0 { 0 } else { (*wp).w_cursor.lnum })]);
         bufferlen += col_print(ed, decay(&raw mut buffer).wrapping_offset(bufferlen as isize), (RULER_BUF_LEN - bufferlen) as u64, if empty_line { 0 } else { (*wp).w_cursor.col + 1 }, virtcol + 1);
         let rel_poslen: i32 = get_rel_pos(ed, wp, decay(&raw mut rel_pos), RULER_BUF_LEN);
         let mut n1: i32 = bufferlen + vim_strsize(ed, decay(&raw mut rel_pos));
@@ -18071,7 +18072,7 @@ pub unsafe fn win_redr_ruler(ed: *mut Editor, wp: *mut win_T, always: bool, _ign
                 bufferlen += utf_char2bytes(fillchar, decay(&raw mut buffer).wrapping_offset(bufferlen as isize));
                 n1 += 1;
             }
-            bufferlen += crate::host::vim_snprintf(ed, (decay(&raw mut buffer) as *mut i8).wrapping_offset(bufferlen as isize), (RULER_BUF_LEN - bufferlen) as u64, b"%s\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut rel_pos) as *mut c_void)]);
+            bufferlen += crate::host::vim_snprintf(ed, (decay(&raw mut buffer) as *mut i8).wrapping_offset(bufferlen as isize), (RULER_BUF_LEN - bufferlen) as u64, c"%s".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut rel_pos) as *mut c_void)]);
         }
         n1 = 0;
         n2 = 0;
@@ -19157,7 +19158,7 @@ pub unsafe fn edit(ed: *mut Editor, cmdchar: i32, startln: bool, mut count: i64)
                     inserted_space = edit_normalchar(ed, c, inserted_space);
                     break 's3;
                 }
-                do_cmdline_cmd(ed, b"stop\0".as_ptr() as *mut u8);
+                do_cmdline_cmd(ed, c"stop".as_ptr() as *mut u8);
                 continue 'l1;
             }
                 15 => {
@@ -19412,7 +19413,7 @@ pub unsafe fn ins_ctrl_v(ed: *mut Editor) {
         edit_putchar(ed, b'^' as i32, true);
         did_putchar = true;
     }
-    AppendToRedobuff(ed, b"\x16\0".as_ptr() as *mut u8);
+    AppendToRedobuff(ed, c"\x16".as_ptr() as *mut u8);
     add_to_showcmd_c(ed, Ctrl_V);
     let c: i32 = get_literal(ed, (*ed).mod_mask & MOD_MASK_SHIFT);
     if did_putchar {
@@ -19725,7 +19726,7 @@ pub unsafe fn insertchar(ed: *mut Editor, mut c: i32, flags: i32, second_indent:
 pub unsafe fn redo_literal(ed: *mut Editor, c: i32) {
     let mut buf: [char_u; 10] = core::mem::zeroed();
     if ascii_isdigit(c) {
-        crate::host::vim_snprintf(ed, decay(&raw mut buf) as *mut i8, 10, b"%03d\0".as_ptr() as *mut i8, &[VArg::I(c as i64)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut buf) as *mut i8, 10, c"%03d".as_ptr() as *mut i8, &[VArg::I(c as i64)]);
         AppendToRedobuff(ed, decay(&raw mut buf));
     } else {
         AppendCharToRedobuff(ed, c);
@@ -19746,7 +19747,7 @@ pub unsafe fn start_arrow_with_change(ed: *mut Editor, end_insert_pos: *mut pos_
 
 pub unsafe fn start_arrow_common(ed: *mut Editor, end_insert_pos: *mut pos_T, end_change: bool) {
     if !(*ed).arrow_used && end_change {
-        AppendToRedobuff(ed, b"\x1b\0".as_ptr() as *mut u8);
+        AppendToRedobuff(ed, c"\x1b".as_ptr() as *mut u8);
         stop_insert(ed, end_insert_pos, false, false);
         (*ed).arrow_used = true;
     }
@@ -19768,7 +19769,7 @@ pub unsafe fn stop_arrow(ed: *mut Editor) -> bool {
             (*ed).vr_lines_changed = 1;
         }
         ResetRedobuff(ed);
-        AppendToRedobuff(ed, b"1i\0".as_ptr() as *mut u8);
+        AppendToRedobuff(ed, c"1i".as_ptr() as *mut u8);
         (*ed).new_insert_skip = 2;
     } else if (*ed).ins_need_undo {
         if u_save_cursor(ed) {
@@ -20028,10 +20029,10 @@ pub unsafe fn stuff_inserted(ed: *mut Editor, c: i32, mut count: i64, no_esc: bo
         stuffReadbuffLen(ed, insert.string, insert.length as i64);
         match last as i32 {
             48 => {
-                stuffReadbuffLen(ed, b"\x16048\0".as_ptr() as *mut u8, 4);
+                stuffReadbuffLen(ed, c"\x16048".as_ptr() as *mut u8, 4);
             }
             94 => {
-                stuffReadbuffLen(ed, b"\x16^\0".as_ptr() as *mut u8, 2);
+                stuffReadbuffLen(ed, c"\x16^".as_ptr() as *mut u8, 2);
             }
             _ => {}
         }
@@ -20301,7 +20302,7 @@ pub unsafe fn ins_esc(ed: *mut Editor, count: *mut i64, cmdchar: i32, nomove: bo
     }
     if !(*ed).arrow_used {
         if cmdchar != b'r' as i32 && cmdchar != b'v' as i32 {
-            AppendToRedobuff(ed, if (*ed).p_im != 0 { b"\x0c\0".as_ptr() as *mut u8 } else { b"\x1b\0".as_ptr() as *mut u8 });
+            AppendToRedobuff(ed, if (*ed).p_im != 0 { c"\x0c".as_ptr() as *mut u8 } else { c"\x1b".as_ptr() as *mut u8 });
         }
         if *count > 0 {
             line_breakcheck(ed);
@@ -20315,7 +20316,7 @@ pub unsafe fn ins_esc(ed: *mut Editor, count: *mut i64, cmdchar: i32, nomove: bo
             }
             start_redo_ins(ed);
             if cmdchar == b'r' as i32 || cmdchar == b'v' as i32 {
-                stuffRedoReadbuff(ed, b"\x1b\0".as_ptr() as *mut u8);
+                stuffRedoReadbuff(ed, c"\x1b".as_ptr() as *mut u8);
             }
             (*ed).RedrawingDisabled += 1;
             (*ed).ins_esc__disabled_redraw = true;
@@ -20353,7 +20354,7 @@ pub unsafe fn ins_esc(ed: *mut Editor, count: *mut i64, cmdchar: i32, nomove: bo
     if (*ed).reg_recording != 0 || (*ed).restart_edit != NUL {
         showmode(ed);
     } else if (*ed).p_smd != 0 && ((*ed).got_int != 0 || !skip_showmode(ed)) {
-        msg(ed, b"\0".as_ptr() as *mut i8);
+        msg(ed, c"".as_ptr() as *mut i8);
     }
     true
 }
@@ -20614,7 +20615,7 @@ pub unsafe fn ins_bs(ed: *mut Editor, c: i32, mut mode: i32, mut inserted_space_
                 if (*ed).State & VREPLACE_FLAG != 0 {
                     ins_char(ed, b' ' as i32);
                 } else {
-                    ins_str(ed, b" \0".as_ptr() as *mut u8, 1);
+                    ins_str(ed, c" ".as_ptr() as *mut u8, 1);
                     if (*ed).State & REPLACE_FLAG != 0 {
                         replace_push(ed, NUL);
                     }
@@ -20683,7 +20684,7 @@ pub unsafe fn bracketed_paste(ed: *mut Editor, mode: paste_mode_T, drop_: bool, 
     let mut c: i32 = 0;
     let mut buf: [char_u; 86] = core::mem::zeroed();
     let mut idx: i32 = 0;
-    let mut end: *mut char_u = find_termcode(ed, b"PE\0".as_ptr() as *mut u8);
+    let mut end: *mut char_u = find_termcode(ed, c"PE".as_ptr() as *mut u8);
     let mut ret_char: i32 = -1;
     let save_allow_keys: i32 = (*ed).allow_keys;
     let save_paste: i32 = (*ed).p_paste;
@@ -20693,7 +20694,7 @@ pub unsafe fn bracketed_paste(ed: *mut Editor, mode: paste_mode_T, drop_: bool, 
     (*ed).no_mapping += 1;
     (*ed).allow_keys = 0;
     if (*ed).p_paste == 0 {
-        set_option_value_give_err(ed, b"paste\0".as_ptr() as *mut u8, TRUE as i64, null_mut(), 0);
+        set_option_value_give_err(ed, c"paste".as_ptr() as *mut u8, TRUE as i64, null_mut(), 0);
     }
     loop {
         if end.is_null() && vpeekc(ed) == NUL {
@@ -20751,7 +20752,7 @@ pub unsafe fn bracketed_paste(ed: *mut Editor, mode: paste_mode_T, drop_: bool, 
     (*ed).no_mapping -= 1;
     (*ed).allow_keys = save_allow_keys;
     if save_paste == 0 {
-        set_option_value_give_err(ed, b"paste\0".as_ptr() as *mut u8, FALSE as i64, null_mut(), 0);
+        set_option_value_give_err(ed, c"paste".as_ptr() as *mut u8, FALSE as i64, null_mut(), 0);
     }
     ret_char
 }
@@ -20936,7 +20937,7 @@ pub unsafe fn ins_tab(ed: *mut Editor) -> bool {
     (*ed).did_si = false;
     (*ed).can_si = FALSE;
     (*ed).can_si_back = false;
-    AppendToRedobuff(ed, b"\t\0".as_ptr() as *mut u8);
+    AppendToRedobuff(ed, c"\t".as_ptr() as *mut u8);
     if (*ed).p_sta != 0 && ind {
         temp = get_sw_value((*ed).curbuf) as i32;
     } else if (*(*ed).curbuf).b_p_sts != 0 {
@@ -20954,7 +20955,7 @@ pub unsafe fn ins_tab(ed: *mut Editor) -> bool {
         if (*ed).State & VREPLACE_FLAG != 0 {
             ins_char(ed, b' ' as i32);
         } else {
-            ins_str(ed, b" \0".as_ptr() as *mut u8, 1);
+            ins_str(ed, c" ".as_ptr() as *mut u8, 1);
             if (*ed).State & REPLACE_FLAG != 0 {
                 replace_push(ed, NUL);
             }
@@ -20964,7 +20965,7 @@ pub unsafe fn ins_tab(ed: *mut Editor) -> bool {
         let mut saved_line: *mut char_u = null_mut();
         let mut change_col: i32 = -1;
         let save_list: i32 = (*(*ed).curwin).w_onebuf_opt.wo_list;
-        let tab: *mut char_u = b"\t\0".as_ptr() as *mut u8;
+        let tab: *mut char_u = c"\t".as_ptr() as *mut u8;
         if (*ed).State & VREPLACE_FLAG != 0 {
             let mut pos: pos_T = (*(*ed).curwin).w_cursor;
             cursor = &raw mut pos;
@@ -21057,7 +21058,7 @@ pub unsafe fn ins_eol(ed: *mut Editor, _c: i32) -> bool {
     if virtual_active(ed) != 0 && (*(*ed).curwin).w_cursor.coladd > 0 {
         coladvance(ed, getviscol(ed));
     }
-    AppendToRedobuff(ed, b"\n\0".as_ptr() as *mut u8);
+    AppendToRedobuff(ed, c"\n".as_ptr() as *mut u8);
     let i: bool = open_line(ed, FORWARD, 0, (*ed).old_indent, null_mut());
     (*ed).old_indent = 0;
     i
@@ -21104,7 +21105,7 @@ pub unsafe fn ins_ctrl_ey(ed: *mut Editor, tc: i32) -> i32 {
         c = ins_copychar(ed, (*(*ed).curwin).w_cursor.lnum + (if c == Ctrl_Y { -1i32 } else { 1 }) as i64);
         if c != NUL {
             if c < 256 && !musl_isalnum(c as u8 as i32) {
-                AppendToRedobuff(ed, b"\x16\0".as_ptr() as *mut u8);
+                AppendToRedobuff(ed, c"\x16".as_ptr() as *mut u8);
             }
             let tw_save: i64 = (*(*ed).curbuf).b_p_tw;
             (*(*ed).curbuf).b_p_tw = -1;
@@ -21135,7 +21136,7 @@ pub unsafe fn do_ascii(ed: *mut Editor, _eap: *mut exarg_T) {
     let mut ci: i32 = 0;
     let mut c: i32 = utfc_ptr2char(ed, ml_get_cursor(ed), decay(&raw mut cc));
     if c == NUL {
-        msg(ed, b"NUL\0".as_ptr() as *mut i8);
+        msg(ed, c"NUL".as_ptr() as *mut i8);
         return;
     }
     *(*ed).IObuff = NUL as u8;
@@ -21146,16 +21147,16 @@ pub unsafe fn do_ascii(ed: *mut Editor, _eap: *mut exarg_T) {
         let cval: i32 = c;
         if vim_isprintc_strict(ed, c) && (c < b' ' as i32 || c > b'~' as i32) {
             transchar_nonprint(ed, (*ed).curbuf, decay(&raw mut buf3), c);
-            crate::host::vim_snprintf(ed, decay(&raw mut buf1), 20, b"  <%s>\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf3) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut buf1), 20, c"  <%s>".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf3) as *mut c_void)]);
         } else {
             *decay(&raw mut buf1) = NUL as i8;
         }
         if c >= 128 {
-            crate::host::vim_snprintf(ed, decay(&raw mut buf2), 20, b"  <M-%s>\0".as_ptr() as *mut i8, &[VArg::P(transchar(ed, c & 127) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut buf2), 20, c"  <M-%s>".as_ptr() as *mut i8, &[VArg::P(transchar(ed, c & 127) as *mut c_void)]);
         } else {
             *decay(&raw mut buf2) = NUL as i8;
         }
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"<%s>%s%s  %d,  Hex %02x,  Octal %03o\0".as_ptr() as *mut i8, &[VArg::P(transchar(ed, c) as *mut c_void), VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::P(decay(&raw mut buf2) as *mut c_void), VArg::I(cval as i64), VArg::I(cval as i64), VArg::I(cval as i64)]);
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"<%s>%s%s  %d,  Hex %02x,  Octal %03o".as_ptr() as *mut i8, &[VArg::P(transchar(ed, c) as *mut c_void), VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::P(decay(&raw mut buf2) as *mut c_void), VArg::I(cval as i64), VArg::I(cval as i64), VArg::I(cval as i64)]);
         c = *decay(&raw mut cc).wrapping_offset(ci as isize);
         ci += 1;
     }
@@ -21172,7 +21173,7 @@ pub unsafe fn do_ascii(ed: *mut Editor, _eap: *mut exarg_T) {
             len += 1;
         }
         len += utf_char2bytes(c, (*ed).IObuff.wrapping_offset(len as isize));
-        crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(len as isize), (1025 - len) as u64, if c < 65536 { b"> %d, Hex %04x, Octal %o\0".as_ptr() as *mut i8 } else { b"> %d, Hex %08x, Octal %o\0".as_ptr() as *mut i8 }, &[VArg::I(c as i64), VArg::I(c as i64), VArg::I(c as i64)]);
+        crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(len as isize), (1025 - len) as u64, if c < 65536 { c"> %d, Hex %04x, Octal %o".as_ptr() as *mut i8 } else { c"> %d, Hex %08x, Octal %o".as_ptr() as *mut i8 }, &[VArg::I(c as i64), VArg::I(c as i64), VArg::I(c as i64)]);
         if ci == MAX_MCO {
             break;
         }
@@ -21239,8 +21240,8 @@ pub unsafe fn do_move(ed: *mut Editor, line1: linenr_T, line2: linenr_T, mut des
         l += 1;
     }
     if (*ed).global_busy == 0 && num_lines > (*ed).p_report {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(b"%ld line moved\0".as_ptr() as *mut i8, b"%ld lines moved\0".as_ptr() as *mut i8, num_lines as u64), &[VArg::I(num_lines)]);
-        msg(ed, iobuff_or(ed, NGETTEXT(b"%ld line moved\0".as_ptr() as *mut i8, b"%ld lines moved\0".as_ptr() as *mut i8, num_lines as u64)));
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(c"%ld line moved".as_ptr() as *mut i8, c"%ld lines moved".as_ptr() as *mut i8, num_lines as u64), &[VArg::I(num_lines)]);
+        msg(ed, iobuff_or(ed, NGETTEXT(c"%ld line moved".as_ptr() as *mut i8, c"%ld lines moved".as_ptr() as *mut i8, num_lines as u64)));
     }
     if dest >= line1 {
         (*(*ed).curwin).w_cursor.lnum = dest;
@@ -21296,14 +21297,14 @@ pub unsafe fn ex_copy(ed: *mut Editor, mut line1: linenr_T, mut line2: linenr_T,
 }
 
 pub unsafe fn do_fixdel(ed: *mut Editor, _eap: *mut exarg_T) {
-    let p: *mut char_u = find_termcode(ed, b"kb\0".as_ptr() as *mut u8);
-    add_termcode(ed, b"kD\0".as_ptr() as *mut u8, if !p.is_null() && *p == DEL as u8 { b"\x08\0".as_ptr() as *mut u8 } else { b"\x7f\0".as_ptr() as *mut u8 }, FALSE);
+    let p: *mut char_u = find_termcode(ed, c"kb".as_ptr() as *mut u8);
+    add_termcode(ed, c"kD".as_ptr() as *mut u8, if !p.is_null() && *p == DEL as u8 { c"\x08".as_ptr() as *mut u8 } else { c"\x7f".as_ptr() as *mut u8 }, FALSE);
 }
 
 pub unsafe fn print_line_no_prefix(ed: *mut Editor, lnum: linenr_T, use_number: i32, list: i32) {
     let mut numbuf: [i8; 30] = core::mem::zeroed();
     if (*(*ed).curwin).w_onebuf_opt.wo_nu != 0 || use_number != 0 {
-        crate::host::vim_snprintf(ed, decay(&raw mut numbuf), 30, b"%*ld \0".as_ptr() as *mut i8, &[VArg::I(7), VArg::I(lnum)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut numbuf), 30, c"%*ld ".as_ptr() as *mut i8, &[VArg::I(7), VArg::I(lnum)]);
         msg_puts_attr(ed, decay(&raw mut numbuf), *decay(&raw mut (*ed).highlight_attr).wrapping_add(11));
     }
     msg_prt_line(ed, ml_get(ed, lnum), list);
@@ -21669,20 +21670,20 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
     } else {
         which_pat = RE_SUBST;
     }
-    if *(*eap).cmd == b's' && *cmd != NUL as u8 && !(*cmd == b' ' || *cmd == 9) && vim_strchr(ed, b"0123456789cegriIp|\"\0".as_ptr() as *mut u8, *cmd as i32).is_null() {
+    if *(*eap).cmd == b's' && *cmd != NUL as u8 && !(*cmd == b' ' || *cmd == 9) && vim_strchr(ed, c"0123456789cegriIp|\"".as_ptr() as *mut u8, *cmd as i32).is_null() {
         if !check_regexp_delim(ed, *cmd as i32) {
             return;
         }
         if *cmd == 92 {
             cmd = cmd.wrapping_add(1);
-            if vim_strchr(ed, b"/?&\0".as_ptr() as *mut u8, *cmd as i32).is_null() {
+            if vim_strchr(ed, c"/?&".as_ptr() as *mut u8, *cmd as i32).is_null() {
                 emsg(ed, decay(&raw mut (*ed).e_backslash_should_be_followed_by));
                 return;
             }
             if *cmd != b'&' {
                 which_pat = RE_SEARCH;
             }
-            pat_string = b"\0".as_ptr() as *mut u8;
+            pat_string = c"".as_ptr() as *mut u8;
             pat_length = 0;
             delimiter = *({ t1 = cmd; cmd = t1.wrapping_add(1); t1 }) as i32;
         } else {
@@ -21699,7 +21700,7 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
         p = cmd;
         cmd = skip_substitute(ed, cmd, delimiter);
         sub = vim_strsave(ed, p);
-        if musl_strcmp(sub as *mut i8, b"%\0".as_ptr() as *mut i8) == 0 && !vim_strchr(ed, (*ed).p_cpo, CPO_SUBPERCENT).is_null() {
+        if musl_strcmp(sub as *mut i8, c"%".as_ptr() as *mut i8) == 0 && !vim_strchr(ed, (*ed).p_cpo, CPO_SUBPERCENT).is_null() {
             if (*ed).old_sub.is_null() {
                 emsg(ed, decay(&raw mut (*ed).e_no_previous_substitute_regular_expression));
                 return;
@@ -21718,7 +21719,7 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
         sub = vim_strsave(ed, (*ed).old_sub);
         endcolumn = (*(*ed).curwin).w_curswant == MAXCOL;
     }
-    if !pat_string.is_null() && musl_strcmp(pat_string as *mut i8, b"\\n\0".as_ptr() as *mut i8) == 0 && *sub == NUL as u8 && (*cmd == NUL as u8 || *cmd.wrapping_add(1) == NUL as u8 && (*cmd == b'g' || *cmd == b'l' || *cmd == b'p' || *cmd == b'#')) {
+    if !pat_string.is_null() && musl_strcmp(pat_string as *mut i8, c"\\n".as_ptr() as *mut i8) == 0 && *sub == NUL as u8 && (*cmd == NUL as u8 || *cmd.wrapping_add(1) == NUL as u8 && (*cmd == b'g' || *cmd == b'l' || *cmd == b'p' || *cmd == b'#')) {
         (*(*ed).curwin).w_cursor.lnum = (*eap).line1;
         if *cmd == b'l' {
             (*eap).flags = EXFLAG_LIST;
@@ -21802,7 +21803,7 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
             emsg(ed, decay(&raw mut (*ed).e_positive_count_required));
             return;
         } else if i >= INT_MAX as i64 {
-            crate::host::vim_snprintf(ed, decay(&raw mut buf), 20, b"%ld\0".as_ptr() as *mut i8, &[VArg::I(i)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut buf), 20, c"%ld".as_ptr() as *mut i8, &[VArg::I(i)]);
             crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_val_too_large), &[VArg::P(decay(&raw mut buf) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_val_too_large)));
             return;
@@ -21956,8 +21957,8 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
                             i = (*ed).msg_scroll as i64;
                             (*ed).msg_scroll = 0;
                             (*ed).msg_no_more = true;
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"replace with %s (y/n/a/q/l/^E/^Y)?\0".as_ptr() as *mut i8, &[VArg::P(sub as *mut c_void)]);
-                            msg_attr(ed, iobuff_or(ed, b"replace with %s (y/n/a/q/l/^E/^Y)?\0".as_ptr() as *mut i8), *decay(&raw mut (*ed).highlight_attr).wrapping_add(17));
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"replace with %s (y/n/a/q/l/^E/^Y)?".as_ptr() as *mut i8, &[VArg::P(sub as *mut c_void)]);
+                            msg_attr(ed, iobuff_or(ed, c"replace with %s (y/n/a/q/l/^E/^Y)?".as_ptr() as *mut i8), *decay(&raw mut (*ed).highlight_attr).wrapping_add(17));
                             (*ed).msg_no_more = false;
                             (*ed).msg_scroll = i as i32;
                             showruler(ed, true);
@@ -22074,7 +22075,7 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
                     }
                     copycol = (*decay(&raw mut regmatch_2.endpos)).col;
                     if skip_match {
-                        sub_firstline_string = vim_strnsave(ed, b"\0".as_ptr() as *mut u8, 0);
+                        sub_firstline_string = vim_strnsave(ed, c"".as_ptr() as *mut u8, 0);
                         sub_firstline_length = 0;
                         copycol = 0;
                     }
@@ -22212,7 +22213,7 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
                 }
             }
             if !do_sub_msg(ed, (*ed).ex_substitute__subflags.do_count) && (*ed).ex_substitute__subflags.do_ask != 0 {
-                msg(ed, b"\0".as_ptr() as *mut i8);
+                msg(ed, c"".as_ptr() as *mut i8);
             }
         } else {
             (*ed).global_need_beginline = true;
@@ -22224,7 +22225,7 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
         if (*ed).got_int != 0 {
             emsg(ed, decay(&raw mut (*ed).e_interrupted));
         } else if got_match {
-            msg(ed, b"\0".as_ptr() as *mut i8);
+            msg(ed, c"".as_ptr() as *mut i8);
         } else if (*ed).ex_substitute__subflags.do_error != 0 {
             crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_pattern_not_found_str), &[VArg::P(get_search_pat(ed) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_pattern_not_found_str)));
@@ -22238,12 +22239,12 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
 pub unsafe fn do_sub_msg(ed: *mut Editor, count_only: i32) -> bool {
     if ((*ed).sub_nsubs > (*ed).p_report && ((*ed).KeyTyped || (*ed).sub_nlines > 1 || (*ed).p_report < 1) || count_only != 0) && messaging(ed) {
         if (*ed).got_int != 0 {
-            musl_strcpy(decay(&raw mut (*ed).msg_buf), b"(Interrupted) \0".as_ptr() as *mut i8);
+            musl_strcpy(decay(&raw mut (*ed).msg_buf), c"(Interrupted) ".as_ptr() as *mut i8);
         } else {
             *decay(&raw mut (*ed).msg_buf) = NUL as i8;
         }
-        let msg_single: *mut i8 = if count_only != 0 { NGETTEXT(b"%ld match on %ld line\0".as_ptr() as *mut i8, b"%ld matches on %ld line\0".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) } else { NGETTEXT(b"%ld substitution on %ld line\0".as_ptr() as *mut i8, b"%ld substitutions on %ld line\0".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) };
-        let msg_plural: *mut i8 = if count_only != 0 { NGETTEXT(b"%ld match on %ld lines\0".as_ptr() as *mut i8, b"%ld matches on %ld lines\0".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) } else { NGETTEXT(b"%ld substitution on %ld lines\0".as_ptr() as *mut i8, b"%ld substitutions on %ld lines\0".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) };
+        let msg_single: *mut i8 = if count_only != 0 { NGETTEXT(c"%ld match on %ld line".as_ptr() as *mut i8, c"%ld matches on %ld line".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) } else { NGETTEXT(c"%ld substitution on %ld line".as_ptr() as *mut i8, c"%ld substitutions on %ld line".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) };
+        let msg_plural: *mut i8 = if count_only != 0 { NGETTEXT(c"%ld match on %ld lines".as_ptr() as *mut i8, c"%ld matches on %ld lines".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) } else { NGETTEXT(c"%ld substitution on %ld lines".as_ptr() as *mut i8, c"%ld substitutions on %ld lines".as_ptr() as *mut i8, (*ed).sub_nsubs as u64) };
         crate::host::vim_snprintf(ed, decay(&raw mut (*ed).msg_buf).wrapping_add(musl_strlen(decay(&raw mut (*ed).msg_buf)) as usize), append_room(decay(&raw mut (*ed).msg_buf), 480), NGETTEXT(msg_single, msg_plural, (*ed).sub_nlines as u64), &[VArg::I((*ed).sub_nsubs), VArg::I((*ed).sub_nlines)]);
         if msg(ed, decay(&raw mut (*ed).msg_buf)) != 0 {
             set_keep_msg(ed, decay(&raw mut (*ed).msg_buf) as *mut u8, 0);
@@ -22261,7 +22262,7 @@ pub unsafe fn global_exe_one(ed: *mut Editor, cmd: *mut char_u, lnum: linenr_T) 
     (*(*ed).curwin).w_cursor.lnum = lnum;
     (*(*ed).curwin).w_cursor.col = 0;
     if *cmd == NUL as u8 || *cmd == 10 {
-        do_cmdline(ed, b"p\0".as_ptr() as *mut u8, None, DOCMD_NOWAIT);
+        do_cmdline(ed, c"p".as_ptr() as *mut u8, None, DOCMD_NOWAIT);
     } else {
         do_cmdline(ed, cmd, None, DOCMD_NOWAIT);
     }
@@ -22289,7 +22290,7 @@ pub unsafe fn ex_global(ed: *mut Editor, eap: *mut exarg_T) {
     let mut which_pat: i32 = RE_LAST;
     if *cmd == 92 {
         cmd = cmd.wrapping_add(1);
-        if vim_strchr(ed, b"/?&\0".as_ptr() as *mut u8, *cmd as i32).is_null() {
+        if vim_strchr(ed, c"/?&".as_ptr() as *mut u8, *cmd as i32).is_null() {
             emsg(ed, decay(&raw mut (*ed).e_backslash_should_be_followed_by));
             return;
         }
@@ -22299,7 +22300,7 @@ pub unsafe fn ex_global(ed: *mut Editor, eap: *mut exarg_T) {
             which_pat = RE_SEARCH;
         }
         cmd = cmd.wrapping_add(1);
-        pat = b"\0".as_ptr() as *mut u8;
+        pat = c"".as_ptr() as *mut u8;
         patlen = 0;
     } else if *cmd == NUL as u8 {
         emsg(ed, decay(&raw mut (*ed).e_regular_expression_missing_from_global));
@@ -22347,11 +22348,11 @@ pub unsafe fn ex_global(ed: *mut Editor, eap: *mut exarg_T) {
             msg(ed, decay(&raw mut (*ed).e_interrupted));
         } else if ndone == 0 {
             if type_ == b'v' as i32 {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"Pattern found in every line: %s\0".as_ptr() as *mut i8, &[VArg::P(used_pat as *mut c_void)]);
-                msg(ed, iobuff_or(ed, b"Pattern found in every line: %s\0".as_ptr() as *mut i8));
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"Pattern found in every line: %s".as_ptr() as *mut i8, &[VArg::P(used_pat as *mut c_void)]);
+                msg(ed, iobuff_or(ed, c"Pattern found in every line: %s".as_ptr() as *mut i8));
             } else {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"Pattern not found: %s\0".as_ptr() as *mut i8, &[VArg::P(used_pat as *mut c_void)]);
-                msg(ed, iobuff_or(ed, b"Pattern not found: %s\0".as_ptr() as *mut i8));
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"Pattern not found: %s".as_ptr() as *mut i8, &[VArg::P(used_pat as *mut c_void)]);
+                msg(ed, iobuff_or(ed, c"Pattern not found: %s".as_ptr() as *mut i8));
             }
         } else {
             global_exe(ed, cmd);
@@ -22450,14 +22451,14 @@ pub unsafe fn msg_verbose_cmd(ed: *mut Editor, lnum: linenr_T, cmd: *mut char_u)
     (*ed).no_wait_return += 1;
     verbose_enter_scroll(ed);
     if lnum == 0 {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"Executing: %s\0".as_ptr() as *mut i8, &[VArg::P(cmd as *mut c_void)]);
-        msg(ed, iobuff_or(ed, b"Executing: %s\0".as_ptr() as *mut i8));
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"Executing: %s".as_ptr() as *mut i8, &[VArg::P(cmd as *mut c_void)]);
+        msg(ed, iobuff_or(ed, c"Executing: %s".as_ptr() as *mut i8));
     } else {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"line %ld: %s\0".as_ptr() as *mut i8, &[VArg::I(lnum), VArg::P(cmd as *mut c_void)]);
-        msg(ed, iobuff_or(ed, b"line %ld: %s\0".as_ptr() as *mut i8));
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"line %ld: %s".as_ptr() as *mut i8, &[VArg::I(lnum), VArg::P(cmd as *mut c_void)]);
+        msg(ed, iobuff_or(ed, c"line %ld: %s".as_ptr() as *mut i8));
     }
     if (*ed).msg_silent == 0 {
-        msg_puts(ed, b"\n\0".as_ptr() as *mut i8);
+        msg_puts(ed, c"\n".as_ptr() as *mut i8);
     }
     verbose_leave_scroll(ed);
     (*ed).no_wait_return -= 1;
@@ -22664,7 +22665,7 @@ pub unsafe fn do_one_cmd(ed: *mut Editor, cmdlinep: *mut *mut char_u, flags: i32
                         errormsg = decay(&raw mut (*ed).e_backwards_range_given);
                         break 'l1;
                     }
-                    if ask_yesno(ed, b"Backwards range given, OK to swap\0".as_ptr() as *mut u8, false) != b'y' as i32 {
+                    if ask_yesno(ed, c"Backwards range given, OK to swap".as_ptr() as *mut u8, false) != b'y' as i32 {
                         break 'l1;
                     }
                 }
@@ -22843,7 +22844,7 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
     let mut has_visual_range: bool = false;
     musl_memset(cmod as *mut c_void, 0, 216);
     (*cmod).cmod_flags = (*ed).sticky_cmdmod_flags;
-    if musl_strncmp((*eap).cmd as *mut i8, b"'<,'>\0".as_ptr() as *mut i8, 5) == 0 {
+    if musl_strncmp((*eap).cmd as *mut i8, c"'<,'>".as_ptr() as *mut i8, 5) == 0 {
         (*eap).cmd = (*eap).cmd.wrapping_add(5);
         cmd_start = (*eap).cmd;
         has_visual_range = true;
@@ -22863,15 +22864,15 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
         's3: {
             match *p as i32 {
                 107 => {
-                if checkforcmd_noparen(&raw mut (*eap).cmd, b"keepmarks\0".as_ptr() as *mut i8, 3) {
+                if checkforcmd_noparen(&raw mut (*eap).cmd, c"keepmarks".as_ptr() as *mut i8, 3) {
                     (*cmod).cmod_flags |= CMOD_KEEPMARKS;
                     continue 'l1;
                 }
-                if checkforcmd_noparen(&raw mut (*eap).cmd, b"keeppatterns\0".as_ptr() as *mut i8, 5) {
+                if checkforcmd_noparen(&raw mut (*eap).cmd, c"keeppatterns".as_ptr() as *mut i8, 5) {
                     (*cmod).cmod_flags |= CMOD_KEEPPATTERNS;
                     continue 'l1;
                 }
-                if !checkforcmd_noparen(&raw mut (*eap).cmd, b"keepjumps\0".as_ptr() as *mut i8, 5) {
+                if !checkforcmd_noparen(&raw mut (*eap).cmd, c"keepjumps".as_ptr() as *mut i8, 5) {
                     break 's3;
                 }
                 (*cmod).cmod_flags |= CMOD_KEEPJUMPS;
@@ -22880,7 +22881,7 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
                 102 => {
                 nulp = null_mut();
                 c = 0;
-                if !checkforcmd_noparen(&raw mut p, b"filter\0".as_ptr() as *mut i8, 4) || *p == NUL as u8 || ends_excmd(*p as i32) {
+                if !checkforcmd_noparen(&raw mut p, c"filter".as_ptr() as *mut i8, 4) || *p == NUL as u8 || ends_excmd(*p as i32) {
                     break 's3;
                 }
                 if *p == b'!' {
@@ -22911,13 +22912,13 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
                 continue 'l1;
             }
                 108 => {
-                if checkforcmd_noparen(&raw mut (*eap).cmd, b"lockmarks\0".as_ptr() as *mut i8, 3) {
+                if checkforcmd_noparen(&raw mut (*eap).cmd, c"lockmarks".as_ptr() as *mut i8, 3) {
                     (*cmod).cmod_flags |= CMOD_LOCKMARKS;
                     continue 'l1;
                 }
             }
                 115 => {
-                if !checkforcmd_noparen(&raw mut (*eap).cmd, b"silent\0".as_ptr() as *mut i8, 3) {
+                if !checkforcmd_noparen(&raw mut (*eap).cmd, c"silent".as_ptr() as *mut i8, 3) {
                     break 's3;
                 }
                 (*cmod).cmod_flags |= CMOD_SILENT;
@@ -22928,14 +22929,14 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
                 continue 'l1;
             }
                 117 => {
-                if !checkforcmd_noparen(&raw mut (*eap).cmd, b"unsilent\0".as_ptr() as *mut i8, 3) {
+                if !checkforcmd_noparen(&raw mut (*eap).cmd, c"unsilent".as_ptr() as *mut i8, 3) {
                     break 's3;
                 }
                 (*cmod).cmod_flags |= CMOD_UNSILENT;
                 continue 'l1;
             }
                 118 => {
-                if !checkforcmd_noparen(&raw mut p, b"verbose\0".as_ptr() as *mut i8, 4) {
+                if !checkforcmd_noparen(&raw mut p, c"verbose".as_ptr() as *mut i8, 4) {
                     break 's3;
                 }
                 if vim_isdigit(*(*eap).cmd as i32) {
@@ -22955,7 +22956,7 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
         if (*eap).cmd > cmd_start {
             musl_memmove(cmd_start.wrapping_sub(5) as *mut c_void, cmd_start as *mut c_void, pdiff((*eap).cmd, cmd_start) as u64);
             (*eap).cmd = (*eap).cmd.wrapping_sub(5);
-            musl_memmove((*eap).cmd.wrapping_sub(1) as *mut c_void, b":'<,'>\0".as_ptr() as *mut c_void, 6);
+            musl_memmove((*eap).cmd.wrapping_sub(1) as *mut c_void, c":'<,'>".as_ptr() as *mut c_void, 6);
         } else {
             (*eap).cmd = orig_cmd;
         }
@@ -23097,14 +23098,14 @@ pub unsafe fn append_command(ed: *mut Editor, cmd: *mut char_u) {
     if len > 925 {
         d = (*ed).IObuff.wrapping_add(1025).wrapping_sub(100);
         d = d.wrapping_offset((utf_head_off(ed, (*ed).IObuff, d) as isize).wrapping_neg());
-        musl_strcpy(d as *mut i8, b"...\0".as_ptr() as *mut i8);
+        musl_strcpy(d as *mut i8, c"...".as_ptr() as *mut i8);
     }
-    musl_strcat((*ed).IObuff as *mut i8, b": \0".as_ptr() as *mut i8);
+    musl_strcat((*ed).IObuff as *mut i8, c": ".as_ptr() as *mut i8);
     d = (*ed).IObuff.wrapping_add(musl_strlen((*ed).IObuff as *mut i8) as usize);
     while *s != NUL as u8 && pdiff(d, (*ed).IObuff) + 5 < 1025 {
         if *s == 194 && *s.wrapping_add(1) == 160 {
             s = s.wrapping_add(2);
-            musl_strcpy(d as *mut i8, b"<a0>\0".as_ptr() as *mut i8);
+            musl_strcpy(d as *mut i8, c"<a0>".as_ptr() as *mut i8);
             d = d.wrapping_add(4);
         } else if pdiff(d, (*ed).IObuff) + utfc_ptr2len(ed, s) as i64 + 1 >= 1025 {
             break;
@@ -23156,14 +23157,14 @@ pub unsafe fn find_ex_command(ed: *mut Editor, eap: *mut exarg_T, full: *mut i32
         while ascii_isupper(*p as i32) || ascii_islower(*p as i32) {
             p = p.wrapping_add(1);
         }
-        if p == (*eap).cmd && !vim_strchr(ed, b"@*=><&~#\0".as_ptr() as *mut u8, *p as i32).is_null() {
+        if p == (*eap).cmd && !vim_strchr(ed, c"@*=><&~#".as_ptr() as *mut u8, *p as i32).is_null() {
             p = p.wrapping_add(1);
         }
         let mut len: i32 = pdiff(p, (*eap).cmd) as i32;
         if *(*eap).cmd == b'd' && (*p.wrapping_sub(1) == b'l' || *p.wrapping_sub(1) == b'p') {
             let mut i: i32 = 0;
             while i < len {
-                if (*(*eap).cmd.wrapping_offset(i as isize) as i32) != *(b"delete\0".as_ptr() as *mut u8).wrapping_offset(i as isize) as i32 {
+                if (*(*eap).cmd.wrapping_offset(i as isize) as i32) != *(c"delete".as_ptr() as *mut u8).wrapping_offset(i as isize) as i32 {
                     break;
                 }
                 i += 1;
@@ -23202,7 +23203,7 @@ pub unsafe fn find_ex_command(ed: *mut Editor, eap: *mut exarg_T, full: *mut i32
 pub unsafe fn skip_range(ed: *mut Editor, cmd_start: *mut char_u, skip_star: bool, ctx: *mut i32) -> *mut char_u {
     let mut t1: *mut char_u = null_mut();
     let mut cmd: *mut char_u = cmd_start;
-    while !vim_strchr(ed, b" \t0123456789.$%'/?-+,;\\\0".as_ptr() as *mut u8, *cmd as i32).is_null() {
+    while !vim_strchr(ed, c" \t0123456789.$%'/?-+,;\\".as_ptr() as *mut u8, *cmd as i32).is_null() {
         if *cmd == 92 {
             if *cmd.wrapping_add(1) == b'?' || *cmd.wrapping_add(1) == b'/' || *cmd.wrapping_add(1) == b'&' {
                 cmd = cmd.wrapping_add(1);
@@ -23416,7 +23417,7 @@ pub unsafe fn get_address(ed: *mut Editor, _eap: *mut exarg_T, ptr: *mut *mut ch
                         pos.col = 0;
                     }
                     pos.coladd = 0;
-                    if searchit(ed, (*ed).curwin, (*ed).curbuf, &raw mut pos, null_mut(), if *cmd == b'?' { -1i32 } else { FORWARD }, b"\0".as_ptr() as *mut u8, 0, 1, SEARCH_MSG, i, null_mut()) != FAIL {
+                    if searchit(ed, (*ed).curwin, (*ed).curbuf, &raw mut pos, null_mut(), if *cmd == b'?' { -1i32 } else { FORWARD }, c"".as_ptr() as *mut u8, 0, 1, SEARCH_MSG, i, null_mut()) != FAIL {
                         lnum = pos.lnum;
                     } else {
                         cmd = null_mut();
@@ -23497,14 +23498,14 @@ pub unsafe fn address_default_all(ed: *mut Editor, eap: *mut exarg_T) {
             (*eap).line2 = 1;
         }
         11 | 9 => {
-            iemsg(ed, b"Cannot use EX_DFLALL with ADDR_NONE or ADDR_UNSIGNED\0".as_ptr() as *mut i8);
+            iemsg(ed, c"Cannot use EX_DFLALL with ADDR_NONE or ADDR_UNSIGNED".as_ptr() as *mut i8);
         }
         _ => {}
     }
 }
 
 pub unsafe fn get_flags(ed: *mut Editor, eap: *mut exarg_T) {
-    while !vim_strchr(ed, b"lp#\0".as_ptr() as *mut u8, *(*eap).arg as i32).is_null() {
+    while !vim_strchr(ed, c"lp#".as_ptr() as *mut u8, *(*eap).arg as i32).is_null() {
         if *(*eap).arg == b'l' {
             (*eap).flags |= EXFLAG_LIST;
         } else if *(*eap).arg == b'p' {
@@ -23656,7 +23657,7 @@ pub unsafe fn set_nextcmd(ed: *mut Editor, eap: *mut exarg_T, arg: *mut char_u) 
 
 pub unsafe fn ex_highlight(ed: *mut Editor, eap: *mut exarg_T) {
     if *(*eap).arg == NUL as u8 && *(*eap).cmd.wrapping_add(2) == b'!' {
-        msg(ed, b"Greetings, Vim user!\0".as_ptr() as *mut i8);
+        msg(ed, c"Greetings, Vim user!".as_ptr() as *mut i8);
     }
     do_highlight(ed, (*eap).arg, (*eap).forceit, false);
 }
@@ -23726,8 +23727,8 @@ pub unsafe fn ex_wrongmodifier(ed: *mut Editor, eap: *mut exarg_T) {
 }
 
 pub unsafe fn ex_equal(ed: *mut Editor, eap: *mut exarg_T) {
-    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"%ld\0".as_ptr() as *mut i8, &[VArg::I((*eap).line2)]);
-    msg(ed, iobuff_or(ed, b"%ld\0".as_ptr() as *mut i8));
+    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"%ld".as_ptr() as *mut i8, &[VArg::I((*eap).line2)]);
+    msg(ed, iobuff_or(ed, c"%ld".as_ptr() as *mut i8));
     ex_may_print(ed, eap);
 }
 
@@ -24175,7 +24176,7 @@ pub unsafe fn abandon_cmdline(ed: *mut Editor) {
     if (*ed).msg_scrolled == 0 {
         compute_cmdrow(ed);
     }
-    msg(ed, b"\0".as_ptr() as *mut i8);
+    msg(ed, c"".as_ptr() as *mut i8);
     (*ed).redraw_cmdline = TRUE;
 }
 
@@ -24190,7 +24191,7 @@ pub unsafe fn empty_pattern(ed: *mut Editor, p: *mut char_u, len: usize_, delim:
 }
 
 pub unsafe fn empty_pattern_magic(ed: *mut Editor, p: *mut char_u, mut len: usize_, magic_val: magic_T) -> bool {
-    while len >= 2 && *p.wrapping_add(len.wrapping_sub(2) as usize) == 92 && !vim_strchr(ed, b"mMvVcCZ\0".as_ptr() as *mut u8, *p.wrapping_add(len.wrapping_sub(1) as usize) as i32).is_null() {
+    while len >= 2 && *p.wrapping_add(len.wrapping_sub(2) as usize) == 92 && !vim_strchr(ed, c"mMvVcCZ".as_ptr() as *mut u8, *p.wrapping_add(len.wrapping_sub(1) as usize) as i32).is_null() {
         len = len.wrapping_sub(2);
     }
     len == 0 || len > 1 && *p.wrapping_add(len.wrapping_sub(1) as usize) == b'|' && (*p.wrapping_add(len.wrapping_sub(2) as usize) == 92 && magic_val == MAGIC_ON || *p.wrapping_add(len.wrapping_sub(2) as usize) != 92 && magic_val == MAGIC_ALL)
@@ -24255,7 +24256,7 @@ pub unsafe fn parse_pattern_and_range(ed: *mut Editor, incsearch_start: *mut pos
     ea.addr_type = ADDR_LINES;
     parse_command_modifiers(ed, &raw mut ea, &raw mut dummy, &raw mut dummy_cmdmod, true);
     let cmd: *mut char_u = skip_range(ed, ea.cmd, true, null_mut());
-    if vim_strchr(ed, b"sgvlu\0".as_ptr() as *mut u8, *cmd as i32).is_null() {
+    if vim_strchr(ed, c"sgvlu".as_ptr() as *mut u8, *cmd as i32).is_null() {
         return false;
     }
     let mut p: *mut char_u = cmd;
@@ -24265,13 +24266,13 @@ pub unsafe fn parse_pattern_and_range(ed: *mut Editor, incsearch_start: *mut pos
     if *skipwhite(p) == NUL as u8 {
         return false;
     }
-    if musl_strncmp(cmd as *mut i8, b"substitute\0".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"smagic\0".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"snomagic\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"vglobal\0".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 {
+    if musl_strncmp(cmd as *mut i8, c"substitute".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"smagic".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"snomagic".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"vglobal".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 {
         if *cmd == b's' && *cmd.wrapping_add(1) == b'm' {
             (*ed).magic_overruled = OPTION_MAGIC_ON;
         } else if *cmd == b's' && *cmd.wrapping_add(1) == b'n' {
             (*ed).magic_overruled = OPTION_MAGIC_OFF;
         }
-    } else if musl_strncmp(cmd as *mut i8, b"sort\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"uniq\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 {
+    } else if musl_strncmp(cmd as *mut i8, c"sort".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"uniq".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 {
         if *p == b'!' {
             p = skipwhite(p.wrapping_add(1));
         }
@@ -24281,7 +24282,7 @@ pub unsafe fn parse_pattern_and_range(ed: *mut Editor, incsearch_start: *mut pos
         if *p == NUL as u8 {
             return false;
         }
-    } else if musl_strncmp(cmd as *mut i8, b"vimgrep\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"vimgrepadd\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 8 { pdiff(p, cmd) } else { 8 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"lvimgrep\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 2 { pdiff(p, cmd) } else { 2 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"lvimgrepadd\0".as_ptr() as *mut i8, (if pdiff(p, cmd) > 9 { pdiff(p, cmd) } else { 9 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, b"global\0".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 {
+    } else if musl_strncmp(cmd as *mut i8, c"vimgrep".as_ptr() as *mut i8, (if pdiff(p, cmd) > 3 { pdiff(p, cmd) } else { 3 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"vimgrepadd".as_ptr() as *mut i8, (if pdiff(p, cmd) > 8 { pdiff(p, cmd) } else { 8 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"lvimgrep".as_ptr() as *mut i8, (if pdiff(p, cmd) > 2 { pdiff(p, cmd) } else { 2 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"lvimgrepadd".as_ptr() as *mut i8, (if pdiff(p, cmd) > 9 { pdiff(p, cmd) } else { 9 }) as u64) == 0 || musl_strncmp(cmd as *mut i8, c"global".as_ptr() as *mut i8, pdiff(p, cmd) as u64) == 0 {
         if *p == b'!' {
             p = p.wrapping_add(1);
             if *skipwhite(p) == NUL as u8 {
@@ -24636,7 +24637,7 @@ pub unsafe fn may_add_char_to_search(ed: *mut Editor, firstc: i32, mut c: i32, i
             if (*ed).p_ic != 0 && (*ed).p_scs != 0 && !pat_has_uppercase(ed, (*ed).ccline.cmdbuff.wrapping_offset(skiplen as isize)) {
                 c = vim_tolower(ed, c);
             }
-            if c == search_delim || !vim_strchr(ed, (if magic_isset(ed) != 0 { b"\\~^$.*[\0".as_ptr() as *mut i8 } else { b"\\^$\0".as_ptr() as *mut i8 }) as *mut u8, c).is_null() {
+            if c == search_delim || !vim_strchr(ed, (if magic_isset(ed) != 0 { c"\\~^$.*[".as_ptr() as *mut i8 } else { c"\\^$".as_ptr() as *mut i8 }) as *mut u8, c).is_null() {
                 stuffcharReadbuff(ed, c);
                 c = 92;
             }
@@ -25829,7 +25830,7 @@ pub unsafe fn home_replace(_buf: *mut buf_T, src: *mut char_u, dst: *mut char_u,
 
 pub unsafe fn gettail(ed: *mut Editor, fname: *mut char_u) -> *mut char_u {
     if fname.is_null() {
-        return b"\0".as_ptr() as *mut u8;
+        return c"".as_ptr() as *mut u8;
     }
     let mut p2: *mut char_u = get_past_head(fname);
     let mut p1: *mut char_u = p2;
@@ -25900,7 +25901,7 @@ pub unsafe fn file_name_in_line(ed: *mut Editor, line: *mut char_u, col: i32, op
         }
     }
     len = 0;
-    while vim_isfilec(ed, *ptr.wrapping_offset(len as isize) as i32) || *ptr.wrapping_offset(len as isize) == 92 && *ptr.wrapping_offset((len + 1) as isize) == b' ' || options & FNAME_HYP != 0 && path_is_url(ptr.wrapping_offset(len as isize)) != 0 || is_url && !vim_strchr(ed, b":?&=\0".as_ptr() as *mut u8, *ptr.wrapping_offset(len as isize) as i32).is_null() {
+    while vim_isfilec(ed, *ptr.wrapping_offset(len as isize) as i32) || *ptr.wrapping_offset(len as isize) == 92 && *ptr.wrapping_offset((len + 1) as isize) == b' ' || options & FNAME_HYP != 0 && path_is_url(ptr.wrapping_offset(len as isize)) != 0 || is_url && !vim_strchr(ed, c":?&=".as_ptr() as *mut u8, *ptr.wrapping_offset(len as isize) as i32).is_null() {
         if *ptr.wrapping_offset(len as isize) >= b'A' && *ptr.wrapping_offset(len as isize) <= b'Z' || *ptr.wrapping_offset(len as isize) >= b'a' && *ptr.wrapping_offset(len as isize) <= b'z' {
             if in_type && path_is_url(ptr.wrapping_offset(len as isize).wrapping_add(1)) != 0 {
                 is_url = true;
@@ -25913,11 +25914,11 @@ pub unsafe fn file_name_in_line(ed: *mut Editor, line: *mut char_u, col: i32, op
         }
         len += utfc_ptr2len(ed, ptr.wrapping_offset(len as isize));
     }
-    if len > 2 && !vim_strchr(ed, b".,:;!\0".as_ptr() as *mut u8, *ptr.wrapping_offset((len - 1) as isize) as i32).is_null() && *ptr.wrapping_offset((len - 2) as isize) != b'.' {
+    if len > 2 && !vim_strchr(ed, c".,:;!".as_ptr() as *mut u8, *ptr.wrapping_offset((len - 1) as isize) as i32).is_null() && *ptr.wrapping_offset((len - 2) as isize) != b'.' {
         len -= 1;
     }
     if !file_lnum.is_null() {
-        let mut match_text: *mut i8 = b" line \0".as_ptr() as *mut i8;
+        let mut match_text: *mut i8 = c" line ".as_ptr() as *mut i8;
         let mut match_textlen: usize_ = 6;
         let mut p: *mut char_u = ptr.wrapping_offset(len as isize);
         if musl_strncmp(p as *mut i8, match_text, match_textlen) == 0 {
@@ -26079,7 +26080,7 @@ pub unsafe fn delete_buff_tail(buf: *mut buffheader_T, slen: i32) {
 
 pub unsafe fn add_num_buff(ed: *mut Editor, buf: *mut buffheader_T, n: i64) {
     let mut number: [char_u; 32] = core::mem::zeroed();
-    let numberlen: i32 = crate::host::vim_snprintf(ed, decay(&raw mut number) as *mut i8, 32, b"%ld\0".as_ptr() as *mut i8, &[VArg::I(n)]);
+    let numberlen: i32 = crate::host::vim_snprintf(ed, decay(&raw mut number) as *mut i8, 32, c"%ld".as_ptr() as *mut i8, &[VArg::I(n)]);
     add_buff(ed, buf, decay(&raw mut number), numberlen as i64);
 }
 
@@ -26239,7 +26240,7 @@ pub unsafe fn AppendToRedobuffLit(ed: *mut Editor, str_: *mut char_u, len: i32) 
             add_char_buff(ed, &raw mut (*ed).redobuff, Ctrl_V);
         }
         if *s == NUL as u8 && c == b'0' as i32 {
-            add_buff(ed, &raw mut (*ed).redobuff, b"048\0".as_ptr() as *mut u8, 3);
+            add_buff(ed, &raw mut (*ed).redobuff, c"048".as_ptr() as *mut u8, 3);
         } else {
             add_char_buff(ed, &raw mut (*ed).redobuff, c);
         }
@@ -26379,7 +26380,7 @@ pub unsafe fn start_redo(ed: *mut Editor, count: i64, old_redo: bool) -> bool {
     }
     let mut c: i32 = read_redo(ed, false, old_redo);
     if c == b'"' as i32 {
-        add_buff(ed, &raw mut (*ed).readbuf2, b"\"\0".as_ptr() as *mut u8, 1);
+        add_buff(ed, &raw mut (*ed).readbuf2, c"\"".as_ptr() as *mut u8, 1);
         c = read_redo(ed, false, old_redo);
         if c >= b'1' as i32 && c < b'9' as i32 {
             c += 1;
@@ -26420,9 +26421,9 @@ pub unsafe fn start_redo_ins(ed: *mut Editor) -> bool {
         if !(c != NUL) {
             break;
         }
-        if !vim_strchr(ed, b"AaIiRrOo\0".as_ptr() as *mut u8, c).is_null() {
+        if !vim_strchr(ed, c"AaIiRrOo".as_ptr() as *mut u8, c).is_null() {
             if c == b'O' as i32 || c == b'o' as i32 {
-                add_buff(ed, &raw mut (*ed).readbuf2, b"\n\0".as_ptr() as *mut u8, -1);
+                add_buff(ed, &raw mut (*ed).readbuf2, c"\n".as_ptr() as *mut u8, -1);
             }
             break;
         }
@@ -26688,12 +26689,12 @@ pub unsafe fn alloc_typebuf(ed: *mut Editor) -> bool {
 
 pub unsafe fn free_typebuf(ed: *mut Editor) {
     if (*ed).typebuf.tb_buf == decay(&raw mut (*ed).typebuf_init) {
-        internal_error(ed, b"Free typebuf 1\0".as_ptr() as *mut i8);
+        internal_error(ed, c"Free typebuf 1".as_ptr() as *mut i8);
     } else {
         (*ed).typebuf.tb_buf = null_mut();
     }
     if (*ed).typebuf.tb_noremap == decay(&raw mut (*ed).noremapbuf_init) {
-        internal_error(ed, b"Free typebuf 2\0".as_ptr() as *mut i8);
+        internal_error(ed, c"Free typebuf 2".as_ptr() as *mut i8);
     } else {
         (*ed).typebuf.tb_noremap = null_mut();
     }
@@ -27162,7 +27163,7 @@ pub unsafe fn handle_mapping(ed: *mut Editor, mut keylenp: i32, timedout: bool, 
                 gotchars(ed, (*ed).typebuf.tb_buf.wrapping_offset((*ed).typebuf.tb_off as isize).wrapping_offset((*ed).typebuf.tb_maplen as isize), mlen - (*ed).typebuf.tb_maplen);
             }
             del_typebuf(ed, mlen, 0);
-            set_option_value_give_err(ed, b"paste\0".as_ptr() as *mut u8, ((*ed).p_paste == 0) as i64, null_mut(), 0);
+            set_option_value_give_err(ed, c"paste".as_ptr() as *mut u8, ((*ed).p_paste == 0) as i64, null_mut(), 0);
             if (*ed).State & MODE_INSERT == 0 {
                 (*ed).msg_col = 0;
                 (*ed).msg_row = ((*ed).Rows - 1) as i32;
@@ -27691,7 +27692,7 @@ pub unsafe fn getcmdkeycmd(ed: *mut Editor, _promptc: i32, _indent: i32, _do_con
             emsg(ed, decay(&raw mut (*ed).e_cmd_mapping_must_end_with_cr_before_second_cmd));
             aborted = true;
         } else if c1 == K_SNR {
-            ga_concat_len(ed, &raw mut line_ga, b"<SNR>\0".as_ptr() as *mut u8, 5);
+            ga_concat_len(ed, &raw mut line_ga, c"<SNR>".as_ptr() as *mut u8, 5);
         } else {
             if cmod != 0 {
                 ga_append(ed, &raw mut line_ga, 128);
@@ -27745,11 +27746,11 @@ pub unsafe fn init_highlight(ed: *mut Editor, both: bool, reset: bool) {
         i += 1;
     }
     if (*ed).t_colors < 8 {
-        do_highlight(ed, b"Visual term=reverse cterm=reverse ctermbg=NONE ctermfg=NONE\0".as_ptr() as *mut u8, false, true);
+        do_highlight(ed, c"Visual term=reverse cterm=reverse ctermbg=NONE ctermfg=NONE".as_ptr() as *mut u8, false, true);
     }
     if (*ed).t_colors <= 8 {
         if *(*ed).p_bg == b'l' {
-            do_highlight(ed, b"Search ctermfg=black\0".as_ptr() as *mut u8, false, true);
+            do_highlight(ed, c"Search ctermfg=black".as_ptr() as *mut u8, false, true);
         }
     }
     resolve_fallback_fg_to_rgb(ed);
@@ -27800,7 +27801,7 @@ pub unsafe fn highlight_group_link(ed: *mut Editor, from_hg: *mut char_u, from_l
     let mut to_id: i32 = 0;
     let mut hlgroup: *mut hl_group_T = null_mut();
     let from_id: i32 = syn_check_group(ed, from_hg, from_len);
-    if musl_strncmp(to_hg as *mut i8, b"NONE\0".as_ptr() as *mut i8, 4) == 0 {
+    if musl_strncmp(to_hg as *mut i8, c"NONE".as_ptr() as *mut i8, 4) == 0 {
         to_id = 0;
     } else {
         to_id = syn_check_group(ed, to_hg, to_len);
@@ -27908,9 +27909,9 @@ pub unsafe fn hl_set_ctermbg_normal_group(ed: *mut Editor, color: i32) {
         } else if color < 16 {
             dark = (color < 7 || color == 8) as i32;
         }
-        if dark != -1 && dark != (*(*ed).p_bg == b'd') as i32 && !option_was_set(ed, b"bg\0".as_ptr() as *mut u8) {
-            set_option_value_give_err(ed, b"bg\0".as_ptr() as *mut u8, 0, (if dark != 0 { b"dark\0".as_ptr() as *mut i8 } else { b"light\0".as_ptr() as *mut i8 }) as *mut u8, 0);
-            reset_option_was_set(ed, b"bg\0".as_ptr() as *mut u8);
+        if dark != -1 && dark != (*(*ed).p_bg == b'd') as i32 && !option_was_set(ed, c"bg".as_ptr() as *mut u8) {
+            set_option_value_give_err(ed, c"bg".as_ptr() as *mut u8, 0, (if dark != 0 { c"dark".as_ptr() as *mut i8 } else { c"light".as_ptr() as *mut i8 }) as *mut u8, 0);
+            reset_option_was_set(ed, c"bg".as_ptr() as *mut u8);
         }
     }
 }
@@ -27947,7 +27948,7 @@ pub unsafe fn highlight_set_cterm_font(ed: *mut Editor, idx: i32, arg: *mut char
     }
     if ascii_isdigit(*arg as i32) {
         font = musl_atoi(arg as *mut i8);
-    } else if musl_strcasecmp(arg as *mut i8, b"NONE\0".as_ptr() as *mut i8) == 0 {
+    } else if musl_strcasecmp(arg as *mut i8, c"NONE".as_ptr() as *mut i8) == 0 {
         font = -1;
     } else {
         return false;
@@ -27971,21 +27972,21 @@ pub unsafe fn highlight_set_cterm_color(ed: *mut Editor, idx: i32, key: *mut cha
     }
     if ascii_isdigit(*arg as i32) {
         color = musl_atoi(arg as *mut i8);
-    } else if musl_strcasecmp(arg as *mut i8, b"fg\0".as_ptr() as *mut i8) == 0 {
+    } else if musl_strcasecmp(arg as *mut i8, c"fg".as_ptr() as *mut i8) == 0 {
         if (*ed).cterm_normal_fg_color != 0 {
             color = (*ed).cterm_normal_fg_color - 1;
         } else {
             emsg(ed, decay(&raw mut (*ed).e_fg_color_unknown));
             return false;
         }
-    } else if musl_strcasecmp(arg as *mut i8, b"bg\0".as_ptr() as *mut i8) == 0 {
+    } else if musl_strcasecmp(arg as *mut i8, c"bg".as_ptr() as *mut i8) == 0 {
         if (*ed).cterm_normal_bg_color > 0 {
             color = (*ed).cterm_normal_bg_color - 1;
         } else {
             emsg(ed, decay(&raw mut (*ed).e_bg_color_unknown));
             return false;
         }
-    } else if musl_strcasecmp(arg as *mut i8, b"ul\0".as_ptr() as *mut i8) == 0 {
+    } else if musl_strcasecmp(arg as *mut i8, c"ul".as_ptr() as *mut i8) == 0 {
         if (*ed).cterm_normal_ul_color > 0 {
             color = (*ed).cterm_normal_ul_color - 1;
         } else {
@@ -28032,7 +28033,7 @@ pub unsafe fn highlight_set_startstop_termcode(ed: *mut Editor, idx: i32, key: *
     if !init {
         (*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize)).sg_set |= SG_TERM;
     }
-    if musl_strncmp(arg as *mut i8, b"t_\0".as_ptr() as *mut i8, 2) == 0 {
+    if musl_strncmp(arg as *mut i8, c"t_".as_ptr() as *mut i8, 2) == 0 {
         off = 0;
         *decay(&raw mut buf) = 0;
         while *arg.wrapping_offset(off as isize) != NUL as u8 {
@@ -28043,7 +28044,7 @@ pub unsafe fn highlight_set_startstop_termcode(ed: *mut Editor, idx: i32, key: *
             let tname: *mut char_u = vim_strnsave(ed, arg.wrapping_offset(off as isize), len as u64);
             p = get_term_code(ed, tname);
             if p.is_null() {
-                p = b"\0".as_ptr() as *mut u8;
+                p = c"".as_ptr() as *mut u8;
             }
             if (musl_strlen(decay(&raw mut buf) as *mut i8).wrapping_add(musl_strlen(p as *mut i8)) as i32) >= 99 {
                 crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_terminal_code_too_long_str), &[VArg::P(arg as *mut c_void)]);
@@ -28070,7 +28071,7 @@ pub unsafe fn highlight_set_startstop_termcode(ed: *mut Editor, idx: i32, key: *
         }
         *decay(&raw mut buf).wrapping_offset(off as isize) = NUL as u8;
     }
-    if musl_strcmp(decay(&raw mut buf) as *mut i8, b"NONE\0".as_ptr() as *mut i8) == 0 {
+    if musl_strcmp(decay(&raw mut buf) as *mut i8, c"NONE".as_ptr() as *mut i8) == 0 {
         p = null_mut();
     } else {
         p = vim_strsave(ed, decay(&raw mut buf));
@@ -28104,16 +28105,16 @@ pub unsafe fn do_highlight(ed: *mut Editor, mut line: *mut char_u, forceit: bool
     }
     let mut name_end: *mut char_u = skiptowhite(line);
     let mut linep: *mut char_u = skipwhite(name_end);
-    if musl_strncmp(line as *mut i8, b"default\0".as_ptr() as *mut i8, pdiff(name_end, line) as u64) == 0 {
+    if musl_strncmp(line as *mut i8, c"default".as_ptr() as *mut i8, pdiff(name_end, line) as u64) == 0 {
         dodefault = true;
         line = linep;
         name_end = skiptowhite(line);
         linep = skipwhite(name_end);
     }
-    if musl_strncmp(line as *mut i8, b"clear\0".as_ptr() as *mut i8, pdiff(name_end, line) as u64) == 0 {
+    if musl_strncmp(line as *mut i8, c"clear".as_ptr() as *mut i8, pdiff(name_end, line) as u64) == 0 {
         doclear = true;
     }
-    if musl_strncmp(line as *mut i8, b"link\0".as_ptr() as *mut i8, pdiff(name_end, line) as u64) == 0 {
+    if musl_strncmp(line as *mut i8, c"link".as_ptr() as *mut i8, pdiff(name_end, line) as u64) == 0 {
         dolink = true;
     }
     if !doclear && !dolink && ends_excmd2(line, linep) {
@@ -28164,7 +28165,7 @@ pub unsafe fn do_highlight(ed: *mut Editor, mut line: *mut char_u, forceit: bool
         return;
     }
     let mut item_before: hl_group_T = *((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize);
-    if musl_strcmp((*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize)).sg_name_u as *mut i8, b"NORMAL\0".as_ptr() as *mut i8) == 0 {
+    if musl_strcmp((*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize)).sg_name_u as *mut i8, c"NORMAL".as_ptr() as *mut i8) == 0 {
         is_normal_group = true;
     }
     if doclear || forceit && init {
@@ -28187,7 +28188,7 @@ pub unsafe fn do_highlight(ed: *mut Editor, mut line: *mut char_u, forceit: bool
             }
             key = vim_strnsave_up(ed, key_start, pdiff(linep, key_start) as u64);
             linep = skipwhite(linep);
-            if musl_strcmp(key as *mut i8, b"NONE\0".as_ptr() as *mut i8) == 0 {
+            if musl_strcmp(key as *mut i8, c"NONE".as_ptr() as *mut i8) == 0 {
                 if !init || (*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize)).sg_set == 0 {
                     if !init {
                         (*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize)).sg_set |= 7;
@@ -28228,26 +28229,26 @@ pub unsafe fn do_highlight(ed: *mut Editor, mut line: *mut char_u, forceit: bool
             if *linep == 39 {
                 linep = linep.wrapping_add(1);
             }
-            if musl_strcmp(key as *mut i8, b"TERM\0".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, b"CTERM\0".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, b"GUI\0".as_ptr() as *mut i8) == 0 {
+            if musl_strcmp(key as *mut i8, c"TERM".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, c"CTERM".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, c"GUI".as_ptr() as *mut i8) == 0 {
                 if !highlight_set_termgui_attr(ed, idx, key, arg, init) {
                     error = true;
                     break;
                 }
-            } else if musl_strcmp(key as *mut i8, b"FONT\0".as_ptr() as *mut i8) == 0 {
-            } else if musl_strcmp(key as *mut i8, b"CTERMFG\0".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, b"CTERMBG\0".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, b"CTERMUL\0".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"FONT".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"CTERMFG".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, c"CTERMBG".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, c"CTERMUL".as_ptr() as *mut i8) == 0 {
                 if !highlight_set_cterm_color(ed, idx, key, key_start, arg, is_normal_group, init) {
                     error = true;
                     break;
                 }
-            } else if musl_strcmp(key as *mut i8, b"CTERMFONT\0".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"CTERMFONT".as_ptr() as *mut i8) == 0 {
                 if !highlight_set_cterm_font(ed, idx, arg, init) {
                     error = true;
                     break;
                 }
-            } else if musl_strcmp(key as *mut i8, b"GUIFG\0".as_ptr() as *mut i8) == 0 {
-            } else if musl_strcmp(key as *mut i8, b"GUIBG\0".as_ptr() as *mut i8) == 0 {
-            } else if musl_strcmp(key as *mut i8, b"GUISP\0".as_ptr() as *mut i8) == 0 {
-            } else if musl_strcmp(key as *mut i8, b"START\0".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, b"STOP\0".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"GUIFG".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"GUIBG".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"GUISP".as_ptr() as *mut i8) == 0 {
+            } else if musl_strcmp(key as *mut i8, c"START".as_ptr() as *mut i8) == 0 || musl_strcmp(key as *mut i8, c"STOP".as_ptr() as *mut i8) == 0 {
                 if !highlight_set_startstop_termcode(ed, idx, key, arg, init) {
                     error = true;
                     break;
@@ -28670,29 +28671,29 @@ pub unsafe fn highlight_list_one(ed: *mut Editor, id: i32) {
     if message_filtered(ed, (*sgp).sg_name) {
         return;
     }
-    didh = highlight_list_arg(ed, id, didh, LIST_ATTR, (*sgp).sg_term, null_mut(), b"term\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_STRING, 0, (*sgp).sg_start, b"start\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_STRING, 0, (*sgp).sg_stop, b"stop\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_ATTR, (*sgp).sg_cterm, null_mut(), b"cterm\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_fg, null_mut(), b"ctermfg\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_bg, null_mut(), b"ctermbg\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_ul, null_mut(), b"ctermul\0".as_ptr() as *mut i8);
-    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_font, null_mut(), b"ctermfont\0".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_ATTR, (*sgp).sg_term, null_mut(), c"term".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_STRING, 0, (*sgp).sg_start, c"start".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_STRING, 0, (*sgp).sg_stop, c"stop".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_ATTR, (*sgp).sg_cterm, null_mut(), c"cterm".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_fg, null_mut(), c"ctermfg".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_bg, null_mut(), c"ctermbg".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_ul, null_mut(), c"ctermul".as_ptr() as *mut i8);
+    didh = highlight_list_arg(ed, id, didh, LIST_INT, (*sgp).sg_cterm_font, null_mut(), c"ctermfont".as_ptr() as *mut i8);
     if (*sgp).sg_link != 0 && (*ed).got_int == 0 {
         syn_list_header(ed, didh, 9999, id);
         didh = true;
-        msg_puts_attr(ed, b"links to\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(3));
+        msg_puts_attr(ed, c"links to".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(3));
         msg_putchar(ed, b' ' as i32);
         msg_outtrans(ed, (*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(((*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset((id - 1) as isize)).sg_link - 1) as isize)).sg_name);
     }
     if !didh {
-        highlight_list_arg(ed, id, didh, LIST_STRING, 0, b"cleared\0".as_ptr() as *mut u8, b"\0".as_ptr() as *mut i8);
+        highlight_list_arg(ed, id, didh, LIST_STRING, 0, c"cleared".as_ptr() as *mut u8, c"".as_ptr() as *mut i8);
     }
 }
 
 pub unsafe fn highlight_arg_to_string(ed: *mut Editor, type_: i32, mut iarg: i32, sarg: *mut char_u, buf: *mut char_u) -> *mut char_u {
     if type_ == LIST_INT {
-        crate::host::vim_snprintf(ed, buf as *mut i8, MAX_ATTR_LEN as u64, b"%d\0".as_ptr() as *mut i8, &[VArg::I((iarg - 1) as i64)]);
+        crate::host::vim_snprintf(ed, buf as *mut i8, MAX_ATTR_LEN as u64, c"%d".as_ptr() as *mut i8, &[VArg::I((iarg - 1) as i64)]);
     } else if type_ == LIST_STRING {
         return sarg;
     } else {
@@ -28702,7 +28703,7 @@ pub unsafe fn highlight_arg_to_string(ed: *mut Editor, type_: i32, mut iarg: i32
         while i < 13 {
             if iarg & (*(*decay(&raw mut (*ed).highlight_index_tab).wrapping_offset(i as isize))).key != 0 {
                 if buflen > 0 {
-                    musl_strcpy(buf.wrapping_add(buflen as usize) as *mut i8, b",\0".as_ptr() as *mut u8 as *mut i8);
+                    musl_strcpy(buf.wrapping_add(buflen as usize) as *mut i8, c",".as_ptr() as *mut u8 as *mut i8);
                     buflen = buflen.wrapping_add(1);
                 }
                 musl_strcpy(buf.wrapping_add(buflen as usize) as *mut i8, (*(*decay(&raw mut (*ed).highlight_index_tab).wrapping_offset(i as isize))).value.string as *mut i8);
@@ -28729,7 +28730,7 @@ pub unsafe fn highlight_list_arg(ed: *mut Editor, id: i32, mut didh: bool, type_
     if (*ed).got_int == 0 {
         if *name != NUL as i8 {
             msg_puts_attr(ed, name, *decay(&raw mut (*ed).highlight_attr).wrapping_add(3));
-            msg_puts_attr(ed, b"=\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(3));
+            msg_puts_attr(ed, c"=".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(3));
         }
         msg_outtrans(ed, ts);
     }
@@ -28769,7 +28770,7 @@ pub unsafe fn syn_list_header(ed: *mut Editor, did_header: bool, outlen: i32, id
         if endcol == (*ed).cmdline_width - 1 && endcol <= name_col {
             msg_putchar(ed, b' ' as i32);
         }
-        msg_puts_attr(ed, b"xxx\0".as_ptr() as *mut i8, syn_id2attr(ed, id));
+        msg_puts_attr(ed, c"xxx".as_ptr() as *mut i8, syn_id2attr(ed, id));
         msg_putchar(ed, b' ' as i32);
     }
     newline
@@ -28778,7 +28779,7 @@ pub unsafe fn syn_list_header(ed: *mut Editor, did_header: bool, outlen: i32, id
 pub unsafe fn set_hl_attr(ed: *mut Editor, idx: i32) {
     let mut at_en: attrentry_T = core::mem::zeroed();
     let sgp: *mut hl_group_T = ((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize);
-    if !(*sgp).sg_name_u.is_null() && musl_strcmp((*sgp).sg_name_u as *mut i8, b"NORMAL\0".as_ptr() as *mut i8) == 0 {
+    if !(*sgp).sg_name_u.is_null() && musl_strcmp((*sgp).sg_name_u as *mut i8, c"NORMAL".as_ptr() as *mut i8) == 0 {
         return;
     }
     if (*sgp).sg_start.is_null() && (*sgp).sg_stop.is_null() {
@@ -28857,7 +28858,7 @@ pub unsafe fn syn_add_group(ed: *mut Editor, name: *mut char_u) -> i32 {
             return 0;
         } else if !(ascii_isupper(*p as i32) || ascii_islower(*p as i32) || ascii_isdigit(*p as i32)) && *p != b'_' && *p != b'.' && *p != b'-' {
             msg_source(ed, *decay(&raw mut (*ed).highlight_attr).wrapping_add(25));
-            msg(ed, b"W18: Invalid character in group name\0".as_ptr() as *mut i8);
+            msg(ed, c"W18: Invalid character in group name".as_ptr() as *mut i8);
             break;
         }
         p = p.wrapping_add(1);
@@ -28931,17 +28932,18 @@ pub unsafe fn highlight_changed(ed: *mut Editor) -> bool {
     let default_hl: *mut char_u = get_highlight_default(ed);
     let mut i: i32 = 0;
     while i < 2 {
-    'c2: {
         if i != 0 {
             if !default_hl.is_null() && !(*ed).p_hl.is_null() && musl_strcmp(default_hl as *mut i8, (*ed).p_hl as *mut i8) == 0 {
-                break 'c2;
+                i += 1;
+                continue;
             }
             p = (*ed).p_hl;
         } else {
             p = default_hl;
         }
         if p.is_null() {
-            break 'c2;
+            i += 1;
+            continue;
         }
         while *p != 0 {
             hlf = 0;
@@ -28958,9 +28960,9 @@ pub unsafe fn highlight_changed(ed: *mut Editor) -> bool {
             let mut attr: i32 = 0;
             let mut id: i32 = 0;
             while *p != 0 && *p != b',' {
-            'c5: {
                 if *p == b' ' || *p == 9 {
-                    break 'c5;
+                    p = p.wrapping_add(1);
+                    continue;
                 }
                 if attr > HL_ALL {
                     return false;
@@ -29016,14 +29018,14 @@ pub unsafe fn highlight_changed(ed: *mut Editor) -> bool {
                     _ => {
                         return false;
                     }
-                }                }
+                }
                 p = p.wrapping_add(1);
             }
             *decay(&raw mut (*ed).highlight_attr).wrapping_offset(hlf as isize) = attr;
             *decay(&raw mut (*ed).highlight_attr_raw).wrapping_offset(hlf as isize) = attr;
             *decay(&raw mut (*ed).highlight_ids).wrapping_offset(hlf as isize) = id;
             p = skip_to_option_part(p);
-        }        }
+        }
         i += 1;
     }
     let wp: *mut win_T = (*ed).curwin;
@@ -29052,7 +29054,6 @@ pub unsafe fn set_highlight_attr(ed: *mut Editor, arr: *mut hl_override_T, len: 
     let mut attr: i32 = 0;
     let mut i: i32 = 0;
     while i < len {
-    'c1: {
         let override_: *mut hl_override_T = arr.wrapping_offset(i as isize);
         let mut hlf: i32 = -1;
         if (*override_).from <= 0 {
@@ -29067,7 +29068,8 @@ pub unsafe fn set_highlight_attr(ed: *mut Editor, arr: *mut hl_override_T, len: 
                 k += 1;
             }
             if hlf == -1 {
-                break 'c1;
+                i += 1;
+                continue;
             }
         }
         if update_ids {
@@ -29087,7 +29089,7 @@ pub unsafe fn set_highlight_attr(ed: *mut Editor, arr: *mut hl_override_T, len: 
                 attr = syn_id2attr(ed, (*override_).to);
             }
             *decay(&raw mut (*ed).highlight_attr).wrapping_offset(hlf as isize) = attr;
-        }        }
+        }
         i += 1;
     }
 }
@@ -29257,7 +29259,7 @@ pub unsafe fn parse_winhighlight(ed: *mut Editor, opt: *mut char_u, mut len: i32
                     out__.errmsg = errmsg;
                     return out__;
                 }
-                if *decay(&raw mut ids).wrapping_offset(k as isize) == &raw mut fromid && musl_strcmp((*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset((*(*decay(&raw mut ids).wrapping_offset(k as isize)) - 1) as isize)).sg_name_u as *mut i8, b"NORMAL\0".as_ptr() as *mut i8) == 0 {
+                if *decay(&raw mut ids).wrapping_offset(k as isize) == &raw mut fromid && musl_strcmp((*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset((*(*decay(&raw mut ids).wrapping_offset(k as isize)) - 1) as isize)).sg_name_u as *mut i8, c"NORMAL".as_ptr() as *mut i8) == 0 {
                     *(*decay(&raw mut ids).wrapping_offset(k as isize)) = -69;
                 }
             }
@@ -29308,16 +29310,16 @@ pub unsafe fn hlf_get_id(ed: *mut Editor, wp: *mut win_T, hlf: i32) -> i32 {
 }
 
 pub unsafe fn update_wincolor(ed: *mut Editor, wp: *mut win_T, opt: *mut char_u) -> *mut i8 {
-    let str_: *mut char_u = (if *opt == NUL as u8 { b"\0".as_ptr() as *mut i8 } else { alloc(ed, 4u64.wrapping_add(musl_strlen(opt as *mut i8))) as *mut i8 }) as *mut u8;
+    let str_: *mut char_u = (if *opt == NUL as u8 { c"".as_ptr() as *mut i8 } else { alloc(ed, 4u64.wrapping_add(musl_strlen(opt as *mut i8))) as *mut i8 }) as *mut u8;
     if str_.is_null() {
         return decay(&raw mut (*ed).e_out_of_memory);
     }
     if *opt != NUL as u8 {
-        crate::host::vim_snprintf(ed, str_ as *mut i8, 4u64.wrapping_add(musl_strlen(opt as *mut i8)), b"!(:%s\0".as_ptr() as *mut i8, &[VArg::P(opt as *mut c_void)]);
+        crate::host::vim_snprintf(ed, str_ as *mut i8, 4u64.wrapping_add(musl_strlen(opt as *mut i8)), c"!(:%s".as_ptr() as *mut i8, &[VArg::P(opt as *mut c_void)]);
     }
     let errmsg: *mut i8 = update_winhighlight(ed, wp, str_);
     if errmsg.is_null() {
-        set_string_option_direct_in_win(ed, wp, b"winhighlight\0".as_ptr() as *mut u8, -1, str_, 5, 0);
+        set_string_option_direct_in_win(ed, wp, c"winhighlight".as_ptr() as *mut u8, -1, str_, 5, 0);
     }
     errmsg
 }
@@ -29923,9 +29925,9 @@ pub unsafe fn showmap(ed: *mut Editor, mp: *mut mapblock_T, local: bool) {
         }
     }
     if (*mp).m_noremap == -1 {
-        msg_puts_attr(ed, b"*\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr));
+        msg_puts_attr(ed, c"*".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr));
     } else if (*mp).m_noremap == -2 {
-        msg_puts_attr(ed, b"&\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr));
+        msg_puts_attr(ed, c"&".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr));
     } else {
         msg_putchar(ed, b' ' as i32);
     }
@@ -29935,7 +29937,7 @@ pub unsafe fn showmap(ed: *mut Editor, mp: *mut mapblock_T, local: bool) {
         msg_putchar(ed, b' ' as i32);
     }
     if *(*mp).m_str == NUL as u8 {
-        msg_puts_attr(ed, b"<Nop>\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr));
+        msg_puts_attr(ed, c"<Nop>".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr));
     } else {
         msg_outtrans_special(ed, (*mp).m_str, false, 0);
     }
@@ -29983,48 +29985,48 @@ pub unsafe fn list_mappings(ed: *mut Editor, keyround: i32, abbrev: bool, haskey
     (*ed).map_locked += 1;
     if (*ed).p_verbose > 0 && keyround == 1 {
         if (*ed).seenModifyOtherKeys {
-            msg_puts(ed, b"Seen modifyOtherKeys: true\n\0".as_ptr() as *mut i8);
+            msg_puts(ed, c"Seen modifyOtherKeys: true\n".as_ptr() as *mut i8);
         }
         if (*ed).modify_otherkeys_state != MOKS_INITIAL {
-            let mut name: *mut i8 = b"Unknown\0".as_ptr() as *mut i8;
+            let mut name: *mut i8 = c"Unknown".as_ptr() as *mut i8;
             match (*ed).modify_otherkeys_state {
                 0 => {}
                 1 => {
-                    name = b"Off\0".as_ptr() as *mut i8;
+                    name = c"Off".as_ptr() as *mut i8;
                 }
                 2 => {
-                    name = b"On\0".as_ptr() as *mut i8;
+                    name = c"On".as_ptr() as *mut i8;
                 }
                 3 => {
-                    name = b"Disabled\0".as_ptr() as *mut i8;
+                    name = c"Disabled".as_ptr() as *mut i8;
                 }
                 4 => {
-                    name = b"Cleared\0".as_ptr() as *mut i8;
+                    name = c"Cleared".as_ptr() as *mut i8;
                 }
                 _ => {}
             }
-            crate::host::vim_snprintf(ed, decay(&raw mut buf), 200, b"modifyOtherKeys detected: %s\n\0".as_ptr() as *mut i8, &[VArg::P(name as *mut c_void)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut buf), 200, c"modifyOtherKeys detected: %s\n".as_ptr() as *mut i8, &[VArg::P(name as *mut c_void)]);
             msg_puts(ed, decay(&raw mut buf));
         }
         if (*ed).kitty_protocol_state != KKPS_INITIAL {
-            let mut name_2: *mut i8 = b"Unknown\0".as_ptr() as *mut i8;
+            let mut name_2: *mut i8 = c"Unknown".as_ptr() as *mut i8;
             match (*ed).kitty_protocol_state {
                 0 => {}
                 1 => {
-                    name_2 = b"Off\0".as_ptr() as *mut i8;
+                    name_2 = c"Off".as_ptr() as *mut i8;
                 }
                 2 => {
-                    name_2 = b"On\0".as_ptr() as *mut i8;
+                    name_2 = c"On".as_ptr() as *mut i8;
                 }
                 3 => {
-                    name_2 = b"Disabled\0".as_ptr() as *mut i8;
+                    name_2 = c"Disabled".as_ptr() as *mut i8;
                 }
                 4 => {
-                    name_2 = b"Cleared\0".as_ptr() as *mut i8;
+                    name_2 = c"Cleared".as_ptr() as *mut i8;
                 }
                 _ => {}
             }
-            crate::host::vim_snprintf(ed, decay(&raw mut buf_2), 200, b"Kitty keyboard protocol: %s\n\0".as_ptr() as *mut i8, &[VArg::P(name_2 as *mut c_void)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut buf_2), 200, c"Kitty keyboard protocol: %s\n".as_ptr() as *mut i8, &[VArg::P(name_2 as *mut c_void)]);
             msg_puts(ed, decay(&raw mut buf_2));
         }
     }
@@ -30089,28 +30091,28 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
         noremap = REMAP_YES;
     }
     loop {
-        if musl_strncmp(keys as *mut i8, b"<buffer>\0".as_ptr() as *mut i8, 8) == 0 {
+        if musl_strncmp(keys as *mut i8, c"<buffer>".as_ptr() as *mut i8, 8) == 0 {
             keys = skipwhite(keys.wrapping_add(8));
             map_table = decay(&raw mut (*(*ed).curbuf).b_maphash);
             abbr_table = &raw mut (*(*ed).curbuf).b_first_abbr;
             continue;
         }
-        if musl_strncmp(keys as *mut i8, b"<nowait>\0".as_ptr() as *mut i8, 8) == 0 {
+        if musl_strncmp(keys as *mut i8, c"<nowait>".as_ptr() as *mut i8, 8) == 0 {
             keys = skipwhite(keys.wrapping_add(8));
             nowait = true;
             continue;
         }
-        if musl_strncmp(keys as *mut i8, b"<silent>\0".as_ptr() as *mut i8, 8) == 0 {
+        if musl_strncmp(keys as *mut i8, c"<silent>".as_ptr() as *mut i8, 8) == 0 {
             keys = skipwhite(keys.wrapping_add(8));
             silent = true;
             continue;
         }
-        if musl_strncmp(keys as *mut i8, b"<special>\0".as_ptr() as *mut i8, 9) == 0 {
+        if musl_strncmp(keys as *mut i8, c"<special>".as_ptr() as *mut i8, 9) == 0 {
             keys = skipwhite(keys.wrapping_add(9));
             special = true;
             continue;
         }
-        if musl_strncmp(keys as *mut i8, b"<unique>\0".as_ptr() as *mut i8, 8) == 0 {
+        if musl_strncmp(keys as *mut i8, c"<unique>".as_ptr() as *mut i8, 8) == 0 {
             keys = skipwhite(keys.wrapping_add(8));
             unique = true;
             continue;
@@ -30154,22 +30156,21 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
     }
     let orig_rhs: *mut char_u = rhs;
     if hasarg {
-        if musl_strcasecmp(rhs as *mut i8, b"<nop>\0".as_ptr() as *mut i8) == 0 {
-            rhs = b"\0".as_ptr() as *mut u8;
+        if musl_strcasecmp(rhs as *mut i8, c"<nop>".as_ptr() as *mut i8) == 0 {
+            rhs = c"".as_ptr() as *mut u8;
         } else {
             replace_termcodes__o = replace_termcodes(ed, rhs, 0, REPTERM_DO_LT | (if special { REPTERM_SPECIAL } else { 0 }), null_mut());
             rhs = replace_termcodes__o.r__;
         }
     }
     let mut keyround: i32 = 1;
-    'l3: while keyround <= 2 {
-    'c3: {
+    while keyround <= 2 {
         let mut did_it: bool = false;
         let mut did_local: bool = false;
         let keyround1_simplified: bool = keyround == 1 && did_simplify != 0;
         if keyround == 2 {
             if alt_keys_buf.is_null() {
-                break 'l3;
+                break;
             }
             keys = alt_keys_buf;
         } else if !alt_keys_buf.is_null() && do_print {
@@ -30263,11 +30264,11 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
                     mpp = map_table.wrapping_offset(hash_2 as isize);
                 }
                 mp = *mpp;
-                'l10: while !mp.is_null() && (*ed).got_int == 0 {
-                'c10: {
+                while !mp.is_null() && (*ed).got_int == 0 {
                     if (*mp).m_mode & mode == 0 {
                         mpp = &raw mut (*mp).m_next;
-                        break 'c10;
+                        mp = *mpp;
+                        continue;
                     }
                     if !haskey {
                         if !(*mp).m_simplified {
@@ -30286,10 +30287,11 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
                             if maptype == MAPTYPE_UNMAP {
                                 if n != len && (!abbrev || round != 0 || n > len || *skipwhite(keys.wrapping_offset(n as isize)) != NUL as u8) {
                                     mpp = &raw mut (*mp).m_next;
-                                    break 'c10;
+                                    mp = *mpp;
+                                    continue;
                                 }
                                 if keyround1_simplified && !(*mp).m_simplified {
-                                    break 'l10;
+                                    break;
                                 }
                                 (*mp).m_mode &= !mode;
                                 did_it = true;
@@ -30300,7 +30302,8 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
                                 }
                             } else if n != len {
                                 mpp = &raw mut (*mp).m_next;
-                                break 'c10;
+                                mp = *mpp;
+                                continue;
                             } else if unique {
                                 if abbrev {
                                     crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_abbreviation_already_exists_for_str), &[VArg::P(p as *mut c_void)]);
@@ -30332,18 +30335,20 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
                             }
                             if (*mp).m_mode == 0 {
                                 map_free(mpp);
-                                break 'c10;
+                                mp = *mpp;
+                                continue;
                             }
                             let new_hash: i32 = if (*mp).m_mode & 199 != 0 { *(*mp).m_keys as i32 } else { *(*mp).m_keys as i32 ^ 128 };
                             if !abbrev && new_hash != hash_2 {
                                 *mpp = (*mp).m_next;
                                 (*mp).m_next = *map_table.wrapping_offset(new_hash as isize);
                                 *map_table.wrapping_offset(new_hash as isize) = mp;
-                                break 'c10;
+                                mp = *mpp;
+                                continue;
                             }
                         }
                     }
-                    mpp = &raw mut (*mp).m_next;                    }
+                    mpp = &raw mut (*mp).m_next;
                     mp = *mpp;
                 }
                 hash_2 += 1;
@@ -30362,26 +30367,28 @@ pub unsafe fn do_map(ed: *mut Editor, mut maptype: i32, arg: *mut char_u, mode: 
                     (*ed).mapped_ctrl_c &= !mode;
                 }
             }
-            break 'c3;
+            keyround += 1;
+            continue;
         }
         if !haskey || !hasarg {
             if !did_it && !did_local {
                 if abbrev {
-                    msg(ed, b"No abbreviation found\0".as_ptr() as *mut i8);
+                    msg(ed, c"No abbreviation found".as_ptr() as *mut i8);
                 } else {
-                    msg(ed, b"No mapping found\0".as_ptr() as *mut i8);
+                    msg(ed, c"No mapping found".as_ptr() as *mut i8);
                 }
             }
             return retval;
         }
         if did_it {
-            break 'c3;
+            keyround += 1;
+            continue;
         }
         *decay(&raw mut mp_result).wrapping_offset((keyround - 1) as isize) = map_add(ed, map_table, abbr_table, keys, rhs, orig_rhs, noremap, nowait, silent, mode, abbrev, keyround1_simplified);
         if (*decay(&raw mut mp_result).wrapping_offset((keyround - 1) as isize)).is_null() {
             retval = 4;
             return retval;
-        }        }
+        }
         keyround += 1;
     }
     if !(*decay(&raw mut mp_result)).is_null() && !(*decay(&raw mut mp_result).wrapping_add(1)).is_null() {
@@ -30426,7 +30433,7 @@ pub unsafe fn get_map_mode(mut cmdp: *mut char_u, forceit: bool) -> get_map_mode
 }
 
 pub unsafe fn map_clear(ed: *mut Editor, cmdp: *mut char_u, arg: *mut char_u, forceit: bool, abbr: bool) {
-    let local: bool = musl_strcmp(arg as *mut i8, b"<buffer>\0".as_ptr() as *mut i8) == 0;
+    let local: bool = musl_strcmp(arg as *mut i8, c"<buffer>".as_ptr() as *mut i8) == 0;
     if !local && *arg != NUL as u8 {
         emsg(ed, decay(&raw mut (*ed).e_invalid_argument));
         return;
@@ -30546,7 +30553,7 @@ pub unsafe fn check_map_keycodes(ed: *mut Editor) {
     let mut p: *mut char_u = null_mut();
     let mut buf: [char_u; 3] = core::mem::zeroed();
     validate_maphash(ed);
-    estack_push(ed, ETYPE_INTERNAL, b"mappings\0".as_ptr() as *mut u8, 0);
+    estack_push(ed, ETYPE_INTERNAL, c"mappings".as_ptr() as *mut u8, 0);
     let mut bp: *mut buf_T = (*ed).curbuf;
     loop {
         let mut abbr: i32 = 0;
@@ -30859,7 +30866,7 @@ pub unsafe fn clrallmarks(buf: *mut buf_T) {
 
 pub unsafe fn mark_line(ed: *mut Editor, mp: *mut pos_T, lead_len: i32) -> *mut char_u {
     if (*mp).lnum == 0 || (*mp).lnum > (*(*ed).curbuf).b_ml.ml_line_count {
-        return vim_strsave(ed, b"-invalid-\0".as_ptr() as *mut u8);
+        return vim_strsave(ed, c"-invalid-".as_ptr() as *mut u8);
     }
     let s: *mut char_u = vim_strnsave(ed, skipwhite(ml_get(ed, (*mp).lnum)), ((*ed).Columns * 5) as u64);
     let mut len: i32 = 0;
@@ -30911,7 +30918,7 @@ pub unsafe fn show_one_mark(ed: *mut Editor, c: i32, arg: *mut char_u, p: *mut p
             (*ed).show_one_mark__did_title = false;
         } else {
             if arg.is_null() {
-                msg(ed, b"No marks set\0".as_ptr() as *mut i8);
+                msg(ed, c"No marks set".as_ptr() as *mut i8);
             } else {
                 crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_no_marks_matching_str), &[VArg::P(arg as *mut c_void)]);
                 emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_no_marks_matching_str)));
@@ -30923,12 +30930,12 @@ pub unsafe fn show_one_mark(ed: *mut Editor, c: i32, arg: *mut char_u, p: *mut p
         }
         if !message_filtered(ed, name) {
             if !(*ed).show_one_mark__did_title {
-                msg_puts_title(ed, b"\nmark line  col file/text\0".as_ptr() as *mut i8);
+                msg_puts_title(ed, c"\nmark line  col file/text".as_ptr() as *mut i8);
                 (*ed).show_one_mark__did_title = true;
             }
             msg_putchar(ed, 10);
             if (*ed).got_int == 0 {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b" %c %6ld %4d \0".as_ptr() as *mut i8, &[VArg::I(c as i64), VArg::I((*p).lnum), VArg::I((*p).col as i64)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c" %c %6ld %4d ".as_ptr() as *mut i8, &[VArg::I(c as i64), VArg::I((*p).lnum), VArg::I((*p).col as i64)]);
                 msg_outtrans(ed, (*ed).IObuff);
                 if !name.is_null() {
                     msg_outtrans_attr(ed, name, if current { *decay(&raw mut (*ed).highlight_attr).wrapping_add(3) } else { 0 });
@@ -31007,7 +31014,7 @@ pub unsafe fn ex_delmarks(ed: *mut Editor, eap: *mut exarg_T) {
 }
 
 pub unsafe fn ex_changes(ed: *mut Editor, _eap: *mut exarg_T) {
-    msg_puts_title(ed, b"\nchange line  col text\0".as_ptr() as *mut i8);
+    msg_puts_title(ed, c"\nchange line  col text".as_ptr() as *mut i8);
     let mut i: i32 = 0;
     while i < (*(*ed).curbuf).b_changelistlen && (*ed).got_int == 0 {
         if (*decay(&raw mut (*(*ed).curbuf).b_changelist).wrapping_offset(i as isize)).lnum != 0 {
@@ -31015,7 +31022,7 @@ pub unsafe fn ex_changes(ed: *mut Editor, _eap: *mut exarg_T) {
             if (*ed).got_int != 0 {
                 break;
             }
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"%c %3d %5ld %4d \0".as_ptr() as *mut i8, &[VArg::I((if i == (*(*ed).curwin).w_changelistidx { b'>' as i32 } else { b' ' as i32 }) as i64), VArg::I((if i > (*(*ed).curwin).w_changelistidx { i - (*(*ed).curwin).w_changelistidx } else { (*(*ed).curwin).w_changelistidx - i }) as i64), VArg::I((*decay(&raw mut (*(*ed).curbuf).b_changelist).wrapping_offset(i as isize)).lnum), VArg::I((*decay(&raw mut (*(*ed).curbuf).b_changelist).wrapping_offset(i as isize)).col as i64)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"%c %3d %5ld %4d ".as_ptr() as *mut i8, &[VArg::I((if i == (*(*ed).curwin).w_changelistidx { b'>' as i32 } else { b' ' as i32 }) as i64), VArg::I((if i > (*(*ed).curwin).w_changelistidx { i - (*(*ed).curwin).w_changelistidx } else { (*(*ed).curwin).w_changelistidx - i }) as i64), VArg::I((*decay(&raw mut (*(*ed).curbuf).b_changelist).wrapping_offset(i as isize)).lnum), VArg::I((*decay(&raw mut (*(*ed).curbuf).b_changelist).wrapping_offset(i as isize)).col as i64)]);
             msg_outtrans(ed, (*ed).IObuff);
             let name: *mut char_u = mark_line(ed, decay(&raw mut (*(*ed).curbuf).b_changelist).wrapping_offset(i as isize), 17);
             msg_outtrans_attr(ed, name, *decay(&raw mut (*ed).highlight_attr).wrapping_add(3));
@@ -31025,7 +31032,7 @@ pub unsafe fn ex_changes(ed: *mut Editor, _eap: *mut exarg_T) {
         i += 1;
     }
     if (*(*ed).curwin).w_changelistidx == (*(*ed).curbuf).b_changelistlen {
-        msg_puts(ed, b"\n>\0".as_ptr() as *mut i8);
+        msg_puts(ed, c"\n>".as_ptr() as *mut i8);
     }
 }
 
@@ -31430,14 +31437,14 @@ pub unsafe fn init_search_hl(ed: *mut Editor, wp: *mut win_T, search_hl: *mut ma
 pub unsafe fn next_search_hl_pos(shl: *mut match_T, lnum: linenr_T, match_: *mut matchitem_T, mincol: colnr_T) -> i32 {
     let mut found: i32 = -1;
     let mut i: i32 = (*match_).mit_pos_cur;
-    'l1: while i < (*match_).mit_pos_count {
-    'c1: {
+    while i < (*match_).mit_pos_count {
         let pos: *mut llpos_T = (*match_).mit_pos_array.wrapping_offset(i as isize);
         if (*pos).lnum == 0 {
-            break 'l1;
+            break;
         }
         if (*pos).len == 0 && (*pos).col < mincol {
-            break 'c1;
+            i += 1;
+            continue;
         }
         if (*pos).lnum == lnum {
             if found >= 0 {
@@ -31453,7 +31460,7 @@ pub unsafe fn next_search_hl_pos(shl: *mut match_T, lnum: linenr_T, match_: *mut
             } else {
                 found = i;
             }
-        }        }
+        }
         i += 1;
     }
     (*match_).mit_pos_cur = 0;
@@ -31789,7 +31796,7 @@ pub unsafe fn ex_match(ed: *mut Editor, eap: *mut exarg_T) {
     match_delete(ed, (*ed).curwin, id, false);
     if ends_excmd2((*eap).cmd, (*eap).arg) {
         end = (*eap).arg;
-    } else if musl_strncasecmp((*eap).arg as *mut i8, b"none\0".as_ptr() as *mut i8, 4) == 0 && (*(*eap).arg.wrapping_add(4) == b' ' || *(*eap).arg.wrapping_add(4) == 9 || ends_excmd2((*eap).arg, (*eap).arg.wrapping_add(4))) {
+    } else if musl_strncasecmp((*eap).arg as *mut i8, c"none".as_ptr() as *mut i8, 4) == 0 && (*(*eap).arg.wrapping_add(4) == b' ' || *(*eap).arg.wrapping_add(4) == 9 || ends_excmd2((*eap).arg, (*eap).arg.wrapping_add(4))) {
         end = (*eap).arg.wrapping_add(4);
     } else {
         let mut p: *mut char_u = skiptowhite((*eap).arg);
@@ -32568,7 +32575,7 @@ pub unsafe fn show_utf8(ed: *mut Editor) {
     let line: *mut char_u = ml_get_cursor(ed);
     let len: i32 = utfc_ptr2len(ed, line);
     if len == 0 {
-        msg(ed, b"NUL\0".as_ptr() as *mut i8);
+        msg(ed, c"NUL".as_ptr() as *mut i8);
         return;
     }
     let mut clen: i32 = 0;
@@ -32576,12 +32583,12 @@ pub unsafe fn show_utf8(ed: *mut Editor) {
     while i < len {
         if clen == 0 {
             if i > 0 {
-                musl_strcpy((*ed).IObuff.wrapping_offset(rlen as isize) as *mut i8, b"+ \0".as_ptr() as *mut i8);
+                musl_strcpy((*ed).IObuff.wrapping_offset(rlen as isize) as *mut i8, c"+ ".as_ptr() as *mut i8);
                 rlen += 2;
             }
             clen = utf_ptr2len(ed, line.wrapping_offset(i as isize));
         }
-        crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(rlen as isize), (1025 - rlen) as u64, b"%02x \0".as_ptr() as *mut i8, &[VArg::I((if *line.wrapping_offset(i as isize) == NL as u8 { NUL } else { *line.wrapping_offset(i as isize) as i32 }) as i64)]);
+        crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(rlen as isize), (1025 - rlen) as u64, c"%02x ".as_ptr() as *mut i8, &[VArg::I((if *line.wrapping_offset(i as isize) == NL as u8 { NUL } else { *line.wrapping_offset(i as isize) as i32 }) as i64)]);
         clen -= 1;
         rlen += musl_strlen((*ed).IObuff.wrapping_offset(rlen as isize) as *mut i8) as i32;
         if rlen > 1005 {
@@ -32597,8 +32604,7 @@ pub unsafe fn utf_head_off(ed: *mut Editor, base: *mut char_u, p: *mut char_u) -
         return 0;
     }
     let mut q: *mut char_u = p;
-    'l1: loop {
-    'c1: {
+    loop {
         let mut s: *mut char_u = q;
         while *s.wrapping_add(1) as i32 & 192 == 128 {
             s = s.wrapping_add(1);
@@ -32611,14 +32617,14 @@ pub unsafe fn utf_head_off(ed: *mut Editor, base: *mut char_u, p: *mut char_u) -
             return 0;
         }
         if q <= base {
-            break 'l1;
+            break;
         }
         let c: i32 = utf_ptr2char(ed, q);
         if utf_iscomposing(ed, c) {
-            break 'c1;
+            q = q.wrapping_sub(1);
+            continue;
         }
-        break 'l1;        }
-        q = q.wrapping_sub(1);
+        break;
     }
     pdiff(p, q) as i32
 }
@@ -32794,7 +32800,7 @@ pub unsafe fn ml_open(ed: *mut Editor, buf: *mut buf_T) -> bool {
     hp = ml_new_data(ed);
     (*decay(&raw mut (*(*(*buf).b_ml.ml_root).bh_ptr).pb_pointer)).pe_block = hp;
     let dp: *mut DATA_BL = (*hp).bh_data;
-    (*decay(&raw mut (*dp).db_line)).dl_text = ml_alloc_line(ed, b"\0".as_ptr() as *mut u8, 1);
+    (*decay(&raw mut (*dp).db_line)).dl_text = ml_alloc_line(ed, c"".as_ptr() as *mut u8, 1);
     (*decay(&raw mut (*dp).db_line)).dl_len = 1;
     (*dp).db_line_count = 1;
     true
@@ -32865,7 +32871,7 @@ pub unsafe fn ml_get_buf_len(ed: *mut Editor, buf: *mut buf_T, lnum: linenr_T) -
 }
 
 pub unsafe fn ml_get_invalid(ed: *mut Editor, buf: *mut buf_T, lnum: linenr_T) -> *mut char_u {
-    musl_strcpy(decay(&raw mut (*ed).ml_get_invalid__questions) as *mut i8, b"???\0".as_ptr() as *mut i8);
+    musl_strcpy(decay(&raw mut (*ed).ml_get_invalid__questions) as *mut i8, c"???".as_ptr() as *mut i8);
     (*buf).b_ml.ml_line_len = 4;
     (*buf).b_ml.ml_line_textlen = (*buf).b_ml.ml_line_len;
     (*buf).b_ml.ml_line_lnum = lnum;
@@ -32889,7 +32895,7 @@ pub unsafe fn ml_get_buf(ed: *mut Editor, buf: *mut buf_T, mut lnum: linenr_T, _
     if (*buf).b_ml.ml_root.is_null() {
         (*buf).b_ml.ml_line_len = 1;
         (*buf).b_ml.ml_line_textlen = (*buf).b_ml.ml_line_len;
-        return b"\0".as_ptr() as *mut u8;
+        return c"".as_ptr() as *mut u8;
     }
     if (*buf).b_ml.ml_line_lnum != lnum {
         ml_flush_line(ed, buf);
@@ -33168,7 +33174,7 @@ pub unsafe fn ml_delete_int(ed: *mut Editor, buf: *mut buf_T, lnum: linenr_T, fl
         if flags & ML_DEL_MESSAGE != 0 {
             set_keep_msg(ed, decay(&raw mut (*ed).no_lines_msg), 0);
         }
-        let i: bool = ml_replace(ed, 1, b"\0".as_ptr() as *mut u8, true);
+        let i: bool = ml_replace(ed, 1, c"".as_ptr() as *mut u8, true);
         (*buf).b_ml.ml_flags |= ML_EMPTY;
         return i;
     }
@@ -33603,7 +33609,7 @@ pub unsafe fn trunc_string(ed: *mut Editor, s: *mut char_u, buf: *mut char_u, ro
             }
         }
     } else if e + 3 < buflen {
-        musl_memmove(buf.wrapping_offset(e as isize) as *mut c_void, b"...\0".as_ptr() as *mut c_void, 3);
+        musl_memmove(buf.wrapping_offset(e as isize) as *mut c_void, c"...".as_ptr() as *mut c_void, 3);
         len = musl_strlen(s.wrapping_offset(i as isize) as *mut i8).wrapping_add(1);
         if len >= (buflen as u64).wrapping_sub(e as u64).wrapping_sub(3) {
             len = (buflen - e - 3 - 1) as u64;
@@ -33676,7 +33682,7 @@ pub unsafe fn get_emsg_source(ed: *mut Editor) -> *mut char_u {
         if sname.is_null() {
             sname = (*((*ed).exestack.ga_data as *mut estack_T).wrapping_offset(((*ed).exestack.ga_len - 1) as isize)).es_name;
         }
-        let p: *mut char_u = b"Error detected while processing %s:\0".as_ptr() as *mut u8;
+        let p: *mut char_u = c"Error detected while processing %s:".as_ptr() as *mut u8;
         let Buf: *mut char_u = alloc(ed, musl_strlen(sname as *mut i8).wrapping_add(musl_strlen(p as *mut i8))) as *mut u8;
         crate::host::vim_snprintf(ed, Buf as *mut i8, musl_strlen(sname as *mut i8).wrapping_add(musl_strlen(p as *mut i8)), p as *mut i8, &[VArg::P(sname as *mut c_void)]);
         return Buf;
@@ -33686,7 +33692,7 @@ pub unsafe fn get_emsg_source(ed: *mut Editor) -> *mut char_u {
 
 pub unsafe fn get_emsg_lnum(ed: *mut Editor) -> *mut char_u {
     if !(*((*ed).exestack.ga_data as *mut estack_T).wrapping_offset(((*ed).exestack.ga_len - 1) as isize)).es_name.is_null() && (other_sourcing_name(ed) || (*((*ed).exestack.ga_data as *mut estack_T).wrapping_offset(((*ed).exestack.ga_len - 1) as isize)).es_lnum != (*ed).last_sourcing_lnum as i64) && (*((*ed).exestack.ga_data as *mut estack_T).wrapping_offset(((*ed).exestack.ga_len - 1) as isize)).es_lnum != 0 {
-        let p: *mut char_u = b"line %4ld:\0".as_ptr() as *mut u8;
+        let p: *mut char_u = c"line %4ld:".as_ptr() as *mut u8;
         let Buf: *mut char_u = alloc(ed, musl_strlen(p as *mut i8).wrapping_add(20)) as *mut u8;
         crate::host::vim_snprintf(ed, Buf as *mut i8, musl_strlen(p as *mut i8).wrapping_add(20), p as *mut i8, &[VArg::I((*((*ed).exestack.ga_data as *mut estack_T).wrapping_offset(((*ed).exestack.ga_len - 1) as isize)).es_lnum)]);
         return Buf;
@@ -33735,11 +33741,11 @@ pub unsafe fn emsg_core(ed: *mut Editor, s: *mut i8) -> i32 {
                 msg_start(ed);
                 let mut p: *mut char_u = get_emsg_source(ed);
                 if !p.is_null() {
-                    musl_strcat(p as *mut i8, b"\n\0".as_ptr() as *mut i8);
+                    musl_strcat(p as *mut i8, c"\n".as_ptr() as *mut i8);
                 }
                 p = get_emsg_lnum(ed);
                 if !p.is_null() {
-                    musl_strcat(p as *mut i8, b"\n\0".as_ptr() as *mut i8);
+                    musl_strcat(p as *mut i8, c"\n".as_ptr() as *mut i8);
                 }
             }
             return TRUE;
@@ -33880,14 +33886,14 @@ pub unsafe fn messagesopt_changed(ed: *mut Editor) -> bool {
     let mut messages_history_new: i32 = 0;
     let mut p: *mut char_u = (*ed).p_mopt;
     while *p != NUL as u8 {
-        if musl_strncmp(p as *mut i8, b"hit-enter\0".as_ptr() as *mut i8, 9) == 0 {
+        if musl_strncmp(p as *mut i8, c"hit-enter".as_ptr() as *mut i8, 9) == 0 {
             p = p.wrapping_add(9);
             messages_flags_new |= MESSAGES_HIT_ENTER;
-        } else if musl_strncmp(p as *mut i8, b"wait:\0".as_ptr() as *mut i8, 5) == 0 && ascii_isdigit(*p.wrapping_add(5) as i32) {
+        } else if musl_strncmp(p as *mut i8, c"wait:".as_ptr() as *mut i8, 5) == 0 && ascii_isdigit(*p.wrapping_add(5) as i32) {
             p = p.wrapping_add(5);
             messages_wait_new = getdigits(&raw mut p) as i32;
             messages_flags_new |= MESSAGES_WAIT;
-        } else if musl_strncmp(p as *mut i8, b"history:\0".as_ptr() as *mut i8, 8) == 0 && ascii_isdigit(*p.wrapping_add(8) as i32) {
+        } else if musl_strncmp(p as *mut i8, c"history:".as_ptr() as *mut i8, 8) == 0 && ascii_isdigit(*p.wrapping_add(8) as i32) {
             p = p.wrapping_add(8);
             messages_history_new = getdigits(&raw mut p) as i32;
             messages_flags_new |= MESSAGES_HISTORY;
@@ -33920,7 +33926,7 @@ pub unsafe fn messagesopt_changed(ed: *mut Editor) -> bool {
 
 pub unsafe fn ex_messages(ed: *mut Editor, eap: *mut exarg_T) {
     let mut c: i32 = 0;
-    if musl_strcmp((*eap).arg as *mut i8, b"clear\0".as_ptr() as *mut i8) == 0 {
+    if musl_strcmp((*eap).arg as *mut i8, c"clear".as_ptr() as *mut i8) == 0 {
         let keep: i32 = (if (*eap).addr_count == 0 { 0 } else { (*eap).line2 }) as i32;
         while (*ed).msg_hist_len > keep {
             delete_first_msg(ed);
@@ -34023,7 +34029,7 @@ pub unsafe fn wait_return(ed: *mut Editor, redraw: i32) {
             }
             ui_breakcheck(ed);
             if c == K_LEFTMOUSE || c == K_MIDDLEMOUSE || c == K_RIGHTMOUSE || c == K_X1MOUSE || c == K_X2MOUSE {
-            } else if !(*ed).KeyTyped || vim_strchr(ed, b"\r\n \0".as_ptr() as *mut u8, c).is_null() && c != Ctrl_C && c != b'q' as i32 {
+            } else if !(*ed).KeyTyped || vim_strchr(ed, c"\r\n ".as_ptr() as *mut u8, c).is_null() && c != Ctrl_C && c != b'q' as i32 {
                 ins_char_typebuf(ed, (*ed).vgetc_char, (*ed).vgetc_mod_mask);
                 (*ed).do_redraw = true;
             }
@@ -34067,9 +34073,9 @@ pub unsafe fn hit_return_msg(ed: *mut Editor) {
         msg_putchar(ed, 10);
     }
     if (*ed).got_int != 0 {
-        msg_puts(ed, b"Interrupt: \0".as_ptr() as *mut i8);
+        msg_puts(ed, c"Interrupt: ".as_ptr() as *mut i8);
     }
-    msg_puts_attr(ed, b"Press ENTER or type command to continue\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(17));
+    msg_puts_attr(ed, c"Press ENTER or type command to continue".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(17));
     if !msg_use_printf(ed) {
         msg_clr_eos(ed);
     }
@@ -34169,7 +34175,7 @@ pub unsafe fn msg_outtrans_len_attr(ed: *mut Editor, msgstr: *mut char_u, mut le
         (*ed).mode_displayed = false;
     }
     if utf_iscomposing(ed, utf_ptr2char(ed, msgstr)) {
-        msg_puts_attr(ed, b" \0".as_ptr() as *mut i8, attr);
+        msg_puts_attr(ed, c" ".as_ptr() as *mut i8, attr);
     }
     loop {
         len -= 1;
@@ -34220,7 +34226,7 @@ pub unsafe fn msg_outtrans_special(ed: *mut Editor, strstart: *mut char_u, from:
     let attr: i32 = *decay(&raw mut (*ed).highlight_attr);
     while *str_ != NUL as u8 {
         if (str_ == strstart || *str_.wrapping_add(1) == NUL as u8) && *str_ == b' ' {
-            text = b"<Space>\0".as_ptr() as *mut i8;
+            text = c"<Space>".as_ptr() as *mut i8;
             str_ = str_.wrapping_add(1);
         } else {
             text = str2special(ed, &raw mut str_, from, false) as *mut i8;
@@ -34347,7 +34353,7 @@ pub unsafe fn msg_prt_line(ed: *mut Editor, mut s: *mut char_u, mut list: i32) {
         } else if ({ l = utfc_ptr2len(ed, s); l }) > 1 {
             col += utf_ptr2cells(ed, s);
             if l >= MB_MAXBYTES {
-                musl_strcpy(decay(&raw mut buf) as *mut i8, b"?\0".as_ptr() as *mut i8);
+                musl_strcpy(decay(&raw mut buf) as *mut i8, c"?".as_ptr() as *mut i8);
             } else if (*(*ed).curwin).w_lcs_chars.nbsp != NUL && list != 0 && (utf_ptr2char(ed, s) == 160 || utf_ptr2char(ed, s) == 8239) {
                 let len: i32 = utf_char2bytes((*(*ed).curwin).w_lcs_chars.nbsp, decay(&raw mut buf));
                 *decay(&raw mut buf).wrapping_offset(len as isize) = NUL as u8;
@@ -34392,7 +34398,7 @@ pub unsafe fn msg_prt_line(ed: *mut Editor, mut s: *mut char_u, mut list: i32) {
                 c = (*(*ed).curwin).w_lcs_chars.nbsp;
                 attr = *decay(&raw mut (*ed).highlight_attr);
             } else if c == NUL && list != 0 && (*(*ed).curwin).w_lcs_chars.eol != NUL {
-                p_extra = b"\0".as_ptr() as *mut u8;
+                p_extra = c"".as_ptr() as *mut u8;
                 c_extra = NUL;
                 c_final = NUL;
                 n_extra = 1;
@@ -34482,7 +34488,7 @@ pub unsafe fn msg_puts_attr_len(ed: *mut Editor, str_: *mut i8, maxlen: i32, mut
         add_msg_hist(ed, str_ as *mut u8, -1, attr);
         attr &= -4097;
     }
-    if (*ed).msg_scrolled != 0 && !(*ed).msg_scrolled_ign && musl_strcmp(str_, b"\r\0".as_ptr() as *mut i8) != 0 {
+    if (*ed).msg_scrolled != 0 && !(*ed).msg_scrolled_ign && musl_strcmp(str_, c"\r".as_ptr() as *mut i8) != 0 {
         (*ed).need_wait_return = true;
     }
     (*ed).msg_didany = true;
@@ -34626,7 +34632,7 @@ pub unsafe fn message_filtered(ed: *mut Editor, msg_2: *mut char_u) -> bool {
 
 pub unsafe fn msg_scroll_up(ed: *mut Editor) {
     screen_del_lines(ed, 0, 0, 1, (*ed).Rows as i32, true, 0, null_mut());
-    if !can_clear(ed, b" \0".as_ptr() as *mut u8) {
+    if !can_clear(ed, c" ".as_ptr() as *mut u8) {
         screen_fill(ed, (*ed).Rows as i32 - 1, (*ed).Rows as i32, (*ed).cmdline_col_off, (*ed).cmdline_col_off + (*ed).cmdline_width, b' ' as i32, b' ' as i32, *decay(&raw mut (*ed).highlight_attr).wrapping_add(64));
         if *(*ed).ScreenAttrs.wrapping_offset((*(*ed).LineOffset.wrapping_offset(((*ed).Rows - 2) as isize) as i64 + (*ed).Columns - 1) as isize) == 65535 {
             screen_fill(ed, (*ed).Rows as i32 - 2, (*ed).Rows as i32 - 1, (*ed).Columns as i32 - 1, (*ed).Columns as i32, b' ' as i32, b' ' as i32, *decay(&raw mut (*ed).highlight_attr).wrapping_add(64));
@@ -34944,11 +34950,11 @@ pub unsafe fn msg_screen_putchar(ed: *mut Editor, c: i32, attr: i32) {
 }
 
 pub unsafe fn msg_moremsg(ed: *mut Editor, full: bool) {
-    let s: *mut char_u = b"-- More --\0".as_ptr() as *mut u8;
+    let s: *mut char_u = c"-- More --".as_ptr() as *mut u8;
     let attr: i32 = *decay(&raw mut (*ed).highlight_attr).wrapping_add(9);
     screen_puts(ed, s, (*ed).Rows as i32 - 1, (*ed).cmdline_col_off, attr);
     if full {
-        screen_puts(ed, b" SPACE/d/j: screen/page/line down, b/u/k: up, q: quit \0".as_ptr() as *mut u8, (*ed).Rows as i32 - 1, (*ed).cmdline_col_off + vim_strsize(ed, s), attr);
+        screen_puts(ed, c" SPACE/d/j: screen/page/line down, b/u/k: up, q: quit ".as_ptr() as *mut u8, (*ed).Rows as i32 - 1, (*ed).cmdline_col_off + vim_strsize(ed, s), attr);
     }
 }
 
@@ -35052,7 +35058,7 @@ pub unsafe fn give_warning_with_source(ed: *mut Editor, message: *mut char_u, hl
     if with_source {
         msg_start(ed);
         msg_source(ed, *decay(&raw mut (*ed).highlight_attr).wrapping_add(25));
-        msg_puts(ed, b" \0".as_ptr() as *mut i8);
+        msg_puts(ed, c" ".as_ptr() as *mut i8);
         msg_puts_attr(ed, message as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(25) | MSG_HIST);
         msg_clr_eos(ed);
         msg_end(ed);
@@ -35080,7 +35086,7 @@ pub unsafe fn msg_advance(ed: *mut Editor, mut col: i32) {
 
 pub unsafe fn msg_warn_missing_clipboard(ed: *mut Editor) {
     if (*ed).global_busy == 0 && !(*ed).did_warn_clipboard && (*ed).silence_w23_w24_msg == 0 {
-        msg(ed, b"W24: Clipboard register not available. See :h W24\0".as_ptr() as *mut i8);
+        msg(ed, c"W24: Clipboard register not available. See :h W24".as_ptr() as *mut i8);
         (*ed).did_warn_clipboard = true;
     }
 }
@@ -35220,8 +35226,8 @@ pub unsafe fn ask_yesno(ed: *mut Editor, str_: *mut char_u, direct: bool) -> i32
     (*ed).no_mapping += 1;
     (*ed).allow_keys += 1;
     while r != b'y' as i32 && r != b'n' as i32 {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"%s (y/n)?\0".as_ptr() as *mut i8, &[VArg::P(str_ as *mut c_void)]);
-        msg_attr(ed, iobuff_or(ed, b"%s (y/n)?\0".as_ptr() as *mut i8), *decay(&raw mut (*ed).highlight_attr).wrapping_add(17));
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"%s (y/n)?".as_ptr() as *mut i8, &[VArg::P(str_ as *mut c_void)]);
+        msg_attr(ed, iobuff_or(ed, c"%s (y/n)?".as_ptr() as *mut i8), *decay(&raw mut (*ed).highlight_attr).wrapping_add(17));
         if direct {
             r = get_keystroke(ed);
         } else {
@@ -35336,12 +35342,12 @@ pub unsafe fn msgmore(ed: *mut Editor, n: i64) {
     }
     if pn > (*ed).p_report {
         if n > 0 {
-            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).msg_buf), MSG_BUF_LEN as u64, NGETTEXT(b"%ld more line\0".as_ptr() as *mut i8, b"%ld more lines\0".as_ptr() as *mut i8, pn as u64), &[VArg::I(pn)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).msg_buf), MSG_BUF_LEN as u64, NGETTEXT(c"%ld more line".as_ptr() as *mut i8, c"%ld more lines".as_ptr() as *mut i8, pn as u64), &[VArg::I(pn)]);
         } else {
-            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).msg_buf), MSG_BUF_LEN as u64, NGETTEXT(b"%ld line less\0".as_ptr() as *mut i8, b"%ld fewer lines\0".as_ptr() as *mut i8, pn as u64), &[VArg::I(pn)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).msg_buf), MSG_BUF_LEN as u64, NGETTEXT(c"%ld line less".as_ptr() as *mut i8, c"%ld fewer lines".as_ptr() as *mut i8, pn as u64), &[VArg::I(pn)]);
         }
         if (*ed).got_int != 0 {
-            vim_strcat(decay(&raw mut (*ed).msg_buf) as *mut u8, b" (Interrupted)\0".as_ptr() as *mut u8, MSG_BUF_LEN as u64);
+            vim_strcat(decay(&raw mut (*ed).msg_buf) as *mut u8, c" (Interrupted)".as_ptr() as *mut u8, MSG_BUF_LEN as u64);
         }
         if msg(ed, decay(&raw mut (*ed).msg_buf)) != 0 {
             set_keep_msg(ed, decay(&raw mut (*ed).msg_buf) as *mut u8, 0);
@@ -35414,7 +35420,7 @@ pub unsafe fn preserve_exit(ed: *mut Editor) {
     out_flush(ed);
     ml_close_notmod(ed);
     ml_close_all(ed, false);
-    out_str(ed, b"Vim: Finished.\r\n\0".as_ptr() as *mut u8);
+    out_str(ed, c"Vim: Finished.\r\n".as_ptr() as *mut u8);
     getout(ed, 1);
 }
 
@@ -35437,9 +35443,9 @@ pub unsafe fn goto_im(ed: *mut Editor) -> bool {
 }
 
 pub unsafe fn path_is_url(p: *mut char_u) -> i32 {
-    if musl_strncmp(p as *mut i8, b"://\0".as_ptr() as *mut i8, 3) == 0 {
+    if musl_strncmp(p as *mut i8, c"://".as_ptr() as *mut i8, 3) == 0 {
         return URL_SLASH;
-    } else if musl_strncmp(p as *mut i8, b":\\\\\0".as_ptr() as *mut i8, 3) == 0 {
+    } else if musl_strncmp(p as *mut i8, c":\\\\".as_ptr() as *mut i8, 3) == 0 {
         return URL_BACKSLASH;
     }
     0
@@ -36104,7 +36110,7 @@ pub unsafe fn find_special_key(ed: *mut Editor, srcp: *mut *mut char_u, mut modp
         }
         if *bp == b't' && *bp.wrapping_add(1) == b'_' && *bp.wrapping_add(2) != 0 && *bp.wrapping_add(3) != 0 {
             bp = bp.wrapping_add(3);
-        } else if musl_strncasecmp(bp as *mut i8, b"char-\0".as_ptr() as *mut i8, 5) == 0 {
+        } else if musl_strncasecmp(bp as *mut i8, c"char-".as_ptr() as *mut i8, 5) == 0 {
             l = vim_str2nr(bp.wrapping_add(5), null_mut(), l, 15, null_mut(), null_mut(), 0, true, null_mut());
             if l == 0 {
                 emsg(ed, decay(&raw mut (*ed).e_invalid_argument));
@@ -36132,7 +36138,7 @@ pub unsafe fn find_special_key(ed: *mut Editor, srcp: *mut *mut char_u, mut modp
             bp = bp.wrapping_add(1);
         }
         if bp >= last_dash {
-            if musl_strncasecmp(last_dash.wrapping_add(1) as *mut i8, b"char-\0".as_ptr() as *mut i8, 5) == 0 && ascii_isdigit(*last_dash.wrapping_add(6) as i32) {
+            if musl_strncasecmp(last_dash.wrapping_add(1) as *mut i8, c"char-".as_ptr() as *mut i8, 5) == 0 && ascii_isdigit(*last_dash.wrapping_add(6) as i32) {
                 l = vim_str2nr(last_dash.wrapping_add(6), null_mut(), l, 15, null_mut(), &raw mut n, 0, true, null_mut());
                 if l == 0 {
                     emsg(ed, decay(&raw mut (*ed).e_invalid_argument));
@@ -36415,12 +36421,12 @@ pub unsafe fn comp_botline(ed: *mut Editor, wp: *mut win_T) {
             i += 1;
         }
     }
-    'l2: while lnum <= (*(*wp).w_buffer).b_ml.ml_line_count {
-    'c2: {
+    while lnum <= (*(*wp).w_buffer).b_ml.ml_line_count {
         let mut valid: bool = false;
         if use_cache && i < (*wp).w_lines_valid {
             if (*(*wp).w_lines.wrapping_offset(i as isize)).wl_lnum < lnum || (*(*wp).w_lines.wrapping_offset(i as isize)).wl_valid == 0 {
-                break 'c2;
+                i += 1;
+                continue;
             }
             if (*(*wp).w_lines.wrapping_offset(i as isize)).wl_lnum == lnum {
                 valid = true;
@@ -36440,10 +36446,10 @@ pub unsafe fn comp_botline(ed: *mut Editor, wp: *mut win_T) {
             (*wp).w_valid |= 24;
         }
         if done + n > (*wp).w_height {
-            break 'l2;
+            break;
         }
         done += n;
-        lnum += 1;        }
+        lnum += 1;
         i += 1;
     }
     (*wp).w_botline = lnum;
@@ -36764,11 +36770,11 @@ pub unsafe fn curs_rows(ed: *mut Editor, wp: *mut win_T) {
     (*wp).w_cline_row = 0;
     let mut lnum: linenr_T = (*wp).w_topline;
     while lnum < (*wp).w_cursor.lnum {
-    'c1: {
         let mut valid: bool = false;
         if !all_invalid && i < (*wp).w_lines_valid {
             if (*(*wp).w_lines.wrapping_offset(i as isize)).wl_lnum < lnum || (*(*wp).w_lines.wrapping_offset(i as isize)).wl_valid == 0 {
-                break 'c1;
+                i += 1;
+                continue;
             }
             if (*(*wp).w_lines.wrapping_offset(i as isize)).wl_lnum == lnum {
                 valid = true;
@@ -36783,7 +36789,7 @@ pub unsafe fn curs_rows(ed: *mut Editor, wp: *mut win_T) {
             let t1: i32 = plines_correct_topline(ed, wp, lnum, true);
             (*wp).w_cline_row += t1;
             lnum += 1;
-        }        }
+        }
         i += 1;
     }
     check_cursor_moved(wp);
@@ -38303,7 +38309,7 @@ pub unsafe fn normal_cmd(ed: *mut Editor, oap: *mut oparg_T, toplevel: bool) {
 pub unsafe fn check_visual_highlight(ed: *mut Editor) {
     if (*ed).full_screen != 0 {
         if !(*ed).check_visual_highlight__did_check && *decay(&raw mut (*ed).highlight_attr).wrapping_add(23) == 0 {
-            msg(ed, b"Warning: terminal cannot highlight\0".as_ptr() as *mut i8);
+            msg(ed, c"Warning: terminal cannot highlight".as_ptr() as *mut i8);
         }
         (*ed).check_visual_highlight__did_check = true;
     }
@@ -38390,7 +38396,7 @@ pub unsafe fn find_ident_at_pos(ed: *mut Editor, wp: *mut win_T, lnum: linenr_T,
         }
         bn = (*ptr.wrapping_offset(col as isize) == b']') as i32;
         if find_type & FIND_EVAL != 0 && *ptr.wrapping_offset(col as isize) == b']' {
-            this_class = mb_get_class(ed, b"a\0".as_ptr() as *mut u8);
+            this_class = mb_get_class(ed, c"a".as_ptr() as *mut u8);
         } else {
             this_class = mb_get_class(ed, ptr.wrapping_offset(col as isize));
         }
@@ -38557,9 +38563,9 @@ pub unsafe fn clear_showcmd(ed: *mut Editor) {
         let lines: i64 = bot - top + 1;
         if (*ed).VIsual_mode == Ctrl_V {
             getvcols(ed, (*ed).curwin, &raw mut (*(*ed).curwin).w_cursor, &raw mut (*ed).VIsual, &raw mut leftcol, &raw mut rightcol, GETVCOL_END_EXCL_LBR);
-            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, b"%ldx%ld\0".as_ptr() as *mut i8, &[VArg::I(lines), VArg::I((rightcol - leftcol + 1) as i64)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, c"%ldx%ld".as_ptr() as *mut i8, &[VArg::I(lines), VArg::I((rightcol - leftcol + 1) as i64)]);
         } else if (*ed).VIsual_mode == b'V' as i32 || (*ed).VIsual.lnum != (*(*ed).curwin).w_cursor.lnum {
-            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, b"%ld\0".as_ptr() as *mut i8, &[VArg::I(lines)]);
+            crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, c"%ld".as_ptr() as *mut i8, &[VArg::I(lines)]);
         } else {
             let mut bytes: i32 = 0;
             let mut chars: i32 = 0;
@@ -38582,9 +38588,9 @@ pub unsafe fn clear_showcmd(ed: *mut Editor) {
                 s = s.wrapping_offset(l as isize);
             }
             if bytes == chars {
-                crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, b"%d\0".as_ptr() as *mut i8, &[VArg::I(chars as i64)]);
+                crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, c"%d".as_ptr() as *mut i8, &[VArg::I(chars as i64)]);
             } else {
-                crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, b"%d-%d\0".as_ptr() as *mut i8, &[VArg::I(chars as i64), VArg::I(bytes as i64)]);
+                crate::host::vim_snprintf(ed, decay(&raw mut (*ed).showcmd_buf) as *mut i8, 41, c"%d-%d".as_ptr() as *mut i8, &[VArg::I(chars as i64), VArg::I(bytes as i64)]);
             }
         }
         *decay(&raw mut (*ed).showcmd_buf).wrapping_add(10) = NUL as u8;
@@ -38621,7 +38627,7 @@ pub unsafe fn add_to_showcmd(ed: *mut Editor, c: i32) -> bool {
     if c <= 127 || !vim_isprintc(ed, c) {
         p = transchar(ed, c);
         if *p == b' ' {
-            musl_strcpy(p as *mut i8, b"<20>\0".as_ptr() as *mut i8);
+            musl_strcpy(p as *mut i8, c"<20>".as_ptr() as *mut i8);
         }
     } else {
         let t1: *mut u8 = decay(&raw mut mbyte_buf).wrapping_offset(utf_char2bytes(c, decay(&raw mut mbyte_buf)) as isize);
@@ -38700,7 +38706,7 @@ pub unsafe fn display_showcmd(ed: *mut Editor) {
         if !(*ed).showcmd_is_clear {
             screen_puts(ed, decay(&raw mut (*ed).showcmd_buf), (*ed).Rows as i32 - 1, (*ed).cmdline_col_off + (*ed).sc_col, 0);
         }
-        screen_puts(ed, (b"          \0".as_ptr() as *mut u8).wrapping_offset(len as isize), (*ed).Rows as i32 - 1, (*ed).cmdline_col_off + (*ed).sc_col + len, 0);
+        screen_puts(ed, (c"          ".as_ptr() as *mut u8).wrapping_offset(len as isize), (*ed).Rows as i32 - 1, (*ed).cmdline_col_off + (*ed).sc_col + len, 0);
     }
     setcursor(ed);
 }
@@ -38903,7 +38909,7 @@ pub unsafe fn nv_zet(ed: *mut Editor, cap: *mut cmdarg_T) {
     if checkclearop(ed, (*cap).oap) {
         return;
     }
-    if !vim_strchr(ed, b"+\r\nt.z^-b\0".as_ptr() as *mut u8, nchar).is_null() && (*cap).count0 != 0 && (*cap).count0 != (*(*ed).curwin).w_cursor.lnum {
+    if !vim_strchr(ed, c"+\r\nt.z^-b".as_ptr() as *mut u8, nchar).is_null() && (*cap).count0 != 0 && (*cap).count0 != (*(*ed).curwin).w_cursor.lnum {
         setpcmark(ed);
         if (*cap).count0 > (*(*ed).curbuf).b_ml.ml_line_count {
             (*(*ed).curwin).w_cursor.lnum = (*(*ed).curbuf).b_ml.ml_line_count;
@@ -39061,7 +39067,7 @@ pub unsafe fn nv_colon(ed: *mut Editor, cap: *mut cmdarg_T) {
     } else if (*cap).count0 != 0 && !is_cmdkey {
         stuffcharReadbuff(ed, b'.' as i32);
         if (*cap).count0 > 1 {
-            stuffReadbuff(ed, b",.+\0".as_ptr() as *mut u8);
+            stuffReadbuff(ed, c",.+".as_ptr() as *mut u8);
             stuffnumReadbuff(ed, (*cap).count0 - 1);
         }
     }
@@ -39130,10 +39136,10 @@ pub unsafe fn nv_Zet(ed: *mut Editor, cap: *mut cmdarg_T) {
     }
     match (*cap).nchar {
         90 => {
-            do_cmdline_cmd(ed, b"q!\0".as_ptr() as *mut u8);
+            do_cmdline_cmd(ed, c"q!".as_ptr() as *mut u8);
         }
         81 => {
-            do_cmdline_cmd(ed, b"q!\0".as_ptr() as *mut u8);
+            do_cmdline_cmd(ed, c"q!".as_ptr() as *mut u8);
         }
         _ => {
             clearopbeep(ed, (*cap).oap);
@@ -39170,14 +39176,14 @@ pub unsafe fn nv_ident(ed: *mut Editor, cap: *mut cmdarg_T) {
     setpcmark(ed);
     (*(*ed).curwin).w_cursor.col = pdiff(ptr, ml_get_curline(ed)) as i32;
     if !g_cmd && vim_iswordp(ed, ptr) {
-        musl_strcpy(buf as *mut i8, b"\\<\0".as_ptr() as *mut i8);
+        musl_strcpy(buf as *mut i8, c"\\<".as_ptr() as *mut i8);
         buflen = 2;
     }
     (*ed).no_smartcase = TRUE;
     if cmdchar == b'*' as i32 {
-        aux_ptr = (if magic_isset(ed) != 0 { b"/.*~[^$\\\0".as_ptr() as *mut i8 } else { b"/^$\\\0".as_ptr() as *mut i8 }) as *mut u8;
+        aux_ptr = (if magic_isset(ed) != 0 { c"/.*~[^$\\".as_ptr() as *mut i8 } else { c"/^$\\".as_ptr() as *mut i8 }) as *mut u8;
     } else {
-        aux_ptr = (if magic_isset(ed) != 0 { b"/?.*~[^$\\\0".as_ptr() as *mut i8 } else { b"/?^$\\\0".as_ptr() as *mut i8 }) as *mut u8;
+        aux_ptr = (if magic_isset(ed) != 0 { c"/?.*~[^$\\".as_ptr() as *mut i8 } else { c"/?^$\\".as_ptr() as *mut i8 }) as *mut u8;
     }
     let mut p: *mut char_u = buf.wrapping_add(buflen as usize);
     loop {
@@ -39204,7 +39210,7 @@ pub unsafe fn nv_ident(ed: *mut Editor, cap: *mut cmdarg_T) {
     *p = NUL as u8;
     buflen = pdiff(p, buf) as u64;
     if !g_cmd && vim_iswordp(ed, mb_prevptr(ed, ml_get_curline(ed), ptr)) {
-        musl_strcpy(buf.wrapping_add(buflen as usize) as *mut i8, b"\\>\0".as_ptr() as *mut i8);
+        musl_strcpy(buf.wrapping_add(buflen as usize) as *mut i8, c"\\>".as_ptr() as *mut i8);
         buflen = buflen.wrapping_add(2);
     }
     init_history(ed);
@@ -39273,8 +39279,7 @@ pub unsafe fn nv_right(ed: *mut Editor, cap: *mut cmdarg_T) {
         past_line = 0;
     }
     let mut n: i64 = (*cap).count1;
-    'l1: while n > 0 {
-    'c1: {
+    while n > 0 {
         if past_line == 0 && !oneright(ed) || past_line != 0 && *ml_get_cursor(ed) == NUL as u8 {
             if ((*cap).cmdchar == b' ' as i32 && !vim_strchr(ed, (*ed).p_ww, b's' as i32).is_null() || (*cap).cmdchar == b'l' as i32 && !vim_strchr(ed, (*ed).p_ww, b'l' as i32).is_null() || (*cap).cmdchar == K_RIGHT && !vim_strchr(ed, (*ed).p_ww, b'>' as i32).is_null()) && (*(*ed).curwin).w_cursor.lnum < (*(*ed).curbuf).b_ml.ml_line_count {
                 if (*(*cap).oap).op_type != OP_NOP && (*(*cap).oap).inclusive == 0 && !(*ml_get(ed, (*(*ed).curwin).w_cursor.lnum) == NUL as u8) {
@@ -39286,7 +39291,8 @@ pub unsafe fn nv_right(ed: *mut Editor, cap: *mut cmdarg_T) {
                     (*(*ed).curwin).w_set_curswant = true;
                     (*(*cap).oap).inclusive = FALSE;
                 }
-                break 'c1;
+                n -= 1;
+                continue;
             }
             if (*(*cap).oap).op_type == OP_NOP {
                 if n == (*cap).count1 {
@@ -39297,7 +39303,7 @@ pub unsafe fn nv_right(ed: *mut Editor, cap: *mut cmdarg_T) {
                     (*(*cap).oap).inclusive = TRUE;
                 }
             }
-            break 'l1;
+            break;
         } else if past_line != 0 {
             (*(*ed).curwin).w_set_curswant = true;
             if virtual_active(ed) != 0 {
@@ -39306,7 +39312,7 @@ pub unsafe fn nv_right(ed: *mut Editor, cap: *mut cmdarg_T) {
                 let t1: i32 = utfc_ptr2len(ed, ml_get_cursor(ed));
                 (*(*ed).curwin).w_cursor.col += t1;
             }
-        }        }
+        }
         n -= 1;
     }
 }
@@ -39322,8 +39328,7 @@ pub unsafe fn nv_left(ed: *mut Editor, cap: *mut cmdarg_T) {
     (*(*cap).oap).motion_type = MCHAR;
     (*(*cap).oap).inclusive = FALSE;
     let mut n: i64 = (*cap).count1;
-    'l1: while n > 0 {
-    'c1: {
+    while n > 0 {
         if !oneleft(ed) {
             if (((*cap).cmdchar == K_BS || (*cap).cmdchar == Ctrl_H) && !vim_strchr(ed, (*ed).p_ww, b'b' as i32).is_null() || (*cap).cmdchar == b'h' as i32 && !vim_strchr(ed, (*ed).p_ww, b'h' as i32).is_null() || (*cap).cmdchar == K_LEFT && !vim_strchr(ed, (*ed).p_ww, b'<' as i32).is_null()) && (*(*ed).curwin).w_cursor.lnum > 1 {
                 (*(*ed).curwin).w_cursor.lnum -= 1;
@@ -39337,12 +39342,13 @@ pub unsafe fn nv_left(ed: *mut Editor, cap: *mut cmdarg_T) {
                     }
                     (*cap).retval |= CA_NO_ADJ_OP_END;
                 }
-                break 'c1;
+                n -= 1;
+                continue;
             } else if (*(*cap).oap).op_type == OP_NOP && n == (*cap).count1 {
                 beep_flush(ed);
             }
-            break 'l1;
-        }        }
+            break;
+        }
         n -= 1;
     }
 }
@@ -39519,7 +39525,7 @@ pub unsafe fn nv_brackets(ed: *mut Editor, cap: *mut cmdarg_T) {
     (*(*cap).oap).inclusive = FALSE;
     let mut old_pos: pos_T = (*(*ed).curwin).w_cursor;
     (*(*ed).curwin).w_cursor.coladd = 0;
-    if (*cap).cmdchar == b'[' as i32 && !vim_strchr(ed, b"{(\0".as_ptr() as *mut u8, (*cap).nchar).is_null() || (*cap).cmdchar == b']' as i32 && !vim_strchr(ed, b"})\0".as_ptr() as *mut u8, (*cap).nchar).is_null() {
+    if (*cap).cmdchar == b'[' as i32 && !vim_strchr(ed, c"{(".as_ptr() as *mut u8, (*cap).nchar).is_null() || (*cap).cmdchar == b']' as i32 && !vim_strchr(ed, c"})".as_ptr() as *mut u8, (*cap).nchar).is_null() {
         nv_bracket_block(ed, cap, &raw mut old_pos);
     } else if (*cap).nchar == b'p' as i32 || (*cap).nchar == b'P' as i32 {
         nv_put_opt(ed, cap, true);
@@ -40092,7 +40098,7 @@ pub unsafe fn nv_suspend(ed: *mut Editor, cap: *mut cmdarg_T) {
     if (*ed).VIsual_active {
         end_visual_mode(ed);
     }
-    do_cmdline_cmd(ed, b"stop\0".as_ptr() as *mut u8);
+    do_cmdline_cmd(ed, c"stop".as_ptr() as *mut u8);
 }
 
 pub unsafe fn nv_gv_cmd(ed: *mut Editor, cap: *mut cmdarg_T) {
@@ -40301,7 +40307,7 @@ pub unsafe fn nv_g_cmd(ed: *mut Editor, cap: *mut cmdarg_T) {
             nv_vreplace(ed, cap);
         }
         38 => {
-            do_cmdline_cmd(ed, b"%s//~/&\0".as_ptr() as *mut u8);
+            do_cmdline_cmd(ed, c"%s//~/&".as_ptr() as *mut u8);
         }
         118 => {
             nv_gv_cmd(ed, cap);
@@ -40743,10 +40749,10 @@ pub unsafe fn nv_esc(ed: *mut Editor, cap: *mut cmdarg_T) {
     if (*cap).arg != 0 {
         if (*ed).restart_edit == 0 && !(*ed).VIsual_active && no_reason {
             if anyBufIsChanged(ed) != 0 {
-                let ms: *mut i8 = b"Type  :qa!  and press <Enter> to abandon all changes and exit Vim\0".as_ptr() as *mut i8;
+                let ms: *mut i8 = c"Type  :qa!  and press <Enter> to abandon all changes and exit Vim".as_ptr() as *mut i8;
                 msg(ed, ms);
             } else {
-                msg(ed, b"Type  :qa  and press <Enter> to exit Vim\0".as_ptr() as *mut i8);
+                msg(ed, c"Type  :qa  and press <Enter> to exit Vim".as_ptr() as *mut i8);
             }
         }
         if (*ed).restart_edit != 0 {
@@ -40818,7 +40824,7 @@ pub unsafe fn nv_edit(ed: *mut Editor, cap: *mut cmdarg_T) {
             if old_visual_mode == b'V' as i32 {
                 if (*(*ed).curwin).w_cursor.lnum < old_pos_lnum && (*(*ed).curwin).w_cursor.lnum < old_visual.lnum {
                     if u_save_cursor(ed) {
-                        ml_append(ed, (*(*ed).curwin).w_cursor.lnum, b"\0".as_ptr() as *mut u8, 0);
+                        ml_append(ed, (*(*ed).curwin).w_cursor.lnum, c"".as_ptr() as *mut u8, 0);
                         appended_lines(ed, { t1 = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 + 1; t1 }, 1);
                     }
                 }
@@ -40901,7 +40907,7 @@ pub unsafe fn nv_object(ed: *mut Editor, cap: *mut cmdarg_T) {
         include = true;
     }
     let mps_save: *mut char_u = (*(*ed).curbuf).b_p_mps;
-    (*(*ed).curbuf).b_p_mps = b"(:),{:},[:],<:>\0".as_ptr() as *mut u8;
+    (*(*ed).curbuf).b_p_mps = c"(:),{:},[:],<:>".as_ptr() as *mut u8;
     match (*cap).nchar {
         119 => {
             flag = current_word(ed, (*cap).oap, (*cap).count1, include, false);
@@ -41107,7 +41113,7 @@ pub unsafe fn get_op_type(ed: *mut Editor, char1: i32, char2: i32) -> i32 {
             break;
         }
         if i == 29 {
-            internal_error(ed, b"get_op_type()\0".as_ptr() as *mut i8);
+            internal_error(ed, c"get_op_type()".as_ptr() as *mut i8);
             break;
         }
         i += 1;
@@ -41162,12 +41168,12 @@ pub unsafe fn op_shift(ed: *mut Editor, oap: *mut oparg_T, curs_top: bool, amoun
     }
     if (*oap).line_count > (*ed).p_report {
         if (*oap).op_type == OP_RSHIFT {
-            op = b">\0".as_ptr() as *mut i8;
+            op = c">".as_ptr() as *mut i8;
         } else {
-            op = b"<\0".as_ptr() as *mut i8;
+            op = c"<".as_ptr() as *mut i8;
         }
-        let msg_line_single: *mut i8 = NGETTEXT(b"%ld line %sed %d time\0".as_ptr() as *mut i8, b"%ld line %sed %d times\0".as_ptr() as *mut i8, amount as u64);
-        let msg_line_plural: *mut i8 = NGETTEXT(b"%ld lines %sed %d time\0".as_ptr() as *mut i8, b"%ld lines %sed %d times\0".as_ptr() as *mut i8, amount as u64);
+        let msg_line_single: *mut i8 = NGETTEXT(c"%ld line %sed %d time".as_ptr() as *mut i8, c"%ld line %sed %d times".as_ptr() as *mut i8, amount as u64);
+        let msg_line_plural: *mut i8 = NGETTEXT(c"%ld lines %sed %d time".as_ptr() as *mut i8, c"%ld lines %sed %d times".as_ptr() as *mut i8, amount as u64);
         crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, NGETTEXT(msg_line_single, msg_line_plural, (*oap).line_count as u64), &[VArg::I((*oap).line_count), VArg::P(op as *mut c_void), VArg::I(amount as i64)]);
         msg_attr_keep(ed, (*ed).IObuff as *mut i8, 0, true);
     }
@@ -41352,10 +41358,10 @@ pub unsafe fn block_insert(ed: *mut Editor, oap: *mut oparg_T, s: *mut char_u, s
     (*ed).State = MODE_INSERT;
     let mut lnum: linenr_T = (*oap).start.lnum + 1;
     while lnum <= (*oap).end.lnum {
-    'c1: {
         block_prep(ed, oap, bdp, lnum, TRUE);
         if (*bdp).is_short && b_insert {
-            break 'c1;
+            lnum += 1;
+            continue;
         }
         let mut oldp: *mut char_u = ml_get(ed, lnum);
         if b_insert {
@@ -41418,7 +41424,7 @@ pub unsafe fn block_insert(ed: *mut Editor, oap: *mut oparg_T, s: *mut char_u, s
                 (*(*ed).curbuf).b_visual.vi_end.col += (*(*ed).curbuf).b_visual.vi_end.coladd;
                 (*(*ed).curbuf).b_visual.vi_end.coladd = 0;
             }
-        }        }
+        }
         lnum += 1;
     }
     changed_lines(ed, (*oap).start.lnum + 1, 0, (*oap).end.lnum + 1, 0);
@@ -41495,7 +41501,7 @@ pub unsafe fn op_delete(ed: *mut Editor, oap: *mut oparg_T) -> bool {
             if !did_yank {
                 let msg_silent_save: i32 = (*ed).msg_silent;
                 (*ed).msg_silent = 0;
-                n = ask_yesno(ed, b"cannot yank; delete anyway\0".as_ptr() as *mut u8, true);
+                n = ask_yesno(ed, c"cannot yank; delete anyway".as_ptr() as *mut u8, true);
                 (*ed).msg_silent = msg_silent_save;
                 if n != b'y' as i32 {
                     emsg(ed, decay(&raw mut (*ed).e_command_aborted));
@@ -41509,10 +41515,10 @@ pub unsafe fn op_delete(ed: *mut Editor, oap: *mut oparg_T) -> bool {
             }
             lnum = (*(*ed).curwin).w_cursor.lnum;
             while lnum <= (*oap).end.lnum {
-            'c2: {
                 block_prep(ed, oap, &raw mut bd, lnum, TRUE);
                 if bd.textlen == 0 {
-                    break 'c2;
+                    lnum += 1;
+                    continue;
                 }
                 if lnum == (*(*ed).curwin).w_cursor.lnum {
                     (*(*ed).curwin).w_cursor.col = bd.textcol + bd.startspaces;
@@ -41524,7 +41530,7 @@ pub unsafe fn op_delete(ed: *mut Editor, oap: *mut oparg_T) -> bool {
                 musl_memmove(newp as *mut c_void, oldp as *mut c_void, bd.textcol as u64);
                 musl_memset(newp.wrapping_offset(bd.textcol as isize) as *mut c_void, b' ' as i32, (bd.startspaces + bd.endspaces) as u64);
                 musl_strcpy(newp.wrapping_offset(bd.textcol as isize).wrapping_offset(bd.startspaces as isize).wrapping_offset(bd.endspaces as isize) as *mut i8, oldp.wrapping_offset(bd.textcol as isize).wrapping_offset(bd.textlen as isize) as *mut i8);
-                ml_replace(ed, lnum, newp, false);                }
+                ml_replace(ed, lnum, newp, false);
                 lnum += 1;
             }
             check_cursor_col(ed);
@@ -41686,11 +41692,11 @@ pub unsafe fn op_replace(ed: *mut Editor, oap: *mut oparg_T, mut c: i32) -> bool
     if (*oap).block_mode != 0 {
         bd.is_MAX = (*(*ed).curwin).w_curswant == MAXCOL;
         while (*(*ed).curwin).w_cursor.lnum <= (*oap).end.lnum {
-        'c1: {
             (*(*ed).curwin).w_cursor.col = 0;
             block_prep(ed, oap, &raw mut bd, (*(*ed).curwin).w_cursor.lnum, TRUE);
             if bd.textlen == 0 && ((*ed).virtual_op == 0 || bd.is_MAX) {
-                break 'c1;
+                (*(*ed).curwin).w_cursor.lnum += 1;
+                continue;
             }
             if (*ed).virtual_op != 0 && bd.is_short && *bd.textstart == NUL as u8 {
                 vpos.lnum = (*(*ed).curwin).w_cursor.lnum;
@@ -41744,7 +41750,7 @@ pub unsafe fn op_replace(ed: *mut Editor, oap: *mut oparg_T, mut c: i32) -> bool
                 ml_append(ed, { t1 = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 + 1; t1 }, after_p, 0);
                 appended_lines_mark(ed, (*(*ed).curwin).w_cursor.lnum, 1);
                 (*oap).end.lnum += 1;
-            }            }
+            }
             (*(*ed).curwin).w_cursor.lnum += 1;
         }
     } else {
@@ -41872,8 +41878,8 @@ pub unsafe fn op_tilde(ed: *mut Editor, oap: *mut oparg_T) {
         (*(*ed).curbuf).b_op_end = (*oap).end;
     }
     if (*oap).line_count > (*ed).p_report {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(b"%ld line changed\0".as_ptr() as *mut i8, b"%ld lines changed\0".as_ptr() as *mut i8, (*oap).line_count as u64), &[VArg::I((*oap).line_count)]);
-        msg(ed, iobuff_or(ed, NGETTEXT(b"%ld line changed\0".as_ptr() as *mut i8, b"%ld lines changed\0".as_ptr() as *mut i8, (*oap).line_count as u64)));
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(c"%ld line changed".as_ptr() as *mut i8, c"%ld lines changed".as_ptr() as *mut i8, (*oap).line_count as u64), &[VArg::I((*oap).line_count)]);
+        msg(ed, iobuff_or(ed, NGETTEXT(c"%ld line changed".as_ptr() as *mut i8, c"%ld lines changed".as_ptr() as *mut i8, (*oap).line_count as u64)));
     }
 }
 
@@ -42503,8 +42509,8 @@ pub unsafe fn op_addsub(ed: *mut Editor, oap: *mut oparg_T, Prenum1: linenr_T, g
             (*(*ed).curbuf).b_op_start.coladd = startpos_coladd;
         }
         if (change_cnt as i64) > (*ed).p_report {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(b"%d line changed\0".as_ptr() as *mut i8, b"%d lines changed\0".as_ptr() as *mut i8, change_cnt as u64), &[VArg::I(change_cnt as i64)]);
-            msg(ed, iobuff_or(ed, NGETTEXT(b"%d line changed\0".as_ptr() as *mut i8, b"%d lines changed\0".as_ptr() as *mut i8, change_cnt as u64)));
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(c"%d line changed".as_ptr() as *mut i8, c"%d lines changed".as_ptr() as *mut i8, change_cnt as u64), &[VArg::I(change_cnt as i64)]);
+            msg(ed, iobuff_or(ed, NGETTEXT(c"%d line changed".as_ptr() as *mut i8, c"%d lines changed".as_ptr() as *mut i8, change_cnt as u64)));
         }
     }
 }
@@ -42767,13 +42773,13 @@ pub unsafe fn do_addsub(ed: *mut Editor, op_type: i32, pos: *mut pos_T, mut leng
                 }
                 *decay(&raw mut buf2).wrapping_offset(buf2len as isize) = NUL as u8;
             } else if pre == 0 {
-                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, b"%llu\0".as_ptr() as *mut i8, &[VArg::U(n)]);
+                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, c"%llu".as_ptr() as *mut i8, &[VArg::U(n)]);
             } else if pre == b'0' as i32 {
-                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, b"%llo\0".as_ptr() as *mut i8, &[VArg::U(n)]);
+                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, c"%llo".as_ptr() as *mut i8, &[VArg::U(n)]);
             } else if pre != 0 && (*ed).do_addsub__hexupper {
-                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, b"%llX\0".as_ptr() as *mut i8, &[VArg::U(n)]);
+                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, c"%llX".as_ptr() as *mut i8, &[VArg::U(n)]);
             } else {
-                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, b"%llx\0".as_ptr() as *mut i8, &[VArg::U(n)]);
+                buf2len = crate::host::vim_snprintf(ed, decay(&raw mut buf2) as *mut i8, NUMBUFLEN as u64, c"%llx".as_ptr() as *mut i8, &[VArg::U(n)]);
             }
             length -= buf2len;
             if firstdigit == b'0' as i32 && !(do_oct && pre == 0) {
@@ -42984,14 +42990,14 @@ pub unsafe fn cursor_pos_info(ed: *mut Editor) {
                 getvcols(ed, (*ed).curwin, &raw mut min_pos, &raw mut max_pos, &raw mut min_col, &raw mut max_col, 0);
                 min_pos.col = min_col;
                 max_pos.col = max_col;
-                crate::host::vim_snprintf(ed, decay(&raw mut buf1) as *mut i8, 50, b"%ld Cols; \0".as_ptr() as *mut i8, &[VArg::I((oparg.end_vcol - oparg.start_vcol + 1) as i64)]);
+                crate::host::vim_snprintf(ed, decay(&raw mut buf1) as *mut i8, 50, c"%ld Cols; ".as_ptr() as *mut i8, &[VArg::I((oparg.end_vcol - oparg.start_vcol + 1) as i64)]);
             } else {
                 *decay(&raw mut buf1) = NUL as u8;
             }
             if char_count_cursor == byte_count_cursor && char_count == byte_count {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::I(line_count_selected), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::I(line_count_selected), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
             } else {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::I(line_count_selected), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(char_count_cursor), VArg::I(char_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::I(line_count_selected), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(char_count_cursor), VArg::I(char_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
             }
         } else {
             p = ml_get_curline(ed);
@@ -43000,13 +43006,13 @@ pub unsafe fn cursor_pos_info(ed: *mut Editor) {
             let vcol: i32 = linetabsize_str(ed, p);
             col_print(ed, decay(&raw mut buf2), 40, ml_get_curline_len(ed), vcol);
             if char_count_cursor == byte_count_cursor && char_count == byte_count {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::P(decay(&raw mut buf2) as *mut c_void), VArg::I((*(*ed).curwin).w_cursor.lnum), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::P(decay(&raw mut buf2) as *mut c_void), VArg::I((*(*ed).curwin).w_cursor.lnum), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
             } else {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld\0".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::P(decay(&raw mut buf2) as *mut c_void), VArg::I((*(*ed).curwin).w_cursor.lnum), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(char_count_cursor), VArg::I(char_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld".as_ptr() as *mut i8, &[VArg::P(decay(&raw mut buf1) as *mut c_void), VArg::P(decay(&raw mut buf2) as *mut c_void), VArg::I((*(*ed).curwin).w_cursor.lnum), VArg::I((*(*ed).curbuf).b_ml.ml_line_count), VArg::I(word_count_cursor), VArg::I(word_count), VArg::I(char_count_cursor), VArg::I(char_count), VArg::I(byte_count_cursor), VArg::I(byte_count)]);
             }
         }
         p = (*ed).p_shm;
-        (*ed).p_shm = b"\0".as_ptr() as *mut u8;
+        (*ed).p_shm = c"".as_ptr() as *mut u8;
         msg(ed, (*ed).IObuff as *mut i8);
         (*ed).p_shm = p;
     }
@@ -43015,7 +43021,7 @@ pub unsafe fn cursor_pos_info(ed: *mut Editor) {
 pub unsafe fn op_colon(ed: *mut Editor, oap: *mut oparg_T) {
     stuffcharReadbuff(ed, b':' as i32);
     if (*oap).is_VIsual != 0 {
-        stuffReadbuff(ed, b"'<,'>\0".as_ptr() as *mut u8);
+        stuffReadbuff(ed, c"'<,'>".as_ptr() as *mut u8);
     } else {
         if (*oap).start.lnum == (*(*ed).curwin).w_cursor.lnum {
             stuffcharReadbuff(ed, b'.' as i32);
@@ -43029,7 +43035,7 @@ pub unsafe fn op_colon(ed: *mut Editor, oap: *mut oparg_T) {
             } else if (*oap).end.lnum == (*(*ed).curbuf).b_ml.ml_line_count {
                 stuffcharReadbuff(ed, b'$' as i32);
             } else if (*oap).start.lnum == (*(*ed).curwin).w_cursor.lnum {
-                stuffReadbuff(ed, b".+\0".as_ptr() as *mut u8);
+                stuffReadbuff(ed, c".+".as_ptr() as *mut u8);
                 stuffnumReadbuff(ed, (*oap).line_count - 1);
             } else {
                 stuffnumReadbuff(ed, (*oap).end.lnum);
@@ -43120,7 +43126,7 @@ pub unsafe fn do_pending_operator(ed: *mut Editor, cap: *mut cmdarg_T, old_col: 
                 if vim_strchr(ed, (*ed).p_cpo, CPO_REDO).is_null() {
                     AppendToRedobuffLit(ed, (*cap).searchbuf, -1);
                 }
-                AppendToRedobuff(ed, b"\n\0".as_ptr() as *mut u8);
+                AppendToRedobuff(ed, c"\n".as_ptr() as *mut u8);
             } else if is_ex_cmdchar(cap) {
                 if (*ed).repeat_cmdline.is_null() {
                     ResetRedobuff(ed);
@@ -43130,7 +43136,7 @@ pub unsafe fn do_pending_operator(ed: *mut Editor, cap: *mut cmdarg_T, old_col: 
                     } else {
                         AppendToRedobuffSpec(ed, (*ed).repeat_cmdline);
                     }
-                    AppendToRedobuff(ed, b"\n\0".as_ptr() as *mut u8);
+                    AppendToRedobuff(ed, c"\n".as_ptr() as *mut u8);
                     (*ed).repeat_cmdline = null_mut();
                 }
             }
@@ -43530,7 +43536,7 @@ pub unsafe fn set_options_default(ed: *mut Editor, opt_flags: i32) {
 pub unsafe fn set_string_default_esc(ed: *mut Editor, name: *mut i8, val: *mut char_u, escape: bool) {
     let mut p: *mut char_u = null_mut();
     if escape && !vim_strchr(ed, val, b' ' as i32).is_null() {
-        p = vim_strsave_escaped(ed, val, b" \0".as_ptr() as *mut u8);
+        p = vim_strsave_escaped(ed, val, c" ".as_ptr() as *mut u8);
     } else {
         p = vim_strsave(ed, val);
     }
@@ -43577,18 +43583,18 @@ pub unsafe fn set_number_default(ed: *mut Editor, name: *mut i8, val: i64) {
 }
 
 pub unsafe fn set_init_2(ed: *mut Editor) {
-    let mut idx: i32 = findoption(ed, b"scroll\0".as_ptr() as *mut u8);
+    let mut idx: i32 = findoption(ed, c"scroll".as_ptr() as *mut u8);
     if idx >= 0 && (*decay(&raw mut (*ed).options).wrapping_offset(idx as isize)).flags & P_WAS_SET as u64 == 0 {
         set_option_default(ed, idx, OPT_LOCAL, (*ed).p_cp);
     }
     comp_col(ed);
-    if !option_was_set(ed, b"window\0".as_ptr() as *mut u8) {
+    if !option_was_set(ed, c"window".as_ptr() as *mut u8) {
         (*ed).p_window = (*ed).Rows - 1;
     }
-    set_number_default(ed, b"window\0".as_ptr() as *mut i8, (*ed).Rows - 1);
-    idx = findoption(ed, b"bg\0".as_ptr() as *mut u8);
+    set_number_default(ed, c"window".as_ptr() as *mut i8, (*ed).Rows - 1);
+    idx = findoption(ed, c"bg".as_ptr() as *mut u8);
     if idx >= 0 && (*decay(&raw mut (*ed).options).wrapping_offset(idx as isize)).flags & P_WAS_SET as u64 == 0 && *term_bg_default(ed) == b'd' {
-        set_string_option_direct(ed, null_mut(), idx, b"dark\0".as_ptr() as *mut u8, OPT_FREE, 0);
+        set_string_option_direct(ed, null_mut(), idx, c"dark".as_ptr() as *mut u8, OPT_FREE, 0);
         (*decay(&raw mut (*ed).options).wrapping_offset(idx as isize)).flags &= 18446744073709551359;
     }
 }
@@ -43604,10 +43610,10 @@ pub unsafe fn ex_set(ed: *mut Editor, eap: *mut exarg_T) {
 pub unsafe fn get_option_prefix(argp: *mut *mut char_u) -> set_prefix_T {
     let mut prefix: i32 = PREFIX_NONE;
     let mut arg: *mut char_u = *argp;
-    if musl_strncmp(arg as *mut i8, b"no\0".as_ptr() as *mut i8, 2) == 0 && musl_strncmp(arg as *mut i8, b"novice\0".as_ptr() as *mut i8, 6) != 0 {
+    if musl_strncmp(arg as *mut i8, c"no".as_ptr() as *mut i8, 2) == 0 && musl_strncmp(arg as *mut i8, c"novice".as_ptr() as *mut i8, 6) != 0 {
         prefix = PREFIX_NO;
         arg = arg.wrapping_add(2);
-    } else if musl_strncmp(arg as *mut i8, b"inv\0".as_ptr() as *mut i8, 3) == 0 {
+    } else if musl_strncmp(arg as *mut i8, c"inv".as_ptr() as *mut i8, 3) == 0 {
         prefix = PREFIX_INV;
         arg = arg.wrapping_add(3);
     }
@@ -43722,13 +43728,13 @@ pub unsafe fn opt_backspace_nr2str(ed: *mut Editor, varp: optvar_T, mut origval_
             *varp.ov_str = (*ed).empty_option;
         }
         1 => {
-            *varp.ov_str = vim_strnsave(ed, b"indent,eol\0".as_ptr() as *mut u8, 10);
+            *varp.ov_str = vim_strnsave(ed, c"indent,eol".as_ptr() as *mut u8, 10);
         }
         2 => {
-            *varp.ov_str = vim_strnsave(ed, b"indent,eol,start\0".as_ptr() as *mut u8, 16);
+            *varp.ov_str = vim_strnsave(ed, c"indent,eol,start".as_ptr() as *mut u8, 16);
         }
         3 => {
-            *varp.ov_str = vim_strnsave(ed, b"indent,eol,nostop\0".as_ptr() as *mut u8, 17);
+            *varp.ov_str = vim_strnsave(ed, c"indent,eol,nostop".as_ptr() as *mut u8, 17);
         }
         _ => {}
     }
@@ -43754,23 +43760,23 @@ pub unsafe fn opt_whichwrap_nr2str(argp: *mut *mut char_u, whichwrap: *mut char_
     *whichwrap = NUL as u8;
     let i: i32 = getdigits(argp) as i32;
     if i & 1 != 0 {
-        musl_strcpy(whichwrap as *mut i8, b"b,\0".as_ptr() as *mut i8);
+        musl_strcpy(whichwrap as *mut i8, c"b,".as_ptr() as *mut i8);
         len = len.wrapping_add(2);
     }
     if i & 2 != 0 {
-        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, b"s,\0".as_ptr() as *mut i8);
+        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, c"s,".as_ptr() as *mut i8);
         len = len.wrapping_add(2);
     }
     if i & 4 != 0 {
-        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, b"h,l,\0".as_ptr() as *mut i8);
+        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, c"h,l,".as_ptr() as *mut i8);
         len = len.wrapping_add(4);
     }
     if i & 8 != 0 {
-        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, b"<,>,\0".as_ptr() as *mut i8);
+        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, c"<,>,".as_ptr() as *mut i8);
         len = len.wrapping_add(4);
     }
     if i & 16 != 0 {
-        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, b"[,],\0".as_ptr() as *mut i8);
+        musl_strcpy(whichwrap.wrapping_add(len as usize) as *mut i8, c"[,],".as_ptr() as *mut i8);
         len = len.wrapping_add(4);
     }
     if *whichwrap != NUL as u8 {
@@ -44268,7 +44274,7 @@ pub unsafe fn do_set_option_value(ed: *mut Editor, opt_idx: i32, opt_flags: i32,
             return out__;
         }
     } else {
-        if vim_strchr(ed, b"=:&<\0".as_ptr() as *mut u8, nextchar).is_null() || prefix != PREFIX_NONE {
+        if vim_strchr(ed, c"=:&<".as_ptr() as *mut u8, nextchar).is_null() || prefix != PREFIX_NONE {
             errmsg = decay(&raw mut (*ed).e_invalid_argument);
             argp = arg;
             out__.r__ = errmsg;
@@ -44361,7 +44367,7 @@ pub unsafe fn do_set_option(ed: *mut Editor, opt_flags: i32, argp: *mut *mut cha
     }
     if opt_idx >= 0 {
         if optvar_is_null((*decay(&raw mut (*ed).options).wrapping_offset(opt_idx as isize)).var) {
-            if vim_strchr(ed, b"=:!&<\0".as_ptr() as *mut u8, nextchar).is_null() && ((*decay(&raw mut (*ed).options).wrapping_offset(opt_idx as isize)).flags & P_BOOL as u64 == 0 || nextchar == b'?' as i32) {
+            if vim_strchr(ed, c"=:!&<".as_ptr() as *mut u8, nextchar).is_null() && ((*decay(&raw mut (*ed).options).wrapping_offset(opt_idx as isize)).flags & P_BOOL as u64 == 0 || nextchar == b'?' as i32) {
                 errmsg = decay(&raw mut (*ed).e_option_not_supported);
             }
             *argp = arg;
@@ -44389,7 +44395,7 @@ pub unsafe fn do_set_option(ed: *mut Editor, opt_flags: i32, argp: *mut *mut cha
         return out__;
     }
     let mut cp_val: i32 = (*ed).p_cp;
-    if !vim_strchr(ed, b"?=:!&\0".as_ptr() as *mut u8, nextchar).is_null() {
+    if !vim_strchr(ed, c"?=:!&".as_ptr() as *mut u8, nextchar).is_null() {
         arg = arg.wrapping_offset(len as isize);
         if nextchar == b'&' as i32 && *arg.wrapping_add(1) == b'v' && *arg.wrapping_add(2) == b'i' {
             if *arg.wrapping_add(3) == b'm' {
@@ -44400,7 +44406,7 @@ pub unsafe fn do_set_option(ed: *mut Editor, opt_flags: i32, argp: *mut *mut cha
                 arg = arg.wrapping_add(2);
             }
         }
-        if !vim_strchr(ed, b"?!&<\0".as_ptr() as *mut u8, nextchar).is_null() && *arg.wrapping_add(1) != NUL as u8 && !(*arg.wrapping_add(1) == b' ' || *arg.wrapping_add(1) == 9) {
+        if !vim_strchr(ed, c"?!&<".as_ptr() as *mut u8, nextchar).is_null() && *arg.wrapping_add(1) != NUL as u8 && !(*arg.wrapping_add(1) == b' ' || *arg.wrapping_add(1) == 9) {
             errmsg = decay(&raw mut (*ed).e_trailing_characters);
             *argp = arg;
             out__.r__ = errmsg;
@@ -44408,7 +44414,7 @@ pub unsafe fn do_set_option(ed: *mut Editor, opt_flags: i32, argp: *mut *mut cha
             return out__;
         }
     }
-    if nextchar == b'?' as i32 || prefix == PREFIX_NONE && vim_strchr(ed, b"=:&<\0".as_ptr() as *mut u8, nextchar).is_null() && flags & P_BOOL as u64 == 0 {
+    if nextchar == b'?' as i32 || prefix == PREFIX_NONE && vim_strchr(ed, c"=:&<".as_ptr() as *mut u8, nextchar).is_null() && flags & P_BOOL as u64 == 0 {
         if did_show {
             msg_putchar(ed, 10);
         } else {
@@ -44454,7 +44460,7 @@ pub unsafe fn do_set(ed: *mut Editor, arg_start: *mut char_u, opt_flags: i32) ->
         return true;
     }
     while *arg != NUL as u8 {
-        if musl_strncmp(arg as *mut i8, b"all\0".as_ptr() as *mut i8, 3) == 0 && !(ascii_isupper(*arg.wrapping_add(3) as i32) || ascii_islower(*arg.wrapping_add(3) as i32)) {
+        if musl_strncmp(arg as *mut i8, c"all".as_ptr() as *mut i8, 3) == 0 && !(ascii_isupper(*arg.wrapping_add(3) as i32) || ascii_islower(*arg.wrapping_add(3) as i32)) {
             arg = arg.wrapping_add(3);
             if *arg == b'&' {
                 arg = arg.wrapping_add(1);
@@ -44466,7 +44472,7 @@ pub unsafe fn do_set(ed: *mut Editor, arg_start: *mut char_u, opt_flags: i32) ->
                 showoptions(ed, 1, opt_flags);
                 did_show = true;
             }
-        } else if musl_strncmp(arg as *mut i8, b"termcap\0".as_ptr() as *mut i8, 7) == 0 {
+        } else if musl_strncmp(arg as *mut i8, c"termcap".as_ptr() as *mut i8, 7) == 0 {
             showoptions(ed, 2, opt_flags);
             show_termcodes(ed, opt_flags);
             did_show = true;
@@ -44494,9 +44500,9 @@ pub unsafe fn do_set(ed: *mut Editor, arg_start: *mut char_u, opt_flags: i32) ->
                 i += 1;
             }
             if !errmsg.is_null() {
-                i = crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"%s\0".as_ptr() as *mut i8, &[VArg::P(errmsg as *mut c_void)]) + 2;
+                i = crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"%s".as_ptr() as *mut i8, &[VArg::P(errmsg as *mut c_void)]) + 2;
                 if i as i64 + pdiff(arg, startarg) < 1025 {
-                    musl_strcpy((*ed).IObuff.wrapping_offset(i as isize).wrapping_sub(2) as *mut i8, b": \0".as_ptr() as *mut i8);
+                    musl_strcpy((*ed).IObuff.wrapping_offset(i as isize).wrapping_sub(2) as *mut i8, c": ".as_ptr() as *mut i8);
                     musl_memmove((*ed).IObuff.wrapping_offset(i as isize) as *mut c_void, startarg as *mut c_void, pdiff(arg, startarg) as u64);
                     *(*ed).IObuff.wrapping_offset((i as i64 + pdiff(arg, startarg)) as isize) = NUL as u8;
                 }
@@ -44544,7 +44550,7 @@ pub unsafe fn option_expand(ed: *mut Editor, opt_idx: i32, mut val: *mut char_u)
         val = *(*decay(&raw mut (*ed).options).wrapping_offset(opt_idx as isize)).var.ov_str;
     }
     let esc: bool = false;
-    expand_env_esc(val, (*ed).NameBuff, PATH_MAX, if esc { b" \t\0".as_ptr() as *mut u8 } else { null_mut() }, false, null_mut());
+    expand_env_esc(val, (*ed).NameBuff, PATH_MAX, if esc { c" \t".as_ptr() as *mut u8 } else { null_mut() }, false, null_mut());
     if musl_strcmp((*ed).NameBuff as *mut i8, val as *mut i8) == 0 {
         return null_mut();
     }
@@ -44801,8 +44807,8 @@ pub unsafe fn did_set_terse(ed: *mut Editor, _args: *mut optset_T) -> *mut i8 {
     let p: *mut char_u = vim_strchr(ed, (*ed).p_shm, SHM_SEARCH);
     if (*ed).p_terse != 0 && p.is_null() {
         musl_strcpy((*ed).IObuff as *mut i8, (*ed).p_shm as *mut i8);
-        musl_strcat((*ed).IObuff as *mut i8, b"s\0".as_ptr() as *mut i8);
-        set_string_option_direct(ed, b"shm\0".as_ptr() as *mut u8, -1, (*ed).IObuff, OPT_FREE, 0);
+        musl_strcat((*ed).IObuff as *mut i8, c"s".as_ptr() as *mut i8);
+        set_string_option_direct(ed, c"shm".as_ptr() as *mut u8, -1, (*ed).IObuff, OPT_FREE, 0);
     } else if (*ed).p_terse == 0 && !p.is_null() {
         musl_memmove(p as *mut c_void, p.wrapping_add(1) as *mut c_void, musl_strlen(p.wrapping_add(1) as *mut i8).wrapping_add(1));
     }
@@ -44846,7 +44852,7 @@ pub unsafe fn did_set_undolevels(ed: *mut Editor, args: *mut optset_T) -> *mut i
 
 pub unsafe fn did_set_weirdinvert(ed: *mut Editor, args: *mut optset_T) -> *mut i8 {
     if (*ed).p_wiv != 0 && (*args).os_oldval.boolean == 0 {
-        *decay(&raw mut (*ed).term_strings).wrapping_add(52) = b"y\0".as_ptr() as *mut u8;
+        *decay(&raw mut (*ed).term_strings).wrapping_add(52) = c"y".as_ptr() as *mut u8;
     } else if (*ed).p_wiv == 0 && (*args).os_oldval.boolean != 0 {
         *decay(&raw mut (*ed).term_strings).wrapping_add(52) = (*ed).empty_option;
     }
@@ -44934,7 +44940,7 @@ pub unsafe fn check_num_option_bounds(ed: *mut Editor, pp: *mut i64, old_value: 
                 (*ed).cmdline_row = ((*ed).Rows - (*ed).p_ch) as i32;
             }
         }
-        if (*ed).p_window >= (*ed).Rows || !option_was_set(ed, b"window\0".as_ptr() as *mut u8) {
+        if (*ed).p_window >= (*ed).Rows || !option_was_set(ed, c"window".as_ptr() as *mut u8) {
             (*ed).p_window = (*ed).Rows - 1;
         }
     }
@@ -45212,7 +45218,7 @@ pub unsafe fn get_term_code(ed: *mut Editor, tname: *mut char_u) -> *mut char_u 
 }
 
 pub unsafe fn get_highlight_default(ed: *mut Editor) -> *mut char_u {
-    let i: i32 = findoption(ed, b"hl\0".as_ptr() as *mut u8);
+    let i: i32 = findoption(ed, c"hl".as_ptr() as *mut u8);
     if i >= 0 {
         return *decay(&raw mut (*decay(&raw mut (*ed).options).wrapping_offset(i as isize)).def_str);
     }
@@ -45244,22 +45250,22 @@ pub unsafe fn showoptions(ed: *mut Editor, all: i32, opt_flags: i32) {
     let mut len: i32 = 0;
     let items: *mut *mut vimoption = alloc(ed, 1480) as *mut *mut vimoption;
     if all == 2 {
-        msg_puts_title(ed, b"\n--- Terminal codes ---\0".as_ptr() as *mut i8);
+        msg_puts_title(ed, c"\n--- Terminal codes ---".as_ptr() as *mut i8);
     } else if opt_flags & OPT_GLOBAL != 0 {
-        msg_puts_title(ed, b"\n--- Global option values ---\0".as_ptr() as *mut i8);
+        msg_puts_title(ed, c"\n--- Global option values ---".as_ptr() as *mut i8);
     } else if opt_flags & OPT_LOCAL != 0 {
-        msg_puts_title(ed, b"\n--- Local option values ---\0".as_ptr() as *mut i8);
+        msg_puts_title(ed, c"\n--- Local option values ---".as_ptr() as *mut i8);
     } else {
-        msg_puts_title(ed, b"\n--- Options ---\0".as_ptr() as *mut i8);
+        msg_puts_title(ed, c"\n--- Options ---".as_ptr() as *mut i8);
     }
     let mut run: i32 = 1;
     while run <= 2 && (*ed).got_int == 0 {
         let mut item_count: i32 = 0;
         let mut p: *mut vimoption = decay(&raw mut (*ed).options);
         while !(*p).fullname.is_null() {
-        'c2: {
             if message_filtered(ed, (*p).fullname as *mut u8) {
-                break 'c2;
+                p = p.wrapping_add(1);
+                continue;
             }
             let mut varp: optvar_T = optvar_none();
             let isterm: bool = istermoption(p);
@@ -45283,7 +45289,7 @@ pub unsafe fn showoptions(ed: *mut Editor, all: i32, opt_flags: i32) {
                     *items.wrapping_offset(item_count as isize) = p;
                     item_count += 1;
                 }
-            }            }
+            }
             p = p.wrapping_add(1);
         }
         if run == 1 {
@@ -45335,11 +45341,11 @@ pub unsafe fn showoneopt(ed: *mut Editor, p: *mut vimoption, opt_flags: i32) {
     (*ed).info_message = true;
     let varp: optvar_T = get_varp_scope(ed, p, opt_flags);
     if (*p).flags & P_BOOL as u64 != 0 && (if varp.ov_int == &raw mut (*(*ed).curbuf).b_changed { (curbufIsChanged(ed) == 0) as i32 } else { (*varp.ov_int == 0) as i32 }) != 0 {
-        msg_puts(ed, b"no\0".as_ptr() as *mut i8);
+        msg_puts(ed, c"no".as_ptr() as *mut i8);
     } else if (*p).flags & P_BOOL as u64 != 0 && *varp.ov_int < 0 {
-        msg_puts(ed, b"--\0".as_ptr() as *mut i8);
+        msg_puts(ed, c"--".as_ptr() as *mut i8);
     } else {
-        msg_puts(ed, b"  \0".as_ptr() as *mut i8);
+        msg_puts(ed, c"  ".as_ptr() as *mut i8);
     }
     msg_puts(ed, (*p).fullname);
     if (*p).flags & P_BOOL as u64 == 0 {
@@ -45712,7 +45718,7 @@ pub unsafe fn buf_copy_options(ed: *mut Editor, buf: *mut buf_T, flags: i32) {
 pub unsafe fn option_value2string(ed: *mut Editor, opp: *mut vimoption, scope: i32) {
     let varp: optvar_T = get_varp_scope(ed, opp, scope);
     if (*opp).flags & P_NUM as u64 != 0 {
-        crate::host::vim_snprintf(ed, (*ed).NameBuff as *mut i8, PATH_MAX as u64, b"%ld\0".as_ptr() as *mut i8, &[VArg::I(*varp.ov_long)]);
+        crate::host::vim_snprintf(ed, (*ed).NameBuff as *mut i8, PATH_MAX as u64, c"%ld".as_ptr() as *mut i8, &[VArg::I(*varp.ov_long)]);
     } else {
         let s: *mut char_u = *varp.ov_str;
         if s.is_null() {
@@ -45728,7 +45734,7 @@ pub unsafe fn option_value2string(ed: *mut Editor, opp: *mut vimoption, scope: i
 }
 
 pub unsafe fn shortmess(ed: *mut Editor, x: i32) -> bool {
-    !(*ed).p_shm.is_null() && (!vim_strchr(ed, (*ed).p_shm, x).is_null() || !vim_strchr(ed, (*ed).p_shm, b'a' as i32).is_null() && !vim_strchr(ed, b"rmfixlnw\0".as_ptr() as *mut u8, x).is_null())
+    !(*ed).p_shm.is_null() && (!vim_strchr(ed, (*ed).p_shm, x).is_null() || !vim_strchr(ed, (*ed).p_shm, b'a' as i32).is_null() && !vim_strchr(ed, c"rmfixlnw".as_ptr() as *mut u8, x).is_null())
 }
 
 pub unsafe fn option_was_set(ed: *mut Editor, name: *mut char_u) -> bool {
@@ -45821,7 +45827,7 @@ pub unsafe fn didset_string_options(ed: *mut Editor) {
 
 pub unsafe fn illegal_char(ed: *mut Editor, errbuf: *mut i8, errbuflen: usize_, c: i32) -> *mut i8 {
     if errbuf.is_null() {
-        return b"\0".as_ptr() as *mut i8;
+        return c"".as_ptr() as *mut i8;
     }
     crate::host::vim_snprintf(ed, errbuf, errbuflen, decay(&raw mut (*ed).e_illegal_character_str), &[VArg::P(transchar(ed, c) as *mut c_void)]);
     errbuf
@@ -45868,10 +45874,10 @@ pub unsafe fn set_string_option_direct(ed: *mut Editor, name: *mut char_u, opt_i
     if idx == -1 {
         idx = findoption(ed, name);
         if idx < 0 {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_internal_error_str), &[VArg::P(b"set_string_option_direct()\0".as_ptr() as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_internal_error_str), &[VArg::P(c"set_string_option_direct()".as_ptr() as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_internal_error_str)));
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), b"For option %s\0".as_ptr() as *mut i8, &[VArg::P(name as *mut c_void)]);
-            iemsg(ed, iobuff_or(ed, b"For option %s\0".as_ptr() as *mut i8));
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), c"For option %s".as_ptr() as *mut i8, &[VArg::P(name as *mut c_void)]);
+            iemsg(ed, iobuff_or(ed, c"For option %s".as_ptr() as *mut i8));
             return;
         }
     }
@@ -45911,7 +45917,7 @@ pub unsafe fn set_string_option(ed: *mut Editor, opt_idx: i32, value: *mut char_
     if is_hidden_option(ed, opt_idx) {
         return null_mut();
     }
-    let s: *mut char_u = vim_strsave(ed, if value.is_null() { b"\0".as_ptr() as *mut u8 } else { value });
+    let s: *mut char_u = vim_strsave(ed, if value.is_null() { c"".as_ptr() as *mut u8 } else { value });
     let varp: *mut *mut char_u = get_option_varp_scope(ed, opt_idx, if opt_flags & 6 == 0 { if is_global_local_option(ed, opt_idx) != 0 { OPT_GLOBAL } else { OPT_LOCAL } } else { opt_flags }).ov_str;
     let oldval: *mut char_u = *varp;
     *varp = s;
@@ -45923,7 +45929,7 @@ pub unsafe fn set_string_option(ed: *mut Editor, opt_idx: i32, value: *mut char_
 }
 
 pub unsafe fn check_illegal_path_names(ed: *mut Editor, opt_idx: i32, varp: *mut *mut char_u) -> bool {
-    get_option_flags(ed, opt_idx) & P_NFNAME as u64 != 0 && !(musl_strpbrk(*varp as *mut i8, if (*ed).secure != 0 { b"/\\*?[|;&<>\r\n\0".as_ptr() as *mut i8 } else { b"/\\*?[<>\r\n\0".as_ptr() as *mut i8 }) as *mut u8).is_null() || get_option_flags(ed, opt_idx) & P_NDNAME as u64 != 0 && !(musl_strpbrk(*varp as *mut i8, b"*?[|;&<>\r\n\0".as_ptr() as *mut u8 as *mut i8) as *mut u8).is_null()
+    get_option_flags(ed, opt_idx) & P_NFNAME as u64 != 0 && !(musl_strpbrk(*varp as *mut i8, if (*ed).secure != 0 { c"/\\*?[|;&<>\r\n".as_ptr() as *mut i8 } else { c"/\\*?[<>\r\n".as_ptr() as *mut i8 }) as *mut u8).is_null() || get_option_flags(ed, opt_idx) & P_NDNAME as u64 != 0 && !(musl_strpbrk(*varp as *mut i8, c"*?[|;&<>\r\n".as_ptr() as *mut u8 as *mut i8) as *mut u8).is_null()
 }
 
 pub unsafe fn did_set_opt_flags(ed: *mut Editor, val: *mut char_u, values: *mut *mut i8, flagp: *mut u32, list: bool) -> *mut i8 {
@@ -46028,7 +46034,7 @@ pub unsafe fn did_set_chars_option(ed: *mut Editor, args: *mut optset_T) -> *mut
 
 pub unsafe fn did_set_cpoptions(ed: *mut Editor, args: *mut optset_T) -> *mut i8 {
     let varp: *mut *mut char_u = (*args).os_varp.ov_str;
-    did_set_option_listflag(ed, *varp, b"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~\0".as_ptr() as *mut u8, (*args).os_errbuf, (*args).os_errbuflen)
+    did_set_option_listflag(ed, *varp, c"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~".as_ptr() as *mut u8, (*args).os_errbuf, (*args).os_errbuflen)
 }
 
 pub unsafe fn did_set_display(ed: *mut Editor, _args: *mut optset_T) -> *mut i8 {
@@ -46148,7 +46154,7 @@ pub unsafe fn did_set_selectmode(ed: *mut Editor, _args: *mut optset_T) -> *mut 
 
 pub unsafe fn did_set_shortmess(ed: *mut Editor, args: *mut optset_T) -> *mut i8 {
     let varp: *mut *mut char_u = (*args).os_varp.ov_str;
-    did_set_option_listflag(ed, *varp, b"rmfixlnwaWtToOsAIcCqFSu\0".as_ptr() as *mut u8, (*args).os_errbuf, (*args).os_errbuflen)
+    did_set_option_listflag(ed, *varp, c"rmfixlnwaWtToOsAIcCqFSu".as_ptr() as *mut u8, (*args).os_errbuf, (*args).os_errbuflen)
 }
 
 pub unsafe fn did_set_showcmdloc(ed: *mut Editor, _args: *mut optset_T) -> *mut i8 {
@@ -46225,7 +46231,7 @@ pub unsafe fn did_set_virtualedit(ed: *mut Editor, args: *mut optset_T) -> *mut 
 
 pub unsafe fn did_set_whichwrap(ed: *mut Editor, args: *mut optset_T) -> *mut i8 {
     let varp: *mut *mut char_u = (*args).os_varp.ov_str;
-    did_set_option_listflag(ed, *varp, b"bshl<>[]~,\0".as_ptr() as *mut u8, (*args).os_errbuf, (*args).os_errbuflen)
+    did_set_option_listflag(ed, *varp, c"bshl<>[]~,".as_ptr() as *mut u8, (*args).os_errbuf, (*args).os_errbuflen)
 }
 
 pub unsafe fn did_set_wincolor(ed: *mut Editor, args: *mut optset_T) -> *mut i8 {
@@ -46243,7 +46249,7 @@ pub unsafe fn did_set_string_option(ed: *mut Editor, mut opt_idx: i32, varp: *mu
     let mut free_oldval: long_u = get_option_flags(ed, opt_idx) & P_ALLOCED as u64;
     let mut did_set_cb: opt_did_set_cb_T = get_option_did_set_cb(ed, opt_idx);
     if varp == decay(&raw mut (*ed).term_strings) {
-        opt_idx = findoption(ed, b"term\0".as_ptr() as *mut u8);
+        opt_idx = findoption(ed, c"term".as_ptr() as *mut u8);
         if opt_idx >= 0 {
             free_oldval = get_option_flags(ed, opt_idx) & P_ALLOCED as u64;
             did_set_cb = get_option_did_set_cb(ed, opt_idx);
@@ -46360,11 +46366,11 @@ pub unsafe fn deathtrap(ed: *mut Editor, sigarg: i32) {
     }
     (*ed).full_screen = FALSE;
     if (*ed).deathtrap__entered == 2 {
-        out_str(ed, b"Vim: Double signal, exiting\n\0".as_ptr() as *mut u8);
+        out_str(ed, c"Vim: Double signal, exiting\n".as_ptr() as *mut u8);
         out_flush(ed);
         getout(ed, 1);
     }
-    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"Vim: Caught deadly signal %s\r\n\0".as_ptr() as *mut i8, &[VArg::P((*decay(&raw mut (*ed).signal_info).wrapping_offset(i as isize)).name as *mut c_void)]);
+    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"Vim: Caught deadly signal %s\r\n".as_ptr() as *mut i8, &[VArg::P((*decay(&raw mut (*ed).signal_info).wrapping_offset(i as isize)).name as *mut c_void)]);
     preserve_exit(ed);
 }
 
@@ -46410,16 +46416,16 @@ pub unsafe fn vim_is_xterm(name: *mut char_u) -> bool {
     if name.is_null() {
         return false;
     }
-    musl_strncasecmp(name as *mut i8, b"xterm\0".as_ptr() as *mut i8, 5) == 0 && musl_strncasecmp(name as *mut i8, b"xterm-kitty\0".as_ptr() as *mut i8, 11) != 0 || musl_strncasecmp(name as *mut i8, b"nxterm\0".as_ptr() as *mut i8, 6) == 0 || musl_strncasecmp(name as *mut i8, b"kterm\0".as_ptr() as *mut i8, 5) == 0 || musl_strncasecmp(name as *mut i8, b"mlterm\0".as_ptr() as *mut i8, 6) == 0 || musl_strncasecmp(name as *mut i8, b"rxvt\0".as_ptr() as *mut i8, 4) == 0 || musl_strncasecmp(name as *mut i8, b"screen.xterm\0".as_ptr() as *mut i8, 12) == 0 || musl_strcmp(name as *mut i8, b"builtin_xterm\0".as_ptr() as *mut i8) == 0
+    musl_strncasecmp(name as *mut i8, c"xterm".as_ptr() as *mut i8, 5) == 0 && musl_strncasecmp(name as *mut i8, c"xterm-kitty".as_ptr() as *mut i8, 11) != 0 || musl_strncasecmp(name as *mut i8, c"nxterm".as_ptr() as *mut i8, 6) == 0 || musl_strncasecmp(name as *mut i8, c"kterm".as_ptr() as *mut i8, 5) == 0 || musl_strncasecmp(name as *mut i8, c"mlterm".as_ptr() as *mut i8, 6) == 0 || musl_strncasecmp(name as *mut i8, c"rxvt".as_ptr() as *mut i8, 4) == 0 || musl_strncasecmp(name as *mut i8, c"screen.xterm".as_ptr() as *mut i8, 12) == 0 || musl_strcmp(name as *mut i8, c"builtin_xterm".as_ptr() as *mut i8) == 0
 }
 
 pub unsafe fn exit_scroll(ed: *mut Editor) {
     if (*ed).newline_on_exit || (*ed).msg_didout != 0 {
         if msg_use_printf(ed) {
             if (*ed).info_message {
-                crate::host::host_message(ed, b"\n\0".as_ptr() as *mut i8, -1, FALSE);
+                crate::host::host_message(ed, c"\n".as_ptr() as *mut i8, -1, FALSE);
             } else {
-                crate::host::host_message(ed, b"\r\n\0".as_ptr() as *mut i8, -1, TRUE);
+                crate::host::host_message(ed, c"\r\n".as_ptr() as *mut i8, -1, TRUE);
             }
         } else {
             out_char(ed, 10);
@@ -46458,8 +46464,8 @@ pub unsafe fn get_stty(ed: *mut Editor) {
     (*ed).intr_char = info.interrupt;
     *decay(&raw mut buf) = info.backspace as u8;
     *decay(&raw mut buf).wrapping_add(1) = NUL as u8;
-    add_termcode(ed, b"kb\0".as_ptr() as *mut u8, decay(&raw mut buf), FALSE);
-    let p: *mut char_u = find_termcode(ed, b"kD\0".as_ptr() as *mut u8);
+    add_termcode(ed, c"kb".as_ptr() as *mut u8, decay(&raw mut buf), FALSE);
+    let p: *mut char_u = find_termcode(ed, c"kD".as_ptr() as *mut u8);
     if !p.is_null() && (*p as i32) == *decay(&raw mut buf) as i32 && (*p.wrapping_add(1) as i32) == *decay(&raw mut buf).wrapping_add(1) as i32 {
         do_fixdel(ed, null_mut());
     }
@@ -46940,7 +46946,7 @@ pub unsafe fn read_limits(ed: *mut Editor) -> read_limits__out_T {
         (*ed).regparse = (*ed).regparse.wrapping_add(1);
     }
     if *(*ed).regparse != b'}' {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_syntax_error_in_str_curlies), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_syntax_error_in_str_curlies), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
         emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_syntax_error_in_str_curlies)));
         (*ed).rc_did_emsg = true;
         out__.r__ = 0;
@@ -46983,7 +46989,7 @@ pub unsafe fn reg_getline_common(ed: *mut Editor, re: *mut regengine_T, lnum: li
     }
     if lnum > maxline {
         if get_line != 0 {
-            *line = b"\0".as_ptr() as *mut u8;
+            *line = c"".as_ptr() as *mut u8;
         }
         if get_length != 0 {
             *length = 0;
@@ -46992,7 +46998,7 @@ pub unsafe fn reg_getline_common(ed: *mut Editor, re: *mut regengine_T, lnum: li
     }
     if !(*re).alone.string.is_null() {
         if get_line != 0 {
-            *line = if lnum == 0 { (*re).alone.string } else { b"\0".as_ptr() as *mut u8 };
+            *line = if lnum == 0 { (*re).alone.string } else { c"".as_ptr() as *mut u8 };
         }
         if get_length != 0 {
             *length = if lnum == 0 { (*re).alone.length as i32 } else { 0 };
@@ -47489,7 +47495,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                 } else if b'0' <= *src && *src <= b'9' {
                     no = *src as i32 - b'0' as i32;
                     src = src.wrapping_add(1);
-                } else if !vim_strchr(ed, b"uUlLeE\0".as_ptr() as *mut u8, *src as i32).is_null() {
+                } else if !vim_strchr(ed, c"uUlLeE".as_ptr() as *mut u8, *src as i32).is_null() {
                     match *({ t1 = src; src = t1.wrapping_add(1); t1 }) as i32 {
                         117 => {
                             func_one = Some(do_upper as unsafe fn(*mut Editor, *mut i32, i32));
@@ -47520,7 +47526,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                 if c == 128 && *src != NUL as u8 && *src.wrapping_add(1) != NUL as u8 {
                     if copy != 0 {
                         if dst.wrapping_add(3) > dest.wrapping_offset(destlen as isize) {
-                            iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                            iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                             return 0;
                         }
                         *dst = c as u8;
@@ -47559,7 +47565,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                             if flags & REGSUB_BACKSLASH != 0 {
                                 if copy != 0 {
                                     if dst.wrapping_add(1) > dest.wrapping_offset(destlen as isize) {
-                                        iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                                        iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                                         return 0;
                                     }
                                     *dst = 92;
@@ -47585,7 +47591,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                 let charlen: i32 = utf_char2len(cc);
                 if copy != 0 {
                     if dst.wrapping_offset(charlen as isize) > dest.wrapping_offset(destlen as isize) {
-                        iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                        iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                         return 0;
                     }
                     utf_char2bytes(cc, dst);
@@ -47595,7 +47601,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                 if clen < totlen {
                     if copy != 0 {
                         if dst.wrapping_offset(totlen as isize).wrapping_offset((clen as isize).wrapping_neg()) > dest.wrapping_offset(destlen as isize) {
-                            iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                            iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                             return 0;
                         }
                         musl_memmove(dst.wrapping_add(1) as *mut c_void, src.wrapping_sub(1).wrapping_offset(clen as isize) as *mut c_void, (totlen - clen) as u64);
@@ -47634,7 +47640,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                                 }
                                 if copy != 0 {
                                     if dst.wrapping_add(1) > dest.wrapping_offset(destlen as isize) {
-                                        iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                                        iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                                         return 0;
                                     }
                                     *dst = CAR as u8;
@@ -47659,7 +47665,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                             if flags & REGSUB_BACKSLASH != 0 && (*s == CAR as u8 || *s == 92) {
                                 if copy != 0 {
                                     if dst.wrapping_add(2) > dest.wrapping_offset(destlen as isize) {
-                                        iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                                        iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                                         return 0;
                                     }
                                     *dst = 92;
@@ -47682,7 +47688,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                                 let charlen_2: i32 = utf_char2len(cc);
                                 if copy != 0 {
                                     if dst.wrapping_offset(charlen_2 as isize) > dest.wrapping_offset(destlen as isize) {
-                                        iemsg(ed, b"vim_regsub_both(): not enough space\0".as_ptr() as *mut i8);
+                                        iemsg(ed, c"vim_regsub_both(): not enough space".as_ptr() as *mut i8);
                                         return 0;
                                     }
                                     utf_char2bytes(cc, dst);
@@ -47949,7 +47955,7 @@ pub unsafe fn regatom_delim(ed: *mut Editor, mut c: i32, delim_nl: bool, flagp: 
             idx = 3;
         }
         _ => {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
             (*ed).rc_did_emsg = true;
             return null_mut();
@@ -48028,7 +48034,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                         }
                         break 's2;
                     }
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                     emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
                     (*ed).rc_did_emsg = true;
                     return null_mut();
@@ -48077,7 +48083,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
             }
                 -216 => {
                 if (*ed).one_exactly {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                     emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
                     (*ed).rc_did_emsg = true;
                     return null_mut();
@@ -48092,7 +48098,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
             }
                 0 | -132 | -218 | -215 => {
                 if (*ed).one_exactly {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                     emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
                     (*ed).rc_did_emsg = true;
                     return null_mut();
@@ -48103,7 +48109,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
             }
                 -195 | -193 | -213 | -192 | -133 | -214 => {
                 c = no_Magic(c);
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_str_chr_follows_nothing), &[VArg::P((if (if c == b'*' as i32 { ((*ed).reg_magic >= MAGIC_ON) as i32 } else { ((*ed).reg_magic == MAGIC_ALL) as i32 }) != 0 { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void), VArg::I(c as i64)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_str_chr_follows_nothing), &[VArg::P((if (if c == b'*' as i32 { ((*ed).reg_magic >= MAGIC_ON) as i32 } else { ((*ed).reg_magic == MAGIC_ALL) as i32 }) != 0 { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void), VArg::I(c as i64)]);
                 emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_str_chr_follows_nothing)));
                 (*ed).rc_did_emsg = true;
                 return null_mut();
@@ -48141,13 +48147,13 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                 match c {
                     115 => {
                         ret = regnode(ed, 80);
-                        if !re_mult_next(ed, b"\\zs\0".as_ptr() as *mut i8) {
+                        if !re_mult_next(ed, c"\\zs".as_ptr() as *mut i8) {
                             return null_mut();
                         }
                     }
                     101 => {
                         ret = regnode(ed, 90);
-                        if !re_mult_next(ed, b"\\ze\0".as_ptr() as *mut i8) {
+                        if !re_mult_next(ed, c"\\ze".as_ptr() as *mut i8) {
                             return null_mut();
                         }
                     }
@@ -48164,7 +48170,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                     match c {
                         40 => {
                         if (*ed).one_exactly {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
                             (*ed).rc_did_emsg = true;
                             return null_mut();
@@ -48199,7 +48205,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                     }
                         91 => {
                         if (*ed).one_exactly {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
                             (*ed).rc_did_emsg = true;
                             return null_mut();
@@ -48212,7 +48218,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                 break;
                             }
                             if c == NUL {
-                                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_sb_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_sb_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                                 emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_missing_sb_after_str)));
                                 (*ed).rc_did_emsg = true;
                                 return null_mut();
@@ -48235,7 +48241,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                             }
                         }
                         if ret.is_null() {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_empty_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_empty_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_empty_str_brackets)));
                             (*ed).rc_did_emsg = true;
                             return null_mut();
@@ -48283,7 +48289,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                             }
                         }
                         if i < 0 || i > INT_MAX as i64 {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_2), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_2), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str_2)));
                             (*ed).rc_did_emsg = true;
                             return null_mut();
@@ -48393,7 +48399,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                 break 's5;
                             }
                         }
-                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                         emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
                         (*ed).rc_did_emsg = true;
                         return null_mut();
@@ -48677,7 +48683,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                     *flagp |= 3;
                     break 's2;
                 } else if (*ed).reg_strict != 0 {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_rsb_after_str_lsb), &[VArg::P((if (*ed).reg_magic > MAGIC_OFF { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_rsb_after_str_lsb), &[VArg::P((if (*ed).reg_magic > MAGIC_OFF { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                     emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_missing_rsb_after_str_lsb)));
                     (*ed).rc_did_emsg = true;
                     return null_mut();
@@ -48795,7 +48801,7 @@ pub unsafe fn regpiece(ed: *mut Editor, re: *mut regengine_T, mut flagp: i32) ->
                 _ => {}
             }
             if lop == END {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_at), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_at), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                 emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str_at)));
                 (*ed).rc_did_emsg = true;
                 out__.r__ = null_mut();
@@ -48838,7 +48844,7 @@ pub unsafe fn regpiece(ed: *mut Editor, re: *mut regengine_T, mut flagp: i32) ->
                 reginsert_limits(ed, re, BRACE_LIMITS, minval, maxval, ret);
             } else {
                 if (*ed).num_complex_braces >= 10 {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_too_many_complex_str_curly), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_too_many_complex_str_curly), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
                     emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_too_many_complex_str_curly)));
                     (*ed).rc_did_emsg = true;
                     out__.r__ = null_mut();
@@ -48860,14 +48866,14 @@ pub unsafe fn regpiece(ed: *mut Editor, re: *mut regengine_T, mut flagp: i32) ->
     }
     if re_multi_type(peekchr(ed)) != NOT_MULTI {
         if peekchr(ed) == -214 {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_nested_str), &[VArg::P((if (*ed).reg_magic >= MAGIC_ON { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_nested_str), &[VArg::P((if (*ed).reg_magic >= MAGIC_ON { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_nested_str)));
             (*ed).rc_did_emsg = true;
             out__.r__ = null_mut();
             out__.flagp = flagp;
             return out__;
         }
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_nested_str_chr), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void), VArg::I(no_Magic(peekchr(ed)) as i64)]);
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_nested_str_chr), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void), VArg::I(no_Magic(peekchr(ed)) as i64)]);
         emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_nested_str_chr)));
         (*ed).rc_did_emsg = true;
         out__.r__ = null_mut();
@@ -48995,7 +49001,7 @@ pub unsafe fn reg(ed: *mut Editor, re: *mut regengine_T, paren: i32) -> reg__out
     let mut flagp: i32 = HASWIDTH;
     if paren == REG_PAREN {
         if (*ed).regnpar >= NSUBEXP {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_too_many_str_open), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_too_many_str_open), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_too_many_str_open)));
             (*ed).rc_did_emsg = true;
             out__.r__ = null_mut();
@@ -49064,7 +49070,7 @@ pub unsafe fn reg(ed: *mut Editor, re: *mut regengine_T, paren: i32) -> reg__out
     }
     if paren != REG_NOPAREN && getchr(ed) != -215 {
         if paren == REG_NPAREN {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_unmatched_str_percent_open), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_unmatched_str_percent_open), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_unmatched_str_percent_open)));
             (*ed).rc_did_emsg = true;
             ret = null_mut();
@@ -49073,7 +49079,7 @@ pub unsafe fn reg(ed: *mut Editor, re: *mut regengine_T, paren: i32) -> reg__out
             out__.flagp = flagp;
             return out__;
         } else {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_unmatched_str_open), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_unmatched_str_open), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_unmatched_str_open)));
             (*ed).rc_did_emsg = true;
             ret = null_mut();
@@ -49084,7 +49090,7 @@ pub unsafe fn reg(ed: *mut Editor, re: *mut regengine_T, paren: i32) -> reg__out
         }
     } else if paren == REG_NOPAREN && peekchr(ed) != NUL {
         if (*ed).curchr == -215 {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_unmatched_str_close), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { b"\0".as_ptr() as *mut i8 } else { b"\\\0".as_ptr() as *mut i8 }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_unmatched_str_close), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_unmatched_str_close)));
             (*ed).rc_did_emsg = true;
             ret = null_mut();
@@ -50296,7 +50302,7 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
                             if !(*re).alone.string.is_null() {
                                 (*re).failed = true;
                             } else {
-                                internal_error(ed, b"BRACE_LIMITS\0".as_ptr() as *mut i8);
+                                internal_error(ed, c"BRACE_LIMITS".as_ptr() as *mut i8);
                             }
                             status = RA_FAIL;
                         }
@@ -50457,8 +50463,8 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
                         if with_nl {
                             idx -= DELIM_NL;
                         }
-                        oc = *(b"([{<\0".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
-                        cc = *(b")]}>\0".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
+                        oc = *(c"([{<".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
+                        cc = *(c")]}>".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
                         loop {
                             if *s == NUL as u8 {
                                 if !with_nl || !(*re).rex.reg_match.is_null() || (*re).rex.reg_line_lbr || (*re).rex.lnum >= (*re).rex.reg_maxline {
@@ -51244,7 +51250,7 @@ pub unsafe fn reset_y_append(ed: *mut Editor) {
 }
 
 pub unsafe fn valid_yank_reg(ed: *mut Editor, regname: i32, writing: bool) -> bool {
-    if regname > 0 && (ascii_isupper(regname) || ascii_islower(regname) || ascii_isdigit(regname)) || !writing && !vim_strchr(ed, b"/#.%:\0".as_ptr() as *mut u8, regname).is_null() || regname == b'"' as i32 || regname == b'-' as i32 || regname == b'_' as i32 {
+    if regname > 0 && (ascii_isupper(regname) || ascii_islower(regname) || ascii_isdigit(regname)) || !writing && !vim_strchr(ed, c"/#.%:".as_ptr() as *mut u8, regname).is_null() || regname == b'"' as i32 || regname == b'-' as i32 || regname == b'_' as i32 {
         return true;
     } else if regname == b'*' as i32 || regname == b'+' as i32 {
         msg_warn_missing_clipboard(ed);
@@ -51323,7 +51329,7 @@ pub unsafe fn do_record(ed: *mut Editor, c: i32) -> bool {
         }
     } else {
         (*ed).reg_recording = 0;
-        msg(ed, b"\0".as_ptr() as *mut i8);
+        msg(ed, c"".as_ptr() as *mut i8);
         let p: *mut char_u = get_recorded(ed);
         if p.is_null() {
             retval = false;
@@ -51435,8 +51441,8 @@ pub unsafe fn do_execreg(ed: *mut Editor, mut regname: i32, colon: bool, addcr: 
             return false;
         }
         (*ed).new_last_cmdline = null_mut();
-        p = vim_strsave_escaped_ext(ed, (*ed).last_cmdline, b"\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\0".as_ptr() as *mut u8, Ctrl_V, false);
-        if (*ed).VIsual_active && musl_strncmp(p as *mut i8, b"'<,'>\0".as_ptr() as *mut i8, 5) == 0 {
+        p = vim_strsave_escaped_ext(ed, (*ed).last_cmdline, c"\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f".as_ptr() as *mut u8, Ctrl_V, false);
+        if (*ed).VIsual_active && musl_strncmp(p as *mut i8, c"'<,'>".as_ptr() as *mut i8, 5) == 0 {
             retval = put_in_typebuf(ed, p.wrapping_add(5), true, true, silent);
         } else {
             retval = put_in_typebuf(ed, p, true, true, silent);
@@ -51458,7 +51464,7 @@ pub unsafe fn do_execreg(ed: *mut Editor, mut regname: i32, colon: bool, addcr: 
         let mut i: i64 = (*(*ed).y_current).y_size;
         while ({ i -= 1; i }) >= 0 {
             if (*(*ed).y_current).y_type == MLINE as u8 || i < (*(*ed).y_current).y_size - 1 || addcr {
-                if !ins_typebuf(ed, b"\n\0".as_ptr() as *mut u8, remap, 0, true, silent as i32) {
+                if !ins_typebuf(ed, c"\n".as_ptr() as *mut u8, remap, 0, true, silent as i32) {
                     return false;
                 }
             }
@@ -51476,7 +51482,7 @@ pub unsafe fn do_execreg(ed: *mut Editor, mut regname: i32, colon: bool, addcr: 
             if (retval as i32) == FAIL {
                 return false;
             }
-            if colon && !ins_typebuf(ed, b":\0".as_ptr() as *mut u8, remap, 0, true, silent as i32) {
+            if colon && !ins_typebuf(ed, c":".as_ptr() as *mut u8, remap, 0, true, silent as i32) {
                 return false;
             }
         }
@@ -51519,7 +51525,7 @@ pub unsafe fn put_in_typebuf(ed: *mut Editor, s: *mut char_u, esc: bool, colon: 
     let mut retval: bool = true;
     put_reedit_in_typebuf(ed, silent);
     if colon {
-        retval = ins_typebuf(ed, b"\n\0".as_ptr() as *mut u8, -1, 0, true, silent as i32);
+        retval = ins_typebuf(ed, c"\n".as_ptr() as *mut u8, -1, 0, true, silent as i32);
     }
     if (retval as i32) == OK {
         if esc {
@@ -51534,7 +51540,7 @@ pub unsafe fn put_in_typebuf(ed: *mut Editor, s: *mut char_u, esc: bool, colon: 
         }
     }
     if colon && (retval as i32) == OK {
-        retval = ins_typebuf(ed, b":\0".as_ptr() as *mut u8, -1, 0, true, silent as i32);
+        retval = ins_typebuf(ed, c":".as_ptr() as *mut u8, -1, 0, true, silent as i32);
     }
     retval
 }
@@ -51685,7 +51691,7 @@ pub unsafe fn get_spec_reg(ed: *mut Editor, regname: i32, argp: *mut *mut char_u
             return out__;
         }
         95 => {
-            *argp = b"\0".as_ptr() as *mut u8;
+            *argp = c"".as_ptr() as *mut u8;
             out__.r__ = true;
             out__.allocated = allocated;
             return out__;
@@ -51709,7 +51715,7 @@ pub unsafe fn cmdline_paste_reg(ed: *mut Editor, regname: i32, literally_arg: bo
     while i < (*(*ed).y_current).y_size {
         cmdline_paste_str(ed, (*(*(*ed).y_current).y_array.wrapping_offset(i as isize)).string, literally);
         if ((*(*ed).y_current).y_type == MLINE as u8 || i < (*(*ed).y_current).y_size - 1) && !remcr {
-            cmdline_paste_str(ed, b"\r\0".as_ptr() as *mut u8, literally);
+            cmdline_paste_str(ed, c"\r".as_ptr() as *mut u8, literally);
         }
         ui_breakcheck(ed);
         if (*ed).got_int != 0 {
@@ -51876,15 +51882,15 @@ pub unsafe fn op_yank(ed: *mut Editor, oap: *mut oparg_T, deleting: bool, mess: 
             if (*oap).regname == NUL {
                 *decay(&raw mut namebuf) = NUL as i8;
             } else {
-                crate::host::vim_snprintf(ed, decay(&raw mut namebuf), 100, b" into \"%c\0".as_ptr() as *mut i8, &[VArg::I((*oap).regname as i64)]);
+                crate::host::vim_snprintf(ed, decay(&raw mut namebuf), 100, c" into \"%c".as_ptr() as *mut i8, &[VArg::I((*oap).regname as i64)]);
             }
             update_topline_redraw(ed);
             if (*oap).block_mode != 0 {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(b"block of %ld line yanked%s\0".as_ptr() as *mut i8, b"block of %ld lines yanked%s\0".as_ptr() as *mut i8, yanklines as u64), &[VArg::I(yanklines), VArg::P(decay(&raw mut namebuf) as *mut c_void)]);
-                msg(ed, iobuff_or(ed, NGETTEXT(b"block of %ld line yanked%s\0".as_ptr() as *mut i8, b"block of %ld lines yanked%s\0".as_ptr() as *mut i8, yanklines as u64)));
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(c"block of %ld line yanked%s".as_ptr() as *mut i8, c"block of %ld lines yanked%s".as_ptr() as *mut i8, yanklines as u64), &[VArg::I(yanklines), VArg::P(decay(&raw mut namebuf) as *mut c_void)]);
+                msg(ed, iobuff_or(ed, NGETTEXT(c"block of %ld line yanked%s".as_ptr() as *mut i8, c"block of %ld lines yanked%s".as_ptr() as *mut i8, yanklines as u64)));
             } else {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(b"%ld line yanked%s\0".as_ptr() as *mut i8, b"%ld lines yanked%s\0".as_ptr() as *mut i8, yanklines as u64), &[VArg::I(yanklines), VArg::P(decay(&raw mut namebuf) as *mut c_void)]);
-                msg(ed, iobuff_or(ed, NGETTEXT(b"%ld line yanked%s\0".as_ptr() as *mut i8, b"%ld lines yanked%s\0".as_ptr() as *mut i8, yanklines as u64)));
+                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), NGETTEXT(c"%ld line yanked%s".as_ptr() as *mut i8, c"%ld lines yanked%s".as_ptr() as *mut i8, yanklines as u64), &[VArg::I(yanklines), VArg::P(decay(&raw mut namebuf) as *mut c_void)]);
+                msg(ed, iobuff_or(ed, NGETTEXT(c"%ld line yanked%s".as_ptr() as *mut i8, c"%ld lines yanked%s".as_ptr() as *mut i8, yanklines as u64)));
             }
         }
     }
@@ -52024,7 +52030,7 @@ pub unsafe fn do_put(ed: *mut Editor, regname: i32, expr_result: *mut char_u, mu
             y_type = MLINE;
         }
         if y_size == 0 || y_array.is_null() {
-            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_nothing_in_register_str), &[VArg::P((if regname == 0 { b"\"\0".as_ptr() as *mut u8 } else { transchar(ed, regname) }) as *mut c_void)]);
+            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_nothing_in_register_str), &[VArg::P((if regname == 0 { c"\"".as_ptr() as *mut u8 } else { transchar(ed, regname) }) as *mut c_void)]);
             emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_nothing_in_register_str)));
             break 'l1;
         }
@@ -52105,7 +52111,7 @@ pub unsafe fn do_put(ed: *mut Editor, regname: i32, expr_result: *mut char_u, mu
                 vcol = 0;
                 let mut delcount: i32 = 0;
                 if (*(*ed).curwin).w_cursor.lnum > (*(*ed).curbuf).b_ml.ml_line_count {
-                    if !ml_append(ed, (*(*ed).curbuf).b_ml.ml_line_count, b"\0".as_ptr() as *mut u8, 1) {
+                    if !ml_append(ed, (*(*ed).curbuf).b_ml.ml_line_count, c"".as_ptr() as *mut u8, 1) {
                         break;
                     }
                     nr_lines += 1;
@@ -52469,10 +52475,9 @@ pub unsafe fn ex_display(ed: *mut Editor, eap: *mut exarg_T) {
         arg = null_mut();
     }
     let attr: i32 = *decay(&raw mut (*ed).highlight_attr);
-    msg_puts_title(ed, b"\nType Name Content\0".as_ptr() as *mut i8);
+    msg_puts_title(ed, c"\nType Name Content".as_ptr() as *mut i8);
     let mut i: i32 = -1;
     while i < NUM_REGISTERS && (*ed).got_int == 0 {
-    'c1: {
         let name: i32 = get_register_name(i);
         match get_reg_type(ed, name, null_mut()) as i32 {
             1 => {
@@ -52486,7 +52491,8 @@ pub unsafe fn ex_display(ed: *mut Editor, eap: *mut exarg_T) {
             }
         }
         if !arg.is_null() && vim_strchr(ed, arg, name).is_null() {
-            break 'c1;
+            i += 1;
+            continue;
         }
         if i == -1 {
             if !(*ed).y_previous.is_null() {
@@ -52506,17 +52512,17 @@ pub unsafe fn ex_display(ed: *mut Editor, eap: *mut exarg_T) {
             }
             if do_show || (*yb).y_size == 0 {
                 msg_putchar(ed, 10);
-                msg_puts(ed, b"  \0".as_ptr() as *mut i8);
+                msg_puts(ed, c"  ".as_ptr() as *mut i8);
                 msg_putchar(ed, type_);
-                msg_puts(ed, b"  \0".as_ptr() as *mut i8);
+                msg_puts(ed, c"  ".as_ptr() as *mut i8);
                 msg_putchar(ed, b'"' as i32);
                 msg_putchar(ed, name);
-                msg_puts(ed, b"   \0".as_ptr() as *mut i8);
+                msg_puts(ed, c"   ".as_ptr() as *mut i8);
                 let mut n: i32 = (*ed).Columns as i32 - 11;
                 j = 0;
                 while j < (*yb).y_size && n > 1 {
                     if j != 0 {
-                        msg_puts_attr(ed, b"^J\0".as_ptr() as *mut i8, attr);
+                        msg_puts_attr(ed, c"^J".as_ptr() as *mut i8, attr);
                         n -= 2;
                     }
                     p = (*(*yb).y_array.wrapping_offset(j as isize)).string;
@@ -52529,26 +52535,26 @@ pub unsafe fn ex_display(ed: *mut Editor, eap: *mut exarg_T) {
                     j += 1;
                 }
                 if n > 1 && (*yb).y_type == MLINE as u8 {
-                    msg_puts_attr(ed, b"^J\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c"^J".as_ptr() as *mut i8, attr);
                 }
                 out_flush(ed);
             }
             ui_breakcheck(ed);
-        }        }
+        }
         i += 1;
     }
     let insert: string_T = get_last_insert(ed);
     p = insert.string;
     if !p.is_null() && (arg.is_null() || !vim_strchr(ed, arg, b'.' as i32).is_null()) && (*ed).got_int == 0 && !message_filtered(ed, p) {
-        msg_puts(ed, b"\n  c  \".   \0".as_ptr() as *mut i8);
+        msg_puts(ed, c"\n  c  \".   ".as_ptr() as *mut i8);
         dis_msg(ed, p, true);
     }
     if !(*ed).last_cmdline.is_null() && (arg.is_null() || !vim_strchr(ed, arg, b':' as i32).is_null()) && (*ed).got_int == 0 && !message_filtered(ed, (*ed).last_cmdline) {
-        msg_puts(ed, b"\n  c  \":   \0".as_ptr() as *mut i8);
+        msg_puts(ed, c"\n  c  \":   ".as_ptr() as *mut i8);
         dis_msg(ed, (*ed).last_cmdline, false);
     }
     if !last_search_pat(ed).is_null() && (arg.is_null() || !vim_strchr(ed, arg, b'/' as i32).is_null()) && (*ed).got_int == 0 && !message_filtered(ed, last_search_pat(ed)) {
-        msg_puts(ed, b"\n  c  \"/   \0".as_ptr() as *mut i8);
+        msg_puts(ed, c"\n  c  \"/   ".as_ptr() as *mut i8);
         dis_msg(ed, last_search_pat(ed), false);
     }
     (*ed).silence_w23_w24_msg -= 1;
@@ -52944,7 +52950,7 @@ pub unsafe fn screen_puts_len(ed: *mut Editor, text: *mut char_u, textlen: i32, 
         col += mbyte_cells;
         ptr = ptr.wrapping_offset(mbyte_blen as isize);
         if clear_next_cell {
-            ptr = b" \0".as_ptr() as *mut u8;
+            ptr = c" ".as_ptr() as *mut u8;
             len = -1;
             attr = *(*ed).ScreenAttrs.wrapping_add(off as usize) as i32;
         }
@@ -53170,7 +53176,7 @@ pub unsafe fn screen_char(ed: *mut Editor, off: u32, row: i32, col: i32) {
     if *(*ed).ScreenLinesUC.wrapping_add(off as usize) != 0 {
         if utf_ambiguous_width(ed, *(*ed).ScreenLinesUC.wrapping_add(off as usize) as i32) {
             if *(*ed).p_ambw == b'd' {
-                out_str(ed, b"  \0".as_ptr() as *mut u8);
+                out_str(ed, c"  ".as_ptr() as *mut u8);
                 term_windgoto(ed, row, col);
             }
             (*ed).screen_cur_col = 9999;
@@ -53248,11 +53254,11 @@ pub unsafe fn screen_fill(ed: *mut Editor, start_row: i32, mut end_row: i32, sta
     while row < end_row {
         if start_col > 0 && mb_fix_col(ed, start_col, row) != start_col {
             let left_attr: i32 = *(*ed).ScreenAttrs.wrapping_add((*(*ed).LineOffset.wrapping_offset(row as isize)).wrapping_add(start_col as u32).wrapping_sub(1) as usize) as i32;
-            screen_puts_len(ed, b" \0".as_ptr() as *mut u8, 1, row, start_col - 1, left_attr);
+            screen_puts_len(ed, c" ".as_ptr() as *mut u8, 1, row, start_col - 1, left_attr);
         }
         if end_col < (*ed).screen_Columns && mb_fix_col(ed, end_col, row) != end_col {
             let right_attr: i32 = *(*ed).ScreenAttrs.wrapping_add((*(*ed).LineOffset.wrapping_offset(row as isize)).wrapping_add(end_col as u32) as usize) as i32;
-            screen_puts_len(ed, b" \0".as_ptr() as *mut u8, 1, row, end_col, right_attr);
+            screen_puts_len(ed, c" ".as_ptr() as *mut u8, 1, row, end_col, right_attr);
         }
         let mut did_delete: bool = false;
         if c2 == b' ' as i32 && (end_col as i64) == (*ed).Columns && can_clear(ed, *decay(&raw mut (*ed).term_strings).wrapping_add(1)) && (attr == 0 || norm_term && attr <= HL_ALL && attr & -7 == 0) {
@@ -53983,7 +53989,7 @@ pub unsafe fn screen_ins_lines(ed: *mut Editor, off: i32, mut row: i32, line_cou
                 linecopy(ed, j + line_count, j, wp);
             }
             j += line_count;
-            if can_clear(ed, b" \0".as_ptr() as *mut u8) {
+            if can_clear(ed, c" ".as_ptr() as *mut u8) {
                 lineclear(ed, (*(*ed).LineOffset.wrapping_offset(j as isize)).wrapping_add((*wp).w_wincol as u32), (*wp).w_width, clear_attr);
             } else {
                 lineinvalid(ed, (*(*ed).LineOffset.wrapping_offset(j as isize)).wrapping_add((*wp).w_wincol as u32), (*wp).w_width);
@@ -54002,7 +54008,7 @@ pub unsafe fn screen_ins_lines(ed: *mut Editor, off: i32, mut row: i32, line_cou
             }
             *(*ed).LineOffset.wrapping_offset((j + line_count) as isize) = temp;
             *(*ed).LineWraps.wrapping_offset((j + line_count) as isize) = FALSE as u8;
-            if can_clear(ed, b" \0".as_ptr() as *mut u8) {
+            if can_clear(ed, c" ".as_ptr() as *mut u8) {
                 lineclear(ed, temp, (*ed).Columns as i32, clear_attr);
             } else {
                 lineinvalid(ed, temp, (*ed).Columns as i32);
@@ -54102,7 +54108,7 @@ pub unsafe fn screen_del_lines(ed: *mut Editor, off: i32, mut row: i32, line_cou
                 linecopy(ed, j - line_count, j, wp);
             }
             j -= line_count;
-            if can_clear(ed, b" \0".as_ptr() as *mut u8) {
+            if can_clear(ed, c" ".as_ptr() as *mut u8) {
                 lineclear(ed, (*(*ed).LineOffset.wrapping_offset(j as isize)).wrapping_add((*wp).w_wincol as u32), (*wp).w_width, clear_attr);
             } else {
                 lineinvalid(ed, (*(*ed).LineOffset.wrapping_offset(j as isize)).wrapping_add((*wp).w_wincol as u32), (*wp).w_width);
@@ -54121,7 +54127,7 @@ pub unsafe fn screen_del_lines(ed: *mut Editor, off: i32, mut row: i32, line_cou
             }
             *(*ed).LineOffset.wrapping_offset((j - line_count) as isize) = temp;
             *(*ed).LineWraps.wrapping_offset((j - line_count) as isize) = FALSE as u8;
-            if can_clear(ed, b" \0".as_ptr() as *mut u8) {
+            if can_clear(ed, c" ".as_ptr() as *mut u8) {
                 lineclear(ed, temp, (*ed).Columns as i32, clear_attr);
             } else {
                 lineinvalid(ed, temp, (*ed).Columns as i32);
@@ -54204,7 +54210,7 @@ pub unsafe fn showmode(ed: *mut Editor) -> i32 {
         cursor_off(ed);
         let attr: i32 = *decay(&raw mut (*ed).highlight_attr).wrapping_add(10);
         if do_mode {
-            msg_puts_attr(ed, b"--\0".as_ptr() as *mut i8, attr);
+            msg_puts_attr(ed, c"--".as_ptr() as *mut i8, attr);
             if !(*ed).edit_submode.is_null() && !shortmess(ed, SHM_COMPLETIONMENU) {
                 length = (((*ed).Rows - (*ed).msg_row as i64) * (*ed).cmdline_width as i64 - 3) as i32;
                 if !(*ed).edit_submode_extra.is_null() {
@@ -54221,7 +54227,7 @@ pub unsafe fn showmode(ed: *mut Editor) -> i32 {
                         msg_puts_attr(ed, (*ed).edit_submode as *mut i8, attr);
                     }
                     if !(*ed).edit_submode_extra.is_null() {
-                        msg_puts_attr(ed, b" \0".as_ptr() as *mut i8, attr);
+                        msg_puts_attr(ed, c" ".as_ptr() as *mut i8, attr);
                         if (*ed).edit_submode_highl < 70 {
                             sub_attr = *decay(&raw mut (*ed).highlight_attr).wrapping_offset((*ed).edit_submode_highl as isize);
                         } else {
@@ -54232,45 +54238,45 @@ pub unsafe fn showmode(ed: *mut Editor) -> i32 {
                 }
             } else {
                 if (*ed).State & VREPLACE_FLAG != 0 {
-                    msg_puts_attr(ed, b" VREPLACE\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" VREPLACE".as_ptr() as *mut i8, attr);
                 } else if (*ed).State & REPLACE_FLAG != 0 {
-                    msg_puts_attr(ed, b" REPLACE\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" REPLACE".as_ptr() as *mut i8, attr);
                 } else if (*ed).State & MODE_INSERT != 0 {
-                    msg_puts_attr(ed, b" INSERT\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" INSERT".as_ptr() as *mut i8, attr);
                 } else if (*ed).restart_edit == b'I' as i32 || (*ed).restart_edit == b'i' as i32 || (*ed).restart_edit == b'a' as i32 || (*ed).restart_edit == b'A' as i32 {
-                    msg_puts_attr(ed, b" (insert)\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" (insert)".as_ptr() as *mut i8, attr);
                 } else if (*ed).restart_edit == b'R' as i32 {
-                    msg_puts_attr(ed, b" (replace)\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" (replace)".as_ptr() as *mut i8, attr);
                 } else if (*ed).restart_edit == b'V' as i32 {
-                    msg_puts_attr(ed, b" (vreplace)\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" (vreplace)".as_ptr() as *mut i8, attr);
                 }
                 if (*ed).State & MODE_INSERT != 0 && (*ed).p_paste != 0 {
-                    msg_puts_attr(ed, b" (paste)\0".as_ptr() as *mut i8, attr);
+                    msg_puts_attr(ed, c" (paste)".as_ptr() as *mut i8, attr);
                 }
                 if (*ed).VIsual_active {
                     match (if (*ed).VIsual_select != 0 { 4i32 } else { 0 }) + ((*ed).VIsual_mode == Ctrl_V) as i32 * 2 + ((*ed).VIsual_mode == b'V' as i32) as i32 {
                         0 => {
-                            p = b" VISUAL\0".as_ptr() as *mut i8;
+                            p = c" VISUAL".as_ptr() as *mut i8;
                         }
                         1 => {
-                            p = b" VISUAL LINE\0".as_ptr() as *mut i8;
+                            p = c" VISUAL LINE".as_ptr() as *mut i8;
                         }
                         2 => {
-                            p = b" VISUAL BLOCK\0".as_ptr() as *mut i8;
+                            p = c" VISUAL BLOCK".as_ptr() as *mut i8;
                         }
                         4 => {
-                            p = b" SELECT\0".as_ptr() as *mut i8;
+                            p = c" SELECT".as_ptr() as *mut i8;
                         }
                         5 => {
-                            p = b" SELECT LINE\0".as_ptr() as *mut i8;
+                            p = c" SELECT LINE".as_ptr() as *mut i8;
                         }
                         _ => {
-                            p = b" SELECT BLOCK\0".as_ptr() as *mut i8;
+                            p = c" SELECT BLOCK".as_ptr() as *mut i8;
                         }
                     }
                     msg_puts_attr(ed, p, attr);
                 }
-                msg_puts_attr(ed, b" --\0".as_ptr() as *mut i8, attr);
+                msg_puts_attr(ed, c" --".as_ptr() as *mut i8, attr);
                 show_ruler_with_pum = true;
             }
             need_clear = true;
@@ -54332,11 +54338,11 @@ pub unsafe fn clearmode(ed: *mut Editor) {
 
 pub unsafe fn recording_mode(ed: *mut Editor, attr: i32) {
     let mut s: [i8; 4] = core::mem::zeroed();
-    msg_puts_attr(ed, b"recording\0".as_ptr() as *mut i8, attr);
+    msg_puts_attr(ed, c"recording".as_ptr() as *mut i8, attr);
     if shortmess(ed, SHM_RECORDING) {
         return;
     }
-    crate::host::vim_snprintf(ed, decay(&raw mut s), 4, b" @%c\0".as_ptr() as *mut i8, &[VArg::I((*ed).reg_recording as i64)]);
+    crate::host::vim_snprintf(ed, decay(&raw mut s), 4, c" @%c".as_ptr() as *mut i8, &[VArg::I((*ed).reg_recording as i64)]);
     msg_puts_attr(ed, decay(&raw mut s), attr);
 }
 
@@ -54462,7 +54468,7 @@ pub unsafe fn get_encoded_char_adv(ed: *mut Editor, p: *mut *mut char_u) -> i32 
 
 pub unsafe fn field_value_err(ed: *mut Editor, errbuf: *mut i8, errbuflen: usize_, fmt: *mut i8, field: *mut char_u) -> *mut i8 {
     if errbuf.is_null() {
-        return b"\0".as_ptr() as *mut i8;
+        return c"".as_ptr() as *mut i8;
     }
     crate::host::vim_snprintf(ed, errbuf, errbuflen, fmt, &[VArg::P(field as *mut c_void)]);
     errbuf
@@ -54541,13 +54547,13 @@ pub unsafe fn set_chars_option(ed: *mut Editor, wp: *mut win_T, mut value: *mut 
         let mut p: *mut char_u = value;
         while *p != 0 {
             i = 0;
-            'l4: while i < entries {
-            'c4: {
+            while i < entries {
                 if !(musl_strncmp(p as *mut i8, (*tab.wrapping_offset(i as isize)).name.string as *mut i8, (*tab.wrapping_offset(i as isize)).name.length) == 0 && *p.wrapping_add((*tab.wrapping_offset(i as isize)).name.length as usize) == b':') {
-                    break 'c4;
+                    i += 1;
+                    continue;
                 }
                 let mut s: *mut char_u = p.wrapping_add((*tab.wrapping_offset(i as isize)).name.length as usize).wrapping_add(1);
-                if is_listchars && musl_strcmp((*tab.wrapping_offset(i as isize)).name.string as *mut i8, b"multispace\0".as_ptr() as *mut i8) == 0 {
+                if is_listchars && musl_strcmp((*tab.wrapping_offset(i as isize)).name.string as *mut i8, c"multispace".as_ptr() as *mut i8) == 0 {
                     if round == 0 {
                         last_multispace = p;
                         multispace_len = 0;
@@ -54572,9 +54578,9 @@ pub unsafe fn set_chars_option(ed: *mut Editor, wp: *mut win_T, mut value: *mut 
                         }
                     }
                     p = s;
-                    break 'l4;
+                    break;
                 }
-                if is_listchars && musl_strcmp((*tab.wrapping_offset(i as isize)).name.string as *mut i8, b"leadmultispace\0".as_ptr() as *mut i8) == 0 {
+                if is_listchars && musl_strcmp((*tab.wrapping_offset(i as isize)).name.string as *mut i8, c"leadmultispace".as_ptr() as *mut i8) == 0 {
                     if round == 0 {
                         last_lmultispace = p;
                         lead_multispace_len = 0;
@@ -54599,7 +54605,7 @@ pub unsafe fn set_chars_option(ed: *mut Editor, wp: *mut win_T, mut value: *mut 
                         }
                     }
                     p = s;
-                    break 'l4;
+                    break;
                 }
                 c3 = 0;
                 c2 = c3;
@@ -54645,11 +54651,10 @@ pub unsafe fn set_chars_option(ed: *mut Editor, wp: *mut win_T, mut value: *mut 
                         }
                     }
                     p = s;
-                    break 'l4;
+                    break;
                 } else {
                     return field_value_err(ed, errbuf, errbuflen, decay(&raw mut (*ed).e_wrong_number_of_characters_for_field_str), (*tab.wrapping_offset(i as isize)).name.string);
-                }                }
-                i += 1;
+                }
             }
             if i == entries {
                 return decay(&raw mut (*ed).e_invalid_argument);
@@ -54821,7 +54826,7 @@ pub unsafe fn restore_last_search_pattern(ed: *mut Editor) {
         return;
     }
     if (*ed).did_save_last_search_spat != 0 {
-        iemsg(ed, b"restore_last_search_pattern() called more often than save_last_search_pattern()\0".as_ptr() as *mut i8);
+        iemsg(ed, c"restore_last_search_pattern() called more often than save_last_search_pattern()".as_ptr() as *mut i8);
         return;
     }
     *decay(&raw mut (*ed).spats) = (*ed).saved_last_search_spat;
@@ -54898,7 +54903,7 @@ pub unsafe fn last_pat_prog(ed: *mut Editor, regmatch_2: *mut regmmatch_T) {
         return;
     }
     (*ed).emsg_off += 1;
-    search_regcomp(ed, b"\0".as_ptr() as *mut u8, 0, null_mut(), 0, (*ed).last_idx, SEARCH_KEEP, regmatch_2);
+    search_regcomp(ed, c"".as_ptr() as *mut u8, 0, null_mut(), 0, (*ed).last_idx, SEARCH_KEEP, regmatch_2);
     (*ed).emsg_off -= 1;
 }
 
@@ -54972,21 +54977,20 @@ pub unsafe fn searchit(ed: *mut Editor, win: *mut win_T, buf: *mut buf_T, pos: *
         }
         let mut loop_: i32 = 0;
         while loop_ <= 1 {
-            'l3: while lnum > 0 && lnum <= (*buf).b_ml.ml_line_count {
-            'c3: {
+            while lnum > 0 && lnum <= (*buf).b_ml.ml_line_count {
                 if stop_lnum != 0 && (if dir == FORWARD { (lnum > stop_lnum) as i32 } else { (lnum < stop_lnum) as i32 }) != 0 {
-                    break 'l3;
+                    break;
                 }
                 if *timed_out != 0 {
-                    break 'l3;
+                    break;
                 }
                 let col: colnr_T = if at_first_line && options & SEARCH_COL != 0 { (*pos).col } else { 0 };
                 let mut nmatched: i64 = vim_regexec_multi(ed, &raw mut regmatch_2, win, buf, lnum, col, timed_out);
                 if regmatch_2.regprog.is_null() {
-                    break 'l3;
+                    break;
                 }
                 if (*ed).called_emsg > called_emsg_before || *timed_out != 0 {
-                    break 'l3;
+                    break;
                 }
                 if nmatched > 0 {
                     let mut matchpos_lnum: linenr_T = (*decay(&raw mut regmatch_2.startpos)).lnum;
@@ -54994,7 +54998,7 @@ pub unsafe fn searchit(ed: *mut Editor, win: *mut win_T, buf: *mut buf_T, pos: *
                     let mut endpos_lnum: linenr_T = (*decay(&raw mut regmatch_2.endpos)).lnum;
                     let mut endpos_col: colnr_T = (*decay(&raw mut regmatch_2.endpos)).col;
                     if lnum + matchpos_lnum > (*buf).b_ml.ml_line_count {
-                        ptr = b"\0".as_ptr() as *mut u8;
+                        ptr = c"".as_ptr() as *mut u8;
                     } else {
                         ptr = ml_get_buf(ed, buf, lnum + matchpos_lnum, false);
                     }
@@ -55033,7 +55037,9 @@ pub unsafe fn searchit(ed: *mut Editor, win: *mut win_T, buf: *mut buf_T, pos: *
                             ptr = ml_get_buf(ed, buf, lnum + matchpos_lnum, false);
                         }
                         if !match_ok {
-                            break 'c3;
+                            lnum += dir as i64;
+                            at_first_line = false;
+                            continue;
                         }
                     }
                     if dir == -1 {
@@ -55077,7 +55083,9 @@ pub unsafe fn searchit(ed: *mut Editor, win: *mut win_T, buf: *mut buf_T, pos: *
                             ptr = ml_get_buf(ed, buf, lnum + matchpos_lnum, false);
                         }
                         if !match_ok {
-                            break 'c3;
+                            lnum += dir as i64;
+                            at_first_line = false;
+                            continue;
                         }
                     }
                     if options & SEARCH_END != 0 && options & SEARCH_NOOF == 0 && !(matchpos_lnum == endpos_lnum && matchpos_col == endpos_col) {
@@ -55116,19 +55124,19 @@ pub unsafe fn searchit(ed: *mut Editor, win: *mut win_T, buf: *mut buf_T, pos: *
                     first_match = false;
                     (*ed).search_match_lines = endpos_lnum - matchpos_lnum;
                     (*ed).search_match_endcol = endpos_col;
-                    break 'l3;
+                    break;
                 }
                 line_breakcheck(ed);
                 if (*ed).got_int != 0 {
-                    break 'l3;
+                    break;
                 }
                 if options & SEARCH_PEEK != 0 && lnum - (*pos).lnum & 63 == 0 && char_avail(ed) {
                     break_loop = true;
-                    break 'l3;
+                    break;
                 }
                 if loop_ != 0 && lnum == start_pos_lnum {
-                    break 'l3;
-                }                }
+                    break;
+                }
                 lnum += dir as i64;
                 at_first_line = false;
             }
@@ -55308,7 +55316,7 @@ pub unsafe fn do_search(ed: *mut Editor, oap: *mut oparg_T, mut dirc: i32, mut s
                     searchstr = (*decay(&raw mut (*ed).spats).wrapping_add(1)).pat;
                     searchstrlen = (*decay(&raw mut (*ed).spats).wrapping_add(1)).patlen;
                 } else {
-                    searchstr = b"\0".as_ptr() as *mut u8;
+                    searchstr = c"".as_ptr() as *mut u8;
                     searchstrlen = 0;
                 }
             }
@@ -55332,7 +55340,7 @@ pub unsafe fn do_search(ed: *mut Editor, oap: *mut oparg_T, mut dirc: i32, mut s
                     }
                     *decay(&raw mut off_buf).wrapping_add(off_len as usize) = NUL as u8;
                     if (*decay(&raw mut (*ed).spats)).off.off != 0 || (*decay(&raw mut (*ed).spats)).off.line != 0 {
-                        off_len = off_len.wrapping_add(crate::host::vim_snprintf(ed, (decay(&raw mut off_buf) as *mut i8).wrapping_add(off_len as usize), 40u64.wrapping_sub(off_len), b"%+ld\0".as_ptr() as *mut i8, &[VArg::I((*decay(&raw mut (*ed).spats)).off.off)]) as u64);
+                        off_len = off_len.wrapping_add(crate::host::vim_snprintf(ed, (decay(&raw mut off_buf) as *mut i8).wrapping_add(off_len as usize), 40u64.wrapping_sub(off_len), c"%+ld".as_ptr() as *mut i8, &[VArg::I((*decay(&raw mut (*ed).spats)).off.off)]) as u64);
                     }
                 }
                 if *searchstr == NUL as u8 {
@@ -55733,7 +55741,7 @@ pub unsafe fn findmatchlimit(ed: *mut Editor, oap: *mut oparg_T, mut initc: i32,
                 ptr = skipwhite(linep);
                 if *ptr == b'#' && (*ed).findmatchlimit__pos.col <= pdiff(ptr, linep) as i32 {
                     ptr = skipwhite(ptr.wrapping_add(1));
-                    if musl_strncmp(ptr as *mut i8, b"if\0".as_ptr() as *mut i8, 2) == 0 || musl_strncmp(ptr as *mut i8, b"endif\0".as_ptr() as *mut i8, 5) == 0 || musl_strncmp(ptr as *mut i8, b"el\0".as_ptr() as *mut i8, 2) == 0 {
+                    if musl_strncmp(ptr as *mut i8, c"if".as_ptr() as *mut i8, 2) == 0 || musl_strncmp(ptr as *mut i8, c"endif".as_ptr() as *mut i8, 5) == 0 || musl_strncmp(ptr as *mut i8, c"el".as_ptr() as *mut i8, 2) == 0 {
                         hash_dir = 1;
                     }
                 } else if *linep.wrapping_offset((*ed).findmatchlimit__pos.col as isize) == b'/' {
@@ -55797,9 +55805,9 @@ pub unsafe fn findmatchlimit(ed: *mut Editor, oap: *mut oparg_T, mut initc: i32,
             }
             if initc != b'#' as i32 {
                 ptr = skipwhite(skipwhite(linep).wrapping_add(1));
-                if musl_strncmp(ptr as *mut i8, b"if\0".as_ptr() as *mut i8, 2) == 0 || musl_strncmp(ptr as *mut i8, b"el\0".as_ptr() as *mut i8, 2) == 0 {
+                if musl_strncmp(ptr as *mut i8, c"if".as_ptr() as *mut i8, 2) == 0 || musl_strncmp(ptr as *mut i8, c"el".as_ptr() as *mut i8, 2) == 0 {
                     hash_dir = 1;
-                } else if musl_strncmp(ptr as *mut i8, b"endif\0".as_ptr() as *mut i8, 5) == 0 {
+                } else if musl_strncmp(ptr as *mut i8, c"endif".as_ptr() as *mut i8, 5) == 0 {
                     hash_dir = -1;
                 } else {
                     return null_mut();
@@ -55824,29 +55832,29 @@ pub unsafe fn findmatchlimit(ed: *mut Editor, oap: *mut oparg_T, mut initc: i32,
                 (*ed).findmatchlimit__pos.col = pdiff(ptr, linep) as i32;
                 ptr = skipwhite(ptr.wrapping_add(1));
                 if hash_dir > 0 {
-                    if musl_strncmp(ptr as *mut i8, b"if\0".as_ptr() as *mut i8, 2) == 0 {
+                    if musl_strncmp(ptr as *mut i8, c"if".as_ptr() as *mut i8, 2) == 0 {
                         count += 1;
-                    } else if musl_strncmp(ptr as *mut i8, b"el\0".as_ptr() as *mut i8, 2) == 0 {
+                    } else if musl_strncmp(ptr as *mut i8, c"el".as_ptr() as *mut i8, 2) == 0 {
                         if count == 0 {
                             return &raw mut (*ed).findmatchlimit__pos;
                         }
-                    } else if musl_strncmp(ptr as *mut i8, b"endif\0".as_ptr() as *mut i8, 5) == 0 {
+                    } else if musl_strncmp(ptr as *mut i8, c"endif".as_ptr() as *mut i8, 5) == 0 {
                         if count == 0 {
                             return &raw mut (*ed).findmatchlimit__pos;
                         }
                         count -= 1;
                     }
                 } else {
-                    if musl_strncmp(ptr as *mut i8, b"if\0".as_ptr() as *mut i8, 2) == 0 {
+                    if musl_strncmp(ptr as *mut i8, c"if".as_ptr() as *mut i8, 2) == 0 {
                         if count == 0 {
                             return &raw mut (*ed).findmatchlimit__pos;
                         }
                         count -= 1;
-                    } else if initc == b'#' as i32 && musl_strncmp(ptr as *mut i8, b"el\0".as_ptr() as *mut i8, 2) == 0 {
+                    } else if initc == b'#' as i32 && musl_strncmp(ptr as *mut i8, c"el".as_ptr() as *mut i8, 2) == 0 {
                         if count == 0 {
                             return &raw mut (*ed).findmatchlimit__pos;
                         }
-                    } else if musl_strncmp(ptr as *mut i8, b"endif\0".as_ptr() as *mut i8, 5) == 0 {
+                    } else if musl_strncmp(ptr as *mut i8, c"endif".as_ptr() as *mut i8, 5) == 0 {
                         count += 1;
                     }
                 }
@@ -56244,10 +56252,10 @@ pub unsafe fn current_search(ed: *mut Editor, count: i64, forward: bool) -> bool
     }
     let mut i: i32 = 0;
     while i < 2 {
-    'c1: {
         if forward {
             if i == 0 && skip_first_backward {
-                break 'c1;
+                i += 1;
+                continue;
             }
             dir = i;
         } else {
@@ -56278,7 +56286,7 @@ pub unsafe fn current_search(ed: *mut Editor, count: i64, forward: bool) -> bool
                 pos.lnum = (*(*(*ed).curwin).w_buffer).b_ml.ml_line_count;
                 pos.col = ml_get_len(ed, (*(*(*ed).curwin).w_buffer).b_ml.ml_line_count);
             }
-        }        }
+        }
         i += 1;
     }
     let start_pos_lnum: linenr_T = pos.lnum;
@@ -56323,13 +56331,13 @@ pub unsafe fn cmdline_search_stat(ed: *mut Editor, dirc: i32, pos: *mut pos_T, c
         return;
     }
     if stat.incomplete == 1 {
-        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, b"[?/??]\0".as_ptr() as *mut i8, &[]) as u64;
+        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, c"[?/??]".as_ptr() as *mut i8, &[]) as u64;
     } else if stat.cnt > maxcount && stat.cur > maxcount {
-        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, b"[>%d/>%d]\0".as_ptr() as *mut i8, &[VArg::I(maxcount as i64), VArg::I(maxcount as i64)]) as u64;
+        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, c"[>%d/>%d]".as_ptr() as *mut i8, &[VArg::I(maxcount as i64), VArg::I(maxcount as i64)]) as u64;
     } else if stat.cnt > maxcount {
-        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, b"[%d/>%d]\0".as_ptr() as *mut i8, &[VArg::I(stat.cur as i64), VArg::I(maxcount as i64)]) as u64;
+        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, c"[%d/>%d]".as_ptr() as *mut i8, &[VArg::I(stat.cur as i64), VArg::I(maxcount as i64)]) as u64;
     } else {
-        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, b"[%d/%d]\0".as_ptr() as *mut i8, &[VArg::I(stat.cur as i64), VArg::I(stat.cnt as i64)]) as u64;
+        len = crate::host::vim_snprintf(ed, decay(&raw mut t), SEARCH_STAT_BUF_LEN as u64, c"[%d/%d]".as_ptr() as *mut i8, &[VArg::I(stat.cur as i64), VArg::I(stat.cnt as i64)]) as u64;
     }
     if show_top_bot_msg && len.wrapping_add(2) < SEARCH_STAT_BUF_LEN as u64 {
         musl_memmove(decay(&raw mut t).wrapping_add(2) as *mut c_void, decay(&raw mut t) as *mut c_void, len);
@@ -56441,37 +56449,37 @@ pub unsafe fn vim_strsave_escaped_ext(ed: *mut Editor, string: *mut char_u, esc_
     let mut length: u32 = 1;
     let mut p: *mut char_u = string;
     while *p != 0 {
-    'c1: {
         l = utfc_ptr2len(ed, p);
         if l > 1 {
             length = length.wrapping_add(l as u32);
             p = p.wrapping_offset((l - 1) as isize);
-            break 'c1;
+            p = p.wrapping_add(1);
+            continue;
         }
         if !vim_strchr(ed, esc_chars, *p as i32).is_null() || bsl && rem_backslash(p) {
             length = length.wrapping_add(1);
         }
-        length = length.wrapping_add(1);        }
+        length = length.wrapping_add(1);
         p = p.wrapping_add(1);
     }
     let escaped_string: *mut char_u = alloc(ed, length as u64) as *mut u8;
     let mut p2: *mut char_u = escaped_string;
     p = string;
     while *p != 0 {
-    'c2: {
         l = utfc_ptr2len(ed, p);
         if l > 1 {
             musl_memmove(p2 as *mut c_void, p as *mut c_void, l as u64);
             p2 = p2.wrapping_offset(l as isize);
             p = p.wrapping_offset((l - 1) as isize);
-            break 'c2;
+            p = p.wrapping_add(1);
+            continue;
         }
         if !vim_strchr(ed, esc_chars, *p as i32).is_null() || bsl && rem_backslash(p) {
             *p2 = cc as u8;
             p2 = p2.wrapping_add(1);
         }
         *p2 = *p;
-        p2 = p2.wrapping_add(1);        }
+        p2 = p2.wrapping_add(1);
         p = p.wrapping_add(1);
     }
     *p2 = NUL as u8;
@@ -56607,19 +56615,19 @@ pub unsafe fn set_rgb_term_prop(ed: *mut Editor) {
 }
 
 pub unsafe fn init_term_props(ed: *mut Editor, all: bool) {
-    (*decay(&raw mut (*ed).term_props)).tpr_name = b"cursor_style\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props)).tpr_name = c"cursor_style".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props)).tpr_set_by_termresponse = false;
-    (*decay(&raw mut (*ed).term_props).wrapping_add(1)).tpr_name = b"cursor_blink_mode\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props).wrapping_add(1)).tpr_name = c"cursor_blink_mode".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props).wrapping_add(1)).tpr_set_by_termresponse = false;
-    (*decay(&raw mut (*ed).term_props).wrapping_add(2)).tpr_name = b"underline_rgb\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props).wrapping_add(2)).tpr_name = c"underline_rgb".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props).wrapping_add(2)).tpr_set_by_termresponse = true;
-    (*decay(&raw mut (*ed).term_props).wrapping_add(3)).tpr_name = b"mouse\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props).wrapping_add(3)).tpr_name = c"mouse".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props).wrapping_add(3)).tpr_set_by_termresponse = true;
-    (*decay(&raw mut (*ed).term_props).wrapping_add(4)).tpr_name = b"kitty\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props).wrapping_add(4)).tpr_name = c"kitty".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props).wrapping_add(4)).tpr_set_by_termresponse = false;
-    (*decay(&raw mut (*ed).term_props).wrapping_add(5)).tpr_name = b"decrqm\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props).wrapping_add(5)).tpr_name = c"decrqm".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props).wrapping_add(5)).tpr_set_by_termresponse = true;
-    (*decay(&raw mut (*ed).term_props).wrapping_add(6)).tpr_name = b"rgb\0".as_ptr() as *mut i8;
+    (*decay(&raw mut (*ed).term_props).wrapping_add(6)).tpr_name = c"rgb".as_ptr() as *mut i8;
     (*decay(&raw mut (*ed).term_props).wrapping_add(6)).tpr_set_by_termresponse = false;
     let mut i: i32 = 0;
     while i < TPR_COUNT {
@@ -56703,11 +56711,11 @@ pub unsafe fn set_color_count(ed: *mut Editor, nr: i32) {
     let mut nr_colors: [char_u; 20] = core::mem::zeroed();
     (*ed).t_colors = nr;
     if (*ed).t_colors > 1 {
-        crate::host::vim_snprintf(ed, decay(&raw mut nr_colors) as *mut i8, 20, b"%d\0".as_ptr() as *mut i8, &[VArg::I((*ed).t_colors as i64)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut nr_colors) as *mut i8, 20, c"%d".as_ptr() as *mut i8, &[VArg::I((*ed).t_colors as i64)]);
     } else {
         *decay(&raw mut nr_colors) = NUL as u8;
     }
-    set_string_option_direct(ed, b"t_Co\0".as_ptr() as *mut u8, -1, decay(&raw mut nr_colors), OPT_FREE, 0);
+    set_string_option_direct(ed, c"t_Co".as_ptr() as *mut u8, -1, decay(&raw mut nr_colors), OPT_FREE, 0);
 }
 
 pub unsafe fn may_adjust_color_count(ed: *mut Editor, val: i32) {
@@ -56727,9 +56735,9 @@ pub unsafe fn term_strings_not_set(ed: *mut Editor, idx: i32) -> bool {
 pub unsafe fn report_term_error(ed: *mut Editor, error_msg: *mut i8, term: *mut char_u) {
     let mut buf: [i8; 1024] = core::mem::zeroed();
     if !error_msg.is_null() {
-        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, b"\r\n%s\r\n'%s%s\r\n\0".as_ptr() as *mut i8, &[VArg::P(error_msg as *mut c_void), VArg::P(term as *mut c_void), VArg::P(b"' not known\0".as_ptr() as *mut c_void)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, c"\r\n%s\r\n'%s%s\r\n".as_ptr() as *mut i8, &[VArg::P(error_msg as *mut c_void), VArg::P(term as *mut c_void), VArg::P(c"' not known".as_ptr() as *mut c_void)]);
     } else {
-        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, b"\r\n'%s%s\r\n\0".as_ptr() as *mut i8, &[VArg::P(term as *mut c_void), VArg::P(b"' not known\0".as_ptr() as *mut c_void)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, c"\r\n'%s%s\r\n".as_ptr() as *mut i8, &[VArg::P(term as *mut c_void), VArg::P(c"' not known".as_ptr() as *mut c_void)]);
     }
     crate::host::host_message(ed, decay(&raw mut buf), -1, TRUE);
 }
@@ -56742,18 +56750,18 @@ pub unsafe fn match_keyprotocol(ed: *mut Editor, term: *mut char_u) -> keyprot_T
     let mut ret: keyprot_T = KEYPROTOCOL_FAIL;
     let mut p: *mut char_u = (*ed).p_kpc;
     while *p != NUL as u8 {
-        let copy_option_part__o: copy_option_part__out_T = copy_option_part(ed, p, buf, len, b",\0".as_ptr() as *mut i8);
+        let copy_option_part__o: copy_option_part__out_T = copy_option_part(ed, p, buf, len, c",".as_ptr() as *mut i8);
         p = copy_option_part__o.option;
         let colon: *mut char_u = vim_strchr(ed, buf, b':' as i32);
         if colon.is_null() || colon == buf || *colon.wrapping_add(1) == NUL as u8 {
             return ret;
         }
         *colon = NUL as u8;
-        if musl_strcmp(colon.wrapping_add(1) as *mut i8, b"none\0".as_ptr() as *mut i8) == 0 {
+        if musl_strcmp(colon.wrapping_add(1) as *mut i8, c"none".as_ptr() as *mut i8) == 0 {
             prot = KEYPROTOCOL_NONE;
-        } else if musl_strcmp(colon.wrapping_add(1) as *mut i8, b"mok2\0".as_ptr() as *mut i8) == 0 {
+        } else if musl_strcmp(colon.wrapping_add(1) as *mut i8, c"mok2".as_ptr() as *mut i8) == 0 {
             prot = KEYPROTOCOL_MOK2;
-        } else if musl_strcmp(colon.wrapping_add(1) as *mut i8, b"kitty\0".as_ptr() as *mut i8) == 0 {
+        } else if musl_strcmp(colon.wrapping_add(1) as *mut i8, c"kitty".as_ptr() as *mut i8) == 0 {
             prot = KEYPROTOCOL_KITTY;
         } else {
             return ret;
@@ -56794,35 +56802,35 @@ pub unsafe fn set_termname(ed: *mut Editor, mut term: *mut char_u) -> bool {
     out_flush(ed);
     clear_termoptions(ed);
     parse_builtin_tcap(ed, term);
-    if !musl_strstr(term as *mut i8, b"256color\0".as_ptr() as *mut i8).is_null() && (term_strings_not_set(ed, KS_CCO) || musl_atoi(*decay(&raw mut (*ed).term_strings).wrapping_add(49) as *mut i8) < 256) {
+    if !musl_strstr(term as *mut i8, c"256color".as_ptr() as *mut i8).is_null() && (term_strings_not_set(ed, KS_CCO) || musl_atoi(*decay(&raw mut (*ed).term_strings).wrapping_add(49) as *mut i8) < 256) {
         apply_builtin_tcap(ed, term, decay(&raw mut (*ed).builtin_256colors), true);
     }
     let kpc: keyprot_T = match_keyprotocol(ed, term);
     apply_keyprotocol(ed, term, kpc);
-    if musl_strcmp(term as *mut i8, b"pcterm\0".as_ptr() as *mut i8) == 0 {
-        *decay(&raw mut (*ed).term_strings).wrapping_add(48) = b"yes\0".as_ptr() as *mut u8;
+    if musl_strcmp(term as *mut i8, c"pcterm".as_ptr() as *mut i8) == 0 {
+        *decay(&raw mut (*ed).term_strings).wrapping_add(48) = c"yes".as_ptr() as *mut u8;
     } else {
         *decay(&raw mut (*ed).term_strings).wrapping_add(48) = (*ed).empty_option;
     }
-    if !musl_strstr(term as *mut i8, b"kitty\0".as_ptr() as *mut i8).is_null() && ((*decay(&raw mut (*ed).term_strings).wrapping_add(69)).is_null() || *(*decay(&raw mut (*ed).term_strings).wrapping_add(69)) == NUL as u8) {
-        *decay(&raw mut (*ed).term_strings).wrapping_add(69) = b"\x1b[>c\0".as_ptr() as *mut u8;
+    if !musl_strstr(term as *mut i8, c"kitty".as_ptr() as *mut i8).is_null() && ((*decay(&raw mut (*ed).term_strings).wrapping_add(69)).is_null() || *(*decay(&raw mut (*ed).term_strings).wrapping_add(69)) == NUL as u8) {
+        *decay(&raw mut (*ed).term_strings).wrapping_add(69) = c"\x1b[>c".as_ptr() as *mut u8;
     }
     get_stty(ed);
-    let mut bs_p: *mut char_u = find_termcode(ed, b"kb\0".as_ptr() as *mut u8);
-    let del_p: *mut char_u = find_termcode(ed, b"kD\0".as_ptr() as *mut u8);
+    let mut bs_p: *mut char_u = find_termcode(ed, c"kb".as_ptr() as *mut u8);
+    let del_p: *mut char_u = find_termcode(ed, c"kD".as_ptr() as *mut u8);
     if bs_p.is_null() || *bs_p == NUL as u8 {
-        add_termcode(ed, b"kb\0".as_ptr() as *mut u8, { bs_p = b"\x08\0".as_ptr() as *mut u8; bs_p }, FALSE);
+        add_termcode(ed, c"kb".as_ptr() as *mut u8, { bs_p = c"\x08".as_ptr() as *mut u8; bs_p }, FALSE);
     }
     if (del_p.is_null() || *del_p == NUL as u8) && (bs_p.is_null() || *bs_p != DEL as u8) {
-        add_termcode(ed, b"kD\0".as_ptr() as *mut u8, b"\x7f\0".as_ptr() as *mut u8, FALSE);
+        add_termcode(ed, c"kD".as_ptr() as *mut u8, c"\x7f".as_ptr() as *mut u8, FALSE);
     }
     (*ed).term_is_xterm = vim_is_xterm(term) as i32;
     *decay(&raw mut name) = KS_EXTRA as u8;
     *decay(&raw mut name).wrapping_add(1) = KE_FOCUSGAINED as u8;
     *decay(&raw mut name).wrapping_add(2) = NUL as u8;
-    add_termcode(ed, decay(&raw mut name), b"\x1b[I\0".as_ptr() as *mut u8, FALSE);
+    add_termcode(ed, decay(&raw mut name), c"\x1b[I".as_ptr() as *mut u8, FALSE);
     *decay(&raw mut name).wrapping_add(1) = KE_FOCUSLOST as u8;
-    add_termcode(ed, decay(&raw mut name), b"\x1b[O\0".as_ptr() as *mut u8, FALSE);
+    add_termcode(ed, decay(&raw mut name), c"\x1b[O".as_ptr() as *mut u8, FALSE);
     (*ed).need_gather = true;
     (*ed).focus_state = MAYBE;
     ttest(ed, true);
@@ -56876,11 +56884,11 @@ pub unsafe fn add_termcap_entry(ed: *mut Editor, name: *mut char_u, force: bool)
 }
 
 pub unsafe fn term_is_builtin(name: *mut char_u) -> bool {
-    musl_strncmp(name as *mut i8, b"builtin_\0".as_ptr() as *mut i8, 8) == 0
+    musl_strncmp(name as *mut i8, c"builtin_".as_ptr() as *mut i8, 8) == 0
 }
 
 pub unsafe fn term_is_8bit(ed: *mut Editor, name: *mut char_u) -> bool {
-    (*ed).detected_8bit || !musl_strstr(name as *mut i8, b"8bit\0".as_ptr() as *mut i8).is_null()
+    (*ed).detected_8bit || !musl_strstr(name as *mut i8, c"8bit".as_ptr() as *mut i8).is_null()
 }
 
 pub unsafe fn term_7to8bit(p: *mut char_u) -> i32 {
@@ -56913,16 +56921,16 @@ pub unsafe fn tltoa(ed: *mut Editor, mut i: u64) -> *mut char_u {
 
 pub unsafe fn tgoto(ed: *mut Editor, mut cm: *mut i8, mut x: i32, mut y: i32) -> *mut i8 {
     if cm.is_null() {
-        return b"OOPS\0".as_ptr() as *mut i8;
+        return c"OOPS".as_ptr() as *mut i8;
     }
     let e: *mut i8 = decay(&raw mut (*ed).tgoto__buf).wrapping_add(29);
     let mut s: *mut i8 = decay(&raw mut (*ed).tgoto__buf);
     while s < e && *cm != 0 {
-    'c1: {
         if *cm != b'%' as i8 {
             *s = *cm;
             s = s.wrapping_add(1);
-            break 'c1;
+            cm = cm.wrapping_add(1);
+            continue;
         }
         match *({ cm = cm.wrapping_add(1); cm }) as i32 {
             100 => {
@@ -56949,9 +56957,9 @@ pub unsafe fn tgoto(ed: *mut Editor, mut cm: *mut i8, mut x: i32, mut y: i32) ->
                 s = s.wrapping_add(1);
             }
             _ => {
-                return b"OOPS\0".as_ptr() as *mut i8;
+                return c"OOPS".as_ptr() as *mut i8;
             }
-        }        }
+        }
         cm = cm.wrapping_add(1);
     }
     *s = 0;
@@ -56959,10 +56967,10 @@ pub unsafe fn tgoto(ed: *mut Editor, mut cm: *mut i8, mut x: i32, mut y: i32) ->
 }
 
 pub unsafe fn termcapinit(ed: *mut Editor) {
-    let term: *mut char_u = b"xterm-256color\0".as_ptr() as *mut u8;
-    set_string_option_direct(ed, b"term\0".as_ptr() as *mut u8, -1, term, OPT_FREE, 0);
-    set_string_default(ed, b"term\0".as_ptr() as *mut i8, term);
-    set_string_default(ed, b"ttytype\0".as_ptr() as *mut i8, term);
+    let term: *mut char_u = c"xterm-256color".as_ptr() as *mut u8;
+    set_string_option_direct(ed, c"term".as_ptr() as *mut u8, -1, term, OPT_FREE, 0);
+    set_string_default(ed, c"term".as_ptr() as *mut i8, term);
+    set_string_default(ed, c"ttytype".as_ptr() as *mut i8, term);
     set_termname(ed, if !(*decay(&raw mut (*ed).term_strings)).is_null() { *decay(&raw mut (*ed).term_strings) } else { term });
 }
 
@@ -57078,10 +57086,10 @@ pub unsafe fn term_font(ed: *mut Editor, n: i32) {
 pub unsafe fn term_color(ed: *mut Editor, s: *mut char_u, n: i32) {
     let mut buf: [i8; 20] = core::mem::zeroed();
     let mut i: i32 = if *s == CSI as u8 { 1i32 } else { 2 };
-    if n >= 8 && (*ed).t_colors >= 16 && (*s == ESC as u8 && *s.wrapping_add(1) == b'[' || *s == CSI as u8 && ({ i = 1; i }) == 1) && *s.wrapping_offset(i as isize) != NUL as u8 && (musl_strcmp(s.wrapping_offset(i as isize).wrapping_add(1) as *mut i8, b"%p1%dm\0".as_ptr() as *mut i8) == 0 || musl_strcmp(s.wrapping_offset(i as isize).wrapping_add(1) as *mut i8, b"%dm\0".as_ptr() as *mut i8) == 0) && (*s.wrapping_offset(i as isize) == b'3' || *s.wrapping_offset(i as isize) == b'4') {
-        let format: *mut i8 = b"%s%s%%dm\0".as_ptr() as *mut i8;
-        let lead: *mut i8 = if i == 2 { b"\x1b[\0".as_ptr() as *mut i8 } else { b"\x9b\0".as_ptr() as *mut i8 };
-        let tail: *mut i8 = if *s.wrapping_offset(i as isize) == b'3' { if n >= 16 { b"38;5;\0".as_ptr() as *mut i8 } else { b"9\0".as_ptr() as *mut i8 } } else { if n >= 16 { b"48;5;\0".as_ptr() as *mut i8 } else { b"10\0".as_ptr() as *mut i8 } };
+    if n >= 8 && (*ed).t_colors >= 16 && (*s == ESC as u8 && *s.wrapping_add(1) == b'[' || *s == CSI as u8 && ({ i = 1; i }) == 1) && *s.wrapping_offset(i as isize) != NUL as u8 && (musl_strcmp(s.wrapping_offset(i as isize).wrapping_add(1) as *mut i8, c"%p1%dm".as_ptr() as *mut i8) == 0 || musl_strcmp(s.wrapping_offset(i as isize).wrapping_add(1) as *mut i8, c"%dm".as_ptr() as *mut i8) == 0) && (*s.wrapping_offset(i as isize) == b'3' || *s.wrapping_offset(i as isize) == b'4') {
+        let format: *mut i8 = c"%s%s%%dm".as_ptr() as *mut i8;
+        let lead: *mut i8 = if i == 2 { c"\x1b[".as_ptr() as *mut i8 } else { b"\x9b\0".as_ptr() as *mut i8 };
+        let tail: *mut i8 = if *s.wrapping_offset(i as isize) == b'3' { if n >= 16 { c"38;5;".as_ptr() as *mut i8 } else { c"9".as_ptr() as *mut i8 } } else { if n >= 16 { c"48;5;".as_ptr() as *mut i8 } else { c"10".as_ptr() as *mut i8 } };
         crate::host::vim_snprintf(ed, decay(&raw mut buf), 20, format, &[VArg::P(lead as *mut c_void), VArg::P(tail as *mut c_void)]);
         out_str(ed, tgoto(ed, decay(&raw mut buf), 0, if n >= 16 { n } else { n - 8 }) as *mut u8);
     } else {
@@ -57112,10 +57120,10 @@ pub unsafe fn term_ul_color(ed: *mut Editor, n: i32) {
 }
 
 pub unsafe fn term_bg_default(ed: *mut Editor) -> *mut char_u {
-    if musl_strcmp(*decay(&raw mut (*ed).term_strings) as *mut i8, b"linux\0".as_ptr() as *mut i8) == 0 || musl_strcmp(*decay(&raw mut (*ed).term_strings) as *mut i8, b"screen.linux\0".as_ptr() as *mut i8) == 0 || musl_strncmp(*decay(&raw mut (*ed).term_strings) as *mut i8, b"cygwin\0".as_ptr() as *mut i8, 6) == 0 || musl_strncmp(*decay(&raw mut (*ed).term_strings) as *mut i8, b"putty\0".as_ptr() as *mut i8, 5) == 0 {
-        return b"dark\0".as_ptr() as *mut u8;
+    if musl_strcmp(*decay(&raw mut (*ed).term_strings) as *mut i8, c"linux".as_ptr() as *mut i8) == 0 || musl_strcmp(*decay(&raw mut (*ed).term_strings) as *mut i8, c"screen.linux".as_ptr() as *mut i8) == 0 || musl_strncmp(*decay(&raw mut (*ed).term_strings) as *mut i8, c"cygwin".as_ptr() as *mut i8, 6) == 0 || musl_strncmp(*decay(&raw mut (*ed).term_strings) as *mut i8, c"putty".as_ptr() as *mut i8, 5) == 0 {
+        return c"dark".as_ptr() as *mut u8;
     }
-    b"light\0".as_ptr() as *mut u8
+    c"light".as_ptr() as *mut u8
 }
 
 pub unsafe fn ttest(ed: *mut Editor, pairs: bool) {
@@ -57220,7 +57228,7 @@ pub unsafe fn win_new_shellsize(ed: *mut Editor) {
         shell_new_columns(ed);
     }
     if ((*ed).win_new_shellsize__old_Rows as i64) != (*ed).Rows {
-        if (*ed).p_window == ((*ed).win_new_shellsize__old_Rows - 1) as i64 || (*ed).win_new_shellsize__old_Rows == 0 && !option_was_set(ed, b"window\0".as_ptr() as *mut u8) {
+        if (*ed).p_window == ((*ed).win_new_shellsize__old_Rows - 1) as i64 || (*ed).win_new_shellsize__old_Rows == 0 && !option_was_set(ed, c"window".as_ptr() as *mut u8) {
             (*ed).p_window = (*ed).Rows - 1;
         }
         (*ed).win_new_shellsize__old_Rows = (*ed).Rows as i32;
@@ -57316,7 +57324,7 @@ pub unsafe fn out_str_t_TI(ed: *mut Editor) {
 
 pub unsafe fn out_str_t_BE(ed: *mut Editor) {
     let mut p: *mut char_u = null_mut();
-    if (*decay(&raw mut (*ed).term_strings).wrapping_add(82)).is_null() || *(*decay(&raw mut (*ed).term_strings).wrapping_add(82)) == NUL as u8 || ({ p = find_termcode(ed, b"PS\0".as_ptr() as *mut u8); p }).is_null() || *p == NUL as u8 || ({ p = find_termcode(ed, b"PE\0".as_ptr() as *mut u8); p }).is_null() || *p == NUL as u8 {
+    if (*decay(&raw mut (*ed).term_strings).wrapping_add(82)).is_null() || *(*decay(&raw mut (*ed).term_strings).wrapping_add(82)) == NUL as u8 || ({ p = find_termcode(ed, c"PS".as_ptr() as *mut u8); p }).is_null() || *p == NUL as u8 || ({ p = find_termcode(ed, c"PE".as_ptr() as *mut u8); p }).is_null() || *p == NUL as u8 {
         return;
     }
     out_str(ed, *decay(&raw mut (*ed).term_strings).wrapping_add(82));
@@ -57501,14 +57509,15 @@ pub unsafe fn add_termcode(ed: *mut Editor, name: *mut char_u, string: *mut char
         (*ed).termcodes = new_tc;
     }
     i = 0;
-    'l2: while i < (*ed).tc_len {
-    'c2: {
+    while i < (*ed).tc_len {
         if (*decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name) as i32) < *name as i32 {
-            break 'c2;
+            i += 1;
+            continue;
         }
         if (*decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name) as i32) == *name as i32 {
             if (*decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name).wrapping_add(1) as i32) < *name.wrapping_add(1) as i32 {
-                break 'c2;
+                i += 1;
+                continue;
             }
             if (*decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name).wrapping_add(1) as i32) == *name.wrapping_add(1) as i32 {
                 if flags == ATC_FROM_TERM && ({ j = termcode_star((*(*ed).termcodes.wrapping_offset(i as isize)).code, (*(*ed).termcodes.wrapping_offset(i as isize)).len); j }) > 0 {
@@ -57517,7 +57526,7 @@ pub unsafe fn add_termcode(ed: *mut Editor, name: *mut char_u, string: *mut char
                     }
                 } else {
                     (*ed).tc_len -= 1;
-                    break 'l2;
+                    break;
                 }
             }
         }
@@ -57526,8 +57535,7 @@ pub unsafe fn add_termcode(ed: *mut Editor, name: *mut char_u, string: *mut char
             *(*ed).termcodes.wrapping_offset(j as isize) = *(*ed).termcodes.wrapping_offset((j - 1) as isize);
             j -= 1;
         }
-        break 'l2;        }
-        i += 1;
+        break;
     }
     *decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name) = *name;
     *decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name).wrapping_add(1) = *name.wrapping_add(1);
@@ -57541,26 +57549,26 @@ pub unsafe fn accept_modifiers_for_function_keys(ed: *mut Editor) {
     let mut regmatch_2: regmatch_T = core::mem::zeroed();
     musl_memset(&raw mut regmatch_2 as *mut c_void, 0, 176);
     regmatch_2.rm_ic = true;
-    regmatch_2.regprog = vim_regcomp(ed, b"^\x1b[\\d\\+\\~$\0".as_ptr() as *mut u8, RE_MAGIC);
+    regmatch_2.regprog = vim_regcomp(ed, c"^\x1b[\\d\\+\\~$".as_ptr() as *mut u8, RE_MAGIC);
     let mut i: i32 = 0;
     while i < (*ed).tc_len {
-    'c1: {
         if regmatch_2.regprog.is_null() {
             return;
         }
         if *decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name) == b'P' && (*decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name).wrapping_add(1) == b'S' || *decay(&raw mut (*(*ed).termcodes.wrapping_offset(i as isize)).name).wrapping_add(1) == b'E') {
-            break 'c1;
+            i += 1;
+            continue;
         }
         let s: *mut char_u = (*(*ed).termcodes.wrapping_offset(i as isize)).code;
         if !s.is_null() && vim_regexec(ed, &raw mut regmatch_2, s, 0) {
             let len: usize_ = musl_strlen(s as *mut i8);
             let ns: *mut char_u = alloc(ed, len.wrapping_add(3)) as *mut u8;
             musl_memmove(ns as *mut c_void, s as *mut c_void, len.wrapping_sub(1));
-            musl_memmove(ns.wrapping_add(len as usize).wrapping_sub(1) as *mut c_void, b";*~\0".as_ptr() as *mut c_void, 4);
+            musl_memmove(ns.wrapping_add(len as usize).wrapping_sub(1) as *mut c_void, c";*~".as_ptr() as *mut c_void, 4);
             (*(*ed).termcodes.wrapping_offset(i as isize)).code = ns;
             (*(*ed).termcodes.wrapping_offset(i as isize)).len += 2;
             adjust_modlen(ed, i);
-        }        }
+        }
         i += 1;
     }
     vim_regfree(regmatch_2.regprog);
@@ -57701,12 +57709,12 @@ pub unsafe fn handle_u7_response(ed: *mut Editor, arg: *mut i32, _tp: *mut char_
         (*ed).u7_status.tr_progress = STATUS_GOT;
         (*ed).did_cursorhold = true;
         if *arg.wrapping_add(1) == 2 {
-            aw = b"single\0".as_ptr() as *mut i8;
+            aw = c"single".as_ptr() as *mut i8;
         } else if *arg.wrapping_add(1) == 3 {
-            aw = b"double\0".as_ptr() as *mut i8;
+            aw = c"double".as_ptr() as *mut i8;
         }
         if !aw.is_null() && musl_strcmp(aw, (*ed).p_ambw as *mut i8) != 0 {
-            set_option_value_give_err(ed, b"ambw\0".as_ptr() as *mut u8, 0, aw as *mut u8, 0);
+            set_option_value_give_err(ed, c"ambw".as_ptr() as *mut u8, 0, aw as *mut u8, 0);
             redraw_asap(ed, UPD_CLEAR);
         }
     } else if *arg == 3 {
@@ -57791,8 +57799,8 @@ pub unsafe fn handle_version_response(ed: *mut Editor, first: i32, arg: *mut i32
         if version < 279 {
             (*decay(&raw mut (*ed).term_props)).tpr_status = TPR_NO;
         }
-        if (*decay(&raw mut (*ed).term_props).wrapping_add(2)).tpr_status != TPR_YES && *(*decay(&raw mut (*ed).term_strings).wrapping_add(81)) != NUL as u8 && !option_was_set(ed, b"t_8u\0".as_ptr() as *mut u8) {
-            set_string_option_direct(ed, b"t_8u\0".as_ptr() as *mut u8, -1, b"\0".as_ptr() as *mut u8, OPT_FREE, 0);
+        if (*decay(&raw mut (*ed).term_props).wrapping_add(2)).tpr_status != TPR_YES && *(*decay(&raw mut (*ed).term_strings).wrapping_add(81)) != NUL as u8 && !option_was_set(ed, c"t_8u".as_ptr() as *mut u8) {
+            set_string_option_direct(ed, c"t_8u".as_ptr() as *mut u8, -1, c"".as_ptr() as *mut u8, OPT_FREE, 0);
         }
     }
 }
@@ -58069,7 +58077,7 @@ pub unsafe fn handle_csi(ed: *mut Editor, tp: *mut char_u, len: i32, argp: *mut 
             match *decay(&raw mut arg) {
                 2026 => {
                     (*ed).sync_output_setting = setting;
-                    set_option_value_give_err(ed, b"termsync\0".as_ptr() as *mut u8, (setting == 1 || setting == 2) as i64, null_mut(), 0);
+                    set_option_value_give_err(ed, c"termsync".as_ptr() as *mut u8, (setting == 1 || setting == 2) as i64, null_mut(), 0);
                 }
                 _ => {}
             }
@@ -58078,7 +58086,7 @@ pub unsafe fn handle_csi(ed: *mut Editor, tp: *mut char_u, len: i32, argp: *mut 
         slen = csi_len;
         *key_name = 253;
         *key_name.wrapping_add(1) = 53;
-        do_cmdline_cmd(ed, b"stop\0".as_ptr() as *mut u8);
+        do_cmdline_cmd(ed, c"stop".as_ptr() as *mut u8);
     } else if argc >= 3 && *decay(&raw mut arg) == 48 {
         let height: i32 = *decay(&raw mut arg).wrapping_add(1);
         let width: i32 = *decay(&raw mut arg).wrapping_add(2);
@@ -58128,15 +58136,15 @@ pub unsafe fn check_for_color_response(ed: *mut Editor, resp: *mut char_u, len: 
             if *resp.wrapping_offset(i as isize) == 7 || (if *resp == OSC as u8 { (*resp.wrapping_offset(i as isize) == STERM as u8) as i32 } else { (*resp.wrapping_offset(i as isize) == ESC as u8 && i + 1 < len && *resp.wrapping_offset((i + 1) as isize) == 92) as i32 }) != 0 {
                 let is_bg: bool = *argp.wrapping_add(1) == b'1';
                 let is_4digit: bool = i - j >= 21 && *resp.wrapping_offset((j + 11) as isize) == b'/' && *resp.wrapping_offset((j + 16) as isize) == b'/';
-                if i - j >= 15 && musl_strncmp(resp.wrapping_offset(j as isize).wrapping_add(3) as *mut i8, b"rgb:\0".as_ptr() as *mut i8, 4) == 0 && (is_4digit || *resp.wrapping_offset((j + 9) as isize) == b'/' && *resp.wrapping_offset((j + 12) as isize) == b'/') {
+                if i - j >= 15 && musl_strncmp(resp.wrapping_offset(j as isize).wrapping_add(3) as *mut i8, c"rgb:".as_ptr() as *mut i8, 4) == 0 && (is_4digit || *resp.wrapping_offset((j + 9) as isize) == b'/' && *resp.wrapping_offset((j + 12) as isize) == b'/') {
                     let tp_r: *mut char_u = resp.wrapping_offset(j as isize).wrapping_add(7);
                     let tp_g: *mut char_u = resp.wrapping_offset(j as isize).wrapping_offset((if is_4digit { 12i32 } else { 10 }) as isize);
                     let tp_b: *mut char_u = resp.wrapping_offset(j as isize).wrapping_offset((if is_4digit { 17i32 } else { 13 }) as isize);
                     if is_bg {
-                        let new_bg_val: *mut i8 = if 162 < *tp_r as i32 + *tp_g as i32 + *tp_b as i32 { b"light\0".as_ptr() as *mut i8 } else { b"dark\0".as_ptr() as *mut i8 };
-                        if !option_was_set(ed, b"bg\0".as_ptr() as *mut u8) && musl_strcmp((*ed).p_bg as *mut i8, new_bg_val) != 0 {
-                            set_option_value_give_err(ed, b"bg\0".as_ptr() as *mut u8, 0, new_bg_val as *mut u8, 0);
-                            reset_option_was_set(ed, b"bg\0".as_ptr() as *mut u8);
+                        let new_bg_val: *mut i8 = if 162 < *tp_r as i32 + *tp_g as i32 + *tp_b as i32 { c"light".as_ptr() as *mut i8 } else { c"dark".as_ptr() as *mut i8 };
+                        if !option_was_set(ed, c"bg".as_ptr() as *mut u8) && musl_strcmp((*ed).p_bg as *mut i8, new_bg_val) != 0 {
+                            set_option_value_give_err(ed, c"bg".as_ptr() as *mut u8, 0, new_bg_val as *mut u8, 0);
+                            reset_option_was_set(ed, c"bg".as_ptr() as *mut u8);
                             redraw_asap(ed, UPD_CLEAR);
                         }
                     }
@@ -58276,24 +58284,24 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
         gather_termleader(ed);
     }
     let mut offset: i32 = 0;
-    'l1: while offset < max_offset {
-    'c1: {
+    while offset < max_offset {
         if buf.is_null() {
             if offset >= (*ed).typebuf.tb_len {
-                break 'l1;
+                break;
             }
             tp = (*ed).typebuf.tb_buf.wrapping_offset((*ed).typebuf.tb_off as isize).wrapping_offset(offset as isize);
             len = (*ed).typebuf.tb_len - offset;
         } else {
             if offset >= *buflen {
-                break 'l1;
+                break;
             }
             tp = buf.wrapping_offset(offset as isize);
             len = *buflen - offset;
         }
         if *tp == 128 {
             offset += 2;
-            break 'c1;
+            offset += 1;
+            continue;
         }
         if (*ed).osc_state.processing {
             *tp.wrapping_offset(len as isize) = NUL as u8;
@@ -58312,10 +58320,12 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
                 p = p.wrapping_add(1);
             }
             if *p == NUL as u8 {
-                break 'c1;
+                offset += 1;
+                continue;
             }
             if *tp == ESC as u8 && (*ed).p_ek == 0 && (*ed).State & MODE_INSERT != 0 {
-                break 'c1;
+                offset += 1;
+                continue;
             }
             *tp.wrapping_offset(len as isize) = NUL as u8;
             *decay(&raw mut key_name) = NUL as u8;
@@ -58324,13 +58334,13 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
             let mut keypad_index_found: i32 = -1;
             let mut keypad_slen_found: i32 = 0;
             idx = 0;
-            'l3: while idx < (*ed).tc_len {
-            'c3: {
+            while idx < (*ed).tc_len {
                 let mut is_keypad: bool = false;
                 slen = (*(*ed).termcodes.wrapping_offset(idx as isize)).len;
                 modifiers_start = null_mut();
                 if cpo_koffset && offset != 0 && len < slen {
-                    break 'c3;
+                    idx += 1;
+                    continue;
                 }
                 if musl_strncmp((*(*ed).termcodes.wrapping_offset(idx as isize)).code as *mut i8, tp as *mut i8, (if slen > len { len } else { slen }) as u64) == 0 {
                     if len < slen {
@@ -58346,13 +58356,14 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
                     if !is_keypad {
                         *decay(&raw mut key_name) = *decay(&raw mut (*(*ed).termcodes.wrapping_offset(idx as isize)).name);
                         *decay(&raw mut key_name).wrapping_add(1) = *decay(&raw mut (*(*ed).termcodes.wrapping_offset(idx as isize)).name).wrapping_add(1);
-                        break 'l3;
+                        break;
                     }
                 }
                 if (*(*ed).termcodes.wrapping_offset(idx as isize)).modlen > 0 {
                     let modslen: i32 = (*(*ed).termcodes.wrapping_offset(idx as isize)).modlen;
                     if cpo_koffset && offset != 0 && len < modslen {
-                        break 'c3;
+                        idx += 1;
+                        continue;
                     }
                     if musl_strncmp((*(*ed).termcodes.wrapping_offset(idx as isize)).code as *mut i8, tp as *mut i8, (if modslen > len { len } else { modslen }) as u64) == 0 {
                         if len <= modslen {
@@ -58361,9 +58372,11 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
                         if (*tp.wrapping_offset(modslen as isize) as i32) == *(*(*ed).termcodes.wrapping_offset(idx as isize)).code.wrapping_offset((slen - 1) as isize) as i32 {
                             slen = modslen + 1;
                         } else if *tp.wrapping_offset(modslen as isize) != b';' && modslen == slen - 3 {
-                            break 'c3;
+                            idx += 1;
+                            continue;
                         } else if *(*(*ed).termcodes.wrapping_offset(idx as isize)).code.wrapping_offset(modslen as isize) == b'@' && (*tp.wrapping_offset(modslen as isize) != b'1' || *tp.wrapping_offset((modslen + 1) as isize) != b';') {
-                            break 'c3;
+                            idx += 1;
+                            continue;
                         } else {
                             let mut j: i32 = slen - 2;
                             while j < len && (musl_isdigit(*tp.wrapping_offset(j as isize) as i32) || *tp.wrapping_offset(j as isize) == b'-' || *tp.wrapping_offset(j as isize) == b';') {
@@ -58374,7 +58387,8 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
                                 return -1;
                             }
                             if (*tp.wrapping_offset((j - 1) as isize) as i32) != *(*(*ed).termcodes.wrapping_offset(idx as isize)).code.wrapping_offset((slen - 1) as isize) as i32 {
-                                break 'c3;
+                                idx += 1;
+                                continue;
                             }
                             modifiers_start = tp.wrapping_offset(slen as isize).wrapping_sub(2);
                             let n: i32 = musl_atoi(modifiers_start as *mut i8);
@@ -58391,10 +58405,10 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
                         if !is_keypad {
                             *decay(&raw mut key_name) = *decay(&raw mut (*(*ed).termcodes.wrapping_offset(idx as isize)).name);
                             *decay(&raw mut key_name).wrapping_add(1) = *decay(&raw mut (*(*ed).termcodes.wrapping_offset(idx as isize)).name).wrapping_add(1);
-                            break 'l3;
+                            break;
                         }
                     }
-                }                }
+                }
                 idx += 1;
             }
             if idx == (*ed).tc_len && keypad_index_found >= 0 {
@@ -58404,7 +58418,7 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
             }
             if *decay(&raw mut key_name) == NUL as u8 {
                 let argp: *mut char_u = if *tp == ESC as u8 { tp.wrapping_add(2) } else { tp.wrapping_add(1) };
-                if *tp == ESC as u8 && len >= 3 && *tp.wrapping_add(1) == b'[' || *tp == CSI as u8 && len >= 2 && !vim_strchr(ed, b"0123456789>?ABCDEFHPQRS\0".as_ptr() as *mut u8, *argp as i32).is_null() {
+                if *tp == ESC as u8 && len >= 3 && *tp.wrapping_add(1) == b'[' || *tp == CSI as u8 && len >= 2 && !vim_strchr(ed, c"0123456789>?ABCDEFHPQRS".as_ptr() as *mut u8, *argp as i32).is_null() {
                     let handle_csi__o: handle_csi__out_T = handle_csi(ed, tp, len, argp, offset, buf, bufsize, buflen, decay(&raw mut key_name), slen);
                     slen = handle_csi__o.slen;
                     let resp: i32 = handle_csi__o.r__;
@@ -58427,7 +58441,8 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
             }
         }
         if *decay(&raw mut key_name) == NUL as u8 {
-            break 'c1;
+            offset += 1;
+            continue;
         }
         if *decay(&raw mut key_name) == KS_EXTRA as u8 {
             if *decay(&raw mut key_name).wrapping_add(1) == KE_FOCUSGAINED as u8 {
@@ -58467,8 +58482,7 @@ pub unsafe fn check_termcode(ed: *mut Editor, max_offset: i32, buf: *mut char_u,
         if !put_string_in_typebuf(ed, offset, slen, decay(&raw mut string), new_slen, buf, bufsize, buflen) {
             return -1;
         }
-        return if retval == 0 { len + new_slen - slen + offset } else { retval };        }
-        offset += 1;
+        return if retval == 0 { len + new_slen - slen + offset } else { retval };
     }
     0
 }
@@ -58507,7 +58521,7 @@ pub unsafe fn replace_termcodes(ed: *mut Editor, mut from: *mut char_u, _sid_arg
         src = src.wrapping_add(2);
     }
     while *src != NUL as u8 {
-        if do_special && (flags & REPTERM_DO_LT != 0 || musl_strncmp(src as *mut i8, b"<lt>\0".as_ptr() as *mut i8, 4) != 0) {
+        if do_special && (flags & REPTERM_DO_LT != 0 || musl_strncmp(src as *mut i8, c"<lt>".as_ptr() as *mut i8, 4) != 0) {
             let fsk_flags: i32 = FSK_KEYCODE | (if flags & REPTERM_NO_SIMPLIFY != 0 { 0i32 } else { FSK_SIMPLIFY }) | (if flags & REPTERM_FROM_PART != 0 { FSK_FROM_PART } else { 0 });
             let slen: i32 = trans_special(ed, &raw mut src, result.wrapping_add(dlen as usize), fsk_flags, true, did_simplify);
             if slen > 0 {
@@ -58583,7 +58597,6 @@ pub unsafe fn find_term_bykeys(ed: *mut Editor, src: *mut char_u, mut matchlen: 
     }
     let mut i: i32 = 0;
     while i < (*ed).tc_len {
-    'c1: {
         let slen: i32 = (*(*ed).termcodes.wrapping_offset(i as isize)).len;
         let modslen: i32 = (*(*ed).termcodes.wrapping_offset(i as isize)).modlen;
         if modslen > 0 {
@@ -58592,9 +58605,11 @@ pub unsafe fn find_term_bykeys(ed: *mut Editor, src: *mut char_u, mut matchlen: 
                 if (*src.wrapping_offset(modslen as isize) as i32) == *(*(*ed).termcodes.wrapping_offset(i as isize)).code.wrapping_offset((slen - 1) as isize) as i32 {
                     thislen = modslen + 1;
                 } else if *src.wrapping_offset(modslen as isize) != b';' && modslen == slen - 3 {
-                    break 'c1;
+                    i += 1;
+                    continue;
                 } else if *(*(*ed).termcodes.wrapping_offset(i as isize)).code.wrapping_offset(modslen as isize) == b'@' && (*src.wrapping_offset(modslen as isize) != b'1' || *src.wrapping_offset((modslen + 1) as isize) != b';') {
-                    break 'c1;
+                    i += 1;
+                    continue;
                 } else {
                     let mut j: i32 = slen - 2;
                     while j < len && (musl_isdigit(*src.wrapping_offset(j as isize) as i32) || *src.wrapping_offset(j as isize) == b'-' || *src.wrapping_offset(j as isize) == b';') {
@@ -58602,10 +58617,12 @@ pub unsafe fn find_term_bykeys(ed: *mut Editor, src: *mut char_u, mut matchlen: 
                     }
                     j += 1;
                     if len < j {
-                        break 'c1;
+                        i += 1;
+                        continue;
                     }
                     if (*src.wrapping_offset((j - 1) as isize) as i32) != *(*(*ed).termcodes.wrapping_offset(i as isize)).code.wrapping_offset((slen - 1) as isize) as i32 {
-                        break 'c1;
+                        i += 1;
+                        continue;
                     }
                     thislen = j;
                 }
@@ -58619,7 +58636,7 @@ pub unsafe fn find_term_bykeys(ed: *mut Editor, src: *mut char_u, mut matchlen: 
                 found = i;
                 foundlen = slen;
             }
-        }        }
+        }
         i += 1;
     }
     if true && found >= 0 {
@@ -58651,7 +58668,7 @@ pub unsafe fn show_termcodes(ed: *mut Editor, flags: i32) {
         return;
     }
     let items: *mut i32 = alloc(ed, 4u64.wrapping_mul((*ed).tc_len as u64)) as *mut i32;
-    msg_puts_title(ed, b"\n--- Terminal keys ---\0".as_ptr() as *mut i8);
+    msg_puts_title(ed, c"\n--- Terminal keys ---".as_ptr() as *mut i8);
     let mut run: i32 = if flags & OPT_ONECOLUMN != 0 { 3i32 } else { 1 };
     while run <= 3 && (*ed).got_int == 0 {
         let mut item_count: i32 = 0;
@@ -58735,7 +58752,7 @@ pub unsafe fn show_one_termcode(ed: *mut Editor, name: *mut char_u, code: *mut c
     if printit {
         msg_puts(ed, (*ed).IObuff as *mut i8);
         if code.is_null() {
-            msg_puts(ed, b"NULL\0".as_ptr() as *mut i8);
+            msg_puts(ed, c"NULL".as_ptr() as *mut i8);
         } else {
             msg_outtrans(ed, code);
         }
@@ -58787,8 +58804,8 @@ pub unsafe fn term_set_sync_output(ed: *mut Editor, flags: i32) {
         out_str_nf(ed, *decay(&raw mut (*ed).term_strings).wrapping_add(93));
         out_flush(ed);
     } else {
-        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), b"Unknown sync output value %d\0".as_ptr() as *mut i8, &[VArg::I(flags as i64)]);
-        iemsg(ed, iobuff_or(ed, b"Unknown sync output value %d\0".as_ptr() as *mut i8));
+        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), c"Unknown sync output value %d".as_ptr() as *mut i8, &[VArg::I(flags as i64)]);
+        iemsg(ed, iobuff_or(ed, c"Unknown sync output value %d".as_ptr() as *mut i8));
         return;
     }
 }
@@ -59259,7 +59276,7 @@ pub unsafe fn current_block(ed: *mut Editor, oap: *mut oparg_T, mut count: i64, 
         old_end_coladd = (*ed).VIsual.coladd;
     }
     let save_cpo: *mut char_u = (*ed).p_cpo;
-    (*ed).p_cpo = (if !vim_strchr(ed, (*ed).p_cpo, CPO_MATCHBSL).is_null() { b"%M\0".as_ptr() as *mut i8 } else { b"%\0".as_ptr() as *mut i8 }) as *mut u8;
+    (*ed).p_cpo = (if !vim_strchr(ed, (*ed).p_cpo, CPO_MATCHBSL).is_null() { c"%M".as_ptr() as *mut i8 } else { c"%".as_ptr() as *mut i8 }) as *mut u8;
     pos = findmatch(ed, null_mut(), what);
     if !pos.is_null() {
         loop {
@@ -59595,7 +59612,7 @@ pub unsafe fn current_quote(ed: *mut Editor, oap: *mut oparg_T, count: i64, incl
 
 pub unsafe fn add_time(ed: *mut Editor, buf: *mut char_u, buflen: usize_, tt: time_T) {
     let seconds: i64 = crate::host::host_time(ed) - tt;
-    crate::host::vim_snprintf(ed, buf as *mut i8, buflen, NGETTEXT(b"%ld second ago\0".as_ptr() as *mut i8, b"%ld seconds ago\0".as_ptr() as *mut i8, seconds as u64), &[VArg::I(seconds)]);
+    crate::host::vim_snprintf(ed, buf as *mut i8, buflen, NGETTEXT(c"%ld second ago".as_ptr() as *mut i8, c"%ld seconds ago".as_ptr() as *mut i8, seconds as u64), &[VArg::I(seconds)]);
 }
 
 pub unsafe fn ui_write(ed: *mut Editor, s: *mut char_u, len: i32) {
@@ -59680,8 +59697,8 @@ pub unsafe fn ui_get_shellsize(ed: *mut Editor) -> bool {
     }
     check_shellsize(ed);
     if (retval as i32) == OK {
-        set_number_default(ed, b"lines\0".as_ptr() as *mut i8, (*ed).Rows);
-        set_number_default(ed, b"columns\0".as_ptr() as *mut i8, (*ed).Columns);
+        set_number_default(ed, c"lines".as_ptr() as *mut i8, (*ed).Rows);
+        set_number_default(ed, c"columns".as_ptr() as *mut i8, (*ed).Columns);
     }
     retval
 }
@@ -59791,7 +59808,7 @@ pub unsafe fn fill_input_buf(ed: *mut Editor, exit_on_error: bool) {
         (*ed).inbufcount = 1;
     } else {
         while len > 0 {
-            if (*ed).ctrl_c_interrupts && (*decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) == Ctrl_C as u8 && !key_protocol_enabled(ed) || len >= 10 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, b"\x1b[27;5;99~\0".as_ptr() as *mut i8, 10) == 0 || len >= 10 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, b"\x1b[27;5;67~\0".as_ptr() as *mut i8, 10) == 0 || len >= 7 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, b"\x1b[99;5u\0".as_ptr() as *mut i8, 7) == 0 || len >= 7 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, b"\x1b[67;5u\0".as_ptr() as *mut i8, 7) == 0) {
+            if (*ed).ctrl_c_interrupts && (*decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) == Ctrl_C as u8 && !key_protocol_enabled(ed) || len >= 10 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, c"\x1b[27;5;99~".as_ptr() as *mut i8, 10) == 0 || len >= 10 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, c"\x1b[27;5;67~".as_ptr() as *mut i8, 10) == 0 || len >= 7 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, c"\x1b[99;5u".as_ptr() as *mut i8, 7) == 0 || len >= 7 && musl_strncmp(decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut i8, c"\x1b[67;5u".as_ptr() as *mut i8, 7) == 0) {
                 musl_memmove(decay(&raw mut (*ed).inbuf) as *mut c_void, decay(&raw mut (*ed).inbuf).wrapping_offset((*ed).inbufcount as isize) as *mut c_void, len as u64);
                 (*ed).inbufcount = 0;
                 (*ed).got_int = TRUE;
@@ -59803,7 +59820,7 @@ pub unsafe fn fill_input_buf(ed: *mut Editor, exit_on_error: bool) {
 }
 
 pub unsafe fn read_error_exit(ed: *mut Editor) {
-    musl_strcpy((*ed).IObuff as *mut i8, b"Vim: Error reading input, exiting...\n\0".as_ptr() as *mut i8);
+    musl_strcpy((*ed).IObuff as *mut i8, c"Vim: Error reading input, exiting...\n".as_ptr() as *mut i8);
     preserve_exit(ed);
 }
 
@@ -59895,7 +59912,7 @@ pub unsafe fn u_save_line(ed: *mut Editor, ul: *mut undoline_T, lnum: linenr_T) 
     (*ul).ul_textlen = ml_get_len(ed, lnum);
     if (*(*ed).curbuf).b_ml.ml_line_len == 0 {
         (*ul).ul_len = 1;
-        (*ul).ul_line = vim_strsave(ed, b"\0".as_ptr() as *mut u8);
+        (*ul).ul_line = vim_strsave(ed, c"".as_ptr() as *mut u8);
     } else {
         (*ul).ul_len = (*(*ed).curbuf).b_ml.ml_line_len as i64;
         (*ul).ul_line = vim_memsave(ed, line, (*ul).ul_len as u64);
@@ -60070,7 +60087,7 @@ pub unsafe fn u_savecommon(ed: *mut Editor, top: linenr_T, bot: linenr_T, newbot
         return true;
     }
     (*ed).msg_silent = 0;
-    if ask_yesno(ed, b"No undo possible; continue anyway\0".as_ptr() as *mut u8, true) == b'y' as i32 {
+    if ask_yesno(ed, c"No undo possible; continue anyway".as_ptr() as *mut u8, true) == b'y' as i32 {
         (*ed).undo_off = true;
         return true;
     }
@@ -60125,7 +60142,7 @@ pub unsafe fn u_doit(ed: *mut Editor, startcount: i32) {
                 beep_flush(ed);
                 if count == startcount - 1 {
                     if !shortmess(ed, SHM_UNDO) {
-                        msg(ed, b"Already at oldest change\0".as_ptr() as *mut i8);
+                        msg(ed, c"Already at oldest change".as_ptr() as *mut i8);
                     }
                     return;
                 }
@@ -60137,7 +60154,7 @@ pub unsafe fn u_doit(ed: *mut Editor, startcount: i32) {
                 beep_flush(ed);
                 if count == startcount - 1 {
                     if !shortmess(ed, SHM_UNDO) {
-                        msg(ed, b"Already at newest change\0".as_ptr() as *mut i8);
+                        msg(ed, c"Already at newest change".as_ptr() as *mut i8);
                     }
                     return;
                 }
@@ -60291,9 +60308,9 @@ pub unsafe fn undo_time(ed: *mut Editor, step: i64, sec: bool, file: bool, absol
             if closest == closest_start {
                 if !shortmess(ed, SHM_UNDO) {
                     if step < 0 {
-                        msg(ed, b"Already at oldest change\0".as_ptr() as *mut i8);
+                        msg(ed, c"Already at oldest change".as_ptr() as *mut i8);
                     } else {
-                        msg(ed, b"Already at newest change\0".as_ptr() as *mut i8);
+                        msg(ed, c"Already at newest change".as_ptr() as *mut i8);
                     }
                 }
                 return;
@@ -60375,7 +60392,7 @@ pub unsafe fn undo_time(ed: *mut Editor, step: i64, sec: bool, file: bool, absol
                 }
                 uhp = (*uhp).uh_prev;
                 if uhp.is_null() || (*uhp).uh_walk != mark {
-                    internal_error(ed, b"undo_time()\0".as_ptr() as *mut i8);
+                    internal_error(ed, c"undo_time()".as_ptr() as *mut i8);
                     break;
                 }
             }
@@ -60590,19 +60607,19 @@ pub unsafe fn u_undo_end(ed: *mut Editor, mut did_undo: bool, absolute: bool) {
     }
     (*ed).u_oldcount -= (*ed).u_newcount;
     if (*ed).u_oldcount == -1 {
-        msgstr = b"more line\0".as_ptr() as *mut i8;
+        msgstr = c"more line".as_ptr() as *mut i8;
     } else if (*ed).u_oldcount < 0 {
-        msgstr = b"more lines\0".as_ptr() as *mut i8;
+        msgstr = c"more lines".as_ptr() as *mut i8;
     } else if (*ed).u_oldcount == 1 {
-        msgstr = b"line less\0".as_ptr() as *mut i8;
+        msgstr = c"line less".as_ptr() as *mut i8;
     } else if (*ed).u_oldcount > 1 {
-        msgstr = b"fewer lines\0".as_ptr() as *mut i8;
+        msgstr = c"fewer lines".as_ptr() as *mut i8;
     } else {
         (*ed).u_oldcount = (*ed).u_newcount;
         if (*ed).u_newcount == 1 {
-            msgstr = b"change\0".as_ptr() as *mut i8;
+            msgstr = c"change".as_ptr() as *mut i8;
         } else {
-            msgstr = b"changes\0".as_ptr() as *mut i8;
+            msgstr = c"changes".as_ptr() as *mut i8;
         }
     }
     if !(*(*ed).curbuf).b_u_curhead.is_null() {
@@ -60625,8 +60642,8 @@ pub unsafe fn u_undo_end(ed: *mut Editor, mut did_undo: bool, absolute: bool) {
     if (*ed).VIsual_active {
         check_pos(ed, (*ed).curbuf, &raw mut (*ed).VIsual);
     }
-    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), b"%ld %s; %s #%ld  %s\0".as_ptr() as *mut i8, &[VArg::I(if (*ed).u_oldcount < 0 { -(*ed).u_oldcount } else { (*ed).u_oldcount }), VArg::P(msgstr as *mut c_void), VArg::P((if did_undo { b"before\0".as_ptr() as *mut i8 } else { b"after\0".as_ptr() as *mut i8 }) as *mut c_void), VArg::I(if uhp.is_null() { 0 } else { (*uhp).uh_seq }), VArg::P(decay(&raw mut msgbuf) as *mut c_void)]);
-    msg_attr_keep(ed, iobuff_or(ed, b"%ld %s; %s #%ld  %s\0".as_ptr() as *mut i8), 0, true);
+    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, iobuff_room(ed), c"%ld %s; %s #%ld  %s".as_ptr() as *mut i8, &[VArg::I(if (*ed).u_oldcount < 0 { -(*ed).u_oldcount } else { (*ed).u_oldcount }), VArg::P(msgstr as *mut c_void), VArg::P((if did_undo { c"before".as_ptr() as *mut i8 } else { c"after".as_ptr() as *mut i8 }) as *mut c_void), VArg::I(if uhp.is_null() { 0 } else { (*uhp).uh_seq }), VArg::P(decay(&raw mut msgbuf) as *mut c_void)]);
+    msg_attr_keep(ed, iobuff_or(ed, c"%ld %s; %s #%ld  %s".as_ptr() as *mut i8), 0, true);
 }
 
 pub unsafe fn u_sync(ed: *mut Editor, force: bool) {
@@ -60654,12 +60671,12 @@ pub unsafe fn ex_undolist(ed: *mut Editor, _eap: *mut exarg_T) {
             if !ga_grow(ed, &raw mut ga, 1) {
                 break;
             }
-            let mut len: i32 = crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, b"%6ld %7d  \0".as_ptr() as *mut i8, &[VArg::I((*uhp).uh_seq), VArg::I(changes as i64)]);
+            let mut len: i32 = crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, 1025, c"%6ld %7d  ".as_ptr() as *mut i8, &[VArg::I((*uhp).uh_seq), VArg::I(changes as i64)]);
             add_time(ed, (*ed).IObuff.wrapping_offset(len as isize), (1025 - len) as u64, (*uhp).uh_time);
             len += musl_strlen((*ed).IObuff.wrapping_offset(len as isize) as *mut i8) as i32;
             if (*uhp).uh_save_nr > 0 {
                 let n: i32 = if len >= 33 { 0 } else { 33 - len };
-                len += crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(len as isize), (1025 - len) as u64, b"%*.*s  %3ld\0".as_ptr() as *mut i8, &[VArg::I(n as i64), VArg::I(n as i64), VArg::P(b" \0".as_ptr() as *mut c_void), VArg::I((*uhp).uh_save_nr)]);
+                len += crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(len as isize), (1025 - len) as u64, c"%*.*s  %3ld".as_ptr() as *mut i8, &[VArg::I(n as i64), VArg::I(n as i64), VArg::P(c" ".as_ptr() as *mut c_void), VArg::I((*uhp).uh_save_nr)]);
             }
             let t2: *mut *mut u8 = (ga.ga_data as *mut *mut u8).wrapping_offset(({ t1 = ga.ga_len; ga.ga_len = t1 + 1; t1 }) as isize);
             *t2 = vim_strnsave(ed, (*ed).IObuff, len as u64);
@@ -60684,11 +60701,11 @@ pub unsafe fn ex_undolist(ed: *mut Editor, _eap: *mut exarg_T) {
         }
     }
     if ga.ga_len == 0 {
-        msg(ed, b"Nothing to undo\0".as_ptr() as *mut i8);
+        msg(ed, c"Nothing to undo".as_ptr() as *mut i8);
     } else {
         sort_strings(ga.ga_data as *mut *mut u8, ga.ga_len);
         msg_start(ed);
-        msg_puts_attr(ed, b"number changes  when               saved\0".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(22));
+        msg_puts_attr(ed, c"number changes  when               saved".as_ptr() as *mut i8, *decay(&raw mut (*ed).highlight_attr).wrapping_add(22));
         let mut i: i32 = 0;
         while i < ga.ga_len && (*ed).got_int == 0 {
             msg_putchar(ed, 10);
@@ -60927,7 +60944,7 @@ pub unsafe fn init_longVersion(ed: *mut Editor) {
     if !(*ed).longVersion.is_null() {
         return;
     }
-    let msg_2: *mut i8 = b"%s (%s)\0".as_ptr() as *mut i8;
+    let msg_2: *mut i8 = c"%s (%s)".as_ptr() as *mut i8;
     let len: usize_ = musl_strlen(msg_2).wrapping_add(22).wrapping_sub(1).wrapping_add(12).wrapping_sub(1);
     (*ed).longVersion = alloc(ed, len) as *mut i8;
     crate::host::vim_snprintf(ed, (*ed).longVersion, len, msg_2, &[VArg::P(decay(&raw mut (*ed).VIM_VERSION_LONG_ONLY) as *mut c_void), VArg::P(decay(&raw mut (*ed).VIM_VERSION_DATE_ONLY) as *mut c_void)]);
@@ -60982,7 +60999,7 @@ pub unsafe fn frame_new_height(ed: *mut Editor, topfrp: *mut frame_T, mut height
         let new_ch: i32 = (if ((*ed).min_set_ch as i64) > (*ed).p_ch + (*topfrp).fr_height as i64 - height as i64 { (*ed).min_set_ch as i64 } else { (*ed).p_ch + (*topfrp).fr_height as i64 - height as i64 }) as i32;
         let save_ch: i32 = (*ed).min_set_ch;
         if (new_ch as i64) != (*ed).p_ch {
-            set_option_value(ed, b"cmdheight\0".as_ptr() as *mut u8, new_ch as i64, null_mut(), 0);
+            set_option_value(ed, c"cmdheight".as_ptr() as *mut u8, new_ch as i64, null_mut(), 0);
         }
         (*ed).min_set_ch = save_ch;
         height = (if (height as i64) < (*ed).Rows - (*ed).p_ch { height as i64 } else { (*ed).Rows - (*ed).p_ch }) as i32;
@@ -61614,7 +61631,7 @@ pub unsafe fn main_loop(ed: *mut Editor, cmdwin: bool) {
             }
             if (*ed).need_start_insertmode && goto_im(ed) && !(*ed).VIsual_active {
                 (*ed).need_start_insertmode = false;
-                stuffReadbuff(ed, b"i\0".as_ptr() as *mut u8);
+                stuffReadbuff(ed, c"i".as_ptr() as *mut u8);
                 (*ed).need_fileinfo = false;
             }
         }
@@ -61714,7 +61731,7 @@ pub unsafe fn command_line_scan(ed: *mut Editor, parmp: *mut mparm_T) {
             argv_idx = -1;
             if *(*argv).wrapping_add(1) == NUL as i8 {
                 let t2: *mut *mut u8 = decay(&raw mut (*parmp).commands).wrapping_offset(({ t1 = (*parmp).n_commands; (*parmp).n_commands = t1 + 1; t1 }) as isize);
-                *t2 = b"$\0".as_ptr() as *mut u8;
+                *t2 = c"$".as_ptr() as *mut u8;
             } else {
                 let t4: *mut *mut u8 = decay(&raw mut (*parmp).commands).wrapping_offset(({ t3 = (*parmp).n_commands; (*parmp).n_commands = t3 + 1; t3 }) as isize);
                 *t4 = (*argv).wrapping_add(1) as *mut u8;
@@ -61747,7 +61764,7 @@ pub unsafe fn exe_commands(ed: *mut Editor, parmp: *mut mparm_T) {
     if (*(*ed).curwin).w_cursor.lnum <= 1 {
         (*(*ed).curwin).w_cursor.lnum = 0;
     }
-    estack_push(ed, ETYPE_ARGS, b"command line\0".as_ptr() as *mut u8, 0);
+    estack_push(ed, ETYPE_ARGS, c"command line".as_ptr() as *mut u8, 0);
     let mut i: i32 = 0;
     while i < (*parmp).n_commands {
         do_cmdline_cmd(ed, *decay(&raw mut (*parmp).commands).wrapping_offset(i as isize));
@@ -61764,9 +61781,9 @@ pub unsafe fn mainerr(ed: *mut Editor, n: i32, str_: *mut char_u) {
     let mut buf: [i8; 1024] = core::mem::zeroed();
     init_longVersion(ed);
     if !str_.is_null() {
-        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, b"%s\n%s: \"%s\"\0".as_ptr() as *mut i8, &[VArg::P((*ed).longVersion as *mut c_void), VArg::P(*decay(&raw mut (*ed).main_errors).wrapping_offset(n as isize) as *mut c_void), VArg::P(str_ as *mut c_void)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, c"%s\n%s: \"%s\"".as_ptr() as *mut i8, &[VArg::P((*ed).longVersion as *mut c_void), VArg::P(*decay(&raw mut (*ed).main_errors).wrapping_offset(n as isize) as *mut c_void), VArg::P(str_ as *mut c_void)]);
     } else {
-        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, b"%s\n%s\0".as_ptr() as *mut i8, &[VArg::P((*ed).longVersion as *mut c_void), VArg::P(*decay(&raw mut (*ed).main_errors).wrapping_offset(n as isize) as *mut c_void)]);
+        crate::host::vim_snprintf(ed, decay(&raw mut buf), 1024, c"%s\n%s".as_ptr() as *mut i8, &[VArg::P((*ed).longVersion as *mut c_void), VArg::P(*decay(&raw mut (*ed).main_errors).wrapping_offset(n as isize) as *mut c_void)]);
     }
     crate::host::host_message(ed, decay(&raw mut buf), -1, TRUE);
     mch_exit(ed, 1);

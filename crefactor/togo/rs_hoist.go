@@ -281,3 +281,14 @@ func (f *rfn) hoists(e cc.ExpressionNode) bool {
 	f.ntmp, f.order = ntmp, f.order[:norder]
 	return len(pre) > 0
 }
+
+// dryLines is what fn writes, as lines, its temporaries given back.
+func (f *rfn) dryLines(fn func()) []string {
+	ntmp, norder := f.ntmp, len(f.order)
+	b := f.capture(fn)
+	for _, l := range f.order[norder:] {
+		delete(f.taken, l.name)
+	}
+	f.ntmp, f.order = ntmp, f.order[:norder]
+	return rsLines(b)
+}

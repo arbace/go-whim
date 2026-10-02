@@ -23,9 +23,9 @@ import (
 // fingerprints skip a crate whose sources have not moved: a run on an
 // unchanged core pays for neither.
 
-// rsControlOld is the control string as the module writes it: a byte
-// string, its NUL written in.
-const rsControlOld, rsControlNew = `b" INSERT\0"`, `b" INSERX\0"`
+// rsControlOld is the control string as the module writes it: a C-string
+// literal, its NUL implied (doc/RUST-IDIOMS.md, item 9).
+const rsControlOld, rsControlNew = `c" INSERT"`, `c" INSERX"`
 
 // rsCache is where the suite's two Rust builds are kept between runs.
 var rsCache = filepath.Join(".cache", "whimsy-suite")
