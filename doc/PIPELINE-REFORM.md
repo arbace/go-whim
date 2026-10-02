@@ -1400,7 +1400,7 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      - The rest, about 37 s of regexp, nothing over 2 s: and in the files
        the front's own move was rewriting at the time (`lfonly`'s `\bname\(`
        per name, 1.0 s; `noconv`'s `\bptr\b`, 0.6; phase 66's rows written
-       `[^}]*`, which no window can take, 0.5).
+       `[^}]*`, which no window can take, 0.5; all three done in step 12).
      - The parser (`cc.Parse`, 145 s across the sweep and the print) and the
        collector are most of what is left; the parser is the fork kept
        diffable against upstream (step 9).
@@ -1440,6 +1440,31 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      functions and the `-Wunused-function` warnings only the LTO compile
      gave. `TestModes` does the same on a five-line cut, and `TestReads`
      pins what is read.
+   - **The cutters' regexps step 11 declined**, now that the front's move
+     no longer rewrites their files: `lfonly`'s `\bname\(` per dying
+     function is `edit.CallsNotAfterWord`, `noconv`'s `\bptr\b`, asked only
+     whether it matches, is `edit.WordCount(...) > 0`, and so is
+     `keepbytes`' `\bbad_char\b`; `onebuffer`'s `\bbuf_hide\(` count is
+     `CallsNotAfterWord` and its four counted patterns run on `edit.AllIndex`'s
+     windows. Phase 66's four rows of `nv_cmds[]` are written `[^}\n]*`
+     where they were `[^}]*`: a row is one line, so the pattern can no
+     longer leave its line and runs on the lines around its literal, 157 ms
+     -> 3.3 ms a row on q002. Each held to the regexp it replaced, match for
+     match and for the rows byte for byte, on slim-vim.c, whim-vim.c and
+     the boundaries the cutters read (q000, q002, q003, q006):
+     `internal/cut`'s `TestCutterSearchesSame` and phase 66's `TestRowsSame`.
+     A/B/A/B/A/B by CPU from each phase's snapshot, under a load of 55-85:
+     phase 7 (`lfonly`, `keepbytes`, `noconv`) 11.1, 11.3, 11.1 -> 8.7, 8.7,
+     9.2 s; phase 3 (phase 66's program) 41.5, 40.3, 42.1 -> 39.2, 41.3,
+     38.3; phase 6 (`onebuffer`) 13.1, 14.0, 12.9 -> 12.4, 12.6, 13.7, inside
+     the noise. Each boundary byte for byte, each report line for line but
+     phase 3's fall-out round count, which is 7 or 8 from run to run before
+     and after alike.
+   - **The proof**, the guard and the cutters together: `rm -rf
+     .cache/boundaries`, then `whim build --check` in order, 423 s wall and
+     514 s of CPU under a load of 85-90 (433 and 530 for the same check
+     just before, at 52-85), and again on its snapshots in parallel, 118 s
+     at 107-139; both end `whim-vim.c byte for byte`.
 
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with

@@ -40,18 +40,31 @@ import (
 // the half that walks Out to the method.
 var methodTest = edit.Head("if (cap->nchar == 'm' || cap->nchar == 'M')")
 
+// rows are the four keys of nv_cmds[] that go to nv_error.
+var rows = []struct{ key, handler, What string }{
+	{`\(`, "nv_brace", "( by sentence"},
+	{`\)`, "nv_brace", ") by sentence"},
+	{`\{`, "nv_findpar", "{ by paragraph"},
+	{`\}`, "nv_findpar", "} by paragraph"},
+}
+
+// rowPattern is a key's row of nv_cmds[], its handler in the second group
+// and its flags and argument, written args, in the third.  The args are
+// `[^}\n]*`: a row is one line, and a pattern that cannot leave its line
+// is run on the lines around its literal (crefactor/edit/lines.go) where
+// `[^}]*` was run on the whole text -- the same matches, held to it by
+// TestRowsSame.
+func rowPattern(key, handler, args string) string {
+	return fmt.Sprintf(`(?m)^([ \t]*\{'%s', )%s(, 0, %s\},)$`, key, handler, args)
+}
+
 // Whim66 takes the sentence, paragraph and section motions, the bracket
 // commands that found a comment or a method, and the text objects for them.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nopara", text, w)
 
-	for _, m := range []struct{ key, handler, What string }{
-		{`\(`, "nv_brace", "( by sentence"},
-		{`\)`, "nv_brace", ") by sentence"},
-		{`\{`, "nv_findpar", "{ by paragraph"},
-		{`\}`, "nv_findpar", "} by paragraph"},
-	} {
-		e.Sub(fmt.Sprintf(`(?m)^([ \t]*\{'%s', )%s(, 0, [^}]*\},)$`, m.key, m.handler),
+	for _, m := range rows {
+		e.Sub(rowPattern(m.key, m.handler, `[^}\n]*`),
 			"${1}nv_error${2}", 1, fmt.Sprintf("%s points at nv_error", m.What))
 	}
 	e.InFunction("nv_brackets", func(e *edit.E) {

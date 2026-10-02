@@ -307,7 +307,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var live []string
 	for _, n := range lfonlyDying {
-		for _, m := range regexp.MustCompile(`\b`+n+`\(`).FindAllIndex(text, -1) {
+		for _, m := range edit.CallsNotAfterWord(text, n) {
 			ls := bytes.LastIndexByte(text[:m[0]], '\n') + 1
 			le := bytes.IndexByte(text[m[0]:], '\n')
 			var line []byte

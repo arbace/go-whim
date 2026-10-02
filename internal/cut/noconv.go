@@ -325,7 +325,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		var n int
 		text, n = directCall(text, p.ptr, p.fn)
 		calls += n
-		if regexp.MustCompile(`\b` + p.ptr + `\b`).Match(text) {
+		if edit.WordCount(text, p.ptr) > 0 {
 			return nil, fmt.Errorf("noconv: %s is still named after its calls were made direct",
 				p.ptr)
 		}

@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	badCharWord = regexp.MustCompile(`\bbad_char\b`)
 	badCharLine = regexp.MustCompile(`(?m)^[^\n]*\bbad_char\b[^\n]*$`)
 	elseHere    = regexp.MustCompile(`^[ \t]*else\b`)
 )
@@ -98,7 +97,7 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 	// REDUNDANT rather than unspellable: `_` is a word character, so a word
 	// boundary after "bad_char" already cannot occur inside
 	// "bad_char_behavior".  Measured on the whole corpus, the two agree.
-	if badCharWord.Match(bytes.ReplaceAll(text, []byte("int bad_char;"), nil)) {
+	if edit.WordCount(bytes.ReplaceAll(text, []byte("int bad_char;"), nil), "bad_char") > 0 {
 		var live []string
 		for _, m := range badCharLine.FindAll(text, -1) {
 			line := string(m)

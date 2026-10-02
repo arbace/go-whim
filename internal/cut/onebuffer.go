@@ -9,10 +9,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-var (
-	bufHideCall = regexp.MustCompile(`\bbuf_hide\(`)
-)
-
 // OneBuffer leaves one buffer: the old one is wiped, nothing is hidden,
 // nothing is the alternate.
 func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
@@ -86,7 +82,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if n := len(bufHideCall.FindAll(text, -1)); n != 2 {
+	if n := len(edit.CallsNotAfterWord(text, "buf_hide")); n != 2 {
 		return nil, fmt.Errorf("onebuffer: buf_hide is still called -- %d mentions, expected "+
 			"its prototype and definition", n)
 	}
@@ -176,7 +172,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	}
 	count := func(pattern string) int {
 		n := 0
-		for _, m := range regexp.MustCompile(pattern).FindAllIndex(text, -1) {
+		for _, m := range edit.AllIndex(regexp.MustCompile(pattern), text) {
 			in := false
 			for _, sp := range dying {
 				if sp[0] <= m[0] && m[0] < sp[1] {
@@ -191,15 +187,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		return n
 	}
 	var left []string
-	for _, c := range []struct {
-		what, pattern string
-		want          int
-	}{
-		{"w_alt_fnum outside its field", `\bw_alt_fnum\b`, 2},
-		{"CMOD_KEEPALT or CMOD_HIDE outside their enumerators", `\bCMOD_(?:KEEPALT|HIDE)\b`, 2},
-		{"buflist_altfpos called", `\bbuflist_altfpos\(curwin\)|\bbuflist_altfpos\(oldwin\)`, 0},
-		{"nv_hat in the key table", `\{Ctrl_HAT, nv_hat`, 0},
-	} {
+	for _, c := range oneBufferLeft {
 		if n := count(c.pattern); n != c.want {
 			left = append(left, fmt.Sprintf("(%s, %d)", edit.PyRepr(c.what), n))
 		}
@@ -210,4 +198,16 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	e.say("one buffer: the old one is wiped, nothing is hidden, nothing is the alternate")
 	return text, nil
+}
+
+// oneBufferLeft is what OneBuffer counts outside the two dying functions,
+// and how many of each it requires.
+var oneBufferLeft = []struct {
+	what, pattern string
+	want          int
+}{
+	{"w_alt_fnum outside its field", `\bw_alt_fnum\b`, 2},
+	{"CMOD_KEEPALT or CMOD_HIDE outside their enumerators", `\bCMOD_(?:KEEPALT|HIDE)\b`, 2},
+	{"buflist_altfpos called", `\bbuflist_altfpos\(curwin\)|\bbuflist_altfpos\(oldwin\)`, 0},
+	{"nv_hat in the key table", `\{Ctrl_HAT, nv_hat`, 0},
 }
