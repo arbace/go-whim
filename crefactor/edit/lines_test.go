@@ -75,8 +75,11 @@ func TestScoped(t *testing.T) {
 		`(?m)(?:^[ \t]*x = \d;\n){1,2}`,
 		`(?m)^(?:[^\n]*\n)*?    \}\n`,
 		`[ \t]*\{\n(?:[ \t]+[^\n]*\n){0,3}`,
+		`(?m)^\s*x`, `[^;]*;`,
 	}
-	for _, p := range pats {
+	// and the patterns that can match nothing, on the small text alone:
+	// the whole file holds millions of their matches
+	for _, p := range append([]string{`x*`, `\b`, `(?m)^`, `(?m)$`, `a?`, `(?:aa|)`}, pats...) {
 		scopedCheck(t, regexp.MustCompile(p), text)
 	}
 	f := os.Getenv("WHIM_C")
@@ -114,6 +117,41 @@ func TestScopeOf(t *testing.T) {
 		s := scopeOf(regexp.MustCompile(c.re))
 		if string(s.lit) != c.lit || (s.lit != nil && s.k != c.k) {
 			t.Errorf("%s: %q %d, want %q %d", c.re, s.lit, s.k, c.lit, c.k)
+		}
+	}
+}
+
+// TestCallsNotAfterWord holds CallsNotAfterWord to the regexp it stood on,
+// `QuoteMeta(name)\(` with the byte before each match tested.
+func TestCallsNotAfterWord(t *testing.T) {
+	text := []byte("f(a) xf(b) f((c)) _f( f(f( f\n(f(")
+	if f := os.Getenv("WHIM_C"); f != "" {
+		if src, err := os.ReadFile(f); err == nil {
+			text = src
+		}
+	}
+	for _, name := range []string{"f", "", "(", "vim_free", "alloc", "mch_get_pid", "a.b"} {
+		var want [][]int
+		for _, loc := range regexp.MustCompile(regexp.QuoteMeta(name)+`\(`).FindAllIndex(text, -1) {
+			if loc[0] > 0 && IsWordByte(text[loc[0]-1]) {
+				continue
+			}
+			want = append(want, loc)
+		}
+		if got := CallsNotAfterWord(text, name); !reflect.DeepEqual(got, want) {
+			t.Errorf("%q: %d calls, the regexp %d", name, len(got), len(want))
+		}
+	}
+}
+
+// TestMinLen pins which patterns can match nothing at all.
+func TestMinLen(t *testing.T) {
+	for re, want := range map[string]bool{
+		`x*`: false, `\b`: false, `a?`: false, `(?:aa|)`: false, `(?m)^`: false,
+		`a`: true, `[^;]*;`: true, `(?m)^\s*x`: true, `(?:ab|c)`: true, `a{2,}`: true, `(?:x*){3}`: false,
+	} {
+		if got := scopeOf(regexp.MustCompile(re)).nonEmpty; got != want {
+			t.Errorf("%s: nonEmpty %v, want %v", re, got, want)
 		}
 	}
 }

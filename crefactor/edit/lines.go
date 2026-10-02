@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"regexp/syntax"
 	"sync"
+	"unicode/utf8"
 )
 
 // The counted acts' regexps, on the lines that can hold a match.
@@ -31,8 +32,9 @@ import (
 // literal -- the pattern runs on the whole text, as it did.
 
 type scope struct {
-	lit []byte // a literal every match holds; nil: the whole text
-	k   int    // the most newlines a match can span
+	lit      []byte // a literal every match holds; nil: the whole text
+	k        int    // the most newlines a match can span
+	nonEmpty bool   // no match is empty
 }
 
 var scopes sync.Map // the pattern's source -> scope
@@ -49,6 +51,7 @@ func scopeOf(re *regexp.Regexp) scope {
 				s = scope{lit: []byte(lit), k: k}
 			}
 		}
+		s.nonEmpty = minLen(t) > 0
 	}
 	scopes.Store(src, s)
 	return s
@@ -111,6 +114,39 @@ func maxNewlines(t *syntax.Regexp) (int, bool) {
 	// The empty-width assertions that are a line's or a word's, and the
 	// classes that hold no newline.
 	return 0, true
+}
+
+// minLen is the fewest bytes a match of t can hold.
+func minLen(t *syntax.Regexp) int {
+	switch t.Op {
+	case syntax.OpLiteral:
+		n := 0
+		for _, r := range t.Rune {
+			n += utf8.RuneLen(r)
+		}
+		return n
+	case syntax.OpCharClass, syntax.OpAnyChar, syntax.OpAnyCharNotNL:
+		return 1
+	case syntax.OpCapture, syntax.OpPlus:
+		return minLen(t.Sub[0])
+	case syntax.OpRepeat:
+		return t.Min * minLen(t.Sub[0])
+	case syntax.OpConcat:
+		n := 0
+		for _, s := range t.Sub {
+			n += minLen(s)
+		}
+		return n
+	case syntax.OpAlternate:
+		n := -1
+		for _, s := range t.Sub {
+			if m := minLen(s); n < 0 || m < n {
+				n = m
+			}
+		}
+		return max(n, 0)
+	}
+	return 0 // the empty-width assertions, a star, a question mark
 }
 
 // requiredLit is the longest literal every match of t contains: a run of
@@ -314,13 +350,17 @@ func ReplaceAllLiteralCounted(re *regexp.Regexp, text, repl []byte) ([]byte, int
 }
 
 func replaceAllCounted(re *regexp.Regexp, text, repl []byte, literal bool) ([]byte, int) {
-	if scopeOf(re).lit == nil {
+	s := scopeOf(re)
+	if s.lit == nil && !s.nonEmpty {
 		n := len(re.FindAll(text, -1))
 		if literal {
 			return re.ReplaceAllLiteral(text, repl), n
 		}
 		return re.ReplaceAll(text, repl), n
 	}
+	// Where no match is empty, ReplaceAll replaces exactly the matches
+	// FindAll gives (they differ only on an empty match beside another), so
+	// they are found once and expanded here.
 	ms := AllSubmatchIndex(re, text)
 	if len(ms) == 0 {
 		return append([]byte(nil), text...), 0

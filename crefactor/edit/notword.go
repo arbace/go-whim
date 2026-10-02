@@ -1,6 +1,6 @@
 package edit
 
-import "regexp"
+import "bytes"
 
 // The negative-lookbehind rewrites: `(?<!\w)name(` is "a call of name, and not
 // the tail of a longer identifier", and RE2 has no lookbehind of either sign.
@@ -23,15 +23,23 @@ func IsWordByte(c byte) bool {
 }
 
 // callsNotAfterWord returns the byte offsets of every `name(` whose preceding
-// byte is not a word character.
+// byte is not a word character.  The occurrences are the regexp
+// QuoteMeta(name)+`\(`'s matches, a literal's: leftmost, each search going on
+// after the last one's end -- found by bytes.Index (TestCallsNotAfterWord).
 func CallsNotAfterWord(text []byte, name string) [][]int {
-	re := regexp.MustCompile(regexp.QuoteMeta(name) + `\(`)
+	lit := []byte(name + "(")
 	var Out [][]int
-	for _, loc := range AllIndex(re, text) {
-		if loc[0] > 0 && IsWordByte(text[loc[0]-1]) {
+	for pos := 0; pos <= len(text); {
+		rel := bytes.Index(text[pos:], lit)
+		if rel < 0 {
+			break
+		}
+		i := pos + rel
+		pos = i + len(lit)
+		if i > 0 && IsWordByte(text[i-1]) {
 			continue
 		}
-		Out = append(Out, loc)
+		Out = append(Out, []int{i, i + len(lit)})
 	}
 	return Out
 }
