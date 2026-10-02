@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"runtime/pprof"
 	"strconv"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 //	whim build --from N --src B   start at phase N, from boundary B
 //	whim build --src F --out F the input and the output
 //	whim build --keep D        every boundary as D/qNNN.c, for measuring
+//	whim build --cpuprofile F  a CPU profile of the run, for go tool pprof
 //
 // --check is the gate on internal/build's plan, and the only one there is: the
 // plan was derived from the phase programs, so what holds it to them is that
@@ -66,6 +68,23 @@ func runBuild(args []string) int {
 			} else {
 				o.To = n
 			}
+		case "--cpuprofile":
+			i++
+			if i >= len(args) {
+				fmt.Fprintln(os.Stderr, "usage: whim build --cpuprofile F")
+				return 2
+			}
+			f, err := os.Create(args[i])
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+				return 1
+			}
+			defer f.Close()
+			if err := pprof.StartCPUProfile(f); err != nil {
+				fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+				return 1
+			}
+			defer pprof.StopCPUProfile()
 		case "--src", "--out", "--work", "--keep":
 			flag := args[i]
 			i++
