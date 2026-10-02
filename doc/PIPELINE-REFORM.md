@@ -975,7 +975,7 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
    - **Done as far as the bytes allow.** D5-D12 are above. What stays of
      the drops is written against text only the phases before it leave:
      `onebuffer`, `lfonly`, `keepbytes`, `noconv`, 57-59, 63-68, 71-76 and
-     85. R keeps its order, because of what step 7 measured: its phases are
+     85. Step 10 brings what the bytes later allowed to the front. R keeps its order, because of what step 7 measured: its phases are
      written for the generic steps between them.
 7. **G.**
    - Merge the reruns: `BoolRet` once, and possibly 168 into `GotoTail`.
@@ -1196,6 +1196,32 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        the front end is a fork kept diffable against upstream.
      - The rest of regexp (123 s): spread across dozens of edits and cutters,
        the largest 15 s (`ReplacePattern`).
+
+10. **The drops that stayed, brought to the front (after the reform).** Step
+   6 left `onebuffer`, `lfonly`, `keepbytes`, `noconv` and the programs of
+   57-59, 63-68, 71-76 and 85 where they were. Each was tried again on the
+   front's text, from the snapshot before it to the product, with the chain
+   harness of D1-D12 (resume, next, diag).
+   - **The editing features, done (branch `drops-front`).** Phase 3's
+     part calls the programs of 57 (lisp), 58 (language mappings), 63 (the
+     jump list), 65 (rot13 and the operator function), 66 (sentences and
+     paragraphs) and 74 (file marks) by name after `noabbr`, under its
+     closure. They applied to the front's text as written. Phase 6 runs
+     two steps first, on the text phase 3 swept: 76's program, whose proof
+     asks that `nfa_regengine` is named by nothing (it refused inside the
+     front, where `nonfa`'s engine is not yet swept), and the `droplocal`
+     of 57's and 58's four fields, whose readers phase 3 took. 57, 58, 63,
+     65, 66, 74 and 76 are records, their programs kept where they are.
+     - **What it replaced.** Phase 62's `getfile()` and `cleanup_jumplist()`
+       edits and phase 70's `fname2fnum()` body: those functions go at phase
+       3 with the file-mark jump and `:jumps`.
+     - **Held.** `whim66` takes the last writers of `listcmd_busy` (the `'{`
+       and `'(` addresses saved and set it); the product keeps it, and
+       without the hold the closure folds it out of `setpcmark()`, two lines
+       short.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for byte.
+       In order: 116 phases, 490 s (634 s of CPU); phases 1-3 33, 34 and 37
+       s, phase 6 7 s. The parallel check: 115 links, 74 s.
 
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with

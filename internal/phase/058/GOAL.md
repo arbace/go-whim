@@ -1,5 +1,11 @@
 # Phase 58 — no language mappings
 
+**A record now.** Phase 3's front calls `whim58` by name, after `whim57`
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front), and phase 6
+drops the two fields with phase 57's, on the text phase 3 swept: the program
+is here, and the phase has no plan entry. It applied to the front's text as
+written. What follows is the account of the cut as it was made here.
+
 `'iminsert'` and `'imsearch'` are 0 from here on, so language mappings are never
 active and nothing can make them so. `:lmap`, `:lnoremap`, `:lunmap` and
 `:lmapclear` point at `ex_ni` and lose their completion. CTRL-^ in Insert mode and

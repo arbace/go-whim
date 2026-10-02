@@ -159,6 +159,15 @@ They applied to the seed as written. 28 and 32 keep their sweep and
 of the completion submode's message, which the product keeps, so the closure
 holds them.
 
+**Then the editing features that stayed** (the drops brought to the front,
+after the reform): the programs of phases 57 (lisp), 58 (language mappings),
+63 (the jump list), 65 (rot13 and the operator function), 66 (sentences and
+paragraphs) and 74 (file marks), called by name at the end of phase 3's part.
+They applied to its text as written. `whim66` takes the last writers of
+`listcmd_busy`, which the product keeps, so the closure holds it. Phase 76's
+program and the `droplocal` of 57's and 58's fields run first in phase 6, on
+the text phase 3 swept.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

@@ -1,5 +1,11 @@
 # Phase 63 — no jump list
 
+**A record now.** Phase 3's front calls `whim63` by name, after `whim58`
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is
+here, and the phase has no plan entry. It applied to the front's text as
+written; `cleanup_jumplist()` goes there with `:jumps`, so phase 62 no longer
+edits it. What follows is the account of the cut as it was made here.
+
 The per-window jump list goes: `w_jumplist`, `w_jumplistlen` and
 `w_jumplistidx`; `setpcmark()` appending to it; CTRL-O and CTRL-I walking it
 through `movemark()`; `:jumps` and `:clearjumps`, now `ex_ni`; `cleanup_jumplist()`;

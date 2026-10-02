@@ -1,5 +1,11 @@
 # Phase 6 — the editor stops writing shell scripts, and stops drawing a menu
 
+**It runs two steps of the front's first**, on the text phase 3 swept:
+phase 76's program (`whim76`), whose proof needs the NFA engine swept, and
+the `droplocal` of the fields phases 57 and 58 took the readers of at phase 3
+(`b_p_lisp`, `b_p_lw`, `b_p_iminsert`, `b_p_imsearch`;
+`doc/PIPELINE-REFORM.md` §7, the drops brought to the front).
+
 Two cuts, both at the boundary between the editor and everything outside it.
 
 ## Wildcards go to the shell, or nowhere

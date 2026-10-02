@@ -1,5 +1,12 @@
 # Phase 66 — no sentences, paragraphs, sections, methods, #if blocks or comment blocks
 
+**A record now.** Phase 3's front calls `whim66` by name, after `whim65`
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is
+here, and the phase has no plan entry. It applied to the front's text as
+written. It takes the last writers of `listcmd_busy` (the `'{` and `'(`
+addresses saved and set it), which the product keeps, so the front's closure
+holds it. What follows is the account of the cut as it was made here.
+
 One idea, cut at all three places it was reachable from. A sentence you cannot
 move over is not one you can select, or address a line range with.
 

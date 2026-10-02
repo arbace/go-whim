@@ -212,7 +212,8 @@ func front3(t []byte, args []string, w io.Writer) ([]byte, error) {
 		plain(cut.NoBufList), plain(cut.NoNfa), plain(cut.NoShellOut), plain(cut.NoTags),
 		plain(cut.NoSignals), plain(cut.NoEquiClass), plain(cut.NoCindent), plain(cut.NoUcmd),
 		plain(cut.NoIdent), plain(cut.NoFnameMod), plain(cut.NoCompl), plain(cut.NoComplKeys),
-		plain(cut.NoAbbr)})
+		plain(cut.NoAbbr), editStep("whim57"), editStep("whim58"), editStep("whim63"),
+		editStep("whim65"), editStep("whim66"), editStep("whim74")})
 }
 
 func runCuts(t []byte, args []string, w io.Writer, cuts []Step) ([]byte, error) {
@@ -230,12 +231,15 @@ func runCuts(t []byte, args []string, w io.Writer, cuts []Step) ([]byte, error) 
 // aucmd_cmdline_changed_count and skip_win_fix_cursor, which the product
 // keeps unwritten (the second and third since D6 took their writers, the last
 // since D9), the popup menu's blend state and the completion submode's
-// message (since D10's nocompl took their writers), and the dropped options' globals of optfrontHold.
+// message (since D10's nocompl took their writers), listcmd_busy (since
+// whim66 took the '{ and '( addresses that saved and set it), and the dropped
+// options' globals of optfrontHold.
 var frontHold = append([]string{"read_cmd_fd", "sticky_cmdmod_flags",
 	"aucmd_cmdline_changed_count", "skip_win_fix_cursor",
 	"screen_pum_blend", "pum_bg_attrs", "pum_bg_lines", "pum_bg_linesUC",
 	"pum_bg_linesC", "pum_bg_top", "pum_bg_bot", "pum_bg_cols", "edit_submode",
-	"edit_submode_pre", "edit_submode_extra", "edit_submode_highl"}, optfrontHold...)
+	"edit_submode_pre", "edit_submode_extra", "edit_submode_highl",
+	"listcmd_busy"}, optfrontHold...)
 
 // optfrontHold are the dropped options' globals the fall-out closure leaves
 // to the phase that folds them by hand: where the closure's shape and the

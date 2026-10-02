@@ -74,6 +74,12 @@ var Plan = []Phase{
 	// 5, one regexp engine, not two: a record (internal/phase/archive/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
 	{N: 6, Block: "d02-outside", Name: "the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
+			// phase 76's program, which asserts the NFA engine is gone: on the
+			// text the front swept (nonfa, phase 3)
+			{Op: "edit", Args: []string{"whim76"}},
+			// phases 57's and 58's fields, whose readers phase 3 took (whim57
+			// and whim58, on the front)
+			{Op: "droplocal", Args: []string{"b_p_lisp", "b_p_lw", "b_p_iminsert", "b_p_imsearch"}},
 			{Op: "nowild"},
 			{Op: "nowildmenu"},
 		}},
@@ -205,18 +211,8 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim56kp"}},
 			{Op: "droplocal", Args: []string{"b_p_kp"}},
 		}},
-	{N: 57, Name: "no lisp",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim57"}},
-			{Op: "sweep"},
-			{Op: "droplocal", Args: []string{"b_p_lisp", "b_p_lw"}},
-		}},
-	{N: 58, Name: "no language mappings",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim58"}},
-			{Op: "sweep"},
-			{Op: "droplocal", Args: []string{"b_p_iminsert", "b_p_imsearch"}},
-		}},
+	// 57, no lisp: a record (internal/phase/057/GOAL.md); its program runs at phase 3 (whim57, the front), its droplocal at phase 6.
+	// 58, no language mappings: a record (internal/phase/058/GOAL.md); its program runs at phase 3 (whim58, the front), its droplocal at phase 6.
 	{N: 59, Name: "no command-line completion",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim59"}},
@@ -236,24 +232,15 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim62bl"}},
 			{Op: "droplocal", Args: []string{"b_p_bt", "b_p_ft"}},
 		}},
-	{N: 63, Block: "d08-editing", Name: "no jump list",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim63"}},
-		}},
-	{N: 64, Name: "no formatting, comment or nroff-macro options",
+	// 63, no jump list: a record (internal/phase/063/GOAL.md); its program runs at phase 3 (whim63, the front).
+	{N: 64, Block: "d08-editing", Name: "no formatting, comment or nroff-macro options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim64"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
 		}},
-	{N: 65, Name: "no rot13, no operator function, no empty key handler",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim65"}},
-		}},
-	{N: 66, Name: "no sentences, paragraphs, sections, methods, #if blocks or comment blocks",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim66"}},
-		}},
+	// 65, no rot13, no operator function, no empty key handler: a record (internal/phase/065/GOAL.md); its program runs at phase 3 (whim65, the front).
+	// 66, no sentences, paragraphs, sections, methods, #if blocks or comment blocks: a record (internal/phase/066/GOAL.md); its program runs at phase 3 (whim66, the front).
 	{N: 67, Block: "d09-one-of-each", Name: "no mouse, no spell plumbing, no write-only flags",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim67"}},
@@ -280,18 +267,12 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim72"}},
 			{Op: "edit", Args: []string{"whim73"}},
 		}},
-	{N: 74, Block: "d10-editing", Name: "no file marks",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim74"}},
-		}},
-	{N: 75, Name: "no autocommands",
+	// 74, no file marks: a record (internal/phase/074/GOAL.md); its program runs at phase 3 (whim74, the front).
+	{N: 75, Block: "d10-editing", Name: "no autocommands",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim75"}},
 		}},
-	{N: 76, Name: "one regexp engine, so no retry",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim76"}},
-		}},
+	// 76, one regexp engine, so no retry: a record (internal/phase/076/GOAL.md); its program runs at phase 6 (whim76, on the text the front swept).
 	{N: 77, Block: "d11-commands", Name: "no buffer-name argument matching",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim77"}},

@@ -1,5 +1,11 @@
 # Phase 57 — no lisp
 
+**A record now.** Phase 3's front calls `whim57` by name, after D12's cuts
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front), and phase 6
+drops the two fields with phase 58's, on the text phase 3 swept: the program
+is here, and the phase has no plan entry. It applied to the front's text as
+written. What follows is the account of the cut as it was made here.
+
 `'lisp'` and `'lispwords'` go, and with them everything they switched on:
 `get_lisp_indent()` for autoindent, `=`, `gq` and new lines; `lisp_match()` over
 `'lispwords'`; `-` as a keyword character; `;` line comments in

@@ -1,5 +1,12 @@
 # Phase 74 — no file marks
 
+**A record now.** Phase 3's front calls `whim74` by name, after `whim66`
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is
+here, and the phase has no plan entry. It applied to the front's text as
+written. `getfile()` and `fname2fnum()` go there with the file-mark jump, so
+phases 62 and 70 no longer edit them. What follows is the account of the cut
+as it was made here.
+
 **This is the phase that was abandoned as 70**, and the difference between the two
 attempts is the whole lesson.
 

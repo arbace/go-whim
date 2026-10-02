@@ -68,10 +68,10 @@ of the reform: 120, 134 and 149).
 | `d04-one-buffer` | 42 |
 | `d05-commands-and-options` | 48, 49 |
 | `d06-encoding` | 50, 53 |
-| `d07-options` | 55-62 (7 phases) |
-| `d08-editing` | 63-66 (4 phases) |
+| `d07-options` | 55-62 (5 phases) |
+| `d08-editing` | 64 |
 | `d09-one-of-each` | 67-73 (6 phases) |
-| `d10-editing` | 74, 75, 76 |
+| `d10-editing` | 75 |
 | `d11-commands` | 77-80 (4 phases) |
 | `d12-terminal-and-ex` | 85, 87 |
 | `d13-files` | 89-96 (8 phases) |
@@ -102,8 +102,9 @@ of the reform: 120, 134 and 149).
 
 **The archive.** A phase that edits nothing any more is a record: its
 `GOAL.md` alone, in `internal/phase/archive/NNN/`, with its old number. There
-are 39: 4, 5, 8, 9, 10, 11, 12, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program runs at phase 1's front (56, 61) keeps its
-directory and program where they were.
+are 39: 4, 5, 8, 9, 10, 11, 12, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program the front calls (56 and 61; 57, 58, 63, 65,
+66 and 74 at phase 3; 76 at phase 6) keeps its directory and program where
+they were; the eight of them with no plan entry left are records too.
 
 # Part I — phases 0 to 82: an editor with no runtime
 

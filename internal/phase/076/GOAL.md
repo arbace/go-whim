@@ -1,5 +1,11 @@
 # Phase 76 — one regexp engine, so no retry
 
+**A record now.** Phase 6 calls `whim76` by name, first, on the text phase 3
+swept (`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): its proof
+asks that `nfa_regengine` is named by nothing, which holds only once the
+front's `nonfa` has been swept. The program is here, and the phase has no
+plan entry. What follows is the account of the cut as it was made here.
+
 **Proved by a single assignment.** `prog->re_engine = BACKTRACKING_ENGINE` is the only
 place `re_engine` is ever written, so the field can hold no other value — and both
 

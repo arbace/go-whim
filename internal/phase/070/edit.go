@@ -59,8 +59,8 @@ import (
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("onebuffer", text, w)
 
-	// fname2fnum's Body goes entirely: a file mark gets its own buffer now.
-	e.Body("fname2fnum", "", "fname2fnum giving a file mark its own buffer")
+	// fname2fnum, which gave a file mark its own buffer, went with the file
+	// marks at phase 3 (whim74, on the front)
 
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70OldOpen, w70NewOpen, 1, ":edit opening a second buffer")

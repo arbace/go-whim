@@ -1,5 +1,10 @@
 # Phase 65 — no rot13, no operator function, no empty key handler
 
+**A record now.** Phase 3's front calls `whim65` by name, after `whim63`
+(`doc/PIPELINE-REFORM.md` §7, the drops brought to the front): the program is
+here, and the phase has no plan entry. It applied to the front's text as
+written. What follows is the account of the cut as it was made here.
+
 Three cuts, and only the first changes what the editor can do.
 
 - **rot13.** `g?` is the one operator here that encodes rather than edits. It goes

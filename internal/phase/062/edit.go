@@ -43,9 +43,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nobufopts", text, w)
 
 	// 'autowrite' and 'autowriteall' -- first, since autowrite() reads bt_dontwrite()
-	e.InFunction("getfile", func(e *edit.E) {
-		e.Literal(" && autowrite(curbuf, forceit) == FAIL)", ")", 1, "switching files trying autowrite first")
-	})
+	// getfile went with its last caller, the file-mark jump, at phase 3
+	// (whim74, on the front)
 	e.InFunction("check_changed", func(e *edit.E) {
 		e.Literal(" && (!(flags & CCGD_AW) || autowrite(buf, forceit) == FAIL))", ")", 1, "a changed buffer trying autowrite first")
 	})
@@ -101,9 +100,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("setpcmark", func(e *edit.E) {
 		e.DropIf(edit.Head("if (jop_flags & JOP_STACK)"), 1, "the jump list as a stack")
 	})
-	e.InFunction("cleanup_jumplist", func(e *edit.E) {
-		e.Literal("mustfree = !(jop_flags & JOP_STACK);", "mustfree = TRUE;", 1, "duplicate jumps kept for a stack")
-	})
+	// cleanup_jumplist went with :jumps and CTRL-O at phase 3 (whim63, on
+	// the front)
 	e.InFunction("didset_string_options", func(e *edit.E) {
 		e.Cut(edit.Line("(void)opt_strings_flags(p_jop, p_jop_values, &jop_flags, TRUE);"), 1, "startup parsing 'jumpoptions'")
 	})
