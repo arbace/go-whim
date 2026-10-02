@@ -548,3 +548,41 @@ func TestRsConst(t *testing.T) {
 		}
 	}
 }
+
+// rsTempsC is what needs a temporary: an object's increment as a value, a
+// compound assignment whose right side calls, an lvalue whose evaluation
+// does something -- each temporary declared where it is given its value,
+// `let t1: T = v;`, in the block that uses it, and none at the top.
+const rsTempsC = javaHost + `
+struct ctr { int n; int a[4]; };
+static int serial;
+static struct ctr c;
+static int bump(void) { serial += 10; return serial; }
+static int next(void) { return serial++; }
+static struct ctr *pick(void) { c.n++; return &c; }
+
+void run(void)
+{
+    int i = 0, x;
+    x = next() + next();
+    out(x); out(serial);
+    c.a[1] += bump();
+    out(c.a[1]);
+    pick()->a[i++] += 3;
+    out(c.a[0]); out(c.n); out(i);
+    x = pick()->n++;
+    out(x); out(c.n);
+}
+`
+
+func TestRsTemps(t *testing.T) {
+	prog := rsSame(t, rsTempsC, Profile{}, javaHarnessC)
+	for _, s := range []string{"{ let t1: i32 = (*ed).serial; (*ed).serial = t1 + 1; t1 }", "let t1: i32 = bump(ed);", "let t2: *mut i32 = ", "let t3: *mut i32 = &raw mut (*pick(ed)).n;"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+	if regexp.MustCompile(`(?m)^    let mut t\d+: `).MatchString(prog) {
+		t.Errorf("a temporary declared at a function's top:\n%s", numbered(prog))
+	}
+}

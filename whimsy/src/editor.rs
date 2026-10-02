@@ -14686,7 +14686,6 @@ pub unsafe fn curbuf_reusable(ed: *mut Editor) -> bool {
 pub unsafe fn buflist_new(ed: *mut Editor, lnum: linenr_T, flags: i32) -> *mut buf_T {
     let mut bufref: bufref_T = core::mem::zeroed();
     let mut bufref_2: bufref_T = core::mem::zeroed();
-    let mut t1: i32 = 0;
     let mut buf: *mut buf_T = null_mut();
     if flags & BLN_CURBUF != 0 && curbuf_reusable(ed) {
         buf = (*ed).curbuf;
@@ -14707,7 +14706,7 @@ pub unsafe fn buflist_new(ed: *mut Editor, lnum: linenr_T, flags: i32) -> *mut b
         (*buf).b_p_initialized = false;
         buf_copy_options(ed, buf, BCO_ENTER);
     } else {
-        (*buf).b_fnum = { t1 = (*ed).top_file_num; (*ed).top_file_num = t1 + 1; t1 };
+        (*buf).b_fnum = { let t1: i32 = (*ed).top_file_num; (*ed).top_file_num = t1 + 1; t1 };
         if (*ed).top_file_num < 0 {
             emsg(ed, c"W14: Warning: List of file names overflow".as_ptr() as *mut i8);
             if (*ed).emsg_silent == 0 && !(*ed).in_assert_fails {
@@ -17061,7 +17060,6 @@ pub unsafe fn win_line(ed: *mut Editor, wp: *mut win_T, lnum: linenr_T, startrow
     let top: *mut pos_T;
     let bot: *const pos_T;
     let mut cts: chartabsize_T = core::mem::zeroed();
-    let mut t2: *mut char_u = null_mut();
     let mut c: i32 = 0;
     let in_curline: bool = wp == (*ed).curwin && lnum == (*(*ed).curwin).w_cursor.lnum;
     let mut lcs_eol_one: i32 = (*wp).w_lcs_chars.eol;
@@ -17579,7 +17577,7 @@ pub unsafe fn win_line(ed: *mut Editor, wp: *mut win_T, lnum: linenr_T, startrow
                     wlv.c_extra = NUL;
                     wlv.c_final = NUL;
                     wlv.n_extra = byte2cells(ed, c) - 1;
-                    c = *({ t2 = wlv.p_extra; wlv.p_extra = t2.wrapping_add(1); t2 }) as i32;
+                    c = *({ let t2: *mut char_u = wlv.p_extra; wlv.p_extra = t2.wrapping_add(1); t2 }) as i32;
                     if !attr_pri {
                         n_attr = wlv.n_extra + 1;
                         wlv.extra_attr = hl_combine_attr(ed, wlv.win_attr, *decay(&raw mut (*ed).highlight_attr));
@@ -20107,10 +20105,9 @@ pub unsafe fn replace_pop(ed: *mut Editor) -> i32 {
 }
 
 pub unsafe fn replace_join(ed: *mut Editor, mut off: i32) {
-    let mut t1: i32 = 0;
     let mut i: i32 = (*ed).replace_stack_nr as i32;
     while ({ i -= 1; i }) >= 0 {
-        if *(*ed).replace_stack.wrapping_offset(i as isize) == NUL as u8 && ({ t1 = off; off = t1 - 1; t1 }) <= 0 {
+        if *(*ed).replace_stack.wrapping_offset(i as isize) == NUL as u8 && ({ let t1: i32 = off; off = t1 - 1; t1 }) <= 0 {
             (*ed).replace_stack_nr -= 1;
             musl_memmove((*ed).replace_stack.wrapping_offset(i as isize) as *mut c_void, (*ed).replace_stack.wrapping_offset(i as isize).wrapping_add(1) as *const c_void, ((*ed).replace_stack_nr - i as i64) as u64);
             return;
@@ -21642,9 +21639,6 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
     let mut tmp_length: usize_;
     let mut p1: *mut char_u;
     let mut n: usize_;
-    let mut t1: *mut char_u = null_mut();
-    let mut t2: *mut char_u = null_mut();
-    let mut t3: *mut char_u = null_mut();
     let mut i: i64 = 0;
     let mut sub: *mut char_u = null_mut();
     let mut pat_string: *mut char_u = null_mut();
@@ -21685,15 +21679,15 @@ pub unsafe fn ex_substitute(ed: *mut Editor, eap: *mut exarg_T) {
             }
             pat_string = c"".as_ptr() as *mut u8;
             pat_length = 0;
-            delimiter = *({ t1 = cmd; cmd = t1.wrapping_add(1); t1 }) as i32;
+            delimiter = *({ let t1: *mut char_u = cmd; cmd = t1.wrapping_add(1); t1 }) as i32;
         } else {
             which_pat = RE_LAST;
-            delimiter = *({ t2 = cmd; cmd = t2.wrapping_add(1); t2 }) as i32;
+            delimiter = *({ let t2: *mut char_u = cmd; cmd = t2.wrapping_add(1); t2 }) as i32;
             pat_string = cmd;
             cmd = skip_regexp_ex(ed, cmd, delimiter, magic_isset(ed), &raw mut (*eap).arg, null_mut(), null_mut());
             pat_length = pdiff(cmd, pat_string) as u64;
             if (*cmd as i32) == delimiter {
-                let t4: *mut u8 = { t3 = cmd; cmd = t3.wrapping_add(1); t3 };
+                let t4: *mut u8 = { let t3: *mut char_u = cmd; cmd = t3.wrapping_add(1); t3 };
                 *t4 = NUL as u8;
             }
         }
@@ -22565,7 +22559,6 @@ pub unsafe fn do_cmdline(ed: *mut Editor, cmdline: *mut char_u, fgetline: Option
 
 pub unsafe fn do_one_cmd(ed: *mut Editor, cmdlinep: *const *mut char_u, flags: i32, fgetline: Option<unsafe fn(*mut Editor, i32, i32, getline_opt_T) -> *mut char_u>) -> *mut char_u {
     let mut ea: exarg_T = core::mem::zeroed();
-    let mut t1: *mut char_u = null_mut();
     let mut errormsg: *mut i8 = null_mut();
     let mut after_modifier: *mut char_u = null_mut();
     let save_reg_executing: i32 = (*ed).reg_executing;
@@ -22718,7 +22711,7 @@ pub unsafe fn do_one_cmd(ed: *mut Editor, cmdlinep: *const *mut char_u, flags: i
                 break 'l1;
             }
             if valid_yank_reg(ed, *ea.arg as i32, ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput) {
-                ea.regname = *({ t1 = ea.arg; ea.arg = t1.wrapping_add(1); t1 }) as i32;
+                ea.regname = *({ let t1: *mut char_u = ea.arg; ea.arg = t1.wrapping_add(1); t1 }) as i32;
                 ea.arg = skipwhite(ea.arg);
             }
         }
@@ -23201,7 +23194,6 @@ pub unsafe fn find_ex_command(ed: *mut Editor, eap: *mut exarg_T, full: *mut i32
 }
 
 pub unsafe fn skip_range(ed: *mut Editor, cmd_start: *mut char_u, skip_star: bool, ctx: *mut i32) -> *mut char_u {
-    let mut t1: *mut char_u = null_mut();
     let mut cmd: *mut char_u = cmd_start;
     while !vim_strchr(ed, c" \t0123456789.$%'/?-+,;\\".as_ptr() as *mut u8, *cmd as i32).is_null() {
         if *cmd == 92 {
@@ -23229,7 +23221,7 @@ pub unsafe fn skip_range(ed: *mut Editor, cmd_start: *mut char_u, skip_star: boo
             let delim: u32 = *cmd as u32;
             cmd = cmd.wrapping_add(1);
             while *cmd != NUL as u8 && (*cmd as u32) != delim {
-                if *({ t1 = cmd; cmd = t1.wrapping_add(1); t1 }) == 92 && *cmd != NUL as u8 {
+                if *({ let t1: *mut char_u = cmd; cmd = t1.wrapping_add(1); t1 }) == 92 && *cmd != NUL as u8 {
                     cmd = cmd.wrapping_add(1);
                 }
             }
@@ -23284,8 +23276,6 @@ pub unsafe fn get_address(ed: *mut Editor, _eap: *const exarg_T, ptr: *mut *mut 
     let mut i: i32;
     let mut n: i64;
     let mut pos: pos_T = core::mem::zeroed();
-    let mut t1: *mut char_u = null_mut();
-    let mut t2: *mut char_u = null_mut();
     let mut cmd: *mut char_u = skipwhite(*ptr);
     let mut lnum: linenr_T = LONG_MAX;
     loop {
@@ -23352,7 +23342,7 @@ pub unsafe fn get_address(ed: *mut Editor, _eap: *const exarg_T, ptr: *mut *mut 
                 }
             }
             47 | 63 => {
-                let c: i32 = *({ t1 = cmd; cmd = t1.wrapping_add(1); t1 }) as i32;
+                let c: i32 = *({ let t1: *mut char_u = cmd; cmd = t1.wrapping_add(1); t1 }) as i32;
                 if addr_type != ADDR_LINES {
                     addr_error(ed, addr_type);
                     cmd = null_mut();
@@ -23455,7 +23445,7 @@ pub unsafe fn get_address(ed: *mut Editor, _eap: *const exarg_T, ptr: *mut *mut 
             if ascii_isdigit(*cmd as i32) {
                 i = b'+' as i32;
             } else {
-                i = *({ t2 = cmd; cmd = t2.wrapping_add(1); t2 }) as i32;
+                i = *({ let t2: *mut char_u = cmd; cmd = t2.wrapping_add(1); t2 }) as i32;
             }
             if !ascii_isdigit(*cmd as i32) {
                 n = 1;
@@ -24080,7 +24070,6 @@ pub unsafe fn restore_current_state(ed: *mut Editor, sst: *mut save_state_T) {
 pub unsafe fn ex_normal(ed: *mut Editor, eap: *mut exarg_T) {
     let mut save_state: save_state_T = core::mem::zeroed();
     let mut l: i32;
-    let mut t1: linenr_T = 0;
     let mut arg: *mut char_u = null_mut();
     if (*ed).ex_normal_lock > 0 {
         emsg(ed, decay(&raw mut (*ed).e_not_allowed_here));
@@ -24131,7 +24120,7 @@ pub unsafe fn ex_normal(ed: *mut Editor, eap: *mut exarg_T) {
     if save_current_state(ed, &raw mut save_state) {
         loop {
             if (*eap).addr_count != 0 {
-                (*(*ed).curwin).w_cursor.lnum = { t1 = (*eap).line1; (*eap).line1 = t1 + 1; t1 };
+                (*(*ed).curwin).w_cursor.lnum = { let t1: linenr_T = (*eap).line1; (*eap).line1 = t1 + 1; t1 };
                 (*(*ed).curwin).w_cursor.col = 0;
                 check_cursor_moved((*ed).curwin);
             }
@@ -24242,7 +24231,6 @@ pub unsafe fn parse_pattern_and_range(ed: *mut Editor, incsearch_start: *const p
     let mut dummy_cmdmod: cmdmod_T = core::mem::zeroed();
     let mut ea: exarg_T = core::mem::zeroed();
     let mut dummy: *mut i8 = null_mut();
-    let mut t1: *mut char_u = null_mut();
     let mut delim_optional: bool = false;
     let mut magic: magic_T = 0;
     *skiplen = 0;
@@ -24296,7 +24284,7 @@ pub unsafe fn parse_pattern_and_range(ed: *mut Editor, incsearch_start: *const p
         return false;
     }
     p = skipwhite(p);
-    let delim: i32 = if delim_optional && vim_isIDc(ed, *p as i32) { b' ' as i32 } else { *({ t1 = p; p = t1.wrapping_add(1); t1 }) as i32 };
+    let delim: i32 = if delim_optional && vim_isIDc(ed, *p as i32) { b' ' as i32 } else { *({ let t1: *mut char_u = p; p = t1.wrapping_add(1); t1 }) as i32 };
     *search_delim = delim;
     let end: *mut char_u = skip_regexp_ex(ed, p, delim, magic_isset(ed), null_mut(), null_mut(), &raw mut magic);
     let use_last_pat: bool = end == p && (*end as i32) == delim;
@@ -26582,9 +26570,7 @@ pub unsafe fn del_typebuf(ed: *mut Editor, len: i32, offset: i32) {
 }
 
 pub unsafe fn gotchars_add_byte(ed: *mut Editor, state: *mut gotchars_state_T, byte: char_u) -> bool {
-    let mut t1: usize_ = 0;
-    let mut t2: *mut u8 = null_mut();
-    let mut c: i32 = ({ t2 = decay(&raw mut (*state).buf).wrapping_add(({ t1 = (*state).buflen; (*state).buflen = t1.wrapping_add(1); t1 }) as usize); *t2 = byte; *t2 }) as i32;
+    let mut c: i32 = ({ let t2: *mut u8 = decay(&raw mut (*state).buf).wrapping_add(({ let t1: usize_ = (*state).buflen; (*state).buflen = t1.wrapping_add(1); t1 }) as usize); *t2 = byte; *t2 }) as i32;
     let mut retval: bool = false;
     let in_special: bool = (*state).pending_special > 0;
     let in_mbyte: bool = (*state).pending_mbyte > 0;
@@ -26761,8 +26747,6 @@ pub fn merge_modifyOtherKeys(c_arg: i32, modifiers: &mut i32) -> i32 {
 }
 
 pub unsafe fn add_byte_to_showcmd(ed: *mut Editor, byte: char_u) {
-    let mut t1: *mut char_u = null_mut();
-    let mut t2: *mut char_u = null_mut();
     let mut modifiers: i32 = 0;
     let mut c: i32 = NUL;
     if (*ed).p_sc == 0 || (*ed).msg_silent != 0 {
@@ -26780,7 +26764,7 @@ pub unsafe fn add_byte_to_showcmd(ed: *mut Editor, byte: char_u) {
     }
     if *ptr != NUL as u8 {
         let mb_ptr: *const char_u = mb_unescape(ed, &raw mut ptr);
-        c = if !mb_ptr.is_null() { utf_ptr2char(ed, mb_ptr) } else { *({ t1 = ptr; ptr = t1.wrapping_add(1); t1 }) as i32 };
+        c = if !mb_ptr.is_null() { utf_ptr2char(ed, mb_ptr) } else { *({ let t1: *mut char_u = ptr; ptr = t1.wrapping_add(1); t1 }) as i32 };
         if c <= 127 {
             let mut modifiers_after: i32 = modifiers;
             let mod_c: i32 = merge_modifyOtherKeys(c, &mut modifiers_after);
@@ -26799,7 +26783,7 @@ pub unsafe fn add_byte_to_showcmd(ed: *mut Editor, byte: char_u) {
         add_to_showcmd(ed, c);
     }
     while *ptr != NUL as u8 {
-        add_to_showcmd(ed, *({ t2 = ptr; ptr = t2.wrapping_add(1); t2 }) as i32);
+        add_to_showcmd(ed, *({ let t2: *mut char_u = ptr; ptr = t2.wrapping_add(1); t2 }) as i32);
     }
 }
 
@@ -27323,7 +27307,6 @@ pub unsafe fn vgetorpeek(ed: *mut Editor, advance: bool) -> i32 {
     let mut wait_time: i64;
     let mut ptr: *mut char_u;
     let mut cts: chartabsize_T = core::mem::zeroed();
-    let mut t4: i32 = 0;
     let mut timedout: bool = false;
     let mapdepth: i32 = 0;
     let mut mode_deleted: bool = false;
@@ -27563,7 +27546,7 @@ pub unsafe fn vgetorpeek(ed: *mut Editor, advance: bool) -> i32 {
                     }
                 } else {
                     while *(*ed).typebuf.tb_buf.wrapping_offset(((*ed).typebuf.tb_off + (*ed).typebuf.tb_len) as isize) != NUL as u8 {
-                        let t5: *mut u8 = (*ed).typebuf.tb_noremap.wrapping_offset(((*ed).typebuf.tb_off + ({ t4 = (*ed).typebuf.tb_len; (*ed).typebuf.tb_len = t4 + 1; t4 })) as isize);
+                        let t5: *mut u8 = (*ed).typebuf.tb_noremap.wrapping_offset(((*ed).typebuf.tb_off + ({ let t4: i32 = (*ed).typebuf.tb_len; (*ed).typebuf.tb_len = t4 + 1; t4 })) as isize);
                         *t5 = RM_YES as u8;
                     }
                 }
@@ -28029,7 +28012,6 @@ pub unsafe fn highlight_set_startstop_termcode(ed: *mut Editor, idx: i32, key: *
     let mut buf: [char_u; 100] = core::mem::zeroed();
     let mut len: i32;
     let mut p: *mut char_u = null_mut();
-    let mut t1: *mut char_u = null_mut();
     if !init {
         (*((*ed).highlight_ga.ga_data as *mut hl_group_T).wrapping_offset(idx as isize)).sg_set |= SG_TERM;
     }
@@ -28065,7 +28047,7 @@ pub unsafe fn highlight_set_startstop_termcode(ed: *mut Editor, idx: i32, key: *
             if len > 0 {
                 off += len;
             } else {
-                *decay(&raw mut buf).wrapping_offset(off as isize) = *({ t1 = p; p = t1.wrapping_add(1); t1 });
+                *decay(&raw mut buf).wrapping_offset(off as isize) = *({ let t1: *mut char_u = p; p = t1.wrapping_add(1); t1 });
                 off += 1;
             }
         }
@@ -31315,7 +31297,6 @@ pub unsafe fn set_last_cursor(win: *const win_T) {
 
 pub unsafe fn match_add(ed: *mut Editor, wp: *mut win_T, grp: *const char_u, pat: *mut char_u, prio: i32, mut id: i32, _conceal_char: *const char_u) -> i32 {
     let mut cur: *mut matchitem_T;
-    let mut t1: i32 = 0;
     let mut m: *mut matchitem_T = null_mut();
     let mut regprog: *mut regprog_T = null_mut();
     let rtype: i32 = UPD_SOME_VALID;
@@ -31328,7 +31309,7 @@ pub unsafe fn match_add(ed: *mut Editor, wp: *mut win_T, grp: *const char_u, pat
         return -1;
     }
     if id == -1 {
-        id = { t1 = (*wp).w_next_match_id; (*wp).w_next_match_id = t1 + 1; t1 };
+        id = { let t1: i32 = (*wp).w_next_match_id; (*wp).w_next_match_id = t1 + 1; t1 };
     } else {
         cur = (*wp).w_match_head;
         while !cur.is_null() {
@@ -37116,7 +37097,6 @@ pub unsafe fn scroll_redraw(ed: *mut Editor, up: i32, count: i64) {
 }
 
 pub unsafe fn scrolldown(ed: *mut Editor, line_count: i64, _byfold: bool) {
-    let mut t1: linenr_T = 0;
     let mut done: i64 = 0;
     let mut moved: bool = false;
     let do_sms: bool = (*(*ed).curwin).w_onebuf_opt.wo_wrap != 0 && (*(*ed).curwin).w_onebuf_opt.wo_sms != 0;
@@ -37172,7 +37152,7 @@ pub unsafe fn scrolldown(ed: *mut Editor, line_count: i64, _byfold: bool) {
         wrow += (*(*ed).curwin).w_cline_height - 1 - (*(*ed).curwin).w_virtcol / (*(*ed).curwin).w_width;
     }
     while wrow >= (*(*ed).curwin).w_height && (*(*ed).curwin).w_cursor.lnum > 1 {
-        wrow -= plines(ed, { t1 = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 - 1; t1 });
+        wrow -= plines(ed, { let t1: linenr_T = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 - 1; t1 });
         (*(*ed).curwin).w_valid &= -32;
         moved = true;
     }
@@ -39151,8 +39131,6 @@ pub unsafe fn nv_ident(ed: *mut Editor, cap: *mut cmdarg_T) {
     let mut cmdchar: i32;
     let g_cmd: bool;
     let aux_ptr: *mut char_u;
-    let mut t1: *mut char_u = null_mut();
-    let mut t2: *mut char_u = null_mut();
     let mut ptr: *mut char_u = null_mut();
     let mut n: i32 = 0;
     if (*cap).cmdchar == b'g' as i32 {
@@ -39199,12 +39177,12 @@ pub unsafe fn nv_ident(ed: *mut Editor, cap: *mut cmdarg_T) {
         let len: i32 = utfc_ptr2len(ed, ptr) - 1;
         let mut i: i32 = 0;
         while i < len && n >= 1 {
-            *p = *({ t1 = ptr; ptr = t1.wrapping_add(1); t1 });
+            *p = *({ let t1: *mut char_u = ptr; ptr = t1.wrapping_add(1); t1 });
             p = p.wrapping_add(1);
             i += 1;
             n -= 1;
         }
-        *p = *({ t2 = ptr; ptr = t2.wrapping_add(1); t2 });
+        *p = *({ let t2: *mut char_u = ptr; ptr = t2.wrapping_add(1); t2 });
         p = p.wrapping_add(1);
     }
     *p = NUL as u8;
@@ -40790,7 +40768,6 @@ pub unsafe fn set_cursor_for_append_to_line(ed: *mut Editor) {
 }
 
 pub unsafe fn nv_edit(ed: *mut Editor, cap: *mut cmdarg_T) {
-    let mut t1: linenr_T = 0;
     if (*cap).cmdchar == K_INS || (*cap).cmdchar == K_KINS {
         (*cap).cmdchar = b'i' as i32;
     }
@@ -40825,7 +40802,7 @@ pub unsafe fn nv_edit(ed: *mut Editor, cap: *mut cmdarg_T) {
                 if (*(*ed).curwin).w_cursor.lnum < old_pos_lnum && (*(*ed).curwin).w_cursor.lnum < old_visual.lnum {
                     if u_save_cursor(ed) {
                         ml_append(ed, (*(*ed).curwin).w_cursor.lnum, c"".as_ptr() as *mut u8, 0);
-                        appended_lines(ed, { t1 = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 + 1; t1 }, 1);
+                        appended_lines(ed, { let t1: linenr_T = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 + 1; t1 }, 1);
                     }
                 }
             } else if (*(*ed).curwin).w_cursor.col < old_pos_col && (*(*ed).curwin).w_cursor.col < old_visual.col {
@@ -40952,11 +40929,10 @@ pub unsafe fn nv_record(ed: *mut Editor, cap: *mut cmdarg_T) {
 }
 
 pub unsafe fn nv_at(ed: *mut Editor, cap: *mut cmdarg_T) {
-    let mut t1: i64 = 0;
     if checkclearop(ed, (*cap).oap) {
         return;
     }
-    while ({ t1 = (*cap).count1; (*cap).count1 = t1 - 1; t1 }) != 0 && (*ed).got_int == 0 {
+    while ({ let t1: i64 = (*cap).count1; (*cap).count1 = t1 - 1; t1 }) != 0 && (*ed).got_int == 0 {
         if !do_execreg(ed, (*cap).nchar, false, false, false) {
             clearopbeep(ed, (*cap).oap);
             break;
@@ -41672,7 +41648,6 @@ pub unsafe fn op_replace(ed: *mut Editor, oap: *mut oparg_T, mut c: i32) -> bool
     let mut n: i32;
     let mut bd: block_def = core::mem::zeroed();
     let mut vpos: pos_T = core::mem::zeroed();
-    let mut t1: linenr_T = 0;
     let mut after_p: *mut char_u = null_mut();
     let mut had_ctrl_v_cr: bool = false;
     if (*(*ed).curbuf).b_ml.ml_flags & ML_EMPTY != 0 || (*oap).empty != 0 {
@@ -41747,7 +41722,7 @@ pub unsafe fn op_replace(ed: *mut Editor, oap: *mut oparg_T, mut c: i32) -> bool
             }
             ml_replace(ed, (*(*ed).curwin).w_cursor.lnum, newp, false);
             if !after_p.is_null() {
-                ml_append(ed, { t1 = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 + 1; t1 }, after_p, 0);
+                ml_append(ed, { let t1: linenr_T = (*(*ed).curwin).w_cursor.lnum; (*(*ed).curwin).w_cursor.lnum = t1 + 1; t1 }, after_p, 0);
                 appended_lines_mark(ed, (*(*ed).curwin).w_cursor.lnum, 1);
                 (*oap).end.lnum += 1;
             }
@@ -44451,7 +44426,6 @@ pub unsafe fn do_set_option(ed: *mut Editor, opt_flags: i32, argp: *mut *mut cha
 
 pub unsafe fn do_set(ed: *mut Editor, arg_start: *mut char_u, opt_flags: i32) -> bool {
     let mut errbuf: [i8; 80] = core::mem::zeroed();
-    let mut t1: *mut char_u = null_mut();
     let mut arg: *mut char_u = arg_start;
     let mut did_show: bool = false;
     if *arg == NUL as u8 {
@@ -44489,7 +44463,7 @@ pub unsafe fn do_set(ed: *mut Editor, arg_start: *mut char_u, opt_flags: i32) ->
             let mut i: i32 = 0;
             while i < 2 {
                 while *arg != NUL as u8 && !(*arg == b' ' || *arg == 9) {
-                    if *({ t1 = arg; arg = t1.wrapping_add(1); t1 }) == 92 && *arg != NUL as u8 {
+                    if *({ let t1: *mut char_u = arg; arg = t1.wrapping_add(1); t1 }) == 92 && *arg != NUL as u8 {
                         arg = arg.wrapping_add(1);
                     }
                 }
@@ -47461,7 +47435,6 @@ pub unsafe fn vim_regsub_multi(ed: *mut Editor, rmp: *mut regmmatch_T, lnum: lin
 pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mut char_u, dest: *mut char_u, destlen: i32, flags: i32) -> i32 {
     let mut s: *const char_u;
     let mut cc: i32 = 0;
-    let mut t1: *mut char_u = null_mut();
     let mut no: i32 = -1;
     let mut func_all: fptr_T = None;
     let mut func_one: fptr_T = None;
@@ -47496,7 +47469,7 @@ pub unsafe fn vim_regsub_both(ed: *mut Editor, re: *mut regengine_T, source: *mu
                     no = *src as i32 - b'0' as i32;
                     src = src.wrapping_add(1);
                 } else if !vim_strchr(ed, c"uUlLeE".as_ptr() as *mut u8, *src as i32).is_null() {
-                    match *({ t1 = src; src = t1.wrapping_add(1); t1 }) as i32 {
+                    match *({ let t1: *mut char_u = src; src = t1.wrapping_add(1); t1 }) as i32 {
                         117 => {
                             func_one = Some(do_upper as unsafe fn(*mut Editor, *mut i32, i32));
                             continue 'l1;
@@ -47748,11 +47721,10 @@ pub unsafe fn use_multibytecode(ed: *mut Editor, c: i32) -> bool {
 }
 
 pub unsafe fn regc(ed: *mut Editor, b: i32) {
-    let mut t1: *mut char_u = null_mut();
     if (*ed).regcode == decay(&raw mut (*ed).reg_calc_size_node) {
         (*ed).regsize += 1;
     } else {
-        let t2: *mut u8 = { t1 = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
+        let t2: *mut u8 = { let t1: *mut char_u = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
         *t2 = b as u8;
     }
 }
@@ -47768,18 +47740,15 @@ pub unsafe fn regmbc(ed: *mut Editor, c: i32) {
 }
 
 pub unsafe fn regnode(ed: *mut Editor, op: i32) -> *mut char_u {
-    let mut t1: *mut char_u = null_mut();
-    let mut t3: *mut char_u = null_mut();
-    let mut t5: *mut char_u = null_mut();
     let ret: *mut char_u = (*ed).regcode;
     if ret == decay(&raw mut (*ed).reg_calc_size_node) {
         (*ed).regsize += 3;
     } else {
-        let t2: *mut u8 = { t1 = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
+        let t2: *mut u8 = { let t1: *mut char_u = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
         *t2 = op as u8;
-        let t4: *mut u8 = { t3 = (*ed).regcode; (*ed).regcode = t3.wrapping_add(1); t3 };
+        let t4: *mut u8 = { let t3: *mut char_u = (*ed).regcode; (*ed).regcode = t3.wrapping_add(1); t3 };
         *t4 = NUL as u8;
-        let t6: *mut u8 = { t5 = (*ed).regcode; (*ed).regcode = t5.wrapping_add(1); t5 };
+        let t6: *mut u8 = { let t5: *mut char_u = (*ed).regcode; (*ed).regcode = t5.wrapping_add(1); t5 };
         *t6 = NUL as u8;
     }
     ret
@@ -47987,13 +47956,6 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
     let mut cu: i32;
     let mut len_2: i32;
     let mut l: i32;
-    let mut t1: *mut char_u = null_mut();
-    let mut t3: *mut char_u = null_mut();
-    let mut t5: *mut char_u = null_mut();
-    let mut t7: *mut char_u = null_mut();
-    let mut t8: *mut char_u = null_mut();
-    let mut t9: *mut char_u = null_mut();
-    let mut t10: *mut char_u = null_mut();
     let mut extra: i32 = 0;
     let mut delim_nl: bool = false;
     let save_prev_at_start: i32 = (*ed).prev_at_start;
@@ -48353,9 +48315,9 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                 if ret == decay(&raw mut (*ed).reg_calc_size_node) {
                                     (*ed).regsize += 2;
                                 } else {
-                                    let t2: *mut u8 = { t1 = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
+                                    let t2: *mut u8 = { let t1: *mut char_u = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
                                     *t2 = c as u8;
-                                    let t4: *mut u8 = { t3 = (*ed).regcode; (*ed).regcode = t3.wrapping_add(1); t3 };
+                                    let t4: *mut u8 = { let t3: *mut char_u = (*ed).regcode; (*ed).regcode = t3.wrapping_add(1); t3 };
                                     *t4 = cmp as u8;
                                 }
                                 break 's5;
@@ -48393,7 +48355,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                     (*ed).regsize += 5;
                                 } else {
                                     (*ed).regcode = re_put_long((*ed).regcode, n);
-                                    let t6: *mut u8 = { t5 = (*ed).regcode; (*ed).regcode = t5.wrapping_add(1); t5 };
+                                    let t6: *mut u8 = { let t5: *mut char_u = (*ed).regcode; (*ed).regcode = t5.wrapping_add(1); t5 };
                                     *t6 = cmp as u8;
                                 }
                                 break 's5;
@@ -48426,7 +48388,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                     }
                     if *(*ed).regparse == b']' || *(*ed).regparse == b'-' {
                         startc = *(*ed).regparse as i32;
-                        regc(ed, *({ t7 = (*ed).regparse; (*ed).regparse = t7.wrapping_add(1); t7 }) as i32);
+                        regc(ed, *({ let t7: *mut char_u = (*ed).regparse; (*ed).regparse = t7.wrapping_add(1); t7 }) as i32);
                     }
                     while *(*ed).regparse != NUL as u8 && *(*ed).regparse != b']' {
                         if *(*ed).regparse == b'-' {
@@ -48498,7 +48460,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                     regmbc(ed, startc);
                                 }
                             } else {
-                                startc = backslash_trans(*({ t8 = (*ed).regparse; (*ed).regparse = t8.wrapping_add(1); t8 }) as i32);
+                                startc = backslash_trans(*({ let t8: *mut char_u = (*ed).regparse; (*ed).regparse = t8.wrapping_add(1); t8 }) as i32);
                                 regc(ed, startc);
                             }
                         } else if *(*ed).regparse == b'[' {
@@ -48510,7 +48472,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                     if c_class != 0 {
                                         regmbc(ed, c_class);
                                     } else {
-                                        startc = *({ t9 = (*ed).regparse; (*ed).regparse = t9.wrapping_add(1); t9 }) as i32;
+                                        startc = *({ let t9: *mut char_u = (*ed).regparse; (*ed).regparse = t9.wrapping_add(1); t9 }) as i32;
                                         regc(ed, startc);
                                     }
                                 }
@@ -48668,7 +48630,7 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
                                 if !(len >= 0) {
                                     break;
                                 }
-                                regc(ed, *({ t10 = (*ed).regparse; (*ed).regparse = t10.wrapping_add(1); t10 }) as i32);
+                                regc(ed, *({ let t10: *mut char_u = (*ed).regparse; (*ed).regparse = t10.wrapping_add(1); t10 }) as i32);
                             }
                         }
                     }
@@ -49191,9 +49153,8 @@ pub unsafe fn bt_regcomp(ed: *mut Editor, re: *mut regengine_T, expr: *mut char_
 }
 
 pub unsafe fn coll_get_char(ed: *mut Editor) -> i32 {
-    let mut t1: *mut char_u = null_mut();
     let mut nr: vimlong_T = -1;
-    match *({ t1 = (*ed).regparse; (*ed).regparse = t1.wrapping_add(1); t1 }) as i32 {
+    match *({ let t1: *mut char_u = (*ed).regparse; (*ed).regparse = t1.wrapping_add(1); t1 }) as i32 {
         100 => {
             nr = getdecchrs(ed);
         }
@@ -51089,8 +51050,6 @@ pub unsafe fn vim_regexec(ed: *mut Editor, rmp: *mut regmatch_T, line: *mut char
 pub unsafe fn match_chunk(ed: *mut Editor, re: *mut regengine_T, rmp: *mut regmmatch_T, do_all: bool, buf: *mut buf_T, lines: *mut string_T, line1: linenr_T, from: linenr_T, to: linenr_T, found: *mut linefound_T) {
     let mut searches: garray_T = core::mem::zeroed();
     let mut pos: garray_T = core::mem::zeroed();
-    let mut t1: i32 = 0;
-    let mut t3: i32 = 0;
     let mut m: regmmatch_T = *rmp;
     ga_init2(&mut searches, 32, 64);
     ga_init2(&mut pos, 16, 64);
@@ -51127,9 +51086,9 @@ pub unsafe fn match_chunk(ed: *mut Editor, re: *mut regengine_T, rmp: *mut regmm
             }
             let mut k_2: i32 = 0;
             while k_2 < (*s).nsub {
-                let t2: *mut lpos_T = (pos.ga_data as *mut lpos_T).wrapping_offset(({ t1 = pos.ga_len; pos.ga_len = t1 + 1; t1 }) as isize);
+                let t2: *mut lpos_T = (pos.ga_data as *mut lpos_T).wrapping_offset(({ let t1: i32 = pos.ga_len; pos.ga_len = t1 + 1; t1 }) as isize);
                 *t2 = *decay(&raw mut m.startpos).wrapping_offset(k_2 as isize);
-                let t4: *mut lpos_T = (pos.ga_data as *mut lpos_T).wrapping_offset(({ t3 = pos.ga_len; pos.ga_len = t3 + 1; t3 }) as isize);
+                let t4: *mut lpos_T = (pos.ga_data as *mut lpos_T).wrapping_offset(({ let t3: i32 = pos.ga_len; pos.ga_len = t3 + 1; t3 }) as isize);
                 *t4 = *decay(&raw mut m.endpos).wrapping_offset(k_2 as isize);
                 k_2 += 1;
             }
@@ -53649,8 +53608,6 @@ pub unsafe fn windgoto(ed: *mut Editor, mut row: i32, mut col: i32) {
     let mut cost: i32;
     let wouldbe_col: i32;
     let noinvcurs: i32;
-    let mut t1: *const u16 = null();
-    let mut t2: *const u16 = null();
     if (*ed).ScreenLines.is_null() {
         return;
     }
@@ -53717,14 +53674,14 @@ pub unsafe fn windgoto(ed: *mut Editor, mut row: i32, mut col: i32) {
         }
         if cost < goto_cost && i > 0 {
             let mut p: *const sattr_T = (*ed).ScreenAttrs.wrapping_add(*(*ed).LineOffset.wrapping_offset(row as isize) as usize).wrapping_offset(wouldbe_col as isize);
-            while i != 0 && (*({ t1 = p; p = t1.wrapping_add(1); t1 }) as i32) == attr {
+            while i != 0 && (*({ let t1: *const u16 = p; p = t1.wrapping_add(1); t1 }) as i32) == attr {
                 i -= 1;
             }
             if i != 0 {
                 p = p.wrapping_sub(1);
                 if *p == 0 {
                     cost += noinvcurs;
-                    while i != 0 && *({ t2 = p; p = t2.wrapping_add(1); t2 }) == 0 {
+                    while i != 0 && *({ let t2: *const u16 = p; p = t2.wrapping_add(1); t2 }) == 0 {
                         i -= 1;
                     }
                 }
@@ -55688,7 +55645,6 @@ pub unsafe fn findmatchlimit(ed: *mut Editor, oap: *mut oparg_T, mut initc: i32,
     let mut ptr: *mut char_u;
     let mut match_pos: pos_T = core::mem::zeroed();
     let dir: i32;
-    let mut t3: i32 = 0;
     let mut findc: i32 = 0;
     let mut count: i32 = 0;
     let mut backwards: bool = false;
@@ -55904,7 +55860,7 @@ pub unsafe fn findmatchlimit(ed: *mut Editor, oap: *mut oparg_T, mut initc: i32,
                     break;
                 }
                 (*ed).findmatchlimit__pos.lnum += 1;
-                if maxtravel != 0 && ({ t3 = traveled; traveled = t3 + 1; t3 }) > maxtravel {
+                if maxtravel != 0 && ({ let t3: i32 = traveled; traveled = t3 + 1; t3 }) > maxtravel {
                     break;
                 }
                 linep = ml_get(ed, (*ed).findmatchlimit__pos.lnum);
@@ -56988,11 +56944,10 @@ pub unsafe fn out_flush_cursor(ed: *mut Editor, _force: bool, _clear_selection: 
 }
 
 pub unsafe fn out_char(ed: *mut Editor, c: u32) {
-    let mut t1: i32 = 0;
     if c == 10 {
         out_char(ed, 13);
     }
-    let t2: *mut u8 = decay(&raw mut (*ed).out_buf).wrapping_offset(({ t1 = (*ed).out_pos; (*ed).out_pos = t1 + 1; t1 }) as isize);
+    let t2: *mut u8 = decay(&raw mut (*ed).out_buf).wrapping_offset(({ let t1: i32 = (*ed).out_pos; (*ed).out_pos = t1 + 1; t1 }) as isize);
     *t2 = c as u8;
     if (*ed).out_pos >= OUT_SIZE || (*ed).p_wd != 0 {
         out_flush(ed);
@@ -57000,8 +56955,7 @@ pub unsafe fn out_char(ed: *mut Editor, c: u32) {
 }
 
 pub unsafe fn out_char_nf(ed: *mut Editor, c: i32) -> i32 {
-    let mut t1: i32 = 0;
-    let t2: *mut u8 = decay(&raw mut (*ed).out_buf).wrapping_offset(({ t1 = (*ed).out_pos; (*ed).out_pos = t1 + 1; t1 }) as isize);
+    let t2: *mut u8 = decay(&raw mut (*ed).out_buf).wrapping_offset(({ let t1: i32 = (*ed).out_pos; (*ed).out_pos = t1 + 1; t1 }) as isize);
     *t2 = c as u32 as u8;
     if (*ed).out_pos >= OUT_SIZE {
         out_flush(ed);
@@ -58770,7 +58724,6 @@ pub unsafe fn sync_output_active(ed: *mut Editor) -> bool {
 }
 
 pub unsafe fn term_set_sync_output(ed: *mut Editor, flags: i32) {
-    let mut t1: i32 = 0;
     let in_gui: bool = false;
     let allowed: bool = (*ed).p_tsy != 0 && ((*ed).sync_output_setting == 1 || (*ed).sync_output_setting == 2);
     if flags & TERM_SYNC_OUTPUT_FLUSH != 0 {
@@ -58793,7 +58746,7 @@ pub unsafe fn term_set_sync_output(ed: *mut Editor, flags: i32) {
         return;
     }
     if flags & TERM_SYNC_OUTPUT_ENABLE != 0 {
-        if ({ t1 = (*ed).sync_output_state; (*ed).sync_output_state = t1 + 1; t1 }) > 0 {
+        if ({ let t1: i32 = (*ed).sync_output_state; (*ed).sync_output_state = t1 + 1; t1 }) > 0 {
             return;
         }
         out_str_nf(ed, *decay(&raw mut (*ed).term_strings).wrapping_add(92));
@@ -60660,7 +60613,6 @@ pub unsafe fn u_sync(ed: *mut Editor, force: bool) {
 
 pub unsafe fn ex_undolist(ed: *mut Editor, _eap: *mut exarg_T) {
     let mut ga: garray_T = core::mem::zeroed();
-    let mut t1: i32 = 0;
     let mut changes: i32 = 1;
     let mark: i32 = { (*ed).lastmark += 1; (*ed).lastmark };
     let nomark: i32 = { (*ed).lastmark += 1; (*ed).lastmark };
@@ -60678,7 +60630,7 @@ pub unsafe fn ex_undolist(ed: *mut Editor, _eap: *mut exarg_T) {
                 let n: i32 = if len >= 33 { 0 } else { 33 - len };
                 len += crate::host::vim_snprintf(ed, ((*ed).IObuff as *mut i8).wrapping_offset(len as isize), (1025 - len) as u64, c"%*.*s  %3ld".as_ptr() as *mut i8, &[VArg::I(n as i64), VArg::I(n as i64), VArg::P(c" ".as_ptr() as *const c_void), VArg::I((*uhp).uh_save_nr)]);
             }
-            let t2: *mut *mut u8 = (ga.ga_data as *mut *mut u8).wrapping_offset(({ t1 = ga.ga_len; ga.ga_len = t1 + 1; t1 }) as isize);
+            let t2: *mut *mut u8 = (ga.ga_data as *mut *mut u8).wrapping_offset(({ let t1: i32 = ga.ga_len; ga.ga_len = t1 + 1; t1 }) as isize);
             *t2 = vim_strnsave(ed, (*ed).IObuff, len as u64);
         }
         (*uhp).uh_walk = mark;
@@ -61716,8 +61668,6 @@ pub unsafe fn getout(ed: *mut Editor, exitval: i32) {
 }
 
 pub unsafe fn command_line_scan(ed: *mut Editor, parmp: *mut mparm_T) {
-    let mut t1: i32 = 0;
-    let mut t3: i32 = 0;
     let mut argc: i32 = (*parmp).argc;
     let mut argv: *const *mut i8 = (*parmp).argv;
     argc -= 1;
@@ -61730,10 +61680,10 @@ pub unsafe fn command_line_scan(ed: *mut Editor, parmp: *mut mparm_T) {
             }
             argv_idx = -1;
             if *(*argv).wrapping_add(1) == NUL as i8 {
-                let t2: *mut *mut u8 = decay(&raw mut (*parmp).commands).wrapping_offset(({ t1 = (*parmp).n_commands; (*parmp).n_commands = t1 + 1; t1 }) as isize);
+                let t2: *mut *mut u8 = decay(&raw mut (*parmp).commands).wrapping_offset(({ let t1: i32 = (*parmp).n_commands; (*parmp).n_commands = t1 + 1; t1 }) as isize);
                 *t2 = c"$".as_ptr() as *mut u8;
             } else {
-                let t4: *mut *mut u8 = decay(&raw mut (*parmp).commands).wrapping_offset(({ t3 = (*parmp).n_commands; (*parmp).n_commands = t3 + 1; t3 }) as isize);
+                let t4: *mut *mut u8 = decay(&raw mut (*parmp).commands).wrapping_offset(({ let t3: i32 = (*parmp).n_commands; (*parmp).n_commands = t3 + 1; t3 }) as isize);
                 *t4 = (*argv).wrapping_add(1) as *mut u8;
             }
         } else {

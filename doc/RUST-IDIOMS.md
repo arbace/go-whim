@@ -573,19 +573,29 @@ function's own level, block expressions `({ ` and `= { `, labels.
 
 | | `8a186a4` | after |
 | --- | ---: | ---: |
-| `editor.rs` | 61,820 lines | 61,820 lines |
+| `editor.rs` | 61,820 lines | 61,770 lines |
 | pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
 | `*const` in the text | 0 | 1,492 |
 | `pub unsafe fn` | 1,648 | 1,648 |
 | `wrapping_*` | 4,822 | 4,822 |
-| zeros at the top | 1,113 | 1,113 |
+| zeros at the top | 1,113 | 1,063 |
 | block expressions | 154 | 154 |
 | labels | 91 | 91 |
-| rustc's warnings (`--lint`) | 702: 220 `unused_assignments` | 702: 220 |
-| rustc, release | 38.0-38.3 s | 38.7-39.9 s, 0.53 GB |
+| rustc's warnings (`--lint`) | 702: 220 `unused_assignments` | 652: 170 |
+| rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB |
 | the heavy case | 0.25-0.3x | 0.25-0.3x (112-130 ms against 435-473; once 168 ms, 0.4x, on the overflow-checked build) |
 
 - **Item 10** (`rs_const.go`, `TestRsConst`): above, under the item.
+- **Item 12, temporaries where they are given their value** (`rs_fn.go`'s
+  `letTemp`, `TestRsTemps`). The 50 temporaries left after item 6 -- an
+  increment's old value, a compound assignment's right side that calls,
+  an lvalue's address taken once -- were zeroed at the top and stored
+  where used; each holds one value, used after it in the same block, so
+  each is `let t1: T = v;` there, a block expression's own let where it is
+  in one: `(*buf).b_fnum = { let t1: i32 = (*ed).top_file_num;
+  (*ed).top_file_num = t1 + 1; t1 };`. A compound literal's variable keeps
+  the function's scope (its address outlives the block). Zeros at the top
+  1,113 -> 1,063, `unused_assignments` 220 -> 170, 50 lines.
 
 ## What is not worth doing, and why
 

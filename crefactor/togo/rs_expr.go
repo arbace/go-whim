@@ -1292,7 +1292,7 @@ func (f *rfn) lval(e cc.ExpressionNode) lval {
 	a := f.addrOf(e)
 	n := f.temp(nil)
 	f.retype(n, "*mut "+ty)
-	return lval{pre: []string{n + " = " + unparenRs(a.s) + ";"}, place: "*" + n, ty: ty, t: t}
+	return lval{pre: []string{f.letTemp(n, unparenRs(a.s))}, place: "*" + n, ty: ty, t: t}
 }
 
 // retype gives a temporary its Rust type.
@@ -1329,7 +1329,7 @@ func (f *rfn) assigned(x *cc.AssignmentExpression) ([]string, lval) {
 		// the right side's calls first, and then the lvalue read: gcc's
 		// order
 		t := f.temp(x.AssignmentExpression.Type())
-		stmts = append(stmts, t+" = "+unparenRs(r.s)+";")
+		stmts = append(stmts, f.letTemp(t, unparenRs(r.s)))
 		r = rv{s: t, ty: r.ty}
 	}
 	nv := f.compound(lv, op, r, x.AssignmentExpression.Type(), x)
@@ -1441,7 +1441,7 @@ func (f *rfn) incDecValue(e cc.ExpressionNode, inc, post bool) rv {
 		if isConstPtr(lv.ty) {
 			f.retype(t, lv.ty)
 		}
-		stmts = append(stmts, t+" = "+lv.place+";")
+		stmts = append(stmts, f.letTemp(t, lv.place))
 		nv := f.incDec(rv{s: t, ty: lv.ty}, lv.t, inc)
 		stmts = append(stmts, rsOpAssign(lv.place, nv))
 		return f.block(stmts, rv{s: t, ty: lv.ty})

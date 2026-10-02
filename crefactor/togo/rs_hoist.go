@@ -205,7 +205,7 @@ func (f *rfn) hoistInc(n cc.ExpressionNode, e cc.ExpressionNode, inc, postfix bo
 		if isConstPtr(ty) {
 			f.retype(t, ty)
 		}
-		*pre = append(*pre, t+" = "+l.name+";")
+		*pre = append(*pre, f.letTemp(t, l.name))
 		*pre = append(*pre, stmt...)
 		f.rsub[n] = rv{s: t, ty: ty}
 	}

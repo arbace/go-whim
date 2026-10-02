@@ -1401,3 +1401,16 @@ func rsTailReturn(body string) string {
 	}
 	return strings.Join(lines, "\n") + "\n"
 }
+
+// letTemp is the statement that declares temporary n where it is given its
+// value v, the one value it holds: `let t1: T = v;`, and nothing at the
+// function's top.  Every use of it follows in the same block.
+func (f *rfn) letTemp(n, v string) string {
+	for _, l := range f.order {
+		if l.name == n {
+			l.sunk = true
+			return "let " + n + ": " + l.declTy(f.r) + " = " + v + ";"
+		}
+	}
+	return n + " = " + v + ";"
+}
