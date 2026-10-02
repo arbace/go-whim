@@ -1,57 +1,76 @@
 # go-whim
 
 A pipeline, written in Go, that takes vim apart on purpose -- and the editor it
-leaves, four times over: in C, in Go, in Java and in Clojure, each required
-to answer every test case as the others do.
+leaves, five times over: in C, in Go, in Java, in Clojure and in Haskell, each
+required to answer every test case as the C does.
 
 ```
-slim-vim.c ──── whim: phases, in order ────▶ whim-vim.c   an embeddable editor core
-                                                  │
-                  crefactor/togo ─────────────────┼──▶ editor/    the core in Go
-                                                  ├──▶ braaam/   the core in Java
-                                                  └──▶ vijure/ the core in Clojure
+slim-vim.c ──── whim: 124 phases, in order ────▶ whim-vim.c   an embeddable editor core
+                                                      │
+                  crefactor/togo ─────────────────────┼──▶ editor/   the core in Go
+                                                      ├──▶ braaam/   the core in Java
+                                                      ├──▶ vijure/   the core in Clojure
+                                                      └──▶ caprice/  the core in Haskell
 ```
 
 **The input** is `slim-vim.c`: vim 9.2 as one C translation unit, without
 preprocessor or comments, from [arbace/slim-vim](https://github.com/arbace/slim-vim).
 `make` fetches it, and vim's `LICENSE`, at that repository's head.
 
-**The pipeline** removes capability on purpose, one phase at a time: first
-whatever needs a runtime installed; then the filesystem, the libc the core
-names and the host, which crosses to a block at the bottom of the file; then
-what translating the core to Go and Java had to work around. Each phase is its
-steps, then a reachability sweep, then one canonical print, and
-`make whim-build` runs them all in one process in about fifteen minutes. The
-product, `src/whim-vim.c`, is tracked, and `make whim-build-check` requires it
-back byte for byte.
+**The pipeline** removes capability on purpose.
+- **The front, phases 1-3, cuts first.** It cuts every interface and feature
+  the product has not, as twelve packages: the command line, the Ex commands,
+  the files, the options, the swap file, startup, the encoding, the terminal,
+  one window and buffer, the editing features, one regexp engine, the process.
+  Then a generic fall-out closure folds what each cut left unwritten.
+- **The phases after it, in order,**
+  - drop what can only be cut late;
+  - rewire the core for a host: no filesystem, no libc it names, and the host
+    across a line in the file;
+  - make generic C rewrites for the translations.
+
+Each phase is its steps, then a reachability sweep, then one canonical print,
+and the phases are named in 39 blocks of three kinds: `d` drops, `r` rewires,
+`g` generic steps. `make whim-build` runs them all in one process in about
+fourteen minutes. The product, `src/whim-vim.c`, is tracked, and
+`make whim-build-check` requires it back byte for byte: every phase checked
+from its own snapshot, side by side, in about 75 seconds.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
-from each other: `editor/editor.go`, `braaam/editor/` and
-`vijure/src/whim/editor.clj` are generated, tracked, and refused by
-`make whim-editor-check` when stale.
+from each other. `editor/editor.go`, `braaam/editor/`,
+`vijure/src/whim/editor.clj` and `caprice/Caprice/Editor.hs` are generated,
+tracked, and refused by `make whim-editor-check` when stale.
 
-**The tests**: `make whim-test` runs 51 key sessions on the C and the Go editor
-and requires the same screens, with a control that must move them;
-`make whim-test-wide` does the same with 240 cases; `make whim-test-java` and
-`make whim-test-clj` hold the Java and the Clojure editors to them too. `make go-test` runs the Go packages' tests.
+**The tests.**
+- `make whim-test` runs 80 key sessions on the C editor, built from the tree
+  and from HEAD, and on the Go editor. It requires the same screens and exits,
+  with a control that must move them.
+- `make whim-test-wide` does the same with 240 cases: keys, every Ex command,
+  command lines, and a real terminal.
+- `make whim-test-java`, `make whim-test-clj` and `make whim-test-hs` hold the
+  Java, Clojure and Haskell editors to them too.
+- `make go-test` runs the Go packages' tests.
 
 ## Use
 
 ```sh
 make                   # fetch the input if it moved, then every editor: bin/whim,
                        # bin/whim-vim, bin/slim-vim, bin/braaam and braaam.jar,
-                       # bin/vijure and vijure.jar
-make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the three translations
+                       # bin/vijure and vijure.jar, bin/caprice
+make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the translations
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj or Editor.hs
-make whim-test         # the quick suite; whim-test-wide, whim-test-java
+make whim-test         # the quick suite; whim-test-wide for the wide one
 make go-test           # the Go packages' tests
 make bin/whim-vim      # the C editor's binary
 make bin/braaam        # the Java editor, and a launcher: bin/braaam [args]
 make braaam.jar        # the same as one jar: java -jar braaam.jar [args]
 make bin/vijure        # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/vijure [args]
 make vijure.jar        # the same as one jar: java -jar vijure.jar [args]
-make whim-test-clj     # the quick suite with the Clojure editor too
+make bin/caprice       # the Haskell editor (doc/HASKELL.md), compiled by GHC
+make whim-test-java    # the quick suite with the Java editor too
+make whim-test-clj     # ... with the Clojure editor
+make whim-test-hs      # ... with the Haskell editor
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make help              # every target
 ```
@@ -63,43 +82,55 @@ make help              # every target
   `Host` (the terminal, the clock, input, signals, output); a process holds as
   many as it makes. `editor/term` is the terminal host, `editor/cmd/whim` the
   launcher behind `bin/whim`.
-- **Java**, **braaam** (`braaam/`): the same shape -- `Editor.java` on a `Host`, a runtime
-  (`rt/`, a C pointer as an array and an offset), and a terminal host through
-  the Foreign Function & Memory API.
-- **Clojure**, **vijure** (`vijure/`): the namespace `whim.editor`, generated from basic
-  blocks (structured `let`/`loop` where the C's flow nests, a `loop`/`case`
-  state machine where it does not), on the Java editor's runtime and host
-  through interop; `whim.cljhost` the glue, `whim.cljmain` the launcher.
+- **Java**, **braaam** (`braaam/`): the same shape. `Editor.java` runs on a
+  `Host`, with a runtime (`rt/`, a C pointer as an array and an offset) and a
+  terminal host through the Foreign Function & Memory API.
+- **Clojure**, **vijure** (`vijure/`): the namespace `whim.editor`, generated
+  from basic blocks. It nests structured `let`/`loop` where the C's flow nests,
+  and uses a `loop`/`case` state machine where it does not. It runs on the
+  Java editor's runtime and host through interop; `whim.cljhost` is the glue
+  and `whim.cljmain` the launcher.
+- **Haskell**, **caprice** (`caprice/`): the module `Caprice.Editor`, written on
+  C's own memory, raw. Its runtime is `Caprice.Rt`, its host a record of
+  functions, its terminal host termios and poll; several editors run at once.
 
 ## Requirements
 
 Linux, **Go 1.27**, **gcc** linking statically against **musl**, `git`, `curl`,
-and binutils; measured on Alpine Linux. `make` builds the Java and the
-Clojure editors too, so it also needs a **JDK 22 or later** and the
-**`clojure`** command (Clojure 1.12, whose jars
-it copies), and starts fastest on a JDK 25 or later (an AOT cache). The C front end is a fork of `modernc.org/cc/v4` carried as source,
-so after fetching the input nothing needs the network.
+and binutils; measured on Alpine Linux. `make` builds the other editors too,
+so it also needs:
+- a **JDK 22 or later**, which starts the editors fastest at JDK 25 or later
+  (an AOT cache);
+- the **`clojure`** command (Clojure 1.12, whose jars it copies);
+- **GHC 9.14** with its boot packages, and no cabal.
+
+The C front end is a fork of `modernc.org/cc/v4` carried as source, so after
+fetching the input nothing needs the network.
 
 ## Layout
 
 ```
 cmd/whim/        the toolset: go tool whim <subcommand>
-internal/        the plan, the phases (internal/phase/NNN/: GOAL.md, edit.go)
-                 and what the generic library is told about vim (internal/whim)
+internal/        the plan (internal/build), the cuts and steps, the phases
+                 (internal/phase/NNN/: GOAL.md and edit.go; the records of
+                 phases that edit nothing now in internal/phase/archive/), and
+                 what the generic library is told about vim (internal/whim)
 crefactor/       the generic C refactoring library, a Go module of its own:
                  the C front end, the canonical printer, the sweep, the driver,
-                 the transforms, the analyses, and togo, the C-to-Go-and-Java
+                 the transforms (the fall-out closure among them), the
+                 analyses, and togo, the C-to-Go, Java, Clojure and Haskell
                  translator
 editor/          the editor in Go          braaam/   the editor in Java
-vijure/       the editor in Clojure: the glue, the launcher, the build
+vijure/          the editor in Clojure     caprice/  the editor in Haskell
 src/             the input (fetched) and the product (tracked)
-doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
-                 not done), JAVA.md, GO-IDIOMS.md, JAVA-IDIOMS.md,
-                 CLOJURE-IDIOMS.md, PIPELINE-COMPACTION.md,
-                 GO-LISP.md, CLOJURE.md, HASKELL.md, RUST.md (preliminary plans, not scheduled),
-                 IR.md (where a feature goes; an intermediate representation),
-                 IR-SCHEMA.md (that representation sketched),
-                 PARALLEL-SUBSTITUTE.md (how much of a :%s is matching)
+doc/             GOALS.md (what holds for every phase, and the blocks),
+                 AGENDA.md (what is not done), PIPELINE-REFORM.md (the
+                 pipeline reordered: the front, the blocks, what was measured),
+                 PIPELINE-COMPACTION.md, JAVA.md, CLOJURE.md, CLOJURE-PROFILE.md,
+                 HASKELL.md, the *-IDIOMS.md surveys, GO-LISP.md,
+                 PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
+                 IR.md and IR-SCHEMA.md (an intermediate representation),
+                 RUST.md and WASM.md (preliminary plans, not scheduled)
 CLAUDE.md        the working guide: the build, the pipeline, what to know
                  before changing anything shared
 ```
