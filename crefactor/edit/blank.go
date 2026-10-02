@@ -24,15 +24,45 @@ import "bytes"
 // one blanked copy across a round gets the same saving structurally, and
 // without an identity trick whose own docstring has to explain why it is not
 // a correctness bug.
+//
+// The text is copied whole and only the literals' and comments' insides are
+// written over: the scan jumps from one quote or slash to the next by
+// bytes.IndexByte rather than looking at every byte, which made it several
+// times faster on a text that is mostly code.  TestBlankSame holds it to the
+// byte loop it replaced (blankBytewise, in the test).
 func Blank(s []byte) []byte {
 	out := make([]byte, len(s))
+	copy(out, s)
 	n := len(s)
+	// The next '"', '\'' and '/' at or after i, or n.
+	next := func(c byte, i int) int {
+		if i >= n {
+			return n
+		}
+		if j := bytes.IndexByte(s[i:], c); j >= 0 {
+			return i + j
+		}
+		return n
+	}
+	dq, sq, sl := next('"', 0), next('\'', 0), next('/', 0)
 	for i := 0; i < n; {
+		if dq < i {
+			dq = next('"', i)
+		}
+		if sq < i {
+			sq = next('\'', i)
+		}
+		if sl < i {
+			sl = next('/', i)
+		}
+		i = min(dq, sq, sl)
+		if i >= n {
+			break
+		}
 		c := s[i]
 
 		if c == '"' || c == '\'' {
 			q := c
-			out[i] = c
 			i++
 			for i < n {
 				// An escape consumes two bytes, and a backslash-newline
@@ -48,7 +78,6 @@ func Blank(s []byte) []byte {
 					continue
 				}
 				if s[i] == q {
-					out[i] = q
 					i++
 					break
 				}
@@ -89,7 +118,6 @@ func Blank(s []byte) []byte {
 			continue
 		}
 
-		out[i] = c
 		i++
 	}
 	return out
