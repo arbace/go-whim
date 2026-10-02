@@ -1211,6 +1211,16 @@ func (f *rfn) switchStmt(s *cc.SelectionStatement) bool {
 		}
 		cur.items = append(cur.items, it)
 	}
+	// a case of no statements is the next case's: one arm's pattern, not a
+	// ladder's rung
+	for i := 0; i+1 < len(groups); i++ {
+		if g := groups[i]; rsNoItems(g.items) {
+			n := groups[i+1]
+			n.vals, n.pats, n.def = append(g.vals, n.vals...), append(g.pats, n.pats...), n.def || g.def
+			groups = append(groups[:i], groups[i+1:]...)
+			i--
+		}
+	}
 	// the runs: a case's statements and those of the cases it falls into
 	var runs [][]*rcase
 	for i, g := range groups {
@@ -1220,9 +1230,10 @@ func (f *rfn) switchStmt(s *cc.SelectionStatement) bool {
 		}
 		runs = append(runs, []*rcase{g})
 	}
+	runs = rsDupRuns(runs)
 	f.nlbl++
 	c := &rctl{kind: ctlSwitch, label: fmt.Sprintf("s%d", f.nlbl), match: true}
-	if len(runs) == len(groups) {
+	if rsAllSingle(runs) {
 		f.r.nMatch++
 	} else {
 		f.r.nLadder++
@@ -1360,6 +1371,12 @@ func (f *rfn) matchSwitch(x, ty string, runs [][]*rcase, c *rctl) bool {
 	}
 	f.line("match %s {", x)
 	for _, a := range arms {
+		if c.used {
+			// the arms were written a level out: the label's block was not known
+			if first, rest, ok := strings.Cut(a, "\n"); ok {
+				a = first + "\n" + indent(rest, 4)
+			}
+		}
 		f.line("    %s", a)
 	}
 	f.line("}")
@@ -1403,18 +1420,21 @@ func (f *rfn) ladderRun(v, ty string, run []*rcase, lastItems []*cc.BlockItem) b
 	} else {
 		arms = append(arms, fmt.Sprintf("_ => break '%s,", def))
 	}
+	// each block nested in the one after it, its case's statements after it
+	base := f.ind
 	for i := len(run) - 1; i >= 0; i-- {
+		f.ind = base + len(run) - 1 - i
 		f.line("'%s: {", labels[i])
 	}
-	f.ind++
+	f.ind = base + len(run)
 	f.line("match %s {", v)
 	for _, a := range arms {
 		f.line("    %s", a)
 	}
 	f.line("}")
-	f.ind--
 	div := false
 	for i, g := range run {
+		f.ind = base + len(run) - 1 - i
 		f.line("}")
 		its := g.items
 		if i == len(run)-1 {
@@ -1422,6 +1442,7 @@ func (f *rfn) ladderRun(v, ty string, run []*rcase, lastItems []*cc.BlockItem) b
 		}
 		div = f.itemList(its)
 	}
+	f.ind = base
 	return div
 }
 
@@ -1459,4 +1480,86 @@ func (f *rfn) letTemp(n, v string) string {
 		}
 	}
 	return n + " = " + v + ";"
+}
+
+// rsNoItems says a case's items do nothing: empty statements, or none.
+func rsNoItems(its []*cc.BlockItem) bool {
+	for _, it := range its {
+		if it.Case != cc.BlockItemStmt {
+			return false
+		}
+		st := it.Statement
+		switch {
+		case st.Case == cc.StatementExpr && st.ExpressionStatement.ExpressionList == nil:
+		case st.Case == cc.StatementCompound && st.CompoundStatement.BlockItemList == nil:
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// rsDupMax is how many statements a case falls into that are written again
+// in the case that falls, rather than a ladder of labeled blocks.
+const rsDupMax = 5
+
+// rsDupRuns are the runs of cases with each run whose fallen-into cases'
+// statements are few and simple -- expression statements and jumps, no
+// declaration, no label, no goto -- an arm for each case, its own
+// statements and those it falls into written again: `X => { a; b }`,
+// `Y => { b }` for C's `case X: a; case Y: b; break;`.
+func rsDupRuns(runs [][]*rcase) [][]*rcase {
+	var out [][]*rcase
+	for _, run := range runs {
+		if len(run) == 1 || !rsDupable(run[1:]) {
+			out = append(out, run)
+			continue
+		}
+		for i := range run {
+			g := *run[i]
+			g.items = nil
+			for _, h := range run[i:] {
+				g.items = append(g.items, h.items...)
+			}
+			out = append(out, []*rcase{&g})
+		}
+	}
+	return out
+}
+
+// rsDupable says cases' statements are few and simple enough to write
+// again.
+func rsDupable(gs []*rcase) bool {
+	n := 0
+	for _, g := range gs {
+		for _, it := range g.items {
+			if it.Case != cc.BlockItemStmt {
+				return false
+			}
+			switch st := it.Statement; st.Case {
+			case cc.StatementExpr:
+			case cc.StatementJump:
+				if st.JumpStatement.Case == cc.JumpStatementGoto {
+					return false
+				}
+				if st.JumpStatement.Case == cc.JumpStatementBreak {
+					continue // the arm's end
+				}
+			default:
+				return false
+			}
+			n++
+		}
+	}
+	return n <= rsDupMax
+}
+
+// rsAllSingle says every run is one case: the switch is a match.
+func rsAllSingle(runs [][]*rcase) bool {
+	for _, r := range runs {
+		if len(r) > 1 {
+			return false
+		}
+	}
+	return true
 }

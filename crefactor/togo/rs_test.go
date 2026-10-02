@@ -677,3 +677,50 @@ func TestRsBlocks(t *testing.T) {
 		t.Errorf("a block inside a condition:\n%s", numbered(prog))
 	}
 }
+
+// rsFallC is a switch's cases that fall into the next (doc/RUST-IDIOMS.md,
+// item 15): a case of no statements is the next case's pattern; a case
+// falling into a few simple statements has them written again; one
+// falling into more keeps the ladder of labeled blocks.
+const rsFallC = javaHost + `
+static int fall(int c)
+{
+    int r = 0;
+    switch (c) {
+    case 1:
+    case 2:
+        r = 10;
+        break;
+    case 3:
+        r += 1;
+    case 4:
+        r += 2;
+        r *= 3;
+        break;
+    case 5:
+        r = 7;
+    case 6:
+        if (r > 3) { r--; out(r); }
+        for (int i = 0; i < 3; i++) r += i;
+        r++; r++; r++; r++; r++;
+        break;
+    default:
+        r = -1;
+    }
+    return r;
+}
+
+void run(void)
+{
+    for (int c = 0; c < 8; c++) out(fall(c));
+}
+`
+
+func TestRsFall(t *testing.T) {
+	prog := rsSame(t, rsFallC, Profile{}, javaHarnessC)
+	for _, s := range []string{"1 | 2 => {", "3 => {\n            r += 1;\n            r += 2;\n            r *= 3;\n        }", "4 => {\n            r += 2;", "v1_3 @ (5 | 6) => {\n            'v1_3_1: {\n                'v1_3_0: {"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+}

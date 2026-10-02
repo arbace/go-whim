@@ -184,6 +184,9 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   ```
 
   This is C's shape kept; the plan's lowered form for these is not needed.
+  A case of no statements is the next case's pattern, and one that falls
+  into at most five simple statements has them written again, an arm of
+  its own (`RUST-IDIOMS.md` item 15).
 - **What Rust's own analysis requires is kept**: a statement after one that
   cannot complete (in Rust's terms: `loop` with no break, a labeled block no
   break leaves) is not written, being dead, and a function whose end Rust
@@ -362,6 +365,8 @@ A second pass (`RUST-IDIOMS.md`, *The second pass*):
 - stores out of conditions (item 14): a loop that checks its condition at
   its top, nested ifs for an `&&` that stores, a negated comparison turned
   round; blocks 154 -> 72.
+- a switch's fallthrough (item 15): an empty case the next's pattern, a
+  few simple statements fallen into written again; labels 91 -> 75.
 
 ## Not done
 

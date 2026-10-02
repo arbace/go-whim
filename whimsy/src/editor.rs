@@ -18906,7 +18906,6 @@ pub unsafe fn edit_normalchar(ed: *mut Editor, c: i32, mut inserted_space: bool)
 pub unsafe fn edit(ed: *mut Editor, cmdchar: i32, startln: bool, mut count: i64) -> bool {
     let mut ins_bs__o: ins_bs__out_T;
     let mut save_curbuf: bufref_T = core::mem::zeroed();
-    let mut tick: varnumber_T;
     let mut c: i32 = 0;
     let mut esc_now: bool = false;
     let mut lastc: i32 = 0;
@@ -19144,240 +19143,7 @@ pub unsafe fn edit(ed: *mut Editor, cmdchar: i32, startln: bool, mut count: i64)
         }
         's3: {
             match c {
-                v3_0 @ (27 | 3) => {
-                'v3_0_1: {
-                'v3_0_0: {
-                    match v3_0 {
-                        27 => break 'v3_0_0,
-                        _ => break 'v3_0_1,
-                    }
-                }
-                }
-                if goto_im(ed) {
-                    if (*ed).got_int != 0 {
-                        vgetc(ed);
-                        (*ed).got_int = FALSE;
-                    } else {
-                        vim_beep(ed, BO_IM as u32);
-                    }
-                    break 's3;
-                }
-                if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                    return c == Ctrl_O;
-                }
-                continue 'l1;
-            }
-                26 => {
-                if (*ed).p_im == 0 {
-                    inserted_space = edit_normalchar(ed, c, inserted_space);
-                    break 's3;
-                }
-                do_cmdline_cmd(ed, c"stop".as_ptr() as *mut u8);
-                continue 'l1;
-            }
-                15 => {
-                ins_ctrl_o(ed);
-                if get_ve_flags(ed) & VE_ONEMORE as u32 != 0 {
-                    (*ed).ins_at_eol = false;
-                    nomove = true;
-                }
-                count = 0;
-                if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                    return c == Ctrl_O;
-                }
-                continue 'l1;
-            }
-                -18795 | -20477 => {
-                ins_insert(ed, replaceState);
-            }
-                -22773 => {}
-                -12581 | -12651 | -14845 => {
-                stuffcharReadbuff(ed, K_HELP);
-                if (*ed).p_im != 0 {
-                    (*ed).need_start_insertmode = true;
-                }
-                if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                    return c == Ctrl_O;
-                }
-                continue 'l1;
-            }
-                -22783 | 0 | 1 => {
-                if !stuff_inserted(ed, NUL, 1, c == Ctrl_A) && c != Ctrl_A && (*ed).p_im == 0 {
-                    if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                        return c == Ctrl_O;
-                    }
-                    continue 'l1;
-                }
-                inserted_space = false;
-            }
-                18 => {
-                ins_reg(ed);
-                inserted_space = false;
-            }
-                7 => {
-                ins_ctrl_g(ed);
-            }
-                30 => {}
-                4 | 20 => {
-                ins_shift(ed, c, lastc);
-                inserted_space = false;
-            }
-                -17515 | -20733 => {
-                ins_del(ed);
-            }
-                -25195 | -27133 | 8 => {
-                ins_bs__o = ins_bs(ed, c, BACKSPACE_CHAR, inserted_space);
-                inserted_space = ins_bs__o.inserted_space_p;
-                did_backspace = ins_bs__o.r__;
-            }
-                23 => {
-                ins_bs__o = ins_bs(ed, c, BACKSPACE_WORD, inserted_space);
-                inserted_space = ins_bs__o.inserted_space_p;
-                did_backspace = ins_bs__o.r__;
-            }
-                21 => {
-                ins_bs__o = ins_bs(ed, c, BACKSPACE_LINE, inserted_space);
-                did_backspace = ins_bs__o.r__;
-                inserted_space = false;
-            }
-                -21328 => {
-                bracketed_paste(ed, PASTE_INSERT, false, null_mut());
-                if cmdchar == K_PASTESTART {
-                    if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                        return c == Ctrl_O;
-                    }
-                    continue 'l1;
-                }
-            }
-                -17744 => {}
-                -13821 => {}
-                -26621 | -26877 => {
-                tick = (*(*ed).curbuf).b_changedtick;
-                set_bufref(ed, &raw mut save_curbuf, (*ed).curbuf);
-                do_cmdkey_command(ed, c, 0);
-                if (*(*ed).curbuf).b_u_synced || bufref_valid(ed, &raw mut save_curbuf) && save_curbuf.br_buf == (*ed).curbuf && tick != (*(*ed).curbuf).b_changedtick {
-                    (*ed).ins_need_undo = true;
-                }
-            }
-                -24829 => {
-                (*ed).did_cursorhold = true;
-                if (*ed).dont_sync_undo == TRUE {
-                    (*ed).dont_sync_undo = MAYBE;
-                }
-            }
-                -28413 => {
-                if (*ed).dont_sync_undo == TRUE {
-                    (*ed).dont_sync_undo = MAYBE;
-                }
-            }
-                -26731 | -12619 | -12835 | -22525 => {
-                ins_home(ed, c);
-            }
-                -14144 | -13387 | -14122 | -22781 => {
-                ins_end(ed, c);
-            }
-                -27755 => {
-                if (*ed).mod_mask & 6 != 0 {
-                    ins_s_left(ed);
-                } else {
-                    ins_left(ed);
-                }
-            }
-                -13347 | -22013 => {
-                ins_s_left(ed);
-            }
-                -29291 => {
-                if (*ed).mod_mask & 6 != 0 {
-                    ins_s_right(ed);
-                } else {
-                    ins_right(ed);
-                }
-            }
-                -26917 | -22269 => {
-                ins_s_right(ed);
-            }
-                -30059 => {
-                if (*ed).mod_mask & MOD_MASK_SHIFT != 0 {
-                    ins_pageup(ed);
-                } else {
-                    ins_up(ed, false);
-                }
-            }
-                -1277 | -20587 | -13131 => {
-                ins_pageup(ed);
-            }
-                -25707 => {
-                if (*ed).mod_mask & MOD_MASK_SHIFT != 0 {
-                    ins_pagedown(ed);
-                } else {
-                    ins_down(ed, false);
-                }
-            }
-                -1533 | -20075 | -13643 => {
-                ins_pagedown(ed);
-            }
-                v3_31 @ (-17003 | 9) => {
-                'v3_31_1: {
-                'v3_31_0: {
-                    match v3_31 {
-                        -17003 => break 'v3_31_0,
-                        _ => break 'v3_31_1,
-                    }
-                }
-                c = TAB;
-                }
-                inserted_space = false;
-                if ins_tab(ed) {
-                    inserted_space = edit_normalchar(ed, c, inserted_space);
-                    break 's3;
-                }
-            }
-                v3_32 @ (-16715 | 13 | 10) => {
-                'v3_32_1: {
-                'v3_32_0: {
-                    match v3_32 {
-                        -16715 => break 'v3_32_0,
-                        _ => break 'v3_32_1,
-                    }
-                }
-                c = CAR;
-                }
-                if !ins_eol(ed, c) && (*ed).p_im == 0 {
-                    if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                        return c == Ctrl_O;
-                    }
-                    continue 'l1;
-                }
-                inserted_space = false;
-            }
-                11 => {
-                inserted_space = edit_normalchar(ed, c, inserted_space);
-            }
-                24 => {}
-                29 => {
-                inserted_space = edit_normalchar(ed, c, inserted_space);
-            }
-                6 => {
-                inserted_space = edit_normalchar(ed, c, inserted_space);
-            }
-                115 | 19 => {
-                inserted_space = edit_normalchar(ed, c, inserted_space);
-            }
-                12 => {
-                if (*ed).p_im != 0 {
-                    if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
-                        return c == Ctrl_O;
-                    }
-                    continue 'l1;
-                }
-                inserted_space = edit_normalchar(ed, c, inserted_space);
-            }
-                16 | 14 => {}
-                25 | 5 => {
-                c = ins_ctrl_ey(ed, c);
-            }
-                _ => {
-                if c == (*ed).intr_char {
+                27 | 3 => {
                     if goto_im(ed) {
                         if (*ed).got_int != 0 {
                             vgetc(ed);
@@ -19392,8 +19158,233 @@ pub unsafe fn edit(ed: *mut Editor, cmdchar: i32, startln: bool, mut count: i64)
                     }
                     continue 'l1;
                 }
-                inserted_space = edit_normalchar(ed, c, inserted_space);
-            }
+                26 => {
+                    if (*ed).p_im == 0 {
+                        inserted_space = edit_normalchar(ed, c, inserted_space);
+                        break 's3;
+                    }
+                    do_cmdline_cmd(ed, c"stop".as_ptr() as *mut u8);
+                    continue 'l1;
+                }
+                15 => {
+                    ins_ctrl_o(ed);
+                    if get_ve_flags(ed) & VE_ONEMORE as u32 != 0 {
+                        (*ed).ins_at_eol = false;
+                        nomove = true;
+                    }
+                    count = 0;
+                    if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                        return c == Ctrl_O;
+                    }
+                    continue 'l1;
+                }
+                -18795 | -20477 => {
+                    ins_insert(ed, replaceState);
+                }
+                -22773 => {}
+                -12581 | -12651 | -14845 => {
+                    stuffcharReadbuff(ed, K_HELP);
+                    if (*ed).p_im != 0 {
+                        (*ed).need_start_insertmode = true;
+                    }
+                    if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                        return c == Ctrl_O;
+                    }
+                    continue 'l1;
+                }
+                -22783 | 0 | 1 => {
+                    if !stuff_inserted(ed, NUL, 1, c == Ctrl_A) && c != Ctrl_A && (*ed).p_im == 0 {
+                        if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                            return c == Ctrl_O;
+                        }
+                        continue 'l1;
+                    }
+                    inserted_space = false;
+                }
+                18 => {
+                    ins_reg(ed);
+                    inserted_space = false;
+                }
+                7 => {
+                    ins_ctrl_g(ed);
+                }
+                30 => {}
+                4 | 20 => {
+                    ins_shift(ed, c, lastc);
+                    inserted_space = false;
+                }
+                -17515 | -20733 => {
+                    ins_del(ed);
+                }
+                -25195 | -27133 | 8 => {
+                    ins_bs__o = ins_bs(ed, c, BACKSPACE_CHAR, inserted_space);
+                    inserted_space = ins_bs__o.inserted_space_p;
+                    did_backspace = ins_bs__o.r__;
+                }
+                23 => {
+                    ins_bs__o = ins_bs(ed, c, BACKSPACE_WORD, inserted_space);
+                    inserted_space = ins_bs__o.inserted_space_p;
+                    did_backspace = ins_bs__o.r__;
+                }
+                21 => {
+                    ins_bs__o = ins_bs(ed, c, BACKSPACE_LINE, inserted_space);
+                    did_backspace = ins_bs__o.r__;
+                    inserted_space = false;
+                }
+                -21328 => {
+                    bracketed_paste(ed, PASTE_INSERT, false, null_mut());
+                    if cmdchar == K_PASTESTART {
+                        if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                            return c == Ctrl_O;
+                        }
+                        continue 'l1;
+                    }
+                }
+                -17744 => {}
+                -13821 => {}
+                -26621 | -26877 => {
+                    let tick: varnumber_T = (*(*ed).curbuf).b_changedtick;
+                    set_bufref(ed, &raw mut save_curbuf, (*ed).curbuf);
+                    do_cmdkey_command(ed, c, 0);
+                    if (*(*ed).curbuf).b_u_synced || bufref_valid(ed, &raw mut save_curbuf) && save_curbuf.br_buf == (*ed).curbuf && tick != (*(*ed).curbuf).b_changedtick {
+                        (*ed).ins_need_undo = true;
+                    }
+                }
+                -24829 => {
+                    (*ed).did_cursorhold = true;
+                    if (*ed).dont_sync_undo == TRUE {
+                        (*ed).dont_sync_undo = MAYBE;
+                    }
+                }
+                -28413 => {
+                    if (*ed).dont_sync_undo == TRUE {
+                        (*ed).dont_sync_undo = MAYBE;
+                    }
+                }
+                -26731 | -12619 | -12835 | -22525 => {
+                    ins_home(ed, c);
+                }
+                -14144 | -13387 | -14122 | -22781 => {
+                    ins_end(ed, c);
+                }
+                -27755 => {
+                    if (*ed).mod_mask & 6 != 0 {
+                        ins_s_left(ed);
+                    } else {
+                        ins_left(ed);
+                    }
+                }
+                -13347 | -22013 => {
+                    ins_s_left(ed);
+                }
+                -29291 => {
+                    if (*ed).mod_mask & 6 != 0 {
+                        ins_s_right(ed);
+                    } else {
+                        ins_right(ed);
+                    }
+                }
+                -26917 | -22269 => {
+                    ins_s_right(ed);
+                }
+                -30059 => {
+                    if (*ed).mod_mask & MOD_MASK_SHIFT != 0 {
+                        ins_pageup(ed);
+                    } else {
+                        ins_up(ed, false);
+                    }
+                }
+                -1277 | -20587 | -13131 => {
+                    ins_pageup(ed);
+                }
+                -25707 => {
+                    if (*ed).mod_mask & MOD_MASK_SHIFT != 0 {
+                        ins_pagedown(ed);
+                    } else {
+                        ins_down(ed, false);
+                    }
+                }
+                -1533 | -20075 | -13643 => {
+                    ins_pagedown(ed);
+                }
+                v3_31 @ (-17003 | 9) => {
+                    'v3_31_1: {
+                        'v3_31_0: {
+                            match v3_31 {
+                                -17003 => break 'v3_31_0,
+                                _ => break 'v3_31_1,
+                            }
+                        }
+                        c = TAB;
+                    }
+                    inserted_space = false;
+                    if ins_tab(ed) {
+                        inserted_space = edit_normalchar(ed, c, inserted_space);
+                        break 's3;
+                    }
+                }
+                v3_32 @ (-16715 | 13 | 10) => {
+                    'v3_32_1: {
+                        'v3_32_0: {
+                            match v3_32 {
+                                -16715 => break 'v3_32_0,
+                                _ => break 'v3_32_1,
+                            }
+                        }
+                        c = CAR;
+                    }
+                    if !ins_eol(ed, c) && (*ed).p_im == 0 {
+                        if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                            return c == Ctrl_O;
+                        }
+                        continue 'l1;
+                    }
+                    inserted_space = false;
+                }
+                11 => {
+                    inserted_space = edit_normalchar(ed, c, inserted_space);
+                }
+                24 => {}
+                29 => {
+                    inserted_space = edit_normalchar(ed, c, inserted_space);
+                }
+                6 => {
+                    inserted_space = edit_normalchar(ed, c, inserted_space);
+                }
+                115 | 19 => {
+                    inserted_space = edit_normalchar(ed, c, inserted_space);
+                }
+                12 => {
+                    if (*ed).p_im != 0 {
+                        if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                            return c == Ctrl_O;
+                        }
+                        continue 'l1;
+                    }
+                    inserted_space = edit_normalchar(ed, c, inserted_space);
+                }
+                16 | 14 => {}
+                25 | 5 => {
+                    c = ins_ctrl_ey(ed, c);
+                }
+                _ => {
+                    if c == (*ed).intr_char {
+                        if goto_im(ed) {
+                            if (*ed).got_int != 0 {
+                                vgetc(ed);
+                                (*ed).got_int = FALSE;
+                            } else {
+                                vim_beep(ed, BO_IM as u32);
+                            }
+                            break 's3;
+                        }
+                        if edit_esc(ed, &raw mut count, cmdchar, nomove, &raw mut (*ed).edit__o_lnum) {
+                            return c == Ctrl_O;
+                        }
+                        continue 'l1;
+                    }
+                    inserted_space = edit_normalchar(ed, c, inserted_space);
+                }
             }
         }
         if c != K_CURSORHOLD && c != K_COMPLETE_DELAY {
@@ -20405,29 +20396,29 @@ pub unsafe fn ins_start_select(ed: *mut Editor, c: i32) -> bool {
     's1: {
         match c {
             v1_0 @ (-12619 | -13387 | -20587 | -13131 | -20075 | -13643 | -13347 | -26917 | -1277 | -1533 | -14122 | -12835) => {
-            'v1_0_1: {
-            'v1_0_0: {
-                match v1_0 {
-                    -12619 | -13387 | -20587 | -13131 | -20075 | -13643 => break 'v1_0_0,
-                    _ => break 'v1_0_1,
+                'v1_0_1: {
+                    'v1_0_0: {
+                        match v1_0 {
+                            -12619 | -13387 | -20587 | -13131 | -20075 | -13643 => break 'v1_0_0,
+                            _ => break 'v1_0_1,
+                        }
+                    }
+                    if (*ed).mod_mask & MOD_MASK_SHIFT == 0 {
+                        break 's1;
+                    }
                 }
+                start_selection(ed);
+                stuffcharReadbuff(ed, Ctrl_O);
+                if (*ed).mod_mask != 0 {
+                    *decay(&raw mut buf) = 128;
+                    *decay(&raw mut buf).wrapping_add(1) = KS_MODIFIER as u8;
+                    *decay(&raw mut buf).wrapping_add(2) = (*ed).mod_mask as u8;
+                    *decay(&raw mut buf).wrapping_add(3) = NUL as u8;
+                    stuffReadbuffLen(ed, decay(&raw mut buf), 3);
+                }
+                stuffcharReadbuff(ed, c);
+                return true;
             }
-            if (*ed).mod_mask & MOD_MASK_SHIFT == 0 {
-                break 's1;
-            }
-            }
-            start_selection(ed);
-            stuffcharReadbuff(ed, Ctrl_O);
-            if (*ed).mod_mask != 0 {
-                *decay(&raw mut buf) = 128;
-                *decay(&raw mut buf).wrapping_add(1) = KS_MODIFIER as u8;
-                *decay(&raw mut buf).wrapping_add(2) = (*ed).mod_mask as u8;
-                *decay(&raw mut buf).wrapping_add(3) = NUL as u8;
-                stuffReadbuffLen(ed, decay(&raw mut buf), 3);
-            }
-            stuffcharReadbuff(ed, c);
-            return true;
-        }
             _ => {}
         }
     }
@@ -22885,8 +22876,6 @@ pub unsafe fn checkforcmd_noparen(pp: *mut *mut char_u, cmd: *const i8, len: i32
 
 pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _errormsg: *const *mut i8, cmod: *mut cmdmod_T, skip_only: bool) -> bool {
     let mut reg_pat: *mut char_u = null_mut();
-    let mut nulp: *mut char_u;
-    let mut c: i32;
     let orig_cmd: *mut char_u = (*eap).cmd;
     let mut cmd_start: *mut char_u = null_mut();
     let mut has_visual_range: bool = false;
@@ -22912,89 +22901,89 @@ pub unsafe fn parse_command_modifiers(ed: *mut Editor, eap: *mut exarg_T, _error
         's3: {
             match *p as i32 {
                 107 => {
-                if checkforcmd_noparen(&raw mut (*eap).cmd, c"keepmarks".as_ptr() as *const i8, 3) {
-                    (*cmod).cmod_flags |= CMOD_KEEPMARKS;
+                    if checkforcmd_noparen(&raw mut (*eap).cmd, c"keepmarks".as_ptr() as *const i8, 3) {
+                        (*cmod).cmod_flags |= CMOD_KEEPMARKS;
+                        continue 'l1;
+                    }
+                    if checkforcmd_noparen(&raw mut (*eap).cmd, c"keeppatterns".as_ptr() as *const i8, 5) {
+                        (*cmod).cmod_flags |= CMOD_KEEPPATTERNS;
+                        continue 'l1;
+                    }
+                    if !checkforcmd_noparen(&raw mut (*eap).cmd, c"keepjumps".as_ptr() as *const i8, 5) {
+                        break 's3;
+                    }
+                    (*cmod).cmod_flags |= CMOD_KEEPJUMPS;
                     continue 'l1;
                 }
-                if checkforcmd_noparen(&raw mut (*eap).cmd, c"keeppatterns".as_ptr() as *const i8, 5) {
-                    (*cmod).cmod_flags |= CMOD_KEEPPATTERNS;
-                    continue 'l1;
-                }
-                if !checkforcmd_noparen(&raw mut (*eap).cmd, c"keepjumps".as_ptr() as *const i8, 5) {
-                    break 's3;
-                }
-                (*cmod).cmod_flags |= CMOD_KEEPJUMPS;
-                continue 'l1;
-            }
                 102 => {
-                nulp = null_mut();
-                c = 0;
-                if !checkforcmd_noparen(&raw mut p, c"filter".as_ptr() as *const i8, 4) || *p == NUL as u8 || ends_excmd(*p as i32) {
-                    break 's3;
-                }
-                if *p == b'!' {
-                    (*cmod).cmod_filter_force = true;
-                    p = skipwhite(p.wrapping_add(1));
-                    if *p == NUL as u8 || ends_excmd(*p as i32) {
+                    let mut nulp: *mut char_u = null_mut();
+                    let mut c: i32 = 0;
+                    if !checkforcmd_noparen(&raw mut p, c"filter".as_ptr() as *const i8, 4) || *p == NUL as u8 || ends_excmd(*p as i32) {
                         break 's3;
                     }
-                }
-                if skip_only {
-                    p = skip_vimgrep_pat(ed, p, null_mut(), null_mut());
-                } else {
-                    p = skip_vimgrep_pat_ext(ed, p, &raw mut reg_pat, null_mut(), &raw mut nulp, &raw mut c);
-                }
-                if p.is_null() || *p == NUL as u8 {
-                    break 's3;
-                }
-                if !skip_only {
-                    (*cmod).cmod_filter_regmatch.regprog = vim_regcomp(ed, reg_pat, RE_MAGIC);
-                    if (*cmod).cmod_filter_regmatch.regprog.is_null() {
+                    if *p == b'!' {
+                        (*cmod).cmod_filter_force = true;
+                        p = skipwhite(p.wrapping_add(1));
+                        if *p == NUL as u8 || ends_excmd(*p as i32) {
+                            break 's3;
+                        }
+                    }
+                    if skip_only {
+                        p = skip_vimgrep_pat(ed, p, null_mut(), null_mut());
+                    } else {
+                        p = skip_vimgrep_pat_ext(ed, p, &raw mut reg_pat, null_mut(), &raw mut nulp, &raw mut c);
+                    }
+                    if p.is_null() || *p == NUL as u8 {
                         break 's3;
                     }
-                    if !nulp.is_null() {
-                        *nulp = c as u8;
+                    if !skip_only {
+                        (*cmod).cmod_filter_regmatch.regprog = vim_regcomp(ed, reg_pat, RE_MAGIC);
+                        if (*cmod).cmod_filter_regmatch.regprog.is_null() {
+                            break 's3;
+                        }
+                        if !nulp.is_null() {
+                            *nulp = c as u8;
+                        }
                     }
-                }
-                (*eap).cmd = p;
-                continue 'l1;
-            }
-                108 => {
-                if checkforcmd_noparen(&raw mut (*eap).cmd, c"lockmarks".as_ptr() as *const i8, 3) {
-                    (*cmod).cmod_flags |= CMOD_LOCKMARKS;
+                    (*eap).cmd = p;
                     continue 'l1;
                 }
-            }
+                108 => {
+                    if checkforcmd_noparen(&raw mut (*eap).cmd, c"lockmarks".as_ptr() as *const i8, 3) {
+                        (*cmod).cmod_flags |= CMOD_LOCKMARKS;
+                        continue 'l1;
+                    }
+                }
                 115 => {
-                if !checkforcmd_noparen(&raw mut (*eap).cmd, c"silent".as_ptr() as *const i8, 3) {
-                    break 's3;
+                    if !checkforcmd_noparen(&raw mut (*eap).cmd, c"silent".as_ptr() as *const i8, 3) {
+                        break 's3;
+                    }
+                    (*cmod).cmod_flags |= CMOD_SILENT;
+                    if *(*eap).cmd == b'!' && !(*(*eap).cmd.wrapping_sub(1) == b' ' || *(*eap).cmd.wrapping_sub(1) == 9) {
+                        (*eap).cmd = skipwhite((*eap).cmd.wrapping_add(1));
+                        (*cmod).cmod_flags |= CMOD_ERRSILENT;
+                    }
+                    continue 'l1;
                 }
-                (*cmod).cmod_flags |= CMOD_SILENT;
-                if *(*eap).cmd == b'!' && !(*(*eap).cmd.wrapping_sub(1) == b' ' || *(*eap).cmd.wrapping_sub(1) == 9) {
-                    (*eap).cmd = skipwhite((*eap).cmd.wrapping_add(1));
-                    (*cmod).cmod_flags |= CMOD_ERRSILENT;
-                }
-                continue 'l1;
-            }
                 117 => {
-                if !checkforcmd_noparen(&raw mut (*eap).cmd, c"unsilent".as_ptr() as *const i8, 3) {
-                    break 's3;
+                    if !checkforcmd_noparen(&raw mut (*eap).cmd, c"unsilent".as_ptr() as *const i8, 3) {
+                        break 's3;
+                    }
+                    (*cmod).cmod_flags |= CMOD_UNSILENT;
+                    continue 'l1;
                 }
-                (*cmod).cmod_flags |= CMOD_UNSILENT;
-                continue 'l1;
-            }
                 118 => {
-                if !checkforcmd_noparen(&raw mut p, c"verbose".as_ptr() as *const i8, 4) {
-                    break 's3;
+                    if !checkforcmd_noparen(&raw mut p, c"verbose".as_ptr() as *const i8, 4) {
+                        break 's3;
+                    }
+                    if vim_isdigit(*(*eap).cmd as i32) {
+                        (*cmod).cmod_verbose = musl_atoi((*eap).cmd as *mut i8) + 1;
+                    } else {
+                        (*cmod).cmod_verbose = 2;
+                    }
+                    (*eap).cmd = p;
+                    continue 'l1;
                 }
-                if vim_isdigit(*(*eap).cmd as i32) {
-                    (*cmod).cmod_verbose = musl_atoi((*eap).cmd as *mut i8) + 1;
-                } else {
-                    (*cmod).cmod_verbose = 2;
-                }
-                (*eap).cmd = p;
-                continue 'l1;
-            }
                 _ => {}
             }
         }
@@ -25233,15 +25222,7 @@ pub unsafe fn getcmdline_int(ed: *mut Editor, firstc: i32, count: i64, indent: i
                                     break 'g_cmdline_not_changed;
                                 }
                             }
-                            v10_13 @ (14 | 16 | -30059 | -25707 | -1277 | -1533 | -20587 | -13131 | -20075 | -13643) => {
-                                'v10_13_1: {
-                                'v10_13_0: {
-                                    match v10_13 {
-                                        14 | 16 => break 'v10_13_0,
-                                        _ => break 'v10_13_1,
-                                    }
-                                }
-                                }
+                            14 | 16 | -30059 | -25707 | -1277 | -1533 | -20587 | -13131 | -20075 | -13643 => {
                                 let cmdline_browse_history__o: cmdline_browse_history__out_T = cmdline_browse_history(ed, c, firstc, lookfor, lookforlen, histype, hiscnt, &raw mut xpc);
                                 lookfor = cmdline_browse_history__o.curcmdstr;
                                 res = cmdline_browse_history__o.r__;
@@ -34934,16 +34915,16 @@ pub unsafe fn do_more_prompt(ed: *mut Editor, typed_char: i32) -> bool {
             }
             v3_8 @ (58 | 113 | 3 | 27) => {
                 'v3_8_1: {
-                'v3_8_0: {
-                    match v3_8 {
-                        58 => break 'v3_8_0,
-                        _ => break 'v3_8_1,
+                    'v3_8_0: {
+                        match v3_8 {
+                            58 => break 'v3_8_0,
+                            _ => break 'v3_8_1,
+                        }
                     }
-                }
-                typeahead_noflush(ed, b':' as i32);
-                (*ed).cmdline_row = ((*ed).Rows - 1) as i32;
-                (*ed).skip_redraw = true;
-                (*ed).need_wait_return = false;
+                    typeahead_noflush(ed, b':' as i32);
+                    (*ed).cmdline_row = ((*ed).Rows - 1) as i32;
+                    (*ed).skip_redraw = true;
+                    (*ed).need_wait_return = false;
                 }
                 (*ed).got_int = TRUE;
                 (*ed).quit_more = true;
@@ -39010,16 +38991,7 @@ pub unsafe fn nv_zet(ed: *mut Editor, cap: *mut cmdarg_T) {
         check_cursor_col(ed);
     }
     match nchar {
-        v1_0 @ (43 | 10 | 13 | -16715 | 116) => {
-            'v1_0_2: {
-            'v1_0_1: {
-            'v1_0_0: {
-                match v1_0 {
-                    43 => break 'v1_0_0,
-                    10 | 13 | -16715 => break 'v1_0_1,
-                    _ => break 'v1_0_2,
-                }
-            }
+        43 => {
             if (*cap).count0 == 0 {
                 validate_botline(ed);
                 if (*(*ed).curwin).w_botline > (*(*ed).curbuf).b_ml.ml_line_count {
@@ -39028,37 +39000,34 @@ pub unsafe fn nv_zet(ed: *mut Editor, cap: *mut cmdarg_T) {
                     (*(*ed).curwin).w_cursor.lnum = (*(*ed).curwin).w_botline;
                 }
             }
-            }
             beginline(ed, 5);
-            }
             scroll_cursor_top(ed, 0, true);
             redraw_later(ed, UPD_VALID);
             set_fraction((*ed).curwin);
         }
-        v1_1 @ (46 | 122) => {
-            'v1_1_1: {
-            'v1_1_0: {
-                match v1_1 {
-                    46 => break 'v1_1_0,
-                    _ => break 'v1_1_1,
-                }
-            }
+        10 | 13 | -16715 => {
             beginline(ed, 5);
-            }
+            scroll_cursor_top(ed, 0, true);
+            redraw_later(ed, UPD_VALID);
+            set_fraction((*ed).curwin);
+        }
+        116 => {
+            scroll_cursor_top(ed, 0, true);
+            redraw_later(ed, UPD_VALID);
+            set_fraction((*ed).curwin);
+        }
+        46 => {
+            beginline(ed, 5);
             scroll_cursor_halfway(ed, TRUE, FALSE);
             redraw_later(ed, UPD_VALID);
             set_fraction((*ed).curwin);
         }
-        v1_2 @ (94 | 45 | 98) => {
-            'v1_2_2: {
-            'v1_2_1: {
-            'v1_2_0: {
-                match v1_2 {
-                    94 => break 'v1_2_0,
-                    45 => break 'v1_2_1,
-                    _ => break 'v1_2_2,
-                }
-            }
+        122 => {
+            scroll_cursor_halfway(ed, TRUE, FALSE);
+            redraw_later(ed, UPD_VALID);
+            set_fraction((*ed).curwin);
+        }
+        94 => {
             if (*cap).count0 != 0 {
                 scroll_cursor_bot(ed, 0, true);
                 (*(*ed).curwin).w_cursor.lnum = (*(*ed).curwin).w_topline;
@@ -39067,36 +39036,45 @@ pub unsafe fn nv_zet(ed: *mut Editor, cap: *mut cmdarg_T) {
             } else {
                 (*(*ed).curwin).w_cursor.lnum = (*(*ed).curwin).w_topline - 1;
             }
-            }
             beginline(ed, 5);
-            }
             scroll_cursor_bot(ed, 0, true);
             redraw_later(ed, UPD_VALID);
             set_fraction((*ed).curwin);
         }
-        v1_3 @ (72 | 104 | -27755) => {
-            'v1_3_1: {
-            'v1_3_0: {
-                match v1_3 {
-                    72 => break 'v1_3_0,
-                    _ => break 'v1_3_1,
+        45 => {
+            beginline(ed, 5);
+            scroll_cursor_bot(ed, 0, true);
+            redraw_later(ed, UPD_VALID);
+            set_fraction((*ed).curwin);
+        }
+        98 => {
+            scroll_cursor_bot(ed, 0, true);
+            redraw_later(ed, UPD_VALID);
+            set_fraction((*ed).curwin);
+        }
+        v1_8 @ (72 | 104 | -27755) => {
+            'v1_8_1: {
+                'v1_8_0: {
+                    match v1_8 {
+                        72 => break 'v1_8_0,
+                        _ => break 'v1_8_1,
+                    }
                 }
-            }
-            (*cap).count1 *= ((*(*ed).curwin).w_width / 2) as i64;
+                (*cap).count1 *= ((*(*ed).curwin).w_width / 2) as i64;
             }
             if (*(*ed).curwin).w_onebuf_opt.wo_wrap == 0 {
                 set_leftcol(ed, if ((*cap).count1 as i32) > (*(*ed).curwin).w_leftcol { 0 } else { (*(*ed).curwin).w_leftcol - (*cap).count1 as i32 });
             }
         }
-        v1_4 @ (76 | 108 | -29291) => {
-            'v1_4_1: {
-            'v1_4_0: {
-                match v1_4 {
-                    76 => break 'v1_4_0,
-                    _ => break 'v1_4_1,
+        v1_9 @ (76 | 108 | -29291) => {
+            'v1_9_1: {
+                'v1_9_0: {
+                    match v1_9 {
+                        76 => break 'v1_9_0,
+                        _ => break 'v1_9_1,
+                    }
                 }
-            }
-            (*cap).count1 *= ((*(*ed).curwin).w_width / 2) as i64;
+                (*cap).count1 *= ((*(*ed).curwin).w_width / 2) as i64;
             }
             if (*(*ed).curwin).w_onebuf_opt.wo_wrap == 0 {
                 set_leftcol(ed, (*(*ed).curwin).w_leftcol + (*cap).count1 as i32);
@@ -40409,16 +40387,13 @@ pub unsafe fn nv_g_cmd(ed: *mut Editor, cap: *mut cmdarg_T) {
         86 => {
             (*ed).VIsual_reselect = false;
         }
-        v1_6 @ (-25195 | 104 | 72 | 8) => {
-            'v1_6_1: {
-            'v1_6_0: {
-                match v1_6 {
-                    -25195 => break 'v1_6_0,
-                    _ => break 'v1_6_1,
-                }
-            }
+        -25195 => {
             (*cap).nchar = Ctrl_H;
-            }
+            (*cap).cmdchar = (*cap).nchar + 14;
+            (*cap).arg = TRUE;
+            nv_visual(ed, cap);
+        }
+        104 | 72 | 8 => {
             (*cap).cmdchar = (*cap).nchar + 14;
             (*cap).arg = TRUE;
             nv_visual(ed, cap);
@@ -40496,16 +40471,11 @@ pub unsafe fn nv_g_cmd(ed: *mut Editor, cap: *mut cmdarg_T) {
                 invoke_edit(ed, cap, false, b'g' as i32, false);
             }
         }
-        v1_20 @ (39 | 96) => {
-            'v1_20_1: {
-            'v1_20_0: {
-                match v1_20 {
-                    39 => break 'v1_20_0,
-                    _ => break 'v1_20_1,
-                }
-            }
+        39 => {
             (*cap).arg = TRUE;
-            }
+            nv_gomark(ed, cap);
+        }
+        96 => {
             nv_gomark(ed, cap);
         }
         115 => {
@@ -40930,33 +40900,33 @@ pub unsafe fn nv_edit(ed: *mut Editor, cap: *mut cmdarg_T) {
         's1: {
             match (*cap).cmdchar {
                 65 => {
-                set_cursor_for_append_to_line(ed);
-            }
-                73 => {
-                if vim_strchr(ed, (*ed).p_cpo, CPO_INSEND).is_null() {
-                    beginline(ed, BL_WHITE);
-                } else {
-                    beginline(ed, 5);
+                    set_cursor_for_append_to_line(ed);
                 }
-            }
-                v1_2 @ (-21328 | 97) => {
-                'v1_2_1: {
-                'v1_2_0: {
-                    match v1_2 {
-                        -21328 => break 'v1_2_0,
-                        _ => break 'v1_2_1,
+                73 => {
+                    if vim_strchr(ed, (*ed).p_cpo, CPO_INSEND).is_null() {
+                        beginline(ed, BL_WHITE);
+                    } else {
+                        beginline(ed, 5);
                     }
                 }
-                if (*(*ed).curwin).w_cursor.col == 0 {
-                    break 's1;
+                v1_2 @ (-21328 | 97) => {
+                    'v1_2_1: {
+                        'v1_2_0: {
+                            match v1_2 {
+                                -21328 => break 'v1_2_0,
+                                _ => break 'v1_2_1,
+                            }
+                        }
+                        if (*(*ed).curwin).w_cursor.col == 0 {
+                            break 's1;
+                        }
+                    }
+                    if virtual_active(ed) != 0 && ((*(*ed).curwin).w_cursor.coladd > 0 || *ml_get_cursor(ed) == NUL as u8 || *ml_get_cursor(ed) == TAB as u8) {
+                        (*(*ed).curwin).w_cursor.coladd += 1;
+                    } else if *ml_get_cursor(ed) != NUL as u8 {
+                        inc_cursor(ed);
+                    }
                 }
-                }
-                if virtual_active(ed) != 0 && ((*(*ed).curwin).w_cursor.coladd > 0 || *ml_get_cursor(ed) == NUL as u8 || *ml_get_cursor(ed) == TAB as u8) {
-                    (*(*ed).curwin).w_cursor.coladd += 1;
-                } else if *ml_get_cursor(ed) != NUL as u8 {
-                    inc_cursor(ed);
-                }
-            }
                 _ => {}
             }
         }
@@ -46846,76 +46816,76 @@ pub unsafe fn peekchr(ed: *mut Editor) -> i32 {
     's1: {
         match { (*ed).curchr = *(*ed).regparse as i32; (*ed).curchr } {
             46 | 91 | 126 => {
-            if (*ed).reg_magic >= MAGIC_ON {
-                (*ed).curchr = (*ed).curchr - 256;
+                if (*ed).reg_magic >= MAGIC_ON {
+                    (*ed).curchr = (*ed).curchr - 256;
+                }
             }
-        }
             40 | 41 | 123 | 37 | 43 | 61 | 63 | 64 | 33 | 38 | 124 | 60 | 62 | 35 | 34 | 39 | 44 | 45 | 58 | 59 | 96 | 47 => {
-            if (*ed).reg_magic == MAGIC_ALL {
-                (*ed).curchr = (*ed).curchr - 256;
+                if (*ed).reg_magic == MAGIC_ALL {
+                    (*ed).curchr = (*ed).curchr - 256;
+                }
             }
-        }
             42 => {
-            if (*ed).reg_magic >= MAGIC_ON && (*ed).at_start == 0 && !((*ed).prev_at_start != 0 && (*ed).prevchr == -162) && ((*ed).peekchr__after_slash != 0 || (*ed).prevchr != -216 && (*ed).prevchr != -218 && (*ed).prevchr != -132) {
-                (*ed).curchr = -214;
+                if (*ed).reg_magic >= MAGIC_ON && (*ed).at_start == 0 && !((*ed).prev_at_start != 0 && (*ed).prevchr == -162) && ((*ed).peekchr__after_slash != 0 || (*ed).prevchr != -216 && (*ed).prevchr != -218 && (*ed).prevchr != -132) {
+                    (*ed).curchr = -214;
+                }
             }
-        }
             94 => {
-            if (*ed).reg_magic >= MAGIC_OFF && ((*ed).at_start != 0 || (*ed).reg_magic == MAGIC_ALL || (*ed).prevchr == -216 || (*ed).prevchr == -132 || (*ed).prevchr == -218 || (*ed).prevchr == -146 || no_Magic((*ed).prevchr) == b'(' as i32 && (*ed).prevprevchr == -219) {
-                (*ed).curchr = -162;
-                (*ed).at_start = TRUE;
-                (*ed).prev_at_start = FALSE;
+                if (*ed).reg_magic >= MAGIC_OFF && ((*ed).at_start != 0 || (*ed).reg_magic == MAGIC_ALL || (*ed).prevchr == -216 || (*ed).prevchr == -132 || (*ed).prevchr == -218 || (*ed).prevchr == -146 || no_Magic((*ed).prevchr) == b'(' as i32 && (*ed).prevprevchr == -219) {
+                    (*ed).curchr = -162;
+                    (*ed).at_start = TRUE;
+                    (*ed).prev_at_start = FALSE;
+                }
             }
-        }
             36 => {
-            if (*ed).reg_magic >= MAGIC_OFF {
-                let mut p: *const char_u = (*ed).regparse.wrapping_add(1);
-                let mut is_magic_all: bool = (*ed).reg_magic == MAGIC_ALL;
-                while *p == 92 && (*p.wrapping_add(1) == b'c' || *p.wrapping_add(1) == b'C' || *p.wrapping_add(1) == b'm' || *p.wrapping_add(1) == b'M' || *p.wrapping_add(1) == b'v' || *p.wrapping_add(1) == b'V' || *p.wrapping_add(1) == b'Z') {
-                    if *p.wrapping_add(1) == b'v' {
-                        is_magic_all = true;
-                    } else if *p.wrapping_add(1) == b'm' || *p.wrapping_add(1) == b'M' || *p.wrapping_add(1) == b'V' {
-                        is_magic_all = false;
+                if (*ed).reg_magic >= MAGIC_OFF {
+                    let mut p: *const char_u = (*ed).regparse.wrapping_add(1);
+                    let mut is_magic_all: bool = (*ed).reg_magic == MAGIC_ALL;
+                    while *p == 92 && (*p.wrapping_add(1) == b'c' || *p.wrapping_add(1) == b'C' || *p.wrapping_add(1) == b'm' || *p.wrapping_add(1) == b'M' || *p.wrapping_add(1) == b'v' || *p.wrapping_add(1) == b'V' || *p.wrapping_add(1) == b'Z') {
+                        if *p.wrapping_add(1) == b'v' {
+                            is_magic_all = true;
+                        } else if *p.wrapping_add(1) == b'm' || *p.wrapping_add(1) == b'M' || *p.wrapping_add(1) == b'V' {
+                            is_magic_all = false;
+                        }
+                        p = p.wrapping_add(2);
                     }
-                    p = p.wrapping_add(2);
-                }
-                if *p == NUL as u8 || (*p == 92 && (*p.wrapping_add(1) == b'|' || *p.wrapping_add(1) == b'&' || *p.wrapping_add(1) == b')' || *p.wrapping_add(1) == b'n')) || is_magic_all && (*p == b'|' || *p == b'&' || *p == b')') || (*ed).reg_magic == MAGIC_ALL {
-                    (*ed).curchr = -220;
+                    if *p == NUL as u8 || (*p == 92 && (*p.wrapping_add(1) == b'|' || *p.wrapping_add(1) == b'&' || *p.wrapping_add(1) == b')' || *p.wrapping_add(1) == b'n')) || is_magic_all && (*p == b'|' || *p == b'&' || *p == b')') || (*ed).reg_magic == MAGIC_ALL {
+                        (*ed).curchr = -220;
+                    }
                 }
             }
-        }
             92 => {
-            c = *(*ed).regparse.wrapping_add(1) as i32;
-            if c == NUL {
-                (*ed).curchr = 92;
-            } else if c <= b'~' as i32 && *decay(&raw mut (*ed).META_flags).wrapping_offset(c as isize) != 0 {
-                (*ed).curchr = -1;
-                (*ed).prev_at_start = (*ed).at_start;
-                (*ed).at_start = FALSE;
-                (*ed).regparse = (*ed).regparse.wrapping_add(1);
-                (*ed).peekchr__after_slash += 1;
-                peekchr(ed);
-                (*ed).regparse = (*ed).regparse.wrapping_sub(1);
-                (*ed).peekchr__after_slash -= 1;
-                (*ed).curchr = toggle_Magic((*ed).curchr);
-            } else if !vim_strchr(ed, decay(&raw mut (*ed).REGEXP_ABBR), c).is_null() {
-                (*ed).curchr = backslash_trans(c);
-            } else if (*ed).reg_magic == MAGIC_NONE && (c == b'$' as i32 || c == b'^' as i32) {
-                (*ed).curchr = toggle_Magic(c);
-            } else {
-                if c >= 128 {
-                    (*ed).curchr = utf_ptr2char(ed, (*ed).regparse.wrapping_add(1));
+                c = *(*ed).regparse.wrapping_add(1) as i32;
+                if c == NUL {
+                    (*ed).curchr = 92;
+                } else if c <= b'~' as i32 && *decay(&raw mut (*ed).META_flags).wrapping_offset(c as isize) != 0 {
+                    (*ed).curchr = -1;
+                    (*ed).prev_at_start = (*ed).at_start;
+                    (*ed).at_start = FALSE;
+                    (*ed).regparse = (*ed).regparse.wrapping_add(1);
+                    (*ed).peekchr__after_slash += 1;
+                    peekchr(ed);
+                    (*ed).regparse = (*ed).regparse.wrapping_sub(1);
+                    (*ed).peekchr__after_slash -= 1;
+                    (*ed).curchr = toggle_Magic((*ed).curchr);
+                } else if !vim_strchr(ed, decay(&raw mut (*ed).REGEXP_ABBR), c).is_null() {
+                    (*ed).curchr = backslash_trans(c);
+                } else if (*ed).reg_magic == MAGIC_NONE && (c == b'$' as i32 || c == b'^' as i32) {
+                    (*ed).curchr = toggle_Magic(c);
                 } else {
-                    (*ed).curchr = c;
+                    if c >= 128 {
+                        (*ed).curchr = utf_ptr2char(ed, (*ed).regparse.wrapping_add(1));
+                    } else {
+                        (*ed).curchr = c;
+                    }
+                }
+                break 's1;
+            }
+            _ => {
+                if (*ed).curchr >= 128 {
+                    (*ed).curchr = utf_ptr2char(ed, (*ed).regparse);
                 }
             }
-            break 's1;
-        }
-            _ => {
-            if (*ed).curchr >= 128 {
-                (*ed).curchr = utf_ptr2char(ed, (*ed).regparse);
-            }
-        }
         }
     }
     (*ed).curchr
@@ -48078,16 +48048,10 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
     let reg__o: reg__out_T;
     let mut ret: *mut char_u;
     let flags: i32;
-    let p: *const char_u;
-    let refnum: i32;
-    let lastbranch: *mut char_u;
-    let mut lastnode: *mut char_u;
     let mut br: *mut char_u;
     let i: vimlong_T;
     let mut n: long_u;
-    let lp_2: *const char_u;
     let mut cu: i32;
-    let mut len_2: i32;
     let mut l: i32;
     let mut extra: i32 = 0;
     let mut delim_nl: bool = false;
@@ -48099,722 +48063,722 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
         's2: {
             match sw {
                 -162 => {
-                ret = regnode(ed, BOL);
-            }
-                -220 => {
-                ret = regnode(ed, EOL);
-            }
-                -196 => {
-                ret = regnode(ed, BOW);
-            }
-                -194 => {
-                ret = regnode(ed, EOW);
-            }
-                v2_4 @ (-161 | -210 | -151 | -183 | -149 | -181 | -154 | -186 | -144 | -176 | -141 | -173 | -156 | -188 | -136 | -168 | -145 | -177 | -137 | -169 | -152 | -184 | -159 | -191 | -148 | -180 | -139 | -171) => {
-                'v2_4_1: {
-                'v2_4_0: {
-                    match v2_4 {
-                        -161 => break 'v2_4_0,
-                        _ => break 'v2_4_1,
-                    }
+                    ret = regnode(ed, BOL);
                 }
-                c = no_Magic(getchr(ed));
-                if c == b'%' as i32 {
-                    delim_nl = true;
-                    c = no_Magic(getchr(ed));
-                    if c == b')' as i32 || c == b']' as i32 || c == b'}' as i32 || c == b'>' as i32 || c == b'f' as i32 || c == b't' as i32 {
-                        ret = regatom_delim(ed, c, delim_nl, flagp);
-                        if ret.is_null() {
+                -220 => {
+                    ret = regnode(ed, EOL);
+                }
+                -196 => {
+                    ret = regnode(ed, BOW);
+                }
+                -194 => {
+                    ret = regnode(ed, EOW);
+                }
+                v2_4 @ (-161 | -210 | -151 | -183 | -149 | -181 | -154 | -186 | -144 | -176 | -141 | -173 | -156 | -188 | -136 | -168 | -145 | -177 | -137 | -169 | -152 | -184 | -159 | -191 | -148 | -180 | -139 | -171) => {
+                    'v2_4_1: {
+                        'v2_4_0: {
+                            match v2_4 {
+                                -161 => break 'v2_4_0,
+                                _ => break 'v2_4_1,
+                            }
+                        }
+                        c = no_Magic(getchr(ed));
+                        if c == b'%' as i32 {
+                            delim_nl = true;
+                            c = no_Magic(getchr(ed));
+                            if c == b')' as i32 || c == b']' as i32 || c == b'}' as i32 || c == b'>' as i32 || c == b'f' as i32 || c == b't' as i32 {
+                                ret = regatom_delim(ed, c, delim_nl, flagp);
+                                if ret.is_null() {
+                                    return null_mut();
+                                }
+                                break 's2;
+                            }
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
+                            (*ed).rc_did_emsg = true;
                             return null_mut();
                         }
+                        if c == b'^' as i32 {
+                            ret = regnode(ed, BOL);
+                            break 's2;
+                        }
+                        if c == b'$' as i32 {
+                            ret = regnode(ed, EOL);
+                            break 's2;
+                        }
+                        extra = ADD_NL;
+                        *flagp |= HASNL;
+                        if c == b'[' as i32 {
+                            sw = -165;
+                            continue 'l1;
+                        }
+                    }
+                    let p: *const char_u = vim_strchr(ed, (*ed).classchars, no_Magic(c));
+                    if p.is_null() {
+                        emsg(ed, decay(&raw mut (*ed).e_invalid_use_of_underscore));
+                        (*ed).rc_did_emsg = true;
+                        return null_mut();
+                    }
+                    if c == -210 && utf_iscomposing(ed, peekchr(ed)) {
+                        c = getchr(ed);
+                        ret = regnode(ed, MULTIBYTECODE);
+                        regmbc(ed, c);
+                        *flagp |= 3;
                         break 's2;
                     }
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
-                    (*ed).rc_did_emsg = true;
-                    return null_mut();
-                }
-                if c == b'^' as i32 {
-                    ret = regnode(ed, BOL);
-                    break 's2;
-                }
-                if c == b'$' as i32 {
-                    ret = regnode(ed, EOL);
-                    break 's2;
-                }
-                extra = ADD_NL;
-                *flagp |= HASNL;
-                if c == b'[' as i32 {
-                    sw = -165;
-                    continue 'l1;
-                }
-                }
-                p = vim_strchr(ed, (*ed).classchars, no_Magic(c));
-                if p.is_null() {
-                    emsg(ed, decay(&raw mut (*ed).e_invalid_use_of_underscore));
-                    (*ed).rc_did_emsg = true;
-                    return null_mut();
-                }
-                if c == -210 && utf_iscomposing(ed, peekchr(ed)) {
-                    c = getchr(ed);
-                    ret = regnode(ed, MULTIBYTECODE);
-                    regmbc(ed, c);
+                    ret = regnode(ed, *decay(&raw mut (*ed).classcodes).wrapping_offset(pdiff(p, (*ed).classchars) as isize) + extra);
                     *flagp |= 3;
-                    break 's2;
                 }
-                ret = regnode(ed, *decay(&raw mut (*ed).classcodes).wrapping_offset(pdiff(p, (*ed).classchars) as isize) + extra);
-                *flagp |= 3;
-            }
                 -146 => {
-                if (*ed).reg_string != 0 {
-                    ret = regnode(ed, EXACTLY);
-                    regc(ed, NL);
-                    regc(ed, NUL);
-                    *flagp |= 3;
-                } else {
-                    ret = regnode(ed, NEWL);
-                    *flagp |= 9;
+                    if (*ed).reg_string != 0 {
+                        ret = regnode(ed, EXACTLY);
+                        regc(ed, NL);
+                        regc(ed, NUL);
+                        *flagp |= 3;
+                    } else {
+                        ret = regnode(ed, NEWL);
+                        *flagp |= 9;
+                    }
                 }
-            }
                 -216 => {
-                if (*ed).one_exactly {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
-                    (*ed).rc_did_emsg = true;
-                    return null_mut();
-                }
-                reg__o = reg(ed, re, REG_PAREN);
-                flags = reg__o.flagp;
-                ret = reg__o.r__;
-                if ret.is_null() {
-                    return null_mut();
-                }
-                *flagp |= flags & 29;
-            }
-                0 | -132 | -218 | -215 => {
-                if (*ed).one_exactly {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
-                    (*ed).rc_did_emsg = true;
-                    return null_mut();
-                }
-                iemsg(ed, decay(&raw mut (*ed).e_internal_error_in_regexp));
-                (*ed).rc_did_emsg = true;
-                return null_mut();
-            }
-                -195 | -193 | -213 | -192 | -133 | -214 => {
-                c = no_Magic(c);
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_str_chr_follows_nothing), &[VArg::P((if (if c == b'*' as i32 { ((*ed).reg_magic >= MAGIC_ON) as i32 } else { ((*ed).reg_magic == MAGIC_ALL) as i32 }) != 0 { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void), VArg::I(c as i64)]);
-                emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_str_chr_follows_nothing)));
-                (*ed).rc_did_emsg = true;
-                return null_mut();
-            }
-                -130 => {
-                if !(*ed).reg_prev_sub.is_null() {
-                    ret = regnode(ed, EXACTLY);
-                    let mut lp: *const char_u = (*ed).reg_prev_sub;
-                    while *lp != NUL as u8 {
-                        regc(ed, *lp as i32);
-                        lp = lp.wrapping_add(1);
-                    }
-                    regc(ed, NUL);
-                    if *(*ed).reg_prev_sub != NUL as u8 {
-                        *flagp |= HASWIDTH;
-                        if pdiff(lp, (*ed).reg_prev_sub) == 1 {
-                            *flagp |= SIMPLE;
-                        }
-                    }
-                } else {
-                    emsg(ed, decay(&raw mut (*ed).e_no_previous_substitute_regular_expression));
-                    (*ed).rc_did_emsg = true;
-                    return null_mut();
-                }
-            }
-                -207 | -206 | -205 | -204 | -203 | -202 | -201 | -200 | -199 => {
-                refnum = c - -208;
-                if !seen_endbrace(ed, refnum) {
-                    return null_mut();
-                }
-                ret = regnode(ed, BACKREF + refnum);
-            }
-                -134 => {
-                c = no_Magic(getchr(ed));
-                match c {
-                    115 => {
-                        ret = regnode(ed, 80);
-                        if !re_mult_next(ed, c"\\zs".as_ptr() as *const i8) {
-                            return null_mut();
-                        }
-                    }
-                    101 => {
-                        ret = regnode(ed, 90);
-                        if !re_mult_next(ed, c"\\ze".as_ptr() as *const i8) {
-                            return null_mut();
-                        }
-                    }
-                    _ => {
-                        emsg(ed, decay(&raw mut (*ed).e_invalid_character_after_bsl_z));
+                    if (*ed).one_exactly {
+                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                        emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
                         (*ed).rc_did_emsg = true;
                         return null_mut();
                     }
+                    reg__o = reg(ed, re, REG_PAREN);
+                    flags = reg__o.flagp;
+                    ret = reg__o.r__;
+                    if ret.is_null() {
+                        return null_mut();
+                    }
+                    *flagp |= flags & 29;
                 }
-            }
-                -219 => {
-                c = no_Magic(getchr(ed));
-                's5: {
-                    match c {
-                        40 => {
-                        if (*ed).one_exactly {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
-                            (*ed).rc_did_emsg = true;
-                            return null_mut();
-                        }
-                        reg__o = reg(ed, re, REG_NPAREN);
-                        flags = reg__o.flagp;
-                        ret = reg__o.r__;
-                        if ret.is_null() {
-                            return null_mut();
-                        }
-                        *flagp |= flags & 29;
+                0 | -132 | -218 | -215 => {
+                    if (*ed).one_exactly {
+                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                        emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
+                        (*ed).rc_did_emsg = true;
+                        return null_mut();
                     }
-                        94 => {
-                        ret = regnode(ed, RE_BOF);
-                    }
-                        36 => {
-                        ret = regnode(ed, RE_EOF);
-                    }
-                        35 => {
-                        if *(*ed).regparse == b'=' && *(*ed).regparse.wrapping_add(1) >= 48 && *(*ed).regparse.wrapping_add(1) <= 50 {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_atom_engine_must_be_at_start_of_pattern), &[VArg::I(*(*ed).regparse.wrapping_add(1) as i64)]);
-                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_atom_engine_must_be_at_start_of_pattern)));
-                            return FAIL as *mut u8;
-                        }
-                        ret = regnode(ed, CURSOR);
-                    }
-                        86 => {
-                        ret = regnode(ed, RE_VISUAL);
-                    }
-                        67 => {
-                        ret = regnode(ed, RE_COMPOSING);
-                    }
-                        91 => {
-                        if (*ed).one_exactly {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
-                            (*ed).rc_did_emsg = true;
-                            return null_mut();
-                        }
-                        lastnode = null_mut();
-                        ret = null_mut();
-                        loop {
-                            c = getchr(ed);
-                            if c == b']' as i32 {
-                                break;
-                            }
-                            if c == NUL {
-                                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_sb_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                                emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_missing_sb_after_str)));
-                                (*ed).rc_did_emsg = true;
-                                return null_mut();
-                            }
-                            br = regnode(ed, BRANCH);
-                            if ret.is_null() {
-                                ret = br;
-                            } else {
-                                regtail(ed, re, lastnode, br);
-                                if (*re).reg_toolong {
-                                    return null_mut();
-                                }
-                            }
-                            ungetchr(ed);
-                            (*ed).one_exactly = true;
-                            lastnode = regatom(ed, re, flagp);
-                            (*ed).one_exactly = false;
-                            if lastnode.is_null() {
-                                return null_mut();
-                            }
-                        }
-                        if ret.is_null() {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_empty_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_empty_str_brackets)));
-                            (*ed).rc_did_emsg = true;
-                            return null_mut();
-                        }
-                        lastbranch = regnode(ed, BRANCH);
-                        br = regnode(ed, NOTHING);
-                        if ret != decay(&raw mut (*ed).reg_calc_size_node) {
-                            regtail(ed, re, lastnode, br);
-                            regtail(ed, re, lastbranch, br);
-                            br = ret;
-                            while br != lastnode {
-                                if (*br as i32) == BRANCH {
-                                    regtail(ed, re, br, lastbranch);
-                                    if (*re).reg_toolong {
-                                        return null_mut();
-                                    }
-                                    br = br.wrapping_add(3);
-                                } else {
-                                    br = regnext(ed, re, br);
-                                }
-                            }
-                        }
-                        *flagp &= -4;
-                        break 's5;
-                    }
-                        100 | 111 | 120 | 117 | 85 => {
-                        match c {
-                            100 => {
-                                i = getdecchrs(ed);
-                            }
-                            111 => {
-                                i = getoctchrs(ed);
-                            }
-                            120 => {
-                                i = gethexchrs(ed, 2);
-                            }
-                            117 => {
-                                i = gethexchrs(ed, 4);
-                            }
-                            85 => {
-                                i = gethexchrs(ed, 8);
-                            }
-                            _ => {
-                                i = -1;
-                            }
-                        }
-                        if i < 0 || i > INT_MAX as i64 {
-                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_2), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str_2)));
-                            (*ed).rc_did_emsg = true;
-                            return null_mut();
-                        }
-                        if use_multibytecode(ed, i as i32) {
-                            ret = regnode(ed, MULTIBYTECODE);
-                        } else {
-                            ret = regnode(ed, EXACTLY);
-                        }
-                        if i == 0 {
-                            regc(ed, 10);
-                        } else {
-                            regmbc(ed, i as i32);
+                    iemsg(ed, decay(&raw mut (*ed).e_internal_error_in_regexp));
+                    (*ed).rc_did_emsg = true;
+                    return null_mut();
+                }
+                -195 | -193 | -213 | -192 | -133 | -214 => {
+                    c = no_Magic(c);
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_str_chr_follows_nothing), &[VArg::P((if (if c == b'*' as i32 { ((*ed).reg_magic >= MAGIC_ON) as i32 } else { ((*ed).reg_magic == MAGIC_ALL) as i32 }) != 0 { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void), VArg::I(c as i64)]);
+                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_str_chr_follows_nothing)));
+                    (*ed).rc_did_emsg = true;
+                    return null_mut();
+                }
+                -130 => {
+                    if !(*ed).reg_prev_sub.is_null() {
+                        ret = regnode(ed, EXACTLY);
+                        let mut lp: *const char_u = (*ed).reg_prev_sub;
+                        while *lp != NUL as u8 {
+                            regc(ed, *lp as i32);
+                            lp = lp.wrapping_add(1);
                         }
                         regc(ed, NUL);
-                        *flagp |= HASWIDTH;
-                        break 's5;
-                    }
-                        41 | 93 | 125 | 102 | 116 => {
-                        ret = regatom_delim(ed, c, delim_nl, flagp);
-                        if ret.is_null() {
-                            return null_mut();
-                        }
-                    }
-                        v8_9 => {
-                        'v8_9_1: {
-                        'v8_9_0: {
-                            match v8_9 {
-                                62 => break 'v8_9_0,
-                                _ => break 'v8_9_1,
+                        if *(*ed).reg_prev_sub != NUL as u8 {
+                            *flagp |= HASWIDTH;
+                            if pdiff(lp, (*ed).reg_prev_sub) == 1 {
+                                *flagp |= SIMPLE;
                             }
                         }
-                        if !ascii_isdigit(*(*ed).regparse as i32) && *(*ed).regparse != 39 && *(*ed).regparse != b'.' {
-                            ret = regatom_delim(ed, c, delim_nl, flagp);
-                            if ret.is_null() {
-                                return null_mut();
-                            }
-                            break 's5;
-                        }
-                        }
-                        if ascii_isdigit(c) || c == b'<' as i32 || c == b'>' as i32 || c == 39 || c == b'.' as i32 {
-                            n = 0;
-                            let mut cur: bool = false;
-                            let mut got_digit: bool = false;
-                            let cmp: i32 = c;
-                            if cmp == b'<' as i32 || cmp == b'>' as i32 {
-                                c = getchr(ed);
-                            }
-                            if no_Magic(c) == b'.' as i32 {
-                                cur = true;
-                                c = getchr(ed);
-                            }
-                            while ascii_isdigit(c) {
-                                got_digit = true;
-                                n = n.wrapping_mul(10).wrapping_add((c - b'0' as i32) as u64);
-                                c = getchr(ed);
-                            }
-                            if no_Magic(c) == 39 && n == 0 {
-                                c = getchr(ed);
-                                ret = regnode(ed, RE_MARK);
-                                if ret == decay(&raw mut (*ed).reg_calc_size_node) {
-                                    (*ed).regsize += 2;
-                                } else {
-                                    let t2: *mut u8 = { let t1: *mut char_u = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
-                                    *t2 = c as u8;
-                                    let t4: *mut u8 = { let t3: *mut char_u = (*ed).regcode; (*ed).regcode = t3.wrapping_add(1); t3 };
-                                    *t4 = cmp as u8;
-                                }
-                                break 's5;
-                            } else if (c == b'l' as i32 || c == b'c' as i32 || c == b'v' as i32) && (cur || got_digit) {
-                                if cur && n != 0 {
-                                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_regexp_number_after_dot_pos_search_chr), &[VArg::I(no_Magic(c) as i64)]);
-                                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_regexp_number_after_dot_pos_search_chr)));
-                                    (*ed).rc_did_emsg = true;
-                                    return null_mut();
-                                }
-                                if c == b'l' as i32 {
-                                    if cur {
-                                        n = (*(*ed).curwin).w_cursor.lnum as u64;
-                                    }
-                                    ret = regnode(ed, RE_LNUM);
-                                    if save_prev_at_start != 0 {
-                                        (*ed).at_start = TRUE;
-                                    }
-                                } else if c == b'c' as i32 {
-                                    if cur {
-                                        n = (*(*ed).curwin).w_cursor.col as u64;
-                                        n = n.wrapping_add(1);
-                                    }
-                                    ret = regnode(ed, RE_COL);
-                                } else {
-                                    if cur {
-                                        let mut vcol: colnr_T = 0;
-                                        getvvcol(ed, (*ed).curwin, &raw mut (*(*ed).curwin).w_cursor, null_mut(), null_mut(), &raw mut vcol, 0);
-                                        vcol += 1;
-                                        n = vcol as u64;
-                                    }
-                                    ret = regnode(ed, RE_VCOL);
-                                }
-                                if ret == decay(&raw mut (*ed).reg_calc_size_node) {
-                                    (*ed).regsize += 5;
-                                } else {
-                                    (*ed).regcode = re_put_long((*ed).regcode, n);
-                                    let t6: *mut u8 = { let t5: *mut char_u = (*ed).regcode; (*ed).regcode = t5.wrapping_add(1); t5 };
-                                    *t6 = cmp as u8;
-                                }
-                                break 's5;
-                            }
-                        }
-                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                        emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
+                    } else {
+                        emsg(ed, decay(&raw mut (*ed).e_no_previous_substitute_regular_expression));
                         (*ed).rc_did_emsg = true;
                         return null_mut();
                     }
+                }
+                -207 | -206 | -205 | -204 | -203 | -202 | -201 | -200 | -199 => {
+                    let refnum: i32 = c - -208;
+                    if !seen_endbrace(ed, refnum) {
+                        return null_mut();
+                    }
+                    ret = regnode(ed, BACKREF + refnum);
+                }
+                -134 => {
+                    c = no_Magic(getchr(ed));
+                    match c {
+                        115 => {
+                            ret = regnode(ed, 80);
+                            if !re_mult_next(ed, c"\\zs".as_ptr() as *const i8) {
+                                return null_mut();
+                            }
+                        }
+                        101 => {
+                            ret = regnode(ed, 90);
+                            if !re_mult_next(ed, c"\\ze".as_ptr() as *const i8) {
+                                return null_mut();
+                            }
+                        }
+                        _ => {
+                            emsg(ed, decay(&raw mut (*ed).e_invalid_character_after_bsl_z));
+                            (*ed).rc_did_emsg = true;
+                            return null_mut();
+                        }
                     }
                 }
-            }
-                v9_13 => {
-                'v9_13_1: {
-                'v9_13_0: {
-                    match v9_13 {
-                        -165 => break 'v9_13_0,
-                        _ => break 'v9_13_1,
-                    }
-                }
-                lp_2 = skip_anyof(ed, (*ed).regparse);
-                if *lp_2 == b']' {
-                    let mut startc: i32 = -1;
-                    if *(*ed).regparse == b'^' {
-                        ret = regnode(ed, ANYBUT + extra);
-                        (*ed).regparse = (*ed).regparse.wrapping_add(1);
-                    } else {
-                        ret = regnode(ed, ANYOF + extra);
-                    }
-                    if *(*ed).regparse == b']' || *(*ed).regparse == b'-' {
-                        startc = *(*ed).regparse as i32;
-                        regc(ed, *({ let t7: *mut char_u = (*ed).regparse; (*ed).regparse = t7.wrapping_add(1); t7 }) as i32);
-                    }
-                    while *(*ed).regparse != NUL as u8 && *(*ed).regparse != b']' {
-                        if *(*ed).regparse == b'-' {
-                            (*ed).regparse = (*ed).regparse.wrapping_add(1);
-                            if *(*ed).regparse == b']' || *(*ed).regparse == NUL as u8 || startc == -1 || *(*ed).regparse == 92 && *(*ed).regparse.wrapping_add(1) == b'n' {
-                                regc(ed, b'-' as i32);
-                                startc = b'-' as i32;
-                            } else {
-                                let mut endc: i32 = 0;
-                                if *(*ed).regparse == b'[' {
-                                    endc = get_coll_element(ed, &raw mut (*ed).regparse);
-                                }
-                                if endc == 0 {
-                                    endc = mb_ptr2char_adv(ed, &raw mut (*ed).regparse);
-                                }
-                                if endc == 92 && !(*ed).reg_cpo_lit && !(*ed).reg_cpo_bsl {
-                                    endc = coll_get_char(ed);
-                                }
-                                if startc > endc {
-                                    emsg(ed, decay(&raw mut (*ed).e_reverse_range_in_character_class));
+                -219 => {
+                    c = no_Magic(getchr(ed));
+                    's5: {
+                        match c {
+                            40 => {
+                                if (*ed).one_exactly {
+                                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
                                     (*ed).rc_did_emsg = true;
                                     return null_mut();
                                 }
-                                if utf_char2len(startc) > 1 || utf_char2len(endc) > 1 {
-                                    if endc > startc + 256 {
-                                        emsg(ed, decay(&raw mut (*ed).e_range_too_large_in_character_class));
+                                reg__o = reg(ed, re, REG_NPAREN);
+                                flags = reg__o.flagp;
+                                ret = reg__o.r__;
+                                if ret.is_null() {
+                                    return null_mut();
+                                }
+                                *flagp |= flags & 29;
+                            }
+                            94 => {
+                                ret = regnode(ed, RE_BOF);
+                            }
+                            36 => {
+                                ret = regnode(ed, RE_EOF);
+                            }
+                            35 => {
+                                if *(*ed).regparse == b'=' && *(*ed).regparse.wrapping_add(1) >= 48 && *(*ed).regparse.wrapping_add(1) <= 50 {
+                                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_atom_engine_must_be_at_start_of_pattern), &[VArg::I(*(*ed).regparse.wrapping_add(1) as i64)]);
+                                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_atom_engine_must_be_at_start_of_pattern)));
+                                    return FAIL as *mut u8;
+                                }
+                                ret = regnode(ed, CURSOR);
+                            }
+                            86 => {
+                                ret = regnode(ed, RE_VISUAL);
+                            }
+                            67 => {
+                                ret = regnode(ed, RE_COMPOSING);
+                            }
+                            91 => {
+                                if (*ed).one_exactly {
+                                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_item_in_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_item_in_str_brackets)));
+                                    (*ed).rc_did_emsg = true;
+                                    return null_mut();
+                                }
+                                let mut lastnode: *mut char_u = null_mut();
+                                ret = null_mut();
+                                loop {
+                                    c = getchr(ed);
+                                    if c == b']' as i32 {
+                                        break;
+                                    }
+                                    if c == NUL {
+                                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_sb_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                                        emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_missing_sb_after_str)));
                                         (*ed).rc_did_emsg = true;
                                         return null_mut();
                                     }
-                                    loop {
-                                        startc += 1;
-                                        if startc > endc {
-                                            break;
+                                    br = regnode(ed, BRANCH);
+                                    if ret.is_null() {
+                                        ret = br;
+                                    } else {
+                                        regtail(ed, re, lastnode, br);
+                                        if (*re).reg_toolong {
+                                            return null_mut();
                                         }
-                                        regmbc(ed, startc);
                                     }
-                                } else {
-                                    loop {
-                                        startc += 1;
-                                        if startc > endc {
-                                            break;
-                                        }
-                                        regc(ed, startc);
+                                    ungetchr(ed);
+                                    (*ed).one_exactly = true;
+                                    lastnode = regatom(ed, re, flagp);
+                                    (*ed).one_exactly = false;
+                                    if lastnode.is_null() {
+                                        return null_mut();
                                     }
                                 }
-                                startc = -1;
-                            }
-                        } else if *(*ed).regparse == 92 && !(*ed).reg_cpo_bsl && (!vim_strchr(ed, decay(&raw mut (*ed).REGEXP_INRANGE), *(*ed).regparse.wrapping_add(1) as i32).is_null() || !(*ed).reg_cpo_lit && !vim_strchr(ed, decay(&raw mut (*ed).REGEXP_ABBR), *(*ed).regparse.wrapping_add(1) as i32).is_null()) {
-                            (*ed).regparse = (*ed).regparse.wrapping_add(1);
-                            if *(*ed).regparse == b'n' {
-                                if ret != decay(&raw mut (*ed).reg_calc_size_node) {
-                                    if *ret == ANYOF as u8 {
-                                        *ret = 51;
-                                        *flagp |= HASNL;
-                                    }
-                                }
-                                (*ed).regparse = (*ed).regparse.wrapping_add(1);
-                                startc = -1;
-                            } else if *(*ed).regparse == b'd' || *(*ed).regparse == b'o' || *(*ed).regparse == b'x' || *(*ed).regparse == b'u' || *(*ed).regparse == b'U' {
-                                startc = coll_get_char(ed);
-                                if startc == INT_MAX {
-                                    emsg(ed, decay(&raw mut (*ed).e_unicode_val_too_large));
+                                if ret.is_null() {
+                                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_empty_str_brackets), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_empty_str_brackets)));
                                     (*ed).rc_did_emsg = true;
                                     return null_mut();
                                 }
-                                if startc == 0 {
+                                let lastbranch: *mut char_u = regnode(ed, BRANCH);
+                                br = regnode(ed, NOTHING);
+                                if ret != decay(&raw mut (*ed).reg_calc_size_node) {
+                                    regtail(ed, re, lastnode, br);
+                                    regtail(ed, re, lastbranch, br);
+                                    br = ret;
+                                    while br != lastnode {
+                                        if (*br as i32) == BRANCH {
+                                            regtail(ed, re, br, lastbranch);
+                                            if (*re).reg_toolong {
+                                                return null_mut();
+                                            }
+                                            br = br.wrapping_add(3);
+                                        } else {
+                                            br = regnext(ed, re, br);
+                                        }
+                                    }
+                                }
+                                *flagp &= -4;
+                                break 's5;
+                            }
+                            100 | 111 | 120 | 117 | 85 => {
+                                match c {
+                                    100 => {
+                                        i = getdecchrs(ed);
+                                    }
+                                    111 => {
+                                        i = getoctchrs(ed);
+                                    }
+                                    120 => {
+                                        i = gethexchrs(ed, 2);
+                                    }
+                                    117 => {
+                                        i = gethexchrs(ed, 4);
+                                    }
+                                    85 => {
+                                        i = gethexchrs(ed, 8);
+                                    }
+                                    _ => {
+                                        i = -1;
+                                    }
+                                }
+                                if i < 0 || i > INT_MAX as i64 {
+                                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_2), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str_2)));
+                                    (*ed).rc_did_emsg = true;
+                                    return null_mut();
+                                }
+                                if use_multibytecode(ed, i as i32) {
+                                    ret = regnode(ed, MULTIBYTECODE);
+                                } else {
+                                    ret = regnode(ed, EXACTLY);
+                                }
+                                if i == 0 {
                                     regc(ed, 10);
                                 } else {
-                                    regmbc(ed, startc);
+                                    regmbc(ed, i as i32);
                                 }
-                            } else {
-                                startc = backslash_trans(*({ let t8: *mut char_u = (*ed).regparse; (*ed).regparse = t8.wrapping_add(1); t8 }) as i32);
-                                regc(ed, startc);
+                                regc(ed, NUL);
+                                *flagp |= HASWIDTH;
+                                break 's5;
                             }
-                        } else if *(*ed).regparse == b'[' {
-                            let mut c_class: i32 = get_char_class(ed, &raw mut (*ed).regparse);
-                            startc = -1;
-                            match c_class {
-                                99 => {
-                                    c_class = get_coll_element(ed, &raw mut (*ed).regparse);
-                                    if c_class != 0 {
-                                        regmbc(ed, c_class);
+                            41 | 93 | 125 | 102 | 116 => {
+                                ret = regatom_delim(ed, c, delim_nl, flagp);
+                                if ret.is_null() {
+                                    return null_mut();
+                                }
+                            }
+                            v8_9 => {
+                                'v8_9_1: {
+                                    'v8_9_0: {
+                                        match v8_9 {
+                                            62 => break 'v8_9_0,
+                                            _ => break 'v8_9_1,
+                                        }
+                                    }
+                                    if !ascii_isdigit(*(*ed).regparse as i32) && *(*ed).regparse != 39 && *(*ed).regparse != b'.' {
+                                        ret = regatom_delim(ed, c, delim_nl, flagp);
+                                        if ret.is_null() {
+                                            return null_mut();
+                                        }
+                                        break 's5;
+                                    }
+                                }
+                                if ascii_isdigit(c) || c == b'<' as i32 || c == b'>' as i32 || c == 39 || c == b'.' as i32 {
+                                    n = 0;
+                                    let mut cur: bool = false;
+                                    let mut got_digit: bool = false;
+                                    let cmp: i32 = c;
+                                    if cmp == b'<' as i32 || cmp == b'>' as i32 {
+                                        c = getchr(ed);
+                                    }
+                                    if no_Magic(c) == b'.' as i32 {
+                                        cur = true;
+                                        c = getchr(ed);
+                                    }
+                                    while ascii_isdigit(c) {
+                                        got_digit = true;
+                                        n = n.wrapping_mul(10).wrapping_add((c - b'0' as i32) as u64);
+                                        c = getchr(ed);
+                                    }
+                                    if no_Magic(c) == 39 && n == 0 {
+                                        c = getchr(ed);
+                                        ret = regnode(ed, RE_MARK);
+                                        if ret == decay(&raw mut (*ed).reg_calc_size_node) {
+                                            (*ed).regsize += 2;
+                                        } else {
+                                            let t2: *mut u8 = { let t1: *mut char_u = (*ed).regcode; (*ed).regcode = t1.wrapping_add(1); t1 };
+                                            *t2 = c as u8;
+                                            let t4: *mut u8 = { let t3: *mut char_u = (*ed).regcode; (*ed).regcode = t3.wrapping_add(1); t3 };
+                                            *t4 = cmp as u8;
+                                        }
+                                        break 's5;
+                                    } else if (c == b'l' as i32 || c == b'c' as i32 || c == b'v' as i32) && (cur || got_digit) {
+                                        if cur && n != 0 {
+                                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_regexp_number_after_dot_pos_search_chr), &[VArg::I(no_Magic(c) as i64)]);
+                                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_regexp_number_after_dot_pos_search_chr)));
+                                            (*ed).rc_did_emsg = true;
+                                            return null_mut();
+                                        }
+                                        if c == b'l' as i32 {
+                                            if cur {
+                                                n = (*(*ed).curwin).w_cursor.lnum as u64;
+                                            }
+                                            ret = regnode(ed, RE_LNUM);
+                                            if save_prev_at_start != 0 {
+                                                (*ed).at_start = TRUE;
+                                            }
+                                        } else if c == b'c' as i32 {
+                                            if cur {
+                                                n = (*(*ed).curwin).w_cursor.col as u64;
+                                                n = n.wrapping_add(1);
+                                            }
+                                            ret = regnode(ed, RE_COL);
+                                        } else {
+                                            if cur {
+                                                let mut vcol: colnr_T = 0;
+                                                getvvcol(ed, (*ed).curwin, &raw mut (*(*ed).curwin).w_cursor, null_mut(), null_mut(), &raw mut vcol, 0);
+                                                vcol += 1;
+                                                n = vcol as u64;
+                                            }
+                                            ret = regnode(ed, RE_VCOL);
+                                        }
+                                        if ret == decay(&raw mut (*ed).reg_calc_size_node) {
+                                            (*ed).regsize += 5;
+                                        } else {
+                                            (*ed).regcode = re_put_long((*ed).regcode, n);
+                                            let t6: *mut u8 = { let t5: *mut char_u = (*ed).regcode; (*ed).regcode = t5.wrapping_add(1); t5 };
+                                            *t6 = cmp as u8;
+                                        }
+                                        break 's5;
+                                    }
+                                }
+                                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                                emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str)));
+                                (*ed).rc_did_emsg = true;
+                                return null_mut();
+                            }
+                        }
+                    }
+                }
+                v9_13 => {
+                    'v9_13_1: {
+                        'v9_13_0: {
+                            match v9_13 {
+                                -165 => break 'v9_13_0,
+                                _ => break 'v9_13_1,
+                            }
+                        }
+                        let lp_2: *const char_u = skip_anyof(ed, (*ed).regparse);
+                        if *lp_2 == b']' {
+                            let mut startc: i32 = -1;
+                            if *(*ed).regparse == b'^' {
+                                ret = regnode(ed, ANYBUT + extra);
+                                (*ed).regparse = (*ed).regparse.wrapping_add(1);
+                            } else {
+                                ret = regnode(ed, ANYOF + extra);
+                            }
+                            if *(*ed).regparse == b']' || *(*ed).regparse == b'-' {
+                                startc = *(*ed).regparse as i32;
+                                regc(ed, *({ let t7: *mut char_u = (*ed).regparse; (*ed).regparse = t7.wrapping_add(1); t7 }) as i32);
+                            }
+                            while *(*ed).regparse != NUL as u8 && *(*ed).regparse != b']' {
+                                if *(*ed).regparse == b'-' {
+                                    (*ed).regparse = (*ed).regparse.wrapping_add(1);
+                                    if *(*ed).regparse == b']' || *(*ed).regparse == NUL as u8 || startc == -1 || *(*ed).regparse == 92 && *(*ed).regparse.wrapping_add(1) == b'n' {
+                                        regc(ed, b'-' as i32);
+                                        startc = b'-' as i32;
                                     } else {
-                                        let t9: *mut char_u = (*ed).regparse;
+                                        let mut endc: i32 = 0;
+                                        if *(*ed).regparse == b'[' {
+                                            endc = get_coll_element(ed, &raw mut (*ed).regparse);
+                                        }
+                                        if endc == 0 {
+                                            endc = mb_ptr2char_adv(ed, &raw mut (*ed).regparse);
+                                        }
+                                        if endc == 92 && !(*ed).reg_cpo_lit && !(*ed).reg_cpo_bsl {
+                                            endc = coll_get_char(ed);
+                                        }
+                                        if startc > endc {
+                                            emsg(ed, decay(&raw mut (*ed).e_reverse_range_in_character_class));
+                                            (*ed).rc_did_emsg = true;
+                                            return null_mut();
+                                        }
+                                        if utf_char2len(startc) > 1 || utf_char2len(endc) > 1 {
+                                            if endc > startc + 256 {
+                                                emsg(ed, decay(&raw mut (*ed).e_range_too_large_in_character_class));
+                                                (*ed).rc_did_emsg = true;
+                                                return null_mut();
+                                            }
+                                            loop {
+                                                startc += 1;
+                                                if startc > endc {
+                                                    break;
+                                                }
+                                                regmbc(ed, startc);
+                                            }
+                                        } else {
+                                            loop {
+                                                startc += 1;
+                                                if startc > endc {
+                                                    break;
+                                                }
+                                                regc(ed, startc);
+                                            }
+                                        }
+                                        startc = -1;
+                                    }
+                                } else if *(*ed).regparse == 92 && !(*ed).reg_cpo_bsl && (!vim_strchr(ed, decay(&raw mut (*ed).REGEXP_INRANGE), *(*ed).regparse.wrapping_add(1) as i32).is_null() || !(*ed).reg_cpo_lit && !vim_strchr(ed, decay(&raw mut (*ed).REGEXP_ABBR), *(*ed).regparse.wrapping_add(1) as i32).is_null()) {
+                                    (*ed).regparse = (*ed).regparse.wrapping_add(1);
+                                    if *(*ed).regparse == b'n' {
+                                        if ret != decay(&raw mut (*ed).reg_calc_size_node) {
+                                            if *ret == ANYOF as u8 {
+                                                *ret = 51;
+                                                *flagp |= HASNL;
+                                            }
+                                        }
                                         (*ed).regparse = (*ed).regparse.wrapping_add(1);
-                                        startc = *t9 as i32;
+                                        startc = -1;
+                                    } else if *(*ed).regparse == b'd' || *(*ed).regparse == b'o' || *(*ed).regparse == b'x' || *(*ed).regparse == b'u' || *(*ed).regparse == b'U' {
+                                        startc = coll_get_char(ed);
+                                        if startc == INT_MAX {
+                                            emsg(ed, decay(&raw mut (*ed).e_unicode_val_too_large));
+                                            (*ed).rc_did_emsg = true;
+                                            return null_mut();
+                                        }
+                                        if startc == 0 {
+                                            regc(ed, 10);
+                                        } else {
+                                            regmbc(ed, startc);
+                                        }
+                                    } else {
+                                        startc = backslash_trans(*({ let t8: *mut char_u = (*ed).regparse; (*ed).regparse = t8.wrapping_add(1); t8 }) as i32);
                                         regc(ed, startc);
                                     }
-                                }
-                                0 => {
-                                    cu = 1;
-                                    while cu < 128 {
-                                        if musl_isalnum(cu) {
-                                            regmbc(ed, cu);
+                                } else if *(*ed).regparse == b'[' {
+                                    let mut c_class: i32 = get_char_class(ed, &raw mut (*ed).regparse);
+                                    startc = -1;
+                                    match c_class {
+                                        99 => {
+                                            c_class = get_coll_element(ed, &raw mut (*ed).regparse);
+                                            if c_class != 0 {
+                                                regmbc(ed, c_class);
+                                            } else {
+                                                let t9: *mut char_u = (*ed).regparse;
+                                                (*ed).regparse = (*ed).regparse.wrapping_add(1);
+                                                startc = *t9 as i32;
+                                                regc(ed, startc);
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                1 => {
-                                    cu = 1;
-                                    while cu < 128 {
-                                        if musl_isalpha(cu) {
-                                            regmbc(ed, cu);
+                                        0 => {
+                                            cu = 1;
+                                            while cu < 128 {
+                                                if musl_isalnum(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                2 => {
-                                    regc(ed, b' ' as i32);
-                                    regc(ed, 9);
-                                }
-                                3 => {
-                                    cu = 1;
-                                    while cu <= 127 {
-                                        if musl_iscntrl(cu) {
-                                            regmbc(ed, cu);
+                                        1 => {
+                                            cu = 1;
+                                            while cu < 128 {
+                                                if musl_isalpha(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                4 => {
-                                    cu = 1;
-                                    while cu <= 127 {
-                                        if ascii_isdigit(cu) {
-                                            regmbc(ed, cu);
+                                        2 => {
+                                            regc(ed, b' ' as i32);
+                                            regc(ed, 9);
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                5 => {
-                                    cu = 1;
-                                    while cu <= 127 {
-                                        if musl_isgraph(cu) {
-                                            regmbc(ed, cu);
+                                        3 => {
+                                            cu = 1;
+                                            while cu <= 127 {
+                                                if musl_iscntrl(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                6 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if vim_islower(ed, cu) && cu != 170 && cu != 186 {
-                                            regmbc(ed, cu);
+                                        4 => {
+                                            cu = 1;
+                                            while cu <= 127 {
+                                                if ascii_isdigit(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                7 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if vim_isprintc(ed, cu) {
-                                            regmbc(ed, cu);
+                                        5 => {
+                                            cu = 1;
+                                            while cu <= 127 {
+                                                if musl_isgraph(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                8 => {
-                                    cu = 1;
-                                    while cu < 128 {
-                                        if musl_ispunct(cu) {
-                                            regmbc(ed, cu);
+                                        6 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if vim_islower(ed, cu) && cu != 170 && cu != 186 {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                9 => {
-                                    cu = 9;
-                                    while cu <= 13 {
-                                        regc(ed, cu);
-                                        cu += 1;
-                                    }
-                                    regc(ed, b' ' as i32);
-                                }
-                                10 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if vim_isupper(ed, cu) {
-                                            regmbc(ed, cu);
+                                        7 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if vim_isprintc(ed, cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                11 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if vim_isxdigit(cu) {
-                                            regmbc(ed, cu);
+                                        8 => {
+                                            cu = 1;
+                                            while cu < 128 {
+                                                if musl_ispunct(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                12 => {
-                                    regc(ed, 9);
-                                }
-                                13 => {
-                                    regc(ed, 13);
-                                }
-                                14 => {
-                                    regc(ed, 8);
-                                }
-                                15 => {
-                                    regc(ed, 27);
-                                }
-                                16 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if vim_isIDc(ed, cu) {
-                                            regmbc(ed, cu);
+                                        9 => {
+                                            cu = 9;
+                                            while cu <= 13 {
+                                                regc(ed, cu);
+                                                cu += 1;
+                                            }
+                                            regc(ed, b' ' as i32);
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                17 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if reg_iswordc(ed, re, cu) {
-                                            regmbc(ed, cu);
+                                        10 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if vim_isupper(ed, cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
-                                    }
-                                }
-                                18 => {
-                                    cu = 1;
-                                    while cu <= 255 {
-                                        if vim_isfilec(ed, cu) {
-                                            regmbc(ed, cu);
+                                        11 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if vim_isxdigit(cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
                                         }
-                                        cu += 1;
+                                        12 => {
+                                            regc(ed, 9);
+                                        }
+                                        13 => {
+                                            regc(ed, 13);
+                                        }
+                                        14 => {
+                                            regc(ed, 8);
+                                        }
+                                        15 => {
+                                            regc(ed, 27);
+                                        }
+                                        16 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if vim_isIDc(ed, cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
+                                        }
+                                        17 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if reg_iswordc(ed, re, cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
+                                        }
+                                        18 => {
+                                            cu = 1;
+                                            while cu <= 255 {
+                                                if vim_isfilec(ed, cu) {
+                                                    regmbc(ed, cu);
+                                                }
+                                                cu += 1;
+                                            }
+                                        }
+                                        _ => {}
+                                    }
+                                } else {
+                                    startc = utf_ptr2char(ed, (*ed).regparse);
+                                    let mut len: i32 = utfc_ptr2len(ed, (*ed).regparse);
+                                    if utf_char2len(startc) != len {
+                                        startc = -1;
+                                    }
+                                    loop {
+                                        len -= 1;
+                                        if len < 0 {
+                                            break;
+                                        }
+                                        regc(ed, *({ let t10: *mut char_u = (*ed).regparse; (*ed).regparse = t10.wrapping_add(1); t10 }) as i32);
                                     }
                                 }
-                                _ => {}
                             }
-                        } else {
-                            startc = utf_ptr2char(ed, (*ed).regparse);
-                            let mut len: i32 = utfc_ptr2len(ed, (*ed).regparse);
-                            if utf_char2len(startc) != len {
-                                startc = -1;
+                            regc(ed, NUL);
+                            (*ed).prevchr_len = 1;
+                            if *(*ed).regparse != b']' {
+                                emsg(ed, decay(&raw mut (*ed).e_too_many_brackets));
+                                (*ed).rc_did_emsg = true;
+                                return null_mut();
                             }
-                            loop {
-                                len -= 1;
-                                if len < 0 {
-                                    break;
-                                }
-                                regc(ed, *({ let t10: *mut char_u = (*ed).regparse; (*ed).regparse = t10.wrapping_add(1); t10 }) as i32);
-                            }
+                            skipchr(ed);
+                            *flagp |= 3;
+                            break 's2;
+                        } else if (*ed).reg_strict != 0 {
+                            crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_rsb_after_str_lsb), &[VArg::P((if (*ed).reg_magic > MAGIC_OFF { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                            emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_missing_rsb_after_str_lsb)));
+                            (*ed).rc_did_emsg = true;
+                            return null_mut();
                         }
                     }
+                    if use_multibytecode(ed, c) {
+                        ret = regnode(ed, MULTIBYTECODE);
+                        regmbc(ed, c);
+                        *flagp |= 3;
+                        break 's2;
+                    }
+                    ret = regnode(ed, EXACTLY);
+                    let mut len_2: i32 = 0;
+                    while c != NUL && (len_2 == 0 || re_multi_type(peekchr(ed)) == NOT_MULTI && !(*ed).one_exactly && c >= 0) {
+                        c = no_Magic(c);
+                        regmbc(ed, c);
+                        loop {
+                            l = utf_ptr2len(ed, (*ed).regparse);
+                            if !utf_iscomposing(ed, utf_ptr2char(ed, (*ed).regparse.wrapping_offset(l as isize))) {
+                                break;
+                            }
+                            regmbc(ed, utf_ptr2char(ed, (*ed).regparse));
+                            skipchr(ed);
+                        }
+                        c = getchr(ed);
+                        len_2 += 1;
+                    }
+                    ungetchr(ed);
                     regc(ed, NUL);
-                    (*ed).prevchr_len = 1;
-                    if *(*ed).regparse != b']' {
-                        emsg(ed, decay(&raw mut (*ed).e_too_many_brackets));
-                        (*ed).rc_did_emsg = true;
-                        return null_mut();
+                    *flagp |= HASWIDTH;
+                    if len_2 == 1 {
+                        *flagp |= SIMPLE;
                     }
-                    skipchr(ed);
-                    *flagp |= 3;
-                    break 's2;
-                } else if (*ed).reg_strict != 0 {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_missing_rsb_after_str_lsb), &[VArg::P((if (*ed).reg_magic > MAGIC_OFF { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_missing_rsb_after_str_lsb)));
-                    (*ed).rc_did_emsg = true;
-                    return null_mut();
                 }
-                }
-                if use_multibytecode(ed, c) {
-                    ret = regnode(ed, MULTIBYTECODE);
-                    regmbc(ed, c);
-                    *flagp |= 3;
-                    break 's2;
-                }
-                ret = regnode(ed, EXACTLY);
-                len_2 = 0;
-                while c != NUL && (len_2 == 0 || re_multi_type(peekchr(ed)) == NOT_MULTI && !(*ed).one_exactly && c >= 0) {
-                    c = no_Magic(c);
-                    regmbc(ed, c);
-                    loop {
-                        l = utf_ptr2len(ed, (*ed).regparse);
-                        if !utf_iscomposing(ed, utf_ptr2char(ed, (*ed).regparse.wrapping_offset(l as isize))) {
-                            break;
-                        }
-                        regmbc(ed, utf_ptr2char(ed, (*ed).regparse));
-                        skipchr(ed);
-                    }
-                    c = getchr(ed);
-                    len_2 += 1;
-                }
-                ungetchr(ed);
-                regc(ed, NUL);
-                *flagp |= HASWIDTH;
-                if len_2 == 1 {
-                    *flagp |= SIMPLE;
-                }
-            }
             }
         }
         break;
@@ -48824,13 +48788,8 @@ pub unsafe fn regatom(ed: *mut Editor, re: *mut regengine_T, flagp: *mut i32) ->
 
 pub unsafe fn regpiece(ed: *mut Editor, re: *mut regengine_T, mut flagp: i32) -> regpiece__out_T {
     let mut out__: regpiece__out_T = core::mem::zeroed();
-    let read_limits__o: read_limits__out_T;
     let next: *mut char_u;
     let mut flags: i32 = 0;
-    let minval: i64;
-    let maxval: i64;
-    let mut lop: i32;
-    let mut nr: i64;
     let ret: *mut char_u = regatom(ed, re, &raw mut flags);
     if ret.is_null() {
         out__.r__ = null_mut();
@@ -48849,115 +48808,115 @@ pub unsafe fn regpiece(ed: *mut Editor, re: *mut regengine_T, mut flagp: i32) ->
     's1: {
         match op {
             -214 => {
-            if flags & SIMPLE != 0 {
-                reginsert(ed, STAR, ret);
-            } else {
-                reginsert(ed, BRANCH, ret);
-                regoptail(ed, re, ret, regnode(ed, BACK));
-                regoptail(ed, re, ret, ret);
-                regtail(ed, re, ret, regnode(ed, BRANCH));
-                regtail(ed, re, ret, regnode(ed, NOTHING));
+                if flags & SIMPLE != 0 {
+                    reginsert(ed, STAR, ret);
+                } else {
+                    reginsert(ed, BRANCH, ret);
+                    regoptail(ed, re, ret, regnode(ed, BACK));
+                    regoptail(ed, re, ret, ret);
+                    regtail(ed, re, ret, regnode(ed, BRANCH));
+                    regtail(ed, re, ret, regnode(ed, NOTHING));
+                }
             }
-        }
             -213 => {
-            if flags & SIMPLE != 0 {
-                reginsert(ed, PLUS, ret);
-            } else {
-                next = regnode(ed, BRANCH);
-                regtail(ed, re, ret, next);
-                regtail(ed, re, regnode(ed, BACK), ret);
-                regtail(ed, re, next, regnode(ed, BRANCH));
-                regtail(ed, re, ret, regnode(ed, NOTHING));
+                if flags & SIMPLE != 0 {
+                    reginsert(ed, PLUS, ret);
+                } else {
+                    next = regnode(ed, BRANCH);
+                    regtail(ed, re, ret, next);
+                    regtail(ed, re, regnode(ed, BACK), ret);
+                    regtail(ed, re, next, regnode(ed, BRANCH));
+                    regtail(ed, re, ret, regnode(ed, NOTHING));
+                }
+                flagp = 1i32 | flags & 24;
             }
-            flagp = 1i32 | flags & 24;
-        }
             -192 => {
-            lop = END;
-            nr = getdecchrs(ed);
-            match no_Magic(getchr(ed)) {
-                61 => {
-                    lop = MATCH;
-                }
-                33 => {
-                    lop = NOMATCH;
-                }
-                62 => {
-                    lop = SUBPAT;
-                }
-                60 => {
-                    match no_Magic(getchr(ed)) {
-                        61 => {
-                            lop = BEHIND;
-                        }
-                        33 => {
-                            lop = NOBEHIND;
-                        }
-                        _ => {}
+                let mut lop: i32 = END;
+                let mut nr: i64 = getdecchrs(ed);
+                match no_Magic(getchr(ed)) {
+                    61 => {
+                        lop = MATCH;
                     }
+                    33 => {
+                        lop = NOMATCH;
+                    }
+                    62 => {
+                        lop = SUBPAT;
+                    }
+                    60 => {
+                        match no_Magic(getchr(ed)) {
+                            61 => {
+                                lop = BEHIND;
+                            }
+                            33 => {
+                                lop = NOBEHIND;
+                            }
+                            _ => {}
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
-            }
-            if lop == END {
-                crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_at), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str_at)));
-                (*ed).rc_did_emsg = true;
-                out__.r__ = null_mut();
-                out__.flagp = flagp;
-                return out__;
-            }
-            if lop == BEHIND || lop == NOBEHIND {
-                regtail(ed, re, ret, regnode(ed, BHPOS));
-                flagp |= HASLOOKBH;
-            }
-            regtail(ed, re, ret, regnode(ed, END));
-            if lop == BEHIND || lop == NOBEHIND {
-                if nr < 0 {
-                    nr = 0;
-                }
-                reginsert_nr(ed, lop, nr, ret);
-            } else {
-                reginsert(ed, lop, ret);
-            }
-            break 's1;
-        }
-            -193 | -195 => {
-            reginsert(ed, BRANCH, ret);
-            regtail(ed, re, ret, regnode(ed, BRANCH));
-            next = regnode(ed, NOTHING);
-            regtail(ed, re, ret, next);
-            regoptail(ed, re, ret, next);
-        }
-            -133 => {
-            read_limits__o = read_limits(ed);
-            minval = read_limits__o.minval;
-            maxval = read_limits__o.maxval;
-            if read_limits__o.r__ == 0 {
-                out__.r__ = null_mut();
-                out__.flagp = flagp;
-                return out__;
-            }
-            if flags & SIMPLE != 0 {
-                reginsert(ed, BRACE_SIMPLE, ret);
-                reginsert_limits(ed, re, BRACE_LIMITS, minval, maxval, ret);
-            } else {
-                if (*ed).num_complex_braces >= 10 {
-                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_too_many_complex_str_curly), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
-                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_too_many_complex_str_curly)));
+                if lop == END {
+                    crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_invalid_character_after_str_at), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                    emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_invalid_character_after_str_at)));
                     (*ed).rc_did_emsg = true;
                     out__.r__ = null_mut();
                     out__.flagp = flagp;
                     return out__;
                 }
-                reginsert(ed, BRACE_COMPLEX + (*ed).num_complex_braces, ret);
-                regoptail(ed, re, ret, regnode(ed, BACK));
-                regoptail(ed, re, ret, ret);
-                reginsert_limits(ed, re, BRACE_LIMITS, minval, maxval, ret);
-                (*ed).num_complex_braces += 1;
+                if lop == BEHIND || lop == NOBEHIND {
+                    regtail(ed, re, ret, regnode(ed, BHPOS));
+                    flagp |= HASLOOKBH;
+                }
+                regtail(ed, re, ret, regnode(ed, END));
+                if lop == BEHIND || lop == NOBEHIND {
+                    if nr < 0 {
+                        nr = 0;
+                    }
+                    reginsert_nr(ed, lop, nr, ret);
+                } else {
+                    reginsert(ed, lop, ret);
+                }
+                break 's1;
             }
-            if minval > 0 && maxval > 0 {
-                flagp = HASWIDTH | flags & 24;
+            -193 | -195 => {
+                reginsert(ed, BRANCH, ret);
+                regtail(ed, re, ret, regnode(ed, BRANCH));
+                next = regnode(ed, NOTHING);
+                regtail(ed, re, ret, next);
+                regoptail(ed, re, ret, next);
             }
-        }
+            -133 => {
+                let read_limits__o: read_limits__out_T = read_limits(ed);
+                let minval: i64 = read_limits__o.minval;
+                let maxval: i64 = read_limits__o.maxval;
+                if read_limits__o.r__ == 0 {
+                    out__.r__ = null_mut();
+                    out__.flagp = flagp;
+                    return out__;
+                }
+                if flags & SIMPLE != 0 {
+                    reginsert(ed, BRACE_SIMPLE, ret);
+                    reginsert_limits(ed, re, BRACE_LIMITS, minval, maxval, ret);
+                } else {
+                    if (*ed).num_complex_braces >= 10 {
+                        crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_too_many_complex_str_curly), &[VArg::P((if (*ed).reg_magic == MAGIC_ALL { c"".as_ptr() as *mut i8 } else { c"\\".as_ptr() as *mut i8 }) as *const c_void)]);
+                        emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_too_many_complex_str_curly)));
+                        (*ed).rc_did_emsg = true;
+                        out__.r__ = null_mut();
+                        out__.flagp = flagp;
+                        return out__;
+                    }
+                    reginsert(ed, BRACE_COMPLEX + (*ed).num_complex_braces, ret);
+                    regoptail(ed, re, ret, regnode(ed, BACK));
+                    regoptail(ed, re, ret, ret);
+                    reginsert_limits(ed, re, BRACE_LIMITS, minval, maxval, ret);
+                    (*ed).num_complex_braces += 1;
+                }
+                if minval > 0 && maxval > 0 {
+                    flagp = HASWIDTH | flags & 24;
+                }
+            }
             _ => {}
         }
     }
@@ -49366,8 +49325,6 @@ pub unsafe fn regrepeat(ed: *mut Editor, re: *mut regengine_T, p: *mut char_u, m
     let mut mask: i32 = 0;
     let mut l: i32;
     let cu: i32;
-    let len: i32;
-    let mut cf: i32;
     let mut len_2: i32;
     let mut count: i64 = 0;
     let mut testval: i32 = 0;
@@ -49376,332 +49333,332 @@ pub unsafe fn regrepeat(ed: *mut Editor, re: *mut regengine_T, p: *mut char_u, m
     's1: {
         match *p as i32 {
             20 | 50 => {
-            while count < maxcount {
-                while *scan != NUL as u8 && count < maxcount {
+                while count < maxcount {
+                    while *scan != NUL as u8 && count < maxcount {
+                        count += 1;
+                        scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
+                    }
+                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr || count == maxcount {
+                        break;
+                    }
                     count += 1;
-                    scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
-                }
-                if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr || count == maxcount {
-                    break;
-                }
-                count += 1;
-                reg_nextline(ed, re);
-                scan = (*re).rex.input;
-                if (*ed).got_int != 0 {
-                    break;
+                    reg_nextline(ed, re);
+                    scan = (*re).rex.input;
+                    if (*ed).got_int != 0 {
+                        break;
+                    }
                 }
             }
-        }
             v3_1 @ (23 | 53 | 24 | 54) => {
-            'v3_1_1: {
-            'v3_1_0: {
-                match v3_1 {
-                    23 | 53 => break 'v3_1_0,
-                    _ => break 'v3_1_1,
-                }
-            }
-            testval = TRUE;
-            }
-            while count < maxcount {
-                if vim_isIDc(ed, utf_ptr2char(ed, scan)) && (testval != 0 || !ascii_isdigit(*scan as i32)) {
-                    scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
-                } else if *scan == NUL as u8 {
-                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
-                        break;
+                'v3_1_1: {
+                    'v3_1_0: {
+                        match v3_1 {
+                            23 | 53 => break 'v3_1_0,
+                            _ => break 'v3_1_1,
+                        }
                     }
-                    reg_nextline(ed, re);
-                    scan = (*re).rex.input;
-                    if (*ed).got_int != 0 {
-                        break;
-                    }
-                } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
-                    scan = scan.wrapping_add(1);
-                } else {
-                    break;
+                    testval = TRUE;
                 }
-                count += 1;
-            }
-        }
-            v4_2 @ (25 | 55 | 26 | 56) => {
-            'v4_2_1: {
-            'v4_2_0: {
-                match v4_2 {
-                    25 | 55 => break 'v4_2_0,
-                    _ => break 'v4_2_1,
-                }
-            }
-            testval = TRUE;
-            }
-            while count < maxcount {
-                if vim_iswordp_buf(ed, scan, (*re).rex.reg_buf) && (testval != 0 || !ascii_isdigit(*scan as i32)) {
-                    scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
-                } else if *scan == NUL as u8 {
-                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
-                        break;
-                    }
-                    reg_nextline(ed, re);
-                    scan = (*re).rex.input;
-                    if (*ed).got_int != 0 {
-                        break;
-                    }
-                } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
-                    scan = scan.wrapping_add(1);
-                } else {
-                    break;
-                }
-                count += 1;
-            }
-        }
-            v5_3 @ (27 | 57 | 28 | 58) => {
-            'v5_3_1: {
-            'v5_3_0: {
-                match v5_3 {
-                    27 | 57 => break 'v5_3_0,
-                    _ => break 'v5_3_1,
-                }
-            }
-            testval = TRUE;
-            }
-            while count < maxcount {
-                if vim_isfilec(ed, utf_ptr2char(ed, scan)) && (testval != 0 || !ascii_isdigit(*scan as i32)) {
-                    scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
-                } else if *scan == NUL as u8 {
-                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
-                        break;
-                    }
-                    reg_nextline(ed, re);
-                    scan = (*re).rex.input;
-                    if (*ed).got_int != 0 {
-                        break;
-                    }
-                } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
-                    scan = scan.wrapping_add(1);
-                } else {
-                    break;
-                }
-                count += 1;
-            }
-        }
-            v6_4 @ (29 | 59 | 30 | 60) => {
-            'v6_4_1: {
-            'v6_4_0: {
-                match v6_4 {
-                    29 | 59 => break 'v6_4_0,
-                    _ => break 'v6_4_1,
-                }
-            }
-            testval = TRUE;
-            }
-            while count < maxcount {
-                if *scan == NUL as u8 {
-                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
-                        break;
-                    }
-                    reg_nextline(ed, re);
-                    scan = (*re).rex.input;
-                    if (*ed).got_int != 0 {
-                        break;
-                    }
-                } else if (vim_isprintc(ed, utf_ptr2char(ed, scan)) as i32) == 1 && (testval != 0 || !ascii_isdigit(*scan as i32)) {
-                    scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
-                } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
-                    scan = scan.wrapping_add(1);
-                } else {
-                    break;
-                }
-                count += 1;
-            }
-        }
-            31 | 61 | 32 | 62 | 33 | 63 | 34 | 64 | 35 | 65 | 36 | 66 | 37 | 67 | 38 | 68 | 39 | 69 | 40 | 70 | 41 | 71 | 42 | 72 | 43 | 73 | 44 | 74 | 45 | 75 | 46 | 76 | 47 | 77 | 48 | 78 => {
-            match *p as i32 {
-                31 | 61 => {
-                    mask = RI_WHITE;
-                    testval = mask;
-                }
-                32 | 62 => {
-                    mask = RI_WHITE;
-                }
-                33 | 63 => {
-                    mask = RI_DIGIT;
-                    testval = mask;
-                }
-                34 | 64 => {
-                    mask = RI_DIGIT;
-                }
-                35 | 65 => {
-                    mask = RI_HEX;
-                    testval = mask;
-                }
-                36 | 66 => {
-                    mask = RI_HEX;
-                }
-                37 | 67 => {
-                    mask = RI_OCTAL;
-                    testval = mask;
-                }
-                38 | 68 => {
-                    mask = RI_OCTAL;
-                }
-                39 | 69 => {
-                    mask = RI_WORD;
-                    testval = mask;
-                }
-                40 | 70 => {
-                    mask = RI_WORD;
-                }
-                41 | 71 => {
-                    mask = RI_HEAD;
-                    testval = mask;
-                }
-                42 | 72 => {
-                    mask = RI_HEAD;
-                }
-                43 | 73 => {
-                    mask = RI_ALPHA;
-                    testval = mask;
-                }
-                44 | 74 => {
-                    mask = RI_ALPHA;
-                }
-                45 | 75 => {
-                    mask = RI_LOWER;
-                    testval = mask;
-                }
-                46 | 76 => {
-                    mask = RI_LOWER;
-                }
-                47 | 77 => {
-                    mask = RI_UPPER;
-                    testval = mask;
-                }
-                48 | 78 => {
-                    mask = RI_UPPER;
-                }
-                _ => {}
-            }
-            while count < maxcount {
-                if *scan == NUL as u8 {
-                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
-                        break;
-                    }
-                    reg_nextline(ed, re);
-                    scan = (*re).rex.input;
-                    if (*ed).got_int != 0 {
-                        break;
-                    }
-                } else if ({ l = utfc_ptr2len(ed, scan); l }) > 1 {
-                    if testval != 0 {
-                        break;
-                    }
-                    scan = scan.wrapping_offset(l as isize);
-                } else if *decay(&raw mut (*ed).class_tab).wrapping_add(*scan as usize) as i32 & mask == testval {
-                    scan = scan.wrapping_add(1);
-                } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
-                    scan = scan.wrapping_add(1);
-                } else {
-                    break;
-                }
-                count += 1;
-            }
-        }
-            5 => {
-            if (*re).rex.reg_ic != 0 {
-                cu = vim_toupper(ed, *opnd as i32);
-                let cl: i32 = vim_tolower(ed, *opnd as i32);
-                while count < maxcount && ((*scan as i32) == cu || (*scan as i32) == cl) {
-                    count += 1;
-                    scan = scan.wrapping_add(1);
-                }
-            } else {
-                cu = *opnd as i32;
-                while count < maxcount && (*scan as i32) == cu {
-                    count += 1;
-                    scan = scan.wrapping_add(1);
-                }
-            }
-            break 's1;
-        }
-            200 => {
-            cf = 0;
-            len = utfc_ptr2len(ed, opnd);
-            if len > 1 {
-                if (*re).rex.reg_ic != 0 {
-                    cf = utf_fold(ed, utf_ptr2char(ed, opnd));
-                }
-                while count < maxcount && utfc_ptr2len(ed, scan) >= len {
-                    let mut i: i32 = 0;
-                    while i < len {
-                        if (*opnd.wrapping_offset(i as isize) as i32) != *scan.wrapping_offset(i as isize) as i32 {
+                while count < maxcount {
+                    if vim_isIDc(ed, utf_ptr2char(ed, scan)) && (testval != 0 || !ascii_isdigit(*scan as i32)) {
+                        scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
+                    } else if *scan == NUL as u8 {
+                        if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
                             break;
                         }
-                        i += 1;
-                    }
-                    if i < len && ((*re).rex.reg_ic == 0 || utf_fold(ed, utf_ptr2char(ed, scan)) != cf) {
+                        reg_nextline(ed, re);
+                        scan = (*re).rex.input;
+                        if (*ed).got_int != 0 {
+                            break;
+                        }
+                    } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
+                        scan = scan.wrapping_add(1);
+                    } else {
                         break;
                     }
-                    scan = scan.wrapping_offset(len as isize);
                     count += 1;
                 }
             }
-        }
-            v13_8 @ (21 | 51 | 22 | 52) => {
-            'v13_8_1: {
-            'v13_8_0: {
-                match v13_8 {
-                    21 | 51 => break 'v13_8_0,
-                    _ => break 'v13_8_1,
+            v4_2 @ (25 | 55 | 26 | 56) => {
+                'v4_2_1: {
+                    'v4_2_0: {
+                        match v4_2 {
+                            25 | 55 => break 'v4_2_0,
+                            _ => break 'v4_2_1,
+                        }
+                    }
+                    testval = TRUE;
                 }
-            }
-            testval = TRUE;
-            }
-            while count < maxcount {
-                if *scan == NUL as u8 {
-                    if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
+                while count < maxcount {
+                    if vim_iswordp_buf(ed, scan, (*re).rex.reg_buf) && (testval != 0 || !ascii_isdigit(*scan as i32)) {
+                        scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
+                    } else if *scan == NUL as u8 {
+                        if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
+                            break;
+                        }
+                        reg_nextline(ed, re);
+                        scan = (*re).rex.input;
+                        if (*ed).got_int != 0 {
+                            break;
+                        }
+                    } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
+                        scan = scan.wrapping_add(1);
+                    } else {
                         break;
                     }
-                    reg_nextline(ed, re);
+                    count += 1;
+                }
+            }
+            v5_3 @ (27 | 57 | 28 | 58) => {
+                'v5_3_1: {
+                    'v5_3_0: {
+                        match v5_3 {
+                            27 | 57 => break 'v5_3_0,
+                            _ => break 'v5_3_1,
+                        }
+                    }
+                    testval = TRUE;
+                }
+                while count < maxcount {
+                    if vim_isfilec(ed, utf_ptr2char(ed, scan)) && (testval != 0 || !ascii_isdigit(*scan as i32)) {
+                        scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
+                    } else if *scan == NUL as u8 {
+                        if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
+                            break;
+                        }
+                        reg_nextline(ed, re);
+                        scan = (*re).rex.input;
+                        if (*ed).got_int != 0 {
+                            break;
+                        }
+                    } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
+                        scan = scan.wrapping_add(1);
+                    } else {
+                        break;
+                    }
+                    count += 1;
+                }
+            }
+            v6_4 @ (29 | 59 | 30 | 60) => {
+                'v6_4_1: {
+                    'v6_4_0: {
+                        match v6_4 {
+                            29 | 59 => break 'v6_4_0,
+                            _ => break 'v6_4_1,
+                        }
+                    }
+                    testval = TRUE;
+                }
+                while count < maxcount {
+                    if *scan == NUL as u8 {
+                        if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
+                            break;
+                        }
+                        reg_nextline(ed, re);
+                        scan = (*re).rex.input;
+                        if (*ed).got_int != 0 {
+                            break;
+                        }
+                    } else if (vim_isprintc(ed, utf_ptr2char(ed, scan)) as i32) == 1 && (testval != 0 || !ascii_isdigit(*scan as i32)) {
+                        scan = scan.wrapping_offset(utfc_ptr2len(ed, scan) as isize);
+                    } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
+                        scan = scan.wrapping_add(1);
+                    } else {
+                        break;
+                    }
+                    count += 1;
+                }
+            }
+            31 | 61 | 32 | 62 | 33 | 63 | 34 | 64 | 35 | 65 | 36 | 66 | 37 | 67 | 38 | 68 | 39 | 69 | 40 | 70 | 41 | 71 | 42 | 72 | 43 | 73 | 44 | 74 | 45 | 75 | 46 | 76 | 47 | 77 | 48 | 78 => {
+                match *p as i32 {
+                    31 | 61 => {
+                        mask = RI_WHITE;
+                        testval = mask;
+                    }
+                    32 | 62 => {
+                        mask = RI_WHITE;
+                    }
+                    33 | 63 => {
+                        mask = RI_DIGIT;
+                        testval = mask;
+                    }
+                    34 | 64 => {
+                        mask = RI_DIGIT;
+                    }
+                    35 | 65 => {
+                        mask = RI_HEX;
+                        testval = mask;
+                    }
+                    36 | 66 => {
+                        mask = RI_HEX;
+                    }
+                    37 | 67 => {
+                        mask = RI_OCTAL;
+                        testval = mask;
+                    }
+                    38 | 68 => {
+                        mask = RI_OCTAL;
+                    }
+                    39 | 69 => {
+                        mask = RI_WORD;
+                        testval = mask;
+                    }
+                    40 | 70 => {
+                        mask = RI_WORD;
+                    }
+                    41 | 71 => {
+                        mask = RI_HEAD;
+                        testval = mask;
+                    }
+                    42 | 72 => {
+                        mask = RI_HEAD;
+                    }
+                    43 | 73 => {
+                        mask = RI_ALPHA;
+                        testval = mask;
+                    }
+                    44 | 74 => {
+                        mask = RI_ALPHA;
+                    }
+                    45 | 75 => {
+                        mask = RI_LOWER;
+                        testval = mask;
+                    }
+                    46 | 76 => {
+                        mask = RI_LOWER;
+                    }
+                    47 | 77 => {
+                        mask = RI_UPPER;
+                        testval = mask;
+                    }
+                    48 | 78 => {
+                        mask = RI_UPPER;
+                    }
+                    _ => {}
+                }
+                while count < maxcount {
+                    if *scan == NUL as u8 {
+                        if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
+                            break;
+                        }
+                        reg_nextline(ed, re);
+                        scan = (*re).rex.input;
+                        if (*ed).got_int != 0 {
+                            break;
+                        }
+                    } else if ({ l = utfc_ptr2len(ed, scan); l }) > 1 {
+                        if testval != 0 {
+                            break;
+                        }
+                        scan = scan.wrapping_offset(l as isize);
+                    } else if *decay(&raw mut (*ed).class_tab).wrapping_add(*scan as usize) as i32 & mask == testval {
+                        scan = scan.wrapping_add(1);
+                    } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
+                        scan = scan.wrapping_add(1);
+                    } else {
+                        break;
+                    }
+                    count += 1;
+                }
+            }
+            5 => {
+                if (*re).rex.reg_ic != 0 {
+                    cu = vim_toupper(ed, *opnd as i32);
+                    let cl: i32 = vim_tolower(ed, *opnd as i32);
+                    while count < maxcount && ((*scan as i32) == cu || (*scan as i32) == cl) {
+                        count += 1;
+                        scan = scan.wrapping_add(1);
+                    }
+                } else {
+                    cu = *opnd as i32;
+                    while count < maxcount && (*scan as i32) == cu {
+                        count += 1;
+                        scan = scan.wrapping_add(1);
+                    }
+                }
+                break 's1;
+            }
+            200 => {
+                let mut cf: i32 = 0;
+                let len: i32 = utfc_ptr2len(ed, opnd);
+                if len > 1 {
+                    if (*re).rex.reg_ic != 0 {
+                        cf = utf_fold(ed, utf_ptr2char(ed, opnd));
+                    }
+                    while count < maxcount && utfc_ptr2len(ed, scan) >= len {
+                        let mut i: i32 = 0;
+                        while i < len {
+                            if (*opnd.wrapping_offset(i as isize) as i32) != *scan.wrapping_offset(i as isize) as i32 {
+                                break;
+                            }
+                            i += 1;
+                        }
+                        if i < len && ((*re).rex.reg_ic == 0 || utf_fold(ed, utf_ptr2char(ed, scan)) != cf) {
+                            break;
+                        }
+                        scan = scan.wrapping_offset(len as isize);
+                        count += 1;
+                    }
+                }
+            }
+            v13_8 @ (21 | 51 | 22 | 52) => {
+                'v13_8_1: {
+                    'v13_8_0: {
+                        match v13_8 {
+                            21 | 51 => break 'v13_8_0,
+                            _ => break 'v13_8_1,
+                        }
+                    }
+                    testval = TRUE;
+                }
+                while count < maxcount {
+                    if *scan == NUL as u8 {
+                        if !(*re).rex.reg_match.is_null() || !((*p as i32) >= 50 && (*p as i32) <= 78) || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr {
+                            break;
+                        }
+                        reg_nextline(ed, re);
+                        scan = (*re).rex.input;
+                        if (*ed).got_int != 0 {
+                            break;
+                        }
+                    } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
+                        scan = scan.wrapping_add(1);
+                    } else if ({ len_2 = utfc_ptr2len(ed, scan); len_2 }) > 1 {
+                        if (cstrchr(ed, re, opnd, utf_ptr2char(ed, scan)).is_null() as i32) == testval {
+                            break;
+                        }
+                        scan = scan.wrapping_offset(len_2 as isize);
+                    } else {
+                        if (cstrchr(ed, re, opnd, *scan as i32).is_null() as i32) == testval {
+                            break;
+                        }
+                        scan = scan.wrapping_add(1);
+                    }
+                    count += 1;
+                }
+            }
+            18 => {
+                while count < maxcount && (*scan == NUL as u8 && (*re).rex.lnum <= (*re).rex.reg_maxline && !(*re).rex.reg_line_lbr && (*re).rex.reg_match.is_null() || *scan == 10 && (*re).rex.reg_line_lbr) {
+                    count += 1;
+                    if (*re).rex.reg_line_lbr {
+                        let t1: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                        (*re).rex.input = (*re).rex.input.wrapping_offset(t1 as isize);
+                    } else {
+                        reg_nextline(ed, re);
+                    }
                     scan = (*re).rex.input;
                     if (*ed).got_int != 0 {
                         break;
                     }
-                } else if (*re).rex.reg_line_lbr && *scan == 10 && ((*p as i32) >= 50 && (*p as i32) <= 78) {
-                    scan = scan.wrapping_add(1);
-                } else if ({ len_2 = utfc_ptr2len(ed, scan); len_2 }) > 1 {
-                    if (cstrchr(ed, re, opnd, utf_ptr2char(ed, scan)).is_null() as i32) == testval {
-                        break;
-                    }
-                    scan = scan.wrapping_offset(len_2 as isize);
-                } else {
-                    if (cstrchr(ed, re, opnd, *scan as i32).is_null() as i32) == testval {
-                        break;
-                    }
-                    scan = scan.wrapping_add(1);
-                }
-                count += 1;
-            }
-        }
-            18 => {
-            while count < maxcount && (*scan == NUL as u8 && (*re).rex.lnum <= (*re).rex.reg_maxline && !(*re).rex.reg_line_lbr && (*re).rex.reg_match.is_null() || *scan == 10 && (*re).rex.reg_line_lbr) {
-                count += 1;
-                if (*re).rex.reg_line_lbr {
-                    let t1: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                    (*re).rex.input = (*re).rex.input.wrapping_offset(t1 as isize);
-                } else {
-                    reg_nextline(ed, re);
-                }
-                scan = (*re).rex.input;
-                if (*ed).got_int != 0 {
-                    break;
                 }
             }
-        }
             _ => {
-            if !(*re).alone.string.is_null() {
-                (*re).failed = true;
-            } else {
-                iemsg(ed, decay(&raw mut (*ed).e_corrupted_regexp_program));
+                if !(*re).alone.string.is_null() {
+                    (*re).failed = true;
+                } else {
+                    iemsg(ed, decay(&raw mut (*ed).e_corrupted_regexp_program));
+                }
             }
-        }
         }
     }
     (*re).rex.input = scan;
@@ -49785,33 +49742,9 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
     let mut rp: *mut regitem_T;
     let mut no: i32;
     let mut status: i32;
-    let mut mark: i32;
-    let mut cmp: i32;
-    let mut pos: *const pos_T;
-    let mut col: usize_;
-    let mut wp: *const win_T;
-    let mut lnum: linenr_T;
-    let mut vcol: long_u;
     let mut len: i32;
-    let mut opnd: *mut char_u;
-    let mut q: *mut char_u;
-    let mut len_3: i32;
-    let mut opnd_2: *mut char_u;
-    let mut opndc: i32;
-    let mut i_3: i32;
-    let mut bp: *mut backpos_T;
     let mut len_4: i32 = 0;
     let mut rst: regstar_T = core::mem::zeroed();
-    let mut till: bool;
-    let mut idx: i32;
-    let mut with_nl: bool;
-    let mut oc: i32;
-    let mut cc: i32;
-    let mut level: i32;
-    let mut s: *mut char_u;
-    let mut save_lnum: linenr_T;
-    let mut save_col: colnr_T;
-    let mut rst_2: *mut regstar_T;
     (*re).regstack.ga_len = 0;
     (*re).regstack_star.ga_len = 0;
     (*re).regstack_behind.ga_len = 0;
@@ -49842,582 +49775,570 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
                 's3: {
                     match op {
                         1 => {
-                        if (*re).rex.input != (*re).rex.line {
-                            status = RA_NOMATCH;
+                            if (*re).rex.input != (*re).rex.line {
+                                status = RA_NOMATCH;
+                            }
                         }
-                    }
                         2 => {
-                        if c != NUL {
-                            status = RA_NOMATCH;
+                            if c != NUL {
+                                status = RA_NOMATCH;
+                            }
                         }
-                    }
                         201 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            if (*re).rex.lnum != 0 || (*re).rex.input != (*re).rex.line || (*re).rex.reg_match.is_null() && (*re).rex.reg_firstlnum > 1 {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        if (*re).rex.lnum != 0 || (*re).rex.input != (*re).rex.line || (*re).rex.reg_match.is_null() && (*re).rex.reg_firstlnum > 1 {
-                            status = RA_NOMATCH;
-                        }
-                    }
                         202 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            if (*re).rex.lnum != (*re).rex.reg_maxline || c != NUL {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        if (*re).rex.lnum != (*re).rex.reg_maxline || c != NUL {
-                            status = RA_NOMATCH;
-                        }
-                    }
                         203 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            if (*re).rex.reg_win.is_null() || (*re).rex.lnum + (*re).rex.reg_firstlnum != (*(*re).rex.reg_win).w_cursor.lnum || (pdiff((*re).rex.input, (*re).rex.line) as i32) != (*(*re).rex.reg_win).w_cursor.col {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        if (*re).rex.reg_win.is_null() || (*re).rex.lnum + (*re).rex.reg_firstlnum != (*(*re).rex.reg_win).w_cursor.lnum || (pdiff((*re).rex.input, (*re).rex.line) as i32) != (*(*re).rex.reg_win).w_cursor.col {
-                            status = RA_NOMATCH;
-                        }
-                    }
                         207 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
-                        }
-                        mark = *scan.wrapping_add(3) as i32;
-                        cmp = *scan.wrapping_add(3).wrapping_add(1) as i32;
-                        col = (if (*re).rex.reg_match.is_null() { pdiff((*re).rex.input, (*re).rex.line) } else { 0 }) as u64;
-                        pos = getmark_buf(ed, (*re).rex.reg_buf, mark, false);
-                        if (*re).rex.reg_match.is_null() {
-                            (*re).rex.line = reg_getline(ed, re, (*re).rex.lnum);
-                            (*re).rex.input = (*re).rex.line.wrapping_add(col as usize);
-                        }
-                        if pos.is_null() || (*pos).lnum <= 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let pos_col: colnr_T = if (*pos).lnum == (*re).rex.lnum + (*re).rex.reg_firstlnum && (*pos).col == MAXCOL { reg_getline_len(ed, re, (*pos).lnum - (*re).rex.reg_firstlnum) } else { (*pos).col };
-                            if (if (*pos).lnum == (*re).rex.lnum + (*re).rex.reg_firstlnum { if pos_col == pdiff((*re).rex.input, (*re).rex.line) as i32 { (cmp == b'<' as i32 || cmp == b'>' as i32) as i32 } else { if pos_col < pdiff((*re).rex.input, (*re).rex.line) as i32 { (cmp != b'>' as i32) as i32 } else { (cmp != b'<' as i32) as i32 } } } else { if (*pos).lnum < (*re).rex.lnum + (*re).rex.reg_firstlnum { (cmp != b'>' as i32) as i32 } else { (cmp != b'<' as i32) as i32 } }) != 0 {
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
                                 status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            let mark: i32 = *scan.wrapping_add(3) as i32;
+                            let cmp: i32 = *scan.wrapping_add(3).wrapping_add(1) as i32;
+                            let col: usize_ = (if (*re).rex.reg_match.is_null() { pdiff((*re).rex.input, (*re).rex.line) } else { 0 }) as u64;
+                            let pos: *const pos_T = getmark_buf(ed, (*re).rex.reg_buf, mark, false);
+                            if (*re).rex.reg_match.is_null() {
+                                (*re).rex.line = reg_getline(ed, re, (*re).rex.lnum);
+                                (*re).rex.input = (*re).rex.line.wrapping_add(col as usize);
+                            }
+                            if pos.is_null() || (*pos).lnum <= 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let pos_col: colnr_T = if (*pos).lnum == (*re).rex.lnum + (*re).rex.reg_firstlnum && (*pos).col == MAXCOL { reg_getline_len(ed, re, (*pos).lnum - (*re).rex.reg_firstlnum) } else { (*pos).col };
+                                if (if (*pos).lnum == (*re).rex.lnum + (*re).rex.reg_firstlnum { if pos_col == pdiff((*re).rex.input, (*re).rex.line) as i32 { (cmp == b'<' as i32 || cmp == b'>' as i32) as i32 } else { if pos_col < pdiff((*re).rex.input, (*re).rex.line) as i32 { (cmp != b'>' as i32) as i32 } else { (cmp != b'<' as i32) as i32 } } } else { if (*pos).lnum < (*re).rex.lnum + (*re).rex.reg_firstlnum { (cmp != b'>' as i32) as i32 } else { (cmp != b'<' as i32) as i32 } }) != 0 {
+                                    status = RA_NOMATCH;
+                                }
                             }
                         }
-                    }
                         208 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            if !reg_match_visual(ed, re) {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        if !reg_match_visual(ed, re) {
-                            status = RA_NOMATCH;
-                        }
-                    }
                         204 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            if !(*re).rex.reg_match.is_null() || !re_num_cmp(((*re).rex.lnum + (*re).rex.reg_firstlnum) as u64, scan) {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        if !(*re).rex.reg_match.is_null() || !re_num_cmp(((*re).rex.lnum + (*re).rex.reg_firstlnum) as u64, scan) {
-                            status = RA_NOMATCH;
-                        }
-                    }
                         205 => {
-                        if !re_num_cmp((pdiff((*re).rex.input, (*re).rex.line) as u64).wrapping_add(1), scan) {
-                            status = RA_NOMATCH;
+                            if !re_num_cmp((pdiff((*re).rex.input, (*re).rex.line) as u64).wrapping_add(1), scan) {
+                                status = RA_NOMATCH;
+                            }
                         }
-                    }
                         206 => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                            status = RA_NOMATCH;
-                            break 's3;
+                            if !(*re).alone.string.is_null() {
+                                (*re).failed = true;
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            let wp: *const win_T = if (*re).rex.reg_win.is_null() { (*ed).curwin } else { (*re).rex.reg_win };
+                            let mut lnum: linenr_T = if (*re).rex.reg_match.is_null() { (*re).rex.reg_firstlnum + (*re).rex.lnum } else { 1 };
+                            if (*re).rex.reg_match.is_null() && (lnum <= 0 || lnum > (*(*wp).w_buffer).b_ml.ml_line_count) {
+                                lnum = 1;
+                            }
+                            let vcol: long_u = win_linetabsize(ed, wp, lnum, (*re).rex.line, pdiff((*re).rex.input, (*re).rex.line) as i32) as u64;
+                            if !re_num_cmp(vcol.wrapping_add(1), scan) {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        wp = if (*re).rex.reg_win.is_null() { (*ed).curwin } else { (*re).rex.reg_win };
-                        lnum = if (*re).rex.reg_match.is_null() { (*re).rex.reg_firstlnum + (*re).rex.lnum } else { 1 };
-                        if (*re).rex.reg_match.is_null() && (lnum <= 0 || lnum > (*(*wp).w_buffer).b_ml.ml_line_count) {
-                            lnum = 1;
-                        }
-                        vcol = win_linetabsize(ed, wp, lnum, (*re).rex.line, pdiff((*re).rex.input, (*re).rex.line) as i32) as u64;
-                        if !re_num_cmp(vcol.wrapping_add(1), scan) {
-                            status = RA_NOMATCH;
-                        }
-                    }
                         15 => {
-                        if c == NUL {
-                            status = RA_NOMATCH;
-                        } else {
-                            let this_class: i32 = mb_get_class_buf(ed, (*re).rex.input, (*re).rex.reg_buf);
-                            if this_class <= 1 {
+                            if c == NUL {
                                 status = RA_NOMATCH;
-                            } else if reg_prev_class(ed, re) == this_class {
-                                status = RA_NOMATCH;
+                            } else {
+                                let this_class: i32 = mb_get_class_buf(ed, (*re).rex.input, (*re).rex.reg_buf);
+                                if this_class <= 1 {
+                                    status = RA_NOMATCH;
+                                } else if reg_prev_class(ed, re) == this_class {
+                                    status = RA_NOMATCH;
+                                }
                             }
                         }
-                    }
                         16 => {
-                        if (*re).rex.input == (*re).rex.line {
-                            status = RA_NOMATCH;
-                        } else {
-                            let this_class_2: i32 = mb_get_class_buf(ed, (*re).rex.input, (*re).rex.reg_buf);
-                            let prev_class: i32 = reg_prev_class(ed, re);
-                            if this_class_2 == prev_class || prev_class == 0 || prev_class == 1 {
+                            if (*re).rex.input == (*re).rex.line {
                                 status = RA_NOMATCH;
+                            } else {
+                                let this_class_2: i32 = mb_get_class_buf(ed, (*re).rex.input, (*re).rex.reg_buf);
+                                let prev_class: i32 = reg_prev_class(ed, re);
+                                if this_class_2 == prev_class || prev_class == 0 || prev_class == 1 {
+                                    status = RA_NOMATCH;
+                                }
                             }
                         }
-                    }
                         20 => {
-                        if c == NUL {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t2: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t2 as isize);
+                            if c == NUL {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t2: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t2 as isize);
+                            }
                         }
-                    }
                         23 => {
-                        if !vim_isIDc(ed, c) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t3: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t3 as isize);
+                            if !vim_isIDc(ed, c) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t3: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t3 as isize);
+                            }
                         }
-                    }
                         24 => {
-                        if ascii_isdigit(*(*re).rex.input as i32) || !vim_isIDc(ed, c) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t4: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t4 as isize);
+                            if ascii_isdigit(*(*re).rex.input as i32) || !vim_isIDc(ed, c) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t4: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t4 as isize);
+                            }
                         }
-                    }
                         25 => {
-                        if !vim_iswordp_buf(ed, (*re).rex.input, (*re).rex.reg_buf) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t5: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t5 as isize);
+                            if !vim_iswordp_buf(ed, (*re).rex.input, (*re).rex.reg_buf) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t5: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t5 as isize);
+                            }
                         }
-                    }
                         26 => {
-                        if ascii_isdigit(*(*re).rex.input as i32) || !vim_iswordp_buf(ed, (*re).rex.input, (*re).rex.reg_buf) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t6: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t6 as isize);
+                            if ascii_isdigit(*(*re).rex.input as i32) || !vim_iswordp_buf(ed, (*re).rex.input, (*re).rex.reg_buf) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t6: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t6 as isize);
+                            }
                         }
-                    }
                         27 => {
-                        if !vim_isfilec(ed, c) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t7: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t7 as isize);
+                            if !vim_isfilec(ed, c) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t7: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t7 as isize);
+                            }
                         }
-                    }
                         28 => {
-                        if ascii_isdigit(*(*re).rex.input as i32) || !vim_isfilec(ed, c) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t8: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t8 as isize);
+                            if ascii_isdigit(*(*re).rex.input as i32) || !vim_isfilec(ed, c) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t8: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t8 as isize);
+                            }
                         }
-                    }
                         29 => {
-                        if !vim_isprintc(ed, utf_ptr2char(ed, (*re).rex.input)) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t9: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t9 as isize);
+                            if !vim_isprintc(ed, utf_ptr2char(ed, (*re).rex.input)) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t9: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t9 as isize);
+                            }
                         }
-                    }
                         30 => {
-                        if ascii_isdigit(*(*re).rex.input as i32) || !vim_isprintc(ed, utf_ptr2char(ed, (*re).rex.input)) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t10: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t10 as isize);
+                            if ascii_isdigit(*(*re).rex.input as i32) || !vim_isprintc(ed, utf_ptr2char(ed, (*re).rex.input)) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t10: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t10 as isize);
+                            }
                         }
-                    }
                         31 => {
-                        if !(c == b' ' as i32 || c == 9) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t11: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t11 as isize);
+                            if !(c == b' ' as i32 || c == 9) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t11: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t11 as isize);
+                            }
                         }
-                    }
                         32 => {
-                        if c == NUL || (c == b' ' as i32 || c == 9) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t12: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t12 as isize);
+                            if c == NUL || (c == b' ' as i32 || c == 9) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t12: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t12 as isize);
+                            }
                         }
-                    }
                         33 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_DIGIT != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t13: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t13 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_DIGIT != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t13: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t13 as isize);
+                            }
                         }
-                    }
                         34 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_DIGIT != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t14: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t14 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_DIGIT != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t14: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t14 as isize);
+                            }
                         }
-                    }
                         35 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEX != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t15: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t15 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEX != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t15: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t15 as isize);
+                            }
                         }
-                    }
                         36 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEX != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t16: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t16 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEX != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t16: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t16 as isize);
+                            }
                         }
-                    }
                         37 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_OCTAL != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t17: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t17 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_OCTAL != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t17: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t17 as isize);
+                            }
                         }
-                    }
                         38 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_OCTAL != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t18: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t18 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_OCTAL != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t18: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t18 as isize);
+                            }
                         }
-                    }
                         39 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_WORD != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t19: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t19 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_WORD != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t19: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t19 as isize);
+                            }
                         }
-                    }
                         40 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_WORD != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t20: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t20 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_WORD != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t20: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t20 as isize);
+                            }
                         }
-                    }
                         41 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEAD != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t21: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t21 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEAD != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t21: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t21 as isize);
+                            }
                         }
-                    }
                         42 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEAD != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t22: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t22 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_HEAD != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t22: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t22 as isize);
+                            }
                         }
-                    }
                         43 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_ALPHA != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t23: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t23 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_ALPHA != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t23: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t23 as isize);
+                            }
                         }
-                    }
                         44 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_ALPHA != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t24: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t24 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_ALPHA != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t24: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t24 as isize);
+                            }
                         }
-                    }
                         45 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_LOWER != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t25: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t25 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_LOWER != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t25: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t25 as isize);
+                            }
                         }
-                    }
                         46 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_LOWER != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t26: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t26 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_LOWER != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t26: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t26 as isize);
+                            }
                         }
-                    }
                         47 => {
-                        if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_UPPER != 0) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t27: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t27 as isize);
+                            if !(c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_UPPER != 0) {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t27: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t27 as isize);
+                            }
                         }
-                    }
                         48 => {
-                        if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_UPPER != 0 {
-                            status = RA_NOMATCH;
-                        } else {
-                            let t28: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t28 as isize);
+                            if c == NUL || c < 256 && *decay(&raw mut (*ed).class_tab).wrapping_offset(c as isize) as i32 & RI_UPPER != 0 {
+                                status = RA_NOMATCH;
+                            } else {
+                                let t28: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t28 as isize);
+                            }
                         }
-                    }
                         5 => {
-                        opnd = scan.wrapping_add(3);
-                        if (*opnd as i32) != *(*re).rex.input as i32 && (*re).rex.reg_ic == 0 {
-                            status = RA_NOMATCH;
-                        } else if *opnd == NUL as u8 {
-                        } else {
-                            if *opnd.wrapping_add(1) == NUL as u8 && (*re).rex.reg_ic == 0 {
-                                len = 1;
-                            } else {
-                                len = musl_strlen(opnd as *mut i8) as i32;
-                                cstrncmp__o = cstrncmp(ed, re, opnd, (*re).rex.input, len);
-                                len = cstrncmp__o.n;
-                                if cstrncmp__o.r__ != 0 {
-                                    status = RA_NOMATCH;
-                                }
-                            }
-                            if status != RA_NOMATCH && utf_iscomposing(ed, utf_ptr2char(ed, (*re).rex.input.wrapping_offset(len as isize))) && !(*re).rex.reg_icombine && (*next as i32) != RE_COMPOSING {
+                            let opnd: *mut char_u = scan.wrapping_add(3);
+                            if (*opnd as i32) != *(*re).rex.input as i32 && (*re).rex.reg_ic == 0 {
                                 status = RA_NOMATCH;
-                            }
-                            if status != RA_NOMATCH {
-                                (*re).rex.input = (*re).rex.input.wrapping_offset(len as isize);
-                            }
-                        }
-                    }
-                        21 | 22 => {
-                        q = scan.wrapping_add(3);
-                        if c == NUL {
-                            status = RA_NOMATCH;
-                        } else if cstrchr(ed, re, q, c).is_null() == (op == ANYOF) {
-                            status = RA_NOMATCH;
-                        } else {
-                            let len_2: i32 = utfc_ptr2len(ed, q) - utf_ptr2len(ed, q);
-                            let t29: i32 = utf_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t29 as isize);
-                            q = q.wrapping_offset(utf_ptr2len(ed, q) as isize);
-                            if len_2 == 0 {
-                                break 's3;
-                            }
-                            let mut i: i32 = 0;
-                            while i < len_2 {
-                                if (*q.wrapping_offset(i as isize) as i32) != *(*re).rex.input.wrapping_offset(i as isize) as i32 {
-                                    status = RA_NOMATCH;
-                                    break;
-                                }
-                                i += 1;
-                            }
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(len_2 as isize);
-                        }
-                        break 's3;
-                    }
-                        200 => {
-                        opnd_2 = scan.wrapping_add(3);
-                        len_3 = utfc_ptr2len(ed, opnd_2);
-                        if len_3 < 2 {
-                            status = RA_NOMATCH;
-                            break 's3;
-                        }
-                        opndc = utf_ptr2char(ed, opnd_2);
-                        if utf_iscomposing(ed, opndc) {
-                            status = RA_NOMATCH;
-                            let mut i_2: i32 = 0;
-                            while *(*re).rex.input.wrapping_offset(i_2 as isize) != NUL as u8 {
-                                let inpc: i32 = utf_ptr2char(ed, (*re).rex.input.wrapping_offset(i_2 as isize));
-                                if !utf_iscomposing(ed, inpc) {
-                                    if i_2 > 0 {
-                                        break;
-                                    }
-                                } else if opndc == inpc {
-                                    len_3 = i_2 + utfc_ptr2len(ed, (*re).rex.input.wrapping_offset(i_2 as isize));
-                                    status = RA_MATCH;
-                                    break;
-                                }
-                                i_2 += utf_ptr2len(ed, (*re).rex.input.wrapping_offset(i_2 as isize));
-                            }
-                        } else {
-                            cstrncmp__o = cstrncmp(ed, re, opnd_2, (*re).rex.input, len_3);
-                            len_3 = cstrncmp__o.n;
-                            if cstrncmp__o.r__ != 0 {
-                                status = RA_NOMATCH;
-                                break 's3;
-                            }
-                        }
-                        (*re).rex.input = (*re).rex.input.wrapping_offset(len_3 as isize);
-                    }
-                        209 => {
-                        while utf_iscomposing(ed, utf_ptr2char(ed, (*re).rex.input)) {
-                            let t30: i32 = utf_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t30 as isize);
-                        }
-                    }
-                        6 => {}
-                        4 => {
-                        bp = (*re).backpos.ga_data as *mut backpos_T;
-                        i_3 = 0;
-                        while i_3 < (*re).backpos.ga_len {
-                            if (*bp.wrapping_offset(i_3 as isize)).bp_scan == scan {
-                                break;
-                            }
-                            i_3 += 1;
-                        }
-                        if i_3 == (*re).backpos.ga_len {
-                            if (if (*(&raw mut (*re).backpos)).ga_maxlen - (*(&raw mut (*re).backpos)).ga_len < 1 { ga_grow_inner(ed, &raw mut (*re).backpos, 1) as i32 } else { OK }) == 0 {
-                                status = RA_FAIL;
+                            } else if *opnd == NUL as u8 {
                             } else {
-                                bp = (*re).backpos.ga_data as *mut backpos_T;
-                                (*bp.wrapping_offset(i_3 as isize)).bp_scan = scan;
-                                (*re).backpos.ga_len += 1;
-                            }
-                        } else if reg_save_equal(re, &raw mut (*bp.wrapping_offset(i_3 as isize)).bp_pos) {
-                            status = RA_NOMATCH;
-                        }
-                        if status != RA_FAIL && status != RA_NOMATCH {
-                            reg_save(re, &raw mut (*bp.wrapping_offset(i_3 as isize)).bp_pos, &raw mut (*re).backpos);
-                        }
-                    }
-                        80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 => {
-                        no = op - MOPEN;
-                        cleanup_subexpr(re);
-                        rp = regstack_push(ed, re, RS_MOPEN, scan);
-                        if rp.is_null() {
-                            status = RA_FAIL;
-                        } else {
-                            (*rp).rs_no = no as i16;
-                            if (*re).rex.reg_match.is_null() {
-                                save_se_multi(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_startpos.wrapping_offset(no as isize));
-                            } else {
-                                save_se_one(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_startp.wrapping_offset(no as isize));
-                            }
-                        }
-                    }
-                        150 | 151 => {
-                        if regstack_push(ed, re, RS_NOPEN, scan).is_null() {
-                            status = RA_FAIL;
-                        }
-                    }
-                        90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 => {
-                        no = op - MCLOSE;
-                        cleanup_subexpr(re);
-                        rp = regstack_push(ed, re, RS_MCLOSE, scan);
-                        if rp.is_null() {
-                            status = RA_FAIL;
-                        } else {
-                            (*rp).rs_no = no as i16;
-                            if (*re).rex.reg_match.is_null() {
-                                save_se_multi(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_endpos.wrapping_offset(no as isize));
-                            } else {
-                                save_se_one(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_endp.wrapping_offset(no as isize));
-                            }
-                        }
-                    }
-                        101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 => {
-                        no = op - BACKREF;
-                        cleanup_subexpr(re);
-                        if !(*re).rex.reg_match.is_null() {
-                            if (*(*re).rex.reg_startp.wrapping_offset(no as isize)).is_null() || (*(*re).rex.reg_endp.wrapping_offset(no as isize)).is_null() {
-                                len_4 = 0;
-                            } else {
-                                len_4 = pdiff(*(*re).rex.reg_endp.wrapping_offset(no as isize), *(*re).rex.reg_startp.wrapping_offset(no as isize)) as i32;
-                                cstrncmp__o = cstrncmp(ed, re, *(*re).rex.reg_startp.wrapping_offset(no as isize), (*re).rex.input, len_4);
-                                len_4 = cstrncmp__o.n;
-                                if cstrncmp__o.r__ != 0 {
-                                    status = RA_NOMATCH;
-                                }
-                            }
-                        } else {
-                            if (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).lnum < 0 || (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).lnum < 0 {
-                                len_4 = 0;
-                            } else {
-                                if (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).lnum == (*re).rex.lnum && (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).lnum == (*re).rex.lnum {
-                                    len_4 = (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).col - (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).col;
-                                    cstrncmp__o = cstrncmp(ed, re, (*re).rex.line.wrapping_offset((*(*re).rex.reg_startpos.wrapping_offset(no as isize)).col as isize), (*re).rex.input, len_4);
-                                    len_4 = cstrncmp__o.n;
+                                if *opnd.wrapping_add(1) == NUL as u8 && (*re).rex.reg_ic == 0 {
+                                    len = 1;
+                                } else {
+                                    len = musl_strlen(opnd as *mut i8) as i32;
+                                    cstrncmp__o = cstrncmp(ed, re, opnd, (*re).rex.input, len);
+                                    len = cstrncmp__o.n;
                                     if cstrncmp__o.r__ != 0 {
                                         status = RA_NOMATCH;
                                     }
-                                } else {
-                                    let match_with_backref__o: match_with_backref__out_T = match_with_backref(ed, re, (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).lnum, (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).col, (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).lnum, (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).col, len_4);
-                                    len_4 = match_with_backref__o.bytelen;
-                                    let r: i32 = match_with_backref__o.r__;
-                                    if r != RA_MATCH {
-                                        status = r;
-                                    }
+                                }
+                                if status != RA_NOMATCH && utf_iscomposing(ed, utf_ptr2char(ed, (*re).rex.input.wrapping_offset(len as isize))) && !(*re).rex.reg_icombine && (*next as i32) != RE_COMPOSING {
+                                    status = RA_NOMATCH;
+                                }
+                                if status != RA_NOMATCH {
+                                    (*re).rex.input = (*re).rex.input.wrapping_offset(len as isize);
                                 }
                             }
                         }
-                        (*re).rex.input = (*re).rex.input.wrapping_offset(len_4 as isize);
-                    }
-                        3 => {
-                        if (*next as i32) != BRANCH {
-                            next = scan.wrapping_add(3);
-                        } else {
-                            rp = regstack_push(ed, re, RS_BRANCH, scan);
-                            if rp.is_null() {
-                                status = RA_FAIL;
+                        21 | 22 => {
+                            let mut q: *mut char_u = scan.wrapping_add(3);
+                            if c == NUL {
+                                status = RA_NOMATCH;
+                            } else if cstrchr(ed, re, q, c).is_null() == (op == ANYOF) {
+                                status = RA_NOMATCH;
                             } else {
-                                status = RA_BREAK;
+                                let len_2: i32 = utfc_ptr2len(ed, q) - utf_ptr2len(ed, q);
+                                let t29: i32 = utf_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t29 as isize);
+                                q = q.wrapping_offset(utf_ptr2len(ed, q) as isize);
+                                if len_2 == 0 {
+                                    break 's3;
+                                }
+                                let mut i: i32 = 0;
+                                while i < len_2 {
+                                    if (*q.wrapping_offset(i as isize) as i32) != *(*re).rex.input.wrapping_offset(i as isize) as i32 {
+                                        status = RA_NOMATCH;
+                                        break;
+                                    }
+                                    i += 1;
+                                }
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(len_2 as isize);
+                            }
+                            break 's3;
+                        }
+                        200 => {
+                            let opnd_2: *mut char_u = scan.wrapping_add(3);
+                            let mut len_3: i32 = utfc_ptr2len(ed, opnd_2);
+                            if len_3 < 2 {
+                                status = RA_NOMATCH;
+                                break 's3;
+                            }
+                            let opndc: i32 = utf_ptr2char(ed, opnd_2);
+                            if utf_iscomposing(ed, opndc) {
+                                status = RA_NOMATCH;
+                                let mut i_2: i32 = 0;
+                                while *(*re).rex.input.wrapping_offset(i_2 as isize) != NUL as u8 {
+                                    let inpc: i32 = utf_ptr2char(ed, (*re).rex.input.wrapping_offset(i_2 as isize));
+                                    if !utf_iscomposing(ed, inpc) {
+                                        if i_2 > 0 {
+                                            break;
+                                        }
+                                    } else if opndc == inpc {
+                                        len_3 = i_2 + utfc_ptr2len(ed, (*re).rex.input.wrapping_offset(i_2 as isize));
+                                        status = RA_MATCH;
+                                        break;
+                                    }
+                                    i_2 += utf_ptr2len(ed, (*re).rex.input.wrapping_offset(i_2 as isize));
+                                }
+                            } else {
+                                cstrncmp__o = cstrncmp(ed, re, opnd_2, (*re).rex.input, len_3);
+                                len_3 = cstrncmp__o.n;
+                                if cstrncmp__o.r__ != 0 {
+                                    status = RA_NOMATCH;
+                                    break 's3;
+                                }
+                            }
+                            (*re).rex.input = (*re).rex.input.wrapping_offset(len_3 as isize);
+                        }
+                        209 => {
+                            while utf_iscomposing(ed, utf_ptr2char(ed, (*re).rex.input)) {
+                                let t30: i32 = utf_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t30 as isize);
                             }
                         }
-                    }
-                        17 => {
-                        if (*next as i32) == BRACE_SIMPLE {
-                            (*re).bl_minval = ((*scan.wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(5) as i64) << 8) + *scan.wrapping_add(6) as i64;
-                            (*re).bl_maxval = ((*scan.wrapping_add(4).wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4).wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(4).wrapping_add(5) as i64) << 8) + *scan.wrapping_add(4).wrapping_add(6) as i64;
-                        } else if (*next as i32) >= BRACE_COMPLEX && (*next as i32) < 150 {
-                            no = *next as i32 - BRACE_COMPLEX;
-                            *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) = ((*scan.wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(5) as i64) << 8) + *scan.wrapping_add(6) as i64;
-                            *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) = ((*scan.wrapping_add(4).wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4).wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(4).wrapping_add(5) as i64) << 8) + *scan.wrapping_add(4).wrapping_add(6) as i64;
-                            *decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) = 0;
-                        } else {
-                            if !(*re).alone.string.is_null() {
-                                (*re).failed = true;
-                            } else {
-                                internal_error(ed, c"BRACE_LIMITS".as_ptr() as *const i8);
+                        6 => {}
+                        4 => {
+                            let mut bp: *mut backpos_T = (*re).backpos.ga_data as *mut backpos_T;
+                            let mut i_3: i32 = 0;
+                            while i_3 < (*re).backpos.ga_len {
+                                if (*bp.wrapping_offset(i_3 as isize)).bp_scan == scan {
+                                    break;
+                                }
+                                i_3 += 1;
                             }
-                            status = RA_FAIL;
+                            if i_3 == (*re).backpos.ga_len {
+                                if (if (*(&raw mut (*re).backpos)).ga_maxlen - (*(&raw mut (*re).backpos)).ga_len < 1 { ga_grow_inner(ed, &raw mut (*re).backpos, 1) as i32 } else { OK }) == 0 {
+                                    status = RA_FAIL;
+                                } else {
+                                    bp = (*re).backpos.ga_data as *mut backpos_T;
+                                    (*bp.wrapping_offset(i_3 as isize)).bp_scan = scan;
+                                    (*re).backpos.ga_len += 1;
+                                }
+                            } else if reg_save_equal(re, &raw mut (*bp.wrapping_offset(i_3 as isize)).bp_pos) {
+                                status = RA_NOMATCH;
+                            }
+                            if status != RA_FAIL && status != RA_NOMATCH {
+                                reg_save(re, &raw mut (*bp.wrapping_offset(i_3 as isize)).bp_pos, &raw mut (*re).backpos);
+                            }
                         }
-                    }
-                        140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 => {
-                        no = op - BRACE_COMPLEX;
-                        *decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) += 1;
-                        if (*decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) as i64) <= (if *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) <= *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) { *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) } else { *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) }) {
-                            rp = regstack_push(ed, re, RS_BRCPLX_MORE, scan);
+                        80 | 81 | 82 | 83 | 84 | 85 | 86 | 87 | 88 | 89 => {
+                            no = op - MOPEN;
+                            cleanup_subexpr(re);
+                            rp = regstack_push(ed, re, RS_MOPEN, scan);
                             if rp.is_null() {
                                 status = RA_FAIL;
                             } else {
                                 (*rp).rs_no = no as i16;
-                                reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                                next = scan.wrapping_add(3);
+                                if (*re).rex.reg_match.is_null() {
+                                    save_se_multi(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_startpos.wrapping_offset(no as isize));
+                                } else {
+                                    save_se_one(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_startp.wrapping_offset(no as isize));
+                                }
                             }
-                            break 's3;
                         }
-                        if *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) <= *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) {
-                            if (*decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) as i64) <= *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) {
-                                rp = regstack_push(ed, re, RS_BRCPLX_LONG, scan);
+                        150 | 151 => {
+                            if regstack_push(ed, re, RS_NOPEN, scan).is_null() {
+                                status = RA_FAIL;
+                            }
+                        }
+                        90 | 91 | 92 | 93 | 94 | 95 | 96 | 97 | 98 | 99 => {
+                            no = op - MCLOSE;
+                            cleanup_subexpr(re);
+                            rp = regstack_push(ed, re, RS_MCLOSE, scan);
+                            if rp.is_null() {
+                                status = RA_FAIL;
+                            } else {
+                                (*rp).rs_no = no as i16;
+                                if (*re).rex.reg_match.is_null() {
+                                    save_se_multi(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_endpos.wrapping_offset(no as isize));
+                                } else {
+                                    save_se_one(re, &raw mut (*rp).rs_un.sesave, (*re).rex.reg_endp.wrapping_offset(no as isize));
+                                }
+                            }
+                        }
+                        101 | 102 | 103 | 104 | 105 | 106 | 107 | 108 | 109 => {
+                            no = op - BACKREF;
+                            cleanup_subexpr(re);
+                            if !(*re).rex.reg_match.is_null() {
+                                if (*(*re).rex.reg_startp.wrapping_offset(no as isize)).is_null() || (*(*re).rex.reg_endp.wrapping_offset(no as isize)).is_null() {
+                                    len_4 = 0;
+                                } else {
+                                    len_4 = pdiff(*(*re).rex.reg_endp.wrapping_offset(no as isize), *(*re).rex.reg_startp.wrapping_offset(no as isize)) as i32;
+                                    cstrncmp__o = cstrncmp(ed, re, *(*re).rex.reg_startp.wrapping_offset(no as isize), (*re).rex.input, len_4);
+                                    len_4 = cstrncmp__o.n;
+                                    if cstrncmp__o.r__ != 0 {
+                                        status = RA_NOMATCH;
+                                    }
+                                }
+                            } else {
+                                if (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).lnum < 0 || (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).lnum < 0 {
+                                    len_4 = 0;
+                                } else {
+                                    if (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).lnum == (*re).rex.lnum && (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).lnum == (*re).rex.lnum {
+                                        len_4 = (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).col - (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).col;
+                                        cstrncmp__o = cstrncmp(ed, re, (*re).rex.line.wrapping_offset((*(*re).rex.reg_startpos.wrapping_offset(no as isize)).col as isize), (*re).rex.input, len_4);
+                                        len_4 = cstrncmp__o.n;
+                                        if cstrncmp__o.r__ != 0 {
+                                            status = RA_NOMATCH;
+                                        }
+                                    } else {
+                                        let match_with_backref__o: match_with_backref__out_T = match_with_backref(ed, re, (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).lnum, (*(*re).rex.reg_startpos.wrapping_offset(no as isize)).col, (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).lnum, (*(*re).rex.reg_endpos.wrapping_offset(no as isize)).col, len_4);
+                                        len_4 = match_with_backref__o.bytelen;
+                                        let r: i32 = match_with_backref__o.r__;
+                                        if r != RA_MATCH {
+                                            status = r;
+                                        }
+                                    }
+                                }
+                            }
+                            (*re).rex.input = (*re).rex.input.wrapping_offset(len_4 as isize);
+                        }
+                        3 => {
+                            if (*next as i32) != BRANCH {
+                                next = scan.wrapping_add(3);
+                            } else {
+                                rp = regstack_push(ed, re, RS_BRANCH, scan);
+                                if rp.is_null() {
+                                    status = RA_FAIL;
+                                } else {
+                                    status = RA_BREAK;
+                                }
+                            }
+                        }
+                        17 => {
+                            if (*next as i32) == BRACE_SIMPLE {
+                                (*re).bl_minval = ((*scan.wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(5) as i64) << 8) + *scan.wrapping_add(6) as i64;
+                                (*re).bl_maxval = ((*scan.wrapping_add(4).wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4).wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(4).wrapping_add(5) as i64) << 8) + *scan.wrapping_add(4).wrapping_add(6) as i64;
+                            } else if (*next as i32) >= BRACE_COMPLEX && (*next as i32) < 150 {
+                                no = *next as i32 - BRACE_COMPLEX;
+                                *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) = ((*scan.wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(5) as i64) << 8) + *scan.wrapping_add(6) as i64;
+                                *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) = ((*scan.wrapping_add(4).wrapping_add(3) as i64) << 24) + ((*scan.wrapping_add(4).wrapping_add(4) as i64) << 16) + ((*scan.wrapping_add(4).wrapping_add(5) as i64) << 8) + *scan.wrapping_add(4).wrapping_add(6) as i64;
+                                *decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) = 0;
+                            } else {
+                                if !(*re).alone.string.is_null() {
+                                    (*re).failed = true;
+                                } else {
+                                    internal_error(ed, c"BRACE_LIMITS".as_ptr() as *const i8);
+                                }
+                                status = RA_FAIL;
+                            }
+                        }
+                        140 | 141 | 142 | 143 | 144 | 145 | 146 | 147 | 148 | 149 => {
+                            no = op - BRACE_COMPLEX;
+                            *decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) += 1;
+                            if (*decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) as i64) <= (if *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) <= *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) { *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) } else { *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) }) {
+                                rp = regstack_push(ed, re, RS_BRCPLX_MORE, scan);
                                 if rp.is_null() {
                                     status = RA_FAIL;
                                 } else {
@@ -50425,47 +50346,95 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
                                     reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
                                     next = scan.wrapping_add(3);
                                 }
+                                break 's3;
                             }
-                        } else {
-                            if (*decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) as i64) <= *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) {
-                                rp = regstack_push(ed, re, RS_BRCPLX_SHORT, scan);
-                                if rp.is_null() {
-                                    status = RA_FAIL;
-                                } else {
-                                    reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                                }
-                            }
-                        }
-                    }
-                        14 | 7 | 8 => {
-                        if (*next as i32) == EXACTLY {
-                            rst.nextb = *next.wrapping_add(3) as i32;
-                            if (*re).rex.reg_ic != 0 {
-                                if vim_isupper(ed, rst.nextb) {
-                                    rst.nextb_ic = vim_tolower(ed, rst.nextb);
-                                } else {
-                                    rst.nextb_ic = vim_toupper(ed, rst.nextb);
+                            if *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) <= *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) {
+                                if (*decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) as i64) <= *decay(&raw mut (*re).brace_max).wrapping_offset(no as isize) {
+                                    rp = regstack_push(ed, re, RS_BRCPLX_LONG, scan);
+                                    if rp.is_null() {
+                                        status = RA_FAIL;
+                                    } else {
+                                        (*rp).rs_no = no as i16;
+                                        reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                        next = scan.wrapping_add(3);
+                                    }
                                 }
                             } else {
-                                rst.nextb_ic = rst.nextb;
+                                if (*decay(&raw mut (*re).brace_count).wrapping_offset(no as isize) as i64) <= *decay(&raw mut (*re).brace_min).wrapping_offset(no as isize) {
+                                    rp = regstack_push(ed, re, RS_BRCPLX_SHORT, scan);
+                                    if rp.is_null() {
+                                        status = RA_FAIL;
+                                    } else {
+                                        reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                    }
+                                }
                             }
-                        } else {
-                            rst.nextb = NUL;
-                            rst.nextb_ic = NUL;
                         }
-                        if op != BRACE_SIMPLE {
-                            rst.minval = (if op == STAR { 0i32 } else { 1 }) as i64;
-                            rst.maxval = 2147418112;
-                        } else {
-                            rst.minval = (*re).bl_minval;
-                            rst.maxval = (*re).bl_maxval;
+                        14 | 7 | 8 => {
+                            if (*next as i32) == EXACTLY {
+                                rst.nextb = *next.wrapping_add(3) as i32;
+                                if (*re).rex.reg_ic != 0 {
+                                    if vim_isupper(ed, rst.nextb) {
+                                        rst.nextb_ic = vim_tolower(ed, rst.nextb);
+                                    } else {
+                                        rst.nextb_ic = vim_toupper(ed, rst.nextb);
+                                    }
+                                } else {
+                                    rst.nextb_ic = rst.nextb;
+                                }
+                            } else {
+                                rst.nextb = NUL;
+                                rst.nextb_ic = NUL;
+                            }
+                            if op != BRACE_SIMPLE {
+                                rst.minval = (if op == STAR { 0i32 } else { 1 }) as i64;
+                                rst.maxval = 2147418112;
+                            } else {
+                                rst.minval = (*re).bl_minval;
+                                rst.maxval = (*re).bl_maxval;
+                            }
+                            rst.count = regrepeat(ed, re, scan.wrapping_add(3), rst.maxval) as i64;
+                            if (*ed).got_int != 0 {
+                                status = RA_FAIL;
+                                break 's3;
+                            }
+                            if (if rst.minval <= rst.maxval { (rst.count >= rst.minval) as i32 } else { (rst.count >= rst.maxval) as i32 }) != 0 {
+                                if ((((*re).regstack_bytes as u32) >> 10) as i64) >= (*ed).p_mmp {
+                                    if !(*re).alone.string.is_null() {
+                                        (*re).failed = true;
+                                    } else {
+                                        emsg(ed, decay(&raw mut (*ed).e_pattern_uses_more_memory_than_maxmempattern));
+                                    }
+                                    status = RA_FAIL;
+                                } else if !ga_grow(ed, &raw mut (*re).regstack_star, 1) {
+                                    status = RA_FAIL;
+                                } else {
+                                    (*re).regstack_star.ga_len += 1;
+                                    (*re).regstack_bytes = (*re).regstack_bytes.wrapping_add(32);
+                                    rp = regstack_push(ed, re, if rst.minval <= rst.maxval { RS_STAR_LONG } else { RS_STAR_SHORT }, scan);
+                                    if rp.is_null() {
+                                        status = RA_FAIL;
+                                    } else {
+                                        let t31: *mut regstar_T = regstack_star_top(re);
+                                        *t31 = rst;
+                                        status = RA_BREAK;
+                                    }
+                                }
+                            } else {
+                                status = RA_NOMATCH;
+                            }
                         }
-                        rst.count = regrepeat(ed, re, scan.wrapping_add(3), rst.maxval) as i64;
-                        if (*ed).got_int != 0 {
-                            status = RA_FAIL;
-                            break 's3;
+                        10 | 9 | 13 => {
+                            rp = regstack_push(ed, re, RS_NOMATCH, scan);
+                            if rp.is_null() {
+                                status = RA_FAIL;
+                            } else {
+                                (*rp).rs_no = op as i16;
+                                reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                next = scan.wrapping_add(3);
+                            }
                         }
-                        if (if rst.minval <= rst.maxval { (rst.count >= rst.minval) as i32 } else { (rst.count >= rst.maxval) as i32 }) != 0 {
+                        11 | 12 => {
                             if ((((*re).regstack_bytes as u32) >> 10) as i64) >= (*ed).p_mmp {
                                 if !(*re).alone.string.is_null() {
                                     (*re).failed = true;
@@ -50473,137 +50442,101 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
                                     emsg(ed, decay(&raw mut (*ed).e_pattern_uses_more_memory_than_maxmempattern));
                                 }
                                 status = RA_FAIL;
-                            } else if !ga_grow(ed, &raw mut (*re).regstack_star, 1) {
+                            } else if !ga_grow(ed, &raw mut (*re).regstack_behind, 1) {
                                 status = RA_FAIL;
                             } else {
-                                (*re).regstack_star.ga_len += 1;
-                                (*re).regstack_bytes = (*re).regstack_bytes.wrapping_add(32);
-                                rp = regstack_push(ed, re, if rst.minval <= rst.maxval { RS_STAR_LONG } else { RS_STAR_SHORT }, scan);
+                                (*re).regstack_behind.ga_len += 1;
+                                (*re).regstack_bytes = (*re).regstack_bytes.wrapping_add(376);
+                                rp = regstack_push(ed, re, RS_BEHIND1, scan);
                                 if rp.is_null() {
                                     status = RA_FAIL;
                                 } else {
-                                    let t31: *mut regstar_T = regstack_star_top(re);
-                                    *t31 = rst;
-                                    status = RA_BREAK;
+                                    save_subexpr(re, regstack_behind_top(re));
+                                    (*rp).rs_no = op as i16;
+                                    reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
                                 }
                             }
-                        } else {
-                            status = RA_NOMATCH;
                         }
-                    }
-                        10 | 9 | 13 => {
-                        rp = regstack_push(ed, re, RS_NOMATCH, scan);
-                        if rp.is_null() {
-                            status = RA_FAIL;
-                        } else {
-                            (*rp).rs_no = op as i16;
-                            reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                            next = scan.wrapping_add(3);
+                        19 => {
+                            if (*re).rex.reg_match.is_null() {
+                                if (*re).behind_pos.rs_u.pos.col != pdiff((*re).rex.input, (*re).rex.line) as i32 || (*re).behind_pos.rs_u.pos.lnum != (*re).rex.lnum {
+                                    status = RA_NOMATCH;
+                                }
+                            } else if (*re).behind_pos.rs_u.ptr != (*re).rex.input {
+                                status = RA_NOMATCH;
+                            }
                         }
-                    }
-                        11 | 12 => {
-                        if ((((*re).regstack_bytes as u32) >> 10) as i64) >= (*ed).p_mmp {
+                        18 => {
+                            if (c != NUL || !(*re).rex.reg_match.is_null() || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr) && (c != 10 || !(*re).rex.reg_line_lbr) {
+                                status = RA_NOMATCH;
+                            } else if (*re).rex.reg_line_lbr {
+                                let t32: i32 = utfc_ptr2len(ed, (*re).rex.input);
+                                (*re).rex.input = (*re).rex.input.wrapping_offset(t32 as isize);
+                            } else {
+                                reg_nextline(ed, re);
+                            }
+                        }
+                        0 => {
+                            status = RA_MATCH;
+                        }
+                        180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 => {
+                            let till: bool = op >= T_PCLOSE;
+                            let mut idx: i32 = op - (if till { T_PCLOSE } else { F_PCLOSE });
+                            let with_nl: bool = idx >= DELIM_NL;
+                            let mut level: i32 = 1;
+                            let mut s: *mut char_u = (*re).rex.input;
+                            let save_lnum: linenr_T = (*re).rex.lnum;
+                            let save_col: colnr_T = pdiff((*re).rex.input, (*re).rex.line) as i32;
+                            if with_nl {
+                                idx -= DELIM_NL;
+                            }
+                            let oc: i32 = *(c"([{<".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
+                            let cc: i32 = *(c")]}>".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
+                            loop {
+                                if *s == NUL as u8 {
+                                    if !with_nl || !(*re).rex.reg_match.is_null() || (*re).rex.reg_line_lbr || (*re).rex.lnum >= (*re).rex.reg_maxline {
+                                        break;
+                                    }
+                                    reg_nextline(ed, re);
+                                    s = (*re).rex.input;
+                                    if (*ed).got_int != 0 {
+                                        break;
+                                    }
+                                    continue;
+                                }
+                                if (*s as i32) == oc {
+                                    level += 1;
+                                } else if (*s as i32) == cc {
+                                    level -= 1;
+                                }
+                                if *s < 128 {
+                                    s = s.wrapping_add(1);
+                                } else {
+                                    s = s.wrapping_offset(utfc_ptr2len(ed, s) as isize);
+                                }
+                                if level < 1 {
+                                    break;
+                                }
+                            }
+                            if level >= 1 {
+                                if (*re).rex.reg_match.is_null() && (*re).rex.lnum != save_lnum {
+                                    (*re).rex.lnum = save_lnum;
+                                    (*re).rex.line = reg_getline(ed, re, (*re).rex.lnum);
+                                }
+                                (*re).rex.input = (*re).rex.line.wrapping_offset(save_col as isize);
+                                status = RA_NOMATCH;
+                            } else {
+                                (*re).rex.input = if till { s.wrapping_sub(1) } else { s };
+                            }
+                        }
+                        _ => {
                             if !(*re).alone.string.is_null() {
                                 (*re).failed = true;
                             } else {
-                                emsg(ed, decay(&raw mut (*ed).e_pattern_uses_more_memory_than_maxmempattern));
+                                iemsg(ed, decay(&raw mut (*ed).e_corrupted_regexp_program));
                             }
                             status = RA_FAIL;
-                        } else if !ga_grow(ed, &raw mut (*re).regstack_behind, 1) {
-                            status = RA_FAIL;
-                        } else {
-                            (*re).regstack_behind.ga_len += 1;
-                            (*re).regstack_bytes = (*re).regstack_bytes.wrapping_add(376);
-                            rp = regstack_push(ed, re, RS_BEHIND1, scan);
-                            if rp.is_null() {
-                                status = RA_FAIL;
-                            } else {
-                                save_subexpr(re, regstack_behind_top(re));
-                                (*rp).rs_no = op as i16;
-                                reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                            }
                         }
-                    }
-                        19 => {
-                        if (*re).rex.reg_match.is_null() {
-                            if (*re).behind_pos.rs_u.pos.col != pdiff((*re).rex.input, (*re).rex.line) as i32 || (*re).behind_pos.rs_u.pos.lnum != (*re).rex.lnum {
-                                status = RA_NOMATCH;
-                            }
-                        } else if (*re).behind_pos.rs_u.ptr != (*re).rex.input {
-                            status = RA_NOMATCH;
-                        }
-                    }
-                        18 => {
-                        if (c != NUL || !(*re).rex.reg_match.is_null() || (*re).rex.lnum > (*re).rex.reg_maxline || (*re).rex.reg_line_lbr) && (c != 10 || !(*re).rex.reg_line_lbr) {
-                            status = RA_NOMATCH;
-                        } else if (*re).rex.reg_line_lbr {
-                            let t32: i32 = utfc_ptr2len(ed, (*re).rex.input);
-                            (*re).rex.input = (*re).rex.input.wrapping_offset(t32 as isize);
-                        } else {
-                            reg_nextline(ed, re);
-                        }
-                    }
-                        0 => {
-                        status = RA_MATCH;
-                    }
-                        180 | 181 | 182 | 183 | 184 | 185 | 186 | 187 | 190 | 191 | 192 | 193 | 194 | 195 | 196 | 197 => {
-                        till = op >= T_PCLOSE;
-                        idx = op - (if till { T_PCLOSE } else { F_PCLOSE });
-                        with_nl = idx >= DELIM_NL;
-                        level = 1;
-                        s = (*re).rex.input;
-                        save_lnum = (*re).rex.lnum;
-                        save_col = pdiff((*re).rex.input, (*re).rex.line) as i32;
-                        if with_nl {
-                            idx -= DELIM_NL;
-                        }
-                        oc = *(c"([{<".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
-                        cc = *(c")]}>".as_ptr() as *mut i8).wrapping_offset(idx as isize) as i32;
-                        loop {
-                            if *s == NUL as u8 {
-                                if !with_nl || !(*re).rex.reg_match.is_null() || (*re).rex.reg_line_lbr || (*re).rex.lnum >= (*re).rex.reg_maxline {
-                                    break;
-                                }
-                                reg_nextline(ed, re);
-                                s = (*re).rex.input;
-                                if (*ed).got_int != 0 {
-                                    break;
-                                }
-                                continue;
-                            }
-                            if (*s as i32) == oc {
-                                level += 1;
-                            } else if (*s as i32) == cc {
-                                level -= 1;
-                            }
-                            if *s < 128 {
-                                s = s.wrapping_add(1);
-                            } else {
-                                s = s.wrapping_offset(utfc_ptr2len(ed, s) as isize);
-                            }
-                            if level < 1 {
-                                break;
-                            }
-                        }
-                        if level >= 1 {
-                            if (*re).rex.reg_match.is_null() && (*re).rex.lnum != save_lnum {
-                                (*re).rex.lnum = save_lnum;
-                                (*re).rex.line = reg_getline(ed, re, (*re).rex.lnum);
-                            }
-                            (*re).rex.input = (*re).rex.line.wrapping_offset(save_col as isize);
-                            status = RA_NOMATCH;
-                        } else {
-                            (*re).rex.input = if till { s.wrapping_sub(1) } else { s };
-                        }
-                    }
-                        _ => {
-                        if !(*re).alone.string.is_null() {
-                            (*re).failed = true;
-                        } else {
-                            iemsg(ed, decay(&raw mut (*ed).e_corrupted_regexp_program));
-                        }
-                        status = RA_FAIL;
-                    }
                     }
                 }
             }
@@ -50617,230 +50550,230 @@ pub unsafe fn regmatch(ed: *mut Editor, re: *mut regengine_T, mut scan: *mut cha
             's10: {
                 match (*rp).rs_state {
                     0 => {
-                    scan = regstack_pop(re);
-                }
-                    1 => {
-                    if status == RA_NOMATCH {
-                        if (*re).rex.reg_match.is_null() {
-                            *(*re).rex.reg_startpos.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.pos;
-                        } else {
-                            *(*re).rex.reg_startp.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.ptr;
-                        }
-                    }
-                    scan = regstack_pop(re);
-                }
-                    2 => {
-                    if status == RA_NOMATCH {
-                        if (*re).rex.reg_match.is_null() {
-                            *(*re).rex.reg_endpos.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.pos;
-                        } else {
-                            *(*re).rex.reg_endp.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.ptr;
-                        }
-                    }
-                    scan = regstack_pop(re);
-                }
-                    3 => {
-                    if status == RA_MATCH {
                         scan = regstack_pop(re);
-                    } else {
-                        if status != RA_BREAK {
-                            reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                            scan = (*rp).rs_scan;
+                    }
+                    1 => {
+                        if status == RA_NOMATCH {
+                            if (*re).rex.reg_match.is_null() {
+                                *(*re).rex.reg_startpos.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.pos;
+                            } else {
+                                *(*re).rex.reg_startp.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.ptr;
+                            }
                         }
-                        if scan.is_null() || (*scan as i32) != BRANCH {
-                            status = RA_NOMATCH;
+                        scan = regstack_pop(re);
+                    }
+                    2 => {
+                        if status == RA_NOMATCH {
+                            if (*re).rex.reg_match.is_null() {
+                                *(*re).rex.reg_endpos.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.pos;
+                            } else {
+                                *(*re).rex.reg_endp.wrapping_offset((*rp).rs_no as isize) = (*(&raw mut (*rp).rs_un.sesave)).se_u.ptr;
+                            }
+                        }
+                        scan = regstack_pop(re);
+                    }
+                    3 => {
+                        if status == RA_MATCH {
                             scan = regstack_pop(re);
                         } else {
-                            (*rp).rs_scan = regnext(ed, re, scan);
-                            reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                            scan = scan.wrapping_add(3);
+                            if status != RA_BREAK {
+                                reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                scan = (*rp).rs_scan;
+                            }
+                            if scan.is_null() || (*scan as i32) != BRANCH {
+                                status = RA_NOMATCH;
+                                scan = regstack_pop(re);
+                            } else {
+                                (*rp).rs_scan = regnext(ed, re, scan);
+                                reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                scan = scan.wrapping_add(3);
+                            }
                         }
                     }
-                }
                     4 => {
-                    if status == RA_NOMATCH {
-                        reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                        *decay(&raw mut (*re).brace_count).wrapping_offset((*rp).rs_no as isize) -= 1;
+                        if status == RA_NOMATCH {
+                            reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                            *decay(&raw mut (*re).brace_count).wrapping_offset((*rp).rs_no as isize) -= 1;
+                        }
+                        scan = regstack_pop(re);
                     }
-                    scan = regstack_pop(re);
-                }
                     5 => {
-                    if status == RA_NOMATCH {
-                        reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                        *decay(&raw mut (*re).brace_count).wrapping_offset((*rp).rs_no as isize) -= 1;
-                        status = RA_CONT;
+                        if status == RA_NOMATCH {
+                            reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                            *decay(&raw mut (*re).brace_count).wrapping_offset((*rp).rs_no as isize) -= 1;
+                            status = RA_CONT;
+                        }
+                        scan = regstack_pop(re);
+                        if status == RA_CONT {
+                            scan = regnext(ed, re, scan);
+                        }
                     }
-                    scan = regstack_pop(re);
-                    if status == RA_CONT {
-                        scan = regnext(ed, re, scan);
-                    }
-                }
                     6 => {
-                    if status == RA_NOMATCH {
-                        reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                    }
-                    scan = regstack_pop(re);
-                    if status == RA_NOMATCH {
-                        scan = scan.wrapping_add(3);
-                        status = RA_CONT;
-                    }
-                }
-                    7 => {
-                    if status == (if (*rp).rs_no == NOMATCH as i16 { RA_MATCH } else { RA_NOMATCH }) {
-                        status = RA_NOMATCH;
-                    } else {
-                        status = RA_CONT;
-                        if (*rp).rs_no != SUBPAT as i16 {
+                        if status == RA_NOMATCH {
                             reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
                         }
-                    }
-                    scan = regstack_pop(re);
-                    if status == RA_CONT {
-                        scan = regnext(ed, re, scan);
-                    }
-                }
-                    8 => {
-                    if status == RA_NOMATCH {
                         scan = regstack_pop(re);
-                        (*re).regstack_behind.ga_len -= 1;
-                        (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(376);
-                    } else {
-                        reg_save(re, &raw mut (*regstack_behind_top(re)).save_after, &raw mut (*re).backpos);
-                        let t33: *mut regsave_T = &raw mut (*regstack_behind_top(re)).save_behind;
-                        *t33 = (*re).behind_pos;
-                        (*re).behind_pos = (*rp).rs_un.regsave;
-                        (*rp).rs_state = RS_BEHIND2;
-                        reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                        scan = (*rp).rs_scan.wrapping_add(3).wrapping_add(4);
+                        if status == RA_NOMATCH {
+                            scan = scan.wrapping_add(3);
+                            status = RA_CONT;
+                        }
                     }
-                }
-                    9 => {
-                    if status == RA_MATCH && reg_save_equal(re, &raw mut (*re).behind_pos) {
-                        (*re).behind_pos = (*regstack_behind_top(re)).save_behind;
-                        if (*rp).rs_no == BEHIND as i16 {
-                            reg_restore(ed, re, &raw mut (*regstack_behind_top(re)).save_after, &raw mut (*re).backpos);
-                        } else {
+                    7 => {
+                        if status == (if (*rp).rs_no == NOMATCH as i16 { RA_MATCH } else { RA_NOMATCH }) {
                             status = RA_NOMATCH;
-                            restore_subexpr(re, regstack_behind_top(re));
+                        } else {
+                            status = RA_CONT;
+                            if (*rp).rs_no != SUBPAT as i16 {
+                                reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                            }
                         }
                         scan = regstack_pop(re);
-                        (*re).regstack_behind.ga_len -= 1;
-                        (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(376);
-                    } else {
-                        no = OK;
-                        let limit: i64 = ((*(*rp).rs_scan.wrapping_add(3) as i64) << 24) + ((*(*rp).rs_scan.wrapping_add(4) as i64) << 16) + ((*(*rp).rs_scan.wrapping_add(5) as i64) << 8) + *(*rp).rs_scan.wrapping_add(6) as i64;
-                        if (*re).rex.reg_match.is_null() {
-                            if limit > 0 && (((if (*rp).rs_un.regsave.rs_u.pos.lnum < (*re).behind_pos.rs_u.pos.lnum { musl_strlen((*re).rex.line as *mut i8) as i32 } else { (*re).behind_pos.rs_u.pos.col }) - (*rp).rs_un.regsave.rs_u.pos.col) as i64) >= limit {
-                                no = FAIL;
-                            } else if (*rp).rs_un.regsave.rs_u.pos.col == 0 {
-                                if (*rp).rs_un.regsave.rs_u.pos.lnum < (*re).behind_pos.rs_u.pos.lnum || reg_getline(ed, re, { (*rp).rs_un.regsave.rs_u.pos.lnum -= 1; (*rp).rs_un.regsave.rs_u.pos.lnum }).is_null() {
-                                    no = FAIL;
-                                } else {
-                                    reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                                    (*rp).rs_un.regsave.rs_u.pos.col = musl_strlen((*re).rex.line as *mut i8) as i32;
-                                }
-                            } else {
-                                let line: *const char_u = reg_getline(ed, re, (*rp).rs_un.regsave.rs_u.pos.lnum);
-                                let t34: i32 = utf_head_off(ed, line, line.wrapping_offset((*rp).rs_un.regsave.rs_u.pos.col as isize).wrapping_sub(1)) + 1;
-                                (*rp).rs_un.regsave.rs_u.pos.col -= t34;
-                            }
-                        } else {
-                            if (*rp).rs_un.regsave.rs_u.ptr == (*re).rex.line {
-                                no = FAIL;
-                            } else {
-                                let t35: i32 = utf_head_off(ed, (*re).rex.line, (*rp).rs_un.regsave.rs_u.ptr.wrapping_sub(1)) + 1;
-                                (*rp).rs_un.regsave.rs_u.ptr = (*rp).rs_un.regsave.rs_u.ptr.wrapping_offset((t35 as isize).wrapping_neg());
-                                if limit > 0 && pdiff((*re).behind_pos.rs_u.ptr, (*rp).rs_un.regsave.rs_u.ptr) > limit {
-                                    no = FAIL;
-                                }
-                            }
+                        if status == RA_CONT {
+                            scan = regnext(ed, re, scan);
                         }
-                        if no == OK {
+                    }
+                    8 => {
+                        if status == RA_NOMATCH {
+                            scan = regstack_pop(re);
+                            (*re).regstack_behind.ga_len -= 1;
+                            (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(376);
+                        } else {
+                            reg_save(re, &raw mut (*regstack_behind_top(re)).save_after, &raw mut (*re).backpos);
+                            let t33: *mut regsave_T = &raw mut (*regstack_behind_top(re)).save_behind;
+                            *t33 = (*re).behind_pos;
+                            (*re).behind_pos = (*rp).rs_un.regsave;
+                            (*rp).rs_state = RS_BEHIND2;
                             reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
                             scan = (*rp).rs_scan.wrapping_add(3).wrapping_add(4);
-                            if status == RA_MATCH {
+                        }
+                    }
+                    9 => {
+                        if status == RA_MATCH && reg_save_equal(re, &raw mut (*re).behind_pos) {
+                            (*re).behind_pos = (*regstack_behind_top(re)).save_behind;
+                            if (*rp).rs_no == BEHIND as i16 {
+                                reg_restore(ed, re, &raw mut (*regstack_behind_top(re)).save_after, &raw mut (*re).backpos);
+                            } else {
                                 status = RA_NOMATCH;
                                 restore_subexpr(re, regstack_behind_top(re));
-                            }
-                        } else {
-                            (*re).behind_pos = (*regstack_behind_top(re)).save_behind;
-                            if (*rp).rs_no == NOBEHIND as i16 {
-                                reg_restore(ed, re, &raw mut (*regstack_behind_top(re)).save_after, &raw mut (*re).backpos);
-                                status = RA_MATCH;
-                            } else {
-                                if status == RA_MATCH {
-                                    status = RA_NOMATCH;
-                                    restore_subexpr(re, regstack_behind_top(re));
-                                }
                             }
                             scan = regstack_pop(re);
                             (*re).regstack_behind.ga_len -= 1;
                             (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(376);
-                        }
-                    }
-                }
-                    10 | 11 => {
-                    rst_2 = regstack_star_top(re);
-                    if status == RA_MATCH {
-                        scan = regstack_pop(re);
-                        (*re).regstack_star.ga_len -= 1;
-                        (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(32);
-                        break 's10;
-                    }
-                    if status != RA_BREAK {
-                        reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                    }
-                    loop {
-                        if status != RA_BREAK {
-                            if (*rp).rs_state == RS_STAR_LONG {
-                                (*rst_2).count -= 1;
-                                if (*rst_2).count < (*rst_2).minval {
-                                    break;
-                                }
-                                if (*re).rex.input == (*re).rex.line {
-                                    if (*re).rex.lnum == 0 {
-                                        status = RA_NOMATCH;
-                                        break;
-                                    }
-                                    (*re).rex.lnum -= 1;
-                                    (*re).rex.line = reg_getline(ed, re, (*re).rex.lnum);
-                                    if (*re).rex.line.is_null() {
-                                        break;
-                                    }
-                                    (*re).rex.input = (*re).rex.line.wrapping_offset(reg_getline_len(ed, re, (*re).rex.lnum) as isize);
-                                    if (*re).alone.string.is_null() {
-                                        fast_breakcheck(ed);
+                        } else {
+                            no = OK;
+                            let limit: i64 = ((*(*rp).rs_scan.wrapping_add(3) as i64) << 24) + ((*(*rp).rs_scan.wrapping_add(4) as i64) << 16) + ((*(*rp).rs_scan.wrapping_add(5) as i64) << 8) + *(*rp).rs_scan.wrapping_add(6) as i64;
+                            if (*re).rex.reg_match.is_null() {
+                                if limit > 0 && (((if (*rp).rs_un.regsave.rs_u.pos.lnum < (*re).behind_pos.rs_u.pos.lnum { musl_strlen((*re).rex.line as *mut i8) as i32 } else { (*re).behind_pos.rs_u.pos.col }) - (*rp).rs_un.regsave.rs_u.pos.col) as i64) >= limit {
+                                    no = FAIL;
+                                } else if (*rp).rs_un.regsave.rs_u.pos.col == 0 {
+                                    if (*rp).rs_un.regsave.rs_u.pos.lnum < (*re).behind_pos.rs_u.pos.lnum || reg_getline(ed, re, { (*rp).rs_un.regsave.rs_u.pos.lnum -= 1; (*rp).rs_un.regsave.rs_u.pos.lnum }).is_null() {
+                                        no = FAIL;
+                                    } else {
+                                        reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                        (*rp).rs_un.regsave.rs_u.pos.col = musl_strlen((*re).rex.line as *mut i8) as i32;
                                     }
                                 } else {
-                                    let t36: i32 = utf_head_off(ed, (*re).rex.line, (*re).rex.input.wrapping_sub(1)) + 1;
-                                    (*re).rex.input = (*re).rex.input.wrapping_offset((t36 as isize).wrapping_neg());
+                                    let line: *const char_u = reg_getline(ed, re, (*rp).rs_un.regsave.rs_u.pos.lnum);
+                                    let t34: i32 = utf_head_off(ed, line, line.wrapping_offset((*rp).rs_un.regsave.rs_u.pos.col as isize).wrapping_sub(1)) + 1;
+                                    (*rp).rs_un.regsave.rs_u.pos.col -= t34;
                                 }
                             } else {
-                                if (*rst_2).count == (*rst_2).minval || regrepeat(ed, re, (*rp).rs_scan.wrapping_add(3), 1) == 0 {
+                                if (*rp).rs_un.regsave.rs_u.ptr == (*re).rex.line {
+                                    no = FAIL;
+                                } else {
+                                    let t35: i32 = utf_head_off(ed, (*re).rex.line, (*rp).rs_un.regsave.rs_u.ptr.wrapping_sub(1)) + 1;
+                                    (*rp).rs_un.regsave.rs_u.ptr = (*rp).rs_un.regsave.rs_u.ptr.wrapping_offset((t35 as isize).wrapping_neg());
+                                    if limit > 0 && pdiff((*re).behind_pos.rs_u.ptr, (*rp).rs_un.regsave.rs_u.ptr) > limit {
+                                        no = FAIL;
+                                    }
+                                }
+                            }
+                            if no == OK {
+                                reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                scan = (*rp).rs_scan.wrapping_add(3).wrapping_add(4);
+                                if status == RA_MATCH {
+                                    status = RA_NOMATCH;
+                                    restore_subexpr(re, regstack_behind_top(re));
+                                }
+                            } else {
+                                (*re).behind_pos = (*regstack_behind_top(re)).save_behind;
+                                if (*rp).rs_no == NOBEHIND as i16 {
+                                    reg_restore(ed, re, &raw mut (*regstack_behind_top(re)).save_after, &raw mut (*re).backpos);
+                                    status = RA_MATCH;
+                                } else {
+                                    if status == RA_MATCH {
+                                        status = RA_NOMATCH;
+                                        restore_subexpr(re, regstack_behind_top(re));
+                                    }
+                                }
+                                scan = regstack_pop(re);
+                                (*re).regstack_behind.ga_len -= 1;
+                                (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(376);
+                            }
+                        }
+                    }
+                    10 | 11 => {
+                        let rst_2: *mut regstar_T = regstack_star_top(re);
+                        if status == RA_MATCH {
+                            scan = regstack_pop(re);
+                            (*re).regstack_star.ga_len -= 1;
+                            (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(32);
+                            break 's10;
+                        }
+                        if status != RA_BREAK {
+                            reg_restore(ed, re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                        }
+                        loop {
+                            if status != RA_BREAK {
+                                if (*rp).rs_state == RS_STAR_LONG {
+                                    (*rst_2).count -= 1;
+                                    if (*rst_2).count < (*rst_2).minval {
+                                        break;
+                                    }
+                                    if (*re).rex.input == (*re).rex.line {
+                                        if (*re).rex.lnum == 0 {
+                                            status = RA_NOMATCH;
+                                            break;
+                                        }
+                                        (*re).rex.lnum -= 1;
+                                        (*re).rex.line = reg_getline(ed, re, (*re).rex.lnum);
+                                        if (*re).rex.line.is_null() {
+                                            break;
+                                        }
+                                        (*re).rex.input = (*re).rex.line.wrapping_offset(reg_getline_len(ed, re, (*re).rex.lnum) as isize);
+                                        if (*re).alone.string.is_null() {
+                                            fast_breakcheck(ed);
+                                        }
+                                    } else {
+                                        let t36: i32 = utf_head_off(ed, (*re).rex.line, (*re).rex.input.wrapping_sub(1)) + 1;
+                                        (*re).rex.input = (*re).rex.input.wrapping_offset((t36 as isize).wrapping_neg());
+                                    }
+                                } else {
+                                    if (*rst_2).count == (*rst_2).minval || regrepeat(ed, re, (*rp).rs_scan.wrapping_add(3), 1) == 0 {
+                                        break;
+                                    }
+                                    (*rst_2).count += 1;
+                                }
+                                if (*ed).got_int != 0 {
                                     break;
                                 }
-                                (*rst_2).count += 1;
+                            } else {
+                                status = RA_NOMATCH;
                             }
-                            if (*ed).got_int != 0 {
+                            if (*rst_2).nextb == NUL || (*(*re).rex.input as i32) == (*rst_2).nextb || (*(*re).rex.input as i32) == (*rst_2).nextb_ic {
+                                reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
+                                scan = regnext(ed, re, (*rp).rs_scan);
+                                status = RA_CONT;
                                 break;
                             }
-                        } else {
+                        }
+                        if status != RA_CONT {
+                            scan = regstack_pop(re);
+                            (*re).regstack_star.ga_len -= 1;
+                            (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(32);
                             status = RA_NOMATCH;
                         }
-                        if (*rst_2).nextb == NUL || (*(*re).rex.input as i32) == (*rst_2).nextb || (*(*re).rex.input as i32) == (*rst_2).nextb_ic {
-                            reg_save(re, &raw mut (*rp).rs_un.regsave, &raw mut (*re).backpos);
-                            scan = regnext(ed, re, (*rp).rs_scan);
-                            status = RA_CONT;
-                            break;
-                        }
                     }
-                    if status != RA_CONT {
-                        scan = regstack_pop(re);
-                        (*re).regstack_star.ga_len -= 1;
-                        (*re).regstack_bytes = (*re).regstack_bytes.wrapping_sub(32);
-                        status = RA_NOMATCH;
-                    }
-                }
                     _ => {}
                 }
             }
@@ -51868,7 +51801,6 @@ pub unsafe fn free_yank_all(ed: *mut Editor) {
 pub unsafe fn op_yank(ed: *mut Editor, oap: *const oparg_T, deleting: bool, mess: bool) -> bool {
     let mut newreg: yankreg_T = core::mem::zeroed();
     let mut bd: block_def = core::mem::zeroed();
-    let mut tmp: i32;
     let mut namebuf: [i8; 100] = core::mem::zeroed();
     let mut yanktype: i32 = (*oap).motion_type;
     let mut yanklines: i64 = (*oap).line_count;
@@ -51911,30 +51843,30 @@ pub unsafe fn op_yank(ed: *mut Editor, oap: *const oparg_T, deleting: bool, mess
         's2: {
             match (*(*ed).y_current).y_type as i32 {
                 2 => {
-                block_prep(ed, oap, &raw mut bd, lnum, FALSE);
-                if !yank_copy_line(ed, &raw mut bd, y_idx, (*oap).excl_tr_ws) {
-                    free_yank(ed, y_idx + 1);
-                    (*ed).y_current = curr;
-                    return false;
+                    block_prep(ed, oap, &raw mut bd, lnum, FALSE);
+                    if !yank_copy_line(ed, &raw mut bd, y_idx, (*oap).excl_tr_ws) {
+                        free_yank(ed, y_idx + 1);
+                        (*ed).y_current = curr;
+                        return false;
+                    }
                 }
-            }
                 1 => {
-                (*(*(*ed).y_current).y_array.wrapping_offset(y_idx as isize)).length = ml_get_len(ed, lnum) as u64;
-                (*(*(*ed).y_current).y_array.wrapping_offset(y_idx as isize)).string = vim_strnsave(ed, ml_get(ed, lnum), (*(*(*ed).y_current).y_array.wrapping_offset(y_idx as isize)).length);
-            }
+                    (*(*(*ed).y_current).y_array.wrapping_offset(y_idx as isize)).length = ml_get_len(ed, lnum) as u64;
+                    (*(*(*ed).y_current).y_array.wrapping_offset(y_idx as isize)).string = vim_strnsave(ed, ml_get(ed, lnum), (*(*(*ed).y_current).y_array.wrapping_offset(y_idx as isize)).length);
+                }
                 0 => {
-                charwise_block_prep(ed, (*oap).start, (*oap).end, &raw mut bd, lnum, (*oap).inclusive);
-                tmp = musl_strlen(bd.textstart as *mut i8) as i32;
-                if tmp < bd.textlen {
-                    bd.textlen = tmp;
+                    charwise_block_prep(ed, (*oap).start, (*oap).end, &raw mut bd, lnum, (*oap).inclusive);
+                    let tmp: i32 = musl_strlen(bd.textstart as *mut i8) as i32;
+                    if tmp < bd.textlen {
+                        bd.textlen = tmp;
+                    }
+                    if !yank_copy_line(ed, &raw mut bd, y_idx, FALSE) {
+                        free_yank(ed, y_idx + 1);
+                        (*ed).y_current = curr;
+                        return false;
+                    }
+                    break 's2;
                 }
-                if !yank_copy_line(ed, &raw mut bd, y_idx, FALSE) {
-                    free_yank(ed, y_idx + 1);
-                    (*ed).y_current = curr;
-                    return false;
-                }
-                break 's2;
-            }
                 _ => {}
             }
         }
@@ -56178,79 +56110,79 @@ pub unsafe fn findmatchlimit(ed: *mut Editor, oap: *mut oparg_T, mut initc: i32,
         's6: {
             match c {
                 0 => {
-                if (*ed).findmatchlimit__pos.col == 0 || *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 1) as isize) != 92 {
-                    inquote = FALSE;
-                    start_in_quotes = FALSE;
-                }
-            }
-                34 => {
-                if do_quotes != 0 {
-                    let mut col_2: i32 = (*ed).findmatchlimit__pos.col - 1;
-                    while col_2 >= 0 {
-                        if *linep.wrapping_offset(col_2 as isize) != 92 {
-                            break;
-                        }
-                        col_2 -= 1;
-                    }
-                    if (*ed).findmatchlimit__pos.col - 1 - col_2 & 1 == 0 {
-                        inquote = (inquote == 0) as i32;
+                    if (*ed).findmatchlimit__pos.col == 0 || *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 1) as isize) != 92 {
+                        inquote = FALSE;
                         start_in_quotes = FALSE;
                     }
                 }
-            }
+                34 => {
+                    if do_quotes != 0 {
+                        let mut col_2: i32 = (*ed).findmatchlimit__pos.col - 1;
+                        while col_2 >= 0 {
+                            if *linep.wrapping_offset(col_2 as isize) != 92 {
+                                break;
+                            }
+                            col_2 -= 1;
+                        }
+                        if (*ed).findmatchlimit__pos.col - 1 - col_2 & 1 == 0 {
+                            inquote = (inquote == 0) as i32;
+                            start_in_quotes = FALSE;
+                        }
+                    }
+                }
                 v7_2 => {
-                'v7_2_1: {
-                'v7_2_0: {
-                    match v7_2 {
-                        39 => break 'v7_2_0,
-                        _ => break 'v7_2_1,
-                    }
-                }
-                if !cpo_match && initc != 39 && findc != 39 {
-                    if backwards {
-                        if (*ed).findmatchlimit__pos.col > 1 {
-                            if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 2) as isize) == 39 {
-                                (*ed).findmatchlimit__pos.col -= 2;
-                                break 's6;
-                            } else if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 2) as isize) == 92 && (*ed).findmatchlimit__pos.col > 2 && *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 3) as isize) == 39 {
-                                (*ed).findmatchlimit__pos.col -= 3;
-                                break 's6;
+                    'v7_2_1: {
+                        'v7_2_0: {
+                            match v7_2 {
+                                39 => break 'v7_2_0,
+                                _ => break 'v7_2_1,
                             }
                         }
-                    } else if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 1) as isize) != 0 {
-                        if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 1) as isize) == 92 && *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 2) as isize) != 0 && *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 3) as isize) == 39 {
-                            (*ed).findmatchlimit__pos.col += 3;
-                            break 's6;
-                        } else if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 2) as isize) == 39 {
-                            (*ed).findmatchlimit__pos.col += 2;
-                            break 's6;
-                        }
-                    }
-                }
-                }
-                if skip_comments && (in_block_comment || comment_col != MAXCOL && (*ed).findmatchlimit__pos.col >= comment_col) {
-                    break 's6;
-                }
-                if (inquote == 0 || start_in_quotes == TRUE) && (c == initc || c == findc) {
-                    let mut bslcnt_2: i32 = 0;
-                    if !cpo_bsl {
-                        let mut col_3: i32 = (*ed).findmatchlimit__pos.col;
-                        while check_prevcol(ed, linep, col_3, 92, &raw mut col_3) {
-                            bslcnt_2 += 1;
-                        }
-                    }
-                    if cpo_bsl || bslcnt_2 & 1 == match_escaped {
-                        if c == initc {
-                            count += 1;
-                        } else {
-                            if count == 0 {
-                                return &raw mut (*ed).findmatchlimit__pos;
+                        if !cpo_match && initc != 39 && findc != 39 {
+                            if backwards {
+                                if (*ed).findmatchlimit__pos.col > 1 {
+                                    if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 2) as isize) == 39 {
+                                        (*ed).findmatchlimit__pos.col -= 2;
+                                        break 's6;
+                                    } else if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 2) as isize) == 92 && (*ed).findmatchlimit__pos.col > 2 && *linep.wrapping_offset(((*ed).findmatchlimit__pos.col - 3) as isize) == 39 {
+                                        (*ed).findmatchlimit__pos.col -= 3;
+                                        break 's6;
+                                    }
+                                }
+                            } else if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 1) as isize) != 0 {
+                                if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 1) as isize) == 92 && *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 2) as isize) != 0 && *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 3) as isize) == 39 {
+                                    (*ed).findmatchlimit__pos.col += 3;
+                                    break 's6;
+                                } else if *linep.wrapping_offset(((*ed).findmatchlimit__pos.col + 2) as isize) == 39 {
+                                    (*ed).findmatchlimit__pos.col += 2;
+                                    break 's6;
+                                }
                             }
-                            count -= 1;
+                        }
+                    }
+                    if skip_comments && (in_block_comment || comment_col != MAXCOL && (*ed).findmatchlimit__pos.col >= comment_col) {
+                        break 's6;
+                    }
+                    if (inquote == 0 || start_in_quotes == TRUE) && (c == initc || c == findc) {
+                        let mut bslcnt_2: i32 = 0;
+                        if !cpo_bsl {
+                            let mut col_3: i32 = (*ed).findmatchlimit__pos.col;
+                            while check_prevcol(ed, linep, col_3, 92, &raw mut col_3) {
+                                bslcnt_2 += 1;
+                            }
+                        }
+                        if cpo_bsl || bslcnt_2 & 1 == match_escaped {
+                            if c == initc {
+                                count += 1;
+                            } else {
+                                if count == 0 {
+                                    return &raw mut (*ed).findmatchlimit__pos;
+                                }
+                                count -= 1;
+                            }
                         }
                     }
                 }
-            }
             }
         }
     }

@@ -573,7 +573,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 
 | | `8a186a4` | after |
 | --- | ---: | ---: |
-| `editor.rs` | 61,820 lines | 61,965 lines |
+| `editor.rs` | 61,820 lines | 61,897 lines |
 | pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
 | `*const` in the text | 0 | 1,492 |
 | `pub unsafe fn` | 1,648 | 1,648 |
@@ -582,7 +582,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 | locals declared with no value, `let x: T;` | 396 | 499 |
 | the module's `#![allow]` | the C's names, `unused_assignments` | the C's names alone; 4 functions `#[expect(unused_assignments)]` |
 | block expressions | 154 | 72 |
-| labels | 91 | 91 |
+| labels | 91 | 75: 32 a ladder's, 13 a switch a break leaves, 11 phase 173's regions, 10 gotos', 7 loops a break names, 2 a for's continue |
 | rustc's warnings (`--lint`, every allow and expect out) | 702: 220 `unused_assignments` | 487: 5 `unused_assignments`, 482 the C's names |
 | rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB |
 | the heavy case | 0.25-0.3x | 0.25-0.3x (112-139 ms against 435-473; twice 154-168 ms, 0.35-0.4x, under load) |
@@ -645,6 +645,25 @@ function's own level, block expressions `({ ` and `= { `, labels.
   condition (its hoisting would nest the rest of the chain), in the right
   of `||`, in an `if` with an `else`, in a `?:`, or in a value (`let x =
   { ... }` of a comma): 72, each one a block that keeps C's order.
+- **Item 15, a switch's fallthrough without labels where it can be**
+  (`rs_fn.go`, `TestRsFall`). Of the 91 labels, 48 were the rungs of a
+  ladder -- a case falling into the next. A case of no statements is now
+  the next case's pattern (`27 | 3 => {` for C's `case ESC: case Ctrl_C:`
+  with nothing between, 4 labels), and a case falling into at most five
+  simple statements -- expression statements and jumps, no declaration,
+  label or goto -- has them written again, an arm each (`10 | 13 =>
+  { beginline(ed, 5); scroll_cursor_top(...); ... }`, `116 => {
+  scroll_cursor_top(...); ... }`, vim's `z` commands: 12 labels, and
+  fewer lines than the ladder). Found on the way, and fixed: a labeled
+  match's arms and a ladder's nested blocks were written a level out,
+  which also kept `sinkDecls` -- which reads the indentation -- from
+  declaring locals there (`let tick: varnumber_T = ...` in its arm now).
+  Labels 91 -> 75, editor.rs 61,965 -> 61,897 lines. The 75 left are
+  what Rust has no other word for: 32 rungs of ladders that fall into
+  more, 13 a switch a `break` inside a loop or an `if` leaves (Rust's
+  `break` would leave the loop), 11 phase 173's regions and 10 gotos (C's
+  own), 7 loops a break names past a labeled block, 2 a for's step after
+  a long `continue`.
 
 ## What is not worth doing, and why
 
