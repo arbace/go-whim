@@ -330,3 +330,70 @@ func TestRsArith(t *testing.T) {
 		}
 	}
 }
+
+// rsHoistC is C's side effects inside expressions, which the backend takes
+// out where C's order lets it (doc/RUST-IDIOMS.md, item 6): a local's own
+// increments, an assignment a condition evaluates first, a while whose
+// condition does something -- beside what stays: a local named twice, an
+// increment C may not evaluate, a global, a local whose address is taken.
+const rsHoistC = javaHost + `
+static int g;
+static int seen(int v) { return v + g; }
+static void bump(int *p) { (*p)++; }
+struct pr { int r; int a; };
+static struct pr two(int v) { struct pr p = { v, v * 2 }; return p; }
+
+void copy(char *d, const char *s) { while ((*d++ = *s++) != 0) ; }
+int count(const char *p) { int n = 0; int c; while ((c = *p++) != 0) { if (c == 'x') continue; n++; } return n; }
+int down(int n) { int s = 0; while (n--) { if (n == 2) continue; s += n; } return s; }
+int post(int n) { return n++; }
+
+void run(void)
+{
+    char buf[8];
+    copy(buf, "abc");
+    outs(buf);
+    out(count("axbxc"));
+    out(down(5));
+    out(post(7));
+    int a[4] = {1, 2, 3, 4}, b[4], i = 0, j = 0;
+    while (i < 4) b[i++] = a[j++] * 10;
+    out(b[3]); out(i); out(j);
+    int n = 2;
+    if (n++ == 2) out(n);
+    if (++n == 4) out(n);
+    int k = n--;
+    out(k); out(n);
+    int y = 1;
+    int z = y++ + y;
+    out(z);
+    int w = 0;
+    if (w && i++) out(1);
+    out(i);
+    g = 5;
+    out(seen(g++)); out(g);
+    int q = 1;
+    bump(&q);
+    int r = q++ + 0;
+    out(r); out(q);
+    int c;
+    if ((c = seen(1)) > 5) out(c);
+    out(seen(i++)); out(i);
+    int a2; struct pr o; int r2;
+    r2 = (o = two(3), a2 = o.a, o.r);
+    out(r2); out(a2);
+    if ((o = two(4), a2 = o.a, o.r) == 4) out(a2);
+    (void)(a2 += 1, o = two(a2));
+    out(a2);
+    out(o.r);
+}
+`
+
+func TestRsHoist(t *testing.T) {
+	prog := rsSame(t, rsHoistC, Profile{}, javaHarnessC)
+	for _, s := range []string{"let k: i32 = n;\n    n -= 1;", "loop {", "let c: i32 = seen(ed, 1);"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+}

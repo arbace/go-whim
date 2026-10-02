@@ -58,6 +58,10 @@ type rfn struct {
 	skip     cc.ExpressionNode // a node read itself, not its substitution
 
 	global bool // init_globals: a compound literal is the editor's
+
+	// what hoist took out of the expression being written: the values that
+	// stand for it (rs_hoist.go)
+	rsub map[cc.ExpressionNode]rv
 }
 
 // rlocal is a C local or parameter as a Rust variable.
@@ -713,7 +717,7 @@ func (f *rfn) stmt(s *cc.Statement) bool {
 		return f.items(s.CompoundStatement)
 	case cc.StatementExpr:
 		if s.ExpressionStatement.ExpressionList != nil {
-			f.exprStmt(s.ExpressionStatement.ExpressionList)
+			f.exprStatement(s.ExpressionStatement.ExpressionList)
 		}
 		return false
 	case cc.StatementSelection:
@@ -743,7 +747,12 @@ func (f *rfn) body(s *cc.Statement) (string, bool) {
 func (f *rfn) selection(s *cc.SelectionStatement) bool {
 	switch s.Case {
 	case cc.SelectionStatementIf, cc.SelectionStatementIfElse:
+		pre, _ := f.hoist(s.ExpressionList, false, true)
+		for _, p := range pre {
+			f.line("%s", p)
+		}
 		c := f.cond(s.ExpressionList)
+		f.done()
 		then, tdiv := f.body(s.Statement)
 		if s.Case == cc.SelectionStatementIf {
 			f.line("if %s {", c)
@@ -868,6 +877,30 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 			f.line("}")
 			return !c.broken
 		}
+		if f.hoists(s.ExpressionList) {
+			// a condition that does something: a loop that does it, then
+			// leaves when the condition is false
+			var pre []string
+			var cond string
+			body, _, c := f.loopBody(s.Statement, false)
+			head := f.capture(func() {
+				pre, _ = f.hoist(s.ExpressionList, false, true)
+				for _, p := range pre {
+					f.line("%s", p)
+				}
+				cond = f.cond(s.ExpressionList)
+				f.done()
+				f.line("if %s {", unparenRs(rsNot(cond, rv{})))
+				f.line("    break;")
+				f.line("}")
+			})
+			c.broken = true
+			f.loopHead(c, "loop")
+			f.out.WriteString(head)
+			f.out.WriteString(body)
+			f.line("}")
+			return false
+		}
 		cond := f.cond(s.ExpressionList)
 		body, _, c := f.loopBody(s.Statement, false)
 		f.loopHead(c, "while "+cond)
@@ -910,7 +943,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 		var cond, step cc.ExpressionNode
 		if s.Case == cc.IterationStatementFor {
 			if s.ExpressionList != nil {
-				f.exprStmt(s.ExpressionList)
+				f.exprStatement(s.ExpressionList)
 			}
 			cond, step = s.ExpressionList2, s.ExpressionList3
 		} else {
@@ -927,7 +960,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 		f.out.WriteString(body)
 		if step != nil && !bdiv {
 			f.ind++
-			f.exprStmt(step)
+			f.exprStatement(step)
 			f.ind--
 		}
 		f.line("}")
@@ -971,11 +1004,16 @@ func (f *rfn) jump(j *cc.JumpStatement) bool {
 		}
 		if f.ret == nil {
 			// a void function's return of a void expression
-			f.exprStmt(j.ExpressionList)
+			f.exprStatement(j.ExpressionList)
 			f.line("return;")
 			return true
 		}
+		pre, _ := f.hoist(j.ExpressionList, false, true)
+		for _, p := range pre {
+			f.line("%s", p)
+		}
 		v := f.conv(f.expr(j.ExpressionList), f.r.ty(f.ret))
+		f.done()
 		f.line("return %s;", unparenRs(v.s))
 		return true
 	case cc.JumpStatementBreak:

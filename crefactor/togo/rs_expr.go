@@ -353,6 +353,9 @@ func (f *rfn) vty(t cc.Type) string {
 
 // expr is e's value.
 func (f *rfn) expr(e cc.ExpressionNode) rv {
+	if v, ok := f.rsub[e]; ok {
+		return v
+	}
 	if f.sub != nil && e != f.skip {
 		if r, ok := f.sub[e]; ok {
 			return f.lexpr(r)
@@ -366,7 +369,7 @@ func (f *rfn) expr(e cc.ExpressionNode) rv {
 		}
 		return rv{s: "null_mut()", ty: f.vty(t), null: true}
 	}
-	if k, ok := scalarKind(t); ok && !hasEffect(e) {
+	if k, ok := scalarKind(t); ok && !f.effect(e) {
 		if v, known := intValue(e.Value()); known {
 			return f.konst(e, truncK(v, k), rsKind(k))
 		}
@@ -1244,7 +1247,7 @@ type lval struct {
 func (f *rfn) lval(e cc.ExpressionNode) lval {
 	t := e.Type()
 	ty := f.r.ty(t)
-	if !hasEffect(e) || f.lowered_ {
+	if !f.effect(e) || f.lowered_ {
 		return lval{place: f.place(e), ty: ty, t: t}
 	}
 	a := f.addrOf(e)
@@ -1283,7 +1286,7 @@ func (f *rfn) assigned(x *cc.AssignmentExpression) ([]string, lval) {
 	}
 	op := assignOps[x.Case]
 	r := f.expr(x.AssignmentExpression)
-	if hasEffect(x.AssignmentExpression) && !r.konst && !f.ownLocal(x.UnaryExpression) {
+	if f.effect(x.AssignmentExpression) && !r.konst && !f.ownLocal(x.UnaryExpression) {
 		// the right side's calls first, and then the lvalue read: gcc's
 		// order
 		t := f.temp(x.AssignmentExpression.Type())
@@ -1432,7 +1435,7 @@ func (f *rfn) exprStmt(e cc.ExpressionNode) {
 			return
 		case cc.PostfixExpressionCall:
 			v := f.call(x)
-			if v.s != "" && hasEffect(x) {
+			if v.s != "" && f.effect(x) {
 				f.line("%s;", unparenRs(v.s))
 			}
 			return
@@ -1481,7 +1484,7 @@ func (f *rfn) exprStmt(e cc.ExpressionNode) {
 			return
 		}
 	}
-	if !hasEffect(e) {
+	if !f.effect(e) {
 		return // nothing it does
 	}
 	v := f.expr(e)

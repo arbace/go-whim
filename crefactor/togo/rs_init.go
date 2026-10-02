@@ -17,8 +17,16 @@ import (
 func (f *rfn) initLocal(l *rlocal, in *cc.Initializer) {
 	t := l.t
 	if in.Case == cc.InitializerExpr && t.Kind() != cc.Array {
+		pre, post := f.hoist(in.AssignmentExpression, true, true)
+		for _, p := range pre {
+			f.line("%s", p)
+		}
 		v := f.conv(f.expr(in.AssignmentExpression), f.r.ty(t))
+		f.done()
 		f.line("%s = %s;", l.name, unparenRs(v.s))
+		for _, p := range post {
+			f.line("%s", p)
+		}
 		return
 	}
 	f.line("%s = %s;", l.name, f.zero(t))
