@@ -1050,6 +1050,37 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      chain gives the product byte for byte. In order: 123 phases, 815 s
      (the seed 14 s, phases 1-3 40, 43 and 44 s); the parallel check: 122
      links, 88 s.
+   - **The key names (167) to the seed, measured and not done.** Run on
+     the whole seed (there is no core/host line yet), `whim167` names 155
+     codes at 959 sites (683 at 167), every one by the name the product
+     gives it: the table, `K_X` and the mechanical names agree. But the
+     definitions go before the declaration that holds the first use, and at
+     the seed that is `wildmenu_translate_key`, which a later phase cuts,
+     not `edit()`; and they come in the order of first use, which puts
+     `K_UP`, `K_LEFT`, `K_DOWN`, `K_RIGHT` and `K_KENTER` first and moves
+     `K_BS`. The sweep cuts but never reorders, so the product's 153
+     definitions would come in another order and place. The anchors that
+     spell a code as arithmetic are few -- 6 lines: `nomouse`'s `ke()` (20
+     uses) and its mouse pattern, `nocomplkeys`, `nowildmenu`, 59's `ke()`
+     and 67 -- but the move is not one of spelling.
+   - **Plain C (182) to the seed, measured and not done.** Its three steps
+     are the core's: at the seed the `#include`s are the first 41 lines
+     and there is no core yet (phase 110 draws the line), so a seed step
+     would see the whole file. `Identity` there would unwrap the host's
+     `_()` calls too, and the product's host keeps 42 of them; `ConstBranch`
+     takes branches whole, which is not spelling. `AsciiClass`, the one
+     spelling part, was tried: on the whole seed it names 247 tests (119
+     digit, 62 lower, 66 upper; 136 at 182) and puts the three functions
+     below the `#include`s, where after 110 they are the core's top as in
+     the product. With anchors and inserted texts respelled in 6 files (74's
+     two, 79, 97's and 98's musl functions, `extable`) and `LibcOwn` (114) told that
+     static functions above the library declarations are not their end,
+     the chain completes, but 19 lines differ from the product: 12 tests in
+     the host's formatter, which 182 never touches because it runs on the
+     core alone, are named; and 166's `BoolRet` leaves 5 functions `int`
+     that it made `bool` -- `musl_isdigit`, `_isupper`, `_islower`,
+     `vim_islower`, `vim_isupper` -- because their return is now a call,
+     not a comparison. So 182 stays where it is.
    - **168 into `GotoTail`, done.** With 168's program removed, 170 takes
      its 19 gotos as tails of no statements, and the chain gives the product
      byte for byte. `GotoTail` now takes 98 gotos and drops 21 labels. 168
