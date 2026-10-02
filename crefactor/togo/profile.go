@@ -98,6 +98,11 @@ type Profile struct {
 	// calls is defined or declared before it.
 	CljParts int
 
+	// RsHost is the Rust module the functions declared and not defined are
+	// called in, the editor first ("" is crate::host); RsRuntime the
+	// module of the runtime the Rust is written against ("" is crate::rt).
+	RsHost, RsRuntime string
+
 	// HsParts is how many modules the Haskell functions are split into, by
 	// the call graph (hssplit.go): 0 or 1, one module.
 	HsParts int
@@ -134,6 +139,10 @@ type RuntimeBody struct {
 	// block, the C's parameter names in scope, the editor ed' -- for the
 	// Haskell type the C gives its result.
 	Hs func(result string) string
+	// Rs, when set, is the Rust function's body -- its statements, the C's
+	// parameter names in scope, the editor ed -- for the Rust type the C
+	// gives its result.
+	Rs func(result string) string
 }
 
 // profile is a Profile's lists as sets, for the lookups.

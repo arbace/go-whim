@@ -872,11 +872,18 @@ var hsMarkRe = regexp.MustCompile(`\{\{(sizeof|offsetof) ([A-Za-z_][A-Za-z_0-9]*
 
 // layoutMarks answers a runtime body's questions about the C's layout from
 // the front end's: a body is written once, and the sizes are the unit's.
-func (h *hgen) layoutMarks(body string) string {
+func (h *hgen) layoutMarks(body string) string { return answerLayout(h.g.ast, body) }
+
+// layoutMarks answers a runtime body's questions about the C's layout.
+func (r *rgen) layoutMarks(body string) string { return answerLayout(r.g.ast, body) }
+
+// answerLayout answers a body's {{sizeof T}} and {{offsetof T m}} from the
+// front end's layout of ast.
+func answerLayout(ast *cc.AST, body string) string {
 	return hsMarkRe.ReplaceAllStringFunc(body, func(m string) string {
 		g := hsMarkRe.FindStringSubmatch(m)
 		var t cc.Type
-		for _, n := range h.g.ast.Scope.Nodes[g[2]] {
+		for _, n := range ast.Scope.Nodes[g[2]] {
 			if d, ok := n.(*cc.Declarator); ok && d.IsTypename() {
 				t = d.Type()
 			}

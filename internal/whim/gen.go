@@ -127,6 +127,18 @@ func matchLinesHs(string) string {
   pure (not failed)`
 }
 
+// matchLinesRs is match_lines()'s body in Rust: the chunks on scoped
+// threads (whimsy/src/rt.rs's chunks), each on an engine the core's
+// alloc_clear makes; the raw pointers go to the threads Shared.
+func matchLinesRs(string) string {
+	return `let (ed_, rmp_, buf_, lines_, found_) = (Shared(ed), Shared(rmp), Shared(buf), Shared(lines), Shared(found));
+chunks(n, |from, to| {
+    let re = alloc_clear(ed_.get(), core::mem::size_of::<regengine_T>() as u64) as *mut regengine_T;
+    match_chunk(ed_.get(), re, rmp_.get(), do_all, buf_.get(), lines_.get(), line1, from, to, found_.get());
+    !(*re).failed
+})`
+}
+
 // javaStr is a C string function's Java body: the return of braaam/rt's
 // Str method of that name, on the C's parameters.
 func javaStr(call string) func(string) string {
@@ -201,7 +213,7 @@ var Gen = togo.Profile{
 	// the C's loop over lines in parallel chunks.
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
-		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs},
+		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs, Rs: matchLinesRs},
 		// the C string functions in Java and Clojure: braaam/rt's Str, as the
 		// Go's are editor/libc.go (Runtime above), not the musl translated a
 		// byte and a BytePtr at a time (doc/CLOJURE-IDIOMS.md, item 6)

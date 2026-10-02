@@ -39,3 +39,10 @@
 *.sw[a-p]
 
 .claude/
+
+# The Rust editor's cargo output and lock, where cargo is run in whimsy/ by
+# hand (go tool whim whimsy builds in lib/whimsy), and the backend's notes
+# beside a module written there by `whim skel -rs` (.host, .layout, .refused).
+/whimsy/target/
+/whimsy/Cargo.lock
+/whimsy/src/editor.rs.*

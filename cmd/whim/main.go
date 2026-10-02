@@ -112,7 +112,7 @@ var tools = map[string]tool{
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
 	"cut":         {runCut, "cut [FILE]"},
 	"gen":         {runGen, "gen [--check] [FILE]"},
-	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java> | -clj <editor.clj> | -lowerc <lowered.c>]"},
+	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java> | -clj <editor.clj> | -hs <Editor.hs> | -rs <editor.rs> | -lowerc <lowered.c>]"},
 	"java":        {runJava, "java [--out DIR] [FILE]"},
 	"clj":         {runClj, "clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]"},
 	"caprice":     {runCaprice, "caprice [--out DIR] [FILE]"},
