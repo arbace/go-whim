@@ -110,6 +110,18 @@ type Profile struct {
 	// HsParts is how many modules the Haskell functions are split into, by
 	// the call graph (hssplit.go): 0 or 1, one module.
 	HsParts int
+
+	// ScmLibrary is the name of the R6RS library -scm writes, "(whimsical
+	// editor)"; "" is (editor).  ScmExports are the functions and
+	// file-scope objects the Scheme host calls back: exported, an object as
+	// its address, addr:NAME.
+	ScmLibrary string
+	ScmExports []string
+	// ScmNoOuts and ScmNoStructValues leave every out-parameter and every
+	// struct local in the frame, as C has them (hsout.go, hsstruct.go);
+	// ScmPure writes a function that touches no memory without the editor
+	// (hseffects.go).
+	ScmNoOuts, ScmNoStructValues, ScmPure bool
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset
@@ -147,6 +159,10 @@ type RuntimeBody struct {
 	// parameter names in scope, the editor ed -- for the Rust type the C
 	// gives its result.
 	Rs func(result string) string
+	// Scm, when set, is the Scheme procedure's body -- one expression, the
+	// C's parameter names in scope, the editor ed and its memory mem -- for
+	// the Scheme kind the C gives its result.
+	Scm func(result string) string
 }
 
 // profile is a Profile's lists as sets, for the lookups.

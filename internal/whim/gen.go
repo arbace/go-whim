@@ -139,6 +139,18 @@ chunks(n, |from, to| {
 })`
 }
 
+// matchLinesScm is match_lines()'s body in Scheme: the chunks on
+// fork-thread's threads (whimsical/whimsical/rt.ss's chunks), each with a
+// stack of its own and on an engine the core's alloc_clear makes, the C's
+// sizes asked of the front end.
+func matchLinesScm(string) string {
+	return `(chunks ed n
+  (lambda (ed from to)
+    (let ([re (alloc_clear ed {{sizeof regengine_T}})])
+      (match_chunk ed re rmp do_all buf lines line1 from to found)
+      (not (ld-bool (fx+ re {{offsetof regengine_T failed}}))))))`
+}
+
 // javaStr is a C string function's Java body: the return of braaam/rt's
 // Str method of that name, on the C's parameters.
 func javaStr(call string) func(string) string {
@@ -213,7 +225,7 @@ var Gen = togo.Profile{
 	// the C's loop over lines in parallel chunks.
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
-		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs, Rs: matchLinesRs},
+		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs, Rs: matchLinesRs, Scm: matchLinesScm},
 		// the C string functions in Java and Clojure: braaam/rt's Str, as the
 		// Go's are editor/libc.go (Runtime above), not the musl translated a
 		// byte and a BytePtr at a time (doc/CLOJURE-IDIOMS.md, item 6)
@@ -237,6 +249,11 @@ var Gen = togo.Profile{
 	HsExports: []string{"deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
 	// whimsy, the Rust editor: what its host and printf call by name
 	RsExports: []string{"vim_main", "deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells"},
+	// whimsical, the Scheme editor: its library, and what its host calls
+	// back -- the printf's error messages and cells, the death of a SIGHUP
+	// or a SIGTERM -- and runs (whimsical/whimsical/host.ss)
+	ScmLibrary: "(whimsical editor)",
+	ScmExports: []string{"vim_main", "deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
 	// a Clojure state machine split into groups past 50,000 (the backend's
 	// default is the JVM's method limit, 110,000): a group is called on
 	// every jump between groups, so C1 compiles it early and cheaply, where
