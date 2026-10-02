@@ -51,7 +51,7 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 	n := 0
 	for {
 		changed := false
-		for _, m := range edit.EmptyGuardedBlock.FindAllSubmatchIndex(core, -1) {
+		for _, m := range edit.AllSubmatchIndexAround(edit.EmptyGuardedBlock, core, emptyBraces(core), 3) {
 			head := string(core[m[4]:m[5]])
 			after := core[m[1]:]
 			var cond string
@@ -72,6 +72,30 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 		}
 		if !changed {
 			return core, n
+		}
+	}
+}
+
+// emptyBraces is where core has an empty block, `{\n[ \t]*}\n`, which
+// every match of edit.EmptyGuardedBlock holds, three newlines at most in all:
+// the pattern runs on the lines around these alone and not the whole core
+// on every round (4.6 s of a build's CPU).  TestEmptyBraces holds the two
+// to the same matches.
+func emptyBraces(core []byte) [][2]int {
+	var at [][2]int
+	for pos := 0; ; {
+		rel := bytes.Index(core[pos:], []byte("{\n"))
+		if rel < 0 {
+			return at
+		}
+		i := pos + rel
+		pos = i + 1
+		j := i + 2
+		for j < len(core) && (core[j] == ' ' || core[j] == '\t') {
+			j++
+		}
+		if j+1 < len(core) && core[j] == '}' && core[j+1] == '\n' {
+			at = append(at, [2]int{i, j + 2})
 		}
 	}
 }

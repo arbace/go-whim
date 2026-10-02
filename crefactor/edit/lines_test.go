@@ -31,6 +31,11 @@ func scopedCheck(t *testing.T, re *regexp.Regexp, text []byte) {
 	same("FirstIndex", FirstIndex(re, text), re.FindIndex(text))
 	same("FirstSubmatchIndex", FirstSubmatchIndex(re, text), re.FindSubmatchIndex(text))
 	for _, repl := range []string{"", "<$0>", "${1}x"} {
+		lout, ln := ReplaceAllLiteralCounted(re, text, []byte(repl))
+		same("ReplaceAllLiteralCounted", ln, len(re.FindAll(text, -1)))
+		if !bytes.Equal(lout, re.ReplaceAllLiteral(text, []byte(repl))) {
+			t.Errorf("ReplaceAllLiteralCounted %q %q on %.40q: not ReplaceAllLiteral's text", re, repl, text)
+		}
 		out, n := ReplaceAllCounted(re, text, []byte(repl))
 		same("ReplaceAllCounted", n, len(re.FindAll(text, -1)))
 		if !bytes.Equal(out, re.ReplaceAll(text, []byte(repl))) {

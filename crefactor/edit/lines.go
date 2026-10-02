@@ -152,6 +152,22 @@ func requiredLit(t *syntax.Regexp) string {
 // windows is the merged spans of text, each starting at a line's start, that
 // hold every match of a pattern of scope s.
 func windows(text []byte, s scope) [][2]int {
+	var at [][2]int
+	for pos := 0; pos < len(text); {
+		rel := bytes.Index(text[pos:], s.lit)
+		if rel < 0 {
+			break
+		}
+		i := pos + rel
+		at = append(at, [2]int{i, i + len(s.lit)})
+		pos = i + 1
+	}
+	return windowsAround(text, at, s.k)
+}
+
+// windowsAround is the merged spans of text around the spans at, in order:
+// each span's lines, and k+1 lines above and below them.
+func windowsAround(text []byte, at [][2]int, k int) [][2]int {
 	var out [][2]int
 	up := func(a, n int) int { // the start of the line n lines above a's
 		a = bytes.LastIndexByte(text[:a], '\n') + 1
@@ -170,20 +186,34 @@ func windows(text []byte, s scope) [][2]int {
 		}
 		return z
 	}
-	for pos := 0; pos < len(text); {
-		rel := bytes.Index(text[pos:], s.lit)
-		if rel < 0 {
-			break
-		}
-		i := pos + rel
-		a := up(i, s.k+1)
-		z := down(i+len(s.lit)-1, s.k+1)
+	for _, sp := range at {
+		a := up(sp[0], k+1)
+		z := down(max(sp[0], sp[1]-1), k+1)
 		if n := len(out); n > 0 && a <= out[n-1][1] {
 			out[n-1][1] = max(out[n-1][1], z)
 		} else {
 			out = append(out, [2]int{a, z})
 		}
-		pos = i + 1
+	}
+	return out
+}
+
+// AllSubmatchIndexAround is re.FindAllSubmatchIndex(text, -1) for a re
+// every match of which holds one of the spans at (in order) and at most k
+// newlines: a caller that knows a cheaper mark of a match than a literal --
+// an empty block, `{` and `}` on the lines after a head -- scans the windows
+// around its marks alone.  Its caller's test holds it to the regexp.
+func AllSubmatchIndexAround(re *regexp.Regexp, text []byte, at [][2]int, k int) [][]int {
+	var out [][]int
+	for _, w := range windowsAround(text, at, k) {
+		for _, m := range re.FindAllSubmatchIndex(text[w[0]:w[1]], -1) {
+			for j := range m {
+				if m[j] >= 0 {
+					m[j] += w[0]
+				}
+			}
+			out = append(out, m)
+		}
 	}
 	return out
 }
@@ -274,8 +304,21 @@ func FirstSubmatchIndex(re *regexp.Regexp, text []byte) []int {
 // ReplaceAllCounted is re.ReplaceAll(text, repl) and the number of matches
 // it replaced, the matches found once, on the windows.
 func ReplaceAllCounted(re *regexp.Regexp, text, repl []byte) ([]byte, int) {
+	return replaceAllCounted(re, text, repl, false)
+}
+
+// ReplaceAllLiteralCounted is re.ReplaceAllLiteral(text, repl) and the
+// number of matches it replaced, on the windows.
+func ReplaceAllLiteralCounted(re *regexp.Regexp, text, repl []byte) ([]byte, int) {
+	return replaceAllCounted(re, text, repl, true)
+}
+
+func replaceAllCounted(re *regexp.Regexp, text, repl []byte, literal bool) ([]byte, int) {
 	if scopeOf(re).lit == nil {
 		n := len(re.FindAll(text, -1))
+		if literal {
+			return re.ReplaceAllLiteral(text, repl), n
+		}
 		return re.ReplaceAll(text, repl), n
 	}
 	ms := AllSubmatchIndex(re, text)
@@ -286,7 +329,11 @@ func ReplaceAllCounted(re *regexp.Regexp, text, repl []byte) ([]byte, int) {
 	last := 0
 	for _, m := range ms {
 		out = append(out, text[last:m[0]]...)
-		out = re.Expand(out, repl, text, m)
+		if literal {
+			out = append(out, repl...)
+		} else {
+			out = re.Expand(out, repl, text, m)
+		}
 		last = m[1]
 	}
 	return append(out, text[last:]...), len(ms)

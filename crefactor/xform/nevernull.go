@@ -203,7 +203,7 @@ func NeverNullRule(core []byte, roots []string) ([]byte, map[string]bool, int, [
 		r2 := regexp.MustCompile(`(?m)^( *)if \(\(([\w.>\[\]-]+) = (` + nnCast + `(?:` + alt + `)\([^;\n]*\))\) == nullptr\)\n`)
 		changed := false
 		for {
-			m := r2.FindSubmatchIndex(core)
+			m := edit.FirstSubmatchIndex(r2, core)
 			hit := false
 			for off := 0; m != nil; {
 				m[0], m[1] = m[0]+off, m[1]+off
@@ -218,7 +218,7 @@ func NeverNullRule(core []byte, roots []string) ([]byte, map[string]bool, int, [
 					break
 				}
 				off = m[1]
-				m = r2.FindSubmatchIndex(core[off:])
+				m = edit.FirstSubmatchIndex(r2, core[off:])
 			}
 			if !hit {
 				break
@@ -226,7 +226,7 @@ func NeverNullRule(core []byte, roots []string) ([]byte, map[string]bool, int, [
 			changed = true
 		}
 		for from := 0; ; {
-			m := r1.FindSubmatchIndex(core[from:])
+			m := edit.FirstSubmatchIndex(r1, core[from:])
 			if m == nil {
 				break
 			}

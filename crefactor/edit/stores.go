@@ -58,6 +58,11 @@ func DeadStores(core []byte) ([]byte, []string) {
 			if end < 0 {
 				continue
 			}
+			// storesDecl's own frame, asked first: an indented line
+			// ending in `;`.
+			if l := lines[k]; l == "" || (l[0] != ' ' && l[0] != '\t') || !strings.HasSuffix(l, ";") {
+				continue
+			}
 			m := storesDecl.FindStringSubmatch(lines[k])
 			if m == nil || storesKey[m[1]] || storesKey[m[2]] {
 				continue
@@ -66,19 +71,24 @@ func DeadStores(core []byte) ([]byte, []string) {
 			if m[3] != "" && !PureCond(m[3]) {
 				continue
 			}
-			word := regexp.MustCompile(`\b` + name + `\b`)
-			store := regexp.MustCompile(`^[ \t]*` + name + ` = (.*);$`)
-			if len(word.FindAllStringIndex(lines[k], -1)) != 1 {
+			// `\bname\b` counted by WordCount, the name being word
+			// characters; the store's pattern compiled for the first line
+			// that mentions it.
+			if WordCount(lines[k], name) != 1 {
 				continue
 			}
+			var store *regexp.Regexp
 			kill := []int{k}
 			ok := true
 			for j := k + 1; j < end && ok; j++ {
-				if !word.MatchString(lines[j]) {
+				if WordCount(lines[j], name) == 0 {
 					continue
 				}
+				if store == nil {
+					store = regexp.MustCompile(`^[ \t]*` + name + ` = (.*);$`)
+				}
 				s := store.FindStringSubmatch(lines[j])
-				if s == nil || !PureCond(s[1]) || len(word.FindAllStringIndex(lines[j], -1)) != 1 {
+				if s == nil || !PureCond(s[1]) || WordCount(lines[j], name) != 1 {
 					ok = false
 					continue
 				}
@@ -96,5 +106,44 @@ func DeadStores(core []byte) ([]byte, []string) {
 		if !changed {
 			return []byte(strings.Join(lines, "\n")), took
 		}
+	}
+}
+
+// WordCount is len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
+// FindAllIndex(s, -1)): for a name of word characters, its occurrences with
+// no word character on either side, which cannot overlap, found by
+// strings.Index and not the regexp machine.  TestWordCount holds it to the
+// regexp.
+func WordCount[T ~string | ~[]byte](s T, name string) int {
+	if !isIdentWord(name) {
+		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllIndex([]byte(s), -1))
+	}
+	return wordCount(string(s), name)
+}
+
+// WordPatternCount is len(regexp.MustCompile(`\b(?:`+pat+`)\b`).FindAll(s,
+// -1)), the mention count the phases write for a name or an alternation of
+// names: a pat that is one name of word characters is WordCount's.
+func WordPatternCount[T ~string | ~[]byte](s T, pat string) int {
+	if !isIdentWord(pat) {
+		return len(regexp.MustCompile(`\b(?:`+pat+`)\b`).FindAllIndex([]byte(s), -1))
+	}
+	return wordCount(string(s), pat)
+}
+
+func wordCount(s, name string) int {
+	n := 0
+	for pos := 0; ; {
+		rel := strings.Index(s[pos:], name)
+		if rel < 0 {
+			return n
+		}
+		i := pos + rel
+		j := i + len(name)
+		pos = i + 1
+		if (i > 0 && identChar(s[i-1])) || (j < len(s) && identChar(s[j])) {
+			continue
+		}
+		n++
 	}
 }

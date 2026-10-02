@@ -226,7 +226,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 		u.replacement = u.indent + mm[1] + u.Name + ";"
 		acc := 0
 		var leftover []string
-		for _, m := range regexp.MustCompile(`\b`+u.Name+`\b`).FindAllStringIndex(t, -1) {
+		for _, m := range edit.AllIndex(regexp.MustCompile(`\b`+u.Name+`\b`), []byte(t)) {
 			switch {
 			case inLiteral(m[0]):
 				leftover = append(leftover, fmt.Sprintf("line %d %s",
@@ -307,7 +307,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 			len(left), len(genuine))
 	}
 	for _, u := range degenerate {
-		n := len(regexp.MustCompile(`\b`+u.Name+`\b`).FindAllString(t, -1))
+		n := edit.WordPatternCount(t, u.Name)
 		if want := 1 + u.accessors; n != want {
 			return nil, p.Die("`%s` has %d mentions and must have %d -- its own declaration and the %d "+
 				"accesses that are now plain field references", u.Name, n, want, u.accessors)

@@ -163,8 +163,8 @@ func foDeclare(text []byte) []byte {
 	}
 	seen := map[string]bool{}
 	var names []string
-	for _, m := range foValue.FindAllSubmatch(text, -1) {
-		if s := string(m[0]); !seen[s] {
+	for _, m := range edit.AllIndex(foValue, text) {
+		if s := string(text[m[0]:m[1]]); !seen[s] {
 			seen[s] = true
 			names = append(names, s)
 		}
@@ -192,6 +192,9 @@ func foDeclare(text []byte) []byte {
 func foUndeclare(text []byte) []byte {
 	if bytes.HasPrefix(text, []byte(foEnumTag)) {
 		text = text[bytes.IndexByte(text, '\n')+1:]
+	}
+	if !bytes.Contains(text, []byte("fallout_")) { // every match holds it
+		return bytes.ReplaceAll(text, []byte(foMark), nil)
 	}
 	text = foValue.ReplaceAllFunc(text, func(b []byte) []byte {
 		m := foValue.FindSubmatch(b)
@@ -584,7 +587,8 @@ func (f *fo) index() {
 			z := fd.CompoundStatement.Token2.Position().Offset + 1
 			if a >= 0 && z <= len(f.src) && a < z {
 				body := f.src[a:z]
-				f.markedFn[nm] = foValue.Match(body) || bytes.Contains(body, []byte(foMark))
+				f.markedFn[nm] = bytes.Contains(body, []byte(foMark)) ||
+					bytes.Contains(body, []byte("fallout_")) && foValue.Match(body)
 			}
 		}
 	}
