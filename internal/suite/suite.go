@@ -32,6 +32,7 @@ import (
 	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/vijure"
+	"github.com/arbace/go-whim/whimsical"
 	"github.com/arbace/go-whim/whimsy"
 )
 
@@ -308,6 +309,8 @@ type JVM struct {
 	Haskell caprice.Gen
 	// Rust, nor is Rust: --rust
 	Rust whimsy.Gen
+	// Scheme, nor is Scheme: --scheme
+	Scheme whimsical.Gen
 }
 
 // builds is what a run compares: the C of rev (the reference), the
@@ -361,12 +364,15 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return nil
 		},
 	}
-	var java, clj, hs, rs *jvmEditor
+	var java, clj, hs, rs, scm *jvmEditor
 	if jvm.Haskell != nil {
 		jobs = append(jobs, func() (err error) { hs, err = buildHaskell(jvm.Haskell, candSrc); return })
 	}
 	if jvm.Rust != nil {
 		jobs = append(jobs, func() (err error) { rs, err = buildRust(jvm.Rust, candSrc); return })
+	}
+	if jvm.Scheme != nil {
+		jobs = append(jobs, func() (err error) { scm, err = buildScheme(jvm.Scheme, candSrc); return })
 	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
@@ -389,7 +395,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return fail(err)
 		}
 	}
-	for _, e := range []*jvmEditor{java, clj, hs, rs} {
+	for _, e := range []*jvmEditor{java, clj, hs, rs, scm} {
 		if e != nil {
 			b.jvm = append(b.jvm, e)
 		}

@@ -41,7 +41,7 @@
                         fxsra fxsrl fx1+
                         quotient remainder void make-immobile-bytevector
                         fork-thread thread-join make-mutex with-mutex mutex-acquire mutex-release
-                        bytevector-truncate! format))
+                        bytevector-truncate! format getenv))
 
   ;; --- the editor ----------------------------------------------------------
 
@@ -286,15 +286,15 @@
   ;; the parallel body of a function the C writes as one loop over a range
   ;; (match_lines, as editor/chunks.go's Chunks).  About four chunks a
   ;; worker, none smaller than 64, on as many workers as the machine has
-  ;; processors, each a thread with a stack of its own; a range of one chunk
-  ;; runs on the caller's thread, and a chunk that did not stops the chunks
-  ;; not yet started.  (work ed from to) must be the loop's over its part
-  ;; and write nothing another part reads.
+  ;; processors, each a thread with a stack of its own; a range of one
+  ;; chunk, or one worker, runs on the caller's thread, and a chunk that did
+  ;; not stops the chunks not yet started.  (work ed from to) must be the
+  ;; loop's over its part and write nothing another part reads.
   (define (chunks ed n work)
     (let* ([workers (processors)]
            [w (fx* 4 workers)]
            [size (fxmax 64 (fxquotient (fx+ n (fx- w 1)) w))])
-      (if (fx>= size n)
+      (if (or (fx= workers 1) (fx>= size n))
           (work ed 0 n)
           (let* ([count (fxquotient (fx+ n (fx- size 1)) size)]
                  [lock (make-mutex)]
@@ -341,19 +341,23 @@
       (with-mutex (shared-lock sh)
         (shared-stacks-set! sh (cons s (shared-stacks sh))))))
 
-  ;; the processors the machine has, counted once
+  ;; the processors the machine has, counted once -- or WHIMSICAL_WORKERS,
+  ;; when the environment says how many workers to use (1: the C's loop,
+  ;; on the caller's thread)
   (define nproc #f)
   (define (processors)
     (or nproc
-        (let ([n (guard (c [#t 1])
-                   (call-with-input-file "/proc/cpuinfo"
-                     (lambda (p)
-                       (let loop ([n 0])
-                         (let ([l (get-line p)])
-                           (cond
-                             [(eof-object? l) n]
-                             [(and (fx>= (string-length l) 9) (string=? (substring l 0 9) "processor")) (loop (fx+ n 1))]
-                             [else (loop n)]))))))])
+        (let* ([env (getenv "WHIMSICAL_WORKERS")]
+               [n (or (and env (string->number env))
+                      (guard (c [#t 1])
+                        (call-with-input-file "/proc/cpuinfo"
+                          (lambda (p)
+                            (let loop ([n 0])
+                              (let ([l (get-line p)])
+                                (cond
+                                  [(eof-object? l) n]
+                                  [(and (fx>= (string-length l) 9) (string=? (substring l 0 9) "processor")) (loop (fx+ n 1))]
+                                  [else (loop n)])))))))])
           (set! nproc (fxmin thread-stacks (fxmax 1 n)))
           nproc)))
 )

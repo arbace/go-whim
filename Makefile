@@ -23,7 +23,7 @@
 #   make                 fetch if the upstream moved, then every editor: bin/whim
 #                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
 #                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure),
-#                        bin/caprice (Haskell), bin/whimsy (Rust)
+#                        bin/caprice (Haskell), bin/whimsy (Rust), bin/whimsical (Scheme)
 #   make whim-build      the 145 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about fifteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
@@ -53,7 +53,7 @@ LDFLAGS = -static -no-pie -s
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar bin/caprice bin/whimsy  ## everything: fetch if the upstream moved, then the six editors and the jars
+all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar bin/caprice bin/whimsy bin/whimsical  ## everything: fetch if the upstream moved, then the seven editors and the jars
 
 # --- help -----------------------------------------------------------------
 # Every target worth asking for carries its own one-line description, as a `##`
@@ -330,6 +330,21 @@ bin/whimsy: src/whim-vim.c force  ## the editor in Rust: the module editor gener
 whim-test-rs:  ## the quick suite with the Rust editor too, required to answer as the C does
 	@go tool whim test --rust
 
+# The editor in Scheme (whimsical/, doc/SCHEME.md): the core cut from
+# src/whim-vim.c and written as the library (whimsical editor) by the
+# Scheme backend, compiled by Chez Scheme at optimize-level 3 with
+# whimsical's runtime, host and launcher into one boot file, converted to
+# vfasl and linked with Chez's kernel in lib/whimsical into the program
+# bin/whimsical.  Half a minute of Chez's time when the core moved; a build
+# whose core has not moved skips it.
+.PHONY: bin/whimsical
+bin/whimsical: src/whim-vim.c force  ## the editor in Scheme: the library (whimsical editor) generated, compiled by Chez Scheme
+	@go tool whim whimsical
+
+.PHONY: whim-test-scm
+whim-test-scm:  ## the quick suite with the Scheme editor too, required to answer as the C does
+	@go tool whim test --scheme
+
 # ==== the tests
 .PHONY: whim-test
 whim-test:  ## the quick suite: 80 key sessions, required to behave as HEAD's whim-vim.c does
@@ -351,8 +366,8 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy braaam.jar vijure.jar editor.lgo
-	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy .cache/caprice-suite .cache/whimsy-suite
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical braaam.jar vijure.jar editor.lgo
+	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

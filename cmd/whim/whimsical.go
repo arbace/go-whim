@@ -25,21 +25,25 @@ func scmGen(editorC, dir, scmOut string) error {
 	return nil
 }
 
-// runWhimsical builds the core in Scheme (whimsical/) from a whim-vim.c:
+// runWhimsical builds the editor in Scheme (whimsical/) from a whim-vim.c:
 // the core cut from it and written as the library (whimsical editor),
-// compiled by Chez Scheme with the runtime.
+// compiled by Chez Scheme with the runtime, the host and the launcher into
+// a boot file, and linked with Chez's kernel into a program.
 //
 //	whim whimsical [--out DIR] [FILE]
 //
 // FILE is src/whim-vim.c by default and DIR lib/whimsical, where the
-// libraries go. Chez's time and peak memory on the core are printed.
+// libraries and the boot files go; the program is bin/whimsical -- or
+// DIR/whimsical when DIR is given. Chez's time and peak memory on the core
+// are printed beside it.
 func runWhimsical(args []string) int {
-	file, out := "src/whim-vim.c", filepath.Join("lib", "whimsical")
+	file, out, prog := "src/whim-vim.c", filepath.Join("lib", "whimsical"), filepath.Join("bin", "whimsical")
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--out" && i+1 < len(args):
 			i++
 			out = args[i]
+			prog = filepath.Join(out, "whimsical")
 		case len(args[i]) > 0 && args[i][0] != '-':
 			file = args[i]
 		default:
@@ -47,11 +51,11 @@ func runWhimsical(args []string) int {
 			return 2
 		}
 	}
-	lib, st, err := whimsical.Build(scmGen, file, out)
+	_, st, err := whimsical.Build(scmGen, file, out, prog)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whim whimsical: %v\n", err)
 		return 1
 	}
-	fmt.Printf("  %-12s the core in Scheme (whimsical/), compiled; %s\n", lib, st)
+	fmt.Printf("  %-12s the core in Scheme (whimsical/), built in %s; %s\n", prog, out, st)
 	return 0
 }

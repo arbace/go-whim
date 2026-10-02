@@ -142,3 +142,27 @@ func firstLines(b []byte, n int) string {
 	}
 	return strings.Join(ls, "\n")
 }
+
+// Editors are instances: testdata/instances/main.ss runs four at once in
+// one process, each on a thread and a host of its own, and requires each to
+// exit 0 and its screen to show its own text and no other's --
+// editor/host_test.go's TestEditorsAreInstances, caprice's and whimsy's. It
+// runs on the libraries the build `make bin/whimsical` leaves compiled in
+// lib/whimsical; without one it skips.
+func TestEditorsAreInstances(t *testing.T) {
+	src, err := filepath.Abs(filepath.Join("..", "lib", "whimsical", "src"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(filepath.Join(src, "whimsical", "editor.so")); err != nil {
+		t.Skip("no whimsical build in lib/whimsical (make bin/whimsical)")
+	}
+	if _, err := exec.LookPath("chez"); err != nil {
+		t.Skip("no chez")
+	}
+	out, err := command("chez", "--libdirs", src, "--program", filepath.Join("testdata", "instances", "main.ss")).CombinedOutput()
+	if err != nil {
+		t.Fatalf("%v\n%s", err, out)
+	}
+	t.Logf("%s", out)
+}
