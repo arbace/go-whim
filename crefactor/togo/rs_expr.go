@@ -28,6 +28,7 @@ type rv struct {
 	chr   bool   // a character constant
 	null  bool   // a null pointer constant
 	str   []byte // a string literal's bytes, its NUL included: s is their address
+	base  *rv    // a pointer cast's operand: a cast of the cast casts it instead
 }
 
 // the precedences of Rust's expressions, tightest first
@@ -233,7 +234,18 @@ func (f *rfn) convFit(v rv, to string, fit bool) rv {
 		return rv{s: f.truth(v), ty: "bool", prec: pCmp}
 	case v.ty == "bool" && isIntTy(to):
 		return rv{s: wrap(v, pUnary) + " as " + to, ty: to, prec: pAs}
-	case isIntTy(v.ty) && isIntTy(to), isPtrTy(v.ty) && isPtrTy(to), isPtrTy(v.ty) && isIntTy(to), isIntTy(v.ty) && isPtrTy(to):
+	case isPtrTy(v.ty) && isPtrTy(to):
+		// a pointer's cast of a cast is one cast: `p as *mut c_void`, not
+		// `p as *mut i8 as *mut c_void`
+		if v.base != nil {
+			if v.base.ty == to {
+				return *v.base
+			}
+			v = *v.base
+		}
+		b := v
+		return rv{s: wrap(v, pAs) + " as " + to, ty: to, prec: pAs, base: &b}
+	case isIntTy(v.ty) && isIntTy(to), isPtrTy(v.ty) && isIntTy(to), isIntTy(v.ty) && isPtrTy(to):
 		return rv{s: wrap(v, pAs) + " as " + to, ty: to, prec: pAs}
 	case isFnTy(v.ty) && isFnTy(to):
 		return rv{s: "core::mem::transmute::<" + v.ty + ", " + to + ">(" + v.s + ")", ty: to}
@@ -1209,7 +1221,7 @@ func (f *rfn) assigned(x *cc.AssignmentExpression) ([]string, lval) {
 	}
 	op := assignOps[x.Case]
 	r := f.expr(x.AssignmentExpression)
-	if hasEffect(x.AssignmentExpression) && !r.konst {
+	if hasEffect(x.AssignmentExpression) && !r.konst && !f.ownLocal(x.UnaryExpression) {
 		// the right side's calls first, and then the lvalue read: gcc's
 		// order
 		t := f.temp(x.AssignmentExpression.Type())
@@ -1220,6 +1232,13 @@ func (f *rfn) assigned(x *cc.AssignmentExpression) ([]string, lval) {
 	v := f.conv(nv, lv.ty)
 	f.markWrite(x.UnaryExpression)
 	return append(stmts, lv.place+" = "+unparenRs(v.s)+";"), lv
+}
+
+// ownLocal says an lvalue is a local, or a member or element of one, whose
+// address is never taken: no call can change it.
+func (f *rfn) ownLocal(e cc.ExpressionNode) bool {
+	l := f.identLocal(e)
+	return l != nil && !l.addr && l.t.Kind() != cc.Array
 }
 
 // compound is lv op r's value: C's lv = (T)(lv op r), the operation in

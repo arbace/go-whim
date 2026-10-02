@@ -88,10 +88,14 @@ natively, without offsets of its own -- and C's control flow almost as it is.
 - **Every local is declared at the function's top, zeroed** -- C at -O0 keeps
   a local's value from one iteration of a loop to the next, which a Rust
   declaration in the body would not, and a goto's labeled block must not end
-  a local's scope -- and given its initializer where C declares it. C's
-  nested scopes are one Rust scope: a local takes a name of its own
-  (`i_2`), and never a constant's or a function's, which a `let` would read
-  as a pattern.
+  a local's scope -- and given its initializer where C declares it; **unless
+  the body first gives it a value in a statement of the function's own
+  block**, which is then its declaration, `let col: colnr_T = ...;`, `mut`
+  only where the rest of the body writes it again (`sinkDecls`): such a
+  statement is inside no loop and no labeled block, so every path to a later
+  use passes it, and the zero it replaces was never read. C's nested scopes
+  are one Rust scope: a local takes a name of its own (`i_2`), and never a
+  constant's or a function's, which a `let` would read as a pattern.
 
 ## Expressions
 
@@ -136,16 +140,19 @@ natively, without offsets of its own -- and C's control flow almost as it is.
 - **A goto is a labeled block** that ends at its label, the goto `break
   'g_label;` -- the Java backend's rule (`java_stmt.go`): every goto left in
   the core is a forward jump to a label of a block that holds it.
-- **A switch is a `match`** when no case falls into the next, each arm a
-  case's statements, the `break` that ends one dropped; one that falls
-  through is **a ladder of labeled blocks**, the match at its heart breaking
-  to the block whose end its case's statements follow, so that falling
-  through is going on:
+- **A switch is a `match`**, each arm a run of cases -- a case's statements
+  and those of the cases it falls into -- its patterns the C's constants'
+  names where it names them (`ESC =>`, `97 /* 'a' */ =>`), the default's
+  arm last, where Rust wants its catch-all. A run of one case is its
+  statements, the `break` that ends them dropped; a longer one is **a
+  ladder of labeled blocks**, the arm's value bound and matched again at its
+  heart, breaking to the block whose end its case's statements follow, so
+  that falling through is going on:
 
   ```
-  's: { 'c1: { 'c0: { match x { 1 => break 'c0, 2 => break 'c1, _ => break 's } }
-              case 1's statements }
-        case 2's statements }
+  v @ (1 | 2) => { 'v1: { 'v0: { match v { 1 => break 'v0, _ => break 'v1 } }
+                          case 1's statements }
+                   case 2's statements }
   ```
 
   This is C's shape kept; the plan's lowered form for these is not needed.
@@ -267,6 +274,35 @@ natively, without offsets of its own -- and C's control flow almost as it is.
 - **The build builds it**: `make` (`all`) builds `bin/whimsy`, which `go tool
   whim whimsy` makes from the core of `src/whim-vim.c` as it stands, and
   `make clean` removes it, `lib/whimsy` and the suite's cache.
+
+## After the milestones: what the printer took out (2026-10-02)
+
+Four changes of spelling, together held to the whole suite (all 80 and all 240,
+the heavy case 0.3 times the C's):
+
+- **a local declared where it is first given a value** at the function's
+  own level (above);
+- **a pointer's cast of a cast is one cast**: `p as *mut c_void`, not `p as
+  *mut i8 as *mut c_void` (the C's `(char *)` before a `void *` parameter);
+- **a compound assignment whose right side calls computes it first only
+  where the call could change the left side**: not for a local whose address
+  is never taken;
+- **a switch a match of runs of cases**, its patterns named (above): the 11
+  switches that fall through were one ladder each, the largest 40 blocks
+  deep; now a ladder is a run's alone.
+
+The module went from 65,299 lines to 62,836; rustc 37.9 s and 0.55 GB at
+the peak.
+
+## Not done
+
+- **Idiomatic Rust**, as `GO-IDIOMS.md` was for the Go and the `*-IDIOMS.md`
+  surveys for the others: the core is still C's memory and C's shape --
+  `unsafe` throughout, raw pointers, `wrapping_*`, the editor a struct of
+  the C's objects. Ownership, slices and `String` would be a survey of its
+  own.
+- **Miri** could check the module for undefined behaviour of Rust's own; it
+  is not on the machine and was not installed.
 
 ## Risks, named in advance
 

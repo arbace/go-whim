@@ -71,6 +71,8 @@ type rlocal struct {
 	temp    bool
 	rty     string // a temporary's Rust type, when no C type says it
 	unused  bool   // the body never names it
+	sunk    bool   // declared where it is first given a value (sinkDecls)
+	addr    bool   // its address is taken
 }
 
 // rctl is a construct a break or a continue may leave: a loop, a switch, or
@@ -158,8 +160,9 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		}
 	}
 	b.WriteString(r.signature(d, f, &usesEd) + " {\n")
+	body = f.sinkDecls(body)
 	for _, l := range f.order {
-		if l.param || l.unused {
+		if l.param || l.unused || l.sunk {
 			continue
 		}
 		mut := ""
@@ -171,6 +174,57 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	b.WriteString(body)
 	b.WriteString("}\n")
 	return b.String(), ""
+}
+
+// sinkDecls declares a local where the body first gives it a value, when
+// that is a statement of the function's own block -- `let x: T = v;` for
+// the top's `let mut x: T = 0;` and the body's `x = v;` -- `mut` only when
+// the rest of the body writes it again.  A statement at the function's own
+// level is inside no loop and no labeled block, so every path to a later
+// use passes it, and the zero it replaces was never read.
+func (f *rfn) sinkDecls(body string) string {
+	lines := strings.Split(body, "\n")
+	code := make([]string, len(lines))
+	for i, l := range lines {
+		code[i] = rsStrRe.ReplaceAllString(l, `b""`)
+	}
+	for _, l := range f.order {
+		if l.param || l.unused {
+			continue
+		}
+		// the local, not a member of the same name: `(*p).lnum` is no use of lnum
+		word := regexp.MustCompile(`(^|[^.\w])` + regexp.QuoteMeta(l.name) + `\b`)
+		first := -1
+		for i, c := range code {
+			if word.MatchString(c) {
+				first = i
+				break
+			}
+		}
+		if first < 0 {
+			continue
+		}
+		line := lines[first]
+		prefix := "    " + l.name + " = "
+		if !strings.HasPrefix(line, prefix) || strings.HasPrefix(line, "     ") || !strings.HasSuffix(line, ";") {
+			continue
+		}
+		rhs := strings.TrimSuffix(strings.TrimPrefix(code[first], prefix), ";")
+		if word.MatchString(rhs) || !rsBalanced(rhs) {
+			continue
+		}
+		write := regexp.MustCompile(`(^|[^.\w*])` + regexp.QuoteMeta(l.name) + `(\.\w+|\[[^\]]*\])*\s=[^=]|&raw mut ` + regexp.QuoteMeta(l.name) + `\b`)
+		mut := ""
+		for _, c := range code[first+1:] {
+			if write.MatchString(c) {
+				mut = "mut "
+				break
+			}
+		}
+		lines[first] = "    let " + mut + l.name + ": " + l.declTy(f.r) + " = " + strings.TrimPrefix(line, prefix)
+		l.sunk = true
+	}
+	return strings.Join(lines, "\n")
 }
 
 // structured prints the function's body as C's statements, or says why it
@@ -318,6 +372,7 @@ func (f *rfn) declareAll() {
 			case cc.UnaryExpressionAddrof:
 				if l := f.identLocal(x.CastExpression); l != nil {
 					l.mutated = true
+					l.addr = true
 				}
 			}
 		case *cc.PostfixExpression:
@@ -950,8 +1005,9 @@ func (f *rfn) jump(j *cc.JumpStatement) bool {
 
 // rcase is a group of a switch's items: its case labels and its statements.
 type rcase struct {
-	vals  []int64 // the values that come here
-	def   bool    // default comes here
+	vals  []int64  // the values that come here
+	pats  []string // each value as a pattern: its constant's name where C names one
+	def   bool     // default comes here
 	items []*cc.BlockItem
 }
 
@@ -982,7 +1038,9 @@ func (f *rfn) switchStmt(s *cc.SelectionStatement) bool {
 					if !ok {
 						f.no(lb, "a case of no constant value")
 					}
-					cur.vals = append(cur.vals, truncK(v, k))
+					v = truncK(v, k)
+					cur.vals = append(cur.vals, v)
+					cur.pats = append(cur.pats, f.casePattern(lb.ConstantExpression, v, ty))
 				case cc.LabeledStatementDefault:
 					cur.def = true
 				default:
@@ -993,27 +1051,48 @@ func (f *rfn) switchStmt(s *cc.SelectionStatement) bool {
 			continue
 		}
 		if cur == nil {
-			if it.Case == cc.BlockItemDecl {
-				continue // declared, its initializer never reached
-			}
-			continue // dead: before the first case
+			continue // before the first case: never reached, a declaration's initializer included
 		}
 		cur.items = append(cur.items, it)
 	}
-	falls := false
+	// the runs: a case's statements and those of the cases it falls into
+	var runs [][]*rcase
 	for i, g := range groups {
-		if i < len(groups)-1 && rsItemsComplete(g.items) {
-			falls = true
+		if i > 0 && rsItemsComplete(groups[i-1].items) {
+			runs[len(runs)-1] = append(runs[len(runs)-1], g)
+			continue
 		}
+		runs = append(runs, []*rcase{g})
 	}
 	f.nlbl++
-	c := &rctl{kind: ctlSwitch, label: fmt.Sprintf("s%d", f.nlbl), match: !falls}
-	if !falls {
+	c := &rctl{kind: ctlSwitch, label: fmt.Sprintf("s%d", f.nlbl), match: true}
+	if len(runs) == len(groups) {
 		f.r.nMatch++
-		return f.matchSwitch(xs, ty, groups, c)
+	} else {
+		f.r.nLadder++
 	}
-	f.r.nLadder++
-	return f.ladder(xs, ty, groups, c)
+	return f.matchSwitch(xs, ty, runs, c)
+}
+
+// casePattern is a case's value as a pattern of ty: the enumerator's name
+// where C names one of that type, else the number -- a character's with
+// the character beside it.
+func (f *rfn) casePattern(e cc.ExpressionNode, v int64, ty string) string {
+	if p, ok := unparenE(e).(*cc.PrimaryExpression); ok {
+		switch p.Case {
+		case cc.PrimaryExpressionIdent:
+			if en, ok := p.ResolvedTo().(*cc.Enumerator); ok {
+				if c := f.r.consts[en.Token.SrcStr()]; c != nil && c.ty == ty && c.v == v {
+					return c.name
+				}
+			}
+		case cc.PrimaryExpressionChar:
+			if v >= 32 && v < 127 && v != '*' && v != '/' {
+				return fmt.Sprintf("%s /* '%c' */", rsLit(v, ty), rune(v))
+			}
+		}
+	}
+	return rsLit(v, ty)
 }
 
 // rsItemsComplete says a case's items may go on into the next: the last
@@ -1028,6 +1107,7 @@ func rsItemsComplete(its []*cc.BlockItem) bool {
 	return jcompleteItems(cs)
 }
 
+// rsPattern is a case group's values as an or-pattern.
 func rsPattern(vals []int64, ty string) string {
 	var ps []string
 	for _, v := range vals {
@@ -1036,34 +1116,68 @@ func rsPattern(vals []int64, ty string) string {
 	return strings.Join(ps, " | ")
 }
 
-// matchSwitch is a switch no case of which falls into the next: a match,
-// each arm a case's statements, the break that ends one dropped.
-func (f *rfn) matchSwitch(x, ty string, groups []*rcase, c *rctl) bool {
+// matchSwitch is a switch as a match, an arm a run of cases: a case's
+// statements, and those of the cases it falls into.  A run of one case is
+// its statements, the break that ends them dropped; a longer one is a
+// ladder of labeled blocks, a match on the run's own value at its heart
+// breaking to the block whose end its case's statements follow, so that
+// falling through is going on:
+//
+//	v @ (1 | 2) => 'r1: { 'r0: { match v { 1 => break 'r0, _ => break 'r1 } }
+//	                      case 1's statements }
+//	               case 2's statements
+func (f *rfn) matchSwitch(x, ty string, runs [][]*rcase, c *rctl) bool {
 	f.ctl = append(f.ctl, c)
 	var arms []string
 	div := true
 	hasDef := false
-	for _, g := range groups {
-		its := g.items
-		// the break that ends the arm is the arm's end
+	for ri, run := range runs {
+		var pats []string
+		def := false
+		for _, g := range run {
+			pats = append(pats, g.pats...)
+			def = def || g.def
+		}
+		last := run[len(run)-1]
+		its := last.items
+		// the break that ends the run is the arm's end
 		if n := len(its); n > 0 && rsIsBreak(its[n-1]) {
 			its = its[:n-1]
 			c.broken = true
 		}
 		var adiv bool
-		body := f.capture(func() {
-			f.ind++
-			adiv = f.itemList(its)
-			f.ind--
-		})
-		if len(its) < len(g.items) {
+		var body string
+		bind := ""
+		if len(run) == 1 {
+			body = f.capture(func() {
+				f.ind++
+				adiv = f.itemList(its)
+				f.ind--
+			})
+		} else {
+			bind = fmt.Sprintf("v%d_%d", f.nlbl, ri)
+			body = f.capture(func() {
+				f.ind++
+				adiv = f.ladderRun(bind, ty, run, its)
+				f.ind--
+			})
+		}
+		if len(its) < len(last.items) {
 			adiv = false
 		}
 		div = div && adiv
-		pat := rsPattern(g.vals, ty)
-		if g.def {
+		pat := strings.Join(pats, " | ")
+		switch {
+		case def:
 			pat = "_"
 			hasDef = true
+			if bind != "" {
+				pat = bind
+			}
+		case bind != "" && len(pats) > 1:
+			pat = bind + " @ (" + pat + ")"
+		case bind != "":
+			pat = bind + " @ " + pat
 		}
 		if strings.TrimSpace(body) == "" {
 			arms = append(arms, fmt.Sprintf("%s => {}", pat))
@@ -1075,6 +1189,14 @@ func (f *rfn) matchSwitch(x, ty string, groups []*rcase, c *rctl) bool {
 	if !hasDef {
 		arms = append(arms, "_ => {}")
 		div = false
+	}
+	// the default's arm last, where Rust wants a catch-all: C's default
+	// takes what no case does, wherever it stands
+	for i, a := range arms {
+		if i < len(arms)-1 && rsCatchAll(a) {
+			arms = append(append(arms[:i:i], arms[i+1:]...), a)
+			break
+		}
 	}
 	if c.used {
 		f.line("'%s: {", c.label)
@@ -1092,61 +1214,62 @@ func (f *rfn) matchSwitch(x, ty string, groups []*rcase, c *rctl) bool {
 	return div && !c.broken
 }
 
-// rsIsBreak says an item is a break.
-func rsIsBreak(it *cc.BlockItem) bool {
-	return it.Case == cc.BlockItemStmt && it.Statement.Case == cc.StatementJump && it.Statement.JumpStatement.Case == cc.JumpStatementBreak
+// rsCatchAll says an arm's pattern takes every value: `_`, or a run's
+// binding alone.
+func rsCatchAll(arm string) bool {
+	p := strings.SplitN(arm, " => ", 2)[0]
+	return p == "_" || rsBindRe.MatchString(p)
 }
 
-// ladder is a switch some case of which falls into the next: each case's
-// statements follow the labeled block the match breaks to for its values,
-// the blocks nested so that one case's statements go on into the next's.
-//
-//	's: { 'c1: { 'c0: { match x { 1 => break 'c0, 2 => break 'c1, _ => break 's } }
-//	          case 1's statements }
-//	      case 2's statements }
-func (f *rfn) ladder(x, ty string, groups []*rcase, c *rctl) bool {
-	c.used = true
-	f.ctl = append(f.ctl, c)
-	labels := make([]string, len(groups))
-	for i := range groups {
-		labels[i] = fmt.Sprintf("%s_%d", c.label, i)
+var rsBindRe = regexp.MustCompile(`^v\d+_\d+$`)
+
+// ladderRun is a run of cases one of which falls into the next, its value
+// bound to v: the cases' statements one after the other, each after the
+// labeled block the match breaks to for its values, the last's items its.
+func (f *rfn) ladderRun(v, ty string, run []*rcase, lastItems []*cc.BlockItem) bool {
+	labels := make([]string, len(run))
+	for i := range run {
+		labels[i] = fmt.Sprintf("%s_%d", v, i)
 	}
 	var arms []string
-	def := c.label
-	for i, g := range groups {
-		if len(g.vals) > 0 {
-			arms = append(arms, fmt.Sprintf("%s => break '%s,", rsPattern(g.vals, ty), labels[i]))
+	def := ""
+	for i, g := range run {
+		if len(g.pats) > 0 {
+			arms = append(arms, fmt.Sprintf("%s => break '%s,", strings.Join(g.pats, " | "), labels[i]))
 		}
 		if g.def {
 			def = labels[i]
 		}
 	}
-	arms = append(arms, fmt.Sprintf("_ => break '%s,", def))
-	if def == c.label {
-		c.broken = true
+	if def == "" {
+		// every value the arm takes is a case's: the last's catches the rest
+		arms[len(arms)-1] = "_" + arms[len(arms)-1][strings.Index(arms[len(arms)-1], " => "):]
+	} else {
+		arms = append(arms, fmt.Sprintf("_ => break '%s,", def))
 	}
-	f.line("'%s: {", c.label)
-	f.ind++
-	for i := len(groups) - 1; i >= 0; i-- {
+	for i := len(run) - 1; i >= 0; i-- {
 		f.line("'%s: {", labels[i])
 	}
 	f.ind++
-	f.line("match %s {", x)
+	f.line("match %s {", v)
 	for _, a := range arms {
 		f.line("    %s", a)
 	}
 	f.line("}")
 	f.ind--
 	div := false
-	for i, g := range groups {
+	for i, g := range run {
 		f.line("}")
-		div = f.itemList(g.items)
-		if i == len(groups)-1 && !div {
-			c.broken = true
+		its := g.items
+		if i == len(run)-1 {
+			its = lastItems
 		}
+		div = f.itemList(its)
 	}
-	f.ind--
-	f.line("}")
-	f.ctl = f.ctl[:len(f.ctl)-1]
-	return div && !c.broken
+	return div
+}
+
+// rsIsBreak says an item is a break.
+func rsIsBreak(it *cc.BlockItem) bool {
+	return it.Case == cc.BlockItemStmt && it.Statement.Case == cc.StatementJump && it.Statement.JumpStatement.Case == cc.JumpStatementBreak
 }
