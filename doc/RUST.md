@@ -250,6 +250,19 @@ natively, without offsets of its own -- and C's control flow almost as it is.
   whimsy 111-131 ms over four runs of the suite; the Go 0.5-0.6) -- the
   release build at opt-level 2, and `match_lines` on every core.
 
+## Milestone 4: kept current (2026-10-02)
+
+- **The generated crate is tracked**: `whimsy/src/editor.rs`, written by `go
+  tool whim gen` beside `editor/editor.go`, `braaam/editor/`, `editor.clj`
+  and `Editor.hs`, from the same core, and refused outright when the
+  backend refuses any part of it; never edited by hand.
+- **`make whim-editor-check` refuses it stale**: a byte appended to it is
+  named (`editor.rs is NOT what the generator writes`), and `whim gen` puts
+  it back.
+- **The build builds it**: `make` (`all`) builds `bin/whimsy`, which `go tool
+  whim whimsy` makes from the core of `src/whim-vim.c` as it stands, and
+  `make clean` removes it, `lib/whimsy` and the suite's cache.
+
 ## Risks, named in advance
 
 - **Undefined behaviour of Rust's own.** Raw pointers only, never a reference

@@ -17,8 +17,8 @@ import (
 )
 
 // runGen writes editor/editor.go, braaam/Editor.java,
-// vijure/src/whim/editor.clj and caprice/Caprice/Editor.hs (with its
-// hs-boot) from the core of src/whim-vim.c (or FILE), and
+// vijure/src/whim/editor.clj, caprice/Caprice/Editor.hs (with its hs-boot)
+// and whimsy/src/editor.rs from the core of src/whim-vim.c (or FILE), and
 // internal/gen/sigs.md beside them -- or, with --check, refuses when any is
 // not what the generator writes.  It cuts the core itself (whim.Cut), as `whim
 // java` and `whim clj` do, into a directory of its own: nothing is written
@@ -121,10 +121,28 @@ func runGen(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim gen: the Haskell backend refused part of the core:\n%s", r)
 		return 1
 	}
+	// And in Rust (doc/RUST.md): the module editor of the crate whimsy,
+	// refusing nothing.
+	rdir, err := os.MkdirTemp("", "rsgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	defer os.RemoveAll(rdir)
+	rsOut := filepath.Join(out, "editor.rs")
+	if err := rsGen(editorC, rdir, rsOut); err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	if r, err := os.ReadFile(rsOut + ".refused"); err == nil && len(bytes.TrimSpace(r)) > 0 {
+		fmt.Fprintf(os.Stderr, "whim gen: the Rust backend refused part of the core:\n%s", r)
+		return 1
+	}
 	files := []struct{ made, tracked string }{
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
 		{cljOut, "vijure/src/whim/editor.clj"},
+		{rsOut, "whimsy/src/editor.rs"},
 	}
 	// the Haskell: the module, its hs-boot, and its parts
 	hsFiles, err := caprice.Generated(out)
@@ -214,6 +232,7 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s is what the Java backend writes from whim-vim.c\n", "whim.editor")
 		fmt.Printf("  %-12s is what the Clojure backend writes from whim-vim.c\n", "editor.clj")
 		fmt.Printf("  %-12s is what the Haskell backend writes from whim-vim.c\n", "Editor.hs")
+		fmt.Printf("  %-12s is what the Rust backend writes from whim-vim.c\n", "editor.rs")
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
@@ -237,6 +256,8 @@ func runGen(args []string) int {
 			n += bytes.Count(hs, []byte("\n"))
 		}
 		fmt.Printf("  %-12s %d lines in %d files, generated from whim-vim.c\n", "Editor.hs", n, len(hsFiles))
+		rs, _ := os.ReadFile("whimsy/src/editor.rs")
+		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.rs", bytes.Count(rs, []byte("\n")))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")
 	}
