@@ -15,6 +15,7 @@ import (
 // scmStats are the counts of what the printer wrote.
 type scmStats struct {
 	framed, joins, loops, cases, values, tuples int
+	tidy                                        scmTidyStats
 }
 
 // layout lists every struct and union C can name at file scope -- its

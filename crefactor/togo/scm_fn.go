@@ -150,7 +150,13 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		fmt.Fprintf(&b, "  (%s (%s)\n%s)", kw, strings.Join(binds, " "), indent(text, 4))
 	}
 	b.WriteString(")\n")
-	return b.String(), ""
+	// read back, tidied and laid out (scm_tidy.go)
+	void := f.ret == "void" && !f.sret && len(f.outs) == 0
+	src, err := scmTidy(b.String(), s.memNames(), void, &s.st.tidy)
+	if err != nil {
+		return "", fmt.Sprintf("the printed function does not read back: %v", err)
+	}
+	return src, ""
 }
 
 // print is the function's body: its local procedures, the parameters that

@@ -536,3 +536,100 @@ up to where they meet, and what both end with follows the branch, once:
 | `if` / `cond` / `when`+`unless` | 3,190 / 3,553 / 489 | 3,328 / 2,328 / 1,860 |
 | Chez on the core | 28.8 s, 0.73 GB | 26.6 s, 0.63 GB |
 | the heavy case | 0.9-1.0 times the C | 0.9 (C 446-450 ms, whimsical 395-403) |
+
+## The second pass (2026-10-02)
+
+From `2593f8f`, where the nine items above left `editor.ss` at 50,838
+lines. What a Scheme programmer would still object to was counted again on
+that library (a throwaway reader of its forms, `.tmp/scm2/measure.py`,
+`m2.py`-`m4.py`, not tracked), and most of it turned out to be of one
+kind: the printer composes its forms as text, a block at a time, and what
+is wrong shows only once a function is whole -- a line of a thousand
+columns, a join that one place calls, a loop's parameter that every jump
+back passes unchanged, a copy bound only to be read once. So most of this
+pass is one new piece of the backend, `crefactor/togo/scm_tidy.go`: each
+function the printer wrote is read back as forms, rewritten by rules each
+of which keeps what the function does, and printed again in a layout of its
+own (the Clojure backend's `clj_tidy.go` is its precedent). The rules see
+the text's scopes -- what each `let`, named `let`, `let-values`, `define`
+and `lambda` binds -- and the names that read memory (the C's objects and
+the frame's locals, which are macros of a load); each refuses where a name
+it would move could mean another binding, or another value, where it lands.
+
+Each item done was held to the whole recipe of the first pass and to more:
+`cd crefactor && go test ./togo` with a test of its own for each rule --
+`TestScmTidy*` on texts, and `TestScmTidy` a foreign C program every rule
+rewrites, run under Chez and held to gcc's output -- `go test ./whimsical`,
+`whim test --scheme` (all 80, the control seen by 76), `--wide --scheme`
+(all 240, the control seen by 94 keys and 6 pty cases), `--scheme-debug`
+(the safe build at optimize-level 2: all 80), the heavy case, `make
+whim-editor-check`, Chez's time and peak on the core, and gofmt, go vet
+and staticcheck on `crefactor/togo` and `whimsical/`. No shared analysis
+changed: `Editor.hs`, its parts and `editor.rs` are byte for byte what they
+were (sha256, before and after every item).
+
+### What was left, measured
+
+| | at `2593f8f` |
+| --- | ---: |
+| lines | 50,838 |
+| lines of the functions over 100 columns / over 160 / the longest | 6,674 / 3,267 / 1,017 |
+| named lets begun after other forms on a line, their body under the line's end | 124 |
+| joins (local procedures that are not loops) / called from one place | 3,538 / 1,228 |
+| named lets' bindings / of a name to itself that every jump back passes on | 2,797 / 2,001 |
+| the printer's temporaries `rN` / the lowering's `tN` (an increment's old value, `*d++`) | 660 / 470 |
+| `(and (and ...) ...)` / `(or (or ...) ...)` | 803 / 399 |
+| a comparison with zero: `(fx=? x 0)` / `(= x 0)`, `(eqv? x 0)` | 1,948 / 132 |
+| `(if (not x) ...)` | 175 |
+| an `if` whose else is an `if` (an expression's, which item 3 left) | 72 |
+| `case` clauses / doing what an earlier clause does / what the else does | 961 / 377 / 8 |
+| `(void)` | 109 |
+| case labels as numbers | 961 (all) |
+| signed `int` and `long` arithmetic through a wrapping helper (`i32+ i32- i32* i64+ i64- i64*`) | 4,340 |
+| unsigned (`u32+`, `u64-`...), shifts, division | 748 |
+| calls of the core's `musl_memmove` / `musl_memset` / `musl_memcpy`, each a loop a byte at a time | 151 / 69 / 8 |
+| raw loads / stores | 3,324 / 1,076: 2,299 `(ld-u8 p)`, 565 `(st-u8! p v)` |
+| ... of an array's element, `(ld-ptr (fx+ a (fx* i 8)))` | 464 |
+| aggregates in a call's frame / reached only through their members | 230 / 0 |
+| the host's glue called by its index, `(vector-ref (ed-glue ed) 3)` | 17 |
+
+### Ranked
+
+| Rank | Item | Who | Cost | Risk | Sites |
+| --- | --- | --- | --- | --- | ---: |
+| 1 | 10: a layout of the forms' own: lines within 100 columns, a named let under its line | `scm_tidy.go` (reader, printer) | M | none: the same forms | 6,674 lines, 124 lets |
+| 2 | 11: a join one place calls written where it is called | `scm_tidy.go` | M | low: scopes checked | 1,228 joins |
+| 3 | 12: a named let's bindings that never change taken out | `scm_tidy.go` | S | low: scopes checked | 2,001 bindings |
+| 4 | 13: copies, constants and increments in place | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
+| 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
+| 6 | 15: signed arithmetic as C means it, `fx+` and `+` | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
+| 7 | 16: the memory functions as the bytevector's own | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
+| 8 | 17: case labels by name | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
+| -- | an array's element by index, `(ld-ptr@ a i)` | -- | S | low | 464: declined, below |
+| -- | raw byte loads named | -- | -- | -- | declined, below |
+| -- | records for struct locals, Scheme strings, joins by dominance, the host's glue a record | -- | -- | -- | declined, below |
+
+### 10. A layout of the forms' own
+
+`scm_tidy.go` reads each function the printer wrote back as forms (`scmRead`:
+atoms, strings, characters, `'()`; anything else, a comment, refuses the
+function) and prints it again (`scmPrint`): a form on one line where it fits
+within 100 columns, closing brackets counted, or where it is 32 columns or
+fewer; else by what it is -- a `define`, a `let` and a named `let` with
+their bindings one to a line under the first and the body indented two, a
+`cond` and a `case` a clause to a line, an `if` its arms under its test, a
+`when` its body under it, `and` and `or` an operand to a line, a call its
+arguments under the first, as many to a line as fit. So a named let is
+always a body on lines of its own, where the text the printer composed had
+put it after an `if`'s test, its body indented under the line's end
+(`del_bytes`, 80 columns in).
+
+| | before | after |
+| --- | ---: | ---: |
+| lines | 50,838 | 64,591 |
+| lines of the functions over 100 columns / over 160 / the longest | 6,674 / 3,267 / 1,017 | 163 / 1 / 195 (a form 30 levels deep) |
+| named lets begun after other forms on a line | 124 | 0 |
+| Chez on the core | 26.6 s, 0.63 GB (36.8 s under this run's load) | 29.2 s, 0.63 GB |
+| the heavy case, nine runs interleaved, the load average 52-54 | C 471-621 ms, whimsical 494-665 | whimsical 490-677 |
+
+The forms are the same, so the compiled code is: what moved is lines.

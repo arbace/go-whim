@@ -212,6 +212,17 @@ func (g *gen) writeScm(path string) error {
 	return os.WriteFile(path, []byte(text), 0o644)
 }
 
+// memNames are the names of the file-scope objects the library defines
+// so far: a name that reads memory where it is used.
+func (s *sgen) memNames() map[string]bool {
+	out := map[string]bool{}
+	for _, o := range s.objects {
+		out[o.name] = true
+		out["&"+o.name] = true
+	}
+	return out
+}
+
 // analyses are what the Scheme decides about the C as the Haskell does
 // (cfacts.go): the layout, the out-parameters, the struct values, the
 // effects -- its runtime bodies' callers and the host's written by hand.
