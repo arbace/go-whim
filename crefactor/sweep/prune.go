@@ -211,6 +211,29 @@ type analysis struct {
 
 var identRe = regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*`)
 
+// identSpans calls f with each match of identRe in b, in order, without the
+// regexp machine or the slice of slices FindAllIndex builds: an identifier
+// starts at a letter or an underscore and runs over every identifier byte
+// after it, which is what the leftmost-first, greedy pattern matches.  The
+// sweep scans every definition this way on every round of every phase; by
+// the regexp it was 15 s of the in-order build's CPU.  TestIdentSpans holds
+// it to identRe on the input and the product.
+func identSpans(b []byte, f func(s, e int)) {
+	for i := 0; i < len(b); {
+		c := b[i]
+		if c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' {
+			j := i + 1
+			for j < len(b) && isIdent(b[j]) {
+				j++
+			}
+			f(i, j)
+			i = j
+			continue
+		}
+		i++
+	}
+}
+
 func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, *cc.AST, error) {
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
@@ -505,24 +528,24 @@ func (a *analysis) enumDef(x *cc.EnumSpecifier) *ent {
 func (a *analysis) scan(lo, hi int, skip [][2]int) []string {
 	seen := map[string]bool{}
 	var out []string
-	for _, m := range identRe.FindAllIndex(a.blank[lo:hi], -1) {
-		s, e := m[0]+lo, m[1]+lo
+	identSpans(a.blank[lo:hi], func(s, e int) {
+		s, e = s+lo, e+lo
 		if s > 0 && isIdent(a.blank[s-1]) {
-			continue // the tail of a number
+			return // the tail of a number
 		}
 		if inside(s, skip) {
-			continue
+			return
 		}
 		ns := a.classify(s)
 		if ns == "o:" && a.local[s] {
-			continue
+			return
 		}
 		k := ns + string(a.blank[s:e])
 		if !seen[k] {
 			seen[k] = true
 			out = append(out, k)
 		}
-	}
+	})
 	return out
 }
 
@@ -576,12 +599,16 @@ func inside(p int, skip [][2]int) bool {
 }
 
 func hasWord(b []byte, w string, skip [][2]int, base int) bool {
-	for _, m := range identRe.FindAllIndex(b, -1) {
-		if string(b[m[0]:m[1]]) == w && !inside(m[0]+base, skip) {
-			return true
-		}
+	if !bytes.Contains(b, []byte(w)) {
+		return false
 	}
-	return false
+	found := false
+	identSpans(b, func(s, e int) {
+		if !found && string(b[s:e]) == w && !inside(s+base, skip) {
+			found = true
+		}
+	})
+	return found
 }
 
 // ---- the closure -----------------------------------------------------------
