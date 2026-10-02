@@ -171,6 +171,17 @@ func (r *rgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 		if l.param || l.unused || l.sunk {
 			continue
 		}
+		if !f.lowered_ {
+			if ok, mut := f.deferred(l); ok {
+				// every read after a store: no value of its own (rs_defer.go)
+				m := ""
+				if mut {
+					m = "mut "
+				}
+				fmt.Fprintf(&b, "    let %s%s: %s;\n", m, l.name, l.declTy(r))
+				continue
+			}
+		}
 		mut := ""
 		if l.mutated {
 			mut = "mut "

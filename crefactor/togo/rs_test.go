@@ -445,3 +445,33 @@ func TestRsRefs(t *testing.T) {
 		}
 	}
 }
+
+// rsDeferC is locals first given a value in both arms of an if, in every
+// case of a switch, or before a loop -- declared with no value, `mut` only
+// where a path stores twice (rs_defer.go) -- beside one a path reads
+// before any store, which keeps its zero.
+const rsDeferC = javaHost + `
+int arms(int c) { int x; if (c > 0) x = 1; else x = -1; return x; }
+int cases(int c) { int y; switch (c) { case 1: y = 10; break; case 2: case 3: y = 20; break; default: y = 0; } return y; }
+int loop(int n) { int s, i; s = 0; for (i = 0; i < n; i++) s += i; return s; }
+int maybe(int c) { int z; if (c) z = 5; while (c-- > 0) z = c; return c > 100 ? z : 0; }
+int once(int c) { int w; do { if (c) { w = 1; break; } w = 2; } while (0); return w; }
+
+void run(void)
+{
+    out(arms(3)); out(arms(-3));
+    out(cases(1)); out(cases(3)); out(cases(9));
+    out(loop(5));
+    out(maybe(0));
+    out(once(0)); out(once(1));
+}
+`
+
+func TestRsDefer(t *testing.T) {
+	prog := rsSame(t, rsDeferC, Profile{}, javaHarnessC)
+	for _, s := range []string{"let x: i32;", "let y: i32;", "let w: i32;", "let mut z: i32 = 0;"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+}
